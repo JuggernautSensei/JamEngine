@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Base.cpp">
+      <Filter>98. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="DataType.cpp">
+      <Filter>98. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Macros.cpp">
+      <Filter>98. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Error.cpp">
+      <Filter>98. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>2. Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="StringUtilities.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="98. Base">
+      <UniqueIdentifier>{933d5f72-246a-4053-ab13-7354e5972700}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Config">
+      <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="0. Include">
+      <UniqueIdentifier>{7b1cf538-f48a-489e-8d06-5a1d992dcc40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Platform">
+      <UniqueIdentifier>{75882a70-3fb8-40ec-988b-13e9bb48828c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer">
+      <UniqueIdentifier>{7e87f941-ee9f-42c4-8e36-9c6b8c9758b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Log">
+      <UniqueIdentifier>{3580285b-7767-4b23-aa73-a974c4aed67c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Utilities">
+      <UniqueIdentifier>{348ab829-ff51-4e7b-85b2-dc5dcff535d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core">
+      <UniqueIdentifier>{695115ad-f046-4a59-b7b9-50663d492e77}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Base.h">
+      <Filter>98. Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>99. Config</Filter>
+    </ClInclude>
+    <ClInclude Include="DataType.h">
+      <Filter>98. Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Macros.h">
+      <Filter>98. Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>98. Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>2. Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="StringUtilities.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="EntryPoint.h">
+      <Filter>1. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="JamEngine.h">
+      <Filter>0. Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format">
+      <Filter>99. Config</Filter>
+    </None>
+    <None Include=".editorconfig">
+      <Filter>99. Config</Filter>
+    </None>
+  </ItemGroup>
+</Project>
