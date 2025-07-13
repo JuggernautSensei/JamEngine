@@ -1,4 +1,4 @@
-#include "Base.h"
+#include "pch.h"
 
 #include "StringUtilities.h"
 
@@ -10,7 +10,7 @@ std::wstring ConvertToWideString(const std::string_view _str)
     const char* str = _str.data();
 
     // 사이즈 계산
-    int size = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
+    const int size = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
 
     std::wstring wStr;
     wStr.resize(size);
@@ -25,7 +25,7 @@ std::string ConvertToString(const std::wstring_view _wStr)
     const wchar_t* wStr = _wStr.data();
 
     // 사이즈 계산
-    int size = WideCharToMultiByte(CP_UTF8, 0, wStr, -1, nullptr, 0, nullptr, nullptr);
+    const int size = WideCharToMultiByte(CP_UTF8, 0, wStr, -1, nullptr, 0, nullptr, nullptr);
 
     std::string str;
     str.resize(size);

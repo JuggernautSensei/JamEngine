@@ -1,11 +1,18 @@
 #pragma once
+#include "Application.h"
 
-#include "Log.h"
+// define this instead of main function in your application
+#ifdef JAM_ENTRY_POINT_MAIN
 
-int main(char **argv, int argc) 
+inline int main(char** argv, const int argc)
 {
     using namespace jam;
-    Log::Initialize();
-    Log::Shutdown();
-    return 0;
+    const CommandLineArguments args = CommandLineArguments { argv, argc };
+    Application::CreateInstance(args);
+    Application& app    = Application::GetInstance();
+    const int    result = app.Run();
+    Application::DestroyInstance();
+    return result;
 }
+
+#endif

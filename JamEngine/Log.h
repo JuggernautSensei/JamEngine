@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#define FMT_UNICODE 0
 #include <spdlog/spdlog.h>
 
 namespace jam

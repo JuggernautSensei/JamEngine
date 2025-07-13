@@ -1,4 +1,4 @@
-#include "Base.h"
+#include "pch.h"
 
 #include "Timer.h"
 
@@ -8,9 +8,9 @@ namespace jam
 TimeStamp TimeStamp::Create()
 {
     using namespace std::chrono;
-    auto        now = system_clock::now();
-    auto        ms  = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
-    std::time_t t   = system_clock::to_time_t(now);
+    const auto        now = system_clock::now();
+    const auto        ms  = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+    const std::time_t t   = system_clock::to_time_t(now);
     std::tm     tm;
     TimeStamp   stamp;
 

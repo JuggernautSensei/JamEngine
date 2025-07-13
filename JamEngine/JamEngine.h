@@ -1,3 +1,6 @@
 #pragma once
 
-#include "Base.h"
+// precompiled header
+#include "pch.h"
+
+#include "EntryPoint.h"

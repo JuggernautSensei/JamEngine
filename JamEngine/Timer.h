@@ -15,8 +15,8 @@ public:
     void End()
     {
         JAM_ASSERT(m_bRunning, "Timer is not running. Call Start() first.");
-        auto endCounter = std::chrono::steady_clock::now();
-        auto duration   = std::chrono::duration_cast<std::chrono::nanoseconds>(endCounter - m_startCounter).count();
+        const auto endCounter = std::chrono::steady_clock::now();
+        const auto duration   = std::chrono::duration_cast<std::chrono::nanoseconds>(endCounter - m_startCounter).count();
         m_durationSec += static_cast<float>(duration) / 1e9f;   // ns -> sec
         m_bRunning = false;
     }
@@ -24,8 +24,8 @@ public:
     void Tick()
     {
         JAM_ASSERT(m_bRunning, "Timer is not running. Call Start() first.");
-        auto endCounter = std::chrono::steady_clock::now();
-        auto duration   = std::chrono::duration_cast<std::chrono::nanoseconds>(endCounter - m_startCounter).count();
+        const auto endCounter = std::chrono::steady_clock::now();
+        const auto duration   = std::chrono::duration_cast<std::chrono::nanoseconds>(endCounter - m_startCounter).count();
         m_durationSec += static_cast<float>(duration) / 1e9f;   // ns -> sec
         m_startCounter = endCounter;
     }

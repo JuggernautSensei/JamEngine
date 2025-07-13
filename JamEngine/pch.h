@@ -48,4 +48,5 @@
 #include "Error.h"
 #include "Macros.h"
 //
+#include "TypeTrait.h"
 #include "Log.h"

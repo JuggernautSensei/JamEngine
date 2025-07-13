@@ -41,7 +41,7 @@ public:
 
     void Set(const char* _str)
     {
-        size_t len = std::strlen(_str);
+        const size_t len = std::strlen(_str);
         Set(_str, len);
     }
 
@@ -54,7 +54,7 @@ public:
 
     void Append(const FString& other)
     {
-        size_t len = other.Size();
+        const size_t len = other.Size();
         m_size     = std::min(m_size + len, k_availableCapacity);
         std::memcpy(m_str + m_size, other.CStr(), len);
         m_str[m_size] = '\0';

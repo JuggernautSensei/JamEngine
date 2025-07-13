@@ -35,7 +35,7 @@ void ReportError(std::string_view _msg, const std::source_location& = std::sourc
 #    define JAM_ASSERT_IMPL(cond_, msg_) \
         do                               \
         {                                \
-            if (cond_)                   \
+            if (!(cond_))                \
             {                            \
                 JAM_ERROR_IMPL(msg_);    \
             }                            \
