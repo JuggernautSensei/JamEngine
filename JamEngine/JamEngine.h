@@ -4,3 +4,4 @@
 #include "pch.h"
 
 #include "EntryPoint.h"
+#include "Application.h"

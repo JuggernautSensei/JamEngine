@@ -1,0 +1,2166 @@
+[2025-07-14 17:25:00.801] [trace] log system initialized
+[2025-07-14 17:25:00.801] [info] Argument 0: C:\Users\ajw01\Desktop\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-14 17:25:00.840] [trace] occurred event: WindowResizeEvent: width: 784, height: 561
+[2025-07-14 17:25:00.840] [trace] occurred event: WindowMoveEvent: x: 108, y: 131
+[2025-07-14 17:25:00.845] [debug] delta time 0.0049904 sec 200.38475 fps
+[2025-07-14 17:25:00.849] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.853] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.857] [debug] delta time 3.9999998e-07 sec 2500000.2 fps
+[2025-07-14 17:25:00.861] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.865] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.870] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.874] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.878] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.882] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.886] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.891] [debug] delta time 0.0026262999 sec 380.76382 fps
+[2025-07-14 17:25:00.895] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.899] [debug] delta time 0.0013857 sec 721.6569 fps
+[2025-07-14 17:25:00.903] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.907] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.911] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.915] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.920] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.924] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.928] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.932] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.936] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.940] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.945] [debug] delta time 5e-07 sec 2000000 fps
+[2025-07-14 17:25:00.949] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.953] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.957] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.961] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.965] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.970] [debug] delta time 0.0013656999 sec 732.2253 fps
+[2025-07-14 17:25:00.974] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.978] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:00.982] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.986] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.990] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:00.995] [debug] delta time 5.64e-05 sec 17730.496 fps
+[2025-07-14 17:25:00.999] [debug] delta time 1.42e-05 sec 70422.54 fps
+[2025-07-14 17:25:01.003] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.007] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.011] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.015] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.020] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.024] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.028] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.032] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.036] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.040] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.045] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.049] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.053] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.057] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.061] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.065] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.070] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.074] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:01.078] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.082] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.086] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.090] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.095] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.099] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.103] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.107] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.111] [debug] delta time 1.7999999e-05 sec 55555.56 fps
+[2025-07-14 17:25:01.115] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.120] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.124] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.128] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.132] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.136] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.140] [debug] delta time 5e-07 sec 2000000 fps
+[2025-07-14 17:25:01.145] [debug] delta time 1.6599999e-05 sec 60240.97 fps
+[2025-07-14 17:25:01.149] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.153] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.157] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.161] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.165] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.170] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.174] [debug] delta time 3.9999998e-07 sec 2500000.2 fps
+[2025-07-14 17:25:01.178] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.182] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.186] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.190] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.195] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.199] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.203] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.207] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.211] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.215] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.220] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.224] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.228] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.232] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.236] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.240] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.245] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.249] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.253] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.257] [debug] delta time 0.0003855 sec 2594.0337 fps
+[2025-07-14 17:25:01.261] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.265] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.270] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.274] [debug] delta time 1.64e-05 sec 60975.613 fps
+[2025-07-14 17:25:01.278] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.282] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.286] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.290] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.295] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.299] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.303] [debug] delta time 1.19e-05 sec 84033.62 fps
+[2025-07-14 17:25:01.307] [debug] delta time 7.17e-05 sec 13947.001 fps
+[2025-07-14 17:25:01.311] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.315] [debug] delta time 1.5199999e-05 sec 65789.48 fps
+[2025-07-14 17:25:01.320] [debug] delta time 3.9999998e-07 sec 2500000.2 fps
+[2025-07-14 17:25:01.324] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.328] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.332] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.336] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.340] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.345] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.349] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.353] [debug] delta time 1.01e-05 sec 99009.91 fps
+[2025-07-14 17:25:01.357] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.361] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.365] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.370] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.374] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.378] [debug] delta time 1.63e-05 sec 61349.69 fps
+[2025-07-14 17:25:01.382] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.386] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.390] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.395] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.399] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.403] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.407] [debug] delta time 6.56e-05 sec 15243.903 fps
+[2025-07-14 17:25:01.411] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.415] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.420] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.424] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.428] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.432] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.436] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.440] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.445] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.449] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.453] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.457] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.461] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.465] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.470] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.474] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.478] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.482] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.486] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.490] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.495] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.499] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.503] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.507] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.511] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.515] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.520] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.524] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.528] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.532] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.536] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.540] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.545] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.549] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.553] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.557] [debug] delta time 7.45e-05 sec 13422.818 fps
+[2025-07-14 17:25:01.561] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.565] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.570] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.574] [debug] delta time 0.000861 sec 1161.4402 fps
+[2025-07-14 17:25:01.578] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.582] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.586] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.590] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.595] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.599] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.603] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.607] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.611] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.615] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.620] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.624] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.628] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.632] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.636] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.640] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.645] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.649] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.653] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.657] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.661] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.665] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.670] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.674] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.678] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.682] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.686] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.690] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.695] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.699] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.703] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.707] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.711] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.715] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.720] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.724] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.728] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.732] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.736] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.740] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.745] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.749] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.753] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.757] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.761] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.765] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.770] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.774] [debug] delta time 1.5599999e-05 sec 64102.57 fps
+[2025-07-14 17:25:01.778] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.782] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.786] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.790] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.795] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.799] [debug] delta time 1.64e-05 sec 60975.613 fps
+[2025-07-14 17:25:01.803] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.807] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.811] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.815] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.820] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.824] [debug] delta time 0.001083 sec 923.361 fps
+[2025-07-14 17:25:01.828] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.832] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.836] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:01.840] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.845] [debug] delta time 1.5e-05 sec 66666.67 fps
+[2025-07-14 17:25:01.849] [debug] delta time 0.0010484 sec 953.8345 fps
+[2025-07-14 17:25:01.853] [debug] delta time 4.43e-05 sec 22573.363 fps
+[2025-07-14 17:25:01.857] [debug] delta time 0.0003136 sec 3188.7754 fps
+[2025-07-14 17:25:01.862] [debug] delta time 0.0036084 sec 277.13113 fps
+[2025-07-14 17:25:01.870] [debug] delta time 0.0046031 sec 217.2449 fps
+[2025-07-14 17:25:01.870] [debug] delta time 0.00041809998 sec 2391.7725 fps
+[2025-07-14 17:25:01.878] [debug] delta time 0.0048169 sec 207.6024 fps
+[2025-07-14 17:25:01.878] [debug] delta time 0.0003706 sec 2698.3271 fps
+[2025-07-14 17:25:01.882] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:01.886] [debug] delta time 0.0003481 sec 2872.7378 fps
+[2025-07-14 17:25:01.890] [debug] delta time 0.00080579997 sec 1241.0028 fps
+[2025-07-14 17:25:01.895] [debug] delta time 7.2999997e-06 sec 136986.31 fps
+[2025-07-14 17:25:01.903] [debug] delta time 0.0058767 sec 170.16353 fps
+[2025-07-14 17:25:01.903] [debug] delta time 4.9799997e-05 sec 20080.322 fps
+[2025-07-14 17:25:01.908] [debug] delta time 0.0015162999 sec 659.5001 fps
+[2025-07-14 17:25:02.019] [trace] occurred event: WindowMoveEvent: x: 106, y: 136
+[2025-07-14 17:25:02.021] [trace] occurred event: WindowMoveEvent: x: 106, y: 137
+[2025-07-14 17:25:02.023] [trace] occurred event: WindowMoveEvent: x: 106, y: 138
+[2025-07-14 17:25:02.025] [trace] occurred event: WindowMoveEvent: x: 106, y: 140
+[2025-07-14 17:25:02.027] [trace] occurred event: WindowMoveEvent: x: 106, y: 141
+[2025-07-14 17:25:02.029] [trace] occurred event: WindowMoveEvent: x: 106, y: 143
+[2025-07-14 17:25:02.031] [trace] occurred event: WindowMoveEvent: x: 106, y: 145
+[2025-07-14 17:25:02.033] [trace] occurred event: WindowMoveEvent: x: 106, y: 148
+[2025-07-14 17:25:02.035] [trace] occurred event: WindowMoveEvent: x: 107, y: 152
+[2025-07-14 17:25:02.037] [trace] occurred event: WindowMoveEvent: x: 108, y: 155
+[2025-07-14 17:25:02.040] [trace] occurred event: WindowMoveEvent: x: 108, y: 158
+[2025-07-14 17:25:02.041] [trace] occurred event: WindowMoveEvent: x: 109, y: 162
+[2025-07-14 17:25:02.043] [trace] occurred event: WindowMoveEvent: x: 109, y: 165
+[2025-07-14 17:25:02.045] [trace] occurred event: WindowMoveEvent: x: 110, y: 168
+[2025-07-14 17:25:02.047] [trace] occurred event: WindowMoveEvent: x: 111, y: 171
+[2025-07-14 17:25:02.049] [trace] occurred event: WindowMoveEvent: x: 112, y: 175
+[2025-07-14 17:25:02.051] [trace] occurred event: WindowMoveEvent: x: 113, y: 180
+[2025-07-14 17:25:02.053] [trace] occurred event: WindowMoveEvent: x: 113, y: 184
+[2025-07-14 17:25:02.056] [trace] occurred event: WindowMoveEvent: x: 114, y: 188
+[2025-07-14 17:25:02.058] [trace] occurred event: WindowMoveEvent: x: 115, y: 194
+[2025-07-14 17:25:02.059] [trace] occurred event: WindowMoveEvent: x: 116, y: 198
+[2025-07-14 17:25:02.061] [trace] occurred event: WindowMoveEvent: x: 117, y: 203
+[2025-07-14 17:25:02.064] [trace] occurred event: WindowMoveEvent: x: 118, y: 207
+[2025-07-14 17:25:02.066] [trace] occurred event: WindowMoveEvent: x: 120, y: 213
+[2025-07-14 17:25:02.067] [trace] occurred event: WindowMoveEvent: x: 121, y: 217
+[2025-07-14 17:25:02.070] [trace] occurred event: WindowMoveEvent: x: 123, y: 223
+[2025-07-14 17:25:02.072] [trace] occurred event: WindowMoveEvent: x: 123, y: 227
+[2025-07-14 17:25:02.074] [trace] occurred event: WindowMoveEvent: x: 125, y: 232
+[2025-07-14 17:25:02.076] [trace] occurred event: WindowMoveEvent: x: 127, y: 236
+[2025-07-14 17:25:02.077] [trace] occurred event: WindowMoveEvent: x: 129, y: 242
+[2025-07-14 17:25:02.080] [trace] occurred event: WindowMoveEvent: x: 131, y: 248
+[2025-07-14 17:25:02.082] [trace] occurred event: WindowMoveEvent: x: 132, y: 252
+[2025-07-14 17:25:02.084] [trace] occurred event: WindowMoveEvent: x: 134, y: 257
+[2025-07-14 17:25:02.086] [trace] occurred event: WindowMoveEvent: x: 135, y: 261
+[2025-07-14 17:25:02.088] [trace] occurred event: WindowMoveEvent: x: 137, y: 266
+[2025-07-14 17:25:02.090] [trace] occurred event: WindowMoveEvent: x: 140, y: 272
+[2025-07-14 17:25:02.092] [trace] occurred event: WindowMoveEvent: x: 142, y: 276
+[2025-07-14 17:25:02.094] [trace] occurred event: WindowMoveEvent: x: 144, y: 279
+[2025-07-14 17:25:02.096] [trace] occurred event: WindowMoveEvent: x: 145, y: 284
+[2025-07-14 17:25:02.098] [trace] occurred event: WindowMoveEvent: x: 148, y: 289
+[2025-07-14 17:25:02.100] [trace] occurred event: WindowMoveEvent: x: 150, y: 292
+[2025-07-14 17:25:02.102] [trace] occurred event: WindowMoveEvent: x: 153, y: 297
+[2025-07-14 17:25:02.103] [trace] occurred event: WindowMoveEvent: x: 154, y: 300
+[2025-07-14 17:25:02.105] [trace] occurred event: WindowMoveEvent: x: 156, y: 303
+[2025-07-14 17:25:02.107] [trace] occurred event: WindowMoveEvent: x: 158, y: 307
+[2025-07-14 17:25:02.109] [trace] occurred event: WindowMoveEvent: x: 160, y: 310
+[2025-07-14 17:25:02.111] [trace] occurred event: WindowMoveEvent: x: 162, y: 313
+[2025-07-14 17:25:02.114] [trace] occurred event: WindowMoveEvent: x: 164, y: 317
+[2025-07-14 17:25:02.115] [trace] occurred event: WindowMoveEvent: x: 166, y: 320
+[2025-07-14 17:25:02.118] [trace] occurred event: WindowMoveEvent: x: 168, y: 323
+[2025-07-14 17:25:02.120] [trace] occurred event: WindowMoveEvent: x: 170, y: 326
+[2025-07-14 17:25:02.121] [trace] occurred event: WindowMoveEvent: x: 172, y: 329
+[2025-07-14 17:25:02.123] [trace] occurred event: WindowMoveEvent: x: 174, y: 332
+[2025-07-14 17:25:02.125] [trace] occurred event: WindowMoveEvent: x: 176, y: 335
+[2025-07-14 17:25:02.127] [trace] occurred event: WindowMoveEvent: x: 177, y: 338
+[2025-07-14 17:25:02.129] [trace] occurred event: WindowMoveEvent: x: 179, y: 340
+[2025-07-14 17:25:02.131] [trace] occurred event: WindowMoveEvent: x: 180, y: 342
+[2025-07-14 17:25:02.133] [trace] occurred event: WindowMoveEvent: x: 182, y: 345
+[2025-07-14 17:25:02.135] [trace] occurred event: WindowMoveEvent: x: 184, y: 348
+[2025-07-14 17:25:02.137] [trace] occurred event: WindowMoveEvent: x: 185, y: 350
+[2025-07-14 17:25:02.139] [trace] occurred event: WindowMoveEvent: x: 186, y: 352
+[2025-07-14 17:25:02.141] [trace] occurred event: WindowMoveEvent: x: 188, y: 354
+[2025-07-14 17:25:02.143] [trace] occurred event: WindowMoveEvent: x: 189, y: 356
+[2025-07-14 17:25:02.145] [trace] occurred event: WindowMoveEvent: x: 191, y: 358
+[2025-07-14 17:25:02.148] [trace] occurred event: WindowMoveEvent: x: 192, y: 360
+[2025-07-14 17:25:02.149] [trace] occurred event: WindowMoveEvent: x: 193, y: 363
+[2025-07-14 17:25:02.151] [trace] occurred event: WindowMoveEvent: x: 195, y: 365
+[2025-07-14 17:25:02.153] [trace] occurred event: WindowMoveEvent: x: 196, y: 366
+[2025-07-14 17:25:02.155] [trace] occurred event: WindowMoveEvent: x: 197, y: 369
+[2025-07-14 17:25:02.157] [trace] occurred event: WindowMoveEvent: x: 198, y: 370
+[2025-07-14 17:25:02.159] [trace] occurred event: WindowMoveEvent: x: 198, y: 372
+[2025-07-14 17:25:02.161] [trace] occurred event: WindowMoveEvent: x: 199, y: 374
+[2025-07-14 17:25:02.163] [trace] occurred event: WindowMoveEvent: x: 200, y: 377
+[2025-07-14 17:25:02.165] [trace] occurred event: WindowMoveEvent: x: 201, y: 378
+[2025-07-14 17:25:02.167] [trace] occurred event: WindowMoveEvent: x: 202, y: 380
+[2025-07-14 17:25:02.169] [trace] occurred event: WindowMoveEvent: x: 203, y: 381
+[2025-07-14 17:25:02.171] [trace] occurred event: WindowMoveEvent: x: 204, y: 384
+[2025-07-14 17:25:02.173] [trace] occurred event: WindowMoveEvent: x: 205, y: 386
+[2025-07-14 17:25:02.175] [trace] occurred event: WindowMoveEvent: x: 206, y: 388
+[2025-07-14 17:25:02.178] [trace] occurred event: WindowMoveEvent: x: 206, y: 389
+[2025-07-14 17:25:02.179] [trace] occurred event: WindowMoveEvent: x: 207, y: 392
+[2025-07-14 17:25:02.181] [trace] occurred event: WindowMoveEvent: x: 208, y: 393
+[2025-07-14 17:25:02.183] [trace] occurred event: WindowMoveEvent: x: 209, y: 395
+[2025-07-14 17:25:02.186] [trace] occurred event: WindowMoveEvent: x: 210, y: 398
+[2025-07-14 17:25:02.187] [trace] occurred event: WindowMoveEvent: x: 210, y: 399
+[2025-07-14 17:25:02.190] [trace] occurred event: WindowMoveEvent: x: 211, y: 401
+[2025-07-14 17:25:02.191] [trace] occurred event: WindowMoveEvent: x: 212, y: 402
+[2025-07-14 17:25:02.194] [trace] occurred event: WindowMoveEvent: x: 213, y: 405
+[2025-07-14 17:25:02.195] [trace] occurred event: WindowMoveEvent: x: 213, y: 407
+[2025-07-14 17:25:02.197] [trace] occurred event: WindowMoveEvent: x: 214, y: 408
+[2025-07-14 17:25:02.199] [trace] occurred event: WindowMoveEvent: x: 215, y: 410
+[2025-07-14 17:25:02.201] [trace] occurred event: WindowMoveEvent: x: 215, y: 412
+[2025-07-14 17:25:02.203] [trace] occurred event: WindowMoveEvent: x: 216, y: 414
+[2025-07-14 17:25:02.205] [trace] occurred event: WindowMoveEvent: x: 217, y: 416
+[2025-07-14 17:25:02.208] [trace] occurred event: WindowMoveEvent: x: 218, y: 418
+[2025-07-14 17:25:02.209] [trace] occurred event: WindowMoveEvent: x: 218, y: 420
+[2025-07-14 17:25:02.211] [trace] occurred event: WindowMoveEvent: x: 219, y: 421
+[2025-07-14 17:25:02.214] [trace] occurred event: WindowMoveEvent: x: 220, y: 423
+[2025-07-14 17:25:02.215] [trace] occurred event: WindowMoveEvent: x: 220, y: 425
+[2025-07-14 17:25:02.217] [trace] occurred event: WindowMoveEvent: x: 221, y: 427
+[2025-07-14 17:25:02.219] [trace] occurred event: WindowMoveEvent: x: 222, y: 428
+[2025-07-14 17:25:02.221] [trace] occurred event: WindowMoveEvent: x: 223, y: 430
+[2025-07-14 17:25:02.224] [trace] occurred event: WindowMoveEvent: x: 223, y: 432
+[2025-07-14 17:25:02.225] [trace] occurred event: WindowMoveEvent: x: 224, y: 433
+[2025-07-14 17:25:02.227] [trace] occurred event: WindowMoveEvent: x: 225, y: 435
+[2025-07-14 17:25:02.229] [trace] occurred event: WindowMoveEvent: x: 225, y: 437
+[2025-07-14 17:25:02.231] [trace] occurred event: WindowMoveEvent: x: 226, y: 438
+[2025-07-14 17:25:02.233] [trace] occurred event: WindowMoveEvent: x: 227, y: 439
+[2025-07-14 17:25:02.235] [trace] occurred event: WindowMoveEvent: x: 227, y: 442
+[2025-07-14 17:25:02.238] [trace] occurred event: WindowMoveEvent: x: 228, y: 443
+[2025-07-14 17:25:02.240] [trace] occurred event: WindowMoveEvent: x: 229, y: 444
+[2025-07-14 17:25:02.241] [trace] occurred event: WindowMoveEvent: x: 230, y: 446
+[2025-07-14 17:25:02.244] [trace] occurred event: WindowMoveEvent: x: 230, y: 447
+[2025-07-14 17:25:02.245] [trace] occurred event: WindowMoveEvent: x: 230, y: 448
+[2025-07-14 17:25:02.248] [trace] occurred event: WindowMoveEvent: x: 231, y: 450
+[2025-07-14 17:25:02.249] [trace] occurred event: WindowMoveEvent: x: 232, y: 451
+[2025-07-14 17:25:02.251] [trace] occurred event: WindowMoveEvent: x: 232, y: 452
+[2025-07-14 17:25:02.253] [trace] occurred event: WindowMoveEvent: x: 233, y: 454
+[2025-07-14 17:25:02.256] [trace] occurred event: WindowMoveEvent: x: 234, y: 455
+[2025-07-14 17:25:02.257] [trace] occurred event: WindowMoveEvent: x: 234, y: 457
+[2025-07-14 17:25:02.260] [trace] occurred event: WindowMoveEvent: x: 235, y: 459
+[2025-07-14 17:25:02.262] [trace] occurred event: WindowMoveEvent: x: 236, y: 460
+[2025-07-14 17:25:02.263] [trace] occurred event: WindowMoveEvent: x: 236, y: 462
+[2025-07-14 17:25:02.265] [trace] occurred event: WindowMoveEvent: x: 236, y: 464
+[2025-07-14 17:25:02.267] [trace] occurred event: WindowMoveEvent: x: 237, y: 466
+[2025-07-14 17:25:02.269] [trace] occurred event: WindowMoveEvent: x: 238, y: 467
+[2025-07-14 17:25:02.272] [trace] occurred event: WindowMoveEvent: x: 239, y: 469
+[2025-07-14 17:25:02.274] [trace] occurred event: WindowMoveEvent: x: 239, y: 471
+[2025-07-14 17:25:02.275] [trace] occurred event: WindowMoveEvent: x: 240, y: 473
+[2025-07-14 17:25:02.277] [trace] occurred event: WindowMoveEvent: x: 241, y: 475
+[2025-07-14 17:25:02.279] [trace] occurred event: WindowMoveEvent: x: 241, y: 477
+[2025-07-14 17:25:02.281] [trace] occurred event: WindowMoveEvent: x: 242, y: 480
+[2025-07-14 17:25:02.283] [trace] occurred event: WindowMoveEvent: x: 243, y: 481
+[2025-07-14 17:25:02.285] [trace] occurred event: WindowMoveEvent: x: 244, y: 483
+[2025-07-14 17:25:02.288] [trace] occurred event: WindowMoveEvent: x: 244, y: 485
+[2025-07-14 17:25:02.289] [trace] occurred event: WindowMoveEvent: x: 245, y: 488
+[2025-07-14 17:25:02.291] [trace] occurred event: WindowMoveEvent: x: 246, y: 490
+[2025-07-14 17:25:02.293] [trace] occurred event: WindowMoveEvent: x: 246, y: 492
+[2025-07-14 17:25:02.295] [trace] occurred event: WindowMoveEvent: x: 247, y: 494
+[2025-07-14 17:25:02.297] [trace] occurred event: WindowMoveEvent: x: 248, y: 496
+[2025-07-14 17:25:02.299] [trace] occurred event: WindowMoveEvent: x: 249, y: 499
+[2025-07-14 17:25:02.302] [trace] occurred event: WindowMoveEvent: x: 250, y: 502
+[2025-07-14 17:25:02.303] [trace] occurred event: WindowMoveEvent: x: 250, y: 504
+[2025-07-14 17:25:02.305] [trace] occurred event: WindowMoveEvent: x: 251, y: 506
+[2025-07-14 17:25:02.307] [trace] occurred event: WindowMoveEvent: x: 252, y: 507
+[2025-07-14 17:25:02.309] [trace] occurred event: WindowMoveEvent: x: 252, y: 510
+[2025-07-14 17:25:02.311] [trace] occurred event: WindowMoveEvent: x: 254, y: 512
+[2025-07-14 17:25:02.313] [trace] occurred event: WindowMoveEvent: x: 255, y: 514
+[2025-07-14 17:25:02.315] [trace] occurred event: WindowMoveEvent: x: 255, y: 516
+[2025-07-14 17:25:02.317] [trace] occurred event: WindowMoveEvent: x: 256, y: 518
+[2025-07-14 17:25:02.319] [trace] occurred event: WindowMoveEvent: x: 257, y: 520
+[2025-07-14 17:25:02.321] [trace] occurred event: WindowMoveEvent: x: 258, y: 522
+[2025-07-14 17:25:02.323] [trace] occurred event: WindowMoveEvent: x: 259, y: 523
+[2025-07-14 17:25:02.325] [trace] occurred event: WindowMoveEvent: x: 260, y: 526
+[2025-07-14 17:25:02.327] [trace] occurred event: WindowMoveEvent: x: 260, y: 527
+[2025-07-14 17:25:02.329] [trace] occurred event: WindowMoveEvent: x: 261, y: 529
+[2025-07-14 17:25:02.331] [trace] occurred event: WindowMoveEvent: x: 262, y: 530
+[2025-07-14 17:25:02.333] [trace] occurred event: WindowMoveEvent: x: 262, y: 533
+[2025-07-14 17:25:02.335] [trace] occurred event: WindowMoveEvent: x: 263, y: 535
+[2025-07-14 17:25:02.337] [trace] occurred event: WindowMoveEvent: x: 265, y: 536
+[2025-07-14 17:25:02.339] [trace] occurred event: WindowMoveEvent: x: 265, y: 538
+[2025-07-14 17:25:02.342] [trace] occurred event: WindowMoveEvent: x: 266, y: 541
+[2025-07-14 17:25:02.344] [trace] occurred event: WindowMoveEvent: x: 267, y: 542
+[2025-07-14 17:25:02.346] [trace] occurred event: WindowMoveEvent: x: 268, y: 544
+[2025-07-14 17:25:02.347] [trace] occurred event: WindowMoveEvent: x: 268, y: 546
+[2025-07-14 17:25:02.349] [trace] occurred event: WindowMoveEvent: x: 269, y: 549
+[2025-07-14 17:25:02.351] [trace] occurred event: WindowMoveEvent: x: 270, y: 551
+[2025-07-14 17:25:02.353] [trace] occurred event: WindowMoveEvent: x: 271, y: 552
+[2025-07-14 17:25:02.355] [trace] occurred event: WindowMoveEvent: x: 272, y: 554
+[2025-07-14 17:25:02.357] [trace] occurred event: WindowMoveEvent: x: 273, y: 557
+[2025-07-14 17:25:02.359] [trace] occurred event: WindowMoveEvent: x: 273, y: 559
+[2025-07-14 17:25:02.362] [trace] occurred event: WindowMoveEvent: x: 275, y: 561
+[2025-07-14 17:25:02.363] [trace] occurred event: WindowMoveEvent: x: 276, y: 562
+[2025-07-14 17:25:02.365] [trace] occurred event: WindowMoveEvent: x: 276, y: 565
+[2025-07-14 17:25:02.368] [trace] occurred event: WindowMoveEvent: x: 278, y: 566
+[2025-07-14 17:25:02.369] [trace] occurred event: WindowMoveEvent: x: 278, y: 568
+[2025-07-14 17:25:02.372] [trace] occurred event: WindowMoveEvent: x: 279, y: 570
+[2025-07-14 17:25:02.373] [trace] occurred event: WindowMoveEvent: x: 280, y: 572
+[2025-07-14 17:25:02.375] [trace] occurred event: WindowMoveEvent: x: 281, y: 573
+[2025-07-14 17:25:02.377] [trace] occurred event: WindowMoveEvent: x: 282, y: 575
+[2025-07-14 17:25:02.379] [trace] occurred event: WindowMoveEvent: x: 283, y: 577
+[2025-07-14 17:25:02.382] [trace] occurred event: WindowMoveEvent: x: 283, y: 578
+[2025-07-14 17:25:02.384] [trace] occurred event: WindowMoveEvent: x: 284, y: 580
+[2025-07-14 17:25:02.385] [trace] occurred event: WindowMoveEvent: x: 285, y: 582
+[2025-07-14 17:25:02.387] [trace] occurred event: WindowMoveEvent: x: 285, y: 583
+[2025-07-14 17:25:02.389] [trace] occurred event: WindowMoveEvent: x: 285, y: 584
+[2025-07-14 17:25:02.391] [trace] occurred event: WindowMoveEvent: x: 286, y: 586
+[2025-07-14 17:25:02.393] [trace] occurred event: WindowMoveEvent: x: 287, y: 587
+[2025-07-14 17:25:02.395] [trace] occurred event: WindowMoveEvent: x: 287, y: 588
+[2025-07-14 17:25:02.400] [trace] occurred event: WindowMoveEvent: x: 287, y: 589
+[2025-07-14 17:25:02.403] [trace] occurred event: WindowMoveEvent: x: 288, y: 591
+[2025-07-14 17:25:02.405] [trace] occurred event: WindowMoveEvent: x: 289, y: 591
+[2025-07-14 17:25:02.408] [trace] occurred event: WindowMoveEvent: x: 289, y: 592
+[2025-07-14 17:25:02.411] [trace] occurred event: WindowMoveEvent: x: 289, y: 594
+[2025-07-14 17:25:02.413] [trace] occurred event: WindowMoveEvent: x: 290, y: 594
+[2025-07-14 17:25:02.415] [trace] occurred event: WindowMoveEvent: x: 290, y: 595
+[2025-07-14 17:25:02.421] [trace] occurred event: WindowMoveEvent: x: 290, y: 596
+[2025-07-14 17:25:02.426] [trace] occurred event: WindowMoveEvent: x: 291, y: 596
+[2025-07-14 17:25:02.428] [trace] occurred event: WindowMoveEvent: x: 291, y: 597
+[2025-07-14 17:25:02.430] [trace] occurred event: WindowMoveEvent: x: 291, y: 598
+[2025-07-14 17:25:02.435] [trace] occurred event: WindowMoveEvent: x: 291, y: 599
+[2025-07-14 17:25:02.439] [trace] occurred event: WindowMoveEvent: x: 291, y: 600
+[2025-07-14 17:25:02.444] [trace] occurred event: WindowMoveEvent: x: 292, y: 601
+[2025-07-14 17:25:02.446] [trace] occurred event: WindowMoveEvent: x: 292, y: 602
+[2025-07-14 17:25:02.449] [trace] occurred event: WindowMoveEvent: x: 292, y: 603
+[2025-07-14 17:25:02.451] [trace] occurred event: WindowMoveEvent: x: 293, y: 603
+[2025-07-14 17:25:02.454] [trace] occurred event: WindowMoveEvent: x: 293, y: 604
+[2025-07-14 17:25:02.455] [trace] occurred event: WindowMoveEvent: x: 293, y: 605
+[2025-07-14 17:25:02.458] [trace] occurred event: WindowMoveEvent: x: 293, y: 606
+[2025-07-14 17:25:02.462] [trace] occurred event: WindowMoveEvent: x: 293, y: 607
+[2025-07-14 17:25:02.464] [trace] occurred event: WindowMoveEvent: x: 294, y: 608
+[2025-07-14 17:25:02.465] [trace] occurred event: WindowMoveEvent: x: 294, y: 609
+[2025-07-14 17:25:02.467] [trace] occurred event: WindowMoveEvent: x: 294, y: 611
+[2025-07-14 17:25:02.469] [trace] occurred event: WindowMoveEvent: x: 295, y: 614
+[2025-07-14 17:25:02.471] [trace] occurred event: WindowMoveEvent: x: 295, y: 615
+[2025-07-14 17:25:02.474] [trace] occurred event: WindowMoveEvent: x: 296, y: 617
+[2025-07-14 17:25:02.475] [trace] occurred event: WindowMoveEvent: x: 296, y: 618
+[2025-07-14 17:25:02.477] [trace] occurred event: WindowMoveEvent: x: 297, y: 620
+[2025-07-14 17:25:02.479] [trace] occurred event: WindowMoveEvent: x: 297, y: 622
+[2025-07-14 17:25:02.481] [trace] occurred event: WindowMoveEvent: x: 297, y: 623
+[2025-07-14 17:25:02.483] [trace] occurred event: WindowMoveEvent: x: 298, y: 625
+[2025-07-14 17:25:02.485] [trace] occurred event: WindowMoveEvent: x: 298, y: 626
+[2025-07-14 17:25:02.487] [trace] occurred event: WindowMoveEvent: x: 299, y: 628
+[2025-07-14 17:25:02.489] [trace] occurred event: WindowMoveEvent: x: 299, y: 629
+[2025-07-14 17:25:02.491] [trace] occurred event: WindowMoveEvent: x: 299, y: 631
+[2025-07-14 17:25:02.493] [trace] occurred event: WindowMoveEvent: x: 300, y: 632
+[2025-07-14 17:25:02.495] [trace] occurred event: WindowMoveEvent: x: 300, y: 633
+[2025-07-14 17:25:02.497] [trace] occurred event: WindowMoveEvent: x: 301, y: 635
+[2025-07-14 17:25:02.499] [trace] occurred event: WindowMoveEvent: x: 301, y: 636
+[2025-07-14 17:25:02.501] [trace] occurred event: WindowMoveEvent: x: 301, y: 637
+[2025-07-14 17:25:02.503] [trace] occurred event: WindowMoveEvent: x: 301, y: 639
+[2025-07-14 17:25:02.505] [trace] occurred event: WindowMoveEvent: x: 301, y: 640
+[2025-07-14 17:25:02.507] [trace] occurred event: WindowMoveEvent: x: 302, y: 641
+[2025-07-14 17:25:02.509] [trace] occurred event: WindowMoveEvent: x: 302, y: 642
+[2025-07-14 17:25:02.511] [trace] occurred event: WindowMoveEvent: x: 303, y: 643
+[2025-07-14 17:25:02.513] [trace] occurred event: WindowMoveEvent: x: 303, y: 644
+[2025-07-14 17:25:02.515] [trace] occurred event: WindowMoveEvent: x: 303, y: 646
+[2025-07-14 17:25:02.519] [trace] occurred event: WindowMoveEvent: x: 303, y: 647
+[2025-07-14 17:25:02.521] [trace] occurred event: WindowMoveEvent: x: 304, y: 649
+[2025-07-14 17:25:02.525] [trace] occurred event: WindowMoveEvent: x: 304, y: 651
+[2025-07-14 17:25:02.527] [trace] occurred event: WindowMoveEvent: x: 305, y: 652
+[2025-07-14 17:25:02.529] [trace] occurred event: WindowMoveEvent: x: 305, y: 653
+[2025-07-14 17:25:02.531] [trace] occurred event: WindowMoveEvent: x: 305, y: 654
+[2025-07-14 17:25:02.534] [trace] occurred event: WindowMoveEvent: x: 305, y: 655
+[2025-07-14 17:25:02.535] [trace] occurred event: WindowMoveEvent: x: 305, y: 656
+[2025-07-14 17:25:02.537] [trace] occurred event: WindowMoveEvent: x: 305, y: 657
+[2025-07-14 17:25:02.539] [trace] occurred event: WindowMoveEvent: x: 305, y: 658
+[2025-07-14 17:25:02.541] [trace] occurred event: WindowMoveEvent: x: 305, y: 659
+[2025-07-14 17:25:02.543] [trace] occurred event: WindowMoveEvent: x: 305, y: 661
+[2025-07-14 17:25:02.545] [trace] occurred event: WindowMoveEvent: x: 305, y: 662
+[2025-07-14 17:25:02.547] [trace] occurred event: WindowMoveEvent: x: 305, y: 663
+[2025-07-14 17:25:02.549] [trace] occurred event: WindowMoveEvent: x: 305, y: 665
+[2025-07-14 17:25:02.551] [trace] occurred event: WindowMoveEvent: x: 305, y: 666
+[2025-07-14 17:25:02.553] [trace] occurred event: WindowMoveEvent: x: 305, y: 667
+[2025-07-14 17:25:02.555] [trace] occurred event: WindowMoveEvent: x: 305, y: 668
+[2025-07-14 17:25:02.557] [trace] occurred event: WindowMoveEvent: x: 305, y: 670
+[2025-07-14 17:25:02.562] [trace] occurred event: WindowMoveEvent: x: 306, y: 672
+[2025-07-14 17:25:02.563] [trace] occurred event: WindowMoveEvent: x: 306, y: 673
+[2025-07-14 17:25:02.566] [trace] occurred event: WindowMoveEvent: x: 306, y: 674
+[2025-07-14 17:25:02.567] [trace] occurred event: WindowMoveEvent: x: 306, y: 675
+[2025-07-14 17:25:02.569] [trace] occurred event: WindowMoveEvent: x: 307, y: 677
+[2025-07-14 17:25:02.571] [trace] occurred event: WindowMoveEvent: x: 307, y: 678
+[2025-07-14 17:25:02.573] [trace] occurred event: WindowMoveEvent: x: 307, y: 679
+[2025-07-14 17:25:02.575] [trace] occurred event: WindowMoveEvent: x: 307, y: 680
+[2025-07-14 17:25:02.577] [trace] occurred event: WindowMoveEvent: x: 307, y: 681
+[2025-07-14 17:25:02.579] [trace] occurred event: WindowMoveEvent: x: 307, y: 682
+[2025-07-14 17:25:02.582] [trace] occurred event: WindowMoveEvent: x: 308, y: 683
+[2025-07-14 17:25:02.585] [trace] occurred event: WindowMoveEvent: x: 308, y: 685
+[2025-07-14 17:25:02.590] [trace] occurred event: WindowMoveEvent: x: 309, y: 686
+[2025-07-14 17:25:02.598] [trace] occurred event: WindowMoveEvent: x: 309, y: 687
+[2025-07-14 17:25:02.599] [trace] occurred event: WindowMoveEvent: x: 309, y: 688
+[2025-07-14 17:25:02.618] [trace] occurred event: WindowMoveEvent: x: 309, y: 689
+[2025-07-14 17:25:02.664] [trace] occurred event: WindowMoveEvent: x: 309, y: 690
+[2025-07-14 17:25:02.754] [debug] delta time 0.84464496 sec 1.1839294 fps
+[2025-07-14 17:25:02.754] [debug] delta time 4.82e-05 sec 20746.889 fps
+[2025-07-14 17:25:02.754] [debug] delta time 7.1e-06 sec 140845.08 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.6999997e-06 sec 175438.61 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 7.2999997e-06 sec 136986.31 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3999997e-06 sec 185185.19 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5e-06 sec 200000 fps
+[2025-07-14 17:25:02.754] [debug] delta time 6.2999998e-06 sec 158730.17 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.5e-06 sec 181818.19 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.754] [debug] delta time 7.2999997e-06 sec 136986.31 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.9999998e-06 sec 166666.67 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3999997e-06 sec 185185.19 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.3999997e-06 sec 185185.19 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.754] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.5e-06 sec 181818.19 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.9999998e-06 sec 166666.67 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.5e-06 sec 181818.19 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5e-06 sec 200000 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5e-06 sec 200000 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.3e-06 sec 188679.25 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.2e-06 sec 192307.69 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.755] [debug] delta time 5.0999997e-06 sec 196078.44 fps
+[2025-07-14 17:25:02.757] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.761] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.765] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.770] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.774] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.778] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.782] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.786] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.790] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.795] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.799] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.803] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.807] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.811] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.815] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.820] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.824] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.828] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.832] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.836] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.840] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.845] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.849] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.853] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.857] [debug] delta time 1.67e-05 sec 59880.24 fps
+[2025-07-14 17:25:02.861] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.865] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.870] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.874] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.878] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.882] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.886] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.890] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.895] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.899] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.903] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.907] [debug] delta time 0.0002477 sec 4037.1418 fps
+[2025-07-14 17:25:02.911] [debug] delta time 0.0003122 sec 3203.075 fps
+[2025-07-14 17:25:02.915] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.920] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.924] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.928] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.932] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.936] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.940] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.945] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.949] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.953] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.957] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.961] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.965] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.970] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:02.974] [debug] delta time 2.64e-05 sec 37878.79 fps
+[2025-07-14 17:25:02.978] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.982] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.986] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.990] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.995] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:02.999] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.003] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.007] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.011] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.015] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.020] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.024] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.028] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.032] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.036] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.040] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.045] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.049] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.053] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.057] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.061] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.065] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.070] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.074] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.078] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.082] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.086] [debug] delta time 3.9999998e-07 sec 2500000.2 fps
+[2025-07-14 17:25:03.090] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.095] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.099] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.103] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.107] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.111] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.115] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.120] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.124] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.128] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.132] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.136] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.140] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.145] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.149] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.153] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.157] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.161] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.165] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.170] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.174] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.178] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.182] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.186] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.190] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.195] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.199] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.203] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.207] [debug] delta time 1.81e-05 sec 55248.62 fps
+[2025-07-14 17:25:03.211] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.215] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.220] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.224] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.228] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.232] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.236] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.240] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.245] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.249] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.253] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.257] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.261] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.265] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.270] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.274] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.278] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.282] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.286] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.290] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.295] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.299] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.303] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.307] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.311] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.315] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.320] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.324] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.328] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.332] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.336] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.340] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.345] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.349] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.353] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.357] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.361] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.365] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.370] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.374] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.378] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.382] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.386] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.390] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.395] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.399] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.403] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.407] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.411] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.415] [debug] delta time 9.9999994e-08 sec 10000001 fps
+[2025-07-14 17:25:03.420] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.424] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.428] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.432] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.436] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.440] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.445] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.449] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.453] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.457] [debug] delta time 3.9999998e-07 sec 2500000.2 fps
+[2025-07-14 17:25:03.461] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.465] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.470] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.474] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.478] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.482] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.486] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.490] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.495] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.499] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.503] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.507] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.511] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.515] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.520] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.524] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.528] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.532] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.536] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.540] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.545] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.549] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.553] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.557] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.561] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.565] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.570] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.574] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.578] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.582] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.586] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.590] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.595] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.599] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.603] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.607] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.611] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.615] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.620] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.624] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.628] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.632] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.636] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.640] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.645] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.649] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.653] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.657] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.661] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.665] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.670] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.674] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.678] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.682] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.686] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.690] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.695] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.699] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.703] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.707] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.711] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.715] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.720] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.724] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.728] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.732] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.736] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.740] [debug] delta time 1.6099999e-05 sec 62111.805 fps
+[2025-07-14 17:25:03.745] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.749] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.753] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.757] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.761] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.765] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.770] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.774] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.778] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.782] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.786] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.790] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.795] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.799] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.803] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.807] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.811] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.815] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.820] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.824] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.828] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.832] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.836] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.840] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.845] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.849] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.853] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.857] [debug] delta time 2e-05 sec 50000 fps
+[2025-07-14 17:25:03.861] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.865] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.870] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.874] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.878] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.882] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.886] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.890] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.895] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.899] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.903] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.907] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.911] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.915] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.920] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.924] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.928] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.932] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.936] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.940] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.945] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.949] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.953] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.957] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.961] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.965] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.970] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.974] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.978] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.982] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.986] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:03.990] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:03.995] [debug] delta time 7.1999995e-05 sec 13888.89 fps
+[2025-07-14 17:25:03.999] [debug] delta time 4.2e-05 sec 23809.523 fps
+[2025-07-14 17:25:04.003] [debug] delta time 0.00013259999 sec 7541.4785 fps
+[2025-07-14 17:25:04.007] [debug] delta time 1.83e-05 sec 54644.812 fps
+[2025-07-14 17:25:04.011] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.015] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.020] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.024] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.028] [debug] delta time 3.9999998e-07 sec 2500000.2 fps
+[2025-07-14 17:25:04.032] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.036] [debug] delta time 7.9999995e-07 sec 1250000.1 fps
+[2025-07-14 17:25:04.040] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.045] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.049] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.053] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.057] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.061] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.065] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.070] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.074] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.078] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.082] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.086] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.090] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.095] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.099] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.103] [debug] delta time 1.69e-05 sec 59171.598 fps
+[2025-07-14 17:25:04.107] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.111] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.115] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.120] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.124] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.128] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.132] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.136] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.140] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.145] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.149] [debug] delta time 1.6599999e-05 sec 60240.97 fps
+[2025-07-14 17:25:04.153] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.157] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.161] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.165] [debug] delta time 2.05e-05 sec 48780.49 fps
+[2025-07-14 17:25:04.170] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.174] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.178] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.182] [debug] delta time 2.02e-05 sec 49504.953 fps
+[2025-07-14 17:25:04.186] [debug] delta time 1.6599999e-05 sec 60240.97 fps
+[2025-07-14 17:25:04.190] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.195] [debug] delta time 3.7999998e-06 sec 263157.9 fps
+[2025-07-14 17:25:04.199] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.203] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.207] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.211] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.215] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.220] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.224] [debug] delta time 1.9899999e-05 sec 50251.258 fps
+[2025-07-14 17:25:04.228] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.232] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.236] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.240] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.245] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.249] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.253] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.257] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.261] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.265] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.270] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.274] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.278] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.282] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.286] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.290] [debug] delta time 1.5399999e-05 sec 64935.07 fps
+[2025-07-14 17:25:04.295] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.299] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.303] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.307] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.311] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.315] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.320] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.324] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.328] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.332] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.336] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.340] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.345] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.349] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.353] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.357] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.361] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.365] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.370] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.374] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.378] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.382] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.386] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.390] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.395] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.399] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.403] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.407] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.411] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.415] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.420] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.424] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.428] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.432] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.436] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.440] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.445] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.449] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.453] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.457] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.461] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.465] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.470] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.474] [debug] delta time 1.4699999e-05 sec 68027.21 fps
+[2025-07-14 17:25:04.478] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.482] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.486] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.490] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.495] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.499] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.503] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.507] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.511] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.515] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.520] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.524] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.528] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.532] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.536] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.540] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.545] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.549] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.553] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.557] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.561] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.565] [debug] delta time 9.9999994e-08 sec 10000001 fps
+[2025-07-14 17:25:04.570] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.574] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.578] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.582] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.586] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.590] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.595] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.599] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.603] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.607] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.611] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.615] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.620] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.624] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.628] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.632] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.636] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.640] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.645] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.649] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.653] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.657] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.661] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.665] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.670] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.674] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.678] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.682] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.686] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.690] [debug] delta time 1.4499999e-05 sec 68965.52 fps
+[2025-07-14 17:25:04.695] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.699] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.703] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.707] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.711] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.715] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.720] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.724] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.728] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.732] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.736] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.740] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.745] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.749] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.753] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.757] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.761] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.765] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.770] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.774] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.778] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.782] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.786] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.790] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.795] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.799] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.803] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.807] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.811] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.815] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.820] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.824] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.828] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.832] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.836] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.840] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.845] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.849] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.853] [debug] delta time 9.9999994e-08 sec 10000001 fps
+[2025-07-14 17:25:04.857] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.861] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.865] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.870] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.874] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.878] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.882] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.886] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.890] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.895] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.899] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.903] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.907] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.911] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.915] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.920] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.924] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.928] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.932] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.936] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.940] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.945] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.949] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.953] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.957] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.961] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.965] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.970] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.974] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.978] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.982] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.986] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:04.990] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.995] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:04.999] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.003] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.007] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.011] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.015] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.020] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.024] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.028] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.032] [debug] delta time 1.63e-05 sec 61349.69 fps
+[2025-07-14 17:25:05.036] [debug] delta time 1.6599999e-05 sec 60240.97 fps
+[2025-07-14 17:25:05.040] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.045] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.049] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.053] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.057] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.061] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.065] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.070] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.074] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.078] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.082] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.086] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.090] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.095] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.099] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.103] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.107] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.111] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.115] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.120] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.124] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.128] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.132] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.136] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.140] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.145] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.149] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.153] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.157] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.161] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.165] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.170] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.174] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.178] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.182] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.186] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.190] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.195] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.199] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.203] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.207] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.211] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.215] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.220] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.224] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.228] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.232] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.236] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.240] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.245] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.249] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.253] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.257] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.261] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.265] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.270] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.274] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.278] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.282] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.286] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.290] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.295] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.299] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.303] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.307] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.311] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.315] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.320] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.324] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.328] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.332] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.336] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.340] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.345] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.349] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.353] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.357] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.361] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.365] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.370] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.374] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.378] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.382] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.386] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.390] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.395] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.399] [debug] delta time 3.4999998e-06 sec 285714.3 fps
+[2025-07-14 17:25:05.403] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.407] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.411] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.415] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.420] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.424] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.428] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.432] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.436] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.440] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.445] [debug] delta time 1.89e-05 sec 52910.05 fps
+[2025-07-14 17:25:05.449] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.453] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.457] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.461] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.465] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.470] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.474] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.478] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.482] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.486] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.490] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.495] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.499] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.503] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.507] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.511] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.515] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.520] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.524] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.528] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.532] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.536] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.540] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.545] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.549] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.553] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.557] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.561] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.565] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.570] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.574] [debug] delta time 2.57e-05 sec 38910.508 fps
+[2025-07-14 17:25:05.578] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.582] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.586] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.590] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.595] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.599] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.603] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.607] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.611] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.615] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.620] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.624] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.628] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.632] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.636] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.640] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.645] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.649] [debug] delta time 3.9999998e-07 sec 2500000.2 fps
+[2025-07-14 17:25:05.653] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.657] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.661] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.665] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.670] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.674] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.678] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.682] [debug] delta time 1.4699999e-05 sec 68027.21 fps
+[2025-07-14 17:25:05.686] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.690] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.695] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.699] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.703] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.707] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.711] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.715] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.720] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.724] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.728] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.732] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.736] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.740] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.745] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.749] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.753] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.757] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.761] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.765] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.770] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.774] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.778] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.782] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.786] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.790] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.795] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.799] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.803] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.807] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.811] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.815] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.820] [debug] delta time 1.58e-05 sec 63291.137 fps
+[2025-07-14 17:25:05.824] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.828] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.832] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.836] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.840] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.845] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.849] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.853] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.857] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.861] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.865] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.870] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.874] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.878] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.882] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.886] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.890] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.895] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.899] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.903] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.907] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.911] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.915] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.920] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.924] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.928] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.932] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.936] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.940] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.945] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.949] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.953] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.957] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:05.961] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.965] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.970] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.974] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.978] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.982] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.986] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.990] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.995] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:05.999] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.003] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.007] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.011] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.015] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.020] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.024] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.028] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.032] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.036] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.040] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.045] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.049] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.053] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.057] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.061] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.065] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.070] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.074] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.078] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.082] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.086] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.090] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.095] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.099] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.103] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.107] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.111] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.115] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.120] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.124] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.128] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.132] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.136] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.140] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.145] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.149] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.153] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.157] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.161] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.165] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.170] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.174] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.178] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.182] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.186] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.190] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.195] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.199] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.203] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.207] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.211] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.215] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.220] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.224] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.228] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.232] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.236] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.240] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.245] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.249] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.253] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.257] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.261] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.265] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.270] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.274] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.278] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.282] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.286] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.290] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.295] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.299] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.303] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.307] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.311] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.315] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.320] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.324] [debug] delta time 1.64e-05 sec 60975.613 fps
+[2025-07-14 17:25:06.328] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.332] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.336] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.340] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.345] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.349] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.353] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.357] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.361] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.365] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.370] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.374] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.378] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.382] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.386] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.390] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.395] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.399] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.403] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.407] [debug] delta time 0.0001391 sec 7189.0728 fps
+[2025-07-14 17:25:06.411] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.415] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.420] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.424] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.428] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.432] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.436] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.440] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.445] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.449] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.453] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.457] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.461] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.465] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.470] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.474] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.478] [debug] delta time 1.6099999e-05 sec 62111.805 fps
+[2025-07-14 17:25:06.482] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.486] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.490] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.495] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.499] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.503] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.507] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.511] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.515] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.520] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.524] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.528] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.532] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.536] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.540] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.545] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.549] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.553] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.557] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.561] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.565] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.570] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.574] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.578] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.582] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.586] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.590] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.595] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.599] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.603] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.607] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.611] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.615] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.620] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.624] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.628] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.632] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.636] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.640] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.645] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.649] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.653] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.657] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.661] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.665] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.670] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.674] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.678] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.682] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.686] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.690] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.695] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.699] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.703] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.707] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.711] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.715] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.720] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.724] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.728] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.732] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.736] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.740] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.745] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.749] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.753] [debug] delta time 1.6599999e-05 sec 60240.97 fps
+[2025-07-14 17:25:06.757] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.761] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.765] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.770] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.774] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.778] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.782] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.786] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.790] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.795] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.799] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.803] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.807] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.811] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.815] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.820] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.824] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.828] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.832] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.836] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.840] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.845] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.849] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.853] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.857] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.861] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.865] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.870] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.874] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.878] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.882] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.886] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.890] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.895] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.899] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.903] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.907] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.911] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.915] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.920] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.924] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.928] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.932] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.936] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.940] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.945] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.949] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.953] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.957] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.961] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.965] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.970] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.974] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.978] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.982] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.986] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.990] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:06.995] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:06.999] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.003] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.007] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.011] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.015] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.020] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.024] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.028] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.032] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.036] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.040] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.045] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.049] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.053] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.057] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.061] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.065] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.070] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.074] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.078] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.082] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.086] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.090] [debug] delta time 7.41e-05 sec 13495.277 fps
+[2025-07-14 17:25:07.095] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.099] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.103] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.107] [debug] delta time 2.8699998e-05 sec 34843.207 fps
+[2025-07-14 17:25:07.111] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.115] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.120] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.124] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.128] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.132] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.136] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.140] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.145] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.149] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.153] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.157] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.161] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.165] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.170] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.174] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.178] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.182] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.186] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.190] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.195] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.199] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.203] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.207] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.211] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.215] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.220] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.224] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.228] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.232] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.236] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.240] [debug] delta time 9.9999994e-08 sec 10000001 fps
+[2025-07-14 17:25:07.245] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.249] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.253] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.257] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.261] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.265] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.270] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.274] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.278] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.282] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.286] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.290] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.295] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.299] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.303] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.307] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.311] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.315] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.320] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.324] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.328] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.332] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.336] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.340] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.345] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.349] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.353] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.357] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.361] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.365] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.370] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.374] [debug] delta time 2.6299998e-05 sec 38022.816 fps
+[2025-07-14 17:25:07.378] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.382] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.386] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.390] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.395] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.399] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.403] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.407] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.411] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.415] [debug] delta time 1.37e-05 sec 72992.7 fps
+[2025-07-14 17:25:07.420] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.424] [debug] delta time 2.6999999e-06 sec 370370.38 fps
+[2025-07-14 17:25:07.428] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.432] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.436] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.440] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.445] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.449] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.453] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.457] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.461] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.465] [debug] delta time 9.9999994e-08 sec 10000001 fps
+[2025-07-14 17:25:07.470] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.474] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.478] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.482] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.486] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.490] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.495] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.499] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.503] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.507] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.511] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.515] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.520] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.524] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.528] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.532] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.536] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.540] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.545] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.549] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.553] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.557] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.561] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.565] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.570] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.574] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.578] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.582] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.586] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.590] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.595] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.599] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.603] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.607] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.611] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.615] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.620] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.624] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.628] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.632] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.636] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.640] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.645] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.649] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.653] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.657] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.661] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.665] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.670] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.674] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.678] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.682] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.686] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.690] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.695] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.699] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.703] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.707] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.711] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.715] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.720] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.724] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.728] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.732] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.736] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.740] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.745] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.749] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.753] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.757] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.761] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.765] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.770] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.774] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.778] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.782] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.786] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.790] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.795] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.799] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.803] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.807] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.811] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.815] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.820] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.824] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.828] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.832] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.836] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.840] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.845] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.849] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.853] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.857] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.861] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.865] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.870] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.874] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.878] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.882] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.886] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.890] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.895] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.899] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.903] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.907] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.911] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.915] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.920] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.924] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.928] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.932] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.936] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.940] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.945] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.949] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.953] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.957] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.961] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.965] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.970] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.974] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:07.978] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.982] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.986] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.990] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.995] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:07.999] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.003] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.007] [debug] delta time 1.7299999e-05 sec 57803.473 fps
+[2025-07-14 17:25:08.011] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.015] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.020] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.024] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.028] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.032] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.036] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.040] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.045] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.049] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.053] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.057] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.061] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.065] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.070] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.074] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.078] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.082] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.086] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.090] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.095] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.099] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.103] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.107] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.111] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.115] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.120] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.124] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.128] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.132] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.136] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.140] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.145] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.149] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.153] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.157] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.161] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.165] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.170] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.174] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.178] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.182] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.186] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.190] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.195] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.199] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.203] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.207] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.211] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.215] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.220] [debug] delta time 1.77e-05 sec 56497.176 fps
+[2025-07-14 17:25:08.224] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.228] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.232] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.236] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.240] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.245] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.249] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.253] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.257] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.261] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.265] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.270] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.274] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.278] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.282] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.286] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.290] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.295] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.299] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.303] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.307] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.311] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.315] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.320] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.324] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.328] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.332] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.336] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.340] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.345] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.349] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.353] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.357] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.361] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.365] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.370] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.374] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.378] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.382] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.386] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.390] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.395] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.399] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.403] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.407] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.411] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.415] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.420] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.424] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.428] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.432] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.436] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.440] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.445] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.449] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.453] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.457] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.461] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.465] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.470] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.474] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.478] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.482] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.486] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.490] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.495] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.499] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.503] [debug] delta time 2.29e-05 sec 43668.12 fps
+[2025-07-14 17:25:08.507] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.511] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.515] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.520] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.524] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.528] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.532] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.536] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.540] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.545] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.549] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.553] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.557] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.561] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.565] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.570] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.574] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.578] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.582] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.586] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.590] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.595] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.599] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.603] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.607] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.611] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.615] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.620] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.624] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.628] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.632] [debug] delta time 0.0031788 sec 314.5841 fps
+[2025-07-14 17:25:08.636] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.640] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.645] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.649] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.653] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.657] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.661] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.665] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.670] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.674] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.678] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.682] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.686] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.690] [debug] delta time 2.9999998e-07 sec 3333333.5 fps
+[2025-07-14 17:25:08.695] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.699] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.703] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.707] [debug] delta time 1.9999999e-07 sec 5000000.5 fps
+[2025-07-14 17:25:08.711] [debug] delta time 1.9999999e-07 sec 5000000.5 fps

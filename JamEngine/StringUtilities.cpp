@@ -35,4 +35,20 @@ std::string ConvertToString(const std::wstring_view _wStr)
     return str;
 }
 
+std::wstring ToLower(std::wstring_view _wStr)
+{
+    std::wstring dst;
+    std::ranges::transform(_wStr, std::back_inserter(dst), [](const wchar_t c)
+                           { return tolower(c); });
+    return dst;
+}
+
+std::string ToLower(std::string_view _str)
+{
+    std::string dst;
+    std::ranges::transform(_str, std::back_inserter(dst), [](const char c)
+                           { return tolower(c); });
+    return dst;
+}
+
 }   // namespace jam

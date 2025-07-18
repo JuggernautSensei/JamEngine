@@ -1,0 +1,6 @@
+[2025-07-14 17:38:30.789] [trace] log system initialized
+[2025-07-14 17:38:30.789] [info] Argument 0: C:\Users\ajw01\Desktop\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-14 17:38:30.830] [trace] occurred event: WindowResizeEvent: width: 784, height: 561
+[2025-07-14 17:38:30.830] [trace] occurred event: WindowMoveEvent: x: 108, y: 131
+[2025-07-14 17:38:37.725] [debug] delta time 3e-07 sec 3333333.2 fps
+[2025-07-14 17:38:39.753] [debug] delta time 8.10699 sec 0.123350345 fps

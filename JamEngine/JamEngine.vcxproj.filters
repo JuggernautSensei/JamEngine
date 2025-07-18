@@ -2,16 +2,16 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="pch.cpp">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClCompile>
     <ClCompile Include="DataType.cpp">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClCompile>
     <ClCompile Include="Macros.cpp">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClCompile>
     <ClCompile Include="Error.cpp">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClCompile>
     <ClCompile Include="Log.cpp">
       <Filter>1. Core\Log</Filter>
@@ -34,28 +34,58 @@
     <ClCompile Include="Event.cpp">
       <Filter>1. Core\Event</Filter>
     </ClCompile>
-    <ClCompile Include="TypeTrait.cpp">
-      <Filter>98. Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Events.cpp">
       <Filter>1. Core\Event</Filter>
     </ClCompile>
+    <ClCompile Include="EntryPoint.cpp">
+      <Filter>1. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>97. MultiThread</Filter>
+    </ClCompile>
+    <ClCompile Include="MathUtilities.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>2. Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererCommons.cpp">
+      <Filter>2. Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffers.cpp">
+      <Filter>2. Renderer\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompiler.cpp">
+      <Filter>2. Renderer\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="InputLayout.cpp">
+      <Filter>2. Renderer\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeTrait.cpp">
+      <Filter>99. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Textures.cpp">
+      <Filter>2. Renderer\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Shaders.cpp">
+      <Filter>2. Renderer\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderStates.cpp">
+      <Filter>2. Renderer\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport.cpp">
+      <Filter>2. Renderer\Viewport</Filter>
+    </ClCompile>
+    <ClCompile Include="ILayer.cpp">
+      <Filter>1. Core\ILayer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="99. Config">
-      <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="0. Include">
       <UniqueIdentifier>{7b1cf538-f48a-489e-8d06-5a1d992dcc40}</UniqueIdentifier>
     </Filter>
-    <Filter Include="98. Utilities">
-      <UniqueIdentifier>{348ab829-ff51-4e7b-85b2-dc5dcff535d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="1. Core">
       <UniqueIdentifier>{695115ad-f046-4a59-b7b9-50663d492e77}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="97. Base">
-      <UniqueIdentifier>{933d5f72-246a-4053-ab13-7354e5972700}</UniqueIdentifier>
     </Filter>
     <Filter Include="1. Core\Event">
       <UniqueIdentifier>{607c22e6-0ad9-482b-99b9-8fb47d4b8df9}</UniqueIdentifier>
@@ -69,22 +99,52 @@
     <Filter Include="2. Renderer">
       <UniqueIdentifier>{7e87f941-ee9f-42c4-8e36-9c6b8c9758b9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="99. Base">
+      <UniqueIdentifier>{933d5f72-246a-4053-ab13-7354e5972700}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Base\Config">
+      <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="97. MultiThread">
+      <UniqueIdentifier>{807b8b30-98be-4e07-bc66-41a6f4c83e3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Utilities">
+      <UniqueIdentifier>{348ab829-ff51-4e7b-85b2-dc5dcff535d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\Buffer">
+      <UniqueIdentifier>{e68d0003-5a5b-42bd-a4cf-62aeb17934e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\Shader">
+      <UniqueIdentifier>{c23cb475-e299-4fb6-8bb6-8a3c8af928c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\Texture">
+      <UniqueIdentifier>{089ee9f5-14de-4747-aaa0-2746094882de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\State">
+      <UniqueIdentifier>{7aafdfa2-5e15-4fac-a2df-92b92fab9308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\Viewport">
+      <UniqueIdentifier>{345a7ed4-bbd6-4175-bbd4-d2a7615c7d25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\ILayer">
+      <UniqueIdentifier>{ec73bece-9d03-42b3-bcc8-3691f61d4db4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClInclude>
     <ClInclude Include="Config.h">
-      <Filter>99. Config</Filter>
+      <Filter>99. Base\Config</Filter>
     </ClInclude>
     <ClInclude Include="DataType.h">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClInclude>
     <ClInclude Include="Macros.h">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClInclude>
     <ClInclude Include="Error.h">
-      <Filter>97. Base</Filter>
+      <Filter>99. Base</Filter>
     </ClInclude>
     <ClInclude Include="Log.h">
       <Filter>1. Core\Log</Filter>
@@ -113,19 +173,55 @@
     <ClInclude Include="Event.h">
       <Filter>1. Core\Event</Filter>
     </ClInclude>
-    <ClInclude Include="TypeTrait.h">
-      <Filter>98. Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Events.h">
       <Filter>1. Core\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>97. MultiThread</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtilities.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>2. Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererCommons.h">
+      <Filter>2. Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffers.h">
+      <Filter>2. Renderer\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompiler.h">
+      <Filter>2. Renderer\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="InputLayout.h">
+      <Filter>2. Renderer\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeTrait.h">
+      <Filter>99. Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Textures.h">
+      <Filter>2. Renderer\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders.h">
+      <Filter>2. Renderer\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderStates.h">
+      <Filter>2. Renderer\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewport.h">
+      <Filter>2. Renderer\Viewport</Filter>
+    </ClInclude>
+    <ClInclude Include="ILayer.h">
+      <Filter>1. Core\ILayer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">
-      <Filter>99. Config</Filter>
+      <Filter>99. Base\Config</Filter>
     </None>
     <None Include=".editorconfig">
-      <Filter>99. Config</Filter>
+      <Filter>99. Base\Config</Filter>
     </None>
   </ItemGroup>
 </Project>

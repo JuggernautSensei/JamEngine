@@ -27,7 +27,6 @@
 #include <directxtk/SimpleMath.h>
 #include <directxtk/SimpleMath.inl>
 #include <wrl.h>
-
 #pragma comment(lib, "d3d11.lib")
 
 // 3rd party - imgui
@@ -47,6 +46,7 @@
 #include "DataType.h"
 #include "Error.h"
 #include "Macros.h"
+#include "MathUtilities.h"
 //
 #include "TypeTrait.h"
 #include "Log.h"

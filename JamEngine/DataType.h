@@ -28,7 +28,8 @@ using Quat = DirectX::SimpleMath::Quaternion;
 using Color = DirectX::SimpleMath::Color;
 
 // ComPtr
-using Microsoft::WRL::ComPtr;
+template<typename T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 // namespace
 namespace fs = std::filesystem;

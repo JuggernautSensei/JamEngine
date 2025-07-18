@@ -1,6 +1,6 @@
 #pragma once
 
-#define JAM_ENTRY_POINT_MAIN
+#define JAM_MAIN
 #include "../JamEngine/JamEngine.h"
 
 #ifdef _DEBUG

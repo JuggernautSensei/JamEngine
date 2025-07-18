@@ -1,0 +1,14 @@
+[2025-07-14 15:03:12.946] [trace] log system initialized
+[2025-07-14 15:03:13.317] [info] Argument 0: C:\Users\ajw01\Desktop\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-14 15:03:13.320] [error] 
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\ajw01\Desktop\JamEngine\JamEngine\Application.cpp
+function name: class jam::Application &__cdecl jam::Application::GetInstance(void)
+line: 42
+columns: 5
+------------------------------------
+Application instance is null
+====================================
+

@@ -1,0 +1,2083 @@
+[2025-07-14 17:23:22.765] [trace] log system initialized
+[2025-07-14 17:23:22.765] [info] Argument 0: C:\Users\ajw01\Desktop\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-14 17:23:22.806] [trace] occurred event: WindowResizeEvent: width: 784, height: 561
+[2025-07-14 17:23:22.806] [trace] occurred event: WindowMoveEvent: x: 108, y: 131
+[2025-07-14 17:23:22.811] [debug] delta time 0.0001096 sec
+[2025-07-14 17:23:22.815] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.819] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.823] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.827] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.831] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.836] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.840] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.844] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.848] [debug] delta time 1.6099999e-05 sec
+[2025-07-14 17:23:22.852] [debug] delta time 1.63e-05 sec
+[2025-07-14 17:23:22.856] [debug] delta time 1.63e-05 sec
+[2025-07-14 17:23:22.861] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.865] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.869] [debug] delta time 1.82e-05 sec
+[2025-07-14 17:23:22.873] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.879] [debug] delta time 0.0027895 sec
+[2025-07-14 17:23:22.881] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.886] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.890] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.894] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.900] [debug] delta time 0.0029634999 sec
+[2025-07-14 17:23:22.902] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.906] [debug] delta time 4.66e-05 sec
+[2025-07-14 17:23:22.911] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.915] [debug] delta time 7.81e-05 sec
+[2025-07-14 17:23:22.919] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.923] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.927] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.931] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.936] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.940] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.944] [debug] delta time 4.14e-05 sec
+[2025-07-14 17:23:22.948] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.952] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:22.956] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.961] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.965] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.969] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.973] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.977] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.981] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.986] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.990] [debug] delta time 0.0001108 sec
+[2025-07-14 17:23:22.994] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:22.998] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:23.002] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.006] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.011] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.015] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.019] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.023] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.027] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.031] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.036] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.040] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.044] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.048] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.052] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.056] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.061] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.065] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.069] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.073] [debug] delta time 9.2e-06 sec
+[2025-07-14 17:23:23.077] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.082] [debug] delta time 0.0007704 sec
+[2025-07-14 17:23:23.086] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.090] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.094] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.098] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.102] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.106] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.111] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.115] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.119] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.123] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.127] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.131] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.136] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.140] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.144] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.148] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.152] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.156] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.161] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.165] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.169] [debug] delta time 2.3499999e-05 sec
+[2025-07-14 17:23:23.173] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.177] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.181] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.186] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.190] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.194] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.198] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.202] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.206] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.211] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.215] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.219] [debug] delta time 2.3499999e-05 sec
+[2025-07-14 17:23:23.223] [debug] delta time 0.00026869998 sec
+[2025-07-14 17:23:23.227] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.231] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.236] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.240] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.244] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.248] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.252] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.256] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.261] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.265] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.269] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.273] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.277] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.281] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.286] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.290] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.294] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.298] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.302] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.306] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.311] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.315] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.319] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.323] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.327] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.331] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.336] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.340] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.344] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.348] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.352] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.356] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.361] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.365] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.369] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.373] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.377] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.381] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.386] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.390] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.394] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.398] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.402] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.406] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.411] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.415] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.419] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.423] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.427] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.431] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.436] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.440] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.444] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.448] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.452] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.456] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.465] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.469] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.473] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.477] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.481] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.487] [debug] delta time 0.0038559 sec
+[2025-07-14 17:23:23.490] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.495] [debug] delta time 0.0022781 sec
+[2025-07-14 17:23:23.498] [debug] delta time 0.0007685 sec
+[2025-07-14 17:23:23.505] [debug] delta time 0.0031639999 sec
+[2025-07-14 17:23:23.506] [debug] delta time 0.00026859998 sec
+[2025-07-14 17:23:23.511] [debug] delta time 9e-07 sec
+[2025-07-14 17:23:23.515] [debug] delta time 0.0006101 sec
+[2025-07-14 17:23:23.519] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.523] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.527] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.533] [debug] delta time 0.0014109999 sec
+[2025-07-14 17:23:23.536] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.541] [debug] delta time 0.0013593 sec
+[2025-07-14 17:23:23.545] [debug] delta time 0.0013095 sec
+[2025-07-14 17:23:23.549] [debug] delta time 0.001437 sec
+[2025-07-14 17:23:23.553] [debug] delta time 0.0020601 sec
+[2025-07-14 17:23:23.558] [debug] delta time 0.0013048999 sec
+[2025-07-14 17:23:23.561] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.565] [debug] delta time 0.0017737 sec
+[2025-07-14 17:23:23.569] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.573] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.577] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.581] [debug] delta time 0.0002622 sec
+[2025-07-14 17:23:23.586] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.590] [debug] delta time 0.0005243 sec
+[2025-07-14 17:23:23.594] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.598] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.602] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:23.606] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.611] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.615] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.619] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.623] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.627] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.631] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.636] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.640] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.644] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.648] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.652] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.656] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.661] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.665] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.669] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.673] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:23.677] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.681] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.686] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:23.714] [trace] occurred event: WindowMoveEvent: x: 114, y: 133
+[2025-07-14 17:23:23.715] [trace] occurred event: WindowMoveEvent: x: 117, y: 135
+[2025-07-14 17:23:23.717] [trace] occurred event: WindowMoveEvent: x: 121, y: 137
+[2025-07-14 17:23:23.719] [trace] occurred event: WindowMoveEvent: x: 124, y: 138
+[2025-07-14 17:23:23.721] [trace] occurred event: WindowMoveEvent: x: 127, y: 140
+[2025-07-14 17:23:23.723] [trace] occurred event: WindowMoveEvent: x: 130, y: 141
+[2025-07-14 17:23:23.725] [trace] occurred event: WindowMoveEvent: x: 136, y: 144
+[2025-07-14 17:23:23.727] [trace] occurred event: WindowMoveEvent: x: 141, y: 146
+[2025-07-14 17:23:23.729] [trace] occurred event: WindowMoveEvent: x: 151, y: 151
+[2025-07-14 17:23:23.731] [trace] occurred event: WindowMoveEvent: x: 158, y: 154
+[2025-07-14 17:23:23.733] [trace] occurred event: WindowMoveEvent: x: 166, y: 157
+[2025-07-14 17:23:23.735] [trace] occurred event: WindowMoveEvent: x: 175, y: 161
+[2025-07-14 17:23:23.737] [trace] occurred event: WindowMoveEvent: x: 186, y: 164
+[2025-07-14 17:23:23.739] [trace] occurred event: WindowMoveEvent: x: 194, y: 167
+[2025-07-14 17:23:23.741] [trace] occurred event: WindowMoveEvent: x: 205, y: 172
+[2025-07-14 17:23:23.743] [trace] occurred event: WindowMoveEvent: x: 215, y: 175
+[2025-07-14 17:23:23.745] [trace] occurred event: WindowMoveEvent: x: 226, y: 178
+[2025-07-14 17:23:23.748] [trace] occurred event: WindowMoveEvent: x: 237, y: 183
+[2025-07-14 17:23:23.751] [trace] occurred event: WindowMoveEvent: x: 251, y: 187
+[2025-07-14 17:23:23.753] [trace] occurred event: WindowMoveEvent: x: 263, y: 192
+[2025-07-14 17:23:23.755] [trace] occurred event: WindowMoveEvent: x: 274, y: 196
+[2025-07-14 17:23:23.756] [trace] occurred event: WindowMoveEvent: x: 285, y: 201
+[2025-07-14 17:23:23.758] [trace] occurred event: WindowMoveEvent: x: 297, y: 205
+[2025-07-14 17:23:23.760] [trace] occurred event: WindowMoveEvent: x: 308, y: 210
+[2025-07-14 17:23:23.761] [trace] occurred event: WindowMoveEvent: x: 322, y: 214
+[2025-07-14 17:23:23.763] [trace] occurred event: WindowMoveEvent: x: 334, y: 220
+[2025-07-14 17:23:23.765] [trace] occurred event: WindowMoveEvent: x: 345, y: 224
+[2025-07-14 17:23:23.768] [trace] occurred event: WindowMoveEvent: x: 358, y: 229
+[2025-07-14 17:23:23.770] [trace] occurred event: WindowMoveEvent: x: 369, y: 232
+[2025-07-14 17:23:23.771] [trace] occurred event: WindowMoveEvent: x: 381, y: 236
+[2025-07-14 17:23:23.773] [trace] occurred event: WindowMoveEvent: x: 395, y: 242
+[2025-07-14 17:23:23.776] [trace] occurred event: WindowMoveEvent: x: 406, y: 246
+[2025-07-14 17:23:23.778] [trace] occurred event: WindowMoveEvent: x: 417, y: 250
+[2025-07-14 17:23:23.779] [trace] occurred event: WindowMoveEvent: x: 428, y: 254
+[2025-07-14 17:23:23.781] [trace] occurred event: WindowMoveEvent: x: 439, y: 259
+[2025-07-14 17:23:23.783] [trace] occurred event: WindowMoveEvent: x: 449, y: 262
+[2025-07-14 17:23:23.785] [trace] occurred event: WindowMoveEvent: x: 461, y: 267
+[2025-07-14 17:23:23.787] [trace] occurred event: WindowMoveEvent: x: 471, y: 270
+[2025-07-14 17:23:23.790] [trace] occurred event: WindowMoveEvent: x: 482, y: 273
+[2025-07-14 17:23:23.792] [trace] occurred event: WindowMoveEvent: x: 491, y: 275
+[2025-07-14 17:23:23.794] [trace] occurred event: WindowMoveEvent: x: 502, y: 278
+[2025-07-14 17:23:23.796] [trace] occurred event: WindowMoveEvent: x: 512, y: 281
+[2025-07-14 17:23:23.797] [trace] occurred event: WindowMoveEvent: x: 523, y: 284
+[2025-07-14 17:23:23.799] [trace] occurred event: WindowMoveEvent: x: 531, y: 286
+[2025-07-14 17:23:23.801] [trace] occurred event: WindowMoveEvent: x: 541, y: 288
+[2025-07-14 17:23:23.803] [trace] occurred event: WindowMoveEvent: x: 549, y: 290
+[2025-07-14 17:23:23.806] [trace] occurred event: WindowMoveEvent: x: 557, y: 292
+[2025-07-14 17:23:23.807] [trace] occurred event: WindowMoveEvent: x: 564, y: 293
+[2025-07-14 17:23:23.809] [trace] occurred event: WindowMoveEvent: x: 574, y: 295
+[2025-07-14 17:23:23.811] [trace] occurred event: WindowMoveEvent: x: 582, y: 297
+[2025-07-14 17:23:23.813] [trace] occurred event: WindowMoveEvent: x: 589, y: 298
+[2025-07-14 17:23:23.815] [trace] occurred event: WindowMoveEvent: x: 596, y: 300
+[2025-07-14 17:23:23.817] [trace] occurred event: WindowMoveEvent: x: 603, y: 302
+[2025-07-14 17:23:23.820] [trace] occurred event: WindowMoveEvent: x: 608, y: 303
+[2025-07-14 17:23:23.822] [trace] occurred event: WindowMoveEvent: x: 617, y: 305
+[2025-07-14 17:23:23.823] [trace] occurred event: WindowMoveEvent: x: 622, y: 306
+[2025-07-14 17:23:23.825] [trace] occurred event: WindowMoveEvent: x: 628, y: 307
+[2025-07-14 17:23:23.827] [trace] occurred event: WindowMoveEvent: x: 633, y: 308
+[2025-07-14 17:23:23.829] [trace] occurred event: WindowMoveEvent: x: 639, y: 309
+[2025-07-14 17:23:23.831] [trace] occurred event: WindowMoveEvent: x: 643, y: 310
+[2025-07-14 17:23:23.833] [trace] occurred event: WindowMoveEvent: x: 649, y: 311
+[2025-07-14 17:23:23.835] [trace] occurred event: WindowMoveEvent: x: 653, y: 312
+[2025-07-14 17:23:23.837] [trace] occurred event: WindowMoveEvent: x: 658, y: 312
+[2025-07-14 17:23:23.839] [trace] occurred event: WindowMoveEvent: x: 662, y: 312
+[2025-07-14 17:23:23.841] [trace] occurred event: WindowMoveEvent: x: 665, y: 313
+[2025-07-14 17:23:23.843] [trace] occurred event: WindowMoveEvent: x: 669, y: 313
+[2025-07-14 17:23:23.845] [trace] occurred event: WindowMoveEvent: x: 673, y: 313
+[2025-07-14 17:23:23.848] [trace] occurred event: WindowMoveEvent: x: 676, y: 313
+[2025-07-14 17:23:23.850] [trace] occurred event: WindowMoveEvent: x: 680, y: 313
+[2025-07-14 17:23:23.851] [trace] occurred event: WindowMoveEvent: x: 683, y: 313
+[2025-07-14 17:23:23.853] [trace] occurred event: WindowMoveEvent: x: 686, y: 313
+[2025-07-14 17:23:23.855] [trace] occurred event: WindowMoveEvent: x: 690, y: 313
+[2025-07-14 17:23:23.857] [trace] occurred event: WindowMoveEvent: x: 693, y: 313
+[2025-07-14 17:23:23.859] [trace] occurred event: WindowMoveEvent: x: 697, y: 313
+[2025-07-14 17:23:23.861] [trace] occurred event: WindowMoveEvent: x: 700, y: 313
+[2025-07-14 17:23:23.863] [trace] occurred event: WindowMoveEvent: x: 704, y: 313
+[2025-07-14 17:23:23.865] [trace] occurred event: WindowMoveEvent: x: 707, y: 312
+[2025-07-14 17:23:23.868] [trace] occurred event: WindowMoveEvent: x: 711, y: 312
+[2025-07-14 17:23:23.870] [trace] occurred event: WindowMoveEvent: x: 716, y: 311
+[2025-07-14 17:23:23.872] [trace] occurred event: WindowMoveEvent: x: 719, y: 310
+[2025-07-14 17:23:23.873] [trace] occurred event: WindowMoveEvent: x: 723, y: 310
+[2025-07-14 17:23:23.875] [trace] occurred event: WindowMoveEvent: x: 726, y: 310
+[2025-07-14 17:23:23.878] [trace] occurred event: WindowMoveEvent: x: 730, y: 309
+[2025-07-14 17:23:23.879] [trace] occurred event: WindowMoveEvent: x: 733, y: 308
+[2025-07-14 17:23:23.882] [trace] occurred event: WindowMoveEvent: x: 738, y: 307
+[2025-07-14 17:23:23.883] [trace] occurred event: WindowMoveEvent: x: 741, y: 306
+[2025-07-14 17:23:23.885] [trace] occurred event: WindowMoveEvent: x: 745, y: 305
+[2025-07-14 17:23:23.887] [trace] occurred event: WindowMoveEvent: x: 748, y: 305
+[2025-07-14 17:23:23.889] [trace] occurred event: WindowMoveEvent: x: 753, y: 304
+[2025-07-14 17:23:23.891] [trace] occurred event: WindowMoveEvent: x: 756, y: 303
+[2025-07-14 17:23:23.893] [trace] occurred event: WindowMoveEvent: x: 761, y: 301
+[2025-07-14 17:23:23.896] [trace] occurred event: WindowMoveEvent: x: 765, y: 300
+[2025-07-14 17:23:23.897] [trace] occurred event: WindowMoveEvent: x: 769, y: 299
+[2025-07-14 17:23:23.900] [trace] occurred event: WindowMoveEvent: x: 772, y: 299
+[2025-07-14 17:23:23.901] [trace] occurred event: WindowMoveEvent: x: 776, y: 298
+[2025-07-14 17:23:23.903] [trace] occurred event: WindowMoveEvent: x: 779, y: 297
+[2025-07-14 17:23:23.906] [trace] occurred event: WindowMoveEvent: x: 782, y: 296
+[2025-07-14 17:23:23.907] [trace] occurred event: WindowMoveEvent: x: 787, y: 295
+[2025-07-14 17:23:23.909] [trace] occurred event: WindowMoveEvent: x: 790, y: 294
+[2025-07-14 17:23:23.912] [trace] occurred event: WindowMoveEvent: x: 793, y: 293
+[2025-07-14 17:23:23.913] [trace] occurred event: WindowMoveEvent: x: 796, y: 291
+[2025-07-14 17:23:23.915] [trace] occurred event: WindowMoveEvent: x: 799, y: 291
+[2025-07-14 17:23:23.917] [trace] occurred event: WindowMoveEvent: x: 803, y: 289
+[2025-07-14 17:23:23.919] [trace] occurred event: WindowMoveEvent: x: 806, y: 288
+[2025-07-14 17:23:23.921] [trace] occurred event: WindowMoveEvent: x: 808, y: 287
+[2025-07-14 17:23:23.924] [trace] occurred event: WindowMoveEvent: x: 811, y: 286
+[2025-07-14 17:23:23.925] [trace] occurred event: WindowMoveEvent: x: 814, y: 284
+[2025-07-14 17:23:23.927] [trace] occurred event: WindowMoveEvent: x: 816, y: 284
+[2025-07-14 17:23:23.929] [trace] occurred event: WindowMoveEvent: x: 819, y: 282
+[2025-07-14 17:23:23.931] [trace] occurred event: WindowMoveEvent: x: 821, y: 281
+[2025-07-14 17:23:23.933] [trace] occurred event: WindowMoveEvent: x: 823, y: 279
+[2025-07-14 17:23:23.935] [trace] occurred event: WindowMoveEvent: x: 827, y: 277
+[2025-07-14 17:23:23.937] [trace] occurred event: WindowMoveEvent: x: 829, y: 276
+[2025-07-14 17:23:23.939] [trace] occurred event: WindowMoveEvent: x: 831, y: 274
+[2025-07-14 17:23:23.941] [trace] occurred event: WindowMoveEvent: x: 833, y: 272
+[2025-07-14 17:23:23.943] [trace] occurred event: WindowMoveEvent: x: 836, y: 271
+[2025-07-14 17:23:23.945] [trace] occurred event: WindowMoveEvent: x: 838, y: 268
+[2025-07-14 17:23:23.947] [trace] occurred event: WindowMoveEvent: x: 840, y: 266
+[2025-07-14 17:23:23.949] [trace] occurred event: WindowMoveEvent: x: 843, y: 264
+[2025-07-14 17:23:23.951] [trace] occurred event: WindowMoveEvent: x: 845, y: 262
+[2025-07-14 17:23:23.953] [trace] occurred event: WindowMoveEvent: x: 847, y: 259
+[2025-07-14 17:23:23.955] [trace] occurred event: WindowMoveEvent: x: 850, y: 257
+[2025-07-14 17:23:23.957] [trace] occurred event: WindowMoveEvent: x: 851, y: 253
+[2025-07-14 17:23:23.960] [trace] occurred event: WindowMoveEvent: x: 854, y: 251
+[2025-07-14 17:23:23.961] [trace] occurred event: WindowMoveEvent: x: 856, y: 248
+[2025-07-14 17:23:23.963] [trace] occurred event: WindowMoveEvent: x: 858, y: 244
+[2025-07-14 17:23:23.965] [trace] occurred event: WindowMoveEvent: x: 860, y: 241
+[2025-07-14 17:23:23.967] [trace] occurred event: WindowMoveEvent: x: 863, y: 237
+[2025-07-14 17:23:23.969] [trace] occurred event: WindowMoveEvent: x: 865, y: 234
+[2025-07-14 17:23:23.971] [trace] occurred event: WindowMoveEvent: x: 866, y: 231
+[2025-07-14 17:23:23.973] [trace] occurred event: WindowMoveEvent: x: 869, y: 227
+[2025-07-14 17:23:23.975] [trace] occurred event: WindowMoveEvent: x: 871, y: 224
+[2025-07-14 17:23:23.977] [trace] occurred event: WindowMoveEvent: x: 872, y: 219
+[2025-07-14 17:23:23.979] [trace] occurred event: WindowMoveEvent: x: 874, y: 216
+[2025-07-14 17:23:23.982] [trace] occurred event: WindowMoveEvent: x: 876, y: 213
+[2025-07-14 17:23:23.983] [trace] occurred event: WindowMoveEvent: x: 877, y: 209
+[2025-07-14 17:23:23.985] [trace] occurred event: WindowMoveEvent: x: 879, y: 206
+[2025-07-14 17:23:23.987] [trace] occurred event: WindowMoveEvent: x: 881, y: 203
+[2025-07-14 17:23:23.989] [trace] occurred event: WindowMoveEvent: x: 882, y: 198
+[2025-07-14 17:23:23.991] [trace] occurred event: WindowMoveEvent: x: 884, y: 195
+[2025-07-14 17:23:23.993] [trace] occurred event: WindowMoveEvent: x: 885, y: 192
+[2025-07-14 17:23:23.995] [trace] occurred event: WindowMoveEvent: x: 886, y: 189
+[2025-07-14 17:23:23.997] [trace] occurred event: WindowMoveEvent: x: 887, y: 186
+[2025-07-14 17:23:23.999] [trace] occurred event: WindowMoveEvent: x: 888, y: 183
+[2025-07-14 17:23:24.001] [trace] occurred event: WindowMoveEvent: x: 890, y: 178
+[2025-07-14 17:23:24.003] [trace] occurred event: WindowMoveEvent: x: 891, y: 175
+[2025-07-14 17:23:24.005] [trace] occurred event: WindowMoveEvent: x: 891, y: 173
+[2025-07-14 17:23:24.007] [trace] occurred event: WindowMoveEvent: x: 892, y: 171
+[2025-07-14 17:23:24.009] [trace] occurred event: WindowMoveEvent: x: 894, y: 167
+[2025-07-14 17:23:24.011] [trace] occurred event: WindowMoveEvent: x: 894, y: 165
+[2025-07-14 17:23:24.013] [trace] occurred event: WindowMoveEvent: x: 895, y: 162
+[2025-07-14 17:23:24.015] [trace] occurred event: WindowMoveEvent: x: 896, y: 160
+[2025-07-14 17:23:24.017] [trace] occurred event: WindowMoveEvent: x: 897, y: 158
+[2025-07-14 17:23:24.019] [trace] occurred event: WindowMoveEvent: x: 897, y: 156
+[2025-07-14 17:23:24.021] [trace] occurred event: WindowMoveEvent: x: 897, y: 155
+[2025-07-14 17:23:24.023] [trace] occurred event: WindowMoveEvent: x: 898, y: 153
+[2025-07-14 17:23:24.025] [trace] occurred event: WindowMoveEvent: x: 899, y: 151
+[2025-07-14 17:23:24.027] [trace] occurred event: WindowMoveEvent: x: 900, y: 148
+[2025-07-14 17:23:24.029] [trace] occurred event: WindowMoveEvent: x: 901, y: 146
+[2025-07-14 17:23:24.031] [trace] occurred event: WindowMoveEvent: x: 901, y: 145
+[2025-07-14 17:23:24.033] [trace] occurred event: WindowMoveEvent: x: 902, y: 143
+[2025-07-14 17:23:24.035] [trace] occurred event: WindowMoveEvent: x: 903, y: 141
+[2025-07-14 17:23:24.037] [trace] occurred event: WindowMoveEvent: x: 904, y: 139
+[2025-07-14 17:23:24.039] [trace] occurred event: WindowMoveEvent: x: 905, y: 137
+[2025-07-14 17:23:24.041] [trace] occurred event: WindowMoveEvent: x: 905, y: 136
+[2025-07-14 17:23:24.043] [trace] occurred event: WindowMoveEvent: x: 906, y: 133
+[2025-07-14 17:23:24.045] [trace] occurred event: WindowMoveEvent: x: 907, y: 132
+[2025-07-14 17:23:24.047] [trace] occurred event: WindowMoveEvent: x: 907, y: 131
+[2025-07-14 17:23:24.049] [trace] occurred event: WindowMoveEvent: x: 907, y: 128
+[2025-07-14 17:23:24.051] [trace] occurred event: WindowMoveEvent: x: 908, y: 127
+[2025-07-14 17:23:24.053] [trace] occurred event: WindowMoveEvent: x: 909, y: 126
+[2025-07-14 17:23:24.055] [trace] occurred event: WindowMoveEvent: x: 909, y: 124
+[2025-07-14 17:23:24.057] [trace] occurred event: WindowMoveEvent: x: 910, y: 123
+[2025-07-14 17:23:24.059] [trace] occurred event: WindowMoveEvent: x: 910, y: 122
+[2025-07-14 17:23:24.063] [trace] occurred event: WindowMoveEvent: x: 910, y: 121
+[2025-07-14 17:23:24.067] [trace] occurred event: WindowMoveEvent: x: 910, y: 119
+[2025-07-14 17:23:24.072] [trace] occurred event: WindowMoveEvent: x: 910, y: 118
+[2025-07-14 17:23:24.073] [trace] occurred event: WindowMoveEvent: x: 911, y: 118
+[2025-07-14 17:23:24.076] [trace] occurred event: WindowMoveEvent: x: 911, y: 117
+[2025-07-14 17:23:24.082] [trace] occurred event: WindowMoveEvent: x: 911, y: 116
+[2025-07-14 17:23:24.089] [trace] occurred event: WindowMoveEvent: x: 911, y: 115
+[2025-07-14 17:23:24.115] [trace] occurred event: WindowMoveEvent: x: 911, y: 114
+[2025-07-14 17:23:24.187] [trace] occurred event: WindowMoveEvent: x: 911, y: 115
+[2025-07-14 17:23:24.191] [trace] occurred event: WindowMoveEvent: x: 911, y: 116
+[2025-07-14 17:23:24.202] [trace] occurred event: WindowMoveEvent: x: 911, y: 117
+[2025-07-14 17:23:24.203] [trace] occurred event: WindowMoveEvent: x: 912, y: 117
+[2025-07-14 17:23:24.211] [trace] occurred event: WindowMoveEvent: x: 912, y: 118
+[2025-07-14 17:23:24.213] [trace] occurred event: WindowMoveEvent: x: 913, y: 118
+[2025-07-14 17:23:24.218] [trace] occurred event: WindowMoveEvent: x: 914, y: 118
+[2025-07-14 17:23:24.224] [trace] occurred event: WindowMoveEvent: x: 914, y: 119
+[2025-07-14 17:23:24.226] [trace] occurred event: WindowMoveEvent: x: 915, y: 119
+[2025-07-14 17:23:24.229] [trace] occurred event: WindowMoveEvent: x: 915, y: 120
+[2025-07-14 17:23:24.232] [trace] occurred event: WindowMoveEvent: x: 916, y: 120
+[2025-07-14 17:23:24.240] [trace] occurred event: WindowMoveEvent: x: 917, y: 120
+[2025-07-14 17:23:24.244] [trace] occurred event: WindowMoveEvent: x: 918, y: 121
+[2025-07-14 17:23:24.250] [trace] occurred event: WindowMoveEvent: x: 919, y: 121
+[2025-07-14 17:23:24.257] [trace] occurred event: WindowMoveEvent: x: 920, y: 122
+[2025-07-14 17:23:24.262] [trace] occurred event: WindowMoveEvent: x: 921, y: 122
+[2025-07-14 17:23:24.268] [trace] occurred event: WindowMoveEvent: x: 922, y: 123
+[2025-07-14 17:23:24.269] [trace] occurred event: WindowMoveEvent: x: 923, y: 123
+[2025-07-14 17:23:24.272] [trace] occurred event: WindowMoveEvent: x: 923, y: 124
+[2025-07-14 17:23:24.273] [trace] occurred event: WindowMoveEvent: x: 924, y: 124
+[2025-07-14 17:23:24.275] [trace] occurred event: WindowMoveEvent: x: 925, y: 124
+[2025-07-14 17:23:24.278] [trace] occurred event: WindowMoveEvent: x: 926, y: 125
+[2025-07-14 17:23:24.279] [trace] occurred event: WindowMoveEvent: x: 928, y: 125
+[2025-07-14 17:23:24.284] [trace] occurred event: WindowMoveEvent: x: 929, y: 126
+[2025-07-14 17:23:24.285] [trace] occurred event: WindowMoveEvent: x: 931, y: 127
+[2025-07-14 17:23:24.287] [trace] occurred event: WindowMoveEvent: x: 932, y: 127
+[2025-07-14 17:23:24.289] [trace] occurred event: WindowMoveEvent: x: 933, y: 127
+[2025-07-14 17:23:24.291] [trace] occurred event: WindowMoveEvent: x: 934, y: 128
+[2025-07-14 17:23:24.294] [trace] occurred event: WindowMoveEvent: x: 935, y: 129
+[2025-07-14 17:23:24.295] [trace] occurred event: WindowMoveEvent: x: 937, y: 129
+[2025-07-14 17:23:24.297] [trace] occurred event: WindowMoveEvent: x: 938, y: 129
+[2025-07-14 17:23:24.299] [trace] occurred event: WindowMoveEvent: x: 939, y: 130
+[2025-07-14 17:23:24.301] [trace] occurred event: WindowMoveEvent: x: 941, y: 130
+[2025-07-14 17:23:24.303] [trace] occurred event: WindowMoveEvent: x: 942, y: 131
+[2025-07-14 17:23:24.305] [trace] occurred event: WindowMoveEvent: x: 943, y: 132
+[2025-07-14 17:23:24.307] [trace] occurred event: WindowMoveEvent: x: 945, y: 132
+[2025-07-14 17:23:24.309] [trace] occurred event: WindowMoveEvent: x: 946, y: 132
+[2025-07-14 17:23:24.311] [trace] occurred event: WindowMoveEvent: x: 947, y: 133
+[2025-07-14 17:23:24.313] [trace] occurred event: WindowMoveEvent: x: 949, y: 133
+[2025-07-14 17:23:24.315] [trace] occurred event: WindowMoveEvent: x: 950, y: 134
+[2025-07-14 17:23:24.317] [trace] occurred event: WindowMoveEvent: x: 951, y: 134
+[2025-07-14 17:23:24.319] [trace] occurred event: WindowMoveEvent: x: 953, y: 135
+[2025-07-14 17:23:24.321] [trace] occurred event: WindowMoveEvent: x: 954, y: 135
+[2025-07-14 17:23:24.323] [trace] occurred event: WindowMoveEvent: x: 956, y: 136
+[2025-07-14 17:23:24.325] [trace] occurred event: WindowMoveEvent: x: 958, y: 136
+[2025-07-14 17:23:24.329] [trace] occurred event: WindowMoveEvent: x: 959, y: 136
+[2025-07-14 17:23:24.331] [trace] occurred event: WindowMoveEvent: x: 961, y: 137
+[2025-07-14 17:23:24.333] [trace] occurred event: WindowMoveEvent: x: 962, y: 137
+[2025-07-14 17:23:24.335] [trace] occurred event: WindowMoveEvent: x: 963, y: 138
+[2025-07-14 17:23:24.337] [trace] occurred event: WindowMoveEvent: x: 965, y: 138
+[2025-07-14 17:23:24.341] [trace] occurred event: WindowMoveEvent: x: 966, y: 138
+[2025-07-14 17:23:24.343] [trace] occurred event: WindowMoveEvent: x: 967, y: 138
+[2025-07-14 17:23:24.345] [trace] occurred event: WindowMoveEvent: x: 968, y: 138
+[2025-07-14 17:23:24.351] [trace] occurred event: WindowMoveEvent: x: 969, y: 138
+[2025-07-14 17:23:24.353] [trace] occurred event: WindowMoveEvent: x: 969, y: 139
+[2025-07-14 17:23:24.359] [trace] occurred event: WindowMoveEvent: x: 970, y: 139
+[2025-07-14 17:23:24.395] [trace] occurred event: WindowMoveEvent: x: 971, y: 139
+[2025-07-14 17:23:24.427] [trace] occurred event: WindowMoveEvent: x: 972, y: 139
+[2025-07-14 17:23:24.451] [debug] delta time 0.7638805 sec
+[2025-07-14 17:23:24.451] [debug] delta time 5.48e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 5.3999997e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 1.78e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 1.89e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.7e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.7e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 5.0999997e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.48e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 1.36e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.7999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 1.98e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.8e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 1.96e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.6299998e-05 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.7e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.4999998e-06 sec
+[2025-07-14 17:23:24.451] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 2.9999999e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 3.4e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 3.3e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 3.4e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 3.1e-06 sec
+[2025-07-14 17:23:24.452] [debug] delta time 2.8699998e-05 sec
+[2025-07-14 17:23:24.452] [debug] delta time 6.9e-06 sec
+[2025-07-14 17:23:24.456] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.465] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.469] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.473] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.477] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.481] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.486] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.490] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.494] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.498] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.502] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.506] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.511] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.515] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.519] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.523] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.527] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.531] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.536] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.540] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.544] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.548] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.552] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.556] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.561] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.565] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.569] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.573] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.577] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.581] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.586] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.590] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.594] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.598] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.602] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.606] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.611] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.615] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.619] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.623] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.627] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.631] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.636] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.640] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.644] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.648] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.652] [debug] delta time 1.5399999e-05 sec
+[2025-07-14 17:23:24.656] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.661] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.665] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.669] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.673] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.677] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.681] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.686] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.690] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.694] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.698] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.702] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.706] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.711] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.715] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.719] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.723] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.727] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.731] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.736] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.740] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.744] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.748] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.752] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.756] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.761] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.765] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.769] [debug] delta time 8e-06 sec
+[2025-07-14 17:23:24.773] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.777] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.781] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.786] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.790] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.794] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.798] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.802] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.806] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.811] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.815] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.819] [debug] delta time 3.35e-05 sec
+[2025-07-14 17:23:24.823] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.827] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.831] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.836] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.840] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.844] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.848] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.852] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.856] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.861] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.865] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.869] [debug] delta time 1.58e-05 sec
+[2025-07-14 17:23:24.873] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.877] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.881] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.886] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.890] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.894] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.898] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.902] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.906] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.911] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.915] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.919] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.923] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.927] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.931] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.936] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.940] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.944] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.948] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.952] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.956] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.961] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.965] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.969] [debug] delta time 4.67e-05 sec
+[2025-07-14 17:23:24.973] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.977] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:24.981] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.986] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.990] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.994] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:24.998] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.002] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.006] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.011] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.015] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.019] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.023] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.027] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.031] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.036] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.040] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.044] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.048] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.052] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.056] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.061] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.065] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.069] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.073] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.077] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.081] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.086] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.090] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.094] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.098] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.102] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.106] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.111] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.115] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.119] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.123] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.127] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.131] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.136] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.140] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.144] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:25.148] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.152] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.156] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.161] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.165] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.169] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.173] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.177] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.181] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.186] [debug] delta time 0.0009088 sec
+[2025-07-14 17:23:25.190] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.194] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.198] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.202] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.206] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.211] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.215] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.219] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.223] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.227] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.231] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.236] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.240] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.244] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.248] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.252] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.256] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.261] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.265] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.269] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.273] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.277] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.281] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.286] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.290] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.294] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.298] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.302] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.306] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.311] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.315] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.319] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.323] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.327] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.331] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.336] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.340] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.344] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.348] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.352] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.356] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.361] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.365] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.369] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:25.373] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.377] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.381] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.386] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.390] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.394] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.398] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.402] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.406] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.411] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.415] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.419] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.423] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.427] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.431] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.436] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.440] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.444] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.448] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.452] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.456] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.465] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.469] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.473] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.477] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.481] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.486] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.490] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.494] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.498] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.502] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.506] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.511] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.515] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.519] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.523] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.527] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.531] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.536] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.540] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.544] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.548] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.552] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.556] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.561] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.565] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.569] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.573] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.577] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.581] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.586] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.590] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.594] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.598] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.602] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.606] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.611] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.615] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.619] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.623] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.627] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.631] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.636] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.640] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.644] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.648] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.652] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.656] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.661] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.665] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.669] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.673] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.677] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.681] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.686] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.690] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.694] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.698] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.702] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.706] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.711] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.715] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.719] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.723] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.727] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.731] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.736] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.740] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.744] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.748] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.752] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.756] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.761] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.765] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.769] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.773] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.777] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.781] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.786] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.790] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.794] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.798] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.802] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.806] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.811] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.815] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.819] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.823] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.827] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.831] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.836] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.840] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.844] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.848] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.852] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.856] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.861] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.865] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.869] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.873] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.877] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.881] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.886] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.890] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.894] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.898] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.902] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.906] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.911] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.915] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.919] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.923] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.927] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.931] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.936] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.940] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.944] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.948] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.952] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.956] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.961] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.965] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:25.969] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.973] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.977] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.981] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.986] [debug] delta time 0.0001656 sec
+[2025-07-14 17:23:25.990] [debug] delta time 5.8e-06 sec
+[2025-07-14 17:23:25.994] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:25.998] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.002] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.006] [debug] delta time 1.5599999e-05 sec
+[2025-07-14 17:23:26.011] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.015] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.019] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.023] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.027] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.031] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.036] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.040] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.044] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.048] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.052] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.056] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.061] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.065] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.069] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.073] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.077] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.081] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.086] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.090] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.094] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.098] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.102] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.106] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.111] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.115] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.119] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.123] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.127] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.131] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.136] [debug] delta time 1.7999999e-05 sec
+[2025-07-14 17:23:26.140] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.144] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.148] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.152] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.156] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.161] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.165] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.169] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.173] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.177] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.181] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.186] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.190] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.194] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.198] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.202] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.206] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.211] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.215] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.219] [debug] delta time 9.9999994e-08 sec
+[2025-07-14 17:23:26.223] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.227] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.231] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.236] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.240] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.244] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.248] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.252] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.256] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.261] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.265] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.269] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.273] [debug] delta time 1.77e-05 sec
+[2025-07-14 17:23:26.277] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.281] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.286] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.290] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.294] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.298] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:26.302] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.306] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.311] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.315] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.319] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.323] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.327] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.331] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.336] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.340] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.344] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.348] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.352] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.356] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.361] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:26.365] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.369] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.373] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.377] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.381] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.386] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.390] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.394] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.398] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.402] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.406] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.411] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.415] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.419] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.423] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.427] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.431] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.436] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.440] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.444] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:26.448] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.452] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.456] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.465] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.469] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.473] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.477] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.481] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.486] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.490] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.494] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.498] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.502] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.506] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.511] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.515] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.519] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.523] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.527] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.531] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.536] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.540] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.544] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.548] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.552] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.556] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.561] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.565] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.569] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.573] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.577] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.581] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.586] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.590] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.594] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.598] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.602] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.606] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.611] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.615] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.619] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.623] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.627] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.631] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.636] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.640] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.644] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.648] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.652] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.656] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.661] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.665] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.669] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.673] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.677] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.681] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.686] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.690] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.694] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.698] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.702] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.706] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.711] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.715] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.719] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.723] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.727] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.731] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.736] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.740] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.744] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.748] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.752] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.756] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.761] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.765] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.769] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.773] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.777] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.781] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.786] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.790] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.794] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.798] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.802] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.806] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.811] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.815] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.819] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.823] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.827] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.831] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.836] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.840] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.844] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.848] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.852] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.856] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.861] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.865] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.869] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.873] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.877] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.881] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.886] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.890] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.894] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.898] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.902] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.906] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.911] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.915] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.919] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.923] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.927] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.931] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.936] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.940] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.944] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.948] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.952] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.956] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.961] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.965] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.969] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.973] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.977] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.981] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.986] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.990] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:26.994] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:26.998] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.002] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.006] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.011] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.015] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.019] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.023] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.027] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.031] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.036] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.040] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.044] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.048] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.052] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.056] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.061] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.065] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.069] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.073] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.077] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.081] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.086] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.090] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.094] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.098] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.102] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.106] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.111] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.115] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.119] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.123] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.127] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.131] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:27.136] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.140] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.144] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.148] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.152] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.156] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.161] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.165] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.169] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.173] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.177] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.181] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.186] [debug] delta time 0.0008638 sec
+[2025-07-14 17:23:27.190] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.194] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.198] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.202] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.206] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.211] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.215] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.219] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.223] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.227] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.231] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.236] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.240] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.244] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.248] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.252] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.256] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.261] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.265] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.269] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.273] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.277] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.281] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.286] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.290] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.294] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.298] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.302] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.306] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.311] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.315] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.319] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.323] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.327] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.331] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.336] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.340] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.344] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.348] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.352] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.356] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:27.361] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.365] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.369] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.373] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.377] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.381] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.386] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.390] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.394] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.398] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.402] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.406] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.411] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.415] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.419] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.423] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.427] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.431] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.436] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.440] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.444] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.448] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.452] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.456] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.465] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.469] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.473] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.477] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.481] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.486] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.490] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.494] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.498] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.502] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.506] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.511] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.515] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.519] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.523] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.527] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.531] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.536] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.540] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.544] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.548] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.552] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.556] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.561] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.565] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.569] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.573] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.577] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.581] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.586] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.590] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.594] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.598] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.602] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.606] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.611] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.615] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.619] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.623] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.627] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.631] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.636] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.640] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.644] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.648] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.652] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.656] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.661] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.665] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.669] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.673] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.677] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.681] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.686] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.690] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.694] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.698] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.702] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.706] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.711] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.715] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.719] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.723] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.727] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.731] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.736] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.740] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.744] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.748] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.752] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.756] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.761] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.765] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.769] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.773] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.777] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.781] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.786] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.790] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.794] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.798] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.802] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.806] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.811] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.815] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.819] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.823] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.827] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.831] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.836] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.840] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.844] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.848] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.852] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.856] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.861] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.865] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.869] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.873] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.877] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.881] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.886] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.890] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.894] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.898] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.902] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.906] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.911] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.915] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.919] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.925] [debug] delta time 0.0035722998 sec
+[2025-07-14 17:23:27.929] [debug] delta time 0.0044108 sec
+[2025-07-14 17:23:27.931] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.936] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.940] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.944] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.948] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.952] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.956] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.961] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.965] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.969] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.973] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.977] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.981] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.986] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.990] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:27.994] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:27.998] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.002] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.006] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.011] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.015] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.019] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.023] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.027] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.031] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.036] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.040] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.044] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.048] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.052] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.056] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.061] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.065] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.069] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.073] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.077] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.081] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.086] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.090] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.094] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.098] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.102] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.106] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.111] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.115] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.119] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.123] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.127] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.131] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.136] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.140] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.144] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.148] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.152] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.156] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.161] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.165] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.169] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.173] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.177] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.181] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.186] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.190] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.194] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.198] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.202] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.206] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.211] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.215] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.219] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.223] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.227] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.231] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.236] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.240] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.244] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.248] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.252] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.256] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.261] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.265] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.269] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.273] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.277] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.281] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.286] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.290] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.294] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.298] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:28.302] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.306] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.311] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.315] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.319] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.323] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.327] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.331] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.336] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.340] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.344] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.348] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.352] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.356] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.361] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.365] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.369] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.373] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.377] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.381] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.386] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.390] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.394] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.398] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.402] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.406] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:28.411] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.415] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.419] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:28.423] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.427] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.431] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.436] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.440] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.444] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.448] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.452] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.456] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.465] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.469] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.473] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.477] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.481] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.486] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.490] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.494] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.498] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.502] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.506] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.511] [debug] delta time 9.9999994e-08 sec
+[2025-07-14 17:23:28.515] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.519] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.523] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.527] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.531] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.536] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.540] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.544] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.548] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.552] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.556] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.561] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.565] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.569] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.573] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.577] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.581] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.586] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.590] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.594] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.598] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.602] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.606] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.611] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.615] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.619] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.623] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.627] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.631] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.636] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.640] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.644] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.648] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.652] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.656] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.661] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.665] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.669] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.673] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.677] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.681] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.686] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:28.690] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.694] [debug] delta time 9.37e-05 sec
+[2025-07-14 17:23:28.698] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.702] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.706] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.711] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.715] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.719] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.723] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.727] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.731] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.736] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.740] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.744] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.748] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.752] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.756] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.761] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.765] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.769] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.773] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.777] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.781] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.786] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.790] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.794] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.798] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.802] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.806] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.811] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.815] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.819] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.823] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.827] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.831] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.836] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.840] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.844] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.848] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.852] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.856] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.861] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.865] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.869] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.873] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.877] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.881] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.886] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.890] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.894] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.898] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.902] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.906] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.911] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.915] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.919] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.923] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.927] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.931] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.936] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.940] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.944] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.948] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.952] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.956] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.961] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.965] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.969] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.973] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.977] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.981] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.986] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:28.990] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.994] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:28.998] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.002] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.006] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.011] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.015] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.019] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.023] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.027] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.031] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.036] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.040] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.044] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.048] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.052] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.056] [debug] delta time 1.13999995e-05 sec
+[2025-07-14 17:23:29.061] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.065] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.069] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.073] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.077] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.081] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.086] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.090] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.094] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.098] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.102] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.106] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.111] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.115] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.119] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.123] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.127] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.131] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.136] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.140] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.144] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.148] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.152] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.156] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.161] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.165] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.169] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.173] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.177] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.181] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.186] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.190] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.194] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.198] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.202] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.206] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.211] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.215] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.219] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.223] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.227] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.231] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.236] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.240] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.244] [debug] delta time 3.9999998e-07 sec
+[2025-07-14 17:23:29.248] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.252] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.256] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.261] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.265] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.269] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.273] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.277] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.281] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.286] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.290] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.294] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.298] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.302] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.306] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.311] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.315] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.319] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.323] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.327] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.331] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.336] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.340] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.344] [debug] delta time 2.74e-05 sec
+[2025-07-14 17:23:29.348] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.352] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.356] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.361] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.365] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.369] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.373] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.377] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.381] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.386] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.390] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.394] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.398] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.402] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.406] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.411] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.415] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.419] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.423] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.427] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.431] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.436] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.440] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.444] [debug] delta time 2.3499999e-05 sec
+[2025-07-14 17:23:29.448] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.452] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.456] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.465] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.469] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.473] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.477] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.481] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.486] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.490] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.494] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.498] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.502] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.506] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.511] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.515] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.519] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.523] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.527] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.531] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.536] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.540] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.544] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.548] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.552] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.556] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.561] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.565] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.569] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.573] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.577] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.581] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.586] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.590] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.594] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.598] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.602] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.606] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.611] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.615] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.619] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.623] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.627] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.631] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.636] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.640] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.644] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.648] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.652] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.656] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.661] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.665] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.669] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.673] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.677] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.681] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.686] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.690] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.694] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.698] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.702] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.706] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.711] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.715] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.719] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.723] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.727] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.731] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.736] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.740] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.744] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.748] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.752] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.756] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.761] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.765] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.769] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.773] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.777] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.781] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.786] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.790] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.794] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.798] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.802] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.806] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.811] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.815] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.819] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.823] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.827] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.831] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.836] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.840] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.844] [debug] delta time 1.62e-05 sec
+[2025-07-14 17:23:29.848] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.852] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.856] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.861] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.865] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.869] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.873] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.877] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.881] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.886] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.890] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.894] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.898] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.902] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.906] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.911] [debug] delta time 3.1999998e-06 sec
+[2025-07-14 17:23:29.915] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.919] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.923] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.927] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.931] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.936] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.940] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.944] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.948] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.952] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.956] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.961] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.965] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.969] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.973] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.977] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.981] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:29.986] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.990] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:29.994] [debug] delta time 6.17e-05 sec
+[2025-07-14 17:23:29.998] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.002] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.006] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.011] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.015] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.019] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.023] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.027] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.031] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.036] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.040] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.044] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.048] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.052] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.056] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.061] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.065] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.069] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.073] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.077] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.081] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.086] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.090] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.094] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.098] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.102] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.106] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.111] [debug] delta time 5e-07 sec
+[2025-07-14 17:23:30.115] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.119] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.123] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.127] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.131] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.136] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.140] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.144] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.148] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.152] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.156] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.161] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.165] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.169] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.173] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.177] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.181] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.186] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.190] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.194] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.198] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.202] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.206] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.211] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.215] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.219] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.223] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.227] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.231] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.236] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.240] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.244] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.248] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.252] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.256] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.261] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.265] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.269] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.273] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.277] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.281] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.286] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.290] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.294] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.298] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.302] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.306] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.311] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.315] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.319] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.323] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.327] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.331] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.336] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.340] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.344] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.348] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.352] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.356] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.361] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.365] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.369] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.373] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.377] [debug] delta time 7e-07 sec
+[2025-07-14 17:23:30.381] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.386] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.390] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.394] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.398] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.402] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.406] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.411] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.415] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.419] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.423] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.427] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.431] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.436] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.440] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.444] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.448] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.452] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.456] [debug] delta time 2.9999998e-07 sec
+[2025-07-14 17:23:30.461] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.465] [debug] delta time 1.9999999e-07 sec
+[2025-07-14 17:23:30.469] [debug] delta time 1.9999999e-07 sec

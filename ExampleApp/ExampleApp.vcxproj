@@ -195,6 +195,10 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".clang-format" />
+    <None Include=".editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\JamEngine\JamEngine.vcxproj">
       <Project>{bd8ecbb6-cce6-4ffa-ac85-62801d0ba3db}</Project>
     </ProjectReference>

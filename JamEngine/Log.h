@@ -97,10 +97,10 @@ public:
     }
 
 private:
+    inline static std::shared_ptr<spdlog::logger> s_coreLogger = nullptr;
+
     constexpr static std::string_view k_logDirectory = "logs/";
     constexpr static std::string_view k_logPattern   = "[%Y.%m.%d %H:%M:%S.%e] [%^%l%$] %v";
-
-    inline static std::shared_ptr<spdlog::logger> s_coreLogger = nullptr;
 };
 
 }   // namespace jam
