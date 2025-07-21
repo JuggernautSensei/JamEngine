@@ -46,12 +46,6 @@
     <ClCompile Include="MathUtilities.cpp">
       <Filter>98. Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>2. Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="RendererCommons.cpp">
-      <Filter>2. Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Buffers.cpp">
       <Filter>2. Renderer\Buffer</Filter>
     </ClCompile>
@@ -79,6 +73,57 @@
     <ClCompile Include="ILayer.cpp">
       <Filter>1. Core\ILayer</Filter>
     </ClCompile>
+    <ClCompile Include="RendererCommons.cpp">
+      <Filter>2. Renderer\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>2. Renderer\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ImguiLayer.cpp">
+      <Filter>2. Renderer\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneLayer.cpp">
+      <Filter>4. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>4. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Components.cpp">
+      <Filter>4. Scene\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>4. Scene\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Script.cpp">
+      <Filter>4. Scene\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>2. Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>2. Renderer\Vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelImporter.cpp">
+      <Filter>2. Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelExporter.cpp">
+      <Filter>2. Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshFactory.cpp">
+      <Filter>2. Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>2. Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>2. Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelLoader.cpp">
+      <Filter>2. Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>1. Core\Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -105,9 +150,6 @@
     <Filter Include="99. Base\Config">
       <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="97. MultiThread">
-      <UniqueIdentifier>{807b8b30-98be-4e07-bc66-41a6f4c83e3e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="98. Utilities">
       <UniqueIdentifier>{348ab829-ff51-4e7b-85b2-dc5dcff535d5}</UniqueIdentifier>
     </Filter>
@@ -126,8 +168,44 @@
     <Filter Include="2. Renderer\Viewport">
       <UniqueIdentifier>{345a7ed4-bbd6-4175-bbd4-d2a7615c7d25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="2. Renderer\Core">
+      <UniqueIdentifier>{22356f61-f4c2-44c0-a886-5f8829e8cb5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\Imgui">
+      <UniqueIdentifier>{0eaa2a7e-1e50-46dc-9c0e-9f8e3097bded}</UniqueIdentifier>
+    </Filter>
     <Filter Include="1. Core\ILayer">
       <UniqueIdentifier>{ec73bece-9d03-42b3-bcc8-3691f61d4db4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene">
+      <UniqueIdentifier>{e5acf42d-946d-459b-aad0-d02d7d60efb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene\ECS">
+      <UniqueIdentifier>{f8606bf7-e19f-44bd-bd28-1cfe88774dea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets">
+      <UniqueIdentifier>{3a9055cf-4862-4f71-975c-45185377c502}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\Model">
+      <UniqueIdentifier>{a6be46a3-80c7-401d-a6d8-749e4dbb194d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\Vertex">
+      <UniqueIdentifier>{edd2e9a3-e85b-42d8-ba21-cfbd50905281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="96. Serializer">
+      <UniqueIdentifier>{9bfe1476-b444-45b6-9bc2-67a055788854}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="96. Serializer\Flatbuffers">
+      <UniqueIdentifier>{9032b5cd-4ee5-4031-b861-e75fd1c8c3c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="96. Serializer\Flatbuffers\Model">
+      <UniqueIdentifier>{6c5a9424-b200-4981-9993-6747d3ae5ffd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="97. MultiThread">
+      <UniqueIdentifier>{807b8b30-98be-4e07-bc66-41a6f4c83e3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Input">
+      <UniqueIdentifier>{d5ba1c24-3e7d-4ab4-9142-f7b950bb110d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -182,12 +260,6 @@
     <ClInclude Include="MathUtilities.h">
       <Filter>98. Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>2. Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="RendererCommons.h">
-      <Filter>2. Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Buffers.h">
       <Filter>2. Renderer\Buffer</Filter>
     </ClInclude>
@@ -215,6 +287,57 @@
     <ClInclude Include="ILayer.h">
       <Filter>1. Core\ILayer</Filter>
     </ClInclude>
+    <ClInclude Include="RendererCommons.h">
+      <Filter>2. Renderer\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>2. Renderer\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImguiLayer.h">
+      <Filter>2. Renderer\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLayer.h">
+      <Filter>4. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>4. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Components.h">
+      <Filter>4. Scene\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>4. Scene\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>4. Scene\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>2. Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>2. Renderer\Vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelImporter.h">
+      <Filter>2. Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelExporter.h">
+      <Filter>2. Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshFactory.h">
+      <Filter>2. Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>2. Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>2. Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelLoader.h">
+      <Filter>2. Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>1. Core\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">
@@ -222,6 +345,9 @@
     </None>
     <None Include=".editorconfig">
       <Filter>99. Base\Config</Filter>
+    </None>
+    <None Include="model.fbs">
+      <Filter>96. Serializer\Flatbuffers\Model</Filter>
     </None>
   </ItemGroup>
 </Project>

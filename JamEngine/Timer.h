@@ -78,10 +78,10 @@ private:
 class TickTimer
 {
 public:
-    void Start(const float _targetFrameRate)   // 0 -> unlimited frame rate
+    void Start(const float _frameRateLimit)   // 0 -> unlimited frame rate
     {
         m_timer.Reset();
-        m_targetDeltaNs = _targetFrameRate <= 0.f ? 0 : static_cast<Int64>(1e9 / _targetFrameRate);
+        m_deltaNsLimit = _frameRateLimit <= 0.f ? 0 : static_cast<Int64>(1e9 / _frameRateLimit);
         m_timer.Start();
         m_counterNs = 0;
     }
@@ -92,7 +92,7 @@ public:
         m_timer.Lab();
 
         // unlimited frame rate
-        if (m_targetDeltaNs == 0)
+        if (m_deltaNsLimit == 0)
         {
             m_deltaNs   = m_timer.GetIntervalNs();
             m_counterNs = 0;
@@ -103,24 +103,24 @@ public:
         m_counterNs += m_timer.GetIntervalNs();
 
         // check if enough time has passed for the next tick
-        if (m_counterNs >= m_targetDeltaNs)
+        if (m_counterNs >= m_deltaNsLimit)
         {
             m_deltaNs   = m_counterNs;
-            m_counterNs = m_counterNs - m_targetDeltaNs;   // accumulate the remaining time
-            return true;                                   // tick successful
+            m_counterNs = m_counterNs - m_deltaNsLimit;   // accumulate the remaining time
+            return true;                                  // tick successful
         }
 
         return false;   // tick not ready
     }
 
     NODISCARD float GetDeltaSec() const { return static_cast<float>(m_deltaNs * 1e-9); }
-    NODISCARD float GetTargetFrameRate() const { return m_targetDeltaNs <= 0 ? 0.f : static_cast<float>(1e9 / m_targetDeltaNs); }
+    NODISCARD float GetFrameRateLimit() const { return m_deltaNsLimit <= 0 ? 0.f : static_cast<float>(1e9 / m_deltaNsLimit); }
 
 private:
-    Timer m_timer         = {};
-    Int64 m_deltaNs       = 0;                              // delta time in seconds
-    Int64 m_targetDeltaNs = static_cast<Int64>(1e9 / 60);   // target delta time in seconds (1.0f / targetFrameRate)
-    Int64 m_counterNs     = 0;                              // accumulated time counter
+    Timer m_timer        = {};
+    Int64 m_deltaNs      = 0;                              // delta time in seconds
+    Int64 m_deltaNsLimit = static_cast<Int64>(1e9 / 60);   // target delta time in seconds (1.0f / targetFrameRate)
+    Int64 m_counterNs    = 0;                              // accumulated time counter
 };
 
 // time utilities

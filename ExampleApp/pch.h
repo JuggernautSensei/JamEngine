@@ -1,7 +1,7 @@
 #pragma once
 
-#define JAM_MAIN
 #include "../JamEngine/JamEngine.h"
+using namespace jam;
 
 #ifdef _DEBUG
 #pragma comment(lib, "../JamEngine/bin/Debug/JamEngine")

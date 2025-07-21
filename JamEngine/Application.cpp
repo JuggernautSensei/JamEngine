@@ -3,6 +3,10 @@
 #include "Application.h"
 
 #include "ILayer.h"
+#include "ImguiLayer.h"
+#include "Input.h"
+#include "Renderer.h"
+#include "SceneLayer.h"
 
 namespace
 {
@@ -37,6 +41,16 @@ void Application::Create(const jam::CommandLineArguments& _args)
 
         // initialize window
         s_instance->m_window.Initialize();
+
+        // initialize renderer
+        Renderer::Initialize();
+
+        // initialize input
+        Input::Initialize();
+
+        // attach layer
+        s_instance->PushBackLayer(std::make_unique<SceneLayer>());
+        s_instance->PushBackLayer(std::make_unique<ImguiLayer>(s_instance->m_window.GetPlatformHandle(), Renderer::GetDevice(), Renderer::GetDeviceContext()));
     }
 
     // create routine of child application
@@ -80,7 +94,7 @@ Application::Application(const ApplicationCreateInfo& _info)
 
 int Application::Run()
 {
-    m_timer.Start(m_timer.GetTargetFrameRate());
+    m_timer.Start(m_timer.GetFrameRateLimit());
 
     while (m_bRunning)
     {
@@ -94,10 +108,11 @@ int Application::Run()
                 for (const std::unique_ptr<ILayer>& layer: m_layers)
                 {
                     layer->OnUpdate(deltaSec);
-                    layer->OnFixedUpdate(deltaSec);
+                    layer->OnFinalUpdate(deltaSec);
                 }
 
                 // end frame
+                Input::Update();
                 m_commandQueue.Execute();
             }
 
@@ -108,6 +123,8 @@ int Application::Run()
                 layer->OnRender();
                 layer->OnEndRender();
             }
+
+            Renderer::Present(m_bVsync);
         }
     }
 
@@ -120,10 +137,27 @@ void Application::Quit()
     m_bRunning = false;
 }
 
-void Application::SetTargetFrameRate(float _fps)
+void Application::SetFrameRateLimit(const float _fps)
 {
     m_timer.Start(_fps);
     Log::Info("Frame rate set to: {} FPS", _fps == 0 ? "unlimited frame rate" : std::to_string(_fps));
+}
+
+void Application::SetVsync(const bool _bVsync)
+{
+    m_bVsync = _bVsync;
+}
+
+float Application::GetFrameRateLimit() const
+{
+    JAM_ASSERT(s_instance, "Application instance is null");
+    return m_timer.GetFrameRateLimit();
+}
+
+bool Application::IsVsync() const
+{
+    JAM_ASSERT(s_instance, "Application instance is null");
+    return m_bVsync;
 }
 
 void Application::DispatchEvent(Event& _event)
@@ -141,6 +175,11 @@ void Application::DispatchEvent(Event& _event)
 
     // dispatch event to other modules
     m_window.OnEvent(_event);
+    Renderer::OnEvent(_event);
+    for (const std::unique_ptr<ILayer>& layer: m_layers)
+    {
+        layer->OnEvent(_event);
+    }
 }
 
 void Application::SubmitCommand(const std::function<void()>& _command)
@@ -220,9 +259,15 @@ Window& Application::GetWindow()
     return m_window;
 }
 
-float Application::GetDeltaSecond() const
+SceneLayer* Application::GetSceneLayer() const
 {
-    return m_timer.GetDeltaSec();
+    JAM_ASSERT(m_pSceneLayer, "Scene layer is not set");
+    return m_pSceneLayer;
+}
+
+const TickTimer& Application::GetTimer() const
+{
+    return m_timer;
 }
 
 }   // namespace jam

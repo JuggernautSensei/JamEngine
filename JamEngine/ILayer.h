@@ -19,16 +19,15 @@ public:
     virtual void OnDetach() {}
 
     virtual void OnUpdate(float _deltaTime) {}
-    virtual void OnFixedUpdate(float _deltaTime) {}
+    virtual void OnFinalUpdate(float _deltaTime) {}
 
     virtual void OnBeginRender() {}
     virtual void OnRender() {}
-    virtual void OnRenderUI() {}
     virtual void OnEndRender() {}
 
     virtual void             OnEvent(Event& _event) {}
-    virtual UInt32           GetHash() const = 0;
-    virtual std::string_view GetName() const = 0;
+    virtual NODISCARD UInt32 GetHash() const           = 0;
+    virtual NODISCARD std::string_view GetName() const = 0;
 };
 
 }   // namespace jam

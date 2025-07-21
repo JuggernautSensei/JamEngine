@@ -42,7 +42,7 @@ bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::s
     return true;
 }
 
-bool ShaderCompiler::CompileHLSL(std::string_view _pSource, std::string_view _entryPoint, std::string_view _target, const D3D_SHADER_MACRO* _macros, bool _bDebug)
+bool ShaderCompiler::CompileHLSL(std::string_view _pSource, const std::string_view _entryPoint, const std::string_view _target, const D3D_SHADER_MACRO* _macros, const bool _bDebug)
 {
     ComPtr<ID3DBlob> errorBlob;
 
@@ -84,7 +84,7 @@ bool ShaderCompiler::CompileCSOFromFile(const fs::path& _filename)
     return true;
 }
 
-bool ShaderCompiler::CompileCSO(std::string_view _pSource)
+bool ShaderCompiler::CompileCSO(const std::string_view _pSource)
 {
     if (_pSource.empty())
     {

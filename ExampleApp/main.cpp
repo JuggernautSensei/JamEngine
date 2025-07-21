@@ -1,23 +1,27 @@
 #include "pch.h"
 
-class Application final : public jam::Application
+#include "DemoScene.h"
+
+class Sandbox final : public jam::Application
 {
 public:
-    explicit Application(const jam::ApplicationCreateInfo& _info)
+    explicit Sandbox(const jam::ApplicationCreateInfo& _info)
         : jam::Application(_info)
     {
     }
 
-    ~Application() override = default;
-
-    Application(const Application&)                = delete;
-    Application& operator=(const Application&)     = delete;
-    Application(Application&&) noexcept            = delete;
-    Application& operator=(Application&&) noexcept = delete;
+    ~Sandbox() override                    = default;
+    Sandbox(const Sandbox&)                = delete;
+    Sandbox& operator=(const Sandbox&)     = delete;
+    Sandbox(Sandbox&&) noexcept            = delete;
+    Sandbox& operator=(Sandbox&&) noexcept = delete;
 
 private:
     void OnCreate() override
     {
+        SceneLayer* pSceneLayer = GetSceneLayer();
+        pSceneLayer->AddScene(std::make_unique<DemoScene>("DemoScene"));
+        pSceneLayer->ChangeScene("DemoScene");
     }
 
     void OnDestroy() override
@@ -37,8 +41,7 @@ jam::Application* CreateApplication(const jam::CommandLineArguments& _args)
     appInfo.applicationName  = "Example Application";
     appInfo.workingDirectory = std::filesystem::current_path();
     appInfo.targetFrameRate  = 240.f;
-
-    return new Application(appInfo);
+    return new Sandbox(appInfo);
 }
 
 JAM_MAIN()

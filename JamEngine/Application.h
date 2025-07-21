@@ -2,12 +2,13 @@
 
 #include "CommandQueue.h"
 #include "Event.h"
+#include "ILayer.h"
 #include "Timer.h"
 #include "Window.h"
-#include "ILayer.h"
 
 namespace jam
 {
+class SceneLayer;
 
 struct CommandLineArguments
 {
@@ -46,23 +47,29 @@ public:
     Application& operator=(Application&&)      = delete;
 
     // core interface
-    int  Run();   // do not call this function yourself
+    int  Run();
     void Quit();
     void DispatchEvent(Event& _event);
     void SubmitCommand(const std::function<void()>& _command);
 
     // layer interface
-    void              PushBackLayer(std::unique_ptr<ILayer>&& _layer);
     void              PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer);
+    void              PushBackLayer(std::unique_ptr<ILayer>&& _layer);
     void              RemoveLayer(ILayer* _pLayer);
     NODISCARD ILayer* GetLayer(UInt32 _layerHash) const;
 
     // set properties
-    void SetTargetFrameRate(float _fps);   // if _fps == 0 -> unlimited frame rate
+    void SetFrameRateLimit(float _fps);   // if _fps == 0 -> unlimited frame rate
+    void SetVsync(bool _bVsync);          // enable or disable vsync
+
+    // get properties
+    NODISCARD float GetFrameRateLimit() const;   // get target frame rate (0 -> unlimited frame rate)
+    NODISCARD bool  IsVsync() const;             // is vsync enabled
 
     // getter
-    NODISCARD Window& GetWindow();
-    NODISCARD float   GetDeltaSecond() const;
+    NODISCARD Window&          GetWindow();
+    NODISCARD SceneLayer*      GetSceneLayer() const;
+    NODISCARD const TickTimer& GetTimer() const;
 
     // singletone accessor
     static void                   Create(const jam::CommandLineArguments& _args);   // public constructor - call at the beginning of your main function
@@ -77,18 +84,17 @@ private:
     virtual void OnCreate()  = 0;   // implement this your application
     virtual void OnDestroy() = 0;   // implement this your application
 
-    std::string m_applicationName  = {};
-    fs::path    m_workingDirectory = {};
-    bool        m_bRunning         = false;
-
-    Window       m_window       = {};
-    CommandQueue m_commandQueue = {};
-
-    // timer
-    TickTimer m_timer = {};
+    std::string  m_applicationName  = {};
+    fs::path     m_workingDirectory = {};
+    bool         m_bRunning         = false;
+    bool         m_bVsync           = false;
+    Window       m_window           = {};
+    TickTimer    m_timer            = {};
+    CommandQueue m_commandQueue     = {};
 
     // layer
-    std::vector<std::unique_ptr<ILayer>> m_layers = {};   // layers stack
+    std::vector<std::unique_ptr<ILayer>> m_layers      = {};        // layers stack
+    SceneLayer*                          m_pSceneLayer = nullptr;   // scene layer cache
 
     // singleton instance
     static Application* s_instance;

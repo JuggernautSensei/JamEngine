@@ -17,15 +17,15 @@ using UInt64 = std::uint64_t;
 // json
 using Json = nlohmann::json;
 
+// rendering
+using Index = UInt32;
+
 // math types
 using Vec2 = DirectX::SimpleMath::Vector2;
 using Vec3 = DirectX::SimpleMath::Vector3;
 using Vec4 = DirectX::SimpleMath::Vector4;
 using Mat4 = DirectX::SimpleMath::Matrix;
 using Quat = DirectX::SimpleMath::Quaternion;
-
-// color types
-using Color = DirectX::SimpleMath::Color;
 
 // ComPtr
 template<typename T>

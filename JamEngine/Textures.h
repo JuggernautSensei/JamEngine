@@ -1,5 +1,4 @@
 #pragma once
-#include "Renderer.h"
 #include "RendererCommons.h"
 
 namespace jam
@@ -23,7 +22,8 @@ using eViewFlags = Int32;
 class Texture2D
 {
 public:
-    static NODISCARD Texture2D Create(UInt32 _width, UInt32 _height, DXGI_FORMAT _format, UInt32 _arraySize, UInt32 _samples, bool _generateMips, bool _cubemap, eResourceAccess _access, eViewFlags _viewFlags, const InitializeTextureData* _pInitialData_orNull = nullptr);
+    static NODISCARD Texture2D Create(UInt32 _width, UInt32 _height, DXGI_FORMAT _format, UInt32 _arraySize, UInt32 _samples, bool _bGenerateMips, bool _bCubemap, eResourceAccess _access, eViewFlags _viewFlags, const InitializeTextureData* _pInitialData_orNull = nullptr);
+    static NODISCARD Texture2D CreateFromSwapChain(IDXGISwapChain1* _pSwapChain);
     static NODISCARD std::optional<Texture2D> CreateFromFile(const fs::path& _filePath, eViewFlags _viewFlags, bool _bGenrateMips, bool _bInverseGamma);
 
     void AttachSRV(DXGI_FORMAT _format);
@@ -53,23 +53,17 @@ private:
     ComPtr<ID3D11DepthStencilView>   m_dsv     = nullptr;
 
     // texture information
-    UInt32      m_width     = 0;
-    UInt32      m_height    = 0;
-    DXGI_FORMAT m_format    = DXGI_FORMAT_R8G8B8A8_UNORM;
-    UInt32      m_arraySize = 1;
+    UInt32          m_width     = 0;
+    UInt32          m_height    = 0;
+    DXGI_FORMAT     m_format    = DXGI_FORMAT_R8G8B8A8_UNORM;
+    UInt32          m_arraySize = 1;
+    eResourceAccess m_access    = eResourceAccess::Immutable;
+    eViewFlags      m_viewFlags = eViewFlags_None;
 
     // misc
     UInt32 m_samples    = 1;
     bool   m_bHasMips   = false;
     bool   m_bIsCubemap = false;
-
-    // access flags
-    bool m_bGPUWrite = false;
-    bool m_bCPURead  = false;   // staging texture
-    bool m_bCPUWrite = false;
-
-    // bind flags
-    eViewFlags m_bindFlags = eViewFlags_None;
 };
 
 }   // namespace jam

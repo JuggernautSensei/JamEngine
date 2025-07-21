@@ -24,7 +24,11 @@ std::string CreateErrorMessage(const std::string_view _msg, const std::source_lo
         "{}\n"
         "====================================\n"
         "",
-        _loc.file_name(), _loc.function_name(), _loc.line(), _loc.column(), _msg);
+        _loc.file_name(),
+        _loc.function_name(),
+        _loc.line(),
+        _loc.column(),
+        _msg);
 }
 
 void ReportCrash(const std::string_view _msg, const std::source_location& _loc)
@@ -34,15 +38,19 @@ void ReportCrash(const std::string_view _msg, const std::source_location& _loc)
     TimeStamp                  timeStamp            = TimeStamp::Create();
     const std::string          filepath             = std::format(R"({0}\{1}.{2}.{3}\log_{1}.{2}.{3}_{4}h-{5}m-{6}s.txt)", k_bufReportDirectory, timeStamp.year, timeStamp.month, timeStamp.day, timeStamp.hour, timeStamp.minute, timeStamp.second);
 
+    // 디렉토리 생성
+    fs::create_directories(filepath.substr(0, filepath.find_last_of('\\')));
+
     // 메시지 생성
     const std::string msg = CreateErrorMessage(_msg, _loc);
 
     // 파일 저장
-    std::fstream fs { filepath, std::ios::in };
+    std::fstream fs { filepath, std::ios::out };
     if (fs)
     {
         fs << msg << std::endl;
     }
+    fs.close();
 
     // 메시지 박스 표시
     MessageBoxA(NULL, msg.c_str(), "jam engine error", MB_OK | MB_ICONERROR);

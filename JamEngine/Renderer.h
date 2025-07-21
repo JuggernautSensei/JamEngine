@@ -7,19 +7,13 @@ namespace jam
 class WindowResizeEvent;
 class Event;
 
-struct RendererInitializeInfo
-{
-    HWND windowHandle = NULL;
-    int  width        = 800;
-    int  height       = 600;
-};
-
 class Renderer
 {
 public:
     // core interface
-    static void Initialize(const RendererInitializeInfo& _info);
+    static void Initialize();
     static void OnEvent(const Event& _event);
+    static void Present(bool _bVSync);
 
     static NODISCARD ID3D11Device*        GetDevice();
     static NODISCARD ID3D11DeviceContext* GetDeviceContext();
@@ -33,6 +27,7 @@ public:
     static void CreateRenderTargetView(ID3D11Resource* _pResource, const D3D11_RENDER_TARGET_VIEW_DESC* _pDesc, ID3D11RenderTargetView** _out_pRTV);
     static void CreateDepthStencilView(ID3D11Resource* _pResource, const D3D11_DEPTH_STENCIL_VIEW_DESC* _pDesc, ID3D11DepthStencilView** _out_pDSV);
 
+    static void CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElements, UInt32 _numElements, ID3DBlob* _pVertexShaderBlob, ID3D11InputLayout** _out_pInputLayout);
     static void CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElementDescs, UINT _numElements, ID3D11InputLayout** _out_pInputLayout);
     static void CreateVertexShader(const void* _pShaderBytecode, SIZE_T _bytecodeLength, ID3D11VertexShader** _out_pVertexShader);
     static void CreatePixelShader(const void* _pShaderBytecode, SIZE_T _bytecodeLength, ID3D11PixelShader** _out_pPixelShader);
@@ -47,8 +42,9 @@ public:
     static void CreateRasterizerState(const D3D11_RASTERIZER_DESC& _desc, ID3D11RasterizerState** _out_pRasterizerState);
 
     // pipeline interface
+    static void SetTopology(eTopology _topology);
     static void SetVertexBuffer(ID3D11Buffer* _pVertexBuffer, UInt32 _stride);
-    static void SetIndexBuffer(ID3D11Buffer* _pIndexBuffer, bool _bUseExtendedIndex);
+    static void SetIndexBuffer(ID3D11Buffer* _pIndexBuffer);
 
     static void SetInputLayout(ID3D11InputLayout* _pInputLayout);
     static void SetVertexShader(ID3D11VertexShader* _pVertexShader);

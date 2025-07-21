@@ -190,14 +190,28 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Buffers.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="Components.cpp" />
+    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntryPoint.cpp" />
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="ILayer.cpp" />
+    <ClCompile Include="ImguiLayer.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="InputLayout.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="MathUtilities.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshFactory.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ModelExporter.cpp" />
+    <ClCompile Include="ModelImporter.cpp" />
+    <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererCommons.cpp" />
     <ClCompile Include="RenderStates.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneLayer.cpp" />
+    <ClCompile Include="Script.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="Textures.cpp" />
@@ -215,6 +229,7 @@
     </ClCompile>
     <ClCompile Include="StringUtilities.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
@@ -223,13 +238,27 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Buffers.h" />
     <ClInclude Include="CommandQueue.h" />
+    <ClInclude Include="Components.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="ILayer.h" />
+    <ClInclude Include="ImguiLayer.h" />
+    <ClInclude Include="Input.h" />
     <ClInclude Include="InputLayout.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="MathUtilities.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshFactory.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelExporter.h" />
+    <ClInclude Include="ModelImporter.h" />
+    <ClInclude Include="ModelLoader.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererCommons.h" />
     <ClInclude Include="RenderStates.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneLayer.h" />
+    <ClInclude Include="Script.h" />
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="Textures.h" />
@@ -245,6 +274,7 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="EntryPoint.h" />
     <ClInclude Include="JamEngine.h" />
+    <ClInclude Include="Vertex.h" />
     <ClInclude Include="Viewport.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowsUtilities.h" />
@@ -252,6 +282,7 @@
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".editorconfig" />
+    <None Include="model.fbs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

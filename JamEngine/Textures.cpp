@@ -2,6 +2,7 @@
 
 #include "Textures.h"
 
+#include "Renderer.h"
 #include "StringUtilities.h"
 #include "WindowsUtilities.h"
 
@@ -14,33 +15,33 @@
 namespace jam
 {
 
-Texture2D Texture2D::Create(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, const UInt32 _arraySize, const UInt32 _samples, const bool _generateMips, const bool _cubemap, eResourceAccess _access, const eViewFlags _viewFlags, const InitializeTextureData* _pInitialData_orNull)
+Texture2D Texture2D::Create(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, const UInt32 _arraySize, const UInt32 _samples, const bool _bGenerateMips, const bool _bCubemap, eResourceAccess _access, const eViewFlags _viewFlags, const InitializeTextureData* _pInitialData_orNull)
 {
-    constexpr D3D11_USAGE k_usageTable[] = {
-        D3D11_USAGE_IMMUTABLE,   // Immutable
-        D3D11_USAGE_DEFAULT,     // GPUWriteable
-        D3D11_USAGE_STAGING,     // CPUReadable
-        D3D11_USAGE_DYNAMIC,     // CPUWriteable
+    constexpr UINT k_accessFlagsTable[] = {
+        0,                        // Immutable
+        0,                        // GPUWriteable
+        D3D11_CPU_ACCESS_READ,    // CPUReadable
+        D3D11_CPU_ACCESS_WRITE,   // CPUWriteable
     };
 
-    D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width                = _width;
-    desc.Height               = _height;
-    desc.MipLevels            = _generateMips ? 0 : 1;   // 0 means all mips
-    desc.ArraySize            = _arraySize;
-    desc.Format               = _format;
-    desc.SampleDesc.Count     = _samples;
-    desc.SampleDesc.Quality   = Renderer::GetMaxMultisampleQuality(_format, _samples);
-    desc.Usage                = k_usageTable[static_cast<int>(_access)];
-    desc.CPUAccessFlags       = 0;
-    desc.BindFlags            = 0;
+    D3D11_TEXTURE2D_DESC desc;
+    desc.Width              = _width;
+    desc.Height             = _height;
+    desc.MipLevels          = _bGenerateMips ? 0 : 1;   // 0 means all mips
+    desc.ArraySize          = _arraySize;
+    desc.Format             = _format;
+    desc.SampleDesc.Count   = _samples;
+    desc.SampleDesc.Quality = Renderer::GetMaxMultisampleQuality(_format, _samples);
+    desc.Usage              = static_cast<D3D11_USAGE>(_access);
+    desc.CPUAccessFlags     = k_accessFlagsTable[static_cast<int>(_access)];
+    desc.BindFlags          = 0;
     if (_viewFlags & eViewFlags_ShaderResource) desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
     if (_viewFlags & eViewFlags_RenderTarget) desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
     if (_viewFlags & eViewFlags_DepthStencil) desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
 
     desc.MiscFlags = 0;
-    if (_cubemap) desc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
-    if (_generateMips) desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+    if (_bCubemap) desc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+    if (_bGenerateMips) desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
     if (desc.Usage == D3D11_USAGE_IMMUTABLE)
     {
@@ -49,20 +50,60 @@ Texture2D Texture2D::Create(const UInt32 _width, const UInt32 _height, const DXG
 
     const void*  pInitialData     = _pInitialData_orNull ? _pInitialData_orNull->pInitialData : nullptr;
     const UInt32 initialDataPitch = _pInitialData_orNull ? _pInitialData_orNull->pitch : 0;
-    Texture2D    texture;
+
+    Texture2D texture;
     Renderer::CreateTexture2D(desc, pInitialData, initialDataPitch, texture.m_texture.GetAddressOf());
+    texture.m_width      = desc.Width;
+    texture.m_height     = desc.Height;
+    texture.m_format     = desc.Format;
+    texture.m_arraySize  = desc.ArraySize;
+    texture.m_samples    = desc.SampleDesc.Count;
+    texture.m_bHasMips   = desc.MipLevels > 1;
+    texture.m_bIsCubemap = (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
+    texture.m_access     = static_cast<eResourceAccess>(desc.Usage);
+    texture.m_viewFlags  = _viewFlags;
     return texture;
 }
 
-std::optional<Texture2D> Texture2D::CreateFromFile(const fs::path& _filePath, const eViewFlags _viewFlags, bool _bGenrateMips, bool _bInverseGamma)
+Texture2D Texture2D::CreateFromSwapChain(IDXGISwapChain1* _pSwapChain)
+{
+    JAM_ASSERT(_pSwapChain, "Swap chain pointer is null");
+
+    Texture2D texture;
+
+    HRESULT hr;
+    hr = _pSwapChain->GetBuffer(0, IID_PPV_ARGS(&texture.m_texture));
+    if (FAILED(hr))
+    {
+        JAM_CRASH("Failed to get texture from swap chain. HRESULT: {}", GetSystemErrorMessage(hr));
+    }
+
+    D3D11_TEXTURE2D_DESC desc;
+    texture.m_texture->GetDesc(&desc);
+    texture.m_width      = desc.Width;
+    texture.m_height     = desc.Height;
+    texture.m_format     = desc.Format;
+    texture.m_arraySize  = desc.ArraySize;
+    texture.m_samples    = desc.SampleDesc.Count;
+    texture.m_bHasMips   = desc.MipLevels > 1;
+    texture.m_bIsCubemap = (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
+    texture.m_access     = static_cast<eResourceAccess>(desc.Usage);
+    texture.m_viewFlags  = eViewFlags_None;
+    if (desc.BindFlags & D3D11_BIND_SHADER_RESOURCE) texture.m_viewFlags |= eViewFlags_ShaderResource;
+    if (desc.BindFlags & D3D11_BIND_RENDER_TARGET) texture.m_viewFlags |= eViewFlags_RenderTarget;
+    if (desc.BindFlags & D3D11_BIND_DEPTH_STENCIL) texture.m_viewFlags |= eViewFlags_DepthStencil;
+    return texture;
+}
+
+std::optional<Texture2D> Texture2D::CreateFromFile(const fs::path& _filePath, const eViewFlags _viewFlags, const bool _bGenrateMips, const bool _bInverseGamma)
 {
     DirectX::TexMetadata  metadata;
     DirectX::ScratchImage scratchImage;
 
     HRESULT            hr;
-    const fs::path     fileExtension    = _filePath.extension();
-    const std::wstring rawFileExtension = ToLower(fileExtension.native());
-    switch (HashOf(rawFileExtension))
+    const fs::path     fileExtension      = _filePath.extension();
+    const std::wstring lowerFileExtension = ToLower(fileExtension.native());
+    switch (HashOf(lowerFileExtension))
     {
         case L".dds"_hs:
             hr = DirectX::LoadFromDDSFile(_filePath.c_str(), DirectX::DDS_FLAGS_NONE, &metadata, scratchImage);
@@ -141,8 +182,9 @@ std::optional<Texture2D> Texture2D::CreateFromFile(const fs::path& _filePath, co
             //     pPixel[i + 1] = static_cast<UInt8>(g * 255);
             //     pPixel[i + 2] = static_cast<UInt8>(b * 255);
             // }
-            // metadata.format = DirectX::MakeSRGB(metadata.format);
+            //
 
+            metadata.format = DirectX::MakeSRGB(metadata.format);
             if (metadata.format == DXGI_FORMAT_UNKNOWN)
             {
                 JAM_ERROR("Failed to convert texture format to sRGB for file '{}'.", _filePath.string());
@@ -151,8 +193,15 @@ std::optional<Texture2D> Texture2D::CreateFromFile(const fs::path& _filePath, co
         }
     }
 
+    // bind flags
+    UInt32 bindFlags = 0;
+    if (_viewFlags & eViewFlags_ShaderResource) bindFlags |= D3D11_BIND_SHADER_RESOURCE;
+    if (_viewFlags & eViewFlags_RenderTarget) bindFlags |= D3D11_BIND_RENDER_TARGET;
+    if (_viewFlags & eViewFlags_DepthStencil) bindFlags |= D3D11_BIND_DEPTH_STENCIL;
+
+    // create texture
     ComPtr<ID3D11Resource> pResource;
-    hr = DirectX::CreateTexture(Renderer::GetDevice(), scratchImage.GetImages(), scratchImage.GetImageCount(), metadata, pResource.GetAddressOf());
+    hr = DirectX::CreateTextureEx(Renderer::GetDevice(), scratchImage.GetImages(), scratchImage.GetImageCount(), metadata, D3D11_USAGE_IMMUTABLE, bindFlags, NULL, NULL, DirectX::CREATETEX_DEFAULT, pResource.GetAddressOf());
     if (FAILED(hr))
     {
         JAM_ERROR("Failed to create texture from file '{}'. HRESULT: {}", _filePath.string(), GetSystemErrorMessage(hr));
@@ -174,17 +223,14 @@ std::optional<Texture2D> Texture2D::CreateFromFile(const fs::path& _filePath, co
     texture.m_samples    = 1;
     texture.m_bHasMips   = metadata.mipLevels > 1;
     texture.m_bIsCubemap = (metadata.miscFlags & DirectX::TEX_MISC_TEXTURECUBE) != 0;
-    texture.m_bGPUWrite  = true;    // GPU writeable by default
-    texture.m_bCPURead   = false;   // not a staging texture
-    texture.m_bCPUWrite  = false;   // not a staging texture
-    texture.m_bindFlags  = _viewFlags;
+    texture.m_access     = eResourceAccess::Immutable;
+    texture.m_viewFlags  = _viewFlags;
     return texture;
 }
 
 void Texture2D::AttachSRV(DXGI_FORMAT _format)
 {
     JAM_ASSERT(m_texture, "Texture2D is not initialized. Cannot attach SRV.");
-    JAM_ASSERT(m_bindFlags & eViewFlags_ShaderResource, "Shader Resource View is not enabled for this texture.");
     JAM_ASSERT(m_srv == nullptr, "Shader Resource View is already attached to this texture.");
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format                          = _format;
@@ -248,7 +294,6 @@ void Texture2D::AttachSRV(DXGI_FORMAT _format)
 void Texture2D::AttachRTV(const DXGI_FORMAT _format)
 {
     JAM_ASSERT(m_texture, "Texture2D is not initialized. Cannot attach RTV.");
-    JAM_ASSERT(m_bindFlags & eViewFlags_RenderTarget, "Render Target View is not enabled for this texture.");
     JAM_ASSERT(m_rtv == nullptr, "Render Target View is already attached to this texture.");
 
     D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
@@ -289,7 +334,6 @@ void Texture2D::AttachRTV(const DXGI_FORMAT _format)
 void Texture2D::AttachDSV(const DXGI_FORMAT _format)
 {
     JAM_ASSERT(m_texture, "Texture2D is not initialized. Cannot attach RTV.");
-    JAM_ASSERT(m_bindFlags & eViewFlags_RenderTarget, "Render Target View is not enabled for this texture.");
     JAM_ASSERT(m_dsv == nullptr, "Render Target View is already attached to this texture.");
 
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};

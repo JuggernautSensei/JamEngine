@@ -158,14 +158,13 @@ void Window::OnWindowMove(const WindowMoveEvent& _event)
 
 LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wParam, const LPARAM lParam)
 {
-    LRESULT result = 0;
+    LRESULT      result = 0;
+    Application& app    = GetApplication();
 
     switch (uMsg)
     {
         case WM_DESTROY:
         {
-            Application& app = GetApplication();
-
             WindowCloseEvent closeEvent;
             app.DispatchEvent(closeEvent);
         }
@@ -173,9 +172,8 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
 
         case WM_SIZE:
         {
-            Application& app    = GetApplication();
-            const Int32  width  = LOWORD(lParam);
-            const Int32  height = HIWORD(lParam);
+            const Int32 width  = LOWORD(lParam);
+            const Int32 height = HIWORD(lParam);
 
             WindowResizeEvent resizeEvent { width, height };
             app.DispatchEvent(resizeEvent);
@@ -184,12 +182,92 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
 
         case WM_MOVE:
         {
-            Application& app = GetApplication();
-            const Int32  x   = LOWORD(lParam);
-            const Int32  y   = HIWORD(lParam);
+            const Int32 x = LOWORD(lParam);
+            const Int32 y = HIWORD(lParam);
 
             WindowMoveEvent moveEvent { x, y };
             app.DispatchEvent(moveEvent);
+        }
+        break;
+
+        case WM_MOUSEWHEEL:
+        {
+            const Int32     delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            MouseWheelEvent wheelEvent { delta };
+            app.DispatchEvent(wheelEvent);
+        }
+        break;
+
+        case WM_LBUTTONDOWN:
+        {
+            constexpr int      vKey = VK_LBUTTON;
+            MouseDownEvent mouseDownEvent { vKey };
+            app.DispatchEvent(mouseDownEvent);
+        }
+        break;
+
+        case WM_LBUTTONUP:
+        {
+            constexpr int vKey = VK_LBUTTON;
+            MouseUpEvent  mouseUpEvent { vKey };
+            app.DispatchEvent(mouseUpEvent);
+        }
+        break;
+
+        case WM_RBUTTONDOWN:
+        {
+            constexpr int  vKey = VK_RBUTTON;
+            MouseDownEvent mouseDownEvent { vKey };
+            app.DispatchEvent(mouseDownEvent);
+        }
+        break;
+
+        case WM_RBUTTONUP:
+        {
+            constexpr int vKey = VK_RBUTTON;
+            MouseUpEvent  mouseUpEvent { vKey };
+            app.DispatchEvent(mouseUpEvent);
+        }
+        break;
+
+        case WM_MBUTTONDOWN:
+        {
+            constexpr int  vKey = VK_MBUTTON;
+            MouseDownEvent mouseDownEvent { vKey };
+            app.DispatchEvent(mouseDownEvent);
+        }
+        break;
+
+        case WM_MBUTTONUP:
+        {
+            constexpr int vKey = VK_MBUTTON;
+            MouseUpEvent  mouseUpEvent { vKey };
+            app.DispatchEvent(mouseUpEvent);
+        }
+        break;
+
+        case WM_MOUSEMOVE:
+        {
+            const UInt32   x = LOWORD(lParam);
+            const UInt32   y = HIWORD(lParam);
+            MouseMoveEvent mouseMoveEvent { x, y };
+            app.DispatchEvent(mouseMoveEvent);
+        }
+        break;
+
+        case WM_KEYDOWN:
+        {
+            const int    vKey = static_cast<int>(wParam);
+            KeyDownEvent keyDownEvent { vKey };
+            app.DispatchEvent(keyDownEvent);
+        }
+        break;
+
+        case WM_KEYUP:
+        {
+            const int  vKey = static_cast<int>(wParam);
+            KeyUpEvent keyUpEvent { vKey };
+            app.DispatchEvent(keyUpEvent);
         }
         break;
 

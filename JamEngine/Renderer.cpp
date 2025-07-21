@@ -15,6 +15,9 @@ struct RendererContext
     jam::ComPtr<ID3D11Device>        pDevice;
     jam::ComPtr<ID3D11DeviceContext> pDeviceContext;
     jam::ComPtr<IDXGISwapChain1>     pSwapChain;
+
+    // pipeline
+    D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 };
 
 RendererContext g_renderer;
@@ -24,7 +27,7 @@ RendererContext g_renderer;
 namespace jam
 {
 
-void Renderer::Initialize(const RendererInitializeInfo& _info)
+void Renderer::Initialize()
 {
     HRESULT hr;
 
@@ -86,9 +89,13 @@ void Renderer::Initialize(const RendererInitializeInfo& _info)
             JAM_CRASH("Failed to get IDXGIFactory1 from IDXGIAdapter1. HRESULT: {}", GetSystemErrorMessage(hr));
         }
 
+        const Window& window    = GetApplication().GetWindow();
+        auto [width, height]    = window.GetWindowSize();
+        const HWND windowHandle = window.GetPlatformHandle();
+
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
-        swapChainDesc.Width              = _info.width;
-        swapChainDesc.Height             = _info.height;
+        swapChainDesc.Width              = width;
+        swapChainDesc.Height             = height;
         swapChainDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
         swapChainDesc.Stereo             = false;
         swapChainDesc.SampleDesc.Count   = 1;
@@ -100,12 +107,13 @@ void Renderer::Initialize(const RendererInitializeInfo& _info)
         swapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
         swapChainDesc.AlphaMode          = DXGI_ALPHA_MODE_PREMULTIPLIED;
 
-        hr = dxgiFactory2->CreateSwapChainForHwnd(g_renderer.pDevice.Get(),
-                                                  _info.windowHandle,
-                                                  &swapChainDesc,
-                                                  nullptr,
-                                                  nullptr,
-                                                  g_renderer.pSwapChain.GetAddressOf());
+        hr = dxgiFactory2->CreateSwapChainForHwnd(
+            g_renderer.pDevice.Get(),
+            windowHandle,
+            &swapChainDesc,
+            nullptr,
+            nullptr,
+            g_renderer.pSwapChain.GetAddressOf());
 
         if (FAILED(hr))
         {
@@ -117,25 +125,25 @@ void Renderer::Initialize(const RendererInitializeInfo& _info)
 void Renderer::OnEvent(const Event& _event)
 {
     // do not use event dispatcher
-    if (_event.IsHandled())
-    {
-        JAM_ASSERT(0, "Event '{}' is already handled.", _event.GetName());
+    JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
-        // hand operated
-        jam::Application& app    = GetApplication();
-        const Window&     window = app.GetWindow();
-        auto [width, height]     = window.GetWindowSize();
-        OnResize_(width, height);
-    }
-    else
+    // use event dispatcher
+    if (_event.GetHash() == WindowResizeEvent::k_staticHash)
     {
-        // use event dispatcher
-        if (_event.GetHash() == WindowResizeEvent::k_staticHash)
-        {
-            // this is allowed casting
-            const WindowResizeEvent& resizeEvent = static_cast<const WindowResizeEvent&>(_event);
-            OnResize_(resizeEvent.GetWidth(), resizeEvent.GetHeight());
-        }
+        // this is allowed casting
+        const WindowResizeEvent& resizeEvent = static_cast<const WindowResizeEvent&>(_event);
+        OnResize_(resizeEvent.GetWidth(), resizeEvent.GetHeight());
+    }
+}
+
+void Renderer::Present(const bool _bVSync)
+{
+    JAM_ASSERT(g_renderer.pSwapChain, "Swap chain is not initialized");
+
+    const HRESULT hr = g_renderer.pSwapChain->Present(_bVSync ? 1 : 0, 0);
+    if (FAILED(hr))
+    {
+        JAM_CRASH("Failed to present swap chain. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
@@ -223,6 +231,17 @@ void Renderer::CreateDepthStencilView(ID3D11Resource* _pResource, const D3D11_DE
     }
 }
 
+void Renderer::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElements, const UInt32 _numElements, ID3DBlob* _pVertexShaderBlob, ID3D11InputLayout** _out_pInputLayout)
+{
+    JAM_ASSERT(_out_pInputLayout, "Input Layout pointer is null");
+
+    const HRESULT hr = g_renderer.pDevice->CreateInputLayout(_pInputElements, _numElements, _pVertexShaderBlob->GetBufferPointer(), _pVertexShaderBlob->GetBufferSize(), _out_pInputLayout);
+    if (FAILED(hr))
+    {
+        JAM_CRASH("Failed to create input layout. HRESULT: {}", GetSystemErrorMessage(hr));
+    }
+}
+
 void Renderer::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElementDescs, const UINT _numElements, ID3D11InputLayout** _out_pInputLayout)
 {
     JAM_ASSERT(_out_pInputLayout, "Input Layout pointer is null");
@@ -296,7 +315,7 @@ void Renderer::CreatePixelShader(const void* _pShaderBytecode, const SIZE_T _byt
     }
 }
 
-void Renderer::CreateHullShader(const void* _pShaderBytecode, SIZE_T _bytecodeLength, ID3D11HullShader** _out_pHullShader)
+void Renderer::CreateHullShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11HullShader** _out_pHullShader)
 {
     JAM_ASSERT(_out_pHullShader, "Hull Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreateHullShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pHullShader);
@@ -306,7 +325,7 @@ void Renderer::CreateHullShader(const void* _pShaderBytecode, SIZE_T _bytecodeLe
     }
 }
 
-void Renderer::CreateDomainShader(const void* _pShaderBytecode, SIZE_T _bytecodeLength, ID3D11DomainShader** _out_pDomainShader)
+void Renderer::CreateDomainShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11DomainShader** _out_pDomainShader)
 {
     JAM_ASSERT(_out_pDomainShader, "Domain Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreateDomainShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pDomainShader);
@@ -376,6 +395,18 @@ void Renderer::CreateRasterizerState(const D3D11_RASTERIZER_DESC& _desc, ID3D11R
     }
 }
 
+void Renderer::SetTopology(eTopology _topology)
+{
+    ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
+
+    const D3D11_PRIMITIVE_TOPOLOGY d3dTopoloty = static_cast<D3D11_PRIMITIVE_TOPOLOGY>(_topology);
+    if (g_renderer.topology != d3dTopoloty)
+    {
+        g_renderer.topology = d3dTopoloty;
+        ctx->IASetPrimitiveTopology(d3dTopoloty);
+    }
+}
+
 void Renderer::SetVertexBuffer(ID3D11Buffer* _pVertexBuffer, const UInt32 _stride)
 {
     const UInt32   stride[] = { _stride };
@@ -385,10 +416,10 @@ void Renderer::SetVertexBuffer(ID3D11Buffer* _pVertexBuffer, const UInt32 _strid
     ctx->IASetVertexBuffers(0, 1, &_pVertexBuffer, stride, offset);
 }
 
-void Renderer::SetIndexBuffer(ID3D11Buffer* _pIndexBuffer, const bool _bUseExtendedIndex)
+void Renderer::SetIndexBuffer(ID3D11Buffer* _pIndexBuffer)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
-    ctx->IASetIndexBuffer(_pIndexBuffer, _bUseExtendedIndex ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT, 0);
+    ctx->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 }
 
 void Renderer::SetInputLayout(ID3D11InputLayout* _pInputLayout)
@@ -566,8 +597,22 @@ void Renderer::DrawIndices(const UInt32 _indexCount, const UInt32 _startIndexLoc
     ctx->DrawIndexed(_indexCount, _startIndexLocation, _baseVertexLocation);
 }
 
-void Renderer::OnResize_(Int32 _width, Int32 _height)
+void Renderer::OnResize_(const Int32 _width, const Int32 _height)
 {
+    JAM_ASSERT(_width > 0 && _height > 0, "Width and height must be greater than 0");
+
+    // check if swap chain is initialized
+    if (g_renderer.pSwapChain == nullptr)
+    {
+        return;
+    }
+
+    HRESULT hr;
+    hr = g_renderer.pSwapChain->ResizeBuffers(0, _width, _height, DXGI_FORMAT_UNKNOWN, 0);
+    if (FAILED(hr))
+    {
+        JAM_CRASH("Failed to resize swap chain buffers. HRESULT: {}", GetSystemErrorMessage(hr));
+    }
 }
 
 }   // namespace jam
