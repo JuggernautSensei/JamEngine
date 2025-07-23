@@ -23,15 +23,22 @@ class Texture2D
 {
 public:
     static NODISCARD Texture2D Create(UInt32 _width, UInt32 _height, DXGI_FORMAT _format, UInt32 _arraySize, UInt32 _samples, bool _bGenerateMips, bool _bCubemap, eResourceAccess _access, eViewFlags _viewFlags, const InitializeTextureData* _pInitialData_orNull = nullptr);
-    static NODISCARD Texture2D CreateFromSwapChain(IDXGISwapChain1* _pSwapChain);
+    static NODISCARD Texture2D CreateFromSwapChain(IDXGISwapChain* _pSwapChain);
     static NODISCARD std::optional<Texture2D> CreateFromFile(const fs::path& _filePath, eViewFlags _viewFlags, bool _bGenrateMips, bool _bInverseGamma);
 
-    void AttachSRV(DXGI_FORMAT _format);
-    void AttachRTV(DXGI_FORMAT _format);
-    void AttachDSV(DXGI_FORMAT _format);
+    void AttachSRV(DXGI_FORMAT _format = DXGI_FORMAT_UNKNOWN);   // if _format is DXGI_FORMAT_UNKNOWN, the format will be the same as the texture format
+    void AttachRTV(DXGI_FORMAT _format = DXGI_FORMAT_UNKNOWN);   // same
+    void AttachDSV(DXGI_FORMAT _format = DXGI_FORMAT_UNKNOWN);   // same
+
+    Int32 DetachSRV();
+    Int32 DetachRTV();
+    Int32 DetachDSV();
 
     void BindAsShaderResource(eShader _shader, UInt32 _slot) const;
-    void BindAsOutputResource(bool _bBindRenderTarget, bool _bBindDepthStencil) const;
+    void BindAsRenderTarget(const Texture2D* _depthStencilTexture_orNull = nullptr) const;
+
+    void ClearRenderTarget(const float _color[4]) const;
+    void ClearDepthStencil(bool _bClearDepth, bool _bClearStencil, float _depth = 1.0f, UInt8 _stencil = 0) const;
 
     NODISCARD bool IsMultiSamplingTexture() const { return m_samples > 1; }
     NODISCARD bool IsCubemap() const { return m_bIsCubemap; }
@@ -44,6 +51,7 @@ public:
     NODISCARD ID3D11ShaderResourceView*     GetSRV() const;
     NODISCARD ID3D11RenderTargetView*       GetRTV() const;
     NODISCARD ID3D11DepthStencilView*       GetDSV() const;
+    UInt32 Reset();
 
 private:
     // instance

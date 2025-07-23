@@ -2,11 +2,11 @@
 
 #include "DemoScene.h"
 
-class Sandbox final : public jam::Application
+class Sandbox final : public Application
 {
 public:
-    explicit Sandbox(const jam::ApplicationCreateInfo& _info)
-        : jam::Application(_info)
+    explicit Sandbox(const ApplicationCreateInfo& _info)
+        : Application(_info)
     {
     }
 
@@ -19,6 +19,11 @@ public:
 private:
     void OnCreate() override
     {
+        const Window& window = GetWindow();
+        window.ResizeWindow(1280, 720);
+        SetVsync(true);
+
+        // scene layer
         SceneLayer* pSceneLayer = GetSceneLayer();
         pSceneLayer->AddScene(std::make_unique<DemoScene>("DemoScene"));
         pSceneLayer->ChangeScene("DemoScene");
@@ -29,18 +34,17 @@ private:
     }
 };
 
-jam::Application* CreateApplication(const jam::CommandLineArguments& _args)
+Application* CreateApplication(const CommandLineArguments& _args)
 {
     // command line arguments can be used here
     for (int i = 0; i < _args.argCount; ++i)
     {
-        jam::Log::Info("Argument {}: {}", i, _args.GetArgument(i));
+        Log::Info("Argument {}: {}", i, _args.GetArgument(i));
     }
 
-    jam::ApplicationCreateInfo appInfo;
+    ApplicationCreateInfo appInfo;
     appInfo.applicationName  = "Example Application";
     appInfo.workingDirectory = std::filesystem::current_path();
-    appInfo.targetFrameRate  = 240.f;
     return new Sandbox(appInfo);
 }
 

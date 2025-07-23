@@ -14,13 +14,17 @@ public:
     NODISCARD std::optional<std::vector<UInt8>> Download() const;
 
     // getters
-    NODISCARD ID3D11Buffer*        Get() const { return m_buffer.Get(); }
     NODISCARD ID3D11Buffer* const* GetAddressOf() const { return m_buffer.GetAddressOf(); }
     NODISCARD UInt32               GetByteWidth() const { return m_byteWidth; }
 
+    // d3d11 accessors
+    NODISCARD ID3D11Buffer* Get() const { return m_buffer.Get(); }
+    NODISCARD bool          IsValid() const { return m_buffer != nullptr; }
+    UInt32                  Reset();
+
 protected:
     Buffer() = default;
-    void Initialize_(UINT _flags, UInt32 _byteWidth, eResourceAccess _access, const void* _pInitialData = nullptr);
+    void Initialize_(UINT _bindFlag, eResourceAccess _access, UInt32 _byteWidth, const void* _pInitialData = nullptr);
 
     ComPtr<ID3D11Buffer> m_buffer    = nullptr;
     UInt32               m_byteWidth = 0;
@@ -30,11 +34,12 @@ protected:
 class VertexBuffer : public Buffer
 {
 public:
-    NODISCARD static VertexBuffer Create(UInt32 _vertexStride, UInt32 _vertexCount, eResourceAccess _access, const void* _pInitialData = nullptr);
-    NODISCARD static VertexBuffer Create(eVertexType _vertexType, UInt32 _vertexCount, eResourceAccess _access, const void* _pInitialData = nullptr);
-    NODISCARD UInt32              GetStride() const { return m_stride; }
-    NODISCARD UInt32              GetVertexCount() const { return m_stride == 0 ? 0 : m_byteWidth / m_stride; }
-    void                          Bind() const;
+    NODISCARD static VertexBuffer Create(eResourceAccess _access, UInt32 _vertexStride, UInt32 _vertexCount, const void* _pInitialData = nullptr);
+    NODISCARD static VertexBuffer Create(eResourceAccess _access, eVertexType _vertexType, UInt32 _vertexCount, const void* _pInitialData = nullptr);
+
+    NODISCARD UInt32 GetStride() const { return m_stride; }
+    NODISCARD UInt32 GetVertexCount() const { return m_stride == 0 ? 0 : m_byteWidth / m_stride; }
+    void             Bind() const;
 
 private:
     UInt32 m_stride = 0;   // vertex stride in bytes, used for binding
@@ -43,7 +48,7 @@ private:
 class IndexBuffer : public Buffer
 {
 public:
-    NODISCARD static IndexBuffer Create(UInt32 _indexCount, eResourceAccess _access, const Index* _pInitialData = nullptr);
+    NODISCARD static IndexBuffer Create(eResourceAccess _access, UInt32 _indexCount, const Index* _pInitialData = nullptr);
     NODISCARD constexpr UInt32   GetStride() const { return sizeof(UInt32); }
     NODISCARD UInt32             GetIndexCount() const { return m_byteWidth / GetStride(); }
     void                         Bind() const;

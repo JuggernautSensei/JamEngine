@@ -65,7 +65,7 @@ Texture2D Texture2D::Create(const UInt32 _width, const UInt32 _height, const DXG
     return texture;
 }
 
-Texture2D Texture2D::CreateFromSwapChain(IDXGISwapChain1* _pSwapChain)
+Texture2D Texture2D::CreateFromSwapChain(IDXGISwapChain* _pSwapChain)
 {
     JAM_ASSERT(_pSwapChain, "Swap chain pointer is null");
 
@@ -371,6 +371,24 @@ void Texture2D::AttachDSV(const DXGI_FORMAT _format)
     Renderer::CreateDepthStencilView(m_texture.Get(), &dsvDesc, m_dsv.GetAddressOf());
 }
 
+Int32 Texture2D::DetachSRV()
+{
+    JAM_ASSERT(m_srv, "Shader Resource View is not attached to this texture.");
+    return m_srv.Reset();
+}
+
+Int32 Texture2D::DetachRTV()
+{
+    JAM_ASSERT(m_rtv, "Render Target View is not attached to this texture.");
+    return m_rtv.Reset();
+}
+
+Int32 Texture2D::DetachDSV()
+{
+    JAM_ASSERT(m_dsv, "Depth Stencil View is not attached to this texture.");
+    return m_dsv.Reset();
+}
+
 void Texture2D::BindAsShaderResource(const eShader _shader, const UInt32 _slot) const
 {
     JAM_ASSERT(m_srv, "Shader Resource View is not attached to this texture.");
@@ -378,22 +396,39 @@ void Texture2D::BindAsShaderResource(const eShader _shader, const UInt32 _slot) 
     Renderer::SetShaderResourceViews(_shader, _slot, 1, srvArray);
 }
 
-void Texture2D::BindAsOutputResource(const bool _bBindRenderTarget, const bool _bBindDepthStencil) const
+void Texture2D::BindAsRenderTarget(const Texture2D* _depthStencilTexture_orNull) const
 {
-    if (_bBindDepthStencil)
-    {
-        JAM_ASSERT(m_dsv, "Depth Stencil View is not attached to this texture.");
-    }
+    JAM_ASSERT(m_rtv, "Render Target View is not attached to this texture.");
+    ID3D11RenderTargetView* rtvArray[] = { m_rtv.Get() };
+    ID3D11DepthStencilView* dsvArray   = _depthStencilTexture_orNull ? _depthStencilTexture_orNull->GetDSV() : nullptr;
+    Renderer::SetRenderTargetViews(1, rtvArray, dsvArray);
+}
 
-    if (_bBindRenderTarget)
-    {
-        JAM_ASSERT(m_rtv, "Render Target View is not attached to this texture.");
-    }
+void Texture2D::ClearRenderTarget(const float _color[4]) const
+{
+    JAM_ASSERT(m_rtv, "Render Target View is not attached to this texture.");
+    ID3D11DeviceContext* dc = Renderer::GetDeviceContext();
+    dc->ClearRenderTargetView(m_rtv.Get(), _color);
+}
 
-    const UInt32            numViews   = _bBindRenderTarget ? 1 : 0;
-    ID3D11RenderTargetView* rtvArray[] = { _bBindRenderTarget ? m_rtv.Get() : nullptr };
-    ID3D11DepthStencilView* dsvArray   = _bBindDepthStencil ? m_dsv.Get() : nullptr;
-    Renderer::SetRenderTargetViews(numViews, rtvArray, dsvArray);
+void Texture2D::ClearDepthStencil(const bool _bClearDepth, const bool _bClearStencil, const float _depth, const UInt8 _stencil) const
+{
+    JAM_ASSERT(m_dsv, "Depth Stencil View is not attached to this texture.");
+    ID3D11DeviceContext* dc         = Renderer::GetDeviceContext();
+    UINT                 clearFlags = 0;
+    if (_bClearDepth) clearFlags |= D3D11_CLEAR_DEPTH;
+    if (_bClearStencil) clearFlags |= D3D11_CLEAR_STENCIL;
+    dc->ClearDepthStencilView(m_dsv.Get(), clearFlags, _depth, _stencil);
+}
+
+UInt32 Texture2D::Reset()
+{
+    if (m_srv) m_srv.Reset();
+    if (m_rtv) m_rtv.Reset();
+    if (m_dsv) m_dsv.Reset();
+    UInt32 refCount = m_texture.Reset();
+    *this           = Texture2D();
+    return refCount;
 }
 
 ID3D11ShaderResourceView* Texture2D::GetSRV() const

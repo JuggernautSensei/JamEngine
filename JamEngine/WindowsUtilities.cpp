@@ -25,5 +25,4 @@ std::string GetSystemLastErrorMessage()
     return GetSystemErrorMessage(GetLastError());
 }
 
-
 }   // namespace jam

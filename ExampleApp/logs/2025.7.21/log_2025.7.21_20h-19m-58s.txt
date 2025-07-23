@@ -1,4 +1,0 @@
-[2025-07-21 20:19:58.107] [trace] log system initialized
-[2025-07-21 20:19:58.107] [info] Argument 0: C:\Users\ajw01\Desktop\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
-[2025-07-21 20:19:58.155] [trace] occurred event: WindowResizeEvent: width: 784, height: 561
-[2025-07-21 20:19:58.155] [trace] occurred event: WindowMoveEvent: x: 108, y: 131

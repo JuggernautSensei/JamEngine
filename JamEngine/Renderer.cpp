@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "Event.h"
 #include "ShaderCompiler.h"
+#include "Textures.h"
 #include "WindowsUtilities.h"
 
 namespace
@@ -15,6 +16,7 @@ struct RendererContext
     jam::ComPtr<ID3D11Device>        pDevice;
     jam::ComPtr<ID3D11DeviceContext> pDeviceContext;
     jam::ComPtr<IDXGISwapChain1>     pSwapChain;
+    jam::Texture2D                   backBufferTexture;
 
     // pipeline
     D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
@@ -68,30 +70,31 @@ void Renderer::Initialize()
 
     // create swap chain
     {
-        ComPtr<IDXGIDevice2> dxgiDevice2;
-        hr = g_renderer.pDevice.As(&dxgiDevice2);
+        const Window& window       = GetApplication().GetWindow();
+        const HWND    hWnd         = window.GetPlatformHandle();
+        const auto [width, height] = window.GetWindowSize();
+
+        // create swap chain
+        ComPtr<IDXGIDevice2> dxgiDevice;
+        hr = g_renderer.pDevice->QueryInterface(IID_PPV_ARGS(dxgiDevice.GetAddressOf()));
         if (FAILED(hr))
         {
             JAM_CRASH("Failed to get IDXGIDevice1 from D3D11 device. HRESULT: {}", GetSystemErrorMessage(hr));
         }
 
-        ComPtr<IDXGIAdapter> dxgiAdapter;
-        hr = dxgiDevice2->GetParent(IID_PPV_ARGS(dxgiAdapter.GetAddressOf()));
+        ComPtr<IDXGIAdapter1> dxgiAdapter;
+        hr = dxgiDevice->GetParent(IID_PPV_ARGS(dxgiAdapter.GetAddressOf()));
         if (FAILED(hr))
         {
             JAM_CRASH("Failed to get IDXGIAdapter1 from IDXGIDevice1. HRESULT: {}", GetSystemErrorMessage(hr));
         }
 
-        ComPtr<IDXGIFactory2> dxgiFactory2;
-        hr = dxgiAdapter->GetParent(IID_PPV_ARGS(dxgiFactory2.GetAddressOf()));
+        ComPtr<IDXGIFactory2> dxgiFactory;
+        hr = dxgiAdapter->GetParent(IID_PPV_ARGS(dxgiFactory.GetAddressOf()));
         if (FAILED(hr))
         {
             JAM_CRASH("Failed to get IDXGIFactory1 from IDXGIAdapter1. HRESULT: {}", GetSystemErrorMessage(hr));
         }
-
-        const Window& window    = GetApplication().GetWindow();
-        auto [width, height]    = window.GetWindowSize();
-        const HWND windowHandle = window.GetPlatformHandle();
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
         swapChainDesc.Width              = width;
@@ -101,24 +104,20 @@ void Renderer::Initialize()
         swapChainDesc.SampleDesc.Count   = 1;
         swapChainDesc.SampleDesc.Quality = 0;
         swapChainDesc.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapChainDesc.BufferCount        = 2;   // double buffering
+        swapChainDesc.BufferCount        = 2;
         swapChainDesc.Scaling            = DXGI_SCALING_STRETCH;
-        swapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        swapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-        swapChainDesc.AlphaMode          = DXGI_ALPHA_MODE_PREMULTIPLIED;
+        swapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_DISCARD;
+        swapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        swapChainDesc.AlphaMode          = DXGI_ALPHA_MODE_UNSPECIFIED;
 
-        hr = dxgiFactory2->CreateSwapChainForHwnd(
-            g_renderer.pDevice.Get(),
-            windowHandle,
-            &swapChainDesc,
-            nullptr,
-            nullptr,
-            g_renderer.pSwapChain.GetAddressOf());
-
+        hr = dxgiFactory->CreateSwapChainForHwnd(GetDevice(), hWnd, &swapChainDesc, nullptr, nullptr, g_renderer.pSwapChain.GetAddressOf());
         if (FAILED(hr))
         {
             JAM_CRASH("Failed to create swap chain. HRESULT: {}", GetSystemErrorMessage(hr));
         }
+
+        // create back buffer texture & render target view
+        g_renderer.backBufferTexture = Texture2D::CreateFromSwapChain(g_renderer.pSwapChain.Get());
     }
 }
 
@@ -127,12 +126,11 @@ void Renderer::OnEvent(const Event& _event)
     // do not use event dispatcher
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
-    // use event dispatcher
     if (_event.GetHash() == WindowResizeEvent::k_staticHash)
     {
         // this is allowed casting
         const WindowResizeEvent& resizeEvent = static_cast<const WindowResizeEvent&>(_event);
-        OnResize_(resizeEvent.GetWidth(), resizeEvent.GetHeight());
+        OnResize_(resizeEvent);
     }
 }
 
@@ -145,6 +143,11 @@ void Renderer::Present(const bool _bVSync)
     {
         JAM_CRASH("Failed to present swap chain. HRESULT: {}", GetSystemErrorMessage(hr));
     }
+}
+
+Texture2D Renderer::GetBackBufferTexture()
+{
+    return g_renderer.backBufferTexture;
 }
 
 ID3D11Device* Renderer::GetDevice()
@@ -278,17 +281,13 @@ void Renderer::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElementD
     )";
 
     ShaderCompiler compiler;
-    if (!compiler.CompileHLSL(dummyVS, "main", "vs_5_0", nullptr, false))
+    if (!compiler.CompileHLSL(dummyVS, "main", "vs_5_0", nullptr, eShaderCompileOption::Optimized))
     {
         JAM_CRASH("Failed to compile dummy vertex shader for input layout creation.");
     }
-    const ComPtr<ID3DBlob> blob = compiler.GetCompiledBlob();
-    const HRESULT          hr   = g_renderer.pDevice->CreateInputLayout(
-        _pInputElementDescs,
-        _numElements,
-        blob->GetBufferPointer(),
-        blob->GetBufferSize(),
-        _out_pInputLayout);
+    ComPtr<ID3DBlob> blob;
+    compiler.GetCompiledShader(blob.GetAddressOf());
+    const HRESULT hr   = g_renderer.pDevice->CreateInputLayout(_pInputElementDescs, _numElements, blob->GetBufferPointer(), blob->GetBufferSize(), _out_pInputLayout);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create input layout. HRESULT: {}", GetSystemErrorMessage(hr));
@@ -395,15 +394,14 @@ void Renderer::CreateRasterizerState(const D3D11_RASTERIZER_DESC& _desc, ID3D11R
     }
 }
 
-void Renderer::SetTopology(eTopology _topology)
+void Renderer::SetTopology(const D3D11_PRIMITIVE_TOPOLOGY _topology)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
 
-    const D3D11_PRIMITIVE_TOPOLOGY d3dTopoloty = static_cast<D3D11_PRIMITIVE_TOPOLOGY>(_topology);
-    if (g_renderer.topology != d3dTopoloty)
+    if (g_renderer.topology != _topology)
     {
-        g_renderer.topology = d3dTopoloty;
-        ctx->IASetPrimitiveTopology(d3dTopoloty);
+        g_renderer.topology = _topology;
+        ctx->IASetPrimitiveTopology(_topology);
     }
 }
 
@@ -597,22 +595,42 @@ void Renderer::DrawIndices(const UInt32 _indexCount, const UInt32 _startIndexLoc
     ctx->DrawIndexed(_indexCount, _startIndexLocation, _baseVertexLocation);
 }
 
-void Renderer::OnResize_(const Int32 _width, const Int32 _height)
+void Renderer::OnResize_(const WindowResizeEvent& _event)
 {
-    JAM_ASSERT(_width > 0 && _height > 0, "Width and height must be greater than 0");
-
-    // check if swap chain is initialized
     if (g_renderer.pSwapChain == nullptr)
     {
+        // Renderer is not initialized. Cannot resize swap chain. This is not error, just a case when the application is starting.
         return;
     }
 
-    HRESULT hr;
-    hr = g_renderer.pSwapChain->ResizeBuffers(0, _width, _height, DXGI_FORMAT_UNKNOWN, 0);
+    // 리사이즈 전 스왑체인에 의존하는 리소스들을 먼저 해제해야 함
+    {
+        // 백버퍼는 특별하게 관리되어야 하기 때문에 직접 사용하는 것은 위험함
+        // 직접 사용한다면 해당 이벤트를 받았을 때 사용자가 직접 스왑체인에 의존하는 리소스를 해제해야 함
+        Application&                  app = GetApplication();
+        SwapChainResourceReleaseEvent resizeEvent;
+        app.DispatchEvent(resizeEvent);
+
+        // 백버퍼 텍스처를 해제
+        UInt32 refCount = g_renderer.backBufferTexture.Reset();
+        if (refCount > 1)
+        {
+            // 백버퍼와 관련된 리소스를 제대로 해체하지 않았나요?
+            JAM_CRASH("Back buffer texture still has references. RefCount: {}", refCount);
+        }
+    }
+
+    // create or resize swap chain
+    const UInt32 width  = _event.GetWidth();
+    const UInt32 height = _event.GetHeight();
+    HRESULT      hr     = g_renderer.pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to resize swap chain buffers. HRESULT: {}", GetSystemErrorMessage(hr));
     }
+
+    // create back buffer texture
+    g_renderer.backBufferTexture = Texture2D::CreateFromSwapChain(g_renderer.pSwapChain.Get());
 }
 
 }   // namespace jam

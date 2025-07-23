@@ -42,7 +42,7 @@ private:
 
     EventDispatcher m_eventDispatcher;   // event dispatcher
 
-    constexpr static const wchar_t* const k_windowClassName = L"jam_engine_window_class";   // window class name
+    constexpr static const wchar_t* const k_windowClassName = L"jam enginewindow class";   // window class name
     constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";         // default window title name
     constexpr static Int32                k_defaultWidth    = 800;                          // default window width
     constexpr static Int32                k_defaultHeight   = 600;                          // default window height

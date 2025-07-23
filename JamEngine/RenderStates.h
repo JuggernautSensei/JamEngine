@@ -14,6 +14,7 @@ public:
 
     NODISCARD ID3D11SamplerState*  Get() const { return m_pSamplerState.Get(); }
     NODISCARD ID3D11SamplerState** GetAddressOf() { return m_pSamplerState.GetAddressOf(); }
+    NODISCARD bool                 IsValid() const { return m_pSamplerState != nullptr; }
 
 private:
     ComPtr<ID3D11SamplerState> m_pSamplerState;
@@ -29,6 +30,7 @@ public:
 
     NODISCARD ID3D11BlendState*  Get() const { return m_pBlendState.Get(); }
     NODISCARD ID3D11BlendState** GetAddressOf() { return m_pBlendState.GetAddressOf(); }
+    NODISCARD bool               IsValid() const { return m_pBlendState != nullptr; }
 
 private:
     ComPtr<ID3D11BlendState> m_pBlendState;
@@ -44,6 +46,7 @@ public:
 
     NODISCARD ID3D11DepthStencilState*  Get() const { return m_pDepthStencilState.Get(); }
     NODISCARD ID3D11DepthStencilState** GetAddressOf() { return m_pDepthStencilState.GetAddressOf(); }
+    NODISCARD bool                      IsValid() const { return m_pDepthStencilState != nullptr; }
 
 private:
     ComPtr<ID3D11DepthStencilState> m_pDepthStencilState;
@@ -59,6 +62,7 @@ public:
 
     NODISCARD ID3D11RasterizerState*  Get() const { return m_pRasterizerState.Get(); }
     NODISCARD ID3D11RasterizerState** GetAddressOf() { return m_pRasterizerState.GetAddressOf(); }
+    NODISCARD bool                    IsValid() const { return m_pRasterizerState != nullptr; }
 
 private:
     ComPtr<ID3D11RasterizerState> m_pRasterizerState;

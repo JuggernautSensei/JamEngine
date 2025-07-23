@@ -15,6 +15,9 @@ UInt32 GetVertexStride(const eVertexType _type)
         case eVertexType::Vertex3:
             return sizeof(Vertex3);
 
+        case eVertexType::Vertex3PosOnly:
+            return sizeof(Vertex3PosOnly);
+
         default:
             JAM_ASSERT(false, "Unknown vertex type");
             return 0;
@@ -30,9 +33,8 @@ void PackVertex(const VertexAttribute& _vertex, const eVertexType _type, void* _
             Vertex2* vertex  = static_cast<Vertex2*>(_out_vertex);
             vertex->position = ToVec2(_vertex.position);
             vertex->uv0      = _vertex.uv0;
-            vertex->color    = _vertex.color;
-            break;
         }
+        break;
 
         case eVertexType::Vertex3:
         {
@@ -42,8 +44,15 @@ void PackVertex(const VertexAttribute& _vertex, const eVertexType _type, void* _
             vertex->uv1      = _vertex.uv1;
             vertex->normal   = _vertex.normal;
             vertex->tangent  = _vertex.tangent;
-            break;
         }
+        break;
+
+        case eVertexType::Vertex3PosOnly:
+        {
+            Vertex3PosOnly* vertex = static_cast<Vertex3PosOnly*>(_out_vertex);
+            vertex->position       = _vertex.position;
+        }
+        break;
 
         default:
             JAM_ASSERT(false, "Unknown vertex type");
@@ -59,9 +68,8 @@ void UnpackVertex(const eVertexType _type, const void* _in_vertex, VertexAttribu
             const Vertex2* vertex = static_cast<const Vertex2*>(_in_vertex);
             _out_vertex.position  = ToVec3(vertex->position);
             _out_vertex.uv0       = vertex->uv0;
-            _out_vertex.color     = vertex->color;
-            break;
         }
+        break;
 
         case eVertexType::Vertex3:
         {
@@ -71,8 +79,15 @@ void UnpackVertex(const eVertexType _type, const void* _in_vertex, VertexAttribu
             _out_vertex.uv1       = vertex->uv1;
             _out_vertex.normal    = vertex->normal;
             _out_vertex.tangent   = vertex->tangent;
-            break;
         }
+        break;
+
+        case eVertexType::Vertex3PosOnly:
+        {
+            const Vertex3PosOnly* vertex = static_cast<const Vertex3PosOnly*>(_in_vertex);
+            _out_vertex.position         = vertex->position;
+        }
+        break;
 
         default:
             JAM_ASSERT(false, "Unknown vertex type");

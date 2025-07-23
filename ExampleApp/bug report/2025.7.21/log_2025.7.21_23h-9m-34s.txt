@@ -1,0 +1,13 @@
+
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Window.cpp
+function name: void __cdecl jam::Window::Shutdown(void)
+line: 66
+columns: 9
+------------------------------------
+Failed to destroy window: 잘못된 창 핸들입니다.
+
+====================================
+

@@ -5,11 +5,19 @@
 #include "Application.h"
 #include "WindowsUtilities.h"
 
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 namespace jam
 {
 
 void Window::Initialize()
 {
+    // add event listeners
+    {
+        m_eventDispatcher.AddListener<WindowMoveEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(Window::OnWindowMove));
+        m_eventDispatcher.AddListener<WindowResizeEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(Window::OnWindowResize));
+    }
+
     // dpi
     {
         ::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -29,7 +37,7 @@ void Window::Initialize()
         wClassEx.hInstance     = m_hInstance;
         wClassEx.hIcon         = nullptr;
         wClassEx.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-        wClassEx.hbrBackground = GetSysColorBrush(COLOR_WINDOW + 1);
+        wClassEx.hbrBackground = NULL;
         wClassEx.lpszMenuName  = nullptr;
         wClassEx.lpszClassName = k_windowClassName;
         wClassEx.hIconSm       = nullptr;
@@ -50,10 +58,6 @@ void Window::Initialize()
 
         ShowWindow(m_hWnd, SW_SHOW);
     }
-
-    // add event listeners
-    m_eventDispatcher.AddListener<WindowMoveEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(Window::OnWindowMove));
-    m_eventDispatcher.AddListener<WindowResizeEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(Window::OnWindowResize));
 }
 
 void Window::Shutdown()
@@ -61,15 +65,8 @@ void Window::Shutdown()
     JAM_ASSERT(m_hWnd, "Window handle is null");
     JAM_ASSERT(m_hInstance, "Window instance handle is null");
 
-    if (!DestroyWindow(m_hWnd))
-    {
-        JAM_CRASH("Failed to destroy window: {}", GetSystemLastErrorMessage());
-    }
-
-    if (!UnregisterClassW(k_windowClassName, m_hInstance))
-    {
-        JAM_CRASH("Failed to unregister window class: {}", GetSystemLastErrorMessage());
-    }
+    DestroyWindow(m_hWnd);
+    UnregisterClassW(k_windowClassName, m_hInstance);
 
     m_hWnd      = NULL;
     m_hInstance = NULL;
@@ -116,7 +113,6 @@ void Window::SetTitle(const std::string_view _name) const
 {
     JAM_ASSERT(m_hWnd, "Window handle is null");
     JAM_ASSERT(m_hInstance, "Window instance handle is null");
-
     ::SetWindowText(m_hWnd, _name.data());
 }
 
@@ -158,6 +154,11 @@ void Window::OnWindowMove(const WindowMoveEvent& _event)
 
 LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wParam, const LPARAM lParam)
 {
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+    {
+        return true;
+    }
+
     LRESULT      result = 0;
     Application& app    = GetApplication();
 
@@ -200,7 +201,7 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
 
         case WM_LBUTTONDOWN:
         {
-            constexpr int      vKey = VK_LBUTTON;
+            constexpr int  vKey = VK_LBUTTON;
             MouseDownEvent mouseDownEvent { vKey };
             app.DispatchEvent(mouseDownEvent);
         }
@@ -272,7 +273,7 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
         break;
 
         default:
-            result = DefWindowProc(hWnd, uMsg, wParam, lParam);
+            result = DefWindowProcW(hWnd, uMsg, wParam, lParam);
     }
     return result;
 }

@@ -2,6 +2,7 @@
 
 namespace jam
 {
+class Script;
 
 struct TagComponent
 {
@@ -36,6 +37,14 @@ struct CameraComponent
     float       farZ        = 1000.f;
     float       aspectRatio = 1.f;
     eProjection projection  = eProjection::Perspective;
+};
+
+struct ScriptComponent
+{
+    ScriptComponent() = default;
+    explicit ScriptComponent(std::unique_ptr<Script>&& _script);
+
+    std::unique_ptr<Script> script;
 };
 
 }   // namespace jam

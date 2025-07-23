@@ -6,14 +6,20 @@ namespace jam
 
 class WindowResizeEvent;
 class Event;
+class Texture2D;
 
 class Renderer
 {
 public:
+    Renderer() = delete;
+
     // core interface
     static void Initialize();
     static void OnEvent(const Event& _event);
-    static void Present(bool _bVSync);
+
+    // swap chain interface
+    static void      Present(bool _bVSync);
+    static Texture2D GetBackBufferTexture();
 
     static NODISCARD ID3D11Device*        GetDevice();
     static NODISCARD ID3D11DeviceContext* GetDeviceContext();
@@ -42,7 +48,7 @@ public:
     static void CreateRasterizerState(const D3D11_RASTERIZER_DESC& _desc, ID3D11RasterizerState** _out_pRasterizerState);
 
     // pipeline interface
-    static void SetTopology(eTopology _topology);
+    static void SetTopology(D3D11_PRIMITIVE_TOPOLOGY _topology);
     static void SetVertexBuffer(ID3D11Buffer* _pVertexBuffer, UInt32 _stride);
     static void SetIndexBuffer(ID3D11Buffer* _pIndexBuffer);
 
@@ -70,7 +76,7 @@ public:
     static void DrawIndices(UInt32 _indexCount, UInt32 _startIndexLocation, Int32 _baseVertexLocation);
 
 private:
-    static void OnResize_(Int32 _width, Int32 _height);
+    static void OnResize_(const WindowResizeEvent& _event);
 };
 
 }   // namespace jam

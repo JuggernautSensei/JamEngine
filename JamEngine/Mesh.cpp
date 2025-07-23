@@ -22,8 +22,8 @@ Mesh Mesh::Create(const MeshGeometry& _meshData, const eVertexType _vertexType, 
         PackVertex(vertex, _vertexType, vertexData.data() + i * stride);
     }
 
-    mesh.m_vertexBuffer = VertexBuffer::Create(_vertexType, vertexCount, eResourceAccess::Immutable, vertexData.data());
-    mesh.m_indexBuffer  = IndexBuffer::Create(indexCount, eResourceAccess::Immutable, _meshData.indices.data());
+    mesh.m_vertexBuffer = VertexBuffer::Create(eResourceAccess::Immutable, _vertexType, vertexCount, vertexData.data());
+    mesh.m_indexBuffer  = IndexBuffer::Create(eResourceAccess::Immutable, indexCount, _meshData.indices.data());
     mesh.m_topology     = _topology;
     return mesh;
 }
@@ -32,7 +32,7 @@ void Mesh::Bind() const
 {
     m_vertexBuffer.Bind();
     m_indexBuffer.Bind();
-    Renderer::SetTopology(m_topology);
+    Renderer::SetTopology(static_cast<D3D11_PRIMITIVE_TOPOLOGY>(m_topology));
 }
 
 }   // namespace jam

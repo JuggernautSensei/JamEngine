@@ -10,4 +10,9 @@ TagComponent::TagComponent(const std::string_view _name)
 {
 }
 
+ScriptComponent::ScriptComponent(std::unique_ptr<Script>&& _script)
+    : script(std::move(_script))
+{
+}
+
 }   // namespace jam

@@ -26,7 +26,6 @@ struct ApplicationCreateInfo
 {
     std::string applicationName  = "jam engine application";
     fs::path    workingDirectory = fs::current_path();
-    float       targetFrameRate  = 240.f;   // 0 -> unlimited frame rate
 };
 
 // 1. implement CreateApplication, OnCreate, and OnDestroy in your application
@@ -53,23 +52,19 @@ public:
     void SubmitCommand(const std::function<void()>& _command);
 
     // layer interface
-    void              PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer);
-    void              PushBackLayer(std::unique_ptr<ILayer>&& _layer);
+    ILayer*           PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer);
+    ILayer*           PushBackLayer(std::unique_ptr<ILayer>&& _layer);
     void              RemoveLayer(ILayer* _pLayer);
     NODISCARD ILayer* GetLayer(UInt32 _layerHash) const;
 
-    // set properties
-    void SetFrameRateLimit(float _fps);   // if _fps == 0 -> unlimited frame rate
-    void SetVsync(bool _bVsync);          // enable or disable vsync
-
-    // get properties
-    NODISCARD float GetFrameRateLimit() const;   // get target frame rate (0 -> unlimited frame rate)
-    NODISCARD bool  IsVsync() const;             // is vsync enabled
+    // properties
+    void           SetVsync(bool _bVsync);   // enable or disable vsync
+    NODISCARD bool IsVsync() const;          // is vsync enabled
 
     // getter
-    NODISCARD Window&          GetWindow();
-    NODISCARD SceneLayer*      GetSceneLayer() const;
+    NODISCARD const Window&    GetWindow() const;
     NODISCARD const TickTimer& GetTimer() const;
+    NODISCARD SceneLayer*      GetSceneLayer() const;
 
     // singletone accessor
     static void                   Create(const jam::CommandLineArguments& _args);   // public constructor - call at the beginning of your main function

@@ -133,4 +133,11 @@ private:
     int m_key = 0;
 };
 
+class SwapChainResourceReleaseEvent final : public Event
+{
+public:
+    SwapChainResourceReleaseEvent() = default;
+    JAM_EVENT(SwapChainResourceReleaseEvent, "SwapChainResourceReleaseEvent");
+};
+
 }   // namespace jam

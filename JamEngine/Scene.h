@@ -31,11 +31,17 @@ public:
     virtual void OnRenderUI() {}
     virtual void OnEndRender() {}
 
-    virtual void OnEvent(Event& _event) {}
+    virtual void OnEvent(Event& _eventRef) {}
     NODISCARD std::string_view GetName() const { return m_name; }
 
     NODISCARD entt::registry& GetRegistry() { return m_registry; }
     NODISCARD const entt::registry& GetRegistry() const { return m_registry; }
+
+    template<typename... Args>
+    NODISCARD decltype(auto) CreateView()
+    {
+        return m_registry.view<Args...>();
+    }
 
     NODISCARD Entity CreateEntity();
     NODISCARD Entity CreateEntity(UInt32 _hint);

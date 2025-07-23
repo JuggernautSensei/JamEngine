@@ -1,9 +1,9 @@
 #pragma once
 #include "Model.h"
 
-class aiNode;
-class aiScene;
-class aiMesh;
+struct aiNode;
+struct aiScene;
+struct aiMesh;
 
 namespace jam
 {
@@ -12,7 +12,7 @@ namespace jam
 class ModelImporter
 {
 public:
-    bool                                Import(const fs::path& _path);
+    bool            Import(const fs::path& _path);
     NODISCARD const std::vector<RawModelElement>& GetRawModelParts() const;
 
 private:

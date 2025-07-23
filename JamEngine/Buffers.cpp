@@ -48,7 +48,7 @@ std::optional<std::vector<UInt8>> Buffer::Download() const
 
     // create staging buffer
     Buffer stagingBuffer;
-    stagingBuffer.Initialize_(0, m_byteWidth, eResourceAccess::CPUReadable, nullptr);
+    stagingBuffer.Initialize_(0, eResourceAccess::CPUReadable, m_byteWidth, nullptr);
 
     // copy data to staging buffer
     JAM_ASSERT(m_buffer.Get(), "Buffer is null");
@@ -71,7 +71,14 @@ std::optional<std::vector<UInt8>> Buffer::Download() const
     }
 }
 
-void Buffer::Initialize_(const UINT _flags, const UInt32 _byteWidth, eResourceAccess _access, const void* _pInitialData)
+UInt32 Buffer::Reset()
+{
+    UInt32 refCount = m_buffer.Reset();
+    *this           = Buffer();   // Reset the buffer to a new state
+    return refCount;
+}
+
+void Buffer::Initialize_(const UINT _bindFlag, eResourceAccess _access, const UInt32 _byteWidth, const void* _pInitialData)
 {
     constexpr UINT k_accessFlagsTable[] = {
         0,                        // Immutable
@@ -83,7 +90,7 @@ void Buffer::Initialize_(const UINT _flags, const UInt32 _byteWidth, eResourceAc
     D3D11_BUFFER_DESC desc;
     desc.ByteWidth           = _byteWidth;
     desc.Usage               = static_cast<D3D11_USAGE>(_access);
-    desc.BindFlags           = _flags;
+    desc.BindFlags           = _bindFlag;
     desc.CPUAccessFlags      = k_accessFlagsTable[static_cast<int>(_access)];
     desc.MiscFlags           = 0;
     desc.StructureByteStride = 0;
@@ -93,19 +100,19 @@ void Buffer::Initialize_(const UINT _flags, const UInt32 _byteWidth, eResourceAc
     m_access    = _access;
 }
 
-VertexBuffer VertexBuffer::Create(const UInt32 _vertexStride, const UInt32 _vertexCount, const eResourceAccess _access, const void* _pInitialData)
+VertexBuffer VertexBuffer::Create(const eResourceAccess _access, const UInt32 _vertexStride, const UInt32 _vertexCount, const void* _pInitialData)
 {
     JAM_ASSERT(_access != eResourceAccess::CPUReadable, "Vertex buffer cannot be CPU readable");
 
     VertexBuffer buffer;
-    buffer.Initialize_(D3D11_BIND_VERTEX_BUFFER, _vertexStride * _vertexCount, _access, _pInitialData);
+    buffer.Initialize_(D3D11_BIND_VERTEX_BUFFER, _access, _vertexStride * _vertexCount, _pInitialData);
     buffer.m_stride = _vertexStride;
     return buffer;
 }
 
-VertexBuffer VertexBuffer::Create(const eVertexType _vertexType, const UInt32 _vertexCount, const eResourceAccess _access, const void* _pInitialData)
+VertexBuffer VertexBuffer::Create(const eResourceAccess _access, const eVertexType _vertexType, const UInt32 _vertexCount, const void* _pInitialData)
 {
-    return Create(GetVertexStride(_vertexType), _vertexCount, _access, _pInitialData);
+    return Create(_access, GetVertexStride(_vertexType), _vertexCount, _pInitialData);
 }
 
 void VertexBuffer::Bind() const
@@ -113,11 +120,11 @@ void VertexBuffer::Bind() const
     Renderer::SetVertexBuffer(m_buffer.Get(), m_stride);
 }
 
-IndexBuffer IndexBuffer::Create(const UInt32 _indexCount, const eResourceAccess _access, const Index* _pInitialData)
+IndexBuffer IndexBuffer::Create(const eResourceAccess _access, const UInt32 _indexCount, const Index* _pInitialData)
 {
     JAM_ASSERT(_access != eResourceAccess::CPUReadable, "Vertex buffer cannot be CPU readable");
     IndexBuffer buffer;
-    buffer.Initialize_(D3D11_BIND_INDEX_BUFFER, sizeof(Index) * _indexCount, _access, _pInitialData);
+    buffer.Initialize_(D3D11_BIND_INDEX_BUFFER, _access, sizeof(Index) * _indexCount, _pInitialData);
     return buffer;
 }
 
@@ -129,7 +136,7 @@ void IndexBuffer::Bind() const
 ConstantBuffer ConstantBuffer::Create(const UInt32 _byteWidth, const void* _pInitialData)
 {
     ConstantBuffer buffer;
-    buffer.Initialize_(D3D11_BIND_CONSTANT_BUFFER, _byteWidth, eResourceAccess::CPUWriteable, _pInitialData);
+    buffer.Initialize_(D3D11_BIND_CONSTANT_BUFFER, eResourceAccess::CPUWriteable, _byteWidth, _pInitialData);
     return buffer;
 }
 

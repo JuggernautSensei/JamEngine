@@ -41,6 +41,7 @@ void Application::Create(const jam::CommandLineArguments& _args)
 
         // initialize window
         s_instance->m_window.Initialize();
+        s_instance->m_window.SetTitle(s_instance->m_applicationName);
 
         // initialize renderer
         Renderer::Initialize();
@@ -49,7 +50,8 @@ void Application::Create(const jam::CommandLineArguments& _args)
         Input::Initialize();
 
         // attach layer
-        s_instance->PushBackLayer(std::make_unique<SceneLayer>());
+        ILayer* pSceneLayer       = s_instance->PushBackLayer(std::make_unique<SceneLayer>());
+        s_instance->m_pSceneLayer = static_cast<SceneLayer*>(pSceneLayer);
         s_instance->PushBackLayer(std::make_unique<ImguiLayer>(s_instance->m_window.GetPlatformHandle(), Renderer::GetDevice(), Renderer::GetDeviceContext()));
     }
 
@@ -89,25 +91,26 @@ Application::Application(const ApplicationCreateInfo& _info)
     , m_workingDirectory(_info.workingDirectory)
     , m_bRunning(true)
 {
-    m_timer.Start(_info.targetFrameRate);
 }
 
 int Application::Run()
 {
-    m_timer.Start(m_timer.GetFrameRateLimit());
+    m_timer.Start();
 
     while (m_bRunning)
     {
         if (!m_window.PollEvents())
         {
-            if (m_timer.Tick())
+            // update
             {
-                float deltaSec = m_timer.GetDeltaSec();
-                Log::Debug("delta time {} sec {} fps", deltaSec, 1.f / deltaSec);
-
+                float deltaSec = m_timer.Tick();
                 for (const std::unique_ptr<ILayer>& layer: m_layers)
                 {
                     layer->OnUpdate(deltaSec);
+                }
+
+                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                {
                     layer->OnFinalUpdate(deltaSec);
                 }
 
@@ -117,14 +120,24 @@ int Application::Run()
             }
 
             // rendering
-            for (const std::unique_ptr<ILayer>& layer: m_layers)
             {
-                layer->OnBeginRender();
-                layer->OnRender();
-                layer->OnEndRender();
-            }
+                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                {
+                    layer->OnBeginRender();
+                }
 
-            Renderer::Present(m_bVsync);
+                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                {
+                    layer->OnRender();
+                }
+
+                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                {
+                    layer->OnEndRender();
+                }
+
+                Renderer::Present(m_bVsync);
+            }
         }
     }
 
@@ -137,21 +150,9 @@ void Application::Quit()
     m_bRunning = false;
 }
 
-void Application::SetFrameRateLimit(const float _fps)
-{
-    m_timer.Start(_fps);
-    Log::Info("Frame rate set to: {} FPS", _fps == 0 ? "unlimited frame rate" : std::to_string(_fps));
-}
-
 void Application::SetVsync(const bool _bVsync)
 {
     m_bVsync = _bVsync;
-}
-
-float Application::GetFrameRateLimit() const
-{
-    JAM_ASSERT(s_instance, "Application instance is null");
-    return m_timer.GetFrameRateLimit();
 }
 
 bool Application::IsVsync() const
@@ -165,7 +166,7 @@ void Application::DispatchEvent(Event& _event)
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
-    Log::Trace("occurred event: {}", _event.ToString());
+    Log::Debug("occurred event: {}", _event.ToString());
 
     // application event listener routine
     if (_event.GetHash() == WindowCloseEvent::k_staticHash)
@@ -191,38 +192,50 @@ void Application::SubmitCommand(const std::function<void()>& _command)
     m_commandQueue.Submit(_command);
 }
 
-void Application::PushBackLayer(std::unique_ptr<ILayer>&& _layer)
+ILayer* Application::PushBackLayer(std::unique_ptr<ILayer>&& _layer)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_layer, "Layer pointer is null");
 
-    UInt32     layerHash = _layer->GetHash();
-    const auto it        = std::ranges::find_if(m_layers,
-                                         [layerHash](const std::unique_ptr<ILayer>& layer)
-                                         {
-                                             return layer->GetHash() == layerHash;
-                                         });
+    // check if layer already exists in the stack
+    {
+        UInt32     layerHash = _layer->GetHash();
+        const auto it        = std::ranges::find_if(m_layers,
+                                             [layerHash](const std::unique_ptr<ILayer>& layer)
+                                             {
+                                                 return layer->GetHash() == layerHash;
+                                             });
 
-    JAM_ASSERT(it == m_layers.end(), "Layer with hash {} already exists", _layer->GetName());
+        JAM_ASSERT(it == m_layers.end(), "Layer with hash {} already exists", _layer->GetName());
+    }
+
+    // attach layer before pushing it to the stack
     _layer->OnAttach();   // attach layer before pushing it to the stack
-    m_layers.push_back(std::move(_layer));
+    const auto it = m_layers.insert(m_layers.end(), std::move(_layer));
+    return it->get();
 }
 
-void Application::PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer)
+ILayer* Application::PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_pLayer, "Layer pointer is null");
 
-    UInt32     layerHash = _pLayer->GetHash();
-    const auto it        = std::ranges::find_if(m_layers,
-                                         [layerHash](const std::unique_ptr<ILayer>& layer)
-                                         {
-                                             return layer->GetHash() == layerHash;
-                                         });
+    // check if layer already exists in the stack
+    {
+        UInt32     layerHash = _pLayer->GetHash();
+        const auto it        = std::ranges::find_if(m_layers,
+                                             [layerHash](const std::unique_ptr<ILayer>& layer)
+                                             {
+                                                 return layer->GetHash() == layerHash;
+                                             });
 
-    JAM_ASSERT(it == m_layers.end(), "Layer with hash {} already exists", _pLayer->GetName());
+        JAM_ASSERT(it == m_layers.end(), "Layer with hash {} already exists", _pLayer->GetName());
+    }
+
+    // attach layer before pushing it to the stack
     _pLayer->OnAttach();   // attach layer before pushing it to the stack
-    m_layers.insert(m_layers.begin(), std::move(_pLayer));
+    const auto it = m_layers.insert(m_layers.begin(), std::move(_pLayer));
+    return it->get();
 }
 
 void Application::RemoveLayer(ILayer* _pLayer)
@@ -233,7 +246,7 @@ void Application::RemoveLayer(ILayer* _pLayer)
     const auto it = std::ranges::find_if(m_layers,
                                          [_pLayer](const std::unique_ptr<ILayer>& layer)
                                          {
-                                             return layer.get() == _pLayer;
+                                             return layer->GetHash() == _pLayer->GetHash();
                                          });
 
     JAM_ASSERT(it != m_layers.end(), "Layer not found in the application");
@@ -254,7 +267,7 @@ ILayer* Application::GetLayer(UInt32 _layerHash) const
     return it->get();
 }
 
-Window& Application::GetWindow()
+const Window& Application::GetWindow() const
 {
     return m_window;
 }

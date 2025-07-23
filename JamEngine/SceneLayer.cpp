@@ -3,24 +3,42 @@
 #include "SceneLayer.h"
 
 #include "Application.h"
+#include "Components.h"
 #include "Scene.h"
+#include "Script.h"
 
 namespace jam
 {
 
-void SceneLayer::OnUpdate(const float _deltaTime)
+void SceneLayer::OnUpdate(const float _deltaSec)
 {
     if (m_pActiveScene)
     {
-        m_pActiveScene->OnUpdate(_deltaTime);
+        m_pActiveScene->OnUpdate(_deltaSec);
+
+        m_pActiveScene->CreateView<ScriptComponent>().each(
+            [_deltaSec](ScriptComponent& _scriptComponent)
+            {
+                std::unique_ptr<Script>& scriptRef = _scriptComponent.script;
+
+                if (scriptRef && scriptRef->IsRunning())
+                {
+                    if (scriptRef->m_bStarted == false)
+                    {
+                        scriptRef->OnStart();
+                        scriptRef->m_bStarted = true;
+                    }
+                    scriptRef->OnUpdate(_deltaSec);
+                }
+            });
     }
 }
 
-void SceneLayer::OnFinalUpdate(const float _deltaTime)
+void SceneLayer::OnFinalUpdate(const float _deltaSec)
 {
     if (m_pActiveScene)
     {
-        m_pActiveScene->OnFinalUpdate(_deltaTime);
+        m_pActiveScene->OnFinalUpdate(_deltaSec);
     }
 }
 

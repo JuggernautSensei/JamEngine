@@ -17,7 +17,8 @@ struct VertexAttribute
 enum class eVertexType
 {
     Vertex2,
-    Vertex3
+    Vertex3,
+    Vertex3PosOnly
 };
 
 UInt32 GetVertexStride(eVertexType _type);
@@ -28,7 +29,8 @@ struct Vertex2
 {
     Vec2 position;
     Vec2 uv0;
-    Vec3 color;
+
+    inline static eVertexType s_staticType = eVertexType::Vertex2;
 };
 
 struct Vertex3
@@ -38,6 +40,15 @@ struct Vertex3
     Vec2 uv1;
     Vec3 normal;
     Vec3 tangent;
+
+    inline static eVertexType s_staticType = eVertexType::Vertex3;
+};
+
+struct Vertex3PosOnly
+{
+    Vec3 position;
+
+    inline static eVertexType s_staticType = eVertexType::Vertex3PosOnly;
 };
 
 }   // namespace jam

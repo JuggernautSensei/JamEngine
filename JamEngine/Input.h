@@ -135,6 +135,8 @@ enum class eMouse
 class Input
 {
 public:
+    Input() = delete;
+
     static void Initialize();
     static void Update();
     static void OnEvent(Event& _event);

@@ -17,8 +17,8 @@ public:
     SceneLayer(SceneLayer&&) noexcept            = default;
     SceneLayer& operator=(SceneLayer&&) noexcept = default;
 
-    void OnUpdate(float _deltaTime) override;
-    void OnFinalUpdate(float _deltaTime) override;
+    void OnUpdate(float _deltaSec) override;
+    void OnFinalUpdate(float _deltaSec) override;
 
     void OnBeginRender() override;
     void OnRender() override;
@@ -35,13 +35,11 @@ public:
     NODISCARD Scene* GetActiveScene() const;
     NODISCARD Scene* GetScene(std::string_view _name) const;
 
-    NODISCARD const auto& GetContainer() const { return m_scenes; }
+    NODISCARD decltype(auto) GetScenesView() const { return std::views::all(m_scenes); }
 
 private:
     std::unordered_map<std::string, std::unique_ptr<Scene>> m_scenes;
     Scene*                                                  m_pActiveScene = nullptr;   // currently active scene
 };
-
-
 
 }   // namespace jam
