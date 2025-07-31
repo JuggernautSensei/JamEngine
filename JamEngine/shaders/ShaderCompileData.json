@@ -1,0 +1,388 @@
+[
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\BloomCombineFilterPS.hlsl",
+        "macros": [],
+        "name": "bloomCombineFilterPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\BloomDownFilterPS.hlsl",
+        "macros": [],
+        "name": "bloomDownFilterPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\BloomUpFilterPS.hlsl",
+        "macros": [],
+        "name": "bloomUpFilterPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\FogPS.hlsl",
+        "macros": [],
+        "name": "fogPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "VSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\LightVolumeShader.hlsl",
+        "macros": [],
+        "name": "pointAndSoptLightVolumeVS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "VSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\LightVolumeShader.hlsl",
+        "macros": [{       
+         	"name": JAM_LIGHT_TYPE_DIRECTIONAL
+                "value": ""
+	}],
+        "name": "directionalLightVolumeVS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\LightVolumeShader.hlsl",
+        "macros": [],
+        "name": "lightVolumePS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\PBRForwardShader.hlsl",
+        "macros": [],
+        "name": "pbrForwardPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\PBRGBufferShader.hlsl",
+        "macros": [],
+        "name": "pbrGBufferPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\PBRLightingShader.hlsl",
+        "macros": [],
+        "name": "pbrLightingPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "VSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\PBRVS.hlsl",
+        "macros": [],
+        "name": "pbrVS",
+        "target": "vs_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SamplingPS.hlsl",
+        "macros": [],
+        "name": "samplingPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "VSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ScreenSpaceEffectVS.hlsl",
+        "macros": [],
+        "name": "screenSpaceEffectVS",
+        "target": "vs_5_0"
+    },
+    {
+        "entryPoint": "VSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ShadowCasterShader.hlsl",
+        "macros": [
+            {
+                "name": "SHADOW_MAPPING_CASTER",
+                "value": ""
+            }
+        ],
+        "name": "shadowMappingCasterShaderVS",
+        "target": "vs_5_0"
+    },
+    {
+        "entryPoint": "VSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ShadowCasterShader.hlsl",
+        "macros": [],
+        "name": "omniDirectionalAndCascadeShadowMappingCasterShaderVS",
+        "target": "vs_5_0"
+    },
+    {
+        "entryPoint": "GSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ShadowCasterShader.hlsl",
+        "macros": [
+            {
+                "name": "OMNI_SHADOW_MAPPING_CASTER",
+                "value": ""
+            }
+        ],
+        "name": "omniDirectionalShaderMappingCasterShaderGS",
+        "target": "gs_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ShadowCasterShader.hlsl",
+        "macros": [],
+        "name": "cascadeShadowMappingAndShadowMappingCastShaderPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ShadowCasterShader.hlsl",
+        "macros": [
+            {
+                "name": "OMNI_SHADOW_MAPPING_CASTER",
+                "value": ""
+            }
+        ],
+        "name": "omniShadowoMappingShadowCasterShaderPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "VSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SkyboxShader.hlsl",
+        "macros": [],
+        "name": "skyboxShaderVS",
+        "target": "vs_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SkyboxShader.hlsl",
+        "macros": [],
+        "name": "skyboxShaderPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SSAOBlurPS.hlsl",
+        "macros": [
+            {
+                "name": "SSAO_BLUR_HORIZONTAL",
+                "value": ""
+            }
+        ],
+        "name": "ssaoBlurHorizontalPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SSAOBlurPS.hlsl",
+        "macros": [
+            {
+                "name": "SSAO_BLUR_VERTICAL",
+                "value": ""
+            }
+        ],
+        "name": "ssaoBlurVerticalPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SSAOPS.hlsl",
+        "macros": [
+            {
+                "name": "SSAO_KERNEL_SAMPLE",
+                "value": "16"
+            }
+        ],
+        "name": "ssao16SamplePS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SSAOPS.hlsl",
+        "macros": [
+            {
+                "name": "SSAO_KERNEL_SAMPLE",
+                "value": "32"
+            }
+        ],
+        "name": "ssao32SamplePS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\SSAOPS.hlsl",
+        "macros": [
+            {
+                "name": "SSAO_KERNEL_SAMPLE",
+                "value": "64"
+            }
+        ],
+        "name": "ssao64SamplePS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ToneMappingPS.hlsl",
+        "macros": [
+            {
+                "name": "TONE_MAPPNIG_UNCHARTED2",
+                "value": ""
+            }
+        ],
+        "name": "toneMappingUncharted2PS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ToneMappingPS.hlsl",
+        "macros": [
+            {
+                "name": "TONE_MAPPNIG_REINHARD",
+                "value": ""
+            }
+        ],
+        "name": "toneMappingReinhardPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ToneMappingPS.hlsl",
+        "macros": [
+            {
+                "name": "TONE_MAPPNIG_WHITE_PRESERVING_REINHARD",
+                "value": ""
+            }
+        ],
+        "name": "toneMappingWhitePreservingReinhardPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ToneMappingPS.hlsl",
+        "macros": [
+            {
+                "name": "TONE_MAPPNIG_LUMA_BASED_REINHARD",
+                "value": ""
+            }
+        ],
+        "name": "toneMappingLumaBasedReinhardPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ToneMappingPS.hlsl",
+        "macros": [
+            {
+                "name": "TONE_MAPPNIG_ROMB_DA_HOUSE",
+                "value": ""
+            }
+        ],
+        "name": "toneMappingRombDaHousePS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ToneMappingPS.hlsl",
+        "macros": [
+            {
+                "name": "TONE_MAPPNIG_FILMIC",
+                "value": ""
+            }
+        ],
+        "name": "toneMappingFilmicPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ToneMappingPS.hlsl",
+        "macros": [
+            {
+                "name": "TONE_MAPPNIG_LINEAR",
+                "value": ""
+            }
+        ],
+        "name": "toneMappingLinearPS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\FXAAPS.hlsl",
+        "macros": [
+            {
+                "name": "FXAA_PRESET",
+                "value": "0"
+            }
+        ],
+        "name": "fxaaQuality0PS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\FXAAPS.hlsl",
+        "macros": [
+            {
+                "name": "FXAA_PRESET",
+                "value": "1"
+            }
+        ],
+        "name": "fxaaQuality1PS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\FXAAPS.hlsl",
+        "macros": [
+            {
+                "name": "FXAA_PRESET",
+                "value": "2"
+            }
+        ],
+        "name": "fxaaQuality2PS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\FXAAPS.hlsl",
+        "macros": [
+            {
+                "name": "FXAA_PRESET",
+                "value": "3"
+            }
+        ],
+        "name": "fxaaQuality3PS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\FXAAPS.hlsl",
+        "macros": [
+            {
+                "name": "FXAA_PRESET",
+                "value": "4"
+            }
+        ],
+        "name": "fxaaQuality4PS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "PSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\FXAAPS.hlsl",
+        "macros": [
+            {
+                "name": "FXAA_PRESET",
+                "value": "5"
+            }
+        ],
+        "name": "fxaaQuality5PS",
+        "target": "ps_5_0"
+    },
+    {
+        "entryPoint": "GSmain",
+        "filename": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\hlsl\\ShadowCasterShader.hlsl",
+        "macros": [
+            {
+                "name": "CASCADE_SHADOW_MAPPING_CASTER",
+                "value": ""
+            }
+        ],
+        "name": "cascadeShaderMappingCasterShaderGS",
+        "target": "gs_5_0"
+    }
+]

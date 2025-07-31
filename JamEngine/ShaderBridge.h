@@ -9,8 +9,8 @@
 
 #    define JAM_NAMESPACE_END }
 
-#    define JAM_CBUFFER(_name, _slot)             \
-        constexpr UInt32 k_##_name##Slot = _slot; \
+#    define JAM_CBUFFER(_name, _slot)          \
+        constexpr UInt32 _name##_SLOT = _slot; \
         struct alignas(16) _name
 
 #    define JAM_FLOAT  float
@@ -23,19 +23,19 @@
 #    define JAM_SEMANTIC(_sementic)
 
 #    define JAM_SHADER_RESOURCE_TEXTURE2D(_name, _slot) \
-        constexpr UInt32 k_##_name##Slot = _slot
+        constexpr UInt32 k_##_name##Slot = _slot;
 
 #    define JAM_SHADER_RESOURCE_TEXTURE2D_ARRAY(_name, _slot) \
-        constexpr UInt32 k_##_name##Slot = _slot
+        constexpr UInt32 k_##_name##Slot = _slot;
 
 #    define JAM_SHADER_RESOURCE_TEXTURECUBE(_name, _slot) \
-        constexpr UInt32 k_##_name##Slot = _slot
+        constexpr UInt32 k_##_name##Slot = _slot;
 
 #    define JAM_SHADER_RESOURCE_SAMPLER(_name, _slot) \
-        constexpr UInt32 k_##_name##Slot = _slot
+        constexpr UInt32 k_##_name##Slot = _slot;
 
 #    define JAM_SHADER_RESOURCE_SAMPLER_COMPARISON(_name, _slot) \
-        constexpr UInt32 k_##_name##Slot = _slot
+        constexpr UInt32 k_##_name##Slot = _slot;
 
 #else
 
@@ -169,7 +169,7 @@ JAM_CBUFFER(CB_GLOBAL, 4)
     JAM_FLOAT                  cb_globalScreenWidth;            // 4
     JAM_FLOAT                  cb_globalScreenHeight;           // 4
     JAM_FLOAT3                 cb_globalSceneAmbientRadiance;   // 12 (fot not-IBL)
-}
+};
 
 JAM_CBUFFER(CB_POSTPROCESS, 5)
 {
@@ -241,7 +241,7 @@ JAM_CBUFFER(CB_OMNIDIRECTIONAL_SHADOW_CASTER, 1)
     JAM_FLOAT  cb_omniDirectionalShadowCasterLightRange;
 };
 
-JAM_CBUFFER(CB_SSAO, 1)
+JAM_CBUFFER(CB_SSAO, 2)
 {
     JAM_FLOAT cb_ssaoRadius;
     JAM_FLOAT cb_ssaoBias;
@@ -253,7 +253,7 @@ JAM_CBUFFER(CB_SSAO, 1)
 
 struct VS_INPUT_VERTEX2
 {
-    JAM_FLOAT3 positionL JAM_SEMANTIC(POSITION);
+    JAM_FLOAT2 positionL JAM_SEMANTIC(POSITION);
     JAM_FLOAT2 uv0       JAM_SEMANTIC(TEXCOORD0);
 };
 

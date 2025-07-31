@@ -1,0 +1,22 @@
+[2025-07-25 00:22:30.220] [trace] log system initialized
+[2025-07-25 00:22:40.496] [info] Shader [C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\hlsl\BloomCombineFilterPS.hlsl] compiled successfully.
+[2025-07-25 00:23:06.281] [info] Shader [C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\hlsl\BloomDownFilterPS.hlsl] compiled successfully.
+[2025-07-25 00:23:29.796] [info] Shader [C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\hlsl\BloomUpFilterPS.hlsl] compiled successfully.
+[2025-07-25 00:23:46.252] [error] 
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ShaderCompiler.cpp
+function name: bool __cdecl jam::ShaderCompiler::CompileHLSLFromFile(const class std::filesystem::path &,class std::basic_string_view<char,struct std::char_traits<char> >,class std::basic_string_view<char,struct std::char_traits<char> >,class std::span<struct jam::ShaderMacro const ,-1>,enum jam::eShaderCompileOption)
+line: 81
+columns: 9
+------------------------------------
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\hlsl\FogPS.hlsl: Failed to compile HLSL shader file.
+Compile Error: error X3506: unrecognized compiler target 'none'
+
+Unknown error
+====================================
+
+[2025-07-25 00:23:46.252] [error] Failed to compile shader: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\hlsl\FogPS.hlsl
+[2025-07-25 00:23:59.174] [info] Shader [C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\hlsl\FogPS.hlsl] compiled successfully.
+[2025-07-25 00:24:15.841] [trace] log system shutdown

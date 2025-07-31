@@ -5,11 +5,7 @@
 DemoScene::DemoScene(const std::string_view& _name)
     : Scene(_name)
 {
-}
-
-void DemoScene::OnAttach()
-{
-    m_dispatcher.AddListener<SwapChainResourceReleaseEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(DemoScene::OnSwapChainResourceReleaseEvent_));
+    m_dispatcher.AddListener<BackBufferCleanupEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(DemoScene::OnSwapChainResourceReleaseEvent_));
     m_dispatcher.AddListener<WindowResizeEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(DemoScene::OnWindowResizeEvent_));
 }
 
@@ -20,64 +16,7 @@ void DemoScene::OnEnter()
     auto [width, height] = window.GetWindowSize();
     CreateScreenDependentResources_(width, height);
 
-    // gemetry buffer
-    {
-        Vertex2 vertices[] = {
-            Vertex2 {  .position = { 0.5f, 0.f },  .uv0 = { 0.f, 0.f } },
-            Vertex2 { .position = { -0.5f, 0.f },  .uv0 = { 1.f, 0.f } },
-            Vertex2 {  .position = { 0.f, 0.5f }, .uv0 = { 0.5f, 1.f } },
-        };
-
-        Index indices[] = {
-            0, 1, 2
-        };
-
-        m_vertexBuffer = VertexBuffer::Create(eResourceAccess::Immutable, Vertex2::s_staticType, std::size(vertices), vertices);
-        m_indexBuffer  = IndexBuffer::Create(eResourceAccess::Immutable, std::size(indices), indices);
-    }
-
-    // shader
-    {
-        constexpr const char* k_shader = R"(
-            struct VS_INPUT
-            {
-                float2 position : POSITION;
-                float2 uv0 : TEXCOORD0;
-                float3 color : COLOR0;
-            };
-
-            struct PS_INPUT
-            {
-                    float4 position : SV_POSITION;
-                    float3 color : COLOR0;
-            };
-
-            PS_INPUT VSMain(VS_INPUT input)
-            {
-                PS_INPUT output;
-                output.position = float4(input.position, 0.0f, 1.0f);
-                output.color = input.color;
-                return output;
-            }
-
-            float4 PSMain(PS_INPUT input) : SV_TARGET
-            {
-                return float4(input.color, 1.0f);
-            }
-        )";
-
-        ShaderCompiler vsCompiler;
-        vsCompiler.CompileHLSL(k_shader, "VSMain", "vs_5_0");
-
-        ShaderCompiler psCompiler;
-        psCompiler.CompileHLSL(k_shader, "PSMain", "ps_5_0");
-
-        ComPtr<ID3DBlob> vsBlob;
-        ComPtr<ID3DBlob> psBlob;
-        vsCompiler.GetCompiledShader(vsBlob.GetAddressOf());
-        psCompiler.GetCompiledShader(psBlob.GetAddressOf());
-        m_shaderProgram = ShaderProgram::Create(vsBlob.Get(), psBlob.Get());
-    }
+    m_gBufferShader = ShaderCollection::PBRGBufferShader();
 }
 
 void DemoScene::OnUpdate(float _deltaTime)
@@ -86,16 +25,31 @@ void DemoScene::OnUpdate(float _deltaTime)
 
 void DemoScene::OnRender()
 {
+    // bind sampler states
+
+    // update camera
+
+    // clear gbuffer textures
+    m_gBufferNormalTexture.ClearRenderTarget(k_pColorZero);
+    m_gBufferAlbedoRoughnessTexture.ClearRenderTarget(k_pColorZero);
+    m_gBufferMetallicAOTexture.ClearRenderTarget(k_pColorZero);
+    m_gBufferEmissionTexture.ClearRenderTarget(k_pColorZero);
+    m_depthTexture.ClearDepthStencil(true, false, 1.f, 0);
+
+    // bind gbuffer textures as render targets
+    ID3D11RenderTargetView* rtvArray[] = {
+        m_gBufferNormalTexture.GetRTV(),
+        m_gBufferAlbedoRoughnessTexture.GetRTV(),
+        m_gBufferMetallicAOTexture.GetRTV(),
+        m_gBufferEmissionTexture.GetRTV()
+    };
+    Renderer::BindRenderTargetViews(rtvArray, m_depthTexture.GetDSV());
+
+    // bind viewport
     m_viewport.Bind();
-    m_backBufferTex.BindAsRenderTarget();
-    m_backBufferTex.ClearRenderTarget(&k_colorBlack.x);
 
-    m_shaderProgram.Bind();
-    m_vertexBuffer.Bind();
-    m_indexBuffer.Bind();
-
-    Renderer::SetTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    Renderer::DrawIndices(m_indexBuffer.GetIndexCount(), 0, 0);
+    // apply post-processing
+    m_postProcess.Render(m_hdrTexture);
 }
 
 void DemoScene::OnRenderUI()
@@ -104,8 +58,8 @@ void DemoScene::OnRenderUI()
 
     ImGui::Text("This is a demo scene.");
     const TickTimer& timer = GetApplication().GetTimer();
-    ImGui::Text("frame rate: %.4f", 1.f / timer.GetDeltaSec());
-    ImGui::Text("delta sec: %.4f", timer.GetDeltaSec());
+    ImGui::Text("frame rate: %.4f hz", 1.f / timer.GetDeltaSec());
+    ImGui::Text("delta sec: %.4f sec", timer.GetDeltaSec());
 
     ImGui::End();
 }
@@ -115,22 +69,59 @@ void DemoScene::OnEvent(Event& _eventRef)
     m_dispatcher.Dispatch(_eventRef);
 }
 
-void DemoScene::OnSwapChainResourceReleaseEvent_(MAYBE_UNUSED const SwapChainResourceReleaseEvent& _event)
+void DemoScene::OnSwapChainResourceReleaseEvent_(MAYBE_UNUSED const BackBufferCleanupEvent& _event)
 {
-    m_backBufferTex.Reset();
+    m_backBufferTexture.Reset();
 }
 
 void DemoScene::OnWindowResizeEvent_(const WindowResizeEvent& _event)
 {
-    UInt32 width  = _event.GetWidth();
-    UInt32 height = _event.GetHeight();
+    Int32 width  = _event.GetWidth();
+    Int32 height = _event.GetHeight();
     CreateScreenDependentResources_(width, height);
 }
 
-void DemoScene::CreateScreenDependentResources_(const UInt32 _width, const UInt32 _height)
+void DemoScene::CreateScreenDependentResources_(const Int32 _width, const Int32 _height)
 {
-    m_viewport = Viewport(0, 0, static_cast<float>(_width), static_cast<float>(_height));
+    // viewport
+    m_viewport = { 0.f, 0.f, static_cast<float>(_width), static_cast<float>(_height) };
 
-    m_backBufferTex = Renderer::GetBackBufferTexture();
-    m_backBufferTex.AttachRTV();
+    // back buffer
+    m_backBufferTexture = Renderer::GetBackBufferTexture();
+    m_backBufferTexture.AttachRTV();
+
+    // depth buffer
+    m_depthTexture.Initialize(_width, _height, DXGI_FORMAT_R24G8_TYPELESS, eResourceAccess::GPUWriteable, eViewFlags_DepthStencil | eViewFlags_ShaderResource);
+    m_depthTexture.AttachDSV(DXGI_FORMAT_D24_UNORM_S8_UINT);
+    m_depthTexture.AttachSRV(DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+
+    // hdr back buffer
+    m_hdrTexture.Initialize(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, eResourceAccess::GPUWriteable, eViewFlags_ShaderResource | eViewFlags_RenderTarget);
+    m_hdrTexture.AttachRTV();
+    m_hdrTexture.AttachSRV();
+
+    // defered rendering backbuffer
+    m_gBufferNormalTexture.Initialize(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, eResourceAccess::GPUWriteable, eViewFlags_ShaderResource | eViewFlags_RenderTarget);
+    m_gBufferNormalTexture.AttachRTV();
+    m_gBufferNormalTexture.AttachSRV();
+
+    m_gBufferAlbedoRoughnessTexture.Initialize(_width, _height, DXGI_FORMAT_R8G8B8A8_UNORM, eResourceAccess::GPUWriteable, eViewFlags_ShaderResource | eViewFlags_RenderTarget);
+    m_gBufferAlbedoRoughnessTexture.AttachRTV();
+    m_gBufferAlbedoRoughnessTexture.AttachSRV();
+
+    m_gBufferMetallicAOTexture.Initialize(_width, _height, DXGI_FORMAT_R8G8B8A8_UNORM, eResourceAccess::GPUWriteable, eViewFlags_ShaderResource | eViewFlags_RenderTarget);
+    m_gBufferMetallicAOTexture.AttachRTV();
+    m_gBufferMetallicAOTexture.AttachSRV();
+
+    m_gBufferEmissionTexture.Initialize(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, eResourceAccess::GPUWriteable, eViewFlags_ShaderResource | eViewFlags_RenderTarget);
+    m_gBufferEmissionTexture.AttachRTV();
+    m_gBufferEmissionTexture.AttachSRV();
+
+    // post-process
+    PostProcessBuilder builder;
+    builder
+        .AddBloomFilter(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, 4, m_hdrTexture)
+        .AddToneMappingFilter(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, eToneMappingFilterType::Linear)
+        .AddFXAAFilter(_width, _height, DXGI_FORMAT_R8G8B8A8_UNORM, eFXAAQuality::High);
+    m_postProcess = builder.Build(m_backBufferTexture);
 }

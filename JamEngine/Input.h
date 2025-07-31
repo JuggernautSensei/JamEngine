@@ -141,6 +141,27 @@ public:
     static void Update();
     static void OnEvent(Event& _event);
 
+    NODISCARD static bool IsKeyDown(eKey _key) noexcept;
+    NODISCARD static bool IsKeyPressed(eKey _key) noexcept;
+    NODISCARD static bool IsKeyHold(eKey _key) noexcept;
+
+    NODISCARD static bool IsKeyUp(eKey _key) noexcept;
+    NODISCARD static bool IsKeyReleased(eKey _key) noexcept;
+    NODISCARD static bool IsKeyAway(eKey _key) noexcept;
+
+    NODISCARD static bool IsMouseDown(eMouse _mouse) noexcept;
+    NODISCARD static bool IsMousePressed(eMouse _mouse) noexcept;
+    NODISCARD static bool IsMouseHold(eMouse _mouse) noexcept;
+
+    NODISCARD static bool IsMouseUp(eMouse _mouse) noexcept;
+    NODISCARD static bool IsMouseReleased(eMouse _mouse) noexcept;
+    NODISCARD static bool IsMouseAway(eMouse _mouse) noexcept;
+
+    NODISCARD static std::pair<UInt32, UInt32> GetMousePosition() noexcept;
+    NODISCARD static Int32                     GetMouseWheelDelta() noexcept;
+    NODISCARD static std::pair<UInt32, UInt32> GetMouseDeltaPosition() noexcept;
+    NODISCARD static std::pair<UInt32, UInt32> GetMousePositionDelta() noexcept;
+
 private:
     static void OnKeyDown_(const KeyDownEvent& _event);
     static void OnKeyUp_(const KeyUpEvent& _event);

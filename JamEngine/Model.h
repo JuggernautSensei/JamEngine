@@ -22,9 +22,9 @@ struct ModelElement
 class Model
 {
 public:
-    static NODISCARD Model Create(std::span<const ModelElement> _parts);
-    static NODISCARD Model Create(std::span<const RawModelElement> _parts, eVertexType _vertexType, eTopology _topology);
-    static NODISCARD std::optional<Model> CreateFromFile(const fs::path& _filePath, eVertexType _vertexType, eTopology _topology);
+    void Initialize(std::span<const ModelElement> _parts);
+    void Initialize(std::span<const RawModelElement> _parts, eVertexType _vertexType, eTopology _topology);
+    bool LoadFromFile(const fs::path& _filePath, eVertexType _vertexType, eTopology _topology);
 
     NODISCARD std::vector<ModelElement>::iterator begin() { return m_elements.begin(); }
     NODISCARD std::vector<ModelElement>::iterator end() { return m_elements.end(); }

@@ -7,7 +7,6 @@ namespace jam
 class Script
 {
 public:
-    explicit Script(Entity _entity);
     virtual ~Script() = default;
 
     Script(const Script&)            = delete;
@@ -23,6 +22,9 @@ public:
 
     NODISCARD Entity GetEntity() const { return m_entity; }
     NODISCARD bool   IsRunning() const { return m_bRun; }
+
+    virtual std::string_view GetName() const = 0;
+    virtual UInt32           GetHash() const = 0;
 
     // utility
     template<typename Ty, typename... Args>
@@ -53,6 +55,9 @@ public:
         return m_entity.RemoveComponent<Ty...>();
     }
 
+protected:
+    explicit Script(Entity _entity);
+
 private:
     Entity m_entity   = Entity::s_null;
     bool   m_bRun     = true;
@@ -60,5 +65,17 @@ private:
 
     friend class SceneLayer;
 };
+
+// 자동 메타 데이터 등록 헬퍼
+#define JAM_SCRIPT(_scriptType)                                                           \
+private:                                                                                  \
+    inline static const bool _jam_script_meta_registered_ = []() {                        \
+        RegisterScript<_scriptType>();                                                    \
+        return true;                                                                      \
+    }();                                                                                  \
+                                                                                          \
+public:                                                                                   \
+    NODISCARD std::string_view GetName() const override { return NameOf<_scriptType>(); } \
+    NODISCARD UInt32           GetHash() const override { return HashOf<_scriptType>(); }
 
 }   // namespace jam

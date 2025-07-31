@@ -1,0 +1,40 @@
+[2025-07-24 14:00:33.883] [trace] log system initialized
+[2025-07-24 14:00:33.883] [info] Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-24 14:00:33.918] [debug] occurred event: WindowResizeEvent: width: 778, height: 544
+[2025-07-24 14:00:33.918] [debug] occurred event: WindowMoveEvent: x: 111, y: 145
+[2025-07-24 14:00:34.188] [debug] occurred event: WindowMoveEvent: x: 122, y: 190
+[2025-07-24 14:00:34.188] [debug] occurred event: WindowResizeEvent: width: 1280, height: 720
+[2025-07-24 14:00:34.188] [debug] occurred event: SwapChainResourceReleaseEvent
+[2025-07-24 14:00:34.222] [debug] occurred event: MouseMoveEvent: x: 1033, y: 355
+[2025-07-24 14:00:34.255] [debug] occurred event: MouseMoveEvent: x: 1032, y: 356
+[2025-07-24 14:00:34.266] [debug] occurred event: MouseMoveEvent: x: 1031, y: 356
+[2025-07-24 14:00:34.271] [debug] occurred event: MouseMoveEvent: x: 1030, y: 357
+[2025-07-24 14:00:34.276] [debug] occurred event: MouseMoveEvent: x: 1029, y: 358
+[2025-07-24 14:00:34.285] [debug] occurred event: MouseMoveEvent: x: 1028, y: 358
+[2025-07-24 14:00:34.293] [debug] occurred event: MouseMoveEvent: x: 1027, y: 359
+[2025-07-24 14:00:34.301] [debug] occurred event: MouseMoveEvent: x: 1025, y: 360
+[2025-07-24 14:00:34.305] [debug] occurred event: MouseMoveEvent: x: 1022, y: 361
+[2025-07-24 14:00:34.313] [debug] occurred event: MouseMoveEvent: x: 1018, y: 363
+[2025-07-24 14:00:34.321] [debug] occurred event: MouseMoveEvent: x: 1013, y: 364
+[2025-07-24 14:00:34.330] [debug] occurred event: MouseMoveEvent: x: 1005, y: 366
+[2025-07-24 14:00:34.338] [debug] occurred event: MouseMoveEvent: x: 995, y: 367
+[2025-07-24 14:00:34.347] [debug] occurred event: MouseMoveEvent: x: 985, y: 369
+[2025-07-24 14:00:34.351] [debug] occurred event: MouseMoveEvent: x: 975, y: 371
+[2025-07-24 14:00:34.359] [debug] occurred event: MouseMoveEvent: x: 962, y: 372
+[2025-07-24 14:00:34.367] [debug] occurred event: MouseMoveEvent: x: 950, y: 374
+[2025-07-24 14:00:34.376] [debug] occurred event: MouseMoveEvent: x: 940, y: 378
+[2025-07-24 14:00:34.384] [debug] occurred event: MouseMoveEvent: x: 930, y: 379
+[2025-07-24 14:00:34.388] [debug] occurred event: MouseMoveEvent: x: 919, y: 381
+[2025-07-24 14:00:34.397] [debug] occurred event: MouseMoveEvent: x: 909, y: 383
+[2025-07-24 14:00:34.405] [debug] occurred event: MouseMoveEvent: x: 899, y: 384
+[2025-07-24 14:00:34.413] [debug] occurred event: MouseMoveEvent: x: 889, y: 386
+[2025-07-24 14:00:34.422] [debug] occurred event: MouseMoveEvent: x: 884, y: 387
+[2025-07-24 14:00:34.426] [debug] occurred event: MouseMoveEvent: x: 880, y: 389
+[2025-07-24 14:00:34.434] [debug] occurred event: MouseMoveEvent: x: 877, y: 390
+[2025-07-24 14:00:34.809] [debug] occurred event: MouseMoveEvent: x: 877, y: 390
+[2025-07-24 14:00:34.913] [debug] occurred event: MouseMoveEvent: x: 877, y: 390
+[2025-07-24 14:00:34.959] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 14:00:38.043] [debug] occurred event: MouseMoveEvent: x: 897, y: 536
+[2025-07-24 14:00:38.046] [debug] occurred event: MouseMoveEvent: x: 897, y: 536
+[2025-07-24 14:00:38.093] [debug] occurred event: MouseMoveEvent: x: 896, y: 536
+[2025-07-24 14:00:38.100] [debug] occurred event: MouseMoveEvent: x: 894, y: 536

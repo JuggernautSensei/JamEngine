@@ -52,9 +52,6 @@
     <ClCompile Include="ShaderCompiler.cpp">
       <Filter>2. Renderer\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="InputLayout.cpp">
-      <Filter>2. Renderer\Shader</Filter>
-    </ClCompile>
     <ClCompile Include="TypeTrait.cpp">
       <Filter>99. Base</Filter>
     </ClCompile>
@@ -88,13 +85,7 @@
     <ClCompile Include="Scene.cpp">
       <Filter>4. Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Components.cpp">
-      <Filter>4. Scene\ECS</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
-      <Filter>4. Scene\ECS</Filter>
-    </ClCompile>
-    <ClCompile Include="Script.cpp">
       <Filter>4. Scene\ECS</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
@@ -124,22 +115,45 @@
     <ClCompile Include="Input.cpp">
       <Filter>1. Core\Input</Filter>
     </ClCompile>
-    <ClCompile Include="ColorUtility.cpp">
+    <ClCompile Include="ColorUtilities.cpp">
       <Filter>98. Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="BuiltInShaderProgram.cpp">
+    <ClCompile Include="ShaderCollection.cpp">
       <Filter>2. Renderer\BuiltIn\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="BuildInConstantBuffers.cpp">
+    <ClCompile Include="CBuffferCollection.cpp">
       <Filter>2. Renderer\BuiltIn\ConstantBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="BuiltInRenderStates.cpp">
+    <ClCompile Include="StateCollection.cpp">
       <Filter>2. Renderer\BuiltIn\States</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptMetaManager.cpp">
-      <Filter>4. Scene\ECS</Filter>
+    <ClCompile Include="IComponentSerializable.cpp">
+      <Filter>4. Scene\ECS\Component</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentMetaManager.cpp" />
+    <ClCompile Include="Components.cpp">
+      <Filter>4. Scene\ECS\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMetaManager.cpp">
+      <Filter>4. Scene\ECS\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptMetaManager.cpp">
+      <Filter>4. Scene\ECS\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="Script.cpp">
+      <Filter>4. Scene\ECS\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumUtilities.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="CompiledShaders.cpp">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess.cpp">
+      <Filter>2. Renderer\PostProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageFilter.cpp">
+      <Filter>2. Renderer\PostProcess</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -241,20 +255,29 @@
     <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders">
       <UniqueIdentifier>{2901626e-acce-4970-a9c5-67119927ccf6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess">
-      <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
+    <Filter Include="4. Scene\ECS\Component">
+      <UniqueIdentifier>{ebf7e7a5-cff9-4d8a-9453-dd629a43cb1a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\Common">
-      <UniqueIdentifier>{0c986585-0614-4a51-af27-013d217dd648}</UniqueIdentifier>
+    <Filter Include="4. Scene\ECS\Script">
+      <UniqueIdentifier>{6602e37e-aa2e-46cc-b03e-b37267c332b2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\SSAO">
-      <UniqueIdentifier>{833ca557-8122-42bf-8afa-7a6dd43a222c}</UniqueIdentifier>
+    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl">
+      <UniqueIdentifier>{2d3b56c2-68b3-42be-b77b-523b793dd358}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\PBR">
+    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PBR">
       <UniqueIdentifier>{879c76dc-96e3-42cc-bb55-013e50374a85}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\Shadow, Light">
+    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PostProcess">
+      <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Shadow, Light">
       <UniqueIdentifier>{4e6eacd2-a316-4f75-a900-eac3585184f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\SSAO">
+      <UniqueIdentifier>{833ca557-8122-42bf-8afa-7a6dd43a222c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Common">
+      <UniqueIdentifier>{0c986585-0614-4a51-af27-013d217dd648}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -315,9 +338,6 @@
     <ClInclude Include="ShaderCompiler.h">
       <Filter>2. Renderer\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="InputLayout.h">
-      <Filter>2. Renderer\Shader</Filter>
-    </ClInclude>
     <ClInclude Include="TypeTrait.h">
       <Filter>99. Base</Filter>
     </ClInclude>
@@ -351,13 +371,7 @@
     <ClInclude Include="Scene.h">
       <Filter>4. Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Components.h">
-      <Filter>4. Scene\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="Entity.h">
-      <Filter>4. Scene\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="Script.h">
       <Filter>4. Scene\ECS</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
@@ -387,25 +401,48 @@
     <ClInclude Include="Input.h">
       <Filter>1. Core\Input</Filter>
     </ClInclude>
-    <ClInclude Include="ColorUtility.h">
+    <ClInclude Include="ColorUtilities.h">
       <Filter>98. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="ShaderBridge.h">
       <Filter>2. Renderer\BuiltIn</Filter>
     </ClInclude>
-    <ClInclude Include="BuiltInShaderProgram.h">
+    <ClInclude Include="ShaderCollection.h">
       <Filter>2. Renderer\BuiltIn\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="BuildInConstantBuffers.h">
+    <ClInclude Include="CBuffferCollection.h">
       <Filter>2. Renderer\BuiltIn\ConstantBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="BuiltInRenderStates.h">
+    <ClInclude Include="StateCollection.h">
       <Filter>2. Renderer\BuiltIn\States</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptMetaManager.h">
-      <Filter>4. Scene\ECS</Filter>
+    <ClInclude Include="IComponentSerializable.h">
+      <Filter>4. Scene\ECS\Component</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentMetaManager.h" />
+    <ClInclude Include="Components.h">
+      <Filter>4. Scene\ECS\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentMetaManager.h">
+      <Filter>4. Scene\ECS\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptMetaManager.h">
+      <Filter>4. Scene\ECS\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>4. Scene\ECS\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumUtilities.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CompiledShaders.h">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess.h">
+      <Filter>2. Renderer\PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageFilter.h">
+      <Filter>2. Renderer\PostProcess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">
@@ -417,64 +454,64 @@
     <None Include="model.fbs">
       <Filter>96. Serializer\Flatbuffers\Model</Filter>
     </None>
-    <None Include="shaders\PBRCommon.hlsli">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PBR</Filter>
+    <None Include="shaders\hlsl\PBRCommon.hlsli">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PBR</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\SkyboxShader.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders</Filter>
+    <FxCompile Include="shaders\hlsl\FXAAPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\BloomDownFilterPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\FogPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\ShaderCommon.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\Common</Filter>
+    <FxCompile Include="shaders\hlsl\BloomUpFilterPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\BloomUpFilterPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\BloomDownFilterPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\BloomCombineFilterPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\BloomCombineFilterPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\FogPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\LightVolumeShader.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Shadow, Light</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\FXAAPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\PBRVS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PBR</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\SSAOPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\SSAO</Filter>
+    <FxCompile Include="shaders\hlsl\PBRForwardShader.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PBR</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\SSAOBlurPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\SSAO</Filter>
+    <FxCompile Include="shaders\hlsl\PBRGBufferShader.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PBR</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\ToneMappingPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\PBRLightingShader.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PBR</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\PBRForwardShader.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PBR</Filter>
+    <FxCompile Include="shaders\hlsl\SSAOPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\SSAO</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\PBRGBufferShader.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PBR</Filter>
+    <FxCompile Include="shaders\hlsl\SSAOBlurPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\SSAO</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\PBRLightingShader.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PBR</Filter>
+    <FxCompile Include="shaders\hlsl\ToneMappingPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Shadow, Light</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\ScreenSpaceEffectVS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\ShadowCasterShader.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Shadow, Light</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\SamplingPS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\ScreenSpaceEffectVS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Shadow, Light</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\ShadowCasterShader.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\Shadow, Light</Filter>
+    <FxCompile Include="shaders\hlsl\ShaderCommon.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Common</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\LightVolumeShader.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\Shadow, Light</Filter>
+    <FxCompile Include="shaders\hlsl\SamplingPS.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\PBRVS.hlsl">
-      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\PBR</Filter>
+    <FxCompile Include="shaders\hlsl\SkyboxShader.hlsl">
+      <Filter>2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

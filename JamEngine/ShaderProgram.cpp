@@ -9,47 +9,63 @@
 namespace jam
 {
 
-ShaderProgram ShaderProgram::Create(ID3DBlob* _pVScode_orNull, ID3DBlob* _pPScode_orNull, ID3DBlob* _pGScode_orNull, ID3DBlob* _pHScode_orNull, ID3DBlob* _pDScode_orNull)
+void ShaderProgram::Initialize(ID3DBlob* _pVScode_orNull, ID3DBlob* _pPScode_orNull, ID3DBlob* _pGScode_orNull, ID3DBlob* _pHScode_orNull, ID3DBlob* _pDScode_orNull)
 {
-    ShaderProgram shader;
-
     if (_pVScode_orNull)
     {
-        Renderer::CreateVertexShader(_pVScode_orNull->GetBufferPointer(), _pVScode_orNull->GetBufferSize(), shader.m_pVertexShader.GetAddressOf());
-        shader.CreateInputLayout_(_pVScode_orNull);   // 인풋 레이아웃 생성
+        ShaderCreationData data;
+        data.pBytecode      = _pVScode_orNull->GetBufferPointer();
+        data.bytecodeLength = _pVScode_orNull->GetBufferSize();
+
+        Renderer::CreateVertexShader(data, m_pVertexShader.GetAddressOf());
+        CreateInputLayout_(_pVScode_orNull);   // 인풋 레이아웃 생성
     }
 
     if (_pPScode_orNull)
     {
-        Renderer::CreatePixelShader(_pPScode_orNull->GetBufferPointer(), _pPScode_orNull->GetBufferSize(), shader.m_pPixelShader.GetAddressOf());
+        ShaderCreationData data;
+        data.pBytecode      = _pPScode_orNull->GetBufferPointer();
+        data.bytecodeLength = _pPScode_orNull->GetBufferSize();
+
+        Renderer::CreatePixelShader(data, m_pPixelShader.GetAddressOf());
     }
 
     if (_pGScode_orNull)
     {
-        Renderer::CreateGeometryShader(_pGScode_orNull->GetBufferPointer(), _pGScode_orNull->GetBufferSize(), shader.m_pGeometryShader.GetAddressOf());
+        ShaderCreationData data;
+        data.pBytecode      = _pGScode_orNull->GetBufferPointer();
+        data.bytecodeLength = _pGScode_orNull->GetBufferSize();
+
+        Renderer::CreateGeometryShader(data, m_pGeometryShader.GetAddressOf());
     }
 
     if (_pHScode_orNull)
     {
-        Renderer::CreateHullShader(_pHScode_orNull->GetBufferPointer(), _pHScode_orNull->GetBufferSize(), shader.m_pHullShader.GetAddressOf());
+        ShaderCreationData data;
+        data.pBytecode      = _pHScode_orNull->GetBufferPointer();
+        data.bytecodeLength = _pHScode_orNull->GetBufferSize();
+
+        Renderer::CreateHullShader(data, m_pHullShader.GetAddressOf());
     }
 
     if (_pDScode_orNull)
     {
-        Renderer::CreateDomainShader(_pDScode_orNull->GetBufferPointer(), _pDScode_orNull->GetBufferSize(), shader.m_pDomainShader.GetAddressOf());
-    }
+        ShaderCreationData data;
+        data.pBytecode      = _pDScode_orNull->GetBufferPointer();
+        data.bytecodeLength = _pDScode_orNull->GetBufferSize();
 
-    return shader;
+        Renderer::CreateDomainShader(data, m_pDomainShader.GetAddressOf());
+    }
 }
 
 void ShaderProgram::Bind() const
 {
-    Renderer::SetInputLayout(m_pInputLayout.Get());
-    Renderer::SetVertexShader(m_pVertexShader.Get());
-    Renderer::SetPixelShader(m_pPixelShader.Get());
-    Renderer::SetGeometryShader(m_pGeometryShader.Get());
-    Renderer::SetHullShader(m_pHullShader.Get());
-    Renderer::SetDomainShader(m_pDomainShader.Get());
+    Renderer::BindInputLayout(m_pInputLayout.Get());
+    Renderer::BindVertexShader(m_pVertexShader.Get());
+    Renderer::BindPixelShader(m_pPixelShader.Get());
+    Renderer::BindGeometryShader(m_pGeometryShader.Get());
+    Renderer::BindHullShader(m_pHullShader.Get());
+    Renderer::BindDomainShader(m_pDomainShader.Get());
 }
 
 void ShaderProgram::CreateInputLayout_(ID3DBlob* _pVSCode)

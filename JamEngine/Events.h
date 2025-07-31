@@ -133,11 +133,11 @@ private:
     int m_key = 0;
 };
 
-class SwapChainResourceReleaseEvent final : public Event
+class BackBufferCleanupEvent final : public Event
 {
 public:
-    SwapChainResourceReleaseEvent() = default;
-    JAM_EVENT(SwapChainResourceReleaseEvent, "SwapChainResourceReleaseEvent");
+    BackBufferCleanupEvent() = default;
+    JAM_EVENT(BackBufferCleanupEvent, "BackBufferCleanupEvent");
 };
 
 }   // namespace jam

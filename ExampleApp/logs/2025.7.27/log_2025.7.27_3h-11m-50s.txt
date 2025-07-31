@@ -1,0 +1,3 @@
+[2025-07-27 03:11:50.436] [trace] log system initialized
+[2025-07-27 03:11:50.436] [info] Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-27 03:11:51.927] [trace] log system shutdown

@@ -9,8 +9,8 @@ class Scene;
 class SceneLayer : public ILayer
 {
 public:
-    SceneLayer()           = default;
-    ~SceneLayer() override = default;
+    SceneLayer();
+    ~SceneLayer() override;
 
     SceneLayer(const SceneLayer&)                = default;
     SceneLayer& operator=(const SceneLayer&)     = default;

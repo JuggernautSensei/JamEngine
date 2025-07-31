@@ -7,13 +7,13 @@
 namespace jam
 {
 
-SamplerState SamplerState::Create(const D3D11_FILTER _filter, const D3D11_TEXTURE_ADDRESS_MODE _addressMode, const UInt32 _anisotropy, const D3D11_COMPARISON_FUNC _comparisonFunc, float _borderColor[4])
+void SamplerState::Initialize(const D3D11_FILTER _filter, const D3D11_TEXTURE_ADDRESS_MODE _addressMode, const UInt32 _anisotropy, const D3D11_COMPARISON_FUNC _comparisonFunc, float _borderColor[4])
 {
     constexpr float k_defaultBorderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    return CreateEx(_filter, _addressMode, _addressMode, _addressMode, 0.0f, _anisotropy, _comparisonFunc, _borderColor ? _borderColor : k_defaultBorderColor, 0.0f, D3D11_FLOAT32_MAX);
+    return InitializeEx(_filter, _addressMode, _addressMode, _addressMode, 0.0f, _anisotropy, _comparisonFunc, _borderColor ? _borderColor : k_defaultBorderColor, 0.0f, D3D11_FLOAT32_MAX);
 }
 
-SamplerState SamplerState::CreateEx(const D3D11_FILTER _filter, const D3D11_TEXTURE_ADDRESS_MODE _addressU, const D3D11_TEXTURE_ADDRESS_MODE _addressV, const D3D11_TEXTURE_ADDRESS_MODE _addressW, const float _mipLODBias, const UInt32 _maxAnisotropy, const D3D11_COMPARISON_FUNC _comparisonFunc, const float _borderColor[4], const float _minLOD, const float _maxLOD)
+void SamplerState::InitializeEx(const D3D11_FILTER _filter, const D3D11_TEXTURE_ADDRESS_MODE _addressU, const D3D11_TEXTURE_ADDRESS_MODE _addressV, const D3D11_TEXTURE_ADDRESS_MODE _addressW, const float _mipLODBias, const UInt32 _maxAnisotropy, const D3D11_COMPARISON_FUNC _comparisonFunc, const float _borderColor[4], const float _minLOD, const float _maxLOD)
 {
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter             = _filter;
@@ -29,19 +29,16 @@ SamplerState SamplerState::CreateEx(const D3D11_FILTER _filter, const D3D11_TEXT
     samplerDesc.BorderColor[3]     = _borderColor[3];
     samplerDesc.MinLOD             = _minLOD;
     samplerDesc.MaxLOD             = _maxLOD;
-
-    SamplerState samplerState;
-    Renderer::CreateSamplerState(samplerDesc, samplerState.GetAddressOf());
-    return samplerState;
+    Renderer::CreateSamplerState(samplerDesc, m_pSamplerState.GetAddressOf());
 }
 
 auto SamplerState::Bind(const eShader _shader, const UInt32 _slot) const -> void
 {
     ID3D11SamplerState* samplerStates[] = { m_pSamplerState.Get() };
-    Renderer::SetSamplerStates(_shader, _slot, 1, samplerStates);
+    Renderer::BindSamplerStates(_shader, _slot, samplerStates);
 }
 
-BlendState BlendState::Create(const bool _bAlphaToCoverageEnabled, const bool _blendEnable, const D3D11_BLEND _srcBlend, const D3D11_BLEND _destBlend, const D3D11_BLEND_OP _blendOp, const D3D11_BLEND _srcBlendAlpha, const D3D11_BLEND _destBlendAlpha, const D3D11_BLEND_OP _blendOpAlpha, const UINT8 _renderTargetWriteMask)
+void BlendState::Initialize(const bool _bAlphaToCoverageEnabled, const bool _blendEnable, const D3D11_BLEND _srcBlend, const D3D11_BLEND _destBlend, const D3D11_BLEND_OP _blendOp, const D3D11_BLEND _srcBlendAlpha, const D3D11_BLEND _destBlendAlpha, const D3D11_BLEND_OP _blendOpAlpha, const UINT8 _renderTargetWriteMask)
 {
     D3D11_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc;
     renderTargetBlendDesc.BlendEnable           = _blendEnable;
@@ -52,10 +49,10 @@ BlendState BlendState::Create(const bool _bAlphaToCoverageEnabled, const bool _b
     renderTargetBlendDesc.DestBlendAlpha        = _destBlendAlpha;
     renderTargetBlendDesc.BlendOpAlpha          = _blendOpAlpha;
     renderTargetBlendDesc.RenderTargetWriteMask = _renderTargetWriteMask;
-    return CreateEx(_bAlphaToCoverageEnabled, false, &renderTargetBlendDesc, 1);
+    return InitializeEx(_bAlphaToCoverageEnabled, false, &renderTargetBlendDesc, 1);
 }
 
-BlendState BlendState::CreateEx(const bool _bAlphaToCoverageEnabled, const bool _bIndependentBlendEnabled, const D3D11_RENDER_TARGET_BLEND_DESC* _pRenderTargetBlendDesc, const UInt32 _renderTargetBlendDescCount)
+void BlendState::InitializeEx(const bool _bAlphaToCoverageEnabled, const bool _bIndependentBlendEnabled, const D3D11_RENDER_TARGET_BLEND_DESC* _pRenderTargetBlendDesc, const UInt32 _renderTargetBlendDescCount)
 {
     D3D11_BLEND_DESC blendDesc       = {};
     blendDesc.AlphaToCoverageEnable  = _bAlphaToCoverageEnabled;
@@ -64,23 +61,20 @@ BlendState BlendState::CreateEx(const bool _bAlphaToCoverageEnabled, const bool 
     {
         blendDesc.RenderTarget[i] = _pRenderTargetBlendDesc[i];
     }
-
-    BlendState blendState;
-    Renderer::CreateBlendState(blendDesc, blendState.GetAddressOf());
-    return blendState;
+    Renderer::CreateBlendState(blendDesc, m_pBlendState.GetAddressOf());
 }
 
 void BlendState::Bind(float _blendFactor[4]) const
 {
-    Renderer::SetBlendState(m_pBlendState.Get(), _blendFactor);
+    Renderer::BindBlendState(m_pBlendState.Get(), _blendFactor);
 }
 
-DepthStencilState DepthStencilState::Create(const bool _depthEnable, const bool _depthWrite, const D3D11_COMPARISON_FUNC _depthFunc)
+void DepthStencilState::Initialize(const bool _depthEnable, const bool _depthWrite, const D3D11_COMPARISON_FUNC _depthFunc)
 {
-    return CreateEx(_depthEnable, _depthWrite, _depthFunc, false, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS, 0xFF, 0xFF);
+    return InitializeEx(_depthEnable, _depthWrite, _depthFunc, false, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS, 0xFF, 0xFF);
 }
 
-DepthStencilState DepthStencilState::CreateEx(const bool _depthEnable, const bool _depthWrite, const D3D11_COMPARISON_FUNC _depthFunc, const bool _stencilEnable, const D3D11_STENCIL_OP _frontFaceStencilFailOp, const D3D11_STENCIL_OP _frontFaceStencilDepthFailOp, const D3D11_STENCIL_OP _frontFaceStencilPassOp, const D3D11_COMPARISON_FUNC _frontFaceStencilFunc, const D3D11_STENCIL_OP _backFaceStencilFailOp, const D3D11_STENCIL_OP _backFaceStencilDepthFailOp, const D3D11_STENCIL_OP _backFaceStencilPassOp, const D3D11_COMPARISON_FUNC _backFaceStencilFunc, const UINT8 _stencilReadMask, const UINT8 _stencilWriteMask)
+void DepthStencilState::InitializeEx(const bool _depthEnable, const bool _depthWrite, const D3D11_COMPARISON_FUNC _depthFunc, const bool _stencilEnable, const D3D11_STENCIL_OP _frontFaceStencilFailOp, const D3D11_STENCIL_OP _frontFaceStencilDepthFailOp, const D3D11_STENCIL_OP _frontFaceStencilPassOp, const D3D11_COMPARISON_FUNC _frontFaceStencilFunc, const D3D11_STENCIL_OP _backFaceStencilFailOp, const D3D11_STENCIL_OP _backFaceStencilDepthFailOp, const D3D11_STENCIL_OP _backFaceStencilPassOp, const D3D11_COMPARISON_FUNC _backFaceStencilFunc, const UINT8 _stencilReadMask, const UINT8 _stencilWriteMask)
 {
     D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
     depthStencilDesc.DepthEnable                  = _depthEnable;
@@ -97,23 +91,20 @@ DepthStencilState DepthStencilState::CreateEx(const bool _depthEnable, const boo
     depthStencilDesc.BackFace.StencilDepthFailOp  = _backFaceStencilDepthFailOp;
     depthStencilDesc.BackFace.StencilPassOp       = _backFaceStencilPassOp;
     depthStencilDesc.BackFace.StencilFunc         = _backFaceStencilFunc;
-
-    DepthStencilState depthStencilState;
-    Renderer::CreateDepthStencilState(depthStencilDesc, depthStencilState.GetAddressOf());
-    return depthStencilState;
+    Renderer::CreateDepthStencilState(depthStencilDesc, m_pDepthStencilState.GetAddressOf());
 }
 
 void DepthStencilState::Bind(const UInt32 _stencilRef) const
 {
-    Renderer::SetDepthStencilState(m_pDepthStencilState.Get(), _stencilRef);
+    Renderer::BindDepthStencilState(m_pDepthStencilState.Get(), _stencilRef);
 }
 
-RasterizerState RasterizerState::Create(const D3D11_FILL_MODE _fillMode, const D3D11_CULL_MODE _cullMode, const bool _bMultiSampleEnable)
+void RasterizerState::Initialize(const D3D11_FILL_MODE _fillMode, const D3D11_CULL_MODE _cullMode, const bool _bMultiSampleEnable)
 {
-    return CreateEx(_fillMode, _cullMode, false, 0, 0.0f, 0.0f, true, false, _bMultiSampleEnable, false);
+    return InitializeEx(_fillMode, _cullMode, false, 0, 0.0f, 0.0f, true, false, _bMultiSampleEnable, false);
 }
 
-RasterizerState RasterizerState::CreateEx(const D3D11_FILL_MODE _fillMode, const D3D11_CULL_MODE _cullMode, const bool _frontCounterClockwise, const int _depthBias, const float _depthBiasClamp, const float _slopeScaledDepthBias, const bool _depthClipEnable, const bool _scissorEnable, const bool _multisampleEnable, const bool _antialiasedLineEnable)
+void RasterizerState::InitializeEx(const D3D11_FILL_MODE _fillMode, const D3D11_CULL_MODE _cullMode, const bool _frontCounterClockwise, const int _depthBias, const float _depthBiasClamp, const float _slopeScaledDepthBias, const bool _depthClipEnable, const bool _scissorEnable, const bool _multisampleEnable, const bool _antialiasedLineEnable)
 {
     D3D11_RASTERIZER_DESC rasterizerDesc;
     rasterizerDesc.FillMode              = _fillMode;
@@ -126,15 +117,12 @@ RasterizerState RasterizerState::CreateEx(const D3D11_FILL_MODE _fillMode, const
     rasterizerDesc.ScissorEnable         = _scissorEnable;
     rasterizerDesc.MultisampleEnable     = _multisampleEnable;
     rasterizerDesc.AntialiasedLineEnable = _antialiasedLineEnable;
-
-    RasterizerState rasterizerState;
-    Renderer::CreateRasterizerState(rasterizerDesc, rasterizerState.GetAddressOf());
-    return rasterizerState;
+    Renderer::CreateRasterizerState(rasterizerDesc, m_pRasterizerState.GetAddressOf());
 }
 
 void RasterizerState::Bind() const
 {
-    Renderer::SetRasterizerState(m_pRasterizerState.Get());
+    Renderer::BindRasterizerState(m_pRasterizerState.Get());
 }
 
 }   // namespace jam

@@ -10,6 +10,14 @@
 namespace jam
 {
 
+SceneLayer::SceneLayer()
+{
+}
+
+SceneLayer::~SceneLayer()
+{
+}
+
 void SceneLayer::OnUpdate(const float _deltaSec)
 {
     if (m_pActiveScene)
@@ -90,7 +98,6 @@ Scene* SceneLayer::AddScene(std::unique_ptr<Scene>&& _scene)
     auto [iter, bResult] = m_scenes.emplace(_scene->GetName(), std::move(_scene));
     JAM_ASSERT(bResult, "Scene with name '{}' already exists", iter->first);
     Scene* pScene = iter->second.get();
-    pScene->OnAttach();
     return pScene;
 }
 
@@ -105,7 +112,6 @@ void SceneLayer::RemoveScene(std::string_view _name)
 {
     const auto it = m_scenes.find(std::string(_name));
     JAM_ASSERT(it != m_scenes.end(), "Scene with name '{}' not found", _name);
-    it->second->OnDetach();
     m_scenes.erase(it);
 }
 

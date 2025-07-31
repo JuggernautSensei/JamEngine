@@ -1,0 +1,13 @@
+
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Renderer.cpp
+function name: void __cdecl jam::Renderer::CreateTexture2D(const struct D3D11_TEXTURE2D_DESC &,const void *,unsigned int,struct ID3D11Texture2D **)
+line: 208
+columns: 9
+------------------------------------
+Failed to create texture 2D. HRESULT: 매개 변수가 틀립니다.
+
+====================================
+

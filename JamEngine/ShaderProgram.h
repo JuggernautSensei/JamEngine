@@ -6,8 +6,8 @@ namespace jam
 class ShaderProgram
 {
 public:
-    NODISCARD static ShaderProgram Create(ID3DBlob* _pVScode_orNull = nullptr, ID3DBlob* _pPScode_orNull = nullptr, ID3DBlob* _pGScode_orNull = nullptr, ID3DBlob* _pHScode_orNull = nullptr, ID3DBlob* _pDScode_orNull = nullptr);
-    void                           Bind() const;
+    void Initialize(ID3DBlob* _pVScode_orNull = nullptr, ID3DBlob* _pPScode_orNull = nullptr, ID3DBlob* _pGScode_orNull = nullptr, ID3DBlob* _pHScode_orNull = nullptr, ID3DBlob* _pDScode_orNull = nullptr);
+    void Bind() const;
 
     // accessor
     NODISCARD ID3D11InputLayout*    GetInputLayout() const { return m_pInputLayout.Get(); }

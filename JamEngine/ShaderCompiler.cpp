@@ -36,18 +36,33 @@ NODISCARD UINT GetShaderCompileFlags(jam::eShaderCompileOption _option)
     }
 }
 
+NODISCARD std::vector<D3D_SHADER_MACRO> CreateShaderMacros(const std::span<const jam::ShaderMacro> _macros_orEmpty)
+{
+    std::vector<D3D_SHADER_MACRO> macros;
+    macros.reserve(_macros_orEmpty.size() + 1);   // +1 for the null terminator
+    for (const jam::ShaderMacro& macro: _macros_orEmpty)
+    {
+        macros.emplace_back(macro.name.data(), macro.value.data());
+    }
+    macros.emplace_back(nullptr, nullptr);   // Null terminator
+    return macros;
+}
+
 }   // namespace
 
 namespace jam
 {
 
-bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::string_view _entryPoint, const std::string_view _target, const D3D_SHADER_MACRO* _macros_orNull, const eShaderCompileOption _compileOption)
+bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::string_view _entryPoint, const std::string_view _target, const std::span<const ShaderMacro> _macros_orEmpty, const eShaderCompileOption _compileOption)
 {
-    ComPtr<ID3DBlob> errorBlob;
+    // create macro
+    std::vector<D3D_SHADER_MACRO> macros        = CreateShaderMacros(_macros_orEmpty);
+    D3D_SHADER_MACRO*             pMacro_orNull = macros.empty() ? nullptr : macros.data();
 
-    const HRESULT hr = D3DCompileFromFile(
+    ComPtr<ID3DBlob> errorBlob;
+    const HRESULT    hr = D3DCompileFromFile(
         _filename.c_str(),
-        _macros_orNull,
+        pMacro_orNull,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _entryPoint.data(),
         _target.data(),
@@ -61,7 +76,7 @@ bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::s
         std::string errorMsg = "Failed to compile HLSL shader file.";
         if (errorBlob)
         {
-            errorMsg = std::format("{}: {}\nCompile Error: {}\n{}", _filename.string(), errorMsg, errorBlob->GetBufferPointer(), GetSystemLastErrorMessage());
+            errorMsg = std::format("{}: {}\nCompile Error: {}\n{}", _filename.string(), errorMsg, static_cast<const char*>(errorBlob->GetBufferPointer()), GetSystemErrorMessage(hr));
         }
         JAM_ERROR("{}", errorMsg);
         return false;
@@ -70,15 +85,18 @@ bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::s
     return true;
 }
 
-bool ShaderCompiler::CompileHLSL(std::string_view _pSource, const std::string_view _entryPoint, const std::string_view _target, const D3D_SHADER_MACRO* _macros_orNull, const eShaderCompileOption _compileOption)
+bool ShaderCompiler::CompileHLSL(std::string_view _pSource, const std::string_view _entryPoint, const std::string_view _target, const std::span<const ShaderMacro> _macros_orEmpty, const eShaderCompileOption _compileOption)
 {
-    ComPtr<ID3DBlob> errorBlob;
+    // create macro
+    std::vector<D3D_SHADER_MACRO> macros        = CreateShaderMacros(_macros_orEmpty);
+    D3D_SHADER_MACRO*             pMacro_orNull = macros.empty() ? nullptr : macros.data();
 
-    const HRESULT hr = D3DCompile(
+    ComPtr<ID3DBlob> errorBlob;
+    const HRESULT    hr = D3DCompile(
         _pSource.data(),
         _pSource.size(),
         nullptr,   // source name
-        _macros_orNull,
+        pMacro_orNull,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _entryPoint.data(),
         _target.data(),
@@ -101,7 +119,7 @@ bool ShaderCompiler::CompileHLSL(std::string_view _pSource, const std::string_vi
     return true;
 }
 
-bool ShaderCompiler::CompileCSOFromFile(const fs::path& _filename)
+bool ShaderCompiler::LoadCSOFromFile(const fs::path& _filename)
 {
     const HRESULT hr = D3DReadFileToBlob(_filename.c_str(), m_pCompiled.GetAddressOf());
     if (FAILED(hr))
@@ -112,29 +130,29 @@ bool ShaderCompiler::CompileCSOFromFile(const fs::path& _filename)
     return true;
 }
 
-bool ShaderCompiler::CompileCSO(const std::string_view _pSource)
+bool ShaderCompiler::LoadCSO(const void* _pSource, const size_t _sourceSize)
 {
-    if (_pSource.empty())
+    if (!_pSource || _sourceSize == 0)
     {
-        JAM_ERROR("Empty shader source provided.");
+        JAM_ERROR("Invalid shader source provided. Source pointer is null or size is zero.");
         return false;
     }
 
-    const HRESULT hr = D3DCreateBlob(_pSource.size(), m_pCompiled.GetAddressOf());
+    const HRESULT hr = D3DCreateBlob(_sourceSize, m_pCompiled.GetAddressOf());
     if (FAILED(hr))
     {
         JAM_ERROR("Failed to create blob for compiled shader. HRESULT: {}", GetSystemErrorMessage(hr));
         return false;
     }
 
-    memcpy(m_pCompiled->GetBufferPointer(), _pSource.data(), _pSource.size());
+    memcpy(m_pCompiled->GetBufferPointer(), _pSource, _sourceSize);
     return true;
 }
 
 void ShaderCompiler::GetCompiledShader(ID3DBlob** _out_ppBlob) const
 {
     JAM_ASSERT(_out_ppBlob, "Output pointer for compiled shader blob cannot be null.");
-    JAM_ASSERT(m_pCompiled, "No compiled shader available. Ensure CompileHLSLFromFile, CompileHLSL, CompileCSOFromFile, or CompileCSO has been called successfully before calling GetCompiledShader.");
+    JAM_ASSERT(m_pCompiled, "No compiled shader available. Ensure CompileHLSLFromFile, CompileHLSL, LoadCSOFromFile, or CompileCSO has been called successfully before calling GetCompiledShader.");
     HRESULT hr = m_pCompiled.CopyTo(_out_ppBlob);
     JAM_ASSERT(SUCCEEDED(hr), "Failed to get compiled shader blob. HRESULT: {}", GetSystemErrorMessage(hr));
 }

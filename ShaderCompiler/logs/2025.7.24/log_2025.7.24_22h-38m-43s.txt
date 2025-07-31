@@ -1,0 +1,18 @@
+[2025-07-24 22:38:43.809] [trace] log system initialized
+[2025-07-24 22:38:52.443] [error] 
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ShaderCompiler.cpp
+function name: bool __cdecl jam::ShaderCompiler::CompileHLSLFromFile(const class std::filesystem::path &,class std::basic_string_view<char,struct std::char_traits<char> >,class std::basic_string_view<char,struct std::char_traits<char> >,class std::span<struct jam::ShaderMacro const ,-1>,enum jam::eShaderCompileOption)
+line: 81
+columns: 9
+------------------------------------
+Failed to compile HLSL shader file.
+====================================
+
+[2025-07-24 22:38:52.443] [error] Failed to compile shader: %s
+[2025-07-24 22:39:12.641] [info] Shader [%s] compiled successfully.
+[2025-07-24 22:39:20.089] [info] Compile All Finished. Success: %d, Failure: %d
+[2025-07-24 22:39:38.918] [info] Shader [%s] compiled successfully.
+[2025-07-24 22:39:53.722] [info] 컴파일된 셰이더 저장 완료

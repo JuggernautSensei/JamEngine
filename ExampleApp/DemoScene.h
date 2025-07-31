@@ -11,7 +11,6 @@ public:
     DemoScene(DemoScene&&) noexcept            = default;
     DemoScene& operator=(DemoScene&&) noexcept = default;
 
-    void OnAttach() override;
     void OnEnter() override;
     void OnUpdate(float _deltaTime) override;
     void OnRender() override;
@@ -19,17 +18,29 @@ public:
     void OnEvent(Event& _eventRef) override;
 
 private:
-    void OnSwapChainResourceReleaseEvent_(const SwapChainResourceReleaseEvent& _event);
+    void OnSwapChainResourceReleaseEvent_(const BackBufferCleanupEvent& _event);
     void OnWindowResizeEvent_(const WindowResizeEvent& _event);
-    void CreateScreenDependentResources_(UInt32 _width, UInt32 _height);
+    void CreateScreenDependentResources_(Int32 _width, Int32 _height);
 
     EventDispatcher m_dispatcher;
 
+    // frame resources
+    Texture2D m_backBufferTexture;
+    Texture2D m_hdrTexture;
+    Texture2D m_depthTexture;
     Viewport  m_viewport;
-    Texture2D m_backBufferTex;
 
-    VertexBuffer   m_vertexBuffer;
-    IndexBuffer    m_indexBuffer;
-    ShaderProgram  m_shaderProgram;
-    ConstantBuffer m_cbuffer;
+    Texture2D m_gBufferNormalTexture;
+    Texture2D m_gBufferAlbedoRoughnessTexture;
+    Texture2D m_gBufferMetallicAOTexture;
+    Texture2D m_gBufferEmissionTexture;
+
+    // post process
+    PostProcess    m_postProcess;
+    CB_POSTPROCESS m_cbPostProcessCPU;
+
+    // shaders
+    ShaderProgram m_gBufferShader;
+
+    // samplers
 };

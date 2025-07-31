@@ -19,6 +19,8 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -48,5 +50,6 @@
 #include "Macros.h"
 #include "MathUtilities.h"
 //
-#include "TypeTrait.h"
+#include "EnumUtilities.h"
 #include "Log.h"
+#include "TypeTrait.h"

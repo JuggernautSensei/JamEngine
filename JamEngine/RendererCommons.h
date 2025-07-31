@@ -3,6 +3,28 @@
 namespace jam
 {
 
+struct BufferInitializeData
+{
+    const void* pData = nullptr;
+};
+
+struct IndexBufferInitializeData
+{
+    const Index* pData = nullptr;
+};
+
+struct Texture2DInitializeData
+{
+    const void* pData = nullptr;
+    UInt32      pitch = 0;
+};
+
+struct ShaderCreationData
+{
+    const void* pBytecode      = nullptr;
+    size_t      bytecodeLength = 0;
+};
+
 enum class eShader : char
 {
     VertexShader,
@@ -15,10 +37,10 @@ enum class eShader : char
 
 enum class eResourceAccess : char
 {
-    Immutable    = D3D11_USAGE_IMMUTABLE,   // read only by GPU                     -> immutable
     GPUWriteable = D3D11_USAGE_DEFAULT,     // read/write by GPU                    -> default
-    CPUReadable  = D3D11_USAGE_STAGING,     // read by CPU and read/write by GPU    -> staging
+    Immutable    = D3D11_USAGE_IMMUTABLE,   // read only by GPU                     -> immutable
     CPUWriteable = D3D11_USAGE_DYNAMIC,     // write by CPU and read/write by GPU   -> dynamic
+    CPUReadable  = D3D11_USAGE_STAGING,     // read by CPU and read/write by GPU    -> staging
 };
 
 enum class eTopology : char

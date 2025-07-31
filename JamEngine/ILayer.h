@@ -15,9 +15,6 @@ public:
     ILayer(ILayer&&) noexcept            = default;
     ILayer& operator=(ILayer&&) noexcept = default;
 
-    virtual void OnAttach() {}
-    virtual void OnDetach() {}
-
     virtual void OnUpdate(float _deltaTime) {}
     virtual void OnFinalUpdate(float _deltaTime) {}
 

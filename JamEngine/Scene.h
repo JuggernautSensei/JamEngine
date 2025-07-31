@@ -2,8 +2,8 @@
 
 namespace jam
 {
-class Event;
 
+class Event;
 class Entity;
 
 class Scene
@@ -16,9 +16,6 @@ public:
     Scene& operator=(const Scene&)     = delete;
     Scene(Scene&&) noexcept            = default;
     Scene& operator=(Scene&&) noexcept = default;
-
-    virtual void OnAttach() {}
-    virtual void OnDetach() {}
 
     virtual void OnEnter() {}
     virtual void OnExit() {}

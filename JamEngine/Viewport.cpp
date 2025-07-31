@@ -20,7 +20,7 @@ Viewport::Viewport(const float _x, const float _y, const float _width, const flo
 void Viewport::Bind()
 {
     const D3D11_VIEWPORT viewports[] = { Get() };
-    Renderer::SetViewports(1, viewports);
+    Renderer::BindViewports(viewports);
 }
 
 }   // namespace jam

@@ -41,7 +41,7 @@ void ReportError(std::string_view _msg, const std::source_location& = std::sourc
             }                            \
         } while (false)
 #else
-#    define JAM_ASSERT_IMPL (void)0
+#    define JAM_ASSERT_IMPL __noop
 #endif
 
 #define JAM_CRASH(...)         JAM_CRASH_IMPL(std::format(__VA_ARGS__))

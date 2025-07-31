@@ -19,8 +19,9 @@ public:
     ScriptMetaManager() = delete;
 
     template<typename T>
-    static void RegisterScript();
-    static void RegisterScript(const ScriptMeta& _meta);
+    static void           RegisterScript();
+    static void           RegisterScript(const ScriptMeta& _meta);
+    NODISCARD static bool IsRegistered(std::string_view _scriptName);
 
     NODISCARD static std::unique_ptr<Script> CreateScript(std::string_view _scriptName, Entity _owner);
     NODISCARD std::ranges::ref_view<std::unordered_map<std::string_view, ScriptMeta>> GetScriptMetaView() const;
@@ -38,12 +39,5 @@ void ScriptMetaManager::RegisterScript()
     };
     RegisterScript(meta);
 }
-
-// 자동 메타 데이터 등록 헬퍼
-#define JAM_SCRIPT(_scriptType)                                   \
-    inline static const bool _jam_script_meta_registered = []() { \
-        RegisterScript<_scriptType>();                            \
-        return true;                                              \
-    }()
 
 }   // namespace jam

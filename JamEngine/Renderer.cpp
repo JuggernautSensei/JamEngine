@@ -3,6 +3,7 @@
 #include "Renderer.h"
 
 #include "Application.h"
+#include "Buffers.h"
 #include "Event.h"
 #include "ShaderCompiler.h"
 #include "Textures.h"
@@ -20,6 +21,11 @@ struct RendererContext
 
     // pipeline
     D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+
+    // for full screen quad
+    jam::VertexBuffer fullScreenQuadVB;
+    jam::IndexBuffer  fullScreenQuadIB;
+    bool              bFullScreenQuadShaderInitialized = false;
 };
 
 RendererContext g_renderer;
@@ -117,7 +123,7 @@ void Renderer::Initialize()
         }
 
         // create back buffer texture & render target view
-        g_renderer.backBufferTexture = Texture2D::CreateFromSwapChain(g_renderer.pSwapChain.Get());
+        g_renderer.backBufferTexture.InitializeFromSwapChain(g_renderer.pSwapChain.Get());
     }
 }
 
@@ -166,35 +172,56 @@ UInt32 Renderer::GetMaxMultisampleQuality(const DXGI_FORMAT _format, const UInt3
 
     UINT          qualityLevels = 0;
     const HRESULT hr            = g_renderer.pDevice->CheckMultisampleQualityLevels(_format, _sampleCount, &qualityLevels);
-    if (FAILED(hr))
+    if (FAILED(hr) || qualityLevels == 0)
     {
         JAM_CRASH("Failed to query multisample quality levels. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 
-    return qualityLevels;
+    return qualityLevels - 1;
 }
 
-void Renderer::CreateBuffer(const D3D11_BUFFER_DESC& _desc, const void* _pInitialData_orNull, ID3D11Buffer** _out_pBuffer)
+void Renderer::CreateBuffer(const D3D11_BUFFER_DESC& _desc, const std::optional<BufferInitializeData>& _initializeData, ID3D11Buffer** _out_pBuffer)
 {
     JAM_ASSERT(_out_pBuffer, "Buffer pointer is null");
 
-    D3D11_SUBRESOURCE_DATA initialData = {};
-    initialData.pSysMem                = _pInitialData_orNull;
-    const HRESULT hr                   = g_renderer.pDevice->CreateBuffer(&_desc, &initialData, _out_pBuffer);
+    HRESULT hr;
+    if (_initializeData)
+    {
+        D3D11_SUBRESOURCE_DATA initialData;
+        initialData.pSysMem = _initializeData.value().pData;
+        hr                  = g_renderer.pDevice->CreateBuffer(&_desc, &initialData, _out_pBuffer);
+    }
+    else
+    {
+        hr = g_renderer.pDevice->CreateBuffer(&_desc, nullptr, _out_pBuffer);
+    }
+
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create buffer. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreateTexture2D(const D3D11_TEXTURE2D_DESC& _desc, const void* _pInitialData_orNull, const UInt32 _initialiDataPitch_orZero, ID3D11Texture2D** _out_pTexture)
+void Renderer::CreateTexture2D(const D3D11_TEXTURE2D_DESC& _desc, const std::optional<Texture2DInitializeData>& _initializeData, ID3D11Texture2D** _out_pTexture)
 {
     JAM_ASSERT(_out_pTexture, "Texture pointer is null");
 
-    D3D11_SUBRESOURCE_DATA initialData = {};
-    initialData.pSysMem                = _pInitialData_orNull;
-    initialData.SysMemPitch            = _initialiDataPitch_orZero;
-    const HRESULT hr                   = g_renderer.pDevice->CreateTexture2D(&_desc, &initialData, _out_pTexture);
+    HRESULT hr;
+
+    if (_initializeData)
+    {
+        const Texture2DInitializeData& intializeData = _initializeData.value();
+
+        D3D11_SUBRESOURCE_DATA initialData;
+        initialData.pSysMem     = intializeData.pData;
+        initialData.SysMemPitch = intializeData.pitch;
+        hr                      = g_renderer.pDevice->CreateTexture2D(&_desc, &initialData, _out_pTexture);
+    }
+    else
+    {
+        hr = g_renderer.pDevice->CreateTexture2D(&_desc, nullptr, _out_pTexture);
+    }
+
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create texture 2D. HRESULT: {}", GetSystemErrorMessage(hr));
@@ -234,26 +261,30 @@ void Renderer::CreateDepthStencilView(ID3D11Resource* _pResource, const D3D11_DE
     }
 }
 
-void Renderer::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElements, const UInt32 _numElements, ID3DBlob* _pVertexShaderBlob, ID3D11InputLayout** _out_pInputLayout)
+void Renderer::CreateInputLayout(const std::span<const D3D11_INPUT_ELEMENT_DESC> _inputElements, ID3DBlob* _pVertexShaderBlob, ID3D11InputLayout** _out_pInputLayout)
 {
     JAM_ASSERT(_out_pInputLayout, "Input Layout pointer is null");
+    JAM_ASSERT(_pVertexShaderBlob, "Vertex Shader Blob pointer is null");
 
-    const HRESULT hr = g_renderer.pDevice->CreateInputLayout(_pInputElements, _numElements, _pVertexShaderBlob->GetBufferPointer(), _pVertexShaderBlob->GetBufferSize(), _out_pInputLayout);
+    const HRESULT hr = g_renderer.pDevice->CreateInputLayout(_inputElements.data(),
+                                                             static_cast<UINT>(_inputElements.size()),
+                                                             _pVertexShaderBlob->GetBufferPointer(),
+                                                             _pVertexShaderBlob->GetBufferSize(),
+                                                             _out_pInputLayout);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create input layout. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElementDescs, const UINT _numElements, ID3D11InputLayout** _out_pInputLayout)
+void Renderer::CreateInputLayout(const std::span<const D3D11_INPUT_ELEMENT_DESC> _inputElements, ID3D11InputLayout** _out_pInputLayout)
 {
     JAM_ASSERT(_out_pInputLayout, "Input Layout pointer is null");
 
     std::string dummyVS = "struct VSInput {";
-    for (UINT i = 0; i < _numElements; ++i)
+    for (const D3D11_INPUT_ELEMENT_DESC& elem: _inputElements)
     {
-        const D3D11_INPUT_ELEMENT_DESC& element = _pInputElementDescs[i];
-        switch (element.Format)
+        switch (elem.Format)
         {
             case DXGI_FORMAT_R32G32B32A32_FLOAT:
                 dummyVS += "float4 ";
@@ -270,7 +301,7 @@ void Renderer::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElementD
             default:
                 JAM_CRASH("Unsupported input element format");
         }
-        dummyVS += std::format("{} : {};", element.SemanticName, element.SemanticIndex);
+        dummyVS += std::format("{} : {};", elem.SemanticName, elem.SemanticIndex);
     }
     dummyVS += "};";
     dummyVS += R"(
@@ -281,73 +312,73 @@ void Renderer::CreateInputLayout(const D3D11_INPUT_ELEMENT_DESC* _pInputElementD
     )";
 
     ShaderCompiler compiler;
-    if (!compiler.CompileHLSL(dummyVS, "main", "vs_5_0", nullptr, eShaderCompileOption::Optimized))
+    if (!compiler.CompileHLSL(dummyVS, "main", "vs_5_0", {}, eShaderCompileOption::Optimized))
     {
         JAM_CRASH("Failed to compile dummy vertex shader for input layout creation.");
     }
     ComPtr<ID3DBlob> blob;
     compiler.GetCompiledShader(blob.GetAddressOf());
-    const HRESULT hr   = g_renderer.pDevice->CreateInputLayout(_pInputElementDescs, _numElements, blob->GetBufferPointer(), blob->GetBufferSize(), _out_pInputLayout);
+    const HRESULT hr = g_renderer.pDevice->CreateInputLayout(_inputElements.data(), static_cast<UINT>(_inputElements.size()), blob->GetBufferPointer(), blob->GetBufferSize(), _out_pInputLayout);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create input layout. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreateVertexShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11VertexShader** _out_pVertexShader)
+void Renderer::CreateVertexShader(const ShaderCreationData& _data, ID3D11VertexShader** _out_pVertexShader)
 {
     JAM_ASSERT(_out_pVertexShader, "Vertex Shader pointer is null");
-    const HRESULT hr = g_renderer.pDevice->CreateVertexShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pVertexShader);
+    const HRESULT hr = g_renderer.pDevice->CreateVertexShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pVertexShader);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create vertex shader. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreatePixelShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11PixelShader** _out_pPixelShader)
+void Renderer::CreatePixelShader(const ShaderCreationData& _data, ID3D11PixelShader** _out_pPixelShader)
 {
     JAM_ASSERT(_out_pPixelShader, "Pixel Shader pointer is null");
-    const HRESULT hr = g_renderer.pDevice->CreatePixelShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pPixelShader);
+    const HRESULT hr = g_renderer.pDevice->CreatePixelShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pPixelShader);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create pixel shader. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreateHullShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11HullShader** _out_pHullShader)
+void Renderer::CreateHullShader(const ShaderCreationData& _data, ID3D11HullShader** _out_pHullShader)
 {
     JAM_ASSERT(_out_pHullShader, "Hull Shader pointer is null");
-    const HRESULT hr = g_renderer.pDevice->CreateHullShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pHullShader);
+    const HRESULT hr = g_renderer.pDevice->CreateHullShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pHullShader);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create hull shader. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreateDomainShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11DomainShader** _out_pDomainShader)
+void Renderer::CreateDomainShader(const ShaderCreationData& _data, ID3D11DomainShader** _out_pDomainShader)
 {
     JAM_ASSERT(_out_pDomainShader, "Domain Shader pointer is null");
-    const HRESULT hr = g_renderer.pDevice->CreateDomainShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pDomainShader);
+    const HRESULT hr = g_renderer.pDevice->CreateDomainShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pDomainShader);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create domain shader. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreateGeometryShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11GeometryShader** _out_pGeometryShader)
+void Renderer::CreateGeometryShader(const ShaderCreationData& _data, ID3D11GeometryShader** _out_pGeometryShader)
 {
     JAM_ASSERT(_out_pGeometryShader, "Geometry Shader pointer is null");
-    const HRESULT hr = g_renderer.pDevice->CreateGeometryShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pGeometryShader);
+    const HRESULT hr = g_renderer.pDevice->CreateGeometryShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pGeometryShader);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create geometry shader. HRESULT: {}", GetSystemErrorMessage(hr));
     }
 }
 
-void Renderer::CreateComputeShader(const void* _pShaderBytecode, const SIZE_T _bytecodeLength, ID3D11ComputeShader** _out_pComputeShader)
+void Renderer::CreateComputeShader(const ShaderCreationData& _data, ID3D11ComputeShader** _out_pComputeShader)
 {
     JAM_ASSERT(_out_pComputeShader, "Compute Shader pointer is null");
-    const HRESULT hr = g_renderer.pDevice->CreateComputeShader(_pShaderBytecode, _bytecodeLength, nullptr, _out_pComputeShader);
+    const HRESULT hr = g_renderer.pDevice->CreateComputeShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pComputeShader);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to create compute shader. HRESULT: {}", GetSystemErrorMessage(hr));
@@ -394,7 +425,7 @@ void Renderer::CreateRasterizerState(const D3D11_RASTERIZER_DESC& _desc, ID3D11R
     }
 }
 
-void Renderer::SetTopology(const D3D11_PRIMITIVE_TOPOLOGY _topology)
+void Renderer::BindTopology(const D3D11_PRIMITIVE_TOPOLOGY _topology)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
 
@@ -405,7 +436,7 @@ void Renderer::SetTopology(const D3D11_PRIMITIVE_TOPOLOGY _topology)
     }
 }
 
-void Renderer::SetVertexBuffer(ID3D11Buffer* _pVertexBuffer, const UInt32 _stride)
+void Renderer::BindVertexBuffer(ID3D11Buffer* _pVertexBuffer, const UInt32 _stride)
 {
     const UInt32   stride[] = { _stride };
     constexpr UINT offset[] = { 0 };
@@ -414,94 +445,94 @@ void Renderer::SetVertexBuffer(ID3D11Buffer* _pVertexBuffer, const UInt32 _strid
     ctx->IASetVertexBuffers(0, 1, &_pVertexBuffer, stride, offset);
 }
 
-void Renderer::SetIndexBuffer(ID3D11Buffer* _pIndexBuffer)
+void Renderer::BindIndexBuffer(ID3D11Buffer* _pIndexBuffer)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->IASetIndexBuffer(_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 }
 
-void Renderer::SetInputLayout(ID3D11InputLayout* _pInputLayout)
+void Renderer::BindInputLayout(ID3D11InputLayout* _pInputLayout)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->IASetInputLayout(_pInputLayout);
 }
 
-void Renderer::SetVertexShader(ID3D11VertexShader* _pVertexShader)
+void Renderer::BindVertexShader(ID3D11VertexShader* _pVertexShader)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->VSSetShader(_pVertexShader, nullptr, 0);
 }
 
-void Renderer::SetPixelShader(ID3D11PixelShader* _pPixelShader)
+void Renderer::BindPixelShader(ID3D11PixelShader* _pPixelShader)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->PSSetShader(_pPixelShader, nullptr, 0);
 }
 
-void Renderer::SetGeometryShader(ID3D11GeometryShader* _pGeometryShader)
+void Renderer::BindGeometryShader(ID3D11GeometryShader* _pGeometryShader)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->GSSetShader(_pGeometryShader, nullptr, 0);
 }
 
-void Renderer::SetHullShader(ID3D11HullShader* _pHullShader)
+void Renderer::BindHullShader(ID3D11HullShader* _pHullShader)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->HSSetShader(_pHullShader, nullptr, 0);
 }
 
-void Renderer::SetDomainShader(ID3D11DomainShader* _pDomainShader)
+void Renderer::BindDomainShader(ID3D11DomainShader* _pDomainShader)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->DSSetShader(_pDomainShader, nullptr, 0);
 }
 
-void Renderer::SetComputeShader(ID3D11ComputeShader* _pComputeShader)
+void Renderer::BindComputeShader(ID3D11ComputeShader* _pComputeShader)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->CSSetShader(_pComputeShader, nullptr, 0);
 }
 
-void Renderer::SetBlendState(ID3D11BlendState* _pBlendState, FLOAT _blendFactor[4])
+void Renderer::BindBlendState(ID3D11BlendState* _pBlendState, const FLOAT _blendFactor[4])
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->OMSetBlendState(_pBlendState, _blendFactor, 0xFFFFFFFF);
 }
 
-void Renderer::SetDepthStencilState(ID3D11DepthStencilState* _pDepthStencilState, const UINT _stencilRef)
+void Renderer::BindDepthStencilState(ID3D11DepthStencilState* _pDepthStencilState, const UINT _stencilRef)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->OMSetDepthStencilState(_pDepthStencilState, _stencilRef);
 }
 
-void Renderer::SetRasterizerState(ID3D11RasterizerState* _pRasterizerState)
+void Renderer::BindRasterizerState(ID3D11RasterizerState* _pRasterizerState)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     ctx->RSSetState(_pRasterizerState);
 }
 
-void Renderer::SetSamplerStates(eShader _shader, const UInt32 _slot, const UInt32 _samplerCount, ID3D11SamplerState* const* _ppSamplerState)
+void Renderer::BindSamplerStates(eShader _shader, const UInt32 _slot, const std::span<ID3D11SamplerState* const> _samplers)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     switch (_shader)
     {
         case eShader::VertexShader:
-            ctx->VSSetSamplers(_slot, _samplerCount, _ppSamplerState);
+            ctx->VSSetSamplers(_slot, static_cast<UINT>(_samplers.size()), _samplers.data());
             break;
         case eShader::PixelShader:
-            ctx->PSSetSamplers(_slot, _samplerCount, _ppSamplerState);
+            ctx->PSSetSamplers(_slot, static_cast<UINT>(_samplers.size()), _samplers.data());
             break;
         case eShader::GeometryShader:
-            ctx->GSSetSamplers(_slot, _samplerCount, _ppSamplerState);
+            ctx->GSSetSamplers(_slot, static_cast<UINT>(_samplers.size()), _samplers.data());
             break;
         case eShader::ComputeShader:
-            ctx->CSSetSamplers(_slot, _samplerCount, _ppSamplerState);
+            ctx->CSSetSamplers(_slot, static_cast<UINT>(_samplers.size()), _samplers.data());
             break;
         case eShader::HullShader:
-            ctx->HSSetSamplers(_slot, _samplerCount, _ppSamplerState);
+            ctx->HSSetSamplers(_slot, static_cast<UINT>(_samplers.size()), _samplers.data());
             break;
         case eShader::DomainShader:
-            ctx->DSSetSamplers(_slot, _samplerCount, _ppSamplerState);
+            ctx->DSSetSamplers(_slot, static_cast<UINT>(_samplers.size()), _samplers.data());
             break;
         default:
             JAM_ERROR("Invalid shader type for setting sampler states: {}", static_cast<int>(_shader));
@@ -509,28 +540,28 @@ void Renderer::SetSamplerStates(eShader _shader, const UInt32 _slot, const UInt3
     }
 }
 
-void Renderer::SetShaderResourceViews(eShader _shader, const UInt32 _slot, const UInt32 _srvCount, ID3D11ShaderResourceView* const* _ppSRV)
+void Renderer::BindShaderResourceViews(eShader _shader, const UInt32 _slot, const std::span<ID3D11ShaderResourceView* const> _resources)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     switch (_shader)
     {
         case eShader::VertexShader:
-            ctx->VSSetShaderResources(_slot, _srvCount, _ppSRV);
+            ctx->VSSetShaderResources(_slot, static_cast<UINT>(_resources.size()), _resources.data());
             break;
         case eShader::PixelShader:
-            ctx->PSSetShaderResources(_slot, _srvCount, _ppSRV);
+            ctx->PSSetShaderResources(_slot, static_cast<UINT>(_resources.size()), _resources.data());
             break;
         case eShader::GeometryShader:
-            ctx->GSSetShaderResources(_slot, _srvCount, _ppSRV);
+            ctx->GSSetShaderResources(_slot, static_cast<UINT>(_resources.size()), _resources.data());
             break;
         case eShader::ComputeShader:
-            ctx->CSSetShaderResources(_slot, _srvCount, _ppSRV);
+            ctx->CSSetShaderResources(_slot, static_cast<UINT>(_resources.size()), _resources.data());
             break;
         case eShader::HullShader:
-            ctx->HSSetShaderResources(_slot, _srvCount, _ppSRV);
+            ctx->HSSetShaderResources(_slot, static_cast<UINT>(_resources.size()), _resources.data());
             break;
         case eShader::DomainShader:
-            ctx->DSSetShaderResources(_slot, _srvCount, _ppSRV);
+            ctx->DSSetShaderResources(_slot, static_cast<UINT>(_resources.size()), _resources.data());
             break;
         default:
             JAM_ERROR("Invalid shader type for setting shader resource views: {}", static_cast<int>(_shader));
@@ -538,28 +569,28 @@ void Renderer::SetShaderResourceViews(eShader _shader, const UInt32 _slot, const
     }
 }
 
-void Renderer::SetConstantBuffers(eShader _shader, const UInt32 _slot, const UInt32 _cbCount, ID3D11Buffer* const* _ppCB)
+void Renderer::BindConstantBuffers(eShader _shader, const UInt32 _slot, const std::span<ID3D11Buffer* const> _buffers)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
     switch (_shader)
     {
         case eShader::VertexShader:
-            ctx->VSSetConstantBuffers(_slot, _cbCount, _ppCB);
+            ctx->VSSetConstantBuffers(_slot, static_cast<UINT>(_buffers.size()), _buffers.data());
             break;
         case eShader::PixelShader:
-            ctx->PSSetConstantBuffers(_slot, _cbCount, _ppCB);
+            ctx->PSSetConstantBuffers(_slot, static_cast<UINT>(_buffers.size()), _buffers.data());
             break;
         case eShader::GeometryShader:
-            ctx->GSSetConstantBuffers(_slot, _cbCount, _ppCB);
+            ctx->GSSetConstantBuffers(_slot, static_cast<UINT>(_buffers.size()), _buffers.data());
             break;
         case eShader::ComputeShader:
-            ctx->CSSetConstantBuffers(_slot, _cbCount, _ppCB);
+            ctx->CSSetConstantBuffers(_slot, static_cast<UINT>(_buffers.size()), _buffers.data());
             break;
         case eShader::HullShader:
-            ctx->HSSetConstantBuffers(_slot, _cbCount, _ppCB);
+            ctx->HSSetConstantBuffers(_slot, static_cast<UINT>(_buffers.size()), _buffers.data());
             break;
         case eShader::DomainShader:
-            ctx->DSSetConstantBuffers(_slot, _cbCount, _ppCB);
+            ctx->DSSetConstantBuffers(_slot, static_cast<UINT>(_buffers.size()), _buffers.data());
             break;
         default:
             JAM_ERROR("Invalid shader type for setting constant buffers: {}", static_cast<int>(_shader));
@@ -567,16 +598,168 @@ void Renderer::SetConstantBuffers(eShader _shader, const UInt32 _slot, const UIn
     }
 }
 
-void Renderer::SetViewports(const UInt32 _numViewports, const D3D11_VIEWPORT* _pViewports)
+void Renderer::BindViewports(const std::span<const D3D11_VIEWPORT> _viewports)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
-    ctx->RSSetViewports(_numViewports, _pViewports);
+    ctx->RSSetViewports(static_cast<UINT>(_viewports.size()), _viewports.data());
 }
 
-void Renderer::SetRenderTargetViews(const UInt32 _rtvCount, ID3D11RenderTargetView* const* _ppRTV, ID3D11DepthStencilView* _pDSV)
+void Renderer::BindRenderTargetViews(const std::span<ID3D11RenderTargetView* const> _renderTargets, ID3D11DepthStencilView* _pDSV)
 {
     ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
-    ctx->OMSetRenderTargets(_rtvCount, _ppRTV, _pDSV);
+    ctx->OMSetRenderTargets(static_cast<UINT>(_renderTargets.size()), _renderTargets.data(), _pDSV);
+}
+
+void Renderer::UnbindSamplerStates(eShader _shader, const UInt32 _slot, const UInt32 _count)
+{
+    constexpr ID3D11SamplerState* k_nullSamplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT] = {};
+
+    switch (_shader)
+    {
+        case eShader::VertexShader:
+            g_renderer.pDeviceContext->VSSetSamplers(_slot, _count, k_nullSamplers);
+            break;
+
+        case eShader::PixelShader:
+            g_renderer.pDeviceContext->PSSetSamplers(_slot, _count, k_nullSamplers);
+            break;
+
+        case eShader::GeometryShader:
+            g_renderer.pDeviceContext->GSSetSamplers(_slot, _count, k_nullSamplers);
+            break;
+
+        case eShader::ComputeShader:
+            g_renderer.pDeviceContext->CSSetSamplers(_slot, _count, k_nullSamplers);
+            break;
+
+        case eShader::HullShader:
+            g_renderer.pDeviceContext->HSSetSamplers(_slot, _count, k_nullSamplers);
+            break;
+
+        case eShader::DomainShader:
+            g_renderer.pDeviceContext->DSSetSamplers(_slot, _count, k_nullSamplers);
+            break;
+
+        default:
+            JAM_ERROR("Invalid shader type for unbinding sampler states: {}", static_cast<int>(_shader));
+            break;
+    }
+}
+
+void Renderer::UnbindShaderResourceViews(eShader _shader, const UInt32 _slot, const UInt32 _count)
+{
+    constexpr ID3D11ShaderResourceView* k_nullSRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+
+    switch (_shader)
+    {
+        case eShader::VertexShader:
+            g_renderer.pDeviceContext->VSSetShaderResources(_slot, _count, k_nullSRVs);
+            break;
+
+        case eShader::PixelShader:
+            g_renderer.pDeviceContext->PSSetShaderResources(_slot, _count, k_nullSRVs);
+            break;
+
+        case eShader::GeometryShader:
+            g_renderer.pDeviceContext->GSSetShaderResources(_slot, _count, k_nullSRVs);
+            break;
+
+        case eShader::ComputeShader:
+            g_renderer.pDeviceContext->CSSetShaderResources(_slot, _count, k_nullSRVs);
+            break;
+
+        case eShader::HullShader:
+            g_renderer.pDeviceContext->HSSetShaderResources(_slot, _count, k_nullSRVs);
+            break;
+
+        case eShader::DomainShader:
+            g_renderer.pDeviceContext->DSSetShaderResources(_slot, _count, k_nullSRVs);
+            break;
+
+        default:
+            JAM_ERROR("Invalid shader type for unbinding shader resource views: {}", static_cast<int>(_shader));
+            break;
+    }
+}
+
+void Renderer::UnbindConstantBuffers(eShader _shader, const UInt32 _slot, const UInt32 _count)
+{
+    constexpr ID3D11Buffer* k_nullBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = {};
+
+    switch (_shader)
+    {
+        case eShader::VertexShader:
+            g_renderer.pDeviceContext->VSSetConstantBuffers(_slot, _count, k_nullBuffers);
+            break;
+
+        case eShader::PixelShader:
+            g_renderer.pDeviceContext->PSSetConstantBuffers(_slot, _count, k_nullBuffers);
+            break;
+
+        case eShader::GeometryShader:
+            g_renderer.pDeviceContext->GSSetConstantBuffers(_slot, _count, k_nullBuffers);
+            break;
+
+        case eShader::ComputeShader:
+            g_renderer.pDeviceContext->CSSetConstantBuffers(_slot, _count, k_nullBuffers);
+            break;
+
+        case eShader::HullShader:
+            g_renderer.pDeviceContext->HSSetConstantBuffers(_slot, _count, k_nullBuffers);
+            break;
+
+        case eShader::DomainShader:
+            g_renderer.pDeviceContext->DSSetConstantBuffers(_slot, _count, k_nullBuffers);
+            break;
+
+        default:
+            JAM_ERROR("Invalid shader type for unbinding constant buffers: {}", static_cast<int>(_shader));
+            break;
+    }
+}
+
+void Renderer::UnbindRenderTargetViews()
+{
+    constexpr ID3D11RenderTargetView* k_nullRTVs[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = {};
+
+    ID3D11DeviceContext* ctx = g_renderer.pDeviceContext.Get();
+    ctx->OMSetRenderTargets(std::size(k_nullRTVs), k_nullRTVs, nullptr);
+}
+
+void Renderer::DrawFullScreenQuad()
+{
+    if (g_renderer.bFullScreenQuadShaderInitialized == false)
+    {
+        // initialize vertex buffer
+        {
+            Vertex2 vertices[] = {
+                Vertex2 {  Vec2 { -1.f, 1.f }, Vec2 { 0.f, 0.f } },
+                Vertex2 {   Vec2 { 1.f, 1.f }, Vec2 { 1.f, 0.f } },
+                Vertex2 {  Vec2 { 1.f, -1.f }, Vec2 { 1.f, 1.f } },
+                Vertex2 { Vec2 { -1.f, -1.f }, Vec2 { 0.f, 1.f } },
+            };
+
+            BufferInitializeData initData;
+            initData.pData = vertices;
+            g_renderer.fullScreenQuadVB.Initialize(GetVertexStride(eVertexType::Vertex2), std::size(vertices), eResourceAccess::Immutable, initData);
+        }
+
+        // initialize index buffer
+        {
+            Index indices[] = { 0, 1, 2, 0, 2, 3 };
+
+            IndexBufferInitializeData initData;
+            initData.pData = indices;
+            g_renderer.fullScreenQuadIB.Initialize(std::size(indices), eResourceAccess::Immutable, initData);
+        }
+
+        g_renderer.bFullScreenQuadShaderInitialized = true;
+    }
+
+    BindTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    g_renderer.fullScreenQuadVB.Bind();
+    g_renderer.fullScreenQuadIB.Bind();
+    DrawIndices(6, 0, 0);
 }
 
 void Renderer::Draw(const UInt32 _vertexCount, const UInt32 _startVertexLocation)
@@ -607,17 +790,13 @@ void Renderer::OnResize_(const WindowResizeEvent& _event)
     {
         // 백버퍼는 특별하게 관리되어야 하기 때문에 직접 사용하는 것은 위험함
         // 직접 사용한다면 해당 이벤트를 받았을 때 사용자가 직접 스왑체인에 의존하는 리소스를 해제해야 함
-        Application&                  app = GetApplication();
-        SwapChainResourceReleaseEvent resizeEvent;
-        app.DispatchEvent(resizeEvent);
+        Application&           app = GetApplication();
+        BackBufferCleanupEvent event;
+        app.DispatchEvent(event);
 
         // 백버퍼 텍스처를 해제
         UInt32 refCount = g_renderer.backBufferTexture.Reset();
-        if (refCount > 1)
-        {
-            // 백버퍼와 관련된 리소스를 제대로 해체하지 않았나요?
-            JAM_CRASH("Back buffer texture still has references. RefCount: {}", refCount);
-        }
+        JAM_ASSERT(refCount == 0, "Back buffer texture still has references. RefCount: {}", refCount);
     }
 
     // create or resize swap chain
@@ -630,7 +809,7 @@ void Renderer::OnResize_(const WindowResizeEvent& _event)
     }
 
     // create back buffer texture
-    g_renderer.backBufferTexture = Texture2D::CreateFromSwapChain(g_renderer.pSwapChain.Get());
+    g_renderer.backBufferTexture.InitializeFromSwapChain(g_renderer.pSwapChain.Get());
 }
 
 }   // namespace jam

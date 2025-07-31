@@ -201,20 +201,28 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Buffers.cpp" />
-    <ClCompile Include="BuildInConstantBuffers.cpp" />
-    <ClCompile Include="BuiltInRenderStates.cpp" />
-    <ClCompile Include="BuiltInShaderProgram.cpp" />
-    <ClCompile Include="ColorUtility.cpp" />
+    <ClCompile Include="CompiledShaders.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ImageFilter.cpp" />
+    <ClCompile Include="CBuffferCollection.cpp" />
+    <ClCompile Include="StateCollection.cpp" />
+    <ClCompile Include="ShaderCollection.cpp" />
+    <ClCompile Include="ColorUtilities.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="ComponentMetaManager.cpp" />
     <ClCompile Include="Components.cpp" />
+    <ClCompile Include="EnumUtilities.cpp" />
+    <ClCompile Include="IComponentSerializable.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntryPoint.cpp" />
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="ILayer.cpp" />
     <ClCompile Include="ImguiLayer.cpp" />
     <ClCompile Include="Input.cpp" />
-    <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MathUtilities.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -223,6 +231,7 @@
     <ClCompile Include="ModelExporter.cpp" />
     <ClCompile Include="ModelImporter.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
+    <ClCompile Include="PostProcess.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RendererCommons.cpp" />
     <ClCompile Include="RenderStates.cpp" />
@@ -255,19 +264,22 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Buffers.h" />
-    <ClInclude Include="BuildInConstantBuffers.h" />
-    <ClInclude Include="BuiltInRenderStates.h" />
-    <ClInclude Include="BuiltInShaderProgram.h" />
-    <ClInclude Include="ColorUtility.h" />
+    <ClInclude Include="CompiledShaders.h" />
+    <ClInclude Include="ImageFilter.h" />
+    <ClInclude Include="CBuffferCollection.h" />
+    <ClInclude Include="StateCollection.h" />
+    <ClInclude Include="ShaderCollection.h" />
+    <ClInclude Include="ColorUtilities.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="ComponentMetaManager.h" />
     <ClInclude Include="Components.h" />
+    <ClInclude Include="EnumUtilities.h" />
+    <ClInclude Include="IComponentSerializable.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="ILayer.h" />
     <ClInclude Include="ImguiLayer.h" />
     <ClInclude Include="Input.h" />
-    <ClInclude Include="InputLayout.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MathUtilities.h" />
     <ClInclude Include="Mesh.h" />
@@ -276,6 +288,7 @@
     <ClInclude Include="ModelExporter.h" />
     <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="ModelLoader.h" />
+    <ClInclude Include="PostProcess.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RendererCommons.h" />
     <ClInclude Include="RenderStates.h" />
@@ -308,7 +321,7 @@
     <None Include=".clang-format" />
     <None Include=".editorconfig" />
     <None Include="model.fbs" />
-    <None Include="shaders\PBRCommon.hlsli">
+    <None Include="shaders\hlsl\PBRCommon.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -316,109 +329,109 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\BloomCombineFilterPS.hlsl">
+    <FxCompile Include="shaders\hlsl\BloomCombineFilterPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\BloomDownFilterPS.hlsl">
+    <FxCompile Include="shaders\hlsl\BloomDownFilterPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\BloomUpFilterPS.hlsl">
+    <FxCompile Include="shaders\hlsl\BloomUpFilterPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\FogPS.hlsl">
+    <FxCompile Include="shaders\hlsl\FogPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\FXAAPS.hlsl">
+    <FxCompile Include="shaders\hlsl\FXAAPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\LightVolumeShader.hlsl">
+    <FxCompile Include="shaders\hlsl\LightVolumeShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\PBRForwardShader.hlsl">
+    <FxCompile Include="shaders\hlsl\PBRForwardShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\PBRGBufferShader.hlsl">
+    <FxCompile Include="shaders\hlsl\PBRGBufferShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\PBRLightingShader.hlsl">
+    <FxCompile Include="shaders\hlsl\PBRLightingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\PBRVS.hlsl">
+    <FxCompile Include="shaders\hlsl\PBRVS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\SamplingPS.hlsl">
+    <FxCompile Include="shaders\hlsl\SamplingPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\ScreenSpaceEffectVS.hlsl">
+    <FxCompile Include="shaders\hlsl\ScreenSpaceEffectVS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\ShaderCommon.hlsl">
+    <FxCompile Include="shaders\hlsl\ShaderCommon.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\ShadowCasterShader.hlsl">
+    <FxCompile Include="shaders\hlsl\ShadowCasterShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\SkyboxShader.hlsl">
+    <FxCompile Include="shaders\hlsl\SkyboxShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\SSAOBlurPS.hlsl">
+    <FxCompile Include="shaders\hlsl\SSAOBlurPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\SSAOPS.hlsl">
+    <FxCompile Include="shaders\hlsl\SSAOPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\ToneMappingPS.hlsl">
+    <FxCompile Include="shaders\hlsl\ToneMappingPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

@@ -7,6 +7,7 @@
 #include "Input.h"
 #include "Renderer.h"
 #include "SceneLayer.h"
+#include "WindowsUtilities.h"
 
 namespace
 {
@@ -166,7 +167,7 @@ void Application::DispatchEvent(Event& _event)
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
-    Log::Debug("occurred event: {}", _event.ToString());
+    //Log::Debug("occurred event: {}", _event.ToString());
 
     // application event listener routine
     if (_event.GetHash() == WindowCloseEvent::k_staticHash)
@@ -176,6 +177,7 @@ void Application::DispatchEvent(Event& _event)
 
     // dispatch event to other modules
     m_window.OnEvent(_event);
+    Input::OnEvent(_event);
     Renderer::OnEvent(_event);
     for (const std::unique_ptr<ILayer>& layer: m_layers)
     {
@@ -210,7 +212,6 @@ ILayer* Application::PushBackLayer(std::unique_ptr<ILayer>&& _layer)
     }
 
     // attach layer before pushing it to the stack
-    _layer->OnAttach();   // attach layer before pushing it to the stack
     const auto it = m_layers.insert(m_layers.end(), std::move(_layer));
     return it->get();
 }
@@ -233,7 +234,6 @@ ILayer* Application::PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer)
     }
 
     // attach layer before pushing it to the stack
-    _pLayer->OnAttach();   // attach layer before pushing it to the stack
     const auto it = m_layers.insert(m_layers.begin(), std::move(_pLayer));
     return it->get();
 }
@@ -250,7 +250,6 @@ void Application::RemoveLayer(ILayer* _pLayer)
                                          });
 
     JAM_ASSERT(it != m_layers.end(), "Layer not found in the application");
-    _pLayer->OnDetach();   // detach layer before removing it from the stack
     m_layers.erase(it);
 }
 

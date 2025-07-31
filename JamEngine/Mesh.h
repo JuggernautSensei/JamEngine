@@ -14,8 +14,8 @@ struct MeshGeometry
 class Mesh
 {
 public:
-    static Mesh Create(const MeshGeometry& _meshData, eVertexType _vertexType, eTopology _topology);
-    void        Bind() const;
+    void Initialize(const MeshGeometry& _meshData, eVertexType _vertexType, eTopology _topology);
+    void Bind() const;
 
     const VertexBuffer& GetVertexBuffer() const { return m_vertexBuffer; }
     const IndexBuffer&  GetIndexBuffer() const { return m_indexBuffer; }

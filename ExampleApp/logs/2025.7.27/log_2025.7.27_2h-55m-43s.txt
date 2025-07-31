@@ -1,0 +1,2 @@
+[2025-07-27 02:55:43.248] [trace] log system initialized
+[2025-07-27 02:55:43.248] [info] Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe

@@ -4,6 +4,12 @@
 namespace jam
 {
 
+struct FileDialogFilter
+{
+    std::string_view name;   // filter name
+    std::string_view ext;    // file extension (.txt, .png, etc.)
+};
+
 class Window
 {
 public:
@@ -12,9 +18,14 @@ public:
     bool PollEvents();
     void OnEvent(Event& _event) const;
 
+    // window
     void ResizeWindow(Int32 _width, Int32 _height) const;
     void MoveWindow(Int32 _posX, Int32 _posY) const;
     void SetTitle(std::string_view _name) const;
+
+    // file dialog
+    NODISCARD std::vector<fs::path> OpenFileDialog(bool _bMultiSelectable, std::span<const FileDialogFilter> _filters_orEmpty = {}, std::string_view _defaltPath_orEmpty = "") const;
+    NODISCARD fs::path SaveFileDialog(std::span<const FileDialogFilter> _filters_orEmpty = {}, std::string_view _defaltPath_orEmpty = "") const;
 
     NODISCARD std::pair<Int32, Int32> GetWindowSize() const { return { m_width, m_height }; }
     NODISCARD std::pair<Int32, Int32> GetWindowPosition() const { return { m_posX, m_posY }; }
@@ -43,11 +54,11 @@ private:
     EventDispatcher m_eventDispatcher;   // event dispatcher
 
     constexpr static const wchar_t* const k_windowClassName = L"jam enginewindow class";   // window class name
-    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";         // default window title name
-    constexpr static Int32                k_defaultWidth    = 800;                          // default window width
-    constexpr static Int32                k_defaultHeight   = 600;                          // default window height
-    constexpr static Int32                k_defaultPosX     = 100;                          // default window position X
-    constexpr static Int32                k_defaultPosY     = 100;                          // default window position Y
+    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";        // default window title name
+    constexpr static Int32                k_defaultWidth    = 800;                         // default window width
+    constexpr static Int32                k_defaultHeight   = 600;                         // default window height
+    constexpr static Int32                k_defaultPosX     = 100;                         // default window position X
+    constexpr static Int32                k_defaultPosY     = 100;                         // default window position Y
 
     static LRESULT CALLBACK WindowProc_(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };
