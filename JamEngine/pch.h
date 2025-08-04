@@ -38,7 +38,7 @@
 #include <imgui_internal.h>
 #include <imgui_stdlib.h>
 
-// 3rd party - nlohmann/json
+// 3rd party - nlohmann/m_json
 #include <nlohmann/json.hpp>
 
 // 3rd party - entt

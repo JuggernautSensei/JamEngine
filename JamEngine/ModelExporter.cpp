@@ -2,6 +2,7 @@
 
 #include "ModelExporter.h"
 
+#include "BufferReader.h"
 #include "Model.h"
 #include "flatbuffers/compiled/model_generated.h"
 
@@ -20,65 +21,102 @@ NODISCARD jam::fbs::Vec2 ToFlatBuffersVec2(const jam::Vec2& vec)
     return { vec.x, vec.y };
 }
 
+NODISCARD jam::fbs::eVertexType ToFlatBuffersVertexType(const jam::eVertexType vertexType)
+{
+    switch (vertexType)
+    {
+        case jam::eVertexType::Vertex2: return jam::fbs::eVertexType_Vertex2;
+        case jam::eVertexType::Vertex3: return jam::fbs::eVertexType_Vertex3;
+        case jam::eVertexType::Vertex3PosOnly: return jam::fbs::eVertexType_Vertex3PosOnly;
+        default:
+            JAM_ERROR("Unknown vertex type");
+            return jam::fbs::eVertexType_Vertex3;   // Default fallback
+    }
+}
+
+NODISCARD jam::fbs::eTopology ToFlatBuffersTopology(const jam::eTopology topology)
+{
+    switch (topology)
+    {
+        case jam::eTopology::Undefined: return jam::fbs::eTopology_Undefined;
+        case jam::eTopology::PointList: return jam::fbs::eTopology_PointList;
+        case jam::eTopology::LineList: return jam::fbs::eTopology_LineList;
+        case jam::eTopology::LineStrip: return jam::fbs::eTopology_LineStrip;
+        case jam::eTopology::TriangleList: return jam::fbs::eTopology_TriangleList;
+        case jam::eTopology::TriangleStrip: return jam::fbs::eTopology_TriangleStrip;
+        default:
+            JAM_ERROR("Unknown topology type");
+            return jam::fbs::eTopology_TriangleList;   // Default fallback
+    }
+}
+
 }   // namespace
 
 namespace jam
 {
 
-void ModelExporter::Load(std::span<const RawModelElement> _parts)
+void ModelExporter::Load(std::span<const RawModelNode> _nodes, const eTopology _topology, const eVertexType _vertexType)
 {
     Clear_();
-    m_elements = std::vector(_parts.begin(), _parts.end());
-    m_bExported    = true;
+    m_nodes      = std::vector(_nodes.begin(), _nodes.end());
+    m_topology   = _topology;
+    m_vertexType = _vertexType;
+    m_bLoaded    = true;
 }
 
-bool ModelExporter::Load(const Model& _model, eVertexType _type)
+bool ModelExporter::Load(const Model& _model)
 {
     Clear_();
 
-    for (const ModelElement& part: _model)
+    m_topology   = _model.GetTopology();
+    m_vertexType = _model.GetVertexType();
+
+    // for gpu data download
+    BufferReader reader;
+
+    for (const ModelNode& node: _model.GetModelNodes())
     {
-        RawModelElement rawModelPart;
+        RawModelNode rawNode;
 
         // 기본 데이터 복사
-        rawModelPart.name     = part.name;
-        rawModelPart.material = part.material;
+        rawNode.name     = node.name;
+        rawNode.material = node.material;
 
         // 메쉬 기하 추출
         {
-            MeshGeometry& rawMeshRef = rawModelPart.rawMesh;
+            MeshGeometry& rawMeshRef = rawNode.meshGeometry;
 
             // 버텍스 버퍼
-            const VertexBuffer&               vb       = part.mesh.GetVertexBuffer();
-            std::optional<std::vector<UInt8>> vbRawOpt = vb.Download();
+            const VertexBuffer&               vb     = node.mesh.GetVertexBuffer();
+            std::optional<std::vector<UInt8>> vbData = reader.ReadBuffer(vb);
 
-            if (vbRawOpt.has_value() == false)
+            if (!vbData)
             {
                 return false;
             }
 
-            const std::vector<UInt8>& vbRaw        = *vbRawOpt;
+            const std::vector<UInt8>& vbRaw        = *vbData;
             const UInt32              vertexStride = vb.GetStride();
-            JAM_ASSERT(vbRawOpt->size() % vertexStride == 0, "Vertex buffer size is not a multiple of vertex stride.");
+            JAM_ASSERT(vbData->size() % vertexStride == 0, "Vertex buffer size is not a multiple of vertex stride.");
             UInt32 vertexCount = static_cast<UInt32>(vbRaw.size() / vertexStride);
             rawMeshRef.vertices.reserve(vertexCount);
             for (UInt32 i = 0; i < vertexCount; ++i)
             {
                 VertexAttribute vertex;
-                UnpackVertex(_type, vbRaw.data() + i * vertexStride, vertex);
+                UnpackVertex(m_vertexType, vbRaw.data() + i * vertexStride, vertex);
                 rawMeshRef.vertices.emplace_back(vertex);
             }
 
             // 인덱스 버퍼
-            const IndexBuffer&                ib       = part.mesh.GetIndexBuffer();
-            std::optional<std::vector<UInt8>> ibRawOpt = ib.Download();
+            const IndexBuffer&                ib     = node.mesh.GetIndexBuffer();
+            std::optional<std::vector<UInt8>> ibData = reader.ReadBuffer(ib);
 
-            if (ibRawOpt.has_value() == false)
+            if (!ibData)
             {
                 return false;
             }
 
-            const std::vector<UInt8>& ibRaw = *ibRawOpt;
+            const std::vector<UInt8>& ibRaw = *ibData;
             JAM_ASSERT(ibRaw.size() % sizeof(Index) == 0, "Index buffer size is not a multiple of index size.");
             UInt32 indexCount = static_cast<UInt32>(ibRaw.size() / sizeof(Index));
             rawMeshRef.indices.reserve(indexCount);
@@ -90,10 +128,10 @@ bool ModelExporter::Load(const Model& _model, eVertexType _type)
             }
         }
 
-        m_elements.emplace_back(rawModelPart);
+        m_nodes.emplace_back(rawNode);
     }
 
-    m_bExported = true;
+    m_bLoaded = true;
     return true;
 }
 
@@ -101,24 +139,24 @@ bool ModelExporter::Export(const fs::path& _path) const
 {
     using namespace flatbuffers;
 
-    if (!m_bExported)
+    if (!m_bLoaded)
     {
         JAM_ERROR("ModelExporter::Export() - Model not loaded yet.");
         return false;
     }
 
-    FlatBufferBuilder                         builder;
-    std::vector<Offset<fbs::RawModelElement>> parts;
-    parts.reserve(m_elements.size());
-    for (const RawModelElement& part: m_elements)
+    FlatBufferBuilder                      builder;
+    std::vector<Offset<fbs::RawModelNode>> parts;
+    parts.reserve(m_nodes.size());
+    for (const RawModelNode& part: m_nodes)
     {
         // name
         const Offset<String> nameOffset = builder.CreateString(part.name);
 
         // mesh
-        const MeshGeometry&                       rawMesh = part.rawMesh;
+        const MeshGeometry&                       rawMesh = part.meshGeometry;
         std::vector<Offset<fbs::VertexAttribute>> vertices;
-        vertices.reserve(part.rawMesh.vertices.size());
+        vertices.reserve(part.meshGeometry.vertices.size());
         for (const VertexAttribute& vertex: rawMesh.vertices)
         {
             fbs::Vec3 position  = ToFlatBuffersVec3(vertex.position);
@@ -143,12 +181,12 @@ bool ModelExporter::Export(const fs::path& _path) const
         fbs::Vec3                   emissiveColor  = ToFlatBuffersVec3(material.emissiveColor);
         const Offset<fbs::Material> materialOffset = fbs::CreateMaterial(builder, &ambientColor, &diffuseColor, &specularColor, material.shininess, &albedoColor, material.metallic, material.roughness, material.ao, material.emissive, &emissiveColor, material.emissiveScale, material.displacementScale);
 
-        parts.emplace_back(fbs::CreateRawModelElement(builder, nameOffset, meshOffset, materialOffset));
+        parts.emplace_back(fbs::CreateRawModelNode(builder, nameOffset, meshOffset, materialOffset));
     }
 
-    const Offset<Vector<Offset<fbs::RawModelElement>>> partsOffset    = builder.CreateVector(parts);
-    const Offset<fbs::RawModel>                        rawModelOffset = fbs::CreateRawModel(builder, partsOffset);
-    builder.Finish(rawModelOffset);
+    const Offset<Vector<Offset<fbs::RawModelNode>>> modelNodes = builder.CreateVector(parts);
+    const Offset<fbs::RawModel>                     rawModel   = fbs::CreateRawModel(builder, modelNodes, ToFlatBuffersTopology(m_topology), ToFlatBuffersVertexType(m_vertexType));
+    builder.Finish(rawModel);
 
     std::fstream fs(_path, std::ios::out | std::ios::binary);
     if (!fs.is_open())
@@ -163,8 +201,7 @@ bool ModelExporter::Export(const fs::path& _path) const
 
 void ModelExporter::Clear_()
 {
-    m_elements.clear();
-    m_bExported = false;
+    *this = ModelExporter();
 }
 
 }   // namespace jam

@@ -5,14 +5,15 @@
 namespace jam
 {
 
-struct RawModelElement
+struct RawModelNode
 {
     std::string  name;
-    MeshGeometry rawMesh;
+    MeshGeometry meshGeometry;
     Material     material;
 };
 
-struct ModelElement
+// for model runtime usage
+struct ModelNode
 {
     std::string name;
     Mesh        mesh;
@@ -22,17 +23,23 @@ struct ModelElement
 class Model
 {
 public:
-    void Initialize(std::span<const ModelElement> _parts);
-    void Initialize(std::span<const RawModelElement> _parts, eVertexType _vertexType, eTopology _topology);
-    bool LoadFromFile(const fs::path& _filePath, eVertexType _vertexType, eTopology _topology);
+    void Initialize(std::span<const RawModelNode> _parts, eVertexType _vertexType, eTopology _topology);
+    bool SaveToFile(const fs::path& _filePath) const;
+    bool LoadFromFile(const fs::path& _filePath);
 
-    NODISCARD std::vector<ModelElement>::iterator begin() { return m_elements.begin(); }
-    NODISCARD std::vector<ModelElement>::iterator end() { return m_elements.end(); }
-    NODISCARD std::vector<ModelElement>::const_iterator begin() const { return m_elements.cbegin(); }
-    NODISCARD std::vector<ModelElement>::const_iterator end() const { return m_elements.cend(); }
+    NODISCARD bool IsLoaded() const;
+    void           Unload();
+
+    NODISCARD eVertexType GetVertexType() const { return m_vertexType; }
+    NODISCARD eTopology   GetTopology() const { return m_topology; }
+
+    NODISCARD auto GetModelNodes() const { return std::span<const ModelNode>(m_nodes); }
+    NODISCARD auto GetModelNodesRef() { return std::span<ModelNode>(m_nodes); }
 
 private:
-    std::vector<ModelElement> m_elements;
+    std::vector<ModelNode> m_nodes;
+    eVertexType            m_vertexType = eVertexType::Vertex3;
+    eTopology              m_topology   = eTopology::TriangleList;
 };
 
 }   // namespace jam

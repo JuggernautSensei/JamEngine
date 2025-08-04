@@ -37,10 +37,19 @@ private:
 
     // post process
     PostProcess    m_postProcess;
-    CB_POSTPROCESS m_cbPostProcessCPU;
+    CB_POSTPROCESS m_cbPostProcess;
 
     // shaders
     ShaderProgram m_gBufferShader;
 
     // samplers
+    SamplerState m_samplerPointerClamp;
+    SamplerState m_samplerPointerWrap;
+    SamplerState m_samplerLinearClamp;
+    SamplerState m_samplerLinearWrap;
+    SamplerState m_samplerLinearAnisotropic4Wrap;
+    SamplerState m_samplerShadowComparisonLinearWrap;
+
+    // camera
+    Entity    m_cameraEntity;
 };

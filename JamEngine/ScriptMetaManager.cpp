@@ -3,6 +3,7 @@
 #include "ScriptMetaManager.h"
 
 #include "Entity.h"
+#include "Script.h"
 
 namespace
 {
@@ -31,7 +32,7 @@ bool ScriptMetaManager::IsRegistered(const std::string_view _scriptName)
     return map.contains(_scriptName);
 }
 
-std::unique_ptr<Script> ScriptMetaManager::CreateScript(std::string_view _scriptName, const Entity _owner)
+std::unique_ptr<Script> ScriptMetaManager::CreateScript(std::string_view _scriptName, const Entity& _owner)
 {
     JAM_ASSERT(_owner.IsValid(), "Owner entity is invalid");
 
@@ -45,7 +46,7 @@ std::unique_ptr<Script> ScriptMetaManager::CreateScript(std::string_view _script
     return meta.createCallback(_owner);
 }
 
-std::ranges::ref_view<std::unordered_map<std::string_view, ScriptMeta>> ScriptMetaManager::GetScriptMetaView() const
+std::ranges::ref_view<std::unordered_map<std::string_view, ScriptMeta>> ScriptMetaManager::GetContainer() const
 {
     auto& map = GetScriptMetaMap();
     return std::views::all(map);

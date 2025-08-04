@@ -30,7 +30,7 @@ void BlurDownFilter::Initialize(const UInt32 _width, const UInt32 _height, const
 void BlurDownFilter::Bind(const Texture2D& _inputTexture)
 {
     ImageFilter::Bind(_inputTexture);
-    ShaderCollection::GetBloomDownFilterShader().Bind();
+    ShaderCollection::BloomDownFilterShader().Bind();
 }
 
 void BlurUpFilter::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format)
@@ -41,7 +41,7 @@ void BlurUpFilter::Initialize(const UInt32 _width, const UInt32 _height, const D
 void BlurUpFilter::Bind(const Texture2D& _inputTexture)
 {
     ImageFilter::Bind(_inputTexture);
-    ShaderCollection::GetBloomUpFilterShader().Bind();
+    ShaderCollection::BloomUpFilterShader().Bind();
 }
 
 void CombineFilter::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, const Texture2D& _conbineDestinationTexture)
@@ -54,7 +54,7 @@ void CombineFilter::Bind(const Texture2D& _inputTexture)
 {
     ImageFilter::Bind(_inputTexture);
     m_combineDestinationTexture.BindAsShaderResource(eShader::PixelShader, k_postProcessInputTexture2Slot);
-    ShaderCollection::GetBloomCombineFilterShader().Bind();
+    ShaderCollection::BloomCombineFilterShader().Bind();
 }
 
 void FogFilter::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, const Texture2D& _depthTexture)
@@ -67,7 +67,7 @@ void FogFilter::Bind(const Texture2D& _inputTexture)
 {
     ImageFilter::Bind(_inputTexture);
     m_depthTexture.BindAsShaderResource(eShader::PixelShader, k_postProcessInputTexture2Slot);
-    ShaderCollection::GetFogFilterShader().Bind();
+    ShaderCollection::FogFilterShader().Bind();
 }
 
 void FXAAFilter::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, const eFXAAQuality _quality)
@@ -77,27 +77,27 @@ void FXAAFilter::Initialize(const UInt32 _width, const UInt32 _height, const DXG
     switch (_quality)
     {
         case eFXAAQuality::VeryLow:
-            m_shader = ShaderCollection::GetFXAAFilterQuality0Shader();
+            m_shader = ShaderCollection::FXAAFilterQuality0Shader();
             break;
 
         case eFXAAQuality::Low:
-            m_shader = ShaderCollection::GetFXAAFilterQuality1Shader();
+            m_shader = ShaderCollection::FXAAFilterQuality1Shader();
             break;
 
         case eFXAAQuality::Medium:
-            m_shader = ShaderCollection::GetFXAAFilterQuality2Shader();
+            m_shader = ShaderCollection::FXAAFilterQuality2Shader();
             break;
 
         case eFXAAQuality::High:
-            m_shader = ShaderCollection::GetFXAAFilterQuality3Shader();
+            m_shader = ShaderCollection::FXAAFilterQuality3Shader();
             break;
 
         case eFXAAQuality::VeryHigh:
-            m_shader = ShaderCollection::GetFXAAFilterQuality4Shader();
+            m_shader = ShaderCollection::FXAAFilterQuality4Shader();
             break;
 
         case eFXAAQuality::Ultra:
-            m_shader = ShaderCollection::GetFXAAFilterQuality5Shader();
+            m_shader = ShaderCollection::FXAAFilterQuality5Shader();
             break;
 
         default:
@@ -119,31 +119,31 @@ void ToneMappingFilter::Initialize(const UInt32 _width, const UInt32 _height, co
     switch (_type)
     {
         case eToneMappingFilterType::Uncharted2:
-            m_shader = ShaderCollection::GetToneMappingFilterUncharted2Shader();
+            m_shader = ShaderCollection::ToneMappingFilterUncharted2Shader();
             break;
 
         case eToneMappingFilterType::Reinhard:
-            m_shader = ShaderCollection::GetToneMappingFilterReinhardShader();
+            m_shader = ShaderCollection::ToneMappingFilterReinhardShader();
             break;
 
         case eToneMappingFilterType::WhitePreservingReinhard:
-            m_shader = ShaderCollection::GetToneMappingFilterWhitePreservingReinhardShader();
+            m_shader = ShaderCollection::ToneMappingFilterWhitePreservingReinhardShader();
             break;
 
         case eToneMappingFilterType::LumaBasedReinhard:
-            m_shader = ShaderCollection::GetToneMappingFilterLumaBasedReinhardShader();
+            m_shader = ShaderCollection::ToneMappingFilterLumaBasedReinhardShader();
             break;
 
         case eToneMappingFilterType::RombDaHouse:
-            m_shader = ShaderCollection::GetToneMappingFilterRombDaHouseShader();
+            m_shader = ShaderCollection::ToneMappingFilterRombDaHouseShader();
             break;
 
         case eToneMappingFilterType::Filmic:
-            m_shader = ShaderCollection::GetToneMappingFilterFilmicShader();
+            m_shader = ShaderCollection::ToneMappingFilterFilmicShader();
             break;
 
         case eToneMappingFilterType::Linear:
-            m_shader = ShaderCollection::GetToneMappingFilterLinearShader();
+            m_shader = ShaderCollection::ToneMappingFilterLinearShader();
             break;
 
         default:
@@ -166,7 +166,7 @@ void SamplingFilter::Initialize(const UInt32 _width, const UInt32 _height, const
 void SamplingFilter::Bind(const Texture2D& _inputTexture)
 {
     ImageFilter::Bind(_inputTexture);
-    ShaderCollection::GetSamplingFilterShader().Bind();
+    ShaderCollection::SamplingFilterShader().Bind();
 }
 
 }   // namespace jam

@@ -200,6 +200,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="BufferReader.cpp" />
     <ClCompile Include="Buffers.cpp" />
     <ClCompile Include="CompiledShaders.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -207,8 +210,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="EditorLayer.cpp" />
+    <ClCompile Include="IEditableComponent.cpp" />
     <ClCompile Include="ImageFilter.cpp" />
     <ClCompile Include="CBuffferCollection.cpp" />
+    <ClCompile Include="JsonUtilities.cpp" />
+    <ClCompile Include="ModelAsset.cpp" />
+    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="StateCollection.cpp" />
     <ClCompile Include="ShaderCollection.cpp" />
     <ClCompile Include="ColorUtilities.cpp" />
@@ -216,7 +224,7 @@
     <ClCompile Include="ComponentMetaManager.cpp" />
     <ClCompile Include="Components.cpp" />
     <ClCompile Include="EnumUtilities.cpp" />
-    <ClCompile Include="IComponentSerializable.cpp" />
+    <ClCompile Include="ISerializeableComponent.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntryPoint.cpp" />
     <ClCompile Include="Events.cpp" />
@@ -241,6 +249,7 @@
     <ClCompile Include="ScriptMetaManager.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
+    <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="Textures.cpp" />
     <ClCompile Include="TypeTrait.cpp" />
     <ClCompile Include="DataType.cpp" />
@@ -260,13 +269,22 @@
     <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
+    <ClCompile Include="EditComponentPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Asset.h" />
+    <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="BufferReader.h" />
     <ClInclude Include="Buffers.h" />
     <ClInclude Include="CompiledShaders.h" />
+    <ClInclude Include="EditorLayer.h" />
+    <ClInclude Include="IEditableComponent.h" />
     <ClInclude Include="ImageFilter.h" />
     <ClInclude Include="CBuffferCollection.h" />
+    <ClInclude Include="JsonUtilities.h" />
+    <ClInclude Include="ModelAsset.h" />
+    <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="StateCollection.h" />
     <ClInclude Include="ShaderCollection.h" />
     <ClInclude Include="ColorUtilities.h" />
@@ -274,7 +292,7 @@
     <ClInclude Include="ComponentMetaManager.h" />
     <ClInclude Include="Components.h" />
     <ClInclude Include="EnumUtilities.h" />
-    <ClInclude Include="IComponentSerializable.h" />
+    <ClInclude Include="ISerializeableComponent.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="ILayer.h" />
@@ -298,6 +316,7 @@
     <ClInclude Include="ScriptMetaManager.h" />
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="ShaderProgram.h" />
+    <ClInclude Include="TextureAsset.h" />
     <ClInclude Include="Textures.h" />
     <ClInclude Include="TypeTrait.h" />
     <ClInclude Include="DataType.h" />

@@ -35,7 +35,7 @@ public:
     NODISCARD Scene* GetActiveScene() const;
     NODISCARD Scene* GetScene(std::string_view _name) const;
 
-    NODISCARD decltype(auto) GetScenesView() const { return std::views::all(m_scenes); }
+    NODISCARD decltype(auto) GetContainer() const { return std::views::all(m_scenes); }
 
 private:
     std::unordered_map<std::string, std::unique_ptr<Scene>> m_scenes;

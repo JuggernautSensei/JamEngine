@@ -168,13 +168,6 @@ std::pair<UInt32, UInt32> Input::GetMouseDeltaPosition() noexcept
     return { deltaX, deltaY };
 }
 
-std::pair<UInt32, UInt32> Input::GetMousePositionDelta() noexcept
-{
-    const UInt32 deltaX = g_inputState.mouseX - g_inputState.mousePrevX;
-    const UInt32 deltaY = g_inputState.mouseY - g_inputState.mousePrevY;
-    return { deltaX, deltaY };
-}
-
 void Input::OnKeyDown_(const KeyDownEvent& _event)
 {
     const int vKey = _event.GetVKey();

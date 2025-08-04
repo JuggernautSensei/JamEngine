@@ -2,6 +2,7 @@
 
 #include "Scene.h"
 
+#include "Application.h"
 #include "Components.h"
 #include "Entity.h"
 
@@ -11,6 +12,12 @@ namespace jam
 Scene::Scene(const std::string_view _name)
     : m_name(_name)
 {
+}
+
+void Scene::Clear()
+{
+    ClearEntities();
+    m_assetManager.ClearAll();
 }
 
 Entity Scene::CreateEntity()
@@ -56,9 +63,25 @@ Entity Scene::CloneEntity(const Entity _entity)
     return e;
 }
 
+Entity Scene::GetEntity(const entt::entity _handle) const
+{
+    Entity e = { const_cast<Scene*>(this), _handle };
+    return e.IsValid() ? e : Entity::s_null;
+}
+
+Entity Scene::GetEntity(UInt32 _id) const
+{
+    return GetEntity(static_cast<entt::entity>(_id));
+}
+
 void Scene::DestroyEntity(const Entity _entity)
 {
-    m_registry.destroy(_entity.GetHandle());
+    // 바로 파괴하면 현 프레임에서 문제가 발생할 수 있기 때문에 지연처리
+    GetApplication().SubmitCommand(
+        [this, _entity]
+        {
+            m_registry.destroy(_entity.GetHandle());
+        });
 }
 
 }   // namespace jam

@@ -10,8 +10,12 @@ public:
     Entity() = default;
     Entity(Scene* _pScene, entt::entity _entity);
 
+    NODISCARD bool operator==(const Entity& _other) const;
+    NODISCARD bool operator!=(const Entity& _other) const { return !(*this == _other); }
+
     NODISCARD Scene* GetScene() const { return m_pScene; }
     NODISCARD entt::entity GetHandle() const { return m_entity; }
+    NODISCARD UInt32       GetID() const { return entt::to_integral(m_entity); }
 
     template<typename Ty, typename... Args>
     decltype(auto) CreateCompoenent(Args&&... args)

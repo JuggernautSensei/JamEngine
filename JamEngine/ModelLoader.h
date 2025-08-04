@@ -4,17 +4,24 @@
 namespace jam
 {
 
+struct ModelLoadData
+{
+    std::vector<RawModelNode> nodes;
+    eTopology                 topology   = eTopology::TriangleList;
+    eVertexType               vertexType = eVertexType::Vertex3;
+};
+
 class ModelLoader
 {
 public:
-    bool            Load(const fs::path& _path);
-    NODISCARD const std::vector<RawModelElement>& GetRawModelParts() const;
+    bool Load(const fs::path& _path);
+    NODISCARD const ModelLoadData& GetLoadData() const;
 
 private:
     void Clear_();
 
-    std::vector<RawModelElement> m_rawModelElems;   // 노드 데이터
-    bool                         m_bLoaded = false;
+    ModelLoadData m_loadData;
+    bool          m_bLoaded = false;
 };
 
 }   // namespace jam

@@ -7,7 +7,6 @@
 #include "Input.h"
 #include "Renderer.h"
 #include "SceneLayer.h"
-#include "WindowsUtilities.h"
 
 namespace
 {
@@ -24,7 +23,7 @@ namespace jam
 
 Application* Application::s_instance = nullptr;
 
-void Application::Create(const jam::CommandLineArguments& _args)
+void Application::Create(const CommandLineArguments& _args)
 {
     JAM_ASSERT(s_instance == nullptr, "Application instance already exists");
 
@@ -39,6 +38,13 @@ void Application::Create(const jam::CommandLineArguments& _args)
         // set base properties
         std::set_new_handler(OnNewFailed);
         std::locale::global(std::locale(""));
+
+        // create file system
+        fs::create_directory(s_instance->GetContentsDirectory());
+        fs::create_directory(s_instance->GetAssetsDirectory());
+        fs::create_directory(s_instance->GetModelsDirectory());
+        fs::create_directory(s_instance->GetTexturesDirectory());
+        fs::create_directory(s_instance->GetScenesDirectory());
 
         // initialize window
         s_instance->m_window.Initialize();
@@ -89,9 +95,14 @@ Application& Application::GetInstance()
 
 Application::Application(const ApplicationCreateInfo& _info)
     : m_applicationName(_info.applicationName)
-    , m_workingDirectory(_info.workingDirectory)
     , m_bRunning(true)
+    , m_workingDirectory(_info.workingDirectory)
 {
+    m_contentsDirectory = m_workingDirectory / k_jamContentsDirectory;
+    m_assetsDirectory   = m_contentsDirectory / k_jamAssetsDirectory;
+    m_modelsDirectory   = m_assetsDirectory / k_jamModelDirectory;
+    m_texturesDirectory = m_assetsDirectory / k_jamTextureDirectory;
+    m_scenesDirectory   = m_contentsDirectory / k_jamScenesDirectory;
 }
 
 int Application::Run()
@@ -167,7 +178,7 @@ void Application::DispatchEvent(Event& _event)
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
-    //Log::Debug("occurred event: {}", _event.ToString());
+    // Log::Debug("occurred event: {}", _event.ToString());
 
     // application event listener routine
     if (_event.GetHash() == WindowCloseEvent::k_staticHash)

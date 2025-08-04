@@ -19,7 +19,7 @@ public:
 
     // swap chain interface
     static void      Present(bool _bVSync);
-    static Texture2D GetBackBufferTexture();
+    static const Texture2D& GetBackBufferTexture();
 
     static NODISCARD ID3D11Device*        GetDevice();
     static NODISCARD ID3D11DeviceContext* GetDeviceContext();

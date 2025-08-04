@@ -29,11 +29,86 @@ struct MeshGeometryBuilder;
 struct Material;
 struct MaterialBuilder;
 
-struct RawModelElement;
-struct RawModelElementBuilder;
+struct RawModelNode;
+struct RawModelNodeBuilder;
 
 struct RawModel;
 struct RawModelBuilder;
+
+enum eTopology : int8_t {
+  eTopology_Undefined = 0,
+  eTopology_PointList = 1,
+  eTopology_LineList = 2,
+  eTopology_LineStrip = 3,
+  eTopology_TriangleList = 4,
+  eTopology_TriangleStrip = 5,
+  eTopology_MIN = eTopology_Undefined,
+  eTopology_MAX = eTopology_TriangleStrip
+};
+
+inline const eTopology (&EnumValueseTopology())[6] {
+  static const eTopology values[] = {
+    eTopology_Undefined,
+    eTopology_PointList,
+    eTopology_LineList,
+    eTopology_LineStrip,
+    eTopology_TriangleList,
+    eTopology_TriangleStrip
+  };
+  return values;
+}
+
+inline const char * const *EnumNameseTopology() {
+  static const char * const names[7] = {
+    "Undefined",
+    "PointList",
+    "LineList",
+    "LineStrip",
+    "TriangleList",
+    "TriangleStrip",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameeTopology(eTopology e) {
+  if (::flatbuffers::IsOutRange(e, eTopology_Undefined, eTopology_TriangleStrip)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNameseTopology()[index];
+}
+
+enum eVertexType : int8_t {
+  eVertexType_Vertex2 = 0,
+  eVertexType_Vertex3 = 1,
+  eVertexType_Vertex3PosOnly = 2,
+  eVertexType_MIN = eVertexType_Vertex2,
+  eVertexType_MAX = eVertexType_Vertex3PosOnly
+};
+
+inline const eVertexType (&EnumValueseVertexType())[3] {
+  static const eVertexType values[] = {
+    eVertexType_Vertex2,
+    eVertexType_Vertex3,
+    eVertexType_Vertex3PosOnly
+  };
+  return values;
+}
+
+inline const char * const *EnumNameseVertexType() {
+  static const char * const names[4] = {
+    "Vertex2",
+    "Vertex3",
+    "Vertex3PosOnly",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameeVertexType(eVertexType e) {
+  if (::flatbuffers::IsOutRange(e, eVertexType_Vertex2, eVertexType_Vertex3PosOnly)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNameseVertexType()[index];
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec2 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -405,8 +480,8 @@ inline ::flatbuffers::Offset<Material> CreateMaterial(
   return builder_.Finish();
 }
 
-struct RawModelElement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef RawModelElementBuilder Builder;
+struct RawModelNode FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef RawModelNodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_NAME = 4,
     VT_MESH = 6,
@@ -433,49 +508,49 @@ struct RawModelElement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
 };
 
-struct RawModelElementBuilder {
-  typedef RawModelElement Table;
+struct RawModelNodeBuilder {
+  typedef RawModelNode Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
-    fbb_.AddOffset(RawModelElement::VT_NAME, name);
+    fbb_.AddOffset(RawModelNode::VT_NAME, name);
   }
   void add_mesh(::flatbuffers::Offset<jam::fbs::MeshGeometry> mesh) {
-    fbb_.AddOffset(RawModelElement::VT_MESH, mesh);
+    fbb_.AddOffset(RawModelNode::VT_MESH, mesh);
   }
   void add_material(::flatbuffers::Offset<jam::fbs::Material> material) {
-    fbb_.AddOffset(RawModelElement::VT_MATERIAL, material);
+    fbb_.AddOffset(RawModelNode::VT_MATERIAL, material);
   }
-  explicit RawModelElementBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit RawModelNodeBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<RawModelElement> Finish() {
+  ::flatbuffers::Offset<RawModelNode> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<RawModelElement>(end);
+    auto o = ::flatbuffers::Offset<RawModelNode>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<RawModelElement> CreateRawModelElement(
+inline ::flatbuffers::Offset<RawModelNode> CreateRawModelNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<jam::fbs::MeshGeometry> mesh = 0,
     ::flatbuffers::Offset<jam::fbs::Material> material = 0) {
-  RawModelElementBuilder builder_(_fbb);
+  RawModelNodeBuilder builder_(_fbb);
   builder_.add_material(material);
   builder_.add_mesh(mesh);
   builder_.add_name(name);
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<RawModelElement> CreateRawModelElementDirect(
+inline ::flatbuffers::Offset<RawModelNode> CreateRawModelNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     ::flatbuffers::Offset<jam::fbs::MeshGeometry> mesh = 0,
     ::flatbuffers::Offset<jam::fbs::Material> material = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  return jam::fbs::CreateRawModelElement(
+  return jam::fbs::CreateRawModelNode(
       _fbb,
       name__,
       mesh,
@@ -485,16 +560,26 @@ inline ::flatbuffers::Offset<RawModelElement> CreateRawModelElementDirect(
 struct RawModel FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RawModelBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_PARTS = 4
+    VT_NODES = 4,
+    VT_TOPOLOGY = 6,
+    VT_VERTEX_TYPE = 8
   };
-  const ::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelElement>> *parts() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelElement>> *>(VT_PARTS);
+  const ::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelNode>> *nodes() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelNode>> *>(VT_NODES);
+  }
+  jam::fbs::eTopology topology() const {
+    return static_cast<jam::fbs::eTopology>(GetField<int8_t>(VT_TOPOLOGY, 4));
+  }
+  jam::fbs::eVertexType vertex_type() const {
+    return static_cast<jam::fbs::eVertexType>(GetField<int8_t>(VT_VERTEX_TYPE, 1));
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_PARTS) &&
-           verifier.VerifyVector(parts()) &&
-           verifier.VerifyVectorOfTables(parts()) &&
+           VerifyOffset(verifier, VT_NODES) &&
+           verifier.VerifyVector(nodes()) &&
+           verifier.VerifyVectorOfTables(nodes()) &&
+           VerifyField<int8_t>(verifier, VT_TOPOLOGY, 1) &&
+           VerifyField<int8_t>(verifier, VT_VERTEX_TYPE, 1) &&
            verifier.EndTable();
   }
 };
@@ -503,8 +588,14 @@ struct RawModelBuilder {
   typedef RawModel Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_parts(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelElement>>> parts) {
-    fbb_.AddOffset(RawModel::VT_PARTS, parts);
+  void add_nodes(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelNode>>> nodes) {
+    fbb_.AddOffset(RawModel::VT_NODES, nodes);
+  }
+  void add_topology(jam::fbs::eTopology topology) {
+    fbb_.AddElement<int8_t>(RawModel::VT_TOPOLOGY, static_cast<int8_t>(topology), 4);
+  }
+  void add_vertex_type(jam::fbs::eVertexType vertex_type) {
+    fbb_.AddElement<int8_t>(RawModel::VT_VERTEX_TYPE, static_cast<int8_t>(vertex_type), 1);
   }
   explicit RawModelBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -519,19 +610,27 @@ struct RawModelBuilder {
 
 inline ::flatbuffers::Offset<RawModel> CreateRawModel(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelElement>>> parts = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<jam::fbs::RawModelNode>>> nodes = 0,
+    jam::fbs::eTopology topology = jam::fbs::eTopology_TriangleList,
+    jam::fbs::eVertexType vertex_type = jam::fbs::eVertexType_Vertex3) {
   RawModelBuilder builder_(_fbb);
-  builder_.add_parts(parts);
+  builder_.add_nodes(nodes);
+  builder_.add_vertex_type(vertex_type);
+  builder_.add_topology(topology);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<RawModel> CreateRawModelDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<::flatbuffers::Offset<jam::fbs::RawModelElement>> *parts = nullptr) {
-  auto parts__ = parts ? _fbb.CreateVector<::flatbuffers::Offset<jam::fbs::RawModelElement>>(*parts) : 0;
+    const std::vector<::flatbuffers::Offset<jam::fbs::RawModelNode>> *nodes = nullptr,
+    jam::fbs::eTopology topology = jam::fbs::eTopology_TriangleList,
+    jam::fbs::eVertexType vertex_type = jam::fbs::eVertexType_Vertex3) {
+  auto nodes__ = nodes ? _fbb.CreateVector<::flatbuffers::Offset<jam::fbs::RawModelNode>>(*nodes) : 0;
   return jam::fbs::CreateRawModel(
       _fbb,
-      parts__);
+      nodes__,
+      topology,
+      vertex_type);
 }
 
 inline const jam::fbs::RawModel *GetRawModel(const void *buf) {

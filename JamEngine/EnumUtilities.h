@@ -19,7 +19,7 @@ NODISCARD constexpr E GetFirstValueEnum()
 }
 
 template<typename E>
-NODISCARD constexpr E GetValidEnum(const E _enum, const E _valueIfInvalid)
+NODISCARD constexpr E GetValidEnumOrDefault(const E _enum, const E _valueIfInvalid)
 {
     static_assert(std::is_enum_v<E>, "E must be an enum type");
     return magic_enum::enum_contains<E>(_enum) ? _enum : _valueIfInvalid;
@@ -30,6 +30,13 @@ NODISCARD constexpr auto EnumToInt(const E _enum)
 {
     static_assert(std::is_enum_v<E>, "E must be an enum type");
     return magic_enum::enum_integer<E>(_enum);
+}
+
+template<typename E>
+NODISCARD constexpr auto EnumCount()
+{
+    static_assert(std::is_enum_v<E>, "E must be an enum type");
+    return magic_enum::enum_count<E>();
 }
 
 template<typename E>
@@ -49,6 +56,12 @@ template<typename E>
 NODISCARD constexpr auto StringToEnum(const std::string_view _name)
 {
     return magic_enum::enum_cast<E>(_name);
+}
+
+template<typename E>
+NODISCARD constexpr auto EnumValues()
+{
+    return magic_enum::enum_values<E>();
 }
 
 }   // namespace jam

@@ -13,8 +13,8 @@ constexpr float k_epsilon  = 1e-6f;                     // epsilon constant for 
 constexpr float k_radToDeg = 180.f / k_pi;              // radian to degree conversion factor
 constexpr float k_degToRad = k_pi / 180.f;              // degree to radian conversion factor
 
-constexpr NODISCARD float ToRadians(const float degrees) { return degrees * k_degToRad; }
-constexpr NODISCARD float ToDegrees(const float radians) { return radians * k_radToDeg; }
+constexpr NODISCARD float ToRad(const float degrees) { return degrees * k_degToRad; }
+constexpr NODISCARD float ToDeg(const float radians) { return radians * k_radToDeg; }
 constexpr NODISCARD float Absolute(const float value) { return value < 0.f ? -value : value; }
 constexpr NODISCARD bool  IsNearlyEqual(const float a, const float b) { return Absolute(a - b) < k_epsilon; }
 constexpr NODISCARD bool  IsNearlyZero(const float value) { return Absolute(value) < k_epsilon; }
@@ -97,11 +97,11 @@ inline NODISCARD Mat4 CreateWorldMatrix(const Vec3& position, const Quat& rotati
     return Mat4::CreateScale(scale) * Mat4::CreateFromQuaternion(rotation) * Mat4::CreateTranslation(position);
 }
 
-NODISCARD Mat4        CreateViewMatrixFromDirection(const Vec3& position, const Vec3& lookDir);
-NODISCARD inline Mat4 CreateViewMatrixFromPoint(const Vec3& position, const Vec3& focusPoint)
+NODISCARD Mat4        CreateViewMatrix(const Vec3& _position, const Vec3& _forward);
+NODISCARD inline Mat4 CreateViewMatrixFromFocus(const Vec3& position, const Vec3& focusingPoint)
 {
-    const Vec3 lookDir = (focusPoint - position);
-    return CreateViewMatrixFromDirection(position, lookDir);
+    const Vec3 forwardDir = (focusingPoint - position);
+    return CreateViewMatrix(position, forwardDir);
 }
 
 NODISCARD inline Mat4 CreateOrthographicMatrix(const float width, const float height, const float nearZ, const float farZ)
@@ -122,6 +122,11 @@ NODISCARD inline Mat4 CreateOrthographicMatrix(const float left, const float rig
 NODISCARD inline Mat4 CreatePerspectiveMatrix(const float fovYRad, const float aspectRatio, const float nearZ, const float farZ)
 {
     return DirectX::XMMatrixPerspectiveFovLH(fovYRad, aspectRatio, nearZ, farZ);
+}
+
+NODISCARD inline Vec3 ToDeg(const Vec3& vec)
+{
+    return { ToDeg(vec.x), ToDeg(vec.y), ToDeg(vec.z) };
 }
 
 }   // namespace jam

@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 SCRIPT_DIR        = Path(__file__).resolve().parent
-FLATC_EXE         = SCRIPT_DIR / "flatc.exe"    
+FLATC_EXE         = "flatc.exe"    
 GENERATOR_OPTIONS = "--cpp"                  
 OUTPUT_DIRECTORY  = SCRIPT_DIR / "compiled"    
 

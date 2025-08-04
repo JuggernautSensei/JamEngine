@@ -183,7 +183,7 @@ ShaderProgramManagerState::ShaderProgramManagerState()
 namespace jam
 {
 
-ShaderProgram ShaderCollection::GetPBRGBufferShader()
+ShaderProgram ShaderCollection::PBRGBufferShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -194,7 +194,7 @@ ShaderProgram ShaderCollection::GetPBRGBufferShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetPBRForwardShader()
+ShaderProgram ShaderCollection::PBRForwardShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -205,7 +205,7 @@ ShaderProgram ShaderCollection::GetPBRForwardShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetPBRLightingShader()
+ShaderProgram ShaderCollection::PBRLightingShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -215,7 +215,7 @@ ShaderProgram ShaderCollection::GetPBRLightingShader()
     }();
     return s_shader;
 }
-ShaderProgram ShaderCollection::GetLightVolumeShader()
+ShaderProgram ShaderCollection::LightVolumeShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -226,7 +226,7 @@ ShaderProgram ShaderCollection::GetLightVolumeShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetSkyboxShader()
+ShaderProgram ShaderCollection::SkyboxShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -237,7 +237,7 @@ ShaderProgram ShaderCollection::GetSkyboxShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFullScreenQuadShader()
+ShaderProgram ShaderCollection::FullScreenQuadShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -248,7 +248,7 @@ ShaderProgram ShaderCollection::GetFullScreenQuadShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetBloomCombineFilterShader()
+ShaderProgram ShaderCollection::BloomCombineFilterShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -259,7 +259,7 @@ ShaderProgram ShaderCollection::GetBloomCombineFilterShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetBloomDownFilterShader()
+ShaderProgram ShaderCollection::BloomDownFilterShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -270,7 +270,7 @@ ShaderProgram ShaderCollection::GetBloomDownFilterShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetBloomUpFilterShader()
+ShaderProgram ShaderCollection::BloomUpFilterShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -281,7 +281,7 @@ ShaderProgram ShaderCollection::GetBloomUpFilterShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFogFilterShader()
+ShaderProgram ShaderCollection::FogFilterShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -292,7 +292,7 @@ ShaderProgram ShaderCollection::GetFogFilterShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetSamplingFilterShader()
+ShaderProgram ShaderCollection::SamplingFilterShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -303,7 +303,7 @@ ShaderProgram ShaderCollection::GetSamplingFilterShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetToneMappingFilterUncharted2Shader()
+ShaderProgram ShaderCollection::ToneMappingFilterUncharted2Shader()
 {
     static ShaderProgram s_shader = []
     {
@@ -314,7 +314,7 @@ ShaderProgram ShaderCollection::GetToneMappingFilterUncharted2Shader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetToneMappingFilterReinhardShader()
+ShaderProgram ShaderCollection::ToneMappingFilterReinhardShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -325,7 +325,7 @@ ShaderProgram ShaderCollection::GetToneMappingFilterReinhardShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetToneMappingFilterWhitePreservingReinhardShader()
+ShaderProgram ShaderCollection::ToneMappingFilterWhitePreservingReinhardShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -336,7 +336,7 @@ ShaderProgram ShaderCollection::GetToneMappingFilterWhitePreservingReinhardShade
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetToneMappingFilterLumaBasedReinhardShader()
+ShaderProgram ShaderCollection::ToneMappingFilterLumaBasedReinhardShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -347,7 +347,7 @@ ShaderProgram ShaderCollection::GetToneMappingFilterLumaBasedReinhardShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetToneMappingFilterRombDaHouseShader()
+ShaderProgram ShaderCollection::ToneMappingFilterRombDaHouseShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -358,7 +358,7 @@ ShaderProgram ShaderCollection::GetToneMappingFilterRombDaHouseShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetToneMappingFilterFilmicShader()
+ShaderProgram ShaderCollection::ToneMappingFilterFilmicShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -369,7 +369,7 @@ ShaderProgram ShaderCollection::GetToneMappingFilterFilmicShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetToneMappingFilterLinearShader()
+ShaderProgram ShaderCollection::ToneMappingFilterLinearShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -380,7 +380,7 @@ ShaderProgram ShaderCollection::GetToneMappingFilterLinearShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFXAAFilterQuality0Shader()
+ShaderProgram ShaderCollection::FXAAFilterQuality0Shader()
 {
     static ShaderProgram s_shader = []
     {
@@ -391,7 +391,7 @@ ShaderProgram ShaderCollection::GetFXAAFilterQuality0Shader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFXAAFilterQuality1Shader()
+ShaderProgram ShaderCollection::FXAAFilterQuality1Shader()
 {
     static ShaderProgram s_shader = []
     {
@@ -402,7 +402,7 @@ ShaderProgram ShaderCollection::GetFXAAFilterQuality1Shader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFXAAFilterQuality2Shader()
+ShaderProgram ShaderCollection::FXAAFilterQuality2Shader()
 {
     static ShaderProgram s_shader = []
     {
@@ -413,7 +413,7 @@ ShaderProgram ShaderCollection::GetFXAAFilterQuality2Shader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFXAAFilterQuality3Shader()
+ShaderProgram ShaderCollection::FXAAFilterQuality3Shader()
 {
     static ShaderProgram s_shader = []
     {
@@ -424,7 +424,7 @@ ShaderProgram ShaderCollection::GetFXAAFilterQuality3Shader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFXAAFilterQuality4Shader()
+ShaderProgram ShaderCollection::FXAAFilterQuality4Shader()
 {
     static ShaderProgram s_shader = []
     {
@@ -435,7 +435,7 @@ ShaderProgram ShaderCollection::GetFXAAFilterQuality4Shader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetFXAAFilterQuality5Shader()
+ShaderProgram ShaderCollection::FXAAFilterQuality5Shader()
 {
     static ShaderProgram s_shader = []
     {
@@ -446,7 +446,7 @@ ShaderProgram ShaderCollection::GetFXAAFilterQuality5Shader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetCascadeShadowMappingShader()
+ShaderProgram ShaderCollection::CascadeShadowMappingShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -457,7 +457,7 @@ ShaderProgram ShaderCollection::GetCascadeShadowMappingShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetOmniShadowMappingShader()
+ShaderProgram ShaderCollection::OmniShadowMappingShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -468,7 +468,7 @@ ShaderProgram ShaderCollection::GetOmniShadowMappingShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetShadowMappingShader()
+ShaderProgram ShaderCollection::ShadowMappingShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -479,7 +479,7 @@ ShaderProgram ShaderCollection::GetShadowMappingShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetSSAOBlurHorizontalShader()
+ShaderProgram ShaderCollection::SSAOBlurHorizontalShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -490,7 +490,7 @@ ShaderProgram ShaderCollection::GetSSAOBlurHorizontalShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetSSAOBlurVerticalShader()
+ShaderProgram ShaderCollection::SSAOBlurVerticalShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -501,7 +501,7 @@ ShaderProgram ShaderCollection::GetSSAOBlurVerticalShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetSSAO16SampleShader()
+ShaderProgram ShaderCollection::SSAO16SampleShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -512,7 +512,7 @@ ShaderProgram ShaderCollection::GetSSAO16SampleShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetSSAO32SampleShader()
+ShaderProgram ShaderCollection::SSAO32SampleShader()
 {
     static ShaderProgram s_shader = []
     {
@@ -523,7 +523,7 @@ ShaderProgram ShaderCollection::GetSSAO32SampleShader()
     return s_shader;
 }
 
-ShaderProgram ShaderCollection::GetSSAO64SampleShader()
+ShaderProgram ShaderCollection::SSAO64SampleShader()
 {
     static ShaderProgram s_shader = []
     {

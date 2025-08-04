@@ -5,7 +5,7 @@ namespace jam
 {
 
 class Script;
-using CreateScriptCallback = std::function<std::unique_ptr<Script>(Entity)>;
+using CreateScriptCallback = std::function<std::unique_ptr<Script>(const Entity&)>;
 
 struct ScriptMeta
 {
@@ -23,8 +23,8 @@ public:
     static void           RegisterScript(const ScriptMeta& _meta);
     NODISCARD static bool IsRegistered(std::string_view _scriptName);
 
-    NODISCARD static std::unique_ptr<Script> CreateScript(std::string_view _scriptName, Entity _owner);
-    NODISCARD std::ranges::ref_view<std::unordered_map<std::string_view, ScriptMeta>> GetScriptMetaView() const;
+    NODISCARD static std::unique_ptr<Script> CreateScript(std::string_view _scriptName, const Entity& _owner);
+    NODISCARD std::ranges::ref_view<std::unordered_map<std::string_view, ScriptMeta>> GetContainer() const;
 };
 
 template<typename T>

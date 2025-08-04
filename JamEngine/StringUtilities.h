@@ -55,7 +55,7 @@ public:
     void Append(const FString& other)
     {
         const size_t len = other.Size();
-        m_size     = std::min(m_size + len, k_availableCapacity);
+        m_size           = std::min(m_size + len, k_availableCapacity);
         std::memcpy(m_str + m_size, other.CStr(), len);
         m_str[m_size] = '\0';
     }

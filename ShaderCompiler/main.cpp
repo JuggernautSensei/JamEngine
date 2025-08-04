@@ -9,7 +9,7 @@ using namespace jam;
 #pragma comment(lib, "../JamEngine/bin/Release/JamEngine")
 #endif
 
-static FileDialogFilter k_jsonFilter[] = { {"JSON files", "json"} };
+static FileDialogFilter k_jsonFilter[] = { {"JSON files", "pJson"} };
 static FileDialogFilter k_hlslFilter[] = { {"HLSL files", "hlsl, hlsli"} };
 
 struct MyShaderMacro

@@ -2,51 +2,65 @@
 
 #include "Model.h"
 
+#include "ModelExporter.h"
 #include "ModelLoader.h"
 
 namespace jam
 {
 
-void Model::Initialize(const std::span<const ModelElement> _parts)
+void Model::Initialize(const std::span<const RawModelNode> _parts, const eVertexType _vertexType, const eTopology _topology)
 {
-    m_elements = std::vector<ModelElement>(_parts.begin(), _parts.end());
-}
-
-void Model::Initialize(const std::span<const RawModelElement> _parts, const eVertexType _vertexType, const eTopology _topology)
-{
-    m_elements.reserve(_parts.size());
-    for (const RawModelElement& partData: _parts)
+    m_nodes.reserve(_parts.size());
+    for (const RawModelNode& partData: _parts)
     {
-        MeshGeometry meshData;
-        meshData.vertices = partData.rawMesh.vertices;
-        meshData.indices  = partData.rawMesh.indices;
+        MeshGeometry geo;
+        geo.vertices = partData.meshGeometry.vertices;
+        geo.indices  = partData.meshGeometry.indices;
 
-        ModelElement newPart;
-        newPart.name     = partData.name;
-        newPart.material = partData.material;
-        newPart.mesh.Initialize(meshData, _vertexType, _topology);
-        m_elements.emplace_back(newPart);
+        ModelNode nodes;
+        nodes.name     = partData.name;
+        nodes.material = partData.material;
+        nodes.mesh.Initialize(geo, _vertexType, _topology);
+        m_nodes.emplace_back(nodes);
     }
 }
 
-bool Model::LoadFromFile(const fs::path& _filePath, const eVertexType _vertexType, const eTopology _topology)
+bool Model::LoadFromFile(const fs::path& _filePath)
 {
-    ModelLoader importer;
-    if (!importer.Load(_filePath))
+    ModelLoader loader;
+    if (!loader.Load(_filePath))
     {
-        JAM_ERROR("Failed to import model from file: {}", _filePath.string());
+        JAM_ERROR("Failed to load model from file: {}", _filePath.string());
         return false;
     }
 
-    const std::vector<RawModelElement>& rawParts = importer.GetRawModelParts();
-    if (rawParts.empty())
-    {
-        JAM_ERROR("No model parts found in imported model.");
-        return false;
-    }
-
-    Initialize(rawParts, _vertexType, _topology);
+    const ModelLoadData& loadData = loader.GetLoadData();
+    Initialize(loadData.nodes, loadData.vertexType, loadData.topology);
     return true;
+}
+
+bool Model::SaveToFile(const fs::path& _filePath) const
+{
+    JAM_ASSERT(IsLoaded(), "Model::SaveToFile() - Model is not loaded.");
+
+    ModelExporter exporter;
+    exporter.Load(*this);
+    if (!exporter.Export(_filePath))
+    {
+        JAM_ERROR("Failed to save model to file: {}", _filePath.string());
+        return false;
+    }
+    return true;
+}
+
+bool Model::IsLoaded() const
+{
+    return !m_nodes.empty();
+}
+
+void Model::Unload()
+{
+    m_nodes.clear();
 }
 
 }   // namespace jam

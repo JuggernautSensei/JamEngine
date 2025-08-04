@@ -5,7 +5,7 @@
 namespace jam
 {
 
-struct TagComponent : public IComponentSerializable<TagComponent>
+struct TagComponent : ISerializableComponent<TagComponent>, IEditableComponent<TagComponent>
 {
     JAM_COMPONENT(TagComponent);
 
@@ -21,12 +21,13 @@ struct TagComponent : public IComponentSerializable<TagComponent>
 
     // serialization
     NODISCARD Json Serialize() const;
-    void           Deserialize(const ComponentDeserializeData& _deserializeData);
+    void           Deserialize(const DeserializeParameter& _param);
+    void           DrawComponentEditor(const DrawComponentEditorParameter& _param);
 
     std::string name;
 };
 
-struct TransformComponent : public IComponentSerializable<TransformComponent>
+struct TransformComponent : ISerializableComponent<TransformComponent>, IEditableComponent<TransformComponent>
 {
     JAM_COMPONENT(TransformComponent);
 
@@ -37,39 +38,43 @@ struct TransformComponent : public IComponentSerializable<TransformComponent>
     NODISCARD Vec3 Left() const { return -Right(); }
     NODISCARD Vec3 Forward() const { return rotation * Vec3::UnitZ; }
     NODISCARD Vec3 Backward() const { return -Forward(); }
+
     NODISCARD Mat4 CreateWorldMatrix() const;
 
     // serialization
     NODISCARD Json Serialize() const;
-    void           Deserialize(const ComponentDeserializeData& _deserializeData);
+    void           Deserialize(const DeserializeParameter& _param);
 
     Vec3 position = Vec3::Zero;
     Quat rotation = Quat::Identity;
     Vec3 scale    = Vec3::One;
 };
 
-struct CameraComponent : public IComponentSerializable<CameraComponent>
+struct CameraComponent : ISerializableComponent<CameraComponent>, IEditableComponent<CameraComponent>
 {
     JAM_COMPONENT(CameraComponent);
 
+    NODISCARD Mat4 CreateViewMatrix(const Vec3& _position, const Vec3& _forward) const;
+    NODISCARD Mat4 CreateProjectionMatrix() const;
+
     // serialization
     NODISCARD Json Serialize() const;
-    void           Deserialize(const ComponentDeserializeData& _deserializeData);
+    void           Deserialize(const DeserializeParameter& _param);
 
     enum class eProjection
     {
         Perspective,
-        Orthographic,
+        Orthographic
     };
 
-    float       fovY        = 45.f;
+    float       fovY        = ToRad(45.f);
     float       nearZ       = 0.1f;
     float       farZ        = 1000.f;
     float       aspectRatio = 1.f;
     eProjection projection  = eProjection::Perspective;
 };
 
-struct ScriptComponent : public IComponentSerializable<ScriptComponent>
+struct ScriptComponent : ISerializableComponent<ScriptComponent>, IEditableComponent<ScriptComponent>
 {
     JAM_COMPONENT(ScriptComponent)
 
@@ -83,11 +88,20 @@ struct ScriptComponent : public IComponentSerializable<ScriptComponent>
     ScriptComponent(ScriptComponent&&)                 = default;
     ScriptComponent& operator=(ScriptComponent&&)      = default;
 
-    // serialization
+    // overrides
     NODISCARD Json Serialize() const;
-    void           Deserialize(const ComponentDeserializeData& _deserializeData);
+    void           Deserialize(const DeserializeParameter& _param);
 
     std::unique_ptr<Script> script;
 };
+
+//struct ModelComponent : public ISerializableComponent<ModelComponent>
+//{
+//    JAM_COMPONENT(ModelComponent);
+//
+//    // serialization
+//    NODISCARD Json Serialize() const;
+//    void           Deserialize(const DeserializeParameter& _param);
+//};
 
 }   // namespace jam

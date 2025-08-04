@@ -127,7 +127,7 @@
     <ClCompile Include="StateCollection.cpp">
       <Filter>2. Renderer\BuiltIn\States</Filter>
     </ClCompile>
-    <ClCompile Include="IComponentSerializable.cpp">
+    <ClCompile Include="ISerializeableComponent.cpp">
       <Filter>4. Scene\ECS\Component</Filter>
     </ClCompile>
     <ClCompile Include="Components.cpp">
@@ -153,6 +153,36 @@
     </ClCompile>
     <ClCompile Include="ImageFilter.cpp">
       <Filter>2. Renderer\PostProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="Asset.cpp">
+      <Filter>5. Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetManager.cpp">
+      <Filter>5. Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelAsset.cpp">
+      <Filter>5. Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureAsset.cpp">
+      <Filter>5. Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferReader.cpp">
+      <Filter>2. Renderer\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonUtilities.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSerializer.cpp">
+      <Filter>4. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorLayer.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="IEditableComponent.cpp">
+      <Filter>4. Scene\ECS\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="EditComponentPanel.cpp">
+      <Filter>4. Scene\ECS\Component</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -278,6 +308,9 @@
     </Filter>
     <Filter Include="2. Renderer\BuiltIn\Shader\BuiltInShaders\hlsl\Common">
       <UniqueIdentifier>{0c986585-0614-4a51-af27-013d217dd648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor">
+      <UniqueIdentifier>{ed21789a-ec9c-4244-b273-74e478329680}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -416,7 +449,7 @@
     <ClInclude Include="StateCollection.h">
       <Filter>2. Renderer\BuiltIn\States</Filter>
     </ClInclude>
-    <ClInclude Include="IComponentSerializable.h">
+    <ClInclude Include="ISerializeableComponent.h">
       <Filter>4. Scene\ECS\Component</Filter>
     </ClInclude>
     <ClInclude Include="Components.h">
@@ -442,6 +475,33 @@
     </ClInclude>
     <ClInclude Include="ImageFilter.h">
       <Filter>2. Renderer\PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="Asset.h">
+      <Filter>5. Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetManager.h">
+      <Filter>5. Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelAsset.h">
+      <Filter>5. Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAsset.h">
+      <Filter>5. Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferReader.h">
+      <Filter>2. Renderer\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonUtilities.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSerializer.h">
+      <Filter>4. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorLayer.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="IEditableComponent.h">
+      <Filter>4. Scene\ECS\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

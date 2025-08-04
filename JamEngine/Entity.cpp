@@ -15,4 +15,9 @@ Entity::Entity(Scene* _pScene, const entt::entity _entity)
     JAM_ASSERT(m_entity != entt::null, "Entity is null");
 }
 
+bool Entity::operator==(const Entity& _other) const
+{
+    return m_pScene == _other.m_pScene && m_entity == _other.m_entity;
+}
+
 }   // namespace jam

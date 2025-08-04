@@ -7,6 +7,7 @@
 #include "Event.h"
 #include "ShaderCompiler.h"
 #include "Textures.h"
+#include "Vertex.h"
 #include "WindowsUtilities.h"
 
 namespace
@@ -151,7 +152,7 @@ void Renderer::Present(const bool _bVSync)
     }
 }
 
-Texture2D Renderer::GetBackBufferTexture()
+const Texture2D& Renderer::GetBackBufferTexture()
 {
     return g_renderer.backBufferTexture;
 }

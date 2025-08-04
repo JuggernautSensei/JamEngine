@@ -77,8 +77,9 @@ namespace jam
 void Texture2D::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, eResourceAccess _access, const eViewFlags _viewFlags, const UInt32 _arraySize, const UInt32 _samples, const bool _bGenerateMips, const bool _bCubemap, const std::optional<Texture2DInitializeData>& _initializeData)
 {
     // reset
-    *this = Texture2D();
+    Reset();
 
+    // validate parameters
     D3D11_TEXTURE2D_DESC desc;
     desc.Width              = _width;
     desc.Height             = _height;
@@ -90,8 +91,7 @@ void Texture2D::Initialize(const UInt32 _width, const UInt32 _height, const DXGI
     desc.Usage              = GetD3D11Usage(_access);
     desc.CPUAccessFlags     = GetD3D11AccessFlags(_access);
     desc.BindFlags          = GetD3D11BindFlags(_viewFlags);
-
-    desc.MiscFlags = 0;
+    desc.MiscFlags          = 0;
     if (_bCubemap) desc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
     if (_bGenerateMips) desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
@@ -100,8 +100,8 @@ void Texture2D::Initialize(const UInt32 _width, const UInt32 _height, const DXGI
         JAM_ASSERT(_initializeData, "Initial data must be provided for immutable texture");
     }
 
+    // create texture
     Renderer::CreateTexture2D(desc, _initializeData, m_texture.GetAddressOf());
-
     m_width      = desc.Width;
     m_height     = desc.Height;
     m_format     = desc.Format;
@@ -118,7 +118,7 @@ void Texture2D::InitializeFromSwapChain(IDXGISwapChain* _pSwapChain)
     JAM_ASSERT(_pSwapChain, "Swap chain pointer is null");
 
     // reset
-    *this = Texture2D();
+    Reset();
 
     HRESULT hr;
     hr = _pSwapChain->GetBuffer(0, IID_PPV_ARGS(m_texture.GetAddressOf()));
@@ -143,7 +143,7 @@ void Texture2D::InitializeFromSwapChain(IDXGISwapChain* _pSwapChain)
 bool Texture2D::LoadFromFile(const fs::path& _filePath, const eResourceAccess _access, const eViewFlags _viewFlags, const bool _bGenrateMips, const bool _bInverseGamma, bool _bCubeMap)
 {
     // reset
-    *this = Texture2D();
+    Reset();
 
     DirectX::TexMetadata  metadata;
     DirectX::ScratchImage scratchImage;
@@ -259,6 +259,88 @@ bool Texture2D::LoadFromFile(const fs::path& _filePath, const eResourceAccess _a
     m_access     = _access;
     m_viewFlags  = _viewFlags;
     return true;
+}
+
+bool Texture2D::SaveToFile(const fs::path& _filePath) const
+{
+    JAM_ASSERT(m_texture, "Texture2D is not initialized. Cannot save to file.");
+
+    DirectX::ScratchImage scratchImage;
+    HRESULT               hr;
+
+    hr = DirectX::CaptureTexture(Renderer::GetDevice(), Renderer::GetDeviceContext(), m_texture.Get(), scratchImage);
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Failed to capture texture for saving. HRESULT: {}", GetSystemErrorMessage(hr));
+        return false;
+    }
+
+    const fs::path     fileExtension      = _filePath.extension();
+    const std::wstring lowerFileExtension = ToLower(fileExtension.native());
+    switch (HashOf(lowerFileExtension))
+    {
+        case L".dds"_hs:
+            hr = DirectX::SaveToDDSFile(*scratchImage.GetImages(), DirectX::DDS_FLAGS_NONE, _filePath.c_str());
+            break;
+
+        case L".hdr"_hs:
+            hr = DirectX::SaveToHDRFile(*scratchImage.GetImages(), _filePath.c_str());
+            break;
+
+        case L".exr"_hs:
+            hr = DirectX::SaveToEXRFile(*scratchImage.GetImages(), _filePath.c_str());
+            break;
+
+        case L".tga"_hs:
+            hr = DirectX::SaveToTGAFile(*scratchImage.GetImages(), _filePath.c_str());
+            break;
+
+        case L".png"_hs:
+            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), _filePath.c_str());
+            break;
+
+        case L".jpg"_hs:
+        case L".jpeg"_hs:
+            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_JPEG), _filePath.c_str());
+            break;
+
+        case L".bmp"_hs:
+            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_BMP), _filePath.c_str());
+            break;
+
+        case L".gif"_hs:
+            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_GIF), _filePath.c_str());
+            break;
+
+        case L".ico"_hs:
+            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_ICO), _filePath.c_str());
+            break;
+
+        case L".heif"_hs:
+        case L".heic"_hs:
+            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_HEIF), _filePath.c_str());
+            break;
+
+        default:
+            hr = E_FAIL;
+    }
+
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Unsupported texture file format: '{}'. Supported formats are: .dds, .hdr, .exr, .tga, .png, .jpg, .jpeg, .bmp, .gif, .ico, .heif, .heic", _filePath.string());
+        return false;
+    }
+
+    return true;
+}
+
+void Texture2D::CopyFrom(const Texture2D& _other) const
+{
+    JAM_ASSERT(m_texture, "Texture2D is not initialized. Cannot copy from another texture.");
+    JAM_ASSERT(_other.m_texture, "Source texture is not initialized. Cannot copy from it.");
+
+    ID3D11DeviceContext* pContext = Renderer::GetDeviceContext();
+    pContext->CopyResource(m_texture.Get(), _other.m_texture.Get());
 }
 
 void Texture2D::AttachSRV(DXGI_FORMAT _format)

@@ -7,6 +7,17 @@ DemoScene::DemoScene(const std::string_view& _name)
 {
     m_dispatcher.AddListener<BackBufferCleanupEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(DemoScene::OnSwapChainResourceReleaseEvent_));
     m_dispatcher.AddListener<WindowResizeEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(DemoScene::OnWindowResizeEvent_));
+
+    // shaders
+    m_gBufferShader = ShaderCollection::PBRGBufferShader();
+
+    // samplers
+    m_samplerLinearWrap                 = StateCollection::SamplerLinearWrap();
+    m_samplerLinearClamp                = StateCollection::SamplerLinearClamp();
+    m_samplerPointerWrap                = StateCollection::SamplerPointWrap();
+    m_samplerPointerClamp               = StateCollection::SamplerPointClamp();
+    m_samplerLinearAnisotropic4Wrap     = StateCollection::SamplerLinearAnisotropic4Wrap();
+    m_samplerShadowComparisonLinearWrap = StateCollection::SamplerShadowComparisonLinearWrap();
 }
 
 void DemoScene::OnEnter()
@@ -16,7 +27,19 @@ void DemoScene::OnEnter()
     auto [width, height] = window.GetWindowSize();
     CreateScreenDependentResources_(width, height);
 
-    m_gBufferShader = ShaderCollection::PBRGBufferShader();
+    // camera entity
+    {
+        m_cameraEntity = CreateEntity();
+        m_cameraEntity.CreateCompoenent<CameraComponent>();
+    }
+
+    // post-process
+    {
+        m_cbPostProcess.cb_postProcessBlurRadius      = 0.04f;
+        m_cbPostProcess.cb_postProcessCombineStrength = 1.f;
+        m_cbPostProcess.cb_postProcessExposure        = 1.f;
+        m_cbPostProcess.cb_postProcessGamma           = 2.2f;
+    }
 }
 
 void DemoScene::OnUpdate(float _deltaTime)
@@ -26,24 +49,53 @@ void DemoScene::OnUpdate(float _deltaTime)
 void DemoScene::OnRender()
 {
     // bind sampler states
+    {
+        ID3D11SamplerState* samplers[] = {
+            m_samplerPointerClamp.Get(),
+            m_samplerPointerWrap.Get(),
+            m_samplerLinearClamp.Get(),
+            m_samplerLinearWrap.Get(),
+            m_samplerLinearAnisotropic4Wrap.Get(),
+            m_samplerShadowComparisonLinearWrap.Get()
+        };
+
+        Renderer::BindSamplerStates(eShader::VertexShader, 0, samplers);
+        Renderer::BindSamplerStates(eShader::PixelShader, 0, samplers);
+    }
 
     // update camera
+    {
+        auto& [cmrT, cmr] = m_cameraEntity.GetComponent<TransformComponent, CameraComponent>();
 
-    // clear gbuffer textures
-    m_gBufferNormalTexture.ClearRenderTarget(k_pColorZero);
-    m_gBufferAlbedoRoughnessTexture.ClearRenderTarget(k_pColorZero);
-    m_gBufferMetallicAOTexture.ClearRenderTarget(k_pColorZero);
-    m_gBufferEmissionTexture.ClearRenderTarget(k_pColorZero);
-    m_depthTexture.ClearDepthStencil(true, false, 1.f, 0);
+        CB_CAMERA cbCamera;
+        cbCamera.cb_cameraPosition       = cmrT.position;
+        cbCamera.cb_cameraViewMat        = cmr.CreateViewMatrix(cmrT.position, cmrT.Forward());
+        cbCamera.cb_cameraProjMat        = cmr.CreateProjectionMatrix();
+        cbCamera.cb_cameraViewProjInvMat = (cbCamera.cb_cameraViewMat * cbCamera.cb_cameraProjMat).Invert();
 
-    // bind gbuffer textures as render targets
-    ID3D11RenderTargetView* rtvArray[] = {
-        m_gBufferNormalTexture.GetRTV(),
-        m_gBufferAlbedoRoughnessTexture.GetRTV(),
-        m_gBufferMetallicAOTexture.GetRTV(),
-        m_gBufferEmissionTexture.GetRTV()
-    };
-    Renderer::BindRenderTargetViews(rtvArray, m_depthTexture.GetDSV());
+        ConstantBufferCollection::Upload(cbCamera);
+    }
+
+    // g-buffer pass
+    {
+        // clear gbuffer textures
+        m_gBufferNormalTexture.ClearRenderTarget(k_pColorZero);
+        m_gBufferAlbedoRoughnessTexture.ClearRenderTarget(k_pColorZero);
+        m_gBufferMetallicAOTexture.ClearRenderTarget(k_pColorZero);
+        m_gBufferEmissionTexture.ClearRenderTarget(k_pColorZero);
+        m_depthTexture.ClearDepthStencil(true, false, 1.f, 0);
+
+        // bind gbuffer textures as render targets
+        ID3D11RenderTargetView* rtvArray[] = {
+            m_gBufferNormalTexture.GetRTV(),
+            m_gBufferAlbedoRoughnessTexture.GetRTV(),
+            m_gBufferMetallicAOTexture.GetRTV(),
+            m_gBufferEmissionTexture.GetRTV()
+        };
+        Renderer::BindRenderTargetViews(rtvArray, m_depthTexture.GetDSV());
+
+        // render
+    }
 
     // bind viewport
     m_viewport.Bind();

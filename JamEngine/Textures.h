@@ -20,6 +20,10 @@ public:
     void Initialize(UInt32 _width, UInt32 _height, DXGI_FORMAT _format, eResourceAccess _access = eResourceAccess::Immutable, eViewFlags _viewFlags = eViewFlags_ShaderResource, UInt32 _arraySize = 1, UInt32 _samples = 1, bool _bGenerateMips = false, bool _bCubemap = false, const std::optional<Texture2DInitializeData>& _initializeData = std::nullopt);
     void InitializeFromSwapChain(IDXGISwapChain* _pSwapChain);
     bool LoadFromFile(const fs::path& _filePath, eResourceAccess _access = eResourceAccess::Immutable, eViewFlags _viewFlags = eViewFlags_ShaderResource, bool _bGenrateMips = false, bool _bInverseGamma = false, bool _bCubeMap = false);
+    bool SaveToFile(const fs::path& _filePath) const;
+
+    // copy
+    void CopyFrom(const Texture2D& _other) const;
 
     // attachments
     void AttachSRV(DXGI_FORMAT _format = DXGI_FORMAT_UNKNOWN);   // if _format is DXGI_FORMAT_UNKNOWN, the format will be the same as the texture format
@@ -44,6 +48,10 @@ public:
     NODISCARD bool IsCubemap() const { return m_bIsCubemap; }
     NODISCARD bool HasMips() const { return m_bHasMips; }
     NODISCARD bool IsArray() const { return m_arraySize > 1; }
+
+    NODISCARD std::pair<UInt32, UInt32> GetSize() const { return { m_width, m_height }; }
+    NODISCARD UInt32                    GetArraySize() const { return m_arraySize; }
+    NODISCARD UInt32                    GetSampleCount() const { return m_samples; }
 
     // d3d11 accessors
     NODISCARD ID3D11Texture2D*          Get() const { return m_texture.Get(); }

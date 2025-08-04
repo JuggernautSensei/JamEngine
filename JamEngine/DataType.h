@@ -14,7 +14,7 @@ using UInt16 = std::uint16_t;
 using UInt32 = std::uint32_t;
 using UInt64 = std::uint64_t;
 
-// json
+// m_json
 using Json = nlohmann::json;
 
 // rendering

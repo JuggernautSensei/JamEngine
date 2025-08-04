@@ -13,15 +13,15 @@ class ModelImporter
 {
 public:
     bool            Import(const fs::path& _path);
-    NODISCARD const std::vector<RawModelElement>& GetRawModelParts() const;
+    NODISCARD const std::vector<RawModelNode>& GetRawModelNodes() const;
 
 private:
     void Clear_();
     void ProcessNode_(const aiNode* node, const aiScene* scene);
     void ProcessMesh_(const aiMesh* mesh, const aiScene* scene);
 
-    std::vector<RawModelElement> m_rawModelElems;   // 노드 데이터
-    bool                         m_bImported = false;
+    std::vector<RawModelNode> m_rawModelElems;   // 노드 데이터
+    bool                      m_bImported = false;
 };
 
 }   // namespace jam

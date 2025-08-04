@@ -32,11 +32,11 @@ bool ModelImporter::Import(const fs::path& _path)
     return true;
 }
 
-const std::vector<RawModelElement>& ModelImporter::GetRawModelParts() const
+const std::vector<RawModelNode>& ModelImporter::GetRawModelNodes() const
 {
     if (!m_bImported)
     {
-        JAM_ERROR("ModelImporter::GetRawModelParts() - Model not imported yet.");
+        JAM_ERROR("ModelImporter::GetRawModelNodes() - Model not imported yet.");
         throw std::runtime_error("Model not imported yet.");
     }
     return m_rawModelElems;
@@ -64,14 +64,14 @@ void ModelImporter::ProcessNode_(const aiNode* node, const aiScene* scene)
 
 void ModelImporter::ProcessMesh_(const aiMesh* mesh, const aiScene* scene)
 {
-    RawModelElement node;
+    RawModelNode node;
 
     // 이름
     node.name = mesh->mName.C_Str();
 
     // 메시
     {
-        MeshGeometry& meshGeometry = node.rawMesh;
+        MeshGeometry& meshGeometry = node.meshGeometry;
 
         std::vector<VertexAttribute>& vertices = meshGeometry.vertices;
         vertices.reserve(mesh->mNumVertices);

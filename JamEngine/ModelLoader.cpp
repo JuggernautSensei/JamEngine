@@ -20,6 +20,35 @@ NODISCARD jam::Vec2 ToJamVec2(const jam::fbs::Vec2& vec)
     return { vec.x(), vec.y() };
 }
 
+NODISCARD jam::eVertexType ToJamVertexType(const jam::fbs::eVertexType vertexType)
+{
+    switch (vertexType)
+    {
+        case jam::fbs::eVertexType_Vertex2: return jam::eVertexType::Vertex2;
+        case jam::fbs::eVertexType_Vertex3: return jam::eVertexType::Vertex3;
+        case jam::fbs::eVertexType_Vertex3PosOnly: return jam::eVertexType::Vertex3PosOnly;
+        default:
+            JAM_ERROR("Unknown vertex type");
+            return jam::eVertexType::Vertex3;   // Default fallback
+    }
+}
+
+NODISCARD jam::eTopology ToJamTopology(const jam::fbs::eTopology topology)
+{
+    switch (topology)
+    {
+        case jam::fbs::eTopology_Undefined: return jam::eTopology::Undefined;
+        case jam::fbs::eTopology_PointList: return jam::eTopology::PointList;
+        case jam::fbs::eTopology_LineList: return jam::eTopology::LineList;
+        case jam::fbs::eTopology_LineStrip: return jam::eTopology::LineStrip;
+        case jam::fbs::eTopology_TriangleList: return jam::eTopology::TriangleList;
+        case jam::fbs::eTopology_TriangleStrip: return jam::eTopology::TriangleStrip;
+        default:
+            JAM_ERROR("Unknown topology type");
+            return jam::eTopology::TriangleList;   // Default fallback
+    }
+}
+
 }   // namespace
 
 namespace jam
@@ -27,10 +56,10 @@ namespace jam
 
 bool ModelLoader::Load(const fs::path& _path)
 {
-    std::wstring_view extension = _path.extension().native();
-    if (extension != k_jamModelExtensionW)
+    std::wstring ext = ToLower(_path.extension().native());
+    if (ext != k_jamModelExtensionW)
     {
-        JAM_ERROR("Invalid model file extension: {}. Expected: {}", ConvertToString(extension), ConvertToString(k_jamModelExtensionW));
+        JAM_ERROR("Invalid model file extension: {}. Expected: {}", ConvertToString(ext), ConvertToString(k_jamModelExtensionW));
         return false;
     }
 
@@ -68,16 +97,16 @@ bool ModelLoader::Load(const fs::path& _path)
         return false;
     }
 
-    m_rawModelElems.reserve(rawModel->parts()->size());
-    for (const fbs::RawModelElement* rawPart: *rawModel->parts())
+    m_loadData.nodes.reserve(rawModel->nodes()->size());
+    for (const fbs::RawModelNode* rawPart: *rawModel->nodes())
     {
-        RawModelElement part;
+        RawModelNode part;
         part.name = rawPart->name()->str();
 
         // Mesh
         {
             const fbs::MeshGeometry* rawMesh = rawPart->mesh();
-            part.rawMesh.vertices.reserve(rawMesh->vertices()->size());
+            part.meshGeometry.vertices.reserve(rawMesh->vertices()->size());
             for (const fbs::VertexAttribute* vertex: *rawMesh->vertices())
             {
                 VertexAttribute vertexData;
@@ -88,10 +117,10 @@ bool ModelLoader::Load(const fs::path& _path)
                 vertexData.uv1       = ToJamVec2(*vertex->uv1());
                 vertexData.tangent   = ToJamVec3(*vertex->tangent());
                 vertexData.bitangent = ToJamVec3(*vertex->bitangent());
-                part.rawMesh.vertices.emplace_back(std::move(vertexData));
+                part.meshGeometry.vertices.emplace_back(std::move(vertexData));
             }
 
-            part.rawMesh.indices.assign(rawMesh->indices()->begin(), rawMesh->indices()->end());
+            part.meshGeometry.indices.assign(rawMesh->indices()->begin(), rawMesh->indices()->end());
         }
 
         // Material
@@ -110,23 +139,24 @@ bool ModelLoader::Load(const fs::path& _path)
             part.material.emissiveScale     = material->emissive_scale();
             part.material.displacementScale = material->displacement_scale();
         }
-        m_rawModelElems.emplace_back(std::move(part));
+        m_loadData.nodes.emplace_back(std::move(part));
     }
 
-    m_bLoaded = true;
+    m_loadData.topology   = ToJamTopology(rawModel->topology());
+    m_loadData.vertexType = ToJamVertexType(rawModel->vertex_type());
+    m_bLoaded             = true;
     return true;
 }
 
-const std::vector<RawModelElement>& ModelLoader::GetRawModelParts() const
+const ModelLoadData& ModelLoader::GetLoadData() const
 {
-    JAM_ASSERT(m_bLoaded, "ModelLoader::GetRawModelParts() - Model not loaded yet.");
-    return m_rawModelElems;
+    JAM_ASSERT(m_bLoaded, "ModelLoader::GetLoadData() - Model not loaded yet.");
+    return m_loadData;
 }
 
 void ModelLoader::Clear_()
 {
-    m_rawModelElems.clear();
-    m_bLoaded = false;
+    *this = ModelLoader();
 }
 
 }   // namespace jam

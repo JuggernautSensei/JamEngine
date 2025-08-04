@@ -1,17 +1,16 @@
 #pragma once
 #include "RendererCommons.h"
-#include "Vertex.h"
 
 namespace jam
 {
 
+// d3d11 buffer wrapper
 class Buffer
 {
 public:
     // utility
-    void      CopyFrom(const Buffer& _other) const;
-    void      Upload(UInt32 _dataByteWidth, const void* _pData, UInt32 _offset = 0) const;
-    NODISCARD std::optional<std::vector<UInt8>> Download() const;
+    void CopyFrom(const Buffer& _other) const;
+    void Upload(UInt32 _dataByteWidth, const void* _pData, UInt32 _offset = 0) const;
 
     // getters
     NODISCARD ID3D11Buffer* const* GetAddressOf() const { return m_buffer.GetAddressOf(); }
@@ -24,13 +23,14 @@ public:
 
 protected:
     Buffer() = default;
-    void Initialize_(UInt32 _byteWidth, UINT _bindFlag, eResourceAccess _access, const std::optional<BufferInitializeData>& _initializeData = std::nullopt);
+    void Initialize_(UInt32 _byteWidth, UInt32 _bindFlag, eResourceAccess _access, const std::optional<BufferInitializeData>& _initializeData = std::nullopt);
 
     ComPtr<ID3D11Buffer> m_buffer    = nullptr;
-    UInt32               m_byteWidth = 0;
     eResourceAccess      m_access    = eResourceAccess::Immutable;
+    UInt32               m_byteWidth = 0;
 };
 
+// vertex buffer wrapper
 class VertexBuffer : public Buffer
 {
 public:
@@ -44,6 +44,7 @@ private:
     UInt32 m_stride = 0;   // vertex stride in bytes, used for binding
 };
 
+// index buffer wrapper - 32-bit index (fixed)
 class IndexBuffer : public Buffer
 {
 public:
@@ -54,11 +55,20 @@ public:
     NODISCARD UInt32           GetIndexCount() const { return m_byteWidth / GetStride(); }
 };
 
+// constant buffer wrapper - dynamic buffer
 class ConstantBuffer : public Buffer
 {
 public:
     void Initialize(UInt32 _byteWidth, const std::optional<BufferInitializeData>& _initializeData = std::nullopt);
     void Bind(eShader _shader, UInt32 _slot) const;
+};
+
+// staging buffer wrapper
+class StagingBuffer : public Buffer
+{
+public:
+    void      Initialize(UInt32 _byteWidth);
+    NODISCARD std::optional<std::vector<UInt8>> ReadData() const;
 };
 
 }   // namespace jam

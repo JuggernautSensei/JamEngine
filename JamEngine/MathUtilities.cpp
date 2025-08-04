@@ -5,14 +5,14 @@
 namespace jam
 {
 
-Mat4 CreateViewMatrixFromDirection(const Vec3& position, const Vec3& lookDir)
+Mat4 CreateViewMatrix(const Vec3& _position, const Vec3& _forward)
 {
     using namespace DirectX;
 
-    assert(!XMVector3Equal(lookDir, XMVectorZero()));
-    assert(!XMVector3IsInfinite(lookDir));
+    assert(!XMVector3Equal(_forward, XMVectorZero()));
+    assert(!XMVector3IsInfinite(_forward));
 
-    const XMVECTOR viewDir = XMVector3Normalize(lookDir);
+    const XMVECTOR viewDir = XMVector3Normalize(_forward);
     const XMVECTOR worldUp = Vec3::Up;
 
     XMVECTOR rightDir = XMVector3Cross(worldUp, viewDir);
@@ -24,7 +24,7 @@ Mat4 CreateViewMatrixFromDirection(const Vec3& position, const Vec3& lookDir)
     rightDir = XMVector3Normalize(rightDir);
 
     const XMVECTOR upDir = XMVector3Cross(viewDir, rightDir);
-    const XMVECTOR negPosition = XMVectorNegate(position);
+    const XMVECTOR negPosition = XMVectorNegate(_position);
 
     const XMVECTOR dotX = XMVector3Dot(rightDir, negPosition);
     const XMVECTOR dotY = XMVector3Dot(upDir, negPosition);

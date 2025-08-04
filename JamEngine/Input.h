@@ -160,7 +160,6 @@ public:
     NODISCARD static std::pair<UInt32, UInt32> GetMousePosition() noexcept;
     NODISCARD static Int32                     GetMouseWheelDelta() noexcept;
     NODISCARD static std::pair<UInt32, UInt32> GetMouseDeltaPosition() noexcept;
-    NODISCARD static std::pair<UInt32, UInt32> GetMousePositionDelta() noexcept;
 
 private:
     static void OnKeyDown_(const KeyDownEvent& _event);

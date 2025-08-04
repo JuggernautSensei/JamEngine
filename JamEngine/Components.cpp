@@ -28,10 +28,9 @@ Json TagComponent::Serialize() const
     return json;
 }
 
-void TagComponent::Deserialize(const ComponentDeserializeData& _deserializeData)
+void TagComponent::Deserialize(const DeserializeParameter& _param)
 {
-    const Json& json = _deserializeData.json;
-    name             = json.value("name", "unknown");
+    name = _param.pJson->value("name", "unknown");
 }
 
 Mat4 TransformComponent::CreateWorldMatrix() const
@@ -48,12 +47,29 @@ Json TransformComponent::Serialize() const
     return json;
 }
 
-void TransformComponent::Deserialize(const ComponentDeserializeData& _deserializeData)
+void TransformComponent::Deserialize(const DeserializeParameter& _param)
 {
-    const Json& json = _deserializeData.json;
-    position         = json.value("position", Vec3::Zero);
-    rotation         = json.value("rotation", Quat::Identity);
-    scale            = json.value("scale", Vec3::One);
+    const Json* json = _param.pJson;
+    position         = json->value("position", Vec3::Zero);
+    rotation         = json->value("rotation", Quat::Identity);
+    scale            = json->value("scale", Vec3::One);
+}
+
+Mat4 CameraComponent::CreateViewMatrix(const Vec3& _position, const Vec3& _forward) const
+{
+    return jam::CreateViewMatrix(_position, _forward);
+}
+
+Mat4 CameraComponent::CreateProjectionMatrix() const
+{
+    if (projection == eProjection::Perspective)
+    {
+        return CreatePerspectiveMatrix(fovY, aspectRatio, nearZ, farZ);
+    }
+    else
+    {
+        return CreateOrthographicMatrix(aspectRatio, nearZ, farZ);
+    }
 }
 
 Json CameraComponent::Serialize() const
@@ -67,15 +83,15 @@ Json CameraComponent::Serialize() const
     return json;
 }
 
-void CameraComponent::Deserialize(const ComponentDeserializeData& _deserializeData)
+void CameraComponent::Deserialize(const DeserializeParameter& _param)
 {
-    const Json& json = _deserializeData.json;
-    fovY             = json.value("fovY", 45.f);
-    nearZ            = json.value("nearZ", 0.1f);
-    farZ             = json.value("farZ", 1000.f);
-    aspectRatio      = json.value("aspectRatio", 1.f);
-    projection       = json.value("projection", eProjection::Perspective);
-    projection       = GetValidEnum(projection, eProjection::Perspective);
+    const Json* json = _param.pJson;
+    fovY             = json->value("fovY", 45.f);
+    nearZ            = json->value("nearZ", 0.1f);
+    farZ             = json->value("farZ", 1000.f);
+    aspectRatio      = json->value("aspectRatio", 1.f);
+    projection       = json->value("projection", eProjection::Perspective);
+    projection       = GetValidEnumOrDefault(projection, eProjection::Perspective);
 }
 
 ScriptComponent::ScriptComponent(std::unique_ptr<Script>&& _script)
@@ -93,10 +109,9 @@ Json ScriptComponent::Serialize() const
     return json;
 }
 
-void ScriptComponent::Deserialize(const ComponentDeserializeData& _deserializeData)
+void ScriptComponent::Deserialize(const DeserializeParameter& _param)
 {
-    const Json& json       = _deserializeData.json;
-    std::string scriptName = json.value("scriptName", "");
+    std::string scriptName = _param.pJson->value("scriptName", "");
     if (!ScriptMetaManager::IsRegistered(scriptName))
     {
         JAM_ERROR("Script '{}' is not registered, you need to register it with JAM_SCRIPT macro", scriptName);

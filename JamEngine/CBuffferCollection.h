@@ -27,6 +27,12 @@ public:
     {
         Get<Ty>().Bind(_shader, _slot);
     }
+
+    template<typename Ty>
+    static void Upload(const Ty& _data)
+    {
+        Get<Ty>().Upload(sizeof(Ty), &_data);
+    }
 };
 
 }   // namespace jam

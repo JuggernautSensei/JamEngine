@@ -1,5 +1,22 @@
 namespace jam.fbs;
 
+enum eTopology : byte 
+{
+	Undefined     ,
+	PointList     ,
+	LineList      ,
+	LineStrip     ,
+	TriangleList  ,
+	TriangleStrip 
+}
+
+enum eVertexType : byte
+{
+	Vertex2,
+	Vertex3,
+	Vertex3PosOnly
+}
+
 struct Vec2
 {
 	x: float = 0;
@@ -48,7 +65,7 @@ table Material
     displacement_scale :float = 0;   
 }
 
-table RawModelElement
+table RawModelNode
 {
 	name: string;
 	mesh: MeshGeometry;
@@ -57,7 +74,9 @@ table RawModelElement
 
 table RawModel
 {
-	parts: [RawModelElement];
+	nodes: [RawModelNode];
+	topology: eTopology = TriangleList;
+	vertex_type: eVertexType = Vertex3;
 }
 
 root_type RawModel;

@@ -1,85 +1,113 @@
 #pragma once
-#include "IComponentSerializable.h"
+#include "IEditableComponent.h"
+#include "ISerializeableComponent.h"
 
 namespace jam
 {
 
-using CreateComponentCallback      = std::function<void(Entity)>;                                   // (1) owner entity (2) component data (or nullptr)
-using RemoveComponentCallback      = std::function<void(Entity)>;                                   // (1) owner entity
-using HasComponentCallback         = std::function<bool(Entity)>;                                   // (1) owner entity
-using SerializeComponentCallback   = std::function<Json(void*)>;                                    // (1) component data (not nullptr)
-using DeserializeComponentCallback = std::function<void(const ComponentDeserializeData&, void*)>;   // (1) data for deserialization (json, scene, owner entity ...), (2) out component data (not nullptr)
+using CreateComponentCallback      = std::function<void(Entity&)>;                                      // (1) owner entity
+using RemoveComponentCallback      = std::function<void(Entity&)>;                                      // (1) owner entity
+using GetComponentOrNullCallback   = std::function<void*(const Entity&)>;                               // (1) owner entity, return nullptr if not exists
+using HasComponentCallback         = std::function<bool(const Entity&)>;                                // (1) owner entity
+using SerializeComponentCallback   = std::function<Json(const void*)>;                                  // (1) component data (not nullptr)
+using DeserializeComponentCallback = std::function<void(const DeserializeParameter&, void*)>;           // (1) DeserializeParameter, (2) component data (not nullptr)
+using DrawComponentEditorCallback  = std::function<void(const DrawComponentEditorParameter&, void*)>;   // (1) DrawComponentEditorParameter, (2) component data (not nullptr)
 
 struct ComponentMeta
 {
     std::string_view componentName;
     UInt32           componentHash;
 
-    CreateComponentCallback      createCallback;
-    RemoveComponentCallback      removeCallback;
-    HasComponentCallback         hasCallback;
-    SerializeComponentCallback   serializeCallback;
-    DeserializeComponentCallback deserializeCallback;
+    CreateComponentCallback      createComponentCallback      = nullptr;
+    RemoveComponentCallback      removeComponentCallback      = nullptr;
+    GetComponentOrNullCallback   getComponentOrNullCallback   = nullptr;
+    HasComponentCallback         hasComponentCallback         = nullptr;
+    SerializeComponentCallback   serializeComponentCallback   = nullptr;
+    DeserializeComponentCallback deserializeComponentCallback = nullptr;
+    DrawComponentEditorCallback  drawComponentEditorCallback  = nullptr;
 };
 
 class ComponentMetaManager
 {
 public:
+    using MetaContainer = std::unordered_map<std::string_view, ComponentMeta>;
+    using NameContainer = std::unordered_map<UInt32, std::string_view>;
+
     ComponentMetaManager() = delete;
 
+    template<typename T>
+    static void RegisterComponent();
     static void RegisterComponent(const ComponentMeta& _meta);
 
-    template<typename T>
-    static void RegisterComponent()
+    NODISCARD static bool             IsRegistered(std::string_view _componentName);
+    NODISCARD static std::string_view GetComponentNameByHash(UInt32 _componentHash);
+    static void                       CreateComponent(std::string_view _componentName, Entity& _owner);
+    static void                       RemoveComponent(std::string_view _componentName, Entity& _owner);
+    static void*                      GetComponentOrNull(std::string_view _componentName, const Entity& _owner);
+    NODISCARD static bool             HasComponent(std::string_view _componentName, const Entity& _owner);
+    NODISCARD static Json             SerializeComponent(std::string_view _componentName, const Entity& _owner);
+    static void                       DeserializeComponent(std::string_view _componentName, const DeserializeParameter& _param);
+    static void                       DrawComponentEditor(std::string_view _componentName, const DrawComponentEditorParameter& _parma);
+
+    NODISCARD static const MetaContainer& GetMetaContainer();
+};
+
+template<typename T>
+void ComponentMetaManager::RegisterComponent()
+{
+    ComponentMeta meta;
+    meta.componentName           = NameOf<T>();
+    meta.componentHash           = HashOf<T>();
+    meta.createComponentCallback = [](Entity& owner)
     {
-        ComponentMeta meta;
-        meta.componentName  = NameOf<T>();
-        meta.componentHash  = HashOf<T>();
-        meta.createCallback = [](Entity owner)
+        owner.CreateCompoenent<T>();
+    };
+    meta.removeComponentCallback = [](const Entity& owner)
+    {
+        owner.RemoveComponent<T>();
+    };
+    meta.getComponentOrNullCallback = [](const Entity& owner) -> void*
+    {
+        if constexpr (!std::is_void_v<decltype(owner.GetComponent<T>())>)
         {
-            owner.CreateCompoenent<T>();
-        };
-        meta.removeCallback = [](const Entity owner)
-        {
-            owner.RemoveComponent<T>();
-        };
-        meta.hasCallback = [](const Entity owner)
-        {
-            return owner.HasComponent<T>();
-        };
-        meta.serializeCallback = [](void* componentValue)
+            if (owner.HasComponent<T>())
+            {
+                T& ref = owner.GetComponent<T>();
+                return static_cast<void*>(&ref);
+            }
+        }
+        return nullptr;
+    };
+    meta.hasComponentCallback = [](const Entity& owner)
+    {
+        return owner.HasComponent<T>();
+    };
+    if constexpr (std::is_base_of_v<ISerializableComponent<T>, T>)
+    {
+        static_assert(sizeof(T) > 1, "empty struct cannot be serialized");
+        meta.serializeComponentCallback = [](const void* componentValue)
         {
             JAM_ASSERT(componentValue, "Component value must not be nullptr");
-            if constexpr (std::is_base_of_v<IComponentSerializable<T>, T>)
-            {
-                return static_cast<T*>(componentValue)->SerializeComponent();
-            }
-            else
-            {
-                return Json::value_t::null;
-            }
+            return static_cast<const T*>(componentValue)->Serialize_Super();
         };
-        meta.deserializeCallback = [](const ComponentDeserializeData& _deserializeData, void* _out_component)
+        meta.deserializeComponentCallback = [](const DeserializeParameter& _param, void* _out_component)
         {
             JAM_ASSERT(_out_component, "Out component value must not be nullptr");
-            if constexpr (std::is_base_of_v<IComponentSerializable<T>, T>)
-            {
-                static_cast<T*>(_out_component)->DeserializeComponent(_deserializeData);
-            }
+            static_cast<T*>(_out_component)->Deserialize_Super(_param);
         };
-        RegisterComponent(meta);
+    }
+    if constexpr (std::is_base_of_v<IEditableComponent<T>, T>)
+    {
+        meta.drawComponentEditorCallback = [](const DrawComponentEditorParameter& _param, void* _componentValue)
+        {
+            static_assert(sizeof(T) > 1, "empty struct cannot be drawn in edit panel");
+            T* pComponent = static_cast<T*>(_componentValue);
+            pComponent->DrawEditPanel_Super(_param);
+        };
     }
 
-    NODISCARD static bool             IsRegistered(std::string_view _componentName);
-    NODISCARD static std::string_view GetComponentName(UInt32 _componentHash);
-    static void                       CreateComponent(std::string_view _componentName, Entity _owner);
-    static void                       RemoveComponent(std::string_view _componentName, Entity _owner);
-    NODISCARD static bool             HasComponent(std::string_view _componentName, Entity _owner);
-    NODISCARD static Json             SerializeComponent(std::string_view _componentName, void* _componentValue);
-    static void                       DeserializeComponent(std::string_view _componentName, const ComponentDeserializeData& _deserializeData, void* _out_componentValue);
-
-    NODISCARD static std::ranges::ref_view<std::unordered_map<std::string_view, ComponentMeta>> GetComponentMetaView();
-};
+    RegisterComponent(meta);
+}
 
 #define JAM_COMPONENT(_componentType)                                 \
 private:                                                              \
