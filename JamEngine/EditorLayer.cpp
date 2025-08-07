@@ -3,12 +3,33 @@
 #include "EditorLayer.h"
 
 #include "Application.h"
+#include "AssetUtilities.h"
+#include "BuiltInEditorResources.h"
 #include "Components.h"
+#include "ImageUtilities.h"
 #include "Input.h"
 #include "Renderer.h"
 #include "Scene.h"
 #include "SceneLayer.h"
+#include "WindowsUtilities.h"
+#include <gdiplus.h>
+#include <shlwapi.h>
+#include <shobjidl.h>
 
+#pragma comment(lib, "shlwapi.lib")
+#pragma comment(lib, "gdiplus.lib")
+
+using namespace jam;
+
+// global variables
+namespace
+{
+
+ULONG_PTR g_gdiplusToken = NULL;
+
+}
+
+// functions
 namespace
 {
 
@@ -24,7 +45,6 @@ NODISCARD ImVec2 operator-(const ImVec2& v) { return ImVec2 { -v.x, -v.y }; }
 NODISCARD ImVec2 operator+(const ImVec2& v) { return ImVec2 { +v.x, +v.y }; }
 NODISCARD bool   operator==(const ImVec2& lhs, const ImVec2& rhs) { return lhs.x == rhs.x && lhs.y == rhs.y; }
 NODISCARD bool   operator!=(const ImVec2& lhs, const ImVec2& rhs) { return !(lhs == rhs); }
-using namespace jam;
 
 void DrawCenterAlignText(const char* _text, const bool _bDisable = false)
 {
@@ -51,14 +71,152 @@ NODISCARD ImVec2 CalcPrettyButtonSize(const Int32 _count)
     return ImVec2 { avail.x, 0.f };   // height is auto-calculated
 }
 
+NODISCARD const char* GetAssetPayload(const eAssetType _type)
+{
+    constexpr const char* const k_payloads[EnumCount<eAssetType>()] = {
+        "asset_model",
+        "asset_texture",
+    };
+    return k_payloads[EnumToInt(_type)];
+}
+
+void UnloadAsset(AssetManager& _assetManagerRef, const eAssetType _type, const fs::path& _path)
+{
+    switch (_type)
+    {
+        case eAssetType::Model:
+            _assetManagerRef.UnloadModel(_path);
+            break;
+        case eAssetType::Texture:
+            _assetManagerRef.UnloadTexture(_path);
+            break;
+        default:
+            JAM_ASSERT(false, "Unknown asset typeOrNull: {}", EnumToInt(_type));
+            break;
+    }
+}
+
+std::optional<Texture2D> CreateThumbnailFromFilepath(const fs::path& _filePath, const Int32 _width, const Int32 _height)
+{
+    ComPtr<IShellItem> pItem = nullptr;
+    HRESULT            hr    = SHCreateItemFromParsingName(_filePath.c_str(), nullptr, IID_PPV_ARGS(&pItem));
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Failed to create IShellItem from path: {}. Error: {}", _filePath.string(), GetSystemErrorMessage(hr));
+        return std::nullopt;
+    }
+
+    ComPtr<IShellItemImageFactory> pImageFactory = nullptr;
+    hr                                           = pItem.As(&pImageFactory);
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Failed to get IShellItemImageFactory. Error: {}", GetSystemErrorMessage(hr));
+        return std::nullopt;
+    }
+
+    SIZE    size    = { _width, _height };
+    HBITMAP hBitmap = nullptr;
+    hr              = pImageFactory->GetImage(size, SIIGBF_RESIZETOFIT, &hBitmap);
+    if (FAILED(hr) || hBitmap == nullptr)
+    {
+        JAM_ERROR("Failed to get thumbnail image. Error: {}", GetSystemErrorMessage(hr));
+        return std::nullopt;
+    }
+
+    Gdiplus::Bitmap gdiBitmap(hBitmap, nullptr);
+    DeleteObject(hBitmap);   // GDI 객체는 Bitmap 생성 후 바로 해제
+
+    if (gdiBitmap.GetLastStatus() != Gdiplus::Ok)
+    {
+        JAM_ERROR("Failed to create Gdiplus::Bitmap from HBITMAP.");
+        return std::nullopt;
+    }
+
+    Gdiplus::Rect       rect(0, 0, static_cast<INT>(gdiBitmap.GetWidth()), static_cast<INT>(gdiBitmap.GetHeight()));
+    Gdiplus::BitmapData bitmapData;
+    if (gdiBitmap.LockBits(&rect, Gdiplus::ImageLockModeRead, PixelFormat32bppARGB, &bitmapData) != Gdiplus::Ok)
+    {
+        JAM_ERROR("Failed to lock Gdiplus::Bitmap bits.");
+        return std::nullopt;
+    }
+
+    Texture2DInitializeData initData;
+    initData.pData = bitmapData.Scan0;
+    initData.pitch = bitmapData.Stride;
+
+    Texture2D thumbnail;
+    thumbnail.Initialize(bitmapData.Width, bitmapData.Height, DXGI_FORMAT_B8G8R8A8_UNORM, eResourceAccess::Immutable, eViewFlags_ShaderResource, 1, 1, false, false, initData);
+    if (gdiBitmap.UnlockBits(&bitmapData) != Gdiplus::Ok)
+    {
+        JAM_ERROR("Failed to unlock Gdiplus::Bitmap bits.");
+        return std::nullopt;
+    }
+    return thumbnail;
+}
+
+void DrawAssetItem(AssetManager& _assetManagerRef, const eAssetType _type, const char* _name, const fs::path& _path)
+{
+    ImGui::Selectable(_name, false, ImGuiSelectableFlags_SpanAllColumns);
+
+    if (ImGui::BeginPopupContextItem())   // 우클릭 시 팝업 메뉴
+    {
+        if (ImGui::Selectable("open in explorer")) OpenInExplorer(_path);
+        if (ImGui::Selectable("unload asset")) UnloadAsset(_assetManagerRef, _type, _path);
+        ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginDragDropSource())   // 드래그 드롭 지원
+    {
+        ImGui::SetDragDropPayload(GetAssetPayload(_type), &_path, sizeof(_path));
+        ImGui::TextUnformatted(_name);
+        ImGui::EndDragDropSource();
+    }
+}
+
 }   // namespace
 
 namespace jam
 {
 
+namespace detail
+{
+
+    NODISCARD static std::string_view ConvertPathToStringView(const fs::path& _path)
+    {
+        // 힙 할당을 피하기 위해 SSO 버퍼를 사용
+        // 임시 문자열이기 때문에 imgui 쪽 코드에서만 사용
+        static char       ssoBuffer[MAX_PATH];
+        std::wstring_view wStr = _path.native();
+        const int         size = WideCharToMultiByte(CP_UTF8, 0, wStr.data(), -1, nullptr, 0, nullptr, nullptr);
+        JAM_ASSERT(size < MAX_PATH, "Path is too long to fit in the SSO buffer.");
+        WideCharToMultiByte(CP_UTF8, 0, wStr.data(), -1, ssoBuffer, size, nullptr, nullptr);
+        return ssoBuffer;
+    }
+
+}   // namespace detail
+
 EditorLayer::EditorLayer()
 {
     m_dispatcher.AddListener<WindowResizeEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(EditorLayer::OnWindowResizeEvent_));
+
+    // intialize GDI+
+    if (g_gdiplusToken == NULL)
+    {
+        Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+        if (Gdiplus::GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, nullptr) != Gdiplus::Ok)
+        {
+            JAM_CRASH("Failed to initialize GDI+.");
+        }
+    }
+
+    // load default file icon
+    m_defaultFileIcon.LoadFromMemory(k_defaultFileIconDDS, k_defaultFileIconDDSSize, eImageFormat::DDS);
+}
+
+EditorLayer::~EditorLayer()
+{
+    // clean up GDI+
+    Gdiplus::GdiplusShutdown(g_gdiplusToken);
 }
 
 void EditorLayer::OnUpdate(float _deltaTime)
@@ -107,6 +265,8 @@ void EditorLayer::OnRender()
     {
         ShowConsole_();
     }
+
+    ShowMessageBox_();
 }
 
 void EditorLayer::ShowMainMenuBar_()
@@ -239,7 +399,7 @@ void EditorLayer::ShowDebugPanel_()
                                         isAway ? "true" : "false");
                         }
                     }
-
+                    ImGui::EndChild();
                     ImGui::TreePop();
                 }
 
@@ -269,6 +429,7 @@ void EditorLayer::ShowDebugPanel_()
                                         isAway ? "true" : "false");
                         }
                     }
+                    ImGui::EndChild();
                     ImGui::TreePop();
                 }
 
@@ -359,19 +520,18 @@ void EditorLayer::ShowSceneHierarchy_()
             ImGui::Text("scene name: %s", pActiveScene->GetName().data());
             ImGui::Text("entity count: %zu", view.size());
 
-            ImGui::Separator();
-
             // entity list
+            ImGui::Separator();
             if (ImGui::BeginChild("entity list", ImVec2 { 0.f, 300.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY | ImGuiChildFlags_AutoResizeX))
             {
-                ImGuiListClipper clipper;
+                static ImGuiListClipper clipper;
                 clipper.Begin(static_cast<int>(view.size()));
-                auto iterator = view.begin();
+                auto it = view.begin();
                 while (clipper.Step())
                 {
                     for (Int32 i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
                     {
-                        Entity e = pActiveScene->GetEntity(*(iterator + i));
+                        Entity e = pActiveScene->GetEntity(*(it + i));
                         JAM_ASSERT(e.IsValid(), "Invalid entity in scene hierarchy");
 
                         // entity selection label
@@ -427,8 +587,7 @@ void EditorLayer::ShowSceneHierarchy_()
                         }
                         else
                         {
-                            // 우클릭 시 팝업 메뉴
-                            if (ImGui::BeginPopupContextWindow())
+                            if (ImGui::BeginPopupContextWindow())   // 우클릭 시 팝업 메뉴
                             {
                                 if (ImGui::Selectable("create entity"))
                                 {
@@ -441,37 +600,35 @@ void EditorLayer::ShowSceneHierarchy_()
                         ImGui::PopID();
                     }
                 }
-
-                ImGui::EndChild();
-                ImGui::TextDisabled("[debug] rendered item: %d/%d", clipper.DisplayEnd - clipper.DisplayStart, view.size());
-
-                // entity creation button
-                ImGui::Spacing();
-                ImVec2 buttonSize = CalcPrettyButtonSize(3);
-
-                if (ImGui::Button("create entity", buttonSize))
-                {
-                    m_selectedEntity = pActiveScene->CreateEntity();
-                }
-
-                // 해당 버튼은 선택된 엔티티가 있을 때만 활성화
-                ImGui::BeginDisabled(!m_selectedEntity.IsValid());
-                {
-                    ImGui::SameLine();
-                    if (ImGui::Button("delete entity", buttonSize))
-                    {
-                        pActiveScene->DestroyEntity(m_selectedEntity);
-                        m_selectedEntity = Entity::s_null;
-                    }
-
-                    ImGui::SameLine();
-                    if (ImGui::Button("clone entity", buttonSize))
-                    {
-                        m_selectedEntity = pActiveScene->CloneEntity(m_selectedEntity);
-                    }
-                }
-                ImGui::EndDisabled();
             }
+            ImGui::EndChild();
+
+            // entity creation button
+            ImGui::Spacing();
+            ImVec2 buttonSize = CalcPrettyButtonSize(3);
+
+            if (ImGui::Button("create entity", buttonSize))
+            {
+                m_selectedEntity = pActiveScene->CreateEntity();
+            }
+
+            // 해당 버튼은 선택된 엔티티가 있을 때만 활성화
+            ImGui::BeginDisabled(!m_selectedEntity.IsValid());
+            {
+                ImGui::SameLine();
+                if (ImGui::Button("delete entity", buttonSize))
+                {
+                    pActiveScene->DestroyEntity(m_selectedEntity);
+                    m_selectedEntity = Entity::s_null;
+                }
+
+                ImGui::SameLine();
+                if (ImGui::Button("clone entity", buttonSize))
+                {
+                    m_selectedEntity = pActiveScene->CloneEntity(m_selectedEntity);
+                }
+            }
+            ImGui::EndDisabled();
         }
         else
         {
@@ -548,6 +705,7 @@ void EditorLayer::ShowEntityInspector_()
                 }
 
                 // 컴포넌트 편집
+                DrawEditorParameter drawEditorParam = { this, &m_selectedEntity };   // 컴포넌트 편집에 필요한 데이터
                 for (const ComponentMeta& meta: container | std::views::values)
                 {
                     // 선택된 엔티티가 해당 컴포넌트를 가지고 있지 않으면 스킵
@@ -561,16 +719,12 @@ void EditorLayer::ShowEntityInspector_()
                     {
                         if (meta.drawComponentEditorCallback)
                         {
-                            DrawComponentEditorParameter param = {
-                                .pEditorLayer = this,
-                                .pOwnerEntity = &m_selectedEntity,
-                            };
                             void* componentValue = meta.getComponentOrNullCallback(m_selectedEntity);
-                            meta.drawComponentEditorCallback(param, componentValue);
+                            meta.drawComponentEditorCallback(drawEditorParam, componentValue);
                         }
                     }
 
-                    // 오른쪽 클릭 시 팝업이 뜲
+                    // 헤더에서 오른쪽 클릭 시 팝업이 뜲
                     if (ImGui::BeginPopupContextItem())
                     {
                         if (ImGui::Selectable("remove component"))
@@ -598,10 +752,154 @@ void EditorLayer::ShowEntityInspector_()
 
 void EditorLayer::ShowAssetInspector_()
 {
+    bool isOpen = m_flags & eEditorPanelShowFlags_AssetInspector;
+    if (ImGui::Begin("asset inspector", &isOpen))
+    {
+        Application& app          = GetApplication();
+        SceneLayer*  pSceneLayer  = app.GetSceneLayer();
+        Scene*       pActiveScene = pSceneLayer->GetActiveScene();
+        if (pActiveScene)
+        {
+            AssetManager& assetManager = pActiveScene->GetAssetManager();
+
+            // 에셋 타입별로 정리
+            if (ImGui::BeginTabBar("asset inspector"))
+            {
+                for (eAssetType type: EnumValues<eAssetType>())
+                {
+                    if (ImGui::BeginTabItem(EnumToString(type).data()))
+                    {
+                        const AssetManager::Container& container = assetManager.GetContainer(type);
+
+                        // 디버깅 용 렌더링 아이템 체크
+                        UInt32 renderedItemCount = 0;
+
+                        // 검색 기능 지원
+                        static ImGuiTextFilter filter;
+                        filter.Draw("search");
+
+                        // 경계 박스 생성
+                        if (ImGui::BeginChild("asset list", ImVec2 { 0.f, 300.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY | ImGuiChildFlags_AutoResizeX))
+                        {
+                            if (filter.IsActive())   // 필터링이 작동할 경우
+                            {
+                                for (const fs::path& path: container | std::views::keys)
+                                {
+                                    std::string_view name = detail::ConvertPathToStringView(path);
+                                    if (filter.PassFilter(name.data()))   // 필터링 조건에 맞는 경우에만 렌더링
+                                    {
+                                        DrawAssetItem(assetManager, type, name.data(), path);
+                                        ++renderedItemCount;
+                                    }
+                                }
+                            }
+                            else   // 필터링이 작동하지 않을 경우. 리스트 클리핑 후 렌더링
+                            {
+                                static ImGuiListClipper clipper;
+                                clipper.Begin(static_cast<int>(container.size()));
+
+                                auto it = container.begin();
+                                while (clipper.Step())
+                                {
+                                    std::advance(it, clipper.DisplayStart);
+                                    for (Int32 i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i, std::advance(it, 1))
+                                    {
+                                        const fs::path&  path = it->first;
+                                        std::string_view name = detail::ConvertPathToStringView(path);
+                                        DrawAssetItem(assetManager, type, name.data(), path);
+                                        ++renderedItemCount;
+                                    }
+                                }
+                            }
+                        }
+                        ImGui::EndChild();
+
+                        // 정보
+                        ImGui::Text("asset type: %s   asset count: %zu", EnumToString(type).data(), container.size());
+                        ImGui::TextDisabled("[debug] rendered item count: %u", renderedItemCount);
+                        ImGui::EndTabItem();
+                    }
+                }
+                ImGui::EndTabBar();
+            }
+        }
+        else
+        {
+            DrawCenterAlignText("no active scene", true);
+        }
+    }
+    SetShowFlags(eEditorPanelShowFlags_AssetInspector, isOpen);
+    ImGui::End();
 }
 
 void EditorLayer::ShowContentsBrowser_()
 {
+    bool isOpen = m_flags & eEditorPanelShowFlags_ContentsBrowser;
+    if (ImGui::Begin("contents browser", &isOpen))
+    {
+        // 컨텐츠 브라우저 - 디렉토리 트리
+        ImGui::BeginGroup();
+        {
+            // 재귀 함수 정의
+            auto DrawDirectoryTreeRecursive = [this](auto _func, const Directory& _dir)
+            {
+                for (const Directory& dir: _dir.subDirectories)
+                {
+                    if (ImGui::TreeNodeEx(dir.name.c_str(), ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    {
+                        _func(_func, dir);
+                        ImGui::TreePop();
+                    }
+
+                    if (ImGui::IsItemClicked())
+                    {
+                        m_focusDirectoryPath = dir.path;
+                    }
+                }
+            };
+
+            // 루트 디렉토리 렌더링
+            ImGui::TextUnformatted("directory tree");
+            if (ImGui::BeginChild("directory tree", ImVec2 { 200.f, 0.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX))
+            {
+                DrawDirectoryTreeRecursive(DrawDirectoryTreeRecursive, m_rootDirectory);
+            }
+        }
+        ImGui::EndGroup();
+
+        // 컨텐츠 브라우저 - 컨텐츠 뷰
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+        {
+            // 1행
+            {
+                // 액션 버튼
+                ImGui::Button("menu");
+
+                // path
+                ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+                std::string_view path = detail::ConvertPathToStringView(m_focusDirectoryPath);
+                ImGui::Text("path: %s", path.data());
+            }
+
+            // 2행
+            static ImGuiTextFilter filter;
+            {
+                // 필터
+                ImGui::TextUnformatted("filter:");
+                ImGui::SameLine();
+                filter.Draw("##filter", ImGui::GetContentRegionAvail().x);
+            }
+
+            if (ImGui::BeginChild("contents view", ImGui::GetContentRegionAvail()))
+            {
+            }
+            ImGui::EndChild();
+        }
+        ImGui::EndGroup();
+    }
+    SetShowFlags(eEditorPanelShowFlags_ContentsBrowser, isOpen);
+    ImGui::End();
 }
 
 void EditorLayer::ShowConsole_()
@@ -648,6 +946,86 @@ void EditorLayer::ShowMessageBox_()
         }
         ImGui::EndPopup();
     }
+}
+
+void EditorLayer::UpdateFocusDirectoryContents()
+{
+    m_focusDirectoryContents.clear();
+    for (const fs::directory_entry& entry: fs::directory_iterator(m_focusDirectoryPath))
+    {
+        if (entry.is_directory() || entry.is_regular_file())
+        {
+            const fs::path& path = entry.path();
+
+            // 컨텐츠 데이터 초기화
+            Content content;
+            content.path            = path;
+            content.name            = path.filename().string();
+            content.assetTypeOrNull = GetAssetTypeFromPath(path);
+
+            // 썸네일
+            std::optional<Texture2D> thumbnailOrNull = CreateThumbnailFromFilepath(path, 64, 64);
+            if (thumbnailOrNull)
+            {
+                content.thumbnail = std::move(*thumbnailOrNull);
+            }
+            else   // 기본 아이콘 사용
+            {
+                content.thumbnail = m_defaultFileIcon;
+            }
+
+            m_focusDirectoryContents.emplace_back(std::move(content));
+        }
+    }
+}
+
+void EditorLayer::UpdateRootDirectory()
+{
+    auto UpdateDirectoryRecursive = [](auto _func, const fs::path& _path) -> Directory
+    {
+        Directory dir;
+        dir.path = _path;
+        for (const fs::directory_entry& entry: fs::directory_iterator(_path))
+        {
+            if (entry.is_directory())
+            {
+                const fs::path& path = entry.path();
+                dir.subDirectories.push_back(_func(_func, path));
+                dir.name = path.filename().string();
+            }
+        }
+        return dir;
+    };
+
+    Application& app = GetApplication();
+    m_rootDirectory  = UpdateDirectoryRecursive(UpdateDirectoryRecursive, app.GetContentsDirectory());
+}
+
+void EditorLayer::SetFocusDirectory(const fs::path& _path)
+{
+    m_focusDirectoryPath = _path;
+    UpdateFocusDirectoryContents();
+}
+
+void EditorLayer::SetFocusDirectoryToParentDirectory()
+{
+    Application& app = GetApplication();
+    if (m_focusDirectoryPath != app.GetContentsDirectory())
+    {
+        m_focusDirectoryPath = m_focusDirectoryPath.parent_path();
+        UpdateFocusDirectoryContents();
+    }
+}
+
+void EditorLayer::DrawContentButton(const Content& _content, const ImVec2& _buttonSize)
+{
+    ImGui::PushID(_content.name.c_str());
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));   // 투명 버튼
+
+    // todo 직접 그리기..
+
+    ImGui::PopStyleColor();
+    ImGui::PopID();
 }
 
 void EditorLayer::OpenMessageBox(const std::string_view _title, const std::function<void()>& _drawCallback)

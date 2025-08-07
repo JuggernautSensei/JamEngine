@@ -124,7 +124,7 @@ void ComponentMetaManager::DeserializeComponent(std::string_view _componentName,
 {
     JAM_ASSERT(_param.pJson, "DeserializeParameter::pJson must not be nullptr");
     JAM_ASSERT(_param.pScene, "DeserializeParameter::pScene must not be nullptr");
-    JAM_ASSERT(_param.pOnwerEntity, "DeserializeParameter::pOnwerEntity must not be nullptr");
+    JAM_ASSERT(_param.pOwner, "DeserializeParameter::pOwner must not be nullptr");
 
     auto& map = GetMetaContainer();
     auto  it  = map.find(_componentName);
@@ -132,15 +132,15 @@ void ComponentMetaManager::DeserializeComponent(std::string_view _componentName,
     const ComponentMeta& meta = it->second;
     JAM_ASSERT(meta.deserializeComponentCallback, "Deserialize callback for component '{}' is not set", _componentName);
 
-    void* outComponentValue = meta.getComponentOrNullCallback(*_param.pOnwerEntity);
+    void* outComponentValue = meta.getComponentOrNullCallback(*_param.pOwner);
     JAM_ASSERT(outComponentValue, "Component '{}' is not attached to owner entity or deserialize impossible component. may be empty struct", _componentName);
     meta.deserializeComponentCallback(_param, outComponentValue);
 }
 
-void ComponentMetaManager::DrawComponentEditor(std::string_view _componentName, const DrawComponentEditorParameter& _parma)
+void ComponentMetaManager::DrawComponentEditor(std::string_view _componentName, const DrawEditorParameter& _parma)
 {
-    JAM_ASSERT(_parma.pEditorLayer, "DrawComponentEditorParameter::pEditorLayer must not be nullptr");
-    JAM_ASSERT(_parma.pOwnerEntity, "DrawComponentEditorParameter::pOwnerEntity must not be nullptr");
+    JAM_ASSERT(_parma.pEditorLayer, "OnEditorParameter::pEditorLayer must not be nullptr");
+    JAM_ASSERT(_parma.pOwnerEntity, "OnEditorParameter::pOwnerEntity must not be nullptr");
 
     auto& map = GetMetaContainer();
     auto  it  = map.find(_componentName);

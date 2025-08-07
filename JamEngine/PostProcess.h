@@ -11,11 +11,11 @@ class ShaderProgram;
 class PostProcess
 {
 public:
-    void Initialize(std::span<std::shared_ptr<ImageFilter>> _filters);
+    void Initialize(std::span<Ref<ImageFilter>> _filters);
     void Render(const Texture2D& _inputTexture) const;
 
 private:
-    std::vector<std::shared_ptr<ImageFilter>> m_filters;
+    std::vector<Ref<ImageFilter>> m_filters;
 };
 
 class PostProcessBuilder

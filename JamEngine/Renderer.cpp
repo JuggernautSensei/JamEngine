@@ -313,7 +313,7 @@ void Renderer::CreateInputLayout(const std::span<const D3D11_INPUT_ELEMENT_DESC>
     )";
 
     ShaderCompiler compiler;
-    if (!compiler.CompileHLSL(dummyVS, "main", "vs_5_0", {}, eShaderCompileOption::Optimized))
+    if (!compiler.CompileHLSL(dummyVS, "main", "vs_5_0", eShaderCompileOption::Optimized))
     {
         JAM_CRASH("Failed to compile dummy vertex shader for input layout creation.");
     }

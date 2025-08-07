@@ -202,6 +202,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="AssetUtilities.cpp" />
     <ClCompile Include="BufferReader.cpp" />
     <ClCompile Include="Buffers.cpp" />
     <ClCompile Include="CompiledShaders.cpp">
@@ -213,10 +214,12 @@
     <ClCompile Include="EditorLayer.cpp" />
     <ClCompile Include="IEditableComponent.cpp" />
     <ClCompile Include="ImageFilter.cpp" />
-    <ClCompile Include="CBuffferCollection.cpp" />
+    <ClCompile Include="ConstantBufferCollection.cpp" />
+    <ClCompile Include="ImageUtilities.cpp" />
     <ClCompile Include="JsonUtilities.cpp" />
     <ClCompile Include="ModelAsset.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="SmartPointer.cpp" />
     <ClCompile Include="StateCollection.cpp" />
     <ClCompile Include="ShaderCollection.cpp" />
     <ClCompile Include="ColorUtilities.cpp" />
@@ -269,22 +272,25 @@
     <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
-    <ClCompile Include="EditComponentPanel.cpp" />
+    <ClCompile Include="ComponentsEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="AssetUtilities.h" />
     <ClInclude Include="BufferReader.h" />
     <ClInclude Include="Buffers.h" />
     <ClInclude Include="CompiledShaders.h" />
     <ClInclude Include="EditorLayer.h" />
     <ClInclude Include="IEditableComponent.h" />
     <ClInclude Include="ImageFilter.h" />
-    <ClInclude Include="CBuffferCollection.h" />
+    <ClInclude Include="ConstantBufferCollection.h" />
+    <ClInclude Include="ImageUtilities.h" />
     <ClInclude Include="JsonUtilities.h" />
     <ClInclude Include="ModelAsset.h" />
     <ClInclude Include="SceneSerializer.h" />
+    <ClInclude Include="SmartPointer.h" />
     <ClInclude Include="StateCollection.h" />
     <ClInclude Include="ShaderCollection.h" />
     <ClInclude Include="ColorUtilities.h" />

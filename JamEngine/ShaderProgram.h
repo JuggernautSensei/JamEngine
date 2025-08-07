@@ -6,7 +6,12 @@ namespace jam
 class ShaderProgram
 {
 public:
-    void Initialize(ID3DBlob* _pVScode_orNull = nullptr, ID3DBlob* _pPScode_orNull = nullptr, ID3DBlob* _pGScode_orNull = nullptr, ID3DBlob* _pHScode_orNull = nullptr, ID3DBlob* _pDScode_orNull = nullptr);
+    void Initialize(ID3DBlob* _pVScodeOrNull = nullptr,
+                    ID3DBlob* _pPScodeOrNull = nullptr,
+                    ID3DBlob* _pGScodeOrNull = nullptr,
+                    ID3DBlob* _pHScodeOrNull = nullptr,
+                    ID3DBlob* _pDScodeOrNull = nullptr);
+
     void Bind() const;
 
     // accessor

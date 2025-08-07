@@ -1,9 +1,12 @@
 #pragma once
 #include "RendererCommons.h"
 
+#include <DirectXTex.h>
+
 namespace jam
 {
 
+enum class eImageFormat;
 enum eViewFlags_ : Int32
 {
     eViewFlags_None           = 0,
@@ -16,11 +19,41 @@ using eViewFlags = Int32;
 class Texture2D
 {
 public:
-    // initlaizer
-    void Initialize(UInt32 _width, UInt32 _height, DXGI_FORMAT _format, eResourceAccess _access = eResourceAccess::Immutable, eViewFlags _viewFlags = eViewFlags_ShaderResource, UInt32 _arraySize = 1, UInt32 _samples = 1, bool _bGenerateMips = false, bool _bCubemap = false, const std::optional<Texture2DInitializeData>& _initializeData = std::nullopt);
+    // general initializer
+    void Initialize(UInt32                                        _width,
+                    UInt32                                        _height,
+                    DXGI_FORMAT                                   _format,
+                    eResourceAccess                               _access         = eResourceAccess::Immutable,
+                    eViewFlags                                    _viewFlags      = eViewFlags_ShaderResource,
+                    UInt32                                        _arraySize      = 1,
+                    UInt32                                        _samples        = 1,
+                    bool                                          _bGenerateMips  = false,
+                    bool                                          _bCubemap       = false,
+                    const std::optional<Texture2DInitializeData>& _initializeData = std::nullopt);
+
+    // for back buffer
     void InitializeFromSwapChain(IDXGISwapChain* _pSwapChain);
-    bool LoadFromFile(const fs::path& _filePath, eResourceAccess _access = eResourceAccess::Immutable, eViewFlags _viewFlags = eViewFlags_ShaderResource, bool _bGenrateMips = false, bool _bInverseGamma = false, bool _bCubeMap = false);
-    bool SaveToFile(const fs::path& _filePath) const;
+
+    // load
+    bool LoadFromFile(const fs::path& _filePath,
+                      eResourceAccess _access        = eResourceAccess::Immutable,
+                      eViewFlags      _viewFlags     = eViewFlags_ShaderResource,
+                      bool            _bGenrateMips  = false,
+                      bool            _bInverseGamma = false,
+                      bool            _bCubeMap      = false);
+
+    bool LoadFromMemory(const UInt8*    _pData,
+                        size_t          _dataSize,
+                        eImageFormat    _imageFormat,
+                        eResourceAccess _access        = eResourceAccess::Immutable,
+                        eViewFlags      _viewFlags     = eViewFlags_ShaderResource,
+                        bool            _bGenerateMips = false,
+                        bool            _bInverseGamma = false,
+                        bool            _bCubemap      = false);
+
+    // save
+    bool      SaveToFile(const fs::path& _filePath) const;
+    NODISCARD std::optional<std::vector<UInt8>> SaveToMemory(eImageFormat _imageFormat) const;
 
     // copy
     void CopyFrom(const Texture2D& _other) const;
@@ -52,6 +85,7 @@ public:
     NODISCARD std::pair<UInt32, UInt32> GetSize() const { return { m_width, m_height }; }
     NODISCARD UInt32                    GetArraySize() const { return m_arraySize; }
     NODISCARD UInt32                    GetSampleCount() const { return m_samples; }
+    NODISCARD DXGI_FORMAT               GetFormat() const { return m_format; }
 
     // d3d11 accessors
     NODISCARD ID3D11Texture2D*          Get() const { return m_texture.Get(); }
@@ -62,6 +96,15 @@ public:
     UInt32                              Reset();
 
 private:
+    // DiretXTex utilities
+    bool InitializeFromImage_(DirectX::ScratchImage&& _scratchImage,
+                              DirectX::TexMetadata&&  _metadata,
+                              eResourceAccess         _access,
+                              eViewFlags              _viewFlags,
+                              bool                    _bGenerateMips,
+                              bool                    _bInverseGamma,
+                              bool                    _bCubemap);
+
     // instance
     ComPtr<ID3D11Texture2D>          m_texture = nullptr;
     ComPtr<ID3D11ShaderResourceView> m_srv     = nullptr;

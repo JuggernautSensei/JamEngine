@@ -27,7 +27,7 @@ void SceneLayer::OnUpdate(const float _deltaSec)
         m_pActiveScene->CreateView<ScriptComponent>().each(
             [_deltaSec](ScriptComponent& _scriptComponent)
             {
-                std::unique_ptr<Script>& scriptRef = _scriptComponent.script;
+                Scope<Script>& scriptRef = _scriptComponent.script;
 
                 if (scriptRef && scriptRef->IsRunning())
                 {
@@ -93,7 +93,7 @@ std::string_view SceneLayer::GetName() const
     return NameOf<SceneLayer>();
 }
 
-Scene* SceneLayer::AddScene(std::unique_ptr<Scene>&& _scene)
+Scene* SceneLayer::AddScene(Scope<Scene>&& _scene)
 {
     auto [iter, bResult] = m_scenes.emplace(_scene->GetName(), std::move(_scene));
     JAM_ASSERT(bResult, "Scene with name '{}' already exists", iter->first);

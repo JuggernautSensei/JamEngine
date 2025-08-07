@@ -1,2 +1,0 @@
-[2025-07-24 15:09:47.775] [trace] log system initialized
-[2025-07-24 15:10:07.971] [trace] log system shutdown

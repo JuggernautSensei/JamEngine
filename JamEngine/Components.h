@@ -13,18 +13,18 @@ struct TagComponent : ISerializableComponent<TagComponent>, IEditableComponent<T
     TagComponent() = default;
     explicit TagComponent(std::string_view _name);
 
-    // comparison operators
+    // utilities
     NODISCARD bool operator==(const TagComponent& _other) const { return name == _other.name; }
     NODISCARD bool operator!=(const TagComponent& _other) const { return !(*this == _other); }
     NODISCARD bool operator==(const std::string_view _name) const { return name == _name; }
     NODISCARD bool operator!=(const std::string_view _name) const { return !(*this == _name); }
 
-    // serialization
+    // interface
     NODISCARD Json Serialize() const;
     void           Deserialize(const DeserializeParameter& _param);
-    void           DrawComponentEditor(const DrawComponentEditorParameter& _param);
+    void           DrawEditor(const DrawEditorParameter& _param);
 
-    std::string name;
+    std::string name = "unknown";
 };
 
 struct TransformComponent : ISerializableComponent<TransformComponent>, IEditableComponent<TransformComponent>
@@ -38,12 +38,12 @@ struct TransformComponent : ISerializableComponent<TransformComponent>, IEditabl
     NODISCARD Vec3 Left() const { return -Right(); }
     NODISCARD Vec3 Forward() const { return rotation * Vec3::UnitZ; }
     NODISCARD Vec3 Backward() const { return -Forward(); }
-
     NODISCARD Mat4 CreateWorldMatrix() const;
 
-    // serialization
+    // interface
     NODISCARD Json Serialize() const;
     void           Deserialize(const DeserializeParameter& _param);
+    void           DrawEditor(const DrawEditorParameter& _param);
 
     Vec3 position = Vec3::Zero;
     Quat rotation = Quat::Identity;
@@ -54,12 +54,14 @@ struct CameraComponent : ISerializableComponent<CameraComponent>, IEditableCompo
 {
     JAM_COMPONENT(CameraComponent);
 
+    // utilities
     NODISCARD Mat4 CreateViewMatrix(const Vec3& _position, const Vec3& _forward) const;
     NODISCARD Mat4 CreateProjectionMatrix() const;
 
-    // serialization
+    // interface
     NODISCARD Json Serialize() const;
     void           Deserialize(const DeserializeParameter& _param);
+    void           DrawEditor(const DrawEditorParameter& _param);
 
     enum class eProjection
     {
@@ -80,7 +82,7 @@ struct ScriptComponent : ISerializableComponent<ScriptComponent>, IEditableCompo
 
     // constructors
     ScriptComponent() = default;
-    explicit ScriptComponent(std::unique_ptr<Script>&& _script);
+    explicit ScriptComponent(Scope<Script>&& _script);
 
     ~ScriptComponent()                                 = default;
     ScriptComponent(const ScriptComponent&)            = delete;
@@ -91,17 +93,21 @@ struct ScriptComponent : ISerializableComponent<ScriptComponent>, IEditableCompo
     // overrides
     NODISCARD Json Serialize() const;
     void           Deserialize(const DeserializeParameter& _param);
+    void           DrawEditor(const DrawEditorParameter& _param);
 
-    std::unique_ptr<Script> script;
+    Scope<Script> script;
 };
 
-//struct ModelComponent : public ISerializableComponent<ModelComponent>
-//{
-//    JAM_COMPONENT(ModelComponent);
-//
-//    // serialization
-//    NODISCARD Json Serialize() const;
-//    void           Deserialize(const DeserializeParameter& _param);
-//};
+struct ModelComponent : ISerializableComponent<ModelComponent>, IEditableComponent<ModelComponent>
+{
+    JAM_COMPONENT(ModelComponent);
+
+    // serialization
+    NODISCARD Json Serialize() const;
+    void           Deserialize(const DeserializeParameter& _param);
+    void           DrawEditor(const DrawEditorParameter& _param);
+
+    Ref<ModelAsset> modelAsset;
+};
 
 }   // namespace jam

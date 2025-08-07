@@ -2,7 +2,7 @@
 
 #include "PostProcess.h"
 
-#include "CBuffferCollection.h"
+#include "ConstantBufferCollection.h"
 #include "StateCollection.h"
 #include "ImageFilter.h"
 #include "RenderStates.h"
@@ -12,9 +12,9 @@
 namespace jam
 {
 
-void PostProcess::Initialize(std::span<std::shared_ptr<ImageFilter>> _filters)
+void PostProcess::Initialize(std::span<Ref<ImageFilter>> _filters)
 {
-    m_filters = std::vector<std::shared_ptr<ImageFilter>>(_filters.begin(), _filters.end());
+    m_filters = std::vector<Ref<ImageFilter>>(_filters.begin(), _filters.end());
 }
 
 void PostProcess::Render(const Texture2D& _inputTexture) const
@@ -28,7 +28,7 @@ void PostProcess::Render(const Texture2D& _inputTexture) const
 
     // shader + resource binding + rendering
     Texture2D inputTexture = _inputTexture;
-    for (const std::shared_ptr<ImageFilter>& filter: m_filters)
+    for (const Ref<ImageFilter>& filter: m_filters)
     {
         // unbind previous render target
         Renderer::UnbindRenderTargetViews();
@@ -106,12 +106,12 @@ PostProcessBuilder& PostProcessBuilder::AddFogFilter(const UInt32 _width, const 
 
 PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
 {
-    std::vector<std::shared_ptr<ImageFilter>> filters;
+    std::vector<Ref<ImageFilter>> filters;
 
     // 샘플링 필터
     if (m_filterFlags & eFilterFlags_Sampling)
     {
-        std::shared_ptr<SamplingFilter> samplingFilter = std::make_shared<SamplingFilter>();
+        Ref<SamplingFilter> samplingFilter = CreateRef<SamplingFilter>();
         samplingFilter->Initialize(m_samplingWidth, m_samplingHeight, m_samplingFormat);
         filters.push_back(samplingFilter);
     }
@@ -119,7 +119,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
     // fog filter
     if (m_filterFlags & eFilterFlags_Fog)
     {
-        std::shared_ptr<FogFilter> fogFilter = std::make_shared<FogFilter>();
+        Ref<FogFilter> fogFilter = CreateRef<FogFilter>();
         fogFilter->Initialize(m_fogWidth, m_fogHeight, m_fogFormat, m_depthTexture);
         filters.push_back(fogFilter);
     }
@@ -131,13 +131,13 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         // filter가 비어있을 경우 더미 필터를 하나 생성함
         if (filters.empty())
         {
-            std::shared_ptr<SamplingFilter> samplingFilter = std::make_shared<SamplingFilter>();
+            Ref<SamplingFilter> samplingFilter = CreateRef<SamplingFilter>();
             samplingFilter->Initialize(m_bloomWidth, m_bloomHeight, m_bloomFormat);
             filters.push_back(samplingFilter);
         }
 
         // bloom destination
-        const std::shared_ptr<ImageFilter>& lastFilter              = filters.back();
+        const Ref<ImageFilter>& lastFilter              = filters.back();
         const Texture2D&                    bloomDestinationTexture = lastFilter->GetOutputTexture();
 
         // down filters
@@ -145,7 +145,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         {
             UInt32                          bloomWidth     = m_bloomWidth / (1 << i);
             UInt32                          bloomHeight    = m_bloomHeight / (1 << i);
-            std::shared_ptr<BlurDownFilter> blurDownFilter = std::make_shared<BlurDownFilter>();
+            Ref<BlurDownFilter> blurDownFilter = CreateRef<BlurDownFilter>();
             blurDownFilter->Initialize(bloomWidth, bloomHeight, m_bloomFormat);
             filters.push_back(blurDownFilter);
         }
@@ -155,13 +155,13 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         {
             UInt32                        bloomWidth   = m_bloomWidth / (1 << (i - 1));
             UInt32                        bloomHeight  = m_bloomHeight / (1 << (i - 1));
-            std::shared_ptr<BlurUpFilter> blurUpFilter = std::make_shared<BlurUpFilter>();
+            Ref<BlurUpFilter> blurUpFilter = CreateRef<BlurUpFilter>();
             blurUpFilter->Initialize(bloomWidth, bloomHeight, m_bloomFormat);
             filters.push_back(blurUpFilter);
         }
 
         // combine filter
-        std::shared_ptr<CombineFilter> combineFilter = std::make_shared<CombineFilter>();
+        Ref<CombineFilter> combineFilter = CreateRef<CombineFilter>();
         combineFilter->Initialize(m_bloomWidth, m_bloomHeight, m_bloomFormat, bloomDestinationTexture);
         filters.push_back(combineFilter);
     }
@@ -169,7 +169,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
     // Tone Mapping filter
     if (m_filterFlags & eFilterFlags_ToneMapping)
     {
-        std::shared_ptr<ToneMappingFilter> toneMappingFilter = std::make_shared<ToneMappingFilter>();
+        Ref<ToneMappingFilter> toneMappingFilter = CreateRef<ToneMappingFilter>();
         toneMappingFilter->Initialize(m_toneMappingWidth, m_toneMappingHeight, m_toneMappingFormat, m_toneMappingType);
         filters.push_back(toneMappingFilter);
     }
@@ -177,13 +177,13 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
     // FXAA filter
     if (m_filterFlags & eFilterFlags_FXAA)
     {
-        std::shared_ptr<FXAAFilter> fxaaFilter = std::make_shared<FXAAFilter>();
+        Ref<FXAAFilter> fxaaFilter = CreateRef<FXAAFilter>();
         fxaaFilter->Initialize(m_fxaaWidth, m_fxaaHeight, m_fxaaFormat, m_fxaaQuality);
         filters.push_back(fxaaFilter);
     }
 
     // Set the output texture for the last filter
-    const std::shared_ptr<ImageFilter>& lastFilter = filters.back();
+    const Ref<ImageFilter>& lastFilter = filters.back();
     lastFilter->SetOutputTexture(_outputTexture);
 
     // Create and return the PostProcess objectd

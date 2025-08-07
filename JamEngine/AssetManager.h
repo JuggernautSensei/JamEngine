@@ -1,6 +1,10 @@
 #pragma once
 #include "Asset.h"
 #include "EnumUtilities.h"
+#include "Model.h"
+
+#include <memory>
+#include <optional>
 
 namespace jam
 {
@@ -10,7 +14,7 @@ class ModelAsset;
 class AssetManager
 {
 public:
-    using Container = std::unordered_map<fs::path, std::shared_ptr<Asset>>;
+    using Container = std::unordered_map<fs::path, Ref<Asset>>;
 
     AssetManager()  = default;
     ~AssetManager() = default;
@@ -20,27 +24,33 @@ public:
     AssetManager(AssetManager&&) noexcept            = default;
     AssetManager& operator=(AssetManager&&) noexcept = default;
 
-    std::optional<std::shared_ptr<ModelAsset>> LoadModel(const fs::path& _path);
-    bool                                       UnloadModel(const fs::path& _path);
-    NODISCARD std::optional<std::shared_ptr<ModelAsset>> GetModel(const fs::path& _path) const;
+    // Loadxxx : load asset and get. if duplicated, overwrite and return the new one. return nullopt if failed.
+    // GetOrLoadxxx : get asset from the container. if not found, load it and return the new one. return nullopt if failed.
+    // Unloadxxx : unload asset and remove from the container.
+    // Getxxx : get asset from the container. if not found, return std::nullopt. return nullopt if not exists.
 
-    std::optional<std::shared_ptr<TextureAsset>> LoadTexture(const fs::path& _path);
-    bool                                         UnloadTexture(const fs::path& _path);
-    NODISCARD std::optional<std::shared_ptr<TextureAsset>> GetTexture(const fs::path& _path) const;
+    std::optional<Ref<ModelAsset>> LoadModel(const fs::path& _path);
+    void UnloadModel(const fs::path& _path);
+    NODISCARD std::optional<Ref<ModelAsset>> GetModel(const fs::path& _path) const;
+
+    std::optional<Ref<TextureAsset>> LoadTexture(const fs::path& _path);
+    void UnloadTexture(const fs::path& _path);
+    NODISCARD std::optional<Ref<TextureAsset>> GetTexture(const fs::path& _path) const;
 
     NODISCARD const auto& GetContainer(const eAssetType _type) const { return GetContainer_(_type); }
     void                  Clear(eAssetType _type);
     void                  ClearAll();
 
 private:
-    std::optional<std::shared_ptr<Asset>> LoadAsset_(eAssetType _type, const fs::path& _path);
-    bool                                  UnloadAsset_(eAssetType _type, const fs::path& _path);
-    NODISCARD std::optional<std::shared_ptr<Asset>> GetAsset_(eAssetType _type, const fs::path& _path) const;
-    NODISCARD std::shared_ptr<Asset> CreateAsset_(eAssetType _type) const;
+    std::optional<Ref<Asset>> GetOrLoadAsset_(eAssetType _type, const fs::path& _path);
+    std::optional<Ref<Asset>> LoadAsset_(eAssetType _type, const fs::path& _path);
+    void UnloadAsset_(eAssetType _type, const fs::path& _path);
+    NODISCARD std::optional<Ref<Asset>> GetAsset_(eAssetType _type, const fs::path& _path) const;
+    NODISCARD Ref<Asset> CreateAsset_(eAssetType _type) const;
     NODISCARD Container&             GetContainer_(eAssetType _type);
     NODISCARD const Container&       GetContainer_(eAssetType _type) const;
 
-    Container m_assetMap[EnumCount<eAssetType>()];
+    Container m_containers[EnumCount<eAssetType>()];
 };
 
 }   // namespace jam

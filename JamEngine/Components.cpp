@@ -2,6 +2,7 @@
 
 #include "Components.h"
 
+#include "ModelAsset.h"
 #include "Script.h"
 #include "ScriptMetaManager.h"
 
@@ -94,7 +95,7 @@ void CameraComponent::Deserialize(const DeserializeParameter& _param)
     projection       = GetValidEnumOrDefault(projection, eProjection::Perspective);
 }
 
-ScriptComponent::ScriptComponent(std::unique_ptr<Script>&& _script)
+ScriptComponent::ScriptComponent(Scope<Script>&& _script)
     : script(std::move(_script))
 {
 }
@@ -111,14 +112,45 @@ Json ScriptComponent::Serialize() const
 
 void ScriptComponent::Deserialize(const DeserializeParameter& _param)
 {
-    std::string scriptName = _param.pJson->value("scriptName", "");
-    if (!ScriptMetaManager::IsRegistered(scriptName))
+    const Json* json = _param.pJson;
+    if (json->contains("scriptName"))
     {
-        JAM_ERROR("Script '{}' is not registered, you need to register it with JAM_SCRIPT macro", scriptName);
+        std::string scriptName = json->at("scriptName").get<std::string>();
+        if (ScriptMetaManager::IsRegistered(scriptName))
+        {
+            script = ScriptMetaManager::CreateScript(scriptName, *_param.pOwner);
+        }
         return;
     }
-    script = ScriptMetaManager::CreateScript(scriptName, Entity::s_null);
-    JAM_ASSERT(script, "Failed to create script '{}'", scriptName);
+}
+
+Json ModelComponent::Serialize() const
+{
+    Json json;
+    if (modelAsset)
+    {
+        json["path"] = modelAsset->GetPath();
+    }
+    return json;
+}
+
+void ModelComponent::Deserialize(const DeserializeParameter& _param)
+{
+    JAM_ASSERT(_param.pScene, "Scene must not be null when deserializing ModelComponent");
+
+    fs::path                                   path  = _param.pJson->value("path", std::filesystem::path());
+    AssetManager&                              mgr   = _param.pScene->GetAssetManager();
+    std::optional<Ref<ModelAsset>> model = mgr.GetModel(path);
+
+    if (!model)
+    {
+        model = mgr.LoadModel(path);
+    }
+
+    if (model)
+    {
+        modelAsset = *model;
+    }
 }
 
 }   // namespace jam

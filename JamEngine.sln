@@ -7,7 +7,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JamEngine", "JamEngine\JamE
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleApp", "ExampleApp\ExampleApp.vcxproj", "{E92FEB8B-B5E8-41A7-B853-E12B2E96A5B3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShaderCompiler", "ShaderCompiler\ShaderCompiler.vcxproj", "{6D75ABA6-1F30-4D67-936B-6D28D161BAF0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BuiltInShaderSourceCreator", "BuiltInShaderSourceCreator\BuiltInShaderSourceCreator.vcxproj", "{6D75ABA6-1F30-4D67-936B-6D28D161BAF0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BuiltInImageSourceCreator", "BuiltInImageSourceCreator\BuiltInImageSourceCreator.vcxproj", "{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{C8D5274F-AC00-46C7-1F8D-E88E81087A52}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Main Project", "Main Project", "{758AB6E3-9006-42A7-BB1F-5A18B4D27A6C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sandbox", "Sandbox", "{2EE70F64-2755-4EF4-9946-58084AFF26E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,9 +49,23 @@ Global
 		{6D75ABA6-1F30-4D67-936B-6D28D161BAF0}.Release|x64.Build.0 = Release|x64
 		{6D75ABA6-1F30-4D67-936B-6D28D161BAF0}.Release|x86.ActiveCfg = Release|Win32
 		{6D75ABA6-1F30-4D67-936B-6D28D161BAF0}.Release|x86.Build.0 = Release|Win32
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Debug|x64.ActiveCfg = Debug|x64
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Debug|x64.Build.0 = Debug|x64
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Debug|x86.ActiveCfg = Debug|Win32
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Debug|x86.Build.0 = Debug|Win32
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Release|x64.ActiveCfg = Release|x64
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Release|x64.Build.0 = Release|x64
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Release|x86.ActiveCfg = Release|Win32
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BD8ECBB6-CCE6-4FFA-AC85-62801D0BA3DB} = {758AB6E3-9006-42A7-BB1F-5A18B4D27A6C}
+		{E92FEB8B-B5E8-41A7-B853-E12B2E96A5B3} = {2EE70F64-2755-4EF4-9946-58084AFF26E2}
+		{6D75ABA6-1F30-4D67-936B-6D28D161BAF0} = {C8D5274F-AC00-46C7-1F8D-E88E81087A52}
+		{6A52B007-72A0-4881-9E80-DDFDA3E2FBF1} = {C8D5274F-AC00-46C7-1F8D-E88E81087A52}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6D1BDC6D-FDB4-40A1-8D86-D68457A74E80}

@@ -10,25 +10,27 @@
 namespace
 {
 
-NODISCARD UINT GetShaderCompileFlags(jam::eShaderCompileOption _option)
+using namespace jam;
+
+NODISCARD UINT GetShaderCompileFlags(eShaderCompileOption _option)
 {
     constexpr UINT k_debugCompileFlags   = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
     constexpr UINT k_releaseCompileFlags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
 
-    if (_option == jam::eShaderCompileOption::Default)
+    if (_option == eShaderCompileOption::Default)
     {
 #ifdef _DEBUG
-        _option = jam::eShaderCompileOption::Debug;   // Default to Debug in debug mode
+        _option = eShaderCompileOption::Debug;   // Default to Debug in debug mode
 #else
-        _option = jam::eShaderCompileOption::Optimized;   // Default to Optimized in release mode
+        _option = eShaderCompileOption::Optimized;   // Default to Optimized in release mode
 #endif
     }
 
     switch (_option)
     {
-        case jam::eShaderCompileOption::Debug:
+        case eShaderCompileOption::Debug:
             return k_debugCompileFlags;
-        case jam::eShaderCompileOption::Optimized:
+        case eShaderCompileOption::Optimized:
             return k_releaseCompileFlags;
         default:
             JAM_ERROR("Unknown shader compile option: {}", static_cast<int>(_option));
@@ -36,16 +38,23 @@ NODISCARD UINT GetShaderCompileFlags(jam::eShaderCompileOption _option)
     }
 }
 
-NODISCARD std::vector<D3D_SHADER_MACRO> CreateShaderMacros(const std::span<const jam::ShaderMacro> _macros_orEmpty)
+NODISCARD std::vector<D3D_SHADER_MACRO> CreateShaderMacros(const std::span<const ShaderMacro> _macros)
 {
-    std::vector<D3D_SHADER_MACRO> macros;
-    macros.reserve(_macros_orEmpty.size() + 1);   // +1 for the null terminator
-    for (const jam::ShaderMacro& macro: _macros_orEmpty)
+    if (_macros.empty())   // No macros provided
     {
-        macros.emplace_back(macro.name.data(), macro.value.data());
+        return {};
     }
-    macros.emplace_back(nullptr, nullptr);   // Null terminator
-    return macros;
+    else
+    {
+        std::vector<D3D_SHADER_MACRO> macros;
+        macros.reserve(_macros.size() + 1);   // +1 for the null terminator
+        for (const ShaderMacro& macro: _macros)
+        {
+            macros.emplace_back(macro.name.data(), macro.value.data());
+        }
+        macros.emplace_back(nullptr, nullptr);   // Null terminator
+        return macros;
+    }
 }
 
 }   // namespace
@@ -53,16 +62,16 @@ NODISCARD std::vector<D3D_SHADER_MACRO> CreateShaderMacros(const std::span<const
 namespace jam
 {
 
-bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::string_view _entryPoint, const std::string_view _target, const std::span<const ShaderMacro> _macros_orEmpty, const eShaderCompileOption _compileOption)
+bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::string_view _entryPoint, const std::string_view _target, const eShaderCompileOption _compileOption, const std::span<const ShaderMacro> _macrosOrEmpty)
 {
     // create macro
-    std::vector<D3D_SHADER_MACRO> macros        = CreateShaderMacros(_macros_orEmpty);
-    D3D_SHADER_MACRO*             pMacro_orNull = macros.empty() ? nullptr : macros.data();
+    std::vector<D3D_SHADER_MACRO> d3dMacros  = CreateShaderMacros(_macrosOrEmpty);
+    D3D_SHADER_MACRO*             pd3dMacros = d3dMacros.empty() ? nullptr : d3dMacros.data();
 
     ComPtr<ID3DBlob> errorBlob;
     const HRESULT    hr = D3DCompileFromFile(
         _filename.c_str(),
-        pMacro_orNull,
+        pd3dMacros,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _entryPoint.data(),
         _target.data(),
@@ -85,18 +94,18 @@ bool ShaderCompiler::CompileHLSLFromFile(const fs::path& _filename, const std::s
     return true;
 }
 
-bool ShaderCompiler::CompileHLSL(std::string_view _pSource, const std::string_view _entryPoint, const std::string_view _target, const std::span<const ShaderMacro> _macros_orEmpty, const eShaderCompileOption _compileOption)
+bool ShaderCompiler::CompileHLSL(std::string_view _pSource, const std::string_view _entryPoint, const std::string_view _target, const eShaderCompileOption _compileOption, const std ::span<const ShaderMacro> _macrosOrEmpty)
 {
     // create macro
-    std::vector<D3D_SHADER_MACRO> macros        = CreateShaderMacros(_macros_orEmpty);
-    D3D_SHADER_MACRO*             pMacro_orNull = macros.empty() ? nullptr : macros.data();
+    std::vector<D3D_SHADER_MACRO> d3dMacros  = CreateShaderMacros(_macrosOrEmpty);
+    D3D_SHADER_MACRO*             pd3dMacros = d3dMacros.empty() ? nullptr : d3dMacros.data();
 
     ComPtr<ID3DBlob> errorBlob;
     const HRESULT    hr = D3DCompile(
         _pSource.data(),
         _pSource.size(),
-        nullptr,   // source name
-        pMacro_orNull,
+        nullptr,  
+        pd3dMacros,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _entryPoint.data(),
         _target.data(),

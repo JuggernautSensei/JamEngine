@@ -38,6 +38,10 @@ void Application::Create(const CommandLineArguments& _args)
         // set base properties
         std::set_new_handler(OnNewFailed);
         std::locale::global(std::locale(""));
+        if (FAILED(CoInitialize(nullptr)))
+        {
+            JAM_CRASH("Failed to initialize COM library. Make sure to call CoInitializeEx or CoInitialize before using COM features.");
+        }
 
         // create file system
         fs::create_directory(s_instance->GetContentsDirectory());
@@ -57,9 +61,9 @@ void Application::Create(const CommandLineArguments& _args)
         Input::Initialize();
 
         // attach layer
-        ILayer* pSceneLayer       = s_instance->PushBackLayer(std::make_unique<SceneLayer>());
+        ILayer* pSceneLayer       = s_instance->PushBackLayer(CreateScope<SceneLayer>());
         s_instance->m_pSceneLayer = static_cast<SceneLayer*>(pSceneLayer);
-        s_instance->PushBackLayer(std::make_unique<ImguiLayer>(s_instance->m_window.GetPlatformHandle(), Renderer::GetDevice(), Renderer::GetDeviceContext()));
+        s_instance->PushBackLayer(CreateScope<ImguiLayer>(s_instance->m_window.GetPlatformHandle(), Renderer::GetDevice(), Renderer::GetDeviceContext()));
     }
 
     // create routine of child application
@@ -77,6 +81,7 @@ void Application::Destroy()
     // application on destroy routine
     {
         s_instance->m_window.Shutdown();
+        CoUninitialize();
     }
 
     // destroy application instance
@@ -116,12 +121,12 @@ int Application::Run()
             // update
             {
                 float deltaSec = m_timer.Tick();
-                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                for (const Scope<ILayer>& layer: m_layers)
                 {
                     layer->OnUpdate(deltaSec);
                 }
 
-                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                for (const Scope<ILayer>& layer: m_layers)
                 {
                     layer->OnFinalUpdate(deltaSec);
                 }
@@ -133,17 +138,17 @@ int Application::Run()
 
             // rendering
             {
-                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                for (const Scope<ILayer>& layer: m_layers)
                 {
                     layer->OnBeginRender();
                 }
 
-                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                for (const Scope<ILayer>& layer: m_layers)
                 {
                     layer->OnRender();
                 }
 
-                for (const std::unique_ptr<ILayer>& layer: m_layers)
+                for (const Scope<ILayer>& layer: m_layers)
                 {
                     layer->OnEndRender();
                 }
@@ -190,7 +195,7 @@ void Application::DispatchEvent(Event& _event)
     m_window.OnEvent(_event);
     Input::OnEvent(_event);
     Renderer::OnEvent(_event);
-    for (const std::unique_ptr<ILayer>& layer: m_layers)
+    for (const Scope<ILayer>& layer: m_layers)
     {
         layer->OnEvent(_event);
     }
@@ -205,7 +210,7 @@ void Application::SubmitCommand(const std::function<void()>& _command)
     m_commandQueue.Submit(_command);
 }
 
-ILayer* Application::PushBackLayer(std::unique_ptr<ILayer>&& _layer)
+ILayer* Application::PushBackLayer(Scope<ILayer>&& _layer)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_layer, "Layer pointer is null");
@@ -214,7 +219,7 @@ ILayer* Application::PushBackLayer(std::unique_ptr<ILayer>&& _layer)
     {
         UInt32     layerHash = _layer->GetHash();
         const auto it        = std::ranges::find_if(m_layers,
-                                             [layerHash](const std::unique_ptr<ILayer>& layer)
+                                             [layerHash](const Scope<ILayer>& layer)
                                              {
                                                  return layer->GetHash() == layerHash;
                                              });
@@ -227,7 +232,7 @@ ILayer* Application::PushBackLayer(std::unique_ptr<ILayer>&& _layer)
     return it->get();
 }
 
-ILayer* Application::PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer)
+ILayer* Application::PushFrontLayer(Scope<ILayer>&& _pLayer)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_pLayer, "Layer pointer is null");
@@ -236,7 +241,7 @@ ILayer* Application::PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer)
     {
         UInt32     layerHash = _pLayer->GetHash();
         const auto it        = std::ranges::find_if(m_layers,
-                                             [layerHash](const std::unique_ptr<ILayer>& layer)
+                                             [layerHash](const Scope<ILayer>& layer)
                                              {
                                                  return layer->GetHash() == layerHash;
                                              });
@@ -255,7 +260,7 @@ void Application::RemoveLayer(ILayer* _pLayer)
     JAM_ASSERT(_pLayer, "Layer pointer is null");
 
     const auto it = std::ranges::find_if(m_layers,
-                                         [_pLayer](const std::unique_ptr<ILayer>& layer)
+                                         [_pLayer](const Scope<ILayer>& layer)
                                          {
                                              return layer->GetHash() == _pLayer->GetHash();
                                          });
@@ -268,7 +273,7 @@ ILayer* Application::GetLayer(UInt32 _layerHash) const
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     const auto it = std::ranges::find_if(m_layers,
-                                         [_layerHash](const std::unique_ptr<ILayer>& layer)
+                                         [_layerHash](const Scope<ILayer>& layer)
                                          {
                                              return layer->GetHash() == _layerHash;
                                          });

@@ -1,12 +1,12 @@
 #pragma once
-#include "Entity.h"
 
 namespace jam
 {
 
 class EditorLayer;
+class Entity;
 
-struct DrawComponentEditorParameter
+struct DrawEditorParameter
 {
     EditorLayer* pEditorLayer;   // not null!
     Entity*      pOwnerEntity;   // not null!
@@ -16,9 +16,9 @@ template<typename T>
 class IEditableComponent
 {
 public:
-    void DrawComponentEditor_Super(const DrawComponentEditorParameter& _param)
+    void DrawEditor_Super(const DrawEditorParameter& _param)
     {
-        static_cast<T*>(this)->DrawComponentEditor(_param);
+        static_cast<T*>(this)->DrawEditor(_param);
     }
 };
 

@@ -1,17 +1,18 @@
 #pragma once
 #include "IEditableComponent.h"
 #include "ISerializeableComponent.h"
+#include "Entity.h"
 
 namespace jam
 {
 
-using CreateComponentCallback      = std::function<void(Entity&)>;                                      // (1) owner entity
-using RemoveComponentCallback      = std::function<void(Entity&)>;                                      // (1) owner entity
-using GetComponentOrNullCallback   = std::function<void*(const Entity&)>;                               // (1) owner entity, return nullptr if not exists
-using HasComponentCallback         = std::function<bool(const Entity&)>;                                // (1) owner entity
-using SerializeComponentCallback   = std::function<Json(const void*)>;                                  // (1) component data (not nullptr)
-using DeserializeComponentCallback = std::function<void(const DeserializeParameter&, void*)>;           // (1) DeserializeParameter, (2) component data (not nullptr)
-using DrawComponentEditorCallback  = std::function<void(const DrawComponentEditorParameter&, void*)>;   // (1) DrawComponentEditorParameter, (2) component data (not nullptr)
+using CreateComponentCallback      = std::function<void(Entity&)>;                              // (1) owner entity
+using RemoveComponentCallback      = std::function<void(Entity&)>;                              // (1) owner entity
+using GetComponentOrNullCallback   = std::function<void*(const Entity&)>;                       // (1) owner entity, return nullptr if not exists
+using HasComponentCallback         = std::function<bool(const Entity&)>;                        // (1) owner entity
+using SerializeComponentCallback   = std::function<Json(const void*)>;                          // (1) component data (not nullptr)
+using DeserializeComponentCallback = std::function<void(const DeserializeParameter&, void*)>;   // (1) DeserializeParameter, (2) component data (not nullptr)
+using DrawComponentEditorCallback  = std::function<void(const DrawEditorParameter&, void*)>;    // (1) DrawEditorParameter, (2) component data (not nullptr)
 
 struct ComponentMeta
 {
@@ -47,7 +48,7 @@ public:
     NODISCARD static bool             HasComponent(std::string_view _componentName, const Entity& _owner);
     NODISCARD static Json             SerializeComponent(std::string_view _componentName, const Entity& _owner);
     static void                       DeserializeComponent(std::string_view _componentName, const DeserializeParameter& _param);
-    static void                       DrawComponentEditor(std::string_view _componentName, const DrawComponentEditorParameter& _parma);
+    static void                       DrawComponentEditor(std::string_view _componentName, const DrawEditorParameter& _parma);
 
     NODISCARD static const MetaContainer& GetMetaContainer();
 };
@@ -98,11 +99,11 @@ void ComponentMetaManager::RegisterComponent()
     }
     if constexpr (std::is_base_of_v<IEditableComponent<T>, T>)
     {
-        meta.drawComponentEditorCallback = [](const DrawComponentEditorParameter& _param, void* _componentValue)
+        meta.drawComponentEditorCallback = [](const DrawEditorParameter& _param, void* _componentValue)
         {
             static_assert(sizeof(T) > 1, "empty struct cannot be drawn in edit panel");
             T* pComponent = static_cast<T*>(_componentValue);
-            pComponent->DrawEditPanel_Super(_param);
+            pComponent->DrawEditor_Super(_param);
         };
     }
 
@@ -110,15 +111,9 @@ void ComponentMetaManager::RegisterComponent()
 }
 
 #define JAM_COMPONENT(_componentType)                                 \
-private:                                                              \
     inline static const bool _jam_component_meta_registered_ = []() { \
         ComponentMetaManager::RegisterComponent<_componentType>();    \
         return true;                                                  \
-    }();                                                              \
-                                                                      \
-public:
-
-#define JAM_STATIC_ASSERT_IS_REGISTERED_COMPONENT(_componentType) \
-    static_assert(requires {{_componentType::_jam_component_meta_registered_} -> std::same_as<bool> }, "Component '" #_componentType "' must be registered with JAM_COMPONENT macro");
+    }();
 
 }   // namespace jam

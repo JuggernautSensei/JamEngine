@@ -6,10 +6,12 @@
 #include "ColorUtilities.h"
 #include "MathUtilities.h"
 #include "StringUtilities.h"
+#include "WindowsUtilities.h"
+#include "ImageUtilities.h"
 //
 #include "Application.h"
 #include "Buffers.h"
-#include "CBuffferCollection.h"
+#include "ConstantBufferCollection.h"
 #include "EntryPoint.h"
 #include "Input.h"
 #include "PostProcess.h"

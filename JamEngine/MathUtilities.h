@@ -129,4 +129,9 @@ NODISCARD inline Vec3 ToDeg(const Vec3& vec)
     return { ToDeg(vec.x), ToDeg(vec.y), ToDeg(vec.z) };
 }
 
+NODISCARD inline Vec3 ToRad(const Vec3& vec)
+{
+    return { ToRad(vec.x), ToRad(vec.y), ToRad(vec.z) };
+}
+
 }   // namespace jam

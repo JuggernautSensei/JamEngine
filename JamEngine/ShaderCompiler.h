@@ -19,8 +19,18 @@ struct ShaderMacro
 class ShaderCompiler
 {
 public:
-    bool CompileHLSLFromFile(const fs::path& _filename, std::string_view _entryPoint, std::string_view _target, std::span<const ShaderMacro> _macros_orEmpty = {}, eShaderCompileOption _compileOption = eShaderCompileOption::Default);
-    bool CompileHLSL(std::string_view _pSource, std::string_view _entryPoint, std::string_view _target, std::span<const ShaderMacro> _macros_orEmpty = {}, eShaderCompileOption _compileOption = eShaderCompileOption::Default);
+    bool CompileHLSLFromFile(const fs::path&              _filename,
+                             std::string_view             _entryPoint,
+                             std::string_view             _target,
+                             eShaderCompileOption         _compileOption = eShaderCompileOption::Default,
+                             std::span<const ShaderMacro> _macrosOrEmpty = {});
+
+    bool CompileHLSL(std::string_view             _pSource,
+                     std::string_view             _entryPoint,
+                     std::string_view             _target,
+                     eShaderCompileOption         _compileOption = eShaderCompileOption::Default,
+                     std::span<const ShaderMacro> _macrosOrEmpty = {});
+
     bool LoadCSOFromFile(const fs::path& _filename);
     bool LoadCSO(const void* _pSource, size_t _sourceSize);
 

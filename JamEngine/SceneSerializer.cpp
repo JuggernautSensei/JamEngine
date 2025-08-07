@@ -245,7 +245,7 @@ void SceneSerializer::Deserialize(Scene* _pScene)
             {
                 const ComponentMeta& meta = metaContainer.at(componentName);
 
-                for (const auto& [entityId, componentValue]: componentData.items())
+                for (const auto& [entityId, componentJson]: componentData.items())
                 {
                     if (meta.deserializeComponentCallback)   // 역직렬화가 가능한가?
                     {
@@ -257,15 +257,11 @@ void SceneSerializer::Deserialize(Scene* _pScene)
                             meta.createComponentCallback(entity);
 
                             // 컴포넌트 데이터
-                            void* value = meta.getComponentOrNullCallback(entity);
+                            void* componentValue = meta.getComponentOrNullCallback(entity);
 
                             // 역직렬화
-                            DeserializeParameter param = {
-                                .pJson        = &componentValue,
-                                .pScene       = _pScene,
-                                .pOnwerEntity = &entity
-                            };
-                            meta.deserializeComponentCallback(param, value);
+                            DeserializeParameter deserializeParam = { &componentJson, &entity, _pScene };
+                            meta.deserializeComponentCallback(deserializeParam, componentValue);
                         }
                     }
                 }

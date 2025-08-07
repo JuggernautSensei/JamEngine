@@ -14,7 +14,7 @@ void ReportError(std::string_view _msg, const std::source_location& = std::sourc
 #ifdef _DEBUG
 #    define JAM_DEBUG_BREAK __debugbreak()
 #else
-#    define JAM_DEBUG_BREAK (void)0
+#    define JAM_DEBUG_BREAK __noop
 #endif
 
 #define JAM_CRASH_IMPL(msg_)            \

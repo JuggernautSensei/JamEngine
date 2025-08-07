@@ -1,14 +1,16 @@
 #pragma once
-#include "Entity.h"
 
 namespace jam
 {
 
+class Entity;
+class Scene;
+
 struct DeserializeParameter
 {
-    const Json*   pJson;          // not null!
-    const Scene*  pScene;         // not null!
-    const Entity* pOnwerEntity;   // not null!
+    const Json*   pJson;    // not null!
+    const Entity* pOwner;   // not null!
+    Scene*        pScene;   // not null!
 };
 
 template<typename T>

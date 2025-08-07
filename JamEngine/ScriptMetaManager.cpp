@@ -8,9 +8,11 @@
 namespace
 {
 
-NODISCARD auto& GetScriptMetaMap()
+using namespace jam;
+
+NODISCARD auto& GetMetaContainer()
 {
-    static std::unordered_map<std::string_view, jam::ScriptMeta> s_scriptMetaMap;
+    static ScriptMetaManager::MetaContainer s_scriptMetaMap;
     return s_scriptMetaMap;
 }
 
@@ -21,22 +23,22 @@ namespace jam
 
 void ScriptMetaManager::RegisterScript(const ScriptMeta& _meta)
 {
-    auto& map        = GetScriptMetaMap();
+    auto& map        = GetMetaContainer();
     auto [_, result] = map.emplace(_meta.scriptName, _meta);
     JAM_ASSERT(result, "Script with name '{}' already registered", _meta.scriptName);
 }
 
 bool ScriptMetaManager::IsRegistered(const std::string_view _scriptName)
 {
-    auto& map = GetScriptMetaMap();
+    auto& map = GetMetaContainer();
     return map.contains(_scriptName);
 }
 
-std::unique_ptr<Script> ScriptMetaManager::CreateScript(std::string_view _scriptName, const Entity& _owner)
+Scope<Script> ScriptMetaManager::CreateScript(std::string_view _scriptName, const Entity& _owner)
 {
     JAM_ASSERT(_owner.IsValid(), "Owner entity is invalid");
 
-    auto& map = GetScriptMetaMap();
+    auto& map = GetMetaContainer();
     auto  it  = map.find(_scriptName);
     JAM_ASSERT(it != map.end(), "Script with name '{}' not found", _scriptName);
 
@@ -46,10 +48,9 @@ std::unique_ptr<Script> ScriptMetaManager::CreateScript(std::string_view _script
     return meta.createCallback(_owner);
 }
 
-std::ranges::ref_view<std::unordered_map<std::string_view, ScriptMeta>> ScriptMetaManager::GetContainer() const
+const ScriptMetaManager::MetaContainer& ScriptMetaManager::GetContainer()
 {
-    auto& map = GetScriptMetaMap();
-    return std::views::all(map);
+    return ::GetMetaContainer();
 }
 
 }   // namespace jam

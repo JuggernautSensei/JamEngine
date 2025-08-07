@@ -2,8 +2,8 @@
 
 #include "Textures.h"
 
+#include "ImageUtilities.h"
 #include "Renderer.h"
-#include "StringUtilities.h"
 #include "WindowsUtilities.h"
 
 #include <DirectXTex.h>
@@ -69,12 +69,27 @@ jam::eResourceAccess GetJamResourceAccess(const D3D11_USAGE _usage)
     }
 }
 
+DirectX::WICCodecs GetWICCodecsFromImageFormat(const jam::eImageFormat _format)
+{
+    switch (_format)
+    {
+        case jam::eImageFormat::PNG: return DirectX::WIC_CODEC_PNG;
+        case jam::eImageFormat::JPEG: return DirectX::WIC_CODEC_JPEG;
+        case jam::eImageFormat::BMP: return DirectX::WIC_CODEC_BMP;
+        case jam::eImageFormat::GIF: return DirectX::WIC_CODEC_GIF;
+        case jam::eImageFormat::ICO: return DirectX::WIC_CODEC_ICO;
+        case jam::eImageFormat::HEIF: return DirectX::WIC_CODEC_HEIF;
+        case jam::eImageFormat::HEIC: return DirectX::WIC_CODEC_HEIF;
+        default: JAM_CRASH("Unsupported WIC image format");
+    }
+}
+
 }   // namespace
 
 namespace jam
 {
 
-void Texture2D::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, eResourceAccess _access, const eViewFlags _viewFlags, const UInt32 _arraySize, const UInt32 _samples, const bool _bGenerateMips, const bool _bCubemap, const std::optional<Texture2DInitializeData>& _initializeData)
+void Texture2D::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, const eResourceAccess _access, const eViewFlags _viewFlags, const UInt32 _arraySize, const UInt32 _samples, const bool _bGenerateMips, const bool _bCubemap, const std::optional<Texture2DInitializeData>& _initializeData)
 {
     // reset
     Reset();
@@ -140,48 +155,112 @@ void Texture2D::InitializeFromSwapChain(IDXGISwapChain* _pSwapChain)
     m_viewFlags  = GetJamViewFlags(desc.BindFlags);
 }
 
-bool Texture2D::LoadFromFile(const fs::path& _filePath, const eResourceAccess _access, const eViewFlags _viewFlags, const bool _bGenrateMips, const bool _bInverseGamma, bool _bCubeMap)
+bool Texture2D::InitializeFromImage_(DirectX::ScratchImage&& _scratchImage, DirectX::TexMetadata&& _metadata, const eResourceAccess _access, const eViewFlags _viewFlags, const bool _bGenerateMips, const bool _bInverseGamma, const bool _bCubemap)
+{
+    HRESULT hr;
+
+    // options
+    if (_bGenerateMips && _metadata.mipLevels == 1)
+    {
+        DirectX::ScratchImage mipChain;
+        hr = DirectX::GenerateMipMaps(_scratchImage.GetImages(), _scratchImage.GetImageCount(), _metadata, DirectX::TEX_FILTER_DEFAULT, 0, mipChain);
+        if (FAILED(hr))
+        {
+            JAM_ERROR("Failed to generate mipmaps for texture. HRESULT: {}", GetSystemErrorMessage(hr));
+            return false;
+        }
+        _scratchImage = std::move(mipChain);
+        _metadata     = _scratchImage.GetMetadata();
+    }
+
+    if (_bInverseGamma)
+    {
+        _metadata.format = DirectX::MakeSRGB(_metadata.format);
+        if (_metadata.format == DXGI_FORMAT_UNKNOWN)
+        {
+            JAM_ERROR("Failed to convert texture format to sRGB");
+            return false;
+        }
+    }
+
+    // misc flags
+    UInt32 miscFlags = 0;
+    if (_bCubemap)
+    {
+        miscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+        if (_metadata.arraySize % 6 != 0)
+        {
+            JAM_ERROR("Cubemap texture must have an array size that is a multiple of 6.");
+            return false;
+        }
+    }
+
+    // create texture
+    ComPtr<ID3D11Resource> pResource;
+    hr = DirectX::CreateTextureEx(Renderer::GetDevice(), _scratchImage.GetImages(), _scratchImage.GetImageCount(), _metadata, GetD3D11Usage(_access), GetD3D11BindFlags(_viewFlags), GetD3D11AccessFlags(_access), miscFlags, DirectX::CREATETEX_DEFAULT, pResource.GetAddressOf());
+
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Failed to create texture. HRESULT: {}", GetSystemErrorMessage(hr));
+        return false;
+    }
+
+    hr = pResource.As(&m_texture);
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Failed to cast texture resource. HRESULT: {}", GetSystemErrorMessage(hr));
+        return false;
+    }
+
+    m_width      = static_cast<UInt32>(_metadata.width);
+    m_height     = static_cast<UInt32>(_metadata.height);
+    m_format     = _metadata.format;
+    m_arraySize  = static_cast<UInt32>(_metadata.arraySize);
+    m_samples    = 1;
+    m_bHasMips   = _metadata.mipLevels > 1;
+    m_bIsCubemap = (_metadata.miscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
+    m_access     = _access;
+    m_viewFlags  = _viewFlags;
+    return true;
+}
+
+bool Texture2D::LoadFromFile(const fs::path& _filePath, const eResourceAccess _access, const eViewFlags _viewFlags, const bool _bGenrateMips, const bool _bInverseGamma, const bool _bCubeMap)
 {
     // reset
     Reset();
 
     DirectX::TexMetadata  metadata;
     DirectX::ScratchImage scratchImage;
+    HRESULT               hr;
 
-    HRESULT            hr;
-    const fs::path     fileExtension      = _filePath.extension();
-    const std::wstring lowerFileExtension = ToLower(fileExtension.native());
-    switch (HashOf(lowerFileExtension))
+    eImageFormat format = GetImageFormatFromPath(_filePath);
+    switch (format)
     {
-        case L".dds"_hs:
-            hr = DirectX::LoadFromDDSFile(_filePath.c_str(), DirectX::DDS_FLAGS_NONE, &metadata, scratchImage);
-            break;
-
-        case L".hdr"_hs:
+        case eImageFormat::HDR:
             hr = DirectX::LoadFromHDRFile(_filePath.c_str(), &metadata, scratchImage);
             break;
 
-        case L".exr"_hs:
-            hr = DirectX::LoadFromEXRFile(_filePath.c_str(), &metadata, scratchImage);
-            break;
-
-        case L".tga"_hs:
+        case eImageFormat::TGA:
             hr = DirectX::LoadFromTGAFile(_filePath.c_str(), &metadata, scratchImage);
             break;
 
-        case L".png"_hs:
-        case L".jpg"_hs:
-        case L".jpeg"_hs:
-        case L".bmp"_hs:
-        case L".gif"_hs:
-        case L".ico"_hs:
-        case L".heif"_hs:
-        case L".heic"_hs:
-            hr = DirectX::LoadFromWICFile(_filePath.c_str(), DirectX::WIC_FLAGS_NONE, &metadata, scratchImage);
+        case eImageFormat::EXR:
+            hr = DirectX::LoadFromEXRFile(_filePath.c_str(), &metadata, scratchImage);
+            break;
+
+        case eImageFormat::DDS:
+            hr = DirectX::LoadFromDDSFile(_filePath.c_str(), DirectX::DDS_FLAGS_NONE, &metadata, scratchImage);
             break;
 
         default:
-            hr = E_FAIL;
+            if (IsWICFormat(format))
+            {
+                hr = DirectX::LoadFromWICFile(_filePath.c_str(), DirectX::WIC_FLAGS_NONE, &metadata, scratchImage);
+            }
+            else
+            {
+                hr = E_FAIL;
+            }
     }
 
     if (FAILED(hr))
@@ -190,75 +269,52 @@ bool Texture2D::LoadFromFile(const fs::path& _filePath, const eResourceAccess _a
         return false;
     }
 
-    // options
+    return InitializeFromImage_(std::move(scratchImage), std::move(metadata), _access, _viewFlags, _bGenrateMips, _bInverseGamma, _bCubeMap);
+}
+
+bool Texture2D::LoadFromMemory(const UInt8* _pData, const size_t _dataSize, const eImageFormat _imageFormat, const eResourceAccess _access, const eViewFlags _viewFlags, const bool _bGenerateMips, const bool _bInverseGamma, const bool _bCubemap)
+{
+    JAM_ASSERT(_pData, "Texture2D::LoadFromMemory: Data pointer is null.");
+
+    // reset
+    Reset();
+
+    DirectX::ScratchImage scratchImage;
+    DirectX::TexMetadata  metadata;
+    HRESULT               hr;
+
+    switch (_imageFormat)
     {
-        if (_bGenrateMips)
-        {
-            if (metadata.mipLevels == 1)
+        case eImageFormat::HDR:
+            hr = DirectX::LoadFromHDRMemory(_pData, _dataSize, &metadata, scratchImage);
+            break;
+
+        case eImageFormat::TGA:
+            hr = DirectX::LoadFromTGAMemory(_pData, _dataSize, &metadata, scratchImage);
+            break;
+
+        case eImageFormat::DDS:
+            hr = DirectX::LoadFromDDSMemory(_pData, _dataSize, DirectX::DDS_FLAGS_NONE, &metadata, scratchImage);
+            break;
+
+        default:
+            if (IsWICFormat(_imageFormat))
             {
-                hr = DirectX::GenerateMipMaps(scratchImage.GetImages(), scratchImage.GetImageCount(), metadata, DirectX::TEX_FILTER_DEFAULT, 0, scratchImage);
-                if (FAILED(hr))
-                {
-                    JAM_ERROR("Failed to generate mipmaps for texture file '{}'. HRESULT: {}", _filePath.string(), GetSystemErrorMessage(hr));
-                    return false;
-                }
+                hr = DirectX::LoadFromWICMemory(_pData, _dataSize, DirectX::WIC_FLAGS_NONE, &metadata, scratchImage);
             }
             else
             {
-                metadata.mipLevels = 0;
+                hr = E_FAIL;
             }
-        }
-
-        if (_bInverseGamma)
-        {
-            metadata.format = DirectX::MakeSRGB(metadata.format);
-            if (metadata.format == DXGI_FORMAT_UNKNOWN)
-            {
-                JAM_ERROR("Failed to convert texture format to sRGB for file '{}'.", _filePath.string());
-                return false;
-            }
-        }
     }
-
-    // misc flags
-    UInt32 miscFlags = 0;
-    if (_bCubeMap)
-    {
-        miscFlags |= DirectX::TEX_MISC_TEXTURECUBE;
-        if (metadata.arraySize % 6 != 0)
-        {
-            JAM_ERROR("Cubemap texture must have an array size that is a multiple of 6. File: '{}'", _filePath.string());
-            return false;
-        }
-    }
-
-    // create texture
-    ComPtr<ID3D11Resource> pResource;
-    hr = DirectX::CreateTextureEx(Renderer::GetDevice(), scratchImage.GetImages(), scratchImage.GetImageCount(), metadata, D3D11_USAGE_IMMUTABLE, GetD3D11BindFlags(_viewFlags), GetD3D11AccessFlags(_access), miscFlags, DirectX::CREATETEX_DEFAULT, pResource.GetAddressOf());
 
     if (FAILED(hr))
     {
-        JAM_ERROR("Failed to create texture from file '{}'. HRESULT: {}", _filePath.string(), GetSystemErrorMessage(hr));
+        JAM_ERROR("Failed to load texture from memory. HRESULT: {}", GetSystemErrorMessage(hr));
         return false;
     }
 
-    hr = pResource.As(&m_texture);
-    if (FAILED(hr))
-    {
-        JAM_ERROR("Failed to cast texture resource from file '{}'. HRESULT: {}", _filePath.string(), GetSystemErrorMessage(hr));
-        return false;
-    }
-
-    m_width      = static_cast<UInt32>(metadata.width);
-    m_height     = static_cast<UInt32>(metadata.height);
-    m_format     = metadata.format;
-    m_arraySize  = static_cast<UInt32>(metadata.arraySize);
-    m_samples    = 1;
-    m_bHasMips   = metadata.mipLevels > 1;
-    m_bIsCubemap = (metadata.miscFlags & DirectX::TEX_MISC_TEXTURECUBE) != 0;
-    m_access     = _access;
-    m_viewFlags  = _viewFlags;
-    return true;
+    return InitializeFromImage_(std::move(scratchImage), std::move(metadata), _access, _viewFlags, _bGenerateMips, _bInverseGamma, _bCubemap);
 }
 
 bool Texture2D::SaveToFile(const fs::path& _filePath) const
@@ -275,54 +331,34 @@ bool Texture2D::SaveToFile(const fs::path& _filePath) const
         return false;
     }
 
-    const fs::path     fileExtension      = _filePath.extension();
-    const std::wstring lowerFileExtension = ToLower(fileExtension.native());
-    switch (HashOf(lowerFileExtension))
+    eImageFormat imageFormat = GetImageFormatFromPath(_filePath);
+    switch (imageFormat)
     {
-        case L".dds"_hs:
-            hr = DirectX::SaveToDDSFile(*scratchImage.GetImages(), DirectX::DDS_FLAGS_NONE, _filePath.c_str());
-            break;
-
-        case L".hdr"_hs:
+        case eImageFormat::HDR:
             hr = DirectX::SaveToHDRFile(*scratchImage.GetImages(), _filePath.c_str());
             break;
 
-        case L".exr"_hs:
-            hr = DirectX::SaveToEXRFile(*scratchImage.GetImages(), _filePath.c_str());
-            break;
-
-        case L".tga"_hs:
+        case eImageFormat::TGA:
             hr = DirectX::SaveToTGAFile(*scratchImage.GetImages(), _filePath.c_str());
             break;
 
-        case L".png"_hs:
-            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), _filePath.c_str());
+        case eImageFormat::EXR:
+            hr = DirectX::SaveToEXRFile(*scratchImage.GetImages(), _filePath.c_str());
             break;
 
-        case L".jpg"_hs:
-        case L".jpeg"_hs:
-            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_JPEG), _filePath.c_str());
-            break;
-
-        case L".bmp"_hs:
-            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_BMP), _filePath.c_str());
-            break;
-
-        case L".gif"_hs:
-            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_GIF), _filePath.c_str());
-            break;
-
-        case L".ico"_hs:
-            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_ICO), _filePath.c_str());
-            break;
-
-        case L".heif"_hs:
-        case L".heic"_hs:
-            hr = DirectX::SaveToWICFile(*scratchImage.GetImages(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_HEIF), _filePath.c_str());
+        case eImageFormat::DDS:
+            hr = DirectX::SaveToDDSFile(scratchImage.GetImages(), scratchImage.GetImageCount(), scratchImage.GetMetadata(), DirectX::DDS_FLAGS_NONE, _filePath.c_str());
             break;
 
         default:
-            hr = E_FAIL;
+            if (IsWICFormat(imageFormat))
+            {
+                hr = DirectX::SaveToWICFile(scratchImage.GetImages(), scratchImage.GetImageCount(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(GetWICCodecsFromImageFormat(imageFormat)), _filePath.c_str());
+            }
+            else
+            {
+                hr = E_FAIL;
+            }
     }
 
     if (FAILED(hr))
@@ -332,6 +368,61 @@ bool Texture2D::SaveToFile(const fs::path& _filePath) const
     }
 
     return true;
+}
+
+std::optional<std::vector<UInt8>> Texture2D::SaveToMemory(const eImageFormat _imageFormat) const
+{
+    JAM_ASSERT(m_texture, "Texture2D is not initialized. Cannot save to memory.");
+
+    if (_imageFormat == eImageFormat::Unknown)
+    {
+        JAM_ERROR("Texture2D::SaveToMemory: Image format is unknown. Please specify a valid image format.");
+        return std::nullopt;
+    }
+
+    DirectX::ScratchImage scratchImage;
+    HRESULT               hr = DirectX::CaptureTexture(Renderer::GetDevice(), Renderer::GetDeviceContext(), m_texture.Get(), scratchImage);
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Failed to capture texture for saving. HRESULT: {}", GetSystemErrorMessage(hr));
+        return std::nullopt;
+    }
+
+    DirectX::Blob blob;
+    switch (_imageFormat)
+    {
+        case eImageFormat::HDR:
+            hr = DirectX::SaveToHDRMemory(*scratchImage.GetImages(), blob);
+            break;
+
+        case eImageFormat::TGA:
+            hr = DirectX::SaveToTGAMemory(*scratchImage.GetImages(), blob);
+            break;
+
+        case eImageFormat::DDS:
+            hr = DirectX::SaveToDDSMemory(scratchImage.GetImages(), scratchImage.GetImageCount(), scratchImage.GetMetadata(), DirectX::DDS_FLAGS_NONE, blob);
+            break;
+
+        default:
+            if (IsWICFormat(_imageFormat))
+            {
+                hr = DirectX::SaveToWICMemory(scratchImage.GetImages(), scratchImage.GetImageCount(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(GetWICCodecsFromImageFormat(_imageFormat)), blob);
+            }
+            else
+            {
+                hr = E_FAIL;
+            }
+    }
+
+    if (FAILED(hr))
+    {
+        JAM_ERROR("Unsupported texture image format: '{}'. Supported formats are: .dds, .hdr, .exr, .tga, .png, .jpg, .jpeg, .bmp, .gif, .ico, .heif, .heic", EnumToString(_imageFormat));
+        return std::nullopt;
+    }
+
+    std::vector<UInt8> data(blob.GetBufferSize());
+    std::memcpy(data.data(), blob.GetBufferPointer(), blob.GetBufferSize());
+    return data;
 }
 
 void Texture2D::CopyFrom(const Texture2D& _other) const

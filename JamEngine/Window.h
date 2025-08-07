@@ -4,11 +4,7 @@
 namespace jam
 {
 
-struct FileDialogFilter
-{
-    std::string_view name;   // filter name
-    std::string_view ext;    // file extension (.txt, .png, etc.)
-};
+
 
 class Window
 {
@@ -22,10 +18,6 @@ public:
     void ResizeWindow(Int32 _width, Int32 _height) const;
     void MoveWindow(Int32 _posX, Int32 _posY) const;
     void SetTitle(std::string_view _name) const;
-
-    // file dialog
-    NODISCARD std::vector<fs::path> OpenFileDialog(bool _bMultiSelectable, std::span<const FileDialogFilter> _filters_orEmpty = {}, std::string_view _defaltPath_orEmpty = "") const;
-    NODISCARD fs::path SaveFileDialog(std::span<const FileDialogFilter> _filters_orEmpty = {}, std::string_view _defaltPath_orEmpty = "") const;
 
     NODISCARD std::pair<Int32, Int32> GetWindowSize() const { return { m_width, m_height }; }
     NODISCARD std::pair<Int32, Int32> GetWindowPosition() const { return { m_posX, m_posY }; }

@@ -48,8 +48,9 @@
 #include "DataType.h"
 #include "Error.h"
 #include "Macros.h"
-#include "MathUtilities.h"
+#include "SmartPointer.h"
 //
 #include "EnumUtilities.h"
 #include "Log.h"
+#include "MathUtilities.h"
 #include "TypeTrait.h"

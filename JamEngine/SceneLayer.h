@@ -28,7 +28,7 @@ public:
     NODISCARD UInt32 GetHash() const override;
     NODISCARD std::string_view GetName() const override;
 
-    Scene* AddScene(std::unique_ptr<Scene>&& _scene);
+    Scene* AddScene(Scope<Scene>&& _scene);
     void   RemoveScene(std::string_view _name);
     void   ChangeScene(std::string_view _name);
 
@@ -38,7 +38,7 @@ public:
     NODISCARD decltype(auto) GetContainer() const { return std::views::all(m_scenes); }
 
 private:
-    std::unordered_map<std::string, std::unique_ptr<Scene>> m_scenes;
+    std::unordered_map<std::string, Scope<Scene>> m_scenes;
     Scene*                                                  m_pActiveScene = nullptr;   // currently active scene
 };
 

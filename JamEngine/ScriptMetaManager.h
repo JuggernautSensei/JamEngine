@@ -5,7 +5,7 @@ namespace jam
 {
 
 class Script;
-using CreateScriptCallback = std::function<std::unique_ptr<Script>(const Entity&)>;
+using CreateScriptCallback = std::function<Scope<Script>(const Entity&)>;
 
 struct ScriptMeta
 {
@@ -16,6 +16,8 @@ struct ScriptMeta
 class ScriptMetaManager
 {
 public:
+    using MetaContainer = std::unordered_map<std::string_view, ScriptMeta>;
+
     ScriptMetaManager() = delete;
 
     template<typename T>
@@ -23,8 +25,8 @@ public:
     static void           RegisterScript(const ScriptMeta& _meta);
     NODISCARD static bool IsRegistered(std::string_view _scriptName);
 
-    NODISCARD static std::unique_ptr<Script> CreateScript(std::string_view _scriptName, const Entity& _owner);
-    NODISCARD std::ranges::ref_view<std::unordered_map<std::string_view, ScriptMeta>> GetContainer() const;
+    NODISCARD static Scope<Script> CreateScript(std::string_view _scriptName, const Entity& _owner);
+    NODISCARD static const MetaContainer&    GetContainer();
 };
 
 template<typename T>
@@ -35,7 +37,7 @@ void ScriptMetaManager::RegisterScript()
     meta.scriptName     = NameOf<T>();
     meta.createCallback = [](Entity _owner)
     {
-        return std::make_unique<T>(_owner);
+        return CreateScope<T>(_owner);
     };
     RegisterScript(meta);
 }

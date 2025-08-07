@@ -53,8 +53,8 @@ public:
     void SubmitCommand(const std::function<void()>& _command);
 
     // layer interface
-    ILayer*           PushFrontLayer(std::unique_ptr<ILayer>&& _pLayer);
-    ILayer*           PushBackLayer(std::unique_ptr<ILayer>&& _layer);
+    ILayer*           PushFrontLayer(Scope<ILayer>&& _pLayer);
+    ILayer*           PushBackLayer(Scope<ILayer>&& _layer);
     void              RemoveLayer(ILayer* _pLayer);
     NODISCARD ILayer* GetLayer(UInt32 _layerHash) const;
 
@@ -96,7 +96,7 @@ private:
     CommandQueue m_commandQueue    = {};
 
     // layer
-    std::vector<std::unique_ptr<ILayer>> m_layers      = {};        // layers stack
+    std::vector<Scope<ILayer>> m_layers      = {};        // layers stack
     SceneLayer*                          m_pSceneLayer = nullptr;   // scene layer cache
 
     // file system

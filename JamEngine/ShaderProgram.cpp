@@ -9,50 +9,50 @@
 namespace jam
 {
 
-void ShaderProgram::Initialize(ID3DBlob* _pVScode_orNull, ID3DBlob* _pPScode_orNull, ID3DBlob* _pGScode_orNull, ID3DBlob* _pHScode_orNull, ID3DBlob* _pDScode_orNull)
+void ShaderProgram::Initialize(ID3DBlob* _pVScodeOrNull, ID3DBlob* _pPScodeOrNull, ID3DBlob* _pGScodeOrNull, ID3DBlob* _pHScodeOrNull, ID3DBlob* _pDScodeOrNull)
 {
-    if (_pVScode_orNull)
+    if (_pVScodeOrNull)
     {
         ShaderCreationData data;
-        data.pBytecode      = _pVScode_orNull->GetBufferPointer();
-        data.bytecodeLength = _pVScode_orNull->GetBufferSize();
+        data.pBytecode      = _pVScodeOrNull->GetBufferPointer();
+        data.bytecodeLength = _pVScodeOrNull->GetBufferSize();
 
         Renderer::CreateVertexShader(data, m_pVertexShader.GetAddressOf());
-        CreateInputLayout_(_pVScode_orNull);   // 인풋 레이아웃 생성
+        CreateInputLayout_(_pVScodeOrNull);   // 인풋 레이아웃 생성
     }
 
-    if (_pPScode_orNull)
+    if (_pPScodeOrNull)
     {
         ShaderCreationData data;
-        data.pBytecode      = _pPScode_orNull->GetBufferPointer();
-        data.bytecodeLength = _pPScode_orNull->GetBufferSize();
+        data.pBytecode      = _pPScodeOrNull->GetBufferPointer();
+        data.bytecodeLength = _pPScodeOrNull->GetBufferSize();
 
         Renderer::CreatePixelShader(data, m_pPixelShader.GetAddressOf());
     }
 
-    if (_pGScode_orNull)
+    if (_pGScodeOrNull)
     {
         ShaderCreationData data;
-        data.pBytecode      = _pGScode_orNull->GetBufferPointer();
-        data.bytecodeLength = _pGScode_orNull->GetBufferSize();
+        data.pBytecode      = _pGScodeOrNull->GetBufferPointer();
+        data.bytecodeLength = _pGScodeOrNull->GetBufferSize();
 
         Renderer::CreateGeometryShader(data, m_pGeometryShader.GetAddressOf());
     }
 
-    if (_pHScode_orNull)
+    if (_pHScodeOrNull)
     {
         ShaderCreationData data;
-        data.pBytecode      = _pHScode_orNull->GetBufferPointer();
-        data.bytecodeLength = _pHScode_orNull->GetBufferSize();
+        data.pBytecode      = _pHScodeOrNull->GetBufferPointer();
+        data.bytecodeLength = _pHScodeOrNull->GetBufferSize();
 
         Renderer::CreateHullShader(data, m_pHullShader.GetAddressOf());
     }
 
-    if (_pDScode_orNull)
+    if (_pDScodeOrNull)
     {
         ShaderCreationData data;
-        data.pBytecode      = _pDScode_orNull->GetBufferPointer();
-        data.bytecodeLength = _pDScode_orNull->GetBufferSize();
+        data.pBytecode      = _pDScodeOrNull->GetBufferPointer();
+        data.bytecodeLength = _pDScodeOrNull->GetBufferSize();
 
         Renderer::CreateDomainShader(data, m_pDomainShader.GetAddressOf());
     }

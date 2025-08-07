@@ -20,32 +20,36 @@ public:
     template<typename Ty, typename... Args>
     decltype(auto) CreateCompoenent(Args&&... args)
     {
+        static_assert(std::is_convertible_v<decltype(Ty::_jam_component_meta_registered_), bool>, "Component must be registered with JAM_COMPONENT macro");
         JAM_ASSERT(m_pScene, "Entity is not associated with a scene");
-        JAM_ASSERT(m_entity != entt::null, "Entity is null");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pScene->GetRegistry().emplace_or_replace<Ty>(m_entity, std::forward<Args>(args)...);
     }
 
     template<typename... Ty>
     decltype(auto) GetComponent() const
     {
+        static_assert((std::is_convertible_v<decltype(Ty::_jam_component_meta_registered_), bool> && ...), "All components must be registered with JAM_COMPONENT macro");
         JAM_ASSERT(m_pScene, "Entity is not associated with a scene");
-        JAM_ASSERT(m_entity != entt::null, "Entity is null");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pScene->GetRegistry().get<Ty...>(m_entity);
     }
 
     template<typename... Ty>
     NODISCARD bool HasComponent() const
     {
+        static_assert((std::is_convertible_v<decltype(Ty::_jam_component_meta_registered_), bool> && ...), "All components must be registered with JAM_COMPONENT macro");
         JAM_ASSERT(m_pScene, "Entity is not associated with a scene");
-        JAM_ASSERT(m_entity != entt::null, "Entity is null");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pScene->GetRegistry().all_of<Ty...>(m_entity);
     }
 
     template<typename... Ty>
     decltype(auto) RemoveComponent() const
     {
+        static_assert((std::is_convertible_v<decltype(Ty::_jam_component_meta_registered_), bool> && ...), "All components must be registered with JAM_COMPONENT macro");
         JAM_ASSERT(m_pScene, "Entity is not associated with a scene");
-        JAM_ASSERT(m_entity != entt::null, "Entity is null");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pScene->GetRegistry().remove<Ty...>(m_entity);
     }
 

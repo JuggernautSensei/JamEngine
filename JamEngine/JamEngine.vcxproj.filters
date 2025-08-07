@@ -121,7 +121,7 @@
     <ClCompile Include="ShaderCollection.cpp">
       <Filter>2. Renderer\BuiltIn\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="CBuffferCollection.cpp">
+    <ClCompile Include="ConstantBufferCollection.cpp">
       <Filter>2. Renderer\BuiltIn\ConstantBuffer</Filter>
     </ClCompile>
     <ClCompile Include="StateCollection.cpp">
@@ -181,8 +181,17 @@
     <ClCompile Include="IEditableComponent.cpp">
       <Filter>4. Scene\ECS\Component</Filter>
     </ClCompile>
-    <ClCompile Include="EditComponentPanel.cpp">
+    <ClCompile Include="ComponentsEditor.cpp">
       <Filter>4. Scene\ECS\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="SmartPointer.cpp">
+      <Filter>99. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageUtilities.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetUtilities.cpp">
+      <Filter>5. Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -443,7 +452,7 @@
     <ClInclude Include="ShaderCollection.h">
       <Filter>2. Renderer\BuiltIn\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="CBuffferCollection.h">
+    <ClInclude Include="ConstantBufferCollection.h">
       <Filter>2. Renderer\BuiltIn\ConstantBuffer</Filter>
     </ClInclude>
     <ClInclude Include="StateCollection.h">
@@ -502,6 +511,15 @@
     </ClInclude>
     <ClInclude Include="IEditableComponent.h">
       <Filter>4. Scene\ECS\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="SmartPointer.h">
+      <Filter>99. Base</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageUtilities.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetUtilities.h">
+      <Filter>5. Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

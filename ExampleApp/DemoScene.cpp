@@ -65,7 +65,7 @@ void DemoScene::OnRender()
 
     // update camera
     {
-        auto& [cmrT, cmr] = m_cameraEntity.GetComponent<TransformComponent, CameraComponent>();
+        auto [cmrT, cmr] = m_cameraEntity.GetComponent<TransformComponent, CameraComponent>();
 
         CB_CAMERA cbCamera;
         cbCamera.cb_cameraPosition       = cmrT.position;

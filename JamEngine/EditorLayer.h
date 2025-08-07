@@ -32,9 +32,27 @@ using eEditorPanelShowFlags = Int32;
 
 class EditorLayer : public ILayer
 {
+    // for content browser
+    struct Content
+    {
+        fs::path                  path;
+        std::string               name;
+        std::optional<eAssetType> assetTypeOrNull;   // if content available as asset, this will be set. otherwise, std::nullopt
+
+        Texture2D thumbnail;
+    };
+
+    // for content browser
+    struct Directory
+    {
+        fs::path               path;
+        std::string            name;
+        std::vector<Directory> subDirectories;
+    };
+
 public:
     EditorLayer();
-    ~EditorLayer() override = default;
+    ~EditorLayer() override;
 
     EditorLayer(const EditorLayer&)                = default;
     EditorLayer& operator=(const EditorLayer&)     = default;
@@ -68,6 +86,15 @@ private:
     // message box
     void ShowMessageBox_();
 
+    // content browser
+    void UpdateFocusDirectoryContents();
+    void UpdateRootDirectory();
+    void SetFocusDirectory(const fs::path& _path);
+    void SetFocusDirectoryToParentDirectory();
+
+    // draw widget
+    void DrawWidgetButton(const Content& _content, const ImVec2& _buttonSize);
+
     eEditorPanelShowFlags m_flags          = eEditorPanelShowFlags_None;
     Entity                m_selectedEntity = Entity::s_null;
 
@@ -81,6 +108,12 @@ private:
 
     // layer interface
     EventDispatcher m_dispatcher;
+
+    // content browser
+    fs::path             m_focusDirectoryPath;       // 현재 디렉토리의 경로
+    std::vector<Content> m_focusDirectoryContents;   // 현재 디렉토리의 컨텐츠
+    Directory            m_rootDirectory;            // root directory = contents directory. 전체적인 폴더 구조만 저장
+    Texture2D            m_defaultFileIcon;
 };
 
 }   // namespace jam

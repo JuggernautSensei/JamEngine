@@ -44,7 +44,7 @@ UInt32 Buffer::Reset()
     return refCount;
 }
 
-void Buffer::Initialize_(const UInt32 _byteWidth, const UInt32 _bindFlag, eResourceAccess _access, const std::optional<BufferInitializeData>& _initializeData)
+void Buffer::Initialize_(const UInt32 _byteWidth, const UInt32 _bindFlag, eResourceAccess _access, const std::optional<BufferInitializeData>& _initDataOrNull)
 {
     constexpr UINT k_accessFlagsTable[] = {
         0,                        // GPUWriteable
@@ -66,15 +66,15 @@ void Buffer::Initialize_(const UInt32 _byteWidth, const UInt32 _bindFlag, eResou
     desc.StructureByteStride = 0;
 
     // create buffer
-    Renderer::CreateBuffer(desc, _initializeData, m_buffer.GetAddressOf());
+    Renderer::CreateBuffer(desc, _initDataOrNull, m_buffer.GetAddressOf());
     m_byteWidth = _byteWidth;
     m_access    = _access;
 }
 
-void VertexBuffer::Initialize(const UInt32 _vertexStride, const UInt32 _vertexCount, const eResourceAccess _access, const std::optional<BufferInitializeData>& _initializeData)
+void VertexBuffer::Initialize(const UInt32 _vertexStride, const UInt32 _vertexCount, const eResourceAccess _access, const std::optional<BufferInitializeData>& _initDataOrNull)
 {
     JAM_ASSERT(_access != eResourceAccess::CPUReadable, "Vertex buffer cannot be CPU readable");
-    Initialize_(_vertexStride * _vertexCount, D3D11_BIND_VERTEX_BUFFER, _access, _initializeData);
+    Initialize_(_vertexStride * _vertexCount, D3D11_BIND_VERTEX_BUFFER, _access, _initDataOrNull);
     m_stride = _vertexStride;
 }
 
@@ -83,12 +83,12 @@ void VertexBuffer::Bind() const
     Renderer::BindVertexBuffer(m_buffer.Get(), m_stride);
 }
 
-void IndexBuffer::Initialize(const UInt32 _indexCount, const eResourceAccess _access, const std::optional<IndexBufferInitializeData>& _initializeData)
+void IndexBuffer::Initialize(const UInt32 _indexCount, const eResourceAccess _access, const std::optional<IndexBufferInitializeData>& _initDataOrNull)
 {
-    if (_initializeData)
+    if (_initDataOrNull)
     {
         BufferInitializeData initData;
-        initData.pData = _initializeData->pData;
+        initData.pData = _initDataOrNull->pData;
         Initialize_(sizeof(Index) * _indexCount, D3D11_BIND_INDEX_BUFFER, _access, initData);
     }
     else
@@ -102,9 +102,9 @@ void IndexBuffer::Bind() const
     Renderer::BindIndexBuffer(m_buffer.Get());
 }
 
-void ConstantBuffer::Initialize(const UInt32 _byteWidth, const std::optional<BufferInitializeData>& _initializeData)
+void ConstantBuffer::Initialize(const UInt32 _byteWidth, const std::optional<BufferInitializeData>& _initDataOrNull)
 {
-    Initialize_(_byteWidth, D3D11_BIND_CONSTANT_BUFFER, eResourceAccess::CPUWriteable, _initializeData);
+    Initialize_(_byteWidth, D3D11_BIND_CONSTANT_BUFFER, eResourceAccess::CPUWriteable, _initDataOrNull);
 }
 
 void ConstantBuffer::Bind(const eShader _shader, const UInt32 _slot) const
