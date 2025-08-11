@@ -57,11 +57,6 @@ NODISCARD constexpr UInt32 HashOf()
 }
 
 template<typename T>
-struct FalseType : std::false_type
-{
-};
 
-template<typename T>
-constexpr bool always_false_v = FalseType<T>::value;
-
+constexpr bool always_false_v = false; 
 }   // namespace jam

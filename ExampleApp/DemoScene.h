@@ -17,15 +17,17 @@ public:
     void OnRenderUI() override;
     void OnEvent(Event& _eventRef) override;
 
+    NODISCARD const Texture2D& GetSceneTexture() const override;
+
 private:
-    void OnSwapChainResourceReleaseEvent_(const BackBufferCleanupEvent& _event);
     void OnWindowResizeEvent_(const WindowResizeEvent& _event);
     void CreateScreenDependentResources_(Int32 _width, Int32 _height);
 
+private:
     EventDispatcher m_dispatcher;
 
     // frame resources
-    Texture2D m_backBufferTexture;
+    Texture2D m_sceneTexture;
     Texture2D m_hdrTexture;
     Texture2D m_depthTexture;
     Viewport  m_viewport;
@@ -51,5 +53,5 @@ private:
     SamplerState m_samplerShadowComparisonLinearWrap;
 
     // camera
-    Entity    m_cameraEntity;
+    Entity m_cameraEntity;
 };

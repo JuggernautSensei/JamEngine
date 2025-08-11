@@ -24,6 +24,8 @@ public:
     NODISCARD eAssetType   GetType() const override;
     NODISCARD const Model& GetModel() const { return m_model; }
 
+    constexpr static eAssetType s_type = eAssetType::Model;
+
 private:
     Model m_model;
 };

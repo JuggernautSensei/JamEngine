@@ -14,7 +14,7 @@ enum eViewFlags_ : Int32
     eViewFlags_RenderTarget   = 1 << 1,
     eViewFlags_DepthStencil   = 1 << 2,
 };
-using eViewFlags = Int32;
+using eViewFlags = std::underlying_type_t<eViewFlags_>;
 
 class Texture2D
 {
@@ -77,10 +77,13 @@ public:
     void ClearRenderTarget(const float _color[4]) const;
     void ClearDepthStencil(bool _bClearDepth, bool _bClearStencil, float _depth = 1.0f, UInt8 _stencil = 0) const;
 
-    NODISCARD bool IsMultiSamplingTexture() const { return m_samples > 1; }
-    NODISCARD bool IsCubemap() const { return m_bIsCubemap; }
-    NODISCARD bool HasMips() const { return m_bHasMips; }
-    NODISCARD bool IsArray() const { return m_arraySize > 1; }
+    NODISCARD bool            IsValid() const { return m_texture != nullptr; }
+    NODISCARD bool            IsMultiSamplingTexture() const { return m_samples > 1; }
+    NODISCARD bool            IsCubemap() const { return m_bIsCubemap; }
+    NODISCARD bool            HasMips() const { return m_bHasMips; }
+    NODISCARD bool            IsArray() const { return m_arraySize > 1; }
+    NODISCARD eResourceAccess GetAccess() const { return m_access; }
+    NODISCARD eViewFlags      GetViewFlags() const { return m_viewFlags; }
 
     NODISCARD std::pair<UInt32, UInt32> GetSize() const { return { m_width, m_height }; }
     NODISCARD UInt32                    GetArraySize() const { return m_arraySize; }
@@ -94,6 +97,8 @@ public:
     NODISCARD ID3D11RenderTargetView*   GetRTV() const;
     NODISCARD ID3D11DepthStencilView*   GetDSV() const;
     UInt32                              Reset();
+
+    static Texture2D null;
 
 private:
     // DiretXTex utilities

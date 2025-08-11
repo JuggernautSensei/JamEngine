@@ -24,6 +24,8 @@ public:
     NODISCARD eAssetType GetType() const override;
     void                 BindAsShaderResource(const eShader _shader, const UInt32 _slot) const { m_texture.BindAsShaderResource(_shader, _slot); }
 
+    constexpr static eAssetType s_type = eAssetType::Texture;
+
 private:
     Texture2D m_texture;
 };

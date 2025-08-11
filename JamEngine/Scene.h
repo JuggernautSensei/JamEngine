@@ -4,8 +4,9 @@
 namespace jam
 {
 
-class Event;
+class Texture2D;
 class Entity;
+class Event;
 
 class Scene
 {
@@ -29,11 +30,14 @@ public:
     virtual void OnRenderUI() {}
     virtual void OnEndRender() {}
 
+    virtual void OnEvent(Event& _eventRef) {}
+
+    // serialization
     NODISCARD virtual Json OnSerialize() const { return Json::value_t::null; }
     NODISCARD virtual void OnDeserialize(const Json& _json) {}
 
-    virtual void OnEvent(Event& _eventRef) {}
-    NODISCARD std::string_view GetName() const { return m_name; }
+    NODISCARD std::string_view         GetName() const { return m_name; }   // scene name
+    NODISCARD virtual const Texture2D& GetSceneTexture() const = 0;        // final rendering output (= final color buffer, final render target texture)
 
     // registry
     NODISCARD entt::registry& GetRegistry() { return m_registry; }
@@ -59,7 +63,7 @@ public:
     }
 
     // asset manager interface
-    NODISCARD AssetManager&       GetAssetManager() { return m_assetManager; }
+    NODISCARD AssetManager&       GetAssetManagerRef() { return m_assetManager; }
     NODISCARD const AssetManager& GetAssetManager() const { return m_assetManager; }
 
 protected:

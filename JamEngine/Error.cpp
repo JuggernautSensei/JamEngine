@@ -36,7 +36,7 @@ void ReportCrash(const std::string_view _msg, const std::source_location& _loc)
     // 시간 기반 리포트 파일 생성
     constexpr std::string_view k_bufReportDirectory = "bug report";
     TimeStamp                  timeStamp            = TimeStamp::Create();
-    const std::string          filepath             = std::format(R"({0}\{1}.{2}.{3}\log_{1}.{2}.{3}_{4}h-{5}m-{6}s.txt)", k_bufReportDirectory, timeStamp.year, timeStamp.month, timeStamp.day, timeStamp.hour, timeStamp.minute, timeStamp.second);
+    const std::string          filepath             = std::format(R"({0}\{1}.{2}.{3}\log_{1}.{2}.{3}_{4}h{5}m{6}s.txt)", k_bufReportDirectory, timeStamp.year, timeStamp.month, timeStamp.day, timeStamp.hour, timeStamp.minute, timeStamp.second);
 
     // 디렉토리 생성
     fs::create_directories(filepath.substr(0, filepath.find_last_of('\\')));

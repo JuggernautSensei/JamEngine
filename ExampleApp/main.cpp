@@ -23,6 +23,9 @@ private:
         window.ResizeWindow(1280, 720);
         SetVsync(true);
 
+        // editor
+        Scope<EditorLayer> pEditorLayer = std::make_unique<EditorLayer>();
+
         // scene layer
         SceneLayer* pSceneLayer = GetSceneLayer();
         pSceneLayer->AddScene(std::make_unique<DemoScene>("DemoScene"));

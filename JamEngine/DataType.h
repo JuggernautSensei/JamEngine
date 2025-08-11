@@ -1,4 +1,5 @@
 #pragma once
+#include <EASTL/bonus/fixed_ring_buffer.h>
 
 namespace jam
 {
@@ -30,6 +31,13 @@ using Quat = DirectX::SimpleMath::Quaternion;
 // ComPtr
 template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+// containers
+template<typename T, size_t N>
+using FCircularQueue = eastl::fixed_ring_buffer<T, N>;
+
+template<typename T, size_t N>
+using FVector = eastl::fixed_vector<T, N, false>;
 
 // namespace
 namespace fs = std::filesystem;

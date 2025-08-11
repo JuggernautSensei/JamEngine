@@ -138,13 +138,13 @@ void ModelComponent::Deserialize(const DeserializeParameter& _param)
 {
     JAM_ASSERT(_param.pScene, "Scene must not be null when deserializing ModelComponent");
 
-    fs::path                                   path  = _param.pJson->value("path", std::filesystem::path());
-    AssetManager&                              mgr   = _param.pScene->GetAssetManager();
-    std::optional<Ref<ModelAsset>> model = mgr.GetModel(path);
+    fs::path                       path  = _param.pJson->value("path", std::filesystem::path());
+    AssetManager&                  mgr   = _param.pScene->GetAssetManagerRef();
+    std::optional<Ref<ModelAsset>> model = mgr.Get<ModelAsset>(path);
 
     if (!model)
     {
-        model = mgr.LoadModel(path);
+        model = mgr.Load<ModelAsset>(path);
     }
 
     if (model)

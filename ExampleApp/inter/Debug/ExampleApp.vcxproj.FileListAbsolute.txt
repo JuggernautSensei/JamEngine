@@ -12,3 +12,4 @@ C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\deflate.dll
 C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\Imath-3_1_d.dll
 C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\inter\Debug\ExampleA.556B52EB.Up2Date
 C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\nfd.dll
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\efsw.dll

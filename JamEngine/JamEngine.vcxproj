@@ -201,6 +201,7 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="AssetInspectorPanel.cpp" />
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="AssetUtilities.cpp" />
     <ClCompile Include="BufferReader.cpp" />
@@ -211,13 +212,23 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ConsolePanel.cpp" />
+    <ClCompile Include="ContentsBrowserPanel.cpp" />
+    <ClCompile Include="DebugPanel.cpp" />
     <ClCompile Include="EditorLayer.cpp" />
+    <ClCompile Include="EditorUtilities.cpp" />
+    <ClCompile Include="EntityInspectorPanel.cpp" />
     <ClCompile Include="IEditableComponent.cpp" />
     <ClCompile Include="ImageFilter.cpp" />
     <ClCompile Include="ConstantBufferCollection.cpp" />
     <ClCompile Include="ImageUtilities.cpp" />
+    <ClCompile Include="IMessageBox.cpp" />
+    <ClCompile Include="ImGuiUtilities.cpp" />
     <ClCompile Include="JsonUtilities.cpp" />
+    <ClCompile Include="MainMenuBarPanel.cpp" />
+    <ClCompile Include="MemorySink.cpp" />
     <ClCompile Include="ModelAsset.cpp" />
+    <ClCompile Include="SceneHierarchyPanel.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="SmartPointer.cpp" />
     <ClCompile Include="StateCollection.cpp" />
@@ -270,6 +281,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Viewport.cpp" />
+    <ClCompile Include="ViewportPanel.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
     <ClCompile Include="ComponentsEditor.cpp" />
@@ -277,18 +289,29 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="AssetInspectorPanel.h" />
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="AssetUtilities.h" />
     <ClInclude Include="BufferReader.h" />
     <ClInclude Include="Buffers.h" />
     <ClInclude Include="CompiledShaders.h" />
+    <ClInclude Include="ConsolePanel.h" />
+    <ClInclude Include="ContentsBrowserPanel.h" />
+    <ClInclude Include="DebugPanel.h" />
     <ClInclude Include="EditorLayer.h" />
+    <ClInclude Include="EditorUtilities.h" />
+    <ClInclude Include="EntityInspectorPanel.h" />
     <ClInclude Include="IEditableComponent.h" />
     <ClInclude Include="ImageFilter.h" />
     <ClInclude Include="ConstantBufferCollection.h" />
     <ClInclude Include="ImageUtilities.h" />
+    <ClInclude Include="IMessageBox.h" />
+    <ClInclude Include="ImGuiUtilities.h" />
     <ClInclude Include="JsonUtilities.h" />
+    <ClInclude Include="MainMenuBarPanel.h" />
+    <ClInclude Include="MemorySink.h" />
     <ClInclude Include="ModelAsset.h" />
+    <ClInclude Include="SceneHierarchyPanel.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="SmartPointer.h" />
     <ClInclude Include="StateCollection.h" />
@@ -338,6 +361,7 @@
     <ClInclude Include="JamEngine.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="Viewport.h" />
+    <ClInclude Include="ViewportPanel.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="ShaderBridge.h" />

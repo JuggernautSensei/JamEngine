@@ -6,8 +6,10 @@
 #include "Config.h"
 #include "Entity.h"
 #include "JsonUtilities.h"
+#include "ModelAsset.h"
 #include "Scene.h"
 #include "StringUtilities.h"
+#include "TextureAsset.h"
 
 namespace
 {
@@ -193,7 +195,7 @@ void SceneSerializer::Deserialize(Scene* _pScene)
         if (m_json.contains("assets"))
         {
             const Json&   assetJson = m_json["assets"];
-            AssetManager& assetMgr  = _pScene->GetAssetManager();
+            AssetManager& assetMgr  = _pScene->GetAssetManagerRef();
 
             for (const eAssetType& type: EnumValues<eAssetType>())
             {
@@ -209,8 +211,8 @@ void SceneSerializer::Deserialize(Scene* _pScene)
 
                         switch (type)
                         {
-                            case eAssetType::Model: assetMgr.LoadModel(path); break;
-                            case eAssetType::Texture: assetMgr.LoadTexture(path); break;
+                            case eAssetType::Model: assetMgr.Load<ModelAsset>(path); break;
+                            case eAssetType::Texture: assetMgr.Load<TextureAsset>(path); break;
                             default:
                                 JAM_ERROR("SceneSerializer::Deserialize() - Unsupported asset type: {}", EnumToString(type));
                                 continue;

@@ -13,7 +13,7 @@ void OpenInExplorer(fs::path _path);
 // file dialog
 struct FileDialogFilter
 {
-    std::string_view name;   // filter name
+    std::string_view name;   // m_textFilter name
     std::string_view ext;    // file extension (.txt, .png, etc.)
 };
 

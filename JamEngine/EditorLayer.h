@@ -1,119 +1,85 @@
 #pragma once
+#include "AssetInspectorPanel.h"
+#include "ConsolePanel.h"
+#include "ContentsBrowserPanel.h"
+#include "DebugPanel.h"
 #include "Entity.h"
-#include "Event.h"
+#include "EntityInspectorPanel.h"
+#include "EnumUtilities.h"
 #include "ILayer.h"
-#include "Textures.h"
+#include "MainMenuBarPanel.h"
+#include "SceneHierarchyPanel.h"
+#include "ViewportPanel.h"
 
 namespace jam
 {
+
 class BackBufferCleanupEvent;
-}
-
-namespace jam
-{
 class WindowResizeEvent;
-}
+class IMessageBox;
 
-namespace jam
+enum class ePanelShow : Int32
 {
-
-enum eEditorPanelShowFlags_ : Int32
-{
-    eEditorPanelShowFlags_None,
-    eEditorPanelShowFlags_DebugPanel      = 1 << 0,
-    eEditorPanelShowFlags_Viewport        = 1 << 1,
-    eEditorPanelShowFlags_SceneHierarchy  = 1 << 2,
-    eEditorPanelShowFlags_AssetInspector  = 1 << 3,
-    eEditorPanelShowFlags_EntityInspector = 1 << 4,
-    eEditorPanelShowFlags_ContentsBrowser = 1 << 5,
-    eEditorPanelShowFlags_Console         = 1 << 6,
+    Debug,
+    Viewport,
+    SceneHierarchy,
+    AssetInspector,
+    EntityInspector,
+    ContentsBrowser,
+    Console,
 };
-using eEditorPanelShowFlags = Int32;
 
 class EditorLayer : public ILayer
 {
-    // for content browser
-    struct Content
-    {
-        fs::path                  path;
-        std::string               name;
-        std::optional<eAssetType> assetTypeOrNull;   // if content available as asset, this will be set. otherwise, std::nullopt
-
-        Texture2D thumbnail;
-    };
-
-    // for content browser
-    struct Directory
-    {
-        fs::path               path;
-        std::string            name;
-        std::vector<Directory> subDirectories;
-    };
-
 public:
     EditorLayer();
     ~EditorLayer() override;
 
-    EditorLayer(const EditorLayer&)                = default;
-    EditorLayer& operator=(const EditorLayer&)     = default;
+    EditorLayer(const EditorLayer&)                = delete;
+    EditorLayer& operator=(const EditorLayer&)     = delete;
     EditorLayer(EditorLayer&&) noexcept            = default;
     EditorLayer& operator=(EditorLayer&&) noexcept = default;
 
     void OnUpdate(float _deltaTime) override;
     void OnRender() override;
-    void OnEvent(Event& _event) override;
+    void OnEvent(Event& _eventRef) override;
 
-    void SetShowFlags(eEditorPanelShowFlags _flags, bool _bEnable);
-    void ToggleShowFlags(eEditorPanelShowFlags _flags);
+    void           SetPanelShow(ePanelShow _flags, bool _bEnable);
+    void           TogglePanelShow(ePanelShow _flags);
+    NODISCARD bool IsShowPanel(ePanelShow _flags) const;
 
     // use this to show a message box -> may be very useful!
-    void OpenMessageBox(std::string_view _title, const std::function<void()>& _drawCallback);
+    void OpenMessageBox(Scope<IMessageBox>&& _pMessageBox);
+
+    void             SetEditEntity(const Entity& _entity);
+    NODISCARD Entity GetEditEntity() const;
+
+    NODISCARD UInt32 GetHash() const override { return HashOf<EditorLayer>(); }
+    NODISCARD std::string_view GetName() const override { return NameOf<EditorLayer>(); }
 
 private:
-    void ShowMainMenuBar_();
-    void ShowDebugPanel_();
-    void ShowViewport_();
-    void ShowSceneHierarchy_();
-    void ShowEntityInspector_();
-    void ShowAssetInspector_();
-    void ShowContentsBrowser_();
-    void ShowConsole_();
-
-    // event handlers
-    void CreateScreenDependentResources_(Int32 _width, Int32 _height);
-    void OnWindowResizeEvent_(const WindowResizeEvent& e);
-
     // message box
     void ShowMessageBox_();
 
-    // content browser
-    void UpdateFocusDirectoryContents();
-    void UpdateRootDirectory();
-    void SetFocusDirectory(const fs::path& _path);
-    void SetFocusDirectoryToParentDirectory();
+private:
+    bool m_panelShowBit[EnumCount<ePanelShow>()];
 
-    // draw widget
-    void DrawWidgetButton(const Content& _content, const ImVec2& _buttonSize);
+    // panels
+    ContentsBrowserPanel m_contentsBrowserPanel;
+    EntityInspectorPanel m_entityInspectorPanel;
+    AssetInspectorPanel  m_assetInspectorPanel;
+    SceneHierarchyPanel  m_sceneHierarchyPanel;
+    MainMenuBarPanel     m_mainMenuBarPanel;
+    ViewportPanel        m_viewportPanel;
+    ConsolePanel         m_consolePanel;
+    DebugPanel           m_debugPanel;
 
-    eEditorPanelShowFlags m_flags          = eEditorPanelShowFlags_None;
-    Entity                m_selectedEntity = Entity::s_null;
+    // shared data
+    Entity m_editEntity = Entity::s_null;   // 현재 편집중인 엔티티
 
     // message box
-    std::function<void()> m_messageBoxDrawCallback;
-    std::string           m_messageBoxTitle;
-    bool                  m_bShowMessageBox = false;
-
-    // viewport
-    Texture2D m_viewportTexture;
-
-    // layer interface
-    EventDispatcher m_dispatcher;
-
-    // content browser
-    fs::path             m_focusDirectoryPath;       // 현재 디렉토리의 경로
-    std::vector<Content> m_focusDirectoryContents;   // 현재 디렉토리의 컨텐츠
-    Directory            m_rootDirectory;            // root directory = contents directory. 전체적인 폴더 구조만 저장
-    Texture2D            m_defaultFileIcon;
+    Scope<IMessageBox> m_pMessageBox     = nullptr;
+    bool               m_bShowMessageBox = false;
 };
 
 }   // namespace jam

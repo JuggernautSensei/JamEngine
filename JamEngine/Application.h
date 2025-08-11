@@ -49,18 +49,18 @@ public:
     // core interface
     int  Run();
     void Quit();
-    void DispatchEvent(Event& _event);
+    void DispatchEvent(Event& _eventRef);
     void SubmitCommand(const std::function<void()>& _command);
 
     // layer interface
-    ILayer*           PushFrontLayer(Scope<ILayer>&& _pLayer);
-    ILayer*           PushBackLayer(Scope<ILayer>&& _layer);
-    void              RemoveLayer(ILayer* _pLayer);
+    ILayer*           AttachLayer(Scope<ILayer>&& _pLayer, bool _bAttachAtFront = false /* default is push_back */);
+    void              RemoveLayer(UInt32 _layerHash);
     NODISCARD ILayer* GetLayer(UInt32 _layerHash) const;
 
     // properties
     void           SetVsync(bool _bVsync);   // enable or disable vsync
     NODISCARD bool IsVsync() const;          // is vsync enabled
+    void           SetEventLoggingFilter(eEventCategoryFlags _flags);
 
     // getter
     NODISCARD const Window&    GetWindow() const;
@@ -76,7 +76,7 @@ public:
     NODISCARD const fs::path& GetScenesDirectory() const { return m_scenesDirectory; }       // get scenes directory
 
     // singletone accessor
-    static void                   Create(const jam::CommandLineArguments& _args);   // public constructor - call at the beginning of your main function
+    static void                   Create(const CommandLineArguments& _args);   // public constructor - call at the beginning of your main function
     static void                   Destroy();                                        // public destructor - call at the end of your main function
     static NODISCARD Application& GetInstance();
 
@@ -97,7 +97,7 @@ private:
 
     // layer
     std::vector<Scope<ILayer>> m_layers      = {};        // layers stack
-    SceneLayer*                          m_pSceneLayer = nullptr;   // scene layer cache
+    SceneLayer*                m_pSceneLayer = nullptr;   // scene layer cache
 
     // file system
     fs::path m_workingDirectory  = {};
@@ -106,6 +106,11 @@ private:
     fs::path m_modelsDirectory   = {};   // models directory
     fs::path m_texturesDirectory = {};   // textures directory
     fs::path m_scenesDirectory   = {};   // scenes directory
+
+    // event
+    eEventCategoryFlags m_eventLoggingFilter = eEventCategoryFlags_Window
+                                             | eEventCategoryFlags_Renderer
+                                             | eEventCategoryFlags_FileSystem;
 
     // singleton instance
     static Application* s_instance;

@@ -89,6 +89,8 @@ DirectX::WICCodecs GetWICCodecsFromImageFormat(const jam::eImageFormat _format)
 namespace jam
 {
 
+Texture2D Texture2D::null = Texture2D();
+
 void Texture2D::Initialize(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format, const eResourceAccess _access, const eViewFlags _viewFlags, const UInt32 _arraySize, const UInt32 _samples, const bool _bGenerateMips, const bool _bCubemap, const std::optional<Texture2DInitializeData>& _initializeData)
 {
     // reset
@@ -117,15 +119,19 @@ void Texture2D::Initialize(const UInt32 _width, const UInt32 _height, const DXGI
 
     // create texture
     Renderer::CreateTexture2D(desc, _initializeData, m_texture.GetAddressOf());
-    m_width      = desc.Width;
-    m_height     = desc.Height;
-    m_format     = desc.Format;
-    m_arraySize  = desc.ArraySize;
+
+    // info
+    m_width     = desc.Width;
+    m_height    = desc.Height;
+    m_format    = desc.Format;
+    m_arraySize = desc.ArraySize;
+    m_access    = GetJamResourceAccess(desc.Usage);
+    m_viewFlags = _viewFlags;
+
+    // misc
     m_samples    = desc.SampleDesc.Count;
     m_bHasMips   = desc.MipLevels > 1;
     m_bIsCubemap = (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
-    m_access     = GetJamResourceAccess(desc.Usage);
-    m_viewFlags  = _viewFlags;
 }
 
 void Texture2D::InitializeFromSwapChain(IDXGISwapChain* _pSwapChain)
@@ -144,15 +150,19 @@ void Texture2D::InitializeFromSwapChain(IDXGISwapChain* _pSwapChain)
 
     D3D11_TEXTURE2D_DESC desc;
     m_texture->GetDesc(&desc);
-    m_width      = desc.Width;
-    m_height     = desc.Height;
-    m_format     = desc.Format;
-    m_arraySize  = desc.ArraySize;
+
+    // info
+    m_width     = desc.Width;
+    m_height    = desc.Height;
+    m_format    = desc.Format;
+    m_arraySize = desc.ArraySize;
+    m_access    = static_cast<eResourceAccess>(desc.Usage);
+    m_viewFlags = GetJamViewFlags(desc.BindFlags);
+
+    // misc
     m_samples    = desc.SampleDesc.Count;
     m_bHasMips   = desc.MipLevels > 1;
     m_bIsCubemap = (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
-    m_access     = static_cast<eResourceAccess>(desc.Usage);
-    m_viewFlags  = GetJamViewFlags(desc.BindFlags);
 }
 
 bool Texture2D::InitializeFromImage_(DirectX::ScratchImage&& _scratchImage, DirectX::TexMetadata&& _metadata, const eResourceAccess _access, const eViewFlags _viewFlags, const bool _bGenerateMips, const bool _bInverseGamma, const bool _bCubemap)
@@ -212,15 +222,19 @@ bool Texture2D::InitializeFromImage_(DirectX::ScratchImage&& _scratchImage, Dire
         return false;
     }
 
-    m_width      = static_cast<UInt32>(_metadata.width);
-    m_height     = static_cast<UInt32>(_metadata.height);
-    m_format     = _metadata.format;
-    m_arraySize  = static_cast<UInt32>(_metadata.arraySize);
+    // info
+    m_width     = static_cast<UInt32>(_metadata.width);
+    m_height    = static_cast<UInt32>(_metadata.height);
+    m_format    = _metadata.format;
+    m_arraySize = static_cast<UInt32>(_metadata.arraySize);
+    m_access    = _access;
+    m_viewFlags = _viewFlags;
+
+    // misc
     m_samples    = 1;
     m_bHasMips   = _metadata.mipLevels > 1;
     m_bIsCubemap = (_metadata.miscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
-    m_access     = _access;
-    m_viewFlags  = _viewFlags;
+
     return true;
 }
 

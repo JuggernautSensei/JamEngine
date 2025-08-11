@@ -98,6 +98,7 @@ struct ScriptComponent : ISerializableComponent<ScriptComponent>, IEditableCompo
     Scope<Script> script;
 };
 
+class ModelAsset;
 struct ModelComponent : ISerializableComponent<ModelComponent>, IEditableComponent<ModelComponent>
 {
     JAM_COMPONENT(ModelComponent);

@@ -2,6 +2,9 @@
 
 #include "ImguiLayer.h"
 
+#include "Events.h"
+#include "Renderer.h"
+
 namespace jam
 {
 
@@ -19,6 +22,11 @@ ImguiLayer::ImguiLayer(const HWND _hwnd, ID3D11Device* _pDevice, ID3D11DeviceCon
 
     ImGui_ImplWin32_Init(_hwnd);
     ImGui_ImplDX11_Init(_pDevice, _pDeviceContext);
+
+    m_eventDispatcher.AddListener<WindowResizeEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(ImguiLayer::OnResize_));
+    m_eventDispatcher.AddListener<BackBufferCleanupEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(ImguiLayer::OnBackBufferCleanup_));
+
+    CreateScreenDependentResources_();
 }
 
 ImguiLayer::~ImguiLayer()
@@ -37,6 +45,9 @@ void ImguiLayer::OnBeginRender()
 
 void ImguiLayer::OnEndRender()
 {
+    // back buffer binding
+    m_backBufferTexture.BindAsRenderTarget();
+
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -45,6 +56,27 @@ void ImguiLayer::OnEndRender()
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
+}
+
+void ImguiLayer::OnEvent(Event& _eventRef)
+{
+    m_eventDispatcher.Dispatch(_eventRef);
+}
+
+void ImguiLayer::CreateScreenDependentResources_()
+{
+    m_backBufferTexture = Renderer::GetBackBufferTexture();
+    m_backBufferTexture.AttachRTV();
+}
+
+void ImguiLayer::OnResize_(const WindowResizeEvent& _event)
+{
+    CreateScreenDependentResources_();
+}
+
+void ImguiLayer::OnBackBufferCleanup_(const BackBufferCleanupEvent& _event)
+{
+    m_backBufferTexture.Reset();
 }
 
 }   // namespace jam

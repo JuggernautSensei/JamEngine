@@ -61,9 +61,11 @@ void Application::Create(const CommandLineArguments& _args)
         Input::Initialize();
 
         // attach layer
-        ILayer* pSceneLayer       = s_instance->PushBackLayer(CreateScope<SceneLayer>());
+        ILayer* pSceneLayer       = s_instance->AttachLayer(MakeScope<SceneLayer>());
         s_instance->m_pSceneLayer = static_cast<SceneLayer*>(pSceneLayer);
-        s_instance->PushBackLayer(CreateScope<ImguiLayer>(s_instance->m_window.GetPlatformHandle(), Renderer::GetDevice(), Renderer::GetDeviceContext()));
+
+        Scope<ImguiLayer> pImguiLayer = MakeScope<ImguiLayer>(s_instance->m_window.GetPlatformHandle(), Renderer::GetDevice(), Renderer::GetDeviceContext());
+        s_instance->AttachLayer(std::move(pImguiLayer));
     }
 
     // create routine of child application
@@ -178,26 +180,35 @@ bool Application::IsVsync() const
     return m_bVsync;
 }
 
-void Application::DispatchEvent(Event& _event)
+void Application::SetEventLoggingFilter(const eEventCategoryFlags _flags)
+{
+    m_eventLoggingFilter = _flags;
+}
+
+void Application::DispatchEvent(Event& _eventRef)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
-    JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
+    JAM_ASSERT(_eventRef.IsHandled() == false, "Event '{}' is already handled.", _eventRef.GetName());
 
-    // Log::Debug("occurred event: {}", _event.ToString());
+    // logging
+    if (_eventRef.GetCategoryFlags() & m_eventLoggingFilter)
+    {
+        Log::Trace("Dispatching event: {}", _eventRef.ToString());
+    }
 
     // application event listener routine
-    if (_event.GetHash() == WindowCloseEvent::k_staticHash)
+    if (_eventRef.GetHash() == WindowCloseEvent::s_hash)
     {
         m_bRunning = false;
     }
 
     // dispatch event to other modules
-    m_window.OnEvent(_event);
-    Input::OnEvent(_event);
-    Renderer::OnEvent(_event);
+    m_window.OnEvent(_eventRef);
+    Input::OnEvent(_eventRef);
+    Renderer::OnEvent(_eventRef);
     for (const Scope<ILayer>& layer: m_layers)
     {
-        layer->OnEvent(_event);
+        layer->OnEvent(_eventRef);
     }
 }
 
@@ -210,34 +221,13 @@ void Application::SubmitCommand(const std::function<void()>& _command)
     m_commandQueue.Submit(_command);
 }
 
-ILayer* Application::PushBackLayer(Scope<ILayer>&& _layer)
-{
-    JAM_ASSERT(s_instance, "Application instance is null");
-    JAM_ASSERT(_layer, "Layer pointer is null");
-
-    // check if layer already exists in the stack
-    {
-        UInt32     layerHash = _layer->GetHash();
-        const auto it        = std::ranges::find_if(m_layers,
-                                             [layerHash](const Scope<ILayer>& layer)
-                                             {
-                                                 return layer->GetHash() == layerHash;
-                                             });
-
-        JAM_ASSERT(it == m_layers.end(), "Layer with hash {} already exists", _layer->GetName());
-    }
-
-    // attach layer before pushing it to the stack
-    const auto it = m_layers.insert(m_layers.end(), std::move(_layer));
-    return it->get();
-}
-
-ILayer* Application::PushFrontLayer(Scope<ILayer>&& _pLayer)
+ILayer* Application::AttachLayer(Scope<ILayer>&& _pLayer, const bool _bAttachAtFront)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_pLayer, "Layer pointer is null");
 
     // check if layer already exists in the stack
+    // 레이어는 중복될 수 없음
     {
         UInt32     layerHash = _pLayer->GetHash();
         const auto it        = std::ranges::find_if(m_layers,
@@ -250,19 +240,20 @@ ILayer* Application::PushFrontLayer(Scope<ILayer>&& _pLayer)
     }
 
     // attach layer before pushing it to the stack
-    const auto it = m_layers.insert(m_layers.begin(), std::move(_pLayer));
+    auto       attactPosIt = _bAttachAtFront ? m_layers.begin() : m_layers.end();
+    const auto it          = m_layers.insert(attactPosIt, std::move(_pLayer));
     return it->get();
 }
 
-void Application::RemoveLayer(ILayer* _pLayer)
+void Application::RemoveLayer(UInt32 _layerHash)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
-    JAM_ASSERT(_pLayer, "Layer pointer is null");
+    JAM_ASSERT(_layerHash, "Layer pointer is null");
 
     const auto it = std::ranges::find_if(m_layers,
-                                         [_pLayer](const Scope<ILayer>& layer)
+                                         [_layerHash](const Scope<ILayer>& layer)
                                          {
-                                             return layer->GetHash() == _pLayer->GetHash();
+                                             return layer->GetHash() == _layerHash;
                                          });
 
     JAM_ASSERT(it != m_layers.end(), "Layer not found in the application");

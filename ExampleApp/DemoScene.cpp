@@ -5,7 +5,6 @@
 DemoScene::DemoScene(const std::string_view& _name)
     : Scene(_name)
 {
-    m_dispatcher.AddListener<BackBufferCleanupEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(DemoScene::OnSwapChainResourceReleaseEvent_));
     m_dispatcher.AddListener<WindowResizeEvent>(JAM_ADD_LISTENER_MEMBER_FUNCTION(DemoScene::OnWindowResizeEvent_));
 
     // shaders
@@ -121,9 +120,9 @@ void DemoScene::OnEvent(Event& _eventRef)
     m_dispatcher.Dispatch(_eventRef);
 }
 
-void DemoScene::OnSwapChainResourceReleaseEvent_(MAYBE_UNUSED const BackBufferCleanupEvent& _event)
+const Texture2D& DemoScene::GetSceneTexture() const
 {
-    m_backBufferTexture.Reset();
+    return m_sceneTexture;
 }
 
 void DemoScene::OnWindowResizeEvent_(const WindowResizeEvent& _event)
@@ -139,8 +138,10 @@ void DemoScene::CreateScreenDependentResources_(const Int32 _width, const Int32 
     m_viewport = { 0.f, 0.f, static_cast<float>(_width), static_cast<float>(_height) };
 
     // back buffer
-    m_backBufferTexture = Renderer::GetBackBufferTexture();
-    m_backBufferTexture.AttachRTV();
+    const Texture2D& backBuffer = Renderer::GetBackBufferTexture();
+    auto [bbWidth, bbHeight]    = backBuffer.GetSize();
+    m_sceneTexture.Initialize(bbWidth, bbHeight, backBuffer.GetFormat(), backBuffer.GetAccess(), backBuffer.GetViewFlags(), backBuffer.GetArraySize(), backBuffer.GetSampleCount(), backBuffer.HasMips(), backBuffer.IsCubemap());
+    m_sceneTexture.AttachRTV();
 
     // depth buffer
     m_depthTexture.Initialize(_width, _height, DXGI_FORMAT_R24G8_TYPELESS, eResourceAccess::GPUWriteable, eViewFlags_DepthStencil | eViewFlags_ShaderResource);
@@ -175,5 +176,5 @@ void DemoScene::CreateScreenDependentResources_(const Int32 _width, const Int32 
         .AddBloomFilter(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, 4, m_hdrTexture)
         .AddToneMappingFilter(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, eToneMappingFilterType::Linear)
         .AddFXAAFilter(_width, _height, DXGI_FORMAT_R8G8B8A8_UNORM, eFXAAQuality::High);
-    m_postProcess = builder.Build(m_backBufferTexture);
+    m_postProcess = builder.Build(m_sceneTexture);
 }

@@ -111,7 +111,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
     // 샘플링 필터
     if (m_filterFlags & eFilterFlags_Sampling)
     {
-        Ref<SamplingFilter> samplingFilter = CreateRef<SamplingFilter>();
+        Ref<SamplingFilter> samplingFilter = MakeRef<SamplingFilter>();
         samplingFilter->Initialize(m_samplingWidth, m_samplingHeight, m_samplingFormat);
         filters.push_back(samplingFilter);
     }
@@ -119,7 +119,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
     // fog filter
     if (m_filterFlags & eFilterFlags_Fog)
     {
-        Ref<FogFilter> fogFilter = CreateRef<FogFilter>();
+        Ref<FogFilter> fogFilter = MakeRef<FogFilter>();
         fogFilter->Initialize(m_fogWidth, m_fogHeight, m_fogFormat, m_depthTexture);
         filters.push_back(fogFilter);
     }
@@ -131,7 +131,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         // filter가 비어있을 경우 더미 필터를 하나 생성함
         if (filters.empty())
         {
-            Ref<SamplingFilter> samplingFilter = CreateRef<SamplingFilter>();
+            Ref<SamplingFilter> samplingFilter = MakeRef<SamplingFilter>();
             samplingFilter->Initialize(m_bloomWidth, m_bloomHeight, m_bloomFormat);
             filters.push_back(samplingFilter);
         }
@@ -145,7 +145,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         {
             UInt32                          bloomWidth     = m_bloomWidth / (1 << i);
             UInt32                          bloomHeight    = m_bloomHeight / (1 << i);
-            Ref<BlurDownFilter> blurDownFilter = CreateRef<BlurDownFilter>();
+            Ref<BlurDownFilter> blurDownFilter = MakeRef<BlurDownFilter>();
             blurDownFilter->Initialize(bloomWidth, bloomHeight, m_bloomFormat);
             filters.push_back(blurDownFilter);
         }
@@ -155,13 +155,13 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         {
             UInt32                        bloomWidth   = m_bloomWidth / (1 << (i - 1));
             UInt32                        bloomHeight  = m_bloomHeight / (1 << (i - 1));
-            Ref<BlurUpFilter> blurUpFilter = CreateRef<BlurUpFilter>();
+            Ref<BlurUpFilter> blurUpFilter = MakeRef<BlurUpFilter>();
             blurUpFilter->Initialize(bloomWidth, bloomHeight, m_bloomFormat);
             filters.push_back(blurUpFilter);
         }
 
         // combine filter
-        Ref<CombineFilter> combineFilter = CreateRef<CombineFilter>();
+        Ref<CombineFilter> combineFilter = MakeRef<CombineFilter>();
         combineFilter->Initialize(m_bloomWidth, m_bloomHeight, m_bloomFormat, bloomDestinationTexture);
         filters.push_back(combineFilter);
     }
@@ -169,7 +169,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
     // Tone Mapping filter
     if (m_filterFlags & eFilterFlags_ToneMapping)
     {
-        Ref<ToneMappingFilter> toneMappingFilter = CreateRef<ToneMappingFilter>();
+        Ref<ToneMappingFilter> toneMappingFilter = MakeRef<ToneMappingFilter>();
         toneMappingFilter->Initialize(m_toneMappingWidth, m_toneMappingHeight, m_toneMappingFormat, m_toneMappingType);
         filters.push_back(toneMappingFilter);
     }
@@ -177,7 +177,7 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
     // FXAA filter
     if (m_filterFlags & eFilterFlags_FXAA)
     {
-        Ref<FXAAFilter> fxaaFilter = CreateRef<FXAAFilter>();
+        Ref<FXAAFilter> fxaaFilter = MakeRef<FXAAFilter>();
         fxaaFilter->Initialize(m_fxaaWidth, m_fxaaHeight, m_fxaaFormat, m_fxaaQuality);
         filters.push_back(fxaaFilter);
     }

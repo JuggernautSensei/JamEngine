@@ -193,6 +193,42 @@
     <ClCompile Include="AssetUtilities.cpp">
       <Filter>5. Assets</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiUtilities.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuBarPanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugPanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewportPanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentsBrowserPanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="EntityInspectorPanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneHierarchyPanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsolePanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetInspectorPanel.cpp">
+      <Filter>6. Editor\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorUtilities.cpp">
+      <Filter>98. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="IMessageBox.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="MemorySink.cpp">
+      <Filter>1. Core\Log</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -320,6 +356,15 @@
     </Filter>
     <Filter Include="6. Editor">
       <UniqueIdentifier>{ed21789a-ec9c-4244-b273-74e478329680}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Panels">
+      <UniqueIdentifier>{4af9c9f9-eebe-492f-afc2-9b9a09f5e13f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Utilities\Container">
+      <UniqueIdentifier>{11cdd481-ad29-4662-b609-e346fc385ce7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Resource">
+      <UniqueIdentifier>{14e3f061-dc9e-40e6-a97a-eb15ddf7fbc6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -520,6 +565,42 @@
     </ClInclude>
     <ClInclude Include="AssetUtilities.h">
       <Filter>5. Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiUtilities.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuBarPanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewportPanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugPanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneHierarchyPanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsolePanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentsBrowserPanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityInspectorPanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetInspectorPanel.h">
+      <Filter>6. Editor\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorUtilities.h">
+      <Filter>98. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="IMessageBox.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="MemorySink.h">
+      <Filter>1. Core\Log</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

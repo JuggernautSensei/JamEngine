@@ -133,7 +133,7 @@ void Renderer::OnEvent(const Event& _event)
     // do not use event dispatcher
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
-    if (_event.GetHash() == WindowResizeEvent::k_staticHash)
+    if (_event.GetHash() == WindowResizeEvent::s_hash)
     {
         // this is allowed casting
         const WindowResizeEvent& resizeEvent = static_cast<const WindowResizeEvent&>(_event);
