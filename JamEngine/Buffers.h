@@ -25,10 +25,10 @@ protected:
     Buffer() = default;
 
     // general initializer
-    void Initialize_(UInt32                                     _byteWidth,
-                     UInt32                                     _bindFlag,
-                     eResourceAccess                            _access,
-                     const std::optional<BufferInitializeData>& _initDataOrNull = std::nullopt);
+    void Initialize_(UInt32                               _byteWidth,
+                     UInt32                               _bindFlag,
+                     eResourceAccess                      _access,
+                     const std::optional<BufferInitData>& _initData = std::nullopt);
 
     ComPtr<ID3D11Buffer> m_buffer    = nullptr;
     eResourceAccess      m_access    = eResourceAccess::Immutable;
@@ -39,10 +39,10 @@ protected:
 class VertexBuffer : public Buffer
 {
 public:
-    void Initialize(UInt32                                     _vertexStride,
-                    UInt32                                     _vertexCount,
-                    eResourceAccess                            _access,
-                    const std::optional<BufferInitializeData>& _initDataOrNull = std::nullopt);
+    void Initialize(UInt32                               _vertexStride,
+                    UInt32                               _vertexCount,
+                    eResourceAccess                      _access,
+                    const std::optional<BufferInitData>& _initData = std::nullopt);
 
     void Bind() const;
 
@@ -57,9 +57,9 @@ private:
 class IndexBuffer : public Buffer
 {
 public:
-    void Initialize(UInt32                                          _indexCount,
-                    eResourceAccess                                 _access,
-                    const std::optional<IndexBufferInitializeData>& _initDataOrNull = std::nullopt);
+    void Initialize(UInt32                                    _indexCount,
+                    eResourceAccess                           _access,
+                    const std::optional<IndexBufferInitData>& _initData = std::nullopt);
 
     void Bind() const;
 
@@ -71,7 +71,7 @@ public:
 class ConstantBuffer : public Buffer
 {
 public:
-    void Initialize(UInt32 _byteWidth, const std::optional<BufferInitializeData>& _initDataOrNull = std::nullopt);
+    void Initialize(UInt32 _byteWidth, const std::optional<BufferInitData>& _initData = std::nullopt);
     void Bind(eShader _shader, UInt32 _slot) const;
 };
 
@@ -80,7 +80,7 @@ class StagingBuffer : public Buffer
 {
 public:
     void      Initialize(UInt32 _byteWidth);
-    NODISCARD std::optional<std::vector<UInt8>> ReadData() const;
+    NODISCARD Result<std::vector<UInt8>> ReadData() const;
 };
 
 }   // namespace jam

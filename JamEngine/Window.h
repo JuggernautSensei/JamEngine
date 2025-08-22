@@ -21,7 +21,7 @@ public:
 
     NODISCARD std::pair<Int32, Int32> GetWindowSize() const { return { m_width, m_height }; }
     NODISCARD std::pair<Int32, Int32> GetWindowPosition() const { return { m_posX, m_posY }; }
-    NODISCARD std::pair<Int32, Int32> GetScreenSize() const;
+    NODISCARD std::pair<Int32, Int32> GetMoniterScreenSize() const;
     NODISCARD HWND                    GetPlatformHandle() const { return m_hWnd; }
     NODISCARD HINSTANCE               GetPlatformInstance() const { return m_hInstance; }
 
@@ -45,8 +45,8 @@ private:
 
     EventDispatcher m_eventDispatcher;   // event dispatcher
 
-    constexpr static const wchar_t* const k_windowClassName = L"jam enginewindow class";   // window class name
-    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";        // default window title name
+    constexpr static const wchar_t* const k_windowClassName = L"jam enginewindow class";   // window class displayName
+    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";        // default window title displayName
     constexpr static Int32                k_defaultWidth    = 800;                         // default window width
     constexpr static Int32                k_defaultHeight   = 600;                         // default window height
     constexpr static Int32                k_defaultPosX     = 100;                         // default window position X

@@ -41,42 +41,49 @@ table VertexAttribute
 	bitangent: Vec3;
 }
 
-table MeshGeometry
-{
-	vertices: [VertexAttribute];
-	indices : [uint32];
-}
-
 table Material
 {
     ambient_color  :Vec3;
     diffuse_color  :Vec3;
     specular_color :Vec3;
-    shininess     :float = 32;
+    shininess      :float = 32;
 
     albedo_color :Vec3;
-    metallic    :float = 0;
-    roughness   :float = 1;
-    ao          :float = 1;   
-    emissive    :float = 0;   
+    metallic     :float = 0;
+    roughness    :float = 1;
+    ao           :float = 1;   
+    emissive     :float = 0;   
 
     emissive_color     :Vec3;   
     emissive_scale     :float = 1;
-    displacement_scale :float = 0;   
+
+	albedo_texture     :string; 
+	normal_texture     :string; 
+	metallic_texture   :string; 
+	roughness_texture  :string; 
+	ao_texture         :string; 
+	emissive_texture   :string; 
+	lightmap_texture   :string; 
 }
 
-table RawModelNode
+table MeshData
 {
-	name: string;
-	mesh: MeshGeometry;
-	material: Material;
+	vertices	: [VertexAttribute];
+	indices		: [uint];
 }
 
-table RawModel
+table ModelNodeData
 {
-	nodes: [RawModelNode];
-	topology: eTopology = TriangleList;
-	vertex_type: eVertexType = Vertex3;
+	name        : string;
+	mesh_data   : MeshData;
+	vertex_type	: eVertexType;
+	topology    : eTopology;
+	material    : Material;
 }
 
-root_type RawModel;
+table ModelData
+{
+	nodes       : [ModelNodeData];
+}
+
+root_type ModelData;

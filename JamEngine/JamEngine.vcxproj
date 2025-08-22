@@ -113,12 +113,12 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <MinFilesInUnityFile>5</MinFilesInUnityFile>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MinFilesInUnityFile>10</MinFilesInUnityFile>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -138,12 +138,12 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <MinFilesInUnityFile>5</MinFilesInUnityFile>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MinFilesInUnityFile>10</MinFilesInUnityFile>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,12 +161,12 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <MinFilesInUnityFile>5</MinFilesInUnityFile>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MinFilesInUnityFile>10</MinFilesInUnityFile>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -186,12 +186,12 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <MinFilesInUnityFile>5</MinFilesInUnityFile>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MinFilesInUnityFile>10</MinFilesInUnityFile>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -206,6 +206,12 @@
     <ClCompile Include="AssetUtilities.cpp" />
     <ClCompile Include="BufferReader.cpp" />
     <ClCompile Include="Buffers.cpp" />
+    <ClCompile Include="BuiltInEditorLayerIcon.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="CompiledShaders.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -214,20 +220,24 @@
     </ClCompile>
     <ClCompile Include="ConsolePanel.cpp" />
     <ClCompile Include="ContentsBrowserPanel.cpp" />
+    <ClCompile Include="D3D11Utilities.cpp" />
     <ClCompile Include="DebugPanel.cpp" />
     <ClCompile Include="EditorLayer.cpp" />
     <ClCompile Include="EditorUtilities.cpp" />
     <ClCompile Include="EntityInspectorPanel.cpp" />
+    <ClCompile Include="fixed_circular_queue.cpp" />
+    <ClCompile Include="fixed_vector.cpp" />
     <ClCompile Include="IEditableComponent.cpp" />
     <ClCompile Include="ImageFilter.cpp" />
     <ClCompile Include="ConstantBufferCollection.cpp" />
     <ClCompile Include="ImageUtilities.cpp" />
-    <ClCompile Include="IMessageBox.cpp" />
-    <ClCompile Include="ImGuiUtilities.cpp" />
+    <ClCompile Include="IModalBox.cpp" />
     <ClCompile Include="JsonUtilities.cpp" />
     <ClCompile Include="MainMenuBarPanel.cpp" />
     <ClCompile Include="MemorySink.cpp" />
     <ClCompile Include="ModelAsset.cpp" />
+    <ClCompile Include="ModalBoxes.cpp" />
+    <ClCompile Include="Result.cpp" />
     <ClCompile Include="SceneHierarchyPanel.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="SmartPointer.cpp" />
@@ -263,8 +273,10 @@
     <ClCompile Include="ScriptMetaManager.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
+    <ClCompile Include="STLUtilities.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="Textures.cpp" />
+    <ClCompile Include="ThumbnailLoader.cpp" />
     <ClCompile Include="TypeTrait.cpp" />
     <ClCompile Include="DataType.cpp" />
     <ClCompile Include="Error.cpp" />
@@ -279,6 +291,54 @@
     </ClCompile>
     <ClCompile Include="StringUtilities.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="vendor\imgui\imgui.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_stdlib.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="ViewportPanel.cpp" />
@@ -294,23 +354,28 @@
     <ClInclude Include="AssetUtilities.h" />
     <ClInclude Include="BufferReader.h" />
     <ClInclude Include="Buffers.h" />
+    <ClInclude Include="BuiltInEditorLayerIcon.h" />
     <ClInclude Include="CompiledShaders.h" />
     <ClInclude Include="ConsolePanel.h" />
     <ClInclude Include="ContentsBrowserPanel.h" />
+    <ClInclude Include="D3D11Utilities.h" />
     <ClInclude Include="DebugPanel.h" />
     <ClInclude Include="EditorLayer.h" />
     <ClInclude Include="EditorUtilities.h" />
     <ClInclude Include="EntityInspectorPanel.h" />
+    <ClInclude Include="fixed_circular_queue.h" />
+    <ClInclude Include="fixed_vector.h" />
     <ClInclude Include="IEditableComponent.h" />
     <ClInclude Include="ImageFilter.h" />
     <ClInclude Include="ConstantBufferCollection.h" />
     <ClInclude Include="ImageUtilities.h" />
-    <ClInclude Include="IMessageBox.h" />
-    <ClInclude Include="ImGuiUtilities.h" />
+    <ClInclude Include="IModalBox.h" />
     <ClInclude Include="JsonUtilities.h" />
     <ClInclude Include="MainMenuBarPanel.h" />
     <ClInclude Include="MemorySink.h" />
     <ClInclude Include="ModelAsset.h" />
+    <ClInclude Include="ModalBoxes.h" />
+    <ClInclude Include="Result.h" />
     <ClInclude Include="SceneHierarchyPanel.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="SmartPointer.h" />
@@ -345,8 +410,10 @@
     <ClInclude Include="ScriptMetaManager.h" />
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="ShaderProgram.h" />
+    <ClInclude Include="STLUtilities.h" />
     <ClInclude Include="TextureAsset.h" />
     <ClInclude Include="Textures.h" />
+    <ClInclude Include="ThumbnailLoader.h" />
     <ClInclude Include="TypeTrait.h" />
     <ClInclude Include="DataType.h" />
     <ClInclude Include="Error.h" />
@@ -358,7 +425,21 @@
     <ClInclude Include="StringUtilities.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="EntryPoint.h" />
-    <ClInclude Include="JamEngine.h" />
+    <ClInclude Include="JamEngine.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imconfig.h" />
+    <ClInclude Include="vendor\imgui\imgui.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="vendor\imgui\imgui_internal.h" />
+    <ClInclude Include="vendor\imgui\imgui_stdlib.h" />
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
+    <ClInclude Include="vendor\imgui\imstb_textedit.h" />
+    <ClInclude Include="vendor\imgui\imstb_truetype.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="Viewport.h" />
     <ClInclude Include="ViewportPanel.h" />

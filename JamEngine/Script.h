@@ -31,7 +31,7 @@ public:
     decltype(auto) CreateComponent(Args&&... args)
     {
         JAM_ASSERT(m_entity.IsValid(), "Script must be associated with a valid entity");
-        return m_entity.CreateCompoenent<Ty>(std::forward<Args>(args)...);
+        return m_entity.CreateComponent<Ty>(std::forward<Args>(args)...);
     }
 
     template<typename... Ty>
@@ -49,10 +49,10 @@ public:
     }
 
     template<typename... Ty>
-    decltype(auto) RemoveComponent() const
+    void RemoveComponent() const
     {
         JAM_ASSERT(m_entity.IsValid(), "Script must be associated with a valid entity");
-        return m_entity.RemoveComponent<Ty...>();
+        m_entity.RemoveComponent<Ty...>();
     }
 
 protected:

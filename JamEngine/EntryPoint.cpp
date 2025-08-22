@@ -12,8 +12,7 @@ int EntryPoint(const int argc, char* argv[])
     using namespace jam;
     const CommandLineArguments args = CommandLineArguments { argc, argv };
     Application::Create(args);
-    Application& app    = Application::GetInstance();
-    const int    result = app.Run();
+    const int result = GetApplication().Run();
     Application::Destroy();
     return result;
 }

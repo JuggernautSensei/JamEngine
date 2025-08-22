@@ -4,49 +4,65 @@
 
 #include "BufferReader.h"
 #include "Model.h"
-#include "flatbuffers/compiled/model_generated.h"
+#include "TextureAsset.h"
+#include "vendor/flatbuffers/compiled/model_generated.h"
 
 #include <fstream>
 
 namespace
 {
 
-NODISCARD jam::fbs::Vec3 ToFlatBuffersVec3(const jam::Vec3& vec)
+using namespace jam;
+
+NODISCARD fbs::Vec3 ToFlatBuffersVec3(const Vec3& vec)
 {
     return { vec.x, vec.y, vec.z };
 }
 
-NODISCARD jam::fbs::Vec2 ToFlatBuffersVec2(const jam::Vec2& vec)
+NODISCARD fbs::Vec2 ToFlatBuffersVec2(const Vec2& vec)
 {
     return { vec.x, vec.y };
 }
 
-NODISCARD jam::fbs::eVertexType ToFlatBuffersVertexType(const jam::eVertexType vertexType)
+NODISCARD fbs::eVertexType ToFlatBuffersVertexType(const eVertexType vertexType)
 {
     switch (vertexType)
     {
-        case jam::eVertexType::Vertex2: return jam::fbs::eVertexType_Vertex2;
-        case jam::eVertexType::Vertex3: return jam::fbs::eVertexType_Vertex3;
-        case jam::eVertexType::Vertex3PosOnly: return jam::fbs::eVertexType_Vertex3PosOnly;
+        case eVertexType::Vertex2: return fbs::eVertexType_Vertex2;
+        case eVertexType::Vertex3: return fbs::eVertexType_Vertex3;
+        case eVertexType::Vertex3PosOnly: return fbs::eVertexType_Vertex3PosOnly;
         default:
             JAM_ERROR("Unknown vertex type");
-            return jam::fbs::eVertexType_Vertex3;   // Default fallback
+            return fbs::eVertexType_Vertex3;   // Default fallback
     }
 }
 
-NODISCARD jam::fbs::eTopology ToFlatBuffersTopology(const jam::eTopology topology)
+NODISCARD fbs::eTopology ToFlatBuffersTopology(const eTopology topology)
 {
     switch (topology)
     {
-        case jam::eTopology::Undefined: return jam::fbs::eTopology_Undefined;
-        case jam::eTopology::PointList: return jam::fbs::eTopology_PointList;
-        case jam::eTopology::LineList: return jam::fbs::eTopology_LineList;
-        case jam::eTopology::LineStrip: return jam::fbs::eTopology_LineStrip;
-        case jam::eTopology::TriangleList: return jam::fbs::eTopology_TriangleList;
-        case jam::eTopology::TriangleStrip: return jam::fbs::eTopology_TriangleStrip;
+        case eTopology::Undefined: return fbs::eTopology_Undefined;
+        case eTopology::PointList: return fbs::eTopology_PointList;
+        case eTopology::LineList: return fbs::eTopology_LineList;
+        case eTopology::LineStrip: return fbs::eTopology_LineStrip;
+        case eTopology::TriangleList: return fbs::eTopology_TriangleList;
+        case eTopology::TriangleStrip: return fbs::eTopology_TriangleStrip;
         default:
             JAM_ERROR("Unknown topology type");
-            return jam::fbs::eTopology_TriangleList;   // Default fallback
+            return fbs::eTopology_TriangleList;   // Default fallback
+    }
+}
+
+NODISCARD flatbuffers::Offset<flatbuffers::String> ToFlatBuffersString(flatbuffers::FlatBufferBuilder& builder, const std::optional<Ref<TextureAsset>>& _texture)
+{
+    if (_texture)
+    {
+        const Ref<TextureAsset>& texture = *_texture;
+        return builder.CreateString(texture->GetPath().string());
+    }
+    else
+    {
+        return 0;   // 빈 문자열
     }
 }
 
@@ -55,83 +71,77 @@ NODISCARD jam::fbs::eTopology ToFlatBuffersTopology(const jam::eTopology topolog
 namespace jam
 {
 
-void ModelExporter::Load(std::span<const RawModelNode> _nodes, const eTopology _topology, const eVertexType _vertexType)
+void ModelExporter::Load(std::span<const ModelNodeData> _nodes)
 {
     Clear_();
-    m_nodes      = std::vector(_nodes.begin(), _nodes.end());
-    m_topology   = _topology;
-    m_vertexType = _vertexType;
-    m_bLoaded    = true;
+    m_nodes = std::vector(_nodes.begin(), _nodes.end());
 }
 
 bool ModelExporter::Load(const Model& _model)
 {
     Clear_();
 
-    m_topology   = _model.GetTopology();
-    m_vertexType = _model.GetVertexType();
-
-    // for gpu data download
-    BufferReader reader;
-
-    for (const ModelNode& node: _model.GetModelNodes())
+    BufferReader reader;   // 메모리 풀
+    for (const Model::Node& node: _model.GetNodes())
     {
-        RawModelNode rawNode;
+        // 필요한 mesh 데이터 추출
+        const Mesh&         gpuMesh     = node.mesh;
+        const VertexBuffer& gpuVertices = gpuMesh.GetVertexBuffer();
+        eVertexType         vertexT     = gpuMesh.GetVertexType();
+        eTopology           topology    = gpuMesh.GetTopology();
 
-        // 기본 데이터 복사
-        rawNode.name     = node.name;
-        rawNode.material = node.material;
+        // 노드 데이터 생성
+        MeshData cpuMeshData;
 
         // 메쉬 기하 추출
         {
-            MeshGeometry& rawMeshRef = rawNode.meshGeometry;
-
             // 버텍스 버퍼
-            const VertexBuffer&               vb     = node.mesh.GetVertexBuffer();
-            std::optional<std::vector<UInt8>> vbData = reader.ReadBuffer(vb);
-
-            if (!vbData)
             {
-                return false;
-            }
+                auto [cpuVertics, bReseult] = reader.ReadBuffer(gpuVertices);
+                if (bReseult == false)   // 로드 실패
+                {
+                    JAM_ERROR("ModelExporter::Load() - Failed to read vertex buffer data for node: {}", node.name);
+                    return false;
+                }
 
-            const std::vector<UInt8>& vbRaw        = *vbData;
-            const UInt32              vertexStride = vb.GetStride();
-            JAM_ASSERT(vbData->size() % vertexStride == 0, "Vertex buffer size is not a multiple of vertex stride.");
-            UInt32 vertexCount = static_cast<UInt32>(vbRaw.size() / vertexStride);
-            rawMeshRef.vertices.reserve(vertexCount);
-            for (UInt32 i = 0; i < vertexCount; ++i)
-            {
-                VertexAttribute vertex;
-                UnpackVertex(m_vertexType, vbRaw.data() + i * vertexStride, vertex);
-                rawMeshRef.vertices.emplace_back(vertex);
+                const UInt32 stride = gpuVertices.GetStride();
+                JAM_ASSERT(cpuVertics.size() % stride == 0, "Vertex buffer size is not a multiple of vertex stride.");   // stride가 맞지 않으면 문제가 생길 수 있음
+                UInt32 vertexCount = static_cast<UInt32>(cpuVertics.size() / stride);                                    // 버텍스 개수
+                cpuMeshData.vertices.reserve(vertexCount);                                                               // 버텍스 개수만큼 미리 예약
+                for (UInt32 i = 0; i < vertexCount; ++i)
+                {
+                    VertexAttribute vertex;
+                    UnpackVertex(vertexT, cpuVertics.data() + i * stride, vertex);
+                    cpuMeshData.vertices.emplace_back(vertex);
+                }
             }
 
             // 인덱스 버퍼
-            const IndexBuffer&                ib     = node.mesh.GetIndexBuffer();
-            std::optional<std::vector<UInt8>> ibData = reader.ReadBuffer(ib);
-
-            if (!ibData)
             {
-                return false;
-            }
+                const IndexBuffer& gpuIndices = node.mesh.GetIndexBuffer();
+                auto [cpuIndices, bResult]    = reader.ReadBuffer(gpuIndices);
 
-            const std::vector<UInt8>& ibRaw = *ibData;
-            JAM_ASSERT(ibRaw.size() % sizeof(Index) == 0, "Index buffer size is not a multiple of index size.");
-            UInt32 indexCount = static_cast<UInt32>(ibRaw.size() / sizeof(Index));
-            rawMeshRef.indices.reserve(indexCount);
-            for (UInt32 i = 0; i < indexCount; ++i)
-            {
-                Index index;
-                std::memcpy(&index, ibRaw.data() + i * sizeof(Index), sizeof(Index));
-                rawMeshRef.indices.emplace_back(index);
+                if (bResult == false)   // 로드 실패
+                {
+                    JAM_ERROR("ModelExporter::Load() - Failed to read index buffer data for node: {}", node.name);
+                    return false;
+                }
+
+                JAM_ASSERT(cpuIndices.size() % sizeof(Index) == 0, "Index buffer size is not a multiple of index size.");
+                UInt32 indexCount = static_cast<UInt32>(cpuIndices.size() / sizeof(Index));
+                cpuMeshData.indices.reserve(indexCount);
+                for (UInt32 i = 0; i < indexCount; ++i)
+                {
+                    Index index;
+                    std::memcpy(&index, cpuIndices.data() + i * sizeof(Index), sizeof(Index));
+                    cpuMeshData.indices.emplace_back(index);
+                }
             }
         }
 
-        m_nodes.emplace_back(rawNode);
+        m_nodes.emplace_back(node.name, std::move(cpuMeshData), vertexT, topology, node.material);
     }
 
-    m_bLoaded = true;
     return true;
 }
 
@@ -139,25 +149,25 @@ bool ModelExporter::Export(const fs::path& _path) const
 {
     using namespace flatbuffers;
 
-    if (!m_bLoaded)
+    if (IsLoaded() == false)
     {
         JAM_ERROR("ModelExporter::Export() - Model not loaded yet.");
         return false;
     }
 
-    FlatBufferBuilder                      builder;
-    std::vector<Offset<fbs::RawModelNode>> parts;
-    parts.reserve(m_nodes.size());
-    for (const RawModelNode& part: m_nodes)
+    FlatBufferBuilder                       builder;          // 플랫 버퍼의 빌더
+    std::vector<Offset<fbs::ModelNodeData>> modelNodesData;   // 모델 노드 데이터
+    modelNodesData.reserve(m_nodes.size());                   // 예약
+    for (const ModelNodeData& node: m_nodes)
     {
-        // name
-        const Offset<String> nameOffset = builder.CreateString(part.name);
+        // 이름
+        const Offset<String> nameOffset = builder.CreateString(node.name);
 
-        // mesh
-        const MeshGeometry&                       rawMesh = part.meshGeometry;
-        std::vector<Offset<fbs::VertexAttribute>> vertices;
-        vertices.reserve(part.meshGeometry.vertices.size());
-        for (const VertexAttribute& vertex: rawMesh.vertices)
+        // 메시 데이터
+        const MeshData&                           meshData = node.meshData;
+        std::vector<Offset<fbs::VertexAttribute>> fbsVertices;   // 버텍스 속성 fbs 벡터
+        fbsVertices.reserve(meshData.vertices.size());
+        for (const VertexAttribute& vertex: meshData.vertices)
         {
             fbs::Vec3 position  = ToFlatBuffersVec3(vertex.position);
             fbs::Vec3 color     = ToFlatBuffersVec3(vertex.color);
@@ -166,35 +176,69 @@ bool ModelExporter::Export(const fs::path& _path) const
             fbs::Vec2 uv1       = ToFlatBuffersVec2(vertex.uv1);
             fbs::Vec3 tangent   = ToFlatBuffersVec3(vertex.tangent);
             fbs::Vec3 bitangent = ToFlatBuffersVec3(vertex.bitangent);
-            vertices.emplace_back(fbs::CreateVertexAttribute(builder, &position, &color, &normal, &uv0, &uv1, &tangent, &bitangent));
+            fbsVertices.emplace_back(fbs::CreateVertexAttribute(builder, &position, &color, &normal, &uv0, &uv1, &tangent, &bitangent));
         }
-        const Offset<Vector<Offset<fbs::VertexAttribute>>> verticesOffset = builder.CreateVector(vertices);
-        const Offset<Vector<UInt32>>                       indicesOffset  = builder.CreateVector(rawMesh.indices);
-        const Offset<fbs::MeshGeometry>                    meshOffset     = fbs::CreateMeshGeometry(builder, verticesOffset, indicesOffset);
 
-        // material
-        const Material&             material       = part.material;
-        fbs::Vec3                   ambientColor   = ToFlatBuffersVec3(material.ambientColor);
-        fbs::Vec3                   diffuseColor   = ToFlatBuffersVec3(material.diffuseColor);
-        fbs::Vec3                   specularColor  = ToFlatBuffersVec3(material.specularColor);
-        fbs::Vec3                   albedoColor    = ToFlatBuffersVec3(material.albedoColor);
-        fbs::Vec3                   emissiveColor  = ToFlatBuffersVec3(material.emissiveColor);
-        const Offset<fbs::Material> materialOffset = fbs::CreateMaterial(builder, &ambientColor, &diffuseColor, &specularColor, material.shininess, &albedoColor, material.metallic, material.roughness, material.ao, material.emissive, &emissiveColor, material.emissiveScale, material.displacementScale);
+        // 버텍스, 인덱스, 메쉬 데이터
+        const Offset<Vector<Offset<fbs::VertexAttribute>>> verticesOffset = builder.CreateVector(fbsVertices);
+        const Offset<Vector<UInt32>>                       indicesOffset  = builder.CreateVector(meshData.indices);
+        const Offset<fbs::MeshData>                        meshDataOffset = fbs::CreateMeshData(builder, verticesOffset, indicesOffset);
 
-        parts.emplace_back(fbs::CreateRawModelNode(builder, nameOffset, meshOffset, materialOffset));
+        // 머테리얼
+        const Material& material      = node.material;
+        fbs::Vec3       ambientColor  = ToFlatBuffersVec3(material.ambientColor);
+        fbs::Vec3       diffuseColor  = ToFlatBuffersVec3(material.diffuseColor);
+        fbs::Vec3       specularColor = ToFlatBuffersVec3(material.specularColor);
+        fbs::Vec3       albedoColor   = ToFlatBuffersVec3(material.albedoColor);
+        fbs::Vec3       emissiveColor = ToFlatBuffersVec3(material.emissiveColor);
+
+        // 텍스처
+        Offset<String> albedoTexturePath    = ToFlatBuffersString(builder, material.albedoTexture);
+        Offset<String> normalTexturePath    = ToFlatBuffersString(builder, material.normalTexture);
+        Offset<String> metallicTexturePath  = ToFlatBuffersString(builder, material.metallicTexture);
+        Offset<String> roughnessTexturePath = ToFlatBuffersString(builder, material.roughnessTexture);
+        Offset<String> aoTexturePath        = ToFlatBuffersString(builder, material.aoTexture);
+        Offset<String> emissiveTexturePath  = ToFlatBuffersString(builder, material.emissiveTexture);
+        Offset<String> lightmapTexturePath  = ToFlatBuffersString(builder, material.lightmapTexture);
+
+        // 머테리얼
+        const Offset<fbs::Material> materialOffset = fbs::CreateMaterial(
+            builder,
+            &ambientColor,
+            &diffuseColor,
+            &specularColor,
+            material.shininess,
+            &albedoColor,
+            material.metallic,
+            material.roughness,
+            material.ao,
+            material.emissive,
+            &emissiveColor,
+            material.emissiveScale,
+            albedoTexturePath,
+            normalTexturePath,
+            metallicTexturePath,
+            roughnessTexturePath,
+            aoTexturePath,
+            emissiveTexturePath,
+            lightmapTexturePath);
+
+        // 모델 노드 데이터 생성
+        modelNodesData.emplace_back(fbs::CreateModelNodeData(builder, nameOffset, meshDataOffset, ToFlatBuffersVertexType(node.vertexType), ToFlatBuffersTopology(node.topology), materialOffset));
     }
 
-    const Offset<Vector<Offset<fbs::RawModelNode>>> modelNodes = builder.CreateVector(parts);
-    const Offset<fbs::RawModel>                     rawModel   = fbs::CreateRawModel(builder, modelNodes, ToFlatBuffersTopology(m_topology), ToFlatBuffersVertexType(m_vertexType));
-    builder.Finish(rawModel);
+    // 최종 모델 데이터 생성
+    const Offset<Vector<Offset<fbs::ModelNodeData>>> nodesVector = builder.CreateVector(modelNodesData);
+    const Offset<fbs::ModelData>                     modelData   = fbs::CreateModelData(builder, nodesVector);
+    builder.Finish(modelData);
 
+    // 파일 저장
     std::fstream fs(_path, std::ios::out | std::ios::binary);
     if (!fs.is_open())
     {
         JAM_ERROR("ModelExporter::Export() - Failed to open file: {}", _path.string());
         return false;
     }
-
     fs.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
     return true;
 }

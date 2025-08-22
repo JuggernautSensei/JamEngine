@@ -10,25 +10,35 @@ enum class eAssetType;
 namespace jam
 {
 
+enum class eWindowResizeType
+{
+    Resize,
+    Minimize,
+    Maximize,
+};
+
 class WindowResizeEvent final : public Event
 {
 public:
-    WindowResizeEvent(const Int32 _width, const Int32 _height)
+    WindowResizeEvent(const Int32 _width, const Int32 _height, const eWindowResizeType _resizeType)
         : m_width(_width)
         , m_height(_height)
+        , m_resizeType(_resizeType)
     {
     }
 
-    NODISCARD Int32 GetWidth() const { return m_width; }
-    NODISCARD Int32 GetHeight() const { return m_height; }
+    NODISCARD Int32             GetWidth() const { return m_width; }
+    NODISCARD Int32             GetHeight() const { return m_height; }
+    NODISCARD eWindowResizeType GetResizeType() const { return m_resizeType; }
 
     JAM_EVENT(WindowResizeEvent,
-              eEventCategoryFlags_Window,
-              std::format("WindowResizeEvent: width: {}, height: {}", m_width, m_height))
+              eEventCategory::Window,
+              std::format("WindowResizeEvent: width: {}, height: {}, resizeType: {}", m_width, m_height, EnumToInt(m_resizeType)))
 
 private:
-    Int32 m_width  = 0;
-    Int32 m_height = 0;
+    Int32             m_width      = 0;
+    Int32             m_height     = 0;
+    eWindowResizeType m_resizeType = eWindowResizeType::Resize;   // 기본값은 Resize
 };
 
 class WindowMoveEvent final : public Event
@@ -43,7 +53,7 @@ public:
     NODISCARD Int32 GetX() const { return m_x; }
     NODISCARD Int32 GetY() const { return m_y; }
     JAM_EVENT(WindowMoveEvent,
-              eEventCategoryFlags_Window,
+              eEventCategory::Window,
               std::format("WindowMoveEvent: x: {}, y: {}", m_x, m_y))
 private:
     Int32 m_x = 0;
@@ -55,7 +65,7 @@ class WindowCloseEvent final : public Event
 public:
     WindowCloseEvent() = default;
     JAM_EVENT(WindowCloseEvent,
-              eEventCategoryFlags_Window,
+              eEventCategory::Window,
               "WindowCloseEvent: Window is closing")
 };
 
@@ -69,7 +79,7 @@ public:
 
     NODISCARD Int32 GetDelta() const { return m_delta; }
     JAM_EVENT(MouseWheelEvent,
-              eEventCategoryFlags_Input | eEventCategoryFlags_Window,
+              eEventCategory::Input,
               std::format("MouseWheelEvent: delta: {}", m_delta))
 
 private:
@@ -87,7 +97,7 @@ public:
     NODISCARD UInt32 GetX() const { return m_x; }
     NODISCARD UInt32 GetY() const { return m_y; }
     JAM_EVENT(MouseMoveEvent,
-              eEventCategoryFlags_Input | eEventCategoryFlags_Window,
+              eEventCategory::Input,
               std::format("MouseMoveEvent: x: {}, y: {}", m_x, m_y))
 private:
     UInt32 m_x = 0;
@@ -104,7 +114,7 @@ public:
 
     NODISCARD int GetVKey() const { return m_vKey; }
     JAM_EVENT(MouseDownEvent,
-              eEventCategoryFlags_Input | eEventCategoryFlags_Window,
+              eEventCategory::Input,
               std::format("MouseDownEvent: vKey: {}", m_vKey))
 private:
     int m_vKey = 0;
@@ -120,7 +130,7 @@ public:
 
     NODISCARD int GetVKey() const { return m_vKey; }
     JAM_EVENT(MouseUpEvent,
-              eEventCategoryFlags_Input | eEventCategoryFlags_Window,
+              eEventCategory::Input,
               std::format("MouseUpEvent: vKey: {}", m_vKey))
 private:
     int m_vKey = 0;
@@ -136,7 +146,7 @@ public:
 
     NODISCARD int GetVKey() const { return m_key; }
     JAM_EVENT(KeyDownEvent,
-              eEventCategoryFlags_Input | eEventCategoryFlags_Window,
+              eEventCategory::Input,
               std::format("KeyDownEvent: vKey: {}", m_key))
 private:
     int m_key = 0;
@@ -151,7 +161,7 @@ public:
     }
     NODISCARD int GetVKey() const { return m_key; }
     JAM_EVENT(KeyUpEvent,
-              eEventCategoryFlags_Input | eEventCategoryFlags_Window,
+              eEventCategory::Input,
               std::format("KeyUpEvent: vKey: {}", m_key))
 private:
     int m_key = 0;
@@ -162,7 +172,7 @@ class BackBufferCleanupEvent final : public Event
 public:
     BackBufferCleanupEvent() = default;
     JAM_EVENT(BackBufferCleanupEvent,
-              eEventCategoryFlags_Renderer,
+              eEventCategory::Renderer,
               "BackBufferCleanupEvent: Cleaning up back buffer")
 };
 
@@ -175,7 +185,7 @@ public:
     }
     NODISCARD std::string_view GetPath() const { return m_path; }
     JAM_EVENT(FileAddEvent,
-              eEventCategoryFlags_FileSystem,
+              eEventCategory::FileSystem,
               std::format("FileAddEvent: asset: {}", m_path))
 private:
     std::string m_path;
@@ -190,7 +200,7 @@ public:
     }
     NODISCARD std::string_view GetPath() const { return m_path; }
     JAM_EVENT(FileRemoveEvent,
-              eEventCategoryFlags_FileSystem,
+              eEventCategory::FileSystem,
               std::format("FileRemoveEvent: asset: {}", m_path))
 private:
     std::string m_path;
@@ -205,7 +215,7 @@ public:
     }
     NODISCARD std::string_view GetPath() const { return m_path; }
     JAM_EVENT(FileModifiedEvent,
-              eEventCategoryFlags_FileSystem,
+              eEventCategory::FileSystem,
               std::format("FileModifiedEvent: asset: {}", m_path))
 private:
     std::string m_path;
@@ -222,7 +232,7 @@ public:
     NODISCARD std::string_view GetOldPath() const { return m_oldPath; }
     NODISCARD std::string_view GetNewPath() const { return m_newPath; }
     JAM_EVENT(FileRenamedEvent,
-              eEventCategoryFlags_FileSystem,
+              eEventCategory::FileSystem,
               std::format("FileRenamedEvent: old asset: {}, new asset: {}", m_oldPath, m_newPath))
 private:
     std::string m_oldPath;
@@ -239,7 +249,7 @@ public:
 
     NODISCARD std::string_view GetSceneName() const { return m_sceneName; }
     JAM_EVENT(SceneChangeEvent,
-              eEventCategoryFlags_SceneLayer,
+              eEventCategory::FileSystem,
               std::format("SceneChangeEvent: scene name: {}", m_sceneName))
 
 private:
@@ -257,7 +267,7 @@ public:
     NODISCARD eAssetType GetAssetType() const { return m_assetType; }
     NODISCARD const fs::path& GetAssetPath() const { return m_assetPath; }
     JAM_EVENT(AssetLoadEvent,
-              eEventCategoryFlags_AssetManager,
+              eEventCategory::AssetManager,
               std::format("AssetLoadEvent: asset type: {}, asset asset: {}", EnumToString(m_assetType), m_assetPath.string()))
 
 private:
@@ -276,7 +286,7 @@ public:
     NODISCARD eAssetType GetAssetType() const { return m_assetType; }
     NODISCARD const fs::path& GetAssetPath() const { return m_assetPath; }
     JAM_EVENT(AssetUnloadEvent,
-              eEventCategoryFlags_AssetManager,
+              eEventCategory::AssetManager,
               std::format("AssetUnloadEvent: asset type: {}, asset asset: {}", EnumToString(m_assetType), m_assetPath.string()))
 
 private:
@@ -295,7 +305,7 @@ public:
     NODISCARD eAssetType GetAssetType() const { return m_assetType; }
     NODISCARD const fs::path& GetAssetPath() const { return m_assetPath; }
     JAM_EVENT(AssetModifiedEvent,
-              eEventCategoryFlags_AssetManager,
+              eEventCategory::AssetManager,
               std::format("AssetModifiedEvent: asset type: {}, asset asset: {}", EnumToString(m_assetType), m_assetPath.string()))
 
 private:

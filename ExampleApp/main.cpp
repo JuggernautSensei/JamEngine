@@ -25,6 +25,7 @@ private:
 
         // editor
         Scope<EditorLayer> pEditorLayer = std::make_unique<EditorLayer>();
+        AttachLayer(std::move(pEditorLayer));
 
         // scene layer
         SceneLayer* pSceneLayer = GetSceneLayer();

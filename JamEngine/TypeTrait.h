@@ -16,8 +16,8 @@ namespace detail
             constexpr size_t           startIdx = signature.find(prefix) + prefix.size();
             constexpr size_t           endIdx   = signature.find('>', startIdx);
 
-            static_assert(startIdx != std::string_view::npos, "Failed to find type name in signature");
-            static_assert(endIdx != std::string_view::npos, "Failed to find end of type name in signature");
+            static_assert(startIdx != std::string_view::npos, "Failed to find type label in signature");
+            static_assert(endIdx != std::string_view::npos, "Failed to find end of type label in signature");
             static_assert(endIdx > startIdx, "End index must be greater than start index");
 
             std::string_view name = signature.substr(startIdx, endIdx - startIdx);
@@ -57,6 +57,6 @@ NODISCARD constexpr UInt32 HashOf()
 }
 
 template<typename T>
+constexpr bool AlwaysFalse = false; 
 
-constexpr bool always_false_v = false; 
 }   // namespace jam

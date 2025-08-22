@@ -65,16 +65,17 @@ void ImguiLayer::OnEvent(Event& _eventRef)
 
 void ImguiLayer::CreateScreenDependentResources_()
 {
-    m_backBufferTexture = Renderer::GetBackBufferTexture();
+    IDXGISwapChain* pSwapchain = Renderer::GetSwapchain();
+    m_backBufferTexture.InitializeFromSwapchain(pSwapchain);
     m_backBufferTexture.AttachRTV();
 }
 
-void ImguiLayer::OnResize_(const WindowResizeEvent& _event)
+void ImguiLayer::OnResize_(MAYBE_UNUSED const WindowResizeEvent& _event)
 {
     CreateScreenDependentResources_();
 }
 
-void ImguiLayer::OnBackBufferCleanup_(const BackBufferCleanupEvent& _event)
+void ImguiLayer::OnBackBufferCleanup_(MAYBE_UNUSED const BackBufferCleanupEvent& _event)
 {
     m_backBufferTexture.Reset();
 }

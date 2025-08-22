@@ -8,9 +8,9 @@ namespace jam
 {
 
 // left-hand coordinate system
-MeshGeometry CreatePlaneMesh(float _width, float _height, const Mat4& _transform)
+MeshData CreatePlaneMesh(float _width, float _height, const Mat4& _transform)
 {
-    MeshGeometry mesh;
+    MeshData mesh;
 
     const float halfWidth  = _width * 0.5f;
     const float halfHeight = _height * 0.5f;
@@ -84,9 +84,9 @@ MeshGeometry CreatePlaneMesh(float _width, float _height, const Mat4& _transform
 
     return mesh;
 }
-MeshGeometry CreateCubeMesh(const float _width, const float _height, const float _depth, const Mat4& _transform)
+MeshData CreateCubeMesh(const float _width, const float _height, const float _depth, const Mat4& _transform)
 {
-    MeshGeometry mesh;
+    MeshData mesh;
 
     const float halfWidth  = _width * 0.5f;
     const float halfHeight = _height * 0.5f;
@@ -192,9 +192,9 @@ MeshGeometry CreateCubeMesh(const float _width, const float _height, const float
     return mesh;
 }
 
-MeshGeometry CreateSphereMesh(const float _radius, UInt32 _segments, UInt32 _rings, const Mat4& _transform)
+MeshData CreateSphereMesh(const float _radius, UInt32 _segments, UInt32 _rings, const Mat4& _transform)
 {
-    MeshGeometry mesh;
+    MeshData mesh;
 
     // 최소 세그먼트 및 링 수 보장
     _segments = std::max(_segments, 3u);
@@ -283,9 +283,9 @@ MeshGeometry CreateSphereMesh(const float _radius, UInt32 _segments, UInt32 _rin
     return mesh;
 }
 
-MeshGeometry CreateCylinderMesh(float _radius, float _height, UInt32 _segments, const Mat4& _transform)
+MeshData CreateCylinderMesh(float _radius, float _height, UInt32 _segments, const Mat4& _transform)
 {
-    MeshGeometry mesh;
+    MeshData mesh;
 
     // 최소 세그먼트 수 보장
     _segments              = std::max(_segments, 3u);
@@ -429,9 +429,9 @@ MeshGeometry CreateCylinderMesh(float _radius, float _height, UInt32 _segments, 
     return mesh;
 }
 
-MeshGeometry CreateConeMesh(float _radius, float _height, UInt32 _segments, const Mat4& _transform)
+MeshData CreateConeMesh(float _radius, float _height, UInt32 _segments, const Mat4& _transform)
 {
-    MeshGeometry mesh;
+    MeshData mesh;
 
     // 최소 세그먼트 수 보장
     _segments = std::max(_segments, 3u);
@@ -538,9 +538,9 @@ MeshGeometry CreateConeMesh(float _radius, float _height, UInt32 _segments, cons
     return mesh;
 }
 
-MeshGeometry CreateCapsuleMesh(float _radius, float _height, UInt32 _segments, UInt32 _rings, const Mat4& _transform)
+MeshData CreateCapsuleMesh(float _radius, float _height, UInt32 _segments, UInt32 _rings, const Mat4& _transform)
 {
-    MeshGeometry mesh;
+    MeshData mesh;
 
     // 최소 세그먼트 및 링 수 보장
     _segments = std::max(_segments, 3u);
@@ -815,9 +815,9 @@ MeshGeometry CreateCapsuleMesh(float _radius, float _height, UInt32 _segments, U
     return mesh;
 }
 
-MeshGeometry CreateGridMesh(const float _width, const float _height, UInt32 _rows, UInt32 _columns, const Mat4& _transform)
+MeshData CreateGridMesh(const float _width, const float _height, UInt32 _rows, UInt32 _columns, const Mat4& _transform)
 {
-    MeshGeometry mesh;
+    MeshData mesh;
 
     // 최소 행/열 수 보장
     _rows    = std::max(_rows, 1u);

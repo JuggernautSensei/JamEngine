@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CommandQueue.h"
-#include "Config.h"
 #include "Event.h"
 #include "ILayer.h"
 #include "Timer.h"
@@ -46,23 +45,32 @@ public:
     Application(Application&&)                 = delete;
     Application& operator=(Application&&)      = delete;
 
-    // core interface
-    int  Run();
+    // 메인 루프. 절대로 따로 호출하지 마세요.
+    int Run();
+
+    // 어플리케이션 종료를 예약합니다. 다음 프레임에 처리됩니다.
     void Quit();
+
+    // 이벤트 객체를 퍼뜨립니다.
     void DispatchEvent(Event& _eventRef);
+
+    // 제출한 커맨드는 지연처리됩니다. 해당 함수는 thread-safe하기에 다른 스레드에서 호출해도 안전합니다
     void SubmitCommand(const std::function<void()>& _command);
 
-    // layer interface
+    // ILayer 인터페이스
     ILayer*           AttachLayer(Scope<ILayer>&& _pLayer, bool _bAttachAtFront = false /* default is push_back */);
-    void              RemoveLayer(UInt32 _layerHash);
+    void              DetachLayer(UInt32 _layerHash);
     NODISCARD ILayer* GetLayer(UInt32 _layerHash) const;
 
-    // properties
-    void           SetVsync(bool _bVsync);   // enable or disable vsync
-    NODISCARD bool IsVsync() const;          // is vsync enabled
-    void           SetEventLoggingFilter(eEventCategoryFlags _flags);
+    // about v-sync
+    void           SetVsync(const bool _bVsync) { m_bVsync = _bVsync; }
+    NODISCARD bool IsVsync() const { return m_bVsync; }   // check if vsync is enabled
 
-    // getter
+    // about log
+    void                          SetEventLoggingFilter(const eEventCategoryFlags _flags) { m_eventLoggingFilter = _flags; }
+    NODISCARD eEventCategoryFlags GetEventLoggingFilter() const { return m_eventLoggingFilter; }
+
+    // get members
     NODISCARD const Window&    GetWindow() const;
     NODISCARD const TickTimer& GetTimer() const;
     NODISCARD SceneLayer*      GetSceneLayer() const;
@@ -77,7 +85,7 @@ public:
 
     // singletone accessor
     static void                   Create(const CommandLineArguments& _args);   // public constructor - call at the beginning of your main function
-    static void                   Destroy();                                        // public destructor - call at the end of your main function
+    static void                   Destroy();                                   // public destructor - call at the end of your main function
     static NODISCARD Application& GetInstance();
 
 protected:
@@ -107,17 +115,19 @@ private:
     fs::path m_texturesDirectory = {};   // textures directory
     fs::path m_scenesDirectory   = {};   // scenes directory
 
-    // event
-    eEventCategoryFlags m_eventLoggingFilter = eEventCategoryFlags_Window
-                                             | eEventCategoryFlags_Renderer
-                                             | eEventCategoryFlags_FileSystem;
+    // event (for debugging)
+    eEventCategoryFlags m_eventLoggingFilter = eEventCategoryFlags_All & ~eEventCategoryFlags_Input;   // all events except input events
 
     // singleton instance
     static Application* s_instance;
 };
 
+NODISCARD inline Application& GetApplication()
+{
+    return Application::GetInstance();
+}
+
 }   // namespace jam
 
 // public API
 NODISCARD jam::Application* CreateApplication(const jam::CommandLineArguments& _args);   // you should define this function in your main file
-NODISCARD jam::Application& GetApplication();

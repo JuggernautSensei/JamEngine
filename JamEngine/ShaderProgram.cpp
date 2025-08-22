@@ -13,7 +13,7 @@ void ShaderProgram::Initialize(ID3DBlob* _pVScodeOrNull, ID3DBlob* _pPScodeOrNul
 {
     if (_pVScodeOrNull)
     {
-        ShaderCreationData data;
+        ShaderCreateInfo data;
         data.pBytecode      = _pVScodeOrNull->GetBufferPointer();
         data.bytecodeLength = _pVScodeOrNull->GetBufferSize();
 
@@ -23,7 +23,7 @@ void ShaderProgram::Initialize(ID3DBlob* _pVScodeOrNull, ID3DBlob* _pPScodeOrNul
 
     if (_pPScodeOrNull)
     {
-        ShaderCreationData data;
+        ShaderCreateInfo data;
         data.pBytecode      = _pPScodeOrNull->GetBufferPointer();
         data.bytecodeLength = _pPScodeOrNull->GetBufferSize();
 
@@ -32,7 +32,7 @@ void ShaderProgram::Initialize(ID3DBlob* _pVScodeOrNull, ID3DBlob* _pPScodeOrNul
 
     if (_pGScodeOrNull)
     {
-        ShaderCreationData data;
+        ShaderCreateInfo data;
         data.pBytecode      = _pGScodeOrNull->GetBufferPointer();
         data.bytecodeLength = _pGScodeOrNull->GetBufferSize();
 
@@ -41,7 +41,7 @@ void ShaderProgram::Initialize(ID3DBlob* _pVScodeOrNull, ID3DBlob* _pPScodeOrNul
 
     if (_pHScodeOrNull)
     {
-        ShaderCreationData data;
+        ShaderCreateInfo data;
         data.pBytecode      = _pHScodeOrNull->GetBufferPointer();
         data.bytecodeLength = _pHScodeOrNull->GetBufferSize();
 
@@ -50,7 +50,7 @@ void ShaderProgram::Initialize(ID3DBlob* _pVScodeOrNull, ID3DBlob* _pPScodeOrNul
 
     if (_pDScodeOrNull)
     {
-        ShaderCreationData data;
+        ShaderCreateInfo data;
         data.pBytecode      = _pDScodeOrNull->GetBufferPointer();
         data.bytecodeLength = _pDScodeOrNull->GetBufferSize();
 

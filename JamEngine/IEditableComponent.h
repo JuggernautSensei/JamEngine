@@ -6,19 +6,13 @@ namespace jam
 class EditorLayer;
 class Entity;
 
-struct DrawEditorParameter
-{
-    EditorLayer* pEditorLayer;   // not null!
-    Entity*      pOwnerEntity;   // not null!
-};
-
 template<typename T>
 class IEditableComponent
 {
 public:
-    void DrawEditor_Super(const DrawEditorParameter& _param)
+    void DrawEditor_Super(EditorLayer* const _pEditorLayer, Scene* _pScene, const Entity& _owner)
     {
-        static_cast<T*>(this)->DrawEditor(_param);
+        static_cast<T*>(this)->DrawEditor(_pEditorLayer, _pScene, _owner);
     }
 };
 

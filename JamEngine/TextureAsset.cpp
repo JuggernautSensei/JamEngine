@@ -15,7 +15,7 @@ bool TextureAsset::Save(const fs::path& _path) const
     return true;
 }
 
-bool TextureAsset::Load(const fs::path& _path)
+bool TextureAsset::Load(MAYBE_UNUSED AssetManager& _assetMgrRef, const fs::path& _path)
 {
     if (!m_texture.LoadFromFile(_path))
     {
@@ -23,6 +23,7 @@ bool TextureAsset::Load(const fs::path& _path)
         return false;
     }
 
+    m_texture.AttachSRV();
     m_path = _path;
     return true;
 }
@@ -32,14 +33,9 @@ void TextureAsset::Unload()
     m_texture.Reset();
 }
 
-bool TextureAsset::IsLoaded() const
-{
-    return m_texture.Get();
-}
-
 eAssetType TextureAsset::GetType() const
 {
-    return eAssetType::Texture;
+    return s_type;
 }
 
 }   // namespace jam

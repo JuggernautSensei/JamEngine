@@ -3,7 +3,6 @@
 #include "AssetManager.h"
 
 #include "Application.h"
-#include "AssetUtilities.h"
 #include "ModelAsset.h"
 #include "TextureAsset.h"
 
@@ -11,13 +10,22 @@ namespace
 {
 
 using namespace jam;
-bool IsCorrectPath(const fs::path& _path)
+
+// 올바른 키는 work directory 로 부터의 상대 경로
+NODISCARD Result<fs::path> CreateKeyFromPath(const fs::path& _path)
 {
-    // correct path = path of assets directory
-    const fs::path    assetDir = GetApplication().GetAssetsDirectory();
-    const fs::path    rel      = fs::relative(_path, assetDir);
-    std::wstring_view relStr   = rel.native();
-    return !relStr.empty() && !relStr.starts_with(L"..");
+    // 프로젝트 경로를 기준으로 키 생성
+    fs::path          key     = fs::relative(_path, GetApplication().GetWorkingDirectory());
+    std::wstring_view keyWStr = key.native();
+
+    if (keyWStr.starts_with(L"..") == false && keyWStr.empty() == false)   // 정확한 상대경로인지 확인
+    {
+        return key;
+    }
+    else
+    {
+        return Fail;
+    }
 }
 
 }   // namespace
@@ -27,7 +35,7 @@ namespace jam
 
 void AssetManager::Clear(const eAssetType _type)
 {
-    JAM_ASSERT(IsValidEnum(_type), "AssetManager::Clear() - Invalid asset type");
+    JAM_ASSERT(IsValidEnum(_type), "AssetManager::Reset() - Invalid asset type");
     m_containers[EnumToInt(_type)].clear();
 }
 
@@ -35,104 +43,128 @@ void AssetManager::ClearAll()
 {
     for (Container& container: m_containers)
     {
-        container.clear();   // Clear each asset type container
+        container.clear();   // Reset each asset type container
     }
 }
 
-std::optional<Ref<Asset>> AssetManager::GetOrLoadAsset_(const eAssetType _type, const fs::path& _path)
+Result<Ref<Asset>> AssetManager::GetOrLoad(const eAssetType _type, const fs::path& _path)
 {
     Container& container = GetContainer_(_type);
     auto       it        = container.find(_path);
 
-    if (it == container.end())   // no exist
+    if (it != container.end())   // 찾았을 경우 기존 에셋 리턴
     {
-        // load asset
-        return LoadAsset_(_type, _path);
+        return it->second;
     }
-    else   // already exist
+    else   // 찾지 못했을 경우 로드
     {
-        return it->second;   // Return the existing asset
+        return Load(_type, _path);
     }
 }
 
-std::optional<Ref<Asset>> AssetManager::LoadAsset_(const eAssetType _type, const fs::path& _path)
+Result<Ref<Asset>> AssetManager::Load(const eAssetType _type, const fs::path& _path)
 {
-    if (!IsCorrectPath(_path))
+    auto [key, bResult] = CreateKeyFromPath(_path);   // 키 생성
+    if (!bResult)                                     // invalid path
     {
-        JAM_ERROR("AssetManager::LoadAsset_() - Invalid asset path: {}", _path.string());
-        return std::nullopt;
+        JAM_ERROR("AssetManager::Load() - Invalid asset path: {}", _path.string());
+        return Fail;
     }
 
-    Container& container = GetContainer_(_type);
-    Ref<Asset> asset     = nullptr;
-    auto       it        = container.find(_path);
-    bool       bExists   = (it != container.end());
+    Container& container = GetContainer_(_type);          // 타입 컨테이너
+    auto       iterator  = container.find(key);           // 키로 컨테이너에서 찾기
+    bool       bExists   = iterator != container.end();   // 키가 이미 존재하는지 확인
+    Ref<Asset> pAsset    = bExists ? iterator->second : CreateAsset_(_type);
 
-    if (bExists)   // 이미 존재함 - 덮어쓰기
+    // 로드 (만약 이미 존재하는 에셋이라면 덮어쓴다.)
+    if (!pAsset->Load(*this, key))
     {
-        asset = it->second;
-    }
-    else   // 존재하지 않음 - 새로 생성
-    {
-        asset = CreateAsset_(_type);
-    }
-
-    if (!asset->Load(_path))
-    {
-        JAM_ERROR("AssetManager::LoadAsset_() - Failed to load asset from path: {}", _path.string());
-        return std::nullopt;   // Loading failed
+        // 로드 실패
+        JAM_ERROR("AssetManager::Load() - Failed to load asset from path: {}", _path.string());
+        return Fail;
     }
 
-    if (bExists)   // 이미 존재함 이벤트 전송
+    // 로드 완료 이벤트 전송
+    if (bExists)
     {
-        AssetModifiedEvent event(_type, _path);
+        AssetModifiedEvent event(_type, _path);   // 수정 이벤트 전송
         GetApplication().DispatchEvent(event);
     }
     else   // 존재하지 않음 - 새로 생성 이벤트 전송 + 컨테이너에 추가
     {
-        container[_path] = asset;
-
-        AssetLoadEvent event(_type, _path);
+        container[key] = pAsset;              // 새로운 에셋을 컨테이너에 추가
+        AssetLoadEvent event(_type, _path);   // 생성 이벤트 전송
         GetApplication().DispatchEvent(event);
     }
-
-    return asset;   // Return the loaded or existing asset
+    return pAsset;   // Return the loaded or existing asset
 }
 
-void AssetManager::UnloadAsset_(const eAssetType _type, const fs::path& _path)
+bool AssetManager::Unload(const eAssetType _type, const fs::path& _path)
 {
-    Container& container = GetContainer_(_type);
-    auto       it        = container.find(_path);
-    bool       bExists   = (it != container.end());
-
-    if (bExists)   // not found
+    auto [key, bResult] = CreateKeyFromPath(_path);   // 키 생성
+    if (bResult == false)                             // invalid path
     {
-        // 언로드
-        const Ref<Asset>& asset = it->second;
-        asset->Unload();
-
-        // 제거
-        container.erase(it);
-
-        // 이벤트 전송
-        AssetUnloadEvent event(_type, _path);
-        GetApplication().DispatchEvent(event);
+        JAM_ERROR("AssetManager::Reset() - Invalid asset path: {}", _path.string());
+        return false;   // Invalid path
     }
-    else   // find asset
+
+    Container& container = GetContainer_(_type);          // 타입 컨테이너
+    auto       iterator  = container.find(key);           // 에셋 탐색
+    bool       bExists   = iterator != container.end();   // 키가 존재하는지 확인
+
+    if (bExists == false)   // 발견하지 못함
     {
-        JAM_ERROR("AssetManager::UnloadAsset_() - Asset not found at path: {}", _path.string());
+        JAM_ERROR("AssetManager::Reset() - Asset not found at path: {}", _path.string());
+        return false;
     }
+
+    // 언로드
+    const Ref<Asset>& pAsset = iterator->second;
+    pAsset->Unload();
+
+    // 컨테이너에서 제거
+    container.erase(iterator);
+
+    // 제거 이벤트 전송
+    AssetUnloadEvent event(_type, _path);
+    GetApplication().DispatchEvent(event);
+    return true;   // 제거 성공
 }
 
-std::optional<Ref<Asset>> AssetManager::GetAsset_(const eAssetType _type, const fs::path& _path) const
+bool AssetManager::Contain(const eAssetType _type, const fs::path& _path) const
 {
+    auto [key, bResult] = CreateKeyFromPath(_path);   // 키 생성
+    if (bResult == false)
+    {
+        return false;
+    }
+
+    // 키가 존재하는지 탐색
     const Container& container = GetContainer_(_type);
-    auto             it        = container.find(_path);
-    if (it != container.end())
+    return container.contains(key);
+}
+
+Result<Ref<Asset>> AssetManager::Get(const eAssetType _type, const fs::path& _path) const
+{
+    auto [key, bResult] = CreateKeyFromPath(_path);   // 키 생성
+    if (bResult == false)                             // invalid path
     {
-        return it->second;   // Return the found asset
+        JAM_ERROR("AssetManager::Get() - Invalid asset path: {}", _path.string());
+        return Fail;
     }
-    return std::nullopt;   // Asset not found
+
+    // 키가 올바른 경우
+    const Container& container = GetContainer_(_type);   // 타입 컨테이너
+    auto             iterator  = container.find(key);
+    if (iterator != container.end())   // 찾았을 경우
+    {
+        return iterator->second;   // 에셋 리턴
+    }
+    else   // 찾지 못했을 경우
+    {
+        JAM_ERROR("AssetManager::Get() - Asset not found at path: {}", _path.string());
+        return Fail;   // 실패 반환
+    }
 }
 
 Ref<Asset> AssetManager::CreateAsset_(const eAssetType _type) const
@@ -142,7 +174,6 @@ Ref<Asset> AssetManager::CreateAsset_(const eAssetType _type) const
         case eAssetType::Model: return MakeRef<ModelAsset>();
         case eAssetType::Texture: return MakeRef<TextureAsset>();
     }
-
     JAM_CRASH("Unsupported asset type: {}", EnumToInt(_type));
 }
 
@@ -154,27 +185,6 @@ AssetManager::Container& AssetManager::GetContainer_(const eAssetType _type)
 const AssetManager::Container& AssetManager::GetContainer_(const eAssetType _type) const
 {
     return m_containers[EnumToInt(_type)];
-}
-
-bool AssetManager::IsExistAsset_(const eAssetType _type, const fs::path& _path) const
-{
-    const Container& container = GetContainer_(_type);
-    return container.contains(_path);
-}
-
-std::optional<Ref<Asset>> AssetManager::ReloadAsset_(const eAssetType _type, const fs::path& _path) const
-{
-    std::optional<Ref<Asset>> assetOrNull = GetAsset_(_type, _path);   // Ensure the asset exists before reloading
-    if (assetOrNull)                                                   // If the asset exists, attempt to reload it
-    {
-        Ref<Asset> asset = *assetOrNull;
-        if (!asset->Load(_path))
-        {
-            JAM_ERROR("AssetManager::ReloadAsset_() - Failed to reload asset from path: {}", _path.string());
-            return std::nullopt;   // Reloading failed
-        }
-    }
-    return assetOrNull;   // reload successful or null
 }
 
 }   // namespace jam

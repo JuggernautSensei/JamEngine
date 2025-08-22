@@ -9,6 +9,8 @@ class Scene;
 class SceneLayer : public ILayer
 {
 public:
+    using Container = std::unordered_map<std::string, Scope<Scene>>;   // scene displayName, scene pointer
+
     SceneLayer();
     ~SceneLayer() override;
 
@@ -35,11 +37,14 @@ public:
     NODISCARD Scene* GetActiveScene() const;
     NODISCARD Scene* GetScene(std::string_view _name) const;
 
-    NODISCARD decltype(auto) GetContainer() const { return std::views::all(m_scenes); }
+    NODISCARD const Container& GetContainer() const { return m_container; }
+    NODISCARD Container&       GetContainerRef() { return m_container; }
 
 private:
-    std::unordered_map<std::string, Scope<Scene>> m_scenes;
-    Scene*                                                  m_pActiveScene = nullptr;   // currently active scene
+    void ChangeScene_(Scene* _pScene);
+
+    Container m_container;
+    Scene*    m_pActiveScene = nullptr;   // currently active scene
 };
 
 }   // namespace jam

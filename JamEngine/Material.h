@@ -3,6 +3,8 @@
 namespace jam
 {
 
+class TextureAsset;
+
 struct Material
 {
     // phong
@@ -19,9 +21,17 @@ struct Material
     float emissive    = 0.f;   // emissive intensity
 
     // misc
-    Vec3  emissiveColor     = Vec3::Zero;   // emissive color
-    float emissiveScale     = 1.f;
-    float displacementScale = 0.f;   // for tessellation
+    Vec3  emissiveColor = Vec3::Zero;   // emissive color
+    float emissiveScale = 1.f;          // emissive scale
+
+    // texture
+    std::optional<Ref<TextureAsset>> albedoTexture;      // albedo texture
+    std::optional<Ref<TextureAsset>> normalTexture;      // normal texture
+    std::optional<Ref<TextureAsset>> metallicTexture;    // metallic texture
+    std::optional<Ref<TextureAsset>> roughnessTexture;   // roughness texture
+    std::optional<Ref<TextureAsset>> aoTexture;          // ambient occlusion texture
+    std::optional<Ref<TextureAsset>> emissiveTexture;    // emissive texture
+    std::optional<Ref<TextureAsset>> lightmapTexture;    // lightmap texture
 };
 
-}
+}   // namespace jam

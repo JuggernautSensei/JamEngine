@@ -14,7 +14,7 @@ void BufferReader::ReserveBuffer(const UInt32 _byteWidth)
     }
 }
 
-std::optional<std::vector<UInt8>> BufferReader::ReadBuffer(ID3D11Buffer* _pBuffer)
+Result<std::vector<UInt8>> BufferReader::ReadBuffer(ID3D11Buffer* _pBuffer)
 {
     JAM_ASSERT(_pBuffer != nullptr, "BufferReader::ReadBuffer - Invalid buffer pointer.");
     D3D11_BUFFER_DESC desc;
@@ -22,12 +22,12 @@ std::optional<std::vector<UInt8>> BufferReader::ReadBuffer(ID3D11Buffer* _pBuffe
     return ReadBuffer_(_pBuffer, desc.ByteWidth);
 }
 
-std::optional<std::vector<UInt8>> BufferReader::ReadBuffer(const Buffer& _buffer)
+Result<std::vector<UInt8>> BufferReader::ReadBuffer(const Buffer& _buffer)
 {
     return ReadBuffer_(_buffer.Get(), _buffer.GetByteWidth());
 }
 
-std::optional<std::vector<UInt8>> BufferReader::ReadBuffer_(ID3D11Buffer* _pBuffer, const UInt32 _bufferByteWidth)
+Result<std::vector<UInt8>> BufferReader::ReadBuffer_(ID3D11Buffer* _pBuffer, const UInt32 _bufferByteWidth)
 {
     JAM_ASSERT(_pBuffer != nullptr, "BufferReader::ReadBuffer_ - Invalid buffer pointer.");
 

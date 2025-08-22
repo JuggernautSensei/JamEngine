@@ -29,7 +29,6 @@
 //
 #include "Components.h"
 //
-// layers
 #include "ILayer.h"
 #include "ImguiLayer.h"
 #include "SceneLayer.h"

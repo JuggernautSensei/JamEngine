@@ -5,6 +5,9 @@
 namespace jam
 {
 
+// static variables
+std::mt19937 Random::s_engine { std::random_device {}() };   // initialize random number generator engine with a random seed
+
 Mat4 CreateViewMatrix(const Vec3& _position, const Vec3& _forward)
 {
     using namespace DirectX;
@@ -23,7 +26,7 @@ Mat4 CreateViewMatrix(const Vec3& _position, const Vec3& _forward)
 
     rightDir = XMVector3Normalize(rightDir);
 
-    const XMVECTOR upDir = XMVector3Cross(viewDir, rightDir);
+    const XMVECTOR upDir       = XMVector3Cross(viewDir, rightDir);
     const XMVECTOR negPosition = XMVectorNegate(_position);
 
     const XMVECTOR dotX = XMVector3Dot(rightDir, negPosition);
@@ -31,13 +34,13 @@ Mat4 CreateViewMatrix(const Vec3& _position, const Vec3& _forward)
     const XMVECTOR dotZ = XMVector3Dot(viewDir, negPosition);
 
     XMMATRIX viewMatrix;
-    viewMatrix.r[0] = XMVectorSelect(dotX, rightDir, g_XMSelect1110.v);  
-    viewMatrix.r[1] = XMVectorSelect(dotY, upDir, g_XMSelect1110.v);     
-    viewMatrix.r[2] = XMVectorSelect(dotZ, viewDir, g_XMSelect1110.v);   
-    viewMatrix.r[3] = g_XMIdentityR3.v;                                  
+    viewMatrix.r[0] = XMVectorSelect(dotX, rightDir, g_XMSelect1110.v);
+    viewMatrix.r[1] = XMVectorSelect(dotY, upDir, g_XMSelect1110.v);
+    viewMatrix.r[2] = XMVectorSelect(dotZ, viewDir, g_XMSelect1110.v);
+    viewMatrix.r[3] = g_XMIdentityR3.v;
 
     viewMatrix = XMMatrixTranspose(viewMatrix);
     return viewMatrix;
 }
 
-}
+}   // namespace jam

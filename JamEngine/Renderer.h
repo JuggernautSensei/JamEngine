@@ -3,6 +3,11 @@
 
 namespace jam
 {
+class WindowMaximizeEvent;
+}
+
+namespace jam
+{
 
 class WindowResizeEvent;
 class Event;
@@ -18,16 +23,16 @@ public:
     static void OnEvent(const Event& _event);
 
     // swap chain interface
-    static void      Present(bool _bVSync);
-    static const Texture2D& GetBackBufferTexture();
+    static void             Present(bool _bVSync);
 
     static NODISCARD ID3D11Device*        GetDevice();
     static NODISCARD ID3D11DeviceContext* GetDeviceContext();
+    static NODISCARD IDXGISwapChain*      GetSwapchain();
     static UInt32                         GetMaxMultisampleQuality(DXGI_FORMAT _format, UInt32 _sampleCount);
 
     // d3d factories
-    static void CreateBuffer(const D3D11_BUFFER_DESC& _desc, const std::optional<BufferInitializeData>& _initializeData, ID3D11Buffer** _out_pBuffer);
-    static void CreateTexture2D(const D3D11_TEXTURE2D_DESC& _desc, const std::optional<Texture2DInitializeData>& _initializeData, ID3D11Texture2D** _out_pTexture);
+    static void CreateBuffer(const D3D11_BUFFER_DESC& _desc, const std::optional<BufferInitData>& _initData, ID3D11Buffer** _out_pBuffer);
+    static void CreateTexture2D(const D3D11_TEXTURE2D_DESC& _desc, const std::optional<Texture2DInitData>& _initData, ID3D11Texture2D** _out_pTexture);
 
     static void CreateShaderResourceView(ID3D11Resource* _pResource, const D3D11_SHADER_RESOURCE_VIEW_DESC* _pDesc, ID3D11ShaderResourceView** _out_pSRV);
     static void CreateRenderTargetView(ID3D11Resource* _pResource, const D3D11_RENDER_TARGET_VIEW_DESC* _pDesc, ID3D11RenderTargetView** _out_pRTV);
@@ -35,12 +40,12 @@ public:
 
     static void CreateInputLayout(std::span<const D3D11_INPUT_ELEMENT_DESC> _inputElements, ID3DBlob* _pVertexShaderBlob, ID3D11InputLayout** _out_pInputLayout);
     static void CreateInputLayout(std::span<const D3D11_INPUT_ELEMENT_DESC> _inputElements, ID3D11InputLayout** _out_pInputLayout);
-    static void CreateVertexShader(const ShaderCreationData& _data, ID3D11VertexShader** _out_pVertexShader);
-    static void CreatePixelShader(const ShaderCreationData& _data, ID3D11PixelShader** _out_pPixelShader);
-    static void CreateHullShader(const ShaderCreationData& _data, ID3D11HullShader** _out_pHullShader);
-    static void CreateDomainShader(const ShaderCreationData& _data, ID3D11DomainShader** _out_pDomainShader);
-    static void CreateGeometryShader(const ShaderCreationData& _data, ID3D11GeometryShader** _out_pGeometryShader);
-    static void CreateComputeShader(const ShaderCreationData& _data, ID3D11ComputeShader** _out_pComputeShader);
+    static void CreateVertexShader(const ShaderCreateInfo& _data, ID3D11VertexShader** _out_pVertexShader);
+    static void CreatePixelShader(const ShaderCreateInfo& _data, ID3D11PixelShader** _out_pPixelShader);
+    static void CreateHullShader(const ShaderCreateInfo& _data, ID3D11HullShader** _out_pHullShader);
+    static void CreateDomainShader(const ShaderCreateInfo& _data, ID3D11DomainShader** _out_pDomainShader);
+    static void CreateGeometryShader(const ShaderCreateInfo& _data, ID3D11GeometryShader** _out_pGeometryShader);
+    static void CreateComputeShader(const ShaderCreateInfo& _data, ID3D11ComputeShader** _out_pComputeShader);
 
     static void CreateSamplerState(const D3D11_SAMPLER_DESC& _desc, ID3D11SamplerState** _out_pSamplerState);
     static void CreateBlendState(const D3D11_BLEND_DESC& _desc, ID3D11BlendState** _out_pBlendState);
@@ -82,7 +87,8 @@ public:
     static void DrawFullScreenQuad();
 
 private:
-    static void OnResize_(const WindowResizeEvent& _event);
+    static void OnWindowResize_(const WindowResizeEvent& _event);
+    static void ResizeBackBuffer_(UInt32 _width, UInt32 _height);
 };
 
 }   // namespace jam

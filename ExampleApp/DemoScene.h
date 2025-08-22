@@ -14,7 +14,6 @@ public:
     void OnEnter() override;
     void OnUpdate(float _deltaTime) override;
     void OnRender() override;
-    void OnRenderUI() override;
     void OnEvent(Event& _eventRef) override;
 
     NODISCARD const Texture2D& GetSceneTexture() const override;
@@ -51,7 +50,4 @@ private:
     SamplerState m_samplerLinearWrap;
     SamplerState m_samplerLinearAnisotropic4Wrap;
     SamplerState m_samplerShadowComparisonLinearWrap;
-
-    // camera
-    Entity m_cameraEntity;
 };

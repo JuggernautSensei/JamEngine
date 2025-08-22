@@ -2,9 +2,10 @@
 
 #include "ModelLoader.h"
 
-#include "Config.h"
-#include "StringUtilities.h"
-#include "flatbuffers/compiled/model_generated.h"
+#include "Asset.h"
+#include "AssetManager.h"
+#include "AssetUtilities.h"
+#include "vendor/flatbuffers/compiled/model_generated.h"
 #include <fstream>
 
 namespace
@@ -54,15 +55,16 @@ NODISCARD jam::eTopology ToJamTopology(const jam::fbs::eTopology topology)
 namespace jam
 {
 
-bool ModelLoader::Load(const fs::path& _path)
+bool ModelLoader::Load(AssetManager& _assetMgrRef, const fs::path& _path)
 {
-    std::wstring ext = ToLower(_path.extension().native());
-    if (ext != k_jamModelExtensionW)
+    // 유효성 검사
+    if (!IsCompatibleFromPath(eAssetType::Model, _path))
     {
-        JAM_ERROR("Invalid model file extension: {}. Expected: {}", ConvertToString(ext), ConvertToString(k_jamModelExtensionW));
+        JAM_ERROR("ModelLoader::Load() - Invalid file path: {}", _path.string());
         return false;
     }
 
+    // 파일 읽기
     std::ifstream fs(_path, std::ios::binary);
     if (!fs.is_open())
     {
@@ -70,11 +72,12 @@ bool ModelLoader::Load(const fs::path& _path)
         return false;
     }
 
+    // 초기화
     Clear_();
 
+    // 파일 크기 확인 및 읽기
     fs.seekg(0, std::ios::end);
     const std::streamsize size = fs.tellg();
-
     fs.seekg(0, std::ios::beg);
     std::vector<char> buffer(size);
     if (!fs.read(buffer.data(), size))
@@ -83,31 +86,39 @@ bool ModelLoader::Load(const fs::path& _path)
         return false;
     }
 
-    flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(buffer.data()), static_cast<size_t>(size));
-    if (!fbs::VerifyRawModelBuffer(verifier))
+    // FlatBuffers 버퍼 검증
+    const uint8_t*        pBuffer = reinterpret_cast<const uint8_t*>(buffer.data());
+    flatbuffers::Verifier verifier(pBuffer, static_cast<size_t>(size));
+    if (!fbs::VerifyModelDataBuffer(verifier))
     {
         JAM_ERROR("Model file verification failed: {}", _path.string());
         return false;
     }
 
-    const fbs::RawModel* rawModel = fbs::GetRawModel(buffer.data());
-    if (!rawModel)
+    const fbs::ModelData* fbsModelData = fbs::GetModelData(buffer.data());
+    if (!fbsModelData)
     {
         JAM_ERROR("Failed to parse model file: {}", _path.string());
         return false;
     }
 
-    m_loadData.nodes.reserve(rawModel->nodes()->size());
-    for (const fbs::RawModelNode* rawPart: *rawModel->nodes())
+    m_modelNodes.reserve(fbsModelData->nodes()->size());
+    for (const fbs::ModelNodeData* fbsNodeData: *fbsModelData->nodes())
     {
-        RawModelNode part;
-        part.name = rawPart->name()->str();
+        // jam model data
+        ModelNodeData modelNodeData;
 
-        // Mesh
+        // name
         {
-            const fbs::MeshGeometry* rawMesh = rawPart->mesh();
-            part.meshGeometry.vertices.reserve(rawMesh->vertices()->size());
-            for (const fbs::VertexAttribute* vertex: *rawMesh->vertices())
+            modelNodeData.name = fbsNodeData->name()->str();
+        }
+
+        // Mesh (vertex, index, topology, vertex type)
+        {
+            // vertex
+            const fbs::MeshData* fbsMeshData = fbsNodeData->mesh_data();
+            modelNodeData.meshData.vertices.reserve(fbsMeshData->vertices()->size());
+            for (const fbs::VertexAttribute* vertex: *fbsMeshData->vertices())
             {
                 VertexAttribute vertexData;
                 vertexData.position  = ToJamVec3(*vertex->position());
@@ -117,41 +128,72 @@ bool ModelLoader::Load(const fs::path& _path)
                 vertexData.uv1       = ToJamVec2(*vertex->uv1());
                 vertexData.tangent   = ToJamVec3(*vertex->tangent());
                 vertexData.bitangent = ToJamVec3(*vertex->bitangent());
-                part.meshGeometry.vertices.emplace_back(std::move(vertexData));
+                modelNodeData.meshData.vertices.emplace_back(std::move(vertexData));
             }
 
-            part.meshGeometry.indices.assign(rawMesh->indices()->begin(), rawMesh->indices()->end());
+            // index
+            modelNodeData.meshData.indices.assign(fbsMeshData->indices()->begin(), fbsMeshData->indices()->end());
+
+            // vertex type and topology
+            modelNodeData.topology   = ToJamTopology(fbsNodeData->topology());
+            modelNodeData.vertexType = ToJamVertexType(fbsNodeData->vertex_type());
         }
 
         // Material
         {
-            const fbs::Material* material   = rawPart->material();
-            part.material.ambientColor      = ToJamVec3(*material->ambient_color());
-            part.material.diffuseColor      = ToJamVec3(*material->diffuse_color());
-            part.material.specularColor     = ToJamVec3(*material->specular_color());
-            part.material.shininess         = material->shininess();
-            part.material.albedoColor       = ToJamVec3(*material->albedo_color());
-            part.material.metallic          = material->metallic();
-            part.material.roughness         = material->roughness();
-            part.material.ao                = material->ao();
-            part.material.emissive          = material->emissive();
-            part.material.emissiveColor     = ToJamVec3(*material->emissive_color());
-            part.material.emissiveScale     = material->emissive_scale();
-            part.material.displacementScale = material->displacement_scale();
+            const fbs::Material* material        = fbsNodeData->material();
+            modelNodeData.material.ambientColor  = ToJamVec3(*material->ambient_color());
+            modelNodeData.material.diffuseColor  = ToJamVec3(*material->diffuse_color());
+            modelNodeData.material.specularColor = ToJamVec3(*material->specular_color());
+            modelNodeData.material.shininess     = material->shininess();
+            modelNodeData.material.albedoColor   = ToJamVec3(*material->albedo_color());
+            modelNodeData.material.metallic      = material->metallic();
+            modelNodeData.material.roughness     = material->roughness();
+            modelNodeData.material.ao            = material->ao();
+            modelNodeData.material.emissive      = material->emissive();
+            modelNodeData.material.emissiveColor = ToJamVec3(*material->emissive_color());
+            modelNodeData.material.emissiveScale = material->emissive_scale();
+
+            // textures load
+            if (material->albedo_texture())
+            {
+                auto [asset, _]                      = _assetMgrRef.GetOrLoad<TextureAsset>(material->albedo_texture()->str());
+                modelNodeData.material.albedoTexture = asset;
+            }
+            if (material->normal_texture())
+            {
+                auto [asset, _]                      = _assetMgrRef.GetOrLoad<TextureAsset>(material->normal_texture()->str());
+                modelNodeData.material.normalTexture = asset;
+            }
+            if (material->metallic_texture())
+            {
+                auto [asset, _]                        = _assetMgrRef.GetOrLoad<TextureAsset>(material->metallic_texture()->str());
+                modelNodeData.material.metallicTexture = asset;
+            }
+            if (material->roughness_texture())
+            {
+                auto [asset, _]                         = _assetMgrRef.GetOrLoad<TextureAsset>(material->roughness_texture()->str());
+                modelNodeData.material.roughnessTexture = asset;
+            }
+            if (material->ao_texture())
+            {
+                auto [asset, _]                  = _assetMgrRef.GetOrLoad<TextureAsset>(material->ao_texture()->str());
+                modelNodeData.material.aoTexture = asset;
+            }
+            if (material->emissive_texture())
+            {
+                auto [asset, _]                        = _assetMgrRef.GetOrLoad<TextureAsset>(material->emissive_texture()->str());
+                modelNodeData.material.emissiveTexture = asset;
+            }
+            if (material->lightmap_texture())
+            {
+                auto [asset, _]                        = _assetMgrRef.GetOrLoad<TextureAsset>(material->lightmap_texture()->str());
+                modelNodeData.material.lightmapTexture = asset;
+            }
         }
-        m_loadData.nodes.emplace_back(std::move(part));
+        m_modelNodes.emplace_back(std::move(modelNodeData));
     }
-
-    m_loadData.topology   = ToJamTopology(rawModel->topology());
-    m_loadData.vertexType = ToJamVertexType(rawModel->vertex_type());
-    m_bLoaded             = true;
     return true;
-}
-
-const ModelLoadData& ModelLoader::GetLoadData() const
-{
-    JAM_ASSERT(m_bLoaded, "ModelLoader::GetLoadData() - Model not loaded yet.");
-    return m_loadData;
 }
 
 void ModelLoader::Clear_()

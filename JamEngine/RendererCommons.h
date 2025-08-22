@@ -3,23 +3,23 @@
 namespace jam
 {
 
-struct BufferInitializeData
+struct BufferInitData
 {
     const void* pData = nullptr;
 };
 
-struct IndexBufferInitializeData
+struct IndexBufferInitData
 {
     const Index* pData = nullptr;
 };
 
-struct Texture2DInitializeData
+struct Texture2DInitData
 {
     const void* pData = nullptr;
     UInt32      pitch = 0;
 };
 
-struct ShaderCreationData
+struct ShaderCreateInfo
 {
     const void* pBytecode      = nullptr;
     size_t      bytecodeLength = 0;

@@ -3,6 +3,7 @@
 namespace jam
 {
 
+// 현재 엔진에서 사용되는 정점 속성들
 struct VertexAttribute
 {
     Vec3 position  = Vec3::Zero;

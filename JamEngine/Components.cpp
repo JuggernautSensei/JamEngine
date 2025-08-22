@@ -2,6 +2,7 @@
 
 #include "Components.h"
 
+#include "JsonUtilities.h"
 #include "ModelAsset.h"
 #include "Script.h"
 #include "ScriptMetaManager.h"
@@ -29,9 +30,9 @@ Json TagComponent::Serialize() const
     return json;
 }
 
-void TagComponent::Deserialize(const DeserializeParameter& _param)
+void TagComponent::Deserialize(const Json& _json, Scene* _pScene, const Entity& _onwerEntity)
 {
-    name = _param.pJson->value("name", "unknown");
+    name = GetJsonValueOrDefault(_json, "name", std::string("unknown"));
 }
 
 Mat4 TransformComponent::CreateWorldMatrix() const
@@ -42,18 +43,17 @@ Mat4 TransformComponent::CreateWorldMatrix() const
 Json TransformComponent::Serialize() const
 {
     Json json;
-    json["position"] = { position.x, position.y, position.z };
-    json["rotation"] = { rotation.x, rotation.y, rotation.z, rotation.w };
-    json["scale"]    = { scale.x, scale.y, scale.z };
+    json["position"] = position;
+    json["rotation"] = rotation;
+    json["scale"]    = scale;
     return json;
 }
 
-void TransformComponent::Deserialize(const DeserializeParameter& _param)
+void TransformComponent::Deserialize(const Json& _json, Scene* _pScene, const Entity& _onwerEntity)
 {
-    const Json* json = _param.pJson;
-    position         = json->value("position", Vec3::Zero);
-    rotation         = json->value("rotation", Quat::Identity);
-    scale            = json->value("scale", Vec3::One);
+    position = GetJsonValueOrDefault(_json, "position", Vec3::Zero);
+    rotation = GetJsonValueOrDefault(_json, "rotation", Quat::Identity);
+    scale    = GetJsonValueOrDefault(_json, "scale", Vec3::One);
 }
 
 Mat4 CameraComponent::CreateViewMatrix(const Vec3& _position, const Vec3& _forward) const
@@ -65,7 +65,7 @@ Mat4 CameraComponent::CreateProjectionMatrix() const
 {
     if (projection == eProjection::Perspective)
     {
-        return CreatePerspectiveMatrix(fovY, aspectRatio, nearZ, farZ);
+        return CreatePerspectiveMatrix(fovYRad, aspectRatio, nearZ, farZ);
     }
     else
     {
@@ -76,23 +76,23 @@ Mat4 CameraComponent::CreateProjectionMatrix() const
 Json CameraComponent::Serialize() const
 {
     Json json;
-    json["fovY"]        = fovY;
+    json["fovYRad"]     = fovYRad;
     json["nearZ"]       = nearZ;
     json["farZ"]        = farZ;
     json["aspectRatio"] = aspectRatio;
     json["projection"]  = projection;
+    json["primary"]     = bPrimary;   // 추가: 기본 카메라 여부
     return json;
 }
 
-void CameraComponent::Deserialize(const DeserializeParameter& _param)
+void CameraComponent::Deserialize(const Json& _json, Scene* _pScene, const Entity& _onwerEntity)
 {
-    const Json* json = _param.pJson;
-    fovY             = json->value("fovY", 45.f);
-    nearZ            = json->value("nearZ", 0.1f);
-    farZ             = json->value("farZ", 1000.f);
-    aspectRatio      = json->value("aspectRatio", 1.f);
-    projection       = json->value("projection", eProjection::Perspective);
-    projection       = GetValidEnumOrDefault(projection, eProjection::Perspective);
+    fovYRad     = GetJsonValueOrDefault(_json, "fovYRad", 45.f);
+    nearZ       = GetJsonValueOrDefault(_json, "nearZ", 0.1f);
+    farZ        = GetJsonValueOrDefault(_json, "farZ", 1000.f);
+    aspectRatio = GetJsonValueOrDefault(_json, "aspectRatio", 1.f);
+    projection  = GetJsonValueOrDefault(_json, "projection", eProjection::Perspective);
+    bPrimary    = GetJsonValueOrDefault(_json, "primary", false);
 }
 
 ScriptComponent::ScriptComponent(Scope<Script>&& _script)
@@ -110,17 +110,19 @@ Json ScriptComponent::Serialize() const
     return json;
 }
 
-void ScriptComponent::Deserialize(const DeserializeParameter& _param)
+void ScriptComponent::Deserialize(const Json& _json, Scene* _pScene, const Entity& _onwerEntity)
 {
-    const Json* json = _param.pJson;
-    if (json->contains("scriptName"))
+    if (_json.contains("scriptName"))
     {
-        std::string scriptName = json->at("scriptName").get<std::string>();
+        std::string scriptName = _json["scriptName"];
         if (ScriptMetaManager::IsRegistered(scriptName))
         {
-            script = ScriptMetaManager::CreateScript(scriptName, *_param.pOwner);
+            script = ScriptMetaManager::CreateScript(scriptName, _onwerEntity);
         }
-        return;
+        else
+        {
+            JAM_ERROR("Script '{}' is not registered in ScriptMetaManager", scriptName);
+        }
     }
 }
 
@@ -134,22 +136,18 @@ Json ModelComponent::Serialize() const
     return json;
 }
 
-void ModelComponent::Deserialize(const DeserializeParameter& _param)
+void ModelComponent::Deserialize(const Json& _json, Scene* _pScene, const Entity& _onwerEntity)
 {
-    JAM_ASSERT(_param.pScene, "Scene must not be null when deserializing ModelComponent");
-
-    fs::path                       path  = _param.pJson->value("path", std::filesystem::path());
-    AssetManager&                  mgr   = _param.pScene->GetAssetManagerRef();
-    std::optional<Ref<ModelAsset>> model = mgr.Get<ModelAsset>(path);
-
-    if (!model)
+    if (_json.contains("path"))
     {
-        model = mgr.Load<ModelAsset>(path);
-    }
+        fs::path path = _json["path"].get<fs::path>();
 
-    if (model)
-    {
-        modelAsset = *model;
+        AssetManager& mgrRef  = _pScene->GetAssetManagerRef();
+        auto [model, bResult] = mgrRef.GetOrLoad<ModelAsset>(path);
+        if (bResult)
+        {
+            modelAsset = model;
+        }
     }
 }
 

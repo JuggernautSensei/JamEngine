@@ -4,42 +4,38 @@
 
 namespace jam
 {
+class AssetManager;
 
-struct RawModelNode
-{
-    std::string  name;
-    MeshGeometry meshGeometry;
-    Material     material;
-};
-
-// for model runtime usage
-struct ModelNode
+struct ModelNodeData
 {
     std::string name;
-    Mesh        mesh;
+    MeshData    meshData;
+    eVertexType vertexType;
+    eTopology   topology;
     Material    material;
 };
 
 class Model
 {
 public:
-    void Initialize(std::span<const RawModelNode> _parts, eVertexType _vertexType, eTopology _topology);
+    struct Node
+    {
+        std::string name;
+        Mesh        mesh;
+        Material    material;
+    };
+
+    void Initialize(std::span<const ModelNodeData> _nodes);
+    bool LoadFromFile(AssetManager& _assetMgrRef, const fs::path& _filePath);
     bool SaveToFile(const fs::path& _filePath) const;
-    bool LoadFromFile(const fs::path& _filePath);
 
-    NODISCARD bool IsLoaded() const;
-    void           Unload();
+    void Reset();
 
-    NODISCARD eVertexType GetVertexType() const { return m_vertexType; }
-    NODISCARD eTopology   GetTopology() const { return m_topology; }
-
-    NODISCARD auto GetModelNodes() const { return std::span<const ModelNode>(m_nodes); }
-    NODISCARD auto GetModelNodesRef() { return std::span<ModelNode>(m_nodes); }
+    NODISCARD auto GetNodes() const { return std::span<const Node>(m_nodes); }
+    NODISCARD auto GetNodesRef() { return std::span<Node>(m_nodes); }
 
 private:
-    std::vector<ModelNode> m_nodes;
-    eVertexType            m_vertexType = eVertexType::Vertex3;
-    eTopology              m_topology   = eTopology::TriangleList;
+    std::vector<Node> m_nodes;
 };
 
 }   // namespace jam

@@ -1,6 +1,5 @@
 #pragma once
 #include "RendererCommons.h"
-
 #include <DirectXTex.h>
 
 namespace jam
@@ -20,19 +19,19 @@ class Texture2D
 {
 public:
     // general initializer
-    void Initialize(UInt32                                        _width,
-                    UInt32                                        _height,
-                    DXGI_FORMAT                                   _format,
-                    eResourceAccess                               _access         = eResourceAccess::Immutable,
-                    eViewFlags                                    _viewFlags      = eViewFlags_ShaderResource,
-                    UInt32                                        _arraySize      = 1,
-                    UInt32                                        _samples        = 1,
-                    bool                                          _bGenerateMips  = false,
-                    bool                                          _bCubemap       = false,
-                    const std::optional<Texture2DInitializeData>& _initializeData = std::nullopt);
+    void Initialize(UInt32                                  _width,
+                    UInt32                                  _height,
+                    DXGI_FORMAT                             _format,
+                    eResourceAccess                         _access        = eResourceAccess::Immutable,
+                    eViewFlags                              _viewFlags     = eViewFlags_ShaderResource,
+                    UInt32                                  _arraySize     = 1,
+                    UInt32                                  _samples       = 1,
+                    bool                                    _bGenerateMips = false,
+                    bool                                    _bCubemap      = false,
+                    const std::optional<Texture2DInitData>& _initData      = std::nullopt);
 
-    // for back buffer
-    void InitializeFromSwapChain(IDXGISwapChain* _pSwapChain);
+    void InitializeFromD3DTexture(ID3D11Texture2D* _pTexture);
+    void InitializeFromSwapchain(IDXGISwapChain* _pSwapchain);
 
     // load
     bool LoadFromFile(const fs::path& _filePath,
@@ -53,7 +52,7 @@ public:
 
     // save
     bool      SaveToFile(const fs::path& _filePath) const;
-    NODISCARD std::optional<std::vector<UInt8>> SaveToMemory(eImageFormat _imageFormat) const;
+    NODISCARD Result<std::vector<UInt8>> SaveToMemory(eImageFormat _imageFormat) const;
 
     // copy
     void CopyFrom(const Texture2D& _other) const;
@@ -77,7 +76,11 @@ public:
     void ClearRenderTarget(const float _color[4]) const;
     void ClearDepthStencil(bool _bClearDepth, bool _bClearStencil, float _depth = 1.0f, UInt8 _stencil = 0) const;
 
-    NODISCARD bool            IsValid() const { return m_texture != nullptr; }
+    NODISCARD bool IsValid() const { return m_pTexture != nullptr; }
+    NODISCARD bool HasSRV() const { return m_pSRV != nullptr; }
+    NODISCARD bool HasRTV() const { return m_pRTV != nullptr; }
+    NODISCARD bool HasDSV() const { return m_pDSV != nullptr; }
+
     NODISCARD bool            IsMultiSamplingTexture() const { return m_samples > 1; }
     NODISCARD bool            IsCubemap() const { return m_bIsCubemap; }
     NODISCARD bool            HasMips() const { return m_bHasMips; }
@@ -91,14 +94,12 @@ public:
     NODISCARD DXGI_FORMAT               GetFormat() const { return m_format; }
 
     // d3d11 accessors
-    NODISCARD ID3D11Texture2D*          Get() const { return m_texture.Get(); }
-    NODISCARD ID3D11Texture2D* const*   GetAddressOf() const { return m_texture.GetAddressOf(); }
+    NODISCARD ID3D11Texture2D*          Get() const { return m_pTexture.Get(); }
+    NODISCARD ID3D11Texture2D* const*   GetAddressOf() const { return m_pTexture.GetAddressOf(); }
     NODISCARD ID3D11ShaderResourceView* GetSRV() const;
     NODISCARD ID3D11RenderTargetView*   GetRTV() const;
     NODISCARD ID3D11DepthStencilView*   GetDSV() const;
     UInt32                              Reset();
-
-    static Texture2D null;
 
 private:
     // DiretXTex utilities
@@ -110,11 +111,13 @@ private:
                               bool                    _bInverseGamma,
                               bool                    _bCubemap);
 
+    void SetMemberFieldFromDesc(const D3D11_TEXTURE2D_DESC& _desc);
+
     // instance
-    ComPtr<ID3D11Texture2D>          m_texture = nullptr;
-    ComPtr<ID3D11ShaderResourceView> m_srv     = nullptr;
-    ComPtr<ID3D11RenderTargetView>   m_rtv     = nullptr;
-    ComPtr<ID3D11DepthStencilView>   m_dsv     = nullptr;
+    ComPtr<ID3D11Texture2D>          m_pTexture = nullptr;
+    ComPtr<ID3D11ShaderResourceView> m_pSRV     = nullptr;
+    ComPtr<ID3D11RenderTargetView>   m_pRTV     = nullptr;
+    ComPtr<ID3D11DepthStencilView>   m_pDSV     = nullptr;
 
     // texture information
     UInt32          m_width     = 0;

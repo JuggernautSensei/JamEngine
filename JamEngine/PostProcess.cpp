@@ -3,11 +3,11 @@
 #include "PostProcess.h"
 
 #include "ConstantBufferCollection.h"
-#include "StateCollection.h"
 #include "ImageFilter.h"
 #include "RenderStates.h"
 #include "Renderer.h"
 #include "ShaderBridge.h"
+#include "StateCollection.h"
 
 namespace jam
 {
@@ -17,7 +17,7 @@ void PostProcess::Initialize(std::span<Ref<ImageFilter>> _filters)
     m_filters = std::vector<Ref<ImageFilter>>(_filters.begin(), _filters.end());
 }
 
-void PostProcess::Render(const Texture2D& _inputTexture) const
+void PostProcess::Apply(const Texture2D& _inputTexture) const
 {
     // constants
     ConstantBufferCollection::Bind<CB_POSTPROCESS>(eShader::PixelShader, CB_POSTPROCESS_SLOT);
@@ -27,6 +27,8 @@ void PostProcess::Render(const Texture2D& _inputTexture) const
     StateCollection::SamplerPointClamp().Bind(eShader::PixelShader, k_samplerPointClampSlot);
 
     // shader + resource binding + rendering
+
+    // first loop
     Texture2D inputTexture = _inputTexture;
     for (const Ref<ImageFilter>& filter: m_filters)
     {
@@ -45,6 +47,12 @@ void PostProcess::Render(const Texture2D& _inputTexture) const
 
     // unbind input shader resources (maybe depth texture, back buffer, etc.)
     Renderer::UnbindShaderResourceViews(eShader::PixelShader, k_postProcessInputTexture1Slot, 2);
+}
+
+const Texture2D& PostProcess::GetOutputTexture() const
+{
+    JAM_ASSERT(!m_filters.empty(), "PostProcess has no filters initialized");
+    return m_filters.back()->GetOutputTexture();
 }
 
 PostProcessBuilder& PostProcessBuilder::AddSamplingFilter(const UInt32 _width, const UInt32 _height, const DXGI_FORMAT _format)
@@ -104,7 +112,7 @@ PostProcessBuilder& PostProcessBuilder::AddFogFilter(const UInt32 _width, const 
     return *this;
 }
 
-PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
+PostProcess PostProcessBuilder::Build() const
 {
     std::vector<Ref<ImageFilter>> filters;
 
@@ -138,13 +146,13 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
 
         // bloom destination
         const Ref<ImageFilter>& lastFilter              = filters.back();
-        const Texture2D&                    bloomDestinationTexture = lastFilter->GetOutputTexture();
+        const Texture2D&        bloomDestinationTexture = lastFilter->GetOutputTexture();
 
         // down filters
         for (UInt32 i = 0; i < m_bloomLevel; i++)
         {
-            UInt32                          bloomWidth     = m_bloomWidth / (1 << i);
-            UInt32                          bloomHeight    = m_bloomHeight / (1 << i);
+            UInt32              bloomWidth     = m_bloomWidth / (1 << i);
+            UInt32              bloomHeight    = m_bloomHeight / (1 << i);
             Ref<BlurDownFilter> blurDownFilter = MakeRef<BlurDownFilter>();
             blurDownFilter->Initialize(bloomWidth, bloomHeight, m_bloomFormat);
             filters.push_back(blurDownFilter);
@@ -153,8 +161,8 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         // up filters
         for (UInt32 i = m_bloomLevel; i > 0; i--)
         {
-            UInt32                        bloomWidth   = m_bloomWidth / (1 << (i - 1));
-            UInt32                        bloomHeight  = m_bloomHeight / (1 << (i - 1));
+            UInt32            bloomWidth   = m_bloomWidth / (1 << (i - 1));
+            UInt32            bloomHeight  = m_bloomHeight / (1 << (i - 1));
             Ref<BlurUpFilter> blurUpFilter = MakeRef<BlurUpFilter>();
             blurUpFilter->Initialize(bloomWidth, bloomHeight, m_bloomFormat);
             filters.push_back(blurUpFilter);
@@ -181,10 +189,6 @@ PostProcess PostProcessBuilder::Build(const Texture2D& _outputTexture) const
         fxaaFilter->Initialize(m_fxaaWidth, m_fxaaHeight, m_fxaaFormat, m_fxaaQuality);
         filters.push_back(fxaaFilter);
     }
-
-    // Set the output texture for the last filter
-    const Ref<ImageFilter>& lastFilter = filters.back();
-    lastFilter->SetOutputTexture(_outputTexture);
 
     // Create and return the PostProcess objectd
     PostProcess postProcess;

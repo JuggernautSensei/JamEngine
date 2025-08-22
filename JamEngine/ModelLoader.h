@@ -3,25 +3,19 @@
 
 namespace jam
 {
-
-struct ModelLoadData
-{
-    std::vector<RawModelNode> nodes;
-    eTopology                 topology   = eTopology::TriangleList;
-    eVertexType               vertexType = eVertexType::Vertex3;
-};
+class AssetManager;
 
 class ModelLoader
 {
 public:
-    bool Load(const fs::path& _path);
-    NODISCARD const ModelLoadData& GetLoadData() const;
+    bool           Load(AssetManager& _assetMgrRef, const fs::path& _path);
+    NODISCARD auto GetLoadData() const { return std::span<const ModelNodeData>(m_modelNodes); }
+    NODISCARD bool IsLoaded() const { return !m_modelNodes.empty(); }
 
 private:
     void Clear_();
 
-    ModelLoadData m_loadData;
-    bool          m_bLoaded = false;
+    std::vector<ModelNodeData> m_modelNodes;
 };
 
 }   // namespace jam

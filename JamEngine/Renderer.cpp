@@ -18,7 +18,6 @@ struct RendererContext
     jam::ComPtr<ID3D11Device>        pDevice;
     jam::ComPtr<ID3D11DeviceContext> pDeviceContext;
     jam::ComPtr<IDXGISwapChain1>     pSwapChain;
-    jam::Texture2D                   backBufferTexture;
 
     // pipeline
     D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
@@ -110,7 +109,7 @@ void Renderer::Initialize()
         swapChainDesc.Stereo             = false;
         swapChainDesc.SampleDesc.Count   = 1;
         swapChainDesc.SampleDesc.Quality = 0;
-        swapChainDesc.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        swapChainDesc.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
         swapChainDesc.BufferCount        = 2;
         swapChainDesc.Scaling            = DXGI_SCALING_STRETCH;
         swapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_DISCARD;
@@ -122,9 +121,6 @@ void Renderer::Initialize()
         {
             JAM_CRASH("Failed to create swap chain. HRESULT: {}", GetSystemErrorMessage(hr));
         }
-
-        // create back buffer texture & render target view
-        g_renderer.backBufferTexture.InitializeFromSwapChain(g_renderer.pSwapChain.Get());
     }
 }
 
@@ -137,7 +133,7 @@ void Renderer::OnEvent(const Event& _event)
     {
         // this is allowed casting
         const WindowResizeEvent& resizeEvent = static_cast<const WindowResizeEvent&>(_event);
-        OnResize_(resizeEvent);
+        OnWindowResize_(resizeEvent);
     }
 }
 
@@ -152,11 +148,6 @@ void Renderer::Present(const bool _bVSync)
     }
 }
 
-const Texture2D& Renderer::GetBackBufferTexture()
-{
-    return g_renderer.backBufferTexture;
-}
-
 ID3D11Device* Renderer::GetDevice()
 {
     return g_renderer.pDevice.Get();
@@ -165,6 +156,11 @@ ID3D11Device* Renderer::GetDevice()
 ID3D11DeviceContext* Renderer::GetDeviceContext()
 {
     return g_renderer.pDeviceContext.Get();
+}
+
+IDXGISwapChain* Renderer::GetSwapchain()
+{
+    return g_renderer.pSwapChain.Get();
 }
 
 UInt32 Renderer::GetMaxMultisampleQuality(const DXGI_FORMAT _format, const UInt32 _sampleCount)
@@ -181,15 +177,15 @@ UInt32 Renderer::GetMaxMultisampleQuality(const DXGI_FORMAT _format, const UInt3
     return qualityLevels - 1;
 }
 
-void Renderer::CreateBuffer(const D3D11_BUFFER_DESC& _desc, const std::optional<BufferInitializeData>& _initializeData, ID3D11Buffer** _out_pBuffer)
+void Renderer::CreateBuffer(const D3D11_BUFFER_DESC& _desc, const std::optional<BufferInitData>& _initData, ID3D11Buffer** _out_pBuffer)
 {
     JAM_ASSERT(_out_pBuffer, "Buffer pointer is null");
 
     HRESULT hr;
-    if (_initializeData)
+    if (_initData)
     {
         D3D11_SUBRESOURCE_DATA initialData;
-        initialData.pSysMem = _initializeData.value().pData;
+        initialData.pSysMem = _initData->pData;
         hr                  = g_renderer.pDevice->CreateBuffer(&_desc, &initialData, _out_pBuffer);
     }
     else
@@ -203,19 +199,17 @@ void Renderer::CreateBuffer(const D3D11_BUFFER_DESC& _desc, const std::optional<
     }
 }
 
-void Renderer::CreateTexture2D(const D3D11_TEXTURE2D_DESC& _desc, const std::optional<Texture2DInitializeData>& _initializeData, ID3D11Texture2D** _out_pTexture)
+void Renderer::CreateTexture2D(const D3D11_TEXTURE2D_DESC& _desc, const std::optional<Texture2DInitData>& _initData, ID3D11Texture2D** _out_pTexture)
 {
     JAM_ASSERT(_out_pTexture, "Texture pointer is null");
 
     HRESULT hr;
 
-    if (_initializeData)
+    if (_initData)
     {
-        const Texture2DInitializeData& intializeData = _initializeData.value();
-
         D3D11_SUBRESOURCE_DATA initialData;
-        initialData.pSysMem     = intializeData.pData;
-        initialData.SysMemPitch = intializeData.pitch;
+        initialData.pSysMem     = _initData->pData;
+        initialData.SysMemPitch = _initData->pitch;
         hr                      = g_renderer.pDevice->CreateTexture2D(&_desc, &initialData, _out_pTexture);
     }
     else
@@ -326,7 +320,7 @@ void Renderer::CreateInputLayout(const std::span<const D3D11_INPUT_ELEMENT_DESC>
     }
 }
 
-void Renderer::CreateVertexShader(const ShaderCreationData& _data, ID3D11VertexShader** _out_pVertexShader)
+void Renderer::CreateVertexShader(const ShaderCreateInfo& _data, ID3D11VertexShader** _out_pVertexShader)
 {
     JAM_ASSERT(_out_pVertexShader, "Vertex Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreateVertexShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pVertexShader);
@@ -336,7 +330,7 @@ void Renderer::CreateVertexShader(const ShaderCreationData& _data, ID3D11VertexS
     }
 }
 
-void Renderer::CreatePixelShader(const ShaderCreationData& _data, ID3D11PixelShader** _out_pPixelShader)
+void Renderer::CreatePixelShader(const ShaderCreateInfo& _data, ID3D11PixelShader** _out_pPixelShader)
 {
     JAM_ASSERT(_out_pPixelShader, "Pixel Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreatePixelShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pPixelShader);
@@ -346,7 +340,7 @@ void Renderer::CreatePixelShader(const ShaderCreationData& _data, ID3D11PixelSha
     }
 }
 
-void Renderer::CreateHullShader(const ShaderCreationData& _data, ID3D11HullShader** _out_pHullShader)
+void Renderer::CreateHullShader(const ShaderCreateInfo& _data, ID3D11HullShader** _out_pHullShader)
 {
     JAM_ASSERT(_out_pHullShader, "Hull Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreateHullShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pHullShader);
@@ -356,7 +350,7 @@ void Renderer::CreateHullShader(const ShaderCreationData& _data, ID3D11HullShade
     }
 }
 
-void Renderer::CreateDomainShader(const ShaderCreationData& _data, ID3D11DomainShader** _out_pDomainShader)
+void Renderer::CreateDomainShader(const ShaderCreateInfo& _data, ID3D11DomainShader** _out_pDomainShader)
 {
     JAM_ASSERT(_out_pDomainShader, "Domain Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreateDomainShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pDomainShader);
@@ -366,7 +360,7 @@ void Renderer::CreateDomainShader(const ShaderCreationData& _data, ID3D11DomainS
     }
 }
 
-void Renderer::CreateGeometryShader(const ShaderCreationData& _data, ID3D11GeometryShader** _out_pGeometryShader)
+void Renderer::CreateGeometryShader(const ShaderCreateInfo& _data, ID3D11GeometryShader** _out_pGeometryShader)
 {
     JAM_ASSERT(_out_pGeometryShader, "Geometry Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreateGeometryShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pGeometryShader);
@@ -376,7 +370,7 @@ void Renderer::CreateGeometryShader(const ShaderCreationData& _data, ID3D11Geome
     }
 }
 
-void Renderer::CreateComputeShader(const ShaderCreationData& _data, ID3D11ComputeShader** _out_pComputeShader)
+void Renderer::CreateComputeShader(const ShaderCreateInfo& _data, ID3D11ComputeShader** _out_pComputeShader)
 {
     JAM_ASSERT(_out_pComputeShader, "Compute Shader pointer is null");
     const HRESULT hr = g_renderer.pDevice->CreateComputeShader(_data.pBytecode, _data.bytecodeLength, nullptr, _out_pComputeShader);
@@ -740,7 +734,7 @@ void Renderer::DrawFullScreenQuad()
                 Vertex2 { Vec2 { -1.f, -1.f }, Vec2 { 0.f, 1.f } },
             };
 
-            BufferInitializeData initData;
+            BufferInitData initData;
             initData.pData = vertices;
             g_renderer.fullScreenQuadVB.Initialize(GetVertexStride(eVertexType::Vertex2), std::size(vertices), eResourceAccess::Immutable, initData);
         }
@@ -749,7 +743,7 @@ void Renderer::DrawFullScreenQuad()
         {
             Index indices[] = { 0, 1, 2, 0, 2, 3 };
 
-            IndexBufferInitializeData initData;
+            IndexBufferInitData initData;
             initData.pData = indices;
             g_renderer.fullScreenQuadIB.Initialize(std::size(indices), eResourceAccess::Immutable, initData);
         }
@@ -779,38 +773,48 @@ void Renderer::DrawIndices(const UInt32 _indexCount, const UInt32 _startIndexLoc
     ctx->DrawIndexed(_indexCount, _startIndexLocation, _baseVertexLocation);
 }
 
-void Renderer::OnResize_(const WindowResizeEvent& _event)
+void Renderer::OnWindowResize_(const WindowResizeEvent& _event)
 {
-    if (g_renderer.pSwapChain == nullptr)
+    if (_event.GetResizeType() != eWindowResizeType::Minimize)   // 윈도우가 최소화된 경우에는 백버퍼를 리사이즈하지 않음
     {
-        // Renderer is not initialized. Cannot resize swap chain. This is not error, just a case when the application is starting.
-        return;
+        ResizeBackBuffer_(_event.GetWidth(), _event.GetHeight());
+    }
+}
+
+void Renderer::ResizeBackBuffer_(const UInt32 _width, const UInt32 _height)
+{
+    if (g_renderer.pSwapChain == nullptr)   // 렌더러가 초기화되지 않았을 경우에 스왑체인이 nullptr인 경우가 있음
+    {
+        return;   // 이는 버그가 아님. 어플리케이션 초기화 시 발생할 수 있는 컨텍스트
     }
 
     // 리사이즈 전 스왑체인에 의존하는 리소스들을 먼저 해제해야 함
+    // 백버퍼는 특별하게 관리되어야 하기 때문에 직접 사용하는 것은 위험함
+    // 직접 사용한다면 BackBufferCleanupEvent 이벤트를 받았을 때 사용자가 직접 스왑체인에 의존하는 리소스를 해제해야 함
+    BackBufferCleanupEvent event;
+    GetApplication().DispatchEvent(event);
+
+#ifdef _DEBUG
+    // 백버퍼에 대한 참조가 0인지 확인
     {
-        // 백버퍼는 특별하게 관리되어야 하기 때문에 직접 사용하는 것은 위험함
-        // 직접 사용한다면 해당 이벤트를 받았을 때 사용자가 직접 스왑체인에 의존하는 리소스를 해제해야 함
-        Application&           app = GetApplication();
-        BackBufferCleanupEvent event;
-        app.DispatchEvent(event);
+        ComPtr<ID3D11Texture2D> backBuffer;
+        HRESULT                 hr = g_renderer.pSwapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
+        if (FAILED(hr))
+        {
+            JAM_CRASH("Failed to get back buffer from swap chain. HRESULT: {}", GetSystemErrorMessage(hr));
+        }
 
-        // 백버퍼 텍스처를 해제
-        UInt32 refCount = g_renderer.backBufferTexture.Reset();
-        JAM_ASSERT(refCount == 0, "Back buffer texture still has references. RefCount: {}", refCount);
+        UINT refCount = backBuffer.Reset();   // ref count를 관측해서 0인지 확인
+        JAM_ASSERT(refCount == 0, "Back buffer reference count is not zero after cleanup. RefCount: {}", refCount);
     }
+#endif
 
-    // create or resize swap chain
-    const UInt32 width  = _event.GetWidth();
-    const UInt32 height = _event.GetHeight();
-    HRESULT      hr     = g_renderer.pSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+    // 스왑체인 리사이즈
+    HRESULT hr = g_renderer.pSwapChain->ResizeBuffers(0, _width, _height, DXGI_FORMAT_UNKNOWN, 0);
     if (FAILED(hr))
     {
         JAM_CRASH("Failed to resize swap chain buffers. HRESULT: {}", GetSystemErrorMessage(hr));
     }
-
-    // create back buffer texture
-    g_renderer.backBufferTexture.InitializeFromSwapChain(g_renderer.pSwapChain.Get());
 }
 
 }   // namespace jam

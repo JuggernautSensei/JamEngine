@@ -40,9 +40,16 @@ NODISCARD constexpr auto EnumCount()
 }
 
 template<typename E>
-NODISCARD constexpr auto EnumFromInt(std::underlying_type_t<E> _value)
+NODISCARD constexpr Result<E> EnumFromInt(std::underlying_type_t<E> _value)
 {
-    return magic_enum::enum_cast<E>(_value);
+    if (magic_enum::enum_contains<E>(_value))
+    {
+        return static_cast<E>(_value);   // If the value is valid, return it as E
+    }
+    else
+    {
+        return Fail;   // If the value is invalid, return Fail
+    }
 }
 
 template<typename E>
@@ -53,13 +60,7 @@ NODISCARD constexpr std::string_view EnumToString(const E _enum)
 }
 
 template<typename E>
-NODISCARD constexpr auto StringToEnum(const std::string_view _name)
-{
-    return magic_enum::enum_cast<E>(_name);
-}
-
-template<typename E>
-NODISCARD constexpr auto EnumValues()
+NODISCARD constexpr auto EnumRange()
 {
     return magic_enum::enum_values<E>();
 }

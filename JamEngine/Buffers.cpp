@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "Buffers.h"
+
+#include "D3D11Utilities.h"
 #include "Renderer.h"
 
 namespace jam
@@ -44,15 +46,8 @@ UInt32 Buffer::Reset()
     return refCount;
 }
 
-void Buffer::Initialize_(const UInt32 _byteWidth, const UInt32 _bindFlag, eResourceAccess _access, const std::optional<BufferInitializeData>& _initDataOrNull)
+void Buffer::Initialize_(const UInt32 _byteWidth, const UInt32 _bindFlag, eResourceAccess _access, const std::optional<BufferInitData>& _initData)
 {
-    constexpr UINT k_accessFlagsTable[] = {
-        0,                        // GPUWriteable
-        0,                        // Immutable
-        D3D11_CPU_ACCESS_WRITE,   // CPUWriteable
-        D3D11_CPU_ACCESS_READ,    // CPUReadable
-    };
-
     // reset resource
     Reset();
 
@@ -61,20 +56,20 @@ void Buffer::Initialize_(const UInt32 _byteWidth, const UInt32 _bindFlag, eResou
     desc.ByteWidth           = _byteWidth;
     desc.Usage               = static_cast<D3D11_USAGE>(_access);
     desc.BindFlags           = _bindFlag;
-    desc.CPUAccessFlags      = k_accessFlagsTable[static_cast<int>(_access)];
+    desc.CPUAccessFlags      = GetD3D11CPUAccessFlags(_access);
     desc.MiscFlags           = 0;
     desc.StructureByteStride = 0;
 
     // create buffer
-    Renderer::CreateBuffer(desc, _initDataOrNull, m_buffer.GetAddressOf());
+    Renderer::CreateBuffer(desc, _initData, m_buffer.GetAddressOf());
     m_byteWidth = _byteWidth;
     m_access    = _access;
 }
 
-void VertexBuffer::Initialize(const UInt32 _vertexStride, const UInt32 _vertexCount, const eResourceAccess _access, const std::optional<BufferInitializeData>& _initDataOrNull)
+void VertexBuffer::Initialize(const UInt32 _vertexStride, const UInt32 _vertexCount, const eResourceAccess _access, const std::optional<BufferInitData>& _initData)
 {
     JAM_ASSERT(_access != eResourceAccess::CPUReadable, "Vertex buffer cannot be CPU readable");
-    Initialize_(_vertexStride * _vertexCount, D3D11_BIND_VERTEX_BUFFER, _access, _initDataOrNull);
+    Initialize_(_vertexStride * _vertexCount, D3D11_BIND_VERTEX_BUFFER, _access, _initData);
     m_stride = _vertexStride;
 }
 
@@ -83,12 +78,12 @@ void VertexBuffer::Bind() const
     Renderer::BindVertexBuffer(m_buffer.Get(), m_stride);
 }
 
-void IndexBuffer::Initialize(const UInt32 _indexCount, const eResourceAccess _access, const std::optional<IndexBufferInitializeData>& _initDataOrNull)
+void IndexBuffer::Initialize(const UInt32 _indexCount, const eResourceAccess _access, const std::optional<IndexBufferInitData>& _initData)
 {
-    if (_initDataOrNull)
+    if (_initData)
     {
-        BufferInitializeData initData;
-        initData.pData = _initDataOrNull->pData;
+        BufferInitData initData;
+        initData.pData = _initData->pData;
         Initialize_(sizeof(Index) * _indexCount, D3D11_BIND_INDEX_BUFFER, _access, initData);
     }
     else
@@ -102,9 +97,9 @@ void IndexBuffer::Bind() const
     Renderer::BindIndexBuffer(m_buffer.Get());
 }
 
-void ConstantBuffer::Initialize(const UInt32 _byteWidth, const std::optional<BufferInitializeData>& _initDataOrNull)
+void ConstantBuffer::Initialize(const UInt32 _byteWidth, const std::optional<BufferInitData>& _initData)
 {
-    Initialize_(_byteWidth, D3D11_BIND_CONSTANT_BUFFER, eResourceAccess::CPUWriteable, _initDataOrNull);
+    Initialize_(_byteWidth, D3D11_BIND_CONSTANT_BUFFER, eResourceAccess::CPUWriteable, _initData);
 }
 
 void ConstantBuffer::Bind(const eShader _shader, const UInt32 _slot) const
@@ -118,7 +113,7 @@ void StagingBuffer::Initialize(const UInt32 _byteWidth)
     Initialize_(_byteWidth, 0, eResourceAccess::CPUReadable);
 }
 
-std::optional<std::vector<UInt8>> StagingBuffer::ReadData() const
+Result<std::vector<UInt8>> StagingBuffer::ReadData() const
 {
     JAM_ASSERT(m_access == eResourceAccess::CPUReadable, "Staging buffer must be CPU readable");
 
@@ -134,7 +129,7 @@ std::optional<std::vector<UInt8>> StagingBuffer::ReadData() const
     else
     {
         JAM_ERROR("Failed to map staging buffer for reading.");
-        return std::nullopt;
+        return Fail;
     }
 }
 

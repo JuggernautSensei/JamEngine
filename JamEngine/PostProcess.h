@@ -1,6 +1,5 @@
 #pragma once
 #include "ImageFilter.h"
-#include "Viewport.h"
 
 namespace jam
 {
@@ -11,8 +10,12 @@ class ShaderProgram;
 class PostProcess
 {
 public:
-    void Initialize(std::span<Ref<ImageFilter>> _filters);
-    void Render(const Texture2D& _inputTexture) const;
+    void                       Initialize(std::span<Ref<ImageFilter>> _filters);
+    void                       Apply(const Texture2D& _inputTexture) const;
+    NODISCARD const Texture2D& GetOutputTexture() const;
+
+    NODISCARD const std::vector<Ref<ImageFilter>>& GetFilters() const { return m_filters; }
+    NODISCARD std::vector<Ref<ImageFilter>>& GetFiltersRef() { return m_filters; }
 
 private:
     std::vector<Ref<ImageFilter>> m_filters;
@@ -27,7 +30,7 @@ public:
     PostProcessBuilder& AddBloomFilter(UInt32 _width, UInt32 _height, DXGI_FORMAT _format, UInt32 _bloomLevel, const Texture2D& _bloomDestinationTexture);
     PostProcessBuilder& AddFogFilter(UInt32 _width, UInt32 _height, DXGI_FORMAT _format, const Texture2D& _depthTexture);
 
-    NODISCARD PostProcess Build(const Texture2D& _outputTexture) const;
+    NODISCARD PostProcess Build() const;
 
 private:
     enum eFilterFlags_ : Int32
@@ -60,7 +63,7 @@ private:
     DXGI_FORMAT            m_toneMappingFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
     // bloom
-    UInt32      m_bloomLevel = 1;
+    UInt32      m_bloomLevel  = 1;
     UInt32      m_bloomWidth  = 0;
     UInt32      m_bloomHeight = 0;
     DXGI_FORMAT m_bloomFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;

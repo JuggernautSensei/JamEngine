@@ -3,9 +3,9 @@
 #include "ModelImporter.h"
 
 #include <assimp/Importer.hpp>
+#include <assimp/mesh.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <assimp/mesh.h>
 
 namespace jam
 {
@@ -24,7 +24,7 @@ bool ModelImporter::Import(const fs::path& _path)
     // 모델 지오메트리 초기화
     {
         Clear_();
-        m_rawModelElems.reserve(scene->mNumMeshes);
+        m_modelNodesData.reserve(scene->mNumMeshes);
     }
 
     ProcessNode_(scene->mRootNode, scene);
@@ -32,19 +32,19 @@ bool ModelImporter::Import(const fs::path& _path)
     return true;
 }
 
-const std::vector<RawModelNode>& ModelImporter::GetRawModelNodes() const
+const std::vector<ModelNodeData>& ModelImporter::GetRawModelNodes() const
 {
     if (!m_bImported)
     {
         JAM_ERROR("ModelImporter::GetRawModelNodes() - Model not imported yet.");
         throw std::runtime_error("Model not imported yet.");
     }
-    return m_rawModelElems;
+    return m_modelNodesData;
 }
 
 void ModelImporter::Clear_()
 {
-    m_rawModelElems.clear();
+    m_modelNodesData.clear();
     m_bImported = false;
 }
 
@@ -64,16 +64,16 @@ void ModelImporter::ProcessNode_(const aiNode* node, const aiScene* scene)
 
 void ModelImporter::ProcessMesh_(const aiMesh* mesh, const aiScene* scene)
 {
-    RawModelNode node;
+    ModelNodeData node;
 
     // 이름
     node.name = mesh->mName.C_Str();
 
     // 메시
     {
-        MeshGeometry& meshGeometry = node.meshGeometry;
+        MeshData& meshData = node.meshData;
 
-        std::vector<VertexAttribute>& vertices = meshGeometry.vertices;
+        std::vector<VertexAttribute>& vertices = meshData.vertices;
         vertices.reserve(mesh->mNumVertices);
 
         // 정점
@@ -126,7 +126,7 @@ void ModelImporter::ProcessMesh_(const aiMesh* mesh, const aiScene* scene)
             vertices.emplace_back(vertex);
         }
 
-        std::vector<UInt32>& indices = meshGeometry.indices;
+        std::vector<UInt32>& indices = meshData.indices;
         indices.reserve(mesh->mNumFaces * 3);
 
         // 인덱스
@@ -180,7 +180,7 @@ void ModelImporter::ProcessMesh_(const aiMesh* mesh, const aiScene* scene)
         }
     }
 
-    m_rawModelElems.emplace_back(node);
+    m_modelNodesData.emplace_back(node);
 }
 
 }   // namespace jam

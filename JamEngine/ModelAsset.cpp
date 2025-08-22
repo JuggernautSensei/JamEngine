@@ -2,7 +2,6 @@
 
 #include "ModelAsset.h"
 
-#include "ModelExporter.h"
 #include "ModelLoader.h"
 
 namespace jam
@@ -19,9 +18,9 @@ bool ModelAsset::Save(const fs::path& _path) const
     return true;
 }
 
-bool ModelAsset::Load(const fs::path& _path)
+bool ModelAsset::Load(AssetManager& _assetMgrRef, const fs::path& _path)
 {
-    if (!m_model.LoadFromFile(_path))
+    if (!m_model.LoadFromFile(_assetMgrRef, _path))
     {
         JAM_ERROR("ModelAsset::Load() - Failed to load model from file: {}", _path.string());
         return false;
@@ -34,17 +33,12 @@ bool ModelAsset::Load(const fs::path& _path)
 void ModelAsset::Unload()
 {
     m_path.clear();
-    m_model.Unload();
-}
-
-bool ModelAsset::IsLoaded() const
-{
-    return !m_path.empty();
+    m_model.Reset();
 }
 
 eAssetType ModelAsset::GetType() const
 {
-    return eAssetType::Model;
+    return s_type;
 }
 
 }   // namespace jam

@@ -12,7 +12,7 @@ enum class eShaderCompileOption
 
 struct ShaderMacro
 {
-    std::string_view name;    // macro name
+    std::string_view name;    // macro displayName
     std::string_view value;   // macro value
 };
 

@@ -1,4 +1,7 @@
 #pragma once
+#include "TypeTrait.h"
+
+#include <random>
 
 namespace jam
 {
@@ -133,5 +136,58 @@ NODISCARD inline Vec3 ToRad(const Vec3& vec)
 {
     return { ToRad(vec.x), ToRad(vec.y), ToRad(vec.z) };
 }
+
+// Vec3: 축, float: 각도 (라디안)
+NODISCARD inline std::pair<Vec3, float> QuatToAxisAngle(const Quat& q)
+{
+    Quat  norm  = Normalize(q);
+    float angle = 2.f * std::acosf(norm.w);
+
+    // sin(theta/2) = sqrt(1 - w^2)
+    float sinHalf = std::sqrt(std::max(0.f, 1.f - norm.w * norm.w));
+
+    Vec3 axis;
+    if (IsNearlyZero(sinHalf))
+    {
+        // 거의 회전이 없을 때: 축은 임의. (0,0,1)을 선택.
+        axis = Vec3(0.f, 0.f, 1.f);
+    }
+    else
+    {
+        float inv = 1.f / sinHalf;
+        axis      = Vec3(norm.x * inv, norm.y * inv, norm.z * inv);
+    }
+
+    return { axis, angle };
+}
+
+class Random
+{
+public:
+    template<typename T>
+    static T Generate(T _low, T _high)   // [_low, _high)
+    {
+        JAM_ASSERT(_low < _high, "Low value must be less than high value.");
+
+        if constexpr (std::is_integral_v<T>)
+        {
+            std::uniform_int_distribution<T> dist(_low, _high - 1);
+            return dist(s_engine);
+        }
+        else if constexpr (std::is_floating_point_v<T>)
+        {
+            std::uniform_real_distribution<T> dist(_low, _high);
+            return dist(s_engine);
+        }
+        else
+        {
+            static_assert(AlwaysFalse<T>, "Unsupported type for random generation. Use integral or floating point types.");
+            return T();   // unreachable
+        }
+    }
+
+private:
+    static std::mt19937 s_engine;   // global random number generator engine
+};
 
 }   // namespace jam

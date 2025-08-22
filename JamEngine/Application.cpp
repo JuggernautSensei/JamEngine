@@ -2,6 +2,7 @@
 
 #include "Application.h"
 
+#include "Config.h"
 #include "ILayer.h"
 #include "ImguiLayer.h"
 #include "Input.h"
@@ -38,10 +39,6 @@ void Application::Create(const CommandLineArguments& _args)
         // set base properties
         std::set_new_handler(OnNewFailed);
         std::locale::global(std::locale(""));
-        if (FAILED(CoInitialize(nullptr)))
-        {
-            JAM_CRASH("Failed to initialize COM library. Make sure to call CoInitializeEx or CoInitialize before using COM features.");
-        }
 
         // create file system
         fs::create_directory(s_instance->GetContentsDirectory());
@@ -83,7 +80,6 @@ void Application::Destroy()
     // application on destroy routine
     {
         s_instance->m_window.Shutdown();
-        CoUninitialize();
     }
 
     // destroy application instance
@@ -169,29 +165,13 @@ void Application::Quit()
     m_bRunning = false;
 }
 
-void Application::SetVsync(const bool _bVsync)
-{
-    m_bVsync = _bVsync;
-}
-
-bool Application::IsVsync() const
-{
-    JAM_ASSERT(s_instance, "Application instance is null");
-    return m_bVsync;
-}
-
-void Application::SetEventLoggingFilter(const eEventCategoryFlags _flags)
-{
-    m_eventLoggingFilter = _flags;
-}
-
 void Application::DispatchEvent(Event& _eventRef)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_eventRef.IsHandled() == false, "Event '{}' is already handled.", _eventRef.GetName());
 
     // logging
-    if (_eventRef.GetCategoryFlags() & m_eventLoggingFilter)
+    if ((1 << EnumToInt(_eventRef.GetCategory())) & m_eventLoggingFilter)
     {
         Log::Trace("Dispatching event: {}", _eventRef.ToString());
     }
@@ -245,7 +225,7 @@ ILayer* Application::AttachLayer(Scope<ILayer>&& _pLayer, const bool _bAttachAtF
     return it->get();
 }
 
-void Application::RemoveLayer(UInt32 _layerHash)
+void Application::DetachLayer(UInt32 _layerHash)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_layerHash, "Layer pointer is null");
@@ -290,8 +270,3 @@ const TickTimer& Application::GetTimer() const
 }
 
 }   // namespace jam
-
-jam::Application& GetApplication()
-{
-    return jam::Application::GetInstance();
-}

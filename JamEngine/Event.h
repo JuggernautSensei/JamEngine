@@ -3,15 +3,28 @@
 namespace jam
 {
 
+enum class eEventCategory
+{
+    None,
+    Window,
+    Input,
+    Renderer,
+    FileSystem,
+    SceneLayer,
+    AssetManager,
+};
+
 enum eEventCategoryFlags_ : UInt32
 {
-    eEventCategoryFlags_None         = 0,
-    eEventCategoryFlags_Window       = 1 << 0,
-    eEventCategoryFlags_Input        = 1 << 1,
-    eEventCategoryFlags_Renderer     = 1 << 2,
-    eEventCategoryFlags_FileSystem   = 1 << 3,
-    eEventCategoryFlags_SceneLayer   = 1 << 4,
-    eEventCategoryFlags_AssetManager = 1 << 5,
+    eEventCategoryFlags_None         = EnumToInt(eEventCategory::None),
+    eEventCategoryFlags_Window       = 1 << EnumToInt(eEventCategory::Window),
+    eEventCategoryFlags_Input        = 1 << EnumToInt(eEventCategory::Input),
+    eEventCategoryFlags_Renderer     = 1 << EnumToInt(eEventCategory::Renderer),
+    eEventCategoryFlags_FileSystem   = 1 << EnumToInt(eEventCategory::FileSystem),
+    eEventCategoryFlags_SceneLayer   = 1 << EnumToInt(eEventCategory::SceneLayer),
+    eEventCategoryFlags_AssetManager = 1 << EnumToInt(eEventCategory::AssetManager),
+
+    eEventCategoryFlags_All = (1 << EnumCount<eEventCategory>()) - 1   // All categories
 };
 using eEventCategoryFlags = std::underlying_type_t<eEventCategoryFlags_>;
 
@@ -26,10 +39,10 @@ public:
     Event(Event&&) noexcept            = default;
     Event& operator=(Event&&) noexcept = default;
 
-    NODISCARD virtual std::string         ToString() const         = 0;
-    NODISCARD virtual std::string_view    GetName() const          = 0;
-    NODISCARD virtual UInt32              GetHash() const          = 0;
-    NODISCARD virtual eEventCategoryFlags GetCategoryFlags() const = 0;
+    NODISCARD virtual std::string      ToString() const    = 0;
+    NODISCARD virtual std::string_view GetName() const     = 0;
+    NODISCARD virtual UInt32           GetHash() const     = 0;
+    NODISCARD virtual eEventCategory   GetCategory() const = 0;
 
     // handling
     NODISCARD bool IsHandled() const { return m_bHandled; }
@@ -41,16 +54,16 @@ private:
 
 #define JAM_DECLARE_TOSTRING_FUNCTION(...)
 
-#define JAM_EVENT(EventType, EventCategory, EventString)                            \
-    /* static event information */                                                  \
-    constexpr static std::string_view    s_name     = NameOf<EventType>();          \
-    constexpr static UInt32              s_hash     = HashOf<EventType>();          \
-    constexpr static eEventCategoryFlags s_category = EventCategory;                \
-                                                                                    \
-    NODISCARD std::string ToString() const override { return EventString; }         \
-    NODISCARD std::string_view    GetName() const override { return s_name; } \
-    NODISCARD UInt32              GetHash() const override { return s_hash; } \
-    NODISCARD eEventCategoryFlags GetCategoryFlags() const override { return s_category; }
+#define JAM_EVENT(EventType, EventCategory, EventString)                    \
+    /* static event information */                                          \
+    constexpr static std::string_view s_name     = NameOf<EventType>();     \
+    constexpr static UInt32           s_hash     = HashOf<EventType>();     \
+    constexpr static eEventCategory   s_category = EventCategory;           \
+                                                                            \
+    NODISCARD std::string ToString() const override { return EventString; } \
+    NODISCARD std::string_view GetName() const override { return s_name; }  \
+    NODISCARD UInt32           GetHash() const override { return s_hash; }  \
+    NODISCARD eEventCategory   GetCategory() const override { return s_category; }
 
 /*  Example usage:
     JAM_EVENT(WindowResizeEvent,            <- event type

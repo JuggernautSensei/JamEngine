@@ -8,40 +8,34 @@
 namespace jam
 {
 
-void Model::Initialize(const std::span<const RawModelNode> _parts, const eVertexType _vertexType, const eTopology _topology)
+void Model::Initialize(const std::span<const ModelNodeData> _nodes)
 {
-    m_nodes.reserve(_parts.size());
-    for (const RawModelNode& partData: _parts)
+    m_nodes.reserve(_nodes.size());
+    for (const ModelNodeData& node: _nodes)
     {
-        MeshGeometry geo;
-        geo.vertices = partData.meshGeometry.vertices;
-        geo.indices  = partData.meshGeometry.indices;
-
-        ModelNode nodes;
-        nodes.name     = partData.name;
-        nodes.material = partData.material;
-        nodes.mesh.Initialize(geo, _vertexType, _topology);
-        m_nodes.emplace_back(nodes);
+        Mesh mesh;
+        mesh.Initialize(node.meshData, node.vertexType, node.topology);
+        m_nodes.emplace_back(node.name, std::move(mesh), node.material);
     }
 }
 
-bool Model::LoadFromFile(const fs::path& _filePath)
+bool Model::LoadFromFile(AssetManager& _assetMgrRef, const fs::path& _filePath)
 {
     ModelLoader loader;
-    if (!loader.Load(_filePath))
+    if (!loader.Load(_assetMgrRef, _filePath))
     {
         JAM_ERROR("Failed to load model from file: {}", _filePath.string());
         return false;
     }
 
-    const ModelLoadData& loadData = loader.GetLoadData();
-    Initialize(loadData.nodes, loadData.vertexType, loadData.topology);
+    std::span<const ModelNodeData> loadData = loader.GetLoadData();
+    Initialize(loadData);
     return true;
 }
 
 bool Model::SaveToFile(const fs::path& _filePath) const
 {
-    JAM_ASSERT(IsLoaded(), "Model::SaveToFile() - Model is not loaded.");
+    JAM_ASSERT(m_nodes.empty() == false, "Model m_modelNodes must not be empty before saving");
 
     ModelExporter exporter;
     exporter.Load(*this);
@@ -53,12 +47,7 @@ bool Model::SaveToFile(const fs::path& _filePath) const
     return true;
 }
 
-bool Model::IsLoaded() const
-{
-    return !m_nodes.empty();
-}
-
-void Model::Unload()
+void Model::Reset()
 {
     m_nodes.clear();
 }

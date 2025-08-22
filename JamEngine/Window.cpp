@@ -4,7 +4,6 @@
 
 #include "Application.h"
 #include "WindowsUtilities.h"
-#include <nfd.h>
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -117,7 +116,7 @@ void Window::SetTitle(const std::string_view _name) const
     ::SetWindowText(m_hWnd, _name.data());
 }
 
-std::pair<Int32, Int32> Window::GetScreenSize() const
+std::pair<Int32, Int32> Window::GetMoniterScreenSize() const
 {
     Int32 w = ::GetSystemMetrics(SM_CXSCREEN);
     Int32 h = ::GetSystemMetrics(SM_CYSCREEN);
@@ -160,8 +159,8 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
         return true;
     }
 
-    LRESULT      result = 0;
     Application& app    = GetApplication();
+    LRESULT      result = 0;
 
     switch (uMsg)
     {
@@ -177,8 +176,28 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
             const Int32 width  = LOWORD(lParam);
             const Int32 height = HIWORD(lParam);
 
-            WindowResizeEvent resizeEvent { width, height };
-            app.DispatchEvent(resizeEvent);
+            switch (wParam)
+            {
+                case SIZE_MINIMIZED:   // 윈도우가 최소화 되었을 때
+                {
+                    WindowResizeEvent event { width, height, eWindowResizeType::Minimize };
+                    app.DispatchEvent(event);
+                }
+                break;
+                case SIZE_MAXIMIZED:   // 윈도우가 최대화 되었을 때
+                {
+                    WindowResizeEvent event { width, height, eWindowResizeType::Maximize };
+                    app.DispatchEvent(event);
+                }
+                break;
+                case SIZE_RESTORED:   // 일반적인 케이스
+                {
+                    WindowResizeEvent event { width, height, eWindowResizeType::Resize };
+                    app.DispatchEvent(event);
+                }
+                break;
+                    // 그외 처리하지 않음
+            }
         }
         break;
 

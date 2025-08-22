@@ -21,16 +21,9 @@ DemoScene::DemoScene(const std::string_view& _name)
 
 void DemoScene::OnEnter()
 {
-    Application&  app    = GetApplication();
-    const Window& window = app.GetWindow();
+    const Window& window = GetApplication().GetWindow();
     auto [width, height] = window.GetWindowSize();
     CreateScreenDependentResources_(width, height);
-
-    // camera entity
-    {
-        m_cameraEntity = CreateEntity();
-        m_cameraEntity.CreateCompoenent<CameraComponent>();
-    }
 
     // post-process
     {
@@ -62,17 +55,29 @@ void DemoScene::OnRender()
         Renderer::BindSamplerStates(eShader::PixelShader, 0, samplers);
     }
 
-    // update camera
+    // camera update
     {
-        auto [cmrT, cmr] = m_cameraEntity.GetComponent<TransformComponent, CameraComponent>();
+        auto view = CreateView<TransformComponent, CameraComponent>();
+        for (auto&& [handle, trans, cmr]: view.each())
+        {
+            UNUSED(handle);     // 사용하지 않음
+            if (cmr.bPrimary)   // 메인 카메라만 업데이트
+            {
+                // 카메라 업데이트
+                CB_CAMERA cbCamera;
+                cbCamera.cb_cameraViewMat        = cmr.CreateViewMatrix(trans.position, trans.Forward());
+                cbCamera.cb_cameraProjMat        = cmr.CreateProjectionMatrix();
+                cbCamera.cb_cameraViewProjInvMat = (cbCamera.cb_cameraViewMat * cbCamera.cb_cameraProjMat).Invert();
+                cbCamera.cb_cameraPosition       = trans.position;
 
-        CB_CAMERA cbCamera;
-        cbCamera.cb_cameraPosition       = cmrT.position;
-        cbCamera.cb_cameraViewMat        = cmr.CreateViewMatrix(cmrT.position, cmrT.Forward());
-        cbCamera.cb_cameraProjMat        = cmr.CreateProjectionMatrix();
-        cbCamera.cb_cameraViewProjInvMat = (cbCamera.cb_cameraViewMat * cbCamera.cb_cameraProjMat).Invert();
+                // 컨스턴트 버퍼에 바인드
+                ConstantBufferCollection::Bind<CB_CAMERA>(eShader::PixelShader, CB_CAMERA_SLOT);
+                ConstantBufferCollection::Upload<CB_CAMERA>(cbCamera);
 
-        ConstantBufferCollection::Upload(cbCamera);
+                // 메인 카메라는 하나
+                break;
+            }
+        }
     }
 
     // g-buffer pass
@@ -100,19 +105,7 @@ void DemoScene::OnRender()
     m_viewport.Bind();
 
     // apply post-processing
-    m_postProcess.Render(m_hdrTexture);
-}
-
-void DemoScene::OnRenderUI()
-{
-    ImGui::Begin("hello world!");
-
-    ImGui::Text("This is a demo scene.");
-    const TickTimer& timer = GetApplication().GetTimer();
-    ImGui::Text("frame rate: %.4f hz", 1.f / timer.GetDeltaSec());
-    ImGui::Text("delta sec: %.4f sec", timer.GetDeltaSec());
-
-    ImGui::End();
+    m_postProcess.Apply(m_hdrTexture);
 }
 
 void DemoScene::OnEvent(Event& _eventRef)
@@ -127,21 +120,18 @@ const Texture2D& DemoScene::GetSceneTexture() const
 
 void DemoScene::OnWindowResizeEvent_(const WindowResizeEvent& _event)
 {
-    Int32 width  = _event.GetWidth();
-    Int32 height = _event.GetHeight();
-    CreateScreenDependentResources_(width, height);
+    if (_event.GetResizeType() != eWindowResizeType::Minimize)   // 최소화 이벤트는 무시
+    {
+        Int32 width  = _event.GetWidth();
+        Int32 height = _event.GetHeight();
+        CreateScreenDependentResources_(width, height);
+    }
 }
 
 void DemoScene::CreateScreenDependentResources_(const Int32 _width, const Int32 _height)
 {
     // viewport
     m_viewport = { 0.f, 0.f, static_cast<float>(_width), static_cast<float>(_height) };
-
-    // back buffer
-    const Texture2D& backBuffer = Renderer::GetBackBufferTexture();
-    auto [bbWidth, bbHeight]    = backBuffer.GetSize();
-    m_sceneTexture.Initialize(bbWidth, bbHeight, backBuffer.GetFormat(), backBuffer.GetAccess(), backBuffer.GetViewFlags(), backBuffer.GetArraySize(), backBuffer.GetSampleCount(), backBuffer.HasMips(), backBuffer.IsCubemap());
-    m_sceneTexture.AttachRTV();
 
     // depth buffer
     m_depthTexture.Initialize(_width, _height, DXGI_FORMAT_R24G8_TYPELESS, eResourceAccess::GPUWriteable, eViewFlags_DepthStencil | eViewFlags_ShaderResource);
@@ -176,5 +166,8 @@ void DemoScene::CreateScreenDependentResources_(const Int32 _width, const Int32 
         .AddBloomFilter(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, 4, m_hdrTexture)
         .AddToneMappingFilter(_width, _height, DXGI_FORMAT_R16G16B16A16_FLOAT, eToneMappingFilterType::Linear)
         .AddFXAAFilter(_width, _height, DXGI_FORMAT_R8G8B8A8_UNORM, eFXAAQuality::High);
-    m_postProcess = builder.Build(m_sceneTexture);
+    m_postProcess = builder.Build();
+
+    // final scene texture
+    m_sceneTexture = m_postProcess.GetOutputTexture();   // 씬 텍스처는 포스트 프로세싱의 마지막 출력 텍스처로 설정
 }

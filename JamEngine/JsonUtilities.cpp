@@ -7,13 +7,13 @@
 namespace jam
 {
 
-std::optional<Json> LoadJsonFromFile(const std::filesystem::path& filePath)
+Result<Json> LoadJsonFromFile(const std::filesystem::path& filePath)
 {
     std::ifstream file { filePath };
     if (!file.is_open())
     {
         JAM_ERROR("Failed to open JSON file: {}", filePath.string());
-        return std::nullopt;
+        return Fail;
     }
 
     try
@@ -24,7 +24,7 @@ std::optional<Json> LoadJsonFromFile(const std::filesystem::path& filePath)
     catch (std::exception& e)
     {
         JAM_ERROR("Failed to parse JSON file: {}. Error: {}", filePath.string(), e.what());
-        return std::nullopt;
+        return Fail;
     }
 }
 
