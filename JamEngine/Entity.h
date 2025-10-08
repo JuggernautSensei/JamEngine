@@ -38,9 +38,6 @@ public:
     template<typename... T>
     JAM_NODISCARD decltype(auto) GetComponent();
 
-    template<typename T, typename... Args>
-    JAM_NODISCARD decltype(auto) GetOrCreateComponent(Args&&... args);
-
     template<typename... T>
     JAM_NODISCARD bool HasComponent() const;
 
@@ -85,16 +82,6 @@ decltype(auto) Entity::GetComponent()
 {
     JAM_ASSERT(IsValid(), "Entity is not valid");
     return m_pRegistry->get<T...>(m_handle);
-}
-
-template<typename T, typename ... Args>
-decltype(auto) Entity::GetOrCreateComponent(Args&&... args)
-{
-    if (HasComponent<T>())
-    {
-        return GetComponent<T>();
-    }
-    return CreateComponent<T>(std::forward<Args>(args)...);
 }
 
 template<typename... T>

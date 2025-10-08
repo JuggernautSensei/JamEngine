@@ -76,9 +76,9 @@ namespace asset_manager
     eErrorCode SaveImageTexture(ImageTextureHandle _handle, const fs::path& _path);
 
     /// @brief 에셋 핸들 컨테이너에 대한 읽기 전용 참조를 반환합니다.
-    JAM_NODISCARD const HashMap<fs::path, Mesh>& GetAllMeshHandles();
-    JAM_NODISCARD const HashMap<fs::path, Material>& GetAllMaterialHandles();
-    JAM_NODISCARD const HashMap<fs::path, ImageTexture>& GetAllImageTextureHandles();
+    JAM_NODISCARD const HashMap<fs::path, MeshHandle>& GetAllMeshHandles();
+    JAM_NODISCARD const HashMap<fs::path, MaterialHandle>& GetAllMaterialHandles();
+    JAM_NODISCARD const HashMap<fs::path, ImageTextureHandle>& GetAllImageTextureHandles();
 
 }   // namespace asset_manager
 

@@ -2081,6 +2081,7 @@ VertexLayoutHandle GfxContext::GetOrCreateNativeVertexLayout(
 std::string GfxContext::CreateNativeResourceName(std::string_view _tag, const AnyHandle _handle, std::string_view _name) const
 {
     UInt32 index = _handle.index;
+    UInt32 token = _handle.token;
 
     if (_name.empty())
     {

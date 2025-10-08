@@ -79,7 +79,7 @@ namespace component_db
         }
 
         template<typename T>
-        void Deserialize(std::any& c, const Json& j, const Scene* s, Entity& e)
+        void Deserialize(std::any& c, const Json& j, const Scene* s, const Entity& e)
         {
             T& component = std::any_cast<T&>(c);
             component.Deserialize(j, s, e);

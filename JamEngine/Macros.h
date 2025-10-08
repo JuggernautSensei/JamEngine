@@ -29,3 +29,6 @@
 
 #define JAM_CONCAT_(_a, _b) _a##_b
 #define JAM_CONCAT(_a, _b)  JAM_CONCAT_(_a, _b)
+
+#define JAM_STRINGIFY_MACRO(x) #x
+#define JAM_EXPAND_MACRO(x)    x

@@ -2,6 +2,7 @@
 
 #include "Error.h"
 #include "Log.h"
+#include "StringUtilities.h"
 #include "Timer.h"
 #include <comdef.h>
 using namespace jam;
@@ -34,6 +35,7 @@ JAM_NODISCARD std::string CreateErrorMessage(std::string_view _msg, const std::s
         "line: {}\n"
         "column: {}\n"
         "------------------------------------\n"
+        "user report: \n"
         "{}\n"
         "====================================\n",
         JAM_ARCH_NAME,
@@ -67,17 +69,15 @@ namespace jam
 namespace details
 {
 
-    void Assert(const std::string_view _msg, const std::source_location& _loc)
+    void ReportAssertFailed(const std::source_location& _loc, const std::string_view _msg)
     {
         std::string msg = CreateErrorMessage(_msg, _loc);
         log::Critical(msg);
         log::Flush();
         OutputDebugStringA(msg.c_str());
-
-        JAM_DEBUG_BREAK;
     }
 
-    void Crash(const std::string_view _msg, const std::source_location& _loc)
+    void ReportCrash(const std::source_location& _loc, const std::string_view _msg)
     {
         // 로깅 + 메시지 박스 + crash dump 저장 + 강제 종료
         std::string msg = CreateErrorMessage(_msg, _loc);
@@ -89,28 +89,44 @@ namespace details
         TimeStamp stamp    = TimeStamp::Current();
         fs::path  dir      = std::format("crash dump\\{:04}.{:02}.{:02}", stamp.year, stamp.month, stamp.day);
         fs::path  filename = std::format("{:02}h {:02}m {:02}.{:03}s.txt", stamp.hour, stamp.minute, stamp.second, stamp.millisecond);
-        fs::create_directories(dir);
-        std::fstream fs { dir / filename, std::ios::out };
-        if (fs.is_open())
+
+        // 디렉토리 생성 및 파일 쓰기
+        std::error_code ec;
+        fs::create_directories(dir, ec);
+        if (!ec)
         {
-            fs << msg << "\n";
+            std::fstream fs { dir / filename, std::ios::out };
+            if (fs.is_open())
+            {
+                fs << msg << "\n";
+            }
         }
+
+        // 메시지 박스 출력
         MessageBox(NULL, msg.c_str(), "jam engine crash", MB_OK | MB_ICONERROR);
-        std::abort();
     }
 
-    void CrashWithCom(std::string_view _msg, HRESULT _hr, const std::source_location& _loc)
-    {
-        _com_error  err { _hr };
-        LPCTSTR     errMsg  = err.ErrorMessage();
-        std::string fullMsg = std::format("{}\nHRESULT: {:#X}\nError message: {}", _msg, _hr, errMsg ? errMsg : "Unknown error");
-        Crash(fullMsg, _loc);
-    }
 }   // namespace details
 
 void SetErrorString(const std::string_view _msg)
 {
     g_lastErrorMessage = _msg;
+}
+
+std::string details::GetComErrorMessage(const HRESULT _hr)
+{
+    _com_error   err { _hr };
+    const TCHAR* msg = err.ErrorMessage();
+    if (msg)
+    {
+        return "Unknown error";
+    }
+
+#ifdef UNICODE
+    return ToUTF8(msg);
+#else
+    return msg;
+#endif
 }
 
 std::string_view GetErrorString()

@@ -2,7 +2,7 @@
 
 #include "Application.h"
 
-#include "EditorLayer.h"
+#include "AssetManager.h"
 #include "Gfx.h"
 #include "ILayer.h"
 #include "ImGuiGlue.h"
@@ -139,7 +139,7 @@ Application::Application(const ApplicationCreateInfo& _info)
     , m_bRunning(true)
     , m_bEditor(_info.bEditor)
 {
-    JAM_ASSERT(fs::exists(_info.workingDirectory), "Working directory does not exist: {}", _info.workingDirectory.string());
+    JAM_ASSERT(fs::exists(_info.workingDirectory), "Working directory does not exist: {}", _info.workingDirectory.native());
 
     m_directories.workingDir       = _info.workingDirectory;
     m_directories.contentsDir      = m_directories.workingDir / k_contentsDirName;

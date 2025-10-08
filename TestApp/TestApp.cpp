@@ -1,8 +1,5 @@
-﻿#include <format>
-#include <iostream>
+﻿#include <Windows.h>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 
-int main()
-{
-    std::string_view helloWorld = "Helloworld!@";
-    std::cout << std::format("{}", helloWorld);
-}

@@ -182,9 +182,9 @@ struct AssetManagerContext
         return path;
     }
 
-    HashMap<fs::path, Mesh>         meshHandleMap;
-    HashMap<fs::path, Material>     materialHandleMap;
-    HashMap<fs::path, ImageTexture> imageTextureMap;
+    HashMap<fs::path, MeshHandle>         meshHandleMap;
+    HashMap<fs::path, MaterialHandle>     materialHandleMap;
+    HashMap<fs::path, ImageTextureHandle> imageTextureMap;
 
     ResourcePool<Mesh>         meshes;
     ResourcePool<Material>     materials;
@@ -330,17 +330,17 @@ namespace asset_manager
         return g_ctx.SaveAsset<ImageTexture>(_handle, _path);
     }
 
-    const AssetHandleHashT<Mesh>& GetAllMeshHandles()
+    const HashMap<fs::path, MeshHandle>& GetAllMeshHandles()
     {
         return g_ctx.GetHandleHashMap<Mesh>();
     }
 
-    const AssetHandleHashT<Material>& GetAllMaterialHandles()
+    const HashMap<fs::path, MaterialHandle>& GetAllMaterialHandles()
     {
         return g_ctx.GetHandleHashMap<Material>();
     }
 
-    const AssetHandleHashT<ImageTexture>& GetAllImageTextureHandles()
+    const HashMap<fs::path, ImageTextureHandle>& GetAllImageTextureHandles()
     {
         return g_ctx.GetHandleHashMap<ImageTexture>();
     }

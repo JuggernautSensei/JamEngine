@@ -49,7 +49,7 @@ namespace jam
 eErrorCode AssimpImporter::Import()
 {
     JAM_ASSERT(!m_filePath.empty(), "File path is empty.");
-    JAM_ASSERT(IsImportablePath(m_filePath), "File path is not importable. File path: '{}'", m_filepath.native());
+    JAM_ASSERT(IsImportablePath(m_filePath), "File path is not importable. File path: '{}'", m_filePath.native());
 
     JAM_PROFILE_SCOPE_MS(R"(AssimpImporter::Import "{}")", m_filePath.native());
 
