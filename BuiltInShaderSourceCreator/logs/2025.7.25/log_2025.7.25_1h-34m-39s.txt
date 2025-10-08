@@ -1,0 +1,3 @@
+[2025-07-25 01:34:39.991] [trace] log system initialized
+[2025-07-25 01:34:52.147] [info] Compile All Finished. Success: %d, Failure: %d
+[2025-07-25 01:34:52.742] [info] Compile All Finished. Success: %d, Failure: %d

@@ -1,0 +1,14 @@
+[2025-07-26 17:06:22.950] [trace] log system initialized
+[2025-07-26 17:06:22.950] [info] Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-26 17:06:23.273] [error] 
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Textures.cpp
+function name: void __cdecl jam::Texture2D::Initialize(unsigned int,unsigned int,enum DXGI_FORMAT,unsigned int,unsigned int,bool,bool,enum jam::eResourceAccess,int,const struct jam::InitializeTextureData *)
+line: 48
+columns: 9
+------------------------------------
+Initial data must be provided for immutable texture
+====================================
+

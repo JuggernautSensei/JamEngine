@@ -1,0 +1,21 @@
+#include "Common.hlsl"
+
+struct PS_INPUT
+{
+    float4 positionH : SV_POSITION;
+    float3 positionL : POSITION;
+};
+
+PS_INPUT VSmain(VS_INPUT_VERTEX3 input)
+{
+    PS_INPUT output;
+    float3 posV = mul(float4(input.positionL, 0.f), cb_view).xyz;
+    output.positionH = mul(float4(posV, 1.f), cb_proj);
+    output.positionL = input.positionL;
+    return output;
+}
+
+float4 PSmain(PS_INPUT input) : SV_TARGET
+{
+    return skyboxCubemap.Sample(samplerLinearWrap, input.positionL);
+}

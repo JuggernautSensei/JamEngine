@@ -1,0 +1,17 @@
+[2025.08.13 11:53:54] [trace] CORE: log system initialized
+[2025.08.13 11:53:54] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.13 11:53:54] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.13 11:53:54] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.13 11:53:54] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.13 11:53:54] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.13 11:53:54] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.13 11:53:54] [trace] CORE: scoped timer start - "CreateThumbnailTexture"
+[2025.08.13 11:53:54] [trace] CORE: scoped timer end - "CreateThumbnailTexture" - duration: 122.670 ms
+[2025.08.13 11:53:54] [trace] CORE: scoped timer start - "CreateThumbnailTexture"
+[2025.08.13 11:53:54] [trace] CORE: scoped timer end - "CreateThumbnailTexture" - duration: 18.386 ms
+[2025.08.13 11:53:54] [trace] CORE: scoped timer start - "CreateThumbnailTexture"
+[2025.08.13 11:53:54] [trace] CORE: scoped timer end - "CreateThumbnailTexture" - duration: 2.588 ms
+[2025.08.13 11:53:54] [trace] CORE: scoped timer start - "CreateThumbnailTexture"
+[2025.08.13 11:53:54] [trace] CORE: scoped timer end - "CreateThumbnailTexture" - duration: 12.332 ms
+[2025.08.13 11:54:01] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.13 11:54:01] [trace] CORE: log system shutdown

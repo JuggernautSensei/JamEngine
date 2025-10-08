@@ -1,0 +1,204 @@
+[2025.08.23 14:27:31] [trace] CORE: log system initialized
+[2025.08.23 14:27:31] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544, resizeType: 0
+[2025.08.23 14:27:31] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.23 14:27:31] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.23 14:27:31] [debug] CORE: Scene::Load() - Scene file does not exist: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\BuiltInShaderSourceCreator\contents\scenes\My Scene.jscene
+[2025.08.23 14:27:32] [info] CORE: Key A is down 0
+[2025.08.23 14:27:34] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:34] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 3.4382 Milli
+[2025.08.23 14:27:36] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:36] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0321 Milli
+[2025.08.23 14:27:37] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:37] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0249 Milli
+[2025.08.23 14:27:38] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:38] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.022 Milli
+[2025.08.23 14:27:38] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:38] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0219 Milli
+[2025.08.23 14:27:38] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:38] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0268 Milli
+[2025.08.23 14:27:38] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:38] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0223 Milli
+[2025.08.23 14:27:39] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:39] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0255 Milli
+[2025.08.23 14:27:39] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:39] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0227 Milli
+[2025.08.23 14:27:39] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:39] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0228 Milli
+[2025.08.23 14:27:39] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:39] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0227 Milli
+[2025.08.23 14:27:40] [info] CORE: Blt mode: BitBlt
+[2025.08.23 14:27:41] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:41] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0198 Milli
+[2025.08.23 14:27:42] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:42] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0052 Milli
+[2025.08.23 14:27:43] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:43] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0051 Milli
+[2025.08.23 14:27:47] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:47] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0058999998 Milli
+[2025.08.23 14:27:47] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:47] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0054 Milli
+[2025.08.23 14:27:47] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:47] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0055 Milli
+[2025.08.23 14:27:48] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:48] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0051 Milli
+[2025.08.23 14:27:48] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:48] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0058 Milli
+[2025.08.23 14:27:48] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:48] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0063 Milli
+[2025.08.23 14:27:48] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:48] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0053 Milli
+[2025.08.23 14:27:48] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:48] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0054 Milli
+[2025.08.23 14:27:49] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:49] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.006 Milli
+[2025.08.23 14:27:49] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:49] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0056 Milli
+[2025.08.23 14:27:49] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:49] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0057 Milli
+[2025.08.23 14:27:49] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:49] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0069 Milli
+[2025.08.23 14:27:49] [info] CORE: Blt mode: Shader
+[2025.08.23 14:27:50] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:50] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.022 Milli
+[2025.08.23 14:27:50] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:50] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0223 Milli
+[2025.08.23 14:27:50] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:50] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0219 Milli
+[2025.08.23 14:27:50] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:50] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0216 Milli
+[2025.08.23 14:27:51] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:51] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0208 Milli
+[2025.08.23 14:27:51] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:51] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0224 Milli
+[2025.08.23 14:27:51] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:51] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0211 Milli
+[2025.08.23 14:27:52] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:52] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0209 Milli
+[2025.08.23 14:27:52] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:52] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0235 Milli
+[2025.08.23 14:27:52] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:52] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0243 Milli
+[2025.08.23 14:27:52] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:52] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.022 Milli
+[2025.08.23 14:27:52] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:52] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0222 Milli
+[2025.08.23 14:27:52] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:52] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0231 Milli
+[2025.08.23 14:27:53] [info] CORE: Blt mode: BitBlt
+[2025.08.23 14:27:53] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:53] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0049 Milli
+[2025.08.23 14:27:53] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:53] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0054 Milli
+[2025.08.23 14:27:53] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:53] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.005 Milli
+[2025.08.23 14:27:54] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:54] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0051 Milli
+[2025.08.23 14:27:54] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:54] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0049 Milli
+[2025.08.23 14:27:54] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:54] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.005 Milli
+[2025.08.23 14:27:54] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:54] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0047999998 Milli
+[2025.08.23 14:27:54] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:54] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0049 Milli
+[2025.08.23 14:27:55] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:55] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0055 Milli
+[2025.08.23 14:27:55] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:55] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0052 Milli
+[2025.08.23 14:27:55] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:55] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0047 Milli
+[2025.08.23 14:27:55] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:55] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.005 Milli
+[2025.08.23 14:27:55] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:55] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0052 Milli
+[2025.08.23 14:27:56] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:56] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0053 Milli
+[2025.08.23 14:27:56] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:56] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0047999998 Milli
+[2025.08.23 14:27:56] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:56] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.005 Milli
+[2025.08.23 14:27:56] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:56] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0054 Milli
+[2025.08.23 14:27:56] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:56] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0054 Milli
+[2025.08.23 14:27:56] [info] CORE: Blt mode: Shader
+[2025.08.23 14:27:57] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:57] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0228 Milli
+[2025.08.23 14:27:57] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:57] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0237 Milli
+[2025.08.23 14:27:57] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:57] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.023599999 Milli
+[2025.08.23 14:27:57] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:57] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.023 Milli
+[2025.08.23 14:27:57] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:57] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0231 Milli
+[2025.08.23 14:27:58] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:58] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0218 Milli
+[2025.08.23 14:27:58] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:58] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0216 Milli
+[2025.08.23 14:27:58] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:58] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.022499999 Milli
+[2025.08.23 14:27:58] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:58] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0209 Milli
+[2025.08.23 14:27:58] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:58] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0204 Milli
+[2025.08.23 14:27:59] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:59] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0226 Milli
+[2025.08.23 14:27:59] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:59] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0245 Milli
+[2025.08.23 14:27:59] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:59] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0221 Milli
+[2025.08.23 14:27:59] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:59] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0215 Milli
+[2025.08.23 14:27:59] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:27:59] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0215 Milli
+[2025.08.23 14:28:00] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:00] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0218 Milli
+[2025.08.23 14:28:00] [info] CORE: Blt mode: BitBlt
+[2025.08.23 14:28:00] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:00] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0052 Milli
+[2025.08.23 14:28:00] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:00] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0047999998 Milli
+[2025.08.23 14:28:00] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:00] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0049 Milli
+[2025.08.23 14:28:01] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:01] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0053 Milli
+[2025.08.23 14:28:01] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:01] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0069 Milli
+[2025.08.23 14:28:01] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:01] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0047999998 Milli
+[2025.08.23 14:28:01] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:01] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0053 Milli
+[2025.08.23 14:28:01] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:01] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0051 Milli
+[2025.08.23 14:28:02] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:02] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0055 Milli
+[2025.08.23 14:28:02] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:02] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0072 Milli
+[2025.08.23 14:28:02] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:02] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0056 Milli
+[2025.08.23 14:28:02] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:02] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0047999998 Milli
+[2025.08.23 14:28:02] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:02] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0047999998 Milli
+[2025.08.23 14:28:02] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:02] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0054 Milli
+[2025.08.23 14:28:03] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:03] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0054 Milli
+[2025.08.23 14:28:03] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:03] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0044 Milli
+[2025.08.23 14:28:03] [info] CORE: Blt mode: Shader
+[2025.08.23 14:28:03] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:03] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0226 Milli
+[2025.08.23 14:28:03] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:03] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0227 Milli
+[2025.08.23 14:28:04] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:04] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0221 Milli
+[2025.08.23 14:28:04] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:04] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0331 Milli
+[2025.08.23 14:28:04] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:04] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0222 Milli
+[2025.08.23 14:28:04] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:28:04] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 0.0217 Milli
+[2025.08.23 14:28:05] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.23 14:28:05] [trace] CORE: log system shutdown

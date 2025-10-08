@@ -1,0 +1,77 @@
+[2025.08.23 14:35:46] [trace] CORE: log system initialized
+[2025.08.23 14:35:46] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544, resizeType: 0
+[2025.08.23 14:35:46] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.23 14:35:47] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.23 14:35:47] [debug] CORE: Scene::Load() - Scene file does not exist: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\BuiltInShaderSourceCreator\contents\scenes\My Scene.jscene
+[2025.08.23 14:35:56] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:35:56] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 2810.5002 Micro
+[2025.08.23 14:35:56] [info] CORE: Blt mode: BitBlt
+[2025.08.23 14:35:57] [info] CORE: Blt mode: Shader
+[2025.08.23 14:35:57] [info] CORE: Blt mode: BitBlt
+[2025.08.23 14:35:57] [info] CORE: Blt mode: Shader
+[2025.08.23 14:35:58] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:35:58] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 3.2 Micro
+[2025.08.23 14:35:58] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:35:58] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 3.1000001 Micro
+[2025.08.23 14:35:59] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:35:59] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 4.1000004 Micro
+[2025.08.23 14:35:59] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:35:59] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 3.5000002 Micro
+[2025.08.23 14:35:59] [info] CORE: Blt mode: BitBlt
+[2025.08.23 14:35:59] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:35:59] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 11.400001 Micro
+[2025.08.23 14:36:00] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:00] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.5000001 Micro
+[2025.08.23 14:36:00] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:00] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.9000001 Micro
+[2025.08.23 14:36:01] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:01] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.5000001 Micro
+[2025.08.23 14:36:01] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:01] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.8000001 Micro
+[2025.08.23 14:36:03] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:03] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.2 Micro
+[2025.08.23 14:36:03] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:03] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.1 Micro
+[2025.08.23 14:36:03] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:03] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.3000001 Micro
+[2025.08.23 14:36:04] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:04] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.2 Micro
+[2025.08.23 14:36:06] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:06] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.3 Micro
+[2025.08.23 14:36:08] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:08] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.2 Micro
+[2025.08.23 14:36:09] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:09] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.3 Micro
+[2025.08.23 14:36:10] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:10] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.2 Micro
+[2025.08.23 14:36:10] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:10] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.3 Micro
+[2025.08.23 14:36:10] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:10] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.2 Micro
+[2025.08.23 14:36:10] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:10] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.3 Micro
+[2025.08.23 14:36:10] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:10] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.2 Micro
+[2025.08.23 14:36:10] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:10] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.2 Micro
+[2025.08.23 14:36:11] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:11] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.3 Micro
+[2025.08.23 14:36:11] [trace] CORE: scoped timer start - "Blt to back buffer by shader"
+[2025.08.23 14:36:11] [trace] CORE: scoped timer end - "Blt to back buffer by shader" - duration: 0.2 Micro
+[2025.08.23 14:36:14] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:14] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.1 Micro
+[2025.08.23 14:36:15] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:15] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.2 Micro
+[2025.08.23 14:36:16] [trace] CORE: scoped timer start - "BltToBackBufferByCopy"
+[2025.08.23 14:36:16] [trace] CORE: scoped timer end - "BltToBackBufferByCopy" - duration: 1.4000001 Micro
+[2025.08.23 14:36:16] [info] CORE: Blt mode: Shader
+[2025.08.23 14:36:17] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:36:17] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 4.7000003 Micro
+[2025.08.23 14:36:18] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:36:18] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 3.5000002 Micro
+[2025.08.23 14:36:18] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:36:18] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 3.4 Micro
+[2025.08.23 14:36:20] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:36:20] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 3.4 Micro
+[2025.08.23 14:36:20] [trace] CORE: scoped timer start - "BltToBackBufferByShader"
+[2025.08.23 14:36:20] [trace] CORE: scoped timer end - "BltToBackBufferByShader" - duration: 3.6000001 Micro

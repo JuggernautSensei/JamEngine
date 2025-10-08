@@ -1,0 +1,13 @@
+[2025-07-24 14:58:27.056] [trace] log system initialized
+[2025-07-24 14:59:10.040] [error] 
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Window.cpp
+function name: class std::vector<class std::filesystem::path,class std::allocator<class std::filesystem::path> > __cdecl jam::Window::OpenFileDialog(bool,class std::span<struct jam::FileDialogFilter const ,-1>,class std::basic_string_view<char,struct std::char_traits<char> >) const
+line: 166
+columns: 13
+------------------------------------
+Failed to open file dialog: Could not get file path from shell item returned by dialog.
+====================================
+

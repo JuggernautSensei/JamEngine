@@ -1,0 +1,85 @@
+[2025.08.12 13:52:29] [trace] CORE: log system initialized
+[2025.08.12 13:52:29] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.12 13:52:29] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 115, y: 146
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 116, y: 146
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 117, y: 146
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 118, y: 146
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 120, y: 146
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 127, y: 144
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 147, y: 144
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 179, y: 144
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 240, y: 150
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 311, y: 159
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 372, y: 168
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 423, y: 174
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 455, y: 179
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 470, y: 182
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 478, y: 186
+[2025.08.12 13:52:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 482, y: 188
+[2025.08.12 13:52:39] [trace] CORE: Dispatching event: WindowMoveEvent: x: 485, y: 191
+[2025.08.12 13:52:39] [trace] CORE: Dispatching event: WindowMoveEvent: x: 486, y: 193
+[2025.08.12 13:53:31] [info] CORE: Saving built-in image header to: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\BuiltInEditorLayerIcon.h
+[2025.08.12 13:53:31] [info] CORE: Saving image: file (size: 64x64, format: DXGI_FORMAT_R8G8B8A8_UNORM)
+[2025.08.12 13:53:31] [info] CORE: Saving built-in image source to: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\BuiltInEditorLayerIcon.cpp
+[2025.08.12 13:53:31] [info] CORE: Saving image: file (size: 64x64, format: DXGI_FORMAT_R8G8B8A8_UNORM)
+[2025.08.12 13:53:31] [info] CORE: Built-in image source code saved successfully.
+[2025.08.12 13:53:31] [info] CORE: Built-in image source code saved to file: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\BuiltInEditorLayerIcon
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 495, y: 191
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 502, y: 191
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 517, y: 192
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 536, y: 194
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 560, y: 198
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 595, y: 205
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 642, y: 213
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 700, y: 225
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 762, y: 241
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 831, y: 261
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 904, y: 281
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 972, y: 300
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1036, y: 319
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1099, y: 338
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1158, y: 357
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1212, y: 372
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1261, y: 386
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1305, y: 397
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1338, y: 404
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1362, y: 410
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1384, y: 416
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1402, y: 420
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1410, y: 423
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1415, y: 425
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1419, y: 426
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1420, y: 427
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 428
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 430
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 433
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 434
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 435
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 436
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 437
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 438
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 439
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 440
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 441
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 442
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 443
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 444
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1421, y: 446
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1420, y: 447
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1418, y: 450
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1417, y: 451
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1416, y: 453
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1415, y: 454
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1412, y: 455
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1410, y: 458
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1407, y: 462
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1406, y: 467
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1404, y: 475
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1403, y: 485
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1401, y: 491
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1401, y: 496
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1401, y: 500
+[2025.08.12 13:53:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1401, y: 502
+[2025.08.12 13:53:47] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.12 13:53:47] [trace] CORE: log system shutdown

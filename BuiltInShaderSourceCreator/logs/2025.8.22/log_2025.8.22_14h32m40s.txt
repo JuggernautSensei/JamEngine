@@ -1,0 +1,100 @@
+[2025.08.22 14:32:40] [trace] CORE: log system initialized
+[2025.08.22 14:32:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544, resizeType: 0
+[2025.08.22 14:32:40] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.22 14:32:42] [debug] CORE: Scene::Load() - Scene file does not exist: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\BuiltInShaderSourceCreator\contents\scenes\My Scene.jscene
+[2025.08.22 14:32:44] [trace] CORE: Dispatching event: WindowResizeEvent: width: 779, height: 546, resizeType: 0
+[2025.08.22 14:32:44] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 779, height: 548, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 779, height: 551, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 779, height: 555, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 780, height: 560, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 784, height: 568, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 787, height: 576, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 790, height: 587, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 796, height: 597, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 801, height: 608, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 809, height: 621, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 818, height: 632, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 829, height: 645, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 841, height: 659, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 854, height: 672, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 870, height: 686, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 886, height: 698, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 903, height: 710, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 921, height: 722, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 939, height: 734, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 959, height: 744, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 977, height: 753, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 994, height: 761, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1014, height: 769, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1032, height: 775, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1051, height: 779, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1071, height: 783, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1090, height: 787, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1109, height: 789, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1131, height: 791, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1153, height: 793, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1174, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1194, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1213, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1232, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1249, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1263, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1273, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1286, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1289, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1292, height: 795, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1294, height: 794, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1298, height: 793, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1302, height: 792, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1308, height: 790, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1315, height: 789, resizeType: 0
+[2025.08.22 14:32:50] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.22 14:32:51] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.22 14:32:51] [trace] CORE: log system shutdown

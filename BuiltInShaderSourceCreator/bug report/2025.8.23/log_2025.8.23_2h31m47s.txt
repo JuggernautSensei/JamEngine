@@ -1,0 +1,13 @@
+
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Renderer.cpp
+function name: void __cdecl jam::Renderer::CreateVertexShader(const struct jam::ShaderCreateInfo &,struct ID3D11VertexShader **)
+line: 433
+columns: 9
+------------------------------------
+Failed to create vertex shader. HRESULT: 매개 변수가 틀립니다.
+
+====================================
+

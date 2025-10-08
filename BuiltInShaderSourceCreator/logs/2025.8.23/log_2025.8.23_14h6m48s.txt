@@ -1,0 +1,7 @@
+[2025.08.23 14:06:48] [trace] CORE: log system initialized
+[2025.08.23 14:06:48] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544, resizeType: 0
+[2025.08.23 14:06:48] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.23 14:06:48] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.23 14:06:48] [debug] CORE: Scene::Load() - Scene file does not exist: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\BuiltInShaderSourceCreator\contents\scenes\My Scene.jscene
+[2025.08.23 14:06:52] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.23 14:06:52] [trace] CORE: log system shutdown

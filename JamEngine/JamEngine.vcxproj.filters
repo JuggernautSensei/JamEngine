@@ -1,0 +1,790 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="DataType.cpp">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Macros.cpp">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Result.cpp">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>1. Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="StringUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>1. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>1. Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="Event.cpp">
+      <Filter>1. Core\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="Events.cpp">
+      <Filter>1. Core\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="EntryPoint.cpp">
+      <Filter>1. Core</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>99. Utilities\MultiThread</Filter>
+    </ClCompile>
+    <ClCompile Include="MathUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeTrait.cpp">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ILayer.cpp">
+      <Filter>1. Core\ILayer</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>4. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>4. Scene\Entitiy</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>1. Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderRegistry.cpp">
+      <Filter>3. Renderer\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components.cpp">
+      <Filter>4. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Script.cpp">
+      <Filter>4. Scene\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="CompiledShaders.cpp">
+      <Filter>3. Renderer\Shaders\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetManager.cpp">
+      <Filter>5. Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSerializer.cpp">
+      <Filter>4. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentsEditor.cpp">
+      <Filter>4. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MemorySink.cpp">
+      <Filter>1. Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>99. Utilities\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_stdlib.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <Filter>98. Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="fixed_circular_queue.cpp">
+      <Filter>99. Utilities\Container\circualr_queue</Filter>
+    </ClCompile>
+    <ClCompile Include="fixed_vector.cpp">
+      <Filter>99. Utilities\Container\vector</Filter>
+    </ClCompile>
+    <ClCompile Include="Gfx.cpp">
+      <Filter>2. Graphics\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxBase.cpp">
+      <Filter>2. Graphics\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="IAsset.cpp">
+      <Filter>5. Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Hash.cpp">
+      <Filter>99. Utilities\Hash</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>5. Assets\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="LoopSubdivision.cpp">
+      <Filter>5. Assets\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="CodingStandard.txt">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryArena.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryPool.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDraw.cpp">
+      <Filter>3. Renderer\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshFactory.cpp">
+      <Filter>5. Assets\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="HandleAllocator.cpp">
+      <Filter>99. Utilities\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourcePool.cpp">
+      <Filter>99. Utilities\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageTexture.cpp">
+      <Filter>5. Assets\ImageTexture</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>5. Assets\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassDB.cpp">
+      <Filter>7. Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess.cpp">
+      <Filter>3. Renderer\PostProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLayout.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer3D.cpp">
+      <Filter>3. Renderer\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="IExporter.cpp">
+      <Filter>99. Utilities\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IImporter.cpp">
+      <Filter>99. Utilities\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageExporter.cpp">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageImporter.cpp">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderExporter.cpp">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderImporter.cpp">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompiler.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Error.cpp">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="LogBase.cpp">
+      <Filter>1. Core\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Profile.cpp">
+      <Filter>99. Utilities\Profile</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBase.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Version.cpp">
+      <Filter>1. Core\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiGlue.cpp">
+      <Filter>3. Renderer\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>4. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="fixed_string.cpp">
+      <Filter>99. Utilities\Container\string</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="SerializableComponent.cpp">
+      <Filter>4. Scene\Component\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="EditableComponent.cpp">
+      <Filter>4. Scene\Component\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyTransform.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="UnremovableComponent.cpp">
+      <Filter>4. Scene\Component\Property</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>4. Scene\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptDB.cpp">
+      <Filter>7. Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentDB.cpp">
+      <Filter>7. Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpImporter.cpp">
+      <Filter>5. Assets\Mesh\Assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpBase.cpp">
+      <Filter>5. Assets\Mesh\Assimp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="0. Include">
+      <UniqueIdentifier>{7b1cf538-f48a-489e-8d06-5a1d992dcc40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core">
+      <UniqueIdentifier>{695115ad-f046-4a59-b7b9-50663d492e77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Event">
+      <UniqueIdentifier>{607c22e6-0ad9-482b-99b9-8fb47d4b8df9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Log">
+      <UniqueIdentifier>{3580285b-7767-4b23-aa73-a974c4aed67c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Platform">
+      <UniqueIdentifier>{75882a70-3fb8-40ec-988b-13e9bb48828c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\ILayer">
+      <UniqueIdentifier>{ec73bece-9d03-42b3-bcc8-3691f61d4db4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Input">
+      <UniqueIdentifier>{d5ba1c24-3e7d-4ab4-9142-f7b950bb110d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor">
+      <UniqueIdentifier>{ed21789a-ec9c-4244-b273-74e478329680}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Base">
+      <UniqueIdentifier>{933d5f72-246a-4053-ab13-7354e5972700}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Base\Config">
+      <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities">
+      <UniqueIdentifier>{348ab829-ff51-4e7b-85b2-dc5dcff535d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\MultiThread">
+      <UniqueIdentifier>{807b8b30-98be-4e07-bc66-41a6f4c83e3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Timer">
+      <UniqueIdentifier>{07ad4838-fe39-4eb3-94fc-ea444d042eb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor">
+      <UniqueIdentifier>{c3520987-1c99-422e-b9e2-f90333db5f1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container">
+      <UniqueIdentifier>{f39052bc-ccdb-4690-abe1-584111555366}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\circualr_queue">
+      <UniqueIdentifier>{9c4059e4-27d3-4d4b-914f-0afc48d0fcb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\vector">
+      <UniqueIdentifier>{8566958a-aa2d-4404-ba7c-44bbb90b23c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\dense_map">
+      <UniqueIdentifier>{40d865df-bd8b-4267-8d0d-b3d34725f645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Hash">
+      <UniqueIdentifier>{b66d39c1-1412-4925-b279-715f463d5d63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Memory">
+      <UniqueIdentifier>{b2fea43d-1a51-46dd-815a-29653b96e3ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Resource">
+      <UniqueIdentifier>{a8158269-e5b4-48b2-96a4-f54aa6b53336}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Graphics">
+      <UniqueIdentifier>{7e87f941-ee9f-42c4-8e36-9c6b8c9758b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Graphics\Utilities">
+      <UniqueIdentifier>{e722dad5-777c-4d75-9c0b-98ba91707ece}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Graphics\Core">
+      <UniqueIdentifier>{22356f61-f4c2-44c0-a886-5f8829e8cb5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\IO">
+      <UniqueIdentifier>{999d4eb4-2d52-4717-adf7-72e11a6ece7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Graphics\Utilities\IO">
+      <UniqueIdentifier>{b3081ee2-caca-4a33-9cea-fb569329c2b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Profile">
+      <UniqueIdentifier>{4eaecd7b-865d-4eb1-8ba5-db1e11db51ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\string">
+      <UniqueIdentifier>{ba2b2df5-aabb-4f98-87c7-e425de1a0cd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene">
+      <UniqueIdentifier>{e5acf42d-946d-459b-aad0-d02d7d60efb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene\Component">
+      <UniqueIdentifier>{ebf7e7a5-cff9-4d8a-9453-dd629a43cb1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene\Script">
+      <UniqueIdentifier>{6602e37e-aa2e-46cc-b03e-b37267c332b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene\Entitiy">
+      <UniqueIdentifier>{f8606bf7-e19f-44bd-bd28-1cfe88774dea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets">
+      <UniqueIdentifier>{3a9055cf-4862-4f71-975c-45185377c502}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Mesh">
+      <UniqueIdentifier>{61007d51-edb1-4a64-80a9-d75a19f609e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Material">
+      <UniqueIdentifier>{de571042-d00e-48a8-b86c-6c3a16660e45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\ImageTexture">
+      <UniqueIdentifier>{8aa95e93-4a42-41cd-a87c-decb1c553725}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer">
+      <UniqueIdentifier>{638827b8-117f-4a1d-b48e-b43142fcb176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\PostProcess">
+      <UniqueIdentifier>{451616a9-a9c0-49ff-ae32-fe433ebeb331}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\PostProcess\PostProcess">
+      <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\2D">
+      <UniqueIdentifier>{f942db8b-8639-4768-8b58-37a50b1460e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\3D">
+      <UniqueIdentifier>{6a4e549d-f33b-4262-9709-0d684af7ca60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\DebugDraw">
+      <UniqueIdentifier>{7fbe4c0b-5051-432a-a8f0-37e31fbc7f59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Utilities">
+      <UniqueIdentifier>{c6549a45-28d9-44de-802f-297a1729d51b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Shaders">
+      <UniqueIdentifier>{824fb20c-1608-4cd6-9da2-42cf9cd5a46d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Shaders\Shaders">
+      <UniqueIdentifier>{2901626e-acce-4970-a9c5-67119927ccf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Shaders\Shaders\hlsl">
+      <UniqueIdentifier>{2d3b56c2-68b3-42be-b77b-523b793dd358}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Shaders\Shaders\hlsl\PBR">
+      <UniqueIdentifier>{879c76dc-96e3-42cc-bb55-013e50374a85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Shaders\Shaders\hlsl\Shadow, Light">
+      <UniqueIdentifier>{4e6eacd2-a316-4f75-a900-eac3585184f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Shaders\Shaders\hlsl\SSAO">
+      <UniqueIdentifier>{833ca557-8122-42bf-8afa-7a6dd43a222c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\Shaders\Shaders\hlsl\Common">
+      <UniqueIdentifier>{0c986585-0614-4a51-af27-013d217dd648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Renderer\ImGui">
+      <UniqueIdentifier>{b3b02ff0-0cff-479b-be5d-b4cb49c06bd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene\Component\Property">
+      <UniqueIdentifier>{23f5a5fe-ac2e-490a-bb3b-cae1b67d611d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene\Utilities">
+      <UniqueIdentifier>{74380d0a-1ab4-4331-a78d-e48a572ee1d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Mesh\Assimp">
+      <UniqueIdentifier>{64fabbcd-340a-4634-90b0-556f51f43eff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="7. Reflection">
+      <UniqueIdentifier>{dfa07466-c9e5-4517-8a43-82d35cc0d7fe}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>1. Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="DataType.h">
+      <Filter>1. Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Macros.h">
+      <Filter>1. Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Result.h">
+      <Filter>1. Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>1. Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="StringUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="EntryPoint.h">
+      <Filter>1. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="JamEngine.h">
+      <Filter>0. Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>1. Core</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>1. Core\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Event.h">
+      <Filter>1. Core\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Events.h">
+      <Filter>1. Core\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>99. Utilities\MultiThread</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeTrait.h">
+      <Filter>1. Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="ILayer.h">
+      <Filter>1. Core\ILayer</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>4. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>4. Scene\Entitiy</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>1. Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderRegistry.h">
+      <Filter>3. Renderer\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components.h">
+      <Filter>4. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>4. Scene\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CompiledShaders.h">
+      <Filter>3. Renderer\Shaders\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetManager.h">
+      <Filter>5. Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSerializer.h">
+      <Filter>4. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="MemorySink.h">
+      <Filter>1. Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>99. Utilities\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imconfig.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_dx11.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_win32.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_internal.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_stdlib.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_textedit.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_truetype.h">
+      <Filter>98. Vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="fixed_circular_queue.h">
+      <Filter>99. Utilities\Container\circualr_queue</Filter>
+    </ClInclude>
+    <ClInclude Include="fixed_vector.h">
+      <Filter>99. Utilities\Container\vector</Filter>
+    </ClInclude>
+    <ClInclude Include="Gfx.h">
+      <Filter>2. Graphics\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxBase.h">
+      <Filter>2. Graphics\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="IAsset.h">
+      <Filter>5. Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Hash.h">
+      <Filter>99. Utilities\Hash</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>5. Assets\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopSubdivision.h">
+      <Filter>5. Assets\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryArena.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryPool.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshFactory.h">
+      <Filter>5. Assets\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="HandleAllocator.h">
+      <Filter>99. Utilities\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourcePool.h">
+      <Filter>99. Utilities\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageTexture.h">
+      <Filter>5. Assets\ImageTexture</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>5. Assets\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassDB.h">
+      <Filter>7. Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess.h">
+      <Filter>3. Renderer\PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayout.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDraw.h">
+      <Filter>3. Renderer\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderBridge.h">
+      <Filter>3. Renderer\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer3D.h">
+      <Filter>3. Renderer\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="IExporter.h">
+      <Filter>99. Utilities\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IImporter.h">
+      <Filter>99. Utilities\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderImporter.h">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageExporter.h">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageImporter.h">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderExporter.h">
+      <Filter>2. Graphics\Utilities\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompiler.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Configs.h">
+      <Filter>1. Core\Base\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>1. Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="LogBase.h">
+      <Filter>1. Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Profile.h">
+      <Filter>99. Utilities\Profile</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBase.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>1. Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Magic.h">
+      <Filter>1. Core\Base\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiGlue.h">
+      <Filter>3. Renderer\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>4. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="fixed_string.h">
+      <Filter>99. Utilities\Container\string</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="SerializableComponent.h">
+      <Filter>4. Scene\Component\Property</Filter>
+    </ClInclude>
+    <ClInclude Include="EditableComponent.h">
+      <Filter>4. Scene\Component\Property</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyTransform.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="UnremovableComponent.h">
+      <Filter>4. Scene\Component\Property</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.h">
+      <Filter>4. Scene\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="unordered_dense.h">
+      <Filter>99. Utilities\Container\dense_map</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptDB.h">
+      <Filter>7. Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentDB.h">
+      <Filter>7. Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="AssimpImporter.h">
+      <Filter>5. Assets\Mesh\Assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="AssimpBase.h">
+      <Filter>5. Assets\Mesh\Assimp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format">
+      <Filter>1. Core\Base\Config</Filter>
+    </None>
+    <None Include=".editorconfig">
+      <Filter>1. Core\Base\Config</Filter>
+    </None>
+    <None Include="shaders\hlsl\PBRCommon.hlsli">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\PBR</Filter>
+    </None>
+    <None Include="resources\flatc\jmsh.fbs">
+      <Filter>5. Assets\Mesh</Filter>
+    </None>
+    <None Include="resources\flatc\jmat.fbs">
+      <Filter>5. Assets\Material</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\hlsl\FXAAPS.hlsl">
+      <Filter>3. Renderer\PostProcess\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\FogPS.hlsl">
+      <Filter>3. Renderer\PostProcess\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\BloomUpFilterPS.hlsl">
+      <Filter>3. Renderer\PostProcess\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\BloomDownFilterPS.hlsl">
+      <Filter>3. Renderer\PostProcess\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\BloomCombineFilterPS.hlsl">
+      <Filter>3. Renderer\PostProcess\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\LightVolumeShader.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\Shadow, Light</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\PBRVS.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\PBR</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\PBRForwardShader.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\PBR</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\PBRGBufferShader.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\PBR</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\PBRLightingShader.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\PBR</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\SSAOPS.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\SSAO</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\SSAOBlurPS.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\SSAO</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\ToneMappingPS.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\Shadow, Light</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\ShadowCasterShader.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\Shadow, Light</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\ScreenSpaceEffectVS.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\Shadow, Light</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\Common.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl\Common</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\SamplingPS.hlsl">
+      <Filter>3. Renderer\PostProcess\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\SkyboxShader.hlsl">
+      <Filter>3. Renderer\Shaders\Shaders\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\DebugDrawShader.hlsl">
+      <Filter>3. Renderer\DebugDraw</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

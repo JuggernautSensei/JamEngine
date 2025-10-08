@@ -1,0 +1,37 @@
+[2025-07-24 12:41:18.776] [trace] log system initialized
+[2025-07-24 12:41:18.776] [info] Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-24 12:41:18.813] [debug] occurred event: WindowResizeEvent: width: 778, height: 544
+[2025-07-24 12:41:18.813] [debug] occurred event: WindowMoveEvent: x: 111, y: 145
+[2025-07-24 12:41:19.073] [debug] occurred event: WindowMoveEvent: x: 122, y: 190
+[2025-07-24 12:41:19.073] [debug] occurred event: WindowResizeEvent: width: 1280, height: 720
+[2025-07-24 12:41:19.073] [debug] occurred event: SwapChainResourceReleaseEvent
+[2025-07-24 12:41:19.869] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:19.882] [debug] occurred event: KeyUpEvent: vKey: 65
+[2025-07-24 12:41:19.899] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:19.911] [debug] occurred event: KeyUpEvent: vKey: 65
+[2025-07-24 12:41:19.928] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.002] [debug] occurred event: KeyUpEvent: vKey: 65
+[2025-07-24 12:41:20.052] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.311] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.340] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.374] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.407] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.440] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.469] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.515] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.548] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.578] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.611] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.640] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.673] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.703] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.737] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.782] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.811] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.844] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.874] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.907] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.936] [debug] occurred event: KeyDownEvent: vKey: 65
+[2025-07-24 12:41:20.961] [debug] occurred event: KeyUpEvent: vKey: 65
+[2025-07-24 12:41:21.361] [debug] occurred event: KeyDownEvent: vKey: 27
+[2025-07-24 12:41:21.519] [debug] occurred event: KeyUpEvent: vKey: 27

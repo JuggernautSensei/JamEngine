@@ -1,0 +1,41 @@
+[2025.08.12 01:13:18] [trace] CORE: log system initialized
+[2025.08.12 01:13:18] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.12 01:13:18] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.12 01:13:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.12 01:13:19] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.12 01:13:19] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.12 01:13:19] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1281, height: 721
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1282, height: 722
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1284, height: 724
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1287, height: 725
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1292, height: 729
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1294, height: 730
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1297, height: 731
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1299, height: 734
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1302, height: 735
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1304, height: 736
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1307, height: 737
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1309, height: 739
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1311, height: 740
+[2025.08.12 01:13:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1314, height: 741
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1317, height: 743
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1318, height: 744
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1321, height: 745
+[2025.08.12 01:13:25] [trace] CORE: Dispatching event: BackBuff

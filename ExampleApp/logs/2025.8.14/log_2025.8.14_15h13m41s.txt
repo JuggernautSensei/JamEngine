@@ -1,0 +1,46 @@
+[2025.08.14 15:13:41] [trace] CORE: log system initialized
+[2025.08.14 15:13:41] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Release\ExampleApp.exe
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 235
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2237, height: 1223
+[2025.08.14 15:13:41] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 137, y: 236
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 138, y: 233
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 139, y: 229
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 142, y: 224
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 218
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 145, y: 213
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 145, y: 209
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 145, y: 203
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 146, y: 198
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 146, y: 194
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 147, y: 190
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 149, y: 186
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 149, y: 182
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 150, y: 178
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 151, y: 174
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 153, y: 172
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 153, y: 170
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 154, y: 166
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 154, y: 163
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 154, y: 161
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 154, y: 159
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 155, y: 156
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 156, y: 154
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 158, y: 151
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 158, y: 149
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 158, y: 147
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 158, y: 146
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 159, y: 145
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 159, y: 144
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 160, y: 143
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 160, y: 142
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 161, y: 141
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 162, y: 138
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 162, y: 137
+[2025.08.14 15:13:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 162, y: 136
+[2025.08.14 15:13:42] [trace] CORE: Dispatching even
