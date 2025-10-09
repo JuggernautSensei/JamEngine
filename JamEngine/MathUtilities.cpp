@@ -4,13 +4,8 @@
 #include <Random>
 using namespace jam;
 
-namespace jam
+namespace jam::details
 {
-
-namespace details
-{
-    std::mt19937 g_randomGenerator = std::mt19937 {};
-    UInt32       g_randomSeed      = 0;
-}   // namespace internal
-
-}   // namespace jam
+std::mt19937 g_randomGenerator = std::mt19937 {};
+UInt32       g_randomSeed      = 0;
+}

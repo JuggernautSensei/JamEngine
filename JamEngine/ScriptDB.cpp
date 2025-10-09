@@ -1,42 +1,36 @@
 #include "pch.h"
 
-#include "Script.h"
 #include "ScriptDB.h"
-#include "StringUtilities.h"
 using namespace jam;
 
-namespace
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
+
+static HashMap<UInt32, ScriptInfo> g_scriptInfoMap;
+
+////////////////////////////////////////////////////////////
+
+namespace jam::script_db
 {
 
-HashMap<UInt32, ScriptInfo> g_scriptInfoMap;
-
+void Reflect(const ScriptInfo& info)
+{
+    const UInt32 nameHash = HashOf(info.name);
+    JAM_ASSERT(!g_scriptInfoMap.contains(nameHash), "Script '{}' is already registered", info.name);
+    g_scriptInfoMap[nameHash] = info;
 }
 
-namespace jam
+std::unique_ptr<Script> Create(std::string_view _name, const Entity& _entity)
 {
+    UInt32 hash = HashOf(_name);
+    JAM_ASSERT(g_scriptInfoMap.contains(hash), "Script '{}' is not registered", _name);
+    return g_scriptInfoMap.at(hash).createFn(_entity);
+}
 
-namespace script_db
+const HashMap<unsigned, ScriptInfo>& GetAllScriptInfos()
 {
+    return g_scriptInfoMap;
+}
 
-    void RefletScript(const std::string_view _name, const ScriptInfo& _info)
-    {
-        const UInt32 hash = HashOf(_name);
-        JAM_ASSERT(g_scriptInfoMap.contains(hash) == false, "Script '{}' is already registered", _name);
-        g_scriptInfoMap[hash] = _info;
-    }
-
-    std::unique_ptr<Script> Create(const std::string_view _name, const Entity& _entity)
-    {
-        const UInt32      hash = HashOf(_name);
-        const ScriptInfo& info = g_scriptInfoMap.at(hash);
-        return info.createFunc(_entity);
-    }
-
-    const HashMap<UInt32, ScriptInfo>& GetAllScripts()
-    {
-        return g_scriptInfoMap;
-    }
-
-}   // namespace script_db
-
-}   // namespace jam
+}   // namespace jam::script_db

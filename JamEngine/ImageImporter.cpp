@@ -2,15 +2,14 @@
 
 #include "ImageImporter.h"
 
-#include "WindowsUtilities.h"
-
 #include <DirectXTexEXR.h>
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
-DXGI_FORMAT k_dxgiFormatTable[EnumCount<eFormat>()] = {
+constexpr DXGI_FORMAT k_dxgiFormatTable[EnumCount<eFormat>()] = {
     DXGI_FORMAT_UNKNOWN,                // Unknown
     DXGI_FORMAT_R8_UNORM,               // R8_UNorm
     DXGI_FORMAT_R8_SNORM,               // R8_SNorm
@@ -54,7 +53,7 @@ DXGI_FORMAT k_dxgiFormatTable[EnumCount<eFormat>()] = {
     DXGI_FORMAT_D32_FLOAT_S8X24_UINT,   // D32_Float_S8_UInt
 };
 
-}
+////////////////////////////////////////////////////////////
 
 namespace jam
 {
@@ -63,7 +62,6 @@ eErrorCode ImageImporter::Import()
 {
     JAM_ASSERT(!m_filePath.empty(), "file path is empty");
     JAM_ASSERT(m_format != eImageFormat::Unknown, "unknown image format");
-    JAM_ASSERT(IsImportablePath(m_filePath), "file format is not importable");
 
     m_scratchImg.Release();
     std::wstring wPath = m_filePath.wstring();
@@ -292,7 +290,7 @@ void ImageImporter::SetPath(const fs::path& _filePath)
 {
     m_filePath = _filePath;
     m_format   = DetermineFormatFromExtension(_filePath);
-    JAM_ASSERT(m_format != eImageFormat::Unknown, "unsupported image format: '{}'", _filepath.native());
+    JAM_ASSERT(m_format != eImageFormat::Unknown, "unsupported image format: '{}'", _filePath.native());
 }
 
 void ImageImporter::ConvertFormat(const eFormat _format, const float _threshold)
@@ -329,11 +327,6 @@ void ImageImporter::FlipHorizontal()
 void ImageImporter::PreMultiplyAlpha()
 {
     m_bPreMultiplyAlpha = true;
-}
-
-bool ImageImporter::IsImportablePath(const fs::path& _filePath) const
-{
-    return DetermineFormatFromExtension(_filePath) != eImageFormat::Unknown;
 }
 
 const DirectX::ScratchImage& ImageImporter::GetScratchImage() const

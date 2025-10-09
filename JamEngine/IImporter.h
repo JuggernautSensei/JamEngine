@@ -18,8 +18,6 @@ public:
 
     virtual void SetPath(const fs::path& _filePath) = 0;   // 파일 경로 설정
     virtual void Reset()                            = 0;
-
-    JAM_NODISCARD virtual bool IsImportablePath(const fs::path& _filePath) const = 0;
 };
 
 }   // namespace jam

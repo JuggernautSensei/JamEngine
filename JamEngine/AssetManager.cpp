@@ -6,9 +6,6 @@
 #include "ResourcePool.h"
 using namespace jam;
 
-namespace
-{
-
 struct AssetManagerContext
 {
     template<IsAssetBased AssetT>
@@ -191,159 +188,154 @@ struct AssetManagerContext
     ResourcePool<ImageTexture> imageTextures;
 };
 
-AssetManagerContext g_ctx;
+static AssetManagerContext g_ctx;
 
-}   // namespace
-
-namespace jam
-{
-namespace asset_manager
+namespace jam::asset_manager
 {
 
-    bool DetectLeak()
+bool DetectLeak()
+{
+    bool bLeakDetected = false;
+
+    for (const auto& [path, handle]: g_ctx.meshHandleMap)
     {
-        bool bLeakDetected = false;
-
-        for (const auto& [path, handle]: g_ctx.meshHandleMap)
-        {
-            log::Warn("Leaked Mesh Asset: {} (Handle: {})", path.native(), handle.value);
-            bLeakDetected = true;
-        }
-
-        for (const auto& [path, handle]: g_ctx.materialHandleMap)
-        {
-            log::Warn("Leaked Material Asset: {} (Handle: {})", path.native(), handle.value);
-            bLeakDetected = true;
-        }
-
-        for (const auto& [path, handle]: g_ctx.imageTextureMap)
-        {
-            log::Warn("Leaked ImageTexture Asset: {} (Handle: {})", path.native(), handle.value);
-            bLeakDetected = true;
-        }
-
-        return bLeakDetected;
+        log::Warn("Leaked Mesh Asset: {} (Handle: {})", path.native(), handle.value);
+        bLeakDetected = true;
     }
 
-    Result<MeshHandle> LoadMesh(const fs::path& _path, const bool _bOverwrite)
+    for (const auto& [path, handle]: g_ctx.materialHandleMap)
     {
-        return g_ctx.LoadAsset<Mesh>(_path, _bOverwrite);
+        log::Warn("Leaked Material Asset: {} (Handle: {})", path.native(), handle.value);
+        bLeakDetected = true;
     }
 
-    Result<MaterialHandle> LoadMaterial(const fs::path& _path, const bool _bOverwrite)
+    for (const auto& [path, handle]: g_ctx.imageTextureMap)
     {
-        return g_ctx.LoadAsset<Material>(_path, _bOverwrite);
+        log::Warn("Leaked ImageTexture Asset: {} (Handle: {})", path.native(), handle.value);
+        bLeakDetected = true;
     }
 
-    Result<ImageTextureHandle> LoadImageTexture(const fs::path& _path, const bool _bOverwrite)
-    {
-        return g_ctx.LoadAsset<ImageTexture>(_path, _bOverwrite);
-    }
+    return bLeakDetected;
+}
 
-    void UnloadMesh(const MeshHandle _handle)
-    {
-        g_ctx.UnloadAsset<Mesh>(_handle);
-    }
+Result<MeshHandle> LoadMesh(const fs::path& _path, const bool _bOverwrite)
+{
+    return g_ctx.LoadAsset<Mesh>(_path, _bOverwrite);
+}
 
-    void UnloadMaterial(const MaterialHandle _handle)
-    {
-        g_ctx.UnloadAsset<Material>(_handle);
-    }
+Result<MaterialHandle> LoadMaterial(const fs::path& _path, const bool _bOverwrite)
+{
+    return g_ctx.LoadAsset<Material>(_path, _bOverwrite);
+}
 
-    void UnloadImageTexture(const ImageTextureHandle _handle)
-    {
-        g_ctx.UnloadAsset<ImageTexture>(_handle);
-    }
+Result<ImageTextureHandle> LoadImageTexture(const fs::path& _path, const bool _bOverwrite)
+{
+    return g_ctx.LoadAsset<ImageTexture>(_path, _bOverwrite);
+}
 
-    MeshHandle GetMeshHandle(const fs::path& _path)
-    {
-        return g_ctx.GetAssetHandle<Mesh>(_path);
-    }
+void UnloadMesh(const MeshHandle _handle)
+{
+    g_ctx.UnloadAsset<Mesh>(_handle);
+}
 
-    MaterialHandle GetMaterialHandle(const fs::path& _path)
-    {
-        return g_ctx.GetAssetHandle<Material>(_path);
-    }
+void UnloadMaterial(const MaterialHandle _handle)
+{
+    g_ctx.UnloadAsset<Material>(_handle);
+}
 
-    ImageTextureHandle GetImageTextureHandle(const fs::path& _path)
-    {
-        return g_ctx.GetAssetHandle<ImageTexture>(_path);
-    }
+void UnloadImageTexture(const ImageTextureHandle _handle)
+{
+    g_ctx.UnloadAsset<ImageTexture>(_handle);
+}
 
-    Result<MeshHandle> GetOrLoadMesh(const fs::path& _path)
-    {
-        return g_ctx.GetOrLoadAsset<Mesh>(_path);
-    }
+MeshHandle GetMeshHandle(const fs::path& _path)
+{
+    return g_ctx.GetAssetHandle<Mesh>(_path);
+}
 
-    Result<MaterialHandle> GetOrLoadMaterial(const fs::path& _path)
-    {
-        return g_ctx.GetOrLoadAsset<Material>(_path);
-    }
+MaterialHandle GetMaterialHandle(const fs::path& _path)
+{
+    return g_ctx.GetAssetHandle<Material>(_path);
+}
 
-    Result<ImageTextureHandle> GetOrLoadImageTexture(const fs::path& _path)
-    {
-        return g_ctx.GetOrLoadAsset<ImageTexture>(_path);
-    }
+ImageTextureHandle GetImageTextureHandle(const fs::path& _path)
+{
+    return g_ctx.GetAssetHandle<ImageTexture>(_path);
+}
 
-    bool IsMeshLoaded(const fs::path& _path)
-    {
-        return g_ctx.IsAssetLoaded<Mesh>(_path);
-    }
+bool IsMeshLoaded(const fs::path& _path)
+{
+    return g_ctx.IsAssetLoaded<Mesh>(_path);
+}
 
-    bool IsMaterialLoaded(const fs::path& _path)
-    {
-        return g_ctx.IsAssetLoaded<Material>(_path);
-    }
+bool IsMaterialLoaded(const fs::path& _path)
+{
+    return g_ctx.IsAssetLoaded<Material>(_path);
+}
 
-    bool IsImageTextureLoaded(const fs::path& _path)
-    {
-        return g_ctx.IsAssetLoaded<ImageTexture>(_path);
-    }
+bool IsImageTextureLoaded(const fs::path& _path)
+{
+    return g_ctx.IsAssetLoaded<ImageTexture>(_path);
+}
 
-    const Mesh& GetMesh(const MeshHandle _handle)
-    {
-        return g_ctx.GetAsset<Mesh>(_handle);
-    }
+Result<MeshHandle> GetOrLoadMeshHandle(const fs::path& _path)
+{
+    return g_ctx.GetOrLoadAsset<Mesh>(_path);
+}
 
-    const Material& GetMaterial(const MaterialHandle _handle)
-    {
-        return g_ctx.GetAsset<Material>(_handle);
-    }
+Result<MaterialHandle> GetOrLoadMaterialHandle(const fs::path& _path)
+{
+    return g_ctx.GetOrLoadAsset<Material>(_path);
+}
 
-    const ImageTexture& GetImageTexture(const ImageTextureHandle _handle)
-    {
-        return g_ctx.GetAsset<ImageTexture>(_handle);
-    }
+Result<ImageTextureHandle> GetOrLoadImageTextureHandle(const fs::path& _path)
+{
+    return g_ctx.GetOrLoadAsset<ImageTexture>(_path);   
+}
 
-    eErrorCode SaveMesh(const MeshHandle _handle, const fs::path& _path)
-    {
-        return g_ctx.SaveAsset<Mesh>(_handle, _path);
-    }
+const Mesh& GetMesh(const MeshHandle _handle)
+{
+    return g_ctx.GetAsset<Mesh>(_handle);
+}
 
-    eErrorCode SaveMaterial(const MaterialHandle _handle, const fs::path& _path)
-    {
-        return g_ctx.SaveAsset<Material>(_handle, _path);
-    }
+const Material& GetMaterial(const MaterialHandle _handle)
+{
+    return g_ctx.GetAsset<Material>(_handle);
+}
 
-    eErrorCode SaveImageTexture(const ImageTextureHandle _handle, const fs::path& _path)
-    {
-        return g_ctx.SaveAsset<ImageTexture>(_handle, _path);
-    }
+const ImageTexture& GetImageTexture(const ImageTextureHandle _handle)
+{
+    return g_ctx.GetAsset<ImageTexture>(_handle);
+}
 
-    const HashMap<fs::path, MeshHandle>& GetAllMeshHandles()
-    {
-        return g_ctx.GetHandleHashMap<Mesh>();
-    }
+eErrorCode SaveMesh(const MeshHandle _handle, const fs::path& _path)
+{
+    return g_ctx.SaveAsset<Mesh>(_handle, _path);
+}
 
-    const HashMap<fs::path, MaterialHandle>& GetAllMaterialHandles()
-    {
-        return g_ctx.GetHandleHashMap<Material>();
-    }
+eErrorCode SaveMaterial(const MaterialHandle _handle, const fs::path& _path)
+{
+    return g_ctx.SaveAsset<Material>(_handle, _path);
+}
 
-    const HashMap<fs::path, ImageTextureHandle>& GetAllImageTextureHandles()
-    {
-        return g_ctx.GetHandleHashMap<ImageTexture>();
-    }
+eErrorCode SaveImageTexture(const ImageTextureHandle _handle, const fs::path& _path)
+{
+    return g_ctx.SaveAsset<ImageTexture>(_handle, _path);
+}
 
-}   // namespace asset_manager
-}   // namespace jam
+const HashMap<fs::path, MeshHandle>& GetAllMeshHandles()
+{
+    return g_ctx.GetHandleHashMap<Mesh>();
+}
+
+const HashMap<fs::path, MaterialHandle>& GetAllMaterialHandles()
+{
+    return g_ctx.GetHandleHashMap<Material>();
+}
+
+const HashMap<fs::path, ImageTextureHandle>& GetAllImageTextureHandles()
+{
+    return g_ctx.GetHandleHashMap<ImageTexture>();
+}
+
+}   // namespace jam::asset_manager

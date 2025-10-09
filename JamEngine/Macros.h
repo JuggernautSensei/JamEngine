@@ -21,6 +21,7 @@
     }                       \
     while (false)
 
+#define JAM_UNUSED(_x)   (void)(_x)
 #define JAM_MAYBE_UNUSED [[maybe_unused]]
 #define JAM_NODISCARD    [[nodiscard]]
 #define JAM_FALLTHROUGH  [[fallthrough]]

@@ -6,8 +6,9 @@
 #include "Events.h"
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
 struct InputContext
 {
@@ -62,9 +63,9 @@ struct InputContext
     EventDispatcher eventDispatcher;
 };
 
-InputContext g_ctx;
+static InputContext g_ctx;
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam::input
 {

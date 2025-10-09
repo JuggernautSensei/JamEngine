@@ -50,8 +50,6 @@ public:
     void SetEntryPoint(std::string_view _entryPoint);
     void SetCompileFlags(eShaderCompileFlags _flags);
 
-    JAM_NODISCARD bool IsImportablePath(const fs::path& _filePath) const override;
-
 private:
     JAM_NODISCARD eType DetermineTypeFromExtension_(const fs::path& _filePath) const;
 

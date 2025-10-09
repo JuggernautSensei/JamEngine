@@ -7,10 +7,11 @@
 #include <comdef.h>
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
-JAM_NODISCARD std::string CreateErrorMessage(std::string_view _msg, const std::source_location& _loc)
+JAM_NODISCARD static std::string CreateErrorMessage(std::string_view _msg, const std::source_location& _loc)
 {
     TimeStamp   stamp   = TimeStamp::Current();
     std::string timeStr = std::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:03}", stamp.year, stamp.month, stamp.day, stamp.hour, stamp.minute, stamp.second, stamp.millisecond);
@@ -25,6 +26,7 @@ JAM_NODISCARD std::string CreateErrorMessage(std::string_view _msg, const std::s
         "platform: {}\n"
         "compiler: {}\n"
         "language: {}\n"
+        "text encoding: {}\n"
         "graphics api: {}\n"
         "engine version: {} {}\n"
         "is debug: {}\n"
@@ -43,6 +45,7 @@ JAM_NODISCARD std::string CreateErrorMessage(std::string_view _msg, const std::s
         JAM_PLATFORM_NAME,
         JAM_COMPILER_NAME,
         JAM_CPP_NAME,
+        JAM_TEXT_ENCODING_NAME,
         JAM_GFX_API_NAME,
         JAM_ENGINE_NAME,
         JAM_VERSION_NAME,
@@ -59,9 +62,9 @@ JAM_NODISCARD std::string CreateErrorMessage(std::string_view _msg, const std::s
         _msg);
 }
 
-thread_local std::string g_lastErrorMessage;
+thread_local static std::string g_lastErrorMessage;
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {
@@ -95,7 +98,7 @@ namespace details
         fs::create_directories(dir, ec);
         if (!ec)
         {
-            std::fstream fs { dir / filename, std::ios::out };
+            std::ofstream fs { dir / filename, std::ios::out };
             if (fs.is_open())
             {
                 fs << msg << "\n";
@@ -103,7 +106,7 @@ namespace details
         }
 
         // 메시지 박스 출력
-        MessageBox(NULL, msg.c_str(), "jam engine crash", MB_OK | MB_ICONERROR);
+        MessageBoxA(NULL, msg.c_str(), "jam engine crash", MB_OK | MB_ICONERROR);
     }
 
 }   // namespace details
@@ -123,7 +126,12 @@ std::string details::GetComErrorMessage(const HRESULT _hr)
     }
 
 #ifdef UNICODE
-    return ToUTF8(msg);
+    auto [ec, utf8Msg] = ToUTF8(msg);
+    if (IsError(ec))
+    {
+        return "Unknown error";
+    }
+    return utf8Msg;
 #else
     return msg;
 #endif

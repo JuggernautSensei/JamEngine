@@ -27,10 +27,7 @@ public:
     virtual void OnRender(FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform);
     virtual void OnEvent(Event& _event);
 
-    virtual eErrorCode Save(const fs::path& _path);
-    virtual eErrorCode Load(const fs::path& _path);
-
-    virtual void OnDeserialize(const Json& _js);
+    virtual eErrorCode OnDeserialize(const Json& _js);
     virtual Json OnSerialize() const;
 
     void Clear();
@@ -46,7 +43,10 @@ public:
     JAM_NODISCARD bool   IsEntityValid(const Entity& _entity) const;
 
     template<typename... Args>
-    JAM_NODISCARD decltype(auto) CreateView();
+    JAM_NODISCARD decltype(auto) CreateView()
+    {
+        return m_registry.view<Args...>();
+    }
 
     JAM_NODISCARD const entt::registry& GetRegistry() const;
     JAM_NODISCARD entt::registry& GetRegistry();
@@ -55,6 +55,7 @@ public:
     JAM_NODISCARD const HashMap<UID, Entity>& GetEntities() const;
 
 private:
+    Scene() = default;
     void DestroyEntity_Recursive_(Entity& _entity);
 
     entt::registry       m_registry     = {};
@@ -62,15 +63,5 @@ private:
     UIDGenerator         m_uidGenerator = {};
     HashMap<UID, Entity> m_entityMap    = {};
 };
-
-////////////////////////////////
-///          INLINE          ///
-////////////////////////////////
-
-template<typename... Args>
-decltype(auto) Scene::CreateView()
-{
-    return m_registry.view<Args...>();
-}
 
 }   // namespace jam

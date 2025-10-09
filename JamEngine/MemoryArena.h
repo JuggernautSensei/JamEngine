@@ -83,7 +83,7 @@ public:
     /// @param _count 생성할 객체의 개수
     /// @param _args 생성자에 전달할 인자들
     template<typename T, typename... Args>
-    JAM_NODISCARD T* New(const size_t _count = 1, Args&&... _args = {})
+    JAM_NODISCARD T* New(const size_t _count = 1, Args&&... _args)
     {
         T* pRet = Alloc<T>(_count);
         for (size_t i = 0; i < _count; ++i)

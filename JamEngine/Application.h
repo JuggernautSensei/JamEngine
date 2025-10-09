@@ -92,8 +92,6 @@ public:
     /// 해당 함수는 지연처리, 타 스레드의 함수 안전하게 실행 등을 위해 사용됩니다.
     void SubmitCommand(const std::function<void()>& _command);
 
-    ////////// APPLICATION PROPERTIES //////////
-
     /// @brief Vsync를 설정합니다.
     /// @param _bVsync Vsync 활성화 여부
     /// @note vsync(수직 동기화)는 모니터의 재생 빈도에 맞춰 프레임을 출력하여 화면 찢어짐(tearing)을 방지하는 기술입니다.
@@ -116,9 +114,11 @@ public:
     /// @note 업데이트 정책이 ManualStep일 때만 동작합니다.
     void Step(float _sec = 1.0f / 60.0f);
 
-    JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const { return m_directories; }
-    JAM_NODISCARD const TickTimer&          GetTimer() const { return m_timer; }
-    JAM_NODISCARD const Window&             GetWindow() const { return m_window; }
+    /// @brief getter
+    JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const;
+    JAM_NODISCARD tstring_view              GetApplicationName() const;
+    JAM_NODISCARD const TickTimer&          GetTimer() const;
+    JAM_NODISCARD const Window&             GetWindow() const;
 
     /// @brief 어플리케이션 객체를 생성합니다.
     /// @param _args 커맨드라인 인자
@@ -142,7 +142,7 @@ private:
     /// @brief 어플리케이션이 종료될 때 호출되는 함수
     virtual void OnDestroy() = 0;
 
-    std::string        m_applicationName = {};
+    tstring            m_applicationName = {};
     bool               m_bRunning        = false;
     bool               m_bVsync          = false;
     bool               m_bEditor         = false;

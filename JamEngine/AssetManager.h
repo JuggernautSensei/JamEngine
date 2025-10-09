@@ -42,14 +42,6 @@ namespace asset_manager
     JAM_NODISCARD MaterialHandle     GetMaterialHandle(const fs::path& _path);
     JAM_NODISCARD ImageTextureHandle GetImageTextureHandle(const fs::path& _path);
 
-    /// @brief GetOrLoad*** 에셋 핸들을 반환합니다. 로드되지 않았을 경우 로드 시도 후 반환합니다.
-    /// @param _path 에셋 경로  (반드시 working directory 내부 경로)
-    /// @return 에셋 핸들, 로드에 실패할 경우 에러 코드를 반환합니다.
-
-    JAM_NODISCARD Result<MeshHandle> GetOrLoadMesh(const fs::path& _path);
-    JAM_NODISCARD Result<MaterialHandle> GetOrLoadMaterial(const fs::path& _path);
-    JAM_NODISCARD Result<ImageTextureHandle> GetOrLoadImageTexture(const fs::path& _path);
-
     /// @brief Is***Loaded 에셋이 로드되었는지 여부를 반환합니다.
     /// @param _path 에셋 경로
     /// @return 로드 여부
@@ -57,6 +49,14 @@ namespace asset_manager
     JAM_NODISCARD bool IsMeshLoaded(const fs::path& _path);
     JAM_NODISCARD bool IsMaterialLoaded(const fs::path& _path);
     JAM_NODISCARD bool IsImageTextureLoaded(const fs::path& _path);
+
+    /// @brief GetOrLoad*** 에셋 핸들을 반환합니다. 로드되지 않았으면 로드합니다.
+    /// @param _path 에셋 경로 (반드시 working directory 내부 경로)
+    /// @return 에셋 핸들, 로드 실패시 에러 코드를 반환합니다.
+
+    JAM_NODISCARD Result<MeshHandle> GetOrLoadMeshHandle(const fs::path& _path);
+    JAM_NODISCARD Result<MaterialHandle> GetOrLoadMaterialHandle(const fs::path& _path);
+    JAM_NODISCARD Result<ImageTextureHandle> GetOrLoadImageTextureHandle(const fs::path& _path);
 
     /// @brief Get*** 에셋 객체의 읽기 전용 참조를 반환합니다.
     /// @param _handle 에셋 핸들

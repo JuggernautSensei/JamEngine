@@ -5,43 +5,37 @@
 #include "BaseUtilities.h"
 #include "MeshFactory.h"
 #include "Profile.h"
-#include "StringUtilities.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 using namespace jam;
-namespace
-{
 
-Int32 k_basicImportFlags = aiProcess_JoinIdenticalVertices
-                         | aiProcess_Triangulate
-                         | aiProcess_ImproveCacheLocality
-                         | aiProcess_OptimizeMeshes
-                         | aiProcess_RemoveRedundantMaterials
-                         | aiProcess_SortByPType
-                         | aiProcess_FindDegenerates
-                         | aiProcess_FindInvalidData
-                         | aiProcess_RemoveComponent
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
+
+constexpr Int32 k_basicImportFlags = aiProcess_JoinIdenticalVertices
+                                   | aiProcess_Triangulate
+                                   | aiProcess_ImproveCacheLocality
+                                   | aiProcess_OptimizeMeshes
+                                   | aiProcess_RemoveRedundantMaterials
+                                   | aiProcess_SortByPType
+                                   | aiProcess_FindDegenerates
+                                   | aiProcess_FindInvalidData
+                                   | aiProcess_RemoveComponent
 #ifdef JAM_GFX_API_D3D11
-                         | aiProcess_MakeLeftHanded
-                         | aiProcess_FlipWindingOrder
-                         | aiProcess_FlipUVs;
+                                   | aiProcess_MakeLeftHanded
+                                   | aiProcess_FlipWindingOrder
+                                   | aiProcess_FlipUVs;
 #else
-                           0;
+                                     0;
 #endif
 
-Int32 k_staticMeshImportFlags = k_basicImportFlags
-                              | aiProcess_Debone;
+constexpr Int32 k_staticMeshImportFlags          = k_basicImportFlags | aiProcess_Debone;
+constexpr Int32 k_basicRemoveComponentFlags      = aiComponent_LIGHTS | aiComponent_CAMERAS | aiComponent_TEXTURES;
+constexpr Int32 k_staticMeshRemoveComponentFlags = k_basicRemoveComponentFlags | aiComponent_BONEWEIGHTS | aiComponent_ANIMATIONS;
 
-Int32 k_basicRemoveComponentFlags = aiComponent_LIGHTS
-                                  | aiComponent_CAMERAS
-                                  | aiComponent_TEXTURES;
-
-Int32 k_staticMeshRemoveComponentFlags = k_basicRemoveComponentFlags
-                                       | aiComponent_BONEWEIGHTS
-                                       | aiComponent_ANIMATIONS;
-
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {
@@ -49,16 +43,14 @@ namespace jam
 eErrorCode AssimpImporter::Import()
 {
     JAM_ASSERT(!m_filePath.empty(), "File path is empty.");
-    JAM_ASSERT(IsImportablePath(m_filePath), "File path is not importable. File path: '{}'", m_filePath.native());
-
     JAM_PROFILE_SCOPE_MS(R"(AssimpImporter::Import "{}")", m_filePath.native());
 
     // clean up
     m_meshes.clear();
     m_materials.clear();
 
-    Int32            flags = m_bLoadStaticMesh ? k_staticMeshImportFlags : k_basicImportFlags;
     Assimp::Importer importer;
+    Int32            flags = m_bLoadStaticMesh ? k_staticMeshImportFlags : k_basicImportFlags;
 
     if (m_bComputeTangent)
         flags |= aiProcess_CalcTangentSpace;
@@ -316,31 +308,6 @@ void AssimpImporter::LoadOptimizationForStaticMesh(const bool _bEnable)
 void AssimpImporter::SetPath(const fs::path& _filePath)
 {
     m_filePath = _filePath;
-}
-
-bool AssimpImporter::IsImportablePath(const fs::path& _filePath) const
-{
-    std::string      extensions;
-    Assimp::Importer importer;
-    importer.GetExtensionList(extensions);
-
-    std::vector<std::string> extensionList = Split(extensions, ";");
-    // maybe "*.obj;*.fbx;*.dae;"s
-
-    fs::path    inputExt      = _filePath.extension();
-    std::string lowerInputExt = ToLower(inputExt.string());
-    lowerInputExt.insert(0, "*");
-    // maybe *.xxx
-
-    for (const std::string& ext: extensionList)
-    {
-        if (ext == lowerInputExt)
-        {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 std::span<const AssimpMesh> AssimpImporter::GetMeshes() const

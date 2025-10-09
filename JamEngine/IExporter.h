@@ -17,8 +17,6 @@ public:
     virtual eErrorCode Export()                           = 0;
     virtual void       SetPath(const fs::path& _filePath) = 0;
     virtual void       Reset()                            = 0;
-
-    JAM_NODISCARD virtual bool IsExportablePath(const fs::path& _filePath) const = 0;
 };
 
 }   // namespace jam

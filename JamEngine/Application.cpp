@@ -11,15 +11,16 @@
 #include "SceneManager.h"
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
-void OnNewFailed()
+static void OnNewFailed()
 {
     JAM_CRASH("Failed to create application instance. Please check your CreateApplication implementation.");
 }
 
-float k_deltaTimeStepTable[EnumCount<eUpdatePolicy>()] = {
+constexpr float k_deltaTimeStepTable[EnumCount<eUpdatePolicy>()] = {
     0.f,           // eUpdatePolicy::Unlimited
     1.f / 30.f,    // eUpdatePolicy::Fixed30FPS
     1.f / 60.f,    // eUpdatePolicy::Fixed60FPS
@@ -29,7 +30,7 @@ float k_deltaTimeStepTable[EnumCount<eUpdatePolicy>()] = {
     0.f            // eUpdatePolicy::ManualStep
 };
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {
@@ -51,10 +52,6 @@ void Application::Create(const CommandLineArguments& _args)
         // 기본 속성 설정
         std::set_new_handler(OnNewFailed);
         std::locale::global(std::locale(""));
-        if (std::setlocale(LC_ALL, "") == nullptr)
-        {
-            log::Warn("Failed to set locale");
-        }
 
         // 파일 시스템 생성
         ProjectDirectories& directories = s_instance->m_directories;
@@ -206,7 +203,7 @@ int Application::Run()
                 imgui::BeginFrame();
 
                 // 씬 렌더링
-                if (!m_bEditor) // runtime
+                if (!m_bEditor)   // runtime
                 {
                     scene_manager::RenderRuntime();
                 }
@@ -264,6 +261,26 @@ void Application::Step(const float _sec)
     JAM_ASSERT(_sec > 0.f, "Step time must be greater than 0");
     m_manualUpdateStepSec = _sec;
     m_bStepRequested      = true;
+}
+
+const ProjectDirectories& Application::GetProjectDirectories() const
+{
+    return m_directories;
+}
+
+tstring_view Application::GetApplicationName() const
+{
+    return m_applicationName;
+}
+
+const TickTimer& Application::GetTimer() const
+{
+    return m_timer;
+}
+
+const Window& Application::GetWindow() const
+{
+    return m_window;
 }
 
 }   // namespace jam

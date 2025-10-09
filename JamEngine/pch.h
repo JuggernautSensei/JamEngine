@@ -43,7 +43,7 @@
 
 // 3rd party - filesystem (std::string base)
 #define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
-#include "ghc/filesystem.hpp"
+#include "vendor/ghc/filesystem.hpp"
 
 // 3rd party - unordered_dense
 #include "unordered_dense.h"
@@ -64,3 +64,4 @@
 #include "TypeTrait.h"
 //
 #include "MathUtilities.h"
+#include "StringUtilities.h"

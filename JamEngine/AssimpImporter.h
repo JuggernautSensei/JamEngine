@@ -26,8 +26,7 @@ public:
     void LimitBoneWeight(bool _bEnable);
     void LoadOptimizationForStaticMesh(bool _bEnable);
 
-    void               SetPath(const fs::path& _filePath) override;
-    JAM_NODISCARD bool IsImportablePath(const fs::path& _filePath) const override;
+    void SetPath(const fs::path& _filePath) override;
 
     JAM_NODISCARD std::span<const AssimpMesh> GetMeshes() const;
     JAM_NODISCARD std::span<const AssimpMaterial> GetMaterials() const;

@@ -113,7 +113,7 @@ void Window::SetTitle(const std::string_view _name) const
 {
     JAM_ASSERT(m_hWnd, "Window handle is null");
     JAM_ASSERT(m_hInstance, "Window instance handle is null");
-    ::SetWindowText(m_hWnd, _name.data());
+    ::SetWindowTextA(m_hWnd, _name.data());
 }
 
 void Window::OnEvent(Event& _event) const
@@ -132,7 +132,7 @@ void Window::SetWindowAttribute_(
     JAM_ASSERT(m_hWnd, "Window handle is null");
     JAM_ASSERT(m_hInstance, "Window instance handle is null");
 
-    SetWindowLongW(m_hWnd, GWL_STYLE, _wsFlags);
+    SetWindowLong(m_hWnd, GWL_STYLE, _wsFlags);
     SetWindowPos(m_hWnd, NULL, _leftTopX, _leftTopY, _clientWidth, _clientHeight, SWP_FRAMECHANGED | SWP_NOZORDER);
 
     ShowWindow(m_hWnd, SW_SHOW);

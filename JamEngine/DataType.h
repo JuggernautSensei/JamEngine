@@ -17,7 +17,7 @@ using UInt64 = std::uint64_t;
 using Byte  = UInt8;
 using Index = std::ptrdiff_t;
 
-// json
+// m_json
 using Json = nlohmann::json;
 
 // math formats

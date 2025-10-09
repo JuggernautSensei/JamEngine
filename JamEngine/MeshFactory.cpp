@@ -11,10 +11,11 @@
 #include <DirectXMesh.h>
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
-JAM_NODISCARD Mesh CreateMeshHelper(
+JAM_NODISCARD static Mesh CreateMeshHelper(
     const std::span<const Vec3> _positions,
     const std::span<const Vec2> _texCoords,
     const MemoryView&           _indexData,
@@ -50,14 +51,10 @@ JAM_NODISCARD Mesh CreateMeshHelper(
     return CreateMesh(input, _layout);
 }
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {
-
-///////////////////////////////////
-///          FACTORIES          ///
-///////////////////////////////////
 
 Mesh CreateBoxMesh(
     const Vec3&         _size,

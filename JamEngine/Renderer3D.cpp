@@ -5,8 +5,9 @@
 using namespace jam;
 using namespace jam::gfx;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
 struct Renderer3DContext
 {
@@ -15,7 +16,7 @@ struct Renderer3DContext
 
 Renderer3DContext g_ctx;
 
-}
+////////////////////////////////////////////////////////////
 
 namespace jam::r3d
 {

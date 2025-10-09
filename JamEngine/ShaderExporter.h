@@ -15,8 +15,6 @@ public:
     void SetShaderBytecode(const MemoryView& _shaderBytecode);
     void Reset() override;
 
-    JAM_NODISCARD bool IsExportablePath(const fs::path& _filePath) const override;
-
 private:
     fs::path         m_filePath        = {};
     bool             m_bAllowOverwrite = false;

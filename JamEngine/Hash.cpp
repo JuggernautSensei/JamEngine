@@ -3,20 +3,21 @@
 #include "Hash.h"
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
-UInt32 RotL32(const UInt32 x, const int r)
+static UInt32 RotL32(const UInt32 x, const int r)
 {
     return (x << r) | (x >> (32 - r));
 }
 
-UInt64 RotL64(const UInt64 x, const int r)
+static UInt64 RotL64(const UInt64 x, const int r)
 {
     return (x << r) | (x >> (64 - r));
 }
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {

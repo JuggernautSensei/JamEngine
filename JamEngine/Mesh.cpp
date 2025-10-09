@@ -10,8 +10,9 @@
 #include <flatbuffers/flatbuffers.h>
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
 constexpr eVertexAttribute k_nativeVertexAttribteTable[jmsh::eVertexAttribute_MAX + 1] = {
     eVertexAttribute::Unknown,       // eVertexAttribute_UnknownAttribute
@@ -67,24 +68,20 @@ constexpr jmsh::eAttributeFormat k_fbsAttributeFormatTable[EnumCount<eAttributeF
     jmsh::eAttributeFormat::eAttributeFormat_UInt8x4     // eAttributeFormat::UInt8x4
 };
 
-constexpr Vec3 ConvertToNativeVec3(const jmsh::Vec3& _vec)
+JAM_NODISCARD static Vec3 ConvertToNativeVec3(const jmsh::Vec3& _vec)
 {
     return { _vec.x(), _vec.y(), _vec.z() };
 }
 
-constexpr jmsh::Vec3 ConvertToFbsVec3(const Vec3& _vec)
+JAM_NODISCARD static jmsh::Vec3 ConvertToFbsVec3(const Vec3& _vec)
 {
     return { _vec.x, _vec.y, _vec.z };
 }
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {
-
-//////////////////////////////
-///          MESH          ///
-//////////////////////////////
 
 eErrorCode Mesh::Load(const fs::path& _path)
 {

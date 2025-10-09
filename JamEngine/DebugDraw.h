@@ -1,7 +1,7 @@
 #pragma once
 
 /* clang-format off */
-namespace jam { struct RGBA; class Mesh; enum class eDetailLevel; }
+namespace jam { struct RGBA; class Mesh; }
 /* clang-format on */
 
 /// @brief 시각화용 디버그 드로우 시스템입니다.
@@ -12,9 +12,17 @@ namespace jam { struct RGBA; class Mesh; enum class eDetailLevel; }
 /// Pushxxx ~ Popxxx 쌍을 사용하여 상태를 저장하고 복원할 수 있습니다.
 namespace jam
 {
+
+enum class eDetailLevel : Int8
+{
+    Low = 0,
+    Medium,
+    High,
+    Ultra,
+};
+
 namespace debug_draw
 {
-
     /// @brief 디버그 드로우 시스템을 초기화합니다.
     void Init();
 

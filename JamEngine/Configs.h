@@ -16,6 +16,15 @@
 #    define JAM_ARCH_NAME "32-bit"
 #endif
 
+// text encoding
+#if defined(_UNICODE) || defined(__UNICODE) || defined(UNICODE)
+#    define JAM_TEXT_ENCODING_UNICODE
+#    define JAM_TEXT_ENCODING_NAME "Unicode"
+#else
+#    define JAM_TEXT_ENCODING_MULTIBYTE
+#    define JAM_TEXT_ENCODING_NAME "Multibyte"
+#endif
+
 // Compiler
 #if defined(_MSC_VER)
 #    define JAM_COMPILER_MSVC

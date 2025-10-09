@@ -8,12 +8,13 @@
 #include <SDL3/SDL.h>
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
-DirectX::WICCodecs k_unknownWICCodecs = static_cast<DirectX::WICCodecs>(0);
+constexpr DirectX::WICCodecs k_unknownWICCodecs = static_cast<DirectX::WICCodecs>(0);
 
-DirectX::WICCodecs k_wicCodecsTable[EnumCount<eImageFormat>()] = {
+constexpr DirectX::WICCodecs k_wicCodecsTable[EnumCount<eImageFormat>()] = {
     k_unknownWICCodecs,        // EXR
     k_unknownWICCodecs,        // DDS
     k_unknownWICCodecs,        // HDR
@@ -33,7 +34,7 @@ DirectX::WICCodecs k_wicCodecsTable[EnumCount<eImageFormat>()] = {
     DirectX::WIC_CODEC_HEIF,   // HEIC
 };
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {
@@ -42,9 +43,8 @@ eErrorCode ImageExporter::Export()
 {
     JAM_ASSERT(!m_filePath.empty(), "file path is empty");
     JAM_ASSERT(m_scratchImg.GetImageCount() > 0, "no image to export");
-    JAM_ASSERT(IsExportablePath(m_filePath), "unsupported image format: '{}'", m_filepath.native());
 
-    HRESULT      hr     = E_FAIL;
+    HRESULT      hr;
     std::wstring wPath  = m_filePath.wstring();
     eImageFormat format = DetermineFormatFromExtension(m_filePath);
     switch (format)
@@ -104,19 +104,12 @@ void ImageExporter::SetImage(DirectX::ScratchImage&& _image)
 void ImageExporter::SetPath(const fs::path& _filePath)
 {
     m_filePath = _filePath;
-    JAM_ASSERT(IsExportablePath(m_filePath), "unsupported image format: '{}'", _filepath.native());
 }
 
 void ImageExporter::Reset()
 {
     m_scratchImg.Release();
     m_filePath.clear();
-}
-
-bool ImageExporter::IsExportablePath(const fs::path& _filePath) const
-{
-    eImageFormat format = DetermineFormatFromExtension(_filePath);
-    return format != eImageFormat::Unknown;
 }
 
 }   // namespace jam

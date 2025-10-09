@@ -5,16 +5,13 @@
 #include "vendor/imgui/imgui_internal.h"
 #include "vendor/imgui/imgui_stdlib.h"
 
-namespace jam
-{
-namespace imgui
+namespace jam::imgui
 {
 
-    void Init();
-    void Shutdown();
+void Init();
+void Shutdown();
 
-    void BeginFrame();
-    void EndFrame();
+void BeginFrame();
+void EndFrame();
 
-}   // namespace imgui
-}   // namespace jam
+}

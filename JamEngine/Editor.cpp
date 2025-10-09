@@ -5,57 +5,55 @@
 #include "Entity.h"
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
 struct EditorContext
 {
     Entity focusEntity                          = Entity::s_null;
     bool   panelVisibility[EnumCount<ePanel>()] = {};
 };
-EditorContext g_ctx;
+static EditorContext g_ctx;
 
-}   // namespace
+///////////////////////////////////////
 
-namespace jam
-{
-namespace editor
+namespace jam::editor
 {
 
-    void Init()
-    {
-    }
+void Init()
+{
+}
 
-    void Shutdown()
-    {
-    }
+void Shutdown()
+{
+}
 
-    void Render()
-    {
-    }
+void Render()
+{
+}
 
-    void OnEvent(Event& _event)
-    {
-    }
+void OnEvent(Event& _event)
+{
+}
 
-    void SetPanelVisible(const ePanel _panel, const bool _bVisible)
-    {
-        g_ctx.panelVisibility[EnumToInt(_panel)] = _bVisible;
-    }
+void SetPanelVisible(const ePanel _panel, const bool _bVisible)
+{
+    g_ctx.panelVisibility[EnumToInt(_panel)] = _bVisible;
+}
 
-    bool IsPanelVisible(const ePanel _panel)
-    {
-        return g_ctx.panelVisibility[EnumToInt(_panel)];
-    }
+bool IsPanelVisible(const ePanel _panel)
+{
+    return g_ctx.panelVisibility[EnumToInt(_panel)];
+}
 
-    void SetFocusEntity(const Entity& _entity)
-    {
-        g_ctx.focusEntity = _entity;
-    }
+void SetFocusEntity(const Entity& _entity)
+{
+    g_ctx.focusEntity = _entity;
+}
 
-    Entity GetFocusEntity()
-    {
-        return g_ctx.focusEntity;
-    }
-}   // namespace editor
-}   // namespace jam
+Entity GetFocusEntity()
+{
+    return g_ctx.focusEntity;
+}
+}

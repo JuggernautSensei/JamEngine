@@ -49,9 +49,6 @@
     <ClCompile Include="ILayer.cpp">
       <Filter>1. Core\ILayer</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>4. Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>4. Scene\Entitiy</Filter>
     </ClCompile>
@@ -79,9 +76,6 @@
     <ClCompile Include="AssetManager.cpp">
       <Filter>5. Assets</Filter>
     </ClCompile>
-    <ClCompile Include="SceneSerializer.cpp">
-      <Filter>4. Scene</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentsEditor.cpp">
       <Filter>4. Scene\Component</Filter>
     </ClCompile>
@@ -90,30 +84,6 @@
     </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>99. Utilities\Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui.cpp">
-      <Filter>98. Vendor</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
-      <Filter>98. Vendor</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
-      <Filter>98. Vendor</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp">
-      <Filter>98. Vendor</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp">
-      <Filter>98. Vendor</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_stdlib.cpp">
-      <Filter>98. Vendor</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
-      <Filter>98. Vendor</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
-      <Filter>98. Vendor</Filter>
     </ClCompile>
     <ClCompile Include="fixed_circular_queue.cpp">
       <Filter>99. Utilities\Container\circualr_queue</Filter>
@@ -172,9 +142,6 @@
     <ClCompile Include="Material.cpp">
       <Filter>5. Assets\Material</Filter>
     </ClCompile>
-    <ClCompile Include="ClassDB.cpp">
-      <Filter>7. Reflection</Filter>
-    </ClCompile>
     <ClCompile Include="PostProcess.cpp">
       <Filter>3. Renderer\PostProcess</Filter>
     </ClCompile>
@@ -229,9 +196,6 @@
     <ClCompile Include="ImGuiGlue.cpp">
       <Filter>3. Renderer\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>4. Scene</Filter>
-    </ClCompile>
     <ClCompile Include="fixed_string.cpp">
       <Filter>99. Utilities\Container\string</Filter>
     </ClCompile>
@@ -253,9 +217,6 @@
     <ClCompile Include="UID.cpp">
       <Filter>4. Scene\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptDB.cpp">
-      <Filter>7. Reflection</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentDB.cpp">
       <Filter>7. Reflection</Filter>
     </ClCompile>
@@ -264,6 +225,45 @@
     </ClCompile>
     <ClCompile Include="AssimpBase.cpp">
       <Filter>5. Assets\Mesh\Assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_stdlib.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneDB.cpp">
+      <Filter>7. Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptDB.cpp">
+      <Filter>7. Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>4. Scene\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>4. Scene\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSerializer.cpp">
+      <Filter>4. Scene\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -432,6 +432,15 @@
     <Filter Include="7. Reflection">
       <UniqueIdentifier>{dfa07466-c9e5-4517-8a43-82d35cc0d7fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="98. Vendor\imgui">
+      <UniqueIdentifier>{f01457aa-2d3a-4b18-af56-f04da41313c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\ghc">
+      <UniqueIdentifier>{7089b5b8-f7fc-4809-8fbf-a17cc046f7ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Scene\Scene">
+      <UniqueIdentifier>{85bd357c-5939-4156-b4fd-4428a9da7a30}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -485,9 +494,6 @@
     <ClInclude Include="ILayer.h">
       <Filter>1. Core\ILayer</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>4. Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>4. Scene\Entitiy</Filter>
     </ClInclude>
@@ -515,41 +521,11 @@
     <ClInclude Include="AssetManager.h">
       <Filter>5. Assets</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSerializer.h">
-      <Filter>4. Scene</Filter>
-    </ClInclude>
     <ClInclude Include="MemorySink.h">
       <Filter>1. Core\Log</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>99. Utilities\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imconfig.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_impl_dx11.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_impl_win32.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_internal.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_stdlib.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imstb_rectpack.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imstb_textedit.h">
-      <Filter>98. Vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imstb_truetype.h">
-      <Filter>98. Vendor</Filter>
     </ClInclude>
     <ClInclude Include="fixed_circular_queue.h">
       <Filter>99. Utilities\Container\circualr_queue</Filter>
@@ -601,9 +577,6 @@
     </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>5. Assets\Material</Filter>
-    </ClInclude>
-    <ClInclude Include="ClassDB.h">
-      <Filter>7. Reflection</Filter>
     </ClInclude>
     <ClInclude Include="PostProcess.h">
       <Filter>3. Renderer\PostProcess</Filter>
@@ -671,9 +644,6 @@
     <ClInclude Include="ImGuiGlue.h">
       <Filter>3. Renderer\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>4. Scene</Filter>
-    </ClInclude>
     <ClInclude Include="fixed_string.h">
       <Filter>99. Utilities\Container\string</Filter>
     </ClInclude>
@@ -698,9 +668,6 @@
     <ClInclude Include="unordered_dense.h">
       <Filter>99. Utilities\Container\dense_map</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptDB.h">
-      <Filter>7. Reflection</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentDB.h">
       <Filter>7. Reflection</Filter>
     </ClInclude>
@@ -709,6 +676,66 @@
     </ClInclude>
     <ClInclude Include="AssimpBase.h">
       <Filter>5. Assets\Mesh\Assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imconfig.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_dx11.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_win32.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_internal.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_stdlib.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_textedit.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_truetype.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\filesystem.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_fwd.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_impl.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_std.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_std_fwd.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_std_impl.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDB.h">
+      <Filter>7. Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptDB.h">
+      <Filter>7. Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSerializer.h">
+      <Filter>4. Scene\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>4. Scene\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>4. Scene\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

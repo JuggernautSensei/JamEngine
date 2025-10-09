@@ -13,7 +13,6 @@ namespace jam
 eErrorCode ShaderExporter::Export()
 {
     JAM_ASSERT(!m_filePath.empty(), "File path is not set.");
-    JAM_ASSERT(IsExportablePath(m_filePath), "File path is not exportable. File path: '{}'", m_filepath.native());
     JAM_ASSERT(m_pBlob != nullptr, "Shader bytecode is not set.");
 
     std::wstring wPath = m_filePath.wstring();
@@ -45,14 +44,6 @@ void ShaderExporter::Reset()
     m_filePath.clear();
     m_pBlob.Reset();
     m_bAllowOverwrite = false;
-}
-
-bool ShaderExporter::IsExportablePath(
-    const fs::path& _filePath) const
-{
-    fs::path    ext      = _filePath.extension();
-    std::string lowerExt = ToLower(ext.native());
-    return lowerExt == ".cso";
 }
 
 }   // namespace jam

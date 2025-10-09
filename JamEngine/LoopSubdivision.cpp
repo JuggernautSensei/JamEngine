@@ -6,15 +6,15 @@
 #include "GfxBase.h"
 #include "Memory.h"
 #include "MemoryArena.h"
-
 using namespace jam;
 
 // 루프 세분화 알고리즘
 // https://pbr-book.org/3ed-2018/Shapes/Subdivision_Surfaces
 // https://en.wikipedia.org/wiki/Loop_subdivision_surface
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
 struct SDFace;
 struct SDVertex;
@@ -105,18 +105,6 @@ struct SDEdge
     Int32     face0EdgeNum = -1;
 };
 
-JAM_NODISCARD SDPoint WeightOneRing(const SDVertex* vert, float Beta);
-JAM_NODISCARD SDPoint WeightBoundary(const SDVertex* vert, float Beta);
-
-float Beta(const Int32 _valence)
-{
-    return _valence == 3 ? 3.f / 16.f : 3.f / (8.f * static_cast<float>(_valence));
-}
-
-float LoopGamma(const Int32 _valence)
-{
-    return 1.f / (static_cast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
-}
 
 Int32 SDVertex::CalcValence() const
 {
@@ -170,7 +158,17 @@ std::vector<SDPoint> SDVertex::OneRing() const
     return pRing;
 }
 
-SDPoint WeightOneRing(const SDVertex* vert, const float Beta)
+static float Beta(const Int32 _valence)
+{
+    return _valence == 3 ? 3.f / 16.f : 3.f / (8.f * static_cast<float>(_valence));
+}
+
+static float LoopGamma(const Int32 _valence)
+{
+    return 1.f / (static_cast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
+}
+
+static SDPoint WeightOneRing(const SDVertex* vert, const float Beta)
 {
     Int32                CalcValence = vert->CalcValence();
     std::vector<SDPoint> pRing       = vert->OneRing();
@@ -187,7 +185,7 @@ SDPoint WeightOneRing(const SDVertex* vert, const float Beta)
     return point;
 }
 
-SDPoint WeightBoundary(const SDVertex* vert, const float Beta)
+static SDPoint WeightBoundary(const SDVertex* vert, const float Beta)
 {
     Int32                CalcValence = vert->CalcValence();
     std::vector<SDPoint> pRing       = vert->OneRing();
@@ -202,7 +200,7 @@ SDPoint WeightBoundary(const SDVertex* vert, const float Beta)
     return point;
 }
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {

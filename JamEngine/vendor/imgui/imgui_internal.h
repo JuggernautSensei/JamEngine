@@ -395,8 +395,8 @@ inline unsigned int     ImCountSetBits(unsigned int v)      { unsigned int count
 // Helpers: String
 #define ImStrlen strlen
 #define ImMemchr memchr
-IMGUI_API int           ImStricmp(const char* str1, const char* str2);                      // Case insensitive compare.
-IMGUI_API int           ImStrnicmp(const char* str1, const char* str2, size_t count);       // Case insensitive compare to a certain vertexCount.
+IMGUI_API int           ImStricmp(const char* str1, const char* str2);                      // Case insensitive compareFunc.
+IMGUI_API int           ImStrnicmp(const char* str1, const char* str2, size_t count);       // Case insensitive compareFunc to a certain vertexCount.
 IMGUI_API void          ImStrncpy(char* dst, const char* src, size_t count);                // Copy to a certain vertexCount and always zero terminate (strncpy doesn't).
 IMGUI_API char*         ImStrdup(const char* str);                                          // Duplicate a string.
 IMGUI_API void*         ImMemdup(const void* src, size_t size);                             // Duplicate a chunk of memory.

@@ -18,22 +18,21 @@ public:
     void Stop();
     void Update(float _deltaSec);
 
-    virtual void OnStart() {}
-    virtual void OnUpdate(float _deltaSec) {}
-
     JAM_NODISCARD virtual std::string_view GetName() const = 0;
-    JAM_NODISCARD virtual UInt32           GetHash() const = 0;
-
-    JAM_NODISCARD Entity GetEntity() const { return m_owner; }
-    JAM_NODISCARD bool   IsRunning() const { return m_bRun; }
+    JAM_NODISCARD Entity                   GetEntity() const { return m_owner; }
+    JAM_NODISCARD bool                     IsRunning() const { return m_bRun; }
 
 protected:
-    explicit Script(Entity _entity);
+    explicit Script(const Entity& _entity);
 
     JAM_NODISCARD const Entity& GetOwner() const { return m_owner; }
     JAM_NODISCARD Entity&       GetOwner() { return m_owner; }
 
 private:
+    virtual void OnStart() {}
+    virtual void OnStop() {}
+    virtual void OnUpdate(float _deltaSec) {}
+
     Entity m_owner    = Entity::s_null;
     bool   m_bRun     = true;
     bool   m_bStarted = false;
@@ -41,6 +40,14 @@ private:
 
 }   // namespace jam
 
-#define JAM_SCRIPT(_class) \
-    inline static bool JAM_CONCAT(script_db, __LINE__) = jam::script_db::Reflect<_class>(#_class)
-
+#define JAM_SCRIPT(_class)                                                      \
+public:                                                                         \
+    constexpr static bool _script_marker_ = true;                               \
+    JAM_NODISCARD std::string_view GetName() const override { return #_class; } \
+                                                                                \
+private:                                                                        \
+    inline static bool _script_reflect_ = []                                    \
+    {                                                                           \
+        jam::script_db::Reflect<_class>();                                      \
+        return true;                                                            \
+    }()

@@ -27,22 +27,55 @@ public:
     JAM_NODISCARD const TransformComponent& GetTransform() const;
 
     template<typename T, typename... Args>
-    decltype(auto) CreateComponent(Args&&... args);
+    decltype(auto) CreateComponent(Args&&... args)
+    {
+        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
+        return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
+    }
 
     template<typename T, typename... Args>
-    decltype(auto) CreateOrReplaceComponent(Args&&... args);
+    decltype(auto) CreateOrReplaceComponent(Args&&... args)
+    {
+        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
+        return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
+    }
 
     template<typename... T>
-    JAM_NODISCARD decltype(auto) GetComponent() const;
+    decltype(auto) GetComponent() const
+    {
+        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
+        return m_pRegistry->get<T...>(m_handle);
+    }
 
     template<typename... T>
-    JAM_NODISCARD decltype(auto) GetComponent();
+    decltype(auto) GetComponent()
+    {
+        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
+        return m_pRegistry->get<T...>(m_handle);
+    }
 
     template<typename... T>
-    JAM_NODISCARD bool HasComponent() const;
+    bool HasComponent() const
+    {
+        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        JAM_ASSERT(IsValid(), "Entity is not valid");
+        return m_pRegistry->all_of<T...>(m_handle);
+    }
 
     template<typename... T>
-    void RemoveComponent() const;
+    void RemoveComponent() const
+    {
+        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        static_assert((!std::is_base_of_v<UnremovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
+
+        JAM_ASSERT(IsValid(), "Entity is not valid");
+        JAM_ASSERT(HasComponent<T...>(), "Entity does not have the specified component(s)");
+        m_pRegistry->remove<T...>(m_handle);
+    }
 
     static Entity s_null;
 
@@ -51,54 +84,5 @@ private:
     entt::entity    m_handle    = entt::null;
     UID             m_uid       = k_invalidUID;
 };
-
-////////////////////////////////
-///          INLINE          ///
-////////////////////////////////
-
-template<typename T, typename... Args>
-decltype(auto) Entity::CreateComponent(Args&&... args)
-{
-    JAM_ASSERT(IsValid(), "Entity is not valid");
-    return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
-}
-
-template<typename T, typename... Args>
-decltype(auto) Entity::CreateOrReplaceComponent(Args&&... args)
-{
-    JAM_ASSERT(IsValid(), "Entity is not valid");
-    return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
-}
-
-template<typename... T>
-decltype(auto) Entity::GetComponent() const
-{
-    JAM_ASSERT(IsValid(), "Entity is not valid");
-    return m_pRegistry->get<T...>(m_handle);
-}
-
-template<typename... T>
-decltype(auto) Entity::GetComponent()
-{
-    JAM_ASSERT(IsValid(), "Entity is not valid");
-    return m_pRegistry->get<T...>(m_handle);
-}
-
-template<typename... T>
-bool Entity::HasComponent() const
-{
-    JAM_ASSERT(IsValid(), "Entity is not valid");
-    return m_pRegistry->all_of<T...>(m_handle);
-}
-
-template<typename... T>
-void Entity::RemoveComponent() const
-{
-    static_assert((!std::is_base_of_v<UnremovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
-
-    JAM_ASSERT(IsValid(), "Entity is not valid");
-    JAM_ASSERT(HasComponent<T...>(), "Entity does not have the specified component(s)");
-    m_pRegistry->remove<T...>(m_handle);
-}
 
 }   // namespace jam

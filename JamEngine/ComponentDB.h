@@ -11,16 +11,16 @@ struct ComponentInfo
     std::string name     = {};
     UInt32      typeHash = 0;
 
-    std::function<void(const Entity&)>                                       createFn                = nullptr;
-    std::function<void(const Entity&, const std::any&)>                      createByCopyFn          = nullptr;
-    std::function<void(const Entity&)>                                       createOrReplaceFn       = nullptr;
-    std::function<void(const Entity&, const std::any&)>                      createOrReplaceByCopyFn = nullptr;
-    std::function<void(const Entity&)>                                       removeFn                = nullptr;
-    std::function<std::any(const Entity&)>                                   getFn                   = nullptr;
-    std::function<bool(const Entity&)>                                       hasFn                   = nullptr;
-    std::function<Json(const std::any&, const Scene*, const Entity&)>        serializeFn             = nullptr;
-    std::function<void(std::any&, const Json&, const Scene*, const Entity&)> deserializeFn           = nullptr;
-    std::function<void(std::any&, const Scene*, const Entity&)>              drawEditorFn            = nullptr;
+    std::function<void(const Entity&)>                                         createFn                = nullptr;
+    std::function<void(const Entity&, const void*)>                            createByCopyFn          = nullptr;
+    std::function<void(const Entity&)>                                         createOrReplaceFn       = nullptr;
+    std::function<void(const Entity&, const void*)>                            createOrReplaceByCopyFn = nullptr;
+    std::function<void(const Entity&)>                                         removeFn                = nullptr;
+    std::function<void*(const Entity&)>                                        getFn                   = nullptr;
+    std::function<bool(const Entity&)>                                         hasFn                   = nullptr;
+    std::function<Json(const void*, const Scene*, const Entity&)>              serializeFn             = nullptr;
+    std::function<eErrorCode(void*, const Json&, const Scene*, const Entity&)> deserializeFn           = nullptr;
+    std::function<void(void*, const Scene*, const Entity&)>                    drawEditorFn            = nullptr;
 };
 
 namespace component_db
@@ -28,68 +28,75 @@ namespace component_db
     namespace details
     {
         template<typename T>
-        void Create(const Entity& e)
+        void Create(const Entity& _entity)
         {
-            e.CreateComponent<T>();
+            _entity.CreateComponent<T>();
         }
 
         template<typename T>
-        void CreateByCopy(const Entity& e, const std::any& other)
+        void CreateByCopy(const Entity& _entity, const void* _pComponent)
         {
-            const T& otherComponent = std::any_cast<const T&>(other);
-            e.CreateComponent<T>(otherComponent);
+            const T& component = *static_cast<const T*>(_pComponent);
+            _entity.CreateComponent<T>(component);
         }
 
         template<typename T>
-        void CreateOrReplace(const Entity& e)
+        void CreateOrReplace(const Entity& _entity)
         {
-            e.CreateOrReplaceComponent<T>();
+            _entity.CreateOrReplaceComponent<T>();
         }
 
         template<typename T>
-        void CreateOrReplaceByCopy(const Entity& e, const std::any& other)
+        void CreateOrReplaceByCopy(const Entity& _entity, const void* _pComponent)
         {
-            const T& otherComponent = std::any_cast<const T&>(other);
-            e.CreateOrReplaceComponent<T>(otherComponent);
+            const T& component = *static_cast<const T*>(_pComponent);
+            _entity.CreateOrReplaceComponent<T>(component);
         }
 
         template<typename T>
-        void Remove(const Entity& e)
+        void Remove(const Entity& _entity)
         {
-            e.RemoveComponent<T>();
+            _entity.RemoveComponent<T>();
         }
 
         template<typename T>
-        std::any Get(const Entity& e)
+        void* Get(const Entity& _entity)
         {
-            return e.GetComponent<T>();
+            if constexpr (std::is_void_v(_entity.GetComponent<T>()))
+            {
+                return nullptr;
+            }
+            else
+            {
+                return static_cast<void*>(&_entity.GetComponent<T>());
+            }
         }
 
         template<typename T>
-        bool Has(const Entity& e)
+        bool Has(const Entity& _entity)
         {
-            return e.HasComponent<T>();
+            return _entity.HasComponent<T>();
         }
 
         template<typename T>
-        Json Serialize(const std::any& c, const Scene* s, const Entity& e)
+        Json Serialize(const void* _pComponent, const Scene* _pScene, const Entity& _entity)
         {
-            const T& component = std::any_cast<const T&>(c);
-            return component.Serialize(s, e);
+            const T& component = *static_cast<const T*>(_pComponent);
+            return component.Serialize(_pScene, _entity);
         }
 
         template<typename T>
-        void Deserialize(std::any& c, const Json& j, const Scene* s, const Entity& e)
+        eErrorCode Deserialize(void* _pComponent, const Json& _json, const Scene* _pScene, const Entity& _entity)
         {
-            T& component = std::any_cast<T&>(c);
-            component.Deserialize(j, s, e);
+            T& component = *static_cast<T*>(_pComponent);
+            return component.Deserialize(_json, _pScene, _entity);
         }
 
         template<typename T>
-        void DrawEditor(std::any& c, const Scene* s, const Entity& e)
+        void DrawEditor(void*& _pComponent, const Scene* _pScene, const Entity& _entity)
         {
-            T& component = std::any_cast<T&>(c);
-            component.DrawEditor(s, e);
+            T& component = *static_cast<T*>(_pComponent);
+            component.DrawEditor_(_pScene, _entity);
         }
 
     }   // namespace details
@@ -97,10 +104,10 @@ namespace component_db
     void Reflect(std::string_view _name, const ComponentInfo& info);
 
     template<typename T>
-    void Reflect(const std::string_view _name)
+    void Reflect()
     {
         ComponentInfo info;
-        info.name                    = _name;
+        info.name                    = NameOf<T>;
         info.typeHash                = HashOf<T>();
         info.createFn                = details::Create<T>;
         info.createByCopyFn          = details::CreateByCopy<T>;
@@ -125,39 +132,43 @@ namespace component_db
             info.drawEditorFn = details::DrawEditor<T>;
         }
 
-        Reflect(_name, info);
+        Reflect(info.name, info);
     }
 
     // 런타임 접근용 (이름)
-    void     Create(std::string_view _name, const Entity& _entity);
-    void     CreateByCopy(std::string_view _name, const Entity& _entity, const std::any& _component);
-    void     CreateOrReplace(std::string_view _name, const Entity& _entity);
-    void     CreateOrReplaceByCopy(std::string_view _name, const Entity& _entity, const std::any& _component);
-    void     Remove(std::string_view _name, const Entity& _entity);
-    std::any Get(std::string_view _name, const Entity& _entity);
-    bool     Has(std::string_view _name, const Entity& _entity);
-    Json     Serialize(std::string_view _name, const std::any& _component, const Scene* _pScene, const Entity& _entity);
-    void     Deserialize(std::string_view _name, std::any& _component, const Json& _json, const Scene* _pScene, const Entity& _entity);
-    void     DrawEditor(std::string_view _name, std::any& _component, const Scene* _pScene, const Entity& _entity);
+    void                Create(std::string_view _name, const Entity& _entity);
+    void                CreateByCopy(std::string_view _name, const Entity& _entity, const void*& _component);
+    void                CreateOrReplace(std::string_view _name, const Entity& _entity);
+    void                CreateOrReplaceByCopy(std::string_view _name, const Entity& _entity, const void* _pComponent);
+    void                Remove(std::string_view _name, const Entity& _entity);
+    JAM_NODISCARD void* Get(std::string_view _name, const Entity& _entity);
+    JAM_NODISCARD bool  Has(std::string_view _name, const Entity& _entity);
+    JAM_NODISCARD Json  Serialize(std::string_view _name, const void* _pComponent, const Scene* _pScene, const Entity& _entity);
+    eErrorCode          Deserialize(std::string_view _name, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity& _entity);
+    void                DrawEditor(std::string_view _name, void* _pComponent, const Scene* _pScene, const Entity& _entity);
 
     // 런타임 접근용 (타입 해시)
-    void     Create(UInt32 _typeID, const Entity& _entity);
-    void     CreateByCopy(UInt32 _typeID, const Entity& _entity, const std::any& _component);
-    void     CreateOrReplace(UInt32 _typeID, const Entity& _entity);
-    void     CreateOrReplaceByCopy(UInt32 _typeID, const Entity& _entity, const std::any& _component);
-    void     Remove(UInt32 _typeID, const Entity& _entity);
-    std::any Get(UInt32 _typeID, const Entity& _entity);
-    bool     Has(UInt32 _typeID, const Entity& _entity);
-    Json     Serialize(UInt32 _typeID, const std::any& _component, const Scene* _pScene, const Entity& _entity);
-    void     Deserialize(UInt32 _typeID, std::any& _component, const Json& _json, const Scene* _pScene, const Entity& _entity);
-    void     DrawEditor(UInt32 _typeID, std::any& _component, const Scene* _pScene, const Entity& _entity);
+    void                Create(UInt32 _typeID, const Entity& _entity);
+    void                CreateByCopy(UInt32 _typeID, const Entity& _entity, const void* _pComponent);
+    void                CreateOrReplace(UInt32 _typeID, const Entity& _entity);
+    void                CreateOrReplaceByCopy(UInt32 _typeID, const Entity& _entity, const void* _pComponent);
+    void                Remove(UInt32 _typeID, const Entity& _entity);
+    JAM_NODISCARD void* Get(UInt32 _typeID, const Entity& _entity);
+    JAM_NODISCARD bool  Has(UInt32 _typeID, const Entity& _entity);
+    JAM_NODISCARD Json  Serialize(UInt32 _typeID, const void* _pComponent, const Scene* _pScene, const Entity& _entity);
+    eErrorCode          Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity& _entity);
+    void                DrawEditor(UInt32 _typeID, void* _pComponent, const Scene* _pScene, const Entity& _entity);
 
-    const HashMap<UInt32, ComponentInfo>& GetAllComponentInfos();
+    JAM_NODISCARD const HashMap<UInt32, ComponentInfo>& GetAllComponentInfos();
 
 }   // namespace component_db
 }   // namespace jam
 
-#define JAM_COMPONENT(_type) \
-    inline static bool JAM_CONCAT(_jam_component_, __LINE__) = [] { \
-        jam::component_db::Reflect<_type>(#_type); \
-        return true; }()
+#define JAM_COMPONENT(_type)                           \
+private:                                               \
+    inline static bool _component_reflect_ = [] { \
+        jam::component_db::Reflect<_type>(); \
+        return true; }(); \
+                                                       \
+public:                                                \
+    constexpr static bool _component_marker_ = true

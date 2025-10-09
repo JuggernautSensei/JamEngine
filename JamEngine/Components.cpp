@@ -23,9 +23,17 @@ Json TagComponent::Serialize(const Scene* _pScene, const Entity& _entity) const
     return json;
 }
 
-void TagComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode TagComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
 {
-    name = _json.value<std::string>("name", "unknown");
+    // 유효성 체크
+    if (!_json.contains("name"))
+    {
+        SetErrorString("TagComponent deserialization failed: 'name' field is missing.");
+        return eErrorCode::FileParseFailed;
+    }
+
+    name = _json["name"].get<std::string>();
+    return eErrorCode::Ok;
 }
 
 Json TransformComponent::Serialize(const Scene* _pScene, const Entity& _entity) const
@@ -40,33 +48,44 @@ Json TransformComponent::Serialize(const Scene* _pScene, const Entity& _entity) 
     json["translate"] = local.translate;
     json["rotate"]    = local.rotate;
     json["scale"]     = local.scale;
-    json["parent"]    = parent.GetUID();   // parent 만 저장하면 모두 복구할 수 있음
+    json["parent"]    = parent.GetUID();
     return json;
 }
 
-void TransformComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
 {
     JAM_ASSERT(root.IsValid(), "root entity is invalid");
     JAM_ASSERT(owner.IsValid(), "owner entity is invalid");
 
+    // 유효성 체크
+    const char* fieldNames[] = { "translate", "rotate", "scale", "parent" };
+    for (const char* fieldName: fieldNames)
+    {
+        if (!_json.contains(fieldName))
+        {
+            SetErrorString("TransformComponent deserialization failed: {} field is missing.", fieldName);
+            return eErrorCode::FileParseFailed;
+        }
+    }
+
+    // 로컬
     Transform local;
     local.translate = _json.value<Vec3>("translate", Vec3::Zero);
     local.rotate    = _json.value<Quat>("rotate", Quat::Identity);
     local.scale     = _json.value<Vec3>("scale", Vec3::One);
     transform.SetLocal(local);
 
-    if (_json.contains("parent"))
+    // 부모 설정
+    UID    parentUID = _json["parent"].get<UID>();
+    Entity parent    = _pScene->FindEntity(parentUID);
+    if (!parent.IsValid())
     {
-        UID    parentUID    = _json["parent"].get<UID>();
-        Entity parentEntity = _pScene->GetEntity(parentUID);
-        JAM_ASSERT(parentEntity.IsValid(), "parent entity (UID: {}) not found", parentUID);
-        SetParent(parentEntity);
+        SetErrorString("TransformComponent deserialization failed: 'parent' entity with UID " + std::to_string(parentUID) + " not found.");
+        return eErrorCode::FileParseFailed;
     }
-    else
-    {
-        // 부모 정보가 없으면 root에 붙임
-        SetParent(root);
-    }
+
+    SetParent(parent);
+    return eErrorCode::Ok;
 }
 
 void TransformComponent::SetParent(const Entity _parent)
@@ -75,7 +94,9 @@ void TransformComponent::SetParent(const Entity _parent)
     JAM_ASSERT(owner != _parent, "cannot set self as parent");
 
     if (parent == _parent)
+    {
         return;
+    }
 
     // 기존 계층 정리
     if (parent.IsValid())
@@ -148,27 +169,43 @@ Json CameraComponent::Serialize(const Scene* _pScene, const Entity& _entity) con
     return json;
 }
 
-void CameraComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
 {
-    camera.projection = _json.value<eProjection>("projection", eProjection::Perspective);
-    camera.nearZ      = _json.value<float>("nearZ", 0.1f);
-    camera.farZ       = _json.value<float>("farZ", 1000.f);
-    camera.fovYRad    = _json.value<float>("fovYRad", ToRad(45.f));
-    camera.width      = _json.value<float>("width", 1.f);
-    camera.height     = _json.value<float>("height", 1.f);
-    bMain             = _json.value<bool>("bMain", false);
+    constexpr const char* const fieldNames[] = { "projection", "nearZ", "farZ", "fovYRad", "width", "height", "bMain" };
+    for (const char* fieldName: fieldNames)
+    {
+        if (!_json.contains(fieldName))
+        {
+            SetErrorString("CameraComponent deserialization failed: {} field is missing.", fieldName);
+            return eErrorCode::FileParseFailed;
+        }
+    }
 
+    camera.projection = _json["projectection"].get<eProjection>();
+    camera.nearZ      = _json["nearZ"].get<Int32>();
+    camera.farZ       = _json["farZ"].get<Int32>();
+    camera.fovYRad    = _json["fovYRad"].get<float>();
+    camera.width      = _json["width"].get<Int32>();
+    camera.height     = _json["height"].get<Int32>();
+    bMain             = _json["bMain"].get<bool>();
+
+    // 사후검사
     if (!IsValidEnum(camera.projection))
     {
-        camera.projection = eProjection::Perspective;
+        SetErrorString("CameraComponent deserialization failed: 'projection' field is invalid.");
+        return eErrorCode::FileParseFailed;
     }
+
+    camera.nearZ = Clamp(camera.nearZ, Camera::k_nearestZ, Camera::k_farthestZ - Camera::k_nearestZ);
+    camera.farZ  = Clamp(camera.farZ, camera.nearZ + Camera::k_nearestZ, Camera::k_farthestZ);
+    return eErrorCode::Ok;
 }
 
 Json ScriptComponent::Serialize(const Scene* _pScene, const Entity& _entity) const
 {
     if (!pScript)
     {
-        return {};
+        return Json::value_t::null;
     }
 
     Json json;
@@ -176,56 +213,71 @@ Json ScriptComponent::Serialize(const Scene* _pScene, const Entity& _entity) con
     return json;
 }
 
-void ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
 {
-    if (_json.contains("script"))
+    if (!_json.contains("script"))
     {
-        std::string scriptName = _json["script"];
-        pScript                = script_db::Create(scriptName, _entity);
+        SetErrorString("ScriptComponent deserialization failed: 'script' field is missing.");
+        return eErrorCode::FileParseFailed;
     }
+
+    std::string scriptName = _json["script"];
+    pScript                = script_db::Create(scriptName, _entity);
+    return eErrorCode::Ok;
 }
 
 Json MeshRenderer::Serialize(const Scene* _pScene, const Entity& _entity) const
 {
+    if (mesh == k_invalidHandle || material == k_invalidHandle)
+    {
+        return Json::value_t::null;
+    }
+
+    const Mesh&     msh = asset_manager::GetMesh(this->mesh);
+    const Material& mat = asset_manager::GetMaterial(this->material);
+
     Json json;
-
-    if (mesh != k_invalidHandle)
-    {
-        const Mesh& m = asset_manager::GetMesh(mesh);
-        json["mesh"]  = m.GetPath();
-    }
-
-    if (material != k_invalidHandle)
-    {
-        const Material& mat = asset_manager::GetMaterial(material);
-        json["material"]    = mat.GetPath();
-    }
-
+    json["mesh"]     = msh.GetPath();
+    json["material"] = mat.GetPath();
     return json;
 }
-
-void MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
 {
-
-    if (_json.contains("mesh"))
+    constexpr const char* const fieldNames[] = { "mesh", "material" };
+    for (const char* fieldName: fieldNames)
     {
-        fs::path path = _json["mesh"].get<fs::path>();
-        auto [ret, m] = asset_manager::GetOrLoadMesh(path);
-        if (IsOk(ret))
+        if (!_json.contains(fieldName))
         {
-            mesh = m;
+            SetErrorString("MeshRenderer deserialization failed: {} field is missing.", fieldName);
+            return eErrorCode::FileParseFailed;
         }
     }
 
-    if (_json.contains("material"))
+    // 메쉬 로드
     {
-        fs::path path   = _json["material"].get<fs::path>();
-        auto [ret, mat] = asset_manager::GetOrLoadMaterial(path);
-        if (IsOk(ret))
+        fs::path meshPath = _json["mesh"].get<std::string>();
+        auto [err, meshHandle] = asset_manager::GetOrLoadMeshHandle(meshPath);
+        if (IsError(err))
         {
-            material = mat;
+            SetErrorString("MeshRenderer deserialization failed: could not load mesh from path '{}'.", meshPath.native());
+            return eErrorCode::FileParseFailed;
         }
+        mesh = meshHandle;
     }
+
+    // 머티리얼 로드
+    {
+        fs::path matPath      = _json["material"].get<std::string>();
+        auto [err, matHandle] = asset_manager::GetOrLoadMaterialHandle(matPath);
+        if (IsError(err))
+        {
+            SetErrorString("MeshRenderer deserialization failed: could not load material from path '{}'.", matPath.native());
+            return eErrorCode::FileParseFailed;
+        }
+        material = matHandle;
+    }
+
+    return eErrorCode::Ok;
 }
 
 }   // namespace jam

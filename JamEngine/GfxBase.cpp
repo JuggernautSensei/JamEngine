@@ -5,15 +5,164 @@
 namespace jam
 {
 
-eStateFlags MakeBlendState(const eBlend _srcBlend, const eBlendOp _op, const eBlend _dstBlend, const Int32 _renderTargetIndex)
-{
-    JAM_ASSERT(_renderTargetIndex < 3, "렌더 타겟 인덱스는 0 ~ 2까지만 지원됩니다.");
-    eStateFlags flags = eStateFlags_None;
-    flags |= static_cast<eStateFlags>(_srcBlend);
-    flags |= static_cast<eStateFlags>(_op) << 4;
-    flags |= static_cast<eStateFlags>(_dstBlend) << 8;
-    return flags << (eStateFlags_BlendStateRT0Shift_Internal + 12ull * _renderTargetIndex);
-}
+GfxState GfxState::k_default = {};
+
+GfxState GfxState::k_depthTest = {
+    .primitive         = ePrimitive::TriangleList,
+    .cullMode          = eCullMode::Back,
+    .bWireframe        = false,
+    .bDepthClamp       = false,
+    .bMultiSample      = false,
+    .bLineAA           = false,
+    .bScissor          = false,
+    .bCCWFront         = false,
+    .bAlphaToCoverage  = false,
+    .bIndependentBlend = false,
+    .depthTestFunc     = eCompareFunc::Less,
+    .bDepthWrite       = true
+};
+
+BlendState BlendState::k_default = {};
+
+BlendState BlendState::k_alpha = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::SrcAlpha,
+    .dstBlend      = eBlend::InvSrcAlpha,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::One,
+    .dstBlendAlpha = eBlend::InvSrcAlpha,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_additive = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::One,
+    .dstBlend      = eBlend::One,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::One,
+    .dstBlendAlpha = eBlend::One,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_overlay = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::DstColor,
+    .dstBlend      = eBlend::InvSrcColor,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::One,
+    .dstBlendAlpha = eBlend::Zero,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_premult = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::One,
+    .dstBlend      = eBlend::InvSrcAlpha,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::One,
+    .dstBlendAlpha = eBlend::InvSrcAlpha,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_subtractive = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::InvDstColor,
+    .dstBlend      = eBlend::Zero,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::InvDstAlpha,
+    .dstBlendAlpha = eBlend::Zero,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_multiply = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::DstColor,
+    .dstBlend      = eBlend::Zero,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::DstAlpha,
+    .dstBlendAlpha = eBlend::Zero,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_screen = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::One,
+    .dstBlend      = eBlend::InvSrcColor,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::One,
+    .dstBlendAlpha = eBlend::InvSrcAlpha,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_darkening = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::DstColor,
+    .dstBlend      = eBlend::SrcColor,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::DstAlpha,
+    .dstBlendAlpha = eBlend::SrcAlpha,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+BlendState BlendState::k_lightening = {
+    .bEnable       = true,
+    .srcBlend      = eBlend::One,
+    .dstBlend      = eBlend::InvSrcColor,
+    .blendOp       = eBlendOp::Add,
+    .srcBlendAlpha = eBlend::One,
+    .dstBlendAlpha = eBlend::InvSrcAlpha,
+    .blendOpAlpha  = eBlendOp::Add,
+    .writeMask     = eWriteFlags_All
+};
+
+SamplerState SamplerState::k_default = {};
+
+SamplerState SamplerState::k_pointClamp = {
+    .filter      = eTextureFilter::MinPoint_MagPoint_MipPoint,
+    .addressU    = eTextureAddress::Clamp,
+    .addressV    = eTextureAddress::Clamp,
+    .addressW    = eTextureAddress::Clamp,
+    .compareFunc = eCompareFunc::None
+};
+SamplerState SamplerState::k_linearClamp = {
+    .filter      = eTextureFilter::MinLinear_MagLinear_MipLinear,
+    .addressU    = eTextureAddress::Clamp,
+    .addressV    = eTextureAddress::Clamp,
+    .addressW    = eTextureAddress::Clamp,
+    .compareFunc = eCompareFunc::None
+};
+
+SamplerState SamplerState::k_pointWrap = {
+    .filter      = eTextureFilter::MinPoint_MagPoint_MipPoint,
+    .addressU    = eTextureAddress::Wrap,
+    .addressV    = eTextureAddress::Wrap,
+    .addressW    = eTextureAddress::Wrap,
+    .compareFunc = eCompareFunc::None
+};
+
+SamplerState SamplerState::k_linearWrap = {
+    .filter      = eTextureFilter::MinLinear_MagLinear_MipLinear,
+    .addressU    = eTextureAddress::Wrap,
+    .addressV    = eTextureAddress::Wrap,
+    .addressW    = eTextureAddress::Wrap,
+    .compareFunc = eCompareFunc::None
+};
+
+SamplerState SamplerState::k_shadow = {
+    .filter      = eTextureFilter::MinLinear_MagLinear_MipLinear,
+    .addressU    = eTextureAddress::Clamp,
+    .addressV    = eTextureAddress::Clamp,
+    .addressW    = eTextureAddress::Clamp,
+    .compareFunc = eCompareFunc::LessEqual
+};
 
 Int32 GetPixelByte(const eFormat _format)
 {

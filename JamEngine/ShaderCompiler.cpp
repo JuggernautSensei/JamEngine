@@ -33,7 +33,7 @@ eErrorCode ShaderCompiler::LoadHLSLFromFile(
     const std::span<const ShaderMacro> _macrosOrEmpty)
 {
     // file open
-    std::ifstream file(_filePath, std::ios::in | std::ios::binary);
+    std::ifstream file { _filePath, std::ios::in | std::ios::binary };
     if (!file.is_open())
     {
         SetErrorString(R"(Failed to open shader file: "{}")", _filePath.native());
@@ -146,7 +146,7 @@ eErrorCode ShaderCompiler::LoadCSOFromFile(
     const fs::path& _filePath)
 {
     // file open
-    std::ifstream file(_filePath, std::ios::in | std::ios::binary);
+    std::ifstream file { _filePath, std::ios::in | std::ios::binary };
     if (!file.is_open())
     {
         SetErrorString(R"(Failed to open shader file: "{}")", _filePath.native());

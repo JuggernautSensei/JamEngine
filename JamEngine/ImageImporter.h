@@ -22,8 +22,6 @@ public:
     void FlipHorizontal();
     void PreMultiplyAlpha();
 
-    JAM_NODISCARD bool IsImportablePath(const fs::path& _filePath) const override;
-
 private:
     fs::path              m_filePath = {};
     eImageFormat          m_format   = eImageFormat::Unknown;

@@ -7,30 +7,31 @@
 #include "resources/flatc/jmat_generated.h"
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
-JAM_NODISCARD Vec3 ConvertToNativeVec3(const jmat::Vec3& _vec)
+JAM_NODISCARD static Vec3 ConvertToNativeVec3(const jmat::Vec3& _vec)
 {
     return { _vec.x(), _vec.y(), _vec.z() };
 }
 
-JAM_NODISCARD jmat::Vec3 ConvertToFbsVec3(const Vec3& _vec)
+JAM_NODISCARD static jmat::Vec3 ConvertToFbsVec3(const Vec3& _vec)
 {
     return { _vec.x, _vec.y, _vec.z };
 }
 
-JAM_NODISCARD fs::path ConvertToPath(const flatbuffers::String& _str)
+JAM_NODISCARD static fs::path ConvertToPath(const flatbuffers::String& _str)
 {
     return fs::path(_str.c_str());
 }
 
-JAM_NODISCARD flatbuffers::Offset<flatbuffers::String> ConvertToFbsString(flatbuffers::FlatBufferBuilder& _fbb, const fs::path& _path)
+JAM_NODISCARD static flatbuffers::Offset<flatbuffers::String> ConvertToFbsString(flatbuffers::FlatBufferBuilder& _fbb, const fs::path& _path)
 {
     return _fbb.CreateString(_path.native());
 }
 
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam
 {

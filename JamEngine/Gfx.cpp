@@ -20,23 +20,6 @@
 #include <d3dcompiler.h>
 using namespace jam;
 
-/////////////////////////////////
-///          PRIVATE          ///
-/////////////////////////////////
-
-namespace
-{
-
-///////////////////////////////////
-///          DATA TYPE          ///
-///////////////////////////////////
-
-using RasterizerStateCacheKey = UInt16;   // [4 bit: unused] [12 bit: rasterizer state]
-using BlendStateCacheKey      = UInt64;   // [12 bit: RT2] [12 bit: RT1] [12 bit: RT0] [4 bit: blend misc] [4 bit: write mask] [20 bit: unused]
-using DepthStencilCacheKey    = UInt64;   // [24 bit: unused] [8 bit: depth state] [16 bit: front face stencil] [16 bit: back face stencil]
-using SamplerStateCacheKey    = UInt64;   // [32 bit: RGBA for border] [32 bit: sampler state]
-using PrimitiveTopologyBind   = UInt8;
-
 ///////////////////////////////
 ///          ENUMS          ///
 ///////////////////////////////
@@ -45,9 +28,9 @@ enum ePipelineDirtyFlags_ : UInt32
 {
     ePipelineDirtyFlags_None = 0,
 
-    ePipelineDirtyFlags_PrimitiveTopology = 1 << 0,
-    ePipelineDirtyFlags_VertexBuffer      = 1 << 1,
-    ePipelineDirtyFlags_IndexBuffer       = 1 << 2,
+    ePipelineDirtyFlags_Primitive    = 1 << 0,
+    ePipelineDirtyFlags_VertexBuffer = 1 << 1,
+    ePipelineDirtyFlags_IndexBuffer  = 1 << 2,
 
     ePipelineDirtyFlags_VSConstantBuffer = 1 << 3,
     ePipelineDirtyFlags_PSConstantBuffer = 1 << 4,
@@ -100,6 +83,8 @@ enum ePipelineDirtyFlags_ : UInt32
                                          | ePipelineDirtyFlags_HSSamplerState
                                          | ePipelineDirtyFlags_DSSamplerState
                                          | ePipelineDirtyFlags_CSSamplerState,
+
+    ePipelineDirtyFlags_All = 0xFFFFFFFF
 };
 using ePipelineDirtyFlags = unsigned int;
 
@@ -247,6 +232,29 @@ constexpr FormatInfo k_formatInfoTable[EnumCount<eFormat>()] = {
     {  DXGI_FORMAT_R32G8X24_TYPELESS, DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS, DXGI_FORMAT_D32_FLOAT_S8X24_UINT,             DXGI_FORMAT_UNKNOWN },
 };
 
+struct SamplerInfo
+{
+    D3D11_FILTER filter;
+    D3D11_FILTER comparisonFilter;
+};
+
+constexpr SamplerInfo k_samplerInfoTable[EnumCount<eTextureFilter>()] = {
+    // 기본 필터링
+    {               D3D11_FILTER_MIN_MAG_MIP_POINT,               D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT }, // MinPoint_MagPoint_MipPoint
+    {        D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR,        D3D11_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR }, // MinPoint_MagPoint_MipLinear
+    {  D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT,  D3D11_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT }, // MinPoint_MagLinear_MipPoint
+    {        D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR,        D3D11_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR }, // MinPoint_MagLinear_MipLinear
+    {        D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT,        D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT }, // MinLinear_MagPoint_MipPoint
+    { D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR, D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR }, // MinLinear_MagPoint_MipLinear
+    {        D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT,        D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT }, // MinLinear_MagLinear_MipPoint
+    {              D3D11_FILTER_MIN_MAG_MIP_LINEAR,              D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR }, // MinLinear_MagLinear_MipLinear
+
+    // 이방성 필터링
+    {                     D3D11_FILTER_ANISOTROPIC,                     D3D11_FILTER_COMPARISON_ANISOTROPIC }, // Anisotropic4
+    {                     D3D11_FILTER_ANISOTROPIC,                     D3D11_FILTER_COMPARISON_ANISOTROPIC }, // Anisotropic8
+    {                     D3D11_FILTER_ANISOTROPIC,                     D3D11_FILTER_COMPARISON_ANISOTROPIC }  // Anisotropic16
+};
+
 constexpr D3D11_BLEND k_d3d11BlendTable[EnumCount<eBlend>()] = {
     D3D11_BLEND_ZERO,              // eBlend_Zero
     D3D11_BLEND_ONE,               // eBlend_One
@@ -272,15 +280,15 @@ constexpr D3D11_BLEND_OP k_d3d11BlendOpTable[EnumCount<eBlendOp>()] = {
 };
 
 constexpr D3D11_COMPARISON_FUNC k_d3d11ComparisonFuncTable[EnumCount<D3D11_COMPARISON_FUNC>() + 1] = {
-    static_cast<D3D11_COMPARISON_FUNC>(0),   // 더미 값
-    D3D11_COMPARISON_LESS,
-    D3D11_COMPARISON_LESS_EQUAL,
-    D3D11_COMPARISON_GREATER,
-    D3D11_COMPARISON_GREATER_EQUAL,
-    D3D11_COMPARISON_EQUAL,
-    D3D11_COMPARISON_NOT_EQUAL,
-    D3D11_COMPARISON_ALWAYS,
-    D3D11_COMPARISON_NEVER
+    D3D11_COMPARISON_LESS,            // eCompareFunc::None
+    D3D11_COMPARISON_LESS,            // eCompareFunc::Less
+    D3D11_COMPARISON_LESS_EQUAL,      // eCompareFunc::LessEqual
+    D3D11_COMPARISON_GREATER,         // eCompareFunc::Greater
+    D3D11_COMPARISON_GREATER_EQUAL,   // eCompareFunc::GreaterEqual
+    D3D11_COMPARISON_EQUAL,           // eCompareFunc::Equal
+    D3D11_COMPARISON_NOT_EQUAL,       // eCompareFunc::NotEqual
+    D3D11_COMPARISON_ALWAYS,          // eCompareFunc::Always
+    D3D11_COMPARISON_NEVER            // eCompareFunc::Never
 };
 
 constexpr D3D11_STENCIL_OP k_d3d11StencilOpTable[EnumCount<D3D11_STENCIL_OP>()] = {
@@ -300,17 +308,6 @@ constexpr D3D11_TEXTURE_ADDRESS_MODE k_d3d11TextureAddrModeTable[EnumCount<D3D11
     D3D11_TEXTURE_ADDRESS_CLAMP,
     D3D11_TEXTURE_ADDRESS_BORDER,
     D3D11_TEXTURE_ADDRESS_MIRROR_ONCE
-};
-
-constexpr Int32 k_jamSupportedPromitiveTopologyCount =
-    ((eStateFlags_PrimitiveTopology_PointList & eStateFlags_PrimitiveTopologyMask_Internal) >> eStateFlags_PrimitiveTopologyShift_Internal) + 1;
-
-constexpr D3D11_PRIMITIVE_TOPOLOGY k_d3d11PrimitiveTopologyTable[k_jamSupportedPromitiveTopologyCount] = {
-    D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,    // eStateFlags_PrimitiveTopology_TriangleList
-    D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,   // eStateFlags_PrimitiveTopology_TriangleStrip
-    D3D11_PRIMITIVE_TOPOLOGY_LINELIST,        // eStateFlags_PrimitiveTopology_LineList
-    D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP,       // eStateFlags_PrimitiveTopology_LineStrip
-    D3D11_PRIMITIVE_TOPOLOGY_POINTLIST        // eStateFlags_PrimitiveTopology_PointList
 };
 
 constexpr D3D11_TEXTURECUBE_FACE k_d3d11CubeFaceTable[EnumCount<eCubeFace>()] = {
@@ -346,7 +343,13 @@ constexpr const char* const k_hlslFormatTable[EnumCount<eAttributeFormat>()] = {
     "uint4"     // eAttributeFormat::UInt8x4
 };
 
-static_assert(EnumCount<eAttributeFormat>() == 6, "eAttributeFormat vertexCount mismatch");
+constexpr D3D11_PRIMITIVE_TOPOLOGY k_d3d11PrimitiveTopologyTable[EnumCount<ePrimitive>()] = {
+    D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,    // ePrimitive::TriangleList
+    D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,   // ePrimitive::TriangleStrip
+    D3D11_PRIMITIVE_TOPOLOGY_LINELIST,        // ePrimitive::LineList
+    D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP,       // ePrimitive::LineStrip
+    D3D11_PRIMITIVE_TOPOLOGY_POINTLIST        // ePrimitive::PointList
+};
 
 ////////////////////////////////
 ///          STRUCT          ///
@@ -370,16 +373,42 @@ struct TextureBinds
 
 struct SamplerFlagsBinds
 {
-    eSamplerFlags samplerFlags[k_samplerStateCountMax];
-    RGBA          borderColors[k_samplerStateCountMax];
+    SamplerState samplerStates[k_samplerStateCountMax] = {};
+    RGBA         borderColors[k_samplerStateCountMax];
 
     Int32 dirtyStart = k_samplerStateCountMax;
     Int32 dirtyEnd   = 0;
 };
 
-/////////////////////////////////
-///          CONTEXT          ///
-/////////////////////////////////
+struct RasterizerStateD3D11
+{
+    eCullMode cullMode : 2;
+    bool      bWireframe : 1;
+    bool      bDepthClamp : 1;
+    bool      bMultiSample : 1;
+    bool      bLineAA : 1;
+    bool      bScissor : 1;
+    bool      bCCWFront : 1;
+};
+
+struct BlendStateD3D11
+{
+    bool       bAlphaToCoverage : 1;
+    bool       bIndependentBlend : 1;
+    BlendState renderTarget[k_renderTargetCountMax] = {};
+};
+
+struct DepthStencilStateD3D11
+{
+    bool         bDepthWrite : 1;
+    eCompareFunc depthTestFunc : 4;
+    StencilState fStencil = {};
+    StencilState bStencil = {};
+};
+
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
 struct GfxContext
 {
@@ -464,10 +493,10 @@ struct GfxContext
 
     ////////// CACHE ///////////
 
-    JAM_NODISCARD ID3D11RasterizerState*   GetOrCreateD3D11RasterizerState(RasterizerStateCacheKey _key);
-    JAM_NODISCARD ID3D11BlendState*        GetOrCreateD3D11BlendState(BlendStateCacheKey _key);
-    JAM_NODISCARD ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilState(DepthStencilCacheKey _key);
-    JAM_NODISCARD ID3D11SamplerState*      GetOrCreateD3D11SamplerState(SamplerStateCacheKey _key);
+    JAM_NODISCARD ID3D11RasterizerState*   GetOrCreateD3D11RasterizerState(RasterizerStateD3D11 _state);
+    JAM_NODISCARD ID3D11BlendState*        GetOrCreateD3D11BlendState(const BlendStateD3D11& _state);
+    JAM_NODISCARD ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilState(DepthStencilStateD3D11 _state);
+    JAM_NODISCARD ID3D11SamplerState*      GetOrCreateD3D11SamplerState(SamplerState _state, RGBA _color);
     JAM_NODISCARD ShaderHandle             GetOrCreateNativeShader(const MemoryView& _shaderByteCode);
     JAM_NODISCARD VertexLayoutHandle       GetOrCreateNativeVertexLayout(const VertexLayout& _vertexLayout);
 
@@ -517,10 +546,10 @@ struct GfxContext
 
     ////////// STATE CACHE //////////
 
-    HashMap<RasterizerStateCacheKey, ID3D11RasterizerState*> rasterizerStateCache;
-    HashMap<BlendStateCacheKey, ID3D11BlendState*>           blendStateCache;
-    HashMap<DepthStencilCacheKey, ID3D11DepthStencilState*>  depthStencilStateCache;
-    HashMap<SamplerStateCacheKey, ID3D11SamplerState*>       samplerStateCache;
+    HashMap<UInt32, ID3D11RasterizerState*>   rasterizerStateCache;
+    HashMap<UInt64, ID3D11BlendState*>        blendStateCache;
+    HashMap<UInt64, ID3D11DepthStencilState*> depthStencilStateCache;
+    HashMap<UInt64, ID3D11SamplerState*>      samplerStateCache;
 
     ////////// PIPELINE BIND //////////
 
@@ -542,29 +571,178 @@ struct GfxContext
 
     Viewport viewportBind = {};
 
-    eStateFlags stateFlagsBind  = eStateFlags_None;
-    RGBA        blendFactorBind = {};
+    GfxState stateBind       = {};
+    RGBA     blendFactorBind = {};
+    UInt8    stencilRefBind  = 0;
 
-    eStencilFlags fstencilFlagsBind = 0;
-    eStencilFlags bstencilFlagsBind = 0;
-    UInt8         stencilRefBind    = 0;
+    ePrimitive             primitiveBind         = ePrimitive::TriangleList;
+    DepthStencilStateD3D11 depthStencilStateBind = {};
+    RasterizerStateD3D11   rasterizerStateBind   = {};
+    BlendStateD3D11        blendStateBind        = {};
 
-    PrimitiveTopologyBind   primitiveTopologyBind = 0;
-    DepthStencilCacheKey    depthStencilStateBind = 0;
-    BlendStateCacheKey      blendStateBind        = 0;
-    RasterizerStateCacheKey rasterizerStateBind   = 0;
-
-    ePipelineDirtyFlags pipelineDirtyFlags = ePipelineDirtyFlags_None;
+    ePipelineDirtyFlags pipelineDirtyFlags = ePipelineDirtyFlags_All;   // 처음에는 모두 더티 (기본 상태로 적용하기 위해)
 
     ////////// INTERNAL RESOURCE //////////
 
     TextureHandle     backBufferTextureHandle;
     FrameBufferHandle backBufferFrameBufferHandle;
     Mesh              fullScreenMesh;
-
 };
-
 GfxContext g_ctx = {};
+
+ID3D11RasterizerState* GfxContext::GetOrCreateD3D11RasterizerState(
+    RasterizerStateD3D11 _state)
+{
+    UInt32 key = reinterpret_cast<UInt32&>(_state);
+    auto   it  = rasterizerStateCache.find(key);
+
+    if (it != rasterizerStateCache.end())
+    {
+        return it->second;
+    }
+
+    D3D11_RASTERIZER_DESC desc;
+    desc.FillMode              = _state.bWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+    desc.CullMode              = _state.cullMode == eCullMode::None  ? D3D11_CULL_NONE
+                               : _state.cullMode == eCullMode::Front ? D3D11_CULL_FRONT
+                                                                     : D3D11_CULL_BACK;
+    desc.FrontCounterClockwise = _state.bCCWFront;
+    desc.DepthBias             = 0;
+    desc.DepthBiasClamp        = 0.f;
+    desc.SlopeScaledDepthBias  = 0.f;
+    desc.DepthClipEnable       = !_state.bDepthClamp;
+    desc.MultisampleEnable     = _state.bMultiSample;
+    desc.AntialiasedLineEnable = _state.bLineAA;
+    desc.ScissorEnable         = _state.bScissor;
+
+    ID3D11RasterizerState* pRasterizerState = nullptr;
+    JAM_CHECK_COM(pd3d11Device->CreateRasterizerState(&desc, &pRasterizerState));
+    rasterizerStateCache[key] = pRasterizerState;
+    return pRasterizerState;
+}
+
+ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(
+    const BlendStateD3D11& _state)
+{
+    MurmurHash64 hasher;
+    hasher.Begin();
+    hasher.Add(&_state, sizeof(BlendStateD3D11));
+    UInt64 key = hasher.End();
+
+    auto it = blendStateCache.find(key);
+    if (it != blendStateCache.end())
+    {
+        return it->second;
+    }
+
+    D3D11_BLEND_DESC desc;
+    desc.AlphaToCoverageEnable  = _state.bAlphaToCoverage;
+    desc.IndependentBlendEnable = _state.bIndependentBlend;
+    for (Int32 i = 0; i < k_renderTargetCountMax; ++i)
+    {
+        const BlendState&               rtBlend = _state.renderTarget[i];
+        D3D11_RENDER_TARGET_BLEND_DESC& rtDesc  = desc.RenderTarget[i];
+
+        rtDesc.BlendEnable    = rtBlend.bEnable;
+        rtDesc.SrcBlend       = k_d3d11BlendTable[EnumToInt(rtBlend.srcBlend)];
+        rtDesc.DestBlend      = k_d3d11BlendTable[EnumToInt(rtBlend.dstBlend)];
+        rtDesc.BlendOp        = k_d3d11BlendOpTable[EnumToInt(rtBlend.blendOp)];
+        rtDesc.SrcBlendAlpha  = k_d3d11BlendTable[EnumToInt(rtBlend.srcBlendAlpha)];
+        rtDesc.DestBlendAlpha = k_d3d11BlendTable[EnumToInt(rtBlend.dstBlendAlpha)];
+        rtDesc.BlendOpAlpha   = k_d3d11BlendOpTable[EnumToInt(rtBlend.blendOpAlpha)];
+
+        rtDesc.RenderTargetWriteMask = 0;
+        if (rtBlend.writeMask & eWriteFlags_Red)
+            rtDesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_RED;
+        if (rtBlend.writeMask & eWriteFlags_Green)
+            rtDesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_GREEN;
+        if (rtBlend.writeMask & eWriteFlags_Blue)
+            rtDesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_BLUE;
+        if (rtBlend.writeMask & eWriteFlags_Alpha)
+            rtDesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+    }
+
+    ID3D11BlendState* pBlendState = nullptr;
+    JAM_CHECK_COM(pd3d11Device->CreateBlendState(&desc, &pBlendState));
+    blendStateCache[key] = pBlendState;
+    return pBlendState;
+}
+
+ID3D11DepthStencilState* GfxContext::GetOrCreateD3D11DepthStencilState(
+    DepthStencilStateD3D11 _state)
+{
+    UInt64 key = reinterpret_cast<UInt64&>(_state);
+    auto   it  = depthStencilStateCache.find(key);
+    if (it != depthStencilStateCache.end())
+    {
+        return it->second;
+    }
+
+    D3D11_DEPTH_STENCIL_DESC desc;
+    desc.DepthEnable      = _state.depthTestFunc != eCompareFunc::None;
+    desc.DepthWriteMask   = _state.bDepthWrite ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+    desc.DepthFunc        = k_d3d11ComparisonFuncTable[EnumToInt(_state.depthTestFunc)];
+    desc.StencilEnable    = _state.fStencil.compareFunc != eCompareFunc::None || _state.bStencil.compareFunc != eCompareFunc::None;
+    desc.StencilReadMask  = 0xFF;
+    desc.StencilWriteMask = 0xFF;
+
+    // front
+    desc.FrontFace.StencilFailOp      = k_d3d11StencilOpTable[EnumToInt(_state.fStencil.stencilFailOp)];
+    desc.FrontFace.StencilDepthFailOp = k_d3d11StencilOpTable[EnumToInt(_state.fStencil.depthFailOp)];
+    desc.FrontFace.StencilPassOp      = k_d3d11StencilOpTable[EnumToInt(_state.fStencil.passOp)];
+    desc.FrontFace.StencilFunc        = k_d3d11ComparisonFuncTable[EnumToInt(_state.fStencil.compareFunc)];
+
+    // back
+    desc.BackFace.StencilFailOp      = k_d3d11StencilOpTable[EnumToInt(_state.bStencil.stencilFailOp)];
+    desc.BackFace.StencilDepthFailOp = k_d3d11StencilOpTable[EnumToInt(_state.bStencil.depthFailOp)];
+    desc.BackFace.StencilPassOp      = k_d3d11StencilOpTable[EnumToInt(_state.bStencil.passOp)];
+    desc.BackFace.StencilFunc        = k_d3d11ComparisonFuncTable[EnumToInt(_state.bStencil.compareFunc)];
+
+    ID3D11DepthStencilState* pDepthStencilState = nullptr;
+    JAM_CHECK_COM(pd3d11Device->CreateDepthStencilState(&desc, &pDepthStencilState));
+    depthStencilStateCache[key] = pDepthStencilState;
+    return pDepthStencilState;
+}
+
+ID3D11SamplerState* GfxContext::GetOrCreateD3D11SamplerState(
+    const SamplerState _state,
+    const RGBA         _color)
+{
+    UInt64 key = _state.value;
+    key        = (key << 32ull) | _color.color;
+
+    auto it = samplerStateCache.find(key);
+    if (it != samplerStateCache.end())
+    {
+        return it->second;
+    }
+
+    const SamplerInfo& filter          = k_samplerInfoTable[EnumToInt(_state.filter)];
+    bool               bIsComparison   = _state.compareFunc != eCompareFunc::None;
+    Int32              anisotopicLevel = _state.filter == eTextureFilter::Anisotropic4  ? 4
+                                       : _state.filter == eTextureFilter::Anisotropic8  ? 8
+                                       : _state.filter == eTextureFilter::Anisotropic16 ? 16
+                                                                                        : 1;
+    D3D11_SAMPLER_DESC desc;
+    desc.Filter         = bIsComparison ? filter.comparisonFilter : filter.filter;
+    desc.AddressU       = k_d3d11TextureAddrModeTable[EnumToInt(_state.addressU)];
+    desc.AddressV       = k_d3d11TextureAddrModeTable[EnumToInt(_state.addressV)];
+    desc.AddressW       = k_d3d11TextureAddrModeTable[EnumToInt(_state.addressW)];
+    desc.MipLODBias     = 0.0f;
+    desc.MaxAnisotropy  = anisotopicLevel;
+    desc.ComparisonFunc = bIsComparison ? k_d3d11ComparisonFuncTable[EnumToInt(_state.compareFunc)] : D3D11_COMPARISON_ALWAYS;
+    desc.BorderColor[0] = static_cast<FLOAT>(_color.r) / 255.0f;
+    desc.BorderColor[1] = static_cast<FLOAT>(_color.g) / 255.0f;
+    desc.BorderColor[2] = static_cast<FLOAT>(_color.b) / 255.0f;
+    desc.BorderColor[3] = static_cast<FLOAT>(_color.a) / 255.0f;
+    desc.MinLOD         = -k_floatMin;
+    desc.MaxLOD         = k_floatMax;
+
+    ID3D11SamplerState* pSamplerState = nullptr;
+    JAM_CHECK_COM(pd3d11Device->CreateSamplerState(&desc, &pSamplerState));
+    samplerStateCache[key] = pSamplerState;
+    return pSamplerState;
+}
 
 void GfxContext::ApplyConstantBuffers(const eShader _shader)
 {
@@ -601,6 +779,9 @@ void GfxContext::ApplyConstantBuffers(const eShader _shader)
             break;
         case eShader::DomainShader:
             pd3d11DeviceContext->DSSetConstantBuffers(dirtyStart, dirtyCount, s_binder);
+            break;
+        default:
+            JAM_ASSERT(0, "Unknown shader stage");
             break;
     }
 
@@ -645,6 +826,9 @@ void GfxContext::ApplyShaderResourceViews(
         case eShader::ComputeShader:
             pd3d11DeviceContext->CSSetShaderResources(dirtyStart, dirtyCount, s_binder);
             break;
+        default:
+            JAM_ASSERT(0, "Unknown shader stage");
+            break;
     }
 
     // reset dirty range
@@ -655,15 +839,14 @@ void GfxContext::ApplyShaderResourceViews(
 void GfxContext::ApplySamplerStates(const eShader _shader)
 {
     static ID3D11SamplerState* s_binder[k_samplerStateCountMax];
-    SamplerFlagsBinds&         bindRef = samplerFlagsBinds[EnumToInt(_shader)];
+    SamplerFlagsBinds&         bind = samplerFlagsBinds[EnumToInt(_shader)];
 
-    Int32 dirtyStart = bindRef.dirtyStart;
-    Int32 dirtyCount = (bindRef.dirtyStart <= bindRef.dirtyEnd) ? bindRef.dirtyEnd - bindRef.dirtyStart + 1 : 0;
+    Int32 dirtyStart = bind.dirtyStart;
+    Int32 dirtyCount = (bind.dirtyStart <= bind.dirtyEnd) ? bind.dirtyEnd - bind.dirtyStart + 1 : 0;
 
     for (Int32 i = 0; i < dirtyCount; ++i)
     {
-        SamplerStateCacheKey key = (bindRef.samplerFlags[dirtyStart + i]) | (bindRef.borderColors[dirtyStart + i].color << 32);
-        s_binder[i]              = g_ctx.GetOrCreateD3D11SamplerState(key);
+        s_binder[i] = g_ctx.GetOrCreateD3D11SamplerState(bind.samplerStates[dirtyStart + i], bind.borderColors[dirtyStart + i]);
     }
 
     switch (_shader)
@@ -686,11 +869,14 @@ void GfxContext::ApplySamplerStates(const eShader _shader)
         case eShader::ComputeShader:
             g_ctx.pd3d11DeviceContext->CSSetSamplers(dirtyStart, dirtyCount, s_binder);
             break;
+        default:
+            JAM_ASSERT(0, "Unknown shader stage");
+            break;
     }
 
     // reset dirty range
-    bindRef.dirtyStart = k_samplerStateCountMax;
-    bindRef.dirtyEnd   = 0;
+    bind.dirtyStart = k_samplerStateCountMax;
+    bind.dirtyEnd   = 0;
 }
 
 void GfxContext::ApplyPipeline()
@@ -700,7 +886,7 @@ void GfxContext::ApplyPipeline()
     {
         constexpr ID3D11Buffer* k_nullBuffer = nullptr;
 
-        // vertex buffer.pBuffer
+        // vertex buffer
         if (pipelineDirtyFlags & ePipelineDirtyFlags_VertexBuffer)
         {
             if (vertexBufferHandleBind == k_invalidHandle)
@@ -718,7 +904,7 @@ void GfxContext::ApplyPipeline()
             }
         }
 
-        // m_handle buffer.pBuffer
+        // index buffer
         if (pipelineDirtyFlags & ePipelineDirtyFlags_IndexBuffer)
         {
             if (indexBufferHandleBind == k_invalidHandle)
@@ -727,18 +913,20 @@ void GfxContext::ApplyPipeline()
             }
             else
             {
+                constexpr DXGI_FORMAT k_indexFormatTable[] = {
+                    DXGI_FORMAT_R16_UINT,   // eIndexFormat::U16
+                    DXGI_FORMAT_R32_UINT    // eIndexFormat::U32
+                };
+
                 const IndexBuffer& indexBuffer = indexBuffers[indexBufferHandleBind];
-                pd3d11DeviceContext->IASetIndexBuffer(
-                    indexBuffer.buffer.pBuffer,
-                    indexBuffer.format == eIndexFormat::U16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT,
-                    0);
+                pd3d11DeviceContext->IASetIndexBuffer(indexBuffer.buffer.pBuffer, k_indexFormatTable[EnumToInt(indexBuffer.format)], 0);
             }
         }
 
         // topology
-        if (pipelineDirtyFlags & ePipelineDirtyFlags_PrimitiveTopology)
+        if (pipelineDirtyFlags & ePipelineDirtyFlags_Primitive)
         {
-            pd3d11DeviceContext->IASetPrimitiveTopology(k_d3d11PrimitiveTopologyTable[primitiveTopologyBind]);
+            pd3d11DeviceContext->IASetPrimitiveTopology(k_d3d11PrimitiveTopologyTable[EnumToInt(primitiveBind)]);
         }
 
         // input layout
@@ -776,6 +964,9 @@ void GfxContext::ApplyPipeline()
                             case eShader::GeometryShader: pd3d11DeviceContext->GSSetShader(nullptr, nullptr, 0); break;
                             case eShader::HullShader: pd3d11DeviceContext->HSSetShader(nullptr, nullptr, 0); break;
                             case eShader::DomainShader: pd3d11DeviceContext->DSSetShader(nullptr, nullptr, 0); break;
+                            default:
+                                JAM_ASSERT(0, "Unknown shader stage");
+                                break;
                         }
                     }
                     else
@@ -788,6 +979,9 @@ void GfxContext::ApplyPipeline()
                             case eShader::GeometryShader: pd3d11DeviceContext->GSSetShader(shader.pGeometryShader, nullptr, 0); break;
                             case eShader::HullShader: pd3d11DeviceContext->HSSetShader(shader.pHullShader, nullptr, 0); break;
                             case eShader::DomainShader: pd3d11DeviceContext->DSSetShader(shader.pDomainShader, nullptr, 0); break;
+                            default:
+                                JAM_ASSERT(0, "Unknown shader stage");
+                                break;
                         }
                     }
                 }
@@ -830,13 +1024,14 @@ void GfxContext::ApplyPipeline()
         // blend state
         if (pipelineDirtyFlags & ePipelineDirtyFlags_BlendState)
         {
-            ID3D11BlendState* pBlendState    = GetOrCreateD3D11BlendState(blendStateBind);
-            FLOAT             blendFactor[4] = {
+            FLOAT blendFactor[4] = {
                 static_cast<float>(blendFactorBind.r) / 255.f,
                 static_cast<float>(blendFactorBind.g) / 255.f,
                 static_cast<float>(blendFactorBind.b) / 255.f,
                 static_cast<float>(blendFactorBind.a) / 255.f
             };
+
+            ID3D11BlendState* pBlendState = GetOrCreateD3D11BlendState(blendStateBind);
             pd3d11DeviceContext->OMSetBlendState(pBlendState, blendFactor, 0xFFFF'FFFF);
         }
 
@@ -972,10 +1167,10 @@ TextureRef GfxContext::CreateNativeTexture(
     bool bIsCubemap     = _type == eTextureType::TextureCube;
 
     const Int32 mipsCount = bGenMips ? CalcMipsCount(_width, _height, _depth) : 1;
-    const Int32 samples   = _flags & eTextureCreateFlags_MSAAx4 != 0  ? 4
-                          : _flags & eTextureCreateFlags_MSAAx8 != 0  ? 8
-                          : _flags & eTextureCreateFlags_MSAAx16 != 0 ? 16
-                                                                      : 1;
+    const Int32 samples   = (_flags & eTextureCreateFlags_MSAAx4) != 0  ? 4
+                          : (_flags & eTextureCreateFlags_MSAAx8) != 0  ? 8
+                          : (_flags & eTextureCreateFlags_MSAAx16) != 0 ? 16
+                                                                        : 1;
 
     // 검증
     JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "Texture dimensions must be greater than zero.");
@@ -1206,6 +1401,9 @@ TextureRef GfxContext::CreateNativeTexture(
                 srvDesc.Texture3D.MipLevels       = mipsCount;
             }
             break;
+
+            default:
+                JAM_CRASH("Unsupported texture stage: {}", EnumToInt(_type));
         }
 
         JAM_CHECK_COM(pd3d11Device->CreateShaderResourceView(texture.pResource, &srvDesc, &texture.pSRV));
@@ -1332,6 +1530,9 @@ FrameBuffer GfxContext::CreateNativeFrameBuffer(
                     }
                 }
                 break;
+
+                default:
+                    JAM_CRASH("Unsupported texture stage: {}", EnumToInt(texture.type));
             }
 
             JAM_CHECK_COM(pd3d11Device->CreateDepthStencilView(texture.pResource, &dsvDesc, &frameBuffer.pDSV));
@@ -1392,6 +1593,9 @@ FrameBuffer GfxContext::CreateNativeFrameBuffer(
                     rtvDesc.Texture3D.WSize       = -1;
                 }
                 break;
+
+                default:
+                    JAM_CRASH("Unsupported texture stage: {}", EnumToInt(texture.type));
             }
 
             JAM_CHECK_COM(pd3d11Device->CreateRenderTargetView(texture.pResource, &rtvDesc, &frameBuffer.pRTV[rtCount]));
@@ -1413,7 +1617,7 @@ void GfxContext::UploadBuffer(
     JAM_ASSERT(_buffer.bDynamic, "Only dynamic buffer can be updated");
 
     const Byte* pWriteData     = _uploadData.GetDataPtr();
-    UInt64      writeByteWidth = Min(_uploadData.GetByteWidth(), _buffer.byteWidth - _offset);
+    UINT        writeByteWidth = NarrowCast<UINT>(Min(_uploadData.GetByteWidth(), _buffer.byteWidth - _offset));
 
     if (_bDiscard)
     {
@@ -1634,6 +1838,9 @@ std::vector<Byte> GfxContext::DownloadTexture(
             }
         }
         break;
+
+        default:
+            JAM_CRASH("Unsupported texture stage: {}", EnumToInt(_texture.type));
     }
 
     return downloadData;
@@ -1699,178 +1906,6 @@ void GfxContext::Blit(
         _srcTexture.pResource,
         srcIndex,
         &box);
-}
-
-ID3D11RasterizerState* GfxContext::GetOrCreateD3D11RasterizerState(const RasterizerStateCacheKey _key)
-{
-    auto iter = rasterizerStateCache.find(_key);
-    if (iter != rasterizerStateCache.end())
-    {
-        return iter->second;
-    }
-
-    D3D11_RASTERIZER_DESC desc;
-    desc.FillMode = (_key & eStateFlags_Wireframe) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-
-    Int32 cullMode = (_key & 0x0000'0000'0000'00C0);
-    desc.CullMode  = cullMode == eStateFlags_CullNone  ? D3D11_CULL_NONE
-                   : cullMode == eStateFlags_CullFront ? D3D11_CULL_FRONT
-                                                       : D3D11_CULL_BACK;
-
-    desc.FrontCounterClockwise = (_key & eStateFlags_CCWFront) != 0;
-    desc.DepthBias             = 0.f;
-    desc.DepthBiasClamp        = 0.f;
-    desc.SlopeScaledDepthBias  = 0.f;
-    desc.DepthClipEnable       = (_key & eStateFlags_DepthClamp) == 0;
-    desc.ScissorEnable         = (_key & eStateFlags_Scissor) != 0;
-    desc.MultisampleEnable     = (_key & eStateFlags_MultiSample) != 0;
-    desc.AntialiasedLineEnable = (_key & eStateFlags_LineAA) != 0;
-
-    JAM_CHECK_COM(pd3d11Device->CreateRasterizerState(&desc, &rasterizerStateCache[_key]));
-    return rasterizerStateCache[_key];
-}
-
-ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(const BlendStateCacheKey _key)
-{
-    auto iter = blendStateCache.find(_key);
-    if (iter != blendStateCache.end())
-    {
-        return iter->second;
-    }
-
-    UInt8 writeMask = (_key & eStateFlags_BlendStateWriteMaskMask_Internal);
-
-    D3D11_BLEND_DESC desc {};
-    desc.IndependentBlendEnable = (_key & eStateFlags_IndependentBlend) != 0;
-    desc.AlphaToCoverageEnable  = (_key & eStateFlags_AlphaToCoverage) != 0;
-
-    if (desc.IndependentBlendEnable)
-    {
-        for (Int32 i = 0; i < 3; i++)
-        {
-            eStateFlags flags    = (_key >> (12ull * i + eStateFlags_BlendStateRT0Shift_Internal)) & 0xFFF;
-            eBlend      srcBlend = static_cast<eBlend>(flags & 0x0F);
-            eBlendOp    blendOp  = static_cast<eBlendOp>((flags >> 4) & 0x0F);
-            eBlend      dstBlend = static_cast<eBlend>((flags >> 8) & 0x0f);
-
-            desc.RenderTarget[i].BlendEnable           = (_key & (eStateFlags_BlendStateRT0Mask_Internal << (i * 12))) != 0;
-            desc.RenderTarget[i].SrcBlend              = k_d3d11BlendTable[EnumToInt(srcBlend)];
-            desc.RenderTarget[i].DestBlend             = k_d3d11BlendTable[EnumToInt(dstBlend)];
-            desc.RenderTarget[i].BlendOp               = k_d3d11BlendOpTable[EnumToInt(blendOp)];
-            desc.RenderTarget[i].SrcBlendAlpha         = k_d3d11BlendTable[EnumToInt(srcBlend)];
-            desc.RenderTarget[i].DestBlendAlpha        = k_d3d11BlendTable[EnumToInt(dstBlend)];
-            desc.RenderTarget[i].BlendOpAlpha          = k_d3d11BlendOpTable[EnumToInt(blendOp)];
-            desc.RenderTarget[i].RenderTargetWriteMask = writeMask;
-        }
-
-        for (Int32 i = 3; i < 8; i++)
-        {
-            desc.RenderTarget[i] = desc.RenderTarget[0];
-        }
-    }
-    else
-    {
-        eStateFlags flags    = (_key >> (eStateFlags_BlendStateRT0Shift_Internal)) & 0xFFF;
-        eBlend      srcBlend = static_cast<eBlend>(flags & 0x0F);
-        eBlendOp    blendOp  = static_cast<eBlendOp>((flags >> 4) & 0x0F);
-        eBlend      dstBlend = static_cast<eBlend>((flags >> 8) & 0x0f);
-
-        desc.RenderTarget[0].BlendEnable           = (_key & eStateFlags_BlendStateRT0Mask_Internal) != 0;
-        desc.RenderTarget[0].SrcBlend              = k_d3d11BlendTable[EnumToInt(srcBlend)];
-        desc.RenderTarget[0].DestBlend             = k_d3d11BlendTable[EnumToInt(dstBlend)];
-        desc.RenderTarget[0].BlendOp               = k_d3d11BlendOpTable[EnumToInt(blendOp)];
-        desc.RenderTarget[0].SrcBlendAlpha         = k_d3d11BlendTable[EnumToInt(srcBlend)];
-        desc.RenderTarget[0].DestBlendAlpha        = k_d3d11BlendTable[EnumToInt(dstBlend)];
-        desc.RenderTarget[0].BlendOpAlpha          = k_d3d11BlendOpTable[EnumToInt(blendOp)];
-        desc.RenderTarget[0].RenderTargetWriteMask = writeMask;
-    }
-
-    JAM_CHECK_COM(pd3d11Device->CreateBlendState(&desc, &blendStateCache[_key]));
-    return blendStateCache[_key];
-}
-
-ID3D11DepthStencilState* GfxContext::GetOrCreateD3D11DepthStencilState(const DepthStencilCacheKey _key)
-{
-    auto iter = depthStencilStateCache.find(_key);
-    if (iter != depthStencilStateCache.end())
-    {
-        return iter->second;
-    }
-
-    eStateFlags   depthState = static_cast<eStateFlags>(((_key >> 32) & 0xFF) << eStateFlags_DepthStateShift_Internal);
-    eStencilFlags fStencil   = static_cast<eStencilFlags>((_key >> 16) & 0xFFFF);
-    eStencilFlags bStencil   = static_cast<eStencilFlags>(_key & 0xFFFF);
-
-    D3D11_DEPTH_STENCIL_DESC desc;
-    desc.DepthEnable    = (depthState & eStateFlags_DepthTestMask_Internal) != 0;
-    desc.DepthWriteMask = (depthState & eStateFlags_DepthWrite) ? D3D11_DEPTH_WRITE_MASK_ALL
-                                                                : D3D11_DEPTH_WRITE_MASK_ZERO;
-    desc.DepthFunc      = k_d3d11ComparisonFuncTable[(depthState & eStateFlags_DepthTestMask_Internal) >> eStateFlags_DepthStateShift_Internal];
-    desc.StencilEnable  = (fStencil & eStencilFlags_StencilTestMask_Internal) != 0
-                      || (bStencil & eStencilFlags_StencilTestMask_Internal) != 0;
-
-    desc.StencilReadMask  = 0xFF;
-    desc.StencilWriteMask = 0xFF;
-
-    // front face
-    desc.FrontFace.StencilFailOp      = k_d3d11StencilOpTable[fStencil & 0xF];
-    desc.FrontFace.StencilDepthFailOp = k_d3d11StencilOpTable[(fStencil >> 4) & 0xF];
-    desc.FrontFace.StencilPassOp      = k_d3d11StencilOpTable[(fStencil >> 8) & 0xF];
-    desc.FrontFace.StencilFunc        = k_d3d11ComparisonFuncTable[(fStencil >> 12) & 0xF];
-
-    // back face
-    desc.BackFace.StencilFailOp      = k_d3d11StencilOpTable[bStencil & 0xF];
-    desc.BackFace.StencilDepthFailOp = k_d3d11StencilOpTable[(bStencil >> 4) & 0xF];
-    desc.BackFace.StencilPassOp      = k_d3d11StencilOpTable[(bStencil >> 8) & 0xF];
-    desc.BackFace.StencilFunc        = k_d3d11ComparisonFuncTable[(bStencil >> 12) & 0xF];
-
-    JAM_CHECK_COM(pd3d11Device->CreateDepthStencilState(&desc, &depthStencilStateCache[_key]));
-    return depthStencilStateCache[_key];
-}
-
-ID3D11SamplerState* GfxContext::GetOrCreateD3D11SamplerState(const SamplerStateCacheKey _key)
-{
-    auto iter = samplerStateCache.find(_key);
-    if (iter != samplerStateCache.end())
-    {
-        return iter->second;
-    }
-
-    eSamplerFlags state          = static_cast<eSamplerFlags>(_key & UINT64_C(0x0000'0000'FFFF'FFFF));
-    bool          bIsAnisotropic = (state & eSamplerFlags_AnisotropicMask_Internal) != 0;
-    bool          bIsComparison  = (state & eSamplerFlags_CompareMask_Internal) != 0;
-
-    RGBA borderColor;
-    borderColor.color = (_key & UINT64_C(0xFFFF'FFFF'0000'0000)) >> 32;
-
-    D3D11_SAMPLER_DESC desc {};
-    Int32              filter = state & eSamplerFlags_FilterMask_Internal;
-    if (bIsAnisotropic) filter = 0b00101'0101;
-    if (bIsComparison) filter |= 0b0100'0000;
-    desc.Filter        = static_cast<D3D11_FILTER>(filter);
-    desc.AddressU      = k_d3d11TextureAddrModeTable[(state & eSamplerFlags_AddressUMask_Internal) >> eSamplerFlags_AddressUShift_Internal];
-    desc.AddressV      = k_d3d11TextureAddrModeTable[(state & eSamplerFlags_AddressVMask_Internal) >> eSamplerFlags_AddressVShift_Internal];
-    desc.AddressW      = k_d3d11TextureAddrModeTable[(state & eSamplerFlags_AddressWMask_Internal) >> eSamplerFlags_AddressWShift_Internal];
-    desc.MipLODBias    = 0.f;
-    desc.MaxAnisotropy = (state & eSamplerFlags_Anisotropic4)  ? 4
-                       : (state & eSamplerFlags_Anisotropic8)  ? 8
-                       : (state & eSamplerFlags_Anisotropic16) ? 16
-                                                               : 1;
-
-    if (bIsComparison)
-    {
-        desc.ComparisonFunc = k_d3d11ComparisonFuncTable[((state & eSamplerFlags_CompareMask_Internal) >> eSamplerFlags_CompareShift_Internal)];
-    }
-
-    desc.BorderColor[0] = static_cast<FLOAT>(borderColor.r) / 255.f;
-    desc.BorderColor[1] = static_cast<FLOAT>(borderColor.g) / 255.f;
-    desc.BorderColor[2] = static_cast<FLOAT>(borderColor.b) / 255.f;
-    desc.BorderColor[3] = static_cast<FLOAT>(borderColor.a) / 255.f;
-    desc.MinLOD         = -FLT_MAX;
-    desc.MaxLOD         = FLT_MAX;
-
-    JAM_CHECK_COM(pd3d11Device->CreateSamplerState(&desc, &samplerStateCache[_key]));
-    return samplerStateCache[_key];
 }
 
 ShaderHandle GfxContext::GetOrCreateNativeShader(const MemoryView& _shaderByteCode)
@@ -1964,7 +1999,6 @@ ShaderHandle GfxContext::GetOrCreateNativeShader(const MemoryView& _shaderByteCo
 VertexLayoutHandle GfxContext::GetOrCreateNativeVertexLayout(
     const VertexLayout& _vertexLayout)
 {
-
     // 해싱
     MurmurHash64 hasher;
     hasher.Begin();
@@ -2013,7 +2047,7 @@ VertexLayoutHandle GfxContext::GetOrCreateNativeVertexLayout(
             "TEXCOORD",
         };
 
-        constexpr const Int32 k_d3d11IndexTable[EnumCount<eVertexAttribute>()] = {
+        constexpr Int32 k_d3d11IndexTable[EnumCount<eVertexAttribute>()] = {
             0,   // POSITION
             0,   // NORMAL
             0,   // TANGENT
@@ -2169,11 +2203,7 @@ eFormat GfxContext::GetNativeFormatFromDXGIFormat(
     }
 }
 
-}   // namespace
-
-////////////////////////////////
-///          PUBLIC          ///
-////////////////////////////////
+////////////////////////////////////////////////////////////
 
 namespace jam::gfx
 {
@@ -2303,16 +2333,13 @@ void Shutdown()
 
 bool DetectLeak()
 {
-    constexpr const char* const k_format             = "{} leak detected: Handle index = {}, Token = {}, Name = '{}'";
-    constexpr const char* const k_formatRefCountable = "{} leak detected (ref count = {}): Handle index = {}, Token = {}, Name = '{}', RefCount = {}";
-
     bool bLeakDetected = false;
 
     for (const auto& [handle, value]: g_ctx.vertexBuffers)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn(k_format, "VertexBuffer", index, token, value.name);
+        log::Warn("VertexBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -2320,23 +2347,23 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn(k_format, "IndexBuffer", index, token, value.name);
+        log::Warn("IndexBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
     for (const auto& [handle, value]: g_ctx.textures)
     {
-        UInt32 index  = handle.index;
-        UInt32 token  = handle.token;
-        log::Warn(k_formatRefCountable, "Texture", index, token, value.name, value.refCount);
+        UInt32 index = handle.index;
+        UInt32 token = handle.token;
+        log::Warn("Texture leak detected: Handle index = {}, Token = {}, Name = '{}', RefCount = {}", index, token, value.name, value.refCount);
         bLeakDetected = true;
     }
 
     for (const auto& [handle, value]: g_ctx.frameBuffers)
     {
-        UInt32 index  = handle.index;
-        UInt32 token  = handle.token;
-        log::Warn(k_format, "FrameBuffer", index, token, value.name);
+        UInt32 index = handle.index;
+        UInt32 token = handle.token;
+        log::Warn("FrameBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -2344,31 +2371,31 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn(k_formatRefCountable, "Shader", index, token, value.name, value.refCount);
+        log::Warn("Shader leak detected: Handle index = {}, Token = {}, Stage = {}, RefCount = {}", index, token, EnumToString(value.stage), value.refCount);
         bLeakDetected = true;
     }
 
     for (const auto& [handle, value]: g_ctx.vertexLayouts)
     {
-        UInt32 index  = handle.index;
-        UInt32 token  = handle.token;
-        log::Warn(k_formatRefCountable, "VertexLayout", index, token, "Cannot name", value.refCount);
+        UInt32 index = handle.index;
+        UInt32 token = handle.token;
+        log::Warn("VertexLayout leak detected: Handle index = {}, Token = {}, RefCount = {}", index, token, value.refCount);
         bLeakDetected = true;
     }
 
     for (const auto& [handle, value]: g_ctx.cbuffers)
     {
-        UInt32 index  = handle.index;
+        UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn(k_format, "ConstantBuffer", index, token, value.name);
+        log::Warn("ConstantBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
     for (auto handle: g_ctx.programs | std::views::keys)
     {
-        UInt32 index  = handle.index;
-        UInt32 token  = handle.token;
-        log::Warn(k_format, "Program", index, token, "Cannot name");
+        UInt32 index = handle.index;
+        UInt32 token = handle.token;
+        log::Warn("Program leak detected: Handle index = {}, Token = {}", index, token);
         bLeakDetected = true;
     }
 
@@ -2411,7 +2438,7 @@ VertexBufferHandle CreateVertexBuffer(
     VertexBuffer vertexBuf;
     vertexBuf.buffer       = g_ctx.CreateNativeBuffer(_vertexData.GetByteWidth(), eBufferType::VertexBuffer, _vertexData);
     vertexBuf.vertexStride = _vertexLayout.GetStride();
-    vertexBuf.vertexCount  = _vertexData.GetByteWidth() / vertexBuf.vertexStride;
+    vertexBuf.vertexCount  = NarrowCast<Int32>(_vertexData.GetByteWidth() / vertexBuf.vertexStride);
 
     // 버텍스 레이아웃 참조
     vertexBuf.layoutHandle = g_ctx.GetOrCreateNativeVertexLayout(_vertexLayout);
@@ -2453,7 +2480,7 @@ IndexBufferHandle CreateIndexBuffer(
 
     IndexBuffer indexBuffer;
     indexBuffer.buffer      = g_ctx.CreateNativeBuffer(_indexData.GetByteWidth(), eBufferType::IndexBuffer, _indexData);
-    indexBuffer.indexCount  = _indexData.GetByteWidth() / stride;
+    indexBuffer.indexCount  = NarrowCast<Int32>(_indexData.GetByteWidth() / stride);
     indexBuffer.indexStride = stride;
     indexBuffer.format      = _format;
 
@@ -2469,7 +2496,7 @@ IndexBufferHandle CreateDynamicIndexBuffer(
     const eIndexFormat _format)
 {
     JAM_ASSERT(_indexCount > 0, "Index count must be greater than 0");
-    Int32 stride = _format == eIndexFormat::U16 ? 2 : 4;
+    Int32 stride = GetIndexFormatByte(_format);
 
     IndexBuffer indexBuffer;
     indexBuffer.buffer      = g_ctx.CreateNativeBuffer(_indexCount * stride, eBufferType::IndexBuffer, std::nullopt);
@@ -2997,13 +3024,13 @@ TextureHandle LoadTexture(
     const DirectX::TexMetadata& metaData = _scratchImage.GetMetadata();
 
     TextureRef texture;
-    texture.width     = metaData.width;
-    texture.height    = metaData.height;
-    texture.depth     = metaData.depth;
+    texture.width     = NarrowCast<Int32>(metaData.width);
+    texture.height    = NarrowCast<Int32>(metaData.height);
+    texture.depth     = NarrowCast<Int32>(metaData.depth);
     texture.format    = g_ctx.GetNativeFormatFromDXGIFormat(metaData.format);
-    texture.arraySize = metaData.arraySize;
+    texture.arraySize = NarrowCast<Int32>(metaData.arraySize);
     texture.samples   = 1;
-    texture.mipsCount = metaData.mipLevels;
+    texture.mipsCount = NarrowCast<Int32>(metaData.mipLevels);
     texture.refCount  = 1;
     texture.bManaged  = false;
     texture.bMutable  = false;
@@ -3066,7 +3093,7 @@ Result<TextureHandle> LoadTexture(
 
 void UploadTexture2D(
     const TextureHandle _handle,
-    const MemoryView&   _writeTexData,
+    const MemoryView&   _uploadTexData,
     const Int32         _uploadTexWidth,
     const Int32         _uploadTexHeight,
     const Int32         _mipIndex,
@@ -3077,7 +3104,7 @@ void UploadTexture2D(
     const TextureRef& texture = g_ctx.textures[_handle];
     g_ctx.UploadTexture(
         texture,
-        _writeTexData,
+        _uploadTexData,
         _uploadTexWidth,
         _uploadTexHeight,
         1,
@@ -3090,7 +3117,7 @@ void UploadTexture2D(
 
 void UploadTextureCube(
     const TextureHandle _handle,
-    const MemoryView&   _writeTexData,
+    const MemoryView&   _uploateTexData,
     const Int32         _uploadTexWidth,
     const Int32         _uploadTexHeight,
     const Int32         _mipIndex,
@@ -3102,7 +3129,7 @@ void UploadTextureCube(
     const TextureRef& texture = g_ctx.textures[_handle];
     g_ctx.UploadTexture(
         texture,
-        _writeTexData,
+        _uploateTexData,
         _uploadTexWidth,
         _uploadTexHeight,
         1,
@@ -3115,7 +3142,7 @@ void UploadTextureCube(
 
 void UploadTexture3D(
     const TextureHandle _handle,
-    const MemoryView&   _writeTexData,
+    const MemoryView&   _uplodeTexData,
     const Int32         _uploadTexWidth,
     const Int32         _uploadTexHeight,
     const Int32         _uploadTexDepth,
@@ -3127,7 +3154,7 @@ void UploadTexture3D(
     const TextureRef& texture = g_ctx.textures[_handle];
     g_ctx.UploadTexture(
         texture,
-        _writeTexData,
+        _uplodeTexData,
         _uploadTexWidth,
         _uploadTexHeight,
         _uploadTexDepth,
@@ -3416,14 +3443,14 @@ void SetConstantBuffer(
     const eShader              _shader,
     const Int32                _slot)
 {
-    const Int32          stage        = EnumToInt(_shader);
-    ConstantBufferBinds& cbufferBinds = g_ctx.cbufferHandleBinds[stage];
+    const Int32          stage = EnumToInt(_shader);
+    ConstantBufferBinds& binds = g_ctx.cbufferHandleBinds[stage];
 
-    if (cbufferBinds.cbufferHandles[_slot] != _handleOrInvalid)
+    if (binds.cbufferHandles[_slot] != _handleOrInvalid)
     {
-        cbufferBinds.cbufferHandles[_slot] = _handleOrInvalid;
-        cbufferBinds.dirtyStart            = Min(cbufferBinds.dirtyStart, _slot);
-        cbufferBinds.dirtyEnd              = Max(cbufferBinds.dirtyEnd, _slot);
+        binds.cbufferHandles[_slot] = _handleOrInvalid;
+        binds.dirtyStart            = Min(binds.dirtyStart, _slot);
+        binds.dirtyEnd              = Max(binds.dirtyEnd, _slot);
         g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSConstantBuffer << stage);
     }
 }
@@ -3433,72 +3460,32 @@ void SetTexture(
     const eShader       _shader,
     const Int32         _slot)
 {
-    const Int32   stage        = EnumToInt(_shader);
-    TextureBinds& textureBinds = g_ctx.textureHandleBinds[stage];
+    const Int32   stage = EnumToInt(_shader);
+    TextureBinds& binds = g_ctx.textureHandleBinds[stage];
 
-    if (textureBinds.textureHandles[_slot] != _handleOrInvalid)
+    if (binds.textureHandles[_slot] != _handleOrInvalid)
     {
-        textureBinds.textureHandles[_slot] = _handleOrInvalid;
-        textureBinds.dirtyStart            = Min(textureBinds.dirtyStart, _slot);
-        textureBinds.dirtyEnd              = Max(textureBinds.dirtyEnd, _slot);
+        binds.textureHandles[_slot] = _handleOrInvalid;
+        binds.dirtyStart            = Min(binds.dirtyStart, _slot);
+        binds.dirtyEnd              = Max(binds.dirtyEnd, _slot);
         g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSShaderResourceView << stage);
     }
 }
 
 void SetSampler(
-    const eShader       _shader,
-    const Int32         _slot,
-    const eSamplerFlags _flags)
+    const eShader      _shader,
+    const Int32        _slot,
+    const SamplerState _state)
 {
-    const Int32        stage        = EnumToInt(_shader);
-    SamplerFlagsBinds& samplerBinds = g_ctx.samplerFlagsBinds[stage];
+    const Int32        shaderIdx = EnumToInt(_shader);
+    SamplerFlagsBinds& binds     = g_ctx.samplerFlagsBinds[shaderIdx];
 
-    if (samplerBinds.samplerFlags[_slot] != _flags)
+    if (!MemEquel(binds.samplerStates[_slot], _state))
     {
-        samplerBinds.samplerFlags[_slot] = _flags;
-        samplerBinds.dirtyStart          = Min(samplerBinds.dirtyStart, _slot);
-        samplerBinds.dirtyEnd            = Max(samplerBinds.dirtyEnd, _slot);
-        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << stage);
-    }
-}
-
-void SetState(const eStateFlags _stateFlags)
-{
-    if (g_ctx.stateFlagsBind != _stateFlags)
-    {
-        // blend state
-        BlendStateCacheKey blendStateKey = _stateFlags & eStateFlags_BlendStateMask_Internal;
-        if (g_ctx.blendStateBind != blendStateKey)
-        {
-            g_ctx.blendStateBind = blendStateKey;
-            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
-        }
-
-        // depth state
-        DepthStencilCacheKey depthStateKey              = ((_stateFlags & eStateFlags_DepthStateMask_Internal) >> eStateFlags_DepthStateShift_Internal) << 32;
-        DepthStencilCacheKey depthStateKeyPipelineState = (g_ctx.depthStencilStateBind & UINT64_C(0x0000'00FF'0000'0000));
-
-        if (depthStateKeyPipelineState != depthStateKey)
-        {
-            g_ctx.depthStencilStateBind = (g_ctx.depthStencilStateBind & UINT64_C(0xFFFF'FF00'FFFF'FFFF)) | depthStateKey;
-            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
-        }
-
-        // rasterizer state
-        RasterizerStateCacheKey rasterizerStateKey = _stateFlags & eStateFlags_RasterizerStateMask_Internal;
-        if (g_ctx.rasterizerStateBind != rasterizerStateKey)
-        {
-            g_ctx.rasterizerStateBind = rasterizerStateKey;
-            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_RasterizerState;
-        }
-
-        // primitive topology
-        PrimitiveTopologyBind primitiveTopologyKey = (_stateFlags & eStateFlags_PrimitiveTopologyMask_Internal) >> eStateFlags_PrimitiveTopologyShift_Internal;
-        if (g_ctx.primitiveTopologyBind != primitiveTopologyKey)
-        {
-            g_ctx.primitiveTopologyBind = primitiveTopologyKey;
-            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_PrimitiveTopology;
-        }
+        binds.samplerStates[_slot] = _state;
+        binds.dirtyStart           = Min(binds.dirtyStart, _slot);
+        binds.dirtyEnd             = Max(binds.dirtyEnd, _slot);
+        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << shaderIdx);
     }
 }
 
@@ -3511,39 +3498,20 @@ void SetBlendFactor(const RGBA _rgba)
     }
 }
 
-void SetBorderColor(
-    const eShader _shader,
-    const Int32   _slot,
-    const RGBA    _rgba)
-{
-    const Int32        shaderIndex  = EnumToInt(_shader);
-    SamplerFlagsBinds& pipeCacheRef = g_ctx.samplerFlagsBinds[shaderIndex];
-    if (pipeCacheRef.borderColors[_slot].color != _rgba.color)
-    {
-        pipeCacheRef.borderColors[_slot] = _rgba;
-        pipeCacheRef.dirtyStart          = Min(pipeCacheRef.dirtyStart, _slot);
-        pipeCacheRef.dirtyEnd            = Max(pipeCacheRef.dirtyEnd, _slot);
-        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << shaderIndex);
-    }
-}
-
 void SetStencil(
-    const eStencilFlags _fStencil,
-    const eStencilFlags _bStencil,
-    const UInt8         _stencilRef)
+    const StencilState _fStencil,
+    const StencilState _bStencil,
+    const UInt8        _stencilRef)
 {
-
-    if (g_ctx.fstencilFlagsBind != _fStencil)
+    if (!MemEquel(g_ctx.depthStencilStateBind.fStencil, _fStencil))
     {
-        g_ctx.fstencilFlagsBind     = _fStencil;
-        g_ctx.depthStencilStateBind = (g_ctx.depthStencilStateBind & UINT64_C(0xFFFF'FFFF'0000'FFFF)) | (_fStencil << 16);
+        g_ctx.depthStencilStateBind.fStencil = _fStencil;
         g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
     }
 
-    if (g_ctx.bstencilFlagsBind != _bStencil)
+    if (!MemEquel(g_ctx.depthStencilStateBind.bStencil, _bStencil))
     {
-        g_ctx.bstencilFlagsBind     = _bStencil;
-        g_ctx.depthStencilStateBind = (g_ctx.depthStencilStateBind & UINT64_C(0xFFFF'FFFF'FFFF'0000)) | (_bStencil << 32);
+        g_ctx.depthStencilStateBind.bStencil = _bStencil;
         g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
     }
 
@@ -3551,6 +3519,85 @@ void SetStencil(
     {
         g_ctx.stencilRefBind = _stencilRef;
         g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
+    }
+}
+
+void SetBorderColor(
+    const eShader _shader,
+    const Int32   _slot,
+    const RGBA    _rgba)
+{
+    const Int32        shaderIndex = EnumToInt(_shader);
+    SamplerFlagsBinds& binds       = g_ctx.samplerFlagsBinds[shaderIndex];
+    if (binds.borderColors[_slot].color != _rgba.color)
+    {
+        binds.borderColors[_slot] = _rgba;
+        binds.dirtyStart          = Min(binds.dirtyStart, _slot);
+        binds.dirtyEnd            = Max(binds.dirtyEnd, _slot);
+        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << shaderIndex);
+    }
+}
+
+void SetState(const GfxState _state)
+{
+    if (!MemEquel(g_ctx.stateBind, _state))
+    {
+        g_ctx.stateBind = _state;
+
+        // depth stencil state
+        DepthStencilStateD3D11 dss = g_ctx.depthStencilStateBind;
+        dss.bDepthWrite            = _state.bDepthWrite;
+        dss.depthTestFunc          = _state.depthTestFunc;
+        if (!MemEquel(g_ctx.depthStencilStateBind, dss))
+        {
+            g_ctx.depthStencilStateBind = dss;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
+        }
+
+        // rasterizer state
+        RasterizerStateD3D11 rs;
+        rs.cullMode     = _state.cullMode;
+        rs.bWireframe   = _state.bWireframe;
+        rs.bDepthClamp  = _state.bDepthClamp;
+        rs.bMultiSample = _state.bMultiSample;
+        rs.bLineAA      = _state.bLineAA;
+        rs.bScissor     = _state.bScissor;
+        rs.bCCWFront    = _state.bCCWFront;
+        if (!MemEquel(g_ctx.rasterizerStateBind, rs))
+        {
+            g_ctx.rasterizerStateBind = rs;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_RasterizerState;
+        }
+
+        // blend state
+        BlendStateD3D11 bs   = g_ctx.blendStateBind;
+        bs.bAlphaToCoverage  = _state.bAlphaToCoverage;
+        bs.bIndependentBlend = _state.bIndependentBlend;
+        if (!MemEquel(g_ctx.blendStateBind, bs))
+        {
+            g_ctx.blendStateBind = bs;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
+        }
+
+        // primitive
+        if (g_ctx.primitiveBind != _state.primitive)
+        {
+            g_ctx.primitiveBind = _state.primitive;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_Primitive;
+        }
+    }
+}
+
+void SetBlendState(
+    const Int32      _renderTargetIndex,
+    const BlendState _state)
+{
+    JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < k_renderTargetCountMax, "Render target index out of range.");
+    BlendState bs = g_ctx.blendStateBind.renderTarget[_renderTargetIndex];
+    if (!MemEquel(bs, _state))
+    {
+        g_ctx.blendStateBind.renderTarget[_renderTargetIndex] = _state;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
     }
 }
 

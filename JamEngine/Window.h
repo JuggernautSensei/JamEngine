@@ -56,7 +56,7 @@ private:
         HWND   hWnd,
         UINT   uMsg,
         WPARAM wParam,
-        LPARAM  lParam);
+        LPARAM lParam);
 
     void OnWindowResize_(const WindowResizeEvent& _event);
     void OnWindowMove_(const WindowMoveEvent& _event);
@@ -70,12 +70,12 @@ private:
     Int32 m_posX   = 0;   // window translate X
     Int32 m_posY   = 0;   // window translate Y
 
-    constexpr static const wchar_t* const k_windowClassName = L"jam enginewindow class";  
-    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";       
-    constexpr static Int32                k_defaultWidth    = 800;                        
-    constexpr static Int32                k_defaultHeight   = 600;                        
-    constexpr static Int32                k_defaultPosX     = 100;                        
-    constexpr static Int32                k_defaultPosY     = 100;                        
+    constexpr static const wchar_t* const k_windowClassName = L"jam enginewindow class";
+    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";
+    constexpr static Int32                k_defaultWidth    = 800;
+    constexpr static Int32                k_defaultHeight   = 600;
+    constexpr static Int32                k_defaultPosX     = 100;
+    constexpr static Int32                k_defaultPosY     = 100;
 };
 
 }   // namespace jam

@@ -75,4 +75,5 @@ constexpr bool IsStdContiguousSequenceContainer = IsStdContainer<T> && std::rang
 template<typename T>
 constexpr bool IsPlainOfData = std::is_trivially_copyable_v<T> && std::is_standard_layout_v<T>;
 
+
 }   // namespace jam

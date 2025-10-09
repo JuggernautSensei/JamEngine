@@ -11,16 +11,15 @@ namespace jam
 eErrorCode ShaderImporter::Import()
 {
     JAM_ASSERT(!m_filePath.empty(), "File path is empty.");
-    JAM_ASSERT(IsImportablePath(m_filePath), "File path is not importable. File path: '{}'", m_filePath.native());
-    JAM_ASSERT(m_type != eType::Unknown, "Shader type is unknown. File path: '{}'", m_filepath.native());
+    JAM_ASSERT(m_type != eType::Unknown, "Shader type is unknown. File path: '{}'", m_filePath.native());
     if (m_type == eType::HLSL)
     {
-        JAM_ASSERT(m_stage != eShader::Unknown, "Shader stage is not set for HLSL shader. File path: '{}'", m_filepath.native());
-        JAM_ASSERT(!m_entryPoint.empty(), "Entry point is not set for HLSL shader. File path: '{}'", m_filepath.native());
+        JAM_ASSERT(m_stage != eShader::Unknown, "Shader stage is not set for HLSL shader. File path: '{}'", m_filePath.native());
+        JAM_ASSERT(!m_entryPoint.empty(), "Entry point is not set for HLSL shader. File path: '{}'", m_filePath.native());
     }
 
     // 임포트
-    eErrorCode result = eErrorCode::UnknownError;
+    eErrorCode result;
     switch (m_type)
     {
         case eType::HLSL:
@@ -50,6 +49,13 @@ eErrorCode ShaderImporter::Import()
         case eType::CSO:
         {
             result = m_compiler.LoadCSOFromFile(m_filePath);
+            break;
+        }
+
+        default:
+        {
+            SetErrorString("Unsupported shader type. File path: '{}'", m_filePath.native());
+            result = eErrorCode::UnknownError;
             break;
         }
     }
@@ -100,12 +106,6 @@ void ShaderImporter::Reset()
     m_type  = eType::Unknown;
     m_stage = eShader::Unknown;
     m_flags = eShaderCompileFlags_None;
-}
-
-bool ShaderImporter::IsImportablePath(const fs::path& _filePath) const
-{
-    eType type = DetermineTypeFromExtension_(_filePath);
-    return type != eType::Unknown;
 }
 
 ShaderImporter::eType ShaderImporter::DetermineTypeFromExtension_(

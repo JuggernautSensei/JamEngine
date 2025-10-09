@@ -115,32 +115,6 @@ enum class eShader : Int8
     ComputeShader,
 };
 
-enum class eBlend : Int8
-{
-    Zero           = 0x00,
-    One            = 0x01,
-    SrcColor       = 0x02,
-    InvSrcColor    = 0x03,
-    SrcAlpha       = 0x04,
-    InvSrcAlpha    = 0x05,
-    DstAlpha       = 0x06,
-    InvDstAlpha    = 0x07,
-    DstColor       = 0x08,
-    InvDstColor    = 0x09,
-    SrcAlphaSat    = 0x0A,
-    BlendFactor    = 0x0B,
-    InvBlendFactor = 0x0C
-};
-
-enum class eBlendOp : Int8
-{
-    Add         = 0x00,
-    Subtract    = 0x01,
-    RevSubtract = 0x02,
-    Min         = 0x03,
-    Max         = 0x04
-};
-
 enum class eTextureType : Int8
 {
     Unknown = -1,
@@ -150,197 +124,110 @@ enum class eTextureType : Int8
     TextureCube,
 };
 
-/// eStateFlags : 64 bit
-///
-/// [44bit: blend state] [8 bit: depth stencil state] [12 bit: rasterizer state]
-///  │
-///  └ [12 bit: RT2] [12 bit: RT1] [12 bit: RT0] [4 bit: blend misc] [4 bit: write mask]
-///
-/// 하위 16비트 0b0000.0000.0000.0000
-///               │    │   │ │   └── -> 4bit: wireframe, depth clip, multisampling, line AA
-///               │    │   │ └─ -> 2bit: scissor, CCW front
-///               │    │   └─ -> 2bit: cull mode
-///               │    └── -> 4bit: primitive topology
-///               └── -> 4bit: depth test + death read mask
-enum eStateFlags_ : UInt64
+enum class eBlend : UInt8
 {
-    eStateFlags_None = UINT64_C(0x0000'0000'0000'0000),
-
-    // 필 모드 | 뎁스 클립 | 멀티샘플링 | 선 안티앨리어싱
-    eStateFlags_Wireframe   = UINT64_C(0x0000'0000'0000'0001),   // fill mode (기본은 솔리드)
-    eStateFlags_DepthClamp  = UINT64_C(0x0000'0000'0000'0002),   // 뎁스 0.0 ~ 1.0 밖의 값들을 클리핑하지않음. (뎁스 클립 비활성화)
-    eStateFlags_MultiSample = UINT64_C(0x0000'0000'0000'0004),   // multi-sample enable (멀티샘플링 안티앨리어싱)
-    eStateFlags_LineAA      = UINT64_C(0x0000'0000'0000'0008),   // line anti-aliasing (DX9 스타일의 선 안티앨리어싱, DX10 이상에서는 항상 활성화됨)
-
-    // 시저 | 전면 방향 설정
-    eStateFlags_Scissor  = UINT64_C(0x0000'0000'0000'0010),   // scissor enable (시저 영역 밖의 픽셀 클리핑)
-    eStateFlags_CCWFront = UINT64_C(0x0000'0000'0000'0020),   // counter-clockwise front (시계 반대 방향을 앞면으로 설정, 기본값은 시계 방향이 앞면)
-
-    // 컬링
-    eStateFlags_CullNone  = 0 << 6,   // 컬링 비활성화 (기본값)
-    eStateFlags_CullFront = 1 << 6,   // cull front face (앞면 컬링 활성화)
-    eStateFlags_CullBack  = 2 << 6,   // 뒷면 컬링 활성화
-
-    // 프리미티브 토폴로지
-    eStateFlags_PrimitiveTopology_TriangleList  = UINT64_C(0x0000'0000'0000'0000),   // 삼각형 리스트 (기본값)
-    eStateFlags_PrimitiveTopology_TriangleStrip = UINT64_C(0x0000'0000'0000'0100),   // 삼각형 스트립
-    eStateFlags_PrimitiveTopology_LineList      = UINT64_C(0x0000'0000'0000'0200),   // 선 리스트
-    eStateFlags_PrimitiveTopology_LineStrip     = UINT64_C(0x0000'0000'0000'0300),   // 선 스트립
-    eStateFlags_PrimitiveTopology_PointList     = UINT64_C(0x0000'0000'0000'0400),   // 점 리스트
-
-    eStateFlags_DepthWrite = UINT64_C(0x0000'0000'0000'1000),   // 뎁스 버퍼에 쓰기 (뎁스 테스트가 활성화 되어 있어야 함)
-
-    // 뎁스 테스트 함수. 미설정시 뎁스 테스트 비활성화
-    eStateFlags_DepthTest_Less         = UINT64_C(0x0000'0000'0001'0000),   // 뎁스 비교 함수 (적힐 픽셀의 뎁스 값 < 현재 뎁스 버퍼의 뎁스 값. 통과. 기본값)
-    eStateFlags_DepthTest_LessEqual    = UINT64_C(0x0000'0000'0002'0000),   // 뎁스 비교 함수 (적힐 픽셀의 뎁스 값 <= 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eStateFlags_DepthTest_Greater      = UINT64_C(0x0000'0000'0003'0000),   // 뎁스 비교 함수 (적힐 픽셀의 뎁스 값 > 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eStateFlags_DepthTest_GreaterEqual = UINT64_C(0x0000'0000'0004'0000),   // 뎁스 비교 함수 (적힐 픽셀의 뎁스 값 >= 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eStateFlags_DepthTest_Equal        = UINT64_C(0x0000'0000'0005'0000),   // 뎁스 비교 함수 (적힐 픽셀의 뎁스 값 == 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eStateFlags_DepthTest_NotEqual     = UINT64_C(0x0000'0000'0006'0000),   // 뎁스 비교 함수 (적힐 픽셀의 뎁스 값 != 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eStateFlags_DepthTest_Always       = UINT64_C(0x0000'0000'0007'0000),   // 뎁스 비교 함수 (항상 통과)
-    eStateFlags_DepthTest_Never        = UINT64_C(0x0000'0000'0008'0000),   // 뎁스 비교 함수 (항상 실패)
-
-    // RGBA WriteMask
-    eStateFlags_WriteMask_R    = UINT64_C(0x0000'0000'0010'0000),   // 블렌딩 시 출력 컬러의 R 채널을 렌더 타겟에 쓰기
-    eStateFlags_WriteMask_G    = UINT64_C(0x0000'0000'0020'0000),   // 블렌딩 시 출력 컬러의 G 채널을 렌더 타겟에 쓰기
-    eStateFlags_WriteMask_B    = UINT64_C(0x0000'0000'0040'0000),   // 블렌딩 시 출력 컬러의 B 채널을 렌더 타겟에 쓰기
-    eStateFlags_WriteMask_A    = UINT64_C(0x0000'0000'0080'0000),   // 블렌딩 시 출력 컬러의 A 채널을 렌더 타겟에 쓰기
-    eStateFlags_WriteMask_RGB  = eStateFlags_WriteMask_R | eStateFlags_WriteMask_G | eStateFlags_WriteMask_B,
-    eStateFlags_WriteMask_RGBA = eStateFlags_WriteMask_RGB | eStateFlags_WriteMask_A,
-
-    eStateFlags_IndependentBlend = UINT64_C(0x0000'0000'0100'0000),   // 렌더 타켓 마다 독립적인 블렌드 스테이트 설정 (최대 3개까지 지원)
-    eStateFlags_AlphaToCoverage  = UINT64_C(0x0000'0000'0200'0000),   // 알파 투 커버리지 (멀티샘플링 안티앨리어싱 시, 알파 채널을 이용해 샘플링 커버리지 결정)
-
-    ///////////////////////////////////////////
-    /// Blend를 설정하고 싶다면              ///
-    /// MakeBlendState 함수를 이용할 것.     ///
-    ///////////////////////////////////////////
-
-    /* internal */
-    eStateFlags_DepthStateShift_Internal         = 12ull,                             // depth stencil state shift
-    eStateFlags_DepthStateMask_Internal          = UINT64_C(0x0000'0000'000F'F000),   // depth stencil state mask
-    eStateFlags_BlendStateMask_Internal          = UINT64_C(0xFFFF'FFFF'FFF0'0000),   // blend state mask
-    eStateFlags_BlendStateRT0Shift_Internal      = 28ull,
-    eStateFlags_BlendStateRT0Mask_Internal       = UINT64_C(0x0000'00FF'F000'0000),   // rasterizer state mask
-    eStateFlags_BlendStateRT1Mask_Internal       = UINT64_C(0x000F'FF00'0000'0000),   // rasterizer state mask
-    eStateFlags_BlendStateRT2Mask_Internal       = UINT64_C(0xFFF0'0000'F000'0000),   // rasterizer state mask
-    eStateFlags_RasterizerStateMask_Internal     = UINT64_C(0x0000'0000'0000'0FFF),   // rasterizer state mask
-    eStateFlags_BlendStateWriteMaskMask_Internal = UINT64_C(0x0000'0000'00F0'0000),   // write mask state mask
-    eStateFlags_DepthTestMask_Internal           = UINT64_C(0x0000'0000'000F'0000),   // depth compare state mask
-    eStateFlags_PrimitiveTopologyShift_Internal  = 8ull,
-    eStateFlags_PrimitiveTopologyMask_Internal   = UINT64_C(0x0000'0000'0000'0F00),
+    Zero = 0,
+    One,
+    SrcColor,
+    InvSrcColor,
+    SrcAlpha,
+    InvSrcAlpha,
+    DstAlpha,
+    InvDstAlpha,
+    DstColor,
+    InvDstColor,
+    SrcAlphaSat,
+    BlendFactor,
+    InvBlendFactor
 };
-using eStateFlags = std::underlying_type_t<eStateFlags_>;
 
-/// eStencilFlags : 16 bit
-/// [4 bit: stencil comparison] [4 bit: stencil pass op] [4 bit: stencil depth fail op] [4 bit: stencil fail op]
-enum eStencilFlags_ : UInt16
+enum class eBlendOp : UInt8
 {
-    eStencilFlags_None = 0x0000,
-
-    eStencilFlags_StencilFailOp_Keep             = 0x0000,   // 스텐실 테스트 실패 시 현재 스텐실 값 유지
-    eStencilFlags_StencilFailOp_Zero             = 0x0001,   // 스텐실 테스트 실패 시 스텐실 값을 0으로 설정
-    eStencilFlags_StencilFailOp_Replace          = 0x0002,   // 스텐실 테스트 실패 시 스텐실 값을 참조값으로 설정
-    eStencilFlags_StencilFailOp_IncreaseSaturate = 0x0003,   // 스텐실 테스트 실패 시 스텐실 값을 1 증가 (최대값은 0xFF)
-    eStencilFlags_StencilFailOp_DecreaseSaturate = 0x0004,   // 스텐실 테스트 실패 시 스텐실 값을 1 감소 (최소값은 0x00)
-    eStencilFlags_StencilFailOp_Invert           = 0x0005,   // 스텐실 테스트 실패 시 스텐실 값을 비트 반전
-    eStencilFlags_StencilFailOp_Increase         = 0x0006,   // 스텐실 테스트 실패 시 스텐실 값을 1 증가 (0xFF 초과 시 0x00으로 순환)
-    eStencilFlags_StencilFailOp_Decrease         = 0x0007,   // 스텐실 테스트 실패 시 스텐실 값을 1 감소 (0x00 미만 시 0xFF로 순환)
-
-    eStencilFlags_DepthFailOp_Keep             = 0x0000,   // 뎁스 테스트 실패 시 현재 스텐실 값 유지
-    eStencilFlags_DepthFailOp_Zero             = 0x0010,   // 뎁스 테스트 실패 시 스텐실 값을 0으로 설정
-    eStencilFlags_DepthFailOp_Replace          = 0x0020,   // 뎁스 테스트 실패 시 스텐실 값을 참조값으로 설정
-    eStencilFlags_DepthFailOp_IncreaseSaturate = 0x0030,   // 뎁스 테스트 실패 시 스텐실 값을 1 증가 (최대값은 0xFF)
-    eStencilFlags_DepthFailOp_DecreaseSaturate = 0x0040,   // 뎁스 테스트 실패 시 스텐실 값을 1 감소 (최소값은 0x00)
-    eStencilFlags_DepthFailOp_Invert           = 0x0050,   // 뎁스 테스트 실패 시 스텐실 값을 비트 반전
-    eStencilFlags_DepthFailOp_Increase         = 0x0060,   // 뎁스 테스트 실패 시 스텐실 값을 1 증가 (0xFF 초과 시 0x00으로 순환)
-    eStencilFlags_DepthFailOp_Decrease         = 0x0070,   // 뎁스 테스트 실패 시 스텐실 값을 1 감소 (0x00 미만 시 0xFF로 순환)
-
-    eStencilFlags_PassOp_Keep             = 0x0000,   // 뎁스 & 스텐실 테스트 모두 통과 시 현재 스텐실 값 유지
-    eStencilFlags_PassOp_Zero             = 0x0100,   // 뎁스 & 스텐실 테스트 모두 통과 시 스텐실 값을 0으로 설정
-    eStencilFlags_PassOp_Replace          = 0x0200,   // 뎁스 & 스텐실 테스트 모두 통과 시 스텐실 값을 참조값으로 설정
-    eStencilFlags_PassOp_IncreaseSaturate = 0x0300,   // 뎁스 & 스텐실 테스트 모두 통과 시 스텐실 값을 1 증가 (최대값은 0xFF)
-    eStencilFlags_PassOp_DecreaseSaturate = 0x0400,   // 뎁스 & 스텐실 테스트 모두 통과 시 스텐실 값을 1 감소 (최소값은 0x00)
-    eStencilFlags_PassOp_Invert           = 0x0500,   // 뎁스 & 스텐실 테스트 모두 통과 시 스텐실 값을 비트 반전
-    eStencilFlags_PassOp_Increase         = 0x0600,   // 뎁스 & 스텐실 테스트 모두 통과 시 스텐실 값을 1 증가 (0xFF 초과 시 0x00으로 순환)
-    eStencilFlags_PassOp_Decrease         = 0x0700,   // 뎁스 & 스텐실 테스트 모두 통과 시 스텐실 값을 1 감소 (0x00 미만 시 0xFF로 순환)
-
-    // 스텐실 테스트 함수. 미설정시 스텐실 테스트 비활성화
-    eStencilFlags_StencilTest_Less         = 0x1000,   // 스텐실 비교 함수 (적힐 픽셀의 스텐실 값 < 현재 스텐실 버퍼의 스텐실 값. 통과)
-    eStencilFlags_StencilTest_LessEqual    = 0x2000,   // 스텐실 비교 함수 (적힐 픽셀의 스텐실 값 <= 현재 스텐실 버퍼의 스텐실 값. 통과)
-    eStencilFlags_StencilTest_Greater      = 0x3000,   // 스텐실 비교 함수 (적힐 픽셀의 스텐실 값 > 현재 스텐실 버퍼의 스텐실 값. 통과)
-    eStencilFlags_StencilTest_GreaterEqual = 0x4000,   // 스텐실 비교 함수 (적힐 픽셀의 스텐실 값 >= 현재 스텐실 버퍼의 스텐실 값. 통과)
-    eStencilFlags_StencilTest_Equal        = 0x5000,   // 스텐실 비교 함수 (적힐 픽셀의 스텐실 값 == 현재 스텐실 버퍼의 스텐실 값. 통과)
-    eStencilFlags_StencilTest_NotEqual     = 0x6000,   // 스텐실 비교 함수 (적힐 픽셀의 스텐실 값 != 현재 스텐실 버퍼의 스텐실 값. 통과)
-    eStencilFlags_StencilTest_Always       = 0x7000,   // 스텐실 비교 함수 (항상 통과)
-    eStencilFlags_StencilTest_Never        = 0x8000,   // 스텐실 비교 함수 (절대 통과하지 않음)
-
-    eStencilFlags_StencilTestMask_Internal = 0xF000,   // 스텐실 비교 함수 마스크
+    Add = 0,
+    Subtract,
+    RevSubtract,
+    Min,
+    Max
 };
-using eStencilFlags = std::underlying_type_t<eStencilFlags_>;
 
-/// eSamplerFlags : 32 bit
-/// [4 bit: compare func] [12 bit: addressW] [12 bit: addressV] [12 bit: addressU] [8 bit: filter]
-enum eSamplerFlags_ : UInt32
+enum class eCullMode : UInt8
 {
-    eSamplerFlags_None = 0x0000'0000,
-
-    eSamplerFlags_MinPoint  = 0b0000'0000'0000'0000,   // 축소 필터링: 포인트 샘플링
-    eSamplerFlags_MinLinear = 0b0000'0000'0000'0001,   // 축소 필터링: 선형 필터링
-
-    eSamplerFlags_MagPoint  = 0b0000'0000'0000'0000,   // 확대 필터링: 포인트 샘플링
-    eSamplerFlags_MagLinear = 0b0000'0000'0000'0100,   // 확대 필터링: 선형 필터링
-
-    eSamplerFlags_MipPoint  = 0b0000'0000'0000'0000,   // MIP 필터링: 포인트 샘플링
-    eSamplerFlags_MipLinear = 0b0000'0000'0001'0000,   // MIP 필터링: 선형 필터링
-
-    eSamplerFlags_Anisotropic4  = 0x0000'0100,   // 이방성 필터링 (Min, Mag, Mip 필터링 설정 무시)
-    eSamplerFlags_Anisotropic8  = 0x0000'0200,   // 이방성 필터링 (Min, Mag, Mip 필터링 설정 무시)
-    eSamplerFlags_Anisotropic16 = 0x0000'0300,   // 이방성 필터링 (Min, Mag, Mip 필터링 설정 무시)
-
-    eSamplerFlags_AddressU_Wrap       = 0x0000'0000,   // U 좌표 래핑 모드: 반복
-    eSamplerFlags_AddressU_Mirror     = 0x0001'0000,   // U 좌표 래핑 모드: 미러링
-    eSamplerFlags_AddressU_Clamp      = 0x0002'0000,   // U 좌표 래핑 모드: 클램핑
-    eSamplerFlags_AddressU_Border     = 0x0003'0000,   // U 좌표 래핑 모드: 경계색
-    eSamplerFlags_AddressU_MirrorOnce = 0x0004'0000,   // U 좌표 래핑 모드: 미러링(한 번만)
-
-    eSamplerFlags_AddressV_Wrap       = 0x0000'0000,   // V 좌표 래핑 모드: 반복
-    eSamplerFlags_AddressV_Mirror     = 0x0010'0000,   // V 좌표 래핑 모드: 미러링
-    eSamplerFlags_AddressV_Clamp      = 0x0020'0000,   // V 좌표 래핑 모드: 클램핑
-    eSamplerFlags_AddressV_Border     = 0x0030'0000,   // V 좌표 래핑 모드: 경계색
-    eSamplerFlags_AddressV_MirrorOnce = 0x0040'0000,   // V 좌표 래핑 모드: 미러링(한 번만)
-
-    eSamplerFlags_AddressW_Wrap       = 0x0000'0000,   // W 좌표 래핑 모드: 반복
-    eSamplerFlags_AddressW_Mirror     = 0x0100'0000,   // W 좌표 래핑 모드: 미러링
-    eSamplerFlags_AddressW_Clamp      = 0x0200'0000,   // W 좌표 래핑 모드: 클램핑
-    eSamplerFlags_AddressW_Border     = 0x0300'0000,   // W 좌표 래핑 모드: 경계색
-    eSamplerFlags_AddressW_MirrorOnce = 0x0400'0000,   // W 좌표 래핑 모드: 미러링(한 번만)
-
-    // 비교 샘플링 (미설정시 일반 샘플링)
-    eSamplerFlags_Compare_Less       = 0x1000'0000,   // 비교 샘플링 비교 함수 (적힐 픽셀의 뎁스 값 < 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eSamplerFlags_Compare_LessEqual  = 0x2000'0000,   // 비교 샘플링 비교 함수 (적힐 픽셀의 뎁스 값 <= 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eSamplerFlags_Compare_Greater    = 0x3000'0000,   // 비교 샘플링 비교 함수 (적힐 픽셀의 뎁스 값 > 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eSamplerFlags_Compare_GreatEqual = 0x4000'0000,   // 비교 샘플링 비교 함수 (적힐 픽셀의 뎁스 값 >= 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eSamplerFlags_Compare_Equal      = 0x5000'0000,   // 비교 샘플링 비교 함수 (적힐 픽셀의 뎁스 값 == 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eSamplerFlags_Compare_NotEqual   = 0x6000'0000,   // 비교 샘플링 비교 함수 (적힐 픽셀의 뎁스 값 != 현재 뎁스 버퍼의 뎁스 값. 통과)
-    eSamplerFlags_Compare_Always     = 0x7000'0000,   // 비교 샘플링 비교 함수 (항상 통과)
-    eSamplerFlags_Compare_Never      = 0x8000'0000,   // 비교 샘플링 비교 함수 (절대 통과하지 않음)
-
-    // [internal]
-    eSamplerFlags_AnisotropicMask_Internal = 0x0000'0F00,
-    eSamplerFlags_FilterMask_Internal      = 0x000F'FFFF,
-
-    eSamplerFlags_CompareMask_Internal  = 0xF000'0000,
-    eSamplerFlags_CompareShift_Internal = 28ull,
-
-    eSamplerFlags_AddressUMask_Internal  = 0x000F'0000,
-    eSamplerFlags_AddressVMask_Internal  = 0x00F0'0000,
-    eSamplerFlags_AddressWMask_Internal  = 0x0F00'0000,
-    eSamplerFlags_AddressUShift_Internal = 16ull,
-    eSamplerFlags_AddressVShift_Internal = 20ull,
-    eSamplerFlags_AddressWShift_Internal = 24ull,
+    None  = 0,
+    Back  = 1,
+    Front = 2,
 };
-using eSamplerFlags = std::underlying_type_t<eSamplerFlags_>;
+
+enum class ePrimitive : UInt8
+{
+    TriangleList = 0,
+    TriangleStrip,
+    LineList,
+    LineStrip,
+    PointList,
+};
+
+enum class eCompareFunc : UInt8
+{
+    None,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    Equal,
+    NotEqual,
+    Always,
+    Never,   // 8
+};
+
+enum eWriteFlags_ : UInt8
+{
+    eWriteFlags_None  = 0,
+    eWriteFlags_Red   = 1 << 0,
+    eWriteFlags_Green = 1 << 1,
+    eWriteFlags_Blue  = 1 << 2,
+    eWriteFlags_Alpha = 1 << 3,
+    eWriteFlags_All   = eWriteFlags_Red | eWriteFlags_Green | eWriteFlags_Blue | eWriteFlags_Alpha,
+};
+using eWriteFlags = UInt8;
+
+enum class eStencilOp : UInt8
+{
+    Keep = 0,   // 현재 스텐실 값을 유지
+    Zero,       // 스텐실 값을 0으로 설정
+    Replace,    // 스텐실 값을 참조 값으로 교체
+    IncrSat,    // 스텐실 값을 1 증가 (최대값에 도달하면 유지)
+    DecrSat,    // 스텐실 값을 1 감소 (최소값에 도달하면 유지)
+    Invert,     // 스텐실 값을 비트 반전
+    Incr,       // 스텐실 값을 1 증가 (최대값에 도달하면 0으로 래핑)
+    Decr,       // 스텐실 값을 1 감소 (최소값에 도달하면 최대값으로 래핑)
+};
+
+enum class eTextureAddress : UInt8
+{
+    Wrap       = 0,   // 반복
+    Mirror     = 1,   // 미러링
+    Clamp      = 2,   // 클램핑
+    Border     = 3,   // 경계색
+    MirrorOnce = 4,   // 미러링(한 번만)
+};
+
+enum class eTextureFilter : UInt8
+{
+    // 기본 필터링
+    MinPoint_MagPoint_MipPoint = 0,
+    MinPoint_MagPoint_MipLinear,
+    MinPoint_MagLinear_MipPoint,
+    MinPoint_MagLinear_MipLinear,
+    MinLinear_MagPoint_MipPoint,
+    MinLinear_MagPoint_MipLinear,
+    MinLinear_MagLinear_MipPoint,
+    MinLinear_MagLinear_MipLinear,
+
+    // 이방성 필터링
+    Anisotropic4,
+    Anisotropic8,
+    Anisotropic16,
+};
 
 enum class eCubeFace : Int8
 {
@@ -350,14 +237,6 @@ enum class eCubeFace : Int8
     Bottom,
     Front,
     Back,
-};
-
-enum class eDetailLevel : Int8
-{
-    Low = 0,
-    Medium,
-    High,
-    Ultra,
 };
 
 enum eShaderCompileFlags_ : UInt8
@@ -586,17 +465,156 @@ struct Viewport
     };
 };
 
+struct GfxState
+{
+    GfxState()
+        : primitive(ePrimitive::TriangleList)
+        , cullMode(eCullMode::Back)
+        , bWireframe(false)
+        , bDepthClamp(false)
+        , bMultiSample(false)
+        , bLineAA(false)
+        , bScissor(false)
+        , bCCWFront(false)
+        , bAlphaToCoverage(false)
+        , bIndependentBlend(false)
+        , depthTestFunc(eCompareFunc::None)
+        , bDepthWrite(true)
+    {
+    }
+
+    using IntType = UInt32;
+    union
+    {
+        struct
+        {
+            ePrimitive   primitive : 3;           // 프리미티브 타입 (기본: 삼각형 리스트)
+            eCullMode    cullMode : 2;            // 컬링 모드 (기본: 백 페이스 컬링)
+            bool         bWireframe : 1;          // Fill 모드 (기본: 솔리드, true: 와이어프레임)
+            bool         bDepthClamp : 1;         // 깊이 클램프 활성화 여부 (기본: 깊이를 벗어나는 픽셀은 클리핑, true: 깊이를 벗어나는 픽셀 클립하지 않음)
+            bool         bMultiSample : 1;        // 멀티샘플링 활성화 여부 (기본: 비활성화, true: 활성화) 이는 MSAA 렌더 타겟에만 영향을 미침
+            bool         bLineAA : 1;             // 라인 안티앨리어싱 활성화 여부 (기본: 비활성화, true: 활성화) 이는 MSAA 렌더 타겟에만 영향을 미침
+            bool         bScissor : 1;            // 스크리소 활성화 여부 (기본: 비활성화, true: 활성화)
+            bool         bCCWFront : 1;           // 반시계방향을 앞면으로 설정 (기본: 시계방향이 앞면, true: 반시계방향이 앞면)
+            bool         bAlphaToCoverage : 1;    // 알파 투 커버리지 활성화 여부 (기본: 비활성화, true: 활성화) 이는 MSAA 렌더 타겟에만 영향을 미침
+            bool         bIndependentBlend : 1;   // 독립적 블렌딩 활성화 여부 (기본: 비활성화, true: 활성화) 이는 8개 렌더 타겟 각각에 대해 별도의 블렌드 상태를 설정할 수 있게 함
+            eCompareFunc depthTestFunc : 4;       // 깊이 테스트 비교 함수 (기본: None. 즉, 깊이 테스트 비활성화)
+            bool         bDepthWrite : 1;         // 깊이 쓰기 활성화 여부 (기본: 비활성화, true: 활성화)
+        };
+        IntType value = 0;
+    };
+
+    static GfxState k_default;     // 기본 렌더링 상태 (삼각형 리스트, 뒷면 컬링)
+    static GfxState k_depthTest;   // 깊이 테스트 및 쓰기 활성화된 상태, 나머지는 기본값
+};
+
+struct BlendState
+{
+    BlendState()
+        : bEnable(false)
+        , srcBlend(eBlend::One)
+        , dstBlend(eBlend::Zero)
+        , blendOp(eBlendOp::Add)
+        , srcBlendAlpha(eBlend::One)
+        , dstBlendAlpha(eBlend::Zero)
+        , blendOpAlpha(eBlendOp::Add)
+        , writeMask(eWriteFlags_All)
+    {
+    }
+
+    // 블랜드 공식
+    // FinalColor = (SrcColor * SrcBlend) (BlendOp) (DstColor * DstBlend)
+    using IntType = UInt32;
+    union
+    {
+        struct
+        {
+            bool        bEnable : 1;         // 블렌딩 활성화 여부 (기본: 비활성화, true: 활성화)
+            eBlend      srcBlend : 4;        // 소스 블렌드 팩터 (기본: One)
+            eBlend      dstBlend : 4;        // 대상 블렌드 팩터 (기본: Zero)
+            eBlendOp    blendOp : 3;         // 블렌드 연산자 (기본: Add)
+            eBlend      srcBlendAlpha : 4;   // 소스 알파 블렌드 팩터 (기본: One)
+            eBlend      dstBlendAlpha : 4;   // 대상 알파 블렌드 팩터 (기본: Zero)
+            eBlendOp    blendOpAlpha : 3;    // 알파 블렌드 연산자 (기본: Add)
+            eWriteFlags writeMask : 4;       // 렌더 타겟에 쓰기 마스크 (기본: RGBA 모두 활성화)
+        };
+        IntType value = 0;
+    };
+
+    static BlendState k_default;       // 블렌딩 비활성화 (Src=1, Dst=0). 픽셀을 그대로 덮어씀.
+    static BlendState k_alpha;         // 알파 블렌딩 (Src=SrcAlpha, Dst=InvSrcAlpha). 투명/반투명 표현.
+    static BlendState k_additive;      // 가산 블렌딩 (Src=1, Dst=1). 색상을 더해 밝게 만듦.
+    static BlendState k_premult;       // 프리멀티 알파 (Src=1, Dst=InvSrcAlpha). SrcColor가 이미 알파 곱 적용된 경우 사용.
+    static BlendState k_subtractive;   // 감산 블렌딩 (Src=1, Dst=1, BlendOp=ReverseSubtract). 기존 색에서 소스 색을 뺌.
+    static BlendState k_multiply;      // 곱셈 블렌딩 (Src=DstColor, Dst=Zero). 색을 곱해 어둡게 만듦.
+    static BlendState k_screen;        // 스크린 블렌딩 (Src=1, Dst=InvSrcColor). 반전된 곱셈, 색이 겹칠수록 밝아짐.
+    static BlendState k_overlay;       // 오버레이 블렌딩. Dst<0.5면 Multiply, Dst>=0.5면 Screen. 명암 대비 강조.
+    static BlendState k_darkening;     // 다크닝 블렌딩 (Src=DstColor, Dst=SrcColor). 색이 겹칠수록 어두워짐.
+    static BlendState k_lightening;    // 라이트닝 블렌딩 (Src=1, Dst=InvSrcColor). 색이 겹칠수록 밝아짐.
+};
+
+struct StencilState
+{
+    StencilState()
+        : stencilFailOp(eStencilOp::Keep)
+        , depthFailOp(eStencilOp::Keep)
+        , passOp(eStencilOp::Keep)
+        , compareFunc(eCompareFunc::None)
+    {
+    }
+
+    using IntType = UInt16;
+    union
+    {
+        struct
+        {
+            eStencilOp   stencilFailOp : 3;   // 뎁스 통과 & 스텐실 실패 시 수행할 작업
+            eStencilOp   depthFailOp : 3;     // 뎁스 실패 & 스텐실 통과 시 수행할 작업
+            eStencilOp   passOp : 3;          // 뎁스 통과 & 스텐실 통과 시 수행할 작업
+            eCompareFunc compareFunc : 4;     // 스텐실 테스트 비교 함수 (기본: None, 즉, 스텐실 테스트 비활성화)
+        };
+        IntType value = 0;
+    };
+
+    static StencilState k_default;   // 기본 스텐실 상태 (스텐실 비활성화)
+};
+
+struct SamplerState
+{
+    SamplerState()
+        : filter(eTextureFilter::MinPoint_MagPoint_MipPoint)
+        , addressU(eTextureAddress::Wrap)
+        , addressV(eTextureAddress::Wrap)
+        , addressW(eTextureAddress::Wrap)
+        , compareFunc(eCompareFunc::None)
+    {
+    }
+
+    using IntType = UInt32;
+    union
+    {
+        struct
+        {
+            eTextureFilter  filter : 5;        // 필터링 모드 (기본값은 MinMagMipPoint)
+            eTextureAddress addressU : 3;      // U 좌표 래핑 모드 (기본값은 Wrap)
+            eTextureAddress addressV : 3;      // V 좌표 래핑 모드 (기본값은 Wrap)
+            eTextureAddress addressW : 3;      // W 좌표 래핑 모드 (기본값은 Wrap)
+            eCompareFunc    compareFunc : 4;   // 비교 함수 (기본값은 None 비교 필터링 비활성화. 다른 값으로 선택시 비교 필터링 활성화)
+        };
+        IntType value = 0;
+    };
+
+    static SamplerState k_default;       // 기본 샘플러 상태 (점 샘플링, 래핑)
+    static SamplerState k_pointClamp;    // 점 샘플링, 클램프
+    static SamplerState k_linearClamp;   // 선형 샘플링, 클램프
+    static SamplerState k_pointWrap;     // 점 샘플링, 래핑
+    static SamplerState k_linearWrap;    // 선형 샘플링, 래핑
+    static SamplerState k_shadow;        // 그림자 맵용 (비교 필터링, 선형, 클램프)
+};
+
 ///////////////////////////////////
 ///          UTILITIES          ///
 ///////////////////////////////////
-
-/// 결과 색상 = (적힐 픽셀 색상 * 적힐 픽셀 블렌드 계수) op (배경 픽셀 색상 * 배경 픽셀 블렌드 계수)
-JAM_NODISCARD eStateFlags MakeBlendState(
-    eBlend   _srcBlend,               // 적힐 픽셀의 블렌드 계수
-    eBlendOp _op,                     // 블렌드 연산자
-    eBlend   _dstBlend,               // 배경 픽셀의 블렌드 계수
-    Int32    _renderTargetIndex = 0   // 렌더 타겟 인덱스 (0 ~ 2, 3 이상은 RT0와 동일하게 적용됨)
-);
 
 JAM_NODISCARD Int32 GetPixelByte(eFormat _format);
 JAM_NODISCARD bool  IsDepthFormat(eFormat _format);

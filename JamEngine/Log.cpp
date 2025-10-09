@@ -9,15 +9,15 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 using namespace jam;
 
-namespace
-{
+//////////////////////////////////
+///          INTERNAL          ///
+//////////////////////////////////
 
 constexpr const char* k_defaultLogPattern    = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] %v";
 constexpr const char* k_memorySinkLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%l] %v";
+static std::shared_ptr<MemorySinkMT> s_memorySink = nullptr;
 
-std::shared_ptr<MemorySinkMT> s_memorySink = nullptr;
-
-}   // namespace
+////////////////////////////////////////////////////////////
 
 namespace jam::log
 {

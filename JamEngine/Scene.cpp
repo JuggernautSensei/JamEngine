@@ -27,7 +27,7 @@ void Scene::OnEvent(Event& _event)
 {
 }
 
-void Scene::OnDeserialize(const Json& _js)
+eErrorCode Scene::OnDeserialize(const Json& _js)
 {
 }
 
@@ -65,16 +65,6 @@ void Scene::OnExit()
 {
     Clear();
     m_rootEntity = Entity::s_null;
-}
-
-eErrorCode Scene::Save(const fs::path& _path)
-{
-    return eErrorCode::Ok;
-}
-
-eErrorCode Scene::Load(const fs::path& _path)
-{
-    return eErrorCode::Ok;
 }
 
 Entity Scene::CreateEntity(const std::string_view _name)
@@ -140,7 +130,7 @@ Entity Scene::CloneEntity(const Entity& _entity)
     {
         if (component_db::Has(typeID, _entity))   // _entity가 해당 컴포넌트를 가지고 있는지 확인
         {
-            const std::any component = component_db::Get(typeID, _entity);       // 컴포넌트 데이터 가져오기
+            void* component = component_db::Get(typeID, _entity);                // 컴포넌트 데이터 가져오기
             component_db::CreateOrReplaceByCopy(typeID, newEntity, component);   // 새 엔티티에 컴포넌트 복사
         }
     }

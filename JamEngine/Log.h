@@ -10,7 +10,6 @@ namespace jam::log
 {
 
 void Init();
-
 void Shutdown();
 
 template<typename... Args>
@@ -41,6 +40,12 @@ template<typename... Args>
 void Critical(spdlog::format_string_t<Args...> _format, Args&&... args)
 {
     spdlog::critical(_format, std::forward<Args>(args)...);
+}
+
+template<typename T, typename... Args>
+void Trace(const T& _format, Args&&... args)
+{
+    spdlog::trace(_format, std::forward<Args>(args)...);
 }
 
 template<typename T>
