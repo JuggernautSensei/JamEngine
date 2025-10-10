@@ -166,7 +166,7 @@ static void ImGui_ImplWin32_UpdateKeyboardCodePage(ImGuiIO& io)
         bd->KeyboardCodePage = CP_ACP; // Fallback to default ANSI code page when fails.
 }
 
-static bool ImGui_ImplWin32_InitEx(void* hwnd, bool platform_has_own_dc)
+static bool ImGui_ImplWin32_InitEx(void* hwnd, const bool platform_has_own_dc)
 {
     ImGuiIO& io = ImGui::GetIO();
     IMGUI_CHECKVERSION();
@@ -261,7 +261,7 @@ void    ImGui_ImplWin32_Shutdown()
     IM_DELETE(bd);
 }
 
-static bool ImGui_ImplWin32_UpdateMouseCursor(ImGuiIO& io, ImGuiMouseCursor imgui_cursor)
+static bool ImGui_ImplWin32_UpdateMouseCursor(ImGuiIO& io, const ImGuiMouseCursor imgui_cursor)
 {
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
         return false;
@@ -294,12 +294,12 @@ static bool ImGui_ImplWin32_UpdateMouseCursor(ImGuiIO& io, ImGuiMouseCursor imgu
     return true;
 }
 
-static bool IsVkDown(int vk)
+static bool IsVkDown(const int vk)
 {
     return (::GetKeyState(vk) & 0x8000) != 0;
 }
 
-static void ImGui_ImplWin32_AddKeyEvent(ImGuiIO& io, ImGuiKey key, bool down, int native_keycode, int native_scancode = -1)
+static void ImGui_ImplWin32_AddKeyEvent(ImGuiIO& io, const ImGuiKey key, const bool down, const int native_keycode, const int native_scancode = -1)
 {
     io.AddKeyEvent(key, down);
     io.SetKeyEventNativeData(key, native_keycode, native_scancode); // To support legacy indexing (<1.87 user code)
@@ -329,7 +329,7 @@ static void ImGui_ImplWin32_UpdateKeyModifiers(ImGuiIO& io)
     io.AddKeyEvent(ImGuiMod_Super, IsVkDown(VK_LWIN) || IsVkDown(VK_RWIN));
 }
 
-static ImGuiViewport* ImGui_ImplWin32_FindViewportByPlatformHandle(ImGuiPlatformIO& platform_io, HWND hwnd)
+static ImGuiViewport* ImGui_ImplWin32_FindViewportByPlatformHandle(ImGuiPlatformIO& platform_io, const HWND hwnd)
 {
     // We cannot use ImGui::FindViewportByPlatformHandle() because it doesn't take a context.
     // When called from ImGui_ImplWin32_WndProcHandler_PlatformWindow() we don't assume that context is bound.
@@ -450,7 +450,7 @@ static void ImGui_ImplWin32_UpdateGamepads(ImGuiIO& io)
 #endif
 }
 
-static BOOL CALLBACK ImGui_ImplWin32_UpdateMonitors_EnumFunc(HMONITOR monitor, HDC, LPRECT, LPARAM)
+static BOOL CALLBACK ImGui_ImplWin32_UpdateMonitors_EnumFunc(const HMONITOR monitor, HDC, LPRECT, LPARAM)
 {
     MONITORINFO info = {};
     info.cbSize = sizeof(MONITORINFO);
@@ -522,7 +522,7 @@ void    ImGui_ImplWin32_NewFrame()
 // Map VK_xxx to ImGuiKey_xxx.
 // Not static to allow third-party code to use that if they want to (but undocumented)
 ImGuiKey ImGui_ImplWin32_KeyEventToImGuiKey(WPARAM wParam, LPARAM lParam);
-ImGuiKey ImGui_ImplWin32_KeyEventToImGuiKey(WPARAM wParam, LPARAM lParam)
+ImGuiKey ImGui_ImplWin32_KeyEventToImGuiKey(const WPARAM wParam, const LPARAM lParam)
 {
     // There is no distinct VK_xxx for keypad enter, instead it is VK_RETURN + KF_EXTENDED.
     if ((wParam == VK_RETURN) && (HIWORD(lParam) & KF_EXTENDED))
@@ -711,7 +711,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hWnd, UINT m
 #define WM_DPICHANGED 0x02E0 // From Windows SDK 8.1+ headers
 #endif
 
-IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(const HWND hwnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
     // Most backends don't have silent checks like this one, but we need it because WndProc are called early in CreateWindow().
     // We silently allow both context or just only backend data to be nullptr.
@@ -721,7 +721,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
 }
 
 // This version is in theory thread-safe in the sense that no path should access ImGui::GetCurrentContext().
-IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io)
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(const HWND hwnd, const UINT msg, WPARAM wParam, const LPARAM lParam, ImGuiIO& io)
 {
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData(io);
     if (bd == nullptr)
@@ -933,7 +933,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
 
 // Perform our own check with RtlVerifyVersionInfo() instead of using functions from <VersionHelpers.h> as they
 // require a manifest to be functional for checks above 8.1. See https://github.com/ocornut/imgui/issues/4200
-static BOOL _IsWindowsVersionOrGreater(WORD major, WORD minor, WORD)
+static BOOL _IsWindowsVersionOrGreater(const WORD major, const WORD minor, WORD)
 {
     typedef LONG(WINAPI* PFN_RtlVerifyVersionInfo)(OSVERSIONINFOEXW*, ULONG, ULONGLONG);
     static PFN_RtlVerifyVersionInfo RtlVerifyVersionInfoFn = nullptr;
@@ -1098,7 +1098,7 @@ struct ImGui_ImplWin32_ViewportData
     ~ImGui_ImplWin32_ViewportData() { IM_ASSERT(Hwnd == nullptr); }
 };
 
-static void ImGui_ImplWin32_GetWin32StyleFromViewportFlags(ImGuiViewportFlags flags, DWORD* out_style, DWORD* out_ex_style)
+static void ImGui_ImplWin32_GetWin32StyleFromViewportFlags(const ImGuiViewportFlags flags, DWORD* out_style, DWORD* out_ex_style)
 {
     if (flags & ImGuiViewportFlags_NoDecoration)
         *out_style = WS_POPUP;
@@ -1114,7 +1114,7 @@ static void ImGui_ImplWin32_GetWin32StyleFromViewportFlags(ImGuiViewportFlags fl
         *out_ex_style |= WS_EX_TOPMOST;
 }
 
-static HWND ImGui_ImplWin32_GetHwndFromViewportID(ImGuiID viewport_id)
+static HWND ImGui_ImplWin32_GetHwndFromViewportID(const ImGuiID viewport_id)
 {
     if (viewport_id != 0)
         if (ImGuiViewport* viewport = ImGui::FindViewportByID(viewport_id))
@@ -1248,7 +1248,7 @@ static void ImGui_ImplWin32_UpdateWin32StyleFromWindow(ImGuiViewport* viewport)
     vd->DwExStyle = ::GetWindowLongW(vd->Hwnd, GWL_EXSTYLE);
 }
 
-static void ImGui_ImplWin32_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
+static void ImGui_ImplWin32_SetWindowPos(ImGuiViewport* viewport, const ImVec2 pos)
 {
     ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
     IM_ASSERT(vd->Hwnd != 0);
@@ -1268,7 +1268,7 @@ static ImVec2 ImGui_ImplWin32_GetWindowSize(ImGuiViewport* viewport)
     return ImVec2(float(rect.right - rect.left), float(rect.bottom - rect.top));
 }
 
-static void ImGui_ImplWin32_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
+static void ImGui_ImplWin32_SetWindowSize(ImGuiViewport* viewport, const ImVec2 size)
 {
     ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
     IM_ASSERT(vd->Hwnd != 0);
@@ -1319,7 +1319,7 @@ static void ImGui_ImplWin32_SetWindowTitle(ImGuiViewport* viewport, const char* 
     ::DefWindowProcW(vd->Hwnd, WM_SETTEXT, 0, (LPARAM)title_w.Data);
 }
 
-static void ImGui_ImplWin32_SetWindowAlpha(ImGuiViewport* viewport, float alpha)
+static void ImGui_ImplWin32_SetWindowAlpha(ImGuiViewport* viewport, const float alpha)
 {
     ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
     IM_ASSERT(vd->Hwnd != 0);
@@ -1362,7 +1362,7 @@ static void ImGui_ImplWin32_OnChangedViewport(ImGuiViewport* viewport)
 
 namespace ImGui { extern ImGuiIO& GetIO(ImGuiContext*); extern ImGuiPlatformIO& GetPlatformIO(ImGuiContext*); }
 
-static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(const HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
     // Allow secondary viewport WndProc to be called regardless of current context
     ImGuiContext* ctx = (ImGuiContext*)::GetPropA(hWnd, "IMGUI_CONTEXT");
@@ -1406,7 +1406,7 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
     return result;
 }
 
-static void ImGui_ImplWin32_InitMultiViewportSupport(bool platform_has_own_dc)
+static void ImGui_ImplWin32_InitMultiViewportSupport(const bool platform_has_own_dc)
 {
     WNDCLASSEXW wcex;
     wcex.cbSize = sizeof(WNDCLASSEXW);

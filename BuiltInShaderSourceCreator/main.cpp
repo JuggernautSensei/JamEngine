@@ -238,7 +238,7 @@ void MyScene::RenderMainButtons()
 		if (bResult)
 		{
 			WriteCompiledShadersToFiles(path);
-			log::Info("컴파일된 셰이더 저장 완료");
+			logger::Info("컴파일된 셰이더 저장 완료");
 		}
 	}
 }
@@ -364,11 +364,11 @@ void MyScene::RenderShaderDataItem(ShaderCompileData& _data, const size_t _index
 		{
 			if (_data.Compile())
 			{
-				log::Info("Shader [{}] compiled successfully.", _data.filename.c_str());
+				logger::Info("Shader [{}] compiled successfully.", _data.filename.c_str());
 			}
 			else
 			{
-				log::Error("Failed to compile shader: {}", _data.filename.c_str());
+				logger::Error("Failed to compile shader: {}", _data.filename.c_str());
 			}
 		}
 		ImGui::EndTable();
@@ -490,7 +490,7 @@ void MyScene::CompileAllShaders()
 			failureCount++;
 		}
 	}
-	log::Info("Compile All Finished. Success: %d, Failure: %d", successCount, failureCount);
+	logger::Info("Compile All Finished. Success: %d, Failure: %d", successCount, failureCount);
 }
 
 void MyScene::WriteCompiledShadersToFiles(const fs::path& _outputPath) const
@@ -506,7 +506,7 @@ void MyScene::WriteCompiledShadersToFiles(const fs::path& _outputPath) const
 
 	if (successfullyCompiled.empty())
 	{
-		log::Warn("No successfully compiled shaders to save.");
+		logger::Warn("No successfully compiled shaders to save.");
 		return;
 	}
 

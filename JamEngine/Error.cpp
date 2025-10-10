@@ -1,7 +1,7 @@
 #include "pch.h"
 
 #include "Error.h"
-#include "Log.h"
+#include "Logger.h"
 #include "StringUtilities.h"
 #include "Timer.h"
 #include <comdef.h>
@@ -75,8 +75,8 @@ namespace details
     void ReportAssertFailed(const std::source_location& _loc, const std::string_view _msg)
     {
         std::string msg = CreateErrorMessage(_msg, _loc);
-        log::Critical(msg);
-        log::Flush();
+        logger::Critical(msg);
+        logger::Flush();
         OutputDebugStringA(msg.c_str());
     }
 
@@ -84,8 +84,8 @@ namespace details
     {
         // 로깅 + 메시지 박스 + crash dump 저장 + 강제 종료
         std::string msg = CreateErrorMessage(_msg, _loc);
-        log::Critical(msg);
-        log::Flush();
+        logger::Critical(msg);
+        logger::Flush();
         OutputDebugStringA(msg.c_str());
 
         // crash dump 저장

@@ -279,7 +279,7 @@ constexpr D3D11_BLEND_OP k_d3d11BlendOpTable[EnumCount<eBlendOp>()] = {
     D3D11_BLEND_OP_MAX             // eBlendOp_Max
 };
 
-constexpr D3D11_COMPARISON_FUNC k_d3d11ComparisonFuncTable[EnumCount<D3D11_COMPARISON_FUNC>() + 1] = {
+constexpr D3D11_COMPARISON_FUNC k_d3d11ComparisonFuncTable[EnumCount<eCompareFunc>()] = {
     D3D11_COMPARISON_LESS,            // eCompareFunc::None
     D3D11_COMPARISON_LESS,            // eCompareFunc::Less
     D3D11_COMPARISON_LESS_EQUAL,      // eCompareFunc::LessEqual
@@ -449,17 +449,17 @@ struct GfxContext
     ////////// DATA UPLOAD & DOWNLOAD //////////
 
     void UploadBuffer(
-        const Buffer&     _buffer,
-        const MemoryView& _uploadData,
-        Int32             _offset,
-        bool              _bDiscard) const;
+        const Buffer& _buffer,
+        MemoryView    _uploadData,
+        Int32         _offset,
+        bool          _bDiscard) const;
 
     JAM_NODISCARD std::vector<UInt8> DownloadBuffer(
         const Buffer& _buffer) const;
 
     void UploadTexture(
         const TextureRef& _texture,
-        const MemoryView& _uploadTexData,
+        MemoryView        _uploadTexData,
         Int32             _uploadTexWidth,
         Int32             _uploadTexHeight,
         Int32             _uploadTexDepth,
@@ -497,7 +497,7 @@ struct GfxContext
     JAM_NODISCARD ID3D11BlendState*        GetOrCreateD3D11BlendState(const BlendStateD3D11& _state);
     JAM_NODISCARD ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilState(DepthStencilStateD3D11 _state);
     JAM_NODISCARD ID3D11SamplerState*      GetOrCreateD3D11SamplerState(SamplerState _state, RGBA _color);
-    JAM_NODISCARD ShaderHandle             GetOrCreateNativeShader(const MemoryView& _shaderByteCode);
+    JAM_NODISCARD ShaderHandle             GetOrCreateNativeShader(MemoryView _shaderByteCode);
     JAM_NODISCARD VertexLayoutHandle       GetOrCreateNativeVertexLayout(const VertexLayout& _vertexLayout);
 
     ////////// MISC //////////
@@ -735,8 +735,8 @@ ID3D11SamplerState* GfxContext::GetOrCreateD3D11SamplerState(
     desc.BorderColor[1] = static_cast<FLOAT>(_color.g) / 255.0f;
     desc.BorderColor[2] = static_cast<FLOAT>(_color.b) / 255.0f;
     desc.BorderColor[3] = static_cast<FLOAT>(_color.a) / 255.0f;
-    desc.MinLOD         = -k_floatMin;
-    desc.MaxLOD         = k_floatMax;
+    desc.MinLOD         = -FloatLimits::lowest();
+    desc.MaxLOD         = FloatLimits::max();
 
     ID3D11SamplerState* pSamplerState = nullptr;
     JAM_CHECK_COM(pd3d11Device->CreateSamplerState(&desc, &pSamplerState));
@@ -1252,9 +1252,9 @@ TextureRef GfxContext::CreateNativeTexture(
                 {
                     for (Int32 mipIdx = 0; mipIdx < mipsCount; mipIdx++)
                     {
-                        auto [width, height, _]    = CalcMipSize(_width, _height, 0, mipIdx);
-                        Int32             texIndex = CalcTextureIndex(mipIdx, arrayIdx, mipsCount);
-                        const MemoryView& mem      = _initData[texIndex];
+                        auto [width, height, _] = CalcMipSize(_width, _height, 0, mipIdx);
+                        Int32      texIndex     = CalcTextureIndex(mipIdx, arrayIdx, mipsCount);
+                        MemoryView mem          = _initData[texIndex];
 
                         UINT rowPitch = width * GetPixelByte(_format);
                         JAM_ASSERT(mem.GetByteWidth() == rowPitch * height, "Texture data size mismatch");
@@ -1307,7 +1307,7 @@ TextureRef GfxContext::CreateNativeTexture(
                 for (Int32 mipIdx = 0; mipIdx < mipsCount; mipIdx++)
                 {
                     auto [width, height, depth] = CalcMipSize(_width, _height, _depth, mipIdx);
-                    const MemoryView& mem       = _initData[mipIdx];
+                    MemoryView mem              = _initData[mipIdx];
 
                     UINT rowPitch   = width * GetPixelByte(_format);
                     UINT slicePitch = rowPitch * height;
@@ -1609,21 +1609,22 @@ FrameBuffer GfxContext::CreateNativeFrameBuffer(
 }
 
 void GfxContext::UploadBuffer(
-    const Buffer&     _buffer,
-    const MemoryView& _uploadData,
-    const Int32       _offset,
-    const bool        _bDiscard) const
+    const Buffer&    _buffer,
+    const MemoryView _uploadData,
+    const Int32      _offset,
+    const bool       _bDiscard) const
 {
     JAM_ASSERT(_buffer.bDynamic, "Only dynamic buffer can be updated");
 
-    const Byte* pWriteData     = _uploadData.GetDataPtr();
-    UINT        writeByteWidth = NarrowCast<UINT>(Min(_uploadData.GetByteWidth(), _buffer.byteWidth - _offset));
+    const Byte* pUploadData     = _uploadData.GetDataPtr();
+    Int32       uploadDataWidth = NarrowCast<Int32>(_uploadData.GetByteWidth());
+    uploadDataWidth             = Min<Int32>(uploadDataWidth, _buffer.byteWidth - _offset);
 
     if (_bDiscard)
     {
         D3D11_MAPPED_SUBRESOURCE mappedResource;
         JAM_CHECK_COM(pd3d11DeviceContext->Map(_buffer.pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
-        std::memcpy(static_cast<Byte*>(mappedResource.pData) + _offset, pWriteData, writeByteWidth);
+        std::memcpy(static_cast<Byte*>(mappedResource.pData) + _offset, pUploadData, uploadDataWidth);
         pd3d11DeviceContext->Unmap(_buffer.pBuffer, 0);
     }
     else
@@ -1640,10 +1641,10 @@ void GfxContext::UploadBuffer(
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         desc.BindFlags      = 0;
         desc.MiscFlags      = 0;
-        desc.ByteWidth      = writeByteWidth;
+        desc.ByteWidth      = uploadDataWidth;
 
         D3D11_SUBRESOURCE_DATA initData;
-        initData.pSysMem          = pWriteData;
+        initData.pSysMem          = pUploadData;
         initData.SysMemPitch      = 0;
         initData.SysMemSlicePitch = 0;
 
@@ -1651,7 +1652,7 @@ void GfxContext::UploadBuffer(
 
         D3D11_BOX box;
         box.left   = _offset;
-        box.right  = _offset + writeByteWidth;
+        box.right  = _offset + uploadDataWidth;
         box.top    = 0;
         box.bottom = 1;
         box.front  = 0;
@@ -1695,7 +1696,7 @@ std::vector<UInt8> GfxContext::DownloadBuffer(
 
 void GfxContext::UploadTexture(
     const TextureRef& _texture,
-    const MemoryView& _uploadTexData,
+    const MemoryView  _uploadTexData,
     const Int32       _uploadTexWidth,
     const Int32       _uploadTexHeight,
     const Int32       _uploadTexDepth,
@@ -1908,7 +1909,7 @@ void GfxContext::Blit(
         &box);
 }
 
-ShaderHandle GfxContext::GetOrCreateNativeShader(const MemoryView& _shaderByteCode)
+ShaderHandle GfxContext::GetOrCreateNativeShader(MemoryView _shaderByteCode)
 {
     const void* pByteCode = _shaderByteCode.GetDataPtr();
     size_t      byteWidth = _shaderByteCode.GetByteWidth();
@@ -2093,7 +2094,8 @@ VertexLayoutHandle GfxContext::GetOrCreateNativeVertexLayout(
 
     // 인풋 레이아웃 생성
     ID3D11InputLayout* pInputLayout = nullptr;
-    JAM_CHECK_COM(pd3d11Device->CreateInputLayout(d3d11InputElementDescs.data(), elems.size(), byteCode.GetDataPtr(), byteCode.GetByteWidth(), &pInputLayout));
+    UINT               elemCount    = NarrowCast<UINT>(elems.size());
+    JAM_CHECK_COM(pd3d11Device->CreateInputLayout(d3d11InputElementDescs.data(), elemCount, byteCode.GetDataPtr(), byteCode.GetByteWidth(), &pInputLayout));
 
     // 핸들 생성
     VertexLayoutHandle handle = vertexLayouts.Alloc();
@@ -2339,7 +2341,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("VertexBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
+        logger::Warn("VertexBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -2347,7 +2349,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("IndexBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
+        logger::Warn("IndexBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -2355,7 +2357,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("Texture leak detected: Handle index = {}, Token = {}, Name = '{}', RefCount = {}", index, token, value.name, value.refCount);
+        logger::Warn("Texture leak detected: Handle index = {}, Token = {}, Name = '{}', RefCount = {}", index, token, value.name, value.refCount);
         bLeakDetected = true;
     }
 
@@ -2363,7 +2365,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("FrameBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
+        logger::Warn("FrameBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -2371,7 +2373,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("Shader leak detected: Handle index = {}, Token = {}, Stage = {}, RefCount = {}", index, token, EnumToString(value.stage), value.refCount);
+        logger::Warn("Shader leak detected: Handle index = {}, Token = {}, Stage = {}, RefCount = {}", index, token, EnumToString(value.stage), value.refCount);
         bLeakDetected = true;
     }
 
@@ -2379,7 +2381,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("VertexLayout leak detected: Handle index = {}, Token = {}, RefCount = {}", index, token, value.refCount);
+        logger::Warn("VertexLayout leak detected: Handle index = {}, Token = {}, RefCount = {}", index, token, value.refCount);
         bLeakDetected = true;
     }
 
@@ -2387,7 +2389,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("ConstantBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
+        logger::Warn("ConstantBuffer leak detected: Handle index = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -2395,7 +2397,7 @@ bool DetectLeak()
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
-        log::Warn("Program leak detected: Handle index = {}, Token = {}", index, token);
+        logger::Warn("Program leak detected: Handle index = {}, Token = {}", index, token);
         bLeakDetected = true;
     }
 
@@ -2432,20 +2434,22 @@ ID3D11DeviceContext* GetDeviceContext()
 }
 
 VertexBufferHandle CreateVertexBuffer(
-    const MemoryView&   _vertexData,
+    MemoryView          _vertexData,
     const VertexLayout& _vertexLayout)
 {
-    VertexBuffer vertexBuf;
-    vertexBuf.buffer       = g_ctx.CreateNativeBuffer(_vertexData.GetByteWidth(), eBufferType::VertexBuffer, _vertexData);
-    vertexBuf.vertexStride = _vertexLayout.GetStride();
-    vertexBuf.vertexCount  = NarrowCast<Int32>(_vertexData.GetByteWidth() / vertexBuf.vertexStride);
+
+    VertexBuffer vertexBuffer;
+    Int32        bufferWidth  = NarrowCast<Int32>(_vertexData.GetByteWidth());
+    vertexBuffer.buffer       = g_ctx.CreateNativeBuffer(bufferWidth, eBufferType::VertexBuffer, _vertexData);
+    vertexBuffer.vertexStride = _vertexLayout.GetStride();
+    vertexBuffer.vertexCount  = bufferWidth / vertexBuffer.vertexStride;
 
     // 버텍스 레이아웃 참조
-    vertexBuf.layoutHandle = g_ctx.GetOrCreateNativeVertexLayout(_vertexLayout);
+    vertexBuffer.layoutHandle = g_ctx.GetOrCreateNativeVertexLayout(_vertexLayout);
 
     // 이름 설정
     VertexBufferHandle handle   = g_ctx.vertexBuffers.Alloc();
-    g_ctx.vertexBuffers[handle] = std::move(vertexBuf);
+    g_ctx.vertexBuffers[handle] = std::move(vertexBuffer);
     SetVertexBufferName(handle);
     return handle;
 }
@@ -2473,14 +2477,15 @@ VertexBufferHandle CreateDynamicVertexBuffer(
 }
 
 IndexBufferHandle CreateIndexBuffer(
-    const MemoryView&  _indexData,
+    MemoryView         _indexData,
     const eIndexFormat _format)
 {
-    Int32 stride = _format == eIndexFormat::U16 ? 2 : 4;
+    Int32 stride      = _format == eIndexFormat::U16 ? 2 : 4;
+    Int32 bufferWidth = NarrowCast<Int32>(_indexData.GetByteWidth());
 
     IndexBuffer indexBuffer;
-    indexBuffer.buffer      = g_ctx.CreateNativeBuffer(_indexData.GetByteWidth(), eBufferType::IndexBuffer, _indexData);
-    indexBuffer.indexCount  = NarrowCast<Int32>(_indexData.GetByteWidth() / stride);
+    indexBuffer.buffer      = g_ctx.CreateNativeBuffer(bufferWidth, eBufferType::IndexBuffer, _indexData);
+    indexBuffer.indexCount  = bufferWidth / stride;
     indexBuffer.indexStride = stride;
     indexBuffer.format      = _format;
 
@@ -2643,7 +2648,7 @@ FrameBufferHandle CreateFrameBuffer(
     return CreateFrameBuffer(handle, true);
 }
 
-ShaderHandle CreateShader(const MemoryView& _shaderByteCode)
+ShaderHandle CreateShader(const MemoryView _shaderByteCode)
 {
     return g_ctx.GetOrCreateNativeShader(_shaderByteCode);
 }
@@ -3093,7 +3098,7 @@ Result<TextureHandle> LoadTexture(
 
 void UploadTexture2D(
     const TextureHandle _handle,
-    const MemoryView&   _uploadTexData,
+    const MemoryView    _uploadTexData,
     const Int32         _uploadTexWidth,
     const Int32         _uploadTexHeight,
     const Int32         _mipIndex,
@@ -3117,7 +3122,7 @@ void UploadTexture2D(
 
 void UploadTextureCube(
     const TextureHandle _handle,
-    const MemoryView&   _uploateTexData,
+    const MemoryView    _uploateTexData,
     const Int32         _uploadTexWidth,
     const Int32         _uploadTexHeight,
     const Int32         _mipIndex,
@@ -3142,7 +3147,7 @@ void UploadTextureCube(
 
 void UploadTexture3D(
     const TextureHandle _handle,
-    const MemoryView&   _uplodeTexData,
+    const MemoryView    _uplodeTexData,
     const Int32         _uploadTexWidth,
     const Int32         _uploadTexHeight,
     const Int32         _uploadTexDepth,
@@ -3340,7 +3345,7 @@ const TextureHandle& GetDepthStencilTexture(
 
 void UploadBuffer(
     const VertexBufferHandle _handle,
-    const MemoryView&        _writeData,
+    const MemoryView         _writeData,
     const Int32              _offset,
     const bool               _bDiscard)
 {
@@ -3350,7 +3355,7 @@ void UploadBuffer(
 
 void UploadBuffer(
     const IndexBufferHandle _handle,
-    const MemoryView&       _writeData,
+    const MemoryView        _writeData,
     const Int32             _offset,
     const bool              _bDiscard)
 {
@@ -3360,7 +3365,7 @@ void UploadBuffer(
 
 void UploadBuffer(
     const ConstantBufferHandle _handle,
-    const MemoryView&          _writeData)
+    const MemoryView           _writeData)
 {
     ConstantBuffer& buffer = g_ctx.cbuffers[_handle];
     g_ctx.UploadBuffer(buffer.buffer, _writeData, 0, true);

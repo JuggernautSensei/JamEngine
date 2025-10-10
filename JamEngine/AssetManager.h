@@ -54,9 +54,9 @@ namespace asset_manager
     /// @param _path 에셋 경로 (반드시 working directory 내부 경로)
     /// @return 에셋 핸들, 로드 실패시 에러 코드를 반환합니다.
 
-    JAM_NODISCARD Result<MeshHandle> GetOrLoadMeshHandle(const fs::path& _path);
-    JAM_NODISCARD Result<MaterialHandle> GetOrLoadMaterialHandle(const fs::path& _path);
-    JAM_NODISCARD Result<ImageTextureHandle> GetOrLoadImageTextureHandle(const fs::path& _path);
+    JAM_NODISCARD Result<MeshHandle> GetOrLoadMesh(const fs::path& _path);
+    JAM_NODISCARD Result<MaterialHandle> GetOrLoadMaterial(const fs::path& _path);
+    JAM_NODISCARD Result<ImageTextureHandle> GetOrLoadImageTexture(const fs::path& _path);
 
     /// @brief Get*** 에셋 객체의 읽기 전용 참조를 반환합니다.
     /// @param _handle 에셋 핸들

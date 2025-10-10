@@ -12,7 +12,7 @@ public:
 
     void SetPath(const fs::path& _filePath) override;
     void SetAllowOverwrite(const bool _bAllow) { m_bAllowOverwrite = _bAllow; }
-    void SetShaderBytecode(const MemoryView& _shaderBytecode);
+    void SetShaderBytecode(MemoryView _shaderBytecode);
     void Reset() override;
 
 private:

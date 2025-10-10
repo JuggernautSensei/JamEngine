@@ -1,6 +1,6 @@
 #pragma once
 #include "fixed_circular_queue.h"
-#include "LogBase.h"
+#include "LoggerBase.h"
 #include <spdlog/sinks/base_sink.h>
 
 namespace jam

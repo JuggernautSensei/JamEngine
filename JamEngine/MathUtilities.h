@@ -1,4 +1,5 @@
 #pragma once
+#include "TypeTrait.h"
 #include <numbers>
 #include <random>
 
@@ -20,26 +21,14 @@ constexpr float  k_radToDeg          = 180.f / k_pi;                    // radia
 constexpr float  k_degToRad          = k_pi / 180.f;                    // degree to radian conversion factor
 constexpr UInt32 k_defaultRandomSeed = 5489U;                           // default seed for random number m_token
 
-constexpr UInt8  k_uint8Min  = std::numeric_limits<UInt8>::lowest();
-constexpr UInt8  k_uint8Max  = std::numeric_limits<UInt8>::max();
-constexpr Int8   k_int8Min   = std::numeric_limits<Int8>::lowest();
-constexpr Int8   k_int8Max   = std::numeric_limits<Int8>::max();
-constexpr UInt16 k_uint16Min = std::numeric_limits<UInt16>::lowest();
-constexpr UInt16 k_uint16Max = std::numeric_limits<UInt16>::max();
-constexpr Int16  k_int16Min  = std::numeric_limits<Int16>::lowest();
-constexpr Int16  k_int16Max  = std::numeric_limits<Int16>::max();
-constexpr UInt32 k_uint32Min = std::numeric_limits<UInt32>::lowest();
-constexpr UInt32 k_uint32Max = std::numeric_limits<UInt32>::max();
-constexpr Int32  k_int32Min  = std::numeric_limits<Int32>::lowest();
-constexpr Int32  k_int32Max  = std::numeric_limits<Int32>::max();
-constexpr UInt64 k_uint64Min = std::numeric_limits<UInt64>::lowest();
-constexpr UInt64 k_uint64Max = std::numeric_limits<UInt64>::max();
-constexpr Int64  k_int64Min  = std::numeric_limits<Int64>::lowest();
-constexpr Int64  k_int64Max  = std::numeric_limits<Int64>::max();
-constexpr float  k_floatMin  = std::numeric_limits<float>::lowest();
-constexpr float  k_floatMax  = std::numeric_limits<float>::max();
-constexpr double k_doubleMin = std::numeric_limits<double>::lowest();
-constexpr double k_doubleMax = std::numeric_limits<double>::max();
+using FloatLimits  = std::numeric_limits<float>;
+using DoubleLimits = std::numeric_limits<double>;
+using Int16Limits  = std::numeric_limits<Int16>;
+using UInt16Limits = std::numeric_limits<UInt16>;
+using Int32Limits  = std::numeric_limits<Int32>;
+using UInt32Limits = std::numeric_limits<UInt32>;
+using Int64Limits  = std::numeric_limits<Int64>;
+using UInt64Limits = std::numeric_limits<UInt64>;
 
 /////////////////////////////////////////
 ///          BASIC UTILITIES          ///
@@ -130,48 +119,33 @@ constexpr T Wrap(T value, T min, T max)
     return result + min;
 }
 
-/// @brief 최대값
-template<typename FirstT, typename... RestTs>
-    requires(std::totally_ordered<FirstT> && (std::totally_ordered<RestTs> && ...))
-JAM_NODISCARD constexpr FirstT Max(const FirstT _first, const RestTs... _rest)
+template<typename T, typename U, typename... R>
+JAM_NODISCARD constexpr T Min(const T a, const U b, const R... args)
 {
-    if constexpr (sizeof...(_rest) == 0)
+    if constexpr (sizeof...(args) == 0)
     {
-        return _first;
+        return a < static_cast<T>(b) ? a : static_cast<T>(b);
     }
     else
     {
-        const FirstT next = Max(_rest...);
-        return _first > next ? _first : next;
+        return Min(Min(a, static_cast<T>(b)), args...);
     }
 }
 
-/// @brief 최소값
-template<typename FirstT, typename... RestTs>
-    requires(std::totally_ordered<FirstT> && (std::totally_ordered<RestTs> && ...))
-JAM_NODISCARD constexpr FirstT Min(const FirstT _first, const RestTs... _rest)
+template<typename T, typename U, typename... R>
+JAM_NODISCARD constexpr T Max(const T a, const U b, const R... args)
 {
-    if constexpr (sizeof...(_rest) == 0)
+    if constexpr (sizeof...(args) == 0)
     {
-        return _first;
+        return a > static_cast<T>(b) ? a : static_cast<T>(b);
     }
     else
     {
-        const FirstT next = Min(_rest...);
-        return _first < next ? _first : next;
+        return Max(Max(a, static_cast<T>(b)), args...);
     }
 }
 
-template<typename T>
-    requires std::is_integral_v<T> && (sizeof(T) == 4)
-JAM_NODISCARD constexpr T Log2(T value)
-{
-    static_assert(AlwaysFalse, "not impl yet");
-    return 0;
-}
-
-template<>
-JAM_NODISCARD constexpr Int32 Log2<Int32>(Int32 value)
+JAM_NODISCARD constexpr Int32 Log2_Int32(Int32 value)
 {
     const Int32 k_table[32] = {
         0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30, 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
@@ -195,7 +169,7 @@ namespace details
                  ? curr
                  : SqrtHelper(x, static_cast<T>(0.5) * (curr + x / curr), curr);
     }
-}   // namespace internal
+}   // namespace details
 
 /// @brief 컴파일타임 루트 2
 template<typename T>
@@ -203,7 +177,7 @@ template<typename T>
 JAM_NODISCARD constexpr T Sqrt(const T x)
 {
     return x >= 0.f && x < std::numeric_limits<T>::infinity()
-             ? details::SqrtHelper(x, x, 0)
+             ? details::SqrtHelper(x, x, static_cast<T>(0))
              : std::numeric_limits<T>::quiet_NaN();
 }
 
@@ -233,7 +207,13 @@ JAM_NODISCARD constexpr float ToDeg(const float radians)
 
 /// @brief 코사인과 사인을 동시에 계산합니다. (테일러 급수 사용)
 /// @return std::pair<sin, cos>
-JAM_NODISCARD constexpr std::pair<float, float> ComputeSinCos(const float _radian)
+struct SinCos
+{
+    float sin;
+    float cos;
+};
+
+JAM_NODISCARD constexpr SinCos ComputeSinCos(const float _radian)
 {
     float quotient = k_1Div2Pi * _radian;
     if (_radian >= 0.0f)
@@ -463,7 +443,7 @@ namespace details
 {
     extern std::mt19937 g_randomGenerator;
     extern UInt32       g_randomSeed;
-}   // namespace internal
+}   // namespace details
 
 /// @brief 주어진 범위 [_min, _max] 내에서 난수 생성. (정수형 및 실수형 지원)
 /// @tparam T 정수형 또는 실수형

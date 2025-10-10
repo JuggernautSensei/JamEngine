@@ -26,7 +26,17 @@ namespace jam
 std::string CreateComErrorMessage(const HRESULT _hr)
 {
     _com_error err(_hr);
+#ifdef JAM_TEXT_ENCODING_UNICODE
+    std::wstring_view wmsg = err.ErrorMessage();
+    auto [ec, msg]         = ToUTF8(wmsg);
+    if (IsError(ec))
+    {
+        return "Unknown COM error";
+    }
+    return msg;
+#else
     return err.ErrorMessage();
+#endif
 }
 
 void OpenInFileExplorer(const fs::path& _path)

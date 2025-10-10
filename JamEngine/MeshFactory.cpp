@@ -18,7 +18,7 @@ using namespace jam;
 JAM_NODISCARD static Mesh CreateMeshHelper(
     const std::span<const Vec3> _positions,
     const std::span<const Vec2> _texCoords,
-    const MemoryView&           _indexData,
+    const MemoryView           _indexData,
     const eIndexFormat          _indexFormat,
     const VertexLayout&         _layout)
 {
@@ -335,7 +335,7 @@ Mesh CreateCircle(
     JAM_ASSERT(_triangleCount >= 6, "원은 최소 6개의 삼각형으로 구성되어야 합니다.");
 
     Int32 vertexCount = _triangleCount + 1;   // 삼각형 개수 + 중심 정점
-    JAM_ASSERT(std::cmp_less_equal(vertexCount, k_uint16Max), "원기둥의 삼각형 개수가 너무 많습니다.");
+    JAM_ASSERT(std::cmp_less_equal(vertexCount, UInt16Limits::max(), "원기둥의 삼각형 개수가 너무 많습니다.");
 
     std::vector<Vec3> positions;
     positions.resize(vertexCount);
@@ -380,7 +380,7 @@ Mesh CreateCone(
 
     // 정점 생성
     Int32 vertexCount = _bottomTriangleCount + 2;   // 바닥 원의 정점 + 꼭지점 + 바닥 중심 정점
-    JAM_ASSERT(std::cmp_less_equal(vertexCount, k_uint16Max), "원기둥의 삼각형 개수가 너무 많습니다.");
+    JAM_ASSERT(std::cmp_less_equal(vertexCount, UInt16Limits::max(), "원기둥의 삼각형 개수가 너무 많습니다.");
 
     std::vector<Vec3> position;
     position.resize(vertexCount);
@@ -437,7 +437,7 @@ Mesh CreateCylinder(
 
     // 정점 생성
     Int32 vertexCount = _bottomTriangleCount * 2 + 2;   // 위/아래 원의 정점 + 위/아래 중심 정점
-    JAM_ASSERT(std::cmp_less_equal(vertexCount, k_uint16Max), "원기둥의 삼각형 개수가 너무 많습니다.");
+    JAM_ASSERT(std::cmp_less_equal(vertexCount, UInt16Limits::max(), "원기둥의 삼각형 개수가 너무 많습니다.");
 
     std::vector<Vec3> position;
     position.resize(vertexCount);
@@ -506,7 +506,7 @@ Mesh CreateCylinder(
 
 std::vector<Vec3> ComputeNormal(
     const std::span<const Vec3> _positions,
-    const MemoryView&           _indexData,
+    const MemoryView           _indexData,
     const eIndexFormat          _format)
 {
     std::vector<Vec3> normals;
@@ -532,7 +532,7 @@ TangentAndBitangent ComputeTangentAndBitangent(
     const std::span<const Vec3> _positions,
     const std::span<const Vec3> _normals,
     const std::span<const Vec2> _texCoords,
-    const MemoryView&           _indexData,
+    const MemoryView           _indexData,
     const eIndexFormat          _format)
 {
     TangentAndBitangent result;
@@ -579,8 +579,9 @@ Mesh CreateMesh(const CreateMeshInput& _input, const VertexLayout& _layout)
     // 버텍스 cpu 버퍼 생성
     const VertexLayoutElement& posElement = _layout.GetElement(eVertexAttribute::Position);
 
-    Int32 vertexStride = _layout.GetStride();
-    Int32 vertexCount  = _input.positionData.GetByteWidth() / posElement.byteWidth;
+    Int32 vertexDataByteWidth = NarrowCast<Int32>(_input.positionData.GetByteWidth());
+    Int32 vertexStride        = _layout.GetStride();
+    Int32 vertexCount         = vertexDataByteWidth / posElement.byteWidth;
 
     std::vector<Byte> vertexData;
     vertexData.resize(vertexCount * vertexStride);

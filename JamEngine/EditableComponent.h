@@ -10,7 +10,7 @@ namespace jam
 template<typename T>
 class EditableComponent
 {
-    void DrawEditor_(const Scene* _pScene, const Entity& _entity)
+    void DrawEditor_(const Scene* _pScene, Entity _entity)
     {
         static_cast<T*>(this)->DrawEditor(_pScene, _entity);
     }

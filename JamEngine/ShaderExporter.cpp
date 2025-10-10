@@ -31,7 +31,7 @@ void ShaderExporter::SetPath(
     m_filePath = _filePath;
 }
 
-void ShaderExporter::SetShaderBytecode(const MemoryView& _shaderBytecode)
+void ShaderExporter::SetShaderBytecode(const MemoryView _shaderBytecode)
 {
     const Byte* pData     = _shaderBytecode.GetDataPtr();
     size_t      byteWidth = _shaderBytecode.GetByteWidth();

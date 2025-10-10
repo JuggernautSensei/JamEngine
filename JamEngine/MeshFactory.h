@@ -76,7 +76,7 @@ JAM_NODISCARD Mesh CreateCylinder(
 
 JAM_NODISCARD std::vector<Vec3> ComputeNormal(
     std::span<const Vec3> _positions,
-    const MemoryView&     _indexData,
+    MemoryView     _indexData,
     eIndexFormat          _format);
 
 struct TangentAndBitangent
@@ -89,7 +89,7 @@ JAM_NODISCARD TangentAndBitangent ComputeTangentAndBitangent(
     std::span<const Vec3> _positions,
     std::span<const Vec3> _normals,
     std::span<const Vec2> _texCoords,
-    const MemoryView&     _indexData,
+    MemoryView     _indexData,
     eIndexFormat          _format);
 
 struct CreateMeshInput

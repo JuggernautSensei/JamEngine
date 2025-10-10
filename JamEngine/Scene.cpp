@@ -29,11 +29,12 @@ void Scene::OnEvent(Event& _event)
 
 eErrorCode Scene::OnDeserialize(const Json& _js)
 {
+    return eErrorCode::Ok;
 }
 
 Json Scene::OnSerialize() const
 {
-    return Json::value_t::null;
+    return {};
 }
 
 void Scene::Clear()

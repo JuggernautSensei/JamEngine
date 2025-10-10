@@ -1,9 +1,12 @@
 #pragma once
+#include "DataType.h"
+
+// clang-format off
+namespace jam { class Event; }
+// clang-format on
 
 namespace jam
 {
-
-class Event;
 
 enum class eKey : int
 {
@@ -145,9 +148,9 @@ namespace input
     JAM_NODISCARD bool IsMouseReleased(eMouse _mouse) noexcept;
     JAM_NODISCARD bool IsMouseAway(eMouse _mouse) noexcept;
 
-    JAM_NODISCARD std::pair<Int32, Int32> GetMousePos() noexcept;
-    JAM_NODISCARD Int32                   GetMouseDeltaWheel() noexcept;
-    JAM_NODISCARD std::pair<Int32, Int32> GetMouseDeltaPos() noexcept;
+    JAM_NODISCARD ScreenPos GetMousePos() noexcept;
+    JAM_NODISCARD Int32     GetMouseDeltaWheel() noexcept;
+    JAM_NODISCARD ScreenPos GetMouseDeltaPos() noexcept;
 };   // namespace input
 
 }   // namespace jam

@@ -24,7 +24,7 @@ void Reflect(std::string_view _name, const ComponentInfo& info)
     g_typeIDToNameHashT[info.typeHash] = nameHash;
 }
 
-void Create(const std::string_view _name, const Entity& _entity)
+void Create(const std::string_view _name, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -32,7 +32,7 @@ void Create(const std::string_view _name, const Entity& _entity)
     info.createFn(_entity);
 }
 
-void CreateByCopy(const std::string_view _name, const Entity& _entity, const void* _pComponent)
+void CreateByCopy(const std::string_view _name, const Entity _entity, const void* _pComponent)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -40,7 +40,7 @@ void CreateByCopy(const std::string_view _name, const Entity& _entity, const voi
     info.createByCopyFn(_entity, _pComponent);
 }
 
-void CreateOrReplace(std::string_view _name, const Entity& _entity)
+void CreateOrReplace(std::string_view _name, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -48,7 +48,7 @@ void CreateOrReplace(std::string_view _name, const Entity& _entity)
     info.createOrReplaceFn(_entity);
 }
 
-void CreateOrReplaceByCopy(std::string_view _name, const Entity& _entity, const void* _pComponent)
+void CreateOrReplaceByCopy(std::string_view _name, const Entity _entity, const void* _pComponent)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -56,7 +56,7 @@ void CreateOrReplaceByCopy(std::string_view _name, const Entity& _entity, const 
     info.createOrReplaceByCopyFn(_entity, _pComponent);
 }
 
-void Remove(const std::string_view _name, const Entity& _entity)
+void Remove(const std::string_view _name, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -64,7 +64,7 @@ void Remove(const std::string_view _name, const Entity& _entity)
     info.removeFn(_entity);
 }
 
-void* Get(const std::string_view _name, const Entity& _entity)
+void* Get(const std::string_view _name, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -72,7 +72,7 @@ void* Get(const std::string_view _name, const Entity& _entity)
     return info.getFn(_entity);
 }
 
-bool Has(const std::string_view _name, const Entity& _entity)
+bool Has(const std::string_view _name, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -80,7 +80,7 @@ bool Has(const std::string_view _name, const Entity& _entity)
     return info.hasFn(_entity);
 }
 
-Json Serialize(std::string_view _name, const void* _pComponent, const Scene* _pScene, const Entity& _entity)
+Json Serialize(std::string_view _name, const void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -88,7 +88,7 @@ Json Serialize(std::string_view _name, const void* _pComponent, const Scene* _pS
     return info.serializeFn(_pComponent, _pScene, _entity);
 }
 
-eErrorCode Deserialize(std::string_view _name, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode Deserialize(std::string_view _name, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -96,7 +96,7 @@ eErrorCode Deserialize(std::string_view _name, void* _pComponent, const Json& _j
     return info.deserializeFn(_pComponent, _json, _pScene, _entity);
 }
 
-void DrawEditor(std::string_view _name, void* _pComponent, const Scene* _pScene, const Entity& _entity)
+void DrawEditor(std::string_view _name, void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = g_componentInfoMap.at(hash);
@@ -104,7 +104,21 @@ void DrawEditor(std::string_view _name, void* _pComponent, const Scene* _pScene,
     info.drawEditorFn(_pComponent, _pScene, _entity);
 }
 
-void Create(const UInt32 _typeID, const Entity& _entity)
+bool IsSerializable(const std::string_view _name)
+{
+    const UInt32         hash = HashOf(_name);
+    const ComponentInfo& info = g_componentInfoMap.at(hash);
+    return info.serializeFn != nullptr;
+}
+
+bool IsEditable(const std::string_view _name)
+{
+    const UInt32         hash = HashOf(_name);
+    const ComponentInfo& info = g_componentInfoMap.at(hash);
+    return info.drawEditorFn != nullptr;
+}
+
+void Create(const UInt32 _typeID, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -112,7 +126,7 @@ void Create(const UInt32 _typeID, const Entity& _entity)
     info.createFn(_entity);
 }
 
-void CreateByCopy(const UInt32 _typeID, const Entity& _entity, const void* _pComponent)
+void CreateByCopy(const UInt32 _typeID, const Entity _entity, const void* _pComponent)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -120,7 +134,7 @@ void CreateByCopy(const UInt32 _typeID, const Entity& _entity, const void* _pCom
     info.createByCopyFn(_entity, _pComponent);
 }
 
-void CreateOrReplace(UInt32 _typeID, const Entity& _entity)
+void CreateOrReplace(UInt32 _typeID, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -128,7 +142,7 @@ void CreateOrReplace(UInt32 _typeID, const Entity& _entity)
     info.createOrReplaceFn(_entity);
 }
 
-void CreateOrReplaceByCopy(UInt32 _typeID, const Entity& _entity, const void* _pComponent)
+void CreateOrReplaceByCopy(UInt32 _typeID, const Entity _entity, const void* _pComponent)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -136,7 +150,7 @@ void CreateOrReplaceByCopy(UInt32 _typeID, const Entity& _entity, const void* _p
     info.createOrReplaceByCopyFn(_entity, _pComponent);
 }
 
-void Remove(const UInt32 _typeID, const Entity& _entity)
+void Remove(const UInt32 _typeID, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -144,7 +158,7 @@ void Remove(const UInt32 _typeID, const Entity& _entity)
     info.removeFn(_entity);
 }
 
-void* Get(const UInt32 _typeID, const Entity& _entity)
+void* Get(const UInt32 _typeID, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -152,7 +166,7 @@ void* Get(const UInt32 _typeID, const Entity& _entity)
     return info.getFn(_entity);
 }
 
-bool Has(const UInt32 _typeID, const Entity& _entity)
+bool Has(const UInt32 _typeID, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -160,7 +174,7 @@ bool Has(const UInt32 _typeID, const Entity& _entity)
     return info.hasFn(_entity);
 }
 
-Json Serialize(UInt32 _typeID, const void* _pComponent, const Scene* _pScene, const Entity& _entity)
+Json Serialize(UInt32 _typeID, const void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -168,7 +182,7 @@ Json Serialize(UInt32 _typeID, const void* _pComponent, const Scene* _pScene, co
     return info.serializeFn(_pComponent, _pScene, _entity);
 }
 
-eErrorCode Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
@@ -176,12 +190,26 @@ eErrorCode Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, con
     return info.deserializeFn(_pComponent, _json, _pScene, _entity);
 }
 
-void DrawEditor(UInt32 _typeID, void* _pComponent, const Scene* _pScene, const Entity& _entity)
+void DrawEditor(UInt32 _typeID, void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
     const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
     JAM_ASSERT(info.drawEditorFn, "Component with type hash {} does not have a draw editor function", _typeID);
     info.drawEditorFn(_pComponent, _pScene, _entity);
+}
+
+bool IsSerializable(const UInt32 _typeID)
+{
+    const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
+    const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
+    return info.serializeFn != nullptr;
+}
+
+bool IsEditable(const UInt32 _typeID)
+{
+    const UInt32         nameHash = g_typeIDToNameHashT.at(_typeID);
+    const ComponentInfo& info     = g_componentInfoMap.at(nameHash);
+    return info.drawEditorFn != nullptr;
 }
 
 const HashMap<UInt32, ComponentInfo>& GetAllComponentInfos()

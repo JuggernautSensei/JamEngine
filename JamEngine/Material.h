@@ -49,7 +49,7 @@ class Material : public IAsset
 public:
     eErrorCode Load(const fs::path& _path) override;
     void       Unload() override;
-    eErrorCode Save(const fs::path& _path) override;
+    eErrorCode Save(const fs::path& _path) const override;
 
     JAM_NODISCARD bool  IsLoaded() const override;
     JAM_NODISCARD const fs::path& GetPath() const override;

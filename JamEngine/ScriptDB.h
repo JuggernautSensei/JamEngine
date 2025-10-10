@@ -10,7 +10,7 @@ namespace jam
 struct ScriptInfo
 {
     std::string                                           name     = {};
-    std::function<std::unique_ptr<Script>(const Entity&)> createFn = nullptr;
+    std::function<std::shared_ptr<Script>(const Entity&)> createFn = nullptr;
 };
 
 namespace script_db
@@ -18,9 +18,9 @@ namespace script_db
     namespace details
     {
         template<typename T>
-        std::unique_ptr<Script> CreateScript(const Entity& e)
+        std::shared_ptr<Script> CreateScript(const Entity& e)
         {
-            return std::make_unique<T>(e);
+            return std::make_shared<T>(e);
         }
     }   // namespace details
 
@@ -35,7 +35,7 @@ namespace script_db
         Reflect(info);
     }
 
-    JAM_NODISCARD std::unique_ptr<Script> Create(std::string_view _name, const Entity& _entity);
+    JAM_NODISCARD std::shared_ptr<Script> Create(std::string_view _name, const Entity& _entity);
     JAM_NODISCARD const HashMap<UInt32, ScriptInfo>& GetAllScriptInfos();
 
 }   // namespace script_db

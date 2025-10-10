@@ -1,4 +1,5 @@
 #pragma once
+#include "Macros.h"
 #include <source_location>
 
 namespace jam
@@ -12,13 +13,13 @@ namespace details
     template<typename... Args>
     void ReportAssertFailed(const std::source_location& _loc, const std::string_view _fmt, Args&&... _args)
     {
-        ReportAssertFailed(_loc, std::vformat(_fmt, std::make_format_args(std::forward<Args>(_args)...)));
+        ReportAssertFailed(_loc, std::vformat(_fmt, std::make_format_args(_args...)));
     }
 
     template<typename... Args>
     void ReportCrash(const std::source_location& _loc, const std::string_view _fmt, Args&&... _args)
     {
-        ReportCrash(_loc, std::vformat(_fmt, std::make_format_args(std::forward<Args>(_args)...)));
+        ReportCrash(_loc, std::vformat(_fmt, std::make_format_args(_args...)));
     }
 
     JAM_NODISCARD std::string GetComErrorMessage(HRESULT _hr);
@@ -32,7 +33,7 @@ void SetErrorString(std::string_view _msg);
 template<typename... Args>
 void SetErrorString(const std::string_view _fmt, Args&&... _args)
 {
-    SetErrorString(std::vformat(_fmt, std::make_format_args(std::forward<Args>(_args)...)));
+    SetErrorString(std::vformat(_fmt, std::make_format_args(_args...)));
 }
 
 }   // namespace jam

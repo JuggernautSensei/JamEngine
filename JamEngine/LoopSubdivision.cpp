@@ -105,7 +105,6 @@ struct SDEdge
     Int32     face0EdgeNum = -1;
 };
 
-
 Int32 SDVertex::CalcValence() const
 {
     SDFace* f = pStartFace;
@@ -130,9 +129,10 @@ Int32 SDVertex::CalcValence() const
 
 std::vector<SDPoint> SDVertex::OneRing() const
 {
-    Int32                CalcValence = CalcValence();
+    Int32 valence = CalcValence();
+
     std::vector<SDPoint> pRing;
-    pRing.reserve(CalcValence);
+    pRing.reserve(valence);
 
     if (!bBoundary)
     {
@@ -208,7 +208,7 @@ namespace jam
 LoopSubdivisionOutput LoopSubdivide(
     std::span<const Vec3> _positions,
     std::span<const Vec2> _texcoordsOrEmpty,
-    const MemoryView&     _indexData,
+    MemoryView     _indexData,
     const eIndexFormat    _indexFormat,
     const Int32           _level)
 {
@@ -442,7 +442,7 @@ LoopSubdivisionOutput LoopSubdivide(
     }
 
     // 위치 적용
-    for (Index i = 0; i < vertCount; ++i)
+    for (Int32 i = 0; i < vertCount; ++i)
     {
         verts[i]->point = pLimit[i];
     }
@@ -451,7 +451,7 @@ LoopSubdivisionOutput LoopSubdivide(
     LoopSubdivisionOutput output;
     output.positions.resize(vertCount);
     output.texcoords.resize(vertCount);
-    for (Index i = 0; i < vertCount; ++i)
+    for (Int32 i = 0; i < vertCount; ++i)
     {
         output.positions[i] = verts[i]->point.position;
         output.texcoords[i] = verts[i]->point.texcoord;
@@ -459,7 +459,7 @@ LoopSubdivisionOutput LoopSubdivide(
 
     // 인덱스 배열 생성
     faceCount          = NarrowCast<Int32>(faces.size());
-    output.indexFormat = std::cmp_less_equal(vertCount, k_uint16Max) ? eIndexFormat::U16 : eIndexFormat::U32;
+    output.indexFormat = std::cmp_less_equal(vertCount, UInt16Limits::max() ? eIndexFormat::U16 : eIndexFormat::U32;
     indexStride        = GetIndexFormatByte(output.indexFormat);
     output.indices.resize(faceCount * 3 * indexStride);
 

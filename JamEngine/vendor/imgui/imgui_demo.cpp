@@ -883,7 +883,7 @@ static const ExampleMemberInfo ExampleTreeNodeMemberInfos[] {
     { "MyVec2",  ImGuiDataType_Float, 2, offsetof(ExampleTreeNode, DataMyVec2) },
 };
 
-static ExampleTreeNode* ExampleTree_CreateNode(const char* name, int uid, ExampleTreeNode* parent)
+static ExampleTreeNode* ExampleTree_CreateNode(const char* name, const int uid, ExampleTreeNode* parent)
 {
     ExampleTreeNode* node = IM_NEW(ExampleTreeNode);
     snprintf(node->Name, IM_ARRAYSIZE(node->Name), "%s", name);
@@ -1520,7 +1520,7 @@ static void DemoWindowWidgetsComboBoxes()
 
         // Simplified one-liner Combo() using an accessor function
         static int item_current_4 = 0;
-        ImGui::Combo("combo 5 (function)", &item_current_4, [](void* data, int n)
+        ImGui::Combo("combo 5 (function)", &item_current_4, [](void* data, const int n)
                      { return ((const char**)data)[n]; },
                      items,
                      IM_ARRAYSIZE(items));
@@ -2182,8 +2182,8 @@ static void DemoWindowWidgetsPlotting()
         // We probably want an API passing floats and user provide sample rate/count.
         struct Funcs
         {
-            static float Sin(void*, int i) { return sinf(i * 0.1f); }
-            static float Saw(void*, int i) { return (i & 1) ? 1.0f : -1.0f; }
+            static float Sin(void*, const int i) { return sinf(i * 0.1f); }
+            static float Saw(void*, const int i) { return (i & 1) ? 1.0f : -1.0f; }
         };
         static int func_type = 0, display_count = 70;
         ImGui::SeparatorText("Functions");
@@ -2682,7 +2682,7 @@ struct ExampleSelectionWithDeletion : ImGuiSelectionBasicStorage
     // - We don't actually manipulate the ImVector<> here, only in ApplyDeletionPostLoop(), but using similar API for consistency and flexibility.
     // - Important: Deletion only works if the underlying ImGuiID for your items are stable: aka not depend on their index, but on e.g. item id/ptr.
     // FIXME-MULTISELECT: Doesn't take account of the possibility focus target will be moved during deletion. Need refocus or scroll offset.
-    int ApplyDeletionPreLoop(ImGuiMultiSelectIO* ms_io, int items_count)
+    int ApplyDeletionPreLoop(ImGuiMultiSelectIO* ms_io, const int items_count)
     {
         if (Size == 0)
             return -1;
@@ -2712,7 +2712,7 @@ struct ExampleSelectionWithDeletion : ImGuiSelectionBasicStorage
     // - Call after EndMultiSelect()
     // - We cannot provide this logic in core Dear ImGui because we don't have access to your items, nor to selection data.
     template<typename ITEM_TYPE>
-    void ApplyDeletionPostLoop(ImGuiMultiSelectIO* ms_io, ImVector<ITEM_TYPE>& items, int item_curr_idx_to_select)
+    void ApplyDeletionPostLoop(ImGuiMultiSelectIO* ms_io, ImVector<ITEM_TYPE>& items, const int item_curr_idx_to_select)
     {
         // Rewrite item list (delete items) + convert old selection index (before deletion) to new selection index (after selection).
         // If NavId was not part of selection, we will stay on same item.
@@ -2742,7 +2742,7 @@ struct ExampleDualListBox
     ImGuiSelectionBasicStorage Selections[2];   // Store ExampleItemId into selection
     bool                       OptKeepSorted = true;
 
-    void MoveAll(int src, int dst)
+    void MoveAll(const int src, const int dst)
     {
         IM_ASSERT((src == 0 && dst == 1) || (src == 1 && dst == 0));
         for (ImGuiID item_id: Items[src])
@@ -2752,7 +2752,7 @@ struct ExampleDualListBox
         Selections[src].Swap(Selections[dst]);
         Selections[src].Clear();
     }
-    void MoveSelected(int src, int dst)
+    void MoveSelected(const int src, const int dst)
     {
         for (int src_n = 0; src_n < Items[src].Size; src_n++)
         {
@@ -2768,11 +2768,11 @@ struct ExampleDualListBox
         Selections[src].Swap(Selections[dst]);
         Selections[src].Clear();
     }
-    void ApplySelectionRequests(ImGuiMultiSelectIO* ms_io, int side)
+    void ApplySelectionRequests(ImGuiMultiSelectIO* ms_io, const int side)
     {
         // In this example we store item id in selection (instead of item index)
         Selections[side].UserData                = Items[side].Data;
-        Selections[side].AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx)
+        Selections[side].AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, const int idx)
         { ImGuiID* items = (ImGuiID*)self->UserData; return items[idx]; };
         Selections[side].ApplyRequests(ms_io);
     }
@@ -2782,7 +2782,7 @@ struct ExampleDualListBox
         const int* b = (const int*)rhs;
         return (*a - *b);
     }
-    void SortItems(int n)
+    void SortItems(const int n)
     {
         qsort(Items[n].Data, (size_t)Items[n].Size, sizeof(Items[n][0]), CompareItemsByValue);
     }
@@ -3034,7 +3034,7 @@ static void DemoWindowWidgetsSelectionAndMultiSelect(ImGuiDemoWindowData* demo_d
             static ImVector<ImGuiID>            items;
             static ExampleSelectionWithDeletion selection;
             selection.UserData                = (void*)&items;
-            selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx)
+            selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, const int idx)
             { ImVector<ImGuiID>* p_items = (ImVector<ImGuiID>*)self->UserData; return (*p_items)[idx]; };   // Index -> ID
 
             ImGui::Text("Added features:");
@@ -3181,7 +3181,7 @@ static void DemoWindowWidgetsSelectionAndMultiSelect(ImGuiDemoWindowData* demo_d
                 ImGuiMultiSelectIO*           ms_io = ImGui::BeginMultiSelect(flags, -1, IM_ARRAYSIZE(items));
                 ImGuiSelectionExternalStorage storage_wrapper;
                 storage_wrapper.UserData               = (void*)items;
-                storage_wrapper.AdapterSetItemSelected = [](ImGuiSelectionExternalStorage* self, int n, bool selected)
+                storage_wrapper.AdapterSetItemSelected = [](ImGuiSelectionExternalStorage* self, const int n, const bool selected)
                 { bool* array = (bool*)self->UserData; array[n] = selected; };
                 storage_wrapper.ApplyRequests(ms_io);
                 for (int n = 0; n < 20; n++)
@@ -3302,7 +3302,7 @@ static void DemoWindowWidgetsSelectionAndMultiSelect(ImGuiDemoWindowData* demo_d
                     return ImGui::GetStateStorage()->GetBool((ImGuiID)node->UID);
                 }
 
-                static void TreeNodeSetOpen(ExampleTreeNode* node, bool open)
+                static void TreeNodeSetOpen(ExampleTreeNode* node, const bool open)
                 {
                     ImGui::GetStateStorage()->SetBool((ImGuiID)node->UID, open);
                 }
@@ -3310,7 +3310,7 @@ static void DemoWindowWidgetsSelectionAndMultiSelect(ImGuiDemoWindowData* demo_d
                 // When closing a node: 1) close and unselect all child nodes, 2) select parent if any child was selected.
                 // FIXME: This is currently handled by user logic but I'm hoping to eventually provide tree node
                 // features to do this automatically, e.g. a ImGuiTreeNodeFlags_AutoCloseChildNodes etc.
-                static int TreeCloseAndUnselectChildNodes(ExampleTreeNode* node, ImGuiSelectionBasicStorage* selection, int depth = 0)
+                static int TreeCloseAndUnselectChildNodes(ExampleTreeNode* node, ImGuiSelectionBasicStorage* selection, const int depth = 0)
                 {
                     // Recursive close (the test for depth == 0 is because we call this on a node that was just closed!)
                     int unselected_count = selection->Contains((ImGuiID)node->UID) ? 1 : 0;
@@ -3348,7 +3348,7 @@ static void DemoWindowWidgetsSelectionAndMultiSelect(ImGuiDemoWindowData* demo_d
                     }
                 }
 
-                static void TreeSetAllInOpenNodes(ExampleTreeNode* node, ImGuiSelectionBasicStorage* selection, bool selected)
+                static void TreeSetAllInOpenNodes(ExampleTreeNode* node, ImGuiSelectionBasicStorage* selection, const bool selected)
                 {
                     if (node->Parent != NULL)   // Root node isn't visible nor selectable in our scheme
                         selection->SetItemSelected((ImGuiID)node->UID, selected);
@@ -4136,7 +4136,7 @@ static void DemoWindowWidgetsTextInput()
 
                 // Note: Because ImGui:: is a namespace you would typically add your own function into the namespace.
                 // For example, you code may declare a function 'ImGui::InputText(const char* label, MyString* my_str)'
-                static bool MyInputTextMultiline(const char* label, ImVector<char>* my_str, const ImVec2& size = ImVec2(0, 0), ImGuiInputTextFlags flags = 0)
+                static bool MyInputTextMultiline(const char* label, ImVector<char>* my_str, const ImVec2& size = ImVec2(0, 0), const ImGuiInputTextFlags flags = 0)
                 {
                     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
                     return ImGui::InputTextMultiline(label, my_str->begin(), (size_t)my_str->size(), size, flags | ImGuiInputTextFlags_CallbackResize, Funcs::MyResizeCallback, (void*)my_str);
@@ -5845,7 +5845,7 @@ struct MyItem
     // very often by the sorting algorithm it would be a little wasteful.
     static const ImGuiTableSortSpecs* s_current_sort_specs;
 
-    static void SortWithSortSpecs(ImGuiTableSortSpecs* sort_specs, MyItem* items, int items_count)
+    static void SortWithSortSpecs(ImGuiTableSortSpecs* sort_specs, MyItem* items, const int items_count)
     {
         s_current_sort_specs = sort_specs;   // Store in variable accessible by the sort function.
         if (items_count > 1)
@@ -8738,7 +8738,7 @@ bool ImGui::ShowStyleSelector(const char* label)
     return false;
 }
 
-static const char* GetTreeLinesFlagsName(ImGuiTreeNodeFlags flags)
+static const char* GetTreeLinesFlagsName(const ImGuiTreeNodeFlags flags)
 {
     if (flags == ImGuiTreeNodeFlags_DrawLinesNone) return "DrawLinesNone";
     if (flags == ImGuiTreeNodeFlags_DrawLinesFull) return "DrawLinesFull";
@@ -10387,7 +10387,7 @@ static void ShowExampleAppWindowTitles(bool*)
 //-----------------------------------------------------------------------------
 
 // Add a |_| looking shape
-static void PathConcaveShape(ImDrawList* draw_list, float x, float y, float sz)
+static void PathConcaveShape(ImDrawList* draw_list, const float x, const float y, const float sz)
 {
     const ImVec2 pos_norms[] = {
         { 0.0f, 0.0f },
@@ -10880,7 +10880,7 @@ struct MyDocument
     bool   Dirty;      // Set when the document has been modified
     ImVec4 Color;      // An arbitrary variable associated to the document
 
-    MyDocument(int uid, const char* name, bool open = true, const ImVec4& color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f))
+    MyDocument(const int uid, const char* name, const bool open = true, const ImVec4& color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f))
     {
         UID = uid;
         snprintf(Name, sizeof(Name), "%s", name);
@@ -10915,7 +10915,7 @@ struct ExampleAppDocuments
     }
 
     // As we allow to change document name, we append a never-changing document ID so tabs are stable
-    void GetTabName(MyDocument* doc, char* out_buf, size_t out_buf_size)
+    void GetTabName(MyDocument* doc, char* out_buf, const size_t out_buf_size)
     {
         snprintf(out_buf, out_buf_size, "%s###doc%d", doc->Name, doc->UID);
     }
@@ -11274,7 +11274,7 @@ struct ExampleAsset
     ImGuiID ID;
     int     Type;
 
-    ExampleAsset(ImGuiID id, int type)
+    ExampleAsset(const ImGuiID id, const int type)
     {
         ID   = id;
         Type = type;
@@ -11282,7 +11282,7 @@ struct ExampleAsset
 
     static const ImGuiTableSortSpecs* s_current_sort_specs;
 
-    static void SortWithSortSpecs(ImGuiTableSortSpecs* sort_specs, ExampleAsset* items, int items_count)
+    static void SortWithSortSpecs(ImGuiTableSortSpecs* sort_specs, ExampleAsset* items, const int items_count)
     {
         s_current_sort_specs = sort_specs;   // Store in variable accessible by the sort function.
         if (items_count > 1)
@@ -11347,7 +11347,7 @@ struct ExampleAssetsBrowser
     {
         AddItems(10000);
     }
-    void AddItems(int count)
+    void AddItems(const int count)
     {
         if (Items.Size == 0)
             NextItemId = 0;
@@ -11496,7 +11496,7 @@ struct ExampleAssetsBrowser
 
             // Use custom selection adapter: store ID in selection (recommended)
             Selection.UserData                = this;
-            Selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self_, int idx)
+            Selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self_, const int idx)
             { ExampleAssetsBrowser* self = (ExampleAssetsBrowser*)self_->UserData; return self->Items[idx].ID; };
             Selection.ApplyRequests(ms_io);
 

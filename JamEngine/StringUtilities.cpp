@@ -67,7 +67,7 @@ Result<std::wstring> ToUTF16(const std::string_view _str)
     result.resize(size);
     if (MultiByteToWideChar(CP_UTF8, 0, _str.data(), static_cast<int>(_str.size()), result.data(), size) == 0)
     {
-        return eErrorCode::RuntimeError;    
+        return eErrorCode::RuntimeError;
     }
 
     return result;

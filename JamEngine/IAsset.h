@@ -27,9 +27,9 @@ public:
     IAsset& operator=(const IAsset&) = default;
     IAsset& operator=(IAsset&&)      = default;
 
-    virtual eErrorCode Load(const fs::path& _path) = 0;
-    virtual void       Unload()                    = 0;
-    virtual eErrorCode Save(const fs::path& _path) = 0;
+    virtual eErrorCode Load(const fs::path& _path)       = 0;
+    virtual void       Unload()                          = 0;
+    virtual eErrorCode Save(const fs::path& _path) const = 0;
 
     JAM_NODISCARD virtual bool IsLoaded() const = 0;
 

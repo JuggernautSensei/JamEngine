@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "Hash.h"
+
+#include "BaseUtilities.h"
 using namespace jam;
 
 //////////////////////////////////
@@ -28,18 +30,17 @@ void MurmurHash32::Begin(const UInt32 _seed)
     m_length = 0;
 }
 
-void MurmurHash32::Add(const void* _pByte, const UInt32 _byteWidth)
+void MurmurHash32::Add(const void* _pByte, const size_t _byteWidth)
 {
     constexpr UInt32 k_c1 = 0xcc9e2d51;
     constexpr UInt32 k_c2 = 0x1b873593;
 
-    const UInt8* pByte      = static_cast<const UInt8*>(_pByte);
-    const UInt32 blockCount = static_cast<UInt32>(_byteWidth / 4);
-
-    m_length += static_cast<UInt32>(_byteWidth);
+    const Byte* pByte      = static_cast<const Byte*>(_pByte);
+    const Int32 blockCount = NarrowCast<Int32>(_byteWidth / 4);
+    m_length += NarrowCast<Int32>(_byteWidth);
 
     const UInt32* pBlock = reinterpret_cast<const UInt32*>(pByte);
-    for (UInt32 i = 0; i < blockCount; ++i)
+    for (Int32 i = 0; i < blockCount; ++i)
     {
         UInt32 k1 = pBlock[i];
         k1 *= k_c1;
@@ -51,8 +52,8 @@ void MurmurHash32::Add(const void* _pByte, const UInt32 _byteWidth)
         m_hash = m_hash * 5 + 0xe6546b64;
     }
 
-    const UInt8* pTail = pByte + static_cast<size_t>(blockCount) * 4;
-    UInt32       k1    = 0;
+    const Byte* pTail = pByte + blockCount * 4;
+    UInt32      k1    = 0;
 
     switch (_byteWidth & 3)
     {
@@ -89,18 +90,17 @@ void MurmurHash64::Begin(const UInt64 _seed)
     m_length = 0;
 }
 
-void MurmurHash64::Add(const void* _pByte, const UInt32 _byteWidth)
+void MurmurHash64::Add(const void* _pByte, const size_t _byteWidth)
 {
     constexpr UInt64 k_c1 = 0x87c37b91114253d5;
     constexpr UInt64 k_c2 = 0x4cf5ad432745937f;
 
-    const UInt8* pByte      = static_cast<const UInt8*>(_pByte);
-    const UInt32 blockCount = static_cast<UInt32>(_byteWidth / 8);
-
-    m_length += static_cast<UInt32>(_byteWidth);
+    const Byte* pByte      = static_cast<const Byte*>(_pByte);
+    const Int32 blockCount = NarrowCast<Int32>(_byteWidth / 8);
+    m_length += NarrowCast<Int32>(_byteWidth);
 
     const UInt64* pBlock = reinterpret_cast<const UInt64*>(pByte);
-    for (UInt32 i = 0; i < blockCount; ++i)
+    for (Int32 i = 0; i < blockCount; ++i)
     {
         UInt64 k1 = pBlock[i];
         k1 *= k_c1;
@@ -112,8 +112,8 @@ void MurmurHash64::Add(const void* _pByte, const UInt32 _byteWidth)
         m_hash = m_hash * 5 + 0x52dce729;
     }
 
-    const UInt8* pTail = pByte + static_cast<size_t>(blockCount) * 8;
-    UInt64       k1    = 0;
+    const Byte* pTail = pByte + blockCount * 8;
+    UInt64      k1    = 0;
 
     switch (_byteWidth & 7)
     {

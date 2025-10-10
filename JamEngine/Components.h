@@ -21,8 +21,8 @@ struct TagComponent : SerializableComponent<TagComponent>
     JAM_NODISCARD bool operator==(const std::string_view _name) const { return name == _name; }
     JAM_NODISCARD bool operator!=(const std::string_view _name) const { return !(*this == _name); }
 
-    JAM_NODISCARD Json Serialize(const Scene* _pScene, const Entity& _entity) const;
-    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity);
+    JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
+    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
     std::string name = "unknown";
 };
@@ -31,8 +31,8 @@ struct TransformComponent : UnremovableComponent<TransformComponent>, Serializab
 {
     JAM_COMPONENT(TransformComponent);
 
-    JAM_NODISCARD Json Serialize(const Scene* _pScene, const Entity& _entity) const;
-    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity);
+    JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
+    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
     void SetParent(Entity _parent);
     void ReleaseParent();
@@ -51,8 +51,8 @@ struct CameraComponent : SerializableComponent<CameraComponent>
 {
     JAM_COMPONENT(CameraComponent);
 
-    JAM_NODISCARD Json Serialize(const Scene* _pScene, const Entity& _entity) const;
-    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity);
+    JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
+    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
     Camera camera = {};
     bool   bMain  = false;
@@ -63,24 +63,24 @@ struct ScriptComponent : SerializableComponent<ScriptComponent>
     JAM_COMPONENT(ScriptComponent);
 
     template<typename T>
-    void BindScript(const Entity& _entity)
+    void BindScript(Entity _entity)
     {
         static_assert(T::_script_marker_ && std::is_base_of_v<Script, T>, "Script must use JAM_SCRIPT macro and be derived from Script class");
-        pScript = std::make_unique<T>(_entity);
+        pScript = std::make_shared<T>(_entity);
     }
 
-    JAM_NODISCARD Json Serialize(const Scene* _pScene, const Entity& _entity) const;
-    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity);
+    JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
+    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
-    std::unique_ptr<Script> pScript;
+    std::shared_ptr<Script> pScript;
 };
 
 struct MeshRenderer : SerializableComponent<MeshRenderer>
 {
     JAM_COMPONENT(MeshRenderer);
 
-    JAM_NODISCARD Json Serialize(const Scene* _pScene, const Entity& _entity) const;
-    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity);
+    JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
+    eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
     MeshHandle     mesh     = k_invalidHandle;
     MaterialHandle material = k_invalidHandle;

@@ -55,7 +55,7 @@ public:
     /// @param _byteCode 셰이더 코드를 담은 메모리 뷰
     /// @return 로드 성공 여부 (true: 성공, false: 실패)
     eErrorCode LoadCSO(
-        const MemoryView& _byteCode);
+        MemoryView _byteCode);
 
     /// @brief 컴파일된 셰이더 바이트코드 반환
     /// @return 셰이더 바이트코드

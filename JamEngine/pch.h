@@ -17,8 +17,8 @@
 #include <cassert>
 #include <chrono>
 #include <cstdint>
+#include <format>
 #include <functional>
-#include <future>
 #include <memory>
 #include <optional>
 #include <string>
@@ -26,7 +26,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
-#include <format>
 
 // directX
 #include <d3d11.h>
@@ -35,33 +34,20 @@
 #include <wrl.h>
 #pragma comment(lib, "d3d11.lib")
 
-// 3rd party - nlohmann/m_json
-#include <nlohmann/json.hpp>
-
-// 3rd party - entt
+// 3rd party
+#include "FileSystem.h"
+#include "HashMap.h"
+#include "json.h"
 #include <entt/entt.hpp>
 
-// 3rd party - filesystem (std::string base)
-#define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
-#include "vendor/ghc/filesystem.hpp"
-
-// 3rd party - unordered_dense
-#include "unordered_dense.h"
-
-//
+// base
 #include "Configs.h"
-//
 #include "DataType.h"
-#include "Macros.h"
-//
-#include "EnumUtilities.h"
 #include "Error.h"
-//
-#include "Log.h"
-//
-#include "Result.h"
-//
-#include "TypeTrait.h"
-//
+#include "Logger.h"
+
+// global utilities
+#include "BaseUtilities.h"
+#include "EnumUtilities.h"
 #include "MathUtilities.h"
 #include "StringUtilities.h"

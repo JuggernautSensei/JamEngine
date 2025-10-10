@@ -41,16 +41,16 @@ public:
     /// @param _indices 인덱스 데이터
     /// @param _format 인덱스 포맷
     /// @note 내부적으로 버텍스 버퍼와 인덱스 버퍼를 생성합니다.
-    void Load(const MemoryView&   _vertices,
+    void Load(MemoryView   _vertices,
               const VertexLayout& _layout,
-              const MemoryView&   _indices,
+              MemoryView   _indices,
               eIndexFormat        _format = eIndexFormat::U16);
 
     /// @brief 메쉬를 저장합니다.
     /// @param _path 저장할 파일 경로
     /// @return 저장 성공 여부
     /// @note 확장자는 .jmsh로 저장됩니다.
-    eErrorCode Save(const fs::path& _path) override;
+    eErrorCode Save(const fs::path& _path) const override;
 
     void Unload() override;
 
@@ -85,7 +85,7 @@ public:
 
     /// @brief 교차 여부와 교차 지점까지의 거리를 반환
     /// @note 교차하지 않을 경우 bool = false, float = 0.0f 반환
-    JAM_NODISCARD std::pair<bool, float> Intersect(
+    JAM_NODISCARD IntersectResult Intersect(
         const Mat4& _meshTransform,
         const Ray&  _rayInWorld) const;
 
@@ -106,7 +106,7 @@ public:
 
 private:
     void CleanUp_();
-    void CalcBoundingBox_(const MemoryView& _vertices, const VertexLayout& _layout);
+    void CalcBoundingBox_(MemoryView _vertices, const VertexLayout& _layout);
 
     fs::path           m_path               = {};
     VertexBufferHandle m_vertexBufferHandle = k_invalidHandle;

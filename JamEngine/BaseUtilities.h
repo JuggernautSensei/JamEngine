@@ -8,7 +8,7 @@ template<typename To, typename From>
 constexpr FORCEINLINE To NarrowCast(From value) noexcept
 {
     To to = static_cast<To>(value);
-    JAM_ASSERT(static_cast<From>(to) == value, "NarrowCast from: {} to: {} failed", NameOf<From>(), NameOf<To>());
+    JAM_ASSERT(static_cast<From>(to) == value, "NarrowCast failed: expected {}, got {}", value, to);
     return to;
 }
 
@@ -18,6 +18,5 @@ JAM_NODISCARD bool MemEquel(const T& _lhs, const T& _rhs) noexcept
 {
     return std::memcmp(&_lhs, &_rhs, sizeof(T)) == 0;
 }
-
 
 }   // namespace jam

@@ -84,7 +84,7 @@ public:
 
     /// @brief 이벤트를 디스패치합니다.
     /// @param _event 디스패치할 이벤트 객체
-    void DispatchEvent(Event& _event) const;
+    void DispatchEvent(Event& _event);
 
     /// @brief 렌더링 스레드에 커맨드를 제출합니다.
     /// @param _command 제출할 커맨드 (람다 함수)
@@ -116,7 +116,7 @@ public:
 
     /// @brief getter
     JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const;
-    JAM_NODISCARD tstring_view              GetApplicationName() const;
+    JAM_NODISCARD std::string_view GetApplicationName() const;
     JAM_NODISCARD const TickTimer&          GetTimer() const;
     JAM_NODISCARD const Window&             GetWindow() const;
 
@@ -142,7 +142,7 @@ private:
     /// @brief 어플리케이션이 종료될 때 호출되는 함수
     virtual void OnDestroy() = 0;
 
-    tstring            m_applicationName = {};
+    std::string        m_applicationName = {};
     bool               m_bRunning        = false;
     bool               m_bVsync          = false;
     bool               m_bEditor         = false;

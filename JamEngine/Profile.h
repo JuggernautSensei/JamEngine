@@ -8,17 +8,17 @@ namespace jam
 
 #ifdef JAM_PROFILE_ENABLED
 
-#    define JAM_PROFILE_SCOPE_NS(_name)  jam::ScopedTimer scopedTimer##__LINE__(_name, eTimeUnit::Nano)
-#    define JAM_PROFILE_SCOPE_US(_name)  jam::ScopedTimer scopedTimer##__LINE__(_name, eTimeUnit::Micro)
-#    define JAM_PROFILE_SCOPE_MS(_name)  jam::ScopedTimer scopedTimer##__LINE__(_name, eTimeUnit::Milli)
-#    define JAM_PROFILE_SCOPE_SEC(_name) jam::ScopedTimer scopedTimer##__LINE__(_name, eTimeUnit::Sec)
+#    define JAM_PROFILE_SCOPE_NS(...)  jam::ScopedTimer JAM_CONCAT(scopedTimer, __LINE__)(std::format(__VA_ARGS__), eTimeUnit::Nano)
+#    define JAM_PROFILE_SCOPE_US(...)  jam::ScopedTimer JAM_CONCAT(scopedTimer, __LINE__)(std::format(__VA_ARGS__), eTimeUnit::Micro)
+#    define JAM_PROFILE_SCOPE_MS(...)  jam::ScopedTimer JAM_CONCAT(scopedTimer, __LINE__)(std::format(__VA_ARGS__), eTimeUnit::Milli)
+#    define JAM_PROFILE_SCOPE_SEC(...) jam::ScopedTimer JAM_CONCAT(scopedTimer, __LINE__)(std::format(__VA_ARGS__), eTimeUnit::Sec)
 
 #else
 
-#    define JAM_PROFILE_SCOPE_NS(_name)  JAM_NOOP
-#    define JAM_PROFILE_SCOPE_US(_name)  JAM_NOOP
-#    define JAM_PROFILE_SCOPE_MS(_name)  JAM_NOOP
-#    define JAM_PROFILE_SCOPE_SEC(_name) JAM_NOOP
+#    define JAM_PROFILE_SCOPE_NS(...)  JAM_NOOP
+#    define JAM_PROFILE_SCOPE_US(...)  JAM_NOOP
+#    define JAM_PROFILE_SCOPE_MS(...)  JAM_NOOP
+#    define JAM_PROFILE_SCOPE_SEC(...) JAM_NOOP
 
 #endif
 

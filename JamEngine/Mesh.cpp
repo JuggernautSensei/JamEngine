@@ -138,7 +138,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
 
     if (version.minor != k_version.minor)
     {
-        log::Warn("Mesh file minor version is different: {} (file version: {}, engine version: {})", _path.native(), version.ToString(), k_version.ToString());
+        logger::Warn("Mesh file minor version is different: {} (file version: {}, engine version: {})", _path.native(), version.ToString(), k_version.ToString());
     }
 
     // vertex layout
@@ -191,7 +191,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
 
     // index format 결정
     Int32        vertexCount = pMesh->vertices()->size() / layout.GetStride();
-    eIndexFormat indexFormat = std::cmp_less_equal(vertexCount, k_uint16Max) ? eIndexFormat::U16 : eIndexFormat::U32;
+    eIndexFormat indexFormat = std::cmp_less_equal(vertexCount, UInt16Limits::max() ? eIndexFormat::U16 : eIndexFormat::U32;
 
     // gpu 리소스 생성
     m_path               = _path;
@@ -216,9 +216,9 @@ eErrorCode Mesh::Load(const fs::path& _path)
 }
 
 void Mesh::Load(
-    const MemoryView&   _vertices,
+    const MemoryView    _vertices,
     const VertexLayout& _layout,
-    const MemoryView&   _indices,
+    const MemoryView    _indices,
     const eIndexFormat  _format)
 {
     JAM_PROFILE_SCOPE_MS(R"(jam::Mesh::Load from memory)");
@@ -234,7 +234,7 @@ void Mesh::Load(
     CalcBoundingBox_(_vertices, _layout);
 }
 
-eErrorCode Mesh::Save(const fs::path& _path)
+eErrorCode Mesh::Save(const fs::path& _path) const
 {
     JAM_ASSERT(IsLoaded(), "Mesh is not loaded");
     JAM_PROFILE_SCOPE_MS(R"(jam::Mesh::Save "{}")", _path.native());
@@ -290,7 +290,7 @@ eErrorCode Mesh::Save(const fs::path& _path)
     return eErrorCode::Ok;
 }
 
-void Mesh::CalcBoundingBox_(const MemoryView& _vertices, const VertexLayout& _layout)
+void Mesh::CalcBoundingBox_(const MemoryView _vertices, const VertexLayout& _layout)
 {
     // 포지션 속성 정보
     JAM_ASSERT(_layout.Has(eVertexAttribute::Position), "Position attribute is required to calculate bounding box");
@@ -304,8 +304,8 @@ void Mesh::CalcBoundingBox_(const MemoryView& _vertices, const VertexLayout& _la
     Int32       vertexCount = NarrowCast<Int32>(_vertices.GetByteWidth() / stride);
     const Byte* pVertexData = _vertices.GetDataPtr();
 
-    Vec3 minPos { k_floatMax, k_floatMax, k_floatMax };
-    Vec3 maxPos { -k_floatMin, -k_floatMin, -k_floatMin };
+    Vec3 minPos { FloatLimits::max(), FloatLimits::max(), FloatLimits::max() };
+    Vec3 maxPos { -FloatLimits::lowest(), -FloatLimits::lowest(), -FloatLimits::lowest() };
     for (Int32 i = 0; i < vertexCount; ++i)
     {
         const Byte* pSrc = pVertexData + i * stride + offset;
@@ -343,7 +343,7 @@ Mesh::Mesh(Mesh&& _other) noexcept
     _other.m_path.clear();
 }
 
-Mesh& Mesh::operator=(Mesh&& _other)
+Mesh& Mesh::operator=(Mesh&& _other) noexcept
 {
     if (this != &_other)
     {
@@ -419,7 +419,7 @@ bool Mesh::Intersect(const Mat4& _meshTransform, const OBB& _obbInWorld) const
     return aabbInWorld.Intersects(_obbInWorld);
 }
 
-std::pair<bool, float> Mesh::Intersect(const Mat4& _meshTransform, const Ray& _rayInWorld) const
+IntersectResult Mesh::Intersect(const Mat4& _meshTransform, const Ray& _rayInWorld) const
 {
     AABB aabbInWorld;
     m_boundingBox.Transform(aabbInWorld, _meshTransform);

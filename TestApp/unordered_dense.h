@@ -242,11 +242,11 @@ inline void mum(uint64_t* a, uint64_t* b) {
 }
 
 // reads 1, 2, or 3 bytes
-[[nodiscard]] inline auto r3(const uint8_t* p, size_t k) -> uint64_t {
+[[nodiscard]] inline auto r3(const uint8_t* p, const size_t k) -> uint64_t {
     return (static_cast<uint64_t>(p[0]) << 16U) | (static_cast<uint64_t>(p[k >> 1U]) << 8U) | p[k - 1];
 }
 
-[[maybe_unused]] [[nodiscard]] inline auto hash(void const* key, size_t len) -> uint64_t {
+[[maybe_unused]] [[nodiscard]] inline auto hash(void const* key, const size_t len) -> uint64_t {
     static constexpr auto secret = std::array{UINT64_C(0xa0761d6478bd642f),
                                               UINT64_C(0xe7037ed1a0b428db),
                                               UINT64_C(0x8ebc6af09c88c6e3),
@@ -293,7 +293,7 @@ inline void mum(uint64_t* a, uint64_t* b) {
     return mix(secret[1] ^ len, mix(a ^ secret[1], b ^ seed));
 }
 
-[[nodiscard]] inline auto hash(uint64_t x) -> uint64_t {
+[[nodiscard]] inline auto hash(const uint64_t x) -> uint64_t {
     return detail::wyhash::mix(x, UINT64_C(0x9E3779B97F4A7C15));
 }
 
@@ -381,7 +381,7 @@ struct tuple_hash_helper {
         }
     }
 
-    [[nodiscard]] ANKERL_UNORDERED_DENSE_DISABLE_UBSAN_UNSIGNED_INTEGER_CHECK static auto mix64(uint64_t state, uint64_t v)
+    [[nodiscard]] ANKERL_UNORDERED_DENSE_DISABLE_UBSAN_UNSIGNED_INTEGER_CHECK static auto mix64(const uint64_t state, const uint64_t v)
         -> uint64_t {
         return detail::wyhash::mix(state + v, uint64_t{0x9ddfea08eb382d69});
     }
@@ -563,7 +563,7 @@ private:
     size_t m_size{};
 
     // Calculates the maximum number for x in  (s << x) <= max_val
-    static constexpr auto num_bits_closest(size_t max_val, size_t s) -> size_t {
+    static constexpr auto num_bits_closest(const size_t max_val, const size_t s) -> size_t {
         auto f = size_t{0};
         while (s << (f + 1) <= max_val) {
             ++f;
@@ -603,7 +603,7 @@ private:
             : m_data(other.m_data)
             , m_idx(other.m_idx) {}
 
-        constexpr iter_t(ptr_t data, size_t idx) noexcept
+        constexpr iter_t(ptr_t data, const size_t idx) noexcept
             : m_data(data)
             , m_idx(idx) {}
 
@@ -728,11 +728,11 @@ private:
         }
     }
 
-    [[nodiscard]] static constexpr auto calc_num_blocks_for_capacity(size_t capacity) {
+    [[nodiscard]] static constexpr auto calc_num_blocks_for_capacity(const size_t capacity) {
         return (capacity + num_elements_in_block - 1U) / num_elements_in_block;
     }
 
-    void resize_shrink(size_t new_size) {
+    void resize_shrink(const size_t new_size) {
         if constexpr (!std::is_trivially_destructible_v<T>) {
             for (size_t ix = new_size; ix < m_size; ++ix) {
                 operator[](ix).~T();
@@ -802,11 +802,11 @@ public:
     }
 
     // Indexing is highly performance critical
-    [[nodiscard]] constexpr auto operator[](size_t i) const noexcept -> T const& {
+    [[nodiscard]] constexpr auto operator[](const size_t i) const noexcept -> T const& {
         return m_blocks[i >> num_bits][i & mask];
     }
 
-    [[nodiscard]] constexpr auto operator[](size_t i) noexcept -> T& {
+    [[nodiscard]] constexpr auto operator[](const size_t i) noexcept -> T& {
         return m_blocks[i >> num_bits][i & mask];
     }
 
@@ -846,7 +846,7 @@ public:
         return 0 == m_size;
     }
 
-    void reserve(size_t new_capacity) {
+    void reserve(const size_t new_capacity) {
         m_blocks.reserve(calc_num_blocks_for_capacity(new_capacity));
         while (new_capacity > capacity()) {
             increase_capacity();
@@ -1023,7 +1023,7 @@ private:
         return Bucket::dist_inc | (static_cast<dist_and_fingerprint_type>(hash) & Bucket::fingerprint_mask);
     }
 
-    [[nodiscard]] constexpr auto bucket_idx_from_hash(uint64_t hash) const -> value_idx_type {
+    [[nodiscard]] constexpr auto bucket_idx_from_hash(const uint64_t hash) const -> value_idx_type {
         return static_cast<value_idx_type>(hash >> m_shifts);
     }
 
@@ -1057,11 +1057,11 @@ private:
         at(m_buckets, place) = bucket;
     }
 
-    [[nodiscard]] static constexpr auto calc_num_buckets(uint8_t shifts) -> size_t {
+    [[nodiscard]] static constexpr auto calc_num_buckets(const uint8_t shifts) -> size_t {
         return (std::min)(max_bucket_count(), size_t{1} << (64U - shifts));
     }
 
-    [[nodiscard]] constexpr auto calc_shifts_for_size(size_t s) const -> uint8_t {
+    [[nodiscard]] constexpr auto calc_shifts_for_size(const size_t s) const -> uint8_t {
         auto shifts = initial_shifts;
         while (shifts > 0 && static_cast<size_t>(static_cast<float>(calc_num_buckets(shifts)) * max_load_factor()) < s) {
             --shifts;
@@ -1322,7 +1322,7 @@ private:
     }
 
 public:
-    explicit table(size_t bucket_count,
+    explicit table(const size_t bucket_count,
                    Hash const& hash = Hash(),
                    KeyEqual const& equal = KeyEqual(),
                    allocator_type const& alloc_or_container = allocator_type())
@@ -1983,7 +1983,7 @@ public:
         return m_max_load_factor;
     }
 
-    void max_load_factor(float ml) {
+    void max_load_factor(const float ml) {
         m_max_load_factor = ml;
         if (bucket_count() != max_bucket_count()) {
             m_max_bucket_capacity = static_cast<value_idx_type>(static_cast<float>(bucket_count()) * max_load_factor());

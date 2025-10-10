@@ -25,7 +25,7 @@ eErrorCode ImageTexture::Load(const fs::path& _path)
     return ec;
 }
 
-eErrorCode ImageTexture::Save(const fs::path& _path)
+eErrorCode ImageTexture::Save(const fs::path& _path) const
 {
     JAM_PROFILE_SCOPE_MS(R"(ImageTexture::Save "{}")", _path.native());
 

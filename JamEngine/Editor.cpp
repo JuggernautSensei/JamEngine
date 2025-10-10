@@ -14,7 +14,7 @@ struct EditorContext
     Entity focusEntity                          = Entity::s_null;
     bool   panelVisibility[EnumCount<ePanel>()] = {};
 };
-static EditorContext g_ctx;
+static EditorContext g_edtCtx;
 
 ///////////////////////////////////////
 
@@ -39,21 +39,21 @@ void OnEvent(Event& _event)
 
 void SetPanelVisible(const ePanel _panel, const bool _bVisible)
 {
-    g_ctx.panelVisibility[EnumToInt(_panel)] = _bVisible;
+    g_edtCtx.panelVisibility[EnumToInt(_panel)] = _bVisible;
 }
 
 bool IsPanelVisible(const ePanel _panel)
 {
-    return g_ctx.panelVisibility[EnumToInt(_panel)];
+    return g_edtCtx.panelVisibility[EnumToInt(_panel)];
 }
 
 void SetFocusEntity(const Entity& _entity)
 {
-    g_ctx.focusEntity = _entity;
+    g_edtCtx.focusEntity = _entity;
 }
 
 Entity GetFocusEntity()
 {
-    return g_ctx.focusEntity;
+    return g_edtCtx.focusEntity;
 }
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "Error.h"
 
 namespace jam
 {
@@ -10,6 +11,7 @@ enum class eErrorCode : Int32
     // 이하 에러
     UnknownError,
 
+    Overflow,          // 오버플로우
     RuntimeError,      // 실행 중 오류
     InvalidArgument,   // 잘못된 인자
     DomainError,       // 수학적 정의역 오류
@@ -55,7 +57,7 @@ struct Result
         : errorCode(_error)
         , value()
     {
-        JAM_ASSERT(IsError(_error), "Result must be constructed with an error code when no value is provided.");
+        JAM_ASSERT(jam::IsError(_error), "Result must be constructed with an error code when no value is provided.");
     }
 
     /* implicit */ constexpr Result(const T& v) noexcept

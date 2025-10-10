@@ -144,7 +144,7 @@ eErrorCode AssimpImporter::Import()
                 }
             }
 
-            mesh.indexFormat  = std::cmp_less_equal(pMesh->mNumVertices, k_uint16Max) ? eIndexFormat::U16 : eIndexFormat::U32;
+            mesh.indexFormat  = std::cmp_less_equal(pMesh->mNumVertices, UInt16Limits::max()) ? eIndexFormat::U16 : eIndexFormat::U32;
             Int32 indexStride = GetIndexFormatByte(mesh.indexFormat);
 
             mesh.indices.resize(pMesh->mNumFaces * 3 * indexStride);
@@ -324,7 +324,7 @@ std::vector<Mesh> AssimpImporter::CreateMeshes(const VertexLayout& _layout) cons
 {
     JAM_ASSERT(!m_meshes.empty(), "No mesh to create. Please call Import() first.");
     JAM_ASSERT(_layout.Has(eVertexAttribute::Position), "Vertex layout must have position attribute.");
-    JAM_PROFILE_SCOPE_MS(R"(AssimpImporter::CreateMeshes layout="{}")", _layout.ToString());
+    JAM_PROFILE_SCOPE_MS("AssimpImporter::CreateMeshes. count = {}", m_meshes.size());
 
     std::vector<Mesh> result;
     result.reserve(m_meshes.size());

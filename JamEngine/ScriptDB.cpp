@@ -21,7 +21,7 @@ void Reflect(const ScriptInfo& info)
     g_scriptInfoMap[nameHash] = info;
 }
 
-std::unique_ptr<Script> Create(std::string_view _name, const Entity& _entity)
+std::shared_ptr<Script> Create(std::string_view _name, const Entity& _entity)
 {
     UInt32 hash = HashOf(_name);
     JAM_ASSERT(g_scriptInfoMap.contains(hash), "Script '{}' is not registered", _name);

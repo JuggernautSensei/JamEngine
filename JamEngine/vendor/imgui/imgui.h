@@ -297,17 +297,17 @@ struct ImVec2
         , y(0.0f)
     {
     }
-    constexpr ImVec2(float _x, float _y)
+    constexpr ImVec2(const float _x, const float _y)
         : x(_x)
         , y(_y)
     {
     }
-    float& operator[](size_t idx)
+    float& operator[](const size_t idx)
     {
         IM_ASSERT(idx == 0 || idx == 1);
         return ((float*)(void*)(char*)this)[idx];
     }   // We very rarely use this [] operator, so the assert overhead is fine.
-    float operator[](size_t idx) const
+    float operator[](const size_t idx) const
     {
         IM_ASSERT(idx == 0 || idx == 1);
         return ((const float*)(const void*)(const char*)this)[idx];
@@ -328,7 +328,7 @@ struct ImVec4
         , w(0.0f)
     {
     }
-    constexpr ImVec4(float _x, float _y, float _z, float _w)
+    constexpr ImVec4(const float _x, const float _y, const float _z, const float _w)
         : x(_x)
         , y(_y)
         , z(_z)
@@ -394,7 +394,7 @@ struct ImTextureRef
         _TexData = NULL;
         _TexID   = ImTextureID_Invalid;
     }
-    ImTextureRef(ImTextureID tex_id)
+    ImTextureRef(const ImTextureID tex_id)
     {
         _TexData = NULL;
         _TexID   = tex_id;
@@ -2482,17 +2482,17 @@ struct ImVector
         Data         = rhs_data;
     }
 
-    inline int _grow_capacity(int sz) const
+    inline int _grow_capacity(const int sz) const
     {
         int new_capacity = Capacity ? (Capacity + Capacity / 2) : 8;
         return new_capacity > sz ? new_capacity : sz;
     }
-    inline void resize(int new_size)
+    inline void resize(const int new_size)
     {
         if (new_size > Capacity) reserve(_grow_capacity(new_size));
         Size = new_size;
     }
-    inline void resize(int new_size, const T& v)
+    inline void resize(const int new_size, const T& v)
     {
         if (new_size > Capacity) reserve(_grow_capacity(new_size));
         if (new_size > Size)
@@ -2500,12 +2500,12 @@ struct ImVector
                 memcpy(&Data[n], &v, sizeof(v));
         Size = new_size;
     }
-    inline void shrink(int new_size)
+    inline void shrink(const int new_size)
     {
         IM_ASSERT(new_size <= Size);
         Size = new_size;
     }   // Resize a vector to a smaller SizeT, guaranteed not to cause a reallocation
-    inline void reserve(int new_capacity)
+    inline void reserve(const int new_capacity)
     {
         if (new_capacity <= Capacity) return;
         T* new_data = (T*)IM_ALLOC((size_t)new_capacity * sizeof(T));
@@ -2517,7 +2517,7 @@ struct ImVector
         Data     = new_data;
         Capacity = new_capacity;
     }
-    inline void reserve_discard(int new_capacity)
+    inline void reserve_discard(const int new_capacity)
     {
         if (new_capacity <= Capacity) return;
         if (Data) IM_FREE(Data);
@@ -3201,7 +3201,7 @@ struct ImGuiTextBuffer
     IMGUI_API static char EmptyString[1];
 
     ImGuiTextBuffer() {}
-    inline char operator[](int i) const
+    inline char operator[](const int i) const
     {
         IM_ASSERT(Buf.Data != NULL);
         return Buf.Data[i];
@@ -3211,12 +3211,12 @@ struct ImGuiTextBuffer
     int         size() const { return Buf.Size ? Buf.Size - 1 : 0; }
     bool        empty() const { return Buf.Size <= 1; }
     void        clear() { Buf.clear(); }
-    void        resize(int size)
+    void        resize(const int size)
     {
         if (Buf.Size > size) Buf.Data[size] = 0;
         Buf.resize(size ? size + 1 : 0, 0);
     }   // Similar to resize(0) on ImVector: IsEmpty string but don't free pBuffer.
-    void           reserve(int capacity) { Buf.reserve(capacity); }
+    void           reserve(const int capacity) { Buf.reserve(capacity); }
     const char*    c_str() const { return Buf.Data ? Buf.Data : EmptyString; }
     IMGUI_API void append(const char* str, const char* str_end = NULL);
     IMGUI_API void appendf(const char* fmt, ...) IM_FMTARGS(2);
@@ -3233,17 +3233,17 @@ struct ImGuiStoragePair
         float val_f;
         void* val_p;
     };
-    ImGuiStoragePair(ImGuiID _key, int _val)
+    ImGuiStoragePair(const ImGuiID _key, const int _val)
     {
         key   = _key;
         val_i = _val;
     }
-    ImGuiStoragePair(ImGuiID _key, float _val)
+    ImGuiStoragePair(const ImGuiID _key, const float _val)
     {
         key   = _key;
         val_f = _val;
     }
-    ImGuiStoragePair(ImGuiID _key, void* _val)
+    ImGuiStoragePair(const ImGuiID _key, void* _val)
     {
         key   = _key;
         val_p = _val;
@@ -3336,7 +3336,7 @@ struct ImGuiListClipper
 
     // Call IncludeItemByIndex() or IncludeItemsByIndex() *BEFORE* first call to Step() if you need a range of items to not be clipped, regardless of their visibility.
     // (Due to alignment / padding of certain items it is possible that an extra Slot may be included on either end of the display range).
-    inline void    IncludeItemByIndex(int item_index) { IncludeItemsByIndex(item_index, item_index + 1); }
+    inline void    IncludeItemByIndex(const int item_index) { IncludeItemsByIndex(item_index, item_index + 1); }
     IMGUI_API void IncludeItemsByIndex(int item_begin, int item_end);   // item_end is exclusive e.g. use (42, 42+1) to make Slot 42 never clipped.
 
     // Seek cursor toward given Slot. This is automatically called while stepping.
@@ -3345,7 +3345,7 @@ struct ImGuiListClipper
     IMGUI_API void SeekCursorForItem(int item_index);
 
 #    ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    inline void IncludeRangeByIndices(int item_begin, int item_end) { IncludeItemsByIndex(item_begin, item_end); }   // [renamed in 1.89.9]
+    inline void IncludeRangeByIndices(const int item_begin, const int item_end) { IncludeItemsByIndex(item_begin, item_end); }   // [renamed in 1.89.9]
     // inline void ForceDisplayRangeByIndices(int item_begin, int item_end) { IncludeItemsByIndex(item_begin, item_end); } // [renamed in 1.89.6]
     // inline ImGuiListClipper(int items_count, float items_height = -1.0f) { memset(this, 0, sizeof(*this)); ItemsCount = -1; Begin(items_count, items_height); } // [removed in 1.79]
 #    endif
@@ -3450,7 +3450,7 @@ struct ImColor
     ImVec4 Value;
 
     constexpr ImColor() {}
-    constexpr ImColor(float r, float g, float b, float a = 1.0f)
+    constexpr ImColor(const float r, const float g, const float b, const float a = 1.0f)
         : Value(r, g, b, a)
     {
     }
@@ -3458,11 +3458,11 @@ struct ImColor
         : Value(col)
     {
     }
-    constexpr ImColor(int r, int g, int b, int a = 255)
+    constexpr ImColor(const int r, const int g, const int b, const int a = 255)
         : Value((float)r * (1.0f / 255.0f), (float)g * (1.0f / 255.0f), (float)b * (1.0f / 255.0f), (float)a * (1.0f / 255.0f))
     {
     }
-    constexpr ImColor(ImU32 rgba)
+    constexpr ImColor(const ImU32 rgba)
         : Value((float)((rgba >> IM_COL32_R_SHIFT) & 0xFF) * (1.0f / 255.0f), (float)((rgba >> IM_COL32_G_SHIFT) & 0xFF) * (1.0f / 255.0f), (float)((rgba >> IM_COL32_B_SHIFT) & 0xFF) * (1.0f / 255.0f), (float)((rgba >> IM_COL32_A_SHIFT) & 0xFF) * (1.0f / 255.0f))
     {
     }
@@ -3470,12 +3470,12 @@ struct ImColor
     inline operator ImVec4() const { return Value; }
 
     // FIXME-OBSOLETE: May need to obsolete/cleanup those helpers.
-    inline void SetHSV(float h, float s, float v, float a = 1.0f)
+    inline void SetHSV(const float h, const float s, const float v, const float a = 1.0f)
     {
         ImGui::ColorConvertHSVtoRGB(h, s, v, Value.x, Value.y, Value.z);
         Value.w = a;
     }
-    static ImColor HSV(float h, float s, float v, float a = 1.0f)
+    static ImColor HSV(const float h, const float s, const float v, const float a = 1.0f)
     {
         float r, g, b;
         ImGui::ColorConvertHSVtoRGB(h, s, v, r, g, b);
@@ -3615,7 +3615,7 @@ struct ImGuiSelectionBasicStorage
     IMGUI_API void Swap(ImGuiSelectionBasicStorage& r);                                            // Swap two selections
     IMGUI_API void SetItemSelected(ImGuiID id, bool selected);                                     // AddAttribute/remove an Slot from selection (generally done by ApplyRequests() function)
     IMGUI_API bool GetNextSelectedItem(void** opaque_it, ImGuiID* out_id);                         // Iterate selection with 'void* it = NULL; ImGuiID id; while (selection.GetNextSelectedItem(&it, &id)) { ... }'
-    inline ImGuiID GetStorageIdFromIndex(int idx) { return AdapterIndexToStorageId(this, idx); }   // Convert m_handle to Slot id based on provided adapter.
+    inline ImGuiID GetStorageIdFromIndex(const int idx) { return AdapterIndexToStorageId(this, idx); }   // Convert m_handle to Slot id based on provided adapter.
 };
 
 // Optional helper to apply multi-selection requests to existing randomly accessible storage.
@@ -3874,17 +3874,17 @@ struct ImDrawList
     {
         if (_Path.Size == 0 || memcmp(&_Path.Data[_Path.Size - 1], &pos, 8) != 0) _Path.push_back(pos);
     }
-    inline void PathFillConvex(ImU32 col)
+    inline void PathFillConvex(const ImU32 col)
     {
         AddConvexPolyFilled(_Path.Data, _Path.Size, col);
         _Path.Size = 0;
     }
-    inline void PathFillConcave(ImU32 col)
+    inline void PathFillConcave(const ImU32 col)
     {
         AddConcavePolyFilled(_Path.Data, _Path.Size, col);
         _Path.Size = 0;
     }
-    inline void PathStroke(ImU32 col, ImDrawFlags flags = 0, float thickness = 1.0f)
+    inline void PathStroke(const ImU32 col, const ImDrawFlags flags = 0, const float thickness = 1.0f)
     {
         AddPolyline(_Path.Data, _Path.Size, col, flags, thickness);
         _Path.Size = 0;
@@ -3917,9 +3917,9 @@ struct ImDrawList
     // - This API shouldn't have been in ImDrawList in the first place!
     //   Prefer using your own persistent instance of ImDrawListSplitter as you can stack them.
     //   Using the ImDrawList::ChannelsXXXX you cannot stack a split over another.
-    inline void ChannelsSplit(int count) { _Splitter.Split(this, count); }
+    inline void ChannelsSplit(const int count) { _Splitter.Split(this, count); }
     inline void ChannelsMerge() { _Splitter.Merge(this); }
-    inline void ChannelsSetCurrent(int n) { _Splitter.SetCurrentChannel(this, n); }
+    inline void ChannelsSetCurrent(const int n) { _Splitter.SetCurrentChannel(this, n); }
 
     // Advanced: Primitives allocations
     // - We render triangles (three vertices)
@@ -3929,7 +3929,7 @@ struct ImDrawList
     IMGUI_API void PrimRect(const ImVec2& a, const ImVec2& b, ImU32 col);   // Axis aligned rectangle (composed of two triangles)
     IMGUI_API void PrimRectUV(const ImVec2& a, const ImVec2& b, const ImVec2& uv_a, const ImVec2& uv_b, ImU32 col);
     IMGUI_API void PrimQuadUV(const ImVec2& a, const ImVec2& b, const ImVec2& c, const ImVec2& d, const ImVec2& uv_a, const ImVec2& uv_b, const ImVec2& uv_c, const ImVec2& uv_d, ImU32 col);
-    inline void    PrimWriteVtx(const ImVec2& pos, const ImVec2& uv, ImU32 col)
+    inline void    PrimWriteVtx(const ImVec2& pos, const ImVec2& uv, const ImU32 col)
     {
         _VtxWritePtr->pos = pos;
         _VtxWritePtr->uv  = uv;
@@ -3937,12 +3937,12 @@ struct ImDrawList
         _VtxWritePtr++;
         _VtxCurrentIdx++;
     }
-    inline void PrimWriteIdx(ImDrawIdx idx)
+    inline void PrimWriteIdx(const ImDrawIdx idx)
     {
         *_IdxWritePtr = idx;
         _IdxWritePtr++;
     }
-    inline void PrimVtx(const ImVec2& pos, const ImVec2& uv, ImU32 col)
+    inline void PrimVtx(const ImVec2& pos, const ImVec2& uv, const ImU32 col)
     {
         PrimWriteIdx((ImDrawIdx)_VtxCurrentIdx);
         PrimWriteVtx(pos, uv, col);
@@ -3950,7 +3950,7 @@ struct ImDrawList
 
     // Obsolete names
 #    ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    inline void PushTextureID(ImTextureRef tex_ref) { PushTexture(tex_ref); }   // RENAMED in 1.92.x
+    inline void PushTextureID(const ImTextureRef tex_ref) { PushTexture(tex_ref); }   // RENAMED in 1.92.x
     inline void PopTextureID() { PopTexture(); }                                // RENAMED in 1.92.x
 #    endif
     // inline  void  AddEllipse(const ImVec2& center, float radius_x, float radius_y, ImU32 col, float rot = 0.0f, int num_segments = 0, float thickness = 1.0f) { AddEllipse(center, ImVec2(radius_x, radius_y), col, rot, num_segments, thickness); } // OBSOLETED in 1.90.5 (Mar 2024)
@@ -4077,7 +4077,7 @@ struct ImTextureData
         IM_ASSERT(Pixels != NULL);
         return Pixels;
     }
-    void* GetPixelsAt(int x, int y)
+    void* GetPixelsAt(const int x, const int y)
     {
         IM_ASSERT(Pixels != NULL);
         return Pixels + (x + y * Width) * BytesPerPixel;
@@ -4094,8 +4094,8 @@ struct ImTextureData
     ImTextureID GetTexID() const { return TexID; }
 
     // Called by D3D11API backend
-    void SetTexID(ImTextureID tex_id) { TexID = tex_id; }         // Call after creating or destroying the pTexture. Never modify TexID directly!
-    void SetStatus(ImTextureStatus status) { Status = status; }   // Call after honoring a request. Never modify Status directly!
+    void SetTexID(const ImTextureID tex_id) { TexID = tex_id; }         // Call after creating or destroying the pTexture. Never modify TexID directly!
+    void SetStatus(const ImTextureStatus status) { Status = status; }   // Call after honoring a request. Never modify Status directly!
 };
 
 //-----------------------------------------------------------------------------
@@ -4174,19 +4174,19 @@ struct ImFontGlyphRangesBuilder
         UsedChars.resize(size_in_bytes / (int)sizeof(ImU32));
         memset(UsedChars.Data, 0, (size_t)size_in_bytes);
     }
-    inline bool GetBit(size_t n) const
+    inline bool GetBit(const size_t n) const
     {
         int   off  = (int)(n >> 5);
         ImU32 mask = 1u << (n & 31);
         return (UsedChars[off] & mask) != 0;
     }   // GetResourceRef bit n in the array
-    inline void SetBit(size_t n)
+    inline void SetBit(const size_t n)
     {
         int   off  = (int)(n >> 5);
         ImU32 mask = 1u << (n & 31);
         UsedChars[off] |= mask;
     }                                                                        // Convert bit n in the array
-    inline void    AddChar(ImWchar c) { SetBit(c); }                         // AddAttribute character
+    inline void    AddChar(const ImWchar c) { SetBit(c); }                         // AddAttribute character
     IMGUI_API void AddText(const char* text, const char* text_end = NULL);   // AddAttribute string (each character of the UTF-8 string are added)
     IMGUI_API void AddRanges(const ImWchar* ranges);                         // AddAttribute ranges, e.g. builder.AddRanges(ImFontAtlas::GetGlyphRangesDefault()) to force add all of ASCII/Latin+Ext
     IMGUI_API void BuildRanges(ImVector<ImWchar>* out_ranges);               // Output new ranges
@@ -4270,12 +4270,12 @@ struct ImFontAtlas
     IMGUI_API bool Build();                                                                                                            // Build pixels point. This is called automatically for you by the GetTexData*** functions.
     IMGUI_API void GetTexDataAsAlpha8(unsigned char** out_pixels, int* out_width, int* out_height, int* out_bytes_per_pixel = NULL);   // 1 byte per-pixel
     IMGUI_API void GetTexDataAsRGBA32(unsigned char** out_pixels, int* out_width, int* out_height, int* out_bytes_per_pixel = NULL);   // 4 bytes-per-pixel
-    void           SetTexID(ImTextureID id)
+    void           SetTexID(const ImTextureID id)
     {
         IM_ASSERT(TexRef._TexID == ImTextureID_Invalid);
         TexRef._TexData->TexID = id;
     }   // Called by legacy backends. May be called before pTexture creation.
-    void SetTexID(ImTextureRef id)
+    void SetTexID(const ImTextureRef id)
     {
         IM_ASSERT(TexRef._TexID == ImTextureID_Invalid && id._TexData == NULL);
         TexRef._TexData->TexID = id._TexID;
@@ -4383,8 +4383,8 @@ struct ImFontAtlas
 #    ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     // Legacy: You can request your rectangles to be mapped as font glyph (given a font + Unicode point), so you can render e.g. custom colorful icons and use them as regular glyphs. --> Prefer using a custom ImFontLoader.
     ImFontAtlasRect               TempRect;                                                                                                // For old GetCustomRectByIndex() API
-    inline ImFontAtlasRectId      AddCustomRectRegular(int w, int h) { return AddCustomRect(w, h); }                                       // RENAMED in 1.92.X
-    inline const ImFontAtlasRect* GetCustomRectByIndex(ImFontAtlasRectId id) { return GetCustomRect(id, &TempRect) ? &TempRect : NULL; }   // OBSOLETED in 1.92.X
+    inline ImFontAtlasRectId      AddCustomRectRegular(const int w, const int h) { return AddCustomRect(w, h); }                                       // RENAMED in 1.92.X
+    inline const ImFontAtlasRect* GetCustomRectByIndex(const ImFontAtlasRectId id) { return GetCustomRect(id, &TempRect) ? &TempRect : NULL; }   // OBSOLETED in 1.92.X
     inline void                   CalcCustomRectUV(const ImFontAtlasRect* r, ImVec2* out_uv_min, ImVec2* out_uv_max) const
     {
         *out_uv_min = r->uv0;
@@ -4488,7 +4488,7 @@ struct ImFont
     IMGUI_API void         RenderChar(ImDrawList* draw_list, float size, const ImVec2& pos, ImU32 col, ImWchar c, const ImVec4* cpu_fine_clip = NULL);
     IMGUI_API void         RenderText(ImDrawList* draw_list, float size, const ImVec2& pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width = 0.0f, bool cpu_fine_clip = false);
 #    ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    inline const char* CalcWordWrapPositionA(float scale, const char* text, const char* text_end, float wrap_width) { return CalcWordWrapPosition(LegacySize * scale, text, text_end, wrap_width); }
+    inline const char* CalcWordWrapPositionA(const float scale, const char* text, const char* text_end, const float wrap_width) { return CalcWordWrapPosition(LegacySize * scale, text, text_end, wrap_width); }
 #    endif
 
     // [Internal] Don't use!
@@ -4780,15 +4780,15 @@ IMGUI_API void SetWindowFontScale(float scale);   // Convert font scale factor f
 // OBSOLETED in 1.91.9 (from February 2025)
 IMGUI_API void Image(ImTextureRef tex_ref, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col);   // <-- 'border_col' was removed in favor of ImGuiCol_ImageBorder. If you use 'tint_col', use ImageWithBg() instead.
 // OBSOLETED in 1.91.0 (from July 2024)
-inline void      PushButtonRepeat(bool repeat) { PushItemFlag(ImGuiItemFlags_ButtonRepeat, repeat); }
+inline void      PushButtonRepeat(const bool repeat) { PushItemFlag(ImGuiItemFlags_ButtonRepeat, repeat); }
 inline void      PopButtonRepeat() { PopItemFlag(); }
-inline void      PushTabStop(bool tab_stop) { PushItemFlag(ImGuiItemFlags_NoTabStop, !tab_stop); }
+inline void      PushTabStop(const bool tab_stop) { PushItemFlag(ImGuiItemFlags_NoTabStop, !tab_stop); }
 inline void      PopTabStop() { PopItemFlag(); }
 IMGUI_API ImVec2 GetContentRegionMax();         // Content boundaries max (e.g. window boundaries including scrolling, or current column boundaries). You should never need this. Always use GetCursorScreenPos() and GetContentRegionAvail()!
 IMGUI_API ImVec2 GetWindowContentRegionMin();   // Content boundaries min for the window (roughly (0,0)-Scroll), in window-local coordinates. You should never need this. Always use GetCursorScreenPos() and GetContentRegionAvail()!
 IMGUI_API ImVec2 GetWindowContentRegionMax();   // Content boundaries max for the window (roughly (0,0)+SizeT-Scroll), in window-local coordinates. You should never need this. Always use GetCursorScreenPos() and GetContentRegionAvail()!
 // OBSOLETED in 1.90.0 (from September 2023)
-inline bool BeginChildFrame(ImGuiID id, const ImVec2& size, ImGuiWindowFlags window_flags = 0) { return BeginChild(id, size, ImGuiChildFlags_FrameStyle, window_flags); }
+inline bool BeginChildFrame(const ImGuiID id, const ImVec2& size, const ImGuiWindowFlags window_flags = 0) { return BeginChild(id, size, ImGuiChildFlags_FrameStyle, window_flags); }
 inline void EndChildFrame() { EndChild(); }
 // inline bool       BeginChild(const char* str_id, const ImVec2& size_arg, bool borders, ImGuiWindowFlags window_flags){ return BeginChild(str_id, size_arg, borders ? ImGuiChildFlags_Borders : ImGuiChildFlags_None, window_flags); } // Unnecessary as true == ImGuiChildFlags_Borders
 // inline bool       BeginChild(ImGuiID id, const ImVec2& size_arg, bool borders, ImGuiWindowFlags window_flags)        { return BeginChild(id, size_arg, borders ? ImGuiChildFlags_Borders : ImGuiChildFlags_None, window_flags);     } // Unnecessary as true == ImGuiChildFlags_Borders

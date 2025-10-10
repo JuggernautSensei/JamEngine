@@ -403,7 +403,7 @@ ImDrawListSharedData::~ImDrawListSharedData()
     IM_ASSERT(DrawLists.Size == 0);
 }
 
-void ImDrawListSharedData::SetCircleTessellationMaxError(float max_error)
+void ImDrawListSharedData::SetCircleTessellationMaxError(const float max_error)
 {
     if (CircleSegmentMaxError == max_error)
         return;
@@ -518,7 +518,7 @@ void ImDrawList::_PopUnusedDrawCmd()
     }
 }
 
-void ImDrawList::AddCallback(ImDrawCallback callback, void* userdata, size_t userdata_size)
+void ImDrawList::AddCallback(const ImDrawCallback callback, void* userdata, const size_t userdata_size)
 {
     IM_ASSERT_PARANOID(CmdBuffer.Size > 0);
     ImDrawCmd* curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
@@ -636,7 +636,7 @@ void ImDrawList::_OnChangedVtxOffset()
     curr_cmd->VtxOffset = _CmdHeader.VtxOffset;
 }
 
-int ImDrawList::_CalcCircleAutoSegmentCount(float radius) const
+int ImDrawList::_CalcCircleAutoSegmentCount(const float radius) const
 {
     // Automatic segment count
     const int radius_idx = (int)(radius + 0.999999f); // ceil to never reduce accuracy
@@ -647,7 +647,7 @@ int ImDrawList::_CalcCircleAutoSegmentCount(float radius) const
 }
 
 // Render-level scissoring. This is passed down to your render function but not used for CPU-side coarse clipping. Prefer using higher-level ImGui::PushClipRect() to affect logic (hit-testing and widget culling)
-void ImDrawList::PushClipRect(const ImVec2& cr_min, const ImVec2& cr_max, bool intersect_with_current_clip_rect)
+void ImDrawList::PushClipRect(const ImVec2& cr_min, const ImVec2& cr_max, const bool intersect_with_current_clip_rect)
 {
     ImVec4 cr(cr_min.x, cr_min.y, cr_max.x, cr_max.y);
     if (intersect_with_current_clip_rect)
@@ -678,7 +678,7 @@ void ImDrawList::PopClipRect()
     _OnChangedClipRect();
 }
 
-void ImDrawList::PushTexture(ImTextureRef tex_ref)
+void ImDrawList::PushTexture(const ImTextureRef tex_ref)
 {
     _TextureStack.push_back(tex_ref);
     _CmdHeader.TexRef = tex_ref;
@@ -695,7 +695,7 @@ void ImDrawList::PopTexture()
 }
 
 // This is used by ImGui::PushFont()/PopFont(). It works because we never use _TextureIdStack[] elsewhere than in PushTexture()/PopTexture().
-void ImDrawList::_SetTexture(ImTextureRef tex_ref)
+void ImDrawList::_SetTexture(const ImTextureRef tex_ref)
 {
     if (_CmdHeader.TexRef == tex_ref)
         return;
@@ -707,7 +707,7 @@ void ImDrawList::_SetTexture(ImTextureRef tex_ref)
 // Reserve space for a number of vertices and indices.
 // You must finish filling your reserved data before calling PrimReserve() again, as it may reallocate or
 // submit the intermediate results. PrimUnreserve() can be used to release unused allocations.
-void ImDrawList::PrimReserve(int idx_count, int vtx_count)
+void ImDrawList::PrimReserve(const int idx_count, const int vtx_count)
 {
     // Large mesh support (when enabled)
     IM_ASSERT_PARANOID(idx_count >= 0 && vtx_count >= 0);
@@ -733,7 +733,7 @@ void ImDrawList::PrimReserve(int idx_count, int vtx_count)
 }
 
 // Release the number of reserved vertices/indices from the end of the last reservation made with PrimReserve().
-void ImDrawList::PrimUnreserve(int idx_count, int vtx_count)
+void ImDrawList::PrimUnreserve(const int idx_count, const int vtx_count)
 {
     IM_ASSERT_PARANOID(idx_count >= 0 && vtx_count >= 0);
 
@@ -744,7 +744,7 @@ void ImDrawList::PrimUnreserve(int idx_count, int vtx_count)
 }
 
 // Fully unrolled with inline call to keep our debug builds decently fast.
-void ImDrawList::PrimRect(const ImVec2& a, const ImVec2& c, ImU32 col)
+void ImDrawList::PrimRect(const ImVec2& a, const ImVec2& c, const ImU32 col)
 {
     ImVec2 b(c.x, a.y), d(a.x, c.y), uv(_Data->TexUvWhitePixel);
     ImDrawIdx idx = (ImDrawIdx)_VtxCurrentIdx;
@@ -759,7 +759,7 @@ void ImDrawList::PrimRect(const ImVec2& a, const ImVec2& c, ImU32 col)
     _IdxWritePtr += 6;
 }
 
-void ImDrawList::PrimRectUV(const ImVec2& a, const ImVec2& c, const ImVec2& uv_a, const ImVec2& uv_c, ImU32 col)
+void ImDrawList::PrimRectUV(const ImVec2& a, const ImVec2& c, const ImVec2& uv_a, const ImVec2& uv_c, const ImU32 col)
 {
     ImVec2 b(c.x, a.y), d(a.x, c.y), uv_b(uv_c.x, uv_a.y), uv_d(uv_a.x, uv_c.y);
     ImDrawIdx idx = (ImDrawIdx)_VtxCurrentIdx;
@@ -774,7 +774,7 @@ void ImDrawList::PrimRectUV(const ImVec2& a, const ImVec2& c, const ImVec2& uv_a
     _IdxWritePtr += 6;
 }
 
-void ImDrawList::PrimQuadUV(const ImVec2& a, const ImVec2& b, const ImVec2& c, const ImVec2& d, const ImVec2& uv_a, const ImVec2& uv_b, const ImVec2& uv_c, const ImVec2& uv_d, ImU32 col)
+void ImDrawList::PrimQuadUV(const ImVec2& a, const ImVec2& b, const ImVec2& c, const ImVec2& d, const ImVec2& uv_a, const ImVec2& uv_b, const ImVec2& uv_c, const ImVec2& uv_d, const ImU32 col)
 {
     ImDrawIdx idx = (ImDrawIdx)_VtxCurrentIdx;
     _IdxWritePtr[0] = idx; _IdxWritePtr[1] = (ImDrawIdx)(idx+1); _IdxWritePtr[2] = (ImDrawIdx)(idx+2);
@@ -797,7 +797,7 @@ void ImDrawList::PrimQuadUV(const ImVec2& a, const ImVec2& b, const ImVec2& c, c
 
 // TODO: Thickness anti-aliased lines cap are missing their AA fringe.
 // We avoid using the ImVec2 math operators here to reduce cost to a minimum for debug/non-inlined builds.
-void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32 col, ImDrawFlags flags, float thickness)
+void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, const ImU32 col, const ImDrawFlags flags, float thickness)
 {
     if (points_count < 2 || (col & IM_COL32_A_MASK) == 0)
         return;
@@ -1055,7 +1055,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
 
 // - We intentionally avoid using ImVec2 and its math operators here to reduce cost to a minimum for debug/non-inlined builds.
 // - Filled shapes must always use clockwise winding order. The anti-aliasing fringe depends on it. Counter-clockwise shapes will have "inward" anti-aliasing.
-void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_count, ImU32 col)
+void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_count, const ImU32 col)
 {
     if (points_count < 3 || (col & IM_COL32_A_MASK) == 0)
         return;
@@ -1137,7 +1137,7 @@ void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_coun
     }
 }
 
-void ImDrawList::_PathArcToFastEx(const ImVec2& center, float radius, int a_min_sample, int a_max_sample, int a_step)
+void ImDrawList::_PathArcToFastEx(const ImVec2& center, const float radius, const int a_min_sample, const int a_max_sample, int a_step)
 {
     if (radius < 0.5f)
     {
@@ -1229,7 +1229,7 @@ void ImDrawList::_PathArcToFastEx(const ImVec2& center, float radius, int a_min_
     IM_ASSERT_PARANOID(_Path.Data + _Path.Size == out_ptr);
 }
 
-void ImDrawList::_PathArcToN(const ImVec2& center, float radius, float a_min, float a_max, int num_segments)
+void ImDrawList::_PathArcToN(const ImVec2& center, const float radius, const float a_min, const float a_max, const int num_segments)
 {
     if (radius < 0.5f)
     {
@@ -1248,7 +1248,7 @@ void ImDrawList::_PathArcToN(const ImVec2& center, float radius, float a_min, fl
 }
 
 // 0: East, 3: South, 6: West, 9: North, 12: East
-void ImDrawList::PathArcToFast(const ImVec2& center, float radius, int a_min_of_12, int a_max_of_12)
+void ImDrawList::PathArcToFast(const ImVec2& center, const float radius, const int a_min_of_12, const int a_max_of_12)
 {
     if (radius < 0.5f)
     {
@@ -1258,7 +1258,7 @@ void ImDrawList::PathArcToFast(const ImVec2& center, float radius, int a_min_of_
     _PathArcToFastEx(center, radius, a_min_of_12 * IM_DRAWLIST_ARCFAST_SAMPLE_MAX / 12, a_max_of_12 * IM_DRAWLIST_ARCFAST_SAMPLE_MAX / 12, 0);
 }
 
-void ImDrawList::PathArcTo(const ImVec2& center, float radius, float a_min, float a_max, int num_segments)
+void ImDrawList::PathArcTo(const ImVec2& center, const float radius, const float a_min, const float a_max, const int num_segments)
 {
     if (radius < 0.5f)
     {
@@ -1308,7 +1308,7 @@ void ImDrawList::PathArcTo(const ImVec2& center, float radius, float a_min, floa
     }
 }
 
-void ImDrawList::PathEllipticalArcTo(const ImVec2& center, const ImVec2& radius, float rot, float a_min, float a_max, int num_segments)
+void ImDrawList::PathEllipticalArcTo(const ImVec2& center, const ImVec2& radius, const float rot, const float a_min, const float a_max, int num_segments)
 {
     if (num_segments <= 0)
         num_segments = _CalcCircleAutoSegmentCount(ImMax(radius.x, radius.y)); // A bit pessimistic, maybe there's a better computation to do here.
@@ -1328,7 +1328,7 @@ void ImDrawList::PathEllipticalArcTo(const ImVec2& center, const ImVec2& radius,
     }
 }
 
-ImVec2 ImBezierCubicCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, float t)
+ImVec2 ImBezierCubicCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const float t)
 {
     float u = 1.0f - t;
     float w1 = u * u * u;
@@ -1338,7 +1338,7 @@ ImVec2 ImBezierCubicCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, c
     return ImVec2(w1 * p1.x + w2 * p2.x + w3 * p3.x + w4 * p4.x, w1 * p1.y + w2 * p2.y + w3 * p3.y + w4 * p4.y);
 }
 
-ImVec2 ImBezierQuadraticCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, float t)
+ImVec2 ImBezierQuadraticCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const float t)
 {
     float u = 1.0f - t;
     float w1 = u * u;
@@ -1348,7 +1348,7 @@ ImVec2 ImBezierQuadraticCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p
 }
 
 // Closely mimics ImBezierCubicClosestPointCasteljau() in imgui.cpp
-static void PathBezierCubicCurveToCasteljau(ImVector<ImVec2>* path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, float tess_tol, int level)
+static void PathBezierCubicCurveToCasteljau(ImVector<ImVec2>* path, const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const float tess_tol, const int level)
 {
     float dx = x4 - x1;
     float dy = y4 - y1;
@@ -1373,7 +1373,7 @@ static void PathBezierCubicCurveToCasteljau(ImVector<ImVec2>* path, float x1, fl
     }
 }
 
-static void PathBezierQuadraticCurveToCasteljau(ImVector<ImVec2>* path, float x1, float y1, float x2, float y2, float x3, float y3, float tess_tol, int level)
+static void PathBezierQuadraticCurveToCasteljau(ImVector<ImVec2>* path, const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float tess_tol, const int level)
 {
     float dx = x3 - x1, dy = y3 - y1;
     float det = (x2 - x3) * dy - (y2 - y3) * dx;
@@ -1391,7 +1391,7 @@ static void PathBezierQuadraticCurveToCasteljau(ImVector<ImVec2>* path, float x1
     }
 }
 
-void ImDrawList::PathBezierCubicCurveTo(const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int num_segments)
+void ImDrawList::PathBezierCubicCurveTo(const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const int num_segments)
 {
     ImVec2 p1 = _Path.back();
     if (num_segments == 0)
@@ -1407,7 +1407,7 @@ void ImDrawList::PathBezierCubicCurveTo(const ImVec2& p2, const ImVec2& p3, cons
     }
 }
 
-void ImDrawList::PathBezierQuadraticCurveTo(const ImVec2& p2, const ImVec2& p3, int num_segments)
+void ImDrawList::PathBezierQuadraticCurveTo(const ImVec2& p2, const ImVec2& p3, const int num_segments)
 {
     ImVec2 p1 = _Path.back();
     if (num_segments == 0)
@@ -1475,7 +1475,7 @@ void ImDrawList::PathRect(const ImVec2& a, const ImVec2& b, float rounding, ImDr
     }
 }
 
-void ImDrawList::AddLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness)
+void ImDrawList::AddLine(const ImVec2& p1, const ImVec2& p2, const ImU32 col, const float thickness)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1486,7 +1486,7 @@ void ImDrawList::AddLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float th
 
 // p_min = upper-left, p_max = lower-right
 // Note we don't render 1 pixels sized rectangles properly.
-void ImDrawList::AddRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding, ImDrawFlags flags, float thickness)
+void ImDrawList::AddRect(const ImVec2& p_min, const ImVec2& p_max, const ImU32 col, const float rounding, const ImDrawFlags flags, const float thickness)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1497,7 +1497,7 @@ void ImDrawList::AddRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, fl
     PathStroke(col, ImDrawFlags_Closed, thickness);
 }
 
-void ImDrawList::AddRectFilled(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding, ImDrawFlags flags)
+void ImDrawList::AddRectFilled(const ImVec2& p_min, const ImVec2& p_max, const ImU32 col, const float rounding, const ImDrawFlags flags)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1514,7 +1514,7 @@ void ImDrawList::AddRectFilled(const ImVec2& p_min, const ImVec2& p_max, ImU32 c
 }
 
 // p_min = upper-left, p_max = lower-right
-void ImDrawList::AddRectFilledMultiColor(const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left)
+void ImDrawList::AddRectFilledMultiColor(const ImVec2& p_min, const ImVec2& p_max, const ImU32 col_upr_left, const ImU32 col_upr_right, const ImU32 col_bot_right, const ImU32 col_bot_left)
 {
     if (((col_upr_left | col_upr_right | col_bot_right | col_bot_left) & IM_COL32_A_MASK) == 0)
         return;
@@ -1529,7 +1529,7 @@ void ImDrawList::AddRectFilledMultiColor(const ImVec2& p_min, const ImVec2& p_ma
     PrimWriteVtx(ImVec2(p_min.x, p_max.y), uv, col_bot_left);
 }
 
-void ImDrawList::AddQuad(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col, float thickness)
+void ImDrawList::AddQuad(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImU32 col, const float thickness)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1541,7 +1541,7 @@ void ImDrawList::AddQuad(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, c
     PathStroke(col, ImDrawFlags_Closed, thickness);
 }
 
-void ImDrawList::AddQuadFilled(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col)
+void ImDrawList::AddQuadFilled(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImU32 col)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1553,7 +1553,7 @@ void ImDrawList::AddQuadFilled(const ImVec2& p1, const ImVec2& p2, const ImVec2&
     PathFillConvex(col);
 }
 
-void ImDrawList::AddTriangle(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col, float thickness)
+void ImDrawList::AddTriangle(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImU32 col, const float thickness)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1564,7 +1564,7 @@ void ImDrawList::AddTriangle(const ImVec2& p1, const ImVec2& p2, const ImVec2& p
     PathStroke(col, ImDrawFlags_Closed, thickness);
 }
 
-void ImDrawList::AddTriangleFilled(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col)
+void ImDrawList::AddTriangleFilled(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImU32 col)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1575,7 +1575,7 @@ void ImDrawList::AddTriangleFilled(const ImVec2& p1, const ImVec2& p2, const ImV
     PathFillConvex(col);
 }
 
-void ImDrawList::AddCircle(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness)
+void ImDrawList::AddCircle(const ImVec2& center, const float radius, const ImU32 col, int num_segments, const float thickness)
 {
     if ((col & IM_COL32_A_MASK) == 0 || radius < 0.5f)
         return;
@@ -1599,7 +1599,7 @@ void ImDrawList::AddCircle(const ImVec2& center, float radius, ImU32 col, int nu
     PathStroke(col, ImDrawFlags_Closed, thickness);
 }
 
-void ImDrawList::AddCircleFilled(const ImVec2& center, float radius, ImU32 col, int num_segments)
+void ImDrawList::AddCircleFilled(const ImVec2& center, const float radius, const ImU32 col, int num_segments)
 {
     if ((col & IM_COL32_A_MASK) == 0 || radius < 0.5f)
         return;
@@ -1624,7 +1624,7 @@ void ImDrawList::AddCircleFilled(const ImVec2& center, float radius, ImU32 col, 
 }
 
 // Guaranteed to honor 'num_segments'
-void ImDrawList::AddNgon(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness)
+void ImDrawList::AddNgon(const ImVec2& center, const float radius, const ImU32 col, const int num_segments, const float thickness)
 {
     if ((col & IM_COL32_A_MASK) == 0 || num_segments <= 2)
         return;
@@ -1636,7 +1636,7 @@ void ImDrawList::AddNgon(const ImVec2& center, float radius, ImU32 col, int num_
 }
 
 // Guaranteed to honor 'num_segments'
-void ImDrawList::AddNgonFilled(const ImVec2& center, float radius, ImU32 col, int num_segments)
+void ImDrawList::AddNgonFilled(const ImVec2& center, const float radius, const ImU32 col, const int num_segments)
 {
     if ((col & IM_COL32_A_MASK) == 0 || num_segments <= 2)
         return;
@@ -1648,7 +1648,7 @@ void ImDrawList::AddNgonFilled(const ImVec2& center, float radius, ImU32 col, in
 }
 
 // Ellipse
-void ImDrawList::AddEllipse(const ImVec2& center, const ImVec2& radius, ImU32 col, float rot, int num_segments, float thickness)
+void ImDrawList::AddEllipse(const ImVec2& center, const ImVec2& radius, const ImU32 col, const float rot, int num_segments, const float thickness)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1662,7 +1662,7 @@ void ImDrawList::AddEllipse(const ImVec2& center, const ImVec2& radius, ImU32 co
     PathStroke(col, true, thickness);
 }
 
-void ImDrawList::AddEllipseFilled(const ImVec2& center, const ImVec2& radius, ImU32 col, float rot, int num_segments)
+void ImDrawList::AddEllipseFilled(const ImVec2& center, const ImVec2& radius, const ImU32 col, const float rot, int num_segments)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1677,7 +1677,7 @@ void ImDrawList::AddEllipseFilled(const ImVec2& center, const ImVec2& radius, Im
 }
 
 // Cubic Bezier takes 4 controls points
-void ImDrawList::AddBezierCubic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col, float thickness, int num_segments)
+void ImDrawList::AddBezierCubic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImU32 col, const float thickness, const int num_segments)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1688,7 +1688,7 @@ void ImDrawList::AddBezierCubic(const ImVec2& p1, const ImVec2& p2, const ImVec2
 }
 
 // Quadratic Bezier takes 3 controls points
-void ImDrawList::AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col, float thickness, int num_segments)
+void ImDrawList::AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImU32 col, const float thickness, const int num_segments)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1698,7 +1698,7 @@ void ImDrawList::AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const Im
     PathStroke(col, 0, thickness);
 }
 
-void ImDrawList::AddText(ImFont* font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end, float wrap_width, const ImVec4* cpu_fine_clip_rect)
+void ImDrawList::AddText(ImFont* font, float font_size, const ImVec2& pos, const ImU32 col, const char* text_begin, const char* text_end, const float wrap_width, const ImVec4* cpu_fine_clip_rect)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1725,12 +1725,12 @@ void ImDrawList::AddText(ImFont* font, float font_size, const ImVec2& pos, ImU32
     font->RenderText(this, font_size, pos, col, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip_rect != NULL);
 }
 
-void ImDrawList::AddText(const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end)
+void ImDrawList::AddText(const ImVec2& pos, const ImU32 col, const char* text_begin, const char* text_end)
 {
     AddText(_Data->Font, _Data->FontSize, pos, col, text_begin, text_end);
 }
 
-void ImDrawList::AddImage(ImTextureRef tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, ImU32 col)
+void ImDrawList::AddImage(const ImTextureRef tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, const ImU32 col)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1746,7 +1746,7 @@ void ImDrawList::AddImage(ImTextureRef tex_ref, const ImVec2& p_min, const ImVec
         PopTexture();
 }
 
-void ImDrawList::AddImageQuad(ImTextureRef tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec2& uv4, ImU32 col)
+void ImDrawList::AddImageQuad(const ImTextureRef tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec2& uv4, const ImU32 col)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1762,7 +1762,7 @@ void ImDrawList::AddImageQuad(ImTextureRef tex_ref, const ImVec2& p1, const ImVe
         PopTexture();
 }
 
-void ImDrawList::AddImageRounded(ImTextureRef tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, ImU32 col, float rounding, ImDrawFlags flags)
+void ImDrawList::AddImageRounded(const ImTextureRef tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, const ImU32 col, const float rounding, ImDrawFlags flags)
 {
     if ((col & IM_COL32_A_MASK) == 0)
         return;
@@ -1823,13 +1823,13 @@ struct ImTriangulatorNodeSpan
     int                     Size = 0;
 
     void    push_back(ImTriangulatorNode* node) { Data[Size++] = node; }
-    void    find_erase_unsorted(int idx)        { for (int i = Size - 1; i >= 0; i--) if (Data[i]->Index == idx) { Data[i] = Data[Size - 1]; Size--; return; } }
+    void    find_erase_unsorted(const int idx)        { for (int i = Size - 1; i >= 0; i--) if (Data[i]->Index == idx) { Data[i] = Data[Size - 1]; Size--; return; } }
 };
 
 struct ImTriangulator
 {
-    static int EstimateTriangleCount(int points_count)      { return (points_count < 3) ? 0 : points_count - 2; }
-    static int EstimateScratchBufferSize(int points_count)  { return sizeof(ImTriangulatorNode) * points_count + sizeof(ImTriangulatorNode*) * points_count * 2; }
+    static int EstimateTriangleCount(const int points_count)      { return (points_count < 3) ? 0 : points_count - 2; }
+    static int EstimateScratchBufferSize(const int points_count)  { return sizeof(ImTriangulatorNode) * points_count + sizeof(ImTriangulatorNode*) * points_count * 2; }
 
     void    Init(const ImVec2* points, int points_count, void* scratch_buffer);
     void    GetNextTriangle(unsigned int out_triangle[3]);     // Return relative indexes for next triangle
@@ -1852,7 +1852,7 @@ struct ImTriangulator
 // Distribute storage for nodes, ears and reflexes.
 // FIXME-OPT: if everything is convex, we could report it to caller and let it switch to an convex renderer
 // (this would require first building reflexes to bail to convex if empty, without even building nodes)
-void ImTriangulator::Init(const ImVec2* points, int points_count, void* scratch_buffer)
+void ImTriangulator::Init(const ImVec2* points, const int points_count, void* scratch_buffer)
 {
     IM_ASSERT(scratch_buffer != NULL && points_count >= 3);
     _TrianglesLeft = EstimateTriangleCount(points_count);
@@ -1864,7 +1864,7 @@ void ImTriangulator::Init(const ImVec2* points, int points_count, void* scratch_
     BuildEars();
 }
 
-void ImTriangulator::BuildNodes(const ImVec2* points, int points_count)
+void ImTriangulator::BuildNodes(const ImVec2* points, const int points_count)
 {
     for (int i = 0; i < points_count; i++)
     {
@@ -1964,7 +1964,7 @@ void ImTriangulator::FlipNodeList()
 }
 
 // A triangle is an ear is no other vertex is inside it. We can test reflexes vertices only (see reference algorithm)
-bool ImTriangulator::IsEar(int i0, int i1, int i2, const ImVec2& v0, const ImVec2& v1, const ImVec2& v2) const
+bool ImTriangulator::IsEar(const int i0, const int i1, const int i2, const ImVec2& v0, const ImVec2& v1, const ImVec2& v2) const
 {
     ImTriangulatorNode** p_end = _Reflexes.Data + _Reflexes.Size;
     for (ImTriangulatorNode** p = _Reflexes.Data; p < p_end; p++)
@@ -2009,7 +2009,7 @@ void ImTriangulator::ReclassifyNode(ImTriangulatorNode* n1)
 // It is up to caller to ensure not making costly calls that will be outside of visible area.
 // As concave fill is noticeably more expensive than other primitives, be mindful of this...
 // Caller can build AABB of points, and avoid filling if 'draw_list->_CmdHeader.ClipRect.Overlays(points_bb) == false')
-void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_count, ImU32 col)
+void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_count, const ImU32 col)
 {
     if (points_count < 3 || (col & IM_COL32_A_MASK) == 0)
         return;
@@ -2119,7 +2119,7 @@ void ImDrawListSplitter::ClearFreeMemory()
     _Channels.clear();
 }
 
-void ImDrawListSplitter::Split(ImDrawList* draw_list, int channels_count)
+void ImDrawListSplitter::Split(ImDrawList* draw_list, const int channels_count)
 {
     IM_UNUSED(draw_list);
     IM_ASSERT(_Current == 0 && _Count <= 1 && "Nested channel splitting is not supported. Please use separate instances of ImDrawListSplitter.");
@@ -2220,7 +2220,7 @@ void ImDrawListSplitter::Merge(ImDrawList* draw_list)
     _Count = 1;
 }
 
-void ImDrawListSplitter::SetCurrentChannel(ImDrawList* draw_list, int idx)
+void ImDrawListSplitter::SetCurrentChannel(ImDrawList* draw_list, const int idx)
 {
     IM_ASSERT(idx >= 0 && idx < _Count);
     if (_Current == idx)
@@ -2345,7 +2345,7 @@ void ImDrawData::ScaleClipRects(const ImVec2& fb_scale)
 //-----------------------------------------------------------------------------
 
 // Generic linear color gradient, write to RGB fields, leave A untouched.
-void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1)
+void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawList* draw_list, const int vert_start_idx, const int vert_end_idx, const ImVec2 gradient_p0, const ImVec2 gradient_p1, const ImU32 col0, const ImU32 col1)
 {
     ImVec2 gradient_extent = gradient_p1 - gradient_p0;
     float gradient_inv_length2 = 1.0f / ImLengthSqr(gradient_extent);
@@ -2369,7 +2369,7 @@ void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawList* draw_list, int ve
 }
 
 // Distribute UV over (a, b) rectangle
-void ImGui::ShadeVertsLinearUV(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, const ImVec2& a, const ImVec2& b, const ImVec2& uv_a, const ImVec2& uv_b, bool clamp)
+void ImGui::ShadeVertsLinearUV(ImDrawList* draw_list, const int vert_start_idx, const int vert_end_idx, const ImVec2& a, const ImVec2& b, const ImVec2& uv_a, const ImVec2& uv_b, const bool clamp)
 {
     const ImVec2 size = b - a;
     const ImVec2 uv_size = uv_b - uv_a;
@@ -2393,7 +2393,7 @@ void ImGui::ShadeVertsLinearUV(ImDrawList* draw_list, int vert_start_idx, int ve
     }
 }
 
-void ImGui::ShadeVertsTransformPos(ImDrawList* draw_list, int vert_start_idx, int vert_end_idx, const ImVec2& pivot_in, float cos_a, float sin_a, const ImVec2& pivot_out)
+void ImGui::ShadeVertsTransformPos(ImDrawList* draw_list, const int vert_start_idx, const int vert_end_idx, const ImVec2& pivot_in, const float cos_a, const float sin_a, const ImVec2& pivot_out)
 {
     ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
     ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
@@ -2425,7 +2425,7 @@ ImFontConfig::ImFontConfig()
 // - ImTextureData::DestroyPixels()
 //-----------------------------------------------------------------------------
 
-int ImTextureDataGetFormatBytesPerPixel(ImTextureFormat format)
+int ImTextureDataGetFormatBytesPerPixel(const ImTextureFormat format)
 {
     switch (format)
     {
@@ -2436,7 +2436,7 @@ int ImTextureDataGetFormatBytesPerPixel(ImTextureFormat format)
     return 0;
 }
 
-const char* ImTextureDataGetStatusName(ImTextureStatus status)
+const char* ImTextureDataGetStatusName(const ImTextureStatus status)
 {
     switch (status)
     {
@@ -2449,7 +2449,7 @@ const char* ImTextureDataGetStatusName(ImTextureStatus status)
     return "N/A";
 }
 
-const char* ImTextureDataGetFormatName(ImTextureFormat format)
+const char* ImTextureDataGetFormatName(const ImTextureFormat format)
 {
     switch (format)
     {
@@ -2459,7 +2459,7 @@ const char* ImTextureDataGetFormatName(ImTextureFormat format)
     return "N/A";
 }
 
-void ImTextureData::Create(ImTextureFormat format, int w, int h)
+void ImTextureData::Create(const ImTextureFormat format, const int w, const int h)
 {
     IM_ASSERT(Status == ImTextureStatus_Destroyed);
     DestroyPixels();
@@ -2734,7 +2734,7 @@ static void ImFontAtlasBuildUpdateRendererHasTexturesFromContext(ImFontAtlas* at
 // If you manually manage font atlases, you'll need to call this yourself.
 // - 'frame_count' needs to be provided because we can gc/prioritize baked fonts based on their age.
 // - 'frame_count' may not match those of all imgui contexts using this atlas, as contexts may be updated as different frequencies. But generally you can use ImGui::GetFrameCount() on one of your context.
-void ImFontAtlasUpdateNewFrame(ImFontAtlas* atlas, int frame_count, bool renderer_has_textures)
+void ImFontAtlasUpdateNewFrame(ImFontAtlas* atlas, const int frame_count, const bool renderer_has_textures)
 {
     IM_ASSERT(atlas->Builder == NULL || atlas->Builder->FrameCount < frame_count); // Protection against being called twice.
     atlas->RendererHasTextures = renderer_has_textures;
@@ -2830,7 +2830,7 @@ void ImFontAtlasUpdateNewFrame(ImFontAtlas* atlas, int frame_count, bool rendere
     }
 }
 
-void ImFontAtlasTextureBlockConvert(const unsigned char* src_pixels, ImTextureFormat src_fmt, int src_pitch, unsigned char* dst_pixels, ImTextureFormat dst_fmt, int dst_pitch, int w, int h)
+void ImFontAtlasTextureBlockConvert(const unsigned char* src_pixels, const ImTextureFormat src_fmt, const int src_pitch, unsigned char* dst_pixels, const ImTextureFormat dst_fmt, const int dst_pitch, const int w, const int h)
 {
     IM_ASSERT(src_pixels != NULL && dst_pixels != NULL);
     if (src_fmt == dst_fmt)
@@ -2874,7 +2874,7 @@ void ImFontAtlasTextureBlockPostProcess(ImFontAtlasPostProcessData* data)
         ImFontAtlasTextureBlockPostProcessMultiply(data, data->FontSrc->RasterizerMultiply);
 }
 
-void ImFontAtlasTextureBlockPostProcessMultiply(ImFontAtlasPostProcessData* data, float multiply_factor)
+void ImFontAtlasTextureBlockPostProcessMultiply(ImFontAtlasPostProcessData* data, const float multiply_factor)
 {
     unsigned char* pixels = (unsigned char*)data->Pixels;
     int pitch = data->Pitch;
@@ -2909,7 +2909,7 @@ void ImFontAtlasTextureBlockPostProcessMultiply(ImFontAtlasPostProcessData* data
 }
 
 // Fill with single color. We don't use this directly but it is convenient for anyone working on uploading custom rects.
-void ImFontAtlasTextureBlockFill(ImTextureData* dst_tex, int dst_x, int dst_y, int w, int h, ImU32 col)
+void ImFontAtlasTextureBlockFill(ImTextureData* dst_tex, const int dst_x, const int dst_y, const int w, const int h, const ImU32 col)
 {
     if (dst_tex->Format == ImTextureFormat_Alpha8)
     {
@@ -2929,7 +2929,7 @@ void ImFontAtlasTextureBlockFill(ImTextureData* dst_tex, int dst_x, int dst_y, i
 }
 
 // Copy block from one texture to another
-void ImFontAtlasTextureBlockCopy(ImTextureData* src_tex, int src_x, int src_y, ImTextureData* dst_tex, int dst_x, int dst_y, int w, int h)
+void ImFontAtlasTextureBlockCopy(ImTextureData* src_tex, const int src_x, const int src_y, ImTextureData* dst_tex, const int dst_x, const int dst_y, const int w, const int h)
 {
     IM_ASSERT(src_tex->Pixels != NULL && dst_tex->Pixels != NULL);
     IM_ASSERT(src_tex->Format == dst_tex->Format);
@@ -2942,7 +2942,7 @@ void ImFontAtlasTextureBlockCopy(ImTextureData* src_tex, int src_x, int src_y, I
 }
 
 // Queue texture block update for renderer backend
-void ImFontAtlasTextureBlockQueueUpload(ImFontAtlas* atlas, ImTextureData* tex, int x, int y, int w, int h)
+void ImFontAtlasTextureBlockQueueUpload(ImFontAtlas* atlas, ImTextureData* tex, const int x, const int y, const int w, const int h)
 {
     IM_ASSERT(tex->Status != ImTextureStatus_WantDestroy && tex->Status != ImTextureStatus_Destroyed);
     IM_ASSERT(x >= 0 && x <= 0xFFFF && y >= 0 && y <= 0xFFFF && w >= 0 && x + w <= 0x10000 && h >= 0 && y + h <= 0x10000);
@@ -2970,7 +2970,7 @@ void ImFontAtlasTextureBlockQueueUpload(ImFontAtlas* atlas, ImTextureData* tex, 
 }
 
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-static void GetTexDataAsFormat(ImFontAtlas* atlas, ImTextureFormat format, unsigned char** out_pixels, int* out_width, int* out_height, int* out_bytes_per_pixel)
+static void GetTexDataAsFormat(ImFontAtlas* atlas, const ImTextureFormat format, unsigned char** out_pixels, int* out_width, int* out_height, int* out_bytes_per_pixel)
 {
     ImTextureData* tex = atlas->TexData;
     if (!atlas->TexIsBuilt || tex == NULL || tex->Pixels == NULL || atlas->TexDesiredFormat != format)
@@ -3085,7 +3085,7 @@ ImFont* ImFontAtlas::AddFont(const ImFontConfig* font_cfg_in)
 // Default font TTF is compressed with stb_compress then base85 encoded (see misc/fonts/binary_to_compressed_c.cpp for encoder)
 static unsigned int stb_decompress_length(const unsigned char* input);
 static unsigned int stb_decompress(unsigned char* output, const unsigned char* input, unsigned int length);
-static unsigned int Decode85Byte(char c)                                    { return c >= '\\' ? c-36 : c-35; }
+static unsigned int Decode85Byte(const char c)                                    { return c >= '\\' ? c-36 : c-35; }
 static void         Decode85(const unsigned char* src, unsigned char* dst)
 {
     while (*src)
@@ -3129,7 +3129,7 @@ ImFont* ImFontAtlas::AddFontDefault(const ImFontConfig* font_cfg_template)
 #endif // #ifndef IMGUI_DISABLE_DEFAULT_FONT
 }
 
-ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
+ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, const float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
 {
     IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas!");
     size_t data_size = 0;
@@ -3155,7 +3155,7 @@ ImFont* ImFontAtlas::AddFontFromFileTTF(const char* filename, float size_pixels,
 }
 
 // NB: Transfer ownership of 'ttf_data' to ImFontAtlas, unless font_cfg_template->FontDataOwnedByAtlas == false. Owned TTF buffer will be deleted after Build().
-ImFont* ImFontAtlas::AddFontFromMemoryTTF(void* font_data, int font_data_size, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
+ImFont* ImFontAtlas::AddFontFromMemoryTTF(void* font_data, const int font_data_size, const float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
 {
     IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas!");
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
@@ -3169,7 +3169,7 @@ ImFont* ImFontAtlas::AddFontFromMemoryTTF(void* font_data, int font_data_size, f
     return AddFont(&font_cfg);
 }
 
-ImFont* ImFontAtlas::AddFontFromMemoryCompressedTTF(const void* compressed_ttf_data, int compressed_ttf_size, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
+ImFont* ImFontAtlas::AddFontFromMemoryCompressedTTF(const void* compressed_ttf_data, const int compressed_ttf_size, const float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
 {
     const unsigned int buf_decompressed_size = stb_decompress_length((const unsigned char*)compressed_ttf_data);
     unsigned char* buf_decompressed_data = (unsigned char*)IM_ALLOC(buf_decompressed_size);
@@ -3181,7 +3181,7 @@ ImFont* ImFontAtlas::AddFontFromMemoryCompressedTTF(const void* compressed_ttf_d
     return AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, size_pixels, &font_cfg, glyph_ranges);
 }
 
-ImFont* ImFontAtlas::AddFontFromMemoryCompressedBase85TTF(const char* compressed_ttf_data_base85, float size_pixels, const ImFontConfig* font_cfg, const ImWchar* glyph_ranges)
+ImFont* ImFontAtlas::AddFontFromMemoryCompressedBase85TTF(const char* compressed_ttf_data_base85, const float size_pixels, const ImFontConfig* font_cfg, const ImWchar* glyph_ranges)
 {
     int compressed_ttf_size = (((int)ImStrlen(compressed_ttf_data_base85) + 4) / 5) * 4;
     void* compressed_ttf = IM_ALLOC((size_t)compressed_ttf_size);
@@ -3247,7 +3247,7 @@ void ImFontAtlas::RemoveFont(ImFont* font)
 }
 
 // At it is common to do an AddCustomRect() followed by a GetCustomRect(), we provide an optional 'ImFontAtlasRect* out_r = NULL' argument to retrieve the info straight away.
-ImFontAtlasRectId ImFontAtlas::AddCustomRect(int width, int height, ImFontAtlasRect* out_r)
+ImFontAtlasRectId ImFontAtlas::AddCustomRect(const int width, const int height, ImFontAtlasRect* out_r)
 {
     IM_ASSERT(width > 0 && width <= 0xFFFF);
     IM_ASSERT(height > 0 && height <= 0xFFFF);
@@ -3269,7 +3269,7 @@ ImFontAtlasRectId ImFontAtlas::AddCustomRect(int width, int height, ImFontAtlasR
     return r_id;
 }
 
-void ImFontAtlas::RemoveCustomRect(ImFontAtlasRectId id)
+void ImFontAtlas::RemoveCustomRect(const ImFontAtlasRectId id)
 {
     if (ImFontAtlasPackGetRectSafe(this, id) == NULL)
         return;
@@ -3283,14 +3283,14 @@ void ImFontAtlas::RemoveCustomRect(ImFontAtlasRectId id)
 //     ImFont* myfont = io.Fonts->AddFontFromFileTTF(....);
 //     myfont->GetFontBaked(16.0f);
 //     myfont->Flags |= ImFontFlags_LockBakedSizes;
-ImFontAtlasRectId ImFontAtlas::AddCustomRectFontGlyph(ImFont* font, ImWchar codepoint, int width, int height, float advance_x, const ImVec2& offset)
+ImFontAtlasRectId ImFontAtlas::AddCustomRectFontGlyph(ImFont* font, const ImWchar codepoint, const int width, const int height, const float advance_x, const ImVec2& offset)
 {
     float font_size = font->LegacySize;
     return AddCustomRectFontGlyphForSize(font, font_size, codepoint, width, height, advance_x, offset);
 }
 // FIXME: we automatically set glyph.Colored=true by default.
 // If you need to alter this, you can write 'font->Glyphs.back()->Colored' after calling AddCustomRectFontGlyph().
-ImFontAtlasRectId ImFontAtlas::AddCustomRectFontGlyphForSize(ImFont* font, float font_size, ImWchar codepoint, int width, int height, float advance_x, const ImVec2& offset)
+ImFontAtlasRectId ImFontAtlas::AddCustomRectFontGlyphForSize(ImFont* font, const float font_size, ImWchar codepoint, const int width, const int height, const float advance_x, const ImVec2& offset)
 {
 #ifdef IMGUI_USE_WCHAR32
     IM_ASSERT(codepoint <= IM_UNICODE_CODEPOINT_MAX);
@@ -3326,7 +3326,7 @@ ImFontAtlasRectId ImFontAtlas::AddCustomRectFontGlyphForSize(ImFont* font, float
 }
 #endif // #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
-bool ImFontAtlas::GetCustomRect(ImFontAtlasRectId id, ImFontAtlasRect* out_r) const
+bool ImFontAtlas::GetCustomRect(const ImFontAtlasRectId id, ImFontAtlasRect* out_r) const
 {
     ImTextureRect* r = ImFontAtlasPackGetRectSafe((ImFontAtlas*)this, id);
     if (r == NULL)
@@ -3343,7 +3343,7 @@ bool ImFontAtlas::GetCustomRect(ImFontAtlasRectId id, ImFontAtlasRect* out_r) co
     return true;
 }
 
-bool ImFontAtlasGetMouseCursorTexData(ImFontAtlas* atlas, ImGuiMouseCursor cursor_type, ImVec2* out_offset, ImVec2* out_size, ImVec2 out_uv_border[2], ImVec2 out_uv_fill[2])
+bool ImFontAtlasGetMouseCursorTexData(ImFontAtlas* atlas, const ImGuiMouseCursor cursor_type, ImVec2* out_offset, ImVec2* out_size, ImVec2 out_uv_border[2], ImVec2 out_uv_fill[2])
 {
     if (cursor_type <= ImGuiMouseCursor_None || cursor_type >= ImGuiMouseCursor_COUNT)
         return false;
@@ -3450,7 +3450,7 @@ void ImFontAtlasBuildUpdatePointers(ImFontAtlas* atlas)
 }
 
 // Render a white-colored bitmap encoded in a string
-void ImFontAtlasBuildRenderBitmapFromString(ImFontAtlas* atlas, int x, int y, int w, int h, const char* in_str, char in_marker_char)
+void ImFontAtlasBuildRenderBitmapFromString(ImFontAtlas* atlas, const int x, const int y, const int w, const int h, const char* in_str, const char in_marker_char)
 {
     ImTextureData* tex = atlas->TexData;
     IM_ASSERT(x >= 0 && x + w <= tex->Width);
@@ -3769,7 +3769,7 @@ void ImFontAtlasBakedDiscardFontGlyph(ImFontAtlas* atlas, ImFont* font, ImFontBa
     baked->IndexAdvanceX[c] = baked->FallbackAdvanceX;
 }
 
-ImFontBaked* ImFontAtlasBakedAdd(ImFontAtlas* atlas, ImFont* font, float font_size, float font_rasterizer_density, ImGuiID baked_id)
+ImFontBaked* ImFontAtlasBakedAdd(ImFontAtlas* atlas, ImFont* font, const float font_size, const float font_rasterizer_density, const ImGuiID baked_id)
 {
     IMGUI_DEBUG_LOG_FONT("[font] Created baked %.2fpx\n", font_size);
     ImFontBaked* baked = atlas->Builder->BakedPool.push_back(ImFontBaked());
@@ -3801,7 +3801,7 @@ ImFontBaked* ImFontAtlasBakedAdd(ImFontAtlas* atlas, ImFont* font, float font_si
 }
 
 // FIXME-OPT: This is not a fast query. Adding a BakedCount field in Font might allow to take a shortcut for the most common case.
-ImFontBaked* ImFontAtlasBakedGetClosestMatch(ImFontAtlas* atlas, ImFont* font, float font_size, float font_rasterizer_density)
+ImFontBaked* ImFontAtlasBakedGetClosestMatch(ImFontAtlas* atlas, ImFont* font, const float font_size, const float font_rasterizer_density)
 {
     ImFontAtlasBuilder* builder = atlas->Builder;
     for (int step_n = 0; step_n < 2; step_n++)
@@ -3859,7 +3859,7 @@ void ImFontAtlasBakedDiscard(ImFontAtlas* atlas, ImFont* font, ImFontBaked* bake
 }
 
 // use unused_frames==0 to discard everything.
-void ImFontAtlasFontDiscardBakes(ImFontAtlas* atlas, ImFont* font, int unused_frames)
+void ImFontAtlasFontDiscardBakes(ImFontAtlas* atlas, ImFont* font, const int unused_frames)
 {
     if (ImFontAtlasBuilder* builder = atlas->Builder) // This can be called from font destructor
         for (int baked_n = 0; baked_n < builder->BakedPool.Size; baked_n++)
@@ -3874,7 +3874,7 @@ void ImFontAtlasFontDiscardBakes(ImFontAtlas* atlas, ImFont* font, int unused_fr
 }
 
 // use unused_frames==0 to discard everything.
-void ImFontAtlasBuildDiscardBakes(ImFontAtlas* atlas, int unused_frames)
+void ImFontAtlasBuildDiscardBakes(ImFontAtlas* atlas, const int unused_frames)
 {
     ImFontAtlasBuilder* builder = atlas->Builder;
     for (int baked_n = 0; baked_n < builder->BakedPool.Size; baked_n++)
@@ -3902,7 +3902,7 @@ void ImFontAtlasRemoveDrawListSharedData(ImFontAtlas* atlas, ImDrawListSharedDat
 }
 
 // Update texture identifier in all active draw lists
-void ImFontAtlasUpdateDrawListsTextures(ImFontAtlas* atlas, ImTextureRef old_tex, ImTextureRef new_tex)
+void ImFontAtlasUpdateDrawListsTextures(ImFontAtlas* atlas, const ImTextureRef old_tex, const ImTextureRef new_tex)
 {
     for (ImDrawListSharedData* shared_data : atlas->DrawListSharedDatas)
         for (ImDrawList* draw_list : shared_data->DrawLists)
@@ -3944,7 +3944,7 @@ static void ImFontAtlasBuildSetTexture(ImFontAtlas* atlas, ImTextureData* tex)
 }
 
 // Create a new texture, discard previous one
-ImTextureData* ImFontAtlasTextureAdd(ImFontAtlas* atlas, int w, int h)
+ImTextureData* ImFontAtlasTextureAdd(ImFontAtlas* atlas, const int w, const int h)
 {
     ImTextureData* old_tex = atlas->TexData;
     ImTextureData* new_tex;
@@ -3993,7 +3993,7 @@ static void ImFontAtlasDebugWriteTexToDisk(ImTextureData* tex, const char* descr
 }
 #endif
 
-void ImFontAtlasTextureRepack(ImFontAtlas* atlas, int w, int h)
+void ImFontAtlasTextureRepack(ImFontAtlas* atlas, const int w, const int h)
 {
     ImFontAtlasBuilder* builder = atlas->Builder;
     builder->LockDisableResize = true;
@@ -4249,7 +4249,7 @@ void ImFontAtlasPackInit(ImFontAtlas * atlas)
 }
 
 // This is essentially a free-list pattern, it may be nice to wrap it into a dedicated type.
-static ImFontAtlasRectId ImFontAtlasPackAllocRectEntry(ImFontAtlas* atlas, int rect_idx)
+static ImFontAtlasRectId ImFontAtlasPackAllocRectEntry(ImFontAtlas* atlas, const int rect_idx)
 {
     ImFontAtlasBuilder* builder = (ImFontAtlasBuilder*)atlas->Builder;
     int index_idx;
@@ -4283,7 +4283,7 @@ static ImFontAtlasRectId ImFontAtlasPackReuseRectEntry(ImFontAtlas* atlas, ImFon
 }
 
 // This is expected to be called in batches and followed by a repack
-void ImFontAtlasPackDiscardRect(ImFontAtlas* atlas, ImFontAtlasRectId id)
+void ImFontAtlasPackDiscardRect(ImFontAtlas* atlas, const ImFontAtlasRectId id)
 {
     IM_ASSERT(id != ImFontAtlasRectId_Invalid);
 
@@ -4308,7 +4308,7 @@ void ImFontAtlasPackDiscardRect(ImFontAtlas* atlas, ImFontAtlasRectId id)
 
 // Important: Calling this may recreate a new texture and therefore change atlas->TexData
 // FIXME-NEWFONTS: Expose other glyph padding settings for custom alteration (e.g. drop shadows). See #7962
-ImFontAtlasRectId ImFontAtlasPackAddRect(ImFontAtlas* atlas, int w, int h, ImFontAtlasRectEntry* overwrite_entry)
+ImFontAtlasRectId ImFontAtlasPackAddRect(ImFontAtlas* atlas, const int w, const int h, ImFontAtlasRectEntry* overwrite_entry)
 {
     IM_ASSERT(w > 0 && w <= 0xFFFF);
     IM_ASSERT(h > 0 && h <= 0xFFFF);
@@ -4356,7 +4356,7 @@ ImFontAtlasRectId ImFontAtlasPackAddRect(ImFontAtlas* atlas, int w, int h, ImFon
 }
 
 // Generally for non-user facing functions: assert on invalid ID.
-ImTextureRect* ImFontAtlasPackGetRect(ImFontAtlas* atlas, ImFontAtlasRectId id)
+ImTextureRect* ImFontAtlasPackGetRect(ImFontAtlas* atlas, const ImFontAtlasRectId id)
 {
     IM_ASSERT(id != ImFontAtlasRectId_Invalid);
     int index_idx = ImFontAtlasRectId_GetIndex(id);
@@ -4369,7 +4369,7 @@ ImTextureRect* ImFontAtlasPackGetRect(ImFontAtlas* atlas, ImFontAtlasRectId id)
 
 // For user-facing functions: return NULL on invalid ID.
 // Important: return pointer is valid until next call to AddRect(), e.g. FindGlyph(), CalcTextSize() can all potentially invalidate previous pointers.
-ImTextureRect* ImFontAtlasPackGetRectSafe(ImFontAtlas* atlas, ImFontAtlasRectId id)
+ImTextureRect* ImFontAtlasPackGetRectSafe(ImFontAtlas* atlas, const ImFontAtlasRectId id)
 {
     if (id == ImFontAtlasRectId_Invalid)
         return NULL;
@@ -4388,7 +4388,7 @@ ImTextureRect* ImFontAtlasPackGetRectSafe(ImFontAtlas* atlas, ImFontAtlasRectId 
 
 // Important! This assume by ImFontConfig::GlyphExcludeRanges[] is a SMALL ARRAY (e.g. <10 entries)
 // Use "Input Glyphs Overlap Detection Tool" to display a list of glyphs provided by multiple sources in order to set this array up.
-static bool ImFontAtlasBuildAcceptCodepointForSource(ImFontConfig* src, ImWchar codepoint)
+static bool ImFontAtlasBuildAcceptCodepointForSource(ImFontConfig* src, const ImWchar codepoint)
 {
     if (const ImWchar* exclude_list = src->GlyphExcludeRanges)
         for (; exclude_list[0] != 0; exclude_list += 2)
@@ -4397,7 +4397,7 @@ static bool ImFontAtlasBuildAcceptCodepointForSource(ImFontConfig* src, ImWchar 
     return true;
 }
 
-static void ImFontBaked_BuildGrowIndex(ImFontBaked* baked, int new_size)
+static void ImFontBaked_BuildGrowIndex(ImFontBaked* baked, const int new_size)
 {
     IM_ASSERT(baked->IndexAdvanceX.Size == baked->IndexLookup.Size);
     if (new_size <= baked->IndexLookup.Size)
@@ -4484,7 +4484,7 @@ static ImFontGlyph* ImFontBaked_BuildLoadGlyph(ImFontBaked* baked, ImWchar codep
     return NULL;
 }
 
-static float ImFontBaked_BuildLoadGlyphAdvanceX(ImFontBaked* baked, ImWchar codepoint)
+static float ImFontBaked_BuildLoadGlyphAdvanceX(ImFontBaked* baked, const ImWchar codepoint)
 {
     if (baked->Size >= IMGUI_FONT_SIZE_THRESHOLD_FOR_LOADADVANCEXONLYMODE || baked->LoadNoRenderOnLayout)
     {
@@ -4502,7 +4502,7 @@ static float ImFontBaked_BuildLoadGlyphAdvanceX(ImFontBaked* baked, ImWchar code
 
 // The point of this indirection is to not be inlined in debug mode in order to not bloat inner loop.b
 IM_MSVC_RUNTIME_CHECKS_OFF
-static float BuildLoadGlyphGetAdvanceOrFallback(ImFontBaked* baked, unsigned int codepoint)
+static float BuildLoadGlyphGetAdvanceOrFallback(ImFontBaked* baked, const unsigned int codepoint)
 {
     return ImFontBaked_BuildLoadGlyphAdvanceX(baked, (ImWchar)codepoint);
 }
@@ -4597,7 +4597,7 @@ static void ImGui_ImplStbTrueType_FontSrcDestroy(ImFontAtlas* atlas, ImFontConfi
     src->FontLoaderData = NULL;
 }
 
-static bool ImGui_ImplStbTrueType_FontSrcContainsGlyph(ImFontAtlas* atlas, ImFontConfig* src, ImWchar codepoint)
+static bool ImGui_ImplStbTrueType_FontSrcContainsGlyph(ImFontAtlas* atlas, ImFontConfig* src, const ImWchar codepoint)
 {
     IM_UNUSED(atlas);
 
@@ -4626,7 +4626,7 @@ static bool ImGui_ImplStbTrueType_FontBakedInit(ImFontAtlas* atlas, ImFontConfig
     return true;
 }
 
-static bool ImGui_ImplStbTrueType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConfig* src, ImFontBaked* baked, void*, ImWchar codepoint, ImFontGlyph* out_glyph, float* out_advance_x)
+static bool ImGui_ImplStbTrueType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConfig* src, ImFontBaked* baked, void*, const ImWchar codepoint, ImFontGlyph* out_glyph, float* out_advance_x)
 {
     // Search for first font which has the glyph
     ImGui_ImplStbTrueType_FontSrcData* bd_font_data = (ImGui_ImplStbTrueType_FontSrcData*)src->FontLoaderData;
@@ -4800,7 +4800,7 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesChineseFull()
     return &ranges[0];
 }
 
-static void UnpackAccumulativeOffsetsIntoRanges(int base_codepoint, const short* accumulative_offsets, int accumulative_offsets_count, ImWchar* out_ranges)
+static void UnpackAccumulativeOffsetsIntoRanges(int base_codepoint, const short* accumulative_offsets, const int accumulative_offsets_count, ImWchar* out_ranges)
 {
     for (int n = 0; n < accumulative_offsets_count; n++, out_ranges += 2)
     {
@@ -5094,7 +5094,7 @@ void ImFont::ClearOutputData()
 
 // API is designed this way to avoid exposing the 8K page size
 // e.g. use with IsGlyphRangeUnused(0, 255)
-bool ImFont::IsGlyphRangeUnused(unsigned int c_begin, unsigned int c_last)
+bool ImFont::IsGlyphRangeUnused(const unsigned int c_begin, const unsigned int c_last)
 {
     unsigned int page_begin = (c_begin / 8192);
     unsigned int page_last = (c_last / 8192);
@@ -5162,7 +5162,7 @@ ImFontGlyph* ImFontAtlasBakedAddFontGlyph(ImFontAtlas* atlas, ImFontBaked* baked
 }
 
 // FIXME: Code is duplicated with code above.
-void ImFontAtlasBakedAddFontGlyphAdvancedX(ImFontAtlas* atlas, ImFontBaked* baked, ImFontConfig* src, ImWchar codepoint, float advance_x)
+void ImFontAtlasBakedAddFontGlyphAdvancedX(ImFontAtlas* atlas, ImFontBaked* baked, ImFontConfig* src, const ImWchar codepoint, float advance_x)
 {
     IM_UNUSED(atlas);
     if (src != NULL)
@@ -5185,7 +5185,7 @@ void ImFontAtlasBakedAddFontGlyphAdvancedX(ImFontAtlas* atlas, ImFontBaked* bake
 }
 
 // Copy to texture, post-process and queue update for backend
-void ImFontAtlasBakedSetFontGlyphBitmap(ImFontAtlas* atlas, ImFontBaked* baked, ImFontConfig* src, ImFontGlyph* glyph, ImTextureRect* r, const unsigned char* src_pixels, ImTextureFormat src_fmt, int src_pitch)
+void ImFontAtlasBakedSetFontGlyphBitmap(ImFontAtlas* atlas, ImFontBaked* baked, ImFontConfig* src, ImFontGlyph* glyph, ImTextureRect* r, const unsigned char* src_pixels, const ImTextureFormat src_fmt, const int src_pitch)
 {
     ImTextureData* tex = atlas->TexData;
     IM_ASSERT(r->x + r->w <= tex->Width && r->y + r->h <= tex->Height);
@@ -5195,13 +5195,13 @@ void ImFontAtlasBakedSetFontGlyphBitmap(ImFontAtlas* atlas, ImFontBaked* baked, 
     ImFontAtlasTextureBlockQueueUpload(atlas, tex, r->x, r->y, r->w, r->h);
 }
 
-void ImFont::AddRemapChar(ImWchar from_codepoint, ImWchar to_codepoint)
+void ImFont::AddRemapChar(const ImWchar from_codepoint, const ImWchar to_codepoint)
 {
     RemapPairs.SetInt((ImGuiID)from_codepoint, (int)to_codepoint);
 }
 
 // Find glyph, load if necessary, return fallback if missing
-ImFontGlyph* ImFontBaked::FindGlyph(ImWchar c)
+ImFontGlyph* ImFontBaked::FindGlyph(const ImWchar c)
 {
     if (c < (size_t)IndexLookup.Size) IM_LIKELY
     {
@@ -5216,7 +5216,7 @@ ImFontGlyph* ImFontBaked::FindGlyph(ImWchar c)
 }
 
 // Attempt to load but when missing, return NULL instead of FallbackGlyph
-ImFontGlyph* ImFontBaked::FindGlyphNoFallback(ImWchar c)
+ImFontGlyph* ImFontBaked::FindGlyphNoFallback(const ImWchar c)
 {
     if (c < (size_t)IndexLookup.Size) IM_LIKELY
     {
@@ -5232,7 +5232,7 @@ ImFontGlyph* ImFontBaked::FindGlyphNoFallback(ImWchar c)
     return glyph;
 }
 
-bool ImFontBaked::IsGlyphLoaded(ImWchar c)
+bool ImFontBaked::IsGlyphLoaded(const ImWchar c)
 {
     if (c < (size_t)IndexLookup.Size) IM_LIKELY
     {
@@ -5261,7 +5261,7 @@ bool ImFont::IsGlyphInFont(ImWchar c)
 
 // This is manually inlined in CalcTextSizeA() and CalcWordWrapPosition(), with a non-inline call to BuildLoadGlyphGetAdvanceOrFallback().
 IM_MSVC_RUNTIME_CHECKS_OFF
-float ImFontBaked::GetCharAdvance(ImWchar c)
+float ImFontBaked::GetCharAdvance(const ImWchar c)
 {
     if ((int)c < IndexAdvanceX.Size)
     {
@@ -5274,7 +5274,7 @@ float ImFontBaked::GetCharAdvance(ImWchar c)
 }
 IM_MSVC_RUNTIME_CHECKS_RESTORE
 
-ImGuiID ImFontAtlasBakedGetId(ImGuiID font_id, float baked_size, float rasterizer_density)
+ImGuiID ImFontAtlasBakedGetId(const ImGuiID font_id, const float baked_size, const float rasterizer_density)
 {
     struct { ImGuiID FontId; float BakedSize; float RasterizerDensity; } hashed_data;
     hashed_data.FontId = font_id;
@@ -5307,7 +5307,7 @@ ImFontBaked* ImFont::GetFontBaked(float size, float density)
     return baked;
 }
 
-ImFontBaked* ImFontAtlasBakedGetOrAdd(ImFontAtlas* atlas, ImFont* font, float font_size, float font_rasterizer_density)
+ImFontBaked* ImFontAtlasBakedGetOrAdd(ImFontAtlas* atlas, ImFont* font, const float font_size, const float font_rasterizer_density)
 {
     // FIXME-NEWATLAS: Design for picking a nearest size based on some criteria?
     // FIXME-NEWATLAS: Altering font density won't work right away.
@@ -5355,7 +5355,7 @@ static inline const char* CalcWordWrapNextLineStartA(const char* text, const cha
 // Simple word-wrapping for English, not full-featured. Please submit failing cases!
 // This will return the next location to wrap from. If no wrapping if necessary, this will fast-forward to e.g. text_end.
 // FIXME: Much possible improvements (don't cut things like "word !", "word!!!" but cut within "word,,,,", more sensible support for punctuations, support for Unicode punctuations, etc.)
-const char* ImFont::CalcWordWrapPosition(float size, const char* text, const char* text_end, float wrap_width)
+const char* ImFont::CalcWordWrapPosition(const float size, const char* text, const char* text_end, float wrap_width)
 {
     // For references, possible wrap point marked with ^
     //  "aaa bbb, ccc,ddd. eee   fff. ggg!"
@@ -5461,7 +5461,7 @@ const char* ImFont::CalcWordWrapPosition(float size, const char* text, const cha
     return s;
 }
 
-ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, const char* text_begin, const char* text_end, const char** remaining)
+ImVec2 ImFont::CalcTextSizeA(const float size, const float max_width, const float wrap_width, const char* text_begin, const char* text_end, const char** remaining)
 {
     if (!text_end)
         text_end = text_begin + ImStrlen(text_begin); // FIXME-OPT: Need to avoid this.
@@ -5546,7 +5546,7 @@ ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, cons
 }
 
 // Note: as with every ImDrawList drawing function, this expects that the font atlas texture is bound.
-void ImFont::RenderChar(ImDrawList* draw_list, float size, const ImVec2& pos, ImU32 col, ImWchar c, const ImVec4* cpu_fine_clip)
+void ImFont::RenderChar(ImDrawList* draw_list, const float size, const ImVec2& pos, ImU32 col, const ImWchar c, const ImVec4* cpu_fine_clip)
 {
     ImFontBaked* baked = GetFontBaked(size);
     const ImFontGlyph* glyph = baked->FindGlyph(c);
@@ -5585,7 +5585,7 @@ void ImFont::RenderChar(ImDrawList* draw_list, float size, const ImVec2& pos, Im
 }
 
 // Note: as with every ImDrawList drawing function, this expects that the font atlas texture is bound.
-void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2& pos, ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, float wrap_width, bool cpu_fine_clip)
+void ImFont::RenderText(ImDrawList* draw_list, const float size, const ImVec2& pos, const ImU32 col, const ImVec4& clip_rect, const char* text_begin, const char* text_end, const float wrap_width, const bool cpu_fine_clip)
 {
     // Align to be pixel perfect
 begin:
@@ -5806,7 +5806,7 @@ begin:
 //-----------------------------------------------------------------------------
 
 // Render an arrow aimed to be aligned with text (p_min is a position in the same space text would be positioned). To e.g. denote expanded/collapsed state
-void ImGui::RenderArrow(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImGuiDir dir, float scale)
+void ImGui::RenderArrow(ImDrawList* draw_list, const ImVec2 pos, const ImU32 col, const ImGuiDir dir, const float scale)
 {
     const float h = draw_list->_Data->FontSize * 1.00f;
     float r = h * 0.40f * scale;
@@ -5837,13 +5837,13 @@ void ImGui::RenderArrow(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImGuiDir d
     draw_list->AddTriangleFilled(center + a, center + b, center + c, col);
 }
 
-void ImGui::RenderBullet(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
+void ImGui::RenderBullet(ImDrawList* draw_list, const ImVec2 pos, const ImU32 col)
 {
     // FIXME-OPT: This should be baked in font.
     draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, col, 8);
 }
 
-void ImGui::RenderCheckMark(ImDrawList* draw_list, ImVec2 pos, ImU32 col, float sz)
+void ImGui::RenderCheckMark(ImDrawList* draw_list, ImVec2 pos, const ImU32 col, float sz)
 {
     float thickness = ImMax(sz / 5.0f, 1.0f);
     sz -= thickness * 0.5f;
@@ -5859,7 +5859,7 @@ void ImGui::RenderCheckMark(ImDrawList* draw_list, ImVec2 pos, ImU32 col, float 
 }
 
 // Render an arrow. 'pos' is position of the arrow tip. half_sz.x is length from base to tip. half_sz.y is length on each side.
-void ImGui::RenderArrowPointingAt(ImDrawList* draw_list, ImVec2 pos, ImVec2 half_sz, ImGuiDir direction, ImU32 col)
+void ImGui::RenderArrowPointingAt(ImDrawList* draw_list, const ImVec2 pos, const ImVec2 half_sz, const ImGuiDir direction, const ImU32 col)
 {
     switch (direction)
     {
@@ -5873,13 +5873,13 @@ void ImGui::RenderArrowPointingAt(ImDrawList* draw_list, ImVec2 pos, ImVec2 half
 
 // This is less wide than RenderArrow() and we use in dock nodes instead of the regular RenderArrow() to denote a change of functionality,
 // and because the saved space means that the left-most tab label can stay at exactly the same position as the label of a loose window.
-void ImGui::RenderArrowDockMenu(ImDrawList* draw_list, ImVec2 p_min, float sz, ImU32 col)
+void ImGui::RenderArrowDockMenu(ImDrawList* draw_list, const ImVec2 p_min, const float sz, const ImU32 col)
 {
     draw_list->AddRectFilled(p_min + ImVec2(sz * 0.20f, sz * 0.15f), p_min + ImVec2(sz * 0.80f, sz * 0.30f), col);
     RenderArrowPointingAt(draw_list, p_min + ImVec2(sz * 0.50f, sz * 0.85f), ImVec2(sz * 0.30f, sz * 0.40f), ImGuiDir_Down, col);
 }
 
-static inline float ImAcos01(float x)
+static inline float ImAcos01(const float x)
 {
     if (x <= 0.0f) return IM_PI * 0.5f;
     if (x >= 1.0f) return 0.0f;
@@ -5888,7 +5888,7 @@ static inline float ImAcos01(float x)
 }
 
 // FIXME: Cleanup and move code to ImDrawList.
-void ImGui::RenderRectFilledRangeH(ImDrawList* draw_list, const ImRect& rect, ImU32 col, float x_start_norm, float x_end_norm, float rounding)
+void ImGui::RenderRectFilledRangeH(ImDrawList* draw_list, const ImRect& rect, const ImU32 col, float x_start_norm, float x_end_norm, float rounding)
 {
     if (x_end_norm == x_start_norm)
         return;
@@ -5948,7 +5948,7 @@ void ImGui::RenderRectFilledRangeH(ImDrawList* draw_list, const ImRect& rect, Im
     draw_list->PathFillConvex(col);
 }
 
-void ImGui::RenderRectFilledWithHole(ImDrawList* draw_list, const ImRect& outer, const ImRect& inner, ImU32 col, float rounding)
+void ImGui::RenderRectFilledWithHole(ImDrawList* draw_list, const ImRect& outer, const ImRect& inner, const ImU32 col, const float rounding)
 {
     const bool fill_L = (inner.Min.x > outer.Min.x);
     const bool fill_R = (inner.Max.x < outer.Max.x);
@@ -5964,7 +5964,7 @@ void ImGui::RenderRectFilledWithHole(ImDrawList* draw_list, const ImRect& outer,
     if (fill_R && fill_D) draw_list->AddRectFilled(ImVec2(inner.Max.x, inner.Max.y), ImVec2(outer.Max.x, outer.Max.y), col, rounding, ImDrawFlags_RoundCornersBottomRight);
 }
 
-ImDrawFlags ImGui::CalcRoundingFlagsForRectInRect(const ImRect& r_in, const ImRect& r_outer, float threshold)
+ImDrawFlags ImGui::CalcRoundingFlagsForRectInRect(const ImRect& r_in, const ImRect& r_outer, const float threshold)
 {
     bool round_l = r_in.Min.x <= r_outer.Min.x + threshold;
     bool round_r = r_in.Max.x >= r_outer.Max.x - threshold;
@@ -5979,7 +5979,7 @@ ImDrawFlags ImGui::CalcRoundingFlagsForRectInRect(const ImRect& r_in, const ImRe
 // NB: This is rather brittle and will show artifact when rounding this enabled if rounded corners overlap multiple cells. Caller currently responsible for avoiding that.
 // Spent a non reasonable amount of time trying to getting this right for ColorButton with rounding+anti-aliasing+ImGuiColorEditFlags_HalfAlphaPreview flag + various grid sizes and offsets, and eventually gave up... probably more reasonable to disable rounding altogether.
 // FIXME: uses ImGui::GetColorU32
-void ImGui::RenderColorRectWithAlphaCheckerboard(ImDrawList* draw_list, ImVec2 p_min, ImVec2 p_max, ImU32 col, float grid_step, ImVec2 grid_off, float rounding, ImDrawFlags flags)
+void ImGui::RenderColorRectWithAlphaCheckerboard(ImDrawList* draw_list, const ImVec2 p_min, const ImVec2 p_max, const ImU32 col, const float grid_step, const ImVec2 grid_off, const float rounding, ImDrawFlags flags)
 {
     if ((flags & ImDrawFlags_RoundCornersMask_) == 0)
         flags = ImDrawFlags_RoundCornersDefault_;
@@ -6042,7 +6042,7 @@ static void stb__match(const unsigned char *data, unsigned int length)
     while (length--) *stb__dout++ = *data++;
 }
 
-static void stb__lit(const unsigned char *data, unsigned int length)
+static void stb__lit(const unsigned char *data, const unsigned int length)
 {
     IM_ASSERT(stb__dout + length <= stb__barrier_out_e);
     if (stb__dout + length > stb__barrier_out_e) { stb__dout += length; return; }
@@ -6072,7 +6072,7 @@ static const unsigned char *stb_decompress_token(const unsigned char *i)
     return i;
 }
 
-static unsigned int stb_adler32(unsigned int adler32, unsigned char *buffer, unsigned int buflen)
+static unsigned int stb_adler32(const unsigned int adler32, unsigned char *buffer, unsigned int buflen)
 {
     const unsigned long ADLER_MOD = 65521;
     unsigned long s1 = adler32 & 0xffff, s2 = adler32 >> 16;

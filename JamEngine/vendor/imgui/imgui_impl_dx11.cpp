@@ -770,7 +770,7 @@ struct ImGui_ImplDX11_ViewportData
 // Multi-Viewports: configure templates used when creating swapchains for secondary viewports. Will try them in order.
 // This is intentionally not declared in the .h file yet, so you will need to copy this declaration:
 void ImGui_ImplDX11_SetSwapChainDescs(const DXGI_SWAP_CHAIN_DESC* desc_templates, int desc_templates_count);
-void ImGui_ImplDX11_SetSwapChainDescs(const DXGI_SWAP_CHAIN_DESC* desc_templates, int desc_templates_count)
+void ImGui_ImplDX11_SetSwapChainDescs(const DXGI_SWAP_CHAIN_DESC* desc_templates, const int desc_templates_count)
 {
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     bd->SwapChainDescsForViewports.resize(desc_templates_count);
@@ -830,7 +830,7 @@ static void ImGui_ImplDX11_DestroyWindow(ImGuiViewport* viewport)
     viewport->RendererUserData = nullptr;
 }
 
-static void ImGui_ImplDX11_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
+static void ImGui_ImplDX11_SetWindowSize(ImGuiViewport* viewport, const ImVec2 size)
 {
     ImGui_ImplDX11_Data*         bd = ImGui_ImplDX11_GetBackendData();
     ImGui_ImplDX11_ViewportData* vd = (ImGui_ImplDX11_ViewportData*)viewport->RendererUserData;

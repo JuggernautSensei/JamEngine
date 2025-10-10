@@ -30,7 +30,7 @@ eErrorCode ShaderImporter::Import()
             {
                 bool bNeedNullTerminator = !m_macros.empty() && !m_macros.back().IsNullTerminator();
 
-                Int32 size = m_macros.size();
+                Int32 size = NarrowCast<Int32>(m_macros.size());
                 if (bNeedNullTerminator)
                     size += 1;
 

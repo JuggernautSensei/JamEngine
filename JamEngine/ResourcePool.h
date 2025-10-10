@@ -37,13 +37,13 @@ class ResourcePool
             JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
         }
 
-        JAM_NODISCARD Iterator& operator++() noexcept
+        Iterator& operator++() noexcept
         {
             ++m_handleIter;
             return *this;
         }
 
-        JAM_NODISCARD Iterator operator++(int) noexcept
+        Iterator operator++(int) noexcept
         {
             Iterator temp = *this;
             ++(*this);

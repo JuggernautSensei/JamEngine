@@ -86,7 +86,7 @@ eErrorCode Material::Load(const fs::path& _path)
 
     if (version.minor != k_version.minor)
     {
-        log::Warn("Material file minor version is different: {} (file) vs {} (engine)", version.ToString(), k_version.ToString());
+        logger::Warn("Material file minor version is different: {} (file) vs {} (engine)", version.ToString(), k_version.ToString());
     }
 
     // 파라미터 로드
@@ -146,7 +146,7 @@ eErrorCode Material::Load(const fs::path& _path)
             auto [ec, handle] = asset_manager::GetOrLoadImageTexture(path);
             if (IsError(ec))
             {
-                log::Warn("Failed to load texture: {} (Error: {})", path.native(), EnumToString(ec));
+                logger::Warn("Failed to load texture: {} (Error: {})", path.native(), EnumToString(ec));
                 handle = k_invalidHandle;
             }
             *texturehandles[i] = handle;
@@ -165,7 +165,7 @@ void Material::Unload()
     m_params    = MaterialParams {};
 }
 
-eErrorCode Material::Save(const fs::path& _path)
+eErrorCode Material::Save(const fs::path& _path) const
 {
     JAM_ASSERT(IsLoaded(), "Material is not loaded");
     JAM_PROFILE_SCOPE_MS(R"(jam::Material::Save "{}")", _path.native());

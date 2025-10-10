@@ -134,7 +134,7 @@ eErrorCode ShaderCompiler::LoadHLSL(
     return eErrorCode::Ok;
 }
 
-eErrorCode ShaderCompiler::LoadCSO(const MemoryView& _byteCode)
+eErrorCode ShaderCompiler::LoadCSO(const MemoryView _byteCode)
 {
     Reset();
     JAM_CHECK_COM(D3DCreateBlob(_byteCode.GetByteWidth(), m_pBlob.ReleaseAndGetAddressOf()));

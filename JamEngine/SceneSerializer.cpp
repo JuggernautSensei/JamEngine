@@ -88,6 +88,11 @@ void SceneSerializer::Serialize(const Scene* _pScene)
         const entt::registry& pReg = _pScene->GetRegistry();
         for (auto [typeID, set]: pReg.storage())
         {
+            if (!component_db::IsSerializable(typeID))
+            {
+                continue;
+            }
+
             Json compJson;   // 컴포넌트 데이터
             for (entt::entity handle: set)
             {
@@ -95,9 +100,16 @@ void SceneSerializer::Serialize(const Scene* _pScene)
                 UID           uid    = entityUIDMap.at(id);
                 const Entity& entity = entityMap.at(uid);
 
-                const void* pComponent        = set.value(handle);
-                Json        serialized        = component_db::Serialize(typeID, pComponent, _pScene, entity);
-                compJson[std::to_string(uid)] = std::move(serialized);   // [컴포넌트 TYPE_ID][UID] = 컴포넌트 데이터
+                const void* pComponent = set.value(handle);
+                Json        serialized = component_db::Serialize(typeID, pComponent, _pScene, entity);
+                if (serialized.is_null() || serialized.empty())
+                {
+                    compJson[std::to_string(uid)] = nullptr;
+                }
+                else
+                {
+                    compJson[std::to_string(uid)] = std::move(serialized);   // [컴포넌트 TYPE_ID][UID] = 컴포넌트 데이터
+                }
             }
             json[std::to_string(typeID)] = std::move(compJson);
         }
@@ -156,38 +168,19 @@ eErrorCode SceneSerializer::Deserialize(Scene* _pScene)
             return eErrorCode::FileParseFailed;
         }
 
-        UInt32 typeID;
-        try
-        {
-            typeID = std::stoul(typeIDStr);
-        }
-        catch (const std::exception& e)
-        {
-            SetErrorString("Invalid component type ID: {}. Error: {}", typeIDStr, e.what());
-            return eErrorCode::FileParseFailed;
-        }
+        auto [ec, typeID] = StringToInt<UInt32>(typeIDStr);
+        if (IsError(ec))
+            return ec;
 
+        JAM_ASSERT(component_db::IsSerializable(typeID), "Component type ID: {} is not serializable", typeID);
         for (auto& [uidStr, compData]: compJson.items())
         {
-            if (!compData.is_object())
-            {
-                SetErrorString("Invalid component data for entity UID: {} of type ID: {}", uidStr, typeIDStr);
-                return eErrorCode::FileParseFailed;
-            }
+            auto [ec, uid] = StringToInt<UID>(uidStr);
+            if (IsError(ec))
+                return ec;
 
-            UID    entityUID;
-            Entity entity;
-            try
-            {
-                entityUID = static_cast<UID>(std::stoull(uidStr));
-                entity    = _pScene->GetEntity(entityUID);
-            }
-            catch (const std::exception& e)
-            {
-                SetErrorString("Invalid entity UID: {} for component type ID: {}. Error: {}", uidStr, typeIDStr, e.what());
-                return eErrorCode::FileParseFailed;
-            }
-
+            UID    entityUID = uid;
+            Entity entity    = _pScene->FindEntity(entityUID);
             if (!entity.IsValid())
             {
                 SetErrorString("Entity with UID: {} does not exist for component type ID: {}", entityUID, typeIDStr);
@@ -202,6 +195,7 @@ eErrorCode SceneSerializer::Deserialize(Scene* _pScene)
                 eErrorCode err = component_db::Deserialize(typeID, pComponent, compData, _pScene, entity);
                 if (IsError(err))
                 {
+                    component_db::Remove(typeID, entity);   // 역직렬화 실패 시 컴포넌트 제거
                     return err;
                 }
             }

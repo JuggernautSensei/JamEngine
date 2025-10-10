@@ -116,7 +116,7 @@ void Window::SetTitle(const std::string_view _name) const
     ::SetWindowTextA(m_hWnd, _name.data());
 }
 
-void Window::OnEvent(Event& _event) const
+void Window::OnEvent(Event& _event)
 {
     HandleEvent<WindowResizeEvent>(_event, JAM_BIND_MEMBER_LISTENER(Window::OnWindowResize_));
     HandleEvent<WindowMoveEvent>(_event, JAM_BIND_MEMBER_LISTENER(Window::OnWindowMove_));

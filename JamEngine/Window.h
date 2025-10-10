@@ -10,24 +10,24 @@ public:
     void Init();
     void Shutdown();
     bool PollEvents();
-    void OnEvent(Event& _event) const;
+    void OnEvent(Event& _event);
 
     // window
     void ResizeWindow(Int32 _width, Int32 _height) const;
     void MoveWindow(Int32 _posX, Int32 _posY) const;
     void SetTitle(std::string_view _name) const;
 
-    JAM_NODISCARD std::pair<Int32, Int32> GetWindowSize() const
+    JAM_NODISCARD Resolution GetWindowSize() const
     {
         return { m_width, m_height };
     }
 
-    JAM_NODISCARD std::pair<Int32, Int32> GetWindowPos() const
+    JAM_NODISCARD Resolution GetWindowPos() const
     {
         return { m_posX, m_posY };
     }
 
-    JAM_NODISCARD std::pair<Int32, Int32> GetMoniterScreenSize() const
+    JAM_NODISCARD Resolution GetMoniterScreenSize() const
     {
         Int32 w = ::GetSystemMetrics(SM_CXSCREEN);
         Int32 h = ::GetSystemMetrics(SM_CYSCREEN);

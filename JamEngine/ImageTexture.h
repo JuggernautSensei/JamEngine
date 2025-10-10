@@ -30,7 +30,7 @@ public:
     /// @param _path 저장 경로
     /// @note .dds로 저장됩니다.
     /// _path의 확장자는 .dds로 변경됩니다.
-    eErrorCode Save(const fs::path& _path) override;
+    eErrorCode Save(const fs::path& _path) const override;
 
     JAM_NODISCARD bool  IsLoaded() const override;
     JAM_NODISCARD const fs::path& GetPath() const override;

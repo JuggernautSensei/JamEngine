@@ -57,7 +57,7 @@ JAM_NODISCARD ID3D11DeviceContext* GetDeviceContext();
 /// @return 버텍스 버퍼에 대한 참조
 /// @note 일반적으로 사용하는 버텍스 버퍼이며, 성능이 뛰어납니다. 단, 생성 후에는 데이터를 수정할 수 없습니다.
 JAM_NODISCARD VertexBufferHandle CreateVertexBuffer(
-    const MemoryView&   _vertexData,
+    MemoryView          _vertexData,
     const VertexLayout& _vertexLayout);
 
 /// @brief 수정 가능한(Dynamic) 버텍스 버퍼를 생성합니다.
@@ -75,8 +75,8 @@ JAM_NODISCARD VertexBufferHandle CreateDynamicVertexBuffer(
 /// @return 인덱스 버퍼에 대한 참조
 /// @note 일반적으로 사용하는 인덱스 버퍼이며, 성능이 뛰어납니다. 단, 생성 후에는 데이터를 수정할 수 없습니다.
 JAM_NODISCARD IndexBufferHandle CreateIndexBuffer(
-    const MemoryView& _indexData,
-    eIndexFormat      _format = eIndexFormat::U16);
+    MemoryView   _indexData,
+    eIndexFormat _format = eIndexFormat::U16);
 
 /// @brief 수정 가능한(Dynamic) 인덱스 버퍼를 생성합니다.
 /// @param _indexCount 인덱스 개수
@@ -197,7 +197,7 @@ JAM_NODISCARD FrameBufferHandle CreateFrameBuffer(
 /// @param _shaderByteCode 쉐이더 바이트코드
 /// @return 셰이더에 대한 참조
 JAM_NODISCARD ShaderHandle CreateShader(
-    const MemoryView& _shaderByteCode);
+    MemoryView _shaderByteCode);
 
 /// @brief 프로그램을 생성합니다.
 /// @param _vsHandle 버텍스 셰이더 핸들
@@ -322,14 +322,14 @@ JAM_NODISCARD Result<TextureHandle> LoadTexture(
 /// @param _yOffset 텍스처 내 Y 오프셋 (픽셀 단위)
 /// @note Immutable 텍스처에는 데이터를 업로드할 수 없습니다.
 void UploadTexture2D(
-    TextureHandle     _handle,
-    const MemoryView& _uploadTexData,
-    Int32             _uploadTexWidth,
-    Int32             _uploadTexHeight,
-    Int32             _mipIndex   = 0,
-    Int32             _arrayIndex = 0,
-    Int32             _xOffset    = 0,
-    Int32             _yOffset    = 0);
+    TextureHandle _handle,
+    MemoryView    _uploadTexData,
+    Int32         _uploadTexWidth,
+    Int32         _uploadTexHeight,
+    Int32         _mipIndex   = 0,
+    Int32         _arrayIndex = 0,
+    Int32         _xOffset    = 0,
+    Int32         _yOffset    = 0);
 
 /// @brief 큐브맵 텍스처에 데이터를 업로드합니다.
 /// @param _handle 텍스처 핸들
@@ -343,15 +343,15 @@ void UploadTexture2D(
 /// @param _yOffset 텍스처 내 Y 오프셋 (픽셀 단위)
 /// @note Immutable 텍스처에는 데이터를 업로드할 수 없습니다.
 void UploadTextureCube(
-    TextureHandle     _handle,
-    const MemoryView& _uploateTexData,
-    Int32             _uploadTexWidth,
-    Int32             _uploadTexHeight,
-    Int32             _mipIndex  = 0,
-    Int32             _cubeIndex = 0,
-    eCubeFace         _cubeFace  = eCubeFace::Right,
-    Int32             _xOffset   = 0,
-    Int32             _yOffset   = 0);
+    TextureHandle _handle,
+    MemoryView    _uploateTexData,
+    Int32         _uploadTexWidth,
+    Int32         _uploadTexHeight,
+    Int32         _mipIndex  = 0,
+    Int32         _cubeIndex = 0,
+    eCubeFace     _cubeFace  = eCubeFace::Right,
+    Int32         _xOffset   = 0,
+    Int32         _yOffset   = 0);
 
 /// @brief 3D 텍스처에 데이터를 업로드합니다.
 /// @param _handle 텍스처 핸들
@@ -365,15 +365,15 @@ void UploadTextureCube(
 /// @param _zOffset 텍스처 내 Z 오프셋 (픽셀 단위)
 /// @note Immutable 텍스처에는 데이터를 업로드할 수 없습니다.
 void UploadTexture3D(
-    TextureHandle     _handle,
-    const MemoryView& _uplodeTexData,
-    Int32             _uploadTexWidth,
-    Int32             _uploadTexHeight,
-    Int32             _uploadTexDepth,
-    Int32             _mipIndex = 0,
-    Int32             _xOffset  = 0,
-    Int32             _yOffset  = 0,
-    Int32             _zOffset  = 0);
+    TextureHandle _handle,
+    MemoryView    _uplodeTexData,
+    Int32         _uploadTexWidth,
+    Int32         _uploadTexHeight,
+    Int32         _uploadTexDepth,
+    Int32         _mipIndex = 0,
+    Int32         _xOffset  = 0,
+    Int32         _yOffset  = 0,
+    Int32         _zOffset  = 0);
 
 /// @brief 2D 텍스처에서 데이터를 다운로드합니다.
 /// @param _handle 텍스처 핸들
@@ -516,7 +516,7 @@ const TextureHandle& GetDepthStencilTexture(
 /// @note Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
 void UploadBuffer(
     VertexBufferHandle _handle,
-    const MemoryView&  _writeData,
+    MemoryView         _writeData,
     Int32              _offset   = 0,
     bool               _bDiscard = true);
 
@@ -528,7 +528,7 @@ void UploadBuffer(
 /// @note Dynamic IndexBuffer에만 데이터를 업로드할 수 있습니다.
 void UploadBuffer(
     IndexBufferHandle _handle,
-    const MemoryView& _writeData,
+    MemoryView        _writeData,
     Int32             _offset   = 0,
     bool              _bDiscard = true);
 
@@ -538,7 +538,7 @@ void UploadBuffer(
 /// @note 상수 버퍼는 부분 업로드가 불가능하며, 항상 버퍼 전체를 덮어씁니다.
 void UploadBuffer(
     ConstantBufferHandle _handle,
-    const MemoryView&    _writeData);
+    MemoryView           _writeData);
 
 /// @brief 버텍스 버퍼에서 데이터를 다운로드합니다.
 /// @param _handle 다운로드할 버텍스 버퍼 핸들

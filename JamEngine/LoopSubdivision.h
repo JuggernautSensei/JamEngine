@@ -24,7 +24,7 @@ struct LoopSubdivisionOutput
 LoopSubdivisionOutput LoopSubdivide(
     std::span<const Vec3> _positions,
     std::span<const Vec2> _texcoordsOrEmpty,
-    const MemoryView&     _indexData,
+    MemoryView     _indexData,
     eIndexFormat          _indexFormat,
     Int32                 _level);
 

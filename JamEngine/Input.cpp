@@ -168,7 +168,7 @@ bool IsMouseAway(const eMouse _mouse) noexcept
     return !g_ctx.bKeyDown[index] && !g_ctx.bPrevKeyDown[index];
 }
 
-std::pair<Int32, Int32> GetMousePos() noexcept
+ScreenPos GetMousePos() noexcept
 {
     return { g_ctx.mouseX, g_ctx.mouseY };
 }
@@ -178,10 +178,10 @@ Int32 GetMouseDeltaWheel() noexcept
     return static_cast<Int32>(g_ctx.mouseDeltaWheel);
 }
 
-std::pair<Int32, Int32> GetMouseDeltaPos() noexcept
+ScreenPos GetMouseDeltaPos() noexcept
 {
-    const UInt32 deltaX = g_ctx.mouseX - g_ctx.mousePrevX;
-    const UInt32 deltaY = g_ctx.mouseY - g_ctx.mousePrevY;
+    const Int32 deltaX = g_ctx.mouseX - g_ctx.mousePrevX;
+    const Int32 deltaY = g_ctx.mouseY - g_ctx.mousePrevY;
     return { deltaX, deltaY };
 }
 

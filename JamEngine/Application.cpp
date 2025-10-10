@@ -42,7 +42,7 @@ void Application::Create(const CommandLineArguments& _args)
     JAM_ASSERT(s_instance == nullptr, "Application instance already exists");
 
     // 로그 초기화
-    log::Init();
+    logger::Init();
 
     // 싱글톤 객체 생성
     s_instance = CreateApplication(_args);
@@ -122,7 +122,7 @@ void Application::Destroy()
     s_instance = nullptr;
 
     // 로그 종료
-    log::Shutdown();
+    logger::Shutdown();
 }
 
 Application& Application::GetInstance()
@@ -225,7 +225,7 @@ void Application::Quit()
     m_bRunning = false;
 }
 
-void Application::DispatchEvent(Event& _event) const
+void Application::DispatchEvent(Event& _event)
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
@@ -268,7 +268,7 @@ const ProjectDirectories& Application::GetProjectDirectories() const
     return m_directories;
 }
 
-tstring_view Application::GetApplicationName() const
+std::string_view Application::GetApplicationName() const
 {
     return m_applicationName;
 }

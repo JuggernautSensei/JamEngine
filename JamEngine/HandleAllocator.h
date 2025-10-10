@@ -154,7 +154,7 @@ class HandleAllocator
             Advance_();
         }
 
-        JAM_NODISCARD Iterator& operator++() noexcept
+        Iterator& operator++() noexcept
         {
             ++m_index;
             Advance_();

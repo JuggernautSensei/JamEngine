@@ -483,6 +483,34 @@ struct GfxState
     {
     }
 
+    GfxState(
+        const ePrimitive   _primitive,
+        const eCullMode    _cullMode,
+        const bool         _bWireframe,
+        const bool         _bDepthClamp,
+        const bool         _bMultiSample,
+        const bool         _bLineAA,
+        const bool         _bScissor,
+        const bool         _bCCWFront,
+        const bool         _bAlphaToCoverage,
+        const bool         _bIndependentBlend,
+        const eCompareFunc _depthTestFunc,
+        const bool         _bDepthWrite)
+        : primitive(_primitive)
+        , cullMode(_cullMode)
+        , bWireframe(_bWireframe)
+        , bDepthClamp(_bDepthClamp)
+        , bMultiSample(_bMultiSample)
+        , bLineAA(_bLineAA)
+        , bScissor(_bScissor)
+        , bCCWFront(_bCCWFront)
+        , bAlphaToCoverage(_bAlphaToCoverage)
+        , bIndependentBlend(_bIndependentBlend)
+        , depthTestFunc(_depthTestFunc)
+        , bDepthWrite(_bDepthWrite)
+    {
+    }
+
     using IntType = UInt32;
     union
     {
@@ -519,6 +547,26 @@ struct BlendState
         , dstBlendAlpha(eBlend::Zero)
         , blendOpAlpha(eBlendOp::Add)
         , writeMask(eWriteFlags_All)
+    {
+    }
+
+    BlendState(
+        const bool        _bEnable,
+        const eBlend      _srcBlend,
+        const eBlend      _dstBlend,
+        const eBlendOp    _blendOp,
+        const eBlend      _srcBlendAlpha,
+        const eBlend      _dstBlendAlpha,
+        const eBlendOp    _blendOpAlpha,
+        const eWriteFlags _writeMask)
+        : bEnable(_bEnable)
+        , srcBlend(_srcBlend)
+        , dstBlend(_dstBlend)
+        , blendOp(_blendOp)
+        , srcBlendAlpha(_srcBlendAlpha)
+        , dstBlendAlpha(_dstBlendAlpha)
+        , blendOpAlpha(_blendOpAlpha)
+        , writeMask(_writeMask)
     {
     }
 
@@ -563,6 +611,18 @@ struct StencilState
     {
     }
 
+    StencilState(
+        const eStencilOp   _stencilFailOp,
+        const eStencilOp   _depthFailOp,
+        const eStencilOp   _passOp,
+        const eCompareFunc _compareFunc)
+        : stencilFailOp(_stencilFailOp)
+        , depthFailOp(_depthFailOp)
+        , passOp(_passOp)
+        , compareFunc(_compareFunc)
+    {
+    }
+
     using IntType = UInt16;
     union
     {
@@ -587,6 +647,20 @@ struct SamplerState
         , addressV(eTextureAddress::Wrap)
         , addressW(eTextureAddress::Wrap)
         , compareFunc(eCompareFunc::None)
+    {
+    }
+
+    SamplerState(
+        const eTextureFilter  _filter,
+        const eTextureAddress _addressU,
+        const eTextureAddress _addressV,
+        const eTextureAddress _addressW,
+        const eCompareFunc    _compareFunc)
+        : filter(_filter)
+        , addressU(_addressU)
+        , addressV(_addressV)
+        , addressW(_addressW)
+        , compareFunc(_compareFunc)
     {
     }
 

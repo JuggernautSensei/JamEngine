@@ -15,8 +15,8 @@ public:
     Entity() = default;
     Entity(entt::registry& _registry, entt::entity _handle, UID _uid);
 
-    JAM_NODISCARD bool operator==(const Entity& _other) const;
-    JAM_NODISCARD bool operator!=(const Entity& _other) const;
+    JAM_NODISCARD bool operator==(Entity _other) const;
+    JAM_NODISCARD bool operator!=(Entity _other) const;
 
     JAM_NODISCARD entt::registry* GetRegistry() const;
     JAM_NODISCARD entt::entity GetHandle() const;
@@ -45,7 +45,7 @@ public:
     template<typename... T>
     decltype(auto) GetComponent() const
     {
-        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->get<T...>(m_handle);
     }
@@ -53,7 +53,7 @@ public:
     template<typename... T>
     decltype(auto) GetComponent()
     {
-        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->get<T...>(m_handle);
     }
@@ -61,15 +61,15 @@ public:
     template<typename... T>
     bool HasComponent() const
     {
-        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->all_of<T...>(m_handle);
     }
 
     template<typename... T>
-    void RemoveComponent() const
+    void RemoveComponent() 
     {
-        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
+        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         static_assert((!std::is_base_of_v<UnremovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
 
         JAM_ASSERT(IsValid(), "Entity is not valid");

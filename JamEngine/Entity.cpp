@@ -14,12 +14,12 @@ Entity::Entity(entt::registry& _registry, const entt::entity _handle, const UID 
 {
 }
 
-bool Entity::operator==(const Entity& _other) const
+bool Entity::operator==(const Entity _other) const
 {
     return m_handle == _other.m_handle && m_pRegistry == _other.m_pRegistry;
 }
 
-bool Entity::operator!=(const Entity& _other) const
+bool Entity::operator!=(const Entity _other) const
 {
     return !(*this == _other);
 }

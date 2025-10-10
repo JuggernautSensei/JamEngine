@@ -16,14 +16,14 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(jam::Quat, x, y, z, w);
 namespace jam
 {
 
-Json TagComponent::Serialize(const Scene* _pScene, const Entity& _entity) const
+Json TagComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
     Json json;
     json["name"] = name;
     return json;
 }
 
-eErrorCode TagComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode TagComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
 {
     // 유효성 체크
     if (!_json.contains("name"))
@@ -36,7 +36,7 @@ eErrorCode TagComponent::Deserialize(const Json& _json, const Scene* _pScene, co
     return eErrorCode::Ok;
 }
 
-Json TransformComponent::Serialize(const Scene* _pScene, const Entity& _entity) const
+Json TransformComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
     JAM_ASSERT(root.IsValid(), "root entity is invalid");
     JAM_ASSERT(parent.IsValid(), "parent entity is invalid");
@@ -52,7 +52,7 @@ Json TransformComponent::Serialize(const Scene* _pScene, const Entity& _entity) 
     return json;
 }
 
-eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
 {
     JAM_ASSERT(root.IsValid(), "root entity is invalid");
     JAM_ASSERT(owner.IsValid(), "owner entity is invalid");
@@ -156,7 +156,7 @@ void TransformComponent::ReleaseParent()
     SetParent(root);
 }
 
-Json CameraComponent::Serialize(const Scene* _pScene, const Entity& _entity) const
+Json CameraComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
     Json json;
     json["projection"] = camera.projection;
@@ -169,7 +169,7 @@ Json CameraComponent::Serialize(const Scene* _pScene, const Entity& _entity) con
     return json;
 }
 
-eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
 {
     constexpr const char* const fieldNames[] = { "projection", "nearZ", "farZ", "fovYRad", "width", "height", "bMain" };
     for (const char* fieldName: fieldNames)
@@ -182,11 +182,11 @@ eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene,
     }
 
     camera.projection = _json["projectection"].get<eProjection>();
-    camera.nearZ      = _json["nearZ"].get<Int32>();
-    camera.farZ       = _json["farZ"].get<Int32>();
+    camera.nearZ      = _json["nearZ"].get<float>();
+    camera.farZ       = _json["farZ"].get<float>();
     camera.fovYRad    = _json["fovYRad"].get<float>();
-    camera.width      = _json["width"].get<Int32>();
-    camera.height     = _json["height"].get<Int32>();
+    camera.width      = _json["width"].get<float>();
+    camera.height     = _json["height"].get<float>();
     bMain             = _json["bMain"].get<bool>();
 
     // 사후검사
@@ -201,19 +201,23 @@ eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene,
     return eErrorCode::Ok;
 }
 
-Json ScriptComponent::Serialize(const Scene* _pScene, const Entity& _entity) const
+Json ScriptComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
-    if (!pScript)
+    if (pScript)
     {
-        return Json::value_t::null;
+        Json json;
+        json["script"] = pScript->GetName();
+        return json;
     }
-
-    Json json;
-    json["script"] = pScript->GetName();
-    return json;
+    else
+    {
+        Json json;
+        json["script"] = nullptr;
+        return json;
+    }
 }
 
-eErrorCode ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene, const Entity _entity)
 {
     if (!_json.contains("script"))
     {
@@ -221,27 +225,51 @@ eErrorCode ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene,
         return eErrorCode::FileParseFailed;
     }
 
-    std::string scriptName = _json["script"];
-    pScript                = script_db::Create(scriptName, _entity);
-    return eErrorCode::Ok;
-}
-
-Json MeshRenderer::Serialize(const Scene* _pScene, const Entity& _entity) const
-{
-    if (mesh == k_invalidHandle || material == k_invalidHandle)
+    Json scriptField = _json["script"];
+    if (scriptField.is_null())
     {
-        return Json::value_t::null;
+        return eErrorCode::Ok;   // 스크립트 없음
+    }
+    else if (scriptField.is_string())
+    {
+        std::string scriptName = scriptField.get<std::string>();
+        pScript                = script_db::Create(scriptName, _entity);
+        return eErrorCode::Ok;
     }
 
-    const Mesh&     msh = asset_manager::GetMesh(this->mesh);
-    const Material& mat = asset_manager::GetMaterial(this->material);
+    SetErrorString("ScriptComponent deserialization failed: 'script' field is not a string or null.");
+    return eErrorCode::FileParseFailed;
+}
 
+Json MeshRenderer::Serialize(const Scene* _pScene, Entity _entity) const
+{
     Json json;
-    json["mesh"]     = msh.GetPath();
-    json["material"] = mat.GetPath();
+
+    // mesh field
+    if (mesh == k_invalidHandle)
+    {
+        json["mesh"] = nullptr;
+    }
+    else
+    {
+        const Mesh& msh = asset_manager::GetMesh(this->mesh);
+        json["mesh"]    = msh.GetPath();
+    }
+
+    // material field
+    if (material == k_invalidHandle)
+    {
+        json["material"] = nullptr;
+    }
+    else
+    {
+        const Material& mat = asset_manager::GetMaterial(this->material);
+        json["material"]    = mat.GetPath();
+    }
+
     return json;
 }
-eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, const Entity& _entity)
+eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
 {
     constexpr const char* const fieldNames[] = { "mesh", "material" };
     for (const char* fieldName: fieldNames)
@@ -253,30 +281,49 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, co
         }
     }
 
-    // 메쉬 로드
+    // mesh field
+    Json meshField = _json["mesh"];
+    if (meshField.is_null())
     {
-        fs::path meshPath = _json["mesh"].get<std::string>();
-        auto [err, meshHandle] = asset_manager::GetOrLoadMeshHandle(meshPath);
-        if (IsError(err))
-        {
-            SetErrorString("MeshRenderer deserialization failed: could not load mesh from path '{}'.", meshPath.native());
-            return eErrorCode::FileParseFailed;
-        }
+        mesh = k_invalidHandle;
+    }
+    else if (meshField.is_string())
+    {
+        std::string meshPath  = meshField.get<std::string>();
+        auto [ec, meshHandle] = asset_manager::GetOrLoadMesh(meshPath);
+
+        if (IsError(ec))
+            return ec;
+
         mesh = meshHandle;
     }
-
-    // 머티리얼 로드
+    else
     {
-        fs::path matPath      = _json["material"].get<std::string>();
-        auto [err, matHandle] = asset_manager::GetOrLoadMaterialHandle(matPath);
-        if (IsError(err))
-        {
-            SetErrorString("MeshRenderer deserialization failed: could not load material from path '{}'.", matPath.native());
-            return eErrorCode::FileParseFailed;
-        }
-        material = matHandle;
+        SetErrorString("MeshRenderer deserialization failed: 'mesh' field is not a string or null.");
+        return eErrorCode::FileParseFailed;
     }
 
+    // material field
+    Json materialField = _json["material"];
+    if (materialField.is_null())
+    {
+        material = k_invalidHandle;
+    }
+    else if (materialField.is_string())
+    {
+        std::string materialPath = materialField.get<std::string>();
+        auto [ec, materialHandle] = asset_manager::GetOrLoadMaterial(materialPath);
+
+        if (IsError(ec))
+            return ec;
+
+        material = materialHandle;
+    }
+    else
+    {
+        SetErrorString("MeshRenderer deserialization failed: 'material' field is not a string or null.");
+        return eErrorCode::FileParseFailed;
+    }
     return eErrorCode::Ok;
 }
 
