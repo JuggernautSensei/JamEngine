@@ -41,16 +41,10 @@ struct Resolution
     Int32 height = 0;
 };
 
-struct ScreenPos
+struct WindowPos
 {
     Int32 x = 0;
     Int32 y = 0;
-};
-
-struct IntersectResult
-{
-    bool  bIntersect = false;
-    float distance   = 0.f;
 };
 
 }   // namespace jam

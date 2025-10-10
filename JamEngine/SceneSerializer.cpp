@@ -130,7 +130,7 @@ eErrorCode SceneSerializer::Deserialize(Scene* _pScene)
     JAM_ASSERT(!m_json.empty(), "No data to deserialize");
     JAM_PROFILE_SCOPE_MS("SceneSerializer::Deserialize");
 
-    _pScene->Clear();
+    _pScene->ClearAllEntities();
 
     // 엔티티 역직렬화
     if (!m_json.contains("entities") || !m_json["entities"].is_array())

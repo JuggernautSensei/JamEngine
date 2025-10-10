@@ -14,4 +14,20 @@ enum class eLogLevel
     Off
 };
 
-}
+enum class eLogCategory
+{
+    Core,
+    App,
+    Gfx,
+    Asset,
+    Scene,
+    Script,
+    Audio,
+    Physics,
+    Input,
+    UI,
+    Network,
+    FileSystem,
+};
+
+}   // namespace jam

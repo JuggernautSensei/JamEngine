@@ -280,7 +280,6 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntryPoint.cpp" />
     <ClCompile Include="Events.cpp" />
-    <ClCompile Include="ILayer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="MathUtilities.cpp" />
     <ClCompile Include="GfxBase.cpp" />
@@ -446,7 +445,6 @@
     <ClInclude Include="EnumUtilities.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Events.h" />
-    <ClInclude Include="ILayer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MathUtilities.h" />
     <ClInclude Include="GfxBase.h" />

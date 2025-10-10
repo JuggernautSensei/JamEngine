@@ -1,8 +1,0 @@
-[2025-08-07 16:51:02.606] [trace] log system initialized
-[2025-08-07 16:51:46.706] [info] Saving built-in image header to: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\BuiltInEditorResources.h
-[2025-08-07 16:51:46.707] [info] Saving image: defaultFileIcon (size: 64x64, format: DXGI_FORMAT_R8G8B8A8_UNORM)
-[2025-08-07 16:51:46.707] [info] Saving built-in image source to: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\BuiltInEditorResources.cpp
-[2025-08-07 16:51:46.707] [info] Saving image: defaultFileIcon (size: 64x64, format: DXGI_FORMAT_R8G8B8A8_UNORM)
-[2025-08-07 16:51:46.746] [info] Built-in image source code saved successfully.
-[2025-08-07 16:51:46.746] [info] Built-in image source code saved to file: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\BuiltInEditorResources.cpp
-[2025-08-07 16:51:48.451] [trace] log system shutdown

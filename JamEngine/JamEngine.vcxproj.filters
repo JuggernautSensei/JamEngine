@@ -46,9 +46,6 @@
     <ClCompile Include="TypeTrait.cpp">
       <Filter>1. Core\Base</Filter>
     </ClCompile>
-    <ClCompile Include="ILayer.cpp">
-      <Filter>1. Core\ILayer</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>4. Scene\Entitiy</Filter>
     </ClCompile>
@@ -472,9 +469,6 @@
     </ClInclude>
     <ClInclude Include="TypeTrait.h">
       <Filter>1. Core\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="ILayer.h">
-      <Filter>1. Core\ILayer</Filter>
     </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>4. Scene\Entitiy</Filter>

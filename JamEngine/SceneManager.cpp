@@ -4,6 +4,7 @@
 
 #include "Application.h"
 #include "Components.h"
+#include "Events.h"
 #include "Scene.h"
 #include "Script.h"
 using namespace jam;
@@ -30,8 +31,9 @@ struct SceneMgrContext
 
     HashMap<std::string, std::unique_ptr<Scene>> sceneMap = {};
 
-    Scene*            pActiveScene     = nullptr;
-    Scene*            pNextScene       = nullptr;
+    Scene* pActiveScene = nullptr;
+    Scene* pNextScene   = nullptr;
+
     FrameBufferHandle sceneFrameBuffer = k_invalidHandle;
     TextureHandle     sceneTexture     = k_invalidHandle;
 };
@@ -66,18 +68,24 @@ void Update(const float _deltaSec)
     // change scene
     if (g_sceneMgrCtx.pNextScene)
     {
+        // 기존 씬 탈출
         if (g_sceneMgrCtx.pActiveScene)
         {
             g_sceneMgrCtx.pActiveScene->OnExit();
         }
 
+        // 씬 변경
         g_sceneMgrCtx.pActiveScene = g_sceneMgrCtx.pNextScene;
         g_sceneMgrCtx.pNextScene   = nullptr;
 
-        if (g_sceneMgrCtx.pActiveScene)
-        {
-            g_sceneMgrCtx.pActiveScene->OnEnter();
-        }
+        // 씬 진입
+        g_sceneMgrCtx.pActiveScene->OnEnter();
+
+        // 씬 변경 완료
+        std::string      activeSceneName { g_sceneMgrCtx.pActiveScene->GetName() };
+        SceneChangeEvent event { activeSceneName };
+        Application&     app = Application::GetInstance();
+        app.DispatchEvent(event);
     }
 
     // update active scene
@@ -146,11 +154,9 @@ void RemoveScene(std::string_view _name)
     g_sceneMgrCtx.sceneMap.erase(iter);
 }
 
-void ChangeScene(std::string_view _name)
+void ChangeScene(const std::string_view _name)
 {
-    auto iter = g_sceneMgrCtx.sceneMap.find(std::string(_name));
-    JAM_ASSERT(iter != g_sceneMgrCtx.sceneMap.end(), "Scene with name '{}' does not exist.", _name);
-    g_sceneMgrCtx.pNextScene = iter->second.get();
+    g_sceneMgrCtx.pNextScene = GetScene(_name);
 }
 
 bool HasActiveScene()

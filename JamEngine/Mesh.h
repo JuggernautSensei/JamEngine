@@ -9,12 +9,13 @@ namespace jam { class MemoryView; }
 namespace jam
 {
 
-////////////////////////////////////
-///          MESH ASSET          ///
-////////////////////////////////////
+struct IntersectResult
+{
+    bool  isIntersect = false;
+    float distance    = 0.0f;   // 교차 지점까지의 거리
+};
 
-/// @brief 메쉬 클래스. 현재는 삼각형 메시만 지원.
-/// 필요시 확장가능하나 현재는 염두해두지 않음.
+/// @brief 메쉬 클래스
 class Mesh : public IAsset
 {
 public:

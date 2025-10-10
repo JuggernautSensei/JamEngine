@@ -28,9 +28,10 @@ public:
     virtual void OnEvent(Event& _event);
 
     virtual eErrorCode OnDeserialize(const Json& _js);
-    virtual Json OnSerialize() const;
+    virtual Json       OnSerialize() const;
 
-    void Clear();
+    JAM_NODISCARD std::string_view GetName();
+    void                           ClearAllEntities();
 
     JAM_NODISCARD Entity CreateEntity(std::string_view _name = {});
     JAM_NODISCARD Entity CreateEntity(UID _uid, std::string_view _name = {});   // 특정 UID로 엔티티 생성, 이미 존재하는 UID면 assert 발생
@@ -54,10 +55,13 @@ public:
     JAM_NODISCARD const Entity& GetRootEntity() const;
     JAM_NODISCARD const HashMap<UID, Entity>& GetEntities() const;
 
+protected:
+    explicit Scene(std::string_view _name);
+
 private:
-    Scene() = default;
     void DestroyEntity_Recursive_(Entity& _entity);
 
+    std::string          m_name         = "untitled";
     entt::registry       m_registry     = {};
     Entity               m_rootEntity   = Entity::s_null;
     UIDGenerator         m_uidGenerator = {};

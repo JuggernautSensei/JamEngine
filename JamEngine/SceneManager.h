@@ -28,4 +28,4 @@ JAM_NODISCARD Scene* GetScene(std::string_view _name);
 
 JAM_NODISCARD const HashMap<std::string, std::unique_ptr<Scene>>& GetAllScenes();
 
-}
+}   // namespace jam::scene_manager

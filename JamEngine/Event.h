@@ -11,7 +11,7 @@ enum class eEventCategory : Int8
     Input,
     Graphics,
     FileSystem,
-    SceneLayer,
+    SceneManager,
     AssetManager,
 };
 
@@ -23,10 +23,10 @@ enum eEventCategoryFlags_ : UInt32
     eEventCategoryFlags_Input        = 1 << EnumToInt(eEventCategory::Input),
     eEventCategoryFlags_Graphics     = 1 << EnumToInt(eEventCategory::Graphics),
     eEventCategoryFlags_FileSystem   = 1 << EnumToInt(eEventCategory::FileSystem),
-    eEventCategoryFlags_SceneLayer   = 1 << EnumToInt(eEventCategory::SceneLayer),
+    eEventCategoryFlags_SceneManager = 1 << EnumToInt(eEventCategory::SceneManager),
     eEventCategoryFlags_AssetManager = 1 << EnumToInt(eEventCategory::AssetManager),
 
-    eEventCategoryFlags_All = (1 << EnumCount<eEventCategory>()) - 1   // All categories
+    eEventCategoryFlags_All = 0xFFFFFFFF
 };
 using eEventCategoryFlags = std::underlying_type_t<eEventCategoryFlags_>;
 

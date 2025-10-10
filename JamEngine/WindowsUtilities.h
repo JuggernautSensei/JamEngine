@@ -3,6 +3,7 @@
 namespace jam
 {
 
+// com error message
 JAM_NODISCARD std::string CreateComErrorMessage(HRESULT _hr);
 
 // file explorer

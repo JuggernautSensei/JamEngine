@@ -37,7 +37,12 @@ Json Scene::OnSerialize() const
     return {};
 }
 
-void Scene::Clear()
+std::string_view Scene::GetName()
+{
+    return m_name;
+}
+
+void Scene::ClearAllEntities()
 {
     m_registry.clear();
 }
@@ -57,6 +62,11 @@ const HashMap<UID, Entity>& Scene::GetEntities() const
     return m_entityMap;
 }
 
+Scene::Scene(std::string_view _name)
+    : m_name(_name)
+{
+}
+
 void Scene::OnEnter()
 {
     m_rootEntity = CreateEntity("Root");
@@ -64,7 +74,7 @@ void Scene::OnEnter()
 
 void Scene::OnExit()
 {
-    Clear();
+    ClearAllEntities();
     m_rootEntity = Entity::s_null;
 }
 

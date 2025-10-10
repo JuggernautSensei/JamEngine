@@ -1,1 +1,0 @@
-[2025-08-06 16:27:43.886] [trace] log system initialized

@@ -148,9 +148,9 @@ namespace input
     JAM_NODISCARD bool IsMouseReleased(eMouse _mouse) noexcept;
     JAM_NODISCARD bool IsMouseAway(eMouse _mouse) noexcept;
 
-    JAM_NODISCARD ScreenPos GetMousePos() noexcept;
+    JAM_NODISCARD WindowPos GetMousePos() noexcept;
     JAM_NODISCARD Int32     GetMouseDeltaWheel() noexcept;
-    JAM_NODISCARD ScreenPos GetMouseDeltaPos() noexcept;
+    JAM_NODISCARD WindowPos GetMouseDeltaPos() noexcept;
 };   // namespace input
 
 }   // namespace jam
