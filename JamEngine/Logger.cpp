@@ -13,77 +13,107 @@ using namespace jam;
 ///          INTERNAL          ///
 //////////////////////////////////
 
-constexpr const char* k_defaultLogPattern    = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] %v";
-constexpr const char* k_memorySinkLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%l] %v";
-static std::shared_ptr<MemorySinkMT> s_memorySink = nullptr;
+constexpr const char* const k_defaultLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] %v";
 
-////////////////////////////////////////////////////////////
+struct LogContext
+{
+    void UpateLogger() const
+    {
+        std::vector<spdlog::sink_ptr> sinks;
+        sinks.reserve(sinkMap.size());
+        for (const std::shared_ptr<spdlog::sinks::sink>& sink: sinkMap | std::views::values)
+        {
+            sinks.push_back(sink);
+        }
+        std::shared_ptr<spdlog::async_logger> newLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+        spdlog::set_default_logger(newLogger);
+    }
+
+    HashMap<std::string, spdlog::sink_ptr> sinkMap;
+};
+static LogContext g_loggerCtx;
+
+//////////////////////////////////////////////////////////////
 
 namespace jam::logger
 {
 
 void Init()
 {
-    // 로그 스레드 풀
+    // 기본적으로 비동기 로깅 지원
     spdlog::init_thread_pool(8192, 1);
 
-    // 로그 패턴
-    std::string logPattern { k_defaultLogPattern };
+    // 파일 싱크 이름 생성
+    TimeStamp   time     = TimeStamp::Current();
+    std::string filename = std::format("logs/{:04}-{:02}-{:02}/{:02}h {:02}m {:02}.{:03}s.txt", time.year, time.month, time.day, time.hour, time.minute, time.second, time.millisecond);
 
-    // 콘솔 싱크 생성
     spdlog::sink_ptr consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    consoleSink->set_pattern(logPattern);
+    spdlog::sink_ptr fileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
 
-    // 파일 싱크 생성
-    TimeStamp timeStamp = TimeStamp::Current();
-    fs::path  logDir    = std::format("logs/{:04}-{:02}-{:02}", timeStamp.year, timeStamp.month, timeStamp.day);
-    fs::path  filename  = std::format("{:02}h {:02}m {:02}.{:03}s.txt", timeStamp.hour, timeStamp.minute, timeStamp.second, timeStamp.millisecond);
-    fs::create_directories(logDir);
+    consoleSink->set_level(spdlog::level::debug);
 
-    spdlog::sink_ptr fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logDir / filename);
-    fileSink->set_pattern(logPattern);
+    AddSink(k_consoleSinkName, consoleSink);
+    AddSink(k_fileSinkName, fileSink);
 
-    // 메모리 싱크 생성
-    s_memorySink = std::make_shared<MemorySinkMT>();
-    s_memorySink->set_pattern(std::string(k_memorySinkLogPattern));
-
-    // 싱크를 결합하여 로거 생성
-    spdlog::sinks_init_list               sinks      = { consoleSink, fileSink, s_memorySink };
-    std::shared_ptr<spdlog::async_logger> coreLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-    spdlog::set_default_logger(coreLogger);   // 로거 등록
-
-#ifdef JAM_DEBUG
-    SetLogLevel(eLogLevel::Trace);   // 기본 로그 레벨 설정
-#else
-    SetLogLevel(eLogLevel::Info);   // 기본 로그 레벨 설정
-#endif
-
-    // 초기화 종료
-    JAM_LOG_DEBUG("log initialize done.");
+    SetLogLevel(eLogLevel::Trace);
+    SetLogPattern(k_defaultLogPattern);
+    JAM_LOGGER_DEBUG("log initialize done.");
 }
 
 void Shutdown()
 {
-    // 자원 정리 전 로그
-    JAM_LOG_DEBUG("log system shutdown start.");
-
-    // 클린업
-    s_memorySink.reset();
+    JAM_LOGGER_DEBUG("logger shutdown start.");
+    g_loggerCtx.sinkMap.clear();
     spdlog::shutdown();
 }
 
-void SetLogLevel(const eLogLevel _level)
+void AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink)
 {
-    constexpr spdlog::level::level_enum k_logLevelTable[EnumCount<eLogLevel>()] = {
-        spdlog::level::trace,
-        spdlog::level::info,
-        spdlog::level::warn,
-        spdlog::level::err,
-        spdlog::level::critical,
-        spdlog::level::off
-    };
+    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
+    JAM_ASSERT(it == g_loggerCtx.sinkMap.end(), "Sink already exists: {}", _sinkName);
+    g_loggerCtx.sinkMap[std::string(_sinkName)] = _sink;
+    g_loggerCtx.UpateLogger();
+}
 
-    spdlog::set_level(k_logLevelTable[EnumToInt(_level)]);
+void RemoveSink(std::string_view _sinkName)
+{
+    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
+    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
+    g_loggerCtx.sinkMap.erase(it);
+    g_loggerCtx.UpateLogger();
+}
+
+const std::shared_ptr<spdlog::sinks::sink>& GetSink(std::string_view _sinkName)
+{
+    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
+    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
+    return it->second;
+}
+
+void SetLogLevel(eLogLevel _level)
+{
+    spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
+    spdlog::set_level(level);
+}
+
+void SetLogLevel(std::string_view _sinkName, eLogLevel _level)
+{
+    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
+    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
+    spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
+    it->second->set_level(level);
+}
+
+void SetLogPattern(std::string_view _sinkName, const std::string_view _pattern)
+{
+    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
+    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
+    it->second->set_pattern(std::string(_pattern));
+}
+
+void SetLogPattern(const std::string_view _pattern)
+{
+    spdlog::set_pattern(std::string(_pattern));
 }
 
 void Flush()
@@ -91,23 +121,4 @@ void Flush()
     spdlog::default_logger()->flush();
 }
 
-MemorySinkMT::ContainerT::const_iterator logger::GetMemoryLogBeginIter()
-{
-    return s_memorySink->GetBeginIter();
-}
-
-MemorySinkMT::ContainerT::const_iterator logger::GetMemoryLogEndIter()
-{
-    return s_memorySink->GetEndIter();
-}
-
-size_t logger::GetMemoryLogCount()
-{
-    return s_memorySink->GetCount();
-}
-
-void logger::ClearMemoryLog()
-{
-    s_memorySink->Clear();
-}
-}   // namespace jam::log
+}   // namespace jam::logger

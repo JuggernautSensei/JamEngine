@@ -191,7 +191,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
 
     // index format 결정
     Int32        vertexCount = pMesh->vertices()->size() / layout.GetStride();
-    eIndexFormat indexFormat = std::cmp_less_equal(vertexCount, UInt16Limits::max() ? eIndexFormat::U16 : eIndexFormat::U32;
+    eIndexFormat indexFormat = std::cmp_less_equal(vertexCount, UInt16Limits::max()) ? eIndexFormat::U16 : eIndexFormat::U32;
 
     // gpu 리소스 생성
     m_path               = _path;

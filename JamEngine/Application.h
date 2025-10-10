@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CommandQueue.h"
-#include "ILayer.h"
 #include "Timer.h"
 #include "Window.h"
 
@@ -114,11 +113,11 @@ public:
     /// @note 업데이트 정책이 ManualStep일 때만 동작합니다.
     void Step(float _sec = 1.0f / 60.0f);
 
-    /// @brief getter
+                                                                                                                                                                                                                                                   /// @brief getter
     JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const;
     JAM_NODISCARD std::string_view GetApplicationName() const;
-    JAM_NODISCARD const TickTimer&          GetTimer() const;
-    JAM_NODISCARD const Window&             GetWindow() const;
+    JAM_NODISCARD const TickTimer& GetTimer() const;
+    JAM_NODISCARD const Window&    GetWindow() const;
 
     /// @brief 어플리케이션 객체를 생성합니다.
     /// @param _args 커맨드라인 인자

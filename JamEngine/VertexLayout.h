@@ -66,7 +66,7 @@ public:
     void Reset()
     {
         std::memset(m_elems, 0, sizeof(m_elems));
-        std::memset(m_attribRTable, k_int32Max, sizeof(m_attribRTable));
+        std::memset(m_attribRTable, Int32Limits::max(), sizeof(m_attribRTable));
         m_stride    = 0;
         m_elemCount = 0;
     }
@@ -99,7 +99,7 @@ public:
 
     JAM_NODISCARD bool Has(const eVertexAttribute _attrib) const
     {
-        return m_attribRTable[EnumToInt(_attrib)] != k_int32Max;
+        return m_attribRTable[EnumToInt(_attrib)] != Int32Limits::max();
     }
 
     JAM_NODISCARD const VertexLayoutElement& GetElement(const eVertexAttribute _attrib) const
@@ -121,7 +121,7 @@ public:
 
 private:
     VertexLayoutElement m_elems[EnumCount<eVertexAttribute>()]        = {};
-    Int32               m_attribRTable[EnumCount<eVertexAttribute>()] = { k_int32Max };
+    Int32               m_attribRTable[EnumCount<eVertexAttribute>()] = { Int32Limits::max() };
     Int32               m_elemCount                                   = 0;
     Int32               m_stride                                      = 0;
 };

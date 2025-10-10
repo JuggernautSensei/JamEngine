@@ -47,4 +47,10 @@ struct WindowPos
     Int32 y = 0;
 };
 
+struct ScreenPos
+{
+    Int32 x = 0;
+    Int32 y = 0;
+};
+
 }   // namespace jam

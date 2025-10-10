@@ -89,7 +89,7 @@ eErrorCode ImageExporter::Export()
     if (FAILED(hr))
     {
         SetErrorString("Failed to save image to file: '{}'", m_filePath.native());
-        JAM_LOG_DEBUG("HRESULT: {}", CreateComErrorMessage(hr));
+        JAM_LOGGER_DEBUG("HRESULT: {}", CreateComErrorMessage(hr));
         return eErrorCode::FileReadFailed;
     }
 

@@ -221,6 +221,7 @@
     <ClCompile Include="AssimpImporter.cpp" />
     <ClCompile Include="ComponentDB.cpp" />
     <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="fixed_circular_q.cpp" />
     <ClCompile Include="fixed_string.cpp" />
     <ClCompile Include="IAsset.cpp" />
     <ClCompile Include="BaseUtilities.cpp" />
@@ -231,7 +232,6 @@
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ImageImporter.cpp" />
     <ClCompile Include="ImGuiGlue.cpp" />
-    <ClCompile Include="LoggerBase.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="ImageTexture.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -247,7 +247,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="fixed_circular_queue.cpp" />
     <ClCompile Include="fixed_vector.cpp" />
     <ClCompile Include="HandleAllocator.cpp" />
     <ClCompile Include="Hash.cpp" />
@@ -255,7 +254,6 @@
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MemoryArena.cpp" />
     <ClCompile Include="MemoryPool.cpp" />
-    <ClCompile Include="MemorySink.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshFactory.cpp" />
     <ClCompile Include="Gfx.cpp" />
@@ -383,6 +381,17 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="vendor\tinyfiledialogs\tinyfiledialogs.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <FileType>CppCode</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </None>
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="VertexLayout.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -397,6 +406,7 @@
     <ClInclude Include="ComponentDB.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="FileSystem.h" />
+    <ClInclude Include="fixed_circular_q.h" />
     <ClInclude Include="fixed_string.h" />
     <ClInclude Include="HashMap.h" />
     <ClInclude Include="IAsset.h" />
@@ -409,12 +419,10 @@
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="ImageImporter.h" />
     <ClInclude Include="ImGuiGlue.h" />
-    <ClInclude Include="LoggerBase.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="ImageTexture.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CompiledShaders.h" />
-    <ClInclude Include="fixed_circular_queue.h" />
     <ClInclude Include="fixed_vector.h" />
     <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Hash.h" />
@@ -422,7 +430,6 @@
     <ClInclude Include="Memory.h" />
     <ClInclude Include="MemoryArena.h" />
     <ClInclude Include="MemoryPool.h" />
-    <ClInclude Include="MemorySink.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshFactory.h" />
     <ClInclude Include="Gfx.h" />
@@ -574,6 +581,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
     <None Include="vendor\nlohmann\json_fwd.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="vendor\tinyfiledialogs\tinyfiledialogs.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

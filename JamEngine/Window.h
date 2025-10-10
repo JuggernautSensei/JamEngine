@@ -9,55 +9,23 @@ class Window
 public:
     void Init();
     void Shutdown();
-    bool PollEvents();
     void OnEvent(Event& _event);
+    bool PollEvents();
 
-    // window
     void ResizeWindow(Int32 _width, Int32 _height) const;
     void MoveWindow(Int32 _posX, Int32 _posY) const;
     void SetTitle(std::string_view _name) const;
 
-    JAM_NODISCARD Resolution GetWindowSize() const
-    {
-        return { m_width, m_height };
-    }
-
-    JAM_NODISCARD Resolution GetWindowPos() const
-    {
-        return { m_posX, m_posY };
-    }
-
-    JAM_NODISCARD Resolution GetMoniterScreenSize() const
-    {
-        Int32 w = ::GetSystemMetrics(SM_CXSCREEN);
-        Int32 h = ::GetSystemMetrics(SM_CYSCREEN);
-        return { w, h };
-    }
-
-    JAM_NODISCARD HWND GetPlatformHandle() const
-    {
-        return m_hWnd;
-    }
-
-    JAM_NODISCARD HINSTANCE GetPlatformInstance() const
-    {
-        return m_hInstance;
-    }
+    JAM_NODISCARD Resolution GetWindowSize() const;
+    JAM_NODISCARD ScreenPos  GetWindowPos() const;
+    JAM_NODISCARD Resolution GetMoniterScreenSize() const;
+    JAM_NODISCARD HWND       GetPlatformHandle() const;
+    JAM_NODISCARD HINSTANCE  GetPlatformInstance() const;
 
 private:
-    void SetWindowAttribute_(
-        Int32 _clientWidth,
-        Int32 _clientHeight,
-        Int32 _leftTopX,
-        Int32 _leftTopY,
-        LONG  _wsFlags) const;
+    static LRESULT CALLBACK WindowProc_(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    static LRESULT CALLBACK WindowProc_(
-        HWND   hWnd,
-        UINT   uMsg,
-        WPARAM wParam,
-        LPARAM lParam);
-
+    void SetWindowAttribute_(Int32 _windowWidth, Int32 _windowHeight, Int32 _screenLeftTopX, Int32 _screenLeftTopY, LONG _wsFlags) const;
     void OnWindowResize_(const WindowResizeEvent& _event);
     void OnWindowMove_(const WindowMoveEvent& _event);
 

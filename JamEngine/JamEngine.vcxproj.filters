@@ -73,14 +73,8 @@
     <ClCompile Include="ComponentsEditor.cpp">
       <Filter>4. Scene\Component</Filter>
     </ClCompile>
-    <ClCompile Include="MemorySink.cpp">
-      <Filter>1. Core\Log</Filter>
-    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>99. Utilities\Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="fixed_circular_queue.cpp">
-      <Filter>99. Utilities\Container\circualr_queue</Filter>
     </ClCompile>
     <ClCompile Include="fixed_vector.cpp">
       <Filter>99. Utilities\Container\vector</Filter>
@@ -175,9 +169,6 @@
     <ClCompile Include="Error.cpp">
       <Filter>1. Core\Base</Filter>
     </ClCompile>
-    <ClCompile Include="LoggerBase.cpp">
-      <Filter>1. Core\Log</Filter>
-    </ClCompile>
     <ClCompile Include="Profile.cpp">
       <Filter>99. Utilities\Profile</Filter>
     </ClCompile>
@@ -235,6 +226,9 @@
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>4. Scene\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="fixed_circular_q.cpp">
+      <Filter>99. Utilities\Container\ring_buffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -251,9 +245,6 @@
     </Filter>
     <Filter Include="1. Core\Platform">
       <UniqueIdentifier>{75882a70-3fb8-40ec-988b-13e9bb48828c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="1. Core\ILayer">
-      <UniqueIdentifier>{ec73bece-9d03-42b3-bcc8-3691f61d4db4}</UniqueIdentifier>
     </Filter>
     <Filter Include="1. Core\Input">
       <UniqueIdentifier>{d5ba1c24-3e7d-4ab4-9142-f7b950bb110d}</UniqueIdentifier>
@@ -281,9 +272,6 @@
     </Filter>
     <Filter Include="99. Utilities\Container">
       <UniqueIdentifier>{f39052bc-ccdb-4690-abe1-584111555366}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\Container\circualr_queue">
-      <UniqueIdentifier>{9c4059e4-27d3-4d4b-914f-0afc48d0fcb2}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Container\vector">
       <UniqueIdentifier>{8566958a-aa2d-4404-ba7c-44bbb90b23c5}</UniqueIdentifier>
@@ -420,6 +408,12 @@
     <Filter Include="99. Utilities\Serialize">
       <UniqueIdentifier>{1a3a8ef2-743e-4922-a241-93e752fb1dfa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="99. Utilities\Container\ring_buffer">
+      <UniqueIdentifier>{25822477-2707-4afe-a587-0ed11bee36b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\tinyfiledialogs">
+      <UniqueIdentifier>{c30af395-35f8-4a0a-b375-3c478395a6a7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -494,14 +488,8 @@
     <ClInclude Include="AssetManager.h">
       <Filter>5. Assets</Filter>
     </ClInclude>
-    <ClInclude Include="MemorySink.h">
-      <Filter>1. Core\Log</Filter>
-    </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>99. Utilities\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="fixed_circular_queue.h">
-      <Filter>99. Utilities\Container\circualr_queue</Filter>
     </ClInclude>
     <ClInclude Include="fixed_vector.h">
       <Filter>99. Utilities\Container\vector</Filter>
@@ -599,9 +587,6 @@
     <ClInclude Include="Error.h">
       <Filter>1. Core\Base</Filter>
     </ClInclude>
-    <ClInclude Include="LoggerBase.h">
-      <Filter>1. Core\Log</Filter>
-    </ClInclude>
     <ClInclude Include="Profile.h">
       <Filter>99. Utilities\Profile</Filter>
     </ClInclude>
@@ -670,6 +655,9 @@
     </ClInclude>
     <ClInclude Include="json.h">
       <Filter>99. Utilities\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="fixed_circular_q.h">
+      <Filter>99. Utilities\Container\ring_buffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -765,6 +753,12 @@
     </None>
     <None Include="vendor\nlohmann\json_fwd.hpp">
       <Filter>98. Vendor\json</Filter>
+    </None>
+    <None Include="vendor\tinyfiledialogs\tinyfiledialogs.h">
+      <Filter>98. Vendor\tinyfiledialogs</Filter>
+    </None>
+    <None Include="vendor\tinyfiledialogs\tinyfiledialogs.c">
+      <Filter>98. Vendor\tinyfiledialogs</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

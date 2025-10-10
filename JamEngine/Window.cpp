@@ -116,6 +116,33 @@ void Window::SetTitle(const std::string_view _name) const
     ::SetWindowTextA(m_hWnd, _name.data());
 }
 
+Resolution Window::GetWindowSize() const
+{
+    return { m_width, m_height };
+}
+
+ScreenPos Window::GetWindowPos() const
+{
+    return { m_posX, m_posY };
+}
+
+Resolution Window::GetMoniterScreenSize() const
+{
+    Int32 w = ::GetSystemMetrics(SM_CXSCREEN);
+    Int32 h = ::GetSystemMetrics(SM_CYSCREEN);
+    return { w, h };
+}
+
+HWND Window::GetPlatformHandle() const
+{
+    return m_hWnd;
+}
+
+HINSTANCE Window::GetPlatformInstance() const
+{
+    return m_hInstance;
+}
+
 void Window::OnEvent(Event& _event)
 {
     HandleEvent<WindowResizeEvent>(_event, JAM_BIND_MEMBER_LISTENER(Window::OnWindowResize_));
@@ -123,17 +150,17 @@ void Window::OnEvent(Event& _event)
 }
 
 void Window::SetWindowAttribute_(
-    const Int32 _clientWidth,
-    const Int32 _clientHeight,
-    const Int32 _leftTopX,
-    const Int32 _leftTopY,
+    const Int32 _windowWidth,
+    const Int32 _windowHeight,
+    const Int32 _screenLeftTopX,
+    const Int32 _screenLeftTopY,
     const LONG  _wsFlags) const
 {
     JAM_ASSERT(m_hWnd, "Window handle is null");
     JAM_ASSERT(m_hInstance, "Window instance handle is null");
 
     SetWindowLong(m_hWnd, GWL_STYLE, _wsFlags);
-    SetWindowPos(m_hWnd, NULL, _leftTopX, _leftTopY, _clientWidth, _clientHeight, SWP_FRAMECHANGED | SWP_NOZORDER);
+    SetWindowPos(m_hWnd, NULL, _screenLeftTopX, _screenLeftTopY, _windowWidth, _windowHeight, SWP_FRAMECHANGED | SWP_NOZORDER);
 
     ShowWindow(m_hWnd, SW_SHOW);
     UpdateWindow(m_hWnd);

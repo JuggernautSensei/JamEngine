@@ -459,7 +459,7 @@ LoopSubdivisionOutput LoopSubdivide(
 
     // 인덱스 배열 생성
     faceCount          = NarrowCast<Int32>(faces.size());
-    output.indexFormat = std::cmp_less_equal(vertCount, UInt16Limits::max() ? eIndexFormat::U16 : eIndexFormat::U32;
+    output.indexFormat = std::cmp_less_equal(vertCount, UInt16Limits::max()) ? eIndexFormat::U16 : eIndexFormat::U32;
     indexStride        = GetIndexFormatByte(output.indexFormat);
     output.indices.resize(faceCount * 3 * indexStride);
 

@@ -117,7 +117,7 @@ eErrorCode ShaderCompiler::LoadHLSL(
     // 오류 처리
     if (FAILED(hr) || m_pBlob == nullptr)
     {
-        JAM_LOG_DEBUG("Shader compilation failed with error: {}", CreateComErrorMessage(hr));
+        JAM_LOGGER_DEBUG("Shader compilation failed with error: {}", CreateComErrorMessage(hr));
         if (pErrorBlob)
         {
             std::string_view errorStr { static_cast<const char*>(pErrorBlob->GetBufferPointer()), pErrorBlob->GetBufferSize() };

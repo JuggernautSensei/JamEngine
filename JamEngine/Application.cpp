@@ -4,7 +4,6 @@
 
 #include "AssetManager.h"
 #include "Gfx.h"
-#include "ILayer.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
 #include "Magic.h"
@@ -233,7 +232,7 @@ void Application::DispatchEvent(Event& _event)
 #ifdef JAM_DEBUG
     if (_event.GetCategory() != eEventCategory::Input)   // 디버그용 로그
     {
-        JAM_LOG_DEBUG("Dispatching event: {}", _event.ToString());
+        JAM_LOGGER_DEBUG("Dispatching event: {}", _event.ToString());
     }
 #endif
 

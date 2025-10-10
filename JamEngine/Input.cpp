@@ -168,7 +168,7 @@ bool IsMouseAway(const eMouse _mouse) noexcept
     return !g_ctx.bKeyDown[index] && !g_ctx.bPrevKeyDown[index];
 }
 
-ScreenPos GetMousePos() noexcept
+WindowPos GetMousePos() noexcept
 {
     return { g_ctx.mouseX, g_ctx.mouseY };
 }
@@ -178,7 +178,7 @@ Int32 GetMouseDeltaWheel() noexcept
     return static_cast<Int32>(g_ctx.mouseDeltaWheel);
 }
 
-ScreenPos GetMouseDeltaPos() noexcept
+WindowPos GetMouseDeltaPos() noexcept
 {
     const Int32 deltaX = g_ctx.mouseX - g_ctx.mousePrevX;
     const Int32 deltaY = g_ctx.mouseY - g_ctx.mousePrevY;

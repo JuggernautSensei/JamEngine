@@ -3,7 +3,7 @@
 namespace jam
 {
 
-template<typename T, size_t Size_>
+template<typename T, size_t Size>
 class fixed_vector
 {
 public:
@@ -22,61 +22,27 @@ public:
     {
     }
 
-    template<typename... Args>
-    void emplace_back(Args&&... args)
+    template<typename U>
+    void push_back(U&& value)
     {
-        if (!full())
-        {
-            m_data[m_size] = T(std::forward<Args>(args)...);
-            m_size++;
-        }
-        else
-        {
-            JAM_ASSERT(0, "fixed_vector is full. Cannot emplace_back.");
-        }
-    }
-
-    void push_back(const T& value)
-    {
-        if (!full())
-        {
-            m_data[m_size] = value;
-            m_size++;
-        }
-        else
-        {
-            JAM_ASSERT(0, "fixed_vector is full. Cannot push_back.");
-        }
-    }
-
-    void push_back(T&& value)
-    {
-        if (!full())
-        {
-            m_data[m_size] = std::move(value);
-            m_size++;
-        }
-        else
-        {
-            JAM_ASSERT(0, "fixed_vector is full. Cannot push_back.");
-        }
+        JAM_ASSERT(!full(), "fixed_vector is full. Cannot push_back.");
+        m_data[m_size] = std::forward<U>(value);
+        m_size++;
     }
 
     void pop_back()
     {
-        if (!empty())
-        {
-            m_size--;
-        }
-        else
-        {
-            JAM_ASSERT(0, "fixed_vector is empty. Cannot pop_back.");
-        }
+        JAM_ASSERT(!empty(), "fixed_vector is empty. Cannot pop_back.");
+        std::destroy_at(&m_data[m_size]);
+        m_size--;
     }
 
     void clear() noexcept
     {
-        // size를 0으로 초기화하여 모든 요소가 비활성화된 것처럼 처리합니다.
+        while (!empty())
+        {
+            pop_back();
+        }
         m_size = 0;
     }
 
@@ -121,8 +87,8 @@ public:
 
     JAM_NODISCARD size_type           size() const { return m_size; }
     JAM_NODISCARD bool                empty() const { return m_size == 0; }
-    JAM_NODISCARD constexpr size_type capacity() const { return Size_; }
-    JAM_NODISCARD bool                full() const { return m_size == Size_; }
+    JAM_NODISCARD constexpr size_type capacity() const { return Size; }
+    JAM_NODISCARD bool                full() const { return m_size == Size; }
 
     JAM_NODISCARD iterator       begin() { return m_data; }
     JAM_NODISCARD iterator       end() { return m_data + m_size; }
@@ -132,7 +98,7 @@ public:
     JAM_NODISCARD const_iterator cend() const { return m_data + m_size; }
 
 protected:
-    T         m_data[Size_];
+    T         m_data[Size];
     size_type m_size;
 };
 
