@@ -5,6 +5,7 @@
 #include "ComponentDB.h"
 #include "Profile.h"
 #include "Scene.h"
+#include "SceneDB.h"
 
 namespace jam
 {
@@ -60,8 +61,13 @@ eErrorCode SceneSerializer::LoadFromFile(const fs::path& _filePath)
 
 void SceneSerializer::Serialize(const Scene* _pScene)
 {
+    JAM_ASSERT(_pScene, "Scene is null");
     JAM_PROFILE_SCOPE_MS("SceneSerializer::Serialize");
+
     m_json.clear();
+
+    // 씬 정보 직렬화
+    m_json["sceneName"] = _pScene->GetName();
 
     const HashMap<UID, Entity>& entityMap = _pScene->GetEntities();   // 전체 엔티티 맵
     HashMap<UInt32, UID>        entityUIDMap;                         // 엔티티 타입 해시 -> UID 맵 (직렬화용)
@@ -96,9 +102,9 @@ void SceneSerializer::Serialize(const Scene* _pScene)
             Json compJson;   // 컴포넌트 데이터
             for (entt::entity handle: set)
             {
-                Int32         id     = entt::to_integral(handle);
-                UID           uid    = entityUIDMap.at(id);
-                const Entity& entity = entityMap.at(uid);
+                Int32  id     = entt::to_integral(handle);
+                UID    uid    = entityUIDMap.at(id);
+                Entity entity = entityMap.at(uid);
 
                 const void* pComponent = set.value(handle);
                 Json        serialized = component_db::Serialize(typeID, pComponent, _pScene, entity);
@@ -115,22 +121,28 @@ void SceneSerializer::Serialize(const Scene* _pScene)
         }
         m_json["components"] = std::move(json);
     }
-
-    // 유저 데이터 직렬화
-    Json userJson = _pScene->OnSerialize();
-    if (!userJson.is_null() && !userJson.empty())
-    {
-        m_json["userdata"] = std::move(userJson);
-    }
 }
 
-eErrorCode SceneSerializer::Deserialize(Scene* _pScene)
+Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
 {
-    JAM_ASSERT(_pScene, "Scene pointer is null");
     JAM_ASSERT(!m_json.empty(), "No data to deserialize");
     JAM_PROFILE_SCOPE_MS("SceneSerializer::Deserialize");
 
-    _pScene->ClearAllEntities();
+    if (!m_json.contains("sceneName") || !m_json["sceneName"].is_string())
+    {
+        SetErrorString("Scene JSON does not contain valid 'sceneName'");
+        return eErrorCode::FileParseFailed;
+    }
+
+    if (!m_json.contains("sceneBehavior") || !m_json["sceneBehavior"].is_string())
+    {
+        SetErrorString("Scene JSON does not contain valid 'sceneBehavior'");
+        return eErrorCode::FileParseFailed;
+    }
+
+    // 씬 생성
+    std::string            sceneName = m_json["sceneName"].get<std::string>();
+    std::unique_ptr<Scene> pScene    = scene_db::Create(sceneName);
 
     // 엔티티 역직렬화
     if (!m_json.contains("entities") || !m_json["entities"].is_array())
@@ -149,7 +161,7 @@ eErrorCode SceneSerializer::Deserialize(Scene* _pScene)
         }
 
         UID    entityUID = uidJson.get<UID>();
-        Entity e         = _pScene->CreateEntity(entityUID);
+        Entity e         = pScene->CreateEntity(entityUID);
         JAM_UNUSED(e);
     }
 
@@ -180,7 +192,7 @@ eErrorCode SceneSerializer::Deserialize(Scene* _pScene)
                 return ec;
 
             UID    entityUID = uid;
-            Entity entity    = _pScene->FindEntity(entityUID);
+            Entity entity    = pScene->FindEntity(entityUID);
             if (!entity.IsValid())
             {
                 SetErrorString("Entity with UID: {} does not exist for component type ID: {}", entityUID, typeIDStr);
@@ -192,23 +204,13 @@ eErrorCode SceneSerializer::Deserialize(Scene* _pScene)
             void* pComponent = component_db::Get(typeID, entity);
             if (pComponent)   // 컴포넌트가 빈 구조체인 경우 nullptr일 수 있음
             {
-                eErrorCode err = component_db::Deserialize(typeID, pComponent, compData, _pScene, entity);
+                eErrorCode err = component_db::Deserialize(typeID, pComponent, compData, pScene.get(), entity);
                 if (IsError(err))
                 {
                     component_db::Remove(typeID, entity);   // 역직렬화 실패 시 컴포넌트 제거
                     return err;
                 }
             }
-        }
-    }
-
-    // 유저 데이터 역직렬화
-    if (m_json.contains("userdata") && m_json["userdata"].is_object())
-    {
-        eErrorCode err = _pScene->OnDeserialize(m_json["userdata"]);
-        if (IsError(err))
-        {
-            return err;
         }
     }
 

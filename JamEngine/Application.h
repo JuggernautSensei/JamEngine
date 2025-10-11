@@ -77,7 +77,7 @@ public:
     /// 절대로 임의로 호출하지 마십시오.
     int Run();
 
-    /// @brief 어플리케잇녀 종료
+    /// @brief 어플리케이션 종료
     /// 호출시 다음 프레임에 어플리케이션이 종료됩니다.
     void Quit();
 
@@ -113,19 +113,13 @@ public:
     /// @note 업데이트 정책이 ManualStep일 때만 동작합니다.
     void Step(float _sec = 1.0f / 60.0f);
 
-                                                                                                                                                                                                                                                   /// @brief getter
     JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const;
     JAM_NODISCARD std::string_view GetApplicationName() const;
     JAM_NODISCARD const TickTimer& GetTimer() const;
     JAM_NODISCARD const Window&    GetWindow() const;
 
-    /// @brief 어플리케이션 객체를 생성합니다.
-    /// @param _args 커맨드라인 인자
-    /// @note 이 함수는 프로그램 시작 시 단 한번만 호출됩니다. 절대 임의로 호출하지 마십시오.
+    /// 싱글턴 객체 관리. 임의 호출 금지
     static void Create(const CommandLineArguments& _args);
-
-    /// @brief 어플리케이션 객체를 파괴합니다.
-    /// @note 이 함수는 프로그램 종료 시 단 한번만 호출됩니다. 절대 임의로 호출하지 마십시오.
     static void Destroy();
 
     /// @brief 어플리케이션 객체의 싱글턴 인스턴스를 반환합니다.

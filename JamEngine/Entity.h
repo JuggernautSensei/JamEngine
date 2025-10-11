@@ -29,7 +29,6 @@ public:
     template<typename T, typename... Args>
     decltype(auto) CreateComponent(Args&&... args)
     {
-        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
     }
@@ -37,7 +36,6 @@ public:
     template<typename T, typename... Args>
     decltype(auto) CreateOrReplaceComponent(Args&&... args)
     {
-        static_assert(T::_component_marker_, "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
     }
@@ -45,7 +43,6 @@ public:
     template<typename... T>
     decltype(auto) GetComponent() const
     {
-        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->get<T...>(m_handle);
     }
@@ -53,7 +50,6 @@ public:
     template<typename... T>
     decltype(auto) GetComponent()
     {
-        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->get<T...>(m_handle);
     }
@@ -61,17 +57,14 @@ public:
     template<typename... T>
     bool HasComponent() const
     {
-        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->all_of<T...>(m_handle);
     }
 
     template<typename... T>
-    void RemoveComponent() 
+    void RemoveComponent()
     {
-        static_assert((T::_component_marker_, ...), "component must use JAM_COMPONENT macro");
         static_assert((!std::is_base_of_v<UnremovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
-
         JAM_ASSERT(IsValid(), "Entity is not valid");
         JAM_ASSERT(HasComponent<T...>(), "Entity does not have the specified component(s)");
         m_pRegistry->remove<T...>(m_handle);

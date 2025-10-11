@@ -33,6 +33,7 @@
 #include <directxtk/SimpleMath.inl>
 #include <wrl.h>
 #pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxguid.lib")
 
 // 3rd party
 #include "FileSystem.h"

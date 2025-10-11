@@ -7,6 +7,8 @@
 namespace jam
 {
 
+Entity Entity::s_null = Entity {};
+
 Entity::Entity(entt::registry& _registry, const entt::entity _handle, const UID _uid)
     : m_pRegistry(&_registry)
     , m_handle(_handle)

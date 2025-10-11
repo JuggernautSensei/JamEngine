@@ -211,9 +211,6 @@
     <ClCompile Include="AssimpBase.cpp">
       <Filter>5. Assets\Mesh\Assimp</Filter>
     </ClCompile>
-    <ClCompile Include="SceneDB.cpp">
-      <Filter>7. Reflection</Filter>
-    </ClCompile>
     <ClCompile Include="ScriptDB.cpp">
       <Filter>7. Reflection</Filter>
     </ClCompile>
@@ -228,6 +225,36 @@
     </ClCompile>
     <ClCompile Include="fixed_circular_q.cpp">
       <Filter>99. Utilities\Container\ring_buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\tinyfiledialogs\tinyfiledialogs.c">
+      <Filter>98. Vendor\tinyfiledialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_stdlib.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneDB.cpp">
+      <Filter>7. Reflection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -632,9 +659,6 @@
     <ClInclude Include="AssimpBase.h">
       <Filter>5. Assets\Mesh\Assimp</Filter>
     </ClInclude>
-    <ClInclude Include="SceneDB.h">
-      <Filter>7. Reflection</Filter>
-    </ClInclude>
     <ClInclude Include="ScriptDB.h">
       <Filter>7. Reflection</Filter>
     </ClInclude>
@@ -659,6 +683,66 @@
     <ClInclude Include="fixed_circular_q.h">
       <Filter>99. Utilities\Container\ring_buffer</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\unordered_dense\unordered_dense.h">
+      <Filter>98. Vendor\unordered_densce</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\tinyfiledialogs\tinyfiledialogs.h">
+      <Filter>98. Vendor\tinyfiledialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\nlohmann\json_fwd.hpp">
+      <Filter>98. Vendor\json</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\nlohmann\json.hpp">
+      <Filter>98. Vendor\json</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_std_impl.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_std_fwd.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_std.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_impl.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\fs_fwd.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ghc\filesystem.hpp">
+      <Filter>98. Vendor\ghc</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_textedit.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_truetype.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imconfig.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_dx11.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_win32.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_internal.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_stdlib.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDB.h">
+      <Filter>7. Reflection</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">
@@ -675,90 +759,6 @@
     </None>
     <None Include="resources\flatc\jmat.fbs">
       <Filter>5. Assets\Material</Filter>
-    </None>
-    <None Include="vendor\ghc\filesystem.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </None>
-    <None Include="vendor\ghc\fs_fwd.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </None>
-    <None Include="vendor\ghc\fs_impl.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </None>
-    <None Include="vendor\ghc\fs_std.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </None>
-    <None Include="vendor\ghc\fs_std_fwd.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </None>
-    <None Include="vendor\ghc\fs_std_impl.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </None>
-    <None Include="vendor\imgui\imstb_truetype.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imconfig.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_demo.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_draw.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_impl_dx11.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_impl_dx11.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_impl_win32.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_impl_win32.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_internal.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_stdlib.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_stdlib.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_tables.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imgui_widgets.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imstb_rectpack.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\imgui\imstb_textedit.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </None>
-    <None Include="vendor\unordered_dense\unordered_dense.h">
-      <Filter>98. Vendor\unordered_densce</Filter>
-    </None>
-    <None Include="vendor\nlohmann\json.hpp">
-      <Filter>98. Vendor\json</Filter>
-    </None>
-    <None Include="vendor\nlohmann\json_fwd.hpp">
-      <Filter>98. Vendor\json</Filter>
-    </None>
-    <None Include="vendor\tinyfiledialogs\tinyfiledialogs.h">
-      <Filter>98. Vendor\tinyfiledialogs</Filter>
-    </None>
-    <None Include="vendor\tinyfiledialogs\tinyfiledialogs.c">
-      <Filter>98. Vendor\tinyfiledialogs</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

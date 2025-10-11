@@ -7,25 +7,21 @@ namespace jam { struct Transform; struct Camera; class Event; class Scene; }
 
 namespace jam::scene_manager
 {
+
 void Init();
 void Shutdown();
 
 void OnEvent(Event& _event);
 void Update(float _deltaSec);
 
+/// 씬을 렌더링 후 백버퍼로 복사
 void RenderRuntime();
+
+/// 씬을 특정 프레임버퍼에 렌더링
 void Render(FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform);
 
-Scene* AddScene(std::string_view _name, std::unique_ptr<Scene>&& _pScene);
-void   RemoveScene(std::string_view _name);
-void   ChangeScene(std::string_view _name);
-
-JAM_NODISCARD bool   HasActiveScene();
+eErrorCode           LoadScene(const fs::path& _scenePath);
+void                 LoadScene(std::unique_ptr<Scene>&& _pScene);
 JAM_NODISCARD Scene* GetActiveScene();
-
-JAM_NODISCARD bool   HasScene(std::string_view _name);
-JAM_NODISCARD Scene* GetScene(std::string_view _name);
-
-JAM_NODISCARD const HashMap<std::string, std::unique_ptr<Scene>>& GetAllScenes();
 
 }   // namespace jam::scene_manager

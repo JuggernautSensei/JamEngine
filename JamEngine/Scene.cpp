@@ -9,44 +9,6 @@
 namespace jam
 {
 
-Scene::~Scene() = default;
-
-Scene::Scene(Scene&&) noexcept = default;
-
-Scene& Scene::operator=(Scene&&) noexcept = default;
-
-void Scene::OnUpdate(float _deltaTime)
-{
-}
-
-void Scene::OnRender(FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform)
-{
-}
-
-void Scene::OnEvent(Event& _event)
-{
-}
-
-eErrorCode Scene::OnDeserialize(const Json& _js)
-{
-    return eErrorCode::Ok;
-}
-
-Json Scene::OnSerialize() const
-{
-    return {};
-}
-
-std::string_view Scene::GetName()
-{
-    return m_name;
-}
-
-void Scene::ClearAllEntities()
-{
-    m_registry.clear();
-}
-
 const entt::registry& Scene::GetRegistry() const
 {
     return m_registry;
@@ -62,20 +24,15 @@ const HashMap<UID, Entity>& Scene::GetEntities() const
     return m_entityMap;
 }
 
-Scene::Scene(std::string_view _name)
-    : m_name(_name)
+Json Scene::OnSerialize() const
 {
+    return {};
 }
 
-void Scene::OnEnter()
+eErrorCode Scene::OnDeserialize(const Json& _json)
 {
-    m_rootEntity = CreateEntity("Root");
-}
-
-void Scene::OnExit()
-{
-    ClearAllEntities();
-    m_rootEntity = Entity::s_null;
+    JAM_UNUSED(_json);
+    return eErrorCode::Ok;
 }
 
 Entity Scene::CreateEntity(const std::string_view _name)
@@ -133,7 +90,7 @@ Entity Scene::FindEntity(const UID _uid) const
     return it->second;
 }
 
-Entity Scene::CloneEntity(const Entity& _entity)
+Entity Scene::CloneEntity(Entity _entity)
 {
     const Entity newEntity = CreateEntity();
 
@@ -149,7 +106,7 @@ Entity Scene::CloneEntity(const Entity& _entity)
     return newEntity;
 }
 
-void Scene::DestroyEntity(const Entity& _entity)
+void Scene::DestroyEntity(const Entity _entity)
 {
     JAM_ASSERT(_entity.IsValid(), "Entity is not valid");
     JAM_ASSERT(_entity != m_rootEntity, "Cannot delete root entity");
@@ -169,12 +126,12 @@ void Scene::DestroyEntity(const Entity& _entity)
     app.SubmitCommand(EntityDeletor { this, _entity });
 }
 
-bool Scene::IsEntityValid(const Entity& _entity) const
+bool Scene::IsEntityValid(Entity _entity) const
 {
     return m_registry.valid(_entity.GetHandle());
 }
 
-const Entity& Scene::GetRootEntity() const
+Entity Scene::GetRootEntity() const
 {
     return m_rootEntity;
 }
@@ -190,7 +147,7 @@ void Scene::DestroyEntity_Recursive_(Entity& _entity)
     while (child.IsValid())
     {
         TransformComponent& childT    = child.GetTransform();
-        const Entity&       nextChild = childT.nextSibling;   // 다음 형제 엔티티 미리 저장
+        Entity              nextChild = childT.nextSibling;   // 다음 형제 엔티티 미리 저장
         DestroyEntity_Recursive_(child);                      // 재귀적으로 자식 삭제
         child = nextChild;
     }

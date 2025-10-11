@@ -30,7 +30,7 @@ namespace editor
     void               SetPanelVisible(ePanel _panel, bool _bVisible);
     JAM_NODISCARD bool IsPanelVisible(ePanel _panel);
 
-    void                 SetFocusEntity(const Entity& _entity);
+    void                 SetFocusEntity(Entity _entity);
     JAM_NODISCARD Entity GetFocusEntity();
 
 }   // namespace editor

@@ -1,6 +1,10 @@
 #pragma once
 #include "Entity.h"
 
+// clang-format off
+namespace jam { class Event; }
+// clang-format on
+
 namespace jam
 {
 
@@ -18,36 +22,34 @@ public:
     void Stop();
     void Update(float _deltaSec);
 
+    JAM_NODISCARD Entity                   GetEntity() const;
+    JAM_NODISCARD bool                     IsRunning() const;
     JAM_NODISCARD virtual std::string_view GetName() const = 0;
-    JAM_NODISCARD Entity                   GetEntity() const { return m_owner; }
-    JAM_NODISCARD bool                     IsRunning() const { return m_bRun; }
 
 protected:
-    explicit Script(const Entity& _entity);
-
-    JAM_NODISCARD const Entity& GetOwner() const { return m_owner; }
-    JAM_NODISCARD Entity&       GetOwner() { return m_owner; }
+    explicit Script(Entity _entity);
 
 private:
-    virtual void OnStart() {}
-    virtual void OnStop() {}
-    virtual void OnUpdate(float _deltaSec) {}
+    virtual void OnStart() {}                   // 스크립트가 시작될 때 호출
+    virtual void OnStop() {}                    // 스크립트가 멈출 때 호출
+    virtual void OnUpdate(float _deltaSec) {}   // 매 프레임 호출
 
-    Entity m_owner    = Entity::s_null;
-    bool   m_bRun     = true;
-    bool   m_bStarted = false;
+    Entity m_owner     = Entity::s_null;
+    bool   m_bRun      = true;
+    bool   m_bCallOnce = false;
 };
 
 }   // namespace jam
 
-#define JAM_SCRIPT(_class)                                                      \
-public:                                                                         \
-    constexpr static bool _script_marker_ = true;                               \
-    JAM_NODISCARD std::string_view GetName() const override { return #_class; } \
-                                                                                \
-private:                                                                        \
-    inline static bool _script_reflect_ = []                                    \
-    {                                                                           \
-        jam::script_db::Reflect<_class>();                                      \
-        return true;                                                            \
+#define JAM_SCRIPT(_class)                                                     \
+public:                                                                        \
+    constexpr static bool             _script_marker_ = true;                  \
+    constexpr static std::string_view k_name          = NameOf<_class>();      \
+    JAM_NODISCARD std::string_view GetName() const override { return k_name; } \
+                                                                               \
+private:                                                                       \
+    inline static bool _script_reflect_ = []                                   \
+    {                                                                          \
+        jam::script_db::Reflect<_class>();                                     \
+        return true;                                                           \
     }()

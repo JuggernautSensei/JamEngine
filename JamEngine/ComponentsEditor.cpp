@@ -13,7 +13,7 @@
 //namespace jam
 //{
 //
-//void TagComponent::DrawEditor(EditorLayer* _pEditorLayer, Scene* _pScene, const Entity& _ownerEntity)
+//void TagComponent::DrawEditor(EditorLayer* _pEditorLayer, Scene* _pScene, Entity _ownerEntity)
 //{
 //    if (ImGui::BeginTable("tag component", 2))
 //    {
@@ -41,7 +41,7 @@
 //    }
 //}
 //
-//void TransformComponent::DrawEditor(EditorLayer* _pEditorLayer, Scene* _pScene, const Entity& _ownerEntity)
+//void TransformComponent::DrawEditor(EditorLayer* _pEditorLayer, Scene* _pScene, Entity _ownerEntity)
 //{
 //    if (ImGui::BeginTable("transform component", 2))
 //    {

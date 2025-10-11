@@ -47,7 +47,7 @@ bool IsPanelVisible(const ePanel _panel)
     return g_edtCtx.panelVisibility[EnumToInt(_panel)];
 }
 
-void SetFocusEntity(const Entity& _entity)
+void SetFocusEntity(const Entity _entity)
 {
     g_edtCtx.focusEntity = _entity;
 }

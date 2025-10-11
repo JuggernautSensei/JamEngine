@@ -3,6 +3,7 @@
 #include "Application.h"
 
 #include "AssetManager.h"
+#include "Editor.h"
 #include "Gfx.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
@@ -76,12 +77,6 @@ void Application::Create(const CommandLineArguments& _args)
 
         // imgui 초기화
         imgui::Init();
-
-        //// editor 모드일 경우 editor layer 생성
-        // if (s_instance->m_bEditor)
-        //{
-        //     s_instance->AttachLayer(std::make_unique<EditorLayer>());
-        // }
     }
 
     // 사용자 정의 어플리케이션 초기화 루틴
@@ -200,16 +195,15 @@ int Application::Run()
             // 렌더링
             {
                 imgui::BeginFrame();
-
-                // 씬 렌더링
-                if (!m_bEditor)   // runtime
+                if (m_bEditor)
+                {
+                    editor::Render();
+                }
+                else
                 {
                     scene_manager::RenderRuntime();
                 }
-
                 imgui::EndFrame();
-
-                // 프레임 프레젠트
                 gfx::Frame(m_bVsync);
             }
         }

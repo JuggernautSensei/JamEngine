@@ -1,7 +1,8 @@
 #pragma once
+#include "Entity.h"
 
 // clang-format off
-namespace jam { class Script; class Entity; }
+namespace jam { class Script; }
 // clang-format on
 
 namespace jam
@@ -10,7 +11,7 @@ namespace jam
 struct ScriptInfo
 {
     std::string                                           name     = {};
-    std::function<std::shared_ptr<Script>(const Entity&)> createFn = nullptr;
+    std::function<std::shared_ptr<Script>(Entity)> createFn = nullptr;
 };
 
 namespace script_db
@@ -18,7 +19,7 @@ namespace script_db
     namespace details
     {
         template<typename T>
-        std::shared_ptr<Script> CreateScript(const Entity& e)
+        std::shared_ptr<Script> CreateScript(Entity e)
         {
             return std::make_shared<T>(e);
         }
@@ -35,7 +36,7 @@ namespace script_db
         Reflect(info);
     }
 
-    JAM_NODISCARD std::shared_ptr<Script> Create(std::string_view _name, const Entity& _entity);
+    JAM_NODISCARD std::shared_ptr<Script> Create(std::string_view _name, Entity _entity);
     JAM_NODISCARD const HashMap<UInt32, ScriptInfo>& GetAllScriptInfos();
 
 }   // namespace script_db
