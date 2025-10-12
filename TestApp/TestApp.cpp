@@ -1,340 +1,205 @@
 ﻿#include <cassert>
-#include <chrono>
-#include <cstddef>
 #include <iostream>
-#include <memory>
-#include <new>
-#include <random>
-#include <type_traits>
-#include <utility>
-#include <vector>
 
-template<typename T>
-struct ControlBlock
+template<typename T, size_t N>
+class power_of_2_circular_q
 {
-    int strong = 1;   // non-thread-safe
-    alignas(T) unsigned char storage[sizeof(T)];
+    static_assert((N & (N - 1)) == 0, "N must be a power of 2.");
+    constexpr static size_t k_mask = N - 1;
 
-    T*       ptr() noexcept { return reinterpret_cast<T*>(storage); }
-    const T* ptr() const noexcept { return reinterpret_cast<const T*>(storage); }
-};
+    template<bool IsConst>
+    class Iterator
+    {
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = T;
+        using pointer           = std::conditional_t<IsConst, const T*, T*>;
+        using reference         = std::conditional_t<IsConst, const T&, T&>;
+        using ContainerPointer  = std::conditional_t<IsConst, const power_of_2_circular_q*, power_of_2_circular_q*>;
 
-template<typename T>
-class SharedPtr
-{
+        Iterator(ContainerPointer buf, const size_t pos)
+            : m_buf(buf)
+            , m_pos(pos)
+        {
+        }
+
+        reference operator*() const noexcept
+        {
+            return (*m_buf)[m_pos];
+        }
+
+        pointer operator->() const noexcept
+        {
+            return &(*m_buf)[m_pos];
+        }
+
+        Iterator& operator++() noexcept
+        {
+            ++m_pos;
+            return *this;
+        }
+
+        Iterator operator++(int) noexcept
+        {
+            Iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        friend bool operator==(const Iterator& a, const Iterator& b) noexcept
+        {
+            return a.m_pos == b.m_pos && a.m_buf == b.m_buf;
+        }
+
+        friend bool operator!=(const Iterator& a, const Iterator& b) noexcept
+        {
+            return !(a == b);
+        }
+
+    private:
+        ContainerPointer m_buf = nullptr;
+        size_t           m_pos = 0;
+    };
+
 public:
-    SharedPtr() noexcept = default;
-    explicit SharedPtr(ControlBlock<T>* cb) noexcept
-        : cb_(cb)
+    using iterator = Iterator<false>;
+    using const_iterator = Iterator<true>;
+
+    template<typename U>
+        requires std::is_convertible_v<U, T>
+    void push(T&& _value)
     {
+        assert(!full() && "buffer is full. Cannot push_back.");
+        m_items[m_rear] = std::forward<U>(_value);
+        m_rear          = (m_rear + 1) & k_mask;
     }
 
-    SharedPtr(const SharedPtr& rhs) noexcept
-        : cb_(rhs.cb_)
+    void pop() noexcept
     {
-        retain_();
-    }
-    SharedPtr(SharedPtr&& rhs) noexcept
-        : cb_(rhs.cb_)
-    {
-        rhs.cb_ = nullptr;
-    }
-
-    template<class U>
-    SharedPtr(const SharedPtr<U>& rhs) noexcept
-        requires (std::is_convertible_v<U*, T*>)
-        : cb_(reinterpret_cast<ControlBlock<T>*>(rhs.cb_))
-    {
-        retain_();
-    }
-
-    ~SharedPtr() { release_(); }
-
-    SharedPtr& operator=(const SharedPtr& rhs) noexcept
-    {
-        if (this != &rhs)
+        assert(!empty() && "buffer is empty. Cannot pop.");
+        if constexpr (!std::is_trivially_destructible_v<T>)
         {
-            release_();
-            cb_ = rhs.cb_;
-            retain_();
+            std::destroy_at(&m_items[m_front]);
         }
-        return *this;
+        m_front = (m_front + 1) & k_mask;
     }
-    SharedPtr& operator=(SharedPtr&& rhs) noexcept
+
+    void clear() noexcept
     {
-        if (this != &rhs)
+        while (!empty())
         {
-            release_();
-            cb_     = rhs.cb_;
-            rhs.cb_ = nullptr;
+            pop();
         }
-        return *this;
+        m_front = 0;
+        m_rear  = 0;
     }
 
-    T* get() const noexcept
+    [[nodiscard]] T& front() noexcept
     {
-        return cb_ ? cb_->ptr() : nullptr;
-    }
-    T& operator*() const
-    {
-        return *cb_->ptr();
-    }
-    T* operator->() const
-    {
-        return cb_->ptr();
-    }
-    int      use_count() const noexcept { return cb_ ? cb_->strong : 0; }
-    explicit operator bool() const noexcept { return get() != nullptr; }
-
-    void reset() noexcept { release_(); }
-    void swap(SharedPtr& other) noexcept { std::swap(cb_, other.cb_); }
-
-    template<class... Args>
-    void reset_construct(Args&&... args)
-    {
-        release_();
-        void* mem = ::operator new(sizeof(ControlBlock<T>), static_cast<std::align_val_t>(alignof(ControlBlock<T>)));
-        auto* cb  = new (mem) ControlBlock<T>();   // strong = 1
-        try
-        {
-            std::construct_at(cb->ptr(), std::forward<Args>(args)...);
-        }
-        catch (...)
-        {
-            ::operator delete(mem, static_cast<std::align_val_t>(alignof(ControlBlock<T>)));
-            throw;
-        }
-        cb_ = cb;
+        assert(!empty() && "buffer is empty.");
+        return m_items[m_front];
     }
 
+    [[nodiscard]] const T& front() const noexcept
+    {
+        assert(!empty() && "buffer is empty.");
+        return m_items[m_front];
+    }
+
+    [[nodiscard]] T& back() noexcept
+    {
+        assert(!empty() && "buffer is empty.");
+        return m_items[(m_rear - 1) & k_mask];
+    }
+
+    [[nodiscard]] const T& back() const noexcept
+    {
+        assert(!empty() && "buffer is empty.");
+        return m_items[(m_rear - 1) & k_mask];
+    }
+
+    [[nodiscard]] T& at(const size_t _index) noexcept
+    {
+        assert(_index < size() && "index out of range.");
+        return m_items[(m_front + _index) & k_mask];
+    }
+
+    [[nodiscard]] const T& at(const size_t _index) const noexcept
+    {
+        assert(_index < size() && "index out of range.");
+        return m_items[(m_front + _index) & k_mask];
+    }
+
+    [[nodiscard]] T& operator[](size_t _index) noexcept
+    {
+        assert(_index < size() && "index out of range.");
+        return m_items[(m_front + _index) & k_mask];
+    }
+
+    [[nodiscard]] const T& operator[](size_t _index) const noexcept
+    {
+        assert(_index < size() && "index out of range.");
+        return m_items[(m_front + _index) & k_mask];
+    }
+
+    [[nodiscard]] bool empty() const noexcept
+    {
+        return m_front == m_rear;
+    }
+
+    [[nodiscard]] bool full() const noexcept
+    {
+        return ((m_rear + 1) & k_mask) == m_front;
+    }
+
+    [[nodiscard]] size_t size() const noexcept
+    {
+        return (m_rear + N - m_front) & k_mask;
+    }
+
+    [[nodiscard]] static constexpr size_t capacity() noexcept
+    {
+        return N;
+    }
+
+    [[nodiscard]] static constexpr size_t max_size() noexcept
+    {
+        return N;
+    }
+
+    [[nodiscard]] iterator begin() noexcept
+    {
+        return iterator(this, 0);
+    }
+
+    [[nodiscard]] iterator end() noexcept
+    {
+        return iterator(this, size());
+    }
+
+    [[nodiscard]] const_iterator begin() const noexcept
+    {
+        return const_iterator(this, 0);
+    }
+
+    [[nodiscard]] const_iterator end() const noexcept
+    {
+        return const_iterator(this, size());
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+        return const_iterator(this, 0);
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+        return const_iterator(this, size());
+    }
+ 
 private:
-    template<class U>
-    friend class SharedPtr;
-
-    void retain_() noexcept
-    {
-        if (cb_) ++cb_->strong;
-    }
-
-    void release_() noexcept
-    {
-        if (!cb_) return;
-        assert(cb_->strong > 0);
-        if (--cb_->strong == 0)
-        {
-            if constexpr (!std::is_trivially_destructible_v<T>)
-            {
-                std::destroy_at(cb_->ptr());
-            }
-            ::operator delete(static_cast<void*>(cb_), std::align_val_t(alignof(ControlBlock<T>)));
-        }
-        cb_ = nullptr;
-    }
-
-    ControlBlock<T>* cb_ = nullptr;
+    T      m_items[N] = {};
+    size_t m_front    = 0;
+    size_t m_rear     = 0;
 };
-
-template<typename T, typename... Args>
-SharedPtr<T> MakeShared(Args&&... args)
-{
-    void* mem = ::operator new(sizeof(ControlBlock<T>), std::align_val_t(alignof(ControlBlock<T>)));
-    auto* cb  = new (mem) ControlBlock<T>();   // strong = 1
-    try
-    {
-        std::construct_at(cb->ptr(), std::forward<Args>(args)...);
-    }
-    catch (...)
-    {
-        ::operator delete(mem, std::align_val_t(alignof(ControlBlock<T>)));
-        throw;
-    }
-    return SharedPtr<T>(cb);
-}
-
-// 벤치마크용 테스트 클래스
-struct TestObject
-{
-    int data[10];
-    TestObject(int val = 42)
-    {
-        for (int& d: data)
-            d = val;
-    }
-    ~TestObject() = default;
-};
-
-// 벤치마크 헬퍼 함수
-template<typename Func>
-double BenchmarkTime(Func&& func, int iterations = 1000000)
-{
-    auto start = std::chrono::high_resolution_clock::now();
-    func(iterations);
-    auto end = std::chrono::high_resolution_clock::now();
-    return std::chrono::duration<double, std::milli>(end - start).count();
-}
-
-void TestCreationPerformance()
-{
-    std::cout << "=== 생성 성능 테스트 ===\n";
-
-    // 커스텀 SharedPtr 생성
-    auto customTime = BenchmarkTime([](int iterations)
-                                    {
-        for (int i = 0; i < iterations; ++i) {
-            auto ptr = MakeShared<TestObject>(i);
-            (void)ptr; // 최적화 방지
-        } });
-
-    // std::shared_ptr 생성
-    auto stdTime = BenchmarkTime([](int iterations)
-                                 {
-        for (int i = 0; i < iterations; ++i) {
-            auto ptr = std::make_shared<TestObject>(i);
-            (void)ptr; // 최적화 방지
-        } });
-
-    std::cout << "커스텀 SharedPtr: " << customTime << "ms\n";
-    std::cout << "std::shared_ptr: " << stdTime << "ms\n";
-    std::cout << "성능 비율: " << (customTime / stdTime) << "x\n\n";
-}
-
-void TestCopyPerformance()
-{
-    std::cout << "=== 복사 성능 테스트 ===\n";
-
-    auto customPtr = MakeShared<TestObject>();
-    auto stdPtr    = std::make_shared<TestObject>();
-
-    // 커스텀 SharedPtr 복사
-    auto customTime = BenchmarkTime([&](int iterations)
-                                    {
-        for (int i = 0; i < iterations; ++i) {
-            auto copy = customPtr;
-            (void)copy; // 최적화 방지
-        } });
-
-    // std::shared_ptr 복사
-    auto stdTime = BenchmarkTime([&](int iterations)
-                                 {
-        for (int i = 0; i < iterations; ++i) {
-            auto copy = stdPtr;
-            (void)copy; // 최적화 방지
-        } });
-
-    std::cout << "커스텀 SharedPtr: " << customTime << "ms\n";
-    std::cout << "std::shared_ptr: " << stdTime << "ms\n";
-    std::cout << "성능 비율: " << (customTime / stdTime) << "x\n\n";
-}
-
-void TestAccessPerformance()
-{
-    std::cout << "=== 접근 성능 테스트 ===\n";
-
-    auto customPtr = MakeShared<TestObject>();
-    auto stdPtr    = std::make_shared<TestObject>();
-
-    // 커스텀 SharedPtr 접근
-    auto customTime = BenchmarkTime([&](int iterations)
-                                    {
-        volatile int sum = 0;
-        for (int i = 0; i < iterations; ++i) {
-            sum += customPtr->data[0];
-        } });
-
-    // std::shared_ptr 접근
-    auto stdTime = BenchmarkTime([&](int iterations)
-                                 {
-        volatile int sum = 0;
-        for (int i = 0; i < iterations; ++i) {
-            sum += stdPtr->data[0];
-        } });
-
-    std::cout << "커스텀 SharedPtr: " << customTime << "ms\n";
-    std::cout << "std::shared_ptr: " << stdTime << "ms\n";
-    std::cout << "성능 비율: " << (customTime / stdTime) << "x\n\n";
-}
-
-void TestMemoryUsage()
-{
-    std::cout << "=== 메모리 사용량 비교 ===\n";
-
-    std::cout << "sizeof(SharedPtr<TestObject>): " << sizeof(SharedPtr<TestObject>) << " bytes\n";
-    std::cout << "sizeof(std::shared_ptr<TestObject>): " << sizeof(std::shared_ptr<TestObject>) << " bytes\n";
-    std::cout << "sizeof(ControlBlock<TestObject>): " << sizeof(ControlBlock<TestObject>) << " bytes\n";
-
-    // std::shared_ptr의 control block 크기는 구현에 따라 다름
-    std::cout << "TestObject 크기: " << sizeof(TestObject) << " bytes\n\n";
-}
-
-void TestContainerPerformance()
-{
-    std::cout << "=== 컨테이너 성능 테스트 ===\n";
-    const int container_size = 100000;
-
-    // 커스텀 SharedPtr 벡터
-    auto customTime = BenchmarkTime([&](int iterations)
-                                    {
-        for (int iter = 0; iter < iterations / 100; ++iter) {
-            std::vector<SharedPtr<TestObject>> vec;
-            vec.reserve(container_size);
-            
-            auto basePtr = MakeShared<TestObject>();
-            for (int i = 0; i < container_size; ++i) {
-                vec.push_back(basePtr);
-            }
-            
-            // 벡터 순회
-            volatile int sum = 0;
-            for (const auto& ptr : vec) {
-                sum += ptr->data[0];
-            }
-        } },
-                                    100);
-
-    // std::shared_ptr 벡터
-    auto stdTime = BenchmarkTime([&](int iterations)
-                                 {
-        for (int iter = 0; iter < iterations / 100; ++iter) {
-            std::vector<std::shared_ptr<TestObject>> vec;
-            vec.reserve(container_size);
-            
-            auto basePtr = std::make_shared<TestObject>();
-            for (int i = 0; i < container_size; ++i) {
-                vec.push_back(basePtr);
-            }
-            
-            // 벡터 순회
-            volatile int sum = 0;
-            for (const auto& ptr : vec) {
-                sum += ptr->data[0];
-            }
-        } },
-                                 100);
-
-    std::cout << "커스텀 SharedPtr: " << customTime << "ms\n";
-    std::cout << "std::shared_ptr: " << stdTime << "ms\n";
-    std::cout << "성능 비율: " << (customTime / stdTime) << "x\n\n";
-}
-
-int main()
-{
-    std::cout << "SharedPtr vs std::shared_ptr 성능 비교\n";
-    std::cout << "======================================\n\n";
-
-    TestMemoryUsage();
-    TestCreationPerformance();
-    TestCopyPerformance();
-    TestAccessPerformance();
-    TestContainerPerformance();
-
-    std::cout << "=== 분석 결과 ===\n";
-    std::cout << "커스텀 SharedPtr의 특징:\n";
-    std::cout << "✓ 단일 메모리 할당으로 더 나은 캐시 지역성\n";
-    std::cout << "✓ 스레드 안전성 없음으로 인한 오버헤드 감소\n";
-    std::cout << "✓ weak_ptr 미지원으로 인한 단순한 구조\n";
-    std::cout << "⚠ 스레드 안전성 부족\n";
-    std::cout << "⚠ weak_ptr 미지원\n";
-    std::cout << "⚠ 표준 라이브러리 호환성 부족\n";
-
-    return 0;
-}

@@ -250,12 +250,13 @@ enum eShaderCompileFlags_ : UInt8
     eShaderCompileFlags_PackMatrixRowMajor    = 1 << 5,   // 행 우선 행렬 패킹
     eShaderCompileFlags_PackMatrixColumnMajor = 1 << 6,   // 열 우선 행렬 패킹
 
-    eShaderCompileFlags_Default = 0
+    eShaderCompileFlags_DebugDefault   = eShaderCompileFlags_Debug | eShaderCompileFlags_WarningsAsErrors,
+    eShaderCompileFlags_ReleaseDefault = eShaderCompileFlags_Optimization,
+
 #ifdef JAM_DEBUG
-                                | eShaderCompileFlags_Debug
-                                | eShaderCompileFlags_WarningsAsErrors
+    eShaderCompileFlags_Default = eShaderCompileFlags_DebugDefault,
 #else
-                                | eShaderCompileFlags_Optimization
+    eShaderCompileFlags_Default = eShaderCompileFlags_ReleaseDefault,
 #endif
 };
 using eShaderCompileFlags = UInt8;

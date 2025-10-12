@@ -157,12 +157,6 @@
     <ClCompile Include="ImageImporter.cpp">
       <Filter>2. Graphics\Utilities\IO</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderExporter.cpp">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderImporter.cpp">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderCompiler.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
@@ -223,7 +217,7 @@
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>4. Scene\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="fixed_circular_q.cpp">
+    <ClCompile Include="power_of_2_fixed_circular_q.cpp">
       <Filter>99. Utilities\Container\ring_buffer</Filter>
     </ClCompile>
     <ClCompile Include="vendor\tinyfiledialogs\tinyfiledialogs.c">
@@ -563,16 +557,10 @@
     <ClInclude Include="IImporter.h">
       <Filter>99. Utilities\IO</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderImporter.h">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClInclude>
     <ClInclude Include="ImageExporter.h">
       <Filter>2. Graphics\Utilities\IO</Filter>
     </ClInclude>
     <ClInclude Include="ImageImporter.h">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderExporter.h">
       <Filter>2. Graphics\Utilities\IO</Filter>
     </ClInclude>
     <ClInclude Include="ShaderCompiler.h">
@@ -650,7 +638,7 @@
     <ClInclude Include="json.h">
       <Filter>99. Utilities\Serialize</Filter>
     </ClInclude>
-    <ClInclude Include="fixed_circular_q.h">
+    <ClInclude Include="power_of_2_fixed_circular_q.h">
       <Filter>99. Utilities\Container\ring_buffer</Filter>
     </ClInclude>
     <ClInclude Include="vendor\unordered_dense\unordered_dense.h">

@@ -38,6 +38,17 @@ JAM_NODISCARD constexpr Result<E> EnumFromInt(std::underlying_type_t<E> _value) 
 }
 
 template<typename E>
+JAM_NODISCARD constexpr E EnumFromInt(std::underlying_type_t<E> _value, E _defaultIfFail) noexcept
+{
+    auto [ec, v] = EnumFromInt<E>(_value);
+    if (IsError(ec))
+    {
+        return _defaultIfFail;
+    }
+    return v;
+}
+
+template<typename E>
 JAM_NODISCARD constexpr Result<E> EnumFromString(const std::string_view _value) noexcept
 {
     if (auto e = magic_enum::enum_cast<E>(_value))
@@ -48,6 +59,17 @@ JAM_NODISCARD constexpr Result<E> EnumFromString(const std::string_view _value) 
     {
         return eErrorCode::InvalidArgument;
     }
+}
+
+template<typename E>
+JAM_NODISCARD constexpr E EnumFromString(const std::string_view _value, E _defaultIfFail) noexcept
+{
+    auto [ec, v] = EnumFromString<E>(_value);
+    if (IsError(ec))
+    {
+        return _defaultIfFail;
+    }
+    return v;
 }
 
 template<typename E>

@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "Logger.h"
-
 #include "Timer.h"
 
 #include <spdlog/async.h>
@@ -17,20 +16,31 @@ constexpr const char* const k_defaultLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%
 
 struct LogContext
 {
-    void UpateLogger() const
+    void UpdateLogger()
     {
+        if (!spdlog::thread_pool())
+        {
+            spdlog::init_thread_pool(8192, 1);
+        }
+
         std::vector<spdlog::sink_ptr> sinks;
         sinks.reserve(sinkMap.size());
-        for (const std::shared_ptr<spdlog::sinks::sink>& sink: sinkMap | std::views::values)
+        for (const spdlog::sink_ptr& sink: sinkMap | std::views::values)
         {
             sinks.push_back(sink);
         }
-        std::shared_ptr<spdlog::async_logger> newLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-        spdlog::set_default_logger(newLogger);
+     
+        auto newLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+        newLogger->set_level(globalLevel);
+        newLogger->set_pattern(globalPattern);
+        spdlog::set_default_logger(std::move(newLogger));
     }
 
     HashMap<std::string, spdlog::sink_ptr> sinkMap;
+    std::string                            globalPattern = k_defaultLogPattern;
+    spdlog::level::level_enum              globalLevel   = spdlog::level::trace;
 };
+
 static LogContext g_loggerCtx;
 
 //////////////////////////////////////////////////////////////
@@ -40,39 +50,38 @@ namespace jam::logger
 
 void Init()
 {
-    // 기본적으로 비동기 로깅 지원
-    spdlog::init_thread_pool(8192, 1);
-
-    // 파일 싱크 이름 생성
     TimeStamp   time     = TimeStamp::Current();
-    std::string filename = std::format("logs/{:04}-{:02}-{:02}/{:02}h {:02}m {:02}.{:03}s.txt", time.year, time.month, time.day, time.hour, time.minute, time.second, time.millisecond);
+    std::string filename = std::format(
+        "logs/{:04}-{:02}-{:02}/{:02}h {:02}m {:02}.{:03}s.txt",
+        time.year,
+        time.month,
+        time.day,
+        time.hour,
+        time.minute,
+        time.second,
+        time.millisecond);
 
-    spdlog::sink_ptr consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    spdlog::sink_ptr fileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
-
-    consoleSink->set_level(spdlog::level::debug);
+    auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto fileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
 
     AddSink(k_consoleSinkName, consoleSink);
     AddSink(k_fileSinkName, fileSink);
-
-    SetLogLevel(eLogLevel::Trace);
-    SetLogPattern(k_defaultLogPattern);
-    JAM_LOGGER_DEBUG("log initialize done.");
+    JAM_LOGGER_DEBUG("Logger initialized successfully.");
 }
 
 void Shutdown()
 {
-    JAM_LOGGER_DEBUG("logger shutdown start.");
+    JAM_LOGGER_DEBUG("Logger shutting down...");
+    spdlog::default_logger()->flush();
     g_loggerCtx.sinkMap.clear();
     spdlog::shutdown();
 }
 
 void AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink)
 {
-    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
-    JAM_ASSERT(it == g_loggerCtx.sinkMap.end(), "Sink already exists: {}", _sinkName);
-    g_loggerCtx.sinkMap[std::string(_sinkName)] = _sink;
-    g_loggerCtx.UpateLogger();
+    JAM_ASSERT(!g_loggerCtx.sinkMap.contains(std::string(_sinkName)), "Sink already exists: {}", _sinkName);
+    g_loggerCtx.sinkMap.emplace(std::string(_sinkName), _sink);
+    g_loggerCtx.UpdateLogger();
 }
 
 void RemoveSink(std::string_view _sinkName)
@@ -80,45 +89,48 @@ void RemoveSink(std::string_view _sinkName)
     auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
     JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
     g_loggerCtx.sinkMap.erase(it);
-    g_loggerCtx.UpateLogger();
+    g_loggerCtx.UpdateLogger();
 }
 
 const std::shared_ptr<spdlog::sinks::sink>& GetSink(std::string_view _sinkName)
 {
-    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
-    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
-    return it->second;
+    std::string key { _sinkName };
+    JAM_ASSERT(g_loggerCtx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    return g_loggerCtx.sinkMap[key];
 }
 
 void SetLogLevel(eLogLevel _level)
 {
-    spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-    spdlog::set_level(level);
+    g_loggerCtx.globalLevel = static_cast<spdlog::level::level_enum>(_level);
+    spdlog::set_level(g_loggerCtx.globalLevel);
 }
 
 void SetLogLevel(std::string_view _sinkName, eLogLevel _level)
 {
-    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
-    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
-    spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-    it->second->set_level(level);
+    std::string key { _sinkName };
+    JAM_ASSERT(g_loggerCtx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    g_loggerCtx.sinkMap[key]->set_level(static_cast<spdlog::level::level_enum>(_level));
 }
 
 void SetLogPattern(std::string_view _sinkName, const std::string_view _pattern)
 {
-    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
-    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
-    it->second->set_pattern(std::string(_pattern));
+    std::string key { _sinkName };
+    JAM_ASSERT(g_loggerCtx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    g_loggerCtx.sinkMap[key]->set_pattern(std::string(_pattern));
 }
 
 void SetLogPattern(const std::string_view _pattern)
 {
-    spdlog::set_pattern(std::string(_pattern));
+    g_loggerCtx.globalPattern = std::string(_pattern);
+    spdlog::set_pattern(g_loggerCtx.globalPattern);
 }
 
 void Flush()
 {
-    spdlog::default_logger()->flush();
+    if (const auto& logger = spdlog::default_logger())
+    {
+        logger->flush();
+    }
 }
 
 }   // namespace jam::logger

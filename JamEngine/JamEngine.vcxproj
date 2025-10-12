@@ -224,7 +224,7 @@
     <ClCompile Include="AssimpImporter.cpp" />
     <ClCompile Include="ComponentDB.cpp" />
     <ClCompile Include="Editor.cpp" />
-    <ClCompile Include="fixed_circular_q.cpp" />
+    <ClCompile Include="power_of_2_fixed_circular_q.cpp" />
     <ClCompile Include="fixed_string.cpp" />
     <ClCompile Include="IAsset.cpp" />
     <ClCompile Include="BaseUtilities.cpp" />
@@ -272,8 +272,6 @@
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
-    <ClCompile Include="ShaderExporter.cpp" />
-    <ClCompile Include="ShaderImporter.cpp" />
     <ClCompile Include="ShaderRegistry.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Components.cpp" />
@@ -329,7 +327,7 @@
     <ClInclude Include="ComponentDB.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="FileSystem.h" />
-    <ClInclude Include="fixed_circular_q.h" />
+    <ClInclude Include="power_of_2_fixed_circular_q.h" />
     <ClInclude Include="fixed_string.h" />
     <ClInclude Include="HashMap.h" />
     <ClInclude Include="IAsset.h" />
@@ -367,8 +365,6 @@
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="ShaderCompiler.h" />
-    <ClInclude Include="ShaderExporter.h" />
-    <ClInclude Include="ShaderImporter.h" />
     <ClInclude Include="ShaderRegistry.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Components.h" />

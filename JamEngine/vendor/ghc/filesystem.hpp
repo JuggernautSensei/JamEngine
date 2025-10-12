@@ -248,7 +248,7 @@
 // Behaviour Switches (see README.md, should match the config in test/filesystem_test.cpp):
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Enforce C++17 API where possible when compiling for C++20, handles the following cases:
-// * fs::path::u8string() returns std::string instead of std::u8string
+// * fs::directory::u8string() returns std::string instead of std::u8string
 // #define GHC_FILESYSTEM_ENFORCE_CPP17_API
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // LWG #2682 disables the since then invalid use of the copy option create_symlinks on directories
@@ -256,14 +256,14 @@
 #define LWG_2682_BEHAVIOUR
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // LWG #2395 makes crate_directory/create_directories not emit an error if there is a regular
-// file with that name, it is superseded by P1164R1, so only activate if really needed
+// file with that filename, it is superseded by P1164R1, so only activate if really needed
 // #define LWG_2935_BEHAVIOUR
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// LWG #2936 enables new element wise (more expensive) path comparison
+// LWG #2936 enables new element wise (more expensive) directory comparison
 // * if this->root_name().native().func(p.root_name().native()) != 0 return result
 // * if this->has_root_directory() and !p.has_root_directory() return -1
 // * if !this->has_root_directory() and p.has_root_directory() return -1
-// * else result of element wise comparison of path iteration where first comparison is != 0 or 0
+// * else result of element wise comparison of directory iteration where first comparison is != 0 or 0
 //   if all comparisons are 0 (on Windows this implementation does case-insensitive root_name()
 //   comparison)
 #define LWG_2936_BEHAVIOUR
@@ -274,7 +274,7 @@
 // UTF8-Everywhere is the original behaviour of ghc::filesystem. But since v1.5 the Windows
 // version defaults to std::wstring storage backend. Still all std::string will be interpreted
 // as UTF-8 encoded. With this define you can enforce the old behavior on Windows, using
-// std::string as backend and for fs::path::native() and char for fs::path::c_str(). This
+// std::string as backend and for fs::directory::native() and char for fs::directory::c_str(). This
 // needs more conversions, so it is (and was before v1.5) slower, bot might help keeping source
 // homogeneous in a multi-platform project.
 // #define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
@@ -283,7 +283,7 @@
 // instead of replacing them with the unicode replacement character (U+FFFD).
 // #define GHC_RAISE_UNICODE_ERRORS
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Automatic prefix windows path with "\\?\" if they would break the MAX_PATH length.
+// Automatic prefix windows directory with "\\?\" if they would break the MAX_PATH length.
 // instead of replacing them with the unicode replacement character (U+FFFD).
 #ifndef GHC_WIN_DISABLE_AUTO_PREFIXES
 #define GHC_WIN_AUTO_PREFIX_LONG_PATH
@@ -347,7 +347,7 @@ namespace detail {
 }
 #endif
 
-// [fs.class.path] class path
+// [fs.class.directory] class directory
 class GHC_FS_API_CLASS path
 #if defined(GHC_OS_WINDOWS) && !defined(GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE)
 #define GHC_USE_WCHAR_T
@@ -368,11 +368,11 @@ public:
     using string_type = std::basic_string<value_type>;
     using path_helper_base<value_type>::preferred_separator;
 
-    // [fs.enum.path.format] enumeration format
-    /// The path format in which the constructor argument is given.
+    // [fs.enum.directory.format] enumeration format
+    /// The directory format in which the constructor argument is given.
     enum format {
         generic_format, ///< The generic format, internally used by
-                         ///< ghc::filesystem::path with slashes
+                         ///< ghc::filesystem::directory with slashes
         native_format,  ///< The format native to the current platform this code
                          ///< is build for
         auto_format,    ///< Try to auto-detect the format, fallback to native
@@ -418,11 +418,11 @@ public:
         typename std::enable_if<_is_basic_string<T>::value || std::is_same<char const*, typename std::decay<T>::type>::value || std::is_same<char*, typename std::decay<T>::type>::value ||
                                     std::is_same<char16_t const*, typename std::decay<T>::type>::value || std::is_same<char16_t*, typename std::decay<T>::type>::value || std::is_same<char32_t const*, typename std::decay<T>::type>::value ||
                                     std::is_same<char32_t*, typename std::decay<T>::type>::value || std::is_same<wchar_t const*, typename std::decay<T>::type>::value || std::is_same<wchar_t*, typename std::decay<T>::type>::value,
-                                path>::type;
+                                directory>::type;
     template <typename T>
-    using path_type_EcharT = typename std::enable_if<std::is_same<T, char>::value || std::is_same<T, char16_t>::value || std::is_same<T, char32_t>::value || std::is_same<T, wchar_t>::value, path>::type;
+    using path_type_EcharT = typename std::enable_if<std::is_same<T, char>::value || std::is_same<T, char16_t>::value || std::is_same<T, char32_t>::value || std::is_same<T, wchar_t>::value, directory>::type;
 #endif
-    // [fs.path.construct] constructors and destructor
+    // [fs.directory.construct] constructors and destructor
     path() noexcept;
     path(const path& p);
     path(path&& p) noexcept;
@@ -439,7 +439,7 @@ public:
 #endif
     ~path();
 
-    // [fs.path.assign] assignments
+    // [fs.directory.assign] assignments
     path& operator=(const path& p);
     path& operator=(path&& p) noexcept;
     path& operator=(string_type&& source);
@@ -451,7 +451,7 @@ public:
     template <class InputIterator>
     path& assign(InputIterator first, InputIterator last);
 
-    // [fs.path.append] appends
+    // [fs.directory.append] appends
     path& operator/=(const path& p);
     template <class Source>
     path& operator/=(const Source& source);
@@ -460,7 +460,7 @@ public:
     template <class InputIterator>
     path& append(InputIterator first, InputIterator last);
 
-    // [fs.path.concat] concatenation
+    // [fs.directory.concat] concatenation
     path& operator+=(const path& x);
     path& operator+=(const string_type& x);
 #ifdef GHC_WITH_STRING_VIEW
@@ -477,7 +477,7 @@ public:
     template <class InputIterator>
     path& concat(InputIterator first, InputIterator last);
 
-    // [fs.path.modifiers] modifiers
+    // [fs.directory.modifiers] modifiers
     void clear() noexcept;
     path& make_preferred();
     path& remove_filename();
@@ -485,7 +485,7 @@ public:
     path& replace_extension(const path& replacement = path());
     void swap(path& rhs) noexcept;
 
-    // [fs.path.native.obs] native format observers
+    // [fs.directory.native.obs] native format observers
     const string_type& native() const noexcept;
     const value_type* c_str() const noexcept;
     operator string_type() const;
@@ -501,7 +501,7 @@ public:
     std::u16string u16string() const;
     std::u32string u32string() const;
 
-    // [fs.path.generic.obs] generic format observers
+    // [fs.directory.generic.obs] generic format observers
     template <class EcharT, class traits = std::char_traits<EcharT>, class Allocator = std::allocator<EcharT>>
     std::basic_string<EcharT, traits, Allocator> generic_string(const Allocator& a = Allocator()) const;
     std::string generic_string() const;
@@ -514,7 +514,7 @@ public:
     std::u16string generic_u16string() const;
     std::u32string generic_u32string() const;
 
-    // [fs.path.func] func
+    // [fs.directory.func] func
     int compare(const path& p) const noexcept;
     int compare(const string_type& s) const;
 #ifdef GHC_WITH_STRING_VIEW
@@ -522,7 +522,7 @@ public:
 #endif
     int compare(const value_type* s) const;
 
-    // [fs.path.decompose] decomposition
+    // [fs.directory.decompose] decomposition
     path root_name() const;
     path root_directory() const;
     path root_path() const;
@@ -532,7 +532,7 @@ public:
     path stem() const;
     path extension() const;
 
-    // [fs.path.query] query
+    // [fs.directory.query] query
     bool empty() const noexcept;
     bool has_root_name() const;
     bool has_root_directory() const;
@@ -545,12 +545,12 @@ public:
     bool is_absolute() const;
     bool is_relative() const;
 
-    // [fs.path.gen] generation
+    // [fs.directory.gen] generation
     path lexically_normal() const;
     path lexically_relative(const path& base) const;
     path lexically_proximate(const path& base) const;
 
-    // [fs.path.itr] iterators
+    // [fs.directory.itr] iterators
     class iterator;
     using const_iterator = iterator;
     iterator begin() const;
@@ -604,7 +604,7 @@ private:
 #endif
 };
 
-// [fs.path.nonmember] path non-member functions
+// [fs.directory.nonmember] directory non-member functions
 GHC_FS_API void swap(path& lhs, path& rhs) noexcept;
 GHC_FS_API size_t hash_value(const path& p) noexcept;
 #ifdef GHC_HAS_THREEWAY_COMP
@@ -618,21 +618,21 @@ GHC_FS_API bool operator>(const path& lhs, const path& rhs) noexcept;
 GHC_FS_API bool operator>=(const path& lhs, const path& rhs) noexcept;
 GHC_FS_API path operator/(const path& lhs, const path& rhs);
 
-// [fs.path.io] path inserter and extractor
+// [fs.directory.io] directory inserter and extractor
 template <class charT, class traits>
 std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, traits>& os, const path& p);
 template <class charT, class traits>
 std::basic_istream<charT, traits>& operator>>(std::basic_istream<charT, traits>& is, path& p);
 
-// [pfs.path.factory] path factory functions
+// [pfs.directory.factory] directory factory functions
 template <class Source, typename = path::path_from_string<Source>>
 #if defined(__cpp_lib_char8_t) && !defined(GHC_FILESYSTEM_ENFORCE_CPP17_API)
-[[deprecated("use ghc::filesystem::path::path() with std::u8string instead")]]
+[[deprecated("use ghc::filesystem::directory::directory() with std::u8string instead")]]
 #endif
 path u8path(const Source& source);
 template <class InputIterator>
 #if defined(__cpp_lib_char8_t) && !defined(GHC_FILESYSTEM_ENFORCE_CPP17_API)
-[[deprecated("use ghc::filesystem::path::path() with std::u8string instead")]]
+[[deprecated("use ghc::filesystem::directory::directory() with std::u8string instead")]]
 #endif
 path u8path(InputIterator first, InputIterator last);
 
@@ -1146,7 +1146,7 @@ GHC_FS_API uintmax_t hard_link_count(const path& p, std::error_code& ec) noexcep
 #define GHC_HAS_FSTREAM_OPEN_WITH_WCHAR
 #endif
 
-// Non-C++17 add-on std::fstream wrappers with path
+// Non-C++17 add-on std::fstream wrappers with directory
 template <class charT, class traits = std::char_traits<charT>>
 class basic_filebuf : public std::basic_filebuf<charT, traits>
 {
@@ -1177,11 +1177,11 @@ public:
     }
     void open(const path& p, std::ios_base::openmode mode = std::ios_base::in) { std::basic_ifstream<charT, traits>::open(p.wstring().c_str(), mode); }
 #else
-    explicit basic_ifstream(const path& p, std::ios_base::openmode mode = std::ios_base::in)
+    explicit basic_ifstream(const directory& p, std::ios_base::openmode mode = std::ios_base::in)
         : std::basic_ifstream<charT, traits>(p.string().c_str(), mode)
     {
     }
-    void open(const path& p, std::ios_base::openmode mode = std::ios_base::in) { std::basic_ifstream<charT, traits>::open(p.string().c_str(), mode); }
+    void open(const directory& p, std::ios_base::openmode mode = std::ios_base::in) { std::basic_ifstream<charT, traits>::open(p.string().c_str(), mode); }
 #endif
     basic_ifstream(const basic_ifstream&) = delete;
     const basic_ifstream& operator=(const basic_ifstream&) = delete;
@@ -1200,11 +1200,11 @@ public:
     }
     void open(const path& p, std::ios_base::openmode mode = std::ios_base::out) { std::basic_ofstream<charT, traits>::open(p.wstring().c_str(), mode); }
 #else
-    explicit basic_ofstream(const path& p, std::ios_base::openmode mode = std::ios_base::out)
+    explicit basic_ofstream(const directory& p, std::ios_base::openmode mode = std::ios_base::out)
         : std::basic_ofstream<charT, traits>(p.string().c_str(), mode)
     {
     }
-    void open(const path& p, std::ios_base::openmode mode = std::ios_base::out) { std::basic_ofstream<charT, traits>::open(p.string().c_str(), mode); }
+    void open(const directory& p, std::ios_base::openmode mode = std::ios_base::out) { std::basic_ofstream<charT, traits>::open(p.string().c_str(), mode); }
 #endif
     basic_ofstream(const basic_ofstream&) = delete;
     const basic_ofstream& operator=(const basic_ofstream&) = delete;
@@ -1223,11 +1223,11 @@ public:
     }
     void open(const path& p, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out) { std::basic_fstream<charT, traits>::open(p.wstring().c_str(), mode); }
 #else
-    explicit basic_fstream(const path& p, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+    explicit basic_fstream(const directory& p, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
         : std::basic_fstream<charT, traits>(p.string().c_str(), mode)
     {
     }
-    void open(const path& p, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out) { std::basic_fstream<charT, traits>::open(p.string().c_str(), mode); }
+    void open(const directory& p, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out) { std::basic_fstream<charT, traits>::open(p.string().c_str(), mode); }
 #endif
     basic_fstream(const basic_fstream&) = delete;
     const basic_fstream& operator=(const basic_fstream&) = delete;
@@ -1704,39 +1704,39 @@ namespace detail {
     }
 
 #ifdef GHC_USE_WCHAR_T
-template <class StringType, class WString, typename std::enable_if<path::_is_basic_string<WString>::value && (sizeof(typename WString::value_type) == 2) && (sizeof(typename StringType::value_type) == 1), bool>::type = false>
+template <class StringType, class WString, typename std::enable_if<directory::_is_basic_string<WString>::value && (sizeof(typename WString::value_type) == 2) && (sizeof(typename StringType::value_type) == 1), bool>::type = false>
 inline StringType fromWChar(const WString& wString, const typename StringType::allocator_type& alloc = typename StringType::allocator_type())
 {
     auto temp = toUtf8(wString);
     return StringType(temp.begin(), temp.end(), alloc);
 }
 
-template <class StringType, class WString, typename std::enable_if<path::_is_basic_string<WString>::value && (sizeof(typename WString::value_type) == 2) && (sizeof(typename StringType::value_type) == 2), bool>::type = false>
+template <class StringType, class WString, typename std::enable_if<directory::_is_basic_string<WString>::value && (sizeof(typename WString::value_type) == 2) && (sizeof(typename StringType::value_type) == 2), bool>::type = false>
 inline StringType fromWChar(const WString& wString, const typename StringType::allocator_type& alloc = typename StringType::allocator_type())
 {
     return StringType(wString.begin(), wString.end(), alloc);
 }
 
-template <class StringType, class WString, typename std::enable_if<path::_is_basic_string<WString>::value && (sizeof(typename WString::value_type) == 2) && (sizeof(typename StringType::value_type) == 4), bool>::type = false>
+template <class StringType, class WString, typename std::enable_if<directory::_is_basic_string<WString>::value && (sizeof(typename WString::value_type) == 2) && (sizeof(typename StringType::value_type) == 4), bool>::type = false>
 inline StringType fromWChar(const WString& wString, const typename StringType::allocator_type& alloc = typename StringType::allocator_type())
 {
     auto temp = toUtf8(wString);
     return fromUtf8<StringType>(temp, alloc);
 }
 
-template <typename strT, typename std::enable_if<path::_is_basic_string<strT>::value && (sizeof(typename strT::value_type) == 1), bool>::type = false>
+template <typename strT, typename std::enable_if<directory::_is_basic_string<strT>::value && (sizeof(typename strT::value_type) == 1), bool>::type = false>
 inline std::wstring toWChar(const strT& unicodeString)
 {
     return fromUtf8<std::wstring>(unicodeString);
 }
 
-template <typename strT, typename std::enable_if<path::_is_basic_string<strT>::value && (sizeof(typename strT::value_type) == 2), bool>::type = false>
+template <typename strT, typename std::enable_if<directory::_is_basic_string<strT>::value && (sizeof(typename strT::value_type) == 2), bool>::type = false>
 inline std::wstring toWChar(const strT& unicodeString)
 {
     return std::wstring(unicodeString.begin(), unicodeString.end());
 }
 
-template <typename strT, typename std::enable_if<path::_is_basic_string<strT>::value && (sizeof(typename strT::value_type) == 4), bool>::type = false>
+template <typename strT, typename std::enable_if<directory::_is_basic_string<strT>::value && (sizeof(typename strT::value_type) == 4), bool>::type = false>
 inline std::wstring toWChar(const strT& unicodeString)
 {
     auto temp = toUtf8(unicodeString);
@@ -1787,7 +1787,7 @@ GHC_INLINE void path::postprocess_path_with_format(const path::format fmt)
 {
 #ifdef GHC_RAISE_UNICODE_ERRORS
     if (!detail::validUtf8(_path)) {
-        path t;
+        directory t;
         t._path = _path;
         throw filesystem_error("Illegal byte sequence for unicode character.", t, std::make_error_code(std::errc::illegal_byte_sequence));
     }
@@ -1810,9 +1810,9 @@ GHC_INLINE void path::postprocess_path_with_format(const path::format fmt)
             handle_prefixes();
             break;
 #else
-        case path::auto_format:
-        case path::native_format:
-        case path::generic_format:
+        case directory::auto_format:
+        case directory::native_format:
+        case directory::generic_format:
             // nothing to do
             break;
 #endif
@@ -2008,7 +2008,7 @@ namespace detail {
     }
 
 #else
-GHC_INLINE void create_symlink(const path& target_name, const path& new_symlink, bool, std::error_code& ec)
+GHC_INLINE void create_symlink(const directory& target_name, const directory& new_symlink, bool, std::error_code& ec)
 {
     if (::symlink(target_name.c_str(), new_symlink.c_str()) != 0) {
         ec = detail::make_system_error();
@@ -2016,7 +2016,7 @@ GHC_INLINE void create_symlink(const path& target_name, const path& new_symlink,
 }
 
 #ifndef GHC_OS_WEB
-GHC_INLINE void create_hardlink(const path& target_name, const path& new_hardlink, std::error_code& ec)
+GHC_INLINE void create_hardlink(const directory& target_name, const directory& new_hardlink, std::error_code& ec)
 {
     if (::link(target_name.c_str(), new_hardlink.c_str()) != 0) {
         ec = detail::make_system_error();
@@ -2218,14 +2218,14 @@ GHC_INLINE void create_hardlink(const path& target_name, const path& new_hardlin
         auto rc = ::readlink(p.c_str(), buffer.data(), buffer.size());
         if (rc < 0) {
             ec = detail::make_system_error();
-            return path();
+            return directory();
         }
         else if (rc < static_cast<int>(bufferSize)) {
-            return path(std::string(buffer.data(), static_cast<std::string::size_type>(rc)));
+            return directory(std::string(buffer.data(), static_cast<std::string::size_type>(rc)));
         }
         bufferSize *= 2;
     }
-    return path();
+    return directory();
 #endif
     }
 
@@ -2476,7 +2476,7 @@ GHC_INLINE u8arguments::u8arguments(int& argc, char**& argv)
 }
 
 //-----------------------------------------------------------------------------
-// [fs.path.construct] constructors and destructor
+// [fs.directory.construct] constructors and destructor
 
 GHC_INLINE path::path() noexcept {}
 
@@ -2531,7 +2531,7 @@ inline path::path(InputIterator first, InputIterator last, const std::locale& lo
 GHC_INLINE path::~path() {}
 
 //-----------------------------------------------------------------------------
-// [fs.path.assign] assignments
+// [fs.directory.assign] assignments
 
 GHC_INLINE path& path::operator=(const path& p)
 {
@@ -2604,7 +2604,7 @@ inline path& path::assign(InputIterator first, InputIterator last)
 #ifdef GHC_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
-// [fs.path.append] appends
+// [fs.directory.append] appends
 
 GHC_INLINE path& path::operator/=(const path& p)
 {
@@ -2685,7 +2685,7 @@ inline path& path::append(InputIterator first, InputIterator last)
 #ifdef GHC_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
-// [fs.path.concat] concatenation
+// [fs.directory.concat] concatenation
 
 GHC_INLINE path& path::operator+=(const path& x)
 {
@@ -2767,7 +2767,7 @@ inline path& path::concat(InputIterator first, InputIterator last)
 #ifdef GHC_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
-// [fs.path.modifiers] modifiers
+// [fs.directory.modifiers] modifiers
 GHC_INLINE void path::clear() noexcept
 {
     _path.clear();
@@ -2817,7 +2817,7 @@ GHC_INLINE void path::swap(path& rhs) noexcept
 }
 
 //-----------------------------------------------------------------------------
-// [fs.path.native.obs] native format observers
+// [fs.directory.native.obs] native format observers
 GHC_INLINE const path::string_type& path::native() const noexcept
 {
     return _path;
@@ -2875,7 +2875,7 @@ GHC_INLINE std::u8string path::u8string() const
 #endif
 }
 #else
-GHC_INLINE std::string path::u8string() const
+GHC_INLINE std::string directory::u8string() const
 {
 #ifdef GHC_USE_WCHAR_T
     return detail::toUtf8(native());
@@ -2900,13 +2900,13 @@ GHC_INLINE std::u32string path::u32string() const
 #endif  // GHC_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
-// [fs.path.generic.obs] generic format observers
+// [fs.directory.generic.obs] generic format observers
 template <class EcharT, class traits, class Allocator>
 inline std::basic_string<EcharT, traits, Allocator> path::generic_string(const Allocator& a) const
 {
 #ifdef GHC_OS_WINDOWS
 #ifdef GHC_USE_WCHAR_T
-    auto result = detail::fromWChar<std::basic_string<EcharT, traits, Allocator>, path::string_type>(_path, a);
+    auto result = detail::fromWChar<std::basic_string<EcharT, traits, Allocator>, directory::string_type>(_path, a);
 #else
     auto result = detail::fromUtf8<std::basic_string<EcharT, traits, Allocator>>(_path, a);
 #endif
@@ -2951,7 +2951,7 @@ GHC_INLINE std::u8string path::generic_u8string() const
 #endif
 }
 #else
-GHC_INLINE std::string path::generic_u8string() const
+GHC_INLINE std::string directory::generic_u8string() const
 {
 #ifdef GHC_OS_WINDOWS
     return generic_string<std::string::value_type, std::string::traits_type, std::string::allocator_type>();
@@ -2980,7 +2980,7 @@ GHC_INLINE std::u32string path::generic_u32string() const
 }
 
 //-----------------------------------------------------------------------------
-// [fs.path.func] func
+// [fs.directory.func] func
 GHC_INLINE int path::compare(const path& p) const noexcept
 {
 #ifdef LWG_2936_BEHAVIOUR
@@ -3054,7 +3054,7 @@ GHC_INLINE int path::compare(const value_type* s) const
 }
 
 //-----------------------------------------------------------------------------
-// [fs.path.decompose] decomposition
+// [fs.directory.decompose] decomposition
 #ifdef GHC_OS_WINDOWS
 GHC_INLINE void path::handle_prefixes()
 {
@@ -3187,7 +3187,7 @@ namespace detail {
 #endif
 
 //-----------------------------------------------------------------------------
-// [fs.path.query] query
+// [fs.directory.query] query
 GHC_INLINE bool path::empty() const noexcept
 {
     return _path.empty();
@@ -3250,7 +3250,7 @@ GHC_INLINE bool path::is_relative() const
 }
 
 //-----------------------------------------------------------------------------
-// [fs.path.gen] generation
+// [fs.directory.gen] generation
 GHC_INLINE path path::lexically_normal() const
 {
     path dest;
@@ -3329,7 +3329,7 @@ GHC_INLINE path path::lexically_proximate(const path& base) const
 }
 
 //-----------------------------------------------------------------------------
-// [fs.path.itr] iterators
+// [fs.directory.itr] iterators
 GHC_INLINE path::iterator::iterator() {}
 
 GHC_INLINE path::iterator::iterator(const path& p, const impl_string_type::const_iterator& pos)
@@ -3353,7 +3353,7 @@ GHC_INLINE path::impl_string_type::const_iterator path::iterator::increment(cons
             i = _prefix;
         }
         else if (*i++ == preferred_separator) {
-            // we can only sit on a slash if it is a network name or a root
+            // we can only sit on a slash if it is a network filename or a root
             if (i != _last && *i == preferred_separator) {
                 if (fromStart && !(i + 1 != _last && *(i + 1) == preferred_separator)) {
                     // leadind double slashes detected, treat this and the
@@ -3390,7 +3390,7 @@ GHC_INLINE path::impl_string_type::const_iterator path::iterator::decrement(cons
     if (i != _first) {
         --i;
         // if this is now the root slash or the trailing slash, we are done,
-        // else check for network name
+        // else check for network filename
         if (i != _root && (pos != _last || *i != preferred_separator)) {
 #ifdef GHC_OS_WINDOWS
             static const impl_string_type seps = GHC_PLATFORM_LITERAL("\\:");
@@ -3399,9 +3399,9 @@ GHC_INLINE path::impl_string_type::const_iterator path::iterator::decrement(cons
                 i++;
             }
 #else
-            i = std::find(std::reverse_iterator<path::impl_string_type::const_iterator>(i), std::reverse_iterator<path::impl_string_type::const_iterator>(_first), preferred_separator).base();
+            i = std::find(std::reverse_iterator<directory::impl_string_type::const_iterator>(i), std::reverse_iterator<directory::impl_string_type::const_iterator>(_first), preferred_separator).base();
 #endif
-            // Now we have to check if this is a network name
+            // Now we have to check if this is a network filename
             if (i - _first == 2 && *_first == preferred_separator && *(_first + 1) == preferred_separator) {
                 i -= 2;
             }
@@ -3486,7 +3486,7 @@ GHC_INLINE path::iterator path::end() const
 }
 
 //-----------------------------------------------------------------------------
-// [fs.path.nonmember] path non-member functions
+// [fs.directory.nonmember] directory non-member functions
 GHC_INLINE void swap(path& lhs, path& rhs) noexcept
 {
     swap(lhs._path, rhs._path);
@@ -3544,7 +3544,7 @@ GHC_INLINE path operator/(const path& lhs, const path& rhs)
 #endif  // GHC_EXPAND_IMPL
 
 //-----------------------------------------------------------------------------
-// [fs.path.io] path inserter and extractor
+// [fs.directory.io] directory inserter and extractor
 template <class charT, class traits>
 inline std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, traits>& os, const path& p)
 {
@@ -3686,7 +3686,7 @@ GHC_INLINE path absolute(const path& p, std::error_code& ec)
     ec = detail::make_system_error();
     return path();
 #else
-    path base = current_path(ec);
+    directory base = current_path(ec);
     if (!ec) {
         if (p.empty()) {
             return base / p;
@@ -3709,7 +3709,7 @@ GHC_INLINE path absolute(const path& p, std::error_code& ec)
         }
     }
     ec = detail::make_system_error();
-    return path();
+    return directory();
 #endif
 }
 
@@ -4232,17 +4232,17 @@ GHC_INLINE path current_path(std::error_code& ec)
     std::unique_ptr<char, decltype(&std::free)> buffer { ::get_current_dir_name(), std::free };
     if (buffer == nullptr) {
         ec = detail::make_system_error();
-        return path();
+        return directory();
     }
-    return path(buffer.get());
+    return directory(buffer.get());
 #else
     size_t pathlen = static_cast<size_t>(std::max(int(::pathconf(".", _PC_PATH_MAX)), int(PATH_MAX)));
     std::unique_ptr<char[]> buffer(new char[pathlen + 1]);
     if (::getcwd(buffer.get(), pathlen) == nullptr) {
         ec = detail::make_system_error();
-        return path();
+        return directory();
     }
-    return path(buffer.get());
+    return directory(buffer.get());
 #endif
 }
 
@@ -5092,10 +5092,10 @@ GHC_INLINE path temp_directory_path(std::error_code& ec) noexcept
     for (auto temp_name = temp_vars; *temp_name != nullptr; ++temp_name) {
         temp_path = std::getenv(*temp_name);
         if (temp_path) {
-            return path(temp_path);
+            return directory(temp_path);
         }
     }
-    return path("/tmp");
+    return directory("/tmp");
 #endif
 }
 
@@ -5689,17 +5689,17 @@ public:
 class directory_iterator::impl
 {
 public:
-    impl(const path& path, directory_options options)
-        : _base(path)
+    impl(const directory& directory, directory_options options)
+        : _base(directory)
         , _options(options)
         , _dir(nullptr)
         , _entry(nullptr)
     {
-        if (!path.empty()) {
-            do { _dir = ::opendir(path.native().c_str()); } while(errno == EINTR && !_dir);
+        if (!directory.empty()) {
+            do { _dir = ::opendir(directory.native().c_str()); } while(errno == EINTR && !_dir);
             if (!_dir) {
                 auto error = errno;
-                _base = filesystem::path();
+                _base = filesystem::directory();
                 if ((error != EACCES && error != EPERM) || (options & directory_options::skip_permission_denied) == directory_options::none) {
                     _ec = detail::make_system_error();
                 }
@@ -5762,7 +5762,7 @@ public:
         _dir_entry._hard_link_count = static_cast<uintmax_t>(-1);
         _dir_entry._last_write_time = 0;
     }
-    path _base;
+    directory _base;
     directory_options _options;
     DIR* _dir;
     struct ::dirent* _entry;

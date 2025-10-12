@@ -51,14 +51,14 @@ eErrorCode OpenFileExplorer(const fs::path& _path)
 }
 
 std::optional<fs::path> OpenFileDialog(
-    const char*            _titleOrNull,
-    const char*            _defaultPathOrNull,
-    std::span<const char*> _filtersOrEmpty,
-    const char*            _filterDescriptionOrNull)
+    const char*                        _titleOrNull,
+    const char*                        _defaultPathOrNull,
+    const std::span<const char* const> _filtersOrEmpty,
+    const char*                        _filterDescriptionOrNull)
 {
-    Int32        filterCount = NarrowCast<Int32>(_filtersOrEmpty.size());
-    const char** pFilters    = filterCount > 0 ? _filtersOrEmpty.data() : NULL;
-    const char*  selectPath  = tinyfd_openFileDialog(_titleOrNull, _defaultPathOrNull, filterCount, pFilters, _filterDescriptionOrNull, 0);
+    Int32              filterCount = NarrowCast<Int32>(_filtersOrEmpty.size());
+    const char* const* pFilters    = filterCount > 0 ? _filtersOrEmpty.data() : NULL;
+    const char*        selectPath  = tinyfd_openFileDialog(_titleOrNull, _defaultPathOrNull, filterCount, pFilters, _filterDescriptionOrNull, 0);
     if (selectPath == NULL)
     {
         return std::nullopt;
@@ -67,14 +67,14 @@ std::optional<fs::path> OpenFileDialog(
 }
 
 std::optional<std::vector<fs::path>> OpenMultipleFileDialog(
-    const char*            _titleOrNull,
-    const char*            _defaultPathOrNull,
-    std::span<const char*> _filtersOrEmpty,
-    const char*            _filterDescriptionOrNull)
+    const char*                        _titleOrNull,
+    const char*                        _defaultPathOrNull,
+    const std::span<const char* const> _filtersOrEmpty,
+    const char*                        _filterDescriptionOrNull)
 {
-    Int32        filterCount  = NarrowCast<Int32>(_filtersOrEmpty.size());
-    const char** pFilters     = filterCount > 0 ? _filtersOrEmpty.data() : NULL;
-    const char*  selectPathes = tinyfd_openFileDialog(_titleOrNull, _defaultPathOrNull, filterCount, pFilters, _filterDescriptionOrNull, 1);
+    Int32              filterCount  = NarrowCast<Int32>(_filtersOrEmpty.size());
+    const char* const* pFilters     = filterCount > 0 ? _filtersOrEmpty.data() : NULL;
+    const char*        selectPathes = tinyfd_openFileDialog(_titleOrNull, _defaultPathOrNull, filterCount, pFilters, _filterDescriptionOrNull, 1);
     if (selectPathes == NULL)
     {
         return std::nullopt;
@@ -96,14 +96,14 @@ std::optional<std::vector<fs::path>> OpenMultipleFileDialog(
 }
 
 std::optional<fs::path> SaveFileDialog(
-    const char*            _titleOrNull,
-    const char*            _defaultPathOrNull,
-    std::span<const char*> _filtersOrEmpty,
-    const char*            _filterDescriptionOrNull)
+    const char*                        _titleOrNull,
+    const char*                        _defaultPathOrNull,
+    const std::span<const char* const> _filtersOrEmpty,
+    const char*                        _filterDescriptionOrNull)
 {
-    Int32        filterCount = NarrowCast<Int32>(_filtersOrEmpty.size());
-    const char** pFilters    = filterCount > 0 ? _filtersOrEmpty.data() : NULL;
-    const char*  selectPath  = tinyfd_saveFileDialog(_titleOrNull, _defaultPathOrNull, filterCount, pFilters, _filterDescriptionOrNull);
+    Int32              filterCount = NarrowCast<Int32>(_filtersOrEmpty.size());
+    const char* const* pFilters    = filterCount > 0 ? _filtersOrEmpty.data() : NULL;
+    const char*        selectPath  = tinyfd_saveFileDialog(_titleOrNull, _defaultPathOrNull, filterCount, pFilters, _filterDescriptionOrNull);
     if (selectPath == NULL)
     {
         return std::nullopt;

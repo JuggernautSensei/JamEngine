@@ -205,10 +205,8 @@ public:
     ScopedTimer& operator=(ScopedTimer&&) noexcept = default;
 
 private:
-    std::string_view m_name;
-    eTimeUnit        m_timeUnit = eTimeUnit::Milli;
+    std::string m_name;
+    eTimeUnit   m_timeUnit = eTimeUnit::Milli;
 };
-
-
 
 }   // namespace jam

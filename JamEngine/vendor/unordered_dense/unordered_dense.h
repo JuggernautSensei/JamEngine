@@ -159,7 +159,7 @@ namespace detail {
 #    if ANKERL_UNORDERED_DENSE_HAS_EXCEPTIONS()
 
 // make sure this is not inlined as it is slow and dramatically enlarges code, thus making other
-// inlinings more difficult. Throws are also generally the slow path.
+// inlinings more difficult. Throws are also generally the slow directory.
 [[noreturn]] inline ANKERL_UNORDERED_DENSE_NOINLINE void on_error_key_not_found() {
     throw std::out_of_range("ankerl::unordered_dense::map::at(): key not found");
 }
@@ -698,7 +698,7 @@ private:
         }
     };
 
-    // slow path: need to allocate a new segment every once in a while
+    // slow directory: need to allocate a new segment every once in a while
     void increase_capacity() {
         auto ba = Allocator(m_blocks.get_allocator());
         pointer block = std::allocator_traits<Allocator>::allocate(ba, num_elements_in_block);

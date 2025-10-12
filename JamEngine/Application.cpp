@@ -86,7 +86,8 @@ void Application::Create(const CommandLineArguments& _args)
     // 사용자 정의 어플리케이션 초기화 루틴
     s_instance->OnCreate();
 
-    // 실행
+    // 모든 초기화 완료
+    s_instance->m_bAlive   = true;
     s_instance->m_bRunning = true;
     logger::Trace("Application '{}' started.", s_instance->m_applicationName);
 }
@@ -95,6 +96,10 @@ void Application::Destroy()
 {
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(s_instance->m_bRunning == false, "Application is still running, cannot destroy instance");
+
+    // 종료 시작
+    logger::Trace("Application '{}' shutdown.", s_instance->m_applicationName);
+    s_instance->m_bAlive = false;
 
     // 사용자 정의 어플리케이션 종료 루틴
     s_instance->OnDestroy();
@@ -123,7 +128,6 @@ void Application::Destroy()
     s_instance = nullptr;
 
     // 로그 종료
-    logger::Trace("Application '{}' shutdown.", s_instance->m_applicationName);
     logger::Shutdown();
 }
 
@@ -239,16 +243,16 @@ void Application::DispatchEvent(Event& _event)
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
-    // 실행 중이 아닐 때는 이벤트 무시
-    if (m_bRunning == false)
+    // 어플리케이션이 모두 초기화된 이후 ~ 종료되기 전까지의 이벤트 처리
+    if (m_bAlive == false)
     {
         return;
     }
 
-#ifdef JAM_DEBUG
-    if (_event.GetCategory() != eEventCategory::Input)   // 디버그용 로그
-        JAM_LOGGER_DEBUG("Dispatching event: {}", _event.ToString());
-#endif
+//#ifdef JAM_DEBUG
+//    if (_event.GetCategory() != eEventCategory::Input)   // 디버그용 로그
+//        JAM_LOGGER_DEBUG("Dispatching event: {}", _event.ToString());
+//#endif
 
     HandleEvent<WindowCloseEvent>(_event, JAM_BIND_MEMBER_LISTENER(Application::OnWindowCloseEvent));
 
