@@ -126,12 +126,7 @@ std::string details::GetComErrorMessage(const HRESULT _hr)
     }
 
 #ifdef UNICODE
-    auto [ec, utf8Msg] = ToUTF8(msg);
-    if (IsError(ec))
-    {
-        return "Unknown error";
-    }
-    return utf8Msg;
+    return ToUTF8(msg);
 #else
     return msg;
 #endif

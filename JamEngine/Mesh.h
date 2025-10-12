@@ -107,14 +107,12 @@ public:
 
 private:
     void CleanUp_();
-    void CalcBoundingBox_(MemoryView _vertices, const VertexLayout& _layout);
+    void ComputeBoundingBox_(MemoryView _vertices, const VertexLayout& _layout);
 
     fs::path           m_path               = {};
     VertexBufferHandle m_vertexBufferHandle = k_invalidHandle;
     IndexBufferHandle  m_indexBufferHandle  = k_invalidHandle;
     AABB               m_boundingBox        = {};
 };
-
-using MeshHandle = Handle<Mesh>;
 
 }   // namespace jam

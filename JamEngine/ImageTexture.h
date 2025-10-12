@@ -1,5 +1,4 @@
 #pragma once
-#include "Gfx.h"
 #include "GfxBase.h"
 #include "IAsset.h"
 
@@ -58,7 +57,5 @@ private:
     fs::path      m_path   = {};
     TextureHandle m_handle = k_invalidHandle;
 };
-
-using ImageTextureHandle = Handle<ImageTexture>;
 
 }   // namespace jam

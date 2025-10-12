@@ -3,339 +3,275 @@
 #include "AssetManager.h"
 
 #include "Application.h"
-#include "ResourcePool.h"
 using namespace jam;
 
 struct AssetManagerContext
 {
-    template<IsAssetBased AssetT>
-    JAM_NODISCARD auto& GetHandleHashMap()
+    fs::path CreateRelativeOfWorkDir(const fs::path& _path) const
     {
-        if constexpr (std::is_same_v<AssetT, Mesh>)
-            return meshHandleMap;
-        else if constexpr (std::is_same_v<AssetT, Material>)
-            return materialHandleMap;
-        else if constexpr (std::is_same_v<AssetT, ImageTexture>)
-            return imageTextureMap;
-        else
-            static_assert(AlwaysFalse, "Unsupported asset type");
+        const Application&        app     = Application::GetInstance();
+        const ProjectDirectories& dirs    = app.GetProjectDirectories();
+        const fs::path&           workDir = dirs.workingDir;
+
+        std::error_code ec;
+        fs::relative(_path, workDir, ec);
+        if (ec)
+        {
+            return _path;
+        }
+        return {};
     }
 
-    template<IsAssetBased AssetT>
-    JAM_NODISCARD const auto& GetHandleHashMap() const
+    Result<std::shared_ptr<IAsset>> Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload = false)
     {
-        if constexpr (std::is_same_v<AssetT, Mesh>)
-            return meshHandleMap;
-        else if constexpr (std::is_same_v<AssetT, Material>)
-            return materialHandleMap;
-        else if constexpr (std::is_same_v<AssetT, ImageTexture>)
-            return imageTextureMap;
-        else
-            static_assert(AlwaysFalse, "Unsupported asset type");
-    }
+        fs::path path = CreateRelativeOfWorkDir(_path);
+        auto&    map  = assetMap[EnumToInt(_type)];
 
-    template<IsAssetBased AssetT>
-    JAM_NODISCARD auto& GetResourcePool()
-    {
-        if constexpr (std::is_same_v<AssetT, Mesh>)
-            return meshes;
-        else if constexpr (std::is_same_v<AssetT, Material>)
-            return materials;
-        else if constexpr (std::is_same_v<AssetT, ImageTexture>)
-            return imageTextures;
-        else
-            static_assert(AlwaysFalse, "Unsupported asset type");
-    }
+        if (map.contains(path))   // 기존에 로드된 에셋이 있을 경우
+        {
+            if (_bForceReload)   // 핫 리로드를 위해 기존 객체를 재사용
+            {
+                std::shared_ptr<IAsset>& asset = map[path];
+                asset->Unload();
+                eErrorCode ec = asset->Load(path);
+                if (IsError(ec))
+                {
+                    map.erase(path);
+                    return ec;
+                }
+                return asset;
+            }
 
-    template<IsAssetBased AssetT, typename HandleT = Handle<AssetT>>
-    Result<HandleT> LoadAsset(const fs::path& _path, const bool _bOverwrite)
-    {
-        fs::path path = CreateAssetPathOrEmpty(_path);
-        JAM_ASSERT(!path.empty(), "Asset path must be inside working directory: {}", _path.native());
+            // 기존 에셋 반환
+            return map[path];
+        }
 
-        AssetT     asset;
-        eErrorCode ec = asset.Load(path);
+        // 새로운 에셋 생성
+        std::shared_ptr<IAsset> asset = nullptr;
+        switch (_type)
+        {
+            case eAssetType ::ImageTexture:
+                asset = std::make_shared<ImageTexture>();
+                break;
+            case eAssetType::Material:
+                asset = std::make_shared<Material>();
+                break;
+            case eAssetType::Mesh:
+                asset = std::make_shared<Mesh>();
+                break;
+            default:
+                JAM_ASSERT(0, "Unsupported asset type: {}", EnumToInt(_type));
+                return eErrorCode::InvalidArgument;
+        }
+        JAM_ASSERT(asset, "Failed to create asset instance");
+        eErrorCode ec = asset->Load(path);
         if (IsError(ec))
         {
             return ec;
         }
+        map[path] = asset;
+        return asset;
+    }
 
-        // find existing
-        auto& pool        = GetResourcePool<AssetT>();
-        auto& handleHashT = GetHandleHashMap<AssetT>();
-        auto  it          = handleHashT.find(path);
-        if (it != handleHashT.end())
+    std::shared_ptr<IAsset> Get(const eAssetType _type, const fs::path& _path) const
+    {
+        fs::path    path = CreateRelativeOfWorkDir(_path);
+        const auto& map  = assetMap[EnumToInt(_type)];
+        if (map.contains(path))
         {
-            HandleT handle = it->second;
-            if (_bOverwrite)   // 덮어 쓰기
+            return map.at(path);
+        }
+        return nullptr;
+    }
+
+    void Unload(const eAssetType _type, const fs::path& _path)
+    {
+        fs::path path = CreateRelativeOfWorkDir(_path);
+        auto&    map  = assetMap[EnumToInt(_type)];
+        JAM_ASSERT(map.contains(path), "Asset not found: {}", path.string());
+        map.erase(path);
+    }
+
+    Result<std::shared_ptr<IAsset>> GetOrLoad(const eAssetType _type, const fs::path& _path)
+    {
+        if (auto asset = Get(_type, _path); asset != nullptr)
+        {
+            return asset;
+        }
+        return Load(_type, _path);
+    }
+
+    void Clear(const eAssetType _type)
+    {
+        auto& map = assetMap[EnumToInt(_type)];
+        map.clear();
+    }
+
+    void CleanGarbage(const eAssetType _type)
+    {
+        auto& map = assetMap[EnumToInt(_type)];
+        for (auto it = map.begin(); it != map.end();)
+        {
+            if (it->second.use_count() == 1)
             {
-                // 핸들을 따로 할당하지 않고 기존 핸들에 덮어 씀
-                AssetT& existing = pool[handle];
-                existing.Unload();
-                existing = std::move(asset);
+                it = map.erase(it);
             }
-            return handle;
-        }
-        else
-        {
-            // insert new
-            HandleT newHandle = pool.Alloc();
-            pool[newHandle]   = std::move(asset);
-            handleHashT[path] = newHandle;
-            return newHandle;
+            else
+            {
+                ++it;
+            }
         }
     }
 
-    template<IsAssetBased AssetT, typename HandleT = Handle<AssetT>>
-    void UnloadAsset(HandleT _handle)
-    {
-        auto&           pool  = GetResourcePool<AssetT>();
-        auto&           asset = pool[_handle];
-        const fs::path& path  = asset.GetPath();
-
-        // unload
-        asset.Unload();
-
-        // remove from map
-        auto& handleHashT = GetHandleHashMap<AssetT>();
-        handleHashT.erase(path);
-
-        // free from pool
-        pool.Free(_handle);
-    }
-
-    template<IsAssetBased AssetT, typename HandleT = Handle<AssetT>>
-    JAM_NODISCARD HandleT GetAssetHandle(const fs::path& _path)
-    {
-        fs::path path = CreateAssetPathOrEmpty(_path);
-        JAM_ASSERT(!path.empty(), "Asset path must be inside working directory: {}", _path.native());
-
-        auto& handleHashMap = GetHandleHashMap<AssetT>();
-        auto  it            = handleHashMap.find(path);
-        JAM_ASSERT(it != handleHashMap.end(), "Asset not loaded: {}", path.native());
-        return it->second;
-    }
-
-    template<IsAssetBased AssetT>
-    JAM_NODISCARD bool IsAssetLoaded(const fs::path& _path)
-    {
-        fs::path path = CreateAssetPathOrEmpty(_path);
-        if (path.empty())
-        {
-            return false;
-        }
-
-        auto& handleHashT = GetHandleHashMap<AssetT>();
-        return handleHashT.contains(path);
-    }
-
-    template<IsAssetBased AssetT, typename HandleT = Handle<AssetT>>
-    JAM_NODISCARD Result<HandleT> GetOrLoadAsset(const fs::path& _path)
-    {
-        if (IsAssetLoaded<AssetT>(_path))
-        {
-            return GetAssetHandle<AssetT>(_path);
-        }
-        else
-        {
-            return LoadAsset<AssetT>(_path, false);
-        }
-    }
-
-    template<IsAssetBased AssetT, typename HandleT = Handle<AssetT>>
-    JAM_NODISCARD const AssetT& GetAsset(HandleT _handle)
-    {
-        auto& pool = GetResourcePool<AssetT>();
-        return pool[_handle];
-    }
-
-    template<IsAssetBased AssetT, typename HandleT = Handle<AssetT>>
-    JAM_NODISCARD eErrorCode SaveAsset(HandleT _handle, const fs::path& _path)
-    {
-        auto& asset = GetAsset<AssetT>(_handle);
-        return asset.Save(_path);
-    }
-
-    JAM_NODISCARD fs::path CreateAssetPathOrEmpty(const fs::path& _path) const
-    {
-        // working directory 로 부터 상대 경로 생성
-        const Application&        app     = Application::GetInstance();
-        const ProjectDirectories& projDir = app.GetProjectDirectories();
-
-        std::error_code ec;
-        fs::path        path = fs::relative(_path, projDir.workingDir, ec);
-        if (ec)
-        {
-            return {};
-        }
-
-        // working directory 내부 경로가 아니라면 빈 경로 반환
-        std::string_view str = path.native();
-        if (str.empty() || str.starts_with(".."))
-        {
-            return {};
-        }
-
-        return path;
-    }
-
-    HashMap<fs::path, MeshHandle>         meshHandleMap;
-    HashMap<fs::path, MaterialHandle>     materialHandleMap;
-    HashMap<fs::path, ImageTextureHandle> imageTextureMap;
-
-    ResourcePool<Mesh>         meshes;
-    ResourcePool<Material>     materials;
-    ResourcePool<ImageTexture> imageTextures;
+    HashMap<fs::path, std::shared_ptr<IAsset>> assetMap[EnumCount<eAssetType>()] = {};
 };
-
-static AssetManagerContext g_assetCtx;
+static AssetManagerContext g_assetMgrCtx;
 
 namespace jam::asset_manager
 {
 
-bool DetectLeak()
+Result<std::shared_ptr<IAsset>> Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload)
 {
-    bool bLeakDetected = false;
+    return g_assetMgrCtx.Load(_type, _path, _bForceReload);
+}
 
-    for (const auto& [path, handle]: g_assetCtx.meshHandleMap)
+Result<std::shared_ptr<Mesh>> LoadMesh(const fs::path& _path, const bool _bForceReload)
+{
+    auto [ec, asset] = g_assetMgrCtx.Load(eAssetType::Mesh, _path, _bForceReload);
+    if (IsOk(ec))
     {
-        logger::Warn("Leaked Mesh Asset: {} (Handle: {})", path.native(), handle.value);
-        bLeakDetected = true;
+        return std::static_pointer_cast<Mesh>(asset);
     }
+    return ec;
+}
 
-    for (const auto& [path, handle]: g_assetCtx.materialHandleMap)
+Result<std::shared_ptr<Material>> LoadMaterial(const fs::path& _path, const bool _bForceReload)
+{
+    auto [ec, asset] = g_assetMgrCtx.Load(eAssetType::Material, _path, _bForceReload);
+    if (IsOk(ec))
     {
-        logger::Warn("Leaked Material Asset: {} (Handle: {})", path.native(), handle.value);
-        bLeakDetected = true;
+        return std::static_pointer_cast<Material>(asset);
     }
+    return ec;
+}
 
-    for (const auto& [path, handle]: g_assetCtx.imageTextureMap)
+Result<std::shared_ptr<ImageTexture>> LoadImageTexture(const fs::path& _path, const bool _bForceReload)
+{
+    auto [ec, asset] = g_assetMgrCtx.Load(eAssetType::ImageTexture, _path, _bForceReload);
+    if (IsOk(ec))
     {
-        logger::Warn("Leaked ImageTexture Asset: {} (Handle: {})", path.native(), handle.value);
-        bLeakDetected = true;
+        return std::static_pointer_cast<ImageTexture>(asset);
     }
-
-    return bLeakDetected;
+    return ec;
 }
 
-Result<MeshHandle> LoadMesh(const fs::path& _path, const bool _bOverwrite)
+std::shared_ptr<IAsset> Get(const eAssetType _type, const fs::path& _path)
 {
-    return g_assetCtx.LoadAsset<Mesh>(_path, _bOverwrite);
+    return g_assetMgrCtx.Get(_type, _path);
 }
 
-Result<MaterialHandle> LoadMaterial(const fs::path& _path, const bool _bOverwrite)
+std::shared_ptr<Mesh> GetMesh(const fs::path& _path)
 {
-    return g_assetCtx.LoadAsset<Material>(_path, _bOverwrite);
+    std::shared_ptr<IAsset> asset = g_assetMgrCtx.Get(eAssetType::Mesh, _path);
+    return std::static_pointer_cast<Mesh>(asset);
 }
 
-Result<ImageTextureHandle> LoadImageTexture(const fs::path& _path, const bool _bOverwrite)
+std::shared_ptr<Material> GetMaterial(const fs::path& _path)
 {
-    return g_assetCtx.LoadAsset<ImageTexture>(_path, _bOverwrite);
+    std::shared_ptr<IAsset> asset = g_assetMgrCtx.Get(eAssetType::Material, _path);
+    return std::static_pointer_cast<Material>(asset);
 }
 
-void UnloadMesh(const MeshHandle _handle)
+std::shared_ptr<ImageTexture> GetImageTexture(const fs::path& _path)
 {
-    g_assetCtx.UnloadAsset<Mesh>(_handle);
+    std::shared_ptr<IAsset> asset = g_assetMgrCtx.Get(eAssetType::ImageTexture, _path);
+    return std::static_pointer_cast<ImageTexture>(asset);
 }
 
-void UnloadMaterial(const MaterialHandle _handle)
+Result<std::shared_ptr<IAsset>> GetOrLoad(const eAssetType _type, const fs::path& _path)
 {
-    g_assetCtx.UnloadAsset<Material>(_handle);
+    return g_assetMgrCtx.GetOrLoad(_type, _path);
 }
 
-void UnloadImageTexture(const ImageTextureHandle _handle)
+Result<std::shared_ptr<Mesh>> GetOrLoadMesh(const fs::path& _path)
 {
-    g_assetCtx.UnloadAsset<ImageTexture>(_handle);
+    auto [ec, asset] = g_assetMgrCtx.GetOrLoad(eAssetType::Mesh, _path);
+    if (IsOk(ec))
+    {
+        return std::static_pointer_cast<Mesh>(asset);
+    }
+    return ec;
 }
 
-MeshHandle GetMeshHandle(const fs::path& _path)
+Result<std::shared_ptr<Material>> GetOrLoadMaterial(const fs::path& _path)
 {
-    return g_assetCtx.GetAssetHandle<Mesh>(_path);
+    auto [ec, asset] = g_assetMgrCtx.GetOrLoad(eAssetType::Material, _path);
+    if (IsOk(ec))
+    {
+        return std::static_pointer_cast<Material>(asset);
+    }
+    return ec;
 }
 
-MaterialHandle GetMaterialHandle(const fs::path& _path)
+Result<std::shared_ptr<ImageTexture>> GetOrLoadImageTexture(const fs::path& _path)
 {
-    return g_assetCtx.GetAssetHandle<Material>(_path);
+    auto [ec, asset] = g_assetMgrCtx.GetOrLoad(eAssetType::ImageTexture, _path);
+    if (IsOk(ec))
+    {
+        return std::static_pointer_cast<ImageTexture>(asset);
+    }
+    return ec;
 }
 
-ImageTextureHandle GetImageTextureHandle(const fs::path& _path)
+void Unload(const eAssetType _type, const fs::path& _path)
 {
-    return g_assetCtx.GetAssetHandle<ImageTexture>(_path);
+    g_assetMgrCtx.Unload(_type, _path);
 }
 
-bool IsMeshLoaded(const fs::path& _path)
+void UnloadMesh(const fs::path& _path)
 {
-    return g_assetCtx.IsAssetLoaded<Mesh>(_path);
+    g_assetMgrCtx.Unload(eAssetType::Mesh, _path);
 }
 
-bool IsMaterialLoaded(const fs::path& _path)
+void UnloadMaterial(const fs::path& _path)
 {
-    return g_assetCtx.IsAssetLoaded<Material>(_path);
+    g_assetMgrCtx.Unload(eAssetType::Material, _path);
 }
 
-bool IsImageTextureLoaded(const fs::path& _path)
+void UnloadImageTexture(const fs::path& _path)
 {
-    return g_assetCtx.IsAssetLoaded<ImageTexture>(_path);
+    g_assetMgrCtx.Unload(eAssetType::ImageTexture, _path);
 }
 
-Result<MeshHandle> GetOrLoadMesh(const fs::path& _path)
+void CleanGarbage(const eAssetType _type)
 {
-    return g_assetCtx.GetOrLoadAsset<Mesh>(_path);
+    g_assetMgrCtx.CleanGarbage(_type);
 }
 
-Result<MaterialHandle> GetOrLoadMaterial(const fs::path& _path)
+void CleanGarbageAll()
 {
-    return g_assetCtx.GetOrLoadAsset<Material>(_path);
+    for (eAssetType type: EnumRange<eAssetType>())
+    {
+        g_assetMgrCtx.CleanGarbage(type);
+    }
 }
 
-Result<ImageTextureHandle> GetOrLoadImageTexture(const fs::path& _path)
+void Clear(const eAssetType _type)
 {
-    return g_assetCtx.GetOrLoadAsset<ImageTexture>(_path);
+    g_assetMgrCtx.Clear(_type);
 }
 
-const Mesh& GetMesh(const MeshHandle _handle)
+void ClearAll()
 {
-    return g_assetCtx.GetAsset<Mesh>(_handle);
+    for (eAssetType type: EnumRange<eAssetType>())
+    {
+        g_assetMgrCtx.Clear(type);
+    }
 }
 
-const Material& GetMaterial(const MaterialHandle _handle)
+const HashMap<fs::path, std::shared_ptr<IAsset>>& GetAssetContainer(const eAssetType _type)
 {
-    return g_assetCtx.GetAsset<Material>(_handle);
-}
-
-const ImageTexture& GetImageTexture(const ImageTextureHandle _handle)
-{
-    return g_assetCtx.GetAsset<ImageTexture>(_handle);
-}
-
-eErrorCode SaveMesh(const MeshHandle _handle, const fs::path& _path)
-{
-    return g_assetCtx.SaveAsset<Mesh>(_handle, _path);
-}
-
-eErrorCode SaveMaterial(const MaterialHandle _handle, const fs::path& _path)
-{
-    return g_assetCtx.SaveAsset<Material>(_handle, _path);
-}
-
-eErrorCode SaveImageTexture(const ImageTextureHandle _handle, const fs::path& _path)
-{
-    return g_assetCtx.SaveAsset<ImageTexture>(_handle, _path);
-}
-
-const HashMap<fs::path, MeshHandle>& GetAllMeshHandles()
-{
-    return g_assetCtx.GetHandleHashMap<Mesh>();
-}
-
-const HashMap<fs::path, MaterialHandle>& GetAllMaterialHandles()
-{
-    return g_assetCtx.GetHandleHashMap<Material>();
-}
-
-const HashMap<fs::path, ImageTextureHandle>& GetAllImageTextureHandles()
-{
-    return g_assetCtx.GetHandleHashMap<ImageTexture>();
+    return g_assetMgrCtx.assetMap[EnumToInt(_type)];
 }
 
 }   // namespace jam::asset_manager

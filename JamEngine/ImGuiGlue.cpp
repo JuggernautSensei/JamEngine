@@ -8,7 +8,7 @@
 namespace jam::imgui
 {
 
-void Init()
+void Init(const HWND _hwnd, ID3D11Device* _pd3dDevice, ID3D11DeviceContext* _pd3dDeviceContext)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -17,17 +17,8 @@ void Init()
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    const Application& app  = Application::GetInstance();
-    const Window&      win  = app.GetWindow();
-    const HWND         hwnd = win.GetPlatformHandle();
-    JAM_ASSERT(hwnd, "Window handle is null");
-    ImGui_ImplWin32_Init(hwnd);
-
-    ID3D11Device*        pd3dDevice        = gfx::GetDevice();
-    ID3D11DeviceContext* pd3dDeviceContext = gfx::GetDeviceContext();
-    JAM_ASSERT(pd3dDevice, "Device pointer is null");
-    JAM_ASSERT(pd3dDeviceContext, "Device context pointer is null");
-    ImGui_ImplDX11_Init(pd3dDevice, pd3dDeviceContext);
+    ImGui_ImplWin32_Init(_hwnd);
+    ImGui_ImplDX11_Init(_pd3dDevice, _pd3dDeviceContext);
 }
 
 void Shutdown()
@@ -46,7 +37,8 @@ void BeginFrame()
 
 void EndFrame()
 {
-    gfx::SetFrameBuffer(k_invalidHandle); // back buffer
+    gfx::SetFrameBuffer(k_invalidHandle);
+    gfx::Touch();
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -58,4 +50,4 @@ void EndFrame()
     }
 }
 
-}
+}   // namespace jam::imgui

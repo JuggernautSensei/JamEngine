@@ -19,7 +19,7 @@ namespace jam::gfx
 {
 
 /// @brief 렌더러를 초기화합니다.
-void Init();
+void Init(HWND _hwnd, Int32 _width, Int32 _height);
 
 /// @brief 렌더러를 종료하고 리소스를 정리합니다.
 void Shutdown();
@@ -414,7 +414,17 @@ JAM_NODISCARD std::vector<Byte> DownloadTexture3D(
 JAM_NODISCARD DirectX::ScratchImage Capture(
     TextureHandle _handle);
 
-JAM_NODISCARD void Resolve(TextureHandle _srcHandle, Int32 _srcMipIndex, Int32 _srcArrayIndex, TextureHandle _dstHandle, Int32 _dstMipIndex, Int32 _dstArrayIndex);
+/// @brief 멀티샘플링된 텍스처를 멀티샘플링되지 않은 텍스처로 해상합니다.
+/// @param _srcHandle MSAA 텍스처 핸들
+/// @param _srcArrayIndex MSAA 텍스처 배열 인덱스
+/// @param _dstHandle 해상할 텍스처 핸들
+/// @param _dstArrayIndex 해상할 텍스처 배열 인덱스
+/// @note mipmap 레벨은 0으로 고정됩니다.
+JAM_NODISCARD void Resolve(
+    TextureHandle _srcHandle,
+    Int32         _srcArrayIndex,
+    TextureHandle _dstHandle,
+    Int32         _dstArrayIndex);
 
 /// @brief 텍스처 간 데이터를 복사합니다.
 /// @param _srcHandle 복사할 원본 텍스처 핸들
@@ -449,6 +459,16 @@ void Blit(
     Int32         _dstY             = 0,
     Int32         _dstZ             = 0);
 
+/// @brief 텍스처를 백 버퍼로 복사합니다.
+/// @param _srcHandle 복사할 원본 텍스처 핸들
+/// @param _blitWidthOrZero 복사할 너비 (0이면 전체 너비)
+/// @param _blitHeightOrZero 복사할 높이 (0이면 전체 높이)
+/// @param _srcMipIndex 복사할 원본 MIP 레벨
+/// @param _srcArrayIndex 복사할 원본 배열 인덱스
+/// @param _srcX 복사할 원본 X 오프셋
+/// @param _srcY 복사할 원본 Y 오프셋
+/// @param _dstX 복사할 대상 X 오프셋
+/// @param _dstY 복사할 대상 Y 오프셋
 void BlitToBackBuffer(
     TextureHandle _srcHandle,
     Int32         _blitWidthOrZero  = 0,
@@ -503,6 +523,11 @@ const TextureHandle& GetRenderTargetTexture(
 /// 해당 함수로 반환된 텍스처는 DestroyTexture()로 파괴하지 마십시오.
 const TextureHandle& GetDepthStencilTexture(
     FrameBufferHandle _handle);
+
+/// @brief 바인딩된 프레임 버퍼를 즉시 제출합니다.
+/// @note 일반적으로 프레임 버퍼는 드로우 콜이 호출되어야 제출하지만.
+/// 해당 함수를 호출하면 즉시 제출됩니다.
+void Touch();
 
 /////////////////////////////////////////
 ///          BUFFER UTILITES          ///
@@ -686,6 +711,11 @@ void SetViewport(
     UInt16 _y,
     UInt16 _width,
     UInt16 _height);
+
+/// @brief 프레임 버퍼에 대한 바인딩 명령을 즉시 실행합니다.
+/// @note 일반적으로 바인딩 명령은 Submit 호출 시점에 실행되지만,
+/// 이 함수를 호출하면 드로우 콜 없이 프레임 버퍼 바인딩만 즉시 적용할 수 있습니다.
+void Touch();
 
 //////////////////////////////////////////
 ///          SHADER UTILITIES          ///

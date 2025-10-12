@@ -34,14 +34,14 @@ struct MaterialParams
     float bumpMapScaling    = 1.0f;
 
     // textures
-    ImageTextureHandle albedoMap    = k_invalidHandle;
-    ImageTextureHandle normalMap    = k_invalidHandle;
-    ImageTextureHandle metallicMap  = k_invalidHandle;
-    ImageTextureHandle roughnessMap = k_invalidHandle;
-    ImageTextureHandle aoMap        = k_invalidHandle;
-    ImageTextureHandle emissiveMap  = k_invalidHandle;
-    ImageTextureHandle lightMap     = k_invalidHandle;
-    ImageTextureHandle bumpMap      = k_invalidHandle;
+    std::shared_ptr<ImageTexture> albedoMap    = nullptr;
+    std::shared_ptr<ImageTexture> normalMap    = nullptr;
+    std::shared_ptr<ImageTexture> metallicMap  = nullptr;
+    std::shared_ptr<ImageTexture> roughnessMap = nullptr;
+    std::shared_ptr<ImageTexture> aoMap        = nullptr;
+    std::shared_ptr<ImageTexture> emissiveMap  = nullptr;
+    std::shared_ptr<ImageTexture> lightMap     = nullptr;
+    std::shared_ptr<ImageTexture> bumpMap      = nullptr;
 };
 
 class Material : public IAsset
@@ -71,7 +71,5 @@ private:
     bool           m_bIsLoaded = false;
     MaterialParams m_params;
 };
-
-using MaterialHandle = Handle<Material>;
 
 }   // namespace jam

@@ -24,52 +24,16 @@ const HashMap<UID, Entity>& Scene::GetEntities() const
     return m_entityMap;
 }
 
-Json Scene::OnSerialize() const
-{
-    return {};
-}
-
-eErrorCode Scene::OnDeserialize(const Json& _json)
-{
-    JAM_UNUSED(_json);
-    return eErrorCode::Ok;
-}
-
 Entity Scene::CreateEntity(const std::string_view _name)
 {
-    return CreateEntity(m_uidGenerator.Alloc(), _name);
+    UID uid = m_uidGenerator.Alloc();
+    return CreateEntity_(uid, _name);
 }
 
-Entity Scene::CreateEntity(UID _uid, const std::string_view _name)
+Entity Scene::CreateEntity(const UID _uid, const std::string_view _name)
 {
-    JAM_ASSERT(_uid != k_invalidUID, "Cannot create entity with invalid UID");
-    JAM_ASSERT(!m_entityMap.contains(_uid), "Entity with same UID already exists");
-    JAM_ASSERT(!m_uidGenerator.IsAllocated(_uid), "UID {} is already allocated", _uid);
-
-    // uid 할당
     UID uid = m_uidGenerator.Alloc(_uid);
-
-    // entt 엔티티 생성
-    entt::entity handle = m_registry.create();
-    Entity       entity { m_registry, handle, uid };
-
-    // entity map에 추가
-    JAM_ASSERT(!m_entityMap.contains(uid), "Entity with same UID already exists");
-    m_entityMap.emplace(uid, entity);
-
-    // transform 컴포넌트 추가
-    TransformComponent& transform = entity.CreateComponent<TransformComponent>();
-    transform.root                = m_rootEntity;
-    transform.owner               = entity;
-
-    // 필요시 이름 태그 추가
-    if (!_name.empty())
-    {
-        TagComponent& tag = entity.CreateComponent<TagComponent>();
-        tag.name          = _name;
-    }
-
-    return entity;
+    return CreateEntity_(uid, _name);
 }
 
 Entity Scene::GetEntity(UID _uid) const
@@ -126,7 +90,7 @@ void Scene::DestroyEntity(const Entity _entity)
     app.SubmitCommand(EntityDeletor { this, _entity });
 }
 
-bool Scene::IsEntityValid(Entity _entity) const
+bool Scene::IsEntityValid(const Entity _entity) const
 {
     return m_registry.valid(_entity.GetHandle());
 }
@@ -134,6 +98,11 @@ bool Scene::IsEntityValid(Entity _entity) const
 Entity Scene::GetRootEntity() const
 {
     return m_rootEntity;
+}
+
+Scene::Scene()
+{
+    m_rootEntity = CreateEntity("Root");
 }
 
 void Scene::DestroyEntity_Recursive_(Entity& _entity)
@@ -183,6 +152,33 @@ void Scene::DestroyEntity_Recursive_(Entity& _entity)
     m_entityMap.erase(_entity.GetUID());       // entity map에서 제거
     m_uidGenerator.Free(_entity.GetUID());     // uid 반환
     m_registry.destroy(_entity.GetHandle());   // entt 엔티티 파괴
+}
+
+Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
+{
+    JAM_ASSERT(m_uidGenerator.IsAllocated(_uid), "UID {} is not allocated", _uid);
+
+    // entt 엔티티 생성
+    entt::entity handle = m_registry.create();
+    Entity       entity { m_registry, handle, _uid };
+
+    // entity map에 추가
+    JAM_ASSERT(!m_entityMap.contains(_uid), "Entity with same UID already exists");
+    m_entityMap.emplace(_uid, entity);
+
+    // transform 컴포넌트 추가
+    TransformComponent& transform = entity.CreateComponent<TransformComponent>();
+    transform.root                = m_rootEntity;
+    transform.owner               = entity;
+
+    // 필요시 이름 태그 추가
+    if (!_name.empty())
+    {
+        TagComponent& tag = entity.CreateComponent<TagComponent>();
+        tag.name          = _name;
+    }
+
+    return entity;
 }
 
 }   // namespace jam

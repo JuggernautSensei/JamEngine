@@ -137,7 +137,7 @@ namespace component_db
 
     // 런타임 접근용 (이름)
     void                Create(std::string_view _name, Entity _entity);
-    void                CreateByCopy(std::string_view _name, Entity _entity, const void*& _component);
+    void                CreateByCopy(std::string_view _name, Entity _entity, const void* _component);
     void                CreateOrReplace(std::string_view _name, Entity _entity);
     void                CreateOrReplaceByCopy(std::string_view _name, Entity _entity, const void* _pComponent);
     void                Remove(std::string_view _name, Entity _entity);
@@ -163,7 +163,7 @@ namespace component_db
     JAM_NODISCARD bool  IsSerializable(UInt32 _typeID);
     JAM_NODISCARD bool  IsEditable(UInt32 _typeID);
 
-    JAM_NODISCARD const HashMap<UInt32, ComponentInfo>& GetAllComponentInfos();
+    JAM_NODISCARD const HashMap<UInt32, ComponentInfo>& GetComponentInfos();
 
 }   // namespace component_db
 }   // namespace jam

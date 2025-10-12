@@ -27,7 +27,7 @@ std::string ToLower(const std::string_view _str)
     return output;
 }
 
-Result<std::string> ToUTF8(const std::wstring_view _wstr)
+std::string ToUTF8(const std::wstring_view _wstr)
 {
     if (_wstr.empty())
     {
@@ -37,20 +37,20 @@ Result<std::string> ToUTF8(const std::wstring_view _wstr)
     int size = WideCharToMultiByte(CP_UTF8, 0, _wstr.data(), static_cast<int>(_wstr.size()), nullptr, 0, nullptr, nullptr);
     if (size == 0)
     {
-        return eErrorCode::RuntimeError;
+        return {};
     }
 
     std::string result;
     result.resize(size);
     if (WideCharToMultiByte(CP_UTF8, 0, _wstr.data(), static_cast<int>(_wstr.size()), result.data(), size, nullptr, nullptr) == 0)
     {
-        return eErrorCode::RuntimeError;
+        return {};
     }
 
     return result;
 }
 
-Result<std::wstring> ToUTF16(const std::string_view _str)
+std::wstring ToUTF16(const std::string_view _str)
 {
     if (_str.empty())
     {
@@ -60,14 +60,14 @@ Result<std::wstring> ToUTF16(const std::string_view _str)
     int size = MultiByteToWideChar(CP_UTF8, 0, _str.data(), static_cast<int>(_str.size()), nullptr, 0);
     if (size == 0)
     {
-        return eErrorCode::RuntimeError;
+        return {};
     }
 
     std::wstring result;
     result.resize(size);
     if (MultiByteToWideChar(CP_UTF8, 0, _str.data(), static_cast<int>(_str.size()), result.data(), size) == 0)
     {
-        return eErrorCode::RuntimeError;
+        return {};
     }
 
     return result;

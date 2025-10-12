@@ -37,6 +37,6 @@ public:
     JAM_NODISCARD virtual eAssetType       GetType() const = 0;
     JAM_NODISCARD virtual UInt32           GetHash() const = 0;
     JAM_NODISCARD virtual std::string_view GetName() const = 0;
-};
+};    
 
 }   // namespace jam

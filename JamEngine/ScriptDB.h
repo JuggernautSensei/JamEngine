@@ -37,7 +37,7 @@ namespace script_db
     }
 
     JAM_NODISCARD std::shared_ptr<Script> Create(std::string_view _name, Entity _entity);
-    JAM_NODISCARD const HashMap<UInt32, ScriptInfo>& GetAllScriptInfos();
+    JAM_NODISCARD const HashMap<UInt32, ScriptInfo>& GetScriptInfos();
 
 }   // namespace script_db
 

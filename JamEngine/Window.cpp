@@ -4,7 +4,6 @@
 
 #include "Application.h"
 #include "WindowsUtilities.h"
-#include "vendor/imgui/imgui.h"
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -53,7 +52,7 @@ void Window::Init()
             JAM_CRASH("Failed to create window: {}", CreateComErrorMessage(lastError));
         }
 
-        ShowWindow(m_hWnd, SW_SHOW);
+        ResizeClient(k_defaultWidth, k_defaultHeight);
     }
 }
 
@@ -76,57 +75,48 @@ bool Window::PollEvents()
         DispatchMessage(&m_msg);
         return true;
     }
-    else
-    {
-        return false;
-    }
+
+    return false;
 }
 
-void Window::ResizeWindow(const Int32 _width, const Int32 _height) const
+void Window::ResizeClient(const Int32 _clientWidth, const Int32 _clientHeight)
 {
     JAM_ASSERT(m_hWnd, "Window handle is null");
-    JAM_ASSERT(m_hInstance, "Window instance handle is null");
 
-    const LONG style      = GetWindowLongW(m_hWnd, GWL_STYLE);
-    const bool bExistMenu = ::GetMenu(m_hWnd);
-
-    // 클라이언트 영역을 _width, _height로 설정
-    RECT windowRect = { 0, 0, _width, _height };
-    ::AdjustWindowRect(&windowRect, style, bExistMenu);
-
-    const int width  = windowRect.right - windowRect.left;
-    const int height = windowRect.bottom - windowRect.top;
-
-    SetWindowAttribute_(width, height, m_posX, m_posY, style);
+    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+    SetClient(_clientWidth, _clientHeight, m_clientPos.x, m_clientPos.y, wsFlags, exFlags);
 }
 
-void Window::MoveWindow(const Int32 _posX, const Int32 _posY) const
+void Window::MoveClient(const Int32 _clientLeftTopX, const Int32 _clientLeftTopY)
 {
     JAM_ASSERT(m_hWnd, "Window handle is null");
-    JAM_ASSERT(m_hInstance, "Window instance handle is null");
 
-    const LONG style = GetWindowLongW(m_hWnd, GWL_STYLE);
-    SetWindowAttribute_(m_width, m_height, _posX, _posY, style);
+    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+    SetClient(m_clientSize.width, m_clientSize.height, _clientLeftTopX, _clientLeftTopY, wsFlags, exFlags);
 }
 
 void Window::SetTitle(const std::string_view _name) const
 {
     JAM_ASSERT(m_hWnd, "Window handle is null");
     JAM_ASSERT(m_hInstance, "Window instance handle is null");
-    ::SetWindowTextA(m_hWnd, _name.data());
+
+    std::wstring title = ToUTF16(_name);
+    ::SetWindowText(m_hWnd, title.c_str());
 }
 
-Resolution Window::GetWindowSize() const
+Resolution Window::GetClientSize() const
 {
-    return { m_width, m_height };
+    return m_clientSize;
 }
 
-ScreenPos Window::GetWindowPos() const
+ScreenPos Window::GetClientPos() const
 {
-    return { m_posX, m_posY };
+    return m_clientPos;
 }
 
-Resolution Window::GetMoniterScreenSize() const
+Resolution Window::GetFullScreenSize() const
 {
     Int32 w = ::GetSystemMetrics(SM_CXSCREEN);
     Int32 h = ::GetSystemMetrics(SM_CYSCREEN);
@@ -146,36 +136,26 @@ HINSTANCE Window::GetPlatformInstance() const
 void Window::OnEvent(Event& _event)
 {
     HandleEvent<WindowResizeEvent>(_event, JAM_BIND_MEMBER_LISTENER(Window::OnWindowResize_));
+    HandleEvent<WindowMaximizeEvent>(_event, JAM_BIND_MEMBER_LISTENER(Window::OnWindowMaximize_));
     HandleEvent<WindowMoveEvent>(_event, JAM_BIND_MEMBER_LISTENER(Window::OnWindowMove_));
-}
-
-void Window::SetWindowAttribute_(
-    const Int32 _windowWidth,
-    const Int32 _windowHeight,
-    const Int32 _screenLeftTopX,
-    const Int32 _screenLeftTopY,
-    const LONG  _wsFlags) const
-{
-    JAM_ASSERT(m_hWnd, "Window handle is null");
-    JAM_ASSERT(m_hInstance, "Window instance handle is null");
-
-    SetWindowLong(m_hWnd, GWL_STYLE, _wsFlags);
-    SetWindowPos(m_hWnd, NULL, _screenLeftTopX, _screenLeftTopY, _windowWidth, _windowHeight, SWP_FRAMECHANGED | SWP_NOZORDER);
-
-    ShowWindow(m_hWnd, SW_SHOW);
-    UpdateWindow(m_hWnd);
 }
 
 void Window::OnWindowResize_(const WindowResizeEvent& _event)
 {
-    m_width  = _event.GetWidth();
-    m_height = _event.GetHeight();
+    m_clientSize.width  = _event.GetWidth();
+    m_clientSize.height = _event.GetHeight();
+}
+
+void Window::OnWindowMaximize_(const WindowMaximizeEvent& _event)
+{
+    m_clientSize.width  = _event.GetWidth();
+    m_clientSize.height = _event.GetHeight();
 }
 
 void Window::OnWindowMove_(const WindowMoveEvent& _event)
 {
-    m_posX = _event.GetX();
-    m_posY = _event.GetY();
+    m_clientPos.x = _event.GetX();
+    m_clientPos.y = _event.GetY();
 }
 
 LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wParam, const LPARAM lParam)
@@ -321,6 +301,22 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
             result = DefWindowProcW(hWnd, uMsg, wParam, lParam);
     }
     return result;
+}
+
+void Window::SetClient(const Int32 _clientWidth, const Int32 _clientHeight, const Int32 _clientLeftTopX, const Int32 _clientLeftTopY, const DWORD _wsFlags, const DWORD _exFlags)
+{
+    bool bHasMenu = ::GetMenu(m_hWnd) != NULL;
+    RECT rect     = { 0, 0, _clientWidth, _clientHeight };
+    ::AdjustWindowRectExForDpi(&rect, _wsFlags, bHasMenu, _exFlags, ::GetDpiForWindow(m_hWnd));
+
+    const Int32 adjustedWidth  = rect.right - rect.left;
+    const Int32 adjustedHeight = rect.bottom - rect.top;
+    ::SetWindowPos(m_hWnd, NULL, _clientLeftTopX, _clientLeftTopY, adjustedWidth, adjustedHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+    ::UpdateWindow(m_hWnd);
+    ::ShowWindow(m_hWnd, SW_SHOW);
+
+    m_clientPos  = { _clientLeftTopX, _clientLeftTopY };
+    m_clientSize = { _clientWidth, _clientHeight };
 }
 
 }   // namespace jam

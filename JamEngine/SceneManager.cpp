@@ -3,8 +3,10 @@
 #include "SceneManager.h"
 
 #include "Application.h"
+#include "AssetManager.h"
 #include "Components.h"
 #include "Events.h"
+#include "Gfx.h"
 #include "Scene.h"
 #include "SceneSerializer.h"
 #include "Script.h"
@@ -17,6 +19,11 @@ using namespace jam;
 struct SceneMgrContext
 {
     void OnWindowResizeEvent(const WindowResizeEvent& _event)
+    {
+        OnResize(_event.GetWidth(), _event.GetHeight());
+    }
+
+    void OnWindowMaximizeEvent(const WindowMaximizeEvent& _event)
     {
         OnResize(_event.GetWidth(), _event.GetHeight());
     }
@@ -43,16 +50,19 @@ static SceneMgrContext g_sceneMgrCtx;
 namespace jam::scene_manager
 {
 
-void Init()
+void Init(const Int32 _width, const Int32 _height)
 {
-    Application&  app    = Application::GetInstance();
-    const Window& win    = app.GetWindow();
-    auto [width, height] = win.GetWindowSize();
-    g_sceneMgrCtx.OnResize(width, height);
+    g_sceneMgrCtx.OnResize(_width, _height);
 }
 
 void Shutdown()
 {
+    if (g_sceneMgrCtx.pActiveScene)
+    {
+        g_sceneMgrCtx.pActiveScene->OnExit();
+        g_sceneMgrCtx.pActiveScene.reset();
+    }
+
     JAM_DESTROY_TEXTURE(g_sceneMgrCtx.sceneTexture);
     JAM_DESTROY_FRAME_BUFFER(g_sceneMgrCtx.sceneFrameBuffer);
 }
@@ -60,6 +70,7 @@ void Shutdown()
 void OnEvent(Event& _event)
 {
     HandleEvent<WindowResizeEvent>(_event, &g_sceneMgrCtx, &SceneMgrContext::OnWindowResizeEvent);
+    HandleEvent<WindowMaximizeEvent>(_event, &g_sceneMgrCtx, &SceneMgrContext::OnWindowMaximizeEvent);
     if (g_sceneMgrCtx.pActiveScene)
     {
         g_sceneMgrCtx.pActiveScene->OnEvent(_event);
@@ -75,6 +86,7 @@ void Update(const float _deltaSec)
         {
             g_sceneMgrCtx.pActiveScene->OnExit();
         }
+        asset_manager::CleanGarbageAll();   // 씬 전환 시 사용하지 않는 에셋 정리
 
         g_sceneMgrCtx.pActiveScene = std::move(g_sceneMgrCtx.pNextScene);
         g_sceneMgrCtx.pActiveScene->OnEnter();
@@ -141,6 +153,14 @@ void Render(const FrameBufferHandle _handle, const Camera& _camera, const Transf
 
         // render
         g_sceneMgrCtx.pActiveScene->OnRender(_handle, _camera, _transform);
+    }
+}
+
+void ImGuiRender()
+{
+    if (g_sceneMgrCtx.pActiveScene)
+    {
+        g_sceneMgrCtx.pActiveScene->OnImGuiRender();
     }
 }
 

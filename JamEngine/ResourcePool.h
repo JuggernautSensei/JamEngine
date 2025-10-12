@@ -34,7 +34,6 @@ class ResourcePool
             : m_pPool(_pPool)
             , m_handleIter(_handleIter)
         {
-            JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
         }
 
         Iterator& operator++() noexcept

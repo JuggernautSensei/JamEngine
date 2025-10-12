@@ -208,7 +208,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
     else
     {
         // aabb 정보 없으면 직접 계산
-        CalcBoundingBox_(vertices, layout);
+        ComputeBoundingBox_(vertices, layout);
     }
 
     // 완료
@@ -231,7 +231,7 @@ void Mesh::Load(
     m_indexBufferHandle  = gfx::CreateIndexBuffer(_indices, _format);
 
     // 바운딩 박스 계산
-    CalcBoundingBox_(_vertices, _layout);
+    ComputeBoundingBox_(_vertices, _layout);
 }
 
 eErrorCode Mesh::Save(const fs::path& _path) const
@@ -290,7 +290,7 @@ eErrorCode Mesh::Save(const fs::path& _path) const
     return eErrorCode::Ok;
 }
 
-void Mesh::CalcBoundingBox_(const MemoryView _vertices, const VertexLayout& _layout)
+void Mesh::ComputeBoundingBox_(const MemoryView _vertices, const VertexLayout& _layout)
 {
     // 포지션 속성 정보
     JAM_ASSERT(_layout.Has(eVertexAttribute::Position), "Position attribute is required to calculate bounding box");

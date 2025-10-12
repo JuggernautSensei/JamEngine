@@ -24,6 +24,7 @@ public:
     virtual void OnExit() {}
     virtual void OnUpdate(float _deltaSec) {}
     virtual void OnRender(FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform) {}
+    virtual void OnImGuiRender() {}
     virtual void OnEvent(Event& _event) {}
 
     JAM_NODISCARD Entity CreateEntity(std::string_view _name = {});
@@ -49,8 +50,12 @@ public:
     JAM_NODISCARD const HashMap<UID, Entity>& GetEntities() const;
     JAM_NODISCARD virtual std::string_view    GetName() const = 0;
 
+protected:
+    Scene();
+
 private:
-    void DestroyEntity_Recursive_(Entity& _entity);
+    void                 DestroyEntity_Recursive_(Entity& _entity);
+    JAM_NODISCARD Entity CreateEntity_(UID _uid, std::string_view _name = {});
 
     entt::registry       m_registry     = {};
     Entity               m_rootEntity   = Entity::s_null;

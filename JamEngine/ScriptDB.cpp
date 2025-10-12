@@ -7,7 +7,11 @@ using namespace jam;
 ///          INTERNAL          ///
 //////////////////////////////////
 
-static HashMap<UInt32, ScriptInfo> g_scriptInfoMap;
+static HashMap<UInt32, ScriptInfo>& GetScriptInfoMap()
+{
+    static HashMap<UInt32, ScriptInfo> map;
+    return map;
+}
 
 ////////////////////////////////////////////////////////////
 
@@ -17,20 +21,23 @@ namespace jam::script_db
 void Reflect(const ScriptInfo& info)
 {
     const UInt32 nameHash = HashOf(info.name);
-    JAM_ASSERT(!g_scriptInfoMap.contains(nameHash), "Script '{}' is already registered", info.name);
-    g_scriptInfoMap[nameHash] = info;
+    auto&        map      = GetScriptInfoMap();
+    JAM_ASSERT(!map.contains(nameHash), "Script with name '{}' is already registered", info.name);
+    map.emplace(nameHash, info);
 }
 
 std::shared_ptr<Script> Create(const std::string_view _name, const Entity _entity)
 {
-    UInt32 hash = HashOf(_name);
-    JAM_ASSERT(g_scriptInfoMap.contains(hash), "Script '{}' is not registered", _name);
-    return g_scriptInfoMap.at(hash).createFn(_entity);
+    const UInt32 nameHash = HashOf(_name);
+    auto&        map      = GetScriptInfoMap();
+    JAM_ASSERT(map.contains(nameHash), "No Script registered with name '{}'", _name);
+    return map[nameHash].createFn(_entity);
 }
 
-const HashMap<unsigned, ScriptInfo>& GetAllScriptInfos()
+const HashMap<unsigned, ScriptInfo>& GetScriptInfos()
 {
-    return g_scriptInfoMap;
+    auto& map = GetScriptInfoMap();
+    return map;
 }
 
 }   // namespace jam::script_db

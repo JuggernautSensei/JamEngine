@@ -24,7 +24,7 @@ namespace editor
     void Init();
     void Shutdown();
 
-    void Render();
+    void ImGuiRender();
     void OnEvent(Event& _event);
 
     void               SetPanelVisible(ePanel _panel, bool _bVisible);

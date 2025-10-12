@@ -115,8 +115,8 @@ public:
 
     JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const;
     JAM_NODISCARD std::string_view GetApplicationName() const;
-    JAM_NODISCARD const TickTimer& GetTimer() const;
-    JAM_NODISCARD const Window&    GetWindow() const;
+    JAM_NODISCARD const TickTimer&  GetTimer() const;
+    JAM_NODISCARD const Window&     GetWindow() const;
 
     /// 싱글턴 객체 관리. 임의 호출 금지
     static void Create(const CommandLineArguments& _args);
@@ -129,6 +129,8 @@ protected:
     explicit Application(const ApplicationCreateInfo& _info);
 
 private:
+    void OnWindowCloseEvent(const WindowCloseEvent& _event);
+
     /// @brief 어플리케이션이 시작될 때 호출되는 함수
     virtual void OnCreate() = 0;
 

@@ -12,31 +12,30 @@ public:
     void OnEvent(Event& _event);
     bool PollEvents();
 
-    void ResizeWindow(Int32 _width, Int32 _height) const;
-    void MoveWindow(Int32 _posX, Int32 _posY) const;
+    void ResizeClient(Int32 _clientWidth, Int32 _clientHeight);
+    void MoveClient(Int32 _clientLeftTopX, Int32 _clientLeftTopY);
     void SetTitle(std::string_view _name) const;
 
-    JAM_NODISCARD Resolution GetWindowSize() const;
-    JAM_NODISCARD ScreenPos  GetWindowPos() const;
-    JAM_NODISCARD Resolution GetMoniterScreenSize() const;
+    JAM_NODISCARD Resolution GetClientSize() const;
+    JAM_NODISCARD ScreenPos  GetClientPos() const;
+    JAM_NODISCARD Resolution GetFullScreenSize() const;
     JAM_NODISCARD HWND       GetPlatformHandle() const;
     JAM_NODISCARD HINSTANCE  GetPlatformInstance() const;
 
 private:
     static LRESULT CALLBACK WindowProc_(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    void SetWindowAttribute_(Int32 _windowWidth, Int32 _windowHeight, Int32 _screenLeftTopX, Int32 _screenLeftTopY, LONG _wsFlags) const;
+    void SetClient(Int32 _clientWidth, Int32 _clientHeight, Int32 _clientLeftTopX, Int32 _clientLeftTopY, DWORD _wsFlags, DWORD _exFlags);
     void OnWindowResize_(const WindowResizeEvent& _event);
+    void OnWindowMaximize_(const WindowMaximizeEvent& _event);
     void OnWindowMove_(const WindowMoveEvent& _event);
 
     HINSTANCE m_hInstance = NULL;   // 윈도우 인스턴스
     HWND      m_hWnd      = NULL;   // 윈도우 핸들
     MSG       m_msg       = {};     // 윈도우 메시지
 
-    Int32 m_width  = 0;   // window width
-    Int32 m_height = 0;   // window height
-    Int32 m_posX   = 0;   // window translate X
-    Int32 m_posY   = 0;   // window translate Y
+    ScreenPos  m_clientPos  = { 0, 0 };
+    Resolution m_clientSize = { k_defaultWidth, k_defaultHeight };
 
     constexpr static const wchar_t* const k_windowClassName = L"jam enginewindow class";
     constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";

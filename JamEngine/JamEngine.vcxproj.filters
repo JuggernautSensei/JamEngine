@@ -229,30 +229,6 @@
     <ClCompile Include="vendor\tinyfiledialogs\tinyfiledialogs.c">
       <Filter>98. Vendor\tinyfiledialogs</Filter>
     </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_impl_win32.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_stdlib.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="SceneDB.cpp">
       <Filter>7. Reflection</Filter>
     </ClCompile>
@@ -417,9 +393,6 @@
     <Filter Include="7. Reflection">
       <UniqueIdentifier>{dfa07466-c9e5-4517-8a43-82d35cc0d7fe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="98. Vendor\imgui">
-      <UniqueIdentifier>{f01457aa-2d3a-4b18-af56-f04da41313c9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="98. Vendor\ghc">
       <UniqueIdentifier>{7089b5b8-f7fc-4809-8fbf-a17cc046f7ef}</UniqueIdentifier>
     </Filter>
@@ -428,9 +401,6 @@
     </Filter>
     <Filter Include="98. Vendor\unordered_densce">
       <UniqueIdentifier>{564c3992-81a5-4f88-939b-e74dd394eb05}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="98. Vendor\json">
-      <UniqueIdentifier>{18fbd518-8fdb-42b0-969e-8ed7dfaa9203}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Serialize">
       <UniqueIdentifier>{1a3a8ef2-743e-4922-a241-93e752fb1dfa}</UniqueIdentifier>
@@ -689,12 +659,6 @@
     <ClInclude Include="vendor\tinyfiledialogs\tinyfiledialogs.h">
       <Filter>98. Vendor\tinyfiledialogs</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\nlohmann\json_fwd.hpp">
-      <Filter>98. Vendor\json</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\nlohmann\json.hpp">
-      <Filter>98. Vendor\json</Filter>
-    </ClInclude>
     <ClInclude Include="vendor\ghc\fs_std_impl.hpp">
       <Filter>98. Vendor\ghc</Filter>
     </ClInclude>
@@ -712,33 +676,6 @@
     </ClInclude>
     <ClInclude Include="vendor\ghc\filesystem.hpp">
       <Filter>98. Vendor\ghc</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imstb_rectpack.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imstb_textedit.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imstb_truetype.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imconfig.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_impl_dx11.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_impl_win32.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_internal.h">
-      <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\imgui\imgui_stdlib.h">
-      <Filter>98. Vendor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="SceneDB.h">
       <Filter>7. Reflection</Filter>

@@ -29,7 +29,7 @@ void Shutdown()
 {
 }
 
-void Render()
+void ImGuiRender()
 {
 }
 

@@ -150,7 +150,6 @@ class HandleAllocator
             , m_index(_startIndex)
             , m_endIndex(static_cast<UInt32>(_pAllocator->m_slots.size()))
         {
-            JAM_ASSERT(IsValid_(), "Iterator out of bounds");
             Advance_();
         }
 

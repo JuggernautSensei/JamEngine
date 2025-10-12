@@ -36,8 +36,7 @@ namespace scene_db
     }
 
     JAM_NODISCARD std::unique_ptr<Scene> Create(std::string_view _name);
-    JAM_NODISCARD const HashMap<UInt32, SceneInfo>& GetAllSceneBehaviorInfos();
+    JAM_NODISCARD const HashMap<UInt32, SceneInfo>& GetSceneInfos();
 
 }   // namespace scene_db
-
 }   // namespace jam

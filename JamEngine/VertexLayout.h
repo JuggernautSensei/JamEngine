@@ -60,13 +60,16 @@ class VertexLayout
 {
 public:
     /// @brief 기본 생성자
-    VertexLayout() = default;
+    VertexLayout()
+    {
+        Reset();
+    }
 
     /// @brief 초기화
     void Reset()
     {
         std::memset(m_elems, 0, sizeof(m_elems));
-        std::memset(m_attribRTable, Int32Limits::max(), sizeof(m_attribRTable));
+        std::memset(m_attribRTable, -1, sizeof(m_attribRTable));
         m_stride    = 0;
         m_elemCount = 0;
     }
@@ -99,7 +102,7 @@ public:
 
     JAM_NODISCARD bool Has(const eVertexAttribute _attrib) const
     {
-        return m_attribRTable[EnumToInt(_attrib)] != Int32Limits::max();
+        return m_attribRTable[EnumToInt(_attrib)] != -1;
     }
 
     JAM_NODISCARD const VertexLayoutElement& GetElement(const eVertexAttribute _attrib) const
@@ -121,7 +124,7 @@ public:
 
 private:
     VertexLayoutElement m_elems[EnumCount<eVertexAttribute>()]        = {};
-    Int32               m_attribRTable[EnumCount<eVertexAttribute>()] = { Int32Limits::max() };
+    Int32               m_attribRTable[EnumCount<eVertexAttribute>()] = { -1 };
     Int32               m_elemCount                                   = 0;
     Int32               m_stride                                      = 0;
 };

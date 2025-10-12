@@ -82,8 +82,8 @@ struct MeshRenderer : SerializableComponent<MeshRenderer>
     JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
     eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
-    MeshHandle     mesh     = k_invalidHandle;
-    MaterialHandle material = k_invalidHandle;
+    std::shared_ptr<Mesh>     mesh     = nullptr;
+    std::shared_ptr<Material> material = nullptr;
 };
 
 }   // namespace jam

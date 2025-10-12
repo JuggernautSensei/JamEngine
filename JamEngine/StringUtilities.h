@@ -37,8 +37,8 @@ JAM_NODISCARD constexpr UInt32 operator""_hs(const wchar_t* _str, const size_t _
 
 JAM_NODISCARD std::wstring ToLower(std::wstring_view _wStr);
 JAM_NODISCARD std::string ToLower(std::string_view _str);
-JAM_NODISCARD Result<std::string> ToUTF8(std::wstring_view _wstr);
-JAM_NODISCARD Result<std::wstring> ToUTF16(std::string_view _str);
+JAM_NODISCARD std::string ToUTF8(std::wstring_view _wstr);
+JAM_NODISCARD std::wstring ToUTF16(std::string_view _str);
 JAM_NODISCARD std::vector<std::string> Split(std::string_view _str, std::string_view _delimiter);
 
 template<typename T>
@@ -47,7 +47,7 @@ Result<T> StringToInt(const std::string_view _str)
 {
     if (_str.empty())
     {
-        SetErrorString("StringToInt: input string is empty");   
+        SetErrorString("StringToInt: input string is empty");
         return eErrorCode::InvalidArgument;
     }
 
@@ -128,6 +128,5 @@ Result<T> StringToInt(const std::string_view _str)
 
     return output;
 }
-
 
 }   // namespace jam

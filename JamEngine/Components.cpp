@@ -246,25 +246,23 @@ Json MeshRenderer::Serialize(const Scene* _pScene, Entity _entity) const
     Json json;
 
     // mesh field
-    if (mesh == k_invalidHandle)
+    if (mesh)
+    {
+        json["mesh"] = mesh->GetPath();
+    }
+    else
     {
         json["mesh"] = nullptr;
     }
-    else
-    {
-        const Mesh& msh = asset_manager::GetMesh(this->mesh);
-        json["mesh"]    = msh.GetPath();
-    }
 
     // material field
-    if (material == k_invalidHandle)
+    if (material)
     {
-        json["material"] = nullptr;
+        json["material"] = material->GetPath();
     }
     else
     {
-        const Material& mat = asset_manager::GetMaterial(this->material);
-        json["material"]    = mat.GetPath();
+        json["material"] = nullptr;
     }
 
     return json;
@@ -285,7 +283,7 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
     Json meshField = _json["mesh"];
     if (meshField.is_null())
     {
-        mesh = k_invalidHandle;
+        mesh = nullptr;
     }
     else if (meshField.is_string())
     {
@@ -307,11 +305,11 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
     Json materialField = _json["material"];
     if (materialField.is_null())
     {
-        material = k_invalidHandle;
+        material = nullptr;
     }
     else if (materialField.is_string())
     {
-        std::string materialPath = materialField.get<std::string>();
+        std::string materialPath  = materialField.get<std::string>();
         auto [ec, materialHandle] = asset_manager::GetOrLoadMaterial(materialPath);
 
         if (IsError(ec))

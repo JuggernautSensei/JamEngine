@@ -65,22 +65,30 @@ void Application::Create(const CommandLineArguments& _args)
         // 윈도우 초기화
         s_instance->m_window.Init();
         s_instance->m_window.SetTitle(s_instance->m_applicationName);
+        auto [width, height] = s_instance->m_window.GetClientSize();
+        HWND hwnd            = s_instance->m_window.GetPlatformHandle();
 
         // 렌더러 초기화
-        gfx::Init();
+        gfx::Init(hwnd, width, height);
 
         // 입력 초기화
         input::Init();
 
         // 씬 매니저 초기화
-        scene_manager::Init();
+        scene_manager::Init(width, height);
 
         // imgui 초기화
-        imgui::Init();
+        ID3D11Device*        pd3dDevice        = gfx::GetDevice();
+        ID3D11DeviceContext* pd3dDeviceContext = gfx::GetDeviceContext();
+        imgui::Init(hwnd, pd3dDevice, pd3dDeviceContext);
     }
 
     // 사용자 정의 어플리케이션 초기화 루틴
     s_instance->OnCreate();
+
+    // 실행
+    s_instance->m_bRunning = true;
+    logger::Trace("Application '{}' started.", s_instance->m_applicationName);
 }
 
 void Application::Destroy()
@@ -103,9 +111,8 @@ void Application::Destroy()
     // 렌더러 종료
     gfx::Shutdown();
 
-    // 에셋 매니저 릭 검사
-    if (asset_manager::DetectLeak())
-        JAM_ASSERT(0, "Resource leak detected! Please check the log for details.");
+    // 에셋 매니저 정리
+    asset_manager::ClearAll();
 
     // 그래픽스 릭 검사
     if (gfx::DetectLeak())
@@ -116,6 +123,7 @@ void Application::Destroy()
     s_instance = nullptr;
 
     // 로그 종료
+    logger::Trace("Application '{}' shutdown.", s_instance->m_applicationName);
     logger::Shutdown();
 }
 
@@ -127,7 +135,6 @@ Application& Application::GetInstance()
 
 Application::Application(const ApplicationCreateInfo& _info)
     : m_applicationName(_info.applicationName)
-    , m_bRunning(true)
     , m_bEditor(_info.bEditor)
 {
     JAM_ASSERT(fs::exists(_info.workingDirectory), "Working directory does not exist: {}", _info.workingDirectory.native());
@@ -140,6 +147,11 @@ Application::Application(const ApplicationCreateInfo& _info)
     m_directories.materialsDir     = m_directories.assetsDir / k_materialsDirName;
     m_directories.scenesDir        = m_directories.contentsDir / k_scenesDirName;
     m_directories.cachesDir        = m_directories.workingDir / k_cacheDirName;
+}
+
+void Application::OnWindowCloseEvent(const WindowCloseEvent& _event)
+{
+    Quit();
 }
 
 int Application::Run()
@@ -194,16 +206,21 @@ int Application::Run()
 
             // 렌더링
             {
-                imgui::BeginFrame();
                 if (m_bEditor)
                 {
-                    editor::Render();
+                    imgui::BeginFrame();
+                    scene_manager::ImGuiRender();
+                    editor::ImGuiRender();
+                    imgui::EndFrame();
                 }
-                else
+                else   // 런타임
                 {
                     scene_manager::RenderRuntime();
+                    imgui::BeginFrame();
+                    scene_manager::ImGuiRender();
+                    imgui::EndFrame();
                 }
-                imgui::EndFrame();
+
                 gfx::Frame(m_bVsync);
             }
         }
@@ -214,7 +231,6 @@ int Application::Run()
 
 void Application::Quit()
 {
-    JAM_ASSERT(m_bRunning, "Application is not running");
     m_bRunning = false;
 }
 
@@ -223,12 +239,18 @@ void Application::DispatchEvent(Event& _event)
     JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
+    // 실행 중이 아닐 때는 이벤트 무시
+    if (m_bRunning == false)
+    {
+        return;
+    }
+
 #ifdef JAM_DEBUG
     if (_event.GetCategory() != eEventCategory::Input)   // 디버그용 로그
-    {
         JAM_LOGGER_DEBUG("Dispatching event: {}", _event.ToString());
-    }
 #endif
+
+    HandleEvent<WindowCloseEvent>(_event, JAM_BIND_MEMBER_LISTENER(Application::OnWindowCloseEvent));
 
     m_window.OnEvent(_event);
     gfx::OnEvent(_event);

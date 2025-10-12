@@ -6,4 +6,5 @@
 #include "EntryPoint.h"
 
 #include "Scene.h"
+#include "SceneDB.h"
 #include "SceneManager.h"

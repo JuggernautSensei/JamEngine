@@ -29,8 +29,8 @@
 
 // directX
 #include <d3d11.h>
-#include <directxtk/SimpleMath.h>
-#include <directxtk/SimpleMath.inl>
+#include <DirectXTK/SimpleMath.h>
+#include <DirectXTK/SimpleMath.inl>
 #include <wrl.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -40,6 +40,7 @@
 #include "HashMap.h"
 #include "json.h"
 #include <entt/entt.hpp>
+#include "ImGuiGlue.h"
 
 // base
 #include "Configs.h"

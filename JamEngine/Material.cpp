@@ -117,7 +117,7 @@ eErrorCode Material::Load(const fs::path& _path)
     m_params.lightMapIntencity = pMat->light_map_intensity();
     m_params.aoMapIntencity    = pMat->ao_map_intensity();
 
-    ImageTextureHandle* const texturehandles[] = {
+    std::shared_ptr<ImageTexture>* const imageTextures[] = {
         &m_params.albedoMap,
         &m_params.normalMap,
         &m_params.metallicMap,
@@ -137,19 +137,18 @@ eErrorCode Material::Load(const fs::path& _path)
         pMat->light_map_path()
     };
 
-    static_assert(std::size(texturehandles) == std::size(texturepaths), "Texture handles and paths size mismatch");
-    for (size_t i = 0; i < std::size(texturehandles); ++i)
+    static_assert(std::size(imageTextures) == std::size(texturepaths), "Texture handles and paths size mismatch");
+    for (size_t i = 0; i < std::size(imageTextures); ++i)
     {
         if (texturepaths[i])
         {
-            fs::path path     = ConvertToPath(*texturepaths[i]);
-            auto [ec, handle] = asset_manager::GetOrLoadImageTexture(path);
+            fs::path path    = ConvertToPath(*texturepaths[i]);
+            auto [ec, asset] = asset_manager::GetOrLoadImageTexture(path);
             if (IsError(ec))
             {
                 logger::Warn("Failed to load texture: {} (Error: {})", path.native(), EnumToString(ec));
-                handle = k_invalidHandle;
             }
-            *texturehandles[i] = handle;
+            *imageTextures[i] = asset;
         }
     }
 
@@ -180,13 +179,13 @@ eErrorCode Material::Save(const fs::path& _path) const
     jmat::Vec3 fbsEmissiveColor = ConvertToFbsVec3(m_params.emissiveColor);
 
     // textures
-    flatbuffers::Offset<flatbuffers::String> fbsAlbedoMapPath    = m_params.albedoMap != k_invalidHandle ? ConvertToFbsString(builder, asset_manager::GetImageTexture(m_params.albedoMap).GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsNormalMapPath    = m_params.normalMap != k_invalidHandle ? ConvertToFbsString(builder, asset_manager::GetImageTexture(m_params.normalMap).GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsMetallicMapPath  = m_params.metallicMap != k_invalidHandle ? ConvertToFbsString(builder, asset_manager::GetImageTexture(m_params.metallicMap).GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsRoughnessMapPath = m_params.roughnessMap != k_invalidHandle ? ConvertToFbsString(builder, asset_manager::GetImageTexture(m_params.roughnessMap).GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsAOMapPath        = m_params.aoMap != k_invalidHandle ? ConvertToFbsString(builder, asset_manager::GetImageTexture(m_params.aoMap).GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsEmissiveMapPath  = m_params.emissiveMap != k_invalidHandle ? ConvertToFbsString(builder, asset_manager::GetImageTexture(m_params.emissiveMap).GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsLightMapPath     = m_params.lightMap != k_invalidHandle ? ConvertToFbsString(builder, asset_manager::GetImageTexture(m_params.lightMap).GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsAlbedoMapPath    = m_params.albedoMap ? ConvertToFbsString(builder, m_params.albedoMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsNormalMapPath    = m_params.normalMap ? ConvertToFbsString(builder, m_params.normalMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsMetallicMapPath  = m_params.metallicMap ? ConvertToFbsString(builder, m_params.metallicMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsRoughnessMapPath = m_params.roughnessMap ? ConvertToFbsString(builder, m_params.roughnessMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsAOMapPath        = m_params.aoMap ? ConvertToFbsString(builder, m_params.aoMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsEmissiveMapPath  = m_params.emissiveMap ? ConvertToFbsString(builder, m_params.emissiveMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsLightMapPath     = m_params.lightMap ? ConvertToFbsString(builder, m_params.lightMap->GetPath()) : 0;
 
     Int32 version     = k_version.Pack();
     auto  fbsMaterial = jmat::CreateMaterial(
