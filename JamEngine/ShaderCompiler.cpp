@@ -18,6 +18,7 @@ constexpr const char* k_shaderModelTable[EnumCount<eShader>()] = {
     "gs_5_0",
     "hs_5_0",
     "ds_5_0",
+    "cs_5_0",
 };
 
 }

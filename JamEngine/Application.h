@@ -116,7 +116,7 @@ public:
     JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const;
     JAM_NODISCARD std::string_view GetApplicationName() const;
     JAM_NODISCARD const TickTimer& GetTimer() const;
-    JAM_NODISCARD const Window&    GetWindow() const;
+    JAM_NODISCARD Window&          GetWindow();
 
     /// 싱글턴 객체 관리. 임의 호출 금지
     static void Create(const CommandLineArguments& _args);
@@ -139,7 +139,7 @@ private:
 
     std::string        m_applicationName = {};
     bool               m_bRunning        = false;
-    bool               m_bAlive          = false;
+    bool               m_bEventDispatchable          = false;
     bool               m_bVsync          = false;
     bool               m_bEditor         = false;
     Window             m_window          = {};

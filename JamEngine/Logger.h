@@ -157,5 +157,5 @@ namespace logger
 #ifdef JAM_DEBUG
 #    define JAM_LOGGER_DEBUG(...) jam::logger::Debug(__VA_ARGS__)
 #else
-#    define JAM_LOG_DEBUG(...) JAM_NOOP
+#    define JAM_LOGGER_DEBUG(...) JAM_NOOP
 #endif

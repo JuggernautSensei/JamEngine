@@ -83,13 +83,13 @@ void Application::Create(const CommandLineArguments& _args)
         imgui::Init(hwnd, pd3dDevice, pd3dDeviceContext);
     }
 
+    // 초기화 완료
+    s_instance->m_bEventDispatchable = true;
+    s_instance->m_bRunning           = true;
+    logger::Trace("Application '{}' started.", s_instance->m_applicationName);
+
     // 사용자 정의 어플리케이션 초기화 루틴
     s_instance->OnCreate();
-
-    // 모든 초기화 완료
-    s_instance->m_bAlive   = true;
-    s_instance->m_bRunning = true;
-    logger::Trace("Application '{}' started.", s_instance->m_applicationName);
 }
 
 void Application::Destroy()
@@ -99,10 +99,12 @@ void Application::Destroy()
 
     // 종료 시작
     logger::Trace("Application '{}' shutdown.", s_instance->m_applicationName);
-    s_instance->m_bAlive = false;
 
     // 사용자 정의 어플리케이션 종료 루틴
     s_instance->OnDestroy();
+
+    // 이벤트 디스패치 비활성화
+    s_instance->m_bEventDispatchable = false;
 
     // 윈도우 종료
     s_instance->m_window.Shutdown();
@@ -244,15 +246,15 @@ void Application::DispatchEvent(Event& _event)
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetName());
 
     // 어플리케이션이 모두 초기화된 이후 ~ 종료되기 전까지의 이벤트 처리
-    if (m_bAlive == false)
+    if (m_bEventDispatchable == false)
     {
         return;
     }
 
-//#ifdef JAM_DEBUG
-//    if (_event.GetCategory() != eEventCategory::Input)   // 디버그용 로그
-//        JAM_LOGGER_DEBUG("Dispatching event: {}", _event.ToString());
-//#endif
+    // #ifdef JAM_DEBUG
+    //     if (_event.GetCategory() != eEventCategory::Input)   // 디버그용 로그
+    //         JAM_LOGGER_DEBUG("Dispatching event: {}", _event.ToString());
+    // #endif
 
     HandleEvent<WindowCloseEvent>(_event, JAM_BIND_MEMBER_LISTENER(Application::OnWindowCloseEvent));
 
@@ -297,7 +299,7 @@ const TickTimer& Application::GetTimer() const
     return m_timer;
 }
 
-const Window& Application::GetWindow() const
+Window& Application::GetWindow()
 {
     return m_window;
 }
