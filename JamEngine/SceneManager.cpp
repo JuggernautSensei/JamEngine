@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "AssetManager.h"
 #include "Components.h"
+#include "DrawItemCollector.h"
 #include "Events.h"
 #include "Gfx.h"
 #include "Scene.h"
@@ -40,6 +41,7 @@ struct SceneMgrContext
     std::unique_ptr<Scene> pActiveScene = nullptr;
     std::unique_ptr<Scene> pNextScene   = nullptr;
 
+    // 씬 프레임 버퍼
     FrameBufferHandle sceneFrameBuffer = k_invalidHandle;
     TextureHandle     sceneTexture     = k_invalidHandle;
 };
@@ -96,7 +98,7 @@ void Update(const float _deltaSec)
     if (g_sceneMgrCtx.pActiveScene)
     {
         // udpate script
-        for (auto&& [_, scriptCmp]: g_sceneMgrCtx.pActiveScene->CreateView<ScriptComponent>().each())
+        for (auto&& [_, scriptCmp]: g_sceneMgrCtx.pActiveScene->Each<ScriptComponent>())
         {
             if (scriptCmp.pScript)
             {
@@ -108,21 +110,30 @@ void Update(const float _deltaSec)
     }
 }
 
+void PrepareRender()
+{
+    if (g_sceneMgrCtx.pActiveScene)
+    {
+        std::unique_ptr<Scene>& pScene = g_sceneMgrCtx.pActiveScene;
+
+        // 
+    }
+}
+
 void RenderRuntime()
 {
     if (g_sceneMgrCtx.pActiveScene)
     {
-        Scene* pScene = g_sceneMgrCtx.pActiveScene.get();
+        std::unique_ptr<Scene>& pScene = g_sceneMgrCtx.pActiveScene;
 
         // 렌더링 하기 전에 Transform 갱신
-        Entity              root      = pScene->GetRootEntity();
-        TransformComponent& rootTrans = root.GetTransform();
-        rootTrans.transform.Update_Recursive();
+        Entity              root  = pScene->GetRootEntity();
+        HierarchyTransform& rootT = root.GetHierarchyTransform();
 
         // find camera
         const Camera*    pMainCamera    = nullptr;
         const Transform* pMainTransform = nullptr;
-        for (auto&& [_, cameraCmp, transformCmp]: pScene->CreateView<CameraComponent, TransformComponent>().each())
+        for (auto&& [_, cameraCmp, transformCmp]: pScene->View<CameraComponent, TransformComponent>().each())
         {
             if (cameraCmp.bMain)
             {

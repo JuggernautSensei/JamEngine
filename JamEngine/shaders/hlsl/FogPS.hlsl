@@ -1,25 +1,28 @@
-#include "Common.hlsl"
+#include "ShaderBase.hlsl"
 
-float4 PSmain(SCREENSPACE_EFFECT_PS_INPUT input) : SV_TARGET
+float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
-    float3 sceneColor = postProcessInputTexture1.Sample(samplerLinearClamp, input.texCoord).rgb;
-    float depth = postProcessInputTexture2.Sample(samplerPointClamp, input.texCoord).r;
+    float3 texColor = t_input0.Sample(s_linearClamp, _input.texCoord0).rgb;
+    float depth = t_depth.Sample(s_pointClamp, _input.texCoord0).r;
 
-    float3 posNDC = float3(input.texCoord * 2.0f - 1.0f, depth);
-    posNDC.y = -posNDC.y;
-    float3 posWorld = UnProjectionNDCPos(posNDC, cb_viewProjInv);
+    float3 posNdc;
+    posNdc.x = _input.texCoord0.x * 2.f - 1.f;
+    posNdc.y = 1.f - _input.texCoord0.y * 2.f;
+    posNdc.z = depth;
 
-    float camToFragDist = length(posWorld - cb_eye);
+    float4 unprojPos = mul(cb_projViewInv, float4(posNdc, 1.f));
+    float3 posW = unprojPos.xyz / unprojPos.w;
 
-    float dist = max(0.0, camToFragDist - cb_postProcessFogStartDistance);
-    float fogDistanceFactor = 1.0 - exp(-cb_postProcessFogDensity * dist);
+    float dist = distance(cb_eyePos, posW);
 
-    float heightDiff = posWorld.y - cb_postProcessFogHeight;
-    float fogHeightFactor = exp(-cb_postProcessFogHeightFallOff * max(heightDiff, 0.0));
+    float fogY = posW.y;
+    float eyeY = cb_eyePos.y;
+    float invFoxY = 1.f / max(fogY, k_epsilon);
+    float fogFactor = invFoxY * cb_fogDensity / cb_fogHeightAttenuation
+                    * exp2(max(-127.f, -eyeY * cb_fogHeightAttenuation))
+                    * (1.f - exp2(clamp(-dist * fogY * cb_fogHeightAttenuation, -127.f, 127.f)));
 
-    float opacity = lerp(0.f, cb_postProcessFogMaxOpacity, cb_postProcessFogOpacity);
-    float fogFactor = saturate(fogDistanceFactor * fogHeightFactor * opacity);
-
-    float3 finalColor = lerp(sceneColor, cb_postProcessFogColor, fogFactor);
-    return float4(finalColor, 1.0);
+    fogFactor = clamp(fogFactor, 0.f, 1.f);
+    fogFactor = CalcSmoothAttenuation(fogFactor, cb_fogFallOffStart, cb_fogFallOffEnd);
+    return float4(lerp(texColor, cb_fogColor.rgb, fogFactor), 1.f);
 }

@@ -82,7 +82,7 @@ eErrorCode AssimpImporter::Import()
     const aiScene* pScene = importer.ReadFile(m_filePath, flags);
     if (!pScene)
     {
-        SetErrorString("AssimpImporter::Import() - Failed to load file: {}", importer.GetErrorString());
+        SetErrorMessage("AssimpImporter::Import() - Failed to load file: {}", importer.GetErrorString());
         return eErrorCode::FileReadFailed;
     }
 
@@ -404,8 +404,7 @@ std::vector<Material> AssimpImporter::CreateMaterial() const
         mat.emissiveColor     = assimpMat.emissiveColor;
         mat.emissiveIntensity = assimpMat.emissiveIntensity;
 
-        mat.opacity        = assimpMat.opacity;
-        mat.bIsTransparent = assimpMat.opacity < 1.0f;
+        mat.opacity = assimpMat.opacity;
 
         mat.bDoubleSide    = assimpMat.bDoubleSide;
         mat.bumpMapScaling = assimpMat.bumpScaling;

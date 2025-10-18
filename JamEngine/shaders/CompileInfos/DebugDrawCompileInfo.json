@@ -1,0 +1,33 @@
+{
+    "namespace": "jam::precompiled_shader",
+    "shaders": [
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "DebugDrawLineShader_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\DebugDrawLineShader.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "DebugDrawSolidShader_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\DebugDrawSolidShader.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "DebugDrawLineShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\DebugDrawLineShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "DebugDrawSolidShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\DebugDrawSolidShader.hlsl",
+            "stage": "PixelShader"
+        }
+    ]
+}

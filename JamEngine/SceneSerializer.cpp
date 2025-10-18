@@ -3,6 +3,7 @@
 #include "SceneSerializer.h"
 
 #include "ComponentDB.h"
+#include "FileUtilities.h"
 #include "Profile.h"
 #include "Scene.h"
 #include "SceneDB.h"
@@ -17,14 +18,14 @@ eErrorCode SceneSerializer::SaveToFile(const fs::path& _filePath) const
     std::ofstream ofs { _filePath, std::ios::binary };
     if (!ofs.is_open())
     {
-        SetErrorString("Failed to open file for writing: {}", _filePath.native());
+        SetErrorMessage("Failed to open file for writing: {}", _filePath.native());
         return eErrorCode::FileOpenFailed;
     }
 
     ofs << m_json;
     if (ofs.fail() || ofs.bad())
     {
-        SetErrorString("Failed to write to file: {}", _filePath.native());
+        SetErrorMessage("Failed to write to file: {}", _filePath.native());
         return eErrorCode::FileWriteFailed;
     }
     return eErrorCode::Ok;
@@ -33,29 +34,12 @@ eErrorCode SceneSerializer::SaveToFile(const fs::path& _filePath) const
 eErrorCode SceneSerializer::LoadFromFile(const fs::path& _filePath)
 {
     JAM_ASSERT(!_filePath.empty(), "File path is empty");
-    std::ifstream ifs { _filePath, std::ios::binary };
-    if (!ifs.is_open())
-    {
-        SetErrorString("Failed to open file for reading: {}", _filePath.native());
-        return eErrorCode::FileOpenFailed;
-    }
+    auto [ec, json] = ReadJsonFromFile(_filePath);
 
-    try
-    {
-        m_json = Json::parse(ifs);
-    }
-    catch (const Json::parse_error& e)
-    {
-        SetErrorString("Failed to parse JSON from file: {}. Error: {}", _filePath.native(), e.what());
-        return eErrorCode::FileParseFailed;
-    }
+    if (IsError(ec))
+        return ec;
 
-    if (ifs.fail() || ifs.bad())
-    {
-        SetErrorString("Failed to read from file: {}", _filePath.native());
-        return eErrorCode::FileReadFailed;
-    }
-
+    m_json = std::move(json);
     return eErrorCode::Ok;
 }
 
@@ -130,13 +114,13 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
 
     if (!m_json.contains("sceneName") || !m_json["sceneName"].is_string())
     {
-        SetErrorString("Scene JSON does not contain valid 'sceneName'");
+        SetErrorMessage("Scene JSON does not contain valid 'sceneName'");
         return eErrorCode::FileParseFailed;
     }
 
     if (!m_json.contains("sceneBehavior") || !m_json["sceneBehavior"].is_string())
     {
-        SetErrorString("Scene JSON does not contain valid 'sceneBehavior'");
+        SetErrorMessage("Scene JSON does not contain valid 'sceneBehavior'");
         return eErrorCode::FileParseFailed;
     }
 
@@ -147,7 +131,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
     // 엔티티 역직렬화
     if (!m_json.contains("entities") || !m_json["entities"].is_array())
     {
-        SetErrorString("Scene JSON does not contain valid 'entities' array");
+        SetErrorMessage("Scene JSON does not contain valid 'entities' array");
         return eErrorCode::FileParseFailed;
     }
 
@@ -156,7 +140,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
     {
         if (!uidJson.is_number_unsigned())
         {
-            SetErrorString("Invalid UID in 'entities' array");
+            SetErrorMessage("Invalid UID in 'entities' array");
             return eErrorCode::FileParseFailed;
         }
 
@@ -167,7 +151,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
 
     if (!m_json.contains("components") || !m_json["components"].is_object())
     {
-        SetErrorString("Scene JSON does not contain valid 'components' object");
+        SetErrorMessage("Scene JSON does not contain valid 'components' object");
         return eErrorCode::FileParseFailed;
     }
 
@@ -176,7 +160,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
     {
         if (!compJson.is_object())
         {
-            SetErrorString("Invalid component data for type ID: {}", typeIDStr);
+            SetErrorMessage("Invalid component data for type ID: {}", typeIDStr);
             return eErrorCode::FileParseFailed;
         }
 
@@ -195,7 +179,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
             Entity entity    = pScene->FindEntity(entityUID);
             if (!entity.IsValid())
             {
-                SetErrorString("Entity with UID: {} does not exist for component type ID: {}", entityUID, typeIDStr);
+                SetErrorMessage("Entity with UID: {} does not exist for component type ID: {}", entityUID, typeIDStr);
                 return eErrorCode::FileParseFailed;
             }
 

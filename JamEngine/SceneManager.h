@@ -13,6 +13,7 @@ void Shutdown();
 
 void OnEvent(Event& _event);
 void Update(float _deltaSec);
+void PrepareRender();
 void RenderRuntime();
 void Render(FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform);
 void ImGuiRender();

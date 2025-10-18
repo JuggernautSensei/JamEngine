@@ -29,9 +29,9 @@
 
 // directX
 #include <d3d11.h>
-#include <DirectXTK/SimpleMath.h>
-#include <DirectXTK/SimpleMath.inl>
 #include <wrl.h>
+#include "Vendor/DirectXTK/SimpleMath.h"
+#include "Vendor/DirectXTK/SimpleMath.inl"
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
 

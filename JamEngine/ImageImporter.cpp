@@ -102,13 +102,13 @@ eErrorCode ImageImporter::Import()
             break;
 
         case eImageFormat::Unknown:
-            SetErrorString("Unknown image format: '{}'", m_filePath.native());
+            SetErrorMessage("Unknown image format: '{}'", m_filePath.native());
             return eErrorCode::UnsupportedFile;
     }
 
     if (FAILED(hr))
     {
-        SetErrorString("Failed to load image file: '{}'", m_filePath.native());
+        SetErrorMessage("Failed to load image file: '{}'", m_filePath.native());
         return eErrorCode::FileReadFailed;
     }
 
@@ -120,7 +120,7 @@ eErrorCode ImageImporter::Import()
 
         if (format == DXGI_FORMAT_UNKNOWN)
         {
-            SetErrorString("Unsupported format to convert: '{}'", EnumToString(m_convertFormat));
+            SetErrorMessage("Unsupported format to convert: '{}'", EnumToString(m_convertFormat));
             return eErrorCode::RuntimeError;
         }
 
@@ -134,7 +134,7 @@ eErrorCode ImageImporter::Import()
 
         if (FAILED(hr))
         {
-            SetErrorString("Failed to convert image format to: '{}'", EnumToString(m_convertFormat));
+            SetErrorMessage("Failed to convert image format to: '{}'", EnumToString(m_convertFormat));
             return eErrorCode::RuntimeError;
         }
     }
@@ -147,7 +147,7 @@ eErrorCode ImageImporter::Import()
             DXGI_FORMAT newFormat = DirectX::MakeSRGB(metadata.format);
             if (newFormat == DXGI_FORMAT_UNKNOWN)
             {
-                SetErrorString("Failed to convert image format to sRGB: '{}'", EnumToString(m_convertFormat));
+                SetErrorMessage("Failed to convert image format to sRGB: '{}'", EnumToString(m_convertFormat));
                 return eErrorCode::RuntimeError;
             }
 
@@ -161,7 +161,7 @@ eErrorCode ImageImporter::Import()
 
             if (FAILED(hr))
             {
-                SetErrorString("Failed to convert image format to sRGB: '{}'", EnumToString(m_convertFormat));
+                SetErrorMessage("Failed to convert image format to sRGB: '{}'", EnumToString(m_convertFormat));
                 return eErrorCode::RuntimeError;
             }
         }
@@ -176,7 +176,7 @@ eErrorCode ImageImporter::Import()
                                        m_scratchImg);
         if (FAILED(hr))
         {
-            SetErrorString("Failed to premultiply alpha");
+            SetErrorMessage("Failed to premultiply alpha");
             return eErrorCode::RuntimeError;
         }
     }
@@ -206,7 +206,7 @@ eErrorCode ImageImporter::Import()
 
         if (FAILED(hr))
         {
-            SetErrorString("Failed to generate mipmaps");
+            SetErrorMessage("Failed to generate mipmaps");
             return eErrorCode::RuntimeError;
         }
     }
@@ -226,7 +226,7 @@ eErrorCode ImageImporter::Import()
 
         if (FAILED(hr))
         {
-            SetErrorString("Failed to resize image to {}x{}", m_newWidth, m_newHeight);
+            SetErrorMessage("Failed to resize image to {}x{}", m_newWidth, m_newHeight);
             return eErrorCode::RuntimeError;
         }
     }
@@ -241,7 +241,7 @@ eErrorCode ImageImporter::Import()
 
         if (FAILED(hr))
         {
-            SetErrorString("Failed to flip image vertically");
+            SetErrorMessage("Failed to flip image vertically");
             return eErrorCode::RuntimeError;
         }
     }
@@ -256,7 +256,7 @@ eErrorCode ImageImporter::Import()
 
         if (FAILED(hr))
         {
-            SetErrorString("Failed to flip image horizontally");
+            SetErrorMessage("Failed to flip image horizontally");
             return eErrorCode::RuntimeError;
         }
     }

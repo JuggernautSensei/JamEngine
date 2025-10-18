@@ -643,13 +643,13 @@ void SetTexture(
     Int32         _slot);
 
 /// @brief 샘플러 상태를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
+/// @param _state 샘플러 상태 플래그
 /// @param _shader 바인딩할 셰이더 스테이지
 /// @param _slot 바인딩 슬롯
-/// @param _state 샘플러 상태 플래그
 void SetSampler(
+    SamplerState _state,
     eShader      _shader,
-    Int32        _slot,
-    SamplerState _state);
+    Int32        _slot);
 
 /// @brief Border 샘프러 상태의 테두리 색상을 설정합니다.
 /// @param _shader 셰이더 스테이지
@@ -662,7 +662,7 @@ void SetBorderColor(
 
 /// @brief 렌더링 상태를 설정합니다.
 /// @param _state 렌더링 상태 플래그
-void SetState(
+void SetGfxState(
     GfxState _state);
 
 /// @brief 블렌드 상태를 설정합니다.
@@ -733,11 +733,6 @@ JAM_NODISCARD ShaderHandle GetShader(
 ////////////////////////////////////
 ///          DRAW CALLS          ///
 ////////////////////////////////////
-
-/// @brief 화면을 가득 채우는 사각형을 바인딩 후 드로우 콜을 제출합니다.
-/// @note 내부적으로 버텍스 버퍼와 인덱스 버퍼를 생성하여 바인딩합니다.
-/// 버텍스의 구조는 struct Vertex { Vec2 pos; Vec2 uv; } 입니다.
-void SubmitFullScreenQuad();
 
 /// @brief 드로우 콜을 제출합니다.
 /// @note Submit을 호출하기 이전에 리소스를 바인딩해야 합니다.

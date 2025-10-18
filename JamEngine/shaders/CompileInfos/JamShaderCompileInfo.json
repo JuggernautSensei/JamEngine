@@ -1,0 +1,272 @@
+{
+    "namespace": "jam::shader",
+    "shaders": [
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomCombineFilterPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomCombineFilterPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomDownFilterPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomDownFilterPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomUpFilterPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomUpFilterPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "CascadeShaderMappingShader_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\CascadeShaderMappingShader.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "FogPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FogPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "FXAAPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "OmniDirectionalShaderMappingShader_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\OmniDirectionalShaderMappingShader.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "PBRGBufferShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRGBufferShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "PBRLightingShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRLightingShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "PBRVS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRVS.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "SamplingPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SamplingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "SkyboxShader_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SkyboxShader.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "TONE_MAPPING_UNCHARTED2",
+                    "value": ""
+                }
+            ],
+            "name": "ToneMappingPS_UNCHARTED2",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "CascadeShaderMappingShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\CascadeShaderMappingShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "GSMain",
+            "macros": [
+                {
+                    "name": "CASCADE_LEVEL",
+                    "value": "3"
+                }
+            ],
+            "name": "CascadeShaderMappingShader_CASCADE_LEVEL_3_GS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\CascadeShaderMappingShader.hlsl",
+            "stage": "GeometryShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "OmniDirectionalShaderMappingShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\OmniDirectionalShaderMappingShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "GSMain",
+            "macros": [],
+            "name": "OmniDirectionalShaderMappingShader_GS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\OmniDirectionalShaderMappingShader.hlsl",
+            "stage": "GeometryShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "SkyboxShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SkyboxShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "TONE_MAPPING_REINHARD",
+                    "value": ""
+                }
+            ],
+            "name": "ToneMappingPS_REINHARD",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "TONE_MAPPING_LUMA_BASED_REINHARD",
+                    "value": ""
+                }
+            ],
+            "name": "ToneMappingPS_LUMA_BASED_REINHARD",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "TONE_MAPPING_WHITE_PRESERVING_REINHARD",
+                    "value": ""
+                }
+            ],
+            "name": "ToneMappingPS_WHITE_PRESERVING_REINHARD",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "TONE_MAPPING_ROMB_DA_HOUSE",
+                    "value": ""
+                }
+            ],
+            "name": "ToneMappingPS_ROMB_DA_HOUSE",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "TONE_MAPPING_FILMIC",
+                    "value": ""
+                }
+            ],
+            "name": "ToneMappingPS_FILMIC",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "TONE_MAPPING_LINEAR",
+                    "value": ""
+                }
+            ],
+            "name": "ToneMappingPS_LINEAR",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "FullScreenVS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FullScreenVS.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "ShadowMappingShader_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ShadowMappingShader.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "ShadowMappingShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ShadowMappingShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "PBRLightVolumeShader_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRLightVolumeShader.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "PBRLightVolumeShader_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRLightVolumeShader.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "GSMain",
+            "macros": [
+                {
+                    "name": "CASCADE_LEVEL",
+                    "value": "2"
+                }
+            ],
+            "name": "CascadeShaderMappingShader_CASCADE_LEVEL_2_GS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\CascadeShaderMappingShader.hlsl",
+            "stage": "GeometryShader"
+        },
+        {
+            "entryPoint": "GSMain",
+            "macros": [
+                {
+                    "name": "CASCADE_LEVEL",
+                    "value": "4"
+                }
+            ],
+            "name": "CascadeShaderMappingShader_CASCADE_LEVEL_4_GS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\CascadeShaderMappingShader.hlsl",
+            "stage": "GeometryShader"
+        }
+    ]
+}

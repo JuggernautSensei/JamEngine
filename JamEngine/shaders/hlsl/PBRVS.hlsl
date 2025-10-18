@@ -1,25 +1,24 @@
-#include "PBRCommon.hlsli"
+#include "ShaderBase.hlsl"
 
-PBR_PS_INPUT VSmain(VS_INPUT_VERTEX3 input)
+PBR_PS_INPUT_STATIC_MESH VSMain(VS_INPUT_STATIC_MESH _input)
 {
-    PBR_PS_INPUT output;
+    PBR_PS_INPUT_STATIC_MESH output;
 
-    float heightFactor = (cb_textureBindFlags & JAM_MATERIAL_TEXTURE_BIND_FLAGS_DISPLACEMENT) ?
-        ((displacementTexture.SampleLevel(samplerLinearClamp, input.uv0, 0.f).r - 0.5f) * 2.0f * cb_materialDisplacementStrength)
-        : 0.0f;
+    float bumpMapScale = 0.f;
+    if (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_BUMP_MAP)
+    {
+        bumpMapScale = t_bumpMap.SampleLevel(s_linearClamp, _input.texCoord0, 0.f).r;
+        bumpMapScale = (bumpMapScale - 0.5f) * 2.0f; // [0.0, 1.0] -> [-1.0, 1.0]
+        bumpMapScale *= cb_bumpMapScaling;
+    }
 
-    float3 localPos     = input.positionL + input.normal * heightFactor;
-    MATRIX viewProj = mul(cb_view, cb_proj);
-
-    output.posW = mul(float4(localPos, 1.0f), cb_world).xyz;
-    output.posH = mul(float4(output.posW, 1.0f), viewProj);
-
-    output.normalW    = normalize(mul(float4(input.normal, 0.0f), cb_worldInvTrans).xyz);
-    output.tangentW   = normalize(mul(float4(input.tangentL, 0.0f), cb_world).xyz);
-    output.bitangentW = normalize(cross(output.normalW, output.tangentW));
-
-    output.texCoord  = input.uv0;
-    output.texCoord2 = input.uv1;
-
+    float3 posL = _input.posL + _input.normalL * bumpMapScale;
+    float4x4 projView = mul(cb_proj, cb_view);
+    output.posW = mul(cb_world, float4(posL, 1.f)).xyz;
+    output.posH = mul(projView, float4(output.posW, 1.f));
+    output.normalW = normalize(mul(cb_worldInvTrans, float4(_input.normalL, 0.f)).xyz);
+    output.tangentW = normalize(mul(cb_world, float4(_input.tangentL, 0.f)).xyz);
+    output.texCoord0 = _input.texCoord0;
+    output.texCoord1 = _input.texCoord1;
     return output;
 }

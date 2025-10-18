@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "MeshFactory.h"
 #include "ShaderCompiler.h"
+#include "Shaders/PrecompiledShaders/PrecompiledDebugDrawShader.h"
 #include "fixed_vector.h"
 using namespace jam;
 
@@ -110,12 +111,12 @@ struct DebugDrawSolidVertex
 /// 디버그 드로우 용 상수 버퍼
 struct alignas(16) CB_DEBUGDRAW
 {
-    Mat4 viewProj;
-    Mat4 transfrom;
-    Mat4 transformInvTrans;
+    Mat4 projView;
+    Mat4 world;
+    Mat4 worldInvTrans;
     Vec4 color;
     //
-    Vec3                   eyePosition;
+    Vec3                   eyePos;
     JAM_MAYBE_UNUSED float pad1;
 };
 
@@ -167,8 +168,8 @@ struct DebugDrawContext
     bool               bCursorDown            = false;
 
     ProgramHandle        programHandles[EnumCount<eDebugDrawProgram>()] = {};
-    ConstantBufferHandle cbDebugCbufferHandle;
-    CB_DEBUGDRAW         cbDebugDrawCPUData;
+    ConstantBufferHandle cbDebugDrawHandle;
+    CB_DEBUGDRAW         cbDebugDrawCPU;
 };
 
 static DebugDrawContext g_ddCtx;
@@ -224,18 +225,18 @@ void DebugDrawContext::DrawMesh(const Mesh& _mesh, const bool _bWireframe)
     if (_bWireframe)
         state.bWireframe = true;
 
-    gfx::SetState(state);
+    gfx::SetGfxState(state);
 
     // 상수 버퍼 업데이트
-    RGBA color                           = curState.color;
-    cbDebugDrawCPUData.color             = Vec4(color.r, color.g, color.b, color.a) / 255.f;
-    cbDebugDrawCPUData.transfrom         = curTransform;
-    cbDebugDrawCPUData.transformInvTrans = curTransform.Invert().Transpose();
-    gfx::UploadBuffer(cbDebugCbufferHandle, MemoryView { cbDebugDrawCPUData });
+    RGBA color                       = curState.color;
+    cbDebugDrawCPU.color         = Vec4(color.r, color.g, color.b, color.a) / 255.f;
+    cbDebugDrawCPU.world         = curTransform.Transpose();
+    cbDebugDrawCPU.worldInvTrans = curTransform.Invert();
+    gfx::UploadBuffer(cbDebugDrawHandle, MemoryView { cbDebugDrawCPU });
 
     // 상수 버퍼 바인딩
-    gfx::SetConstantBuffer(cbDebugCbufferHandle, eShader::VertexShader, 0);
-    gfx::SetConstantBuffer(cbDebugCbufferHandle, eShader::PixelShader, 0);
+    gfx::SetConstantBuffer(cbDebugDrawHandle, eShader::VertexShader, 0);
+    gfx::SetConstantBuffer(cbDebugDrawHandle, eShader::PixelShader, 0);
 
     // 프로그램 바인딩
     gfx::SetProgram(programHandles[EnumToInt(eDebugDrawProgram::Solid)]);
@@ -256,18 +257,18 @@ void DebugDrawContext::DrawLineBatch()
         state.cullMode  = eCullMode::None;
 
         // 상태 업데이트
-        gfx::SetState(state);
+        gfx::SetGfxState(state);
 
         // 상수 버퍼 업로드
-        RGBA color                           = curState.color;
-        cbDebugDrawCPUData.color             = Vec4(color.r, color.g, color.b, color.a) / 255.f;
-        cbDebugDrawCPUData.transfrom         = curTransform;
-        cbDebugDrawCPUData.transformInvTrans = curTransform.Invert().Transpose();
-        gfx::UploadBuffer(cbDebugCbufferHandle, MemoryView { cbDebugDrawCPUData });
+        RGBA color                       = curState.color;
+        cbDebugDrawCPU.color         = Vec4(color.r, color.g, color.b, color.a) / 255.f;
+        cbDebugDrawCPU.world         = curTransform.Transpose();
+        cbDebugDrawCPU.worldInvTrans = curTransform.Invert();
+        gfx::UploadBuffer(cbDebugDrawHandle, MemoryView { cbDebugDrawCPU });
 
         // 상수 버퍼 바인딩
-        gfx::SetConstantBuffer(cbDebugCbufferHandle, eShader::VertexShader, 0);
-        gfx::SetConstantBuffer(cbDebugCbufferHandle, eShader::PixelShader, 0);
+        gfx::SetConstantBuffer(cbDebugDrawHandle, eShader::VertexShader, 0);
+        gfx::SetConstantBuffer(cbDebugDrawHandle, eShader::PixelShader, 0);
 
         // 버텍스 버퍼 업로드
         gfx::UploadBuffer(lineVertexBufferHandle, MemoryView { lineVertices });
@@ -328,42 +329,30 @@ void Init()
 
     // 라인 쉐이더
     {
-        ShaderMacro marcos[] = {
-            { "VARIANT_LINE", "" }
-        };
+        ShaderHandle vsHandle = gfx::CreateShader(MemoryView {
+            precompiled_shader::DebugDrawLineShader_VS_Bytecode, precompiled_shader::DebugDrawLineShader_VS_Size });
 
-        ShaderCompiler vsCompiler;
-        // vsBuilder.LoadHLSL(k_debugDrawShader, eShader::VertexShader, "VSMain", eShaderCompileFlags_Optimization, marcos);
+        ShaderHandle psHandle = gfx::CreateShader(MemoryView {
+            precompiled_shader::DebugDrawLineShader_PS_Bytecode, precompiled_shader::DebugDrawLineShader_PS_Size });
 
-        ShaderCompiler psCompiler;
-        // psBuilder.LoadHLSL(k_debugDrawShader, eShader::PixelShader, "PSMain", eShaderCompileFlags_Optimization, marcos);
-
-        ShaderHandle vsHandle = gfx::CreateShader(vsCompiler.GetBytecode());
-        ShaderHandle psHandel = gfx::CreateShader(psCompiler.GetBytecode());
-
-        g_ddCtx.programHandles[EnumToInt(eDebugDrawProgram::Line)] = gfx::CreateProgram(vsHandle, psHandel, true);
+        g_ddCtx.programHandles[EnumToInt(eDebugDrawProgram::Line)] = gfx::CreateProgram(vsHandle, psHandle, true);
     }
 
     // 솔리드 쉐이더
     {
-        ShaderCompiler vsCompiler;
-        // vsBuilder.LoadHLSL(k_debugDrawShader, eShader::VertexShader, "VSMain", eShaderCompileFlags_Optimization);
+        ShaderHandle vsHandle = gfx::CreateShader(MemoryView {
+            precompiled_shader::DebugDrawSolidShader_VS_Bytecode, precompiled_shader::DebugDrawSolidShader_VS_Size });
 
-        ShaderCompiler psCompiler;
-        // psBuilder.LoadHLSL(k_debugDrawShader, eShader::PixelShader, "PSMain", eShaderCompileFlags_Optimization);
-
-        ShaderHandle vsHandle = gfx::CreateShader(vsCompiler.GetBytecode());
-        ShaderHandle psHandle = gfx::CreateShader(psCompiler.GetBytecode());
+        ShaderHandle psHandle = gfx::CreateShader(MemoryView {
+            precompiled_shader::DebugDrawSolidShader_PS_Bytecode, precompiled_shader::DebugDrawSolidShader_PS_Size });
 
         g_ddCtx.programHandles[EnumToInt(eDebugDrawProgram::Solid)] = gfx::CreateProgram(vsHandle, psHandle, true);
     }
 
     // 상수 버퍼
-    g_ddCtx.cbDebugCbufferHandle = gfx::CreateConstantBuffer(sizeof(CB_DEBUGDRAW));
-    g_ddCtx.cbDebugDrawCPUData   = {};
+    g_ddCtx.cbDebugDrawHandle = gfx::CreateConstantBuffer(sizeof(CB_DEBUGDRAW));
 
     // 기본 메쉬 생성
-
     // 박스
     {
         Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Box)];
@@ -441,8 +430,7 @@ void Shutdown()
     }
 
     // 상수 버퍼 정리
-    JAM_DESTROY_CONSTANT_BUFFER(g_ddCtx.cbDebugCbufferHandle);
-    g_ddCtx.cbDebugDrawCPUData = {};
+    JAM_DESTROY_CONSTANT_BUFFER(g_ddCtx.cbDebugDrawHandle);
 }
 
 void Begin()
@@ -483,11 +471,11 @@ void PopTransform()
     g_ddCtx.transformStack.pop_back();
 }
 
-void SetCamera(const Vec3& _eyePosition, const Mat4& _viewProjMat)
+void SetCamera(const Vec3& _eyePos, const Mat4& _viewProjMat)
 {
     g_ddCtx.DrawLineBatch();
-    g_ddCtx.cbDebugDrawCPUData.eyePosition = _eyePosition;
-    g_ddCtx.cbDebugDrawCPUData.viewProj    = _viewProjMat;
+    g_ddCtx.cbDebugDrawCPU.eyePos   = _eyePos;
+    g_ddCtx.cbDebugDrawCPU.projView = _viewProjMat.Transpose();
 }
 
 void SetTransform(const Mat4& _mat)

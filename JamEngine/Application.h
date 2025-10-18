@@ -57,7 +57,6 @@ struct ProjectDirectories
     fs::path imageTexturesDir = {};
     fs::path materialsDir     = {};
     fs::path scenesDir        = {};
-    fs::path cachesDir        = {};
 };
 
 /// @brief 어플리케이션 클래스
@@ -137,14 +136,14 @@ private:
     /// @brief 어플리케이션이 종료될 때 호출되는 함수
     virtual void OnDestroy() = 0;
 
-    std::string        m_applicationName = {};
-    bool               m_bRunning        = false;
-    bool               m_bEventDispatchable          = false;
-    bool               m_bVsync          = false;
-    bool               m_bEditor         = false;
-    Window             m_window          = {};
-    CommandQueue       m_cmdQueue        = {};
-    ProjectDirectories m_directories     = {};
+    std::string        m_applicationName    = {};
+    bool               m_bRunning           = false;
+    bool               m_bEventDispatchable = false;
+    bool               m_bVsync             = false;
+    bool               m_bEditor            = false;
+    Window             m_window             = {};
+    CommandQueue       m_cmdQueue           = {};
+    ProjectDirectories m_directories        = {};
 
     // update
     eUpdatePolicy m_updatePolicy        = eUpdatePolicy::Unlimited;

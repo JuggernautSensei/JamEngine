@@ -4,7 +4,6 @@
 
 #include "ImGuiGlue.h"
 
-#include "power_of_2_fixed_circular_q.h"
 #include "fixed_vector.h"
 
 #include "Application.h"
@@ -18,3 +17,4 @@
 #include "SceneManager.h"
 
 #include "WindowsUtilities.h"
+#include "FileUtilities.h"

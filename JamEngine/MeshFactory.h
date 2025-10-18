@@ -51,7 +51,6 @@ JAM_NODISCARD Mesh CreateCircle(
 /// @param _radius 밑면의 반지름
 /// @param _bottomTriangleCount 밑면을 구성하는 삼각형의 개수 (최소 6)
 /// @param _layout 정점 레이아웃
-/// (0, 0, 0)을 밑면 중심으로 하여 y축 방향으로 높이가 _height인 원뿔이 생성됨.
 JAM_NODISCARD Mesh CreateCone(
     float               _height,
     float               _radius,
@@ -63,7 +62,6 @@ JAM_NODISCARD Mesh CreateCone(
 /// @param _radius 원기둥의 반지름
 /// @param _bottomTriangleCount 원기둥을 구성하는 삼각형의 개수 (최소 6)
 /// @param _layout 정점 레이아웃
-///
 JAM_NODISCARD Mesh CreateCylinder(
     float               _height,
     float               _radius,

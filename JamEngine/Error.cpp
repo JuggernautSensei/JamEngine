@@ -111,11 +111,6 @@ namespace details
 
 }   // namespace details
 
-void SetErrorString(const std::string_view _msg)
-{
-    g_lastErrorMessage = _msg;
-}
-
 std::string details::GetComErrorMessage(const HRESULT _hr)
 {
     _com_error   err { _hr };
@@ -132,9 +127,14 @@ std::string details::GetComErrorMessage(const HRESULT _hr)
 #endif
 }
 
-std::string_view GetErrorString()
+std::string_view GetErrorMessage()
 {
     return g_lastErrorMessage;
+}
+
+void SetErrorMessage(const std::string_view _msg)
+{
+    g_lastErrorMessage = _msg;
 }
 
 }   // namespace jam

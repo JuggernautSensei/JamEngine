@@ -1,0 +1,6 @@
+[2025-10-13 15:51:53.619] [debug] [thread 109680] Logger initialized successfully.
+[2025-10-13 15:51:53.843] [trace] [thread 109680] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-13 15:51:53.845] [trace] [thread 109680] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.5243 Milli ==========
+[2025-10-13 15:51:53.847] [trace] [thread 109680] Application 'JamShader' started.
+[2025-10-13 15:52:22.886] [trace] [thread 109680] Application 'JamShader' shutdown.
+[2025-10-13 15:52:22.948] [debug] [thread 109680] Logger shutting down...

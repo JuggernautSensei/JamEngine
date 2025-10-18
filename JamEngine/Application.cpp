@@ -152,7 +152,6 @@ Application::Application(const ApplicationCreateInfo& _info)
     m_directories.imageTexturesDir = m_directories.assetsDir / k_imageTexturesDirName;
     m_directories.materialsDir     = m_directories.assetsDir / k_materialsDirName;
     m_directories.scenesDir        = m_directories.contentsDir / k_scenesDirName;
-    m_directories.cachesDir        = m_directories.workingDir / k_cacheDirName;
 }
 
 void Application::OnWindowCloseEvent(const WindowCloseEvent& _event)

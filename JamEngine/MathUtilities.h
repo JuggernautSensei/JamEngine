@@ -93,7 +93,7 @@ constexpr T Mod(const T x, const T y)
 /// @brief 제한
 template<typename T>
     requires std::is_arithmetic_v<T>
-JAM_NODISCARD T Clamp(const T value, const T min, const T max)
+JAM_NODISCARD constexpr T Clamp(const T value, const T min, const T max)
 {
     return value < min ? min
          : value > max ? max
@@ -119,30 +119,20 @@ constexpr T Wrap(T value, T min, T max)
     return result + min;
 }
 
-template<typename T, typename U, typename... R>
-JAM_NODISCARD constexpr T Min(const T a, const U b, const R... args)
+template<typename T, typename... R>
+JAM_NODISCARD constexpr T Min(const T a, const R... args)
 {
-    if constexpr (sizeof...(args) == 0)
-    {
-        return a < static_cast<T>(b) ? a : static_cast<T>(b);
-    }
-    else
-    {
-        return Min(Min(a, static_cast<T>(b)), args...);
-    }
+    T m = a;
+    ((m = (m < static_cast<T>(args) ? m : static_cast<T>(args))), ...);
+    return m;
 }
 
-template<typename T, typename U, typename... R>
-JAM_NODISCARD constexpr T Max(const T a, const U b, const R... args)
+template<typename T, typename... R>
+JAM_NODISCARD constexpr T Max(const T a, const R... args)
 {
-    if constexpr (sizeof...(args) == 0)
-    {
-        return a > static_cast<T>(b) ? a : static_cast<T>(b);
-    }
-    else
-    {
-        return Max(Max(a, static_cast<T>(b)), args...);
-    }
+    T M = a;
+    ((M = (M > static_cast<T>(args) ? M : static_cast<T>(args))), ...);
+    return M;
 }
 
 JAM_NODISCARD constexpr Int32 Log2_Int32(Int32 value)
@@ -254,6 +244,11 @@ JAM_NODISCARD constexpr SinCos ComputeSinCos(const float _radian)
 ///          VECTOR          ///
 ////////////////////////////////
 
+JAM_NODISCARD constexpr Vec3 Absolute(const Vec3& vec)
+{
+    return { Absolute(vec.x), Absolute(vec.y), Absolute(vec.z) };
+}
+
 JAM_NODISCARD constexpr bool IsNearlyEqual(const Vec2& a, const Vec2& b)
 {
     return IsNearlyEqual(a.x, b.x) && IsNearlyEqual(a.y, b.y);
@@ -318,122 +313,39 @@ JAM_NODISCARD constexpr Vec4 ToVec4(const Vec3& vec3, const float w = 1.f)
 ///          MATRIX          ///
 ////////////////////////////////
 
-JAM_NODISCARD inline Mat4 CreateTransformLookTo(const Vec3& _forward)
-{
-    using namespace DirectX;
+JAM_NODISCARD Mat4 CreateTransformLookTo(const Vec3& _forward);
 
-    assert(!XMVector3Equal(_forward, XMVectorZero()));
-    assert(!XMVector3IsInfinite(_forward));
+JAM_NODISCARD Mat4 CreateWorld(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale);
 
-    const XMVECTOR forward = XMVector3Normalize(_forward);
-
-    // 오른쪽 벡터 계산
-    XMVECTOR up    = Vec3::Up;
-    XMVECTOR right = XMVector3Cross(up, forward);
-    if (XMVector3Equal(right, XMVectorZero()))   // forward가 Up과 평행한 경우
-    {
-        // Right 벡터를 사용하여 교차 곱 계산
-        right = XMVector3Cross(Vec3::Right, forward);
-    }
-
-    right = XMVector3Normalize(right);
-    up    = XMVector3Normalize(XMVector3Cross(forward, right));
-
-    XMMATRIX mat;
-    mat.r[0] = right;
-    mat.r[1] = up;
-    mat.r[2] = forward;
-    mat.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-    return mat;
-}
-
-JAM_NODISCARD inline Mat4 CreateWorld(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale)
-{
-    using namespace DirectX;
-
-    XMMATRIX lookToMat = CreateTransformLookTo(_forward);
-    lookToMat.r[0]     = XMVectorMultiply(lookToMat.r[0], _scale);
-    lookToMat.r[1]     = XMVectorMultiply(lookToMat.r[1], _scale);
-    lookToMat.r[2]     = XMVectorMultiply(lookToMat.r[2], _scale);
-    lookToMat.r[3]     = XMVectorSetW(_translate, 1.0f);
-    return lookToMat;
-}
-
-JAM_NODISCARD inline Mat4 CreateWorld(const Vec3& _translate, const Quat& _quat, const Vec3& _scale)
-{
-    Vec3 forward = Vec3::Transform(Vec3::Forward, _quat);
-    return CreateWorld(_translate, forward, _scale);
-}
+JAM_NODISCARD Mat4 CreateWorld(const Vec3& _translate, const Quat& _quat, const Vec3& _scale);
 
 /// @brief LookTo 뷰 행렬 생성 (좌측 수직 좌표계)
-JAM_NODISCARD inline Mat4 CreateViewLookTo(const Vec3& _position, const Vec3& _forward)
-{
-    using namespace DirectX;
-
-    XMMATRIX lookToMat = CreateTransformLookTo(_forward);
-
-    // 평행이동 역행렬 (= 역원)
-    const XMVECTOR nPos = XMVectorNegate(_position);
-    const XMVECTOR dotX = XMVector3Dot(lookToMat.r[0], nPos);
-    const XMVECTOR dotY = XMVector3Dot(lookToMat.r[1], nPos);
-    const XMVECTOR dotZ = XMVector3Dot(lookToMat.r[2], nPos);
-
-    const XMVECTOR right = lookToMat.r[0];
-    const XMVECTOR up    = lookToMat.r[1];
-    const XMVECTOR fwd   = lookToMat.r[2];
-
-    lookToMat.r[0] = XMVectorSelect(dotX, right, g_XMSelect1110.v);
-    lookToMat.r[1] = XMVectorSelect(dotY, up, g_XMSelect1110.v);
-    lookToMat.r[2] = XMVectorSelect(dotZ, fwd, g_XMSelect1110.v);
-    lookToMat.r[3] = g_XMIdentityR3.v;
-
-    // 회전 역행렬 (= 전치 행렬)
-    return XMMatrixTranspose(lookToMat);
-}
+JAM_NODISCARD Mat4 CreateViewLookTo(const Vec3& _position, const Vec3& _forward);
 
 /// @brief LookAt 뷰 행렬 생성 (좌측 수직 좌표계)
-JAM_NODISCARD inline Mat4 CreateViewLookAt(const Vec3& _position, const Vec3& _focusPoint)
-{
-    const Vec3 forward = (_focusPoint - _position);
-    return CreateViewLookTo(_position, forward);
-}
+JAM_NODISCARD Mat4 CreateViewLookAt(const Vec3& _position, const Vec3& _focusPoint);
 
 /// @brief 직교 프로젝션 행렬 생성 (좌측 수직 좌표계)
-JAM_NODISCARD inline Mat4 CreateOrthographic(const float width, const float height, const float nearZ, const float farZ)
-{
-    return DirectX::XMMatrixOrthographicLH(width, height, nearZ, farZ);
-}
+JAM_NODISCARD Mat4 CreateOrthographic(float width, float height, float nearZ, float farZ);
 
 /// @brief 직교 프로젝션 행렬 생성 (좌측 수직 좌표계)
-JAM_NODISCARD inline Mat4 CreateOrthographic(const float left, const float right, const float bottom, const float top, const float nearZ, const float farZ)
-{
-    return DirectX::XMMatrixOrthographicOffCenterLH(left, right, bottom, top, nearZ, farZ);
-}
+JAM_NODISCARD Mat4 CreateOrthographic(float left, float right, float bottom, float top, float nearZ, float farZ);
 
 /// @brief 원근 프로젝션 행렬 생성 (좌측 수직 좌표계)
-JAM_NODISCARD inline Mat4 CreatePerspectiveFov(const float fovYRad, const float aspectRatio, const float nearZ, const float farZ)
-{
-    return DirectX::XMMatrixPerspectiveFovLH(fovYRad, aspectRatio, nearZ, farZ);
-}
+JAM_NODISCARD Mat4 CreatePerspectiveFov(float fovYRad, float aspectRatio, float nearZ, float farZ);
 
 ////////////////////////////////////
 ///          QUATERNION          ///
 ////////////////////////////////////
 
 /// @brief 쿼터니언에서 축과 각도로 변환
-/// @return std::pair<회전 축, 회전 각(라디안)>
-JAM_NODISCARD inline std::pair<Vec3, float> QuatToAxisAngle(const Quat& _q)
+/// @return std::pair<회전 축, 회전 각(라디안)
+struct AxisAngle
 {
-    Quat q = _q;
-    q.Normalize();
-
-    Vec3 axis = { q.x, q.y, q.z };
-    axis.Normalize();
-
-    float angle = 2.f * std::acosf(q.w);
-    return { axis, angle };
-}
+    Vec3  axis;
+    float angleRad;
+};
+JAM_NODISCARD AxisAngle QuatToAxisAngle(const Quat& _q);
 
 ////////////////////////////////
 ///          RANDOM          ///

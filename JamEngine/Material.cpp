@@ -3,6 +3,8 @@
 #include "Material.h"
 
 #include "AssetManager.h"
+#include "FileUtilities.h"
+#include "Hash.h"
 #include "Profile.h"
 #include "resources/flatc/jmat_generated.h"
 using namespace jam;
@@ -36,43 +38,40 @@ JAM_NODISCARD static flatbuffers::Offset<flatbuffers::String> ConvertToFbsString
 namespace jam
 {
 
+void Material::Load()
+{
+    m_params    = MaterialParams {};
+    m_bIsLoaded = true;
+    m_path.clear();
+
+    // sort key는 랜덤 값으로
+    m_sortKey = CreateRandom<UInt16>(0, UInt16Limits::max());
+}
+
 eErrorCode Material::Load(const fs::path& _path)
 {
     JAM_PROFILE_SCOPE_MS(R"(jam::Material::Save "{}")", _path.native());
 
     Unload();
 
-    std::ifstream ifs { _path, std::ios::binary };
-    if (!ifs.is_open())
+    auto [ec, buffer] = ReadBinaryFromFile(_path);
+    if (IsError(ec))
     {
-        SetErrorString(R"(Failed to open material file: "{}")", _path.native());
-        return eErrorCode::FileOpenFailed;
-    }
-
-    std::istream& eof      = ifs.seekg(0, std::ios::end);
-    size_t        filesize = eof.tellg();
-    ifs.seekg(0, std::ios::beg);
-
-    std::vector<char> buffer(filesize);
-    ifs.read(buffer.data(), filesize);
-    if (ifs.bad() || ifs.fail())
-    {
-        SetErrorString(R"(Failed to read material file: "{}")", _path.native());
-        return eErrorCode::FileReadFailed;
+        return ec;
     }
 
     // verify file
-    flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(buffer.data()), buffer.size());
+    flatbuffers::Verifier verifier { buffer.data(), buffer.size() };
     if (!jmat::VerifyMaterialBuffer(verifier))
     {
-        SetErrorString(R"(Material file is corrupted or invalid: "{}")", _path.native());
+        SetErrorMessage(R"(Material file is corrupted or invalid: "{}")", _path.native());
         return eErrorCode::FileVertifyFailed;
     }
 
     const jmat::Material* pMat = jmat::GetMaterial(buffer.data());
     if (!pMat)
     {
-        SetErrorString(R"(Failed to parse material file: "{}")", _path.native());
+        SetErrorMessage(R"(Failed to parse material file: "{}")", _path.native());
         return eErrorCode::FileParseFailed;
     }
 
@@ -80,7 +79,7 @@ eErrorCode Material::Load(const fs::path& _path)
     Version version { pMat->version() };
     if (version.major != k_version.major)
     {
-        SetErrorString(R"(Material file major version is different: {} (file) vs {} (engine))", version.ToString(), k_version.ToString());
+        SetErrorMessage(R"(Material file major version is different: {} (file) vs {} (engine))", version.ToString(), k_version.ToString());
         return eErrorCode::VersionMismatch;
     }
 
@@ -111,11 +110,10 @@ eErrorCode Material::Load(const fs::path& _path)
     m_params.emissiveColor     = ConvertToNativeVec3(*pMat->emissive_color());
     m_params.emissiveIntensity = pMat->emissive_intensity();
     m_params.opacity           = pMat->opacity();
-    m_params.bIsTransparent    = pMat->b_is_transparent();
     m_params.bDoubleSide       = pMat->b_double_side();
-    m_params.bFlipedYNormalMap = pMat->b_fliped_y_normal_map();
-    m_params.lightMapIntencity = pMat->light_map_intensity();
-    m_params.aoMapIntencity    = pMat->ao_map_intensity();
+    m_params.bFlipYNormalMap   = pMat->b_fliped_y_normal_map();
+    m_params.lightMapIntensity = pMat->light_map_intensity();
+    m_params.aoMapIntensity    = pMat->ao_map_intensity();
 
     std::shared_ptr<ImageTexture>* const imageTextures[] = {
         &m_params.albedoMap,
@@ -154,6 +152,15 @@ eErrorCode Material::Load(const fs::path& _path)
 
     m_path      = _path;
     m_bIsLoaded = true;
+
+    // 해쉬 갱신 (경로 기반)
+    std::string_view pathStr = _path.native();
+    MurmurHash64     hasher;
+    hasher.Begin();
+    hasher.Add(pathStr.data(), pathStr.size());
+    UInt64 hash = hasher.End();
+    m_sortKey   = static_cast<UInt16>(hash);
+
     return eErrorCode::Ok;
 }
 
@@ -201,11 +208,10 @@ eErrorCode Material::Save(const fs::path& _path) const
         &fbsEmissiveColor,
         m_params.emissiveIntensity,
         m_params.opacity,
-        m_params.bIsTransparent,
         m_params.bDoubleSide,
-        m_params.bFlipedYNormalMap,
-        m_params.lightMapIntencity,
-        m_params.aoMapIntencity,
+        m_params.bFlipYNormalMap,
+        m_params.lightMapIntensity,
+        m_params.aoMapIntensity,
         fbsAlbedoMapPath,
         fbsNormalMapPath,
         fbsMetallicMapPath,
@@ -219,7 +225,7 @@ eErrorCode Material::Save(const fs::path& _path) const
     std::ofstream ofs { _path, std::ios::binary };
     if (!ofs.is_open())
     {
-        SetErrorString(R"(Failed to open material file for writing: "{}")", _path.native());
+        SetErrorMessage(R"(Failed to open material file for writing: "{}")", _path.native());
         return eErrorCode::FileOpenFailed;
     }
 
@@ -227,7 +233,7 @@ eErrorCode Material::Save(const fs::path& _path) const
     ofs.write(reinterpret_cast<const char*>(buf), builder.GetSize());
     if (ofs.bad() || ofs.fail())
     {
-        SetErrorString(R"(Failed to write material file: "{}")", _path.native());
+        SetErrorMessage(R"(Failed to write material file: "{}")", _path.native());
         return eErrorCode::FileWriteFailed;
     }
 
@@ -257,6 +263,11 @@ UInt32 Material::GetHash() const
 std::string_view Material::GetName() const
 {
     return k_name;
+}
+
+UInt16 Material::GetSortKey() const
+{
+    return m_sortKey;
 }
 
 void Material::SetParams(const MaterialParams& _params)

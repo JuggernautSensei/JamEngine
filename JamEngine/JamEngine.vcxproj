@@ -75,20 +75,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Tmp\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Tmp\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Tmp\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Tmp\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <VcpkgUseStatic>false</VcpkgUseStatic>
@@ -222,9 +222,15 @@
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="AssimpBase.cpp" />
     <ClCompile Include="AssimpImporter.cpp" />
+    <ClCompile Include="BoundBox.cpp" />
+    <ClCompile Include="DrawItemCollector.cpp" />
     <ClCompile Include="ComponentDB.cpp" />
+    <ClCompile Include="DrawItem.cpp" />
     <ClCompile Include="Editor.cpp" />
-    <ClCompile Include="power_of_2_fixed_circular_q.cpp" />
+    <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="FileUtilities.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="powerof2_fixed_circular_q.cpp" />
     <ClCompile Include="fixed_string.cpp" />
     <ClCompile Include="IAsset.cpp" />
     <ClCompile Include="BaseUtilities.cpp" />
@@ -244,12 +250,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="CompiledShaders.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="fixed_vector.cpp" />
     <ClCompile Include="HandleAllocator.cpp" />
     <ClCompile Include="Hash.cpp" />
@@ -264,15 +264,16 @@
     <ClCompile Include="PostProcess.cpp" />
     <ClCompile Include="Profile.cpp" />
     <ClCompile Include="EditableComponent.cpp" />
+    <ClCompile Include="RadixSort.cpp" />
+    <ClCompile Include="Renderer3D.cpp" />
+    <ClCompile Include="RendererVertex.cpp" />
     <ClCompile Include="SceneDB.cpp" />
     <ClCompile Include="ScriptDB.cpp" />
     <ClCompile Include="SerializableComponent.cpp" />
-    <ClCompile Include="Renderer3D.cpp" />
     <ClCompile Include="ResourcePool.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
-    <ClCompile Include="ShaderRegistry.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Components.cpp" />
     <ClCompile Include="EnumUtilities.cpp" />
@@ -302,12 +303,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UnremovableComponent.cpp" />
-    <ClCompile Include="vendor\tinyfiledialogs\tinyfiledialogs.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <FileType>CppCode</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    <ClCompile Include="Vendor\DirectXTK\SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -324,10 +320,16 @@
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="AssimpBase.h" />
     <ClInclude Include="AssimpImporter.h" />
+    <ClInclude Include="BoundBox.h" />
+    <ClInclude Include="DrawItemCollector.h" />
     <ClInclude Include="ComponentDB.h" />
+    <ClInclude Include="DrawItem.h" />
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="Environment.h" />
     <ClInclude Include="FileSystem.h" />
-    <ClInclude Include="power_of_2_fixed_circular_q.h" />
+    <ClInclude Include="FileUtilities.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="powerof2_fixed_circular_q.h" />
     <ClInclude Include="fixed_string.h" />
     <ClInclude Include="HashMap.h" />
     <ClInclude Include="IAsset.h" />
@@ -343,7 +345,6 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="ImageTexture.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="CompiledShaders.h" />
     <ClInclude Include="fixed_vector.h" />
     <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Hash.h" />
@@ -357,15 +358,16 @@
     <ClInclude Include="PostProcess.h" />
     <ClInclude Include="Profile.h" />
     <ClInclude Include="EditableComponent.h" />
+    <ClInclude Include="RadixSort.h" />
+    <ClInclude Include="Renderer3D.h" />
+    <ClInclude Include="RendererVertex.h" />
     <ClInclude Include="SceneDB.h" />
     <ClInclude Include="ScriptDB.h" />
     <ClInclude Include="SerializableComponent.h" />
-    <ClInclude Include="Renderer3D.h" />
     <ClInclude Include="ResourcePool.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="ShaderCompiler.h" />
-    <ClInclude Include="ShaderRegistry.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Components.h" />
     <ClInclude Include="EnumUtilities.h" />
@@ -376,6 +378,12 @@
     <ClInclude Include="GfxBase.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Script.h" />
+    <None Include="Shaders\PrecompiledShaders\PrecompiledDebugDrawShader.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <ClInclude Include="Transform.h" />
     <ClInclude Include="HierarchyTransform.h" />
     <ClInclude Include="TypeTrait.h" />
@@ -397,6 +405,28 @@
     <ClInclude Include="UID.h" />
     <ClInclude Include="UnremovableComponent.h" />
     <ClInclude Include="json.h" />
+    <ClInclude Include="Vendor\bvh\v2\bbox.h" />
+    <ClInclude Include="Vendor\bvh\v2\binned_sah_builder.h" />
+    <ClInclude Include="Vendor\bvh\v2\BoundBox.h" />
+    <ClInclude Include="Vendor\bvh\v2\default_builder.h" />
+    <ClInclude Include="Vendor\bvh\v2\executor.h" />
+    <ClInclude Include="Vendor\bvh\v2\index.h" />
+    <ClInclude Include="Vendor\bvh\v2\mini_tree_builder.h" />
+    <ClInclude Include="Vendor\bvh\v2\node.h" />
+    <ClInclude Include="Vendor\bvh\v2\platform.h" />
+    <ClInclude Include="Vendor\bvh\v2\ray.h" />
+    <ClInclude Include="Vendor\bvh\v2\reinsertion_optimizer.h" />
+    <ClInclude Include="Vendor\bvh\v2\sphere.h" />
+    <ClInclude Include="Vendor\bvh\v2\split_heuristic.h" />
+    <ClInclude Include="Vendor\bvh\v2\stack.h" />
+    <ClInclude Include="Vendor\bvh\v2\stream.h" />
+    <ClInclude Include="Vendor\bvh\v2\sweep_sah_builder.h" />
+    <ClInclude Include="Vendor\bvh\v2\thread_pool.h" />
+    <ClInclude Include="Vendor\bvh\v2\top_down_sah_builder.h" />
+    <ClInclude Include="Vendor\bvh\v2\tri.h" />
+    <ClInclude Include="Vendor\bvh\v2\utils.h" />
+    <ClInclude Include="Vendor\bvh\v2\vec.h" />
+    <ClInclude Include="Vendor\DirectXTK\SimpleMath.h" />
     <ClInclude Include="vendor\ghc\filesystem.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -439,31 +469,20 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="vendor\tinyfiledialogs\tinyfiledialogs.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Version.h" />
     <ClInclude Include="VertexLayout.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowsUtilities.h" />
-    <ClInclude Include="ShaderBridge.h" />
+    <ClInclude Include="EmbeddedShaderGlue.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="Magic.h" />
+    <None Include="Vendor\DirectXTK\SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".editorconfig" />
     <None Include="resources\flatc\jmat.fbs" />
     <None Include="resources\flatc\jmsh.fbs" />
-    <None Include="shaders\hlsl\PBRCommon.hlsli">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\hlsl\BloomCombineFilterPS.hlsl">
@@ -484,7 +503,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\DebugDrawShader.hlsl">
+    <FxCompile Include="Shaders\HLSL\DebugDrawLineShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\DebugDrawSolidShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -502,13 +527,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\LightVolumeShader.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="shaders\hlsl\PBRForwardShader.hlsl">
+    <FxCompile Include="shaders\hlsl\PBRLightVolumeShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -532,25 +551,37 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="Shaders\HLSL\FullScreenVS.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="shaders\hlsl\SamplingPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\ScreenSpaceEffectVS.hlsl">
+    <FxCompile Include="shaders\hlsl\ShaderBase.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\Common.hlsl">
+    <FxCompile Include="Shaders\HLSL\CascadeShaderMappingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\ShadowCasterShader.hlsl">
+    <FxCompile Include="Shaders\HLSL\OmniDirectionalShaderMappingShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders\hlsl\ShadowMappingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

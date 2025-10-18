@@ -23,7 +23,6 @@ table Material
 	emissive_intensity     : float;
 						   
 	opacity                : float;
-	b_is_transparent       : bool;
 						   
 	b_double_side          : bool;
 	b_fliped_y_normal_map  : bool;

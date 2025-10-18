@@ -2,7 +2,6 @@
 
 #include "Gfx.h"
 
-#include "Application.h"
 #include "BaseUtilities.h"
 
 #include <d3d11shader.h>
@@ -586,7 +585,6 @@ struct GfxContext
 
     TextureHandle     backBufferTextureHandle;
     FrameBufferHandle backBufferFrameBufferHandle;
-    Mesh              fullScreenMesh;
 };
 GfxContext g_gfxCtx = {};
 
@@ -946,7 +944,6 @@ void GfxContext::ApplyPipeline()
                 pd3d11DeviceContext->GSSetShader(nullptr, nullptr, 0);
                 pd3d11DeviceContext->HSSetShader(nullptr, nullptr, 0);
                 pd3d11DeviceContext->DSSetShader(nullptr, nullptr, 0);
-                pd3d11DeviceContext->IASetInputLayout(nullptr);
             }
             else
             {
@@ -2085,7 +2082,7 @@ VertexLayoutHandle GfxContext::GetOrCreateNativeVertexLayout(
 
     // 더미 쉐이더 생성
     ShaderCompiler compiler;
-    eErrorCode     ec = compiler.LoadHLSL(dummyHLSL, eShader::VertexShader, "main", eShaderCompileFlags_Optimization);
+    eErrorCode     ec = compiler.CompileFromSource(dummyHLSL, eShader::VertexShader, "main", eShaderCompileFlags_Optimization);
     JAM_ASSERT(IsOk(ec), "Failed to compile dummy vertex shader for input layout creation");
     MemoryView byteCode = compiler.GetBytecode();
 
@@ -2266,37 +2263,6 @@ void Init(const HWND _hwnd, const Int32 _width, const Int32 _height)
         JAM_CHECK_COM(dxgiFactory->CreateSwapChainForHwnd(g_gfxCtx.pd3d11Device, _hwnd, &swapChainDesc, nullptr, nullptr, &g_gfxCtx.pdxgiSwapchain));
         g_gfxCtx.OnResize(_width, _height);
     }
-
-    // screen space quad
-    {
-        struct FScreenVertex
-        {
-            Vec2 position;
-            Vec2 texCoord;
-        };
-
-        VertexLayout vertexLayout;
-        vertexLayout
-            .Add(eVertexAttribute::Position, eAttributeFormat::Float2)
-            .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-
-        constexpr FScreenVertex k_vertices[4] = {
-            { Vec2(-1.f, -1.f), Vec2(0.f, 1.f) },
-            { Vec2(-1.f,  1.f), Vec2(0.f, 0.f) },
-            {  Vec2(1.f, -1.f), Vec2(1.f, 1.f) },
-            {  Vec2(1.f,  1.f), Vec2(1.f, 0.f) }
-        };
-
-        constexpr UInt16 k_indices[6] = {
-            0, 1, 2, 2, 1, 3
-        };
-
-        g_gfxCtx.fullScreenMesh.Load(
-            MemoryView { k_vertices },
-            vertexLayout,
-            MemoryView { k_indices },
-            eIndexFormat::U16);
-    }
 }
 
 void Shutdown()
@@ -2304,7 +2270,6 @@ void Shutdown()
     // 내부 리소스 해제
     JAM_DESTROY_TEXTURE(g_gfxCtx.backBufferTextureHandle);
     JAM_DESTROY_FRAME_BUFFER(g_gfxCtx.backBufferFrameBufferHandle);
-    g_gfxCtx.fullScreenMesh.Unload();
 
     // d3d11 cache 해체
     for (ID3D11BlendState* pBlendState: std::views::values(g_gfxCtx.blendStateCache))
@@ -3460,9 +3425,9 @@ void SetTexture(
 }
 
 void SetSampler(
+    const SamplerState _state,
     const eShader      _shader,
-    const Int32        _slot,
-    const SamplerState _state)
+    const Int32        _slot)
 {
     const Int32        shaderIdx = EnumToInt(_shader);
     SamplerFlagsBinds& binds     = g_gfxCtx.samplerFlagsBinds[shaderIdx];
@@ -3525,7 +3490,7 @@ void SetBorderColor(
     }
 }
 
-void SetState(const GfxState _state)
+void SetGfxState(const GfxState _state)
 {
     if (!MemEquel(g_gfxCtx.stateBind, _state))
     {
@@ -3640,11 +3605,6 @@ ShaderHandle GetShader(
     const ShaderHandle handle  = program.shaderHandles[EnumToInt(_shaderType)];
     JAM_ASSERT(handle != k_invalidHandle, "Program does not have the specified shader stage.");
     return handle;
-}
-
-void SubmitFullScreenQuad()
-{
-    g_gfxCtx.fullScreenMesh.Submit();
 }
 
 void Submit()

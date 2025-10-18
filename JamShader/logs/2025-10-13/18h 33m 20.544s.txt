@@ -1,0 +1,10 @@
+[2025-10-13 18:33:20.549] [debug] [thread 44832] Logger initialized successfully.
+[2025-10-13 18:33:20.824] [trace] [thread 44832] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-13 18:33:20.826] [trace] [thread 44832] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.7366 Milli ==========
+[2025-10-13 18:33:20.829] [trace] [thread 44832] Application 'JamShader' started.
+[2025-10-13 18:33:23.366] [error] [thread 44832] Failed to parse JSON file: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\DebugDrawCompileInfo.json. [json.exception.parse_error.101] parse error at line 3, column 10: syntax error while parsing object - unexpected string literal; expected '}'
+[2025-10-13 18:34:01.933] [error] [thread 44832] Failed to parse JSON file: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\DebugDrawCompileInfo.json. [json.exception.parse_error.101] parse error at line 3, column 10: syntax error while parsing object - unexpected string literal; expected '}'
+[2025-10-13 18:34:24.910] [info] [thread 44832] Project loaded: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\DebugDrawCompileInfo.json"
+[2025-10-13 18:34:49.279] [info] [thread 44832] Single header file saved: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\PrecompiledShaders\PrecompiledDebugDrawShader.h"
+[2025-10-13 18:34:55.295] [trace] [thread 44832] Application 'JamShader' shutdown.
+[2025-10-13 18:34:55.381] [debug] [thread 44832] Logger shutting down...

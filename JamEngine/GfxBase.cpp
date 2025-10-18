@@ -18,11 +18,11 @@ GfxState GfxState::k_depthTest = {
     false,
     false,
     false,
-    eCompareFunc::Less,
+    eCompareFunc::LessEqual,
     true
 };
 
-BlendState BlendState::k_default = {};
+BlendState BlendState::k_opaque = {};
 
 BlendState BlendState::k_alpha = {
     true,
@@ -122,6 +122,8 @@ BlendState BlendState::k_lightening = {
     eBlendOp::Add,
     eWriteFlags_All
 };
+
+StencilState StencilState::k_disable = {};
 
 SamplerState SamplerState::k_default = {};
 

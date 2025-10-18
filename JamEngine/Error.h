@@ -26,14 +26,13 @@ namespace details
 
 }   // namespace details
 
-JAM_NODISCARD std::string_view GetErrorString();
-
-void SetErrorString(std::string_view _msg);
+JAM_NODISCARD std::string_view GetErrorMessage();
+void                           SetErrorMessage(std::string_view _msg);
 
 template<typename... Args>
-void SetErrorString(const std::string_view _fmt, Args&&... _args)
+void SetErrorMessage(const std::format_string<Args...>& _fmt, Args&&... _args)
 {
-    SetErrorString(std::vformat(_fmt, std::make_format_args(_args...)));
+    SetErrorMessage(std::format(_fmt, std::forward<Args>(_args)...));
 }
 
 }   // namespace jam

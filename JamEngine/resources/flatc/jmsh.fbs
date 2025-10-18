@@ -55,8 +55,8 @@ struct Vec3
 
 struct AABB
 {
-    center  : Vec3;
-    extents : Vec3;
+    min : Vec3;
+    max : Vec3;
 }
 
 table Mesh {

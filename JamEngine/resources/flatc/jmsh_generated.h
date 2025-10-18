@@ -251,23 +251,23 @@ FLATBUFFERS_STRUCT_END(Vec3, 12);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AABB FLATBUFFERS_FINAL_CLASS {
  private:
-  jam::jmsh::Vec3 center_;
-  jam::jmsh::Vec3 extents_;
+  jam::jmsh::Vec3 min_;
+  jam::jmsh::Vec3 max_;
 
  public:
   AABB()
-      : center_(),
-        extents_() {
+      : min_(),
+        max_() {
   }
-  AABB(const jam::jmsh::Vec3 &_center, const jam::jmsh::Vec3 &_extents)
-      : center_(_center),
-        extents_(_extents) {
+  AABB(const jam::jmsh::Vec3 &_min, const jam::jmsh::Vec3 &_max)
+      : min_(_min),
+        max_(_max) {
   }
-  const jam::jmsh::Vec3 &center() const {
-    return center_;
+  const jam::jmsh::Vec3 &min() const {
+    return min_;
   }
-  const jam::jmsh::Vec3 &extents() const {
-    return extents_;
+  const jam::jmsh::Vec3 &max() const {
+    return max_;
   }
 };
 FLATBUFFERS_STRUCT_END(AABB, 24);

@@ -3,6 +3,8 @@
 namespace jam
 {
 
+
+
 // 비암호학 32bit 해시 함수
 // murmurhash3 기반
 class MurmurHash32

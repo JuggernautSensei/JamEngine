@@ -21,13 +21,6 @@ using Vec4 = DirectX::SimpleMath::Vector4;
 using Mat4 = DirectX::SimpleMath::Matrix;
 using Quat = DirectX::SimpleMath::Quaternion;
 
-using AABB    = DirectX::BoundingBox;
-using Sphere  = DirectX::BoundingSphere;
-using Frustum = DirectX::BoundingFrustum;
-using OBB     = DirectX::BoundingOrientedBox;
-using Plane   = DirectX::SimpleMath::Plane;
-using Ray     = DirectX::SimpleMath::Ray;
-
 // ComPtr
 template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;

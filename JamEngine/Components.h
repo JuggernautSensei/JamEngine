@@ -34,17 +34,7 @@ struct TransformComponent : UnremovableComponent<TransformComponent>, Serializab
     JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
     eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
-    void SetParent(Entity _parent);
-    void ReleaseParent();
-
     HierarchyTransform transform = {};
-
-    Entity root        = Entity::s_null;
-    Entity owner       = Entity::s_null;
-    Entity parent      = Entity::s_null;
-    Entity firstChild  = Entity::s_null;
-    Entity nextSibling = Entity::s_null;
-    Entity prevSibling = Entity::s_null;
 };
 
 struct CameraComponent : SerializableComponent<CameraComponent>
@@ -82,8 +72,8 @@ struct MeshRenderer : SerializableComponent<MeshRenderer>
     JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
     eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
-    std::shared_ptr<Mesh>     mesh     = nullptr;
-    std::shared_ptr<Material> material = nullptr;
+    std::shared_ptr<Mesh>     pMesh     = nullptr;
+    std::shared_ptr<Material> pMaterial = nullptr;
 };
 
 }   // namespace jam

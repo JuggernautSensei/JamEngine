@@ -3,7 +3,9 @@
 #include "Mesh.h"
 
 #include "BaseUtilities.h"
+#include "FileUtilities.h"
 #include "Gfx.h"
+#include "Hash.h"
 #include "Memory.h"
 #include "Profile.h"
 #include "resources/flatc/jmsh_generated.h"
@@ -90,33 +92,17 @@ eErrorCode Mesh::Load(const fs::path& _path)
     CleanUp_();
 
     // 파일 io
-    std::ifstream ifs { _path, std::ios::binary };
-    if (!ifs.is_open())
+    auto [ec, buffer] = ReadBinaryFromFile(_path);
+    if (IsError(ec))
     {
-        SetErrorString(R"(Failed to open mesh file: "{}")", _path.native());
-        return eErrorCode::FileOpenFailed;
-    }
-
-    // file size
-    std::istream& eof  = ifs.seekg(0, std::ios::end);
-    size_t        size = eof.tellg();
-    ifs.seekg(0, std::ios::beg);
-
-    // file read
-    std::vector<char> buffer;
-    buffer.resize(size);
-    ifs.read(buffer.data(), size);
-    if (ifs.fail() || ifs.bad())
-    {
-        SetErrorString(R"(Failed to read mesh file: "{}")", _path.native());
-        return eErrorCode::FileReadFailed;
+        return ec;
     }
 
     // verify
-    flatbuffers::Verifier verifier { reinterpret_cast<const uint8_t*>(buffer.data()), size };
+    flatbuffers::Verifier verifier { buffer.data(), buffer.size() };
     if (!jmsh::VerifyMeshBuffer(verifier))
     {
-        SetErrorString(R"(Mesh file is corrupted or invalid: "{}")", _path.native());
+        SetErrorMessage(R"(Mesh file is corrupted or invalid: "{}")", _path.native());
         return eErrorCode::FileVertifyFailed;
     }
 
@@ -124,7 +110,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
     const jmsh::Mesh* pMesh = jmsh::GetMesh(buffer.data());
     if (!pMesh)
     {
-        SetErrorString(R"(Failed to parse mesh file: "{}")", _path.native());
+        SetErrorMessage(R"(Failed to parse mesh file: "{}")", _path.native());
         return eErrorCode::FileParseFailed;
     }
 
@@ -132,7 +118,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
     Version version { pMesh->version() };
     if (version.major != k_version.major)
     {
-        SetErrorString(R"(Mesh file major version is different: "{}" (file version: {}, engine version: {}))", _path.native(), version.ToString(), k_version.ToString());
+        SetErrorMessage(R"(Mesh file major version is different: "{}" (file version: {}, engine version: {}))", _path.native(), version.ToString(), k_version.ToString());
         return eErrorCode::VersionMismatch;
     }
 
@@ -145,7 +131,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
     const jmsh::VertexLayout* pLayout = pMesh->vertex_layout();
     if (!pLayout)
     {
-        SetErrorString(R"(Failed to parse vertex layout in mesh file: "{}")", _path.native());
+        SetErrorMessage(R"(Failed to parse vertex layout in mesh file: "{}")", _path.native());
         return eErrorCode::FileParseFailed;
     }
 
@@ -153,7 +139,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
     const auto* pLayoutElems = pLayout->elems();
     if (!pLayoutElems || pLayoutElems->size() == 0)
     {
-        SetErrorString(R"(Vertex layout in mesh file is empty: "{}")", _path.native());
+        SetErrorMessage(R"(Vertex layout in mesh file is empty: "{}")", _path.native());
         return eErrorCode::FileParseFailed;
     }
 
@@ -164,7 +150,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
         const jmsh::VertexLayoutElement* pElem = pLayoutElems->Get(i);
         if (!pElem)
         {
-            SetErrorString(R"(Failed to parse vertex layout element in mesh file: "{}")", _path.native());
+            SetErrorMessage(R"(Failed to parse vertex layout element in mesh file: "{}")", _path.native());
             return eErrorCode::FileParseFailed;
         }
         layout.Add(k_nativeVertexAttribteTable[pElem->attrib()], k_nativeAttributeFormatTable[pElem->format()]);
@@ -174,14 +160,14 @@ eErrorCode Mesh::Load(const fs::path& _path)
     auto* pVertices = pMesh->vertices();
     if (!pVertices || pVertices->size() == 0)
     {
-        SetErrorString(R"(Vertex data in mesh file is empty: "{}")", _path.native());
+        SetErrorMessage(R"(Vertex data in mesh file is empty: "{}")", _path.native());
         return eErrorCode::FileParseFailed;
     }
 
     auto* pIndices = pMesh->indices();
     if (!pIndices || pIndices->size() == 0)
     {
-        SetErrorString(R"(Index data in mesh file is empty: "{}")", _path.native());
+        SetErrorMessage(R"(Index data in mesh file is empty: "{}")", _path.native());
         return eErrorCode::FileParseFailed;
     }
 
@@ -202,14 +188,21 @@ eErrorCode Mesh::Load(const fs::path& _path)
     const auto* pAABB = pMesh->aabb();
     if (pAABB)
     {
-        m_boundingBox.Center  = ConvertToNativeVec3(pAABB->center());
-        m_boundingBox.Extents = ConvertToNativeVec3(pAABB->extents());
+        m_boundingBox.min  = ConvertToNativeVec3(pAABB->min());
+        m_boundingBox.max = ConvertToNativeVec3(pAABB->max());
     }
     else
     {
         // aabb 정보 없으면 직접 계산
         ComputeBoundingBox_(vertices, layout);
     }
+
+    // 해쉬 갱신 (파일 경로 기반)
+    std::string_view pathStr = _path.native();
+    MurmurHash64     hasher;
+    hasher.Begin();
+    hasher.Add(pathStr.data(), pathStr.size());
+    m_sortKey = static_cast<UInt16>(hasher.End());   // 하위 16비트만 사용
 
     // 완료
     return eErrorCode::Ok;
@@ -232,6 +225,16 @@ void Mesh::Load(
 
     // 바운딩 박스 계산
     ComputeBoundingBox_(_vertices, _layout);
+
+    // 해쉬 갱신 (데이터 기반)
+    MurmurHash64 hasher;
+    hasher.Begin();
+    hasher.Add(_vertices.GetDataPtr(), _vertices.GetByteWidth());
+    hasher.Add(&_layout, sizeof(VertexLayout));
+    hasher.Add(_indices.GetDataPtr(), _indices.GetByteWidth());
+    hasher.Add(&_format, sizeof(eIndexFormat));
+    UInt64 hash = hasher.End();
+    m_sortKey   = static_cast<UInt16>(hash);   // 하위 16비트만 사용
 }
 
 eErrorCode Mesh::Save(const fs::path& _path) const
@@ -264,7 +267,7 @@ eErrorCode Mesh::Save(const fs::path& _path) const
     auto              fbsIndices  = builder.CreateVector(indicesData);
 
     // aabb
-    jmsh::AABB fbsAABB(ConvertToFbsVec3(m_boundingBox.Center), ConvertToFbsVec3(m_boundingBox.Extents));
+    jmsh::AABB fbsAABB(ConvertToFbsVec3(m_boundingBox.min), ConvertToFbsVec3(m_boundingBox.max));
 
     // mesh
     Int32 version = k_version.Pack();   // 버전
@@ -274,18 +277,11 @@ eErrorCode Mesh::Save(const fs::path& _path) const
     Byte*  buf  = builder.GetBufferPointer();
     size_t size = builder.GetSize();
 
-    std::ofstream ofs(_path, std::ios::binary);
-    if (!ofs.is_open())
+    eErrorCode ec = WriteBinaryToFile(_path, MemoryView { buf, size });
+    if (IsError(ec))
     {
-        SetErrorString(R"(Failed to open mesh file for writing: "{}")", _path.native());
-        return eErrorCode::FileOpenFailed;
-    }
-
-    ofs.write(reinterpret_cast<const char*>(buf), size);
-    if (ofs.fail() || ofs.bad())
-    {
-        SetErrorString(R"(Failed to write mesh file: "{}")", _path.native());
-        return eErrorCode::FileWriteFailed;
+        SetErrorMessage(R"(Failed to save mesh file: "{}")", _path.native());
+        return ec;
     }
     return eErrorCode::Ok;
 }
@@ -321,9 +317,7 @@ void Mesh::ComputeBoundingBox_(const MemoryView _vertices, const VertexLayout& _
         maxPos.z = Max(maxPos.z, pos.z);
     }
 
-    Vec3 center   = (minPos + maxPos) * 0.5f;
-    Vec3 extents  = (maxPos - minPos) * 0.5f;
-    m_boundingBox = AABB { center, extents };
+    m_boundingBox = AABB { minPos, maxPos };
 }
 
 Mesh::~Mesh()
@@ -384,49 +378,16 @@ std::string_view Mesh::GetName() const
     return k_name;
 }
 
+UInt16 Mesh::GetSortKey() const
+{
+    return m_sortKey;
+}
+
 void Mesh::Submit() const
 {
     gfx::SetVertexBuffer(m_vertexBufferHandle);
     gfx::SetIndexBuffer(m_indexBufferHandle);
     gfx::Submit();
-}
-
-bool Mesh::Intersect(const Mat4& _meshTransform, const Frustum& _frustumInWorld) const
-{
-    AABB aabbInWorld;
-    m_boundingBox.Transform(aabbInWorld, _meshTransform);
-    return _frustumInWorld.Intersects(aabbInWorld);
-}
-
-bool Mesh::Intersect(const Mat4& _meshTransform, const AABB& _aabbInWorld) const
-{
-    AABB aabbInWorld;
-    m_boundingBox.Transform(aabbInWorld, _meshTransform);
-    return aabbInWorld.Intersects(_aabbInWorld);
-}
-
-bool Mesh::Intersect(const Mat4& _meshTransform, const Sphere& _sphereInWorld) const
-{
-    AABB aabbInWorld;
-    m_boundingBox.Transform(aabbInWorld, _meshTransform);
-    return aabbInWorld.Intersects(_sphereInWorld);
-}
-
-bool Mesh::Intersect(const Mat4& _meshTransform, const OBB& _obbInWorld) const
-{
-    AABB aabbInWorld;
-    m_boundingBox.Transform(aabbInWorld, _meshTransform);
-    return aabbInWorld.Intersects(_obbInWorld);
-}
-
-IntersectResult Mesh::Intersect(const Mat4& _meshTransform, const Ray& _rayInWorld) const
-{
-    AABB aabbInWorld;
-    m_boundingBox.Transform(aabbInWorld, _meshTransform);
-
-    float distance;
-    bool  bResult = _rayInWorld.Intersects(aabbInWorld, distance);
-    return { bResult, distance };
 }
 
 VertexBufferHandle Mesh::GetVertexBuffer() const

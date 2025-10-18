@@ -787,22 +787,15 @@ Position on span is used to compute sub-pixel filter offset using simple ramp,
 #endif
 }
 
-#include "Common.hlsl"
+#include "ShaderBase.hlsl"
 
-float4 PSmain(SCREENSPACE_EFFECT_PS_INPUT input) : SV_TARGET
+float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
-    uint width, height, dump;
-    postProcessInputTexture1.GetDimensions(0, width, height, dump);
-
-    float2 rcpFrame = float2(1.0f / width, 1.0f / height);
-
 #if (FXAA_PRESET == 0) | (FXAA_PRESET == 1) | (FXAA_PRESET == 2)
-    FxaaTex tex = { samplerLinearAnisotropic4Wrap, postProcessInputTexture1 };
+    FxaaTex tex = { s_anisotropic4Wrap, t_input0};
 #else  
-    FxaaTex tex = { samplerLinearClamp, postProcessInputTexture1 };
+    FxaaTex tex = { s_linearClamp, t_input0 };
 #endif
-
-    float3 output = FxaaPixelShader(input.texCoord, tex, rcpFrame);
-    return float4(output, 1.0f);
+    return float4(FxaaPixelShader(_input.texCoord0, tex, cb_texelSize), 1.0f);
 }
 

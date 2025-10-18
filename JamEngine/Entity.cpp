@@ -49,12 +49,22 @@ UID Entity::GetUID() const
 
 TransformComponent& Entity::GetTransform()
 {
-    return GetComponent<TransformComponent>();
+    return m_pRegistry->get<TransformComponent>(m_handle);
 }
 
 const TransformComponent& Entity::GetTransform() const
 {
-    return GetComponent<TransformComponent>();
+    return m_pRegistry->get<TransformComponent>(m_handle);
+}
+
+HierarchyTransform& Entity::GetHierarchyTransform()
+{
+    return m_pRegistry->get<TransformComponent>(m_handle).transform;
+}
+
+const HierarchyTransform& Entity::GetHierarchyTransform() const
+{
+    return m_pRegistry->get<TransformComponent>(m_handle).transform;
 }
 
 }   // namespace jam

@@ -1,0 +1,7 @@
+[2025-10-15 00:49:27.724] [debug] [thread 22616] Logger initialized successfully.
+[2025-10-15 00:49:28.105] [trace] [thread 22616] Application 'JamShader' started.
+[2025-10-15 00:49:34.537] [error] [thread 22616] Failed to open file: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\HLSL\PostProcessVS.hlsl
+[2025-10-15 00:49:34.548] [info] [thread 22616] Project loaded: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\JamShaderCompileInfo.json"
+[2025-10-15 00:49:59.584] [info] [thread 22616] Single header file saved: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\PrecompiledShaders\PrecompiledJamShader.h"
+[2025-10-15 00:50:04.838] [trace] [thread 22616] Application 'JamShader' shutdown.
+[2025-10-15 00:50:04.910] [debug] [thread 22616] Logger shutting down...

@@ -64,18 +64,17 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_EMISSIVE_COLOR = 20,
     VT_EMISSIVE_INTENSITY = 22,
     VT_OPACITY = 24,
-    VT_B_IS_TRANSPARENT = 26,
-    VT_B_DOUBLE_SIDE = 28,
-    VT_B_FLIPED_Y_NORMAL_MAP = 30,
-    VT_LIGHT_MAP_INTENSITY = 32,
-    VT_AO_MAP_INTENSITY = 34,
-    VT_ALBEDO_MAP_PATH = 36,
-    VT_NORMAL_MAP_PATH = 38,
-    VT_METALLIC_MAP_PATH = 40,
-    VT_ROUGHNESS_MAP_PATH = 42,
-    VT_AO_MAP_PATH = 44,
-    VT_EMISSIVE_MAP_PATH = 46,
-    VT_LIGHT_MAP_PATH = 48
+    VT_B_DOUBLE_SIDE = 26,
+    VT_B_FLIPED_Y_NORMAL_MAP = 28,
+    VT_LIGHT_MAP_INTENSITY = 30,
+    VT_AO_MAP_INTENSITY = 32,
+    VT_ALBEDO_MAP_PATH = 34,
+    VT_NORMAL_MAP_PATH = 36,
+    VT_METALLIC_MAP_PATH = 38,
+    VT_ROUGHNESS_MAP_PATH = 40,
+    VT_AO_MAP_PATH = 42,
+    VT_EMISSIVE_MAP_PATH = 44,
+    VT_LIGHT_MAP_PATH = 46
   };
   uint32_t version() const {
     return GetField<uint32_t>(VT_VERSION, 0);
@@ -109,9 +108,6 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   float opacity() const {
     return GetField<float>(VT_OPACITY, 0.0f);
-  }
-  bool b_is_transparent() const {
-    return GetField<uint8_t>(VT_B_IS_TRANSPARENT, 0) != 0;
   }
   bool b_double_side() const {
     return GetField<uint8_t>(VT_B_DOUBLE_SIDE, 0) != 0;
@@ -159,7 +155,6 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyFieldRequired<jam::jmat::Vec3>(verifier, VT_EMISSIVE_COLOR, 4) &&
            VerifyField<float>(verifier, VT_EMISSIVE_INTENSITY, 4) &&
            VerifyField<float>(verifier, VT_OPACITY, 4) &&
-           VerifyField<uint8_t>(verifier, VT_B_IS_TRANSPARENT, 1) &&
            VerifyField<uint8_t>(verifier, VT_B_DOUBLE_SIDE, 1) &&
            VerifyField<uint8_t>(verifier, VT_B_FLIPED_Y_NORMAL_MAP, 1) &&
            VerifyField<float>(verifier, VT_LIGHT_MAP_INTENSITY, 4) &&
@@ -218,9 +213,6 @@ struct MaterialBuilder {
   }
   void add_opacity(float opacity) {
     fbb_.AddElement<float>(Material::VT_OPACITY, opacity, 0.0f);
-  }
-  void add_b_is_transparent(bool b_is_transparent) {
-    fbb_.AddElement<uint8_t>(Material::VT_B_IS_TRANSPARENT, static_cast<uint8_t>(b_is_transparent), 0);
   }
   void add_b_double_side(bool b_double_side) {
     fbb_.AddElement<uint8_t>(Material::VT_B_DOUBLE_SIDE, static_cast<uint8_t>(b_double_side), 0);
@@ -284,7 +276,6 @@ inline ::flatbuffers::Offset<Material> CreateMaterial(
     const jam::jmat::Vec3 *emissive_color = nullptr,
     float emissive_intensity = 0.0f,
     float opacity = 0.0f,
-    bool b_is_transparent = false,
     bool b_double_side = false,
     bool b_fliped_y_normal_map = false,
     float light_map_intensity = 0.0f,
@@ -319,7 +310,6 @@ inline ::flatbuffers::Offset<Material> CreateMaterial(
   builder_.add_version(version);
   builder_.add_b_fliped_y_normal_map(b_fliped_y_normal_map);
   builder_.add_b_double_side(b_double_side);
-  builder_.add_b_is_transparent(b_is_transparent);
   return builder_.Finish();
 }
 
@@ -336,7 +326,6 @@ inline ::flatbuffers::Offset<Material> CreateMaterialDirect(
     const jam::jmat::Vec3 *emissive_color = nullptr,
     float emissive_intensity = 0.0f,
     float opacity = 0.0f,
-    bool b_is_transparent = false,
     bool b_double_side = false,
     bool b_fliped_y_normal_map = false,
     float light_map_intensity = 0.0f,
@@ -368,7 +357,6 @@ inline ::flatbuffers::Offset<Material> CreateMaterialDirect(
       emissive_color,
       emissive_intensity,
       opacity,
-      b_is_transparent,
       b_double_side,
       b_fliped_y_normal_map,
       light_map_intensity,

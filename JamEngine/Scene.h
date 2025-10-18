@@ -38,9 +38,27 @@ public:
     JAM_NODISCARD bool   IsEntityValid(Entity _entity) const;
 
     template<typename... Args>
-    JAM_NODISCARD decltype(auto) CreateView()
+    JAM_NODISCARD decltype(auto) View()
     {
         return m_registry.view<Args...>();
+    }
+
+    template<typename... Args>
+    JAM_NODISCARD decltype(auto) View() const
+    {
+        return m_registry.view<Args...>();
+    }
+
+    template<typename... Args>
+    JAM_NODISCARD decltype(auto) Each()
+    {
+        return m_registry.view<Args...>().each();
+    }
+
+    template<typename... Args>
+    JAM_NODISCARD decltype(auto) Each() const
+    {
+        return m_registry.view<Args...>().each();
     }
 
     JAM_NODISCARD const entt::registry& GetRegistry() const;
@@ -54,7 +72,7 @@ protected:
     Scene();
 
 private:
-    void                 DestroyEntity_Recursive_(Entity& _entity);
+    void                 DestroyEntity_Recursive_(Entity _entity);
     JAM_NODISCARD Entity CreateEntity_(UID _uid, std::string_view _name = {});
 
     entt::registry       m_registry     = {};

@@ -18,7 +18,7 @@ using namespace jam;
 JAM_NODISCARD static Mesh CreateMeshHelper(
     const std::span<const Vec3> _positions,
     const std::span<const Vec2> _texCoords,
-    const MemoryView           _indexData,
+    const MemoryView            _indexData,
     const eIndexFormat          _indexFormat,
     const VertexLayout&         _layout)
 {
@@ -281,17 +281,24 @@ Mesh CreateSphereMesh(
         1,
     };
 
-    // 서브 디비전
-    LoopSubdivisionOutput output = LoopSubdivide(k_positions, k_texCoords, MemoryView { k_indices }, eIndexFormat::U16, _divisionLevel);
-
-    // 위치 정규화 및 반지름 적용
-    for (Vec3& pos: output.positions)
+    if (_divisionLevel > 0)
     {
-        pos.Normalize();
-        pos *= _radius;
-    }
+        // 서브 디비전
+        LoopSubdivisionOutput output = LoopSubdivide(k_positions, k_texCoords, MemoryView { k_indices }, eIndexFormat::U16, _divisionLevel);
 
-    return CreateMeshHelper(output.positions, output.texcoords, MemoryView { output.indices }, output.indexFormat, _layout);
+        // 위치 정규화 및 반지름 적용
+        for (Vec3& pos: output.positions)
+        {
+            pos.Normalize();
+            pos *= _radius;
+        }
+
+        return CreateMeshHelper(output.positions, output.texcoords, MemoryView { output.indices }, output.indexFormat, _layout);
+    }
+    else // 정이십면체
+    {
+        return CreateMeshHelper(k_positions, k_texCoords, MemoryView { k_indices }, eIndexFormat::U16, _layout);
+    }
 }
 
 Mesh CreatePlaneMesh(
@@ -396,7 +403,7 @@ Mesh CreateCone(
     float step = k_2pi / static_cast<float>(_bottomTriangleCount);
     for (Int32 i = 0; i < _bottomTriangleCount; ++i)
     {
-        auto [sin, cos]  = ComputeSinCos(i * step);
+        auto [sin, cos]  = ComputeSinCos(static_cast<float>(i) * step);
         const float x    = cos * _radius;
         const float z    = sin * _radius;
         position[i + 1]  = Vec3 { x, -_height * 0.5f, z };
@@ -506,7 +513,7 @@ Mesh CreateCylinder(
 
 std::vector<Vec3> ComputeNormal(
     const std::span<const Vec3> _positions,
-    const MemoryView           _indexData,
+    const MemoryView            _indexData,
     const eIndexFormat          _format)
 {
     std::vector<Vec3> normals;
@@ -532,7 +539,7 @@ TangentAndBitangent ComputeTangentAndBitangent(
     const std::span<const Vec3> _positions,
     const std::span<const Vec3> _normals,
     const std::span<const Vec2> _texCoords,
-    const MemoryView           _indexData,
+    const MemoryView            _indexData,
     const eIndexFormat          _format)
 {
     TangentAndBitangent result;

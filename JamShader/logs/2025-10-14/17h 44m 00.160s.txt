@@ -1,0 +1,4 @@
+[2025-10-14 17:44:00.166] [debug] [thread 50328] Logger initialized successfully.
+[2025-10-14 17:44:00.555] [trace] [thread 50328] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-14 17:44:00.557] [trace] [thread 50328] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.8425 Milli ==========
+[2025-10-14 17:44:00.560] [trace] [thread 50328] Application 'JamShader' started.

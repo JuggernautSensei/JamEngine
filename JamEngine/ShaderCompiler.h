@@ -5,6 +5,7 @@
 namespace jam
 {
 
+// 셰이더 매크로 정의
 struct ShaderMacro
 {
     JAM_NODISCARD constexpr static ShaderMacro NullTerminator() { return { nullptr, nullptr }; }
@@ -14,68 +15,62 @@ struct ShaderMacro
     const char* value;   // 매크로 값
 };
 
+// 셰이더 컴파일러
 class ShaderCompiler
 {
 public:
+    ShaderCompiler()  = default;
+    ~ShaderCompiler() = default;
+
+    ShaderCompiler(const ShaderCompiler&)            = delete;
+    ShaderCompiler& operator=(const ShaderCompiler&) = delete;
+    ShaderCompiler(ShaderCompiler&&)                 = default;
+    ShaderCompiler& operator=(ShaderCompiler&&)      = default;
+
     /// @brief HLSL 파일로부터 셰이더 컴파일
-    /// @param _filePath HLSL 파일 경로
-    /// @param _stage 셰이더 스테이지
-    /// @param _entryPoint 셰이더 진입점 함수 이름
-    /// @param _flags 컴파일 플래그
-    /// @param _macrosOrEmpty 셰이더 매크로 정의 (선택 사항, 마지막은 반드시 null terminator로 끝나야 함)
-    /// @return 컴파일 성공 여부 (true: 성공, false: 실패)
-    eErrorCode LoadHLSLFromFile(
-        const fs::path&              _filePath,
+    eErrorCode CompileFromFile(
+        const fs::path&              _path,
         eShader                      _stage,
         std::string_view             _entryPoint,
-        eShaderCompileFlags          _flags         = eShaderCompileFlags_Default,
-        std::span<const ShaderMacro> _macrosOrEmpty = {});
+        eShaderCompileFlags          _flags  = eShaderCompileFlags_Default,
+        std::span<const ShaderMacro> _macros = {});
 
     /// @brief HLSL 소스 코드로부터 셰이더 컴파일
-    /// @param _hlslSource HLSL 소스 코드
-    /// @param _stage 셰이더 스테이지
-    /// @param _entryPoint 셰이더 진입점 함수 이름
-    /// @param _flags 컴파일 플래그
-    /// @param _macrosOrEmpty 셰이더 매크로 정의 (선택 사항, 마지막은 반드시 null terminator로 끝나야 함)
-    /// @return 컴파일 성공 여부 (true: 성공, false: 실패)
-    eErrorCode LoadHLSL(
+    eErrorCode CompileFromSource(
         std::string_view             _hlslSource,
         eShader                      _stage,
         std::string_view             _entryPoint,
-        eShaderCompileFlags          _flags         = eShaderCompileFlags_Default,
-        std::span<const ShaderMacro> _macrosOrEmpty = {});
+        eShaderCompileFlags          _flags  = eShaderCompileFlags_Default,
+        std::span<const ShaderMacro> _macros = {});
 
-    /// @brief 컴파일된 셰이더 객체(.cso) 파일로부터 셰이더 로드
-    /// @param _filePath .cso 파일 경로
-    /// @return 로드 성공 여부 (true: 성공, false: 실패)
-    eErrorCode LoadCSOFromFile(
-        const fs::path& _filePath);
+    /// @brief 컴파일된 셰이더 객체(.cso) 파일로부터 로드
+    eErrorCode LoadFromFile(const fs::path& _filePath);
 
-    /// @brief 메모리 뷰로부터 컴파일된 셰이더 객체(.cso) 로드
-    /// @param _byteCode 셰이더 코드를 담은 메모리 뷰
-    /// @return 로드 성공 여부 (true: 성공, false: 실패)
-    eErrorCode LoadCSO(
-        MemoryView _byteCode);
+    /// @brief 메모리로부터 컴파일된 셰이더 객체 로드
+    eErrorCode LoadFromMemory(MemoryView _byteCode);
 
     /// @brief 컴파일된 셰이더 바이트코드 반환
-    /// @return 셰이더 바이트코드
     JAM_NODISCARD MemoryView GetBytecode() const
     {
-        JAM_ASSERT(IsValid(), "Shader is not compiled.");
+        JAM_ASSERT(IsValid(), "Shader bytecode is not available.");
         return MemoryView { m_pBlob->GetBufferPointer(), m_pBlob->GetBufferSize() };
     }
 
+    /// @brief 셰이더 유효성 확인
     JAM_NODISCARD bool IsValid() const
     {
         return m_pBlob != nullptr;
     }
 
-    void Reset()
+    /// @brief 셰이더 초기화
+    void Clear()
     {
         m_pBlob.Reset();
     }
 
 private:
+    void HandleCompileError_(const ComPtr<ID3DBlob>& _pErrorBlob, HRESULT _hr) const;
+
     ComPtr<ID3DBlob> m_pBlob = nullptr;
 };
 

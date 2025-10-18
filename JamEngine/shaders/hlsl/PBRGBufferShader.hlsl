@@ -1,46 +1,42 @@
-#include "PBRCommon.hlsli"
+#include "ShaderBase.hlsl"
 
-struct PS_Output
+struct PS_OUTPUT
 {
-    float4 normalW : SV_TARGET0;
-    float4 albedoRoughness : SV_TARGET1;
-    float4 metallicAO : SV_TARGET2;
-    float4 emission : SV_TARGET3;
+    float4 albedoAO                : SV_TARGET0; // RGBA unorm8 - Albedo.rgb, AO
+    float4 normalRoughnessMetallic : SV_TARGET1; // RGBA float16 - Normal.xy (z reconstruct in shader), Roughness, Metallic
+    float4 additionalLight         : SV_TARGET2; // RGBA float16 - misc
 };
 
-PS_Output PSmain(PBR_PS_INPUT input)
+PS_OUTPUT PSMain(PBR_PS_INPUT_STATIC_MESH _input)
 {
-    PS_Output output;
-
-    float3 albedo = (cb_textureBindFlags & JAM_MATERIAL_TEXTURE_BIND_FLAGS_ALBEDO)
-                  ? albedoTexture.Sample(samplerLinearClamp, input.texCoord).rgb * cb_albedo
+    float3 albedo = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_ALBEDO)
+                  ? t_albedo.Sample(s_linearClamp, _input.texCoord0).rgb * cb_albedo
                   : cb_albedo;
  
-    float ao = (cb_textureBindFlags & JAM_MATERIAL_TEXTURE_BIND_FLAGS_AO)
-             ? aoTexture.Sample(samplerLinearClamp, input.texCoord).r
+    float ao = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_AO)
+             ? t_ao.Sample(s_linearClamp, _input.texCoord0).r * cb_aoMapIntencity
              : 1.0;
  
-    float metallic = (cb_textureBindFlags & JAM_MATERIAL_TEXTURE_BIND_FLAGS_METALLIC)
-                   ? metallicTexture.Sample(samplerLinearClamp, input.texCoord).r * cb_metallic
+    float metallic = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_METALLIC)
+                   ? t_metallic.Sample(s_linearClamp, _input.texCoord0).r * cb_metallic
                    : cb_metallic;
  
-    float roughness = (cb_textureBindFlags & JAM_MATERIAL_TEXTURE_BIND_FLAGS_ROUGHNESS)
-                    ? roughnessTexture.Sample(samplerLinearClamp, input.texCoord).r * cb_roughness
+    float roughness = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_ROUGHNESS)
+                    ? t_roughness.Sample(s_linearClamp, _input.texCoord0).r * cb_roughness
                     : cb_roughness;
  
-    float3 emission = (cb_textureBindFlags & JAM_MATERIAL_TEXTURE_BIND_FLAGS_EMISSIVE)
-                    ? emissiveTexture.Sample(samplerLinearClamp, input.texCoord).rgb
+    float3 emission = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_EMISSIVE)
+                    ? t_emissive.Sample(s_linearClamp, _input.texCoord0).rgb * cb_emissiveIntensity
                     : cb_emissive;
  
-    float3 lightTexColor = (cb_textureBindFlags & JAM_MATERIAL_TEXTURE_BIND_FLAGS_LIGHT_MAP)
-                         ? lightmapTexture.Sample(samplerLinearClamp, input.texCoord2).rgb * cb_materialLightmapStrength
-                         : float3(1.f, 1.f, 1.f);
+    float3 lightTexColor = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_LIGHT_MAP)
+                         ? t_lightmap.Sample(s_linearClamp, _input.texCoord1).rgb * cb_lightMapIntencity
+                         : float3(0.f, 0.f, 0.f);
  
-    albedo *= lightTexColor;
-
-    output.normalW         = float4(GetNormal(input.tangentW, input.bitangentW, input.normalW, input.texCoord), 1.f);
-    output.albedoRoughness = float4(albedo, roughness);
-    output.metallicAO      = float4(metallic, ao, 0.f, 1.f);
-    output.emission        = float4(emission, cb_emissiveFactor);
+    PS_OUTPUT output;
+    output.albedoAO = float4(albedo, ao);
+    float3 normal = CalcNormal(_input.tangentW, _input.normalW, _input.texCoord0);
+    output.normalRoughnessMetallic = float4(normal.xy, roughness, metallic);
+    output.additionalLight = float4(emission + lightTexColor, 1.f);
     return output;
 }

@@ -49,9 +49,9 @@ namespace debug_draw
     void PopTransform();
 
     /// @brief 카메라 위치와 뷰-프로젝션 행렬을 설정합니다.
-    /// @param _eyePosition 카메라 위치
+    /// @param _eyePos 카메라 위치
     /// @param _viewProjMat 뷰-프로젝션 행렬
-    void SetCamera(const Vec3& _eyePosition, const Mat4& _viewProjMat);
+    void SetCamera(const Vec3& _eyePos, const Mat4& _viewProjMat);
 
     /// @brief 변환 행렬을 설정합니다.
     /// @param _mat 변환 행렬

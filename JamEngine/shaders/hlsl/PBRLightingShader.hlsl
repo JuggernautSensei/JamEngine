@@ -1,4 +1,4 @@
-#include "PBRCommon.hlsli"
+#include "ShaderBase.hlsl"
 
 //float Texture2DPCF(float2 uv,
 //                   float zNDC,
@@ -193,57 +193,37 @@
 //             : 1.f;
 //}
 
-float4 PSmain(PBR_PS_INPUT input) : SV_TARGET
+float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
-    float3 posNDC;
-    posNDC.x    = input.texCoord.x * 2.f - 1.f;
-    posNDC.y    = -(input.texCoord.y * 2.f - 1.f);
-    posNDC.z    = depthTexture.Sample(samplerPointWrap, input.texCoord).r;
-    float3 posW = UnProjectionNDCPos(posNDC, cb_viewProjInv);
+    float3 posNdc;
+    posNdc.x = _input.texCoord0.x * 2.f - 1.f;
+    posNdc.y = _input.texCoord0.y * -2.f + 1.f;
+    posNdc.z = t_depth.Sample(s_pointClamp, _input.texCoord0).r;
 
-    float3 N               = gBufferNormalTexture.Sample(samplerPointWrap, input.texCoord).rgb;
-    float4 albedoRoughness = gBufferAlbedoRoughnessTexture.Sample(samplerPointWrap, input.texCoord);
-    float3 albedo          = albedoRoughness.rgb;
-    float roughness        = albedoRoughness.a;
+    float4 unprojedPos = mul(cb_projViewInv, float4(posNdc, 1.f));
+    float3 posW = unprojedPos.xyz / unprojedPos.w;
 
-    float2 metallicAO = gBufferMetallicAOTexture.Sample(samplerPointWrap, input.texCoord).rg;
-    float ao          = metallicAO.g;
-    float metallic    = metallicAO.r;
+    float4 normalRoughnessMetallic = t_gBufferNormalRoughnessMetallic.Sample(s_linearClamp, _input.texCoord0);
+    float3 normal = float3(normalRoughnessMetallic.x, normalRoughnessMetallic.y, 1.f);
+    normal.z = sqrt(max(0.f, 1 - normal.x * normal.x - normal.y * normal.y));
+    normal = normalize(normal);
 
-    float4 emissionValue = gBufferEmissionTexture.Sample(samplerPointWrap, input.texCoord);
-    float3 emission      = emissionValue.rgb * emissionValue.a;
+    float roughness = normalRoughnessMetallic.z;
+    float metallic = normalRoughnessMetallic.w;
 
-    float3 E = normalize(cb_eye - posW);
+    float4 albedoAO = t_gBufferAlbedoAO.Sample(s_linearClamp, _input.texCoord0);
+    float3 albedo = albedoAO.rgb;
+    float ao = albedoAO.a;
 
-    float3 ambient;
+    float3 additionalLight = t_gBufferAdditionalLight.Sample(s_linearClamp, _input.texCoord0).rgb;
 
-    // ambient lighting
-    {
-        if (cb_globalRenderingFlags & JAM_GLOBAL_RENDERING_FLAGS_IBL)
-        {
-            // IBL
-            float3 ambientIBL = AmbientLightingByIBL(albedo, N, E, ao, metallic, roughness);
-            ambient = ambientIBL * cb_globalIBLStrength;
-        }
-        else
-        {
-            // phong(like)
-            ambient = albedo * cb_globalSceneAmbientRadiance;
-        }
-    }
+    float3 toEye = normalize(cb_eyePos - posW);
+    float3 ambient = AmbientLightingByIBL(albedo, normal, toEye, ao, metallic, roughness);
+    float ssao = (cb_globalFlags & JAM_GLOBAL_FLAGS_SSAO)
+               ? t_ssao.Sample(s_linearClamp, _input.texCoord0).r
+               : 1.f;
 
-    // SSAO
-    {
-        float ssao = (cb_globalRenderingFlags & JAM_GLOBAL_RENDERING_FLAGS_SSAO)
-                   ? ssaoTexture.Sample(samplerLinearClamp, input.texCoord).r
-                   : 1.0f;
-
-        ambient *= lerp(1.f, ssao, cb_globalSSAOStrength);
-    }
-
-    // only ambient + emission
-    // diffuse + specular lighting need to be implemented another shader
-    float4 color = float4(ambient + emission, 1.f);
-    return color;
+    ambient = saturate(ambient * ssao);
+    return float4(ambient + additionalLight, 1.f);
 }
 

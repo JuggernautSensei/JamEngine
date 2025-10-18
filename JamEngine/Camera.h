@@ -12,7 +12,9 @@ enum class eProjection : Int8
 
 struct Camera
 {
-    JAM_NODISCARD Mat4 CreateProj() const;
+    JAM_NODISCARD Frustum CreateFrustum() const;
+    JAM_NODISCARD Frustum CreateFrustumInWorld(const Transform& _transform) const;
+    JAM_NODISCARD Mat4    CreateProj() const;
 
     eProjection projection = eProjection::Perspective;   // 투영 방식
     float       nearZ      = 0.1f;                       // 근평면

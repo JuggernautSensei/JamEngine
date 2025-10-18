@@ -2,13 +2,31 @@
 
 #include "HierarchyTransform.h"
 
+#include "Components.h"
+
 namespace jam
 {
 
+HierarchyTransform::HierarchyTransform(const Entity _root, const Entity _owner)
+    : m_root(_root)
+    , m_owner(_owner)
+{
+    JAM_ASSERT(_root.IsValid(), "Root entity is invalid");
+    SetParent(m_root);
+}
+
+HierarchyTransform::HierarchyTransform(const Entity _root)
+    : m_root(_root)
+    , m_owner(_root)
+{
+    JAM_ASSERT(_root.IsValid(), "Root entity is invalid");
+}
+
 void HierarchyTransform::SetLocal(const Transform& _local)
 {
-    m_local       = _local;
-    m_updateState = eUpdateState::WorldNeedUpdate;
+    m_local     = _local;
+    m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
+    NotifyDirtyToParent_();
 }
 
 const Transform& HierarchyTransform::GetLocal() const
@@ -18,8 +36,9 @@ const Transform& HierarchyTransform::GetLocal() const
 
 void HierarchyTransform::SetWorld(const Transform& _world)
 {
-    m_world       = _world;
-    m_updateState = eUpdateState::LocalNeedUpdate;
+    m_world     = _world;
+    m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
+    NotifyDirtyToParent_();
 }
 
 const Transform& HierarchyTransform::GetWorld() const
@@ -27,109 +46,137 @@ const Transform& HierarchyTransform::GetWorld() const
     return m_world;
 }
 
-void HierarchyTransform::SetParent(HierarchyTransform& _parent)
+void HierarchyTransform::SetParent(const Entity _parent)
 {
-    HierarchyTransform* pParent = &_parent;
-    JAM_ASSERT(pParent != this, "Cannot set self as parent");
+    JAM_ASSERT(_parent.IsValid(), "Parent entity is invalid");
+    JAM_ASSERT(_parent != m_owner, "Cannot set self as parent");
 
-    // 이미 부모가 동일하면 무시
-    if (m_pParent == pParent)
-        return;   
-
-    // 기존 부모에서 해제
-    ReleaseParent();   
-
-    // 새로운 부모에 연결
-    m_pParent                             = pParent;
-    HierarchyTransform* pParentFirstChild = m_pParent->m_pFirstChild;
-    m_pParent->m_pFirstChild              = this;
-    m_pNextSibling                        = pParentFirstChild;
-    m_pPrevSibling                        = nullptr;
-    if (pParentFirstChild)
+    if (m_parent == _parent)
     {
-        pParentFirstChild->m_pPrevSibling = this;
+        return;
     }
 
-    // 부모를 기준으로 로컬 재계산
-    m_updateState = eUpdateState::LocalNeedUpdate;
+    // 기존 계층 정리
+    if (m_parent.IsValid())
+    {
+        HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
+        if (!m_prevSibling.IsValid())   // 내가 첫 번째 자식
+        {
+            parentT.m_firstChild = m_nextSibling;
+        }
+        else   // 내가 첫 번째 자식이 아님
+        {
+            HierarchyTransform& prevSiblingT = m_prevSibling.GetHierarchyTransform();
+            prevSiblingT.m_nextSibling       = m_nextSibling;   // 다음 형제 혹은 null
+        }
+
+        if (m_nextSibling.IsValid())
+        {
+            // 다음 형제와 이전 형제(혹은 null)를 연결
+            HierarchyTransform& nextSiblingT = m_nextSibling.GetHierarchyTransform();
+            nextSiblingT.m_prevSibling       = m_prevSibling;
+        }
+
+        m_parent      = Entity::s_null;
+        m_nextSibling = Entity::s_null;
+        m_prevSibling = Entity::s_null;
+    }
+
+    // 새로운 부모 설정
+    m_parent                     = _parent;
+    HierarchyTransform& nParentT = m_parent.GetHierarchyTransform();
+
+    Entity nParentFChild  = nParentT.m_firstChild;
+    nParentT.m_firstChild = m_owner;
+    m_nextSibling         = nParentFChild;
+    m_prevSibling         = Entity::s_null;
+    if (nParentFChild.IsValid())
+    {
+        HierarchyTransform& nParentFChildT = nParentFChild.GetHierarchyTransform();
+        nParentFChildT.m_prevSibling       = m_owner;
+    }
+
+    m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;   // 로컬 재게산
+    NotifyDirtyToParent_();
 }
 
 void HierarchyTransform::ReleaseParent()
 {
-    if (m_pParent)   // 부모가 있을 때만 실행
-    {
-        if (m_pPrevSibling)
-        {
-            // 이전 형제와 다음 형제(혹은 nullptr)를 연결
-            // m_pNextSibling이 nullptr인 경우는 해당 노드가 마지막 자식인 경우
-            m_pPrevSibling->m_pNextSibling = m_pNextSibling;
-        }
-        else
-        {
-            // 이전 형제가 없는 경우는 해당 노드가 첫 자식인 경우
-            m_pParent->m_pFirstChild = m_pNextSibling;
-        }
-
-        if (m_pNextSibling)
-        {
-            // 다음 형제와 이전 형제(혹은 nullptr)를 연결
-            // m_pPrevSibling이 nullptr인 경우는 해당 노드가 첫 자식인 경우
-            m_pNextSibling->m_pPrevSibling = m_pPrevSibling;
-        }
-
-        // 고아 노드
-        m_pParent      = nullptr;
-        m_pNextSibling = nullptr;
-        m_pPrevSibling = nullptr;
-
-        m_world = m_local;   // 부모가 없으면 로컬과 월드가 동일
-    }
+    SetParent(m_root);
 }
 
 void HierarchyTransform::Update_Recursive()
 {
-    if (m_updateState == eUpdateState::LocalNeedUpdate)
+    UpdateAndGatherDirtyEntities_Recursive_(nullptr);
+}
+
+void HierarchyTransform::UpdateAndGatherDirtyEntities_Recursive(std::vector<Entity>& _outDirtyEntities)
+{
+    UpdateAndGatherDirtyEntities_Recursive_(&_outDirtyEntities);
+}
+
+void HierarchyTransform::NotifyDirtyToParent_()
+{
+    if (!m_parent.IsValid())   // 루트 노드
+    {
+        return;
+    }
+
+    HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
+    if (parentT.m_dirtyFlag == eDirtyFlag::Noop)
+    {
+        parentT.m_dirtyFlag = eDirtyFlag::ChildDirty;
+        parentT.NotifyDirtyToParent_();
+    }
+
+    // 이미 부모가 더티 플래그가 설정되어 있으므로 더 이상 전파할 필요 없음
+}
+
+void HierarchyTransform::UpdateAndGatherDirtyEntities_Recursive_(std::vector<Entity>* _pOutDirtyEntities)
+{
+    if (m_dirtyFlag == eDirtyFlag::Noop)
+        return;
+
+    if (m_dirtyFlag == eDirtyFlag::LocalNeedUpdate)
     {
         // 월드를 기준으로 로컬 업데이트
-        if (m_pParent)
+        if (m_parent.IsValid())
         {
-            m_local = m_world.FromParent(m_pParent->m_world);
+            HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
+            m_local                     = m_world.FromParent(parentT.m_world);
         }
-        else
+        else   // 루트 노드
         {
-            m_local = m_world;   // 부모가 없으면 로컬과 월드가 동일
+            m_local = m_world;
         }
+
+        if (_pOutDirtyEntities)
+            _pOutDirtyEntities->push_back(m_owner);
     }
-    else if (m_updateState == eUpdateState::WorldNeedUpdate)
+    else if (m_dirtyFlag == eDirtyFlag::WorldNeedUpdate)
     {
         // 로컬을 기준으로 월드 업데이트
-        if (m_pParent)
+        if (m_parent.IsValid())
         {
-            m_world = m_local.ToParent(m_pParent->m_world);
+            HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
+            m_world                     = m_local.ToParent(parentT.m_world);
         }
-        else
+        else   // 루트 노드
         {
-            m_world = m_local;   // 부모가 없으면 로컬과 월드가 동일
+            m_world = m_local;
         }
+        
+        if (_pOutDirtyEntities)
+            _pOutDirtyEntities->push_back(m_owner);
     }
 
-    bool bDirty   = (m_updateState != eUpdateState::Noop);
-    m_updateState = eUpdateState::Noop;
-
-    // 만약 자신이 더티였다면 자식들도 더티
-    HierarchyTransform* pChild = m_pFirstChild;
-    while (pChild)
+    // 자식이 더티면 나는 아무것도 안하고. update 만 전파
+    m_dirtyFlag = eDirtyFlag::Noop;
+    for (Entity child = m_firstChild; child.IsValid();)
     {
-        if (bDirty && (pChild->m_updateState == eUpdateState::Noop))
-        {
-            // 자식이 월드 변경이 발생했으면 그것은 유지
-            // 부모가 변경되었으면 자식은 월드를 갱신해야함
-            pChild->m_updateState = eUpdateState::WorldNeedUpdate;
-        }
-
-        // 자식도 업데이트
-        pChild->Update_Recursive();
-        pChild = pChild->m_pNextSibling;
+        HierarchyTransform& childT = child.GetHierarchyTransform();
+        childT.UpdateAndGatherDirtyEntities_Recursive_(_pOutDirtyEntities);
+        child = childT.m_nextSibling;
     }
 }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "Entity.h"
 #include "Transform.h"
 
 namespace jam
@@ -6,14 +7,19 @@ namespace jam
 
 class HierarchyTransform
 {
-    enum class eUpdateState : Int8
+    enum class eDirtyFlag : Int8
     {
         Noop,
         WorldNeedUpdate,
-        LocalNeedUpdate
+        LocalNeedUpdate,
+        ChildDirty
     };
 
 public:
+    HierarchyTransform() = default;
+    HierarchyTransform(Entity _root, Entity _owner);
+    explicit HierarchyTransform(Entity _root);
+
     ////////// LOCAL TRANSFORM //////////
 
     void                           SetLocal(const Transform& _local);
@@ -26,31 +32,41 @@ public:
 
     ////////// HEIRARCHY //////////
 
-    void SetParent(HierarchyTransform& _parent);
+    void SetParent(Entity _parent);
     void ReleaseParent();
 
-    JAM_NODISCARD bool                IsRoot() const { return m_pParent == nullptr; }
-    JAM_NODISCARD HierarchyTransform* GetParent() const { return m_pParent; }
-    JAM_NODISCARD HierarchyTransform* GetFirstChild() const { return m_pFirstChild; }
-    JAM_NODISCARD HierarchyTransform* GetNextSibling() const { return m_pNextSibling; }
-    JAM_NODISCARD HierarchyTransform* GetPrevSibling() const { return m_pPrevSibling; }
+    JAM_NODISCARD bool   IsRoot() const { return m_root == m_owner; }
+    JAM_NODISCARD Entity GetRoot() const { return m_root; }
+    JAM_NODISCARD Entity GetOwner() const { return m_owner; }
+    JAM_NODISCARD Entity GetParent() const { return m_parent; }
+    JAM_NODISCARD Entity GetFirstChild() const { return m_firstChild; }
+    JAM_NODISCARD Entity GetNextSibling() const { return m_nextSibling; }
+    JAM_NODISCARD Entity GetPrevSibling() const { return m_prevSibling; }
 
     ////////// UPDATE //////////
 
-    // 자신과 자식들까지 재귀적으로 업데이트
-    // 프레임 당 한 번 최상위 부모에서 한 번만 호출하면 됨
-    // 아마도 직접 호출할 일은 없을 것
+    // 루트 노드가 매프레임 딱 한 번 호출할 것
     void Update_Recursive();
 
-private:
-    eUpdateState m_updateState = eUpdateState::Noop;
-    Transform    m_local;
-    Transform    m_world;
+    // 루트 노드가 매프레임 딱 한 번 호출할 것
+    // Transform을 업데이트하고 Transform이 변경된 Entity만 수집
+    void UpdateAndGatherDirtyEntities_Recursive(std::vector<Entity>& _outDirtyEntities);
 
-    HierarchyTransform* m_pParent      = nullptr;
-    HierarchyTransform* m_pFirstChild  = nullptr;
-    HierarchyTransform* m_pNextSibling = nullptr;
-    HierarchyTransform* m_pPrevSibling = nullptr;
+private:
+    void NotifyDirtyToParent_();
+    void UpdateAndGatherDirtyEntities_Recursive_(std::vector<Entity>* _pOutDirtyEntities);
+
+    eDirtyFlag m_dirtyFlag = eDirtyFlag::Noop;
+
+    Transform m_local;
+    Transform m_world;
+
+    Entity m_root        = Entity::s_null;
+    Entity m_owner       = Entity::s_null;
+    Entity m_parent      = Entity::s_null;
+    Entity m_firstChild  = Entity::s_null;
+    Entity m_nextSibling = Entity::s_null;
+    Entity m_prevSibling = Entity::s_null;
 };
 
 }   // namespace jam

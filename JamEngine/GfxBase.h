@@ -231,12 +231,12 @@ enum class eTextureFilter : UInt8
 
 enum class eCubeFace : Int8
 {
-    Right = 0,
-    Left,
-    Top,
-    Bottom,
-    Front,
-    Back,
+    Right = 0,   // positive X
+    Left,        // negative X
+    Top,         // positive Y
+    Bottom,      // negative Y
+    Front,       // positive Z
+    Back,        // negative Z
 };
 
 enum eShaderCompileFlags_ : UInt8
@@ -391,16 +391,16 @@ using ProgramHandle = Handle<Program>;
 
 struct RGBA
 {
-    RGBA()
+    constexpr RGBA()
     {
     }
 
-    /* implicit */ RGBA(const UInt32 _color)
+    /* implicit */ constexpr RGBA(const UInt32 _color)
         : color(_color)
     {
     }
 
-    RGBA(const UInt8 _r, const UInt8 _g, const UInt8 _b, const UInt8 _a = 255)
+    constexpr RGBA(const UInt8 _r, const UInt8 _g, const UInt8 _b, const UInt8 _a = 255)
         : r(_r)
         , g(_g)
         , b(_b)
@@ -408,7 +408,7 @@ struct RGBA
     {
     }
 
-    RGBA(const float _r, const float _g, const float _b, const float _a = 1.0f)
+    constexpr RGBA(const float _r, const float _g, const float _b, const float _a = 1.0f)
         : r(static_cast<UInt8>(Clamp(_r, 0.f, 1.f) * 255.f))
         , g(static_cast<UInt8>(Clamp(_g, 0.f, 1.f) * 255.f))
         , b(static_cast<UInt8>(Clamp(_b, 0.f, 1.f) * 255.f))
@@ -468,7 +468,7 @@ struct Viewport
 
 struct GfxState
 {
-    GfxState()
+    constexpr GfxState()
         : primitive(ePrimitive::TriangleList)
         , cullMode(eCullMode::Back)
         , bWireframe(false)
@@ -484,7 +484,7 @@ struct GfxState
     {
     }
 
-    GfxState(
+    constexpr GfxState(
         const ePrimitive   _primitive,
         const eCullMode    _cullMode,
         const bool         _bWireframe,
@@ -539,7 +539,7 @@ struct GfxState
 
 struct BlendState
 {
-    BlendState()
+    constexpr BlendState()
         : bEnable(false)
         , srcBlend(eBlend::One)
         , dstBlend(eBlend::Zero)
@@ -551,7 +551,7 @@ struct BlendState
     {
     }
 
-    BlendState(
+    constexpr BlendState(
         const bool        _bEnable,
         const eBlend      _srcBlend,
         const eBlend      _dstBlend,
@@ -590,7 +590,7 @@ struct BlendState
         IntType value = 0;
     };
 
-    static BlendState k_default;       // 블렌딩 비활성화 (Src=1, Dst=0). 픽셀을 그대로 덮어씀.
+    static BlendState k_opaque;        // 블렌딩 비활성화 (Src=1, Dst=0). 픽셀을 그대로 덮어씀.
     static BlendState k_alpha;         // 알파 블렌딩 (Src=SrcAlpha, Dst=InvSrcAlpha). 투명/반투명 표현.
     static BlendState k_additive;      // 가산 블렌딩 (Src=1, Dst=1). 색상을 더해 밝게 만듦.
     static BlendState k_premult;       // 프리멀티 알파 (Src=1, Dst=InvSrcAlpha). SrcColor가 이미 알파 곱 적용된 경우 사용.
@@ -604,7 +604,7 @@ struct BlendState
 
 struct StencilState
 {
-    StencilState()
+    constexpr StencilState()
         : stencilFailOp(eStencilOp::Keep)
         , depthFailOp(eStencilOp::Keep)
         , passOp(eStencilOp::Keep)
@@ -612,7 +612,7 @@ struct StencilState
     {
     }
 
-    StencilState(
+    constexpr StencilState(
         const eStencilOp   _stencilFailOp,
         const eStencilOp   _depthFailOp,
         const eStencilOp   _passOp,
@@ -637,12 +637,12 @@ struct StencilState
         IntType value = 0;
     };
 
-    static StencilState k_default;   // 기본 스텐실 상태 (스텐실 비활성화)
+    static StencilState k_disable;   // 기본 스텐실 상태 (스텐실 비활성화)
 };
 
 struct SamplerState
 {
-    SamplerState()
+    constexpr SamplerState()
         : filter(eTextureFilter::MinPoint_MagPoint_MipPoint)
         , addressU(eTextureAddress::Wrap)
         , addressV(eTextureAddress::Wrap)
@@ -651,7 +651,7 @@ struct SamplerState
     {
     }
 
-    SamplerState(
+    constexpr SamplerState(
         const eTextureFilter  _filter,
         const eTextureAddress _addressU,
         const eTextureAddress _addressV,

@@ -3,7 +3,7 @@
 #include "UnremovableComponent.h"
 
 // clang-format off
-namespace jam { struct TransformComponent; }
+namespace jam { struct TransformComponent; class HierarchyTransform; }
 // clang-format on
 
 namespace jam
@@ -25,6 +25,8 @@ public:
     JAM_NODISCARD UID                       GetUID() const;
     JAM_NODISCARD TransformComponent&       GetTransform();
     JAM_NODISCARD const TransformComponent& GetTransform() const;
+    JAM_NODISCARD HierarchyTransform&       GetHierarchyTransform();
+    JAM_NODISCARD const HierarchyTransform& GetHierarchyTransform() const;
 
     template<typename T, typename... Args>
     decltype(auto) CreateComponent(Args&&... args)

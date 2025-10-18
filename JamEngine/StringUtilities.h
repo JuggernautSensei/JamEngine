@@ -47,7 +47,7 @@ Result<T> StringToInt(const std::string_view _str)
 {
     if (_str.empty())
     {
-        SetErrorString("StringToInt: input string is empty");
+        SetErrorMessage("StringToInt: input string is empty");
         return eErrorCode::InvalidArgument;
     }
 
@@ -58,7 +58,7 @@ Result<T> StringToInt(const std::string_view _str)
     {
         if (_str[0] == '-')
         {
-            SetErrorString("StringToInt: negative sign is not allowed for unsigned type");
+            SetErrorMessage("StringToInt: negative sign is not allowed for unsigned type");
             return eErrorCode::InvalidArgument;   // unsigned에 음수 부호 금지
         }
     }
@@ -77,7 +77,7 @@ Result<T> StringToInt(const std::string_view _str)
 
     if (start >= _str.size())
     {
-        SetErrorString("StringToInt: no digits found in the input string");
+        SetErrorMessage("StringToInt: no digits found in the input string");
         return eErrorCode::InvalidArgument;   // 부호만 있고 숫자 없음
     }
 
@@ -87,7 +87,7 @@ Result<T> StringToInt(const std::string_view _str)
         unsigned char c = static_cast<unsigned char>(_str[i]);
         if (!std::isdigit(c))
         {
-            SetErrorString("StringToInt: invalid character '{}' found in the input string", _str[i]);
+            SetErrorMessage("StringToInt: invalid character '{}' found in the input string", _str[i]);
             return eErrorCode::InvalidArgument;
         }
 
@@ -99,7 +99,7 @@ Result<T> StringToInt(const std::string_view _str)
             {
                 if (output > (std::numeric_limits<T>::max() - digit) / 10)
                 {
-                    SetErrorString("StringToInt: overflow occurred while converting string to integer");
+                    SetErrorMessage("StringToInt: overflow occurred while converting string to integer");
                     return eErrorCode::Overflow;
                 }
                 output = output * 10 + digit;
@@ -108,7 +108,7 @@ Result<T> StringToInt(const std::string_view _str)
             {
                 if (output < (std::numeric_limits<T>::min() + digit) / 10)
                 {
-                    SetErrorString("StringToInt: underflow occurred while converting string to integer");
+                    SetErrorMessage("StringToInt: underflow occurred while converting string to integer");
                     return eErrorCode::Overflow;
                 }
                 output = output * 10 - digit;
@@ -119,7 +119,7 @@ Result<T> StringToInt(const std::string_view _str)
             // 부호 없는 타입
             if (output > (std::numeric_limits<T>::max() - digit) / 10)
             {
-                SetErrorString("StringToInt: overflow occurred while converting string to integer");
+                SetErrorMessage("StringToInt: overflow occurred while converting string to integer");
                 return eErrorCode::Overflow;
             }
             output = output * 10 + digit;

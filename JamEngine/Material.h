@@ -22,15 +22,14 @@ struct MaterialParams
     Vec3  emissiveColor     = Vec3::Zero;
     float emissiveIntensity = 1.0f;
 
-    // alpha properties
-    float opacity        = 1.0f;
-    bool  bIsTransparent = false;
+    // transparency
+    float opacity = 1.0f;
 
     // misc
     bool  bDoubleSide       = false;
-    bool  bFlipedYNormalMap = false;
-    float lightMapIntencity = 1.0f;
-    float aoMapIntencity    = 1.0f;
+    bool  bFlipYNormalMap   = false;
+    float lightMapIntensity = 1.0f;
+    float aoMapIntensity    = 1.0f;
     float bumpMapScaling    = 1.0f;
 
     // textures
@@ -47,6 +46,7 @@ struct MaterialParams
 class Material : public IAsset
 {
 public:
+    void       Load();   // load empty material
     eErrorCode Load(const fs::path& _path) override;
     void       Unload() override;
     eErrorCode Save(const fs::path& _path) const override;
@@ -56,6 +56,7 @@ public:
     JAM_NODISCARD eAssetType      GetType() const override;
     JAM_NODISCARD UInt32          GetHash() const override;
     JAM_NODISCARD std::string_view GetName() const override;
+    JAM_NODISCARD UInt16           GetSortKey() const;
 
     void                                SetParams(const MaterialParams& _params);
     JAM_NODISCARD const MaterialParams& GetParams() const;
@@ -70,6 +71,7 @@ private:
     fs::path       m_path;
     bool           m_bIsLoaded = false;
     MaterialParams m_params;
+    UInt16         m_sortKey = 0;
 };
 
 }   // namespace jam

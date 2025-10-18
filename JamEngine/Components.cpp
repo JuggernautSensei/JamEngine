@@ -28,7 +28,7 @@ eErrorCode TagComponent::Deserialize(const Json& _json, const Scene* _pScene, En
     // 유효성 체크
     if (!_json.contains("name"))
     {
-        SetErrorString("TagComponent deserialization failed: 'name' field is missing.");
+        SetErrorMessage("TagComponent deserialization failed: 'name' field is missing.");
         return eErrorCode::FileParseFailed;
     }
 
@@ -38,9 +38,11 @@ eErrorCode TagComponent::Deserialize(const Json& _json, const Scene* _pScene, En
 
 Json TransformComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
-    JAM_ASSERT(root.IsValid(), "root entity is invalid");
-    JAM_ASSERT(parent.IsValid(), "parent entity is invalid");
-    JAM_ASSERT(owner.IsValid(), "owner entity is invalid");
+    const HierarchyTransform& t = _entity.GetHierarchyTransform();
+
+    JAM_ASSERT(t.GetRoot().IsValid(), "root entity is invalid");
+    JAM_ASSERT(t.GetParent().IsValid(), "parent entity is invalid");
+    JAM_ASSERT(t.GetOwner().IsValid(), "owner entity is invalid");
 
     const Transform& local = transform.GetLocal();
 
@@ -48,14 +50,15 @@ Json TransformComponent::Serialize(const Scene* _pScene, Entity _entity) const
     json["translate"] = local.translate;
     json["rotate"]    = local.rotate;
     json["scale"]     = local.scale;
-    json["parent"]    = parent.GetUID();
+    json["parent"]    = t.GetParent().GetUID();
     return json;
 }
 
 eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
 {
-    JAM_ASSERT(root.IsValid(), "root entity is invalid");
-    JAM_ASSERT(owner.IsValid(), "owner entity is invalid");
+    HierarchyTransform& t = _entity.GetHierarchyTransform();
+    JAM_ASSERT(t.GetRoot().IsValid(), "root entity is invalid");
+    JAM_ASSERT(t.GetOwner().IsValid(), "owner entity is invalid");
 
     // 유효성 체크
     const char* fieldNames[] = { "translate", "rotate", "scale", "parent" };
@@ -63,7 +66,7 @@ eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pSce
     {
         if (!_json.contains(fieldName))
         {
-            SetErrorString("TransformComponent deserialization failed: {} field is missing.", fieldName);
+            SetErrorMessage("TransformComponent deserialization failed: {} field is missing.", fieldName);
             return eErrorCode::FileParseFailed;
         }
     }
@@ -73,87 +76,19 @@ eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pSce
     local.translate = _json.value<Vec3>("translate", Vec3::Zero);
     local.rotate    = _json.value<Quat>("rotate", Quat::Identity);
     local.scale     = _json.value<Vec3>("scale", Vec3::One);
-    transform.SetLocal(local);
+    t.SetLocal(local);
 
     // 부모 설정
     UID    parentUID = _json["parent"].get<UID>();
     Entity parent    = _pScene->FindEntity(parentUID);
     if (!parent.IsValid())
     {
-        SetErrorString("TransformComponent deserialization failed: 'parent' entity with UID " + std::to_string(parentUID) + " not found.");
+        SetErrorMessage("TransformComponent deserialization failed: 'parent' entity with UID {} does not exist.", parentUID);
         return eErrorCode::FileParseFailed;
     }
 
-    SetParent(parent);
+    t.SetParent(parent);
     return eErrorCode::Ok;
-}
-
-void TransformComponent::SetParent(const Entity _parent)
-{
-    JAM_ASSERT(owner.IsValid(), "owner entity is invalid");
-    JAM_ASSERT(owner != _parent, "cannot set self as parent");
-
-    if (parent == _parent)
-    {
-        return;
-    }
-
-    // 기존 계층 정리
-    if (parent.IsValid())
-    {
-        if (prevSibling.IsValid())
-        {
-            // 이전 형제와 다음 형제(혹은 nullptr)를 연결
-            // nextSibling이 nullptr인 경우는 해당 노드가 마지막 자식인 경우
-            TransformComponent& prevSiblingT = prevSibling.GetTransform();
-            prevSiblingT.nextSibling         = nextSibling;
-        }
-        else
-        {
-            // 이전 형제가 없는 경우는 해당 노드가 첫 자식인 경우
-            TransformComponent& parentT = parent.GetTransform();
-            parentT.firstChild          = nextSibling;
-        }
-
-        if (nextSibling.IsValid())
-        {
-            // 다음 형제와 이전 형제(혹은 nullptr)를 연결
-            // prevSibling이 nullptr인 경우는 해당 노드가 첫 자식인 경우
-            TransformComponent& nextSiblingT = nextSibling.GetTransform();
-            nextSiblingT.prevSibling         = prevSibling;
-        }
-
-        parent      = Entity::s_null;
-        nextSibling = Entity::s_null;
-        prevSibling = Entity::s_null;
-    }
-
-    // 새로운 부모 설정
-    {
-        parent                      = _parent;
-        TransformComponent& parentT = parent.GetTransform();
-
-        // 부모의 첫번째 자식으로 설정
-        Entity parentFirstChild = parentT.firstChild;
-        parentT.firstChild      = owner;
-        nextSibling             = parentFirstChild;
-        prevSibling             = Entity::s_null;
-        if (parentFirstChild.IsValid())
-        {
-            TransformComponent& parentFirstChildT = parentFirstChild.GetTransform();
-            parentFirstChildT.prevSibling         = owner;
-        }
-
-        // 계층 트랜스폼 갱신
-        transform.SetParent(parentT.transform);
-    }
-}
-
-void TransformComponent::ReleaseParent()
-{
-    JAM_ASSERT(owner.IsValid(), "owner entity is invalid");
-    JAM_ASSERT(root.IsValid(), "cannot release parent of root entity");
-    SetParent(root);
 }
 
 Json CameraComponent::Serialize(const Scene* _pScene, Entity _entity) const
@@ -176,7 +111,7 @@ eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene,
     {
         if (!_json.contains(fieldName))
         {
-            SetErrorString("CameraComponent deserialization failed: {} field is missing.", fieldName);
+            SetErrorMessage("CameraComponent deserialization failed: {} field is missing.", fieldName);
             return eErrorCode::FileParseFailed;
         }
     }
@@ -192,7 +127,7 @@ eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene,
     // 사후검사
     if (!IsValidEnum(camera.projection))
     {
-        SetErrorString("CameraComponent deserialization failed: 'projection' field is invalid.");
+        SetErrorMessage("CameraComponent deserialization failed: 'projection' field is invalid.");
         return eErrorCode::FileParseFailed;
     }
 
@@ -221,7 +156,7 @@ eErrorCode ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene,
 {
     if (!_json.contains("script"))
     {
-        SetErrorString("ScriptComponent deserialization failed: 'script' field is missing.");
+        SetErrorMessage("ScriptComponent deserialization failed: 'script' field is missing.");
         return eErrorCode::FileParseFailed;
     }
 
@@ -237,7 +172,7 @@ eErrorCode ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene,
         return eErrorCode::Ok;
     }
 
-    SetErrorString("ScriptComponent deserialization failed: 'script' field is not a string or null.");
+    SetErrorMessage("ScriptComponent deserialization failed: 'script' field is not a string or null.");
     return eErrorCode::FileParseFailed;
 }
 
@@ -246,9 +181,9 @@ Json MeshRenderer::Serialize(const Scene* _pScene, Entity _entity) const
     Json json;
 
     // mesh field
-    if (mesh)
+    if (pMesh)
     {
-        json["mesh"] = mesh->GetPath();
+        json["mesh"] = pMesh->GetPath();
     }
     else
     {
@@ -256,9 +191,9 @@ Json MeshRenderer::Serialize(const Scene* _pScene, Entity _entity) const
     }
 
     // material field
-    if (material)
+    if (pMaterial)
     {
-        json["material"] = material->GetPath();
+        json["material"] = pMaterial->GetPath();
     }
     else
     {
@@ -274,7 +209,7 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
     {
         if (!_json.contains(fieldName))
         {
-            SetErrorString("MeshRenderer deserialization failed: {} field is missing.", fieldName);
+            SetErrorMessage("MeshRenderer deserialization failed: {} field is missing.", fieldName);
             return eErrorCode::FileParseFailed;
         }
     }
@@ -283,7 +218,7 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
     Json meshField = _json["mesh"];
     if (meshField.is_null())
     {
-        mesh = nullptr;
+        pMesh = nullptr;
     }
     else if (meshField.is_string())
     {
@@ -293,11 +228,11 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
         if (IsError(ec))
             return ec;
 
-        mesh = meshHandle;
+        pMesh = meshHandle;
     }
     else
     {
-        SetErrorString("MeshRenderer deserialization failed: 'mesh' field is not a string or null.");
+        SetErrorMessage("MeshRenderer deserialization failed: 'mesh' field is not a string or null.");
         return eErrorCode::FileParseFailed;
     }
 
@@ -305,7 +240,7 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
     Json materialField = _json["material"];
     if (materialField.is_null())
     {
-        material = nullptr;
+        pMaterial = nullptr;
     }
     else if (materialField.is_string())
     {
@@ -315,11 +250,11 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
         if (IsError(ec))
             return ec;
 
-        material = materialHandle;
+        pMaterial = materialHandle;
     }
     else
     {
-        SetErrorString("MeshRenderer deserialization failed: 'material' field is not a string or null.");
+        SetErrorMessage("MeshRenderer deserialization failed: 'material' field is not a string or null.");
         return eErrorCode::FileParseFailed;
     }
     return eErrorCode::Ok;

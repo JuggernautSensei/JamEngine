@@ -82,13 +82,13 @@ eErrorCode ImageExporter::Export()
             break;
 
         default:
-            SetErrorString("Unsupported image format: '{}'", m_filePath.native());
+            SetErrorMessage("Unsupported image format: '{}'", m_filePath.native());
             return eErrorCode::UnsupportedFile;
     }
 
     if (FAILED(hr))
     {
-        SetErrorString("Failed to save image to file: '{}'", m_filePath.native());
+        SetErrorMessage("Failed to save image to file: '{}'", m_filePath.native());
         JAM_LOGGER_DEBUG("HRESULT: {}", CreateComErrorMessage(hr));
         return eErrorCode::FileReadFailed;
     }
