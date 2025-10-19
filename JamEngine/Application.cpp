@@ -9,11 +9,9 @@
 #include "Input.h"
 #include "Magic.h"
 #include "SceneManager.h"
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam
+{
 
 static void OnNewFailed()
 {
@@ -29,11 +27,6 @@ constexpr float k_deltaTimeStepTable[EnumCount<eUpdatePolicy>()] = {
     1.f / 240.f,   // eUpdatePolicy::Fixed240FPS
     0.f            // eUpdatePolicy::ManualStep
 };
-
-////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 Application* Application::s_instance = nullptr;
 

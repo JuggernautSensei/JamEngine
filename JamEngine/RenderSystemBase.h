@@ -1,8 +1,21 @@
 #pragma once
+#include "GfxBase.h"
 #include "VertexLayout.h"
 
 namespace jam
 {
+
+struct PBRGbufferParam
+{
+    TextureHandle albedoAoTex;
+    TextureHandle normalRoughnessMetallicTex;
+    TextureHandle additionalLightTex;
+    TextureHandle depthTex;
+};
+
+////////////////////////////////
+///          VERTEX          ///
+////////////////////////////////
 
 struct VertexPosTex2D
 {

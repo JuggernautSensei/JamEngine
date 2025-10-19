@@ -13,7 +13,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
     UInt32* in  = keys;
     UInt32* out = tempKeys;
 
-    UInt32 hist[radix_detail::kBucketCount];
+    UInt32 hist[radix_detail::k_bucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
     for (; pass < 3; ++pass, shift = static_cast<UInt16>(shift + radix_detail::k_bits))
@@ -35,7 +35,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
 
         // prefix-sum
         UInt32 sum = 0;
-        for (UInt32 b = 0; b < radix_detail::kBucketCount; ++b)
+        for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
             UInt32 c = hist[b];
             hist[b]    = sum;
@@ -71,7 +71,7 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
     uint64_t* in  = keys;
     uint64_t* out = tempKeys;
 
-    UInt32 hist[radix_detail::kBucketCount];
+    UInt32 hist[radix_detail::k_bucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
     for (; pass < 6; ++pass, shift = static_cast<UInt16>(shift + radix_detail::k_bits))
@@ -92,7 +92,7 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
         if (alreadySorted) break;
 
         UInt32 sum = 0;
-        for (UInt32 b = 0; b < radix_detail::kBucketCount; ++b)
+        for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
             UInt32 c = hist[b];
             hist[b]  = sum;

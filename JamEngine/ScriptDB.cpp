@@ -1,7 +1,9 @@
 #include "pch.h"
 
 #include "ScriptDB.h"
-using namespace jam;
+
+namespace jam::script_db
+{
 
 //////////////////////////////////
 ///          INTERNAL          ///
@@ -14,9 +16,6 @@ static HashMap<UInt32, ScriptInfo>& GetScriptInfoMap()
 }
 
 ////////////////////////////////////////////////////////////
-
-namespace jam::script_db
-{
 
 void Reflect(const ScriptInfo& info)
 {

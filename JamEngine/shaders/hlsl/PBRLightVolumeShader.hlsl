@@ -9,17 +9,9 @@ struct LIGHT_VOLUME_PS_INPUT
 LIGHT_VOLUME_PS_INPUT VSMain(VS_INPUT_POS_3D _input)
 {
     LIGHT_VOLUME_PS_INPUT output;
-    if (cb_lightType == JAM_LIGHT_TYPE_DIRECTIONAL)
-    {
-        output.posW = _input.posL;
-        output.posH = float4(_input.posL, 1.0f);
-    }
-    else
-    {
-        output.posW = mul(cb_world, float4(_input.posL, 1.f)).xyz;
-        float4x4 projView = mul(cb_proj, cb_view);
-        output.posH = mul(projView, float4(output.posW, 1.f));
-    }
+    output.posW = mul(cb_world, float4(_input.posL, 1.f)).xyz;
+    float4x4 projView = mul(cb_proj, cb_view);
+    output.posH = mul(projView, float4(output.posW, 1.f));
     return output;
 }
 
@@ -44,19 +36,9 @@ float4 PSMain(LIGHT_VOLUME_PS_INPUT _input) : SV_TARGET
     float4 unprojPos = mul(cb_projViewInv, float4(posNdc, 1.f));
     float3 posW = unprojPos.xyz / unprojPos.w;
 
-    float3 toLight;
-    float att;
-    if (cb_lightType == JAM_LIGHT_TYPE_DIRECTIONAL)
-    {
-        toLight = normalize(-cb_lightDir);
-        att = 1.f;
-    }
-    else
-    {
-        toLight = normalize(cb_lightPos - posW);
-        float dist = length(cb_lightPos - posW);
-        att = CalcSmoothAttenuation(dist, cb_lightFallOffStart, cb_lightFallOffEnd);
-    }
+    float3 toLight = normalize(cb_lightPos - posW);
+    float dist = length(cb_lightPos - posW);
+    float att = CalcSmoothAttenuation(dist, cb_lightFallOffStart, cb_lightFallOffEnd);
 
     // spotlight cone attenuation
     float spot = 1.f;

@@ -6,11 +6,9 @@
 
 #include <DirectXTexEXR.h>
 #include <SDL3/SDL.h>
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam
+{
 
 constexpr DirectX::WICCodecs k_unknownWICCodecs = static_cast<DirectX::WICCodecs>(0);
 
@@ -33,11 +31,6 @@ constexpr DirectX::WICCodecs k_wicCodecsTable[EnumCount<eImageFormat>()] = {
     DirectX::WIC_CODEC_HEIF,   // HEIF
     DirectX::WIC_CODEC_HEIF,   // HEIC
 };
-
-////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 eErrorCode ImageExporter::Export()
 {

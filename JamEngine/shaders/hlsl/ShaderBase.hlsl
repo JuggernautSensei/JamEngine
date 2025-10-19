@@ -102,12 +102,11 @@ float3 SpecularIBL(float3 _albedo, float3 _normal, float3 _toEye, float3 _reflec
     return (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
 }
 
-float3 AmbientLightingByIBL(float3 _albedo, float3 _normal, float3 _toEye, float _ao, float _metallic, float _roughness)
+float SpecularOcclusion(float _ao, float _roughness, float _nDote)
 {
-    float3 R = normalize(reflect(-_toEye, _normal));
-    float3 diffuseIBL = DiffuseIBL(_albedo, _normal, _toEye, _metallic);
-    float3 specularIBL = SpecularIBL(_albedo, _normal, _toEye, R, _metallic, _roughness);
-    return (diffuseIBL + specularIBL) * _ao;
+    float occ = pow(abs(_ao), saturate(1.0 - _roughness));
+    occ *= saturate(0.5 + 0.5 * _nDote);
+    return saturate(occ);
 }
 
 float NdfGGX(float _nDoth, float _roughness)

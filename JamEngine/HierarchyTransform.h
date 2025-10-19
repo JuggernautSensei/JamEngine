@@ -48,13 +48,8 @@ public:
     // 루트 노드가 매프레임 딱 한 번 호출할 것
     void Update_Recursive();
 
-    // 루트 노드가 매프레임 딱 한 번 호출할 것
-    // Transform을 업데이트하고 Transform이 변경된 Entity만 수집
-    void UpdateAndGatherDirtyEntities_Recursive(std::vector<Entity>& _outDirtyEntities);
-
 private:
     void NotifyDirtyToParent_();
-    void UpdateAndGatherDirtyEntities_Recursive_(std::vector<Entity>* _pOutDirtyEntities);
 
     eDirtyFlag m_dirtyFlag = eDirtyFlag::Noop;
 

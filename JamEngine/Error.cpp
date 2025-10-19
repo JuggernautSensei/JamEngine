@@ -5,11 +5,9 @@
 #include "StringUtilities.h"
 #include "Timer.h"
 #include <comdef.h>
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam
+{
 
 JAM_NODISCARD static std::string CreateErrorMessage(std::string_view _msg, const std::source_location& _loc)
 {
@@ -63,11 +61,6 @@ JAM_NODISCARD static std::string CreateErrorMessage(std::string_view _msg, const
 }
 
 thread_local static std::string g_lastErrorMessage;
-
-////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 namespace details
 {

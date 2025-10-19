@@ -533,8 +533,8 @@ struct GfxState
         IntType value = 0;
     };
 
-    static GfxState k_default;     // 기본 렌더링 상태 (삼각형 리스트, 뒷면 컬링)
-    static GfxState k_depthTest;   // 깊이 테스트 및 쓰기 활성화된 상태, 나머지는 기본값
+    static GfxState k_default;            // 기본 렌더링 상태 (삼각형 리스트, 뒷면 컬링)
+    static GfxState k_depthTest;          // 깊이 테스트 및 쓰기 활성화된 상태, 나머지는 기본값
 };
 
 struct BlendState

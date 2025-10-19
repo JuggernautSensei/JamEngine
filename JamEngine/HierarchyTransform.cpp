@@ -107,12 +107,44 @@ void HierarchyTransform::ReleaseParent()
 
 void HierarchyTransform::Update_Recursive()
 {
-    UpdateAndGatherDirtyEntities_Recursive_(nullptr);
-}
+    if (m_dirtyFlag == eDirtyFlag::Noop)
+        return;
 
-void HierarchyTransform::UpdateAndGatherDirtyEntities_Recursive(std::vector<Entity>& _outDirtyEntities)
-{
-    UpdateAndGatherDirtyEntities_Recursive_(&_outDirtyEntities);
+    if (m_dirtyFlag == eDirtyFlag::LocalNeedUpdate)
+    {
+        // 월드를 기준으로 로컬 업데이트
+        if (m_parent.IsValid())
+        {
+            HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
+            m_local                     = m_world.FromParent(parentT.m_world);
+        }
+        else   // 루트 노드
+        {
+            m_local = m_world;
+        }
+    }
+    else if (m_dirtyFlag == eDirtyFlag::WorldNeedUpdate)
+    {
+        // 로컬을 기준으로 월드 업데이트
+        if (m_parent.IsValid())
+        {
+            HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
+            m_world                     = m_local.ToParent(parentT.m_world);
+        }
+        else   // 루트 노드
+        {
+            m_world = m_local;
+        }
+    }
+
+    // 자식이 더티면 나는 아무것도 안하고. update 만 전파
+    m_dirtyFlag = eDirtyFlag::Noop;
+    for (Entity child = m_firstChild; child.IsValid();)
+    {
+        HierarchyTransform& childT = child.GetHierarchyTransform();
+        childT.Update_Recursive();
+        child = childT.m_nextSibling;
+    }
 }
 
 void HierarchyTransform::NotifyDirtyToParent_()
@@ -130,54 +162,6 @@ void HierarchyTransform::NotifyDirtyToParent_()
     }
 
     // 이미 부모가 더티 플래그가 설정되어 있으므로 더 이상 전파할 필요 없음
-}
-
-void HierarchyTransform::UpdateAndGatherDirtyEntities_Recursive_(std::vector<Entity>* _pOutDirtyEntities)
-{
-    if (m_dirtyFlag == eDirtyFlag::Noop)
-        return;
-
-    if (m_dirtyFlag == eDirtyFlag::LocalNeedUpdate)
-    {
-        // 월드를 기준으로 로컬 업데이트
-        if (m_parent.IsValid())
-        {
-            HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
-            m_local                     = m_world.FromParent(parentT.m_world);
-        }
-        else   // 루트 노드
-        {
-            m_local = m_world;
-        }
-
-        if (_pOutDirtyEntities)
-            _pOutDirtyEntities->push_back(m_owner);
-    }
-    else if (m_dirtyFlag == eDirtyFlag::WorldNeedUpdate)
-    {
-        // 로컬을 기준으로 월드 업데이트
-        if (m_parent.IsValid())
-        {
-            HierarchyTransform& parentT = m_parent.GetHierarchyTransform();
-            m_world                     = m_local.ToParent(parentT.m_world);
-        }
-        else   // 루트 노드
-        {
-            m_world = m_local;
-        }
-        
-        if (_pOutDirtyEntities)
-            _pOutDirtyEntities->push_back(m_owner);
-    }
-
-    // 자식이 더티면 나는 아무것도 안하고. update 만 전파
-    m_dirtyFlag = eDirtyFlag::Noop;
-    for (Entity child = m_firstChild; child.IsValid();)
-    {
-        HierarchyTransform& childT = child.GetHierarchyTransform();
-        childT.UpdateAndGatherDirtyEntities_Recursive_(_pOutDirtyEntities);
-        child = childT.m_nextSibling;
-    }
 }
 
 }   // namespace jam

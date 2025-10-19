@@ -3,7 +3,9 @@
 #include "AssetManager.h"
 
 #include "Application.h"
-using namespace jam;
+
+namespace jam::asset_manager
+{
 
 struct AssetManagerContext
 {
@@ -124,20 +126,16 @@ struct AssetManagerContext
     }
 
     HashMap<fs::path, std::shared_ptr<IAsset>> assetMap[EnumCount<eAssetType>()] = {};
-};
-static AssetManagerContext g_assetMgrCtx;
-
-namespace jam::asset_manager
-{
+} g_ctx;
 
 Result<std::shared_ptr<IAsset>> Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload)
 {
-    return g_assetMgrCtx.Load(_type, _path, _bForceReload);
+    return g_ctx.Load(_type, _path, _bForceReload);
 }
 
 Result<std::shared_ptr<Mesh>> LoadMesh(const fs::path& _path, const bool _bForceReload)
 {
-    auto [ec, asset] = g_assetMgrCtx.Load(eAssetType::Mesh, _path, _bForceReload);
+    auto [ec, asset] = g_ctx.Load(eAssetType::Mesh, _path, _bForceReload);
     if (IsOk(ec))
     {
         return std::static_pointer_cast<Mesh>(asset);
@@ -147,7 +145,7 @@ Result<std::shared_ptr<Mesh>> LoadMesh(const fs::path& _path, const bool _bForce
 
 Result<std::shared_ptr<Material>> LoadMaterial(const fs::path& _path, const bool _bForceReload)
 {
-    auto [ec, asset] = g_assetMgrCtx.Load(eAssetType::Material, _path, _bForceReload);
+    auto [ec, asset] = g_ctx.Load(eAssetType::Material, _path, _bForceReload);
     if (IsOk(ec))
     {
         return std::static_pointer_cast<Material>(asset);
@@ -157,7 +155,7 @@ Result<std::shared_ptr<Material>> LoadMaterial(const fs::path& _path, const bool
 
 Result<std::shared_ptr<ImageTexture>> LoadImageTexture(const fs::path& _path, const bool _bForceReload)
 {
-    auto [ec, asset] = g_assetMgrCtx.Load(eAssetType::ImageTexture, _path, _bForceReload);
+    auto [ec, asset] = g_ctx.Load(eAssetType::ImageTexture, _path, _bForceReload);
     if (IsOk(ec))
     {
         return std::static_pointer_cast<ImageTexture>(asset);
@@ -167,35 +165,35 @@ Result<std::shared_ptr<ImageTexture>> LoadImageTexture(const fs::path& _path, co
 
 std::shared_ptr<IAsset> Get(const eAssetType _type, const fs::path& _path)
 {
-    return g_assetMgrCtx.Get(_type, _path);
+    return g_ctx.Get(_type, _path);
 }
 
 std::shared_ptr<Mesh> GetMesh(const fs::path& _path)
 {
-    std::shared_ptr<IAsset> asset = g_assetMgrCtx.Get(eAssetType::Mesh, _path);
+    std::shared_ptr<IAsset> asset = g_ctx.Get(eAssetType::Mesh, _path);
     return std::static_pointer_cast<Mesh>(asset);
 }
 
 std::shared_ptr<Material> GetMaterial(const fs::path& _path)
 {
-    std::shared_ptr<IAsset> asset = g_assetMgrCtx.Get(eAssetType::Material, _path);
+    std::shared_ptr<IAsset> asset = g_ctx.Get(eAssetType::Material, _path);
     return std::static_pointer_cast<Material>(asset);
 }
 
 std::shared_ptr<ImageTexture> GetImageTexture(const fs::path& _path)
 {
-    std::shared_ptr<IAsset> asset = g_assetMgrCtx.Get(eAssetType::ImageTexture, _path);
+    std::shared_ptr<IAsset> asset = g_ctx.Get(eAssetType::ImageTexture, _path);
     return std::static_pointer_cast<ImageTexture>(asset);
 }
 
 Result<std::shared_ptr<IAsset>> GetOrLoad(const eAssetType _type, const fs::path& _path)
 {
-    return g_assetMgrCtx.GetOrLoad(_type, _path);
+    return g_ctx.GetOrLoad(_type, _path);
 }
 
 Result<std::shared_ptr<Mesh>> GetOrLoadMesh(const fs::path& _path)
 {
-    auto [ec, asset] = g_assetMgrCtx.GetOrLoad(eAssetType::Mesh, _path);
+    auto [ec, asset] = g_ctx.GetOrLoad(eAssetType::Mesh, _path);
     if (IsOk(ec))
     {
         return std::static_pointer_cast<Mesh>(asset);
@@ -205,7 +203,7 @@ Result<std::shared_ptr<Mesh>> GetOrLoadMesh(const fs::path& _path)
 
 Result<std::shared_ptr<Material>> GetOrLoadMaterial(const fs::path& _path)
 {
-    auto [ec, asset] = g_assetMgrCtx.GetOrLoad(eAssetType::Material, _path);
+    auto [ec, asset] = g_ctx.GetOrLoad(eAssetType::Material, _path);
     if (IsOk(ec))
     {
         return std::static_pointer_cast<Material>(asset);
@@ -215,7 +213,7 @@ Result<std::shared_ptr<Material>> GetOrLoadMaterial(const fs::path& _path)
 
 Result<std::shared_ptr<ImageTexture>> GetOrLoadImageTexture(const fs::path& _path)
 {
-    auto [ec, asset] = g_assetMgrCtx.GetOrLoad(eAssetType::ImageTexture, _path);
+    auto [ec, asset] = g_ctx.GetOrLoad(eAssetType::ImageTexture, _path);
     if (IsOk(ec))
     {
         return std::static_pointer_cast<ImageTexture>(asset);
@@ -225,53 +223,53 @@ Result<std::shared_ptr<ImageTexture>> GetOrLoadImageTexture(const fs::path& _pat
 
 void Unload(const eAssetType _type, const fs::path& _path)
 {
-    g_assetMgrCtx.Unload(_type, _path);
+    g_ctx.Unload(_type, _path);
 }
 
 void UnloadMesh(const fs::path& _path)
 {
-    g_assetMgrCtx.Unload(eAssetType::Mesh, _path);
+    g_ctx.Unload(eAssetType::Mesh, _path);
 }
 
 void UnloadMaterial(const fs::path& _path)
 {
-    g_assetMgrCtx.Unload(eAssetType::Material, _path);
+    g_ctx.Unload(eAssetType::Material, _path);
 }
 
 void UnloadImageTexture(const fs::path& _path)
 {
-    g_assetMgrCtx.Unload(eAssetType::ImageTexture, _path);
+    g_ctx.Unload(eAssetType::ImageTexture, _path);
 }
 
 void CleanGarbage(const eAssetType _type)
 {
-    g_assetMgrCtx.CleanGarbage(_type);
+    g_ctx.CleanGarbage(_type);
 }
 
 void CleanGarbageAll()
 {
     for (eAssetType type: EnumRange<eAssetType>())
     {
-        g_assetMgrCtx.CleanGarbage(type);
+        g_ctx.CleanGarbage(type);
     }
 }
 
 void Clear(const eAssetType _type)
 {
-    g_assetMgrCtx.Clear(_type);
+    g_ctx.Clear(_type);
 }
 
 void ClearAll()
 {
     for (eAssetType type: EnumRange<eAssetType>())
     {
-        g_assetMgrCtx.Clear(type);
+        g_ctx.Clear(type);
     }
 }
 
 const HashMap<fs::path, std::shared_ptr<IAsset>>& GetAssetContainer(const eAssetType _type)
 {
-    return g_assetMgrCtx.assetMap[EnumToInt(_type)];
+    return g_ctx.assetMap[EnumToInt(_type)];
 }
 
 }   // namespace jam::asset_manager

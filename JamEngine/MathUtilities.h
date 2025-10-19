@@ -90,6 +90,13 @@ constexpr T Mod(const T x, const T y)
     }
 }
 
+/// @brief 선형보간
+template<typename T>
+constexpr T Lerp(const T a, const T b, const float t)
+{
+    return a + (b - a) * t;
+}
+
 /// @brief 제한
 template<typename T>
     requires std::is_arithmetic_v<T>

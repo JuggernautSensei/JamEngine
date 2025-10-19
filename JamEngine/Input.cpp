@@ -4,11 +4,9 @@
 
 #include "Event.h"
 #include "Events.h"
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam::input
+{
 
 struct InputContext
 {
@@ -61,14 +59,7 @@ struct InputContext
     Int32 mouseDeltaWheel = 0;
 
     EventDispatcher eventDispatcher;
-};
-
-static InputContext g_ctx;
-
-////////////////////////////////////////////////////////////
-
-namespace jam::input
-{
+} g_ctx;
 
 void Init()
 {

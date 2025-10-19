@@ -5,7 +5,7 @@ PBR_PS_INPUT_STATIC_MESH VSMain(VS_INPUT_STATIC_MESH _input)
     PBR_PS_INPUT_STATIC_MESH output;
 
     float bumpMapScale = 0.f;
-    if (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_BUMP_MAP)
+    if (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_VERTEX_DISPLACEMENT_MAP)
     {
         bumpMapScale = t_bumpMap.SampleLevel(s_linearClamp, _input.texCoord0, 0.f).r;
         bumpMapScale = (bumpMapScale - 0.5f) * 2.0f; // [0.0, 1.0] -> [-1.0, 1.0]

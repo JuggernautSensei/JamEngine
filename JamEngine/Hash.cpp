@@ -3,11 +3,9 @@
 #include "Hash.h"
 
 #include "BaseUtilities.h"
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam
+{
 
 static UInt32 RotL32(const UInt32 x, const int r)
 {
@@ -18,11 +16,6 @@ static UInt64 RotL64(const UInt64 x, const int r)
 {
     return (x << r) | (x >> (64 - r));
 }
-
-////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 void MurmurHash32::Begin(const UInt32 _seed)
 {

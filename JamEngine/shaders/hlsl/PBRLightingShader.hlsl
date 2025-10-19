@@ -213,17 +213,26 @@ float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 
     float4 albedoAO = t_gBufferAlbedoAO.Sample(s_linearClamp, _input.texCoord0);
     float3 albedo = albedoAO.rgb;
-    float ao = albedoAO.a;
 
     float3 additionalLight = t_gBufferAdditionalLight.Sample(s_linearClamp, _input.texCoord0).rgb;
 
     float3 toEye = normalize(cb_eyePos - posW);
-    float3 ambient = AmbientLightingByIBL(albedo, normal, toEye, ao, metallic, roughness);
-    float ssao = (cb_globalFlags & JAM_GLOBAL_FLAGS_SSAO)
-               ? t_ssao.Sample(s_linearClamp, _input.texCoord0).r
-               : 1.f;
 
-    ambient = saturate(ambient * ssao);
-    return float4(ambient + additionalLight, 1.f);
+    float3 r = normalize(reflect(-toEye, normal));
+    float3 diffuseIBL = DiffuseIBL(albedo, normal, toEye, metallic) * cb_irradianceMapIntensity;
+    float3 specularIBL = SpecularIBL(albedo, normal, toEye, r, metallic, roughness) * cb_specularMapIntensity;
+
+    // 최종 차폐
+    float ssao = (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SSAO) ? t_ssao.Sample(s_linearClamp, _input.texCoord0).r : 1.f;
+    float ao = ssao * albedoAO.a;
+
+    float nDotE = max(0.f, dot(normal, toEye));
+    float specularAO = SpecularOcclusion(ao, roughness, nDotE);
+
+    // 최종 색상
+    diffuseIBL *= ao;
+    specularIBL *= specularAO;
+
+    float3 finalColor = diffuseIBL + specularIBL + additionalLight;
+    return float4(finalColor, 1.f);
 }
-

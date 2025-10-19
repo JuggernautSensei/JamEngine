@@ -5,18 +5,41 @@ namespace jam
 
 struct AABB
 {
+    JAM_NODISCARD static AABB FromCenterExtents(const Vec3& _center, const Vec3& _extents);
     JAM_NODISCARD static AABB Transform(const AABB& _box, const Mat4& _mat);
-    JAM_NODISCARD Vec3        Center() const;
-    JAM_NODISCARD Vec3        Extents() const;
-    JAM_NODISCARD bool        Intersects(const AABB& _other) const;
-    JAM_NODISCARD bool        Contains(const Vec3& _point) const;
-    static AABB               Merge(const AABB& _a, const AABB& _b);
+    JAM_NODISCARD static AABB Merge(const AABB& _a, const AABB& _b);
+    JAM_NODISCARD static AABB Merge(const AABB& _a, const Vec3& _pointA);
 
-    Vec3 min = Vec3::Zero;
-    Vec3 max = Vec3::Zero;
+    JAM_NODISCARD Vec3 Center() const;
+    JAM_NODISCARD Vec3 Extents() const;
+    JAM_NODISCARD float Width() const;
+    JAM_NODISCARD float Height() const;
+    JAM_NODISCARD float Depth() const;
+    JAM_NODISCARD bool Intersects(const AABB& _other) const;
+    JAM_NODISCARD bool Contains(const Vec3& _point) const;
+
+    Vec3 min = Vec3(FloatLimits::max());
+    Vec3 max = Vec3(FloatLimits::lowest());
 };
 
-enum class ePlaneIntersactType
+struct OBB
+{
+    JAM_NODISCARD static OBB  Transform(const OBB& _obb, const Mat4& _mat);
+    JAM_NODISCARD static AABB ToAABB(const OBB& _obb);
+
+    JAM_NODISCARD Vec3 Center() const;
+    JAM_NODISCARD Vec3 Extents();
+
+    Mat4 mtx = Mat4::Identity;
+};
+
+struct Sphere
+{
+    Vec3  center = Vec3::Zero;
+    float radius = 0.f;
+};
+
+enum class ePlaneIntersectType
 {
     Outside,
     Intersect,
@@ -71,13 +94,16 @@ struct FrustumCorners
 struct Frustum
 {
     Frustum() = default;
-    explicit Frustum(const Mat4& _projMat);
+    explicit Frustum(const Mat4& _viewProj);
 
+    JAM_NODISCARD static Frustum      CreateSubFrustum(const Frustum& _frustum, float _startWeight, float _endWeight);
     JAM_NODISCARD static Frustum      Transform(const Frustum& _frustum, const Mat4& _mat);
-    JAM_NODISCARD ePlaneIntersactType Intersects(const AABB& _box) const;
+    JAM_NODISCARD ePlaneIntersectType Intersects(const AABB& _box) const;
+    JAM_NODISCARD bool                Intersects(const Sphere& _sphere) const;
     JAM_NODISCARD FrustumCorners      GetCorners() const;
+    JAM_NODISCARD Vec3                GetCenter() const;
 
-    JAM_NODISCARD Vec3 GetLookTo() const;
+    JAM_NODISCARD Vec3  ViewLookTo() const;
     JAM_NODISCARD float GetNear() const;
     JAM_NODISCARD float GetFar() const;
 

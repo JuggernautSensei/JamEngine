@@ -2,7 +2,6 @@
 
 #include "MathUtilities.h"
 #include <Random>
-using namespace jam;
 
 namespace jam::details
 {

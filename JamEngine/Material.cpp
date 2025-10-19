@@ -7,7 +7,9 @@
 #include "Hash.h"
 #include "Profile.h"
 #include "resources/flatc/jmat_generated.h"
-using namespace jam;
+
+namespace jam
+{
 
 //////////////////////////////////
 ///          INTERNAL          ///
@@ -34,9 +36,6 @@ JAM_NODISCARD static flatbuffers::Offset<flatbuffers::String> ConvertToFbsString
 }
 
 ////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 void Material::Load()
 {
@@ -122,7 +121,8 @@ eErrorCode Material::Load(const fs::path& _path)
         &m_params.roughnessMap,
         &m_params.aoMap,
         &m_params.emissiveMap,
-        &m_params.lightMap
+        &m_params.lightMap,
+        &m_params.vertexDisplacementMap
     };
 
     const flatbuffers::String* const texturepaths[] = {
@@ -132,7 +132,8 @@ eErrorCode Material::Load(const fs::path& _path)
         pMat->roughness_map_path(),
         pMat->ao_map_path(),
         pMat->emissive_map_path(),
-        pMat->light_map_path()
+        pMat->light_map_path(),
+        pMat->vertex_displacement_map_path()
     };
 
     static_assert(std::size(imageTextures) == std::size(texturepaths), "Texture handles and paths size mismatch");
@@ -186,13 +187,14 @@ eErrorCode Material::Save(const fs::path& _path) const
     jmat::Vec3 fbsEmissiveColor = ConvertToFbsVec3(m_params.emissiveColor);
 
     // textures
-    flatbuffers::Offset<flatbuffers::String> fbsAlbedoMapPath    = m_params.albedoMap ? ConvertToFbsString(builder, m_params.albedoMap->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsNormalMapPath    = m_params.normalMap ? ConvertToFbsString(builder, m_params.normalMap->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsMetallicMapPath  = m_params.metallicMap ? ConvertToFbsString(builder, m_params.metallicMap->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsRoughnessMapPath = m_params.roughnessMap ? ConvertToFbsString(builder, m_params.roughnessMap->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsAOMapPath        = m_params.aoMap ? ConvertToFbsString(builder, m_params.aoMap->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsEmissiveMapPath  = m_params.emissiveMap ? ConvertToFbsString(builder, m_params.emissiveMap->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsLightMapPath     = m_params.lightMap ? ConvertToFbsString(builder, m_params.lightMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsAlbedoMapPath             = m_params.albedoMap ? ConvertToFbsString(builder, m_params.albedoMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsNormalMapPath             = m_params.normalMap ? ConvertToFbsString(builder, m_params.normalMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsMetallicMapPath           = m_params.metallicMap ? ConvertToFbsString(builder, m_params.metallicMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsRoughnessMapPath          = m_params.roughnessMap ? ConvertToFbsString(builder, m_params.roughnessMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsAOMapPath                 = m_params.aoMap ? ConvertToFbsString(builder, m_params.aoMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsEmissiveMapPath           = m_params.emissiveMap ? ConvertToFbsString(builder, m_params.emissiveMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsLightMapPath              = m_params.lightMap ? ConvertToFbsString(builder, m_params.lightMap->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsVertexDisplacementMapPath = m_params.vertexDisplacementMap ? ConvertToFbsString(builder, m_params.vertexDisplacementMap->GetPath()) : 0;
 
     Int32 version     = k_version.Pack();
     auto  fbsMaterial = jmat::CreateMaterial(
@@ -212,13 +214,15 @@ eErrorCode Material::Save(const fs::path& _path) const
         m_params.bFlipYNormalMap,
         m_params.lightMapIntensity,
         m_params.aoMapIntensity,
+        m_params.vertexDisplacementMapScale,
         fbsAlbedoMapPath,
         fbsNormalMapPath,
         fbsMetallicMapPath,
         fbsRoughnessMapPath,
         fbsAOMapPath,
         fbsEmissiveMapPath,
-        fbsLightMapPath);
+        fbsLightMapPath,
+        fbsVertexDisplacementMapPath);
     builder.Finish(fbsMaterial);
 
     // 파일 쓰기

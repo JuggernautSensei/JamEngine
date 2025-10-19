@@ -5,13 +5,16 @@
 #include "Application.h"
 #include "AssetManager.h"
 #include "Components.h"
-#include "DrawItemCollector.h"
+#include "CullingSystem.h"
 #include "Events.h"
 #include "Gfx.h"
+#include "Profile.h"
 #include "Scene.h"
 #include "SceneSerializer.h"
 #include "Script.h"
-using namespace jam;
+
+namespace jam::scene_manager
+{
 
 //////////////////////////////////
 ///          INTERNAL          ///
@@ -44,61 +47,58 @@ struct SceneMgrContext
     // 씬 프레임 버퍼
     FrameBufferHandle sceneFrameBuffer = k_invalidHandle;
     TextureHandle     sceneTexture     = k_invalidHandle;
-};
-static SceneMgrContext g_sceneMgrCtx;
+} g_ctx;
 
 ////////////////////////////////////////////////////////////
 
-namespace jam::scene_manager
-{
-
 void Init(const Int32 _width, const Int32 _height)
 {
-    g_sceneMgrCtx.OnResize(_width, _height);
+    g_ctx.OnResize(_width, _height);
 }
 
 void Shutdown()
 {
-    if (g_sceneMgrCtx.pActiveScene)
+    if (g_ctx.pActiveScene)
     {
-        g_sceneMgrCtx.pActiveScene->OnExit();
-        g_sceneMgrCtx.pActiveScene.reset();
+        g_ctx.pActiveScene->OnExit();
+        g_ctx.pActiveScene.reset();
     }
 
-    JAM_DESTROY_TEXTURE(g_sceneMgrCtx.sceneTexture);
-    JAM_DESTROY_FRAME_BUFFER(g_sceneMgrCtx.sceneFrameBuffer);
+    JAM_DESTROY_TEXTURE(g_ctx.sceneTexture);
+    JAM_DESTROY_FRAME_BUFFER(g_ctx.sceneFrameBuffer);
 }
 
 void OnEvent(Event& _event)
 {
-    HandleEvent<WindowResizeEvent>(_event, &g_sceneMgrCtx, &SceneMgrContext::OnWindowResizeEvent);
-    HandleEvent<WindowMaximizeEvent>(_event, &g_sceneMgrCtx, &SceneMgrContext::OnWindowMaximizeEvent);
-    if (g_sceneMgrCtx.pActiveScene)
+    HandleEvent<WindowResizeEvent>(_event, &g_ctx, &SceneMgrContext::OnWindowResizeEvent);
+    HandleEvent<WindowMaximizeEvent>(_event, &g_ctx, &SceneMgrContext::OnWindowMaximizeEvent);
+    if (g_ctx.pActiveScene)
     {
-        g_sceneMgrCtx.pActiveScene->OnEvent(_event);
+        g_ctx.pActiveScene->OnEvent(_event);
     }
 }
 
 void Update(const float _deltaSec)
 {
     // change scene
-    if (g_sceneMgrCtx.pNextScene)
+    if (g_ctx.pNextScene)
     {
-        if (g_sceneMgrCtx.pActiveScene)
+        if (g_ctx.pActiveScene)
         {
-            g_sceneMgrCtx.pActiveScene->OnExit();
+            g_ctx.pActiveScene->OnExit();
         }
-        asset_manager::CleanGarbageAll();   // 씬 전환 시 사용하지 않는 에셋 정리
+        g_ctx.pActiveScene = std::move(g_ctx.pNextScene);
+        asset_manager::CleanGarbageAll();   // 씬 전환 후 사용하지 않는 에셋 정리
 
-        g_sceneMgrCtx.pActiveScene = std::move(g_sceneMgrCtx.pNextScene);
-        g_sceneMgrCtx.pActiveScene->OnEnter();
+        // 씬 입장
+        g_ctx.pActiveScene->OnEnter();
     }
 
     // update active scene
-    if (g_sceneMgrCtx.pActiveScene)
+    if (g_ctx.pActiveScene)
     {
         // udpate script
-        for (auto&& [_, scriptCmp]: g_sceneMgrCtx.pActiveScene->Each<ScriptComponent>())
+        for (auto&& [_, scriptCmp]: g_ctx.pActiveScene->Each<ScriptComponent>())
         {
             if (scriptCmp.pScript)
             {
@@ -106,29 +106,20 @@ void Update(const float _deltaSec)
             }
         }
 
-        g_sceneMgrCtx.pActiveScene->OnUpdate(_deltaSec);
-    }
-}
-
-void PrepareRender()
-{
-    if (g_sceneMgrCtx.pActiveScene)
-    {
-        std::unique_ptr<Scene>& pScene = g_sceneMgrCtx.pActiveScene;
-
-        // 
+        g_ctx.pActiveScene->OnUpdate(_deltaSec);
     }
 }
 
 void RenderRuntime()
 {
-    if (g_sceneMgrCtx.pActiveScene)
+    if (g_ctx.pActiveScene)
     {
-        std::unique_ptr<Scene>& pScene = g_sceneMgrCtx.pActiveScene;
+        std::unique_ptr<Scene>& pScene = g_ctx.pActiveScene;
 
         // 렌더링 하기 전에 Transform 갱신
-        Entity              root  = pScene->GetRootEntity();
-        HierarchyTransform& rootT = root.GetHierarchyTransform();
+        Entity              rootE = pScene->GetRootEntity();
+        HierarchyTransform& rootT = rootE.GetHierarchyTransform();
+        rootT.Update_Recursive();
 
         // find camera
         const Camera*    pMainCamera    = nullptr;
@@ -145,33 +136,32 @@ void RenderRuntime()
 
         if (pMainCamera && pMainTransform)
         {
-            pScene->OnRender(g_sceneMgrCtx.sceneFrameBuffer, *pMainCamera, *pMainTransform);
-            gfx::BlitToBackBuffer(g_sceneMgrCtx.sceneTexture);
+            pScene->OnRender(g_ctx.sceneFrameBuffer, *pMainCamera, *pMainTransform);
+            gfx::BlitToBackBuffer(g_ctx.sceneTexture);
         }
     }
 }
 
-void Render(const FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform)
+void RenderOffScreen(const FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform)
 {
-    if (g_sceneMgrCtx.pActiveScene)
+    if (g_ctx.pActiveScene)
     {
-        Scene* pScene = g_sceneMgrCtx.pActiveScene.get();
+        std::unique_ptr<Scene>& pScene = g_ctx.pActiveScene;
 
         // 렌더링 하기 전에 Transform 갱신
-        Entity              root      = pScene->GetRootEntity();
-        TransformComponent& rootTrans = root.GetTransform();
-        rootTrans.transform.Update_Recursive();
+        Entity              rootE = pScene->GetRootEntity();
+        HierarchyTransform& rootT = rootE.GetHierarchyTransform();
+        rootT.Update_Recursive();
 
-        // render
-        g_sceneMgrCtx.pActiveScene->OnRender(_handle, _camera, _transform);
+        pScene->OnRender(_handle, _camera, _transform);
     }
 }
 
 void ImGuiRender()
 {
-    if (g_sceneMgrCtx.pActiveScene)
+    if (g_ctx.pActiveScene)
     {
-        g_sceneMgrCtx.pActiveScene->OnImGuiRender();
+        g_ctx.pActiveScene->OnImGuiRender();
     }
 }
 
@@ -196,7 +186,7 @@ eErrorCode LoadScene(const fs::path& _scenePath)
             return ec;
         }
 
-        g_sceneMgrCtx.pNextScene = std::move(pScene);
+        g_ctx.pNextScene = std::move(pScene);
     }
     return eErrorCode::Ok;
 }
@@ -204,13 +194,13 @@ eErrorCode LoadScene(const fs::path& _scenePath)
 void LoadScene(std::unique_ptr<Scene>&& _pScene)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
-    g_sceneMgrCtx.pNextScene = std::move(_pScene);
+    g_ctx.pNextScene = std::move(_pScene);
 }
 
 Scene* GetActiveScene()
 {
-    JAM_ASSERT(g_sceneMgrCtx.pActiveScene, "No active scene");
-    return g_sceneMgrCtx.pActiveScene.get();
+    JAM_ASSERT(g_ctx.pActiveScene, "No active scene");
+    return g_ctx.pActiveScene.get();
 }
 
 }   // namespace jam::scene_manager

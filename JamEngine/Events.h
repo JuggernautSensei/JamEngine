@@ -299,52 +299,50 @@ private:
     std::string m_sceneName;
 };
 
-class EntityDestroyedEvent : public Event
-{
-public:
-    explicit EntityDestroyedEvent(const UID _uid)
-        : m_uid(_uid)
-    {
-    }
-
-    JAM_NODISCARD UID GetUID() const
-    {
-        return m_uid;
-    }
-
-    JAM_NODISCARD std::string ToString() const override
-    {
-        return std::format("EntityDestroyedEvent: UID: {}", m_uid);
-    }
-
-    JAM_EVENT(EntityDestroyedEvent, eEventCategory::SceneManager)
-
-private:
-    UID m_uid = {};
-};
-
 class EntityCreatedEvent : public Event
 {
 public:
-    explicit EntityCreatedEvent(const UID _uid)
-        : m_uid(_uid)
+    explicit EntityCreatedEvent(const UID _entityUID)
+        : m_entityUID(_entityUID)
     {
     }
 
-    JAM_NODISCARD UID GetUID() const
+    JAM_NODISCARD UID GetEntityUID() const
     {
-        return m_uid;
+        return m_entityUID;
     }
 
     JAM_NODISCARD std::string ToString() const override
     {
-        return std::format("EntityCreatedEvent: UID: {}", m_uid);
+        return std::format("EntityCreateEvent: entity UID: {}", m_entityUID);
     }
 
     JAM_EVENT(EntityCreatedEvent, eEventCategory::SceneManager)
 
 private:
-    UID m_uid = {};
+    UID m_entityUID;
+};
+
+class EntityDestroyedEvent : public Event
+{
+public:
+    explicit EntityDestroyedEvent(const UID _entityUID)
+        : m_entityUID(_entityUID)
+    {
+    }
+    JAM_NODISCARD UID GetEntityUID() const
+    {
+        return m_entityUID;
+    }
+    JAM_NODISCARD std::string ToString() const override
+    {
+        return std::format("EntityDestroyEvent: entity UID: {}", m_entityUID);
+    }
+
+    JAM_EVENT(EntityDestroyedEvent, eEventCategory::SceneManager)
+
+private:
+    UID m_entityUID;
 };
 
 }   // namespace jam

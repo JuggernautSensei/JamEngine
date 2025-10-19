@@ -68,7 +68,7 @@ void ImageTexture::Unload()
 
 bool ImageTexture::IsLoaded() const
 {
-    return m_handle != k_invalidHandle;
+    return JAM_IS_VALID_HANDLE(m_handle);
 }
 
 const fs::path& ImageTexture::GetPath() const

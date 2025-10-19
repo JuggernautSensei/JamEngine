@@ -6,15 +6,13 @@
 #include "GfxBase.h"
 #include "Memory.h"
 #include "MemoryArena.h"
-using namespace jam;
 
 // 루프 세분화 알고리즘
 // https://pbr-book.org/3ed-2018/Shapes/Subdivision_Surfaces
 // https://en.wikipedia.org/wiki/Loop_subdivision_surface
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam
+{
 
 struct SDFace;
 struct SDVertex;
@@ -200,10 +198,7 @@ static SDPoint WeightBoundary(const SDVertex* vert, const float Beta)
     return point;
 }
 
-////////////////////////////////////////////////////////////
-
-namespace jam
-{
+///////////////////////////////////////////////////////////
 
 LoopSubdivisionOutput LoopSubdivide(
     std::span<const Vec3> _positions,

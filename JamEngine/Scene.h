@@ -17,8 +17,8 @@ public:
 
     Scene(const Scene&)                = delete;
     Scene& operator=(const Scene&)     = delete;
-    Scene(Scene&&) noexcept            = default;
-    Scene& operator=(Scene&&) noexcept = default;
+    Scene(Scene&&) noexcept            = delete;
+    Scene& operator=(Scene&&) noexcept = delete;
 
     virtual void OnEnter() {}
     virtual void OnExit() {}
@@ -73,12 +73,12 @@ protected:
 
 private:
     void                 DestroyEntity_Recursive_(Entity _entity);
-    JAM_NODISCARD Entity CreateEntity_(UID _uid, std::string_view _name = {});
+    JAM_NODISCARD Entity CreateEntity_(bool _bCreateRoot, UID _uid, std::string_view _name = {});
 
-    entt::registry       m_registry     = {};
-    Entity               m_rootEntity   = Entity::s_null;
-    UIDGenerator         m_uidGenerator = {};
-    HashMap<UID, Entity> m_entityMap    = {};
+    entt::registry       m_registry         = {};
+    Entity               m_rootEntity       = Entity::s_null;
+    UIDGenerator         m_uidGenerator     = {};
+    HashMap<UID, Entity> m_entityMap        = {};
 };
 
 }   // namespace jam

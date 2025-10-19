@@ -27,13 +27,13 @@ const HashMap<UID, Entity>& Scene::GetEntities() const
 Entity Scene::CreateEntity(const std::string_view _name)
 {
     UID uid = m_uidGenerator.Alloc();
-    return CreateEntity_(uid, _name);
+    return CreateEntity_(false, uid, _name);
 }
 
 Entity Scene::CreateEntity(const UID _uid, const std::string_view _name)
 {
     UID uid = m_uidGenerator.Alloc(_uid);
-    return CreateEntity_(uid, _name);
+    return CreateEntity_(false, uid, _name);
 }
 
 Entity Scene::GetEntity(UID _uid) const
@@ -101,7 +101,8 @@ Entity Scene::GetRootEntity() const
 
 Scene::Scene()
 {
-    m_rootEntity = CreateEntity("Root");
+    UID rootUID  = m_uidGenerator.Alloc();
+    m_rootEntity = CreateEntity_(true, rootUID, "Root");
 }
 
 void Scene::DestroyEntity_Recursive_(Entity _entity)
@@ -115,8 +116,8 @@ void Scene::DestroyEntity_Recursive_(Entity _entity)
     while (child.IsValid())
     {
         HierarchyTransform& childT    = child.GetHierarchyTransform();
-        Entity              nextChild = childT.GetNextSibling(); // 다음 형제 엔티티 미리 저장
-        DestroyEntity_Recursive_(child);                         // 재귀적으로 자식 삭제
+        Entity              nextChild = childT.GetNextSibling();   // 다음 형제 엔티티 미리 저장
+        DestroyEntity_Recursive_(child);                           // 재귀적으로 자식 삭제
         child = nextChild;
     }
 
@@ -127,12 +128,12 @@ void Scene::DestroyEntity_Recursive_(Entity _entity)
     m_uidGenerator.Free(uid);                  // uid 반환
     m_registry.destroy(_entity.GetHandle());   // entt 엔티티 파괴
 
-    // 이벤트 발생
+    // 이벤트 디스패치
     EntityDestroyedEvent event { uid };
     Application::GetInstance().DispatchEvent(event);
 }
 
-Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
+Entity Scene::CreateEntity_(const bool _bCreateRoot, UID _uid, const std::string_view _name)
 {
     JAM_ASSERT(m_uidGenerator.IsAllocated(_uid), "UID {} is not allocated", _uid);
 
@@ -146,7 +147,10 @@ Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
 
     // transform 컴포넌트 추가
     TransformComponent& transform = entity.CreateComponent<TransformComponent>();
-    transform.transform           = HierarchyTransform { m_rootEntity, entity };
+    if (_bCreateRoot)
+        transform.transform = HierarchyTransform { entity };   // 루트 엔티티는 자기 자신이 루트
+    else
+        transform.transform = HierarchyTransform { m_rootEntity, entity };
 
     // 필요시 이름 태그 추가
     if (!_name.empty())
@@ -155,7 +159,7 @@ Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
         tag.name          = _name;
     }
 
-    // 이벤트 발생
+    // 이벤트 디스패치
     EntityCreatedEvent event { _uid };
     Application::GetInstance().DispatchEvent(event);
     return entity;

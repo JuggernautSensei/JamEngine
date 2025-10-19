@@ -2,7 +2,10 @@
 
 #include "Scene.h"
 #include "SceneDB.h"
-using namespace jam;
+
+
+namespace jam::scene_db
+{
 
 //////////////////////////////////
 ///          INTERNAL          ///
@@ -15,9 +18,6 @@ static HashMap<UInt32, SceneInfo>& GetSceneInfoMap()
 }
 
 ////////////////////////////////////////////////////////////
-
-namespace jam::scene_db
-{
 
 void Reflect(const SceneInfo& _info)
 {

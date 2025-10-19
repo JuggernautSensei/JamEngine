@@ -3,11 +3,8 @@
 #include "ComponentDB.h"
 #include "StringUtilities.h"
 
-using namespace jam;
-
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam::component_db
+{
 
 struct ComponentDBContext
 {
@@ -17,14 +14,9 @@ struct ComponentDBContext
 
 static ComponentDBContext& GetComponentDBContext()
 {
-    static ComponentDBContext context;
-    return context;
+    static ComponentDBContext ctx;
+    return ctx;
 }
-
-////////////////////////////////////////////////////////////
-
-namespace jam::component_db
-{
 
 void Reflect(std::string_view _name, const ComponentInfo& info)
 {

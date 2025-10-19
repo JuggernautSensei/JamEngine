@@ -10,7 +10,9 @@
 #include "Profile.h"
 #include "resources/flatc/jmsh_generated.h"
 #include <flatbuffers/flatbuffers.h>
-using namespace jam;
+
+namespace jam
+{
 
 //////////////////////////////////
 ///          INTERNAL          ///
@@ -81,9 +83,6 @@ JAM_NODISCARD static jmsh::Vec3 ConvertToFbsVec3(const Vec3& _vec)
 }
 
 ////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 eErrorCode Mesh::Load(const fs::path& _path)
 {
@@ -188,7 +187,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
     const auto* pAABB = pMesh->aabb();
     if (pAABB)
     {
-        m_boundingBox.min  = ConvertToNativeVec3(pAABB->min());
+        m_boundingBox.min = ConvertToNativeVec3(pAABB->min());
         m_boundingBox.max = ConvertToNativeVec3(pAABB->max());
     }
     else
@@ -354,8 +353,8 @@ void Mesh::Unload()
 
 bool Mesh::IsLoaded() const
 {
-    return m_vertexBufferHandle != k_invalidHandle
-        && m_indexBufferHandle != k_invalidHandle;
+    return JAM_IS_VALID_HANDLE(m_vertexBufferHandle)
+        && JAM_IS_VALID_HANDLE(m_indexBufferHandle);
 }
 
 const fs::path& Mesh::GetPath() const

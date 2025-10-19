@@ -9,17 +9,14 @@ using namespace jam;
 ///          INTERNAL          ///
 //////////////////////////////////
 
+namespace jam::editor
+{
+
 struct EditorContext
 {
     Entity focusEntity                          = Entity::s_null;
     bool   panelVisibility[EnumCount<ePanel>()] = {};
-};
-static EditorContext g_edtCtx;
-
-///////////////////////////////////////
-
-namespace jam::editor
-{
+} g_edtCtx;
 
 void Init()
 {
@@ -56,4 +53,4 @@ Entity GetFocusEntity()
 {
     return g_edtCtx.focusEntity;
 }
-}
+}   // namespace jam::editor

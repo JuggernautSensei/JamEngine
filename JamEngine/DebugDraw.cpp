@@ -9,7 +9,9 @@
 #include "ShaderCompiler.h"
 #include "Shaders/PrecompiledShaders/PrecompiledDebugDrawShader.h"
 #include "fixed_vector.h"
-using namespace jam;
+
+namespace jam::debug_draw
+{
 
 //////////////////////////////////
 ///          CONSTANT          ///
@@ -170,9 +172,7 @@ struct DebugDrawContext
     ProgramHandle        programHandles[EnumCount<eDebugDrawProgram>()] = {};
     ConstantBufferHandle cbDebugDrawHandle;
     CB_DEBUGDRAW         cbDebugDrawCPU;
-};
-
-static DebugDrawContext g_ddCtx;
+} g_ctx;
 
 void DebugDrawContext::MoveTo(const float _x, const float _y, const float _z)
 {
@@ -228,7 +228,7 @@ void DebugDrawContext::DrawMesh(const Mesh& _mesh, const bool _bWireframe)
     gfx::SetGfxState(state);
 
     // 상수 버퍼 업데이트
-    RGBA color                       = curState.color;
+    RGBA color                   = curState.color;
     cbDebugDrawCPU.color         = Vec4(color.r, color.g, color.b, color.a) / 255.f;
     cbDebugDrawCPU.world         = curTransform.Transpose();
     cbDebugDrawCPU.worldInvTrans = curTransform.Invert();
@@ -260,7 +260,7 @@ void DebugDrawContext::DrawLineBatch()
         gfx::SetGfxState(state);
 
         // 상수 버퍼 업로드
-        RGBA color                       = curState.color;
+        RGBA color                   = curState.color;
         cbDebugDrawCPU.color         = Vec4(color.r, color.g, color.b, color.a) / 255.f;
         cbDebugDrawCPU.world         = curTransform.Transpose();
         cbDebugDrawCPU.worldInvTrans = curTransform.Invert();
@@ -303,29 +303,23 @@ void DebugDrawContext::SetShapeTransform(const Mat4& _mat)
     const Mat4& parentMat = transformStack.back();
     curTransform          = _mat * parentMat;
 }
-
-////////////////////////////////////////////////////////////
-
-namespace jam::debug_draw
-{
-
 void Init()
 {
-    g_ddCtx.transformStack.clear();
-    g_ddCtx.curTransform = Mat4::Identity;
+    g_ctx.transformStack.clear();
+    g_ctx.curTransform = Mat4::Identity;
 
-    g_ddCtx.stateStack.clear();
-    g_ddCtx.curState = {};
+    g_ctx.stateStack.clear();
+    g_ctx.curState = {};
 
     // 라인 드로우 버텍스 버퍼
-    g_ddCtx.lineVertices.clear();
-    g_ddCtx.lineIndices.clear();
+    g_ctx.lineVertices.clear();
+    g_ctx.lineIndices.clear();
 
-    g_ddCtx.lineVertexBufferHandle = gfx::CreateDynamicVertexBuffer(k_maxBatchLineCount * 2, DebugDrawLineVertex::s_layout);
-    g_ddCtx.lineIndexBufferHandle  = gfx::CreateDynamicIndexBuffer(k_maxBatchLineCount * 2, eIndexFormat::U16);
+    g_ctx.lineVertexBufferHandle = gfx::CreateDynamicVertexBuffer(k_maxBatchLineCount * 2, DebugDrawLineVertex::s_layout);
+    g_ctx.lineIndexBufferHandle  = gfx::CreateDynamicIndexBuffer(k_maxBatchLineCount * 2, eIndexFormat::U16);
 
-    g_ddCtx.cursor      = Vec3::Zero;
-    g_ddCtx.bCursorDown = false;
+    g_ctx.cursor      = Vec3::Zero;
+    g_ctx.bCursorDown = false;
 
     // 라인 쉐이더
     {
@@ -335,7 +329,7 @@ void Init()
         ShaderHandle psHandle = gfx::CreateShader(MemoryView {
             precompiled_shader::DebugDrawLineShader_PS_Bytecode, precompiled_shader::DebugDrawLineShader_PS_Size });
 
-        g_ddCtx.programHandles[EnumToInt(eDebugDrawProgram::Line)] = gfx::CreateProgram(vsHandle, psHandle, true);
+        g_ctx.programHandles[EnumToInt(eDebugDrawProgram::Line)] = gfx::CreateProgram(vsHandle, psHandle, true);
     }
 
     // 솔리드 쉐이더
@@ -346,22 +340,22 @@ void Init()
         ShaderHandle psHandle = gfx::CreateShader(MemoryView {
             precompiled_shader::DebugDrawSolidShader_PS_Bytecode, precompiled_shader::DebugDrawSolidShader_PS_Size });
 
-        g_ddCtx.programHandles[EnumToInt(eDebugDrawProgram::Solid)] = gfx::CreateProgram(vsHandle, psHandle, true);
+        g_ctx.programHandles[EnumToInt(eDebugDrawProgram::Solid)] = gfx::CreateProgram(vsHandle, psHandle, true);
     }
 
     // 상수 버퍼
-    g_ddCtx.cbDebugDrawHandle = gfx::CreateConstantBuffer(sizeof(CB_DEBUGDRAW));
+    g_ctx.cbDebugDrawHandle = gfx::CreateConstantBuffer(sizeof(CB_DEBUGDRAW));
 
     // 기본 메쉬 생성
     // 박스
     {
-        Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Box)];
+        Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Box)];
         mesh       = CreateBoxMesh(Vec3 { 1.f, 1.f, 1.f }, DebugDrawSolidVertex::s_layout);
     }
 
     // 쿼드
     {
-        Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Quad)];
+        Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Quad)];
         mesh       = CreatePlaneMesh(Vec2 { 1.f, 1.f }, DebugDrawSolidVertex::s_layout);
     }
 
@@ -369,7 +363,7 @@ void Init()
     {
         for (Int32 i = 0; i < EnumCount<eDetailLevel>(); ++i)
         {
-            Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Cone_Low) + i];
+            Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Cone_Low) + i];
             mesh       = CreateCone(1.f, 1.f, k_circleSegmentTable[i], DebugDrawSolidVertex::s_layout);
         }
     }
@@ -378,7 +372,7 @@ void Init()
     {
         for (Int32 i = 0; i < EnumCount<eDetailLevel>(); ++i)
         {
-            Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Circle_Low) + i];
+            Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Circle_Low) + i];
             mesh       = CreateCircle(1.f, k_circleSegmentTable[i], DebugDrawSolidVertex::s_layout);
         }
     }
@@ -387,7 +381,7 @@ void Init()
     {
         for (Int32 i = 0; i < EnumCount<eDetailLevel>(); ++i)
         {
-            Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Sphere_Low) + i];
+            Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Sphere_Low) + i];
             mesh       = CreateSphereMesh(1.f, k_sphereSubdivisionTable[i], DebugDrawSolidVertex::s_layout);
         }
     }
@@ -396,7 +390,7 @@ void Init()
     {
         for (Int32 i = 0; i < EnumCount<eDetailLevel>(); ++i)
         {
-            Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Cylinder_Low) + i];
+            Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Cylinder_Low) + i];
             mesh       = CreateCylinder(1.f, 1.f, k_circleSegmentTable[i], DebugDrawSolidVertex::s_layout);
         }
     }
@@ -404,213 +398,213 @@ void Init()
 
 void Shutdown()
 {
-    g_ddCtx.transformStack.clear();
-    g_ddCtx.curTransform = Mat4::Identity;
+    g_ctx.transformStack.clear();
+    g_ctx.curTransform = Mat4::Identity;
 
-    g_ddCtx.stateStack.clear();
-    g_ddCtx.curState = {};
+    g_ctx.stateStack.clear();
+    g_ctx.curState = {};
 
     // 메시 정리
-    for (Mesh& mesh: g_ddCtx.debugDrawMeshes)
+    for (Mesh& mesh: g_ctx.debugDrawMeshes)
     {
         mesh.Unload();
     }
 
     // 라인 드로우 정리
-    g_ddCtx.lineVertices.clear();
-    g_ddCtx.lineIndices.clear();
+    g_ctx.lineVertices.clear();
+    g_ctx.lineIndices.clear();
 
-    JAM_DESTROY_VERTEX_BUFFER(g_ddCtx.lineVertexBufferHandle);
-    JAM_DESTROY_INDEX_BUFFER(g_ddCtx.lineIndexBufferHandle);
+    JAM_DESTROY_VERTEX_BUFFER(g_ctx.lineVertexBufferHandle);
+    JAM_DESTROY_INDEX_BUFFER(g_ctx.lineIndexBufferHandle);
 
     // 프로그램 정리
-    for (ProgramHandle handle: g_ddCtx.programHandles)
+    for (ProgramHandle handle: g_ctx.programHandles)
     {
         JAM_DESTROY_PROGRAM(handle);
     }
 
     // 상수 버퍼 정리
-    JAM_DESTROY_CONSTANT_BUFFER(g_ddCtx.cbDebugDrawHandle);
+    JAM_DESTROY_CONSTANT_BUFFER(g_ctx.cbDebugDrawHandle);
 }
 
 void Begin()
 {
-    g_ddCtx.transformStack.clear();
-    g_ddCtx.transformStack.push_back(g_ddCtx.curTransform);
-    g_ddCtx.curTransform = Mat4::Identity;
+    g_ctx.transformStack.clear();
+    g_ctx.transformStack.push_back(g_ctx.curTransform);
+    g_ctx.curTransform = Mat4::Identity;
 
-    g_ddCtx.stateStack.clear();
-    g_ddCtx.stateStack.push_back(g_ddCtx.curState);
-    g_ddCtx.curState = {};
+    g_ctx.stateStack.clear();
+    g_ctx.stateStack.push_back(g_ctx.curState);
+    g_ctx.curState = {};
 
-    g_ddCtx.lineVertices.clear();
-    g_ddCtx.lineIndices.clear();
-    g_ddCtx.cursor      = Vec3::Zero;
-    g_ddCtx.bCursorDown = false;
+    g_ctx.lineVertices.clear();
+    g_ctx.lineIndices.clear();
+    g_ctx.cursor      = Vec3::Zero;
+    g_ctx.bCursorDown = false;
 
-    g_ddCtx.curState = {};
+    g_ctx.curState = {};
 }
 
 void End()
 {
-    g_ddCtx.DrawLineBatch();
+    g_ctx.DrawLineBatch();
 }
 
 void PushTransform()
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.transformStack.push_back(g_ddCtx.curTransform);
-    g_ddCtx.curTransform = g_ddCtx.transformStack.back();
+    g_ctx.DrawLineBatch();
+    g_ctx.transformStack.push_back(g_ctx.curTransform);
+    g_ctx.curTransform = g_ctx.transformStack.back();
 }
 
 void PopTransform()
 {
-    g_ddCtx.DrawLineBatch();
-    JAM_ASSERT(g_ddCtx.transformStack.size() > 1, "DebugDraw::PopTransform() called with empty stack");
-    g_ddCtx.curTransform = g_ddCtx.transformStack.back();
-    g_ddCtx.transformStack.pop_back();
+    g_ctx.DrawLineBatch();
+    JAM_ASSERT(g_ctx.transformStack.size() > 1, "DebugDraw::PopTransform() called with empty stack");
+    g_ctx.curTransform = g_ctx.transformStack.back();
+    g_ctx.transformStack.pop_back();
 }
 
 void SetCamera(const Vec3& _eyePos, const Mat4& _viewProjMat)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.cbDebugDrawCPU.eyePos   = _eyePos;
-    g_ddCtx.cbDebugDrawCPU.projView = _viewProjMat.Transpose();
+    g_ctx.DrawLineBatch();
+    g_ctx.cbDebugDrawCPU.eyePos   = _eyePos;
+    g_ctx.cbDebugDrawCPU.projView = _viewProjMat.Transpose();
 }
 
 void SetTransform(const Mat4& _mat)
 {
-    g_ddCtx.DrawLineBatch();
-    const Mat4& parentMat = g_ddCtx.transformStack.back();
-    g_ddCtx.curTransform  = parentMat * _mat;
+    g_ctx.DrawLineBatch();
+    const Mat4& parentMat = g_ctx.transformStack.back();
+    g_ctx.curTransform  = parentMat * _mat;
 }
 
 void SetTranslate(const Vec3& _translate)
 {
-    g_ddCtx.DrawLineBatch();
-    const Mat4& parentMat = g_ddCtx.transformStack.back();
-    g_ddCtx.curTransform  = parentMat * Mat4::CreateTranslation(_translate);
+    g_ctx.DrawLineBatch();
+    const Mat4& parentMat = g_ctx.transformStack.back();
+    g_ctx.curTransform  = parentMat * Mat4::CreateTranslation(_translate);
 }
 
 void SetRotate(const Quat& _rotate)
 {
-    g_ddCtx.DrawLineBatch();
-    const Mat4& parentMat = g_ddCtx.transformStack.back();
-    g_ddCtx.curTransform  = parentMat * Mat4::CreateFromQuaternion(_rotate);
+    g_ctx.DrawLineBatch();
+    const Mat4& parentMat = g_ctx.transformStack.back();
+    g_ctx.curTransform  = parentMat * Mat4::CreateFromQuaternion(_rotate);
 }
 
 void SetRotate(const Vec3& _axis, const float _angleRad)
 {
-    g_ddCtx.DrawLineBatch();
-    const Mat4& parentMat = g_ddCtx.transformStack.back();
-    g_ddCtx.curTransform  = parentMat * Mat4::CreateFromAxisAngle(_axis, _angleRad);
+    g_ctx.DrawLineBatch();
+    const Mat4& parentMat = g_ctx.transformStack.back();
+    g_ctx.curTransform  = parentMat * Mat4::CreateFromAxisAngle(_axis, _angleRad);
 }
 
 void SetRotate(const Vec3& _yawPitchRollRad)
 {
-    g_ddCtx.DrawLineBatch();
-    const Mat4& parentMat = g_ddCtx.transformStack.back();
-    g_ddCtx.curTransform  = parentMat * Mat4::CreateFromYawPitchRoll(_yawPitchRollRad);
+    g_ctx.DrawLineBatch();
+    const Mat4& parentMat = g_ctx.transformStack.back();
+    g_ctx.curTransform  = parentMat * Mat4::CreateFromYawPitchRoll(_yawPitchRollRad);
 }
 
 void SetScale(const Vec3& _scale)
 {
-    g_ddCtx.DrawLineBatch();
-    const Mat4& parentMat = g_ddCtx.transformStack.back();
-    g_ddCtx.curTransform  = parentMat * Mat4::CreateScale(_scale);
+    g_ctx.DrawLineBatch();
+    const Mat4& parentMat = g_ctx.transformStack.back();
+    g_ctx.curTransform  = parentMat * Mat4::CreateScale(_scale);
 }
 
 void MultiplyTransform(const Mat4& _mat)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curTransform *= _mat;
+    g_ctx.DrawLineBatch();
+    g_ctx.curTransform *= _mat;
 }
 
 void MultiplyTranslate(const Vec3& _translate)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curTransform *= Mat4::CreateTranslation(_translate);
+    g_ctx.DrawLineBatch();
+    g_ctx.curTransform *= Mat4::CreateTranslation(_translate);
 }
 
 void MultiplyRotate(const Quat& _rotate)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curTransform *= Mat4::CreateFromQuaternion(_rotate);
+    g_ctx.DrawLineBatch();
+    g_ctx.curTransform *= Mat4::CreateFromQuaternion(_rotate);
 }
 
 void MultiplyRotate(const Vec3& _axis, const float _angleRad)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curTransform *= Mat4::CreateFromAxisAngle(_axis, _angleRad);
+    g_ctx.DrawLineBatch();
+    g_ctx.curTransform *= Mat4::CreateFromAxisAngle(_axis, _angleRad);
 }
 
 void MultiplyRotate(const Vec3& _yawPitchRollRad)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curTransform *= Mat4::CreateFromYawPitchRoll(_yawPitchRollRad);
+    g_ctx.DrawLineBatch();
+    g_ctx.curTransform *= Mat4::CreateFromYawPitchRoll(_yawPitchRollRad);
 }
 
 void MultiplyScale(const Vec3& _scale)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curTransform *= Mat4::CreateScale(_scale);
+    g_ctx.DrawLineBatch();
+    g_ctx.curTransform *= Mat4::CreateScale(_scale);
 }
 
 void PushState()
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.stateStack.push_back(g_ddCtx.curState);
-    g_ddCtx.curState = g_ddCtx.stateStack.back();
+    g_ctx.DrawLineBatch();
+    g_ctx.stateStack.push_back(g_ctx.curState);
+    g_ctx.curState = g_ctx.stateStack.back();
 }
 
 void PopState()
 {
-    g_ddCtx.DrawLineBatch();
-    JAM_ASSERT(g_ddCtx.stateStack.size() > 1, "DebugDraw::PopState() called with empty stack");
-    g_ddCtx.curState = g_ddCtx.stateStack.back();
-    g_ddCtx.stateStack.pop_back();
+    g_ctx.DrawLineBatch();
+    JAM_ASSERT(g_ctx.stateStack.size() > 1, "DebugDraw::PopState() called with empty stack");
+    g_ctx.curState = g_ctx.stateStack.back();
+    g_ctx.stateStack.pop_back();
 }
 
 void SetColor(const RGBA _rgba)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curState.color = _rgba;
+    g_ctx.DrawLineBatch();
+    g_ctx.curState.color = _rgba;
 }
 
 void SetDepthState(const bool _bDepthTest, const bool _bDepthWrite)
 {
-    g_ddCtx.DrawLineBatch();
-    GfxState& state     = g_ddCtx.curState.state;
+    g_ctx.DrawLineBatch();
+    GfxState& state     = g_ctx.curState.state;
     state.depthTestFunc = _bDepthTest ? eCompareFunc::Less : eCompareFunc::None;
     state.bDepthWrite   = _bDepthWrite;
 }
 
 void SetWireframe(const bool _bWireframe)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curState.bWireframe = _bWireframe;
+    g_ctx.DrawLineBatch();
+    g_ctx.curState.bWireframe = _bWireframe;
 }
 
 void SetDetailLevel(const eDetailLevel _level)
 {
-    g_ddCtx.DrawLineBatch();
-    g_ddCtx.curState.detailLevel = _level;
+    g_ctx.DrawLineBatch();
+    g_ctx.curState.detailLevel = _level;
 }
 
 void MoveTo(const Vec3& _pos)
 {
-    g_ddCtx.MoveTo(_pos.x, _pos.y, _pos.z);
+    g_ctx.MoveTo(_pos.x, _pos.y, _pos.z);
 }
 
 void LineTo(const Vec3& _pos)
 {
-    g_ddCtx.LineTo(_pos.x, _pos.y, _pos.z);
+    g_ctx.LineTo(_pos.x, _pos.y, _pos.z);
 }
 
 void DrawLine(const Vec3& _from, const Vec3& _to)
 {
-    g_ddCtx.MoveTo(_from.x, _from.y, _from.z);
-    g_ddCtx.LineTo(_to.x, _to.y, _to.z);
+    g_ctx.MoveTo(_from.x, _from.y, _from.z);
+    g_ctx.LineTo(_to.x, _to.y, _to.z);
 }
 
 void DrawArc(const Vec3& _center, const float _radius, const Vec3& _normal, const float _startAngleRad, const float _endAngleRad)
@@ -619,20 +613,20 @@ void DrawArc(const Vec3& _center, const float _radius, const Vec3& _normal, cons
     JAM_ASSERT(_startAngleRad < _endAngleRad, "Arc start angle must be less than end angle");
 
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_radius)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_radius)));
 
-    Int32 segment   = k_circleSegmentTable[EnumToInt(g_ddCtx.curState.detailLevel)];
+    Int32 segment   = k_circleSegmentTable[EnumToInt(g_ctx.curState.detailLevel)];
     float stepRad   = k_2pi / static_cast<float>(segment);
     Int32 stepCount = static_cast<Int32>(Ceil(Absolute(_endAngleRad - _startAngleRad) / stepRad));
 
     auto [startSin, startCos] = ComputeSinCos(_startAngleRad);
-    g_ddCtx.MoveTo(startCos, 0.f, startSin);
+    g_ctx.MoveTo(startCos, 0.f, startSin);
 
     for (Int32 i = 1; i <= stepCount; ++i)
     {
         float angle     = Min(_startAngleRad + stepRad * static_cast<float>(i), _endAngleRad);
         auto [sin, cos] = ComputeSinCos(angle);
-        g_ddCtx.LineTo(cos, 0.f, sin);
+        g_ctx.LineTo(cos, 0.f, sin);
     }
 
     PopTransform();
@@ -648,38 +642,38 @@ void DrawAABB(const Vec3& _min, const Vec3& _max)
 void DrawOBB(const Vec3& _center, const Vec3& _size, const Vec3& _normal)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _normal, _size));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _normal, _size));
 
-    if (g_ddCtx.curState.bWireframe)
+    if (g_ctx.curState.bWireframe)
     {
         // 앞 사각형
-        g_ddCtx.MoveTo(-0.5f, -0.5f, -0.5f);
-        g_ddCtx.LineTo(+0.5f, -0.5f, -0.5f);
-        g_ddCtx.LineTo(+0.5f, +0.5f, -0.5f);
-        g_ddCtx.LineTo(-0.5f, +0.5f, -0.5f);
-        g_ddCtx.LineTo(-0.5f, -0.5f, -0.5f);
+        g_ctx.MoveTo(-0.5f, -0.5f, -0.5f);
+        g_ctx.LineTo(+0.5f, -0.5f, -0.5f);
+        g_ctx.LineTo(+0.5f, +0.5f, -0.5f);
+        g_ctx.LineTo(-0.5f, +0.5f, -0.5f);
+        g_ctx.LineTo(-0.5f, -0.5f, -0.5f);
 
         // 뒷 사각형
-        g_ddCtx.MoveTo(-0.5f, -0.5f, +0.5f);
-        g_ddCtx.LineTo(+0.5f, -0.5f, +0.5f);
-        g_ddCtx.LineTo(+0.5f, +0.5f, +0.5f);
-        g_ddCtx.LineTo(-0.5f, +0.5f, +0.5f);
-        g_ddCtx.LineTo(-0.5f, -0.5f, +0.5f);
+        g_ctx.MoveTo(-0.5f, -0.5f, +0.5f);
+        g_ctx.LineTo(+0.5f, -0.5f, +0.5f);
+        g_ctx.LineTo(+0.5f, +0.5f, +0.5f);
+        g_ctx.LineTo(-0.5f, +0.5f, +0.5f);
+        g_ctx.LineTo(-0.5f, -0.5f, +0.5f);
 
         // 옆 줄
-        g_ddCtx.MoveTo(-0.5f, -0.5f, -0.5f);
-        g_ddCtx.LineTo(-0.5f, -0.5f, +0.5f);
-        g_ddCtx.MoveTo(+0.5f, -0.5f, -0.5f);
-        g_ddCtx.LineTo(+0.5f, -0.5f, +0.5f);
-        g_ddCtx.MoveTo(+0.5f, +0.5f, -0.5f);
-        g_ddCtx.LineTo(+0.5f, +0.5f, +0.5f);
-        g_ddCtx.MoveTo(-0.5f, +0.5f, -0.5f);
-        g_ddCtx.LineTo(-0.5f, +0.5f, +0.5f);
+        g_ctx.MoveTo(-0.5f, -0.5f, -0.5f);
+        g_ctx.LineTo(-0.5f, -0.5f, +0.5f);
+        g_ctx.MoveTo(+0.5f, -0.5f, -0.5f);
+        g_ctx.LineTo(+0.5f, -0.5f, +0.5f);
+        g_ctx.MoveTo(+0.5f, +0.5f, -0.5f);
+        g_ctx.LineTo(+0.5f, +0.5f, +0.5f);
+        g_ctx.MoveTo(-0.5f, +0.5f, -0.5f);
+        g_ctx.LineTo(-0.5f, +0.5f, +0.5f);
     }
     else
     {
-        const Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Box)];
-        g_ddCtx.DrawMesh(mesh, false);
+        const Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Box)];
+        g_ctx.DrawMesh(mesh, false);
     }
 
     PopTransform();
@@ -688,11 +682,11 @@ void DrawOBB(const Vec3& _center, const Vec3& _size, const Vec3& _normal)
 void DrawSphere(const Vec3& _center, const float _radius)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, Vec3::UnitY, Vec3(_radius)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, Vec3::UnitY, Vec3(_radius)));
 
-    if (g_ddCtx.curState.bWireframe)
+    if (g_ctx.curState.bWireframe)
     {
-        Int32 circleCount = k_sphereCircleTable[EnumToInt(g_ddCtx.curState.detailLevel)];
+        Int32 circleCount = k_sphereCircleTable[EnumToInt(g_ctx.curState.detailLevel)];
 
         // 경도
         float stepRad = k_2pi / static_cast<float>(circleCount);
@@ -714,9 +708,9 @@ void DrawSphere(const Vec3& _center, const float _radius)
     }
     else
     {
-        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Sphere_Low) + EnumToInt(g_ddCtx.curState.detailLevel));
-        const Mesh&    mesh     = g_ddCtx.debugDrawMeshes[EnumToInt(meshType)];
-        g_ddCtx.DrawMesh(mesh, false);
+        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Sphere_Low) + EnumToInt(g_ctx.curState.detailLevel));
+        const Mesh&    mesh     = g_ctx.debugDrawMeshes[EnumToInt(meshType)];
+        g_ctx.DrawMesh(mesh, false);
     }
     PopTransform();
 }
@@ -724,20 +718,20 @@ void DrawSphere(const Vec3& _center, const float _radius)
 void DrawQuad(const Vec3& _center, const Vec2& _size, const Vec3& _normal)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_size.x, 1.f, _size.y)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_size.x, 1.f, _size.y)));
 
-    if (g_ddCtx.curState.bWireframe)
+    if (g_ctx.curState.bWireframe)
     {
-        g_ddCtx.MoveTo(-0.5f, 0.f, -0.5f);
-        g_ddCtx.LineTo(+0.5f, 0.f, -0.5f);
-        g_ddCtx.LineTo(+0.5f, 0.f, +0.5f);
-        g_ddCtx.LineTo(-0.5f, 0.f, +0.5f);
-        g_ddCtx.LineTo(-0.5f, 0.f, -0.5f);
+        g_ctx.MoveTo(-0.5f, 0.f, -0.5f);
+        g_ctx.LineTo(+0.5f, 0.f, -0.5f);
+        g_ctx.LineTo(+0.5f, 0.f, +0.5f);
+        g_ctx.LineTo(-0.5f, 0.f, +0.5f);
+        g_ctx.LineTo(-0.5f, 0.f, -0.5f);
     }
     else
     {
-        const Mesh& mesh = g_ddCtx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Quad)];
-        g_ddCtx.DrawMesh(mesh, false);
+        const Mesh& mesh = g_ctx.debugDrawMeshes[EnumToInt(eDebugDrawMesh::Quad)];
+        g_ctx.DrawMesh(mesh, false);
     }
 
     PopTransform();
@@ -748,22 +742,22 @@ void DrawGrid(const Vec3& _center, const Vec2& _size, const Vec3& _normal, const
     JAM_ASSERT(_step > 0.f, "Grid step must be greater than zero");
 
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(1.f)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(1.f)));
 
     const int halfLineCountX = static_cast<int>(_size.x / _step * 0.5f);
     const int halfLineCountY = static_cast<int>(_size.y / _step * 0.5f);
     for (int i = -halfLineCountX; i <= halfLineCountX; ++i)
     {
         const float x = static_cast<float>(i) * _step;
-        g_ddCtx.MoveTo(x, 0.f, static_cast<float>(-halfLineCountY) * _step);
-        g_ddCtx.LineTo(x, 0.f, static_cast<float>(+halfLineCountY) * _step);
+        g_ctx.MoveTo(x, 0.f, static_cast<float>(-halfLineCountY) * _step);
+        g_ctx.LineTo(x, 0.f, static_cast<float>(+halfLineCountY) * _step);
     }
 
     for (int i = -halfLineCountY; i <= halfLineCountY; ++i)
     {
         const float z = static_cast<float>(i) * _step;
-        g_ddCtx.MoveTo(static_cast<float>(-halfLineCountX) * _step, 0.f, z);
-        g_ddCtx.LineTo(static_cast<float>(+halfLineCountX) * _step, 0.f, z);
+        g_ctx.MoveTo(static_cast<float>(-halfLineCountX) * _step, 0.f, z);
+        g_ctx.LineTo(static_cast<float>(+halfLineCountX) * _step, 0.f, z);
     }
 
     PopTransform();
@@ -772,45 +766,45 @@ void DrawGrid(const Vec3& _center, const Vec2& _size, const Vec3& _normal, const
 void DrawCircle(const Vec3& _center, const float _radius, const Vec3& _normal)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_radius)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_radius)));
 
-    if (g_ddCtx.curState.bWireframe)
+    if (g_ctx.curState.bWireframe)
     {
         DrawArc(Vec3(0.f, 0.f, 0.f), 1.f, Vec3::Up, 0.f, k_2pi);
     }
     else
     {
-        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Circle_Low) + EnumToInt(g_ddCtx.curState.detailLevel));
-        const Mesh&    mesh     = g_ddCtx.debugDrawMeshes[EnumToInt(meshType)];
-        g_ddCtx.DrawMesh(mesh, false);
+        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Circle_Low) + EnumToInt(g_ctx.curState.detailLevel));
+        const Mesh&    mesh     = g_ctx.debugDrawMeshes[EnumToInt(meshType)];
+        g_ctx.DrawMesh(mesh, false);
     }
 }
 
 void DrawCone(const Vec3& _center, const float _height, const float _radius, const Vec3& _dir)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
 
-    if (g_ddCtx.curState.bWireframe)
+    if (g_ctx.curState.bWireframe)
     {
         // 밑면 원
         DrawArc(Vec3(0.f, -0.5f, 0.f), 1.f, Vec3::Up, 0.f, k_2pi);
 
         // 옆면 선
-        Int32 segment = k_circleSegmentTable[EnumToInt(g_ddCtx.curState.detailLevel)];
+        Int32 segment = k_circleSegmentTable[EnumToInt(g_ctx.curState.detailLevel)];
         float stepRad = k_2pi / static_cast<float>(segment);
         for (Int32 i = 0; i < segment; ++i)
         {
             auto [sin, cos] = ComputeSinCos(i * stepRad);
-            g_ddCtx.MoveTo(0.f, +0.5f, 0.f);
-            g_ddCtx.LineTo(cos, -0.5f, sin);
+            g_ctx.MoveTo(0.f, +0.5f, 0.f);
+            g_ctx.LineTo(cos, -0.5f, sin);
         }
     }
     else
     {
-        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Cone_Low) + EnumToInt(g_ddCtx.curState.detailLevel));
-        const Mesh&    mesh     = g_ddCtx.debugDrawMeshes[EnumToInt(meshType)];
-        g_ddCtx.DrawMesh(mesh, false);
+        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Cone_Low) + EnumToInt(g_ctx.curState.detailLevel));
+        const Mesh&    mesh     = g_ctx.debugDrawMeshes[EnumToInt(meshType)];
+        g_ctx.DrawMesh(mesh, false);
     }
 
     PopTransform();
@@ -819,38 +813,35 @@ void DrawCone(const Vec3& _center, const float _height, const float _radius, con
 void DrawFrustum(const Vec3& _position, const Vec3& _forward, const Mat4& _projMat)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_position, _forward, Vec3(1.f)));
+    g_ctx.SetShapeTransform(CreateWorld(_position, _forward, Vec3(1.f)));
 
     // 절두체
-    Frustum frustum;
-    Frustum::CreateFromMatrix(frustum, _projMat);
-
-    Vec3 corners[8];
-    frustum.GetCorners(corners);
+    Frustum        frustum { _projMat };
+    FrustumCorners corners = frustum.GetCorners();
 
     // 근평면
-    g_ddCtx.MoveTo(corners[0].x, corners[0].y, corners[0].z);
-    g_ddCtx.LineTo(corners[1].x, corners[1].y, corners[1].z);
-    g_ddCtx.LineTo(corners[3].x, corners[3].y, corners[3].z);
-    g_ddCtx.LineTo(corners[2].x, corners[2].y, corners[2].z);
-    g_ddCtx.LineTo(corners[0].x, corners[0].y, corners[0].z);
+    g_ctx.MoveTo(corners.nearLeftTop.x, corners.nearLeftTop.y, corners.nearLeftTop.z);
+    g_ctx.LineTo(corners.nearRightTop.x, corners.nearRightTop.y, corners.nearRightTop.z);
+    g_ctx.LineTo(corners.nearRightBottom.x, corners.nearRightBottom.y, corners.nearRightBottom.z);
+    g_ctx.LineTo(corners.nearLeftBottom.x, corners.nearLeftBottom.y, corners.nearLeftBottom.z);
+    g_ctx.LineTo(corners.nearLeftTop.x, corners.nearLeftTop.y, corners.nearLeftTop.z);
 
     // 원평면
-    g_ddCtx.MoveTo(corners[4].x, corners[4].y, corners[4].z);
-    g_ddCtx.LineTo(corners[5].x, corners[5].y, corners[5].z);
-    g_ddCtx.LineTo(corners[7].x, corners[7].y, corners[7].z);
-    g_ddCtx.LineTo(corners[6].x, corners[6].y, corners[6].z);
-    g_ddCtx.LineTo(corners[4].x, corners[4].y, corners[4].z);
+    g_ctx.MoveTo(corners.farLeftTop.x, corners.farLeftTop.y, corners.farLeftTop.z);
+    g_ctx.LineTo(corners.farRightTop.x, corners.farRightTop.y, corners.farRightTop.z);
+    g_ctx.LineTo(corners.farRightBottom.x, corners.farRightBottom.y, corners.farRightBottom.z);
+    g_ctx.LineTo(corners.farLeftBottom.x, corners.farLeftBottom.y, corners.farLeftBottom.z);
+    g_ctx.LineTo(corners.farLeftTop.x, corners.farLeftTop.y, corners.farLeftTop.z);
 
-    // 옆면
-    g_ddCtx.MoveTo(corners[0].x, corners[0].y, corners[0].z);
-    g_ddCtx.LineTo(corners[4].x, corners[4].y, corners[4].z);
-    g_ddCtx.MoveTo(corners[1].x, corners[1].y, corners[1].z);
-    g_ddCtx.LineTo(corners[5].x, corners[5].y, corners[5].z);
-    g_ddCtx.MoveTo(corners[2].x, corners[2].y, corners[2].z);
-    g_ddCtx.LineTo(corners[6].x, corners[6].y, corners[6].z);
-    g_ddCtx.MoveTo(corners[3].x, corners[3].y, corners[3].z);
-    g_ddCtx.LineTo(corners[7].x, corners[7].y, corners[7].z);
+    // 옆면 선 4개
+    g_ctx.MoveTo(corners.nearLeftTop.x, corners.nearLeftTop.y, corners.nearLeftTop.z);
+    g_ctx.LineTo(corners.farLeftTop.x, corners.farLeftTop.y, corners.farLeftTop.z);
+    g_ctx.MoveTo(corners.nearRightTop.x, corners.nearRightTop.y, corners.nearRightTop.z);
+    g_ctx.LineTo(corners.farRightTop.x, corners.farRightTop.y, corners.farRightTop.z);
+    g_ctx.MoveTo(corners.nearRightBottom.x, corners.nearRightBottom.y, corners.nearRightBottom.z);
+    g_ctx.LineTo(corners.farRightBottom.x, corners.farRightBottom.y, corners.farRightBottom.z);
+    g_ctx.MoveTo(corners.nearLeftBottom.x, corners.nearLeftBottom.y, corners.nearLeftBottom.z);
+    g_ctx.LineTo(corners.farLeftBottom.x, corners.farLeftBottom.y, corners.farLeftBottom.z);
 
     PopTransform();
 }
@@ -858,29 +849,29 @@ void DrawFrustum(const Vec3& _position, const Vec3& _forward, const Mat4& _projM
 void DrawCylinder(const Vec3& _center, const float _height, const float _radius, const Vec3& _dir)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
 
-    if (g_ddCtx.curState.bWireframe)
+    if (g_ctx.curState.bWireframe)
     {
         // 위, 아래 원
         DrawArc(Vec3(0.f, -0.5f, 0.f), 1.f, Vec3::Up, 0.f, k_2pi);
         DrawArc(Vec3(0.f, +0.5f, 0.f), 1.f, Vec3::Up, 0.f, k_2pi);
 
         // 옆면 선
-        Int32 segment = k_circleSegmentTable[EnumToInt(g_ddCtx.curState.detailLevel)];
+        Int32 segment = k_circleSegmentTable[EnumToInt(g_ctx.curState.detailLevel)];
         float stepRad = k_2pi / static_cast<float>(segment);
         for (Int32 i = 0; i < segment; ++i)
         {
             auto [sin, cos] = ComputeSinCos(i * stepRad);
-            g_ddCtx.MoveTo(cos, -0.5f, sin);
-            g_ddCtx.LineTo(cos, +0.5f, sin);
+            g_ctx.MoveTo(cos, -0.5f, sin);
+            g_ctx.LineTo(cos, +0.5f, sin);
         }
     }
     else
     {
-        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Cylinder_Low) + EnumToInt(g_ddCtx.curState.detailLevel));
-        const Mesh&    mesh     = g_ddCtx.debugDrawMeshes[EnumToInt(meshType)];
-        g_ddCtx.DrawMesh(mesh, false);
+        eDebugDrawMesh meshType = static_cast<eDebugDrawMesh>(EnumToInt(eDebugDrawMesh::Cylinder_Low) + EnumToInt(g_ctx.curState.detailLevel));
+        const Mesh&    mesh     = g_ctx.debugDrawMeshes[EnumToInt(meshType)];
+        g_ctx.DrawMesh(mesh, false);
     }
 
     PopTransform();
@@ -889,16 +880,16 @@ void DrawCylinder(const Vec3& _center, const float _height, const float _radius,
 void DrawCapsule(const Vec3& _center, const Vec3& _dir, const float _height, const float _radius)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
+    g_ctx.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
 
     // 원통
     float cylinderHeight = Max(0.f, _height - 2.f * _radius);
     DrawCylinder(Vec3::Zero, cylinderHeight, 1.f, Vec3::UnitY);
 
-    if (g_ddCtx.curState.bWireframe)
+    if (g_ctx.curState.bWireframe)
     {
         // 반구
-        Int32 circleCount = k_sphereCircleTable[EnumToInt(g_ddCtx.curState.detailLevel)];
+        Int32 circleCount = k_sphereCircleTable[EnumToInt(g_ctx.curState.detailLevel)];
         float yStep       = 1.f / static_cast<float>(circleCount);
         for (Int32 i = 0; i < circleCount; ++i)
         {
@@ -921,8 +912,8 @@ void DrawCapsule(const Vec3& _center, const Vec3& _dir, const float _height, con
 void DrawMesh(const Mesh& _mesh, const Vec3& _position, const Vec3& _forward, const Vec3& _scale)
 {
     PushTransform();
-    g_ddCtx.SetShapeTransform(CreateWorld(_position, _forward, _scale));
-    g_ddCtx.DrawMesh(_mesh, g_ddCtx.curState.bWireframe);
+    g_ctx.SetShapeTransform(CreateWorld(_position, _forward, _scale));
+    g_ctx.DrawMesh(_mesh, g_ctx.curState.bWireframe);
     PopTransform();
 }
 

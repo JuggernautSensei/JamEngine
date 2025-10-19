@@ -184,7 +184,11 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
             }
 
             // 컴포넌트 생성 및 역직렬화
-            component_db::Create(typeID, entity);   // 컴포넌트 생성
+            if (!component_db::Has(typeID, entity))
+            {
+                component_db::Create(typeID, entity);   // 컴포넌트 생성
+            }
+
             void* pComponent = component_db::Get(typeID, entity);
             if (pComponent)   // 컴포넌트가 빈 구조체인 경우 nullptr일 수 있음
             {

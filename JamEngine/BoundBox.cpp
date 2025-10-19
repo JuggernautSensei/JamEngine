@@ -5,6 +5,14 @@
 namespace jam
 {
 
+AABB AABB::FromCenterExtents(const Vec3& _center, const Vec3& _extents)
+{
+    AABB out;
+    out.min = _center - _extents;
+    out.max = _center + _extents;
+    return out;
+}
+
 AABB AABB::Transform(const AABB& _box, const Mat4& _mat)
 {
     using namespace DirectX;
@@ -43,6 +51,21 @@ Vec3 AABB::Extents() const
     return (max - min) * 0.5f;
 }
 
+float AABB::Width() const
+{
+    return max.x - min.x;
+}
+
+float AABB::Height() const
+{
+    return max.y - min.y;
+}
+
+float AABB::Depth() const
+{
+    return max.z - min.z;
+}
+
 bool AABB::Intersects(const AABB& _other) const
 {
     if (max.x < _other.min.x || min.x > _other.max.x) return false;
@@ -61,6 +84,35 @@ bool AABB::Contains(const Vec3& _p) const
         && _p.z <= max.z;
 }
 
+OBB OBB::Transform(const OBB& _obb, const Mat4& _mat)
+{
+    OBB out;
+    out.mtx = _obb.mtx * _mat;
+    return out;
+}
+
+AABB OBB::ToAABB(const OBB& _obb)
+{
+    AABB aabb;
+    aabb.min = Vec3 { -1.f, -1.f, -1.f };
+    aabb.max = Vec3 { 1.f, 1.f, 1.f };
+    return AABB::Transform(aabb, _obb.mtx);
+}
+
+Vec3 OBB::Center() const
+{
+    return mtx.Translation();
+}
+
+Vec3 OBB::Extents()
+{
+    Vec3 s;
+    Quat q;
+    Vec3 t;
+    mtx.Decompose(s, q, t);
+    return Absolute(s) * 0.5f;
+}
+
 AABB AABB::Merge(const AABB& _a, const AABB& _b)
 {
     AABB out;
@@ -73,22 +125,37 @@ AABB AABB::Merge(const AABB& _a, const AABB& _b)
     return out;
 }
 
+AABB AABB::Merge(const AABB& _a, const Vec3& _pointA)
+{
+    AABB out;
+    out.min.x = Min(_a.min.x, _pointA.x);
+    out.min.y = Min(_a.min.y, _pointA.y);
+    out.min.z = Min(_a.min.z, _pointA.z);
+    out.max.x = Max(_a.max.x, _pointA.x);
+    out.max.y = Max(_a.max.y, _pointA.y);
+    out.max.z = Max(_a.max.z, _pointA.z);
+    return out;
+}
+
 Plane::Plane(const Vec3& _normal, const float _d)
     : normal(_normal)
     , d(_d)
 {
+    Normalize();
 }
 
 Plane::Plane(const Vec3& _p1, const Vec3& _p2, const Vec3& _p3)
 {
     using namespace DirectX;
     XMPlaneFromPoints(XMLoadFloat3(&_p1), XMLoadFloat3(&_p2), XMLoadFloat3(&_p3));
+    Normalize();
 }
 
 Plane::Plane(const Vec3& _p, const Vec3& _n)
 {
     using namespace DirectX;
     XMPlaneFromPointNormal(XMLoadFloat3(&_p), XMLoadFloat3(&_n));
+    XMPlaneNormalize(vec);
 }
 
 Plane Plane::Transform(const Plane& _plane, const Mat4& _mat)
@@ -96,6 +163,7 @@ Plane Plane::Transform(const Plane& _plane, const Mat4& _mat)
     using namespace DirectX;
     Plane out;
     out.vec = XMPlaneTransform(_plane.vec, _mat);
+    out.Normalize();
     return out;
 }
 
@@ -110,9 +178,8 @@ Vec3 Plane::IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3
     XMVECTOR crossDot = XMVector3Dot(n1, XMVector3Cross(n2, n3));
     float    denom    = XMVectorGetX(crossDot);
     if (Absolute(denom) < k_epsilon)
-    {
         return Vec3::Zero;
-    }
+
     XMVECTOR term1 = XMVectorScale(XMVector3Cross(n2, n3), -p1.d);
     XMVECTOR term2 = XMVectorScale(XMVector3Cross(n3, n1), -p2.d);
     XMVECTOR term3 = XMVectorScale(XMVector3Cross(n1, n2), -p3.d);
@@ -133,43 +200,60 @@ float Plane::DistanceToPoint(const Vec3& _point) const
     return XMVectorGetX(XMPlaneDotCoord(vec, p));   // ax+by+cz+d
 }
 
-Frustum::Frustum(const Mat4& _projMat)
+Frustum::Frustum(const Mat4& _viewProj)
 {
     using namespace DirectX;
     XMFLOAT4X4 m;
-    XMStoreFloat4x4(&m, XMLoadFloat4x4(&_projMat));
+    XMStoreFloat4x4(&m, XMLoadFloat4x4(&_viewProj));
 
-    planes[0].normal = Vec3 { m._14 + m._11, m._24 + m._21, m._34 + m._31 };
-    planes[0].d      = m._44 + m._41;   // Left
-    planes[1].normal = Vec3 { m._14 - m._11, m._24 - m._21, m._34 - m._31 };
-    planes[1].d      = m._44 - m._41;   // Right
-    planes[2].normal = Vec3 { m._14 + m._12, m._24 + m._22, m._34 + m._32 };
-    planes[2].d      = m._44 + m._42;   // Bottom
-    planes[3].normal = Vec3 { m._14 - m._12, m._24 - m._22, m._34 - m._32 };
-    planes[3].d      = m._44 - m._42;   // Top
-    planes[4].normal = Vec3 { m._13, m._23, m._33 };
-    planes[4].d      = m._43;   // Near
-    planes[5].normal = Vec3 { m._14 - m._13, m._24 - m._23, m._34 - m._33 };
-    planes[5].d      = m._44 - m._43;   // Far
+    leftPlane.normal   = Vec3 { m._14 + m._11, m._24 + m._21, m._34 + m._31 };
+    leftPlane.d        = m._44 + m._41;   // Left
+    rightPlane.normal  = Vec3 { m._14 - m._11, m._24 - m._21, m._34 - m._31 };
+    rightPlane.d       = m._44 - m._41;   // Right
+    bottomPlane.normal = Vec3 { m._14 + m._12, m._24 + m._22, m._34 + m._32 };
+    bottomPlane.d      = m._44 + m._42;   // Bottom
+    topPlane.normal    = Vec3 { m._14 - m._12, m._24 - m._22, m._34 - m._32 };
+    topPlane.d         = m._44 - m._42;   // Top
+    nearPlane.normal   = Vec3 { m._13, m._23, m._33 };
+    nearPlane.d        = m._43;   // Near
+    farPlane.normal    = Vec3 { m._14 - m._13, m._24 - m._23, m._34 - m._33 };
+    farPlane.d         = m._44 - m._43;   // Far
 
     for (Plane& p: planes)
         p.Normalize();
 
-    position = Vec3::Zero;
+    position = Plane::IntersectOf3Planes(leftPlane, rightPlane, topPlane);
+}
+
+Frustum Frustum::CreateSubFrustum(const Frustum& _frustum, const float _startWeight, const float _endWeight)
+{
+    JAM_ASSERT(_startWeight <= _endWeight, "Start weight must be less than or equal to end weight");
+    JAM_ASSERT(_startWeight >= 0.0f && _startWeight <= 1.0f, "Start weight must be in range [0.0, 1.0]");
+    JAM_ASSERT(_endWeight >= 0.0f && _endWeight <= 1.0f, "End weight must be in range [0.0, 1.0]");
+
+    Frustum subFrustum     = _frustum;
+    float   nearDist       = _frustum.GetNear();
+    float   farDist        = _frustum.GetFar();
+    float   range          = farDist - nearDist;
+    float   newNearDist    = nearDist + range * _startWeight;
+    float   newFarDist     = nearDist + range * _endWeight;
+    subFrustum.nearPlane.d = -newNearDist;
+    subFrustum.farPlane.d  = -newFarDist;
+    subFrustum.planes[0]   = subFrustum.nearPlane;
+    subFrustum.planes[1]   = subFrustum.farPlane;
+    return subFrustum;
 }
 
 Frustum Frustum::Transform(const Frustum& _frustum, const Mat4& _mat)
 {
     Frustum out = {};
     for (size_t i = 0; i < 6; ++i)
-    {
         out.planes[i] = Plane::Transform(_frustum.planes[i], _mat);
-    }
     out.position = Vec3::Transform(_frustum.position, _mat);
     return out;
 }
 
-ePlaneIntersactType Frustum::Intersects(const AABB& _box) const
+ePlaneIntersectType Frustum::Intersects(const AABB& _box) const
 {
     for (const Plane& p: planes)
     {
@@ -184,12 +268,23 @@ ePlaneIntersactType Frustum::Intersects(const AABB& _box) const
             p.normal.z >= 0 ? _box.max.z : _box.min.z);
 
         if (p.DistanceToPoint(vmin) > 0.0f)
-            return ePlaneIntersactType::Outside;
+            return ePlaneIntersectType::Outside;
 
         if (p.DistanceToPoint(vmax) >= 0.0f)
-            return ePlaneIntersactType::Intersect;
+            return ePlaneIntersectType::Intersect;
     }
-    return ePlaneIntersactType::Inside;
+    return ePlaneIntersectType::Inside;
+}
+
+bool Frustum::Intersects(const Sphere& _sphere) const
+{
+    for (const Plane& p: planes)
+    {
+        float dist = p.DistanceToPoint(_sphere.center);
+        if (dist > _sphere.radius)
+            return false;
+    }
+    return true;
 }
 
 FrustumCorners Frustum::GetCorners() const
@@ -206,7 +301,19 @@ FrustumCorners Frustum::GetCorners() const
     return corners;
 }
 
-Vec3 Frustum::GetLookTo() const
+Vec3 Frustum::GetCenter() const
+{
+    FrustumCorners corners = GetCorners();
+    Vec3           center  = Vec3::Zero;
+    for (const Vec3& point: corners.points)
+    {
+        center += point;
+    }
+    center /= 8.f;
+    return center;
+}
+
+Vec3 Frustum::ViewLookTo() const
 {
     return -nearPlane.normal;
 }

@@ -3,11 +3,10 @@
 #include "ImageImporter.h"
 
 #include <DirectXTexEXR.h>
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+
+namespace jam
+{
 
 constexpr DXGI_FORMAT k_dxgiFormatTable[EnumCount<eFormat>()] = {
     DXGI_FORMAT_UNKNOWN,                // Unknown
@@ -52,11 +51,6 @@ constexpr DXGI_FORMAT k_dxgiFormatTable[EnumCount<eFormat>()] = {
     DXGI_FORMAT_D32_FLOAT,              // D32_Float
     DXGI_FORMAT_D32_FLOAT_S8X24_UINT,   // D32_Float_S8_UInt
 };
-
-////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 eErrorCode ImageImporter::Import()
 {

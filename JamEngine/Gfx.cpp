@@ -10,14 +10,15 @@
 #include "Hash.h"
 #include "ImageImporter.h"
 #include "Memory.h"
-#include "Mesh.h"
 #include "ResourcePool.h"
 #include "ShaderCompiler.h"
 #include "Window.h"
 
 #include <DirectXTex.h>
 #include <d3dcompiler.h>
-using namespace jam;
+
+namespace jam::gfx
+{
 
 ///////////////////////////////
 ///          ENUMS          ///
@@ -585,8 +586,7 @@ struct GfxContext
 
     TextureHandle     backBufferTextureHandle;
     FrameBufferHandle backBufferFrameBufferHandle;
-};
-GfxContext g_gfxCtx = {};
+} g_ctx;
 
 ID3D11RasterizerState* GfxContext::GetOrCreateD3D11RasterizerState(
     RasterizerStateD3D11 _state)
@@ -754,7 +754,7 @@ void GfxContext::ApplyConstantBuffers(const eShader _shader)
     for (Int32 index = 0; index < dirtyCount; ++index)
     {
         Handle<ConstantBuffer> handle = binds.cbufferHandles[dirtyStart + index];
-        s_binder[index]               = handle == k_invalidHandle ? nullptr : cbuffers[handle].buffer.pBuffer;
+        s_binder[index]               = JAM_IS_VALID_HANDLE(handle) ? cbuffers[handle].buffer.pBuffer : nullptr;
     }
 
     // bind
@@ -844,28 +844,28 @@ void GfxContext::ApplySamplerStates(const eShader _shader)
 
     for (Int32 i = 0; i < dirtyCount; ++i)
     {
-        s_binder[i] = g_gfxCtx.GetOrCreateD3D11SamplerState(bind.samplerStates[dirtyStart + i], bind.borderColors[dirtyStart + i]);
+        s_binder[i] = g_ctx.GetOrCreateD3D11SamplerState(bind.samplerStates[dirtyStart + i], bind.borderColors[dirtyStart + i]);
     }
 
     switch (_shader)
     {
         case eShader::VertexShader:
-            g_gfxCtx.pd3d11DeviceContext->VSSetSamplers(dirtyStart, dirtyCount, s_binder);
+            g_ctx.pd3d11DeviceContext->VSSetSamplers(dirtyStart, dirtyCount, s_binder);
             break;
         case eShader::PixelShader:
-            g_gfxCtx.pd3d11DeviceContext->PSSetSamplers(dirtyStart, dirtyCount, s_binder);
+            g_ctx.pd3d11DeviceContext->PSSetSamplers(dirtyStart, dirtyCount, s_binder);
             break;
         case eShader::GeometryShader:
-            g_gfxCtx.pd3d11DeviceContext->GSSetSamplers(dirtyStart, dirtyCount, s_binder);
+            g_ctx.pd3d11DeviceContext->GSSetSamplers(dirtyStart, dirtyCount, s_binder);
             break;
         case eShader::HullShader:
-            g_gfxCtx.pd3d11DeviceContext->HSSetSamplers(dirtyStart, dirtyCount, s_binder);
+            g_ctx.pd3d11DeviceContext->HSSetSamplers(dirtyStart, dirtyCount, s_binder);
             break;
         case eShader::DomainShader:
-            g_gfxCtx.pd3d11DeviceContext->DSSetSamplers(dirtyStart, dirtyCount, s_binder);
+            g_ctx.pd3d11DeviceContext->DSSetSamplers(dirtyStart, dirtyCount, s_binder);
             break;
         case eShader::ComputeShader:
-            g_gfxCtx.pd3d11DeviceContext->CSSetSamplers(dirtyStart, dirtyCount, s_binder);
+            g_ctx.pd3d11DeviceContext->CSSetSamplers(dirtyStart, dirtyCount, s_binder);
             break;
         default:
             JAM_ASSERT(0, "Unknown shader stage");
@@ -887,29 +887,25 @@ void GfxContext::ApplyPipeline()
         // vertex buffer
         if (pipelineDirtyFlags & ePipelineDirtyFlags_VertexBuffer)
         {
-            if (vertexBufferHandleBind == k_invalidHandle)
+            if (JAM_IS_VALID_HANDLE(vertexBufferHandleBind))
+            {
+                const VertexBuffer& vertexBuffer = vertexBuffers[vertexBufferHandleBind];
+                const UINT          stride       = vertexBuffer.vertexStride;
+                const UINT          offset       = g_ctx.vertexBufferOffsetBind * stride;
+                pd3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.buffer.pBuffer, &stride, &offset);
+            }
+            else
             {
                 constexpr UINT k_stride = 0;
                 constexpr UINT k_offset = 0;
                 pd3d11DeviceContext->IASetVertexBuffers(0, 1, &k_nullBuffer, &k_stride, &k_offset);
-            }
-            else
-            {
-                const VertexBuffer& vertexBuffer = vertexBuffers[vertexBufferHandleBind];
-                const UINT          stride       = vertexBuffer.vertexStride;
-                const UINT          offset       = g_gfxCtx.vertexBufferOffsetBind * stride;
-                pd3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.buffer.pBuffer, &stride, &offset);
             }
         }
 
         // index buffer
         if (pipelineDirtyFlags & ePipelineDirtyFlags_IndexBuffer)
         {
-            if (indexBufferHandleBind == k_invalidHandle)
-            {
-                pd3d11DeviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_R16_UINT, 0);
-            }
-            else
+            if (JAM_IS_VALID_HANDLE(indexBufferHandleBind))
             {
                 constexpr DXGI_FORMAT k_indexFormatTable[] = {
                     DXGI_FORMAT_R16_UINT,   // eIndexFormat::U16
@@ -918,6 +914,10 @@ void GfxContext::ApplyPipeline()
 
                 const IndexBuffer& indexBuffer = indexBuffers[indexBufferHandleBind];
                 pd3d11DeviceContext->IASetIndexBuffer(indexBuffer.buffer.pBuffer, k_indexFormatTable[EnumToInt(indexBuffer.format)], 0);
+            }
+            else
+            {
+                pd3d11DeviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_R16_UINT, 0);
             }
         }
 
@@ -937,15 +937,7 @@ void GfxContext::ApplyPipeline()
         // shader program
         if (pipelineDirtyFlags & ePipelineDirtyFlags_Program)
         {
-            if (programHandleBind == k_invalidHandle)
-            {
-                pd3d11DeviceContext->VSSetShader(nullptr, nullptr, 0);
-                pd3d11DeviceContext->PSSetShader(nullptr, nullptr, 0);
-                pd3d11DeviceContext->GSSetShader(nullptr, nullptr, 0);
-                pd3d11DeviceContext->HSSetShader(nullptr, nullptr, 0);
-                pd3d11DeviceContext->DSSetShader(nullptr, nullptr, 0);
-            }
-            else
+            if (JAM_IS_VALID_HANDLE(programHandleBind))
             {
                 const Program& program = programs[programHandleBind];
                 for (Int32 i = 0; i < k_renderingPipelineShaderStageCount; ++i)
@@ -982,6 +974,14 @@ void GfxContext::ApplyPipeline()
                         }
                     }
                 }
+            }
+            else
+            {
+                pd3d11DeviceContext->VSSetShader(nullptr, nullptr, 0);
+                pd3d11DeviceContext->PSSetShader(nullptr, nullptr, 0);
+                pd3d11DeviceContext->GSSetShader(nullptr, nullptr, 0);
+                pd3d11DeviceContext->HSSetShader(nullptr, nullptr, 0);
+                pd3d11DeviceContext->DSSetShader(nullptr, nullptr, 0);
             }
         }
 
@@ -1049,7 +1049,7 @@ void GfxContext::ApplyPipeline()
         // frame buffer
         if (pipelineDirtyFlags & ePipelineDirtyFlags_FrameBuffer)
         {
-            JAM_ASSERT(frameBufferHandleBind != k_invalidHandle, "frameBufferHandleBind is invalid");
+            JAM_ASSERT(JAM_IS_VALID_HANDLE(frameBufferHandleBind), "frameBufferHandleBind is invalid");
             const FrameBuffer& fb = frameBuffers[frameBufferHandleBind];
             pd3d11DeviceContext->OMSetRenderTargets(fb.renderTargetCount, fb.pRTV, fb.pDSV);
         }
@@ -1456,7 +1456,7 @@ FrameBuffer GfxContext::CreateNativeFrameBuffer(
 
     for (const TextureHandle handle: _handles)
     {
-        JAM_ASSERT(handle != k_invalidHandle, "Invalid texture handle in render target textures.");
+        JAM_ASSERT(JAM_IS_VALID_HANDLE(handle), "Invalid texture handle in render target textures.");
 
         TextureRef& texture = textures[handle];
         JAM_ASSERT(texture.pResource, "Texture resource is null.");
@@ -2199,11 +2199,6 @@ eFormat GfxContext::GetNativeFormatFromDXGIFormat(
     }
 }
 
-////////////////////////////////////////////////////////////
-
-namespace jam::gfx
-{
-
 void Init(const HWND _hwnd, const Int32 _width, const Int32 _height)
 {
     // d3d11 device 초기화
@@ -2230,15 +2225,15 @@ void Init(const HWND _hwnd, const Int32 _width, const Int32 _height)
             featureLevels,
             std::size(featureLevels),
             D3D11_SDK_VERSION,
-            &g_gfxCtx.pd3d11Device,
+            &g_ctx.pd3d11Device,
             nullptr,
-            &g_gfxCtx.pd3d11DeviceContext));
+            &g_ctx.pd3d11DeviceContext));
     }
 
     // 스왑체인 생성
     {
         ComPtr<IDXGIDevice2> dxgiDevice;
-        JAM_CHECK_COM(g_gfxCtx.pd3d11Device->QueryInterface(IID_PPV_ARGS(dxgiDevice.ReleaseAndGetAddressOf())));
+        JAM_CHECK_COM(g_ctx.pd3d11Device->QueryInterface(IID_PPV_ARGS(dxgiDevice.ReleaseAndGetAddressOf())));
 
         ComPtr<IDXGIAdapter1> dxgiAdapter;
         JAM_CHECK_COM(dxgiDevice->GetParent(IID_PPV_ARGS(dxgiAdapter.ReleaseAndGetAddressOf())));
@@ -2260,41 +2255,41 @@ void Init(const HWND _hwnd, const Int32 _width, const Int32 _height)
         swapChainDesc.Flags              = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
         swapChainDesc.AlphaMode          = DXGI_ALPHA_MODE_UNSPECIFIED;
 
-        JAM_CHECK_COM(dxgiFactory->CreateSwapChainForHwnd(g_gfxCtx.pd3d11Device, _hwnd, &swapChainDesc, nullptr, nullptr, &g_gfxCtx.pdxgiSwapchain));
-        g_gfxCtx.OnResize(_width, _height);
+        JAM_CHECK_COM(dxgiFactory->CreateSwapChainForHwnd(g_ctx.pd3d11Device, _hwnd, &swapChainDesc, nullptr, nullptr, &g_ctx.pdxgiSwapchain));
+        g_ctx.OnResize(_width, _height);
     }
 }
 
 void Shutdown()
 {
     // 내부 리소스 해제
-    JAM_DESTROY_TEXTURE(g_gfxCtx.backBufferTextureHandle);
-    JAM_DESTROY_FRAME_BUFFER(g_gfxCtx.backBufferFrameBufferHandle);
+    JAM_DESTROY_TEXTURE(g_ctx.backBufferTextureHandle);
+    JAM_DESTROY_FRAME_BUFFER(g_ctx.backBufferFrameBufferHandle);
 
     // d3d11 cache 해체
-    for (ID3D11BlendState* pBlendState: std::views::values(g_gfxCtx.blendStateCache))
+    for (ID3D11BlendState* pBlendState: std::views::values(g_ctx.blendStateCache))
         pBlendState->Release();
 
-    for (ID3D11DepthStencilState* pDepthStencilState: std::views::values(g_gfxCtx.depthStencilStateCache))
+    for (ID3D11DepthStencilState* pDepthStencilState: std::views::values(g_ctx.depthStencilStateCache))
         pDepthStencilState->Release();
 
-    for (ID3D11RasterizerState* pRasterizerState: std::views::values(g_gfxCtx.rasterizerStateCache))
+    for (ID3D11RasterizerState* pRasterizerState: std::views::values(g_ctx.rasterizerStateCache))
         pRasterizerState->Release();
 
-    for (ID3D11SamplerState* pSamplerState: std::views::values(g_gfxCtx.samplerStateCache))
+    for (ID3D11SamplerState* pSamplerState: std::views::values(g_ctx.samplerStateCache))
         pSamplerState->Release();
 
     // d3d11 device 해제
-    g_gfxCtx.pdxgiSwapchain->Release();
-    g_gfxCtx.pd3d11DeviceContext->Release();
-    g_gfxCtx.pd3d11Device->Release();
+    g_ctx.pdxgiSwapchain->Release();
+    g_ctx.pd3d11DeviceContext->Release();
+    g_ctx.pd3d11Device->Release();
 }
 
 bool DetectLeak()
 {
     bool bLeakDetected = false;
 
-    for (const auto& [handle, value]: g_gfxCtx.vertexBuffers)
+    for (const auto& [handle, value]: g_ctx.vertexBuffers)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2302,7 +2297,7 @@ bool DetectLeak()
         bLeakDetected = true;
     }
 
-    for (const auto& [handle, value]: g_gfxCtx.indexBuffers)
+    for (const auto& [handle, value]: g_ctx.indexBuffers)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2310,7 +2305,7 @@ bool DetectLeak()
         bLeakDetected = true;
     }
 
-    for (const auto& [handle, value]: g_gfxCtx.textures)
+    for (const auto& [handle, value]: g_ctx.textures)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2318,7 +2313,7 @@ bool DetectLeak()
         bLeakDetected = true;
     }
 
-    for (const auto& [handle, value]: g_gfxCtx.frameBuffers)
+    for (const auto& [handle, value]: g_ctx.frameBuffers)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2326,7 +2321,7 @@ bool DetectLeak()
         bLeakDetected = true;
     }
 
-    for (const auto& [handle, value]: g_gfxCtx.shaders)
+    for (const auto& [handle, value]: g_ctx.shaders)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2334,7 +2329,7 @@ bool DetectLeak()
         bLeakDetected = true;
     }
 
-    for (const auto& [handle, value]: g_gfxCtx.vertexLayouts)
+    for (const auto& [handle, value]: g_ctx.vertexLayouts)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2342,7 +2337,7 @@ bool DetectLeak()
         bLeakDetected = true;
     }
 
-    for (const auto& [handle, value]: g_gfxCtx.cbuffers)
+    for (const auto& [handle, value]: g_ctx.cbuffers)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2350,7 +2345,7 @@ bool DetectLeak()
         bLeakDetected = true;
     }
 
-    for (auto handle: g_gfxCtx.programs | std::views::keys)
+    for (auto handle: g_ctx.programs | std::views::keys)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2363,31 +2358,31 @@ bool DetectLeak()
 
 void OnEvent(Event& _event)
 {
-    HandleEvent<WindowResizeEvent>(_event, &g_gfxCtx, &GfxContext::OnWindowResizeEvent);
-    HandleEvent<WindowMaximizeEvent>(_event, &g_gfxCtx, &GfxContext::OnWindowMaxizeEvent);
+    HandleEvent<WindowResizeEvent>(_event, &g_ctx, &GfxContext::OnWindowResizeEvent);
+    HandleEvent<WindowMaximizeEvent>(_event, &g_ctx, &GfxContext::OnWindowMaxizeEvent);
 }
 
 void Frame(const bool _bVSync)
 {
-    JAM_CHECK_COM(g_gfxCtx.pdxgiSwapchain->Present(_bVSync ? 1 : 0, 0));
+    JAM_CHECK_COM(g_ctx.pdxgiSwapchain->Present(_bVSync ? 1 : 0, 0));
 
     // 렌더 타겟은 매 프레임마다 다시 설정해줘야 함
-    g_gfxCtx.frameBufferHandleBind = k_invalidHandle;
+    g_ctx.frameBufferHandleBind = k_invalidHandle;
 }
 
 ID3D11Device* GetDevice()
 {
-    return g_gfxCtx.pd3d11Device;
+    return g_ctx.pd3d11Device;
 }
 
 IDXGISwapChain1* GetSwapChain()
 {
-    return g_gfxCtx.pdxgiSwapchain;
+    return g_ctx.pdxgiSwapchain;
 }
 
 ID3D11DeviceContext* GetDeviceContext()
 {
-    return g_gfxCtx.pd3d11DeviceContext;
+    return g_ctx.pd3d11DeviceContext;
 }
 
 VertexBufferHandle CreateVertexBuffer(
@@ -2397,16 +2392,16 @@ VertexBufferHandle CreateVertexBuffer(
 
     VertexBuffer vertexBuffer;
     Int32        bufferWidth  = NarrowCast<Int32>(_vertexData.GetByteWidth());
-    vertexBuffer.buffer       = g_gfxCtx.CreateNativeBuffer(bufferWidth, eBufferType::VertexBuffer, _vertexData);
+    vertexBuffer.buffer       = g_ctx.CreateNativeBuffer(bufferWidth, eBufferType::VertexBuffer, _vertexData);
     vertexBuffer.vertexStride = _vertexLayout.GetStride();
     vertexBuffer.vertexCount  = bufferWidth / vertexBuffer.vertexStride;
 
     // 버텍스 레이아웃 참조
-    vertexBuffer.layoutHandle = g_gfxCtx.GetOrCreateNativeVertexLayout(_vertexLayout);
+    vertexBuffer.layoutHandle = g_ctx.GetOrCreateNativeVertexLayout(_vertexLayout);
 
     // 이름 설정
-    VertexBufferHandle handle      = g_gfxCtx.vertexBuffers.Alloc();
-    g_gfxCtx.vertexBuffers[handle] = std::move(vertexBuffer);
+    VertexBufferHandle handle   = g_ctx.vertexBuffers.Alloc();
+    g_ctx.vertexBuffers[handle] = std::move(vertexBuffer);
     SetVertexBufferName(handle);
     return handle;
 }
@@ -2419,16 +2414,16 @@ VertexBufferHandle CreateDynamicVertexBuffer(
 
     VertexBuffer vertexBuffer;
     Int32        stride       = _vertexLayout.GetStride();
-    vertexBuffer.buffer       = g_gfxCtx.CreateNativeBuffer(_vertexCount * stride, eBufferType::VertexBuffer, std::nullopt);
+    vertexBuffer.buffer       = g_ctx.CreateNativeBuffer(_vertexCount * stride, eBufferType::VertexBuffer, std::nullopt);
     vertexBuffer.vertexStride = stride;
     vertexBuffer.vertexCount  = _vertexCount;
 
     // 버텍스 레이아웃 참조
-    vertexBuffer.layoutHandle = g_gfxCtx.GetOrCreateNativeVertexLayout(_vertexLayout);
+    vertexBuffer.layoutHandle = g_ctx.GetOrCreateNativeVertexLayout(_vertexLayout);
 
     // 이름 설정
-    VertexBufferHandle handle      = g_gfxCtx.vertexBuffers.Alloc();
-    g_gfxCtx.vertexBuffers[handle] = std::move(vertexBuffer);
+    VertexBufferHandle handle   = g_ctx.vertexBuffers.Alloc();
+    g_ctx.vertexBuffers[handle] = std::move(vertexBuffer);
     SetVertexBufferName(handle);
     return handle;
 }
@@ -2441,14 +2436,14 @@ IndexBufferHandle CreateIndexBuffer(
     Int32 bufferWidth = NarrowCast<Int32>(_indexData.GetByteWidth());
 
     IndexBuffer indexBuffer;
-    indexBuffer.buffer      = g_gfxCtx.CreateNativeBuffer(bufferWidth, eBufferType::IndexBuffer, _indexData);
+    indexBuffer.buffer      = g_ctx.CreateNativeBuffer(bufferWidth, eBufferType::IndexBuffer, _indexData);
     indexBuffer.indexCount  = bufferWidth / stride;
     indexBuffer.indexStride = stride;
     indexBuffer.format      = _format;
 
     // 이름 설정
-    IndexBufferHandle handle      = g_gfxCtx.indexBuffers.Alloc();
-    g_gfxCtx.indexBuffers[handle] = std::move(indexBuffer);
+    IndexBufferHandle handle   = g_ctx.indexBuffers.Alloc();
+    g_ctx.indexBuffers[handle] = std::move(indexBuffer);
     SetIndexBufferName(handle);
     return handle;
 }
@@ -2461,14 +2456,14 @@ IndexBufferHandle CreateDynamicIndexBuffer(
     Int32 stride = GetIndexFormatByte(_format);
 
     IndexBuffer indexBuffer;
-    indexBuffer.buffer      = g_gfxCtx.CreateNativeBuffer(_indexCount * stride, eBufferType::IndexBuffer, std::nullopt);
+    indexBuffer.buffer      = g_ctx.CreateNativeBuffer(_indexCount * stride, eBufferType::IndexBuffer, std::nullopt);
     indexBuffer.indexCount  = _indexCount;
     indexBuffer.indexStride = stride;
     indexBuffer.format      = _format;
 
     // 이름 설정
-    IndexBufferHandle handle      = g_gfxCtx.indexBuffers.Alloc();
-    g_gfxCtx.indexBuffers[handle] = std::move(indexBuffer);
+    IndexBufferHandle handle   = g_ctx.indexBuffers.Alloc();
+    g_ctx.indexBuffers[handle] = std::move(indexBuffer);
     SetIndexBufferName(handle);
     return handle;
 }
@@ -2479,11 +2474,11 @@ ConstantBufferHandle CreateConstantBuffer(const Int32 _byteWidth)
     JAM_ASSERT(_byteWidth % 16 == 0, "Constant buffer size must be a multiple of 16 bytes");
 
     ConstantBuffer cbuffer;
-    cbuffer.buffer = g_gfxCtx.CreateNativeBuffer(_byteWidth, eBufferType::ConstantBuffer, std::nullopt);
+    cbuffer.buffer = g_ctx.CreateNativeBuffer(_byteWidth, eBufferType::ConstantBuffer, std::nullopt);
 
     // 이름 설정
-    ConstantBufferHandle handle = g_gfxCtx.cbuffers.Alloc();
-    g_gfxCtx.cbuffers[handle]   = std::move(cbuffer);
+    ConstantBufferHandle handle = g_ctx.cbuffers.Alloc();
+    g_ctx.cbuffers[handle]      = std::move(cbuffer);
     SetConstantBufferName(handle);
     return handle;
 }
@@ -2496,8 +2491,8 @@ TextureHandle CreateTexture2D(
     const eTextureCreateFlags          _flags,
     const std::span<const MemoryView>& _initData)
 {
-    TextureHandle handle      = g_gfxCtx.textures.Alloc();
-    g_gfxCtx.textures[handle] = g_gfxCtx.CreateNativeTexture(_width, _height, 1, _format, _arraySize, _flags, eTextureType::Texture2D, _initData);
+    TextureHandle handle   = g_ctx.textures.Alloc();
+    g_ctx.textures[handle] = g_ctx.CreateNativeTexture(_width, _height, 1, _format, _arraySize, _flags, eTextureType::Texture2D, _initData);
     SetTextureName(handle);
     return handle;
 }
@@ -2509,8 +2504,8 @@ TextureHandle CreateTextureCube(
     const eTextureCreateFlags          _flags,
     const std::span<const MemoryView>& _initData)
 {
-    TextureHandle handle      = g_gfxCtx.textures.Alloc();
-    g_gfxCtx.textures[handle] = g_gfxCtx.CreateNativeTexture(_width, _height, 1, _format, _cubeCount * 6, _flags, eTextureType::TextureCube, _initData);
+    TextureHandle handle   = g_ctx.textures.Alloc();
+    g_ctx.textures[handle] = g_ctx.CreateNativeTexture(_width, _height, 1, _format, _cubeCount * 6, _flags, eTextureType::TextureCube, _initData);
     SetTextureName(handle);
     return handle;
 }
@@ -2523,8 +2518,8 @@ TextureHandle CreateTexture3D(
     const eTextureCreateFlags          _texFlags,
     const std::span<const MemoryView>& _initData)
 {
-    TextureHandle handle      = g_gfxCtx.textures.Alloc();
-    g_gfxCtx.textures[handle] = g_gfxCtx.CreateNativeTexture(_width, _height, _depth, _format, 1, _texFlags, eTextureType::Texture3D, _initData);
+    TextureHandle handle   = g_ctx.textures.Alloc();
+    g_ctx.textures[handle] = g_ctx.CreateNativeTexture(_width, _height, _depth, _format, 1, _texFlags, eTextureType::Texture3D, _initData);
     SetTextureName(handle);
     return handle;
 }
@@ -2533,8 +2528,8 @@ FrameBufferHandle CreateFrameBuffer(
     const std::span<const TextureHandle> _handles,
     const bool                           _bDestroyTexture)
 {
-    FrameBufferHandle handle      = g_gfxCtx.frameBuffers.Alloc();
-    g_gfxCtx.frameBuffers[handle] = g_gfxCtx.CreateNativeFrameBuffer(_handles, _bDestroyTexture);
+    FrameBufferHandle handle   = g_ctx.frameBuffers.Alloc();
+    g_ctx.frameBuffers[handle] = g_ctx.CreateNativeFrameBuffer(_handles, _bDestroyTexture);
     SetFrameBufferName(handle);
     return handle;
 }
@@ -2607,7 +2602,7 @@ FrameBufferHandle CreateFrameBuffer(
 
 ShaderHandle CreateShader(const MemoryView _shaderByteCode)
 {
-    return g_gfxCtx.GetOrCreateNativeShader(_shaderByteCode);
+    return g_ctx.GetOrCreateNativeShader(_shaderByteCode);
 }
 
 ProgramHandle CreateProgram(
@@ -2618,7 +2613,7 @@ ProgramHandle CreateProgram(
     const ShaderHandle _hsHandle,
     const bool         _bDestroyShader)
 {
-    JAM_ASSERT(_vsHandle != k_invalidHandle && _psHandle != k_invalidHandle, "At least one of vertex shader or pixel shader must be provided");
+    JAM_ASSERT(JAM_IS_VALID_HANDLE(_vsHandle)&& JAM_IS_VALID_HANDLE(_psHandle), "At least one of vertex shader or pixel shader must be provided");
 
     Program program;
 
@@ -2636,12 +2631,12 @@ ProgramHandle CreateProgram(
         eShader      stage  = static_cast<eShader>(i);
         ShaderHandle handle = handles[i];
 
-        if (handle == k_invalidHandle)
+        if (!JAM_IS_VALID_HANDLE(handle))
         {
             continue;
         }
 
-        ShaderRef& shader = g_gfxCtx.shaders[handle];
+        ShaderRef& shader = g_ctx.shaders[handle];
         JAM_ASSERT(shader.stage == stage, "Shader handle does not match the expected shader stage");
 
         if (_bDestroyShader == false)
@@ -2655,8 +2650,8 @@ ProgramHandle CreateProgram(
     }
 
     // d3d shader 객체 설정
-    ProgramHandle handle      = g_gfxCtx.programs.Alloc();
-    g_gfxCtx.programs[handle] = std::move(program);
+    ProgramHandle handle   = g_ctx.programs.Alloc();
+    g_ctx.programs[handle] = std::move(program);
     return handle;
 }
 
@@ -2676,7 +2671,7 @@ ProgramHandle CreateProgram(
 
 void DestroyVertexBuffer(const VertexBufferHandle _handle)
 {
-    VertexBuffer& vertexBuffer = g_gfxCtx.vertexBuffers[_handle];
+    VertexBuffer& vertexBuffer = g_ctx.vertexBuffers[_handle];
 
     // d3d 버텍스 버퍼 파괴
     UINT d3dRefCount = vertexBuffer.buffer.pBuffer->Release();
@@ -2686,7 +2681,7 @@ void DestroyVertexBuffer(const VertexBufferHandle _handle)
     }
 
     VertexLayoutHandle layoutHandle = vertexBuffer.layoutHandle;
-    VertexLayoutRef&   vertexLayout = g_gfxCtx.vertexLayouts[layoutHandle];
+    VertexLayoutRef&   vertexLayout = g_ctx.vertexLayouts[layoutHandle];
 
     // 참조 해제
     Int32 refCount = --vertexLayout.refCount;
@@ -2701,29 +2696,29 @@ void DestroyVertexBuffer(const VertexBufferHandle _handle)
             JAM_ASSERT(0, "Vertex layout.pInputLayout reference vertexCount is not zero. RefCount: {}", refCount);
         }
 
-        g_gfxCtx.vertexLayouts.Free(layoutHandle);             // 레이아웃 핸들 해제
-        g_gfxCtx.vertexLayoutCache.erase(vertexLayout.hash);   // 캐시에서 레이아웃 핸들 제거
+        g_ctx.vertexLayouts.Free(layoutHandle);             // 레이아웃 핸들 해제
+        g_ctx.vertexLayoutCache.erase(vertexLayout.hash);   // 캐시에서 레이아웃 핸들 제거
     }
 
-    g_gfxCtx.vertexBuffers.Free(_handle);   // 핸들 해제
+    g_ctx.vertexBuffers.Free(_handle);   // 핸들 해제
 }
 
 void DestroyIndexBuffer(const IndexBufferHandle _handle)
 {
-    IndexBuffer& indexBuffer = g_gfxCtx.indexBuffers[_handle];
+    IndexBuffer& indexBuffer = g_ctx.indexBuffers[_handle];
     UINT         d3dRefCount = indexBuffer.buffer.pBuffer->Release();   // d3d 리소스 파괴
     if (d3dRefCount > 0)
     {
         JAM_ASSERT(0, "Index buffer.pBuffer reference vertexCount is not zero. RefCount: {}", d3dRefCount);
     }
 
-    g_gfxCtx.indexBuffers.Free(_handle);   // 핸들 해제
+    g_ctx.indexBuffers.Free(_handle);   // 핸들 해제
 }
 
 void DestroyTexture(const TextureHandle _handle)
 {
     // 텍스처 참조 해제
-    TextureRef& texture  = g_gfxCtx.textures[_handle];
+    TextureRef& texture  = g_ctx.textures[_handle];
     Int32       refCount = --texture.refCount;
     JAM_ASSERT(refCount >= 0, "TextureRef reference vertexCount is already zero");
 
@@ -2745,13 +2740,13 @@ void DestroyTexture(const TextureHandle _handle)
             JAM_ASSERT(0, "TextureRef resource reference vertexCount is not zero. RefCount: {}", d3dRefCount);
         }
 
-        g_gfxCtx.textures.Free(_handle);   // 핸들 해제
+        g_ctx.textures.Free(_handle);   // 핸들 해제
     }
 }
 
 void DestroyFrameBuffer(const FrameBufferHandle _handle)
 {
-    FrameBuffer& frameBuffer = g_gfxCtx.frameBuffers[_handle];
+    FrameBuffer& frameBuffer = g_ctx.frameBuffers[_handle];
 
     // RTV 파괴
     for (Int32 i = 0; i < frameBuffer.renderTargetCount; ++i)
@@ -2779,27 +2774,27 @@ void DestroyFrameBuffer(const FrameBufferHandle _handle)
         DestroyTexture(frameBuffer.depthStencilTextureHandle);   // TextureHandle 해제
     }
 
-    g_gfxCtx.frameBuffers.Free(_handle);   // FrameBuffer 핸들 해제
+    g_ctx.frameBuffers.Free(_handle);   // FrameBuffer 핸들 해제
 }
 
 void DestroyProgram(const ProgramHandle _handle)
 {
-    Program& program = g_gfxCtx.programs[_handle];
+    Program& program = g_ctx.programs[_handle];
 
     for (ShaderHandle handle: program.shaderHandles)
     {
-        if (handle != k_invalidHandle)
+        if (JAM_IS_VALID_HANDLE(handle))
         {
             DestroyShader(handle);   // 셰이더 참조 해제
         }
     }
 
-    g_gfxCtx.programs.Free(_handle);   // Program 핸들 해제
+    g_ctx.programs.Free(_handle);   // Program 핸들 해제
 }
 
 void DestroyShader(const ShaderHandle _handle)
 {
-    ShaderRef& shader = g_gfxCtx.shaders[_handle];
+    ShaderRef& shader = g_ctx.shaders[_handle];
     JAM_ASSERT(shader.refCount > 0, "ShaderRef reference vertexCount is already zero");
 
     // 참조 해제
@@ -2826,49 +2821,49 @@ void DestroyShader(const ShaderHandle _handle)
             JAM_ASSERT(0, "Shader reference vertexCount is not zero. RefCount: {}", refCount);
         }
 
-        g_gfxCtx.shaders.Free(_handle);                // Shader 핸들 해제
-        g_gfxCtx.shaderCache.erase(shader.cacheKey);   // 캐시에서 제거
+        g_ctx.shaders.Free(_handle);                // Shader 핸들 해제
+        g_ctx.shaderCache.erase(shader.cacheKey);   // 캐시에서 제거
     }
 }
 
 void DestroyConstantBuffer(
     const ConstantBufferHandle _handle)
 {
-    ConstantBuffer& cbuffer  = g_gfxCtx.cbuffers[_handle];
+    ConstantBuffer& cbuffer  = g_ctx.cbuffers[_handle];
     UINT            refCount = cbuffer.buffer.pBuffer->Release();
     if (refCount > 0)
     {
         JAM_ASSERT(0, "Constant buffer.pBuffer reference vertexCount is not zero. RefCount: {}", refCount);
     }
 
-    g_gfxCtx.cbuffers.Free(_handle);   // 핸들 해제
+    g_ctx.cbuffers.Free(_handle);   // 핸들 해제
 }
 
 void SetVertexBufferName(
     const VertexBufferHandle _handle,
     const std::string_view   _name)
 {
-    VertexBuffer& vertexBuffer = g_gfxCtx.vertexBuffers[_handle];
-    vertexBuffer.name          = g_gfxCtx.CreateNativeResourceName("VertexBuffer", _handle, _name);
-    g_gfxCtx.SetD3D11Name(vertexBuffer.buffer.pBuffer, vertexBuffer.name);
+    VertexBuffer& vertexBuffer = g_ctx.vertexBuffers[_handle];
+    vertexBuffer.name          = g_ctx.CreateNativeResourceName("VertexBuffer", _handle, _name);
+    g_ctx.SetD3D11Name(vertexBuffer.buffer.pBuffer, vertexBuffer.name);
 }
 
 void SetIndexBufferName(
     const IndexBufferHandle _handle,
     const std::string_view  _name)
 {
-    IndexBuffer& indexBuffer = g_gfxCtx.indexBuffers[_handle];
-    indexBuffer.name         = g_gfxCtx.CreateNativeResourceName("IndexBuffer", _handle, _name);
-    g_gfxCtx.SetD3D11Name(indexBuffer.buffer.pBuffer, indexBuffer.name);
+    IndexBuffer& indexBuffer = g_ctx.indexBuffers[_handle];
+    indexBuffer.name         = g_ctx.CreateNativeResourceName("IndexBuffer", _handle, _name);
+    g_ctx.SetD3D11Name(indexBuffer.buffer.pBuffer, indexBuffer.name);
 }
 
 void SetConstantBufferName(
     const ConstantBufferHandle _handle,
     const std::string_view     _name)
 {
-    ConstantBuffer& cbuffer = g_gfxCtx.cbuffers[_handle];
-    cbuffer.name            = g_gfxCtx.CreateNativeResourceName("ConstantBuffer", _handle, _name);
-    g_gfxCtx.SetD3D11Name(cbuffer.buffer.pBuffer, cbuffer.name);
+    ConstantBuffer& cbuffer = g_ctx.cbuffers[_handle];
+    cbuffer.name            = g_ctx.CreateNativeResourceName("ConstantBuffer", _handle, _name);
+    g_ctx.SetD3D11Name(cbuffer.buffer.pBuffer, cbuffer.name);
 }
 
 void SetTextureName(
@@ -2881,9 +2876,9 @@ void SetTextureName(
         "TextureCube",
     };
 
-    TextureRef& texture = g_gfxCtx.textures[_handle];
-    texture.name        = g_gfxCtx.CreateNativeResourceName(k_names[EnumToInt(texture.type)], _handle, _name);
-    g_gfxCtx.SetD3D11Name(texture.pResource, texture.name);
+    TextureRef& texture = g_ctx.textures[_handle];
+    texture.name        = g_ctx.CreateNativeResourceName(k_names[EnumToInt(texture.type)], _handle, _name);
+    g_ctx.SetD3D11Name(texture.pResource, texture.name);
 
     if (texture.pSRV)
     {
@@ -2893,8 +2888,8 @@ void SetTextureName(
             "TextureCube_SRV",
         };
 
-        std::string name = g_gfxCtx.CreateNativeResourceName(k_srvNames[EnumToInt(texture.type)], _handle, _name);
-        g_gfxCtx.SetD3D11Name(texture.pSRV, name);
+        std::string name = g_ctx.CreateNativeResourceName(k_srvNames[EnumToInt(texture.type)], _handle, _name);
+        g_ctx.SetD3D11Name(texture.pSRV, name);
     }
 }
 
@@ -2913,22 +2908,22 @@ void SetFrameBufferName(
         "FrameBuffer_RTV7",
     };
 
-    FrameBuffer& frameBuffer = g_gfxCtx.frameBuffers[_handle];
-    frameBuffer.name         = g_gfxCtx.CreateNativeResourceName("FrameBuffer", _handle, _name);
+    FrameBuffer& frameBuffer = g_ctx.frameBuffers[_handle];
+    frameBuffer.name         = g_ctx.CreateNativeResourceName("FrameBuffer", _handle, _name);
 
     for (Int32 i = 0; i < frameBuffer.renderTargetCount; ++i)
     {
         if (frameBuffer.pRTV[i])
         {
-            std::string name = g_gfxCtx.CreateNativeResourceName(k_names[i], _handle, _name);
-            g_gfxCtx.SetD3D11Name(frameBuffer.pRTV[i], name);
+            std::string name = g_ctx.CreateNativeResourceName(k_names[i], _handle, _name);
+            g_ctx.SetD3D11Name(frameBuffer.pRTV[i], name);
         }
     }
 
     if (frameBuffer.pDSV)
     {
-        std::string name = g_gfxCtx.CreateNativeResourceName("FrameBuffer_DSV", _handle, _name);
-        g_gfxCtx.SetD3D11Name(frameBuffer.pDSV, name);
+        std::string name = g_ctx.CreateNativeResourceName("FrameBuffer_DSV", _handle, _name);
+        g_ctx.SetD3D11Name(frameBuffer.pDSV, name);
     }
 }
 
@@ -2945,28 +2940,28 @@ void SetShaderName(
         "ComputeShader"
     };
 
-    ShaderRef& shader = g_gfxCtx.shaders[_handle];
-    shader.name       = g_gfxCtx.CreateNativeResourceName(k_names[EnumToInt(shader.stage)], _handle, _name);
+    ShaderRef& shader = g_ctx.shaders[_handle];
+    shader.name       = g_ctx.CreateNativeResourceName(k_names[EnumToInt(shader.stage)], _handle, _name);
 
     switch (shader.stage)
     {
         case eShader::VertexShader:
-            g_gfxCtx.SetD3D11Name(shader.pVertexShader, shader.name);
+            g_ctx.SetD3D11Name(shader.pVertexShader, shader.name);
             break;
         case eShader::PixelShader:
-            g_gfxCtx.SetD3D11Name(shader.pPixelShader, shader.name);
+            g_ctx.SetD3D11Name(shader.pPixelShader, shader.name);
             break;
         case eShader::GeometryShader:
-            g_gfxCtx.SetD3D11Name(shader.pGeometryShader, shader.name);
+            g_ctx.SetD3D11Name(shader.pGeometryShader, shader.name);
             break;
         case eShader::HullShader:
-            g_gfxCtx.SetD3D11Name(shader.pHullShader, shader.name);
+            g_ctx.SetD3D11Name(shader.pHullShader, shader.name);
             break;
         case eShader::DomainShader:
-            g_gfxCtx.SetD3D11Name(shader.pDomainShader, shader.name);
+            g_ctx.SetD3D11Name(shader.pDomainShader, shader.name);
             break;
         case eShader::ComputeShader:
-            g_gfxCtx.SetD3D11Name(shader.pComputeShader, shader.name);
+            g_ctx.SetD3D11Name(shader.pComputeShader, shader.name);
             break;
         default:
             JAM_ASSERT(0, "Unsupported shader stage");
@@ -2977,7 +2972,7 @@ TextureHandle LoadTexture(
     const DirectX::ScratchImage& _scratchImage)
 {
     ID3D11Resource* pResource = nullptr;
-    JAM_CHECK_COM(DirectX::CreateTexture(g_gfxCtx.pd3d11Device,
+    JAM_CHECK_COM(DirectX::CreateTexture(g_ctx.pd3d11Device,
                                          _scratchImage.GetImages(),
                                          _scratchImage.GetImageCount(),
                                          _scratchImage.GetMetadata(),
@@ -2989,7 +2984,7 @@ TextureHandle LoadTexture(
     texture.width     = NarrowCast<Int32>(metaData.width);
     texture.height    = NarrowCast<Int32>(metaData.height);
     texture.depth     = NarrowCast<Int32>(metaData.depth);
-    texture.format    = g_gfxCtx.GetNativeFormatFromDXGIFormat(metaData.format);
+    texture.format    = g_ctx.GetNativeFormatFromDXGIFormat(metaData.format);
     texture.arraySize = NarrowCast<Int32>(metaData.arraySize);
     texture.samples   = 1;
     texture.mipsCount = NarrowCast<Int32>(metaData.mipLevels);
@@ -3015,14 +3010,14 @@ TextureHandle LoadTexture(
         JAM_ASSERT(0, "Unsupported texture dimension");
     }
 
-    JAM_CHECK_COM(DirectX::CreateShaderResourceView(g_gfxCtx.pd3d11Device,
+    JAM_CHECK_COM(DirectX::CreateShaderResourceView(g_ctx.pd3d11Device,
                                                     _scratchImage.GetImages(),
                                                     _scratchImage.GetImageCount(),
                                                     _scratchImage.GetMetadata(),
                                                     &texture.pSRV));
 
-    TextureHandle handle      = g_gfxCtx.textures.Alloc();
-    g_gfxCtx.textures[handle] = std::move(texture);
+    TextureHandle handle   = g_ctx.textures.Alloc();
+    g_ctx.textures[handle] = std::move(texture);
     SetTextureName(handle);
     return handle;
 }
@@ -3063,8 +3058,8 @@ void UploadTexture2D(
     const Int32         _xOffset,
     const Int32         _yOffset)
 {
-    const TextureRef& texture = g_gfxCtx.textures[_handle];
-    g_gfxCtx.UploadTexture(
+    const TextureRef& texture = g_ctx.textures[_handle];
+    g_ctx.UploadTexture(
         texture,
         _uploadTexData,
         _uploadTexWidth,
@@ -3088,8 +3083,8 @@ void UploadTextureCube(
     const Int32         _xOffset,
     const Int32         _yOffset)
 {
-    const TextureRef& texture = g_gfxCtx.textures[_handle];
-    g_gfxCtx.UploadTexture(
+    const TextureRef& texture = g_ctx.textures[_handle];
+    g_ctx.UploadTexture(
         texture,
         _uploateTexData,
         _uploadTexWidth,
@@ -3113,8 +3108,8 @@ void UploadTexture3D(
     const Int32         _yOffset,
     const Int32         _zOffset)
 {
-    const TextureRef& texture = g_gfxCtx.textures[_handle];
-    g_gfxCtx.UploadTexture(
+    const TextureRef& texture = g_ctx.textures[_handle];
+    g_ctx.UploadTexture(
         texture,
         _uplodeTexData,
         _uploadTexWidth,
@@ -3132,8 +3127,8 @@ std::vector<UInt8> DownloadTexture2D(
     const Int32         _mipIndex,
     const Int32         _arrayIndex)
 {
-    const TextureRef& texture = g_gfxCtx.textures[_handle];
-    return g_gfxCtx.DownloadTexture(
+    const TextureRef& texture = g_ctx.textures[_handle];
+    return g_ctx.DownloadTexture(
         texture,
         _mipIndex,
         _arrayIndex);
@@ -3145,8 +3140,8 @@ std::vector<UInt8> DownloadTextureCube(
     const Int32         _cubeIndex,
     const eCubeFace     _cubeFace)
 {
-    const TextureRef& texture = g_gfxCtx.textures[_handle];
-    return g_gfxCtx.DownloadTexture(
+    const TextureRef& texture = g_ctx.textures[_handle];
+    return g_ctx.DownloadTexture(
         texture,
         _mipIndex,
         _cubeIndex * 6 + k_d3d11CubeFaceTable[EnumToInt(_cubeFace)]);
@@ -3156,8 +3151,8 @@ std::vector<UInt8> DownloadTexture3D(
     const TextureHandle _handle,
     const Int32         _mipIndex)
 {
-    const TextureRef& texture = g_gfxCtx.textures[_handle];
-    return g_gfxCtx.DownloadTexture(
+    const TextureRef& texture = g_ctx.textures[_handle];
+    return g_ctx.DownloadTexture(
         texture,
         _mipIndex,
         0);
@@ -3166,9 +3161,9 @@ std::vector<UInt8> DownloadTexture3D(
 DirectX::ScratchImage Capture(
     const TextureHandle _handle)
 {
-    const TextureRef&     texture = g_gfxCtx.textures[_handle];
+    const TextureRef&     texture = g_ctx.textures[_handle];
     DirectX::ScratchImage scratchImage;
-    JAM_CHECK_COM(DirectX::CaptureTexture(g_gfxCtx.pd3d11Device, g_gfxCtx.pd3d11DeviceContext, texture.pResource, scratchImage));
+    JAM_CHECK_COM(DirectX::CaptureTexture(g_ctx.pd3d11Device, g_ctx.pd3d11DeviceContext, texture.pResource, scratchImage));
     return scratchImage;
 }
 
@@ -3178,17 +3173,17 @@ void Resolve(
     const TextureHandle _dstHandle,
     const Int32         _dstArrayIndex)
 {
-    TextureRef& srcTexture = g_gfxCtx.textures[_srcHandle];
-    TextureRef& dstTexture = g_gfxCtx.textures[_dstHandle];
+    TextureRef& srcTexture = g_ctx.textures[_srcHandle];
+    TextureRef& dstTexture = g_ctx.textures[_dstHandle];
     JAM_ASSERT(dstTexture.samples == 1, "Destination texture must not be multi-sampled.");
 
     Int32 srcIndex = srcTexture.mipsCount * _srcArrayIndex;
     Int32 dstIndex = dstTexture.mipsCount * _dstArrayIndex;
-    g_gfxCtx.pd3d11DeviceContext->ResolveSubresource(dstTexture.pResource,
-                                                     dstIndex,
-                                                     srcTexture.pResource,
-                                                     srcIndex,
-                                                     k_formatInfoTable[EnumToInt(dstTexture.format)].texFormat);
+    g_ctx.pd3d11DeviceContext->ResolveSubresource(dstTexture.pResource,
+                                                  dstIndex,
+                                                  srcTexture.pResource,
+                                                  srcIndex,
+                                                  k_formatInfoTable[EnumToInt(dstTexture.format)].texFormat);
 }
 
 void Blit(
@@ -3208,23 +3203,23 @@ void Blit(
     const Int32         _dstY,
     const Int32         _dstZ)
 {
-    const TextureRef& srcTexture = g_gfxCtx.textures[_srcHandle];
-    const TextureRef& dstTexture = g_gfxCtx.textures[_dstHandle];
-    g_gfxCtx.Blit(srcTexture,
-                  dstTexture,
-                  _blitWidthOrZero,
-                  _blitHeightOrZero,
-                  _blitDepthOrZero,
-                  _srcMipIndex,
-                  _srcArrayIndex,
-                  _srcX,
-                  _srcY,
-                  _srcZ,
-                  _dstMipIndex,
-                  _dstArrayIndex,
-                  _dstX,
-                  _dstY,
-                  _dstZ);
+    const TextureRef& srcTexture = g_ctx.textures[_srcHandle];
+    const TextureRef& dstTexture = g_ctx.textures[_dstHandle];
+    g_ctx.Blit(srcTexture,
+               dstTexture,
+               _blitWidthOrZero,
+               _blitHeightOrZero,
+               _blitDepthOrZero,
+               _srcMipIndex,
+               _srcArrayIndex,
+               _srcX,
+               _srcY,
+               _srcZ,
+               _dstMipIndex,
+               _dstArrayIndex,
+               _dstX,
+               _dstY,
+               _dstZ);
 }
 
 void BlitToBackBuffer(
@@ -3238,19 +3233,24 @@ void BlitToBackBuffer(
     const Int32         _dstX,
     const Int32         _dstY)
 {
-    const TextureRef& srcTexture = g_gfxCtx.textures[_srcHandle];
-    const TextureRef& dstTexture = g_gfxCtx.textures[g_gfxCtx.backBufferTextureHandle];
+    const TextureRef& srcTexture = g_ctx.textures[_srcHandle];
+    const TextureRef& dstTexture = g_ctx.textures[g_ctx.backBufferTextureHandle];
     JAM_ASSERT(srcTexture.type == eTextureType::Texture2D, "Source texture must be 2D texture.");
-    g_gfxCtx.Blit(srcTexture, dstTexture, _blitWidthOrZero, _blitHeightOrZero, 1, _srcMipIndex, _srcArrayIndex, _srcX, _srcY, 0, 0, 0, _dstX, _dstY, 0);
+    g_ctx.Blit(srcTexture, dstTexture, _blitWidthOrZero, _blitHeightOrZero, 1, _srcMipIndex, _srcArrayIndex, _srcX, _srcY, 0, 0, 0, _dstX, _dstY, 0);
 }
 
 void ClearRenderTarget(const FrameBufferHandle _handle, const RGBA _color, const Int32 _renderTargetIndex)
 {
-    FrameBufferHandle handle      = _handle == k_invalidHandle ? g_gfxCtx.frameBufferHandleBind : _handle;
-    FrameBuffer&      frameBuffer = g_gfxCtx.frameBuffers[handle];
+    FrameBufferHandle handle      = JAM_IS_VALID_HANDLE(_handle) ? _handle : g_ctx.frameBufferHandleBind;
+    FrameBuffer&      frameBuffer = g_ctx.frameBuffers[handle];
     JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < frameBuffer.renderTargetCount, "Render target m_index out of range.");
-    FLOAT colors[4] = { _color.r / 255.0f, _color.g / 255.0f, _color.b / 255.0f, _color.a / 255.0f };
-    g_gfxCtx.pd3d11DeviceContext->ClearRenderTargetView(frameBuffer.pRTV[_renderTargetIndex], colors);
+    FLOAT colors[4] = {
+        static_cast<float>(_color.r) / 255.0f,
+        static_cast<float>(_color.g) / 255.0f,
+        static_cast<float>(_color.b) / 255.0f,
+        static_cast<float>(_color.a) / 255.0f
+    };
+    g_ctx.pd3d11DeviceContext->ClearRenderTargetView(frameBuffer.pRTV[_renderTargetIndex], colors);
 }
 
 void ClearDepthStencil(
@@ -3260,8 +3260,8 @@ void ClearDepthStencil(
     const float             _depth,
     const UInt8             _stencil)
 {
-    FrameBufferHandle handle      = _handle == k_invalidHandle ? g_gfxCtx.frameBufferHandleBind : _handle;
-    FrameBuffer&      frameBuffer = g_gfxCtx.frameBuffers[handle];
+    FrameBufferHandle handle      = JAM_IS_VALID_HANDLE(_handle) ? _handle : g_ctx.frameBufferHandleBind;
+    FrameBuffer&      frameBuffer = g_ctx.frameBuffers[handle];
     JAM_ASSERT(frameBuffer.pDSV, "Frame buffer does not have a depth stencil view.");
 
     UINT clearFlags = 0;
@@ -3270,14 +3270,14 @@ void ClearDepthStencil(
     if (_bClearStencil)
         clearFlags |= D3D11_CLEAR_STENCIL;
 
-    g_gfxCtx.pd3d11DeviceContext->ClearDepthStencilView(frameBuffer.pDSV, clearFlags, _depth, _stencil);
+    g_ctx.pd3d11DeviceContext->ClearDepthStencilView(frameBuffer.pDSV, clearFlags, _depth, _stencil);
 }
 
 const TextureHandle& GetRenderTargetTexture(
     const FrameBufferHandle _handle,
     const Int32             _renderTargetIndex)
 {
-    const FrameBuffer& frameBuffer = g_gfxCtx.frameBuffers[_handle];
+    const FrameBuffer& frameBuffer = g_ctx.frameBuffers[_handle];
     JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < frameBuffer.renderTargetCount, "Render target m_index out of range.");
     return frameBuffer.renderTargetTextureHandles[_renderTargetIndex];
 }
@@ -3285,7 +3285,7 @@ const TextureHandle& GetRenderTargetTexture(
 const TextureHandle& GetDepthStencilTexture(
     const FrameBufferHandle _handle)
 {
-    const FrameBuffer& frameBuffer = g_gfxCtx.frameBuffers[_handle];
+    const FrameBuffer& frameBuffer = g_ctx.frameBuffers[_handle];
     JAM_ASSERT(frameBuffer.pDSV, "Frame buffer does not have a depth stencil view.");
     return frameBuffer.depthStencilTextureHandle;
 }
@@ -3296,8 +3296,8 @@ void UploadBuffer(
     const Int32              _offset,
     const bool               _bDiscard)
 {
-    const VertexBuffer& buffer = g_gfxCtx.vertexBuffers[_handle];
-    g_gfxCtx.UploadBuffer(buffer.buffer, _writeData, _offset, _bDiscard);
+    const VertexBuffer& buffer = g_ctx.vertexBuffers[_handle];
+    g_ctx.UploadBuffer(buffer.buffer, _writeData, _offset, _bDiscard);
 }
 
 void UploadBuffer(
@@ -3306,51 +3306,51 @@ void UploadBuffer(
     const Int32             _offset,
     const bool              _bDiscard)
 {
-    const IndexBuffer& buffer = g_gfxCtx.indexBuffers[_handle];
-    g_gfxCtx.UploadBuffer(buffer.buffer, _writeData, _offset, _bDiscard);
+    const IndexBuffer& buffer = g_ctx.indexBuffers[_handle];
+    g_ctx.UploadBuffer(buffer.buffer, _writeData, _offset, _bDiscard);
 }
 
 void UploadBuffer(
     const ConstantBufferHandle _handle,
     const MemoryView           _writeData)
 {
-    ConstantBuffer& buffer = g_gfxCtx.cbuffers[_handle];
-    g_gfxCtx.UploadBuffer(buffer.buffer, _writeData, 0, true);
+    ConstantBuffer& buffer = g_ctx.cbuffers[_handle];
+    g_ctx.UploadBuffer(buffer.buffer, _writeData, 0, true);
 }
 
 std::vector<UInt8> DownloadBuffer(
     const VertexBufferHandle _handle)
 {
-    const VertexBuffer& buffer = g_gfxCtx.vertexBuffers[_handle];
-    return g_gfxCtx.DownloadBuffer(buffer.buffer);
+    const VertexBuffer& buffer = g_ctx.vertexBuffers[_handle];
+    return g_ctx.DownloadBuffer(buffer.buffer);
 }
 
 std::vector<UInt8> DownloadBuffer(
     const IndexBufferHandle _handle)
 {
-    const IndexBuffer& buffer = g_gfxCtx.indexBuffers[_handle];
-    return g_gfxCtx.DownloadBuffer(buffer.buffer);
+    const IndexBuffer& buffer = g_ctx.indexBuffers[_handle];
+    return g_ctx.DownloadBuffer(buffer.buffer);
 }
 
 std::vector<Byte> DownloadBuffer(
     const ConstantBufferHandle _handle)
 {
-    const ConstantBuffer& buffer = g_gfxCtx.cbuffers[_handle];
-    return g_gfxCtx.DownloadBuffer(buffer.buffer);
+    const ConstantBuffer& buffer = g_ctx.cbuffers[_handle];
+    return g_ctx.DownloadBuffer(buffer.buffer);
 }
 
 const VertexLayout& GetVertexLayout(
     const VertexBufferHandle _handle)
 {
-    const VertexBuffer&    buffer    = g_gfxCtx.vertexBuffers[_handle];
-    const VertexLayoutRef& layoutRef = g_gfxCtx.vertexLayouts[buffer.layoutHandle];
+    const VertexBuffer&    buffer    = g_ctx.vertexBuffers[_handle];
+    const VertexLayoutRef& layoutRef = g_ctx.vertexLayouts[buffer.layoutHandle];
     return layoutRef.layout;
 }
 
 void SetVertexBuffer(
     const VertexBufferHandle _handleOrInvalid)
 {
-    const VertexBuffer& buffer = g_gfxCtx.vertexBuffers[_handleOrInvalid];
+    const VertexBuffer& buffer = g_ctx.vertexBuffers[_handleOrInvalid];
     SetVertexBuffer(_handleOrInvalid, buffer.vertexCount, 0);
 }
 
@@ -3359,19 +3359,19 @@ void SetVertexBuffer(
     const Int32              _vertexCount,
     const Int32              _vertexOffset)
 {
-    if (g_gfxCtx.vertexBufferHandleBind != _handleOrInvalid || g_gfxCtx.vertexBufferOffsetBind != _vertexOffset)
+    if (g_ctx.vertexBufferHandleBind != _handleOrInvalid || g_ctx.vertexBufferOffsetBind != _vertexOffset)
     {
-        g_gfxCtx.vertexBufferHandleBind = _handleOrInvalid;
-        g_gfxCtx.vertexBufferOffsetBind = _vertexOffset;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_VertexBuffer;
+        g_ctx.vertexBufferHandleBind = _handleOrInvalid;
+        g_ctx.vertexBufferOffsetBind = _vertexOffset;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_VertexBuffer;
     }
 
-    g_gfxCtx.vertexCountBind = _vertexCount;
+    g_ctx.vertexCountBind = _vertexCount;
 }
 
 void SetIndexBuffer(const IndexBufferHandle _handleOrInvalid)
 {
-    const IndexBuffer& buffer = g_gfxCtx.indexBuffers[_handleOrInvalid];
+    const IndexBuffer& buffer = g_ctx.indexBuffers[_handleOrInvalid];
     SetIndexBuffer(_handleOrInvalid, buffer.indexCount, 0);
 }
 
@@ -3380,14 +3380,14 @@ void SetIndexBuffer(
     const Int32             _indexCount,
     const Int32             _indexOffset)
 {
-    if (g_gfxCtx.indexBufferHandleBind != _handleOrInvalid)
+    if (g_ctx.indexBufferHandleBind != _handleOrInvalid)
     {
-        g_gfxCtx.indexBufferHandleBind = _handleOrInvalid;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_IndexBuffer;
+        g_ctx.indexBufferHandleBind = _handleOrInvalid;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_IndexBuffer;
     }
 
-    g_gfxCtx.indexBufferOffsetBind = _indexOffset;
-    g_gfxCtx.indexCountBind        = _indexCount;
+    g_ctx.indexBufferOffsetBind = _indexOffset;
+    g_ctx.indexCountBind        = _indexCount;
 }
 
 void SetConstantBuffer(
@@ -3396,14 +3396,14 @@ void SetConstantBuffer(
     const Int32                _slot)
 {
     const Int32          stage = EnumToInt(_shader);
-    ConstantBufferBinds& binds = g_gfxCtx.cbufferHandleBinds[stage];
+    ConstantBufferBinds& binds = g_ctx.cbufferHandleBinds[stage];
 
     if (binds.cbufferHandles[_slot] != _handleOrInvalid)
     {
         binds.cbufferHandles[_slot] = _handleOrInvalid;
         binds.dirtyStart            = Min(binds.dirtyStart, _slot);
         binds.dirtyEnd              = Max(binds.dirtyEnd, _slot);
-        g_gfxCtx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSConstantBuffer << stage);
+        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSConstantBuffer << stage);
     }
 }
 
@@ -3413,14 +3413,14 @@ void SetTexture(
     const Int32         _slot)
 {
     const Int32   stage = EnumToInt(_shader);
-    TextureBinds& binds = g_gfxCtx.textureHandleBinds[stage];
+    TextureBinds& binds = g_ctx.textureHandleBinds[stage];
 
     if (binds.textureHandles[_slot] != _handleOrInvalid)
     {
         binds.textureHandles[_slot] = _handleOrInvalid;
         binds.dirtyStart            = Min(binds.dirtyStart, _slot);
         binds.dirtyEnd              = Max(binds.dirtyEnd, _slot);
-        g_gfxCtx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSShaderResourceView << stage);
+        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSShaderResourceView << stage);
     }
 }
 
@@ -3430,23 +3430,23 @@ void SetSampler(
     const Int32        _slot)
 {
     const Int32        shaderIdx = EnumToInt(_shader);
-    SamplerFlagsBinds& binds     = g_gfxCtx.samplerFlagsBinds[shaderIdx];
+    SamplerFlagsBinds& binds     = g_ctx.samplerFlagsBinds[shaderIdx];
 
-    if (!MemEquel(binds.samplerStates[_slot], _state))
+    if (!MemEqeul(binds.samplerStates[_slot], _state))
     {
         binds.samplerStates[_slot] = _state;
         binds.dirtyStart           = Min(binds.dirtyStart, _slot);
         binds.dirtyEnd             = Max(binds.dirtyEnd, _slot);
-        g_gfxCtx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << shaderIdx);
+        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << shaderIdx);
     }
 }
 
 void SetBlendFactor(const RGBA _rgba)
 {
-    if (g_gfxCtx.blendFactorBind.color != _rgba.color)
+    if (g_ctx.blendFactorBind.color != _rgba.color)
     {
-        g_gfxCtx.blendFactorBind = _rgba;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
+        g_ctx.blendFactorBind = _rgba;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
     }
 }
 
@@ -3455,22 +3455,22 @@ void SetStencil(
     const StencilState _bStencil,
     const UInt8        _stencilRef)
 {
-    if (!MemEquel(g_gfxCtx.depthStencilStateBind.fStencil, _fStencil))
+    if (!MemEqeul(g_ctx.depthStencilStateBind.fStencil, _fStencil))
     {
-        g_gfxCtx.depthStencilStateBind.fStencil = _fStencil;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
+        g_ctx.depthStencilStateBind.fStencil = _fStencil;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
     }
 
-    if (!MemEquel(g_gfxCtx.depthStencilStateBind.bStencil, _bStencil))
+    if (!MemEqeul(g_ctx.depthStencilStateBind.bStencil, _bStencil))
     {
-        g_gfxCtx.depthStencilStateBind.bStencil = _bStencil;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
+        g_ctx.depthStencilStateBind.bStencil = _bStencil;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
     }
 
-    if (g_gfxCtx.stencilRefBind != _stencilRef)
+    if (g_ctx.stencilRefBind != _stencilRef)
     {
-        g_gfxCtx.stencilRefBind = _stencilRef;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
+        g_ctx.stencilRefBind = _stencilRef;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
     }
 }
 
@@ -3480,30 +3480,30 @@ void SetBorderColor(
     const RGBA    _rgba)
 {
     const Int32        shaderIndex = EnumToInt(_shader);
-    SamplerFlagsBinds& binds       = g_gfxCtx.samplerFlagsBinds[shaderIndex];
+    SamplerFlagsBinds& binds       = g_ctx.samplerFlagsBinds[shaderIndex];
     if (binds.borderColors[_slot].color != _rgba.color)
     {
         binds.borderColors[_slot] = _rgba;
         binds.dirtyStart          = Min(binds.dirtyStart, _slot);
         binds.dirtyEnd            = Max(binds.dirtyEnd, _slot);
-        g_gfxCtx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << shaderIndex);
+        g_ctx.pipelineDirtyFlags |= (ePipelineDirtyFlags_VSSamplerState << shaderIndex);
     }
 }
 
 void SetGfxState(const GfxState _state)
 {
-    if (!MemEquel(g_gfxCtx.stateBind, _state))
+    if (!MemEqeul(g_ctx.stateBind, _state))
     {
-        g_gfxCtx.stateBind = _state;
+        g_ctx.stateBind = _state;
 
         // depth stencil state
-        DepthStencilStateD3D11 dss = g_gfxCtx.depthStencilStateBind;
+        DepthStencilStateD3D11 dss = g_ctx.depthStencilStateBind;
         dss.bDepthWrite            = _state.bDepthWrite;
         dss.depthTestFunc          = _state.depthTestFunc;
-        if (!MemEquel(g_gfxCtx.depthStencilStateBind, dss))
+        if (!MemEqeul(g_ctx.depthStencilStateBind, dss))
         {
-            g_gfxCtx.depthStencilStateBind = dss;
-            g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
+            g_ctx.depthStencilStateBind = dss;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_DepthStencilState;
         }
 
         // rasterizer state
@@ -3515,27 +3515,27 @@ void SetGfxState(const GfxState _state)
         rs.bLineAA      = _state.bLineAA;
         rs.bScissor     = _state.bScissor;
         rs.bCCWFront    = _state.bCCWFront;
-        if (!MemEquel(g_gfxCtx.rasterizerStateBind, rs))
+        if (!MemEqeul(g_ctx.rasterizerStateBind, rs))
         {
-            g_gfxCtx.rasterizerStateBind = rs;
-            g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_RasterizerState;
+            g_ctx.rasterizerStateBind = rs;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_RasterizerState;
         }
 
         // blend state
-        BlendStateD3D11 bs   = g_gfxCtx.blendStateBind;
+        BlendStateD3D11 bs   = g_ctx.blendStateBind;
         bs.bAlphaToCoverage  = _state.bAlphaToCoverage;
         bs.bIndependentBlend = _state.bIndependentBlend;
-        if (!MemEquel(g_gfxCtx.blendStateBind, bs))
+        if (!MemEqeul(g_ctx.blendStateBind, bs))
         {
-            g_gfxCtx.blendStateBind = bs;
-            g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
+            g_ctx.blendStateBind = bs;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
         }
 
         // primitive
-        if (g_gfxCtx.primitiveBind != _state.primitive)
+        if (g_ctx.primitiveBind != _state.primitive)
         {
-            g_gfxCtx.primitiveBind = _state.primitive;
-            g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_Primitive;
+            g_ctx.primitiveBind = _state.primitive;
+            g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_Primitive;
         }
     }
 }
@@ -3545,39 +3545,39 @@ void SetBlendState(
     const BlendState _state)
 {
     JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < k_renderTargetCountMax, "Render target index out of range.");
-    BlendState bs = g_gfxCtx.blendStateBind.renderTarget[_renderTargetIndex];
-    if (!MemEquel(bs, _state))
+    BlendState bs = g_ctx.blendStateBind.renderTarget[_renderTargetIndex];
+    if (!MemEqeul(bs, _state))
     {
-        g_gfxCtx.blendStateBind.renderTarget[_renderTargetIndex] = _state;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
+        g_ctx.blendStateBind.renderTarget[_renderTargetIndex] = _state;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_BlendState;
     }
 }
 
 void SetProgram(const ProgramHandle _handleOrInvalid)
 {
-    if (g_gfxCtx.programHandleBind != _handleOrInvalid)
+    if (g_ctx.programHandleBind != _handleOrInvalid)
     {
-        g_gfxCtx.programHandleBind = _handleOrInvalid;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_Program;
+        g_ctx.programHandleBind = _handleOrInvalid;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_Program;
     }
 }
 
 void SetFrameBuffer(const FrameBufferHandle _handleOrInvalid)
 {
-    FrameBufferHandle handle = _handleOrInvalid == k_invalidHandle ? g_gfxCtx.backBufferFrameBufferHandle : _handleOrInvalid;
-    if (g_gfxCtx.frameBufferHandleBind != handle)
+    FrameBufferHandle handle = JAM_IS_VALID_HANDLE(_handleOrInvalid) ? _handleOrInvalid : g_ctx.backBufferFrameBufferHandle;
+    if (g_ctx.frameBufferHandleBind != handle)
     {
-        g_gfxCtx.frameBufferHandleBind = handle;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_FrameBuffer;
+        g_ctx.frameBufferHandleBind = handle;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_FrameBuffer;
     }
 }
 
 void SetViewport(const Viewport _viewport)
 {
-    if (g_gfxCtx.viewportBind.viewport != _viewport.viewport)
+    if (g_ctx.viewportBind.viewport != _viewport.viewport)
     {
-        g_gfxCtx.viewportBind = _viewport;
-        g_gfxCtx.pipelineDirtyFlags |= ePipelineDirtyFlags_Viewport;
+        g_ctx.viewportBind = _viewport;
+        g_ctx.pipelineDirtyFlags |= ePipelineDirtyFlags_Viewport;
     }
 }
 
@@ -3588,12 +3588,12 @@ void SetViewport(const UInt16 _x, const UInt16 _y, const UInt16 _width, const UI
 
 void Touch()
 {
-    if (g_gfxCtx.pipelineDirtyFlags & ePipelineDirtyFlags_FrameBuffer)
+    if (g_ctx.pipelineDirtyFlags & ePipelineDirtyFlags_FrameBuffer)
     {
-        JAM_ASSERT(g_gfxCtx.frameBufferHandleBind != k_invalidHandle, "frameBufferHandleBind is invalid");
-        const FrameBuffer& fb = g_gfxCtx.frameBuffers[g_gfxCtx.frameBufferHandleBind];
-        g_gfxCtx.pd3d11DeviceContext->OMSetRenderTargets(fb.renderTargetCount, fb.pRTV, fb.pDSV);
-        g_gfxCtx.pipelineDirtyFlags &= ~ePipelineDirtyFlags_FrameBuffer;
+        JAM_ASSERT(JAM_IS_VALID_HANDLE(g_ctx.frameBufferHandleBind), "frameBufferHandleBind is invalid");
+        const FrameBuffer& fb = g_ctx.frameBuffers[g_ctx.frameBufferHandleBind];
+        g_ctx.pd3d11DeviceContext->OMSetRenderTargets(fb.renderTargetCount, fb.pRTV, fb.pDSV);
+        g_ctx.pipelineDirtyFlags &= ~ePipelineDirtyFlags_FrameBuffer;
     }
 }
 
@@ -3601,22 +3601,22 @@ ShaderHandle GetShader(
     const ProgramHandle _programHandle,
     const eShader       _shaderType)
 {
-    const Program&     program = g_gfxCtx.programs[_programHandle];
+    const Program&     program = g_ctx.programs[_programHandle];
     const ShaderHandle handle  = program.shaderHandles[EnumToInt(_shaderType)];
-    JAM_ASSERT(handle != k_invalidHandle, "Program does not have the specified shader stage.");
+    JAM_ASSERT(JAM_IS_VALID_HANDLE(handle), "Program does not have the specified shader stage.");
     return handle;
 }
 
 void Submit()
 {
-    g_gfxCtx.ApplyPipeline();
-    if (g_gfxCtx.indexBufferHandleBind == k_invalidHandle)
+    g_ctx.ApplyPipeline();
+    if (JAM_IS_VALID_HANDLE(g_ctx.indexBufferHandleBind))
     {
-        g_gfxCtx.pd3d11DeviceContext->Draw(g_gfxCtx.vertexCountBind, 0);
+        g_ctx.pd3d11DeviceContext->DrawIndexed(g_ctx.indexCountBind, g_ctx.indexBufferOffsetBind, 0);
     }
     else
     {
-        g_gfxCtx.pd3d11DeviceContext->DrawIndexed(g_gfxCtx.indexCountBind, g_gfxCtx.indexBufferOffsetBind, 0);
+        g_ctx.pd3d11DeviceContext->Draw(g_ctx.vertexCountBind, 0);
     }
 }
 

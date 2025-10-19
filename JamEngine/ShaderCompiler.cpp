@@ -8,7 +8,10 @@
 #include <d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
 
-using namespace jam;
+
+
+namespace jam
+{
 
 static UINT CreateCompileFlags(const eShaderCompileFlags _flags)
 {
@@ -40,9 +43,6 @@ constexpr std::array<const char*, EnumCount<eShader>()> k_ShaderModelTable {
     "ds_5_0",
     "cs_5_0",
 };
-
-namespace jam
-{
 
 eErrorCode ShaderCompiler::CompileFromFile(
     const fs::path&                    _path,

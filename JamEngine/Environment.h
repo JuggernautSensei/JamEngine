@@ -5,11 +5,6 @@ namespace jam
 
 class ImageTexture;
 
-}
-
-namespace jam
-{
-
 enum class eSkyboxType
 {
     SolidColor = 0,
@@ -30,6 +25,16 @@ enum class eToneMappingType
     Filmic,
 };
 
+enum class eFxaaQuality
+{
+    VeryLow = 0,
+    Low,
+    Medium,
+    High,
+    VeryHigh,
+    Ultra,
+};
+
 enum class eCascadeLevel
 {
     level2,
@@ -39,6 +44,13 @@ enum class eCascadeLevel
 
 constexpr Int32 k_maxShadowCascadeLevel = 4;
 
+enum class eSSAOKernel
+{
+    Kernel4x4,
+    Kernel6x6,
+    Kernel8x8,
+};
+
 struct Environment
 {
     // sun
@@ -47,18 +59,18 @@ struct Environment
     Vec3  sunColor     = Vec3(1.f, 1.f, 1.f);
 
     // shadow
+    bool          bShadowEnabled                               = false;
     eCascadeLevel shadowCascadeLevel                           = eCascadeLevel::level3;
     float         shadowCascadeRanges[k_maxShadowCascadeLevel] = { 100, 300, 600, 1000 };
     float         shadowBias                                   = 0.005f;
-    float         zMult                                        = 100.f;
+    float         shadowCascadeExtendZScale                    = 5.f;
 
     // ibl
-    std::shared_ptr<ImageTexture> irradianceMap = nullptr;
-    std::shared_ptr<ImageTexture> specularMap   = nullptr;
-    std::shared_ptr<ImageTexture> brdfLUT       = nullptr;
-
-    // ambient
-    Vec3 ambientColor = Vec3(0.1f, 0.1f, 0.1f);
+    std::shared_ptr<ImageTexture> irradianceMap          = nullptr;
+    std::shared_ptr<ImageTexture> specularMap            = nullptr;
+    std::shared_ptr<ImageTexture> brdfLUT                = nullptr;
+    float                         irradianceMapIntensity = 1.f;
+    float                         specularMapIntensity   = 1.f;
 
     // skybox
     eSkyboxType                   skyboxType    = eSkyboxType::SolidColor;
@@ -66,8 +78,10 @@ struct Environment
     Vec3                          skyboxColor   = Vec3(0.1f, 0.1f, 0.1f);   // solid color
 
     // ssao
-    float ssaoRadius    = 0.5f;
-    float ssaoIntensity = 1.f;
+    bool        bSSAOEnabled   = false;
+    eSSAOKernel ssaoKernelSize = eSSAOKernel::Kernel8x8;
+    float       ssaoRadius     = 0.5f;
+    float       ssaoBias       = 0.025f;
 
     // fog
     Vec3  fogColor             = Vec3(0.5f, 0.5f, 0.5f);
@@ -84,6 +98,9 @@ struct Environment
     // bloom
     float bloomBlurRadius    = 4.f;   // sigma
     float bloomCombineFactor = 1.f;
+
+    // fxaa
+    eFxaaQuality fxaaQuality = eFxaaQuality::Medium;
 };
 
 }   // namespace jam

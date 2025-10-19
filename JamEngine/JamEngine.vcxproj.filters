@@ -118,9 +118,6 @@
     <ClCompile Include="Material.cpp">
       <Filter>5. Assets\Material</Filter>
     </ClCompile>
-    <ClCompile Include="PostProcess.cpp">
-      <Filter>4. RenderSystem\PostProcess</Filter>
-    </ClCompile>
     <ClCompile Include="BaseUtilities.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
@@ -208,26 +205,20 @@
     <ClCompile Include="FileUtilities.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer3D.cpp">
-      <Filter>4. RenderSystem\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Vendor\DirectXTK\SimpleMath.cpp">
       <Filter>98. Vendor\SimpleMath</Filter>
     </ClCompile>
     <ClCompile Include="Environment.cpp">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Transform.cpp">
-      <Filter>4. RenderSystem\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="RendererVertex.cpp">
-      <Filter>4. RenderSystem\Renderer</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="RadixSort.cpp">
       <Filter>99. Utilities\Algorithm</Filter>
@@ -236,13 +227,19 @@
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="DrawItem.cpp">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="HierarchyTransform.cpp">
       <Filter>3. Scene\Entitiy</Filter>
     </ClCompile>
-    <ClCompile Include="DrawItemCollector.cpp">
-      <Filter>4. RenderSystem\Utilities</Filter>
+    <ClCompile Include="CullingSystem.cpp">
+      <Filter>4. RenderSystem\CullingSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystemBase.cpp">
+      <Filter>4. RenderSystem\RenderSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererSystem.cpp">
+      <Filter>4. RenderSystem\RenderSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -381,9 +378,6 @@
     <Filter Include="4. RenderSystem">
       <UniqueIdentifier>{638827b8-117f-4a1d-b48e-b43142fcb176}</UniqueIdentifier>
     </Filter>
-    <Filter Include="4. RenderSystem\PostProcess">
-      <UniqueIdentifier>{451616a9-a9c0-49ff-ae32-fe433ebeb331}</UniqueIdentifier>
-    </Filter>
     <Filter Include="4. RenderSystem\DebugDraw">
       <UniqueIdentifier>{7fbe4c0b-5051-432a-a8f0-37e31fbc7f59}</UniqueIdentifier>
     </Filter>
@@ -392,12 +386,6 @@
     </Filter>
     <Filter Include="4. RenderSystem\ImGui">
       <UniqueIdentifier>{b3b02ff0-0cff-479b-be5d-b4cb49c06bd8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\Renderer">
-      <UniqueIdentifier>{fb5c52c8-3fa4-44ea-a6e7-6a6013b9c61c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\Utilities">
-      <UniqueIdentifier>{22e1aa7f-acf2-482a-b1ac-6595bab91168}</UniqueIdentifier>
     </Filter>
     <Filter Include="4. RenderSystem\Shader">
       <UniqueIdentifier>{66593e55-73f5-4705-9f1f-224a7d365853}</UniqueIdentifier>
@@ -425,6 +413,15 @@
     </Filter>
     <Filter Include="98. Vendor\bvh">
       <UniqueIdentifier>{8ac959a2-43d2-47db-ab30-55b52c019169}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Utilities">
+      <UniqueIdentifier>{22e1aa7f-acf2-482a-b1ac-6595bab91168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. RenderSystem\CullingSystem">
+      <UniqueIdentifier>{d377728f-8395-4bae-8ef7-c81df93f9697}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. RenderSystem\RenderSystem">
+      <UniqueIdentifier>{9c597240-4bda-4dce-859f-c0e82fad73bc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -538,9 +535,6 @@
     </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>5. Assets\Material</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess.h">
-      <Filter>4. RenderSystem\PostProcess</Filter>
     </ClInclude>
     <ClInclude Include="BaseUtilities.h">
       <Filter>99. Utilities</Filter>
@@ -668,9 +662,6 @@
     <ClInclude Include="FileUtilities.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer3D.h">
-      <Filter>4. RenderSystem\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="EmbeddedShaderGlue.h">
       <Filter>4. RenderSystem\Shader</Filter>
     </ClInclude>
@@ -678,19 +669,16 @@
       <Filter>98. Vendor\SimpleMath</Filter>
     </ClInclude>
     <ClInclude Include="Environment.h">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
-      <Filter>4. RenderSystem\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="RendererVertex.h">
-      <Filter>4. RenderSystem\Renderer</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="RadixSort.h">
       <Filter>99. Utilities\Algorithm</Filter>
@@ -762,13 +750,19 @@
       <Filter>98. Vendor\bvh</Filter>
     </ClInclude>
     <ClInclude Include="DrawItem.h">
-      <Filter>4. RenderSystem\Utilities</Filter>
+      <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="HierarchyTransform.h">
       <Filter>3. Scene\Entitiy</Filter>
     </ClInclude>
-    <ClInclude Include="DrawItemCollector.h">
-      <Filter>4. RenderSystem\Utilities</Filter>
+    <ClInclude Include="CullingSystem.h">
+      <Filter>4. RenderSystem\CullingSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystemBase.h">
+      <Filter>4. RenderSystem\RenderSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererSystem.h">
+      <Filter>4. RenderSystem\RenderSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -798,16 +792,16 @@
     <FxCompile Include="shaders\hlsl\FogPS.hlsl">
       <Filter>4. RenderSystem\Shader\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\BloomUpFilterPS.hlsl">
+    <FxCompile Include="shaders\hlsl\BloomXPS.hlsl">
       <Filter>4. RenderSystem\Shader\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\BloomDownFilterPS.hlsl">
+    <FxCompile Include="shaders\hlsl\BloomYPS.hlsl">
       <Filter>4. RenderSystem\Shader\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\BloomCombineFilterPS.hlsl">
+    <FxCompile Include="shaders\hlsl\BloomCombinePS.hlsl">
       <Filter>4. RenderSystem\Shader\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\SamplingPS.hlsl">
+    <FxCompile Include="shaders\hlsl\PassThroughPS.hlsl">
       <Filter>4. RenderSystem\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\DebugDrawSolidShader.hlsl">
@@ -831,9 +825,6 @@
     <FxCompile Include="shaders\hlsl\SSAOPS.hlsl">
       <Filter>4. RenderSystem\Shader\SSAO</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\SSAOBlurPS.hlsl">
-      <Filter>4. RenderSystem\Shader\SSAO</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\hlsl\SkyboxShader.hlsl">
       <Filter>4. RenderSystem\Shader\Skybox</Filter>
     </FxCompile>
@@ -854,6 +845,15 @@
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\FullScreenVS.hlsl">
       <Filter>4. RenderSystem\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\HLSL\PBRLightVolumeShaderForDirectional.hlsl">
+      <Filter>4. RenderSystem\Shader\LightVolume</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\HLSL\SSAOBlurXPS.hlsl">
+      <Filter>4. RenderSystem\Shader\SSAO</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\HLSL\SSAOBlurYPS.hlsl">
+      <Filter>4. RenderSystem\Shader\SSAO</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

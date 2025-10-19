@@ -6,11 +6,9 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam::logger
+{
 
 constexpr const char* const k_defaultLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] %v";
 
@@ -29,7 +27,7 @@ struct LogContext
         {
             sinks.push_back(sink);
         }
-     
+
         auto newLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
         newLogger->set_level(globalLevel);
         newLogger->set_pattern(globalPattern);
@@ -39,14 +37,7 @@ struct LogContext
     HashMap<std::string, spdlog::sink_ptr> sinkMap;
     std::string                            globalPattern = k_defaultLogPattern;
     spdlog::level::level_enum              globalLevel   = spdlog::level::trace;
-};
-
-static LogContext g_loggerCtx;
-
-//////////////////////////////////////////////////////////////
-
-namespace jam::logger
-{
+} g_ctx;
 
 void Init()
 {
@@ -73,56 +64,56 @@ void Shutdown()
 {
     JAM_LOGGER_DEBUG("Logger shutting down...");
     spdlog::default_logger()->flush();
-    g_loggerCtx.sinkMap.clear();
+    g_ctx.sinkMap.clear();
     spdlog::shutdown();
 }
 
 void AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink)
 {
-    JAM_ASSERT(!g_loggerCtx.sinkMap.contains(std::string(_sinkName)), "Sink already exists: {}", _sinkName);
-    g_loggerCtx.sinkMap.emplace(std::string(_sinkName), _sink);
-    g_loggerCtx.UpdateLogger();
+    JAM_ASSERT(!g_ctx.sinkMap.contains(std::string(_sinkName)), "Sink already exists: {}", _sinkName);
+    g_ctx.sinkMap.emplace(std::string(_sinkName), _sink);
+    g_ctx.UpdateLogger();
 }
 
 void RemoveSink(std::string_view _sinkName)
 {
-    auto it = g_loggerCtx.sinkMap.find(std::string(_sinkName));
-    JAM_ASSERT(it != g_loggerCtx.sinkMap.end(), "Sink not found: {}", _sinkName);
-    g_loggerCtx.sinkMap.erase(it);
-    g_loggerCtx.UpdateLogger();
+    auto it = g_ctx.sinkMap.find(std::string(_sinkName));
+    JAM_ASSERT(it != g_ctx.sinkMap.end(), "Sink not found: {}", _sinkName);
+    g_ctx.sinkMap.erase(it);
+    g_ctx.UpdateLogger();
 }
 
 const std::shared_ptr<spdlog::sinks::sink>& GetSink(std::string_view _sinkName)
 {
     std::string key { _sinkName };
-    JAM_ASSERT(g_loggerCtx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    return g_loggerCtx.sinkMap[key];
+    JAM_ASSERT(g_ctx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    return g_ctx.sinkMap[key];
 }
 
 void SetLogLevel(eLogLevel _level)
 {
-    g_loggerCtx.globalLevel = static_cast<spdlog::level::level_enum>(_level);
-    spdlog::set_level(g_loggerCtx.globalLevel);
+    g_ctx.globalLevel = static_cast<spdlog::level::level_enum>(_level);
+    spdlog::set_level(g_ctx.globalLevel);
 }
 
 void SetLogLevel(std::string_view _sinkName, eLogLevel _level)
 {
     std::string key { _sinkName };
-    JAM_ASSERT(g_loggerCtx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    g_loggerCtx.sinkMap[key]->set_level(static_cast<spdlog::level::level_enum>(_level));
+    JAM_ASSERT(g_ctx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    g_ctx.sinkMap[key]->set_level(static_cast<spdlog::level::level_enum>(_level));
 }
 
 void SetLogPattern(std::string_view _sinkName, const std::string_view _pattern)
 {
     std::string key { _sinkName };
-    JAM_ASSERT(g_loggerCtx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    g_loggerCtx.sinkMap[key]->set_pattern(std::string(_pattern));
+    JAM_ASSERT(g_ctx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    g_ctx.sinkMap[key]->set_pattern(std::string(_pattern));
 }
 
 void SetLogPattern(const std::string_view _pattern)
 {
-    g_loggerCtx.globalPattern = std::string(_pattern);
-    spdlog::set_pattern(g_loggerCtx.globalPattern);
+    g_ctx.globalPattern = std::string(_pattern);
+    spdlog::set_pattern(g_ctx.globalPattern);
 }
 
 void Flush()

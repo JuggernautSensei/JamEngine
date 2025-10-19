@@ -2,27 +2,6 @@
     "namespace": "jam::shader",
     "shaders": [
         {
-            "entryPoint": "PSMain",
-            "macros": [],
-            "name": "BloomCombineFilterPS",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomCombineFilterPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [],
-            "name": "BloomDownFilterPS",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomDownFilterPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [],
-            "name": "BloomUpFilterPS",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomUpFilterPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
             "entryPoint": "VSMain",
             "macros": [],
             "name": "CascadeShaderMappingShader_VS",
@@ -34,13 +13,6 @@
             "macros": [],
             "name": "FogPS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FogPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [],
-            "name": "FXAAPS",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
             "stage": "PixelShader"
         },
         {
@@ -70,13 +42,6 @@
             "name": "PBRVS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRVS.hlsl",
             "stage": "VertexShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [],
-            "name": "SamplingPS",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SamplingPS.hlsl",
-            "stage": "PixelShader"
         },
         {
             "entryPoint": "VSMain",
@@ -267,6 +232,141 @@
             "name": "CascadeShaderMappingShader_CASCADE_LEVEL_4_GS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\CascadeShaderMappingShader.hlsl",
             "stage": "GeometryShader"
+        },
+        {
+            "entryPoint": "VSMain",
+            "macros": [],
+            "name": "PBRLightVolumeShaderForDirectional_VS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRLightVolumeShaderForDirectional.hlsl",
+            "stage": "VertexShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "PBRLightVolumeShaderForDirectional_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PBRLightVolumeShaderForDirectional.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSmain",
+            "macros": [],
+            "name": "SSAOPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SSAOPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSmain",
+            "macros": [],
+            "name": "SSAOBlurXPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SSAOBlurXPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSmain",
+            "macros": [],
+            "name": "SSAOBlurYPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SSAOBlurYPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomCombinePS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomCombinePS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomXPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomXPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomYPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomYPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "PassThroughPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PassThroughPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "FXAA_PRESET",
+                    "value": "0"
+                }
+            ],
+            "name": "FXAA_VeryLow_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "FXAA_PRESET",
+                    "value": "1"
+                }
+            ],
+            "name": "FXAA_Low_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "FXAA_PRESET",
+                    "value": "2"
+                }
+            ],
+            "name": "FXAA_Medium_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "FXAA_PRESET",
+                    "value": "3"
+                }
+            ],
+            "name": "FXAA_High_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "FXAA_PRESET",
+                    "value": "4"
+                }
+            ],
+            "name": "FXAA_VeryHigh_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [
+                {
+                    "name": "FXAA_PRESET",
+                    "value": "5"
+                }
+            ],
+            "name": "FXAA_Ultra_PS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
         }
     ]
 }

@@ -9,7 +9,7 @@
 
 #    define JAM_NAMESPACE_END }
 
-#    define JAM_CBUFFER(_name, _slot)          \
+#    define JAM_CBUFFER(_name, _slot)           \
         constexpr __int32 _name##_SLOT = _slot; \
         struct alignas(16) _name
 
@@ -93,27 +93,29 @@
 
 JAM_NAMESPACE_BEGIN
 
-#define JAM_LIGHT_TYPE             JAM_UINT32
-#define JAM_LIGHT_TYPE_NONE        (0)
-#define JAM_LIGHT_TYPE_POINT       (1)
-#define JAM_LIGHT_TYPE_SPOT        (2)
-#define JAM_LIGHT_TYPE_DIRECTIONAL (3)
+#define JAM_LIGHT_TYPE       JAM_UINT32
+#define JAM_LIGHT_TYPE_NONE  (0)
+#define JAM_LIGHT_TYPE_POINT (1)
+#define JAM_LIGHT_TYPE_SPOT  (2)
 
-#define JAM_TEXTURE_BIND_FLAGS               JAM_UINT32
-#define JAM_TEXTURE_BIND_FLAGS_NONE          (0)
-#define JAM_TEXTURE_BIND_FLAGS_ALBEDO        (1 << 0)
-#define JAM_TEXTURE_BIND_FLAGS_NORMAL        (1 << 1)
-#define JAM_TEXTURE_BIND_FLAGS_METALLIC      (1 << 3)
-#define JAM_TEXTURE_BIND_FLAGS_ROUGHNESS     (1 << 4)
-#define JAM_TEXTURE_BIND_FLAGS_AO            (1 << 5)
-#define JAM_TEXTURE_BIND_FLAGS_EMISSIVE      (1 << 6)
-#define JAM_TEXTURE_BIND_FLAGS_BUMP_MAP      (1 << 7)
-#define JAM_TEXTURE_BIND_FLAGS_LIGHT_MAP     (1 << 8)
-#define JAM_TEXTURE_BIND_FLAGS_FLIP_Y_NORMAL (1 << 9)
+#define JAM_TEXTURE_BIND_FLAGS                         JAM_UINT32
+#define JAM_TEXTURE_BIND_FLAGS_NONE                    (0)
+#define JAM_TEXTURE_BIND_FLAGS_ALBEDO                  (1 << 0)
+#define JAM_TEXTURE_BIND_FLAGS_NORMAL                  (1 << 1)
+#define JAM_TEXTURE_BIND_FLAGS_METALLIC                (1 << 3)
+#define JAM_TEXTURE_BIND_FLAGS_ROUGHNESS               (1 << 4)
+#define JAM_TEXTURE_BIND_FLAGS_AO                      (1 << 5)
+#define JAM_TEXTURE_BIND_FLAGS_EMISSIVE                (1 << 6)
+#define JAM_TEXTURE_BIND_FLAGS_VERTEX_DISPLACEMENT_MAP (1 << 7)
+#define JAM_TEXTURE_BIND_FLAGS_LIGHT_MAP               (1 << 8)
+#define JAM_TEXTURE_BIND_FLAGS_FLIP_Y_NORMAL           (1 << 9)
 
-#define JAM_GLOBAL_FLAGS      JAM_UINT32
-#define JAM_GLOBAL_FLAGS_NONE (0)
-#define JAM_GLOBAL_FLAGS_SSAO (1 << 0)
+#define JAM_ENVIRONMENT_FLAGS                    JAM_UINT32
+#define JAM_ENVIRONMENT_FLAGS_NONE               (0)
+#define JAM_ENVIRONMENT_FLAGS_SSAO               (1 << 0)
+#define JAM_ENVIRONMENT_FLAGS_SUN_SHADOW         (1 << 1)
+#define JAM_ENVIRONMENT_FLAGS_SKYBOX_CUBEMAP     (1 << 2)
+#define JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR (1 << 3)
 
 #define JAM_MAX_CASCADE_LEVEL 4
 
@@ -152,6 +154,9 @@ JAM_CBUFFER(CB_LIGHT, 2)
     JAM_FLOAT cb_lightFallOffEnd;         // 4
     JAM_FLOAT cb_lightInnerConeHalfRad;   // 4
     JAM_FLOAT cb_lightOuterConeHalfRad;   // 4
+    //
+    JAM_BOOL cb_bShadowMapping;   // 4
+    JAM_PAD_FLOAT3;               // 12
 };
 
 JAM_CBUFFER(CB_MATERIAL, 3)
@@ -178,30 +183,39 @@ JAM_CBUFFER(CB_MATERIAL, 3)
     JAM_PAD_FLOAT;
 };
 
-JAM_CBUFFER(CB_POSTPROCESS, 4)
+JAM_CBUFFER(CB_ENVIRONMENT, 4)
 {
-    //
-    JAM_FLOAT2 cb_screenSize;   // 8
-    JAM_FLOAT2 cb_texelSize;    // 8
-    //
-    JAM_FLOAT cb_bloomBlurRadius;   // 4
-    JAM_FLOAT cb_combineFactor;     // 4
+    JAM_ENVIRONMENT_FLAGS cb_envFlags;   // 4
+
+    JAM_FLOAT3 cb_sunDirection;   // 12
+    JAM_FLOAT  cb_sunIntensity;   // 4
+    JAM_FLOAT3 cb_sunColor;       // 12
+
+    JAM_FLOAT cb_shadowCascadeLevel;                          // 4
+    JAM_FLOAT cb_shadowCascadeRages[JAM_MAX_CASCADE_LEVEL];   // 16
+    JAM_FLOAT cb_shadowBias;                                  // 4
+
+    JAM_FLOAT cb_irradianceMapIntensity;   // 4
+    JAM_FLOAT cb_specularMapIntensity;     // 4
+    JAM_FLOAT3 cb_skyBoxColor;             // 12
+
+    JAM_UINT32 cb_ssaoKernelSize;   // 4
+    JAM_FLOAT  cb_ssaoRadius;       // 4
+    JAM_FLOAT  cb_ssaoBias;         // 4
+
+    JAM_FLOAT3 cb_fogColor;               // 12
+    JAM_FLOAT  cb_fogDensity;             // 4
+    JAM_FLOAT  cb_fogFallOffStart;        // 4
+    JAM_FLOAT  cb_fogFallOffEnd;          // 4
+    JAM_FLOAT  cb_fogHeightAttenuation;   // 4
+
     JAM_FLOAT cb_exposure;          // 4
     JAM_FLOAT cb_gamma;             // 4
-    //
-    JAM_FLOAT3 cb_fogColor;     // 12
-    JAM_FLOAT  cb_fogDensity;   // 4
-    //
-    JAM_FLOAT cb_fogFallOffStart;        // 4
-    JAM_FLOAT cb_fogFallOffEnd;          // 4
-    JAM_FLOAT cb_fogHeightAttenuation;   // 4
-    JAM_PAD_FLOAT;                       // 4
-};
 
-JAM_CBUFFER(CB_GLOBAL, 5)
-{
-    JAM_GLOBAL_FLAGS cb_globalFlags;   // 4
-    JAM_PAD_FLOAT3;                    // 12
+    JAM_FLOAT cb_bloomBlurRadius;   // 4
+    JAM_FLOAT cb_combineFactor;     // 4
+
+    JAM_PAD_FLOAT;
 };
 
 JAM_CBUFFER(CB_SHADOW_RECEIVER, 5)
@@ -225,8 +239,12 @@ JAM_CBUFFER(CB_CASCADE_SHADOW_CASTER, 7)
 JAM_CBUFFER(CB_OMNIDIRECTIONAL_SHADOW_CASTER, 8)
 {
     JAM_MATRIX cb_ODSProjView[6];
-    JAM_FLOAT3 cb_ODSLightPos;
-    JAM_FLOAT  cb_ODSLightRange;
+};
+
+// 최대 8x8 커널
+JAM_CBUFFER(CB_SSAO_KERNEL, 9)
+{
+    JAM_FLOAT3 cb_ssaoKernel[64];
 };
 
 //===================================================
@@ -284,6 +302,10 @@ JAM_SHADER_RESOURCE_TEXTURE2D(t_shadow, 20);
 JAM_SHADER_RESOURCE_TEXTURECUBE(t_omniDirectionalShadow, 21);
 JAM_SHADER_RESOURCE_TEXTURE2D_ARRAY(t_cascadeShadowArray, 22);
 
+// SSAO [25 ~ 26]
+JAM_SHADER_RESOURCE_TEXTURE2D(t_ssaoKernel, 25);
+JAM_SHADER_RESOURCE_TEXTURE2D(t_ssaoNoise, 26);
+
 // common [25 ~ 29]
 JAM_SHADER_RESOURCE_TEXTURE2D(t_input0, 25);
 JAM_SHADER_RESOURCE_TEXTURE2D(t_input1, 26);
@@ -296,7 +318,8 @@ JAM_SHADER_RESOURCE_TEXTURE2D(t_depth, 27);
 // 고정 샘플러
 JAM_SHADER_RESOURCE_SAMPLER(s_linearWrap, 0);
 JAM_SHADER_RESOURCE_SAMPLER(s_linearClamp, 1);
-JAM_SHADER_RESOURCE_SAMPLER(s_pointClamp, 2);
+JAM_SHADER_RESOURCE_SAMPLER(s_pointWrap, 2);
+JAM_SHADER_RESOURCE_SAMPLER(s_pointClamp, 3);
 JAM_SHADER_RESOURCE_SAMPLER(s_anisotropic4Wrap, 3);
 JAM_SHADER_RESOURCE_SAMPLER(s_shadowLinearClamp, 4);
 

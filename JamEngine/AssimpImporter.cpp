@@ -8,11 +8,9 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-using namespace jam;
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
+namespace jam
+{
 
 constexpr Int32 k_basicImportFlags = aiProcess_JoinIdenticalVertices
                                    | aiProcess_Triangulate
@@ -34,11 +32,6 @@ constexpr Int32 k_basicImportFlags = aiProcess_JoinIdenticalVertices
 constexpr Int32 k_staticMeshImportFlags          = k_basicImportFlags | aiProcess_Debone;
 constexpr Int32 k_basicRemoveComponentFlags      = aiComponent_LIGHTS | aiComponent_CAMERAS | aiComponent_TEXTURES;
 constexpr Int32 k_staticMeshRemoveComponentFlags = k_basicRemoveComponentFlags | aiComponent_BONEWEIGHTS | aiComponent_ANIMATIONS;
-
-////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 eErrorCode AssimpImporter::Import()
 {
@@ -407,7 +400,7 @@ std::vector<Material> AssimpImporter::CreateMaterial() const
         mat.opacity = assimpMat.opacity;
 
         mat.bDoubleSide    = assimpMat.bDoubleSide;
-        mat.bumpMapScaling = assimpMat.bumpScaling;
+        mat.vertexDisplacementMapScale = assimpMat.bumpScaling;
 
         Material material;
         material.SetParams(mat);

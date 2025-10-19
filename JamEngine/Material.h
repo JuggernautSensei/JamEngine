@@ -26,21 +26,21 @@ struct MaterialParams
     float opacity = 1.0f;
 
     // misc
-    bool  bDoubleSide       = false;
-    bool  bFlipYNormalMap   = false;
-    float lightMapIntensity = 1.0f;
-    float aoMapIntensity    = 1.0f;
-    float bumpMapScaling    = 1.0f;
+    bool  bDoubleSide                = false;
+    bool  bFlipYNormalMap            = false;
+    float lightMapIntensity          = 1.0f;
+    float aoMapIntensity             = 1.0f;
+    float vertexDisplacementMapScale = 1.0f;
 
     // textures
-    std::shared_ptr<ImageTexture> albedoMap    = nullptr;
-    std::shared_ptr<ImageTexture> normalMap    = nullptr;
-    std::shared_ptr<ImageTexture> metallicMap  = nullptr;
-    std::shared_ptr<ImageTexture> roughnessMap = nullptr;
-    std::shared_ptr<ImageTexture> aoMap        = nullptr;
-    std::shared_ptr<ImageTexture> emissiveMap  = nullptr;
-    std::shared_ptr<ImageTexture> lightMap     = nullptr;
-    std::shared_ptr<ImageTexture> bumpMap      = nullptr;
+    std::shared_ptr<ImageTexture> albedoMap             = nullptr;
+    std::shared_ptr<ImageTexture> normalMap             = nullptr;
+    std::shared_ptr<ImageTexture> metallicMap           = nullptr;
+    std::shared_ptr<ImageTexture> roughnessMap          = nullptr;
+    std::shared_ptr<ImageTexture> aoMap                 = nullptr;
+    std::shared_ptr<ImageTexture> emissiveMap           = nullptr;
+    std::shared_ptr<ImageTexture> lightMap              = nullptr;
+    std::shared_ptr<ImageTexture> vertexDisplacementMap = nullptr;
 };
 
 class Material : public IAsset

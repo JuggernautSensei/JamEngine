@@ -9,7 +9,9 @@
 #include "Mesh.h"
 
 #include <DirectXMesh.h>
-using namespace jam;
+
+namespace jam
+{
 
 //////////////////////////////////
 ///          INTERNAL          ///
@@ -52,9 +54,6 @@ JAM_NODISCARD static Mesh CreateMeshHelper(
 }
 
 ////////////////////////////////////////////////////////////
-
-namespace jam
-{
 
 Mesh CreateBoxMesh(
     const Vec3&         _size,

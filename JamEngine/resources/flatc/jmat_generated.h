@@ -68,13 +68,15 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_B_FLIPED_Y_NORMAL_MAP = 28,
     VT_LIGHT_MAP_INTENSITY = 30,
     VT_AO_MAP_INTENSITY = 32,
-    VT_ALBEDO_MAP_PATH = 34,
-    VT_NORMAL_MAP_PATH = 36,
-    VT_METALLIC_MAP_PATH = 38,
-    VT_ROUGHNESS_MAP_PATH = 40,
-    VT_AO_MAP_PATH = 42,
-    VT_EMISSIVE_MAP_PATH = 44,
-    VT_LIGHT_MAP_PATH = 46
+    VT_VERTEX_DISPLACEMENT_INTENSITY = 34,
+    VT_ALBEDO_MAP_PATH = 36,
+    VT_NORMAL_MAP_PATH = 38,
+    VT_METALLIC_MAP_PATH = 40,
+    VT_ROUGHNESS_MAP_PATH = 42,
+    VT_AO_MAP_PATH = 44,
+    VT_EMISSIVE_MAP_PATH = 46,
+    VT_LIGHT_MAP_PATH = 48,
+    VT_VERTEX_DISPLACEMENT_MAP_PATH = 50
   };
   uint32_t version() const {
     return GetField<uint32_t>(VT_VERSION, 0);
@@ -121,6 +123,9 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float ao_map_intensity() const {
     return GetField<float>(VT_AO_MAP_INTENSITY, 0.0f);
   }
+  float vertex_displacement_intensity() const {
+    return GetField<float>(VT_VERTEX_DISPLACEMENT_INTENSITY, 0.0f);
+  }
   const ::flatbuffers::String *albedo_map_path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_ALBEDO_MAP_PATH);
   }
@@ -142,6 +147,9 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *light_map_path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_LIGHT_MAP_PATH);
   }
+  const ::flatbuffers::String *vertex_displacement_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VERTEX_DISPLACEMENT_MAP_PATH);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_VERSION, 4) &&
@@ -159,6 +167,7 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_B_FLIPED_Y_NORMAL_MAP, 1) &&
            VerifyField<float>(verifier, VT_LIGHT_MAP_INTENSITY, 4) &&
            VerifyField<float>(verifier, VT_AO_MAP_INTENSITY, 4) &&
+           VerifyField<float>(verifier, VT_VERTEX_DISPLACEMENT_INTENSITY, 4) &&
            VerifyOffset(verifier, VT_ALBEDO_MAP_PATH) &&
            verifier.VerifyString(albedo_map_path()) &&
            VerifyOffset(verifier, VT_NORMAL_MAP_PATH) &&
@@ -173,6 +182,8 @@ struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyString(emissive_map_path()) &&
            VerifyOffset(verifier, VT_LIGHT_MAP_PATH) &&
            verifier.VerifyString(light_map_path()) &&
+           VerifyOffset(verifier, VT_VERTEX_DISPLACEMENT_MAP_PATH) &&
+           verifier.VerifyString(vertex_displacement_map_path()) &&
            verifier.EndTable();
   }
 };
@@ -226,6 +237,9 @@ struct MaterialBuilder {
   void add_ao_map_intensity(float ao_map_intensity) {
     fbb_.AddElement<float>(Material::VT_AO_MAP_INTENSITY, ao_map_intensity, 0.0f);
   }
+  void add_vertex_displacement_intensity(float vertex_displacement_intensity) {
+    fbb_.AddElement<float>(Material::VT_VERTEX_DISPLACEMENT_INTENSITY, vertex_displacement_intensity, 0.0f);
+  }
   void add_albedo_map_path(::flatbuffers::Offset<::flatbuffers::String> albedo_map_path) {
     fbb_.AddOffset(Material::VT_ALBEDO_MAP_PATH, albedo_map_path);
   }
@@ -246,6 +260,9 @@ struct MaterialBuilder {
   }
   void add_light_map_path(::flatbuffers::Offset<::flatbuffers::String> light_map_path) {
     fbb_.AddOffset(Material::VT_LIGHT_MAP_PATH, light_map_path);
+  }
+  void add_vertex_displacement_map_path(::flatbuffers::Offset<::flatbuffers::String> vertex_displacement_map_path) {
+    fbb_.AddOffset(Material::VT_VERTEX_DISPLACEMENT_MAP_PATH, vertex_displacement_map_path);
   }
   explicit MaterialBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -280,14 +297,17 @@ inline ::flatbuffers::Offset<Material> CreateMaterial(
     bool b_fliped_y_normal_map = false,
     float light_map_intensity = 0.0f,
     float ao_map_intensity = 0.0f,
+    float vertex_displacement_intensity = 0.0f,
     ::flatbuffers::Offset<::flatbuffers::String> albedo_map_path = 0,
     ::flatbuffers::Offset<::flatbuffers::String> normal_map_path = 0,
     ::flatbuffers::Offset<::flatbuffers::String> metallic_map_path = 0,
     ::flatbuffers::Offset<::flatbuffers::String> roughness_map_path = 0,
     ::flatbuffers::Offset<::flatbuffers::String> ao_map_path = 0,
     ::flatbuffers::Offset<::flatbuffers::String> emissive_map_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> light_map_path = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> light_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> vertex_displacement_map_path = 0) {
   MaterialBuilder builder_(_fbb);
+  builder_.add_vertex_displacement_map_path(vertex_displacement_map_path);
   builder_.add_light_map_path(light_map_path);
   builder_.add_emissive_map_path(emissive_map_path);
   builder_.add_ao_map_path(ao_map_path);
@@ -295,6 +315,7 @@ inline ::flatbuffers::Offset<Material> CreateMaterial(
   builder_.add_metallic_map_path(metallic_map_path);
   builder_.add_normal_map_path(normal_map_path);
   builder_.add_albedo_map_path(albedo_map_path);
+  builder_.add_vertex_displacement_intensity(vertex_displacement_intensity);
   builder_.add_ao_map_intensity(ao_map_intensity);
   builder_.add_light_map_intensity(light_map_intensity);
   builder_.add_opacity(opacity);
@@ -330,13 +351,15 @@ inline ::flatbuffers::Offset<Material> CreateMaterialDirect(
     bool b_fliped_y_normal_map = false,
     float light_map_intensity = 0.0f,
     float ao_map_intensity = 0.0f,
+    float vertex_displacement_intensity = 0.0f,
     const char *albedo_map_path = nullptr,
     const char *normal_map_path = nullptr,
     const char *metallic_map_path = nullptr,
     const char *roughness_map_path = nullptr,
     const char *ao_map_path = nullptr,
     const char *emissive_map_path = nullptr,
-    const char *light_map_path = nullptr) {
+    const char *light_map_path = nullptr,
+    const char *vertex_displacement_map_path = nullptr) {
   auto albedo_map_path__ = albedo_map_path ? _fbb.CreateString(albedo_map_path) : 0;
   auto normal_map_path__ = normal_map_path ? _fbb.CreateString(normal_map_path) : 0;
   auto metallic_map_path__ = metallic_map_path ? _fbb.CreateString(metallic_map_path) : 0;
@@ -344,6 +367,7 @@ inline ::flatbuffers::Offset<Material> CreateMaterialDirect(
   auto ao_map_path__ = ao_map_path ? _fbb.CreateString(ao_map_path) : 0;
   auto emissive_map_path__ = emissive_map_path ? _fbb.CreateString(emissive_map_path) : 0;
   auto light_map_path__ = light_map_path ? _fbb.CreateString(light_map_path) : 0;
+  auto vertex_displacement_map_path__ = vertex_displacement_map_path ? _fbb.CreateString(vertex_displacement_map_path) : 0;
   return jam::jmat::CreateMaterial(
       _fbb,
       version,
@@ -361,13 +385,15 @@ inline ::flatbuffers::Offset<Material> CreateMaterialDirect(
       b_fliped_y_normal_map,
       light_map_intensity,
       ao_map_intensity,
+      vertex_displacement_intensity,
       albedo_map_path__,
       normal_map_path__,
       metallic_map_path__,
       roughness_map_path__,
       ao_map_path__,
       emissive_map_path__,
-      light_map_path__);
+      light_map_path__,
+      vertex_displacement_map_path__);
 }
 
 inline const jam::jmat::Material *GetMaterial(const void *buf) {

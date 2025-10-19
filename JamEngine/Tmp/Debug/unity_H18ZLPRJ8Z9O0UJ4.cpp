@@ -24,10 +24,10 @@
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RadixSort.cpp"
 
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Renderer3D.cpp"
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RendererSystem.cpp"
 
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RendererVertex.cpp"
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderSystemBase.cpp"
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\SceneDB.cpp"

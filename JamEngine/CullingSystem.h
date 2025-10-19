@@ -2,7 +2,6 @@
 #include "BoundBox.h"
 #include "Components.h"
 #include "DrawItem.h"
-#include "RadixSort.h"
 #include "Scene.h"
 
 #include "vendor/bvh/v2/bbox.h"
@@ -15,68 +14,70 @@
 namespace jam
 {
 
-struct DefaultSortKeyGenerator
-{
-    JAM_NODISCARD UInt64 operator()(const Mesh& _mesh, const Material& _material, const UInt16 _minDepth, const UInt16 _maxDepth) const
-    {
-        // 머테리얼 > 메쉬 > 깊이
-        UInt64 sortKey = 0;
-        sortKey |= _material.GetSortKey();
-        sortKey <<= 16;
-        sortKey |= _mesh.GetSortKey();
-        sortKey <<= 16;
-        sortKey |= _minDepth;
-        return sortKey;
-    }
-};
+// CullingSystem::Collect 의 정책 예시
+//
+// struct SortKeyGenerator
+// {
+//     JAM_NODISCARD UInt64 operator()(const Mesh& _mesh, const Material& _material, const UInt16 _minDepth, const UInt16 _maxDepth) const
+//     {
+//         // 머테리얼 > 메쉬 > 깊이
+//         UInt64 sortKey = 0;
+//         sortKey |= _material.GetSortKey();
+//         sortKey <<= 16;
+//         sortKey |= _mesh.GetSortKey();
+//         sortKey <<= 16;
+//         sortKey |= _minDepth;
+//         return sortKey;
+//     }
+// };
+//
+// struct CullingSystemSink
+// {
+//     void Clear()
+//     {
+//         items.clear();
+//         sortKeys.clear();
+//         tmpItems.clear();
+//         tmpSortKeys.clear();
+//     }
+//
+//     void Add(DrawItem& _item, Entity)
+//     {
+//         items.push_back(&_item);
+//         sortKeys.emplace_back(_item.sortKey);
+//     }
+//
+//     void Sort()
+//     {
+//         size_t n = items.size();
+//         if (n < 200)   // 휴리스틱 값
+//         {
+//             std::ranges::sort(items, CompareDesc);
+//         }
+//         else
+//         {
+//             if (tmpItems.size() < n)
+//             {
+//                 tmpItems.resize(n);
+//                 tmpSortKeys.resize(n);
+//             }
+//
+//             RadixSort(sortKeys.data(), tmpSortKeys.data(), items.data(), tmpItems.data(), NarrowCast<UInt32>(n));
+//         }
+//     }
+//
+//     static bool CompareDesc(const DrawItem* _a, const DrawItem* _b)
+//     {
+//         return _a->sortKey > _b->sortKey;
+//     }
+//
+//     std::vector<DrawItem*> items;
+//     std::vector<UInt64>    sortKeys;
+//     std::vector<DrawItem*> tmpItems;
+//     std::vector<UInt64>    tmpSortKeys;
+// };
 
-struct DefaultCollectorSink
-{
-    void Clear()
-    {
-        items.clear();
-        sortKeys.clear();
-        tmpItems.clear();
-        tmpSortKeys.clear();
-    }
-
-    void Add(DrawItem& _item, Entity)
-    {
-        items.push_back(&_item);
-        sortKeys.emplace_back(_item.sortKey);
-    }
-
-    void Sort()
-    {
-        size_t n = items.size();
-        if (n < 200)   // 휴리스틱 값
-        {
-            std::ranges::sort(items, CompareDesc);
-        }
-        else
-        {
-            if (tmpItems.size() < n)
-            {
-                tmpItems.resize(n);
-                tmpSortKeys.resize(n);
-            }
-
-            RadixSort(sortKeys.data(), tmpSortKeys.data(), items.data(), tmpItems.data(), NarrowCast<UInt32>(n));
-        }
-    }
-
-    static bool CompareDesc(const DrawItem* _a, const DrawItem* _b)
-    {
-        return _a->sortKey > _b->sortKey;
-    }
-
-    std::vector<DrawItem*> items;
-    std::vector<UInt64>    sortKeys;
-    std::vector<DrawItem*> tmpItems;
-    std::vector<UInt64>    tmpSortKeys;
-};
-
-class DrawItemCollector
+class CullingSystem
 {
     using Scalar        = float;
     using V3            = bvh::v2::Vec<Scalar, 3>;
@@ -97,11 +98,13 @@ class DrawItemCollector
     };
 
 public:
-    void Clear();
+    CullingSystem();
+
     void Build(const Scene* _pScene);
+    void Refit(const Scene* _pScene);
 
     template<typename TCollectorSink, typename TSortKeyGen>
-    void CollectVisible(const Frustum& _frustumInW, TCollectorSink& _sink, TSortKeyGen&& _keyGen = DefaultSortKeyGenerator {})
+    void Collect(const Frustum& _frustumInW, TCollectorSink& _sink, TSortKeyGen&& _keyGen)
     {
         _sink.Clear();
 
@@ -110,7 +113,7 @@ public:
 
         // 카메라 info
         const Vec3  cameraPos     = _frustumInW.position;
-        const Vec3  frustumLookTo = _frustumInW.GetLookTo();
+        const Vec3  frustumLookTo = _frustumInW.ViewLookTo();
         const float nearZ         = _frustumInW.GetNear();
         const float farZ          = _frustumInW.GetFar();
         const float invRange      = IsNearlyEqual(nearZ, farZ) ? 0 : 1.0f / (farZ - nearZ);
@@ -133,7 +136,7 @@ public:
                     DrawItem&    item   = itemEx.item;
 
                     const AABB& aabbInW = itemEx.aabbInW;
-                    if (_frustumInW.Intersects(aabbInW) == ePlaneIntersactType::Outside)   // 프러스텀에 포함되지 않으면 스킵
+                    if (_frustumInW.Intersects(aabbInW) == ePlaneIntersectType::Outside)   // 프러스텀에 포함되지 않으면 스킵
                         continue;
 
                     // 깊이값 계산 (단순 AABB 중심과 프러스텀 시선 벡터의 내적 + AABB extents 로 근사)
@@ -169,10 +172,14 @@ public:
         _sink.Sort();
     }
 
+    void Clear();
+
 private:
     JAM_NODISCARD bool   IsIntersectWithFrustum_(const Node& _node, const Frustum& _frustumInW) const;
     JAM_NODISCARD V3     ToV3_(const Vec3& _v) const;
     JAM_NODISCARD Vec3   ToVec3_(const V3& _v) const;
+    JAM_NODISCARD Box    ToBox_(const Vec3& _min, const Vec3& _max) const;
+    JAM_NODISCARD Box    ToBox_(const AABB& _aabb) const;
     JAM_NODISCARD UInt16 EncodeDepth_(float _depth, float _nearZ, float _invRange) const;
 
     std::vector<Box>        m_boxes;
@@ -187,4 +194,5 @@ private:
     ThreadPool m_threadPool;
     Executor   m_executor { m_threadPool };
 };
+
 }   // namespace jam

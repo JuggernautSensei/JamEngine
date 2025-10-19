@@ -740,10 +740,12 @@ void Submit();
 
 }   // namespace jam::gfx
 
+#define JAM_IS_VALID_HANDLE(_handle) (_handle != jam::k_invalidHandle)
+
 /// 핸들 파괴 매크로
 #define JAM_DESTROY_GRAPHICS_HANDLE(_handle, _func) \
     JAM_BEGIN_MACRO_BLOCK                           \
-    if ((_handle) != jam::k_invalidHandle)          \
+    if (JAM_IS_VALID_HANDLE(_handle))               \
     {                                               \
         (_func)((_handle));                         \
         (_handle) = jam::k_invalidHandle;           \
