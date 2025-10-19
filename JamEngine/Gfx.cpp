@@ -589,15 +589,16 @@ struct GfxContext
 } g_ctx;
 
 ID3D11RasterizerState* GfxContext::GetOrCreateD3D11RasterizerState(
-    RasterizerStateD3D11 _state)
+    const RasterizerStateD3D11 _state)
 {
-    UInt32 key = reinterpret_cast<UInt32&>(_state);
+    MurmurHash32 hasher;
+    hasher.Begin();
+    hasher.Add(&_state, sizeof(RasterizerStateD3D11));
+    UInt32 key = hasher.End();
     auto   it  = rasterizerStateCache.find(key);
 
     if (it != rasterizerStateCache.end())
-    {
         return it->second;
-    }
 
     D3D11_RASTERIZER_DESC desc;
     desc.FillMode              = _state.bWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
@@ -629,11 +630,9 @@ ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(
 
     auto it = blendStateCache.find(key);
     if (it != blendStateCache.end())
-    {
         return it->second;
-    }
 
-    D3D11_BLEND_DESC desc;
+    D3D11_BLEND_DESC desc {};
     desc.AlphaToCoverageEnable  = _state.bAlphaToCoverage;
     desc.IndependentBlendEnable = _state.bIndependentBlend;
     for (Int32 i = 0; i < k_renderTargetCountMax; ++i)
@@ -667,14 +666,15 @@ ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(
 }
 
 ID3D11DepthStencilState* GfxContext::GetOrCreateD3D11DepthStencilState(
-    DepthStencilStateD3D11 _state)
+    const DepthStencilStateD3D11 _state)
 {
-    UInt64 key = reinterpret_cast<UInt64&>(_state);
+    MurmurHash64 hasher;
+    hasher.Begin();
+    hasher.Add(&_state, sizeof(DepthStencilStateD3D11));
+    UInt64 key = hasher.End();
     auto   it  = depthStencilStateCache.find(key);
     if (it != depthStencilStateCache.end())
-    {
         return it->second;
-    }
 
     D3D11_DEPTH_STENCIL_DESC desc;
     desc.DepthEnable      = _state.depthTestFunc != eCompareFunc::None;
@@ -733,7 +733,7 @@ ID3D11SamplerState* GfxContext::GetOrCreateD3D11SamplerState(
     desc.BorderColor[1] = static_cast<FLOAT>(_color.g) / 255.0f;
     desc.BorderColor[2] = static_cast<FLOAT>(_color.b) / 255.0f;
     desc.BorderColor[3] = static_cast<FLOAT>(_color.a) / 255.0f;
-    desc.MinLOD         = -FloatLimits::lowest();
+    desc.MinLOD         = FloatLimits::lowest();
     desc.MaxLOD         = FloatLimits::max();
 
     ID3D11SamplerState* pSamplerState = nullptr;
@@ -749,8 +749,10 @@ void GfxContext::ApplyConstantBuffers(const eShader _shader)
     ConstantBufferBinds& binds = cbufferHandleBinds[EnumToInt(_shader)];
 
     Int32 dirtyStart = binds.dirtyStart;
-    Int32 dirtyCount = binds.dirtyStart <= binds.dirtyEnd ? binds.dirtyEnd - binds.dirtyStart + 1 : 0;
+    if (binds.dirtyStart > binds.dirtyEnd)
+        return;
 
+    Int32 dirtyCount = binds.dirtyEnd - binds.dirtyStart + 1;
     for (Int32 index = 0; index < dirtyCount; ++index)
     {
         Handle<ConstantBuffer> handle = binds.cbufferHandles[dirtyStart + index];
@@ -795,15 +797,16 @@ void GfxContext::ApplyShaderResourceViews(
     TextureBinds&                    bindRef = textureHandleBinds[EnumToInt(_shader)];
 
     Int32 dirtyStart = bindRef.dirtyStart;
-    Int32 dirtyCount = (bindRef.dirtyStart <= bindRef.dirtyEnd) ? bindRef.dirtyEnd - bindRef.dirtyStart + 1 : 0;
+    if (bindRef.dirtyStart > bindRef.dirtyEnd)
+        return;
 
+    Int32 dirtyCount = bindRef.dirtyEnd - bindRef.dirtyStart + 1;
     for (Int32 i = 0; i < dirtyCount; ++i)
     {
         Handle<TextureRef> handle = bindRef.textureHandles[dirtyStart + i];
-        s_binder[i]               = handle == k_invalidHandle ? nullptr : textures[handle].pSRV;
+        s_binder[i]               = JAM_IS_VALID_HANDLE(handle) ? textures[handle].pSRV : nullptr;
     }
 
-    // bind
     switch (_shader)
     {
         case eShader::VertexShader:
@@ -840,8 +843,10 @@ void GfxContext::ApplySamplerStates(const eShader _shader)
     SamplerFlagsBinds&         bind = samplerFlagsBinds[EnumToInt(_shader)];
 
     Int32 dirtyStart = bind.dirtyStart;
-    Int32 dirtyCount = (bind.dirtyStart <= bind.dirtyEnd) ? bind.dirtyEnd - bind.dirtyStart + 1 : 0;
+    if (bind.dirtyStart > bind.dirtyEnd)
+        return;
 
+    Int32 dirtyCount = bind.dirtyEnd - bind.dirtyStart + 1;
     for (Int32 i = 0; i < dirtyCount; ++i)
     {
         s_binder[i] = g_ctx.GetOrCreateD3D11SamplerState(bind.samplerStates[dirtyStart + i], bind.borderColors[dirtyStart + i]);
@@ -930,8 +935,15 @@ void GfxContext::ApplyPipeline()
         // input layout
         if (pipelineDirtyFlags & ePipelineDirtyFlags_InputLayout)
         {
-            const VertexLayoutRef& layout = vertexLayouts[vertexLayoutHandleBind];
-            pd3d11DeviceContext->IASetInputLayout(layout.pInputLayout);
+            if (JAM_IS_VALID_HANDLE(vertexLayoutHandleBind))
+            {
+                const VertexLayoutRef& layout = vertexLayouts[vertexLayoutHandleBind];
+                pd3d11DeviceContext->IASetInputLayout(layout.pInputLayout);
+            }
+            else
+            {
+                pd3d11DeviceContext->IASetInputLayout(nullptr);
+            }
         }
 
         // shader program
@@ -1540,7 +1552,7 @@ FrameBuffer GfxContext::CreateNativeFrameBuffer(
             JAM_ASSERT(bIsCubemap == false, "Cubemap render target view is not supported.");
 
             D3D11_RENDER_TARGET_VIEW_DESC rtvDesc {};
-            rtvDesc.Format = k_formatInfoTable[EnumToInt(texture.type)].srvFormat;
+            rtvDesc.Format = k_formatInfoTable[EnumToInt(texture.format)].texFormat;
 
             switch (texture.type)
             {
@@ -1645,14 +1657,15 @@ void GfxContext::UploadBuffer(
         JAM_CHECK_COM(pd3d11Device->CreateBuffer(&desc, &initData, pStagingBuffer.ReleaseAndGetAddressOf()));
 
         D3D11_BOX box;
-        box.left   = _offset;
-        box.right  = _offset + uploadDataWidth;
+        box.left   = 0;
+        box.right  = uploadDataWidth;
         box.top    = 0;
         box.bottom = 1;
         box.front  = 0;
         box.back   = 1;
 
-        pd3d11DeviceContext->CopySubresourceRegion(_buffer.pBuffer, 0, _offset, 0, 0, pStagingBuffer.Get(), 0, &box);
+        pd3d11DeviceContext->CopySubresourceRegion(
+            _buffer.pBuffer, 0, _offset, 0, 0, pStagingBuffer.Get(), 0, &box);
     }
 }
 
@@ -1866,7 +1879,6 @@ void GfxContext::Blit(
     JAM_ASSERT(_dstMipIndex < _dstTexture.mipsCount, "Destination mip index out of range.");
     JAM_ASSERT(_srcArrayIndex < _srcTexture.arraySize, "Source array index out of range.");
     JAM_ASSERT(_dstArrayIndex < _dstTexture.arraySize, "Destination array index out of range.");
-    JAM_ASSERT(_srcTexture.bMutable, "Source texture must be mutable for Blit operation.");
     JAM_ASSERT(_dstTexture.bMutable, "Destination texture must be mutable for Blit operation.");
 
     auto [srcWidth, srcHeight, srcDepth] = CalcMipSize(_srcTexture.width, _srcTexture.height, _srcTexture.depth, _srcMipIndex);
@@ -2613,7 +2625,7 @@ ProgramHandle CreateProgram(
     const ShaderHandle _hsHandle,
     const bool         _bDestroyShader)
 {
-    JAM_ASSERT(JAM_IS_VALID_HANDLE(_vsHandle)&& JAM_IS_VALID_HANDLE(_psHandle), "At least one of vertex shader or pixel shader must be provided");
+    JAM_ASSERT(JAM_IS_VALID_HANDLE(_vsHandle) || JAM_IS_VALID_HANDLE(_psHandle), "At least one of VS or PS must be provided");
 
     Program program;
 
@@ -2677,7 +2689,7 @@ void DestroyVertexBuffer(const VertexBufferHandle _handle)
     UINT d3dRefCount = vertexBuffer.buffer.pBuffer->Release();
     if (d3dRefCount > 0)
     {
-        JAM_ASSERT(0, "Vertex buffer.pBuffer reference vertexCount is not zero. RefCount: {}", d3dRefCount);
+        JAM_ASSERT(0, "Vertex buffer reference count is not zero. RefCount: {}", d3dRefCount);
     }
 
     VertexLayoutHandle layoutHandle = vertexBuffer.layoutHandle;
@@ -2685,7 +2697,7 @@ void DestroyVertexBuffer(const VertexBufferHandle _handle)
 
     // 참조 해제
     Int32 refCount = --vertexLayout.refCount;
-    JAM_ASSERT(refCount >= 0, "VertexLayoutRef reference vertexCount is already zero");
+    JAM_ASSERT(refCount >= 0, "VertexLayoutRef reference count is already zero");
 
     // 객체 파괴
     if (refCount == 0)
@@ -2693,7 +2705,7 @@ void DestroyVertexBuffer(const VertexBufferHandle _handle)
         refCount = vertexLayout.pInputLayout->Release();   // d3d 리소스 파괴
         if (refCount > 0)
         {
-            JAM_ASSERT(0, "Vertex layout.pInputLayout reference vertexCount is not zero. RefCount: {}", refCount);
+            JAM_ASSERT(0, "Vertex layout.pInputLayout reference count is not zero. RefCount: {}", refCount);
         }
 
         g_ctx.vertexLayouts.Free(layoutHandle);             // 레이아웃 핸들 해제
@@ -2709,7 +2721,7 @@ void DestroyIndexBuffer(const IndexBufferHandle _handle)
     UINT         d3dRefCount = indexBuffer.buffer.pBuffer->Release();   // d3d 리소스 파괴
     if (d3dRefCount > 0)
     {
-        JAM_ASSERT(0, "Index buffer.pBuffer reference vertexCount is not zero. RefCount: {}", d3dRefCount);
+        JAM_ASSERT(0, "Index buffer.pBuffer reference count is not zero. RefCount: {}", d3dRefCount);
     }
 
     g_ctx.indexBuffers.Free(_handle);   // 핸들 해제
@@ -2720,7 +2732,7 @@ void DestroyTexture(const TextureHandle _handle)
     // 텍스처 참조 해제
     TextureRef& texture  = g_ctx.textures[_handle];
     Int32       refCount = --texture.refCount;
-    JAM_ASSERT(refCount >= 0, "TextureRef reference vertexCount is already zero");
+    JAM_ASSERT(refCount >= 0, "TextureRef reference count is already zero");
 
     // 텍스처 파괴
     if (texture.refCount == 0)
@@ -2730,14 +2742,14 @@ void DestroyTexture(const TextureHandle _handle)
             UINT d3dRefCount = texture.pSRV->Release();
             if (d3dRefCount > 0)
             {
-                JAM_ASSERT(0, "TextureRef shader resource view reference vertexCount is not zero. RefCount: {}", d3dRefCount);
+                JAM_ASSERT(0, "TextureRef shader resource view reference count is not zero. RefCount: {}", d3dRefCount);
             }
         }
 
         UINT d3dRefCount = texture.pResource->Release();   // 리소스 파괴
         if (d3dRefCount > 0)
         {
-            JAM_ASSERT(0, "TextureRef resource reference vertexCount is not zero. RefCount: {}", d3dRefCount);
+            JAM_ASSERT(0, "TextureRef resource reference count is not zero. RefCount: {}", d3dRefCount);
         }
 
         g_ctx.textures.Free(_handle);   // 핸들 해제
@@ -2755,7 +2767,7 @@ void DestroyFrameBuffer(const FrameBufferHandle _handle)
         UINT                    refCount = pRTV->Release();   // d3d 리소스 파괴
         if (refCount > 0)
         {
-            JAM_ASSERT(0, "Render target view reference vertexCount is not zero. RefCount: {}", refCount);
+            JAM_ASSERT(0, "Render target view reference count is not zero. RefCount: {}", refCount);
         }
 
         DestroyTexture(frameBuffer.renderTargetTextureHandles[i]);   // TextureHandle 해제
@@ -2768,7 +2780,7 @@ void DestroyFrameBuffer(const FrameBufferHandle _handle)
         UINT                    refCount = pDSV->Release();   // d3d 리소스 파괴
         if (refCount > 0)
         {
-            JAM_ASSERT(0, "Depth stencil view reference vertexCount is not zero. RefCount: {}", refCount);
+            JAM_ASSERT(0, "Depth stencil view reference count is not zero. RefCount: {}", refCount);
         }
 
         DestroyTexture(frameBuffer.depthStencilTextureHandle);   // TextureHandle 해제
@@ -2795,11 +2807,11 @@ void DestroyProgram(const ProgramHandle _handle)
 void DestroyShader(const ShaderHandle _handle)
 {
     ShaderRef& shader = g_ctx.shaders[_handle];
-    JAM_ASSERT(shader.refCount > 0, "ShaderRef reference vertexCount is already zero");
+    JAM_ASSERT(shader.refCount > 0, "ShaderRef reference count is already zero");
 
     // 참조 해제
     Int32 refCount = --shader.refCount;
-    JAM_ASSERT(refCount >= 0, "ShaderRef reference vertexCount is already zero");
+    JAM_ASSERT(refCount >= 0, "ShaderRef reference count is already zero");
 
     if (refCount == 0)
     {
@@ -2818,7 +2830,7 @@ void DestroyShader(const ShaderHandle _handle)
 
         if (refCount > 0)
         {
-            JAM_ASSERT(0, "Shader reference vertexCount is not zero. RefCount: {}", refCount);
+            JAM_ASSERT(0, "Shader reference count is not zero. RefCount: {}", refCount);
         }
 
         g_ctx.shaders.Free(_handle);                // Shader 핸들 해제
@@ -2833,7 +2845,7 @@ void DestroyConstantBuffer(
     UINT            refCount = cbuffer.buffer.pBuffer->Release();
     if (refCount > 0)
     {
-        JAM_ASSERT(0, "Constant buffer.pBuffer reference vertexCount is not zero. RefCount: {}", refCount);
+        JAM_ASSERT(0, "Constant buffer.pBuffer reference count is not zero. RefCount: {}", refCount);
     }
 
     g_ctx.cbuffers.Free(_handle);   // 핸들 해제
