@@ -46,7 +46,7 @@ constexpr Int32 k_maxShadowCascadeLevel = 4;
 
 enum class eSSAOKernel
 {
-    Kernel4x4,
+    Kernel4x4 = 0,
     Kernel6x6,
     Kernel8x8,
 };

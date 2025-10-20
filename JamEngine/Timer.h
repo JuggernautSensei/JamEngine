@@ -68,7 +68,7 @@ public:
         m_bRunning = false;
     }
 
-    void Lab()
+    void Lap()
     {
         JAM_ASSERT(m_bRunning, "Timer is not running. Call Init() first.");
         const auto endCounter = std::chrono::steady_clock::now();
@@ -143,7 +143,7 @@ public:
     void Tick()
     {
         JAM_ASSERT(m_timer.IsRunning(), "Timer is not running. Call Init() first.");
-        m_timer.Lab();
+        m_timer.Lap();
         m_deltaNs = m_timer.GetIntervalNs();
     }
 
@@ -199,10 +199,10 @@ public:
         logger::Trace(R"(========== scoped timer end - "{}" - duration: {} {} ==========)", m_name, elapsedTime, EnumToString(m_timeUnit));
     }
 
-    ScopedTimer(const ScopedTimer&)                = default;
-    ScopedTimer(ScopedTimer&&) noexcept            = default;
-    ScopedTimer& operator=(const ScopedTimer&)     = default;
-    ScopedTimer& operator=(ScopedTimer&&) noexcept = default;
+    ScopedTimer(const ScopedTimer&)                = delete;
+    ScopedTimer(ScopedTimer&&) noexcept            = delete;
+    ScopedTimer& operator=(const ScopedTimer&)     = delete;
+    ScopedTimer& operator=(ScopedTimer&&) noexcept = delete;
 
 private:
     std::string m_name;

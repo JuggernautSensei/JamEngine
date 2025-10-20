@@ -200,29 +200,29 @@ float Plane::DistanceToPoint(const Vec3& _point) const
     return XMVectorGetX(XMPlaneDotCoord(vec, p));   // ax+by+cz+d
 }
 
-Frustum::Frustum(const Mat4& _viewProj)
+Frustum Frustum::CreateFromMatrix(const Mat4& _mtx)
 {
     using namespace DirectX;
-    XMFLOAT4X4 m;
-    XMStoreFloat4x4(&m, XMLoadFloat4x4(&_viewProj));
+    Frustum out;
 
-    leftPlane.normal   = Vec3 { m._14 + m._11, m._24 + m._21, m._34 + m._31 };
-    leftPlane.d        = m._44 + m._41;   // Left
-    rightPlane.normal  = Vec3 { m._14 - m._11, m._24 - m._21, m._34 - m._31 };
-    rightPlane.d       = m._44 - m._41;   // Right
-    bottomPlane.normal = Vec3 { m._14 + m._12, m._24 + m._22, m._34 + m._32 };
-    bottomPlane.d      = m._44 + m._42;   // Bottom
-    topPlane.normal    = Vec3 { m._14 - m._12, m._24 - m._22, m._34 - m._32 };
-    topPlane.d         = m._44 - m._42;   // Top
-    nearPlane.normal   = Vec3 { m._13, m._23, m._33 };
-    nearPlane.d        = m._43;   // Near
-    farPlane.normal    = Vec3 { m._14 - m._13, m._24 - m._23, m._34 - m._33 };
-    farPlane.d         = m._44 - m._43;   // Far
+    out.leftPlane.normal   = Vec3 { _mtx._14 + _mtx._11, _mtx._24 + _mtx._21, _mtx._34 + _mtx._31 };
+    out.leftPlane.d        = _mtx._44 + _mtx._41;   // Left
+    out.rightPlane.normal  = Vec3 { _mtx._14 - _mtx._11, _mtx._24 - _mtx._21, _mtx._34 - _mtx._31 };
+    out.rightPlane.d       = _mtx._44 - _mtx._41;   // Right
+    out.bottomPlane.normal = Vec3 { _mtx._14 + _mtx._12, _mtx._24 + _mtx._22, _mtx._34 + _mtx._32 };
+    out.bottomPlane.d      = _mtx._44 + _mtx._42;   // Bottom
+    out.topPlane.normal    = Vec3 { _mtx._14 - _mtx._12, _mtx._24 - _mtx._22, _mtx._34 - _mtx._32 };
+    out.topPlane.d         = _mtx._44 - _mtx._42;   // Top
+    out.nearPlane.normal   = Vec3 { _mtx._13, _mtx._23, _mtx._33 };
+    out.nearPlane.d        = _mtx._43;   // Near
+    out.farPlane.normal    = Vec3 { _mtx._14 - _mtx._13, _mtx._24 - _mtx._23, _mtx._34 - _mtx._33 };
+    out.farPlane.d         = _mtx._44 - _mtx._43;   // Far
 
-    for (Plane& p: planes)
+    for (Plane& p: out.planes)
         p.Normalize();
 
-    position = Plane::IntersectOf3Planes(leftPlane, rightPlane, topPlane);
+    out.position = Plane::IntersectOf3Planes(out.leftPlane, out.rightPlane, out.topPlane);
+    return out;
 }
 
 Frustum Frustum::CreateSubFrustum(const Frustum& _frustum, const float _startWeight, const float _endWeight)

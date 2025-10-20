@@ -264,8 +264,8 @@
     <ClCompile Include="Profile.cpp" />
     <ClCompile Include="EditableComponent.cpp" />
     <ClCompile Include="RadixSort.cpp" />
-    <ClCompile Include="RendererSystem.cpp" />
-    <ClCompile Include="RenderSystemBase.cpp" />
+    <ClCompile Include="BasicRenderer.cpp" />
+    <ClCompile Include="BasicRendererBase.cpp" />
     <ClCompile Include="SceneDB.cpp" />
     <ClCompile Include="ScriptDB.cpp" />
     <ClCompile Include="SerializableComponent.cpp" />
@@ -357,8 +357,8 @@
     <ClInclude Include="Profile.h" />
     <ClInclude Include="EditableComponent.h" />
     <ClInclude Include="RadixSort.h" />
-    <ClInclude Include="RendererSystem.h" />
-    <ClInclude Include="RenderSystemBase.h" />
+    <ClInclude Include="BasicRenderer.h" />
+    <ClInclude Include="BasicRendererBase.h" />
     <ClInclude Include="SceneDB.h" />
     <ClInclude Include="ScriptDB.h" />
     <ClInclude Include="SerializableComponent.h" />

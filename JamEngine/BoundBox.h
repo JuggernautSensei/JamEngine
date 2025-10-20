@@ -94,8 +94,8 @@ struct FrustumCorners
 struct Frustum
 {
     Frustum() = default;
-    explicit Frustum(const Mat4& _viewProj);
 
+    JAM_NODISCARD static Frustum      CreateFromMatrix(const Mat4& _mtx);
     JAM_NODISCARD static Frustum      CreateSubFrustum(const Frustum& _frustum, float _startWeight, float _endWeight);
     JAM_NODISCARD static Frustum      Transform(const Frustum& _frustum, const Mat4& _mat);
     JAM_NODISCARD ePlaneIntersectType Intersects(const AABB& _box) const;
