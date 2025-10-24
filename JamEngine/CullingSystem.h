@@ -22,7 +22,7 @@ namespace jam
 //     {
 //         // 머테리얼 > 메쉬 > 깊이
 //         UInt64 sortKey = 0;
-//         sortKey |= _material.GetSortKey();
+//         sortKey |= _material.GetSortKey();s
 //         sortKey <<= 16;
 //         sortKey |= _mesh.GetSortKey();
 //         sortKey <<= 16;

@@ -84,7 +84,7 @@ eErrorCode Material::Load(const fs::path& _path)
 
     if (version.minor != k_version.minor)
     {
-        logger::Warn("Material file minor version is different: {} (file) vs {} (engine)", version.ToString(), k_version.ToString());
+        Log::Warn("Material file minor version is different: {} (file) vs {} (engine)", version.ToString(), k_version.ToString());
     }
 
     // 파라미터 로드
@@ -142,10 +142,10 @@ eErrorCode Material::Load(const fs::path& _path)
         if (texturepaths[i])
         {
             fs::path path    = ConvertToPath(*texturepaths[i]);
-            auto [ec, asset] = asset_manager::GetOrLoadImageTexture(path);
+            auto [ec, asset] = AssetManager::GetOrLoadImageTexture(path);
             if (IsError(ec))
             {
-                logger::Warn("Failed to load texture: {} (Error: {})", path.native(), EnumToString(ec));
+                Log::Warn("Failed to load texture: {} (Error: {})", path.native(), EnumToString(ec));
             }
             *imageTextures[i] = asset;
         }

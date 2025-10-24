@@ -4,7 +4,7 @@
 
 #include "BaseUtilities.h"
 #include "FileUtilities.h"
-#include "Gfx.h"
+#include "Graphics.h"
 #include "Hash.h"
 #include "Memory.h"
 #include "Profile.h"
@@ -123,7 +123,7 @@ eErrorCode Mesh::Load(const fs::path& _path)
 
     if (version.minor != k_version.minor)
     {
-        logger::Warn("Mesh file minor version is different: {} (file version: {}, engine version: {})", _path.native(), version.ToString(), k_version.ToString());
+        Log::Warn("Mesh file minor version is different: {} (file version: {}, engine version: {})", _path.native(), version.ToString(), k_version.ToString());
     }
 
     // vertex layout
@@ -180,8 +180,8 @@ eErrorCode Mesh::Load(const fs::path& _path)
 
     // gpu 리소스 생성
     m_path               = _path;
-    m_vertexBufferHandle = gfx::CreateVertexBuffer(vertices, layout);
-    m_indexBufferHandle  = gfx::CreateIndexBuffer(indices, indexFormat);
+    m_vertexBufferHandle = Graphics::CreateVertexBuffer(vertices, layout);
+    m_indexBufferHandle  = Graphics::CreateIndexBuffer(indices, indexFormat);
 
     // 바운딩 박스 설정
     const auto* pAABB = pMesh->aabb();
@@ -219,8 +219,8 @@ void Mesh::Load(
     CleanUp_();
 
     // gpu 리소스 생성
-    m_vertexBufferHandle = gfx::CreateVertexBuffer(_vertices, _layout);
-    m_indexBufferHandle  = gfx::CreateIndexBuffer(_indices, _format);
+    m_vertexBufferHandle = Graphics::CreateVertexBuffer(_vertices, _layout);
+    m_indexBufferHandle  = Graphics::CreateIndexBuffer(_indices, _format);
 
     // 바운딩 박스 계산
     ComputeBoundingBox_(_vertices, _layout);
@@ -244,7 +244,7 @@ eErrorCode Mesh::Save(const fs::path& _path) const
     flatbuffers::FlatBufferBuilder builder(1024);
 
     // vertex layout
-    const VertexLayout&                       vertexLayout = gfx::GetVertexLayout(m_vertexBufferHandle);
+    const VertexLayout&                       vertexLayout = Graphics::GetVertexLayout(m_vertexBufferHandle);
     std::array<jmsh::VertexLayoutElement, 14> fbsLayoutElems;
     Int32                                     elemCount = 0;
     for (const VertexLayoutElement& elem: vertexLayout.GetElements())
@@ -258,11 +258,11 @@ eErrorCode Mesh::Save(const fs::path& _path) const
     jmsh::VertexLayout pFbsLayout { fbsLayoutElems };
 
     // vertex buffer
-    std::vector<Byte> verticesData = gfx::DownloadBuffer(m_vertexBufferHandle);
+    std::vector<Byte> verticesData = Graphics::DownloadBuffer(m_vertexBufferHandle);
     auto              fbsVertices  = builder.CreateVector(verticesData);
 
     // index buffer
-    std::vector<Byte> indicesData = gfx::DownloadBuffer(m_indexBufferHandle);
+    std::vector<Byte> indicesData = Graphics::DownloadBuffer(m_indexBufferHandle);
     auto              fbsIndices  = builder.CreateVector(indicesData);
 
     // aabb
@@ -384,9 +384,9 @@ UInt16 Mesh::GetSortKey() const
 
 void Mesh::Submit() const
 {
-    gfx::SetVertexBuffer(m_vertexBufferHandle);
-    gfx::SetIndexBuffer(m_indexBufferHandle);
-    gfx::Submit();
+    Graphics::SetVertexBuffer(m_vertexBufferHandle);
+    Graphics::SetIndexBuffer(m_indexBufferHandle);
+    Graphics::Submit();
 }
 
 VertexBufferHandle Mesh::GetVertexBuffer() const

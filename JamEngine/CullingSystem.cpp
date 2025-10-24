@@ -3,7 +3,7 @@
 #include "CullingSystem.h"
 
 namespace jam
-{
+{                       
 
 void CullingSystem::Build(const Scene* _pScene)
 {
@@ -14,7 +14,7 @@ void CullingSystem::Build(const Scene* _pScene)
 
     auto   view = _pScene->View<TransformComponent, MeshRenderer>();
     size_t n    = view.size_hint();
-    m_boxes.reserve(n);
+    m_boxes.reserve(n);                                 
     m_centers.reserve(n);
     m_drawItems.reserve(n);
     m_drawItemIDs.reserve(n);

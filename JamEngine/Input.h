@@ -126,31 +126,33 @@ enum class eMouse
 };
 
 /// @brief 입력 처리 클래스
-namespace input
+class Input
 {
-    void Init();
-    void Update();
-    void OnEvent(Event& _event);
+public:
 
-    JAM_NODISCARD bool IsKeyDown(eKey _key) noexcept;
-    JAM_NODISCARD bool IsKeyPressed(eKey _key) noexcept;
-    JAM_NODISCARD bool IsKeyHold(eKey _key) noexcept;
+    static void Init();
+    static void Update();
+    static void OnEvent(Event& _event);
 
-    JAM_NODISCARD bool IsKeyUp(eKey _key) noexcept;
-    JAM_NODISCARD bool IsKeyReleased(eKey _key) noexcept;
-    JAM_NODISCARD bool IsKeyAway(eKey _key) noexcept;
+    JAM_NODISCARD static bool IsKeyDown(eKey _key) noexcept;
+    JAM_NODISCARD static bool IsKeyPressed(eKey _key) noexcept;
+    JAM_NODISCARD static bool IsKeyHold(eKey _key) noexcept;
 
-    JAM_NODISCARD bool IsMouseDown(eMouse _mouse) noexcept;
-    JAM_NODISCARD bool IsMousePressed(eMouse _mouse) noexcept;
-    JAM_NODISCARD bool IsMouseHold(eMouse _mouse) noexcept;
+    JAM_NODISCARD static bool IsKeyUp(eKey _key) noexcept;
+    JAM_NODISCARD static bool IsKeyReleased(eKey _key) noexcept;
+    JAM_NODISCARD static bool IsKeyAway(eKey _key) noexcept;
 
-    JAM_NODISCARD bool IsMouseUp(eMouse _mouse) noexcept;
-    JAM_NODISCARD bool IsMouseReleased(eMouse _mouse) noexcept;
-    JAM_NODISCARD bool IsMouseAway(eMouse _mouse) noexcept;
+    JAM_NODISCARD static bool IsMouseDown(eMouse _mouse) noexcept;
+    JAM_NODISCARD static bool IsMousePressed(eMouse _mouse) noexcept;
+    JAM_NODISCARD static bool IsMouseHold(eMouse _mouse) noexcept;
 
-    JAM_NODISCARD WindowPos GetMousePos() noexcept;
-    JAM_NODISCARD Int32     GetMouseDeltaWheel() noexcept;
-    JAM_NODISCARD WindowPos GetMouseDeltaPos() noexcept;
+    JAM_NODISCARD static bool IsMouseUp(eMouse _mouse) noexcept;
+    JAM_NODISCARD static bool IsMouseReleased(eMouse _mouse) noexcept;
+    JAM_NODISCARD static bool IsMouseAway(eMouse _mouse) noexcept;
+
+    JAM_NODISCARD static WindowPos GetMousePos() noexcept;
+    JAM_NODISCARD static Int32     GetMouseDeltaWheel() noexcept;
+    JAM_NODISCARD static WindowPos GetMouseDeltaPos() noexcept;
 };   // namespace input
 
 }   // namespace jam

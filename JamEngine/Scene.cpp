@@ -59,10 +59,10 @@ Entity Scene::CloneEntity(const Entity _entity)
     const Entity newEntity = CreateEntity();
     for (UInt32 typeID: std::views::keys(m_registry.storage()))
     {
-        if (component_db::Has(typeID, _entity))   // _entity가 해당 컴포넌트를 가지고 있는지 확인
+        if (ComponentDB::Has(typeID, _entity))   // _entity가 해당 컴포넌트를 가지고 있는지 확인
         {
-            void* component = component_db::Get(typeID, _entity);                // 컴포넌트 데이터 가져오기
-            component_db::CreateOrReplaceByCopy(typeID, newEntity, component);   // 새 엔티티에 컴포넌트 복사
+            void* component = ComponentDB::Get(typeID, _entity);                // 컴포넌트 데이터 가져오기
+            ComponentDB::CreateOrReplaceByCopy(typeID, newEntity, component);   // 새 엔티티에 컴포넌트 복사
         }
     }
 
@@ -111,11 +111,11 @@ void Scene::DestroyEntity_Recursive_(Entity _entity)
     JAM_ASSERT(_entity != m_rootEntity, "Cannot delete root entity");
 
     // 자식들 모두 삭제
-    HierarchyTransform& t     = _entity.GetHierarchyTransform();
+    TransformHierarchy& t     = _entity.GetTransform();
     Entity              child = t.GetFirstChild();
     while (child.IsValid())
     {
-        HierarchyTransform& childT    = child.GetHierarchyTransform();
+        TransformHierarchy& childT    = child.GetTransform();
         Entity              nextChild = childT.GetNextSibling();   // 다음 형제 엔티티 미리 저장
         DestroyEntity_Recursive_(child);                           // 재귀적으로 자식 삭제
         child = nextChild;
@@ -148,9 +148,9 @@ Entity Scene::CreateEntity_(const bool _bCreateRoot, UID _uid, const std::string
     // transform 컴포넌트 추가
     TransformComponent& transform = entity.CreateComponent<TransformComponent>();
     if (_bCreateRoot)
-        transform.transform = HierarchyTransform { entity };   // 루트 엔티티는 자기 자신이 루트
+        transform.transform = TransformHierarchy { entity };   // 루트 엔티티는 자기 자신이 루트
     else
-        transform.transform = HierarchyTransform { m_rootEntity, entity };
+        transform.transform = TransformHierarchy { m_rootEntity, entity };
 
     // 필요시 이름 태그 추가
     if (!_name.empty())

@@ -13,21 +13,22 @@ struct SceneInfo
     std::function<std::unique_ptr<Scene>()> createFn = nullptr;
 };
 
-namespace scene_db
+namespace details
 {
-    namespace details
+    template<typename T>
+    std::unique_ptr<Scene> CreateBehavior()
     {
-        template<typename T>
-        std::unique_ptr<Scene> CreateBehavior()
-        {
-            return std::make_unique<T>();
-        }
-    }   // namespace details
+        return std::make_unique<T>();
+    }
+}   // namespace details
 
-    void Reflect(const SceneInfo& _info);
+class SceneDB
+{
+public:
+    static void Reflect(const SceneInfo& _info);
 
     template<typename T>
-    void Reflect()
+    static void Reflect()
     {
         SceneInfo info;
         info.name     = NameOf<T>();
@@ -35,8 +36,9 @@ namespace scene_db
         Reflect(info);
     }
 
-    JAM_NODISCARD std::unique_ptr<Scene> Create(std::string_view _name);
-    JAM_NODISCARD const HashMap<UInt32, SceneInfo>& GetSceneInfos();
+    JAM_NODISCARD static std::unique_ptr<Scene> Create(std::string_view _name);
+    JAM_NODISCARD static const HashMap<UInt32, SceneInfo>& GetSceneInfos();
 
-}   // namespace scene_db
+};   // namespace scene_db
+
 }   // namespace jam

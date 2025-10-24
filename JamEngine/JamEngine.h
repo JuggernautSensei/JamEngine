@@ -9,7 +9,7 @@
 #include "Application.h"
 #include "EntryPoint.h"
 
-#include "Gfx.h"
+#include "Graphics.h"
 #include "ShaderCompiler.h"
 
 #include "Scene.h"

@@ -46,7 +46,7 @@
 #include "Configs.h"
 #include "DataType.h"
 #include "Error.h"
-#include "Logger.h"
+#include "Log.h"
 
 // global utilities
 #include "BaseUtilities.h"

@@ -1,6 +1,6 @@
 #pragma once
 #include "Entity.h"
-#include "GfxBase.h"
+#include "GraphicsBase.h"
 #include "UID.h"
 
 // clang-format off
@@ -91,6 +91,6 @@ public:                                                                        \
 private:                                                                       \
     inline static bool _scene_reflect_ = []                                    \
     {                                                                          \
-        jam::scene_db::Reflect<_class>();                                      \
+        jam::SceneDB::Reflect<_class>();                                      \
         return true;                                                           \
     }()

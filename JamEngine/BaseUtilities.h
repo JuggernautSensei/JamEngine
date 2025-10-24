@@ -14,7 +14,7 @@ constexpr FORCEINLINE To NarrowCast(From value) noexcept
 
 template<typename T>
     requires std::is_trivially_copyable_v<T> && std::is_standard_layout_v<T>
-JAM_NODISCARD bool MemEqeul(const T& _lhs, const T& _rhs) noexcept
+JAM_NODISCARD bool MemEqual(const T& _lhs, const T& _rhs) noexcept
 {
     return std::memcmp(&_lhs, &_rhs, sizeof(T)) == 0;
 }

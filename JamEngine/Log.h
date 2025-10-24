@@ -20,27 +20,28 @@ enum class eLogLevel : Int8
     Off      = spdlog::level::off
 };
 
-namespace logger
+class Log
 {
+public:
 
     /// @brief 파일 싱크 및 콘솔 싱크를 추가하고 비동기 로깅을 초기화합니다.
-    void Init();
+    static void Init();
 
     /// @brief 로거를 종료하고 모든 싱크를 제거합니다.
-    void Shutdown();
+    static void Shutdown();
 
     /// @brief 싱크를 추가/제거합니다. (싱크 이름은 고유해야 합니다)
-    void AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink);
+    static void AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink);
 
     /// @brief 싱크를 제거합니다.
-    void RemoveSink(std::string_view _sinkName);
+    static void RemoveSink(std::string_view _sinkName);
 
     /// @brief 싱크를 가져옵니다.
-    JAM_NODISCARD const std::shared_ptr<spdlog::sinks::sink>& GetSink(std::string_view _sinkName);
+    JAM_NODISCARD static const std::shared_ptr<spdlog::sinks::sink>& GetSink(std::string_view _sinkName);
 
     /// @brief 기본 로거에 로그를 남깁니다.
     template<typename... Args>
-    void Logging(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
+    static void Logging(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
         spdlog::default_logger_raw()->log(level, _format, std::forward<Args>(args)...);
@@ -48,7 +49,7 @@ namespace logger
 
     /// @brief 기본 로거에 로그를 남깁니다.
     template<typename T>
-    void Logging(const eLogLevel _level, const T& _msg)
+    static void Logging(const eLogLevel _level, const T& _msg)
     {
         spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
         spdlog::default_logger_raw()->log(level, _msg);
@@ -56,106 +57,107 @@ namespace logger
 
     /// @brief Trace 레벨 로그
     template<typename... Args>
-    void Trace(spdlog::format_string_t<Args...> _format, Args&&... args)
+    static void Trace(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         Logging(eLogLevel::Trace, _format, std::forward<Args>(args)...);
     }
 
     /// @brief Debug 레벨 로그
     template<typename... Args>
-    void Debug(spdlog::format_string_t<Args...> _format, Args&&... args)
+    static void Debug(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         Logging(eLogLevel::Debug, _format, std::forward<Args>(args)...);
     }
 
     /// @brief Info 레벨 로그
     template<typename... Args>
-    void Info(spdlog::format_string_t<Args...> _format, Args&&... args)
+    static void Info(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         Logging(eLogLevel::Info, _format, std::forward<Args>(args)...);
     }
 
     /// @brief Warn 레벨 로그
     template<typename... Args>
-    void Warn(spdlog::format_string_t<Args...> _format, Args&&... args)
+    static void Warn(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         Logging(eLogLevel::Warn, _format, std::forward<Args>(args)...);
     }
 
     /// @brief Error 레벨 로그
     template<typename... Args>
-    void Error(spdlog::format_string_t<Args...> _format, Args&&... args)
+    static void Error(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         Logging(eLogLevel::Error, _format, std::forward<Args>(args)...);
     }
 
     /// @brief Critical 레벨 로그
     template<typename... Args>
-    void Critical(spdlog::format_string_t<Args...> _format, Args&&... args)
+    static void Critical(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         Logging(eLogLevel::Critical, _format, std::forward<Args>(args)...);
     }
 
     template<typename T>
-    void Trace(const T& _msg)
+    static void Trace(const T& _msg)
     {
         Logging(eLogLevel::Trace, _msg);
     }
 
     template<typename T>
-    void Debug(const T& _msg)
+    static void Debug(const T& _msg)
     {
         Logging(eLogLevel::Debug, _msg);
     }
 
     template<typename T>
-    void Info(const T& _msg)
+    static void Info(const T& _msg)
     {
         Logging(eLogLevel::Info, _msg);
     }
 
     template<typename T>
-    void Warn(const T& _msg)
+    static void Warn(const T& _msg)
     {
         Logging(eLogLevel::Warn, _msg);
     }
 
     template<typename T>
-    void Error(const T& _msg)
+    static void Error(const T& _msg)
     {
         Logging(eLogLevel::Error, _msg);
     }
 
     template<typename T>
-    void Critical(const T& _msg)
+    static void Critical(const T& _msg)
     {
         Logging(eLogLevel::Critical, _msg);
     }
 
     /// @brief 기본 로거의 로그 레벨을 설정합니다.
-    void SetLogLevel(eLogLevel _level);
+    static void SetLogLevel(eLogLevel _level);
 
     /// @brief 특정 싱크의 로그 레벨을 설정합니다.
-    void SetLogLevel(std::string_view _sinkName, eLogLevel _level);
+    static void SetLogLevel(std::string_view _sinkName, eLogLevel _level);
 
     /// @brief 기본 로거의 로그 패턴을 설정합니다.
-    void SetLogPattern(std::string_view _pattern);
+    static void SetLogPattern(std::string_view _pattern);
 
     /// @brief 특정 싱크의 로그 패턴을 설정합니다.
-    void SetLogPattern(std::string_view _sinkName, std::string_view _pattern);
+    static void SetLogPattern(std::string_view _sinkName, std::string_view _pattern);
 
     /// @brief 모든 로그를 즉시 플러시합니다.
-    void Flush();
+    static void Flush();
 
-    constexpr const char* const k_consoleSinkName = "CORE_CONSOLE_SINK";
-    constexpr const char* const k_fileSinkName    = "CORE_FILE_SINK";
+    static constexpr const char* const k_consoleSinkName = "CORE_CONSOLE_SINK";
+    static constexpr const char* const k_fileSinkName    = "CORE_FILE_SINK";
 
-}   // namespace logger
+};
+
 }   // namespace jam
 
 // 디버그에서만 동작하는 로그
 #ifdef JAM_DEBUG
-#    define JAM_LOGGER_DEBUG(...) jam::logger::Debug(__VA_ARGS__)
+#    define JAM_LOGGER_DEBUG(...) jam::Log::Debug(__VA_ARGS__)
 #else
 #    define JAM_LOGGER_DEBUG(...) JAM_NOOP
 #endif

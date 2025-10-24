@@ -1,7 +1,7 @@
 #pragma once
 #include "Camera.h"
 #include "ComponentDB.h"
-#include "HierarchyTransform.h"
+#include "TransformHierarchy.h"
 #include "Material.h"
 #include "Mesh.h"
 
@@ -34,7 +34,7 @@ struct TransformComponent : UnremovableComponent<TransformComponent>, Serializab
     JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
     eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
-    HierarchyTransform transform = {};
+    TransformHierarchy transform = {};
 };
 
 struct CameraComponent : SerializableComponent<CameraComponent>

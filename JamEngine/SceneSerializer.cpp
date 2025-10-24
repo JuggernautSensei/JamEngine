@@ -78,7 +78,7 @@ void SceneSerializer::Serialize(const Scene* _pScene)
         const entt::registry& pReg = _pScene->GetRegistry();
         for (auto [typeID, set]: pReg.storage())
         {
-            if (!component_db::IsSerializable(typeID))
+            if (!ComponentDB::IsSerializable(typeID))
             {
                 continue;
             }
@@ -91,7 +91,7 @@ void SceneSerializer::Serialize(const Scene* _pScene)
                 Entity entity = entityMap.at(uid);
 
                 const void* pComponent = set.value(handle);
-                Json        serialized = component_db::Serialize(typeID, pComponent, _pScene, entity);
+                Json        serialized = ComponentDB::Serialize(typeID, pComponent, _pScene, entity);
                 if (serialized.is_null() || serialized.empty())
                 {
                     compJson[std::to_string(uid)] = nullptr;
@@ -126,7 +126,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
 
     // 씬 생성
     std::string            sceneName = m_json["sceneName"].get<std::string>();
-    std::unique_ptr<Scene> pScene    = scene_db::Create(sceneName);
+    std::unique_ptr<Scene> pScene    = SceneDB::Create(sceneName);
 
     // 엔티티 역직렬화
     if (!m_json.contains("entities") || !m_json["entities"].is_array())
@@ -168,7 +168,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
         if (IsError(ec))
             return ec;
 
-        JAM_ASSERT(component_db::IsSerializable(typeID), "Component type ID: {} is not serializable", typeID);
+        JAM_ASSERT(ComponentDB::IsSerializable(typeID), "Component type ID: {} is not serializable", typeID);
         for (auto& [uidStr, compData]: compJson.items())
         {
             auto [ec, uid] = StringToInt<UID>(uidStr);
@@ -184,18 +184,18 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
             }
 
             // 컴포넌트 생성 및 역직렬화
-            if (!component_db::Has(typeID, entity))
+            if (!ComponentDB::Has(typeID, entity))
             {
-                component_db::Create(typeID, entity);   // 컴포넌트 생성
+                ComponentDB::Create(typeID, entity);   // 컴포넌트 생성
             }
 
-            void* pComponent = component_db::Get(typeID, entity);
+            void* pComponent = ComponentDB::Get(typeID, entity);
             if (pComponent)   // 컴포넌트가 빈 구조체인 경우 nullptr일 수 있음
             {
-                eErrorCode err = component_db::Deserialize(typeID, pComponent, compData, pScene.get(), entity);
+                eErrorCode err = ComponentDB::Deserialize(typeID, pComponent, compData, pScene.get(), entity);
                 if (IsError(err))
                 {
-                    component_db::Remove(typeID, entity);   // 역직렬화 실패 시 컴포넌트 제거
+                    ComponentDB::Remove(typeID, entity);   // 역직렬화 실패 시 컴포넌트 제거
                     return err;
                 }
             }

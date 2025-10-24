@@ -4,7 +4,7 @@
 
 #include "AssetManager.h"
 #include "Editor.h"
-#include "Gfx.h"
+#include "Graphics.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
 #include "Magic.h"
@@ -35,7 +35,7 @@ void Application::Create(const CommandLineArguments& _args)
     JAM_ASSERT(s_instance == nullptr, "Application instance already exists");
 
     // 로그 초기화
-    logger::Init();
+    Log::Init();
 
     // 싱글톤 객체 생성
     s_instance = CreateApplication(_args);
@@ -62,24 +62,24 @@ void Application::Create(const CommandLineArguments& _args)
         HWND hwnd            = s_instance->m_window.GetPlatformHandle();
 
         // 렌더러 초기화
-        gfx::Init(hwnd, width, height);
+        Graphics::Init(hwnd, width, height);
 
         // 입력 초기화
-        input::Init();
+        Input::Init();
 
         // 씬 매니저 초기화
-        scene_manager::Init(width, height);
+        SceneManager::Init();
 
         // imgui 초기화
-        ID3D11Device*        pd3dDevice        = gfx::GetDevice();
-        ID3D11DeviceContext* pd3dDeviceContext = gfx::GetDeviceContext();
-        imgui::Init(hwnd, pd3dDevice, pd3dDeviceContext);
+        ID3D11Device*        pd3dDevice        = Graphics::GetDevice();
+        ID3D11DeviceContext* pd3dDeviceContext = Graphics::GetDeviceContext();
+        ImGuiGlue::Init(hwnd, pd3dDevice, pd3dDeviceContext);
     }
 
     // 초기화 완료
     s_instance->m_bEventDispatchable = true;
     s_instance->m_bRunning           = true;
-    logger::Trace("Application '{}' started.", s_instance->m_applicationName);
+    Log::Trace("Application '{}' started.", s_instance->m_applicationName);
 
     // 사용자 정의 어플리케이션 초기화 루틴
     s_instance->OnCreate();
@@ -91,7 +91,7 @@ void Application::Destroy()
     JAM_ASSERT(s_instance->m_bRunning == false, "Application is still running, cannot destroy instance");
 
     // 종료 시작
-    logger::Trace("Application '{}' shutdown.", s_instance->m_applicationName);
+    Log::Trace("Application '{}' shutdown.", s_instance->m_applicationName);
 
     // 사용자 정의 어플리케이션 종료 루틴
     s_instance->OnDestroy();
@@ -103,19 +103,19 @@ void Application::Destroy()
     s_instance->m_window.Shutdown();
 
     // imgui 종료
-    imgui::Shutdown();
+    ImGuiGlue::Shutdown();
 
     // 씬 매니저 종료
-    scene_manager::Shutdown();
+    SceneManager::Shutdown();
 
     // 렌더러 종료
-    gfx::Shutdown();
+    Graphics::Shutdown();
 
     // 에셋 매니저 정리
-    asset_manager::ClearAll();
+    AssetManager::ClearAll();
 
     // 그래픽스 릭 검사
-    if (gfx::DetectLeak())
+    if (Graphics::DetectLeak())
         JAM_ASSERT(0, "Graphics resource leak detected! Please check the log for details.");
 
     // 싱글톤 객체 삭제
@@ -123,7 +123,7 @@ void Application::Destroy()
     s_instance = nullptr;
 
     // 로그 종료
-    logger::Shutdown();
+    Log::Shutdown();
 }
 
 Application& Application::GetInstance()
@@ -198,28 +198,28 @@ int Application::Run()
             // 업데이트
             if (bUpdate)
             {
-                scene_manager::Update(deltaSec);
-                input::Update();
+                SceneManager::Update(deltaSec);
+                Input::Update();
             }
 
             // 렌더링
             {
                 if (m_bEditor)
                 {
-                    imgui::BeginFrame();
-                    scene_manager::ImGuiRender();
+                    ImGuiGlue::BeginFrame();
+                    SceneManager::ImGuiRender();
                     editor::ImGuiRender();
-                    imgui::EndFrame();
+                    ImGuiGlue::EndFrame();
                 }
                 else   // 런타임
                 {
-                    scene_manager::RenderRuntime();
-                    imgui::BeginFrame();
-                    scene_manager::ImGuiRender();
-                    imgui::EndFrame();
+                    SceneManager::RenderRuntime();
+                    ImGuiGlue::BeginFrame();
+                    SceneManager::ImGuiRender();
+                    ImGuiGlue::EndFrame();
                 }
 
-                gfx::Frame(m_bVsync);
+                Graphics::Frame(m_bVsync);
             }
         }
     }
@@ -251,9 +251,9 @@ void Application::DispatchEvent(Event& _event)
     HandleEvent<WindowCloseEvent>(_event, JAM_BIND_MEMBER_LISTENER(Application::OnWindowCloseEvent));
 
     m_window.OnEvent(_event);
-    gfx::OnEvent(_event);
-    scene_manager::OnEvent(_event);
-    input::OnEvent(_event);
+    Graphics::OnEvent(_event);
+    SceneManager::OnEvent(_event);
+    Input::OnEvent(_event);
 }
 
 void Application::SubmitCommand(const std::function<void()>& _command)

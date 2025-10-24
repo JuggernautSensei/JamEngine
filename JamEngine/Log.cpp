@@ -1,13 +1,13 @@
 #include "pch.h"
 
-#include "Logger.h"
+#include "Log.h"
 #include "Timer.h"
 
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace jam::logger
+namespace jam
 {
 
 constexpr const char* const k_defaultLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] %v";
@@ -37,9 +37,13 @@ struct LogContext
     HashMap<std::string, spdlog::sink_ptr> sinkMap;
     std::string                            globalPattern = k_defaultLogPattern;
     spdlog::level::level_enum              globalLevel   = spdlog::level::trace;
-} g_ctx;
+} g_logContext;
+}   // namespace jam
 
-void Init()
+namespace jam
+{
+
+void Log::Init()
 {
     TimeStamp   time     = TimeStamp::Current();
     std::string filename = std::format(
@@ -60,63 +64,63 @@ void Init()
     JAM_LOGGER_DEBUG("Logger initialized successfully.");
 }
 
-void Shutdown()
+void Log::Shutdown()
 {
     JAM_LOGGER_DEBUG("Logger shutting down...");
     spdlog::default_logger()->flush();
-    g_ctx.sinkMap.clear();
+    g_logContext.sinkMap.clear();
     spdlog::shutdown();
 }
 
-void AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink)
+void Log::AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink)
 {
-    JAM_ASSERT(!g_ctx.sinkMap.contains(std::string(_sinkName)), "Sink already exists: {}", _sinkName);
-    g_ctx.sinkMap.emplace(std::string(_sinkName), _sink);
-    g_ctx.UpdateLogger();
+    JAM_ASSERT(!g_logContext.sinkMap.contains(std::string(_sinkName)), "Sink already exists: {}", _sinkName);
+    g_logContext.sinkMap.emplace(std::string(_sinkName), _sink);
+    g_logContext.UpdateLogger();
 }
 
-void RemoveSink(std::string_view _sinkName)
+void Log::RemoveSink(std::string_view _sinkName)
 {
-    auto it = g_ctx.sinkMap.find(std::string(_sinkName));
-    JAM_ASSERT(it != g_ctx.sinkMap.end(), "Sink not found: {}", _sinkName);
-    g_ctx.sinkMap.erase(it);
-    g_ctx.UpdateLogger();
+    auto it = g_logContext.sinkMap.find(std::string(_sinkName));
+    JAM_ASSERT(it != g_logContext.sinkMap.end(), "Sink not found: {}", _sinkName);
+    g_logContext.sinkMap.erase(it);
+    g_logContext.UpdateLogger();
 }
 
-const std::shared_ptr<spdlog::sinks::sink>& GetSink(std::string_view _sinkName)
-{
-    std::string key { _sinkName };
-    JAM_ASSERT(g_ctx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    return g_ctx.sinkMap[key];
-}
-
-void SetLogLevel(eLogLevel _level)
-{
-    g_ctx.globalLevel = static_cast<spdlog::level::level_enum>(_level);
-    spdlog::set_level(g_ctx.globalLevel);
-}
-
-void SetLogLevel(std::string_view _sinkName, eLogLevel _level)
+const std::shared_ptr<spdlog::sinks::sink>& Log::GetSink(std::string_view _sinkName)
 {
     std::string key { _sinkName };
-    JAM_ASSERT(g_ctx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    g_ctx.sinkMap[key]->set_level(static_cast<spdlog::level::level_enum>(_level));
+    JAM_ASSERT(g_logContext.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    return g_logContext.sinkMap[key];
 }
 
-void SetLogPattern(std::string_view _sinkName, const std::string_view _pattern)
+void Log::SetLogLevel(eLogLevel _level)
+{
+    g_logContext.globalLevel = static_cast<spdlog::level::level_enum>(_level);
+    spdlog::set_level(g_logContext.globalLevel);
+}
+
+void Log::SetLogLevel(std::string_view _sinkName, eLogLevel _level)
 {
     std::string key { _sinkName };
-    JAM_ASSERT(g_ctx.sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    g_ctx.sinkMap[key]->set_pattern(std::string(_pattern));
+    JAM_ASSERT(g_logContext.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    g_logContext.sinkMap[key]->set_level(static_cast<spdlog::level::level_enum>(_level));
 }
 
-void SetLogPattern(const std::string_view _pattern)
+void Log::SetLogPattern(std::string_view _sinkName, const std::string_view _pattern)
 {
-    g_ctx.globalPattern = std::string(_pattern);
-    spdlog::set_pattern(g_ctx.globalPattern);
+    std::string key { _sinkName };
+    JAM_ASSERT(g_logContext.sinkMap.contains(key), "Sink not found: {}", _sinkName);
+    g_logContext.sinkMap[key]->set_pattern(std::string(_pattern));
 }
 
-void Flush()
+void Log::SetLogPattern(const std::string_view _pattern)
+{
+    g_logContext.globalPattern = std::string(_pattern);
+    spdlog::set_pattern(g_logContext.globalPattern);
+}
+
+void Log::Flush()
 {
     if (const auto& logger = spdlog::default_logger())
     {
@@ -124,4 +128,4 @@ void Flush()
     }
 }
 
-}   // namespace jam::logger
+}   // namespace jam

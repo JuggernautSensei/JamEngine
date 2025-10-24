@@ -1,64 +1,28 @@
 #pragma once
-#include "Environment.h"
-#include "GfxBase.h"
+#include "GraphicsBase.h"
 #include "VertexLayout.h"
 
 namespace jam
 {
 
-struct GBufferParam
+struct PBRGBufferPassDesc
 {
-    TextureHandle albedoAoTex;
-    TextureHandle normalRoughnessMetallicTex;
-    TextureHandle additionalLightTex;
-    TextureHandle depthTex;
+    FrameBufferHandle     frameBuffer = k_invalidHandle;
+    Viewport              viewport    = {};
+    std::function<void()> executor    = nullptr;
 };
 
-struct CreateGBufferFrameResult
+struct PBRLightPassDesc
 {
-    TextureHandle     albedoAoTex;
-    TextureHandle     normalRoughnessMetallicTex;
-    TextureHandle     additionalLightTex;
-    TextureHandle     depthTex;
-    FrameBufferHandle frameBuffer;
-};
+    FrameBufferHandle frameBuffer = k_invalidHandle;
+    Viewport          viewport    = {};
 
-struct CreatePostProcessFrameResult
-{
-    TextureHandle     colorTex;
-    FrameBufferHandle frameBuffer;
+    TextureHandle albedoAOTexture                = k_invalidHandle;
+    TextureHandle normalRoughnessMetallicTexture = k_invalidHandle;
+    TextureHandle additionalLightTexture         = k_invalidHandle;
+    TextureHandle depthTexture                   = k_invalidHandle;
+    TextureHandle ssaoTexture                    = k_invalidHandle;
 };
-
-struct CreateShadowMappingFrameResult
-{
-    TextureHandle     shadowMap;
-    FrameBufferHandle frameBuffer;
-};
-
-struct CreateCascadedShadowMapFrameResult
-{
-    TextureHandle     shadowMap;
-    FrameBufferHandle frameBuffer;
-};
-
-struct CreateOmniDirectionalShadowMapFrameResult
-{
-    TextureHandle     shadowMap;
-    FrameBufferHandle frameBuffer;
-};
-
-struct CreateSSAOFrameBufferResult
-{
-    FrameBufferHandle frameBuffer = k_invalidHandle;   
-    TextureHandle     ssaoTex     = k_invalidHandle;
-};
-
-JAM_NODISCARD CreateGBufferFrameResult                  CreateGBufferFrame(UInt32 _width, UInt32 _height);
-JAM_NODISCARD CreatePostProcessFrameResult              CreatePostProcessFrame(UInt32 _width, UInt32 _height, eFormat _format);
-JAM_NODISCARD CreateShadowMappingFrameResult            CreateShadowMappingFrame(UInt32 _width, UInt32 _height);
-JAM_NODISCARD CreateCascadedShadowMapFrameResult        CreateCascadedShadowMapFrame(UInt32 _width, UInt32 _height, const eCascadeLevel _cascadeLevel);
-JAM_NODISCARD CreateOmniDirectionalShadowMapFrameResult CreateOmniDirectionalShadowMapFrame(UInt32 _width, UInt32 _height);
-JAM_NODISCARD CreateSSAOFrameBufferResult               CreateSSAOFrameBuffer(UInt32 _width, UInt32 _height);
 
 ////////////////////////////////
 ///          VERTEX          ///

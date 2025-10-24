@@ -188,7 +188,7 @@ public:
         : m_name(_name)
         , m_timeUnit(_timeUnit)
     {
-        logger::Trace(R"(========== scoped timer start - "{}" ==========")", m_name);
+        Log::Trace(R"(========== scoped timer start - "{}" ==========")", m_name);
         Start();
     }
 
@@ -196,7 +196,7 @@ public:
     {
         Stop();
         float elapsedTime = GetTotalElapsed(m_timeUnit);
-        logger::Trace(R"(========== scoped timer end - "{}" - duration: {} {} ==========)", m_name, elapsedTime, EnumToString(m_timeUnit));
+        Log::Trace(R"(========== scoped timer end - "{}" - duration: {} {} ==========)", m_name, elapsedTime, EnumToString(m_timeUnit));
     }
 
     ScopedTimer(const ScopedTimer&)                = delete;

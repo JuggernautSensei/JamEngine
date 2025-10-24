@@ -2,7 +2,7 @@
 
 #include "ImageTexture.h"
 
-#include "Gfx.h"
+#include "Graphics.h"
 #include "ImageExporter.h"
 #include "ImageImporter.h"
 #include "Profile.h"
@@ -16,7 +16,7 @@ eErrorCode ImageTexture::Load(const fs::path& _path)
 
     CleanUp_();
 
-    auto [ec, handle] = gfx::LoadTexture(_path);
+    auto [ec, handle] = Graphics::LoadTexture(_path);
     if (IsOk(ec))
     {
         m_path   = _path;
@@ -29,7 +29,7 @@ eErrorCode ImageTexture::Save(const fs::path& _path) const
 {
     JAM_PROFILE_SCOPE_MS(R"(ImageTexture::Save "{}")", _path.native());
 
-    DirectX::ScratchImage sImg = gfx::Capture(m_handle);
+    DirectX::ScratchImage sImg = Graphics::Capture(m_handle);
 
     ImageExporter exporter;
     exporter.SetPath(_path);
@@ -91,14 +91,19 @@ std::string_view ImageTexture::GetName() const
     return k_name;
 }
 
+TextureHandle ImageTexture::GetHandle() const
+{
+    return m_handle;
+}
+
 void ImageTexture::Bind(const eShader _shader, const Int32 _slot) const
 {
-    gfx::SetTexture(m_handle, _shader, _slot);
+    Graphics::SetTexture(m_handle, _shader, _slot);
 }
 
 void ImageTexture::Unbind(const eShader _shader, const Int32 _slot) const
 {
-    gfx::SetTexture(k_invalidHandle, _shader, _slot);
+    Graphics::SetTexture(k_invalidHandle, _shader, _slot);
 }
 
 void ImageTexture::CleanUp_()

@@ -50,7 +50,7 @@ void Script::Update(const float _deltaSec)
     }
 }
 
-Entity Script::GetEntity() const
+Entity Script::GetOwner() const
 {
     return m_owner;
 }

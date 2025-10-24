@@ -3,7 +3,7 @@
 #include "MeshFactory.h"
 
 #include "BaseUtilities.h"
-#include "GfxBase.h"
+#include "GraphicsBase.h"
 #include "LoopSubdivision.h"
 #include "Memory.h"
 #include "Mesh.h"

@@ -2,43 +2,25 @@
 
 #include "SceneManager.h"
 
-#include "Application.h"
 #include "AssetManager.h"
 #include "Components.h"
-#include "CullingSystem.h"
-#include "Events.h"
-#include "Gfx.h"
-#include "Profile.h"
+#include "Graphics.h"
 #include "Scene.h"
 #include "SceneSerializer.h"
 #include "Script.h"
 
-namespace jam::scene_manager
+namespace jam
 {
-
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
 
 struct SceneMgrContext
 {
-    void OnWindowResizeEvent(const WindowResizeEvent& _event)
-    {
-        OnResize(_event.GetWidth(), _event.GetHeight());
-    }
-
-    void OnWindowMaximizeEvent(const WindowMaximizeEvent& _event)
-    {
-        OnResize(_event.GetWidth(), _event.GetHeight());
-    }
-
-    void OnResize(const Int32 _width, const Int32 _height)
+    void Resize(const Int32 _width, const Int32 _height)
     {
         JAM_DESTROY_TEXTURE(sceneTexture);
         JAM_DESTROY_FRAME_BUFFER(sceneFrameBuffer);
 
-        sceneTexture     = gfx::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget);
-        sceneFrameBuffer = gfx::CreateFrameBuffer(sceneTexture);
+        sceneTexture     = Graphics::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget);
+        sceneFrameBuffer = Graphics::CreateFrameBuffer(sceneTexture);
     }
 
     std::unique_ptr<Scene> pActiveScene = nullptr;
@@ -47,58 +29,69 @@ struct SceneMgrContext
     // 씬 프레임 버퍼
     FrameBufferHandle sceneFrameBuffer = k_invalidHandle;
     TextureHandle     sceneTexture     = k_invalidHandle;
-} g_ctx;
+} g_sceneManagerContext;
 
-////////////////////////////////////////////////////////////
+}   // namespace jam
 
-void Init(const Int32 _width, const Int32 _height)
+namespace jam
 {
-    g_ctx.OnResize(_width, _height);
+
+void SceneManager::Init()
+{
+    g_sceneManagerContext.Resize(800, 600);   // 기본 크기
 }
 
-void Shutdown()
+void SceneManager::Shutdown()
 {
-    if (g_ctx.pActiveScene)
+    std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
+    if (pCurScene)
     {
-        g_ctx.pActiveScene->OnExit();
-        g_ctx.pActiveScene.reset();
+        pCurScene->OnExit();
+        pCurScene.reset();
     }
 
-    JAM_DESTROY_TEXTURE(g_ctx.sceneTexture);
-    JAM_DESTROY_FRAME_BUFFER(g_ctx.sceneFrameBuffer);
+    JAM_DESTROY_TEXTURE(g_sceneManagerContext.sceneTexture);
+    JAM_DESTROY_FRAME_BUFFER(g_sceneManagerContext.sceneFrameBuffer);
 }
 
-void OnEvent(Event& _event)
+void SceneManager::OnEvent(Event& _event)
 {
-    HandleEvent<WindowResizeEvent>(_event, &g_ctx, &SceneMgrContext::OnWindowResizeEvent);
-    HandleEvent<WindowMaximizeEvent>(_event, &g_ctx, &SceneMgrContext::OnWindowMaximizeEvent);
-    if (g_ctx.pActiveScene)
+    std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
+    if (pCurScene)
     {
-        g_ctx.pActiveScene->OnEvent(_event);
+        pCurScene->OnEvent(_event);
     }
 }
 
-void Update(const float _deltaSec)
+void SceneManager::Resize(const Int32 _width, const Int32 _height)
 {
+    g_sceneManagerContext.Resize(_width, _height);
+}
+
+void SceneManager::Update(const float _deltaSec)
+{
+    std::unique_ptr<Scene>& pCurScene  = g_sceneManagerContext.pActiveScene;
+    std::unique_ptr<Scene>& pNextScene = g_sceneManagerContext.pNextScene;
+
     // change scene
-    if (g_ctx.pNextScene)
+    if (pNextScene)
     {
-        if (g_ctx.pActiveScene)
+        if (pCurScene)
         {
-            g_ctx.pActiveScene->OnExit();
+            pCurScene->OnExit();
         }
-        g_ctx.pActiveScene = std::move(g_ctx.pNextScene);
-        asset_manager::CleanGarbageAll();   // 씬 전환 후 사용하지 않는 에셋 정리
+        pCurScene = std::move(pNextScene);
+        AssetManager::CleanGarbageAll();   // 씬 전환 후 사용하지 않는 에셋 정리
 
         // 씬 입장
-        g_ctx.pActiveScene->OnEnter();
+        pCurScene->OnEnter();
     }
 
     // update active scene
-    if (g_ctx.pActiveScene)
+    if (pCurScene)
     {
         // udpate script
-        for (auto&& [_, scriptCmp]: g_ctx.pActiveScene->Each<ScriptComponent>())
+        for (auto&& [_, scriptCmp]: pCurScene->Each<ScriptComponent>())
         {
             if (scriptCmp.pScript)
             {
@@ -106,25 +99,25 @@ void Update(const float _deltaSec)
             }
         }
 
-        g_ctx.pActiveScene->OnUpdate(_deltaSec);
+        pCurScene->OnUpdate(_deltaSec);
     }
 }
 
-void RenderRuntime()
+void SceneManager::RenderRuntime()
 {
-    if (g_ctx.pActiveScene)
-    {
-        std::unique_ptr<Scene>& pScene = g_ctx.pActiveScene;
+    std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
 
+    if (pCurScene)
+    {
         // 렌더링 하기 전에 Transform 갱신
-        Entity              rootE = pScene->GetRootEntity();
-        HierarchyTransform& rootT = rootE.GetHierarchyTransform();
+        Entity              rootE = pCurScene->GetRootEntity();
+        TransformHierarchy& rootT = rootE.GetTransform();
         rootT.Update_Recursive();
 
         // find camera
         const Camera*    pMainCamera    = nullptr;
         const Transform* pMainTransform = nullptr;
-        for (auto&& [_, cameraCmp, transformCmp]: pScene->View<CameraComponent, TransformComponent>().each())
+        for (auto&& [_, cameraCmp, transformCmp]: pCurScene->Each<CameraComponent, TransformComponent>())
         {
             if (cameraCmp.bMain)
             {
@@ -136,36 +129,38 @@ void RenderRuntime()
 
         if (pMainCamera && pMainTransform)
         {
-            pScene->OnRender(g_ctx.sceneFrameBuffer, *pMainCamera, *pMainTransform);
-            gfx::BlitToBackBuffer(g_ctx.sceneTexture);
+            pCurScene->OnRender(g_sceneManagerContext.sceneFrameBuffer, *pMainCamera, *pMainTransform);
+            Graphics::BlitToBackBuffer(g_sceneManagerContext.sceneTexture);
         }
     }
 }
 
-void RenderOffScreen(const FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform)
+void SceneManager::RenderOffScreen(const FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform)
 {
-    if (g_ctx.pActiveScene)
-    {
-        std::unique_ptr<Scene>& pScene = g_ctx.pActiveScene;
+    std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
 
+    if (pCurScene)
+    {
         // 렌더링 하기 전에 Transform 갱신
-        Entity              rootE = pScene->GetRootEntity();
-        HierarchyTransform& rootT = rootE.GetHierarchyTransform();
+        Entity              rootE = pCurScene->GetRootEntity();
+        TransformHierarchy& rootT = rootE.GetTransform();
         rootT.Update_Recursive();
 
-        pScene->OnRender(_handle, _camera, _transform);
+        pCurScene->OnRender(_handle, _camera, _transform);
     }
 }
 
-void ImGuiRender()
+void SceneManager::ImGuiRender()
 {
-    if (g_ctx.pActiveScene)
+    std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
+
+    if (pCurScene)
     {
-        g_ctx.pActiveScene->OnImGuiRender();
+        pCurScene->OnImGuiRender();
     }
 }
 
-eErrorCode LoadScene(const fs::path& _scenePath)
+eErrorCode SceneManager::LoadScene(const fs::path& _scenePath)
 {
     SceneSerializer serializer;
 
@@ -186,21 +181,21 @@ eErrorCode LoadScene(const fs::path& _scenePath)
             return ec;
         }
 
-        g_ctx.pNextScene = std::move(pScene);
+        g_sceneManagerContext.pNextScene = std::move(pScene);
     }
     return eErrorCode::Ok;
 }
 
-void LoadScene(std::unique_ptr<Scene>&& _pScene)
+void SceneManager::LoadScene(std::unique_ptr<Scene>&& _pScene)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
-    g_ctx.pNextScene = std::move(_pScene);
+    g_sceneManagerContext.pNextScene = std::move(_pScene);
 }
 
-Scene* GetActiveScene()
+Scene* SceneManager::GetActiveScene()
 {
-    JAM_ASSERT(g_ctx.pActiveScene, "No active scene");
-    return g_ctx.pActiveScene.get();
+    JAM_ASSERT(g_sceneManagerContext.pActiveScene, "No active scene");
+    return g_sceneManagerContext.pActiveScene.get();
 }
 
-}   // namespace jam::scene_manager
+}   // namespace jam

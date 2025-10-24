@@ -5,7 +5,7 @@
 #include "Event.h"
 #include "Events.h"
 
-namespace jam::input
+namespace jam
 {
 
 struct InputContext
@@ -59,120 +59,125 @@ struct InputContext
     Int32 mouseDeltaWheel = 0;
 
     EventDispatcher eventDispatcher;
-} g_ctx;
+} g_inputContext;
 
-void Init()
+}   // namespace jam
+
+namespace jam
 {
-    EventDispatcher& dispatcher = g_ctx.eventDispatcher;
-    dispatcher.AddListener<KeyDownEvent>(&g_ctx, &InputContext::OnKeyDown);
-    dispatcher.AddListener<KeyUpEvent>(&g_ctx, &InputContext::OnKeyUp);
-    dispatcher.AddListener<MouseDownEvent>(&g_ctx, &InputContext::OnMouseDown);
-    dispatcher.AddListener<MouseUpEvent>(&g_ctx, &InputContext::OnMouseUp);
-    dispatcher.AddListener<MouseMoveEvent>(&g_ctx, &InputContext::OnMouseMove);
-    dispatcher.AddListener<MouseWheelEvent>(&g_ctx, &InputContext::OnMouseWheel);
+
+void Input::Init()
+{
+    EventDispatcher& dispatcher = g_inputContext.eventDispatcher;
+    dispatcher.AddListener<KeyDownEvent>(&g_inputContext, &InputContext::OnKeyDown);
+    dispatcher.AddListener<KeyUpEvent>(&g_inputContext, &InputContext::OnKeyUp);
+    dispatcher.AddListener<MouseDownEvent>(&g_inputContext, &InputContext::OnMouseDown);
+    dispatcher.AddListener<MouseUpEvent>(&g_inputContext, &InputContext::OnMouseUp);
+    dispatcher.AddListener<MouseMoveEvent>(&g_inputContext, &InputContext::OnMouseMove);
+    dispatcher.AddListener<MouseWheelEvent>(&g_inputContext, &InputContext::OnMouseWheel);
 }
 
-void Update()
+void Input::Update()
 {
-    std::memcpy(g_ctx.bPrevKeyDown, g_ctx.bKeyDown, sizeof(g_ctx.bKeyDown));
+    std::memcpy(g_inputContext.bPrevKeyDown, g_inputContext.bKeyDown, sizeof(g_inputContext.bKeyDown));
 
-    g_ctx.mousePrevX      = g_ctx.mouseX;
-    g_ctx.mousePrevY      = g_ctx.mouseY;
-    g_ctx.mouseDeltaWheel = 0;
+    g_inputContext.mousePrevX      = g_inputContext.mouseX;
+    g_inputContext.mousePrevY      = g_inputContext.mouseY;
+    g_inputContext.mouseDeltaWheel = 0;
 }
 
-void OnEvent(Event& _event)
+void Input::OnEvent(Event& _event)
 {
-    const EventDispatcher& dispatcher = g_ctx.eventDispatcher;
+    const EventDispatcher& dispatcher = g_inputContext.eventDispatcher;
     dispatcher.Dispatch(_event);
 }
 
-bool IsKeyDown(const eKey _key) noexcept
+bool Input::IsKeyDown(const eKey _key) noexcept
 {
     int index = EnumToInt(_key);
-    return g_ctx.bKeyDown[index];
+    return g_inputContext.bKeyDown[index];
 }
 
-bool IsKeyPressed(const eKey _key) noexcept
+bool Input::IsKeyPressed(const eKey _key) noexcept
 {
     int index = EnumToInt(_key);
-    return g_ctx.bKeyDown[index] && !g_ctx.bPrevKeyDown[index];
+    return g_inputContext.bKeyDown[index] && !g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsKeyHold(const eKey _key) noexcept
+bool Input::IsKeyHold(const eKey _key) noexcept
 {
     int index = EnumToInt(_key);
-    return g_ctx.bKeyDown[index] && g_ctx.bPrevKeyDown[index];
+    return g_inputContext.bKeyDown[index] && g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsKeyUp(const eKey _key) noexcept
+bool Input::IsKeyUp(const eKey _key) noexcept
 {
     int index = EnumToInt(_key);
-    return !g_ctx.bKeyDown[index];
+    return !g_inputContext.bKeyDown[index];
 }
 
-bool IsKeyReleased(const eKey _key) noexcept
+bool Input::IsKeyReleased(const eKey _key) noexcept
 {
     int index = EnumToInt(_key);
-    return !g_ctx.bKeyDown[index] && g_ctx.bPrevKeyDown[index];
+    return !g_inputContext.bKeyDown[index] && g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsKeyAway(const eKey _key) noexcept
+bool Input::IsKeyAway(const eKey _key) noexcept
 {
     int index = EnumToInt(_key);
-    return !g_ctx.bKeyDown[index] && !g_ctx.bPrevKeyDown[index];
+    return !g_inputContext.bKeyDown[index] && !g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsMouseDown(const eMouse _mouse) noexcept
+bool Input::IsMouseDown(const eMouse _mouse) noexcept
 {
     int index = EnumToInt(_mouse);
-    return g_ctx.bKeyDown[index];
+    return g_inputContext.bKeyDown[index];
 }
 
-bool IsMousePressed(const eMouse _mouse) noexcept
+bool Input::IsMousePressed(const eMouse _mouse) noexcept
 {
     int index = EnumToInt(_mouse);
-    return g_ctx.bKeyDown[index] && !g_ctx.bPrevKeyDown[index];
+    return g_inputContext.bKeyDown[index] && !g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsMouseHold(const eMouse _mouse) noexcept
+bool Input::IsMouseHold(const eMouse _mouse) noexcept
 {
     int index = EnumToInt(_mouse);
-    return g_ctx.bKeyDown[index] && g_ctx.bPrevKeyDown[index];
+    return g_inputContext.bKeyDown[index] && g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsMouseUp(const eMouse _mouse) noexcept
+bool Input::IsMouseUp(const eMouse _mouse) noexcept
 {
     int index = EnumToInt(_mouse);
-    return !g_ctx.bKeyDown[index] && g_ctx.bPrevKeyDown[index];
+    return !g_inputContext.bKeyDown[index] && g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsMouseReleased(const eMouse _mouse) noexcept
+bool Input::IsMouseReleased(const eMouse _mouse) noexcept
 {
     int index = EnumToInt(_mouse);
-    return !g_ctx.bKeyDown[index] && g_ctx.bPrevKeyDown[index];
+    return !g_inputContext.bKeyDown[index] && g_inputContext.bPrevKeyDown[index];
 }
 
-bool IsMouseAway(const eMouse _mouse) noexcept
+bool Input::IsMouseAway(const eMouse _mouse) noexcept
 {
     int index = EnumToInt(_mouse);
-    return !g_ctx.bKeyDown[index] && !g_ctx.bPrevKeyDown[index];
+    return !g_inputContext.bKeyDown[index] && !g_inputContext.bPrevKeyDown[index];
 }
 
-WindowPos GetMousePos() noexcept
+WindowPos Input::GetMousePos() noexcept
 {
-    return { g_ctx.mouseX, g_ctx.mouseY };
+    return { g_inputContext.mouseX, g_inputContext.mouseY };
 }
 
-Int32 GetMouseDeltaWheel() noexcept
+Int32 Input::GetMouseDeltaWheel() noexcept
 {
-    return static_cast<Int32>(g_ctx.mouseDeltaWheel);
+    return static_cast<Int32>(g_inputContext.mouseDeltaWheel);
 }
 
-WindowPos GetMouseDeltaPos() noexcept
+WindowPos Input::GetMouseDeltaPos() noexcept
 {
-    const Int32 deltaX = g_ctx.mouseX - g_ctx.mousePrevX;
-    const Int32 deltaY = g_ctx.mouseY - g_ctx.mousePrevY;
+    const Int32 deltaX = g_inputContext.mouseX - g_inputContext.mousePrevX;
+    const Int32 deltaY = g_inputContext.mouseY - g_inputContext.mousePrevY;
     return { deltaX, deltaY };
 }
 

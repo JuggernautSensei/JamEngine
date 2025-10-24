@@ -6,9 +6,9 @@ cbuffer CB_DEBUGDRAW
 {
     float4x4 cb_projView;
     float4x4 cb_world;
-    float4x4 cb_transformInvTrans;
+    float4x4 cb_worldInvTrans;
     float4 cb_color;
-    float3 cb_eyePosition;
+    float3 cb_eyePos;
     float pad1;
 };
 

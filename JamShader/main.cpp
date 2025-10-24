@@ -1,4 +1,7 @@
+#include "../JamEngine/Input.h"
 #include "../JamEngine/JamEngine.h"
+#include "../JamEngine/Script.h"
+#include "../JamEngine/ScriptDB.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -138,7 +141,7 @@ static void EmitBytecodeArrays(std::stringstream& _stream, const std::vector<Sha
         eErrorCode     ec = compiler.CompileFromFile(item.path, item.stage, item.entryPoint, flags, macros);
         if (IsError(ec))
         {
-            logger::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorMessage());
+            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorMessage());
             continue;
         }
 
@@ -168,6 +171,42 @@ class WorkScene : public Scene
     JAM_SCENE(WorkScene);
 
 public:
+    class MyScript : public Script
+    {
+        JAM_SCRIPT(MyScript);
+
+    public:
+        void OnStart() override
+        {
+        }
+
+        void OnStop() override
+        {
+        }
+
+        void OnUpdate(float _deltaSec) override
+        {
+
+            if (Input::IsKeyDown(eKey::A))
+            {
+                Entity e = GetOwner();
+                TransformHierarchy& ht = e.GetTransform();
+                const Transform&    t  = ht.GetWorld();
+                t.translate.x += 100.f;
+                ht.SetWorld(t);
+            }
+        }
+
+    private:
+    };
+
+    void OnEnter() override
+    {
+        Entity e = CreateEntity("jiwoo");
+        ScriptComponent& sc = e.CreateComponent<ScriptComponent>();
+        sc.BindScript<MyScript>(e);
+    }
+
     void OnImGuiRender() override
     {
         ShowMainMenuBar();
@@ -186,7 +225,7 @@ private:
         eErrorCode ec   = WriteJsonToFile(path, json);
         if (IsError(ec))
         {
-            logger::Error(GetErrorMessage());
+            Log::Error(GetErrorMessage());
         }
     }
 
@@ -199,7 +238,7 @@ private:
         auto [ec, json] = ReadJsonFromFile(_path);
         if (IsError(ec))
         {
-            logger::Error(GetErrorMessage());
+            Log::Error(GetErrorMessage());
             return;
         }
 
@@ -212,14 +251,14 @@ private:
             auto [ec, src] = ReadFromFile(item.path);
             if (IsError(ec))
             {
-                logger::Error(GetErrorMessage());
+                Log::Error(GetErrorMessage());
                 continue;
             }
             item.source = std::move(src);
         }
 
         // done
-        logger::Info(R"(Project loaded: "{}")", _path.native());
+        Log::Info(R"(Project loaded: "{}")", _path.native());
     }
 
     Result<ShaderItem> LoadShaderItem(const fs::path& path) const
@@ -244,7 +283,7 @@ private:
         eErrorCode ec = WriteToFile(item.path, item.source);
         if (IsError(ec))
         {
-            logger::Error(GetErrorMessage());
+            Log::Error(GetErrorMessage());
             return;
         }
     }
@@ -278,12 +317,12 @@ private:
         eErrorCode ec = WriteToFile(headerPath, header.str());
         if (IsError(ec))
         {
-            logger::Error(GetErrorMessage());
+            Log::Error(GetErrorMessage());
             return;
         }
 
         // done
-        logger::Info(R"(Single header file saved: "{}")", headerPath.native());
+        Log::Info(R"(Single header file saved: "{}")", headerPath.native());
     }
 
     ////////////////////////////
@@ -326,11 +365,11 @@ private:
                         {
                             m_project.shaderItems.push_back(std::move(shaderItem));
                             m_pCurrentShader = &m_project.shaderItems.back();
-                            logger::Info(R"(Shader loaded: "{}")", path.native());
+                            Log::Info(R"(Shader loaded: "{}")", path.native());
                         }
                         else
                         {
-                            logger::Error(GetErrorMessage());
+                            Log::Error(GetErrorMessage());
                         }
                     }
                 }
@@ -537,7 +576,7 @@ private:
                         auto [ec, result] = CompileShader(item, true);
                         if (IsError(ec))
                         {
-                            logger::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorMessage());
+                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorMessage());
                         }
                     }
 
@@ -547,7 +586,7 @@ private:
                         auto [ec, result] = CompileShader(item, false);
                         if (IsError(ec))
                         {
-                            logger::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorMessage());
+                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorMessage());
                         }
                     }
 
@@ -668,7 +707,7 @@ private:
             return ec;
         }
 
-        logger::Info("Shader compiled successfully.");
+        Log::Info("Shader compiled successfully.");
         return compiler;
     }
 
@@ -693,7 +732,7 @@ public:
         std::locale::global(std::locale::classic());
 
         std::unique_ptr<Scene> pScene = std::make_unique<WorkScene>();
-        scene_manager::LoadScene(std::move(pScene));
+        SceneManager::LoadScene(std::move(pScene));
 
         Application& app    = Application::GetInstance();
         Window&      window = app.GetWindow();

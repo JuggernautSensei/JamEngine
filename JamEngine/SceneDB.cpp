@@ -4,22 +4,21 @@
 #include "SceneDB.h"
 
 
-namespace jam::scene_db
+namespace jam
 {
 
-//////////////////////////////////
-///          INTERNAL          ///
-//////////////////////////////////
-
-static HashMap<UInt32, SceneInfo>& GetSceneInfoMap()
+JAM_NODISCARD static HashMap<UInt32, SceneInfo>& GetSceneInfoMap()
 {
     static HashMap<UInt32, SceneInfo> map;
     return map;
 }
 
-////////////////////////////////////////////////////////////
+}
 
-void Reflect(const SceneInfo& _info)
+namespace jam
+{
+
+void SceneDB::Reflect(const SceneInfo& _info)
 {
     UInt32 hash = HashOf(_info.name);
     auto&  map  = GetSceneInfoMap();
@@ -27,7 +26,7 @@ void Reflect(const SceneInfo& _info)
     map.emplace(hash, _info);
 }
 
-std::unique_ptr<Scene> Create(std::string_view _name)
+std::unique_ptr<Scene> SceneDB::Create(std::string_view _name)
 {
     UInt32 hash = HashOf(_name);
     auto&  map  = GetSceneInfoMap();
@@ -35,7 +34,7 @@ std::unique_ptr<Scene> Create(std::string_view _name)
     return map[hash].createFn();
 }
 
-const HashMap<UInt32, SceneInfo>& GetSceneInfos()
+const HashMap<UInt32, SceneInfo>& SceneDB::GetSceneInfos()
 {
     auto& map = GetSceneInfoMap();
     return map;

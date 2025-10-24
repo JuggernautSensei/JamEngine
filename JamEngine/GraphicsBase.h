@@ -533,8 +533,8 @@ struct GfxState
         IntType value = 0;
     };
 
-    static GfxState k_default;            // 기본 렌더링 상태 (삼각형 리스트, 뒷면 컬링)
-    static GfxState k_depthTest;          // 깊이 테스트 및 쓰기 활성화된 상태, 나머지는 기본값
+    static GfxState k_default;     // 기본 렌더링 상태 (삼각형 리스트, 뒷면 컬링)
+    static GfxState k_depthTest;   // 깊이 테스트 및 쓰기 활성화된 상태, 나머지는 기본값
 };
 
 struct BlendState
@@ -685,6 +685,66 @@ struct SamplerState
     static SamplerState k_pointWrap;     // 점 샘플링, 래핑
     static SamplerState k_linearWrap;    // 선형 샘플링, 래핑
     static SamplerState k_shadow;        // 그림자 맵용 (비교 필터링, 선형, 클램프)
+};
+
+///////////////////////////////////////
+///          RESOURCE INFO          ///
+///////////////////////////////////////
+
+struct VertexBufferInfo
+{
+    Int32              byteWidth    = 0;
+    Int32              vertexCount  = 0;
+    Int32              vertexStride = 0;
+    bool               bDynamic     = false;
+    VertexLayoutHandle layoutHandle = k_invalidHandle;
+};
+
+struct IndexBufferInfo
+{
+    Int32        byteWidth  = 0;
+    Int32        indexCount = 0;
+    eIndexFormat format     = eIndexFormat::U16;
+    bool         bDynamic   = false;
+};
+
+struct ConstantBufferInfo
+{
+    Int32 byteWidth = 0;
+};
+
+struct TextureInfo
+{
+    Int32        width                   = 0;
+    Int32        height                  = 0;
+    Int32        depth                   = 0;
+    eTextureType type                    = eTextureType::Texture2D;
+    eFormat      format                  = eFormat::Unknown;
+    Int32        arraySize               = 1;
+    Int32        samples                 = 1;
+    Int32        mipsCount               = 1;
+    bool         bMutable                = false;
+    bool         bRenderTargetAttachable = false;
+    bool         bDepthStencilAttachable = false;
+};
+
+struct FrameBufferInfo
+{
+    Int32 renderTargetCount = 0;
+    bool  bHasDepthStencil  = false;
+
+    TextureHandle renderTargetTextureHandles[k_renderTargetCountMax] = { k_invalidHandle };
+    TextureHandle depthStencilTextureHandle                          = { k_invalidHandle };
+};
+
+struct ShaderInfo
+{
+    eShader stage = eShader::VertexShader;
+};
+
+struct ProgramInfo
+{
+    ShaderHandle shaderHandles[k_renderingPipelineShaderStageCount] = { k_invalidHandle };
 };
 
 ///////////////////////////////////

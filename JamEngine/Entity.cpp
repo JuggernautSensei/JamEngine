@@ -47,22 +47,22 @@ UID Entity::GetUID() const
     return m_uid;
 }
 
-TransformComponent& Entity::GetTransform()
+TransformComponent& Entity::GetTransformComponent()
 {
     return m_pRegistry->get<TransformComponent>(m_handle);
 }
 
-const TransformComponent& Entity::GetTransform() const
+const TransformComponent& Entity::GetTransformComponent() const
 {
     return m_pRegistry->get<TransformComponent>(m_handle);
 }
 
-HierarchyTransform& Entity::GetHierarchyTransform()
+TransformHierarchy& Entity::GetTransform()
 {
     return m_pRegistry->get<TransformComponent>(m_handle).transform;
 }
 
-const HierarchyTransform& Entity::GetHierarchyTransform() const
+const TransformHierarchy& Entity::GetTransform() const
 {
     return m_pRegistry->get<TransformComponent>(m_handle).transform;
 }

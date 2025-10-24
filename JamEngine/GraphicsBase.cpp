@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "GfxBase.h"
+#include "GraphicsBase.h"
 
 namespace jam
 {

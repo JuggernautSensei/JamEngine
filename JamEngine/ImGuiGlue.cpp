@@ -2,13 +2,12 @@
 
 #include "ImGuiGlue.h"
 
-#include "Application.h"
-#include "Gfx.h"
+#include "Graphics.h"
 
-namespace jam::imgui
+namespace jam
 {
 
-void Init(const HWND _hwnd, ID3D11Device* _pd3dDevice, ID3D11DeviceContext* _pd3dDeviceContext)
+void ImGuiGlue::Init(const HWND _hwnd, ID3D11Device* _pd3dDevice, ID3D11DeviceContext* _pd3dDeviceContext)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -21,24 +20,24 @@ void Init(const HWND _hwnd, ID3D11Device* _pd3dDevice, ID3D11DeviceContext* _pd3
     ImGui_ImplDX11_Init(_pd3dDevice, _pd3dDeviceContext);
 }
 
-void Shutdown()
+void ImGuiGlue::Shutdown()
 {
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 }
 
-void BeginFrame()
+void ImGuiGlue::BeginFrame()
 {
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 }
 
-void EndFrame()
+void ImGuiGlue::EndFrame()
 {
-    gfx::SetFrameBuffer(k_invalidHandle);
-    gfx::Touch();
+    Graphics::SetFrameBuffer(k_invalidHandle);
+    Graphics::Flush();
 
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

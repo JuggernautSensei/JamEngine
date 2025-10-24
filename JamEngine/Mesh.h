@@ -1,6 +1,6 @@
 #pragma once
 #include "BoundBox.h"
-#include "GfxBase.h"
+#include "GraphicsBase.h"
 #include "IAsset.h"
 
 // clang-format off

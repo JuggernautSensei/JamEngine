@@ -38,7 +38,7 @@ eErrorCode TagComponent::Deserialize(const Json& _json, const Scene* _pScene, En
 
 Json TransformComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
-    const HierarchyTransform& t = _entity.GetHierarchyTransform();
+    const TransformHierarchy& t = _entity.GetTransform();
 
     JAM_ASSERT(t.GetRoot().IsValid(), "root entity is invalid");
     JAM_ASSERT(t.GetParent().IsValid(), "parent entity is invalid");
@@ -56,7 +56,7 @@ Json TransformComponent::Serialize(const Scene* _pScene, Entity _entity) const
 
 eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
 {
-    HierarchyTransform& t = _entity.GetHierarchyTransform();
+    TransformHierarchy& t = _entity.GetTransform();
     JAM_ASSERT(t.GetRoot().IsValid(), "root entity is invalid");
     JAM_ASSERT(t.GetOwner().IsValid(), "owner entity is invalid");
 
@@ -168,7 +168,7 @@ eErrorCode ScriptComponent::Deserialize(const Json& _json, const Scene* _pScene,
     else if (scriptField.is_string())
     {
         std::string scriptName = scriptField.get<std::string>();
-        pScript                = script_db::Create(scriptName, _entity);
+        pScript                = ScriptDB::Create(scriptName, _entity);
         return eErrorCode::Ok;
     }
 
@@ -223,7 +223,7 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
     else if (meshField.is_string())
     {
         std::string meshPath  = meshField.get<std::string>();
-        auto [ec, meshHandle] = asset_manager::GetOrLoadMesh(meshPath);
+        auto [ec, meshHandle] = AssetManager::GetOrLoadMesh(meshPath);
 
         if (IsError(ec))
             return ec;
@@ -245,7 +245,7 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
     else if (materialField.is_string())
     {
         std::string materialPath  = materialField.get<std::string>();
-        auto [ec, materialHandle] = asset_manager::GetOrLoadMaterial(materialPath);
+        auto [ec, materialHandle] = AssetManager::GetOrLoadMaterial(materialPath);
 
         if (IsError(ec))
             return ec;

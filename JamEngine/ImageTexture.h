@@ -1,5 +1,5 @@
 #pragma once
-#include "GfxBase.h"
+#include "GraphicsBase.h"
 #include "IAsset.h"
 
 namespace jam
@@ -36,6 +36,7 @@ public:
     JAM_NODISCARD eAssetType      GetType() const override;
     JAM_NODISCARD UInt32          GetHash() const override;
     JAM_NODISCARD std::string_view GetName() const override;
+    JAM_NODISCARD TextureHandle    GetHandle() const;
 
     /// @brief 텍스처 바인딩
     /// @param _shader 쉐이더 스테이지

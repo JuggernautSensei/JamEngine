@@ -3,7 +3,7 @@
 #include "ComponentDB.h"
 #include "StringUtilities.h"
 
-namespace jam::component_db
+namespace jam
 {
 
 struct ComponentDBContext
@@ -18,7 +18,12 @@ static ComponentDBContext& GetComponentDBContext()
     return ctx;
 }
 
-void Reflect(std::string_view _name, const ComponentInfo& info)
+}   // namespace jam
+
+namespace jam
+{
+
+void ComponentDB::Reflect(std::string_view _name, const ComponentInfo& info)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -29,7 +34,7 @@ void Reflect(std::string_view _name, const ComponentInfo& info)
     ctx.typeIDToNameHashT[info.typeHash] = nameHash;
 }
 
-void Create(std::string_view _name, const Entity _entity)
+void ComponentDB::Create(std::string_view _name, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -39,7 +44,7 @@ void Create(std::string_view _name, const Entity _entity)
     info.createFn(_entity);
 }
 
-void CreateByCopy(std::string_view _name, const Entity _entity, const void* _pComponent)
+void ComponentDB::CreateByCopy(std::string_view _name, const Entity _entity, const void* _pComponent)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -49,7 +54,7 @@ void CreateByCopy(std::string_view _name, const Entity _entity, const void* _pCo
     info.createByCopyFn(_entity, _pComponent);
 }
 
-void CreateOrReplace(std::string_view _name, const Entity _entity)
+void ComponentDB::CreateOrReplace(std::string_view _name, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -59,7 +64,7 @@ void CreateOrReplace(std::string_view _name, const Entity _entity)
     info.createOrReplaceFn(_entity);
 }
 
-void CreateOrReplaceByCopy(std::string_view _name, const Entity _entity, const void* _pComponent)
+void ComponentDB::CreateOrReplaceByCopy(std::string_view _name, const Entity _entity, const void* _pComponent)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -69,7 +74,7 @@ void CreateOrReplaceByCopy(std::string_view _name, const Entity _entity, const v
     info.createOrReplaceByCopyFn(_entity, _pComponent);
 }
 
-void Remove(std::string_view _name, const Entity _entity)
+void ComponentDB::Remove(std::string_view _name, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -79,7 +84,7 @@ void Remove(std::string_view _name, const Entity _entity)
     info.removeFn(_entity);
 }
 
-void* Get(std::string_view _name, const Entity _entity)
+void* ComponentDB::Get(std::string_view _name, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -89,7 +94,7 @@ void* Get(std::string_view _name, const Entity _entity)
     return info.getFn(_entity);
 }
 
-bool Has(std::string_view _name, const Entity _entity)
+bool ComponentDB::Has(std::string_view _name, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -99,7 +104,7 @@ bool Has(std::string_view _name, const Entity _entity)
     return info.hasFn(_entity);
 }
 
-Json Serialize(std::string_view _name, const void* _pComponent, const Scene* _pScene, const Entity _entity)
+Json ComponentDB::Serialize(std::string_view _name, const void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -109,7 +114,7 @@ Json Serialize(std::string_view _name, const void* _pComponent, const Scene* _pS
     return info.serializeFn(_pComponent, _pScene, _entity);
 }
 
-eErrorCode Deserialize(std::string_view _name, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity _entity)
+eErrorCode ComponentDB::Deserialize(std::string_view _name, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -119,7 +124,7 @@ eErrorCode Deserialize(std::string_view _name, void* _pComponent, const Json& _j
     return info.deserializeFn(_pComponent, _json, _pScene, _entity);
 }
 
-void DrawEditor(std::string_view _name, void* _pComponent, const Scene* _pScene, const Entity _entity)
+void ComponentDB::DrawEditor(std::string_view _name, void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -129,7 +134,7 @@ void DrawEditor(std::string_view _name, void* _pComponent, const Scene* _pScene,
     info.drawEditorFn(_pComponent, _pScene, _entity);
 }
 
-bool IsSerializable(const std::string_view _name)
+bool ComponentDB::IsSerializable(const std::string_view _name)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -138,7 +143,7 @@ bool IsSerializable(const std::string_view _name)
     return info.serializeFn != nullptr;
 }
 
-bool IsEditable(const std::string_view _name)
+bool ComponentDB::IsEditable(const std::string_view _name)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -147,7 +152,7 @@ bool IsEditable(const std::string_view _name)
     return info.drawEditorFn != nullptr;
 }
 
-void Create(UInt32 _typeID, const Entity _entity)
+void ComponentDB::Create(UInt32 _typeID, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -157,7 +162,7 @@ void Create(UInt32 _typeID, const Entity _entity)
     info.createFn(_entity);
 }
 
-void CreateByCopy(UInt32 _typeID, const Entity _entity, const void* _pComponent)
+void ComponentDB::CreateByCopy(UInt32 _typeID, const Entity _entity, const void* _pComponent)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -167,7 +172,7 @@ void CreateByCopy(UInt32 _typeID, const Entity _entity, const void* _pComponent)
     info.createByCopyFn(_entity, _pComponent);
 }
 
-void CreateOrReplace(UInt32 _typeID, const Entity _entity)
+void ComponentDB::CreateOrReplace(UInt32 _typeID, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -177,7 +182,7 @@ void CreateOrReplace(UInt32 _typeID, const Entity _entity)
     info.createOrReplaceFn(_entity);
 }
 
-void CreateOrReplaceByCopy(UInt32 _typeID, const Entity _entity, const void* _pComponent)
+void ComponentDB::CreateOrReplaceByCopy(UInt32 _typeID, const Entity _entity, const void* _pComponent)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -187,7 +192,7 @@ void CreateOrReplaceByCopy(UInt32 _typeID, const Entity _entity, const void* _pC
     info.createOrReplaceByCopyFn(_entity, _pComponent);
 }
 
-void Remove(UInt32 _typeID, const Entity _entity)
+void ComponentDB::Remove(UInt32 _typeID, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -197,7 +202,7 @@ void Remove(UInt32 _typeID, const Entity _entity)
     info.removeFn(_entity);
 }
 
-void* Get(UInt32 _typeID, const Entity _entity)
+void* ComponentDB::Get(UInt32 _typeID, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -207,7 +212,7 @@ void* Get(UInt32 _typeID, const Entity _entity)
     return info.getFn(_entity);
 }
 
-bool Has(UInt32 _typeID, const Entity _entity)
+bool ComponentDB::Has(UInt32 _typeID, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -217,7 +222,7 @@ bool Has(UInt32 _typeID, const Entity _entity)
     return info.hasFn(_entity);
 }
 
-Json Serialize(UInt32 _typeID, const void* _pComponent, const Scene* _pScene, const Entity _entity)
+Json ComponentDB::Serialize(UInt32 _typeID, const void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -227,7 +232,7 @@ Json Serialize(UInt32 _typeID, const void* _pComponent, const Scene* _pScene, co
     return info.serializeFn(_pComponent, _pScene, _entity);
 }
 
-eErrorCode Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity _entity)
+eErrorCode ComponentDB::Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, const Scene* _pScene, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -237,7 +242,7 @@ eErrorCode Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, con
     return info.deserializeFn(_pComponent, _json, _pScene, _entity);
 }
 
-void DrawEditor(UInt32 _typeID, void* _pComponent, const Scene* _pScene, const Entity _entity)
+void ComponentDB::DrawEditor(UInt32 _typeID, void* _pComponent, const Scene* _pScene, const Entity _entity)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -247,7 +252,7 @@ void DrawEditor(UInt32 _typeID, void* _pComponent, const Scene* _pScene, const E
     info.drawEditorFn(_pComponent, _pScene, _entity);
 }
 
-bool IsSerializable(const UInt32 _typeID)
+bool ComponentDB::IsSerializable(const UInt32 _typeID)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -256,7 +261,7 @@ bool IsSerializable(const UInt32 _typeID)
     return info.serializeFn != nullptr;
 }
 
-bool IsEditable(const UInt32 _typeID)
+bool ComponentDB::IsEditable(const UInt32 _typeID)
 {
     auto& ctx = GetComponentDBContext();
 
@@ -265,7 +270,7 @@ bool IsEditable(const UInt32 _typeID)
     return info.drawEditorFn != nullptr;
 }
 
-const HashMap<UInt32, ComponentInfo>& GetComponentInfos()
+const HashMap<UInt32, ComponentInfo>& ComponentDB::GetComponentInfos()
 {
     return GetComponentDBContext().componentInfoMap;
 }

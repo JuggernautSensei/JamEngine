@@ -3,7 +3,7 @@
 #include "LoopSubdivision.h"
 
 #include "BaseUtilities.h"
-#include "GfxBase.h"
+#include "GraphicsBase.h"
 #include "Memory.h"
 #include "MemoryArena.h"
 

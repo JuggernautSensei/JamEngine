@@ -22,7 +22,7 @@ public:
     void Stop();
     void Update(float _deltaSec);
 
-    JAM_NODISCARD Entity                   GetEntity() const;
+    JAM_NODISCARD Entity                   GetOwner() const;
     JAM_NODISCARD bool                     IsRunning() const;
     JAM_NODISCARD virtual std::string_view GetName() const = 0;
 
@@ -50,6 +50,6 @@ public:                                                                        \
 private:                                                                       \
     inline static bool _script_reflect_ = []                                   \
     {                                                                          \
-        jam::script_db::Reflect<_class>();                                     \
+        jam::ScriptDB::Reflect<_class>();                                     \
         return true;                                                           \
     }()
