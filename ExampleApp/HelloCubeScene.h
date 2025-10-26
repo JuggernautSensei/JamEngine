@@ -23,7 +23,7 @@ private:
     Transform m_cubeTransform = {};
     float     m_rotSpeed      = ToRad(45.f);
 
-    Vec3  m_eyePos = Vec3 { 0.f, 0.f, -3.f };
+    Vec3  m_eyePos = Vec3 { 0.f, 0.f, -10.f };
     Vec3  m_eyeDir = Vec3 { 0.f, 0.f, 1.f };
     float m_fov    = ToRad(60.f);
     float m_nearZ  = 0.1f;

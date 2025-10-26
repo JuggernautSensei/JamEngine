@@ -31,8 +31,8 @@ struct SceneMgrContext
         JAM_DESTROY_TEXTURE(sceneDepthTexture);
         JAM_DESTROY_FRAME_BUFFER(sceneFrameBuffer);
 
-        sceneRenderTexture = Graphics::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget);
-        sceneDepthTexture  = Graphics::CreateTexture2D(_width, _height, eFormat::D24_UNorm_S8_UInt, 1, eTextureCreateFlags_DepthStencil);
+        sceneRenderTexture = Graphics::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget | eTextureCreateFlags_WriteOnly);
+        sceneDepthTexture  = Graphics::CreateTexture2D(_width, _height, eFormat::D24_UNorm_S8_UInt, 1, eTextureCreateFlags_DepthStencil | eTextureCreateFlags_WriteOnly);
 
         TextureHandle attachments[] = { sceneRenderTexture, sceneDepthTexture };
         sceneFrameBuffer            = Graphics::CreateFrameBuffer(attachments);

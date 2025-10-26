@@ -134,7 +134,8 @@ HelloCubeScene::HelloCubeScene()
     JAM_ASSERT(IsOk(ec), "pixel shader compile failed");
     ShaderHandle psh = Graphics::CreateShader(compiler.GetBytecode());
 
-    m_program = Graphics::CreateProgram(vsh, psh, true);
+    m_program              = Graphics::CreateProgram(vsh, psh, true);
+    m_cubeTransform.rotate = Quat::CreateFromYawPitchRoll(0.f, ToRad(25.f), 0.f);
 }
 
 HelloCubeScene::~HelloCubeScene()
@@ -148,7 +149,6 @@ HelloCubeScene::~HelloCubeScene()
 void HelloCubeScene::OnUpdate(const float _deltaSec)
 {
     m_dt = _deltaSec;
-
     m_cubeTransform.rotate *= Quat::CreateFromYawPitchRoll(m_rotSpeed * _deltaSec, 0, 0);
 }
 
