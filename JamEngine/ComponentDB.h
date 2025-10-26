@@ -61,13 +61,9 @@ namespace details
     void* Get(Entity _entity)
     {
         if constexpr (std::is_void_v<decltype(std::declval<Entity>().GetComponent<T>())>)
-        {
             return nullptr;
-        }
         else
-        {
             return static_cast<void*>(&_entity.GetComponent<T>());
-        }
     }
 
     template<typename T>

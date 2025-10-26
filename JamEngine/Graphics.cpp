@@ -1124,7 +1124,7 @@ void GfxContext::OnResize(const Int32 _width, const Int32 _height)
             bbTexture.mipsCount      = 1;
             bbTexture.arraySize      = 1;
             bbTexture.samples        = 1;
-            bbTexture.bMutable       = false;
+            bbTexture.bMutable       = true;
             bbTexture.refCount       = 1;
             bbTexture.bManaged       = false;
             bbTexture.bRTVAttachable = true;
@@ -3467,11 +3467,17 @@ void Graphics::SetVertexBuffer(
 {
     if (g_gfxContext.vertexBufferHandleBind != _handleOrInvalid || g_gfxContext.vertexBufferOffsetBind != _vertexOffset)
     {
+        const VertexBuffer& buffer = g_gfxContext.vertexBuffers[_handleOrInvalid];
+        if (g_gfxContext.vertexLayoutHandleBind != buffer.layoutHandle)
+        {
+            g_gfxContext.vertexLayoutHandleBind = buffer.layoutHandle;
+            g_gfxContext.pipelineDirtyFlags |= ePipelineDirtyFlags_InputLayout;
+        }
+
         g_gfxContext.vertexBufferHandleBind = _handleOrInvalid;
         g_gfxContext.vertexBufferOffsetBind = _vertexOffset;
         g_gfxContext.pipelineDirtyFlags |= ePipelineDirtyFlags_VertexBuffer;
     }
-
     g_gfxContext.vertexCountBind = _vertexCount;
 }
 

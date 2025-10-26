@@ -94,12 +94,12 @@ eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pSce
 Json CameraComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
     Json json;
-    json["projection"] = camera.projection;
-    json["nearZ"]      = camera.nearZ;
-    json["farZ"]       = camera.farZ;
-    json["fovYRad"]    = camera.fovYRad;
-    json["width"]      = camera.width;
-    json["height"]     = camera.height;
+    json["projection"] = projection;
+    json["nearZ"]      = nearZ;
+    json["farZ"]       = farZ;
+    json["fovYRad"]    = fovYRad;
+    json["width"]      = width;
+    json["height"]     = height;
     json["bMain"]      = bMain;
     return json;
 }
@@ -116,24 +116,37 @@ eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene,
         }
     }
 
-    camera.projection = _json["projectection"].get<eProjection>();
-    camera.nearZ      = _json["nearZ"].get<float>();
-    camera.farZ       = _json["farZ"].get<float>();
-    camera.fovYRad    = _json["fovYRad"].get<float>();
-    camera.width      = _json["width"].get<float>();
-    camera.height     = _json["height"].get<float>();
+    projection = _json["projectection"].get<eProjection>();
+    nearZ      = _json["nearZ"].get<float>();
+    farZ       = _json["farZ"].get<float>();
+    fovYRad    = _json["fovYRad"].get<float>();
+    width      = _json["width"].get<float>();
+    height     = _json["height"].get<float>();
     bMain             = _json["bMain"].get<bool>();
 
     // 사후검사
-    if (!IsValidEnum(camera.projection))
+    if (!IsValidEnum(projection))
     {
         SetErrorMessage("CameraComponent deserialization failed: 'projection' field is invalid.");
         return eErrorCode::FileParseFailed;
     }
 
-    camera.nearZ = Clamp(camera.nearZ, Camera::k_nearestZ, Camera::k_farthestZ - Camera::k_nearestZ);
-    camera.farZ  = Clamp(camera.farZ, camera.nearZ + Camera::k_nearestZ, Camera::k_farthestZ);
+    nearZ = Clamp(nearZ, k_nearestZ, k_farthestZ - k_epsilon);
+    farZ  = Clamp(farZ, nearZ + k_epsilon, k_farthestZ);
     return eErrorCode::Ok;
+}
+
+Mat4 CameraComponent::CreateProj() const
+{
+    if (projection == eProjection::Perspective)
+    {
+        const float aspectRatio = width / height;
+        return CreatePerspectiveFov(fovYRad, aspectRatio, nearZ, farZ);
+    }
+    else
+    {
+        return CreateOrthographic(width, height, nearZ, farZ);
+    }
 }
 
 Json ScriptComponent::Serialize(const Scene* _pScene, Entity _entity) const
@@ -202,6 +215,7 @@ Json MeshRenderer::Serialize(const Scene* _pScene, Entity _entity) const
 
     return json;
 }
+
 eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
 {
     constexpr const char* const fieldNames[] = { "mesh", "material" };
@@ -257,6 +271,78 @@ eErrorCode MeshRenderer::Deserialize(const Json& _json, const Scene* _pScene, En
         SetErrorMessage("MeshRenderer deserialization failed: 'material' field is not a string or null.");
         return eErrorCode::FileParseFailed;
     }
+    return eErrorCode::Ok;
+}
+
+Json PointLightComponent::Serialize(const Scene* _pScene, Entity _entity) const
+{
+    Json json;
+    json["radiance"]     = radiance;
+    json["intensity"]    = intensity;
+    json["fallOffStart"] = fallOffStart;
+    json["fallOffEnd"]   = fallOffEnd;
+    return json;
+}
+
+eErrorCode PointLightComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
+{
+    constexpr const char* const fieldNames[] = { "radiance", "intensity", "fallOffStart", "fallOffEnd" };
+    for (const char* fieldName: fieldNames)
+    {
+        if (!_json.contains(fieldName))
+        {
+            SetErrorMessage("PointLightComponent deserialization failed: {} field is missing.", fieldName);
+            return eErrorCode::FileParseFailed;
+        }
+    }
+
+    radiance     = _json["radiance"].get<Vec3>();
+    intensity    = _json["intensity"].get<float>();
+    fallOffStart = _json["fallOffStart"].get<float>();
+    fallOffEnd   = _json["fallOffEnd"].get<float>();
+    return eErrorCode::Ok;
+}
+
+Json SpotLightComponent::Serialize(const Scene* _pScene, Entity _entity) const
+{
+    Json json;
+    json["radiance"]         = radiance;
+    json["intensity"]        = intensity;
+    json["fallOffStart"]     = fallOffStart;
+    json["fallOffEnd"]       = fallOffEnd;
+    json["innerConeHalfRad"] = innerConeHalfRad;
+    json["outerConeHalfRad"] = outerConeHalfRad;
+    return json;
+}
+
+eErrorCode SpotLightComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity)
+{
+    constexpr const char* const fieldNames[] = { "radiance", "intensity", "fallOffStart", "fallOffEnd", "innerConeHalfRad", "outerConeHalfRad" };
+    for (const char* fieldName: fieldNames)
+    {
+        if (!_json.contains(fieldName))
+        {
+            SetErrorMessage("SpotLightComponent deserialization failed: {} field is missing.", fieldName);
+            return eErrorCode::FileParseFailed;
+        }
+    }
+
+    radiance         = _json["radiance"].get<Vec3>();
+    intensity        = _json["intensity"].get<float>();
+    fallOffStart     = _json["fallOffStart"].get<float>();
+    fallOffEnd       = _json["fallOffEnd"].get<float>();
+    innerConeHalfRad = _json["innerConeHalfRad"].get<float>();
+    outerConeHalfRad = _json["outerConeHalfRad"].get<float>();
+    return eErrorCode::Ok;
+}
+
+Json ShadowCasterComponent::Serialize(const Scene* _pScene, Entity _entity) const
+{
+    return nullptr;
+}
+
+eErrorCode ShadowCasterComponent::Deserialize(const Json& _json, const Scene* _pScene, Entity _entity) const
+{
     return eErrorCode::Ok;
 }
 

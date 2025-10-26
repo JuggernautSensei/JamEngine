@@ -5,6 +5,7 @@
 namespace jam
 {
 
+
 std::wstring ToLower(const std::wstring_view _wStr)
 {
     std::wstring output;

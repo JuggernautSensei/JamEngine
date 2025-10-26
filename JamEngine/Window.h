@@ -16,7 +16,7 @@ public:
     void MoveClient(Int32 _clientLeftTopX, Int32 _clientLeftTopY);
     void SetTitle(std::string_view _name) const;
 
-    JAM_NODISCARD Resolution GetClientSize() const;
+    JAM_NODISCARD Resolution GetClientResolution() const;
     JAM_NODISCARD ScreenPos  GetClientPos() const;
     JAM_NODISCARD Resolution GetFullScreenSize() const;
     JAM_NODISCARD HWND       GetPlatformHandle() const;

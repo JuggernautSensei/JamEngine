@@ -14,69 +14,15 @@
 namespace jam
 {
 
-// CullingSystem::Collect 의 정책 예시
-//
-// struct SortKeyGenerator
-// {
-//     JAM_NODISCARD UInt64 operator()(const Mesh& _mesh, const Material& _material, const UInt16 _minDepth, const UInt16 _maxDepth) const
-//     {
-//         // 머테리얼 > 메쉬 > 깊이
-//         UInt64 sortKey = 0;
-//         sortKey |= _material.GetSortKey();s
-//         sortKey <<= 16;
-//         sortKey |= _mesh.GetSortKey();
-//         sortKey <<= 16;
-//         sortKey |= _minDepth;
-//         return sortKey;
-//     }
-// };
-//
-// struct CullingSystemSink
-// {
-//     void Clear()
-//     {
-//         items.clear();
-//         sortKeys.clear();
-//         tmpItems.clear();
-//         tmpSortKeys.clear();
-//     }
-//
-//     void Add(DrawItem& _item, Entity)
-//     {
-//         items.push_back(&_item);
-//         sortKeys.emplace_back(_item.sortKey);
-//     }
-//
-//     void Sort()
-//     {
-//         size_t n = items.size();
-//         if (n < 200)   // 휴리스틱 값
-//         {
-//             std::ranges::sort(items, CompareDesc);
-//         }
-//         else
-//         {
-//             if (tmpItems.size() < n)
-//             {
-//                 tmpItems.resize(n);
-//                 tmpSortKeys.resize(n);
-//             }
-//
-//             RadixSort(sortKeys.data(), tmpSortKeys.data(), items.data(), tmpItems.data(), NarrowCast<UInt32>(n));
-//         }
-//     }
-//
-//     static bool CompareDesc(const DrawItem* _a, const DrawItem* _b)
-//     {
-//         return _a->sortKey > _b->sortKey;
-//     }
-//
-//     std::vector<DrawItem*> items;
-//     std::vector<UInt64>    sortKeys;
-//     std::vector<DrawItem*> tmpItems;
-//     std::vector<UInt64>    tmpSortKeys;
-// };
+struct DefaultCullingPolicy
+{
+    void   Clear() const {}
+    void   AddItem(const DrawItem& _item, Entity _entity) const {}
+    UInt64 CreateKey(const Mesh& _mesh, const Material& _material, UInt16 _minDepth, UInt16 _maxDepth) const { return 0; }
+    void   Sort() const {}
+};
 
+template<typename TPolicy = DefaultCullingPolicy>
 class CullingSystem
 {
     using Scalar        = float;
@@ -98,81 +44,31 @@ class CullingSystem
     };
 
 public:
-    CullingSystem();
+    explicit CullingSystem(TPolicy&& _policy = TPolicy {})
+        : m_policy(std::forward<TPolicy>(_policy))
+        , m_executor(m_threadPool)
+    {
+        m_boxes.reserve(1024);
+        m_centers.reserve(1024);
+        m_drawItems.reserve(1024);
+        m_drawItemIDs.reserve(1024);
+        m_tempIDs.reserve(1024);
+        m_stack.reserve(64);
+    }
+
+    ~CullingSystem() = default;
+
+    CullingSystem& operator=(const CullingSystem&) = delete;
+    CullingSystem(const CullingSystem&)            = delete;
+    CullingSystem(CullingSystem&&)                 = delete;
+    CullingSystem& operator=(CullingSystem&&)      = delete;
 
     void Build(const Scene* _pScene);
     void Refit(const Scene* _pScene);
+    void Collect(const Frustum& _frustumInW);
 
-    template<typename TCollectorSink, typename TSortKeyGen>
-    void Collect(const Frustum& _frustumInW, TCollectorSink& _sink, TSortKeyGen&& _keyGen)
-    {
-        _sink.Clear();
-
-        if (m_drawItemIDs.empty())
-            return;
-
-        // 카메라 info
-        const Vec3  cameraPos     = _frustumInW.position;
-        const Vec3  frustumLookTo = _frustumInW.ViewLookTo();
-        const float nearZ         = _frustumInW.GetNear();
-        const float farZ          = _frustumInW.GetFar();
-        const float invRange      = IsNearlyEqual(nearZ, farZ) ? 0 : 1.0f / (farZ - nearZ);
-
-        m_stack.clear();
-        m_stack.push_back(m_bvh.get_root().index);   // bvh 의 루트 노드
-        while (!m_stack.empty())
-        {
-            BVHIndex top = m_stack.back();
-            m_stack.pop_back();
-
-            if (top.is_leaf())   // 리프 노드이면 드로우 아이템 수집
-            {
-                size_t start = top.first_id();
-                size_t end   = start + top.prim_count();
-                for (size_t i = start; i < end; ++i)
-                {
-                    const UInt32 idx    = m_drawItemIDs[i];
-                    DrawItemEx&  itemEx = m_drawItems[idx];
-                    DrawItem&    item   = itemEx.item;
-
-                    const AABB& aabbInW = itemEx.aabbInW;
-                    if (_frustumInW.Intersects(aabbInW) == ePlaneIntersectType::Outside)   // 프러스텀에 포함되지 않으면 스킵
-                        continue;
-
-                    // 깊이값 계산 (단순 AABB 중심과 프러스텀 시선 벡터의 내적 + AABB extents 로 근사)
-                    const Vec3 centerInW  = aabbInW.Center();
-                    const Vec3 extendsInW = aabbInW.Extents();
-
-                    const Vec3  cmrToCenter = centerInW - cameraPos;
-                    const float centerZ     = frustumLookTo.Dot(cmrToCenter);
-                    const Vec3  absLookDir  = Absolute(frustumLookTo);
-                    const float rView       = absLookDir.Dot(extendsInW);
-
-                    const UInt16 minDepth = EncodeDepth_(centerZ - rView, nearZ, invRange);
-                    const UInt16 maxDepth = EncodeDepth_(centerZ + rView, nearZ, invRange);
-                    item.sortKey          = _keyGen(*item.pMesh, *item.pMaterial, minDepth, maxDepth);
-                    _sink.Add(item, itemEx.entity);
-                }
-            }
-            else
-            {
-                // 프러스텀과 교차하는 노드만 스택에 추가
-
-                const Node& left  = m_bvh.nodes[top.first_id()];
-                const Node& right = m_bvh.nodes[top.first_id() + 1];
-
-                if (IsIntersectWithFrustum_(left, _frustumInW))
-                    m_stack.push_back(left.index);
-
-                if (IsIntersectWithFrustum_(right, _frustumInW))
-                    m_stack.push_back(right.index);
-            }
-        }
-
-        _sink.Sort();
-    }
-
-    void Clear();
+    TPolicy&       GetPolicy() { return m_policy; }
+    const TPolicy& GetPolicy() const { return m_policy; }
 
 private:
     JAM_NODISCARD bool   IsIntersectWithFrustum_(const Node& _node, const Frustum& _frustumInW) const;
@@ -190,9 +86,204 @@ private:
     std::vector<UInt32>   m_tempIDs;
     std::vector<BVHIndex> m_stack;
 
+    TPolicy m_policy;
+
     BVH        m_bvh;
     ThreadPool m_threadPool;
-    Executor   m_executor { m_threadPool };
+    Executor   m_executor;
 };
+
+// 템플릿 구현
+template<typename TPolicy>
+void CullingSystem<TPolicy>::Build(const Scene* _pScene)
+{
+    m_boxes.clear();
+    m_centers.clear();
+    m_drawItems.clear();
+    m_drawItemIDs.clear();
+
+    auto   view = _pScene->View<TransformComponent, MeshRenderer>();
+    size_t n    = view.size_hint();
+    m_boxes.reserve(n);
+    m_centers.reserve(n);
+    m_drawItems.reserve(n);
+    m_drawItemIDs.reserve(n);
+
+    for (entt::entity e: view)
+    {
+        const TransformComponent& t = view.get<TransformComponent>(e);
+        const MeshRenderer&       m = view.get<MeshRenderer>(e);
+
+        if (!m.pMesh || !m.pMaterial)
+            continue;
+
+        const Mat4 world   = t.transform.GetWorld().CreateWorld();
+        const AABB aabbInL = m.pMesh->GetBoundingBox();
+        const AABB aabbInW = AABB::Transform(aabbInL, world);
+
+        m_boxes.emplace_back(ToBox_(aabbInW));
+        m_centers.emplace_back(ToV3_(aabbInW.Center()));
+
+        DrawItemEx itemEx;
+        itemEx.item.pMesh     = m.pMesh.get();
+        itemEx.item.pMaterial = m.pMaterial.get();
+        itemEx.item.world     = world;
+        itemEx.aabbInW        = aabbInW;
+        itemEx.entity         = t.transform.GetOwner();
+        m_drawItems.emplace_back(std::move(itemEx));
+        m_drawItemIDs.emplace_back(NarrowCast<UInt32>(m_drawItems.size() - 1));
+    }
+
+    BuilderConfig cfg;
+    cfg.quality = Builder::Quality::Medium;
+    m_bvh       = Builder::build(m_threadPool, m_boxes, m_centers, cfg);
+
+    struct ExecutorLoop
+    {
+        void operator()(const size_t begin, const size_t end) const
+        {
+            for (size_t i = begin; i < end; ++i)
+                tmpIDs[i] = drawItemIds[bvh->prim_ids[i]];
+        }
+
+        BVH*                 bvh;
+        std::vector<UInt32>* tmpIDs;
+        std::vector<UInt32>* drawItemIds;
+    };
+
+    m_tempIDs.resize(m_drawItemIDs.size());
+    m_executor.for_each(0, m_drawItemIDs.size(), ExecutorLoop { &m_bvh, &m_tempIDs, &m_drawItemIDs });
+    m_drawItemIDs.swap(m_tempIDs);
+}
+
+template<typename TPolicy>
+void CullingSystem<TPolicy>::Refit(const Scene* _pScene)
+{
+    auto view = _pScene->View<TransformComponent, MeshRenderer>();
+
+    m_bvh.refit(
+        [&](Node& node)
+        {
+            Box merge;
+            merge.make_empty();
+
+            size_t start = node.index.first_id();
+            size_t end   = start + node.index.prim_count();
+            for (size_t i = start; i < end; ++i)
+            {
+                DrawItemEx& itemEx = m_drawItems[m_drawItemIDs[i]];
+                const auto& [t, m] = view.get<TransformComponent, MeshRenderer>(itemEx.entity.GetHandle());
+                itemEx.item.world  = t.transform.GetWorld().CreateWorld();
+                itemEx.aabbInW     = AABB::Transform(m.pMesh->GetBoundingBox(), itemEx.item.world);
+                m_boxes[i]         = ToBox_(itemEx.aabbInW);
+
+                merge.extend(m_boxes[i]);
+            }
+            node.set_bbox(merge);
+        });
+}
+
+template<typename TPolicy>
+void CullingSystem<TPolicy>::Collect(const Frustum& _frustumInW)
+{
+    m_policy.Clear();
+
+    if (m_drawItemIDs.empty())
+        return;
+
+    const Vec3  cameraPos     = _frustumInW.position;
+    const Vec3  frustumLookTo = _frustumInW.ViewLookTo();
+    const float nearZ         = _frustumInW.GetNear();
+    const float farZ          = _frustumInW.GetFar();
+    const float invRange      = IsNearlyEqual(nearZ, farZ) ? 0 : 1.0f / (farZ - nearZ);
+
+    m_stack.clear();
+    m_stack.push_back(m_bvh.get_root().index);
+    while (!m_stack.empty())
+    {
+        BVHIndex top = m_stack.back();
+        m_stack.pop_back();
+
+        if (top.is_leaf())
+        {
+            size_t start = top.first_id();
+            size_t end   = start + top.prim_count();
+            for (size_t i = start; i < end; ++i)
+            {
+                const UInt32 idx    = m_drawItemIDs[i];
+                DrawItemEx&  itemEx = m_drawItems[idx];
+                DrawItem&    item   = itemEx.item;
+
+                const AABB& aabbInW = itemEx.aabbInW;
+                if (_frustumInW.Intersects(aabbInW) == ePlaneIntersectType::Outside)
+                    continue;
+
+                const Vec3 centerInW  = aabbInW.Center();
+                const Vec3 extendsInW = aabbInW.Extents();
+
+                const Vec3  cmrToCenter = centerInW - cameraPos;
+                const float centerZ     = frustumLookTo.Dot(cmrToCenter);
+                const Vec3  absLookDir  = Absolute(frustumLookTo);
+                const float rView       = absLookDir.Dot(extendsInW);
+
+                const UInt16 minDepth = EncodeDepth_(centerZ - rView, nearZ, invRange);
+                const UInt16 maxDepth = EncodeDepth_(centerZ + rView, nearZ, invRange);
+                item.sortKey          = m_policy.CreateKey(*item.pMesh, *item.pMaterial, minDepth, maxDepth);
+                m_policy.AddItem(item, itemEx.entity);
+            }
+        }
+        else
+        {
+            const Node& left  = m_bvh.nodes[top.first_id()];
+            const Node& right = m_bvh.nodes[top.first_id() + 1];
+
+            if (IsIntersectWithFrustum_(left, _frustumInW))
+                m_stack.push_back(left.index);
+
+            if (IsIntersectWithFrustum_(right, _frustumInW))
+                m_stack.push_back(right.index);
+        }
+    }
+
+    m_policy.Sort();
+}
+
+template<typename TPolicy>
+bool CullingSystem<TPolicy>::IsIntersectWithFrustum_(const Node& _node, const Frustum& _frustumInW) const
+{
+    const Box& box = _node.get_bbox();
+    const AABB aabbInW { ToVec3_(box.min), ToVec3_(box.max) };
+    return _frustumInW.Intersects(aabbInW) != ePlaneIntersectType::Outside;
+}
+
+template<typename TPolicy>
+CullingSystem<TPolicy>::V3 CullingSystem<TPolicy>::ToV3_(const Vec3& _v) const
+{
+    return V3 { _v.x, _v.y, _v.z };
+}
+
+template<typename TPolicy>
+CullingSystem<TPolicy>::Box CullingSystem<TPolicy>::ToBox_(const Vec3& _min, const Vec3& _max) const
+{
+    return Box { ToV3_(_min), ToV3_(_max) };
+}
+
+template<typename TPolicy>
+CullingSystem<TPolicy>::Box CullingSystem<TPolicy>::ToBox_(const AABB& _aabb) const
+{
+    return Box { ToV3_(_aabb.min), ToV3_(_aabb.max) };
+}
+
+template<typename TPolicy>
+Vec3 CullingSystem<TPolicy>::ToVec3_(const V3& _v) const
+{
+    return Vec3 { _v[0], _v[1], _v[2] };
+}
+
+template<typename TPolicy>
+UInt16 CullingSystem<TPolicy>::EncodeDepth_(const float _depth, const float _nearZ, const float _invRange) const
+{
+    return static_cast<UInt16>(std::lroundf(Clamp(((_depth - _nearZ) * _invRange) * 65535.0f, 0.f, 65535.f)));
+}
 
 }   // namespace jam

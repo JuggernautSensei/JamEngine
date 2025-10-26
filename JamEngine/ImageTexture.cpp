@@ -55,8 +55,13 @@ ImageTexture& ImageTexture::operator=(ImageTexture&& _other) noexcept
 {
     if (this != &_other)
     {
-        ImageTexture temp(std::move(_other));
-        std::swap(*this, temp);
+        CleanUp_();
+
+        m_handle = _other.m_handle;
+        m_path   = std::move(_other.m_path);
+
+        _other.m_handle = k_invalidHandle;
+        _other.m_path.clear();
     }
     return *this;
 }
@@ -111,6 +116,5 @@ void ImageTexture::CleanUp_()
     JAM_DESTROY_TEXTURE(m_handle);
     m_path.clear();
 }
-
 
 }   // namespace jam

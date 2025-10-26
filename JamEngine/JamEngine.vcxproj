@@ -231,7 +231,6 @@
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="FileUtilities.cpp" />
-    <ClCompile Include="Light.cpp" />
     <ClCompile Include="powerof2_fixed_circular_q.cpp" />
     <ClCompile Include="fixed_string.cpp" />
     <ClCompile Include="IAsset.cpp" />
@@ -245,7 +244,6 @@
     <ClCompile Include="ImGuiGlue.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="ImageTexture.cpp" />
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CodingStandard.txt">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -268,8 +266,6 @@
     <ClCompile Include="RadixSort.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderPass.cpp" />
-    <ClCompile Include="tmp2.cpp" />
-    <ClCompile Include="tmp1.cpp" />
     <ClCompile Include="SceneDB.cpp" />
     <ClCompile Include="ScriptDB.cpp" />
     <ClCompile Include="SerializableComponent.cpp" />
@@ -314,6 +310,7 @@
     </ClCompile>
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="VertexLayout.cpp" />
+    <ClCompile Include="SceneView.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
     <ClCompile Include="ComponentsEditor.cpp" />
@@ -333,7 +330,6 @@
     <ClInclude Include="Environment.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="FileUtilities.h" />
-    <ClInclude Include="Light.h" />
     <ClInclude Include="powerof2_fixed_circular_q.h" />
     <ClInclude Include="fixed_string.h" />
     <ClInclude Include="HashMap.h" />
@@ -349,7 +345,6 @@
     <ClInclude Include="ImGuiGlue.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="ImageTexture.h" />
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="fixed_vector.h" />
     <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Hash.h" />
@@ -365,8 +360,6 @@
     <ClInclude Include="RadixSort.h" />
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="RenderPass.h" />
-    <ClInclude Include="tmp2.h" />
-    <ClInclude Include="tmp1.h" />
     <ClInclude Include="SceneDB.h" />
     <ClInclude Include="ScriptDB.h" />
     <ClInclude Include="SerializableComponent.h" />
@@ -477,6 +470,7 @@
     </ClInclude>
     <ClInclude Include="Version.h" />
     <ClInclude Include="VertexLayout.h" />
+    <ClInclude Include="SceneView.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="EmbeddedShaderGlue.h" />

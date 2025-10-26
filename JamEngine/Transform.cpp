@@ -2,7 +2,6 @@
 
 #include "Transform.h"
 
-#include "Camera.h"
 #include "MathUtilities.h"
 
 namespace jam

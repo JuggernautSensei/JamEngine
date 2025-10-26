@@ -158,13 +158,18 @@
     <ClCompile Include="QuickSort.cpp" />
     <ClCompile Include="RadixSort.cpp" />
     <ClCompile Include="Base.cpp" />
+    <ClCompile Include="SimpleMath.cpp" />
     <ClCompile Include="TestApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QuickSort.h" />
     <ClInclude Include="RadixSort.h" />
     <ClInclude Include="Base.h" />
+    <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="unordered_dense.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

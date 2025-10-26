@@ -1,7 +1,47 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <None Include=".clang-format" />
-    <None Include=".editorconfig" />
+    <None Include=".clang-format">
+      <Filter>Base</Filter>
+    </None>
+    <None Include=".editorconfig">
+      <Filter>Base</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="ExampleApp.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="HelloCubeScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ExampleApp.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="EntryPoint.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="HelloCubeScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Base">
+      <UniqueIdentifier>{43d89655-3898-4f73-b8da-5fc06c79986e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{4c5cedbc-ff14-4a20-b5be-62a07ce095a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{26f870f8-3158-4ad3-8258-c4c982c96161}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

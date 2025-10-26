@@ -52,13 +52,8 @@
         },
         {
             "entryPoint": "PSMain",
-            "macros": [
-                {
-                    "name": "TONE_MAPPING_UNCHARTED2",
-                    "value": ""
-                }
-            ],
-            "name": "ToneMappingPS_UNCHARTED2",
+            "macros": [],
+            "name": "ToneMappingPS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
             "stage": "PixelShader"
         },
@@ -100,78 +95,6 @@
             "macros": [],
             "name": "SkyboxShader_PS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\SkyboxShader.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [
-                {
-                    "name": "TONE_MAPPING_REINHARD",
-                    "value": ""
-                }
-            ],
-            "name": "ToneMappingPS_REINHARD",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [
-                {
-                    "name": "TONE_MAPPING_LUMA_BASED_REINHARD",
-                    "value": ""
-                }
-            ],
-            "name": "ToneMappingPS_LUMA_BASED_REINHARD",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [
-                {
-                    "name": "TONE_MAPPING_WHITE_PRESERVING_REINHARD",
-                    "value": ""
-                }
-            ],
-            "name": "ToneMappingPS_WHITE_PRESERVING_REINHARD",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [
-                {
-                    "name": "TONE_MAPPING_ROMB_DA_HOUSE",
-                    "value": ""
-                }
-            ],
-            "name": "ToneMappingPS_ROMB_DA_HOUSE",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [
-                {
-                    "name": "TONE_MAPPING_FILMIC",
-                    "value": ""
-                }
-            ],
-            "name": "ToneMappingPS_FILMIC",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [
-                {
-                    "name": "TONE_MAPPING_LINEAR",
-                    "value": ""
-                }
-            ],
-            "name": "ToneMappingPS_LINEAR",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\ToneMappingPS.hlsl",
             "stage": "PixelShader"
         },
         {

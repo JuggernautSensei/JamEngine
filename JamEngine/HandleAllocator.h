@@ -3,9 +3,7 @@
 namespace jam
 {
 
-constexpr UInt32 k_invalidHandleIndex = 0x00FFFFFF;
-constexpr UInt32 k_invalidHandleToken = 0;
-constexpr UInt32 k_invalidHandleValue = 0x00FFFFFF;
+constexpr Int32 k_invalidHandleIndex = 0xFFFFFF;
 
 struct InvalidHandleType
 {
@@ -18,10 +16,14 @@ template<typename T>
 struct Handle
 {
     Handle()
+        : index(k_invalidHandleIndex)
+        , token(0)
     {
     }
 
     /* implicit */ Handle(const InvalidHandleType) noexcept
+        : index(k_invalidHandleIndex)
+        , token(0)
     {
     }
 
@@ -31,14 +33,10 @@ struct Handle
         token = _token;
     }
 
-    explicit Handle(const UInt32 _value) noexcept
-        : value(_value)
-    {
-    }
-
     Handle& operator=(const InvalidHandleType) noexcept
     {
-        value = k_invalidHandleValue;
+        index = k_invalidHandleIndex;
+        token = 0;
         return *this;
     }
 
@@ -54,7 +52,7 @@ struct Handle
 
     union
     {
-        UInt32 value = k_invalidHandleValue;
+        UInt32 value;
         struct
         {
             UInt32 index : 24;
@@ -66,10 +64,14 @@ struct Handle
 struct AnyHandle
 {
     AnyHandle()
+        : index(k_invalidHandleIndex)
+        , token(0)
     {
     }
 
     /* implicit */ AnyHandle(const InvalidHandleType) noexcept
+        : index(k_invalidHandleIndex)
+        , token(0)
     {
     }
 
@@ -80,14 +82,15 @@ struct AnyHandle
     }
 
     AnyHandle(const UInt32 _index, const UInt32 _token) noexcept
+        : index(_index)
+        , token(_token)
     {
-        index = _index;
-        token = _token;
     }
 
     AnyHandle& operator=(const InvalidHandleType) noexcept
     {
-        value = k_invalidHandleValue;
+        index = k_invalidHandleIndex;
+        token = 0;
         return *this;
     }
 
@@ -103,7 +106,7 @@ struct AnyHandle
 
     union
     {
-        UInt32 value = k_invalidHandleValue;
+        UInt32 value;
         struct
         {
             UInt32 index : 24;

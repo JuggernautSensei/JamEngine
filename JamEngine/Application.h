@@ -117,6 +117,9 @@ public:
     JAM_NODISCARD const TickTimer& GetTimer() const;
     JAM_NODISCARD Window&          GetWindow();
 
+    JAM_NODISCARD bool IsEditor() const;
+    JAM_NODISCARD bool IsRuntime() const;
+
     /// 싱글턴 객체 관리. 임의 호출 금지
     static void Create(const CommandLineArguments& _args);
     static void Destroy();
@@ -131,10 +134,10 @@ private:
     void OnWindowCloseEvent(const WindowCloseEvent& _event);
 
     /// @brief 어플리케이션이 시작될 때 호출되는 함수
-    virtual void OnCreate() = 0;
+    virtual void OnCreate() {};
 
     /// @brief 어플리케이션이 종료될 때 호출되는 함수
-    virtual void OnDestroy() = 0;
+    virtual void OnDestroy() {};
 
     std::string        m_applicationName    = {};
     bool               m_bRunning           = false;

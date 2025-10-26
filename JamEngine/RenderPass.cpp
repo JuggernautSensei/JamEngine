@@ -9,7 +9,7 @@ namespace jam
 
 JAM_NODISCARD UInt64 MakeValidateSetKey(const UInt32 _handleValue, const eShader _stage)
 {
-    return (static_cast<UInt32>(_handleValue) << 32) | static_cast<UInt64>(_stage);
+    return (static_cast<UInt64>(_handleValue) << 32) | static_cast<UInt64>(_stage);
 }
 
 }   // namespace jam

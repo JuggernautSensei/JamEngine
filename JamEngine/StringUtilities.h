@@ -3,18 +3,6 @@
 namespace jam
 {
 
-#ifdef JAM_TEXT_ENCODING_UNICODE
-using tchar        = wchar_t;
-using tstring      = std::wstring;
-using tstring_view = std::wstring_view;
-#    define JAM_TTEXT(x) L##x
-#else   // JAM_TEXT_ENCODING_MULTIBYTE
-using tchar        = char;
-using tstring      = std::string;
-using tstring_view = std::string_view;
-#    define JAM_TTEXT(x) x
-#endif
-
 JAM_NODISCARD constexpr UInt32 HashOf(const std::string_view _str)
 {
     return entt::hashed_string { _str.data(), _str.size() }.value();

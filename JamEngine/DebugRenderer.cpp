@@ -124,7 +124,7 @@ struct alignas(16) CB_DEBUGRENDERER
 /// 디버그 드로우의 렌더링 상태
 struct DebugRendererState
 {
-    RGBA         color       = 0xFFFFFFFF;
+    RGBA         color       = RGBA { 0xFFFFFFFF };
     GfxState     state       = GfxState::k_depthTest;
     eDetailLevel detailLevel = eDetailLevel::Medium;
     bool         bWireframe  = false;
@@ -473,11 +473,11 @@ void DebugRenderer::PopTransform()
     g_debugRendererContext.transformStack.pop_back();
 }
 
-void DebugRenderer::SetCamera(const Vec3& _eyePos, const Mat4& _view, const Mat4& _proj)
+void DebugRenderer::SetCamera(const Vec3& _eyePos, const Mat4& _viewProj)
 {
     g_debugRendererContext.DrawLineBatch();
     g_debugRendererContext.debugDrawCpu.eyePos   = _eyePos;
-    g_debugRendererContext.debugDrawCpu.projView = (_view * _proj).Transpose();
+    g_debugRendererContext.debugDrawCpu.projView = _viewProj.Transpose();
 }
 
 void DebugRenderer::SetTransform(const Mat4& _mat)

@@ -12,7 +12,7 @@ UInt32       g_randomSeed      = 0;
 namespace jam
 {
 
-Mat4 CreateTransformLookTo(const Vec3& _forward)
+Mat4 CreateRotationLookTo(const Vec3& _forward)
 {
     using namespace DirectX;
 
@@ -46,7 +46,7 @@ Mat4 CreateWorld(const Vec3& _translate, const Vec3& _forward, const Vec3& _scal
 {
     using namespace DirectX;
 
-    XMMATRIX lookToMat = CreateTransformLookTo(_forward);
+    XMMATRIX lookToMat = CreateRotationLookTo(_forward);
     lookToMat.r[0]     = XMVectorMultiply(lookToMat.r[0], _scale);
     lookToMat.r[1]     = XMVectorMultiply(lookToMat.r[1], _scale);
     lookToMat.r[2]     = XMVectorMultiply(lookToMat.r[2], _scale);
@@ -64,7 +64,7 @@ Mat4 CreateViewLookTo(const Vec3& _position, const Vec3& _forward)
 {
     using namespace DirectX;
 
-    XMMATRIX lookToMat = CreateTransformLookTo(_forward);
+    XMMATRIX lookToMat = CreateRotationLookTo(_forward);
 
     // 평행이동 역행렬 (= 역원)
     const XMVECTOR nPos = XMVectorNegate(_position);

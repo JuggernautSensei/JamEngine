@@ -211,12 +211,6 @@
     <ClCompile Include="Environment.cpp">
       <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
@@ -235,12 +229,6 @@
     <ClCompile Include="CullingSystem.cpp">
       <Filter>4. RenderSystem\CullingSystem</Filter>
     </ClCompile>
-    <ClCompile Include="tmp1.cpp">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="tmp2.cpp">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPass.cpp">
       <Filter>4. RenderSystem\RenderGraph</Filter>
     </ClCompile>
@@ -252,6 +240,9 @@
     </ClCompile>
     <ClCompile Include="BasicRendererBase.cpp">
       <Filter>4. RenderSystem\BasicRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneView.cpp">
+      <Filter>3. Scene\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -686,12 +677,6 @@
     <ClInclude Include="Environment.h">
       <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
@@ -773,12 +758,6 @@
     <ClInclude Include="CullingSystem.h">
       <Filter>4. RenderSystem\CullingSystem</Filter>
     </ClInclude>
-    <ClInclude Include="tmp1.h">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="tmp2.h">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
-    </ClInclude>
     <ClInclude Include="RenderPass.h">
       <Filter>4. RenderSystem\RenderGraph</Filter>
     </ClInclude>
@@ -790,6 +769,9 @@
     </ClInclude>
     <ClInclude Include="BasicRendererBase.h">
       <Filter>4. RenderSystem\BasicRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneView.h">
+      <Filter>3. Scene\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

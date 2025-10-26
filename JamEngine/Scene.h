@@ -2,9 +2,10 @@
 #include "Entity.h"
 #include "GraphicsBase.h"
 #include "UID.h"
+#include "SceneView.h"
 
 // clang-format off
-namespace jam { class Event; struct Camera; struct Transform; }
+namespace jam { class Event; struct Transform; }
 // clang-format on
 
 namespace jam
@@ -23,7 +24,7 @@ public:
     virtual void OnEnter() {}
     virtual void OnExit() {}
     virtual void OnUpdate(float _deltaSec) {}
-    virtual void OnRender(FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform) {}
+    virtual void OnRender(const SceneView& _view) {}
     virtual void OnImGuiRender() {}
     virtual void OnEvent(Event& _event) {}
 
@@ -75,10 +76,10 @@ private:
     void                 DestroyEntity_Recursive_(Entity _entity);
     JAM_NODISCARD Entity CreateEntity_(bool _bCreateRoot, UID _uid, std::string_view _name = {});
 
-    entt::registry       m_registry         = {};
-    Entity               m_rootEntity       = Entity::s_null;
-    UIDGenerator         m_uidGenerator     = {};
-    HashMap<UID, Entity> m_entityMap        = {};
+    entt::registry       m_registry     = {};
+    Entity               m_rootEntity   = Entity::s_null;
+    UIDGenerator         m_uidGenerator = {};
+    HashMap<UID, Entity> m_entityMap    = {};
 };
 
 }   // namespace jam
@@ -91,6 +92,6 @@ public:                                                                        \
 private:                                                                       \
     inline static bool _scene_reflect_ = []                                    \
     {                                                                          \
-        jam::SceneDB::Reflect<_class>();                                      \
+        jam::SceneDB::Reflect<_class>();                                       \
         return true;                                                           \
     }()

@@ -106,7 +106,7 @@ void Window::SetTitle(const std::string_view _name) const
     ::SetWindowText(m_hWnd, title.c_str());
 }
 
-Resolution Window::GetClientSize() const
+Resolution Window::GetClientResolution() const
 {
     return m_clientSize;
 }

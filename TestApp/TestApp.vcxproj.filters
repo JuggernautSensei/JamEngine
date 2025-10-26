@@ -5,11 +5,16 @@
     <ClCompile Include="Base.cpp" />
     <ClCompile Include="RadixSort.cpp" />
     <ClCompile Include="QuickSort.cpp" />
+    <ClCompile Include="SimpleMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h" />
     <ClInclude Include="unordered_dense.h" />
     <ClInclude Include="RadixSort.h" />
     <ClInclude Include="QuickSort.h" />
+    <ClInclude Include="SimpleMath.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl" />
   </ItemGroup>
 </Project>

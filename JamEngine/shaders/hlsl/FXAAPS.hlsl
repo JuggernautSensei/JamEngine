@@ -791,11 +791,15 @@ Position on span is used to compute sub-pixel filter offset using simple ramp,
 
 float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
+    uint w, h, dummy;
+    t_input0.GetDimensions(0, w, h, dummy);
+    float2 texelSize = float2(1.0f / w, 1.0f / h);
+
 #if (FXAA_PRESET == 0) | (FXAA_PRESET == 1) | (FXAA_PRESET == 2)
     FxaaTex tex = { s_anisotropic4Wrap, t_input0};
 #else  
     FxaaTex tex = { s_linearClamp, t_input0 };
 #endif
-    return float4(FxaaPixelShader(_input.texCoord0, tex, cb_texelSize), 1.0f);
+    return float4(FxaaPixelShader(_input.texCoord0, tex, texelSize), 1.0f);
 }
 

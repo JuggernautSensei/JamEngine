@@ -43,10 +43,17 @@ JAM_NODISCARD static Mesh CreateMeshHelper(
 
     // 메쉬 생성
     CreateMeshInput input;
-    input.positionData        = MemoryView { _positions };
-    input.normalDataOrNull    = MemoryView { normals };
-    input.tangentDataOrNull   = MemoryView { tangents };
-    input.bitangentDataOrNull = MemoryView { bitangents };
+    input.positionData = MemoryView { _positions };
+
+    if (!normals.empty())
+        input.normalDataOrNull = MemoryView { normals };
+
+    if (!tangents.empty())
+        input.tangentDataOrNull = MemoryView { tangents };
+
+    if (!bitangents.empty())
+        input.bitangentDataOrNull = MemoryView { bitangents };
+
     input.texcoord0DataOrNull = MemoryView { _texCoords };
     input.indexData           = _indexData;
     input.indexFormat         = _indexFormat;
@@ -294,7 +301,7 @@ Mesh CreateSphereMesh(
 
         return CreateMeshHelper(output.positions, output.texcoords, MemoryView { output.indices }, output.indexFormat, _layout);
     }
-    else // 정이십면체
+    else   // 정이십면체
     {
         return CreateMeshHelper(k_positions, k_texCoords, MemoryView { k_indices }, eIndexFormat::U16, _layout);
     }

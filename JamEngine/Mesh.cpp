@@ -340,8 +340,17 @@ Mesh& Mesh::operator=(Mesh&& _other) noexcept
 {
     if (this != &_other)
     {
-        Mesh temp(std::move(_other));
-        std::swap(*this, temp);
+        CleanUp_();
+
+        m_path               = std::move(_other.m_path);
+        m_vertexBufferHandle = _other.m_vertexBufferHandle;
+        m_indexBufferHandle  = _other.m_indexBufferHandle;
+        m_boundingBox        = std::move(_other.m_boundingBox);
+
+        _other.m_indexBufferHandle  = k_invalidHandle;
+        _other.m_vertexBufferHandle = k_invalidHandle;
+        _other.m_boundingBox        = {};
+        _other.m_path.clear();
     }
     return *this;
 }

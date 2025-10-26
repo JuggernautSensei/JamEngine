@@ -5,6 +5,9 @@
 namespace jam
 {
 
+RGBA RGBA::k_black = RGBA(0, 0, 0, 255);
+RGBA RGBA::k_white = RGBA(255, 255, 255, 255);
+
 GfxState GfxState::k_default = {};
 
 GfxState GfxState::k_depthTest = {

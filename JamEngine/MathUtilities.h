@@ -320,7 +320,7 @@ JAM_NODISCARD constexpr Vec4 ToVec4(const Vec3& vec3, const float w = 1.f)
 ///          MATRIX          ///
 ////////////////////////////////
 
-JAM_NODISCARD Mat4 CreateTransformLookTo(const Vec3& _forward);
+JAM_NODISCARD Mat4 CreateRotationLookTo(const Vec3& _forward);
 
 JAM_NODISCARD Mat4 CreateWorld(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale);
 

@@ -7,7 +7,6 @@
 #include "EmbeddedShaderGlue.h"
 #include "Environment.h"
 #include "Graphics.h"
-#include "Light.h"
 #include "Memory.h"
 #include "MeshFactory.h"
 #include "Profile.h"
@@ -22,8 +21,8 @@ struct BasicRendererContext
 {
     void UploadTransform(const Mat4& _world) const;
     void UploadMaterial(const Material& _material) const;
-    void UploadPointLight(const PointLight& _light, const Transform& _transform) const;
-    void UploadSpotLight(const SpotLight& _light, const Transform& _transform) const;
+    void UploadPointLight(const Vec3& _radiance, float _lightIntensity, const Vec3& _pos, float _fallOffStart, float _fallOffEnd, bool _bShadow) const;
+    void UploadSpotLight(const Vec3& _radiance, float _lightIntensity, const Vec3& _pos, const Vec3& _dir, float _fallOffStart, float _fallOffEnd, float _innerConeAngle, float _outerConeAngle, bool _bShadow) const;
 
     void BakeSSAOKernel() const;
     void BakeSSAONoise();
@@ -56,13 +55,7 @@ struct BasicRendererContext
     ShaderHandle bloomXPS;
     ShaderHandle bloomYPS;
     ShaderHandle bloomCombinePS;
-    ShaderHandle toneMappingUncharted2PS;
-    ShaderHandle toneMappingLinearPS;
-    ShaderHandle toneMappingReinhardPS;
-    ShaderHandle toneMappingLumaBasedReinhardPS;
-    ShaderHandle toneMappingWhitePreservingReinhardPS;
-    ShaderHandle toneMappingRombDaHousePS;
-    ShaderHandle toneMappingFilmicPS;
+    ShaderHandle toneMappingPS;
     ShaderHandle fxaaVeryLowPS;
     ShaderHandle fxaaLowPS;
     ShaderHandle fxaaMediumPS;
@@ -89,13 +82,7 @@ struct BasicRendererContext
     ProgramHandle bloomXProgram;
     ProgramHandle bloomYProgram;
     ProgramHandle bloomCombineProgram;
-    ProgramHandle toneMappingUncharted2Program;
-    ProgramHandle toneMappingLinearProgram;
-    ProgramHandle toneMappingReinhardProgram;
-    ProgramHandle toneMappingLumaBasedReinhardProgram;
-    ProgramHandle toneMappingWhitePreservingReinhardProgram;
-    ProgramHandle toneMappingRombDaHouseProgram;
-    ProgramHandle toneMappingFilmicProgram;
+    ProgramHandle toneMappingProgram;
     ProgramHandle fxaaVeryLowProgram;
     ProgramHandle fxaaLowProgram;
     ProgramHandle fxaaMediumProgram;
@@ -115,8 +102,6 @@ struct BasicRendererContext
     ConstantBufferHandle osmCasterCbh;
     ConstantBufferHandle ssaoCbh;
 
-    TextureHandle ssaoNoiseTexture;
-
     Mesh fullScreenTri;
     Mesh lightVolumeFullScreenTri;
     Mesh lightVolumeUnitSphere;
@@ -133,27 +118,18 @@ struct BasicRendererContext
     GfxState lightVolumeState;
     GfxState skyboxState;
 
-    CullingSystem cullingSystem;
-    Timer         timer;
+    TextureHandle ssaoNoiseTexture;
 
+    Timer              timer;
+    RenderGraph        graph;
     const Environment* pCurEnv = nullptr;
-
-    RenderGraph graph;
 
 } g_basicRendererContext;
 
 void BasicRendererContext::BakeSSAOKernel() const
 {
-    Int32 kernelSize = 0;
-    if (pCurEnv->ssaoKernelSize == eSSAOKernel::Kernel4x4)
-        kernelSize = 16;
-    else if (pCurEnv->ssaoKernelSize == eSSAOKernel::Kernel6x6)
-        kernelSize = 36;
-    else if (pCurEnv->ssaoKernelSize == eSSAOKernel::Kernel8x8)
-        kernelSize = 64;
-
-    CB_SSAO_KERNEL cb;
-    for (Int32 i = 0; i < kernelSize; ++i)
+    Vec3 output[64];
+    for (Int32 i = 0; i < 64; ++i)
     {
         // 반구
         Vec3 sample = Vec3 {
@@ -163,23 +139,24 @@ void BasicRendererContext::BakeSSAOKernel() const
         };
         sample.Normalize();
         sample *= CreateRandom<float>(0.f, 1.f);
-        float sacle = static_cast<float>(i) / static_cast<float>(kernelSize);
+        float sacle = static_cast<float>(i) / static_cast<float>(64);
         sacle       = Lerp(0.1f, 1.f, sacle * sacle);   // 가까운 샘플에 더 집중
         sample *= sacle;
-        cb.cb_ssaoKernel[i] = sample;
+
+        output[i] = sample;
     }
 
-    Graphics::UploadBuffer(ssaoCbh, MemoryView { cb });
+    Graphics::UploadBuffer(ssaoCbh, MemoryView { output });
 }
 
 void BasicRendererContext::BakeSSAONoise()
 {
     JAM_DESTROY_TEXTURE(ssaoNoiseTexture);
 
-    constexpr UInt32 noiseSize = 4;
+    constexpr UInt32 k_noiseSize = 4;
 
-    Vec3 noiseData[noiseSize * noiseSize];
-    for (UInt32 i = 0; i < noiseSize * noiseSize; ++i)
+    Vec3 noiseData[k_noiseSize * k_noiseSize];
+    for (UInt32 i = 0; i < k_noiseSize * k_noiseSize; ++i)
     {
         noiseData[i] = Vec3 {
             CreateRandom<float>(-1.f, 1.f),
@@ -192,7 +169,7 @@ void BasicRendererContext::BakeSSAONoise()
         MemoryView { noiseData, sizeof(noiseData) }
     };
 
-    ssaoNoiseTexture = Graphics::CreateTexture2D(noiseSize, noiseSize, eFormat::RGBA16_Float, 1, eTextureCreateFlags_None, mem);
+    ssaoNoiseTexture = Graphics::CreateTexture2D(k_noiseSize, k_noiseSize, eFormat::RGBA16_Float, 1, eTextureCreateFlags_None, mem);
 }
 
 void BasicRendererContext::UploadTransform(const Mat4& _world) const
@@ -277,37 +254,51 @@ void BasicRendererContext::UploadMaterial(const Material& _material) const
     Graphics::UploadBuffer(materialCbh, MemoryView { cb });
 }
 
-void BasicRendererContext::UploadPointLight(const PointLight& _light, const Transform& _transform) const
+void BasicRendererContext::UploadPointLight(const Vec3& _radiance, const float _lightIntensity, const Vec3& _pos, const float _fallOffStart, const float _fallOffEnd, const bool _bShadow) const
 {
     CB_LIGHT cb                 = {};
     cb.cb_lightType             = JAM_LIGHT_TYPE_POINT;
-    cb.cb_lightPos              = _transform.translate;
-    cb.cb_lightDir              = _transform.Forward();
-    cb.cb_lightRadiance         = _light.radiance;
-    cb.cb_lightIntensity        = _light.intensity;
-    cb.cb_lightFallOffStart     = _light.fallOffStart;
-    cb.cb_lightFallOffEnd       = _light.fallOffEnd;
+    cb.cb_lightPos              = _radiance;
+    cb.cb_lightDir              = Vec3::Forward;
+    cb.cb_lightRadiance         = _radiance;
+    cb.cb_lightIntensity        = _lightIntensity;
+    cb.cb_lightFallOffStart     = _fallOffStart;
+    cb.cb_lightFallOffEnd       = _fallOffEnd;
     cb.cb_lightInnerConeHalfRad = 0;
     cb.cb_lightOuterConeHalfRad = 0;
-    cb.cb_bShadowMapping        = _light.bCastShadow ? JAM_TRUE : JAM_FALSE;
+    cb.cb_bShadowMapping        = _bShadow ? JAM_TRUE : JAM_FALSE;
     Graphics::UploadBuffer(lightCbh, MemoryView { cb });
 }
 
-void BasicRendererContext::UploadSpotLight(const SpotLight& _light, const Transform& _transform) const
+void BasicRendererContext::UploadSpotLight(const Vec3& _radiance, const float _lightIntensity, const Vec3& _pos, const Vec3& _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle, const bool _bShadow) const
 {
     CB_LIGHT cb                 = {};
     cb.cb_lightType             = JAM_LIGHT_TYPE_POINT;
-    cb.cb_lightPos              = _transform.translate;
-    cb.cb_lightDir              = _transform.Forward();
-    cb.cb_lightRadiance         = _light.radiance;
-    cb.cb_lightIntensity        = _light.intensity;
-    cb.cb_lightFallOffStart     = _light.fallOffStart;
-    cb.cb_lightFallOffEnd       = _light.fallOffEnd;
-    cb.cb_lightInnerConeHalfRad = _light.innerConeHalfRad;
-    cb.cb_lightOuterConeHalfRad = _light.outerConeHalfRad;
-    cb.cb_bShadowMapping        = _light.bCastShadow ? JAM_TRUE : JAM_FALSE;
+    cb.cb_lightPos              = _pos;
+    cb.cb_lightDir              = _dir;
+    cb.cb_lightRadiance         = _radiance;
+    cb.cb_lightIntensity        = _lightIntensity;
+    cb.cb_lightFallOffStart     = _fallOffStart;
+    cb.cb_lightFallOffEnd       = _fallOffEnd;
+    cb.cb_lightInnerConeHalfRad = _innerConeAngle;
+    cb.cb_lightOuterConeHalfRad = _outerConeAngle;
+    cb.cb_bShadowMapping        = _bShadow ? JAM_TRUE : JAM_FALSE;
     Graphics::UploadBuffer(lightCbh, MemoryView { cb });
 }
+
+}   // namespace jam
+
+// executors
+namespace jam
+{
+
+struct FullScreenTriExecutor
+{
+    void operator()() const
+    {
+        g_basicRendererContext.fullScreenTri.Submit();
+    }
+};
 
 }   // namespace jam
 
@@ -404,26 +395,8 @@ void BasicRenderer::Init()
         g_basicRendererContext.bloomCombinePS = Graphics::CreateShader(MemoryView { shader::BloomCombinePS_Bytecode, shader::BloomCombinePS_Size });
         Graphics::SetShaderName(g_basicRendererContext.bloomCombinePS, "jam engine predefined shader: bloomCombinePS");
 
-        g_basicRendererContext.toneMappingUncharted2PS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_UNCHARTED2_Bytecode, shader::ToneMappingPS_UNCHARTED2_Size });
-        Graphics::SetShaderName(g_basicRendererContext.toneMappingUncharted2PS, "jam engine predefined shader: toneMappingUncharted2PS");
-
-        g_basicRendererContext.toneMappingLinearPS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_LINEAR_Bytecode, shader::ToneMappingPS_LINEAR_Size });
-        Graphics::SetShaderName(g_basicRendererContext.toneMappingLinearPS, "jam engine predefined shader: toneMappingLinearPS");
-
-        g_basicRendererContext.toneMappingReinhardPS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_REINHARD_Bytecode, shader::ToneMappingPS_REINHARD_Size });
-        Graphics::SetShaderName(g_basicRendererContext.toneMappingReinhardPS, "jam engine predefined shader: toneMappingReinhardPS");
-
-        g_basicRendererContext.toneMappingLumaBasedReinhardPS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_LUMA_BASED_REINHARD_Bytecode, shader::ToneMappingPS_LUMA_BASED_REINHARD_Size });
-        Graphics::SetShaderName(g_basicRendererContext.toneMappingLumaBasedReinhardPS, "jam engine predefined shader: toneMappingLumaBasedReinhardPS");
-
-        g_basicRendererContext.toneMappingWhitePreservingReinhardPS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_WHITE_PRESERVING_REINHARD_Bytecode, shader::ToneMappingPS_WHITE_PRESERVING_REINHARD_Size });
-        Graphics::SetShaderName(g_basicRendererContext.toneMappingWhitePreservingReinhardPS, "jam engine predefined shader: toneMappingWhitePreservingReinhardPS");
-
-        g_basicRendererContext.toneMappingRombDaHousePS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_ROMB_DA_HOUSE_Bytecode, shader::ToneMappingPS_ROMB_DA_HOUSE_Size });
-        Graphics::SetShaderName(g_basicRendererContext.toneMappingRombDaHousePS, "jam engine predefined shader: toneMappingRombDaHousePS");
-
-        g_basicRendererContext.toneMappingFilmicPS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_FILMIC_Bytecode, shader::ToneMappingPS_FILMIC_Size });
-        Graphics::SetShaderName(g_basicRendererContext.toneMappingFilmicPS, "jam engine predefined shader: toneMappingFilmicPS");
+        g_basicRendererContext.toneMappingPS = Graphics::CreateShader(MemoryView { shader::ToneMappingPS_Bytecode, shader::ToneMappingPS_Size });
+        Graphics::SetShaderName(g_basicRendererContext.toneMappingPS, "jam engine predefined shader: toneMappingPS");
 
         g_basicRendererContext.fxaaVeryLowPS = Graphics::CreateShader(MemoryView { shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
         Graphics::SetShaderName(g_basicRendererContext.fxaaVeryLowPS, "jam engine predefined shader: fxaaVeryLowPS");
@@ -452,37 +425,31 @@ void BasicRenderer::Init()
 
     // programs
     {
-        g_basicRendererContext.pbrGBufferProgram                         = Graphics::CreateProgram(g_basicRendererContext.pbrVS, g_basicRendererContext.pbrGBufferPS);
-        g_basicRendererContext.pbrLightingProgram                        = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.pbrLightingPS);
-        g_basicRendererContext.pbrLightVolumeProgram                     = Graphics::CreateProgram(g_basicRendererContext.pbrLightVolumeVS, g_basicRendererContext.pbrLightVolumePS);
-        g_basicRendererContext.pbrEnvironmentLightVolumeProgram          = Graphics::CreateProgram(g_basicRendererContext.pbrEnvironmentLIghtVolumeVS, g_basicRendererContext.pbrEnvironmentLightVolumePS);
-        g_basicRendererContext.csmLevel2CasterProgram                    = Graphics::CreateProgram(g_basicRendererContext.csmVS, g_basicRendererContext.csmPS, g_basicRendererContext.csmLevel2GS, k_invalidHandle, k_invalidHandle);
-        g_basicRendererContext.csmLevel3CasterProgram                    = Graphics::CreateProgram(g_basicRendererContext.csmVS, g_basicRendererContext.csmPS, g_basicRendererContext.csmLevel3GS, k_invalidHandle, k_invalidHandle);
-        g_basicRendererContext.csmLevel4CasterProgram                    = Graphics::CreateProgram(g_basicRendererContext.csmVS, g_basicRendererContext.csmPS, g_basicRendererContext.csmLevel4GS, k_invalidHandle, k_invalidHandle);
-        g_basicRendererContext.osmCasterProgram                          = Graphics::CreateProgram(g_basicRendererContext.osmVS, g_basicRendererContext.osmPS, g_basicRendererContext.osmGS, k_invalidHandle, k_invalidHandle);
-        g_basicRendererContext.shadowCasterProgram                       = Graphics::CreateProgram(g_basicRendererContext.shadowMappingVS, g_basicRendererContext.shadowMappingPS);
-        g_basicRendererContext.skyboxProgram                             = Graphics::CreateProgram(g_basicRendererContext.skyboxVS, g_basicRendererContext.skyboxPS);
-        g_basicRendererContext.ssaoProgram                               = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.ssaoPS);
-        g_basicRendererContext.ssaoBlurXProgram                          = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.ssaoBlurXPS);
-        g_basicRendererContext.ssaoBlurYProgram                          = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.ssaoBlurYPS);
-        g_basicRendererContext.bloomXProgram                             = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.bloomXPS);
-        g_basicRendererContext.bloomYProgram                             = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.bloomYPS);
-        g_basicRendererContext.bloomCombineProgram                       = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.bloomCombinePS);
-        g_basicRendererContext.toneMappingUncharted2Program              = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingUncharted2PS);
-        g_basicRendererContext.toneMappingLinearProgram                  = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingLinearPS);
-        g_basicRendererContext.toneMappingReinhardProgram                = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingReinhardPS);
-        g_basicRendererContext.toneMappingLumaBasedReinhardProgram       = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingLumaBasedReinhardPS);
-        g_basicRendererContext.toneMappingWhitePreservingReinhardProgram = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingWhitePreservingReinhardPS);
-        g_basicRendererContext.toneMappingRombDaHouseProgram             = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingRombDaHousePS);
-        g_basicRendererContext.toneMappingFilmicProgram                  = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingFilmicPS);
-        g_basicRendererContext.fxaaVeryLowProgram                        = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaVeryLowPS);
-        g_basicRendererContext.fxaaLowProgram                            = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaLowPS);
-        g_basicRendererContext.fxaaMediumProgram                         = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaMediumPS);
-        g_basicRendererContext.fxaaHighProgram                           = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaHighPS);
-        g_basicRendererContext.fxaaVeryHighProgram                       = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaVeryHighPS);
-        g_basicRendererContext.fxaaUltraProgram                          = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaUltraPS);
-        g_basicRendererContext.fogProgram                                = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fogPS);
-        g_basicRendererContext.passThroughProgram                        = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.passThroughPS);
+        g_basicRendererContext.pbrGBufferProgram                = Graphics::CreateProgram(g_basicRendererContext.pbrVS, g_basicRendererContext.pbrGBufferPS);
+        g_basicRendererContext.pbrLightingProgram               = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.pbrLightingPS);
+        g_basicRendererContext.pbrLightVolumeProgram            = Graphics::CreateProgram(g_basicRendererContext.pbrLightVolumeVS, g_basicRendererContext.pbrLightVolumePS);
+        g_basicRendererContext.pbrEnvironmentLightVolumeProgram = Graphics::CreateProgram(g_basicRendererContext.pbrEnvironmentLIghtVolumeVS, g_basicRendererContext.pbrEnvironmentLightVolumePS);
+        g_basicRendererContext.csmLevel2CasterProgram           = Graphics::CreateProgram(g_basicRendererContext.csmVS, g_basicRendererContext.csmPS, g_basicRendererContext.csmLevel2GS, k_invalidHandle, k_invalidHandle);
+        g_basicRendererContext.csmLevel3CasterProgram           = Graphics::CreateProgram(g_basicRendererContext.csmVS, g_basicRendererContext.csmPS, g_basicRendererContext.csmLevel3GS, k_invalidHandle, k_invalidHandle);
+        g_basicRendererContext.csmLevel4CasterProgram           = Graphics::CreateProgram(g_basicRendererContext.csmVS, g_basicRendererContext.csmPS, g_basicRendererContext.csmLevel4GS, k_invalidHandle, k_invalidHandle);
+        g_basicRendererContext.osmCasterProgram                 = Graphics::CreateProgram(g_basicRendererContext.osmVS, g_basicRendererContext.osmPS, g_basicRendererContext.osmGS, k_invalidHandle, k_invalidHandle);
+        g_basicRendererContext.shadowCasterProgram              = Graphics::CreateProgram(g_basicRendererContext.shadowMappingVS, g_basicRendererContext.shadowMappingPS);
+        g_basicRendererContext.skyboxProgram                    = Graphics::CreateProgram(g_basicRendererContext.skyboxVS, g_basicRendererContext.skyboxPS);
+        g_basicRendererContext.ssaoProgram                      = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.ssaoPS);
+        g_basicRendererContext.ssaoBlurXProgram                 = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.ssaoBlurXPS);
+        g_basicRendererContext.ssaoBlurYProgram                 = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.ssaoBlurYPS);
+        g_basicRendererContext.bloomXProgram                    = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.bloomXPS);
+        g_basicRendererContext.bloomYProgram                    = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.bloomYPS);
+        g_basicRendererContext.bloomCombineProgram              = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.bloomCombinePS);
+        g_basicRendererContext.toneMappingProgram               = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.toneMappingPS);
+        g_basicRendererContext.fxaaVeryLowProgram               = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaVeryLowPS);
+        g_basicRendererContext.fxaaLowProgram                   = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaLowPS);
+        g_basicRendererContext.fxaaMediumProgram                = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaMediumPS);
+        g_basicRendererContext.fxaaHighProgram                  = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaHighPS);
+        g_basicRendererContext.fxaaVeryHighProgram              = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaVeryHighPS);
+        g_basicRendererContext.fxaaUltraProgram                 = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fxaaUltraPS);
+        g_basicRendererContext.fogProgram                       = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.fogPS);
+        g_basicRendererContext.passThroughProgram               = Graphics::CreateProgram(g_basicRendererContext.fullscreenVS, g_basicRendererContext.passThroughPS);
     }
 
     // constant buffers
@@ -551,6 +518,12 @@ void BasicRenderer::Init()
     // unit corn
     {
         g_basicRendererContext.lightVolumeUnitCone = CreateCone(1.f, 1.f, 20, VertexPos3D::s_layout);
+    }
+
+    // ssao
+    {
+        g_basicRendererContext.BakeSSAOKernel();
+        g_basicRendererContext.BakeSSAONoise();
     }
 
     // sampler
@@ -622,13 +595,7 @@ void BasicRenderer::Shutdown()
     JAM_DESTROY_SHADER(g_basicRendererContext.bloomXPS);
     JAM_DESTROY_SHADER(g_basicRendererContext.bloomYPS);
     JAM_DESTROY_SHADER(g_basicRendererContext.bloomCombinePS);
-    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingUncharted2PS);
-    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingLinearPS);
-    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingReinhardPS);
-    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingLumaBasedReinhardPS);
-    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingWhitePreservingReinhardPS);
-    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingRombDaHousePS);
-    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingFilmicPS);
+    JAM_DESTROY_SHADER(g_basicRendererContext.toneMappingPS);
     JAM_DESTROY_SHADER(g_basicRendererContext.fxaaVeryLowPS);
     JAM_DESTROY_SHADER(g_basicRendererContext.fxaaLowPS);
     JAM_DESTROY_SHADER(g_basicRendererContext.fxaaMediumPS);
@@ -655,13 +622,7 @@ void BasicRenderer::Shutdown()
     JAM_DESTROY_PROGRAM(g_basicRendererContext.bloomXProgram);
     JAM_DESTROY_PROGRAM(g_basicRendererContext.bloomYProgram);
     JAM_DESTROY_PROGRAM(g_basicRendererContext.bloomCombineProgram);
-    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingUncharted2Program);
-    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingLinearProgram);
-    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingReinhardProgram);
-    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingLumaBasedReinhardProgram);
-    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingWhitePreservingReinhardProgram);
-    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingRombDaHouseProgram);
-    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingFilmicProgram);
+    JAM_DESTROY_PROGRAM(g_basicRendererContext.toneMappingProgram);
     JAM_DESTROY_PROGRAM(g_basicRendererContext.fxaaVeryLowProgram);
     JAM_DESTROY_PROGRAM(g_basicRendererContext.fxaaLowProgram);
     JAM_DESTROY_PROGRAM(g_basicRendererContext.fxaaMediumProgram);
@@ -692,10 +653,10 @@ void BasicRenderer::Shutdown()
 
 void BasicRenderer::Render(const Vec3& _eyePos, const Mat4& _view, const Mat4& _proj, const Environment& _env)
 {
-    {
-        g_basicRendererContext.timer.Reset();
-        g_basicRendererContext.timer.Start();
+    g_basicRendererContext.timer.Reset();
+    g_basicRendererContext.timer.Start();
 
+    {
         // camera buffer
         {
             CB_CAMERA cb;
@@ -777,14 +738,96 @@ void BasicRenderer::Render(const Vec3& _eyePos, const Mat4& _view, const Mat4& _
     g_basicRendererContext.timer.Stop();
 }
 
-const Timer& BasicRenderer::GetRendererCPUProfileTimer()
+const Timer& BasicRenderer::GetRenderCPUProfileTimer()
 {
     return g_basicRendererContext.timer;
 }
 
-CullingSystem& BasicRenderer::GetCullingSystem()
+void BasicRenderer::UploadCascadeShadowCasterData(const Frustum& _viewFrustumInW)
 {
-    return g_basicRendererContext.cullingSystem;
+    const Environment* pEnv = g_basicRendererContext.pCurEnv;
+
+    Int32 cascadeLevel = 0;
+    if (pEnv->shadowCascadeLevel == eCascadeLevel::level2)
+        cascadeLevel = 2;
+    else if (pEnv->shadowCascadeLevel == eCascadeLevel::level3)
+        cascadeLevel = 3;
+    else if (pEnv->shadowCascadeLevel == eCascadeLevel::level4)
+        cascadeLevel = 4;
+
+    CB_CASCADE_SHADOW_CASTER cb;
+    const float              nearZ    = _viewFrustumInW.GetNear();
+    const float              farZ     = _viewFrustumInW.GetFar();
+    const float              invRange = 1.f / (farZ - nearZ);
+
+    Frustum cascadeFrustums[4] = {};
+    float   startScale         = 0.f;
+    for (Int32 i = 0; i < cascadeLevel; ++i)
+    {
+        // 각 캐스케이드 프러스텀 생성
+        const float scale  = Clamp(pEnv->shadowCascadeRanges[i] * invRange, startScale, 1.f);
+        cascadeFrustums[i] = Frustum::CreateSubFrustum(_viewFrustumInW, startScale, scale);
+        startScale         = scale;
+
+        // 프러스텀의 코너, 중심
+        FrustumCorners corners = cascadeFrustums[i].GetCorners();
+        Vec3           center  = Vec3::Zero;
+        for (const Vec3& corner: corners.points)
+            center += corner;
+        center /= 8.f;
+
+        // 라이트 뷰 행렬
+        Mat4 lightV = CreateViewLookTo(center, pEnv->sunDirection);
+
+        // 프러스텀의 8개 꼭짓점을 라이트 뷰 공간으로 변환 후 AABB 생성
+        AABB lightAABB = {};
+        for (Int32 j = 0; j < 8; ++j)
+        {
+            Vec3 p    = Vec3::Transform(corners.points[j], lightV);
+            lightAABB = AABB::Merge(lightAABB, p);
+        }
+
+        // z축 범위 약간 확장
+        if (lightAABB.min.z < 0.f)
+            lightAABB.min.z *= pEnv->shadowCascadeExtendZScale;
+        else
+            lightAABB.min.z /= pEnv->shadowCascadeExtendZScale;
+
+        if (lightAABB.max.z < 0.f)
+            lightAABB.max.z /= pEnv->shadowCascadeExtendZScale;
+        else
+            lightAABB.max.z *= pEnv->shadowCascadeExtendZScale;
+
+        // 라이트 투영 행렬
+        Mat4 lightP          = CreateOrthographic(lightAABB.Width(), lightAABB.Height(), lightAABB.min.z, lightAABB.max.z);
+        cb.cb_CSMProjView[i] = (lightV * lightP).Transpose();
+    }
+
+    Graphics::UploadBuffer(g_basicRendererContext.csmCasterCbh, MemoryView { cb });
+}
+
+void BasicRenderer::UploadOmniDirectionalShadowCasterData(const Vec3& _pos, const float _range)
+{
+    Mat4 lightP = CreatePerspectiveFov(ToRad(90.f), 1.f, 0.01f, _range);
+
+    CB_OMNIDIRECTIONAL_SHADOW_CASTER cb;
+    cb.cb_ODSProjView[EnumToInt(eCubeFace::Right)]  = (CreateViewLookTo(_pos, Vec3::Right) * lightP).Transpose();
+    cb.cb_ODSProjView[EnumToInt(eCubeFace::Left)]   = (CreateViewLookTo(_pos, Vec3::Left) * lightP).Transpose();
+    cb.cb_ODSProjView[EnumToInt(eCubeFace::Top)]    = (CreateViewLookTo(_pos, Vec3::Up) * lightP).Transpose();
+    cb.cb_ODSProjView[EnumToInt(eCubeFace::Bottom)] = (CreateViewLookTo(_pos, Vec3::Down) * lightP).Transpose();
+    cb.cb_ODSProjView[EnumToInt(eCubeFace::Front)]  = (CreateViewLookTo(_pos, Vec3::Forward) * lightP).Transpose();
+    cb.cb_ODSProjView[EnumToInt(eCubeFace::Back)]   = (CreateViewLookTo(_pos, Vec3::Backward) * lightP).Transpose();
+    Graphics::UploadBuffer(g_basicRendererContext.osmCasterCbh, MemoryView { cb });
+}
+
+void BasicRenderer::BakeSSAONoiseTexture()
+{
+    g_basicRendererContext.BakeSSAONoise();
+}
+
+void BasicRenderer::BakeSSAOKernel()
+{
+    g_basicRendererContext.BakeSSAOKernel();
 }
 
 void BasicRenderer::Submit(const Mesh& _mesh, const Material& _material, const Transform& _transform)
@@ -800,7 +843,48 @@ void BasicRenderer::Submit(const Mesh& _mesh, const Transform& _transform)
     _mesh.Submit();
 }
 
-void BasicRenderer::CompileGraph()
+void BasicRenderer::SubmitPointLight(const Vec3& _radiance, const float _lightIntensity, const Vec3& _pos, const float _fallOffStart, const float _fallOffEnd)
+{
+    Mat4 lightMat = Mat4::CreateScale(_fallOffEnd) * Mat4::CreateTranslation(_pos);
+
+    g_basicRendererContext.UploadPointLight(_radiance, _lightIntensity, _pos, _fallOffStart, _fallOffEnd, false);
+    g_basicRendererContext.UploadTransform(lightMat);
+    g_basicRendererContext.lightVolumeUnitSphere.Submit();
+}
+
+void BasicRenderer::SubmitPointLightWithShadow(const Vec3& _radiance, const float _lightIntensity, const Vec3& _pos, const float _fallOffStart, const float _fallOffEnd, const TextureHandle _shadowMap)
+{
+    JAM_ASSERT(!JAM_IS_VALID_HANDLE(_shadowMap), "Not implemented yet");
+    Graphics::SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);
+    SubmitPointLight(_radiance, _lightIntensity, _pos, _fallOffStart, _fallOffEnd);
+}
+
+void BasicRenderer::SubmitSpotLight(const Vec3& _radiance, const float _lightIntensity, const Vec3& _pos, const Vec3& _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle)
+{
+    float h        = _fallOffEnd;
+    float t        = std::tanf(_outerConeAngle);
+    float w        = t * h;
+    Vec3  pos      = _pos + _dir * h * 0.5f;
+    Quat  q        = Quat::FromToRotation(Vec3::Up, _dir);
+    Mat4  lightMat = Mat4::CreateScale(Vec3(w, h, w)) * Mat4::CreateFromQuaternion(q) * Mat4::CreateTranslation(pos);
+    g_basicRendererContext.UploadTransform(lightMat);
+    g_basicRendererContext.UploadSpotLight(_radiance, _lightIntensity, _pos, _dir, _fallOffStart, _fallOffEnd, _innerConeAngle, _outerConeAngle, false);
+    g_basicRendererContext.lightVolumeUnitCone.Submit();
+}
+
+void BasicRenderer::SubmitSpotLightWithShadow(const Vec3& _radiance, const float _lightIntensity, const Vec3& _pos, const Vec3& _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle, const TextureHandle _shadowMap)
+{
+    JAM_ASSERT(!JAM_IS_VALID_HANDLE(_shadowMap), "Not implemented yet");
+    Graphics::SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);
+    SubmitSpotLight(_radiance, _lightIntensity, _pos, _dir, _fallOffStart, _fallOffEnd, _innerConeAngle, _outerConeAngle);
+}
+
+void BasicRenderer::ClearRenderGraph()
+{
+    g_basicRendererContext.graph = RenderGraph {};
+}
+
+void BasicRenderer::CompileRenderGraph()
 {
     g_basicRendererContext.graph.Compile();
 }
@@ -808,6 +892,66 @@ void BasicRenderer::CompileGraph()
 void BasicRenderer::AddPass(const RenderPass& _pass)
 {
     g_basicRendererContext.graph.AddPass(_pass);
+}
+
+TextureHandle BasicRenderer::CreateTexture2D(const Int32 _width, const Int32 _height, const eFormat _format, const bool _bRTVAttachable, const bool _bDSVAttachable)
+{
+    eTextureCreateFlags flags = eTextureCreateFlags_None;
+    if (_bRTVAttachable) flags |= eTextureCreateFlags_RenderTarget;
+    if (_bDSVAttachable) flags |= eTextureCreateFlags_DepthStencil;
+    return Graphics::CreateTexture2D(_width, _height, _format, 1, flags);
+}
+
+TextureHandle BasicRenderer::CreateTextureCube(const Int32 _width, const Int32 _height, const eFormat _format, const bool _bRTVAttachable, const bool _bDSVAttachable)
+{
+    eTextureCreateFlags flags = eTextureCreateFlags_None;
+    if (_bRTVAttachable) flags |= eTextureCreateFlags_RenderTarget;
+    if (_bDSVAttachable) flags |= eTextureCreateFlags_DepthStencil;
+    return Graphics::CreateTextureCube(_width, _height, _format, 1, flags);
+}
+
+TextureHandle BasicRenderer::CreateTextureArray(const Int32 _width, const Int32 _height, const Int32 _arraySize, const eFormat _format, const bool _bRTVAttachable, const bool _bDSVAttachable)
+{
+    eTextureCreateFlags flags = eTextureCreateFlags_None;
+    if (_bRTVAttachable) flags |= eTextureCreateFlags_RenderTarget;
+    if (_bDSVAttachable) flags |= eTextureCreateFlags_DepthStencil;
+    return Graphics::CreateTexture2D(_width, _height, _format, _arraySize, flags);
+}
+
+GBufferDesc BasicRenderer::CreateGBuffer(const Int32 _width, const Int32 _height)
+{
+    GBufferDesc desc;
+    desc.albedoAOTexture                = CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, true, false);
+    desc.normalRoughnessMetallicTexture = CreateTexture2D(_width, _height, eFormat::RGBA16_Float, true, false);
+    desc.additionalLightTexture         = CreateTexture2D(_width, _height, eFormat::RGBA16_Float, true, false);
+    desc.depthTexture                   = CreateTexture2D(_width, _height, eFormat::D24_UNorm_S8_UInt, false, true);
+    return desc;
+}
+
+TextureHandle BasicRenderer::CreateShadowMap(const Int32 _sideLength)
+{
+    return CreateTexture2D(_sideLength, _sideLength, eFormat::D32_Float, false, true);
+}
+
+TextureHandle BasicRenderer::CreateShadowCubeMap(const Int32 _sideLength)
+{
+    return CreateTextureCube(_sideLength, _sideLength, eFormat::D32_Float, false, true);
+}
+
+TextureHandle BasicRenderer::CreateShadowCascadeMap(const Int32 _sideLength, const Int32 _cascadeCount)
+{
+    return CreateTextureArray(_sideLength, _sideLength, _cascadeCount, eFormat::D32_Float, false, true);
+}
+
+TextureHandle BasicRenderer::CreateSSAOTexture(const Int32 _width, const Int32 _height)
+{
+    return CreateTexture2D(_width, _height, eFormat::R8_UNorm, true, false);
+}
+
+TextureHandle BasicRenderer::CreatePostProcessTexture(const Int32 _width, const Int32 _height, const bool _bHdr)
+{
+    eFormat format = _bHdr ? eFormat::RGBA16_Float : eFormat::RGBA8_UNorm;
+    return CreateTexture2D(_width, _height, format, true, false);
 }
 
 RenderPass BasicRenderer::CreatePBRGBufferPass(const PBRGBufferPassDesc& _desc)
@@ -823,14 +967,20 @@ RenderPass BasicRenderer::CreatePBRGBufferPass(const PBRGBufferPassDesc& _desc)
         .SetViewport(_desc.viewport)
         .SetGfxState(g_basicRendererContext.depthTestState)
         .SetBlendState(0, BlendState::k_opaque)
-        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(_desc.executor);
 
     return pass;
 }
 
-RenderPass BasicRenderer::CreatePBRLightingPass(const PBRLightPassDesc& _desc)
+RenderPass BasicRenderer::CreatePBRLightPass(const PBRLightPassDesc& _desc)
 {
-    const Environment* pEnv = g_basicRendererContext.pCurEnv;
+    const Environment* pEnv        = g_basicRendererContext.pCurEnv;
+    const GBufferDesc& gBufferDesc = _desc.gBufferDesc;
+
+    TextureHandle irrMapTexh  = pEnv->irradianceMap ? pEnv->irradianceMap->GetHandle() : k_invalidHandle;
+    TextureHandle specMapTexh = pEnv->specularMap ? pEnv->specularMap->GetHandle() : k_invalidHandle;
+    TextureHandle brdfLUTTexh = pEnv->brdfLUT ? pEnv->brdfLUT->GetHandle() : k_invalidHandle;
 
     RenderPass pass;
     pass.SetProgram(g_basicRendererContext.pbrLightingProgram)
@@ -839,23 +989,327 @@ RenderPass BasicRenderer::CreatePBRLightingPass(const PBRLightPassDesc& _desc)
         .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
         .AddConstantBuffer(g_basicRendererContext.cameraCbh, eShader::PixelShader, CB_CAMERA_SLOT)
         .AddConstantBuffer(g_basicRendererContext.environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
-        .AddTexture(pEnv->irradianceMap->GetHandle(), eShader::PixelShader, t_irradianceSlot)
-        .AddTexture(pEnv->specularMap->GetHandle(), eShader::PixelShader, t_specularSlot)
-        .AddTexture(pEnv->brdfLUT->GetHandle(), eShader::PixelShader, t_brdfSlot)
-        .AddTexture(_desc.normalRoughnessMetallicTexture, eShader::PixelShader, t_gBufferNormalRoughnessMetallicSlot)
-        .AddTexture(_desc.albedoAOTexture, eShader::PixelShader, t_gBufferAlbedoAOSlot)
-        .AddTexture(_desc.additionalLightTexture, eShader::PixelShader, t_gBufferAdditionalLightSlot)
+        .AddTexture(irrMapTexh, eShader::PixelShader, t_irradianceSlot)
+        .AddTexture(specMapTexh, eShader::PixelShader, t_specularSlot)
+        .AddTexture(brdfLUTTexh, eShader::PixelShader, t_brdfSlot)
+        .AddTexture(gBufferDesc.normalRoughnessMetallicTexture, eShader::PixelShader, t_gBufferNormalRoughnessMetallicSlot)
+        .AddTexture(gBufferDesc.albedoAOTexture, eShader::PixelShader, t_gBufferAlbedoAOSlot)
+        .AddTexture(gBufferDesc.additionalLightTexture, eShader::PixelShader, t_gBufferAdditionalLightSlot)
+        .AddTexture(gBufferDesc.depthTexture, eShader::PixelShader, t_depthSlot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
+
+    if (JAM_IS_VALID_HANDLE(_desc.ssaoTexture))
+        pass.AddTexture(_desc.ssaoTexture, eShader::PixelShader, t_ssaoSlot);
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreatePBRLightVolumePass(const PBRLightVolumePassDesc& _desc)
+{
+    const GBufferDesc& gBufferDesc = _desc.gBufferDesc;
+
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.pbrLightVolumeProgram)
+        .AddSampler(g_basicRendererContext.pointClampSampler, eShader::PixelShader, s_pointClampSlot)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddConstantBuffer(g_basicRendererContext.transformCbh, eShader::VertexShader, CB_TRANSFORM_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.cameraCbh, eShader::VertexShader, CB_CAMERA_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.cameraCbh, eShader::PixelShader, CB_CAMERA_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.lightCbh, eShader::PixelShader, CB_LIGHT_SLOT)
+        .AddTexture(gBufferDesc.normalRoughnessMetallicTexture, eShader::PixelShader, t_gBufferNormalRoughnessMetallicSlot)
+        .AddTexture(gBufferDesc.albedoAOTexture, eShader::PixelShader, t_gBufferAlbedoAOSlot)
+        .AddTexture(gBufferDesc.additionalLightTexture, eShader::PixelShader, t_gBufferAdditionalLightSlot)
+        .AddTexture(gBufferDesc.depthTexture, eShader::PixelShader, t_depthSlot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(g_basicRendererContext.lightVolumeState)
+        .SetBlendState(0, BlendState::k_additive)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreatePBREnvironmentLightVolumePass(const PBREnvironmentLightVolumePassDesc& _desc)
+{
+    struct Executor
+    {
+        void operator()() const
+        {
+            g_basicRendererContext.lightVolumeFullScreenTri.Submit();
+        }
+    };
+
+    const GBufferDesc& gBufferDesc = _desc.gBufferDesc;
+
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.pbrLightVolumeProgram)
+        .AddSampler(g_basicRendererContext.pointClampSampler, eShader::PixelShader, s_pointClampSlot)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddConstantBuffer(g_basicRendererContext.cameraCbh, eShader::PixelShader, CB_CAMERA_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
+        .AddTexture(_desc.shadowMap, eShader::PixelShader, t_shadowSlot)
+        .AddTexture(gBufferDesc.albedoAOTexture, eShader::PixelShader, t_gBufferAlbedoAOSlot)
+        .AddTexture(gBufferDesc.normalRoughnessMetallicTexture, eShader::PixelShader, t_gBufferNormalRoughnessMetallicSlot)
+        .AddTexture(gBufferDesc.additionalLightTexture, eShader::PixelShader, t_gBufferAdditionalLightSlot)
+        .AddTexture(gBufferDesc.depthTexture, eShader::PixelShader, t_depthSlot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(g_basicRendererContext.lightVolumeState)
+        .SetBlendState(0, BlendState::k_additive)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(Executor {});
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateSkyboxPass(const SkyboxPassDesc& _desc)
+{
+    struct SkyboxExecutor
+    {
+        void operator()() const
+        {
+            g_basicRendererContext.skyboxCube.Submit();
+        }
+    };
+
+    const Environment* pEnv       = g_basicRendererContext.pCurEnv;
+    TextureHandle      skyboxTexh = pEnv->skyboxTexture ? pEnv->skyboxTexture->GetHandle() : k_invalidHandle;
+
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.skyboxProgram)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddConstantBuffer(g_basicRendererContext.cameraCbh, eShader::VertexShader, CB_CAMERA_SLOT)
+        .AddTexture(skyboxTexh, eShader::PixelShader, t_skyboxSlot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(g_basicRendererContext.skyboxState)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(SkyboxExecutor {});
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateShadowCasterPass(const ShadowCasterPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.AddConstantBuffer(g_basicRendererContext.transformCbh, eShader::VertexShader, CB_TRANSFORM_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.shadowCasterCbh, eShader::VertexShader, CB_SHADOW_CASTER_SLOT)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(g_basicRendererContext.depthTestState)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(_desc.executor);
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateOmniDirectionalShadowCasterPass(const ShadowCasterPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.AddConstantBuffer(g_basicRendererContext.transformCbh, eShader::VertexShader, CB_TRANSFORM_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.osmCasterCbh, eShader::GeometryShader, CB_OMNIDIRECTIONAL_SHADOW_CASTER_SLOT)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(g_basicRendererContext.depthTestState)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(_desc.executor)
+        .SetProgram(g_basicRendererContext.osmCasterProgram);
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateCascadeShadowCasterPass(const ShadowCasterPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.AddConstantBuffer(g_basicRendererContext.transformCbh, eShader::VertexShader, CB_TRANSFORM_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.csmCasterCbh, eShader::GeometryShader, CB_CASCADE_SHADOW_CASTER_SLOT)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(g_basicRendererContext.depthTestState)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(_desc.executor);
+
+    eCascadeLevel cascadeLevel = g_basicRendererContext.pCurEnv->shadowCascadeLevel;
+    if (cascadeLevel == eCascadeLevel::level2)
+        pass.SetProgram(g_basicRendererContext.csmLevel2CasterProgram);
+    else if (cascadeLevel == eCascadeLevel::level3)
+        pass.SetProgram(g_basicRendererContext.csmLevel3CasterProgram);
+    else if (cascadeLevel == eCascadeLevel::level4)
+        pass.SetProgram(g_basicRendererContext.csmLevel4CasterProgram);
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateSSAOPass(const SSAOPassDesc& _desc)
+{
+    const GBufferDesc& gBufferDesc = _desc.gBufferDesc;
+
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.ssaoProgram)
+        .AddSampler(g_basicRendererContext.pointClampSampler, eShader::PixelShader, s_pointClampSlot)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearWrapSlot)
+        .AddConstantBuffer(g_basicRendererContext.cameraCbh, eShader::PixelShader, CB_CAMERA_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.ssaoCbh, eShader::PixelShader, CB_SSAO_KERNEL_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
+        .AddTexture(gBufferDesc.normalRoughnessMetallicTexture, eShader::PixelShader, t_gBufferNormalRoughnessMetallicSlot)
+        .AddTexture(gBufferDesc.depthTexture, eShader::PixelShader, t_depthSlot)
+        .AddTexture(g_basicRendererContext.ssaoNoiseTexture, eShader::PixelShader, t_ssaoNoiseSlot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateSSAOBBlurPass(const SSAOBlurPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.SetProgram(_desc.bHorizontal ? g_basicRendererContext.ssaoBlurXProgram : g_basicRendererContext.ssaoBlurYProgram)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddTexture(_desc.ssaoTexture, eShader::PixelShader, t_ssaoSlot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateBlurPass(const BlurPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.SetProgram(_desc.bHorizontal ? g_basicRendererContext.bloomXProgram : g_basicRendererContext.bloomYProgram)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddTexture(_desc.inputTexture, eShader::PixelShader, t_input0Slot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateCombinePass(const CombinePassDesc& _desc)
+{
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.bloomCombineProgram)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddTexture(_desc.inputTexture0, eShader::PixelShader, t_input0Slot)
+        .AddTexture(_desc.inputTexture1, eShader::PixelShader, t_input1Slot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateToneMappingPass(const ToneMappingPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.toneMappingProgram)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddTexture(_desc.inputTexture, eShader::PixelShader, t_input0Slot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateFXAAPass(const FXAAPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddTexture(_desc.inputTexture, eShader::PixelShader, t_input0Slot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
+
+    eFxaaQuality quality = g_basicRendererContext.pCurEnv->fxaaQuality;
+    switch (quality)
+    {
+        case eFxaaQuality::VeryLow:
+            pass.SetProgram(g_basicRendererContext.fxaaVeryLowProgram);
+            break;
+        case eFxaaQuality::Low:
+            pass.SetProgram(g_basicRendererContext.fxaaLowProgram);
+            break;
+        case eFxaaQuality::Medium:
+            pass.SetProgram(g_basicRendererContext.fxaaMediumProgram);
+            break;
+        case eFxaaQuality::High:
+            pass.SetProgram(g_basicRendererContext.fxaaHighProgram);
+            break;
+        case eFxaaQuality::VeryHigh:
+            pass.SetProgram(g_basicRendererContext.fxaaVeryHighProgram);
+            break;
+        case eFxaaQuality::Ultra:
+            pass.SetProgram(g_basicRendererContext.fxaaUltraProgram);
+            break;
+        default:
+            JAM_ASSERT(false, "Invalid FXAA quality");
+            break;
+    }
+
+    return pass;
+}
+
+RenderPass BasicRenderer::CreateHeightFogPass(const HeightFogPass& _desc)
+{
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.fogProgram)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddConstantBuffer(g_basicRendererContext.cameraCbh, eShader::PixelShader, CB_CAMERA_SLOT)
+        .AddConstantBuffer(g_basicRendererContext.environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
+        .AddTexture(_desc.inputTexture, eShader::PixelShader, t_input0Slot)
         .AddTexture(_desc.depthTexture, eShader::PixelShader, t_depthSlot)
         .SetFrameBuffer(_desc.frameBuffer)
         .SetViewport(_desc.viewport)
         .SetGfxState(GfxState::k_default)
         .SetBlendState(0, BlendState::k_opaque)
-        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
 
-    if (JAM_IS_VALID_HANDLE(_desc.additionalLightTexture))
-    {
-        pass.AddTexture(_desc.ssaoTexture, eShader::PixelShader, t_ssaoSlot);
-    }
+    return pass;
+}
+
+RenderPass BasicRenderer::CreatePassThroughPass(const PassThroughPassDesc& _desc)
+{
+    RenderPass pass;
+    pass.SetProgram(g_basicRendererContext.passThroughProgram)
+        .AddSampler(g_basicRendererContext.linearClampSampler, eShader::PixelShader, s_linearClampSlot)
+        .AddTexture(_desc.inputTexture, eShader::PixelShader, t_input0Slot)
+        .SetFrameBuffer(_desc.frameBuffer)
+        .SetViewport(_desc.viewport)
+        .SetGfxState(GfxState::k_default)
+        .SetBlendState(0, BlendState::k_opaque)
+        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+        .SetExecutor(FullScreenTriExecutor {});
 
     return pass;
 }

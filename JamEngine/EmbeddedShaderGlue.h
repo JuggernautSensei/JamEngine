@@ -117,6 +117,15 @@ JAM_NAMESPACE_BEGIN
 #define JAM_ENVIRONMENT_FLAGS_SKYBOX_CUBEMAP     (1 << 2)
 #define JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR (1 << 3)
 
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE                           JAM_UINT32
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_LINEAR                    (0)
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_REINHARD                  (1)
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_LUMA_BASED_REINHARD       (2)
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_WHITE_PRESERVING_REINHARD (3)
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_ROMB_DA_HOUSE             (4)
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_UNCHARTED2                (5)
+#define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_FILMIC                    (6)
+
 #define JAM_MAX_CASCADE_LEVEL 4
 
 //===================================================
@@ -195,9 +204,9 @@ JAM_CBUFFER(CB_ENVIRONMENT, 4)
     JAM_FLOAT cb_shadowCascadeRages[JAM_MAX_CASCADE_LEVEL];   // 16
     JAM_FLOAT cb_shadowBias;                                  // 4
 
-    JAM_FLOAT cb_irradianceMapIntensity;   // 4
-    JAM_FLOAT cb_specularMapIntensity;     // 4
-    JAM_FLOAT3 cb_skyBoxColor;             // 12
+    JAM_FLOAT  cb_irradianceMapIntensity;   // 4
+    JAM_FLOAT  cb_specularMapIntensity;     // 4
+    JAM_FLOAT3 cb_skyBoxColor;              // 12
 
     JAM_UINT32 cb_ssaoKernelSize;   // 4
     JAM_FLOAT  cb_ssaoRadius;       // 4
@@ -209,13 +218,12 @@ JAM_CBUFFER(CB_ENVIRONMENT, 4)
     JAM_FLOAT  cb_fogFallOffEnd;          // 4
     JAM_FLOAT  cb_fogHeightAttenuation;   // 4
 
-    JAM_FLOAT cb_exposure;          // 4
-    JAM_FLOAT cb_gamma;             // 4
+    JAM_ENVIRONMENT_TONE_MAPPING_TYPE cb_toneMappingType;   // 4
+    JAM_FLOAT                         cb_exposure;          // 4
+    JAM_FLOAT                         cb_gamma;             // 4
 
     JAM_FLOAT cb_bloomBlurRadius;   // 4
     JAM_FLOAT cb_combineFactor;     // 4
-
-    JAM_PAD_FLOAT;
 };
 
 JAM_CBUFFER(CB_SHADOW_RECEIVER, 5)

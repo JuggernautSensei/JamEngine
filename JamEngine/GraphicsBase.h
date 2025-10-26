@@ -395,8 +395,11 @@ struct RGBA
     {
     }
 
-    /* implicit */ constexpr RGBA(const UInt32 _color)
-        : color(_color)
+    explicit constexpr RGBA(const UInt32 _rgba)
+        : r(static_cast<UInt8>((_rgba >> 24) & 0xFF))
+        , g(static_cast<UInt8>((_rgba >> 16) & 0xFF))
+        , b(static_cast<UInt8>((_rgba >> 8) & 0xFF))
+        , a(static_cast<UInt8>(_rgba & 0xFF))
     {
     }
 
@@ -408,12 +411,14 @@ struct RGBA
     {
     }
 
-    constexpr RGBA(const float _r, const float _g, const float _b, const float _a = 1.0f)
-        : r(static_cast<UInt8>(Clamp(_r, 0.f, 1.f) * 255.f))
-        , g(static_cast<UInt8>(Clamp(_g, 0.f, 1.f) * 255.f))
-        , b(static_cast<UInt8>(Clamp(_b, 0.f, 1.f) * 255.f))
-        , a(static_cast<UInt8>(Clamp(_a, 0.f, 1.f) * 255.f))
+    JAM_NODISCARD constexpr static RGBA FromUNorm(const float _r, const float _g, const float _b, const float _a = 1.0f)
     {
+        return {
+            static_cast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
+            static_cast<UInt8>(Clamp(_g, 0.0f, 1.0f) * 255.0f),
+            static_cast<UInt8>(Clamp(_b, 0.0f, 1.0f) * 255.0f),
+            static_cast<UInt8>(Clamp(_a, 0.0f, 1.0f) * 255.0f)
+        };
     }
 
     JAM_NODISCARD bool operator==(const RGBA& _other) const
@@ -425,6 +430,9 @@ struct RGBA
     {
         return color != _other.color;
     }
+
+    static RGBA k_white;
+    static RGBA k_black;
 
     union
     {

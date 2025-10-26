@@ -58,7 +58,7 @@ void Application::Create(const CommandLineArguments& _args)
         // 윈도우 초기화
         s_instance->m_window.Init();
         s_instance->m_window.SetTitle(s_instance->m_applicationName);
-        auto [width, height] = s_instance->m_window.GetClientSize();
+        auto [width, height] = s_instance->m_window.GetClientResolution();
         HWND hwnd            = s_instance->m_window.GetPlatformHandle();
 
         // 렌더러 초기화
@@ -294,6 +294,16 @@ const TickTimer& Application::GetTimer() const
 Window& Application::GetWindow()
 {
     return m_window;
+}
+
+bool Application::IsEditor() const
+{
+    return m_bEditor;
+}
+
+bool Application::IsRuntime() const
+{
+    return !m_bEditor;
 }
 
 }   // namespace jam

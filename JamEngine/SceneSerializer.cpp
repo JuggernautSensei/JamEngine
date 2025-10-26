@@ -15,32 +15,16 @@ eErrorCode SceneSerializer::SaveToFile(const fs::path& _filePath) const
 {
     JAM_ASSERT(!_filePath.empty(), "File path is not set");
     JAM_ASSERT(!m_json.empty(), "No data to export");
-    std::ofstream ofs { _filePath, std::ios::binary };
-    if (!ofs.is_open())
-    {
-        SetErrorMessage("Failed to open file for writing: {}", _filePath.native());
-        return eErrorCode::FileOpenFailed;
-    }
-
-    ofs << m_json;
-    if (ofs.fail() || ofs.bad())
-    {
-        SetErrorMessage("Failed to write to file: {}", _filePath.native());
-        return eErrorCode::FileWriteFailed;
-    }
-    return eErrorCode::Ok;
+    return WriteJsonToFile(_filePath, m_json, 0);
 }
 
 eErrorCode SceneSerializer::LoadFromFile(const fs::path& _filePath)
 {
     JAM_ASSERT(!_filePath.empty(), "File path is empty");
     auto [ec, json] = ReadJsonFromFile(_filePath);
-
-    if (IsError(ec))
-        return ec;
-
-    m_json = std::move(json);
-    return eErrorCode::Ok;
+    if (IsOk(ec))
+        m_json = std::move(json);
+    return ec;
 }
 
 void SceneSerializer::Serialize(const Scene* _pScene)
@@ -79,9 +63,7 @@ void SceneSerializer::Serialize(const Scene* _pScene)
         for (auto [typeID, set]: pReg.storage())
         {
             if (!ComponentDB::IsSerializable(typeID))
-            {
                 continue;
-            }
 
             Json compJson;   // 컴포넌트 데이터
             for (entt::entity handle: set)
@@ -93,13 +75,9 @@ void SceneSerializer::Serialize(const Scene* _pScene)
                 const void* pComponent = set.value(handle);
                 Json        serialized = ComponentDB::Serialize(typeID, pComponent, _pScene, entity);
                 if (serialized.is_null() || serialized.empty())
-                {
-                    compJson[std::to_string(uid)] = nullptr;
-                }
+                    compJson[std::to_string(uid)] = nullptr;   // 빈 컴포넌트 처리
                 else
-                {
                     compJson[std::to_string(uid)] = std::move(serialized);   // [컴포넌트 TYPE_ID][UID] = 컴포넌트 데이터
-                }
             }
             json[std::to_string(typeID)] = std::move(compJson);
         }
@@ -185,9 +163,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
 
             // 컴포넌트 생성 및 역직렬화
             if (!ComponentDB::Has(typeID, entity))
-            {
                 ComponentDB::Create(typeID, entity);   // 컴포넌트 생성
-            }
 
             void* pComponent = ComponentDB::Get(typeID, entity);
             if (pComponent)   // 컴포넌트가 빈 구조체인 경우 nullptr일 수 있음

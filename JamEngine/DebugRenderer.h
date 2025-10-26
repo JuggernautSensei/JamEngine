@@ -52,9 +52,8 @@ public:
 
     /// @brief 카메라 위치와 뷰-프로젝션 행렬을 설정합니다.
     /// @param _eyePos 카메라 위치
-    /// @param _view
-    /// @param _proj
-    static void SetCamera(const Vec3& _eyePos, const Mat4& _view, const Mat4& _proj);
+    /// @param _viewProj
+    static void SetCamera(const Vec3& _eyePos, const Mat4& _viewProj);
 
     /// @brief 변환 행렬을 설정합니다.
     /// @param _mat 변환 행렬

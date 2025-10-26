@@ -1,617 +1,903 @@
-﻿#include <algorithm>
-#include <functional>
+﻿#include <chrono>
+#include <d3d11.h>
+#include <d3dcompiler.h>
 #include <iostream>
-#include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
+#include <windows.h>
 
-// 텍스처 상태를 정의하는 enum 클래스
-enum class eRWState
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+
+// 상수 버퍼 구조체
+struct ShaderConstants
 {
-    None,
-    Read,
-    Write
+    int   branchMode;   // 0: 정적 균일, 1: 동적 균일, 2: 동적 발산
+    float threshold;    // 분기 임계값
+    float padding[2];
 };
 
-// 렌더 패스 타입을 정의하는 enum 클래스
-enum class ePassType
-{
-    Graphics,
-    Compute,
-    Copy
+// 정적 분기 - 경로 A만 (균일)
+const char* g_StaticShaderA = R"(
+cbuffer Constants : register(b0) {
+    int branchMode;
+    float threshold;
+    float2 padding;
 };
 
-// 텍스처 구조체 (실제 프로젝트 구조에 맞게 수정)
-struct Texture
-{
-    std::string name;
-    uint32_t    width;
-    uint32_t    height;
-    eRWState    state;       // 상태 (읽기, 쓰기, 없음)
-    uint32_t    boundSlot;   // 바인딩된 슬롯 번호 (-1이면 언바인딩)
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
 
-    Texture()
-        : name("")
-        , width(0)
-        , height(0)
-        , state(eRWState::None)
-        , boundSlot(UINT32_MAX)
-    {
+float4 main(PSInput input) : SV_TARGET {
+    float3 color = float3(0, 0, 0);
+    
+    // 복잡한 수학 연산 A
+    for (int i = 0; i < 100; i++) {
+        float x = input.uv.x * 4.0 - 2.0;
+        float y = input.uv.y * 4.0 - 2.0;
+        
+        float zx = 0.0;
+        float zy = 0.0;
+        
+        for (int j = 0; j < 50; j++) {
+            float xtemp = zx * zx - zy * zy + x;
+            zy = 2.0 * zx * zy + y;
+            zx = xtemp;
+            
+            if (zx * zx + zy * zy > 4.0) break;
+            
+            color += float3(
+                sin(zx * 3.14159) * cos(zy * 2.71828),
+                cos(zx * 2.71828) * sin(zy * 3.14159),
+                sin(zx * zy * 1.41421)
+            );
+        }
     }
-    Texture(const std::string& n, uint32_t w, uint32_t h)
-        : name(n)
-        , width(w)
-        , height(h)
-        , state(eRWState::None)
-        , boundSlot(UINT32_MAX)
-    {
+    
+    return float4(color * 0.01, 1.0);
+}
+)";
+
+// 정적 분기 - 경로 B만 (균일)
+const char* g_StaticShaderB = R"(
+cbuffer Constants : register(b0) {
+    int branchMode;
+    float threshold;
+    float2 padding;
+};
+
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
+float4 main(PSInput input) : SV_TARGET {
+    float3 color = float3(0, 0, 0);
+    
+    // 복잡한 수학 연산 B
+    for (int i = 0; i < 100; i++) {
+        float u = input.uv.x * 6.28318;
+        float v = input.uv.y * 6.28318;
+        
+        for (int j = 0; j < 50; j++) {
+            float t = float(j) * 0.1;
+            
+            color += float3(
+                sin(u * cos(v + t)) * cos(u * sin(v - t)),
+                cos(v * sin(u + t)) * sin(v * cos(u - t)),
+                sin(u * v * t) * cos(u + v + t)
+            );
+            
+            u = fmod(u + color.r * 0.1, 6.28318);
+            v = fmod(v + color.g * 0.1, 6.28318);
+        }
     }
+    
+    return float4(color * 0.01, 1.0);
+}
+)";
+
+// 동적 분기 - 상수 버퍼로 균일 분기 (warp 내 모든 스레드가 동일 경로)
+const char* g_DynamicUniformShader = R"(
+cbuffer Constants : register(b0) {
+    int branchMode;
+    float threshold;
+    float2 padding;
 };
 
-// 샘플러 구조체
-struct Sampler
-{
-    std::string name;
-    bool        isAnisotropic;
-    bool        compare;
-    bool        wrap;
-    bool        clamp;
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
 };
 
-// 깊이 및 스텐실 상태 구조체
-struct DepthStencil
-{
-    std::string name;
-    uint32_t    width;
-    uint32_t    height;
-    bool        hasDepth;
-    bool        hasStencil;
-};
-
-// 레스터라이저 상태 구조체
-struct RasterizerState
-{
-    std::string name;
-    bool        cullBackFaces;
-    bool        wireframeMode;
-};
-
-// 블렌드 상태 구조체 (실제 프로젝트 구조에 맞게 단순화)
-struct BlendState
-{
-    std::string name;
-    bool        alphaBlending;
-    bool        additiveBlending;
-};
-
-// 버퍼 구조체 (실제 프로젝트 구조에 맞게 수정)
-struct Buffer
-{
-    std::string name;
-    uint32_t    size;
-    bool        isDynamic;
-};
-
-// 렌더 그래프 리소스 구조체
-struct RenderResource
-{
-    std::string              name;
-    bool                     isTemporary;   // 임시 리소스인지 여부
-    bool                     isImported;    // 외부에서 가져온 리소스인지 여부
-    std::shared_ptr<Texture> texture;       // 실제 텍스처 데이터
-
-    RenderResource(const std::string& n, bool temp = false, bool imported = false)
-        : name(n)
-        , isTemporary(temp)
-        , isImported(imported)
-    {
+float4 main(PSInput input) : SV_TARGET {
+    float3 color = float3(0, 0, 0);
+    
+    // 상수 버퍼로 균일 분기 - 모든 픽셀이 같은 경로
+    if (branchMode == 0) {
+        // 경로 A
+        for (int i = 0; i < 100; i++) {
+            float x = input.uv.x * 4.0 - 2.0;
+            float y = input.uv.y * 4.0 - 2.0;
+            
+            float zx = 0.0;
+            float zy = 0.0;
+            
+            for (int j = 0; j < 50; j++) {
+                float xtemp = zx * zx - zy * zy + x;
+                zy = 2.0 * zx * zy + y;
+                zx = xtemp;
+                
+                if (zx * zx + zy * zy > 4.0) break;
+                
+                color += float3(
+                    sin(zx * 3.14159) * cos(zy * 2.71828),
+                    cos(zx * 2.71828) * sin(zy * 3.14159),
+                    sin(zx * zy * 1.41421)
+                );
+            }
+        }
+    } else {
+        // 경로 B
+        for (int i = 0; i < 100; i++) {
+            float u = input.uv.x * 6.28318;
+            float v = input.uv.y * 6.28318;
+            
+            for (int j = 0; j < 50; j++) {
+                float t = float(j) * 0.1;
+                
+                color += float3(
+                    sin(u * cos(v + t)) * cos(u * sin(v - t)),
+                    cos(v * sin(u + t)) * sin(v * cos(u - t)),
+                    sin(u * v * t) * cos(u + v + t)
+                );
+                
+                u = fmod(u + color.r * 0.1, 6.28318);
+                v = fmod(v + color.g * 0.1, 6.28318);
+            }
+        }
     }
+    
+    return float4(color * 0.01, 1.0);
+}
+)";
+
+// SWITCH 문을 사용한 균일 분기
+const char* g_SwitchUniformShader = R"(
+cbuffer Constants : register(b0) {
+    int branchMode;
+    float threshold;
+    float2 padding;
 };
 
-// 렌더 패스 구조체
-struct RenderPass
-{
-    std::string              name;
-    ePassType                type;
-    std::vector<std::string> readResources;    // 읽기 리소스 목록
-    std::vector<std::string> writeResources;   // 쓰기 리소스 목록
-    std::function<void()>    executeFunc;      // 패스 실행 함수
-
-    RenderPass(const std::string& n, ePassType t)
-        : name(n)
-        , type(t)
-    {
-    }
-
-    void AddRead(const std::string& resourceName)
-    {
-        readResources.push_back(resourceName);
-    }
-
-    void AddWrite(const std::string& resourceName)
-    {
-        writeResources.push_back(resourceName);
-    }
-
-    void SetExecuteFunction(std::function<void()> func)
-    {
-        executeFunc = func;
-    }
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
 };
 
-// 렌더 그래프 클래스
-class RenderGraph
+float4 main(PSInput input) : SV_TARGET {
+    float3 color = float3(0, 0, 0);
+    
+    // SWITCH 문으로 균일 분기 - 모든 픽셀이 같은 경로
+    switch (branchMode) {
+        case 0:
+            // 경로 A
+            for (int i = 0; i < 100; i++) {
+                float x = input.uv.x * 4.0 - 2.0;
+                float y = input.uv.y * 4.0 - 2.0;
+                
+                float zx = 0.0;
+                float zy = 0.0;
+                
+                for (int j = 0; j < 50; j++) {
+                    float xtemp = zx * zx - zy * zy + x;
+                    zy = 2.0 * zx * zy + y;
+                    zx = xtemp;
+                    
+                    if (zx * zx + zy * zy > 4.0) break;
+                    
+                    color += float3(
+                        sin(zx * 3.14159) * cos(zy * 2.71828),
+                        cos(zx * 2.71828) * sin(zy * 3.14159),
+                        sin(zx * zy * 1.41421)
+                    );
+                }
+            }
+            break;
+            
+        case 1:
+            // 경로 B
+            for (int i = 0; i < 100; i++) {
+                float u = input.uv.x * 6.28318;
+                float v = input.uv.y * 6.28318;
+                
+                for (int j = 0; j < 50; j++) {
+                    float t = float(j) * 0.1;
+                    
+                    color += float3(
+                        sin(u * cos(v + t)) * cos(u * sin(v - t)),
+                        cos(v * sin(u + t)) * sin(v * cos(u - t)),
+                        sin(u * v * t) * cos(u + v + t)
+                    );
+                    
+                    u = fmod(u + color.r * 0.1, 6.28318);
+                    v = fmod(v + color.g * 0.1, 6.28318);
+                }
+            }
+            break;
+            
+        default:
+            color = float3(1, 0, 0); // 에러 표시
+            break;
+    }
+    
+    return float4(color * 0.01, 1.0);
+}
+)";
+
+// 동적 분기 - 픽셀마다 다른 경로 (warp divergence 발생!)
+const char* g_DynamicDivergentShader = R"(
+cbuffer Constants : register(b0) {
+    int branchMode;
+    float threshold;
+    float2 padding;
+};
+
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
+float4 main(PSInput input) : SV_TARGET {
+    float3 color = float3(0, 0, 0);
+    
+    // 픽셀마다 다른 경로 선택 - WARP DIVERGENCE!
+    // UV 좌표에 따라 다른 경로를 실행하므로, 같은 warp 내 스레드들이 서로 다른 경로를 실행
+    if (input.uv.x < threshold) {
+        // 경로 A - 화면 왼쪽 절반
+        for (int i = 0; i < 100; i++) {
+            float x = input.uv.x * 4.0 - 2.0;
+            float y = input.uv.y * 4.0 - 2.0;
+            
+            float zx = 0.0;
+            float zy = 0.0;
+            
+            for (int j = 0; j < 50; j++) {
+                float xtemp = zx * zx - zy * zy + x;
+                zy = 2.0 * zx * zy + y;
+                zx = xtemp;
+                
+                if (zx * zx + zy * zy > 4.0) break;
+                
+                color += float3(
+                    sin(zx * 3.14159) * cos(zy * 2.71828),
+                    cos(zx * 2.71828) * sin(zy * 3.14159),
+                    sin(zx * zy * 1.41421)
+                );
+            }
+        }
+    } else {
+        // 경로 B - 화면 오른쪽 절반
+        for (int i = 0; i < 100; i++) {
+            float u = input.uv.x * 6.28318;
+            float v = input.uv.y * 6.28318;
+            
+            for (int j = 0; j < 50; j++) {
+                float t = float(j) * 0.1;
+                
+                color += float3(
+                    sin(u * cos(v + t)) * cos(u * sin(v - t)),
+                    cos(v * sin(u + t)) * sin(v * cos(u - t)),
+                    sin(u * v * t) * cos(u + v + t)
+                );
+                
+                u = fmod(u + color.r * 0.1, 6.28318);
+                v = fmod(v + color.g * 0.1, 6.28318);
+            }
+        }
+    }
+    
+    return float4(color * 0.01, 1.0);
+}
+)";
+
+// 최악의 발산 - 체크보드 패턴 (픽셀마다 교차)
+const char* g_WorstCaseDivergentShader = R"(
+cbuffer Constants : register(b0) {
+    int branchMode;
+    float threshold;
+    float2 padding;
+};
+
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
+float4 main(PSInput input) : SV_TARGET {
+    float3 color = float3(0, 0, 0);
+    
+    // 체크보드 패턴 - 최악의 Warp Divergence!
+    // 같은 warp 내에서 픽셀들이 번갈아가며 다른 경로 실행
+    int x = int(input.position.x);
+    int y = int(input.position.y);
+    bool usePathA = ((x + y) % 2) == 0;
+    
+    if (usePathA) {
+        // 경로 A
+        for (int i = 0; i < 100; i++) {
+            float x = input.uv.x * 4.0 - 2.0;
+            float y = input.uv.y * 4.0 - 2.0;
+            
+            float zx = 0.0;
+            float zy = 0.0;
+            
+            for (int j = 0; j < 50; j++) {
+                float xtemp = zx * zx - zy * zy + x;
+                zy = 2.0 * zx * zy + y;
+                zx = xtemp;
+                
+                if (zx * zx + zy * zy > 4.0) break;
+                
+                color += float3(
+                    sin(zx * 3.14159) * cos(zy * 2.71828),
+                    cos(zx * 2.71828) * sin(zy * 3.14159),
+                    sin(zx * zy * 1.41421)
+                );
+            }
+        }
+    } else {
+        // 경로 B
+        for (int i = 0; i < 100; i++) {
+            float u = input.uv.x * 6.28318;
+            float v = input.uv.y * 6.28318;
+            
+            for (int j = 0; j < 50; j++) {
+                float t = float(j) * 0.1;
+                
+                color += float3(
+                    sin(u * cos(v + t)) * cos(u * sin(v - t)),
+                    cos(v * sin(u + t)) * sin(v * cos(u - t)),
+                    sin(u * v * t) * cos(u + v + t)
+                );
+                
+                u = fmod(u + color.r * 0.1, 6.28318);
+                v = fmod(v + color.g * 0.1, 6.28318);
+            }
+        }
+    }
+    
+    return float4(color * 0.01, 1.0);
+}
+)";
+
+// 랜덤 발산 패턴 추가
+const char* g_RandomDivergentShader = R"(
+cbuffer Constants : register(b0) {
+    int branchMode;
+    float threshold;
+    float2 padding;
+};
+
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
+float hash(float2 p) {
+    return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float4 main(PSInput input) : SV_TARGET {
+    float3 color = float3(0, 0, 0);
+    
+    // 완전 랜덤 분기 - Warp 내 완전 무작위
+    float randVal = hash(input.position.xy);
+    bool usePathA = randVal < 0.5;
+    
+    if (usePathA) {
+        // 경로 A
+        for (int i = 0; i < 100; i++) {
+            float x = input.uv.x * 4.0 - 2.0;
+            float y = input.uv.y * 4.0 - 2.0;
+            
+            float zx = 0.0;
+            float zy = 0.0;
+            
+            for (int j = 0; j < 50; j++) {
+                float xtemp = zx * zx - zy * zy + x;
+                zy = 2.0 * zx * zy + y;
+                zx = xtemp;
+                
+                if (zx * zx + zy * zy > 4.0) break;
+                
+                color += float3(
+                    sin(zx * 3.14159) * cos(zy * 2.71828),
+                    cos(zx * 2.71828) * sin(zy * 3.14159),
+                    sin(zx * zy * 1.41421)
+                );
+            }
+        }
+    } else {
+        // 경로 B
+        for (int i = 0; i < 100; i++) {
+            float u = input.uv.x * 6.28318;
+            float v = input.uv.y * 6.28318;
+            
+            for (int j = 0; j < 50; j++) {
+                float t = float(j) * 0.1;
+                
+                color += float3(
+                    sin(u * cos(v + t)) * cos(u * sin(v - t)),
+                    cos(v * sin(u + t)) * sin(v * cos(u - t)),
+                    sin(u * v * t) * cos(u + v + t)
+                );
+                
+                u = fmod(u + color.r * 0.1, 6.28318);
+                v = fmod(v + color.g * 0.1, 6.28318);
+            }
+        }
+    }
+    
+    return float4(color * 0.01, 1.0);
+}
+)";
+
+// 간단한 버텍스 셰이더
+const char* g_VertexShader = R"(
+struct VSInput {
+    float3 position : POSITION;
+    float2 uv : TEXCOORD0;
+};
+
+struct PSInput {
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
+PSInput main(VSInput input) {
+    PSInput output;
+    output.position = float4(input.position, 1.0);
+    output.uv = input.uv;
+    return output;
+}
+)";
+
+struct Vertex
 {
+    float pos[3];
+    float uv[2];
+};
+
+class ShaderBranchTest
+{
+private:
+    ID3D11Device*           device           = nullptr;
+    ID3D11DeviceContext*    context          = nullptr;
+    IDXGISwapChain*         swapChain        = nullptr;
+    ID3D11RenderTargetView* renderTargetView = nullptr;
+
+    ID3D11VertexShader* vertexShader              = nullptr;
+    ID3D11PixelShader*  pixelShaderStaticA        = nullptr;
+    ID3D11PixelShader*  pixelShaderStaticB        = nullptr;
+    ID3D11PixelShader*  pixelShaderDynamicUniform = nullptr;
+    ID3D11PixelShader*  pixelShaderSwitchUniform  = nullptr;
+    ID3D11PixelShader*  pixelShaderDivergent      = nullptr;
+    ID3D11PixelShader*  pixelShaderWorstCase      = nullptr;
+    ID3D11PixelShader*  pixelShaderRandom         = nullptr;
+
+    ID3D11Buffer*      vertexBuffer   = nullptr;
+    ID3D11Buffer*      constantBuffer = nullptr;
+    ID3D11InputLayout* inputLayout    = nullptr;
+
+    ID3D11Query* queryDisjoint = nullptr;
+    ID3D11Query* queryStart    = nullptr;
+    ID3D11Query* queryEnd      = nullptr;
+
 public:
-    RenderGraph()  = default;
-    ~RenderGraph() = default;
-
-    // 리소스 생성
-    void CreateResource(const std::string& name, uint32_t width, uint32_t height, bool isTemporary = true)
+    bool Initialize(HWND hwnd)
     {
-        if (resources.find(name) != resources.end())
-        {
-            std::cout << "Warning: Resource '" << name << "' already exists.\n";
-            return;
-        }
+        DXGI_SWAP_CHAIN_DESC sd = {};
+        sd.BufferCount          = 1;
+        sd.BufferDesc.Width     = 800;
+        sd.BufferDesc.Height    = 600;
+        sd.BufferDesc.Format    = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.BufferUsage          = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        sd.OutputWindow         = hwnd;
+        sd.SampleDesc.Count     = 1;
+        sd.Windowed             = TRUE;
 
-        auto resource     = std::make_shared<RenderResource>(name, isTemporary);
-        resource->texture = std::make_shared<Texture>(name, width, height);
-        resources[name]   = resource;
+        D3D_FEATURE_LEVEL featureLevel;
+        HRESULT           hr = D3D11CreateDeviceAndSwapChain(
+            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION, &sd, &swapChain, &device, &featureLevel, &context);
 
-        std::cout << "Created render resource: " << name << " (" << width << "x" << height << ")\n";
-    }
+        if (FAILED(hr)) return false;
 
-    // 외부 리소스 가져오기 (예: 스왑체인, 깊이 버퍼 등)
-    void ImportResource(const std::string& name, std::shared_ptr<Texture> texture)
-    {
-        if (resources.find(name) != resources.end())
-        {
-            std::cout << "Warning: Resource '" << name << "' already exists.\n";
-            return;
-        }
+        ID3D11Texture2D* backBuffer;
+        swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+        device->CreateRenderTargetView(backBuffer, nullptr, &renderTargetView);
+        backBuffer->Release();
 
-        auto resource     = std::make_shared<RenderResource>(name, false, true);
-        resource->texture = texture;
-        resources[name]   = resource;
+        D3D11_QUERY_DESC queryDesc = {};
+        queryDesc.Query            = D3D11_QUERY_TIMESTAMP_DISJOINT;
+        device->CreateQuery(&queryDesc, &queryDisjoint);
 
-        std::cout << "Imported render resource: " << name << "\n";
-    }
+        queryDesc.Query = D3D11_QUERY_TIMESTAMP;
+        device->CreateQuery(&queryDesc, &queryStart);
+        device->CreateQuery(&queryDesc, &queryEnd);
 
-    // 렌더 패스 추가
-    RenderPass& AddPass(const std::string& name, ePassType type)
-    {
-        if (passes.find(name) != passes.end())
-        {
-            std::cout << "Warning: Pass '" << name << "' already exists.\n";
-            return *passes[name];
-        }
+        if (!CompileShaders()) return false;
+        CreateVertexBuffer();
+        CreateConstantBuffer();
 
-        auto        pass    = std::make_unique<RenderPass>(name, type);
-        RenderPass& passRef = *pass;
-        passes[name]        = std::move(pass);
-        passOrder.push_back(name);
-
-        std::cout << "Added render pass: " << name << "\n";
-        return passRef;
-    }
-
-    // 렌더 그래프 컴파일 (의존성 검증 및 최적화)
-    bool Compile()
-    {
-        std::cout << "\n=== Compiling RenderGraph ===\n";
-
-        // 1. 리소스 의존성 검증
-        if (!ValidateDependencies())
-        {
-            std::cout << "Error: Resource dependency validation failed.\n";
-            return false;
-        }
-
-        // 2. 패스 순서 최적화 (단순한 토폴로지 정렬)
-        if (!OptimizePassOrder())
-        {
-            std::cout << "Error: Pass order optimization failed.\n";
-            return false;
-        }
-
-        // 3. 리소스 생명주기 계산
-        CalculateResourceLifetime();
-
-        std::cout << "RenderGraph compilation successful.\n";
         return true;
     }
 
-    // 렌더 그래프 실행
-    void Execute()
+    bool CompileShaders()
     {
-        std::cout << "\n=== Executing RenderGraph ===\n";
+        ID3DBlob* vsBlob    = nullptr;
+        ID3DBlob* psBlob    = nullptr;
+        ID3DBlob* errorBlob = nullptr;
 
-        for (const auto& passName: optimizedPassOrder)
+        HRESULT hr = D3DCompile(g_VertexShader, strlen(g_VertexShader), nullptr, nullptr, nullptr, "main", "vs_5_0", 0, 0, &vsBlob, &errorBlob);
+
+        if (FAILED(hr))
         {
-            auto& pass = *passes[passName];
-            std::cout << "\nExecuting pass: " << pass.name << "\n";
-
-            // 읽기 리소스 바인딩
-            for (const auto& resourceName: pass.readResources)
+            if (errorBlob)
             {
-                BindResourceForRead(resourceName);
+                std::cout << "VS Error: " << (char*)errorBlob->GetBufferPointer() << std::endl;
+                errorBlob->Release();
             }
+            return false;
+        }
 
-            // 쓰기 리소스 바인딩
-            for (const auto& resourceName: pass.writeResources)
+        device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &vertexShader);
+
+        D3D11_INPUT_ELEMENT_DESC layout[] = {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0,    DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        };
+        device->CreateInputLayout(layout, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayout);
+        vsBlob->Release();
+
+        hr = D3DCompile(g_StaticShaderA, strlen(g_StaticShaderA), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &psBlob, &errorBlob);
+        if (FAILED(hr)) return false;
+        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShaderStaticA);
+        psBlob->Release();
+
+        hr = D3DCompile(g_StaticShaderB, strlen(g_StaticShaderB), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &psBlob, &errorBlob);
+        if (FAILED(hr)) return false;
+        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShaderStaticB);
+        psBlob->Release();
+
+        hr = D3DCompile(g_DynamicUniformShader, strlen(g_DynamicUniformShader), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &psBlob, &errorBlob);
+        if (FAILED(hr)) return false;
+        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShaderDynamicUniform);
+        psBlob->Release();
+
+        hr = D3DCompile(g_SwitchUniformShader, strlen(g_SwitchUniformShader), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &psBlob, &errorBlob);
+        if (FAILED(hr))
+        {
+            if (errorBlob)
             {
-                BindResourceForWrite(resourceName);
+                std::cout << "Switch Shader Error: " << (char*)errorBlob->GetBufferPointer() << std::endl;
+                errorBlob->Release();
             }
+            return false;
+        }
+        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShaderSwitchUniform);
+        psBlob->Release();
 
-            // 패스 실행
-            if (pass.executeFunc)
+        hr = D3DCompile(g_DynamicDivergentShader, strlen(g_DynamicDivergentShader), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &psBlob, &errorBlob);
+        if (FAILED(hr)) return false;
+        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShaderDivergent);
+        psBlob->Release();
+
+        hr = D3DCompile(g_WorstCaseDivergentShader, strlen(g_WorstCaseDivergentShader), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &psBlob, &errorBlob);
+        if (FAILED(hr)) return false;
+        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShaderWorstCase);
+        psBlob->Release();
+
+        hr = D3DCompile(g_RandomDivergentShader, strlen(g_RandomDivergentShader), nullptr, nullptr, nullptr, "main", "ps_5_0", 0, 0, &psBlob, &errorBlob);
+        if (FAILED(hr)) return false;
+        device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShaderRandom);
+        psBlob->Release();
+
+        return true;
+    }
+
+    void CreateVertexBuffer()
+    {
+        Vertex vertices[] = {
+            { { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f } },
+            {  { -1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f } },
+            {  { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f } },
+            {   { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
+        };
+
+        D3D11_BUFFER_DESC bd = {};
+        bd.Usage             = D3D11_USAGE_DEFAULT;
+        bd.ByteWidth         = sizeof(vertices);
+        bd.BindFlags         = D3D11_BIND_VERTEX_BUFFER;
+
+        D3D11_SUBRESOURCE_DATA initData = {};
+        initData.pSysMem                = vertices;
+
+        device->CreateBuffer(&bd, &initData, &vertexBuffer);
+    }
+
+    void CreateConstantBuffer()
+    {
+        D3D11_BUFFER_DESC bd = {};
+        bd.Usage             = D3D11_USAGE_DEFAULT;
+        bd.ByteWidth         = sizeof(ShaderConstants);
+        bd.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+
+        device->CreateBuffer(&bd, nullptr, &constantBuffer);
+    }
+
+    double MeasureGPUTime(ID3D11PixelShader* pixelShader, int branchMode = -1, float threshold = 0.5f)
+    {
+        const int WARMUP_FRAMES = 10;
+        const int TEST_FRAMES   = 100;
+
+        for (int i = 0; i < WARMUP_FRAMES; i++)
+        {
+            Render(pixelShader, branchMode, threshold);
+        }
+
+        context->Begin(queryDisjoint);
+        context->End(queryStart);
+
+        for (int i = 0; i < TEST_FRAMES; i++)
+        {
+            Render(pixelShader, branchMode, threshold);
+        }
+
+        context->End(queryEnd);
+        context->End(queryDisjoint);
+
+        while (context->GetData(queryDisjoint, nullptr, 0, 0) == S_FALSE)
+        {
+            Sleep(1);
+        }
+
+        D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjointData;
+        context->GetData(queryDisjoint, &disjointData, sizeof(disjointData), 0);
+
+        UINT64 startTime = 0;
+        UINT64 endTime   = 0;
+        context->GetData(queryStart, &startTime, sizeof(UINT64), 0);
+        context->GetData(queryEnd, &endTime, sizeof(UINT64), 0);
+
+        if (disjointData.Disjoint == FALSE)
+        {
+            UINT64 delta  = endTime - startTime;
+            double timeMS = (delta * 1000.0) / disjointData.Frequency / TEST_FRAMES;
+            return timeMS;
+        }
+
+        return 0.0;
+    }
+
+    void Render(ID3D11PixelShader* pixelShader, int branchMode, float threshold)
+    {
+        float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        context->ClearRenderTargetView(renderTargetView, clearColor);
+
+        if (branchMode >= 0)
+        {
+            ShaderConstants constants;
+            constants.branchMode = branchMode;
+            constants.threshold  = threshold;
+            context->UpdateSubresource(constantBuffer, 0, nullptr, &constants, 0, 0);
+            context->PSSetConstantBuffers(0, 1, &constantBuffer);
+        }
+
+        context->OMSetRenderTargets(1, &renderTargetView, nullptr);
+        context->IASetInputLayout(inputLayout);
+
+        UINT stride = sizeof(Vertex);
+        UINT offset = 0;
+        context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+        context->VSSetShader(vertexShader, nullptr, 0);
+        context->PSSetShader(pixelShader, nullptr, 0);
+
+        D3D11_VIEWPORT vp = { 0.0f, 0.0f, 800.0f, 600.0f, 0.0f, 1.0f };
+        context->RSSetViewports(1, &vp);
+
+        context->Draw(4, 0);
+        context->Flush();
+    }
+
+    void RunTests()
+    {
+        std::cout << "\n========================================" << std::endl;
+        std::cout << "   셰이더 분기 성능 테스트" << std::endl;
+        std::cout << "========================================\n"
+                  << std::endl;
+
+        std::cout << "[1] 정적 분기 (Static Branching)" << std::endl;
+        double staticA = MeasureGPUTime(pixelShaderStaticA);
+        std::cout << "    경로 A (프랙탈):       " << staticA << " ms" << std::endl;
+
+        double staticB = MeasureGPUTime(pixelShaderStaticB);
+        std::cout << "    경로 B (삼각함수):     " << staticB << " ms\n"
+                  << std::endl;
+
+        std::cout << "[2] IF 문 균일 분기 (IF Uniform Branching)" << std::endl;
+        std::cout << "    - 상수 버퍼로 분기, 모든 픽셀이 같은 경로" << std::endl;
+        double uniformA = MeasureGPUTime(pixelShaderDynamicUniform, 0);
+        std::cout << "    경로 A:                " << uniformA << " ms" << std::endl;
+
+        double uniformB = MeasureGPUTime(pixelShaderDynamicUniform, 1);
+        std::cout << "    경로 B:                " << uniformB << " ms\n"
+                  << std::endl;
+
+        std::cout << "[3] SWITCH 문 균일 분기 (SWITCH Uniform Branching)" << std::endl;
+        std::cout << "    - 상수 버퍼로 분기, 모든 픽셀이 같은 경로" << std::endl;
+        double switchA = MeasureGPUTime(pixelShaderSwitchUniform, 0);
+        std::cout << "    경로 A:                " << switchA << " ms" << std::endl;
+
+        double switchB = MeasureGPUTime(pixelShaderSwitchUniform, 1);
+        std::cout << "    경로 B:                " << switchB << " ms\n"
+                  << std::endl;
+
+        std::cout << "[4] 동적 발산 분기 (Dynamic Divergent Branching)" << std::endl;
+        std::cout << "    - 픽셀마다 다른 경로 (Warp Divergence 발생!)" << std::endl;
+        double divergent = MeasureGPUTime(pixelShaderDivergent, 0, 0.5f);
+        std::cout << "    혼합 실행 (50/50):     " << divergent << " ms\n"
+                  << std::endl;
+
+        std::cout << "[5] 체크보드 발산 (Checkerboard Divergence)" << std::endl;
+        std::cout << "    - 픽셀마다 교차하는 최악의 패턴" << std::endl;
+        double worstCase = MeasureGPUTime(pixelShaderWorstCase, 0, 0.5f);
+        std::cout << "    체크보드 실행:         " << worstCase << " ms\n"
+                  << std::endl;
+
+        std::cout << "[6] 랜덤 발산 (Random Divergence)" << std::endl;
+        std::cout << "    - 완전 무작위 분기" << std::endl;
+        double randomDiv = MeasureGPUTime(pixelShaderRandom, 0, 0.5f);
+        std::cout << "    랜덤 실행:             " << randomDiv << " ms\n"
+                  << std::endl;
+
+        std::cout << "========================================" << std::endl;
+        std::cout << "   분석 결과" << std::endl;
+        std::cout << "========================================\n"
+                  << std::endl;
+
+        double avgStatic  = (staticA + staticB) / 2.0;
+        double avgUniform = (uniformA + uniformB) / 2.0;
+        double avgSwitch  = (switchA + switchB) / 2.0;
+
+        std::cout << "정적 분기 평균:           " << avgStatic << " ms" << std::endl;
+        std::cout << "IF 문 균일 분기 평균:     " << avgUniform << " ms" << std::endl;
+        std::cout << "SWITCH 문 균일 분기 평균: " << avgSwitch << " ms" << std::endl;
+        std::cout << "동적 발산 분기:           " << divergent << " ms\n"
+                  << std::endl;
+
+        double uniformOverhead  = ((avgUniform - avgStatic) / avgStatic) * 100.0;
+        double switchOverhead   = ((avgSwitch - avgStatic) / avgStatic) * 100.0;
+        double divergentPenalty = ((divergent - avgStatic) / avgStatic) * 100.0;
+
+        std::cout << "IF 문 오버헤드:           " << uniformOverhead << "%" << std::endl;
+        std::cout << "SWITCH 문 오버헤드:       " << switchOverhead << "%" << std::endl;
+        std::cout << "발산 분기 페널티:         " << divergentPenalty << "%\n"
+                  << std::endl;
+
+        double worstPenalty  = ((worstCase - avgStatic) / avgStatic) * 100.0;
+        double randomPenalty = ((randomDiv - avgStatic) / avgStatic) * 100.0;
+
+        std::cout << "체크보드 발산 페널티:     " << worstPenalty << "%" << std::endl;
+        std::cout << "랜덤 발산 페널티:         " << randomPenalty << "%" << std::endl;
+
+        std::cout << "\n========================================" << std::endl;
+        std::cout << "   결론" << std::endl;
+        std::cout << "========================================\n"
+                  << std::endl;
+
+        if (abs(uniformOverhead) < 5.0 && abs(switchOverhead) < 5.0)
+        {
+            std::cout << "✓ IF/SWITCH 균일 분기: 정적 분기와 성능 차이 없음 (최적화됨)" << std::endl;
+
+            double ifVsSwitch = abs(avgSwitch - avgUniform);
+            if (ifVsSwitch < 0.1)
             {
-                pass.executeFunc();
+                std::cout << "✓ IF vs SWITCH: 컴파일러가 동일하게 최적화함 (차이: " << ifVsSwitch << "ms)" << std::endl;
             }
             else
             {
-                std::cout << "  [No execute function defined for this pass]\n";
+                std::cout << "  IF vs SWITCH 차이: " << ((avgSwitch - avgUniform) / avgUniform * 100.0) << "%" << std::endl;
             }
-
-            // 리소스 언바인딩
-            UnbindResources(pass);
+        }
+        else
+        {
+            std::cout << "✗ IF 문: 정적 분기 대비 " << uniformOverhead << "% 차이" << std::endl;
+            std::cout << "✗ SWITCH 문: 정적 분기 대비 " << switchOverhead << "% 차이" << std::endl;
         }
 
-        std::cout << "\nRenderGraph execution completed.\n";
+        if (divergentPenalty > 10.0)
+        {
+            std::cout << "\n✗ 발산 분기: 심각한 성능 저하 발생!" << std::endl;
+            std::cout << "  → Warp 내 스레드들이 서로 다른 경로를 실행하여" << std::endl;
+            std::cout << "    직렬화(serialization)가 발생했습니다." << std::endl;
+        }
+        else
+        {
+            std::cout << "\n✓ 발산 분기: 예상보다 낮은 페널티" << std::endl;
+            std::cout << "  → GPU가 분기를 효율적으로 처리했을 가능성" << std::endl;
+        }
+
+        std::cout << "\n========================================" << std::endl;
     }
 
-    // 렌더 그래프 정보 출력
-    void PrintInfo()
+    void Cleanup()
     {
-        std::cout << "\n=== RenderGraph Information ===\n";
-
-        std::cout << "Resources (" << resources.size() << "):\n";
-        for (const auto& [name, resource]: resources)
-        {
-            std::cout << "  " << name;
-            if (resource->isTemporary) std::cout << " (Temporary)";
-            if (resource->isImported) std::cout << " (Imported)";
-            if (resource->texture)
-            {
-                std::cout << " [" << resource->texture->width << "x" << resource->texture->height << "]";
-            }
-            std::cout << "\n";
-        }
-
-        std::cout << "\nPasses (" << passes.size() << "):\n";
-        for (const auto& passName: passOrder)
-        {
-            const auto& pass = *passes.at(passName);
-            std::cout << "  " << pass.name << " (" << GetPassTypeName(pass.type) << ")\n";
-
-            if (!pass.readResources.empty())
-            {
-                std::cout << "    Reads: ";
-                for (size_t i = 0; i < pass.readResources.size(); ++i)
-                {
-                    if (i > 0) std::cout << ", ";
-                    std::cout << pass.readResources[i];
-                }
-                std::cout << "\n";
-            }
-
-            if (!pass.writeResources.empty())
-            {
-                std::cout << "    Writes: ";
-                for (size_t i = 0; i < pass.writeResources.size(); ++i)
-                {
-                    if (i > 0) std::cout << ", ";
-                    std::cout << pass.writeResources[i];
-                }
-                std::cout << "\n";
-            }
-        }
-
-        if (!optimizedPassOrder.empty() && optimizedPassOrder != passOrder)
-        {
-            std::cout << "\nOptimized pass order: ";
-            for (size_t i = 0; i < optimizedPassOrder.size(); ++i)
-            {
-                if (i > 0) std::cout << " -> ";
-                std::cout << optimizedPassOrder[i];
-            }
-            std::cout << "\n";
-        }
-
-        std::cout << "===============================\n";
-    }
-
-    // 렌더 그래프 초기화
-    void Reset()
-    {
-        resources.clear();
-        passes.clear();
-        passOrder.clear();
-        optimizedPassOrder.clear();
-        std::cout << "RenderGraph reset.\n";
-    }
-
-private:
-    std::unordered_map<std::string, std::shared_ptr<RenderResource>> resources;
-    std::unordered_map<std::string, std::unique_ptr<RenderPass>>     passes;
-    std::vector<std::string>                                         passOrder;            // 원본 패스 순서
-    std::vector<std::string>                                         optimizedPassOrder;   // 최적화된 패스 순서
-
-    // 패스 타입 이름 반환
-    std::string GetPassTypeName(ePassType type)
-    {
-        switch (type)
-        {
-            case ePassType::Graphics: return "Graphics";
-            case ePassType::Compute: return "Compute";
-            case ePassType::Copy: return "Copy";
-            default: return "Unknown";
-        }
-    }
-
-    // 리소스 의존성 검증
-    bool ValidateDependencies()
-    {
-        std::cout << "Validating resource dependencies...\n";
-
-        for (const auto& [passName, pass]: passes)
-        {
-            // 읽기 리소스 존재 확인
-            for (const auto& resourceName: pass->readResources)
-            {
-                if (resources.find(resourceName) == resources.end())
-                {
-                    std::cout << "Error: Pass '" << passName << "' tries to read non-existent resource '" << resourceName << "'\n";
-                    return false;
-                }
-            }
-
-            // 쓰기 리소스 존재 확인
-            for (const auto& resourceName: pass->writeResources)
-            {
-                if (resources.find(resourceName) == resources.end())
-                {
-                    std::cout << "Error: Pass '" << passName << "' tries to write to non-existent resource '" << resourceName << "'\n";
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    // 패스 순서 최적화 (단순한 버전)
-    bool OptimizePassOrder()
-    {
-        std::cout << "Optimizing pass order...\n";
-
-        // 현재는 단순히 원본 순서를 유지
-        // 실제로는 더 복잡한 토폴로지 정렬이 필요
-        optimizedPassOrder = passOrder;
-
-        return true;
-    }
-
-    // 리소스 생명주기 계산
-    void CalculateResourceLifetime()
-    {
-        std::cout << "Calculating resource lifetimes...\n";
-
-        // 각 리소스가 어느 패스에서 처음 사용되고 마지막으로 사용되는지 계산
-        // 현재는 단순한 버전으로 구현
-        for (const auto& [resourceName, resource]: resources)
-        {
-            int firstUse = -1;
-            int lastUse  = -1;
-
-            for (int i = 0; i < optimizedPassOrder.size(); ++i)
-            {
-                const auto& pass = *passes[optimizedPassOrder[i]];
-
-                bool usesResource = false;
-                for (const auto& readRes: pass.readResources)
-                {
-                    if (readRes == resourceName)
-                    {
-                        usesResource = true;
-                        break;
-                    }
-                }
-
-                if (!usesResource)
-                {
-                    for (const auto& writeRes: pass.writeResources)
-                    {
-                        if (writeRes == resourceName)
-                        {
-                            usesResource = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (usesResource)
-                {
-                    if (firstUse == -1) firstUse = i;
-                    lastUse = i;
-                }
-            }
-
-            if (firstUse != -1 && resource->isTemporary)
-            {
-                std::cout << "  Resource '" << resourceName << "' lifetime: pass " << firstUse << " to " << lastUse << "\n";
-            }
-        }
-    }
-
-    // 읽기용 리소스 바인딩
-    void BindResourceForRead(const std::string& resourceName)
-    {
-        auto it = resources.find(resourceName);
-        if (it != resources.end() && it->second->texture)
-        {
-            auto& texture = *it->second->texture;
-            if (texture.state == eRWState::Write)
-            {
-                std::cout << "  Warning: Resource '" << resourceName << "' is in write state, transitioning to read.\n";
-            }
-            texture.state = eRWState::Read;
-            std::cout << "  Bound '" << resourceName << "' for reading.\n";
-        }
-    }
-
-    // 쓰기용 리소스 바인딩
-    void BindResourceForWrite(const std::string& resourceName)
-    {
-        auto it = resources.find(resourceName);
-        if (it != resources.end() && it->second->texture)
-        {
-            auto& texture = *it->second->texture;
-            texture.state = eRWState::Write;
-            std::cout << "  Bound '" << resourceName << "' for writing.\n";
-        }
-    }
-
-    // 리소스 언바인딩
-    void UnbindResources(const RenderPass& pass)
-    {
-        for (const auto& resourceName: pass.readResources)
-        {
-            auto it = resources.find(resourceName);
-            if (it != resources.end() && it->second->texture)
-            {
-                it->second->texture->state = eRWState::None;
-            }
-        }
-
-        for (const auto& resourceName: pass.writeResources)
-        {
-            auto it = resources.find(resourceName);
-            if (it != resources.end() && it->second->texture)
-            {
-                it->second->texture->state = eRWState::None;
-            }
-        }
-
-        std::cout << "  Unbound resources for pass: " << pass.name << "\n";
+        if (queryStart) queryStart->Release();
+        if (queryEnd) queryEnd->Release();
+        if (queryDisjoint) queryDisjoint->Release();
+        if (constantBuffer) constantBuffer->Release();
+        if (vertexBuffer) vertexBuffer->Release();
+        if (inputLayout) inputLayout->Release();
+        if (pixelShaderDivergent) pixelShaderDivergent->Release();
+        if (pixelShaderDynamicUniform) pixelShaderDynamicUniform->Release();
+        if (pixelShaderSwitchUniform) pixelShaderSwitchUniform->Release();
+        if (pixelShaderStaticB) pixelShaderStaticB->Release();
+        if (pixelShaderStaticA) pixelShaderStaticA->Release();
+        if (vertexShader) vertexShader->Release();
+        if (renderTargetView) renderTargetView->Release();
+        if (swapChain) swapChain->Release();
+        if (pixelShaderWorstCase) pixelShaderWorstCase->Release();
+        if (pixelShaderRandom) pixelShaderRandom->Release();
+        if (context) context->Release();
+        if (device) device->Release();
     }
 };
 
-// 그래픽 API를 나타내는 클래스 (기존 코드 유지)
-class GraphicsAPI
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-public:
-    // 텍스처 생성 함수
-    Texture CreateTexture(const std::string& name, uint32_t width, uint32_t height)
+    if (msg == WM_DESTROY)
     {
-        auto it = std::find_if(textures.begin(), textures.end(), [&name](const Texture& tex)
-                               { return tex.name == name; });
-
-        if (it != textures.end())
-        {
-            std::cout << "Warning: Texture with name '" << name << "' already exists.\n";
-            return *it;
-        }
-
-        Texture newTexture(name, width, height);
-        textures.push_back(newTexture);
-        std::cout << "Created texture: " << name << " (" << width << "x" << height << ")\n";
-        return newTexture;
+        PostQuitMessage(0);
+        return 0;
     }
-
-    // 기존 함수들 유지...
-    void BindTexture(uint32_t slot, const std::string& name) { /* 기존 구현 */ }
-    void UnbindTexture(const std::string& name) { /* 기존 구현 */ }
-
-private:
-    std::vector<Texture>         textures;
-    std::vector<Sampler>         samplers;
-    std::vector<DepthStencil>    depthStencils;
-    std::vector<RasterizerState> rasterizerStates;
-    std::vector<BlendState>      blendStates;
-    std::vector<Buffer>          buffers;
-};
+    return DefWindowProc(hwnd, msg, wParam, lParam);
+}
 
 int main()
 {
-    std::cout << "=== RenderGraph Demo ===\n\n";
+    WNDCLASSEX wc    = {};
+    wc.cbSize        = sizeof(WNDCLASSEX);
+    wc.lpfnWndProc   = WndProc;
+    wc.hInstance     = GetModuleHandle(nullptr);
+    wc.lpszClassName = L"ShaderBranchTest";
+    RegisterClassEx(&wc);
 
-    RenderGraph renderGraph;
-    GraphicsAPI graphicsAPI;
+    HWND hwnd = CreateWindowEx(0, L"ShaderBranchTest", L"Shader Branch Performance Test", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600, nullptr, nullptr, wc.hInstance, nullptr);
 
-    // 1. 리소스 생성
-    std::cout << "--- Creating Resources ---\n";
-    renderGraph.CreateResource("GBuffer_Albedo", 1920, 1080);
-    renderGraph.CreateResource("GBuffer_Normal", 1920, 1080);
-    renderGraph.CreateResource("GBuffer_Material", 1920, 1080);
-    renderGraph.CreateResource("DepthBuffer", 1920, 1080);
-    renderGraph.CreateResource("LightingResult", 1920, 1080);
-    renderGraph.CreateResource("FinalImage", 1920, 1080);
-
-    // 외부 리소스 가져오기 (스왑체인)
-    auto backbuffer = std::make_shared<Texture>("Backbuffer", 1920, 1080);
-    renderGraph.ImportResource("Backbuffer", backbuffer);
-
-    // 2. 렌더 패스 정의
-    std::cout << "\n--- Defining Render Passes ---\n";
-
-    // G-Buffer 패스
-    auto& gbufferPass = renderGraph.AddPass("GBufferPass", ePassType::Graphics);
-    gbufferPass.AddWrite("GBuffer_Albedo");
-    gbufferPass.AddWrite("GBuffer_Normal");
-    gbufferPass.AddWrite("GBuffer_Material");
-    gbufferPass.AddWrite("DepthBuffer");
-    gbufferPass.SetExecuteFunction([]()
-                                   {
-        std::cout << "    -> Rendering geometry to G-Buffer\n";
-        std::cout << "    -> Writing albedo, normal, material properties\n"; });
-
-    // 라이팅 패스
-    auto& lightingPass = renderGraph.AddPass("LightingPass", ePassType::Graphics);
-    lightingPass.AddRead("GBuffer_Albedo");
-    lightingPass.AddRead("GBuffer_Normal");
-    lightingPass.AddRead("GBuffer_Material");
-    lightingPass.AddRead("DepthBuffer");
-    lightingPass.AddWrite("LightingResult");
-    lightingPass.SetExecuteFunction([]()
-                                    {
-        std::cout << "    -> Reading G-Buffer data\n";
-        std::cout << "    -> Computing deferred lighting\n";
-        std::cout << "    -> Writing lighting result\n"; });
-
-    // 포스트 프로세싱 패스
-    auto& postprocessPass = renderGraph.AddPass("PostProcessPass", ePassType::Graphics);
-    postprocessPass.AddRead("LightingResult");
-    postprocessPass.AddWrite("FinalImage");
-    postprocessPass.SetExecuteFunction([]()
-                                       {
-        std::cout << "    -> Applying tone mapping\n";
-        std::cout << "    -> Applying color grading\n"; });
-
-    // 프레젠트 패스
-    auto& presentPass = renderGraph.AddPass("PresentPass", ePassType::Copy);
-    presentPass.AddRead("FinalImage");
-    presentPass.AddWrite("Backbuffer");
-    presentPass.SetExecuteFunction([]()
-                                   {
-        std::cout << "    -> Copying final image to backbuffer\n";
-        std::cout << "    -> Presenting to screen\n"; });
-
-    // 3. 렌더 그래프 정보 출력
-    renderGraph.PrintInfo();
-
-    // 4. 렌더 그래프 컴파일
-    if (renderGraph.Compile())
+    if (!hwnd)
     {
-        // 5. 렌더 그래프 실행
-        renderGraph.Execute();
+        std::cout << "윈도우 생성 실패" << std::endl;
+        return -1;
     }
 
-    // 6. 리셋 테스트
-    std::cout << "\n--- Reset Test ---\n";
-    renderGraph.Reset();
+    ShowWindow(hwnd, SW_HIDE);
 
+    ShaderBranchTest test;
+    if (!test.Initialize(hwnd))
+    {
+        std::cout << "초기화 실패" << std::endl;
+        return -1;
+    }
+
+    std::cout << "GPU 타이머를 이용한 정확한 성능 측정 중..." << std::endl;
+    test.RunTests();
+    test.Cleanup();
+
+    DestroyWindow(hwnd);
     return 0;
 }

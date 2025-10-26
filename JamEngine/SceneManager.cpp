@@ -2,6 +2,7 @@
 
 #include "SceneManager.h"
 
+#include "Application.h"
 #include "AssetManager.h"
 #include "Components.h"
 #include "Graphics.h"
@@ -14,21 +15,38 @@ namespace jam
 
 struct SceneMgrContext
 {
+    void OnWindowResizeEvent(const WindowResizeEvent& _event)
+    {
+        Resize(_event.GetWidth(), _event.GetHeight());
+    }
+
+    void OnWindowMaximizeEvent(const WindowMaximizeEvent& _event)
+    {
+        Resize(_event.GetWidth(), _event.GetHeight());
+    }
+
     void Resize(const Int32 _width, const Int32 _height)
     {
-        JAM_DESTROY_TEXTURE(sceneTexture);
+        JAM_DESTROY_TEXTURE(sceneRenderTexture);
+        JAM_DESTROY_TEXTURE(sceneDepthTexture);
         JAM_DESTROY_FRAME_BUFFER(sceneFrameBuffer);
 
-        sceneTexture     = Graphics::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget);
-        sceneFrameBuffer = Graphics::CreateFrameBuffer(sceneTexture);
+        sceneRenderTexture = Graphics::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget);
+        sceneDepthTexture  = Graphics::CreateTexture2D(_width, _height, eFormat::D24_UNorm_S8_UInt, 1, eTextureCreateFlags_DepthStencil);
+
+        TextureHandle attachments[] = { sceneRenderTexture, sceneDepthTexture };
+        sceneFrameBuffer            = Graphics::CreateFrameBuffer(attachments);
+        sceneResolution             = { _width, _height };
     }
 
     std::unique_ptr<Scene> pActiveScene = nullptr;
     std::unique_ptr<Scene> pNextScene   = nullptr;
 
     // 씬 프레임 버퍼
-    FrameBufferHandle sceneFrameBuffer = k_invalidHandle;
-    TextureHandle     sceneTexture     = k_invalidHandle;
+    TextureHandle     sceneRenderTexture = k_invalidHandle;
+    TextureHandle     sceneDepthTexture  = k_invalidHandle;
+    FrameBufferHandle sceneFrameBuffer   = k_invalidHandle;
+    Resolution        sceneResolution    = {};
 } g_sceneManagerContext;
 
 }   // namespace jam
@@ -38,7 +56,11 @@ namespace jam
 
 void SceneManager::Init()
 {
-    g_sceneManagerContext.Resize(800, 600);   // 기본 크기
+    // 초기 해상도는 클라이언트 영역 크기로 설정
+    Application&  app = Application::GetInstance();
+    const Window& win = app.GetWindow();
+    auto [w, h]       = win.GetClientResolution();
+    g_sceneManagerContext.Resize(w, h);
 }
 
 void SceneManager::Shutdown()
@@ -50,17 +72,23 @@ void SceneManager::Shutdown()
         pCurScene.reset();
     }
 
-    JAM_DESTROY_TEXTURE(g_sceneManagerContext.sceneTexture);
+    JAM_DESTROY_TEXTURE(g_sceneManagerContext.sceneRenderTexture);
+    JAM_DESTROY_TEXTURE(g_sceneManagerContext.sceneDepthTexture);
     JAM_DESTROY_FRAME_BUFFER(g_sceneManagerContext.sceneFrameBuffer);
 }
 
 void SceneManager::OnEvent(Event& _event)
 {
+    Application& app = Application::GetInstance();
+    if (app.IsRuntime())
+    {
+        HandleEvent<WindowResizeEvent>(_event, &g_sceneManagerContext, &SceneMgrContext::OnWindowResizeEvent);
+        HandleEvent<WindowMaximizeEvent>(_event, &g_sceneManagerContext, &SceneMgrContext::OnWindowMaximizeEvent);
+    }
+
     std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
     if (pCurScene)
-    {
         pCurScene->OnEvent(_event);
-    }
 }
 
 void SceneManager::Resize(const Int32 _width, const Int32 _height)
@@ -77,9 +105,8 @@ void SceneManager::Update(const float _deltaSec)
     if (pNextScene)
     {
         if (pCurScene)
-        {
             pCurScene->OnExit();
-        }
+
         pCurScene = std::move(pNextScene);
         AssetManager::CleanGarbageAll();   // 씬 전환 후 사용하지 않는 에셋 정리
 
@@ -109,44 +136,50 @@ void SceneManager::RenderRuntime()
 
     if (pCurScene)
     {
-        // 렌더링 하기 전에 Transform 갱신
-        Entity              rootE = pCurScene->GetRootEntity();
-        TransformHierarchy& rootT = rootE.GetTransform();
-        rootT.Update_Recursive();
+        // update transforms before rendering
+        Entity root = pCurScene->GetRootEntity();
+        root.GetTransform().Update_Recursive();
+
+        // scene view
+        Int32 w = g_sceneManagerContext.sceneResolution.width;
+        Int32 h = g_sceneManagerContext.sceneResolution.height;
+
+        SceneView view = {
+            g_sceneManagerContext.sceneFrameBuffer,
+            Viewport { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) },
+        };
 
         // find camera
-        const Camera*    pMainCamera    = nullptr;
-        const Transform* pMainTransform = nullptr;
         for (auto&& [_, cameraCmp, transformCmp]: pCurScene->Each<CameraComponent, TransformComponent>())
         {
             if (cameraCmp.bMain)
             {
-                pMainCamera    = &cameraCmp.camera;
-                pMainTransform = &transformCmp.transform.GetWorld();
+                const Transform& t = transformCmp.transform.GetWorld();
+                view.eye           = t.translate;
+                view.view          = t.CreateView();
+                view.proj          = cameraCmp.CreateProj();
                 break;
             }
         }
 
-        if (pMainCamera && pMainTransform)
-        {
-            pCurScene->OnRender(g_sceneManagerContext.sceneFrameBuffer, *pMainCamera, *pMainTransform);
-            Graphics::BlitToBackBuffer(g_sceneManagerContext.sceneTexture);
-        }
+        // render
+        pCurScene->OnRender(view);
+        Graphics::BlitToBackBuffer(g_sceneManagerContext.sceneRenderTexture);
     }
 }
 
-void SceneManager::RenderOffScreen(const FrameBufferHandle _handle, const Camera& _camera, const Transform& _transform)
+void SceneManager::RenderOffScreen(const SceneView& _view)
 {
     std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
 
     if (pCurScene)
     {
-        // 렌더링 하기 전에 Transform 갱신
-        Entity              rootE = pCurScene->GetRootEntity();
-        TransformHierarchy& rootT = rootE.GetTransform();
-        rootT.Update_Recursive();
+        // update transforms before rendering
+        Entity root = pCurScene->GetRootEntity();
+        root.GetTransform().Update_Recursive();
 
-        pCurScene->OnRender(_handle, _camera, _transform);
+        // off-screen render
+        pCurScene->OnRender(_view);
     }
 }
 
@@ -196,6 +229,11 @@ Scene* SceneManager::GetActiveScene()
 {
     JAM_ASSERT(g_sceneManagerContext.pActiveScene, "No active scene");
     return g_sceneManagerContext.pActiveScene.get();
+}
+
+Resolution SceneManager::GetSceneTextureResoultion()
+{
+    return g_sceneManagerContext.sceneResolution;
 }
 
 }   // namespace jam

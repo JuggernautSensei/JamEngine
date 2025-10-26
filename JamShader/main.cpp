@@ -1,12 +1,9 @@
-#include "../JamEngine/Input.h"
-#include "../JamEngine/JamEngine.h"
-#include "../JamEngine/Script.h"
-#include "../JamEngine/ScriptDB.h"
-
 #include <algorithm>
 #include <iomanip>
 #include <ranges>
 #include <sstream>
+
+#include "../JamEngine/JamEngine.h"
 using namespace jam;
 
 #ifdef JAM_DEBUG
@@ -171,42 +168,6 @@ class WorkScene : public Scene
     JAM_SCENE(WorkScene);
 
 public:
-    class MyScript : public Script
-    {
-        JAM_SCRIPT(MyScript);
-
-    public:
-        void OnStart() override
-        {
-        }
-
-        void OnStop() override
-        {
-        }
-
-        void OnUpdate(float _deltaSec) override
-        {
-
-            if (Input::IsKeyDown(eKey::A))
-            {
-                Entity e = GetOwner();
-                TransformHierarchy& ht = e.GetTransform();
-                const Transform&    t  = ht.GetWorld();
-                t.translate.x += 100.f;
-                ht.SetWorld(t);
-            }
-        }
-
-    private:
-    };
-
-    void OnEnter() override
-    {
-        Entity e = CreateEntity("jiwoo");
-        ScriptComponent& sc = e.CreateComponent<ScriptComponent>();
-        sc.BindScript<MyScript>(e);
-    }
-
     void OnImGuiRender() override
     {
         ShowMainMenuBar();

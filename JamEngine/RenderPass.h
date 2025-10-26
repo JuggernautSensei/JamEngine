@@ -84,7 +84,7 @@ private:
     UInt8        m_stencilRef = 0;
 
     BlendState m_blendStates[8] = { BlendState::k_opaque };
-    RGBA       m_blendFactor    = 0;
+    RGBA       m_blendFactor    = RGBA { 0 };
 
     std::function<void()> m_executor = nullptr;
 };
