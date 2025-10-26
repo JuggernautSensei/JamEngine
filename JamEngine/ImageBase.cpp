@@ -27,6 +27,8 @@ eImageFormat DetermineFormatFromExtension(const fs::path& _filePath)
             return eImageFormat::JPG;
         case HashOf(".jpeg"):
             return eImageFormat::JPEG;
+        case HashOf(".png"):
+            return eImageFormat::PNG;
         case HashOf(".tif"):
             return eImageFormat::TIF;
         case HashOf(".tiff"):

@@ -73,6 +73,9 @@ enum eFormat : Int8
     RGBA32_Int,
     RGBA32_Float,
 
+    RGBA8_UNorm_sRGB,
+    BGRA8_UNorm_sRGB,
+
     D16_UNorm,
     D24_UNorm_S8_UInt,
     D32_Float,
@@ -89,7 +92,6 @@ enum eTextureCreateFlags_ : UInt8
 {
     eTextureCreateFlags_None         = 0,
     eTextureCreateFlags_GenerateMips = 1 << 0,
-    eTextureCreateFlags_SRGB         = 1 << 1,
 
     eTextureCreateFlags_MSAAx4  = 1 << 2,   // 4x MSAA  (다른 MSAA 옵션과 함께 사용시 낮은 MSAA 옵션이 우선됨)
     eTextureCreateFlags_MSAAx8  = 1 << 3,   // 8x MSAA  (``)
@@ -474,6 +476,7 @@ struct Viewport
     };
 };
 
+
 struct GfxState
 {
     constexpr GfxState()
@@ -488,7 +491,7 @@ struct GfxState
         , bAlphaToCoverage(false)
         , bIndependentBlend(false)
         , depthTestFunc(eCompareFunc::None)
-        , bDepthWrite(true)
+        , bDepthWrite(false)
     {
     }
 

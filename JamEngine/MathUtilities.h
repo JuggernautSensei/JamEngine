@@ -316,6 +316,9 @@ JAM_NODISCARD constexpr Vec4 ToVec4(const Vec3& vec3, const float w = 1.f)
     return { vec3.x, vec3.y, vec3.z, w };
 }
 
+JAM_NODISCARD Float16 ToFloat16(const float value);
+JAM_NODISCARD float   ToFloat(const Float16 value);
+
 ////////////////////////////////
 ///          MATRIX          ///
 ////////////////////////////////

@@ -19,3 +19,8 @@
 #include "WindowsUtilities.h"
 #include "FileUtilities.h"
 #include "Input.h"
+
+#include "Script.h"
+#include "ScriptDB.h"
+
+#include "BasicRenderer.h"

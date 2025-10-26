@@ -1,0 +1,8 @@
+[2025-10-27 01:24:56.329] [debug] [thread 113508] Logger initialized successfully.
+[2025-10-27 01:24:56.329] [info] [thread 113508] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-27 01:24:56.646] [trace] [thread 113508] Application 'Example Application' started.
+[2025-10-27 01:24:56.646] [info] [thread 113508] hello example app!
+[2025-10-27 01:24:56.678] [error] [thread 113508] Shader compile error: 
+[2025-10-27 01:25:07.189] [trace] [thread 113508] Application 'Example Application' shutdown.
+[2025-10-27 01:25:07.189] [info] [thread 113508] good-bye example app!
+[2025-10-27 01:25:07.245] [debug] [thread 113508] Logger shutting down...

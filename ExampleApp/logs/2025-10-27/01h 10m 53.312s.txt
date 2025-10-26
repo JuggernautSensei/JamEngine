@@ -1,0 +1,4 @@
+[2025-10-27 01:10:53.314] [debug] [thread 103996] Logger initialized successfully.
+[2025-10-27 01:10:53.315] [info] [thread 103996] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-27 01:10:53.610] [trace] [thread 103996] Application 'Example Application' started.
+[2025-10-27 01:10:53.610] [info] [thread 103996] hello example app!

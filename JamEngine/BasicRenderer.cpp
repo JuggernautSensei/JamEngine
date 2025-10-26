@@ -155,14 +155,13 @@ void BasicRendererContext::BakeSSAONoise()
 
     constexpr UInt32 k_noiseSize = 4;
 
-    Vec3 noiseData[k_noiseSize * k_noiseSize];
-    for (UInt32 i = 0; i < k_noiseSize * k_noiseSize; ++i)
+    Float16 noiseData[4 * k_noiseSize * k_noiseSize];
+    for (UInt32 i = 0; i < k_noiseSize * k_noiseSize; i = i + 4)
     {
-        noiseData[i] = Vec3 {
-            CreateRandom<float>(-1.f, 1.f),
-            CreateRandom<float>(-1.f, 1.f),
-            0.f
-        };
+        noiseData[i]     = ToFloat16(CreateRandom<float>(-1.f, 1.f));
+        noiseData[i + 1] = ToFloat16(CreateRandom<float>(-1.f, 1.f));
+        noiseData[i + 2] = ToFloat16(0.f);
+        noiseData[i + 3] = ToFloat16(0.f);
     }
 
     MemoryView mem[] = {

@@ -296,6 +296,36 @@ void TransformHierarchy::AddLocalScaleZ(const float _z)
     NotifyDirtyToParent_();
 }
 
+Vec3 TransformHierarchy::GetLocalForward() const
+{
+    return m_local.Forward();
+}
+
+Vec3 TransformHierarchy::GetLocalBackward() const
+{
+    return m_local.Backward();
+}
+
+Vec3 TransformHierarchy::GetLocalRight() const
+{
+    return m_local.Right();
+}
+
+Vec3 TransformHierarchy::GetLocalLeft() const
+{
+    return m_local.Left();
+}
+
+Vec3 TransformHierarchy::GetLocalUp() const
+{
+    return m_local.Up();
+}
+
+Vec3 TransformHierarchy::GetLocalDown() const
+{
+    return m_local.Down();
+}
+
 void TransformHierarchy::SetWorld(const Transform& _world)
 {
     m_world     = _world;
@@ -686,5 +716,35 @@ void TransformHierarchy::AddWorldScaleZ(const float _z)
     m_world.scale.z += _z;
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
+}
+
+Vec3 TransformHierarchy::GetWorldForward() const
+{
+    return m_world.Forward();
+}
+
+Vec3 TransformHierarchy::GetWorldBackward() const
+{
+    return m_world.Backward();
+}
+
+Vec3 TransformHierarchy::GetWorldRight() const
+{
+    return m_world.Right();
+}
+
+Vec3 TransformHierarchy::GetWorldLeft() const
+{
+    return m_world.Left();
+}
+
+Vec3 TransformHierarchy::GetWorldUp() const
+{
+    return m_world.Up();
+}
+
+Vec3 TransformHierarchy::GetWorldDown() const
+{
+    return m_world.Down();
 }
 }   // namespace jam

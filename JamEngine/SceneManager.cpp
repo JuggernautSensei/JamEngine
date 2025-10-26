@@ -28,15 +28,14 @@ struct SceneMgrContext
     void Resize(const Int32 _width, const Int32 _height)
     {
         JAM_DESTROY_TEXTURE(sceneRenderTexture);
-        JAM_DESTROY_TEXTURE(sceneDepthTexture);
         JAM_DESTROY_FRAME_BUFFER(sceneFrameBuffer);
 
         sceneRenderTexture = Graphics::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget | eTextureCreateFlags_WriteOnly);
-        sceneDepthTexture  = Graphics::CreateTexture2D(_width, _height, eFormat::D24_UNorm_S8_UInt, 1, eTextureCreateFlags_DepthStencil | eTextureCreateFlags_WriteOnly);
+        sceneFrameBuffer   = Graphics::CreateFrameBuffer(sceneRenderTexture);
+        sceneResolution    = { _width, _height };
 
-        TextureHandle attachments[] = { sceneRenderTexture, sceneDepthTexture };
-        sceneFrameBuffer            = Graphics::CreateFrameBuffer(attachments);
-        sceneResolution             = { _width, _height };
+        if (pActiveScene)
+            pActiveScene->OnResize(_width, _height);
     }
 
     std::unique_ptr<Scene> pActiveScene = nullptr;
@@ -44,7 +43,6 @@ struct SceneMgrContext
 
     // 씬 프레임 버퍼
     TextureHandle     sceneRenderTexture = k_invalidHandle;
-    TextureHandle     sceneDepthTexture  = k_invalidHandle;
     FrameBufferHandle sceneFrameBuffer   = k_invalidHandle;
     Resolution        sceneResolution    = {};
 } g_sceneManagerContext;
@@ -73,7 +71,6 @@ void SceneManager::Shutdown()
     }
 
     JAM_DESTROY_TEXTURE(g_sceneManagerContext.sceneRenderTexture);
-    JAM_DESTROY_TEXTURE(g_sceneManagerContext.sceneDepthTexture);
     JAM_DESTROY_FRAME_BUFFER(g_sceneManagerContext.sceneFrameBuffer);
 }
 
@@ -231,7 +228,7 @@ Scene* SceneManager::GetActiveScene()
     return g_sceneManagerContext.pActiveScene.get();
 }
 
-Resolution SceneManager::GetSceneTextureResoultion()
+Resolution SceneManager::GetSceneResoultion()
 {
     return g_sceneManagerContext.sceneResolution;
 }

@@ -54,6 +54,9 @@ void Window::Init()
 
         ResizeClient(k_defaultWidth, k_defaultHeight);
     }
+
+    // init window properties
+    SetWindowProperty(eWindowPropertyFlags_None);
 }
 
 void Window::Shutdown()
@@ -104,6 +107,83 @@ void Window::SetTitle(const std::string_view _name) const
 
     std::wstring title = ToUTF16(_name);
     ::SetWindowText(m_hWnd, title.c_str());
+}
+
+void Window::SetWindowProperty(const eWindowPropertyFlags _flags)
+{
+    JAM_ASSERT(m_hWnd, "Window handle is null");
+
+    if (m_flags == _flags)
+        return;
+
+    m_flags = _flags;
+
+    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+
+    // 기본 스타일
+    wsFlags &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_POPUP | WS_OVERLAPPED);
+    exFlags &= ~WS_EX_TOPMOST;
+
+    // Borderless
+    if (_flags & eWindowPropertyFlags_Borderless)
+    {
+        wsFlags |= WS_POPUP;
+    }
+    else
+    {
+        wsFlags |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
+
+        // NoResizable
+        if (!(_flags & eWindowPropertyFlags_NoResizable))
+            wsFlags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+
+        // Minimize
+        if (!(_flags & eWindowPropertyFlags_DisableMinimizeButton))
+            wsFlags |= WS_MINIMIZEBOX;
+
+        // Maximize
+        if (!(_flags & eWindowPropertyFlags_DisableMaximizeButton))
+            wsFlags |= WS_MAXIMIZEBOX;
+
+        // Close
+        if (_flags & eWindowPropertyFlags_DisableCloseButton)
+        {
+            // Close 버튼만 비활성화
+            HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE);
+            if (hMenu)
+                ::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
+        }
+        else
+        {
+            // Close 버튼 활성화
+            HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE);
+            if (hMenu)
+                ::EnableMenuItem(hMenu, SC_CLOSE, 0);
+        }
+    }
+
+    // TopMost
+    if (_flags & eWindowPropertyFlags_TopMost)
+    {
+        exFlags |= WS_EX_TOPMOST;
+    }
+
+    // 스타일 적용
+    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, wsFlags);
+    ::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, exFlags);
+
+    // TopMost 위치 설정
+    HWND hWndInsertAfter = (_flags & eWindowPropertyFlags_TopMost) ? HWND_TOPMOST : HWND_NOTOPMOST;
+    ::SetWindowPos(m_hWnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+
+    // 윈도우 업데이트
+    ::UpdateWindow(m_hWnd);
+}
+
+eWindowPropertyFlags Window::GetWindowProperty() const
+{
+    return m_flags;
 }
 
 Resolution Window::GetClientResolution() const

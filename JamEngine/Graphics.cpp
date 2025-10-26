@@ -101,135 +101,140 @@ enum class eBufferType
 
 struct FormatInfo
 {
-    DXGI_FORMAT texFormat  = DXGI_FORMAT_UNKNOWN;
-    DXGI_FORMAT srvFormat  = DXGI_FORMAT_UNKNOWN;
-    DXGI_FORMAT dsvFormat  = DXGI_FORMAT_UNKNOWN;
-    DXGI_FORMAT srgbFormat = DXGI_FORMAT_UNKNOWN;
+    DXGI_FORMAT texFormat = DXGI_FORMAT_UNKNOWN;
+    DXGI_FORMAT srvFormat = DXGI_FORMAT_UNKNOWN;
+    DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN;
 };
 
 constexpr FormatInfo k_formatInfoTable[EnumCount<eFormat>()] = {
     // eFormat::Unknown
-    {            DXGI_FORMAT_UNKNOWN,                  DXGI_FORMAT_UNKNOWN,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {             DXGI_FORMAT_UNKNOWN,                  DXGI_FORMAT_UNKNOWN,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R8_UNorm
-    {           DXGI_FORMAT_R8_UNORM,                 DXGI_FORMAT_R8_UNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {            DXGI_FORMAT_R8_UNORM,                 DXGI_FORMAT_R8_UNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R8_SNorm
-    {           DXGI_FORMAT_R8_SNORM,                 DXGI_FORMAT_R8_SNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {            DXGI_FORMAT_R8_SNORM,                 DXGI_FORMAT_R8_SNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R8_UInt
-    {            DXGI_FORMAT_R8_UINT,                  DXGI_FORMAT_R8_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {             DXGI_FORMAT_R8_UINT,                  DXGI_FORMAT_R8_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R8_Int
-    {            DXGI_FORMAT_R8_SINT,                  DXGI_FORMAT_R8_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {             DXGI_FORMAT_R8_SINT,                  DXGI_FORMAT_R8_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R16_UNorm
-    {          DXGI_FORMAT_R16_UNORM,                DXGI_FORMAT_R16_UNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {           DXGI_FORMAT_R16_UNORM,                DXGI_FORMAT_R16_UNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R16_SNorm
-    {          DXGI_FORMAT_R16_SNORM,                DXGI_FORMAT_R16_SNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {           DXGI_FORMAT_R16_SNORM,                DXGI_FORMAT_R16_SNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R16_UInt
-    {           DXGI_FORMAT_R16_UINT,                 DXGI_FORMAT_R16_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {            DXGI_FORMAT_R16_UINT,                 DXGI_FORMAT_R16_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R16_Int
-    {           DXGI_FORMAT_R16_SINT,                 DXGI_FORMAT_R16_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {            DXGI_FORMAT_R16_SINT,                 DXGI_FORMAT_R16_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R16_Float
-    {          DXGI_FORMAT_R16_FLOAT,                DXGI_FORMAT_R16_FLOAT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {           DXGI_FORMAT_R16_FLOAT,                DXGI_FORMAT_R16_FLOAT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R32_UInt
-    {           DXGI_FORMAT_R32_UINT,                 DXGI_FORMAT_R32_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {            DXGI_FORMAT_R32_UINT,                 DXGI_FORMAT_R32_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R32_Int
-    {           DXGI_FORMAT_R32_SINT,                 DXGI_FORMAT_R32_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {            DXGI_FORMAT_R32_SINT,                 DXGI_FORMAT_R32_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::R32_Float
-    {          DXGI_FORMAT_R32_FLOAT,                DXGI_FORMAT_R32_FLOAT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {           DXGI_FORMAT_R32_FLOAT,                DXGI_FORMAT_R32_FLOAT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG8_UNorm
-    {         DXGI_FORMAT_R8G8_UNORM,               DXGI_FORMAT_R8G8_UNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {          DXGI_FORMAT_R8G8_UNORM,               DXGI_FORMAT_R8G8_UNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG8_SNorm
-    {         DXGI_FORMAT_R8G8_SNORM,               DXGI_FORMAT_R8G8_SNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {          DXGI_FORMAT_R8G8_SNORM,               DXGI_FORMAT_R8G8_SNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG8_UInt
-    {          DXGI_FORMAT_R8G8_UINT,                DXGI_FORMAT_R8G8_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {           DXGI_FORMAT_R8G8_UINT,                DXGI_FORMAT_R8G8_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG8_Int
-    {          DXGI_FORMAT_R8G8_SINT,                DXGI_FORMAT_R8G8_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {           DXGI_FORMAT_R8G8_SINT,                DXGI_FORMAT_R8G8_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG16_UNorm
-    {       DXGI_FORMAT_R16G16_UNORM,             DXGI_FORMAT_R16G16_UNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {        DXGI_FORMAT_R16G16_UNORM,             DXGI_FORMAT_R16G16_UNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG16_SNorm
-    {       DXGI_FORMAT_R16G16_SNORM,             DXGI_FORMAT_R16G16_SNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {        DXGI_FORMAT_R16G16_SNORM,             DXGI_FORMAT_R16G16_SNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG16_UInt
-    {        DXGI_FORMAT_R16G16_UINT,              DXGI_FORMAT_R16G16_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {         DXGI_FORMAT_R16G16_UINT,              DXGI_FORMAT_R16G16_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG16_Int
-    {        DXGI_FORMAT_R16G16_SINT,              DXGI_FORMAT_R16G16_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {         DXGI_FORMAT_R16G16_SINT,              DXGI_FORMAT_R16G16_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG16_Float
-    {       DXGI_FORMAT_R16G16_FLOAT,             DXGI_FORMAT_R16G16_FLOAT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {        DXGI_FORMAT_R16G16_FLOAT,             DXGI_FORMAT_R16G16_FLOAT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG32_UInt
-    {        DXGI_FORMAT_R32G32_UINT,              DXGI_FORMAT_R32G32_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {         DXGI_FORMAT_R32G32_UINT,              DXGI_FORMAT_R32G32_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG32_Int
-    {        DXGI_FORMAT_R32G32_SINT,              DXGI_FORMAT_R32G32_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {         DXGI_FORMAT_R32G32_SINT,              DXGI_FORMAT_R32G32_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RG32_Float
-    {       DXGI_FORMAT_R32G32_FLOAT,             DXGI_FORMAT_R32G32_FLOAT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {        DXGI_FORMAT_R32G32_FLOAT,             DXGI_FORMAT_R32G32_FLOAT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA8_UNorm
-    {     DXGI_FORMAT_R8G8B8A8_UNORM,           DXGI_FORMAT_R8G8B8A8_UNORM,              DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB },
+    {      DXGI_FORMAT_R8G8B8A8_UNORM,           DXGI_FORMAT_R8G8B8A8_UNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA8_SNorm
-    {     DXGI_FORMAT_R8G8B8A8_SNORM,           DXGI_FORMAT_R8G8B8A8_SNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {      DXGI_FORMAT_R8G8B8A8_SNORM,           DXGI_FORMAT_R8G8B8A8_SNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA8_UInt
-    {      DXGI_FORMAT_R8G8B8A8_UINT,            DXGI_FORMAT_R8G8B8A8_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {       DXGI_FORMAT_R8G8B8A8_UINT,            DXGI_FORMAT_R8G8B8A8_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA8_Int
-    {      DXGI_FORMAT_R8G8B8A8_SINT,            DXGI_FORMAT_R8G8B8A8_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {       DXGI_FORMAT_R8G8B8A8_SINT,            DXGI_FORMAT_R8G8B8A8_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA16_UNorm
-    { DXGI_FORMAT_R16G16B16A16_UNORM,       DXGI_FORMAT_R16G16B16A16_UNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {  DXGI_FORMAT_R16G16B16A16_UNORM,       DXGI_FORMAT_R16G16B16A16_UNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA16_SNorm
-    { DXGI_FORMAT_R16G16B16A16_SNORM,       DXGI_FORMAT_R16G16B16A16_SNORM,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {  DXGI_FORMAT_R16G16B16A16_SNORM,       DXGI_FORMAT_R16G16B16A16_SNORM,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA16_UInt
-    {  DXGI_FORMAT_R16G16B16A16_UINT,        DXGI_FORMAT_R16G16B16A16_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {   DXGI_FORMAT_R16G16B16A16_UINT,        DXGI_FORMAT_R16G16B16A16_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA16_Int
-    {  DXGI_FORMAT_R16G16B16A16_SINT,        DXGI_FORMAT_R16G16B16A16_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {   DXGI_FORMAT_R16G16B16A16_SINT,        DXGI_FORMAT_R16G16B16A16_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA16_Float
-    { DXGI_FORMAT_R16G16B16A16_FLOAT,       DXGI_FORMAT_R16G16B16A16_FLOAT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {  DXGI_FORMAT_R16G16B16A16_FLOAT,       DXGI_FORMAT_R16G16B16A16_FLOAT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA32_UInt
-    {  DXGI_FORMAT_R32G32B32A32_UINT,        DXGI_FORMAT_R32G32B32A32_UINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {   DXGI_FORMAT_R32G32B32A32_UINT,        DXGI_FORMAT_R32G32B32A32_UINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA32_Int
-    {  DXGI_FORMAT_R32G32B32A32_SINT,        DXGI_FORMAT_R32G32B32A32_SINT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {   DXGI_FORMAT_R32G32B32A32_SINT,        DXGI_FORMAT_R32G32B32A32_SINT,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::RGBA32_Float
-    { DXGI_FORMAT_R32G32B32A32_FLOAT,       DXGI_FORMAT_R32G32B32A32_FLOAT,              DXGI_FORMAT_UNKNOWN,             DXGI_FORMAT_UNKNOWN },
+    {  DXGI_FORMAT_R32G32B32A32_FLOAT,       DXGI_FORMAT_R32G32B32A32_FLOAT,              DXGI_FORMAT_UNKNOWN },
+
+    // eFormat::RGBA8_UNorm_sRGB
+    { DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,      DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,              DXGI_FORMAT_UNKNOWN },
+
+    // eFormat::BGRA8_UNorm_sRGB
+    { DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,      DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,              DXGI_FORMAT_UNKNOWN },
 
     // eFormat::D16_UNorm
-    {       DXGI_FORMAT_R16_TYPELESS,                DXGI_FORMAT_R16_UNORM,            DXGI_FORMAT_D16_UNORM,             DXGI_FORMAT_UNKNOWN },
+    {        DXGI_FORMAT_R16_TYPELESS,                DXGI_FORMAT_R16_UNORM,            DXGI_FORMAT_D16_UNORM },
 
     // eFormat::D24_UNorm_S8_UInt
-    {     DXGI_FORMAT_R24G8_TYPELESS,    DXGI_FORMAT_R24_UNORM_X8_TYPELESS,    DXGI_FORMAT_D24_UNORM_S8_UINT,             DXGI_FORMAT_UNKNOWN },
+    {      DXGI_FORMAT_R24G8_TYPELESS,    DXGI_FORMAT_R24_UNORM_X8_TYPELESS,    DXGI_FORMAT_D24_UNORM_S8_UINT },
 
     // eFormat::D32_Float
-    {       DXGI_FORMAT_R32_TYPELESS,                DXGI_FORMAT_R32_FLOAT,            DXGI_FORMAT_D32_FLOAT,             DXGI_FORMAT_UNKNOWN },
+    {        DXGI_FORMAT_R32_TYPELESS,                DXGI_FORMAT_R32_FLOAT,            DXGI_FORMAT_D32_FLOAT },
 
     // eFormat::D32_Float_S8_UInt
-    {  DXGI_FORMAT_R32G8X24_TYPELESS, DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS, DXGI_FORMAT_D32_FLOAT_S8X24_UINT,             DXGI_FORMAT_UNKNOWN },
+    {   DXGI_FORMAT_R32G8X24_TYPELESS, DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS, DXGI_FORMAT_D32_FLOAT_S8X24_UINT },
 };
 
 struct SamplerInfo
@@ -1163,7 +1168,6 @@ TextureRef GfxContext::CreateNativeTexture(
     const std::span<const MemoryView>& _initDataOrEmpty) const
 {
     bool bGenMips       = (_flags & eTextureCreateFlags_GenerateMips) != 0;
-    bool bSRGB          = (_flags & eTextureCreateFlags_SRGB) != 0;
     bool bIsMSAA        = (_flags & (eTextureCreateFlags_MultiSampled_Internal)) != 0;
     bool bWriteOnly     = (_flags & eTextureCreateFlags_WriteOnly) != 0;
     bool bRTVAttachable = (_flags & eTextureCreateFlags_RenderTarget) != 0;
@@ -1186,9 +1190,7 @@ TextureRef GfxContext::CreateNativeTexture(
     // 포맷 검증 (dsv 쓰기전용 텍스처는 최적화된 포맷을 사용)
     const FormatInfo& formatInfo       = k_formatInfoTable[EnumToInt(_format)];
     const bool        bWriteOnlyDSVTex = bWriteOnly && bDSVAttachable && !bRTVAttachable;
-    const DXGI_FORMAT dxgiFormat       = bWriteOnlyDSVTex ? formatInfo.dsvFormat
-                                       : bSRGB            ? formatInfo.srgbFormat
-                                                          : formatInfo.texFormat;
+    const DXGI_FORMAT dxgiFormat       = bWriteOnlyDSVTex ? formatInfo.dsvFormat : formatInfo.texFormat;
 
     // native 객체
     TextureRef texture;
@@ -1871,7 +1873,6 @@ void GfxContext::Blit(
     const Int32       _dstY,
     const Int32       _dstZ) const
 {
-    JAM_ASSERT(_srcTexture.format == _dstTexture.format, "Source and destination texture formats must match for Blit operation.");
     JAM_ASSERT(_srcTexture.type == _dstTexture.type, "Source and destination texture types must match for Blit operation.");
     JAM_ASSERT(_srcTexture.mipsCount == _dstTexture.mipsCount, "Source and destination texture mip counts must match for Blit operation.");
     JAM_ASSERT(_blitDepthOrZero >= 0 && _blitHeightOrZero >= 0 && _blitWidthOrZero >= 0, "Blit dimensions must be non-negative.");
@@ -2205,8 +2206,11 @@ eFormat GfxContext::GetNativeFormatFromDXGIFormat(
         case DXGI_FORMAT_D32_FLOAT: return eFormat::D32_Float;
         case DXGI_FORMAT_D32_FLOAT_S8X24_UINT: return eFormat::D32_Float_S8_UInt;
 
+        case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return eFormat::BGRA8_UNorm_sRGB;
+        case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return eFormat::RGBA8_UNorm_sRGB;
+
         default:
-            JAM_ASSERT(false, "Unsupported DXGI format: {}", static_cast<int>(_dxgiFormat));
+            JAM_ASSERT(0, "Unsupported DXGI format: {}", static_cast<int>(_dxgiFormat));
             return eFormat::Unknown;
     }
 }

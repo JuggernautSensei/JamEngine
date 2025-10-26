@@ -465,7 +465,7 @@ PSInput main(VSInput input) {
 }
 )";
 
-struct Vertex
+struct HelloTriangleVertex
 {
     float pos[3];
     float uv[2];
@@ -610,7 +610,7 @@ public:
 
     void CreateVertexBuffer()
     {
-        Vertex vertices[] = {
+        HelloTriangleVertex vertices[] = {
             { { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f } },
             {  { -1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f } },
             {  { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f } },
@@ -699,7 +699,7 @@ public:
         context->OMSetRenderTargets(1, &renderTargetView, nullptr);
         context->IASetInputLayout(inputLayout);
 
-        UINT stride = sizeof(Vertex);
+        UINT stride = sizeof(HelloTriangleVertex);
         UINT offset = 0;
         context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

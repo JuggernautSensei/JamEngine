@@ -25,11 +25,7 @@ RenderPass& RenderPass::SetProgram(const ProgramHandle _handle)
 
 RenderPass& RenderPass::SetFrameBuffer(const FrameBufferHandle _handle)
 {
-    FrameBufferInfo info = Graphics::GetFrameBufferInfo(_handle);
-
-    m_frameBuffer       = _handle;
-    m_renderTargetCount = info.renderTargetCount;
-
+    m_frameBuffer = _handle;
     return *this;
 }
 
@@ -75,6 +71,8 @@ RenderPass& RenderPass::SetGfxState(const GfxState _state)
 RenderPass& RenderPass::SetBlendState(const Int32 _renderTargetIndex, const BlendState _state)
 {
     m_blendStates[_renderTargetIndex] = _state;
+    m_blendStateStart                 = Min(m_blendStateStart, _renderTargetIndex);
+    m_blendStateEnd                   = Max(m_blendStateEnd, _renderTargetIndex);
     return *this;
 }
 
@@ -94,10 +92,15 @@ RenderPass& RenderPass::SetExecutor(const std::function<void()>& _executor)
 
 void RenderPass::Execute() const
 {
+    Execute(m_frameBuffer, m_viewport);
+}
+
+void RenderPass::Execute(const FrameBufferHandle _fbh, const Viewport _viewport) const
+{
     Graphics::SetProgram(m_program);
 
-    Graphics::SetFrameBuffer(m_frameBuffer);
-    Graphics::SetViewport(m_viewport);
+    Graphics::SetFrameBuffer(_fbh);
+    Graphics::SetViewport(_viewport);
 
     for (const ConstantBufferBindItem& cb: m_cbufferBindlist)
         Graphics::SetConstantBuffer(cb.handle, cb.stage, cb.slot);
@@ -108,7 +111,7 @@ void RenderPass::Execute() const
 
     Graphics::SetGfxState(m_gfxState);
     Graphics::SetStencil(m_fstencil, m_bstencil, m_stencilRef);
-    for (Int32 i = 0; i < m_renderTargetCount; ++i)
+    for (Int32 i = m_blendStateStart; i <= m_blendStateEnd; ++i)
         Graphics::SetBlendState(i, m_blendStates[i]);
     Graphics::SetBlendFactor(m_blendFactor);
 
@@ -217,7 +220,7 @@ GfxState RenderPass::GetGfxState() const
 
 BlendState RenderPass::GetBlendState(const Int32 _renderTargetIndex) const
 {
-    JAM_ASSERT(0 <= _renderTargetIndex && _renderTargetIndex < m_renderTargetCount, "Render target index out of range.");
+    JAM_ASSERT(0 <= _renderTargetIndex && _renderTargetIndex < 8, "Render target index out of range.");
     return m_blendStates[_renderTargetIndex];
 }
 

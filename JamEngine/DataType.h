@@ -15,11 +15,12 @@ using UInt64 = std::uint64_t;
 using Byte   = UInt8;
 
 // math formats
-using Vec2 = DirectX::SimpleMath::Vector2;
-using Vec3 = DirectX::SimpleMath::Vector3;
-using Vec4 = DirectX::SimpleMath::Vector4;
-using Mat4 = DirectX::SimpleMath::Matrix;
-using Quat = DirectX::SimpleMath::Quaternion;
+using Vec2    = DirectX::SimpleMath::Vector2;
+using Vec3    = DirectX::SimpleMath::Vector3;
+using Vec4    = DirectX::SimpleMath::Vector4;
+using Mat4    = DirectX::SimpleMath::Matrix;
+using Quat    = DirectX::SimpleMath::Quaternion;
+using Float16 = DirectX::PackedVector::HALF;
 
 // ComPtr
 template<typename T>

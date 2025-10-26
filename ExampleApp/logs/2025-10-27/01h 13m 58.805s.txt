@@ -1,0 +1,148 @@
+[2025-10-27 01:13:58.809] [debug] [thread 67360] Logger initialized successfully.
+[2025-10-27 01:13:58.811] [info] [thread 67360] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-27 01:13:59.150] [trace] [thread 67360] Application 'Example Application' started.
+[2025-10-27 01:13:59.150] [info] [thread 67360] hello example app!
+[2025-10-27 01:13:59.204] [critical] [thread 67360] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-27 01:13:59.204
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl jam::GfxContext::Blit(const struct jam::TextureRef &,const struct jam::TextureRef &,int,int,int,int,int,int,int,int,int,int,int,int,int) const
+line: 1876
+column: 5
+------------------------------------
+user report: 
+Source and destination texture formats must match for Blit operation.
+====================================
+
+[2025-10-27 01:14:00.866] [critical] [thread 67360] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-27 01:14:00.865
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl jam::GfxContext::Blit(const struct jam::TextureRef &,const struct jam::TextureRef &,int,int,int,int,int,int,int,int,int,int,int,int,int) const
+line: 1876
+column: 5
+------------------------------------
+user report: 
+Source and destination texture formats must match for Blit operation.
+====================================
+
+[2025-10-27 01:14:01.690] [critical] [thread 67360] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-27 01:14:01.690
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl jam::GfxContext::Blit(const struct jam::TextureRef &,const struct jam::TextureRef &,int,int,int,int,int,int,int,int,int,int,int,int,int) const
+line: 1876
+column: 5
+------------------------------------
+user report: 
+Source and destination texture formats must match for Blit operation.
+====================================
+
+[2025-10-27 01:14:02.102] [critical] [thread 67360] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-27 01:14:02.102
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl jam::GfxContext::Blit(const struct jam::TextureRef &,const struct jam::TextureRef &,int,int,int,int,int,int,int,int,int,int,int,int,int) const
+line: 1876
+column: 5
+------------------------------------
+user report: 
+Source and destination texture formats must match for Blit operation.
+====================================
+
+[2025-10-27 01:14:02.424] [critical] [thread 67360] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-27 01:14:02.424
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl jam::GfxContext::Blit(const struct jam::TextureRef &,const struct jam::TextureRef &,int,int,int,int,int,int,int,int,int,int,int,int,int) const
+line: 1876
+column: 5
+------------------------------------
+user report: 
+Source and destination texture formats must match for Blit operation.
+====================================
+
+[2025-10-27 01:14:02.700] [critical] [thread 67360] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-27 01:14:02.699
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl jam::GfxContext::Blit(const struct jam::TextureRef &,const struct jam::TextureRef &,int,int,int,int,int,int,int,int,int,int,int,int,int) const
+line: 1876
+column: 5
+------------------------------------
+user report: 
+Source and destination texture formats must match for Blit operation.
+====================================
+

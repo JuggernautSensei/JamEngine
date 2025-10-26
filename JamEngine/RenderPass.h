@@ -45,7 +45,9 @@ public:
 
     RenderPass& SetExecutor(const std::function<void()>& _executor);
 
-    void               Execute() const;
+    void Execute() const;
+    void Execute(FrameBufferHandle _fbh, Viewport _viewport) const;   // 원하는 프레임버퍼와 뷰포트로 오버라이드하여 실행
+
     JAM_NODISCARD bool Validate() const;
 
     JAM_NODISCARD ProgramHandle     GetProgram() const;
@@ -68,9 +70,8 @@ private:
     ProgramHandle m_program = k_invalidHandle;
 
     // output resources
-    FrameBufferHandle m_frameBuffer       = k_invalidHandle;
-    Int32             m_renderTargetCount = 0;
-    Viewport          m_viewport          = {};
+    FrameBufferHandle m_frameBuffer = k_invalidHandle;
+    Viewport          m_viewport    = {};
 
     // input resources
     std::vector<ConstantBufferBindItem> m_cbufferBindlist = {};
@@ -83,8 +84,11 @@ private:
     StencilState m_bstencil   = StencilState::k_disable;
     UInt8        m_stencilRef = 0;
 
-    BlendState m_blendStates[8] = { BlendState::k_opaque };
-    RGBA       m_blendFactor    = RGBA { 0 };
+    BlendState m_blendStates[8]  = { BlendState::k_opaque };
+    Int32      m_blendStateStart = Int32Limits::max();
+    Int32      m_blendStateEnd   = Int32Limits::min();
+
+    RGBA m_blendFactor = RGBA { 0 };
 
     std::function<void()> m_executor = nullptr;
 };

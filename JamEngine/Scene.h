@@ -1,8 +1,8 @@
 #pragma once
 #include "Entity.h"
 #include "GraphicsBase.h"
-#include "UID.h"
 #include "SceneView.h"
+#include "UID.h"
 
 // clang-format off
 namespace jam { class Event; struct Transform; }
@@ -27,6 +27,7 @@ public:
     virtual void OnRender(const SceneView& _view) {}
     virtual void OnImGuiRender() {}
     virtual void OnEvent(Event& _event) {}
+    virtual void OnResize(Int32 _width, Int32 _height) {}
 
     JAM_NODISCARD Entity CreateEntity(std::string_view _name = {});
     JAM_NODISCARD Entity CreateEntity(UID _uid, std::string_view _name = {});   // 특정 UID로 엔티티 생성, 이미 존재하는 UID면 assert 발생

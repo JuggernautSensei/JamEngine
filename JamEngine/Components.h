@@ -54,7 +54,7 @@ struct CameraComponent : SerializableComponent<CameraComponent>
     eProjection projection = eProjection::Perspective;
     float       nearZ      = 0.1f;
     float       farZ       = 1000.f;
-    float       fovYRad    = ToRad(45.f);
+    float       fovYRad    = ToRad(60.f);
     float       width      = 1.f;
     float       height     = 1.f;
     bool        bMain      = false;

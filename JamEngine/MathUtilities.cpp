@@ -12,6 +12,16 @@ UInt32       g_randomSeed      = 0;
 namespace jam
 {
 
+Float16 ToFloat16(const float value)
+{
+    return DirectX::PackedVector::XMConvertFloatToHalf(value);
+}
+
+float ToFloat(const Float16 value)
+{
+    return DirectX::PackedVector::XMConvertHalfToFloat(value);
+}
+
 Mat4 CreateRotationLookTo(const Vec3& _forward)
 {
     using namespace DirectX;

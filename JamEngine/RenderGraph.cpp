@@ -61,6 +61,7 @@ void RenderGraph::Compile()
         const std::vector<TextureBindItem>& curInputs = curPass.GetTextureBindList();
         for (const TextureBindItem& inputTex: curInputs)
         {
+            JAM_ASSERT(JAM_IS_VALID_HANDLE(inputTex.handle), "RenderPass at index {} has invalid texture handle in its inputs.", i);
             handleBasedMap.emplace(inputTex.handle.value, &inputTex);
             slotBasedMap.emplace(MakeSlotKey(inputTex.stage, inputTex.slot), &inputTex);
         }
@@ -74,6 +75,7 @@ void RenderGraph::Compile()
             // 같은 슬롯 + 다른 리소스인 경우 충돌 문제 해소
             for (const TextureBindItem& nextInputTex: nextPass.GetTextureBindList())
             {
+                JAM_ASSERT(JAM_IS_VALID_HANDLE(nextInputTex.handle), "RenderPass at index {} has invalid texture handle in its inputs.", j);
                 auto it = slotBasedMap.find(MakeSlotKey(nextInputTex.stage, nextInputTex.slot));
                 if ((it != slotBasedMap.end()) && (it->second->handle != nextInputTex.handle))
                 {
@@ -88,8 +90,11 @@ void RenderGraph::Compile()
                 break;
 
             // 다음 패스의 출력 리소스와 충돌 검사
-            FrameBufferHandle nextFbh    = nextPass.GetFrameBuffer();
-            FrameBufferInfo   nextFbInfo = Graphics::GetFrameBufferInfo(nextFbh);
+            FrameBufferHandle nextFbh = nextPass.GetFrameBuffer();
+            if (!JAM_IS_VALID_HANDLE(nextFbh))   // 프레임버퍼가 없으면 검사할 필요 없음
+                continue;
+
+            FrameBufferInfo nextFbInfo = Graphics::GetFrameBufferInfo(nextFbh);
 
             // 렌더 타겟 검사
             for (Int32 k = 0; k < nextFbInfo.renderTargetCount; ++k)
@@ -126,8 +131,11 @@ void RenderGraph::Compile()
         }
 
         // 현재 패스의 출력이 다음 패스의 입력인지 검사
-        FrameBufferHandle curFbh     = curPass.GetFrameBuffer();
-        FrameBufferInfo   curFbhInfo = Graphics::GetFrameBufferInfo(curFbh);
+        FrameBufferHandle curFbh = curPass.GetFrameBuffer();
+        if (!JAM_IS_VALID_HANDLE(curFbh))   // 프레임버퍼가 없으면 검사할 필요 없음
+            continue;
+
+        FrameBufferInfo curFbhInfo = Graphics::GetFrameBufferInfo(curFbh);
 
         // 현재 패스의 모든 출력 리소스 수집
         for (Int32 k = 0; k < curFbhInfo.renderTargetCount; ++k)
@@ -182,6 +190,43 @@ void RenderGraph::Execute() const
                 Graphics::SetTexture(k_invalidHandle, texInfo.stage, texInfo.slot);
             }
         }
+    }
+}
+
+void RenderGraph::Execute(const FrameBufferHandle _fbh, const Viewport _viewport) const
+{
+    JAM_ASSERT(m_bCompiled, "RenderGraph must be compiled before execution.");
+
+    Int32 passIndex = 0;
+    Int32 passCount = NarrowCast<Int32>(m_passes.size());
+    for (const PassEx& passEx: m_passes)
+    {
+        if (passIndex == passCount - 1)
+        {
+            // 마지막 패스인 경우 오버라이드된 프레임버퍼와 뷰포트로 실행
+            passEx.pass.Execute(_fbh, _viewport);
+        }
+        else
+        {
+            passEx.pass.Execute();
+        }
+
+        // 필요시 리소스를 언바인딩
+        if (passEx.bNeedUnbind)
+        {
+            // 프레임버퍼 언바인딩
+            if (passEx.bNeedUnbindFrameBuffer)
+            {
+                Graphics::SetFrameBuffer(k_invalidHandle);
+            }
+
+            // 바인딩된 텍스처 언바인딩
+            for (const TextureBindInfo& texInfo: passEx.unbindTextures)
+            {
+                Graphics::SetTexture(k_invalidHandle, texInfo.stage, texInfo.slot);
+            }
+        }
+        ++passIndex;
     }
 }
 

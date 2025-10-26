@@ -25,6 +25,7 @@ public:
 
     void Compile();
     void Execute() const;
+    void Execute(FrameBufferHandle _fbh, Viewport _viewport) const;   // 원하는 프레임버퍼와 뷰포트로 오버라이드하여 실행
 
 private:
     std::vector<PassEx> m_passes    = {};

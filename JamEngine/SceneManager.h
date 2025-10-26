@@ -27,7 +27,7 @@ public:
     static void                     LoadScene(std::unique_ptr<Scene>&& _pScene);
 
     JAM_NODISCARD static Scene*     GetActiveScene();
-    JAM_NODISCARD static Resolution GetSceneTextureResoultion();
+    JAM_NODISCARD static Resolution GetSceneResoultion();
 };
 
 }   // namespace jam

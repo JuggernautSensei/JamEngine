@@ -79,6 +79,14 @@ public:
     void AddLocalScaleY(float _y);
     void AddLocalScaleZ(float _z);
 
+    // look vector
+    JAM_NODISCARD Vec3 GetLocalForward() const;
+    JAM_NODISCARD Vec3 GetLocalBackward() const;
+    JAM_NODISCARD Vec3 GetLocalRight() const;
+    JAM_NODISCARD Vec3 GetLocalLeft() const;
+    JAM_NODISCARD Vec3 GetLocalUp() const;
+    JAM_NODISCARD Vec3 GetLocalDown() const;
+
     ////////// WORLD //////////
 
     void                           SetWorld(const Transform& _world);
@@ -137,6 +145,15 @@ public:
     void AddWorldScaleX(float _x);
     void AddWorldScaleY(float _y);
     void AddWorldScaleZ(float _z);
+
+    // look vector
+
+    JAM_NODISCARD Vec3 GetWorldForward() const;
+    JAM_NODISCARD Vec3 GetWorldBackward() const;
+    JAM_NODISCARD Vec3 GetWorldRight() const;
+    JAM_NODISCARD Vec3 GetWorldLeft() const;
+    JAM_NODISCARD Vec3 GetWorldUp() const;
+    JAM_NODISCARD Vec3 GetWorldDown() const;
 
     ////////// HIERARCHY //////////
 

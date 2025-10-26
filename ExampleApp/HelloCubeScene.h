@@ -5,15 +5,22 @@ class HelloCubeScene : public Scene
     JAM_SCENE(HelloCubeScene);
 
 public:
-    HelloCubeScene();
-    ~HelloCubeScene() override;
-
+    void OnEnter() override;
+    void OnExit() override;
     void OnUpdate(float _deltaSec) override;
     void OnRender(const SceneView& _view) override;
     void OnImGuiRender() override;
+    void OnResize(Int32 _width, Int32 _height) override;
 
 private:
+    void Resize(Int32 _width, Int32 _height);
+
     float m_dt = 0.f;
+
+    FrameBufferHandle m_sceneFbh        = k_invalidHandle;
+    TextureHandle     m_sceneRenderTexh = k_invalidHandle;
+    TextureHandle     m_sceneDepthTexh  = k_invalidHandle;
+    Resolution        m_sceneResoultion = { 1600, 900 };
 
     VertexBufferHandle   m_cubeVbh = k_invalidHandle;
     IndexBufferHandle    m_cubeIbh = k_invalidHandle;
@@ -23,10 +30,5 @@ private:
     Transform m_cubeTransform = {};
     float     m_rotSpeed      = ToRad(45.f);
 
-    Vec3  m_eyePos = Vec3 { 0.f, 0.f, -10.f };
-    Vec3  m_eyeDir = Vec3 { 0.f, 0.f, 1.f };
-    float m_fov    = ToRad(60.f);
-    float m_nearZ  = 0.1f;
-    float m_farZ   = 100.f;
-    float m_aspect = 16.f / 9.f;
+    Entity m_cmrEntity = Entity::s_null;
 };

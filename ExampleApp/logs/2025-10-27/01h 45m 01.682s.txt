@@ -1,0 +1,19 @@
+[2025-10-27 01:45:01.689] [debug] [thread 119968] Logger initialized successfully.
+[2025-10-27 01:45:01.689] [info] [thread 119968] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-27 01:45:01.992] [trace] [thread 119968] Application 'Example Application' started.
+[2025-10-27 01:45:01.992] [info] [thread 119968] hello example app!
+[2025-10-27 01:45:05.366] [trace] [thread 119968] ========== scoped timer start - "RendererSystem::Init" =========="
+[2025-10-27 01:45:05.409] [trace] [thread 119968] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-27 01:45:05.411] [trace] [thread 119968] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 2.2709 Milli ==========
+[2025-10-27 01:45:05.411] [trace] [thread 119968] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-27 01:45:05.412] [trace] [thread 119968] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.1692 Milli ==========
+[2025-10-27 01:45:05.413] [trace] [thread 119968] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-27 01:45:05.413] [trace] [thread 119968] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0967 Milli ==========
+[2025-10-27 01:45:05.415] [trace] [thread 119968] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-27 01:45:05.415] [trace] [thread 119968] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.2619 Milli ==========
+[2025-10-27 01:45:05.416] [trace] [thread 119968] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-27 01:45:05.416] [trace] [thread 119968] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.1075 Milli ==========
+[2025-10-27 01:45:24.557] [trace] [thread 119968] ========== scoped timer end - "RendererSystem::Init" - duration: 19191.45 Milli ==========
+[2025-10-27 01:45:27.346] [trace] [thread 119968] Application 'Example Application' shutdown.
+[2025-10-27 01:45:27.346] [info] [thread 119968] good-bye example app!
+[2025-10-27 01:45:27.393] [debug] [thread 119968] Logger shutting down...
