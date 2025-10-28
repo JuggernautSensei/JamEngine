@@ -244,6 +244,7 @@
     <ClCompile Include="MathUtilities.cpp">
       <Filter>99. Utilities\Math</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -776,6 +777,7 @@
     <ClInclude Include="MathUtilities.h">
       <Filter>99. Utilities\Math</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">

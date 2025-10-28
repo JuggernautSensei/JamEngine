@@ -183,13 +183,15 @@ void HelloJamScene::OnEnter()
     {
         m_cmrEntt = CreateEntity("main camera");
 
-        CameraComponent& cmrCmp = m_cmrEntt.CreateComponent<CameraComponent>();
-        cmrCmp.width            = static_cast<float>(w);
-        cmrCmp.height           = static_cast<float>(h);
-        cmrCmp.bMain            = true;
+        CameraComponent& cameraCmp = m_cmrEntt.CreateComponent<CameraComponent>();
+        cameraCmp.bMain            = true;
 
-        ScriptComponent& scrtCmp = m_cmrEntt.CreateComponent<ScriptComponent>();
-        scrtCmp.BindScript<CameraScript>(m_cmrEntt);
+        Camera& camera = cameraCmp.camera;
+        camera.SetWidth(w);
+        camera.SetHeight(h);
+
+        ScriptComponent& scriptCmp = m_cmrEntt.CreateComponent<ScriptComponent>();
+        scriptCmp.BindScript<CameraScript>(m_cmrEntt);
 
         TransformHierarchy& trans = m_cmrEntt.GetTransform();
         trans.SetWorldTranslation(13.5, 13.5, -50);
@@ -392,8 +394,10 @@ void HelloJamScene::Resize(const Int32 _width, const Int32 _height)
 
     if (m_cmrEntt.IsValid())
     {
-        CameraComponent& cmrCmp = m_cmrEntt.GetComponent<CameraComponent>();
-        cmrCmp.width            = static_cast<float>(_width);
-        cmrCmp.height           = static_cast<float>(_height);
+        CameraComponent& cameraCmp = m_cmrEntt.GetComponent<CameraComponent>();
+
+        Camera& camera = cameraCmp.camera;
+        camera.SetWidth(static_cast<Int32>(_width));
+        camera.SetHeight(static_cast<Int32>(_height));
     }
 }

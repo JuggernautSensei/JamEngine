@@ -14,5 +14,4 @@ public:
 
 private:
     void CompileGraph(Int32 _width, Int32 _height);
-
 };

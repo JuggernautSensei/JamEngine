@@ -18,7 +18,8 @@ void ExampleApp::OnCreate()
     Window& win = GetWindow();
     win.ResizeClient(1600, 900);
 
-    auto pScene = std::make_unique<HelloJamScene>();
+    // auto pScene = std::make_unique<HelloJamScene>();
+    auto pScene = std::make_unique<HelloBasicRenderer>();
     SceneManager::LoadScene(std::move(pScene));
 }
 

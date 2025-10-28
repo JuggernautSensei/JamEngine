@@ -1,5 +1,7 @@
 #pragma once
+#include "Camera.h"
 #include "ComponentDB.h"
+#include "Environment.h"
 #include "Material.h"
 #include "Mesh.h"
 #include "TransformHierarchy.h"
@@ -36,12 +38,6 @@ class TransformComponent : UnremovableComponent<TransformComponent>, Serializabl
     TransformHierarchy transform = {};
 };
 
-enum class eProjection : Int8
-{
-    Perspective = 0,
-    Orthographic
-};
-
 struct CameraComponent : SerializableComponent<CameraComponent>
 {
     JAM_COMPONENT(CameraComponent);
@@ -49,18 +45,18 @@ struct CameraComponent : SerializableComponent<CameraComponent>
     JAM_NODISCARD Json Serialize(const Scene* _pScene, Entity _entity) const;
     eErrorCode         Deserialize(const Json& _json, const Scene* _pScene, Entity _entity);
 
-    JAM_NODISCARD Mat4 CreateProj() const;
-
-    eProjection projection = eProjection::Perspective;
-    float       nearZ      = 0.1f;
-    float       farZ       = 1000.f;
-    float       fovYRad    = ToRad(60.f);
-    float       width      = 1.f;
-    float       height     = 1.f;
-    bool        bMain      = false;
+    Camera camera = {};
+    bool   bMain  = false;
 
     static constexpr float k_nearestZ  = 0.01f;
     static constexpr float k_farthestZ = 10000.f;
+};
+
+struct EnvironmentComponent :SerializableComponent<EnvironmentComponent>
+{
+    JAM_COMPONENT(EnvironmentComponent);
+
+    Environment environment = {}; 
 };
 
 struct ScriptComponent : SerializableComponent<ScriptComponent>

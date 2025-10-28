@@ -225,6 +225,7 @@
     <ClCompile Include="BasicRenderer.cpp" />
     <ClCompile Include="BasicRendererBase.cpp" />
     <ClCompile Include="BoundBox.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CullingSystem.cpp" />
     <ClCompile Include="ComponentDB.cpp" />
     <ClCompile Include="DrawItem.cpp" />
@@ -323,6 +324,7 @@
     <ClInclude Include="BasicRenderer.h" />
     <ClInclude Include="BasicRendererBase.h" />
     <ClInclude Include="BoundBox.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="CullingSystem.h" />
     <ClInclude Include="ComponentDB.h" />
     <ClInclude Include="DrawItem.h" />

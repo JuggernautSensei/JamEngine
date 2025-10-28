@@ -48,7 +48,7 @@ Json TransformComponent::Serialize(const Scene* _pScene, Entity _entity) const
     const Transform& local = transform.GetLocal();
 
     Json json;
-    json["mtx"] = local.GetMatrix();
+    json["mtx"]    = local.GetMatrix();
     json["parent"] = t.GetParent().GetUID();
     return json;
 }
@@ -90,12 +90,12 @@ eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pSce
 Json CameraComponent::Serialize(const Scene* _pScene, Entity _entity) const
 {
     Json json;
-    json["projection"] = projection;
-    json["nearZ"]      = nearZ;
-    json["farZ"]       = farZ;
-    json["fovYRad"]    = fovYRad;
-    json["width"]      = width;
-    json["height"]     = height;
+    json["projection"] = camera.GetProjection();
+    json["nearZ"]      = camera.GetNearZ();
+    json["farZ"]       = camera.GetFarZ();
+    json["fovYRad"]    = camera.GetFovYRad();
+    json["width"]      = camera.GetWidth();
+    json["height"]     = camera.GetHeight();
     json["bMain"]      = bMain;
     return json;
 }
@@ -112,37 +112,18 @@ eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene,
         }
     }
 
-    projection = _json["projectection"].get<eProjection>();
-    nearZ      = _json["nearZ"].get<float>();
-    farZ       = _json["farZ"].get<float>();
-    fovYRad    = _json["fovYRad"].get<float>();
-    width      = _json["width"].get<float>();
-    height     = _json["height"].get<float>();
-    bMain      = _json["bMain"].get<bool>();
-
-    // 사후검사
+    eProjection projection = static_cast<eProjection>(_json["projection"].get<Int32>());
     if (!IsValidEnum(projection))
-    {
-        SetErrorMessage("CameraComponent deserialization failed: 'projection' field is invalid.");
-        return eErrorCode::FileParseFailed;
-    }
+        projection = eProjection::Perspective;
 
-    nearZ = Clamp(nearZ, k_nearestZ, k_farthestZ - k_epsilon);
-    farZ  = Clamp(farZ, nearZ + k_epsilon, k_farthestZ);
+    camera.SetProjection(projection);
+    camera.SetNearZ(_json["nearZ"].get<float>());
+    camera.SetFarZ(_json["farZ"].get<float>());
+    camera.SetFovYRad(_json["fovYRad"].get<float>());
+    camera.SetWidth(_json["width"].get<float>());
+    camera.SetHeight(_json["height"].get<float>());
+    bMain = _json["bMain"].get<bool>();
     return eErrorCode::Ok;
-}
-
-Mat4 CameraComponent::CreateProj() const
-{
-    if (projection == eProjection::Perspective)
-    {
-        const float aspectRatio = width / height;
-        return CreatePerspectiveFov(fovYRad, aspectRatio, nearZ, farZ);
-    }
-    else
-    {
-        return CreateOrthographic(width, height, nearZ, farZ);
-    }
 }
 
 Json ScriptComponent::Serialize(const Scene* _pScene, Entity _entity) const

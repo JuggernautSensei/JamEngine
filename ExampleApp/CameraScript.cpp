@@ -63,7 +63,6 @@ void CameraScript::OnUpdate(const float _deltaSec)
         m_pData->pitch += dPitch;
         m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
         m_pTrans->transform.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
-        JAM_DEBUG_LOG("Pitch: {}, Yaw: {}", m_pData->pitch, m_pData->yaw);
     }
 }
 
