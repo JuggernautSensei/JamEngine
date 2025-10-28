@@ -310,7 +310,7 @@
     </ClCompile>
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="VertexLayout.cpp" />
-    <ClCompile Include="SceneView.cpp" />
+    <ClCompile Include="RenderView.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
     <ClCompile Include="ComponentsEditor.cpp" />
@@ -470,7 +470,7 @@
     </ClInclude>
     <ClInclude Include="Version.h" />
     <ClInclude Include="VertexLayout.h" />
-    <ClInclude Include="SceneView.h" />
+    <ClInclude Include="RenderView.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="EmbeddedShaderGlue.h" />

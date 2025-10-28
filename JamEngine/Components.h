@@ -26,7 +26,7 @@ struct TagComponent : SerializableComponent<TagComponent>
     std::string name = "unknown";
 };
 
-struct TransformComponent : UnremovableComponent<TransformComponent>, SerializableComponent<TransformComponent>
+class TransformComponent : UnremovableComponent<TransformComponent>, SerializableComponent<TransformComponent>
 {
     JAM_COMPONENT(TransformComponent);
 

@@ -621,7 +621,7 @@ void DebugRenderer::DrawArc(const Vec3& _center, const float _radius, const Vec3
     JAM_ASSERT(_startAngleRad < _endAngleRad, "Arc start angle must be less than end angle");
 
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_radius)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _normal, Vec3(_radius)));
 
     Int32 segment   = k_circleSegmentTable[EnumToInt(g_debugRendererContext.curState.detailLevel)];
     float stepRad   = k_2pi / static_cast<float>(segment);
@@ -650,7 +650,7 @@ void DebugRenderer::DrawAABB(const Vec3& _min, const Vec3& _max)
 void DebugRenderer::DrawOBB(const Vec3& _center, const Vec3& _size, const Vec3& _normal)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _normal, _size));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _normal, _size));
 
     if (g_debugRendererContext.curState.bWireframe)
     {
@@ -690,7 +690,7 @@ void DebugRenderer::DrawOBB(const Vec3& _center, const Vec3& _size, const Vec3& 
 void DebugRenderer::DrawSphere(const Vec3& _center, const float _radius)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, Vec3::UnitY, Vec3(_radius)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, Vec3::UnitY, Vec3(_radius)));
 
     if (g_debugRendererContext.curState.bWireframe)
     {
@@ -726,7 +726,7 @@ void DebugRenderer::DrawSphere(const Vec3& _center, const float _radius)
 void DebugRenderer::DrawQuad(const Vec3& _center, const Vec2& _size, const Vec3& _normal)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_size.x, 1.f, _size.y)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _normal, Vec3(_size.x, 1.f, _size.y)));
 
     if (g_debugRendererContext.curState.bWireframe)
     {
@@ -750,7 +750,7 @@ void DebugRenderer::DrawGrid(const Vec3& _center, const Vec2& _size, const Vec3&
     JAM_ASSERT(_step > 0.f, "Grid step must be greater than zero");
 
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _normal, Vec3(1.f)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _normal, Vec3(1.f)));
 
     const int halfLineCountX = static_cast<int>(_size.x / _step * 0.5f);
     const int halfLineCountY = static_cast<int>(_size.y / _step * 0.5f);
@@ -774,7 +774,7 @@ void DebugRenderer::DrawGrid(const Vec3& _center, const Vec2& _size, const Vec3&
 void DebugRenderer::DrawCircle(const Vec3& _center, const float _radius, const Vec3& _normal)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _normal, Vec3(_radius)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _normal, Vec3(_radius)));
 
     if (g_debugRendererContext.curState.bWireframe)
     {
@@ -791,7 +791,7 @@ void DebugRenderer::DrawCircle(const Vec3& _center, const float _radius, const V
 void DebugRenderer::DrawCone(const Vec3& _center, const float _height, const float _radius, const Vec3& _dir)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _dir, Vec3(_radius, _height, _radius)));
 
     if (g_debugRendererContext.curState.bWireframe)
     {
@@ -851,7 +851,7 @@ void DebugRenderer::DrawFrustum(const Frustum& _frustum)
 void DebugRenderer::DrawCylinder(const Vec3& _center, const float _height, const float _radius, const Vec3& _dir)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _dir, Vec3(_radius, _height, _radius)));
 
     if (g_debugRendererContext.curState.bWireframe)
     {
@@ -882,7 +882,7 @@ void DebugRenderer::DrawCylinder(const Vec3& _center, const float _height, const
 void DebugRenderer::DrawCapsule(const Vec3& _center, const Vec3& _dir, const float _height, const float _radius)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_center, _dir, Vec3(_radius, _height, _radius)));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_center, _dir, Vec3(_radius, _height, _radius)));
 
     // 원통
     float cylinderHeight = Max(0.f, _height - 2.f * _radius);
@@ -914,7 +914,7 @@ void DebugRenderer::DrawCapsule(const Vec3& _center, const Vec3& _dir, const flo
 void DebugRenderer::DrawMesh(const Mesh& _mesh, const Vec3& _position, const Vec3& _forward, const Vec3& _scale)
 {
     PushTransform();
-    g_debugRendererContext.SetShapeTransform(CreateWorld(_position, _forward, _scale));
+    g_debugRendererContext.SetShapeTransform(CreateWorldLookTo(_position, _forward, _scale));
     g_debugRendererContext.DrawMesh(_mesh, g_debugRendererContext.curState.bWireframe);
     PopTransform();
 }

@@ -693,11 +693,11 @@ public:
         GfxState _state);
 
     /// @brief 블렌드 상태를 설정합니다.
-    /// @param _renderTargetIndex 렌더 타겟 인덱스 (0 ~ 7)
     /// @param _state 블렌드 상태 플래그
+    /// @param _renderTargetIndex 렌더 타겟 인덱스 (0 ~ 7)
     static void SetBlendState(
-        Int32      _renderTargetIndex,
-        BlendState _state);
+        BlendState _state,
+        Int32      _renderTargetIndex);
 
     /// @brief 블렌드 팩터를 설정합니다.
     /// @param _rgba 블렌딩 시 사용할 색상 팩터

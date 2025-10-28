@@ -5,7 +5,7 @@
 namespace jam
 {
 
-struct Transform;
+class Transform;
 class Material;
 class Mesh;
 class Timer;

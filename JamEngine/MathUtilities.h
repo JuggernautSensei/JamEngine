@@ -323,10 +323,7 @@ JAM_NODISCARD float   ToFloat(const Float16 value);
 ///          MATRIX          ///
 ////////////////////////////////
 
-JAM_NODISCARD Mat4 CreateRotationLookTo(const Vec3& _forward);
-
-JAM_NODISCARD Mat4 CreateWorld(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale);
-
+JAM_NODISCARD Mat4 CreateWorldLookTo(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale);
 JAM_NODISCARD Mat4 CreateWorld(const Vec3& _translate, const Quat& _quat, const Vec3& _scale);
 
 /// @brief LookTo 뷰 행렬 생성 (좌측 수직 좌표계)

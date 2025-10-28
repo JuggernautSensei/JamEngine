@@ -61,13 +61,12 @@ void Log::Init()
 
     AddSink(k_consoleSinkName, consoleSink);
     AddSink(k_fileSinkName, fileSink);
-    JAM_LOGGER_DEBUG("Logger initialized successfully.");
+    JAM_DEBUG_LOG("log initialized successfully.");
 }
 
 void Log::Shutdown()
 {
-    JAM_LOGGER_DEBUG("Logger shutting down...");
-    spdlog::default_logger()->flush();
+    JAM_DEBUG_LOG("log shutdown.");
     g_logContext.sinkMap.clear();
     spdlog::shutdown();
 }
@@ -122,10 +121,10 @@ void Log::SetLogPattern(const std::string_view _pattern)
 
 void Log::Flush()
 {
-    if (const auto& logger = spdlog::default_logger())
+    spdlog::apply_all([](std::shared_ptr<spdlog::logger> l)
     {
-        logger->flush();
-    }
+        l->flush();
+    });   
 }
 
 }   // namespace jam

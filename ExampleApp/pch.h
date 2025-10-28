@@ -8,3 +8,5 @@ using namespace jam;
 #else
 #    pragma comment(lib, "../JamEngine/Bin/Release/JamEngine.lib")
 #endif
+
+#include "Utils.h"

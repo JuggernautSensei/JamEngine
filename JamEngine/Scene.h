@@ -1,11 +1,11 @@
 #pragma once
 #include "Entity.h"
 #include "GraphicsBase.h"
-#include "SceneView.h"
+#include "RenderView.h"
 #include "UID.h"
 
 // clang-format off
-namespace jam { class Event; struct Transform; }
+namespace jam { class Event; class Transform; }
 // clang-format on
 
 namespace jam
@@ -24,7 +24,7 @@ public:
     virtual void OnEnter() {}
     virtual void OnExit() {}
     virtual void OnUpdate(float _deltaSec) {}
-    virtual void OnRender(const SceneView& _view) {}
+    virtual void OnRender(const RenderView& _view) {}
     virtual void OnImGuiRender() {}
     virtual void OnEvent(Event& _event) {}
     virtual void OnResize(Int32 _width, Int32 _height) {}

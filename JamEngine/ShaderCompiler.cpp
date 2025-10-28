@@ -143,7 +143,7 @@ eErrorCode ShaderCompiler::LoadFromMemory(const MemoryView _byteCode)
 
 void ShaderCompiler::HandleCompileError_(const ComPtr<ID3DBlob>& _pErrorBlob, const HRESULT _hr) const
 {
-    JAM_LOGGER_DEBUG("Shader compilation failed with error: {}", CreateComErrorMessage(_hr));
+    JAM_DEBUG_LOG("Shader compilation failed with error: {}", CreateComErrorMessage(_hr));
 
     if (_pErrorBlob)
     {

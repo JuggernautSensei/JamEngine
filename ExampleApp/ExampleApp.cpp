@@ -3,9 +3,7 @@
 #include "ExampleApp.h"
 
 #include "HelloBasicRenderer.h"
-#include "HelloCubeScene.h"
-#include "HelloTextureScene.h"
-#include "HelloTriangleScene.h"
+#include "HelloJamScene.h"
 
 ExampleApp::ExampleApp(const ApplicationCreateInfo& _info)
     : Application(_info)
@@ -20,10 +18,7 @@ void ExampleApp::OnCreate()
     Window& win = GetWindow();
     win.ResizeClient(1600, 900);
 
-    // auto pScene = std::make_unique<HelloTriangleScene>();
-    // auto pScene = std::make_unique<HelloCubeScene>();
-    // auto pScene = std::make_unique<HelloTextureScene>();
-    auto pScene = std::make_unique<HelloBasicRenderer>();
+    auto pScene = std::make_unique<HelloJamScene>();
     SceneManager::LoadScene(std::move(pScene));
 }
 

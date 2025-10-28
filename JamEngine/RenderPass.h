@@ -41,7 +41,7 @@ public:
 
     RenderPass& SetGfxState(GfxState _state);
     RenderPass& SetBlendState(Int32 _renderTargetIndex, BlendState _state);
-    RenderPass& SetStencil(StencilState _front, StencilState _back, UInt8 _ref);
+    RenderPass& SetStencil(StencilState _fstencil, StencilState _bstencil, UInt8 _ref);
 
     RenderPass& SetExecutor(const std::function<void()>& _executor);
 

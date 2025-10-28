@@ -22,142 +22,17 @@ public:
 
     ////////// LOCAL //////////
 
-    void                           SetLocal(const Transform& _local);
     JAM_NODISCARD const Transform& GetLocal() const;
-
-    // local translate
-
-    void SetLocalTranslate(const Vec3& _translate);
-    void SetLocalTranslateX(float _x);
-    void SetLocalTranslateY(float _y);
-    void SetLocalTranslateZ(float _z);
-
-    JAM_NODISCARD Vec3  GetLocalTranslate() const;
-    JAM_NODISCARD float GetLocalTranslateX() const;
-    JAM_NODISCARD float GetLocalTranslateY() const;
-    JAM_NODISCARD float GetLocalTranslateZ() const;
-
-    void AddLocalTranslate(const Vec3& _translate);
-    void AddLocalTranslateX(float _x);
-    void AddLocalTranslateY(float _y);
-    void AddLocalTranslateZ(float _z);
-
-    // local rotate
-
-    void SetLocalRotate(const Quat& _rotate);
-    void SetLocalRotate(const Vec3& _axis, float _angleRad);
-    void SetLocalRotateEuler(const Vec3& _eulerRad);
-    void SetLocalRotateYaw(float _yawRad);
-    void SetLocalRotatePitch(float _pitchRad);
-    void SetLocalRotateRoll(float _rollRad);
-
-    JAM_NODISCARD Quat      GetLocalRotate() const;
-    JAM_NODISCARD AxisAngle GetLocalRotateAxisAngle() const;
-    JAM_NODISCARD Vec3      GetLocalRotateEuler() const;
-    JAM_NODISCARD float     GetLocalRotateYaw() const;
-    JAM_NODISCARD float     GetLocalRotatePitch() const;
-    JAM_NODISCARD float     GetLocalRotateRoll() const;
-
-    void AddLocalRotate(const Quat& _rotate);
-    void AddLocalRotate(const Vec3& _axis, float _angleRad);
-    void AddLocalRotateEuler(const Vec3& _yawPitchRollRad);
-    void AddLocalRotateYaw(float _yawRad);
-    void AddLocalRotatePitch(float _pitchRad);
-    void AddLocalRotateRoll(float _rollRad);
-
-    // local scale
-
-    void SetLocalScale(const Vec3& _scale);
-    void SetLocalScaleX(float _x);
-    void SetLocalScaleY(float _y);
-    void SetLocalScaleZ(float _z);
-
-    JAM_NODISCARD Vec3 GetLocalScale() const;
-
-    void AddLocalScale(const Vec3& _scale);
-    void AddLocalScaleX(float _x);
-    void AddLocalScaleY(float _y);
-    void AddLocalScaleZ(float _z);
-
-    // look vector
-    JAM_NODISCARD Vec3 GetLocalForward() const;
-    JAM_NODISCARD Vec3 GetLocalBackward() const;
-    JAM_NODISCARD Vec3 GetLocalRight() const;
-    JAM_NODISCARD Vec3 GetLocalLeft() const;
-    JAM_NODISCARD Vec3 GetLocalUp() const;
-    JAM_NODISCARD Vec3 GetLocalDown() const;
+    void                           SetLocal(const Transform& _local);
 
     ////////// WORLD //////////
 
-    void                           SetWorld(const Transform& _world);
     JAM_NODISCARD const Transform& GetWorld() const;
-
-    // world translate
-
-    void SetWorldTranslate(const Vec3& _translate);
-    void SetWorldTranslateX(float _x);
-    void SetWorldTranslateY(float _y);
-    void SetWorldTranslateZ(float _z);
-
-    JAM_NODISCARD Vec3  GetWorldTranslate() const;
-    JAM_NODISCARD float GetWorldTranslateX() const;
-    JAM_NODISCARD float GetWorldTranslateY() const;
-    JAM_NODISCARD float GetWorldTranslateZ() const;
-
-    void AddWorldTranslate(const Vec3& _translate);
-    void AddWorldTranslateX(float _x);
-    void AddWorldTranslateY(float _y);
-    void AddWorldTranslateZ(float _z);
-
-    // world rotate
-
-    void SetWorldRotate(const Quat& _rotate);
-    void SetWorldRotate(const Vec3& _axis, float _angleRad);
-    void SetWorldRotateEuler(const Vec3& _eulerRad);
-    void SetWorldRotateYaw(float _yawRad);
-    void SetWorldRotatePitch(float _pitchRad);
-    void SetWorldRotateRoll(float _rollRad);
-
-    JAM_NODISCARD Quat      GetWorldRotate() const;
-    JAM_NODISCARD AxisAngle GetWorldRotateAxisAngle() const;
-    JAM_NODISCARD Vec3      GetWorldRotateEuler() const;
-    JAM_NODISCARD float     GetWorldRotateYaw() const;
-    JAM_NODISCARD float     GetWorldRotatePitch() const;
-    JAM_NODISCARD float     GetWorldRotateRoll() const;
-
-    void AddWorldRotate(const Quat& _rotate);
-    void AddWorldRotate(const Vec3& _axis, float _angleRad);
-    void AddWorldRotateEuler(const Vec3& _yawPitchRollRad);
-    void AddWorldRotateYaw(float _yawRad);
-    void AddWorldRotatePitch(float _pitchRad);
-    void AddWorldRotateRoll(float _rollRad);
-
-    // world scale
-
-    void SetWorldScale(const Vec3& _scale);
-    void SetWorldScaleX(float _x);
-    void SetWorldScaleY(float _y);
-    void SetWorldScaleZ(float _z);
-
-    JAM_NODISCARD Vec3 GetWorldScale() const;
-
-    void AddWorldScale(const Vec3& _scale);
-    void AddWorldScaleX(float _x);
-    void AddWorldScaleY(float _y);
-    void AddWorldScaleZ(float _z);
-
-    // look vector
-
-    JAM_NODISCARD Vec3 GetWorldForward() const;
-    JAM_NODISCARD Vec3 GetWorldBackward() const;
-    JAM_NODISCARD Vec3 GetWorldRight() const;
-    JAM_NODISCARD Vec3 GetWorldLeft() const;
-    JAM_NODISCARD Vec3 GetWorldUp() const;
-    JAM_NODISCARD Vec3 GetWorldDown() const;
+    void                           SetWorld(const Transform& _world);
 
     ////////// HIERARCHY //////////
 
-    void SetParent(Entity _parent);
+    void SetParent(Entity _parent, bool _bKeepLocal = false);
     void ReleaseParent();
 
     JAM_NODISCARD bool IsRoot() const { return m_owner == m_root; }
@@ -172,6 +47,142 @@ public:
 
     /// 최상위 노드가 매프레임 딱 한 번 호출할 것
     void Update_Recursive();
+
+    ////////// LOCAL TRANSFORM GETTERS //////////
+
+    JAM_NODISCARD Mat4 GetLocalMatrix() const;
+    JAM_NODISCARD Mat4 GetLocalView() const;
+
+    JAM_NODISCARD Vec3 GetLocalRight() const;
+    JAM_NODISCARD Vec3 GetLocalLeft() const;
+    JAM_NODISCARD Vec3 GetLocalUp() const;
+    JAM_NODISCARD Vec3 GetLocalDown() const;
+    JAM_NODISCARD Vec3 GetLocalForward() const;
+    JAM_NODISCARD Vec3 GetLocalBackward() const;
+
+    JAM_NODISCARD Vec3  GetLocalTranslation() const;
+    JAM_NODISCARD float GetLocalTranslationX() const;
+    JAM_NODISCARD float GetLocalTranslationY() const;
+    JAM_NODISCARD float GetLocalTranslationZ() const;
+
+    JAM_NODISCARD Quat      GetLocalQuaternion() const;
+    JAM_NODISCARD AxisAngle GetLocalAxisAngle() const;
+    JAM_NODISCARD Vec3      GetLocalPitchYawRoll() const;
+
+    JAM_NODISCARD Vec3  GetLocalScale() const;
+    JAM_NODISCARD float GetLocalScaleX() const;
+    JAM_NODISCARD float GetLocalScaleY() const;
+    JAM_NODISCARD float GetLocalScaleZ() const;
+
+    ////////// LOCAL TRANSFORM SETTERS //////////
+
+    void SetLocalMatrix(const Mat4& _mat);
+
+    void SetLocalTranslation(const Vec3& _translation);
+    void SetLocalTranslation(float _x, float _y, float _z);
+    void SetLocalTranslationX(float _x);
+    void SetLocalTranslationY(float _y);
+    void SetLocalTranslationZ(float _z);
+
+    void SetLocalRotation(const Quat& _rotation);
+    void SetLocalRotation(const Vec3& _axis, float _angleRad);
+    void SetLocalRotation(const Vec3& _pitchYawRollRad);
+    void SetLocalRotation(float _pitchRad, float _yawRad, float _rollRad);
+    void SetLocalLookAt(const Vec3& _point);
+    void SetLocalLookTo(const Vec3& _lookDir);
+
+    void SetLocalScale(const Vec3& _scale);
+    void SetLocalScale(float _x, float _y, float _z);
+    void SetLocalScale(float _uniform);
+    void SetLocalScaleX(float _x);
+    void SetLocalScaleY(float _y);
+    void SetLocalScaleZ(float _z);
+
+    ////////// LOCAL TRANSFORM ADDERS //////////
+
+    void AddLocalTranslation(const Vec3& _translation);
+    void AddLocalTranslation(float _x, float _y, float _z);
+    void AddLocalTranslationX(float _x);
+    void AddLocalTranslationY(float _y);
+    void AddLocalTranslationZ(float _z);
+
+    void AddLocalRotation(const Quat& _rotation);
+    void AddLocalRotation(const Vec3& _axis, float _angleRad);
+
+    void AddLocalScale(const Vec3& _scale);
+    void AddLocalScale(float _x, float _y, float _z);
+    void AddLocalScale(float _uniform);
+    void AddLocalScaleX(float _x);
+    void AddLocalScaleY(float _y);
+    void AddLocalScaleZ(float _z);
+
+        ////////// WORLD TRANSFORM GETTERS //////////
+
+    JAM_NODISCARD Mat4 GetWorldMatrix() const;
+    JAM_NODISCARD Mat4 GetWorldView() const;
+
+    JAM_NODISCARD Vec3 GetWorldRight() const;
+    JAM_NODISCARD Vec3 GetWorldLeft() const;
+    JAM_NODISCARD Vec3 GetWorldUp() const;
+    JAM_NODISCARD Vec3 GetWorldDown() const;
+    JAM_NODISCARD Vec3 GetWorldForward() const;
+    JAM_NODISCARD Vec3 GetWorldBackward() const;
+
+    JAM_NODISCARD Vec3  GetWorldTranslation() const;
+    JAM_NODISCARD float GetWorldTranslationX() const;
+    JAM_NODISCARD float GetWorldTranslationY() const;
+    JAM_NODISCARD float GetWorldTranslationZ() const;
+
+    JAM_NODISCARD Quat      GetWorldQuaternion() const;
+    JAM_NODISCARD AxisAngle GetWorldAxisAngle() const;
+    JAM_NODISCARD Vec3      GetWorldPitchYawRoll() const;
+
+    JAM_NODISCARD Vec3  GetWorldScale() const;
+    JAM_NODISCARD float GetWorldScaleX() const;
+    JAM_NODISCARD float GetWorldScaleY() const;
+    JAM_NODISCARD float GetWorldScaleZ() const;
+
+    ////////// WORLD TRANSFORM SETTERS //////////
+
+    void SetWorldMatrix(const Mat4& _mat);
+
+    void SetWorldTranslation(const Vec3& _translation);
+    void SetWorldTranslation(float _x, float _y, float _z);
+    void SetWorldTranslationX(float _x);
+    void SetWorldTranslationY(float _y);
+    void SetWorldTranslationZ(float _z);
+
+    void SetWorldRotation(const Quat& _rotation);
+    void SetWorldRotation(const Vec3& _axis, float _angleRad);
+    void SetWorldRotation(const Vec3& _pitchYawRollRad);
+    void SetWorldRotation(float _pitchRad, float _yawRad, float _rollRad);
+    void SetWorldLookAt(const Vec3& _point);
+    void SetWorldLookTo(const Vec3& _lookDir);
+
+    void SetWorldScale(const Vec3& _scale);
+    void SetWorldScale(float _x, float _y, float _z);
+    void SetWorldScale(float _uniform);
+    void SetWorldScaleX(float _x);
+    void SetWorldScaleY(float _y);
+    void SetWorldScaleZ(float _z);
+
+    ////////// WORLD TRANSFORM ADDERS //////////
+
+    void AddWorldTranslation(const Vec3& _translation);
+    void AddWorldTranslation(float _x, float _y, float _z);
+    void AddWorldTranslationX(float _x);
+    void AddWorldTranslationY(float _y);
+    void AddWorldTranslationZ(float _z);
+
+    void AddWorldRotation(const Quat& _rotation);
+    void AddWorldRotation(const Vec3& _axis, float _angleRad);
+
+    void AddWorldScale(const Vec3& _scale);
+    void AddWorldScale(float _x, float _y, float _z);
+    void AddWorldScale(float _uniform);
+    void AddWorldScaleX(float _x);
+    void AddWorldScaleY(float _y);
+    void AddWorldScaleZ(float _z);
 
 private:
     void NotifyDirtyToParent_();

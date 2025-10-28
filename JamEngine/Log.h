@@ -157,7 +157,7 @@ public:
 
 // 디버그에서만 동작하는 로그
 #ifdef JAM_DEBUG
-#    define JAM_LOGGER_DEBUG(...) jam::Log::Debug(__VA_ARGS__)
+#    define JAM_DEBUG_LOG(...) jam::Log::Debug(__VA_ARGS__)
 #else
-#    define JAM_LOGGER_DEBUG(...) JAM_NOOP
+#    define JAM_DEBUG_LOG(...) JAM_NOOP
 #endif

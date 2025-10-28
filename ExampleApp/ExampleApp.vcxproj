@@ -196,19 +196,16 @@
   <ItemGroup>
     <ClInclude Include="CameraScript.h" />
     <ClInclude Include="HelloBasicRenderer.h" />
-    <ClInclude Include="HelloCubeScene.h" />
     <ClInclude Include="ExampleApp.h" />
-    <ClInclude Include="HelloTextureScene.h" />
-    <ClInclude Include="HelloTriangleScene.h" />
+    <ClInclude Include="HelloJamScene.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraScript.cpp" />
     <ClCompile Include="HelloBasicRenderer.cpp" />
-    <ClCompile Include="HelloCubeScene.cpp" />
     <ClCompile Include="ExampleApp.cpp" />
-    <ClCompile Include="HelloTextureScene.cpp" />
-    <ClCompile Include="HelloTriangleScene.cpp" />
+    <ClCompile Include="HelloJamScene.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -216,6 +213,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="EntryPoint.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

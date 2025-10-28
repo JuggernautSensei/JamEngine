@@ -22,77 +22,53 @@ float ToFloat(const Float16 value)
     return DirectX::PackedVector::XMConvertHalfToFloat(value);
 }
 
-Mat4 CreateRotationLookTo(const Vec3& _forward)
+Mat4 CreateWorldLookTo(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale)
 {
-    using namespace DirectX;
+    // forward
+    Vec3 forward = _forward;
+    forward.Normalize();
 
-    assert(!XMVector3Equal(_forward, XMVectorZero()));
-    assert(!XMVector3IsInfinite(_forward));
+    Vec3 up = Vec3::Up;
+    if (up.Dot(forward) >= 1.f - k_epsilon)
+        up = Vec3::Forward;
 
-    const XMVECTOR forward = XMVector3Normalize(_forward);
+    // right
+    Vec3 right = up.Cross(forward);
+    right.Normalize();
 
-    // 오른쪽 벡터 계산
-    XMVECTOR up    = Vec3::Up;
-    XMVECTOR right = XMVector3Cross(up, forward);
-    if (XMVector3Equal(right, XMVectorZero()))   // forward가 Up과 평행한 경우
-    {
-        // Right 벡터를 사용하여 교차 곱 계산
-        right = XMVector3Cross(Vec3::Right, forward);
-    }
+    // up
+    up = forward.Cross(right);
+    up.Normalize();
 
-    right = XMVector3Normalize(right);
-    up    = XMVector3Normalize(XMVector3Cross(forward, right));
+    // clang-format off
+    Mat4 rMat {
+        right.x, right.y, right.z, 0.f,
+        up.x, up.y, up.z, 0.f,
+        forward.x, forward.y, forward.z, 0.f,
+        0.f, 0.f, 0.f, 1.f
+    };
+    // clang-format on
 
-    XMMATRIX mat;
-    mat.r[0] = right;
-    mat.r[1] = up;
-    mat.r[2] = forward;
-    mat.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-    return mat;
-}
-
-Mat4 CreateWorld(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale)
-{
-    using namespace DirectX;
-
-    XMMATRIX lookToMat = CreateRotationLookTo(_forward);
-    lookToMat.r[0]     = XMVectorMultiply(lookToMat.r[0], _scale);
-    lookToMat.r[1]     = XMVectorMultiply(lookToMat.r[1], _scale);
-    lookToMat.r[2]     = XMVectorMultiply(lookToMat.r[2], _scale);
-    lookToMat.r[3]     = XMVectorSetW(_translate, 1.0f);
-    return lookToMat;
+    return Mat4::CreateScale(_scale)
+         * rMat
+         * Mat4::CreateTranslation(_translate);
 }
 
 Mat4 CreateWorld(const Vec3& _translate, const Quat& _quat, const Vec3& _scale)
 {
-    Vec3 forward = Vec3::Transform(Vec3::Forward, _quat);
-    return CreateWorld(_translate, forward, _scale);
+    return Mat4::CreateScale(_scale)
+         * Mat4::CreateFromQuaternion(_quat)
+         * Mat4::CreateTranslation(_translate);
 }
 
 Mat4 CreateViewLookTo(const Vec3& _position, const Vec3& _forward)
 {
-    using namespace DirectX;
-
-    XMMATRIX lookToMat = CreateRotationLookTo(_forward);
-
-    // 평행이동 역행렬 (= 역원)
-    const XMVECTOR nPos = XMVectorNegate(_position);
-    const XMVECTOR dotX = XMVector3Dot(lookToMat.r[0], nPos);
-    const XMVECTOR dotY = XMVector3Dot(lookToMat.r[1], nPos);
-    const XMVECTOR dotZ = XMVector3Dot(lookToMat.r[2], nPos);
-
-    const XMVECTOR right = lookToMat.r[0];
-    const XMVECTOR up    = lookToMat.r[1];
-    const XMVECTOR fwd   = lookToMat.r[2];
-
-    lookToMat.r[0] = XMVectorSelect(dotX, right, g_XMSelect1110.v);
-    lookToMat.r[1] = XMVectorSelect(dotY, up, g_XMSelect1110.v);
-    lookToMat.r[2] = XMVectorSelect(dotZ, fwd, g_XMSelect1110.v);
-    lookToMat.r[3] = g_XMIdentityR3.v;
-
-    // 회전 역행렬 (= 전치 행렬)
-    return XMMatrixTranspose(lookToMat);
+    Vec3 forward = _forward;
+    forward.Normalize();
+    Vec3 up = Vec3::Up;
+    if (up.Dot(forward) >= 1.f - k_epsilon)
+        up = Vec3::Forward;
+    return DirectX::XMMatrixLookToLH(_position, _forward, Vec3::Up);
 }
 
 Mat4 CreateViewLookAt(const Vec3& _position, const Vec3& _focusPoint)

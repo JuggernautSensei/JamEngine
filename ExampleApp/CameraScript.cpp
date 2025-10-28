@@ -16,70 +16,54 @@ void CameraScript::OnUpdate(const float _deltaSec)
         return;
 
     // move
-
     TransformHierarchy& t = m_pTrans->transform;
     if (Input::IsKeyDown(eKey::A))
     {
-        Vec3 deltaTrans = t.GetWorldLeft() * m_pData->moveSpeed * _deltaSec;
-        t.AddWorldTranslate(deltaTrans);
+        Vec3 deltaTrans = t.GetLocalLeft() * m_pData->moveSpeed * _deltaSec;
+        t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::D))
     {
-        Vec3 deltaTrans = t.GetWorldRight() * m_pData->moveSpeed * _deltaSec;
-        t.AddWorldTranslate(deltaTrans);
+        Vec3 deltaTrans = t.GetLocalRight() * m_pData->moveSpeed * _deltaSec;
+        t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::W))
     {
-        Vec3 deltaTrans = t.GetWorldForward() * m_pData->moveSpeed * _deltaSec;
-        t.AddWorldTranslate(deltaTrans);
+        Vec3 deltaTrans = t.GetLocalForward() * m_pData->moveSpeed * _deltaSec;
+        t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::S))
     {
-        Vec3 deltaTrans = t.GetWorldBackward() * m_pData->moveSpeed * _deltaSec;
-        t.AddWorldTranslate(deltaTrans);
+        Vec3 deltaTrans = t.GetLocalBackward() * m_pData->moveSpeed * _deltaSec;
+        t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::Q))
     {
-        Vec3 deltaTrans = t.GetWorldDown() * m_pData->moveSpeed * _deltaSec;
-        t.AddWorldTranslate(deltaTrans);
+        Vec3 deltaTrans = t.GetLocalDown() * m_pData->moveSpeed * _deltaSec;
+        t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::E))
     {
-        Vec3 deltaTrans = t.GetWorldUp() * m_pData->moveSpeed * _deltaSec;
-        t.AddWorldTranslate(deltaTrans);
+        Vec3 deltaTrans = t.GetLocalUp() * m_pData->moveSpeed * _deltaSec;
+        t.AddLocalTranslation(deltaTrans);
     }
 
-    // rotate
     if (Input::IsMouseDown(eMouse::RightButton))
     {
-        WindowPos deltaPos = Input::GetMouseDeltaPos();
-        float     yawRad   = deltaPos.x * m_pData->rotSpeedRad;
-        float     pitchRad = deltaPos.y * m_pData->rotSpeedRad;
+        WindowPos dPos   = Input::GetMouseDeltaPos();
+        float     dYaw   = static_cast<float>(dPos.x) * m_pData->rotSpeedRad;
+        float     dPitch = static_cast<float>(dPos.y) * m_pData->rotSpeedRad;
 
-        // Yaw
-        Quat yawQ = Quat::CreateFromAxisAngle(Vec3::Up, yawRad);
-
-        // Pitch
-        Quat pitchQ = Quat::CreateFromAxisAngle(t.GetWorldRight(), pitchRad);
-
-        // 회전 적용
-        Quat q = yawQ * t.GetWorldRotate() * pitchQ;
-        t.SetWorldRotate(q);
-
-        // Pitch 클램핑
-        float currentPitch = t.GetWorldRotatePitch();
-        if (currentPitch > ToRad(89.f))
-            t.SetWorldRotatePitch(ToRad(89.f));
-        else if (currentPitch < ToRad(-89.f))
-            t.SetWorldRotatePitch(ToRad(-89.f));
-
-        // Roll 제거
-        t.SetWorldRotateRoll(0.f);
+        m_pData->yaw += dYaw;
+        m_pData->pitch += dPitch;
+        m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
+        m_pTrans->transform.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+        JAM_DEBUG_LOG("Pitch: {}, Yaw: {}", m_pData->pitch, m_pData->yaw);
     }
 }
 

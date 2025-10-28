@@ -1,7 +1,7 @@
 #pragma once
 #include "CullingSystem.h"
 #include "GraphicsBase.h"
-#include "SceneView.h"
+#include "RenderView.h"
 
 // clang-format off
 namespace jam { class Event; class Scene; }
@@ -20,7 +20,7 @@ public:
     static void Resize(Int32 _width, Int32 _height);
     static void Update(float _deltaSec);
     static void RenderRuntime();
-    static void RenderOffScreen(const SceneView& _view);
+    static void RenderOffScreen(const RenderView& _view);
     static void ImGuiRender();
 
     JAM_NODISCARD static eErrorCode LoadScene(const fs::path& _scenePath);

@@ -1,0 +1,32 @@
+[2025-10-27 16:03:31.440] [debug] [thread 68256] log initialized successfully.
+[2025-10-27 16:03:31.441] [info] [thread 68256] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-27 16:03:31.744] [trace] [thread 68256] Application 'Example Application' started.
+[2025-10-27 16:03:31.744] [info] [thread 68256] hello example app!
+[2025-10-27 16:03:52.222] [trace] [thread 68256] Application 'Example Application' shutdown.
+[2025-10-27 16:03:52.222] [info] [thread 68256] good-bye example app!
+[2025-10-27 16:03:52.223] [warning] [thread 68256] ConstantBuffer leak detected: Handle index = 1, Token = 0, Name = 'Tag: ConstantBuffer | Index: 1 | Token: 0'
+[2025-10-27 16:03:52.223] [critical] [thread 68256] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-27 16:03:52.223
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Application.cpp
+function name: void __cdecl jam::Application::Destroy(void)
+line: 119
+column: 9
+------------------------------------
+user report: 
+Graphics resource leak detected! Please check the log for details.
+====================================
+
+[2025-10-27 16:03:52.223] [debug] [thread 68256] log shutdown.

@@ -3,7 +3,7 @@
 #include "UnremovableComponent.h"
 
 // clang-format off
-namespace jam { struct TransformComponent; class TransformHierarchy; }
+namespace jam { class TransformComponent; class TransformHierarchy; }
 // clang-format on
 
 namespace jam

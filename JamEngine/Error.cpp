@@ -69,7 +69,7 @@ namespace details
     {
         std::string msg = CreateErrorMessage(_msg, _loc);
         Log::Critical(msg);
-        Log::Flush();
+        Log::Shutdown();   // 로깅 스레스 조인
         OutputDebugStringA(msg.c_str());
     }
 
@@ -78,7 +78,7 @@ namespace details
         // 로깅 + 메시지 박스 + crash dump 저장 + 강제 종료
         std::string msg = CreateErrorMessage(_msg, _loc);
         Log::Critical(msg);
-        Log::Flush();
+        Log::Shutdown();   // 로깅 스레스 조인
         OutputDebugStringA(msg.c_str());
 
         // crash dump 저장

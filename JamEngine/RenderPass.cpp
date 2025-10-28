@@ -7,9 +7,14 @@
 namespace jam
 {
 
-JAM_NODISCARD UInt64 MakeValidateSetKey(const UInt32 _handleValue, const eShader _stage)
+JAM_NODISCARD UInt64 MakeRenderPassHandleStageKey(const UInt32 _handleValue, const eShader _stage)
 {
     return (static_cast<UInt64>(_handleValue) << 32) | static_cast<UInt64>(_stage);
+}
+
+JAM_NODISCARD UInt64 MakeRenderPassStageSlotKey(eShader _stage, const Int32 _slot)
+{
+    return (static_cast<UInt64>(_stage) << 32) | static_cast<UInt64>(_slot);
 }
 
 }   // namespace jam
@@ -76,10 +81,10 @@ RenderPass& RenderPass::SetBlendState(const Int32 _renderTargetIndex, const Blen
     return *this;
 }
 
-RenderPass& RenderPass::SetStencil(const StencilState _front, const StencilState _back, const UInt8 _ref)
+RenderPass& RenderPass::SetStencil(const StencilState _fstencil, const StencilState _bstencil, const UInt8 _ref)
 {
-    m_fstencil   = _front;
-    m_bstencil   = _back;
+    m_fstencil   = _fstencil;
+    m_bstencil   = _bstencil;
     m_stencilRef = _ref;
     return *this;
 }
@@ -99,9 +104,6 @@ void RenderPass::Execute(const FrameBufferHandle _fbh, const Viewport _viewport)
 {
     Graphics::SetProgram(m_program);
 
-    Graphics::SetFrameBuffer(_fbh);
-    Graphics::SetViewport(_viewport);
-
     for (const ConstantBufferBindItem& cb: m_cbufferBindlist)
         Graphics::SetConstantBuffer(cb.handle, cb.stage, cb.slot);
     for (const TextureBindItem& tex: m_textureBindlist)
@@ -111,87 +113,100 @@ void RenderPass::Execute(const FrameBufferHandle _fbh, const Viewport _viewport)
 
     Graphics::SetGfxState(m_gfxState);
     Graphics::SetStencil(m_fstencil, m_bstencil, m_stencilRef);
+
+    Graphics::SetFrameBuffer(_fbh);
+    Graphics::SetViewport(_viewport);
+
     for (Int32 i = m_blendStateStart; i <= m_blendStateEnd; ++i)
-        Graphics::SetBlendState(i, m_blendStates[i]);
+        Graphics::SetBlendState(m_blendStates[i], i);
     Graphics::SetBlendFactor(m_blendFactor);
 
-    if (m_executor)
-        m_executor();
+    JAM_ASSERT(m_executor, "Render pass executor is not set.");
+    m_executor();
 }
 
 bool RenderPass::Validate() const
 {
     if (!JAM_IS_VALID_HANDLE(m_program))
-    {
         return false;
-    }
-
-    if (!JAM_IS_VALID_HANDLE(m_frameBuffer))
-    {
-        return false;
-    }
-
-    if (m_viewport.w == 0 || m_viewport.h == 0)
-    {
-        return false;
-    }
 
     // 리소스 중복 혹은 충돌 검사
-    HashSet<UInt64> validateSet;
+    HashSet<UInt64> handleStageSet;
+    HashSet<UInt64> stageSlotSet;
 
     // 입력 리소스와 출력 리소스 충돌 검사
     {
         // 출력 리소스 수집
         FrameBufferInfo fbInfo = Graphics::GetFrameBufferInfo(m_frameBuffer);
+        handleStageSet.reserve(fbInfo.renderTargetCount + 1 + m_textureBindlist.size());
+
         for (Int32 i = 0; i < fbInfo.renderTargetCount; ++i)
         {
             TextureHandle rtth = fbInfo.renderTargetTextureHandles[i];
             JAM_ASSERT(JAM_IS_VALID_HANDLE(rtth), "Frame buffer has invalid render target texture handle.");
-            validateSet.emplace(rtth.value);
+            handleStageSet.emplace(static_cast<UInt64>(rtth.value));
         }
-        validateSet.emplace(fbInfo.depthStencilTextureHandle.value);
+        handleStageSet.emplace(static_cast<UInt64>(fbInfo.depthStencilTextureHandle.value));
 
         // 입력 리소스와 충돌하는지 검사
         for (const TextureBindItem& texBind: m_textureBindlist)
         {
-            if (validateSet.contains(texBind.handle.value))
+            if (handleStageSet.contains(texBind.handle.value))
                 return false;
         }
     }
 
     // 입력 리소스 중복 검사
     {
-        // 텍스처
+        // 텍스처 검사
+        handleStageSet.clear();
+        stageSlotSet.clear();
+        handleStageSet.reserve(m_textureBindlist.size());
+        stageSlotSet.reserve(m_textureBindlist.size());
+
+        for (const TextureBindItem& texBind: m_textureBindlist)
         {
-            validateSet.clear();
-            for (const TextureBindItem& texBind: m_textureBindlist)
-            {
-                auto [_, bResult] = validateSet.emplace(MakeValidateSetKey(texBind.handle.value, texBind.stage));
-                if (!bResult)
-                    return false;
-            }
+            UInt64 handleStageKey = MakeRenderPassHandleStageKey(texBind.handle.value, texBind.stage);
+            UInt64 stageSlotKey   = MakeRenderPassStageSlotKey(texBind.stage, texBind.slot);
+
+            if (!handleStageSet.emplace(handleStageKey).second)
+                return false;
+            if (!stageSlotSet.emplace(stageSlotKey).second)
+                return false;
         }
 
-        // 상수 버퍼
+        // 상수 버퍼 검사
+        handleStageSet.clear();
+        stageSlotSet.clear();
+        handleStageSet.reserve(m_cbufferBindlist.size());
+        stageSlotSet.reserve(m_cbufferBindlist.size());
+
+        for (const ConstantBufferBindItem& cbBind: m_cbufferBindlist)
         {
-            validateSet.clear();
-            for (const ConstantBufferBindItem& cbBind: m_cbufferBindlist)
-            {
-                auto [_, bResult] = validateSet.emplace(MakeValidateSetKey(cbBind.handle.value, cbBind.stage));
-                if (!bResult)
-                    return false;
-            }
+            UInt64 handleStageKey = MakeRenderPassHandleStageKey(cbBind.handle.value, cbBind.stage);
+            UInt64 stageSlotKey   = MakeRenderPassStageSlotKey(cbBind.stage, cbBind.slot);
+
+            if (!handleStageSet.emplace(handleStageKey).second)
+                return false;
+            if (!stageSlotSet.emplace(stageSlotKey).second)
+                return false;
         }
 
-        // 샘플러
+        // 샘플러 검사
+        handleStageSet.clear();
+        stageSlotSet.clear();
+        handleStageSet.reserve(m_samplerBindlist.size());
+        stageSlotSet.reserve(m_samplerBindlist.size());
+
+        for (const SamplerBindItem& sampBind: m_samplerBindlist)
         {
-            validateSet.clear();
-            for (const SamplerBindItem& sampBind: m_samplerBindlist)
-            {
-                auto [_, bResult] = validateSet.emplace(MakeValidateSetKey(sampBind.state.value, sampBind.stage));
-                if (!bResult)
-                    return false;
-            }
+            UInt64 handleStageKey = MakeRenderPassHandleStageKey(sampBind.state.value, sampBind.stage);
+            UInt64 stageSlotKey   = MakeRenderPassStageSlotKey(sampBind.stage, sampBind.slot);
+
+            if (!stageSlotSet.emplace(stageSlotKey).second)
+                return false;
+            if (!handleStageSet.emplace(handleStageKey).second)
+                return false;
         }
     }
 

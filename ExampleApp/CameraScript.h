@@ -6,9 +6,12 @@ struct CameraScriptDataComponent
 
     void DrawEditor(const Scene* _pScene, Entity _entity);
 
-    float moveSpeed   = 5.f;
+    float moveSpeed   = 10.f;
     float rotSpeedRad = ToRad(0.2f);
     bool  bEnable     = true;
+
+    float yaw   = 0.f;
+    float pitch = 0.f;
 };
 
 class CameraScript : public Script

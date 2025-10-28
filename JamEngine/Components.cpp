@@ -11,6 +11,7 @@ namespace nlohmann
 {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(jam::Vec3, x, y, z);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(jam::Quat, x, y, z, w);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(jam::Mat4, _11, _12, _13, _14, _21, _22, _23, _24, _31, _32, _33, _34, _41, _42, _43, _44);
 }   // namespace nlohmann
 
 namespace jam
@@ -47,10 +48,8 @@ Json TransformComponent::Serialize(const Scene* _pScene, Entity _entity) const
     const Transform& local = transform.GetLocal();
 
     Json json;
-    json["translate"] = local.translate;
-    json["rotate"]    = local.rotate;
-    json["scale"]     = local.scale;
-    json["parent"]    = t.GetParent().GetUID();
+    json["mtx"] = local.GetMatrix();
+    json["parent"] = t.GetParent().GetUID();
     return json;
 }
 
@@ -72,11 +71,8 @@ eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pSce
     }
 
     // 로컬
-    Transform local;
-    local.translate = _json.value<Vec3>("translate", Vec3::Zero);
-    local.rotate    = _json.value<Quat>("rotate", Quat::Identity);
-    local.scale     = _json.value<Vec3>("scale", Vec3::One);
-    t.SetLocal(local);
+    Mat4 mat = _json["mtx"].get<Mat4>();
+    transform.SetLocalMatrix(mat);
 
     // 부모 설정
     UID    parentUID = _json["parent"].get<UID>();
@@ -87,7 +83,7 @@ eErrorCode TransformComponent::Deserialize(const Json& _json, const Scene* _pSce
         return eErrorCode::FileParseFailed;
     }
 
-    t.SetParent(parent);
+    t.SetParent(parent, true);
     return eErrorCode::Ok;
 }
 
@@ -122,7 +118,7 @@ eErrorCode CameraComponent::Deserialize(const Json& _json, const Scene* _pScene,
     fovYRad    = _json["fovYRad"].get<float>();
     width      = _json["width"].get<float>();
     height     = _json["height"].get<float>();
-    bMain             = _json["bMain"].get<bool>();
+    bMain      = _json["bMain"].get<bool>();
 
     // 사후검사
     if (!IsValidEnum(projection))

@@ -7,7 +7,7 @@
 namespace jam
 {
 
-JAM_NODISCARD UInt64 MakeSlotKey(const eShader _stage, const Int32 _slot)
+JAM_NODISCARD UInt64 MakeRenderGraphStageSlotKey(const eShader _stage, const Int32 _slot)
 {
     return (static_cast<UInt64>(_stage) << 32) | static_cast<UInt64>(_slot);
 }
@@ -42,7 +42,6 @@ void RenderGraph::Compile()
     }
 
     // 다중 패스인 경우 의존성 검사 수행
-
     HashMap<UInt32, const TextureBindItem*> handleBasedMap;      // 핸들 기반 맵
     HashMap<UInt64, const TextureBindItem*> slotBasedMap;        // 슬롯 기반 맵
     HashSet<UInt32>                         frameBufferTexSet;   // 프레임 버퍼 텍스처 핸들 집합
@@ -63,7 +62,7 @@ void RenderGraph::Compile()
         {
             JAM_ASSERT(JAM_IS_VALID_HANDLE(inputTex.handle), "RenderPass at index {} has invalid texture handle in its inputs.", i);
             handleBasedMap.emplace(inputTex.handle.value, &inputTex);
-            slotBasedMap.emplace(MakeSlotKey(inputTex.stage, inputTex.slot), &inputTex);
+            slotBasedMap.emplace(MakeRenderGraphStageSlotKey(inputTex.stage, inputTex.slot), &inputTex);
         }
 
         // 현재 패스의 입력이 이후 패스의 출력과 충돌하는지 검사
@@ -76,7 +75,7 @@ void RenderGraph::Compile()
             for (const TextureBindItem& nextInputTex: nextPass.GetTextureBindList())
             {
                 JAM_ASSERT(JAM_IS_VALID_HANDLE(nextInputTex.handle), "RenderPass at index {} has invalid texture handle in its inputs.", j);
-                auto it = slotBasedMap.find(MakeSlotKey(nextInputTex.stage, nextInputTex.slot));
+                auto it = slotBasedMap.find(MakeRenderGraphStageSlotKey(nextInputTex.stage, nextInputTex.slot));
                 if ((it != slotBasedMap.end()) && (it->second->handle != nextInputTex.handle))
                 {
                     const TextureBindItem* curInput = it->second;
@@ -107,7 +106,7 @@ void RenderGraph::Compile()
                     curPassEx.unbindTextures.emplace_back(texInput->stage, texInput->slot);
 
                     // 맵에서 제거
-                    slotBasedMap.erase(MakeSlotKey(texInput->stage, texInput->slot));
+                    slotBasedMap.erase(MakeRenderGraphStageSlotKey(texInput->stage, texInput->slot));
                     handleBasedMap.erase(rtTexHandle.value);
                 }
             }
@@ -121,7 +120,7 @@ void RenderGraph::Compile()
                 curPassEx.unbindTextures.emplace_back(texInput->stage, texInput->slot);
 
                 // 맵에서 제거
-                slotBasedMap.erase(MakeSlotKey(texInput->stage, texInput->slot));
+                slotBasedMap.erase(MakeRenderGraphStageSlotKey(texInput->stage, texInput->slot));
                 handleBasedMap.erase(dsTexHandle.value);
             }
 
@@ -197,10 +196,10 @@ void RenderGraph::Execute(const FrameBufferHandle _fbh, const Viewport _viewport
 {
     JAM_ASSERT(m_bCompiled, "RenderGraph must be compiled before execution.");
 
-    Int32 passIndex = 0;
     Int32 passCount = NarrowCast<Int32>(m_passes.size());
-    for (const PassEx& passEx: m_passes)
+    for (Int32 passIndex = 0; passIndex < passCount; ++passIndex)
     {
+        const PassEx& passEx = m_passes[passIndex];
         if (passIndex == passCount - 1)
         {
             // 마지막 패스인 경우 오버라이드된 프레임버퍼와 뷰포트로 실행
@@ -216,17 +215,12 @@ void RenderGraph::Execute(const FrameBufferHandle _fbh, const Viewport _viewport
         {
             // 프레임버퍼 언바인딩
             if (passEx.bNeedUnbindFrameBuffer)
-            {
                 Graphics::SetFrameBuffer(k_invalidHandle);
-            }
 
             // 바인딩된 텍스처 언바인딩
             for (const TextureBindInfo& texInfo: passEx.unbindTextures)
-            {
                 Graphics::SetTexture(k_invalidHandle, texInfo.stage, texInfo.slot);
-            }
         }
-        ++passIndex;
     }
 }
 

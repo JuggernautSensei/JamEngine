@@ -832,13 +832,13 @@ void BasicRenderer::BakeSSAOKernel()
 void BasicRenderer::Submit(const Mesh& _mesh, const Material& _material, const Transform& _transform)
 {
     g_basicRendererContext.UploadMaterial(_material);
-    g_basicRendererContext.UploadTransform(_transform.CreateWorld());
+    g_basicRendererContext.UploadTransform(_transform.GetMatrix());
     _mesh.Submit();
 }
 
 void BasicRenderer::Submit(const Mesh& _mesh, const Transform& _transform)
 {
-    g_basicRendererContext.UploadTransform(_transform.CreateWorld());
+    g_basicRendererContext.UploadTransform(_transform.GetMatrix());
     _mesh.Submit();
 }
 

@@ -141,7 +141,7 @@ void SceneManager::RenderRuntime()
         Int32 w = g_sceneManagerContext.sceneResolution.width;
         Int32 h = g_sceneManagerContext.sceneResolution.height;
 
-        SceneView view = {
+        RenderView view = {
             g_sceneManagerContext.sceneFrameBuffer,
             Viewport { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) },
         };
@@ -152,9 +152,10 @@ void SceneManager::RenderRuntime()
             if (cameraCmp.bMain)
             {
                 const Transform& t = transformCmp.transform.GetWorld();
-                view.eye           = t.translate;
-                view.view          = t.CreateView();
-                view.proj          = cameraCmp.CreateProj();
+
+                view.eye  = t.GetTranslation();
+                view.view = t.GetViewMatrix();
+                view.proj = cameraCmp.CreateProj();
                 break;
             }
         }
@@ -165,7 +166,7 @@ void SceneManager::RenderRuntime()
     }
 }
 
-void SceneManager::RenderOffScreen(const SceneView& _view)
+void SceneManager::RenderOffScreen(const RenderView& _view)
 {
     std::unique_ptr<Scene>& pCurScene = g_sceneManagerContext.pActiveScene;
 

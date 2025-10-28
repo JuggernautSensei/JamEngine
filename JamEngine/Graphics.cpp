@@ -3657,8 +3657,8 @@ void Graphics::SetGfxState(const GfxState _state)
 }
 
 void Graphics::SetBlendState(
-    const Int32      _renderTargetIndex,
-    const BlendState _state)
+    const BlendState _state,
+    const Int32      _renderTargetIndex)
 {
     JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < k_renderTargetCountMax, "Render target index out of range.");
     BlendState bs = g_gfxContext.blendStateBind.renderTarget[_renderTargetIndex];

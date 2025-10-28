@@ -15,20 +15,17 @@
     <ClInclude Include="ExampleApp.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="HelloTriangleScene.h">
-      <Filter>Scene\01. HelloTriangle</Filter>
-    </ClInclude>
-    <ClInclude Include="HelloCubeScene.h">
-      <Filter>Scene\02. HelloCube</Filter>
-    </ClInclude>
     <ClInclude Include="CameraScript.h">
       <Filter>Script</Filter>
     </ClInclude>
-    <ClInclude Include="HelloTextureScene.h">
-      <Filter>Scene\03. HelloTexture</Filter>
-    </ClInclude>
     <ClInclude Include="HelloBasicRenderer.h">
       <Filter>Scene\04. HelloBasicRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="HelloJamScene.h">
+      <Filter>Scene\01. HelloJam</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -41,20 +38,17 @@
     <ClCompile Include="EntryPoint.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="HelloTriangleScene.cpp">
-      <Filter>Scene\01. HelloTriangle</Filter>
-    </ClCompile>
-    <ClCompile Include="HelloCubeScene.cpp">
-      <Filter>Scene\02. HelloCube</Filter>
-    </ClCompile>
     <ClCompile Include="CameraScript.cpp">
       <Filter>Script</Filter>
     </ClCompile>
-    <ClCompile Include="HelloTextureScene.cpp">
-      <Filter>Scene\03. HelloTexture</Filter>
-    </ClCompile>
     <ClCompile Include="HelloBasicRenderer.cpp">
       <Filter>Scene\04. HelloBasicRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="HelloJamScene.cpp">
+      <Filter>Scene\01. HelloJam</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -67,20 +61,17 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{26f870f8-3158-4ad3-8258-c4c982c96161}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scene\01. HelloTriangle">
-      <UniqueIdentifier>{ab39cc77-5628-46fe-8ba7-1799167c3f74}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scene\02. HelloCube">
-      <UniqueIdentifier>{e880a531-928e-4b2c-96e6-65920190c4b1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Script">
       <UniqueIdentifier>{2bae2fb8-0941-431c-8c92-3c3eb9071a1b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scene\03. HelloTexture">
-      <UniqueIdentifier>{2366edbb-0918-4898-95cc-e25e464a9023}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scene\04. HelloBasicRenderer">
       <UniqueIdentifier>{ab1c6d9b-2326-4061-832e-7ff5cc2e850a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\01. HelloJam">
+      <UniqueIdentifier>{b4467359-f89b-4a9d-8616-d6b4681ccd1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{a64507e5-b4c6-4fa9-b308-96e1bc7c8d73}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

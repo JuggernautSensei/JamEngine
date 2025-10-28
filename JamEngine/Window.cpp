@@ -70,6 +70,7 @@ void Window::Shutdown()
     m_hWnd      = NULL;
     m_hInstance = NULL;
 }
+
 bool Window::PollEvents()
 {
     if (PeekMessage(&m_msg, nullptr, 0, 0, PM_REMOVE))
@@ -259,8 +260,11 @@ LRESULT Window::WindowProc_(const HWND hWnd, const UINT uMsg, const WPARAM wPara
 
         case WM_SIZE:
         {
-            const Int32 width  = LOWORD(lParam);
-            const Int32 height = HIWORD(lParam);
+            Int32 width  = LOWORD(lParam);
+            Int32 height = HIWORD(lParam);
+
+            width  = Max(width, 1);
+            height = Max(height, 1);
 
             switch (wParam)
             {

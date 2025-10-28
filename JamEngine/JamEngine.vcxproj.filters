@@ -40,9 +40,6 @@
     <ClCompile Include="CommandQueue.cpp">
       <Filter>99. Utilities\MultiThread</Filter>
     </ClCompile>
-    <ClCompile Include="MathUtilities.cpp">
-      <Filter>99. Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="TypeTrait.cpp">
       <Filter>1. Core\Base</Filter>
     </ClCompile>
@@ -211,9 +208,6 @@
     <ClCompile Include="Environment.cpp">
       <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="RadixSort.cpp">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClCompile>
@@ -241,8 +235,14 @@
     <ClCompile Include="BasicRendererBase.cpp">
       <Filter>4. RenderSystem\BasicRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="SceneView.cpp">
+    <ClCompile Include="RenderView.cpp">
       <Filter>3. Scene\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathUtilities.cpp">
+      <Filter>99. Utilities\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -429,6 +429,9 @@
     <Filter Include="4. RenderSystem\RenderGraph">
       <UniqueIdentifier>{f43b2563-91e4-4be3-955e-fbb9af5a0d98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="99. Utilities\Math">
+      <UniqueIdentifier>{983c628d-c07e-4f45-a151-6e9c01e67075}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -472,9 +475,6 @@
     </ClInclude>
     <ClInclude Include="CommandQueue.h">
       <Filter>99. Utilities\MultiThread</Filter>
-    </ClInclude>
-    <ClInclude Include="MathUtilities.h">
-      <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="TypeTrait.h">
       <Filter>1. Core\Base</Filter>
@@ -677,9 +677,6 @@
     <ClInclude Include="Environment.h">
       <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="RadixSort.h">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClInclude>
@@ -770,8 +767,14 @@
     <ClInclude Include="BasicRendererBase.h">
       <Filter>4. RenderSystem\BasicRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="SceneView.h">
+    <ClInclude Include="RenderView.h">
       <Filter>3. Scene\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtilities.h">
+      <Filter>99. Utilities\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
