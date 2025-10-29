@@ -152,10 +152,11 @@ void SceneManager::RenderRuntime()
             if (cameraCmp.bMain)
             {
                 const Transform& t = transformCmp.transform.GetWorld();
+                const Camera&    c = cameraCmp.camera;
 
                 view.eye  = t.GetTranslation();
                 view.view = t.GetViewMatrix();
-                view.proj = cameraCmp.CreateProj();
+                view.proj = c.CreateProj();
                 break;
             }
         }

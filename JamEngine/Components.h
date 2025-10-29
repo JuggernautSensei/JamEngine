@@ -52,12 +52,11 @@ struct CameraComponent : SerializableComponent<CameraComponent>
     static constexpr float k_farthestZ = 10000.f;
 };
 
-struct EnvironmentComponent :SerializableComponent<EnvironmentComponent>
-{
-    JAM_COMPONENT(EnvironmentComponent);
-
-    Environment environment = {}; 
-};
+//struct EnvironmentComponent :SerializableComponent<EnvironmentComponent>
+//{
+//    JAM_COMPONENT(EnvironmentComponent);
+//
+//};
 
 struct ScriptComponent : SerializableComponent<ScriptComponent>
 {

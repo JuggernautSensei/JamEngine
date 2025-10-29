@@ -22,6 +22,14 @@ JAM_NODISCARD UInt64 MakeRenderPassStageSlotKey(eShader _stage, const Int32 _slo
 namespace jam
 {
 
+RenderPass::RenderPass(RenderPass&&) noexcept
+{
+}
+
+RenderPass& RenderPass::operator=(RenderPass&&) noexcept
+{
+}
+
 RenderPass& RenderPass::SetProgram(const ProgramHandle _handle)
 {
     m_program = _handle;
@@ -32,6 +40,14 @@ RenderPass& RenderPass::SetFrameBuffer(const FrameBufferHandle _handle)
 {
     m_frameBuffer = _handle;
     return *this;
+}
+
+RenderPass& RenderPass::SetClearRenderTargetCommand(RGBA _color, Int32 _renderTargetIndex)
+{
+}
+
+RenderPass& RenderPass::SetClearDepthStencilCommand(bool _bClearDepth, bool _bClearStencil, float _depth, UInt8 _stencil)
+{
 }
 
 RenderPass& RenderPass::SetViewport(const Viewport _viewport)
@@ -73,7 +89,7 @@ RenderPass& RenderPass::SetGfxState(const GfxState _state)
     return *this;
 }
 
-RenderPass& RenderPass::SetBlendState(const Int32 _renderTargetIndex, const BlendState _state)
+RenderPass& RenderPass::SetBlendState(const BlendState _state, const Int32 _renderTargetIndex)
 {
     m_blendStates[_renderTargetIndex] = _state;
     m_blendStateStart                 = Min(m_blendStateStart, _renderTargetIndex);
@@ -257,6 +273,10 @@ StencilState RenderPass::GetBackStencilState() const
 UInt8 RenderPass::GetStencilRef() const
 {
     return m_stencilRef;
+}
+
+void RenderPass::CleanUp_()
+{
 }
 
 const std::vector<ConstantBufferBindItem>& RenderPass::GetConstantBufferBindList() const

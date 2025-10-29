@@ -201,14 +201,14 @@
         {
             "entryPoint": "PSMain",
             "macros": [],
-            "name": "BloomXPS",
+            "name": "BloomUpPS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomXPS.hlsl",
             "stage": "PixelShader"
         },
         {
             "entryPoint": "PSMain",
             "macros": [],
-            "name": "BloomYPS",
+            "name": "BloomDownPS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomYPS.hlsl",
             "stage": "PixelShader"
         },

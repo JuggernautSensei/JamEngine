@@ -1,0 +1,33 @@
+[2025-10-28 23:50:35.776] [debug] [thread 271516] log initialized successfully.
+[2025-10-28 23:50:35.777] [info] [thread 271516] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-28 23:50:36.423] [trace] [thread 271516] Application 'Example Application' started.
+[2025-10-28 23:50:36.423] [info] [thread 271516] hello example app!
+[2025-10-28 23:50:58.250] [trace] [thread 271516] Application 'Example Application' shutdown.
+[2025-10-28 23:50:58.250] [info] [thread 271516] good-bye example app!
+[2025-10-28 23:50:58.251] [warning] [thread 271516] Shader leak detected: Handle index = 0, Token = 0, Stage = VertexShader, RefCount = 1
+[2025-10-28 23:50:58.251] [warning] [thread 271516] Shader leak detected: Handle index = 1, Token = 0, Stage = PixelShader, RefCount = 1
+[2025-10-28 23:50:58.251] [critical] [thread 271516] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-28 23:50:58.251
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Application.cpp
+function name: void __cdecl jam::Application::Destroy(void)
+line: 119
+column: 9
+------------------------------------
+user report: 
+Graphics resource leak detected! Please check the log for details.
+====================================
+
+[2025-10-28 23:50:58.251] [debug] [thread 271516] log shutdown.

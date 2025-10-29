@@ -18,14 +18,17 @@
     <ClInclude Include="CameraScript.h">
       <Filter>Script</Filter>
     </ClInclude>
-    <ClInclude Include="HelloBasicRenderer.h">
-      <Filter>Scene\02. HelloBasicRenderer</Filter>
-    </ClInclude>
     <ClInclude Include="HelloJamScene.h">
       <Filter>Scene\01. HelloJam</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleScene.h">
+      <Filter>Scene\00. Trinagle</Filter>
+    </ClInclude>
+    <ClInclude Include="HelloBasicRenderer.h">
+      <Filter>Scene\02. HelloBasicRenderer\01. GBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -41,14 +44,17 @@
     <ClCompile Include="CameraScript.cpp">
       <Filter>Script</Filter>
     </ClCompile>
-    <ClCompile Include="HelloBasicRenderer.cpp">
-      <Filter>Scene\02. HelloBasicRenderer</Filter>
-    </ClCompile>
     <ClCompile Include="HelloJamScene.cpp">
       <Filter>Scene\01. HelloJam</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleScene.cpp">
+      <Filter>Scene\00. Trinagle</Filter>
+    </ClCompile>
+    <ClCompile Include="HelloBasicRenderer.cpp">
+      <Filter>Scene\02. HelloBasicRenderer\01. GBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +78,12 @@
     </Filter>
     <Filter Include="Scene\02. HelloBasicRenderer">
       <UniqueIdentifier>{ab1c6d9b-2326-4061-832e-7ff5cc2e850a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\00. Trinagle">
+      <UniqueIdentifier>{6c4b309b-bdb1-4f78-9d76-dcafe806a9f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\02. HelloBasicRenderer\01. GBuffer">
+      <UniqueIdentifier>{f063b148-bd7b-4fea-bd74-e505ada112e2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

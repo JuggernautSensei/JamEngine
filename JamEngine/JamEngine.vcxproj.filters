@@ -244,7 +244,9 @@
     <ClCompile Include="MathUtilities.cpp">
       <Filter>99. Utilities\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Camera.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -777,7 +779,9 @@
     <ClInclude Include="MathUtilities.h">
       <Filter>99. Utilities\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Camera.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">

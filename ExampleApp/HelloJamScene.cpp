@@ -397,7 +397,7 @@ void HelloJamScene::Resize(const Int32 _width, const Int32 _height)
         CameraComponent& cameraCmp = m_cmrEntt.GetComponent<CameraComponent>();
 
         Camera& camera = cameraCmp.camera;
-        camera.SetWidth(static_cast<Int32>(_width));
-        camera.SetHeight(static_cast<Int32>(_height));
+        camera.SetWidth(static_cast<float>(_width));
+        camera.SetHeight(static_cast<float>(_height));
     }
 }

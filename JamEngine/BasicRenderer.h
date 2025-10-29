@@ -44,9 +44,9 @@ public:
     static void AddPass(const RenderPass& _pass);
 
     // resource factory
-    JAM_NODISCARD static TextureHandle CreateTexture2D(Int32 _width, Int32 _height, eFormat _format, bool _bRTVAttachable, bool _bDSVAttachable);
-    JAM_NODISCARD static TextureHandle CreateTextureCube(Int32 _width, Int32 _height, eFormat _format, bool _bRTVAttachable, bool _bDSVAttachable);
-    JAM_NODISCARD static TextureHandle CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eFormat _format, bool _bRTVAttachable, bool _bDSVAttachable);
+    JAM_NODISCARD static TextureHandle CreateTexture2D(Int32 _width, Int32 _height, eFormat _format, eAttachmentType _type, bool _bWrireOnly = false);
+    JAM_NODISCARD static TextureHandle CreateTextureCube(Int32 _width, Int32 _height, eFormat _format, eAttachmentType _type, bool _bWrireOnly = false);
+    JAM_NODISCARD static TextureHandle CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eFormat _format, eAttachmentType _type, bool _bWrireOnly = false);
 
     JAM_NODISCARD static GBufferDesc   CreateGBuffer(Int32 _width, Int32 _height);
     JAM_NODISCARD static TextureHandle CreateShadowMap(Int32 _sideLength);
@@ -56,22 +56,23 @@ public:
     JAM_NODISCARD static TextureHandle CreatePostProcessTexture(Int32 _width, Int32 _height, bool _bHdr);   // RGBA16_Float or RGBA8_UNorm
 
     // pass creators
-    JAM_NODISCARD static RenderPass CreatePBRGBufferPass(const PBRGBufferPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreatePBRLightPass(const PBRLightPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreatePBRLightVolumePass(const PBRLightVolumePassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreatePBREnvironmentLightVolumePass(const PBREnvironmentLightVolumePassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateSkyboxPass(const SkyboxPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateShadowCasterPass(const ShadowCasterPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateOmniDirectionalShadowCasterPass(const ShadowCasterPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateCascadeShadowCasterPass(const ShadowCasterPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateSSAOPass(const SSAOPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateSSAOBBlurPass(const SSAOBlurPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateBlurPass(const BlurPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateCombinePass(const CombinePassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateToneMappingPass(const ToneMappingPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateFXAAPass(const FXAAPassDesc& _desc);
-    JAM_NODISCARD static RenderPass CreateHeightFogPass(const HeightFogPass& _desc);
-    JAM_NODISCARD static RenderPass CreatePassThroughPass(const PassThroughPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreatePBRGBufferPass(const PBRGBufferPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreatePBRLightPass(const PBRLightPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreatePBRLightVolumePass(const PBRLightVolumePassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreatePBREnvironmentLightVolumePass(const PBREnvironmentLightVolumePassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateSkyboxPass(const SkyboxPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateShadowCasterPass(const ShadowCasterPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateOmniDirectionalShadowCasterPass(const ShadowCasterPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateCascadeShadowCasterPass(const ShadowCasterPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateSSAOPass(const SSAOPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateSSAOBBlurPass(const SSAOBlurPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateBlurPass(const BlurPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateCombinePass(const CombinePassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateToneMappingPass(const ToneMappingPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateFXAAPass(const FXAAPassDesc& _desc);
+    JAM_NODISCARD static RenderPass              CreateHeightFogPass(const HeightFogPass& _desc);
+    JAM_NODISCARD static RenderPass              CreatePassThroughPass(const PassThroughPassDesc& _desc);
+    JAM_NODISCARD static std::vector<RenderPass> CreateBloomPass(const BloomPassDesc& _desc);
 };
 
 }   // namespace jam

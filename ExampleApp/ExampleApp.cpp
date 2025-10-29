@@ -4,6 +4,7 @@
 
 #include "HelloBasicRenderer.h"
 #include "HelloJamScene.h"
+#include "TriangleScene.h"
 
 ExampleApp::ExampleApp(const ApplicationCreateInfo& _info)
     : Application(_info)
@@ -16,10 +17,11 @@ void ExampleApp::OnCreate()
 
     SetVsync(true);
     Window& win = GetWindow();
-    win.ResizeClient(1600, 900);
+    win.ResizeClient(1600, 900);   // 화면사이즈 1600 x 900
 
-    // auto pScene = std::make_unique<HelloJamScene>();
-    auto pScene = std::make_unique<HelloBasicRenderer>();
+    auto pScene = std::make_unique<HelloJamScene>();
+    // auto pScene = std::make_unique<HelloBasicRenderer>();
+    // auto pScene = std::make_unique<TriangleScene>();
     SceneManager::LoadScene(std::move(pScene));
 }
 

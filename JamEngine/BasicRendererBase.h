@@ -59,9 +59,15 @@ struct ShadowCasterPassDesc
 
 struct SSAOPassDesc
 {
-    FrameBufferHandle frameBuffer  = k_invalidHandle;
-    Viewport          viewport     = {};
-    GBufferDesc       gBufferDesc  = {};
+    FrameBufferHandle frameBuffer = k_invalidHandle;
+    Viewport          viewport    = {};
+    GBufferDesc       gBufferDesc = {};
+};
+
+enum class eSSAOBlurType : Int8
+{
+    Horizontal,
+    Vertical
 };
 
 struct SSAOBlurPassDesc
@@ -69,7 +75,13 @@ struct SSAOBlurPassDesc
     FrameBufferHandle frameBuffer = k_invalidHandle;
     Viewport          viewport    = {};
     TextureHandle     ssaoTexture = k_invalidHandle;
-    bool              bHorizontal = true;   // true: horizontal blur, false: vertical blur
+    eSSAOBlurType     type        = eSSAOBlurType::Horizontal;
+};
+
+enum class eBlurType : Int8
+{
+    DownSampling,
+    UpSampling
 };
 
 struct BlurPassDesc
@@ -77,7 +89,7 @@ struct BlurPassDesc
     FrameBufferHandle frameBuffer  = k_invalidHandle;
     Viewport          viewport     = {};
     TextureHandle     inputTexture = k_invalidHandle;
-    bool              bHorizontal  = true;   // true: horizontal blur, false: vertical blur
+    eBlurType         type         = eBlurType::DownSampling;
 };
 
 struct CombinePassDesc
@@ -86,6 +98,14 @@ struct CombinePassDesc
     Viewport          viewport      = {};
     TextureHandle     inputTexture0 = k_invalidHandle;
     TextureHandle     inputTexture1 = k_invalidHandle;
+};
+
+struct BloomPassDesc
+{
+    FrameBufferHandle frameBuffer          = k_invalidHandle;
+    Viewport          viewport             = {};
+    TextureHandle     bloomReceiverTexture = {};
+    Int32             bloomLevel           = 3;
 };
 
 struct ToneMappingPassDesc
@@ -165,6 +185,16 @@ struct VertexPos3D
         layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
         return layout;
     }();
+};
+
+///////////////////////////////
+///          MISC           ///
+///////////////////////////////
+
+enum class eAttachmentType : Int8
+{
+    RenderTarget,
+    DepthStencil
 };
 
 }   // namespace jam
