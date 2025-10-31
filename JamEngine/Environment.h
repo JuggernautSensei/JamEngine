@@ -1,4 +1,5 @@
 #pragma once
+#include "EmbeddedShaderGlue.h"
 
 namespace jam
 {
@@ -9,9 +10,6 @@ enum class eSkyboxType
 {
     SolidColor = 0,
     Cubemap,
-
-    // https://pvpmc.sandia.gov/modeling-guide/1-weather-design-inputs/plane-of-array-poa-irradiance/calculating-poa-irradiance/poa-sky-diffuse/perez-sky-diffuse-model/
-    // Dynamic_PerezDiffuseModel (todo)
 };
 
 enum class eToneMappingType
@@ -23,16 +21,7 @@ enum class eToneMappingType
     RomBinDaHouse,
     Uncharted2,
     Filmic,
-};
-
-enum class eFxaaQuality
-{
-    VeryLow = 0,
-    Low,
-    Medium,
-    High,
-    VeryHigh,
-    Ultra,
+    None
 };
 
 enum class eCascadeLevel
@@ -42,28 +31,23 @@ enum class eCascadeLevel
     level4
 };
 
-constexpr Int32 k_maxShadowCascadeLevel = 4;
-
-enum class eSSAOKernel
-{
-    Kernel4x4 = 0,
-    Kernel6x6,
-    Kernel8x8,
-};
-
 struct Environment
 {
+    // screen resolution
+    float screenWidth = 800.f;
+    float screenHeight = 600.f;
+
     // sun
-    Vec3  sunDirection = Vec3(0.f, 1.f, 0.f);
-    float sunIntensity = 1.f;
-    Vec3  sunColor     = Vec3(1.f, 1.f, 1.f);
+    Vec3  dirLightDirection = Vec3(0.f, 1.f, 0.f);
+    float dirLightIntensity = 1.f;
+    Vec3  dirLightColor     = Vec3(1.f, 1.f, 1.f);
 
     // shadow
-    bool          bShadowEnabled                               = false;
-    eCascadeLevel shadowCascadeLevel                           = eCascadeLevel::level3;
-    float         shadowCascadeRanges[k_maxShadowCascadeLevel] = { 100, 300, 600, 1000 };
-    float         shadowBias                                   = 0.005f;
-    float         shadowCascadeExtendZScale                    = 5.f;
+    bool          bDirLightShadowEnabled                             = false;
+    eCascadeLevel dirLightShadowCascadeLevel                         = eCascadeLevel::level3;
+    float         dirLightCascadeShadowRanges[JAM_MAX_CASCADE_LEVEL] = { 100, 300, 600, 1000 };
+    float         dirLightShadowBias                                 = 0.005f;
+    float         dirShadowCascadeExtendZScale                       = 5.f;
 
     // ibl
     std::shared_ptr<ImageTexture> irradianceMap          = nullptr;
@@ -73,15 +57,18 @@ struct Environment
     float                         specularMapIntensity   = 1.f;
 
     // skybox
-    eSkyboxType                   skyboxType    = eSkyboxType::SolidColor;
-    std::shared_ptr<ImageTexture> skyboxTexture = nullptr;                  // cubemap
-    Vec3                          skyboxColor   = Vec3(0.1f, 0.1f, 0.1f);   // solid color
+    eSkyboxType skyboxType = eSkyboxType::SolidColor;
+
+    // skybox by cubemap
+    std::shared_ptr<ImageTexture> skyboxTexture = nullptr;   // cubemap
+
+    // skybox by solid color
+    Vec3 skyboxSolidColor = Vec3(0.1f, 0.1f, 0.1f);   // solid color
 
     // ssao
-    bool        bSSAOEnabled   = false;
-    eSSAOKernel ssaoKernelSize = eSSAOKernel::Kernel8x8;
-    float       ssaoRadius     = 0.5f;
-    float       ssaoBias       = 0.025f;
+    bool  bSSAOEnabled = false;
+    float ssaoRadius   = 0.5f;
+    float ssaoBias     = 0.025f;
 
     // fog
     Vec3  fogColor             = Vec3(0.5f, 0.5f, 0.5f);
@@ -98,9 +85,6 @@ struct Environment
     // bloom
     float bloomBlurRadius    = 4.f;   // sigma
     float bloomCombineFactor = 1.f;
-
-    // fxaa
-    eFxaaQuality fxaaQuality = eFxaaQuality::Medium;
 };
 
 }   // namespace jam

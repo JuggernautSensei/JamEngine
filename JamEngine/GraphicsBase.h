@@ -252,7 +252,7 @@ enum eShaderCompileFlags_ : UInt8
     eShaderCompileFlags_PackMatrixRowMajor    = 1 << 5,   // 행 우선 행렬 패킹
     eShaderCompileFlags_PackMatrixColumnMajor = 1 << 6,   // 열 우선 행렬 패킹
 
-    eShaderCompileFlags_DebugDefault   = eShaderCompileFlags_Debug | eShaderCompileFlags_WarningsAsErrors,
+    eShaderCompileFlags_DebugDefault = eShaderCompileFlags_Debug | eShaderCompileFlags_SkipOptimization,
     eShaderCompileFlags_ReleaseDefault = eShaderCompileFlags_Optimization,
 
 #ifdef JAM_DEBUG
@@ -475,7 +475,6 @@ struct Viewport
         UInt64 viewport = 0;
     };
 };
-
 
 struct GfxState
 {
@@ -737,6 +736,13 @@ struct TextureInfo
     bool         bMutable                = false;
     bool         bRenderTargetAttachable = false;
     bool         bDepthStencilAttachable = false;
+};
+
+struct TextureResolution
+{
+    Int32 width  = 0;
+    Int32 height = 0;
+    Int32 depth  = 0;
 };
 
 struct FrameBufferInfo

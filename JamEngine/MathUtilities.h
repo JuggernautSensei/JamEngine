@@ -196,11 +196,13 @@ JAM_NODISCARD constexpr float ToRad(const float degrees)
 {
     return degrees * k_degToRad;
 }
+JAM_NODISCARD Vec3 ToRad(const Vec3& _degrees);
 
 JAM_NODISCARD constexpr float ToDeg(const float radians)
 {
     return radians * k_radToDeg;
 }
+JAM_NODISCARD Vec3 ToDeg(const Vec3& _radians);
 
 /// @brief 코사인과 사인을 동시에 계산합니다. (테일러 급수 사용)
 /// @return std::pair<sin, cos>

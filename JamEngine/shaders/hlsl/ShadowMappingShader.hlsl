@@ -8,8 +8,8 @@ struct PS_INPUT
 PS_INPUT VSMain(VS_INPUT_POS_3D _input)
 {
     PS_INPUT output;
-    float4 posW = mul(cb_world, float4(_input.posL, 1.f));
-    output.posH = mul(cb_shaderMappingProjView, posW);
+    float4 posW = mul(float4(_input.posL, 1.f), cb_world);
+    output.posH = mul(posW, cb_shaderMappingViewProj);
     return output;
 }
 

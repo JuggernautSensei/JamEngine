@@ -22,32 +22,113 @@ JAM_NODISCARD UInt64 MakeRenderPassStageSlotKey(eShader _stage, const Int32 _slo
 namespace jam
 {
 
-RenderPass::RenderPass(RenderPass&&) noexcept
+RenderPass::~RenderPass()
 {
+    CleanUp_();
 }
 
-RenderPass& RenderPass::operator=(RenderPass&&) noexcept
+RenderPass::RenderPass(RenderPass&& _pass) noexcept
 {
+    m_flags       = _pass.m_flags;
+    m_program     = _pass.m_program;
+    m_frameBuffer = _pass.m_frameBuffer;
+    std::memcpy(m_rgba, _pass.m_rgba, sizeof(m_rgba));
+    m_clearColorStart = _pass.m_clearColorStart;
+    m_clearColorEnd   = _pass.m_clearColorEnd;
+    m_depth           = _pass.m_depth;
+    m_stencil         = _pass.m_stencil;
+    m_viewport        = _pass.m_viewport;
+    m_cbufferBindlist = std::move(_pass.m_cbufferBindlist);
+    m_textureBindlist = std::move(_pass.m_textureBindlist);
+    m_samplerBindlist = std::move(_pass.m_samplerBindlist);
+    m_gfxState        = _pass.m_gfxState;
+    std::memcpy(m_blendStates, _pass.m_blendStates, sizeof(m_blendStates));
+    m_blendStateStart       = _pass.m_blendStateStart;
+    m_blendStateEnd         = _pass.m_blendStateEnd;
+    m_blendFactor           = _pass.m_blendFactor;
+    m_fstencil              = _pass.m_fstencil;
+    m_bstencil              = _pass.m_bstencil;
+    m_stencilRef            = _pass.m_stencilRef;
+    m_executor              = std::move(_pass.m_executor);
+
+    // invalidate moved-from pass
+    _pass.m_flags       = eFlags_None;
+    _pass.m_program     = k_invalidHandle;
+    _pass.m_frameBuffer = k_invalidHandle;
 }
 
-RenderPass& RenderPass::SetProgram(const ProgramHandle _handle)
+RenderPass& RenderPass::operator=(RenderPass&& _pass) noexcept
 {
+    if (this != &_pass)
+    {
+        CleanUp_();
+
+        m_flags       = _pass.m_flags;
+        m_program     = _pass.m_program;
+        m_frameBuffer = _pass.m_frameBuffer;
+        std::memcpy(m_rgba, _pass.m_rgba, sizeof(m_rgba));
+        m_clearColorStart = _pass.m_clearColorStart;
+        m_clearColorEnd   = _pass.m_clearColorEnd;
+        m_depth           = _pass.m_depth;
+        m_stencil         = _pass.m_stencil;
+        m_viewport        = _pass.m_viewport;
+        m_cbufferBindlist = std::move(_pass.m_cbufferBindlist);
+        m_textureBindlist = std::move(_pass.m_textureBindlist);
+        m_samplerBindlist = std::move(_pass.m_samplerBindlist);
+        m_gfxState        = _pass.m_gfxState;
+        std::memcpy(m_blendStates, _pass.m_blendStates, sizeof(m_blendStates));
+        m_blendStateStart       = _pass.m_blendStateStart;
+        m_blendStateEnd         = _pass.m_blendStateEnd;
+        m_blendFactor           = _pass.m_blendFactor;
+        m_fstencil              = _pass.m_fstencil;
+        m_bstencil              = _pass.m_bstencil;
+        m_stencilRef            = _pass.m_stencilRef;
+        m_executor              = std::move(_pass.m_executor);
+
+        // invalidate moved-from pass
+        _pass.m_flags       = eFlags_None;
+        _pass.m_program     = k_invalidHandle;
+        _pass.m_frameBuffer = k_invalidHandle;
+    }
+    return *this;
+}
+
+RenderPass& RenderPass::SetProgram(const ProgramHandle _handle, const bool _bDestoryProgram)
+{
+    if (JAM_IS_VALID_HANDLE(m_program) && m_flags & eFlags_DestroyProgram)
+        Graphics::DestroyProgram(m_program);
+
     m_program = _handle;
+    m_flags   = ApplyFlags<eFlags>(m_flags, eFlags_DestroyProgram, _bDestoryProgram);
     return *this;
 }
 
-RenderPass& RenderPass::SetFrameBuffer(const FrameBufferHandle _handle)
+RenderPass& RenderPass::SetFrameBuffer(const FrameBufferHandle _handle, const bool _bDestoryFrameBuffer)
 {
+    if (JAM_IS_VALID_HANDLE(m_frameBuffer) && m_flags & eFlags_DestroyFrameBuffer)
+        Graphics::DestroyFrameBuffer(m_frameBuffer);
+
     m_frameBuffer = _handle;
+    m_flags       = ApplyFlags<eFlags>(m_flags, eFlags_DestroyFrameBuffer, _bDestoryFrameBuffer);
     return *this;
 }
 
-RenderPass& RenderPass::SetClearRenderTargetCommand(RGBA _color, Int32 _renderTargetIndex)
+RenderPass& RenderPass::AddClearRenderTargetCommand(const RGBA _color, const Int32 _renderTargetIndex)
 {
+    JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < k_renderTargetCountMax, "Render target index out of range.");
+    m_rgba[_renderTargetIndex] = _color;
+    m_clearColorStart          = Min(m_clearColorStart, _renderTargetIndex);
+    m_clearColorEnd            = Max(m_clearColorEnd, _renderTargetIndex);
+    return *this;
 }
 
-RenderPass& RenderPass::SetClearDepthStencilCommand(bool _bClearDepth, bool _bClearStencil, float _depth, UInt8 _stencil)
+RenderPass& RenderPass::AddClearDepthStencilCommand(const bool _bClearDepth, const bool _bClearStencil, const float _depth, const UInt8 _stencil)
 {
+    m_flags   = ApplyFlags<eFlags>(m_flags, eFlags_ClearDepth, _bClearDepth);
+    m_flags   = ApplyFlags<eFlags>(m_flags, eFlags_ClearStencil, _bClearStencil);
+    m_depth   = _depth;
+    m_stencil = _stencil;
+    return *this;
 }
 
 RenderPass& RenderPass::SetViewport(const Viewport _viewport)
@@ -118,8 +199,12 @@ void RenderPass::Execute() const
 
 void RenderPass::Execute(const FrameBufferHandle _fbh, const Viewport _viewport) const
 {
+    JAM_ASSERT(m_executor, "Render pass executor is not set.");
+
+    // set program
     Graphics::SetProgram(m_program);
 
+    // set input resources
     for (const ConstantBufferBindItem& cb: m_cbufferBindlist)
         Graphics::SetConstantBuffer(cb.handle, cb.stage, cb.slot);
     for (const TextureBindItem& tex: m_textureBindlist)
@@ -127,17 +212,30 @@ void RenderPass::Execute(const FrameBufferHandle _fbh, const Viewport _viewport)
     for (const SamplerBindItem& samp: m_samplerBindlist)
         Graphics::SetSampler(samp.state, samp.stage, samp.slot);
 
+    // set gfx state
     Graphics::SetGfxState(m_gfxState);
     Graphics::SetStencil(m_fstencil, m_bstencil, m_stencilRef);
 
+    // set frame buffer and viewport
     Graphics::SetFrameBuffer(_fbh);
     Graphics::SetViewport(_viewport);
 
+    // clear render targets
+    for (Int32 i = m_clearColorStart; i <= m_clearColorEnd; ++i)
+        Graphics::ClearRenderTarget(_fbh, m_rgba[i], i);
+
+    // clear depth stencil
+    bool bClearDepth   = (m_flags & eFlags_ClearDepth) != 0;
+    bool bClearStencil = (m_flags & eFlags_ClearStencil) != 0;
+    if (bClearDepth || bClearStencil)
+        Graphics::ClearDepthStencil(_fbh, bClearDepth, bClearStencil, m_depth, m_stencil);
+
+    // set blend states
     for (Int32 i = m_blendStateStart; i <= m_blendStateEnd; ++i)
         Graphics::SetBlendState(m_blendStates[i], i);
     Graphics::SetBlendFactor(m_blendFactor);
 
-    JAM_ASSERT(m_executor, "Render pass executor is not set.");
+    // draw call
     m_executor();
 }
 
@@ -244,6 +342,21 @@ Viewport RenderPass::GetViewport() const
     return m_viewport;
 }
 
+const std::vector<ConstantBufferBindItem>& RenderPass::GetConstantBufferBindList() const
+{
+    return m_cbufferBindlist;
+}
+
+const std::vector<TextureBindItem>& RenderPass::GetTextureBindList() const
+{
+    return m_textureBindlist;
+}
+
+const std::vector<SamplerBindItem>& RenderPass::GetSamplerBindList() const
+{
+    return m_samplerBindlist;
+}
+
 GfxState RenderPass::GetGfxState() const
 {
     return m_gfxState;
@@ -277,21 +390,11 @@ UInt8 RenderPass::GetStencilRef() const
 
 void RenderPass::CleanUp_()
 {
-}
+    if (m_flags & eFlags_DestroyProgram)
+        JAM_DESTROY_PROGRAM(m_program);
 
-const std::vector<ConstantBufferBindItem>& RenderPass::GetConstantBufferBindList() const
-{
-    return m_cbufferBindlist;
-}
-
-const std::vector<TextureBindItem>& RenderPass::GetTextureBindList() const
-{
-    return m_textureBindlist;
-}
-
-const std::vector<SamplerBindItem>& RenderPass::GetSamplerBindList() const
-{
-    return m_samplerBindlist;
+    if (m_flags & eFlags_DestroyFrameBuffer)
+        JAM_DESTROY_FRAME_BUFFER(m_frameBuffer);
 }
 
 }   // namespace jam

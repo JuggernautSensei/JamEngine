@@ -1,0 +1,4 @@
+[2025-10-31 00:48:16.503] [trace] [thread 47116] Application 'JamShader' started.
+[2025-10-31 00:48:26.291] [info] [thread 47116] Project loaded: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\JamShaderCompileInfo.json"
+[2025-10-31 00:48:33.944] [info] [thread 47116] Single header file saved: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\PrecompiledShaders\PrecompiledJamShader.h"
+[2025-10-31 00:48:34.411] [trace] [thread 47116] Application 'JamShader' shutdown.

@@ -3016,21 +3016,13 @@ TextureHandle Graphics::LoadTexture(
     texture.pResource = pResource;
 
     if (metaData.IsCubemap())
-    {
         texture.type = eTextureType::TextureCube;
-    }
     else if (metaData.dimension == DirectX::TEX_DIMENSION_TEXTURE3D)
-    {
         texture.type = eTextureType::Texture3D;
-    }
     else if (metaData.dimension == DirectX::TEX_DIMENSION_TEXTURE2D)
-    {
         texture.type = eTextureType::Texture2D;
-    }
     else
-    {
         JAM_ASSERT(0, "Unsupported texture dimension");
-    }
 
     JAM_CHECK_COM(DirectX::CreateShaderResourceView(g_gfxContext.pd3d11Device,
                                                     _scratchImage.GetImages(),
@@ -3259,6 +3251,16 @@ void Graphics::BlitToBackBuffer(
     const TextureRef& dstTexture = g_gfxContext.textures[g_gfxContext.backBufferTextureHandle];
     JAM_ASSERT(srcTexture.type == eTextureType::Texture2D, "Source texture must be 2D texture.");
     g_gfxContext.Blit(srcTexture, dstTexture, _blitWidthOrZero, _blitHeightOrZero, 1, _srcMipIndex, _srcArrayIndex, _srcX, _srcY, 0, 0, 0, _dstX, _dstY, 0);
+}
+
+TextureResolution Graphics::GetTextureResolution(const TextureHandle _handle, const Int32 _mipIndex)
+{
+    const TextureRef& texture = g_gfxContext.textures[_handle];
+    TextureResolution res;
+    res.width  = Max(1, texture.width >> _mipIndex);
+    res.height = Max(1, texture.height >> _mipIndex);
+    res.depth  = Max(1, texture.depth >> _mipIndex);
+    return res;
 }
 
 void Graphics::ClearRenderTarget(const FrameBufferHandle _handle, const RGBA _color, const Int32 _renderTargetIndex)

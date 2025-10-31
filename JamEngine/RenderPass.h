@@ -27,31 +27,32 @@ struct TextureBindItem
 
 class RenderPass
 {
-    enum eDestroyFlags_ : UInt32
+    enum eFlags_ : UInt32
     {
-        eDestroyFlags_None = 0,
+        eFlags_None               = 0,
+        eFlags_DestroyProgram     = 1 << 0,
+        eFlags_DestroyFrameBuffer = 1 << 1,
 
-        eDestroyFlags_Program          = 1 << 0,
-        eDestroyFlags_FrameBuffer      = 1 << 1,
-        eOnwershipFlags_ConstantBuffer = 1 << 2,
-        eDestroyFlags_Texture          = 1 << 3,
+        eFlags_ClearDepth   = 1 << 3,
+        eFlags_ClearStencil = 1 << 4,
     };
-    using eDestroyFlags = UInt32;
+
+    using eFlags = EnumIntType<eFlags_>;
 
 public:
-    RenderPass()  = default;
-    ~RenderPass() = default;
+    RenderPass() = default;
+    ~RenderPass();
 
     RenderPass(const RenderPass&)            = delete;
     RenderPass& operator=(const RenderPass&) = delete;
     RenderPass(RenderPass&&) noexcept;
     RenderPass& operator=(RenderPass&&) noexcept;
 
-    RenderPass& SetProgram(ProgramHandle _handle);
+    RenderPass& SetProgram(ProgramHandle _handle, bool _bDestoryProgram = false);
 
-    RenderPass& SetFrameBuffer(FrameBufferHandle _handle);
-    RenderPass& SetClearRenderTargetCommand(RGBA _color, Int32 _renderTargetIndex);
-    RenderPass& SetClearDepthStencilCommand(bool _bClearDepth, bool _bClearStencil, float _depth, UInt8 _stencil);
+    RenderPass& SetFrameBuffer(FrameBufferHandle _handle, bool _bDestoryFrameBuffer = false);
+    RenderPass& AddClearRenderTargetCommand(RGBA _color, Int32 _renderTargetIndex);
+    RenderPass& AddClearDepthStencilCommand(bool _bClearDepth, bool _bClearStencil, float _depth, UInt8 _stencil);
 
     RenderPass& SetViewport(Viewport _viewport);
     RenderPass& SetViewport(UInt16 _x, UInt16 _y, UInt16 _width, UInt16 _height);
@@ -89,23 +90,26 @@ public:
 private:
     void CleanUp_();
 
-    eDestroyFlags m_destoryFlags = eDestroyFlags_None;
+    eFlags m_flags = eFlags_None;
 
     // program
     ProgramHandle m_program = k_invalidHandle;
 
-    // output resources
-    FrameBufferHandle m_frameBuffer = k_invalidHandle;
-    Viewport          m_viewport    = {};
+    // frame buffer
+    FrameBufferHandle m_frameBuffer     = k_invalidHandle;
+    RGBA              m_rgba[8]         = {};
+    Int32             m_clearColorStart = Int32Limits::max();
+    Int32             m_clearColorEnd   = Int32Limits::min();
+    float             m_depth           = 1.f;
+    UInt8             m_stencil         = 0;
+
+    // viewport
+    Viewport m_viewport = {};
 
     // input resources
-    std::vector<ConstantBufferBindItem> m_cbufferBindlist    = {};
-    std::vector<eDestroyFlags>          m_cbufferDestoryList = {};
-
-    std::vector<TextureBindItem> m_textureBindlist    = {};
-    std::vector<eDestroyFlags>   m_textureDestoryList = {};
-
-    std::vector<SamplerBindItem> m_samplerBindlist = {};
+    std::vector<ConstantBufferBindItem>   m_cbufferBindlist       = {};
+    std::vector<TextureBindItem>          m_textureBindlist       = {};
+    std::vector<SamplerBindItem>          m_samplerBindlist       = {};
 
     // state
     GfxState     m_gfxState   = GfxState::k_default;

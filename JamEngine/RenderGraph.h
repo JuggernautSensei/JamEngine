@@ -21,7 +21,7 @@ class RenderGraph
     };
 
 public:
-    RenderGraph& AddPass(const RenderPass& _pass);
+    RenderGraph& AddPass(RenderPass&& _pass);
 
     void Compile();
     void Execute() const;

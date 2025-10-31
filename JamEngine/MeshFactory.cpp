@@ -27,9 +27,7 @@ JAM_NODISCARD static Mesh CreateMeshHelper(
     // 노말 계산
     std::vector<Vec3> normals;
     if (_layout.Has(eVertexAttribute::Normal))
-    {
         normals = ComputeNormal(_positions, _indexData, _indexFormat);
-    }
 
     // 탄젠트, 바이탄젠트 계산
     std::vector<Vec3> tangents;
@@ -73,67 +71,67 @@ Mesh CreateBoxMesh(
     Vec3 positions[] = {
         // front face
         { -hWidth, -hHeight, -hDepth },
-        { +hWidth, -hHeight, -hDepth },
-        { +hWidth, +hHeight, -hDepth },
         { -hWidth, +hHeight, -hDepth },
+        { +hWidth, +hHeight, -hDepth },
+        { +hWidth, -hHeight, -hDepth },
         // back face
         { +hWidth, -hHeight, +hDepth },
-        { -hWidth, -hHeight, +hDepth },
-        { -hWidth, +hHeight, +hDepth },
         { +hWidth, +hHeight, +hDepth },
+        { -hWidth, +hHeight, +hDepth },
+        { -hWidth, -hHeight, +hDepth },
         // left face
         { -hWidth, -hHeight, +hDepth },
-        { -hWidth, -hHeight, -hDepth },
-        { -hWidth, +hHeight, -hDepth },
         { -hWidth, +hHeight, +hDepth },
+        { -hWidth, +hHeight, -hDepth },
+        { -hWidth, -hHeight, -hDepth },
         // right face
         { +hWidth, -hHeight, -hDepth },
-        { +hWidth, -hHeight, +hDepth },
-        { +hWidth, +hHeight, +hDepth },
         { +hWidth, +hHeight, -hDepth },
+        { +hWidth, +hHeight, +hDepth },
+        { +hWidth, -hHeight, +hDepth },
         // top face
         { -hWidth, +hHeight, -hDepth },
-        { +hWidth, +hHeight, -hDepth },
-        { +hWidth, +hHeight, +hDepth },
         { -hWidth, +hHeight, +hDepth },
+        { +hWidth, +hHeight, +hDepth },
+        { +hWidth, +hHeight, -hDepth },
         // bottom face
         { -hWidth, -hHeight, +hDepth },
-        { +hWidth, -hHeight, +hDepth },
-        { +hWidth, -hHeight, -hDepth },
         { -hWidth, -hHeight, -hDepth },
+        { +hWidth, -hHeight, -hDepth },
+        { +hWidth, -hHeight, +hDepth },
     };
 
     constexpr Vec2 k_texcoords[] = {
         // front face
         { 0.f, 1.f },
-        { 1.f, 1.f },
-        { 1.f, 0.f },
         { 0.f, 0.f },
+        { 1.f, 0.f },
+        { 1.f, 1.f },
         // back face
         { 0.f, 1.f },
-        { 1.f, 1.f },
-        { 1.f, 0.f },
         { 0.f, 0.f },
+        { 1.f, 0.f },
+        { 1.f, 1.f },
         // left face
         { 0.f, 1.f },
-        { 1.f, 1.f },
-        { 1.f, 0.f },
         { 0.f, 0.f },
+        { 1.f, 0.f },
+        { 1.f, 1.f },
         // right face
         { 0.f, 1.f },
-        { 1.f, 1.f },
-        { 1.f, 0.f },
         { 0.f, 0.f },
+        { 1.f, 0.f },
+        { 1.f, 1.f },
         // top face
         { 0.f, 1.f },
-        { 1.f, 1.f },
-        { 1.f, 0.f },
         { 0.f, 0.f },
+        { 1.f, 0.f },
+        { 1.f, 1.f },
         // bottom face
         { 0.f, 1.f },
-        { 1.f, 1.f },
-        { 1.f, 0.f },
         { 0.f, 0.f },
+        { 1.f, 0.f },
+        { 1.f, 1.f },
     };
 
     constexpr UInt16 k_indices[] = {
@@ -529,13 +527,13 @@ std::vector<Vec3> ComputeNormal(
     {
         const UInt16* indices = reinterpret_cast<const UInt16*>(_indexData.GetDataPtr());
         const Int32   count   = NarrowCast<Int32>(_indexData.GetByteWidth() / sizeof(UInt16));
-        JAM_CHECK_COM(DirectX::ComputeNormals(indices, count / 3, _positions.data(), _positions.size(), DirectX::CNORM_WIND_CW, normals.data()));
+        JAM_CHECK_COM(DirectX::ComputeNormals(indices, count / 3, _positions.data(), _positions.size(), DirectX::CNORM_DEFAULT, normals.data()));
     }
     else
     {
         const UInt32* indices = reinterpret_cast<const UInt32*>(_indexData.GetDataPtr());
         const Int32   count   = NarrowCast<Int32>(_indexData.GetByteWidth() / sizeof(UInt32));
-        JAM_CHECK_COM(DirectX::ComputeNormals(indices, count / 3, _positions.data(), _positions.size(), DirectX::CNORM_WIND_CW, normals.data()));
+        JAM_CHECK_COM(DirectX::ComputeNormals(indices, count / 3, _positions.data(), _positions.size(), DirectX::CNORM_DEFAULT, normals.data()));
     }
 
     return normals;

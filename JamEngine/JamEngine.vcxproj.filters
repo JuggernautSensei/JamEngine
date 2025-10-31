@@ -67,7 +67,7 @@
     <ClCompile Include="Timer.cpp">
       <Filter>99. Utilities\Timer</Filter>
     </ClCompile>
-    <ClCompile Include="fixed_vector.cpp">
+    <ClCompile Include="FVector.cpp">
       <Filter>99. Utilities\Container\vector</Filter>
     </ClCompile>
     <ClCompile Include="Graphics.cpp">
@@ -154,7 +154,7 @@
     <ClCompile Include="ImGuiGlue.cpp">
       <Filter>4. RenderSystem\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="fixed_string.cpp">
+    <ClCompile Include="FString.cpp">
       <Filter>99. Utilities\Container\string</Filter>
     </ClCompile>
     <ClCompile Include="Editor.cpp">
@@ -196,7 +196,7 @@
     <ClCompile Include="SceneDB.cpp">
       <Filter>7. Reflection</Filter>
     </ClCompile>
-    <ClCompile Include="powerof2_fixed_circular_q.cpp">
+    <ClCompile Include="PO2FCircularQ.cpp">
       <Filter>99. Utilities\Container\ring_buffer</Filter>
     </ClCompile>
     <ClCompile Include="FileUtilities.cpp">
@@ -246,6 +246,27 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_Viewport.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_Profiler.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_SceneHierarchy.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_EntityInsepctor.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_AssetBrowser.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_FileSystemBrowser.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_Console.cpp">
+      <Filter>6. Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -503,7 +524,7 @@
     <ClInclude Include="Timer.h">
       <Filter>99. Utilities\Timer</Filter>
     </ClInclude>
-    <ClInclude Include="fixed_vector.h">
+    <ClInclude Include="FVector.h">
       <Filter>99. Utilities\Container\vector</Filter>
     </ClInclude>
     <ClInclude Include="Graphics.h">
@@ -593,7 +614,7 @@
     <ClInclude Include="ImGuiGlue.h">
       <Filter>4. RenderSystem\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="fixed_string.h">
+    <ClInclude Include="FString.h">
       <Filter>99. Utilities\Container\string</Filter>
     </ClInclude>
     <ClInclude Include="Editor.h">
@@ -665,7 +686,7 @@
     <ClInclude Include="SceneDB.h">
       <Filter>7. Reflection</Filter>
     </ClInclude>
-    <ClInclude Include="powerof2_fixed_circular_q.h">
+    <ClInclude Include="PO2FCircularQ.h">
       <Filter>99. Utilities\Container\ring_buffer</Filter>
     </ClInclude>
     <ClInclude Include="FileUtilities.h">
@@ -781,6 +802,27 @@
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_Viewport.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_Profiler.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_SceneHierarchy.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_EntityInsepctor.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_AssetBrowser.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_FileSystemBrowser.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_Console.h">
+      <Filter>6. Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

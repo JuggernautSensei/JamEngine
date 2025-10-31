@@ -3,9 +3,8 @@
 float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
     // get world normal
-    float2 normalXY = t_gBufferNormalRoughnessMetallic.Sample(s_linearClamp, _input.texCoord0).xy;
-    float normalZ = sqrt(max(0.f, 1.f - dot(normalXY, normalXY)));
-    float3 normal = normalize(float3(normalXY, normalZ)); // [OK]
+    float4 normalRoughness = t_gBufferNormalRoughness.Sample(s_linearClamp, _input.texCoord0);
+    float3 normal = normalize(normalRoughness.xyz);
 
     // get ndc pos
     float3 posInNdc;
@@ -14,12 +13,12 @@ float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     posInNdc.z = t_depth.Sample(s_pointClamp, _input.texCoord0).r;
 
     // world pos
-    float4 posInC = mul(cb_projViewInv, float4(posInNdc, 1.0f));
+    float4 posInC = mul(cb_viewProjInv, float4(posInNdc, 1.0f));
     float3 posInW = posInC.xyz / posInC.w;
 
     // screen dimensions
     uint screenWidth, screenHeight, dummy;
-    t_gBufferNormalRoughnessMetallic.GetDimensions(0, screenWidth, screenHeight, dummy);
+    t_gBufferNormalRoughness.GetDimensions(0, screenWidth, screenHeight, dummy);
 
     uint width, height, dummy2;
     t_ssaoNoise.GetDimensions(0, width, height, dummy2);
@@ -39,10 +38,11 @@ float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 
     // sample kernel
     float occlusion = 0.0f;
-    for (uint i = 0; i < cb_ssaoKernelSize; i++)
+    for (uint i = 0; i < JAM_SSAO_KERNEL_SIZE; i++)
     {
         // sample ssao kernel
-        float3 sampleDirW = mul(TBN, cb_ssaoKernel[i]); // tangent -> world
+        float3 kernelDir = cb_ssaoKernel[i].xyz;
+        float3 sampleDirW = mul(TBN, kernelDir); // tangent -> world
         float3 samplePosInW = posInW + sampleDirW * cb_ssaoRadius; // offset position in world
 
         float4 samplePosInV = mul(cb_view, float4(samplePosInW, 1.0f));
@@ -69,5 +69,5 @@ float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
         occlusion += (realDepthInV< expectedDepthInV - cb_ssaoBias ? 1.0f : 0.0f) * rangeCheck;
     }
 
-    return 1.0f - (occlusion / max(1.0f, (float) cb_ssaoKernelSize));
+    return 1.0f - (occlusion / max(1.0f, (float) JAM_SSAO_KERNEL_SIZE));
 }

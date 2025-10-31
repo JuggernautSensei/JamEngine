@@ -12,6 +12,16 @@ UInt32       g_randomSeed      = 0;
 namespace jam
 {
 
+Vec3 ToRad(const Vec3& _degrees)
+{
+    return _degrees * k_degToRad;
+}
+
+Vec3 ToDeg(const Vec3& _radians)
+{
+    return _radians * k_radToDeg;
+}
+
 Float16 ToFloat16(const float value)
 {
     return DirectX::PackedVector::XMConvertFloatToHalf(value);

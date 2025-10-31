@@ -1,0 +1,3 @@
+[2025-10-31 16:49:50.272] [trace] [thread 117656] Application 'JamShader' started.
+[2025-10-31 16:49:55.344] [info] [thread 117656] Project loaded: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\JamShaderCompileInfo.json"
+[2025-10-31 16:50:02.152] [info] [thread 117656] Single header file saved: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\PrecompiledShaders\PrecompiledJamShader.h"

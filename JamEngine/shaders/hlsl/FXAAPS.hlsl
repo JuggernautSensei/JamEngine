@@ -438,8 +438,7 @@ of a lowpass value (computed in the next section) to the final result.
     float rangeL = abs(lumaL - lumaM);
 #endif        
 #if FXAA_SUBPIX == 1
-    float blendL = max(0.0,
-            (rangeL / range) - FXAA_SUBPIX_TRIM) * FXAA_SUBPIX_TRIM_SCALE;
+    float blendL = max(0.0, (rangeL / range) - FXAA_SUBPIX_TRIM) * FXAA_SUBPIX_TRIM_SCALE;
     blendL = min(FXAA_SUBPIX_CAP, blendL);
 #endif
 #if FXAA_SUBPIX == 2
@@ -795,11 +794,10 @@ float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     t_input0.GetDimensions(0, w, h, dummy);
     float2 texelSize = float2(1.0f / w, 1.0f / h);
 
-#if (FXAA_PRESET == 0) | (FXAA_PRESET == 1) | (FXAA_PRESET == 2)
+#if (FXAA_PRESET == 0) || (FXAA_PRESET == 1) || (FXAA_PRESET == 2)
     FxaaTex tex = { s_anisotropic4Wrap, t_input0};
 #else  
     FxaaTex tex = { s_linearClamp, t_input0 };
 #endif
     return float4(FxaaPixelShader(_input.texCoord0, tex, texelSize), 1.0f);
 }
-

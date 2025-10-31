@@ -9,15 +9,25 @@ struct PS_INPUT
 PS_INPUT VSMain(VS_INPUT_POS_3D input)
 {
     PS_INPUT output;
-
-    output.dirV = mul(cb_view, float4(input.posL, 0.f)).xyz;
-    output.posH = mul(cb_proj, float4(output.dirV, 1.f));
-    output.posH.z = output.posH.w;
+    output.dirV = input.posL;
+    float4x4 vp = mul(cb_view, cb_proj);
+    output.posH = mul(float4(output.dirV, 0.f), vp).xyww;
     return output;
 }
 
 float4 PSMain(PS_INPUT input) : SV_TARGET
 {
-    float3 dir = normalize(input.dirV);
-    return t_skybox.Sample(s_linearClamp, dir);
+    if (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SKYBOX_CUBEMAP)
+    {
+        float3 dir = normalize(input.dirV);
+        return t_skybox.Sample(s_linearClamp, dir);
+    }
+    else if (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR)
+    {
+        return float4(cb_skyBoxSolidColor, 1.f);
+    }
+    else
+    {
+        return float4(1.f, 1.f, 1.f, 1.f);
+    }
 }

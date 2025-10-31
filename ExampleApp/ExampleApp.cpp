@@ -19,10 +19,10 @@ void ExampleApp::OnCreate()
     Window& win = GetWindow();
     win.ResizeClient(1600, 900);   // 화면사이즈 1600 x 900
 
-    auto pScene = std::make_unique<HelloJamScene>();
-    // auto pScene = std::make_unique<HelloBasicRenderer>();
-    // auto pScene = std::make_unique<TriangleScene>();
-    SceneManager::LoadScene(std::move(pScene));
+    // auto pScene = std::make_unique<HelloJamScene>();
+    // auto pScene = std::make_shared<TriangleScene>();
+    std::shared_ptr<Scene> pScene = std::make_shared<HelloBasicRenderer>();
+    SceneManager::LoadScene(pScene);
 }
 
 void ExampleApp::OnDestroy()

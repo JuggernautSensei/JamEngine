@@ -67,8 +67,10 @@ public:
     JAM_NODISCARD entt::registry& GetRegistry();
 
     JAM_NODISCARD Entity GetRootEntity() const;
-    JAM_NODISCARD const HashMap<UID, Entity>& GetEntities() const;
-    JAM_NODISCARD virtual std::string_view    GetName() const = 0;
+    JAM_NODISCARD Int32  GetEntityCount() const;
+    JAM_NODISCARD const HashMap<UID, Entity>& GetEntityMap() const;
+
+    JAM_NODISCARD virtual std::string_view GetName() const = 0;
 
 protected:
     Scene();

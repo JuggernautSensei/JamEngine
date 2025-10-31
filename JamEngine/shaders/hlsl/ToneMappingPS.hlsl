@@ -106,8 +106,8 @@ float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
         case JAM_ENVIRONMENT_TONE_MAPPING_TYPE_FILMIC:
             toneMappedColor = FilmicToneMapping(color, cb_exposure, cb_gamma);
             break;
-        default:
-            toneMappedColor = LinearToneMapping(color, cb_exposure, cb_gamma);
+        default: // NONE
+            toneMappedColor = color;
             break;
     }
 

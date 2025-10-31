@@ -10,7 +10,7 @@ float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     posNdc.y = 1.f - _input.texCoord0.y * 2.f;
     posNdc.z = depth;
 
-    float4 unprojPos = mul(cb_projViewInv, float4(posNdc, 1.f));
+    float4 unprojPos = mul(cb_viewProjInv, float4(posNdc, 1.f));
     float3 posW = unprojPos.xyz / unprojPos.w;
 
     float dist = distance(cb_eyePos, posW);

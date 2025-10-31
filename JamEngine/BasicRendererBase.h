@@ -1,16 +1,28 @@
 #pragma once
+#include "Environment.h"
 #include "GraphicsBase.h"
+#include "RenderPass.h"
 #include "VertexLayout.h"
 
 namespace jam
 {
 
+enum class eFxaaQuality
+{
+    VeryLow = 0,
+    Low,
+    Medium,
+    High,
+    VeryHigh,
+    Ultra,
+};
+
 struct GBufferDesc
 {
-    TextureHandle albedoAOTexture                = k_invalidHandle;
-    TextureHandle normalRoughnessMetallicTexture = k_invalidHandle;
-    TextureHandle additionalLightTexture         = k_invalidHandle;
-    TextureHandle depthTexture                   = k_invalidHandle;
+    TextureHandle albedoAoTexture         = k_invalidHandle;
+    TextureHandle normalRoughnessTexture  = k_invalidHandle;
+    TextureHandle emissiveMetallicTexture = k_invalidHandle;
+    TextureHandle depthTexture            = k_invalidHandle;
 };
 
 struct PBRGBufferPassDesc
@@ -25,7 +37,11 @@ struct PBRLightPassDesc
     FrameBufferHandle frameBuffer = k_invalidHandle;
     Viewport          viewport    = {};
     GBufferDesc       gBufferDesc = {};
-    TextureHandle     ssaoTexture = k_invalidHandle;   // optional
+
+    TextureHandle irradianceMap = k_invalidHandle;   // essential
+    TextureHandle specularMap   = k_invalidHandle;   // essential
+    TextureHandle brdfLUT       = k_invalidHandle;   // essential
+    TextureHandle ssaoTexture   = k_invalidHandle;   // optional
 };
 
 struct PBRLightVolumePassDesc
@@ -41,100 +57,90 @@ struct PBREnvironmentLightVolumePassDesc
     FrameBufferHandle frameBuffer = k_invalidHandle;
     Viewport          viewport    = {};
     GBufferDesc       gBufferDesc = {};
-    TextureHandle     shadowMap   = k_invalidHandle;
+    TextureHandle     shadowMap   = k_invalidHandle;   // optional
 };
 
 struct SkyboxPassDesc
 {
-    FrameBufferHandle frameBuffer = k_invalidHandle;
-    Viewport          viewport    = {};
+    FrameBufferHandle frameBuffer   = k_invalidHandle;
+    Viewport          viewport      = {};
+    TextureHandle     skyboxTexture = k_invalidHandle;   // optional
 };
 
 struct ShadowCasterPassDesc
 {
-    FrameBufferHandle     frameBuffer = k_invalidHandle;
-    Viewport              viewport    = {};
-    std::function<void()> executor    = nullptr;
+    Int32                 lengthOfSide = 0;
+    eCascadeLevel         cascadeLevel = eCascadeLevel::level2;
+    std::function<void()> executor     = nullptr;
 };
 
 struct SSAOPassDesc
 {
-    FrameBufferHandle frameBuffer = k_invalidHandle;
-    Viewport          viewport    = {};
-    GBufferDesc       gBufferDesc = {};
+    Int32       width;
+    Int32       height;
+    GBufferDesc gBufferDesc = {};
 };
 
-enum class eSSAOBlurType : Int8
+struct CreateSSAOPassResult
 {
-    Horizontal,
-    Vertical
-};
-
-struct SSAOBlurPassDesc
-{
-    FrameBufferHandle frameBuffer = k_invalidHandle;
-    Viewport          viewport    = {};
-    TextureHandle     ssaoTexture = k_invalidHandle;
-    eSSAOBlurType     type        = eSSAOBlurType::Horizontal;
-};
-
-enum class eBlurType : Int8
-{
-    DownSampling,
-    UpSampling
-};
-
-struct BlurPassDesc
-{
-    FrameBufferHandle frameBuffer  = k_invalidHandle;
-    Viewport          viewport     = {};
-    TextureHandle     inputTexture = k_invalidHandle;
-    eBlurType         type         = eBlurType::DownSampling;
-};
-
-struct CombinePassDesc
-{
-    FrameBufferHandle frameBuffer   = k_invalidHandle;
-    Viewport          viewport      = {};
-    TextureHandle     inputTexture0 = k_invalidHandle;
-    TextureHandle     inputTexture1 = k_invalidHandle;
+    std::array<RenderPass, 3> passes;        // ssao, ssao blur horizontal, ssao blur vertical
+    TextureHandle             ssaoTexture;   // final ssao result texture
 };
 
 struct BloomPassDesc
 {
-    FrameBufferHandle frameBuffer          = k_invalidHandle;
-    Viewport          viewport             = {};
-    TextureHandle     bloomReceiverTexture = {};
-    Int32             bloomLevel           = 3;
+    Int32         width;
+    Int32         height;
+    TextureHandle inputTexture = {};
+    Int32         bloomLevel   = 3;
 };
 
 struct ToneMappingPassDesc
 {
-    FrameBufferHandle frameBuffer  = k_invalidHandle;
-    Viewport          viewport     = {};
-    TextureHandle     inputTexture = k_invalidHandle;
+    Int32         width;
+    Int32         height;
+    TextureHandle inputTexture = k_invalidHandle;
 };
 
 struct FXAAPassDesc
 {
-    FrameBufferHandle frameBuffer  = k_invalidHandle;
-    Viewport          viewport     = {};
-    TextureHandle     inputTexture = k_invalidHandle;
+    Int32         width;
+    Int32         height;
+    TextureHandle inputTexture = k_invalidHandle;
+    eFxaaQuality  quality      = eFxaaQuality::Medium;
 };
 
-struct HeightFogPass
+struct HeightFogPassDesc
 {
-    FrameBufferHandle frameBuffer  = k_invalidHandle;
-    Viewport          viewport     = {};
-    TextureHandle     inputTexture = k_invalidHandle;
-    TextureHandle     depthTexture = k_invalidHandle;
+    Int32         width;
+    Int32         height;
+    TextureHandle inputTexture = k_invalidHandle;
+    TextureHandle depthTexture = k_invalidHandle;
 };
 
 struct PassThroughPassDesc
 {
-    FrameBufferHandle frameBuffer  = k_invalidHandle;
-    Viewport          viewport     = {};
-    TextureHandle     inputTexture = k_invalidHandle;
+    Int32         width;
+    Int32         height;
+    TextureHandle inputTexture = k_invalidHandle;
+};
+
+struct CreateShadowCasterPassResult
+{
+    RenderPass    pass;
+    TextureHandle shadowMap;
+};
+
+struct CreatePostProcessPassResult
+{
+    RenderPass    pass;
+    TextureHandle outputTexture;
+};
+
+struct CreateBloomPassResult
+{
+    std::vector<RenderPass> passes;
+    TextureHandle           outputTexture;
 };
 
 ////////////////////////////////

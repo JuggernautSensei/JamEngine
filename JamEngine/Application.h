@@ -16,7 +16,6 @@ enum class eUpdatePolicy : Int8
     Fixed120FPS,     // 고정 120FPS 업데이트
     Fixed144FPS,     // 고정 144FPS 업데이트
     Fixed240FPS,     // 고정 240FPS 업데이트
-    ManualStep,      // 수동 스텝 (Step() 함수 호출시마다 1프레임 업데이트)
 };
 
 /// @brief 커맨드라인 인자 구조체
@@ -106,11 +105,6 @@ public:
     /// @brief 업데이트 정책을 반환합니다.
     /// @return 업데이트 정책
     JAM_NODISCARD eUpdatePolicy GetUpdatePolicy() const { return m_updatePolicy; }
-
-    /// @brief 수동 스텝 모드에서 1프레임을 진행합니다.
-    /// @param _sec 강제로 지정할 델타타임 (기본값: 1/60초)
-    /// @note 업데이트 정책이 ManualStep일 때만 동작합니다.
-    void Step(float _sec = 1.0f / 60.0f);
 
     JAM_NODISCARD const ProjectDirectories& GetProjectDirectories() const;
     JAM_NODISCARD std::string_view GetApplicationName() const;

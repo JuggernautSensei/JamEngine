@@ -187,8 +187,8 @@ void HelloJamScene::OnEnter()
         cameraCmp.bMain            = true;
 
         Camera& camera = cameraCmp.camera;
-        camera.SetWidth(w);
-        camera.SetHeight(h);
+        camera.SetWidth(static_cast<float>(w));
+        camera.SetHeight(static_cast<float>(h));
 
         ScriptComponent& scriptCmp = m_cmrEntt.CreateComponent<ScriptComponent>();
         scriptCmp.BindScript<CameraScript>(m_cmrEntt);

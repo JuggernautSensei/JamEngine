@@ -19,4 +19,35 @@ JAM_NODISCARD bool MemEqual(const T& _lhs, const T& _rhs) noexcept
     return std::memcmp(&_lhs, &_rhs, sizeof(T)) == 0;
 }
 
+template<typename T>
+    requires std::is_integral_v<T>
+JAM_NODISCARD constexpr T ApplyFlags(T _value, T _flags, const bool _bApply)
+{
+    if (_bApply)
+        return _value | _flags;
+    else
+        return _value & ~_flags;
+}
+
+template<typename T>
+    requires std::is_integral_v<T>
+JAM_NODISCARD constexpr T EnableFlags(T _value, T _flags)
+{
+    return _value | _flags;
+}
+
+template<typename T>
+    requires std::is_integral_v<T>
+JAM_NODISCARD constexpr T DisableFlags(T _value, T _flags)
+{
+    return _value & ~_flags;
+}
+
+template<typename T>
+    requires std::is_integral_v<T>
+JAM_NODISCARD constexpr T ToggleFlags(T _value, T _flags)
+{
+    return _value ^ _flags;
+}
+
 }   // namespace jam

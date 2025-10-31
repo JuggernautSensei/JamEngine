@@ -1,0 +1,3 @@
+[2025-10-31 02:59:16.043] [trace] [thread 70888] Application 'JamShader' started.
+[2025-10-31 02:59:21.451] [info] [thread 70888] Project loaded: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\JamShaderCompileInfo.json"
+[2025-10-31 03:00:04.502] [trace] [thread 70888] Application 'JamShader' shutdown.

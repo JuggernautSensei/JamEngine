@@ -1,0 +1,26 @@
+[2025-10-31 16:25:42.594] [debug] [thread 102800] log initialized successfully.
+[2025-10-31 16:25:42.594] [info] [thread 102800] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-31 16:25:43.027] [trace] [thread 102800] Application 'Example Application' started.
+[2025-10-31 16:25:43.027] [info] [thread 102800] hello example app!
+[2025-10-31 16:25:43.059] [trace] [thread 102800] ========== scoped timer start - "RendererSystem::Init" =========="
+[2025-10-31 16:25:43.096] [trace] [thread 102800] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:25:43.097] [trace] [thread 102800] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.4753 Milli ==========
+[2025-10-31 16:25:43.097] [trace] [thread 102800] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:25:43.098] [trace] [thread 102800] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.7486 Milli ==========
+[2025-10-31 16:25:43.098] [trace] [thread 102800] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:25:43.098] [trace] [thread 102800] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.058 Milli ==========
+[2025-10-31 16:25:43.100] [trace] [thread 102800] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:25:43.100] [trace] [thread 102800] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.2036 Milli ==========
+[2025-10-31 16:25:43.100] [trace] [thread 102800] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:25:43.100] [trace] [thread 102800] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0619 Milli ==========
+[2025-10-31 16:25:43.100] [trace] [thread 102800] ========== scoped timer end - "RendererSystem::Init" - duration: 41.2354 Milli ==========
+[2025-10-31 16:25:43.101] [trace] [thread 102800] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:25:43.102] [trace] [thread 102800] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.9619 Milli ==========
+[2025-10-31 16:25:43.102] [trace] [thread 102800] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" =========="
+[2025-10-31 16:25:43.126] [trace] [thread 102800] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" - duration: 23.722 Milli ==========
+[2025-10-31 16:25:43.126] [trace] [thread 102800] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" =========="
+[2025-10-31 16:25:43.127] [trace] [thread 102800] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" - duration: 1.0505 Milli ==========
+[2025-10-31 16:25:43.127] [trace] [thread 102800] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" =========="
+[2025-10-31 16:25:43.130] [trace] [thread 102800] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" - duration: 3.0394 Milli ==========
+[2025-10-31 16:25:46.543] [trace] [thread 102800] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" =========="
+[2025-10-31 16:25:47.055] [trace] [thread 102800] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" - dur

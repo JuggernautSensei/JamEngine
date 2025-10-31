@@ -46,7 +46,7 @@ private:
     eProjection m_projection = eProjection::Perspective;
     float       m_nearZ      = 0.1f;
     float       m_farZ       = 1000.f;
-    float       m_fovYRad    = ToRad(90.f);
+    float       m_fovYRad    = ToRad(45.f);
     float       m_width      = 1.f;
     float       m_height     = 1.f;
 };

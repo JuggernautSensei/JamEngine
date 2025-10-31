@@ -37,8 +37,8 @@ void SceneSerializer::Serialize(const Scene* _pScene)
     // 씬 정보 직렬화
     m_json["sceneName"] = _pScene->GetName();
 
-    const HashMap<UID, Entity>& entityMap = _pScene->GetEntities();   // 전체 엔티티 맵
-    HashMap<UInt32, UID>        entityUIDMap;                         // 엔티티 타입 해시 -> UID 맵 (직렬화용)
+    const HashMap<UID, Entity>& entityMap = _pScene->GetEntityMap();   // 전체 엔티티 맵
+    HashMap<UInt32, UID>        entityUIDMap;                          // 엔티티 타입 해시 -> UID 맵 (직렬화용)
     entityUIDMap.reserve(entityMap.size());
 
     // 전체 엔티티 맵을 순회하면서
@@ -85,7 +85,7 @@ void SceneSerializer::Serialize(const Scene* _pScene)
     }
 }
 
-Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
+Result<std::shared_ptr<Scene>> SceneSerializer::Deserialize()
 {
     JAM_ASSERT(!m_json.empty(), "No data to deserialize");
     JAM_PROFILE_SCOPE_MS("SceneSerializer::Deserialize");
@@ -104,7 +104,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
 
     // 씬 생성
     std::string            sceneName = m_json["sceneName"].get<std::string>();
-    std::unique_ptr<Scene> pScene    = SceneDB::Create(sceneName);
+    std::shared_ptr<Scene> pScene    = SceneDB::Create(sceneName);
 
     // 엔티티 역직렬화
     if (!m_json.contains("entities") || !m_json["entities"].is_array())
@@ -178,7 +178,7 @@ Result<std::unique_ptr<Scene>> SceneSerializer::Deserialize()
         }
     }
 
-    return eErrorCode::Ok;
+    return pScene;
 }
 
 }   // namespace jam

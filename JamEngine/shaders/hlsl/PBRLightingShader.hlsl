@@ -200,21 +200,20 @@ float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     posNdc.y = _input.texCoord0.y * -2.f + 1.f;
     posNdc.z = t_depth.Sample(s_pointClamp, _input.texCoord0).r;
 
-    float4 unprojedPos = mul(cb_projViewInv, float4(posNdc, 1.f));
+    float4 unprojedPos = mul(float4(posNdc, 1.f), cb_viewProjInv);
     float3 posW = unprojedPos.xyz / unprojedPos.w;
 
-    float4 normalRoughnessMetallic = t_gBufferNormalRoughnessMetallic.Sample(s_linearClamp, _input.texCoord0);
-    float3 normal = float3(normalRoughnessMetallic.x, normalRoughnessMetallic.y, 1.f);
-    normal.z = sqrt(max(0.f, 1 - normal.x * normal.x - normal.y * normal.y));
-    normal = normalize(normal);
+    float4 normalRoughness = t_gBufferNormalRoughness.Sample(s_linearWrap, _input.texCoord0);
+    float3 normal = normalize(normalRoughness.xyz);
+    float roughness = normalRoughness.w;
 
-    float roughness = normalRoughnessMetallic.z;
-    float metallic = normalRoughnessMetallic.w;
+    float4 emissiveMetallic = t_gBufferEmissiveMetallic.Sample(s_linearWrap, _input.texCoord0);
+    float3 emissive = emissiveMetallic.rgb;
+    float metallic = emissiveMetallic.w;
 
-    float4 albedoAO = t_gBufferAlbedoAO.Sample(s_linearClamp, _input.texCoord0);
-    float3 albedo = albedoAO.rgb;
-
-    float3 additionalLight = t_gBufferAdditionalLight.Sample(s_linearClamp, _input.texCoord0).rgb;
+    float4 albedoAo = t_gBufferAlbedoAO.Sample(s_linearWrap, _input.texCoord0);
+    float3 albedo = albedoAo.rgb;
+    float ao = albedoAo.a;
 
     float3 toEye = normalize(cb_eyePos - posW);
 
@@ -223,16 +222,16 @@ float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     float3 specularIBL = SpecularIBL(albedo, normal, toEye, r, metallic, roughness) * cb_specularMapIntensity;
 
     // 최종 차폐
-    float ssao = (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SSAO) ? t_ssao.Sample(s_linearClamp, _input.texCoord0).r : 1.f;
-    float ao = ssao * albedoAO.a;
+    float ssao = (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SSAO) ? t_ssao.Sample(s_linearWrap, _input.texCoord0).r : 1.f;
+    float finalAo = ssao * ao;
 
     float nDotE = max(0.f, dot(normal, toEye));
-    float specularAO = SpecularOcclusion(ao, roughness, nDotE);
+    float specularAo = SpecularOcclusion(finalAo, roughness, nDotE);
 
     // 최종 색상
-    diffuseIBL *= ao;
-    specularIBL *= specularAO;
+    diffuseIBL *= finalAo;
+    specularIBL *= specularAo;
 
-    float3 finalColor = diffuseIBL + specularIBL + additionalLight;
+    float3 finalColor = diffuseIBL + specularIBL + emissive;
     return float4(finalColor, 1.f);
 }

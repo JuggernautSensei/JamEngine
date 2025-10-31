@@ -1,0 +1,26 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-31 16:12:25.132
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: struct jam::Handle<struct jam::TextureRef> __cdecl jam::Graphics::LoadTexture(const class DirectX::ScratchImage &)
+line: 3033
+column: 5
+------------------------------------
+user report: 
+Failed DirectX::CreateShaderResourceViewEx(g_gfxContext.pd3d11Device, _scratchImage.GetImages(), _scratchImage.GetImageCount(), _scratchImage.GetMetadata(), D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, flags, DirectX::CREATETEX_DEFAULT, &texture.pSRV)!
+Error code: -0X7FF8FFA9
+Description: Unknown error
+====================================
+

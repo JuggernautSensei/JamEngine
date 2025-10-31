@@ -26,7 +26,7 @@ void SceneDB::Reflect(const SceneInfo& _info)
     map.emplace(hash, _info);
 }
 
-std::unique_ptr<Scene> SceneDB::Create(std::string_view _name)
+std::shared_ptr<Scene> SceneDB::Create(std::string_view _name)
 {
     UInt32 hash = HashOf(_name);
     auto&  map  = GetSceneInfoMap();

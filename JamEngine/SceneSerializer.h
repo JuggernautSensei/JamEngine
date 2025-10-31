@@ -13,7 +13,7 @@ public:
     eErrorCode LoadFromFile(const fs::path& _filePath);
 
     void          Serialize(const Scene* _pScene);
-    JAM_NODISCARD Result<std::unique_ptr<Scene>> Deserialize();
+    JAM_NODISCARD Result<std::shared_ptr<Scene>> Deserialize();
 
 private:
     Json m_json;

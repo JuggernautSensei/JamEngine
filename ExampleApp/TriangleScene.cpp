@@ -11,7 +11,7 @@ struct MyVertex
     RGBA color;
 };
 
-struct CB_CAMERA
+struct MyCAMERA
 {
     Vec3  offset;
     float dummy;
@@ -30,7 +30,7 @@ struct PS_INPUT
     float4 color : COLOR;
 };
 
-cbuffer CB_CAMERA : register(b0)
+cbuffer MyCAMERA : register(b0)
 {
     float3 offset;
     float   dummy;
@@ -99,7 +99,7 @@ void TriangleScene::OnEnter()
         m_program = Graphics::CreateProgram(vsh, psh, true);
     }
 
-    m_cbh = Graphics::CreateConstantBuffer(sizeof(CB_CAMERA));
+    m_cbh = Graphics::CreateConstantBuffer(sizeof(MyCAMERA));
 }
 
 void TriangleScene::OnExit()
@@ -121,7 +121,7 @@ void TriangleScene::OnRender(const RenderView& _view)
     Graphics::SetProgram(m_program);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
 
-    CB_CAMERA cb;
+    MyCAMERA cb;
     cb.offset = m_offset;
     Graphics::UploadBuffer(m_cbh, MemoryView { cb });
 

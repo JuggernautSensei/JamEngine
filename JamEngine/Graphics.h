@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include "GraphicsBase.h"
 
 /////////////////////////////
@@ -168,7 +167,7 @@ public:
         TextureHandle _handle,
         bool          _bDestroyTexture = false);
 
-    /// @brief 프레임 버퍼를 생성합니다. (simple)
+    /// @brief 프레임 버퍼를 생성합니다. (렌더 타겟 + 뎁스 스텐실)
     /// @param _width 프레임 버퍼의 너비
     /// @param _height 프레임 버퍼의 높이
     /// @param _renderTargetFormat 렌더 타겟 텍스처 포맷
@@ -184,7 +183,7 @@ public:
         bool    _writeOnlyRenderTarget = false,
         bool    _writeOnlyDepthStencil = false);
 
-    /// @brief 프레임 버퍼를 생성합니다.
+    /// @brief 프레임 버퍼를 생성합니다. (렌더 타겟만)
     /// @param _width 프레임 버퍼의 너비
     /// @param _height 프레임 버퍼의 높이
     /// @param _format 렌더 타겟 텍스처 포맷
@@ -483,6 +482,14 @@ public:
         Int32         _dstX             = 0,
         Int32         _dstY             = 0);
 
+    /// @brief 텍스처의 해상도를 반환합니다.
+    /// @param _handle 텍스처 핸들
+    /// @param _mipIndex 조회할 MIP 레벨 인덱스
+    /// @return 텍스처 해상도
+    static TextureResolution GetTextureResolution(
+        TextureHandle _handle,
+        Int32 _mipIndex = 0);
+
     ////////////////////////////////////////////////
     ///          FRAME BUFFER UTILITIES          ///
     ////////////////////////////////////////////////
@@ -554,7 +561,6 @@ public:
 
     JAM_NODISCARD static ProgramInfo GetProgramInfo(
         ProgramHandle _handle);
-
 
     /////////////////////////////////////////
     ///          BUFFER UTILITES          ///

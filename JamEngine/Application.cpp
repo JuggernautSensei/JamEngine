@@ -25,7 +25,6 @@ constexpr float k_deltaTimeStepTable[EnumCount<eUpdatePolicy>()] = {
     1.f / 120.f,   // eUpdatePolicy::Fixed120FPS
     1.f / 144.f,   // eUpdatePolicy::Fixed144FPS
     1.f / 240.f,   // eUpdatePolicy::Fixed240FPS
-    0.f            // eUpdatePolicy::ManualStep
 };
 
 Application* Application::s_instance = nullptr;
@@ -172,17 +171,6 @@ int Application::Run()
             {
                 bUpdate = true;   // 무제한 업데이트 모드의 경우 매 프레임마다 업데이트
             }
-            else if (m_updatePolicy == eUpdatePolicy::ManualStep)
-            {
-                // 수동 업데이트 모드의 경우 사용자가 직접 스텝을 요청할 때만 업데이트
-                if (m_bStepRequested)
-                {
-                    JAM_ASSERT(m_manualUpdateStepSec > 0.f, "Manual update step must be greater than 0.");
-                    deltaSec         = m_manualUpdateStepSec;
-                    bUpdate          = true;
-                    m_bStepRequested = false;
-                }
-            }
             else   // 고정시간 업데이트
             {
                 // 고정 프레임 업데이트 모드의 경우 누적된 델타 타임이 설정된 스텝을 초과할 때마다 업데이트
@@ -198,7 +186,11 @@ int Application::Run()
             // 업데이트
             if (bUpdate)
             {
-                SceneManager::Update(deltaSec);
+                if (m_bEditor)
+                    Editor::Update(deltaSec);
+                else
+                    SceneManager::Update(deltaSec);
+
                 Input::Update();
             }
 
@@ -206,9 +198,10 @@ int Application::Run()
             {
                 if (m_bEditor)
                 {
+                    Editor::Render();
                     ImGuiGlue::BeginFrame();
                     SceneManager::ImGuiRender();
-                    editor::ImGuiRender();
+                    Editor::ImGuiRender();
                     ImGuiGlue::EndFrame();
                 }
                 else   // 런타임
@@ -266,14 +259,6 @@ void Application::SetUpdatePolicy(const eUpdatePolicy _policy)
 {
     m_updatePolicy    = _policy;
     m_deltaSecCounter = 0.f;
-}
-
-void Application::Step(const float _sec)
-{
-    JAM_ASSERT(m_updatePolicy == eUpdatePolicy::ManualStep, "Step can only be called in ManualStep update policy");
-    JAM_ASSERT(_sec > 0.f, "Step time must be greater than 0");
-    m_manualUpdateStepSec = _sec;
-    m_bStepRequested      = true;
 }
 
 const ProjectDirectories& Application::GetProjectDirectories() const

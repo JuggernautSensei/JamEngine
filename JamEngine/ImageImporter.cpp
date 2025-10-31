@@ -2,8 +2,9 @@
 
 #include "ImageImporter.h"
 
-#include <DirectXTexEXR.h>
+#include "WindowsUtilities.h"
 
+#include <DirectXTexEXR.h>
 
 namespace jam
 {
@@ -102,7 +103,10 @@ eErrorCode ImageImporter::Import()
 
     if (FAILED(hr))
     {
-        SetErrorMessage("Failed to load image file: '{}'", m_filePath.native());
+        SetErrorMessage("Failed to load image file: '{}'.\n"
+                        "message: {}",
+                        m_filePath.native(),
+                        CreateComErrorMessage(hr));
         return eErrorCode::FileReadFailed;
     }
 

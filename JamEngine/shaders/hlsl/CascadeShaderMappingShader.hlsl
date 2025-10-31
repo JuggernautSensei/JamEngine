@@ -18,7 +18,7 @@ struct PS_INPUT
 GS_Input VSMain(VS_INPUT_POS_3D _input)
 {
     GS_Input output;
-    output.posW = mul(cb_world, float4(_input.posL, 1.f));
+    output.posW = mul(float4(_input.posL, 1.f), cb_world);
     return output;
 }
 
@@ -34,7 +34,7 @@ void GSMain(triangle GS_Input _input[3], inout TriangleStream<PS_INPUT> _triStre
         [unroll]
         for (int j = 0; j < 3; ++j)
         {
-            output.posH = mul(cb_CSMProjView[i], _input[j].posW);
+            output.posH = mul(_input[j].posW, cb_csmViewProj[i]);
             _triStream.Append(output);
         }
 

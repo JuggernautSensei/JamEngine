@@ -1,0 +1,491 @@
+[2025-10-31 16:03:53.794] [debug] [thread 122128] log initialized successfully.
+[2025-10-31 16:03:53.794] [info] [thread 122128] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-31 16:03:54.119] [trace] [thread 122128] Application 'Example Application' started.
+[2025-10-31 16:03:54.119] [info] [thread 122128] hello example app!
+[2025-10-31 16:03:54.132] [trace] [thread 122128] ========== scoped timer start - "RendererSystem::Init" =========="
+[2025-10-31 16:03:54.147] [trace] [thread 122128] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:54.149] [trace] [thread 122128] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.5707 Milli ==========
+[2025-10-31 16:03:54.149] [trace] [thread 122128] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:54.150] [trace] [thread 122128] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.712 Milli ==========
+[2025-10-31 16:03:54.150] [trace] [thread 122128] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:54.150] [trace] [thread 122128] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0518 Milli ==========
+[2025-10-31 16:03:54.151] [trace] [thread 122128] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:54.151] [trace] [thread 122128] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.1831 Milli ==========
+[2025-10-31 16:03:54.151] [trace] [thread 122128] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:54.151] [trace] [thread 122128] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0552 Milli ==========
+[2025-10-31 16:03:54.151] [trace] [thread 122128] ========== scoped timer end - "RendererSystem::Init" - duration: 19.6619 Milli ==========
+[2025-10-31 16:03:54.152] [trace] [thread 122128] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:54.153] [trace] [thread 122128] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.8184 Milli ==========
+[2025-10-31 16:03:54.153] [trace] [thread 122128] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" =========="
+[2025-10-31 16:03:54.207] [trace] [thread 122128] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" - duration: 54.2421 Milli ==========
+[2025-10-31 16:03:54.207] [trace] [thread 122128] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" =========="
+[2025-10-31 16:03:54.208] [trace] [thread 122128] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" - duration: 1.3103 Milli ==========
+[2025-10-31 16:03:54.209] [trace] [thread 122128] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" =========="
+[2025-10-31 16:03:54.211] [trace] [thread 122128] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" - duration: 2.074 Milli ==========
+[2025-10-31 16:03:54.211] [trace] [thread 122128] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" =========="
+[2025-10-31 16:03:55.393] [trace] [thread 122128] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" - duration: 1182.0707 Milli ==========
+[2025-10-31 16:03:55.393] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:03:55.395] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0022538 Sec ==========
+[2025-10-31 16:04:10.311] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.312] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016479 Sec ==========
+[2025-10-31 16:04:10.325] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.327] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015379 Sec ==========
+[2025-10-31 16:04:10.341] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.343] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017115 Sec ==========
+[2025-10-31 16:04:10.354] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.356] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015864 Sec ==========
+[2025-10-31 16:04:10.385] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.386] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018211999 Sec ==========
+[2025-10-31 16:04:10.393] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.395] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021282 Sec ==========
+[2025-10-31 16:04:10.401] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.403] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019156999 Sec ==========
+[2025-10-31 16:04:10.408] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.409] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013862 Sec ==========
+[2025-10-31 16:04:10.416] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.417] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015156999 Sec ==========
+[2025-10-31 16:04:10.423] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.424] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014478 Sec ==========
+[2025-10-31 16:04:10.431] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.433] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017276 Sec ==========
+[2025-10-31 16:04:10.438] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.439] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014410999 Sec ==========
+[2025-10-31 16:04:10.447] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.449] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021094 Sec ==========
+[2025-10-31 16:04:10.453] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.456] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021152 Sec ==========
+[2025-10-31 16:04:10.460] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.462] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018659999 Sec ==========
+[2025-10-31 16:04:10.467] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.469] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013741 Sec ==========
+[2025-10-31 16:04:10.475] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.477] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016424999 Sec ==========
+[2025-10-31 16:04:10.484] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.485] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015597 Sec ==========
+[2025-10-31 16:04:10.491] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.492] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014949 Sec ==========
+[2025-10-31 16:04:10.498] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.499] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015469999 Sec ==========
+[2025-10-31 16:04:10.505] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.507] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019243 Sec ==========
+[2025-10-31 16:04:10.513] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.515] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017631999 Sec ==========
+[2025-10-31 16:04:10.522] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.524] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0022074 Sec ==========
+[2025-10-31 16:04:10.529] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.531] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017192999 Sec ==========
+[2025-10-31 16:04:10.536] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.537] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017331999 Sec ==========
+[2025-10-31 16:04:10.543] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.545] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0020627999 Sec ==========
+[2025-10-31 16:04:10.551] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.552] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.001645 Sec ==========
+[2025-10-31 16:04:10.559] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.561] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017337999 Sec ==========
+[2025-10-31 16:04:10.566] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.568] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018467 Sec ==========
+[2025-10-31 16:04:10.573] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.574] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016978 Sec ==========
+[2025-10-31 16:04:10.581] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.583] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019884 Sec ==========
+[2025-10-31 16:04:10.611] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.613] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018958 Sec ==========
+[2025-10-31 16:04:10.618] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.620] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018530999 Sec ==========
+[2025-10-31 16:04:10.625] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.628] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021378999 Sec ==========
+[2025-10-31 16:04:10.635] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.637] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.001904 Sec ==========
+[2025-10-31 16:04:10.640] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.642] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016036 Sec ==========
+[2025-10-31 16:04:10.647] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.648] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014922 Sec ==========
+[2025-10-31 16:04:10.655] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.657] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017443999 Sec ==========
+[2025-10-31 16:04:10.664] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.665] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015093 Sec ==========
+[2025-10-31 16:04:10.671] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.672] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014827 Sec ==========
+[2025-10-31 16:04:10.678] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.680] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016489 Sec ==========
+[2025-10-31 16:04:10.685] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.687] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014402999 Sec ==========
+[2025-10-31 16:04:10.693] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.695] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018591 Sec ==========
+[2025-10-31 16:04:10.701] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.703] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017721 Sec ==========
+[2025-10-31 16:04:10.710] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.712] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019709999 Sec ==========
+[2025-10-31 16:04:10.716] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.718] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016773 Sec ==========
+[2025-10-31 16:04:10.723] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.725] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.001737 Sec ==========
+[2025-10-31 16:04:10.730] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.732] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019753 Sec ==========
+[2025-10-31 16:04:10.739] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.741] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018418999 Sec ==========
+[2025-10-31 16:04:10.746] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.748] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0023011998 Sec ==========
+[2025-10-31 16:04:10.752] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.754] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018883 Sec ==========
+[2025-10-31 16:04:10.760] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.762] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017947999 Sec ==========
+[2025-10-31 16:04:10.767] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.769] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0020313 Sec ==========
+[2025-10-31 16:04:10.775] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.777] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019816998 Sec ==========
+[2025-10-31 16:04:10.783] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.785] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018868999 Sec ==========
+[2025-10-31 16:04:10.790] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.793] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0023502999 Sec ==========
+[2025-10-31 16:04:10.798] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.799] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016734999 Sec ==========
+[2025-10-31 16:04:10.805] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.807] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019881 Sec ==========
+[2025-10-31 16:04:10.813] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.816] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021068 Sec ==========
+[2025-10-31 16:04:10.821] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.823] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0020472 Sec ==========
+[2025-10-31 16:04:10.827] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.829] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017979 Sec ==========
+[2025-10-31 16:04:10.835] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.837] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017721 Sec ==========
+[2025-10-31 16:04:10.842] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.844] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015168999 Sec ==========
+[2025-10-31 16:04:10.850] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.852] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016747 Sec ==========
+[2025-10-31 16:04:10.858] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.860] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021235 Sec ==========
+[2025-10-31 16:04:10.865] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.867] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019542 Sec ==========
+[2025-10-31 16:04:10.872] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.874] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0020361 Sec ==========
+[2025-10-31 16:04:10.880] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.882] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019480999 Sec ==========
+[2025-10-31 16:04:10.887] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.888] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013474 Sec ==========
+[2025-10-31 16:04:10.895] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.897] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019130999 Sec ==========
+[2025-10-31 16:04:10.902] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.904] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013559 Sec ==========
+[2025-10-31 16:04:10.909] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.911] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016808 Sec ==========
+[2025-10-31 16:04:10.917] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.918] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013902 Sec ==========
+[2025-10-31 16:04:10.925] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.926] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018316 Sec ==========
+[2025-10-31 16:04:10.932] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.934] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016896 Sec ==========
+[2025-10-31 16:04:10.940] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.942] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019987 Sec ==========
+[2025-10-31 16:04:10.947] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.948] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016093999 Sec ==========
+[2025-10-31 16:04:10.955] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.956] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015731 Sec ==========
+[2025-10-31 16:04:10.962] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.964] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014700999 Sec ==========
+[2025-10-31 16:04:10.970] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.972] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015603 Sec ==========
+[2025-10-31 16:04:10.977] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.979] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0020784999 Sec ==========
+[2025-10-31 16:04:10.984] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.986] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019916 Sec ==========
+[2025-10-31 16:04:10.992] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:10.994] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015115 Sec ==========
+[2025-10-31 16:04:11.000] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.002] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014089 Sec ==========
+[2025-10-31 16:04:11.008] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.009] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014949 Sec ==========
+[2025-10-31 16:04:11.090] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.092] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021682999 Sec ==========
+[2025-10-31 16:04:11.104] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.106] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017381 Sec ==========
+[2025-10-31 16:04:11.113] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.115] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017179999 Sec ==========
+[2025-10-31 16:04:11.121] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.122] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015022999 Sec ==========
+[2025-10-31 16:04:11.127] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.129] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018378999 Sec ==========
+[2025-10-31 16:04:11.135] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.136] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016599 Sec ==========
+[2025-10-31 16:04:11.142] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:11.144] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017471999 Sec ==========
+[2025-10-31 16:04:16.783] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.785] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017795999 Sec ==========
+[2025-10-31 16:04:16.793] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.795] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0025050999 Sec ==========
+[2025-10-31 16:04:16.799] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.801] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018455 Sec ==========
+[2025-10-31 16:04:16.806] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.808] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016871999 Sec ==========
+[2025-10-31 16:04:16.814] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.816] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0023081999 Sec ==========
+[2025-10-31 16:04:16.821] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.823] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015723 Sec ==========
+[2025-10-31 16:04:16.828] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.830] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018510999 Sec ==========
+[2025-10-31 16:04:16.836] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.837] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015849 Sec ==========
+[2025-10-31 16:04:16.843] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.845] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017340999 Sec ==========
+[2025-10-31 16:04:16.851] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.853] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017131 Sec ==========
+[2025-10-31 16:04:16.860] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.862] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.001864 Sec ==========
+[2025-10-31 16:04:16.866] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.867] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016870999 Sec ==========
+[2025-10-31 16:04:16.873] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.875] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015376 Sec ==========
+[2025-10-31 16:04:16.880] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.882] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018409999 Sec ==========
+[2025-10-31 16:04:16.888] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.890] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019575 Sec ==========
+[2025-10-31 16:04:16.897] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.899] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019842999 Sec ==========
+[2025-10-31 16:04:16.904] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.906] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018361999 Sec ==========
+[2025-10-31 16:04:16.911] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.913] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017519 Sec ==========
+[2025-10-31 16:04:16.918] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.920] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018756 Sec ==========
+[2025-10-31 16:04:16.926] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.928] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016720999 Sec ==========
+[2025-10-31 16:04:16.935] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.937] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014839 Sec ==========
+[2025-10-31 16:04:16.941] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.943] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015195999 Sec ==========
+[2025-10-31 16:04:16.948] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.949] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015761 Sec ==========
+[2025-10-31 16:04:16.955] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.957] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017186999 Sec ==========
+[2025-10-31 16:04:16.963] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.965] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015574 Sec ==========
+[2025-10-31 16:04:16.972] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.974] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018128 Sec ==========
+[2025-10-31 16:04:16.980] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.982] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019999999 Sec ==========
+[2025-10-31 16:04:16.985] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.987] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018192 Sec ==========
+[2025-10-31 16:04:16.993] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:16.995] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0020784 Sec ==========
+[2025-10-31 16:04:17.039] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:17.040] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015771999 Sec ==========
+[2025-10-31 16:04:17.047] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:17.048] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015995 Sec ==========
+[2025-10-31 16:04:21.470] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.472] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014110999 Sec ==========
+[2025-10-31 16:04:21.477] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.479] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015236 Sec ==========
+[2025-10-31 16:04:21.485] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.487] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.002203 Sec ==========
+[2025-10-31 16:04:21.492] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.493] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0012295999 Sec ==========
+[2025-10-31 16:04:21.500] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.502] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013837 Sec ==========
+[2025-10-31 16:04:21.508] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.510] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018557999 Sec ==========
+[2025-10-31 16:04:21.514] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.516] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016027 Sec ==========
+[2025-10-31 16:04:21.522] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.524] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017281 Sec ==========
+[2025-10-31 16:04:21.530] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.531] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015071 Sec ==========
+[2025-10-31 16:04:21.537] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.539] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014639 Sec ==========
+[2025-10-31 16:04:21.545] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.547] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016168 Sec ==========
+[2025-10-31 16:04:21.552] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.554] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016839999 Sec ==========
+[2025-10-31 16:04:21.560] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.562] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019562999 Sec ==========
+[2025-10-31 16:04:21.567] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.569] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015576 Sec ==========
+[2025-10-31 16:04:21.575] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.576] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013959999 Sec ==========
+[2025-10-31 16:04:21.583] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.585] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021078999 Sec ==========
+[2025-10-31 16:04:21.590] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.592] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.001833 Sec ==========
+[2025-10-31 16:04:21.598] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.599] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017302999 Sec ==========
+[2025-10-31 16:04:21.605] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.606] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016084999 Sec ==========
+[2025-10-31 16:04:21.613] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.615] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017209 Sec ==========
+[2025-10-31 16:04:21.622] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.624] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014516 Sec ==========
+[2025-10-31 16:04:21.627] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.629] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016837999 Sec ==========
+[2025-10-31 16:04:21.635] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.637] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019133999 Sec ==========
+[2025-10-31 16:04:21.643] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.644] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017216 Sec ==========
+[2025-10-31 16:04:21.650] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.651] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013782 Sec ==========
+[2025-10-31 16:04:21.659] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.660] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014163 Sec ==========
+[2025-10-31 16:04:21.665] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.666] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017006999 Sec ==========
+[2025-10-31 16:04:21.673] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.675] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016691999 Sec ==========
+[2025-10-31 16:04:21.680] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.682] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015200999 Sec ==========
+[2025-10-31 16:04:21.688] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.689] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016358 Sec ==========
+[2025-10-31 16:04:21.695] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.697] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.00157 Sec ==========
+[2025-10-31 16:04:21.702] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.704] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016946 Sec ==========
+[2025-10-31 16:04:21.710] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.711] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013656999 Sec ==========
+[2025-10-31 16:04:21.717] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.719] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014847 Sec ==========
+[2025-10-31 16:04:21.725] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.727] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018807 Sec ==========
+[2025-10-31 16:04:21.733] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.735] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017789999 Sec ==========
+[2025-10-31 16:04:21.740] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.741] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015071 Sec ==========
+[2025-10-31 16:04:21.747] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.749] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014966 Sec ==========
+[2025-10-31 16:04:21.755] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.756] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016880999 Sec ==========
+[2025-10-31 16:04:21.762] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.764] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013393 Sec ==========
+[2025-10-31 16:04:21.770] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.772] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014211 Sec ==========
+[2025-10-31 16:04:21.777] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.779] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016580999 Sec ==========
+[2025-10-31 16:04:21.785] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.787] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0022282 Sec ==========
+[2025-10-31 16:04:21.793] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.794] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014329 Sec ==========
+[2025-10-31 16:04:21.800] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.802] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015152 Sec ==========
+[2025-10-31 16:04:21.808] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.809] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015899 Sec ==========
+[2025-10-31 16:04:21.815] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:21.817] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017165999 Sec ==========
+[2025-10-31 16:04:26.796] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.798] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019127999 Sec ==========
+[2025-10-31 16:04:26.803] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.804] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013611 Sec ==========
+[2025-10-31 16:04:26.809] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.811] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015885 Sec ==========
+[2025-10-31 16:04:26.818] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.820] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014516 Sec ==========
+[2025-10-31 16:04:26.826] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.827] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0012801 Sec ==========
+[2025-10-31 16:04:26.834] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.835] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015058999 Sec ==========
+[2025-10-31 16:04:26.841] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.843] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017906999 Sec ==========
+[2025-10-31 16:04:26.848] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.850] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015126 Sec ==========
+[2025-10-31 16:04:26.855] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.857] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015433 Sec ==========
+[2025-10-31 16:04:26.863] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.865] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014979 Sec ==========
+[2025-10-31 16:04:26.871] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.872] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014077 Sec ==========
+[2025-10-31 16:04:26.879] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.880] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015355999 Sec ==========
+[2025-10-31 16:04:26.886] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.887] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015551 Sec ==========
+[2025-10-31 16:04:26.893] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.894] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015838 Sec ==========
+[2025-10-31 16:04:26.901] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.903] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016581999 Sec ==========
+[2025-10-31 16:04:26.908] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.910] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014417999 Sec ==========
+[2025-10-31 16:04:26.916] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.918] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017477999 Sec ==========
+[2025-10-31 16:04:26.923] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.925] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.001587 Sec ==========
+[2025-10-31 16:04:26.930] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.932] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0020319 Sec ==========
+[2025-10-31 16:04:26.938] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.940] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013505999 Sec ==========
+[2025-10-31 16:04:26.946] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.948] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015499999 Sec ==========
+[2025-10-31 16:04:26.954] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.956] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018134 Sec ==========
+[2025-10-31 16:04:26.961] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.962] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013776 Sec ==========
+[2025-10-31 16:04:26.968] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.970] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019822998 Sec ==========
+[2025-10-31 16:04:26.976] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.978] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016562999 Sec ==========
+[2025-10-31 16:04:26.984] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.985] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014552999 Sec ==========
+[2025-10-31 16:04:26.992] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.993] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014584999 Sec ==========
+[2025-10-31 16:04:26.998] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:26.999] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017235 Sec ==========
+[2025-10-31 16:04:27.006] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.008] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0023359999 Sec ==========
+[2025-10-31 16:04:27.013] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.015] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0019002999 Sec ==========
+[2025-10-31 16:04:27.022] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.024] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017470999 Sec ==========
+[2025-10-31 16:04:27.030] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.031] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016468 Sec ==========
+[2025-10-31 16:04:27.036] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.037] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015248 Sec ==========
+[2025-10-31 16:04:27.043] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.044] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016237999 Sec ==========
+[2025-10-31 16:04:27.051] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.053] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017055 Sec ==========
+[2025-10-31 16:04:27.059] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.061] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0018265999 Sec ==========
+[2025-10-31 16:04:27.066] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.068] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017496999 Sec ==========
+[2025-10-31 16:04:27.073] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.074] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014165 Sec ==========
+[2025-10-31 16:04:27.081] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.082] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016565999 Sec ==========
+[2025-10-31 16:04:27.088] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.090] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016776 Sec ==========
+[2025-10-31 16:04:27.096] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.098] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015522 Sec ==========
+[2025-10-31 16:04:27.111] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.112] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015756 Sec ==========
+[2025-10-31 16:04:27.119] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.120] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014314 Sec ==========
+[2025-10-31 16:04:27.126] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.127] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016151 Sec ==========
+[2025-10-31 16:04:27.134] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.136] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017083 Sec ==========
+[2025-10-31 16:04:27.140] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.142] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016221 Sec ==========
+[2025-10-31 16:04:27.148] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.149] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016606 Sec ==========
+[2025-10-31 16:04:27.155] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.157] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.001574 Sec ==========
+[2025-10-31 16:04:27.163] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.164] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016316 Sec ==========
+[2025-10-31 16:04:27.170] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.172] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015804999 Sec ==========
+[2025-10-31 16:04:27.178] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.179] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015805999 Sec ==========
+[2025-10-31 16:04:27.185] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.186] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016514 Sec ==========
+[2025-10-31 16:04:27.192] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.194] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013694 Sec ==========
+[2025-10-31 16:04:27.200] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.201] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013798999 Sec ==========
+[2025-10-31 16:04:27.208] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.209] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015705 Sec ==========
+[2025-10-31 16:04:27.215] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.217] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0016614 Sec ==========
+[2025-10-31 16:04:27.222] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.224] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0015525 Sec ==========
+[2025-10-31 16:04:27.230] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.231] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0014644 Sec ==========
+[2025-10-31 16:04:27.238] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.239] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0013507999 Sec ==========
+[2025-10-31 16:04:27.246] [trace] [thread 122128] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:04:27.247] [trace] [thread 122128] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0017805999 Sec ==========
+[2025-10-31 16:05:18.467] [trace] [thread 122128] Application 'Example Application' shutdown.
+[2025-10-31 16:05:18.467] [info] [thread 122128] good-bye example app!
+[2025-10-31 16:05:18.550] [debug] [thread 122128] log shutdown.

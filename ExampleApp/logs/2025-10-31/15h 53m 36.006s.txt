@@ -1,0 +1,26 @@
+[2025-10-31 15:53:36.010] [debug] [thread 84632] log initialized successfully.
+[2025-10-31 15:53:36.010] [info] [thread 84632] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-31 15:53:36.379] [trace] [thread 84632] Application 'Example Application' started.
+[2025-10-31 15:53:36.379] [info] [thread 84632] hello example app!
+[2025-10-31 15:53:36.402] [trace] [thread 84632] ========== scoped timer start - "RendererSystem::Init" =========="
+[2025-10-31 15:53:36.439] [trace] [thread 84632] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 15:53:36.441] [trace] [thread 84632] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.9612 Milli ==========
+[2025-10-31 15:53:36.441] [trace] [thread 84632] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 15:53:36.442] [trace] [thread 84632] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.0602 Milli ==========
+[2025-10-31 15:53:36.442] [trace] [thread 84632] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 15:53:36.442] [trace] [thread 84632] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0671 Milli ==========
+[2025-10-31 15:53:36.444] [trace] [thread 84632] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 15:53:36.444] [trace] [thread 84632] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.2517 Milli ==========
+[2025-10-31 15:53:36.444] [trace] [thread 84632] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 15:53:36.444] [trace] [thread 84632] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0694 Milli ==========
+[2025-10-31 15:53:36.444] [trace] [thread 84632] ========== scoped timer end - "RendererSystem::Init" - duration: 42.0964 Milli ==========
+[2025-10-31 15:53:36.445] [trace] [thread 84632] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 15:53:36.446] [trace] [thread 84632] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.0565 Milli ==========
+[2025-10-31 15:53:36.446] [trace] [thread 84632] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" =========="
+[2025-10-31 15:53:36.468] [trace] [thread 84632] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" - duration: 22.3043 Milli ==========
+[2025-10-31 15:53:36.468] [trace] [thread 84632] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" =========="
+[2025-10-31 15:53:36.469] [trace] [thread 84632] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" - duration: 1.1274999 Milli ==========
+[2025-10-31 15:53:36.470] [trace] [thread 84632] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" =========="
+[2025-10-31 15:53:36.471] [trace] [thread 84632] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" - duration: 1.0835 Milli ==========
+[2025-10-31 15:53:36.471] [trace] [thread 84632] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" =========="
+[2025-10-31 15:53:36.637] [trace] [thread 84632] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" - duration: 166.5593 Milli

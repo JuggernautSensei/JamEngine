@@ -1,0 +1,31 @@
+[2025-10-31 16:03:04.892] [debug] [thread 81008] log initialized successfully.
+[2025-10-31 16:03:04.892] [info] [thread 81008] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-31 16:03:05.182] [trace] [thread 81008] Application 'Example Application' started.
+[2025-10-31 16:03:05.182] [info] [thread 81008] hello example app!
+[2025-10-31 16:03:05.193] [trace] [thread 81008] ========== scoped timer start - "RendererSystem::Init" =========="
+[2025-10-31 16:03:05.209] [trace] [thread 81008] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:05.210] [trace] [thread 81008] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.4399999 Milli ==========
+[2025-10-31 16:03:05.210] [trace] [thread 81008] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:05.211] [trace] [thread 81008] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.6668 Milli ==========
+[2025-10-31 16:03:05.211] [trace] [thread 81008] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:05.211] [trace] [thread 81008] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0512 Milli ==========
+[2025-10-31 16:03:05.212] [trace] [thread 81008] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:05.212] [trace] [thread 81008] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.1685 Milli ==========
+[2025-10-31 16:03:05.212] [trace] [thread 81008] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:05.212] [trace] [thread 81008] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0524 Milli ==========
+[2025-10-31 16:03:05.212] [trace] [thread 81008] ========== scoped timer end - "RendererSystem::Init" - duration: 19.0404 Milli ==========
+[2025-10-31 16:03:05.213] [trace] [thread 81008] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 16:03:05.214] [trace] [thread 81008] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.7744 Milli ==========
+[2025-10-31 16:03:05.214] [trace] [thread 81008] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" =========="
+[2025-10-31 16:03:05.285] [trace] [thread 81008] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skySpecularHDR.dds"" - duration: 70.9998 Milli ==========
+[2025-10-31 16:03:05.285] [trace] [thread 81008] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" =========="
+[2025-10-31 16:03:05.286] [trace] [thread 81008] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyDiffuseHDR.dds"" - duration: 1.4437 Milli ==========
+[2025-10-31 16:03:05.286] [trace] [thread 81008] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" =========="
+[2025-10-31 16:03:05.290] [trace] [thread 81008] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyBrdf.dds"" - duration: 3.6128 Milli ==========
+[2025-10-31 16:03:05.290] [trace] [thread 81008] ========== scoped timer start - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" =========="
+[2025-10-31 16:03:06.482] [trace] [thread 81008] ========== scoped timer end - "ImageTexture::Load "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\Contents\Assets\Imagetextures\skyEnvHDR.dds"" - duration: 1192.079 Milli ==========
+[2025-10-31 16:03:06.482] [trace] [thread 81008] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 16:03:06.485] [trace] [thread 81008] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0021799998 Sec ==========
+[2025-10-31 16:03:12.704] [trace] [thread 81008] Application 'Example Application' shutdown.
+[2025-10-31 16:03:12.704] [info] [thread 81008] good-bye example app!
+[2025-10-31 16:03:12.778] [debug] [thread 81008] log shutdown.

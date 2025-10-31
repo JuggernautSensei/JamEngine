@@ -1,6 +1,5 @@
 #pragma once
 #include "CullingSystem.h"
-#include "GraphicsBase.h"
 #include "RenderView.h"
 
 // clang-format off
@@ -24,7 +23,7 @@ public:
     static void ImGuiRender();
 
     JAM_NODISCARD static eErrorCode LoadScene(const fs::path& _scenePath);
-    static void                     LoadScene(std::unique_ptr<Scene>&& _pScene);
+    static void                     LoadScene(const std::shared_ptr<Scene>& _pScene);
 
     JAM_NODISCARD static Scene*     GetActiveScene();
     JAM_NODISCARD static Resolution GetSceneResoultion();

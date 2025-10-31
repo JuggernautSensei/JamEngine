@@ -96,7 +96,7 @@ float3 DiffuseIBL(float3 _albedo, float3 _normal, float3 _toEye, float _metallic
 float3 SpecularIBL(float3 _albedo, float3 _normal, float3 _toEye, float3 _reflect, float _metallic, float _roughness)
 {
     float nDote = dot(_normal, _toEye);
-    float2 specularBRDF = t_brdf.SampleLevel(s_linearClamp, float2(nDote, 1.0 - _roughness), 0.0f).rg;
+    float2 specularBRDF = t_brdf.SampleLevel(s_linearWrap, float2(nDote, 1.0 - _roughness), 0.0f).rg;
     float3 specularIrradiance = t_specular.SampleLevel(s_linearWrap, _reflect, _roughness * 5.0f).rgb;
     float3 F0 = lerp(k_dielectric, _albedo, _metallic);
     return (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
@@ -167,7 +167,7 @@ float3 CalcNormal(float3 _tangent, float3 _normal, float2 _texCoord)
     float3 normal = normalize(_normal);
     if (cb_textureBindFlags & (JAM_TEXTURE_BIND_FLAGS_NORMAL | JAM_TEXTURE_BIND_FLAGS_FLIP_Y_NORMAL))
     {
-        float3 texNormal = t_normal.Sample(s_linearClamp, _texCoord).rgb;
+        float3 texNormal = t_normal.Sample(s_linearWrap, _texCoord).rgb;
         texNormal = normalize(2.f * texNormal - 1.f); // [0, 1] -> [-1, 1]
         texNormal.y = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_FLIP_Y_NORMAL) ? -texNormal.y : texNormal.y;
 

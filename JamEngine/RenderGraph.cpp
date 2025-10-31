@@ -17,11 +17,10 @@ JAM_NODISCARD UInt64 MakeRenderGraphStageSlotKey(const eShader _stage, const Int
 namespace jam
 {
 
-RenderGraph& RenderGraph::AddPass(const RenderPass& _pass)
+RenderGraph& RenderGraph::AddPass(RenderPass&& _pass)
 {
     JAM_ASSERT(!m_bCompiled, "Cannot add pass to a compiled RenderGraph.");
-
-    m_passes.emplace_back(_pass);
+    m_passes.emplace_back(std::move(_pass));
     return *this;
 }
 
@@ -220,6 +219,8 @@ void RenderGraph::Execute(const FrameBufferHandle _fbh, const Viewport _viewport
             // 바인딩된 텍스처 언바인딩
             for (const TextureBindInfo& texInfo: passEx.unbindTextures)
                 Graphics::SetTexture(k_invalidHandle, texInfo.stage, texInfo.slot);
+
+            Graphics::Flush();
         }
     }
 }

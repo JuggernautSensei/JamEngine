@@ -9,29 +9,32 @@ namespace jam
 
 enum class ePanel : Int8
 {
-    Debug = 0,
+    Profiler = 0,
     Viewport,
     SceneHierarchy,
-    AssetInspector,
     EntityInspector,
-    ContentsBrowser,
-    Toolbar,
+    AssetBrowser,
+    FileSystemBrowser,
     Console,
 };
 
-namespace editor
+class Editor
 {
-    void Init();
-    void Shutdown();
+public:
+    static void Init();
+    static void Shutdown();
 
-    void ImGuiRender();
-    void OnEvent(Event& _event);
+    static void Update(float _deltaSec);
+    static void Render();
+    static void ImGuiRender();
+    static void OnEvent(Event& _event);
 
-    void               SetPanelVisible(ePanel _panel, bool _bVisible);
-    JAM_NODISCARD bool IsPanelVisible(ePanel _panel);
+    static void               SetPanelVisible(ePanel _panel, bool _bVisible);
+    static JAM_NODISCARD bool IsPanelVisible(ePanel _panel);
 
-    void                 SetFocusEntity(Entity _entity);
-    JAM_NODISCARD Entity GetFocusEntity();
+    static void                 SetFocusEntity(Entity _entity);
+    static JAM_NODISCARD Entity GetFocusEntity();
 
-}   // namespace editor
+};   // namespace editor
+
 }   // namespace jam

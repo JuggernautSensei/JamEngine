@@ -117,7 +117,7 @@ void CullingSystem<TPolicy>::Build(const Scene* _pScene)
         if (!m.pMesh || !m.pMaterial)
             continue;
 
-        const Mat4 world   = t.transform.GetWorld().CreateWorld();
+        const Mat4 world   = t.transform.GetWorld().GetMatrix();
         const AABB aabbInL = m.pMesh->GetBoundingBox();
         const AABB aabbInW = AABB::Transform(aabbInL, world);
 

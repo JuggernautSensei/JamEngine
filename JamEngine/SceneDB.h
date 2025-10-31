@@ -10,15 +10,15 @@ namespace jam
 struct SceneInfo
 {
     std::string                             name     = {};
-    std::function<std::unique_ptr<Scene>()> createFn = nullptr;
+    std::function<std::shared_ptr<Scene>()> createFn = nullptr;
 };
 
 namespace details
 {
     template<typename T>
-    std::unique_ptr<Scene> CreateBehavior()
+    std::shared_ptr<Scene> CreateBehavior()
     {
-        return std::make_unique<T>();
+        return std::make_shared<T>();
     }
 }   // namespace details
 
@@ -36,7 +36,7 @@ public:
         Reflect(info);
     }
 
-    JAM_NODISCARD static std::unique_ptr<Scene> Create(std::string_view _name);
+    JAM_NODISCARD static std::shared_ptr<Scene> Create(std::string_view _name);
     JAM_NODISCARD static const HashMap<UInt32, SceneInfo>& GetSceneInfos();
 
 };   // namespace scene_db

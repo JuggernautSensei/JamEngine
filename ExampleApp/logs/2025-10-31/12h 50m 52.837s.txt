@@ -1,0 +1,45 @@
+[2025-10-31 12:50:52.843] [debug] [thread 92548] log initialized successfully.
+[2025-10-31 12:50:52.843] [info] [thread 92548] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-10-31 12:50:53.378] [trace] [thread 92548] Application 'Example Application' started.
+[2025-10-31 12:50:53.378] [info] [thread 92548] hello example app!
+[2025-10-31 12:50:53.429] [trace] [thread 92548] ========== scoped timer start - "RendererSystem::Init" =========="
+[2025-10-31 12:50:53.491] [trace] [thread 92548] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 12:50:53.494] [trace] [thread 92548] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 2.2655 Milli ==========
+[2025-10-31 12:50:53.494] [trace] [thread 92548] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 12:50:53.495] [trace] [thread 92548] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.3501 Milli ==========
+[2025-10-31 12:50:53.495] [trace] [thread 92548] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 12:50:53.495] [trace] [thread 92548] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0907 Milli ==========
+[2025-10-31 12:50:53.498] [trace] [thread 92548] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 12:50:53.498] [trace] [thread 92548] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.3114 Milli ==========
+[2025-10-31 12:50:53.498] [trace] [thread 92548] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 12:50:53.498] [trace] [thread 92548] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 0.0974 Milli ==========
+[2025-10-31 12:50:53.498] [trace] [thread 92548] ========== scoped timer end - "RendererSystem::Init" - duration: 69.1897 Milli ==========
+[2025-10-31 12:50:53.499] [trace] [thread 92548] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
+[2025-10-31 12:50:53.501] [trace] [thread 92548] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.5937 Milli ==========
+[2025-10-31 12:50:53.501] [trace] [thread 92548] ========== scoped timer start - "HelloBasicRenderer::CompileGraph_" =========="
+[2025-10-31 12:50:53.504] [trace] [thread 92548] ========== scoped timer end - "HelloBasicRenderer::CompileGraph_" - duration: 0.0032984999 Sec ==========
+[2025-10-31 12:51:05.272] [critical] [thread 92548] 
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+is debug: true
+time: 2025-10-31 12:51:05.272
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\BasicRenderer.cpp
+function name: void __cdecl jam::BasicRenderer::UploadEnvironmentData(const struct jam::Environment &)
+line: 768
+column: 13
+------------------------------------
+user report: 
+Unknown tone mapping type!
+====================================
+
+[2025-10-31 12:51:05.272] [debug] [thread 92548] log shutdown.

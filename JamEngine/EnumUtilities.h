@@ -12,6 +12,9 @@
 namespace jam
 {
 
+template <typename E>
+using EnumIntType = std::underlying_type_t<E>;
+
 template<typename E>
 JAM_NODISCARD constexpr auto EnumToInt(E _value) noexcept
 {

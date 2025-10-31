@@ -64,6 +64,32 @@ void CameraScript::OnUpdate(const float _deltaSec)
         m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
         m_pTrans->transform.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
     }
+
+    if (Input::IsKeyDown(eKey::LeftArrow))
+    {
+        m_pData->yaw += ToDeg(m_pData->rotSpeedRad) * _deltaSec;
+        m_pTrans->transform.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+    }
+
+    if (Input::IsKeyDown(eKey::RightArrow))
+    {
+        m_pData->yaw -= ToDeg(m_pData->rotSpeedRad) * _deltaSec;
+        m_pTrans->transform.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+    }
+
+    if (Input::IsKeyDown(eKey::UpArrow))
+    {
+        m_pData->pitch += ToDeg(m_pData->rotSpeedRad) * _deltaSec;
+        m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
+        m_pTrans->transform.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+    }
+
+    if (Input::IsKeyDown(eKey::DownArrow))
+    {
+        m_pData->pitch -= ToDeg(m_pData->rotSpeedRad) * _deltaSec;
+        m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
+        m_pTrans->transform.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+    }
 }
 
 void EditCameraScriptDataComponentUI(CameraScriptDataComponent& _component)

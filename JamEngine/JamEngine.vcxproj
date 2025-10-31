@@ -226,14 +226,21 @@
     <ClCompile Include="BasicRendererBase.cpp" />
     <ClCompile Include="BoundBox.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Editor_Console.cpp" />
     <ClCompile Include="CullingSystem.cpp" />
     <ClCompile Include="ComponentDB.cpp" />
     <ClCompile Include="DrawItem.cpp" />
     <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="Editor_AssetBrowser.cpp" />
+    <ClCompile Include="Editor_EntityInsepctor.cpp" />
+    <ClCompile Include="Editor_FileSystemBrowser.cpp" />
+    <ClCompile Include="Editor_Profiler.cpp" />
+    <ClCompile Include="Editor_SceneHierarchy.cpp" />
+    <ClCompile Include="Editor_Viewport.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="FileUtilities.cpp" />
-    <ClCompile Include="powerof2_fixed_circular_q.cpp" />
-    <ClCompile Include="fixed_string.cpp" />
+    <ClCompile Include="PO2FCircularQ.cpp" />
+    <ClCompile Include="FString.cpp" />
     <ClCompile Include="IAsset.cpp" />
     <ClCompile Include="BaseUtilities.cpp" />
     <ClCompile Include="Error.cpp" />
@@ -251,7 +258,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="fixed_vector.cpp" />
+    <ClCompile Include="FVector.cpp" />
     <ClCompile Include="HandleAllocator.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="LoopSubdivision.cpp" />
@@ -325,15 +332,22 @@
     <ClInclude Include="BasicRendererBase.h" />
     <ClInclude Include="BoundBox.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Editor_Console.h" />
     <ClInclude Include="CullingSystem.h" />
     <ClInclude Include="ComponentDB.h" />
     <ClInclude Include="DrawItem.h" />
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="Editor_AssetBrowser.h" />
+    <ClInclude Include="Editor_EntityInsepctor.h" />
+    <ClInclude Include="Editor_FileSystemBrowser.h" />
+    <ClInclude Include="Editor_Profiler.h" />
+    <ClInclude Include="Editor_SceneHierarchy.h" />
+    <ClInclude Include="Editor_Viewport.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="FileUtilities.h" />
-    <ClInclude Include="powerof2_fixed_circular_q.h" />
-    <ClInclude Include="fixed_string.h" />
+    <ClInclude Include="PO2FCircularQ.h" />
+    <ClInclude Include="FString.h" />
     <ClInclude Include="HashMap.h" />
     <ClInclude Include="IAsset.h" />
     <ClInclude Include="BaseUtilities.h" />
@@ -347,7 +361,7 @@
     <ClInclude Include="ImGuiGlue.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="ImageTexture.h" />
-    <ClInclude Include="fixed_vector.h" />
+    <ClInclude Include="FVector.h" />
     <ClInclude Include="HandleAllocator.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="LoopSubdivision.h" />

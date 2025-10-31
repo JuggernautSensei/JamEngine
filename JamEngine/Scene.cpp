@@ -19,11 +19,6 @@ entt::registry& Scene::GetRegistry()
     return m_registry;
 }
 
-const HashMap<UID, Entity>& Scene::GetEntities() const
-{
-    return m_entityMap;
-}
-
 Entity Scene::CreateEntity(const std::string_view _name)
 {
     UID uid = m_uidGenerator.Alloc();
@@ -97,6 +92,16 @@ bool Scene::IsEntityValid(const Entity _entity) const
 Entity Scene::GetRootEntity() const
 {
     return m_rootEntity;
+}
+
+Int32 Scene::GetEntityCount() const
+{
+    return NarrowCast<Int32>(m_entityMap.size());
+}
+
+const HashMap<UID, Entity>& Scene::GetEntityMap() const
+{
+    return m_entityMap;
 }
 
 Scene::Scene()

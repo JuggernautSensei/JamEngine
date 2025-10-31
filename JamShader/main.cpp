@@ -692,8 +692,8 @@ public:
     {
         std::locale::global(std::locale::classic());
 
-        std::unique_ptr<Scene> pScene = std::make_unique<WorkScene>();
-        SceneManager::LoadScene(std::move(pScene));
+        std::shared_ptr<Scene> pScene = std::make_shared<WorkScene>();
+        SceneManager::LoadScene(pScene);
 
         Application& app    = Application::GetInstance();
         Window&      window = app.GetWindow();
