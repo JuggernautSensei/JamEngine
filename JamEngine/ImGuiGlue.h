@@ -12,7 +12,7 @@ class ImGuiGlue
 {
 public:
 
-static void Init(HWND _hwnd, ID3D11Device* _pd3dDevice, ID3D11DeviceContext* _pd3dDeviceContext);
+static void Init(HWND _hwnd);
 static void Shutdown();
 static void BeginFrame();
 static void EndFrame();

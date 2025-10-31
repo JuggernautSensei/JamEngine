@@ -7,7 +7,17 @@
 namespace jam
 {
 
-void ImGuiGlue::Init(const HWND _hwnd, ID3D11Device* _pd3dDevice, ID3D11DeviceContext* _pd3dDeviceContext)
+struct ImGuiGlueContext
+{
+    
+};
+
+}
+
+namespace jam
+{
+
+void ImGuiGlue::Init(const HWND _hwnd)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -17,14 +27,17 @@ void ImGuiGlue::Init(const HWND _hwnd, ID3D11Device* _pd3dDevice, ID3D11DeviceCo
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     ImGui_ImplWin32_Init(_hwnd);
-    ImGui_ImplDX11_Init(_pd3dDevice, _pd3dDeviceContext);
 }
 
 void ImGuiGlue::Shutdown()
 {
-    ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+
+    ImGuiIO& io                = ImGui::GetIO();
+    io.BackendRendererName     = nullptr;
+    io.BackendRendererUserData = nullptr;
+    io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset);
 }
 
 void ImGuiGlue::BeginFrame()
@@ -49,4 +62,4 @@ void ImGuiGlue::EndFrame()
     }
 }
 
-}   // namespace jam::imgui
+}   // namespace jam
