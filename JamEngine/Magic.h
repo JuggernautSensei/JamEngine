@@ -6,11 +6,16 @@ namespace jam
 constexpr std::string_view k_engineName    = JAM_ENGINE_NAME;
 constexpr std::string_view k_engineVersion = JAM_VERSION_NAME;
 
-constexpr std::string_view k_contentsDirName      = "Contents";
-constexpr std::string_view k_assetsDirName        = "Assets";
-constexpr std::string_view k_meshesDirName        = "Meshes";
-constexpr std::string_view k_imageTexturesDirName = "Imagetextures";
-constexpr std::string_view k_materialsDirName     = "Materials";
-constexpr std::string_view k_scenesDirName        = "Scenes";
+constexpr std::string_view k_contentsDirName = "Contents";
+
+constexpr std::string_view k_jamSceneExt    = ".jsc";
+constexpr std::string_view k_jamMeshExt     = ".jmsh";
+constexpr std::string_view k_jamMaterialExt = ".jmat";
+constexpr std::string_view k_jamModelExt    = ".jmdl";
+
+constexpr std::string_view k_jamSceneExtFilter    = "*.jsc";
+constexpr std::string_view k_jamMeshExtFilter     = "*.jmsh";
+constexpr std::string_view k_jamMaterialExtFilter = "*.jmat";
+constexpr std::string_view k_jamModelExtFilter    = "*.jmdl";
 
 }   // namespace jam

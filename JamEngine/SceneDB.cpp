@@ -3,41 +3,41 @@
 #include "Scene.h"
 #include "SceneDB.h"
 
-
 namespace jam
 {
 
-JAM_NODISCARD static HashMap<UInt32, SceneInfo>& GetSceneInfoMap()
+SceneDB* SceneDB::s_instance = nullptr;
+
+SceneDB& SceneDB::GetInstance()
 {
-    static HashMap<UInt32, SceneInfo> map;
-    return map;
+    if (!s_instance)
+        s_instance = JAM_NEW(SceneDB);
+    return *s_instance;
 }
 
-}
-
-namespace jam
+void SceneDB::DestroyInstance()
 {
+    if (s_instance)
+        JAM_DELETE(s_instance);
+}
 
 void SceneDB::Reflect(const SceneInfo& _info)
 {
     UInt32 hash = HashOf(_info.name);
-    auto&  map  = GetSceneInfoMap();
-    JAM_ASSERT(!map.contains(hash), "SceneBehavior with name '{}' already registered", _info.name);
-    map.emplace(hash, _info);
+    JAM_ASSERT(!m_infos.contains(hash), "SceneBehavior with name '{}' already registered", _info.name);
+    m_infos.emplace(hash, _info);
 }
 
-std::shared_ptr<Scene> SceneDB::Create(std::string_view _name)
+Ref<Scene> SceneDB::Create(std::string_view _name) const
 {
     UInt32 hash = HashOf(_name);
-    auto&  map  = GetSceneInfoMap();
-    JAM_ASSERT(map.contains(hash), "No SceneBehavior registered with name '{}'", _name);
-    return map[hash].createFn();
+    JAM_ASSERT(m_infos.contains(hash), "No SceneBehavior registered with name '{}'", _name);
+    return m_infos.at(hash).createFn();
 }
 
-const HashMap<UInt32, SceneInfo>& SceneDB::GetSceneInfos()
+const HashMap<UInt32, SceneInfo>& SceneDB::GetContainer() const
 {
-    auto& map = GetSceneInfoMap();
-    return map;
+    return m_infos;
 }
 
-}   // namespace jam::scene_db
+}   // namespace jam

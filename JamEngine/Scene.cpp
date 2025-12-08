@@ -3,8 +3,11 @@
 #include "Scene.h"
 
 #include "Application.h"
-#include "Components.h"
 #include "Entity.h"
+#include "EnvironmentComponent.h"
+#include "TagComponent.h"
+#include "TransformComponent.h"
+#include "TransformHierarchy.h"
 
 namespace jam
 {
@@ -19,57 +22,54 @@ entt::registry& Scene::GetRegistry()
     return m_registry;
 }
 
+TextureHandle Scene::GetDepthTexture() const
+{
+    return k_invalidHandle;
+}
+
 Entity Scene::CreateEntity(const std::string_view _name)
 {
-    UID uid = m_uidGenerator.Alloc();
-    return CreateEntity_(false, uid, _name);
+    const UID uid = m_uidGenerator.Alloc();
+    return CreateEntity_(uid, _name);
 }
 
 Entity Scene::CreateEntity(const UID _uid, const std::string_view _name)
 {
-    UID uid = m_uidGenerator.Alloc(_uid);
-    return CreateEntity_(false, uid, _name);
+    const UID uid = m_uidGenerator.Alloc(_uid);
+    return CreateEntity_(uid, _name);
 }
 
 Entity Scene::GetEntity(UID _uid) const
 {
-    auto it = m_entityMap.find(_uid);
-    JAM_ASSERT(it != m_entityMap.end(), "Entity with UID {} does not exist", _uid);
+    auto it = m_entities.find(_uid);
+    JAM_ASSERT(it != m_entities.end(), "Entity with UID {} does not exist", _uid);
     return it->second;
 }
 
 Entity Scene::FindEntity(const UID _uid) const
 {
-    auto it = m_entityMap.find(_uid);
-    if (it == m_entityMap.end())
+    auto it = m_entities.find(_uid);
+    if (it == m_entities.end())
     {
         return Entity::s_null;
     }
-
-    return it->second;
+    else
+    {
+        return it->second;
+    }
 }
 
-Entity Scene::CloneEntity(const Entity _entity)
+Entity Scene::CloneEntity(const Entity _targetEntity)
 {
-    const Entity newEntity = CreateEntity();
-    for (UInt32 typeID: std::views::keys(m_registry.storage()))
-    {
-        if (ComponentDB::Has(typeID, _entity))   // _entity가 해당 컴포넌트를 가지고 있는지 확인
-        {
-            void* component = ComponentDB::Get(typeID, _entity);                // 컴포넌트 데이터 가져오기
-            ComponentDB::CreateOrReplaceByCopy(typeID, newEntity, component);   // 새 엔티티에 컴포넌트 복사
-        }
-    }
-
-    return newEntity;
+    return CloneEntity_Recursive_(_targetEntity);
 }
 
 void Scene::DestroyEntity(const Entity _entity)
 {
-    JAM_ASSERT(_entity.IsValid(), "Entity is not valid");
-    JAM_ASSERT(_entity != m_rootEntity, "Cannot delete root entity");
+    JAM_ASSERT(_entity, "Entity is not valid");
+    JAM_ASSERT(_entity != m_root, "Cannot delete root entity");
 
-    struct EntityDeletor
+    struct EntityDelector
     {
         void operator()() const
         {
@@ -81,7 +81,7 @@ void Scene::DestroyEntity(const Entity _entity)
     };
 
     Application& app = Application::GetInstance();
-    app.SubmitCommand(EntityDeletor { this, _entity });
+    app.SubmitCommand(EntityDelector { this, _entity });
 }
 
 bool Scene::IsEntityValid(const Entity _entity) const
@@ -91,83 +91,142 @@ bool Scene::IsEntityValid(const Entity _entity) const
 
 Entity Scene::GetRootEntity() const
 {
-    return m_rootEntity;
+    return m_root;
 }
 
 Int32 Scene::GetEntityCount() const
 {
-    return NarrowCast<Int32>(m_entityMap.size());
+    return NarrowCast<Int32>(m_entities.size());
 }
 
-const HashMap<UID, Entity>& Scene::GetEntityMap() const
+const HashMap<UID, Entity>& Scene::GetEntities() const
 {
-    return m_entityMap;
+    return m_entities;
 }
 
 Scene::Scene()
 {
-    UID rootUID  = m_uidGenerator.Alloc();
-    m_rootEntity = CreateEntity_(true, rootUID, "Root");
+    m_root = CreateRootEntity_();
 }
 
 void Scene::DestroyEntity_Recursive_(Entity _entity)
 {
-    JAM_ASSERT(_entity.IsValid(), "Entity is not valid");
-    JAM_ASSERT(_entity != m_rootEntity, "Cannot delete root entity");
+    JAM_ASSERT(_entity, "Entity is not valid");
+    JAM_ASSERT(_entity != m_root, "Cannot delete root entity");
 
-    // 자식들 모두 삭제
-    TransformHierarchy& t     = _entity.GetTransform();
-    Entity              child = t.GetFirstChild();
+    // destroy all children recursively
+    TransformHierarchy& th    = _entity.GetTransformHierarchy();
+    Entity              child = th.GetFirstChild();
     while (child.IsValid())
     {
-        TransformHierarchy& childT    = child.GetTransform();
-        Entity              nextChild = childT.GetNextSibling();   // 다음 형제 엔티티 미리 저장
-        DestroyEntity_Recursive_(child);                           // 재귀적으로 자식 삭제
-        child = nextChild;
+        Entity next = child.GetTransformHierarchy().GetNextSibling();
+        DestroyEntity_Recursive_(child);
+        child = next;
     }
 
-    t.ReleaseParent();
+    // orphanize destroyed entity
+    th.MakeOrphan();
 
+    // clean up resource
     UID uid = _entity.GetUID();
-    m_entityMap.erase(uid);                    // entity map에서 제거
-    m_uidGenerator.Free(uid);                  // uid 반환
-    m_registry.destroy(_entity.GetHandle());   // entt 엔티티 파괴
+    m_entities.erase(uid);
+    m_uidGenerator.Free(uid);
+    m_registry.destroy(_entity.GetHandle());   // destroy
 
-    // 이벤트 디스패치
+    // dispatch event
     EntityDestroyedEvent event { uid };
     Application::GetInstance().DispatchEvent(event);
 }
 
-Entity Scene::CreateEntity_(const bool _bCreateRoot, UID _uid, const std::string_view _name)
+Entity Scene::CloneEntity_Recursive_(Entity _srcEntity)
+{
+    JAM_ASSERT(_srcEntity, "Entity is not valid");
+    JAM_ASSERT(_srcEntity != m_root, "Cannot clone root entity");
+
+    // clone src entity
+    Entity             entity = CreateEntity();
+    const ComponentDB& db     = ComponentDB::GetInstance();
+    for (UInt32 typeID: std::views::keys(m_registry.storage()))
+    {
+        // transformHierarchy component is handled separately
+        if (typeID == HashOf<TransformComponent>())
+        {
+            TransformHierarchy&       th    = entity.GetTransformHierarchy();
+            const TransformHierarchy& srcTh = _srcEntity.GetTransformHierarchy();
+            th.SetWorldTransform(srcTh.GetWorldTransform());   // just copy world transform
+        }
+        else
+        {
+            if (db.Has(typeID, _srcEntity))
+            {
+                void* pSrcComp = db.Get(typeID, _srcEntity);
+                db.CreateByCopy(typeID, entity, pSrcComp);
+            }
+        }
+    }
+
+    // clone children recursively
+    TransformHierarchy& srcTh = _srcEntity.GetTransformHierarchy();
+    Entity              child = srcTh.GetFirstChild();
+    while (child)
+    {
+        Entity clonedChild = CloneEntity_Recursive_(child);
+        clonedChild.GetTransformHierarchy().SetParent(entity, true);
+        child = child.GetTransformHierarchy().GetNextSibling();
+    }
+
+    return entity;
+}
+
+Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
 {
     JAM_ASSERT(m_uidGenerator.IsAllocated(_uid), "UID {} is not allocated", _uid);
 
-    // entt 엔티티 생성
-    entt::entity handle = m_registry.create();
-    Entity       entity { m_registry, handle, _uid };
+    // create entt handle
+    const entt::entity handle = m_registry.create();
+    Entity             entity { m_registry, handle, _uid };
 
-    // entity map에 추가
-    JAM_ASSERT(!m_entityMap.contains(_uid), "Entity with same UID already exists");
-    m_entityMap.emplace(_uid, entity);
+    // entity map
+    JAM_ASSERT(!m_entities.contains(_uid), "Entity with same UID already exists");
+    m_entities.emplace(_uid, entity);
 
-    // transform 컴포넌트 추가
-    TransformComponent& transform = entity.CreateComponent<TransformComponent>();
-    if (_bCreateRoot)
-        transform.transform = TransformHierarchy { entity };   // 루트 엔티티는 자기 자신이 루트
-    else
-        transform.transform = TransformHierarchy { m_rootEntity, entity };
+    // add transformHierarchy component (essential component)
+    entity.CreateComponent<TransformComponent>(TransformHierarchy { m_root, entity });
 
-    // 필요시 이름 태그 추가
+    // create tag component if need
     if (!_name.empty())
     {
-        TagComponent& tag = entity.CreateComponent<TagComponent>();
-        tag.name          = _name;
+        entity.CreateComponent<TagComponent>(_name);
     }
 
-    // 이벤트 디스패치
+    // dispatch event
     EntityCreatedEvent event { _uid };
     Application::GetInstance().DispatchEvent(event);
     return entity;
+}
+
+Entity Scene::CreateRootEntity_()
+{
+    const UID uid = m_uidGenerator.Alloc(k_rootEntityReservedUID);
+
+    // create entt handle
+    const entt::entity handle = m_registry.create();
+    Entity             root { m_registry, handle, uid };
+
+    // entity map
+    JAM_ASSERT(!m_entities.contains(uid), "Entity with same UID already exists");
+    m_entities.emplace(uid, root);
+
+    // add transformHierarchy component (essential component)
+    root.CreateComponent<TransformComponent>(TransformHierarchy { root });
+
+    // create tag component
+    root.CreateComponent<TagComponent>("scene root");
+
+    // dispatch event
+    EntityCreatedEvent event { uid };
+    Application::GetInstance().DispatchEvent(event);
+    return root;
 }
 
 }   // namespace jam

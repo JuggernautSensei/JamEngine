@@ -21,13 +21,13 @@ const char* k_source = R"(
 struct VS_INPUT
 {
     float2 pos : POSITION;
-    uint4 color : COLOR;
+    uint4 radiance : COLOR;
 };
 
 struct PS_INPUT
 {
     float4 pos : SV_POSITION;
-    float4 color : COLOR;
+    float4 radiance : COLOR;
 };
 
 cbuffer MyCAMERA : register(b0)
@@ -43,16 +43,16 @@ PS_INPUT VSMain(VS_INPUT _input)
     output.pos = float4(_input.pos, 0.f,1.f);
     output.pos.x += offset.x;
     output.pos.y += offset.y;
-    output.color.r = _input.color.r / 255.f;
-    output.color.g = _input.color.g / 255.f;
-    output.color.b = _input.color.b / 255.f;
-    output.color.a = 1.f;
+    output.radiance.r = _input.radiance.r / 255.f;
+    output.radiance.g = _input.radiance.g / 255.f;
+    output.radiance.b = _input.radiance.b / 255.f;
+    output.radiance.a = 1.f;
     return output;
 }
 
 float4 PSMain(PS_INPUT _input) : SV_TARGET
 {
-    return _input.color;
+    return _input.radiance;
 }
 
 )";
@@ -69,29 +69,27 @@ void TriangleScene::OnEnter()
         MyVertex {  { 0.5f, 0.f }, RGBA { 0, 255, 0 } },
         MyVertex { { -0.5f, 0.f }, RGBA { 0, 0, 255 } },
     };
-    m_vbh = Graphics::CreateVertexBuffer(MemoryView { verts }, layout);
+    m_vbh = Graphics::CreateVertexBuffer({ verts }, layout);
 
     // 인덱스 버퍼
     UInt16 indices[3] = { 0, 1, 2 };
-    m_ibh             = Graphics::CreateIndexBuffer(MemoryView { indices }, eIndexFormat::U16);
+    m_ibh             = Graphics::CreateIndexBuffer({ indices }, eIndexFormat::U16);
 
     // 쉐이더 핸들
     {
         // vertex shader
         ShaderCompiler compiler;
-        eErrorCode     ec = compiler.CompileFromSource(k_source, eShader::VertexShader, "VSMain");
-        if (IsError(ec))
+        if (!compiler.CompileFromSource(k_source, eShader::VertexShader, "VSMain"))
         {
-            Log::Error("shader compile failed. {}", GetErrorMessage());
+            Log::Error("shader compile failed. {}", GetErrorString());
             JAM_ASSERT(0, "shader compile failed");
         }
         ShaderHandle vsh = Graphics::CreateShader(compiler.GetBytecode());
 
         // pixel shader
-        ec = compiler.CompileFromSource(k_source, eShader::PixelShader, "PSMain");
-        if (IsError(ec))
+        if (!compiler.CompileFromSource(k_source, eShader::PixelShader, "PSMain"))
         {
-            Log::Error("shader compile failed. {}", GetErrorMessage());
+            Log::Error("shader compile failed. {}", GetErrorString());
             JAM_ASSERT(0, "shader compile failed");
         }
         ShaderHandle psh = Graphics::CreateShader(compiler.GetBytecode());
@@ -112,10 +110,11 @@ void TriangleScene::OnExit()
 
 void TriangleScene::OnRender(const RenderView& _view)
 {
-    Graphics::SetViewport(_view.viewport);
-    Graphics::SetFrameBuffer(_view.frameBufferHandle);
-    Graphics::ClearRenderTarget(_view.frameBufferHandle, RGBA::k_black);
+    Graphics::SetViewport(_view.vp);
+    Graphics::SetFrameBuffer(_view.fbh);
+    Graphics::ClearRenderTarget(_view.fbh, RGBA::k_black);
 
+    Graphics::SetGfxState(RenderState::Default());
     Graphics::SetVertexBuffer(m_vbh);
     Graphics::SetIndexBuffer(m_ibh);
     Graphics::SetProgram(m_program);
@@ -123,7 +122,7 @@ void TriangleScene::OnRender(const RenderView& _view)
 
     MyCAMERA cb;
     cb.offset = m_offset;
-    Graphics::UploadBuffer(m_cbh, MemoryView { cb });
+    Graphics::UploadBuffer(m_cbh, { cb });
 
     Graphics::Submit();   // gpu 제출한다.
 }

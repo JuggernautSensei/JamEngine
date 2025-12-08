@@ -9,36 +9,46 @@ namespace jam
 
 struct SceneInfo
 {
-    std::string                             name     = {};
-    std::function<std::shared_ptr<Scene>()> createFn = nullptr;
+    std::string                 name     = {};
+    std::function<Ref<Scene>()> createFn = nullptr;
 };
 
 namespace details
 {
     template<typename T>
-    std::shared_ptr<Scene> CreateBehavior()
+    Ref<Scene> CreateScene()
     {
-        return std::make_shared<T>();
+        return MakeRef<T>();
     }
 }   // namespace details
 
 class SceneDB
 {
 public:
-    static void Reflect(const SceneInfo& _info);
+    using ContainerT = HashMap<UInt32, SceneInfo>;
+
+    [[nodiscard]] static SceneDB& GetInstance();
+    static void                   DestroyInstance();
+
+    void Reflect(const SceneInfo& _info);
 
     template<typename T>
-    static void Reflect()
+    void Reflect()
     {
         SceneInfo info;
         info.name     = NameOf<T>();
-        info.createFn = details::CreateBehavior<T>;
+        info.createFn = details::CreateScene<T>;
         Reflect(info);
     }
 
-    JAM_NODISCARD static std::shared_ptr<Scene> Create(std::string_view _name);
-    JAM_NODISCARD static const HashMap<UInt32, SceneInfo>& GetSceneInfos();
+    [[nodiscard]] Ref<Scene>        Create(std::string_view _name) const;
+    [[nodiscard]] const ContainerT& GetContainer() const;
 
-};   // namespace scene_db
+private:
+    static SceneDB* s_instance;
+
+    ContainerT m_infos;
+};
+// namespace scene_db
 
 }   // namespace jam

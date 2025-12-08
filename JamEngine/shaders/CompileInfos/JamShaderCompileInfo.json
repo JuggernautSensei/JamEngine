@@ -201,20 +201,6 @@
         {
             "entryPoint": "PSMain",
             "macros": [],
-            "name": "BloomUpPS",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomXPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [],
-            "name": "BloomDownPS",
-            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomYPS.hlsl",
-            "stage": "PixelShader"
-        },
-        {
-            "entryPoint": "PSMain",
-            "macros": [],
             "name": "PassThroughPS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\PassThroughPS.hlsl",
             "stage": "PixelShader"
@@ -289,6 +275,20 @@
             ],
             "name": "FXAA_Ultra_PS",
             "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\FXAAPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomBlurDownPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomBlurDownPS.hlsl",
+            "stage": "PixelShader"
+        },
+        {
+            "entryPoint": "PSMain",
+            "macros": [],
+            "name": "BloomBlurUpPS",
+            "path": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\shaders\\HLSL\\BloomBlurUpPS.hlsl",
             "stage": "PixelShader"
         }
     ]

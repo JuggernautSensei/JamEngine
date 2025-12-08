@@ -1,22 +1,21 @@
 #pragma once
-// clang-format off
-namespace jam { class Scene; }
-// clang-format on
+#include "Environment.h"
 
 namespace jam
 {
 
+class Scene;
+
 class SceneSerializer
 {
 public:
-    eErrorCode SaveToFile(const fs::path& _filePath) const;
-    eErrorCode LoadFromFile(const fs::path& _filePath);
+    bool SaveToFile(const fs::path& _filePath) const;
+    void Serialize(const Ref<Scene>& _pScene);
 
-    void          Serialize(const Scene* _pScene);
-    JAM_NODISCARD Result<std::shared_ptr<Scene>> Deserialize();
+    [[nodiscard]] const Json& GetJson() const;
 
 private:
-    Json m_json;
+    Json m_json = {};
 };
 
 }   // namespace jam

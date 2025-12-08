@@ -3,12 +3,10 @@
 #include "ShaderCompiler.h"
 
 #include "FileUtilities.h"
-#include "WindowsUtilities.h"
+#include "DialogUtilities.h"
 
 #include <d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
-
-
 
 namespace jam
 {
@@ -44,7 +42,18 @@ constexpr std::array<const char*, EnumCount<eShader>()> k_ShaderModelTable {
     "cs_5_0",
 };
 
-eErrorCode ShaderCompiler::CompileFromFile(
+ConstMemView ShaderCompiler::GetBytecode() const
+{
+    JAM_ASSERT(IsValid(), "Shader bytecode is not available.");
+    return { m_pBlob->GetBufferPointer(), m_pBlob->GetBufferSize() };
+}
+
+bool ShaderCompiler::IsValid() const
+{
+    return m_pBlob;
+}
+
+bool ShaderCompiler::CompileFromFile(
     const fs::path&                    _path,
     const eShader                      _stage,
     const std::string_view             _entryPoint,
@@ -56,13 +65,11 @@ eErrorCode ShaderCompiler::CompileFromFile(
     JAM_ASSERT(!_path.empty(), "File path must not be empty.");
     JAM_ASSERT(!_entryPoint.empty(), "Entry point must not be empty.");
 
-    Clear();
-
     const D3D_SHADER_MACRO* pMacros = _macros.empty() ? nullptr : reinterpret_cast<const D3D_SHADER_MACRO*>(_macros.data());
-    std::wstring            path    = _path.wstring();
+    const std::wstring      path    = _path.wstring();
 
     ComPtr<ID3DBlob> pErrorBlob;
-    HRESULT          hr = D3DCompileFromFile(
+    const HRESULT    hr = D3DCompileFromFile(
         path.c_str(),
         pMacros,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
@@ -75,14 +82,24 @@ eErrorCode ShaderCompiler::CompileFromFile(
 
     if (FAILED(hr) || !m_pBlob)
     {
-        HandleCompileError_(pErrorBlob, hr);
-        return eErrorCode::ShaderCompileFailed;
+        if (pErrorBlob)
+        {
+            std::string_view msg { static_cast<const char*>(pErrorBlob->GetBufferPointer()), pErrorBlob->GetBufferSize() };
+            SetErrorString("Shader compilation failed: {}", msg);
+            return false;
+        }
+        else
+        {
+            std::string msg = CreateComErrorString(hr);
+            SetErrorString("Shader compilation failed: {}", msg);
+            return false;
+        }
     }
 
-    return eErrorCode::Ok;
+    return true;
 }
 
-eErrorCode ShaderCompiler::CompileFromSource(
+bool ShaderCompiler::CompileFromSource(
     const std::string_view             _hlslSource,
     const eShader                      _stage,
     const std::string_view             _entryPoint,
@@ -94,12 +111,10 @@ eErrorCode ShaderCompiler::CompileFromSource(
     JAM_ASSERT(!_entryPoint.empty(), "Entry point must not be empty.");
     JAM_ASSERT(_macros.empty() || _macros.back().IsNullTerminator(), "Shader macros must end with NullTerminator.");
 
-    Clear();
-
     const D3D_SHADER_MACRO* pMacros = _macros.empty() ? nullptr : reinterpret_cast<const D3D_SHADER_MACRO*>(_macros.data());
 
     ComPtr<ID3DBlob> pErrorBlob;
-    HRESULT          hr = D3DCompile(
+    const HRESULT    hr = D3DCompile(
         _hlslSource.data(),
         _hlslSource.size(),
         nullptr,
@@ -114,49 +129,40 @@ eErrorCode ShaderCompiler::CompileFromSource(
 
     if (FAILED(hr) || !m_pBlob)
     {
-        HandleCompileError_(pErrorBlob, hr);
-        return eErrorCode::ShaderCompileFailed;
+        if (pErrorBlob)
+        {
+            std::string_view msg { static_cast<const char*>(pErrorBlob->GetBufferPointer()), pErrorBlob->GetBufferSize() };
+            SetErrorString("Shader compilation failed: {}", msg);
+            return false;
+        }
+        else
+        {
+            std::string msg = CreateComErrorString(hr);
+            SetErrorString("Shader compilation failed: {}", msg);
+            return false;
+        }
     }
 
-    return eErrorCode::Ok;
+    return true;
 }
 
-eErrorCode ShaderCompiler::LoadFromFile(const fs::path& _filePath)
+bool ShaderCompiler::LoadFromFile(const fs::path& _filePath)
 {
-    auto [ec, buffer] = ReadBinaryFromFile(_filePath);
-
-    if (IsError(ec))
-        return ec;
-
-    return LoadFromMemory(MemoryView { buffer });
-}
-
-eErrorCode ShaderCompiler::LoadFromMemory(const MemoryView _byteCode)
-{
-    Clear();
-
-    JAM_CHECK_COM(D3DCreateBlob(_byteCode.GetByteWidth(), m_pBlob.ReleaseAndGetAddressOf()));
-    std::memcpy(m_pBlob->GetBufferPointer(), _byteCode.GetDataPtr(), _byteCode.GetByteWidth());
-
-    return eErrorCode::Ok;
-}
-
-void ShaderCompiler::HandleCompileError_(const ComPtr<ID3DBlob>& _pErrorBlob, const HRESULT _hr) const
-{
-    JAM_DEBUG_LOG("Shader compilation failed with error: {}", CreateComErrorMessage(_hr));
-
-    if (_pErrorBlob)
+    if (const auto optBin = LoadBinaryFromFile(_filePath))
     {
-        std::string_view errorStr {
-            static_cast<const char*>(_pErrorBlob->GetBufferPointer()),
-            _pErrorBlob->GetBufferSize()
-        };
-        SetErrorMessage("Shader compilation failed: {}", errorStr);
+        return LoadFromMemory(optBin.value());
     }
     else
     {
-        SetErrorMessage("Shader compilation failed with unknown error.");
+        return false;
     }
+}
+
+bool ShaderCompiler::LoadFromMemory(const ConstMemView _byteCode)
+{
+    JAM_CHECK_COM(D3DCreateBlob(_byteCode.GetByteWidth(), m_pBlob.ReleaseAndGetAddressOf()));
+    std::memcpy(m_pBlob->GetBufferPointer(), _byteCode.GetDataPtr(), _byteCode.GetByteWidth());
+    return true;
 }
 
 }   // namespace jam

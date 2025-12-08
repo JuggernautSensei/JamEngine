@@ -1,20 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="TestApp.cpp" />
-    <ClCompile Include="Base.cpp" />
-    <ClCompile Include="RadixSort.cpp" />
-    <ClCompile Include="QuickSort.cpp" />
-    <ClCompile Include="SimpleMath.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Octree.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="OctreeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Base.h" />
-    <ClInclude Include="unordered_dense.h" />
-    <ClInclude Include="RadixSort.h" />
-    <ClInclude Include="QuickSort.h" />
-    <ClInclude Include="SimpleMath.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SimpleMath.inl" />
+    <ClInclude Include="Octree.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="OctreeTest.h" />
   </ItemGroup>
 </Project>

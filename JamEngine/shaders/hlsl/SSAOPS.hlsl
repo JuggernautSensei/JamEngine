@@ -1,10 +1,13 @@
 #include "ShaderBase.hlsl"
 
+const static float k_noiseWidth = 4.f;
+const static float k_noiseHeight = 4.f;
+
 float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
     // get world normal
-    float4 normalRoughness = t_gBufferNormalRoughness.Sample(s_linearClamp, _input.texCoord0);
-    float3 normal = normalize(normalRoughness.xyz);
+    float3 normal = t_gBufferNormal.Sample(s_linearWrap, _input.texCoord0) * 2.f - 1.f;
+    normal = normalize(normal);
 
     // get ndc pos
     float3 posInNdc;
@@ -13,23 +16,16 @@ float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     posInNdc.z = t_depth.Sample(s_pointClamp, _input.texCoord0).r;
 
     // world pos
-    float4 posInC = mul(cb_viewProjInv, float4(posInNdc, 1.0f));
+    float4 posInC = mul(float4(posInNdc, 1.0f), cb_viewProjInv);
     float3 posInW = posInC.xyz / posInC.w;
-
-    // screen dimensions
-    uint screenWidth, screenHeight, dummy;
-    t_gBufferNormalRoughness.GetDimensions(0, screenWidth, screenHeight, dummy);
-
-    uint width, height, dummy2;
-    t_ssaoNoise.GetDimensions(0, width, height, dummy2);
 
     // noise sampling 
     float2 noiseScale;
-    noiseScale.x = screenWidth / (float) width;
-    noiseScale.y = screenHeight / (float) height;
+    noiseScale.x = cb_screenWidth / k_noiseWidth;
+    noiseScale.y = cb_screenHeight / k_noiseHeight;
 
     // for kernel rotation
-    float3 randomVec = t_ssaoNoise.Sample(s_pointWrap, _input.texCoord0 * noiseScale).xyz;
+    float3 randomVec = normalize(t_ssaoNoise.Sample(s_pointClamp, _input.texCoord0 * noiseScale).xyz);
 
     // TBN
     float3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
@@ -42,11 +38,11 @@ float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     {
         // sample ssao kernel
         float3 kernelDir = cb_ssaoKernel[i].xyz;
-        float3 sampleDirW = mul(TBN, kernelDir); // tangent -> world
+        float3 sampleDirW = mul(kernelDir, TBN); // tangent -> world
         float3 samplePosInW = posInW + sampleDirW * cb_ssaoRadius; // offset position in world
 
-        float4 samplePosInV = mul(cb_view, float4(samplePosInW, 1.0f));
-        float4 samplePosInC = mul(cb_proj, samplePosInV);
+        float4 samplePosInV = mul(float4(samplePosInW, 1.0f), cb_view);
+        float4 samplePosInC = mul(samplePosInV, cb_proj);
         float2 samplePosInNdc = samplePosInC.xy / samplePosInC.w;
         float2 samplePosInTex;
         samplePosInTex.x = samplePosInNdc.x * 0.5f + 0.5f;
@@ -57,16 +53,13 @@ float PSmain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 
         // sample real depth in view space
         float sampleDepth = t_depth.Sample(s_pointClamp, samplePosInTex).r;
-        float realDepthInV = ClacNDCDepthToViewDepth(sampleDepth, cb_proj);
+        float realDepthInV = NDCDepthToViewDepth(sampleDepth, cb_proj);
         
         // range check
-        float depthInVDiff = abs(expectedDepthInV - realDepthInV);
-
-        // if depth difference is too big, it means the sample is far away
-        float rangeCheck = smoothstep(0.0f, 1.0f, cb_ssaoRadius / max(depthInVDiff, k_epsilon));
+        float rangeCheck = smoothstep(0.0f, 1.0f, cb_ssaoRadius / abs(expectedDepthInV - realDepthInV));
 
         // occlusion accumulation
-        occlusion += (realDepthInV< expectedDepthInV - cb_ssaoBias ? 1.0f : 0.0f) * rangeCheck;
+        occlusion += (expectedDepthInV - realDepthInV > cb_ssaoBias) ? rangeCheck : 0.f;
     }
 
     return 1.0f - (occlusion / max(1.0f, (float) JAM_SSAO_KERNEL_SIZE));

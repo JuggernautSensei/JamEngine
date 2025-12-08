@@ -4,8 +4,6 @@
 
 #include "ImGuiGlue.h"
 
-#include "FVector.h"
-
 #include "Application.h"
 #include "EntryPoint.h"
 
@@ -18,7 +16,7 @@
 
 #include "FileUtilities.h"
 #include "Input.h"
-#include "WindowsUtilities.h"
+#include "DialogUtilities.h"
 
 #include "Script.h"
 #include "ScriptDB.h"
@@ -27,3 +25,11 @@
 #include "MeshFactory.h"
 #include "Profile.h"
 #include "AssetManager.h"
+
+#include "CameraComponent.h"
+#include "TransformComponent.h"
+#include "TagComponent.h"
+#include "RenderableComponent.h"
+#include "SpotLightComponent.h"
+#include "PointLightComponent.h"
+#include "ScriptComponent.h"

@@ -18,7 +18,7 @@ GS_Input VSMain(VS_INPUT_POS_3D _input)
     return output;
 }
 
-[maxvertexcount(18 /* 3 * 6 */)]
+[MaxVertexCount(18 /* 3 * 6 */)]
 void GSMain(triangle GS_Input _input[3], inout TriangleStream<PS_INPUT> _triStream)
 {
     [unroll]

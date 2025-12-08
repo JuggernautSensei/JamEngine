@@ -1,35 +1,37 @@
 #pragma once
 #include "Entity.h"
-
-// clang-format off
-namespace jam { class Script; }
-// clang-format on
+#include "Script.h"
 
 namespace jam
 {
 
 struct ScriptInfo
 {
-    std::string                                    name     = {};
-    std::function<std::shared_ptr<Script>(Entity)> createFn = nullptr;
+    std::string                        name     = {};
+    std::function<Ref<Script>(Entity)> createFn = nullptr;
 };
 
 namespace details
 {
     template<typename T>
-    std::shared_ptr<Script> CreateScript(Entity e)
+    Ref<Script> CreateScript(Entity e)
     {
-        return std::make_shared<T>(e);
+        return MakeRef<T>(e);
     }
 }   // namespace details
 
 class ScriptDB
 {
 public:
-    static void Reflect(const ScriptInfo& info);
+    using ContainerT = HashMap<UInt32, ScriptInfo>;
+
+    [[nodiscard]] static ScriptDB& GetInstance();
+    static void                    DestroyInstance();
+
+    void Reflect(const ScriptInfo& info);
 
     template<typename T>
-    static void Reflect()
+    void Reflect()
     {
         ScriptInfo info;
         info.name     = NameOf<T>();
@@ -37,8 +39,13 @@ public:
         Reflect(info);
     }
 
-    JAM_NODISCARD static std::shared_ptr<Script>            Create(std::string_view _name, Entity _entity);
-    JAM_NODISCARD static const HashMap<UInt32, ScriptInfo>& GetScriptInfos();
+    [[nodiscard]] Ref<Script>       Create(std::string_view _name, Entity _entity) const;
+    [[nodiscard]] const ContainerT& GetContainer() const;
+
+private:
+    static ScriptDB* s_pInstance;
+
+    HashMap<UInt32, ScriptInfo> m_infos;
 
 };   // namespace script_db
 

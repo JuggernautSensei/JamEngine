@@ -2,10 +2,8 @@
 
 #include "ImageExporter.h"
 
-#include "WindowsUtilities.h"
-
+#include "Graphics.h"
 #include <DirectXTexEXR.h>
-#include <SDL3/SDL.h>
 
 namespace jam
 {
@@ -32,30 +30,37 @@ constexpr DirectX::WICCodecs k_wicCodecsTable[EnumCount<eImageFormat>()] = {
     DirectX::WIC_CODEC_HEIF,   // HEIC
 };
 
-eErrorCode ImageExporter::Export()
+bool ImageExporter::Export()
 {
-    JAM_ASSERT(!m_filePath.empty(), "file path is empty");
-    JAM_ASSERT(m_scratchImg.GetImageCount() > 0, "no image to export");
+    JAM_ASSERT(JAM_IS_VALID_HANDLE(m_texh), "invalid texture handle");
 
-    HRESULT      hr;
-    std::wstring wPath  = m_filePath.wstring();
-    eImageFormat format = DetermineFormatFromExtension(m_filePath);
+    if (m_path.empty())
+    {
+        SetErrorString("file path is empty");
+        return false;
+    }
+
+    HRESULT               hr;
+    const std::wstring    wPath      = m_path.wstring();
+    const eImageFormat    format     = ImageFormatFromPath(m_path);
+    DirectX::ScratchImage scratchImg = Graphics::Capture(m_texh);
+
     switch (format)
     {
         case eImageFormat::EXR:
-            hr = DirectX::SaveToEXRFile(*m_scratchImg.GetImage(0, 0, 0), wPath.c_str());
+            hr = DirectX::SaveToEXRFile(*scratchImg.GetImage(0, 0, 0), wPath.c_str());
             break;
 
         case eImageFormat::DDS:
-            hr = DirectX::SaveToDDSFile(m_scratchImg.GetImages(), m_scratchImg.GetImageCount(), m_scratchImg.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath.c_str());
+            hr = DirectX::SaveToDDSFile(scratchImg.GetImages(), scratchImg.GetImageCount(), scratchImg.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath.c_str());
             break;
 
         case eImageFormat::HDR:
-            hr = DirectX::SaveToHDRFile(*m_scratchImg.GetImage(0, 0, 0), wPath.c_str());
+            hr = DirectX::SaveToHDRFile(*scratchImg.GetImage(0, 0, 0), wPath.c_str());
             break;
 
         case eImageFormat::TGA:
-            hr = DirectX::SaveToTGAFile(*m_scratchImg.GetImage(0, 0, 0), wPath.c_str());
+            hr = DirectX::SaveToTGAFile(*scratchImg.GetImage(0, 0, 0), wPath.c_str());
             break;
 
         case eImageFormat::BMP:
@@ -71,38 +76,32 @@ eErrorCode ImageExporter::Export()
         case eImageFormat::ICO:
         case eImageFormat::HEIF:
         case eImageFormat::HEIC:
-            hr = DirectX::SaveToWICFile(*m_scratchImg.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(k_wicCodecsTable[EnumToInt(format)]), wPath.c_str());
+            hr = DirectX::SaveToWICFile(*scratchImg.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(k_wicCodecsTable[EnumToInt(format)]), wPath.c_str());
             break;
 
         default:
-            SetErrorMessage("Unsupported image format: '{}'", m_filePath.native());
-            return eErrorCode::UnsupportedFile;
+            SetErrorString("Unsupported image format: '{}'", m_path.native());
+            return false;
     }
 
     if (FAILED(hr))
     {
-        SetErrorMessage("Failed to save image to file: '{}'", m_filePath.native());
-        JAM_DEBUG_LOG("HRESULT: {}", CreateComErrorMessage(hr));
-        return eErrorCode::FileReadFailed;
+        SetErrorString("Failed to save image to file: '{}', {}", m_path.native(), CreateComErrorString(hr));
+        return false;
     }
 
-    return eErrorCode::Ok;
+    return true;
 }
 
-void ImageExporter::SetImage(DirectX::ScratchImage&& _image)
+void ImageExporter::SetPath(const fs::path& _path)
 {
-    m_scratchImg = std::move(_image);
+    m_path = _path;
 }
 
-void ImageExporter::SetPath(const fs::path& _filePath)
+void ImageExporter::SetTexture(const TextureHandle _texh)
 {
-    m_filePath = _filePath;
-}
-
-void ImageExporter::Reset()
-{
-    m_scratchImg.Release();
-    m_filePath.clear();
+    JAM_ASSERT(_texh != k_invalidHandle, "invalid texture handle");
+    m_texh = _texh;
 }
 
 }   // namespace jam

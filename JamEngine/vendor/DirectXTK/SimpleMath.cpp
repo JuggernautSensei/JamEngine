@@ -62,7 +62,7 @@ using namespace DirectX::SimpleMath;
  *
  ****************************************************************************/
 
-void Quaternion::RotateTowards(const Quaternion& target, float maxAngle, Quaternion& result) const noexcept
+void Quaternion::RotateTowards(const Quaternion& target, const float maxAngle, Quaternion& result) const noexcept
 {
     const XMVECTOR T = XMLoadFloat4(this);
 
@@ -170,7 +170,7 @@ static_assert(offsetof(DirectX::SimpleMath::Viewport, maxDepth) == offsetof(D3D1
 #endif
 
 #if defined(__dxgi1_2_h__) || defined(__d3d11_x_h__) || defined(__d3d12_x_h__) || defined(__XBOX_D3D12_X__)
-RECT Viewport::ComputeDisplayArea(DXGI_SCALING scaling, UINT backBufferWidth, UINT backBufferHeight, int outputWidth, int outputHeight) noexcept
+RECT Viewport::ComputeDisplayArea(const DXGI_SCALING scaling, const UINT backBufferWidth, const UINT backBufferHeight, const int outputWidth, const int outputHeight) noexcept
 {
     RECT rct = {};
 
@@ -231,7 +231,7 @@ RECT Viewport::ComputeDisplayArea(DXGI_SCALING scaling, UINT backBufferWidth, UI
 }
 #endif
 
-RECT Viewport::ComputeTitleSafeArea(UINT backBufferWidth, UINT backBufferHeight) noexcept
+RECT Viewport::ComputeTitleSafeArea(const UINT backBufferWidth, const UINT backBufferHeight) noexcept
 {
     const float safew = (float(backBufferWidth) + 19.f) / 20.f;
     const float safeh = (float(backBufferHeight) + 19.f) / 20.f;

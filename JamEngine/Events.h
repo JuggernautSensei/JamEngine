@@ -5,79 +5,79 @@
 namespace jam
 {
 
-class WindowResizeEvent : public Event
+class WindowResizedEvent : public Event
 {
 public:
-    WindowResizeEvent(const Int32 _width, const Int32 _height)
+    WindowResizedEvent(const Int32 _width, const Int32 _height)
         : m_width(_width)
         , m_height(_height)
     {
     }
 
-    JAM_NODISCARD Int32 GetWidth() const
+    [[nodiscard]] Int32 GetWidth() const
     {
         return m_width;
     }
 
-    JAM_NODISCARD Int32 GetHeight() const
+    [[nodiscard]] Int32 GetHeight() const
     {
         return m_height;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
-        return std::format("WindowResizeEvent: width: {}, height: {}", m_width, m_height);
+        return std::format("WindowResizedEvent: width: {}, height: {}", m_width, m_height);
     }
 
-    JAM_EVENT(WindowResizeEvent, eEventCategory::Window)
+    JAM_EVENT(WindowResizedEvent, eEventCategory::Window)
 
 private:
     Int32 m_width  = 0;
     Int32 m_height = 0;
 };
 
-class WindowMaximizeEvent : public Event
+class WindowMaximizedEvent : public Event
 {
 public:
-    WindowMaximizeEvent(const Int32 _width, const Int32 _height)
+    WindowMaximizedEvent(const Int32 _width, const Int32 _height)
         : m_width(_width)
         , m_height(_height)
     {
     }
 
-    JAM_NODISCARD Int32 GetWidth() const
+    [[nodiscard]] Int32 GetWidth() const
     {
         return m_width;
     }
 
-    JAM_NODISCARD Int32 GetHeight() const
+    [[nodiscard]] Int32 GetHeight() const
     {
         return m_height;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
-        return std::format("WindowMaximizeEvent: width: {}, height: {}", m_width, m_height);
+        return std::format("WindowMaximizedEvent: width: {}, height: {}", m_width, m_height);
     }
 
-    JAM_EVENT(WindowMaximizeEvent, eEventCategory::Window)
+    JAM_EVENT(WindowMaximizedEvent, eEventCategory::Window)
 
 private:
     Int32 m_width  = 0;
     Int32 m_height = 0;
 };
 
-class WindowMinimizeEvent : public Event
+class WindowMinimizedEvent : public Event
 {
 public:
-    WindowMinimizeEvent() = default;
+    WindowMinimizedEvent() = default;
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
-        return "WindowMinimizeEvent: Window is minimized";
+        return "WindowMinimizedEvent: WindowsPlatform is minimized";
     }
 
-    JAM_EVENT(WindowMinimizeEvent, eEventCategory::Window)
+    JAM_EVENT(WindowMinimizedEvent, eEventCategory::Window)
 };
 
 class WindowMoveEvent : public Event
@@ -89,17 +89,17 @@ public:
     {
     }
 
-    JAM_NODISCARD Int32 GetX() const
+    [[nodiscard]] Int32 GetX() const
     {
         return m_x;
     }
 
-    JAM_NODISCARD Int32 GetY() const
+    [[nodiscard]] Int32 GetY() const
     {
         return m_y;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
         return std::format("WindowMoveEvent: x: {}, y: {}", m_x, m_y);
     }
@@ -116,9 +116,9 @@ class WindowCloseEvent : public Event
 public:
     WindowCloseEvent() = default;
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
-        return "WindowCloseEvent: Window is closing";
+        return "WindowCloseEvent: WindowsPlatform is closing";
     }
 
     JAM_EVENT(WindowCloseEvent, eEventCategory::Window)
@@ -132,12 +132,12 @@ public:
     {
     }
 
-    JAM_NODISCARD Int32 GetDelta() const
+    [[nodiscard]] Int32 GetDelta() const
     {
         return m_delta;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
         return std::format("MouseWheelEvent: delta: {}", m_delta);
     }
@@ -157,17 +157,17 @@ public:
     {
     }
 
-    JAM_NODISCARD Int32 GetX() const
+    [[nodiscard]] Int32 GetX() const
     {
         return m_x;
     }
 
-    JAM_NODISCARD Int32 GetY() const
+    [[nodiscard]] Int32 GetY() const
     {
         return m_y;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
         return std::format("MouseMoveEvent: x: {}, y: {}", m_x, m_y);
     }
@@ -187,12 +187,12 @@ public:
     {
     }
 
-    JAM_NODISCARD Int32 GetVKey() const
+    [[nodiscard]] Int32 GetVKey() const
     {
         return m_vKey;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
         return std::format("MouseDownEvent: vKey: {}", m_vKey);
     }
@@ -211,12 +211,12 @@ public:
     {
     }
 
-    JAM_NODISCARD Int32 GetVKey() const
+    [[nodiscard]] Int32 GetVKey() const
     {
         return m_vKey;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
         return std::format("MouseUpEvent: vKey: {}", m_vKey);
     }
@@ -235,12 +235,12 @@ public:
     {
     }
 
-    JAM_NODISCARD Int32 GetVKey() const
+    [[nodiscard]] Int32 GetVKey() const
     {
         return m_key;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
         return std::format("KeyDownEvent: vKey: {}", m_key);
     }
@@ -259,12 +259,12 @@ public:
     {
     }
 
-    JAM_NODISCARD Int32 GetVKey() const
+    [[nodiscard]] Int32 GetVKey() const
     {
         return m_key;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
         return std::format("KeyUpEvent: vKey: {}", m_key);
     }
@@ -275,74 +275,186 @@ private:
     Int32 m_key = 0;
 };
 
-class SceneChangeEvent : public Event
+class WindowFocusedEvent : public Event
 {
 public:
-    explicit SceneChangeEvent(std::string _sceneName)
-        : m_sceneName(std::move(_sceneName))
+    WindowFocusedEvent() = default;
+    [[nodiscard]] std::string ToString() const override
     {
+        return "window focused";
+    }
+    JAM_EVENT(WindowFocusedEvent, eEventCategory::Window)
+};
+
+class WindowLostFocusEvent : public Event
+{
+public:
+    WindowLostFocusEvent() = default;
+    [[nodiscard]] std::string ToString() const override
+    {
+        return "window lost focus";
+    }
+    JAM_EVENT(WindowLostFocusEvent, eEventCategory::Window)
+};
+
+class SceneChangedEvent : public Event
+{
+public:
+    [[nodiscard]] std::string ToString() const override
+    {
+        return "scene changed";
     }
 
-    JAM_NODISCARD std::string_view GetSceneName() const
-    {
-        return m_sceneName;
-    }
-
-    JAM_NODISCARD std::string ToString() const override
-    {
-        return std::format("SceneChangeEvent: scene name: {}", m_sceneName);
-    }
-
-    JAM_EVENT(SceneChangeEvent, eEventCategory::FileSystem)
-
-private:
-    std::string m_sceneName;
+    JAM_EVENT(SceneChangedEvent, eEventCategory::FileSystem)
 };
 
 class EntityCreatedEvent : public Event
 {
 public:
-    explicit EntityCreatedEvent(const UID _entityUID)
-        : m_entityUID(_entityUID)
+    explicit EntityCreatedEvent(const UID _uid)
+        : m_uid(_uid)
     {
     }
 
-    JAM_NODISCARD UID GetEntityUID() const
+    [[nodiscard]] UID GetEntityUID() const
     {
-        return m_entityUID;
+        return m_uid;
     }
 
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
-        return std::format("EntityCreateEvent: entity UID: {}", m_entityUID);
+        return std::format("EntityCreateEvent: entity UID: {}", m_uid);
     }
 
     JAM_EVENT(EntityCreatedEvent, eEventCategory::SceneManager)
 
 private:
-    UID m_entityUID;
+    UID m_uid;
 };
 
 class EntityDestroyedEvent : public Event
 {
 public:
-    explicit EntityDestroyedEvent(const UID _entityUID)
-        : m_entityUID(_entityUID)
+    explicit EntityDestroyedEvent(const UID _uid)
+        : m_uid(_uid)
     {
     }
-    JAM_NODISCARD UID GetEntityUID() const
+    [[nodiscard]] UID GetEntityUID() const
     {
-        return m_entityUID;
+        return m_uid;
     }
-    JAM_NODISCARD std::string ToString() const override
+    [[nodiscard]] std::string ToString() const override
     {
-        return std::format("EntityDestroyEvent: entity UID: {}", m_entityUID);
+        return std::format("EntityDestroyEvent: entity UID: {}", m_uid);
     }
 
     JAM_EVENT(EntityDestroyedEvent, eEventCategory::SceneManager)
 
 private:
-    UID m_entityUID;
+    UID m_uid;
+};
+
+class FileAddedEvent : public Event
+{
+public:
+    explicit FileAddedEvent(const fs::path& _path)
+        : m_path(_path)
+    {
+    }
+
+    [[nodiscard]] fs::path GetPath() const
+    {
+        return m_path;
+    }
+
+    [[nodiscard]] std::string ToString() const override
+    {
+        return std::format("FileAddEvent: path: {}", m_path.string());
+    }
+
+    JAM_EVENT(FileAddedEvent, eEventCategory::FileSystem);
+
+private:
+    fs::path m_path;
+};
+
+class FileDeletedEvent : public Event
+{
+public:
+    explicit FileDeletedEvent(const fs::path& _path)
+        : m_path(_path)
+    {
+    }
+
+    [[nodiscard]] fs::path GetPath() const
+    {
+        return m_path;
+    }
+
+    [[nodiscard]] std::string ToString() const override
+    {
+        return std::format("FileDeleteEvent: path: {}", m_path.string());
+    }
+
+    JAM_EVENT(FileDeletedEvent, eEventCategory::FileSystem);
+
+private:
+    fs::path m_path;
+};
+
+class FileModifiedEvent : public Event
+{
+public:
+    explicit FileModifiedEvent(const fs::path& _path)
+        : m_path(_path)
+    {
+    }
+
+    [[nodiscard]] fs::path GetPath() const
+    {
+        return m_path;
+    }
+
+    [[nodiscard]] std::string ToString() const override
+    {
+        return std::format("FileModifiedEvent: path: {}", m_path.string());
+    }
+
+    JAM_EVENT(FileModifiedEvent, eEventCategory::FileSystem);
+
+private:
+    fs::path m_path;
+};
+
+class FileRenamedEvent : public Event
+{
+public:
+    explicit FileRenamedEvent(const fs::path& _old, const fs::path& _new)
+        : m_old(_old)
+        , m_new(_new)
+    {
+    }
+
+    [[nodiscard]] fs::path GetOldPath() const
+    {
+        return m_old;
+    }
+
+    [[nodiscard]] fs::path GetNewPath() const
+    {
+        return m_new;
+    }
+
+    [[nodiscard]] std::string ToString() const override
+    {
+        return std::format("FileRenamedEvent: old path: {}, new path: {}", m_old.string(), m_new.string());
+    }
+
+    JAM_EVENT(FileRenamedEvent, eEventCategory::FileSystem);
+
+private:
+    fs::path m_old;
+    fs::path m_new;
 };
 
 }   // namespace jam

@@ -35,7 +35,7 @@ constexpr RGBA k_indigo     = RGBA { 0x4B0082FF };
 constexpr RGBA k_violet     = RGBA { 0xEE82EEFF };
 constexpr RGBA k_fuchsia    = RGBA { 0xFF00FFFF };
 constexpr RGBA k_hotPink    = RGBA { 0xFF69B4FF };
-constexpr RGBA k_background = RGBA::FromUNorm(0.16f, 0.18f, 0.21f);
+constexpr RGBA k_background = RGBA::FromLinear(0.16f, 0.18f, 0.21f);
 
 constexpr HelloJamVertex k_helloJamCubeVerts[] = {
     { { -1.0f, -1.0f, -1.0f },    k_crimson, { 0.f, 1.f } },
@@ -97,20 +97,20 @@ constexpr const char* k_helloJamSource = R"(
 struct VSInput
 {
     float3 position : POSITION;
-    uint4 color    : COLOR0;
+    uint4 radiance    : COLOR0;
     float2 texCoord : TEXCOORD0;
 };
 
 struct PSInput
 {
     float4 position : SV_POSITION;
-    float4 color    : COLOR0;
+    float4 radiance    : COLOR0;
     float2 texCoord : TEXCOORD0;
 };
 
 cbuffer CB_HELLO_JAM_TRANSFORM : register(b0)
 {
-    float4x4 world;
+    float4x4 mtx;
 };
 
 cbuffer CB_HELLO_JAM_GLOBAL : register(b1)
@@ -128,19 +128,19 @@ PSInput VSMain(VSInput input)
 {
     PSInput output;
 
-    float4x4 wvp = mul(world, mul(view, proj));
+    float4x4 wvp = mul(mtx, mul(view, proj));
     output.position = mul(float4(input.position, 1.0f), wvp);
-    output.color.r = input.color.r / 255.0;
-    output.color.g = input.color.g / 255.0;
-    output.color.b = input.color.b / 255.0;
-    output.color.a = input.color.a / 255.0; 
+    output.radiance.r = input.radiance.r / 255.0;
+    output.radiance.g = input.radiance.g / 255.0;
+    output.radiance.b = input.radiance.b / 255.0;
+    output.radiance.a = input.radiance.a / 255.0; 
     output.texCoord = input.texCoord;
     return output;
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return (bTextureMapping == 1) ? t_texture.Sample(s_sampler, input.texCoord) : input.color;
+    return (bTextureMapping == 1) ? t_texture.Sample(s_sampler, input.texCoord) : input.radiance;
 }
 
 )";
@@ -162,39 +162,36 @@ void HelloJamScene::OnEnter()
     m_transformCbh = Graphics::CreateConstantBuffer(sizeof(CB_HELLO_JAM_TRANSFORM));
     m_globalCbh    = Graphics::CreateConstantBuffer(sizeof(CB_HELLO_JAM_GLOBAL));
 
-    // texture
-    auto [ec, tex] = Graphics::LoadTexture(R"(contents\assets\Imagetextures\kokona.png)");
-    if (IsError(ec))
+    // pSkyboxTexture
+    if (const std::optional<TextureHandle>& optTh = Graphics::LoadTextureFromFile(R"(contents\assets\Imagetextures\kokona.png)"))
     {
-        Log::Error("Graphics::LoadTexture failed: {}", GetErrorMessage());
-        JAM_ASSERT(0, "Graphics::LoadTexture failed: {}", EnumToString(ec));
+        m_cubeTh = optTh.value();
     }
-    m_cubeTh = tex;
+    else
+    {
+        Log::Error("Graphics::LoadTextureFromMemory failed: {}", GetErrorString());
+        JAM_ASSERT(0, "Graphics::LoadTextureFromMemory failed: {}", GetErrorString());
+    }
 
     // cube mesh
     HelloJamVertex::InitLayout();
-    m_vbh = Graphics::CreateVertexBuffer(MemoryView { k_helloJamCubeVerts }, HelloJamVertex::s_layout);
-    m_ibh = Graphics::CreateIndexBuffer(MemoryView { k_helloJamCubeIndices }, eIndexFormat::U16);
-
-    auto [w, h] = SceneManager::GetSceneResoultion();
-    Resize(w, h);
+    m_vbh = Graphics::CreateVertexBuffer({ k_helloJamCubeVerts }, HelloJamVertex::s_layout);
+    m_ibh = Graphics::CreateIndexBuffer({ k_helloJamCubeIndices }, eIndexFormat::U16);
 
     // camera
     {
-        m_cmrEntt = CreateEntity("main camera");
+        Entity entity = CreateEntity("camera");
 
-        CameraComponent& cameraCmp = m_cmrEntt.CreateComponent<CameraComponent>();
-        cameraCmp.bMain            = true;
+        // set camera
+        entity.CreateComponent<CameraComponent>();
 
-        Camera& camera = cameraCmp.camera;
-        camera.SetWidth(static_cast<float>(w));
-        camera.SetHeight(static_cast<float>(h));
+        // set script
+        ScriptComponent& s = entity.CreateComponent<ScriptComponent>();
+        s.pScript          = MakeRef<CameraScript>(entity);
 
-        ScriptComponent& scriptCmp = m_cmrEntt.CreateComponent<ScriptComponent>();
-        scriptCmp.BindScript<CameraScript>(m_cmrEntt);
-
-        TransformHierarchy& trans = m_cmrEntt.GetTransform();
-        trans.SetWorldTranslation(13.5, 13.5, -50);
+        // set transformHierarchy
+        TransformHierarchy& t = entity.GetTransformHierarchy();
+        t.SetWorldTranslation(13.5, 13.5, 0.f);
     }
 }
 
@@ -211,17 +208,12 @@ void HelloJamScene::OnExit()
     JAM_DESTROY_CONSTANT_BUFFER(m_globalCbh);
 }
 
-void HelloJamScene::OnUpdate(const float _deltaSec)
-{
-    m_dt = _deltaSec;
-}
-
 void HelloJamScene::OnRender(const RenderView& _view)
 {
     Graphics::SetFrameBuffer(m_fbh);
     Graphics::ClearRenderTarget(m_fbh, k_background);
     Graphics::ClearDepthStencil(m_fbh, true, false);
-    Graphics::SetViewport(_view.viewport);
+    Graphics::SetViewport(_view.vp);
 
     Graphics::SetProgram(m_program);
     Graphics::SetConstantBuffer(m_transformCbh, eShader::VertexShader, 0);
@@ -235,22 +227,22 @@ void HelloJamScene::OnRender(const RenderView& _view)
     global.view            = _view.view.Transpose();
     global.proj            = _view.proj.Transpose();
     global.bTextureMapping = m_bTextureMapping ? 1 : 0;
-    Graphics::UploadBuffer(m_globalCbh, MemoryView { global });
+    Graphics::UploadBuffer(m_globalCbh, { global });
 
     constexpr float k_internal = 3.f;
     static float    s_time     = 0.f;
 
     if (m_bAnimation)
-        s_time += m_dt;
+        s_time += Application::GetInstance().GetDeltaTimeSec();
 
-    for (int y = 0; y < m_cubeCountPerRow; ++y)
+    for (int y = 0; y < m_numCubePerRow; ++y)
     {
-        for (int x = 0; x < m_cubeCountPerRow; ++x)
+        for (int x = 0; x < m_numCubePerRow; ++x)
         {
             Vec3 pos {
                 static_cast<float>(x) * k_internal,
                 static_cast<float>(y) * k_internal,
-                0.f
+                50.f
             };
 
             float yaw   = s_time * m_rotSpeedRad + ToRad(15.f) * static_cast<float>(x + y);
@@ -258,10 +250,10 @@ void HelloJamScene::OnRender(const RenderView& _view)
 
             CB_HELLO_JAM_TRANSFORM transformData;
             transformData.world = CreateWorld(pos, Quat::CreateFromYawPitchRoll(yaw, pitch, 0), Vec3::One).Transpose();
-            Graphics::UploadBuffer(m_transformCbh, MemoryView { transformData });
+            Graphics::UploadBuffer(m_transformCbh, transformData);
 
             Graphics::SetTexture(m_cubeTh, eShader::PixelShader, 0);
-            Graphics::SetSampler(SamplerState::k_linearClamp, eShader::PixelShader, 0);
+            Graphics::SetSampler(SamplerState::LinearClamp(), eShader::PixelShader, 0);
 
             Graphics::SetVertexBuffer(m_vbh);
             Graphics::SetIndexBuffer(m_ibh);
@@ -269,8 +261,8 @@ void HelloJamScene::OnRender(const RenderView& _view)
         }
     }
 
-    TextureHandle renderTh = Graphics::GetRenderTargetTexture(_view.frameBufferHandle, 0);
-    Graphics::Blit(m_renderTh, renderTh);
+    TextureHandle renderTh = Graphics::GetRenderTargetTexture(_view.fbh, 0);
+    Graphics::Blit(renderTh, m_renderTh);
 }
 
 void HelloJamScene::OnImGuiRender()
@@ -284,10 +276,11 @@ void HelloJamScene::OnImGuiRender()
     {
         ImGui::Separator();
 
-        auto [w, h] = SceneManager::GetSceneResoultion();
+        float dt    = ImGui::GetIO().DeltaTime;
+        auto [w, h] = Graphics::GetBackBufferResolution();
         ImGui::Text("resolution: %d x %d", w, h);
-        ImGui::Text("delta time: %.3f ms", m_dt * 1000.f);
-        ImGui::Text("fps: %.1f", 1.f / m_dt);
+        ImGui::Text("delta time: %.3f ms", dt * 1000.f);
+        ImGui::Text("fps: %.1f", 1.f / dt);
     }
 
     {
@@ -321,15 +314,15 @@ void HelloJamScene::OnImGuiRender()
 
         ImGui::Text("gfx state");
 
-        Int32 primitiveInt   = static_cast<Int32>(m_gfxState.primitive);
-        Int32 primitiveCount = NarrowCast<Int32>(EnumCount<ePrimitive>());
-        if (ImGui::Combo("primitive", &primitiveInt, k_primitiveLabels, primitiveCount))
-            m_gfxState.primitive = static_cast<ePrimitive>(primitiveInt);
+        Int32 i32Prim = EnumToInt(m_gfxState.primitive);
+        Int32 numPrim = NarrowCast<Int32>(EnumCount<ePrimitive>());
+        if (ImGui::Combo("primitive", &i32Prim, k_primitiveLabels, numPrim))
+            m_gfxState.primitive = static_cast<ePrimitive>(i32Prim);
 
-        Int32 cullModeInt   = static_cast<Int32>(m_gfxState.cullMode);
-        Int32 cullModeCount = NarrowCast<Int32>(EnumCount<eCullMode>());
-        if (ImGui::Combo("cull mode", &cullModeInt, k_cullModeLabels, cullModeCount))
-            m_gfxState.cullMode = static_cast<eCullMode>(cullModeInt);
+        Int32 i32CullMode = static_cast<Int32>(m_gfxState.cullMode);
+        Int32 numCullMode = NarrowCast<Int32>(EnumCount<eCullMode>());
+        if (ImGui::Combo("cull mode", &i32CullMode, k_cullModeLabels, numCullMode))
+            m_gfxState.cullMode = static_cast<eCullMode>(i32CullMode);
 
         bool bWireframe = m_gfxState.bWireframe;
         if (ImGui::Checkbox("wireframe", &bWireframe))
@@ -339,10 +332,10 @@ void HelloJamScene::OnImGuiRender()
         if (ImGui::Checkbox("depth clamp", &bDepthClamp))
             m_gfxState.bDepthClamp = bDepthClamp;
 
-        Int32 depthTestFuncInt   = static_cast<int>(m_gfxState.depthTestFunc);
-        Int32 depthTestFuncCount = NarrowCast<Int32>(EnumCount<eCompareFunc>());
-        if (ImGui::Combo("depth test func", &depthTestFuncInt, k_depthTestFuncLabels, depthTestFuncCount))
-            m_gfxState.depthTestFunc = static_cast<eCompareFunc>(depthTestFuncInt);
+        Int32 i32DepthFunc = static_cast<int>(m_gfxState.depthTestFunc);
+        Int32 numDepthFunc = NarrowCast<Int32>(EnumCount<eCompareFunc>());
+        if (ImGui::Combo("depth test func", &i32DepthFunc, k_depthTestFuncLabels, numDepthFunc))
+            m_gfxState.depthTestFunc = static_cast<eCompareFunc>(i32DepthFunc);
 
         bool bDepthWrite = m_gfxState.bDepthWrite;
         if (ImGui::Checkbox("depth write", &bDepthWrite))
@@ -365,10 +358,10 @@ void HelloJamScene::OnImGuiRender()
 
     {
         ImGui::Separator();
-        ImGui::Text("cube count: %d (%d x %d)", m_cubeCountPerRow * m_cubeCountPerRow, m_cubeCountPerRow, m_cubeCountPerRow);
-        ImGui::DragInt("cube count per row", &m_cubeCountPerRow, 1, 1, k_cubeCountPerRowMax);
+        ImGui::Text("cube count: %d (%d x %d)", m_numCubePerRow * m_numCubePerRow, m_numCubePerRow, m_numCubePerRow);
+        ImGui::DragInt("cube count per row", &m_numCubePerRow, 1, 1, k_cubeCountPerRowMax);
         ImGui::SliderAngle("rotation speed", &m_rotSpeedRad);
-        ImGui::Checkbox("texture mapping", &m_bTextureMapping);
+        ImGui::Checkbox("pSkyboxTexture mapping", &m_bTextureMapping);
         ImGui::Checkbox("animation", &m_bAnimation);
     }
 
@@ -377,27 +370,20 @@ void HelloJamScene::OnImGuiRender()
 
 void HelloJamScene::OnResize(const Int32 _width, const Int32 _height)
 {
-    Resize(_width, _height);
-}
-
-void HelloJamScene::Resize(const Int32 _width, const Int32 _height)
-{
     JAM_DESTROY_FRAME_BUFFER(m_fbh);
     JAM_DESTROY_TEXTURE(m_renderTh);
     JAM_DESTROY_TEXTURE(m_depthTh);
 
-    m_renderTh = Graphics::CreateTexture2D(_width, _height, eFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget | eTextureCreateFlags_WriteOnly);
-    m_depthTh  = Graphics::CreateTexture2D(_width, _height, eFormat::D32_Float, 1, eTextureCreateFlags_DepthStencil | eTextureCreateFlags_WriteOnly);
+    m_renderTh = Graphics::CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget | eTextureCreateFlags_WriteOnly);
+    m_depthTh  = Graphics::CreateTexture2D(_width, _height, eTextureFormat::D32_Float, 1, eTextureCreateFlags_DepthStencil | eTextureCreateFlags_WriteOnly);
 
     TextureHandle attachments[] = { m_renderTh, m_depthTh };
     m_fbh                       = Graphics::CreateFrameBuffer(attachments);
 
-    if (m_cmrEntt.IsValid())
+    for (auto&& [_, cc]: Each<CameraComponent>())
     {
-        CameraComponent& cameraCmp = m_cmrEntt.GetComponent<CameraComponent>();
-
-        Camera& camera = cameraCmp.camera;
-        camera.SetWidth(static_cast<float>(_width));
-        camera.SetHeight(static_cast<float>(_height));
+        Camera& c = cc.camera;
+        c.SetWidth(static_cast<float>(_width));
+        c.SetHeight(static_cast<float>(_height));
     }
 }

@@ -49,37 +49,37 @@ class ResourcePool
             return temp;
         }
 
-        JAM_NODISCARD value_type operator*() const noexcept
+        [[nodiscard]] value_type operator*() const noexcept
         {
             JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
             HandleT handle = *m_handleIter;
             return { handle, m_pPool->GetResource(handle) };
         }
 
-        JAM_NODISCARD HandleT GetHandle() const noexcept
+        [[nodiscard]] HandleT GetHandle() const noexcept
         {
             JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
             return *m_handleIter;
         }
 
-        JAM_NODISCARD ResourceT& GetResource() const noexcept
+        [[nodiscard]] ResourceT& GetResource() const noexcept
         {
             JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
             return m_pPool->GetResource(*m_handleIter);
         }
 
-        JAM_NODISCARD bool operator==(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator==(const Iterator& other) const noexcept
         {
             return m_pPool == other.m_pPool && m_handleIter == other.m_handleIter;
         }
 
-        JAM_NODISCARD bool operator!=(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator!=(const Iterator& other) const noexcept
         {
             return !(*this == other);
         }
 
     private:
-        JAM_NODISCARD bool IsValid_() const noexcept
+        [[nodiscard]] bool IsValid_() const noexcept
         {
             return m_pPool && m_handleIter != m_pPool->m_handleAlloc.end();
         }
@@ -101,14 +101,14 @@ public:
     ResourcePool& operator=(const ResourcePool&) = delete;
     ResourcePool& operator=(ResourcePool&&)      = delete;
 
-    JAM_NODISCARD HandleT Alloc()
+    [[nodiscard]] HandleT Alloc()
     {
         HandleT handle = m_handleAlloc.Alloc();
         if (handle.index >= m_resources.size())
         {
             m_resources.resize(handle.index + 1);
         }
-        ++m_itemCount;
+        ++m_numItems;
         return handle;
     }
 
@@ -120,76 +120,76 @@ public:
         std::destroy_at(&resource);
         std::construct_at(&resource);
         m_handleAlloc.Free(handle);
-        --m_itemCount;
+        --m_numItems;
     }
 
-    JAM_NODISCARD T& GetResource(const HandleT handle) noexcept
+    [[nodiscard]] T& GetResource(const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "Invalid handle");
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
-    JAM_NODISCARD const T& GetResource(const HandleT handle) const noexcept
+    [[nodiscard]] const T& GetResource(const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "Invalid handle");
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
-    JAM_NODISCARD const T& operator[](const HandleT handle) const noexcept
+    [[nodiscard]] const T& operator[](const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "Invalid handle");
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
-    JAM_NODISCARD T& operator[](const HandleT handle) noexcept
+    [[nodiscard]] T& operator[](const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "Invalid handle");
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
-    JAM_NODISCARD bool IsValid(const HandleT handle) const noexcept
+    [[nodiscard]] bool IsValid(const HandleT handle) const noexcept
     {
         return m_handleAlloc.IsValid(handle);
     }
 
-    JAM_NODISCARD UInt32 GetCount() const noexcept
+    [[nodiscard]] UInt32 GetCount() const noexcept
     {
-        return m_itemCount;
+        return m_numItems;
     }
 
     void Clear()
     {
         m_resources.clear();
         m_handleAlloc.Clear();
-        m_itemCount = 0;
+        m_numItems = 0;
     }
 
-    JAM_NODISCARD IteratorT begin() noexcept
+    [[nodiscard]] IteratorT begin() noexcept
     {
         return IteratorT(this);
     }
 
-    JAM_NODISCARD IteratorT end() noexcept
+    [[nodiscard]] IteratorT end() noexcept
     {
         return IteratorT(this, m_handleAlloc.end());
     }
 
-    JAM_NODISCARD ConstIteratorT begin() const noexcept
+    [[nodiscard]] ConstIteratorT begin() const noexcept
     {
         return ConstIteratorT(this);
     }
 
-    JAM_NODISCARD ConstIteratorT end() const noexcept
+    [[nodiscard]] ConstIteratorT end() const noexcept
     {
         return ConstIteratorT(this, m_handleAlloc.end());
     }
 
-    JAM_NODISCARD ConstIteratorT cbegin() const noexcept
+    [[nodiscard]] ConstIteratorT cbegin() const noexcept
     {
         return ConstIteratorT(this);
     }
 
-    JAM_NODISCARD ConstIteratorT cend() const noexcept
+    [[nodiscard]] ConstIteratorT cend() const noexcept
     {
         return ConstIteratorT(this, m_handleAlloc.end());
     }
@@ -197,7 +197,7 @@ public:
 private:
     HandleAllocator<T> m_handleAlloc = {};
     std::vector<T>     m_resources   = {};
-    UInt32             m_itemCount   = 0;
+    UInt32             m_numItems    = 0;
 };
 
 }   // namespace jam

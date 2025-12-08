@@ -4,181 +4,93 @@
 
 #include "ComponentDB.h"
 #include "FileUtilities.h"
+#include "ImageTexture.h"
 #include "Profile.h"
 #include "Scene.h"
-#include "SceneDB.h"
+
+#include "JsonUtilities.h"
 
 namespace jam
 {
 
-eErrorCode SceneSerializer::SaveToFile(const fs::path& _filePath) const
+bool SceneSerializer::SaveToFile(const fs::path& _filePath) const
 {
     JAM_ASSERT(!_filePath.empty(), "File path is not set");
     JAM_ASSERT(!m_json.empty(), "No data to export");
-    return WriteJsonToFile(_filePath, m_json, 0);
+    return SaveJsonToFile(_filePath, m_json, 0);
 }
 
-eErrorCode SceneSerializer::LoadFromFile(const fs::path& _filePath)
-{
-    JAM_ASSERT(!_filePath.empty(), "File path is empty");
-    auto [ec, json] = ReadJsonFromFile(_filePath);
-    if (IsOk(ec))
-        m_json = std::move(json);
-    return ec;
-}
-
-void SceneSerializer::Serialize(const Scene* _pScene)
+void SceneSerializer::Serialize(const Ref<Scene>& _pScene)
 {
     JAM_ASSERT(_pScene, "Scene is null");
-    JAM_PROFILE_SCOPE_MS("SceneSerializer::Serialize");
+    JAM_FUNCTION_MSG_PROFILE("scene name: {}", _pScene->GetTypeName());
 
     m_json.clear();
+    m_json["sceneType"] = _pScene->GetTypeName();
 
-    // 씬 정보 직렬화
-    m_json["sceneName"] = _pScene->GetName();
+    const HashMap<UID, Entity>& entities = _pScene->GetEntities();
+    HashMap<UInt32, UID>        enttUidMap;   // [entity handle, uid]
+    enttUidMap.reserve(entities.size());
 
-    const HashMap<UID, Entity>& entityMap = _pScene->GetEntityMap();   // 전체 엔티티 맵
-    HashMap<UInt32, UID>        entityUIDMap;                          // 엔티티 타입 해시 -> UID 맵 (직렬화용)
-    entityUIDMap.reserve(entityMap.size());
-
-    // 전체 엔티티 맵을 순회하면서
-    // entity -> UID 맵 생성
-    // 동시에 엔티티 리스트 직렬화
-    std::vector<UID> entities;
-    entities.reserve(entityMap.size());
-    for (auto [uid, entity]: entityMap)
+    // entity list
     {
-        entities.push_back(uid);
-
-        entt::entity handle                     = entity.GetHandle();
-        entityUIDMap[entt::to_integral(handle)] = uid;
-    }
-    m_json["entities"] = std::move(entities);
-
-    // 레지스트리 전체를 순회하며 컴포넌트 직렬화
-    {
-        Json json;   // 컴포넌트 데이터
-
-        const entt::registry& pReg = _pScene->GetRegistry();
-        for (auto [typeID, set]: pReg.storage())
+        std::vector<UID> uids;
+        uids.reserve(entities.size());
+        for (const auto& [uid, entity]: entities)
         {
-            if (!ComponentDB::IsSerializable(typeID))
+            const UInt32 entt = entt::to_integral(entity.GetHandle());
+            uids.push_back(uid);
+            enttUidMap[entt] = uid;
+        }
+        m_json["uids"] = std::move(uids);
+    }
+
+    // components
+    {
+        Json         json;
+        ComponentDB& compDB = ComponentDB::GetInstance();
+
+        const entt::registry& registry = _pScene->GetRegistry();
+        for (const auto& [id, storage]: registry.storage())
+        {
+            if (!compDB.IsSerializable(id))
                 continue;
 
-            Json compJson;   // 컴포넌트 데이터
-            for (entt::entity handle: set)
+            Json compJson;
+            for (entt::entity handle: storage)
             {
-                Int32  id     = entt::to_integral(handle);
-                UID    uid    = entityUIDMap.at(id);
-                Entity entity = entityMap.at(uid);
+                const Int32       entt         = entt::to_integral(handle);
+                const UID         uid          = enttUidMap.at(entt);
+                const Entity      entity       = entities.at(uid);
+                const void*       pCompData    = storage.value(handle);
+                const std::string uidStr       = std::to_string(uid);
+                const Json        compDataJson = compDB.Serialize(id, pCompData, _pScene, entity);
 
-                const void* pComponent = set.value(handle);
-                Json        serialized = ComponentDB::Serialize(typeID, pComponent, _pScene, entity);
-                if (serialized.is_null() || serialized.empty())
-                    compJson[std::to_string(uid)] = nullptr;   // 빈 컴포넌트 처리
+                if (compDataJson.is_null() || compDataJson.empty())   
+                {
+                    // emtry struct is null or empty
+                    compJson[uidStr] = nullptr;
+                }
                 else
-                    compJson[std::to_string(uid)] = std::move(serialized);   // [컴포넌트 TYPE_ID][UID] = 컴포넌트 데이터
+                {
+                    compJson[uidStr] = std::move(compDataJson);
+                }
             }
-            json[std::to_string(typeID)] = std::move(compJson);
+
+            if (!compJson.empty())
+            {
+                const std::string key = std::to_string(id);
+                json[key]             = std::move(compJson);
+            }
         }
+
         m_json["components"] = std::move(json);
     }
 }
 
-Result<std::shared_ptr<Scene>> SceneSerializer::Deserialize()
+const Json& SceneSerializer::GetJson() const
 {
-    JAM_ASSERT(!m_json.empty(), "No data to deserialize");
-    JAM_PROFILE_SCOPE_MS("SceneSerializer::Deserialize");
-
-    if (!m_json.contains("sceneName") || !m_json["sceneName"].is_string())
-    {
-        SetErrorMessage("Scene JSON does not contain valid 'sceneName'");
-        return eErrorCode::FileParseFailed;
-    }
-
-    if (!m_json.contains("sceneBehavior") || !m_json["sceneBehavior"].is_string())
-    {
-        SetErrorMessage("Scene JSON does not contain valid 'sceneBehavior'");
-        return eErrorCode::FileParseFailed;
-    }
-
-    // 씬 생성
-    std::string            sceneName = m_json["sceneName"].get<std::string>();
-    std::shared_ptr<Scene> pScene    = SceneDB::Create(sceneName);
-
-    // 엔티티 역직렬화
-    if (!m_json.contains("entities") || !m_json["entities"].is_array())
-    {
-        SetErrorMessage("Scene JSON does not contain valid 'entities' array");
-        return eErrorCode::FileParseFailed;
-    }
-
-    const Json& entitiesJson = m_json["entities"];
-    for (const Json& uidJson: entitiesJson)
-    {
-        if (!uidJson.is_number_unsigned())
-        {
-            SetErrorMessage("Invalid UID in 'entities' array");
-            return eErrorCode::FileParseFailed;
-        }
-
-        UID    entityUID = uidJson.get<UID>();
-        Entity e         = pScene->CreateEntity(entityUID);
-        JAM_UNUSED(e);
-    }
-
-    if (!m_json.contains("components") || !m_json["components"].is_object())
-    {
-        SetErrorMessage("Scene JSON does not contain valid 'components' object");
-        return eErrorCode::FileParseFailed;
-    }
-
-    const Json& componentsJson = m_json["components"];
-    for (auto& [typeIDStr, compJson]: componentsJson.items())
-    {
-        if (!compJson.is_object())
-        {
-            SetErrorMessage("Invalid component data for type ID: {}", typeIDStr);
-            return eErrorCode::FileParseFailed;
-        }
-
-        auto [ec, typeID] = StringToInt<UInt32>(typeIDStr);
-        if (IsError(ec))
-            return ec;
-
-        JAM_ASSERT(ComponentDB::IsSerializable(typeID), "Component type ID: {} is not serializable", typeID);
-        for (auto& [uidStr, compData]: compJson.items())
-        {
-            auto [ec, uid] = StringToInt<UID>(uidStr);
-            if (IsError(ec))
-                return ec;
-
-            UID    entityUID = uid;
-            Entity entity    = pScene->FindEntity(entityUID);
-            if (!entity.IsValid())
-            {
-                SetErrorMessage("Entity with UID: {} does not exist for component type ID: {}", entityUID, typeIDStr);
-                return eErrorCode::FileParseFailed;
-            }
-
-            // 컴포넌트 생성 및 역직렬화
-            if (!ComponentDB::Has(typeID, entity))
-                ComponentDB::Create(typeID, entity);   // 컴포넌트 생성
-
-            void* pComponent = ComponentDB::Get(typeID, entity);
-            if (pComponent)   // 컴포넌트가 빈 구조체인 경우 nullptr일 수 있음
-            {
-                eErrorCode err = ComponentDB::Deserialize(typeID, pComponent, compData, pScene.get(), entity);
-                if (IsError(err))
-                {
-                    ComponentDB::Remove(typeID, entity);   // 역직렬화 실패 시 컴포넌트 제거
-                    return err;
-                }
-            }
-        }
-    }
-
-    return pScene;
+    return m_json;
 }
 
 }   // namespace jam

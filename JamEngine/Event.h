@@ -13,6 +13,7 @@ enum class eEventCategory : Int8
     FileSystem,
     SceneManager,
     AssetManager,
+    Editor,
 };
 
 /// @brief 이벤트 카테고리 플래그 (비트마스크)
@@ -41,12 +42,12 @@ public:
     Event(Event&&) noexcept            = default;
     Event& operator=(Event&&) noexcept = default;
 
-    JAM_NODISCARD virtual std::string      ToString() const    = 0;
-    JAM_NODISCARD virtual std::string_view GetName() const     = 0;
-    JAM_NODISCARD virtual UInt32           GetHash() const     = 0;
-    JAM_NODISCARD virtual eEventCategory   GetCategory() const = 0;
+    [[nodiscard]] virtual std::string      ToString() const    = 0;
+    [[nodiscard]] virtual std::string_view GetTypeName() const = 0;
+    [[nodiscard]] virtual UInt32           GetTypeHash() const = 0;
+    [[nodiscard]] virtual eEventCategory   GetCategory() const = 0;
 
-    JAM_NODISCARD bool IsHandled() const
+    [[nodiscard]] bool IsHandled() const
     {
         return m_bHandled;
     }
@@ -60,14 +61,14 @@ private:
     bool m_bHandled = false;   // Handled 이 true인 경우 이벤트가 더 이상 처리되지 않음
 };
 
-#define JAM_EVENT(_eventT, _eventCategory)                                     \
-    constexpr static std::string_view k_name     = NameOf<_eventT>();          \
-    constexpr static UInt32           k_hash     = HashOf<_eventT>();          \
-    constexpr static eEventCategory   k_category = _eventCategory;             \
-                                                                               \
-    JAM_NODISCARD std::string_view GetName() const override { return k_name; } \
-    JAM_NODISCARD UInt32           GetHash() const override { return k_hash; } \
-    JAM_NODISCARD eEventCategory   GetCategory() const override { return k_category; }
+#define JAM_EVENT(_eventT, _eventCategory)                                         \
+    constexpr static std::string_view k_name     = NameOf<_eventT>();              \
+    constexpr static UInt32           k_hash     = HashOf<_eventT>();              \
+    constexpr static eEventCategory   k_category = _eventCategory;                 \
+                                                                                   \
+    [[nodiscard]] std::string_view GetTypeName() const override { return k_name; } \
+    [[nodiscard]] UInt32           GetTypeHash() const override { return k_hash; } \
+    [[nodiscard]] eEventCategory   GetCategory() const override { return k_category; }
 
 /// @brief 이벤트 디스패처
 /// 이벤트를 받으면 등록된 리스너에게 전달하여 처리함
@@ -126,7 +127,7 @@ public:
             return;
         }
 
-        const UInt32 hash = _event.GetHash();
+        const UInt32 hash = _event.GetTypeHash();
         const auto   it   = m_listeners.find(hash);
         if (it != m_listeners.end())
         {
@@ -151,7 +152,7 @@ void HandleEvent(Event& _event, ListenerType&& _listenerType)
         return;
     }
 
-    if (_event.GetHash() == EventType::k_hash)
+    if (_event.GetTypeHash() == EventType::k_hash)
     {
         EventType& event = static_cast<EventType&>(_event);
         _listenerType(event);
@@ -173,7 +174,7 @@ void HandleEvent(Event& _event, CallerType* _pCaller, ListenerType&& _listenerTy
         return;
     }
 
-    if (_event.GetHash() == EventType::k_hash)
+    if (_event.GetTypeHash() == EventType::k_hash)
     {
         EventType& event = static_cast<EventType&>(_event);
         (_pCaller->*_listenerType)(event);

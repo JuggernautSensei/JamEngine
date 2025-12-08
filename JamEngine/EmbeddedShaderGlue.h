@@ -18,7 +18,8 @@
 #    define JAM_FLOAT3 Vec3
 #    define JAM_FLOAT4 Vec4
 #    define JAM_MATRIX Mat4
-#    define JAM_UINT32 __int32
+#    define JAM_INT32  __int32
+#    define JAM_UINT32 unsigned __int32
 #    define JAM_BOOL   __int32
 
 #    define JAM_TRUE  1
@@ -60,6 +61,7 @@
 #    define JAM_FLOAT3 float3
 #    define JAM_FLOAT4 float4
 #    define JAM_MATRIX float4x4
+#    define JAM_INT32  int
 #    define JAM_UINT32 uint
 #    define JAM_BOOL   JAM_UINT32
 
@@ -98,24 +100,31 @@ JAM_NAMESPACE_BEGIN
 #define JAM_LIGHT_TYPE_POINT (1)
 #define JAM_LIGHT_TYPE_SPOT  (2)
 
-#define JAM_TEXTURE_BIND_FLAGS                         JAM_UINT32
-#define JAM_TEXTURE_BIND_FLAGS_NONE                    (0)
-#define JAM_TEXTURE_BIND_FLAGS_ALBEDO                  (1 << 0)
-#define JAM_TEXTURE_BIND_FLAGS_NORMAL                  (1 << 1)
-#define JAM_TEXTURE_BIND_FLAGS_METALLIC                (1 << 3)
-#define JAM_TEXTURE_BIND_FLAGS_ROUGHNESS               (1 << 4)
-#define JAM_TEXTURE_BIND_FLAGS_AO                      (1 << 5)
-#define JAM_TEXTURE_BIND_FLAGS_EMISSIVE                (1 << 6)
-#define JAM_TEXTURE_BIND_FLAGS_VERTEX_DISPLACEMENT_MAP (1 << 7)
-#define JAM_TEXTURE_BIND_FLAGS_LIGHT_MAP               (1 << 8)
-#define JAM_TEXTURE_BIND_FLAGS_FLIP_Y_NORMAL           (1 << 9)
+#define JAM_MATERIAL_FLAGS                         JAM_UINT32
+#define JAM_MATERIAL_FLAGS_NONE                    (0)
+#define JAM_MATERIAL_FLAGS_ALBEDO                  (1 << 0)
+#define JAM_MATERIAL_FLAGS_NORMAL                  (1 << 1)
+#define JAM_MATERIAL_FLAGS_AO                      (1 << 2)
+#define JAM_MATERIAL_FLAGS_EMISSIVE                (1 << 3)
+#define JAM_MATERIAL_FLAGS_VERTEX_DISPLACEMENT_MAP (1 << 4)
+#define JAM_MATERIAL_FLAGS_LIGHT_MAP               (1 << 5)
+#define JAM_MATERIAL_FLAGS_FLIP_Y_NORMAL           (1 << 6)
+#define JAM_MATERIAL_FLAGS_METALLIC_R              (1 << 8)
+#define JAM_MATERIAL_FLAGS_METALLIC_G              (1 << 9)
+#define JAM_MATERIAL_FLAGS_METALLIC_B              (1 << 10)
+#define JAM_MATERIAL_FLAGS_METALLIC_ALL            (JAM_MATERIAL_FLAGS_METALLIC_R | JAM_MATERIAL_FLAGS_METALLIC_G | JAM_MATERIAL_FLAGS_METALLIC_B)
+#define JAM_MATERIAL_FLAGS_ROUGHNESS_R             (1 << 11)
+#define JAM_MATERIAL_FLAGS_ROUGHNESS_G             (1 << 12)
+#define JAM_MATERIAL_FLAGS_ROUGHNESS_B             (1 << 13)
+#define JAM_MATERIAL_FLAGS_ROUGHNESS_ALL           (JAM_MATERIAL_FLAGS_ROUGHNESS_R | JAM_MATERIAL_FLAGS_ROUGHNESS_G | JAM_MATERIAL_FLAGS_ROUGHNESS_B)
+#define JAM_MATERIAL_FLAGS_ALPHA_CUTOUT            (1 << 14)
 
-#define JAM_ENVIRONMENT_FLAGS                              JAM_UINT32
-#define JAM_ENVIRONMENT_FLAGS_NONE                         (0)
-#define JAM_ENVIRONMENT_FLAGS_SSAO                         (1 << 0)
-#define JAM_ENVIRONMENT_FLAGS_DIRLIGHT_SHADOW              (1 << 1)
-#define JAM_ENVIRONMENT_FLAGS_SKYBOX_CUBEMAP               (1 << 2)
-#define JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR           (1 << 3)
+#define JAM_ENVIRONMENT_FLAGS                    JAM_UINT32
+#define JAM_ENVIRONMENT_FLAGS_NONE               (0)
+#define JAM_ENVIRONMENT_FLAGS_SSAO               (1 << 0)
+#define JAM_ENVIRONMENT_FLAGS_DIRLIGHT_SHADOW    (1 << 1)
+#define JAM_ENVIRONMENT_FLAGS_SKYBOX_CUBEMAP     (1 << 2)
+#define JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR (1 << 3)
 
 #define JAM_ENVIRONMENT_TONE_MAPPING_TYPE                           JAM_UINT32
 #define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_LINEAR                    (0)
@@ -146,8 +155,8 @@ JAM_CBUFFER(CB_CAMERA, 1)
     JAM_MATRIX cb_proj;          // 64
     JAM_MATRIX cb_viewProjInv;   // 64
     //
-    JAM_FLOAT3 cb_eyePos;   // 12
-    JAM_PAD_FLOAT;          // 4
+    JAM_FLOAT3 cb_eye;   // 12
+    JAM_PAD_FLOAT;       // 4
 };
 
 JAM_CBUFFER(CB_LIGHT, 2)
@@ -173,11 +182,11 @@ JAM_CBUFFER(CB_LIGHT, 2)
 JAM_CBUFFER(CB_MATERIAL, 3)
 {
     // phong
-    JAM_FLOAT3 cb_ambient;             // 12
-    JAM_FLOAT  cb_lightMapIntencity;   // 4
+    JAM_FLOAT3 cb_ambient;                 // 12
+    JAM_FLOAT  cb_lightTextureIntencity;   // 4
 
-    JAM_FLOAT3 cb_diffuse;          // 12
-    JAM_FLOAT  cb_aoMapIntencity;   // 4
+    JAM_FLOAT3 cb_diffuse;                    // 12
+    JAM_FLOAT  cb_emissiveTextureIntensity;   // 4
 
     JAM_FLOAT3 cb_specular;    // 12
     JAM_FLOAT  cb_shininess;   // 4
@@ -189,34 +198,37 @@ JAM_CBUFFER(CB_MATERIAL, 3)
     JAM_FLOAT3 cb_emissive;            // 12
     JAM_FLOAT  cb_emissiveIntensity;   // 4
 
-    JAM_FLOAT              cb_metallic;                 // 4
-    JAM_FLOAT              cb_displacementMapScaling;   // 4
-    JAM_TEXTURE_BIND_FLAGS cb_textureBindFlags;         // 4
-    JAM_PAD_FLOAT;                                      // 4
+    JAM_FLOAT          cb_metallic;                 // 4
+    JAM_FLOAT          cb_displacementMapScaling;   // 4
+    JAM_MATERIAL_FLAGS cb_materialFlags;            // 4
+    JAM_PAD_FLOAT;                                  // 4
 };
 
 JAM_CBUFFER(CB_ENVIRONMENT, 4)
 {
     JAM_ENVIRONMENT_FLAGS cb_envFlags;                     // 4
     JAM_FLOAT             cb_dirLightIntensity;            // 4
-    JAM_FLOAT             cb_dirLightShadowCascadeLevel;   // 4
-    JAM_FLOAT             cb_dirLightShadowBias;           // 4
+    JAM_UINT32            cb_dirLightShadowCascadeLevel;   // 4
+    JAM_FLOAT             cb_shadowBias;                   // 4
 
     JAM_FLOAT3 cb_dirLightDirection;   // 12
-    JAM_FLOAT  cb_screenWidth;         // 4
+    JAM_PAD_FLOAT;                     // 4
 
-    JAM_FLOAT3 cb_dirLightColor;   // 12
-    JAM_FLOAT  cb_screenHeight;    // 4
+    JAM_FLOAT3 cb_dirLightRadiance;   // 12
+    JAM_PAD_FLOAT;                    // 4
 
     JAM_FLOAT4 cb_dirLightShadowCascadeRanges;   // 16
 
-    JAM_FLOAT3 cb_skyBoxSolidColor;         // 12
     JAM_FLOAT  cb_irradianceMapIntensity;   // 4
+    JAM_FLOAT  cb_specularMapIntensity;     // 4
+    JAM_UINT32 cb_specularMapNumMips;       // 4
+    JAM_PAD_FLOAT;                          // 4
 
-    JAM_FLOAT cb_specularMapIntensity;   // 4
-    JAM_FLOAT cb_ssaoRadius;             // 4
-    JAM_FLOAT cb_ssaoBias;               // 4
-    JAM_PAD_FLOAT;
+    JAM_FLOAT3 cb_skyBoxSolidColor;   // 12
+    JAM_FLOAT  cb_ssaoRadius;         // 4
+
+    JAM_FLOAT cb_ssaoBias;   // 4
+    JAM_PAD_FLOAT3;          // 8
 
     JAM_FLOAT3 cb_fogColor;     // 12
     JAM_FLOAT  cb_fogDensity;   // 4
@@ -229,7 +241,7 @@ JAM_CBUFFER(CB_ENVIRONMENT, 4)
     JAM_FLOAT cb_exposure;          // 4
     JAM_FLOAT cb_gamma;             // 4
     JAM_FLOAT cb_bloomBlurRadius;   // 4
-    JAM_FLOAT cb_combineFactor;     // 4
+    JAM_FLOAT cb_bloomStrength;     // 4
 };
 
 JAM_CBUFFER(CB_SHADOW_RECEIVER, 5)
@@ -243,23 +255,31 @@ JAM_CBUFFER(CB_SHADOW_RECEIVER, 5)
     JAM_PAD_FLOAT3;               // 12
 };
 
-JAM_CBUFFER(CB_SHADOW_CASTER, 6)
+JAM_CBUFFER(CB_SCREEN, 6)
+{
+    JAM_FLOAT cb_screenWidth;    // 4
+    JAM_FLOAT cb_screenHeight;   // 4
+    JAM_FLOAT cb_texelX;         // 4
+    JAM_FLOAT cb_texelY;         // 4
+};
+
+JAM_CBUFFER(CB_SHADOW_CASTER, 7)
 {
     JAM_MATRIX cb_shaderMappingViewProj;
 };
 
-JAM_CBUFFER(CB_CASCADE_SHADOW_CASTER, 7)
+JAM_CBUFFER(CB_CASCADE_SHADOW_CASTER, 8)
 {
     JAM_MATRIX cb_csmViewProj[JAM_MAX_CASCADE_LEVEL];
 };
 
-JAM_CBUFFER(CB_OMNIDIRECTIONAL_SHADOW_CASTER, 8)
+JAM_CBUFFER(CB_OMNIDIRECTIONAL_SHADOW_CASTER, 9)
 {
     JAM_MATRIX cb_odsViewProj[6];
 };
 
 // 최대 8x8 커널
-JAM_CBUFFER(CB_SSAO_KERNEL, 9)
+JAM_CBUFFER(CB_SSAO_KERNEL, 10)
 {
     JAM_FLOAT4 cb_ssaoKernel[JAM_SSAO_KERNEL_SIZE];
 };
@@ -310,9 +330,10 @@ JAM_SHADER_RESOURCE_TEXTURECUBE(t_specular, 12);
 JAM_SHADER_RESOURCE_TEXTURE2D(t_brdf, 13);
 
 // G-Buffer [15~19]
-JAM_SHADER_RESOURCE_TEXTURE2D(t_gBufferAlbedoAO, 15);
-JAM_SHADER_RESOURCE_TEXTURE2D(t_gBufferNormalRoughness, 16);
-JAM_SHADER_RESOURCE_TEXTURE2D(t_gBufferEmissiveMetallic, 17);
+JAM_SHADER_RESOURCE_TEXTURE2D(t_gBufferAlbedo, 15);     // RGBA8_UNorm (albedo.rgb, A: alpha)
+JAM_SHADER_RESOURCE_TEXTURE2D(t_gBufferMaterial, 16);   // RGBA8_UNorm (R: metallic, G: roughness, B: ao, A: misc)
+JAM_SHADER_RESOURCE_TEXTURE2D(t_gBufferNormal, 17);     // RGB10A2_UNorm (normal.xyz, A: unused)
+JAM_SHADER_RESOURCE_TEXTURE2D(t_gBufferLighting, 18);   // RG11B10_Float (emissive + gi + ...)
 
 // Shadow [20 ~ 24]
 JAM_SHADER_RESOURCE_TEXTURE2D(t_shadow, 20);
@@ -335,8 +356,7 @@ JAM_SHADER_RESOURCE_TEXTURE2D(t_depth, 27);
 // 고정 샘플러
 JAM_SHADER_RESOURCE_SAMPLER(s_linearWrap, 0);
 JAM_SHADER_RESOURCE_SAMPLER(s_linearClamp, 1);
-JAM_SHADER_RESOURCE_SAMPLER(s_pointWrap, 2);
-JAM_SHADER_RESOURCE_SAMPLER(s_pointClamp, 3);
+JAM_SHADER_RESOURCE_SAMPLER(s_pointClamp, 2);
 JAM_SHADER_RESOURCE_SAMPLER(s_anisotropic4Wrap, 3);
 JAM_SHADER_RESOURCE_SAMPLER(s_shadowLinearClamp, 4);
 

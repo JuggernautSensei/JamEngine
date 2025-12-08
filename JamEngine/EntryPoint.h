@@ -3,7 +3,7 @@
 namespace jam::details
 {
 
-JAM_NODISCARD int EntryPoint(int argc, char* argv[]);
+[[nodiscard]] int EntryPoint(int argc, char* argv[]);
 
 }
 

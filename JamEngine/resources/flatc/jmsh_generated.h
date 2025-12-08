@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 1 &&
-              FLATBUFFERS_VERSION_REVISION == 21,
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace jam {
@@ -203,22 +203,32 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) VertexLayoutElement FLATBUFFERS_FINAL_CLA
 };
 FLATBUFFERS_STRUCT_END(VertexLayoutElement, 4);
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) VertexLayout FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) VertexLayout FLATBUFFERS_FINAL_CLASS {
  private:
   jam::jmsh::VertexLayoutElement elems_[14];
+  int32_t count_;
 
  public:
   VertexLayout()
-      : elems_() {
+      : elems_(),
+        count_(0) {
   }
-  VertexLayout(::flatbuffers::span<const jam::jmsh::VertexLayoutElement, 14> _elems) {
+  VertexLayout(int32_t _count)
+      : elems_(),
+        count_(::flatbuffers::EndianScalar(_count)) {
+  }
+  VertexLayout(::flatbuffers::span<const jam::jmsh::VertexLayoutElement, 14> _elems, int32_t _count)
+      : count_(::flatbuffers::EndianScalar(_count)) {
     ::flatbuffers::CastToArray(elems_).CopyFromSpan(_elems);
   }
   const ::flatbuffers::Array<jam::jmsh::VertexLayoutElement, 14> *elems() const {
     return &::flatbuffers::CastToArray(elems_);
   }
+  int32_t count() const {
+    return ::flatbuffers::EndianScalar(count_);
+  }
 };
-FLATBUFFERS_STRUCT_END(VertexLayout, 56);
+FLATBUFFERS_STRUCT_END(VertexLayout, 60);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -275,15 +285,11 @@ FLATBUFFERS_STRUCT_END(AABB, 24);
 struct Mesh FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MeshBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VERSION = 4,
-    VT_VERTICES = 6,
-    VT_VERTEX_LAYOUT = 8,
-    VT_INDICES = 10,
-    VT_AABB = 12
+    VT_VERTICES = 4,
+    VT_VERTEX_LAYOUT = 6,
+    VT_INDICES = 8,
+    VT_AABB = 10
   };
-  uint32_t version() const {
-    return GetField<uint32_t>(VT_VERSION, 0);
-  }
   const ::flatbuffers::Vector<uint8_t> *vertices() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_VERTICES);
   }
@@ -298,10 +304,9 @@ struct Mesh FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint32_t>(verifier, VT_VERSION, 4) &&
            VerifyOffsetRequired(verifier, VT_VERTICES) &&
            verifier.VerifyVector(vertices()) &&
-           VerifyFieldRequired<jam::jmsh::VertexLayout>(verifier, VT_VERTEX_LAYOUT, 2) &&
+           VerifyFieldRequired<jam::jmsh::VertexLayout>(verifier, VT_VERTEX_LAYOUT, 4) &&
            VerifyOffsetRequired(verifier, VT_INDICES) &&
            verifier.VerifyVector(indices()) &&
            VerifyField<jam::jmsh::AABB>(verifier, VT_AABB, 4) &&
@@ -313,9 +318,6 @@ struct MeshBuilder {
   typedef Mesh Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_version(uint32_t version) {
-    fbb_.AddElement<uint32_t>(Mesh::VT_VERSION, version, 0);
-  }
   void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices) {
     fbb_.AddOffset(Mesh::VT_VERTICES, vertices);
   }
@@ -344,7 +346,6 @@ struct MeshBuilder {
 
 inline ::flatbuffers::Offset<Mesh> CreateMesh(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    uint32_t version = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices = 0,
     const jam::jmsh::VertexLayout *vertex_layout = nullptr,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> indices = 0,
@@ -354,13 +355,11 @@ inline ::flatbuffers::Offset<Mesh> CreateMesh(
   builder_.add_indices(indices);
   builder_.add_vertex_layout(vertex_layout);
   builder_.add_vertices(vertices);
-  builder_.add_version(version);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<Mesh> CreateMeshDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    uint32_t version = 0,
     const std::vector<uint8_t> *vertices = nullptr,
     const jam::jmsh::VertexLayout *vertex_layout = nullptr,
     const std::vector<uint8_t> *indices = nullptr,
@@ -369,7 +368,6 @@ inline ::flatbuffers::Offset<Mesh> CreateMeshDirect(
   auto indices__ = indices ? _fbb.CreateVector<uint8_t>(*indices) : 0;
   return jam::jmsh::CreateMesh(
       _fbb,
-      version,
       vertices__,
       vertex_layout,
       indices__,

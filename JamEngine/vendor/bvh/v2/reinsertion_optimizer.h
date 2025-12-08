@@ -73,7 +73,7 @@ private:
         std::vector<size_t> parents(bvh.nodes.size());
         parents[0] = 0;
         executor.for_each(0, bvh.nodes.size(),
-            [&] (size_t begin, size_t end) {
+            [&] (const size_t begin, const size_t end) {
                 for (size_t i = begin; i < end; ++i) {
                     auto& node = bvh.nodes[i];
                     if (!node.is_leaf()) {
@@ -85,7 +85,7 @@ private:
         return parents;
     }
 
-    BVH_ALWAYS_INLINE std::vector<Candidate> find_candidates(size_t target_count) {
+    BVH_ALWAYS_INLINE std::vector<Candidate> find_candidates(const size_t target_count) {
         // Gather the `target_count` nodes that have the highest cost.
         // Note that this may produce fewer nodes if the BVH has fewer than `target_count` nodes.
         const auto node_count = std::min(bvh_.nodes.size(), target_count + 1);
@@ -110,7 +110,7 @@ private:
         /*
          * Here is an example that explains how the cost of a reinsertion is computed. For the
          * reinsertion from A to C, in the figure below, we need to remove P1, replace it by B,
-         * and create a node that holds A and C and place it where C was.
+         * and create a pNode that holds A and C and place it where C was.
          *
          *             R
          *            / \
@@ -170,7 +170,7 @@ private:
                 }
             }
 
-            // Compute the bounding box on the path from the node to the root, and record the
+            // Compute the bounding box on the path from the pNode to the root, and record the
             // corresponding decrease in area.
             if (pivot_id != parent_id) {
                 pivot_bbox.extend(bvh_.nodes[sibling_id].get_bbox());
@@ -224,7 +224,7 @@ private:
         } while (index != 0);
     }
 
-    BVH_ALWAYS_INLINE auto get_conflicts(size_t from, size_t to) {
+    BVH_ALWAYS_INLINE auto get_conflicts(size_t from, const size_t to) {
         return std::array<size_t, 5> {
             to, from,
             Bvh<Node>::get_sibling_id(from),
@@ -246,7 +246,7 @@ private:
             std::fill(touched.begin(), touched.end(), false);
             reinsertions.resize(candidates.size());
             executor.for_each(0, candidates.size(),
-                [&] (size_t begin, size_t end) {
+                [&] (const size_t begin, const size_t end) {
                     for (size_t i = begin; i < end; ++i)
                         reinsertions[i] = find_reinsertion(candidates[i].node_id);
                 });
@@ -257,7 +257,7 @@ private:
 
             for (auto& reinsertion : reinsertions) {
                 auto conflicts = get_conflicts(reinsertion.from, reinsertion.to);
-                if (std::any_of(conflicts.begin(), conflicts.end(), [&] (size_t i) { return touched[i]; }))
+                if (std::any_of(conflicts.begin(), conflicts.end(), [&] (const size_t i) { return touched[i]; }))
                     continue;
                 for (auto conflict : conflicts)
                     touched[conflict] = true;

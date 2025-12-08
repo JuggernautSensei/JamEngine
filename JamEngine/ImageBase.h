@@ -8,8 +8,8 @@ enum class eImageFormat : Int8
 {
     Unknown = -1,
 
-    EXR = 0,
-    DDS,
+    DDS = 0,
+    EXR,
     HDR,
     TGA,
 
@@ -28,6 +28,8 @@ enum class eImageFormat : Int8
     HEIC
 };
 
-JAM_NODISCARD eImageFormat DetermineFormatFromExtension(const fs::path& _filePath);
+[[nodiscard]] eImageFormat     ImageFormatFromPath(const fs::path& _path);
+[[nodiscard]] eImageFormat     ImageFormatFromString(std::string_view _str);
+[[nodiscard]] std::string_view ImageFormatToString(eImageFormat _format);
 
 }   // namespace jam

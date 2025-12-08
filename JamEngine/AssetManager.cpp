@@ -3,278 +3,457 @@
 #include "AssetManager.h"
 
 #include "Application.h"
+#include "Events.h"
 
 namespace jam
 {
 
 struct AssetManagerContext
 {
-    fs::path CreateRelativeOfWorkDir(const fs::path& _path) const
-    {
-        const Application&        app     = Application::GetInstance();
-        const ProjectDirectories& dirs    = app.GetProjectDirectories();
-        const fs::path&           workDir = dirs.workingDir;
+    using Container = HashMap<fs::path, Ref<IAsset>>;
 
-        std::error_code ec;
-        fs::relative(_path, workDir, ec);
-        if (ec)
-        {
-            return _path;
-        }
-        return {};
+    [[nodiscard]] std::optional<fs::path> RelativeFromWorkingDirectory(const fs::path& _path) const;
+    [[nodiscard]] Ref<IAsset>             MakeAssetRef(eAssetType _type) const;
+
+    void OnFileModifiedEvent(const FileModifiedEvent& _event) const;
+    void OnFileRenamedEvent(const FileRenamedEvent& _event);
+    void OnFileDeletedEvent(const FileDeletedEvent& _event);
+
+    std::optional<Ref<IAsset>> Load(eAssetType _type, const fs::path& _path, bool _bForceReload);
+    void                       Unload(eAssetType _type, const fs::path& _path);
+    std::optional<Ref<IAsset>> GetOrLoad(eAssetType _type, const fs::path& _path);
+    Ref<IAsset>                Get(eAssetType _type, const fs::path& _path) const;
+    [[nodiscard]] bool         Has(eAssetType _type, const fs::path& _path) const;
+
+    void Clear(eAssetType _type);
+    void CleanGarbage(eAssetType _type);
+
+    Container assetMaps[EnumCount<eAssetType>()] = {};
+
+}* g_assetMgrCtx = nullptr;
+
+std::optional<fs::path> AssetManagerContext::RelativeFromWorkingDirectory(const fs::path& _path) const
+{
+    try
+    {
+        const Application& app = Application::GetInstance();
+        return fs::relative(_path, app.GetWorkingDirectory());
+    }
+    catch (const fs::filesystem_error& ec)
+    {
+        SetErrorString("AssetManagerContext - failed to calculate relative path: {}", ec.what());
+        return std::nullopt;
+    }
+}
+
+Ref<IAsset> AssetManagerContext::MakeAssetRef(eAssetType _type) const
+{
+    switch (_type)
+    {
+        case eAssetType::ImageTexture: return MakeRef<ImageTexture>();
+        case eAssetType::Material: return MakeRef<Material>();
+        case eAssetType::Mesh: return MakeRef<Mesh>();
+        case eAssetType::Model: return MakeRef<Model>();
+        default:
+            JAM_ASSERT(0, "unsupported asset type: {}", EnumToInt(_type));
+            return nullptr;
+    }
+}
+
+void AssetManagerContext::OnFileRenamedEvent(const FileRenamedEvent& _event)
+{
+    // reload existing asset without creating new object
+    const std::optional<fs::path> optOld = RelativeFromWorkingDirectory(_event.GetOldPath());
+    const std::optional<fs::path> optNew = RelativeFromWorkingDirectory(_event.GetNewPath());
+
+    if (!optOld || !optNew)
+    {
+        return;
     }
 
-    Result<std::shared_ptr<IAsset>> Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload = false)
+    const fs::path& oldPath = optOld.value();
+    const fs::path& newPath = optNew.value();
+
+    for (const eAssetType type: EnumRange<eAssetType>())
     {
-        fs::path path = CreateRelativeOfWorkDir(_path);
-        auto&    map  = assetMap[EnumToInt(_type)];
-
-        if (map.contains(path))   // 기존에 로드된 에셋이 있을 경우
+        if (!Has(type, oldPath))
         {
-            if (_bForceReload)   // 핫 리로드를 위해 기존 객체를 재사용
+            continue;
+        }
+
+        // if asset already exists at new path, unload it first
+        if (Has(type, newPath))
+        {
+            Unload(type, newPath);
+        }
+
+        // reload into the same object instance
+        Ref<IAsset> pAsset = Get(type, oldPath);
+        if (pAsset->Load(newPath))
+        {
+            // update container key: remove old, insert new
+            Container& container = assetMaps[EnumToInt(type)];
+            container.erase(oldPath);
+            container[newPath] = pAsset;
+        }
+    }
+}
+
+void AssetManagerContext::OnFileDeletedEvent(const FileDeletedEvent& _event)
+{
+    // unload existing asset
+    if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_event.GetPath()))
+    {
+        const fs::path& path = opt.value();
+        for (const eAssetType type: EnumRange<eAssetType>())
+        {
+            if (Has(type, path))
             {
-                std::shared_ptr<IAsset>& asset = map[path];
-                asset->Unload();
-                eErrorCode ec = asset->Load(path);
-                if (IsError(ec))
-                {
-                    map.erase(path);
-                    return ec;
-                }
-                return asset;
+                Unload(type, path);
             }
+        }
+    }
+}
 
-            // 기존 에셋 반환
-            return map[path];
+void AssetManagerContext::OnFileModifiedEvent(const FileModifiedEvent& _event) const
+{
+    // reload existing asset without creating new object
+    if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_event.GetPath()))
+    {
+        const fs::path& path = opt.value();
+        for (const eAssetType type: EnumRange<eAssetType>())
+        {
+            if (Has(type, path))
+            {
+                Get(type, path)->Load(path);
+            }
         }
+    }
+}
 
-        // 새로운 에셋 생성
-        std::shared_ptr<IAsset> asset = nullptr;
-        switch (_type)
+std::optional<Ref<IAsset>> AssetManagerContext::Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload)
+{
+    const std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path);
+    if (!opt)
+    {
+        return std::nullopt;
+    }
+
+    const fs::path& path      = opt.value();
+    Container&      container = assetMaps[EnumToInt(_type)];
+
+    // check if already exists
+    if (container.contains(path))
+    {
+        Ref<IAsset>& asset = container[path];
+        if (_bForceReload)
         {
-            case eAssetType ::ImageTexture:
-                asset = std::make_shared<ImageTexture>();
-                break;
-            case eAssetType::Material:
-                asset = std::make_shared<Material>();
-                break;
-            case eAssetType::Mesh:
-                asset = std::make_shared<Mesh>();
-                break;
-            default:
-                JAM_ASSERT(0, "Unsupported asset type: {}", EnumToInt(_type));
-                return eErrorCode::InvalidArgument;
+            if (asset->Load(path))
+                return asset;
+
+            // load failed, remove invalid asset
+            container.erase(path);
+            return std::nullopt;
         }
-        JAM_ASSERT(asset, "Failed to create asset instance");
-        eErrorCode ec = asset->Load(path);
-        if (IsError(ec))
-        {
-            return ec;
-        }
-        map[path] = asset;
         return asset;
     }
 
-    std::shared_ptr<IAsset> Get(const eAssetType _type, const fs::path& _path) const
+    // create new asset
+    Ref<IAsset> pAsset = MakeAssetRef(_type);
+    if (pAsset->Load(path))
     {
-        fs::path    path = CreateRelativeOfWorkDir(_path);
-        const auto& map  = assetMap[EnumToInt(_type)];
-        if (map.contains(path))
-        {
-            return map.at(path);
-        }
+        container[path] = pAsset;
+        return pAsset;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+Ref<IAsset> AssetManagerContext::Get(const eAssetType _type, const fs::path& _path) const
+{
+    if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
+    {
+        const fs::path&  path      = opt.value();
+        const Container& container = assetMaps[EnumToInt(_type)];
+        JAM_ASSERT(container.contains(path), "asset not found: {}", path.native());
+        return container.at(path);
+    }
+    else
+    {
+        JAM_ASSERT(0, "failed to calculate relative path for asset: {}", _path.native());
         return nullptr;
     }
-
-    void Unload(const eAssetType _type, const fs::path& _path)
-    {
-        fs::path path = CreateRelativeOfWorkDir(_path);
-        auto&    map  = assetMap[EnumToInt(_type)];
-        JAM_ASSERT(map.contains(path), "Asset not found: {}", path.string());
-        map.erase(path);
-    }
-
-    Result<std::shared_ptr<IAsset>> GetOrLoad(const eAssetType _type, const fs::path& _path)
-    {
-        if (auto asset = Get(_type, _path); asset != nullptr)
-        {
-            return asset;
-        }
-        return Load(_type, _path);
-    }
-
-    void Clear(const eAssetType _type)
-    {
-        auto& map = assetMap[EnumToInt(_type)];
-        map.clear();
-    }
-
-    void CleanGarbage(const eAssetType _type)
-    {
-        auto& map = assetMap[EnumToInt(_type)];
-        for (auto it = map.begin(); it != map.end();)
-        {
-            if (it->second.use_count() == 1)
-            {
-                it = map.erase(it);
-            }
-            else
-            {
-                ++it;
-            }
-        }
-    }
-
-    HashMap<fs::path, std::shared_ptr<IAsset>> assetMap[EnumCount<eAssetType>()] = {};
-} g_assetMgrContext;
-
 }
+
+void AssetManagerContext::Unload(const eAssetType _type, const fs::path& _path)
+{
+    if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
+    {
+        const fs::path& path      = opt.value();
+        Container&      container = assetMaps[EnumToInt(_type)];
+
+        if (container.contains(path))
+        {
+            container.at(path)->Unload();
+            container.erase(path);
+        }
+    }
+}
+
+bool AssetManagerContext::Has(const eAssetType _type, const fs::path& _path) const
+{
+    if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
+    {
+        return assetMaps[EnumToInt(_type)].contains(opt.value());
+    }
+    return false;
+}
+
+std::optional<Ref<IAsset>> AssetManagerContext::GetOrLoad(const eAssetType _type, const fs::path& _path)
+{
+    if (Has(_type, _path))
+    {
+        return Get(_type, _path);
+    }
+    else
+    {
+        return Load(_type, _path, false);
+    }
+}
+
+void AssetManagerContext::Clear(const eAssetType _type)
+{
+    assetMaps[EnumToInt(_type)].clear();
+}
+
+void AssetManagerContext::CleanGarbage(const eAssetType _type)
+{
+    Container& container = assetMaps[EnumToInt(_type)];
+    for (auto it = container.begin(); it != container.end();)
+    {
+        // if ref count is 1, it means only the manager holds it
+        if (it->second->GetRefCount() == 1)
+        {
+            it = container.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
+}   // namespace jam
 
 namespace jam
 {
 
-Result<std::shared_ptr<IAsset>> AssetManager::Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload)
+void AssetManager::Init()
 {
-    return g_assetMgrContext.Load(_type, _path, _bForceReload);
+    JAM_ASSERT(g_assetMgrCtx == nullptr, "AssetManager::Init() called more than once.");
+    g_assetMgrCtx = JAM_NEW(AssetManagerContext);
 }
 
-Result<std::shared_ptr<Mesh>> AssetManager::LoadMesh(const fs::path& _path, const bool _bForceReload)
+void AssetManager::Shutdown()
 {
-    auto [ec, asset] = g_assetMgrContext.Load(eAssetType::Mesh, _path, _bForceReload);
-    if (IsOk(ec))
+    JAM_ASSERT(g_assetMgrCtx, "AssetManager::Shutdown() called without Init().");
+    JAM_DELETE(g_assetMgrCtx);
+}
+
+void AssetManager::OnEvent(Event& _event)
+{
+    if (!g_assetMgrCtx)
     {
-        return std::static_pointer_cast<Mesh>(asset);
+        return;
     }
-    return ec;
+
+    HandleEvent<FileModifiedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileModifiedEvent);
+    HandleEvent<FileRenamedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileRenamedEvent);
+    HandleEvent<FileDeletedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileDeletedEvent);
 }
 
-Result<std::shared_ptr<Material>> AssetManager::LoadMaterial(const fs::path& _path, const bool _bForceReload)
+std::optional<Ref<IAsset>> AssetManager::Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload)
 {
-    auto [ec, asset] = g_assetMgrContext.Load(eAssetType::Material, _path, _bForceReload);
-    if (IsOk(ec))
+    return g_assetMgrCtx->Load(_type, _path, _bForceReload);
+}
+
+std::optional<Ref<Model>> AssetManager::LoadModel(const fs::path& _path, const bool _bForceReload)
+{
+    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->Load(eAssetType::Model, _path, _bForceReload))
     {
-        return std::static_pointer_cast<Material>(asset);
+        return opt->As<Model>();
     }
-    return ec;
-}
-
-Result<std::shared_ptr<ImageTexture>> AssetManager::LoadImageTexture(const fs::path& _path, const bool _bForceReload)
-{
-    auto [ec, asset] = g_assetMgrContext.Load(eAssetType::ImageTexture, _path, _bForceReload);
-    if (IsOk(ec))
+    else
     {
-        return std::static_pointer_cast<ImageTexture>(asset);
+        return std::nullopt;
     }
-    return ec;
 }
 
-std::shared_ptr<IAsset> AssetManager::Get(const eAssetType _type, const fs::path& _path)
+std::optional<Ref<Mesh>> AssetManager::LoadMesh(const fs::path& _path, const bool _bForceReload)
 {
-    return g_assetMgrContext.Get(_type, _path);
-}
-
-std::shared_ptr<Mesh> AssetManager::GetMesh(const fs::path& _path)
-{
-    std::shared_ptr<IAsset> asset = g_assetMgrContext.Get(eAssetType::Mesh, _path);
-    return std::static_pointer_cast<Mesh>(asset);
-}
-
-std::shared_ptr<Material> AssetManager::GetMaterial(const fs::path& _path)
-{
-    std::shared_ptr<IAsset> asset = g_assetMgrContext.Get(eAssetType::Material, _path);
-    return std::static_pointer_cast<Material>(asset);
-}
-
-std::shared_ptr<ImageTexture> AssetManager::GetImageTexture(const fs::path& _path)
-{
-    std::shared_ptr<IAsset> asset = g_assetMgrContext.Get(eAssetType::ImageTexture, _path);
-    return std::static_pointer_cast<ImageTexture>(asset);
-}
-
-Result<std::shared_ptr<IAsset>> AssetManager::GetOrLoad(const eAssetType _type, const fs::path& _path)
-{
-    return g_assetMgrContext.GetOrLoad(_type, _path);
-}
-
-Result<std::shared_ptr<Mesh>> AssetManager::GetOrLoadMesh(const fs::path& _path)
-{
-    auto [ec, asset] = g_assetMgrContext.GetOrLoad(eAssetType::Mesh, _path);
-    if (IsOk(ec))
+    if (std::optional<Ref<IAsset>> opt = Load(eAssetType::Mesh, _path, _bForceReload))
     {
-        return std::static_pointer_cast<Mesh>(asset);
+        return opt->As<Mesh>();
     }
-    return ec;
+    else
+    {
+        return std::nullopt;
+    }
 }
 
-Result<std::shared_ptr<Material>> AssetManager::GetOrLoadMaterial(const fs::path& _path)
+std::optional<Ref<Material>> AssetManager::LoadMaterial(const fs::path& _path, const bool _bForceReload)
 {
-    auto [ec, asset] = g_assetMgrContext.GetOrLoad(eAssetType::Material, _path);
-    if (IsOk(ec))
+    if (std::optional<Ref<IAsset>> opt = Load(eAssetType::Material, _path, _bForceReload))
     {
-        return std::static_pointer_cast<Material>(asset);
+        return opt->As<Material>();
     }
-    return ec;
+    else
+    {
+        return std::nullopt;
+    }
 }
 
-Result<std::shared_ptr<ImageTexture>> AssetManager::GetOrLoadImageTexture(const fs::path& _path)
+std::optional<Ref<ImageTexture>> AssetManager::LoadImageTexture(const fs::path& _path, const bool _bForceReload)
 {
-    auto [ec, asset] = g_assetMgrContext.GetOrLoad(eAssetType::ImageTexture, _path);
-    if (IsOk(ec))
+    if (std::optional<Ref<IAsset>> opt = Load(eAssetType::ImageTexture, _path, _bForceReload))
     {
-        return std::static_pointer_cast<ImageTexture>(asset);
+        return opt->As<ImageTexture>();
     }
-    return ec;
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+Ref<IAsset> AssetManager::Get(const eAssetType _type, const fs::path& _path)
+{
+    return g_assetMgrCtx->Get(_type, _path);
+}
+
+Ref<Model> AssetManager::GetModel(const fs::path& _path)
+{
+    return g_assetMgrCtx->Get(eAssetType::Model, _path).As<Model>();
+}
+
+Ref<Mesh> AssetManager::GetMesh(const fs::path& _path)
+{
+    return g_assetMgrCtx->Get(eAssetType::Mesh, _path).As<Mesh>();
+}
+
+Ref<Material> AssetManager::GetMaterial(const fs::path& _path)
+{
+    return g_assetMgrCtx->Get(eAssetType::Material, _path).As<Material>();
+}
+
+Ref<ImageTexture> AssetManager::GetImageTexture(const fs::path& _path)
+{
+    return g_assetMgrCtx->Get(eAssetType::ImageTexture, _path).As<ImageTexture>();
+}
+
+std::optional<Ref<IAsset>> AssetManager::GetOrLoad(const eAssetType _type, const fs::path& _path)
+{
+    return g_assetMgrCtx->GetOrLoad(_type, _path);
+}
+
+std::optional<Ref<Model>> AssetManager::GetOrLoadModel(const fs::path& _path)
+{
+    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Model, _path))
+    {
+        return opt->As<Model>();
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<Ref<Mesh>> AssetManager::GetOrLoadMesh(const fs::path& _path)
+{
+    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Mesh, _path))
+    {
+        return opt->As<Mesh>();
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<Ref<Material>> AssetManager::GetOrLoadMaterial(const fs::path& _path)
+{
+    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Material, _path))
+    {
+        return opt->As<Material>();
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<Ref<ImageTexture>> AssetManager::GetOrLoadImageTexture(const fs::path& _path)
+{
+    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::ImageTexture, _path))
+    {
+        return opt->As<ImageTexture>();
+    }
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 void AssetManager::Unload(const eAssetType _type, const fs::path& _path)
 {
-    g_assetMgrContext.Unload(_type, _path);
+    g_assetMgrCtx->Unload(_type, _path);
+}
+
+void AssetManager::UnloadModel(const fs::path& _path)
+{
+    Unload(eAssetType::Model, _path);
 }
 
 void AssetManager::UnloadMesh(const fs::path& _path)
 {
-    g_assetMgrContext.Unload(eAssetType::Mesh, _path);
+    Unload(eAssetType::Mesh, _path);
 }
 
 void AssetManager::UnloadMaterial(const fs::path& _path)
 {
-    g_assetMgrContext.Unload(eAssetType::Material, _path);
+    Unload(eAssetType::Material, _path);
 }
 
 void AssetManager::UnloadImageTexture(const fs::path& _path)
 {
-    g_assetMgrContext.Unload(eAssetType::ImageTexture, _path);
+    Unload(eAssetType::ImageTexture, _path);
 }
 
 void AssetManager::CleanGarbage(const eAssetType _type)
 {
-    g_assetMgrContext.CleanGarbage(_type);
+    g_assetMgrCtx->CleanGarbage(_type);
 }
 
 void AssetManager::CleanGarbageAll()
 {
-    for (eAssetType type: EnumRange<eAssetType>())
+    for (const eAssetType type: EnumRange<eAssetType>())
     {
-        g_assetMgrContext.CleanGarbage(type);
+        g_assetMgrCtx->CleanGarbage(type);
     }
 }
 
 void AssetManager::Clear(const eAssetType _type)
 {
-    g_assetMgrContext.Clear(_type);
+    g_assetMgrCtx->Clear(_type);
 }
 
 void AssetManager::ClearAll()
 {
-    for (eAssetType type: EnumRange<eAssetType>())
+    for (const eAssetType type: EnumRange<eAssetType>())
     {
-        g_assetMgrContext.Clear(type);
+        g_assetMgrCtx->Clear(type);
     }
 }
 
-const HashMap<fs::path, std::shared_ptr<IAsset>>& AssetManager::GetAssetContainer(const eAssetType _type)
-{
-    return g_assetMgrContext.assetMap[EnumToInt(_type)];
-}
-
-}   // namespace jam::asset_manager
+}   // namespace jam

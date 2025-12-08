@@ -1,16 +1,15 @@
 #pragma once
-
-// clang-format off
-namespace jam { class Scene; class Entity; }
-// clang-format on
+#include "Entity.h"
 
 namespace jam
 {
 
+class Scene;
+
 template<typename T>
 class EditableComponent
 {
-    void DrawEditor_(const Scene* _pScene, Entity _entity)
+    void DrawEditor_(Ref<Scene>& _pScene, Entity _entity)
     {
         static_cast<T*>(this)->DrawEditor(_pScene, _entity);
     }

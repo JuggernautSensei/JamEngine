@@ -2,8 +2,6 @@
 
 #include "TransformHierarchy.h"
 
-#include "Components.h"
-
 namespace jam
 {
 
@@ -18,18 +16,19 @@ TransformHierarchy::TransformHierarchy(const Entity _root, const Entity _owner)
 
 TransformHierarchy::TransformHierarchy(const Entity _root)
     : m_root(_root)
+    , m_owner(_root)
 {
     JAM_ASSERT(_root.IsValid(), "Root entity is invalid");
 }
 
-void TransformHierarchy::SetLocal(const Transform& _local)
+void TransformHierarchy::SetLocalTransform(const Transform& _local)
 {
     m_local     = _local;
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-const Transform& TransformHierarchy::GetLocal() const
+const Transform& TransformHierarchy::GetLocalTransform() const
 {
     return m_local;
 }
@@ -38,109 +37,221 @@ void TransformHierarchy::SetParent(const Entity _parent, const bool _bKeepLocal)
 {
     JAM_ASSERT(_parent.IsValid(), "Parent entity is invalid");
     JAM_ASSERT(_parent != m_owner, "Cannot set self as parent");
-    JAM_ASSERT(IsRoot() == false, "root cannot has parent");
+    JAM_ASSERT(!IsRoot(), "root cannot has parent");
+    JAM_ASSERT(!IsAncestorOf(_parent), "Cannot set descendant as parent");
 
     if (m_parent == _parent)
-        return;
-
-    // 기존 계층 정리
-    if (HasParent() && m_parent != m_root)
     {
-        TransformHierarchy& parentT = m_parent.GetTransform();
-        if (!m_prevSibling.IsValid())   // 내가 첫째
-        {
-            parentT.m_firstChild = m_nextSibling;   // 다음 형제(혹은 null)을 첫째로
-        }
-        else   // 내가 첫 번째 자식이 아님
-        {
-            TransformHierarchy& prevSiblingT = m_prevSibling.GetTransform();
-            prevSiblingT.m_nextSibling       = m_nextSibling;   // 다음 형제(혹은 null)과 이전 형제를 연결
-        }
-
-        if (m_nextSibling.IsValid())   // 다음 형제가 null이 아니라면
-        {
-            // 다음 형제와 이전 형제(혹은 null)를 연결
-            TransformHierarchy& nextSiblingT = m_nextSibling.GetTransform();
-            nextSiblingT.m_prevSibling       = m_prevSibling;
-        }
-
-        m_parent      = m_root;
-        m_nextSibling = Entity::s_null;
-        m_prevSibling = Entity::s_null;
+        // same parent
+        return;
     }
 
-    // 새로운 부모 설정
-    m_parent                       = _parent;
-    TransformHierarchy& newParentT = m_parent.GetTransform();
+    // release existing parent
+    ReleaseParent_();
 
-    // 내가 부모의 첫 째가 됨
-    Entity oldFirstChild    = newParentT.m_firstChild;
-    newParentT.m_firstChild = m_owner;
-    m_nextSibling           = oldFirstChild;
-    m_prevSibling           = Entity::s_null;
-    if (oldFirstChild.IsValid())   // 기존 첫째가 null이 아니라면
+    // set new parent
+    m_parent                     = _parent;
+    TransformHierarchy& parentTh = m_parent.GetTransformHierarchy();
+
+    // new parent's first child becomes me
+    Entity oldFirstChild  = parentTh.m_firstChild;
+    parentTh.m_firstChild = m_owner;
+    m_nextSibling         = oldFirstChild;
+    m_prevSibling         = Entity::s_null;
+    if (oldFirstChild)
     {
-        TransformHierarchy& oldFirstCHild = oldFirstChild.GetTransform();
-        oldFirstCHild.m_prevSibling       = m_owner;   // 나와 기존 첫째를 연결
+        // if there was an old first child, update its prev sibling to me
+        TransformHierarchy& oldFChildTh = oldFirstChild.GetTransformHierarchy();
+        oldFChildTh.m_prevSibling       = m_owner;
     }
 
     if (_bKeepLocal)
-        m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;   // 로컬 유지. 월드 재계산
+    {
+        // keep local -> update world
+        m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
+    }
     else
-        m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;   // 월드 유지. 로컬 재계산
+    {
+        // keep world -> update local
+        m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
+    }
 
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::ReleaseParent()
+void TransformHierarchy::SetParentAsRoot(const bool _bKeepLocal)
 {
-    SetParent(m_root);
+    SetParent(m_root, _bKeepLocal);
 }
 
-void TransformHierarchy::Update_Recursive()
+void TransformHierarchy::MakeOrphan()
+{
+    ReleaseParent_();
+}
+
+void TransformHierarchy::ReleaseParent_()
+{
+    if (!HasParent())
+    {
+        // already no parent
+        return;
+    }
+
+    // detach from parent
+    TransformHierarchy& parentTh = m_parent.GetTransformHierarchy();
+    if (m_prevSibling)
+    {
+        // there is a previous sibling
+        TransformHierarchy& prevSiblingTh = m_prevSibling.GetTransformHierarchy();
+        prevSiblingTh.m_nextSibling       = m_nextSibling;
+    }
+    else
+    {
+        // this is the first child
+        parentTh.m_firstChild = m_nextSibling;
+    }
+
+    if (m_nextSibling)
+    {
+        // there is a next sibling
+        TransformHierarchy& nextSiblingT = m_nextSibling.GetTransformHierarchy();
+        nextSiblingT.m_prevSibling       = m_prevSibling;
+    }
+
+    // clear links
+    m_parent      = Entity::s_null;
+    m_nextSibling = Entity::s_null;
+    m_prevSibling = Entity::s_null;
+}
+
+bool TransformHierarchy::IsDescendantOf(const Entity _entity) const
+{
+    JAM_ASSERT(_entity, "Entity is invalid");
+
+    Entity parent = m_parent;
+    while (parent)
+    {
+        if (_entity == parent)
+        {
+            return true;   // 조상임
+        }
+
+        TransformHierarchy& parentTh = parent.GetTransformHierarchy();
+        parent                       = parentTh.m_parent;
+    }
+    return false;
+}
+
+bool TransformHierarchy::IsAncestorOf(Entity _entity) const
+{
+    JAM_ASSERT(_entity, "Entity is invalid");
+
+    TransformHierarchy& entityTh = _entity.GetTransformHierarchy();
+    return entityTh.IsDescendantOf(m_owner);
+}
+
+bool TransformHierarchy::IsRoot() const
+{
+    return m_owner == m_root;
+}
+
+bool TransformHierarchy::HasParent() const
+{
+    return m_parent.IsValid();
+}
+
+Entity TransformHierarchy::GetRoot() const
+{
+    return m_root;
+}
+
+Entity TransformHierarchy::GetOwner() const
+{
+    return m_owner;
+}
+
+Entity TransformHierarchy::GetParent() const
+{
+    return m_parent;
+}
+
+Entity TransformHierarchy::GetFirstChild() const
+{
+    return m_firstChild;
+}
+
+Entity TransformHierarchy::GetNextSibling() const
+{
+    return m_nextSibling;
+}
+
+Entity TransformHierarchy::GetPrevSibling() const
+{
+    return m_prevSibling;
+}
+
+void TransformHierarchy::UpdateDirty_Recursive()
 {
     if (m_dirtyFlag == eDirtyFlag::Noop)
+    {
+        // no dirty flags
         return;
+    }
 
     if (m_dirtyFlag == eDirtyFlag::LocalNeedUpdate)
     {
-        // 월드를 기준으로 로컬 업데이트
         if (HasParent())
         {
-            TransformHierarchy& parentTh  = m_parent.GetTransform();
-            const Mat4&         parentMat = parentTh.m_world.GetMatrix();
+            // update local based on world
+            TransformHierarchy& parentTh     = m_parent.GetTransformHierarchy();
+            const Mat4&         parentInvMtx = parentTh.GetWorldInvertMatrix();
 
-            m_local = m_world.Multiplied(parentMat.Invert());
+            Transform newLocal = m_world;
+            newLocal.MultMatrix(parentInvMtx);
+            m_local = newLocal;
         }
-        else   // 루트노드
+        else
         {
+            // root
             m_local = m_world;
         }
     }
     else if (m_dirtyFlag == eDirtyFlag::WorldNeedUpdate)
     {
-        // 로컬을 기준으로 월드 업데이트
         if (HasParent())
         {
-            TransformHierarchy& parentTh  = m_parent.GetTransform();
-            const Mat4&         parentMat = parentTh.m_local.GetMatrix();
+            // update world based on local
+            TransformHierarchy& parentTh  = m_parent.GetTransformHierarchy();
+            const Mat4&         parentMtx = parentTh.GetWorldMatrix();
 
-            m_world = m_local.Multiplied(parentMat);
+            Transform newWorld = m_local;
+            newWorld.MultMatrix(parentMtx);
+            m_world = newWorld;
         }
-        else   // 루트노드
+        else
         {
+            // root
             m_world = m_local;
         }
     }
 
-    // 자식이 더티면 나는 아무것도 안하고. update 만 전파
-    m_dirtyFlag = eDirtyFlag::Noop;
-    for (Entity child = m_firstChild; child.IsValid();)
+    for (Entity child = m_firstChild; child;)
     {
-        TransformHierarchy& childT = child.GetTransform();
-        childT.Update_Recursive();
-        child = childT.m_nextSibling;
+
+        // 부모의 변환이 직접적으로 변경된 경우 자식은 월드 업데이트 필요
+        // 단, 자식의 월드가 변경되었을 경우 제외
+        TransformHierarchy& childTh = child.GetTransformHierarchy();
+        if (m_dirtyFlag != eDirtyFlag::ChildDirty && childTh.m_dirtyFlag != eDirtyFlag::LocalNeedUpdate)
+        {
+            childTh.m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
+        }
+
+        // 자식들에게 더티 전파 및 업데이트 재귀 호출
+        childTh.UpdateDirty_Recursive();
+        child = childTh.m_nextSibling;
     }
+
+    m_dirtyFlag = eDirtyFlag::Noop;   // 더티 플래그 초기화
 }
 
 void TransformHierarchy::NotifyDirtyToParent_()
@@ -148,7 +259,7 @@ void TransformHierarchy::NotifyDirtyToParent_()
     if (!m_parent.IsValid())   // 루트 노드
         return;
 
-    TransformHierarchy& parentT = m_parent.GetTransform();
+    TransformHierarchy& parentT = m_parent.GetTransformHierarchy();
     if (parentT.m_dirtyFlag == eDirtyFlag::Noop)
     {
         parentT.m_dirtyFlag = eDirtyFlag::ChildDirty;
@@ -158,29 +269,19 @@ void TransformHierarchy::NotifyDirtyToParent_()
     // 이미 부모가 더티 플래그가 설정되어 있으므로 더 이상 전파할 필요 없음
 }
 
-void TransformHierarchy::SetWorld(const Transform& _world)
+void TransformHierarchy::SetWorldTransform(const Transform& _world)
 {
     m_world     = _world;
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-const Transform& TransformHierarchy::GetWorld() const
+const Transform& TransformHierarchy::GetWorldTransform() const
 {
     return m_world;
 }
 
 ////////// LOCAL TRANSFORM GETTERS //////////
-
-Mat4 TransformHierarchy::GetLocalMatrix() const
-{
-    return m_local.GetMatrix();
-}
-
-Mat4 TransformHierarchy::GetLocalView() const
-{
-    return m_local.GetViewMatrix();
-}
 
 Vec3 TransformHierarchy::GetLocalRight() const
 {
@@ -210,6 +311,21 @@ Vec3 TransformHierarchy::GetLocalForward() const
 Vec3 TransformHierarchy::GetLocalBackward() const
 {
     return m_local.GetBackward();
+}
+
+const Mat4& TransformHierarchy::GetLocalMatrix() const
+{
+    return m_local.GetMatrix();
+}
+
+Mat4 TransformHierarchy::GetLocalInvertMatrix() const
+{
+    return m_local.GetInvertMatrix();
+}
+
+Mat4 TransformHierarchy::GetLocalViewMatrix() const
+{
+    return m_local.GetViewMatrix();
 }
 
 Vec3 TransformHierarchy::GetLocalTranslation() const
@@ -269,14 +385,14 @@ float TransformHierarchy::GetLocalScaleZ() const
 
 ////////// LOCAL TRANSFORM SETTERS //////////
 
-void TransformHierarchy::SetLocalMatrix(const Mat4& _mat)
+void TransformHierarchy::SetLocalMatrix(const Mat4& _mtx)
 {
-    m_local.SetMatrix(_mat);
+    m_local.SetMatrix(_mtx);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetLocalTranslation(const Vec3& _translation)
+void TransformHierarchy::SetLocalTranslation(const Vec3 _translation)
 {
     m_local.SetTranslation(_translation);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
@@ -311,21 +427,21 @@ void TransformHierarchy::SetLocalTranslationZ(const float _z)
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetLocalRotation(const Quat& _rotation)
+void TransformHierarchy::SetLocalRotation(const Quat _rotation)
 {
     m_local.SetRotation(_rotation);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetLocalRotation(const Vec3& _axis, const float _angleRad)
+void TransformHierarchy::SetLocalRotation(const Vec3 _axis, const float _angleRad)
 {
     m_local.SetRotation(_axis, _angleRad);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetLocalRotation(const Vec3& _pitchYawRollRad)
+void TransformHierarchy::SetLocalRotation(const Vec3 _pitchYawRollRad)
 {
     m_local.SetRotation(_pitchYawRollRad);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
@@ -339,21 +455,21 @@ void TransformHierarchy::SetLocalRotation(const float _pitchRad, const float _ya
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetLocalLookAt(const Vec3& _point)
+void TransformHierarchy::SetLocalLookAt(const Vec3 _point)
 {
     m_local.SetLookAt(_point);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetLocalLookTo(const Vec3& _lookDir)
+void TransformHierarchy::SetLocalLookTo(const Vec3 _lookDir)
 {
     m_local.SetLookTo(_lookDir);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetLocalScale(const Vec3& _scale)
+void TransformHierarchy::SetLocalScale(const Vec3 _scale)
 {
     m_local.SetScale(_scale);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
@@ -395,9 +511,16 @@ void TransformHierarchy::SetLocalScaleZ(const float _z)
     NotifyDirtyToParent_();
 }
 
+void TransformHierarchy::MultLocalMatrix(const Mat4& _mtx)
+{
+    m_local.MultMatrix(_mtx);
+    m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
+    NotifyDirtyToParent_();
+}
+
 ////////// LOCAL TRANSFORM ADDERS //////////
 
-void TransformHierarchy::AddLocalTranslation(const Vec3& _translation)
+void TransformHierarchy::AddLocalTranslation(const Vec3 _translation)
 {
     m_local.AddTranslation(_translation);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
@@ -432,21 +555,21 @@ void TransformHierarchy::AddLocalTranslationZ(const float _z)
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::AddLocalRotation(const Quat& _rotation)
+void TransformHierarchy::AddLocalRotation(const Quat _rotation)
 {
     m_local.AddRotation(_rotation);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::AddLocalRotation(const Vec3& _axis, const float _angleRad)
+void TransformHierarchy::AddLocalRotation(const Vec3 _axis, const float _angleRad)
 {
     m_local.AddRotation(_axis, _angleRad);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::AddLocalScale(const Vec3& _scale)
+void TransformHierarchy::AddLocalScale(const Vec3 _scale)
 {
     m_local.AddScale(_scale);
     m_dirtyFlag = eDirtyFlag::WorldNeedUpdate;
@@ -488,17 +611,22 @@ void TransformHierarchy::AddLocalScaleZ(const float _z)
     NotifyDirtyToParent_();
 }
 
-////////// WORLD TRANSFORM GETTERS //////////
-
-Mat4 TransformHierarchy::GetWorldMatrix() const
+const Mat4& TransformHierarchy::GetWorldMatrix() const
 {
     return m_world.GetMatrix();
 }
 
-Mat4 TransformHierarchy::GetWorldView() const
+Mat4 TransformHierarchy::GetWorldInvertMatrix() const
+{
+    return m_world.GetInvertMatrix();
+}
+
+Mat4 TransformHierarchy::GetWorldViewMatrix() const
 {
     return m_world.GetViewMatrix();
 }
+
+////////// WORLD TRANSFORM GETTERS //////////
 
 Vec3 TransformHierarchy::GetWorldRight() const
 {
@@ -587,14 +715,14 @@ float TransformHierarchy::GetWorldScaleZ() const
 
 ////////// WORLD TRANSFORM SETTERS //////////
 
-void TransformHierarchy::SetWorldMatrix(const Mat4& _mat)
+void TransformHierarchy::SetWorldMatrix(const Mat4& _mtx)
 {
-    m_world.SetMatrix(_mat);
+    m_world.SetMatrix(_mtx);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetWorldTranslation(const Vec3& _translation)
+void TransformHierarchy::SetWorldTranslation(const Vec3 _translation)
 {
     m_world.SetTranslation(_translation);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
@@ -629,21 +757,21 @@ void TransformHierarchy::SetWorldTranslationZ(const float _z)
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetWorldRotation(const Quat& _rotation)
+void TransformHierarchy::SetWorldRotation(const Quat _rotation)
 {
     m_world.SetRotation(_rotation);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetWorldRotation(const Vec3& _axis, const float _angleRad)
+void TransformHierarchy::SetWorldRotation(const Vec3 _axis, const float _angleRad)
 {
     m_world.SetRotation(_axis, _angleRad);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetWorldRotation(const Vec3& _pitchYawRollRad)
+void TransformHierarchy::SetWorldRotation(const Vec3 _pitchYawRollRad)
 {
     m_world.SetRotation(_pitchYawRollRad);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
@@ -657,21 +785,21 @@ void TransformHierarchy::SetWorldRotation(const float _pitchRad, const float _ya
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetWorldLookAt(const Vec3& _point)
+void TransformHierarchy::SetWorldLookAt(const Vec3 _point)
 {
     m_world.SetLookAt(_point);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetWorldLookTo(const Vec3& _lookDir)
+void TransformHierarchy::SetWorldLookTo(const Vec3 _lookDir)
 {
     m_world.SetLookTo(_lookDir);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::SetWorldScale(const Vec3& _scale)
+void TransformHierarchy::SetWorldScale(const Vec3 _scale)
 {
     m_world.SetScale(_scale);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
@@ -713,9 +841,16 @@ void TransformHierarchy::SetWorldScaleZ(const float _z)
     NotifyDirtyToParent_();
 }
 
+void TransformHierarchy::MultWorldMatrix(const Mat4& _mtx)
+{
+    m_world.MultMatrix(_mtx);
+    m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
+    NotifyDirtyToParent_();
+}
+
 ////////// WORLD TRANSFORM ADDERS //////////
 
-void TransformHierarchy::AddWorldTranslation(const Vec3& _translation)
+void TransformHierarchy::AddWorldTranslation(const Vec3 _translation)
 {
     m_world.AddTranslation(_translation);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
@@ -750,21 +885,21 @@ void TransformHierarchy::AddWorldTranslationZ(const float _z)
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::AddWorldRotation(const Quat& _rotation)
+void TransformHierarchy::AddWorldRotation(const Quat _rotation)
 {
     m_world.AddRotation(_rotation);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::AddWorldRotation(const Vec3& _axis, const float _angleRad)
+void TransformHierarchy::AddWorldRotation(const Vec3 _axis, const float _angleRad)
 {
     m_world.AddRotation(_axis, _angleRad);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;
     NotifyDirtyToParent_();
 }
 
-void TransformHierarchy::AddWorldScale(const Vec3& _scale)
+void TransformHierarchy::AddWorldScale(const Vec3 _scale)
 {
     m_world.AddScale(_scale);
     m_dirtyFlag = eDirtyFlag::LocalNeedUpdate;

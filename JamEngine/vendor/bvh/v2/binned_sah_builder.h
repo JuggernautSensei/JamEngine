@@ -82,8 +82,8 @@ protected:
     BVH_ALWAYS_INLINE void fill_bins(
         PerAxisBins& per_axis_bins,
         const BBox& bbox,
-        size_t begin,
-        size_t end)
+        const size_t begin,
+        const size_t end)
     {
         auto bin_scale = Vec(BinCount) / bbox.get_diagonal();
         auto bin_offset = -bbox.min * bin_scale;
@@ -115,7 +115,7 @@ protected:
         }
     }
 
-    size_t fallback_split(size_t axis, size_t begin, size_t end) {
+    size_t fallback_split(size_t axis, const size_t begin, const size_t end) {
         size_t mid = (begin + end + 1) / 2;
         std::partial_sort(
             prim_ids_.begin() + begin,

@@ -6,7 +6,7 @@
 
 namespace bvh::v2 {
 
-/// Stream of data that can be used to deserialize data structures.
+/// Stream of renderable that can be used to deserialize renderable structures.
 class InputStream {
 public:
     template <typename T>
@@ -21,7 +21,7 @@ protected:
     virtual size_t read_raw(void*, size_t) = 0;
 };
 
-/// Stream of data that can be used to serialize data structures.
+/// Stream of renderable that can be used to serialize renderable structures.
 class OutputStream {
 public:
     template <typename T>
@@ -43,7 +43,7 @@ public:
 protected:
     std::istream& stream_;
 
-    size_t read_raw(void* data, size_t size) override {
+    size_t read_raw(void* data, const size_t size) override {
         stream_.read(reinterpret_cast<char*>(data), static_cast<std::streamsize>(size));
         return static_cast<size_t>(stream_.gcount());
     }
@@ -61,7 +61,7 @@ public:
 protected:
     std::ostream& stream_;
 
-    bool write_raw(const void* data, size_t size) override {
+    bool write_raw(const void* data, const size_t size) override {
         stream_.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
         return stream_.good();
     }

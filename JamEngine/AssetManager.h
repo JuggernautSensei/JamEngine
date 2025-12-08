@@ -2,30 +2,40 @@
 #include "ImageTexture.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "Model.h"
 
 namespace jam
 {
 
+class Event;
+
 class AssetManager
 {
 public:
+    static void Init();
+    static void Shutdown();
+    static void OnEvent(Event& _event);
 
-    static Result<std::shared_ptr<IAsset>>       Load(eAssetType _type, const fs::path& _path, bool _bForceReload = false);
-    static Result<std::shared_ptr<Mesh>>         LoadMesh(const fs::path& _path, bool _bForceReload = false);
-    static Result<std::shared_ptr<Material>>     LoadMaterial(const fs::path& _path, bool _bForceReload = false);
-    static Result<std::shared_ptr<ImageTexture>> LoadImageTexture(const fs::path& _path, bool _bForceReload = false);
+    static std::optional<Ref<IAsset>>       Load(eAssetType _type, const fs::path& _path, bool _bForceReload = false);
+    static std::optional<Ref<Model>>        LoadModel(const fs::path& _path, bool _bForceReload = false);
+    static std::optional<Ref<Mesh>>         LoadMesh(const fs::path& _path, bool _bForceReload = false);
+    static std::optional<Ref<Material>>     LoadMaterial(const fs::path& _path, bool _bForceReload = false);
+    static std::optional<Ref<ImageTexture>> LoadImageTexture(const fs::path& _path, bool _bForceReload = false);
 
-    JAM_NODISCARD static std::shared_ptr<IAsset> Get(eAssetType _type, const fs::path& _path);
-    JAM_NODISCARD static std::shared_ptr<Mesh> GetMesh(const fs::path& _path);
-    JAM_NODISCARD static std::shared_ptr<Material> GetMaterial(const fs::path& _path);
-    JAM_NODISCARD static std::shared_ptr<ImageTexture> GetImageTexture(const fs::path& _path);
+    [[nodiscard]] static Ref<IAsset>       Get(eAssetType _type, const fs::path& _path);
+    [[nodiscard]] static Ref<Model>        GetModel(const fs::path& _path);
+    [[nodiscard]] static Ref<Mesh>         GetMesh(const fs::path& _path);
+    [[nodiscard]] static Ref<Material>     GetMaterial(const fs::path& _path);
+    [[nodiscard]] static Ref<ImageTexture> GetImageTexture(const fs::path& _path);
 
-    JAM_NODISCARD static Result<std::shared_ptr<IAsset>>       GetOrLoad(eAssetType _type, const fs::path& _path);
-    JAM_NODISCARD static Result<std::shared_ptr<Mesh>>         GetOrLoadMesh(const fs::path& _path);
-    JAM_NODISCARD static Result<std::shared_ptr<Material>>     GetOrLoadMaterial(const fs::path& _path);
-    JAM_NODISCARD static Result<std::shared_ptr<ImageTexture>> GetOrLoadImageTexture(const fs::path& _path);
+    [[nodiscard]] static std::optional<Ref<IAsset>>       GetOrLoad(eAssetType _type, const fs::path& _path);
+    [[nodiscard]] static std::optional<Ref<Model>>        GetOrLoadModel(const fs::path& _path);
+    [[nodiscard]] static std::optional<Ref<Mesh>>         GetOrLoadMesh(const fs::path& _path);
+    [[nodiscard]] static std::optional<Ref<Material>>     GetOrLoadMaterial(const fs::path& _path);
+    [[nodiscard]] static std::optional<Ref<ImageTexture>> GetOrLoadImageTexture(const fs::path& _path);
 
     static void Unload(eAssetType _type, const fs::path& _path);
+    static void UnloadModel(const fs::path& _path);
     static void UnloadMesh(const fs::path& _path);
     static void UnloadMaterial(const fs::path& _path);
     static void UnloadImageTexture(const fs::path& _path);
@@ -35,8 +45,6 @@ public:
 
     static void Clear(eAssetType _type);
     static void ClearAll();
-
-    JAM_NODISCARD static const HashMap<fs::path, std::shared_ptr<IAsset>>& GetAssetContainer(eAssetType _type);
 };
 
-}   // namespace jam::asset_manager
+}   // namespace jam

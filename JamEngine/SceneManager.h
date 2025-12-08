@@ -18,15 +18,18 @@ public:
 
     static void Resize(Int32 _width, Int32 _height);
     static void Update(float _deltaSec);
-    static void RenderRuntime();
-    static void RenderOffScreen(const RenderView& _view);
+
+    static void RenderRuntime();                                                // 백버퍼에 메인 카메라로 렌더링
+    static void RenderRuntime(FrameBufferHandle _handle, Viewport _viewport);   // 특정 버퍼에 메인 카메라로 렌더링
+    static void Render(const RenderView& _view);
+
     static void ImGuiRender();
 
-    JAM_NODISCARD static eErrorCode LoadScene(const fs::path& _scenePath);
-    static void                     LoadScene(const std::shared_ptr<Scene>& _pScene);
+    [[nodiscard]] static bool LoadScene(const fs::path& _path);
+    static void               LoadScene(const Ref<Scene>& _pScene);
 
-    JAM_NODISCARD static Scene*     GetActiveScene();
-    JAM_NODISCARD static Resolution GetSceneResoultion();
+    [[nodiscard]] static bool        HasActiveScene();
+    [[nodiscard]] static Ref<Scene>& GetActiveScene();
 };
 
 }   // namespace jam

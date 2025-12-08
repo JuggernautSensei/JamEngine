@@ -1,8 +1,0 @@
-[2025-10-13 18:11:01.166] [debug] [thread 36724] Logger initialized successfully.
-[2025-10-13 18:11:01.489] [trace] [thread 36724] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
-[2025-10-13 18:11:01.491] [trace] [thread 36724] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.9749 Milli ==========
-[2025-10-13 18:11:01.494] [trace] [thread 36724] Application 'JamShader' started.
-[2025-10-13 18:11:09.762] [info] [thread 36724] Project loaded: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\CompileInfos\DebugDrawCompileInfo.json"
-[2025-10-13 18:11:34.155] [info] [thread 36724] Single header file saved: "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\shaders\PrecompiledShaders\PrecompiledDebugDrawShader.h"
-[2025-10-13 18:11:36.338] [trace] [thread 36724] Application 'JamShader' shutdown.
-[2025-10-13 18:11:36.399] [debug] [thread 36724] Logger shutting down...

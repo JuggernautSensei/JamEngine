@@ -16,7 +16,7 @@ public:
 
     /// Creates a thread pool with the given number of threads (a value of 0 tries to autodetect
     /// the number of threads and uses that as a thread count).
-    ThreadPool(size_t thread_count = 0) { start(thread_count); }
+    ThreadPool(const size_t thread_count = 0) { start(thread_count); }
 
     ~ThreadPool() {
         wait();
@@ -58,7 +58,7 @@ void ThreadPool::wait() {
     done_.wait(lock, [this] { return busy_count_ == 0 && tasks_.empty(); });
 }
 
-void ThreadPool::worker(ThreadPool* pool, size_t thread_id) {
+void ThreadPool::worker(ThreadPool* pool, const size_t thread_id) {
     while (true) {
         Task task;
         {

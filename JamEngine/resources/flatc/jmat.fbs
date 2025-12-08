@@ -1,5 +1,13 @@
 namespace jam.jmat;
 
+enum eTextureChannel : byte
+{
+	Red   = 0,
+	Green = 1,
+	Blue  = 2,
+	Alpha = 3
+}
+
 struct Vec3
 {
   x:float;
@@ -9,35 +17,36 @@ struct Vec3
 
 table Material
 {
-	version                       : uint;
-	ambient_color                 : Vec3 (required);
-	diffuse_color                 : Vec3 (required);
-	specular_color                : Vec3 (required);
-	shininess                     : float;
-						          
-	albedo_color                  : Vec3 (required);
-	roughness                     : float;
-	metallic                      : float;
-						          
-	emissive_color                : Vec3 (required);
-	emissive_intensity            : float;
-						          
-	opacity                       : float;
-						   
-	b_double_side                 : bool;
-	b_fliped_y_normal_map         : bool;
-	light_map_intensity           : float;
-	ao_map_intensity              : float;
-	vertex_displacement_intensity : float;
+	ambient_color                    : Vec3 (required);
+	diffuse_color                    : Vec3 (required);
+	specular_color                   : Vec3 (required);
+	shininess                        : float;
+						             
+	albedo_color                     : Vec3 (required);
+	roughness                        : float;
+	metallic                         : float;
+						             
+	emissive_color                   : Vec3 (required);
+	emissive_intensity               : float;
+						             
+	b_alpha_cutout				     : bool;
+	b_double_sided                   : bool;
+	b_normal_texture_fliped          : bool;
+	light_texture_intensity          : float;
+	emissive_texture_intensity       : float;
+	vertex_displacement_scale        : float;
 
-	albedo_map_path              : string;
-	normal_map_path              : string;
-	metallic_map_path            : string;
-	roughness_map_path           : string;
-	ao_map_path                  : string;
-	emissive_map_path            : string;
-	light_map_path               : string;
-	vertex_displacement_map_path : string;
+	metallic_texture_channel         : eTextureChannel;
+	roughness_texture_channel        : eTextureChannel;
+
+	albedo_texture_path              : string;
+	normal_texture_path              : string;
+	metallic_texture_path            : string;
+	roughness_texture_path           : string;
+	ao_texture_path                  : string;
+	emissive_texture_path            : string;
+	light_texture_path               : string;
+	vertex_displacement_texture_path : string;
 }
 
 root_type Material;

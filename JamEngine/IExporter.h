@@ -14,9 +14,8 @@ public:
     IExporter(IExporter&&) noexcept            = default;
     IExporter& operator=(IExporter&&) noexcept = default;
 
-    virtual eErrorCode Export()                           = 0;
-    virtual void       SetPath(const fs::path& _filePath) = 0;
-    virtual void       Reset()                            = 0;
+    virtual bool Export()                       = 0;
+    virtual void SetPath(const fs::path& _path) = 0;
 };
 
 }   // namespace jam

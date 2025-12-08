@@ -1,7 +1,0 @@
-[2025-10-27 17:46:07.417] [debug] [thread 83452] log initialized successfully.
-[2025-10-27 17:46:07.417] [info] [thread 83452] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
-[2025-10-27 17:46:09.333] [trace] [thread 83452] Application 'Example Application' started.
-[2025-10-27 17:46:09.333] [info] [thread 83452] hello example app!
-[2025-10-27 17:46:21.736] [trace] [thread 83452] Application 'Example Application' shutdown.
-[2025-10-27 17:46:21.736] [info] [thread 83452] good-bye example app!
-[2025-10-27 17:46:22.446] [debug] [thread 83452] log shutdown.

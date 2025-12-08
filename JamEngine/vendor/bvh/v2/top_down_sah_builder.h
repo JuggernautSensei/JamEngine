@@ -98,7 +98,7 @@ protected:
                     auto first_range  = std::make_pair(item.begin, *split_pos);
                     auto second_range = std::make_pair(*split_pos, item.end);
 
-                    // For "any-hit" queries, the left child is chosen first, so we make sure that
+                    // For "any-bHit" queries, the left child is chosen first, so we make sure that
                     // it is the child with the largest area, as it is more likely to contain an
                     // an occluder. See "SATO: Surface Area Traversal Order for Shadow Ray Tracing",
                     // by J. Nah and D. Manocha.
@@ -130,7 +130,7 @@ protected:
         return bvh;
     }
 
-    BVH_ALWAYS_INLINE BBox compute_bbox(size_t begin, size_t end) const {
+    BVH_ALWAYS_INLINE BBox compute_bbox(const size_t begin, const size_t end) const {
         const auto& prim_ids = get_prim_ids();
         auto bbox = BBox::make_empty();
         for (size_t i = begin; i < end; ++i)

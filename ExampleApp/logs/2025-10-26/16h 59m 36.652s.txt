@@ -1,9 +1,0 @@
-[2025-10-26 16:59:36.658] [debug] [thread 462180] Logger initialized successfully.
-[2025-10-26 16:59:36.660] [info] [thread 462180] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
-[2025-10-26 16:59:37.234] [trace] [thread 462180] Application 'Example Application' started.
-[2025-10-26 16:59:37.234] [info] [thread 462180] hello example app!
-[2025-10-26 16:59:37.238] [trace] [thread 462180] ========== scoped timer start - "jam::Mesh::Load from memory" =========="
-[2025-10-26 16:59:37.240] [trace] [thread 462180] ========== scoped timer end - "jam::Mesh::Load from memory" - duration: 1.9956 Milli ==========
-[2025-10-26 16:59:46.869] [trace] [thread 462180] Application 'Example Application' shutdown.
-[2025-10-26 16:59:46.869] [info] [thread 462180] good-bye example app!
-[2025-10-26 16:59:46.930] [debug] [thread 462180] Logger shutting down...

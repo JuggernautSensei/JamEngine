@@ -7,8 +7,9 @@
 ///          CONSTANT          ///
 //////////////////////////////////
 
-static const float3 k_dielectric = 0.04f;
-static const float k_epsilon = 1e-6f;
+static const float3 k_dielectric = float3(0.04f, 0.04f, 0.04f);
+static const float k_epsilon = 1e-5f;
+static const float k_alphaCutoutThreshold = 0.01f;
 
 /////////////////////////////////
 ///          STRUCTS          ///
@@ -34,12 +35,12 @@ struct FULLSCREEN_PS_INPUT
 ///          ATTENUATION FUNCTIONS         ///
 //////////////////////////////////////////////
 
-float CalcCombindAttenuation(float _distance, float _k1, float _k2, float _k3)
+float CombindAttenuation(float _distance, float _k1, float _k2, float _k3)
 {
     return 1.f / (_k1 + _k2 * _distance + _k3 * _distance * _distance);
 }
 
-float CalcSmoothAttenuation(float _distance, float _fallOffStart, float _fallOffEnd)
+float SmoothAttenuation(float _distance, float _fallOffStart, float _fallOffEnd)
 {
     float value = 1.f - saturate((_distance - _fallOffStart) / (_fallOffEnd - _fallOffStart));
     return smoothstep(0.f, 1.f, value);
@@ -68,10 +69,16 @@ float Hermite(float _p0, float _m0, float _p1, float _m1, float _t)
     return h00 * _p0 + h10 * _m0 + h01 * _p1 + h11 * _m1;
 }
 
-
 float3 SchlickFresnel(float3 _f0, float _nDoth)
 {
     return _f0 + (1.0 - _f0) * pow(2.0, (-5.55473 * _nDoth - 6.98316) * _nDoth);
+}
+
+float3 SchlickFresnelRoughness(float3 _f0, float _nDote, float _roughness)
+{
+    float3 invRoughness = 1.f - _roughness;
+    float cosi = clamp(_nDote, 0.0, 1.0);
+    return _f0 + (max(invRoughness, _f0) - _f0) * pow(1.f - cosi, 5.0);
 }
 
 float Gaussian(float x, float sigma)
@@ -83,30 +90,20 @@ float Gaussian(float x, float sigma)
 ///          PBR          ///
 /////////////////////////////
 
-float3 DiffuseIBL(float3 _albedo, float3 _normal, float3 _toEye, float _metallic)
+float3 DiffuseIBL(float3 _albedo, float3 _normal, float3 _fresnel, float _metallic)
 {
-    float3 F0 = lerp(k_dielectric, _albedo, _metallic);
-    float nDoth = max(0.0, dot(_normal, _toEye));
-    float3 F = SchlickFresnel(F0, nDoth);
-    float3 kd = lerp(1.0 - F, 0.0, _metallic);
-    float3 diffuse = t_irradiance.Sample(s_linearWrap, _normal).rgb;
-    return kd * _albedo * diffuse;
+    float3 kD = 1.0 - _fresnel;
+    kD *= 1.0 - _metallic;
+    float3 irradiance = t_irradiance.Sample(s_linearWrap, _normal).rgb * cb_irradianceMapIntensity;
+    return kD * _albedo * irradiance;
 }
 
-float3 SpecularIBL(float3 _albedo, float3 _normal, float3 _toEye, float3 _reflect, float _metallic, float _roughness)
+float3 SpecularIBL(float3 _reflect, float _nDote, float _roughness, float3 _fresnel)
 {
-    float nDote = dot(_normal, _toEye);
-    float2 specularBRDF = t_brdf.SampleLevel(s_linearWrap, float2(nDote, 1.0 - _roughness), 0.0f).rg;
-    float3 specularIrradiance = t_specular.SampleLevel(s_linearWrap, _reflect, _roughness * 5.0f).rgb;
-    float3 F0 = lerp(k_dielectric, _albedo, _metallic);
-    return (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;
-}
-
-float SpecularOcclusion(float _ao, float _roughness, float _nDote)
-{
-    float occ = pow(abs(_ao), saturate(1.0 - _roughness));
-    occ *= saturate(0.5 + 0.5 * _nDote);
-    return saturate(occ);
+    float lod = _roughness * cb_specularMapNumMips;
+    float3 specularIrradiance = t_specular.SampleLevel(s_linearWrap, _reflect, lod).rgb * cb_specularMapIntensity;
+    float2 specularBRDF = t_brdf.Sample(s_linearClamp, float2(_nDote, _roughness)).rg;
+    return specularIrradiance * (_fresnel * specularBRDF.x + specularBRDF.y);
 }
 
 float NdfGGX(float _nDoth, float _roughness)
@@ -152,7 +149,7 @@ float3 DirectBRDF(float3 _toLight, float3 _toEye, float3 _normal, float3 _albedo
     float3 diffuseBRDF = kd * _albedo;
 
     float D = NdfGGX(nDoth, _roughness);
-    float3 G = SchlickGGX(nDotl, nDote, _roughness);
+    float G = SchlickGGX(nDotl, nDote, _roughness);
     float3 specularBRDF = (F * D * G) / max(1e-5, 4.0 * nDotl * nDote);
     
     return (diffuseBRDF + specularBRDF) * nDotl;
@@ -165,28 +162,28 @@ float3 DirectBRDF(float3 _toLight, float3 _toEye, float3 _normal, float3 _albedo
 float3 CalcNormal(float3 _tangent, float3 _normal, float2 _texCoord)
 {
     float3 normal = normalize(_normal);
-    if (cb_textureBindFlags & (JAM_TEXTURE_BIND_FLAGS_NORMAL | JAM_TEXTURE_BIND_FLAGS_FLIP_Y_NORMAL))
+    if (cb_materialFlags & JAM_MATERIAL_FLAGS_NORMAL)
     {
         float3 texNormal = t_normal.Sample(s_linearWrap, _texCoord).rgb;
         texNormal = normalize(2.f * texNormal - 1.f); // [0, 1] -> [-1, 1]
-        texNormal.y = (cb_textureBindFlags & JAM_TEXTURE_BIND_FLAGS_FLIP_Y_NORMAL) ? -texNormal.y : texNormal.y;
+        texNormal.y = (cb_materialFlags & JAM_MATERIAL_FLAGS_FLIP_Y_NORMAL) ? -texNormal.y : texNormal.y;
 
         float3 tangent = normalize(_tangent);
         float3 bitangent = normalize(cross(normal, tangent));
         float3x3 TBN = float3x3(tangent, bitangent, normal);
-        normal = normalize(mul(TBN, texNormal));
+        normal = normalize(mul(texNormal, TBN));
     }
     return normal;
 }
 
-float ClacNDCDepthToViewDepth(float _depthNDC, float4x4 _projMat)
+float NDCDepthToViewDepth(float _depthNDC, float4x4 _projMat)
 {
     float A = _projMat._33;
-    float B = _projMat._34;
+    float B = _projMat._43;
     return B / (_depthNDC - A);
 }
 
-float ClacNDCDepthToViewDepth(float _depthNDC, float _nearPlane, float _farPlane)
+float NDCDepthToViewDepth(float _depthNDC, float _nearPlane, float _farPlane)
 {
     return (_nearPlane * _farPlane) / (_farPlane - _depthNDC * (_farPlane - _nearPlane));
 }

@@ -1,6 +1,5 @@
 #pragma once
 #define MAGIC_ENUM_RANGE_MIN 0
-#include "Result.h"
 
 #include <magic_enum/magic_enum.hpp>
 
@@ -12,83 +11,47 @@
 namespace jam
 {
 
-template <typename E>
+template<typename E>
 using EnumIntType = std::underlying_type_t<E>;
 
 template<typename E>
-JAM_NODISCARD constexpr auto EnumToInt(E _value) noexcept
+[[nodiscard]] constexpr auto EnumToInt(E _value) noexcept
 {
     return magic_enum::enum_integer(_value);
 }
 
 template<typename E>
-JAM_NODISCARD constexpr std::string_view EnumToString(E _value) noexcept
+[[nodiscard]] constexpr std::string_view EnumToString(E _value) noexcept
 {
     return magic_enum::enum_name(_value);
 }
 
 template<typename E>
-JAM_NODISCARD constexpr Result<E> EnumFromInt(std::underlying_type_t<E> _value) noexcept
+[[nodiscard]] constexpr decltype(auto) EnumFromInt(std::underlying_type_t<E> _value) noexcept
 {
-    if (auto e = magic_enum::enum_cast<E>(_value))
-    {
-        return e.value();
-    }
-    else
-    {
-        return eErrorCode::InvalidArgument;
-    }
+    return magic_enum::enum_cast<E>(_value);
 }
 
 template<typename E>
-JAM_NODISCARD constexpr E EnumFromInt(std::underlying_type_t<E> _value, E _defaultIfFail) noexcept
+[[nodiscard]] constexpr decltype(auto) EnumFromString(const std::string_view _value) noexcept
 {
-    auto [ec, v] = EnumFromInt<E>(_value);
-    if (IsError(ec))
-    {
-        return _defaultIfFail;
-    }
-    return v;
+    return magic_enum::enum_cast<E>(_value);
 }
 
 template<typename E>
-JAM_NODISCARD constexpr Result<E> EnumFromString(const std::string_view _value) noexcept
-{
-    if (auto e = magic_enum::enum_cast<E>(_value))
-    {
-        return e.value();
-    }
-    else
-    {
-        return eErrorCode::InvalidArgument;
-    }
-}
-
-template<typename E>
-JAM_NODISCARD constexpr E EnumFromString(const std::string_view _value, E _defaultIfFail) noexcept
-{
-    auto [ec, v] = EnumFromString<E>(_value);
-    if (IsError(ec))
-    {
-        return _defaultIfFail;
-    }
-    return v;
-}
-
-template<typename E>
-JAM_NODISCARD constexpr bool IsValidEnum(E _value) noexcept
+[[nodiscard]] constexpr bool IsValidEnum(E _value) noexcept
 {
     return magic_enum::enum_contains<E>(_value);
 }
 
 template<typename E>
-JAM_NODISCARD constexpr auto EnumRange()
+[[nodiscard]] constexpr auto EnumRange()
 {
     return magic_enum::enum_values<E>();
 }
 
 template<typename E>
-JAM_NODISCARD constexpr auto EnumCount()
+[[nodiscard]] constexpr auto EnumCount()
 {
     return magic_enum::enum_count<E>();
 }

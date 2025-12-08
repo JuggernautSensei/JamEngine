@@ -9,7 +9,7 @@ struct Octant {
     uint32_t value = 0;
     static constexpr size_t max_dim = sizeof(value) * CHAR_BIT;
 
-    uint32_t operator [] (size_t i) const { return (value >> i) & uint32_t{1}; }
+    uint32_t operator [] (const size_t i) const { return (value >> i) & uint32_t{1}; }
 };
 
 template <typename T, size_t N>

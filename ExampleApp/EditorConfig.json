@@ -1,0 +1,64 @@
+{
+    "fileBrowser": {
+        "zoom": 1.5
+    },
+    "fontScale": 1.399999976158142,
+    "vertexLayoutManager": [
+        {
+            "elements": [
+                {
+                    "attrib": 0,
+                    "format": 2
+                },
+                {
+                    "attrib": 1,
+                    "format": 2
+                },
+                {
+                    "attrib": 2,
+                    "format": 2
+                },
+                {
+                    "attrib": 10,
+                    "format": 1
+                },
+                {
+                    "attrib": 11,
+                    "format": 1
+                }
+            ],
+            "name": "StaticMeshLayout"
+        },
+        {
+            "elements": [
+                {
+                    "attrib": 0,
+                    "format": 2
+                },
+                {
+                    "attrib": 10,
+                    "format": 1
+                }
+            ],
+            "name": "new layout"
+        }
+    ],
+    "viewport": {
+        "cameraFovYRad": 0.8726646304130554,
+        "cameraMoveSpeed": 7.75,
+        "cameraProjection": 0,
+        "cameraRotSpeed": 1.5,
+        "drawAxis": true,
+        "drawCameraForward": true,
+        "drawCameraTranslation": true,
+        "drawGrid": true
+    },
+    "windowShows": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+    ]
+}

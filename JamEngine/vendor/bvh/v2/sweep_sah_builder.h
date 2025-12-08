@@ -100,7 +100,7 @@ protected:
         }
     }
 
-    BVH_ALWAYS_INLINE void mark_primitives(size_t axis, size_t begin, size_t split_pos, size_t end) {
+    BVH_ALWAYS_INLINE void mark_primitives(size_t axis, const size_t begin, const size_t split_pos, const size_t end) {
         for (size_t i = begin; i < split_pos; ++i) marks_[prim_ids_[axis][i]] = true;
         for (size_t i = split_pos; i < end; ++i)   marks_[prim_ids_[axis][i]] = false;
     }
@@ -132,7 +132,7 @@ protected:
             std::stable_partition(
                 prim_ids_[axis].begin() + begin,
                 prim_ids_[axis].begin() + end,
-                [&] (size_t i) { return marks_[i]; });
+                [&] (const size_t i) { return marks_[i]; });
         }
 
         return std::make_optional(best_split.pos);

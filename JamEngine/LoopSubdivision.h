@@ -4,7 +4,7 @@
 namespace jam
 {
 
-class MemoryView;
+class ConstByteView;
 
 struct LoopSubdivisionOutput
 {
@@ -24,7 +24,7 @@ struct LoopSubdivisionOutput
 LoopSubdivisionOutput LoopSubdivide(
     std::span<const Vec3> _positions,
     std::span<const Vec2> _texcoordsOrEmpty,
-    MemoryView     _indexData,
+    ConstMemView     _indexData,
     eIndexFormat          _indexFormat,
     Int32                 _level);
 

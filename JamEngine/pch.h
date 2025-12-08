@@ -9,6 +9,10 @@
 #    define WIN32_LEAN_AND_MEAN
 #endif
 
+// crt
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+
 // windows
 #include <windows.h>
 
@@ -28,19 +32,17 @@
 #include <vector>
 
 // directX
-#include <d3d11.h>
-#include <wrl.h>
 #include "Vendor/DirectXTK/SimpleMath.h"
 #include "Vendor/DirectXTK/SimpleMath.inl"
+#include <d3d11.h>
+#include <wrl.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
 
 // 3rd party
-#include "FileSystem.h"
 #include "HashMap.h"
 #include "json.h"
 #include <entt/entt.hpp>
-#include "ImGuiGlue.h"
 
 // base
 #include "Configs.h"
@@ -48,8 +50,16 @@
 #include "Error.h"
 #include "Log.h"
 
+#include "MemView.h"
+
 // global utilities
+#include "MathUtilities.h"
+
 #include "BaseUtilities.h"
 #include "EnumUtilities.h"
-#include "MathUtilities.h"
+#include "FileSystemUtilities.h"
 #include "StringUtilities.h"
+
+#include "RefCounted.h"
+
+#include "ImGuiGlue.h"

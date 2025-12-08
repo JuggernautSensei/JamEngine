@@ -1,21 +1,20 @@
 #pragma once
-
-// clang-format off
-namespace jam { class Scene; class Entity; }
-// clang-format on
+#include "Entity.h"
 
 namespace jam
 {
 
+class Scene;
+
 template<typename T>
 struct SerializableComponent
 {
-    Json Serialize_(const Scene* _pScene, Entity _owner) const
+    Json Serialize_(const Ref<Scene>& _pScene, Entity _owner) const
     {
         return static_cast<const T*>(this)->Serialize(_pScene, _owner);
     }
 
-    eErrorCode Deserialize_(const Json& _json, const Scene* _pScene, Entity _owner)
+    bool Deserialize_(const Json& _json, Ref<Scene>& _pScene, Entity _owner)
     {
         return static_cast<T*>(this)->Deserialize(_json, _pScene, _owner);
     }

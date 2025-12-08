@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "Error.h"
+
+#include "FString.h"
 #include "Log.h"
 #include "StringUtilities.h"
 #include "Timer.h"
@@ -9,7 +11,7 @@
 namespace jam
 {
 
-JAM_NODISCARD static std::string CreateErrorMessage(std::string_view _msg, const std::source_location& _loc)
+[[nodiscard]] static std::string CreateErrorMessage(std::string_view _msg, const std::source_location& _loc)
 {
     TimeStamp   stamp   = TimeStamp::Current();
     std::string timeStr = std::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:03}", stamp.year, stamp.month, stamp.day, stamp.hour, stamp.minute, stamp.second, stamp.millisecond);
@@ -60,74 +62,81 @@ JAM_NODISCARD static std::string CreateErrorMessage(std::string_view _msg, const
         _msg);
 }
 
-thread_local static std::string g_lastErrorMessage;
-
 namespace details
 {
 
-    void ReportAssertFailed(const std::source_location& _loc, const std::string_view _msg)
+    void AssertFail(const std::source_location& _loc, const std::string_view _msg)
     {
-        std::string msg = CreateErrorMessage(_msg, _loc);
+        const std::string msg = CreateErrorMessage(_msg, _loc);
         Log::Critical(msg);
-        Log::Shutdown();   // 로깅 스레스 조인
+        std::this_thread::sleep_for(100ms);   // wait for logging
         OutputDebugStringA(msg.c_str());
     }
 
-    void ReportCrash(const std::source_location& _loc, const std::string_view _msg)
+    void Crash(const std::source_location& _loc, const std::string_view _msg)
     {
-        // 로깅 + 메시지 박스 + crash dump 저장 + 강제 종료
         std::string msg = CreateErrorMessage(_msg, _loc);
         Log::Critical(msg);
-        Log::Shutdown();   // 로깅 스레스 조인
+        std::this_thread::sleep_for(100ms);   // wait for logging
         OutputDebugStringA(msg.c_str());
 
-        // crash dump 저장
-        TimeStamp stamp    = TimeStamp::Current();
-        fs::path  dir      = std::format("crash dump\\{:04}.{:02}.{:02}", stamp.year, stamp.month, stamp.day);
-        fs::path  filename = std::format("{:02}h {:02}m {:02}.{:03}s.txt", stamp.hour, stamp.minute, stamp.second, stamp.millisecond);
+        // crash dump
+        const TimeStamp timeStamp = TimeStamp::Current();
+        const fs::path  dir       = std::format("CrashDump\\{:04}.{:02}.{:02}", timeStamp.year, timeStamp.month, timeStamp.day);
+        const fs::path  filename  = std::format("{:02}h {:02}m {:02}.{:03}s.txt", timeStamp.hour, timeStamp.minute, timeStamp.second, timeStamp.millisecond);
 
-        // 디렉토리 생성 및 파일 쓰기
-        std::error_code ec;
-        fs::create_directories(dir, ec);
-        if (!ec)
+        try
         {
+            fs::create_directories(dir);
             std::ofstream fs { dir / filename, std::ios::out };
-            if (fs.is_open())
+            if (fs)
             {
                 fs << msg << "\n";
             }
         }
+        catch (...)
+        {
+            JAM_NOOP;   // ignore
+        }
 
-        // 메시지 박스 출력
+        // show message box
         MessageBoxA(NULL, msg.c_str(), "jam engine crash", MB_OK | MB_ICONERROR);
+        std::abort();
     }
 
+    void CrashCom(const std::source_location& _loc, const char* _func, HRESULT _hr)
+    {
+        const _com_error err { _hr };
+#ifdef JAM_TEXT_ENCODING_UNICODE
+        const std::string msg = ToUTF8(err.ErrorMessage());
+#else
+        const std::string msg = err.ErrorMessage();
+#endif
+        Crash(_loc, "\"{}\" failed!\nerror code: {:#X}\n{}", _func, _hr, msg);
+    }
 }   // namespace details
 
-std::string details::GetComErrorMessage(const HRESULT _hr)
-{
-    _com_error   err { _hr };
-    const TCHAR* msg = err.ErrorMessage();
-    if (msg)
-    {
-        return "Unknown error";
-    }
+static FString<1024> g_errorString;
 
-#ifdef UNICODE
-    return ToUTF8(msg);
+void SetErrorString(const std::string_view _msg)
+{
+    g_errorString = _msg;
+}
+
+const char* GetErrorString()
+{
+    return g_errorString.c_str();
+}
+
+std::string CreateComErrorString(const HRESULT _hr)
+{
+    _com_error err(_hr);
+#ifdef JAM_TEXT_ENCODING_UNICODE
+    std::wstring_view wmsg = err.ErrorMessage();
+    return ToUTF8(wmsg);
 #else
-    return msg;
+    return err.ErrorMessage();
 #endif
-}
-
-std::string_view GetErrorMessage()
-{
-    return g_lastErrorMessage;
-}
-
-void SetErrorMessage(const std::string_view _msg)
-{
-    g_lastErrorMessage = _msg;
 }
 
 }   // namespace jam

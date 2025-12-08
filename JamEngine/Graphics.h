@@ -1,21 +1,17 @@
 #pragma once
 #include "GraphicsBase.h"
+#include "ImageBase.h"
+#include "MemView.h"
 
-/////////////////////////////
-///          FWD          ///
-/////////////////////////////
-
-// clang-format off
-namespace DirectX { class ScratchImage; }
-namespace jam { class MemoryView; class Mesh; class Event; }
-// clang-format on
-
-//////////////////////////////
-///          CORE          ///
-//////////////////////////////
+// 리소스를 로드하고 생성한 콜 스택 정보를 추적하여 디버그 시 리소스 누수를 파악하는데 도움을 줍니다.
+// 이 매크로를 활성화하면 그래픽스 리소스 생성 시점의 호출자 정보를 캡처하므로 성능에 엄청난 영향을 미칠 수 있습니다.
+// 자원 생성 속도가 매우 느려질 수 있으므로, 이 매크로는 디버깅 목적으로만 사용해야 합니다.
+// #define JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
 
 namespace jam
 {
+
+class Event;
 
 class Graphics
 {
@@ -37,63 +33,47 @@ public:
     /// @param _bVSync 수직 동기화 사용 여부
     static void Frame(bool _bVSync);
 
-    /// @brief Direct3D 11 디바이스를 반환합니다.
-    /// @return ID3D11Device 포인터
-    JAM_NODISCARD static ID3D11Device* GetDevice();
-
-    /// @brief DXGI 스왑체인을 반환합니다.
-    /// @return IDXGISwapChain1 포인터
-    JAM_NODISCARD static IDXGISwapChain1* GetSwapChain();
-
-    /// @brief Direct3D 11 디바이스 컨텍스트를 반환합니다.
-    /// @return ID3D11DeviceContext 포인터
-    JAM_NODISCARD static ID3D11DeviceContext* GetDeviceContext();
-
-    ///////////////////////////////////
-    ///          FACTORIES          ///
-    ///////////////////////////////////
-
     /// @brief 수정 불가능한(Immutable) 버텍스 버퍼를 생성합니다.
     /// @param _vertexData 버텍스 데이터
-    /// @param _vertexLayout 버텍스 레이아웃
+    /// @param _vl 버텍스 레이아웃
     /// @return 버텍스 버퍼에 대한 참조
     /// @note 일반적으로 사용하는 버텍스 버퍼이며, 성능이 뛰어납니다. 단, 생성 후에는 데이터를 수정할 수 없습니다.
-    JAM_NODISCARD static VertexBufferHandle CreateVertexBuffer(
-        MemoryView          _vertexData,
-        const VertexLayout& _vertexLayout);
+    [[nodiscard]] static VertexBufferHandle CreateVertexBuffer(
+        ConstMemView        _vertexData,
+        const VertexLayout& _vl);
 
     /// @brief 수정 가능한(Dynamic) 버텍스 버퍼를 생성합니다.
-    /// @param _vertexCount 버텍스 개수
-    /// @param _vertexLayout 버텍스 레이아웃
+    /// @param _numVerts 버텍스 개수
+    /// @param _vl 버텍스 레이아웃
     /// @return 다이나믹 버텍스 버퍼에 대한 참조
     /// @note 자주 변경되는 버텍스 데이터를 저장하는데 사용합니다. 성능은 immutable 버텍스 버퍼보다 떨어집니다.
-    JAM_NODISCARD static VertexBufferHandle CreateDynamicVertexBuffer(
-        Int32               _vertexCount,
-        const VertexLayout& _vertexLayout);
+    [[nodiscard]] static VertexBufferHandle CreateDynamicVertexBuffer(
+        Int32               _numVerts,
+        const VertexLayout& _vl);
 
     /// @brief 수정 불가능한(Immutable) 인덱스 버퍼를 생성합니다.
     /// @param _indexData 인덱스 데이터
-    /// @param _format 16비트 또는 32비트 인덱스 포맷
+    /// @param _bUseU32 16비트 또는 32비트 인덱스 포맷
     /// @return 인덱스 버퍼에 대한 참조
     /// @note 일반적으로 사용하는 인덱스 버퍼이며, 성능이 뛰어납니다. 단, 생성 후에는 데이터를 수정할 수 없습니다.
-    JAM_NODISCARD static IndexBufferHandle CreateIndexBuffer(
-        MemoryView   _indexData,
-        eIndexFormat _format = eIndexFormat::U16);
+    [[nodiscard]] static IndexBufferHandle CreateIndexBuffer(
+        ConstMemView _indexData,
+        bool         _bUseU32 = false);
 
     /// @brief 수정 가능한(Dynamic) 인덱스 버퍼를 생성합니다.
-    /// @param _indexCount 인덱스 개수
-    /// @param _format 16비트 또는 32비트 인덱스 포맷
+    /// @param _numIndices 인덱스 개수
+    /// @param _bUseU32 16비트 또는 32비트 인덱스 포맷
     /// @return 다이나믹 인덱스 버퍼에 대한 참조
     /// @note 자주 변경되는 인덱스 데이터를 저장하는데 사용합니다. 성능은 immutable 인덱스 버퍼보다 떨어집니다.
-    JAM_NODISCARD static IndexBufferHandle CreateDynamicIndexBuffer(
-        Int32        _indexCount,
-        eIndexFormat _format = eIndexFormat::U16);
+    [[nodiscard]] static IndexBufferHandle CreateDynamicIndexBuffer(
+        Int32 _numIndices,
+        bool  _bUseU32 = false);
 
     /// @brief 상수 버퍼를 생성합니다.
     /// @param _byteWidth 버퍼 크기 (바이트 단위, 16의 배수여야 함)
     /// @return 상수 버퍼에 대한 참조
     /// @note 상수 버퍼는 다이나믹 버퍼로 생성되며, CPU에서 매 프레임마다 데이터를 업데이트할 수 있습니다.
-    JAM_NODISCARD static ConstantBufferHandle CreateConstantBuffer(
+    [[nodiscard]] static ConstantBufferHandle CreateConstantBuffer(
         Int32 _byteWidth);
 
     /// @brief 2D 텍스처를 생성합니다.
@@ -106,13 +86,13 @@ public:
     /// @return 2D 텍스처에 대한 참조
     /// @note _initData가 제공되면 immutable 텍스처를 생성하고, 아니면 default 텍스처를 생성합니다.
     /// 텍스처를 프레임 버퍼로 사용할 경우 _viewFlags에 eViewFlags_RenderTarget 또는 eViewFlags_DepthStencil 플래그를 포함해야 합니다.
-    JAM_NODISCARD static TextureHandle CreateTexture2D(
-        Int32                              _width,
-        Int32                              _height,
-        eFormat                            _format,
-        Int32                              _arraySize = 1,
-        eTextureCreateFlags                _flags     = eTextureCreateFlags_None,
-        const std::span<const MemoryView>& _initData  = {});
+    [[nodiscard]] static TextureHandle CreateTexture2D(
+        Int32                                _width,
+        Int32                                _height,
+        eTextureFormat                       _format,
+        Int32                                _arraySize = 1,
+        eTextureCreateFlags                  _flags     = eTextureCreateFlags_None,
+        const std::span<const ConstMemView>& _initData  = {});
 
     /// @brief 큐브맵 텍스처를 생성합니다.
     /// @param _width 텍스처 너비
@@ -123,13 +103,13 @@ public:
     /// @param _initData 초기화 데이터 (없으면 빈 배열 전달)
     /// @return 큐브맵 텍스처에 대한 참조
     /// @note 초기화 데이터가 제공되면 immutable 텍스처로 생성하고, 아니면 default 텍스처를 생성합니다.
-    JAM_NODISCARD static TextureHandle CreateTextureCube(
-        Int32                              _width,
-        Int32                              _height,
-        eFormat                            _format,
-        Int32                              _cubeCount = 1,
-        eTextureCreateFlags                _flags     = eTextureCreateFlags_None,
-        const std::span<const MemoryView>& _initData  = {});
+    [[nodiscard]] static TextureHandle CreateTextureCube(
+        Int32                                _width,
+        Int32                                _height,
+        eTextureFormat                       _format,
+        Int32                                _cubeCount = 1,
+        eTextureCreateFlags                  _flags     = eTextureCreateFlags_None,
+        const std::span<const ConstMemView>& _initData  = {});
 
     /// @brief 3D 텍스처를 생성합니다.
     /// @param _width 텍스처 너비
@@ -140,507 +120,521 @@ public:
     /// @param _initData 초기화 데이터 (없으면 빈 배열 전달)
     /// @return 3D 텍스처에 대한 참조
     /// @note 초기화 데이터가 제공되면 immutable 텍스처로 생성하고, 아니면 default 텍스처를 생성합니다.
-    JAM_NODISCARD static TextureHandle CreateTexture3D(
-        Int32                              _width,
-        Int32                              _height,
-        Int32                              _depth,
-        eFormat                            _format,
-        eTextureCreateFlags                _texFlags = eTextureCreateFlags_None,
-        const std::span<const MemoryView>& _initData = {});
+    [[nodiscard]] static TextureHandle CreateTexture3D(
+        Int32                                _width,
+        Int32                                _height,
+        Int32                                _depth,
+        eTextureFormat                       _format,
+        eTextureCreateFlags                  _texFlags = eTextureCreateFlags_None,
+        const std::span<const ConstMemView>& _initData = {});
 
     /// @brief 프레임 버퍼를 생성합니다.
-    /// @param _handles 프레임 버퍼에 첨부할 텍스처 핸들 배열
+    /// @param _attachments 프레임 버퍼에 첨부할 텍스처 핸들 배열
     /// @param _bDestroyTexture true로 설정하면 프레임 버퍼가 파괴될 때 텍스처도 함께 파괴됩니다.
     /// 텍스처를 여러 용도로 사용한다면 반드시 false로 설정해야 합니다.
     /// @return 프레임 버퍼에 대한 참조
     /// @note 렌더 타겟 텍스처는 최대 k_renderTargetCountMax개까지 첨부할 수 있습니다.
     /// @note 뎁스 스텐실 텍스처는 최대 1개까지 첨부할 수 있습니다.
-    JAM_NODISCARD static FrameBufferHandle CreateFrameBuffer(
-        std::span<const TextureHandle> _handles,
+    [[nodiscard]] static FrameBufferHandle CreateFrameBuffer(
+        std::span<const TextureHandle> _attachments,
         bool                           _bDestroyTexture = false);
-
-    /// @brief 프레임 버퍼를 생성합니다. (simple)
-    /// @param _handle 프레임 버퍼에 첨부할 단일 텍스처 핸들
-    /// @param _bDestroyTexture true로 설정하면 프레임 버퍼가 파괴될 때 텍스처도 함께 파괴됩니다.
-    /// @return 프레임 버퍼에 대한 참조
-    JAM_NODISCARD static FrameBufferHandle CreateFrameBuffer(
-        TextureHandle _handle,
-        bool          _bDestroyTexture = false);
-
-    /// @brief 프레임 버퍼를 생성합니다. (렌더 타겟 + 뎁스 스텐실)
-    /// @param _width 프레임 버퍼의 너비
-    /// @param _height 프레임 버퍼의 높이
-    /// @param _renderTargetFormat 렌더 타겟 텍스처 포맷
-    /// @param _depthFormat 뎁스 스텐실 텍스처 포맷
-    /// @param _writeOnlyRenderTarget 렌더 타겟을 쓰기 전용으로 생성할지 여부
-    /// @param _writeOnlyDepthStencil 뎁스 스텐실을 쓰기 전용으로 생성할지 여부
-    /// @return 프레임 버퍼에 대한 참조
-    JAM_NODISCARD static FrameBufferHandle CreateFrameBuffer(
-        Int32   _width,
-        Int32   _height,
-        eFormat _renderTargetFormat,
-        eFormat _depthFormat,
-        bool    _writeOnlyRenderTarget = false,
-        bool    _writeOnlyDepthStencil = false);
-
-    /// @brief 프레임 버퍼를 생성합니다. (렌더 타겟만)
-    /// @param _width 프레임 버퍼의 너비
-    /// @param _height 프레임 버퍼의 높이
-    /// @param _format 렌더 타겟 텍스처 포맷
-    /// @param _bWriteOnly 쓰기 전용으로 생성할지 여부
-    /// @return 프레임 버퍼에 대한 참조
-    JAM_NODISCARD static FrameBufferHandle CreateFrameBuffer(
-        Int32   _width,
-        Int32   _height,
-        eFormat _format,
-        bool    _bWriteOnly = false);
 
     /// @brief 쉐이더를 생성합니다.
     /// @param _shaderByteCode 쉐이더 바이트코드
     /// @return 셰이더에 대한 참조
-    JAM_NODISCARD static ShaderHandle CreateShader(
-        MemoryView _shaderByteCode);
+    [[nodiscard]] static ShaderHandle CreateShader(
+        ConstMemView _shaderByteCode);
 
     /// @brief 프로그램을 생성합니다.
-    /// @param _vsHandle 버텍스 셰이더 핸들
-    /// @param _psHandle 픽셀 셰이더 핸들
-    /// @param _gsHandle 지오메트리 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
-    /// @param _dsHandle 도메인 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
-    /// @param _hsHandle 홀 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
+    /// @param _vsh 버텍스 셰이더 핸들
+    /// @param _psh 픽셀 셰이더 핸들
+    /// @param _gsh 지오메트리 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
+    /// @param _dsh 도메인 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
+    /// @param _hsh 홀 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
     /// @param _bDestroyShader true로 설정하면 프로그램이 파괴될 때 셰이더도 함께 파괴됩니다.
     /// @return 프로그램에 대한 참조
     /// @note nullopt가 전달되면 해당 셰이더 스테이지는 생성되지 않습니다.
-    JAM_NODISCARD static ProgramHandle CreateProgram(
-        ShaderHandle _vsHandle,
-        ShaderHandle _psHandle,
-        ShaderHandle _gsHandle,
-        ShaderHandle _dsHandle,
-        ShaderHandle _hsHandle,
+    [[nodiscard]] static ProgramHandle CreateProgram(
+        ShaderHandle _vsh,
+        ShaderHandle _psh,
+        ShaderHandle _gsh,
+        ShaderHandle _dsh,
+        ShaderHandle _hsh,
         bool         _bDestroyShader = false);
 
     /// @brief 프로그램을 생성합니다. (버텍스 셰이더 + 픽셀 셰이더 버전)
-    /// @param _vsHandle 버텍스 셰이더 핸들
-    /// @param _psHandle 픽셀 셰이더 핸들
+    /// @param _vsh 버텍스 셰이더 핸들
+    /// @param _psh 픽셀 셰이더 핸들
     /// @param _bDestroyShader true로 설정하면 프로그램이 파괴될 때 셰이더도 함께 파괴됩니다.
     /// @return 프로그램에 대한 참조
-    JAM_NODISCARD static ProgramHandle CreateProgram(
-        ShaderHandle _vsHandle,
-        ShaderHandle _psHandle,
+    [[nodiscard]] static ProgramHandle CreateProgram(
+        ShaderHandle _vsh,
+        ShaderHandle _psh,
         bool         _bDestroyShader = false);
 
-    ////////////////////////////////////
-    ///          DESTRUCTOR          ///
-    ////////////////////////////////////
+    /// @brief 버텍스 버퍼를 파괴합니다.
+    /// @param _vbh 버텍스 버퍼 핸들
+    static void DestroyVertexBuffer(
+        VertexBufferHandle _vbh);
 
-    static void DestroyVertexBuffer(VertexBufferHandle _handle);
-    static void DestroyIndexBuffer(IndexBufferHandle _handle);
-    static void DestroyTexture(TextureHandle _handle);
-    static void DestroyFrameBuffer(FrameBufferHandle _handle);
-    static void DestroyProgram(ProgramHandle _handle);
-    static void DestroyShader(ShaderHandle _handle);
-    static void DestroyConstantBuffer(ConstantBufferHandle _handle);
+    /// @brief 인덱스 버퍼를 파괴합니다.
+    /// @param _ibh 인덱스 버퍼 핸들
+    static void DestroyIndexBuffer(
+        IndexBufferHandle _ibh);
 
-    //////////////////////////////////////////
-    ///          PIPELINE BINDING          ///
-    //////////////////////////////////////////
+    /// @brief 텍스처를 파괴합니다.
+    /// @param _texh 텍스처 핸들
+    static void DestroyTexture(
+        TextureHandle _texh);
+
+    /// @brief 프레임 버퍼를 파괴합니다.
+    /// @param _fbh 프레임 버퍼 핸들
+    static void DestroyFrameBuffer(
+        FrameBufferHandle _fbh);
+
+    /// @brief 프로그램을 파괴합니다.
+    /// @param _ph 프로그램 핸들
+    static void DestroyProgram(
+        ProgramHandle _ph);
+
+    /// @brief 셰이더를 파괴합니다.
+    /// @param _sh 셰이더 핸들
+    static void DestroyShader(
+        ShaderHandle _sh);
+
+    /// @brief 상수 버퍼를 파괴합니다.
+    /// @param _cbh 상수 버퍼 핸들
+    static void DestroyConstantBuffer(
+        ConstantBufferHandle _cbh);
 
     /// @brief 버텍스 버퍼에 디버깅용 이름을 설정합니다.
-    /// @param _handle 버텍스 버퍼 리소스
+    /// @param _vbh 버텍스 버퍼 리소스
     /// @param _name 버텍스 버퍼 이름
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetVertexBufferName(
-        VertexBufferHandle _handle,
+        VertexBufferHandle _vbh,
         std::string_view   _name = "");
 
     /// @brief 인덱스 버퍼에 디버깅용 이름을 설정합니다.
-    /// @param _handle 인덱스 버퍼 리소스
+    /// @param _ibh 인덱스 버퍼 리소스
     /// @param _name 인덱스 버퍼 이름
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetIndexBufferName(
-        IndexBufferHandle _handle,
+        IndexBufferHandle _ibh,
         std::string_view  _name = "");
 
     /// @brief 상수 버퍼에 디버깅용 이름을 설정합니다.
-    /// @param _handle 상수 버퍼 리소스
+    /// @param _cbh 상수 버퍼 리소스
     /// @param _name 상수 버퍼 이름
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetConstantBufferName(
-        ConstantBufferHandle _handle,
+        ConstantBufferHandle _cbh,
         std::string_view     _name = "");
 
     /// @brief 텍스처에 디버깅용 이름을 설정합니다.
-    /// @param _handle 텍스처 리소스
+    /// @param _texh 텍스처 리소스
     /// @param _name 텍스처 이름
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetTextureName(
-        TextureHandle    _handle,
+        TextureHandle    _texh,
         std::string_view _name = "");
 
     /// @brief 프레임 버퍼에 디버깅용 이름을 설정합니다.
-    /// @param _handle 프레임 버퍼 리소스
+    /// @param _fbh 프레임 버퍼 리소스
     /// @param _name 프레임 버퍼 이름
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetFrameBufferName(
-        FrameBufferHandle _handle,
+        FrameBufferHandle _fbh,
         std::string_view  _name = "");
 
     /// @brief 프로그램에 디버깅용 이름을 설정합니다.
-    /// @param _handle 프로그램 리소스
+    /// @param _sh 프로그램 리소스
     /// @param _name 프로그램 이름
     static void SetShaderName(
-        ShaderHandle     _handle,
+        ShaderHandle     _sh,
         std::string_view _name = "");
 
-    ///////////////////////////////////////////
-    ///          TEXTURE UTILITIES          ///
-    ///////////////////////////////////////////
+    /// @brief 텍스처를 블릿합니다.
+    /// @param _blitDstTexh 대상 텍스처
+    /// @param _blitSrcTexh 원본 텍스처
+    static void Blit(
+        TextureHandle _blitDstTexh,
+        TextureHandle _blitSrcTexh);
 
-    /// @brief 텍스처를 로드합니다.
-    /// @param _scratchImage 스크래치 이미지
-    /// @return 텍스처 핸들
-    /// ImageIO 클래스를 통해 이미지 파일을 로드 및 전처리한 후, 이 함수를 사용하여 텍스처를 생성할 수 있습니다.
-    JAM_NODISCARD static TextureHandle LoadTexture(
-        const DirectX::ScratchImage& _scratchImage);
+    /// @brief 텍스처를 블릿합니다.
+    /// @param _blitDstTexh 대상 텍스처
+    /// @param _blitDstMipIndex 대상 MIP 인덱스
+    /// @param _blitDstArrayIndex 대상 배열 인덱스
+    /// @param _blitDstX 대상 X 오프셋
+    /// @param _blitDstY 대상 Y 오프셋
+    /// @param _blitDstZ 대상 Z 오프셋
+    /// @param _blitSrcTexh 원본 텍스처
+    /// @param _blitSrcMipIndex 원본 MIP 인덱스
+    /// @param _blitSrcArrayIndex 원본 배열 인덱스
+    /// @param _blitSrcX 원본 X 오프셋
+    /// @param _blitSrcY 원본 Y 오프셋
+    /// @param _blitSrcZ 원본 Z 오프셋
+    /// @param _blitSrcWidthOrZero 원본 텍스처 너비
+    /// @param _blitSrcHeightOrZero 원본 텍스처 높이
+    /// @param _blitSrcDepthOrZero 원본 텍스처 깊이
+    static void Blit(
+        TextureHandle _blitDstTexh,
+        Int32         _blitDstMipIndex,
+        Int32         _blitDstArrayIndex,
+        Int32         _blitDstX,
+        Int32         _blitDstY,
+        Int32         _blitDstZ,
+        TextureHandle _blitSrcTexh,
+        Int32         _blitSrcMipIndex,
+        Int32         _blitSrcArrayIndex,
+        Int32         _blitSrcX,
+        Int32         _blitSrcY,
+        Int32         _blitSrcZ,
+        Int32         _blitSrcWidthOrZero,
+        Int32         _blitSrcHeightOrZero,
+        Int32         _blitSrcDepthOrZero);
 
-    /// @brief 텍스처를 로드합니다.
-    /// @param _filePath 이미지 파일 경로
-    /// @param _bSRGB sRGB 텍스처로 로드할지 여부
-    /// @param _bGenMips MIP 맵을 생성할지 여부
-    /// @return 텍스처 핸들
-    /// 경로만으로 텍스처를 로드하는 헬퍼 함수입니다. 내부적으로 ImageIO 클래스를 사용합니다.
-    JAM_NODISCARD static Result<TextureHandle> LoadTexture(
-        const fs::path& _filePath,
-        bool            _bSRGB    = false,
-        bool            _bGenMips = false);
-
-    /// @brief 2D 텍스처에 데이터를 업로드합니다.
-    /// @param _handle 텍스처 핸들
-    /// @param _uploadTexData 업로드할 텍스처 데이터
-    /// @param _uploadTexWidth 업로드할 텍스처 너비
-    /// @param _uploadTexHeight 업로드할 텍스처 높이
-    /// @param _mipIndex 업로드할 MIP 레벨
-    /// @param _arrayIndex 업로드할 배열 인덱스
-    /// @param _xOffset 텍스처 내 X 오프셋 (픽셀 단위)
-    /// @param _yOffset 텍스처 내 Y 오프셋 (픽셀 단위)
-    /// @note Immutable 텍스처에는 데이터를 업로드할 수 없습니다.
+    /// @brief 2D 텍스처를 업로드합니다.
+    /// @param _texh 텍스처 핸들
+    /// @param _dstMipIndex 대상 MIP 인덱스
+    /// @param _dstArrayIndex 대상 배열 인덱스
+    /// @param _dstX X 오프셋
+    /// @param _dstY Y 오프셋
+    /// @param _uploadData 업로드할 데이터
+    /// @param _uploadWidth 데이터 너비
+    /// @param _uploadHeight 데이터 높이
+    /// @param _uploadDataRowPitch 데이터 행 간격
     static void UploadTexture2D(
-        TextureHandle _handle,
-        MemoryView    _uploadTexData,
-        Int32         _uploadTexWidth,
-        Int32         _uploadTexHeight,
-        Int32         _mipIndex   = 0,
-        Int32         _arrayIndex = 0,
-        Int32         _xOffset    = 0,
-        Int32         _yOffset    = 0);
+        TextureHandle _texh,
+        Int32         _dstMipIndex,
+        Int32         _dstArrayIndex,
+        Int32         _dstX,
+        Int32         _dstY,
+        ConstMemView  _uploadData,
+        Int32         _uploadWidth,
+        Int32         _uploadHeight,
+        Int32         _uploadDataRowPitch);
 
-    /// @brief 큐브맵 텍스처에 데이터를 업로드합니다.
-    /// @param _handle 텍스처 핸들
-    /// @param _uploateTexData 업로드할 텍스처 데이터
-    /// @param _uploadTexWidth 업로드할 텍스처 너비
-    /// @param _uploadTexHeight 업로드할 텍스처 높이
-    /// @param _mipIndex 업로드할 MIP 레벨
-    /// @param _cubeIndex 업로드할 큐브 인덱스 (0~5)
-    /// @param _cubeFace 업로드할 큐브 페이스
-    /// @param _xOffset 텍스처 내 X 오프셋 (픽셀 단위)
-    /// @param _yOffset 텍스처 내 Y 오프셋 (픽셀 단위)
-    /// @note Immutable 텍스처에는 데이터를 업로드할 수 없습니다.
+    /// @brief 2D 텍스처를 업로드합니다.
+    /// @param _texh 텍스처 핸들
+    /// @param _uploadData 업로드할 데이터
+    /// @param _uploadWidth 데이터 너비
+    /// @param _uploadHeight 데이터 높이
+    /// @param _uploadDataRowPitch 데이터 행 간격
+    static void UploadTexture2D(
+        TextureHandle _texh,
+        ConstMemView  _uploadData,
+        Int32         _uploadWidth,
+        Int32         _uploadHeight,
+        Int32         _uploadDataRowPitch);
+
+    /// @brief 큐브 맵 텍스처를 업로드합니다.
+    /// @param _texh 텍스처 핸들
+    /// @param _dstMipIndex MIP 인덱스
+    /// @param _dstCubeIndex 큐브 인덱스
+    /// @param _dstCubeFace 큐브 면
+    /// @param _dstX X 오프셋
+    /// @param _dstY Y 오프셋
+    /// @param _uploadData 업로드할 데이터
+    /// @param _uploadWidth 데이터 너비
+    /// @param _uploadHeight 데이터 높이
+    /// @param _uploadDataRowPitch 데이터 행 간격
     static void UploadTextureCube(
-        TextureHandle _handle,
-        MemoryView    _uploateTexData,
-        Int32         _uploadTexWidth,
-        Int32         _uploadTexHeight,
-        Int32         _mipIndex  = 0,
-        Int32         _cubeIndex = 0,
-        eCubeFace     _cubeFace  = eCubeFace::Right,
-        Int32         _xOffset   = 0,
-        Int32         _yOffset   = 0);
+        TextureHandle _texh,
+        Int32         _dstMipIndex,
+        Int32         _dstCubeIndex,
+        eCubeFace     _dstCubeFace,
+        Int32         _dstX,
+        Int32         _dstY,
+        ConstMemView  _uploadData,
+        Int32         _uploadWidth,
+        Int32         _uploadHeight,
+        Int32         _uploadDataRowPitch);
 
-    /// @brief 3D 텍스처에 데이터를 업로드합니다.
-    /// @param _handle 텍스처 핸들
-    /// @param _uplodeTexData 업로드할 텍스처 데이터
-    /// @param _uploadTexWidth 업로드할 텍스처 너비
-    /// @param _uploadTexHeight 업로드할 텍스처 높이
-    /// @param _uploadTexDepth 업로드할 텍스처 깊이
-    /// @param _mipIndex 업로드할 MIP 레벨
-    /// @param _xOffset 텍스처 내 X 오프셋 (픽셀 단위)
-    /// @param _yOffset 텍스처 내 Y 오프셋 (픽셀 단위)
-    /// @param _zOffset 텍스처 내 Z 오프셋 (픽셀 단위)
-    /// @note Immutable 텍스처에는 데이터를 업로드할 수 없습니다.
+    /// @brief 큐브 맵 텍스처를 업로드합니다.
+    /// @param _texh 텍스처 핸들
+    /// @param _dstCubeFace 큐브 면
+    /// @param _uploadData 업로드할 데이터
+    /// @param _uploadWidth 데이터 너비
+    /// @param _uploadHeight 데이터 높이
+    /// @param _uploadDataRowPitch 데이터 행 간격
+    static void UploadTextureCube(
+        TextureHandle _texh,
+        eCubeFace     _dstCubeFace,
+        ConstMemView  _uploadData,
+        Int32         _uploadWidth,
+        Int32         _uploadHeight,
+        Int32         _uploadDataRowPitch);
+
+    /// @brief 3D 텍스처를 업로드합니다.
+    /// @param _texh 텍스처 핸들
+    /// @param _dstMipIndex MIP 인덱스
+    /// @param _dstArrayIndex 배열 인덱스
+    /// @param _dstX X 오프셋
+    /// @param _dstY Y 오프셋
+    /// @param _dstZ Z 오프셋
+    /// @param _uploadData 업로드할 데이터
+    /// @param _uploadWidth 데이터 너비
+    /// @param _uploadHeight 데이터 높이
+    /// @param _uploadDepth 데이터 깊이
+    /// @param _uploadDataRowPitch 데이터 행 간격
+    /// @param _uploadDataDepthPitch 데이터 깊이 간격
     static void UploadTexture3D(
-        TextureHandle _handle,
-        MemoryView    _uplodeTexData,
-        Int32         _uploadTexWidth,
-        Int32         _uploadTexHeight,
-        Int32         _uploadTexDepth,
-        Int32         _mipIndex = 0,
-        Int32         _xOffset  = 0,
-        Int32         _yOffset  = 0,
-        Int32         _zOffset  = 0);
+        TextureHandle _texh,
+        Int32         _dstMipIndex,
+        Int32         _dstArrayIndex,
+        Int32         _dstX,
+        Int32         _dstY,
+        Int32         _dstZ,
+        ConstMemView  _uploadData,
+        Int32         _uploadWidth,
+        Int32         _uploadHeight,
+        Int32         _uploadDepth,
+        Int32         _uploadDataRowPitch,
+        Int32         _uploadDataDepthPitch);
+
+    /// @brief 3D 텍스처를 업로드합니다.
+    /// @param _texh 텍스처 핸들
+    /// @param _uploadData 업로드할 데이터
+    /// @param _uploadWidth 데이터 너비
+    /// @param _uploadHeight 데이터 높이
+    /// @param _uploadDepth 데이터 깊이
+    /// @param _uploadDataRowPitch 데이터 행 간격
+    /// @param _uploadDataDepthPitch 데이터 깊이 간격
+    static void UploadTexture3D(
+        TextureHandle _texh,
+        ConstMemView  _uploadData,
+        Int32         _uploadWidth,
+        Int32         _uploadHeight,
+        Int32         _uploadDepth,
+        Int32         _uploadDataRowPitch,
+        Int32         _uploadDataDepthPitch);
 
     /// @brief 2D 텍스처에서 데이터를 다운로드합니다.
-    /// @param _handle 텍스처 핸들
+    /// @param _texh 텍스처 핸들
     /// @param _mipIndex 다운로드할 MIP 레벨
     /// @param _arrayIndex 다운로드할 배열 인덱스
     /// @return 다운로드된 텍스처 데이터
     /// @note 어떤 종류의 텍스처에도 사용할 수 있습니다.
-    JAM_NODISCARD static std::vector<Byte> DownloadTexture2D(
-        TextureHandle _handle,
+    [[nodiscard]] static std::vector<Byte> DownloadTexture2D(
+        TextureHandle _texh,
         Int32         _mipIndex   = 0,
         Int32         _arrayIndex = 0);
 
     /// @brief 큐브맵 텍스처에서 데이터를 다운로드합니다.
-    /// @param _handle 텍스처 핸들
+    /// @param _texh 텍스처 핸들
     /// @param _mipIndex 다운로드할 MIP 레벨
     /// @param _cubeIndex 다운로드할 큐브 인덱스 (0~5)
     /// @param _cubeFace 다운로드할 큐브 페이스
     /// @return 다운로드된 텍스처 데이터
     /// @note 어떤 종류의 텍스처에도 사용할 수 있습니다.
-    JAM_NODISCARD static std::vector<Byte> DownloadTextureCube(
-        TextureHandle _handle,
+    [[nodiscard]] static std::vector<Byte> DownloadTextureCube(
+        TextureHandle _texh,
         Int32         _mipIndex  = 0,
         Int32         _cubeIndex = 0,
         eCubeFace     _cubeFace  = eCubeFace::Right);
 
     /// @brief 3D 텍스처에서 데이터를 다운로드합니다.
-    /// @param _handle 텍스처 핸들
+    /// @param _texh 텍스처 핸들
     /// @param _mipIndex 다운로드할 MIP 레벨
     /// @return 다운로드된 텍스처 데이터
     /// @note 어떤 종류의 텍스처에도 사용할 수 있습니다.
-    JAM_NODISCARD static std::vector<Byte> DownloadTexture3D(
-        TextureHandle _handle,
+    [[nodiscard]] static std::vector<Byte> DownloadTexture3D(
+        TextureHandle _texh,
         Int32         _mipIndex = 0);
 
     /// @brief 텍스처를 DirectX::ScratchImage로 캡처합니다.
-    /// @param _handle 텍스처 핸들
+    /// @param _texh 텍스처 핸들
     /// @return 캡처된 스크래치 이미지
-    JAM_NODISCARD static DirectX::ScratchImage Capture(
-        TextureHandle _handle);
+    [[nodiscard]] static DirectX::ScratchImage Capture(
+        TextureHandle _texh);
 
     /// @brief 멀티샘플링된 텍스처를 멀티샘플링되지 않은 텍스처로 해상합니다.
-    /// @param _srcHandle MSAA 텍스처 핸들
+    /// @param _srcTexh MSAA 텍스처 핸들
     /// @param _srcArrayIndex MSAA 텍스처 배열 인덱스
-    /// @param _dstHandle 해상할 텍스처 핸들
+    /// @param _dstTexh 해상할 텍스처 핸들
     /// @param _dstArrayIndex 해상할 텍스처 배열 인덱스
     /// @note mipmap 레벨은 0으로 고정됩니다.
     static void Resolve(
-        TextureHandle _srcHandle,
+        TextureHandle _srcTexh,
         Int32         _srcArrayIndex,
-        TextureHandle _dstHandle,
+        TextureHandle _dstTexh,
         Int32         _dstArrayIndex);
 
-    /// @brief 텍스처 간 데이터를 복사합니다.
-    /// @param _srcHandle 복사할 원본 텍스처 핸들
-    /// @param _dstHandle 복사할 대상 텍스처 핸들
-    /// @param _blitWidthOrZero 복사할 너비 (0이면 전체 너비)
-    /// @param _blitHeightOrZero 복사할 높이 (0이면 전체 높이)
-    /// @param _blitDepthOrZero 복사할 깊이 (0이면 전체 깊이, 3D 텍스처에서만 사용)
-    /// @param _srcMipIndex 복사할 원본 MIP 레벨
-    /// @param _srcArrayIndex 복사할 원본 배열 인덱스
-    /// @param _srcX 복사할 원본 X 오프셋
-    /// @param _srcY 복사할 원본 Y 오프셋
-    /// @param _srcZ 복사할 원본 Z 오프셋 (3D 텍스처에서만 사용)
-    /// @param _dstMipIndex 복사할 대상 MIP 레벨
-    /// @param _dstArrayIndex 복사할 대상 배열 인덱스
-    /// @param _dstX 복사할 대상 X 오프셋
-    /// @param _dstY 복사할 대상 Y 오프셋
-    /// @param _dstZ 복사할 대상 Z 오프셋 (3D 텍스처에서만 사용)
-    static void Blit(
-        TextureHandle _srcHandle,
-        TextureHandle _dstHandle,
-        Int32         _blitWidthOrZero  = 0,
-        Int32         _blitHeightOrZero = 0,
-        Int32         _blitDepthOrZero  = 0,
-        Int32         _srcMipIndex      = 0,
-        Int32         _srcArrayIndex    = 0,
-        Int32         _srcX             = 0,
-        Int32         _srcY             = 0,
-        Int32         _srcZ             = 0,
-        Int32         _dstMipIndex      = 0,
-        Int32         _dstArrayIndex    = 0,
-        Int32         _dstX             = 0,
-        Int32         _dstY             = 0,
-        Int32         _dstZ             = 0);
-
-    /// @brief 텍스처를 백 버퍼로 복사합니다.
-    /// @param _srcHandle 복사할 원본 텍스처 핸들
-    /// @param _blitWidthOrZero 복사할 너비 (0이면 전체 너비)
-    /// @param _blitHeightOrZero 복사할 높이 (0이면 전체 높이)
-    /// @param _srcMipIndex 복사할 원본 MIP 레벨
-    /// @param _srcArrayIndex 복사할 원본 배열 인덱스
-    /// @param _srcX 복사할 원본 X 오프셋
-    /// @param _srcY 복사할 원본 Y 오프셋
-    /// @param _dstX 복사할 대상 X 오프셋
-    /// @param _dstY 복사할 대상 Y 오프셋
-    static void BlitToBackBuffer(
-        TextureHandle _srcHandle,
-        Int32         _blitWidthOrZero  = 0,
-        Int32         _blitHeightOrZero = 0,
-        Int32         _srcMipIndex      = 0,
-        Int32         _srcArrayIndex    = 0,
-        Int32         _srcX             = 0,
-        Int32         _srcY             = 0,
-        Int32         _dstX             = 0,
-        Int32         _dstY             = 0);
-
     /// @brief 텍스처의 해상도를 반환합니다.
-    /// @param _handle 텍스처 핸들
+    /// @param _texh 텍스처 핸들
     /// @param _mipIndex 조회할 MIP 레벨 인덱스
     /// @return 텍스처 해상도
     static TextureResolution GetTextureResolution(
-        TextureHandle _handle,
-        Int32 _mipIndex = 0);
-
-    ////////////////////////////////////////////////
-    ///          FRAME BUFFER UTILITIES          ///
-    ////////////////////////////////////////////////
+        TextureHandle _texh,
+        Int32         _mipIndex = 0);
 
     /// @brief 렌더 타겟을 특정 색상으로 클리어합니다.
-    /// @param _handle 프레임 버퍼 핸들 (k_invalidResource 사용 시 기본 프레임 버퍼)
+    /// @param _fbh 프레임 버퍼 핸들 (k_invalidResource 사용 시 백버퍼)
     /// @param _color 클리어 색상
     /// @param _renderTargetIndex 클리어할 렌더 타겟 인덱스
     static void ClearRenderTarget(
-        FrameBufferHandle _handle,
+        FrameBufferHandle _fbh,
         RGBA              _color,
         Int32             _renderTargetIndex = 0);
 
     /// @brief 깊이 버퍼와 스텐실 버퍼를 클리어합니다.
-    /// @param _handle 프레임 버퍼 핸들 (k_invalidResource 사용 시 기본 프레임 버퍼)
+    /// @param _fbh 프레임 버퍼 핸들 (k_invalidResource 사용 시 에러)
     /// @param _bClearDepth 깊이 클리어 여부
     /// @param _bClearStencil 스텐실 클리어 여부
     /// @param _depth 클리어할 깊이 값 (0.0 ~ 1.0)
     /// @param _stencil 클리어할 스텐실 값
     static void ClearDepthStencil(
-        FrameBufferHandle _handle,
+        FrameBufferHandle _fbh,
         bool              _bClearDepth,
         bool              _bClearStencil,
         float             _depth   = 1.f,
         UInt8             _stencil = 0);
 
     /// @brief 프레임 버퍼의 렌더 타겟 텍스처를 반환합니다.
-    /// @param _handle 프레임 버퍼 핸들
+    /// @param _fbh 프레임 버퍼 핸들  (k_invalidResource를 전달하면 백버퍼의 렌더 타겟 텍스처를 반환합니다.)
     /// @param _renderTargetIndex 렌더 타겟 인덱스
-    /// @note k_invalidResource를 전달하면 기본 프레임 버퍼의 렌더 타겟 텍스처를 반환합니다.
     /// render target texture가 없으면 assertion 처리합니다.
     /// 해당 함수로 반환된 텍스처는 DestroyTexture()로 파괴하지 마십시오.
-    JAM_NODISCARD static const TextureHandle& GetRenderTargetTexture(
-        FrameBufferHandle _handle,
+    [[nodiscard]] static const TextureHandle& GetRenderTargetTexture(
+        FrameBufferHandle _fbh,
         Int32             _renderTargetIndex = 0);
 
     /// @brief 프레임 버퍼의 깊이-스텐실 텍스처를 반환합니다.
-    /// @param _handle 프레임 버퍼 핸들
+    /// @param _fbh 프레임 버퍼 핸들 (k_invalidResource를 전달하면 에러)
     /// @note k_invalidResource를 전달하면 기본 프레임 버퍼의 깊이-스텐실 텍스처를 반환합니다.
     /// depth stencil texture가 없으면 assertion 처리합니다.
     /// 해당 함수로 반환된 텍스처는 DestroyTexture()로 파괴하지 마십시오.
-    JAM_NODISCARD static const TextureHandle& GetDepthStencilTexture(
-        FrameBufferHandle _handle);
+    [[nodiscard]] static const TextureHandle& GetDepthStencilTexture(
+        FrameBufferHandle _fbh);
 
-    ///////////////////////////////////////
-    ///          RESOURCE INFO          ///
-    ///////////////////////////////////////
+    [[nodiscard]] static const VertexLayout& GetVertexLayout(
+        VertexLayoutHandle _vlh);
 
-    JAM_NODISCARD static const VertexLayout& GetVertexLayout(
-        VertexLayoutHandle _handle);
+    [[nodiscard]] static VertexBufferInfo GetVertexBufferInfo(
+        VertexBufferHandle _vbh);
 
-    JAM_NODISCARD static VertexBufferInfo GetVertexBufferInfo(
-        VertexBufferHandle _handle);
+    [[nodiscard]] static IndexBufferInfo GetIndexBufferInfo(
+        IndexBufferHandle _ibh);
 
-    JAM_NODISCARD static IndexBufferInfo GetIndexBufferInfo(
-        IndexBufferHandle _handle);
+    [[nodiscard]] static ConstantBufferInfo GetConstantBufferInfo(
+        ConstantBufferHandle _cbh);
 
-    JAM_NODISCARD static ConstantBufferInfo GetConstantBufferInfo(
-        ConstantBufferHandle _handle);
+    [[nodiscard]] static TextureInfo GetTextureInfo(
+        TextureHandle _texh);
 
-    JAM_NODISCARD static TextureInfo GetTextureInfo(
-        TextureHandle _handle);
+    [[nodiscard]] static FrameBufferInfo GetFrameBufferInfo(
+        FrameBufferHandle _fbh);
 
-    JAM_NODISCARD static FrameBufferInfo GetFrameBufferInfo(
-        FrameBufferHandle _handle);
+    [[nodiscard]] static ShaderInfo GetShaderInfo(
+        ShaderHandle _sh);
 
-    JAM_NODISCARD static ShaderInfo GetShaderInfo(
-        ShaderHandle _handle);
-
-    JAM_NODISCARD static ProgramInfo GetProgramInfo(
-        ProgramHandle _handle);
-
-    /////////////////////////////////////////
-    ///          BUFFER UTILITES          ///
-    /////////////////////////////////////////
+    [[nodiscard]] static ProgramInfo GetProgramInfo(
+        ProgramHandle _ph);
 
     /// @brief 버텍스 버퍼에 데이터를 업로드합니다.
-    /// @param _handle 업로드할 버텍스 버퍼 핸들
+    /// @param _vbh 업로드할 버텍스 버퍼 핸들
     /// @param _writeData 업로드할 버텍스 데이터
     /// @param _offset 버텍스 버퍼 내의 오프셋 (바이트 단위)
-    /// @param _bDiscard true: 기존 데이터를 모두 초기화 (빠른 업로드), false: 기존 데이터를 유지하면서 부분 업로드 (느린 업로드)
-    /// @note Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
+    /// @param _bDiscard true: 기존 데이터를 초기화, false: 기존 데이터를 유지하면서 부분 업로드
+    /// @note 전체 업로드(= _bDiscard = true)가 더 빠릅니다. 부분 업로드는 성능이 떨어질 수 있기에 주의해서 사용해야 합니다.
+    ///       Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
     static void UploadBuffer(
-        VertexBufferHandle _handle,
-        MemoryView         _writeData,
+        VertexBufferHandle _vbh,
+        ConstMemView       _writeData,
         Int32              _offset   = 0,
         bool               _bDiscard = true);
 
     /// @brief 인덱스 버퍼에 데이터를 업로드합니다.
-    /// @param _handle 업로드할 인덱스 버퍼 핸들
+    /// @param _ibh 업로드할 인덱스 버퍼 핸들
     /// @param _writeData 업로드할 인덱스 데이터
     /// @param _offset 버퍼 내의 오프셋 (바이트 단위)
-    /// @param _bDiscard true: 기존 데이터를 모두 초기화 (빠른 업로드), false: 기존 데이터를 유지하면서 부분 업로드 (느린 업로드)
-    /// @note Dynamic IndexBuffer에만 데이터를 업로드할 수 있습니다.
+    /// @param _bDiscard true: 기존 데이터를 초기화, false: 기존 데이터를 유지하면서 부분 업로드
+    /// @note 전체 업로드(= _bDiscard = true)가 더 빠릅니다. 부분 업로드는 성능이 떨어질 수 있기에 주의해서 사용해야 합니다.
+    ///       Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
     static void UploadBuffer(
-        IndexBufferHandle _handle,
-        MemoryView        _writeData,
+        IndexBufferHandle _ibh,
+        ConstMemView      _writeData,
         Int32             _offset   = 0,
         bool              _bDiscard = true);
 
     /// @brief 상수 버퍼에 데이터를 업로드합니다.
-    /// @param _handle 업로드할 상수 버퍼 핸들
+    /// @param _cbh 업로드할 상수 버퍼 핸들
     /// @param _writeData 업로드할 상수 버퍼 데이터
     /// @note 상수 버퍼는 부분 업로드가 불가능하며, 항상 버퍼 전체를 덮어씁니다.
     static void UploadBuffer(
-        ConstantBufferHandle _handle,
-        MemoryView           _writeData);
+        ConstantBufferHandle _cbh,
+        ConstMemView         _writeData);
+
+    /// @brief 버텍스 버퍼에 대한 업로드용 메모리 뷰를 반환합니다.
+    /// @param _vbh 업로드할 버텍스 버퍼 핸들
+    /// @note Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
+    ///       연속적으로 조금씩 데이터를 업로드할 때 유용합니다.
+    ///       Begin을 호출한 후에는 반드시 EndUploadBuffer를 호출하여 업로드를 완료해야 합니다.
+    ///       기존 버퍼의 내용을 모두 초기화됩니다.
+    /// @return 업로드용 메모리 뷰
+    [[nodiscard]] static MemView BeginUploadBuffer(
+        VertexBufferHandle _vbh);
+
+    /// @brief 인덱스 버퍼에 대한 업로드용 메모리 뷰를 반환합니다.
+    /// @param _ibh 업로드할 인덱스 버퍼 핸들
+    /// @note Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
+    ///       연속적으로 조금씩 데이터를 업로드할 때 유용합니다.
+    ///       Begin을 호출한 후에는 반드시 EndUploadBuffer를 호출하여 업로드를 완료해야 합니다.
+    ///       기존 버퍼의 내용을 모두 초기화됩니다.
+    /// @return 업로드용 메모리 뷰
+    [[nodiscard]] static MemView BeginUploadBuffer(
+        IndexBufferHandle _ibh);
+
+    /// @brief 버텍스 버퍼에 대한 업로드를 완료합니다.
+    /// @param _vbh 업로드할 버텍스 버퍼 핸들
+    static void EndUploadBuffer(
+        VertexBufferHandle _vbh);
+
+    /// @brief 인덱스 버퍼에 대한 업로드를 완료합니다.
+    /// @param _ibh 업로드할 인덱스 버퍼 핸들
+    static void EndUploadBuffer(
+        IndexBufferHandle _ibh);
 
     /// @brief 버텍스 버퍼에서 데이터를 다운로드합니다.
-    /// @param _handle 다운로드할 버텍스 버퍼 핸들
+    /// @param _vbh 다운로드할 버텍스 버퍼 핸들
     /// @return 다운로드된 버퍼 데이터
     /// @note 어떤 종류의 버퍼에도 사용할 수 있습니다.
-    JAM_NODISCARD static std::vector<Byte> DownloadBuffer(
-        VertexBufferHandle _handle);
+    [[nodiscard]] static std::vector<Byte> DownloadBuffer(
+        VertexBufferHandle _vbh);
 
     /// @brief 인덱스 버퍼에서 데이터를 다운로드합니다.
-    /// @param _handle 다운로드할 인덱스 버퍼 핸들
+    /// @param _ibh 다운로드할 인덱스 버퍼 핸들
     /// @return 다운로드된 버퍼 데이터
     /// @note 어떤 종류의 버퍼에도 사용할 수 있습니다.
-    JAM_NODISCARD static std::vector<Byte> DownloadBuffer(
-        IndexBufferHandle _handle);
+    [[nodiscard]] static std::vector<Byte> DownloadBuffer(
+        IndexBufferHandle _ibh);
 
     /// @brief 상수 버퍼에서 데이터를 다운로드합니다.
-    /// @param _handle 다운로드할 상수 버퍼 핸들
+    /// @param _cbh 다운로드할 상수 버퍼 핸들
     /// @return 다운로드된 버퍼 데이터
     /// @note 어떤 종류의 버퍼에도 사용할 수 있습니다.
-    JAM_NODISCARD static std::vector<Byte> DownloadBuffer(
-        ConstantBufferHandle _handle);
+    [[nodiscard]] static std::vector<Byte> DownloadBuffer(
+        ConstantBufferHandle _cbh);
 
     /// @brief 버텍스 버퍼의 버텍스 레이아웃을 반환합니다.
-    /// @param _handle 버텍스 버퍼 핸들
+    /// @param _vbh 버텍스 버퍼 핸들
     /// @return 버텍스 레이아웃
-    JAM_NODISCARD static const VertexLayout& GetVertexLayout(
-        VertexBufferHandle _handle);
-
-    ///////////////////////////////////////////////
-    ///          PIPELINE STATE BINDER          ///
-    ///////////////////////////////////////////////
+    [[nodiscard]] static const VertexLayout& GetVertexLayout(
+        VertexBufferHandle _vbh);
 
     /// @brief 버텍스 버퍼를 파이프라인에 바인딩합니다.
-    /// @param _handleOrInvalid 버텍스 버퍼 핸들 (k_invalidResource 사용 시 바인딩 해제)
+    /// @param _vbh 버텍스 버퍼 핸들 (k_invalidResource 사용 시 바인딩 해제)
     static void SetVertexBuffer(
-        VertexBufferHandle _handleOrInvalid);
+        VertexBufferHandle _vbh);
 
     /// @brief 버텍스 버퍼를 오프셋과 개수를 지정하여 파이프라인에 바인딩합니다.
-    /// @param _handleOrInvalid 버텍스 버퍼 핸들
-    /// @param _vertexCount 버텍스 개수
+    /// @param _vbh 버텍스 버퍼 핸들
+    /// @param _numVerts 버텍스 개수
     /// @param _vertexOffset 버퍼 내의 오프셋 (버텍스 단위)
     static void SetVertexBuffer(
-        VertexBufferHandle _handleOrInvalid,
-        Int32              _vertexCount,
+        VertexBufferHandle _vbh,
+        Int32              _numVerts,
         Int32              _vertexOffset);
 
     /// @brief 인덱스 버퍼를 파이프라인에 바인딩합니다.
@@ -649,29 +643,29 @@ public:
         IndexBufferHandle _handleOrInvalid);
 
     /// @brief 인덱스 버퍼를 오프셋과 개수를 지정하여 파이프라인에 바인딩합니다.
-    /// @param _handleOrInvalid 인덱스 버퍼 핸들
+    /// @param _ibh 인덱스 버퍼 핸들
     /// @param _indexCount 인덱스 개수
     /// @param _indexOffset 버퍼 내의 오프셋 (인덱스 단위)
     static void SetIndexBuffer(
-        IndexBufferHandle _handleOrInvalid,
+        IndexBufferHandle _ibh,
         Int32             _indexCount,
         Int32             _indexOffset);
 
     /// @brief 상수 버퍼를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
-    /// @param _handleOrInvalid 바인딩할 상수 버퍼 핸들 (k_invalidResource 사용 시 바인딩 해제)
+    /// @param _cbh 바인딩할 상수 버퍼 핸들 (k_invalidResource 사용 시 바인딩 해제)
     /// @param _shader 바인딩할 셰이더 스테이지
     /// @param _slot 바인딩 슬롯
     static void SetConstantBuffer(
-        ConstantBufferHandle _handleOrInvalid,
+        ConstantBufferHandle _cbh,
         eShader              _shader,
         Int32                _slot);
 
     /// @brief 텍스처를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
-    /// @param _handleOrInvalid 바인딩할 텍스처 핸들 (k_invalidResource 사용 시 바인딩 해제)
+    /// @param _texh 바인딩할 텍스처 핸들 (k_invalidResource 사용 시 바인딩 해제)
     /// @param _shader 바인딩할 셰이더 스테이지
     /// @param _slot 바인딩 슬롯
     static void SetTexture(
-        TextureHandle _handleOrInvalid,
+        TextureHandle _texh,
         eShader       _shader,
         Int32         _slot);
 
@@ -696,7 +690,7 @@ public:
     /// @brief 렌더링 상태를 설정합니다.
     /// @param _state 렌더링 상태 플래그
     static void SetGfxState(
-        GfxState _state);
+        RenderState _state);
 
     /// @brief 블렌드 상태를 설정합니다.
     /// @param _state 블렌드 상태 플래그
@@ -720,14 +714,14 @@ public:
         UInt8        _stencilRef = 0);
 
     /// @brief 프로그램을 파이프라인에 바인딩합니다.
-    /// @param _handleOrInvalid 프로그램 핸들 (k_invalidResource 사용 시 바인딩 해제)
+    /// @param _ph 프로그램 핸들 (k_invalidResource 사용 시 바인딩 해제)
     static void SetProgram(
-        ProgramHandle _handleOrInvalid);
+        ProgramHandle _ph);
 
     /// @brief 프레임 버퍼를 렌더 타겟으로 설정합니다.
-    /// @param _handleOrInvalid 프레임 버퍼 핸들 (k_invalidResource 사용 시 기본 프레임 버퍼)
+    /// @param _fbh 프레임 버퍼 핸들 (k_invalidResource 사용 시 기본 프레임 버퍼)
     static void SetFrameBuffer(
-        FrameBufferHandle _handleOrInvalid);
+        FrameBufferHandle _fbh);
 
     /// @brief 뷰포트를 설정합니다.
     /// @param _viewport 뷰포트 설정
@@ -745,24 +739,118 @@ public:
         UInt16 _width,
         UInt16 _height);
 
+    /// @brief 시저링 영역을 설정합니다.
+    /// @param _rect 시저링 영역
+    static void SetScissorRect(
+        Rect _rect);
+
+    /// @brief 시저링 영역을 개별 매개변수로 설정합니다.
+    /// @param _left 시저링 영역의 왼쪽 좌표
+    /// @param _top 시저링 영역의 위쪽 좌표
+    /// @param _right 시저링 영역의 오른쪽 좌표
+    /// @param _bottom 시저링 영역의 아래쪽 좌표
+    static void SetScissorRect(
+        UInt16 _left,
+        UInt16 _top,
+        UInt16 _right,
+        UInt16 _bottom);
+
+    /// @brief 드로우 콜 제출 시 추가 매개변수를 설정합니다.
+    /// @param _type 설정할 매개변수 타입
+    /// @param _value 매개변수 값
+    static void SetSubmitParameter(eSubmitParameterType _type, Int32 _value);
+
+    /// @brief 현재 파이프라인 바인딩 상태를 플러시합니다.
+    /// @note 드로우 콜을 발생시키지 않고 즉시 상태를 적용합니다.
     static void Flush();
 
-    //////////////////////////////////////////
-    ///          SHADER UTILITIES          ///
-    //////////////////////////////////////////
-
     /// @brief 프로그램에서 특정 셰이더 스테이지의 셰이더를 반환합니다.
-    /// @param _programHandle 프로그램 핸들
-    /// @param _shaderType 셰이더 스테이지
+    /// @param _ph 프로그램 핸들
+    /// @param _stage 셰이더 스테이지
     /// @return 셰이더 핸들 (해당 스테이지에 셰이더가 없으면 assertion 처리)
     /// 해당 함수로 얻는 쉐이더는 DestroyShader로 파괴하지 마십시오.
-    JAM_NODISCARD static ShaderHandle GetShader(
-        ProgramHandle _programHandle,
-        eShader       _shaderType);
+    [[nodiscard]] static ShaderHandle GetShader(
+        ProgramHandle _ph,
+        eShader       _stage);
 
-    ////////////////////////////////////
-    ///          DRAW CALLS          ///
-    ////////////////////////////////////
+    /// @brief 백 버퍼의 해상도를 반환합니다.
+    /// @return 백 버퍼 해상도
+    [[nodiscard]] static Resolution GetBackBufferResolution();
+
+    /// @brief 프레임 버퍼를 생성합니다. (simple)
+    /// @param _texh 프레임 버퍼에 첨부할 단일 텍스처 핸들
+    /// @param _bDestroyTexture true로 설정하면 프레임 버퍼가 파괴될 때 텍스처도 함께 파괴됩니다.
+    /// @return 프레임 버퍼에 대한 참조
+    [[nodiscard]] static FrameBufferHandle CreateFrameBuffer(
+        TextureHandle _texh,
+        bool          _bDestroyTexture = false);
+
+    /// @brief 프레임 버퍼를 생성합니다. (렌더 타겟 + 뎁스 스텐실)
+    /// @param _width 프레임 버퍼의 너비
+    /// @param _height 프레임 버퍼의 높이
+    /// @param _renderTargetFormat 렌더 타겟 텍스처 포맷
+    /// @param _depthFormat 뎁스 스텐실 텍스처 포맷
+    /// @param _writeOnlyRenderTarget 렌더 타겟을 쓰기 전용으로 생성할지 여부
+    /// @param _writeOnlyDepthStencil 뎁스 스텐실을 쓰기 전용으로 생성할지 여부
+    /// @return 프레임 버퍼에 대한 참조
+    [[nodiscard]] static FrameBufferHandle CreateFrameBuffer(
+        Int32          _width,
+        Int32          _height,
+        eTextureFormat _renderTargetFormat,
+        eTextureFormat _depthFormat,
+        bool           _writeOnlyRenderTarget = false,
+        bool           _writeOnlyDepthStencil = false);
+
+    /// @brief 프레임 버퍼를 생성합니다. (렌더 타겟 혹은 뎁스 스텐실 중 하나)
+    /// @param _width 프레임 버퍼의 너비
+    /// @param _height 프레임 버퍼의 높이
+    /// @param _format 렌더 타겟 텍스처 포맷
+    /// @param _bWriteOnly 쓰기 전용으로 생성할지 여부
+    /// @return 프레임 버퍼에 대한 참조
+    [[nodiscard]] static FrameBufferHandle CreateFrameBuffer(
+        Int32          _width,
+        Int32          _height,
+        eTextureFormat _format,
+        bool           _bWriteOnly = false);
+
+    /// @brief 텍스처를 로드합니다.
+    /// @param _scratchImage 로드할 스크래치 이미지
+    /// @note ScratchImage는 DirectXTex 라이브러리가 제공하는 이미지 컨테이너입니다.
+    /// ImageImporter 클래스를 이용하여 생성할 수 있습니다.
+    [[nodiscard]] static TextureHandle LoadTexture(
+        const DirectX::ScratchImage& _scratchImage);
+
+    /// @brief LoadTexture의 간략화 버전입니다.
+    /// @param _path 로드할 이미지 파일 경로
+    [[nodiscard]] static std::optional<TextureHandle> LoadTextureFromFile(
+        const fs::path& _path);
+
+    /// @brief LoadTexture의 간략화 버전입니다.
+    /// @param _mem 메모리 뷰
+    /// @param _format 이미지 포맷
+    [[nodiscard]] static std::optional<TextureHandle> LoadTextureFromMemory(
+        ConstMemView _mem,
+        eImageFormat _format);
+
+    /// @brief 셰이더를 파일에서 로드합니다.
+    /// @param _path 셰이더 파일 경로
+    /// @param _stage 셰이더 스테이지
+    /// @param _entryPoint 셰이더 진입점 함수 이름
+    /// @return 셰이더 핸들
+    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderFromFile(
+        const fs::path&  _path,
+        eShader          _stage,
+        std::string_view _entryPoint);
+
+    /// @brief 셰이더를 소스 코드에서 로드합니다.
+    /// @param _source 셰이더 소스 코드
+    /// @param _stage 셰이더 스테이지
+    /// @param _entryPoint 셰이더 진입점 함수 이름
+    /// @return 셰이더 핸들
+    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderFromSource(
+        std::string_view _source,
+        eShader          _stage,
+        std::string_view _entryPoint);
 
     /// @brief 드로우 콜을 제출합니다.
     /// @note Submit을 호출하기 이전에 리소스를 바인딩해야 합니다.

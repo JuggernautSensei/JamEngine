@@ -16,36 +16,32 @@ LIGHT_VOLUME_PS_INPUT VSMain(VS_INPUT_POS_3D _input)
 
 float4 PSMain(LIGHT_VOLUME_PS_INPUT _input) : SV_TARGET
 {
-    // 인풋 텍스처 중 하나를 택해 좌표계 산출
-    int width, height, dummy;
-    t_gBufferAlbedoAO.GetDimensions(0, width, height, dummy);
-
-    float2 texel = float2(1.f / width, 1.f / height);
-    float2 texCoord = _input.posH.xy * texel;
+    float2 texelSize = float2(cb_texelX, cb_texelY);
+    float2 texCoord = _input.posH.xy * texelSize;
 
     float3 posNdc;
     posNdc.x = texCoord.x * 2.f - 1.f;
     posNdc.y = 1.f - texCoord.y * 2.f;
     posNdc.z = t_depth.Sample(s_pointClamp, texCoord).r;
 
-    float4 normalRoughness = t_gBufferNormalRoughness.Sample(s_linearClamp, texCoord);
-    float3 normalW = normalRoughness.xyz;
+    float3 normal = t_gBufferNormal.Sample(s_linearWrap, texCoord).xyz * 2.f - 1.f;
+    normal = normalize(normal);
 
-    float4 unprojPos = mul(cb_viewProjInv, float4(posNdc, 1.f));
+    float4 unprojPos = mul(float4(posNdc, 1.f), cb_viewProjInv);
     float3 posW = unprojPos.xyz / unprojPos.w;
 
     float3 toLight = normalize(-cb_dirLightDirection);
 
     // final radiance
-    float3 radiance = cb_dirLightColor * cb_dirLightIntensity;
+    float3 radiance = cb_dirLightRadiance * cb_dirLightIntensity;
     
     // compute output color
-    float3 albedo = t_gBufferAlbedoAO.Sample(s_linearClamp, texCoord).rgb;
-    float4 emissiveMetallic = t_gBufferEmissiveMetallic.Sample(s_linearClamp, texCoord);
-    float roughness = normalRoughness.w;
-    float metallic = emissiveMetallic.w;
+    float3 albedo = t_gBufferAlbedo.Sample(s_linearWrap, texCoord).rgb;
+    float4 material = t_gBufferMaterial.Sample(s_linearWrap, texCoord);
+    float metallic = material.r;
+    float roughness = material.g;
     
-    float3 toEye = normalize(cb_eyePos - posW);
-    float3 output = DirectBRDF(toLight, toEye, normalW, albedo, metallic, roughness) * radiance;
+    float3 toEye = normalize(cb_eye - posW);
+    float3 output = DirectBRDF(toLight, toEye, normal, albedo, metallic, roughness) * radiance;
     return float4(output, 1.f);
 }

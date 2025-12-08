@@ -31,7 +31,7 @@ public:
         /// Flag that turns on/off mini-tree pruning.
         bool enable_pruning = true;
 
-        /// Threshold on the area of a mini-tree node above which it is pruned, expressed in
+        /// Threshold on the area of a mini-tree pNode above which it is pruned, expressed in
         /// fraction of the area of bounding box around the entire set of primitives.
         Scalar pruning_area_ratio = static_cast<Scalar>(0.01);
 
@@ -42,7 +42,7 @@ public:
         size_t log2_grid_dim = 4;
     };
 
-    /// Starts building a BVH with the given primitive data. The build algorithm is multi-threaded,
+    /// Starts building a BVH with the given primitive renderable. The build algorithm is multi-threaded,
     /// and runs on the given thread pool.
     [[nodiscard]] BVH_ALWAYS_INLINE static Bvh<Node> build(
         ThreadPool& thread_pool,
@@ -63,7 +63,7 @@ private:
     struct Bin {
         std::vector<size_t> ids;
 
-        BVH_ALWAYS_INLINE void add(size_t id) { ids.push_back(id); }
+        BVH_ALWAYS_INLINE void add(const size_t id) { ids.push_back(id); }
 
         BVH_ALWAYS_INLINE void merge(Bin&& other) {
             if (ids.empty())
@@ -160,7 +160,7 @@ private:
     std::vector<Bvh<Node>> build_mini_trees() {
         // Compute the bounding box of all centers
         auto center_bbox = executor_.reduce(0, bboxes_.size(), BBox::make_empty(),
-            [this] (BBox& bbox, size_t begin, size_t end) {
+            [this] (BBox& bbox, const size_t begin, const size_t end) {
                 for (size_t i = begin; i < end; ++i)
                     bbox.extend(centers_[i]);
             },
@@ -174,7 +174,7 @@ private:
 
         // Place primitives in bins
         auto final_bins = executor_.reduce(0, bboxes_.size(), LocalBins {},
-            [&] (LocalBins& local_bins, size_t begin, size_t end) {
+            [&] (LocalBins& local_bins, const size_t begin, const size_t end) {
                 local_bins.bins.resize(bin_count);
                 for (size_t i = begin; i < end; ++i) {
                     auto p = robust_max(fast_mul_add(centers_[i], grid_scale, grid_offset), Vec(0));
@@ -234,7 +234,7 @@ private:
         // Extract the BVHs rooted at the previously computed indices
         std::vector<Bvh<Node>> pruned_trees(pruned_roots.size());
         executor_.for_each(0, pruned_roots.size(),
-            [&] (size_t begin, size_t end) {
+            [&] (const size_t begin, const size_t end) {
                 for (size_t i = begin; i < end; ++i) {
                     if (pruned_roots[i].second == 0)
                         pruned_trees[i] = std::move(mini_trees[pruned_roots[i].first]);
@@ -259,20 +259,20 @@ private:
         config.max_leaf_size = config.min_leaf_size = 1; // Needs to have only one mini-tree in each leaf
         auto bvh = SweepSahBuilder<Node>::build(bboxes, centers, config);
 
-        // Compute the offsets to apply to primitive and node indices
+        // Compute the offsets to apply to primitive and pNode indices
         std::vector<size_t> node_offsets(mini_trees.size());
         std::vector<size_t> prim_offsets(mini_trees.size());
         size_t node_count = bvh.nodes.size();
         size_t prim_count = 0;
         for (size_t i = 0; i < mini_trees.size(); ++i) {
-            node_offsets[i] = node_count - 1; // Skip root node
+            node_offsets[i] = node_count - 1; // Skip root pNode
             prim_offsets[i] = prim_count;
             node_count += mini_trees[i].nodes.size() - 1; // idem
             prim_count += mini_trees[i].prim_ids.size();
         }
 
-        // Helper function to copy and fix the child/primitive index of a node
-        auto copy_node = [&] (size_t i, Node& dst_node, const Node& src_node) {
+        // Helper function to copy and fix the child/primitive index of a pNode
+        auto copy_node = [&] (const size_t i, Node& dst_node, const Node& src_node) {
             dst_node = src_node;
             dst_node.index.set_first_id(dst_node.index.first_id() +
                 (src_node.is_leaf() ? prim_offsets[i] : node_offsets[i]));
@@ -290,12 +290,12 @@ private:
         bvh.nodes.resize(node_count);
         bvh.prim_ids.resize(prim_count);
         executor_.for_each(0, mini_trees.size(),
-            [&] (size_t begin, size_t end) {
+            [&] (const size_t begin, const size_t end) {
                 for (size_t i = begin; i < end; ++i) {
                     auto& mini_tree = mini_trees[i];
 
                     // Copy the nodes of the mini tree with the offsets applied, without copying
-                    // the root node (since it is already copied to the top-level part of the BVH).
+                    // the root pNode (since it is already copied to the top-level part of the BVH).
                     for (size_t j = 1; j < mini_tree.nodes.size(); ++j)
                         copy_node(i, bvh.nodes[node_offsets[i] + j], mini_tree.nodes[j]);
 

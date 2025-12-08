@@ -195,6 +195,7 @@
 
 float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
+    // world pos
     float3 posNdc;
     posNdc.x = _input.texCoord0.x * 2.f - 1.f;
     posNdc.y = _input.texCoord0.y * -2.f + 1.f;
@@ -203,35 +204,36 @@ float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
     float4 unprojedPos = mul(float4(posNdc, 1.f), cb_viewProjInv);
     float3 posW = unprojedPos.xyz / unprojedPos.w;
 
-    float4 normalRoughness = t_gBufferNormalRoughness.Sample(s_linearWrap, _input.texCoord0);
-    float3 normal = normalize(normalRoughness.xyz);
-    float roughness = normalRoughness.w;
+    // normal
+    float3 normal = t_gBufferNormal.Sample(s_linearWrap, _input.texCoord0).xyz * 2.f - 1.f;
+    normal = normalize(normal);
 
-    float4 emissiveMetallic = t_gBufferEmissiveMetallic.Sample(s_linearWrap, _input.texCoord0);
-    float3 emissive = emissiveMetallic.rgb;
-    float metallic = emissiveMetallic.w;
+    // material
+    float3 metalRoughAo = t_gBufferMaterial.Sample(s_linearWrap, _input.texCoord0).rgb;
+    float metallic = metalRoughAo.r;
+    float roughness = metalRoughAo.g;
+    float ao = metalRoughAo.b;
 
-    float4 albedoAo = t_gBufferAlbedoAO.Sample(s_linearWrap, _input.texCoord0);
-    float3 albedo = albedoAo.rgb;
-    float ao = albedoAo.a;
+    // lighting
+    float3 lighting = t_gBufferLighting.Sample(s_linearWrap, _input.texCoord0).rgb;
 
-    float3 toEye = normalize(cb_eyePos - posW);
+    // albedo
+    float3 albedo = t_gBufferAlbedo.Sample(s_linearWrap, _input.texCoord0).rgb;
 
-    float3 r = normalize(reflect(-toEye, normal));
-    float3 diffuseIBL = DiffuseIBL(albedo, normal, toEye, metallic) * cb_irradianceMapIntensity;
-    float3 specularIBL = SpecularIBL(albedo, normal, toEye, r, metallic, roughness) * cb_specularMapIntensity;
+    // pbr IBL
+    float3 e = normalize(cb_eye - posW);
+    float3 r = normalize(reflect(-e, normal));
+    float3 f0 = lerp(k_dielectric, albedo, metallic);
+    float nDote = max(0.f, dot(normal, e));
+    float3 fresnel = SchlickFresnelRoughness(f0, nDote, roughness);
+    float3 diffuseIBL = DiffuseIBL(albedo, normal, fresnel, metallic);
+    float3 specularIBL = SpecularIBL(r, nDote, roughness, fresnel);
 
-    // 최종 차폐
+    // ao
     float ssao = (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SSAO) ? t_ssao.Sample(s_linearWrap, _input.texCoord0).r : 1.f;
     float finalAo = ssao * ao;
+    float3 ambient = (diffuseIBL + specularIBL) * finalAo;
 
-    float nDotE = max(0.f, dot(normal, toEye));
-    float specularAo = SpecularOcclusion(finalAo, roughness, nDotE);
-
-    // 최종 색상
-    diffuseIBL *= finalAo;
-    specularIBL *= specularAo;
-
-    float3 finalColor = diffuseIBL + specularIBL + emissive;
+    float3 finalColor = ambient + lighting;
     return float4(finalColor, 1.f);
 }

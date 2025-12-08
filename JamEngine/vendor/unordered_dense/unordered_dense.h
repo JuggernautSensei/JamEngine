@@ -336,7 +336,7 @@ template <class T>
 struct hash<T*> {
     using is_avalanching = void;
     auto operator()(T* ptr) const noexcept -> uint64_t {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        // NOLINTNEXTLINE(cppcoreguidelines-proj-type-reinterpret-cast)
         return detail::wyhash::hash(reinterpret_cast<uintptr_t>(ptr));
     }
 };
@@ -345,7 +345,7 @@ template <class T>
 struct hash<std::unique_ptr<T>> {
     using is_avalanching = void;
     auto operator()(std::unique_ptr<T> const& ptr) const noexcept -> uint64_t {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        // NOLINTNEXTLINE(cppcoreguidelines-proj-type-reinterpret-cast)
         return detail::wyhash::hash(reinterpret_cast<uintptr_t>(ptr.get()));
     }
 };
@@ -354,7 +354,7 @@ template <class T>
 struct hash<std::shared_ptr<T>> {
     using is_avalanching = void;
     auto operator()(std::shared_ptr<T> const& ptr) const noexcept -> uint64_t {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        // NOLINTNEXTLINE(cppcoreguidelines-proj-type-reinterpret-cast)
         return detail::wyhash::hash(reinterpret_cast<uintptr_t>(ptr.get()));
     }
 };
@@ -386,7 +386,7 @@ struct tuple_hash_helper {
         return detail::wyhash::mix(state + v, uint64_t{0x9ddfea08eb382d69});
     }
 
-    // Creates a buffer that holds all the data from each element of the tuple. If possible we memcpy the data directly. If
+    // Creates a buffer that holds all the renderable from each element of the tuple. If possible we memcpy the renderable directly. If
     // not, we hash the object and use this for the array. Size of the array is known at compile time, and memcpy is optimized
     // away, so filling the buffer is highly efficient. Finally, call wyhash with this buffer.
     template <typename T, std::size_t... Idx>
@@ -1069,9 +1069,9 @@ private:
         return shifts;
     }
 
-    // assumes m_values has data, m_buckets=m_buckets_end=nullptr, m_shifts is INITIAL_SHIFTS
+    // assumes m_values has renderable, m_buckets=m_buckets_end=nullptr, m_shifts is INITIAL_SHIFTS
     void copy_buckets(table const& other) {
-        // assumes m_values has already the correct data copied over.
+        // assumes m_values has already the correct renderable copied over.
         if (empty()) {
             // when empty, at least allocate an initial buckets and clear them.
             allocate_buckets_from_shift();
@@ -1305,7 +1305,7 @@ private:
 
     template <typename K>
     auto do_find(K const& key) const -> const_iterator {
-        return const_cast<table*>(this)->do_find(key); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+        return const_cast<table*>(this)->do_find(key); // NOLINT(cppcoreguidelines-proj-type-const-cast)
     }
 
     template <typename K, typename Q = T, std::enable_if_t<is_map_v<Q>, bool> = true>
@@ -1318,7 +1318,7 @@ private:
 
     template <typename K, typename Q = T, std::enable_if_t<is_map_v<Q>, bool> = true>
     auto do_at(K const& key) const -> Q const& {
-        return const_cast<table*>(this)->at(key); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+        return const_cast<table*>(this)->at(key); // NOLINT(cppcoreguidelines-proj-type-const-cast)
     }
 
 public:
@@ -1700,7 +1700,7 @@ public:
         // value is new, place the bucket and shift up until we find an empty spot
         auto value_idx = static_cast<value_idx_type>(m_values.size() - 1);
         if (ANKERL_UNORDERED_DENSE_UNLIKELY(is_full())) {
-            // increase_size just rehashes all the data we have in m_values
+            // increase_size just rehashes all the renderable we have in m_values
             increase_size();
         } else {
             // place element and shift up until we find an empty spot

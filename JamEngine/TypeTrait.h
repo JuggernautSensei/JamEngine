@@ -45,35 +45,21 @@ namespace details
             return std::string_view { k_typeNameBuf.data(), k_typeNameBuf.size() };
         }
     };
-}   // namespace internal
+}   // namespace details
 
 template<typename T>
-JAM_NODISCARD constexpr std::string_view NameOf()
+[[nodiscard]] constexpr std::string_view NameOf()
 {
     return details::TypeName<T>::Value();
 }
 
 template<typename T>
-JAM_NODISCARD constexpr UInt32 HashOf()
+[[nodiscard]] constexpr UInt32 HashOf()
 {
     return entt::type_hash<T>::value();
 }
 
 template<typename T>
 constexpr bool AlwaysFalse = false;
-
-template<typename T>
-constexpr bool IsStdContainer = std::is_class_v<T> && requires(T a) {
-    a.begin();
-    a.end();
-    a.size();
-};
-
-template<typename T>
-constexpr bool IsStdContiguousSequenceContainer = IsStdContainer<T> && std::ranges::contiguous_range<T>;
-
-template<typename T>
-constexpr bool IsPlainOfData = std::is_trivially_copyable_v<T> && std::is_standard_layout_v<T>;
-
 
 }   // namespace jam

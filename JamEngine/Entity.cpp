@@ -2,7 +2,7 @@
 
 #include "Entity.h"
 
-#include "Components.h"
+#include "TransformComponent.h"
 
 namespace jam
 {
@@ -38,8 +38,12 @@ entt::entity Entity::GetHandle() const
 
 bool Entity::IsValid() const
 {
-    return m_pRegistry != nullptr
-        && m_pRegistry->valid(m_handle);
+    return m_pRegistry && m_pRegistry->valid(m_handle);
+}
+
+Entity::operator bool() const
+{
+    return IsValid();
 }
 
 UID Entity::GetUID() const
@@ -47,24 +51,14 @@ UID Entity::GetUID() const
     return m_uid;
 }
 
-TransformComponent& Entity::GetTransformComponent()
+TransformHierarchy& Entity::GetTransformHierarchy()
 {
-    return m_pRegistry->get<TransformComponent>(m_handle);
+    return m_pRegistry->get<TransformComponent>(m_handle).transformHierarchy;
 }
 
-const TransformComponent& Entity::GetTransformComponent() const
+const TransformHierarchy& Entity::GetTransformHierarchy() const
 {
-    return m_pRegistry->get<TransformComponent>(m_handle);
-}
-
-TransformHierarchy& Entity::GetTransform()
-{
-    return m_pRegistry->get<TransformComponent>(m_handle).transform;
-}
-
-const TransformHierarchy& Entity::GetTransform() const
-{
-    return m_pRegistry->get<TransformComponent>(m_handle).transform;
+    return m_pRegistry->get<TransformComponent>(m_handle).transformHierarchy;
 }
 
 }   // namespace jam

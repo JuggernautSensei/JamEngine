@@ -1,25 +1,31 @@
 #include "pch.h"
 
 #include "MathUtilities.h"
-#include <Random>
-
-namespace jam::details
-{
-std::mt19937 g_randomGenerator = std::mt19937 {};
-UInt32       g_randomSeed      = 0;
-}   // namespace jam::details
 
 namespace jam
 {
 
-Vec3 ToRad(const Vec3& _degrees)
+namespace details
 {
-    return _degrees * k_degToRad;
+    std::mt19937 g_randomGenerator;
+    UInt32       g_randomSeed;
+}   // namespace details
+
+PitchYaw ForwardToPitchYaw(const Vec3 _forward)
+{
+    const Vec3 f = Normalized(_forward);
+
+    PitchYaw result;
+    result.yaw   = ATan2(f.x, f.z);
+    result.pitch = Asin(-f.y);
+    return result;
 }
 
-Vec3 ToDeg(const Vec3& _radians)
+Vec3 PitchYawToForward(const float _pitchRad, const float _yawRad)
 {
-    return _radians * k_radToDeg;
+    const auto [sp, cp] = SinCosApprox(_pitchRad);
+    const auto [sy, cy] = SinCosApprox(_yawRad);
+    return Normalized(Vec3 { sp * sy, -sp, cp * cy });
 }
 
 Float16 ToFloat16(const float value)
@@ -27,64 +33,52 @@ Float16 ToFloat16(const float value)
     return DirectX::PackedVector::XMConvertFloatToHalf(value);
 }
 
-float ToFloat(const Float16 value)
+float ToFloat32(const Float16 value)
 {
     return DirectX::PackedVector::XMConvertHalfToFloat(value);
 }
 
-Mat4 CreateWorldLookTo(const Vec3& _translate, const Vec3& _forward, const Vec3& _scale)
+Mat4 CreateWorldLookTo(const Vec3 _t, const Vec3 _f, const Vec3 _s)
 {
-    // forward
-    Vec3 forward = _forward;
-    forward.Normalize();
+    const Vec3 f = Normalized(_f);
 
-    Vec3 up = Vec3::Up;
-    if (up.Dot(forward) >= 1.f - k_epsilon)
-        up = Vec3::Forward;
+    Vec3 base = Vec3::Up;
+    if (IsEqualApprox(Dot(base, f), 1.f))
+    {
+        base = Vec3::Forward;
+    }
 
-    // right
-    Vec3 right = up.Cross(forward);
-    right.Normalize();
+    const Vec3 r = Normalized(Cross(base, f));
+    const Vec3 u = Normalized(Cross(f, r));
 
-    // up
-    up = forward.Cross(right);
-    up.Normalize();
-
-    // clang-format off
-    Mat4 rMat {
-        right.x, right.y, right.z, 0.f,
-        up.x, up.y, up.z, 0.f,
-        forward.x, forward.y, forward.z, 0.f,
-        0.f, 0.f, 0.f, 1.f
+    const Mat4 rot {
+        r.x, r.y, r.z, 0.f, u.x, u.y, u.z, 0.f, f.x, f.y, f.z, 0.f, 0.f, 0.f, 0.f, 1.f
     };
-    // clang-format on
 
-    return Mat4::CreateScale(_scale)
-         * rMat
-         * Mat4::CreateTranslation(_translate);
+    return Mat4::CreateScale(_s) * rot * Mat4::CreateTranslation(_t);
 }
 
-Mat4 CreateWorld(const Vec3& _translate, const Quat& _quat, const Vec3& _scale)
+Mat4 CreateWorld(const Vec3 _t, const Quat _q, const Vec3 _s)
 {
-    return Mat4::CreateScale(_scale)
-         * Mat4::CreateFromQuaternion(_quat)
-         * Mat4::CreateTranslation(_translate);
+    return Mat4::CreateScale(_s) * Mat4::CreateFromQuaternion(_q) * Mat4::CreateTranslation(_t);
 }
 
-Mat4 CreateViewLookTo(const Vec3& _position, const Vec3& _forward)
+Mat4 CreateViewLookTo(const Vec3 _position, const Vec3 _forward)
 {
-    Vec3 forward = _forward;
-    forward.Normalize();
-    Vec3 up = Vec3::Up;
-    if (up.Dot(forward) >= 1.f - k_epsilon)
-        up = Vec3::Forward;
-    return DirectX::XMMatrixLookToLH(_position, _forward, Vec3::Up);
+    const Vec3 f    = Normalized(_forward);
+    Vec3       base = Vec3::Up;
+    if (IsEqualApprox(Dot(base, f), 1.f))
+    {
+        base = Vec3::Forward;
+    }
+
+    return DirectX::XMMatrixLookToLH(_position, f, base);
 }
 
-Mat4 CreateViewLookAt(const Vec3& _position, const Vec3& _focusPoint)
+Mat4 CreateViewLookAt(const Vec3 _position, const Vec3 _focusPoint)
 {
-    const Vec3 forward = (_focusPoint - _position);
-    return CreateViewLookTo(_position, forward);
+    const Vec3 f = (_focusPoint - _position);
+    return CreateViewLookTo(_position, f);
 }
 
 Mat4 CreateOrthographic(const float width, const float height, const float nearZ, const float farZ)
@@ -102,15 +96,11 @@ Mat4 CreatePerspectiveFov(const float fovYRad, const float aspectRatio, const fl
     return DirectX::XMMatrixPerspectiveFovLH(fovYRad, aspectRatio, nearZ, farZ);
 }
 
-AxisAngle QuatToAxisAngle(const Quat& _q)
+AxisAngle QuatToAxisAngle(const Quat _q)
 {
-    Quat q = _q;
-    q.Normalize();
-
-    Vec3 axis = { q.x, q.y, q.z };
-    axis.Normalize();
-
-    float angle = 2.f * std::acosf(q.w);
+    const Quat  q     = Normalized(_q);
+    const Vec3  axis  = Normalized({ q.x, q.y, q.z });
+    const float angle = 2.f * Acos(q.w);
     return { axis, angle };
 }
 

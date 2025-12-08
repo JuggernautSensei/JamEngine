@@ -5,171 +5,30 @@
 namespace jam
 {
 
-RGBA RGBA::k_black = RGBA(0, 0, 0, 255);
-RGBA RGBA::k_white = RGBA(255, 255, 255, 255);
+RGBA RGBA::k_white       = RGBA(255, 255, 255, 255);
+RGBA RGBA::k_black       = RGBA(0, 0, 0, 255);
+RGBA RGBA::k_transparent = RGBA(0, 0, 0, 0);
 
-GfxState GfxState::k_default = {};
+RenderState RenderState::k_default   = {};
+RenderState RenderState::k_depthTest = { ePrimitive::TriangleList, eCullMode::Back, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, true };   // namespace jam
 
-GfxState GfxState::k_depthTest = {
-    ePrimitive::TriangleList,
-    eCullMode::Back,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    eCompareFunc::LessEqual,
-    true
-};
+BlendState BlendState::k_opaque             = {};
+BlendState BlendState::k_alphaBlend         = { true, eBlend::SrcAlpha, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags_All };
+BlendState BlendState::k_additive           = { true, eBlend::One, eBlend::One, eBlendOp::Add, eBlend::One, eBlend::One, eBlendOp::Add, eWriteFlags_All };
+BlendState BlendState::k_premultipliedAlpha = { true, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags_All };
+BlendState BlendState::k_subtractive        = { true, eBlend::InvDstColor, eBlend::Zero, eBlendOp::Add, eBlend::InvDstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags_All };
+BlendState BlendState::k_multiply           = { true, eBlend::DstColor, eBlend::Zero, eBlendOp::Add, eBlend::DstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags_All };
+BlendState BlendState::k_screen             = { true, eBlend::One, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags_All };
+BlendState BlendState::k_overlay            = { true, eBlend::DstColor, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::Zero, eBlendOp::Add, eWriteFlags_All };
 
-BlendState BlendState::k_opaque = {};
+StencilState StencilState::k_default = {};
 
-BlendState BlendState::k_alpha = {
-    true,
-    eBlend::SrcAlpha,
-    eBlend::InvSrcAlpha,
-    eBlendOp::Add,
-    eBlend::One,
-    eBlend::InvSrcAlpha,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
+SamplerState SamplerState::k_pointClamp  = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddress::Clamp, eTextureAddress::Clamp, eTextureAddress::Clamp, eCompareFunc::None };
+SamplerState SamplerState::k_linearClamp = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddress::Clamp, eTextureAddress::Clamp, eTextureAddress::Clamp, eCompareFunc::None };
+SamplerState SamplerState::k_pointWrap   = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddress::Wrap, eTextureAddress::Wrap, eTextureAddress::Wrap, eCompareFunc::None };
+SamplerState SamplerState::k_linearWrap  = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddress::Wrap, eTextureAddress::Wrap, eTextureAddress::Wrap, eCompareFunc::None };
 
-BlendState BlendState::k_additive = {
-    true,
-    eBlend::One,
-    eBlend::One,
-    eBlendOp::Add,
-    eBlend::One,
-    eBlend::One,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-BlendState BlendState::k_overlay = {
-    true,
-    eBlend::DstColor,
-    eBlend::InvSrcColor,
-    eBlendOp::Add,
-    eBlend::One,
-    eBlend::Zero,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-BlendState BlendState::k_premult = {
-    true,
-    eBlend::One,
-    eBlend::InvSrcAlpha,
-    eBlendOp::Add,
-    eBlend::One,
-    eBlend::InvSrcAlpha,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-BlendState BlendState::k_subtractive = {
-    true,
-    eBlend::InvDstColor,
-    eBlend::Zero,
-    eBlendOp::Add,
-    eBlend::InvDstAlpha,
-    eBlend::Zero,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-BlendState BlendState::k_multiply = {
-    true,
-    eBlend::DstColor,
-    eBlend::Zero,
-    eBlendOp::Add,
-    eBlend::DstAlpha,
-    eBlend::Zero,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-BlendState BlendState::k_screen = {
-    true,
-    eBlend::One,
-    eBlend::InvSrcColor,
-    eBlendOp::Add,
-    eBlend::One,
-    eBlend::InvSrcAlpha,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-BlendState BlendState::k_darkening = {
-    true,
-    eBlend::DstColor,
-    eBlend::SrcColor,
-    eBlendOp::Add,
-    eBlend::DstAlpha,
-    eBlend::SrcAlpha,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-BlendState BlendState::k_lightening = {
-    true,
-    eBlend::One,
-    eBlend::InvSrcColor,
-    eBlendOp::Add,
-    eBlend::One,
-    eBlend::InvSrcAlpha,
-    eBlendOp::Add,
-    eWriteFlags_All
-};
-
-StencilState StencilState::k_disable = {};
-
-SamplerState SamplerState::k_default = {};
-
-SamplerState SamplerState::k_pointClamp = {
-    eTextureFilter::MinPoint_MagPoint_MipPoint,
-    eTextureAddress::Clamp,
-    eTextureAddress::Clamp,
-    eTextureAddress::Clamp,
-    eCompareFunc::None
-};
-SamplerState SamplerState::k_linearClamp = {
-    eTextureFilter::MinLinear_MagLinear_MipLinear,
-    eTextureAddress::Clamp,
-    eTextureAddress::Clamp,
-    eTextureAddress::Clamp,
-    eCompareFunc::None
-};
-
-SamplerState SamplerState::k_pointWrap = {
-    eTextureFilter::MinPoint_MagPoint_MipPoint,
-    eTextureAddress::Wrap,
-    eTextureAddress::Wrap,
-    eTextureAddress::Wrap,
-    eCompareFunc::None
-};
-
-SamplerState SamplerState::k_linearWrap = {
-    eTextureFilter::MinLinear_MagLinear_MipLinear,
-    eTextureAddress::Wrap,
-    eTextureAddress::Wrap,
-    eTextureAddress::Wrap,
-    eCompareFunc::None
-};
-
-SamplerState SamplerState::k_shadow = {
-    eTextureFilter::MinLinear_MagLinear_MipLinear,
-    eTextureAddress::Clamp,
-    eTextureAddress::Clamp,
-    eTextureAddress::Clamp,
-    eCompareFunc::LessEqual
-};
-
-Int32 GetPixelByte(const eFormat _format)
+Int32 GetBytePerPixel(const eTextureFormat _format)
 {
     switch (_format)
     {
@@ -216,6 +75,9 @@ Int32 GetPixelByte(const eFormat _format)
         case RGBA8_SNorm:
         case RGBA8_UInt:
         case RGBA8_Int:
+        case RGBA8_UNorm_SRGB:
+        case BGRA8_UNorm:
+        case BGRA8_UNorm_SRGB:
             return 4;
 
         case RGBA16_UNorm:
@@ -248,7 +110,7 @@ Int32 GetPixelByte(const eFormat _format)
     }
 }
 
-bool IsDepthFormat(const eFormat _format)
+bool IsDepthFormat(const eTextureFormat _format)
 {
     switch (_format)
     {
@@ -263,22 +125,13 @@ bool IsDepthFormat(const eFormat _format)
     }
 }
 
-Int32 GetIndexFormatByte(const eIndexFormat _format)
-{
-    return _format == eIndexFormat::U16 ? 2 : 4;
-}
-
-Int32 CalcMipsCount(const Int32 _width, const Int32 _height, const Int32 _depth)
+Int32 CalcNumMips(const Int32 _width, const Int32 _height, const Int32 _depth)
 {
     JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "텍스처 크기는 0보다 커야합니다.");
-    return 1 + Log2_Int32(Max(_width, _height, _depth));
+    return 1 + Log2(Max(_width, _height, _depth));
 }
 
-std::tuple<Int32, Int32, Int32> CalcMipSize(
-    const Int32 _width,
-    const Int32 _height,
-    const Int32 _depth,
-    const Int32 _mipIndex)
+TextureResolution CalcTextureResolution(const Int32 _width, const Int32 _height, const Int32 _depth, const Int32 _mipIndex)
 {
     JAM_ASSERT(_width >= 0 && _height >= 0 && _depth >= 0, "텍스처 크기는 0 이상이어야 합니다.");
     JAM_ASSERT(_mipIndex >= 0, "밉 인덱스는 0 이상이어야 합니다.");
@@ -289,9 +142,14 @@ std::tuple<Int32, Int32, Int32> CalcMipSize(
     return { mipWidth, mipHeight, mipDepth };
 }
 
-Int32 CalcTextureIndex(const Int32 _mipIndex, const Int32 _arrayIndex, const Int32 _mipsCount)
+Int32 CalcTextureIndex(const Int32 _mipIndex, const Int32 _arrayIndex, const Int32 _numMips)
 {
-    return _mipIndex + _arrayIndex * _mipsCount;
+    return _mipIndex + _arrayIndex * _numMips;
+}
+
+Int32 GetIndexStride(const bool _bIsU32)
+{
+    return _bIsU32 ? 4 : 2;
 }
 
 }   // namespace jam

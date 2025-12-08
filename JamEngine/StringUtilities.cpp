@@ -2,29 +2,36 @@
 
 #include "StringUtilities.h"
 
+#include "FString.h"
+
 namespace jam
 {
 
+FString<1024> g_tmpBuffer;
 
 std::wstring ToLower(const std::wstring_view _wStr)
 {
     std::wstring output;
-    output.resize(_wStr.size());
+    output.reserve(_wStr.size());
     for (size_t i = 0; i < _wStr.size(); ++i)
     {
-        output[i] = static_cast<wchar_t>(towlower(_wStr[i]));
+        const wchar_t c = ::towlower(_wStr[i]);
+        output.push_back(c);
     }
+
     return output;
 }
 
 std::string ToLower(const std::string_view _str)
 {
     std::string output;
-    output.resize(_str.size());
+    output.reserve(_str.size());
     for (size_t i = 0; i < _str.size(); ++i)
     {
-        output[i] = static_cast<char>(tolower(_str[i]));
+        const char c = ::tolower(_str[i]);
+        output.push_back(c);
     }
+
     return output;
 }
 
@@ -74,20 +81,19 @@ std::wstring ToUTF16(const std::string_view _str)
     return result;
 }
 
-std::vector<std::string> Split(const std::string_view _str, const std::string_view _delimiter)
+const char* FormatStringToTmpBuffer(const char* _fmt, ...)
 {
-    std::vector<std::string> output;
+    va_list ap;
+    va_start(ap, _fmt);
+    g_tmpBuffer.format_v(_fmt, ap);
+    va_end(ap);
+    return g_tmpBuffer.c_str();
+}
 
-    size_t start = 0;
-    size_t end   = _str.find(_delimiter);
-    while (end != std::string::npos)
-    {
-        output.emplace_back(_str.substr(start, end - start));
-        start = end + _delimiter.length();
-        end   = _str.find(_delimiter, start);
-    }
-    output.emplace_back(_str.substr(start, end));
-    return output;
+const char* FormatStringToTmpBufferV(const char* _fmt, const va_list _args)
+{
+    g_tmpBuffer.format_v(_fmt, _args);
+    return g_tmpBuffer.c_str();
 }
 
 }   // namespace jam

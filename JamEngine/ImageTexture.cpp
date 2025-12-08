@@ -4,37 +4,58 @@
 
 #include "Graphics.h"
 #include "ImageExporter.h"
-#include "ImageImporter.h"
 #include "Profile.h"
 
 namespace jam
 {
 
-eErrorCode ImageTexture::Load(const fs::path& _path)
+bool ImageTexture::Load(const fs::path& _path)
 {
-    JAM_PROFILE_SCOPE_MS(R"(ImageTexture::Load "{}")", _path.native());
-
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
     CleanUp_();
 
-    auto [ec, handle] = Graphics::LoadTexture(_path);
-    if (IsOk(ec))
+    if (std::optional<TextureHandle> opt = Graphics::LoadTextureFromFile(_path))
     {
-        m_path   = _path;
-        m_handle = handle;
+        m_path = _path;
+        m_texh = opt.value();
+        return true;
     }
-    return ec;
+    else
+    {
+        return false;
+    }
 }
 
-eErrorCode ImageTexture::Save(const fs::path& _path) const
+bool ImageTexture::LoadFromMemory(const ConstMemView _mem, const eImageFormat _format, const fs::path& _virtualPath)
 {
-    JAM_PROFILE_SCOPE_MS(R"(ImageTexture::Save "{}")", _path.native());
+    JAM_FUNCTION_MSG_PROFILE("virtualPath: {}", _virtualPath.native());
+    CleanUp_();
 
-    DirectX::ScratchImage sImg = Graphics::Capture(m_handle);
+    if (std::optional<TextureHandle> opt = Graphics::LoadTextureFromMemory(_mem, _format))
+    {
+        m_texh = opt.value();
+        m_path = _virtualPath;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool ImageTexture::Save(const fs::path& _path) const
+{
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
 
     ImageExporter exporter;
     exporter.SetPath(_path);
-    exporter.SetImage(std::move(sImg));
+    exporter.SetTexture(m_texh);
     return exporter.Export();
+}
+
+bool ImageTexture::IsValid() const
+{
+    return JAM_IS_VALID_HANDLE(m_texh);
 }
 
 ImageTexture::~ImageTexture()
@@ -44,10 +65,9 @@ ImageTexture::~ImageTexture()
 
 ImageTexture::ImageTexture(ImageTexture&& _other) noexcept
 {
-    m_handle = _other.m_handle;
-    m_path   = std::move(_other.m_path);
-
-    _other.m_handle = k_invalidHandle;
+    m_texh        = _other.m_texh;
+    m_path        = std::move(_other.m_path);
+    _other.m_texh = k_invalidHandle;
     _other.m_path.clear();
 }
 
@@ -56,11 +76,9 @@ ImageTexture& ImageTexture::operator=(ImageTexture&& _other) noexcept
     if (this != &_other)
     {
         CleanUp_();
-
-        m_handle = _other.m_handle;
-        m_path   = std::move(_other.m_path);
-
-        _other.m_handle = k_invalidHandle;
+        m_texh        = _other.m_texh;
+        m_path        = std::move(_other.m_path);
+        _other.m_texh = k_invalidHandle;
         _other.m_path.clear();
     }
     return *this;
@@ -71,39 +89,34 @@ void ImageTexture::Unload()
     CleanUp_();
 }
 
-bool ImageTexture::IsLoaded() const
-{
-    return JAM_IS_VALID_HANDLE(m_handle);
-}
-
 const fs::path& ImageTexture::GetPath() const
 {
     return m_path;
 }
 
-eAssetType ImageTexture::GetType() const
+eAssetType ImageTexture::GetAssetType() const
 {
     return k_type;
 }
 
-UInt32 ImageTexture::GetHash() const
+UInt32 ImageTexture::GetTypeHash() const
 {
     return k_hash;
 }
 
-std::string_view ImageTexture::GetName() const
+std::string_view ImageTexture::GetTypeName() const
 {
     return k_name;
 }
 
 TextureHandle ImageTexture::GetHandle() const
 {
-    return m_handle;
+    return m_texh;
 }
 
 void ImageTexture::Bind(const eShader _shader, const Int32 _slot) const
 {
-    Graphics::SetTexture(m_handle, _shader, _slot);
+    Graphics::SetTexture(m_texh, _shader, _slot);
 }
 
 void ImageTexture::Unbind(const eShader _shader, const Int32 _slot) const
@@ -113,7 +126,7 @@ void ImageTexture::Unbind(const eShader _shader, const Int32 _slot) const
 
 void ImageTexture::CleanUp_()
 {
-    JAM_DESTROY_TEXTURE(m_handle);
+    JAM_DESTROY_TEXTURE(m_texh);
     m_path.clear();
 }
 

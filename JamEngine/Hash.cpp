@@ -28,12 +28,12 @@ void MurmurHash32::Add(const void* _pByte, const size_t _byteWidth)
     constexpr UInt32 k_c1 = 0xcc9e2d51;
     constexpr UInt32 k_c2 = 0x1b873593;
 
-    const Byte* pByte      = static_cast<const Byte*>(_pByte);
-    const Int32 blockCount = NarrowCast<Int32>(_byteWidth / 4);
+    const Byte* pByte     = static_cast<const Byte*>(_pByte);
+    const Int32 numBlocks = NarrowCast<Int32>(_byteWidth / 4);
     m_length += NarrowCast<Int32>(_byteWidth);
 
     const UInt32* pBlock = reinterpret_cast<const UInt32*>(pByte);
-    for (Int32 i = 0; i < blockCount; ++i)
+    for (Int32 i = 0; i < numBlocks; ++i)
     {
         UInt32 k1 = pBlock[i];
         k1 *= k_c1;
@@ -45,7 +45,7 @@ void MurmurHash32::Add(const void* _pByte, const size_t _byteWidth)
         m_hash = m_hash * 5 + 0xe6546b64;
     }
 
-    const Byte* pTail = pByte + blockCount * 4;
+    const Byte* pTail = pByte + numBlocks * 4;
     UInt32      k1    = 0;
 
     switch (_byteWidth & 3)

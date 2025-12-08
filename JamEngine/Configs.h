@@ -26,7 +26,7 @@
 #endif
 
 // Compiler
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #    define JAM_COMPILER_MSVC
 #    define JAM_COMPILER_NAME "MSVC"
 #elif defined(__clang__)
@@ -40,7 +40,7 @@
 #endif
 
 // C++ Language
-#if defined(__cplusplus)
+#ifdef __cplusplus
 #    define JAM_CPP
 #else
 #    error "Not a C++ compiler"
@@ -119,7 +119,7 @@
 // platform
 #if defined(_WIN32) || defined(_WIN64)
 #    define JAM_PLATFORM_WINDOWS
-#    if defined(_WIN64)
+#    ifdef _WIN64
 #        define JAM_PLATFORM_WINDOWS_64
 #        define JAM_PLATFORM_NAME "Windows 64-bit"
 #    else
@@ -151,3 +151,29 @@
 #define JAM_VERSION_MINOR 1
 #define JAM_VERSION_PATCH 0
 #define JAM_VERSION_NAME  JAM_VERSION_STRING(JAM_VERSION_MAJOR, JAM_VERSION_MINOR, JAM_VERSION_PATCH)
+
+// SIMD Support Detection
+#if defined(__SSE2__) || (defined(JAM_COMPILER_MSVC) && (defined(JAM_ARCH_64BIT) || _M_IX86_FP >= 2))
+#    include <emmintrin.h>   // __m128i
+#    ifdef __SSE4_1__
+#        include <smmintrin.h>
+#    endif                   // __SSE4_1__
+#    include <xmmintrin.h>   // __m128
+#    define JAM_SIMD_SSE
+#    define JAM_SIMD_NAME "SSE"
+#elif defined(__ARM_NEON__)
+#    include <arm_neon.h>
+#    define JAM_SIMD_NEON
+#    define JAM_SIMD_NAME "NEON"
+#elif defined(JAM_COMPILER_CLANG)
+#    define JAM_SIMD_LANGEXT
+#    define JAM_SIMD_NAME "Language Extensions"
+#else
+#    define JAM_SIMD_NONE
+#    define JAM_SIMD_NAME "None"
+#endif   //
+
+#if defined(JAM_SIMD_SSE) || defined(JAM_SIMD_NEON) || defined(JAM_SIMD_LANGEXT)
+#    define JAM_SIMD_ENABLED
+#endif
+

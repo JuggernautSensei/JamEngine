@@ -30,30 +30,30 @@ struct Bvh {
     bool operator == (const Bvh& other) const = default;
     bool operator != (const Bvh& other) const = default;
 
-    /// Returns whether the node located at the given index is the left child of its parent.
-    static BVH_ALWAYS_INLINE bool is_left_sibling(size_t node_id) { return node_id % 2 == 1; }
+    /// Returns whether the pNode located at the given index is the left child of its parent.
+    static BVH_ALWAYS_INLINE bool is_left_sibling(const size_t node_id) { return node_id % 2 == 1; }
 
-    /// Returns the index of a sibling of a node.
-    static BVH_ALWAYS_INLINE size_t get_sibling_id(size_t node_id) {
+    /// Returns the index of a sibling of a pNode.
+    static BVH_ALWAYS_INLINE size_t get_sibling_id(const size_t node_id) {
         return is_left_sibling(node_id) ? node_id + 1 : node_id - 1;
     }
 
-    /// Returns the index of the left sibling of the node. This effectively returns the given index
-    /// unchanged if the node is the left sibling, or the other sibling index otherwise.
-    static BVH_ALWAYS_INLINE size_t get_left_sibling_id(size_t node_id) {
+    /// Returns the index of the left sibling of the pNode. This effectively returns the given index
+    /// unchanged if the pNode is the left sibling, or the other sibling index otherwise.
+    static BVH_ALWAYS_INLINE size_t get_left_sibling_id(const size_t node_id) {
         return is_left_sibling(node_id) ? node_id : node_id - 1;
     }
 
-    /// Returns the index of the right sibling of the node. This effectively returns the given index
-    /// unchanged if the node is the right sibling, or the other sibling index otherwise.
-    static BVH_ALWAYS_INLINE size_t get_right_sibling_id(size_t node_id) {
+    /// Returns the index of the right sibling of the pNode. This effectively returns the given index
+    /// unchanged if the pNode is the right sibling, or the other sibling index otherwise.
+    static BVH_ALWAYS_INLINE size_t get_right_sibling_id(const size_t node_id) {
         return is_left_sibling(node_id) ? node_id + 1 : node_id;
     }
 
-    /// Returns the root node of this BVH.
+    /// Returns the root pNode of this BVH.
     BVH_ALWAYS_INLINE const Node& get_root() const { return nodes[0]; }
 
-    /// Extracts the BVH rooted at the given node index.
+    /// Extracts the BVH rooted at the given pNode index.
     [[nodiscard]] inline Bvh extract_bvh(size_t root_id) const;
 
     /// Traverses the BVH from the given index in `start` using the provided stack. Every leaf
@@ -65,7 +65,7 @@ struct Bvh {
     inline void traverse_top_down(Index start, Stack&, LeafFn&&, InnerFn&&) const;
 
     /// Intersects the BVH with a single ray, using the given function to intersect the contents
-    /// of a leaf. The algorithm starts at the node index `start` and uses the given stack object.
+    /// of a leaf. The algorithm starts at the pNode index `start` and uses the given stack object.
     /// When `IsAnyHit` is true, the function stops at the first intersection (useful for shadow
     /// rays), otherwise it finds the closest intersection. When `IsRobust` is true, a slower but
     /// numerically robust ray-box test is used, otherwise a fast, but less precise test is used.

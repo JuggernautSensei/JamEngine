@@ -1,0 +1,21 @@
+namespace jam.jmtl;
+
+struct Matrix4x4 {
+	values : [float: 16];
+}
+
+table ModelNode {
+	name            : string;
+	transform       : Matrix4x4;
+	mesh_indices    : [int];
+	material_indice : [int];
+	children        : [ModelNode];
+}
+
+table Model {
+	root_node      : ModelNode;
+	mesh_paths     : [string];
+	material_paths : [string];
+}
+
+root_type Model;

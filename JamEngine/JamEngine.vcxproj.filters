@@ -1,18 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="DataType.cpp">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="Macros.cpp">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="Result.cpp">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
     <ClCompile Include="Log.cpp">
       <Filter>1. Core\Log</Filter>
     </ClCompile>
@@ -22,10 +10,10 @@
     <ClCompile Include="Application.cpp">
       <Filter>1. Core</Filter>
     </ClCompile>
-    <ClCompile Include="WindowsUtilities.cpp">
+    <ClCompile Include="DialogUtilities.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
+    <ClCompile Include="WindowsPlatform.cpp">
       <Filter>1. Core\Platform</Filter>
     </ClCompile>
     <ClCompile Include="Event.cpp">
@@ -40,17 +28,11 @@
     <ClCompile Include="CommandQueue.cpp">
       <Filter>99. Utilities\MultiThread</Filter>
     </ClCompile>
-    <ClCompile Include="TypeTrait.cpp">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>3. Scene\Entitiy</Filter>
     </ClCompile>
     <ClCompile Include="Input.cpp">
       <Filter>1. Core\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Components.cpp">
-      <Filter>3. Scene\Component</Filter>
     </ClCompile>
     <ClCompile Include="Script.cpp">
       <Filter>3. Scene\Script</Filter>
@@ -61,14 +43,8 @@
     <ClCompile Include="AssetManager.cpp">
       <Filter>5. Assets</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentsEditor.cpp">
-      <Filter>3. Scene\Component</Filter>
-    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>99. Utilities\Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="FVector.cpp">
-      <Filter>99. Utilities\Container\vector</Filter>
     </ClCompile>
     <ClCompile Include="Graphics.cpp">
       <Filter>2. Graphics\Core</Filter>
@@ -88,17 +64,11 @@
     <ClCompile Include="LoopSubdivision.cpp">
       <Filter>5. Assets\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="CodingStandard.txt">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryArena.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
     <ClCompile Include="MemoryPool.cpp">
       <Filter>99. Utilities\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugRenderer.cpp">
-      <Filter>4. RenderSystem\DebugRenderer</Filter>
     </ClCompile>
     <ClCompile Include="MeshFactory.cpp">
       <Filter>5. Assets\Mesh</Filter>
@@ -121,7 +91,7 @@
     <ClCompile Include="VertexLayout.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Memory.cpp">
+    <ClCompile Include="MemView.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
     <ClCompile Include="IExporter.cpp">
@@ -139,20 +109,8 @@
     <ClCompile Include="ShaderCompiler.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Error.cpp">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
     <ClCompile Include="Profile.cpp">
       <Filter>99. Utilities\Profile</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageBase.cpp">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Version.cpp">
-      <Filter>1. Core\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGuiGlue.cpp">
-      <Filter>4. RenderSystem\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="FString.cpp">
       <Filter>99. Utilities\Container\string</Filter>
@@ -166,7 +124,7 @@
     <ClCompile Include="EditableComponent.cpp">
       <Filter>3. Scene\Component\Property</Filter>
     </ClCompile>
-    <ClCompile Include="UnremovableComponent.cpp">
+    <ClCompile Include="Properties.cpp">
       <Filter>3. Scene\Component\Property</Filter>
     </ClCompile>
     <ClCompile Include="UID.cpp">
@@ -176,10 +134,10 @@
       <Filter>7. Reflection</Filter>
     </ClCompile>
     <ClCompile Include="AssimpImporter.cpp">
-      <Filter>5. Assets\Mesh\Assimp</Filter>
+      <Filter>5. Assets\Model\Assimp</Filter>
     </ClCompile>
     <ClCompile Include="AssimpBase.cpp">
-      <Filter>5. Assets\Mesh\Assimp</Filter>
+      <Filter>5. Assets\Model\Assimp</Filter>
     </ClCompile>
     <ClCompile Include="ScriptDB.cpp">
       <Filter>7. Reflection</Filter>
@@ -196,44 +154,26 @@
     <ClCompile Include="SceneDB.cpp">
       <Filter>7. Reflection</Filter>
     </ClCompile>
-    <ClCompile Include="PO2FCircularQ.cpp">
-      <Filter>99. Utilities\Container\ring_buffer</Filter>
-    </ClCompile>
     <ClCompile Include="FileUtilities.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Vendor\DirectXTK\SimpleMath.cpp">
       <Filter>98. Vendor\SimpleMath</Filter>
     </ClCompile>
-    <ClCompile Include="Environment.cpp">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="RadixSort.cpp">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="BoundBox.cpp">
+    <ClCompile Include="BoundingBox.cpp">
       <Filter>2. Graphics\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="DrawItem.cpp">
-      <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="TransformHierarchy.cpp">
       <Filter>3. Scene\Entitiy</Filter>
     </ClCompile>
     <ClCompile Include="CullingSystem.cpp">
-      <Filter>4. RenderSystem\CullingSystem</Filter>
+      <Filter>4. Rendering\CullingSystem</Filter>
     </ClCompile>
     <ClCompile Include="RenderPass.cpp">
-      <Filter>4. RenderSystem\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGraph.cpp">
-      <Filter>4. RenderSystem\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="BasicRenderer.cpp">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="BasicRendererBase.cpp">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
+      <Filter>4. Rendering\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="RenderView.cpp">
       <Filter>3. Scene\Scene</Filter>
@@ -247,7 +187,7 @@
     <ClCompile Include="Camera.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_Viewport.cpp">
+    <ClCompile Include="Editor_SceneView.cpp">
       <Filter>6. Editor</Filter>
     </ClCompile>
     <ClCompile Include="Editor_Profiler.cpp">
@@ -256,17 +196,182 @@
     <ClCompile Include="Editor_SceneHierarchy.cpp">
       <Filter>6. Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_EntityInsepctor.cpp">
+    <ClCompile Include="Editor_EntityInspector.cpp">
       <Filter>6. Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_AssetBrowser.cpp">
-      <Filter>6. Editor</Filter>
+    <ClCompile Include="ImGuiGlue.cpp">
+      <Filter>4. Rendering\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_FileSystemBrowser.cpp">
-      <Filter>6. Editor</Filter>
+    <ClCompile Include="Vendor\imgui\imgui.cpp">
+      <Filter>98. Vendor\Imgui</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_Console.cpp">
-      <Filter>6. Editor</Filter>
+    <ClCompile Include="Vendor\imgui\imgui_demo.cpp">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_draw.cpp">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_impl_win32.cpp">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_stdlib.cpp">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_tables.cpp">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_widgets.cpp">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystemUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorWidgets.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLayoutStorage.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="TagComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderableComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="PointLightComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="SpotLightComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneDeserializer.cpp">
+      <Filter>3. Scene\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="PopupDialog.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_VertexLayoutEditor.cpp">
+      <Filter>6. Editor\ViewportLayoutManager</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLayoutEditorDialog.cpp">
+      <Filter>6. Editor\ViewportLayoutManager</Filter>
+    </ClCompile>
+    <ClCompile Include="RenameFileDialog.cpp">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="RemoveNotEmptyDirectoryDialog.cpp">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="CreatePrimitiveDialog.cpp">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="CreateMaterialDialog.cpp">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_FileBrowser.cpp">
+      <Filter>6. Editor\FileBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_FileBrowser_Thumbnail.cpp">
+      <Filter>6. Editor\FileBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_FileBrowser_ThumbnailCache.cpp">
+      <Filter>6. Editor\FileBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>5. Assets\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\ImGuizmo.cpp">
+      <Filter>98. Vendor\Imgui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorRenderer.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorStyle.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="EnvironmentComponent.cpp">
+      <Filter>3. Scene\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawItem.cpp">
+      <Filter>4. Rendering\CullingSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment.cpp">
+      <Filter>4. Rendering\BasicRenderer\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="RefCounted.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraph.cpp">
+      <Filter>4. Rendering\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\backward\backward.cpp">
+      <Filter>98. Vendor\backward</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>99. Utilities\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="HistoryStack.cpp">
+      <Filter>99. Utilities\Container\HisotryStack</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorUtilities.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportImageDialog_PreviewTexture.cpp">
+      <Filter>6. Editor\FileBrowser\Dialogs\ImportImageDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="DestroyNotLeafEntityDialog.cpp">
+      <Filter>6. Editor\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBase.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureFormat.cpp">
+      <Filter>2. Graphics\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicRenderer.cpp">
+      <Filter>4. Rendering\BasicRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="DataType.cpp">
+      <Filter>99. Utilities\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Error.cpp">
+      <Filter>99. Utilities\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Macros.cpp">
+      <Filter>99. Utilities\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>99. Utilities\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeTrait.cpp">
+      <Filter>99. Utilities\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportImageDialog.cpp">
+      <Filter>6. Editor\FileBrowser\Dialogs\ImportImageDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportModelDialog.cpp">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Bvh.cpp">
+      <Filter>4. Rendering\Bvh</Filter>
+    </ClCompile>
+    <ClCompile Include="VisibleItem.cpp">
+      <Filter>4. Rendering\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -291,12 +396,6 @@
     <Filter Include="6. Editor">
       <UniqueIdentifier>{ed21789a-ec9c-4244-b273-74e478329680}</UniqueIdentifier>
     </Filter>
-    <Filter Include="1. Core\Base">
-      <UniqueIdentifier>{933d5f72-246a-4053-ab13-7354e5972700}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="1. Core\Base\Config">
-      <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities">
       <UniqueIdentifier>{348ab829-ff51-4e7b-85b2-dc5dcff535d5}</UniqueIdentifier>
     </Filter>
@@ -311,9 +410,6 @@
     </Filter>
     <Filter Include="99. Utilities\Container">
       <UniqueIdentifier>{f39052bc-ccdb-4690-abe1-584111555366}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\Container\vector">
-      <UniqueIdentifier>{8566958a-aa2d-4404-ba7c-44bbb90b23c5}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Container\dense_map">
       <UniqueIdentifier>{40d865df-bd8b-4267-8d0d-b3d34725f645}</UniqueIdentifier>
@@ -360,9 +456,6 @@
     <Filter Include="5. Assets\ImageTexture">
       <UniqueIdentifier>{8aa95e93-4a42-41cd-a87c-decb1c553725}</UniqueIdentifier>
     </Filter>
-    <Filter Include="5. Assets\Mesh\Assimp">
-      <UniqueIdentifier>{64fabbcd-340a-4634-90b0-556f51f43eff}</UniqueIdentifier>
-    </Filter>
     <Filter Include="7. Reflection">
       <UniqueIdentifier>{dfa07466-c9e5-4517-8a43-82d35cc0d7fe}</UniqueIdentifier>
     </Filter>
@@ -374,9 +467,6 @@
     </Filter>
     <Filter Include="99. Utilities\Serialize">
       <UniqueIdentifier>{1a3a8ef2-743e-4922-a241-93e752fb1dfa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\Container\ring_buffer">
-      <UniqueIdentifier>{25822477-2707-4afe-a587-0ed11bee36b8}</UniqueIdentifier>
     </Filter>
     <Filter Include="98. Vendor\SimpleMath">
       <UniqueIdentifier>{6f35c8ea-6c3b-4362-a3d9-af1611a83fb1}</UniqueIdentifier>
@@ -408,68 +498,104 @@
     <Filter Include="98. Vendor\bvh">
       <UniqueIdentifier>{8ac959a2-43d2-47db-ab30-55b52c019169}</UniqueIdentifier>
     </Filter>
-    <Filter Include="5. Assets\Utilities">
-      <UniqueIdentifier>{22e1aa7f-acf2-482a-b1ac-6595bab91168}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem">
-      <UniqueIdentifier>{638827b8-117f-4a1d-b48e-b43142fcb176}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\ImGui">
-      <UniqueIdentifier>{b3b02ff0-0cff-479b-be5d-b4cb49c06bd8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\CullingSystem">
-      <UniqueIdentifier>{d377728f-8395-4bae-8ef7-c81df93f9697}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer">
-      <UniqueIdentifier>{9c597240-4bda-4dce-859f-c0e82fad73bc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer\Shader">
-      <UniqueIdentifier>{66593e55-73f5-4705-9f1f-224a7d365853}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer\Shader\PBR">
-      <UniqueIdentifier>{ad5ee0eb-4518-4c67-a5f4-1aa9112414d0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer\Shader\LightVolume">
-      <UniqueIdentifier>{06bcf7c8-8be9-447f-b6e0-38a23fe7ec2d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer\Shader\Shadow">
-      <UniqueIdentifier>{bed0f8f5-90d1-4e22-84b7-7f8c4efb936b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer\Shader\SSAO">
-      <UniqueIdentifier>{61661d0e-7a23-4b2c-a592-f35b4839c624}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer\Shader\Skybox">
-      <UniqueIdentifier>{621b0303-6a78-407f-ae0d-a7f4941d65c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\BasicRenderer\Shader\PostProcess">
-      <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\DebugRenderer">
-      <UniqueIdentifier>{7fbe4c0b-5051-432a-a8f0-37e31fbc7f59}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\DebugRenderer\Shader">
-      <UniqueIdentifier>{2aee901a-17c9-42d8-a747-debf136676b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. RenderSystem\RenderGraph">
-      <UniqueIdentifier>{f43b2563-91e4-4be3-955e-fbb9af5a0d98}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Math">
       <UniqueIdentifier>{983c628d-c07e-4f45-a151-6e9c01e67075}</UniqueIdentifier>
     </Filter>
+    <Filter Include="98. Vendor\Imgui">
+      <UniqueIdentifier>{e5664dc5-d23a-4250-992d-ca7788f70203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Utilities">
+      <UniqueIdentifier>{e98e4db0-869b-4238-a9f5-852a1dff06c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\ViewportLayoutManager">
+      <UniqueIdentifier>{5fcf4b66-4ab0-4e8e-af41-d7293d4bd3fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Model">
+      <UniqueIdentifier>{9fc452ab-3049-44d1-99ab-4036cc25f531}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Model\Assimp">
+      <UniqueIdentifier>{64fabbcd-340a-4634-90b0-556f51f43eff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\FileBrowser">
+      <UniqueIdentifier>{12c053dc-0f0e-44cc-9e18-ec89e82d0de4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\FileBrowser\Dialogs">
+      <UniqueIdentifier>{902964f7-cee0-4ace-a3a4-214c30fcb526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\Imgui\ImGuizmo">
+      <UniqueIdentifier>{7dce9da0-7d49-4e63-97aa-7addb4d1c40f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering">
+      <UniqueIdentifier>{638827b8-117f-4a1d-b48e-b43142fcb176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\ImGui">
+      <UniqueIdentifier>{b3b02ff0-0cff-479b-be5d-b4cb49c06bd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\CullingSystem">
+      <UniqueIdentifier>{d377728f-8395-4bae-8ef7-c81df93f9697}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer">
+      <UniqueIdentifier>{9c597240-4bda-4dce-859f-c0e82fad73bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Shader">
+      <UniqueIdentifier>{66593e55-73f5-4705-9f1f-224a7d365853}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Shader\PBR">
+      <UniqueIdentifier>{ad5ee0eb-4518-4c67-a5f4-1aa9112414d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Shader\LightVolume">
+      <UniqueIdentifier>{06bcf7c8-8be9-447f-b6e0-38a23fe7ec2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Shader\Shadow">
+      <UniqueIdentifier>{bed0f8f5-90d1-4e22-84b7-7f8c4efb936b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Shader\SSAO">
+      <UniqueIdentifier>{61661d0e-7a23-4b2c-a592-f35b4839c624}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Shader\Skybox">
+      <UniqueIdentifier>{621b0303-6a78-407f-ae0d-a7f4941d65c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Shader\PostProcess">
+      <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\RenderGraph">
+      <UniqueIdentifier>{f43b2563-91e4-4be3-955e-fbb9af5a0d98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\BasicRenderer\Utilities">
+      <UniqueIdentifier>{f5e3a135-c911-4776-8934-2b3ea77019d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\Bvh">
+      <UniqueIdentifier>{0329e9a6-441d-4617-956c-080ca224028f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\backward">
+      <UniqueIdentifier>{6413fae2-1ef5-4792-a94a-20e24f16c8d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Debug">
+      <UniqueIdentifier>{09ddcd14-5fd3-4bff-96db-c8ae8ce63260}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\nlohmann">
+      <UniqueIdentifier>{8d0e1414-5c31-4826-9b0e-e3d091e33911}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\HisotryStack">
+      <UniqueIdentifier>{cb7fab1c-8c53-458f-9143-d15f7a63ffaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\FileBrowser\Dialogs\ImportImageDialog">
+      <UniqueIdentifier>{e5e0db46-5002-44e8-a825-814dc8b8772b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog">
+      <UniqueIdentifier>{e65067ff-df1c-43bd-b786-600fd60e9228}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Base">
+      <UniqueIdentifier>{b3ec96ff-d86c-4b8c-9f78-6f7699184564}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Base\Config">
+      <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\Utilities">
+      <UniqueIdentifier>{d08059e8-bb58-4818-8576-566b6751e06b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>1. Core\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="DataType.h">
-      <Filter>1. Core\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Macros.h">
-      <Filter>1. Core\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Result.h">
-      <Filter>1. Core\Base</Filter>
-    </ClInclude>
     <ClInclude Include="Log.h">
       <Filter>1. Core\Log</Filter>
     </ClInclude>
@@ -485,10 +611,10 @@
     <ClInclude Include="Application.h">
       <Filter>1. Core</Filter>
     </ClInclude>
-    <ClInclude Include="WindowsUtilities.h">
+    <ClInclude Include="DialogUtilities.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
+    <ClInclude Include="WindowsPlatform.h">
       <Filter>1. Core\Platform</Filter>
     </ClInclude>
     <ClInclude Include="Event.h">
@@ -500,17 +626,11 @@
     <ClInclude Include="CommandQueue.h">
       <Filter>99. Utilities\MultiThread</Filter>
     </ClInclude>
-    <ClInclude Include="TypeTrait.h">
-      <Filter>1. Core\Base</Filter>
-    </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>3. Scene\Entitiy</Filter>
     </ClInclude>
     <ClInclude Include="Input.h">
       <Filter>1. Core\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="Components.h">
-      <Filter>3. Scene\Component</Filter>
     </ClInclude>
     <ClInclude Include="Script.h">
       <Filter>3. Scene\Script</Filter>
@@ -523,9 +643,6 @@
     </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>99. Utilities\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="FVector.h">
-      <Filter>99. Utilities\Container\vector</Filter>
     </ClInclude>
     <ClInclude Include="Graphics.h">
       <Filter>2. Graphics\Core</Filter>
@@ -572,10 +689,7 @@
     <ClInclude Include="VertexLayout.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="DebugRenderer.h">
-      <Filter>4. RenderSystem\DebugRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory.h">
+    <ClInclude Include="MemView.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
     <ClInclude Include="IExporter.h">
@@ -594,25 +708,16 @@
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Configs.h">
-      <Filter>1. Core\Base\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="Error.h">
-      <Filter>1. Core\Base</Filter>
+      <Filter>99. Utilities\Base\Config</Filter>
     </ClInclude>
     <ClInclude Include="Profile.h">
       <Filter>99. Utilities\Profile</Filter>
     </ClInclude>
-    <ClInclude Include="ImageBase.h">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Version.h">
-      <Filter>1. Core\Base</Filter>
-    </ClInclude>
     <ClInclude Include="Magic.h">
-      <Filter>1. Core\Base\Config</Filter>
+      <Filter>99. Utilities\Base\Config</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiGlue.h">
-      <Filter>4. RenderSystem\ImGui</Filter>
+      <Filter>4. Rendering\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="FString.h">
       <Filter>99. Utilities\Container\string</Filter>
@@ -626,7 +731,7 @@
     <ClInclude Include="EditableComponent.h">
       <Filter>3. Scene\Component\Property</Filter>
     </ClInclude>
-    <ClInclude Include="UnremovableComponent.h">
+    <ClInclude Include="Properties.h">
       <Filter>3. Scene\Component\Property</Filter>
     </ClInclude>
     <ClInclude Include="UID.h">
@@ -636,10 +741,10 @@
       <Filter>7. Reflection</Filter>
     </ClInclude>
     <ClInclude Include="AssimpImporter.h">
-      <Filter>5. Assets\Mesh\Assimp</Filter>
+      <Filter>5. Assets\Model\Assimp</Filter>
     </ClInclude>
     <ClInclude Include="AssimpBase.h">
-      <Filter>5. Assets\Mesh\Assimp</Filter>
+      <Filter>5. Assets\Model\Assimp</Filter>
     </ClInclude>
     <ClInclude Include="ScriptDB.h">
       <Filter>7. Reflection</Filter>
@@ -653,7 +758,7 @@
     <ClInclude Include="SceneManager.h">
       <Filter>3. Scene\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="FileSystem.h">
+    <ClInclude Include="FileSystemUtilities.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="HashMap.h">
@@ -686,25 +791,19 @@
     <ClInclude Include="SceneDB.h">
       <Filter>7. Reflection</Filter>
     </ClInclude>
-    <ClInclude Include="PO2FCircularQ.h">
-      <Filter>99. Utilities\Container\ring_buffer</Filter>
-    </ClInclude>
     <ClInclude Include="FileUtilities.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="EmbeddedShaderGlue.h">
-      <Filter>4. RenderSystem\BasicRenderer\Shader</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader</Filter>
     </ClInclude>
     <ClInclude Include="Vendor\DirectXTK\SimpleMath.h">
       <Filter>98. Vendor\SimpleMath</Filter>
     </ClInclude>
-    <ClInclude Include="Environment.h">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="RadixSort.h">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="BoundBox.h">
+    <ClInclude Include="BoundingBox.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Vendor\bvh\v2\BoundBox.h">
@@ -770,26 +869,17 @@
     <ClInclude Include="Vendor\bvh\v2\binned_sah_builder.h">
       <Filter>98. Vendor\bvh</Filter>
     </ClInclude>
-    <ClInclude Include="DrawItem.h">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="TransformHierarchy.h">
       <Filter>3. Scene\Entitiy</Filter>
     </ClInclude>
     <ClInclude Include="CullingSystem.h">
-      <Filter>4. RenderSystem\CullingSystem</Filter>
+      <Filter>4. Rendering\CullingSystem</Filter>
     </ClInclude>
     <ClInclude Include="RenderPass.h">
-      <Filter>4. RenderSystem\RenderGraph</Filter>
+      <Filter>4. Rendering\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="RenderGraph.h">
-      <Filter>4. RenderSystem\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicRenderer.h">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicRendererBase.h">
-      <Filter>4. RenderSystem\BasicRenderer</Filter>
+      <Filter>4. Rendering\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="RenderView.h">
       <Filter>3. Scene\Scene</Filter>
@@ -803,7 +893,7 @@
     <ClInclude Include="Camera.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_Viewport.h">
+    <ClInclude Include="Editor_SceneView.h">
       <Filter>6. Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor_Profiler.h">
@@ -812,25 +902,181 @@
     <ClInclude Include="Editor_SceneHierarchy.h">
       <Filter>6. Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_EntityInsepctor.h">
+    <ClInclude Include="Editor_EntityInspector.h">
       <Filter>6. Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_AssetBrowser.h">
-      <Filter>6. Editor</Filter>
+    <ClInclude Include="Vendor\imgui\imconfig.h">
+      <Filter>98. Vendor\Imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_FileSystemBrowser.h">
-      <Filter>6. Editor</Filter>
+    <ClInclude Include="Vendor\imgui\imgui.h">
+      <Filter>98. Vendor\Imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_Console.h">
-      <Filter>6. Editor</Filter>
+    <ClInclude Include="Vendor\imgui\imgui_impl_win32.h">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_internal.h">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_stdlib.h">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_rectpack.h">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_textedit.h">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_truetype.h">
+      <Filter>98. Vendor\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorWidgets.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayoutStorage.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="TagComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderableComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLightComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLightComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDeserializer.h">
+      <Filter>3. Scene\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="PopupDialog.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_VertexLayoutEditor.h">
+      <Filter>6. Editor\ViewportLayoutManager</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayoutEditorDialog.h">
+      <Filter>6. Editor\ViewportLayoutManager</Filter>
+    </ClInclude>
+    <ClInclude Include="RenameFileDialog.h">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="RemoveNotEmptyDirectoryDialog.h">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportModelDialog.h">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="CreatePrimitiveDialog.h">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateMaterialDialog.h">
+      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_FileBrowser.h">
+      <Filter>6. Editor\FileBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>5. Assets\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\ImGuizmo.h">
+      <Filter>98. Vendor\Imgui\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorRenderer.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorStyle.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="EnvironmentComponent.h">
+      <Filter>3. Scene\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawItem.h">
+      <Filter>4. Rendering\CullingSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment.h">
+      <Filter>4. Rendering\BasicRenderer\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="RefCounted.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\backward\backward.hpp">
+      <Filter>98. Vendor\backward</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>99. Utilities\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\nlohmann\json.hpp">
+      <Filter>98. Vendor\nlohmann</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\nlohmann\json_fwd.hpp">
+      <Filter>98. Vendor\nlohmann</Filter>
+    </ClInclude>
+    <ClInclude Include="HistoryStack.h">
+      <Filter>99. Utilities\Container\HisotryStack</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorUtilities.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportImageDialog.h">
+      <Filter>6. Editor\FileBrowser\Dialogs\ImportImageDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="DestroyNotLeafEntityDialog.h">
+      <Filter>6. Editor\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBase.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureFormat.h">
+      <Filter>2. Graphics\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicRenderer.h">
+      <Filter>4. Rendering\BasicRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeTrait.h">
+      <Filter>99. Utilities\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="DataType.h">
+      <Filter>99. Utilities\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>99. Utilities\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Macros.h">
+      <Filter>99. Utilities\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>99. Utilities\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Bvh.h">
+      <Filter>4. Rendering\Bvh</Filter>
+    </ClInclude>
+    <ClInclude Include="VisibleItem.h">
+      <Filter>4. Rendering\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">
-      <Filter>1. Core\Base\Config</Filter>
+      <Filter>99. Utilities\Base\Config</Filter>
     </None>
     <None Include=".editorconfig">
-      <Filter>1. Core\Base\Config</Filter>
+      <Filter>99. Utilities\Base\Config</Filter>
     </None>
     <None Include="resources\flatc\jmsh.fbs">
       <Filter>5. Assets\Mesh</Filter>
@@ -838,82 +1084,76 @@
     <None Include="resources\flatc\jmat.fbs">
       <Filter>5. Assets\Material</Filter>
     </None>
-    <None Include="Shaders\PrecompiledShaders\PrecompiledDebugDrawShader.h">
-      <Filter>4. RenderSystem\DebugRenderer\Shader</Filter>
-    </None>
     <None Include="Vendor\DirectXTK\SimpleMath.inl">
       <Filter>98. Vendor\SimpleMath</Filter>
+    </None>
+    <None Include="Resources\flatc\jmtl.fbs">
+      <Filter>5. Assets\Model</Filter>
+    </None>
+    <None Include="Shaders\HLSL\BloomBlurUpPS.hlsl">
+      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\hlsl\FXAAPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\FogPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\hlsl\BloomXPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PostProcess</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\hlsl\BloomYPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PostProcess</Filter>
+    <FxCompile Include="shaders\hlsl\BloomBlurDownPS.hlsl">
+      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\BloomCombinePS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PassThroughPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PostProcess</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\hlsl\DebugDrawSolidShader.hlsl">
-      <Filter>4. RenderSystem\DebugRenderer\Shader</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRVS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PBR</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PBR</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRGBufferShader.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PBR</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PBR</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRLightingShader.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PBR</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PBR</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRLightVolumeShader.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\LightVolume</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\LightVolume</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\ShadowMappingShader.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\Shadow</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\SSAOPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\SSAO</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\SSAO</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\SkyboxShader.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\Skybox</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\Skybox</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\ToneMappingPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\CascadeShaderMappingShader.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\Shadow</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\OmniDirectionalShaderMappingShader.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\Shadow</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\HLSL\DebugDrawLineShader.hlsl">
-      <Filter>4. RenderSystem\DebugRenderer\Shader</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\ShaderBase.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\FullScreenVS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\PBRLightVolumeShaderForDirectional.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\LightVolume</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\LightVolume</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\SSAOBlurXPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\SSAO</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\SSAO</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\SSAOBlurYPS.hlsl">
-      <Filter>4. RenderSystem\BasicRenderer\Shader\SSAO</Filter>
+      <Filter>4. Rendering\BasicRenderer\Shader\SSAO</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

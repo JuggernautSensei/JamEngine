@@ -1,6 +1,6 @@
 #pragma once
 #include "HandleAllocator.h"
-#include "Version.h"
+#include "RefCounted.h"
 
 namespace jam
 {
@@ -12,31 +12,31 @@ enum class eAssetType : Int8
     ImageTexture = 0,
     Material,
     Mesh,
+    Model,
     // Audio,
     // Font
 };
 
-class IAsset
+class IAsset : public RefCounted
 {
 public:
-    IAsset()          = default;
-    virtual ~IAsset() = default;
+    IAsset()           = default;
+    ~IAsset() override = default;
 
     IAsset(const IAsset&)            = default;
     IAsset(IAsset&&)                 = default;
     IAsset& operator=(const IAsset&) = default;
     IAsset& operator=(IAsset&&)      = default;
 
-    virtual eErrorCode Load(const fs::path& _path)       = 0;
-    virtual void       Unload()                          = 0;
-    virtual eErrorCode Save(const fs::path& _path) const = 0;
+    virtual bool Load(const fs::path& _path)       = 0;
+    virtual void Unload()                          = 0;
+    virtual bool Save(const fs::path& _path) const = 0;
 
-    JAM_NODISCARD virtual bool IsLoaded() const = 0;
-
-    JAM_NODISCARD virtual const fs::path&  GetPath() const = 0;
-    JAM_NODISCARD virtual eAssetType       GetType() const = 0;
-    JAM_NODISCARD virtual UInt32           GetHash() const = 0;
-    JAM_NODISCARD virtual std::string_view GetName() const = 0;
-};    
+    [[nodiscard]] virtual bool             IsValid() const      = 0;
+    [[nodiscard]] virtual eAssetType       GetAssetType() const = 0;
+    [[nodiscard]] virtual std::string_view GetTypeName() const  = 0;
+    [[nodiscard]] virtual UInt32           GetTypeHash() const  = 0;
+    [[nodiscard]] virtual const fs::path&  GetPath() const      = 0;
+};
 
 }   // namespace jam

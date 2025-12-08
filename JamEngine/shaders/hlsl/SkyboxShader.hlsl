@@ -20,7 +20,7 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     if (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SKYBOX_CUBEMAP)
     {
         float3 dir = normalize(input.dirV);
-        return t_skybox.Sample(s_linearClamp, dir);
+        return t_skybox.Sample(s_linearWrap, dir);
     }
     else if (cb_envFlags & JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR)
     {

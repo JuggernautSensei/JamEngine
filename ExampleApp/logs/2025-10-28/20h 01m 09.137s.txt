@@ -1,5 +1,0 @@
-[2025-10-28 20:01:09.139] [info] [thread 265988] Arg[0]: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Release\ExampleApp.exe
-[2025-10-28 20:01:09.438] [trace] [thread 265988] Application 'Example Application' started.
-[2025-10-28 20:01:09.438] [info] [thread 265988] hello example app!
-[2025-10-28 20:01:24.032] [trace] [thread 265988] Application 'Example Application' shutdown.
-[2025-10-28 20:01:24.032] [info] [thread 265988] good-bye example app!

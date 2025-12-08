@@ -247,7 +247,7 @@
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Behaviour Switches (see README.md, should match the config in test/filesystem_test.cpp):
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Enforce C++17 API where possible when compiling for C++20, handles the following cases:
+// Enforce C++17 API where possible when compiling for C++20, cbhs the following cases:
 // * fs::directory::u8string() returns std::string instead of std::u8string
 // #define GHC_FILESYSTEM_ENFORCE_CPP17_API
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1,6 +1,6 @@
 #pragma once
+#include "GraphicsBase.h"
 #include "IExporter.h"
-#include "ImageBase.h"
 
 namespace jam
 {
@@ -8,15 +8,14 @@ namespace jam
 class ImageExporter : public IExporter
 {
 public:
-    eErrorCode Export() override;
+    bool Export() override;
 
-    void SetImage(DirectX::ScratchImage&& _image);
-    void SetPath(const fs::path& _filePath) override;
-    void Reset() override;
+    void SetPath(const fs::path& _path) override;
+    void SetTexture(TextureHandle _texh);
 
 private:
-    DirectX::ScratchImage m_scratchImg;
-    fs::path              m_filePath = {};
+    TextureHandle m_texh = k_invalidHandle;
+    fs::path      m_path = {};
 };
 
-}
+}   // namespace jam

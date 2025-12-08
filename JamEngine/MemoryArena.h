@@ -72,7 +72,7 @@ public:
     /// @return 할당된 객체의 시작 주소
     /// @note 객체의 생성자나 소멸자는 호출하지 않습니다.
     template<typename T>
-    JAM_NODISCARD T* Alloc(const size_t _count = 1)
+    [[nodiscard]] T* Alloc(const size_t _count = 1)
     {
         return static_cast<T*>(Alloc(_count * sizeof(T)));
     }
@@ -83,7 +83,7 @@ public:
     /// @param _count 생성할 객체의 개수
     /// @param _args 생성자에 전달할 인자들
     template<typename T, typename... Args>
-    JAM_NODISCARD T* New(const size_t _count = 1, Args&&... _args)
+    [[nodiscard]] T* New(const size_t _count = 1, Args&&... _args)
     {
         T* pRet = Alloc<T>(_count);
         for (size_t i = 0; i < _count; ++i)

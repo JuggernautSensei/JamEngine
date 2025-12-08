@@ -15,17 +15,25 @@ void ExampleApp::OnCreate()
 {
     Log::Info("hello example app!");
 
-    SetVsync(true);
-    Window& win = GetWindow();
-    win.ResizeClient(1600, 900);   // 화면사이즈 1600 x 900
+    // 기본 렌더러 초기화
+    BasicRenderer::Init();
 
-    // auto pScene = std::make_unique<HelloJamScene>();
-    // auto pScene = std::make_shared<TriangleScene>();
-    std::shared_ptr<Scene> pScene = std::make_shared<HelloBasicRenderer>();
+    // 수직 동기화 설정
+    SetVsync(true);
+
+    // 기본 화면사이즈 1600 x 900
+    WindowsPlatform& win = GetPlatform();
+    win.ResizeClient(1600, 900);
+
+    // auto pScene = MakeRef<HelloJamScene>();
+    // auto pScene = MakeRef<TriangleScene>();
+    Ref<Scene> pScene = MakeRef<HelloBasicRenderer>();
     SceneManager::LoadScene(pScene);
 }
 
 void ExampleApp::OnDestroy()
 {
+    // 기본 렌더러 종료
+    BasicRenderer::Shutdown();
     Log::Info("good-bye example app!");
 }

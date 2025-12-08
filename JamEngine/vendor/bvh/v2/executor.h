@@ -23,7 +23,7 @@ struct Executor {
     }
 };
 
-/// Executor that executes serially.
+/// BExecutor that executes serially.
 struct SequentialExecutor : Executor<SequentialExecutor> {
     template <typename Loop>
     BVH_ALWAYS_INLINE void for_each(size_t begin, size_t end, const Loop& loop) {
@@ -38,12 +38,12 @@ struct SequentialExecutor : Executor<SequentialExecutor> {
     }
 };
 
-/// Executor that executes in parallel using the given thread pool.
+/// BExecutor that executes in parallel using the given thread pool.
 struct ParallelExecutor : Executor<ParallelExecutor> {
     ThreadPool& thread_pool;
     size_t parallel_threshold;
 
-    ParallelExecutor(ThreadPool& thread_pool, size_t parallel_threshold = 1024)
+    ParallelExecutor(ThreadPool& thread_pool, const size_t parallel_threshold = 1024)
         : thread_pool(thread_pool), parallel_threshold(parallel_threshold)
     {}
 

@@ -8,11 +8,11 @@
 
 namespace bvh::v2 {
 
-/// Packed index data structure. This index can either refer to a range of primitives for a BVH
-/// leaf, or to the children of a BVH node. In either case, the index corresponds to a contiguous
+/// Packed index renderable structure. This index can either refer to a range of primitives for a BVH
+/// leaf, or to the children of a BVH pNode. In either case, the index corresponds to a contiguous
 /// range, which means that:
 ///
-/// - For leaves, primitives in a BVH node should be accessed via:
+/// - For leaves, primitives in a BVH pNode should be accessed via:
 ///
 ///     size_t begin = index.first_id();
 ///     size_t end   = begin + index.prim_count();
@@ -21,7 +21,7 @@ namespace bvh::v2 {
 ///         // ...
 ///     }
 ///
-///   Note that for efficiency, reordering the original data to avoid the indirection via
+///   Note that for efficiency, reordering the original renderable to avoid the indirection via
 ///   `bvh.prim_ids` is preferable.
 ///
 /// - For inner nodes, children should be accessed via:

@@ -1,109 +1,40 @@
 #pragma once
 #include "HandleAllocator.h"
 #include "MathUtilities.h"
+#include "TextureFormat.h"
 #include "VertexLayout.h"
 
 namespace jam
 {
 
-///////////////////////////////////
-///          CONSTANTS          ///
-///////////////////////////////////
+constexpr Int32 k_numRenderTargetLimit   = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+constexpr Int32 k_numSamplerLimit        = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
+constexpr Int32 k_numShaderResourceLimit = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+constexpr Int32 k_numConstantBufferLimit = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+constexpr Int32 k_numGraphicsShaderStage = 5;   // vs, ps, gs, hs, ds
 
-constexpr Int32 k_renderTargetCountMax              = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
-constexpr Int32 k_viewportCountMax                  = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-constexpr Int32 k_samplerStateCountMax              = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
-constexpr Int32 k_shaderResourceCountMax            = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-constexpr Int32 k_constantBufferCountMax            = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-constexpr Int32 k_renderingPipelineShaderStageCount = 5;   // vs, ps, gs, hs, ds
+template<typename T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-constexpr Int32 k_vertexLayoutColorMaxIndex    = 4;
-constexpr Int32 k_vertexLayoutTexCoordMaxIndex = 4;
-
-///////////////////////////////
-///          ENUMS          ///
-///////////////////////////////
-
-enum eFormat : Int8
-{
-    Unknown = 0,
-
-    R8_UNorm,
-    R8_SNorm,
-    R8_UInt,
-    R8_Int,
-
-    R16_UNorm,
-    R16_SNorm,
-    R16_UInt,
-    R16_Int,
-    R16_Float,
-
-    R32_UInt,
-    R32_Int,
-    R32_Float,
-
-    RG8_UNorm,
-    RG8_SNorm,
-    RG8_UInt,
-    RG8_Int,
-
-    RG16_UNorm,
-    RG16_SNorm,
-    RG16_UInt,
-    RG16_Int,
-    RG16_Float,
-
-    RG32_UInt,
-    RG32_Int,
-    RG32_Float,
-
-    RGBA8_UNorm,
-    RGBA8_SNorm,
-    RGBA8_UInt,
-    RGBA8_Int,
-
-    RGBA16_UNorm,
-    RGBA16_SNorm,
-    RGBA16_UInt,
-    RGBA16_Int,
-    RGBA16_Float,
-
-    RGBA32_UInt,
-    RGBA32_Int,
-    RGBA32_Float,
-
-    RGBA8_UNorm_sRGB,
-    BGRA8_UNorm_sRGB,
-
-    D16_UNorm,
-    D24_UNorm_S8_UInt,
-    D32_Float,
-    D32_Float_S8_UInt,
-};
-
-enum class eIndexFormat : Int8
-{
-    U16 = 0,
-    U32,
-};
-
-enum eTextureCreateFlags_ : UInt8
+enum eTextureCreateFlags_ : UInt32
 {
     eTextureCreateFlags_None         = 0,
     eTextureCreateFlags_GenerateMips = 1 << 0,
 
-    eTextureCreateFlags_MSAAx4  = 1 << 2,   // 4x MSAA  (다른 MSAA 옵션과 함께 사용시 낮은 MSAA 옵션이 우선됨)
-    eTextureCreateFlags_MSAAx8  = 1 << 3,   // 8x MSAA  (``)
-    eTextureCreateFlags_MSAAx16 = 1 << 4,   // 16x MSAA (``)
+    // if multiple MSAA flags are set, the lowest one takes precedence
+    eTextureCreateFlags_MSAAx4  = 1 << 2,   // 4x MSAA
+    eTextureCreateFlags_MSAAx8  = 1 << 3,   // 8x MSAA
+    eTextureCreateFlags_MSAAx16 = 1 << 4,   // 16x MSAA
 
-    eTextureCreateFlags_WriteOnly    = 1 << 5,   // 텍스처를 GPU 내부에서 읽기 용도로 쓸 수 없음. (SRV를 만들지 않음)
-    eTextureCreateFlags_RenderTarget = 1 << 6,   // 렌더 타겟으로 사용됨.
-    eTextureCreateFlags_DepthStencil = 1 << 7,   // 뎁스 스텐실로 사용됨.
+    eTextureCreateFlags_WriteOnly    = 1 << 5,   // do not create shader resource view. read only
+    eTextureCreateFlags_RenderTarget = 1 << 6,   // for render target usage
+    eTextureCreateFlags_DepthStencil = 1 << 7,   // for depth stencil usage
+
+    eTextureCreateFlags_Mutable = 1 << 8,   // when creating with initial renderable, create immutable texture. this flag makes it mutable even though initial renderable is provided
 
     eTextureCreateFlags_MultiSampled_Internal = eTextureCreateFlags_MSAAx4 | eTextureCreateFlags_MSAAx8 | eTextureCreateFlags_MSAAx16,
 };
-using eTextureCreateFlags = UInt8;
+using eTextureCreateFlags = UInt32;
 
 enum class eShader : Int8
 {
@@ -154,9 +85,9 @@ enum class eBlendOp : UInt8
 
 enum class eCullMode : UInt8
 {
-    None  = 0,
-    Back  = 1,
-    Front = 2,
+    None = 0,
+    Back,
+    Front,
 };
 
 enum class ePrimitive : UInt8
@@ -178,7 +109,7 @@ enum class eCompareFunc : UInt8
     Equal,
     NotEqual,
     Always,
-    Never,   // 8
+    Never,
 };
 
 enum eWriteFlags_ : UInt8
@@ -194,28 +125,27 @@ using eWriteFlags = UInt8;
 
 enum class eStencilOp : UInt8
 {
-    Keep = 0,   // 현재 스텐실 값을 유지
-    Zero,       // 스텐실 값을 0으로 설정
-    Replace,    // 스텐실 값을 참조 값으로 교체
-    IncrSat,    // 스텐실 값을 1 증가 (최대값에 도달하면 유지)
-    DecrSat,    // 스텐실 값을 1 감소 (최소값에 도달하면 유지)
-    Invert,     // 스텐실 값을 비트 반전
-    Incr,       // 스텐실 값을 1 증가 (최대값에 도달하면 0으로 래핑)
-    Decr,       // 스텐실 값을 1 감소 (최소값에 도달하면 최대값으로 래핑)
+    Keep = 0,
+    Zero,
+    Replace,
+    IncrSat,
+    DecrSat,
+    Invert,
+    Incr,
+    Decr,
 };
 
 enum class eTextureAddress : UInt8
 {
-    Wrap       = 0,   // 반복
-    Mirror     = 1,   // 미러링
-    Clamp      = 2,   // 클램핑
-    Border     = 3,   // 경계색
-    MirrorOnce = 4,   // 미러링(한 번만)
+    Wrap       = 0,
+    Mirror     = 1,
+    Clamp      = 2,
+    Border     = 3,
+    MirrorOnce = 4,
 };
 
 enum class eTextureFilter : UInt8
 {
-    // 기본 필터링
     MinPoint_MagPoint_MipPoint = 0,
     MinPoint_MagPoint_MipLinear,
     MinPoint_MagLinear_MipPoint,
@@ -224,12 +154,11 @@ enum class eTextureFilter : UInt8
     MinLinear_MagPoint_MipLinear,
     MinLinear_MagLinear_MipPoint,
     MinLinear_MagLinear_MipLinear,
-
-    // 이방성 필터링
     Anisotropic4,
     Anisotropic8,
     Anisotropic16,
 };
+constexpr size_t k_numTextureFilters = EnumCount<eTextureFilter>();
 
 enum class eCubeFace : Int8
 {
@@ -240,19 +169,20 @@ enum class eCubeFace : Int8
     Front,       // positive Z
     Back,        // negative Z
 };
+constexpr size_t k_numCubeFaces = EnumCount<eCubeFace>();
 
 enum eShaderCompileFlags_ : UInt8
 {
     eShaderCompileFlags_None                  = 0,
-    eShaderCompileFlags_Debug                 = 1 << 0,   // 디버그 정보 포함
-    eShaderCompileFlags_Optimization          = 1 << 1,   // 최적화 활성화
-    eShaderCompileFlags_SkipOptimization      = 1 << 2,   // 최적화 비활성화
-    eShaderCompileFlags_WarningsAsErrors      = 1 << 3,   // 경고를 오류로 처리
-    eShaderCompileFlags_AvoidFlowControl      = 1 << 4,   // 흐름 제어 피하기
-    eShaderCompileFlags_PackMatrixRowMajor    = 1 << 5,   // 행 우선 행렬 패킹
-    eShaderCompileFlags_PackMatrixColumnMajor = 1 << 6,   // 열 우선 행렬 패킹
+    eShaderCompileFlags_Debug                 = 1 << 0,
+    eShaderCompileFlags_Optimization          = 1 << 1,
+    eShaderCompileFlags_SkipOptimization      = 1 << 2,
+    eShaderCompileFlags_WarningsAsErrors      = 1 << 3,
+    eShaderCompileFlags_AvoidFlowControl      = 1 << 4,
+    eShaderCompileFlags_PackMatrixRowMajor    = 1 << 5,
+    eShaderCompileFlags_PackMatrixColumnMajor = 1 << 6,
 
-    eShaderCompileFlags_DebugDefault = eShaderCompileFlags_Debug | eShaderCompileFlags_SkipOptimization,
+    eShaderCompileFlags_DebugDefault   = eShaderCompileFlags_Debug | eShaderCompileFlags_SkipOptimization,
     eShaderCompileFlags_ReleaseDefault = eShaderCompileFlags_Optimization,
 
 #ifdef JAM_DEBUG
@@ -263,62 +193,59 @@ enum eShaderCompileFlags_ : UInt8
 };
 using eShaderCompileFlags = UInt8;
 
+enum class eSubmitParameterType : Int8
+{
+    StartVertexLocation = 0,
+    StartIndexLocation,
+    BaseVertexLocation,
+};
+
 using ShaderCacheKey       = UInt64;
 using VertexLayoutCacheKey = UInt64;
 
-///////////////////////////////////
-///          RESOURCES          ///
-///////////////////////////////////
-
-/// input layout (오직 내부에서만 관리됨)
 struct VertexLayoutRef
 {
     ID3D11InputLayout*   pInputLayout = nullptr;
-    VertexLayout         layout       = {};
+    VertexLayout         vertexLayout = {};
     Int32                refCount     = 0;
     VertexLayoutCacheKey hash         = 0;
 };
 using VertexLayoutHandle = Handle<VertexLayoutRef>;
 
-/// buffer
-struct Buffer
+struct HardwareBuffer
 {
     ID3D11Buffer* pBuffer   = nullptr;
     Int32         byteWidth = 0;
     bool          bDynamic  = false;
 };
 
-/// vertex buffer
 struct VertexBuffer
 {
-    std::string        name         = {};
-    Buffer             buffer       = {};
-    Int32              vertexCount  = 0;
-    Int32              vertexStride = 0;
-    VertexLayoutHandle layoutHandle = k_invalidHandle;
+    std::string        name     = {};
+    HardwareBuffer     buffer   = {};
+    Int32              numVerts = 0;
+    Int32              stride   = 0;
+    VertexLayoutHandle vlh      = k_invalidHandle;
 };
 using VertexBufferHandle = Handle<VertexBuffer>;
 
-/// index buffer
 struct IndexBuffer
 {
-    std::string  name        = {};
-    Buffer       buffer      = {};
-    Int32        indexCount  = 0;
-    Int32        indexStride = 0;
-    eIndexFormat format      = eIndexFormat::U16;
+    std::string    name       = {};
+    HardwareBuffer buffer     = {};
+    Int32          numIndices = 0;
+    Int32          stride     = 0;
+    bool           bUseU32    = false;
 };
 using IndexBufferHandle = Handle<IndexBuffer>;
 
-/// constant buffer
 struct ConstantBuffer
 {
-    std::string name   = {};
-    Buffer      buffer = {};
+    std::string    name   = {};
+    HardwareBuffer buffer = {};
 };
 using ConstantBufferHandle = Handle<ConstantBuffer>;
 
-/// texture
 struct TextureRef
 {
     union
@@ -329,38 +256,36 @@ struct TextureRef
     };
     ID3D11ShaderResourceView* pSRV = nullptr;
 
-    std::string  name           = {};
-    Int32        width          = 0;
-    Int32        height         = 0;
-    Int32        depth          = 0;
-    eTextureType type           = eTextureType::Texture2D;
-    eFormat      format         = eFormat::Unknown;
-    Int32        arraySize      = 1;   // cubemap count = arraySize / 6
-    Int32        samples        = 1;
-    Int32        mipsCount      = 1;
-    bool         bMutable       = false;
-    Int32        refCount       = 0;
-    bool         bManaged       = false;
-    bool         bRTVAttachable = false;
-    bool         bDSVAttachable = false;
+    std::string    name           = {};
+    Int32          width          = 0;
+    Int32          height         = 0;
+    Int32          depth          = 0;
+    eTextureType   type           = eTextureType::Texture2D;
+    eTextureFormat format         = eTextureFormat::Unknown;
+    Int32          arraySize      = 1;   // cubemap count = arraySize / 6
+    Int32          samples        = 1;
+    Int32          numMips        = 1;
+    bool           bMutable       = false;
+    Int32          refCount       = 0;
+    bool           bManaged       = false;
+    bool           bRtvAttachable = false;
+    bool           bDsvAttachable = false;
 };
 using TextureHandle = Handle<TextureRef>;
 
-/// frame buffer
 struct FrameBuffer
 {
-    std::string name              = {};
-    Int32       renderTargetCount = 0;
+    std::string name            = {};
+    Int32       numRenderTarget = 0;
 
-    TextureHandle renderTargetTextureHandles[k_renderTargetCountMax] = { k_invalidHandle };
-    TextureHandle depthStencilTextureHandle                          = { k_invalidHandle };
+    TextureHandle renderTargetTexhs[k_numRenderTargetLimit] = { k_invalidHandle };
+    TextureHandle depthStencilTexh                          = { k_invalidHandle };
 
-    ID3D11RenderTargetView* pRTV[k_renderTargetCountMax] = { nullptr };
+    ID3D11RenderTargetView* pRTV[k_numRenderTargetLimit] = { nullptr };
     ID3D11DepthStencilView* pDSV                         = nullptr;
 };
 using FrameBufferHandle = Handle<FrameBuffer>;
 
-/// shader
 struct ShaderRef
 {
     union
@@ -376,20 +301,15 @@ struct ShaderRef
     std::string    name     = {};
     eShader        stage    = eShader::VertexShader;
     Int32          refCount = 0;
-    ShaderCacheKey cacheKey = 0;   // 캐시용 키
+    ShaderCacheKey cache    = 0;
 };
 using ShaderHandle = Handle<ShaderRef>;
 
-/// 프로그램
 struct Program
 {
-    ShaderHandle shaderHandles[k_renderingPipelineShaderStageCount] = { k_invalidHandle };
+    ShaderHandle shs[k_numGraphicsShaderStage] = { k_invalidHandle };
 };
 using ProgramHandle = Handle<Program>;
-
-////////////////////////////////////////
-///          CLASS / STRUCT          ///
-////////////////////////////////////////
 
 struct RGBA
 {
@@ -413,7 +333,7 @@ struct RGBA
     {
     }
 
-    JAM_NODISCARD constexpr static RGBA FromUNorm(const float _r, const float _g, const float _b, const float _a = 1.0f)
+    [[nodiscard]] constexpr static RGBA FromLinear(const float _r, const float _g, const float _b, const float _a = 1.0f)
     {
         return {
             static_cast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
@@ -423,18 +343,29 @@ struct RGBA
         };
     }
 
-    JAM_NODISCARD bool operator==(const RGBA& _other) const
+    [[nodiscard]] constexpr Vec4 ToLinear() const
+    {
+        return {
+            static_cast<float>(r) / 255.0f,
+            static_cast<float>(g) / 255.0f,
+            static_cast<float>(b) / 255.0f,
+            static_cast<float>(a) / 255.0f
+        };
+    }
+
+    [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
     {
         return color == _other.color;
     }
 
-    JAM_NODISCARD bool operator!=(const RGBA& _other) const
+    [[nodiscard]] constexpr bool operator!=(const RGBA& _other) const
     {
         return color != _other.color;
     }
 
     static RGBA k_white;
     static RGBA k_black;
+    static RGBA k_transparent;
 
     union
     {
@@ -451,11 +382,19 @@ struct RGBA
 
 struct Viewport
 {
-    Viewport()
+    constexpr Viewport()
     {
     }
 
-    Viewport(const UInt16 _x, const UInt16 _y, const UInt16 _w, const UInt16 _h)
+    constexpr Viewport(const UInt16 _w, const UInt16 _h)
+        : x(0)
+        , y(0)
+        , w(_w)
+        , h(_h)
+    {
+    }
+
+    constexpr Viewport(const UInt16 _x, const UInt16 _y, const UInt16 _w, const UInt16 _h)
         : x(_x)
         , y(_y)
         , w(_w)
@@ -476,9 +415,36 @@ struct Viewport
     };
 };
 
-struct GfxState
+struct Rect
 {
-    constexpr GfxState()
+    constexpr Rect()
+    {
+    }
+
+    constexpr Rect(const UInt16 _left, const UInt16 _top, const UInt16 _right, const UInt16 _bottom)
+        : left(_left)
+        , top(_top)
+        , right(_right)
+        , bottom(_bottom)
+    {
+    }
+
+    union
+    {
+        struct
+        {
+            UInt16 left;
+            UInt16 top;
+            UInt16 right;
+            UInt16 bottom;
+        };
+        UInt64 rect = 0;
+    };
+};
+
+struct RenderState
+{
+    constexpr RenderState::RenderState()
         : primitive(ePrimitive::TriangleList)
         , cullMode(eCullMode::Back)
         , bWireframe(false)
@@ -494,7 +460,7 @@ struct GfxState
     {
     }
 
-    constexpr GfxState(
+    constexpr RenderState::RenderState(
         const ePrimitive   _primitive,
         const eCullMode    _cullMode,
         const bool         _bWireframe,
@@ -522,7 +488,9 @@ struct GfxState
     {
     }
 
-    using IntType = UInt32;
+    static RenderState k_default;
+    static RenderState k_depthTest;
+
     union
     {
         struct
@@ -540,11 +508,8 @@ struct GfxState
             eCompareFunc depthTestFunc : 4;       // 깊이 테스트 비교 함수 (기본: None. 즉, 깊이 테스트 비활성화)
             bool         bDepthWrite : 1;         // 깊이 쓰기 활성화 여부 (기본: 비활성화, true: 활성화)
         };
-        IntType value = 0;
+        UInt32 value = 0;
     };
-
-    static GfxState k_default;     // 기본 렌더링 상태 (삼각형 리스트, 뒷면 컬링)
-    static GfxState k_depthTest;   // 깊이 테스트 및 쓰기 활성화된 상태, 나머지는 기본값
 };
 
 struct BlendState
@@ -581,9 +546,16 @@ struct BlendState
     {
     }
 
-    // 블랜드 공식
-    // FinalColor = (SrcColor * SrcBlend) (BlendOp) (DstColor * DstBlend)
-    using IntType = UInt32;
+    static BlendState k_opaque;
+    static BlendState k_alphaBlend;
+    static BlendState k_additive;
+    static BlendState k_premultipliedAlpha;
+    static BlendState k_subtractive;
+    static BlendState k_multiply;
+    static BlendState k_screen;
+    static BlendState k_overlay;
+
+    // final color = (src color * src blend) (blend op) (dst color * dst blend)
     union
     {
         struct
@@ -597,19 +569,8 @@ struct BlendState
             eBlendOp    blendOpAlpha : 3;    // 알파 블렌드 연산자 (기본: Add)
             eWriteFlags writeMask : 4;       // 렌더 타겟에 쓰기 마스크 (기본: RGBA 모두 활성화)
         };
-        IntType value = 0;
+        UInt32 value = 0;
     };
-
-    static BlendState k_opaque;        // 블렌딩 비활성화 (Src=1, Dst=0). 픽셀을 그대로 덮어씀.
-    static BlendState k_alpha;         // 알파 블렌딩 (Src=SrcAlpha, Dst=InvSrcAlpha). 투명/반투명 표현.
-    static BlendState k_additive;      // 가산 블렌딩 (Src=1, Dst=1). 색상을 더해 밝게 만듦.
-    static BlendState k_premult;       // 프리멀티 알파 (Src=1, Dst=InvSrcAlpha). SrcColor가 이미 알파 곱 적용된 경우 사용.
-    static BlendState k_subtractive;   // 감산 블렌딩 (Src=1, Dst=1, BlendOp=ReverseSubtract). 기존 색에서 소스 색을 뺌.
-    static BlendState k_multiply;      // 곱셈 블렌딩 (Src=DstColor, Dst=Zero). 색을 곱해 어둡게 만듦.
-    static BlendState k_screen;        // 스크린 블렌딩 (Src=1, Dst=InvSrcColor). 반전된 곱셈, 색이 겹칠수록 밝아짐.
-    static BlendState k_overlay;       // 오버레이 블렌딩. Dst<0.5면 Multiply, Dst>=0.5면 Screen. 명암 대비 강조.
-    static BlendState k_darkening;     // 다크닝 블렌딩 (Src=DstColor, Dst=SrcColor). 색이 겹칠수록 어두워짐.
-    static BlendState k_lightening;    // 라이트닝 블렌딩 (Src=1, Dst=InvSrcColor). 색이 겹칠수록 밝아짐.
 };
 
 struct StencilState
@@ -634,7 +595,8 @@ struct StencilState
     {
     }
 
-    using IntType = UInt16;
+    static StencilState k_default;
+
     union
     {
         struct
@@ -644,10 +606,8 @@ struct StencilState
             eStencilOp   passOp : 3;          // 뎁스 통과 & 스텐실 통과 시 수행할 작업
             eCompareFunc compareFunc : 4;     // 스텐실 테스트 비교 함수 (기본: None, 즉, 스텐실 테스트 비활성화)
         };
-        IntType value = 0;
+        UInt16 value = 0;
     };
-
-    static StencilState k_disable;   // 기본 스텐실 상태 (스텐실 비활성화)
 };
 
 struct SamplerState
@@ -675,7 +635,11 @@ struct SamplerState
     {
     }
 
-    using IntType = UInt32;
+    static SamplerState k_pointClamp;
+    static SamplerState k_linearClamp;
+    static SamplerState k_pointWrap;
+    static SamplerState k_linearWrap;
+
     union
     {
         struct
@@ -686,15 +650,8 @@ struct SamplerState
             eTextureAddress addressW : 3;      // W 좌표 래핑 모드 (기본값은 Wrap)
             eCompareFunc    compareFunc : 4;   // 비교 함수 (기본값은 None 비교 필터링 비활성화. 다른 값으로 선택시 비교 필터링 활성화)
         };
-        IntType value = 0;
+        UInt32 value = 0;
     };
-
-    static SamplerState k_default;       // 기본 샘플러 상태 (점 샘플링, 래핑)
-    static SamplerState k_pointClamp;    // 점 샘플링, 클램프
-    static SamplerState k_linearClamp;   // 선형 샘플링, 클램프
-    static SamplerState k_pointWrap;     // 점 샘플링, 래핑
-    static SamplerState k_linearWrap;    // 선형 샘플링, 래핑
-    static SamplerState k_shadow;        // 그림자 맵용 (비교 필터링, 선형, 클램프)
 };
 
 ///////////////////////////////////////
@@ -704,7 +661,7 @@ struct SamplerState
 struct VertexBufferInfo
 {
     Int32              byteWidth    = 0;
-    Int32              vertexCount  = 0;
+    Int32              numVerts     = 0;
     Int32              vertexStride = 0;
     bool               bDynamic     = false;
     VertexLayoutHandle layoutHandle = k_invalidHandle;
@@ -712,10 +669,10 @@ struct VertexBufferInfo
 
 struct IndexBufferInfo
 {
-    Int32        byteWidth  = 0;
-    Int32        indexCount = 0;
-    eIndexFormat format     = eIndexFormat::U16;
-    bool         bDynamic   = false;
+    Int32 byteWidth  = 0;
+    Int32 numIndices = 0;
+    bool  bUseU32    = false;
+    bool  bDynamic   = false;
 };
 
 struct ConstantBufferInfo
@@ -725,17 +682,17 @@ struct ConstantBufferInfo
 
 struct TextureInfo
 {
-    Int32        width                   = 0;
-    Int32        height                  = 0;
-    Int32        depth                   = 0;
-    eTextureType type                    = eTextureType::Texture2D;
-    eFormat      format                  = eFormat::Unknown;
-    Int32        arraySize               = 1;
-    Int32        samples                 = 1;
-    Int32        mipsCount               = 1;
-    bool         bMutable                = false;
-    bool         bRenderTargetAttachable = false;
-    bool         bDepthStencilAttachable = false;
+    Int32          width                   = 0;
+    Int32          height                  = 0;
+    Int32          depth                   = 0;
+    eTextureType   type                    = eTextureType::Texture2D;
+    eTextureFormat format                  = eTextureFormat::Unknown;
+    Int32          arraySize               = 1;
+    Int32          samples                 = 1;
+    Int32          numMips                 = 1;
+    bool           bMutable                = false;
+    bool           bRenderTargetAttachable = false;
+    bool           bDepthStencilAttachable = false;
 };
 
 struct TextureResolution
@@ -747,11 +704,11 @@ struct TextureResolution
 
 struct FrameBufferInfo
 {
-    Int32 renderTargetCount = 0;
-    bool  bHasDepthStencil  = false;
+    Int32 numRenderTargets = 0;
+    bool  bHasDepthStencil = false;
 
-    TextureHandle renderTargetTextureHandles[k_renderTargetCountMax] = { k_invalidHandle };
-    TextureHandle depthStencilTextureHandle                          = { k_invalidHandle };
+    TextureHandle renderTargetTexhs[k_numRenderTargetLimit] = { k_invalidHandle };
+    TextureHandle depthStencilTexh                          = { k_invalidHandle };
 };
 
 struct ShaderInfo
@@ -761,18 +718,14 @@ struct ShaderInfo
 
 struct ProgramInfo
 {
-    ShaderHandle shaderHandles[k_renderingPipelineShaderStageCount] = { k_invalidHandle };
+    ShaderHandle shs[k_numGraphicsShaderStage] = { k_invalidHandle };
 };
 
-///////////////////////////////////
-///          UTILITIES          ///
-///////////////////////////////////
-
-JAM_NODISCARD Int32 GetPixelByte(eFormat _format);
-JAM_NODISCARD bool  IsDepthFormat(eFormat _format);
-JAM_NODISCARD Int32 GetIndexFormatByte(eIndexFormat _format);
-JAM_NODISCARD Int32 CalcMipsCount(Int32 _width, Int32 _height, Int32 _depth);
-JAM_NODISCARD std::tuple<Int32, Int32, Int32> CalcMipSize(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
-JAM_NODISCARD Int32                           CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _mipsCount);
+[[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);
+[[nodiscard]] Int32             GetBytePerPixel(eTextureFormat _format);
+[[nodiscard]] Int32             GetIndexStride(bool _bIsU32);
+[[nodiscard]] Int32             CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
+[[nodiscard]] TextureResolution CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
+[[nodiscard]] Int32             CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _numMips);
 
 }   // namespace jam

@@ -80,7 +80,7 @@ float3 FilmicToneMapping(float3 color, float exposure, float gamma)
 
 float4 PSMain(FULLSCREEN_PS_INPUT _input) : SV_TARGET
 {
-    float3 color = t_input0.Sample(s_linearClamp, _input.texCoord0).rgb;
+    float3 color = t_input0.Sample(s_linearWrap, _input.texCoord0).rgb;
     float3 toneMappedColor;
 
     switch (cb_toneMappingType)

@@ -40,12 +40,12 @@ struct Handle
         return *this;
     }
 
-    JAM_NODISCARD bool operator==(const Handle& other) const noexcept
+    [[nodiscard]] bool operator==(const Handle& other) const noexcept
     {
         return value == other.value;
     }
 
-    JAM_NODISCARD bool operator!=(const Handle& other) const noexcept
+    [[nodiscard]] bool operator!=(const Handle& other) const noexcept
     {
         return !(*this == other);
     }
@@ -94,12 +94,12 @@ struct AnyHandle
         return *this;
     }
 
-    JAM_NODISCARD bool operator==(const AnyHandle& other) const noexcept
+    [[nodiscard]] bool operator==(const AnyHandle& other) const noexcept
     {
         return value == other.value;
     }
 
-    JAM_NODISCARD bool operator!=(const AnyHandle& other) const noexcept
+    [[nodiscard]] bool operator!=(const AnyHandle& other) const noexcept
     {
         return !(*this == other);
     }
@@ -163,24 +163,24 @@ class HandleAllocator
             return *this;
         }
 
-        JAM_NODISCARD HandleT operator*() const noexcept
+        [[nodiscard]] HandleT operator*() const noexcept
         {
             JAM_ASSERT(IsValid_(), "Iterator out of bounds");
             return HandleT { m_index, m_pAllocator->m_slots[m_index].token };
         }
 
-        JAM_NODISCARD HandleT GetHandle() const noexcept
+        [[nodiscard]] HandleT GetHandle() const noexcept
         {
             JAM_ASSERT(IsValid_(), "Iterator out of bounds");
             return **this;
         }
 
-        JAM_NODISCARD bool operator==(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator==(const Iterator& other) const noexcept
         {
             return m_pAllocator == other.m_pAllocator && m_index == other.m_index;
         }
 
-        JAM_NODISCARD bool operator!=(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator!=(const Iterator& other) const noexcept
         {
             return !(*this == other);
         }
@@ -194,7 +194,7 @@ class HandleAllocator
             }
         }
 
-        JAM_NODISCARD bool IsValid_() const noexcept
+        [[nodiscard]] bool IsValid_() const noexcept
         {
             return m_pAllocator && m_index < m_endIndex && m_pAllocator->m_slots[m_index].bAlloced;
         }
@@ -217,7 +217,7 @@ public:
     HandleAllocator(HandleAllocator&&)                 = default;
     HandleAllocator& operator=(HandleAllocator&&)      = default;
 
-    JAM_NODISCARD HandleT Alloc()
+    [[nodiscard]] HandleT Alloc()
     {
         UInt32 index;
         if (m_freeSlotIndex != k_invalidHandleIndex)
@@ -231,7 +231,7 @@ public:
             m_slots.emplace_back();
         }
 
-        ++m_allocedCount;
+        ++m_numAlloced;
         m_slots[index].bAlloced = true;
         return HandleT(index, m_slots[index].token);
     }
@@ -244,55 +244,53 @@ public:
         m_slots[index].bAlloced      = false;
         m_slots[index].nextFreeIndex = m_freeSlotIndex;
         m_freeSlotIndex              = index;
-        --m_allocedCount;
+        --m_numAlloced;
     }
 
-    JAM_NODISCARD bool IsValid(const HandleT handle) const noexcept
+    [[nodiscard]] bool IsValid(const HandleT handle) const noexcept
     {
-        UInt32 index = handle.index;
-        return index < m_slots.size()
-            && m_slots[index].token == handle.token
-            && m_slots[index].bAlloced;
+        const Slot& slot = m_slots[handle.index];
+        return handle.index < m_slots.size() && slot.token == handle.token && slot.bAlloced;
     }
 
     void Clear() noexcept
     {
         m_slots.clear();
         m_freeSlotIndex = k_invalidHandleIndex;
-        m_allocedCount  = 0;
+        m_numAlloced    = 0;
     }
 
-    JAM_NODISCARD UInt32 GetAllocedCount() const noexcept
+    [[nodiscard]] UInt32 GetAllocedCount() const noexcept
     {
-        return m_allocedCount;
+        return m_numAlloced;
     }
 
-    JAM_NODISCARD IteratorT begin() noexcept
+    [[nodiscard]] IteratorT begin() noexcept
     {
         return IteratorT(this);
     }
 
-    JAM_NODISCARD IteratorT end() noexcept
+    [[nodiscard]] IteratorT end() noexcept
     {
         return IteratorT(this, static_cast<UInt32>(m_slots.size()));
     }
 
-    JAM_NODISCARD ConstIteratorT begin() const noexcept
+    [[nodiscard]] ConstIteratorT begin() const noexcept
     {
         return ConstIteratorT(this);
     }
 
-    JAM_NODISCARD ConstIteratorT end() const noexcept
+    [[nodiscard]] ConstIteratorT end() const noexcept
     {
         return ConstIteratorT(this, static_cast<UInt32>(m_slots.size()));
     }
 
-    JAM_NODISCARD ConstIteratorT cbegin() const noexcept
+    [[nodiscard]] ConstIteratorT cbegin() const noexcept
     {
         return ConstIteratorT(this);
     }
 
-    JAM_NODISCARD ConstIteratorT cend() const noexcept
+    [[nodiscard]] ConstIteratorT cend() const noexcept
     {
         return ConstIteratorT(this, static_cast<UInt32>(m_slots.size()));
     }
@@ -300,7 +298,7 @@ public:
 private:
     std::vector<Slot> m_slots         = {};
     UInt32            m_freeSlotIndex = k_invalidHandleIndex;
-    Int32             m_allocedCount  = 0;
+    Int32             m_numAlloced    = 0;
 };
 
 }   // namespace jam

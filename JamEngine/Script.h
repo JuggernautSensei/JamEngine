@@ -1,17 +1,15 @@
 #pragma once
 #include "Entity.h"
 
-// clang-format off
-namespace jam { class Event; }
-// clang-format on
-
 namespace jam
 {
 
-class Script
+class Event;
+
+class Script : public RefCounted
 {
 public:
-    virtual ~Script() = default;
+    ~Script() override = default;
 
     Script(const Script&)            = delete;
     Script& operator=(const Script&) = delete;
@@ -22,9 +20,9 @@ public:
     void Stop();
     void Update(float _deltaSec);
 
-    JAM_NODISCARD Entity                   GetOwner() const;
-    JAM_NODISCARD bool                     IsRunning() const;
-    JAM_NODISCARD virtual std::string_view GetName() const = 0;
+    [[nodiscard]] Entity                   GetOwner() const;
+    [[nodiscard]] bool                     IsRunning() const;
+    [[nodiscard]] virtual std::string_view GetName() const = 0;
 
 protected:
     explicit Script(Entity _entity);
@@ -41,15 +39,15 @@ private:
 
 }   // namespace jam
 
-#define JAM_SCRIPT(_class)                                                     \
-public:                                                                        \
-    constexpr static bool             _script_marker_ = true;                  \
-    constexpr static std::string_view k_name          = NameOf<_class>();      \
-    JAM_NODISCARD std::string_view GetName() const override { return k_name; } \
-                                                                               \
-private:                                                                       \
-    inline static bool _script_reflect_ = []                                   \
-    {                                                                          \
-        jam::ScriptDB::Reflect<_class>();                                     \
-        return true;                                                           \
+#define JAM_SCRIPT(_class)                                                        \
+public:                                                                           \
+    constexpr static bool             _script_marker_ = true;                     \
+    constexpr static std::string_view k_name          = NameOf<_class>();         \
+    [[nodiscard]] std::string_view    GetName() const override { return k_name; } \
+                                                                                  \
+private:                                                                          \
+    inline static bool _script_reflect_ = []                                      \
+    {                                                                             \
+        jam::ScriptDB::GetInstance().Reflect<_class>();                           \
+        return true;                                                              \
     }()

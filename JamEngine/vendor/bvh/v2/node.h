@@ -13,7 +13,7 @@
 
 namespace bvh::v2 {
 
-/// Binary BVH node, containing its bounds and an index into its children or the primitives it
+/// Binary BVH pNode, containing its bounds and an index into its children or the primitives it
 /// contains. By definition, inner BVH nodes do not contain primitives; only leaves do.
 template <
     typename T,
@@ -28,12 +28,12 @@ struct Node {
     static constexpr size_t prim_count_bits = PrimCountBits;
     static constexpr size_t index_bits = IndexBits;
 
-    /// Bounds of the node, laid out in memory as `[min_x, max_x, min_y, max_y, ...]`. Users should
+    /// Bounds of the pNode, laid out in memory as `[min_x, max_x, min_y, max_y, ...]`. Users should
     /// not really depend on a specific order and instead use `get_bbox()` and extract the `min`
     /// and/or `max` components accordingly.
     std::array<T, Dim * 2> bounds;
 
-    /// Index to the children of an inner node, or to the primitives for a leaf node.
+    /// Index to the children of an inner pNode, or to the primitives for a leaf pNode.
     Index index;
 
     Node() = default;
@@ -45,8 +45,8 @@ struct Node {
 
     BVH_ALWAYS_INLINE BBox<T, Dim> get_bbox() const {
         return BBox<T, Dim>(
-            Vec<T, Dim>::generate([&] (size_t i) { return bounds[i * 2]; }),
-            Vec<T, Dim>::generate([&] (size_t i) { return bounds[i * 2 + 1]; }));
+            Vec<T, Dim>::generate([&] (const size_t i) { return bounds[i * 2]; }),
+            Vec<T, Dim>::generate([&] (const size_t i) { return bounds[i * 2 + 1]; }));
     }
 
     BVH_ALWAYS_INLINE void set_bbox(const BBox<T, Dim>& bbox) {
@@ -57,14 +57,14 @@ struct Node {
     }
 
     BVH_ALWAYS_INLINE Vec<T, Dim> get_min_bounds(const Octant& octant) const {
-        return Vec<T, Dim>::generate([&] (size_t i) { return bounds[2 * static_cast<uint32_t>(i) + octant[i]]; });
+        return Vec<T, Dim>::generate([&] (const size_t i) { return bounds[2 * static_cast<uint32_t>(i) + octant[i]]; });
     }
 
     BVH_ALWAYS_INLINE Vec<T, Dim> get_max_bounds(const Octant& octant) const {
-        return Vec<T, Dim>::generate([&] (size_t i) { return bounds[2 * static_cast<uint32_t>(i) + 1 - octant[i]]; });
+        return Vec<T, Dim>::generate([&] (const size_t i) { return bounds[2 * static_cast<uint32_t>(i) + 1 - octant[i]]; });
     }
 
-    /// Robust ray-node intersection routine. See "Robust BVH Ray Traversal", by T. Ize.
+    /// Robust ray-pNode intersection routine. See "Robust BVH Ray Traversal", by T. Ize.
     [[nodiscard]] BVH_ALWAYS_INLINE std::pair<T, T> intersect_robust(
         const Ray<T, Dim>& ray,
         const Vec<T, Dim>& inv_dir,

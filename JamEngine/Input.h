@@ -129,30 +129,39 @@ enum class eMouse
 class Input
 {
 public:
-
     static void Init();
+    static void Shutdown();
+
     static void Update();
     static void OnEvent(Event& _event);
 
-    JAM_NODISCARD static bool IsKeyDown(eKey _key) noexcept;
-    JAM_NODISCARD static bool IsKeyPressed(eKey _key) noexcept;
-    JAM_NODISCARD static bool IsKeyHold(eKey _key) noexcept;
+    [[nodiscard]] static bool IsKeyDown(eKey _key) noexcept;
+    [[nodiscard]] static bool IsKeyPressed(eKey _key) noexcept;
+    [[nodiscard]] static bool IsKeyHold(eKey _key) noexcept;
 
-    JAM_NODISCARD static bool IsKeyUp(eKey _key) noexcept;
-    JAM_NODISCARD static bool IsKeyReleased(eKey _key) noexcept;
-    JAM_NODISCARD static bool IsKeyAway(eKey _key) noexcept;
+    [[nodiscard]] static bool IsKeyUp(eKey _key) noexcept;
+    [[nodiscard]] static bool IsKeyReleased(eKey _key) noexcept;
+    [[nodiscard]] static bool IsKeyAway(eKey _key) noexcept;
 
-    JAM_NODISCARD static bool IsMouseDown(eMouse _mouse) noexcept;
-    JAM_NODISCARD static bool IsMousePressed(eMouse _mouse) noexcept;
-    JAM_NODISCARD static bool IsMouseHold(eMouse _mouse) noexcept;
+    [[nodiscard]] static bool IsMouseDown(eMouse _mouse) noexcept;
+    [[nodiscard]] static bool IsMousePressed(eMouse _mouse) noexcept;
+    [[nodiscard]] static bool IsMouseHold(eMouse _mouse) noexcept;
 
-    JAM_NODISCARD static bool IsMouseUp(eMouse _mouse) noexcept;
-    JAM_NODISCARD static bool IsMouseReleased(eMouse _mouse) noexcept;
-    JAM_NODISCARD static bool IsMouseAway(eMouse _mouse) noexcept;
+    [[nodiscard]] static bool IsMouseUp(eMouse _mouse) noexcept;
+    [[nodiscard]] static bool IsMouseReleased(eMouse _mouse) noexcept;
+    [[nodiscard]] static bool IsMouseAway(eMouse _mouse) noexcept;
 
-    JAM_NODISCARD static WindowPos GetMousePos() noexcept;
-    JAM_NODISCARD static Int32     GetMouseDeltaWheel() noexcept;
-    JAM_NODISCARD static WindowPos GetMouseDeltaPos() noexcept;
+    [[nodiscard]] static Vec2i GetMousePos() noexcept;
+    [[nodiscard]] static Vec2i GetMouseDeltaPos() noexcept;
+    [[nodiscard]] static float     GetMouseDeltaWheel() noexcept;
+
+    static void SetMousePos(Int32 _x, Int32 _y) noexcept;   // window coords
+    static void SetMouseVisibility(bool _bVisible) noexcept;
+    static void GrabMouseCursor(bool _bEnable) noexcept;
+
+    [[nodiscard]] static bool IsMouseVisible() noexcept;
+    [[nodiscard]] static bool IsMouseCursorGrabbed() noexcept;
+
 };   // namespace input
 
 }   // namespace jam

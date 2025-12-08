@@ -2,12 +2,16 @@
 
 #include "CommandQueue.h"
 
-
 namespace jam
 {
 
-CommandQueue::CommandQueue() = default;
-CommandQueue::~CommandQueue() = default;
+CommandQueue::CommandQueue()
+{
+}
+
+CommandQueue::~CommandQueue()
+{
+}
 
 void CommandQueue::Submit(const std::function<void()>& _command)
 {
@@ -33,4 +37,4 @@ void CommandQueue::Execute()
     m_pendingCommands.clear();
 }
 
-}
+}   // namespace jam

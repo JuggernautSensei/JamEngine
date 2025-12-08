@@ -31,13 +31,15 @@ public:
     static void Shutdown();
 
     /// @brief 싱크를 추가/제거합니다. (싱크 이름은 고유해야 합니다)
-    static void AddSink(std::string_view _sinkName, const std::shared_ptr<spdlog::sinks::sink>& _sink);
+    static void AddSink(std::string_view _sinkName, const spdlog::sink_ptr& _sink);
 
     /// @brief 싱크를 제거합니다.
     static void RemoveSink(std::string_view _sinkName);
 
     /// @brief 싱크를 가져옵니다.
-    JAM_NODISCARD static const std::shared_ptr<spdlog::sinks::sink>& GetSink(std::string_view _sinkName);
+    [[nodiscard]] static const spdlog::sink_ptr& GetSink(std::string_view _sinkName);
+    [[nodiscard]] static const spdlog::sink_ptr& GetConsoleSink();
+    [[nodiscard]] static const spdlog::sink_ptr& GetFileSink();
 
     /// @brief 기본 로거에 로그를 남깁니다.
     template<typename... Args>
@@ -144,13 +146,7 @@ public:
 
     /// @brief 특정 싱크의 로그 패턴을 설정합니다.
     static void SetLogPattern(std::string_view _sinkName, std::string_view _pattern);
-
-    /// @brief 모든 로그를 즉시 플러시합니다.
-    static void Flush();
-
-    static constexpr const char* const k_consoleSinkName = "CORE_CONSOLE_SINK";
-    static constexpr const char* const k_fileSinkName    = "CORE_FILE_SINK";
-
+  
 };
 
 }   // namespace jam

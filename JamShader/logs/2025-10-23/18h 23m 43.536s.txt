@@ -1,4 +1,0 @@
-[2025-10-23 18:23:43.542] [debug] [thread 59448] Logger initialized successfully.
-[2025-10-23 18:23:43.857] [trace] [thread 59448] Application 'JamShader' started.
-[2025-10-23 18:23:49.927] [trace] [thread 59448] Application 'JamShader' shutdown.
-[2025-10-23 18:23:49.987] [debug] [thread 59448] Logger shutting down...

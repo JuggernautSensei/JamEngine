@@ -28,7 +28,7 @@
       <Filter>Scene\00. Trinagle</Filter>
     </ClInclude>
     <ClInclude Include="HelloBasicRenderer.h">
-      <Filter>Scene\02. HelloBasicRenderer\01. GBuffer</Filter>
+      <Filter>Scene\02. HelloBasicRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -54,7 +54,7 @@
       <Filter>Scene\00. Trinagle</Filter>
     </ClCompile>
     <ClCompile Include="HelloBasicRenderer.cpp">
-      <Filter>Scene\02. HelloBasicRenderer\01. GBuffer</Filter>
+      <Filter>Scene\02. HelloBasicRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -81,9 +81,6 @@
     </Filter>
     <Filter Include="Scene\00. Trinagle">
       <UniqueIdentifier>{6c4b309b-bdb1-4f78-9d76-dcafe806a9f2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scene\02. HelloBasicRenderer\01. GBuffer">
-      <UniqueIdentifier>{f063b148-bd7b-4fea-bd74-e505ada112e2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

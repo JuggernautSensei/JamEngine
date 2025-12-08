@@ -1,19 +1,17 @@
 #pragma once
 
-// clang-format off
-namespace jam { class MemoryView; }
-// clang-format on
-
 namespace jam
 {
 
-Result<std::string> ReadFromFile(const fs::path& _path);
-eErrorCode          WriteToFile(const fs::path& _path, std::string_view _data);
+class ConstByteView;
 
-Result<std::vector<Byte>> ReadBinaryFromFile(const fs::path& _path);
-eErrorCode                WriteBinaryToFile(const fs::path& _path, const MemoryView& _data);
+std::optional<std::string> LoadFromFile(const fs::path& _path);
+bool                       SaveToFile(const fs::path& _path, std::string_view _str);
 
-Result<Json> ReadJsonFromFile(const fs::path& _path);
-eErrorCode   WriteJsonToFile(const fs::path& _path, const Json& _json, Int32 _dump = 4);
+std::optional<std::vector<Byte>> LoadBinaryFromFile(const fs::path& _path);
+bool                             SaveBinaryToFile(const fs::path& _path, ConstMemView _mem);
+
+std::optional<Json> LoadJsonFromFile(const fs::path& _path);
+bool                SaveJsonToFile(const fs::path& _path, const Json& _json, Int32 _dump = 4);
 
 }   // namespace jam

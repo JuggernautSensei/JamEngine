@@ -4,7 +4,7 @@
 
 #include "BaseUtilities.h"
 #include "GraphicsBase.h"
-#include "Memory.h"
+#include "MemView.h"
 #include "MemoryArena.h"
 
 // 루프 세분화 알고리즘
@@ -26,8 +26,8 @@ struct SDPoint
 
 struct SDVertex
 {
-    JAM_NODISCARD Int32 CalcValence() const;
-    JAM_NODISCARD std::vector<SDPoint> OneRing() const;
+    [[nodiscard]] Int32                CalcValence() const;
+    [[nodiscard]] std::vector<SDPoint> OneRing() const;
 
     SDPoint   point;                  // 정점의 위치 및 텍스처 좌표
     SDFace*   pStartFace = nullptr;   // 임의의 면
@@ -38,7 +38,7 @@ struct SDVertex
 
 struct SDFace
 {
-    JAM_NODISCARD Int32 CalcVertexIndex(const SDVertex* vert) const
+    [[nodiscard]] Int32 CalcVertexIndex(const SDVertex* vert) const
     {
         for (Int32 i = 0; i < 3; ++i)
         {
@@ -51,27 +51,27 @@ struct SDFace
         return -1;
     }
 
-    JAM_NODISCARD SDFace* GetNextFace(const SDVertex* vert) const
+    [[nodiscard]] SDFace* GetNextFace(const SDVertex* vert) const
     {
         return pFaces[CalcVertexIndex(vert)];
     }
 
-    JAM_NODISCARD SDFace* GetPrevFace(const SDVertex* vert) const
+    [[nodiscard]] SDFace* GetPrevFace(const SDVertex* vert) const
     {
         return pFaces[(CalcVertexIndex(vert) + 2) % 3];
     }
 
-    JAM_NODISCARD SDVertex* GetNextVertex(const SDVertex* vert) const
+    [[nodiscard]] SDVertex* GetNextVertex(const SDVertex* vert) const
     {
         return pVerts[(CalcVertexIndex(vert) + 1) % 3];
     }
 
-    JAM_NODISCARD SDVertex* GetPrevVertex(const SDVertex* vert) const
+    [[nodiscard]] SDVertex* GetPrevVertex(const SDVertex* vert) const
     {
         return pVerts[(CalcVertexIndex(vert) + 2) % 3];
     }
 
-    JAM_NODISCARD SDVertex* GetOtherVertex(const SDVertex* v0, const SDVertex* v1) const
+    [[nodiscard]] SDVertex* GetOtherVertex(const SDVertex* v0, const SDVertex* v1) const
     {
         for (Int32 i = 0; i < 3; ++i)
         {
@@ -116,10 +116,10 @@ Int32 SDVertex::CalcValence() const
     else
     {
         Int32 nf = 1;
-        while ((f = f->GetNextFace(this)) != nullptr)
+        while ((f = f->GetNextFace(this)))
             ++nf;
         f = pStartFace;
-        while ((f = f->GetPrevFace(this)) != nullptr)
+        while ((f = f->GetPrevFace(this)))
             ++nf;
         return nf + 1;
     }
@@ -144,14 +144,14 @@ std::vector<SDPoint> SDVertex::OneRing() const
     else
     {
         SDFace *face = pStartFace, *f2;
-        while ((f2 = face->GetNextFace(this)) != nullptr)
+        while ((f2 = face->GetNextFace(this)))
             face = f2;
         pRing.push_back(face->GetNextVertex(this)->point);
         do
         {
             pRing.push_back(face->GetPrevVertex(this)->point);
             face = face->GetPrevFace(this);
-        } while (face != nullptr);
+        } while (face);
     }
     return pRing;
 }
@@ -203,7 +203,7 @@ static SDPoint WeightBoundary(const SDVertex* vert, const float Beta)
 LoopSubdivisionOutput LoopSubdivide(
     std::span<const Vec3> _positions,
     std::span<const Vec2> _texcoordsOrEmpty,
-    MemoryView     _indexData,
+    ConstMemView       _indexData,
     const eIndexFormat    _indexFormat,
     const Int32           _level)
 {
@@ -212,23 +212,23 @@ LoopSubdivisionOutput LoopSubdivide(
     JAM_ASSERT(!_positions.empty(), "세분화할 메쉬의 버텍스가 비어있습니다.");
     JAM_ASSERT(_indexData.IsValid(), "세분화할 메쉬의 인덱스 데이터가 유효하지 않습니다.");
 
-    Int32 vertCount   = NarrowCast<Int32>(_positions.size());
+    Int32 numVerts    = NarrowCast<Int32>(_positions.size());
     Int32 indexStride = GetIndexFormatByte(_indexFormat);
-    Int32 indexCount  = NarrowCast<Int32>(_indexData.GetByteWidth() / indexStride);
-    Int32 faceCount   = indexCount / 3;
+    Int32 numIndices  = NarrowCast<Int32>(_indexData.GetByteWidth() / indexStride);
+    Int32 numFaces    = numIndices / 3;
 
     bool bHasUV = !_texcoordsOrEmpty.empty();
 
     // 버텍스 및 페이스
     std::vector<SDVertex*> verts;
-    verts.reserve(vertCount);   // 대략적인 용량 예약
+    verts.reserve(numVerts);   // 대략적인 용량 예약
 
     std::vector<SDFace*> faces;
-    faces.reserve(faceCount);   // 대략적인 용량 예약
+    faces.reserve(numFaces);   // 대략적인 용량 예약
 
     // 초기 버텍스 생성
-    std::unique_ptr<SDVertex[]> initialVerts = std::make_unique<SDVertex[]>(vertCount);
-    for (Int32 i = 0; i < vertCount; ++i)
+    std::unique_ptr<SDVertex[]> initialVerts = std::make_unique<SDVertex[]>(numVerts);
+    for (Int32 i = 0; i < numVerts; ++i)
     {
         initialVerts[i].point.position = _positions[i];
         initialVerts[i].point.texcoord = bHasUV ? _texcoordsOrEmpty[i] : Vec2::Zero;
@@ -236,15 +236,15 @@ LoopSubdivisionOutput LoopSubdivide(
     }
 
     // 초기 페이스 생성 (메모리만 할당)
-    std::unique_ptr<SDFace[]> initialFaces = std::make_unique<SDFace[]>(faceCount);
-    for (Int32 i = 0; i < faceCount; ++i)
+    std::unique_ptr<SDFace[]> initialFaces = std::make_unique<SDFace[]>(numFaces);
+    for (Int32 i = 0; i < numFaces; ++i)
     {
         faces.push_back(&initialFaces[i]);
     }
 
     // 페이스의 버텍스 정보 설정
     const Byte* pIndexData = _indexData.GetDataPtr();
-    for (Int32 i = 0; i < faceCount; ++i)
+    for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];
         for (Int32 j = 0; j < 3; ++j)
@@ -261,7 +261,7 @@ LoopSubdivisionOutput LoopSubdivide(
 
     // 엣지 정보 설정
     std::set<SDEdge> edgeSet;
-    for (Int32 i = 0; i < faceCount; ++i)
+    for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];
         for (Int32 edgeNum = 0; edgeNum < 3; ++edgeNum)
@@ -293,7 +293,7 @@ LoopSubdivisionOutput LoopSubdivide(
     }
 
     // 버텍스의 경계 및 regular 정보 설정
-    for (Int32 i = 0; i < vertCount; ++i)
+    for (Int32 i = 0; i < numVerts; ++i)
     {
         SDVertex* pVert = verts[i];
         SDFace*   pFace = pVert->pStartFace;
@@ -426,9 +426,9 @@ LoopSubdivisionOutput LoopSubdivide(
     }
 
     // 최종 위치 보정
-    vertCount                         = NarrowCast<Int32>(verts.size());
-    std::unique_ptr<SDPoint[]> pLimit = std::make_unique<SDPoint[]>(vertCount);
-    for (Int32 i = 0; i < vertCount; ++i)
+    numVerts                          = NarrowCast<Int32>(verts.size());
+    std::unique_ptr<SDPoint[]> pLimit = std::make_unique<SDPoint[]>(numVerts);
+    for (Int32 i = 0; i < numVerts; ++i)
     {
         if (verts[i]->bBoundary)
             pLimit[i] = WeightBoundary(verts[i], 1.f / 5.f);
@@ -437,35 +437,35 @@ LoopSubdivisionOutput LoopSubdivide(
     }
 
     // 위치 적용
-    for (Int32 i = 0; i < vertCount; ++i)
+    for (Int32 i = 0; i < numVerts; ++i)
     {
         verts[i]->point = pLimit[i];
     }
 
     // 포지션 + UVs 배열 생성
     LoopSubdivisionOutput output;
-    output.positions.resize(vertCount);
-    output.texcoords.resize(vertCount);
-    for (Int32 i = 0; i < vertCount; ++i)
+    output.positions.resize(numVerts);
+    output.texcoords.resize(numVerts);
+    for (Int32 i = 0; i < numVerts; ++i)
     {
         output.positions[i] = verts[i]->point.position;
         output.texcoords[i] = verts[i]->point.texcoord;
     }
 
     // 인덱스 배열 생성
-    faceCount          = NarrowCast<Int32>(faces.size());
-    output.indexFormat = std::cmp_less_equal(vertCount, UInt16Limits::max()) ? eIndexFormat::U16 : eIndexFormat::U32;
+    numFaces           = NarrowCast<Int32>(faces.size());
+    output.indexFormat = NeedU32Index(numVerts);
     indexStride        = GetIndexFormatByte(output.indexFormat);
-    output.indices.resize(faceCount * 3 * indexStride);
+    output.indices.resize(numFaces * 3 * indexStride);
 
     std::map<SDVertex*, Int32> usedVertsMap;
-    for (Int32 i = 0; i < vertCount; ++i)
+    for (Int32 i = 0; i < numVerts; ++i)
     {
         usedVertsMap[verts[i]] = i;
     }
 
     Byte* pIndices = output.indices.data();
-    for (Int32 i = 0; i < faceCount; ++i)
+    for (Int32 i = 0; i < numFaces; ++i)
     {
         for (Int32 j = 0; j < 3; ++j)
         {
