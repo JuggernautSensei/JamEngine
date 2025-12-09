@@ -8,7 +8,6 @@
 
 #include "Graphics.h"
 #include "ImGuiUtilities.h"
-#include "ImageImporter.h"
 #include "Material.h"
 #include "Mesh.h"
 #include "Model.h"
@@ -284,47 +283,47 @@ std::optional<Mesh> ImportModelDialog::CreateMeshFromImported_(
         return std::nullopt;
     }
 
-    std::vector<Byte> vertexData(numVerts * vertexStride);
+    std::vector<Byte> vertsData(numVerts * vertexStride);
 
     for (const VertexLayoutElement& elem: _layout.GetElements())
     {
         switch (elem.attrib)
         {
             case eVertexAttribute::Position:
-                CopyVec3Attribute_(vertexData, _mesh.positions, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.positions, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::Normal:
-                CopyVec3Attribute_(vertexData, _mesh.normals, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.normals, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::Tangent:
-                CopyVec3Attribute_(vertexData, _mesh.tangents, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.tangents, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::Bitangent:
-                CopyVec3Attribute_(vertexData, _mesh.bitangents, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.bitangents, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::TexCoord0:
-                CopyVec3Attribute_(vertexData, _mesh.texCoords0, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.texCoords0, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::TexCoord1:
-                CopyVec3Attribute_(vertexData, _mesh.texCoords1, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.texCoords1, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::TexCoord2:
-                CopyVec3Attribute_(vertexData, _mesh.texCoords2, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.texCoords2, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::TexCoord3:
-                CopyVec3Attribute_(vertexData, _mesh.texCoords3, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec3Attribute_(vertsData, _mesh.texCoords3, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::Color0:
-                CopyVec4Attribute_(vertexData, _mesh.colors0, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec4Attribute_(vertsData, _mesh.colors0, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::Color1:
-                CopyVec4Attribute_(vertexData, _mesh.colors1, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec4Attribute_(vertsData, _mesh.colors1, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::Color2:
-                CopyVec4Attribute_(vertexData, _mesh.colors2, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec4Attribute_(vertsData, _mesh.colors2, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             case eVertexAttribute::Color3:
-                CopyVec4Attribute_(vertexData, _mesh.colors3, numVerts, vertexStride, elem.offset, elem.byteWidth);
+                CopyVec4Attribute_(vertsData, _mesh.colors3, numVerts, vertexStride, elem.offset, elem.byteWidth);
                 break;
             default:
                 break;
@@ -332,7 +331,7 @@ std::optional<Mesh> ImportModelDialog::CreateMeshFromImported_(
     }
 
     Mesh mesh;
-    mesh.LoadFromMemory(vertexData, _layout, _mesh.indices, _mesh.indexFormat);
+    mesh.LoadFromMemory(vertsData, _layout, _mesh.indices, _mesh.bUseU32);
     return mesh;
 }
 

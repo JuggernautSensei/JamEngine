@@ -85,15 +85,15 @@ class Octree
         [[nodiscard]] bool HasChildren() const { return children[0] != nullptr; }
         [[nodiscard]] bool HasGrandChildren() const { return HasChildren() && children[0]->HasChildren(); }
         [[nodiscard]] bool HasParent() const { return pParent != nullptr; }
-        [[nodiscard]] bool Contain(const Aabb& _aabb) const { return regionAabb.Contains(_aabb); }
-        [[nodiscard]] bool Contain(const OcItem* _pItem) const { return regionAabb.Contains(_pItem->aabb); }
-        [[nodiscard]] Vec3 GetCenter() const { return regionAabb.Center(); }
-        [[nodiscard]] Vec3 GetExtents() const { return regionAabb.Extents(); }
+        [[nodiscard]] bool Contain(const Aabb& _aabb) const { return aabb.Contains(_aabb); }
+        [[nodiscard]] bool Contain(const OcItem* _pItem) const { return aabb.Contains(_pItem->aabb); }
+        [[nodiscard]] Vec3 GetCenter() const { return aabb.Center(); }
+        [[nodiscard]] Vec3 GetExtents() const { return aabb.Extents(); }
 
         OcItemList items                  = {};
         OcNodePtr  children[REGION_COUNT] = { nullptr };
         OcNode*    pParent                = nullptr;
-        Aabb       regionAabb             = {};
+        Aabb       aabb                   = {};
         Int32      depth                  = -1;
         Int32      numItemsInTree         = 0;   // total number of items in this node and all children
     };
@@ -126,7 +126,10 @@ public:
         m_pRoot->depth = 0;
     }
 
-    void Insert(const Entity _entity, const Aabb& _aabb, const T& _userdata)
+    void Insert(
+        const Entity _entity,
+        const Aabb&  _aabb,
+        const T&     _userdata)
     {
         JAM_ASSERT(_entity, "Invalid entity");
         JAM_ASSERT(m_itemCache.contains(_entity.GetUID()) == false, "Entity already exists");
@@ -303,7 +306,7 @@ private:
             return;
         }
 
-        if (_intersactFunc(_bv, _pNode->regionAabb))
+        if (_intersactFunc(_bv, _pNode->aabb))
         {
             // check items in current node
             for (const OcItemPtr& pItem: _pNode->items)
@@ -486,14 +489,14 @@ private:
 
             // mapping: where each old child goes in new grandchildren
             constexpr Region k_grandchildMapping[REGION_COUNT] = {
-                FAR_RIGHT_BOTTOM,    // NEAR_LEFT_TOP     
-                FAR_LEFT_BOTTOM,     // NEAR_RIGHT_TOP    
-                FAR_RIGHT_TOP,       // NEAR_LEFT_BOTTOM  
-                FAR_LEFT_TOP,        // NEAR_RIGHT_BOTTOM 
-                NEAR_RIGHT_BOTTOM,   // FAR_LEFT_TOP      
-                NEAR_LEFT_BOTTOM,    // FAR_RIGHT_TOP     
-                NEAR_RIGHT_TOP,      // FAR_LEFT_BOTTOM   
-                NEAR_LEFT_TOP        // FAR_RIGHT_BOTTOM  
+                FAR_RIGHT_BOTTOM,    // NEAR_LEFT_TOP
+                FAR_LEFT_BOTTOM,     // NEAR_RIGHT_TOP
+                FAR_RIGHT_TOP,       // NEAR_LEFT_BOTTOM
+                FAR_LEFT_TOP,        // NEAR_RIGHT_BOTTOM
+                NEAR_RIGHT_BOTTOM,   // FAR_LEFT_TOP
+                NEAR_LEFT_BOTTOM,    // FAR_RIGHT_TOP
+                NEAR_RIGHT_TOP,      // FAR_LEFT_BOTTOM
+                NEAR_LEFT_TOP        // FAR_RIGHT_BOTTOM
             };
 
             // move old children to new grandchildren positions
@@ -574,8 +577,8 @@ private:
     [[nodiscard]] OcNodePtr MakeNode_(
         const Aabb& _aabb)
     {
-        OcNodePtr pNode   = NewNode_();
-        pNode->regionAabb = _aabb;
+        OcNodePtr pNode = NewNode_();
+        pNode->aabb     = _aabb;
         return pNode;
     }
 

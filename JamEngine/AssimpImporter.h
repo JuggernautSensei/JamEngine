@@ -38,8 +38,8 @@ struct ImportedMesh
     std::vector<Vec3> texCoords2 = {};
     std::vector<Vec3> texCoords3 = {};
 
-    std::vector<Byte> indices     = {};
-    eIndexFormat      indexFormat = eIndexFormat::U16;
+    std::vector<Byte> indices = {};
+    bool              bUseU32 = false;
 };
 
 struct ImportedMaterial
@@ -75,7 +75,7 @@ struct ImportedMaterial
 struct ImportedTexture
 {
     // only embedded texture is supported
-    ConstMemView     pixels        = {};
+    ConstMemView pixels        = {};
     Int32        width         = 0;
     Int32        height        = 0;
     eImageFormat format        = eImageFormat::Unknown;

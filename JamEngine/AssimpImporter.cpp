@@ -270,12 +270,12 @@ bool AssimpImporter::Import()
 
             // indices
             {
-                mesh.indexFormat         = NeedU32Index(numVerts);
-                const Int32  indexStride = GetIndexFormatByte(mesh.indexFormat);
-                const UInt32 numFaces    = pMesh->mNumFaces;
-                const UInt32 numIndices  = numFaces * 3;
+                mesh.bUseU32            = numVerts > 0xFFFF;
+                const Int32  stride     = mesh.bUseU32 ? 4 : 2;
+                const UInt32 numFaces   = pMesh->mNumFaces;
+                const UInt32 numIndices = numFaces * 3;
 
-                mesh.indices.resize(numIndices * indexStride);
+                mesh.indices.resize(numIndices * stride);
 
                 for (UInt32 f = 0; f < numFaces; ++f)
                 {
@@ -284,18 +284,18 @@ bool AssimpImporter::Import()
 
                     for (UInt32 k = 0; k < 3; ++k)
                     {
-                        const UInt32 dstOffset = f * 3 + k;
-                        const UInt32 index     = face.mIndices[k];
+                        const UInt32 offset = f * 3 + k;
+                        const UInt32 index  = face.mIndices[k];
 
-                        if (mesh.indexFormat == eIndexFormat::U16)
+                        if (mesh.bUseU32)
                         {
-                            UInt16* pDst = reinterpret_cast<UInt16*>(mesh.indices.data() + indexStride * dstOffset);
-                            *pDst        = NarrowCast<UInt16>(index);
+                            UInt32* pDst = reinterpret_cast<UInt32*>(mesh.indices.data() + stride * offset);
+                            *pDst        = index;
                         }
                         else
                         {
-                            UInt32* pDst = reinterpret_cast<UInt32*>(mesh.indices.data() + indexStride * dstOffset);
-                            *pDst        = index;
+                            UInt16* pDst = reinterpret_cast<UInt16*>(mesh.indices.data() + stride * offset);
+                            *pDst        = NarrowCast<UInt16>(index);
                         }
                     }
                 }

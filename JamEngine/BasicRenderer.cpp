@@ -729,7 +729,7 @@ void BasicRendererContext::BakeSSAONoise()
     }
 
     ConstMemView mem[] = { noiseData };
-    ssaoNoiseTexture      = Graphics::CreateTexture2D(k_length, k_length, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags_None, mem);
+    ssaoNoiseTexture   = Graphics::CreateTexture2D(k_length, k_length, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags_None, mem);
 }
 
 void BasicRendererContext::BuildRenderGraph(
@@ -870,9 +870,9 @@ void BasicRendererContext::BuildRenderGraph(
             .SetClearRenderTargetCommand(RGBA::k_black, 2)
             .SetClearDepthStencilCommand(true, false, 1.f, 0)
             .SetViewport(vp)
-            .SetGfxState(depthTestState)
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(depthTestState)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(GBufferExecutor { &_scene });
 
         graph.AddPass(std::move(pass));
@@ -898,9 +898,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddTexture(ssaoNoiseTexture, eShader::PixelShader, t_ssaoNoiseSlot)
             .SetFrameBuffer(ssaoFbh0, true)
             .SetViewport(vp)
-            .SetGfxState(RenderState::Default())
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(RenderState::k_default)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(FullScreenTriExecutor {});
 
         // horizontal blur
@@ -974,9 +974,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddTexture(depthTexh, eShader::PixelShader, t_depthSlot)
             .SetFrameBuffer(hdrNoDepthFbh)
             .SetViewport(vp)
-            .SetGfxState(RenderState::Default())
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(RenderState::k_default)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(FullScreenTriExecutor {});
 
         if (pIrrdianceMap)
@@ -1013,9 +1013,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddConstantBuffer(cameraCbh, eShader::PixelShader, CB_CAMERA_SLOT)
             .SetFrameBuffer(hdrDepthFbh)
             .SetViewport(vp)
-            .SetGfxState(skyboxState)
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(skyboxState)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(SkyboxExecutor {});
 
         if (skybox.type == eSkyboxType::CubeMap && pSkyboxTexture)
@@ -1047,9 +1047,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddTexture(hdrTexh, eShader::PixelShader, t_input0Slot)
             .SetFrameBuffer(fbh, true)
             .SetViewport(vp)
-            .SetGfxState(RenderState::Default())
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(RenderState::k_default)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(FullScreenTriExecutor {});
 
         graph.AddPass(std::move(pass));
@@ -1071,9 +1071,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddTexture(inputTexh, eShader::PixelShader, t_input0Slot)
             .SetFrameBuffer(fbh, true)
             .SetViewport(vp)
-            .SetGfxState(RenderState::Default())
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(RenderState::k_default)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(FullScreenTriExecutor {});
 
         graph.AddPass(std::move(pass));
@@ -1105,9 +1105,9 @@ void BasicRendererContext::BuildRenderGraph(
                 .AddConstantBuffer(screenCbh, eShader::PixelShader, CB_SCREEN_SLOT)
                 .SetFrameBuffer(bloomDownFbh, true)
                 .SetViewport(vpDown)
-                .SetGfxState(RenderState::Default())
-                .SetBlendState(BlendState::Opaque(), 0)
-                .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+                .SetRenderState(RenderState::k_default)
+                .SetBlendState(BlendState::k_opaque, 0)
+                .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
                 .SetExecutor(BloomFullScreenTriExecutor { w, h });
 
             graph.AddPass(std::move(pass));
@@ -1132,9 +1132,9 @@ void BasicRendererContext::BuildRenderGraph(
                 .AddConstantBuffer(screenCbh, eShader::PixelShader, CB_SCREEN_SLOT)
                 .SetFrameBuffer(bloomUpFbh, true)
                 .SetViewport(vpUp)
-                .SetGfxState(RenderState::Default())
-                .SetBlendState(BlendState::Opaque(), 0)
-                .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+                .SetRenderState(RenderState::k_default)
+                .SetBlendState(BlendState::k_opaque, 0)
+                .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
                 .SetExecutor(BloomFullScreenTriExecutor { w, h });
 
             graph.AddPass(std::move(pass));
@@ -1153,9 +1153,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddConstantBuffer(environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
             .SetFrameBuffer(fbh, true)
             .SetViewport(vp)
-            .SetGfxState(RenderState::Default())
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(RenderState::k_default)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(BloomFullScreenTriExecutor { width, height });   // restore full screen size
 
         graph.AddPass(std::move(pass));
@@ -1175,9 +1175,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddConstantBuffer(environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
             .SetFrameBuffer(fbh, true)
             .SetViewport(vp)
-            .SetGfxState(RenderState::Default())
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(RenderState::k_default)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(FullScreenTriExecutor {});
 
         graph.AddPass(std::move(pass));
@@ -1198,9 +1198,9 @@ void BasicRendererContext::BuildRenderGraph(
             .AddConstantBuffer(screenCbh, eShader::PixelShader, CB_SCREEN_SLOT)
             .SetFrameBuffer(fbh, true)
             .SetViewport(vp)
-            .SetGfxState(RenderState::Default())
-            .SetBlendState(BlendState::Opaque(), 0)
-            .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+            .SetRenderState(RenderState::k_default)
+            .SetBlendState(BlendState::k_opaque, 0)
+            .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
             .SetExecutor(FullScreenTriExecutor {});
 
         switch (fxaa.quality)
@@ -1540,7 +1540,7 @@ void BasicRenderer::Init()
         pCtx->anisotropicSampler.addressW = eTextureAddress::Wrap;
 
         // 후면 컬링, 깊이 테스트 활성화, 깊이 쓰기 활성화
-        pCtx->depthTestState = RenderState::DepthTest();
+        pCtx->depthTestState = RenderState::k_depthTest;
 
         // 전면 컬링, 깊이 비활성화
         pCtx->lightVolumeState = RenderState { ePrimitive::TriangleList, eCullMode::Front, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, false };
@@ -1882,8 +1882,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(_desc.frameBuffer)
 //        .SetViewport(_desc.vp)
 //        .SetGfxState(GfxState::Default())
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(FullScreenTriExecutor {});
 //
 //    if (JAM_IS_VALID_HANDLE(_desc.ssaoTexture))
@@ -1912,7 +1912,7 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetViewport(_desc.vp)
 //        .SetGfxState(g_basicRendererCtx->lightVolumeState)
 //        .SetBlendState(BlendState::k_additive, 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0);
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
 //
 //    return pass;
 //}
@@ -1943,7 +1943,7 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetViewport(_desc.vp)
 //        .SetGfxState(g_basicRendererCtx->lightVolumeState)
 //        .SetBlendState(BlendState::k_additive, 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(Executor {});
 //
 //    if (JAM_IS_VALID_HANDLE(_desc.shadowMap))
@@ -1970,8 +1970,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(_desc.frameBuffer)
 //        .SetViewport(_desc.vp)
 //        .SetGfxState(g_basicRendererCtx->skyboxState)
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(SkyboxExecutor {});
 //
 //    if (JAM_IS_VALID_HANDLE(_desc.skyboxTexture))
@@ -1995,8 +1995,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(fbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(g_basicRendererCtx->depthTestState)
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(_desc.executor);
 //
 //    result.shadowMap = th;
@@ -2018,8 +2018,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(fbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(g_basicRendererCtx->depthTestState)
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(_desc.executor);
 //
 //    result.shadowMap = th;
@@ -2040,8 +2040,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(fbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(g_basicRendererCtx->depthTestState)
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(_desc.executor);
 //
 //    if (_desc.cascadeLevel == eCascadeLevel::level2)
@@ -2087,8 +2087,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(ssaoPassFbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(GfxState::Default())
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(FullScreenTriExecutor {});
 //
 //    // horizontal blur
@@ -2131,8 +2131,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(outputFbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(GfxState::Default())
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(FullScreenTriExecutor {});
 //
 //    result.outputTexture = outputTexh;
@@ -2153,8 +2153,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(outputFbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(GfxState::Default())
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(FullScreenTriExecutor {});
 //
 //    switch (_desc.quality)
@@ -2203,8 +2203,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(outputFbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(GfxState::Default())
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(FullScreenTriExecutor {});
 //
 //    result.outputTexture = outputTexh;
@@ -2226,8 +2226,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //        .SetFrameBuffer(outputFbh, true)
 //        .SetViewport(vp)
 //        .SetGfxState(GfxState::Default())
-//        .SetBlendState(BlendState::Opaque(), 0)
-//        .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//        .SetBlendState(BlendState::k_opaque, 0)
+//        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //        .SetExecutor(FullScreenTriExecutor {});
 //
 //    result.outputTexture = outputTexh;
@@ -2259,8 +2259,8 @@ TextureHandle BasicRenderer::GetDepthTexture()
 //                .SetFrameBuffer(downFbh, true)
 //                .SetViewport(vp)
 //                .SetGfxState(GfxState::Default())
-//                .SetBlendState(BlendState::Opaque(), 0)
-//                .SetStencil(StencilState::Disable(), StencilState::Disable(), 0)
+//                .SetBlendState(BlendState::k_opaque, 0)
+//                .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
 //                .SetExecutor(FullScreenTriExecutor {});
 //        }
 //        else

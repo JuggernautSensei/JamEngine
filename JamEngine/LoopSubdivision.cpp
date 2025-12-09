@@ -3,7 +3,6 @@
 #include "LoopSubdivision.h"
 
 #include "BaseUtilities.h"
-#include "GraphicsBase.h"
 #include "MemView.h"
 #include "MemoryArena.h"
 
@@ -203,21 +202,18 @@ static SDPoint WeightBoundary(const SDVertex* vert, const float Beta)
 LoopSubdivisionOutput LoopSubdivide(
     std::span<const Vec3> _positions,
     std::span<const Vec2> _texcoordsOrEmpty,
-    ConstMemView       _indexData,
-    const eIndexFormat    _indexFormat,
+    ConstMemView          _indexData,
+    bool                  _bUseU32,
     const Int32           _level)
 {
-    JAM_ASSERT(_level >= 1, "세분화 레벨은 1 이상이어야 합니다.");
-    JAM_ASSERT(_level <= 5, "세분화 레벨이 너무 높습니다. (5 이하 권장)");
     JAM_ASSERT(!_positions.empty(), "세분화할 메쉬의 버텍스가 비어있습니다.");
     JAM_ASSERT(_indexData.IsValid(), "세분화할 메쉬의 인덱스 데이터가 유효하지 않습니다.");
 
     Int32 numVerts    = NarrowCast<Int32>(_positions.size());
-    Int32 indexStride = GetIndexFormatByte(_indexFormat);
+    Int32 indexStride = _bUseU32 ? 4 : 2;
     Int32 numIndices  = NarrowCast<Int32>(_indexData.GetByteWidth() / indexStride);
     Int32 numFaces    = numIndices / 3;
-
-    bool bHasUV = !_texcoordsOrEmpty.empty();
+    bool  bHasUV      = !_texcoordsOrEmpty.empty();
 
     // 버텍스 및 페이스
     std::vector<SDVertex*> verts;
@@ -249,13 +245,11 @@ LoopSubdivisionOutput LoopSubdivide(
         SDFace* pFace = faces[i];
         for (Int32 j = 0; j < 3; ++j)
         {
-            const Byte* pIndex = pIndexData + (i * 3 + j) * indexStride;
-            UInt32      index  = _indexFormat == eIndexFormat::U16 ? *reinterpret_cast<const UInt16*>(pIndex)
-                                                                   : *reinterpret_cast<const UInt32*>(pIndex);
-
-            SDVertex* pVert   = verts[index];
-            pFace->pVerts[j]  = pVert;
-            pVert->pStartFace = pFace;   // 임의의 면 설정
+            const Byte*  pIndex = pIndexData + (i * 3 + j) * indexStride;
+            const UInt32 index  = _bUseU32 ? *reinterpret_cast<const UInt16*>(pIndex) : *reinterpret_cast<const UInt32*>(pIndex);
+            SDVertex*    pVert  = verts[index];
+            pFace->pVerts[j]    = pVert;
+            pVert->pStartFace   = pFace;   // 임의의 면 설정
         }
     }
 
@@ -266,8 +260,8 @@ LoopSubdivisionOutput LoopSubdivide(
         SDFace* pFace = faces[i];
         for (Int32 edgeNum = 0; edgeNum < 3; ++edgeNum)
         {
-            Int32 v0 = edgeNum;
-            Int32 v1 = (edgeNum + 1) % 3;
+            const Int32 v0 = edgeNum;
+            const Int32 v1 = (edgeNum + 1) % 3;
 
             SDEdge edge;
             edge.pVerts[0] = Min(pFace->pVerts[v0], pFace->pVerts[v1]);
@@ -316,12 +310,12 @@ LoopSubdivisionOutput LoopSubdivide(
         newVerts.reserve(verts.size() * 2);
 
         // 새로운 버텍스 및 페이스 생성
-        for (SDVertex* vertex: verts)
+        for (SDVertex* vert: verts)
         {
-            vertex->pChildVert            = arena.New<SDVertex>();
-            vertex->pChildVert->bRegular  = vertex->bRegular;
-            vertex->pChildVert->bBoundary = vertex->bBoundary;
-            newVerts.push_back(vertex->pChildVert);
+            vert->pChildVert            = arena.New<SDVertex>();
+            vert->pChildVert->bRegular  = vert->bRegular;
+            vert->pChildVert->bBoundary = vert->bBoundary;
+            newVerts.push_back(vert->pChildVert);
         }
 
         for (SDFace* face: faces)
@@ -453,9 +447,9 @@ LoopSubdivisionOutput LoopSubdivide(
     }
 
     // 인덱스 배열 생성
-    numFaces           = NarrowCast<Int32>(faces.size());
-    output.indexFormat = NeedU32Index(numVerts);
-    indexStride        = GetIndexFormatByte(output.indexFormat);
+    numFaces       = NarrowCast<Int32>(faces.size());
+    output.bUseU32 = numVerts > 0xFFFF;
+    indexStride    = output.bUseU32 ? 4 : 2;
     output.indices.resize(numFaces * 3 * indexStride);
 
     std::map<SDVertex*, Int32> usedVertsMap;
@@ -469,9 +463,9 @@ LoopSubdivisionOutput LoopSubdivide(
     {
         for (Int32 j = 0; j < 3; ++j)
         {
-            Int32 index = usedVertsMap[faces[i]->pVerts[j]];
-            Byte* pDst  = pIndices + (i * 3 + j) * indexStride;
-            if (output.indexFormat == eIndexFormat::U16)
+            const Int32 index = usedVertsMap[faces[i]->pVerts[j]];
+            Byte*       pDst  = pIndices + (i * 3 + j) * indexStride;
+            if (output.bUseU32)
             {
                 *reinterpret_cast<UInt16*>(pDst) = NarrowCast<UInt16>(index);
             }

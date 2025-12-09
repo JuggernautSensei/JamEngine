@@ -141,39 +141,6 @@ inline const char *EnumNameeAttributeFormat(eAttributeFormat e) {
   return EnumNameseAttributeFormat()[index];
 }
 
-enum eIndexFormat : uint8_t {
-  eIndexFormat_UnknownIndexFormat = 0,
-  eIndexFormat_UInt16 = 1,
-  eIndexFormat_UInt32 = 2,
-  eIndexFormat_MIN = eIndexFormat_UnknownIndexFormat,
-  eIndexFormat_MAX = eIndexFormat_UInt32
-};
-
-inline const eIndexFormat (&EnumValueseIndexFormat())[3] {
-  static const eIndexFormat values[] = {
-    eIndexFormat_UnknownIndexFormat,
-    eIndexFormat_UInt16,
-    eIndexFormat_UInt32
-  };
-  return values;
-}
-
-inline const char * const *EnumNameseIndexFormat() {
-  static const char * const names[4] = {
-    "UnknownIndexFormat",
-    "UInt16",
-    "UInt32",
-    nullptr
-  };
-  return names;
-}
-
-inline const char *EnumNameeIndexFormat(eIndexFormat e) {
-  if (::flatbuffers::IsOutRange(e, eIndexFormat_UnknownIndexFormat, eIndexFormat_UInt32)) return "";
-  const size_t index = static_cast<size_t>(e);
-  return EnumNameseIndexFormat()[index];
-}
-
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) VertexLayoutElement FLATBUFFERS_FINAL_CLASS {
  private:
   uint8_t attrib_;

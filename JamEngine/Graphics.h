@@ -689,7 +689,7 @@ public:
 
     /// @brief 렌더링 상태를 설정합니다.
     /// @param _state 렌더링 상태 플래그
-    static void SetGfxState(
+    static void SetRenderState(
         RenderState _state);
 
     /// @brief 블렌드 상태를 설정합니다.

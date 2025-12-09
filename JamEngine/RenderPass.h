@@ -62,7 +62,7 @@ public:
     RenderPass& AddTexture(TextureHandle _texh, eShader _stage, Int32 _slot);
     RenderPass& AddSampler(SamplerState _state, eShader _stage, Int32 _slot);
 
-    RenderPass& SetGfxState(RenderState _state);
+    RenderPass& SetRenderState(RenderState _state);
     RenderPass& SetBlendState(BlendState _state, Int32 _renderTargetIndex);
     RenderPass& SetStencil(StencilState _fstencil, StencilState _bstencil, UInt8 _ref);
     RenderPass& SetExecutor(const std::function<void()>& _executor);
@@ -84,13 +84,13 @@ private:
     Viewport          m_vp      = {};
 
     // rendering state
-    RenderState     m_gfxState   = RenderState::Default();
-    StencilState m_fstencil   = StencilState::Disable();
-    StencilState m_bstencil   = StencilState::Disable();
-    UInt8        m_stencilRef = 0;
+    RenderState  m_renderState = RenderState::k_default;
+    StencilState m_fstencil    = StencilState::k_disable;
+    StencilState m_bstencil    = StencilState::k_disable;
+    UInt8        m_stencilRef  = 0;
 
     // blend
-    BlendState m_blendStates[8]  = { BlendState::Opaque() };
+    BlendState m_blendStates[8]  = { BlendState::k_opaque };
     Int32      m_blendStateStart = k_int32Max;
     Int32      m_blendStateEnd   = k_int32Min;
     RGBA       m_blendFactor     = RGBA { 0 };

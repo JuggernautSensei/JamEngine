@@ -336,21 +336,18 @@ struct DepthStencilStateD3D11
 
 struct GfxContext
 {
-    ////////// PIPELINE //////////
+    // pipeline binder
+    void SubmitConstantBuffers(eShader _stage);
+    void SubmitShaderResourceViews(eShader _shader);
+    void SubmitSamplerStates(eShader _shader);
+    void SubmitPipeline();
 
-    void ApplyConstantBuffers(eShader _stage);
-    void ApplyShaderResourceViews(eShader _shader);
-    void ApplySamplerStates(eShader _shader);
-    void ApplyPipeline();
-
-    ////////// EVENT HANDLERS //////////
-
+    // event handlers
     void OnResize(Int32 _width, Int32 _height);
     void OnWindowResizedEvent(const WindowResizedEvent& _event);
     void OnWindowMaxizeEvent(const WindowMaximizedEvent& _event);
 
-    ////////// NATIVE RESOURCE FACTORIES //////////
-
+    // native resource factory
     [[nodiscard]] TextureRef CreateTexture(
         Int32                                _width,
         Int32                                _height,
@@ -376,8 +373,7 @@ struct GfxContext
     [[nodiscard]] VertexLayoutHandle GetOrCreateVertexLayout(
         const VertexLayout& _vl);
 
-    ////////// DATA UPLOAD & DOWNLOAD //////////
-
+    // buffer upload/download
     [[nodiscard]] MemView BeginUploadBuffer(
         const HardwareBuffer& _buffer) const;
 
@@ -429,8 +425,7 @@ struct GfxContext
         Int32             _uploadDataRowPitch,
         Int32             _uploadDataDepthPitch) const;
 
-    ////////// D3D11 CACHE ///////////
-
+    // d3d11 state cache
     [[nodiscard]] ID3D11RasterizerState* GetOrCreateD3D11RasterizerState(
         RasterizerStateD3D11 _state);
 
@@ -444,35 +439,31 @@ struct GfxContext
         SamplerState _state,
         RGBA         _color);
 
-    ////////// MISC //////////
-
-    /// create debug name
+    // create debug name
     [[nodiscard]] std::string CreateName(
         std::string_view _tag,
         AnyHandle        _handle,
-        std::string_view _userName) const;
+        std::string_view _userName = "") const;
 
     [[nodiscard]] std::string SourceLocToString(
         const SourceLoc& _loc) const;
 
-    /// set debug name
+    // set debug name
     void SetD3D11Name(
         ID3D11DeviceChild* _pDeviceChild,
         std::string_view   _name) const;
 
-    /// query highest multisample quality levels
+    // query highest multisample quality levels
     [[nodiscard]] UInt32 QueryMaxMultisampleQuality(
         DXGI_FORMAT _format,
-        Int32       _sampleCount) const;
+        Int32       _numSamples) const;
 
-    ////////// D3D DEVICE //////////
-
+    // d3d11 core object
     ID3D11Device*        pd3d11Device        = nullptr;
     ID3D11DeviceContext* pd3d11DeviceContext = nullptr;
     IDXGISwapChain1*     pdxgiSwapchain      = nullptr;
 
-    ////////// RESOURCE POOL //////////
-
+    // resource pools
     ResourcePool<VertexBuffer>    vertexBuffers = {};
     ResourcePool<IndexBuffer>     indexBuffers  = {};
     ResourcePool<TextureRef>      textures      = {};
@@ -482,20 +473,17 @@ struct GfxContext
     ResourcePool<ConstantBuffer>  cbuffers      = {};
     ResourcePool<Program>         programs      = {};
 
-    ////////// HANDLE CACHE //////////
-
+    // resource caches
     HashMap<ShaderCacheKey, ShaderHandle>             shaderCache         = {};
     HashMap<VertexLayoutCacheKey, VertexLayoutHandle> vertexLayoutHandles = {};
 
-    ////////// D3D11 STATE CACHE //////////
-
+    // d3d11 state caches
     HashMap<UInt32, ID3D11RasterizerState*>   d3d11RasterizerStateCache   = {};
     HashMap<UInt64, ID3D11BlendState*>        d3d11BlendStateCache        = {};
     HashMap<UInt64, ID3D11DepthStencilState*> d3d11DepthStencilStateCache = {};
     HashMap<UInt64, ID3D11SamplerState*>      d3d11SamplerStateCache      = {};
 
-    ////////// PIPELINE BIND //////////
-
+    // pipeline bind state
     VertexLayoutHandle vlhBind      = k_invalidHandle;
     VertexBufferHandle vbhBind      = k_invalidHandle;
     Int32              vbOffsetBind = 0;
@@ -528,15 +516,14 @@ struct GfxContext
 
     Int32 submitParameters[EnumCount<eSubmitParameterType>()];
 
-    ////////// BACK BUFFER RESOURCE //////////
-
+    // back buffer
     Resolution        backBufferRes  = {};
     TextureHandle     backBufferTexh = k_invalidHandle;
     FrameBufferHandle backBufferFbh  = k_invalidHandle;
 
 }* g_pGfxCtx;
 
-void GfxContext::ApplyConstantBuffers(const eShader _stage)
+void GfxContext::SubmitConstantBuffers(const eShader _stage)
 {
     static ID3D11Buffer* s_binder[k_numConstantBufferLimit];
     ConstantBufferBinds& binds = cbufferBinds[EnumToInt(_stage)];
@@ -586,7 +573,7 @@ void GfxContext::ApplyConstantBuffers(const eShader _stage)
     binds.dirtyEnd   = 0;
 }
 
-void GfxContext::ApplyShaderResourceViews(
+void GfxContext::SubmitShaderResourceViews(
     const eShader _shader)
 {
     static ID3D11ShaderResourceView* s_binder[k_numShaderResourceLimit];
@@ -637,7 +624,7 @@ void GfxContext::ApplyShaderResourceViews(
     binds.dirtyEnd   = 0;
 }
 
-void GfxContext::ApplySamplerStates(const eShader _shader)
+void GfxContext::SubmitSamplerStates(const eShader _shader)
 {
     static ID3D11SamplerState* s_binder[k_numSamplerLimit];
     SamplerBinds&              binds = samplerBinds[EnumToInt(_shader)];
@@ -688,7 +675,7 @@ void GfxContext::ApplySamplerStates(const eShader _shader)
     binds.dirtyEnd   = 0;
 }
 
-void GfxContext::ApplyPipeline()
+void GfxContext::SubmitPipeline()
 {
     // apply pipeline state if dirty
     if (pipelineDirtyFlags != ePipelineDirtyFlags_None)
@@ -822,51 +809,51 @@ void GfxContext::ApplyPipeline()
         if (pipelineDirtyFlags & ePipelineDirtyFlags_ConstantBufferMask)
         {
             if (pipelineDirtyFlags & ePipelineDirtyFlags_VSConstantBuffer)
-                ApplyConstantBuffers(eShader::VertexShader);
+                SubmitConstantBuffers(eShader::VertexShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_PSConstantBuffer)
-                ApplyConstantBuffers(eShader::PixelShader);
+                SubmitConstantBuffers(eShader::PixelShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_GSConstantBuffer)
-                ApplyConstantBuffers(eShader::GeometryShader);
+                SubmitConstantBuffers(eShader::GeometryShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_HSConstantBuffer)
-                ApplyConstantBuffers(eShader::HullShader);
+                SubmitConstantBuffers(eShader::HullShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_DSConstantBuffer)
-                ApplyConstantBuffers(eShader::DomainShader);
+                SubmitConstantBuffers(eShader::DomainShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_CSConstantBuffer)
-                ApplyConstantBuffers(eShader::ComputeShader);
+                SubmitConstantBuffers(eShader::ComputeShader);
         }
 
         // shader resource view
         if (pipelineDirtyFlags & ePipelineDirtyFlags_ShaderResourceViewMask)
         {
             if (pipelineDirtyFlags & ePipelineDirtyFlags_VSShaderResourceView)
-                ApplyShaderResourceViews(eShader::VertexShader);
+                SubmitShaderResourceViews(eShader::VertexShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_PSShaderResourceView)
-                ApplyShaderResourceViews(eShader::PixelShader);
+                SubmitShaderResourceViews(eShader::PixelShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_GSShaderResourceView)
-                ApplyShaderResourceViews(eShader::GeometryShader);
+                SubmitShaderResourceViews(eShader::GeometryShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_HSShaderResourceView)
-                ApplyShaderResourceViews(eShader::HullShader);
+                SubmitShaderResourceViews(eShader::HullShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_DSShaderResourceView)
-                ApplyShaderResourceViews(eShader::DomainShader);
+                SubmitShaderResourceViews(eShader::DomainShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_CSShaderResourceView)
-                ApplyShaderResourceViews(eShader::ComputeShader);
+                SubmitShaderResourceViews(eShader::ComputeShader);
         }
 
         // sampler state
         if (pipelineDirtyFlags & ePipelineDirtyFlags_SamplerStateMask)
         {
             if (pipelineDirtyFlags & ePipelineDirtyFlags_VSSamplerState)
-                ApplySamplerStates(eShader::VertexShader);
+                SubmitSamplerStates(eShader::VertexShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_PSSamplerState)
-                ApplySamplerStates(eShader::PixelShader);
+                SubmitSamplerStates(eShader::PixelShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_GSSamplerState)
-                ApplySamplerStates(eShader::GeometryShader);
+                SubmitSamplerStates(eShader::GeometryShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_HSSamplerState)
-                ApplySamplerStates(eShader::HullShader);
+                SubmitSamplerStates(eShader::HullShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_DSSamplerState)
-                ApplySamplerStates(eShader::DomainShader);
+                SubmitSamplerStates(eShader::DomainShader);
             if (pipelineDirtyFlags & ePipelineDirtyFlags_CSSamplerState)
-                ApplySamplerStates(eShader::ComputeShader);
+                SubmitSamplerStates(eShader::ComputeShader);
         }
 
         // blend state
@@ -2088,7 +2075,7 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(const VertexLayout& _vl)
     vl.pInputLayout = pInputLayout;
     vl.hash         = hash;
 
-    SetD3D11Name(pInputLayout, CreateName("InputLayout", vlh, ""));
+    SetD3D11Name(pInputLayout, CreateName("InputLayout", vlh));
 
     // register to cache
     vertexLayouts[vlh]        = std::move(vl);
@@ -2099,7 +2086,7 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(const VertexLayout& _vl)
 std::string GfxContext::CreateName(std::string_view _tag, const AnyHandle _handle, std::string_view _userName) const
 {
     std::string name = std::format("[{}] Index: {}, Token: {}", _tag, _handle.index, _handle.token);
-    if (_userName.empty() == false)
+    if (!_userName.empty())
     {
         name += std::format(", Name: {}", _userName);
     }
@@ -2118,11 +2105,11 @@ void GfxContext::SetD3D11Name(ID3D11DeviceChild* _pDeviceChild, const std::strin
     JAM_CHECK_COM(_pDeviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, NarrowCast<UINT>(_name.size()), _name.data()));
 }
 
-UInt32 GfxContext::QueryMaxMultisampleQuality(const DXGI_FORMAT _format, const Int32 _sampleCount) const
+UInt32 GfxContext::QueryMaxMultisampleQuality(const DXGI_FORMAT _format, const Int32 _numSamples) const
 {
-    JAM_ASSERT(_sampleCount > 0 && _sampleCount <= 32, "Sample numVerts must be between 1 and 32");
+    JAM_ASSERT(_numSamples > 0 && _numSamples <= 32, "Sample numVerts must be between 1 and 32");
     UINT qualityLevels = 0;
-    JAM_CHECK_COM(pd3d11Device->CheckMultisampleQualityLevels(_format, _sampleCount, &qualityLevels));
+    JAM_CHECK_COM(pd3d11Device->CheckMultisampleQualityLevels(_format, _numSamples, &qualityLevels));
     JAM_ASSERT(qualityLevels > 0, "The specified format does not support the given sample numVerts.");
     return qualityLevels - 1;
 }
@@ -3562,7 +3549,7 @@ void Graphics::SetBorderColor(
     }
 }
 
-void Graphics::SetGfxState(const RenderState _state)
+void Graphics::SetRenderState(const RenderState _state)
 {
     if (!MemEqual(g_pGfxCtx->renderStateBind, _state))
     {
@@ -3712,7 +3699,7 @@ void Graphics::SetSubmitParameter(const eSubmitParameterType _type, const Int32 
 
 void Graphics::Flush()
 {
-    g_pGfxCtx->ApplyPipeline();
+    g_pGfxCtx->SubmitPipeline();
 }
 
 ShaderHandle Graphics::GetShader(
@@ -3727,12 +3714,7 @@ ShaderHandle Graphics::GetShader(
 
 Resolution Graphics::GetBackBufferResolution()
 {
-    const TextureRef& bbTex = g_pGfxCtx->textures[g_pGfxCtx->backBufferTexh];
-
-    Resolution res;
-    res.width  = bbTex.width;
-    res.height = bbTex.height;
-    return res;
+    return g_pGfxCtx->backBufferRes;
 }
 
 FrameBufferHandle Graphics::CreateFrameBuffer(
@@ -3772,10 +3754,11 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
     if (_writeOnlyDepthStencil)
         dsvFlags |= eTextureCreateFlags_WriteOnly;
 
-    TextureHandle attachments[2] = { k_invalidHandle, k_invalidHandle };
-    attachments[0]               = CreateTexture2D(_width, _height, _renderTargetFormat, 1, rtvFlags);
-    attachments[1]               = CreateTexture2D(_width, _height, _depthFormat, 1, dsvFlags);
-    const FrameBufferHandle fbh  = CreateFrameBuffer(attachments, true);
+    const TextureHandle attachments[2] = {
+        CreateTexture2D(_width, _height, _renderTargetFormat, 1, rtvFlags),
+        CreateTexture2D(_width, _height, _depthFormat, 1, dsvFlags)
+    };
+    const FrameBufferHandle fbh = CreateFrameBuffer(attachments, true);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
@@ -3800,9 +3783,8 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
     else
         flags |= eTextureCreateFlags_RenderTarget;
 
-    TextureHandle attachments[1] = { k_invalidHandle };
-    attachments[0]               = CreateTexture2D(_width, _height, _format, 1, flags);
-    const FrameBufferHandle fbh  = CreateFrameBuffer(attachments, true);
+    const TextureHandle     attachments[] = { CreateTexture2D(_width, _height, _format, 1, flags) };
+    const FrameBufferHandle fbh           = CreateFrameBuffer(attachments, true);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
@@ -3951,7 +3933,7 @@ std::optional<ShaderHandle> Graphics::LoadShaderFromSource(
 
 void Graphics::Submit()
 {
-    g_pGfxCtx->ApplyPipeline();
+    g_pGfxCtx->SubmitPipeline();
     if (JAM_IS_VALID_HANDLE(g_pGfxCtx->ibhBind))
     {
         const Int32 numIndex    = g_pGfxCtx->numIndicesBind;

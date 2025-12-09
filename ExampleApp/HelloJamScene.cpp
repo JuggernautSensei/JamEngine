@@ -220,7 +220,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
     Graphics::SetConstantBuffer(m_globalCbh, eShader::VertexShader, 1);
     Graphics::SetConstantBuffer(m_globalCbh, eShader::PixelShader, 1);
 
-    Graphics::SetGfxState(m_gfxState);
+    Graphics::SetRenderState(m_gfxState);
     Graphics::SetBlendState(m_blendState, 0);
 
     CB_HELLO_JAM_GLOBAL global;
@@ -253,7 +253,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
             Graphics::UploadBuffer(m_transformCbh, transformData);
 
             Graphics::SetTexture(m_cubeTh, eShader::PixelShader, 0);
-            Graphics::SetSampler(SamplerState::LinearClamp(), eShader::PixelShader, 0);
+            Graphics::SetSampler(SamplerState::k_linearClamp, eShader::PixelShader, 0);
 
             Graphics::SetVertexBuffer(m_vbh);
             Graphics::SetIndexBuffer(m_ibh);

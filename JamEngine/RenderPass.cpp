@@ -37,7 +37,7 @@ RenderPass::RenderPass(RenderPass&& _pass) noexcept
     , m_program(_pass.m_program)
     , m_fbh(_pass.m_fbh)
     , m_vp(_pass.m_vp)
-    , m_gfxState(_pass.m_gfxState)
+    , m_renderState(_pass.m_renderState)
     , m_fstencil(_pass.m_fstencil)
     , m_bstencil(_pass.m_bstencil)
     , m_stencilRef(_pass.m_stencilRef)
@@ -81,7 +81,7 @@ RenderPass& RenderPass::operator=(RenderPass&& _pass) noexcept
         m_cbufferBinds    = std::move(_pass.m_cbufferBinds);
         m_textureBinds    = std::move(_pass.m_textureBinds);
         m_samplerBinds    = std::move(_pass.m_samplerBinds);
-        m_gfxState        = _pass.m_gfxState;
+        m_renderState     = _pass.m_renderState;
         m_blendStateStart = _pass.m_blendStateStart;
         m_blendStateEnd   = _pass.m_blendStateEnd;
         m_blendFactor     = _pass.m_blendFactor;
@@ -172,9 +172,9 @@ RenderPass& RenderPass::AddSampler(const SamplerState _state, const eShader _sta
     return *this;
 }
 
-RenderPass& RenderPass::SetGfxState(const RenderState _state)
+RenderPass& RenderPass::SetRenderState(const RenderState _state)
 {
-    m_gfxState = _state;
+    m_renderState = _state;
     return *this;
 }
 
@@ -226,7 +226,7 @@ void RenderPass::Execute(const FrameBufferHandle _fbh, const Viewport _vp) const
         Graphics::SetSampler(samp.state, samp.stage, samp.slot);
     }
 
-    Graphics::SetGfxState(m_gfxState);
+    Graphics::SetRenderState(m_renderState);
     Graphics::SetStencil(m_fstencil, m_bstencil, m_stencilRef);
 
     Graphics::SetFrameBuffer(_fbh);

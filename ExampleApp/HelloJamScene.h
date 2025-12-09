@@ -24,8 +24,8 @@ private:
 
     ProgramHandle m_program = k_invalidHandle;
 
-    RenderState   m_gfxState        = RenderState::DepthTest();
-    BlendState m_blendState      = BlendState::Opaque();
+    RenderState   m_gfxState        = RenderState::k_depthTest;
+    BlendState m_blendState      = BlendState::k_opaque;
     float      m_rotSpeedRad     = ToRad(90.f);
     bool       m_bAnimation      = true;
     bool       m_bTextureMapping = false;

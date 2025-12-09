@@ -299,7 +299,7 @@ void EditorRenderer::Init()
 
     // 라인 버퍼 생성
     m_lineVbh = Graphics::CreateDynamicVertexBuffer(k_lineLimit * 2, LineVertex::s_layout);
-    m_lineIbh = Graphics::CreateDynamicIndexBuffer(k_lineLimit * 2, eIndexFormat::U16);
+    m_lineIbh = Graphics::CreateDynamicIndexBuffer(k_lineLimit * 2);
 
     // 그리드 쿼드 생성
     CreateGridQuad_();
@@ -308,22 +308,22 @@ void EditorRenderer::Init()
     CreatePrimitives_();
 
     // gfx state
-    m_lineState           = GfxState::Default();
+    m_lineState           = RenderState::k_default;
     m_lineState.primitive = ePrimitive::LineList;
     m_lineState.bLineAA   = true;
 
-    m_gridState               = GfxState::DepthTest();
+    m_gridState               = RenderState::k_depthTest;
     m_gridState.depthTestFunc = eCompareFunc::LessEqual;
     m_gridState.cullMode      = eCullMode::None;
     m_gridState.primitive     = ePrimitive::TriangleList;
 
-    m_filledState               = GfxState::DepthTest();
+    m_filledState               = RenderState::k_depthTest;
     m_filledState.depthTestFunc = eCompareFunc::LessEqual;
     m_filledState.cullMode      = eCullMode::Back;
     m_filledState.primitive     = ePrimitive::TriangleList;
 
     // blend
-    m_blendState = BlendState::AlphaBlend();
+    m_blendState = BlendState::k_alphaBlend;
 }
 
 void EditorRenderer::Shutdown()
@@ -345,37 +345,38 @@ void EditorRenderer::Shutdown()
 void EditorRenderer::CreateGridQuad_()
 {
     constexpr float k_gridSize = 10000.0f;
+    // todo: this is not infinite grid. grid cube need move with camera position
 
     struct GridVertex
     {
         Vec3 pos;
     };
 
-    VertexLayout layout;
-    layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
+    VertexLayout vl;
+    vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
 
-    GridVertex vertices[4] = {
+    constexpr GridVertex verts[4] = {
         { Vec3(-k_gridSize, 0.0f, -k_gridSize) },
         { Vec3(-k_gridSize, 0.0f, k_gridSize) },
         { Vec3(k_gridSize, 0.0f, k_gridSize) },
         { Vec3(k_gridSize, 0.0f, -k_gridSize) }
     };
 
-    UInt16 indices[6] = { 0, 1, 2, 0, 2, 3 };
+    constexpr UInt16 k_indices[6] = { 0, 1, 2, 0, 2, 3 };
 
-    m_gridVbh = Graphics::CreateVertexBuffer(ConstMemView { vertices }, layout);
-    m_gridIbh = Graphics::CreateIndexBuffer(ConstMemView { indices }, eIndexFormat::U16);
+    m_gridVbh = Graphics::CreateVertexBuffer(verts, vl);
+    m_gridIbh = Graphics::CreateIndexBuffer(k_indices);
 }
 
 void EditorRenderer::CreatePrimitives_()
 {
-    VertexLayout layout;
-    layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
-    layout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    VertexLayout vl;
+    vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
+    vl.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
-    m_sphere   = CreateSphereMesh(1.0f, 4, layout);
-    m_cylinder = CreateCylinder(1.0f, 1.0f, 32, layout);
-    m_cube     = CreateCubeMesh(Vec3::One, layout);
+    m_sphere   = CreateSphereMesh(1.0f, 4, vl);
+    m_cylinder = CreateCylinder(1.0f, 1.0f, 32, vl);
+    m_cube     = CreateCubeMesh(Vec3::One, vl);
 }
 
 void EditorRenderer::Begin(const RenderView& _view)
@@ -440,9 +441,9 @@ void EditorRenderer::FlushLines_()
     Graphics::UploadBuffer(m_lineVbh, ConstMemView { m_lineVertices, sizeof(LineVertex) * m_numLineVerts });
     Graphics::UploadBuffer(m_lineIbh, ConstMemView { m_lineIndices, sizeof(UInt16) * m_numLineIndices });
 
-    GfxState state  = m_lineState;
-    state.primitive = ePrimitive::LineList;
-    Graphics::SetGfxState(state);
+    RenderState state = m_lineState;
+    state.primitive   = ePrimitive::LineList;
+    Graphics::SetRenderState(state);
     Graphics::SetProgram(m_lineProgramHandle);
     Graphics::SetVertexBuffer(m_lineVbh, m_numLineVerts, 0);
     Graphics::SetIndexBuffer(m_lineIbh, m_numLineIndices, 0);
@@ -461,7 +462,7 @@ void EditorRenderer::DrawGrid_() const
     cb.flags    = m_drawGridFlags;
     Graphics::UploadBuffer(m_cbh, cb);
 
-    Graphics::SetGfxState(m_gridState);
+    Graphics::SetRenderState(m_gridState);
     Graphics::SetBlendState(m_blendState, 0);
     Graphics::SetProgram(m_gridProgramHandle);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
@@ -568,9 +569,9 @@ void EditorRenderer::DrawFilledSphere(const Vec3 _center, const float _radius, c
     Mat4 world = Mat4::CreateScale(_radius) * Mat4::CreateTranslation(_center);
     UploadTransform_(world);
 
-    GfxState state  = m_lineState;
-    state.primitive = ePrimitive::TriangleList;
-    Graphics::SetGfxState(state);
+    RenderState state = m_lineState;
+    state.primitive   = ePrimitive::TriangleList;
+    Graphics::SetRenderState(state);
     Graphics::SetProgram(m_filledProgramHandle);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     Graphics::SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
@@ -586,9 +587,9 @@ void EditorRenderer::DrawFilledCube(const Vec3 _center, const Vec3 _size, const 
     Mat4 world = Mat4::CreateScale(_size) * Mat4::CreateTranslation(_center);
     UploadTransform_(world);
 
-    GfxState state  = m_lineState;
-    state.primitive = ePrimitive::TriangleList;
-    Graphics::SetGfxState(state);
+    RenderState state = m_lineState;
+    state.primitive   = ePrimitive::TriangleList;
+    Graphics::SetRenderState(state);
     Graphics::SetProgram(m_filledProgramHandle);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     Graphics::SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
@@ -604,9 +605,9 @@ void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, con
     Mat4 world     = Mat4::CreateScale(Vec3(_radius, _height, _radius)) * Mat4::CreateFromQuaternion(q) * Mat4::CreateTranslation(_center);
     UploadTransform_(world);
 
-    GfxState state  = m_lineState;
-    state.primitive = ePrimitive::TriangleList;
-    Graphics::SetGfxState(state);
+    RenderState state = m_lineState;
+    state.primitive   = ePrimitive::TriangleList;
+    Graphics::SetRenderState(state);
     Graphics::SetProgram(m_filledProgramHandle);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     Graphics::SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
@@ -640,7 +641,7 @@ void EditorRenderer::UploadTransform_(const Mat4& _world) const
     cb.viewProj = (m_view * m_proj).Transpose();
     cb.mtx      = _world.Transpose();
     cb.eye      = m_eye;
-    cb.color    = m_currentColor.ToVec4();
+    cb.color    = m_currentColor.ToLinear();
     Graphics::UploadBuffer(m_cbh, cb);
 }
 

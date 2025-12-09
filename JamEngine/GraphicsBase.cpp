@@ -21,7 +21,7 @@ BlendState BlendState::k_multiply           = { true, eBlend::DstColor, eBlend::
 BlendState BlendState::k_screen             = { true, eBlend::One, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags_All };
 BlendState BlendState::k_overlay            = { true, eBlend::DstColor, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::Zero, eBlendOp::Add, eWriteFlags_All };
 
-StencilState StencilState::k_default = {};
+StencilState StencilState::k_disable = {};
 
 SamplerState SamplerState::k_pointClamp  = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddress::Clamp, eTextureAddress::Clamp, eTextureAddress::Clamp, eCompareFunc::None };
 SamplerState SamplerState::k_linearClamp = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddress::Clamp, eTextureAddress::Clamp, eTextureAddress::Clamp, eCompareFunc::None };

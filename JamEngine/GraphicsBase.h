@@ -444,7 +444,7 @@ struct Rect
 
 struct RenderState
 {
-    constexpr RenderState::RenderState()
+    constexpr RenderState()
         : primitive(ePrimitive::TriangleList)
         , cullMode(eCullMode::Back)
         , bWireframe(false)
@@ -460,7 +460,7 @@ struct RenderState
     {
     }
 
-    constexpr RenderState::RenderState(
+    constexpr RenderState(
         const ePrimitive   _primitive,
         const eCullMode    _cullMode,
         const bool         _bWireframe,
@@ -595,7 +595,7 @@ struct StencilState
     {
     }
 
-    static StencilState k_default;
+    static StencilState k_disable;
 
     union
     {

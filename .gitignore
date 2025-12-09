@@ -50,6 +50,6 @@
 *.bin
 */inter/
 */bin/
-TestApp/
 *.dds
 x64/
+*.iobj

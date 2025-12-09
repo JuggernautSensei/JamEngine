@@ -20,13 +20,7 @@ public:
     Mesh& operator=(Mesh&& _other) noexcept;
 
     bool Load(const fs::path& _path) override;
-    void LoadFromMemory(
-        ConstMemView       _vertices,
-        const VertexLayout& _layout,
-        ConstMemView       _indices,
-        eIndexFormat        _format      = eIndexFormat::U16,
-        const fs::path&     _virtualPath = {});
-
+    void LoadFromMemory(ConstMemView _verts, const VertexLayout& _vl, ConstMemView _indices, bool _bUseU32 = false, const fs::path& _virtualPath = {});
     bool Save(const fs::path& _path) const override;
     void Unload() override;
 
@@ -50,9 +44,7 @@ public:
 
 private:
     void CleanUp_();
-    void ComputeBoundingBox_(
-        ConstMemView       _verts,
-        const VertexLayout& _vl);
+    void ComputeBoundingBox_(ConstMemView _verts, const VertexLayout& _vl);
 
     fs::path           m_path        = {};
     VertexBufferHandle m_vbh         = k_invalidHandle;

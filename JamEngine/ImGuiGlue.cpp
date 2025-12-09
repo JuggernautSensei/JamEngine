@@ -72,12 +72,12 @@ struct ImGuiGlueContext
     [[nodiscard]] ImTextureID   ToImTexureID(TextureHandle _texh) const;
     [[nodiscard]] TextureHandle FromImTexureID(ImTextureID _id) const;
 
-    ProgramHandle        program;
-    VertexLayout         layout;
+    ProgramHandle        ph;
+    VertexLayout         vl;
     ConstantBufferHandle cbh;
 
     BlendState   bs;
-    RenderState     gs;
+    RenderState  gs;
     SamplerState ss;
 
     VertexBufferHandle vbh;
@@ -98,17 +98,15 @@ void ImGuiGlueContext::Init()
     io.BackendRendererName = "jam_engine_ImGui_glue_impl";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures;
 
-    // create vertex shader
-    ShaderHandle vsh = CreateShader(k_imguiGlueVs, eShader::VertexShader);
-
-    // create pixel shader
-    ShaderHandle psh = CreateShader(k_imguiGluePs, eShader::PixelShader);
+    // create shaders
+    const ShaderHandle vsh = CreateShader(k_imguiGlueVs, eShader::VertexShader);
+    const ShaderHandle psh = CreateShader(k_imguiGluePs, eShader::PixelShader);
 
     // create program
-    program = Graphics::CreateProgram(vsh, psh, true);
+    ph = Graphics::CreateProgram(vsh, psh, true);
 
     // create vertex vertexLayout
-    layout.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
+    vl.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
         .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
         .Add(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
 
@@ -116,13 +114,13 @@ void ImGuiGlueContext::Init()
     cbh = Graphics::CreateConstantBuffer(sizeof(ImGui_CONSTANT_BUFFER));
 
     // state
-    bs               = BlendState::AlphaBlend();
+    bs               = BlendState::k_alphaBlend;
     gs.bWireframe    = false;
     gs.cullMode      = eCullMode::None;
     gs.bScissor      = true;
     gs.bDepthClamp   = false;
     gs.depthTestFunc = eCompareFunc::None;
-    ss               = SamplerState::LinearClamp();
+    ss               = SamplerState::k_linearClamp;
 }
 
 void ImGuiGlueContext::Shutdown()
@@ -142,10 +140,12 @@ void ImGuiGlueContext::Shutdown()
                                    || tex->Status == ImTextureStatus_WantUpdates;
 
         if (tex->RefCount == 1 && bIsDestroyStatus)
+        {
             DestroyTexture(tex);
+        }
     }
 
-    JAM_DESTROY_PROGRAM(program);
+    JAM_DESTROY_PROGRAM(ph);
     JAM_DESTROY_CONSTANT_BUFFER(cbh);
     JAM_DESTROY_VERTEX_BUFFER(vbh);
     JAM_DESTROY_INDEX_BUFFER(ibh);
@@ -153,40 +153,51 @@ void ImGuiGlueContext::Shutdown()
 
 void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
 {
-    // Avoid rendering when minimized
+    // avoid rendering when minimized
     if (_pDrawData->DisplaySize.x <= 0.0f || _pDrawData->DisplaySize.y <= 0.0f)
+    {
         return;
+    }
 
-    // Avoid empty draw data
+    // avoid empty draw data
     if (_pDrawData->TotalVtxCount == 0 || _pDrawData->TotalIdxCount == 0)
+    {
         return;
+    }
 
     // Update textures
     if (_pDrawData->Textures)
+    {
         for (ImTextureData* tex: *_pDrawData->Textures)
+        {
             if (tex->Status != ImTextureStatus_OK)
+            {
                 UpdateTexture(tex);
+            }
+        }
+    }
 
     if (vbCap < _pDrawData->TotalVtxCount)
     {
         JAM_DESTROY_VERTEX_BUFFER(vbh);
         vbCap = _pDrawData->TotalVtxCount + 5000;
-        vbh   = Graphics::CreateDynamicVertexBuffer(vbCap * sizeof(ImDrawVert), layout);
+        vbh   = Graphics::CreateDynamicVertexBuffer(vbCap * sizeof(ImDrawVert), vl);
     }
 
     if (ibCap < _pDrawData->TotalIdxCount)
     {
         JAM_DESTROY_INDEX_BUFFER(ibh);
-        ibCap = _pDrawData->TotalIdxCount + 10000;
-        ibh   = Graphics::CreateDynamicIndexBuffer(ibCap, eIndexFormat::U16);
+        const bool bUseU32 = vbCap > 65535;
+        ibCap              = _pDrawData->TotalIdxCount + 10000;
+        ibh                = Graphics::CreateDynamicIndexBuffer(ibCap, bUseU32);
     }
 
     // copy data to cpu buffers
     MemView vtxMem  = Graphics::BeginUploadBuffer(vbh);
-    Byte*    pVtxMem = vtxMem.GetDataPtr();
+    Byte*   pVtxMem = vtxMem.GetDataPtr();
 
     MemView idxMem  = Graphics::BeginUploadBuffer(ibh);
-    Byte*    pIdxMem = idxMem.GetDataPtr();
+    Byte*   pIdxMem = idxMem.GetDataPtr();
 
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
     {
@@ -235,19 +246,20 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
     cb.mvp[3][3] = 1.0f;
 
     Graphics::UploadBuffer(cbh, cb);
-    Graphics::SetProgram(program);
+    Graphics::SetProgram(ph);
     Graphics::SetConstantBuffer(cbh, eShader::VertexShader, 0);
     Graphics::SetBlendState(bs, 0);
-    Graphics::SetGfxState(gs);
+    Graphics::SetRenderState(gs);
     Graphics::SetSampler(ss, eShader::PixelShader, 0);
-    Graphics::SetStencil(StencilState::Disable(), StencilState::Disable());
+    Graphics::SetStencil(StencilState::k_disable, StencilState::k_disable);
     Graphics::SetVertexBuffer(vbh);
 
     // Render command lists
-    int    startIdxLoc = 0;
-    int    baseVtxLoc  = 0;
-    ImVec2 clipOff     = _pDrawData->DisplayPos;
-    ImVec2 clipScale   = _pDrawData->FramebufferScale;
+    Int32 startIdxLoc = 0;
+    Int32 baseVtxLoc  = 0;
+
+    const ImVec2 clipOff   = _pDrawData->DisplayPos;
+    const ImVec2 clipScale = _pDrawData->FramebufferScale;
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
     {
         for (const ImDrawCmd& cmd: pDrawList->CmdBuffer)
@@ -292,11 +304,11 @@ void ImGuiGlueContext::UpdateTexture(ImTextureData* _pTex) const
         IM_ASSERT(_pTex->TexID == ImTextureID_Invalid && _pTex->BackendUserData == nullptr);
         IM_ASSERT(_pTex->Format == ImTextureFormat_RGBA32);
 
-        ConstMemView bytes[] = {
+        ConstMemView mem[] = {
             ConstMemView { _pTex->GetPixels(), static_cast<size_t>(_pTex->GetSizeInBytes()) }
         };
 
-        const TextureHandle texh = Graphics::CreateTexture2D(_pTex->Width, _pTex->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags_Mutable, bytes);
+        const TextureHandle texh = Graphics::CreateTexture2D(_pTex->Width, _pTex->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags_Mutable, mem);
         _pTex->SetTexID(texh.value);
         _pTex->SetStatus(ImTextureStatus_OK);
     }
