@@ -1,0 +1,2 @@
+[2025-12-09 19:42:51.889] [trace] [thread 188236] Application 'jam engine application' started.
+[2025-12-09 19:43:00.998] [trace] [thread 188236] application 'jam engine application' shutdown.
