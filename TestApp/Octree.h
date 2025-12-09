@@ -46,11 +46,11 @@ class Octree
         [[nodiscard]] Vec3 GetCenter() const { return aabb.Center(); }
         [[nodiscard]] Vec3 GetExtents() const { return aabb.Extents(); }
 
-        Entity  entity     = Entity::s_null;   // owner entity
-        Aabb    aabb       = {};               // bounding box
-        OcNode* pOwnerNode = nullptr;          // owner node
-        Int32   index      = -1;               // index in owner's item list
-        T       userdata   = {};               // user data
+        Entity  entity   = Entity::s_null;   // owner entity
+        Aabb    aabb     = {};               // bounding box
+        OcNode* pOwner   = nullptr;          // owner node
+        Int32   index    = -1;               // index in owner's item list
+        T       userdata = {};               // user data
     };
 
     enum Region
@@ -154,13 +154,13 @@ public:
         auto it = m_itemCache.find(_entity.GetUID());
         JAM_ASSERT(it != m_itemCache.end(), "Entity does not exist");
 
+        // update aabb
         OcItem* pItem = it->second;
         pItem->aabb   = _aabb;
 
-        OcNode* pOwnerNode = pItem->pOwnerNode;
-        OcNode* pDstRoot   = pOwnerNode;
-
         // find the nearest parent node in the hierarchy that contains the item
+        OcNode* pOwnerNode = pItem->pOwner;
+        OcNode* pDstRoot   = pOwnerNode;
         while (pDstRoot && !pDstRoot->Contain(pItem))
         {
             --pDstRoot->numItemsInTree;
@@ -208,7 +208,7 @@ public:
         OcItem* pItem = it->second;
 
         // update numItemsInTree in all parent nodes
-        OcNode* pCurNode = pItem->pOwnerNode;
+        OcNode* pCurNode = pItem->pOwner;
         while (pCurNode)
         {
             --pCurNode->numItemsInTree;
@@ -216,8 +216,8 @@ public:
         }
 
         // remove from owner node and cache
-        OcNode* pOwnerNode = pItem->pOwnerNode;
-        PopItemFromList_(pOwnerNode->items, pItem);
+        OcNode* pOwner = pItem->pOwner;
+        PopItemFromList_(pOwner->items, pItem);
         m_itemCache.erase(it);
     }
 
@@ -232,10 +232,10 @@ public:
             while (pCurNode->HasChildren())
             {
                 // octree cannot be smaller than initial size
-                const Vec3 extents = pCurNode->GetExtents();
-                if (extents.x <= m_desc.initialBaseExtents.x
-                    && extents.y <= m_desc.initialBaseExtents.y
-                    && extents.z <= m_desc.initialBaseExtents.z)
+                const Vec3 baseExt = pCurNode->GetExtents() / m_desc.looseFactor;
+                if (baseExt.x <= m_desc.initialBaseExtents.x
+                    && baseExt.y <= m_desc.initialBaseExtents.y
+                    && baseExt.z <= m_desc.initialBaseExtents.z)
                 {
                     break;
                 }
@@ -333,20 +333,20 @@ private:
     {
         JAM_ASSERT(_pNode->IsLeaf(), "Node already has children");
 
-        const Vec3 center          = _pNode->GetCenter();
-        const Vec3 extents         = _pNode->GetExtents() * 0.5f;
-        const Vec3 halfBaseExtents = extents / (2.f * m_desc.looseFactor);
+        const Vec3 center           = _pNode->GetCenter();
+        const Vec3 childExt         = _pNode->GetExtents() * 0.5f;
+        const Vec3 halfChildBaseExt = childExt / (2.f * m_desc.looseFactor);
 
         for (Region region: k_regionRanges)
         {
             Vec3 regionCenter = center;
-            regionCenter.x += (region & 0b0001) ? halfBaseExtents.x : -halfBaseExtents.x;
-            regionCenter.y += (region & 0b0010) ? -halfBaseExtents.y : halfBaseExtents.y;
-            regionCenter.z += (region & 0b0100) ? halfBaseExtents.z : -halfBaseExtents.z;
+            regionCenter.x += (region & 0b0001) ? halfChildBaseExt.x : -halfChildBaseExt.x;
+            regionCenter.y += (region & 0b0010) ? -halfChildBaseExt.y : halfChildBaseExt.y;
+            regionCenter.z += (region & 0b0100) ? halfChildBaseExt.z : -halfChildBaseExt.z;
 
-            const Aabb regionAabb = Aabb::FromCenterExtents(regionCenter, extents);
+            const Aabb aabb = Aabb::FromCenterExtents(regionCenter, childExt);
 
-            OcNodePtr pChildNode     = MakeNode_(regionAabb);
+            OcNodePtr pChildNode     = MakeNode_(aabb);
             pChildNode->pParent      = _pNode;
             pChildNode->depth        = _pNode->depth + 1;
             _pNode->children[region] = std::move(pChildNode);
@@ -373,13 +373,13 @@ private:
         }
 
         // check if children would be too small
-        const Vec3 extents     = _pNode->GetExtents();
-        const Vec3 halfExtents = extents * 0.5f;
-        const Vec3 baseExtents = halfExtents / m_desc.looseFactor;
+        const Vec3 ext          = _pNode->GetExtents();
+        const Vec3 childExt     = ext * 0.5f;
+        const Vec3 childBaseExt = childExt / m_desc.looseFactor;
 
-        if (baseExtents.x < m_desc.minBaseExtents.x
-            || baseExtents.y < m_desc.minBaseExtents.y
-            || baseExtents.z < m_desc.minBaseExtents.z)
+        if (childBaseExt.x < m_desc.minBaseExtents.x
+            || childBaseExt.y < m_desc.minBaseExtents.y
+            || childBaseExt.z < m_desc.minBaseExtents.z)
         {
             return;   // would violate min size constraint
         }
@@ -390,7 +390,6 @@ private:
         // redistribute items to children
         OcItemList existingItems = std::move(_pNode->items);
         _pNode->numItemsInTree   = 0;   // will be recalculated in Insert_Recursive_
-
         for (OcItemPtr& pItem: existingItems)
         {
             Insert_Recursive_(_pNode, std::move(pItem));
@@ -402,7 +401,7 @@ private:
         OcItemPtr&& _pItem)
     {
         m_itemCache[_pItem->entity.GetUID()] = _pItem.get();
-        _pItem->pOwnerNode                   = _pNode;
+        _pItem->pOwner                       = _pNode;
 
         PushItemToList_(_pNode->items, std::move(_pItem));
         TrySubdivide_(_pNode);
@@ -435,8 +434,8 @@ private:
 
         _items.pop_back();
 
-        pExtracted->pOwnerNode = nullptr;
-        pExtracted->index      = -1;
+        pExtracted->pOwner = nullptr;
+        pExtracted->index  = -1;
 
         return pExtracted;
     }
@@ -470,9 +469,9 @@ private:
 
     void ExpandOctree_()
     {
-        const Vec3 center  = m_pRoot->GetCenter();
-        const Vec3 extents = m_pRoot->GetExtents() * 2.f;
-        const Aabb aabb    = Aabb::FromCenterExtents(center, extents);
+        const Vec3 center = m_pRoot->GetCenter();
+        const Vec3 ext    = m_pRoot->GetExtents() * 2.f;
+        const Aabb aabb   = Aabb::FromCenterExtents(center, ext);
 
         OcNodePtr pNewRoot = MakeNode_(aabb);
         pNewRoot->depth    = 0;
@@ -481,7 +480,6 @@ private:
         {
             // old root has children: create double-split structure
             SplitNode_(pNewRoot.get());
-
             for (Region region: k_regionRanges)
             {
                 SplitNode_(pNewRoot->children[region].get());
@@ -500,18 +498,21 @@ private:
             };
 
             // move old children to new grandchildren positions
+            Int32 numOldRootChildrenItems = 0;
             for (Region region: k_regionRanges)
             {
-                const Region grandchildRegion = k_grandchildMapping[region];
-                OcNode*      pNewChild        = pNewRoot->children[region].get();
-                OcNodePtr&   pOldChild        = m_pRoot->children[region];
+                const Region grandchildRegion   = k_grandchildMapping[region];
+                OcNode*      pNewChild          = pNewRoot->children[region].get();
+                OcNodePtr&   pOldChild          = m_pRoot->children[region];
+                const Int32  numItemsInOldChild = pOldChild->numItemsInTree;
 
                 // transfer ownership
                 pOldChild->pParent                    = pNewChild;
                 pOldChild->depth                      = pNewChild->depth + 1;
                 pNewChild->children[grandchildRegion] = std::move(pOldChild);
-                pNewChild->numItemsInTree             = pNewChild->children[grandchildRegion]->numItemsInTree;
+                numOldRootChildrenItems += numItemsInOldChild;
             }
+            pNewRoot->numItemsInTree = numOldRootChildrenItems;   // old root's numItemsInTree will be recalculated below
 
             // re-insert old root's items
             OcItemList oldRootItems = std::move(m_pRoot->items);
@@ -618,9 +619,7 @@ private:
                     for (OcItemPtr& pItem: childItems)
                     {
                         // numItemsInTree already correct, just move items
-                        m_itemCache[pItem->entity.GetUID()] = pItem.get();
-                        pItem->pOwnerNode                   = _pRoot;
-                        PushItemToList_(_pRoot->items, std::move(pItem));
+                        AddItemToNode_(_pRoot, std::move(pItem));
                     }
 
                     _pRoot->children[region] = nullptr;
@@ -662,16 +661,15 @@ private:
         JAM_ASSERT(_pRoot->HasChildren(), "Node has no children");
 
         // determine quadrant based on center point
-        const Vec3 rootCenter = _pRoot->GetCenter();
-        const Vec3 center     = _aabb.Center();
+        const Vec3 center     = _pRoot->GetCenter();
+        const Vec3 aabbCenter = _aabb.Center();
 
         Int32 quadrant = 0;
-        if (center.x > rootCenter.x) quadrant |= 0b0001;   // Right
-        if (center.y < rootCenter.y) quadrant |= 0b0010;   // Bottom
-        if (center.z > rootCenter.z) quadrant |= 0b0100;   // Far
+        if (aabbCenter.x > center.x) quadrant |= 0b0001;   // Right
+        if (aabbCenter.y < center.y) quadrant |= 0b0010;   // Bottom
+        if (aabbCenter.z > center.z) quadrant |= 0b0100;   // Far
 
         OcNode* pCandidate = _pRoot->children[quadrant].get();
-
         return pCandidate->Contain(_aabb) ? pCandidate : nullptr;
     }
 
