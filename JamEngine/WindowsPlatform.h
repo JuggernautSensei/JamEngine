@@ -29,14 +29,16 @@ public:
     void ResizeClient(Int32 _clientWidth, Int32 _clientHeight);
     void MoveClient(Int32 _clientLeftTopX, Int32 _clientLeftTopY);
     void SetTitle(std::string_view _name) const;
-    void SetWindowProperty(eWindowPropertyFlags _flags);
 
-    [[nodiscard]] Resolution           GetClientResolution() const;
-    [[nodiscard]] Vec2i                GetClientPos() const;
-    [[nodiscard]] Resolution           GetFullScreenSize() const;
-    [[nodiscard]] HWND                 GetPlatformHandle() const;
-    [[nodiscard]] HINSTANCE            GetPlatformInstance() const;
+    void                               SetWindowProperty(eWindowPropertyFlags _flags);
     [[nodiscard]] eWindowPropertyFlags GetWindowProperty() const;
+
+    [[nodiscard]] Vec2i GetClientPos() const;
+    [[nodiscard]] Vec2i GetClientResolution() const;
+    [[nodiscard]] Vec2i GetFullScreenResolution() const;
+
+    [[nodiscard]] HWND      GetPlatformHandle() const;
+    [[nodiscard]] HINSTANCE GetPlatformInstance() const;
 
 private:
     static LRESULT CALLBACK WindowProc_(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -51,8 +53,15 @@ private:
     MSG       m_msg       = {};     // 윈도우 메시지
 
     Vec2i                m_clientPos  = { 0, 0 };
-    Resolution           m_clientSize = { 0, 0 };
+    Vec2i                m_clientRes = { 0, 0 };
     eWindowPropertyFlags m_flags      = eWindowPropertyFlags_None;
+
+    constexpr static const wchar_t* const k_windowClassName = L"jam engine window class";
+    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";
+    constexpr static Int32                k_defaultWidth    = 800;
+    constexpr static Int32                k_defaultHeight   = 600;
+    constexpr static Int32                k_defaultPosX     = 100;
+    constexpr static Int32                k_defaultPosY     = 100;
 };
 
 }   // namespace jam

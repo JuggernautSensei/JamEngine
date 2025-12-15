@@ -40,39 +40,55 @@ template<typename T>
     return std::memcmp(&_lhs, &_rhs, sizeof(T)) == 0;
 }
 
-template<typename T>
-    requires std::is_integral_v<T>
-[[nodiscard]] constexpr T SetBit(T _value, T _bits, const bool _bEnable)
+template<typename T, typename R>
+    requires std::is_integral_v<T> && std::convertible_to<R, T>
+void SetBit(T& _value, R _bit, const bool _bSet) noexcept
 {
-    if (_bEnable)
+    if (_bSet)
     {
-        return _value | _bits;
+        _value |= static_cast<T>(_bit);
     }
     else
     {
-        return _value & ~_bits;
+        _value &= ~static_cast<T>(_bit);
     }
 }
 
 template<typename T>
     requires std::is_integral_v<T>
-[[nodiscard]] constexpr T EnableBit(T _value, T _bits)
+[[nodiscard]] constexpr std::optional<T> TryParseStringToInt(
+    const std::string_view _str)
 {
-    return _value | _bits;
-}
-
-template<typename T>
-    requires std::is_integral_v<T>
-[[nodiscard]] constexpr T DisableBit(T _value, T _bits)
-{
-    return _value & ~_bits;
-}
-
-template<typename T>
-    requires std::is_integral_v<T>
-[[nodiscard]] constexpr T ToggleBit(T _value, T _bits)
-{
-    return _value ^ _bits;
+    try
+    {
+        std::string str;
+        if constexpr (std::is_same_v<T, Int32>)
+        {
+            return std::stoi(str);
+        }
+        else if constexpr (std::is_same_v<T, UInt32>)
+        {
+            return static_cast<UInt32>(std::stoul(str));
+        }
+        else if constexpr (std::is_same_v<T, Int64>)
+        {
+            return std::stoll(str);
+        }
+        else if constexpr (std::is_same_v<T, UInt64>)
+        {
+            return static_cast<UInt64>(std::stoull(str));
+        }
+        else
+        {
+            static_assert(AlwaysFalse<T>, "Unsupported type for TryParseStrToInt");
+            return std::nullopt;
+        }
+    }
+    catch (...)
+    {
+        ErrorBuffer::Set("failed to parse '{}' to integer", _str);
+        return std::nullopt;
+    }
 }
 
 }   // namespace jam

@@ -296,7 +296,7 @@ public:
     }
 
 private:
-    std::vector<Slot> m_slots         = {};
+    Vector<Slot> m_slots         = {};
     UInt32            m_freeSlotIndex = k_invalidHandleIndex;
     Int32             m_numAlloced    = 0;
 };

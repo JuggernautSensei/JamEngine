@@ -18,7 +18,7 @@ private:
 
     // build entity tree from model
     void CreateEntityTreeFromModel_(const Ref<Model>& _model);
-    void CreateEntityTreeFromModelNode_Recursive_(const ModelNode& _node, Entity _parentOrNull, const std::vector<fs::path>& _meshs, const std::vector<fs::path>& _mats);
+    void CreateEntityTreeFromModelNode_Recursive_(const ModelNode& _node, Entity _parentOrNull, const Vector<fs::path>& _meshs, const Vector<fs::path>& _mats);
 
     // widgets
     void Widget_EntityItem_Recursive_(Entity _entity);

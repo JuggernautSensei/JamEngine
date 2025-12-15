@@ -27,7 +27,7 @@
 #include "AssetManager.h"
 
 #include "CameraComponent.h"
-#include "TransformComponent.h"
+#include "SceneComponent.h"
 #include "TagComponent.h"
 #include "RenderableComponent.h"
 #include "SpotLightComponent.h"

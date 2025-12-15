@@ -4,6 +4,7 @@
 
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
+#include "JsonUtilities.h"
 #include "Scene.h"
 #include "Script.h"
 #include "ScriptDB.h"
@@ -11,49 +12,52 @@
 namespace jam
 {
 
-Json ScriptComponent::Serialize(const Ref<Scene>& _pScene, Entity _entity) const
+Json ScriptComponent::Serialize(
+    const Ref<Scene>& _pScene,
+    Entity            _entity) const
 {
-    Json json;
     if (pScript)
     {
-        json["script"] = pScript->GetName();
+        return pScript->GetTypeName();
     }
     else
     {
-        json["script"] = nullptr;
+        return nullptr;
     }
-    return json;
 }
 
-bool ScriptComponent::Deserialize(const Json& _json, Ref<Scene>& _pScene, const Entity _entity)
+void ScriptComponent::Deserialize(
+    const Json&  _json,
+    Ref<Scene>&  _pScene,
+    const Entity _entity)
 {
-    try
+    if (_json.is_null())
     {
-        const Json& json = _json.at("script");
-        if (json.is_null())
+        pScript = nullptr;
+    }
+    else
+    {
+        std::string     name = _json.get<std::string>();
+        const ScriptDB& db   = ScriptDB::GetInstance();
+        if (db.IsReflected(name))
         {
-            pScript = nullptr;
+            pScript = db.Create(name, _entity);
         }
         else
         {
-            const std::string name = json.get<std::string>();
-            pScript                = ScriptDB::GetInstance().Create(name, _entity);
+            Log::Warn("ScriptComponent::Deserialize: Script '{}' not found in ScriptDB. Setting script to null.", name);
+            pScript = nullptr;
         }
-        return true;
-    }
-    catch (const std::exception& e)
-    {
-        SetErrorString("ScriptComponent deserialization failed: {}", e.what());
-        return false;
     }
 }
 
-void ScriptComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
+void ScriptComponent::DrawEditor(
+    Ref<Scene>&  _pScene,
+    const Entity _entity)
 {
     if (ImGui::BeginTable("ScriptEditor", 2, ImGuiTableFlags_SizingFixedFit))
     {
-        // veriable
-        const char* preview = pScript ? pScript->GetName().data() : "none";
+        const char* preview = pScript ? pScript->GetTypeName().data() : "none";
 
         // setup table
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
@@ -62,20 +66,25 @@ void ScriptComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
         // row script
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("script");
+        Widget_FrameAlignedText("script");
 
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::BeginCombo("##ScriptComponent", preview, ImGuiComboFlags_NoArrowButton))
         {
-            const ScriptDB::ContainerT& container = ScriptDB::GetInstance().GetContainer();
-            for (const ScriptInfo& info: std::views::values(container))
+            ScriptDB& db = ScriptDB::GetInstance();
+            for (const ScriptInfo& info: db.GetContainer() | std::views::values)
             {
-                const std::string& name      = info.name;
-                const bool         bSelected = pScript && name == pScript->GetName();
-                if (ImGui::Selectable(name.c_str(), bSelected))
+                const std::string& label     = info.name;
+                const bool         bSelected = pScript && pScript->GetTypeName() == label;
+                if (ImGui::Selectable(label.c_str(), bSelected))
                 {
                     pScript = info.createFn(_entity);
+                }
+
+                if (bSelected)
+                {
+                    ImGui::SetItemDefaultFocus();
                 }
             }
             ImGui::EndCombo();

@@ -1,4 +1,6 @@
 #pragma once
+#include <DirectXTex.h>
+
 #include "HandleAllocator.h"
 #include "MathUtilities.h"
 #include "TextureFormat.h"
@@ -38,8 +40,6 @@ using eTextureCreateFlags = UInt32;
 
 enum class eShader : Int8
 {
-    Unknown = -1,
-
     VertexShader = 0,
     PixelShader,
     GeometryShader,
@@ -50,8 +50,6 @@ enum class eShader : Int8
 
 enum class eTextureType : Int8
 {
-    Unknown = -1,
-
     Texture2D = 0,
     Texture3D,
     TextureCube,
@@ -135,7 +133,7 @@ enum class eStencilOp : UInt8
     Decr,
 };
 
-enum class eTextureAddress : UInt8
+enum class eTextureAddressMode : UInt8
 {
     Wrap       = 0,
     Mirror     = 1,
@@ -614,19 +612,19 @@ struct SamplerState
 {
     constexpr SamplerState()
         : filter(eTextureFilter::MinPoint_MagPoint_MipPoint)
-        , addressU(eTextureAddress::Wrap)
-        , addressV(eTextureAddress::Wrap)
-        , addressW(eTextureAddress::Wrap)
+        , addressU(eTextureAddressMode::Wrap)
+        , addressV(eTextureAddressMode::Wrap)
+        , addressW(eTextureAddressMode::Wrap)
         , compareFunc(eCompareFunc::None)
     {
     }
 
     constexpr SamplerState(
-        const eTextureFilter  _filter,
-        const eTextureAddress _addressU,
-        const eTextureAddress _addressV,
-        const eTextureAddress _addressW,
-        const eCompareFunc    _compareFunc)
+        const eTextureFilter      _filter,
+        const eTextureAddressMode _addressU,
+        const eTextureAddressMode _addressV,
+        const eTextureAddressMode _addressW,
+        const eCompareFunc        _compareFunc)
         : filter(_filter)
         , addressU(_addressU)
         , addressV(_addressV)
@@ -644,11 +642,11 @@ struct SamplerState
     {
         struct
         {
-            eTextureFilter  filter : 5;        // 필터링 모드 (기본값은 MinMagMipPoint)
-            eTextureAddress addressU : 3;      // U 좌표 래핑 모드 (기본값은 Wrap)
-            eTextureAddress addressV : 3;      // V 좌표 래핑 모드 (기본값은 Wrap)
-            eTextureAddress addressW : 3;      // W 좌표 래핑 모드 (기본값은 Wrap)
-            eCompareFunc    compareFunc : 4;   // 비교 함수 (기본값은 None 비교 필터링 비활성화. 다른 값으로 선택시 비교 필터링 활성화)
+            eTextureFilter      filter : 5;        // 필터링 모드 (기본값은 MinMagMipPoint)
+            eTextureAddressMode addressU : 3;      // U 좌표 래핑 모드 (기본값은 Wrap)
+            eTextureAddressMode addressV : 3;      // V 좌표 래핑 모드 (기본값은 Wrap)
+            eTextureAddressMode addressW : 3;      // W 좌표 래핑 모드 (기본값은 Wrap)
+            eCompareFunc        compareFunc : 4;   // 비교 함수 (기본값은 None 비교 필터링 비활성화. 다른 값으로 선택시 비교 필터링 활성화)
         };
         UInt32 value = 0;
     };
@@ -722,8 +720,8 @@ struct ProgramInfo
 };
 
 [[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);
-[[nodiscard]] Int32             GetBytePerPixel(eTextureFormat _format);
-[[nodiscard]] Int32             GetIndexStride(bool _bIsU32);
+[[nodiscard]] Int32             ByteFrom(eTextureFormat _format);
+[[nodiscard]] Int32             CalcIndexStride(bool _bIsU32);
 [[nodiscard]] Int32             CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
 [[nodiscard]] TextureResolution CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
 [[nodiscard]] Int32             CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _numMips);

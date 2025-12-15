@@ -12,7 +12,7 @@
 #include "SceneManager.h"
 #include "SceneSerializer.h"
 #include "TagComponent.h"
-#include "TransformHierarchy.h"
+#include "SceneNode.h"
 
 namespace jam
 {
@@ -64,7 +64,7 @@ void Editor_SceneHierarchy::Widget_CloneEntityButton_(const ImVec2 btnSize) cons
 {
     const Entity entity   = Editor::GetFocusEntity();
     const bool   bIsValid = !!entity;
-    const bool   bIsRoot  = bIsValid && entity.GetTransformHierarchy().IsRoot();
+    const bool   bIsRoot  = bIsValid && entity.GetSceneNode().IsRoot();
 
     ImGui::BeginDisabled(!bIsValid || bIsRoot);
 
@@ -102,7 +102,7 @@ void Editor_SceneHierarchy::Widget_DestroyEntity_(const ImVec2 btnSize) const
 {
     const Entity entity   = Editor::GetFocusEntity();
     const bool   bIsValid = !!entity;
-    const bool   bIsRoot  = bIsValid && entity.GetTransformHierarchy().IsRoot();
+    const bool   bIsRoot  = bIsValid && entity.GetSceneNode().IsRoot();
 
     ImGui::BeginDisabled(!bIsValid || bIsRoot);
 
@@ -257,7 +257,7 @@ void Editor_SceneHierarchy::OnEntityListChildWindowDragDropTarget_()
             }
             else
             {
-                std::string msg = std::format("failed to load model from path: {}\nerror: {}", path.native(), GetErrorString());
+                std::string msg = std::format("failed to load model from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
                 Log::Error(msg);
                 Editor::OpenCorePopupDialog("error", msg);
             }
@@ -268,16 +268,16 @@ void Editor_SceneHierarchy::OnEntityListChildWindowDragDropTarget_()
 void Editor_SceneHierarchy::CreateEntityTreeFromModel_(const Ref<Model>& _model)
 {
     const ModelNode&             root  = _model->GetRootNode();
-    const std::vector<fs::path>& meshs = _model->GetMeshs();
-    const std::vector<fs::path>& mats  = _model->GetMaterials();
+    const Vector<fs::path>& meshs = _model->GetMeshs();
+    const Vector<fs::path>& mats  = _model->GetMaterials();
     CreateEntityTreeFromModelNode_Recursive_(root, Entity::s_null, meshs, mats);
 }
 
-void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const ModelNode& _node, const Entity _parentOrNull, const std::vector<fs::path>& _meshs, const std::vector<fs::path>& _mats)
+void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const ModelNode& _node, const Entity _parentOrNull, const Vector<fs::path>& _meshs, const Vector<fs::path>& _mats)
 {
     Ref<Scene>&         pScene = SceneManager::GetActiveScene();
     Entity              entity = pScene->CreateEntity(_node.name);
-    TransformHierarchy& th     = entity.GetTransformHierarchy();
+    SceneNode& th     = entity.GetSceneNode();
 
     // _parentOrNull 이 유효하면 부모 설정
     if (_parentOrNull.IsValid())
@@ -287,7 +287,7 @@ void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const Model
 
     // set local transformHierarchy
     Transform local;
-    local.SetMatrix(_node.transform);
+    local.SetMatrix(_node.mtx);
     th.SetLocalTransform(local);
 
     // create leaf
@@ -296,7 +296,7 @@ void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const Model
     {
         // create leaf entity
         Entity              leaf   = pScene->CreateEntity();
-        TransformHierarchy& leafTh = leaf.GetTransformHierarchy();
+        SceneNode& leafTh = leaf.GetSceneNode();
         leafTh.SetParent(entity);
 
         // attach renderable component
@@ -310,7 +310,7 @@ void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const Model
         }
         else
         {
-            std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", meshPath.native(), GetErrorString());
+            std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", meshPath.native(), ErrorBuffer::Get());
             Log::Error(msg);
             Editor::OpenCorePopupDialog("error", msg);
         }
@@ -321,7 +321,7 @@ void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const Model
         }
         else
         {
-            std::string msg = std::format("failed to load material from path: {}\nerror: {}", matPath.native(), GetErrorString());
+            std::string msg = std::format("failed to load material from path: {}\nerror: {}", matPath.native(), ErrorBuffer::Get());
             Log::Error(msg);
             Editor::OpenCorePopupDialog("error", msg);
         }
@@ -336,7 +336,7 @@ void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const Model
 
 void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(Entity _entity)
 {
-    const Entity fChild     = _entity.GetTransformHierarchy().GetFirstChild();
+    const Entity fChild     = _entity.GetSceneNode().GetFirstChild();
     const bool   bHasChild  = fChild.IsValid();
     const bool   bIsFocused = (_entity == Editor::GetFocusEntity());
     const UID    uid        = _entity.GetUID();
@@ -416,7 +416,7 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(Entity _entity)
         }
 
         // disable clone/destroy for root entity
-        ImGui::BeginDisabled(_entity.GetTransformHierarchy().IsRoot());
+        ImGui::BeginDisabled(_entity.GetSceneNode().IsRoot());
         if (ImGui::MenuItem("clone"))
         {
             Editor::CloneEntityToActiveScene(_entity);
@@ -441,7 +441,7 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(Entity _entity)
         while (child.IsValid())
         {
             Widget_EntityItem_Recursive_(child);
-            child = child.GetTransformHierarchy().GetNextSibling();
+            child = child.GetSceneNode().GetNextSibling();
         }
         ImGui::TreePop();
     }
@@ -470,7 +470,7 @@ void Editor_SceneHierarchy::OnEntityItemDragDropTarget_(const Entity _parent) co
     if (const ImGuiPayload* pPayload = AcceptEntityDragDropPayload())
     {
         Entity              entity = ResolveEntityDragDropPayload(pPayload);
-        TransformHierarchy& th     = entity.GetTransformHierarchy();
+        SceneNode& th     = entity.GetSceneNode();
         if (th.IsAncestorOf(_parent))
         {
             Editor::OpenCorePopupDialog("error", "cannot set parent: would create circular reference.");

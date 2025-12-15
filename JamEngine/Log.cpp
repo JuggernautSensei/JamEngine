@@ -23,15 +23,17 @@ struct LogContext
             spdlog::init_thread_pool(8192, 1);
         }
 
-        std::vector<spdlog::sink_ptr> sinks;
+        Vector<spdlog::sink_ptr> sinks;
         sinks.reserve(sinkMap.size());
         for (const spdlog::sink_ptr& sink: sinkMap | std::views::values)
+        {
             sinks.push_back(sink);
+        }
 
-        auto newLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-        newLogger->set_level(globalLevel);
-        newLogger->set_pattern(globalPattern);
-        spdlog::set_default_logger(std::move(newLogger));
+        auto pNewLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+        pNewLogger->set_level(globalLevel);
+        pNewLogger->set_pattern(globalPattern);
+        spdlog::set_default_logger(std::move(pNewLogger));
     }
 
     HashMap<std::string, spdlog::sink_ptr> sinkMap       = {};

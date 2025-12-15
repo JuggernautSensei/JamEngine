@@ -37,19 +37,19 @@ constexpr const char* k_formatNames[EnumCount<eAttributeFormat>()] = {
 
 VertexLayout VertexLayoutEditorDialog::BuildLayout_() const
 {
-    VertexLayout layout;
+    VertexLayout vl;
     for (Int32 i = 0; i < m_count; ++i)
     {
         const Element& elem = m_elems[i];
-        layout.Add(elem.attrib, elem.format);
+        vl.Add(elem.attrib, elem.format);
     }
-    return layout;
+    return vl;
 }
 
 VertexLayoutEditorDialog::VertexLayoutEditorDialog(const Ref<VertexLayoutEntry>& _pEntry)
 {
     const std::string_view name = _pEntry->GetName();
-    const VertexLayout&    vl   = _pEntry->GetLayout();
+    const VertexLayout&    vl   = _pEntry->GetVertexLayout();
 
     m_oldName = name;
     m_nameBuf = name;
@@ -69,14 +69,14 @@ bool VertexLayoutEditorDialog::Widget_VertexFormatSelector_(eAttributeFormat& _f
 {
     bool bChanged = false;
 
-    const int   curIdx  = EnumToInt(_format);
+    const int   curIdx  = IntFrom(_format);
     const char* preview = k_formatNames[curIdx];
     if (ImGui::BeginCombo("##Format", preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const eAttributeFormat format: EnumRange<eAttributeFormat>())
+        for (const eAttributeFormat format: EnumRanges<eAttributeFormat>())
         {
             const bool  bSelected = (_format == format);
-            const char* name      = k_formatNames[EnumToInt(format)];
+            const char* name      = k_formatNames[IntFrom(format)];
             if (ImGui::Selectable(name, bSelected))
             {
                 if (_format != format)
@@ -96,14 +96,14 @@ bool VertexLayoutEditorDialog::Widget_VertexAttributeSelector_(eVertexAttribute&
 {
     bool bChanged = false;
 
-    const Int32 curIdx  = EnumToInt(_attrib);
+    const Int32 curIdx  = IntFrom(_attrib);
     const char* preview = k_attribNames[curIdx];
     if (ImGui::BeginCombo("##Attrib", preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const eVertexAttribute attrib: EnumRange<eVertexAttribute>())
+        for (const eVertexAttribute attrib: EnumRanges<eVertexAttribute>())
         {
             const bool  bSelected = (_attrib == attrib);
-            const char* name      = k_attribNames[EnumToInt(attrib)];
+            const char* name      = k_attribNames[IntFrom(attrib)];
             if (ImGui::Selectable(name, bSelected))
             {
                 if (_attrib != attrib)
@@ -148,7 +148,7 @@ void VertexLayoutEditorDialog::AddNewElement_()
 void VertexLayoutEditorDialog::operator()()
 {
     // name input
-    Widget_FramePaddingAlignedTextUnformatted("name");
+    Widget_FrameAlignedText("name");
     ImGui::SameLine();
     SetNextItemWidthToAvailableWidth();
     ImGui::InputText("##EntryName", &m_nameBuf);
@@ -185,7 +185,7 @@ void VertexLayoutEditorDialog::operator()()
 
                 // size column
                 ImGui::TableNextColumn();
-                ImGui::Text("%d", GetVertexAttributeFormatSize(elem.format));
+                ImGui::Text("%d", ByteFrom(elem.format));
 
                 // offset column
                 ImGui::TableNextColumn();
@@ -247,11 +247,11 @@ void VertexLayoutEditorDialog::UpdateState_()
     for (Int32 i = 0; i < m_count; ++i)
     {
         Element&    elem      = m_elems[i];
-        const Int32 attribIdx = EnumToInt(elem.attrib);
+        const Int32 attribIdx = IntFrom(elem.attrib);
 
         // calculate offset, stride
         elem.offset = m_stride;
-        m_stride += GetVertexAttributeFormatSize(elem.format);
+        m_stride += ByteFrom(elem.format);
 
         // check duplicate attrib
         if (usedAttribs[attribIdx])

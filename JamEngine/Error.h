@@ -2,45 +2,28 @@
 
 #include <source_location>
 
-namespace jam
+namespace jam::details
 {
 
-namespace details
-{
-    void AssertFail(const std::source_location& _loc, std::string_view _msg);
-
-    template<typename... Args>
-    void AssertFail(const std::source_location& _loc, const std::format_string<Args...> _fmt, Args&&... _args)
-    {
-        AssertFail(_loc, std::format(_fmt, std::forward<Args>(_args)...));
-    }
-
-    void Crash(const std::source_location& _loc, std::string_view _msg);
-
-    template<typename... Args>
-    void Crash(const std::source_location& _loc, const std::format_string<Args...> _fmt, Args&&... _args)
-    {
-        Crash(_loc, std::format(_fmt, std::forward<Args>(_args)...));
-    }
-
-    void CrashCom(const std::source_location& _loc, const char* _func, HRESULT _hr);
-
-}   // namespace details
-
-void SetErrorString(std::string_view _msg);
+void AssertFail(const std::source_location& _loc, std::string_view _msg);
 
 template<typename... Args>
-void SetErrorString(const std::format_string<Args...> _fmt, Args&&... _args)
+void AssertFail(const std::source_location& _loc, const std::format_string<Args...> _fmt, Args&&... _args)
 {
-    SetErrorString(std::format(_fmt, std::forward<Args>(_args)...));
+    AssertFail(_loc, std::format(_fmt, std::forward<Args>(_args)...));
 }
 
-[[nodiscard]] const char* GetErrorString();
+void Crash(const std::source_location& _loc, std::string_view _msg);
 
-// com error message
-[[nodiscard]] std::string CreateComErrorString(HRESULT _hr);
+template<typename... Args>
+void Crash(const std::source_location& _loc, const std::format_string<Args...> _fmt, Args&&... _args)
+{
+    Crash(_loc, std::format(_fmt, std::forward<Args>(_args)...));
+}
 
-}   // namespace jam
+void CrashWithComHint(const std::source_location& _loc, const char* _func, HRESULT _hr);
+
+}   // namespace jam::details
 
 #if defined(JAM_DEBUG) && !defined(JAM_ENABLE_ASSERTS) && !defined(JAM_DISABLE_ASSERTS)
 #    define JAM_ENABLE_ASSERTS
@@ -66,8 +49,16 @@ void SetErrorString(const std::format_string<Args...> _fmt, Args&&... _args)
     std::abort();                                                      \
     JAM_END_MACRO_BLOCK
 
-#define JAM_CHECK_COM(_func)                                                 \
-    JAM_BEGIN_MACRO_BLOCK                                                    \
-    if (HRESULT hr = (_func); FAILED(hr))                                    \
-        jam::details::CrashCom(std::source_location::current(), #_func, hr); \
+#define JAM_CHECK_COM(_func)                                                         \
+    JAM_BEGIN_MACRO_BLOCK                                                            \
+    if (HRESULT hr = (_func); FAILED(hr))                                            \
+        jam::details::CrashWithComHint(std::source_location::current(), #_func, hr); \
     JAM_END_MACRO_BLOCK
+
+namespace jam
+{
+
+// com error message helper
+[[nodiscard]] std::string ErrorMessageFrom(HRESULT _hr);
+
+}   // namespace jam

@@ -10,5 +10,17 @@
     <ClInclude Include="Octree.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="OctreeTest.h" />
+    <ClInclude Include="tinystl\allocator.h" />
+    <ClInclude Include="tinystl\buffer.h" />
+    <ClInclude Include="tinystl\hash.h" />
+    <ClInclude Include="tinystl\hash_base.h" />
+    <ClInclude Include="tinystl\new.h" />
+    <ClInclude Include="tinystl\stddef.h" />
+    <ClInclude Include="tinystl\string.h" />
+    <ClInclude Include="tinystl\string_view.h" />
+    <ClInclude Include="tinystl\traits.h" />
+    <ClInclude Include="tinystl\unordered_map.h" />
+    <ClInclude Include="tinystl\unordered_set.h" />
+    <ClInclude Include="tinystl\vector.h" />
   </ItemGroup>
 </Project>

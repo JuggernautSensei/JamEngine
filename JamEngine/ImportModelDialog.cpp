@@ -45,14 +45,14 @@ void ImportModelDialog::operator()()
         // Row 0: Path
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("path");
+        Widget_FrameAlignedText("path");
         ImGui::TableNextColumn();
         Widget_OpenFileDialog("##OpenModelFileDialog", m_importPath, k_filters);
 
         // Row 1: Name
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##ModelName", &m_buf);
@@ -60,22 +60,22 @@ void ImportModelDialog::operator()()
         // Row 2: Vertex Layout
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("vertex vertexLayout");
+        Widget_FrameAlignedText("vertex vertexLayout");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_VertexLayoutSelector("##VertexLayoutSelector", m_pEntry);
+        Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pEntry);
 
         // Row 3: Compute Tangent
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("compute tangent");
+        Widget_FrameAlignedText("compute tangent");
         ImGui::TableNextColumn();
         ImGui::Checkbox("##ComputeTangent", &m_bComputeTangent);
 
         // Row 4: Normal Generation
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("normal generation");
+        Widget_FrameAlignedText("normal generation");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         Widget_NormalGenSelector_(m_normalGenType);
@@ -83,21 +83,21 @@ void ImportModelDialog::operator()()
         // Row 5: Drop Normal
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("drop normal");
+        Widget_FrameAlignedText("drop normal");
         ImGui::TableNextColumn();
         ImGui::Checkbox("##DropNormal", &m_bDropNormal);
 
         // Row 6: Limit Bone Weight
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("limit bone weight");
+        Widget_FrameAlignedText("limit bone weight");
         ImGui::TableNextColumn();
         ImGui::Checkbox("##LimitBoneWeight", &m_bLimitBoneWeight);
 
         // Row 7: Static Mesh
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("static mesh");
+        Widget_FrameAlignedText("static mesh");
         ImGui::TableNextColumn();
         ImGui::Checkbox("##StaticMesh", &m_bStaticMesh);
 
@@ -154,7 +154,7 @@ bool ImportModelDialog::OnClickImportButton_()
         importer.SetPath(m_importPath);
         importer.ComputeNormal(m_normalGenType);
         if (m_bComputeTangent)
-            importer.ComputeTangent();
+            importer.GenerateTangentFrame();
         if (m_bDropNormal)
             importer.DropExistingNormal();
         if (m_bLimitBoneWeight)
@@ -164,7 +164,7 @@ bool ImportModelDialog::OnClickImportButton_()
 
         if (!importer.Import())
         {
-            const std::string msg = std::format("Failed to import model from file '{}': {}", m_importPath.native(), GetErrorString());
+            const std::string msg = std::format("Failed to import model from file '{}': {}", m_importPath.native(), ErrorBuffer::Get());
             m_popup.Open("error", msg);
             return false;
         }
@@ -194,14 +194,14 @@ bool ImportModelDialog::OnClickImportButton_()
         }
         else
         {
-            const std::string msg = std::format("Failed to save model to disk. {}", GetErrorString());
+            const std::string msg = std::format("Failed to save model to disk. {}", ErrorBuffer::Get());
             m_popup.Open("error", msg);
             return false;
         }
     }
     else
     {
-        const std::string msg = std::format("Failed to create model from imported data. {}", GetErrorString());
+        const std::string msg = std::format("Failed to create model from imported data. {}", ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }
@@ -216,12 +216,12 @@ bool ImportModelDialog::Widget_NormalGenSelector_(eNormalGenType& _type) const
     };
 
     bool bChanged = false;
-    if (ImGui::BeginCombo("##NormalGenType", k_normalGenNames[EnumToInt(_type)], ImGuiComboFlags_NoArrowButton))
+    if (ImGui::BeginCombo("##NormalGenType", k_normalGenNames[IntFrom(_type)], ImGuiComboFlags_NoArrowButton))
     {
-        for (const eNormalGenType type: EnumRange<eNormalGenType>())
+        for (const eNormalGenType type: EnumRanges<eNormalGenType>())
         {
             const bool bIsSelected = (type == _type);
-            if (ImGui::Selectable(k_normalGenNames[EnumToInt(type)], bIsSelected))
+            if (ImGui::Selectable(k_normalGenNames[IntFrom(type)], bIsSelected))
             {
                 _type    = type;
                 bChanged = true;
@@ -233,8 +233,8 @@ bool ImportModelDialog::Widget_NormalGenSelector_(eNormalGenType& _type) const
 }
 
 void ImportModelDialog::CopyVec3Attribute_(
-    std::vector<Byte>&       _vertexData,
-    const std::vector<Vec3>& _srcData,
+    Vector<Byte>&       _vertexData,
+    const Vector<Vec3>& _srcData,
     const Int32              _numVerts,
     const Int32              _vertexStride,
     const Int32              _offset,
@@ -252,8 +252,8 @@ void ImportModelDialog::CopyVec3Attribute_(
 }
 
 void ImportModelDialog::CopyVec4Attribute_(
-    std::vector<Byte>&       _vertexData,
-    const std::vector<Vec4>& _srcData,
+    Vector<Byte>&       _vertexData,
+    const Vector<Vec4>& _srcData,
     const Int32              _numVerts,
     const Int32              _vertexStride,
     const Int32              _offset,
@@ -279,11 +279,11 @@ std::optional<Mesh> ImportModelDialog::CreateMeshFromImported_(
 
     if (numVerts == 0 || vertexStride == 0)
     {
-        SetErrorString("Invalid mesh data: numVerts={}, stride={}", numVerts, vertexStride);
+        ErrorBuffer::Set("Invalid mesh data: numVerts={}, stride={}", numVerts, vertexStride);
         return std::nullopt;
     }
 
-    std::vector<Byte> vertsData(numVerts * vertexStride);
+    Vector<Byte> vertsData(numVerts * vertexStride);
 
     for (const VertexLayoutElement& elem: _layout.GetElements())
     {
@@ -331,7 +331,7 @@ std::optional<Mesh> ImportModelDialog::CreateMeshFromImported_(
     }
 
     Mesh mesh;
-    mesh.LoadFromMemory(vertsData, _layout, _mesh.indices, _mesh.bUseU32);
+    mesh.LoadMemory(vertsData, _layout, _mesh.idxData, _mesh.bUseU32);
     return mesh;
 }
 
@@ -347,7 +347,7 @@ Ref<ImageTexture> ImportModelDialog::CreateImageTextureFromImportedTexture_(
     }
 
     Ref<ImageTexture> pImageTexture = MakeRef<ImageTexture>();
-    pImageTexture->LoadFromMemory(_tex.pixels, format, _virtualPath);
+    pImageTexture->LoadSource(_tex.pixels, format, _virtualPath);
     return pImageTexture;
 }
 
@@ -361,7 +361,7 @@ fs::path ImportModelDialog::GenerateTexturePath_(
 
     if (_tex.bIsCompressed && _tex.format != eImageFormat::Unknown)
     {
-        path.replace_extension(std::format(".{}", ImageFormatToString(_tex.format)));
+        path.replace_extension(std::format(".{}", ErrorMessageFrom(_tex.format)));
     }
     else
     {
@@ -373,10 +373,10 @@ fs::path ImportModelDialog::GenerateTexturePath_(
 
 std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
     const ImportedMaterial&               _importedMat,
-    const std::vector<Ref<ImageTexture>>& _textures)
+    const Vector<Ref<ImageTexture>>& _textures)
 {
     Material mat;
-    mat.LoadFromMemory();
+    mat.LoadEmpty();
 
     // Set material properties
     mat.SetAmbientColor(_importedMat.ambientColor);
@@ -394,7 +394,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
     mat.SetFlipYNormalTexture(true);   // normally normal map is based on OpenGL uv coordinate system
 
     // Set texture maps
-    if (_importedMat.albedoTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.albedoTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.albedoTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -406,7 +406,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.normalTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.normalTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.normalTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -418,7 +418,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.metallicTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.metallicTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.metallicTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -430,7 +430,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.roughnessTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.roughnessTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.roughnessTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -442,7 +442,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.aoTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.aoTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.aoTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -454,7 +454,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.emissiveTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.emissiveTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.emissiveTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -466,7 +466,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.lightTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.lightTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.lightTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -478,7 +478,7 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.vertexDisplacementTexIndex != k_invalidImportedTextureIndex)
+    if (_importedMat.vertexDisplacementTexIndex != k_invalidImportedTexIndex)
     {
         const Int32 idx = _importedMat.vertexDisplacementTexIndex;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
@@ -498,7 +498,7 @@ std::optional<ModelNode> ImportModelDialog::ConvertNodeRecursive_(
 {
     ModelNode node;
     node.name      = _node.name;
-    node.transform = _node.localTransform;
+    node.mtx = _node.mtx;
     node.meshIndices.reserve(_node.meshIndices.size());
     node.materialIndices.reserve(_node.materialIndices.size());
     node.children.reserve(_node.children.size());
@@ -528,10 +528,10 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
 {
     // Get imported data
     const ImportedModelNode&             rootNode  = _importer.GetRootNode();
-    const std::vector<ImportedMesh>&     meshes    = _importer.GetMeshes();
-    const std::vector<ImportedMaterial>& materials = _importer.GetMaterials();
-    const std::vector<ImportedTexture>&  textures  = _importer.GetTextures();
-    const VertexLayout&                  layout    = m_pEntry->GetLayout();
+    const Vector<ImportedMesh>&     meshes    = _importer.GetMeshes();
+    const Vector<ImportedMaterial>& materials = _importer.GetMaterials();
+    const Vector<ImportedTexture>&  textures  = _importer.GetTextures();
+    const VertexLayout&                  layout    = m_pEntry->GetVertexLayout();
 
     // Create output directories
     const fs::path meshOutputDir = _baseDir / "Meshes";
@@ -550,7 +550,7 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
     }
     catch (const fs::filesystem_error& ec)
     {
-        SetErrorString("Failed to create output directories: {}", ec.what());
+        ErrorBuffer::Set("Failed to create output directories: {}", ec.what());
         return std::nullopt;
     }
 
@@ -565,14 +565,14 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
 
         if (fs::exists(outputPath))
         {
-            SetErrorString("Mesh file already exists: {}", outputPath.native());
+            ErrorBuffer::Set("Mesh file already exists: {}", outputPath.native());
             return std::nullopt;
         }
 
         std::optional<Mesh> optMesh = CreateMeshFromImported_(mesh, layout);
         if (!optMesh || !optMesh->Save(outputPath))
         {
-            SetErrorString("Failed to save mesh: {}", outputPath.native());
+            ErrorBuffer::Set("Failed to save mesh: {}", outputPath.native());
             return std::nullopt;
         }
 
@@ -580,7 +580,7 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
     }
 
     // Process textures
-    std::vector<Ref<ImageTexture>> imageTextures;
+    Vector<Ref<ImageTexture>> imageTextures;
     imageTextures.reserve(textures.size());
 
     for (size_t i = 0; i < textures.size(); ++i)
@@ -590,7 +590,7 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
         const fs::path outputPath = GenerateTexturePath_(texOutputDir, i, tex);
         if (fs::exists(outputPath))
         {
-            SetErrorString("Texture file already exists: {}", outputPath.native());
+            ErrorBuffer::Set("Texture file already exists: {}", outputPath.native());
             return std::nullopt;
         }
 
@@ -604,7 +604,7 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
 
         if (!pImageTexture->Save(outputPath))
         {
-            SetErrorString("Failed to save texture: {}", outputPath.native());
+            ErrorBuffer::Set("Failed to save texture: {}", outputPath.native());
             return std::nullopt;
         }
 
@@ -620,14 +620,14 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
 
         if (fs::exists(outputPath))
         {
-            SetErrorString("Material file already exists: {}", outputPath.native());
+            ErrorBuffer::Set("Material file already exists: {}", outputPath.native());
             return std::nullopt;
         }
 
         std::optional<Material> optMat = CreateMaterialFromImported_(importedMat, imageTextures);
         if (!optMat || !optMat->Save(outputPath))
         {
-            SetErrorString("Failed to save material: {}", outputPath.native());
+            ErrorBuffer::Set("Failed to save material: {}", outputPath.native());
             return std::nullopt;
         }
 
@@ -641,7 +641,7 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
     }
 
     Model model;
-    model.LoadFromMemory(desc);
+    model.LoadMemory(desc);
     return model;
 }
 

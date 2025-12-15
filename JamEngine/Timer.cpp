@@ -144,7 +144,7 @@ ScopedTimer::~ScopedTimer()
 {
     Stop();
     double elapsedTime = GetTotal(m_unit);
-    Log::Trace(R"([TIMER END] {} [{:3f} {}])", m_name, elapsedTime, EnumToString(m_unit));
+    Log::Trace(R"([TIMER END] {} [{:3f} {}])", m_name, elapsedTime, StringFrom(m_unit));
 }
 
 }   // namespace jam

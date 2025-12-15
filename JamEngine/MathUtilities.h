@@ -49,12 +49,6 @@ constexpr float  k_logNat2               = std::numbers::ln2_v<float>;
 constexpr float  k_invLogNat2            = std::numbers::log2e_v<float>;
 constexpr float  k_e                     = std::numbers::e_v<float>;
 
-struct Resolution
-{
-    Int32 width  = 0;
-    Int32 height = 0;
-};
-
 struct Vec2i
 {
     Int32 x = 0;
@@ -585,7 +579,7 @@ struct SinCos
     return k_halfPi - Acos(_a);
 }
 
-[[nodiscard]] constexpr float ATan2(const float _y, const float _x)
+[[nodiscard]] constexpr float Atan2(const float _y, const float _x)
 {
     const float ax     = Abs(_x);
     const float ay     = Abs(_y);
@@ -621,7 +615,7 @@ struct SinCos
 
 [[nodiscard]] constexpr float ATan(const float _x)
 {
-    return ATan2(_x, 1.0f);
+    return Atan2(_x, 1.0f);
 }
 
 [[nodiscard]] constexpr Vec2 ToDeg(const Vec2 _radians)
@@ -778,6 +772,42 @@ struct SinCos
     }
 }
 
+[[nodiscard]] constexpr float InvLength(const Vec2 vec)
+{
+    if (std::is_constant_evaluated())
+    {
+        return InvSqrt(LengthSq(vec));
+    }
+    else
+    {
+        return DirectX::XMVectorGetX(DirectX::XMVector2ReciprocalLength(vec));
+    }
+}
+
+[[nodiscard]] constexpr float InvLength(const Vec3 vec)
+{
+    if (std::is_constant_evaluated())
+    {
+        return InvSqrt(LengthSq(vec));
+    }
+    else
+    {
+        return DirectX::XMVectorGetX(DirectX::XMVector3ReciprocalLength(vec));
+    }
+}
+
+[[nodiscard]] constexpr float InvLength(const Vec4 vec)
+{
+    if (std::is_constant_evaluated())
+    {
+        return InvSqrt(LengthSq(vec));
+    }
+    else
+    {
+        return DirectX::XMVectorGetX(DirectX::XMVector4ReciprocalLength(vec));
+    }
+}
+
 [[nodiscard]] constexpr float DistanceSq(const Vec2 a, const Vec2 b)
 {
     return LengthSq(b - a);
@@ -808,7 +838,32 @@ struct SinCos
     return Length(b - a);
 }
 
-[[nodiscard]] constexpr Vec2 Normalized(const Vec2& vec)
+[[nodiscard]] constexpr Vec2 ToVec2(Vec3 a)
+{
+    return { a.x, a.y };
+}
+
+[[nodiscard]] constexpr Vec2 ToVec2(Vec4 a)
+{
+    return { a.x, a.y };
+}
+
+[[nodiscard]] constexpr Vec3 ToVec3(Vec4 a)
+{
+    return { a.x, a.y, a.z };
+}
+
+[[nodiscard]] constexpr Vec4 ToVec4(Vec3 a, float w = 0.f)
+{
+    return { a.x, a.y, a.z, w };
+}
+
+[[nodiscard]] constexpr Vec4 ToVec4(Vec2 a, float z = 0.f, float w = 0.f)
+{
+    return { a.x, a.y, z, w };
+}
+
+[[nodiscard]] constexpr Vec2 Normalized(const Vec2 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -841,7 +896,7 @@ struct SinCos
     }
 }
 
-[[nodiscard]] constexpr Vec4 Normalized(const Vec4& vec)
+[[nodiscard]] constexpr Vec4 Normalized(const Vec4 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -888,32 +943,15 @@ struct SinCos
     return { Abs(vec.x), Abs(vec.y), Abs(vec.z), Abs(vec.w) };
 }
 
-struct PitchYaw
-{
-    float pitch = 0.f;
-    float yaw   = 0.f;
-};
-
-[[nodiscard]] PitchYaw ForwardToPitchYaw(Vec3 _forward);
-[[nodiscard]] Vec3     PitchYawToForward(float _pitchRad, float _yawRad);
-
 [[nodiscard]] Float16 ToFloat16(float value);
 [[nodiscard]] float   ToFloat32(Float16 value);
 
-[[nodiscard]] Mat4 CreateWorldLookTo(Vec3 _t, Vec3 _f, Vec3 _s);
-[[nodiscard]] Mat4 CreateWorld(Vec3 _t, Quat _q, Vec3 _s);
-[[nodiscard]] Mat4 CreateViewLookTo(Vec3 _position, Vec3 _forward);
-[[nodiscard]] Mat4 CreateViewLookAt(Vec3 _position, Vec3 _focusPoint);
-[[nodiscard]] Mat4 CreateOrthographic(float width, float height, float nearZ, float farZ);
-[[nodiscard]] Mat4 CreateOrthographic(float left, float right, float bottom, float top, float nearZ, float farZ);
-[[nodiscard]] Mat4 CreatePerspectiveFov(float fovYRad, float aspectRatio, float nearZ, float farZ);
+[[nodiscard]] Vec2 ForwardToPitchYaw(Vec3 _forward);
+[[nodiscard]] Vec3 PitchYawToForward(float pitch, float yaw);
 
-struct AxisAngle
-{
-    Vec3  axis;
-    float angleRad;
-};
-[[nodiscard]] AxisAngle QuatToAxisAngle(Quat _q);
+[[nodiscard]] Mat4 CreateOrthoMatrix(float width, float height, float nearZ, float farZ);
+[[nodiscard]] Mat4 CreateOrthoMatrix(float left, float right, float bottom, float top, float nearZ, float farZ);
+[[nodiscard]] Mat4 CreatePerspectiveMatrix(float fovYRad, float aspect, float zNear, float zFar);
 
 namespace details
 {

@@ -19,8 +19,8 @@ public:
     ImageTexture(ImageTexture&& _other) noexcept;
     ImageTexture& operator=(ImageTexture&& _other) noexcept;
 
-    bool Load(const fs::path& _path) override;                                                            // use normally
-    bool LoadFromMemory(ConstMemView _mem, eImageFormat _format, const fs::path& _virtualPath = {});   // use when creating from memory (or non-file source). but you can still set a virtual path for reference
+    bool Load(const fs::path& _path) override;
+    bool LoadSource(ConstMemView _source, eImageFormat _format, const fs::path& _virtualPath = {});
 
     void Unload() override;
     bool Save(const fs::path& _path) const override;
@@ -31,6 +31,8 @@ public:
     [[nodiscard]] UInt32           GetTypeHash() const override;
     [[nodiscard]] const fs::path&  GetPath() const override;
     [[nodiscard]] TextureHandle    GetHandle() const;
+    [[nodiscard]] Vec2i            GetResolution() const;
+    [[nodiscard]] eTextureType     GetTextureType() const;
 
     void Bind(eShader _shader, Int32 _slot) const;
     void Unbind(eShader _shader, Int32 _slot) const;
@@ -44,6 +46,10 @@ private:
 
     fs::path      m_path = {};
     TextureHandle m_texh = k_invalidHandle;
+
+    // cache
+    Vec2i        m_res  = { 0, 0 };
+    eTextureType m_type = eTextureType::Texture2D;
 };
 
 }   // namespace jam

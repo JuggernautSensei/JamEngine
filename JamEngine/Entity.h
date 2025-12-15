@@ -1,16 +1,17 @@
 #pragma once
 #include "Properties.h"
+#include "Transform.h"
 #include "UID.h"
 
 namespace jam
 {
 
-class TransformHierarchy;
+class SceneNode;
 
 class Entity
 {
 public:
-    Entity() = default;
+    Entity();
     Entity(entt::registry& _registry, entt::entity _handle, UID _uid);
 
     [[nodiscard]] bool operator==(Entity _other) const;
@@ -22,9 +23,14 @@ public:
     [[nodiscard]] bool IsValid() const;
     explicit           operator bool() const;
 
-    [[nodiscard]] UID                       GetUID() const;
-    [[nodiscard]] TransformHierarchy&       GetTransformHierarchy();
-    [[nodiscard]] const TransformHierarchy& GetTransformHierarchy() const;
+    [[nodiscard]] UID              GetUID() const;
+    [[nodiscard]] SceneNode&       GetSceneNode();
+    [[nodiscard]] const SceneNode& GetSceneNode() const;
+
+    [[nodiscard]] const Transform& GetWorldTransform() const;
+    [[nodiscard]] Transform&       ModifyWorldTransform();
+    [[nodiscard]] const Transform& GetLocalTransform() const;
+    [[nodiscard]] Transform&       ModifyLocalTransform();
 
     template<typename T, typename... Args>
     decltype(auto) CreateComponent(Args&&... args)
@@ -55,7 +61,7 @@ public:
     }
 
     template<typename... T>
-    void RemoveComponent()
+    void RemoveComponent() 
     {
         static_assert((!std::is_base_of_v<CannotRemovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
         JAM_ASSERT(IsValid(), "Entity is not valid");

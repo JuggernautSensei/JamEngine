@@ -19,7 +19,7 @@ struct FileDialogFilter
     std::string_view                  _defaultPathOrEmpty = {},
     std::span<const FileDialogFilter> _filtersOrEmpty     = {});
 
-[[nodiscard]] std::optional<std::vector<fs::path>> OpenMultiFileDialog(
+[[nodiscard]] std::optional<Vector<fs::path>> OpenMultiFileDialog(
     std::string_view                  _title              = "open files",
     std::string_view                  _defaultPathOrEmpty = {},
     std::span<const FileDialogFilter> _filtersOrEmpty     = {});

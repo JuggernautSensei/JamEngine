@@ -196,7 +196,7 @@ public:
 
 private:
     HandleAllocator<T> m_handleAlloc = {};
-    std::vector<T>     m_resources   = {};
+    Vector<T>     m_resources   = {};
     UInt32             m_numItems    = 0;
 };
 

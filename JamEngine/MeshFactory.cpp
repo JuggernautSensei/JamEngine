@@ -12,143 +12,132 @@ namespace jam
 {
 
 [[nodiscard]] static Mesh CreateMeshHelper(
-    const std::span<const Vec3> positions,
-    const std::span<const Vec2> texCoords,
-    const ConstMemView          indexData,
-    const bool                  bUseU32,
-    const VertexLayout&         layout)
+    const std::span<const Vec3> _positions,
+    const std::span<const Vec2> _texCoords,
+    const ConstMemView          _idxData,
+    const bool                  _bUseU32,
+    const VertexLayout&         _vl)
 {
     // validation
-    JAM_ASSERT(layout.Has(eVertexAttribute::Position), "Position attribute is required in the vertex layout.");
-    JAM_ASSERT(!positions.empty(), "Position data is empty.");
-    JAM_ASSERT(!indexData.IsValid() || indexData.GetByteWidth() > 0, "Index data is empty.");
+    JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required in the vertex layout.");
+    JAM_ASSERT(!_positions.empty(), "Position data is empty.");
+    JAM_ASSERT(!_idxData.IsValid() || _idxData.GetByteWidth() > 0, "Index data is empty.");
+
+    // allocate vertex buffer
+    const Int32 numVerts   = NarrowCast<Int32>(_positions.size());
+    const Int32 vertStride = _vl.GetStride();
 
     // check required attributes
-    const bool hasNormal    = layout.Has(eVertexAttribute::Normal);
-    const bool hasTangent   = layout.Has(eVertexAttribute::Tangent);
-    const bool hasBitangent = layout.Has(eVertexAttribute::Bitangent);
-    const bool hasTexCoord  = layout.Has(eVertexAttribute::TexCoord0);
+    const bool bHasNormal    = _vl.Has(eVertexAttribute::Normal);
+    const bool bHasTangent   = _vl.Has(eVertexAttribute::Tangent);
+    const bool bHasBitangent = _vl.Has(eVertexAttribute::Bitangent);
+    const bool bHasTexCoord  = _vl.Has(eVertexAttribute::TexCoord0);
 
     // compute normals if needed
-    std::vector<Vec3> normals;
-    if (hasNormal)
+    Vector<Vec3> normals;
+    if (bHasNormal)
     {
-        normals = ComputeNormal(positions, indexData, bUseU32);
+        normals = ComputeNormals(_positions, _idxData, _bUseU32);
     }
 
     // compute tangents and bitangents if needed
-    TangentFrame tangentFrame;
-    if (hasTangent || hasBitangent)
+    TangentFrame frame;
+    if (bHasTangent || bHasBitangent)
     {
-        JAM_ASSERT(hasTexCoord, "TexCoord0 attribute is required to compute tangents and bitangents.");
-        JAM_ASSERT(!texCoords.empty(), "TexCoord0 data is required to compute tangents and bitangents.");
+        JAM_ASSERT(bHasTexCoord, "TexCoord0 attribute is required to compute tangents and bitangents.");
+        JAM_ASSERT(!_texCoords.empty(), "TexCoord0 data is required to compute tangents and bitangents.");
         JAM_ASSERT(!normals.empty(), "Normals must be computed before computing tangents and bitangents.");
-
-        tangentFrame = ComputeTangentFrame(positions, normals, texCoords, indexData, bUseU32);
+        frame = ComputeTangentFrame(_positions, normals, _texCoords, _idxData, _bUseU32);
     }
 
-    // allocate vertex buffer
-    const Int32 numVerts   = NarrowCast<Int32>(positions.size());
-    const Int32 vertStride = layout.GetStride();
-
-    std::vector<Byte> verts;
-    verts.resize(numVerts * vertStride);
-
-    // write position data
+    // verts
+    Vector<Byte> vertsData;
+    vertsData.resize(numVerts * vertStride);
+    for (Int32 i = 0; i < numVerts; ++i)
     {
-        const VertexLayoutElement& elem = layout.GetElement(eVertexAttribute::Position);
-        for (Int32 i = 0; i < numVerts; ++i)
+        Byte* pDst = vertsData.data() + vertStride * i;
+
+        // write position
         {
-            Byte* pDst = verts.data() + vertStride * i + elem.offset;
-            std::memcpy(pDst, &positions[i], sizeof(Vec3));
+            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Position);
+            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            std::memcpy(pDst + vle.offset, &_positions[i], byteWidth);
         }
-    }
 
-    // write normal data
-    if (hasNormal)
-    {
-        const VertexLayoutElement& elem = layout.GetElement(eVertexAttribute::Normal);
-        for (Int32 i = 0; i < numVerts; ++i)
+        // write normal
+        if (bHasNormal)
         {
-            Byte* pDst = verts.data() + vertStride * i + elem.offset;
-            std::memcpy(pDst, &normals[i], sizeof(Vec3));
+            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Normal);
+            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            std::memcpy(pDst + vle.offset, &normals[i], byteWidth);
         }
-    }
 
-    // write tangent data
-    if (hasTangent)
-    {
-        const VertexLayoutElement& elem = layout.GetElement(eVertexAttribute::Tangent);
-        for (Int32 i = 0; i < numVerts; ++i)
+        // write tangent
+        if (bHasTangent)
         {
-            Byte* pDst = verts.data() + vertStride * i + elem.offset;
-            std::memcpy(pDst, &tangentFrame.tangents[i], sizeof(Vec3));
+            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Tangent);
+            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            std::memcpy(pDst + vle.offset, &frame.tangents[i], byteWidth);
         }
-    }
 
-    // write bitangent data
-    if (hasBitangent)
-    {
-        const VertexLayoutElement& elem = layout.GetElement(eVertexAttribute::Bitangent);
-        for (Int32 i = 0; i < numVerts; ++i)
+        // write bitangent
+        if (bHasBitangent)
         {
-            Byte* pDst = verts.data() + vertStride * i + elem.offset;
-            std::memcpy(pDst, &tangentFrame.bitangents[i], sizeof(Vec3));
+            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Bitangent);
+            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            std::memcpy(pDst + vle.offset, &frame.bitangents[i], byteWidth);
         }
-    }
 
-    // write texcoord data
-    if (hasTexCoord)
-    {
-        const VertexLayoutElement& elem = layout.GetElement(eVertexAttribute::TexCoord0);
-        for (Int32 i = 0; i < numVerts; ++i)
+        // write texcoord
+        if (bHasTexCoord)
         {
-            Byte* pDst = verts.data() + vertStride * i + elem.offset;
-            std::memcpy(pDst, &texCoords[i], sizeof(Vec2));
+            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::TexCoord0);
+            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec2));
+            std::memcpy(pDst + vle.offset, &_texCoords[i], byteWidth);
         }
     }
 
     // create and return mesh
     Mesh mesh;
-    mesh.LoadFromMemory(verts, layout, indexData, bUseU32);
+    mesh.LoadMemory(vertsData, _vl, _idxData, _bUseU32);
     return mesh;
 }
 
-std::vector<Vec3> ComputeNormals(
+Vector<Vec3> ComputeNormals(
     const std::span<const Vec3> _positions,
-    const ConstMemView          _indices,
+    const ConstMemView          _idxData,
     const bool                  _bUseU32) noexcept
 {
-    using namespace DirectX;
-
-    const size_t numVerts  = _positions.size();
-    const Int32  idxStride = GetIndexStride(_bUseU32);
-    const size_t numFaces  = Div(_indices.GetByteWidth(), 3ull * idxStride);
-    const Byte*  pIndices  = _indices.GetDataPtr();
+    const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
+    const Int32 idxStride    = CalcIndexStride(_bUseU32);
+    const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
+    const Int32 numIdxes     = idxByteWidth / idxStride;
+    const Int32 numFaces     = numIdxes / 3;
+    const Byte* pIndices     = _idxData.GetPointer();
 
     // accumulate weighted normals per vertex
-    std::vector<Vec3> accumulatedNormals(numVerts, Vec3::Zero);
-
-    for (size_t face = 0; face < numFaces; ++face)
+    Vector<Vec3> tmpNormals;
+    tmpNormals.resize(numVerts);
+    for (Int32 i = 0; i < numFaces; ++i)
     {
-        const Byte* pFaceIndices = &pIndices[face * 3 * idxStride];
+        const Byte* pSrc = pIndices + i * 3 * idxStride;
 
         // read triangle indices
         UInt32 i0, i1, i2;
         if (_bUseU32)
         {
-            i0 = *reinterpret_cast<const UInt32*>(pFaceIndices + 0 * idxStride);
-            i1 = *reinterpret_cast<const UInt32*>(pFaceIndices + 1 * idxStride);
-            i2 = *reinterpret_cast<const UInt32*>(pFaceIndices + 2 * idxStride);
+            i0 = *reinterpret_cast<const UInt32*>(pSrc + 0 * idxStride);
+            i1 = *reinterpret_cast<const UInt32*>(pSrc + 1 * idxStride);
+            i2 = *reinterpret_cast<const UInt32*>(pSrc + 2 * idxStride);
         }
         else
         {
-            i0 = static_cast<UInt32>(*reinterpret_cast<const UInt16*>(pFaceIndices + 0 * idxStride));
-            i1 = static_cast<UInt32>(*reinterpret_cast<const UInt16*>(pFaceIndices + 1 * idxStride));
-            i2 = static_cast<UInt32>(*reinterpret_cast<const UInt16*>(pFaceIndices + 2 * idxStride));
+            i0 = *reinterpret_cast<const UInt16*>(pSrc + 0 * idxStride);
+            i1 = *reinterpret_cast<const UInt16*>(pSrc + 1 * idxStride);
+            i2 = *reinterpret_cast<const UInt16*>(pSrc + 2 * idxStride);
         }
 
-        JAM_ASSERT(i0 < numVerts && i1 < numVerts && i2 < numVerts, "Index out of range.");
+        JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
 
         // get triangle positions
         const Vec3 p0 = _positions[i0];
@@ -172,81 +161,67 @@ std::vector<Vec3> ComputeNormals(
         const float angle2 = Acos(Clamp(Dot(edge5, edge6), -1.0f, 1.0f));
 
         // accumulate angle-weighted face normals
-        accumulatedNormals[i0] += faceNormal * angle0;
-        accumulatedNormals[i1] += faceNormal * angle1;
-        accumulatedNormals[i2] += faceNormal * angle2;
+        tmpNormals[i0] += faceNormal * angle0;
+        tmpNormals[i1] += faceNormal * angle1;
+        tmpNormals[i2] += faceNormal * angle2;
     }
 
     // normalize accumulated normals
-    std::vector<Vec3> normals;
+    Vector<Vec3> normals;
     normals.reserve(numVerts);
-
-    for (size_t vert = 0; vert < numVerts; ++vert)
+    for (Int32 i = 0; i < numVerts; ++i)
     {
-        normals.emplace_back(Normalized(accumulatedNormals[vert]));
+        normals.emplace_back(Normalized(normals[i]));
     }
 
     return normals;
-}
-
-std::vector<Vec3> ComputeNormal(
-    const std::span<const Vec3> _positions,
-    const ConstMemView          _indexData,
-    const bool                  _bUseU32)
-{
-    return ComputeNormals(_positions, _indexData, _bUseU32);
 }
 
 TangentFrame ComputeTangentFrame(
     const std::span<const Vec3> _positions,
     const std::span<const Vec3> _normals,
     const std::span<const Vec2> _texCoords,
-    const ConstMemView          _indexData,
+    const ConstMemView          _idxData,
     const bool                  _bUseU32)
 {
     using namespace DirectX;
 
-    TangentFrame result;
-
-    const size_t numVerts  = _positions.size();
-    const Int32  idxStride = GetIndexStride(_bUseU32);
-    const size_t numFaces  = Div(_indexData.GetByteWidth(), 3ull * idxStride);
-    const Byte*  pIndices  = _indexData.GetDataPtr();
-
-    // initialize result vectors
-    result.tangents.resize(numVerts, Vec3::Zero);
-    result.bitangents.resize(numVerts, Vec3::Zero);
+    const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
+    const Int32 idxStride    = CalcIndexStride(_bUseU32);
+    const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
+    const Int32 numIdxes     = idxByteWidth / idxStride;
+    const Int32 numFaces     = numIdxes / 3;
+    const Byte* pIndices     = _idxData.GetPointer();
 
     // temporary accumulation vectors
-    std::vector<Vec3> tan1(numVerts, Vec3::Zero);
-    std::vector<Vec3> tan2(numVerts, Vec3::Zero);
-
-    // accumulate tangent space vectors for each face
-    for (size_t face = 0; face < numFaces; ++face)
+    Vector<Vec3> tan1, tan2;
+    tan1.resize(numVerts);
+    tan2.resize(numVerts);
+    for (Int32 i = 0; i < numFaces; ++i)
     {
-        const Byte* pFaceIndices = &pIndices[face * 3 * idxStride];
+        const Byte* pIndex = pIndices + i * 3 * idxStride;
 
         // read triangle indices
         UInt32 i0, i1, i2;
         if (_bUseU32)
         {
-            i0 = *reinterpret_cast<const UInt32*>(pFaceIndices + 0 * idxStride);
-            i1 = *reinterpret_cast<const UInt32*>(pFaceIndices + 1 * idxStride);
-            i2 = *reinterpret_cast<const UInt32*>(pFaceIndices + 2 * idxStride);
+            i0 = *reinterpret_cast<const UInt32*>(pIndex + 0 * idxStride);
+            i1 = *reinterpret_cast<const UInt32*>(pIndex + 1 * idxStride);
+            i2 = *reinterpret_cast<const UInt32*>(pIndex + 2 * idxStride);
         }
         else
         {
-            i0 = *reinterpret_cast<const UInt16*>(pFaceIndices + 0 * idxStride);
-            i1 = *reinterpret_cast<const UInt16*>(pFaceIndices + 1 * idxStride);
-            i2 = *reinterpret_cast<const UInt16*>(pFaceIndices + 2 * idxStride);
+            i0 = *reinterpret_cast<const UInt16*>(pIndex + 0 * idxStride);
+            i1 = *reinterpret_cast<const UInt16*>(pIndex + 1 * idxStride);
+            i2 = *reinterpret_cast<const UInt16*>(pIndex + 2 * idxStride);
         }
 
-        JAM_ASSERT(i0 < numVerts && i1 < numVerts && i2 < numVerts, "Index out of range.");
+        JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
 
         // get triangle data
-        Vec3 v0 = _positions[i0];
-        Vec3 v1 = _positions[i1];
-        Vec3 v2 = _positions[i2];
+        const Vec3 v0 = _positions[i0];
+        const Vec3 v1 = _positions[i1];
+        const Vec3 v2 = _positions[i2];
 
         const Vec2& w0 = _texCoords[i0];
         const Vec2& w1 = _texCoords[i1];
@@ -271,13 +246,13 @@ TangentFrame ComputeTangentFrame(
         det       = IsZeroApprox(det) ? 1.0f : 1.0f / det;
 
         // calculate tangent and bitangent directions
-        const Vec3 sdir {
+        const Vec3 sdir = {
             (t2 * x1 - t1 * x2) * det,
             (t2 * y1 - t1 * y2) * det,
             (t2 * z1 - t1 * z2) * det
         };
 
-        const Vec3 tdir {
+        const Vec3 tdir = {
             (s1 * x2 - s2 * x1) * det,
             (s1 * y2 - s2 * y1) * det,
             (s1 * z2 - s2 * z1) * det
@@ -294,58 +269,65 @@ TangentFrame ComputeTangentFrame(
     }
 
     // orthogonalize and calculate final tangent frame
-    for (size_t i = 0; i < numVerts; ++i)
+    Vector<Vec3> tans, bitans;
+    tans.reserve(numVerts);
+    bitans.reserve(numVerts);
+    for (Int32 i = 0; i < numVerts; ++i)
     {
-        Vec3 n = _normals[i];
-        Vec3 t = tan1[i];
+        const Vec3 n = _normals[i];
+        const Vec3 t = tan1[i];
 
-        // gram-schmidt orthogonalize tangent with respect to normal
-        Vec3 tangent = Normalized(t - n * Dot(n, t));
+        // orthogonalize
+        Vec3 tan = Normalized(t - n * Dot(n, t));
 
         // handle degenerate case
-        if (IsZeroApprox(tangent))
+        if (IsZeroApprox(tan))
         {
             // choose an arbitrary perpendicular axis
             Vec3 axis;
             if (n.x < n.y && n.x < n.z)
             {
-                axis = g_XMIdentityR0;   // x axis
+                axis = Vec3 { 1.f, 0.f, 0.f };   // x axis
             }
             else if (n.y < n.z)
             {
-                axis = g_XMIdentityR1;   // y axis
+                axis = Vec3 { 0.f, 1.f, 0.f };   // x axis
             }
             else
             {
-                axis = g_XMIdentityR2;   // z axis
+                axis = Vec3 { 0.f, 0.f, 1.f };   // x axis
             }
 
-            tangent = Normalized(Cross(n, axis));
+            tan = Normalized(Cross(n, axis));
         }
 
         // calculate bitangent and determine handedness
-        Vec3 bitangent = Normalized(Cross(n, tangent));
-
-        const float handedness = Dot(Cross(n, tangent), tan2[i]);
+        Vec3        bitan      = Normalized(Cross(n, tan));
+        const float handedness = Dot(Cross(n, tan), tan2[i]);
         if (handedness < 0.0f)
         {
-            bitangent = -bitangent;
+            bitan = -bitan;
         }
 
-        result.tangents[i]   = tangent;
-        result.bitangents[i] = bitangent;
+        tans.emplace_back(tan);
+        bitans.emplace_back(bitan);
     }
 
-    return result;
+    TangentFrame output;
+    output.tangents   = std::move(tans);
+    output.bitangents = std::move(bitans);
+    return output;
 }
 
-Mesh CreateCubeMesh(const Vec3 _size, const VertexLayout& _vl)
+Mesh CreateCubeMesh(
+    const Vec3          _size,
+    const VertexLayout& _vl)
 {
     const float hWidth  = _size.x * 0.5f;
     const float hHeight = _size.y * 0.5f;
     const float hDepth  = _size.z * 0.5f;
 
-    Vec3 positions[] = {
+    const Vec3 positions[] = {
         // front face
         { -hWidth, -hHeight, -hDepth },
         { -hWidth, +hHeight, -hDepth },
@@ -382,67 +364,75 @@ Mesh CreateCubeMesh(const Vec3 _size, const VertexLayout& _vl)
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
-        { 1.f, 1.f }, // front
+        { 1.f, 1.f },
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
-        { 1.f, 1.f }, // back
+        { 1.f, 1.f },
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
-        { 1.f, 1.f }, // left
+        { 1.f, 1.f },
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
-        { 1.f, 1.f }, // right
+        { 1.f, 1.f },
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
-        { 1.f, 1.f }, // top
+        { 1.f, 1.f },
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
-        { 1.f, 1.f }, // bottom
+        { 1.f, 1.f },
     };
 
     constexpr UInt16 k_indices[] = {
-        0, 1, 2, 0, 2, 3,   // front
+        0,
+        1,
+        2,
+        0,
+        2,
+        3,
         4,
         5,
         6,
         4,
         6,
-        7,   // back
+        7,
         8,
         9,
         10,
         8,
         10,
-        11,   // left
+        11,
         12,
         13,
         14,
         12,
         14,
-        15,   // right
+        15,
         16,
         17,
         18,
         16,
         18,
-        19,   // top
+        19,
         20,
         21,
         22,
         20,
         22,
-        23,   // bottom
+        23,
     };
 
     return CreateMeshHelper(positions, k_texcoords, k_indices, false, _vl);
 }
 
-Mesh CreateSphereMesh(const float _radius, const Int32 _divisionLevel, const VertexLayout& _vl)
+Mesh CreateSphereMesh(
+    const float         _radius,
+    const Int32         _divisionLevel,
+    const VertexLayout& _vl)
 {
     // base icosahedron vertices
     constexpr float k_t = (1.0f + Sqrt(5.0f)) / 2.0f;
@@ -543,7 +533,7 @@ Mesh CreateSphereMesh(const float _radius, const Int32 _divisionLevel, const Ver
     if (_divisionLevel > 0)
     {
         // subdivide mesh
-        LoopSubdivisionOutput output = LoopSubdivide(k_positions, k_texCoords, k_indices, false, _divisionLevel);
+        LoopSubdivisionOutputWithTexcoords output = LoopSubdivide(k_positions, k_texCoords, k_indices, false, _divisionLevel);
 
         // normalize and scale to sphere radius
         for (Vec3& pos: output.positions)
@@ -554,12 +544,16 @@ Mesh CreateSphereMesh(const float _radius, const Int32 _divisionLevel, const Ver
 
         return CreateMeshHelper(output.positions, output.texcoords, output.indices, output.bUseU32, _vl);
     }
-
-    // return base icosahedron
-    return CreateMeshHelper(k_positions, k_texCoords, k_indices, false, _vl);
+    else
+    {
+        // return base icosahedron
+        return CreateMeshHelper(k_positions, k_texCoords, k_indices, false, _vl);
+    }
 }
 
-Mesh CreatePlaneMesh(const Vec2& _size, const VertexLayout& _vl)
+Mesh CreatePlaneMesh(
+    const Vec2&         _size,
+    const VertexLayout& _vl)
 {
     const float hWidth  = _size.x * 0.5f;
     const float hHeight = _size.y * 0.5f;
@@ -578,20 +572,28 @@ Mesh CreatePlaneMesh(const Vec2& _size, const VertexLayout& _vl)
         { 1.f, 1.f },
     };
 
-    constexpr UInt16 k_indices[] = { 0, 1, 2, 0, 2, 3 };
+    constexpr UInt16 k_indices[] = {
+        0, 1, 2, 0, 2, 3
+    };
 
     return CreateMeshHelper(positions, k_texcoords, k_indices, false, _vl);
 }
 
-Mesh CreateCircle(const float _radius, const Int32 _numTri, const VertexLayout& _vl)
+Mesh CreateCircle(
+    const float         _radius,
+    const Int32         _numTri,
+    const VertexLayout& _vl)
 {
     JAM_ASSERT(_numTri >= 6, "Circle must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 1;   // triangles + center vertex
-    JAM_ASSERT(std::cmp_less_equal(numVerts, k_uint16Max), "Too many triangles for circle.");
+    JAM_ASSERT(numVerts <= 0xFFFF, "Too many triangles for circle.");
 
-    std::vector<Vec3> positions(numVerts);
-    std::vector<Vec2> texcoords(numVerts);
+    Vector<Vec3> positions;
+    positions.resize(numVerts);
+
+    Vector<Vec2> texcoords;
+    texcoords.resize(numVerts);
 
     // center vertex
     positions[0] = Vec3::Zero;
@@ -611,26 +613,34 @@ Mesh CreateCircle(const float _radius, const Int32 _numTri, const VertexLayout& 
     }
 
     // generate indices
-    std::vector<UInt16> indices(_numTri * 3);
+    Vector<UInt16> idxes;
+    idxes.resize(_numTri * 3);
     for (Int32 i = 0; i < _numTri; ++i)
     {
-        indices[i * 3 + 0] = 0;                       // center
-        indices[i * 3 + 1] = (i + 1) % _numTri + 1;   // next vertex
-        indices[i * 3 + 2] = i + 1;                   // current vertex
+        idxes[i * 3 + 0] = 0;                       // center
+        idxes[i * 3 + 1] = (i + 1) % _numTri + 1;   // next vertex
+        idxes[i * 3 + 2] = i + 1;                   // current vertex
     }
 
-    return CreateMeshHelper(positions, texcoords, indices, false, _vl);
+    return CreateMeshHelper(positions, texcoords, idxes, false, _vl);
 }
 
-Mesh CreateCone(const float _height, const float _radius, const Int32 _numTri, const VertexLayout& _vl)
+Mesh CreateCone(
+    const float         _height,
+    const float         _radius,
+    const Int32         _numTri,
+    const VertexLayout& _vl)
 {
     JAM_ASSERT(_numTri >= 6, "Cone base must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 2;   // base circle + apex + base center
-    JAM_ASSERT(std::cmp_less_equal(numVerts, k_uint16Max), "Too many triangles for cone.");
+    JAM_ASSERT(numVerts <= 0xFFFFFFFF, "Too many triangles for cone.");
 
-    std::vector<Vec3> position(numVerts);
-    std::vector<Vec2> texcoords(numVerts);
+    Vector<Vec3> position;
+    position.resize(numVerts);
+
+    Vector<Vec2> texcoords;
+    texcoords.resize(numVerts);
 
     // apex vertex
     position[0]  = Vec3 { 0.f, _height * 0.5f, 0.f };
@@ -640,7 +650,8 @@ Mesh CreateCone(const float _height, const float _radius, const Int32 _numTri, c
     const float step = k_2pi / static_cast<float>(_numTri);
     for (Int32 i = 0; i < _numTri; ++i)
     {
-        const auto [s, c] = SinCosApprox(static_cast<float>(i) * step);
+        const float rad   = static_cast<float>(i) * step;
+        const auto [s, c] = SinCosApprox(rad);
         const float x     = c * _radius;
         const float z     = s * _radius;
 
@@ -649,47 +660,55 @@ Mesh CreateCone(const float _height, const float _radius, const Int32 _numTri, c
     }
 
     // base center vertex
-    const Int32 bottomCenterIndex = numVerts - 1;
-    position[bottomCenterIndex]   = Vec3 { 0.f, -_height * 0.5f, 0.f };
-    texcoords[bottomCenterIndex]  = Vec2 { 0.5f, 0.5f };
+    const Int32 bottomCenterIdx = numVerts - 1;
+    position[bottomCenterIdx]   = Vec3 { 0.f, -_height * 0.5f, 0.f };
+    texcoords[bottomCenterIdx]  = Vec2 { 0.5f, 0.5f };
 
     // generate indices
-    std::vector<UInt16> indices(_numTri * 6);
+    Vector<UInt16> idxes;
+    idxes.resize(_numTri * 6);
     for (Int32 i = 0; i < _numTri; ++i)
     {
         const Int32 nextIdx = (i + 1) % _numTri + 1;
         const Int32 currIdx = i + 1;
 
         // side triangle
-        indices[i * 6 + 0] = 0;         // apex
-        indices[i * 6 + 1] = nextIdx;   // next base vertex
-        indices[i * 6 + 2] = currIdx;   // current base vertex
+        idxes[i * 6 + 0] = 0;         // apex
+        idxes[i * 6 + 1] = nextIdx;   // next base vertex
+        idxes[i * 6 + 2] = currIdx;   // current base vertex
 
         // base triangle
-        indices[i * 6 + 3] = bottomCenterIndex;   // base center
-        indices[i * 6 + 4] = currIdx;             // current base vertex
-        indices[i * 6 + 5] = nextIdx;             // next base vertex
+        idxes[i * 6 + 3] = bottomCenterIdx;   // base center
+        idxes[i * 6 + 4] = currIdx;           // current base vertex
+        idxes[i * 6 + 5] = nextIdx;           // next base vertex
     }
 
-    return CreateMeshHelper(position, texcoords, indices, false, _vl);
+    return CreateMeshHelper(position, texcoords, idxes, false, _vl);
 }
 
-Mesh CreateCylinder(const float _height, const float _radius, const Int32 _numTri, const VertexLayout& _vl)
+Mesh CreateCylinder(
+    const float         _height,
+    const float         _radius,
+    const Int32         _numTri,
+    const VertexLayout& _vl)
 {
     JAM_ASSERT(_numTri >= 6, "Cylinder must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri * 2 + 2;   // top + bottom circles + 2 centers
-    JAM_ASSERT(std::cmp_less_equal(numVerts, k_uint16Max), "Too many triangles for cylinder.");
+    JAM_ASSERT(numVerts <= 0xFFFFFFFF, "Too many triangles for cylinder.");
 
-    std::vector<Vec3> position(numVerts);
-    std::vector<Vec2> texcoords(numVerts);
+    Vector<Vec3> position;
+    position.resize(numVerts);
 
-    const float step = k_2pi / static_cast<float>(_numTri);
+    Vector<Vec2> texcoords;
+    texcoords.resize(numVerts);
 
     // top circle vertices
+    const float step = k_2pi / static_cast<float>(_numTri);
     for (Int32 i = 0; i < _numTri; ++i)
     {
-        const auto [s, c] = SinCosApprox(static_cast<float>(i) * step);
+        const float rad   = static_cast<float>(i) * step;
+        const auto [s, c] = SinCosApprox(rad);
         const float x     = c * _radius;
         const float z     = s * _radius;
 
@@ -700,7 +719,8 @@ Mesh CreateCylinder(const float _height, const float _radius, const Int32 _numTr
     // bottom circle vertices
     for (Int32 i = 0; i < _numTri; ++i)
     {
-        const auto [s, c] = SinCosApprox(static_cast<float>(i) * step);
+        const float rad   = static_cast<float>(i) * step;
+        const auto [s, c] = SinCosApprox(rad);
         const float x     = c * _radius;
         const float z     = s * _radius;
 
@@ -719,7 +739,8 @@ Mesh CreateCylinder(const float _height, const float _radius, const Int32 _numTr
     texcoords[botCircleCenterIdx] = Vec2 { 0.5f, 0.5f };
 
     // generate indices
-    std::vector<UInt16> indices(_numTri * 12);
+    Vector<UInt16> idxes;
+    idxes.resize(_numTri * 12);
     for (Int32 i = 0; i < _numTri; ++i)
     {
         const Int32 nextIdx = (i + 1) % _numTri;
@@ -729,26 +750,26 @@ Mesh CreateCylinder(const float _height, const float _radius, const Int32 _numTr
         const Int32 botNext = nextIdx + _numTri;
 
         // side triangles (2 per segment)
-        indices[i * 12 + 0] = topCurr;
-        indices[i * 12 + 1] = topNext;
-        indices[i * 12 + 2] = botCurr;
+        idxes[i * 12 + 0] = topCurr;
+        idxes[i * 12 + 1] = topNext;
+        idxes[i * 12 + 2] = botCurr;
 
-        indices[i * 12 + 3] = topNext;
-        indices[i * 12 + 4] = botNext;
-        indices[i * 12 + 5] = botCurr;
+        idxes[i * 12 + 3] = topNext;
+        idxes[i * 12 + 4] = botNext;
+        idxes[i * 12 + 5] = botCurr;
 
         // top cap triangle
-        indices[i * 12 + 6] = topCircleCenterIdx;
-        indices[i * 12 + 7] = topNext;
-        indices[i * 12 + 8] = topCurr;
+        idxes[i * 12 + 6] = topCircleCenterIdx;
+        idxes[i * 12 + 7] = topNext;
+        idxes[i * 12 + 8] = topCurr;
 
         // bottom cap triangle
-        indices[i * 12 + 9]  = botCircleCenterIdx;
-        indices[i * 12 + 10] = botCurr;
-        indices[i * 12 + 11] = botNext;
+        idxes[i * 12 + 9]  = botCircleCenterIdx;
+        idxes[i * 12 + 10] = botCurr;
+        idxes[i * 12 + 11] = botNext;
     }
 
-    return CreateMeshHelper(position, texcoords, indices, false, _vl);
+    return CreateMeshHelper(position, texcoords, idxes, false, _vl);
 }
 
 }   // namespace jam

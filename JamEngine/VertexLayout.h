@@ -5,7 +5,6 @@ namespace jam
 
 enum class eVertexAttribute
 {
-    Unknown  = -1,
     Position = 0,
     Normal,
     Tangent,
@@ -24,8 +23,7 @@ enum class eVertexAttribute
 
 enum class eAttributeFormat
 {
-    Unknown = -1,
-    Float   = 0,
+    Float = 0,
     Float2,
     Float3,
     Float4,
@@ -35,19 +33,14 @@ enum class eAttributeFormat
 
 struct VertexLayoutElement
 {
-    eVertexAttribute attrib    = eVertexAttribute::Unknown;
-    eAttributeFormat format    = eAttributeFormat::Unknown;
+    eVertexAttribute attrib    = eVertexAttribute::Position;
+    eAttributeFormat format    = eAttributeFormat::Float;
     Int32            byteWidth = 0;
     Int32            offset    = 0;
 };
 
 class VertexLayout
 {
-    enum Magic
-    {
-        INVALID_ELEMENT = -1
-    };
-
 public:
     VertexLayout();
 
@@ -56,17 +49,19 @@ public:
     void               Reset();
 
     [[nodiscard]] Int32                                GetStride() const;
-    [[nodiscard]] Int32                                GetElementCount() const;
     [[nodiscard]] const VertexLayoutElement&           GetElement(eVertexAttribute _attrib) const;
     [[nodiscard]] std::span<const VertexLayoutElement> GetElements() const;
+    [[nodiscard]] Int32                                GetNumElements() const;
 
 private:
-    VertexLayoutElement m_elems[EnumCount<eVertexAttribute>()]   = {};
-    Int32               m_elemLut[EnumCount<eVertexAttribute>()] = {};   // lookup table for attribute to m_elems index
-    Int32               m_elemCount                              = 0;
-    Int32               m_stride                                 = 0;
+    static constexpr Int32 k_invalidElement = -1;
+
+    VertexLayoutElement m_vles[EnumCount<eVertexAttribute>()]   = {};
+    Int32               m_vleLut[EnumCount<eVertexAttribute>()] = {};   // lookup table for attribute to m_elems index
+    Int32               m_numElems                              = 0;
+    Int32               m_stride                                = 0;
 };
 
-[[nodiscard]] Int32 GetVertexAttributeFormatSize(eAttributeFormat _format);
+[[nodiscard]] Int32 ByteFrom(eAttributeFormat _format);
 
 }   // namespace jam

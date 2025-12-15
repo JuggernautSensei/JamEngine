@@ -3,10 +3,6 @@
 namespace jam
 {
 
-
-
-// 비암호학 32bit 해시 함수
-// murmurhash3 기반
 class MurmurHash32
 {
 public:
@@ -19,8 +15,6 @@ private:
     Int32  m_length = 0;
 };
 
-// 비암호학 64bit 해시 함수
-// murmurhash3 기반
 class MurmurHash64
 {
 public:
@@ -32,5 +26,8 @@ private:
     UInt64 m_hash   = 0;
     Int32  m_length = 0;
 };
+
+[[nodiscard]] UInt32 Hash_Murmur32(const void* _pData, size_t _byteWidth, UInt32 _seed = 0x9747b28c);
+[[nodiscard]] UInt64 Hash_Murmur64(const void* _pData, size_t _byteWidth, UInt64 _seed = 0x9747b28c);
 
 }   // namespace jam

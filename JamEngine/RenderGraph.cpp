@@ -6,31 +6,30 @@
 namespace jam
 {
 
-RenderGraph& RenderGraph::AddPass(RenderPass&& _pass)
+RenderGraph& RenderGraph::AddPass(
+    RenderPass&& _pass)
 {
     JAM_ASSERT(!m_bCompiled, "Cannot add pass to a compiled RenderGraph.");
-    PassDesc& passDesc = m_passes.emplace_back();
-    passDesc.pass      = std::move(_pass);
+    m_nodes.emplace_back(std::move(_pass));
     return *this;
 }
 
 void RenderGraph::Compile()
 {
-    JAM_ASSERT(m_bCompiled == false, "RenderGraph has already been compiled.");
+    JAM_ASSERT(!m_bCompiled, "RenderGraph has already been compiled.");
 
-    const Int32 numPasses = NarrowCast<Int32>(m_passes.size());
-    JAM_ASSERT(numPasses > 0, "RenderGraph must have at least one pass to compile.");
+    const size_t numNodes = m_nodes.size();
+    JAM_ASSERT(numNodes > 0, "RenderGraph must have at least one pass to compile.");
 
-    // if only one pass, just validate and return
-    if (numPasses == 1)
+    if (numNodes == 1)
     {
-        PassDesc& curPass = m_passes[0];
-        JAM_ASSERT(curPass.pass.Validate(), "RenderPass at index 0 is not valid.");
+        // 단일 패스는 의존성 관리 필요없음
+        JAM_ASSERT(m_nodes[0].pass.Validate(), "RenderGraph with a single pass contains an invalid RenderPass.");
     }
     else
     {
-        AnalyzePassDependencies_();
-        DeduplicateResourceBindings_();
+        AnalyzePassDependencies_();       // 패스 의존성 분석
+        DeduplicateResourceBindings_();   // 리소스 바인딩 중복 제거
     }
 
     m_bCompiled = true;
@@ -38,103 +37,86 @@ void RenderGraph::Compile()
 
 void RenderGraph::DeduplicateResourceBindings_()
 {
-    const Int32 numPasses = NarrowCast<Int32>(m_passes.size());
-    if (numPasses <= 1)
+    const Int32 numNodes = NarrowCast<Int32>(m_nodes.size());
+    JAM_ASSERT(numNodes > 1, "RenderGraph must have at least two passes to deduplicate resource bindings.");
+
+    // deduplicate constant buffers and samplers
+    for (Int32 i = 0; i < numNodes; ++i)
     {
-        return;
+        RenderPass& pass = m_nodes[i].pass;
+
+        // 이전 패스를 순회하며 중복된 상수 버퍼 바인딩 제거
+        eastl::erase_if(pass.m_cbufferBinds,
+                        [this, i](const ConstantBufferBind& _bind)
+                        {
+                            for (Int32 j = i - 1; j >= 0; --j)
+                            {
+                                for (const ConstantBufferBind& prevBind: m_nodes[j].pass.m_cbufferBinds)
+                                {
+                                    return prevBind.stage == _bind.stage
+                                        && prevBind.slot == _bind.slot
+                                        && prevBind.cbh == _bind.cbh;
+                                }
+                            }
+                            return false;
+                        });
+
+        // 이전 패스를 순회하며 중복된 샘플러 바인딩 제거
+        eastl::erase_if(pass.m_samplerBinds,
+                        [this, i](const SamplerBind& _bind)
+                        {
+                            for (Int32 j = i - 1; j >= 0; --j)
+                            {
+                                for (const SamplerBind& prevBind: m_nodes[j].pass.m_samplerBinds)
+                                {
+                                    return prevBind.stage == _bind.stage
+                                        && prevBind.slot == _bind.slot
+                                        && MemEqual(prevBind.state, _bind.state);
+                                }
+                            }
+                            return false;
+                        });
     }
 
-    for (Int32 i = 0; i < numPasses; ++i)
+    // 가상으로 패스를 실행시키며 중복된 텍스처 바인딩 제거
+    HashMap<UInt32, TextureHandle> prevTexBinds = {};
+    for (Int32 i = 0; i < numNodes; ++i)
     {
-        RenderPass& curPass = m_passes[i].pass;
+        HashMap<UInt32, TextureHandle> texBinds = prevTexBinds;   // 현재 바인딩 정보
+        Node&                          node     = m_nodes[i];
+        RenderPass&                    pass     = node.pass;
 
-        // remove duplicate constant buffers across previous passes
-        std::erase_if(curPass.m_cbufferBinds,
-                      [this, i](const ConstantBufferBind& curItem)
-                      {
-                          for (Int32 j = i - 1; j >= 0; --j)
-                          {
-                              const RenderPass& prevPass = m_passes[j].pass;
+        Vector<TextureBind> textureBinds;
+        textureBinds.reserve(pass.m_textureBinds.size());
 
-                              for (const ConstantBufferBind& prevItem: prevPass.m_cbufferBinds)
-                              {
-                                  if (prevItem.stage == curItem.stage && prevItem.slot == curItem.slot)
-                                  {
-                                      // same resource in same slot -> remove
-                                      // different resource in same slot -> keep
-                                      return prevItem.handle == curItem.handle;
-                                  }
-                              }
-                          }
-                          return false;   // keep if no previous binding in same slot
-                      });
-
-        // remove duplicate samplers across previous passes
-        std::erase_if(curPass.m_samplerBinds,
-                      [this, i](const SamplerBind& curItem)
-                      {
-                          for (Int32 j = i - 1; j >= 0; --j)
-                          {
-                              const RenderPass& prevPass = m_passes[j].pass;
-
-                              for (const SamplerBind& prevItem: prevPass.m_samplerBinds)
-                              {
-                                  if (prevItem.stage == curItem.stage && prevItem.slot == curItem.slot)
-                                  {
-                                      // same state in same slot -> remove
-                                      // different state in same slot -> keep
-                                      return MemEqual(prevItem.state, curItem.state);
-                                  }
-                              }
-                          }
-                          return false;   // keep if no previous binding in same slot
-                      });
-    }
-
-    // execute virtual binding to remove redundant texture bindings
-
-    HashMap<UInt32, UInt32> prevBound;
-    for (Int32 i = 0; i < numPasses; ++i)
-    {
-        PassDesc&   passDesc = m_passes[i];
-        RenderPass& curPass  = passDesc.pass;
-
-        // local bound
-        HashMap<UInt32, UInt32> localBound = prevBound;
-
-        std::vector<TextureBind> newBinds;
-        newBinds.reserve(curPass.m_textureBinds.size());
-
-        for (const TextureBind& curItem: curPass.m_textureBinds)
+        // 유의미한 텍스처 바인딩만 수집
+        for (const TextureBind& bind: pass.m_textureBinds)
         {
-            const UInt32 key   = MakeStageSlotKey_(curItem.stage, curItem.slot);
-            const UInt32 value = curItem.handle.value;
+            const UInt32 key = CreateStageSlotKey_(bind.stage, bind.slot);
+            const auto   it  = texBinds.find(key);
 
-            auto it = localBound.find(key);
-            if (it != localBound.end() && it->second == value)
+            // 같은 쉐이더 + 슬롯에 같은 텍스처가 바인딩되어 있는 경우 바인딩 스킵
+            if (it != texBinds.end() && it->second == bind.texh)
             {
-                // if the same resource is already bound in the same slot, skip it
                 continue;
             }
 
-            // add to new binds
-            newBinds.push_back(curItem);
-            localBound[key] = value;
+            // add binding
+            textureBinds.emplace_back(bind);
+            texBinds[key] = bind.texh;
         }
 
-        // update texture binds
-        curPass.m_textureBinds.swap(newBinds);
+        // 유의미한 바인딩으로 교체
+        pass.m_textureBinds.swap(textureBinds);
+        prevTexBinds.swap(texBinds);   // 현재 바인딩 상태로 업데이트
 
-        // update previous bound
-        prevBound.swap(localBound);
-
-        // simulate unbinding resources
-        if (passDesc.bNeedUnbindResources)
+        // unbinding
+        if (node.bNeedUnbindResources)
         {
-            for (const BindInfo& info: passDesc.unbindTextures)
+            for (const BindInfo& info: node.unbindTextures)
             {
-                const UInt32 key = MakeStageSlotKey_(info.stage, info.slot);
-                prevBound.erase(key);
+                const UInt32 key = CreateStageSlotKey_(info.stage, info.slot);
+                prevTexBinds.erase(key);
             }
         }
     }
@@ -142,129 +124,147 @@ void RenderGraph::DeduplicateResourceBindings_()
 
 void RenderGraph::AnalyzePassDependencies_()
 {
-    const Int32 numPasses = NarrowCast<Int32>(m_passes.size());
+    const Int32 numNodes = NarrowCast<Int32>(m_nodes.size());
+    JAM_ASSERT(numNodes > 1, "RenderGraph must have at least two passes to analyze pass dependencies.");
 
-    // temporary containers for tracking texture bindings and attachments
-    HashMap<UInt32, const TextureBind*> handleMap;
-    HashMap<UInt32, const TextureBind*> stageSlotMap;
-    HashSet<UInt32>                     attachmentsSet;
+    HashMap<UInt32, const TextureBind*> inputTextures;   // key: texture handle value, value: TextureBind*
+    HashMap<UInt32, const TextureBind*> stageSlots;      // key: stage+slot, value: TextureBind*
+    HashSet<UInt32>                     attachments;     // key: texture handle value
 
-    for (Int32 i = 0; i < numPasses; ++i)
+    for (Int32 i = 0; i < numNodes; ++i)
     {
-        handleMap.clear();
-        stageSlotMap.clear();
-        attachmentsSet.clear();
+        // 초기화
+        inputTextures.clear();
+        stageSlots.clear();
+        attachments.clear();
 
-        PassDesc&         curPassDesc = m_passes[i];
-        const RenderPass& curPass     = m_passes[i].pass;
-        JAM_ASSERT(curPass.Validate(), "RenderPass at index {} is not valid.", i);
+        Node&             node = m_nodes[i];
+        const RenderPass& pass = node.pass;
+        JAM_ASSERT(pass.Validate(), "RenderPass at index {} is not valid.", i);
 
-        // build maps of all texture inputs for the current pass
-        for (const TextureBind& bind: curPass.m_textureBinds)
+        // 현재 패스의 입력 텍스처 바인딩 수집
+        // 입력 텍스처가 다음의 출력 텍스처로 사용되면 Conflict
+        for (const TextureBind& bind: pass.m_textureBinds)
         {
-            JAM_ASSERT(JAM_IS_VALID_HANDLE(bind.handle), "RenderPass at index {} has invalid texture handle in its inputs.", i);
-            handleMap.emplace(bind.handle.value, &bind);
-            stageSlotMap.emplace(MakeStageSlotKey_(bind.stage, bind.slot), &bind);
+            JAM_ASSERT(JAM_IS_VALID_HANDLE(bind.texh), "RenderPass at index {} has invalid texture handle.", i);
+            const UInt32 key = CreateStageSlotKey_(bind.stage, bind.slot);
+
+            inputTextures.emplace(bind.texh.value, &bind);
+            stageSlots.emplace(key, &bind);
         }
 
-        // check all subsequent passes (wrapping around) for conflicts
-        for (Int32 offset = 1; offset < numPasses; ++offset)
+        // 모든 패스들을 순회하며 충돌해결
+        for (Int32 j = 1; j < numNodes; ++j)
         {
-            const Int32       j        = (i + offset) % numPasses;
-            const RenderPass& nextPass = m_passes[j].pass;
+            const Int32       idx      = (i + j) % numNodes;
+            const RenderPass& nextPass = m_nodes[idx].pass;
 
-            // remove bindings that are overwritten by next pass in same slot
-            for (const TextureBind& texBind: nextPass.m_textureBinds)
+            // 같은 슬롯 + 쉐이더에 다른 텍스처가 바인딩 되면 conflict 발생하지 않음
+            for (const TextureBind& nextPassBind: nextPass.m_textureBinds)
             {
-                JAM_ASSERT(JAM_IS_VALID_HANDLE(texBind.handle), "RenderPass at index {} has invalid texture handle in its inputs.", j);
-                auto it = stageSlotMap.find(MakeStageSlotKey_(texBind.stage, texBind.slot));
-                if ((it != stageSlotMap.end()) && (it->second->handle != texBind.handle))
+                JAM_ASSERT(JAM_IS_VALID_HANDLE(nextPassBind.texh), "RenderPass at index {} has invalid texture handle.", idx);
+                const UInt32 key = CreateStageSlotKey_(nextPassBind.stage, nextPassBind.slot);
+                const auto   it  = stageSlots.find(key);
+
+                // 같은 슬롯 + 쉐이더에 다른 텍스처 바인딩.
+                if (it != stageSlots.end() && it->second->texh != nextPassBind.texh)
                 {
-                    // binding is overwritten in next pass, so no need to track it anymore
-                    const TextureBind* curInput = it->second;
-                    handleMap.erase(curInput->handle.value);
-                    stageSlotMap.erase(it);
+                    inputTextures.erase(it->second->texh.value);
+                    stageSlots.erase(it);
                 }
             }
 
-            // no more inputs to check
-            if (handleMap.empty())
+            // 인풋 텍스처가 모두 해결되었으면 종료
+            if (inputTextures.empty())
             {
                 break;
             }
 
-            // skip if next pass has no framebuffer
+            // 다음 패스의 출력 프레임버퍼 확인.
             if (!JAM_IS_VALID_HANDLE(nextPass.m_fbh))
             {
                 continue;
             }
 
-            // check if any current pass inputs are used as render targets in next pass
-            const FrameBufferInfo nextFbInfo = Graphics::GetFrameBufferInfo(nextPass.m_fbh);
-            for (Int32 k = 0; k < nextFbInfo.numRenderTargets; ++k)
+            // 다음 패스의 프레임버퍼와 충돌 확인
+            const FrameBufferInfo nextPassFbInfo = Graphics::GetFrameBufferInfo(nextPass.m_fbh);
+            for (Int32 k = 0; k < nextPassFbInfo.numRenderTargets; ++k)
             {
-                TextureHandle renderTargetTexh = nextFbInfo.renderTargetTexhs[k];
-                if (handleMap.contains(renderTargetTexh.value))
-                {
-                    // mark texture for unbinding before next pass
-                    const TextureBind* texInput      = handleMap.at(renderTargetTexh.value);
-                    curPassDesc.bNeedUnbindResources = true;
-                    curPassDesc.unbindTextures.emplace_back(texInput->stage, texInput->slot);
+                const TextureHandle texh = nextPassFbInfo.renderTargetTexhs[k];
+                const auto          it   = inputTextures.find(texh.value);
 
-                    stageSlotMap.erase(MakeStageSlotKey_(texInput->stage, texInput->slot));
-                    handleMap.erase(renderTargetTexh.value);
+                // 만약 충돌하면, unbindTextures에 추가
+                if (it != inputTextures.end())
+                {
+                    const TextureBind* bind = it->second;
+                    const UInt32       key  = CreateStageSlotKey_(bind->stage, bind->slot);
+
+                    node.bNeedUnbindResources = true;
+                    node.unbindTextures.emplace_back(bind->stage, bind->slot);   // unbind conflicting texture
+
+                    // 해결됨. 추적종료
+                    inputTextures.erase(texh.value);
+                    stageSlots.erase(key);
                 }
             }
 
-            // check depth stencil texture conflict
-            TextureHandle dsTexHandle = nextFbInfo.depthStencilTexh;
-            if (JAM_IS_VALID_HANDLE(dsTexHandle) && handleMap.contains(dsTexHandle.value))
+            // depth stencil 충돌 확인
+            if (JAM_IS_VALID_HANDLE(nextPassFbInfo.depthStencilTexh))
             {
-                // mark depth stencil texture for unbinding before next pass
-                const TextureBind* texInput      = handleMap.at(dsTexHandle.value);
-                curPassDesc.bNeedUnbindResources = true;
-                curPassDesc.unbindTextures.emplace_back(texInput->stage, texInput->slot);
+                const TextureHandle texh = nextPassFbInfo.depthStencilTexh;
+                const auto          it   = inputTextures.find(texh.value);
 
-                stageSlotMap.erase(MakeStageSlotKey_(texInput->stage, texInput->slot));
-                handleMap.erase(dsTexHandle.value);
+                if (it != inputTextures.end())
+                {
+                    const TextureBind* bind = it->second;
+                    const UInt32       key  = CreateStageSlotKey_(bind->stage, bind->slot);
+
+                    node.bNeedUnbindResources = true;
+                    node.unbindTextures.emplace_back(bind->stage, bind->slot);
+
+                    // remove from tracking
+                    inputTextures.erase(texh.value);
+                    stageSlots.erase(key);
+                }
             }
 
-            // no more inputs to check
-            if (handleMap.empty())
+            // 모든 인풋 텍스처가 해결되었으면 종료
+            if (inputTextures.empty())
             {
                 break;
             }
         }
 
-        if (!JAM_IS_VALID_HANDLE(curPass.m_fbh))
+        // 현재 패스의 출력이 다음 입력으로 사용되는지
+        // 만약, 충돌한다면 프레임버퍼 언바인딩 필요
+        if (!JAM_IS_VALID_HANDLE(pass.m_fbh))
         {
             continue;
         }
 
-        // collect all attachment textures from current pass framebuffer
-        FrameBufferInfo curFbhInfo = Graphics::GetFrameBufferInfo(curPass.m_fbh);
-        for (Int32 k = 0; k < curFbhInfo.numRenderTargets; ++k)
+        // 현재 패스의 출력 프레임버퍼 어태치먼트 수집
+        const FrameBufferInfo fbInfo = Graphics::GetFrameBufferInfo(pass.m_fbh);
+        for (Int32 k = 0; k < fbInfo.numRenderTargets; ++k)
         {
-            TextureHandle renderTargetTexh = curFbhInfo.renderTargetTexhs[k];
-            attachmentsSet.emplace(renderTargetTexh.value);
+            attachments.emplace(fbInfo.renderTargetTexhs[k].value);
         }
 
-        if (JAM_IS_VALID_HANDLE(curFbhInfo.depthStencilTexh))
+        if (JAM_IS_VALID_HANDLE(fbInfo.depthStencilTexh))
         {
-            attachmentsSet.emplace(curFbhInfo.depthStencilTexh.value);
+            attachments.emplace(fbInfo.depthStencilTexh.value);
         }
 
-        // check if next pass uses any of current pass's attachments as input
-        const Int32       nextIndex = (i + 1) % numPasses;
-        const RenderPass& nextPass  = m_passes[nextIndex].pass;
-        for (const TextureBind& nextInputTex: nextPass.m_textureBinds)
+        // 다음 패스의 입력 텍스처 바인딩과 충돌 확인
+        const Int32       nextIdx  = (i + 1) % numNodes;
+        const RenderPass& nextPass = m_nodes[nextIdx].pass;
+        for (const TextureBind& nextPassBind: nextPass.m_textureBinds)
         {
-            if (attachmentsSet.contains(nextInputTex.handle.value))
+            // 충돌 발견
+            if (attachments.contains(nextPassBind.texh.value))
             {
-                // need to unbind framebuffer before next pass can use its textures
-                curPassDesc.bNeedUnbindResources   = true;
-                curPassDesc.bNeedUnbindFrameBuffer = true;
-                break;
+                node.bNeedUnbindResources   = true;
+                node.bNeedUnbindFrameBuffer = true;
+                break;   // 프레임버퍼는 하나이므로 하나만 발견해도 충분
             }
         }
     }
@@ -274,14 +274,10 @@ void RenderGraph::Execute() const
 {
     JAM_ASSERT(m_bCompiled, "RenderGraph must be compiled before execution.");
 
-    for (const PassDesc& passEx: m_passes)
+    for (const Node& node: m_nodes)
     {
-        passEx.pass.Execute();
-
-        if (passEx.bNeedUnbindResources)
-        {
-            UnbindPassResources_(passEx);
-        }
+        node.pass.Execute();
+        UnbindPassResourcesIfNeed_(node);
     }
 }
 
@@ -289,52 +285,54 @@ void RenderGraph::Execute(const FrameBufferHandle _fbh, const Viewport _viewport
 {
     JAM_ASSERT(m_bCompiled, "RenderGraph must be compiled before execution.");
 
-    const Int32 numPasses = NarrowCast<Int32>(m_passes.size());
-    const Int32 lastIdx   = numPasses - 1;
+    const Int32 lastIdx = NarrowCast<Int32>(m_nodes.size()) - 1;
 
-    for (Int32 idx = 0; idx < numPasses; ++idx)
+    for (Int32 i = 0; i <= lastIdx; ++i)
     {
-        const PassDesc& desc = m_passes[idx];
-
-        if (idx == lastIdx)
+        const Node& node = m_nodes[i];
+        if (i == lastIdx)
         {
-            desc.pass.Execute(_fbh, _viewport);
+            node.pass.Execute(_fbh, _viewport);
         }
         else
         {
-            desc.pass.Execute();
+            node.pass.Execute();
         }
 
-        if (desc.bNeedUnbindResources)
-        {
-            UnbindPassResources_(desc);
-        }
+        UnbindPassResourcesIfNeed_(node);
     }
 }
 
-void RenderGraph::UnbindPassResources_(const PassDesc& _passDesc) const
+void RenderGraph::UnbindPassResourcesIfNeed_(const Node& _node) const
 {
-    if (_passDesc.bNeedUnbindFrameBuffer)
+    if (!_node.bNeedUnbindResources)
+    {
+        return;
+    }
+
+    if (_node.bNeedUnbindFrameBuffer)
     {
         Graphics::SetFrameBuffer(k_invalidHandle);
     }
 
-    for (const BindInfo& texInfo: _passDesc.unbindTextures)
+    for (const BindInfo& info: _node.unbindTextures)
     {
-        Graphics::SetTexture(k_invalidHandle, texInfo.stage, texInfo.slot);
+        Graphics::SetTexture(k_invalidHandle, info.stage, info.slot);
     }
 
     Graphics::Flush();
 }
 
-UInt32 RenderGraph::MakeStageSlotKey_(const eShader _stage, const Int32 _slot) const
+UInt32 RenderGraph::CreateStageSlotKey_(
+    const eShader _stage,
+    const Int32   _slot) const
 {
     return (static_cast<UInt32>(_stage) << 16) | static_cast<UInt32>(_slot);
 }
 
 void RenderGraph::Reset()
 {
-    m_passes.clear();
+    m_nodes.clear();
     m_bCompiled = false;
 }
 

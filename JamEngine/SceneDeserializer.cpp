@@ -4,7 +4,6 @@
 
 #include "ComponentDB.h"
 #include "Entity.h"
-#include "FileUtilities.h"
 #include "Profile.h"
 #include "Scene.h"
 #include "SceneDB.h"
@@ -13,13 +12,12 @@
 namespace jam
 {
 
-bool SceneDeserializer::LoadFromFile(const fs::path& _filePath)
+bool SceneDeserializer::LoadFile(const fs::path& _path)
 {
-    JAM_ASSERT(!_filePath.empty(), "File path is empty");
-    std::optional<Json> json = LoadJsonFromFile(_filePath);
-    if (json)
+    JAM_ASSERT(!_path.empty(), "file path is empty");
+    if (std::optional<Json> opt = LoadBsonFile(_path))
     {
-        m_json = std::move(json.value());
+        m_json = std::move(*opt);
         return true;
     }
     else
@@ -28,7 +26,7 @@ bool SceneDeserializer::LoadFromFile(const fs::path& _filePath)
     }
 }
 
-void SceneDeserializer::LoadFromJson(const Json& _json)
+void SceneDeserializer::LoadJson(const Json& _json)
 {
     m_json = _json;
 }
@@ -38,73 +36,97 @@ bool SceneDeserializer::Deserialize()
     JAM_ASSERT(!m_json.empty(), "No data to deserialize");
     JAM_FUNCTION_PROFILE();
 
-    try
+    // create scene
     {
-        const std::string name = m_json.at("sceneType").get<std::string>();
-        m_pScene               = SceneDB::GetInstance().Create(name);
-
-        // entities
-        const Json& uidsJson = m_json.at("uids");
-        for (const Json& uidJson: uidsJson)
+        std::string sceneTypeName;
+        if (!TryParseJsonField(m_json, "sceneType", sceneTypeName))
         {
-            const UID uid = uidJson.get<UID>();
-            if (uid != 0)
-            {
-                // uid 0 is reserved for root entity
-                const Entity unused = m_pScene->CreateEntity(uid);
-                (void)unused;
-            }
+            return false;   // core error
         }
 
-        // components
-        ComponentDB& compDB         = ComponentDB::GetInstance();
-        const Json&  componentsJson = m_json.at("components");
-        for (const auto& [strTypeID, compJson]: componentsJson.items())
+        SceneDB& sceneDb = SceneDB::GetInstance();
+        if (!sceneDb.IsReflected(sceneTypeName))
         {
-            const UInt32 typeID = std::stoul(strTypeID);
-            JAM_ASSERT(compDB.IsSerializable(typeID), "Component type ID: {} is not serializable", strTypeID);
-            for (const auto& [strUID, compDataJson]: compJson.items())
+            return false;   // core error
+        }
+        m_pScene = sceneDb.Create(sceneTypeName);
+    }
+
+    // entitis
+    {
+        Vector<UID> uids;
+        if (!TryParseJsonField(m_json, "uids", uids))
+        {
+            return false;   // core error
+        }
+
+        const Entity root    = m_pScene->GetRootEntity();
+        const UID    rootUid = root.GetUID();
+        for (const UID uid: uids)
+        {
+            if (uid != rootUid)   // root is already created at scene constructor
             {
-                const UID    uid    = std::stoul(strUID);
+                (void)m_pScene->CreateEntity(uid);
+            }
+        }
+    }
+
+    // components
+    {
+        ComponentDB&        cmpDb = ComponentDB::GetInstance();
+        std::optional<Json> opt   = FindJsonField(m_json, "cmps");
+        if (!opt)
+        {
+            return false;   // core error
+        }
+
+        Json& json = *opt;
+        for (const auto& [typeName, cmpJson]: json.items())
+        {
+            const std::optional<UInt32> optTypeId = TryParseStringToInt<UInt32>(typeName);
+            if (!optTypeId)
+            {
+                return false;   // core error
+            }
+
+            const UInt32 typeId = *optTypeId;
+            if (!cmpDb.IsReflected(typeId) || !cmpDb.IsSerializable(typeId))
+            {
+                return false;   // core error
+            }
+
+            for (const auto& [strUid, cmpValueJson]: cmpJson.items())
+            {
+                const std::optional<UInt32> optUid = TryParseStringToInt<UInt32>(strUid);
+                if (!optUid)
+                {
+                    return false;   // core error
+                }
+
+                const UID    uid    = *optUid;
                 const Entity entity = m_pScene->FindEntity(uid);
                 if (!entity)
                 {
-                    SetErrorString("Entity with UID: {} not found for component type ID: {}", uid, strTypeID);
+                    ErrorBuffer::Set("Entity with UID: {} not found for component type ID: {}", uid, typeName);
                     return false;
                 }
 
                 // create component if not exists
-                if (!compDB.Has(typeID, entity))
+                if (!cmpDb.Has(typeId, entity))
                 {
-                    compDB.Create(typeID, entity);
+                    cmpDb.Create(typeId, entity);
                 }
 
                 // deserialize
-                void* pComp = compDB.Get(typeID, entity);
-                if (pComp)
+                if (void* pCmpValue = cmpDb.Get(typeId, entity))
                 {
-                    // if pComp is nullptr, it means the component type does not have data (e.g., empty component)
-                    if (!compDB.Deserialize(typeID, pComp, compDataJson, m_pScene, entity))
-                    {
-                        compDB.Remove(typeID, entity);   // remove component if deserialization failed
-                        return false;
-                    }
+                    cmpDb.Deserialize(typeId, pCmpValue, cmpValueJson, m_pScene, entity);
                 }
             }
         }
+    }
 
-        return true;
-    }
-    catch (const std::exception& e)
-    {
-        SetErrorString("Scene deserialization failed: {}", e.what());
-        return false;
-    }
-    catch (...)
-    {
-        SetErrorString("Scene deserialization failed with unknown error");
-        return false;
-    }
+    return true;
 }
 
 Ref<Scene> SceneDeserializer::GetScene() const

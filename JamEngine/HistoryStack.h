@@ -67,7 +67,7 @@ public:
     }
 
 private:
-    std::vector<T> m_stack;
+    Vector<T> m_stack;
     Int32          m_cur = 0;
     Int32          m_end = 0;
 };

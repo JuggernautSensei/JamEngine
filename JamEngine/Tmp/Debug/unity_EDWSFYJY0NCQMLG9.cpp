@@ -1,11 +1,5 @@
 #include "pch.h"
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Timer.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\UID.cpp"
-
-
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Properties.cpp"
 
 
@@ -31,4 +25,10 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ImportModelDialog.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Editor_FileBrowser_Thumbnail.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Editor_FileBrowser_ThumbnailCache.cpp"
 

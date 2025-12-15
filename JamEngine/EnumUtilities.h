@@ -15,37 +15,46 @@ template<typename E>
 using EnumIntType = std::underlying_type_t<E>;
 
 template<typename E>
-[[nodiscard]] constexpr auto EnumToInt(E _value) noexcept
+[[nodiscard]] constexpr auto IntFrom(E _value) noexcept
 {
-    return magic_enum::enum_integer(_value);
+    return static_cast<EnumIntType<E>>(_value);
 }
 
 template<typename E>
-[[nodiscard]] constexpr std::string_view EnumToString(E _value) noexcept
+    requires std::is_enum_v<E>
+[[nodiscard]] constexpr std::string_view StringFrom(E _value) noexcept
 {
     return magic_enum::enum_name(_value);
 }
 
 template<typename E>
-[[nodiscard]] constexpr decltype(auto) EnumFromInt(std::underlying_type_t<E> _value) noexcept
+[[nodiscard]] constexpr decltype(auto) EnumFrom(std::underlying_type_t<E> _value) noexcept
 {
     return magic_enum::enum_cast<E>(_value);
 }
 
 template<typename E>
-[[nodiscard]] constexpr decltype(auto) EnumFromString(const std::string_view _value) noexcept
+[[nodiscard]] constexpr decltype(auto) EnumFrom(const std::string_view _value) noexcept
 {
     return magic_enum::enum_cast<E>(_value);
 }
 
 template<typename E>
-[[nodiscard]] constexpr bool IsValidEnum(E _value) noexcept
+[[nodiscard]] constexpr E EnumFromOrAssert(std::underlying_type_t<E> _value) noexcept
+{
+    const E e = static_cast<E>(_value);
+    JAM_ASSERT(IsEnumValid(e), "Invalid enum value: {}", _value);
+    return e;
+}
+
+template<typename E>
+[[nodiscard]] constexpr bool IsEnumValid(E _value) noexcept
 {
     return magic_enum::enum_contains<E>(_value);
 }
 
 template<typename E>
-[[nodiscard]] constexpr auto EnumRange()
+[[nodiscard]] constexpr auto EnumRanges()
 {
     return magic_enum::enum_values<E>();
 }

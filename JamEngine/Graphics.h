@@ -416,7 +416,7 @@ public:
     /// @param _arrayIndex 다운로드할 배열 인덱스
     /// @return 다운로드된 텍스처 데이터
     /// @note 어떤 종류의 텍스처에도 사용할 수 있습니다.
-    [[nodiscard]] static std::vector<Byte> DownloadTexture2D(
+    [[nodiscard]] static Vector<Byte> DownloadTexture2D(
         TextureHandle _texh,
         Int32         _mipIndex   = 0,
         Int32         _arrayIndex = 0);
@@ -428,7 +428,7 @@ public:
     /// @param _cubeFace 다운로드할 큐브 페이스
     /// @return 다운로드된 텍스처 데이터
     /// @note 어떤 종류의 텍스처에도 사용할 수 있습니다.
-    [[nodiscard]] static std::vector<Byte> DownloadTextureCube(
+    [[nodiscard]] static Vector<Byte> DownloadTextureCube(
         TextureHandle _texh,
         Int32         _mipIndex  = 0,
         Int32         _cubeIndex = 0,
@@ -439,7 +439,7 @@ public:
     /// @param _mipIndex 다운로드할 MIP 레벨
     /// @return 다운로드된 텍스처 데이터
     /// @note 어떤 종류의 텍스처에도 사용할 수 있습니다.
-    [[nodiscard]] static std::vector<Byte> DownloadTexture3D(
+    [[nodiscard]] static Vector<Byte> DownloadTexture3D(
         TextureHandle _texh,
         Int32         _mipIndex = 0);
 
@@ -600,21 +600,21 @@ public:
     /// @param _vbh 다운로드할 버텍스 버퍼 핸들
     /// @return 다운로드된 버퍼 데이터
     /// @note 어떤 종류의 버퍼에도 사용할 수 있습니다.
-    [[nodiscard]] static std::vector<Byte> DownloadBuffer(
+    [[nodiscard]] static Vector<Byte> DownloadBuffer(
         VertexBufferHandle _vbh);
 
     /// @brief 인덱스 버퍼에서 데이터를 다운로드합니다.
     /// @param _ibh 다운로드할 인덱스 버퍼 핸들
     /// @return 다운로드된 버퍼 데이터
     /// @note 어떤 종류의 버퍼에도 사용할 수 있습니다.
-    [[nodiscard]] static std::vector<Byte> DownloadBuffer(
+    [[nodiscard]] static Vector<Byte> DownloadBuffer(
         IndexBufferHandle _ibh);
 
     /// @brief 상수 버퍼에서 데이터를 다운로드합니다.
     /// @param _cbh 다운로드할 상수 버퍼 핸들
     /// @return 다운로드된 버퍼 데이터
     /// @note 어떤 종류의 버퍼에도 사용할 수 있습니다.
-    [[nodiscard]] static std::vector<Byte> DownloadBuffer(
+    [[nodiscard]] static Vector<Byte> DownloadBuffer(
         ConstantBufferHandle _cbh);
 
     /// @brief 버텍스 버퍼의 버텍스 레이아웃을 반환합니다.
@@ -758,7 +758,9 @@ public:
     /// @brief 드로우 콜 제출 시 추가 매개변수를 설정합니다.
     /// @param _type 설정할 매개변수 타입
     /// @param _value 매개변수 값
-    static void SetSubmitParameter(eSubmitParameterType _type, Int32 _value);
+    static void SetSubmitParameter(
+        eSubmitParameterType _type,
+        Int32                _value);
 
     /// @brief 현재 파이프라인 바인딩 상태를 플러시합니다.
     /// @note 드로우 콜을 발생시키지 않고 즉시 상태를 적용합니다.
@@ -775,7 +777,7 @@ public:
 
     /// @brief 백 버퍼의 해상도를 반환합니다.
     /// @return 백 버퍼 해상도
-    [[nodiscard]] static Resolution GetBackBufferResolution();
+    [[nodiscard]] static Vec2i GetBackBufferResolution();
 
     /// @brief 프레임 버퍼를 생성합니다. (simple)
     /// @param _texh 프레임 버퍼에 첨부할 단일 텍스처 핸들
@@ -822,35 +824,43 @@ public:
 
     /// @brief LoadTexture의 간략화 버전입니다.
     /// @param _path 로드할 이미지 파일 경로
-    [[nodiscard]] static std::optional<TextureHandle> LoadTextureFromFile(
-        const fs::path& _path);
+    /// @param _bGenerateMips 밉맵을 생성할지 여부 (기본값: true)
+    [[nodiscard]] static std::optional<TextureHandle> LoadTextureFile(
+        const fs::path& _path,
+        bool            _bGenerateMips = true);
 
     /// @brief LoadTexture의 간략화 버전입니다.
-    /// @param _mem 메모리 뷰
+    /// @param _source 메모리 뷰
     /// @param _format 이미지 포맷
-    [[nodiscard]] static std::optional<TextureHandle> LoadTextureFromMemory(
-        ConstMemView _mem,
-        eImageFormat _format);
+    /// @param _bGenerateMips 밉맵을 생성할지 여부 (기본값: true)
+    [[nodiscard]] static std::optional<TextureHandle> LoadTextureSource(
+        ConstMemView _source,
+        eImageFormat _format,
+        bool         _bGenerateMips = true);
 
     /// @brief 셰이더를 파일에서 로드합니다.
     /// @param _path 셰이더 파일 경로
     /// @param _stage 셰이더 스테이지
     /// @param _entryPoint 셰이더 진입점 함수 이름
+    /// @param _flags 컴파일 플래그
     /// @return 셰이더 핸들
-    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderFromFile(
-        const fs::path&  _path,
-        eShader          _stage,
-        std::string_view _entryPoint);
+    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderFile(
+        const fs::path&     _path,
+        eShader             _stage,
+        std::string_view    _entryPoint,
+        eShaderCompileFlags _flags = eShaderCompileFlags_None);
 
     /// @brief 셰이더를 소스 코드에서 로드합니다.
     /// @param _source 셰이더 소스 코드
     /// @param _stage 셰이더 스테이지
     /// @param _entryPoint 셰이더 진입점 함수 이름
+    /// @param _flags 컴파일 플래그
     /// @return 셰이더 핸들
-    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderFromSource(
-        std::string_view _source,
-        eShader          _stage,
-        std::string_view _entryPoint);
+    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderSource(
+        std::string_view    _source,
+        eShader             _stage,
+        std::string_view    _entryPoint,
+        eShaderCompileFlags _flags = eShaderCompileFlags_None);
 
     /// @brief 드로우 콜을 제출합니다.
     /// @note Submit을 호출하기 이전에 리소스를 바인딩해야 합니다.

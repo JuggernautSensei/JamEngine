@@ -260,11 +260,11 @@ void EditorRenderer::Init()
 
     // Grid shaders
     {
-        if (!compiler.CompileFromSource(k_editorRendererGridShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileSource(k_editorRendererGridShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor grid vertex shader compilation failed");
         ShaderHandle gridVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileFromSource(k_editorRendererGridShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileSource(k_editorRendererGridShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor grid pixel shader compilation failed");
         ShaderHandle gridPsh = Graphics::CreateShader(compiler.GetBytecode());
 
@@ -273,11 +273,11 @@ void EditorRenderer::Init()
 
     // Line shaders
     {
-        if (!compiler.CompileFromSource(k_editorRendererLineShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileSource(k_editorRendererLineShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor line vertex shader compilation failed");
         ShaderHandle lineVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileFromSource(k_editorRendererLineShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileSource(k_editorRendererLineShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor line pixel shader compilation failed");
         ShaderHandle linePsh = Graphics::CreateShader(compiler.GetBytecode());
 
@@ -286,11 +286,11 @@ void EditorRenderer::Init()
 
     // Filled shaders
     {
-        if (!compiler.CompileFromSource(k_editorRendererFilledShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileSource(k_editorRendererFilledShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor filled vertex shader compilation failed");
         ShaderHandle filledVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileFromSource(k_editorRendererFilledShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileSource(k_editorRendererFilledShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor filled pixel shader compilation failed");
         ShaderHandle filledPsh = Graphics::CreateShader(compiler.GetBytecode());
 
@@ -383,7 +383,7 @@ void EditorRenderer::Begin(const RenderView& _view)
 {
     JAM_ASSERT(!m_bBeginRender, "EditorRenderer::Begin called without End");
 
-    m_eye  = _view.eyePos;
+    m_eye  = _view.eye;
     m_view = _view.view;
     m_proj = _view.proj;
 
@@ -492,7 +492,7 @@ void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Mat4& _mtx, con
     Obb obb = Obb::FromAabb(_aabbInL);
     obb.Transform(_mtx);
 
-    const Corners corners = obb.GetCorners();
+    const CornerPoints corners = obb.GetCornerPoints();
 
     // near plane
     DrawLine(corners.nearLeftTop, corners.nearRightTop, _color);
@@ -515,8 +515,8 @@ void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Mat4& _mtx, con
 
 void EditorRenderer::DrawFrustum(const Mat4& _viewProjMtx, const RGBA _rgba)
 {
-    const Frustum frustumInW = Frustum::FromMatrix(_viewProjMtx);
-    const Corners corners    = frustumInW.GetCorners();
+    const Frustum      frustum = Frustum::FromMatrix(_viewProjMtx);
+    const CornerPoints corners = frustum.GetCornerPoints();
 
     // near plane
     DrawLine(corners.nearLeftTop, corners.nearRightTop, _rgba);
@@ -541,7 +541,9 @@ void EditorRenderer::DrawCircle(const Vec3 _center, const Vec3 _normal, const fl
 {
     Vec3 u = Vec3::Up;
     if (IsEqualApprox(Dot(_normal, u), 1.f))
+    {
         u = Vec3::Right;
+    }
 
     const Vec3 tan   = Normalized(Cross(_normal, u));
     const Vec3 bitan = Normalized(Cross(_normal, tan));

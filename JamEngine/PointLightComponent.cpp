@@ -19,21 +19,15 @@ Json PointLightComponent::Serialize(const Ref<Scene>& _pScene, Entity _entity) c
     return json;
 }
 
-bool PointLightComponent::Deserialize(const Json& _json, Ref<Scene>& _pScene, Entity _entity)
+void PointLightComponent::Deserialize(
+    const Json& _json,
+    Ref<Scene>& _pScene,
+    Entity      _entity)
 {
-    try
-    {
-        radiance     = _json.at("radiance").get<Vec3>();
-        intensity    = _json.at("intensity").get<float>();
-        fallOffStart = _json.at("fallOffStart").get<float>();
-        fallOffEnd   = _json.at("fallOffEnd").get<float>();
-        return true;
-    }
-    catch (const std::exception& e)
-    {
-        SetErrorString(JAM_PRETTY_FUNCTION " failed: {}", e.what());
-        return false;
-    }
+    TryParseJsonField(_json, "radiance", radiance);
+    TryParseJsonField(_json, "intensity", intensity);
+    TryParseJsonField(_json, "fallOffStart", fallOffStart);
+    TryParseJsonField(_json, "fallOffEnd", fallOffEnd);
 }
 
 void PointLightComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
@@ -46,28 +40,28 @@ void PointLightComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("radiance");
+        Widget_FrameAlignedText("radiance");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::ColorEdit3("##PointlightRadiance", &radiance.x);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("intensity");
+        Widget_FrameAlignedText("intensity");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         Widget_DragFloat("##PointlightIntensity", &intensity, 0.1f, 0.f, 10000.f);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("fall off start");
+        Widget_FrameAlignedText("fall off start");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         Widget_DragFloat("##PointlightFallOffStart", &fallOffStart, 0.1f, 0.f, fallOffEnd - k_epsilon);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("fall off end");
+        Widget_FrameAlignedText("fall off end");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         Widget_DragFloat("##PointlightFallOffEnd", &fallOffEnd, 0.1f, fallOffStart + k_epsilon, 10000.f);

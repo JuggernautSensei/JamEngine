@@ -22,7 +22,7 @@ public:
         return m_name;
     }
 
-    [[nodiscard]] const VertexLayout& GetLayout() const
+    [[nodiscard]] const VertexLayout& GetVertexLayout() const
     {
         return m_vertexLayout;
     }
@@ -35,17 +35,19 @@ private:
 class VertexLayoutStorage
 {
 public:
-    using ContainerT = HashMap<std::string, Ref<VertexLayoutEntry>>;
-
     void                                 Add(std::string_view _name, const VertexLayout& _vl);
     void                                 Remove(std::string_view _name);
     [[nodiscard]] bool                   Has(std::string_view _name) const;
     [[nodiscard]] Ref<VertexLayoutEntry> Get(std::string_view _name) const;
     void                                 Clear();
-    [[nodiscard]] const ContainerT&      GetContainer() const;
+
+    [[nodiscard]] decltype(auto) begin() const { return m_container.begin(); }
+    [[nodiscard]] decltype(auto) end() const { return m_container.end(); }
+    [[nodiscard]] decltype(auto) begin() { return m_container.begin(); }
+    [[nodiscard]] decltype(auto) end() { return m_container.end(); }
 
 private:
-    ContainerT m_container;
+    HashMap<std::string, Ref<VertexLayoutEntry>> m_container;
 };
 
 }   // namespace jam

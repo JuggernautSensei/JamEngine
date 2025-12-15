@@ -32,6 +32,11 @@ void ScriptDB::Reflect(const ScriptInfo& info)
     m_infos.emplace(hash, info);
 }
 
+bool ScriptDB::IsReflected(const std::string_view _name) const
+{
+    return m_infos.contains(HashOf(_name));
+}
+
 Ref<Script> ScriptDB::Create(const std::string_view _name, const Entity _entity) const
 {
     const UInt32 hash = HashOf(_name);

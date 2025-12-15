@@ -14,9 +14,9 @@ struct SerializableComponent
         return static_cast<const T*>(this)->Serialize(_pScene, _owner);
     }
 
-    bool Deserialize_(const Json& _json, Ref<Scene>& _pScene, Entity _owner)
+    void Deserialize_(const Json& _json, Ref<Scene>& _pScene, Entity _owner)
     {
-        return static_cast<T*>(this)->Deserialize(_json, _pScene, _owner);
+        static_cast<T*>(this)->Deserialize(_json, _pScene, _owner);
     }
 };
 

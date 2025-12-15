@@ -40,6 +40,7 @@ public:
     }
 
     [[nodiscard]] Ref<Script>       Create(std::string_view _name, Entity _entity) const;
+    [[nodiscard]] bool              IsReflected(std::string_view _name) const;
     [[nodiscard]] const ContainerT& GetContainer() const;
 
 private:

@@ -13,12 +13,13 @@ class RenderGraph
         Int32   slot;
     };
 
-    struct PassDesc
+    struct Node
     {
-        RenderPass            pass                   = {};
-        bool                  bNeedUnbindResources   = false;
-        bool                  bNeedUnbindFrameBuffer = false;
-        std::vector<BindInfo> unbindTextures         = {};
+        RenderPass pass = {};
+
+        Vector<BindInfo> unbindTextures         = {};
+        bool             bNeedUnbindResources   = false;
+        bool             bNeedUnbindFrameBuffer = false;
     };
 
 public:
@@ -30,8 +31,7 @@ public:
     RenderGraph(RenderGraph&&)                 = default;
     RenderGraph& operator=(RenderGraph&&)      = default;
 
-    RenderGraph& AddPass(RenderPass&& _pass);
-
+    RenderGraph&       AddPass(RenderPass&& _pass);
     void               Compile();
     void               Execute() const;
     void               Execute(FrameBufferHandle _fbh, Viewport _viewport) const;
@@ -39,14 +39,13 @@ public:
     [[nodiscard]] bool IsCompiled() const;
 
 private:
-    void DeduplicateResourceBindings_();
-    void AnalyzePassDependencies_();
-    void UnbindPassResources_(const PassDesc& _passDesc) const;
+    void                 DeduplicateResourceBindings_();
+    void                 AnalyzePassDependencies_();
+    void                 UnbindPassResourcesIfNeed_(const Node& _node) const;
+    [[nodiscard]] UInt32 CreateStageSlotKey_(eShader _stage, Int32 _slot) const;
 
-    [[nodiscard]] UInt32 MakeStageSlotKey_(eShader _stage, Int32 _slot) const;
-
-    std::vector<PassDesc> m_passes    = {};
-    bool                  m_bCompiled = false;
+    Vector<Node> m_nodes     = {};
+    bool         m_bCompiled = false;
 };
 
 }   // namespace jam

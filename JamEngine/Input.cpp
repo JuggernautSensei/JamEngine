@@ -9,10 +9,10 @@
 namespace jam
 {
 
-constexpr Int32 k_wheelDelta = 120;
-
 struct InputContext
 {
+    static constexpr Int32 k_wheelDelta = 120;
+
     void OnMouseDown(const MouseDownEvent& _event)
     {
         Int32 vKey = _event.GetVKey();
@@ -59,9 +59,8 @@ struct InputContext
     Int32 mouseX     = 0;
     Int32 mouseY     = 0;
 
-    float mouseDeltaWheel = 0;
-    bool  bCursorVisible  = true;
-    bool  bCursorGrabbed  = false;
+    float mouseDeltaWheel  = 0;
+    bool  bCursorVisiblity = true;
 
     EventDispatcher eventDispatcher;
 }* g_pInputCtx;
@@ -117,73 +116,73 @@ void Input::OnEvent(Event& _event)
 
 bool Input::IsKeyDown(const eKey _key) noexcept
 {
-    int index = EnumToInt(_key);
+    const Int32 index = IntFrom(_key);
     return g_pInputCtx->bKeyDown[index];
 }
 
 bool Input::IsKeyPressed(const eKey _key) noexcept
 {
-    int index = EnumToInt(_key);
+    const Int32 index = IntFrom(_key);
     return g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
 }
 
 bool Input::IsKeyHold(const eKey _key) noexcept
 {
-    int index = EnumToInt(_key);
+    const Int32 index = IntFrom(_key);
     return g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
 }
 
 bool Input::IsKeyUp(const eKey _key) noexcept
 {
-    int index = EnumToInt(_key);
+    const Int32 index = IntFrom(_key);
     return !g_pInputCtx->bKeyDown[index];
 }
 
 bool Input::IsKeyReleased(const eKey _key) noexcept
 {
-    int index = EnumToInt(_key);
+    const Int32 index = IntFrom(_key);
     return !g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
 }
 
 bool Input::IsKeyAway(const eKey _key) noexcept
 {
-    int index = EnumToInt(_key);
+    const Int32 index = IntFrom(_key);
     return !g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
 }
 
 bool Input::IsMouseDown(const eMouse _mouse) noexcept
 {
-    int index = EnumToInt(_mouse);
+    const Int32 index = IntFrom(_mouse);
     return g_pInputCtx->bKeyDown[index];
 }
 
 bool Input::IsMousePressed(const eMouse _mouse) noexcept
 {
-    int index = EnumToInt(_mouse);
+    const Int32 index = IntFrom(_mouse);
     return g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
 }
 
 bool Input::IsMouseHold(const eMouse _mouse) noexcept
 {
-    int index = EnumToInt(_mouse);
+    const Int32 index = IntFrom(_mouse);
     return g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
 }
 
 bool Input::IsMouseUp(const eMouse _mouse) noexcept
 {
-    int index = EnumToInt(_mouse);
+    const Int32 index = IntFrom(_mouse);
     return !g_pInputCtx->bKeyDown[index];
 }
 
 bool Input::IsMouseReleased(const eMouse _mouse) noexcept
 {
-    int index = EnumToInt(_mouse);
+    const Int32 index = IntFrom(_mouse);
     return !g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
 }
 
 bool Input::IsMouseAway(const eMouse _mouse) noexcept
 {
-    int index = EnumToInt(_mouse);
+    const Int32 index = IntFrom(_mouse);
     return !g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
 }
 
@@ -217,41 +216,12 @@ void Input::SetMouseVisibility(const bool _bVisible) noexcept
             ;
     }
 
-    g_pInputCtx->bCursorVisible = _bVisible;
-}
-
-void Input::GrabMouseCursor(const bool _bEnable) noexcept
-{
-    g_pInputCtx->bCursorGrabbed = _bEnable;
-
-    if (_bEnable)
-    {
-        const Application&     app = Application::GetInstance();
-        const WindowsPlatform& win = app.GetPlatform();
-        const auto [cliX, cliY]    = win.GetClientPos();
-        const auto [width, height] = win.GetClientResolution();
-
-        RECT clipRect;
-        clipRect.left   = cliX;
-        clipRect.top    = cliY;
-        clipRect.right  = cliX + width;
-        clipRect.bottom = cliY + height;
-        ::ClipCursor(&clipRect);
-    }
-    else
-    {
-        ::ClipCursor(nullptr);
-    }
+    g_pInputCtx->bCursorVisiblity = _bVisible;
 }
 
 bool Input::IsMouseVisible() noexcept
 {
-    return g_pInputCtx->bCursorVisible;
-}
-
-bool Input::IsMouseCursorGrabbed() noexcept
-{
-    return g_pInputCtx->bCursorGrabbed;
+    return g_pInputCtx->bCursorVisiblity;
 }
 
 void Input::SetMousePos(const Int32 _x, const Int32 _y) noexcept

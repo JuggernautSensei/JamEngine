@@ -37,9 +37,4 @@ void VertexLayoutStorage::Clear()
     m_container.clear();
 }
 
-const VertexLayoutStorage::ContainerT& VertexLayoutStorage::GetContainer() const
-{
-    return m_container;
-}
-
 }   // namespace jam

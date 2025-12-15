@@ -23,19 +23,8 @@ enum class eToneMappingType
     Filmic
 };
 
-enum class eCascadeLevel
-{
-    Unknown = -1,
-
-    level2 = 0,
-    level3,
-    level4
-};
-
 enum class eFxaaQuality
 {
-    Unknown = -1,
-
     VeryLow = 0,
     Low,
     Medium,
@@ -53,9 +42,8 @@ struct DirectionalLightData
     Vec3  direction = Vec3(0.f, -1.f, 0.f);
 
     // shadow
-    bool                                     bShadowEnabled   = false;
-    eCascadeLevel                            cascadeLevel     = eCascadeLevel::level3;
-    std::array<float, JAM_MAX_CASCADE_LEVEL> cascadeDistances = { 50, 100, 200, 400 };
+    bool                            bShadowEnabled   = false;
+    Array<float, JAM_CASCADE_LEVEL> cascadeDistances = { 100, 200, 400 };
 };
 
 struct ImageBasedLightingData

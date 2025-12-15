@@ -12,7 +12,7 @@ struct CameraComponent :
     JAM_COMPONENT(CameraComponent);
 
     [[nodiscard]] Json Serialize(const Ref<Scene>& _pScene, Entity _entity) const;
-    bool               Deserialize(const Json& _json, const Ref<Scene>& _pScene, Entity _entity);
+    void               Deserialize(const Json& _json, const Ref<Scene>& _pScene, Entity _entity);
     void               DrawEditor(const Ref<Scene>& _pScene, Entity _entity);
 
     Camera camera = {};

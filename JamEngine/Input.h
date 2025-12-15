@@ -1,12 +1,9 @@
 #pragma once
-#include "DataType.h"
-
-// clang-format off
-namespace jam { class Event; }
-// clang-format on
 
 namespace jam
 {
+
+class Event;
 
 enum class eKey : int
 {
@@ -153,14 +150,11 @@ public:
 
     [[nodiscard]] static Vec2i GetMousePos() noexcept;
     [[nodiscard]] static Vec2i GetMouseDeltaPos() noexcept;
-    [[nodiscard]] static float     GetMouseDeltaWheel() noexcept;
+    [[nodiscard]] static float GetMouseDeltaWheel() noexcept;
 
-    static void SetMousePos(Int32 _x, Int32 _y) noexcept;   // window coords
-    static void SetMouseVisibility(bool _bVisible) noexcept;
-    static void GrabMouseCursor(bool _bEnable) noexcept;
-
+    static void               SetMousePos(Int32 _x, Int32 _y) noexcept;   // window coords
+    static void               SetMouseVisibility(bool _bVisible) noexcept;
     [[nodiscard]] static bool IsMouseVisible() noexcept;
-    [[nodiscard]] static bool IsMouseCursorGrabbed() noexcept;
 
 };   // namespace input
 

@@ -6,386 +6,409 @@
 namespace jam
 {
 
-Transform::Transform(const Mat4& _mtx)
-    : m_mtx(_mtx)
-{
-}
-
-const Mat4& Transform::GetMatrix() const
-{
-    return m_mtx;
-}
-
-Mat4 Transform::GetViewMatrix() const
-{
-    const Vec3 r = GetRight();
-    const Vec3 u = GetUp();
-    const Vec3 f = GetForward();
-    const Vec3 t = GetTranslation();
-
-    // reverse translation
-    float tx = -Dot(t, r);
-    float ty = -Dot(t, u);
-    float tz = -Dot(t, f);
-
-    return Mat4(
-        { r.x, u.x, f.x, 0.0f },
-        { r.y, u.y, f.y, 0.0f },
-        { r.z, u.z, f.z, 0.0f },
-        { tx, ty, tz, 1.0f });
-}
-
-Mat4 Transform::GetInvertMatrix() const
-{
-    const Vec3 r = GetRight();
-    const Vec3 u = GetUp();
-    const Vec3 f = GetForward();
-    const Vec3 t = GetTranslation();
-
-    // reverse translation
-    float tx = -Dot(t, r);
-    float ty = -Dot(t, u);
-    float tz = -Dot(t, f);
-
-    // reverse scale
-    const Vec3 scale = GetScale();
-    float      sx    = 1.0f / scale.x;
-    float      sy    = 1.0f / scale.y;
-    float      sz    = 1.0f / scale.z;
-
-    return Mat4(
-        { r.x * sx, u.x * sy, f.x * sz, 0.0f },
-        { r.y * sx, u.y * sy, f.y * sz, 0.0f },
-        { r.z * sx, u.z * sy, f.z * sz, 0.0f },
-        { tx, ty, tz, 1.0f });
-}
-
-Transform Transform::GetInvert() const
-{
-    Transform inv;
-    inv.SetMatrix(GetInvertMatrix());
-    return inv;
-}
-
 Vec3 Transform::GetRight() const
 {
-    return Normalized(m_mtx.Right());
+    return Normalized(m_right);
 }
 
 Vec3 Transform::GetLeft() const
 {
-    return -GetRight();
+    return -Normalized(m_right);
 }
 
 Vec3 Transform::GetUp() const
 {
-    return Normalized(m_mtx.Up());
+    return Normalized(m_up);
 }
 
 Vec3 Transform::GetDown() const
 {
-    return -GetUp();
+    return -Normalized(m_up);
 }
 
 Vec3 Transform::GetForward() const
 {
-    return Normalized(m_mtx.Forward());
+    return Normalized(m_forward);
 }
 
 Vec3 Transform::GetBackward() const
 {
-    return -GetForward();
+    return -Normalized(m_forward);
 }
 
-Mat4 Transform::GetRotationMatrix() const
+const Mat4& Transform::GetMatrix() const
 {
-    return Mat4 { GetRight(), GetUp(), GetForward() };
+    UpdateDirty_();
+    return m_mtxCache;
 }
 
-Mat4 Transform::GetScaleMatrix() const
+Mat4 Transform::ToViewMatrix() const
 {
-    const Vec3 scale = GetScale();
-    return {
-        scale.x, 0.0f, 0.0f, 0.0f, 0.0f, scale.y, 0.0f, 0.0f, 0.0f, 0.0f, scale.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+    const Vec3 r = Normalized(m_right);
+    const Vec3 u = Normalized(m_up);
+    const Vec3 f = Normalized(m_forward);
+
+    const Vec3  t  = m_origin;
+    const float tx = -Dot(r, t);
+    const float ty = -Dot(u, t);
+    const float tz = -Dot(f, t);
+
+    return Mat4 {
+        { r.x, u.x, f.x, 0.0f },
+        { r.y, u.y, f.y, 0.0f },
+        { r.z, u.z, f.z, 0.0f },
+        {  tx,  ty,  tz, 1.0f }
     };
 }
 
-Mat4 Transform::GetTranslationMatrix() const
+void Transform::SetMatrix(const Mat4& _mtx)
 {
-    return {
-        1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, m_mtx._41, m_mtx._42, m_mtx._43, 1.0f
-    };
+    m_right    = _mtx.Right();
+    m_up       = _mtx.Up();
+    m_forward  = _mtx.Forward();
+    m_origin   = _mtx.Translation();
+    m_bDirty   = false;
+    m_mtxCache = _mtx;
 }
 
-Vec3 Transform::GetTranslation() const
+Transform Transform::Inverted() const
 {
-    return m_mtx.Translation();
+    Transform result = *this;
+    result.Invert();
+    return result;
 }
 
-float Transform::GetTranslationX() const
+void Transform::Invert()
 {
-    return m_mtx.Translation().x;
+    const float invSx = InvLength(m_right);
+    const float invSy = InvLength(m_up);
+    const float invSz = InvLength(m_forward);
+
+    const Vec3 r = m_right * invSx;
+    const Vec3 u = m_up * invSy;
+    const Vec3 f = m_forward * invSz;
+
+    const float tx = -Dot(r, m_origin);
+    const float ty = -Dot(u, m_origin);
+    const float tz = -Dot(f, m_origin);
+
+    m_right   = Vec3 { r.x * invSx, u.x * invSy, f.x * invSz };
+    m_up      = Vec3 { r.y * invSx, u.y * invSy, f.y * invSz };
+    m_forward = Vec3 { r.z * invSx, u.z * invSy, f.z * invSz };
+    m_origin  = Vec3 { tx, ty, tz };
+    m_bDirty  = true;
 }
 
-float Transform::GetTranslationY() const
+void Transform::Mult(const Transform& _trans)
 {
-    return m_mtx.Translation().y;
-}
-
-float Transform::GetTranslationZ() const
-{
-    return m_mtx.Translation().z;
+    UpdateDirty_();
+    SetMatrix(m_mtxCache * _trans.GetMatrix());
 }
 
 Vec3 Transform::GetScale() const
 {
-    const float sx = Length(m_mtx.Right());
-    const float sy = Length(m_mtx.Up());
-    const float sz = Length(m_mtx.Forward());
-    return { sx, sy, sz };
+    return { Length(m_right), Length(m_up), Length(m_forward) };
 }
 
 float Transform::GetScaleX() const
 {
-    return GetScale().x;
+    return Length(m_right);
 }
 
 float Transform::GetScaleY() const
 {
-    return GetScale().y;
+    return Length(m_up);
 }
 
 float Transform::GetScaleZ() const
 {
-    return GetScale().z;
+    return Length(m_forward);
 }
 
-Quat Transform::GetQuaternion() const
+void Transform::SetScale(const Vec3 _xyz)
 {
-    return Quat::CreateFromRotationMatrix(GetRotationMatrix());
+    const Vec3 r = Normalized(m_right);
+    const Vec3 u = Normalized(m_up);
+    const Vec3 f = Normalized(m_forward);
+
+    m_right   = r * _xyz.x;
+    m_up      = u * _xyz.y;
+    m_forward = f * _xyz.z;
+    m_bDirty  = true;
 }
 
-AxisAngle Transform::GetAxisAngle() const
+void Transform::SetScale(float _x, float _y, float _z)
 {
-    return QuatToAxisAngle(GetQuaternion());
+    SetScale({ _x, _y, _z });
 }
 
-Vec3 Transform::GetPitchYawRoll() const
+void Transform::SetScale(const float _uniform)
 {
-    return GetRotationMatrix().ToEuler();
+    SetScale(_uniform, _uniform, _uniform);
 }
 
-Transform& Transform::MultMatrix(const Mat4& _mtx)
+void Transform::SetScaleX(const float _x)
 {
-    m_mtx *= _mtx;
-    return *this;
+    const Vec3 r = Normalized(m_right);
+    m_right      = r * _x;
+    m_bDirty     = true;
 }
 
-Transform& Transform::SetMatrix(const Mat4& _mtx)
+void Transform::SetScaleY(const float _y)
 {
-    m_mtx = _mtx;
-    return *this;
+    const Vec3 u = Normalized(m_up);
+    m_up         = u * _y;
+    m_bDirty     = true;
 }
 
-Transform& Transform::SetTranslation(const Vec3 _translation)
+void Transform::SetScaleZ(const float _z)
 {
-    m_mtx._41 = _translation.x;
-    m_mtx._42 = _translation.y;
-    m_mtx._43 = _translation.z;
-    return *this;
+    const Vec3 f = Normalized(m_forward);
+    m_forward    = f * _z;
+    m_bDirty     = true;
 }
 
-Transform& Transform::SetTranslation(const float _x, const float _y, const float _z)
+void Transform::AddScale(const Vec3 _xyz)
 {
-    return SetTranslation(Vec3 { _x, _y, _z });
-}
-Transform& Transform::SetTranslationX(const float _x)
-{
-    m_mtx._41 = _x;
-    return *this;
+    SetScale(GetScale() + _xyz);
 }
 
-Transform& Transform::SetTranslationY(const float _y)
+void Transform::AddScale(float _x, float _y, float _z)
 {
-    m_mtx._42 = _y;
-    return *this;
+    AddScale({ _x, _y, _z });
 }
 
-Transform& Transform::SetTranslationZ(const float _z)
+void Transform::AddScale(const float _uniform)
 {
-    m_mtx._43 = _z;
-    return *this;
+    AddScale(_uniform, _uniform, _uniform);
 }
 
-Transform& Transform::AddTranslation(const Vec3 _translation)
+void Transform::AddScaleX(const float _x)
 {
-    m_mtx._41 += _translation.x;
-    m_mtx._42 += _translation.y;
-    m_mtx._43 += _translation.z;
-    return *this;
+    SetScaleX(GetScaleX() + _x);
 }
 
-Transform& Transform::AddTranslation(const float _x, const float _y, const float _z)
+void Transform::AddScaleY(const float _y)
 {
-    m_mtx._41 += _x;
-    m_mtx._42 += _y;
-    m_mtx._43 += _z;
-    return *this;
+    SetScaleY(GetScaleY() + _y);
 }
 
-Transform& Transform::AddTranslationX(const float _x)
+void Transform::AddScaleZ(const float _z)
 {
-    m_mtx._41 += _x;
-    return *this;
+    SetScaleZ(GetScaleZ() + _z);
 }
 
-Transform& Transform::AddTranslationY(const float _y)
+Quat Transform::ToQuat() const
 {
-    m_mtx._42 += _y;
-    return *this;
+    const Vec3 r   = Normalized(m_right);
+    const Vec3 u   = Normalized(m_up);
+    const Vec3 f   = Normalized(m_forward);
+    const Mat4 mtx = Mat4 { r, u, f };
+    return Quat::CreateFromRotationMatrix(mtx);
 }
 
-Transform& Transform::AddTranslationZ(const float _z)
+AxisAngle Transform::ToAxisAngle() const
 {
-    m_mtx._43 += _z;
-    return *this;
+    const Quat  q    = ToQuat();
+    const float rad  = 2.f * Acos(q.w);
+    const float sqrt = Sqrt(1.f - q.w * q.w);
+
+    Vec3 axis;
+    if (IsZeroApprox(sqrt))
+    {
+        axis = Vec3 { 1.0f, 0.0f, 0.0f };
+    }
+    else
+    {
+        axis = Vec3 { q.x / sqrt, q.y / sqrt, q.z / sqrt };
+    }
+    return { axis, rad };
 }
 
-Transform& Transform::SetRotation(const Quat _rotation)
+Vec3 Transform::ToPitchYawRoll() const
 {
-    const Vec3 t = GetTranslation();
-    const Vec3 s = GetScale();
-    m_mtx        = Mat4::CreateScale(s) * Mat4::CreateFromQuaternion(_rotation);
-    m_mtx._41    = t.x;
-    m_mtx._42    = t.y;
-    m_mtx._43    = t.z;
-    return *this;
+    return ToQuat().ToEuler();
 }
 
-Transform& Transform::SetRotation(const Vec3 _axis, const float _angleRad)
+void Transform::SetRotation(const Quat _q)
 {
-    return SetRotation(Quat::CreateFromAxisAngle(_axis, _angleRad));
+    const Vec3 s   = GetScale();
+    const Mat4 mtx = Mat4::CreateFromQuaternion(_q);
+
+    m_right   = mtx.Right() * s.x;
+    m_up      = mtx.Up() * s.y;
+    m_forward = mtx.Forward() * s.z;
+    m_bDirty  = true;
 }
 
-Transform& Transform::SetRotation(const Vec3 _pitchYawRollRad)
+void Transform::SetRotation(const Vec3 _axis, const float _rad)
 {
-    return SetRotation(Quat::CreateFromYawPitchRoll(_pitchYawRollRad.y, _pitchYawRollRad.x, _pitchYawRollRad.z));
+    SetRotation(Quat::CreateFromAxisAngle(_axis, _rad));
 }
 
-Transform& Transform::SetRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
+void Transform::SetRotation(const Vec3 _pitchYawRollRad)
 {
-    return SetRotation(Quat::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
+    SetRotation(_pitchYawRollRad.x, _pitchYawRollRad.y, _pitchYawRollRad.z);
 }
 
-Transform& Transform::SetLookAt(const Vec3 _point)
+void Transform::SetRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
 {
-    const Vec3 t       = GetTranslation();
-    const Vec3 forward = _point - t;
-    return SetLookTo(forward);
+    SetRotation(Quat::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
 }
 
-Transform& Transform::SetLookTo(const Vec3 _forward)
+void Transform::SetLookAt(const Vec3 _point)
 {
-    const Vec3 t = GetTranslation();
+    const Vec3 dir = Normalized(_point - m_origin);
+    SetLookTo(dir);
+}
+
+void Transform::SetLookTo(const Vec3 _forward)
+{
     const Vec3 s = GetScale();
     const Vec3 f = Normalized(_forward);
-    m_mtx        = CreateWorldLookTo(t, f, s);
-    return *this;
+
+    Vec3 base = Vec3::Up;
+    if (IsEqualApprox(Abs(Dot(base, f)), 1.f))
+    {
+        base = Vec3::Right;
+    }
+
+    const Vec3 r = Normalized(Cross(base, f));
+    const Vec3 u = Normalized(Cross(f, r));
+
+    m_right   = r * s.x;
+    m_up      = u * s.y;
+    m_forward = f * s.z;
+    m_bDirty  = true;
 }
 
-Transform& Transform::AddRotation(const Quat _q)
+void Transform::AddRotation(const Quat _q)
 {
-    const Quat q = GetQuaternion();
-    return SetRotation(q * _q);
+    const Quat q = ToQuat();
+    SetRotation(q * _q);
 }
 
-Transform& Transform::AddRotation(const Vec3 _axis, const float _angleRad)
+void Transform::AddRotation(const Vec3 _axis, const float _rad)
 {
-    return AddRotation(Quat::CreateFromAxisAngle(_axis, _angleRad));
+    AddRotation(Quat::CreateFromAxisAngle(_axis, _rad));
 }
 
-Transform& Transform::SetScale(const Vec3 _scale)
+void Transform::AddRotation(const Vec3 _pitchYawRollRad)
 {
-    if (IsZeroApprox(_scale.x) || IsZeroApprox(_scale.y) || IsZeroApprox(_scale.z))
-        return *this;
-
-    const Vec3 r = GetRight();
-    const Vec3 u = GetUp();
-    const Vec3 f = GetForward();
-
-    m_mtx.Right(r * _scale.x);
-    m_mtx.Up(u * _scale.y);
-    m_mtx.Forward(f * _scale.z);
-
-    return *this;
+    AddRotation(_pitchYawRollRad.x, _pitchYawRollRad.y, _pitchYawRollRad.z);
 }
 
-Transform& Transform::SetScale(const float _x, const float _y, const float _z)
+void Transform::AddRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
 {
-    return SetScale(Vec3 { _x, _y, _z });
+    AddRotation(Quat::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
 }
 
-Transform& Transform::SetScale(const float _uniform)
+void Transform::AddRotationYaw(const float _rad)
 {
-    return SetScale(Vec3 { _uniform, _uniform, _uniform });
+    AddRotation(0.0f, _rad, 0.0f);
 }
 
-Transform& Transform::SetScaleX(const float _x)
+void Transform::AddRotationPitch(const float _rad)
 {
-    Vec3 s = GetScale();
-    s.x    = _x;
-    return SetScale(s);
+    AddRotation(_rad, 0.0f, 0.0f);
 }
 
-Transform& Transform::SetScaleY(const float _y)
+void Transform::AddRotationRoll(const float _rad)
 {
-    Vec3 s = GetScale();
-    s.y    = _y;
-    return SetScale(s);
+    AddRotation(0.0f, 0.0f, _rad);
 }
 
-Transform& Transform::SetScaleZ(const float _z)
+Vec3 Transform::GetTranslation() const
 {
-    Vec3 s = GetScale();
-    s.z    = _z;
-    return SetScale(s);
+    return m_origin;
 }
 
-Transform& Transform::AddScale(const Vec3 _s)
+float Transform::GetTranslationX() const
 {
-    Vec3 s = GetScale();
-    return SetScale(s + _s);
+    return m_origin.x;
 }
 
-Transform& Transform::AddScale(const float _x, const float _y, const float _z)
+float Transform::GetTranslationY() const
 {
-    return AddScale({ _x, _y, _z });
+    return m_origin.y;
 }
 
-Transform& Transform::AddScale(const float _s)
+float Transform::GetTranslationZ() const
 {
-    return AddScale({ _s, _s, _s });
+    return m_origin.z;
 }
 
-Transform& Transform::AddScaleX(const float _x)
+void Transform::SetTranslation(const Vec3 _xyz)
 {
-    Vec3 s = GetScale();
-    s.x += _x;
-    return SetScale(s);
+    m_origin = _xyz;
+    m_bDirty = true;
 }
 
-Transform& Transform::AddScaleY(const float _y)
+void Transform::SetTranslation(float _x, float _y, float _z)
 {
-    Vec3 s = GetScale();
-    s.y += _y;
-    return SetScale(s);
+    SetTranslation({ _x, _y, _z });
 }
 
-Transform& Transform::AddScaleZ(const float _z)
+void Transform::SetTranslationX(const float _x)
 {
-    Vec3 s = GetScale();
-    s.z += _z;
-    return SetScale(s);
+    m_origin.x = _x;
+    m_bDirty   = true;
+}
+
+void Transform::SetTranslationY(const float _y)
+{
+    m_origin.y = _y;
+    m_bDirty   = true;
+}
+
+void Transform::SetTranslationZ(const float _z)
+{
+    m_origin.z = _z;
+    m_bDirty   = true;
+}
+
+void Transform::AddTranslation(const Vec3 _xyz)
+{
+    m_origin += _xyz;
+    m_bDirty = true;
+}
+
+void Transform::AddTranslation(float _x, float _y, float _z)
+{
+    AddTranslation({ _x, _y, _z });
+}
+
+void Transform::AddTranslationX(const float _x)
+{
+    m_origin.x += _x;
+    m_bDirty = true;
+}
+
+void Transform::AddTranslationY(const float _y)
+{
+    m_origin.y += _y;
+    m_bDirty = true;
+}
+
+void Transform::AddTranslationZ(const float _z)
+{
+    m_origin.z += _z;
+    m_bDirty = true;
+}
+
+void Transform::UpdateDirty_() const
+{
+    if (m_bDirty)
+    {
+        m_mtxCache = Mat4 {
+            ToVec4(m_right, 0.0f),
+            ToVec4(m_up, 0.0f),
+            ToVec4(m_forward, 0.0f),
+            ToVec4(m_origin, 1.0f)
+        };
+
+        m_bDirty = false;
+    }
 }
 
 }   // namespace jam

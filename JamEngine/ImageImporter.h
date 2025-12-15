@@ -14,7 +14,7 @@ class ImageImporter : public IImporter
     {
         Unknown = 0,
         FromPath,
-        FromMemory
+        FromSource
     };
 
 public:
@@ -22,21 +22,21 @@ public:
     [[nodiscard]] const DirectX::ScratchImage& GetScratchImage() const;
 
     // set source
-    void SetMemory(ConstMemView _mem, eImageFormat _imageFormat);
-    void SetPath(const fs::path& _filePath) override;
+    void SetSource(ConstMemView _source, eImageFormat _imageFormat);
+    void SetPath(const fs::path& _path) override;
 
-    // post-process
+    // post process
     void ConvertFormat(bool _bEnable, eTextureFormat _format, float _threshold = 0.5f);
     void ForceSRGB(bool _bEnable);
-    void DropMips(bool _bEnable);   // default generate mips
+    void GenerateMips(bool _bEnable);
     void Resize(bool _bEnable, size_t _newWidth, size_t _newHeight);
     void FlipVertical(bool _bEnable);
     void FlipHorizontal(bool _bEnable);
     void PreMultiplyAlpha(bool _bEnable);
 
 private:
-    bool ImportFromPath_();
-    bool ImportFromMemory_();
+    bool ImportFile_();
+    bool ImportSource_();
 
     // result
     DirectX::ScratchImage m_scratchImg;
@@ -45,22 +45,22 @@ private:
     fs::path m_path = {};
 
     // import from mem
-    ConstMemView m_imageSource       = {};
-    eImageFormat    m_imageSourceFormat = eImageFormat::Unknown;
+    ConstMemView m_source       = {};
+    eImageFormat m_sourceFormat = eImageFormat::DDS;
 
     // import type
     eImportType m_importType = eImportType::Unknown;
 
     // format conversion
-    bool           m_bConvertFormat = false;
-    eTextureFormat m_convertFormat  = eTextureFormat::Unknown;
-    float          m_convertThreshold  = 0.5f;
+    bool           m_bConvertFormat   = false;
+    eTextureFormat m_convertFormat    = eTextureFormat::Unknown;
+    float          m_convertThreshold = 0.5f;
 
     // sRGB
     bool m_bForceSRGB = false;
 
     // mips
-    bool m_bDropMips = false;
+    bool m_bGenerateMips = false;
 
     // resize
     bool   m_bResize   = false;

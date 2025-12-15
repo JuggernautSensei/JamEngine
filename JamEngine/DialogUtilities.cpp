@@ -25,14 +25,14 @@ bool OpenFileExplorer(const fs::path& _path)
     }
     else
     {
-        SetErrorString("Invalid path (does not exist): {}", absPath.string());
+        ErrorBuffer::Set("Invalid path (does not exist): {}", absPath.string());
         return false;
     }
 
     const INT_PTR ret = reinterpret_cast<INT_PTR>(result);
     if (ret <= 32)
     {
-        SetErrorString("Failed to open file explorer (code {}): {}", ret, absPath.string());
+        ErrorBuffer::Set("Failed to open file explorer (code {}): {}", ret, absPath.string());
         return false;
     }
 
@@ -51,7 +51,7 @@ bool OpenFileWithDefaultApplication(const fs::path& _path)
     const INT_PTR ret = reinterpret_cast<INT_PTR>(result);
     if (ret <= 32)
     {
-        SetErrorString("Failed to open file with default application (code {}): {}", ret, absPath.string());
+        ErrorBuffer::Set("Failed to open file with default application (code {}): {}", ret, absPath.string());
         return false;
     }
 
@@ -63,7 +63,7 @@ std::optional<fs::path> OpenFileDialog(
     const std::string_view                  _defaultPathOrEmpty,
     const std::span<const FileDialogFilter> _filtersOrEmpty)
 {
-    std::vector<std::string> filters;
+    Vector<std::string> filters;
     filters.reserve(_filtersOrEmpty.size() * 2);
     for (const FileDialogFilter& filter: _filtersOrEmpty)
     {
@@ -73,7 +73,7 @@ std::optional<fs::path> OpenFileDialog(
 
     pfd::open_file of { std::string(_title), std::string(_defaultPathOrEmpty), filters };
 
-    std::vector<std::string> result = of.result();
+    Vector<std::string> result = of.result();
     if (result.empty())
     {
         return std::nullopt;
@@ -81,12 +81,12 @@ std::optional<fs::path> OpenFileDialog(
     return result[0];
 }
 
-std::optional<std::vector<fs::path>> OpenMultiFileDialog(
+std::optional<Vector<fs::path>> OpenMultiFileDialog(
     const std::string_view                  _title,
     const std::string_view                  _defaultPathOrEmpty,
     const std::span<const FileDialogFilter> _filtersOrEmpty)
 {
-    std::vector<std::string> filters;
+    Vector<std::string> filters;
     filters.reserve(_filtersOrEmpty.size() * 2);
     for (const FileDialogFilter& filter: _filtersOrEmpty)
     {
@@ -96,8 +96,8 @@ std::optional<std::vector<fs::path>> OpenMultiFileDialog(
 
     pfd::open_file of { std::string(_title), std::string(_defaultPathOrEmpty), filters, pfd::opt::multiselect };
 
-    std::vector<std::string> result = of.result();
-    std::vector<fs::path>    paths;
+    Vector<std::string> result = of.result();
+    Vector<fs::path>    paths;
     paths.reserve(result.size());
     for (const std::string& str: result)
     {
@@ -111,7 +111,7 @@ std::optional<fs::path> SaveFileDialog(
     const std::string_view                  _defaultPathOrEmpty,
     const std::span<const FileDialogFilter> _filtersOrEmpty)
 {
-    std::vector<std::string> filters;
+    Vector<std::string> filters;
     filters.reserve(_filtersOrEmpty.size() * 2);
     for (const FileDialogFilter& filter: _filtersOrEmpty)
     {

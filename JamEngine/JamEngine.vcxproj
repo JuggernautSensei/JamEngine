@@ -75,21 +75,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
@@ -97,7 +97,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
@@ -400,11 +400,9 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetManager.cpp" />
-    <ClCompile Include="AssimpBase.cpp" />
     <ClCompile Include="AssimpImporter.cpp" />
     <ClCompile Include="BasicRenderer.cpp" />
-    <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="Bvh.cpp" />
+    <ClCompile Include="BoundingVolume.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CreateMaterialDialog.cpp" />
@@ -414,9 +412,7 @@
     <ClCompile Include="EditorStyle.cpp" />
     <ClCompile Include="EditorUtilities.cpp" />
     <ClCompile Include="EditorWidgets.cpp" />
-    <ClCompile Include="CullingSystem.cpp" />
     <ClCompile Include="ComponentDB.cpp" />
-    <ClCompile Include="DrawItem.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Editor_EntityInspector.cpp" />
     <ClCompile Include="Editor_FileBrowser.cpp" />
@@ -427,13 +423,17 @@
     <ClCompile Include="Editor_SceneView.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="EnvironmentComponent.cpp" />
+    <ClCompile Include="ErrorBuffer.cpp" />
     <ClCompile Include="FileUtilities.cpp" />
+    <ClCompile Include="Json.cpp" />
+    <ClCompile Include="Octree.cpp" />
+    <ClCompile Include="JsonUtilities.cpp" />
+    <ClCompile Include="STL.cpp" />
     <ClCompile Include="TextureFormat.cpp" />
     <ClCompile Include="HistoryStack.cpp" />
     <ClCompile Include="ImGuiGlue.cpp" />
     <ClCompile Include="ImGuiUtilities.cpp" />
     <ClCompile Include="ImportImageDialog.cpp" />
-    <ClCompile Include="JsonUtilities.cpp" />
     <ClCompile Include="RefCounted.cpp" />
     <ClCompile Include="RenderableComponent.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -465,7 +465,6 @@
     <ClCompile Include="RemoveNotEmptyDirectoryDialog.cpp" />
     <ClCompile Include="RenameFileDialog.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
-    <ClCompile Include="VisibleItem.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SceneDB.cpp" />
     <ClCompile Include="SceneDeserializer.cpp" />
@@ -488,9 +487,8 @@
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="SpotLightComponent.cpp" />
     <ClCompile Include="TagComponent.cpp" />
+    <ClCompile Include="SceneComponent.cpp" />
     <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="TransformComponent.cpp" />
-    <ClCompile Include="TransformHierarchy.cpp" />
     <ClCompile Include="TypeTrait.cpp" />
     <ClCompile Include="DataType.cpp" />
     <ClCompile Include="Event.cpp" />
@@ -621,15 +619,14 @@
     <ClCompile Include="Editor_FileBrowser_Thumbnail.cpp" />
     <ClCompile Include="Editor_FileBrowser_ThumbnailCache.cpp" />
     <ClCompile Include="ImportImageDialog_PreviewTexture.cpp" />
+    <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="AssetManager.h" />
-    <ClInclude Include="AssimpBase.h" />
     <ClInclude Include="AssimpImporter.h" />
     <ClInclude Include="BasicRenderer.h" />
-    <ClInclude Include="BoundingBox.h" />
-    <ClInclude Include="Bvh.h" />
+    <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CreateMaterialDialog.h" />
@@ -639,9 +636,7 @@
     <ClInclude Include="EditorStyle.h" />
     <ClInclude Include="EditorUtilities.h" />
     <ClInclude Include="EditorWidgets.h" />
-    <ClInclude Include="CullingSystem.h" />
     <ClInclude Include="ComponentDB.h" />
-    <ClInclude Include="DrawItem.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="Editor_EntityInspector.h" />
     <ClInclude Include="Editor_FileBrowser.h" />
@@ -652,14 +647,17 @@
     <ClInclude Include="Editor_SceneView.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="EnvironmentComponent.h" />
+    <ClInclude Include="ErrorBuffer.h" />
     <ClInclude Include="FileSystemUtilities.h" />
     <ClInclude Include="FileUtilities.h" />
+    <ClInclude Include="Octree.h" />
+    <ClInclude Include="JsonUtilities.h" />
+    <ClInclude Include="STL.h" />
     <ClInclude Include="TextureFormat.h" />
     <ClInclude Include="HistoryStack.h" />
     <ClInclude Include="ImGuiUtilities.h" />
     <ClInclude Include="ImportImageDialog.h" />
     <ClInclude Include="ImportModelDialog.h" />
-    <ClInclude Include="JsonUtilities.h" />
     <ClInclude Include="RefCounted.h" />
     <ClInclude Include="RenderableComponent.h" />
     <ClInclude Include="Model.h" />
@@ -694,7 +692,7 @@
     <ClInclude Include="RemoveNotEmptyDirectoryDialog.h" />
     <ClInclude Include="RenameFileDialog.h" />
     <ClInclude Include="RenderGraph.h" />
-    <ClInclude Include="VisibleItem.h" />
+    <ClInclude Include="Transform.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="SceneDB.h" />
     <ClInclude Include="SceneDeserializer.h" />
@@ -717,9 +715,8 @@
     <None Include="Resources\flatc\jmtl.fbs" />
     <ClInclude Include="SpotLightComponent.h" />
     <ClInclude Include="TagComponent.h" />
-    <ClInclude Include="Transform.h" />
-    <ClInclude Include="TransformComponent.h" />
-    <ClInclude Include="TransformHierarchy.h" />
+    <ClInclude Include="SceneComponent.h" />
+    <ClInclude Include="SceneNode.h" />
     <ClInclude Include="TypeTrait.h" />
     <ClInclude Include="DataType.h" />
     <ClInclude Include="Event.h" />
@@ -741,7 +738,7 @@
     </ClInclude>
     <ClInclude Include="UID.h" />
     <ClInclude Include="Properties.h" />
-    <ClInclude Include="json.h" />
+    <ClInclude Include="Json.h" />
     <ClInclude Include="Vendor\backward\backward.hpp" />
     <ClInclude Include="Vendor\bvh\v2\bbox.h" />
     <ClInclude Include="Vendor\bvh\v2\binned_sah_builder.h" />
@@ -834,7 +831,7 @@
     <ClInclude Include="Vendor\imgui\imstb_rectpack.h" />
     <ClInclude Include="Vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="Vendor\imgui\imstb_truetype.h" />
-    <ClInclude Include="Vendor\nlohmann\json.hpp" />
+    <ClInclude Include="Vendor\nlohmann\Json.hpp" />
     <ClInclude Include="Vendor\nlohmann\json_fwd.hpp" />
     <ClInclude Include="vendor\unordered_dense\unordered_dense.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

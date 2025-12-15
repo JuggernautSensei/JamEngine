@@ -8,8 +8,8 @@ namespace jam
 
 struct TangentFrame
 {
-    std::vector<Vec3> tangents;
-    std::vector<Vec3> bitangents;
+    Vector<Vec3> tangents;
+    Vector<Vec3> bitangents;
 };
 
 [[nodiscard]] Mesh CreateCubeMesh(
@@ -42,16 +42,16 @@ struct TangentFrame
     Int32               _numTri,
     const VertexLayout& _vl);
 
-[[nodiscard]] std::vector<Vec3> ComputeNormal(
+[[nodiscard]] Vector<Vec3> ComputeNormals(
     std::span<const Vec3> _positions,
-    ConstMemView          _indexData,
+    ConstMemView          _idxData,
     bool                  _bUseU32);
 
 [[nodiscard]] TangentFrame ComputeTangentFrame(
     std::span<const Vec3> _positions,
     std::span<const Vec3> _normals,
     std::span<const Vec2> _texCoords,
-    ConstMemView          _indexData,
+    ConstMemView          _idxData,
     bool                  _bUseU32);
 
 }   // namespace jam

@@ -19,8 +19,8 @@ public:
 
 private:
     std::mutex                         m_mutex;             // mutex for thread safety
-    std::vector<std::function<void()>> m_commands;          // queue of commands
-    std::vector<std::function<void()>> m_pendingCommands;   // pending commands for execution
+    Vector<std::function<void()>> m_commands;          // queue of commands
+    Vector<std::function<void()>> m_pendingCommands;   // pending commands for execution
 };
 
 }   // namespace jam

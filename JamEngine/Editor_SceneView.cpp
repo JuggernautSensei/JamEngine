@@ -12,9 +12,9 @@
 #include "ImGuiUtilities.h"
 #include "Input.h"
 #include "JamEngineEditorEmbededIcons.h"
-#include "JsonUtilities.h"
 #include "SceneDeserializer.h"
 #include "SceneManager.h"
+#include "SceneNode.h"
 #include "SceneSerializer.h"
 #include "Vendor/imgui/ImGuizmo.h"
 
@@ -34,7 +34,7 @@ void Editor_SceneView::Init()
         m_cameraTransform.SetLookAt(Vec3::Zero);
         m_camera.SetFarZ(300.f);
 
-        const Vec3 euler = m_cameraTransform.GetPitchYawRoll();
+        const Vec3 euler = m_cameraTransform.ToPitchYawRoll();
         m_pitchRad       = euler.x;
         m_yawRad         = euler.y;
     }
@@ -42,13 +42,13 @@ void Editor_SceneView::Init()
     // load icons
     {
         bool bSucceeded = false;
-        bSucceeded |= m_cursorIcon.LoadFromMemory(ConstMemView { CursorIcon_png, CursorIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_editIcon.LoadFromMemory(ConstMemView { EditIcon_png, EditIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_menuIcon.LoadFromMemory(ConstMemView { MenuIcon_png, MenuIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_playIcon.LoadFromMemory(ConstMemView { PlayIcon_png, PlayIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_rotateIcon.LoadFromMemory(ConstMemView { RotationIcon_png, RotationIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_scaleIcon.LoadFromMemory(ConstMemView { ScalingIcon_png, ScalingIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_tranlateIcon.LoadFromMemory(ConstMemView { TranslateIcon_png, TranslateIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_cursorIcon.LoadSource(ConstMemView { CursorIcon_png, CursorIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_editIcon.LoadSource(ConstMemView { EditIcon_png, EditIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_menuIcon.LoadSource(ConstMemView { MenuIcon_png, MenuIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_playIcon.LoadSource(ConstMemView { PlayIcon_png, PlayIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_rotateIcon.LoadSource(ConstMemView { RotationIcon_png, RotationIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_scaleIcon.LoadSource(ConstMemView { ScalingIcon_png, ScalingIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_tranlateIcon.LoadSource(ConstMemView { TranslateIcon_png, TranslateIcon_png_size }, eImageFormat::PNG);
         JAM_ASSERT(bSucceeded, "Failed to load editor scene view icons");
     }
 }
@@ -148,7 +148,7 @@ void Editor_SceneView::OnImGuiRender(bool& _bShow)
     // Viewport toolbar
     {
         // Options button
-        Widget_IconButton("menu", ToImTextureRef(m_menuIcon.GetHandle()));
+        Widget_IconButton("menu", ImTextureRefFrom(m_menuIcon.GetHandle()));
         if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonLeft))
         {
             DrawOptionPopup_();
@@ -157,13 +157,13 @@ void Editor_SceneView::OnImGuiRender(bool& _bShow)
 
         // Gizmo mode selector
         ImGui::SameLine();
-        Widget_GizmoButton(eGizmoOp::None, ToImTextureRef(m_cursorIcon.GetHandle()));
+        Widget_GizmoButton(eGizmoOp::None, ImTextureRefFrom(m_cursorIcon.GetHandle()));
         ImGui::SameLine(0.f, 1.f);
-        Widget_GizmoButton(eGizmoOp::Translation, ToImTextureRef(m_tranlateIcon.GetHandle()));
+        Widget_GizmoButton(eGizmoOp::Translation, ImTextureRefFrom(m_tranlateIcon.GetHandle()));
         ImGui::SameLine(0.f, 1.f);
-        Widget_GizmoButton(eGizmoOp::Rotation, ToImTextureRef(m_rotateIcon.GetHandle()));
+        Widget_GizmoButton(eGizmoOp::Rotation, ImTextureRefFrom(m_rotateIcon.GetHandle()));
         ImGui::SameLine(0.f, 1.f);
-        Widget_GizmoButton(eGizmoOp::Scale, ToImTextureRef(m_scaleIcon.GetHandle()));
+        Widget_GizmoButton(eGizmoOp::Scale, ImTextureRefFrom(m_scaleIcon.GetHandle()));
 
         // gizmo orient (mtx/local) toggle
         ImGui::SameLine();
@@ -207,7 +207,7 @@ void Editor_SceneView::OnImGuiRender(bool& _bShow)
                 m_sceneViewRes     = avail;
 
                 // draw scene
-                ImGui::Image(ToImTextureRef(m_renderTexh), avail);
+                ImGui::Image(ImTextureRefFrom(m_renderTexh), avail);
 
                 // edit mode overlay
                 if (Editor::IsEditMode())
@@ -273,21 +273,15 @@ Json Editor_SceneView::OnSerialize()
 
 void Editor_SceneView::OnDeserialize(const Json& _json)
 {
-    try
-    {
-        m_camera.SetFovYRad(_json.value("cameraFovYRad", m_camera.GetFovYRad()));
-        m_camera.SetProjection(ValueEnumFromJson(_json, "cameraProjection", m_camera.GetProjection()));
-        m_cameraMoveSpeed        = _json.value("cameraMoveSpeed", m_cameraMoveSpeed);
-        m_cameraRotSpeed         = _json.value("cameraRotSpeed", m_cameraRotSpeed);
-        m_bShowGrid              = _json.value("drawGrid", m_bShowGrid);
-        m_bShowAxis              = _json.value("drawAxis", m_bShowAxis);
-        m_bShowCameraTranslation = _json.value("drawCameraTranslation", m_bShowCameraTranslation);
-        m_bShowCameraForward     = _json.value("drawCameraForward", m_bShowCameraForward);
-    }
-    catch (const std::exception& e)
-    {
-        Log::Warn(JAM_PRETTY_FUNCTION " failed to deserialize: {}", e.what());
-    }
+    m_camera.SetFovYRad(_json.value("cameraFovYRad", m_camera.GetFovYRad()));
+    m_camera.SetProjection(_json.value("cameraProjection", m_camera.GetProjection()));
+
+    TryGetJsonValue(_json, "cameraMoveSpeed", m_cameraMoveSpeed);
+    TryGetJsonValue(_json, "cameraRotSpeed", m_cameraRotSpeed);
+    TryGetJsonValue(_json, "drawGrid", m_bShowGrid);
+    TryGetJsonValue(_json, "drawAxis", m_bShowAxis);
+    TryGetJsonValue(_json, "drawCameraTranslation", m_bShowCameraTranslation);
+    TryGetJsonValue(_json, "drawCameraForward", m_bShowCameraForward);
 }
 
 void Editor_SceneView::DrawFocusEntityGizmo_() const
@@ -305,10 +299,10 @@ void Editor_SceneView::DrawFocusEntityGizmo_() const
         return;
     }
 
-    TransformHierarchy& th   = entity.GetTransformHierarchy();
-    Mat4                mtx  = th.GetWorldMatrix();
-    const Mat4          view = m_cameraTransform.GetViewMatrix();
-    const Mat4          proj = m_camera.CreateProjMatrix();
+    SceneNode& node = entity.GetSceneNode();
+    Mat4       mtx  = node.GetWorldTransform().GetMatrix();
+    const Mat4 view = m_cameraTransform.ToViewMatrix();
+    const Mat4 proj = m_camera.ToProjMatrix();
 
     const float x        = m_sceneViewLeftTop.x;
     const float y        = m_sceneViewLeftTop.y;
@@ -336,8 +330,8 @@ void Editor_SceneView::DrawFocusEntityGizmo_() const
     ImGuizmo::SetRect(x, y, width, height);
     if (ImGuizmo::Manipulate(&view._11, &proj._11, gizmoOp, gizmoMode, &mtx._11, nullptr, pSnap))
     {
-        const Transform trans { mtx };
-        th.SetWorldTransform(trans);
+        Transform& wt = node.ModifyWorldTransform();
+        wt.SetMatrix(mtx);
     }
 }
 
@@ -371,7 +365,7 @@ void Editor_SceneView::DrawOptionPopup_()
 
         if (ImGui::BeginMenu("field of view"))
         {
-            if (Widget_DragAngle("##CameraFov", &fovYRad, 0.5f, 1.f, 179.f))
+            if (Widget_DragAngle("##CameraFov", fovYRad, 0.5f, 1.f, 179.f))
                 m_camera.SetFovYRad(fovYRad);
             ImGui::EndMenu();
         }
@@ -549,11 +543,11 @@ void Editor_SceneView::OnRenderEdit()
 
     // setup render view
     RenderView renderView;
-    renderView.fbh    = m_fbh;
-    renderView.vp     = vp;
-    renderView.eyePos = m_cameraTransform.GetTranslation();
-    renderView.view   = m_cameraTransform.GetViewMatrix();
-    renderView.proj   = m_camera.CreateProjMatrix();
+    renderView.fbh  = m_fbh;
+    renderView.vp   = vp;
+    renderView.eye  = m_cameraTransform.GetTranslation();
+    renderView.view = m_cameraTransform.ToViewMatrix();
+    renderView.proj = m_camera.ToProjMatrix();
 
     // render scene
     SceneManager::Render(renderView);
@@ -598,30 +592,30 @@ void Editor_SceneView::OnRenderEdit()
                 const Entity entity = Editor::GetFocusEntity();
                 if (entity)
                 {
-                //{
-                //    // bounding box
-                //    if (entity.HasComponent<RenderableComponent>())
-                //    {
-                //        const RenderableComponent& rc = entity.GetComponent<RenderableComponent>();
-                //        if (const Ref<Mesh>& pMesh = rc.pMesh)
-                //        {
-                //            const Mat4& mtx = entity.GetTransformHierarchy().GetWorldMatrix();
-                //            m_renderer.DrawBoundingBox(pMesh->GetBoundingBox(), mtx, k_boundingBoxCol);
-                //        }
-                //    }
+                    //{
+                    //    // bounding box
+                    //    if (entity.HasComponent<RenderableComponent>())
+                    //    {
+                    //        const RenderableComponent& rc = entity.GetComponent<RenderableComponent>();
+                    //        if (const Ref<Mesh>& pMesh = rc.pMesh)
+                    //        {
+                    //            const Mat4& mtx = entity.GetTransformHierarchy().GetWorldMatrix();
+                    //            m_renderer.DrawBoundingBox(pMesh->GetBoundingBox(), mtx, k_boundingBoxCol);
+                    //        }
+                    //    }
 
-                //    // camera frustum
-                //    if (entity.HasComponent<CameraComponent>())
-                //    {
-                //        const TransformHierarchy& th   = entity.GetTransformHierarchy();
-                //        const Mat4                view = th.GetWorldViewMatrix();
+                    //    // camera frustum
+                    //    if (entity.HasComponent<CameraComponent>())
+                    //    {
+                    //        const TransformHierarchy& th   = entity.GetTransformHierarchy();
+                    //        const Mat4                view = th.GetWorldViewMatrix();
 
-                //        const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
-                //        const Camera&          cmr  = cc.camera;
-                //        const Mat4             proj = cmr.CreateProjMatrix();
+                    //        const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
+                    //        const Camera&          cmr  = cc.camera;
+                    //        const Mat4             proj = cmr.CreateProjMatrix();
 
-                //        m_renderer.DrawFrustum(view * proj, k_boundingBoxCol);
-                //    }
+                    //        m_renderer.DrawFrustum(view * proj, k_boundingBoxCol);
+                    //    }
                 }
             }
 
@@ -743,12 +737,12 @@ void Editor_SceneView::OnClickEditButton_()
 
     // recover scene from backup json
     SceneDeserializer deserializer;
-    deserializer.LoadFromJson(m_backupSceneJson);
+    deserializer.LoadJson(m_backupSceneJson);
 
     // deserialize
     if (!deserializer.Deserialize())
     {
-        JAM_ASSERT(0, "Failed to deserialize scene on stop: {}", GetErrorString());
+        JAM_ASSERT(0, "Failed to deserialize scene on stop: {}", ErrorBuffer::Get());
     }
 
     // clear temporary json
@@ -793,11 +787,11 @@ bool Editor_SceneView::Widget_GizmoButton(const eGizmoOp _op, const ImTextureRef
     // short cut
     if (!m_bMouseCaptured)
     {
-        ImGui::SetNextItemShortcut(k_shortcuts[EnumToInt(_op)]);
+        ImGui::SetNextItemShortcut(k_shortcuts[IntFrom(_op)]);
     }
 
     // button
-    if (Widget_IconButton(k_names[EnumToInt(_op)], _tex))
+    if (Widget_IconButton(k_names[IntFrom(_op)], _tex))
     {
         m_gizmoOp = _op;
         bChanged  = true;
@@ -812,7 +806,7 @@ bool Editor_SceneView::Widget_GizmoButton(const eGizmoOp _op, const ImTextureRef
     // tooltip
     if (ImGui::BeginItemTooltip())
     {
-        ImGui::TextUnformatted(k_tooltips[EnumToInt(_op)]);
+        ImGui::TextUnformatted(k_tooltips[IntFrom(_op)]);
         ImGui::EndTooltip();
     }
 
@@ -847,7 +841,7 @@ bool Editor_SceneView::Widget_GizmoOrientButton(const eGizmoOrient _orient)
     }
 
     // button
-    if (ImGui::Button(k_names[EnumToInt(_orient)]))
+    if (ImGui::Button(k_names[IntFrom(_orient)]))
     {
         m_gizmoOrient = _orient;
         bChanged      = true;
@@ -862,7 +856,7 @@ bool Editor_SceneView::Widget_GizmoOrientButton(const eGizmoOrient _orient)
     // tooltip
     if (ImGui::BeginItemTooltip())
     {
-        ImGui::TextUnformatted(k_tooltips[EnumToInt(_orient)]);
+        ImGui::TextUnformatted(k_tooltips[IntFrom(_orient)]);
         ImGui::EndTooltip();
     }
 
@@ -915,7 +909,7 @@ void Editor_SceneView::Widget_CameraAcroball_()
 
     if (Widget_Acroball("Acroball", m_cameraTransform, pos, k_acroballLength))
     {
-        const Vec3 euler = m_cameraTransform.GetPitchYawRoll();
+        const Vec3 euler = m_cameraTransform.ToPitchYawRoll();
         m_pitchRad       = euler.x;
         m_yawRad         = euler.y;
     }
@@ -962,7 +956,7 @@ bool Editor_SceneView::Widget_RunButton_() const
     ImGui::PushStyleColor(ImGuiCol_Button, Editor::GetStyleColorU32(eEditorStyleColor_RunButtonBg));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, Editor::GetStyleColorU32(eEditorStyleColor_RunButtonBgActive));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, Editor::GetStyleColorU32(eEditorStyleColor_RunButtonBgHovered));
-    const bool bClicked = Widget_IconButton("run", ToImTextureRef(m_playIcon.GetHandle()), k_editModeBtnSize);
+    const bool bClicked = Widget_IconButton("run", ImTextureRefFrom(m_playIcon.GetHandle()), k_editModeBtnSize);
     ImGui::PopStyleColor(3);
     return bClicked;
 }
@@ -972,7 +966,7 @@ bool Editor_SceneView::Widget_EditButton_() const
     ImGui::PushStyleColor(ImGuiCol_Button, Editor::GetStyleColorU32(eEditorStyleColor_EditButtonBg));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, Editor::GetStyleColorU32(eEditorStyleColor_EditButtonBgActive));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, Editor::GetStyleColorU32(eEditorStyleColor_EditButtonBgHovered));
-    const bool bClicked = Widget_IconButton("edit", ToImTextureRef(m_editIcon.GetHandle()), k_editModeBtnSize);
+    const bool bClicked = Widget_IconButton("edit", ImTextureRefFrom(m_editIcon.GetHandle()), k_editModeBtnSize);
     ImGui::PopStyleColor(3);
     return bClicked;
 }

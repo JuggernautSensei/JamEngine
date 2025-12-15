@@ -58,14 +58,14 @@ void CreatePrimitiveDialog::DrawCreateCubeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##name", &m_buf);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("width");
+        Widget_FrameAlignedText("width");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##width", &m_float0, 0.1f, 1.f, "%.3f"))
@@ -73,7 +73,7 @@ void CreatePrimitiveDialog::DrawCreateCubeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("height");
+        Widget_FrameAlignedText("height");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##height", &m_float1, 0.1f, 1.f, "%.3f"))
@@ -81,7 +81,7 @@ void CreatePrimitiveDialog::DrawCreateCubeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("depth");
+        Widget_FrameAlignedText("depth");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##depth", &m_float2, 0.1f, 1.f, "%.3f"))
@@ -89,10 +89,10 @@ void CreatePrimitiveDialog::DrawCreateCubeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("vertex layout");
+        Widget_FrameAlignedText("vertex layout");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_VertexLayoutSelector("##VertexLayoutSelector", m_pEntry);
+        Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pEntry);
 
         ImGui::EndTable();
     }
@@ -120,14 +120,14 @@ void CreatePrimitiveDialog::DrawCreateSphereTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##name", &m_buf);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("radius");
+        Widget_FrameAlignedText("radius");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##radius", &m_float0, 0.1f, 1.f, "%.3f"))
@@ -135,7 +135,7 @@ void CreatePrimitiveDialog::DrawCreateSphereTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("subdivisions level");
+        Widget_FrameAlignedText("subdivisions level");
         ImGui::SameLine();
         Widget_HelpMark("number of times to subdivide the icosahedron faces to increase the sphere's resolution.\n"
                         "higher values result in a smoother sphere but also increase the number of vertices and triangles.\n"
@@ -147,10 +147,10 @@ void CreatePrimitiveDialog::DrawCreateSphereTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("vertex layout");
+        Widget_FrameAlignedText("vertex layout");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_VertexLayoutSelector("##VertexLayoutSelector", m_pEntry);
+        Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pEntry);
 
         ImGui::EndTable();
     }
@@ -178,14 +178,14 @@ void CreatePrimitiveDialog::DrawCreatePlaneTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##name", &m_buf);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("width");
+        Widget_FrameAlignedText("width");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##width", &m_float0, 0.1f, 1.f, "%.3f"))
@@ -193,7 +193,7 @@ void CreatePrimitiveDialog::DrawCreatePlaneTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("depth");
+        Widget_FrameAlignedText("depth");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##depth", &m_float1, 0.1f, 1.f, "%.3f"))
@@ -201,10 +201,10 @@ void CreatePrimitiveDialog::DrawCreatePlaneTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("vertex layout");
+        Widget_FrameAlignedText("vertex layout");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_VertexLayoutSelector("##VertexLayoutSelector", m_pEntry);
+        Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pEntry);
 
         ImGui::EndTable();
     }
@@ -232,14 +232,14 @@ void CreatePrimitiveDialog::DrawCreateCircleTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##name", &m_buf);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("radius");
+        Widget_FrameAlignedText("radius");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##radius", &m_float0, 0.1f, 1.f, "%.3f"))
@@ -247,7 +247,7 @@ void CreatePrimitiveDialog::DrawCreateCircleTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("triangle count");
+        Widget_FrameAlignedText("triangle count");
         ImGui::SameLine();
 
         Widget_HelpMark("number of triangles that form the circle.\n"
@@ -261,10 +261,10 @@ void CreatePrimitiveDialog::DrawCreateCircleTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("vertex layout");
+        Widget_FrameAlignedText("vertex layout");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_VertexLayoutSelector("##VertexLayoutSelector", m_pEntry);
+        Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pEntry);
 
         ImGui::EndTable();
     }
@@ -292,14 +292,14 @@ void CreatePrimitiveDialog::DrawCreateConeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##name", &m_buf);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("height");
+        Widget_FrameAlignedText("height");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##height", &m_float0, 0.1f, 1.f, "%.3f"))
@@ -307,7 +307,7 @@ void CreatePrimitiveDialog::DrawCreateConeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("radius");
+        Widget_FrameAlignedText("radius");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##radius", &m_float1, 0.1f, 1.f, "%.3f"))
@@ -315,7 +315,7 @@ void CreatePrimitiveDialog::DrawCreateConeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("bottom triangle count");
+        Widget_FrameAlignedText("bottom triangle count");
         ImGui::SameLine();
         Widget_HelpMark("number of triangles that form the bottom circle of the cone.\n"
                         "higher values result in a smoother cone base.\n"
@@ -329,10 +329,10 @@ void CreatePrimitiveDialog::DrawCreateConeTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("vertex layout");
+        Widget_FrameAlignedText("vertex layout");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_VertexLayoutSelector("##VertexLayoutSelector", m_pEntry);
+        Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pEntry);
 
         ImGui::EndTable();
     }
@@ -360,14 +360,14 @@ void CreatePrimitiveDialog::DrawCreateCylinderTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##name", &m_buf);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("height");
+        Widget_FrameAlignedText("height");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##height", &m_float0, 0.1f, 1.f, "%.3f"))
@@ -375,7 +375,7 @@ void CreatePrimitiveDialog::DrawCreateCylinderTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("radius");
+        Widget_FrameAlignedText("radius");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         if (ImGui::InputFloat("##radius", &m_float1, 0.1f, 1.f, "%.3f"))
@@ -383,7 +383,7 @@ void CreatePrimitiveDialog::DrawCreateCylinderTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("bottom triangle count");
+        Widget_FrameAlignedText("bottom triangle count");
         ImGui::SameLine();
         Widget_HelpMark("number of triangles that form the top and bottom circles of the cylinder.\n"
                         "higher values result in a smoother cylinder.\n"
@@ -397,10 +397,10 @@ void CreatePrimitiveDialog::DrawCreateCylinderTable_()
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("vertex layout");
+        Widget_FrameAlignedText("vertex layout");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_VertexLayoutSelector("##VertexLayoutSelector", m_pEntry);
+        Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pEntry);
 
         ImGui::EndTable();
     }
@@ -447,10 +447,10 @@ bool CreatePrimitiveDialog::OnClickCreateCubeTableOkButton_(const float _width, 
         return false;
     }
 
-    Mesh mesh = CreateCubeMesh(Vec3 { _width, _height, _depth }, m_pEntry->GetLayout());
+    Mesh mesh = CreateCubeMesh(Vec3 { _width, _height, _depth }, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GetErrorString());
+        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }
@@ -495,10 +495,10 @@ bool CreatePrimitiveDialog::OnClickCreateSphereTableOkButton_(const float _radiu
         return false;
     }
 
-    Mesh mesh = CreateSphereMesh(_radius, _subdivisionLevel, m_pEntry->GetLayout());
+    Mesh mesh = CreateSphereMesh(_radius, _subdivisionLevel, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GetErrorString());
+        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }
@@ -537,10 +537,10 @@ bool CreatePrimitiveDialog::OnClickCreatePlaneTableOkButton_(const float _width,
         return false;
     }
 
-    Mesh mesh = CreatePlaneMesh(Vec2 { _width, _depth }, m_pEntry->GetLayout());
+    Mesh mesh = CreatePlaneMesh(Vec2 { _width, _depth }, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GetErrorString());
+        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }
@@ -585,10 +585,10 @@ bool CreatePrimitiveDialog::OnClickCreateCircleTableOkButton_(const float _radiu
         return false;
     }
 
-    Mesh mesh = CreateCircle(_radius, _numTri, m_pEntry->GetLayout());
+    Mesh mesh = CreateCircle(_radius, _numTri, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GetErrorString());
+        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }
@@ -633,10 +633,10 @@ bool CreatePrimitiveDialog::OnClickCreateConeTableOkButton_(const float _height,
         return false;
     }
 
-    Mesh mesh = CreateCone(_height, _radius, _numBottomTri, m_pEntry->GetLayout());
+    Mesh mesh = CreateCone(_height, _radius, _numBottomTri, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GetErrorString());
+        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }
@@ -681,10 +681,10 @@ bool CreatePrimitiveDialog::OnClickCreateCylinderTableOkButton_(const float _hei
         return false;
     }
 
-    Mesh mesh = CreateCylinder(_height, _radius, _numBottomTri, m_pEntry->GetLayout());
+    Mesh mesh = CreateCylinder(_height, _radius, _numBottomTri, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GetErrorString());
+        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }

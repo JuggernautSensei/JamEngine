@@ -23,12 +23,12 @@ BlendState BlendState::k_overlay            = { true, eBlend::DstColor, eBlend::
 
 StencilState StencilState::k_disable = {};
 
-SamplerState SamplerState::k_pointClamp  = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddress::Clamp, eTextureAddress::Clamp, eTextureAddress::Clamp, eCompareFunc::None };
-SamplerState SamplerState::k_linearClamp = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddress::Clamp, eTextureAddress::Clamp, eTextureAddress::Clamp, eCompareFunc::None };
-SamplerState SamplerState::k_pointWrap   = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddress::Wrap, eTextureAddress::Wrap, eTextureAddress::Wrap, eCompareFunc::None };
-SamplerState SamplerState::k_linearWrap  = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddress::Wrap, eTextureAddress::Wrap, eTextureAddress::Wrap, eCompareFunc::None };
+SamplerState SamplerState::k_pointClamp  = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eCompareFunc::None };
+SamplerState SamplerState::k_linearClamp = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eCompareFunc::None };
+SamplerState SamplerState::k_pointWrap   = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eCompareFunc::None };
+SamplerState SamplerState::k_linearWrap  = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eCompareFunc::None };
 
-Int32 GetBytePerPixel(const eTextureFormat _format)
+Int32 ByteFrom(const eTextureFormat _format)
 {
     switch (_format)
     {
@@ -105,7 +105,7 @@ Int32 GetBytePerPixel(const eTextureFormat _format)
             return 8;
 
         default:
-            JAM_ASSERT(0, "Unknown format: {}", EnumToString(_format));
+            JAM_ASSERT(0, "Unknown format: {}", StringFrom(_format));
             return 0;
     }
 }
@@ -133,12 +133,12 @@ Int32 CalcNumMips(const Int32 _width, const Int32 _height, const Int32 _depth)
 
 TextureResolution CalcTextureResolution(const Int32 _width, const Int32 _height, const Int32 _depth, const Int32 _mipIndex)
 {
-    JAM_ASSERT(_width >= 0 && _height >= 0 && _depth >= 0, "텍스처 크기는 0 이상이어야 합니다.");
-    JAM_ASSERT(_mipIndex >= 0, "밉 인덱스는 0 이상이어야 합니다.");
+    JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "texture width, height, depth must be greater than 0");
+    JAM_ASSERT(_mipIndex >= 0, "mip index must be non-negative");
 
-    Int32 mipWidth  = Max(1, _width >> _mipIndex);
-    Int32 mipHeight = Max(1, _height >> _mipIndex);
-    Int32 mipDepth  = Max(1, _depth >> _mipIndex);
+    const Int32 mipWidth  = Max(1, _width >> _mipIndex);
+    const Int32 mipHeight = Max(1, _height >> _mipIndex);
+    const Int32 mipDepth  = Max(1, _depth >> _mipIndex);
     return { mipWidth, mipHeight, mipDepth };
 }
 
@@ -147,7 +147,7 @@ Int32 CalcTextureIndex(const Int32 _mipIndex, const Int32 _arrayIndex, const Int
     return _mipIndex + _arrayIndex * _numMips;
 }
 
-Int32 GetIndexStride(const bool _bIsU32)
+Int32 CalcIndexStride(const bool _bIsU32)
 {
     return _bIsU32 ? 4 : 2;
 }

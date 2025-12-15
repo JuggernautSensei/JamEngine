@@ -11,9 +11,8 @@
 #include "Editor_SceneView.h"
 #include "Editor_VertexLayoutEditor.h"
 #include "Entity.h"
-#include "FileUtilities.h"
-#include "JsonUtilities.h"
 #include "SceneManager.h"
+#include "SceneNode.h"
 #include "SceneSerializer.h"
 #include "Vendor/imgui/ImGuizmo.h"
 #include "VertexLayoutStorage.h"
@@ -40,6 +39,12 @@ struct EditorContext
 
     [[nodiscard]] fs::path CreateConfigFilePath() const;
 
+    [[nodiscard]] Json SerializeVertexLayout(const VertexLayout& _vl) const;
+    VertexLayout       DeserializeVertexLayout(const Json& _json) const;
+
+    [[nodiscard]] Json  SerializeVertexLayoutStorage(VertexLayoutStorage _storage);
+    VertexLayoutStorage DeserializeVertexLayoutStorage(const Json& _json) const;
+
     Editor_SceneView          renderViewWindow;
     Editor_Profiler           profilerWindow;
     Editor_SceneHierarchy     sceneHierarchyWindow;
@@ -60,6 +65,53 @@ struct EditorContext
 
 }* g_pEdtCtx;
 
+Json EditorContext::SerializeVertexLayout(const VertexLayout& _vl) const
+{
+    Json json;
+    for (const VertexLayoutElement& elem: _vl.GetElements())
+    {
+        Json elemJson;
+        elemJson["attrib"] = elem.attrib;
+        elemJson["format"] = elem.format;
+        json.emplace_back(std::move(elemJson));
+    }
+    return json;
+}
+
+VertexLayout EditorContext::DeserializeVertexLayout(const Json& _json) const
+{
+    VertexLayout vl;
+    for (const Json& elemJson: _json)
+    {
+        VertexLayoutElement elem;
+        elem.attrib = elemJson.at("attrib");
+        elem.format = elemJson.at("format");
+        vl.Add(elem.attrib, elem.format);
+    }
+    return vl;
+}
+
+Json EditorContext::SerializeVertexLayoutStorage(const VertexLayoutStorage _storage)
+{
+    Json json;
+    for (const auto& [name, vle]: _storage)
+    {
+        json[name] = g_pEdtCtx->SerializeVertexLayout(vle->GetVertexLayout());
+    }
+    return json;
+}
+
+VertexLayoutStorage EditorContext::DeserializeVertexLayoutStorage(const Json& _json) const
+{
+    VertexLayoutStorage storage;
+    for (const auto& [name, vlJson]: _json.items())
+    {
+        VertexLayout vl = DeserializeVertexLayout(vlJson);
+        storage.Add(name, vl);
+    }
+    return storage;
+}
+
 void EditorContext::DrawFileMenu() const
 {
     if (ImGui::MenuItem("exit"))
@@ -77,9 +129,9 @@ void EditorContext::DrawWindowMenu() const
         "vertex vertexLayout manager"
     };
 
-    for (const eEditorWindowType type: EnumRange<eEditorWindowType>())
+    for (const eEditorWindowType type: EnumRanges<eEditorWindowType>())
     {
-        const Int32 idx   = EnumToInt(type);
+        const Int32 idx   = IntFrom(type);
         bool&       pShow = g_pEdtCtx->windowShows[idx];
         ImGui::MenuItem(k_panelNames[idx], nullptr, &pShow);
     }
@@ -89,7 +141,7 @@ void EditorContext::DrawOptionsMenu() const
 {
     if (ImGui::BeginMenu("font scale"))
     {
-        Widget_DragPercent("##FontScale", &ImGui::GetIO().FontGlobalScale, 0.5f, 50.f, 200.f);
+        Widget_DragPercent("##FontScale", ImGui::GetIO().FontGlobalScale, 0.5f, 50.f, 200.f);
         ImGui::EndMenu();
     }
 }
@@ -146,13 +198,13 @@ void EditorContext::ShowWorkspace() const
 void EditorContext::SaveConfig() const
 {
     Json json;
-    json["windowShows"]         = g_pEdtCtx->windowShows;
-    json["fontScale"]           = ImGui::GetIO().FontGlobalScale;
-    json["vertexLayoutManager"] = g_pEdtCtx->vertexLayoutEditorWindow.OnSerialize();
-    json["viewport"]            = g_pEdtCtx->renderViewWindow.OnSerialize();
-    json["fileBrowser"]         = g_pEdtCtx->fileBrowserWindow.OnSerialize();
+    json["windowShows"] = g_pEdtCtx->windowShows;
+    json["fontScale"]   = ImGui::GetIO().FontGlobalScale;
+    json["viewport"]    = g_pEdtCtx->renderViewWindow.OnSerialize();
+    json["fileBrowser"] = g_pEdtCtx->fileBrowserWindow.OnSerialize();
 
-    if (SaveJsonToFile(g_pEdtCtx->CreateConfigFilePath(), json))
+    const fs::path path = g_pEdtCtx->CreateConfigFilePath();
+    if (SaveJsonFile(path, json))
     {
         JAM_DEBUG_LOG("editor config saved.");
     }
@@ -170,7 +222,7 @@ void EditorContext::LoadConfig() const
         return;
     }
 
-    std::optional<Json> opt = LoadJsonFromFile(path);
+    std::optional<Json> opt = LoadJsonFile(path);
     if (!opt)
     {
         // discard if failed to load
@@ -183,32 +235,30 @@ void EditorContext::LoadConfig() const
     try
     {
         // font scale
-        {
-            ImGuiIO& io        = ImGui::GetIO();
-            io.FontGlobalScale = json.at("fontScale").get<float>();
-        }
+        ImGuiIO& io        = ImGui::GetIO();
+        io.FontGlobalScale = json.value("fontScale", io.FontGlobalScale);
 
         // window shows
-        {
-            const Json& windowShowsJson = json.at("windowShows");
-            g_pEdtCtx->windowShows      = windowShowsJson.get<std::array<bool, EnumCount<eEditorWindowType>()> >();
-        }
+        g_pEdtCtx->windowShows = json.value("windowShows", g_pEdtCtx->windowShows);
 
-        // vertex vertexLayout manager
+        // vertex layout
+        if (auto it = json.find("vertexLayoutStorage"); it != json.end())
         {
-            const Json& vertexLayoutMangerJson = json.at("vertexLayoutManager");
-            g_pEdtCtx->vertexLayoutEditorWindow.OnDeserialize(vertexLayoutMangerJson);
+            const Json& vlJson   = *it;
+            g_pEdtCtx->vlStorage = DeserializeVertexLayoutStorage(vlJson);
         }
 
         // viewport
+        if (auto it = json.find("viewport"); it != json.end())
         {
-            const Json& viewportJson = json.at("viewport");
-            g_pEdtCtx->renderViewWindow.OnDeserialize(viewportJson);
+            const Json& vpJson = *it;
+            g_pEdtCtx->renderViewWindow.OnDeserialize(vpJson);
         }
 
         // file browser
+        if (auto it = json.find("fileBrowser"); it != json.end())
         {
-            const Json& fileBrowserJson = json.at("fileBrowser");
+            const Json& fileBrowserJson = *it;
             g_pEdtCtx->fileBrowserWindow.OnDeserialize(fileBrowserJson);
         }
     }
@@ -412,7 +462,7 @@ void Editor::ImGuiRender()
     g_pEdtCtx->ShowWorkspace();
 
     // viewport
-    if (bool& bShow = g_pEdtCtx->windowShows[EnumToInt(eEditorWindowType::Viewport)])
+    if (bool& bShow = g_pEdtCtx->windowShows[IntFrom(eEditorWindowType::Viewport)])
     {
         g_pEdtCtx->renderViewWindow.OnImGuiRender(bShow);
     }
@@ -420,31 +470,31 @@ void Editor::ImGuiRender()
     ImGui::BeginDisabled(IsRuntimeMode());
 
     // profiler
-    if (bool& bShow = g_pEdtCtx->windowShows[EnumToInt(eEditorWindowType::Profiler)])
+    if (bool& bShow = g_pEdtCtx->windowShows[IntFrom(eEditorWindowType::Profiler)])
     {
         g_pEdtCtx->profilerWindow.OnImGuiRender(bShow);
     }
 
     // scene hierarchy
-    if (bool& bShow = g_pEdtCtx->windowShows[EnumToInt(eEditorWindowType::SceneHierarchy)])
+    if (bool& bShow = g_pEdtCtx->windowShows[IntFrom(eEditorWindowType::SceneHierarchy)])
     {
         g_pEdtCtx->sceneHierarchyWindow.OnImGuiRender(bShow);
     }
 
     // entity inspector
-    if (bool& bShow = g_pEdtCtx->windowShows[EnumToInt(eEditorWindowType::EntityInspector)])
+    if (bool& bShow = g_pEdtCtx->windowShows[IntFrom(eEditorWindowType::EntityInspector)])
     {
         g_pEdtCtx->entityInspectorWindow.OnImGuiRender(bShow);
     }
 
     // file system browser
-    if (bool& bShow = g_pEdtCtx->windowShows[EnumToInt(eEditorWindowType::FileSystemBrowser)])
+    if (bool& bShow = g_pEdtCtx->windowShows[IntFrom(eEditorWindowType::FileSystemBrowser)])
     {
         g_pEdtCtx->fileBrowserWindow.OnImGuiRender(bShow);
     }
 
     // vertex vertexLayout manager
-    if (bool& bShow = g_pEdtCtx->windowShows[EnumToInt(eEditorWindowType::VertexLayoutManager)])
+    if (bool& bShow = g_pEdtCtx->windowShows[IntFrom(eEditorWindowType::VertexLayoutManager)])
     {
         g_pEdtCtx->vertexLayoutEditorWindow.OnImGuiRender(bShow);
     }
@@ -506,7 +556,7 @@ void Editor::CreateEntityToActiveScene(const Entity _parentOrNull)
     SetFocusEntity(entity);
     if (_parentOrNull)
     {
-        entity.GetTransformHierarchy().SetParent(_parentOrNull);
+        entity.GetSceneNode().SetParent(_parentOrNull);
     }
 }
 
@@ -514,7 +564,7 @@ void Editor::CloneEntityToActiveScene(const Entity _entity, const Entity _parent
 {
     JAM_ASSERT(SceneManager::HasActiveScene(), "no active scene.");
 
-    if (!_entity || _entity.GetTransformHierarchy().IsRoot())
+    if (!_entity || _entity.GetSceneNode().IsRoot())
     {
         // cannot destroy null or root entity
         return;
@@ -525,7 +575,7 @@ void Editor::CloneEntityToActiveScene(const Entity _entity, const Entity _parent
     SetFocusEntity(entity);
     if (_parentOrNull)
     {
-        entity.GetTransformHierarchy().SetParent(_parentOrNull);
+        entity.GetSceneNode().SetParent(_parentOrNull);
     }
 }
 
@@ -533,7 +583,7 @@ void Editor::DestroyEntityToActiveScene(Entity _entity, const bool _bForce)
 {
     JAM_ASSERT(SceneManager::HasActiveScene(), "no active scene.");
 
-    if (!_entity || _entity.GetTransformHierarchy().IsRoot())
+    if (!_entity || _entity.GetSceneNode().IsRoot())
     {
         // cannot destroy null or root entity
         return;
@@ -542,8 +592,8 @@ void Editor::DestroyEntityToActiveScene(Entity _entity, const bool _bForce)
     // if not forced, check if the entity has children
     if (!_bForce)
     {
-        const TransformHierarchy& th     = _entity.GetTransformHierarchy();
-        const Entity              fChild = th.GetFirstChild();
+        const SceneNode& th     = _entity.GetSceneNode();
+        const Entity     fChild = th.GetFirstChild();
         if (fChild)
         {
             OpenCorePopupDialog("destroy entity tree", DestroyNotLeafEntityDialog { _entity });
@@ -580,9 +630,9 @@ void Editor::SaveActiveSceneByDialog()
 
         // save to file
         path.replace_extension(k_jamSceneExt);
-        if (!serializer.SaveToFile(path))
+        if (!serializer.SaveFile(path))
         {
-            std::string msg = std::format("failed to save scene to file: {}\n{}", path.native(), GetErrorString());
+            std::string msg = std::format("failed to save scene to file: {}\n{}", path.native(), ErrorBuffer::Get());
             Editor::OpenCorePopupDialog("error", msg);
         }
     }
@@ -602,7 +652,7 @@ void Editor::LoadActiveSceneByDialog()
         const fs::path& path = opt.value();
         if (!SceneManager::LoadScene(path))
         {
-            std::string msg = std::format("failed to load scene from file: {}\n{}", path.native(), GetErrorString());
+            std::string msg = std::format("failed to load scene from file: {}\n{}", path.native(), ErrorBuffer::Get());
             Editor::OpenCorePopupDialog("error", msg);
         }
     }
@@ -620,7 +670,7 @@ const EditorStyle& Editor::GetStyle()
 
 ImVec4 Editor::GetStyleColor(const eEditorStyleColor _color)
 {
-    return g_pEdtCtx->style.colors[EnumToInt(_color)];
+    return g_pEdtCtx->style.colors[IntFrom(_color)];
 }
 
 ImU32 Editor::GetStyleColorU32(const eEditorStyleColor _color)

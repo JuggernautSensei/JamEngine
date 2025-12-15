@@ -76,7 +76,7 @@ struct TextureFormatInfo
     PlatformTextureFormat depthFormat = static_cast<PlatformTextureFormat>(0);
 };
 
-[[nodiscard]] TextureFormatInfo GetTextureFormatInfo(eTextureFormat _format);
-[[nodiscard]] eTextureFormat    GetTextureFormatFromPlatform(PlatformTextureFormat _format);
+[[nodiscard]] TextureFormatInfo TextureFormatInfoFrom(eTextureFormat _format);
+[[nodiscard]] eTextureFormat    TextureFormatFrom(PlatformTextureFormat _format);
 
 }   // namespace jam

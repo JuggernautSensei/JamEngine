@@ -7,8 +7,8 @@ namespace jam
 class SceneDeserializer
 {
 public:
-    bool LoadFromFile(const fs::path& _filePath);
-    void LoadFromJson(const Json& _json);
+    bool LoadFile(const fs::path& _path);
+    void LoadJson(const Json& _json);
 
     bool                     Deserialize();
     [[nodiscard]] Ref<Scene> GetScene() const;

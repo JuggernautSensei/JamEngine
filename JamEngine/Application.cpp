@@ -3,7 +3,9 @@
 #include "Application.h"
 
 #include "AssetManager.h"
+#include "ComponentDB.h"
 #include "Editor.h"
+#include "ErrorBuffer.h"
 #include "Graphics.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
@@ -15,11 +17,6 @@
 namespace jam
 {
 
-static void OnNewFailed()
-{
-    JAM_CRASH("Failed to create application instance. Please check your CreateApplication implementation.");
-}
-
 Application* Application::s_instance = nullptr;
 
 void Application::Create(const CommandLineArguments& _args)
@@ -30,105 +27,103 @@ void Application::Create(const CommandLineArguments& _args)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    // 로그 초기화
-    Log::Init();
+    // locale
+    std::locale::global(std::locale(""));
 
-    // 싱글톤 객체 생성
+    // init
+    Log::Init();
+    ErrorBuffer::Init();
+
+    // create application
     s_instance = CreateApplication(_args);
 
-    // 어플리케이션 초기화 루틴
+    // project file directory
+    fs::create_directory(s_instance->m_contentsDir);
+
+    // init window
+    s_instance->m_window.Init();
+    s_instance->m_window.SetTitle(s_instance->m_applicationName);
+
+    // init graphics
+    const auto [width, height] = s_instance->m_window.GetClientResolution();
+    const HWND hwnd            = s_instance->m_window.GetPlatformHandle();
+    Graphics::Init(hwnd, width, height);
+
+    // init input
+    Input::Init();
+
+    // init asset manager
+    AssetManager::Init();
+
+    // init scene manager
+    SceneManager::Init();
+
+    // init imgui glue
+    ImGuiGlue::Init(hwnd);
+
+    // init editor if need
+    if (s_instance->IsEditorEnabled())
     {
-        // 기본 속성 설정
-        std::set_new_handler(OnNewFailed);
-        std::locale::global(std::locale(""));
-
-        // 파일 시스템 생성
-        fs::create_directory(s_instance->m_contentsDir);
-
-        // 윈도우 초기화
-        s_instance->m_window.Init();
-        s_instance->m_window.SetTitle(s_instance->m_applicationName);
-        const auto [width, height] = s_instance->m_window.GetClientResolution();
-        const HWND hwnd            = s_instance->m_window.GetPlatformHandle();
-
-        // 렌더러 초기화
-        Graphics::Init(hwnd, width, height);
-
-        // 입력 초기화
-        Input::Init();
-
-        // asset manager 초기화
-        AssetManager::Init();
-
-        // 씬 매니저 초기화
-        SceneManager::Init();
-
-        // imgui 초기화
-        ImGuiGlue::Init(hwnd);
-
-        // editor 초기화
-        if (s_instance->IsEditorEnabled())
-        {
-            Editor::Init();
-        }
+        Editor::Init();
     }
 
-    // 초기화 완료
+    // init done
     s_instance->m_bEventDispatchable = true;
     s_instance->m_bRunning           = true;
-    Log::Trace("Application '{}' started.", s_instance->m_applicationName);
+    Log::Trace("application '{}' started.", s_instance->m_applicationName);
 
-    // 사용자 정의 어플리케이션 초기화 루틴
+    // init user application
     s_instance->OnCreate();
 }
 
 void Application::Destroy()
 {
     JAM_ASSERT(s_instance, "Application instance is null");
-    JAM_ASSERT(s_instance->m_bRunning == false, "Application is still running, cannot destroy instance");
+    JAM_ASSERT(s_instance->m_bRunning, "Application is still running, cannot destroy instance");
 
-    // 종료 시작
+    // shutdown start
     Log::Trace("application '{}' shutdown.", s_instance->m_applicationName);
 
-    // 사용자 정의 어플리케이션 종료 루틴
+    // destroy user application
     s_instance->OnDestroy();
 
-    // 이벤트 디스패치 비활성화
+    // close event dispatch
     s_instance->m_bEventDispatchable = false;
 
-    // db 정리
+    // destroy db
     SceneDB::DestroyInstance();
     ScriptDB::DestroyInstance();
     ComponentDB::DestroyInstance();
 
-    // 윈도우 종료
+    // shutdown window
     s_instance->m_window.Shutdown();
 
-    // 에디터 종료
+    // shutdown editor
     if (s_instance->IsEditorEnabled())
     {
         Editor::Shutdown();
     }
 
-    // imgui 종료
+    // shutdown imgui glue
     ImGuiGlue::Shutdown();
 
-    // 씬 매니저 종료
+    // shutdown scene manager
     SceneManager::Shutdown();
 
-    // 에셋 매니저 정리
+    // shutdown asset manager
     AssetManager::Shutdown();
 
-    // 입력 종료
+    // shutdown input
     Input::Shutdown();
 
-    // 렌더러 종료
+    // shutdown graphics lib
     Graphics::Shutdown();
 
-    // 싱글톤 객체 삭제
+    // destroy application instance
     JAM_DELETE(s_instance);
 
-    // 로그 종료
+    // shutdown
+    ErrorBuffer::Shutdown();
     Log::Shutdown();
 }
 
@@ -152,7 +147,7 @@ void Application::OnWindowCloseEvent_(const WindowCloseEvent& _event)
     Quit();
 }
 
-int Application::Run()
+Int32 Application::Run()
 {
     m_timer.Start();
 
@@ -160,13 +155,13 @@ int Application::Run()
     {
         if (!m_window.PollEvents())
         {
-            m_commandQueue.Execute();   // 이전 프레임에서 수집한 커맨드 실행
+            m_commandQueue.Execute();   // execute submitted commands
 
             m_timer.Tick();
             m_deltaTimeSec = static_cast<float>(m_timer.GetDelta(eSIPrefix::Sec));
             m_frameRate    = 1.f / m_deltaTimeSec;
 
-            // 업데이트
+            // update loop
             if (m_bEditorEnabled)
             {
                 Editor::Update(m_deltaTimeSec);
@@ -176,28 +171,27 @@ int Application::Run()
                 SceneManager::Update(m_deltaTimeSec);
             }
 
-            // 렌더링
+            // rendering loop
+            if (m_bEditorEnabled)
             {
-                if (m_bEditorEnabled)
-                {
-                    Editor::Render();
-                    ImGuiGlue::BeginFrame();
-                    Editor::ImGuiRender();
-                    SceneManager::ImGuiRender();
-                    ImGuiGlue::EndFrame();
-                }
-                else   // 런타임
-                {
-                    SceneManager::RenderRuntime();
-                    ImGuiGlue::BeginFrame();
-                    SceneManager::ImGuiRender();
-                    ImGuiGlue::EndFrame();
-                }
-
-                Graphics::Frame(m_bVsync);
+                Editor::Render();
+                ImGuiGlue::BeginFrame();
+                Editor::ImGuiRender();
+                SceneManager::ImGuiRender();
+                ImGuiGlue::EndFrame();
+            }
+            else
+            {
+                // runtime
+                SceneManager::RenderRuntime();
+                ImGuiGlue::BeginFrame();
+                SceneManager::ImGuiRender();
+                ImGuiGlue::EndFrame();
             }
 
-            // 인풋 갱신
+            Graphics::Frame(m_bVsync);
+
+            // update input
             Input::Update();
         }
     }
@@ -220,7 +214,8 @@ void Application::DispatchEvent(Event& _event)
         return;
     }
 
-    HandleEvent<WindowCloseEvent>(_event, JAM_BIND_MEMBER_LISTENER(Application::OnWindowCloseEvent_));
+    // application level event handling
+    HandleEvent<WindowCloseEvent>(_event, this, &Application::OnWindowCloseEvent_);
 
     m_window.OnEvent(_event);
     Graphics::OnEvent(_event);

@@ -45,32 +45,38 @@ IM_STATIC_ASSERT(IM_ARRAYSIZE(k_dataTypeInfoTable) == ImGuiDataType_COUNT);
 namespace jam
 {
 
-void Widget_CenterAlignedText(const char* _label, ImVec2 _region)
+void Widget_CenteredText(
+    const ImVec2 _region,
+    const char*  _fmt,
+    ...)
 {
-    if (_region == ImVec2 { 0.f, 0.f })
-        _region = ImGui::GetContentRegionAvail();
+    va_list args;
+    va_start(args, _fmt);
+    Widget_CenteredTextV(_region, _fmt, args);
+    va_end(args);
+}
 
-    const ImVec2 textSize = ImGui::CalcTextSize(_label);
+void Widget_CenteredTextV(
+    const ImVec2  _region,
+    const char*   _fmt,
+    const va_list _args)
+{
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+    {
+        return;
+    }
+
+    const char*  str      = FormatStringToTmpBufferV(_fmt, _args);
+    const ImVec2 textSize = ImGui::CalcTextSize(str, NULL, true);
     const ImVec2 offset   = (_region - textSize) * 0.5f;
-
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + offset);
-    ImGui::Text(_label);
+    ImGui::TextV(_fmt, _args);
 }
 
-void Widget_CenterAlignedTextDisabled(const char* _label, const ImVec2 _region)
-{
-    ImVec2 region = _region;
-    if (region == ImVec2 { 0.f, 0.f })
-        region = ImGui::GetContentRegionAvail();
-
-    const ImVec2 textSize = ImGui::CalcTextSize(_label);
-    const ImVec2 offset   = (region - textSize) * 0.5f;
-
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + offset);
-    ImGui::TextDisabled("%s", _label);
-}
-
-void Widget_FramePaddingAlignedText(const char* _fmt, ...)
+void Widget_FrameAlignedText(
+    const char* _fmt,
+    ...)
 {
     ImGui::AlignTextToFramePadding();
 
@@ -80,23 +86,32 @@ void Widget_FramePaddingAlignedText(const char* _fmt, ...)
     va_end(args);
 }
 
-void Widget_FramePaddingAlignedTextV(const char* _fmt, const va_list _args)
+void Widget_FrameAlignedTextV(
+    const char*   _fmt,
+    const va_list _args)
 {
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return;
+    }
+
     ImGui::AlignTextToFramePadding();
     ImGui::TextV(_fmt, _args);
 }
 
-void Widget_FramePaddingAlignedTextUnformatted(const char* _text)
-{
-    ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(_text);
-}
-
-bool Widget_DragTranslation(const char* _label, Vec3* _pTranslation, const float _speed, const float _min, const float _max)
+bool Widget_DragTranslation(
+    const char* _label,
+    Vec3*       _translation,
+    const float _speed,
+    const float _min,
+    const float _max)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return false;
+    }
 
     ImGui::PushID(_label);
     ImGui::BeginGroup();
@@ -110,52 +125,66 @@ bool Widget_DragTranslation(const char* _label, Vec3* _pTranslation, const float
 
     if (ImGui::Button("X", btnSize))
     {
-        _pTranslation->x = 0.f;
-        bChanged         = true;
+        _translation->x = 0.f;
+        bChanged        = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##x", &_pTranslation->x, _speed, _min, _max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    bChanged |= Widget_DragFloat("##x", &_translation->x, _speed, _min, _max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Y", btnSize))
     {
-        _pTranslation->y = 0.f;
-        bChanged         = true;
+        _translation->y = 0.f;
+        bChanged        = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##y", &_pTranslation->y, _speed, _min, _max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    bChanged |= Widget_DragFloat("##y", &_translation->y, _speed, _min, _max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Z", btnSize))
     {
-        _pTranslation->z = 0.f;
-        bChanged         = true;
+        _translation->z = 0.f;
+        bChanged        = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##z", &_pTranslation->z, _speed, _min, _max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    bChanged |= Widget_DragFloat("##z", &_translation->z, _speed, _min, _max, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::EndGroup();
     ImGui::PopID();
     return bChanged;
 }
 
-bool Widget_DragScale(const char* _label, Vec3* _pScaleNorm, const float _speedPerc, const float _minPerc, const float _maxPerc)
+bool Widget_DragScale(
+    const char* _label,
+    Vec3&       _scaleNorm,
+    const float _speedPerc,
+    const float _minPerc,
+    const float _maxPerc)
 {
-    Vec3 scalePerc = (*_pScaleNorm) * 100.f;
-    bool bChanged  = Widget_DragScalePerc(_label, &scalePerc, _speedPerc, _minPerc, _maxPerc);
+    Vec3 scalePerc = _scaleNorm * 100.f;
+    bool bChanged  = Widget_DragScalePerc(_label, scalePerc, _speedPerc, _minPerc, _maxPerc);
     if (bChanged)
-        *_pScaleNorm = scalePerc * 0.01f;
+    {
+        _scaleNorm = scalePerc * 0.01f;
+    }
     return bChanged;
 }
 
-bool Widget_DragScalePerc(const char* _label, Vec3* _pScalePerc, const float _speedPerc, const float _minPerc, const float _maxPerc)
+bool Widget_DragScalePerc(
+    const char* _label,
+    Vec3&       _scalePerc,
+    const float _speedPerc,
+    const float _minPerc,
+    const float _maxPerc)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return false;
+    }
 
     ImGui::PushID(_label);
     ImGui::BeginGroup();
@@ -169,61 +198,83 @@ bool Widget_DragScalePerc(const char* _label, Vec3* _pScalePerc, const float _sp
 
     if (ImGui::Button("X", btnSize))
     {
-        _pScalePerc->x = 100.f;
-        bChanged       = true;
+        _scalePerc.x = 100.f;
+        bChanged     = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##x", &_pScalePerc->x, _speedPerc, _minPerc, _maxPerc, "%.0f %%", ImGuiSliderFlags_AlwaysClamp);
+    bChanged |= Widget_DragFloat("##x", &_scalePerc.x, _speedPerc, _minPerc, _maxPerc, "%.0f %%", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Y", btnSize))
     {
-        _pScalePerc->y = 100.f;
-        bChanged       = true;
+        _scalePerc.y = 100.f;
+        bChanged     = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##y", &_pScalePerc->y, _speedPerc, _minPerc, _maxPerc, "%.0f %%", ImGuiSliderFlags_AlwaysClamp);
+    bChanged |= Widget_DragFloat("##y", &_scalePerc.y, _speedPerc, _minPerc, _maxPerc, "%.0f %%", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Z", btnSize))
     {
-        _pScalePerc->z = 100.f;
-        bChanged       = true;
+        _scalePerc.z = 100.f;
+        bChanged     = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##z", &_pScalePerc->z, _speedPerc, _minPerc, _maxPerc, "%.0f %%", ImGuiSliderFlags_AlwaysClamp);
+    bChanged |= Widget_DragFloat("##z", &_scalePerc.z, _speedPerc, _minPerc, _maxPerc, "%.0f %%", ImGuiSliderFlags_AlwaysClamp);
 
     ImGui::EndGroup();
     ImGui::PopID();
     return bChanged;
 }
 
-bool Widget_DragPitchYawRoll(const char* _label, Vec3* _pitchYawRollRad, const float _speedDeg, const float _minDeg, const float _maxDeg)
+bool Widget_DragPitchYawRoll(
+    const char* _label,
+    Vec3&       _pitchYawRollRad,
+    const float _speedDeg,
+    const float _minDeg,
+    const float _maxDeg)
 {
-    Vec3 pitchYawRollDeg = ToDeg(*_pitchYawRollRad);
-    bool bChanged        = Widget_DragPitchYawRollDeg(_label, &pitchYawRollDeg, _speedDeg, _minDeg, _maxDeg);
+    Vec3       pitchYawRollDeg = ToDeg(_pitchYawRollRad);
+    const bool bChanged        = Widget_DragPitchYawRollDeg(_label, pitchYawRollDeg, _speedDeg, _minDeg, _maxDeg);
     if (bChanged)
-        *_pitchYawRollRad = ToRad(pitchYawRollDeg);
+    {
+        _pitchYawRollRad = ToRad(pitchYawRollDeg);
+    }
     return bChanged;
 }
 
-bool Widget_DragPitchYaw(const char* _label, Vec2* _pitchYawRad, const float _speedDeg, const float _minDeg, const float _maxDeg)
+bool Widget_DragPitchYaw(
+    const char* _label,
+    Vec2&       _pitchYawRad,
+    const float _speedDeg,
+    const float _minDeg,
+    const float _maxDeg)
 {
-    Vec2 pitchYawDeg = ToDeg(*_pitchYawRad);
-    bool bChanged    = Widget_DragPitchYawDeg(_label, &pitchYawDeg, _speedDeg, _minDeg, _maxDeg);
+    Vec2       pitchYawDeg = ToDeg(_pitchYawRad);
+    const bool bChanged    = Widget_DragPitchYawDeg(_label, pitchYawDeg, _speedDeg, _minDeg, _maxDeg);
     if (bChanged)
-        *_pitchYawRad = ToRad(pitchYawDeg);
+    {
+        _pitchYawRad = ToRad(pitchYawDeg);
+    }
+
     return bChanged;
 }
 
-bool Widget_DragPitchYawRollDeg(const char* _label, Vec3* _pitchYawRollDeg, const float _speedDeg, const float _minDeg, const float _maxDeg)
+bool Widget_DragPitchYawRollDeg(
+    const char* _label,
+    Vec3&       _pitchYawRollDeg,
+    const float _speedDeg,
+    const float _minDeg,
+    const float _maxDeg)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return false;
+    }
 
     ImGui::PushID(_label);
     ImGui::BeginGroup();
@@ -237,43 +288,50 @@ bool Widget_DragPitchYawRollDeg(const char* _label, Vec3* _pitchYawRollDeg, cons
 
     if (ImGui::Button("X", btnSize))
     {
-        _pitchYawRollDeg->x = 0.f;
-        bChanged            = true;
+        _pitchYawRollDeg.x = 0.f;
+        bChanged           = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##pitch", &_pitchYawRollDeg->x, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
+    bChanged |= Widget_DragFloat("##pitch", &_pitchYawRollDeg.x, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
 
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Y", btnSize))
     {
-        _pitchYawRollDeg->y = 0.f;
-        bChanged            = true;
+        _pitchYawRollDeg.y = 0.f;
+        bChanged           = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##yaw", &_pitchYawRollDeg->y, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
+    bChanged |= Widget_DragFloat("##yaw", &_pitchYawRollDeg.y, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
 
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Z", btnSize))
     {
-        _pitchYawRollDeg->z = 0.f;
-        bChanged            = true;
+        _pitchYawRollDeg.z = 0.f;
+        bChanged           = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##roll", &_pitchYawRollDeg->z, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
+    bChanged |= Widget_DragFloat("##roll", &_pitchYawRollDeg.z, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
 
     ImGui::EndGroup();
     ImGui::PopID();
     return bChanged;
 }
 
-bool Widget_DragPitchYawDeg(const char* _label, Vec2* _pitchYawDeg, const float _speedDeg, const float _minDeg, const float _maxDeg)
+bool Widget_DragPitchYawDeg(
+    const char* _label,
+    Vec2&       _pitchYawDeg,
+    const float _speedDeg,
+    const float _minDeg,
+    const float _maxDeg)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return false;
+    }
 
     ImGui::PushID(_label);
     ImGui::BeginGroup();
@@ -287,63 +345,83 @@ bool Widget_DragPitchYawDeg(const char* _label, Vec2* _pitchYawDeg, const float 
 
     if (ImGui::Button("X", btnSize))
     {
-        _pitchYawDeg->x = 0.f;
-        bChanged        = true;
+        _pitchYawDeg.x = 0.f;
+        bChanged       = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##pitch", &_pitchYawDeg->x, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
+    bChanged |= Widget_DragFloat("##pitch", &_pitchYawDeg.x, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
 
     ImGui::SameLine(0, spacing);
     if (ImGui::Button("Y", btnSize))
     {
-        _pitchYawDeg->y = 0.f;
-        bChanged        = true;
+        _pitchYawDeg.y = 0.f;
+        bChanged       = true;
     }
     ImGui::SameLine(0, spacing);
     ImGui::SetNextItemWidth(dragInputWidth);
-    bChanged |= Widget_DragFloat("##yaw", &_pitchYawDeg->y, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
+    bChanged |= Widget_DragFloat("##yaw", &_pitchYawDeg.y, _speedDeg, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
 
     ImGui::EndGroup();
     ImGui::PopID();
     return bChanged;
 }
 
-bool Widget_DragAngle(const char* _label, float* _pRad, const float _degSpeed, const float _minDeg, const float _maxDeg)
+bool Widget_DragAngle(
+    const char* _label,
+    float&      _pRad,
+    const float _degSpeed,
+    const float _minDeg,
+    const float _maxDeg)
 {
-    float deg      = ToDeg(*_pRad);
+    float deg      = ToDeg(_pRad);
     bool  bChanged = Widget_DragFloat(_label, &deg, _degSpeed, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
     if (bChanged)
-        *_pRad = ToRad(deg);
+        _pRad = ToRad(deg);
     return bChanged;
 }
 
-bool Widget_DragPercent(const char* _label, float* _pNorm, const float _speedPerc, const float _minPerc, const float _maxPerc, const char* _format)
+bool Widget_DragPercent(
+    const char* _label,
+    float&      _pNorm,
+    const float _speedPerc,
+    const float _minPerc,
+    const float _maxPerc,
+    const char* _format)
 {
-    float perc     = *_pNorm * 100.f;
+    float perc     = _pNorm * 100.f;
     bool  bChanged = Widget_DragFloat(_label, &perc, _speedPerc, _minPerc, _maxPerc, _format, ImGuiSliderFlags_AlwaysClamp);
     if (bChanged)
-        *_pNorm = perc / 100.f;
+    {
+        _pNorm = perc / 100.f;
+    }
+
     return bChanged;
 }
 
-void Widget_BorderedText(const char* _text, const ImVec2& _size, const bool _bDisabled)
+void Widget_BorderedText(
+    const char*   _text,
+    const ImVec2& _size,
+    const bool    _bDisabled)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return;
+    }
 
-    ImGuiContext&     g     = *GImGui;
-    const ImGuiStyle& style = g.Style;
-
-    const ImVec2 textSize = ImGui::CalcTextSize(_text, NULL, true);
-    const ImVec2 pos      = window->DC.CursorPos;
-    const ImVec2 size     = ImGui::CalcItemSize(_size, textSize.x + style.FramePadding.x * 2.0f, textSize.y + style.FramePadding.y * 2.0f);
+    ImGuiContext&     g        = *GImGui;
+    const ImGuiStyle& style    = g.Style;
+    const ImVec2      textSize = ImGui::CalcTextSize(_text, NULL, true);
+    const ImVec2      pos      = window->DC.CursorPos;
+    const ImVec2      size     = ImGui::CalcItemSize(_size, textSize.x + style.FramePadding.x * 2.0f, textSize.y + style.FramePadding.y * 2.0f);
 
     const ImRect bb(pos, pos + size);
     ImGui::ItemSize(size, style.FramePadding.y);
     if (!ImGui::ItemAdd(bb, 0))
+    {
         return;
+    }
 
     ImGui::RenderFrame(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
@@ -360,14 +438,19 @@ void Widget_BorderedText(const char* _text, const ImVec2& _size, const bool _bDi
     }
 }
 
-void Widget_BorderedTextColored(const ImVec4& _color, const char* _text, const ImVec2& _size)
+void Widget_BorderedTextColored(
+    const ImVec4& _color,
+    const char*   _text,
+    const ImVec2& _size)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, _color);
     Widget_BorderedText(_text, _size);
     ImGui::PopStyleColor();
 }
 
-void Widget_ShadowedText(const char* _fmt, ...)
+void Widget_ShadowedText(
+    const char* _fmt,
+    ...)
 {
     va_list args;
     va_start(args, _fmt);
@@ -375,7 +458,9 @@ void Widget_ShadowedText(const char* _fmt, ...)
     va_end(args);
 }
 
-void Widget_ShadowedTextV(const char* _fmt, const va_list _args)
+void Widget_ShadowedTextV(
+    const char*   _fmt,
+    const va_list _args)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
@@ -400,7 +485,8 @@ void Widget_ShadowedTextV(const char* _fmt, const va_list _args)
     pDrawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_Text), text);
 }
 
-void Widget_HelpMark(const char* _desc)
+void Widget_HelpMark(
+    const char* _desc)
 {
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
@@ -413,55 +499,49 @@ void Widget_HelpMark(const char* _desc)
     }
 }
 
-bool Widget_VertexLayoutSelector(const char* _label, Ref<VertexLayoutEntry>& _pEntry)
+bool Widget_VertexLayoutEntryCombo(
+    const char*             _label,
+    Ref<VertexLayoutEntry>& _pVle)
 {
     const VertexLayoutStorage& storage  = Editor::GetVertexLayoutStorage();
-    const char*                preview  = _pEntry ? _pEntry->GetName().c_str() : "none";
+    const char*                preview  = _pVle ? _pVle->GetName().c_str() : "none";
     bool                       bChanged = false;
 
     if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const auto& [name, pLayout]: storage.GetContainer())
+        for (const auto& [name, pVle]: storage)
         {
-            bool bSelected = (_pEntry && name == _pEntry->GetName());
-            if (ImGui::Selectable(name.c_str(), bSelected))
+            const char* label     = name.c_str();
+            const bool  bSelected = (_pVle && name == _pVle->GetName());
+
+            if (ImGui::Selectable(label, bSelected))
             {
-                _pEntry  = pLayout;
+                _pVle    = pVle;
                 bChanged = true;
             }
-        }
-        ImGui::EndCombo();
-    }
 
-    return bChanged;
-}
-
-bool Widget_ProjectionSelector(const char* _label, eProjection& _projection)
-{
-    constexpr const char* const k_projNames[] = {
-        "perspective",
-        "orthographic",
-    };
-
-    bool bChanged = false;
-    if (ImGui::BeginCombo(_label, k_projNames[EnumToInt(_projection)], ImGuiComboFlags_NoArrowButton))
-    {
-        for (const eProjection proj: EnumRange<eProjection>())
-        {
-            bool bSelected = (_projection == proj);
-            if (ImGui::Selectable(k_projNames[EnumToInt(proj)], bSelected))
+            if (bSelected)
             {
-                _projection = proj;
-                bChanged    = true;
+                ImGui::SetItemDefaultFocus();
             }
         }
-
         ImGui::EndCombo();
     }
+
     return bChanged;
 }
 
-bool Widget_MeshSelector(const char* _label, Ref<Mesh>& _pMesh)
+bool Widget_ProjectionEnumCombo(
+    const char*  _label,
+    eProjection& _projection)
+{
+    constexpr const char* k_names[] = { "perspective", "orthographic" };
+    return Widget_EnumCombo(_label, reinterpret_cast<Int32&>(_projection), k_names);
+}
+
+bool Widget_MeshSelector(
+    const char* _label,
+    Ref<Mesh>&  _pMesh)
 {
     ImGui::PushID(_label);
     bool bChanged = false;
@@ -480,14 +560,14 @@ bool Widget_MeshSelector(const char* _label, Ref<Mesh>& _pMesh)
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
             const fs::path path = ResolvePathDragDropPayload(pPayload);
-            if (std::optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(path))
+            if (const std::optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(path))
             {
                 _pMesh   = opt.value();
                 bChanged = true;
             }
             else
             {
-                std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", path.native(), GetErrorString());
+                std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
                 Editor::OpenCorePopupDialog("error", msg);
             }
         }
@@ -508,10 +588,7 @@ bool Widget_MeshSelector(const char* _label, Ref<Mesh>& _pMesh)
     // tooltip
     if (bTooltip && ImGui::BeginTooltip())
     {
-        constexpr const char* k_nullMsg = "drag & drop .jmsh file here!\n"
-                                          "external models (.fbx, .obj, etc.)\n"
-                                          "must be imported as .jmsh files.";
-
+        constexpr const char* k_nullMsg = "drag & drop .jmsh file here!";
         ImGui::TextUnformatted(_pMesh ? text : k_nullMsg);
         ImGui::EndTooltip();
     }
@@ -520,7 +597,9 @@ bool Widget_MeshSelector(const char* _label, Ref<Mesh>& _pMesh)
     return bChanged;
 }
 
-bool Widget_MaterialSelector(const char* _label, Ref<Material>& _pMaterial)
+bool Widget_MaterialSelector(
+    const char*    _label,
+    Ref<Material>& _pMaterial)
 {
     ImGui::PushID(_label);
     bool bChanged = false;
@@ -545,7 +624,7 @@ bool Widget_MaterialSelector(const char* _label, Ref<Material>& _pMaterial)
             }
             else
             {
-                std::string msg = std::format("failed to load material from path: {}\nerror: {}", path.native(), GetErrorString());
+                std::string msg = std::format("failed to load material from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
                 Editor::OpenCorePopupDialog("error", msg);
             }
         }
@@ -566,54 +645,31 @@ bool Widget_MaterialSelector(const char* _label, Ref<Material>& _pMaterial)
     // tooltip
     if (bTooltip && ImGui::BeginTooltip())
     {
-        constexpr const char* k_nullMsg = "drag & drop .jmat file here!\n"
-                                          "materials must be imported as .jmat files.";
-
+        constexpr const char* k_nullMsg = "drag & drop .jmat file here!";
         ImGui::TextUnformatted(_pMaterial ? text : k_nullMsg);
         ImGui::EndTooltip();
     }
+
     ImGui::PopID();
     return bChanged;
 }
 
-bool Widget_ImageTextureSelector(const char* _label, Ref<ImageTexture>& _pImageTexture, const ImVec2& _size, const bool _bNoPreview)
+bool Widget_ImageTextureSelector(
+    const char*        _label,
+    Ref<ImageTexture>& _pImageTexture,
+    const ImVec2&      _size)
 {
     ImGui::PushID(_label);
     bool bChanged = false;
 
-    // determine size
-    ImVec2 itemSize = _size;
-    if (itemSize.x == 0.f && itemSize.y == 0.f)
-    {
-        if (_bNoPreview)
-        {
-            itemSize = { ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight() };
-        }
-        else
-        {
-            itemSize = ImVec2 { 128.f, 128.f };
-        }
-    }
-
     // preview item
     if (_pImageTexture)
     {
-        if (_bNoPreview)
-        {
-            // display text
-            const fs::path& path = _pImageTexture->GetPath();
-            Widget_BorderedText(path.c_str(), itemSize);
-        }
-        else
-        {
-            // preview
-            // not supporting non-2D textures for now
-            ImGui::ImageWithBg(ToImTextureRef(_pImageTexture->GetHandle()), itemSize);
-        }
+        ImGui::ImageWithBg(ImTextureRefFrom(_pImageTexture->GetHandle()), _size);
     }
     else
     {
-        Widget_BorderedText("no image", itemSize, true);
+        Widget_BorderedText("no image", _size, true);
     }
 
     // tooltip & context menu
@@ -633,10 +689,11 @@ bool Widget_ImageTextureSelector(const char* _label, Ref<ImageTexture>& _pImageT
             }
             else
             {
-                const std::string msg = std::format("failed to load image texture from path: {}\nerror: {}", path.native(), GetErrorString());
+                const std::string msg = std::format("failed to load image texture from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
                 Editor::OpenCorePopupDialog("error", msg);
             }
         }
+
         ImGui::EndDragDropTarget();
     }
 
@@ -645,25 +702,20 @@ bool Widget_ImageTextureSelector(const char* _label, Ref<ImageTexture>& _pImageT
     {
         if (_pImageTexture)
         {
-            constexpr const char* const k_typeTable[] = {
-                "texture 2D",
-                "texture 3D",
-                "texture cube",
-            };
+            constexpr const char* const k_typenames[] = { "texture 2D", "texture 3D", "texture cube" };
 
             TextureInfo info = Graphics::GetTextureInfo(_pImageTexture->GetHandle());
             ImGui::Text("path: %s", _pImageTexture->GetPath().c_str());
             ImGui::Text("size: %d x %d x %d", info.width, info.height, info.depth);
-            ImGui::Text("type: %s", k_typeTable[EnumToInt(info.type)]);
-            ImGui::Text("format: %s", EnumToString(info.format).data());
+            ImGui::Text("type: %s", k_typenames[IntFrom(info.type)]);
+            ImGui::Text("format: %s", StringFrom(info.format).data());
             ImGui::Text("array size: %d", info.arraySize);
             ImGui::Text("samples: %d", info.samples);
             ImGui::Text(" mip levels: %d", info.numMips);
         }
         else
         {
-            ImGui::TextUnformatted("no image!\n"
-                                   "drag & drop image file here to load");
+            ImGui::TextUnformatted("no image!\ndrag & drop image file here to load");
         }
         ImGui::EndTooltip();
     }
@@ -677,6 +729,7 @@ bool Widget_ImageTextureSelector(const char* _label, Ref<ImageTexture>& _pImageT
             bChanged       = true;
             ImGui::CloseCurrentPopup();
         }
+
         ImGui::EndPopup();
     }
 
@@ -684,13 +737,20 @@ bool Widget_ImageTextureSelector(const char* _label, Ref<ImageTexture>& _pImageT
     return bChanged;
 }
 
-bool Widget_DragScalar(const char* label, const ImGuiDataType data_type, void* p_data, const float v_speed, const void* p_min, const void* p_max, const char* format, const ImGuiSliderFlags flags)
+bool Widget_DragScalar(
+    const char*            label,
+    const ImGuiDataType    data_type,
+    void*                  p_data,
+    const float            v_speed,
+    const void*            p_min,
+    const void*            p_max,
+    const char*            format,
+    const ImGuiSliderFlags flags)
 {
     static bool   s_bIsCapturingMouse = false;
     static ImVec2 s_capturedMousePos  = ImVec2(0.f, 0.f);
 
-    ImGuiIO& io = ImGui::GetIO();
-
+    ImGuiIO&      io                = ImGui::GetIO();
     const bool    bDirty            = ImGui::DragScalar(label, data_type, p_data, v_speed, p_min, p_max, format, flags);
     const ImGuiID id                = ImGui::GetItemID();
     const bool    bIsActivated      = ImGui::IsItemActivated();
@@ -723,66 +783,115 @@ bool Widget_DragScalar(const char* label, const ImGuiDataType data_type, void* p
     return bDirty;
 }
 
-bool Widget_DragScalarN(const char* label, const ImGuiDataType data_type, void* p_data, const int components, const float v_speed, const void* p_min, const void* p_max, const char* format, const ImGuiSliderFlags flags)
+bool Widget_DragScalarN(
+    const char*            _label,
+    const ImGuiDataType    _dataType,
+    void*                  _pData,
+    const int              _numComps,
+    const float            _speed,
+    const void*            _pMin,
+    const void*            _pMax,
+    const char*            _format,
+    const ImGuiSliderFlags _flags)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return false;
+    }
 
-    ImGuiContext& g      = *GImGui;
-    bool          bDirty = false;
+    const float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
+    bool        bDirty  = false;
+
     ImGui::BeginGroup();
-    ImGui::PushID(label);
-    ImGui::PushMultiItemsWidths(components, ImGui::CalcItemWidth());
-    size_t type_size = k_dataTypeInfoTable[data_type].Size;
-    for (int i = 0; i < components; i++)
+
+    ImGui::PushID(_label);
+    ImGui::PushMultiItemsWidths(_numComps, ImGui::CalcItemWidth());
+    const size_t typesize = k_dataTypeInfoTable[_dataType].Size;
+    for (Int32 i = 0; i < _numComps; i++)
     {
         ImGui::PushID(i);
         if (i > 0)
-            ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-        bDirty |= Widget_DragScalar("", data_type, p_data, v_speed, p_min, p_max, format, flags);
+        {
+            ImGui::SameLine(0, spacing);
+        }
+
+        bDirty |= Widget_DragScalar("", _dataType, _pData, _speed, _pMin, _pMax, _format, _flags);
+        _pData = static_cast<void*>(static_cast<char*>(_pData) + typesize);
         ImGui::PopID();
         ImGui::PopItemWidth();
-        p_data = static_cast<void*>(static_cast<char*>(p_data) + type_size);
     }
     ImGui::PopID();
 
-    const char* label_end = ImGui::FindRenderedTextEnd(label);
-    if (label != label_end)
+    const char* label_end = ImGui::FindRenderedTextEnd(_label);
+    if (_label != label_end)
     {
-        ImGui::SameLine(0, g.Style.ItemInnerSpacing.x);
-        ImGui::TextEx(label, label_end);
+        ImGui::SameLine(0, spacing);
+        ImGui::TextEx(_label, label_end);
     }
 
     ImGui::EndGroup();
     return bDirty;
 }
 
-bool Widget_DragFloat(const char* label, float* p_data, const float v_speed, const float v_min, const float v_max, const char* format, const ImGuiSliderFlags flags)
+bool Widget_DragFloat(
+    const char*            label,
+    float*                 p_data,
+    const float            v_speed,
+    const float            v_min,
+    const float            v_max,
+    const char*            format,
+    const ImGuiSliderFlags flags)
 {
     return Widget_DragScalar(label, ImGuiDataType_Float, p_data, v_speed, &v_min, &v_max, format, flags);
 }
 
-bool Widget_DragFloat2(const char* label, float p_data[2], const float v_speed, const float v_min, const float v_max, const char* format, const ImGuiSliderFlags flags)
+bool Widget_DragFloat2(
+    const char*            label,
+    float                  p_data[2],
+    const float            v_speed,
+    const float            v_min,
+    const float            v_max,
+    const char*            format,
+    const ImGuiSliderFlags flags)
 {
     return Widget_DragScalarN(label, ImGuiDataType_Float, p_data, 2, v_speed, &v_min, &v_max, format, flags);
 }
 
-bool Widget_DragFloat3(const char* label, float p_data[3], const float v_speed, const float v_min, const float v_max, const char* format, const ImGuiSliderFlags flags)
+bool Widget_DragFloat3(
+    const char*            label,
+    float                  p_data[3],
+    const float            v_speed,
+    const float            v_min,
+    const float            v_max,
+    const char*            format,
+    const ImGuiSliderFlags flags)
 {
     return Widget_DragScalarN(label, ImGuiDataType_Float, p_data, 3, v_speed, &v_min, &v_max, format, flags);
 }
 
-bool Widget_DragFloat4(const char* label, float p_data[4], const float v_speed, const float v_min, const float v_max, const char* format, const ImGuiSliderFlags flags)
+bool Widget_DragFloat4(
+    const char*            label,
+    float                  p_data[4],
+    const float            v_speed,
+    const float            v_min,
+    const float            v_max,
+    const char*            format,
+    const ImGuiSliderFlags flags)
 {
     return Widget_DragScalarN(label, ImGuiDataType_Float, p_data, 4, v_speed, &v_min, &v_max, format, flags);
 }
 
-bool Widget_IconButton(const char* _label, const ImTextureRef _icon, const ImVec2 _size)
+bool Widget_IconButton(
+    const char*        _label,
+    const ImTextureRef _icon,
+    const ImVec2       _size)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return false;
+    }
 
     ImGuiContext&     g        = *GImGui;
     const ImGuiStyle& style    = g.Style;
@@ -797,7 +906,9 @@ bool Widget_IconButton(const char* _label, const ImTextureRef _icon, const ImVec
     const ImRect bb     = { cursor, cursor + size };
     ImGui::ItemSize(size, style.FramePadding.y);
     if (!ImGui::ItemAdd(bb, id))
+    {
         return false;
+    }
 
     bool hovered, held;
     bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
@@ -821,11 +932,17 @@ bool Widget_IconButton(const char* _label, const ImTextureRef _icon, const ImVec
     return pressed;
 }
 
-bool Widget_Acroball(const char* _label, Transform& _transform, const ImVec2 _pos, const float _length)
+bool Widget_Acroball(
+    const char*  _label,
+    Transform&   _transform,
+    const ImVec2 _pos,
+    const float  _length)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return false;
+    }
 
     ImGuiContext&     g     = *GImGui;
     const ImGuiStyle& style = g.Style;
@@ -840,7 +957,9 @@ bool Widget_Acroball(const char* _label, Transform& _transform, const ImVec2 _po
     ImGui::SetCursorScreenPos(_pos);
     ImGui::ItemSize(bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(bb, id))
+    {
         return false;
+    }
 
     // interaction
     bool bHovered, bHold;
@@ -857,7 +976,7 @@ bool Widget_Acroball(const char* _label, Transform& _transform, const ImVec2 _po
     if (bPressed)
     {
         // capture current rotation
-        const auto [p, y, _] = _transform.GetPitchYawRoll();
+        const auto [p, y, _] = _transform.ToPitchYawRoll();
         s_pitchRad           = p;
         s_yawRad             = y;
 
@@ -971,7 +1090,7 @@ bool Widget_Acroball(const char* _label, Transform& _transform, const ImVec2 _po
         const float depth01     = axis.depth + 1.f;
         float       t0          = Lerp(0.5f, 1.f, depth01);   // bright for front faces
         t0                      = Clamp(t0, 0.f, 1.f);
-        const ImVec4 baseColor  = colors[EnumToInt(axis.axis)];
+        const ImVec4 baseColor  = colors[IntFrom(axis.axis)];
         const ImVec4 finalColor = { baseColor.x * t0, baseColor.y * t0, baseColor.z * t0, baseColor.w };
         const ImU32  colorU32   = ImGui::GetColorU32(finalColor);
 
@@ -993,7 +1112,7 @@ bool Widget_Acroball(const char* _label, Transform& _transform, const ImVec2 _po
         // draw label
         if (axis.bPos)
         {
-            const char*  text     = k_axisNames[EnumToInt(axis.axis)];
+            const char*  text     = k_axisNames[IntFrom(axis.axis)];
             const ImVec2 textSize = ImGui::CalcTextSize(text);
             const ImVec2 textPos  = endPos - textSize * 0.5f;
             pDrawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_Text), text);
@@ -1003,7 +1122,10 @@ bool Widget_Acroball(const char* _label, Transform& _transform, const ImVec2 _po
     return bDirty;
 }
 
-bool Widget_OpenFileDialog(const char* _label, fs::path& _path, const std::span<const FileDialogFilter> _filters)
+bool Widget_OpenFileDialog(
+    const char*                             _label,
+    fs::path&                               _path,
+    const std::span<const FileDialogFilter> _filters)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
@@ -1011,12 +1133,13 @@ bool Widget_OpenFileDialog(const char* _label, fs::path& _path, const std::span<
         return false;
     }
 
-    const ImGuiStyle& style     = ImGui::GetStyle();
-    const ImVec2      btnRes    = ImGui::CalcTextSize("open") + style.FramePadding * 2;
-    const float       itemWidth = ImGui::GetContentRegionAvail().x - btnRes.x - style.ItemSpacing.x;
-    bool              bDirty    = false;
+    const ImGuiStyle& style      = ImGui::GetStyle();
+    const float       width      = ImGui::CalcItemWidth();
+    const ImVec2      btnSize    = ImGui::CalcTextSize("open") + style.FramePadding * 2;
+    const float       inputWidth = Max(0.f, width - btnSize.x - style.ItemSpacing.x);
+    bool              bDirty     = false;
 
-    ImGui::SetNextItemWidth(itemWidth);
+    ImGui::SetNextItemWidth(inputWidth);
     ImGui::InputText(_label, const_cast<std::string*>(&_path.native()), ImGuiInputTextFlags_ReadOnly);
 
     // tooltip
@@ -1028,11 +1151,11 @@ bool Widget_OpenFileDialog(const char* _label, fs::path& _path, const std::span<
 
     // open
     ImGui::SameLine();
-    if (ImGui::Button("open", btnRes))
+    if (ImGui::Button("open", btnSize))
     {
         if (std::optional<fs::path> opt = OpenFileDialog("open file", {}, _filters))
         {
-            _path  = opt.value();
+            _path  = *opt;
             bDirty = true;
         }
     }
@@ -1040,55 +1163,53 @@ bool Widget_OpenFileDialog(const char* _label, fs::path& _path, const std::span<
     return bDirty;
 }
 
-bool Widget_TextureChannelSelector(const char* _label, eTextureChannel& _colorChannel, const bool _excludeAlphaChannel)
+bool Widget_TextureChannelCombo(
+    const char*      _label,
+    eTextureChannel& _colorChannel,
+    const bool       _bExcludeAlphaChannel)
 {
-    constexpr const char* const k_channelNames[] = {
-        "R",
-        "G",
-        "B",
-        "A",
-    };
-
-    bool bDirty = false;
-    if (ImGui::BeginCombo(_label, k_channelNames[EnumToInt(_colorChannel)], ImGuiComboFlags_NoArrowButton))
+    if (_bExcludeAlphaChannel)
     {
-        for (const eTextureChannel channel: EnumRange<eTextureChannel>())
-        {
-            if (_excludeAlphaChannel && channel == eTextureChannel::Alpha)
-                continue;
-
-            bool bSelected = (_colorChannel == channel);
-            if (ImGui::Selectable(k_channelNames[EnumToInt(channel)], bSelected))
-            {
-                _colorChannel = channel;
-                bDirty        = true;
-            }
-        }
-        ImGui::EndCombo();
+        const char* k_names[] = { "R", "G", "B" };
+        return Widget_EnumCombo(_label, reinterpret_cast<Int32&>(_colorChannel), k_names);
     }
-    return bDirty;
+    else
+    {
+        const char* k_names[] = { "R", "G", "B", "A" };
+        return Widget_EnumCombo(_label, reinterpret_cast<Int32&>(_colorChannel), k_names);
+    }
 }
 
-bool Widget_TextureFormatSelector(const char* _label, eTextureFormat& _format, const bool _excludeDepthFormat)
+bool Widget_TextureFormatCombo(
+    const char*     _label,
+    eTextureFormat& _format,
+    const bool      _bExcludeDepthFormat)
 {
-    const char* preview  = EnumToString(_format).data();
+    const char* preview  = StringFrom(_format).data();
     bool        bChanged = false;
 
-    if (ImGui::BeginCombo(_label, preview))
+    if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const eTextureFormat format: EnumRange<eTextureFormat>())
+        for (const eTextureFormat format: EnumRanges<eTextureFormat>())
         {
-            if (format == eTextureFormat::Unknown || (_excludeDepthFormat && IsDepthFormat(format)))
+            // unkown format and depth format are excluded
+            if (_bExcludeDepthFormat && IsDepthFormat(format))
             {
                 continue;
             }
 
-            const bool  bSelected  = (format == _format);
-            const char* formatName = EnumToString(format).data();
-            if (ImGui::Selectable(formatName, bSelected))
+            const bool  bSelected = (format == _format);
+            const char* label     = StringFrom(format).data();
+
+            if (ImGui::Selectable(label, bSelected))
             {
                 _format  = format;
                 bChanged = true;
+            }
+
+            if (bSelected)
+            {
+                ImGui::SetItemDefaultFocus();
             }
         }
 
@@ -1098,21 +1219,55 @@ bool Widget_TextureFormatSelector(const char* _label, eTextureFormat& _format, c
     return bChanged;
 }
 
-bool Widget_ImageFormatSelector(const char* _label, eImageFormat& _format)
+bool Widget_ImageFormatCombo(const char* _label, eImageFormat& _format)
 {
-    const char* preview  = EnumToString(_format).data();
+    constexpr const char* const k_names[] = {
+        "dds",
+        "exr",
+        "hdr",
+        "tga",
+        "bmp",
+        "jpg",
+        "jpeg",
+        "png",
+        "tif",
+        "tiff",
+        "gif",
+        "hdp",
+        "jxr",
+        "wdp",
+        "ico",
+        "heif",
+        "heic"
+    };
+
+    return Widget_EnumCombo(_label, reinterpret_cast<Int32&>(_format), k_names);
+}
+
+bool Widget_EnumCombo(
+    const char*                        _label,
+    Int32&                             _value,
+    const std::span<const char* const> _labels)
+{
+    const char* preview  = _labels[_value];
     bool        bChanged = false;
 
     if (ImGui::BeginCombo(_label, preview))
     {
-        for (const eImageFormat format: EnumRange<eImageFormat>())
+        for (Int32 i = 0; _labels[i] != nullptr; i++)
         {
-            const bool  bSelected  = (format == _format);
-            const char* formatName = EnumToString(format).data();
-            if (ImGui::Selectable(formatName, bSelected))
+            const bool  bSelected = (i == _value);
+            const char* label     = _labels[i];
+
+            if (ImGui::Selectable(label, bSelected))
             {
-                _format  = format;
+                _value   = i;
                 bChanged = true;
+            }
+
+            if (bSelected)
+            {
+                ImGui::SetItemDefaultFocus();
             }
         }
 

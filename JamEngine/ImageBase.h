@@ -1,13 +1,10 @@
 #pragma once
-#include <DirectXTex.h>
 
 namespace jam
 {
 
 enum class eImageFormat : Int8
 {
-    Unknown = -1,
-
     DDS = 0,
     EXR,
     HDR,
@@ -28,8 +25,7 @@ enum class eImageFormat : Int8
     HEIC
 };
 
-[[nodiscard]] eImageFormat     ImageFormatFromPath(const fs::path& _path);
-[[nodiscard]] eImageFormat     ImageFormatFromString(std::string_view _str);
-[[nodiscard]] std::string_view ImageFormatToString(eImageFormat _format);
+[[nodiscard]] eImageFormat     ImageFormatFrom(const fs::path& _path);
+[[nodiscard]] std::string_view ErrorMessageFrom(eImageFormat _format);
 
 }   // namespace jam

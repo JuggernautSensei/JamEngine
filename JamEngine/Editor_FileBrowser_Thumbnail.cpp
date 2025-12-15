@@ -51,13 +51,13 @@ bool Editor_FileBrowser::Thumbnail::Load(const fs::path& _path)
 
     if (FAILED(SHCreateItemFromParsingName(path.c_str(), nullptr, IID_PPV_ARGS(&psi))))
     {
-        SetErrorString("Failed to create IShellItem from path: {}", _path.native());
+        ErrorBuffer::Set("Failed to create IShellItem from path: {}", _path.native());
         return false;
     }
 
     if (FAILED(psi->QueryInterface(IID_PPV_ARGS(&pImageFactory))))
     {
-        SetErrorString("Failed to get IShellItemImageFactory from IShellItem: {}", _path.native());
+        ErrorBuffer::Set("Failed to get IShellItemImageFactory from IShellItem: {}", _path.native());
         return false;
     }
 
@@ -66,7 +66,7 @@ bool Editor_FileBrowser::Thumbnail::Load(const fs::path& _path)
     {
         if (FAILED(pImageFactory->GetImage(k_thumbnailSize, SIIGBF_RESIZETOFIT, &hBmp)))
         {
-            SetErrorString("Failed to get thumbnail image for path: {}", _path.native());
+            ErrorBuffer::Set("Failed to get thumbnail image for path: {}", _path.native());
             return false;
         }
     }
@@ -75,18 +75,18 @@ bool Editor_FileBrowser::Thumbnail::Load(const fs::path& _path)
     if (GetObject(hBmp, sizeof(BITMAP), &bmp) == 0)
     {
         DeleteObject(hBmp);
-        SetErrorString("GetObject failed for thumbnail bitmap: {}", _path.native());
+        ErrorBuffer::Set("GetObject failed for thumbnail bitmap: {}", _path.native());
         return false;
     }
 
     const Int32        width    = bmp.bmWidth;
     const Int32        height   = bmp.bmHeight;
     const Int32        rowPitch = ((width * 32 + 31) / 32) * 4;
-    std::vector<UInt8> pixels(rowPitch * height);
+    Vector<UInt8> pixels(rowPitch * height);
     if (GetBitmapBits(hBmp, NarrowCast<LONG>(pixels.size()), pixels.data()) == 0)
     {
         DeleteObject(hBmp);
-        SetErrorString("GetBitmapBits failed for thumbnail bitmap: {}", _path.native());
+        ErrorBuffer::Set("GetBitmapBits failed for thumbnail bitmap: {}", _path.native());
         return false;
     }
 
@@ -106,7 +106,7 @@ void Editor_FileBrowser::Thumbnail::LoadDummy()
     constexpr Int32    w        = k_thumbnailSize.cx;
     constexpr Int32    h        = k_thumbnailSize.cy;
     constexpr Int32    rowPitch = ((w * 32 + 31) / 32) * 4;
-    std::vector<UInt8> pixels(rowPitch * h, 255);
+    Vector<UInt8> pixels(rowPitch * h, 255);
 
     ConstMemView bytes[] = { pixels };
     m_handle         = Graphics::CreateTexture2D(w, h, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags_None, bytes);
@@ -123,7 +123,7 @@ ImTextureRef Editor_FileBrowser::Thumbnail::GetImTexturRef() const
     return m_handle.value;
 }
 
-Resolution Editor_FileBrowser::Thumbnail::GetResolution() const
+Vec2i Editor_FileBrowser::Thumbnail::GetResolution() const
 {
     return m_res;
 }

@@ -18,6 +18,9 @@ template<typename KeyT,
          typename BucketContainer = ankerl::unordered_dense::detail::default_container_t>
 using HashSet = ankerl::unordered_dense::set<KeyT, Hash, KeyEqual, Alloc, Bucket, BucketContainer>;
 
-// clang-format off
-namespace jam { namespace hash_map = ankerl::unordered_dense; }
-// clang-format on
+namespace jam
+{
+
+namespace hash_map = ankerl::unordered_dense;
+
+}

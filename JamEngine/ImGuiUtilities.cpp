@@ -15,7 +15,7 @@ ImVec4 ImVec4FromHex(const UInt32 _rgba)
     };
 }
 
-ImTextureRef ToImTextureRef(const TextureHandle _texh)
+ImTextureRef ImTextureRefFrom(const TextureHandle _texh)
 {
     return _texh.value;
 }

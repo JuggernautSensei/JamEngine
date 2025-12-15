@@ -3,7 +3,7 @@
 #include "ImGuiGlue.h"
 
 #include "Graphics.h"
-#include "ShaderCompiler.h"
+#include "ImageTexture.h"
 #include "Vendor/imgui/ImGuizmo.h"
 #include "Vendor/imgui/imgui_impl_win32.h"
 
@@ -38,7 +38,7 @@ constexpr const char* k_imguiGlueVs =
     "    return output;\n"
     "}\n";
 
-constexpr const char* k_imguiGluePs =
+constexpr const char* k_imguiGlueBasicPs =
     "struct PS_INPUT\n"
     "{\n"
     "    float4 pos : SV_POSITION;\n"
@@ -55,7 +55,31 @@ constexpr const char* k_imguiGluePs =
     "    return out_col;\n"
     "}\n";
 
-struct ImGui_CONSTANT_BUFFER
+constexpr const char* k_imguiGlueTextureCubePs =
+    "struct PS_INPUT\n"
+    "{\n"
+    "    float4 pos : SV_POSITION;\n"
+    "    float2 uv  : TEXCOORD0;\n"
+    "    float4 col : COLOR0;\n"
+    "};\n"
+    "\n"
+    "sampler sampler0;\n"
+    "TextureCube texture0;\n"
+    "static const float2 k_center = float2(0.5f, 0.5f);\n"
+    "static const float k_padding = 0.01f;\n"
+    "static const float k_radius = 0.5f - k_padding;\n"
+    "\n"
+    "float4 main(PS_INPUT input) : SV_Target\n"
+    "{\n"
+    "    float dist = length(input.uv - k_center);\n"
+    "    float weight = step(dist, k_radius); // dist <= k_radius : 1\n"
+    "    float3 dir = float3(input.uv - k_center, sqrt(1.f - dist * dist));\n"
+    "    dir = normalize(dir);\n"
+    "    float4 out_col = input.col * texture0.Sample(sampler0, dir) * weight;\n"
+    "    return out_col;\n"
+    "}\n";
+
+struct IMGUI_CONSTANT_BUFFER
 {
     float mvp[4][4];
 };
@@ -69,10 +93,18 @@ struct ImGuiGlueContext
     void DestroyTexture(ImTextureData* _tex) const;
 
     [[nodiscard]] ShaderHandle  CreateShader(const char* _pShaderCode, eShader _shaderStage) const;
-    [[nodiscard]] ImTextureID   ToImTexureID(TextureHandle _texh) const;
-    [[nodiscard]] TextureHandle FromImTexureID(ImTextureID _id) const;
+    [[nodiscard]] ImTextureRef  ImTextureRefFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D) const;
+    [[nodiscard]] ImTextureID   ImTextureIDFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D) const;
+    void                        DecompositeImTextureID(ImTextureID _texId, TextureHandle& _outTexh, eTextureType& _outType) const;
+    [[nodiscard]] TextureHandle ExtractTextureHandleFrom(ImTextureID _texId) const;
 
-    ProgramHandle        ph;
+    ProgramHandle basicPh;
+    ProgramHandle textureCubePh;
+
+    ShaderHandle vsh;
+    ShaderHandle basicPsh;
+    ShaderHandle textureCubePsh;
+
     VertexLayout         vl;
     ConstantBufferHandle cbh;
 
@@ -99,11 +131,13 @@ void ImGuiGlueContext::Init()
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures;
 
     // create shaders
-    const ShaderHandle vsh = CreateShader(k_imguiGlueVs, eShader::VertexShader);
-    const ShaderHandle psh = CreateShader(k_imguiGluePs, eShader::PixelShader);
+    vsh            = CreateShader(k_imguiGlueVs, eShader::VertexShader);
+    basicPsh       = CreateShader(k_imguiGlueBasicPs, eShader::PixelShader);
+    textureCubePsh = CreateShader(k_imguiGlueTextureCubePs, eShader::PixelShader);
 
     // create program
-    ph = Graphics::CreateProgram(vsh, psh, true);
+    basicPh       = Graphics::CreateProgram(vsh, basicPsh);
+    textureCubePh = Graphics::CreateProgram(vsh, textureCubePsh);
 
     // create vertex vertexLayout
     vl.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
@@ -111,7 +145,7 @@ void ImGuiGlueContext::Init()
         .Add(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
 
     // create constant buffer
-    cbh = Graphics::CreateConstantBuffer(sizeof(ImGui_CONSTANT_BUFFER));
+    cbh = Graphics::CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
 
     // state
     bs               = BlendState::k_alphaBlend;
@@ -130,10 +164,11 @@ void ImGuiGlueContext::Shutdown()
     io.BackendRendererUserData = nullptr;
     io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures);
 
-    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-    platform_io.ClearRendererHandlers();
+    ImGuiPlatformIO& platformIo = ImGui::GetPlatformIO();
+    platformIo.ClearRendererHandlers();
 
-    for (ImTextureData* tex: platform_io.Textures)
+    // 텍스처 정리
+    for (ImTextureData* tex: platformIo.Textures)
     {
         const bool bIsDestroyStatus = tex->Status == ImTextureStatus_WantDestroy
                                    || tex->Status == ImTextureStatus_OK
@@ -145,7 +180,12 @@ void ImGuiGlueContext::Shutdown()
         }
     }
 
-    JAM_DESTROY_PROGRAM(ph);
+    // 리소스 파괴
+    JAM_DESTROY_SHADER(vsh);
+    JAM_DESTROY_SHADER(basicPsh);
+    JAM_DESTROY_SHADER(textureCubePsh);
+    JAM_DESTROY_PROGRAM(basicPh);
+    JAM_DESTROY_PROGRAM(textureCubePh);
     JAM_DESTROY_CONSTANT_BUFFER(cbh);
     JAM_DESTROY_VERTEX_BUFFER(vbh);
     JAM_DESTROY_INDEX_BUFFER(ibh);
@@ -168,15 +208,16 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
     // Update textures
     if (_pDrawData->Textures)
     {
-        for (ImTextureData* tex: *_pDrawData->Textures)
+        for (ImTextureData* pImTex: *_pDrawData->Textures)
         {
-            if (tex->Status != ImTextureStatus_OK)
+            if (pImTex->Status != ImTextureStatus_OK)
             {
-                UpdateTexture(tex);
+                UpdateTexture(pImTex);
             }
         }
     }
 
+    // realloc
     if (vbCap < _pDrawData->TotalVtxCount)
     {
         JAM_DESTROY_VERTEX_BUFFER(vbh);
@@ -184,47 +225,50 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
         vbh   = Graphics::CreateDynamicVertexBuffer(vbCap * sizeof(ImDrawVert), vl);
     }
 
+    // realloc
     if (ibCap < _pDrawData->TotalIdxCount)
     {
         JAM_DESTROY_INDEX_BUFFER(ibh);
-        const bool bUseU32 = vbCap > 65535;
+        const bool bUseU32 = vbCap > 0xFFFFFFFF;
         ibCap              = _pDrawData->TotalIdxCount + 10000;
         ibh                = Graphics::CreateDynamicIndexBuffer(ibCap, bUseU32);
     }
 
     // copy data to cpu buffers
-    MemView vtxMem  = Graphics::BeginUploadBuffer(vbh);
-    Byte*   pVtxMem = vtxMem.GetDataPtr();
+    MemView gpuVtxData  = Graphics::BeginUploadBuffer(vbh);
+    Byte*   pGpuVtxData = gpuVtxData.GetPointer();
 
-    MemView idxMem  = Graphics::BeginUploadBuffer(ibh);
-    Byte*   pIdxMem = idxMem.GetDataPtr();
+    MemView gpuIdxData  = Graphics::BeginUploadBuffer(ibh);
+    Byte*   pGpuIdxData = gpuIdxData.GetPointer();
 
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
     {
         // copy vertex data
-        size_t vtxCpySize = pDrawList->VtxBuffer.Size * sizeof(ImDrawVert);
-        memcpy(pVtxMem, pDrawList->VtxBuffer.Data, vtxCpySize);
+        const size_t vtxCpySize = pDrawList->VtxBuffer.Size * sizeof(ImDrawVert);
+        std::memcpy(pGpuVtxData, pDrawList->VtxBuffer.Data, vtxCpySize);
 
         // copy index data
-        size_t idxCpySize = pDrawList->IdxBuffer.Size * sizeof(ImDrawIdx);
-        memcpy(pIdxMem, pDrawList->IdxBuffer.Data, idxCpySize);
+        const size_t idxCpySize = pDrawList->IdxBuffer.Size * sizeof(ImDrawIdx);
+        std::memcpy(pGpuIdxData, pDrawList->IdxBuffer.Data, idxCpySize);
 
-        pVtxMem += vtxCpySize;
-        pIdxMem += idxCpySize;
+        pGpuVtxData += vtxCpySize;
+        pGpuIdxData += idxCpySize;
     }
 
+    // unmap
     Graphics::EndUploadBuffer(vbh);
     Graphics::EndUploadBuffer(ibh);
 
     // setup
-    Graphics::SetViewport(0, 0, NarrowCast<UInt16>(_pDrawData->DisplaySize.x), NarrowCast<UInt16>(_pDrawData->DisplaySize.y));
+    const Viewport vp = { NarrowCast<UInt16>(_pDrawData->DisplaySize.x), NarrowCast<UInt16>(_pDrawData->DisplaySize.y) };
+    Graphics::SetViewport(vp);
 
     const float L = _pDrawData->DisplayPos.x;
     const float R = _pDrawData->DisplayPos.x + _pDrawData->DisplaySize.x;
     const float T = _pDrawData->DisplayPos.y;
     const float B = _pDrawData->DisplayPos.y + _pDrawData->DisplaySize.y;
 
-    ImGui_CONSTANT_BUFFER cb;
+    IMGUI_CONSTANT_BUFFER cb;
     cb.mvp[0][0] = 2.0f / (R - L);
     cb.mvp[0][1] = 0.0f;
     cb.mvp[0][2] = 0.0f;
@@ -246,7 +290,6 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
     cb.mvp[3][3] = 1.0f;
 
     Graphics::UploadBuffer(cbh, cb);
-    Graphics::SetProgram(ph);
     Graphics::SetConstantBuffer(cbh, eShader::VertexShader, 0);
     Graphics::SetBlendState(bs, 0);
     Graphics::SetRenderState(gs);
@@ -271,19 +314,28 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
             const UInt16 clipMaxY = NarrowCast<UInt16>(Max(0.f, (cmd.ClipRect.w - clipOff.y) * clipScale.y));
 
             if (clipMaxX <= clipMinX || clipMaxY <= clipMinY)
+            {
                 continue;
+            }
 
             // Apply scissor/clipping rectangle
             Graphics::SetScissorRect(clipMinX, clipMinY, clipMaxX, clipMaxY);
-
-            // Bind texture
-            const TextureHandle texh = FromImTexureID(cmd.GetTexID());
-            Graphics::SetTexture(texh, eShader::PixelShader, 0);
 
             // Draw
             Graphics::SetIndexBuffer(ibh, cmd.ElemCount, 0);
             Graphics::SetSubmitParameter(eSubmitParameterType::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
             Graphics::SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
+
+            // Bind texture
+            TextureHandle texh;
+            eTextureType  texType;
+            DecompositeImTextureID(cmd.GetTexID(), texh, texType);
+
+            // set program
+            const ProgramHandle ph = (texType == eTextureType::TextureCube) ? textureCubePh : basicPh;
+
+            // 중복된 바인딩은 컬링되기에 동일한 파이프라인을 유지한다면 오버헤드는 function call 1 + branch 1
+            Graphics::SetProgram(ph);
             Graphics::Submit();
         }
 
@@ -291,9 +343,9 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
         baseVtxLoc += pDrawList->VtxBuffer.Size;
     }
 
+    // reset state
     Graphics::SetSubmitParameter(eSubmitParameterType::StartIndexLocation, 0);
     Graphics::SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, 0);
-    Graphics::SetTexture(k_invalidHandle, eShader::PixelShader, 0);
     Graphics::Flush();
 }
 
@@ -301,64 +353,92 @@ void ImGuiGlueContext::UpdateTexture(ImTextureData* _pTex) const
 {
     if (_pTex->Status == ImTextureStatus_WantCreate)
     {
-        IM_ASSERT(_pTex->TexID == ImTextureID_Invalid && _pTex->BackendUserData == nullptr);
-        IM_ASSERT(_pTex->Format == ImTextureFormat_RGBA32);
+        JAM_ASSERT(_pTex->TexID == ImTextureID_Invalid && _pTex->BackendUserData == nullptr, "Trying to create a texture that is already created.");
+        JAM_ASSERT(_pTex->Format == ImTextureFormat_RGBA32, "ImGuiGlueContext::UpdateTexture - Unsupported texture format.");
 
-        ConstMemView mem[] = {
+        ConstMemView texData[] = {
             ConstMemView { _pTex->GetPixels(), static_cast<size_t>(_pTex->GetSizeInBytes()) }
         };
 
-        const TextureHandle texh = Graphics::CreateTexture2D(_pTex->Width, _pTex->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags_Mutable, mem);
+        // dynamic texture creation
+        const TextureHandle texh = Graphics::CreateTexture2D(_pTex->Width, _pTex->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags_Mutable, texData);
         _pTex->SetTexID(texh.value);
         _pTex->SetStatus(ImTextureStatus_OK);
     }
     else if (_pTex->Status == ImTextureStatus_WantUpdates)
     {
-        const TextureHandle texh = FromImTexureID(_pTex->GetTexID());
+        const TextureHandle texh = ExtractTextureHandleFrom(_pTex->GetTexID());
+
+        // upload dynamic
         for (ImTextureRect& rect: _pTex->Updates)
         {
-            ConstMemView mem { _pTex->GetPixelsAt(rect.x, rect.y), static_cast<size_t>(_pTex->GetSizeInBytes()) };
-            Graphics::UploadTexture2D(texh, 0, 0, rect.x, rect.y, mem, rect.w, rect.h, _pTex->GetPitch());
+            const ConstMemView texData = { _pTex->GetPixelsAt(rect.x, rect.y), static_cast<size_t>(_pTex->GetSizeInBytes()) };
+            Graphics::UploadTexture2D(texh, 0, 0, rect.x, rect.y, texData, rect.w, rect.h, _pTex->GetPitch());
         }
         _pTex->SetStatus(ImTextureStatus_OK);
     }
 
     if (_pTex->Status == ImTextureStatus_WantDestroy && _pTex->UnusedFrames > 0)
+    {
         DestroyTexture(_pTex);
+    }
 }
 
 void ImGuiGlueContext::DestroyTexture(ImTextureData* _tex) const
 {
     JAM_ASSERT(_tex->Status != ImTextureStatus_Destroyed && _tex->Status != ImTextureStatus_WantCreate, "Trying to destroy a texture that is not created.");
 
-    TextureHandle texh = FromImTexureID(_tex->GetTexID());
-    JAM_DESTROY_TEXTURE(texh);
+    // destroy texture
+    const TextureHandle texh = ExtractTextureHandleFrom(_tex->GetTexID());
+    Graphics::DestroyTexture(texh);
+
+    // clear info
     _tex->SetTexID(ImTextureID_Invalid);
     _tex->SetStatus(ImTextureStatus_Destroyed);
 }
 
 ShaderHandle ImGuiGlueContext::CreateShader(const char* _pShaderCode, const eShader _shaderStage) const
 {
-    ShaderCompiler compiler;
-    if (!compiler.CompileFromSource(_pShaderCode, _shaderStage, "main", eShaderCompileFlags_ReleaseDefault))
+    if (const std::optional<ShaderHandle> sh = Graphics::LoadShaderSource(_pShaderCode, _shaderStage, "main", eShaderCompileFlags_ReleaseDefault))
     {
-        JAM_ASSERT(0, "ImGuiGlueContext::CreateShader - Shader compilation failed.\n"
-                      "Error message: {}\n",
-                   GetErrorString());
+        return sh.value();
     }
-
-    return Graphics::CreateShader(compiler.GetBytecode());
+    else
+    {
+        JAM_ASSERT(0, "unreachable");
+        return k_invalidHandle;
+    }
 }
 
-ImTextureID ImGuiGlueContext::ToImTexureID(const TextureHandle _texh) const
+ImTextureRef ImGuiGlueContext::ImTextureRefFrom(
+    const TextureHandle _texh,
+    const eTextureType  _type) const
 {
-    return _texh.value;
+    return ImTextureIDFrom(_texh, _type);
 }
 
-TextureHandle ImGuiGlueContext::FromImTexureID(const ImTextureID _id) const
+ImTextureID ImGuiGlueContext::ImTextureIDFrom(
+    const TextureHandle _texh,
+    const eTextureType  _type) const
+{
+    return static_cast<UInt64>(_texh.value) << 32
+         | static_cast<UInt64>(_type);
+}
+
+void ImGuiGlueContext::DecompositeImTextureID(
+    const ImTextureID _texId,
+    TextureHandle&    _outTexh,
+    eTextureType&     _outType) const
+{
+    _outTexh.value = static_cast<UInt32>(_texId >> 32);
+    _outType       = EnumFromOrAssert<eTextureType>(_texId & 0xFFFFFFFF);
+}
+
+TextureHandle ImGuiGlueContext::ExtractTextureHandleFrom(
+    const ImTextureID _texId) const
 {
     TextureHandle texh;
-    texh.value = NarrowCast<UInt32>(_id);
+    texh.value = static_cast<UInt32>(_texId >> 32);
     return texh;
 }
 
@@ -367,7 +447,8 @@ TextureHandle ImGuiGlueContext::FromImTexureID(const ImTextureID _id) const
 namespace jam
 {
 
-void ImGuiGlue::Init(const HWND _hwnd)
+void ImGuiGlue::Init(
+    const HWND _hwnd)
 {
     JAM_ASSERT(g_pImguiCtx == nullptr, "ImGuiGlue::Init() called more than once without Shutdown().");
     g_pImguiCtx = JAM_NEW(ImGuiGlueContext);
@@ -379,6 +460,7 @@ void ImGuiGlue::Init(const HWND _hwnd)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+    // init
     ImGui_ImplWin32_Init(_hwnd);
     g_pImguiCtx->Init();
 }
@@ -387,6 +469,7 @@ void ImGuiGlue::Shutdown()
 {
     JAM_ASSERT(g_pImguiCtx, "ImGuiGlue::Shutdown() called without Init().");
 
+    // shutdown
     ImGui_ImplWin32_Shutdown();
     g_pImguiCtx->Shutdown();
     ImGui::DestroyContext();
@@ -403,17 +486,34 @@ void ImGuiGlue::BeginFrame()
 
 void ImGuiGlue::EndFrame()
 {
-    auto [w, h] = Graphics::GetBackBufferResolution();
+    // 백버퍼 바인딩
+    const auto [w, h] = Graphics::GetBackBufferResolution();
     Graphics::SetFrameBuffer(k_invalidHandle);
     Graphics::SetViewport(0, 0, w, h);
 
+    // draw data 처리
     ImGui::Render();
     g_pImguiCtx->Render(ImGui::GetDrawData());
 
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-    }
+    // viewport 모드는 지원하지 않음
+    // if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    // {
+    //     ImGui::UpdatePlatformWindows();
+    //     ImGui::RenderPlatformWindowsDefault();
+    // }
 }
+
+ImTextureRef ImGuiGlue::ImTextureRefFrom(
+    const TextureHandle _texh,
+    const eTextureType  _type)
+{
+    return g_pImguiCtx->ImTextureRefFrom(_texh, _type);
+}
+
+ImTextureRef ImGuiGlue::ImTextureRefFrom(
+    const Ref<ImageTexture>& _pTex)
+{
+    return g_pImguiCtx->ImTextureRefFrom(_pTex->GetHandle(), _pTex->GetTextureType());
+}
+
 }   // namespace jam

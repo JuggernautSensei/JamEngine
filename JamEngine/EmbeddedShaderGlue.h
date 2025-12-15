@@ -136,8 +136,8 @@ JAM_NAMESPACE_BEGIN
 #define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_FILMIC                    (6)
 #define JAM_ENVIRONMENT_TONE_MAPPING_TYPE_NONE                      (7)
 
-#define JAM_MAX_CASCADE_LEVEL 4
-#define JAM_SSAO_KERNEL_SIZE  16
+#define JAM_CASCADE_LEVEL    3
+#define JAM_SSAO_KERNEL_SIZE 16
 
 //===================================================
 // Constant Buffers
@@ -206,10 +206,10 @@ JAM_CBUFFER(CB_MATERIAL, 3)
 
 JAM_CBUFFER(CB_ENVIRONMENT, 4)
 {
-    JAM_ENVIRONMENT_FLAGS cb_envFlags;                     // 4
-    JAM_FLOAT             cb_dirLightIntensity;            // 4
-    JAM_UINT32            cb_dirLightShadowCascadeLevel;   // 4
-    JAM_FLOAT             cb_shadowBias;                   // 4
+    JAM_ENVIRONMENT_FLAGS cb_envFlags;            // 4
+    JAM_FLOAT             cb_dirLightIntensity;   // 4
+    JAM_FLOAT             cb_shadowBias;          // 4
+    JAM_FLOAT             cb_ssaoBias;            // 4
 
     JAM_FLOAT3 cb_dirLightDirection;   // 12
     JAM_PAD_FLOAT;                     // 4
@@ -217,7 +217,8 @@ JAM_CBUFFER(CB_ENVIRONMENT, 4)
     JAM_FLOAT3 cb_dirLightRadiance;   // 12
     JAM_PAD_FLOAT;                    // 4
 
-    JAM_FLOAT4 cb_dirLightShadowCascadeRanges;   // 16
+    JAM_FLOAT3 cb_cascadeShadowDistances;   // 12
+    JAM_PAD_FLOAT;                          // 4
 
     JAM_FLOAT  cb_irradianceMapIntensity;   // 4
     JAM_FLOAT  cb_specularMapIntensity;     // 4
@@ -226,9 +227,6 @@ JAM_CBUFFER(CB_ENVIRONMENT, 4)
 
     JAM_FLOAT3 cb_skyBoxSolidColor;   // 12
     JAM_FLOAT  cb_ssaoRadius;         // 4
-
-    JAM_FLOAT cb_ssaoBias;   // 4
-    JAM_PAD_FLOAT3;          // 8
 
     JAM_FLOAT3 cb_fogColor;     // 12
     JAM_FLOAT  cb_fogDensity;   // 4
@@ -246,10 +244,10 @@ JAM_CBUFFER(CB_ENVIRONMENT, 4)
 
 JAM_CBUFFER(CB_SHADOW_RECEIVER, 5)
 {
-    JAM_MATRIX cb_shadowReceiverViewProj;                       // 64 (shadow map)
-    JAM_MATRIX cb_csmReceiverViewProj[JAM_MAX_CASCADE_LEVEL];   // 64 (cascade shadow map)
+    JAM_MATRIX cb_shadowReceiverViewProj;                   // 64 (shadow map)
+    JAM_MATRIX cb_csmReceiverViewProj[JAM_CASCADE_LEVEL];   // 64 (cascade shadow map)
 
-    JAM_FLOAT cb_cascadeRanges[JAM_MAX_CASCADE_LEVEL];   // 16
+    JAM_FLOAT cb_cascadeRanges[JAM_CASCADE_LEVEL];   // 16
 
     JAM_UINT32 cb_cascadeLevel;   // 4
     JAM_PAD_FLOAT3;               // 12
@@ -270,7 +268,7 @@ JAM_CBUFFER(CB_SHADOW_CASTER, 7)
 
 JAM_CBUFFER(CB_CASCADE_SHADOW_CASTER, 8)
 {
-    JAM_MATRIX cb_csmViewProj[JAM_MAX_CASCADE_LEVEL];
+    JAM_MATRIX cb_csmViewProj[JAM_CASCADE_LEVEL];
 };
 
 JAM_CBUFFER(CB_OMNIDIRECTIONAL_SHADOW_CASTER, 9)

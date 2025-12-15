@@ -149,4 +149,20 @@ UInt64 MurmurHash64::End() const
     return h1;
 }
 
+UInt32 Hash_Murmur32(const void* _pData, const size_t _byteWidth, const UInt32 _seed)
+{
+    MurmurHash32 hasher;
+    hasher.Begin(_seed);
+    hasher.Add(_pData, _byteWidth);
+    return hasher.End();
+}
+
+UInt64 Hash_Murmur64(const void* _pData, const size_t _byteWidth, const UInt64 _seed)
+{
+    MurmurHash64 hasher;
+    hasher.Begin(_seed);
+    hasher.Add(_pData, _byteWidth);
+    return hasher.End();
+}
+
 }   // namespace jam

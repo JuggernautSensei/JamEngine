@@ -100,12 +100,6 @@
     <ClCompile Include="IImporter.cpp">
       <Filter>99. Utilities\IO</Filter>
     </ClCompile>
-    <ClCompile Include="ImageExporter.cpp">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageImporter.cpp">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderCompiler.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
@@ -113,7 +107,7 @@
       <Filter>99. Utilities\Profile</Filter>
     </ClCompile>
     <ClCompile Include="FString.cpp">
-      <Filter>99. Utilities\Container\string</Filter>
+      <Filter>99. Utilities\Container\String</Filter>
     </ClCompile>
     <ClCompile Include="Editor.cpp">
       <Filter>6. Editor</Filter>
@@ -134,9 +128,6 @@
       <Filter>7. Reflection</Filter>
     </ClCompile>
     <ClCompile Include="AssimpImporter.cpp">
-      <Filter>5. Assets\Model\Assimp</Filter>
-    </ClCompile>
-    <ClCompile Include="AssimpBase.cpp">
       <Filter>5. Assets\Model\Assimp</Filter>
     </ClCompile>
     <ClCompile Include="ScriptDB.cpp">
@@ -163,23 +154,14 @@
     <ClCompile Include="RadixSort.cpp">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="BoundingBox.cpp">
+    <ClCompile Include="BoundingVolume.cpp">
       <Filter>2. Graphics\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="TransformHierarchy.cpp">
-      <Filter>3. Scene\Entitiy</Filter>
-    </ClCompile>
-    <ClCompile Include="CullingSystem.cpp">
-      <Filter>4. Rendering\CullingSystem</Filter>
     </ClCompile>
     <ClCompile Include="RenderPass.cpp">
       <Filter>4. Rendering\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="RenderView.cpp">
       <Filter>3. Scene\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>99. Utilities\Math</Filter>
     </ClCompile>
     <ClCompile Include="MathUtilities.cpp">
       <Filter>99. Utilities\Math</Filter>
@@ -235,11 +217,8 @@
     <ClCompile Include="TagComponent.cpp">
       <Filter>3. Scene\Component</Filter>
     </ClCompile>
-    <ClCompile Include="TransformComponent.cpp">
+    <ClCompile Include="SceneComponent.cpp">
       <Filter>3. Scene\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonUtilities.cpp">
-      <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="CameraComponent.cpp">
       <Filter>3. Scene\Component</Filter>
@@ -304,12 +283,6 @@
     <ClCompile Include="EnvironmentComponent.cpp">
       <Filter>3. Scene\Component</Filter>
     </ClCompile>
-    <ClCompile Include="DrawItem.cpp">
-      <Filter>4. Rendering\CullingSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Environment.cpp">
-      <Filter>4. Rendering\BasicRenderer\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="RefCounted.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
@@ -349,9 +322,6 @@
     <ClCompile Include="DataType.cpp">
       <Filter>99. Utilities\Base</Filter>
     </ClCompile>
-    <ClCompile Include="Error.cpp">
-      <Filter>99. Utilities\Base</Filter>
-    </ClCompile>
     <ClCompile Include="Macros.cpp">
       <Filter>99. Utilities\Base</Filter>
     </ClCompile>
@@ -367,11 +337,38 @@
     <ClCompile Include="ImportModelDialog.cpp">
       <Filter>6. Editor\FileBrowser\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="Bvh.cpp">
-      <Filter>4. Rendering\Bvh</Filter>
+    <ClCompile Include="Octree.cpp">
+      <Filter>4. Rendering\Octree</Filter>
     </ClCompile>
-    <ClCompile Include="VisibleItem.cpp">
-      <Filter>4. Rendering\Utilities</Filter>
+    <ClCompile Include="Json.cpp">
+      <Filter>99. Utilities\Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneNode.cpp">
+      <Filter>3. Scene\Entitiy</Filter>
+    </ClCompile>
+    <ClCompile Include="Error.cpp">
+      <Filter>1. Core\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageExporter.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageImporter.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonUtilities.cpp">
+      <Filter>99. Utilities\Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="ErrorBuffer.cpp">
+      <Filter>1. Core\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="STL.cpp">
+      <Filter>99. Utilities\Container\STL</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment.cpp">
+      <Filter>4. Rendering\BasicRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -411,9 +408,6 @@
     <Filter Include="99. Utilities\Container">
       <UniqueIdentifier>{f39052bc-ccdb-4690-abe1-584111555366}</UniqueIdentifier>
     </Filter>
-    <Filter Include="99. Utilities\Container\dense_map">
-      <UniqueIdentifier>{40d865df-bd8b-4267-8d0d-b3d34725f645}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Hash">
       <UniqueIdentifier>{b66d39c1-1412-4925-b279-715f463d5d63}</UniqueIdentifier>
     </Filter>
@@ -435,14 +429,8 @@
     <Filter Include="99. Utilities\IO">
       <UniqueIdentifier>{999d4eb4-2d52-4717-adf7-72e11a6ece7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2. Graphics\Utilities\IO">
-      <UniqueIdentifier>{b3081ee2-caca-4a33-9cea-fb569329c2b0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Profile">
       <UniqueIdentifier>{4eaecd7b-865d-4eb1-8ba5-db1e11db51ea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\Container\string">
-      <UniqueIdentifier>{ba2b2df5-aabb-4f98-87c7-e425de1a0cd0}</UniqueIdentifier>
     </Filter>
     <Filter Include="5. Assets">
       <UniqueIdentifier>{3a9055cf-4862-4f71-975c-45185377c502}</UniqueIdentifier>
@@ -531,9 +519,6 @@
     <Filter Include="4. Rendering\ImGui">
       <UniqueIdentifier>{b3b02ff0-0cff-479b-be5d-b4cb49c06bd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="4. Rendering\CullingSystem">
-      <UniqueIdentifier>{d377728f-8395-4bae-8ef7-c81df93f9697}</UniqueIdentifier>
-    </Filter>
     <Filter Include="4. Rendering\BasicRenderer">
       <UniqueIdentifier>{9c597240-4bda-4dce-859f-c0e82fad73bc}</UniqueIdentifier>
     </Filter>
@@ -561,12 +546,6 @@
     <Filter Include="4. Rendering\RenderGraph">
       <UniqueIdentifier>{f43b2563-91e4-4be3-955e-fbb9af5a0d98}</UniqueIdentifier>
     </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Utilities">
-      <UniqueIdentifier>{f5e3a135-c911-4776-8934-2b3ea77019d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\Bvh">
-      <UniqueIdentifier>{0329e9a6-441d-4617-956c-080ca224028f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="98. Vendor\backward">
       <UniqueIdentifier>{6413fae2-1ef5-4792-a94a-20e24f16c8d0}</UniqueIdentifier>
     </Filter>
@@ -591,8 +570,20 @@
     <Filter Include="99. Utilities\Base\Config">
       <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="4. Rendering\Utilities">
-      <UniqueIdentifier>{d08059e8-bb58-4818-8576-566b6751e06b}</UniqueIdentifier>
+    <Filter Include="99. Utilities\Container\String">
+      <UniqueIdentifier>{ba2b2df5-aabb-4f98-87c7-e425de1a0cd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\HashMap">
+      <UniqueIdentifier>{40d865df-bd8b-4267-8d0d-b3d34725f645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Rendering\Octree">
+      <UniqueIdentifier>{bd52fca9-980c-4848-b76a-500b0ec1e435}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\Error">
+      <UniqueIdentifier>{1020e61a-8f4d-42ae-ab41-780395d0e77e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\STL">
+      <UniqueIdentifier>{816a5cb1-2c55-4e1c-8dff-573b14d1877a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -698,12 +689,6 @@
     <ClInclude Include="IImporter.h">
       <Filter>99. Utilities\IO</Filter>
     </ClInclude>
-    <ClInclude Include="ImageExporter.h">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageImporter.h">
-      <Filter>2. Graphics\Utilities\IO</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderCompiler.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
@@ -720,7 +705,7 @@
       <Filter>4. Rendering\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="FString.h">
-      <Filter>99. Utilities\Container\string</Filter>
+      <Filter>99. Utilities\Container\String</Filter>
     </ClInclude>
     <ClInclude Include="Editor.h">
       <Filter>6. Editor</Filter>
@@ -743,9 +728,6 @@
     <ClInclude Include="AssimpImporter.h">
       <Filter>5. Assets\Model\Assimp</Filter>
     </ClInclude>
-    <ClInclude Include="AssimpBase.h">
-      <Filter>5. Assets\Model\Assimp</Filter>
-    </ClInclude>
     <ClInclude Include="ScriptDB.h">
       <Filter>7. Reflection</Filter>
     </ClInclude>
@@ -762,9 +744,9 @@
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="HashMap.h">
-      <Filter>99. Utilities\Container\dense_map</Filter>
+      <Filter>99. Utilities\Container\HashMap</Filter>
     </ClInclude>
-    <ClInclude Include="json.h">
+    <ClInclude Include="Json.h">
       <Filter>99. Utilities\Serialize</Filter>
     </ClInclude>
     <ClInclude Include="vendor\unordered_dense\unordered_dense.h">
@@ -803,7 +785,7 @@
     <ClInclude Include="RadixSort.h">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="BoundingBox.h">
+    <ClInclude Include="BoundingVolume.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Vendor\bvh\v2\BoundBox.h">
@@ -869,11 +851,8 @@
     <ClInclude Include="Vendor\bvh\v2\binned_sah_builder.h">
       <Filter>98. Vendor\bvh</Filter>
     </ClInclude>
-    <ClInclude Include="TransformHierarchy.h">
+    <ClInclude Include="SceneNode.h">
       <Filter>3. Scene\Entitiy</Filter>
-    </ClInclude>
-    <ClInclude Include="CullingSystem.h">
-      <Filter>4. Rendering\CullingSystem</Filter>
     </ClInclude>
     <ClInclude Include="RenderPass.h">
       <Filter>4. Rendering\RenderGraph</Filter>
@@ -883,9 +862,6 @@
     </ClInclude>
     <ClInclude Include="RenderView.h">
       <Filter>3. Scene\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>99. Utilities\Math</Filter>
     </ClInclude>
     <ClInclude Include="MathUtilities.h">
       <Filter>99. Utilities\Math</Filter>
@@ -938,11 +914,8 @@
     <ClInclude Include="TagComponent.h">
       <Filter>3. Scene\Component</Filter>
     </ClInclude>
-    <ClInclude Include="TransformComponent.h">
+    <ClInclude Include="SceneComponent.h">
       <Filter>3. Scene\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonUtilities.h">
-      <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="CameraComponent.h">
       <Filter>3. Scene\Component</Filter>
@@ -1004,12 +977,6 @@
     <ClInclude Include="EnvironmentComponent.h">
       <Filter>3. Scene\Component</Filter>
     </ClInclude>
-    <ClInclude Include="DrawItem.h">
-      <Filter>4. Rendering\CullingSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Environment.h">
-      <Filter>4. Rendering\BasicRenderer\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="RefCounted.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
@@ -1019,7 +986,7 @@
     <ClInclude Include="Debug.h">
       <Filter>99. Utilities\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="Vendor\nlohmann\json.hpp">
+    <ClInclude Include="Vendor\nlohmann\Json.hpp">
       <Filter>98. Vendor\nlohmann</Filter>
     </ClInclude>
     <ClInclude Include="Vendor\nlohmann\json_fwd.hpp">
@@ -1055,20 +1022,38 @@
     <ClInclude Include="DataType.h">
       <Filter>99. Utilities\Base</Filter>
     </ClInclude>
-    <ClInclude Include="Error.h">
-      <Filter>99. Utilities\Base</Filter>
-    </ClInclude>
     <ClInclude Include="Macros.h">
       <Filter>99. Utilities\Base</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>99. Utilities\Base</Filter>
     </ClInclude>
-    <ClInclude Include="Bvh.h">
-      <Filter>4. Rendering\Bvh</Filter>
+    <ClInclude Include="Octree.h">
+      <Filter>4. Rendering\Octree</Filter>
     </ClInclude>
-    <ClInclude Include="VisibleItem.h">
-      <Filter>4. Rendering\Utilities</Filter>
+    <ClInclude Include="Transform.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>1. Core\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageExporter.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageImporter.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonUtilities.h">
+      <Filter>99. Utilities\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorBuffer.h">
+      <Filter>1. Core\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="STL.h">
+      <Filter>99. Utilities\Container\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment.h">
+      <Filter>4. Rendering\BasicRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

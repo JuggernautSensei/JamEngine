@@ -1,5 +1,5 @@
 #pragma once
-#include "BoundingBox.h"
+#include "BoundingVolume.h"
 #include "GraphicsBase.h"
 #include "Mesh.h"
 

@@ -24,7 +24,7 @@ public:
 
 private:
     CameraScriptDataComponent* m_pData  = nullptr;
-    TransformComponent*        m_pTrans = nullptr;
+    SceneComponent*        m_pTrans = nullptr;
 };
 
 void EditCameraScriptDataComponentUI(CameraScriptDataComponent& _component);

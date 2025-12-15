@@ -12,6 +12,8 @@ class Transform;
 
 class Scene : public RefCounted
 {
+    friend class SceneManager;
+
 public:
     ~Scene() override = default;
 
@@ -39,7 +41,7 @@ public:
     [[nodiscard]] Entity GetEntity(UID _uid) const;
     [[nodiscard]] Entity FindEntity(UID _uid) const;   // 해당 UID를 가진 엔티티가 없으면 null 엔티티 반환
 
-    [[nodiscard]] Entity CloneEntity(Entity _targetEntity);
+    [[nodiscard]] Entity CloneEntity(Entity _entity);
     void                 DestroyEntity(Entity _entity);
     [[nodiscard]] bool   IsEntityValid(Entity _entity) const;
 
@@ -76,10 +78,6 @@ public:
     [[nodiscard]] Int32                       GetEntityCount() const;
     [[nodiscard]] const HashMap<UID, Entity>& GetEntities() const;
 
-    // culling
-    
-
-    // metadata
     [[nodiscard]] virtual std::string_view GetTypeName() const = 0;
 
 protected:
@@ -91,15 +89,16 @@ private:
     [[nodiscard]] Entity CreateEntity_(UID _uid, std::string_view _name = {});
     [[nodiscard]] Entity CreateRootEntity_();
 
-    // entt
-    entt::registry       m_registry     = {};
-    UIDGenerator         m_uidGenerator = {};
-    HashMap<UID, Entity> m_entities     = {};
+    void UpdateSceneTree_();                  // call before rendering
+    void ProcessDeferredDestroyEntities_();   // call begin frame
 
-    // scene item hierarchy
-    Entity m_root = Entity::s_null;
+    entt::registry       m_registry                = {};
+    UIDGenerator         m_uidGenerator            = {};
+    HashMap<UID, Entity> m_entities                = {};
+    Entity               m_root                    = Entity::s_null;
+    Vector<Entity>  m_deferredDestroyEntities = {};
 
-    constexpr static UID k_rootEntityReservedUID = 0;
+    constexpr static UID k_rootEntityReservedUid = 0;
 };
 
 }   // namespace jam

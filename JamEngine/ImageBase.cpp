@@ -67,12 +67,10 @@ namespace jam
     }
 }
 
-}   // namespace jam
+///////////////////////////////////////////////////////
 
-namespace jam
-{
-
-eImageFormat ImageFormatFromPath(const fs::path& _path)
+eImageFormat ImageFormatFrom(
+    const fs::path& _path)
 {
     const std::string_view path = _path.native();
     if (path[0] == '.')   // already an extension
@@ -88,33 +86,45 @@ eImageFormat ImageFormatFromPath(const fs::path& _path)
     }
 }
 
-eImageFormat ImageFormatFromString(const std::string_view _str)
-{
-    const std::string lowerStr = ToLower(_str);
-    return ImageFormatFromLowerExt(lowerStr);
-}
-
-std::string_view ImageFormatToString(const eImageFormat _format)
+std::string_view ErrorMessageFrom(
+    const eImageFormat _format)
 {
     switch (_format)
     {
-        case eImageFormat::EXR: return "exr";
-        case eImageFormat::DDS: return "dds";
-        case eImageFormat::HDR: return "hdr";
-        case eImageFormat::TGA: return "tga";
-        case eImageFormat::BMP: return "bmp";
-        case eImageFormat::JPG: return "jpg";
-        case eImageFormat::JPEG: return "jpeg";
-        case eImageFormat::PNG: return "png";
-        case eImageFormat::TIF: return "tif";
-        case eImageFormat::TIFF: return "tiff";
-        case eImageFormat::GIF: return "gif";
-        case eImageFormat::HDP: return "hdp";
-        case eImageFormat::JXR: return "jxr";
-        case eImageFormat::WDP: return "wdp";
-        case eImageFormat::ICO: return "ico";
-        case eImageFormat::HEIF: return "heif";
-        case eImageFormat::HEIC: return "heic";
+        case eImageFormat::EXR:
+            return "exr";
+        case eImageFormat::DDS:
+            return "dds";
+        case eImageFormat::HDR:
+            return "hdr";
+        case eImageFormat::TGA:
+            return "tga";
+        case eImageFormat::BMP:
+            return "bmp";
+        case eImageFormat::JPG:
+            return "jpg";
+        case eImageFormat::JPEG:
+            return "jpeg";
+        case eImageFormat::PNG:
+            return "png";
+        case eImageFormat::TIF:
+            return "tif";
+        case eImageFormat::TIFF:
+            return "tiff";
+        case eImageFormat::GIF:
+            return "gif";
+        case eImageFormat::HDP:
+            return "hdp";
+        case eImageFormat::JXR:
+            return "jxr";
+        case eImageFormat::WDP:
+            return "wdp";
+        case eImageFormat::ICO:
+            return "ico";
+        case eImageFormat::HEIF:
+            return "heif";
+        case eImageFormat::HEIC:
+            return "heic";
         default:
             JAM_ASSERT(0, "Unknown image format");
             return "Unknown";

@@ -11,26 +11,52 @@
 namespace jam
 {
 
-[[nodiscard]] static Int32 ParseMaterialTextureIndex(const aiMaterial* _pMat, const aiTextureType _type, const Int32 _boundaryIndex)
+[[nodiscard]] static Int32 TryParseMaterialTextureIndex(
+    const aiMaterial*   _pMat,
+    const aiTextureType _type,
+    const Int32         _boundaryIndex)
 {
     aiString str;
     if (_pMat->GetTexture(_type, 0, &str) == AI_SUCCESS)
     {
         const char* c = str.C_Str() + 1;   // skip '*'
-        try
+        if (const std::optional<Int32> opt = TryParseStringToInt<Int32>(c))
         {
-            const Int32 index = std::stoi(c);
-            return (index >= 0 && index < _boundaryIndex) ? index : -1;
+            const Int32 index = *opt;
+            return (index >= 0 && index < _boundaryIndex) ? index : k_invalidImportedTexIndex;
         }
-        catch (...)
+        else
         {
-            return -1;
+            return k_invalidImportedTexIndex;
         }
     }
-    return -1;
+    else
+    {
+        return k_invalidImportedTexIndex;
+    }
 }
 
-[[nodiscard]] static ImportedModelNode BuildImportedModelTree_Recursive(const aiNode* _pNode, const aiScene* _pScene)
+[[nodiscard]] static Vec2 Vec2From(
+    const aiVector3D _vec)
+{
+    return Vec2 { _vec.x, _vec.y };
+}
+
+[[nodiscard]] static Vec3 Vec3From(
+    const aiVector3D _vec)
+{
+    return Vec3 { _vec.x, _vec.y, _vec.z };
+}
+
+[[nodiscard]] static Vec4 Vec4From(
+    const aiColor4D _color)
+{
+    return Vec4 { _color.r, _color.g, _color.b, _color.a };
+}
+
+[[nodiscard]] static ImportedModelNode ImportedModelNodeFrom_Recursive(
+    const aiNode*  _pNode,
+    const aiScene* _pScene)
 {
     ImportedModelNode node;
     if (_pNode->mName.length > 0)
@@ -61,16 +87,16 @@ namespace jam
     mat._42  = m.d2;
     mat._43  = m.d3;
     mat._44  = m.d4;
-
-    node.localTransform = mat;
+    node.mtx = mat;
 
     if (_pNode->mNumMeshes > 0)
     {
         for (UINT i = 0; i < _pNode->mNumMeshes; ++i)
         {
-            const UINT meshIndex = _pNode->mMeshes[i];
+            const UINT    meshIndex = _pNode->mMeshes[i];
+            const aiMesh* pMesh     = _pScene->mMeshes[meshIndex];
+
             node.meshIndices.emplace_back(meshIndex);
-            const aiMesh* pMesh = _pScene->mMeshes[meshIndex];
             node.materialIndices.emplace_back(pMesh->mMaterialIndex);
         }
     }
@@ -80,7 +106,7 @@ namespace jam
     node.children.reserve(numChildren);
     for (UINT i = 0; i < numChildren; ++i)
     {
-        node.children.emplace_back(BuildImportedModelTree_Recursive(_pNode->mChildren[i], _pScene));
+        node.children.emplace_back(ImportedModelNodeFrom_Recursive(_pNode->mChildren[i], _pScene));
     }
 
     return node;
@@ -90,6 +116,313 @@ namespace jam
 
 namespace jam
 {
+
+Vector<ImportedMesh> AssimpImporter::ImportMeshesFrom_(
+    const aiScene* _pScene) const
+{
+    const Int32          numMeshes = NarrowCast<Int32>(_pScene->mNumMeshes);
+    const aiMesh* const* pAiMeshes = _pScene->mMeshes;
+    JAM_ASSERT(numMeshes > 0, "AssimpImporter::ImportMeshesFrom_() - No mesh found");
+
+    Vector<ImportedMesh> meshes;
+    meshes.reserve(numMeshes);
+    for (Int32 i = 0; i < numMeshes; ++i)
+    {
+        const aiMesh* pAiMesh  = pAiMeshes[i];
+        const Int32   numVerts = NarrowCast<Int32>(pAiMesh->mNumVertices);
+
+        ImportedMesh mesh;
+
+        // name
+        {
+            if (pAiMesh->mName.length > 0)
+            {
+                mesh.name = std::format("{}_{}", pAiMesh->mName.C_Str(), i);
+            }
+            else
+            {
+                mesh.name = std::format("mesh_{}", i);
+            }
+        }
+
+        // indices
+        {
+            mesh.bUseU32           = numVerts > 0xFFFF;
+            const Int32 idxStride  = mesh.bUseU32 ? 4 : 2;
+            const Int32 numFaces   = NarrowCast<Int32>(pAiMesh->mNumFaces);
+            const Int32 numIndices = numFaces * 3;
+
+            mesh.idxData.resize(numIndices * idxStride);
+            for (Int32 j = 0; j < numFaces; ++j)
+            {
+                const aiFace& aiFace = pAiMesh->mFaces[j];
+                JAM_ASSERT(aiFace.mNumIndices == 3, "AssimpImporter::Import() - Face is not a triangle");
+
+                for (Int32 k = 0; k < 3; ++k)
+                {
+                    const Int32 offset = j * 3 + k;
+                    const Int32 index  = NarrowCast<Int32>(aiFace.mIndices[k]);
+                    Byte*       pDst   = mesh.idxData.data() + idxStride * offset;
+
+                    // write index
+                    if (mesh.bUseU32)
+                    {
+                        *pDst = index;
+                    }
+                    else
+                    {
+                        *pDst = NarrowCast<UInt16>(index);
+                    }
+                }
+            }
+        }
+
+        // positions
+        {
+            if (pAiMesh->HasPositions())
+            {
+                mesh.positions.reserve(numVerts);
+                for (Int32 v = 0; v < numVerts; ++v)
+                {
+                    mesh.positions.emplace_back(Vec3From(pAiMesh->mVertices[v]));
+                }
+            }
+        }
+
+        // texture coordinates (up to 4)
+        {
+            for (Int32 j = 0; j < 4; ++j)
+            {
+                if (pAiMesh->HasTextureCoords(j))
+                {
+                    Vector<Vec2>& texCoord = mesh.texCoords[j];
+                    texCoord.reserve(numVerts);
+                    for (Int32 k = 0; k < numVerts; ++k)
+                    {
+                        texCoord.emplace_back(Vec2From(pAiMesh->mTextureCoords[j][k]));
+                    }
+                }
+            }
+        }
+
+        // colors (up to 4)
+        {
+            for (Int32 j = 0; j < 4; ++j)
+            {
+                if (pAiMesh->HasVertexColors(j))
+                {
+                    Vector<Vec4>& color = mesh.colors[j];
+                    color.reserve(numVerts);
+                    for (Int32 k = 0; k < numVerts; ++k)
+                    {
+                        color.emplace_back(Vec4From(pAiMesh->mColors[j][k]));
+                    }
+                }
+            }
+        }
+
+        // normals
+        // m_bGenerateNormals 가 true 여도. mesh에 normal이 있으면 그것을 우선 사용한다.
+        {
+            if (pAiMesh->HasNormals() && !m_bDropExistingNormals)
+            {
+                mesh.normals.reserve(numVerts);
+                for (Int32 v = 0; v < numVerts; ++v)
+                {
+                    mesh.normals.emplace_back(Vec3From(pAiMesh->mNormals[v]));
+                }
+            }
+            else if (m_bGenerateNormals)   // 내장 normals가 없거나, 드롭된 경우
+            {
+                mesh.normals = ComputeNormals(mesh.positions, mesh.idxData, mesh.bUseU32);
+            }
+        }
+
+        // tangents & bitangents
+        {
+            if (pAiMesh->HasTangentsAndBitangents())
+            {
+                mesh.tangents.reserve(numVerts);
+                mesh.bitangents.reserve(numVerts);
+                for (Int32 v = 0; v < numVerts; ++v)
+                {
+                    mesh.tangents.emplace_back(Vec3From(pAiMesh->mTangents[v]));
+                    mesh.bitangents.emplace_back(Vec3From(pAiMesh->mBitangents[v]));
+                }
+            }
+            else if (m_bGenerateTangentFrame)
+            {
+                const TangentFrame frame = ComputeTangentFrame(mesh.positions, mesh.normals, mesh.texCoords[0], mesh.idxData, mesh.bUseU32);
+                mesh.tangents            = std::move(frame.tangents);
+                mesh.bitangents          = std::move(frame.bitangents);
+            }
+        }
+
+        // create ImportedMesh
+        meshes.emplace_back(std::move(mesh));
+    }
+
+    return meshes;
+}
+
+Vector<ImportedTexture> AssimpImporter::ImportTexturesFrom_(
+    const aiScene* _pScene) const
+{
+    aiTexture* const* pAiTexes = _pScene->mTextures;
+    const Int32       numTexes = NarrowCast<Int32>(_pScene->mNumTextures);
+    JAM_ASSERT(numTexes > 0, "AssimpImporter::ImportTexturesFrom_() - No texture found");
+
+    Vector<ImportedTexture> textures;
+    textures.reserve(numTexes);
+    for (Int32 i = 0; i < numTexes; ++i)
+    {
+        const aiTexture* pAiTex        = pAiTexes[i];
+        const bool       bIsCompressed = (pAiTex->mHeight == 0);
+
+        ImportedTexture tex;
+        tex.width         = NarrowCast<Int32>(pAiTex->mWidth);
+        tex.height        = NarrowCast<Int32>(pAiTex->mHeight);
+        tex.bIsCompressed = bIsCompressed;
+
+        if (bIsCompressed)
+        {
+            // Compressed texture
+            const Int32            byteWidth  = tex.width;
+            const Byte*            pPixel     = reinterpret_cast<const Byte*>(pAiTex->pcData);
+            const std::string_view formatHint = { pAiTex->achFormatHint, strlen(pAiTex->achFormatHint) };
+
+            tex.pixels = ConstMemView { pPixel, static_cast<size_t>(byteWidth) };
+            tex.format = ImageFormatFrom(formatHint);
+        }
+        else
+        {
+            // BGRA 로 가정
+            const size_t byteWidth = tex.width * tex.height * sizeof(aiTexel);
+            const Byte*  pPixel    = reinterpret_cast<const Byte*>(pAiTex->pcData);
+            tex.pixels             = ConstMemView { pPixel, byteWidth };
+        }
+
+        textures.emplace_back(std::move(tex));
+    }
+
+    return textures;
+}
+
+Vector<ImportedMaterial> AssimpImporter::ImportMaterialsFrom_(
+    const aiScene* _pScene) const
+{
+    aiMaterial* const* pMats   = _pScene->mMaterials;
+    const Int32        numMats = NarrowCast<Int32>(_pScene->mNumMaterials);
+    JAM_ASSERT(numMats > 0, "AssimpImporter::ImportMaterialsFrom_() - No material found");
+
+    Vector<ImportedMaterial> materials;
+    materials.reserve(numMats);
+    for (Int32 i = 0; i < numMats; ++i)
+    {
+        const aiMaterial* pMat = pMats[i];
+        ImportedMaterial  material;
+
+        aiString  strParam;
+        aiColor3D color3Param;
+        float     fParam;
+        int       iParam;
+
+        // Name
+        if (pMat->Get(AI_MATKEY_NAME, strParam) == AI_SUCCESS && strParam.length > 0)
+        {
+            material.name = std::format("{}_{}", strParam.C_Str(), i);
+        }
+        else
+        {
+            material.name = std::format("mat_{}", i);
+        }
+
+        // Ambient
+        if (pMat->Get(AI_MATKEY_COLOR_AMBIENT, color3Param) == AI_SUCCESS)
+        {
+            material.ambientColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+        }
+
+        // Diffuse
+        if (pMat->Get(AI_MATKEY_COLOR_DIFFUSE, color3Param) == AI_SUCCESS)
+        {
+            material.diffuseColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+        }
+
+        // Specular
+        if (pMat->Get(AI_MATKEY_COLOR_SPECULAR, color3Param) == AI_SUCCESS)
+        {
+            material.specularColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+        }
+
+        // Shininess
+        if (pMat->Get(AI_MATKEY_SHININESS, fParam) == AI_SUCCESS)
+        {
+            material.shininess = fParam;
+        }
+
+        // Base color / Albedo (PBR)
+        if (pMat->Get(AI_MATKEY_BASE_COLOR, color3Param) == AI_SUCCESS)
+        {
+            material.albedoColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+        }
+
+        // Roughness
+        if (pMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, fParam) == AI_SUCCESS)
+        {
+            material.roughness = fParam;
+        }
+
+        // Metallic
+        if (pMat->Get(AI_MATKEY_METALLIC_FACTOR, fParam) == AI_SUCCESS)
+        {
+            material.metallic = fParam;
+        }
+
+        // Two sided
+        if (pMat->Get(AI_MATKEY_TWOSIDED, iParam) == AI_SUCCESS)
+        {
+            material.bDoubleSided = (iParam != 0);
+        }
+
+        // Emissive
+        if (pMat->Get(AI_MATKEY_COLOR_EMISSIVE, color3Param) == AI_SUCCESS)
+        {
+            material.emissiveColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+        }
+
+        // emissive intensity
+        if (pMat->Get(AI_MATKEY_EMISSIVE_INTENSITY, fParam) == AI_SUCCESS)
+        {
+            material.emissiveIntensity = fParam;
+        }
+
+        // texture parsing
+        if (_pScene->mNumTextures > 0)
+        {
+            const Int32 numTexes                = NarrowCast<Int32>(_pScene->mNumTextures);
+            material.albedoTexIndex             = TryParseMaterialTextureIndex(pMat, aiTextureType_DIFFUSE, numTexes);
+            material.normalTexIndex             = TryParseMaterialTextureIndex(pMat, aiTextureType_NORMALS, numTexes);
+            material.metallicTexIndex           = TryParseMaterialTextureIndex(pMat, aiTextureType_METALNESS, numTexes);
+            material.roughnessTexIndex          = TryParseMaterialTextureIndex(pMat, aiTextureType_DIFFUSE_ROUGHNESS, numTexes);
+            material.aoTexIndex                 = TryParseMaterialTextureIndex(pMat, aiTextureType_LIGHTMAP, numTexes);
+            material.emissiveTexIndex           = TryParseMaterialTextureIndex(pMat, aiTextureType_EMISSIVE, numTexes);
+            material.lightTexIndex              = TryParseMaterialTextureIndex(pMat, aiTextureType_LIGHTMAP, numTexes);
+            material.vertexDisplacementTexIndex = TryParseMaterialTextureIndex(pMat, aiTextureType_DISPLACEMENT, numTexes);
+
+            // additional channel mapping
+            if (pMat->GetTexture(aiTextureType_GLTF_METALLIC_ROUGHNESS, 0, &strParam) == AI_SUCCESS)
+            {
+                material.roughnessTexChannel = eTextureChannel::Green;
+                material.metallicTexChannel  = eTextureChannel::Blue;
+            }
+        }
+
+        materials.emplace_back(std::move(material));
+    }
+
+    return materials;
+}
 
 bool AssimpImporter::Import()
 {
@@ -119,22 +452,7 @@ bool AssimpImporter::Import()
         flags |= aiProcess_Debone;
     }
 
-    if (m_bComputeTangent)
-    {
-        flags |= aiProcess_CalcTangentSpace;
-    }
-
-    if (m_normalGenType == eNormalGenType::Flat)
-    {
-        flags |= aiProcess_GenNormals;
-    }
-
-    if (m_normalGenType == eNormalGenType::Smooth)
-    {
-        flags |= aiProcess_GenSmoothNormals;
-    }
-
-    if (m_dropExistingNormal)
+    if (m_bDropExistingNormals)
     {
         flags |= aiProcess_DropNormals;
     }
@@ -149,343 +467,70 @@ bool AssimpImporter::Import()
         flags |= aiProcess_Debone;
     }
 
+    Assimp::Importer importer;
     if (m_bLoadStaticMesh)
     {
-        m_importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS);
+        importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS);
     }
     else
     {
-        m_importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS | aiComponent_BONEWEIGHTS | aiComponent_ANIMATIONS);
+        importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS | aiComponent_BONEWEIGHTS | aiComponent_ANIMATIONS);
     }
 
     // remove line & point primitives
-    m_importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
+    importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
 
     // scene load
-    const aiScene* pScene = m_importer.ReadFile(m_path.native(), flags);
+    const aiScene* pScene = importer.ReadFile(m_path.native(), flags);
     if (!pScene)
     {
-        SetErrorString("failed to load file: {}", m_importer.GetErrorString());
+        ErrorBuffer::Set("failed to load file: {}", importer.GetErrorString());
         return false;
     }
 
     // mesh load
     if (pScene->HasMeshes())
     {
-        aiMesh* const* pMeshes = pScene->mMeshes;
-        const UINT     numMesh = pScene->mNumMeshes;
-
-        m_meshes.reserve(numMesh);
-
-        for (UINT i = 0; i < numMesh; ++i)
-        {
-            const aiMesh* pMesh = pMeshes[i];
-            ImportedMesh  mesh;
-
-            // name
-            if (pMesh->mName.length > 0)
-            {
-                mesh.name = std::format("{}_{}", pMesh->mName.C_Str(), i);
-            }
-            else
-            {
-                mesh.name = std::format("mesh_{}", i);
-            }
-
-            const UInt32 numVerts = pMesh->mNumVertices;
-
-            // positions
-            if (pMesh->HasPositions())
-            {
-                mesh.positions.resize(numVerts);
-                for (UInt32 v = 0; v < numVerts; ++v)
-                {
-                    const aiVector3D& src = pMesh->mVertices[v];
-                    mesh.positions[v]     = Vec3 { src.x, src.y, src.z };
-                }
-            }
-
-            // normals
-            if (pMesh->HasNormals())
-            {
-                mesh.normals.resize(numVerts);
-                for (UInt32 v = 0; v < numVerts; ++v)
-                {
-                    const aiVector3D& src = pMesh->mNormals[v];
-                    mesh.normals[v]       = Vec3 { src.x, src.y, src.z };
-                }
-            }
-
-            // tangents & bitangents
-            if (pMesh->HasTangentsAndBitangents())
-            {
-                mesh.tangents.resize(numVerts);
-                mesh.bitangents.resize(numVerts);
-                for (UInt32 v = 0; v < numVerts; ++v)
-                {
-                    const aiVector3D& t = pMesh->mTangents[v];
-                    const aiVector3D& b = pMesh->mBitangents[v];
-                    mesh.tangents[v]    = Vec3 { t.x, t.y, t.z };
-                    mesh.bitangents[v]  = Vec3 { b.x, b.y, b.z };
-                }
-            }
-
-            // texture coordinates (up to 4)
-            for (UInt32 tc = 0; tc < 4; ++tc)
-            {
-                if (pMesh->HasTextureCoords(tc))
-                {
-                    std::vector<Vec3>& dst = (tc == 0) ? mesh.texCoords0
-                                           : (tc == 1) ? mesh.texCoords1
-                                           : (tc == 2) ? mesh.texCoords2
-                                                       : mesh.texCoords3;
-
-                    dst.resize(numVerts);
-                    for (UInt32 v = 0; v < numVerts; ++v)
-                    {
-                        const aiVector3D& src = pMesh->mTextureCoords[tc][v];
-                        dst[v]                = Vec3 { src.x, src.y, src.z };
-                    }
-                }
-            }
-
-            // vertex colors (up to 4)
-            for (UInt32 cc = 0; cc < 4; ++cc)
-            {
-                if (pMesh->HasVertexColors(cc))
-                {
-                    std::vector<Vec4>& dst = (cc == 0) ? mesh.colors0
-                                           : (cc == 1) ? mesh.colors1
-                                           : (cc == 2) ? mesh.colors2
-                                                       : mesh.colors3;
-
-                    dst.resize(numVerts);
-                    for (UInt32 v = 0; v < numVerts; ++v)
-                    {
-                        const aiColor4D& src = pMesh->mColors[cc][v];
-                        dst[v]               = Vec4 { src.r, src.g, src.b, src.a };
-                    }
-                }
-            }
-
-            // indices
-            {
-                mesh.bUseU32            = numVerts > 0xFFFF;
-                const Int32  stride     = mesh.bUseU32 ? 4 : 2;
-                const UInt32 numFaces   = pMesh->mNumFaces;
-                const UInt32 numIndices = numFaces * 3;
-
-                mesh.indices.resize(numIndices * stride);
-
-                for (UInt32 f = 0; f < numFaces; ++f)
-                {
-                    const aiFace& face = pMesh->mFaces[f];
-                    JAM_ASSERT(face.mNumIndices == 3, "AssimpImporter::Import() - Face is not a triangle");
-
-                    for (UInt32 k = 0; k < 3; ++k)
-                    {
-                        const UInt32 offset = f * 3 + k;
-                        const UInt32 index  = face.mIndices[k];
-
-                        if (mesh.bUseU32)
-                        {
-                            UInt32* pDst = reinterpret_cast<UInt32*>(mesh.indices.data() + stride * offset);
-                            *pDst        = index;
-                        }
-                        else
-                        {
-                            UInt16* pDst = reinterpret_cast<UInt16*>(mesh.indices.data() + stride * offset);
-                            *pDst        = NarrowCast<UInt16>(index);
-                        }
-                    }
-                }
-            }
-
-            m_meshes.emplace_back(std::move(mesh));
-        }
+        m_meshes = ImportMeshesFrom_(pScene);
     }
 
     // texture load
-    const bool bTextureEmbeded = (pScene->mNumTextures > 0);
-    if (bTextureEmbeded)
+    if (pScene->mNumTextures > 0)
     {
-        aiTexture* const* pTexes   = pScene->mTextures;
-        const UINT        numTexes = pScene->mNumTextures;
-        m_textures.reserve(numTexes);
-        for (UINT i = 0; i < numTexes; ++i)
-        {
-            const aiTexture* pTex          = pTexes[i];
-            const bool       bIsCompressed = (pTex->mHeight == 0);
-
-            ImportedTexture texture;
-            texture.width         = static_cast<Int32>(pTex->mWidth);
-            texture.height        = static_cast<Int32>(pTex->mHeight);
-            texture.bIsCompressed = bIsCompressed;
-            if (bIsCompressed)
-            {
-                // Compressed texture
-                const size_t           byteWidth  = texture.width;
-                const Byte*            pPixel     = reinterpret_cast<const Byte*>(pTex->pcData);
-                const std::string_view formatHint = { pTex->achFormatHint, strlen(pTex->achFormatHint) };
-                texture.pixels                    = ConstMemView { pPixel, byteWidth };
-                texture.format                    = ImageFormatFromString(formatHint);
-            }
-            else
-            {
-                // BGRA 로 가정
-                const size_t byteWidth = texture.width * texture.height * sizeof(aiTexel);
-                const Byte*  pPixel    = reinterpret_cast<const Byte*>(pTex->pcData);
-                texture.pixels         = ConstMemView { pPixel, byteWidth };
-            }
-            m_textures.emplace_back(std::move(texture));
-        }
+        m_textures = ImportTexturesFrom_(pScene);
     }
 
     // material load
     if (pScene->HasMaterials())
     {
-        aiMaterial* const* pMats   = pScene->mMaterials;
-        const UINT         numMats = pScene->mNumMaterials;
-
-        m_materials.reserve(numMats);
-        for (UINT i = 0; i < numMats; ++i)
-        {
-            const aiMaterial* pMat = pMats[i];
-            ImportedMaterial  material;
-
-            // Name
-            aiString name;
-            if (pMat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS && name.length > 0)
-            {
-                material.name = std::format("{}_{}", name.C_Str(), i);
-            }
-            else
-            {
-                material.name = std::format("mat_{}", i);
-            }
-
-            // Ambient
-            aiColor3D color3;
-            if (pMat->Get(AI_MATKEY_COLOR_AMBIENT, color3) == AI_SUCCESS)
-            {
-                material.ambientColor = Vec3 { color3.r, color3.g, color3.b };
-            }
-
-            // Diffuse
-            if (pMat->Get(AI_MATKEY_COLOR_DIFFUSE, color3) == AI_SUCCESS)
-            {
-                material.diffuseColor = Vec3 { color3.r, color3.g, color3.b };
-            }
-
-            // Specular
-            if (pMat->Get(AI_MATKEY_COLOR_SPECULAR, color3) == AI_SUCCESS)
-            {
-                material.specularColor = Vec3 { color3.r, color3.g, color3.b };
-            }
-
-            // Shininess
-            float shininess = 0.0f;
-            if (pMat->Get(AI_MATKEY_SHININESS, shininess) == AI_SUCCESS)
-            {
-                material.shininess = shininess;
-            }
-
-            // Base color / Albedo (PBR)
-            if (pMat->Get(AI_MATKEY_BASE_COLOR, color3) == AI_SUCCESS)
-            {
-                material.albedoColor = Vec3 { color3.r, color3.g, color3.b };
-            }
-
-            // Roughness
-            float roughness = 0.0f;
-            if (pMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == AI_SUCCESS)
-            {
-                material.roughness = roughness;
-            }
-
-            // Metallic
-            float metallic = 0.0f;
-            if (pMat->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == AI_SUCCESS)
-            {
-                material.metallic = metallic;
-            }
-
-            // Two sided
-            int twoSided = 0;
-            if (pMat->Get(AI_MATKEY_TWOSIDED, twoSided) == AI_SUCCESS)
-            {
-                material.bDoubleSided = (twoSided != 0);
-            }
-
-            // Emissive
-            if (pMat->Get(AI_MATKEY_COLOR_EMISSIVE, color3) == AI_SUCCESS)
-            {
-                material.emissiveColor = Vec3 { color3.r, color3.g, color3.b };
-            }
-
-            // emissive intensity
-            float emissiveIntensity = 0.0f;
-            if (pMat->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissiveIntensity) == AI_SUCCESS)
-            {
-                material.emissiveIntensity = emissiveIntensity;
-            }
-
-            // texture parsing
-            if (bTextureEmbeded)
-            {
-
-                const Int32 numTexes                = NarrowCast<Int32>(pScene->mNumTextures);
-                material.albedoTexIndex             = ParseMaterialTextureIndex(pMat, aiTextureType_DIFFUSE, numTexes);
-                material.normalTexIndex             = ParseMaterialTextureIndex(pMat, aiTextureType_NORMALS, numTexes);
-                material.metallicTexIndex           = ParseMaterialTextureIndex(pMat, aiTextureType_METALNESS, numTexes);
-                material.roughnessTexIndex          = ParseMaterialTextureIndex(pMat, aiTextureType_DIFFUSE_ROUGHNESS, numTexes);
-                material.aoTexIndex                 = ParseMaterialTextureIndex(pMat, aiTextureType_LIGHTMAP, numTexes);
-                material.emissiveTexIndex           = ParseMaterialTextureIndex(pMat, aiTextureType_EMISSIVE, numTexes);
-                material.lightTexIndex              = ParseMaterialTextureIndex(pMat, aiTextureType_LIGHTMAP, numTexes);
-                material.vertexDisplacementTexIndex = ParseMaterialTextureIndex(pMat, aiTextureType_DISPLACEMENT, numTexes);
-
-                // additional channel mapping
-                {
-                    aiString dummy;
-                    if (pMat->GetTexture(aiTextureType_GLTF_METALLIC_ROUGHNESS, 0, &dummy) == AI_SUCCESS)
-                    {
-                        material.roughnessTexChannel = eTextureChannel::Green;
-                        material.metallicTexChannel  = eTextureChannel::Blue;
-                    }
-                }
-            }
-
-            m_materials.emplace_back(std::move(material));
-        }
+        m_materials = ImportMaterialsFrom_(pScene);
     }
 
     // build tree
     if (pScene->mRootNode)
     {
-        m_rootNode = BuildImportedModelTree_Recursive(pScene->mRootNode, pScene);
+        m_rootNode = ImportedModelNodeFrom_Recursive(pScene->mRootNode, pScene);
     }
 
     return true;
 }
 
-void AssimpImporter::SetPath(const fs::path& _path)
+void AssimpImporter::SetPath(
+    const fs::path& _path)
 {
     m_path = _path;
 }
 
-void AssimpImporter::ComputeTangent()
+void AssimpImporter::GenerateTangentFrame()
 {
-    m_bComputeTangent = true;
+    m_bGenerateTangentFrame = true;
 }
 
-void AssimpImporter::ComputeNormal(const eNormalGenType _type)
+void AssimpImporter::GenerateNormals(
+    const bool _bDropExistNormals)
 {
-    m_normalGenType = _type;
-}
-
-void AssimpImporter::DropExistingNormal()
-{
-    m_dropExistingNormal = true;
+    m_bGenerateNormals     = true;
+    m_bDropExistingNormals = _bDropExistNormals;
 }
 
 void AssimpImporter::LimitBoneWeight()
@@ -503,17 +548,17 @@ const ImportedModelNode& AssimpImporter::GetRootNode() const
     return m_rootNode;
 }
 
-const std::vector<ImportedMesh>& AssimpImporter::GetMeshes() const
+const Vector<ImportedMesh>& AssimpImporter::GetMeshes() const
 {
     return m_meshes;
 }
 
-const std::vector<ImportedMaterial>& AssimpImporter::GetMaterials() const
+const Vector<ImportedMaterial>& AssimpImporter::GetMaterials() const
 {
     return m_materials;
 }
 
-const std::vector<ImportedTexture>& AssimpImporter::GetTextures() const
+const Vector<ImportedTexture>& AssimpImporter::GetTextures() const
 {
     return m_textures;
 }

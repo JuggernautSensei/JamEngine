@@ -1,8 +1,5 @@
 #include "pch.h"
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ShaderCompiler.cpp"
-
-
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\CommandQueue.cpp"
 
 
@@ -31,4 +28,7 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Script.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\SpotLightComponent.cpp"
 

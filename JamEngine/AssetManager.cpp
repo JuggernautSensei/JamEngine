@@ -32,7 +32,8 @@ struct AssetManagerContext
 
 }* g_assetMgrCtx = nullptr;
 
-std::optional<fs::path> AssetManagerContext::RelativeFromWorkingDirectory(const fs::path& _path) const
+std::optional<fs::path> AssetManagerContext::RelativeFromWorkingDirectory(
+    const fs::path& _path) const
 {
     try
     {
@@ -41,26 +42,32 @@ std::optional<fs::path> AssetManagerContext::RelativeFromWorkingDirectory(const 
     }
     catch (const fs::filesystem_error& ec)
     {
-        SetErrorString("AssetManagerContext - failed to calculate relative path: {}", ec.what());
+        ErrorBuffer::Set("AssetManagerContext - failed to calculate relative path: {}", ec.what());
         return std::nullopt;
     }
 }
 
-Ref<IAsset> AssetManagerContext::MakeAssetRef(eAssetType _type) const
+Ref<IAsset> AssetManagerContext::MakeAssetRef(
+    const eAssetType _type) const
 {
     switch (_type)
     {
-        case eAssetType::ImageTexture: return MakeRef<ImageTexture>();
-        case eAssetType::Material: return MakeRef<Material>();
-        case eAssetType::Mesh: return MakeRef<Mesh>();
-        case eAssetType::Model: return MakeRef<Model>();
+        case eAssetType::ImageTexture:
+            return MakeRef<ImageTexture>();
+        case eAssetType::Material:
+            return MakeRef<Material>();
+        case eAssetType::Mesh:
+            return MakeRef<Mesh>();
+        case eAssetType::Model:
+            return MakeRef<Model>();
         default:
-            JAM_ASSERT(0, "unsupported asset type: {}", EnumToInt(_type));
+            JAM_ASSERT(0, "unsupported asset type: {}", IntFrom(_type));
             return nullptr;
     }
 }
 
-void AssetManagerContext::OnFileRenamedEvent(const FileRenamedEvent& _event)
+void AssetManagerContext::OnFileRenamedEvent(
+    const FileRenamedEvent& _event)
 {
     // reload existing asset without creating new object
     const std::optional<fs::path> optOld = RelativeFromWorkingDirectory(_event.GetOldPath());
@@ -74,7 +81,7 @@ void AssetManagerContext::OnFileRenamedEvent(const FileRenamedEvent& _event)
     const fs::path& oldPath = optOld.value();
     const fs::path& newPath = optNew.value();
 
-    for (const eAssetType type: EnumRange<eAssetType>())
+    for (const eAssetType type: EnumRanges<eAssetType>())
     {
         if (!Has(type, oldPath))
         {
@@ -92,20 +99,21 @@ void AssetManagerContext::OnFileRenamedEvent(const FileRenamedEvent& _event)
         if (pAsset->Load(newPath))
         {
             // update container key: remove old, insert new
-            Container& container = assetMaps[EnumToInt(type)];
+            Container& container = assetMaps[IntFrom(type)];
             container.erase(oldPath);
             container[newPath] = pAsset;
         }
     }
 }
 
-void AssetManagerContext::OnFileDeletedEvent(const FileDeletedEvent& _event)
+void AssetManagerContext::OnFileDeletedEvent(
+    const FileDeletedEvent& _event)
 {
     // unload existing asset
     if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_event.GetPath()))
     {
         const fs::path& path = opt.value();
-        for (const eAssetType type: EnumRange<eAssetType>())
+        for (const eAssetType type: EnumRanges<eAssetType>())
         {
             if (Has(type, path))
             {
@@ -115,13 +123,14 @@ void AssetManagerContext::OnFileDeletedEvent(const FileDeletedEvent& _event)
     }
 }
 
-void AssetManagerContext::OnFileModifiedEvent(const FileModifiedEvent& _event) const
+void AssetManagerContext::OnFileModifiedEvent(
+    const FileModifiedEvent& _event) const
 {
     // reload existing asset without creating new object
     if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_event.GetPath()))
     {
         const fs::path& path = opt.value();
-        for (const eAssetType type: EnumRange<eAssetType>())
+        for (const eAssetType type: EnumRanges<eAssetType>())
         {
             if (Has(type, path))
             {
@@ -131,7 +140,10 @@ void AssetManagerContext::OnFileModifiedEvent(const FileModifiedEvent& _event) c
     }
 }
 
-std::optional<Ref<IAsset>> AssetManagerContext::Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload)
+std::optional<Ref<IAsset>> AssetManagerContext::Load(
+    const eAssetType _type,
+    const fs::path&  _path,
+    const bool       _bForceReload)
 {
     const std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path);
     if (!opt)
@@ -140,7 +152,7 @@ std::optional<Ref<IAsset>> AssetManagerContext::Load(const eAssetType _type, con
     }
 
     const fs::path& path      = opt.value();
-    Container&      container = assetMaps[EnumToInt(_type)];
+    Container&      container = assetMaps[IntFrom(_type)];
 
     // check if already exists
     if (container.contains(path))
@@ -171,12 +183,14 @@ std::optional<Ref<IAsset>> AssetManagerContext::Load(const eAssetType _type, con
     }
 }
 
-Ref<IAsset> AssetManagerContext::Get(const eAssetType _type, const fs::path& _path) const
+Ref<IAsset> AssetManagerContext::Get(
+    const eAssetType _type,
+    const fs::path&  _path) const
 {
     if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
     {
         const fs::path&  path      = opt.value();
-        const Container& container = assetMaps[EnumToInt(_type)];
+        const Container& container = assetMaps[IntFrom(_type)];
         JAM_ASSERT(container.contains(path), "asset not found: {}", path.native());
         return container.at(path);
     }
@@ -187,12 +201,14 @@ Ref<IAsset> AssetManagerContext::Get(const eAssetType _type, const fs::path& _pa
     }
 }
 
-void AssetManagerContext::Unload(const eAssetType _type, const fs::path& _path)
+void AssetManagerContext::Unload(
+    const eAssetType _type,
+    const fs::path&  _path)
 {
     if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
     {
         const fs::path& path      = opt.value();
-        Container&      container = assetMaps[EnumToInt(_type)];
+        Container&      container = assetMaps[IntFrom(_type)];
 
         if (container.contains(path))
         {
@@ -202,16 +218,24 @@ void AssetManagerContext::Unload(const eAssetType _type, const fs::path& _path)
     }
 }
 
-bool AssetManagerContext::Has(const eAssetType _type, const fs::path& _path) const
+bool AssetManagerContext::Has(
+    const eAssetType _type,
+    const fs::path&  _path) const
 {
     if (std::optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
     {
-        return assetMaps[EnumToInt(_type)].contains(opt.value());
+        const Container& container = assetMaps[IntFrom(_type)];
+        return container.contains(opt.value());
     }
-    return false;
+    else
+    {
+        return false;
+    }
 }
 
-std::optional<Ref<IAsset>> AssetManagerContext::GetOrLoad(const eAssetType _type, const fs::path& _path)
+std::optional<Ref<IAsset>> AssetManagerContext::GetOrLoad(
+    const eAssetType _type,
+    const fs::path&  _path)
 {
     if (Has(_type, _path))
     {
@@ -223,14 +247,16 @@ std::optional<Ref<IAsset>> AssetManagerContext::GetOrLoad(const eAssetType _type
     }
 }
 
-void AssetManagerContext::Clear(const eAssetType _type)
+void AssetManagerContext::Clear(
+    const eAssetType _type)
 {
-    assetMaps[EnumToInt(_type)].clear();
+    assetMaps[IntFrom(_type)].clear();
 }
 
-void AssetManagerContext::CleanGarbage(const eAssetType _type)
+void AssetManagerContext::CleanGarbage(
+    const eAssetType _type)
 {
-    Container& container = assetMaps[EnumToInt(_type)];
+    Container& container = assetMaps[IntFrom(_type)];
     for (auto it = container.begin(); it != container.end();)
     {
         // if ref count is 1, it means only the manager holds it
@@ -262,26 +288,27 @@ void AssetManager::Shutdown()
     JAM_DELETE(g_assetMgrCtx);
 }
 
-void AssetManager::OnEvent(Event& _event)
+void AssetManager::OnEvent(
+    Event& _event)
 {
-    if (!g_assetMgrCtx)
-    {
-        return;
-    }
-
     HandleEvent<FileModifiedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileModifiedEvent);
     HandleEvent<FileRenamedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileRenamedEvent);
     HandleEvent<FileDeletedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileDeletedEvent);
 }
 
-std::optional<Ref<IAsset>> AssetManager::Load(const eAssetType _type, const fs::path& _path, const bool _bForceReload)
+std::optional<Ref<IAsset>> AssetManager::Load(
+    const eAssetType _type,
+    const fs::path&  _path,
+    const bool       _bForceReload)
 {
     return g_assetMgrCtx->Load(_type, _path, _bForceReload);
 }
 
-std::optional<Ref<Model>> AssetManager::LoadModel(const fs::path& _path, const bool _bForceReload)
+std::optional<Ref<Model>> AssetManager::LoadModel(
+    const fs::path& _path,
+    const bool      _bForceReload)
 {
-    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->Load(eAssetType::Model, _path, _bForceReload))
+    if (const std::optional<Ref<IAsset>> opt = g_assetMgrCtx->Load(eAssetType::Model, _path, _bForceReload))
     {
         return opt->As<Model>();
     }
@@ -291,9 +318,11 @@ std::optional<Ref<Model>> AssetManager::LoadModel(const fs::path& _path, const b
     }
 }
 
-std::optional<Ref<Mesh>> AssetManager::LoadMesh(const fs::path& _path, const bool _bForceReload)
+std::optional<Ref<Mesh>> AssetManager::LoadMesh(
+    const fs::path& _path,
+    const bool      _bForceReload)
 {
-    if (std::optional<Ref<IAsset>> opt = Load(eAssetType::Mesh, _path, _bForceReload))
+    if (const std::optional<Ref<IAsset>> opt = Load(eAssetType::Mesh, _path, _bForceReload))
     {
         return opt->As<Mesh>();
     }
@@ -303,9 +332,11 @@ std::optional<Ref<Mesh>> AssetManager::LoadMesh(const fs::path& _path, const boo
     }
 }
 
-std::optional<Ref<Material>> AssetManager::LoadMaterial(const fs::path& _path, const bool _bForceReload)
+std::optional<Ref<Material>> AssetManager::LoadMaterial(
+    const fs::path& _path,
+    const bool      _bForceReload)
 {
-    if (std::optional<Ref<IAsset>> opt = Load(eAssetType::Material, _path, _bForceReload))
+    if (const std::optional<Ref<IAsset>> opt = Load(eAssetType::Material, _path, _bForceReload))
     {
         return opt->As<Material>();
     }
@@ -315,9 +346,11 @@ std::optional<Ref<Material>> AssetManager::LoadMaterial(const fs::path& _path, c
     }
 }
 
-std::optional<Ref<ImageTexture>> AssetManager::LoadImageTexture(const fs::path& _path, const bool _bForceReload)
+std::optional<Ref<ImageTexture>> AssetManager::LoadImageTexture(
+    const fs::path& _path,
+    const bool      _bForceReload)
 {
-    if (std::optional<Ref<IAsset>> opt = Load(eAssetType::ImageTexture, _path, _bForceReload))
+    if (const std::optional<Ref<IAsset>> opt = Load(eAssetType::ImageTexture, _path, _bForceReload))
     {
         return opt->As<ImageTexture>();
     }
@@ -327,39 +360,48 @@ std::optional<Ref<ImageTexture>> AssetManager::LoadImageTexture(const fs::path& 
     }
 }
 
-Ref<IAsset> AssetManager::Get(const eAssetType _type, const fs::path& _path)
+Ref<IAsset> AssetManager::Get(
+    const eAssetType _type,
+    const fs::path&  _path)
 {
     return g_assetMgrCtx->Get(_type, _path);
 }
 
-Ref<Model> AssetManager::GetModel(const fs::path& _path)
+Ref<Model> AssetManager::GetModel(
+    const fs::path& _path)
 {
     return g_assetMgrCtx->Get(eAssetType::Model, _path).As<Model>();
 }
 
-Ref<Mesh> AssetManager::GetMesh(const fs::path& _path)
+Ref<Mesh> AssetManager::GetMesh(
+    const fs::path& _path)
 {
     return g_assetMgrCtx->Get(eAssetType::Mesh, _path).As<Mesh>();
 }
 
-Ref<Material> AssetManager::GetMaterial(const fs::path& _path)
+Ref<Material> AssetManager::GetMaterial(
+    const fs::path& _path)
 {
     return g_assetMgrCtx->Get(eAssetType::Material, _path).As<Material>();
 }
 
-Ref<ImageTexture> AssetManager::GetImageTexture(const fs::path& _path)
+Ref<ImageTexture> AssetManager::GetImageTexture(
+    const fs::path& _path)
 {
     return g_assetMgrCtx->Get(eAssetType::ImageTexture, _path).As<ImageTexture>();
 }
 
-std::optional<Ref<IAsset>> AssetManager::GetOrLoad(const eAssetType _type, const fs::path& _path)
+std::optional<Ref<IAsset>> AssetManager::GetOrLoad(
+    const eAssetType _type,
+    const fs::path&  _path)
 {
     return g_assetMgrCtx->GetOrLoad(_type, _path);
 }
 
-std::optional<Ref<Model>> AssetManager::GetOrLoadModel(const fs::path& _path)
+std::optional<Ref<Model>> AssetManager::GetOrLoadModel(
+    const fs::path& _path)
 {
-    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Model, _path))
+    if (const std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Model, _path))
     {
         return opt->As<Model>();
     }
@@ -369,9 +411,10 @@ std::optional<Ref<Model>> AssetManager::GetOrLoadModel(const fs::path& _path)
     }
 }
 
-std::optional<Ref<Mesh>> AssetManager::GetOrLoadMesh(const fs::path& _path)
+std::optional<Ref<Mesh>> AssetManager::GetOrLoadMesh(
+    const fs::path& _path)
 {
-    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Mesh, _path))
+    if (const std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Mesh, _path))
     {
         return opt->As<Mesh>();
     }
@@ -381,9 +424,10 @@ std::optional<Ref<Mesh>> AssetManager::GetOrLoadMesh(const fs::path& _path)
     }
 }
 
-std::optional<Ref<Material>> AssetManager::GetOrLoadMaterial(const fs::path& _path)
+std::optional<Ref<Material>> AssetManager::GetOrLoadMaterial(
+    const fs::path& _path)
 {
-    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Material, _path))
+    if (const std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Material, _path))
     {
         return opt->As<Material>();
     }
@@ -393,9 +437,10 @@ std::optional<Ref<Material>> AssetManager::GetOrLoadMaterial(const fs::path& _pa
     }
 }
 
-std::optional<Ref<ImageTexture>> AssetManager::GetOrLoadImageTexture(const fs::path& _path)
+std::optional<Ref<ImageTexture>> AssetManager::GetOrLoadImageTexture(
+    const fs::path& _path)
 {
-    if (std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::ImageTexture, _path))
+    if (const std::optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::ImageTexture, _path))
     {
         return opt->As<ImageTexture>();
     }
@@ -405,52 +450,60 @@ std::optional<Ref<ImageTexture>> AssetManager::GetOrLoadImageTexture(const fs::p
     }
 }
 
-void AssetManager::Unload(const eAssetType _type, const fs::path& _path)
+void AssetManager::Unload(
+    const eAssetType _type,
+    const fs::path&  _path)
 {
     g_assetMgrCtx->Unload(_type, _path);
 }
 
-void AssetManager::UnloadModel(const fs::path& _path)
+void AssetManager::UnloadModel(
+    const fs::path& _path)
 {
     Unload(eAssetType::Model, _path);
 }
 
-void AssetManager::UnloadMesh(const fs::path& _path)
+void AssetManager::UnloadMesh(
+    const fs::path& _path)
 {
     Unload(eAssetType::Mesh, _path);
 }
 
-void AssetManager::UnloadMaterial(const fs::path& _path)
+void AssetManager::UnloadMaterial(
+    const fs::path& _path)
 {
     Unload(eAssetType::Material, _path);
 }
 
-void AssetManager::UnloadImageTexture(const fs::path& _path)
+void AssetManager::UnloadImageTexture(
+    const fs::path& _path)
 {
     Unload(eAssetType::ImageTexture, _path);
 }
 
-void AssetManager::CleanGarbage(const eAssetType _type)
+void AssetManager::CleanGarbage(
+    const eAssetType _type)
 {
     g_assetMgrCtx->CleanGarbage(_type);
 }
 
 void AssetManager::CleanGarbageAll()
 {
-    for (const eAssetType type: EnumRange<eAssetType>())
+    for (const eAssetType type: EnumRanges<eAssetType>())
     {
         g_assetMgrCtx->CleanGarbage(type);
     }
 }
 
-void AssetManager::Clear(const eAssetType _type)
+void AssetManager::Clear(
+    const eAssetType _type)
 {
     g_assetMgrCtx->Clear(_type);
 }
 
 void AssetManager::ClearAll()
 {
-    for (const eAssetType type: EnumRange<eAssetType>())
+    for (const eAssetType type: EnumRanges<eAssetType>())
     {
         g_assetMgrCtx->Clear(type);
     }

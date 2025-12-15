@@ -3,33 +3,29 @@
 #include "SceneSerializer.h"
 
 #include "ComponentDB.h"
-#include "FileUtilities.h"
-#include "ImageTexture.h"
 #include "Profile.h"
 #include "Scene.h"
 
-#include "JsonUtilities.h"
-
 namespace jam
 {
-
-bool SceneSerializer::SaveToFile(const fs::path& _filePath) const
+    
+bool SceneSerializer::SaveFile(const fs::path& _path) const
 {
-    JAM_ASSERT(!_filePath.empty(), "File path is not set");
-    JAM_ASSERT(!m_json.empty(), "No data to export");
-    return SaveJsonToFile(_filePath, m_json, 0);
+    JAM_ASSERT(!_path.empty(), "file path is empty");
+    JAM_ASSERT(!m_json.empty(), "no data to serialize");
+    return SaveBsonFile(_path, m_json);
 }
 
 void SceneSerializer::Serialize(const Ref<Scene>& _pScene)
 {
-    JAM_ASSERT(_pScene, "Scene is null");
+    JAM_ASSERT(_pScene, "scene is null");
     JAM_FUNCTION_MSG_PROFILE("scene name: {}", _pScene->GetTypeName());
 
     m_json.clear();
     m_json["sceneType"] = _pScene->GetTypeName();
 
     const HashMap<UID, Entity>& entities = _pScene->GetEntities();
-    HashMap<UInt32, UID>        enttUidMap;   // [entity handle, uid]
+    HashMap<UInt32, UID>        enttUidMap;
     enttUidMap.reserve(entities.size());
 
     // entity list
@@ -42,49 +38,61 @@ void SceneSerializer::Serialize(const Ref<Scene>& _pScene)
             uids.push_back(uid);
             enttUidMap[entt] = uid;
         }
+
         m_json["uids"] = std::move(uids);
     }
 
     // components
     {
-        Json         json;
-        ComponentDB& compDB = ComponentDB::GetInstance();
+        Json         cmpsJson;
+        ComponentDB& cmpDb = ComponentDB::GetInstance();
 
-        const entt::registry& registry = _pScene->GetRegistry();
-        for (const auto& [id, storage]: registry.storage())
+        const entt::registry& reg = _pScene->GetRegistry();
+        for (const auto& [typeId, storage]: reg.storage())
         {
-            if (!compDB.IsSerializable(id))
-                continue;
-
-            Json compJson;
-            for (entt::entity handle: storage)
+            if (!cmpDb.IsReflected(typeId) || !cmpDb.IsSerializable(typeId))
             {
-                const Int32       entt         = entt::to_integral(handle);
-                const UID         uid          = enttUidMap.at(entt);
-                const Entity      entity       = entities.at(uid);
-                const void*       pCompData    = storage.value(handle);
-                const std::string uidStr       = std::to_string(uid);
-                const Json        compDataJson = compDB.Serialize(id, pCompData, _pScene, entity);
+                continue;
+            }
 
-                if (compDataJson.is_null() || compDataJson.empty())   
+            if (storage.empty())
+            {
+                continue;
+            }
+
+            Json cmpJson;
+            for (const entt::entity handle: storage)
+            {
+                const UInt32 entt = entt::to_integral(handle);
+
+                const auto it = enttUidMap.find(entt);
+                if (it == enttUidMap.end())
                 {
-                    // emtry struct is null or empty
-                    compJson[uidStr] = nullptr;
+                    continue;
+                }
+
+                const UID    uid          = it->second;
+                const Entity entity       = entities.at(uid);
+                const void*  pCmpValue    = storage.value(handle);
+                const Json   cmpValueJson = cmpDb.Serialize(typeId, pCmpValue, _pScene, entity);
+
+                const std::string strUid = std::to_string(uid);
+                if (cmpValueJson.is_null() || cmpValueJson.empty())   // empty component return empty or null json
+                {
+                    cmpJson[strUid] = nullptr;
                 }
                 else
                 {
-                    compJson[uidStr] = std::move(compDataJson);
+                    cmpJson[strUid] = cmpValueJson;
                 }
             }
 
-            if (!compJson.empty())
-            {
-                const std::string key = std::to_string(id);
-                json[key]             = std::move(compJson);
-            }
+            JAM_ASSERT(!cmpJson.empty(), "component json is empty for type ID: {}", typeId);
+            const std::string typeName = std::to_string(typeId);
+            cmpsJson[typeName]         = std::move(cmpJson);
         }
 
-        m_json["components"] = std::move(json);
+        m_json["cmps"] = std::move(cmpsJson);
     }
 }
 

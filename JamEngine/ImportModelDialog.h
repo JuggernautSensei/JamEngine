@@ -20,16 +20,16 @@ private:
 
     // Helper functions for mesh processing
     static void CopyVec3Attribute_(
-        std::vector<Byte>&       _vertexData,
-        const std::vector<Vec3>& _srcData,
+        Vector<Byte>&       _vertexData,
+        const Vector<Vec3>& _srcData,
         Int32                    _numVerts,
         Int32                    _vertexStride,
         Int32                    _offset,
         Int32                    _byteWidth);
 
     static void CopyVec4Attribute_(
-        std::vector<Byte>&       _vertexData,
-        const std::vector<Vec4>& _srcData,
+        Vector<Byte>&       _vertexData,
+        const Vector<Vec4>& _srcData,
         Int32                    _numVerts,
         Int32                    _vertexStride,
         Int32                    _offset,
@@ -52,7 +52,7 @@ private:
     // Helper functions for material processing
     [[nodiscard]] static std::optional<Material> CreateMaterialFromImported_(
         const ImportedMaterial&               _importedMat,
-        const std::vector<Ref<ImageTexture>>& _textures);
+        const Vector<Ref<ImageTexture>>& _textures);
 
     // Helper functions for node processing
     [[nodiscard]] static std::optional<ModelNode> ConvertNodeRecursive_(

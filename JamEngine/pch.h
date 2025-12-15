@@ -39,27 +39,29 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
 
-// 3rd party
 #include "HashMap.h"
-#include "json.h"
+#include "STL.h"
 #include <entt/entt.hpp>
 
-// base
 #include "Configs.h"
 #include "DataType.h"
 #include "Error.h"
+#include "ErrorBuffer.h"
 #include "Log.h"
+
+#include "Macros.h"
 
 #include "MemView.h"
 
-// global utilities
-#include "MathUtilities.h"
-
 #include "BaseUtilities.h"
-#include "EnumUtilities.h"
+#include "MathUtilities.h"
+#include "RefCounted.h"
+
 #include "FileSystemUtilities.h"
+
+#include "EnumUtilities.h"
 #include "StringUtilities.h"
 
-#include "RefCounted.h"
+#include "Json.h"
 
 #include "ImGuiGlue.h"

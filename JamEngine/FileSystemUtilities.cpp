@@ -5,12 +5,12 @@
 namespace jam
 {
 
-bool IsAncestorPathOf(const fs::path& _ancestor, const fs::path& _descendant)
+bool IsAncestorPathOf(const fs::path& _ancester, const fs::path& _descendant)
 {
-    JAM_ASSERT(_ancestor.empty() == false, "Ancestor path is empty!");
+    JAM_ASSERT(_ancester.empty() == false, "Ancestor path is empty!");
     JAM_ASSERT(_descendant.empty() == false, "Path is empty!");
 
-    const fs::path         ancestor = fs::absolute(_ancestor).lexically_normal();
+    const fs::path         ancestor = fs::absolute(_ancester).lexically_normal();
     const fs::path         target   = fs::absolute(_descendant).lexically_normal();
     const fs::path         rel      = target.lexically_relative(ancestor);
     const std::string_view strRel   = rel.native();

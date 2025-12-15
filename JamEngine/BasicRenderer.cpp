@@ -2,18 +2,18 @@
 
 #include "BasicRenderer.h"
 
-#include "CullingSystem.h"
 #include "EditorWidgets.h"
 #include "EmbeddedShaderGlue.h"
 #include "Environment.h"
 #include "EnvironmentComponent.h"
 #include "Graphics.h"
-#include "ImGuiUtilities.h"
 #include "Material.h"
 #include "MemView.h"
 #include "MeshFactory.h"
 #include "Profile.h"
 #include "RenderGraph.h"
+#include "RenderableComponent.h"
+#include "SceneComponent.h"
 #include "Shaders/PrecompiledShaders/PrecompiledJamShader.h"
 #include "Timer.h"
 
@@ -29,147 +29,74 @@ enum eAttachmentType
 struct BasicRendererContext
 {
     // cbuffer unload
-    void UploadTransform(
-        const Mat4& _world) const;
-
-    void UploadCamera(
-        Vec3        _eye,
-        const Mat4& _view,
-        const Mat4& _proj) const;
-
-    void UploadEnvironment(
-        const Environment& _env) const;
-
-    void UploadScreen(
-        Int32 _width,
-        Int32 _height) const;
-
-    void UploadMaterial(
-        const Ref<Material>& _material) const;
-
-    void UploadPointLight(
-        Vec3  _radiance,
-        float _lightIntensity,
-        Vec3  _pos,
-        float _fallOffStart,
-        float _fallOffEnd,
-        bool  _bShadow) const;
-
-    void UploadSpotLight(
-        Vec3  _radiance,
-        float _lightIntensity,
-        Vec3  _pos,
-        Vec3  _dir,
-        float _fallOffStart,
-        float _fallOffEnd,
-        float _innerConeAngle,
-        float _outerConeAngle,
-        bool  _bShadow) const;
+    void UploadTransform(const Mat4& _world) const;
+    void UploadCamera(Vec3 _eye, const Mat4& _view, const Mat4& _proj) const;
+    void UploadEnvironment(const Environment& _env) const;
+    void UploadScreen(Int32 _width, Int32 _height) const;
+    void UploadMaterial(const Ref<Material>& _material) const;
+    void UploadPointLight(Vec3 _radiance, float _lightIntensity, Vec3 _pos, float _fallOffStart, float _fallOffEnd, bool _bShadow) const;
+    void UploadSpotLight(Vec3 _radiance, float _lightIntensity, Vec3 _pos, Vec3 _dir, float _fallOffStart, float _fallOffEnd, float _innerConeAngle, float _outerConeAngle, bool _bShadow) const;
 
     // factory
-    [[nodiscard]] TextureHandle CreateTexture2D(
-        Int32            _width,
-        Int32            _height,
-        eTextureFormat   _format,
-        eAttachmentType  _type,
-        std::string_view _name) const;
-
-    [[nodiscard]] TextureHandle CreateTextureCube(
-        Int32            _width,
-        Int32            _height,
-        eTextureFormat   _format,
-        eAttachmentType  _type,
-        std::string_view _name) const;
-
-    [[nodiscard]] TextureHandle CreateTextureArray(
-        Int32            _width,
-        Int32            _height,
-        Int32            _arraySize,
-        eTextureFormat   _format,
-        eAttachmentType  _type,
-        std::string_view _name) const;
-
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
-        std::span<const TextureHandle> _handles,
-        bool                           _bDestroyTexture,
-        std::string_view               _name) const;
-
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
-        TextureHandle    _handle,
-        bool             _bDestroyTexture,
-        std::string_view _name) const;
-
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
-        Int32            _width,
-        Int32            _height,
-        eTextureFormat   _format,
-        std::string_view _name) const;
+    [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, std::string_view _name) const;
+    [[nodiscard]] TextureHandle     CreateTextureCube(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, std::string_view _name) const;
+    [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eTextureFormat _format, eAttachmentType _type, std::string_view _name) const;
+    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(std::span<const TextureHandle> _attachment, bool _bDestroyTexture, std::string_view _name) const;
+    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(TextureHandle _texh, bool _bDestroyTexture, std::string_view _name) const;
+    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, std::string_view _name) const;
 
     // submit
-    void Submit(
-        const Ref<Mesh>&     _mesh,
-        const Ref<Material>& _material,
-        const Mat4&          _world) const;
+    void Submit(const Ref<Mesh>& _mesh, const Ref<Material>& _material, const Mat4& _world) const;
 
     // misc
     void BakeSSAOKernel() const;
     void BakeSSAONoise();
 
     // render graph
-    void BuildRenderGraph(
-        Int32              _width,
-        Int32              _height,
-        const Environment& _env,
-        const Scene&       _scene);
-
-    bool CheckEnvironmentDiff(
-        const Environment& _env) const;
+    void BuildRenderGraph(Int32 _width, Int32 _height, const Environment& _env, const Scene& _scene);
+    bool CheckEnvironmentDiff(const Environment& _env) const;
 
     // shaders
-    ShaderHandle pbrVS                       = k_invalidHandle;
-    ShaderHandle fullscreenVS                = k_invalidHandle;
-    ShaderHandle pbrLightVolumeVS            = k_invalidHandle;
-    ShaderHandle pbrEnvironmentLIghtVolumeVS = k_invalidHandle;
-    ShaderHandle csmVS                       = k_invalidHandle;
-    ShaderHandle osmVS                       = k_invalidHandle;
-    ShaderHandle shadowMappingVS             = k_invalidHandle;
-    ShaderHandle skyboxVS                    = k_invalidHandle;
-    ShaderHandle csmLevel2GS                 = k_invalidHandle;
-    ShaderHandle csmLevel3GS                 = k_invalidHandle;
-    ShaderHandle csmLevel4GS                 = k_invalidHandle;
-    ShaderHandle osmGS                       = k_invalidHandle;
-    ShaderHandle pbrGBufferPS                = k_invalidHandle;
-    ShaderHandle pbrLightingPS               = k_invalidHandle;
-    ShaderHandle pbrLightVolumePS            = k_invalidHandle;
-    ShaderHandle pbrEnvironmentLightVolumePS = k_invalidHandle;
-    ShaderHandle csmPS                       = k_invalidHandle;
-    ShaderHandle osmPS                       = k_invalidHandle;
-    ShaderHandle shadowMappingPS             = k_invalidHandle;
-    ShaderHandle skyboxPS                    = k_invalidHandle;
-    ShaderHandle ssaoPS                      = k_invalidHandle;
-    ShaderHandle ssaoBlurXPS                 = k_invalidHandle;
-    ShaderHandle ssaoBlurYPS                 = k_invalidHandle;
-    ShaderHandle bloomUpPS                   = k_invalidHandle;
-    ShaderHandle bloomDownPS                 = k_invalidHandle;
-    ShaderHandle bloomCombinePS              = k_invalidHandle;
-    ShaderHandle toneMappingPS               = k_invalidHandle;
-    ShaderHandle fxaaVeryLowPS               = k_invalidHandle;
-    ShaderHandle fxaaLowPS                   = k_invalidHandle;
-    ShaderHandle fxaaMediumPS                = k_invalidHandle;
-    ShaderHandle fxaaHighPS                  = k_invalidHandle;
-    ShaderHandle fxaaVeryHighPS              = k_invalidHandle;
-    ShaderHandle fxaaUltraPS                 = k_invalidHandle;
-    ShaderHandle fogPS                       = k_invalidHandle;
-    ShaderHandle passTexhroughPS             = k_invalidHandle;
+    ShaderHandle pbrVsh                       = k_invalidHandle;
+    ShaderHandle fullscreenVsh                = k_invalidHandle;
+    ShaderHandle pbrLightVolumeVsh            = k_invalidHandle;
+    ShaderHandle pbrEnvironmentLIghtVolumeVsh = k_invalidHandle;
+    ShaderHandle csmVsh                       = k_invalidHandle;
+    ShaderHandle osmVsh                       = k_invalidHandle;
+    ShaderHandle shadowMappingVsh             = k_invalidHandle;
+    ShaderHandle skyboxVsh                    = k_invalidHandle;
+    ShaderHandle csmLevel3Gsh                 = k_invalidHandle;
+    ShaderHandle osmGsh                       = k_invalidHandle;
+    ShaderHandle pbrGBufferPsh                = k_invalidHandle;
+    ShaderHandle pbrLightingPsh               = k_invalidHandle;
+    ShaderHandle pbrLightVolumePsh            = k_invalidHandle;
+    ShaderHandle pbrEnvironmentLightVolumePsh = k_invalidHandle;
+    ShaderHandle csmPsh                       = k_invalidHandle;
+    ShaderHandle osmPsh                       = k_invalidHandle;
+    ShaderHandle shadowMappingPsh             = k_invalidHandle;
+    ShaderHandle skyboxPsh                    = k_invalidHandle;
+    ShaderHandle ssaoPsh                      = k_invalidHandle;
+    ShaderHandle ssaoBlurXPsh                 = k_invalidHandle;
+    ShaderHandle ssaoBlurYPsh                 = k_invalidHandle;
+    ShaderHandle bloomUpPsh                   = k_invalidHandle;
+    ShaderHandle bloomDownPsh                 = k_invalidHandle;
+    ShaderHandle bloomCombinePsh              = k_invalidHandle;
+    ShaderHandle toneMappingPsh               = k_invalidHandle;
+    ShaderHandle fxaaVeryLowPsh               = k_invalidHandle;
+    ShaderHandle fxaaLowPsh                   = k_invalidHandle;
+    ShaderHandle fxaaMediumPsh                = k_invalidHandle;
+    ShaderHandle fxaaHighPsh                  = k_invalidHandle;
+    ShaderHandle fxaaVeryHighPsh              = k_invalidHandle;
+    ShaderHandle fxaaUltraPsh                 = k_invalidHandle;
+    ShaderHandle fogPsh                       = k_invalidHandle;
+    ShaderHandle passTexhroughPsh             = k_invalidHandle;
 
     // programs
     ProgramHandle pbrGBufferProgram                = k_invalidHandle;
     ProgramHandle pbrLightingProgram               = k_invalidHandle;
     ProgramHandle pbrLightVolumeProgram            = k_invalidHandle;
     ProgramHandle pbrEnvironmentLightVolumeProgram = k_invalidHandle;
-    ProgramHandle csmLevel2CasterProgram           = k_invalidHandle;
     ProgramHandle csmLevel3CasterProgram           = k_invalidHandle;
-    ProgramHandle csmLevel4CasterProgram           = k_invalidHandle;
     ProgramHandle osmCasterProgram                 = k_invalidHandle;
     ProgramHandle shadowCasterProgram              = k_invalidHandle;
     ProgramHandle skyboxProgram                    = k_invalidHandle;
@@ -234,7 +161,6 @@ struct BasicRendererContext
     bool              bDirLightEnabled       = false;
     bool              bDirLightShadowEnabled = false;
     Int32             numBloomPasses         = -1;
-    eCascadeLevel     cascadeLevel           = eCascadeLevel::Unknown;
     Ref<ImageTexture> pIrrdianceMap          = nullptr;
     Ref<ImageTexture> pSpecularMap           = nullptr;
     Ref<ImageTexture> pBrdfLutMap            = nullptr;
@@ -244,7 +170,6 @@ struct BasicRendererContext
     bool              bToneMappingEnabled    = false;
     bool              bBloomEnabled          = false;
     bool              bFXAAEnabled           = false;
-    eFxaaQuality      fxaaQuality            = eFxaaQuality::Unknown;
 
     TextureHandle hdrTexh             = k_invalidHandle;
     TextureHandle depthTexh           = k_invalidHandle;
@@ -284,12 +209,6 @@ void BasicRendererContext::UploadCamera(
 void BasicRendererContext::UploadEnvironment(
     const Environment& _env) const
 {
-    constexpr UInt32 k_cascadeLevelsTable[] = {
-        2,   // eCascadeLevel::level2
-        3,   // eCascadeLevel::level3
-        4    // eCascadeLevel::level4
-    };
-
     constexpr UInt32 k_toneMappintTable[] = {
         JAM_ENVIRONMENT_TONE_MAPPING_TYPE_LINEAR,
         JAM_ENVIRONMENT_TONE_MAPPING_TYPE_REINHARD,
@@ -327,14 +246,10 @@ void BasicRendererContext::UploadEnvironment(
             cb.cb_envFlags |= JAM_ENVIRONMENT_FLAGS_DIRLIGHT_SHADOW;
         }
 
-        // shadow cascade level
-        cb.cb_dirLightShadowCascadeLevel = k_cascadeLevelsTable[EnumToInt<eCascadeLevel>(dirLight.cascadeLevel)];
-
         // shadow cascade ranges
-        cb.cb_dirLightShadowCascadeRanges.x = dirLight.cascadeDistances[0];
-        cb.cb_dirLightShadowCascadeRanges.y = dirLight.cascadeDistances[1];
-        cb.cb_dirLightShadowCascadeRanges.z = dirLight.cascadeDistances[2];
-        cb.cb_dirLightShadowCascadeRanges.w = dirLight.cascadeDistances[3];
+        cb.cb_cascadeShadowDistances.x = dirLight.cascadeDistances[0];
+        cb.cb_cascadeShadowDistances.y = dirLight.cascadeDistances[1];
+        cb.cb_cascadeShadowDistances.z = dirLight.cascadeDistances[2];
 
         // shadow bias
         cb.cb_shadowBias = misc.shadowBias;
@@ -379,7 +294,7 @@ void BasicRendererContext::UploadEnvironment(
 
     // tone mapping
     {
-        cb.cb_toneMappingType = k_toneMappintTable[EnumToInt<eToneMappingType>(toneMapping.type)];
+        cb.cb_toneMappingType = k_toneMappintTable[IntFrom<eToneMappingType>(toneMapping.type)];
         cb.cb_exposure        = toneMapping.exposure;
         cb.cb_gamma           = toneMapping.gamma;
     }
@@ -467,14 +382,14 @@ void BasicRendererContext::UploadMaterial(
     {
         const eTextureChannel channel = _material->GetMetallicTextureChannel();
         pTex->Bind(eShader::PixelShader, t_metallicSlot);
-        cb.cb_materialFlags |= k_metaliicChannelTable[EnumToInt<eTextureChannel>(channel)];
+        cb.cb_materialFlags |= k_metaliicChannelTable[IntFrom<eTextureChannel>(channel)];
     }
 
     if (const Ref<ImageTexture>& pTex = _material->GetRoughnessTexture())
     {
         const eTextureChannel channel = _material->GetRoughnessTextureChannel();
         pTex->Bind(eShader::PixelShader, t_roughnessSlot);
-        cb.cb_materialFlags |= k_roughnessChannelTable[EnumToInt<eTextureChannel>(channel)];
+        cb.cb_materialFlags |= k_roughnessChannelTable[IntFrom<eTextureChannel>(channel)];
     }
 
     if (const Ref<ImageTexture>& pTex = _material->GetAoTexture())
@@ -524,7 +439,7 @@ void BasicRendererContext::UploadPointLight(
 {
     CB_LIGHT cb                 = {};
     cb.cb_lightType             = JAM_LIGHT_TYPE_POINT;
-    cb.cb_lightPos              = _radiance;
+    cb.cb_lightPos              = _pos;
     cb.cb_lightDir              = Vec3::Forward;
     cb.cb_lightRadiance         = _radiance;
     cb.cb_lightIntensity        = _lightIntensity;
@@ -644,11 +559,11 @@ TextureHandle BasicRendererContext::CreateTextureArray(
 }
 
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
-    const std::span<const TextureHandle> _handles,
+    const std::span<const TextureHandle> _attachment,
     const bool                           _bDestroyTexture,
     const std::string_view               _name) const
 {
-    const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_handles, _bDestroyTexture);
+    const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_attachment, _bDestroyTexture);
     if (!_name.empty())
     {
         Graphics::SetFrameBufferName(fbh, _name);
@@ -657,11 +572,11 @@ FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
 }
 
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
-    const TextureHandle    _handle,
+    const TextureHandle    _texh,
     const bool             _bDestroyTexture,
     const std::string_view _name) const
 {
-    const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_handle, _bDestroyTexture);
+    const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_texh, _bDestroyTexture);
     if (!_name.empty())
     {
         Graphics::SetFrameBufferName(fbh, _name);
@@ -743,14 +658,14 @@ void BasicRendererContext::BuildRenderGraph(
     {
         void operator()() const
         {
-            for (const auto& [_, tc, rc]: pScene->Each<TransformComponent, RenderableComponent>())
+            for (const auto& [_, sc, rc]: pScene->Each<SceneComponent, RenderableComponent>())
             {
                 const Ref<Material>& pMat  = rc.renderable.pMaterial;
                 const Ref<Mesh>&     pMesh = rc.renderable.pMesh;
                 if (pMat && pMesh)
                 {
-                    const TransformHierarchy& th = tc.transformHierarchy;
-                    g_basicRendererCtx->Submit(pMesh, pMat, th.GetWorldMatrix());
+                    const Transform& wt = sc.node.GetWorldTransform();
+                    g_basicRendererCtx->Submit(pMesh, pMat, wt.GetMatrix());
                 }
             }
         }
@@ -819,7 +734,6 @@ void BasicRendererContext::BuildRenderGraph(
     pEnv                   = &_env;
     bDirLightEnabled       = dirLight.bEnabled;
     bDirLightShadowEnabled = dirLight.bShadowEnabled;
-    cascadeLevel           = dirLight.cascadeLevel;
     pIrrdianceMap          = ibl.pIrradianceTexture;
     pSpecularMap           = ibl.pSpecularTexture;
     pBrdfLutMap            = ibl.pBrdfLutTexture;
@@ -830,7 +744,6 @@ void BasicRendererContext::BuildRenderGraph(
     bBloomEnabled          = bloom.bEnabled;
     numBloomPasses         = bloom.numBlurPasses;
     bFXAAEnabled           = fxaa.bEnabled;
-    fxaaQuality            = fxaa.quality;
 
     // scene resources
     hdrTexh             = CreateTexture2D(width, height, eTextureFormat::RGBA16_Float, eAttachmentType::RenderTarget, "HDR Texture");
@@ -1026,13 +939,11 @@ void BasicRendererContext::BuildRenderGraph(
         graph.AddPass(std::move(pass));
     }
 
-    //////////////////////////////////////
-    ///          POST PROCESS          ///
-    //////////////////////////////////////
+    // 이하 포스트 프로세스 패스
 
     TextureHandle inputTexh = hdrTexh;
 
-    // check any post process is enabled
+    // 만약. 포스트 프로세스가 하나도 활성화 되어있지 않다면 패스 스루 패스를 추가한다. (hdr -> ldr 때문)
     if (!(fog.bEnabled || bloom.bEnabled || fxaa.bEnabled || toneMapping.bEnabled))
     {
         // if no post process is enabled.
@@ -1259,21 +1170,16 @@ bool BasicRendererContext::CheckEnvironmentDiff(
 
     bDiff |= (dirLight.bEnabled != bDirLightEnabled);
     bDiff |= (dirLight.bShadowEnabled != bDirLightShadowEnabled);
-    bDiff |= (dirLight.cascadeLevel != cascadeLevel);
-
     bDiff |= (ibl.pIrradianceTexture != pIrrdianceMap);
     bDiff |= (ibl.pSpecularTexture != pSpecularMap);
     bDiff |= (ibl.pBrdfLutTexture != pBrdfLutMap);
-
     bDiff |= (skybox.pSkyboxTexture != pSkyboxTexture);
-
     bDiff |= (bloom.numBlurPasses != numBloomPasses);
     bDiff |= (ssao.bEnabled != bSSAOEnabled);
     bDiff |= (fog.bEnabled != bFogEnabled);
     bDiff |= (toneMapping.bEnabled != bToneMappingEnabled);
     bDiff |= (bloom.bEnabled != bBloomEnabled);
     bDiff |= (fxaa.bEnabled != bFXAAEnabled);
-    bDiff |= (fxaa.quality != fxaaQuality);
 
     return bDiff;
 }
@@ -1293,145 +1199,137 @@ void BasicRenderer::Init()
 
     // vertex shaders
     {
-        pCtx->pbrVS = Graphics::CreateShader({ shader::PBRVS_Bytecode, shader::PBRVS_Size });
-        Graphics::SetShaderName(pCtx->pbrVS, "jam engine predefined shader: pbrVS");
+        pCtx->pbrVsh = Graphics::CreateShader({ shader::PBRVS_Bytecode, shader::PBRVS_Size });
+        Graphics::SetShaderName(pCtx->pbrVsh, "jam engine predefined shader: pbrVsh");
 
-        pCtx->fullscreenVS = Graphics::CreateShader({ shader::FullScreenVS_Bytecode, shader::FullScreenVS_Size });
-        Graphics::SetShaderName(pCtx->fullscreenVS, "jam engine predefined shader: fullscreenVS");
+        pCtx->fullscreenVsh = Graphics::CreateShader({ shader::FullScreenVS_Bytecode, shader::FullScreenVS_Size });
+        Graphics::SetShaderName(pCtx->fullscreenVsh, "jam engine predefined shader: fullscreenVsh");
 
-        pCtx->pbrLightVolumeVS = Graphics::CreateShader({ shader::PBRLightVolumeShader_VS_Bytecode, shader::PBRLightVolumeShader_VS_Size });
-        Graphics::SetShaderName(pCtx->pbrLightVolumeVS, "jam engine predefined shader: pbrLightVolumeVS");
+        pCtx->pbrLightVolumeVsh = Graphics::CreateShader({ shader::PBRLightVolumeShader_VS_Bytecode, shader::PBRLightVolumeShader_VS_Size });
+        Graphics::SetShaderName(pCtx->pbrLightVolumeVsh, "jam engine predefined shader: pbrLightVolumeVsh");
 
-        pCtx->pbrEnvironmentLIghtVolumeVS = Graphics::CreateShader({ shader::PBRLightVolumeShaderForDirectional_VS_Bytecode, shader::PBRLightVolumeShaderForDirectional_VS_Size });
-        Graphics::SetShaderName(pCtx->pbrEnvironmentLIghtVolumeVS, "jam engine predefined shader: pbrEnvironmentLightVolumeVS");
+        pCtx->pbrEnvironmentLIghtVolumeVsh = Graphics::CreateShader({ shader::PBRLightVolumeShaderForDirectional_VS_Bytecode, shader::PBRLightVolumeShaderForDirectional_VS_Size });
+        Graphics::SetShaderName(pCtx->pbrEnvironmentLIghtVolumeVsh, "jam engine predefined shader: pbrEnvironmentLightVolumeVsh");
 
-        pCtx->csmVS = Graphics::CreateShader({ shader::CascadeShaderMappingShader_VS_Bytecode, shader::CascadeShaderMappingShader_VS_Size });
-        Graphics::SetShaderName(pCtx->csmVS, "jam engine predefined shader: csmVS");
+        pCtx->csmVsh = Graphics::CreateShader({ shader::CascadeShaderMappingShader_VS_Bytecode, shader::CascadeShaderMappingShader_VS_Size });
+        Graphics::SetShaderName(pCtx->csmVsh, "jam engine predefined shader: csmVsh");
 
-        pCtx->osmVS = Graphics::CreateShader({ shader::OmniDirectionalShaderMappingShader_VS_Bytecode, shader::OmniDirectionalShaderMappingShader_VS_Size });
-        Graphics::SetShaderName(pCtx->osmVS, "jam engine predefined shader: osmVS");
+        pCtx->osmVsh = Graphics::CreateShader({ shader::OmniDirectionalShaderMappingShader_VS_Bytecode, shader::OmniDirectionalShaderMappingShader_VS_Size });
+        Graphics::SetShaderName(pCtx->osmVsh, "jam engine predefined shader: osmVsh");
 
-        pCtx->shadowMappingVS = Graphics::CreateShader({ shader::ShadowMappingShader_VS_Bytecode, shader::ShadowMappingShader_VS_Size });
-        Graphics::SetShaderName(pCtx->shadowMappingVS, "jam engine predefined shader: shadowMappingVS");
+        pCtx->shadowMappingVsh = Graphics::CreateShader({ shader::ShadowMappingShader_VS_Bytecode, shader::ShadowMappingShader_VS_Size });
+        Graphics::SetShaderName(pCtx->shadowMappingVsh, "jam engine predefined shader: shadowMappingVsh");
 
-        pCtx->skyboxVS = Graphics::CreateShader({ shader::SkyboxShader_VS_Bytecode, shader::SkyboxShader_VS_Size });
-        Graphics::SetShaderName(pCtx->skyboxVS, "jam engine predefined shader: skyboxVS");
+        pCtx->skyboxVsh = Graphics::CreateShader({ shader::SkyboxShader_VS_Bytecode, shader::SkyboxShader_VS_Size });
+        Graphics::SetShaderName(pCtx->skyboxVsh, "jam engine predefined shader: skyboxVsh");
     }
 
     // geometry shaders
     {
-        pCtx->csmLevel2GS = Graphics::CreateShader({ shader::CascadeShaderMappingShader_CASCADE_LEVEL_2_GS_Bytecode, shader::CascadeShaderMappingShader_CASCADE_LEVEL_2_GS_Size });
-        Graphics::SetShaderName(pCtx->csmLevel2GS, "jam engine predefined shader: csmLevel2GS");
+        pCtx->csmLevel3Gsh = Graphics::CreateShader({ shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Bytecode, shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Size });
+        Graphics::SetShaderName(pCtx->csmLevel3Gsh, "jam engine predefined shader: csmLevel3Gsh");
 
-        pCtx->csmLevel3GS = Graphics::CreateShader({ shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Bytecode, shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Size });
-        Graphics::SetShaderName(pCtx->csmLevel3GS, "jam engine predefined shader: csmLevel3GS");
-
-        pCtx->csmLevel4GS = Graphics::CreateShader({ shader::CascadeShaderMappingShader_CASCADE_LEVEL_4_GS_Bytecode, shader::CascadeShaderMappingShader_CASCADE_LEVEL_4_GS_Size });
-        Graphics::SetShaderName(pCtx->csmLevel4GS, "jam engine predefined shader: csmLevel4GS");
-
-        pCtx->osmGS = Graphics::CreateShader({ shader::OmniDirectionalShaderMappingShader_GS_Bytecode, shader::OmniDirectionalShaderMappingShader_GS_Size });
-        Graphics::SetShaderName(pCtx->osmGS, "jam engine predefined shader: osmGS");
+        pCtx->osmGsh = Graphics::CreateShader({ shader::OmniDirectionalShaderMappingShader_GS_Bytecode, shader::OmniDirectionalShaderMappingShader_GS_Size });
+        Graphics::SetShaderName(pCtx->osmGsh, "jam engine predefined shader: osmGsh");
     }
 
     // pixel shaders
     {
-        pCtx->pbrGBufferPS = Graphics::CreateShader({ shader::PBRGBufferShader_PS_Bytecode, shader::PBRGBufferShader_PS_Size });
-        Graphics::SetShaderName(pCtx->pbrGBufferPS, "jam engine predefined shader: pbrGBufferPS");
+        pCtx->pbrGBufferPsh = Graphics::CreateShader({ shader::PBRGBufferShader_PS_Bytecode, shader::PBRGBufferShader_PS_Size });
+        Graphics::SetShaderName(pCtx->pbrGBufferPsh, "jam engine predefined shader: pbrGBufferPsh");
 
-        pCtx->pbrLightingPS = Graphics::CreateShader({ shader::PBRLightingShader_PS_Bytecode, shader::PBRLightingShader_PS_Size });
-        Graphics::SetShaderName(pCtx->pbrLightingPS, "jam engine predefined shader: pbrLightingPS");
+        pCtx->pbrLightingPsh = Graphics::CreateShader({ shader::PBRLightingShader_PS_Bytecode, shader::PBRLightingShader_PS_Size });
+        Graphics::SetShaderName(pCtx->pbrLightingPsh, "jam engine predefined shader: pbrLightingPsh");
 
-        pCtx->pbrLightVolumePS = Graphics::CreateShader({ shader::PBRLightVolumeShader_PS_Bytecode, shader::PBRLightVolumeShader_PS_Size });
-        Graphics::SetShaderName(pCtx->pbrLightVolumePS, "jam engine predefined shader: pbrLightVolumePS");
+        pCtx->pbrLightVolumePsh = Graphics::CreateShader({ shader::PBRLightVolumeShader_PS_Bytecode, shader::PBRLightVolumeShader_PS_Size });
+        Graphics::SetShaderName(pCtx->pbrLightVolumePsh, "jam engine predefined shader: pbrLightVolumePsh");
 
-        pCtx->pbrEnvironmentLightVolumePS = Graphics::CreateShader({ shader::PBRLightVolumeShaderForDirectional_PS_Bytecode, shader::PBRLightVolumeShaderForDirectional_PS_Size });
-        Graphics::SetShaderName(pCtx->pbrEnvironmentLightVolumePS, "jam engine predefined shader: pbrEnvironmentLightVolumePS");
+        pCtx->pbrEnvironmentLightVolumePsh = Graphics::CreateShader({ shader::PBRLightVolumeShaderForDirectional_PS_Bytecode, shader::PBRLightVolumeShaderForDirectional_PS_Size });
+        Graphics::SetShaderName(pCtx->pbrEnvironmentLightVolumePsh, "jam engine predefined shader: pbrEnvironmentLightVolumePsh");
 
-        pCtx->csmPS = Graphics::CreateShader({ shader::CascadeShaderMappingShader_PS_Bytecode, shader::CascadeShaderMappingShader_PS_Size });
-        Graphics::SetShaderName(pCtx->csmPS, "jam engine predefined shader: csmPS");
+        pCtx->csmPsh = Graphics::CreateShader({ shader::CascadeShaderMappingShader_PS_Bytecode, shader::CascadeShaderMappingShader_PS_Size });
+        Graphics::SetShaderName(pCtx->csmPsh, "jam engine predefined shader: csmPsh");
 
-        pCtx->osmPS = Graphics::CreateShader({ shader::OmniDirectionalShaderMappingShader_PS_Bytecode, shader::OmniDirectionalShaderMappingShader_PS_Size });
-        Graphics::SetShaderName(pCtx->osmPS, "jam engine predefined shader: osmPS");
+        pCtx->osmPsh = Graphics::CreateShader({ shader::OmniDirectionalShaderMappingShader_PS_Bytecode, shader::OmniDirectionalShaderMappingShader_PS_Size });
+        Graphics::SetShaderName(pCtx->osmPsh, "jam engine predefined shader: osmPsh");
 
-        pCtx->shadowMappingPS = Graphics::CreateShader({ shader::ShadowMappingShader_PS_Bytecode, shader::ShadowMappingShader_PS_Size });
-        Graphics::SetShaderName(pCtx->shadowMappingPS, "jam engine predefined shader: shadowMappingPS");
+        pCtx->shadowMappingPsh = Graphics::CreateShader({ shader::ShadowMappingShader_PS_Bytecode, shader::ShadowMappingShader_PS_Size });
+        Graphics::SetShaderName(pCtx->shadowMappingPsh, "jam engine predefined shader: shadowMappingPsh");
 
-        pCtx->skyboxPS = Graphics::CreateShader({ shader::SkyboxShader_PS_Bytecode, shader::SkyboxShader_PS_Size });
-        Graphics::SetShaderName(pCtx->skyboxPS, "jam engine predefined shader: skyboxPS");
+        pCtx->skyboxPsh = Graphics::CreateShader({ shader::SkyboxShader_PS_Bytecode, shader::SkyboxShader_PS_Size });
+        Graphics::SetShaderName(pCtx->skyboxPsh, "jam engine predefined shader: skyboxPsh");
 
-        pCtx->ssaoPS = Graphics::CreateShader({ shader::SSAOPS_Bytecode, shader::SSAOPS_Size });
-        Graphics::SetShaderName(pCtx->ssaoPS, "jam engine predefined shader: ssaoPS");
+        pCtx->ssaoPsh = Graphics::CreateShader({ shader::SSAOPS_Bytecode, shader::SSAOPS_Size });
+        Graphics::SetShaderName(pCtx->ssaoPsh, "jam engine predefined shader: ssaoPsh");
 
-        pCtx->ssaoBlurXPS = Graphics::CreateShader({ shader::SSAOBlurXPS_Bytecode, shader::SSAOBlurXPS_Size });
-        Graphics::SetShaderName(pCtx->ssaoBlurXPS, "jam engine predefined shader: ssaoBlurXPS");
+        pCtx->ssaoBlurXPsh = Graphics::CreateShader({ shader::SSAOBlurXPS_Bytecode, shader::SSAOBlurXPS_Size });
+        Graphics::SetShaderName(pCtx->ssaoBlurXPsh, "jam engine predefined shader: ssaoBlurXPsh");
 
-        pCtx->ssaoBlurYPS = Graphics::CreateShader({ shader::SSAOBlurYPS_Bytecode, shader::SSAOBlurYPS_Size });
-        Graphics::SetShaderName(pCtx->ssaoBlurYPS, "jam engine predefined shader: ssaoBlurYPS");
+        pCtx->ssaoBlurYPsh = Graphics::CreateShader({ shader::SSAOBlurYPS_Bytecode, shader::SSAOBlurYPS_Size });
+        Graphics::SetShaderName(pCtx->ssaoBlurYPsh, "jam engine predefined shader: ssaoBlurYPsh");
 
-        pCtx->bloomUpPS = Graphics::CreateShader({ shader::BloomBlurUpPS_Bytecode, shader::BloomBlurUpPS_Size });
-        Graphics::SetShaderName(pCtx->bloomUpPS, "jam engine predefined shader: bloomXPS");
+        pCtx->bloomUpPsh = Graphics::CreateShader({ shader::BloomBlurUpPS_Bytecode, shader::BloomBlurUpPS_Size });
+        Graphics::SetShaderName(pCtx->bloomUpPsh, "jam engine predefined shader: bloomXPsh");
 
-        pCtx->bloomDownPS = Graphics::CreateShader({ shader::BloomBlurDownPS_Bytecode, shader::BloomBlurDownPS_Size });
-        Graphics::SetShaderName(pCtx->bloomDownPS, "jam engine predefined shader: bloomYPS");
+        pCtx->bloomDownPsh = Graphics::CreateShader({ shader::BloomBlurDownPS_Bytecode, shader::BloomBlurDownPS_Size });
+        Graphics::SetShaderName(pCtx->bloomDownPsh, "jam engine predefined shader: bloomYPsh");
 
-        pCtx->bloomCombinePS = Graphics::CreateShader({ shader::BloomCombinePS_Bytecode, shader::BloomCombinePS_Size });
-        Graphics::SetShaderName(pCtx->bloomCombinePS, "jam engine predefined shader: bloomCombinePS");
+        pCtx->bloomCombinePsh = Graphics::CreateShader({ shader::BloomCombinePS_Bytecode, shader::BloomCombinePS_Size });
+        Graphics::SetShaderName(pCtx->bloomCombinePsh, "jam engine predefined shader: bloomCombinePsh");
 
-        pCtx->toneMappingPS = Graphics::CreateShader({ shader::ToneMappingPS_Bytecode, shader::ToneMappingPS_Size });
-        Graphics::SetShaderName(pCtx->toneMappingPS, "jam engine predefined shader: toneMappingPS");
+        pCtx->toneMappingPsh = Graphics::CreateShader({ shader::ToneMappingPS_Bytecode, shader::ToneMappingPS_Size });
+        Graphics::SetShaderName(pCtx->toneMappingPsh, "jam engine predefined shader: toneMappingPsh");
 
-        pCtx->fxaaVeryLowPS = Graphics::CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
-        Graphics::SetShaderName(pCtx->fxaaVeryLowPS, "jam engine predefined shader: fxaaVeryLowPS");
+        pCtx->fxaaVeryLowPsh = Graphics::CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
+        Graphics::SetShaderName(pCtx->fxaaVeryLowPsh, "jam engine predefined shader: fxaaVeryLowPsh");
 
-        pCtx->fxaaLowPS = Graphics::CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
-        Graphics::SetShaderName(pCtx->fxaaLowPS, "jam engine predefined shader: fxaaLowPS");
+        pCtx->fxaaLowPsh = Graphics::CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
+        Graphics::SetShaderName(pCtx->fxaaLowPsh, "jam engine predefined shader: fxaaLowPsh");
 
-        pCtx->fxaaMediumPS = Graphics::CreateShader({ shader::FXAA_Medium_PS_Bytecode, shader::FXAA_Medium_PS_Size });
-        Graphics::SetShaderName(pCtx->fxaaMediumPS, "jam engine predefined shader: fxaaMediumPS");
+        pCtx->fxaaMediumPsh = Graphics::CreateShader({ shader::FXAA_Medium_PS_Bytecode, shader::FXAA_Medium_PS_Size });
+        Graphics::SetShaderName(pCtx->fxaaMediumPsh, "jam engine predefined shader: fxaaMediumPsh");
 
-        pCtx->fxaaHighPS = Graphics::CreateShader({ shader::FXAA_High_PS_Bytecode, shader::FXAA_High_PS_Size });
-        Graphics::SetShaderName(pCtx->fxaaHighPS, "jam engine predefined shader: fxaaHighPS");
+        pCtx->fxaaHighPsh = Graphics::CreateShader({ shader::FXAA_High_PS_Bytecode, shader::FXAA_High_PS_Size });
+        Graphics::SetShaderName(pCtx->fxaaHighPsh, "jam engine predefined shader: fxaaHighPsh");
 
-        pCtx->fxaaVeryHighPS = Graphics::CreateShader({ shader::FXAA_VeryHigh_PS_Bytecode, shader::FXAA_VeryHigh_PS_Size });
-        Graphics::SetShaderName(pCtx->fxaaVeryHighPS, "jam engine predefined shader: fxaaVeryHighPS");
+        pCtx->fxaaVeryHighPsh = Graphics::CreateShader({ shader::FXAA_VeryHigh_PS_Bytecode, shader::FXAA_VeryHigh_PS_Size });
+        Graphics::SetShaderName(pCtx->fxaaVeryHighPsh, "jam engine predefined shader: fxaaVeryHighPsh");
 
-        pCtx->fxaaUltraPS = Graphics::CreateShader({ shader::FXAA_Ultra_PS_Bytecode, shader::FXAA_Ultra_PS_Size });
-        Graphics::SetShaderName(pCtx->fxaaUltraPS, "jam engine predefined shader: fxaaUltraPS");
+        pCtx->fxaaUltraPsh = Graphics::CreateShader({ shader::FXAA_Ultra_PS_Bytecode, shader::FXAA_Ultra_PS_Size });
+        Graphics::SetShaderName(pCtx->fxaaUltraPsh, "jam engine predefined shader: fxaaUltraPsh");
 
-        pCtx->fogPS = Graphics::CreateShader({ shader::FogPS_Bytecode, shader::FogPS_Size });
-        Graphics::SetShaderName(pCtx->fogPS, "jam engine predefined shader: fogPS");
+        pCtx->fogPsh = Graphics::CreateShader({ shader::FogPS_Bytecode, shader::FogPS_Size });
+        Graphics::SetShaderName(pCtx->fogPsh, "jam engine predefined shader: fogPsh");
 
-        pCtx->passTexhroughPS = Graphics::CreateShader({ shader::PassThroughPS_Bytecode, shader::PassThroughPS_Size });
-        Graphics::SetShaderName(pCtx->passTexhroughPS, "jam engine predefined shader: passTexhroughPS");
+        pCtx->passTexhroughPsh = Graphics::CreateShader({ shader::PassThroughPS_Bytecode, shader::PassThroughPS_Size });
+        Graphics::SetShaderName(pCtx->passTexhroughPsh, "jam engine predefined shader: passTexhroughPsh");
     }
 
     // programs
     {
-        pCtx->pbrGBufferProgram                = Graphics::CreateProgram(pCtx->pbrVS, pCtx->pbrGBufferPS);
-        pCtx->pbrLightingProgram               = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->pbrLightingPS);
-        pCtx->pbrLightVolumeProgram            = Graphics::CreateProgram(pCtx->pbrLightVolumeVS, pCtx->pbrLightVolumePS);
-        pCtx->pbrEnvironmentLightVolumeProgram = Graphics::CreateProgram(pCtx->pbrEnvironmentLIghtVolumeVS, pCtx->pbrEnvironmentLightVolumePS);
-        pCtx->csmLevel2CasterProgram           = Graphics::CreateProgram(pCtx->csmVS, pCtx->csmPS, pCtx->csmLevel2GS, k_invalidHandle, k_invalidHandle);
-        pCtx->csmLevel3CasterProgram           = Graphics::CreateProgram(pCtx->csmVS, pCtx->csmPS, pCtx->csmLevel3GS, k_invalidHandle, k_invalidHandle);
-        pCtx->csmLevel4CasterProgram           = Graphics::CreateProgram(pCtx->csmVS, pCtx->csmPS, pCtx->csmLevel4GS, k_invalidHandle, k_invalidHandle);
-        pCtx->osmCasterProgram                 = Graphics::CreateProgram(pCtx->osmVS, pCtx->osmPS, pCtx->osmGS, k_invalidHandle, k_invalidHandle);
-        pCtx->shadowCasterProgram              = Graphics::CreateProgram(pCtx->shadowMappingVS, pCtx->shadowMappingPS);
-        pCtx->skyboxProgram                    = Graphics::CreateProgram(pCtx->skyboxVS, pCtx->skyboxPS);
-        pCtx->ssaoProgram                      = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->ssaoPS);
-        pCtx->ssaoBlurXProgram                 = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->ssaoBlurXPS);
-        pCtx->ssaoBlurYProgram                 = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->ssaoBlurYPS);
-        pCtx->bloomUpProgram                   = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->bloomUpPS);
-        pCtx->bloomDownProgram                 = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->bloomDownPS);
-        pCtx->bloomCombineProgram              = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->bloomCombinePS);
-        pCtx->toneMappingProgram               = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->toneMappingPS);
-        pCtx->fxaaVeryLowProgram               = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->fxaaVeryLowPS);
-        pCtx->fxaaLowProgram                   = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->fxaaLowPS);
-        pCtx->fxaaMediumProgram                = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->fxaaMediumPS);
-        pCtx->fxaaHighProgram                  = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->fxaaHighPS);
-        pCtx->fxaaVeryHighProgram              = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->fxaaVeryHighPS);
-        pCtx->fxaaUltraProgram                 = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->fxaaUltraPS);
-        pCtx->fogProgram                       = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->fogPS);
-        pCtx->passTexhroughProgram             = Graphics::CreateProgram(pCtx->fullscreenVS, pCtx->passTexhroughPS);
+        pCtx->pbrGBufferProgram                = Graphics::CreateProgram(pCtx->pbrVsh, pCtx->pbrGBufferPsh);
+        pCtx->pbrLightingProgram               = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->pbrLightingPsh);
+        pCtx->pbrLightVolumeProgram            = Graphics::CreateProgram(pCtx->pbrLightVolumeVsh, pCtx->pbrLightVolumePsh);
+        pCtx->pbrEnvironmentLightVolumeProgram = Graphics::CreateProgram(pCtx->pbrEnvironmentLIghtVolumeVsh, pCtx->pbrEnvironmentLightVolumePsh);
+        pCtx->csmLevel3CasterProgram           = Graphics::CreateProgram(pCtx->csmVsh, pCtx->csmPsh, pCtx->csmLevel3Gsh, k_invalidHandle, k_invalidHandle);
+        pCtx->osmCasterProgram                 = Graphics::CreateProgram(pCtx->osmVsh, pCtx->osmPsh, pCtx->osmGsh, k_invalidHandle, k_invalidHandle);
+        pCtx->shadowCasterProgram              = Graphics::CreateProgram(pCtx->shadowMappingVsh, pCtx->shadowMappingPsh);
+        pCtx->skyboxProgram                    = Graphics::CreateProgram(pCtx->skyboxVsh, pCtx->skyboxPsh);
+        pCtx->ssaoProgram                      = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoPsh);
+        pCtx->ssaoBlurXProgram                 = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoBlurXPsh);
+        pCtx->ssaoBlurYProgram                 = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoBlurYPsh);
+        pCtx->bloomUpProgram                   = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->bloomUpPsh);
+        pCtx->bloomDownProgram                 = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->bloomDownPsh);
+        pCtx->bloomCombineProgram              = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->bloomCombinePsh);
+        pCtx->toneMappingProgram               = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->toneMappingPsh);
+        pCtx->fxaaVeryLowProgram               = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaVeryLowPsh);
+        pCtx->fxaaLowProgram                   = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaLowPsh);
+        pCtx->fxaaMediumProgram                = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaMediumPsh);
+        pCtx->fxaaHighProgram                  = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaHighPsh);
+        pCtx->fxaaVeryHighProgram              = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaVeryHighPsh);
+        pCtx->fxaaUltraProgram                 = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaUltraPsh);
+        pCtx->fogProgram                       = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->fogPsh);
+        pCtx->passTexhroughProgram             = Graphics::CreateProgram(pCtx->fullscreenVsh, pCtx->passTexhroughPsh);
     }
 
     // constant buffers
@@ -1475,7 +1373,7 @@ void BasicRenderer::Init()
             {  Vec2(3.f, -1.f), Vec2(2.f,  1.f) }
         };
         constexpr UInt16 k_indices[] = { 0, 1, 2 };
-        pCtx->fullScreenTri.LoadFromMemory(k_verts, VertexPosTex2D::s_layout, { k_indices });
+        pCtx->fullScreenTri.LoadMemory(k_verts, VertexPosTex2D::s_layout, { k_indices });
     }
 
     // light volume full tri
@@ -1486,7 +1384,7 @@ void BasicRenderer::Init()
             { Vec3(3.f, -1.f, 0.f) }
         };
         constexpr UInt16 k_indices[] = { 0, 1, 2 };
-        pCtx->lightVolumeFullScreenTri.LoadFromMemory(k_verts, VertexPos3D::s_layout, { k_indices });
+        pCtx->lightVolumeFullScreenTri.LoadMemory(k_verts, VertexPos3D::s_layout, { k_indices });
     }
 
     // skybox cube
@@ -1514,30 +1412,30 @@ void BasicRenderer::Init()
     // sampler
     {
         pCtx->linearWrapSampler.filter   = eTextureFilter::MinLinear_MagLinear_MipLinear;
-        pCtx->linearWrapSampler.addressU = eTextureAddress::Wrap;
-        pCtx->linearWrapSampler.addressV = eTextureAddress::Wrap;
-        pCtx->linearWrapSampler.addressW = eTextureAddress::Wrap;
+        pCtx->linearWrapSampler.addressU = eTextureAddressMode::Wrap;
+        pCtx->linearWrapSampler.addressV = eTextureAddressMode::Wrap;
+        pCtx->linearWrapSampler.addressW = eTextureAddressMode::Wrap;
 
         pCtx->linearClampSampler.filter   = eTextureFilter::MinLinear_MagLinear_MipLinear;
-        pCtx->linearClampSampler.addressU = eTextureAddress::Clamp;
-        pCtx->linearClampSampler.addressV = eTextureAddress::Clamp;
-        pCtx->linearClampSampler.addressW = eTextureAddress::Clamp;
+        pCtx->linearClampSampler.addressU = eTextureAddressMode::Clamp;
+        pCtx->linearClampSampler.addressV = eTextureAddressMode::Clamp;
+        pCtx->linearClampSampler.addressW = eTextureAddressMode::Clamp;
 
         pCtx->pointClampSampler.filter   = eTextureFilter::MinPoint_MagPoint_MipPoint;
-        pCtx->pointClampSampler.addressU = eTextureAddress::Clamp;
-        pCtx->pointClampSampler.addressV = eTextureAddress::Clamp;
-        pCtx->pointClampSampler.addressW = eTextureAddress::Clamp;
+        pCtx->pointClampSampler.addressU = eTextureAddressMode::Clamp;
+        pCtx->pointClampSampler.addressV = eTextureAddressMode::Clamp;
+        pCtx->pointClampSampler.addressW = eTextureAddressMode::Clamp;
 
         pCtx->shadowLinearClampSampler.filter      = eTextureFilter::MinLinear_MagLinear_MipLinear;
-        pCtx->shadowLinearClampSampler.addressU    = eTextureAddress::Clamp;
-        pCtx->shadowLinearClampSampler.addressV    = eTextureAddress::Clamp;
-        pCtx->shadowLinearClampSampler.addressW    = eTextureAddress::Clamp;
+        pCtx->shadowLinearClampSampler.addressU    = eTextureAddressMode::Clamp;
+        pCtx->shadowLinearClampSampler.addressV    = eTextureAddressMode::Clamp;
+        pCtx->shadowLinearClampSampler.addressW    = eTextureAddressMode::Clamp;
         pCtx->shadowLinearClampSampler.compareFunc = eCompareFunc::LessEqual;
 
         pCtx->anisotropicSampler.filter   = eTextureFilter::Anisotropic4;
-        pCtx->anisotropicSampler.addressU = eTextureAddress::Wrap;
-        pCtx->anisotropicSampler.addressV = eTextureAddress::Wrap;
-        pCtx->anisotropicSampler.addressW = eTextureAddress::Wrap;
+        pCtx->anisotropicSampler.addressU = eTextureAddressMode::Wrap;
+        pCtx->anisotropicSampler.addressV = eTextureAddressMode::Wrap;
+        pCtx->anisotropicSampler.addressW = eTextureAddressMode::Wrap;
 
         // 후면 컬링, 깊이 테스트 활성화, 깊이 쓰기 활성화
         pCtx->depthTestState = RenderState::k_depthTest;
@@ -1555,51 +1453,47 @@ void BasicRenderer::Shutdown()
     JAM_ASSERT(g_basicRendererCtx, "BasicRenderer not initialized");
     BasicRendererContext* pCtx = g_basicRendererCtx;
 
-    JAM_DESTROY_SHADER(pCtx->pbrVS);
-    JAM_DESTROY_SHADER(pCtx->fullscreenVS);
-    JAM_DESTROY_SHADER(pCtx->pbrLightVolumeVS);
-    JAM_DESTROY_SHADER(pCtx->pbrEnvironmentLIghtVolumeVS);
-    JAM_DESTROY_SHADER(pCtx->csmVS);
-    JAM_DESTROY_SHADER(pCtx->osmVS);
-    JAM_DESTROY_SHADER(pCtx->shadowMappingVS);
-    JAM_DESTROY_SHADER(pCtx->skyboxVS);
+    JAM_DESTROY_SHADER(pCtx->pbrVsh);
+    JAM_DESTROY_SHADER(pCtx->fullscreenVsh);
+    JAM_DESTROY_SHADER(pCtx->pbrLightVolumeVsh);
+    JAM_DESTROY_SHADER(pCtx->pbrEnvironmentLIghtVolumeVsh);
+    JAM_DESTROY_SHADER(pCtx->csmVsh);
+    JAM_DESTROY_SHADER(pCtx->osmVsh);
+    JAM_DESTROY_SHADER(pCtx->shadowMappingVsh);
+    JAM_DESTROY_SHADER(pCtx->skyboxVsh);
 
-    JAM_DESTROY_SHADER(pCtx->csmLevel2GS);
-    JAM_DESTROY_SHADER(pCtx->csmLevel3GS);
-    JAM_DESTROY_SHADER(pCtx->csmLevel4GS);
-    JAM_DESTROY_SHADER(pCtx->osmGS);
+    JAM_DESTROY_SHADER(pCtx->csmLevel3Gsh);
+    JAM_DESTROY_SHADER(pCtx->osmGsh);
 
-    JAM_DESTROY_SHADER(pCtx->pbrGBufferPS);
-    JAM_DESTROY_SHADER(pCtx->pbrLightingPS);
-    JAM_DESTROY_SHADER(pCtx->pbrLightVolumePS);
-    JAM_DESTROY_SHADER(pCtx->pbrEnvironmentLightVolumePS);
-    JAM_DESTROY_SHADER(pCtx->csmPS);
-    JAM_DESTROY_SHADER(pCtx->osmPS);
-    JAM_DESTROY_SHADER(pCtx->shadowMappingPS);
-    JAM_DESTROY_SHADER(pCtx->skyboxPS);
-    JAM_DESTROY_SHADER(pCtx->ssaoPS);
-    JAM_DESTROY_SHADER(pCtx->ssaoBlurXPS);
-    JAM_DESTROY_SHADER(pCtx->ssaoBlurYPS);
-    JAM_DESTROY_SHADER(pCtx->bloomUpPS);
-    JAM_DESTROY_SHADER(pCtx->bloomDownPS);
-    JAM_DESTROY_SHADER(pCtx->bloomCombinePS);
-    JAM_DESTROY_SHADER(pCtx->toneMappingPS);
-    JAM_DESTROY_SHADER(pCtx->fxaaVeryLowPS);
-    JAM_DESTROY_SHADER(pCtx->fxaaLowPS);
-    JAM_DESTROY_SHADER(pCtx->fxaaMediumPS);
-    JAM_DESTROY_SHADER(pCtx->fxaaHighPS);
-    JAM_DESTROY_SHADER(pCtx->fxaaVeryHighPS);
-    JAM_DESTROY_SHADER(pCtx->fxaaUltraPS);
-    JAM_DESTROY_SHADER(pCtx->fogPS);
-    JAM_DESTROY_SHADER(pCtx->passTexhroughPS);
+    JAM_DESTROY_SHADER(pCtx->pbrGBufferPsh);
+    JAM_DESTROY_SHADER(pCtx->pbrLightingPsh);
+    JAM_DESTROY_SHADER(pCtx->pbrLightVolumePsh);
+    JAM_DESTROY_SHADER(pCtx->pbrEnvironmentLightVolumePsh);
+    JAM_DESTROY_SHADER(pCtx->csmPsh);
+    JAM_DESTROY_SHADER(pCtx->osmPsh);
+    JAM_DESTROY_SHADER(pCtx->shadowMappingPsh);
+    JAM_DESTROY_SHADER(pCtx->skyboxPsh);
+    JAM_DESTROY_SHADER(pCtx->ssaoPsh);
+    JAM_DESTROY_SHADER(pCtx->ssaoBlurXPsh);
+    JAM_DESTROY_SHADER(pCtx->ssaoBlurYPsh);
+    JAM_DESTROY_SHADER(pCtx->bloomUpPsh);
+    JAM_DESTROY_SHADER(pCtx->bloomDownPsh);
+    JAM_DESTROY_SHADER(pCtx->bloomCombinePsh);
+    JAM_DESTROY_SHADER(pCtx->toneMappingPsh);
+    JAM_DESTROY_SHADER(pCtx->fxaaVeryLowPsh);
+    JAM_DESTROY_SHADER(pCtx->fxaaLowPsh);
+    JAM_DESTROY_SHADER(pCtx->fxaaMediumPsh);
+    JAM_DESTROY_SHADER(pCtx->fxaaHighPsh);
+    JAM_DESTROY_SHADER(pCtx->fxaaVeryHighPsh);
+    JAM_DESTROY_SHADER(pCtx->fxaaUltraPsh);
+    JAM_DESTROY_SHADER(pCtx->fogPsh);
+    JAM_DESTROY_SHADER(pCtx->passTexhroughPsh);
 
     JAM_DESTROY_PROGRAM(pCtx->pbrGBufferProgram);
     JAM_DESTROY_PROGRAM(pCtx->pbrLightingProgram);
     JAM_DESTROY_PROGRAM(pCtx->pbrLightVolumeProgram);
     JAM_DESTROY_PROGRAM(pCtx->pbrEnvironmentLightVolumeProgram);
-    JAM_DESTROY_PROGRAM(pCtx->csmLevel2CasterProgram);
     JAM_DESTROY_PROGRAM(pCtx->csmLevel3CasterProgram);
-    JAM_DESTROY_PROGRAM(pCtx->csmLevel4CasterProgram);
     JAM_DESTROY_PROGRAM(pCtx->osmCasterProgram);
     JAM_DESTROY_PROGRAM(pCtx->shadowCasterProgram);
     JAM_DESTROY_PROGRAM(pCtx->skyboxProgram);
@@ -1646,41 +1540,43 @@ void BasicRenderer::Shutdown()
     JAM_DELETE(pCtx);
 }
 
-void BasicRenderer::Render(const RenderView& _view, const Scene& _scene)
+void BasicRenderer::Render(
+    const RenderView& _renderView,
+    const Scene&      _scene)
 {
     BasicRendererContext* pCtx = g_basicRendererCtx;
 
-    // get root. if no environment, create default one
+    // basic renderer는 EnvironmentComponent를 필요로함. 없으면 생성
     Entity root = _scene.GetRootEntity();
+    JAM_ASSERT(root, "Scene has no root entity");
     if (!root.HasComponent<EnvironmentComponent>())
     {
         root.CreateComponent<EnvironmentComponent>();
     }
 
-    // variable
     EnvironmentComponent& ec     = root.GetComponent<EnvironmentComponent>();
     Environment&          env    = ec.environment;
-    const Viewport        vp     = _view.vp;
+    const Viewport        vp     = _renderView.vp;
     const Int32           width  = vp.w;
     const Int32           height = vp.h;
 
     // check need to rebuild
     bool bNeedRebuild = false;
 
-    // if current environment is different, need to rebuild render graph
+    // 기존 env와 다른 인스턴스라면 리빌드 필요
     if (pCtx->pEnv != &env)
     {
         bNeedRebuild |= true;
     }
 
-    // if screen resolution is diff(maybe at resize), need to rebuild render graph
+    // 사이즈가 달라졌다면, 리빌드 필요
     if (width != pCtx->width || height != pCtx->height)
     {
         pCtx->UploadScreen(width, height);
         bNeedRebuild |= true;
     }
 
-    // check environment dirty
+    // 환경 설정이 변경되었다면, 리빌드 필요
     if (env.IsDirty())
     {
         bNeedRebuild |= pCtx->CheckEnvironmentDiff(env);
@@ -1688,18 +1584,18 @@ void BasicRenderer::Render(const RenderView& _view, const Scene& _scene)
         env.ClearDirty();
     }
 
-    // rebuild render graph if need
+    // 리빌드 필요시
     if (bNeedRebuild)
     {
         // todo: scene을 넘기는 것이 아니라. renderable object들만 넘기도록 수정 필요
         pCtx->BuildRenderGraph(width, height, env, _scene);
     }
 
-    // upload camera
-    pCtx->UploadCamera(_view.eyePos, _view.view, _view.proj);
+    // 카메라 행렬 갱신
+    pCtx->UploadCamera(_renderView.eye, _renderView.view, _renderView.proj);
 
-    // render
-    pCtx->renderGraph.Execute(_view.fbh, _view.vp);
+    // 렌더 그래프 실행
+    pCtx->renderGraph.Execute(_renderView.fbh, _renderView.vp);
 }
 
 TextureHandle BasicRenderer::GetDepthTexture()

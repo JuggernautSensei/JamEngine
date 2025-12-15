@@ -19,11 +19,10 @@ struct VertexPosTex2D
 
     inline static VertexLayout s_layout = []
     {
-        VertexLayout layout;
-        layout
-            .Add(eVertexAttribute::Position, eAttributeFormat::Float2)
+        VertexLayout vl;
+        vl.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
             .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-        return layout;
+        return vl;
     }();
 };
 
@@ -37,13 +36,13 @@ struct VertexStaticMesh
 
     inline static VertexLayout s_layout = []
     {
-        VertexLayout layout;
-        layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3)
+        VertexLayout vl;
+        vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3)
             .Add(eVertexAttribute::Normal, eAttributeFormat::Float3)
             .Add(eVertexAttribute::Tangent, eAttributeFormat::Float3)
             .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
             .Add(eVertexAttribute::TexCoord1, eAttributeFormat::Float2);
-        return layout;
+        return vl;
     }();
 };
 
@@ -53,9 +52,9 @@ struct VertexPos3D
 
     inline static VertexLayout s_layout = []
     {
-        VertexLayout layout;
-        layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
-        return layout;
+        VertexLayout vl;
+        vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
+        return vl;
     }();
 };
 
@@ -64,7 +63,7 @@ class BasicRenderer
 public:
     static void Init();
     static void Shutdown();
-    static void Render(const RenderView& _view, const Scene& _scene);
+    static void Render(const RenderView& _renderView, const Scene& _scene);
 
     [[nodiscard]] static TextureHandle GetDepthTexture();
 };

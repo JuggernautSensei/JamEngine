@@ -47,6 +47,18 @@
     <ClInclude Include="Octree.h" />
     <ClInclude Include="OctreeTest.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="tinystl\allocator.h" />
+    <ClInclude Include="tinystl\buffer.h" />
+    <ClInclude Include="tinystl\hash.h" />
+    <ClInclude Include="tinystl\hash_base.h" />
+    <ClInclude Include="tinystl\new.h" />
+    <ClInclude Include="tinystl\stddef.h" />
+    <ClInclude Include="tinystl\string.h" />
+    <ClInclude Include="tinystl\string_view.h" />
+    <ClInclude Include="tinystl\traits.h" />
+    <ClInclude Include="tinystl\unordered_map.h" />
+    <ClInclude Include="tinystl\unordered_set.h" />
+    <ClInclude Include="tinystl\vector.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -85,26 +97,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -157,18 +169,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <ReferencePath>$(ProjectDir);$(ReferencePath)</ReferencePath>
+    <ExternalIncludePath>$(ProjectDir);$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <ReferencePath>$(ProjectDir);$(ReferencePath)</ReferencePath>
+    <ExternalIncludePath>$(ProjectDir);$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <ReferencePath>$(ProjectDir);$(ReferencePath)</ReferencePath>
+    <ExternalIncludePath>$(ProjectDir);$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)inter\$(Configuration)\</IntDir>
+    <ReferencePath>$(ProjectDir);$(ReferencePath)</ReferencePath>
+    <ExternalIncludePath>$(ProjectDir);$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -252,6 +272,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -268,6 +289,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -286,6 +308,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -304,6 +327,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

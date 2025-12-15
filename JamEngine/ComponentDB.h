@@ -1,8 +1,8 @@
 #pragma once
 #include "EditableComponent.h"
 #include "Entity.h"
+#include "Json.h"
 #include "SerializableComponent.h"
-#include "json.h"
 
 namespace jam
 {
@@ -19,7 +19,7 @@ struct ComponentInfo
     std::function<void*(Entity)>                                 getFn            = nullptr;
     std::function<bool(Entity)>                                  hasFn            = nullptr;
     std::function<Json(const void*, const Ref<Scene>&, Entity)>  serializeFn      = nullptr;
-    std::function<bool(void*, const Json&, Ref<Scene>&, Entity)> deserializeFn    = nullptr;
+    std::function<void(void*, const Json&, Ref<Scene>&, Entity)> deserializeFn    = nullptr;
     std::function<void(void*, Ref<Scene>&, Entity)>              drawEditorFn     = nullptr;
     bool                                                         bCannotRemovable = false;
     bool                                                         bCannotCreatable = false;
@@ -50,9 +50,13 @@ namespace details
     void* Get(Entity _entity)
     {
         if constexpr (std::is_void_v<decltype(std::declval<Entity>().GetComponent<T>())>)
+        {
             return nullptr;
+        }
         else
+        {
             return static_cast<void*>(&_entity.GetComponent<T>());
+        }
     }
 
     template<typename T>
@@ -69,10 +73,10 @@ namespace details
     }
 
     template<typename T>
-    bool Deserialize(void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity)
+    void Deserialize(void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity)
     {
         T& component = *static_cast<T*>(_pComponent);
-        return component.Deserialize(_json, _pScene, _entity);
+        component.Deserialize(_json, _pScene, _entity);
     }
 
     template<typename T>
@@ -136,19 +140,18 @@ public:
         {
             const size_t      pos = info.name.rfind("::");
             const std::string tmp = (pos == std::string::npos) ? info.name : info.name.substr(pos + 2);
-            info.displayName.reserve(tmp.size() * 2);
+            info.displayName.reserve(tmp.size());
             for (char c: tmp)
             {
-                const bool bIsUpper = std::isupper(c);
-                const char lowerC   = static_cast<char>(std::tolower(c));
-                if (bIsUpper && !info.displayName.empty())
+                const char lower = static_cast<char>(std::tolower(c));
+                if (std::isupper(c) && !info.displayName.empty())
                 {
                     info.displayName += ' ';
-                    info.displayName += lowerC;
+                    info.displayName += lower;
                 }
                 else
                 {
-                    info.displayName += lowerC;
+                    info.displayName += lower;
                 }
             }
         }
@@ -163,11 +166,12 @@ public:
     [[nodiscard]] void*            Get(std::string_view _name, Entity _entity) const;
     [[nodiscard]] bool             Has(std::string_view _name, Entity _entity) const;
     [[nodiscard]] Json             Serialize(std::string_view _name, const void* _pComponent, const Ref<Scene>& _pScene, Entity _entity) const;
-    bool                           Deserialize(std::string_view _name, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity) const;
+    void                           Deserialize(std::string_view _name, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity) const;
     void                           DrawEditor(std::string_view _name, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
     [[nodiscard]] bool             IsSerializable(std::string_view _name) const;
     [[nodiscard]] bool             IsEditable(std::string_view _name) const;
     [[nodiscard]] std::string_view GetDisplayName(std::string_view _name) const;
+    [[nodiscard]] bool             IsReflected(std::string_view _name) const;
 
     // by type id ( = type hash. TypeOf<T>() )
     void                           Create(UInt32 _typeID, Entity _entity) const;
@@ -176,12 +180,13 @@ public:
     [[nodiscard]] void*            Get(UInt32 _typeID, Entity _entity) const;
     [[nodiscard]] bool             Has(UInt32 _typeID, Entity _entity) const;
     [[nodiscard]] Json             Serialize(UInt32 _typeID, const void* _pComponent, const Ref<Scene>& _pScene, Entity _entity) const;
-    bool                           Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity) const;
+    void                           Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity) const;
     void                           DrawEditor(UInt32 _typeID, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
     [[nodiscard]] bool             IsSerializable(UInt32 _typeID) const;
     [[nodiscard]] bool             IsEditable(UInt32 _typeID) const;
     [[nodiscard]] std::string_view GetDisplayName(UInt32 _typeID) const;
     [[nodiscard]] std::string_view GetComponentName(UInt32 _typeID) const;
+    [[nodiscard]] bool             IsReflected(UInt32 _typeID) const;
 
     [[nodiscard]] const ContainerT& GetContainer() const;
 

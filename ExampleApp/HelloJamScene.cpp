@@ -163,14 +163,14 @@ void HelloJamScene::OnEnter()
     m_globalCbh    = Graphics::CreateConstantBuffer(sizeof(CB_HELLO_JAM_GLOBAL));
 
     // pSkyboxTexture
-    if (const std::optional<TextureHandle>& optTh = Graphics::LoadTextureFromFile(R"(contents\assets\Imagetextures\kokona.png)"))
+    if (const std::optional<TextureHandle>& optTh = Graphics::LoadTextureFile(R"(contents\assets\Imagetextures\kokona.png)", TODO))
     {
         m_cubeTh = optTh.value();
     }
     else
     {
-        Log::Error("Graphics::LoadTextureFromMemory failed: {}", GetErrorString());
-        JAM_ASSERT(0, "Graphics::LoadTextureFromMemory failed: {}", GetErrorString());
+        Log::Error("Graphics::LoadTextureFromMemory failed: {}", ErrorBuffer::Get());
+        JAM_ASSERT(0, "Graphics::LoadTextureFromMemory failed: {}", ErrorBuffer::Get());
     }
 
     // cube mesh
@@ -190,7 +190,7 @@ void HelloJamScene::OnEnter()
         s.pScript          = MakeRef<CameraScript>(entity);
 
         // set transformHierarchy
-        TransformHierarchy& t = entity.GetTransformHierarchy();
+        SceneNode& t = entity.GetSceneNode();
         t.SetWorldTranslation(13.5, 13.5, 0.f);
     }
 }
@@ -249,7 +249,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
             float pitch = ToRad(15.f);
 
             CB_HELLO_JAM_TRANSFORM transformData;
-            transformData.world = CreateWorld(pos, Quat::CreateFromYawPitchRoll(yaw, pitch, 0), Vec3::One).Transpose();
+            transformData.world = CreateTransform(pos, Quat::CreateFromYawPitchRoll(yaw, pitch, 0), Vec3::One).Transpose();
             Graphics::UploadBuffer(m_transformCbh, transformData);
 
             Graphics::SetTexture(m_cubeTh, eShader::PixelShader, 0);
@@ -314,7 +314,7 @@ void HelloJamScene::OnImGuiRender()
 
         ImGui::Text("gfx state");
 
-        Int32 i32Prim = EnumToInt(m_gfxState.primitive);
+        Int32 i32Prim = IntFrom(m_gfxState.primitive);
         Int32 numPrim = NarrowCast<Int32>(EnumCount<ePrimitive>());
         if (ImGui::Combo("primitive", &i32Prim, k_primitiveLabels, numPrim))
             m_gfxState.primitive = static_cast<ePrimitive>(i32Prim);

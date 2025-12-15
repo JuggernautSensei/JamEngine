@@ -8,11 +8,11 @@
 #include "CameraComponent.h"
 #include "Graphics.h"
 #include "Scene.h"
+#include "SceneComponent.h"
 #include "SceneDeserializer.h"
+#include "SceneNode.h"
 #include "Script.h"
 #include "ScriptComponent.h"
-#include "Transform.h"
-#include "TransformHierarchy.h"
 
 namespace jam
 {
@@ -37,42 +37,9 @@ struct SceneManagerContext
         }
     }
 
-    void ChangeScene(const Ref<Scene>& _pScene)
-    {
-        struct ChangeSceneCommand
-        {
-            void operator()() const
-            {
-                Ref<Scene>& pScene = pCtx->pActiveScene;
-                if (pScene)   // 기존 씬 퇴장
-                {
-                    pScene->OnExit();
-                }
-
-                pScene = pNextScene;                                 // change scene
-                pScene->OnEnter();                                   // enter scene
-                if (!Application::GetInstance().IsEditorEnabled())   // resize in runtime.
-                {
-                    auto [w, h] = Graphics::GetBackBufferResolution();
-                    pCtx->Resize(w, h);
-                }
-                AssetManager::CleanGarbageAll();   // resource garbage collection
-
-                // 씬 교체 이벤트 발생
-                SceneChangedEvent event {};
-                Application::GetInstance().DispatchEvent(event);
-            }
-
-            SceneManagerContext* pCtx       = nullptr;
-            Ref<Scene>           pNextScene = nullptr;
-        };
-
-        // 다음 프레임에 씬 전환 작업 수행
-        Application& app = Application::GetInstance();
-        app.SubmitCommand(ChangeSceneCommand { this, _pScene });
-    }
-
     Ref<Scene> pActiveScene = nullptr;
+    Ref<Scene> pNextScene   = nullptr;
+
 }* g_pSceneMgrCtx = nullptr;
 
 }   // namespace jam
@@ -89,9 +56,7 @@ void SceneManager::Init()
 void SceneManager::Shutdown()
 {
     JAM_ASSERT(g_pSceneMgrCtx, "SceneManager not initialized");
-
-    Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene;
-    if (pScene)
+    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         pScene->OnExit();
     }
@@ -102,15 +67,14 @@ void SceneManager::Shutdown()
 void SceneManager::OnEvent(Event& _event)
 {
     Application& app = Application::GetInstance();
-    if (!app.IsEditorEnabled())
+    if (!app.IsEditorEnabled())   // runtime mode
     {
         // handle window events in runtime mode
         HandleEvent<WindowResizedEvent>(_event, g_pSceneMgrCtx, &SceneManagerContext::OnWindowResizedEvent);
         HandleEvent<WindowMaximizedEvent>(_event, g_pSceneMgrCtx, &SceneManagerContext::OnWindowMaximizeEvent);
     }
 
-    Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene;
-    if (pScene)
+    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         pScene->OnEvent(_event);
     }
@@ -123,16 +87,19 @@ void SceneManager::Resize(const Int32 _width, const Int32 _height)
 
 void SceneManager::Update(const float _deltaSec)
 {
-    Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene;
-
     // update active scene
-    if (pScene)
+    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
+        // first call of frame
+        pScene->ProcessDeferredDestroyEntities_();
+
         // udpate script
-        for (auto&& [_, scriptCmp]: pScene->Each<ScriptComponent>())
+        for (const auto&& [_, sc]: pScene->Each<ScriptComponent>())
         {
-            if (scriptCmp.pScript)
-                scriptCmp.pScript->Update(_deltaSec);
+            if (sc.pScript)
+            {
+                sc.pScript->Update(_deltaSec);
+            }
         }
 
         // update scene
@@ -142,34 +109,34 @@ void SceneManager::Update(const float _deltaSec)
 
 void SceneManager::RenderRuntime()
 {
-    auto [w, h] = Graphics::GetBackBufferResolution();
-    Viewport vp = Viewport { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
+    const auto [w, h] = Graphics::GetBackBufferResolution();
+    const Viewport vp = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
     RenderRuntime(k_invalidHandle, vp);
 }
 
-void SceneManager::RenderRuntime(FrameBufferHandle _handle, Viewport _viewport)
+void SceneManager::RenderRuntime(
+    FrameBufferHandle _fbh,
+    Viewport          _vp)
 {
-    Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene;
-    if (pScene)
+    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         // update dirty transforms
-        Entity root = pScene->GetRootEntity();
-        root.GetTransformHierarchy().UpdateDirty_Recursive();
+        pScene->UpdateSceneTree_();
 
         // create view
-        RenderView view { _handle, _viewport };
+        RenderView view = { _fbh, _vp };
 
         // find first enabled camera
-        for (const auto& [_, tc, cc]: pScene->Each<TransformComponent, CameraComponent>())
+        for (const auto&& [_, sc, cc]: pScene->Each<SceneComponent, CameraComponent>())
         {
             if (cc.enable)
             {
-                const TransformHierarchy& th  = tc.transformHierarchy;
-                const Camera&             cmr = cc.camera;
+                const Transform& wt  = sc.node.GetWorldTransform();
+                const Camera&    cmr = cc.camera;
 
-                view.eyePos = th.GetWorldTranslation();
-                view.view   = th.GetWorldViewMatrix();
-                view.proj   = cmr.CreateProjMatrix();
+                view.eye  = wt.GetTranslation();
+                view.view = wt.ToViewMatrix();
+                view.proj = cmr.ToProjMatrix();
                 break;
             }
         }
@@ -181,23 +148,16 @@ void SceneManager::RenderRuntime(FrameBufferHandle _handle, Viewport _viewport)
 
 void SceneManager::Render(const RenderView& _view)
 {
-    Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene;
-    if (pScene)
+    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
-        // update dirty transforms
-        Entity root = pScene->GetRootEntity();
-        root.GetTransformHierarchy().UpdateDirty_Recursive();
-
-        // render
+        pScene->UpdateSceneTree_();
         pScene->OnRender(_view);
     }
 }
 
 void SceneManager::ImGuiRender()
 {
-    Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene;
-
-    if (pScene)
+    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         pScene->OnImGuiRender();
     }
@@ -206,7 +166,7 @@ void SceneManager::ImGuiRender()
 bool SceneManager::LoadScene(const fs::path& _path)
 {
     SceneDeserializer deserializer;
-    if (!deserializer.LoadFromFile(_path))
+    if (!deserializer.LoadFile(_path))
     {
         return false;
     }
@@ -216,14 +176,14 @@ bool SceneManager::LoadScene(const fs::path& _path)
         return false;
     }
 
-    g_pSceneMgrCtx->ChangeScene(deserializer.GetScene());
+    g_pSceneMgrCtx->pNextScene = deserializer.GetScene();
     return true;
 }
 
 void SceneManager::LoadScene(const Ref<Scene>& _pScene)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
-    g_pSceneMgrCtx->ChangeScene(_pScene);
+    g_pSceneMgrCtx->pNextScene = _pScene;
 }
 
 bool SceneManager::HasActiveScene()
@@ -235,6 +195,38 @@ Ref<Scene>& SceneManager::GetActiveScene()
 {
     JAM_ASSERT(g_pSceneMgrCtx->pActiveScene, "No active scene");
     return g_pSceneMgrCtx->pActiveScene;
+}
+
+void SceneManager::ChangeSceneIfNeed_()
+{
+    if (Ref<Scene>& pNextScene = g_pSceneMgrCtx->pNextScene)
+    {
+        Ref<Scene>& pActiveScene = g_pSceneMgrCtx->pActiveScene;
+
+        if (pActiveScene)   // 기존 씬 퇴장
+        {
+            pActiveScene->OnExit();
+        }
+
+        pActiveScene = pNextScene;   // change scene
+        pNextScene   = nullptr;      // clear next scene
+        pActiveScene->OnEnter();     // enter scene
+
+        // resize in runtime.
+        // in editor mode, scene resize is handled by editor
+        if (!Application::GetInstance().IsEditorEnabled())
+        {
+            const auto [w, h] = Graphics::GetBackBufferResolution();
+            g_pSceneMgrCtx->Resize(w, h);
+        }
+
+        // resource garbage collection
+        AssetManager::CleanGarbageAll();
+
+        // dispatch scene changed event
+        SceneChangedEvent event {};
+        Application::GetInstance().DispatchEvent(event);
+    }
 }
 
 }   // namespace jam

@@ -22,7 +22,7 @@ public:
 
     [[nodiscard]] Entity                   GetOwner() const;
     [[nodiscard]] bool                     IsRunning() const;
-    [[nodiscard]] virtual std::string_view GetName() const = 0;
+    [[nodiscard]] virtual std::string_view GetTypeName() const = 0;
 
 protected:
     explicit Script(Entity _entity);
@@ -39,15 +39,14 @@ private:
 
 }   // namespace jam
 
-#define JAM_SCRIPT(_class)                                                        \
-public:                                                                           \
-    constexpr static bool             _script_marker_ = true;                     \
-    constexpr static std::string_view k_name          = NameOf<_class>();         \
-    [[nodiscard]] std::string_view    GetName() const override { return k_name; } \
-                                                                                  \
-private:                                                                          \
-    inline static bool _script_reflect_ = []                                      \
-    {                                                                             \
-        jam::ScriptDB::GetInstance().Reflect<_class>();                           \
-        return true;                                                              \
+#define JAM_SCRIPT(_class)                                                                \
+public:                                                                                   \
+    constexpr static std::string_view k_typename = NameOf<_class>();                      \
+    [[nodiscard]] std::string_view    GetTypeName() const override { return k_typename; } \
+                                                                                          \
+private:                                                                                  \
+    inline static bool _script_reflect_ = []                                              \
+    {                                                                                     \
+        jam::ScriptDB::GetInstance().Reflect<_class>();                                   \
+        return true;                                                                      \
     }()

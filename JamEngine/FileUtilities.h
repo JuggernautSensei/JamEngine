@@ -3,15 +3,10 @@
 namespace jam
 {
 
-class ConstByteView;
+[[nodiscard]] std::optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path);
+bool                                           SaveBinaryFile(const fs::path& _path, ConstMemView _data);
 
-std::optional<std::string> LoadFromFile(const fs::path& _path);
-bool                       SaveToFile(const fs::path& _path, std::string_view _str);
-
-std::optional<std::vector<Byte>> LoadBinaryFromFile(const fs::path& _path);
-bool                             SaveBinaryToFile(const fs::path& _path, ConstMemView _mem);
-
-std::optional<Json> LoadJsonFromFile(const fs::path& _path);
-bool                SaveJsonToFile(const fs::path& _path, const Json& _json, Int32 _dump = 4);
+[[nodiscard]] std::optional<std::string> LoadTextFile(const fs::path& _path);
+bool                                     SaveTextFile(const fs::path& _path, std::string_view _text);
 
 }   // namespace jam

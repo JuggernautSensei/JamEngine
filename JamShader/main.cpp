@@ -58,7 +58,7 @@ void to_json(Json& j, const ShaderItem& item)
 {
     j["name"]       = item.name;
     j["path"]       = item.path.native();
-    j["stage"]      = EnumToString(item.stage);
+    j["stage"]      = StringFrom(item.stage);
     j["entryPoint"] = item.entryPoint;
     j["macros"]     = item.macros;
 }
@@ -70,7 +70,7 @@ void from_json(const Json& j, ShaderItem& item)
 
     // EnumFromString returns optional, need to handle it
     std::string stageStr = j.value<std::string>("stage", "VertexShader");
-    if (auto optStage = EnumFromString<eShader>(stageStr))
+    if (auto optStage = EnumFrom<eShader>(stageStr))
     {
         item.stage = *optStage;
     }
@@ -146,15 +146,15 @@ static void EmitBytecodeArrays(std::stringstream& _stream, const std::vector<Sha
         std::vector<ShaderMacro> macros = MakeShaderMacros(item.macros);
 
         ShaderCompiler compiler;
-        bool           success = compiler.CompileFromFile(item.path, item.stage, item.entryPoint, flags, macros);
+        bool           success = compiler.CompileFile(item.path, item.stage, item.entryPoint, flags, macros);
         if (!success)
         {
-            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorString());
+            Log::Error(R"(Failed to compile shader "{}". {})", item.name, ErrorBuffer::Get());
             continue;
         }
 
         ConstMemView bytecode  = compiler.GetBytecode();
-        const Byte*     pByte     = bytecode.GetDataPtr();
+        const Byte*     pByte     = bytecode.GetPointer();
         size_t          byteWidth = bytecode.GetByteWidth();
         std::string     varName   = MakeVariableName(item.name);
 
@@ -197,7 +197,7 @@ private:
         bool success = SaveJsonToFile(path, json);
         if (!success)
         {
-            Log::Error(GetErrorString());
+            Log::Error(ErrorBuffer::Get());
         }
     }
 
@@ -210,7 +210,7 @@ private:
         std::optional<Json> optJson = LoadJsonFromFile(_path);
         if (!optJson)
         {
-            Log::Error(GetErrorString());
+            Log::Error(ErrorBuffer::Get());
             return;
         }
 
@@ -223,7 +223,7 @@ private:
             std::optional<std::string> optSrc = LoadFromFile(item.path);
             if (!optSrc)
             {
-                Log::Error(GetErrorString());
+                Log::Error(ErrorBuffer::Get());
                 continue;
             }
             item.source = std::move(*optSrc);
@@ -255,7 +255,7 @@ private:
         bool success = SaveToFile(item.path, item.source);
         if (!success)
         {
-            Log::Error(GetErrorString());
+            Log::Error(ErrorBuffer::Get());
             return;
         }
     }
@@ -289,7 +289,7 @@ private:
         bool success = SaveToFile(headerPath, header.str());
         if (!success)
         {
-            Log::Error(GetErrorString());
+            Log::Error(ErrorBuffer::Get());
             return;
         }
 
@@ -341,7 +341,7 @@ private:
                         }
                         else
                         {
-                            Log::Error(GetErrorString());
+                            Log::Error(ErrorBuffer::Get());
                         }
                     }
                 }
@@ -445,12 +445,12 @@ private:
                         ImGui::TextUnformatted("shader stage: ");
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        if (ImGui::BeginCombo("##stage", EnumToString(item.stage).data()))
+                        if (ImGui::BeginCombo("##stage", StringFrom(item.stage).data()))
                         {
-                            for (eShader s: EnumRange<eShader>())
+                            for (eShader s: EnumRanges<eShader>())
                             {
                                 const bool selected = (item.stage == s);
-                                if (ImGui::Selectable(EnumToString(s).data(), selected))
+                                if (ImGui::Selectable(StringFrom(s).data(), selected))
                                     item.stage = s;
                             }
                             ImGui::EndCombo();
@@ -549,7 +549,7 @@ private:
                         bool success = CompileShader(item, true);
                         if (!success)
                         {
-                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorString());
+                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, ErrorBuffer::Get());
                         }
                     }
 
@@ -559,7 +559,7 @@ private:
                         bool success = CompileShader(item, false);
                         if (!success)
                         {
-                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GetErrorString());
+                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, ErrorBuffer::Get());
                         }
                     }
 
@@ -674,7 +674,7 @@ private:
         const std::vector<ShaderMacro> macros = MakeShaderMacros(item.macros);
         const eShaderCompileFlags      flags  = bDebug ? eShaderCompileFlags_DebugDefault : eShaderCompileFlags_Optimization;
 
-        const bool success = compiler.CompileFromFile(item.path, item.stage, item.entryPoint, flags, macros);
+        const bool success = compiler.CompileFile(item.path, item.stage, item.entryPoint, flags, macros);
         if (!success)
         {
             return false;

@@ -12,7 +12,6 @@
 #include "ImportImageDialog.h"
 #include "ImportModelDialog.h"
 #include "Input.h"
-#include "JsonUtilities.h"
 #include "RemoveNotEmptyDirectoryDialog.h"
 #include "RenameFileDialog.h"
 #include "DialogUtilities.h"
@@ -267,7 +266,7 @@ void Editor_FileBrowser::OnImGuiRender(bool& _pOpen)
     {
         // filter input
         {
-            Widget_FramePaddingAlignedTextUnformatted("filter:");
+            Widget_FrameAlignedText("filter:");
 
             ImGui::SameLine();
             m_fileEntryFilter.Draw("##Filter", 150.f);
@@ -293,7 +292,7 @@ void Editor_FileBrowser::OnImGuiRender(bool& _pOpen)
         ImGui::SameLine();
         {
             ImGui::SetNextItemWidth(150.f);
-            Widget_DragPercent("##Zoom", &m_zoom, 0.5f, k_minZoomPerc, k_maxZoomPerc, "zoom: %.0f%%");
+            Widget_DragPercent("##Zoom", m_zoom, 0.5f, k_minZoomPerc, k_maxZoomPerc, "zoom: %.0f%%");
         }
 
         if (ImGui::BeginChild("FileEntriesChild", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Border))
@@ -502,7 +501,7 @@ void Editor_FileBrowser::Widget_FileEntry_(const FileEntry& _entry, const ImVec2
     {
         const Ref<Thumbnail>& pThumbnail = _entry.pThumbnail;
 
-        const Resolution res       = pThumbnail->GetResolution();
+        const Vec2i res       = pThumbnail->GetResolution();
         const float      aspect    = static_cast<float>(res.width) / static_cast<float>(res.height);
         const ImVec2     imgaeSize = aspect >= 1.f ? ImVec2 { _size.x, _size.x / aspect } : ImVec2 { _size.y * aspect, _size.y };
 
@@ -722,7 +721,7 @@ void Editor_FileBrowser::OpenFileAsDefaultApplication_(const fs::path& _path) co
 {
     if (!OpenFileWithDefaultApplication(_path))
     {
-        std::string msg = std::format("failed to open file '{}'.\n{}", _path.native(), GetErrorString());
+        std::string msg = std::format("failed to open file '{}'.\n{}", _path.native(), ErrorBuffer::Get());
         Editor::OpenCorePopupDialog("error", msg);
     }
 }
@@ -731,7 +730,7 @@ void Editor_FileBrowser::OpenFileOnFileExplorer_(const fs::path& _path) const
 {
     if (!OpenFileExplorer(_path))
     {
-        std::string msg = std::format("failed to open file explorer at '{}'.\n{}", _path.native(), GetErrorString());
+        std::string msg = std::format("failed to open file explorer at '{}'.\n{}", _path.native(), ErrorBuffer::Get());
         Editor::OpenCorePopupDialog("error", msg);
     }
 }

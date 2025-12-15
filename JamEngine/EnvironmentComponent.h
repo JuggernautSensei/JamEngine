@@ -16,7 +16,7 @@ struct EnvironmentComponent :
     JAM_COMPONENT(EnvironmentComponent);
 
     Json Serialize(const Ref<Scene>& _pScene, Entity _owner) const;
-    bool Deserialize(const Json& _json, Ref<Scene>& _pScene, Entity _owner);
+    void Deserialize(const Json& _json, Ref<Scene>& _pScene, Entity _owner);
     void DrawEditor(Ref<Scene>& _pScene, Entity _entity);
 
     Environment environment;

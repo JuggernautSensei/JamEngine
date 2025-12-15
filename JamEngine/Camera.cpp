@@ -14,7 +14,7 @@ eProjection Camera::GetProjection() const
 
 float Camera::GetAspectRatio() const
 {
-    return static_cast<float>(m_width) / static_cast<float>(m_height);
+    return Div(m_width, m_height);
 }
 
 float Camera::GetNearZ() const
@@ -50,38 +50,45 @@ void Camera::SetProjection(const eProjection _projection)
 void Camera::SetNearZ(const float _nearZ)
 {
     m_nearZ = _nearZ;
-    m_nearZ = Clamp(m_nearZ, k_nearestZ, m_farZ - k_nearFarEpsilon);
+    m_nearZ = Clamp(m_nearZ, k_cameraNearestZ, m_farZ - k_cameraZEpsilon);
 }
 
 void Camera::SetFarZ(const float _farZ)
 {
     m_farZ = _farZ;
-    m_farZ = Clamp(m_farZ, m_nearZ + k_nearFarEpsilon, k_farthestZ);
+    m_farZ = Clamp(m_farZ, m_nearZ + k_cameraZEpsilon, k_cameraFarestZ);
 }
 
 void Camera::SetFovYRad(const float _fovYRad)
 {
     m_fovYRad = _fovYRad;
+    m_fovYRad = Clamp(m_fovYRad, k_cameraMinFovYRad, k_cameraMaxFovYRad);
 }
 
 void Camera::SetWidth(const float _width)
 {
     JAM_ASSERT(_width > 0.f, "Camera width must be greater than 0.");
     m_width = _width;
+    m_width = Clamp(m_width, k_cameraMinWidthHeight, k_cameraMaxWidthHeight);
 }
 
 void Camera::SetHeight(const float _height)
 {
     JAM_ASSERT(_height > 0.f, "Camera height must be greater than 0.");
     m_height = _height;
+    m_height = Clamp(m_height, k_cameraMinWidthHeight, k_cameraMaxWidthHeight);
 }
 
-Mat4 Camera::CreateProjMatrix() const
+Mat4 Camera::ToProjMatrix() const
 {
     if (m_projection == eProjection::Orthographic)
-        return CreateOrthographic(GetAspectRatio(), 1.f, m_nearZ, m_farZ);
+    {
+        return CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
+    }
     else
-        return CreatePerspectiveFov(m_fovYRad, GetAspectRatio(), m_nearZ, m_farZ);
+    {
+        return CreatePerspectiveMatrix(m_fovYRad, GetAspectRatio(), m_nearZ, m_farZ);
+    }
 }
 
 }   // namespace jam

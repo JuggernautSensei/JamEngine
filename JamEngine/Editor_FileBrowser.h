@@ -34,14 +34,14 @@ class Editor_FileBrowser
 
         [[nodiscard]] bool            IsDummy() const;
         [[nodiscard]] ImTextureRef    GetImTexturRef() const;
-        [[nodiscard]] Resolution      GetResolution() const;
+        [[nodiscard]] Vec2i      GetResolution() const;
         [[nodiscard]] const fs::path& GetPath() const;
 
     private:
         void CleanUp_();
 
         fs::path      m_path   = {};
-        Resolution    m_res    = {};
+        Vec2i    m_res    = {};
         TextureHandle m_handle = k_invalidHandle;
 
         constexpr static SIZE k_thumbnailSize = { 128, 128 };
@@ -51,7 +51,7 @@ class Editor_FileBrowser
     {
         std::string          name       = {};
         fs::path             path       = {};
-        std::vector<DirNode> children   = {};
+        Vector<DirNode> children   = {};
         bool                 bIsFocused = false;
     };
 
@@ -81,7 +81,7 @@ class Editor_FileBrowser
 
         Ref<Thumbnail>              m_pDummyThumbnail = nullptr;
         HashMap<fs::path, Item>     m_pathToItem      = {};
-        std::vector<Ref<Thumbnail>> m_thumbnails      = {};
+        Vector<Ref<Thumbnail>> m_thumbnails      = {};
         Int32                       m_end             = 0;
         Int32                       m_cap             = 0;
     };
@@ -155,7 +155,7 @@ private:
     DirNode m_rootDirNode = {};
 
     // file entries
-    std::vector<FileEntry> m_fileEntries;
+    Vector<FileEntry> m_fileEntries;
     ImGuiTextFilter        m_fileEntryFilter;
     ThumbnailCache         m_thumbnailCache;
 

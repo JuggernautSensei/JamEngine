@@ -2,12 +2,16 @@
 
 #include "Entity.h"
 
-#include "TransformComponent.h"
+#include "SceneComponent.h"
 
 namespace jam
 {
 
 Entity Entity::s_null = Entity {};
+
+Entity::Entity()
+{
+}
 
 Entity::Entity(entt::registry& _registry, const entt::entity _handle, const UID _uid)
     : m_pRegistry(&_registry)
@@ -51,14 +55,34 @@ UID Entity::GetUID() const
     return m_uid;
 }
 
-TransformHierarchy& Entity::GetTransformHierarchy()
+SceneNode& Entity::GetSceneNode()
 {
-    return m_pRegistry->get<TransformComponent>(m_handle).transformHierarchy;
+    return m_pRegistry->get<SceneComponent>(m_handle).node;
 }
 
-const TransformHierarchy& Entity::GetTransformHierarchy() const
+const SceneNode& Entity::GetSceneNode() const
 {
-    return m_pRegistry->get<TransformComponent>(m_handle).transformHierarchy;
+    return m_pRegistry->get<SceneComponent>(m_handle).node;
+}
+
+const Transform& Entity::GetWorldTransform() const
+{
+    return GetSceneNode().GetWorldTransform();
+}
+
+Transform& Entity::ModifyWorldTransform()
+{
+    return GetSceneNode().ModifyWorldTransform();
+}
+
+const Transform& Entity::GetLocalTransform() const
+{
+    return GetSceneNode().GetLocalTransform();
+}
+
+Transform& Entity::ModifyLocalTransform()
+{
+    return GetSceneNode().ModifyLocalTransform();
 }
 
 }   // namespace jam

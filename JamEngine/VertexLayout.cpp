@@ -12,28 +12,30 @@ VertexLayout::VertexLayout()
 
 void VertexLayout::Reset()
 {
-    std::memset(m_elems, 0, sizeof(m_elems));
-    std::ranges::fill(m_elemLut, INVALID_ELEMENT);
-    m_stride    = 0;
-    m_elemCount = 0;
+    std::memset(m_vles, 0, sizeof(m_vles));
+    std::ranges::fill(m_vleLut, k_invalidElement);
+    m_stride   = 0;
+    m_numElems = 0;
 }
 
-VertexLayout& VertexLayout::Add(const eVertexAttribute _attrib, const eAttributeFormat _format)
+VertexLayout& VertexLayout::Add(
+    const eVertexAttribute _attrib,
+    const eAttributeFormat _format)
 {
-    JAM_ASSERT(_attrib != eVertexAttribute::Unknown, "vertex attribute cannot be unknown.");
-    JAM_ASSERT(_format != eAttributeFormat::Unknown, "vertex attribute format cannot be unknown.");
+    JAM_ASSERT(_attrib != eVertexAttribute::Position, "vertex attribute cannot be unknown.");
+    JAM_ASSERT(_format != eAttributeFormat::Float, "vertex attribute format cannot be unknown.");
     JAM_ASSERT(!Has(_attrib), "vertex attribute cannot be added twice.");
 
-    VertexLayoutElement elem;
-    elem.attrib    = _attrib;
-    elem.format    = _format;
-    elem.byteWidth = GetVertexAttributeFormatSize(_format);
-    elem.offset    = m_stride;
-    m_stride += elem.byteWidth;
+    VertexLayoutElement vlm;
+    vlm.attrib    = _attrib;
+    vlm.format    = _format;
+    vlm.byteWidth = ByteFrom(_format);
+    vlm.offset    = m_stride;
+    m_stride += vlm.byteWidth;
 
-    m_elemLut[EnumToInt(_attrib)] = m_elemCount;
-    m_elems[m_elemCount]          = std::move(elem);
-    ++m_elemCount;
+    m_vleLut[IntFrom(_attrib)] = m_numElems;
+    m_vles[m_numElems]         = std::move(vlm);
+    ++m_numElems;
     return *this;
 }
 
@@ -42,29 +44,32 @@ Int32 VertexLayout::GetStride() const
     return m_stride;
 }
 
-bool VertexLayout::Has(const eVertexAttribute _attrib) const
+bool VertexLayout::Has(
+    const eVertexAttribute _attrib) const
 {
-    return m_elemLut[EnumToInt(_attrib)] != INVALID_ELEMENT;
+    return m_vleLut[IntFrom(_attrib)] != k_invalidElement;
 }
 
-const VertexLayoutElement& VertexLayout::GetElement(const eVertexAttribute _attrib) const
+const VertexLayoutElement& VertexLayout::GetElement(
+    const eVertexAttribute _attrib) const
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32 index = m_elemLut[EnumToInt(_attrib)];
-    return m_elems[index];
+    const Int32 index = m_vleLut[IntFrom(_attrib)];
+    return m_vles[index];
 }
 
-Int32 VertexLayout::GetElementCount() const
+Int32 VertexLayout::GetNumElements() const
 {
-    return m_elemCount;
+    return m_numElems;
 }
 
 std::span<const VertexLayoutElement> VertexLayout::GetElements() const
 {
-    return { m_elems, static_cast<size_t>(m_elemCount) };
+    return { m_vles, m_numElems };
 }
 
-Int32 GetVertexAttributeFormatSize(const eAttributeFormat _format)
+Int32 ByteFrom(
+    const eAttributeFormat _format)
 {
     switch (_format)
     {

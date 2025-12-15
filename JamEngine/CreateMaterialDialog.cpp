@@ -53,10 +53,10 @@ bool CreateMaterialDialog::OnClickCreate_()
     }
 
     Material mat;
-    mat.LoadFromMemory();
+    mat.LoadEmpty();
     if (!mat.Save(path))
     {
-        std::string msg = std::format("failed to create material: {}\nerror: {}", path.native(), GetErrorString());
+        std::string msg = std::format("failed to create material: {}\nerror: {}", path.native(), ErrorBuffer::Get());
         m_popup.Open("error", msg);
         return false;
     }

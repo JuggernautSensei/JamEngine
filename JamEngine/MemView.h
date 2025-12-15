@@ -23,7 +23,7 @@ public:
 
     // non-const to const conversion
     /* implicit */ BasicMemView(const BasicMemView<false>& other)
-        : pData(other.GetDataPtr())
+        : pData(other.GetPointer())
         , byteWidth(other.GetByteWidth())
     {
     }
@@ -56,7 +56,7 @@ public:
     {
     }
 
-    [[nodiscard]] TByte* GetDataPtr() const
+    [[nodiscard]] TByte* GetPointer() const
     {
         return pData;
     }

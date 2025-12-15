@@ -16,17 +16,39 @@ namespace jam
 struct SDFace;
 struct SDVertex;
 
-/// @brief 정점과 텍스처 좌표를 나타내는 구조체
 struct SDPoint
 {
+    [[nodiscard]] SDPoint operator*(const float _scalar) const
+    {
+        SDPoint p;
+        p.position = position * _scalar;
+        p.texcoord = texcoord * _scalar;
+        return p;
+    }
+
+    [[nodiscard]] SDPoint operator+(const SDPoint& _other) const
+    {
+        SDPoint p;
+        p.position = position + _other.position;
+        p.texcoord = texcoord + _other.texcoord;
+        return p;
+    }
+
+    SDPoint& operator+=(const SDPoint& _other)
+    {
+        position += _other.position;
+        texcoord += _other.texcoord;
+        return *this;
+    }
+
     Vec3 position = Vec3::Zero;
     Vec2 texcoord = Vec2::Zero;
 };
 
 struct SDVertex
 {
-    [[nodiscard]] Int32                CalcValence() const;
-    [[nodiscard]] std::vector<SDPoint> OneRing() const;
+    [[nodiscard]] Int32           CalcValence() const;
+    [[nodiscard]] Vector<SDPoint> OneRing() const;
 
     SDPoint   point;                  // 정점의 위치 및 텍스처 좌표
     SDFace*   pStartFace = nullptr;   // 임의의 면
@@ -37,11 +59,12 @@ struct SDVertex
 
 struct SDFace
 {
-    [[nodiscard]] Int32 CalcVertexIndex(const SDVertex* vert) const
+    [[nodiscard]] Int32 CalcVertexIndex(
+        const SDVertex* pVert) const
     {
         for (Int32 i = 0; i < 3; ++i)
         {
-            if (pVerts[i] == vert)
+            if (pVerts[i] == pVert)
             {
                 return i;
             }
@@ -50,31 +73,37 @@ struct SDFace
         return -1;
     }
 
-    [[nodiscard]] SDFace* GetNextFace(const SDVertex* vert) const
+    [[nodiscard]] SDFace* GetNextFace(
+        const SDVertex* pVert) const
     {
-        return pFaces[CalcVertexIndex(vert)];
+        return pFaces[CalcVertexIndex(pVert)];
     }
 
-    [[nodiscard]] SDFace* GetPrevFace(const SDVertex* vert) const
+    [[nodiscard]] SDFace* GetPrevFace(
+        const SDVertex* pVert) const
     {
-        return pFaces[(CalcVertexIndex(vert) + 2) % 3];
+        return pFaces[(CalcVertexIndex(pVert) + 2) % 3];
     }
 
-    [[nodiscard]] SDVertex* GetNextVertex(const SDVertex* vert) const
+    [[nodiscard]] SDVertex* GetNextVertex(
+        const SDVertex* pVert) const
     {
-        return pVerts[(CalcVertexIndex(vert) + 1) % 3];
+        return pVerts[(CalcVertexIndex(pVert) + 1) % 3];
     }
 
-    [[nodiscard]] SDVertex* GetPrevVertex(const SDVertex* vert) const
+    [[nodiscard]] SDVertex* GetPrevVertex(
+        const SDVertex* pVert) const
     {
-        return pVerts[(CalcVertexIndex(vert) + 2) % 3];
+        return pVerts[(CalcVertexIndex(pVert) + 2) % 3];
     }
 
-    [[nodiscard]] SDVertex* GetOtherVertex(const SDVertex* v0, const SDVertex* v1) const
+    [[nodiscard]] SDVertex* GetOtherVertex(
+        const SDVertex* pV0,
+        const SDVertex* pV1) const
     {
         for (Int32 i = 0; i < 3; ++i)
         {
-            if (pVerts[i] != v0 && pVerts[i] != v1)
+            if (pVerts[i] != pV0 && pVerts[i] != pV1)
             {
                 return pVerts[i];
             }
@@ -90,11 +119,15 @@ struct SDFace
 
 struct SDEdge
 {
-    bool operator<(const SDEdge& other) const
+    bool operator<(
+        const SDEdge& _other) const
     {
-        if (pVerts[0] == other.pVerts[0])
-            return pVerts[1] < other.pVerts[1];
-        return pVerts[0] < other.pVerts[0];
+        if (pVerts[0] == _other.pVerts[0])
+        {
+            return pVerts[1] < _other.pVerts[1];
+        }
+
+        return pVerts[0] < _other.pVerts[0];
     }
 
     SDVertex* pVerts[2]    = { nullptr, nullptr };
@@ -104,31 +137,40 @@ struct SDEdge
 
 Int32 SDVertex::CalcValence() const
 {
-    SDFace* f = pStartFace;
+    SDFace* pFace = pStartFace;
     if (!bBoundary)
     {
         Int32 nf = 1;
-        while ((f = f->GetNextFace(this)) != pStartFace)
+        while ((pFace = pFace->GetNextFace(this)) != pStartFace)
+        {
             ++nf;
+        }
+
         return nf;
     }
     else
     {
         Int32 nf = 1;
-        while ((f = f->GetNextFace(this)))
+        while ((pFace = pFace->GetNextFace(this)))
+        {
             ++nf;
-        f = pStartFace;
-        while ((f = f->GetPrevFace(this)))
+        }
+
+        pFace = pStartFace;
+        while ((pFace = pFace->GetPrevFace(this)))
+        {
             ++nf;
+        }
+
         return nf + 1;
     }
 }
 
-std::vector<SDPoint> SDVertex::OneRing() const
+Vector<SDPoint> SDVertex::OneRing() const
 {
-    Int32 valence = CalcValence();
+    const Int32 valence = CalcValence();
 
-    std::vector<SDPoint> pRing;
+    Vector<SDPoint> pRing;
     pRing.reserve(valence);
 
     if (!bBoundary)
@@ -136,151 +178,181 @@ std::vector<SDPoint> SDVertex::OneRing() const
         SDFace* face = pStartFace;
         do
         {
-            pRing.push_back(face->GetNextVertex(this)->point);
+            pRing.emplace_back(face->GetNextVertex(this)->point);
             face = face->GetNextFace(this);
         } while (face != pStartFace);
     }
     else
     {
-        SDFace *face = pStartFace, *f2;
-        while ((f2 = face->GetNextFace(this)))
-            face = f2;
-        pRing.push_back(face->GetNextVertex(this)->point);
+        SDFace* pFace = pStartFace;
+        SDFace* f2;
+        while ((f2 = pFace->GetNextFace(this)))
+        {
+            pFace = f2;
+        }
+
+        pRing.emplace_back(pFace->GetNextVertex(this)->point);
         do
         {
-            pRing.push_back(face->GetPrevVertex(this)->point);
-            face = face->GetPrevFace(this);
-        } while (face);
+            pRing.emplace_back(pFace->GetPrevVertex(this)->point);
+            pFace = pFace->GetPrevFace(this);
+        } while (pFace);
     }
     return pRing;
 }
 
-static float Beta(const Int32 _valence)
+static float Beta(
+    const Int32 _valence)
 {
-    return _valence == 3 ? 3.f / 16.f : 3.f / (8.f * static_cast<float>(_valence));
+    return _valence == 3 ? 3.f / 16.f
+                         : 3.f / (8.f * static_cast<float>(_valence));
 }
 
-static float LoopGamma(const Int32 _valence)
+static float LoopGamma(
+    const Int32 _valence)
 {
     return 1.f / (static_cast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
 }
 
-static SDPoint WeightOneRing(const SDVertex* vert, const float Beta)
+static SDPoint WeightOneRing(
+    const SDVertex* _pVert,
+    const float     _beta)
 {
-    Int32                CalcValence = vert->CalcValence();
-    std::vector<SDPoint> pRing       = vert->OneRing();
+    const Int32 valence = _pVert->CalcValence();
+    const auto  ring    = _pVert->OneRing();
+    const float scale   = 1.0f - static_cast<float>(valence) * _beta;
 
-    SDPoint point;
-    point.position = vert->point.position * (1 - static_cast<float>(CalcValence) * Beta);
-    point.texcoord = vert->point.texcoord * (1 - static_cast<float>(CalcValence) * Beta);
-
-    for (Int32 i = 0; i < CalcValence; ++i)
+    SDPoint point = _pVert->point * scale;
+    for (const SDPoint& p: ring)
     {
-        point.position += pRing[i].position * Beta;
-        point.texcoord += pRing[i].texcoord * Beta;
+        point += p * _beta;
     }
     return point;
 }
 
-static SDPoint WeightBoundary(const SDVertex* vert, const float Beta)
+static SDPoint WeightBoundary(
+    const SDVertex* _pVert,
+    const float     _beta)
 {
-    Int32                CalcValence = vert->CalcValence();
-    std::vector<SDPoint> pRing       = vert->OneRing();
+    const Int32           valence = _pVert->CalcValence();
+    const Vector<SDPoint> ring    = _pVert->OneRing();
 
-    SDPoint point;
-    point.position = vert->point.position * (1 - 2 * Beta);
-    point.texcoord = vert->point.texcoord * (1 - 2 * Beta);
-    point.position += pRing[0].position * Beta;
-    point.texcoord += pRing[0].texcoord * Beta;
-    point.position += pRing[CalcValence - 1].position * Beta;
-    point.texcoord += pRing[CalcValence - 1].texcoord * Beta;
+    const float scale = 1.0f - 2.0f * _beta;
+    SDPoint     point = _pVert->point * scale;
+
+    point += ring[0] * _beta;
+    point += ring[valence - 1] * _beta;
     return point;
 }
 
 ///////////////////////////////////////////////////////////
 
 LoopSubdivisionOutput LoopSubdivide(
+    const std::span<const Vec3> _positions,
+    const ConstMemView          _indexData,
+    const bool                  _bUseU32,
+    const Int32                 _level)
+{
+    LoopSubdivisionOutputWithTexcoords result = LoopSubdivide(_positions, {}, _indexData, _bUseU32, _level);
+
+    LoopSubdivisionOutput output;
+    output.positions = std::move(result.positions);
+    output.indices   = std::move(result.indices);
+    output.bUseU32   = result.bUseU32;
+    return output;
+}
+
+LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     std::span<const Vec3> _positions,
-    std::span<const Vec2> _texcoordsOrEmpty,
+    std::span<const Vec2> _texcoords,   // or empty
     ConstMemView          _indexData,
     bool                  _bUseU32,
-    const Int32           _level)
+    Int32                 _level)
 {
-    JAM_ASSERT(!_positions.empty(), "세분화할 메쉬의 버텍스가 비어있습니다.");
-    JAM_ASSERT(_indexData.IsValid(), "세분화할 메쉬의 인덱스 데이터가 유효하지 않습니다.");
+    JAM_ASSERT(!_positions.empty(), "position data is empty.");
+    JAM_ASSERT(_indexData.IsValid(), "index data is invalid.");
 
-    Int32 numVerts    = NarrowCast<Int32>(_positions.size());
-    Int32 indexStride = _bUseU32 ? 4 : 2;
-    Int32 numIndices  = NarrowCast<Int32>(_indexData.GetByteWidth() / indexStride);
-    Int32 numFaces    = numIndices / 3;
-    bool  bHasUV      = !_texcoordsOrEmpty.empty();
+    MemoryArena arena { 1024 };   // 메모리 아레나
+
+    const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
+    const Int32 idxByteWidth = NarrowCast<Int32>(_indexData.GetByteWidth());
+    const Int32 idxStride    = _bUseU32 ? 4 : 2;
+    const Int32 numIdxes     = idxByteWidth / idxStride;
+    const Int32 numFaces     = numIdxes / 3;
+    const bool  bHasTexCoord = !_texcoords.empty();
 
     // 버텍스 및 페이스
-    std::vector<SDVertex*> verts;
-    verts.reserve(numVerts);   // 대략적인 용량 예약
+    Vector<SDVertex*> verts;
+    verts.reserve(numVerts);
 
-    std::vector<SDFace*> faces;
-    faces.reserve(numFaces);   // 대략적인 용량 예약
+    Vector<SDFace*> faces;
+    faces.reserve(numFaces);
 
-    // 초기 버텍스 생성
-    std::unique_ptr<SDVertex[]> initialVerts = std::make_unique<SDVertex[]>(numVerts);
+    // 초기 데이터 삽입
     for (Int32 i = 0; i < numVerts; ++i)
     {
-        initialVerts[i].point.position = _positions[i];
-        initialVerts[i].point.texcoord = bHasUV ? _texcoordsOrEmpty[i] : Vec2::Zero;
-        verts.push_back(&initialVerts[i]);
+        SDVertex* pVert = arena.New<SDVertex>();
+
+        pVert->point.position = _positions[i];
+        if (bHasTexCoord)
+        {
+            pVert->point.texcoord = _texcoords[i];
+        }
+
+        verts.emplace_back(pVert);
     }
 
-    // 초기 페이스 생성 (메모리만 할당)
-    std::unique_ptr<SDFace[]> initialFaces = std::make_unique<SDFace[]>(numFaces);
+    // 초기 데이터 삽입
     for (Int32 i = 0; i < numFaces; ++i)
     {
-        faces.push_back(&initialFaces[i]);
+        faces.emplace_back(arena.New<SDFace>());
     }
 
     // 페이스의 버텍스 정보 설정
-    const Byte* pIndexData = _indexData.GetDataPtr();
+    const Byte* pIdxData = _indexData.GetPointer();
     for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];
         for (Int32 j = 0; j < 3; ++j)
         {
-            const Byte*  pIndex = pIndexData + (i * 3 + j) * indexStride;
-            const UInt32 index  = _bUseU32 ? *reinterpret_cast<const UInt16*>(pIndex) : *reinterpret_cast<const UInt32*>(pIndex);
-            SDVertex*    pVert  = verts[index];
-            pFace->pVerts[j]    = pVert;
-            pVert->pStartFace   = pFace;   // 임의의 면 설정
+            const Byte*  pIdx = pIdxData + (i * 3 + j) * idxStride;
+            const UInt32 idx  = _bUseU32 ? *reinterpret_cast<const UInt32*>(pIdx)
+                                         : *reinterpret_cast<const UInt16*>(pIdx);
+
+            SDVertex* pVert   = verts[idx];
+            pFace->pVerts[j]  = pVert;
+            pVert->pStartFace = pFace;   // 임의의 면 설정
         }
     }
 
     // 엣지 정보 설정
-    std::set<SDEdge> edgeSet;
+    HashSet<SDEdge> edgeSet;
     for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];
-        for (Int32 edgeNum = 0; edgeNum < 3; ++edgeNum)
+        for (Int32 j = 0; j < 3; ++j)
         {
-            const Int32 v0 = edgeNum;
-            const Int32 v1 = (edgeNum + 1) % 3;
+            const Int32 v0 = j;
+            const Int32 v1 = (j + 1) % 3;
 
             SDEdge edge;
             edge.pVerts[0] = Min(pFace->pVerts[v0], pFace->pVerts[v1]);
             edge.pVerts[1] = Max(pFace->pVerts[v0], pFace->pVerts[v1]);
 
-            auto edgeIt = edgeSet.find(edge);
-            if (edgeIt == edgeSet.end())
+            const auto it = edgeSet.find(edge);
+            if (it == edgeSet.end())
             {
                 // 새로운 엣지
                 edge.pFaces[0]    = pFace;
-                edge.face0EdgeNum = edgeNum;
+                edge.face0EdgeNum = j;
                 edgeSet.insert(edge);
             }
             else
             {
                 // 중복 엣지
-                edge                                      = *edgeIt;
+                edge                                      = *it;
                 edge.pFaces[0]->pFaces[edge.face0EdgeNum] = pFace;            // 양쪽 면 연결
-                pFace->pFaces[edgeNum]                    = edge.pFaces[0];   // 양쪽 면 연결
+                pFace->pFaces[j]                          = edge.pFaces[0];   // 양쪽 면 연결
                 edgeSet.erase(edge);
             }
         }
@@ -295,35 +367,37 @@ LoopSubdivisionOutput LoopSubdivide(
         {
             pFace = pFace->GetNextFace(pVert);
         } while (pFace && pFace != pVert->pStartFace);
+
         pVert->bBoundary = (pFace == nullptr);
-        pVert->bRegular  = (!pVert->bBoundary && pVert->CalcValence() == 6) || (pVert->bBoundary && pVert->CalcValence() == 4);
+        pVert->bRegular  = (!pVert->bBoundary && pVert->CalcValence() == 6)
+                       || (pVert->bBoundary && pVert->CalcValence() == 4);
     }
 
     // 세분화 수행
-    MemoryArena arena { 1024 };
     for (Int32 i = 0; i < _level; ++i)
     {
-        std::vector<SDFace*> newFaces;
-        newFaces.reserve(faces.size() * 4);
+        Vector<SDFace*> newFaces;
+        newFaces.reserve(faces.size() * 4);   // 대략적인 크기 예약
 
-        std::vector<SDVertex*> newVerts;
-        newVerts.reserve(verts.size() * 2);
+        Vector<SDVertex*> newVerts;
+        newVerts.reserve(verts.size() * 2);   // 대략적인 크기 예약
 
         // 새로운 버텍스 및 페이스 생성
-        for (SDVertex* vert: verts)
+        for (SDVertex* pVert: verts)
         {
-            vert->pChildVert            = arena.New<SDVertex>();
-            vert->pChildVert->bRegular  = vert->bRegular;
-            vert->pChildVert->bBoundary = vert->bBoundary;
-            newVerts.push_back(vert->pChildVert);
+            pVert->pChildVert            = arena.New<SDVertex>();
+            pVert->pChildVert->bRegular  = pVert->bRegular;
+            pVert->pChildVert->bBoundary = pVert->bBoundary;
+            newVerts.emplace_back(pVert->pChildVert);
         }
 
-        for (SDFace* face: faces)
+        // 자식 페이스 생성
+        for (SDFace* pFace: faces)
         {
             for (Int32 k = 0; k < 4; ++k)
             {
-                face->pChildFaces[k] = arena.Alloc<SDFace>();
-                newFaces.push_back(face->pChildFaces[k]);
+                pFace->pChildFaces[k] = arena.Alloc<SDFace>();
+                newFaces.emplace_back(pFace->pChildFaces[k]);
             }
         }
 
@@ -342,7 +416,7 @@ LoopSubdivisionOutput LoopSubdivide(
         }
 
         // odd 에지 버텍스 위치 계산
-        std::map<SDEdge, SDVertex*> edgeVertMap;
+        HashMap<SDEdge, SDVertex*> edgeVertMap;
         for (SDFace* pFace: faces)
         {
             for (Int32 k = 0; k < 3; ++k)
@@ -351,36 +425,39 @@ LoopSubdivisionOutput LoopSubdivide(
                 edge.pVerts[0] = Min(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
                 edge.pVerts[1] = Max(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
 
-                SDVertex* vert = edgeVertMap[edge];
-                if (!vert)
+                SDVertex* pVert = edgeVertMap[edge];
+                if (!pVert)
                 {
                     // odd 버텍스 생성
-                    vert = arena.Alloc<SDVertex>();
-                    newVerts.push_back(vert);
-                    vert->bRegular   = true;
-                    vert->bBoundary  = (pFace->pFaces[k] == nullptr);
-                    vert->pStartFace = pFace->pChildFaces[3];
+                    pVert = arena.Alloc<SDVertex>();
+                    newVerts.emplace_back(pVert);
+                    pVert->bRegular   = true;
+                    pVert->bBoundary  = (pFace->pFaces[k] == nullptr);
+                    pVert->pStartFace = pFace->pChildFaces[3];
 
                     // odd 버텍스 위치 계산
-                    if (vert->bBoundary)
+                    const SDVertex* v0 = edge.pVerts[0];
+                    const SDVertex* v1 = edge.pVerts[1];
+
+                    if (pVert->bBoundary)
                     {
-                        vert->point.position = 0.5f * (edge.pVerts[0]->point.position + edge.pVerts[1]->point.position);
-                        vert->point.texcoord = 0.5f * (edge.pVerts[0]->point.texcoord + edge.pVerts[1]->point.texcoord);
+                        pVert->point = (v0->point + v1->point) * 0.5f;
                     }
                     else
                     {
-                        vert->point.position = (3.f / 8.f) * (edge.pVerts[0]->point.position + edge.pVerts[1]->point.position) + (1.f / 8.f) * (pFace->GetOtherVertex(edge.pVerts[0], edge.pVerts[1])->point.position + pFace->pFaces[k]->GetOtherVertex(edge.pVerts[0], edge.pVerts[1])->point.position);
-                        vert->point.texcoord = (3.f / 8.f) * (edge.pVerts[0]->point.texcoord + edge.pVerts[1]->point.texcoord) + (1.f / 8.f) * (pFace->GetOtherVertex(edge.pVerts[0], edge.pVerts[1])->point.texcoord + pFace->pFaces[k]->GetOtherVertex(edge.pVerts[0], edge.pVerts[1])->point.texcoord);
+                        const SDVertex* vOther    = pFace->GetOtherVertex(v0, v1);
+                        const SDVertex* vOpposite = pFace->pFaces[k]->GetOtherVertex(v0, v1);
+                        pVert->point              = (v0->point + v1->point) * (3.f / 8.f) + (vOther->point + vOpposite->point) * (1.f / 8.f);
                     }
-                    edgeVertMap[edge] = vert;
+                    edgeVertMap[edge] = pVert;
                 }
             }
         }
 
         for (SDVertex* pVert: verts)
         {
-            Int32 vertNum                 = pVert->pStartFace->CalcVertexIndex(pVert);
-            pVert->pChildVert->pStartFace = pVert->pStartFace->pChildFaces[vertNum];
+            const Int32 idx               = pVert->pStartFace->CalcVertexIndex(pVert);
+            pVert->pChildVert->pStartFace = pVert->pStartFace->pChildFaces[idx];
         }
 
         for (SDFace* pFace: faces)
@@ -390,28 +467,27 @@ LoopSubdivisionOutput LoopSubdivide(
                 pFace->pChildFaces[3]->pFaces[j]           = pFace->pChildFaces[(j + 1) % 3];
                 pFace->pChildFaces[j]->pFaces[(j + 1) % 3] = pFace->pChildFaces[3];
 
-                SDFace* f2                       = pFace->pFaces[j];
-                pFace->pChildFaces[j]->pFaces[j] = f2 ? f2->pChildFaces[f2->CalcVertexIndex(pFace->pVerts[j])] : nullptr;
-
+                SDFace* f2                                 = pFace->pFaces[j];
+                pFace->pChildFaces[j]->pFaces[j]           = f2 ? f2->pChildFaces[f2->CalcVertexIndex(pFace->pVerts[j])] : nullptr;
                 f2                                         = pFace->pFaces[(j + 2) % 3];
                 pFace->pChildFaces[j]->pFaces[(j + 2) % 3] = f2 ? f2->pChildFaces[f2->CalcVertexIndex(pFace->pVerts[j])] : nullptr;
             }
         }
 
-        for (SDFace* face: faces)
+        for (SDFace* pFace: faces)
         {
             for (Int32 j = 0; j < 3; ++j)
             {
-                face->pChildFaces[j]->pVerts[j] = face->pVerts[j]->pChildVert;
+                pFace->pChildFaces[j]->pVerts[j] = pFace->pVerts[j]->pChildVert;
 
                 SDEdge edge;
-                edge.pVerts[0] = Min(face->pVerts[j], face->pVerts[(j + 1) % 3]);
-                edge.pVerts[1] = Max(face->pVerts[j], face->pVerts[(j + 1) % 3]);
+                edge.pVerts[0] = Min(pFace->pVerts[j], pFace->pVerts[(j + 1) % 3]);
+                edge.pVerts[1] = Max(pFace->pVerts[j], pFace->pVerts[(j + 1) % 3]);
 
-                SDVertex* pVert                           = edgeVertMap[edge];
-                face->pChildFaces[j]->pVerts[(j + 1) % 3] = pVert;
-                face->pChildFaces[(j + 1) % 3]->pVerts[j] = pVert;
-                face->pChildFaces[3]->pVerts[j]           = pVert;
+                SDVertex* pVert                            = edgeVertMap[edge];
+                pFace->pChildFaces[j]->pVerts[(j + 1) % 3] = pVert;
+                pFace->pChildFaces[(j + 1) % 3]->pVerts[j] = pVert;
+                pFace->pChildFaces[3]->pVerts[j]           = pVert;
             }
         }
 
@@ -420,62 +496,83 @@ LoopSubdivisionOutput LoopSubdivide(
     }
 
     // 최종 위치 보정
-    numVerts                          = NarrowCast<Int32>(verts.size());
-    std::unique_ptr<SDPoint[]> pLimit = std::make_unique<SDPoint[]>(numVerts);
-    for (Int32 i = 0; i < numVerts; ++i)
+    const Int32 finalNumVerts = NarrowCast<Int32>(verts.size());
+
+    Vector<SDPoint> limits;
+    limits.reserve(finalNumVerts);
+    for (Int32 i = 0; i < finalNumVerts; ++i)
     {
-        if (verts[i]->bBoundary)
-            pLimit[i] = WeightBoundary(verts[i], 1.f / 5.f);
+        const SDVertex* pVert = verts[i];
+        if (pVert->bBoundary)
+        {
+            limits.emplace_back(WeightBoundary(verts[i], 1.f / 5.f));
+        }
         else
-            pLimit[i] = WeightOneRing(verts[i], LoopGamma(verts[i]->CalcValence()));
+        {
+            limits.emplace_back(WeightOneRing(verts[i], LoopGamma(verts[i]->CalcValence())));
+        }
     }
 
     // 위치 적용
-    for (Int32 i = 0; i < numVerts; ++i)
+    for (Int32 i = 0; i < finalNumVerts; ++i)
     {
-        verts[i]->point = pLimit[i];
+        verts[i]->point = limits[i];
     }
 
-    // 포지션 + UVs 배열 생성
-    LoopSubdivisionOutput output;
-    output.positions.resize(numVerts);
-    output.texcoords.resize(numVerts);
-    for (Int32 i = 0; i < numVerts; ++i)
+    // 포지션 + texCoord 배열 생성
+    Vector<Vec3> finalPositions;
+    finalPositions.reserve(finalNumVerts);
+
+    Vector<Vec2> finalTexcoords;
+    finalTexcoords.reserve(finalNumVerts);
+
+    for (Int32 i = 0; i < finalNumVerts; ++i)
     {
-        output.positions[i] = verts[i]->point.position;
-        output.texcoords[i] = verts[i]->point.texcoord;
+        finalPositions.emplace_back(verts[i]->point.position);
+        finalTexcoords.emplace_back(verts[i]->point.texcoord);
     }
 
     // 인덱스 배열 생성
-    numFaces       = NarrowCast<Int32>(faces.size());
-    output.bUseU32 = numVerts > 0xFFFF;
-    indexStride    = output.bUseU32 ? 4 : 2;
-    output.indices.resize(numFaces * 3 * indexStride);
+    const Int32 finalNumFaces  = NarrowCast<Int32>(faces.size());
+    const bool  bUseU32        = finalNumVerts > 0xFFFF;
+    const Int32 finalIdxStride = bUseU32 ? 4 : 2;
 
-    std::map<SDVertex*, Int32> usedVertsMap;
-    for (Int32 i = 0; i < numVerts; ++i)
+    HashMap<SDVertex*, Int32> usedVertsMap;
+    for (Int32 i = 0; i < finalNumVerts; ++i)
     {
         usedVertsMap[verts[i]] = i;
     }
 
-    Byte* pIndices = output.indices.data();
-    for (Int32 i = 0; i < numFaces; ++i)
+    // 인덱스 삽입
+    Vector<Byte> finalIdxes;
+    finalIdxes.resize(finalNumFaces * 3 * finalIdxStride);
+
+    Byte* pFinalIdxes = finalIdxes.data();
+    for (Int32 i = 0; i < finalNumFaces; ++i)
     {
         for (Int32 j = 0; j < 3; ++j)
         {
-            const Int32 index = usedVertsMap[faces[i]->pVerts[j]];
-            Byte*       pDst  = pIndices + (i * 3 + j) * indexStride;
-            if (output.bUseU32)
+            const Int32 idx  = usedVertsMap[faces[i]->pVerts[j]];
+            Byte*       pDst = pFinalIdxes + (i * 3 + j) * finalIdxStride;
+
+            if (bUseU32)
             {
-                *reinterpret_cast<UInt16*>(pDst) = NarrowCast<UInt16>(index);
+                const UInt16 u16Idx = NarrowCast<UInt16>(u16Idx);
+                std::memcpy(pDst, &u16Idx, sizeof(UInt16));
             }
             else
             {
-                *reinterpret_cast<UInt32*>(pDst) = static_cast<UInt32>(index);
+                const UInt32 u32Idx = NarrowCast<UInt32>(idx);
+                std::memcpy(pDst, &u32Idx, sizeof(UInt32));
             }
         }
     }
 
+    LoopSubdivisionOutputWithTexcoords output;
+    output.positions = std::move(finalPositions);
+    output.texcoords = std::move(finalTexcoords);
+    output.indices   = std::move(finalIdxes);
+    output.bUseU32   = bUseU32;
     return output;
 }
 

@@ -52,12 +52,12 @@ namespace jam
     return _lhs;
 }
 
-[[nodiscard]] constexpr ImVec4 ToImVec4(const ImVec2& _vec2, const float _z = 0.f, const float _w = 0.f)
+[[nodiscard]] constexpr ImVec4 ImVec4From(const ImVec2& _vec2, const float _z = 0.f, const float _w = 0.f)
 {
     return ImVec4 { _vec2.x, _vec2.y, _z, _w };
 }
 
-[[nodiscard]] constexpr ImVec2 ToImVec2(const ImVec4& _vec4)
+[[nodiscard]] constexpr ImVec2 ImVec2From(const ImVec4& _vec4)
 {
     return ImVec2 { _vec4.x, _vec4.y };
 }
@@ -139,7 +139,7 @@ namespace jam
 }
 
 [[nodiscard]] ImVec4       ImVec4FromHex(UInt32 _rgba);
-[[nodiscard]] ImTextureRef ToImTextureRef(TextureHandle _texh);
+[[nodiscard]] ImTextureRef ImTextureRefFrom(TextureHandle _texh);
 [[nodiscard]] ImVec2       CalcFitButtonSize(Int32 _count = 1, ImVec2 _region = ImVec2 { 0.f, 0.f });
 void                       SetNextItemWidthToAvailableWidth();
 

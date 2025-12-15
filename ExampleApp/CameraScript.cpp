@@ -7,7 +7,7 @@ CameraScript::CameraScript(Entity _entity)
 {
     _entity.CreateComponent<CameraScriptDataComponent>();
     m_pData  = &_entity.GetComponent<CameraScriptDataComponent>();
-    m_pTrans = &_entity.GetComponent<TransformComponent>();
+    m_pTrans = &_entity.GetComponent<SceneComponent>();
 }
 
 void CameraScript::OnUpdate(const float _deltaSec)
@@ -16,7 +16,7 @@ void CameraScript::OnUpdate(const float _deltaSec)
         return;
 
     // move
-    TransformHierarchy& t = m_pTrans->transformHierarchy;
+    SceneNode& t = m_pTrans->node;
     if (Input::IsKeyDown(eKey::A))
     {
         Vec3 deltaTrans = t.GetLocalLeft() * m_pData->moveSpeed * _deltaSec;
@@ -62,33 +62,33 @@ void CameraScript::OnUpdate(const float _deltaSec)
         m_pData->yaw += dYaw;
         m_pData->pitch += dPitch;
         m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
-        m_pTrans->transformHierarchy.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+        m_pTrans->node.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
     }
 
     if (Input::IsKeyDown(eKey::LeftArrow))
     {
         m_pData->yaw -= ToDeg(m_pData->rotSpeedRad) * _deltaSec;
-        m_pTrans->transformHierarchy.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+        m_pTrans->node.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
     }
 
     if (Input::IsKeyDown(eKey::RightArrow))
     {
         m_pData->yaw += ToDeg(m_pData->rotSpeedRad) * _deltaSec;
-        m_pTrans->transformHierarchy.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+        m_pTrans->node.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
     }
 
     if (Input::IsKeyDown(eKey::UpArrow))
     {
         m_pData->pitch -= ToDeg(m_pData->rotSpeedRad) * _deltaSec;
         m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
-        m_pTrans->transformHierarchy.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+        m_pTrans->node.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
     }
 
     if (Input::IsKeyDown(eKey::DownArrow))
     {
         m_pData->pitch += ToDeg(m_pData->rotSpeedRad) * _deltaSec;
         m_pData->pitch = Clamp(m_pData->pitch, ToRad(-89.f), ToRad(89.f));
-        m_pTrans->transformHierarchy.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
+        m_pTrans->node.SetLocalRotation(m_pData->pitch, m_pData->yaw, 0.f);
     }
 }
 

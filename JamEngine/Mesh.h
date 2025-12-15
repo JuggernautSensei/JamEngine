@@ -1,5 +1,5 @@
 #pragma once
-#include "BoundingBox.h"
+#include "BoundingVolume.h"
 #include "GraphicsBase.h"
 #include "IAsset.h"
 #include "Magic.h"
@@ -20,7 +20,7 @@ public:
     Mesh& operator=(Mesh&& _other) noexcept;
 
     bool Load(const fs::path& _path) override;
-    void LoadFromMemory(ConstMemView _verts, const VertexLayout& _vl, ConstMemView _indices, bool _bUseU32 = false, const fs::path& _virtualPath = {});
+    void LoadMemory(ConstMemView _verts, const VertexLayout& _vl, ConstMemView _idxData, bool _bUseU32 = false, const fs::path& _virtualPath = {});
     bool Save(const fs::path& _path) const override;
     void Unload() override;
 

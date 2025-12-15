@@ -4,7 +4,6 @@
 
 #include "AssetManager.h"
 #include "FileUtilities.h"
-#include "Hash.h"
 #include "MemView.h"
 #include "Profile.h"
 #include "resources/flatc/jmat_generated.h"
@@ -12,49 +11,64 @@
 namespace jam
 {
 
-[[nodiscard]] static Vec3 ToVec3(const jmat::Vec3& _vec)
+[[nodiscard]] static Vec3 Vec3From(
+    const jmat::Vec3& _vec)
 {
-    return Vec3 { _vec.x(), _vec.y(), _vec.z() };
+    return { _vec.x(), _vec.y(), _vec.z() };
 }
 
-[[nodiscard]] static fs::path ToPath(const flatbuffers::String& _str)
+[[nodiscard]] static fs::path PathFrom(
+    const flatbuffers::String& _str)
 {
     return _str.c_str();
 }
 
-[[nodiscard]] static eTextureChannel ToTextureChannel(const jmat::eTextureChannel _channel)
+[[nodiscard]] static eTextureChannel TextureChannelFrom(
+    const jmat::eTextureChannel _channel)
 {
     switch (_channel)
     {
-        case jmat::eTextureChannel_Red: return eTextureChannel::Red;
-        case jmat::eTextureChannel_Green: return eTextureChannel::Green;
-        case jmat::eTextureChannel_Blue: return eTextureChannel::Blue;
-        case jmat::eTextureChannel_Alpha: return eTextureChannel::Alpha;
+        case jmat::eTextureChannel_Red:
+            return eTextureChannel::Red;
+        case jmat::eTextureChannel_Green:
+            return eTextureChannel::Green;
+        case jmat::eTextureChannel_Blue:
+            return eTextureChannel::Blue;
+        case jmat::eTextureChannel_Alpha:
+            return eTextureChannel::Alpha;
         default:
             JAM_ASSERT(0, "Unknown color channel");
             return eTextureChannel::Red;
     }
 }
 
-[[nodiscard]] static jmat::Vec3 ToJmatVec3(const Vec3 _vec)
+[[nodiscard]] static jmat::Vec3 JmatVec3From(
+    const Vec3 _vec)
 {
-    return jmat::Vec3 { _vec.x, _vec.y, _vec.z };
+    return { _vec.x, _vec.y, _vec.z };
 }
 
-[[nodiscard]] static flatbuffers::Offset<flatbuffers::String> ToJmatString(flatbuffers::FlatBufferBuilder& _builder, const fs::path& _path)
+[[nodiscard]] static flatbuffers::Offset<flatbuffers::String> JmatStringFrom(
+    flatbuffers::FlatBufferBuilder& _builder,
+    const fs::path&                 _path)
 {
-    std::string nativePath = _path.native();
-    return _builder.CreateString(nativePath);
+    const std::string path = _path.native();
+    return _builder.CreateString(path);
 }
 
-[[nodiscard]] static jmat::eTextureChannel ToJmatTextureChannel(const eTextureChannel _channel)
+[[nodiscard]] static jmat::eTextureChannel JmatTextureChannelFrom(
+    const eTextureChannel _channel)
 {
     switch (_channel)
     {
-        case eTextureChannel::Red: return jmat::eTextureChannel_Red;
-        case eTextureChannel::Green: return jmat::eTextureChannel_Green;
-        case eTextureChannel::Blue: return jmat::eTextureChannel_Blue;
-        case eTextureChannel::Alpha: return jmat::eTextureChannel_Alpha;
+        case eTextureChannel::Red:
+            return jmat::eTextureChannel_Red;
+        case eTextureChannel::Green:
+            return jmat::eTextureChannel_Green;
+        case eTextureChannel::Blue:
+            return jmat::eTextureChannel_Blue;
+        case eTextureChannel::Alpha:
+            return jmat::eTextureChannel_Alpha;
         default:
             JAM_ASSERT(0, "Unknown color channel");
             return jmat::eTextureChannel_Red;
@@ -66,93 +80,93 @@ namespace jam
 namespace jam
 {
 
-void Material::LoadFromMemory(const fs::path& _virtualPath)
+void Material::LoadEmpty(
+    const fs::path& _virtualPath)
 {
     Unload();
-    m_path   = _virtualPath;
-    m_bValid = true;
 
     // create sort key
+    UInt16 sortKey;
     if (_virtualPath.empty())
     {
-        // use random value
-        m_sortKey = MakeRandom<UInt16>(0, k_uint16Max);
+        sortKey = MakeRandom<UInt16>(0, 0xFFFF);   // use random value
     }
     else
     {
         // hash based on virtual path
-        const std::string_view strPath = _virtualPath.native();
-
-        MurmurHash64 hasher;
-        hasher.Begin();
-        hasher.Add(strPath.data(), strPath.size());
-
-        const UInt64 hash = hasher.End();
-        m_sortKey         = hash & 0xFFFF;   // use lower 16 bits
+        const std::string_view path = _virtualPath.native();
+        const UInt64           hash = HashOf(path);
+        sortKey                     = NarrowCast<UInt16>(hash & 0xFFFF);   // use lower 16 bits
     }
+
+    m_path    = _virtualPath;
+    m_sortKey = sortKey;
+    m_bValid  = true;
 }
 
-bool Material::Load(const fs::path& _path)
+bool Material::Load(
+    const fs::path& _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
     Unload();
 
-    // load .jmat
-    std::optional<std::vector<Byte>> optBin = LoadBinaryFromFile(_path);
-    if (!optBin)
+    // load file
+    std::optional<Vector<Byte>> optData = LoadBinaryFile(_path);
+    if (!optData)
     {
         return false;
     }
-    const std::vector<Byte>& buf = *optBin;
+    const Vector<Byte>& data = *optData;
 
     // verify
-    flatbuffers::Verifier verifier { buf.data(), buf.size() };
+    flatbuffers::Verifier verifier = { data.data(), data.size() };
     if (!jmat::VerifyMaterialBuffer(verifier))
     {
-        SetErrorString(R"(Material file is corrupted or invalid: "{}")", _path.native());
+        ErrorBuffer::Set(R"(Material file is corrupted or invalid: "{}")", _path.native());
         return false;
     }
 
-    // parse material
-    const jmat::Material* pFbsMat = jmat::GetMaterial(buf.data());
-    if (!pFbsMat)
+    // parse
+    const jmat::Material* pJmatMat = jmat::GetMaterial(data.data());
+    if (!pJmatMat)
     {
-        SetErrorString(R"(Failed to parse material file: "{}")", _path.native());
+        ErrorBuffer::Set(R"(Failed to parse material file: "{}")", _path.native());
         return false;
     }
 
-    // parse properties
+    // parse
     bool bValid = true;
-    bValid &= !!pFbsMat->ambient_color();
-    bValid &= !!pFbsMat->diffuse_color();
-    bValid &= !!pFbsMat->specular_color();
-    bValid &= !!pFbsMat->albedo_color();
-    bValid &= !!pFbsMat->emissive_color();
+    bValid &= !!pJmatMat->ambient_color();
+    bValid &= !!pJmatMat->diffuse_color();
+    bValid &= !!pJmatMat->specular_color();
+    bValid &= !!pJmatMat->albedo_color();
+    bValid &= !!pJmatMat->emissive_color();
     if (!bValid)
     {
+        ErrorBuffer::Set(R"(Material file is missing required fields: "{}")", _path.native());
         return false;
     }
 
     // material properties
-    m_ambientColor                   = ToVec3(*pFbsMat->ambient_color());
-    m_diffuseColor                   = ToVec3(*pFbsMat->diffuse_color());
-    m_specularColor                  = ToVec3(*pFbsMat->specular_color());
-    m_shininess                      = pFbsMat->shininess();
-    m_albedoColor                    = ToVec3(*pFbsMat->albedo_color());
-    m_roughness                      = pFbsMat->roughness();
-    m_metallic                       = pFbsMat->metallic();
-    m_roughnessTextureChannel        = ToTextureChannel(pFbsMat->roughness_texture_channel());
-    m_metallicTextureChannel         = ToTextureChannel(pFbsMat->metallic_texture_channel());
-    m_emissiveColor                  = ToVec3(*pFbsMat->emissive_color());
-    m_emissiveIntensity              = pFbsMat->emissive_intensity();
-    m_bAlphaCutout                   = pFbsMat->b_alpha_cutout();
-    m_bDoubleSided                   = pFbsMat->b_double_sided();
-    m_bNormalTextureFliped           = pFbsMat->b_normal_texture_fliped();
-    m_lightTextureIntensity          = pFbsMat->light_texture_intensity();
-    m_emissiveTextureIntensity       = pFbsMat->emissive_texture_intensity();
-    m_vertexDisplacementTextureScale = pFbsMat->vertex_displacement_scale();
+    m_ambientColor                   = Vec3From(*pJmatMat->ambient_color());
+    m_diffuseColor                   = Vec3From(*pJmatMat->diffuse_color());
+    m_specularColor                  = Vec3From(*pJmatMat->specular_color());
+    m_shininess                      = pJmatMat->shininess();
+    m_albedoColor                    = Vec3From(*pJmatMat->albedo_color());
+    m_roughness                      = pJmatMat->roughness();
+    m_metallic                       = pJmatMat->metallic();
+    m_roughnessTextureChannel        = TextureChannelFrom(pJmatMat->roughness_texture_channel());
+    m_metallicTextureChannel         = TextureChannelFrom(pJmatMat->metallic_texture_channel());
+    m_emissiveColor                  = Vec3From(*pJmatMat->emissive_color());
+    m_emissiveIntensity              = pJmatMat->emissive_intensity();
+    m_bAlphaCutout                   = pJmatMat->b_alpha_cutout();
+    m_bDoubleSided                   = pJmatMat->b_double_sided();
+    m_bNormalTextureFliped           = pJmatMat->b_normal_texture_fliped();
+    m_lightTextureIntensity          = pJmatMat->light_texture_intensity();
+    m_emissiveTextureIntensity       = pJmatMat->emissive_texture_intensity();
+    m_vertexDisplacementTextureScale = pJmatMat->vertex_displacement_scale();
 
-    Ref<ImageTexture>* const imgTexes[] = {
+    Ref<ImageTexture>* const texes[] = {
         &m_pAlbedoTexture,
         &m_pNormalTexture,
         &m_pMetallicTexture,
@@ -163,46 +177,42 @@ bool Material::Load(const fs::path& _path)
         &m_pVertexDisplacementTexture,
     };
 
-    const flatbuffers::String* const texPaths[] = {
-        pFbsMat->albedo_texture_path(),
-        pFbsMat->normal_texture_path(),
-        pFbsMat->metallic_texture_path(),
-        pFbsMat->roughness_texture_path(),
-        pFbsMat->ao_texture_path(),
-        pFbsMat->emissive_texture_path(),
-        pFbsMat->light_texture_path(),
-        pFbsMat->vertex_displacement_texture_path(),
+    const flatbuffers::String* const jmatPathes[] = {
+        pJmatMat->albedo_texture_path(),
+        pJmatMat->normal_texture_path(),
+        pJmatMat->metallic_texture_path(),
+        pJmatMat->roughness_texture_path(),
+        pJmatMat->ao_texture_path(),
+        pJmatMat->emissive_texture_path(),
+        pJmatMat->light_texture_path(),
+        pJmatMat->vertex_displacement_texture_path(),
     };
 
-    for (size_t i = 0; i < std::size(imgTexes); ++i)
+    // load image textures
+    for (Int32 i = 0; i < std::size(texes); ++i)
     {
-        if (texPaths[i])
+        if (jmatPathes[i])
         {
-            fs::path path = ToPath(*texPaths[i]);
-            if (std::optional<Ref<ImageTexture>> opt = AssetManager::GetOrLoadImageTexture(path))
+            fs::path path = PathFrom(*jmatPathes[i]);
+            if (const std::optional<Ref<ImageTexture>> opt = AssetManager::GetOrLoadImageTexture(path))
             {
-                *imgTexes[i] = opt.value();
+                *texes[i] = *opt;
             }
             else
             {
-                Log::Warn("Failed to load texture: {} (Error: {})", path.native(), GetErrorString());
+                Log::Warn("failed to load texture: {} (error: {})", path.native(), ErrorBuffer::Get());
             }
         }
     }
 
-    // compute sort key
-    {
-        std::string_view strPath = _path.native();
+    // create sort key
+    const std::string path = _path.native();
+    const UInt64      hash = HashOf(path);
 
-        MurmurHash64 hasher;
-        hasher.Begin();
-        hasher.Add(strPath.data(), strPath.size());
-        m_sortKey = static_cast<UInt16>(hasher.End());
-    }
-
-    // init done
-    m_path   = _path;
-    m_bValid = true;
+    // done
+    m_sortKey = static_cast<UInt16>(hash & 0xFFFF);
+    m_path    = _path;
+    m_bValid  = true;
     return true;
 }
 
@@ -252,58 +262,57 @@ bool Material::Save(const fs::path& _path) const
     flatbuffers::FlatBufferBuilder builder { 1024 };
 
     // colors
-    jmat::Vec3 fbsAmbientColor  = ToJmatVec3(m_ambientColor);
-    jmat::Vec3 fbsDiffuseColor  = ToJmatVec3(m_diffuseColor);
-    jmat::Vec3 fbsSpecularColor = ToJmatVec3(m_specularColor);
-    jmat::Vec3 fbsAlbedoColor   = ToJmatVec3(m_albedoColor);
-    jmat::Vec3 fbsEmissiveColor = ToJmatVec3(m_emissiveColor);
+    jmat::Vec3 fbsAmbientColor  = JmatVec3From(m_ambientColor);
+    jmat::Vec3 fbsDiffuseColor  = JmatVec3From(m_diffuseColor);
+    jmat::Vec3 fbsSpecularColor = JmatVec3From(m_specularColor);
+    jmat::Vec3 fbsAlbedoColor   = JmatVec3From(m_albedoColor);
+    jmat::Vec3 fbsEmissiveColor = JmatVec3From(m_emissiveColor);
 
     // channels
-    jmat::eTextureChannel fbsMetallicTextureChannel  = ToJmatTextureChannel(m_metallicTextureChannel);
-    jmat::eTextureChannel fbsRoughnessTextureChannel = ToJmatTextureChannel(m_roughnessTextureChannel);
+    jmat::eTextureChannel fbsMetallicTextureChannel  = JmatTextureChannelFrom(m_metallicTextureChannel);
+    jmat::eTextureChannel fbsRoughnessTextureChannel = JmatTextureChannelFrom(m_roughnessTextureChannel);
 
     // textures
-    flatbuffers::Offset<flatbuffers::String> fbsAlbedoTexturePath             = m_pAlbedoTexture ? ToJmatString(builder, m_pAlbedoTexture->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsNormalTexturePath             = m_pNormalTexture ? ToJmatString(builder, m_pNormalTexture->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsMetallicTexturePath           = m_pMetallicTexture ? ToJmatString(builder, m_pMetallicTexture->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsRoughnessTexturePath          = m_pRoughnessTexture ? ToJmatString(builder, m_pRoughnessTexture->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsAOTexturePath                 = m_pAoTexture ? ToJmatString(builder, m_pAoTexture->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsEmissiveTexturePath           = m_pEmissiveTexture ? ToJmatString(builder, m_pEmissiveTexture->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsLightTexturePath              = m_pLightTexture ? ToJmatString(builder, m_pLightTexture->GetPath()) : 0;
-    flatbuffers::Offset<flatbuffers::String> fbsVertexDisplacementTexturePath = m_pVertexDisplacementTexture ? ToJmatString(builder, m_pVertexDisplacementTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsAlbedoTexturePath             = m_pAlbedoTexture ? JmatStringFrom(builder, m_pAlbedoTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsNormalTexturePath             = m_pNormalTexture ? JmatStringFrom(builder, m_pNormalTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsMetallicTexturePath           = m_pMetallicTexture ? JmatStringFrom(builder, m_pMetallicTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsRoughnessTexturePath          = m_pRoughnessTexture ? JmatStringFrom(builder, m_pRoughnessTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsAOTexturePath                 = m_pAoTexture ? JmatStringFrom(builder, m_pAoTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsEmissiveTexturePath           = m_pEmissiveTexture ? JmatStringFrom(builder, m_pEmissiveTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsLightTexturePath              = m_pLightTexture ? JmatStringFrom(builder, m_pLightTexture->GetPath()) : 0;
+    flatbuffers::Offset<flatbuffers::String> fbsVertexDisplacementTexturePath = m_pVertexDisplacementTexture ? JmatStringFrom(builder, m_pVertexDisplacementTexture->GetPath()) : 0;
 
-    auto fbsMaterial = jmat::CreateMaterial(
-        builder,
-        &fbsAmbientColor,
-        &fbsDiffuseColor,
-        &fbsSpecularColor,
-        m_shininess,
-        &fbsAlbedoColor,
-        m_roughness,
-        m_metallic,
-        &fbsEmissiveColor,
-        m_emissiveIntensity,
-        m_bAlphaCutout,
-        m_bDoubleSided,
-        m_bNormalTextureFliped,
-        m_lightTextureIntensity,
-        m_emissiveTextureIntensity,
-        m_vertexDisplacementTextureScale,
-        fbsMetallicTextureChannel,
-        fbsRoughnessTextureChannel,
-        fbsAlbedoTexturePath,
-        fbsNormalTexturePath,
-        fbsMetallicTexturePath,
-        fbsRoughnessTexturePath,
-        fbsAOTexturePath,
-        fbsEmissiveTexturePath,
-        fbsLightTexturePath,
-        fbsVertexDisplacementTexturePath);
+    flatbuffers::Offset<jmat::Material> fbsMaterial =
+        jmat::CreateMaterial(
+            builder,
+            &fbsAmbientColor,
+            &fbsDiffuseColor,
+            &fbsSpecularColor,
+            m_shininess,
+            &fbsAlbedoColor,
+            m_roughness,
+            m_metallic,
+            &fbsEmissiveColor,
+            m_emissiveIntensity,
+            m_bAlphaCutout,
+            m_bDoubleSided,
+            m_bNormalTextureFliped,
+            m_lightTextureIntensity,
+            m_emissiveTextureIntensity,
+            m_vertexDisplacementTextureScale,
+            fbsMetallicTextureChannel,
+            fbsRoughnessTextureChannel,
+            fbsAlbedoTexturePath,
+            fbsNormalTexturePath,
+            fbsMetallicTexturePath,
+            fbsRoughnessTexturePath,
+            fbsAOTexturePath,
+            fbsEmissiveTexturePath,
+            fbsLightTexturePath,
+            fbsVertexDisplacementTexturePath);
 
     builder.Finish(fbsMaterial);
-
-    // 파일 쓰기
-    return SaveBinaryToFile(_path, { builder.GetBufferPointer(), builder.GetSize() });
+    return SaveBinaryFile(_path, { builder.GetBufferPointer(), builder.GetSize() });
 }
 
 bool Material::IsValid() const

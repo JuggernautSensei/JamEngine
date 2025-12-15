@@ -11,7 +11,7 @@ struct PointLightComponent :
     JAM_COMPONENT(PointLightComponent);
 
     [[nodiscard]] Json Serialize(const Ref<Scene>& _pScene, Entity _entity) const;
-    bool               Deserialize(const Json& _json, Ref<Scene>& _pScene, Entity _entity);
+    void Deserialize(const Json& _json, Ref<Scene>& _pScene, Entity _entity);
     void               DrawEditor(Ref<Scene>& _pScene, Entity _entity);
 
     Vec3  radiance     = Vec3::Zero;

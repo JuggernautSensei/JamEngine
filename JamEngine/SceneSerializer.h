@@ -9,9 +9,8 @@ class Scene;
 class SceneSerializer
 {
 public:
-    bool SaveToFile(const fs::path& _filePath) const;
-    void Serialize(const Ref<Scene>& _pScene);
-
+    bool                      SaveFile(const fs::path& _path) const;
+    void                      Serialize(const Ref<Scene>& _pScene);
     [[nodiscard]] const Json& GetJson() const;
 
 private:

@@ -6,7 +6,7 @@
 namespace jam
 {
 
-enum class eTextureChannel : UInt8
+enum class eTextureChannel
 {
     Red   = 0,
     Green = 1,
@@ -18,7 +18,7 @@ class Material : public IAsset
 {
 public:
     bool Load(const fs::path& _path) override;
-    void LoadFromMemory(const fs::path& _virtualPath = {});   // load empty material
+    void LoadEmpty(const fs::path& _virtualPath = {});   // load empty material
     void Unload() override;
     bool Save(const fs::path& _path) const override;
 

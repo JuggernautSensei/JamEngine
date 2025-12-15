@@ -1,18 +1,12 @@
 #include "pch.h"
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\SpotLightComponent.cpp"
-
-
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\TagComponent.cpp"
 
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\SceneComponent.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Transform.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\TransformComponent.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\TransformHierarchy.cpp"
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\TypeTrait.cpp"
@@ -31,4 +25,10 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\StringUtilities.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Timer.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\UID.cpp"
 

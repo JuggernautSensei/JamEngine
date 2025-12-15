@@ -3,19 +3,12 @@
 #include "WindowsPlatform.h"
 
 #include "Application.h"
-#include "DialogUtilities.h"
+#include "Error.h"
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace jam
 {
-
-constexpr static const wchar_t* const k_windowClassName = L"jam engine window class";
-constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";
-constexpr static Int32                k_defaultWidth    = 800;
-constexpr static Int32                k_defaultHeight   = 600;
-constexpr static Int32                k_defaultPosX     = 100;
-constexpr static Int32                k_defaultPosY     = 100;
 
 void WindowsPlatform::Init()
 {
@@ -44,7 +37,7 @@ void WindowsPlatform::Init()
         if (RegisterClassExW(&wClassEx) == 0)
         {
             DWORD lastError = GetLastError();
-            JAM_CRASH("Failed to register window class: {}", CreateComErrorString(lastError));
+            JAM_CRASH("Failed to register window class: {}", ErrorMessageFrom(lastError));
         }
     }
 
@@ -54,7 +47,7 @@ void WindowsPlatform::Init()
         if (m_hWnd == NULL)
         {
             DWORD lastError = GetLastError();
-            JAM_CRASH("Failed to create window: {}", CreateComErrorString(lastError));
+            JAM_CRASH("Failed to create window: {}", ErrorMessageFrom(lastError));
         }
 
         ResizeClient(k_defaultWidth, k_defaultHeight);
@@ -89,16 +82,18 @@ bool WindowsPlatform::PollEvents()
         DispatchMessage(&m_msg);
         return true;
     }
-
-    return false;
+    else
+    {
+        return false;
+    }
 }
 
 void WindowsPlatform::ResizeClient(const Int32 _clientWidth, const Int32 _clientHeight)
 {
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
 
-    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+    const DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    const DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
     SetClient(_clientWidth, _clientHeight, m_clientPos.x, m_clientPos.y, wsFlags, exFlags);
 }
 
@@ -106,9 +101,9 @@ void WindowsPlatform::MoveClient(const Int32 _clientLeftTopX, const Int32 _clien
 {
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
 
-    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
-    SetClient(m_clientSize.width, m_clientSize.height, _clientLeftTopX, _clientLeftTopY, wsFlags, exFlags);
+    const DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    const DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+    SetClient(m_clientRes.x, m_clientRes.y, _clientLeftTopX, _clientLeftTopY, wsFlags, exFlags);
 }
 
 void WindowsPlatform::SetTitle(const std::string_view _name) const
@@ -116,7 +111,7 @@ void WindowsPlatform::SetTitle(const std::string_view _name) const
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
     JAM_ASSERT(m_hInstance, "WindowsPlatform instance handle is null");
 
-    std::wstring title = ToUTF16(_name);
+    const std::wstring title = ToUTF16(_name);
     ::SetWindowText(m_hWnd, title.c_str());
 }
 
@@ -124,72 +119,72 @@ void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
 {
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
 
-    if (m_flags == _flags)
-        return;
-
-    m_flags = _flags;
-
-    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
-
-    // 기본 스타일
-    wsFlags &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_POPUP | WS_OVERLAPPED);
-    exFlags &= ~WS_EX_TOPMOST;
-
-    // Borderless
-    if (_flags & eWindowPropertyFlags_Borderless)
+    if (m_flags != _flags)
     {
-        wsFlags |= WS_POPUP;
-    }
-    else
-    {
-        wsFlags |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
+        m_flags = _flags;
 
-        // NoResizable
-        if (!(_flags & eWindowPropertyFlags_NoResizable))
-            wsFlags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+        DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+        DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
-        // Minimize
-        if (!(_flags & eWindowPropertyFlags_DisableMinimizeButton))
-            wsFlags |= WS_MINIMIZEBOX;
+        // basic style
+        wsFlags &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_POPUP | WS_OVERLAPPED);
+        exFlags &= ~WS_EX_TOPMOST;
 
-        // Maximize
-        if (!(_flags & eWindowPropertyFlags_DisableMaximizeButton))
-            wsFlags |= WS_MAXIMIZEBOX;
-
-        // Close
-        if (_flags & eWindowPropertyFlags_DisableCloseButton)
+        // Borderless
+        if (_flags & eWindowPropertyFlags_Borderless)
         {
-            // Close 버튼만 비활성화
-            HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE);
-            if (hMenu)
-                ::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
+            wsFlags |= WS_POPUP;
         }
         else
         {
-            // Close 버튼 활성화
-            HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE);
-            if (hMenu)
-                ::EnableMenuItem(hMenu, SC_CLOSE, 0);
+            wsFlags |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
+
+            // NoResizable
+            if (!(_flags & eWindowPropertyFlags_NoResizable))
+                wsFlags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+
+            // Minimize
+            if (!(_flags & eWindowPropertyFlags_DisableMinimizeButton))
+                wsFlags |= WS_MINIMIZEBOX;
+
+            // Maximize
+            if (!(_flags & eWindowPropertyFlags_DisableMaximizeButton))
+                wsFlags |= WS_MAXIMIZEBOX;
+
+            // Close
+            if (_flags & eWindowPropertyFlags_DisableCloseButton)
+            {
+                // Close 버튼만 비활성화
+                if (HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
+                {
+                    ::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
+                }
+            }
+            else
+            {
+                // Close 버튼 활성화
+                if (HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
+                {
+                    ::EnableMenuItem(hMenu, SC_CLOSE, 0);
+                }
+            }
         }
+
+        // TopMost
+        if (_flags & eWindowPropertyFlags_TopMost)
+            exFlags |= WS_EX_TOPMOST;
+
+        // 스타일 적용
+        ::SetWindowLongPtr(m_hWnd, GWL_STYLE, wsFlags);
+        ::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, exFlags);
+
+        // TopMost 위치 설정
+        const HWND hWndInsertAfter = (_flags & eWindowPropertyFlags_TopMost) ? HWND_TOPMOST : HWND_NOTOPMOST;
+        ::SetWindowPos(m_hWnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+
+        // 윈도우 업데이트
+        ::UpdateWindow(m_hWnd);
     }
-
-    // TopMost
-    if (_flags & eWindowPropertyFlags_TopMost)
-    {
-        exFlags |= WS_EX_TOPMOST;
-    }
-
-    // 스타일 적용
-    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, wsFlags);
-    ::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, exFlags);
-
-    // TopMost 위치 설정
-    HWND hWndInsertAfter = (_flags & eWindowPropertyFlags_TopMost) ? HWND_TOPMOST : HWND_NOTOPMOST;
-    ::SetWindowPos(m_hWnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-
-    // 윈도우 업데이트
-    ::UpdateWindow(m_hWnd);
 }
 
 eWindowPropertyFlags WindowsPlatform::GetWindowProperty() const
@@ -197,9 +192,9 @@ eWindowPropertyFlags WindowsPlatform::GetWindowProperty() const
     return m_flags;
 }
 
-Resolution WindowsPlatform::GetClientResolution() const
+Vec2i WindowsPlatform::GetClientResolution() const
 {
-    return m_clientSize;
+    return m_clientRes;
 }
 
 Vec2i WindowsPlatform::GetClientPos() const
@@ -207,7 +202,7 @@ Vec2i WindowsPlatform::GetClientPos() const
     return m_clientPos;
 }
 
-Resolution WindowsPlatform::GetFullScreenSize() const
+Vec2i WindowsPlatform::GetFullScreenResolution() const
 {
     const Int32 w = ::GetSystemMetrics(SM_CXSCREEN);
     const Int32 h = ::GetSystemMetrics(SM_CYSCREEN);
@@ -226,21 +221,21 @@ HINSTANCE WindowsPlatform::GetPlatformInstance() const
 
 void WindowsPlatform::OnEvent(Event& _event)
 {
-    HandleEvent<WindowResizedEvent>(_event, JAM_BIND_MEMBER_LISTENER(WindowsPlatform::OnWindowResizedEvent_));
-    HandleEvent<WindowMaximizedEvent>(_event, JAM_BIND_MEMBER_LISTENER(WindowsPlatform::OnWindowMaximizeEvent_));
-    HandleEvent<WindowMoveEvent>(_event, JAM_BIND_MEMBER_LISTENER(WindowsPlatform::OnWindowMoveEvent_));
+    HandleEvent<WindowResizedEvent>(_event, this, &WindowsPlatform::OnWindowResizedEvent_);
+    HandleEvent<WindowMaximizedEvent>(_event, this, &WindowsPlatform::OnWindowMaximizeEvent_);
+    HandleEvent<WindowMoveEvent>(_event, this, &WindowsPlatform::OnWindowMoveEvent_);
 }
 
 void WindowsPlatform::OnWindowResizedEvent_(const WindowResizedEvent& _event)
 {
-    m_clientSize.width  = _event.GetWidth();
-    m_clientSize.height = _event.GetHeight();
+    m_clientRes.x = _event.GetWidth();
+    m_clientRes.y = _event.GetHeight();
 }
 
 void WindowsPlatform::OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event)
 {
-    m_clientSize.width  = _event.GetWidth();
-    m_clientSize.height = _event.GetHeight();
+    m_clientRes.x = _event.GetWidth();
+    m_clientRes.y = _event.GetHeight();
 }
 
 void WindowsPlatform::OnWindowMoveEvent_(const WindowMoveEvent& _event)
@@ -330,8 +325,9 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
 
         case WM_MOVE:
         {
-            const Int32     x = LOWORD(lParam);
-            const Int32     y = HIWORD(lParam);
+            const Int32 x = LOWORD(lParam);
+            const Int32 y = HIWORD(lParam);
+
             WindowMoveEvent moveEvent { x, y };
             app.DispatchEvent(moveEvent);
         }
@@ -339,7 +335,8 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
 
         case WM_MOUSEWHEEL:
         {
-            const Int32     delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            const Int32 delta = GET_WHEEL_DELTA_WPARAM(wParam);
+
             MouseWheelEvent wheelEvent { delta };
             app.DispatchEvent(wheelEvent);
         }
@@ -347,48 +344,48 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
 
         case WM_LBUTTONDOWN:
         {
-            constexpr int  vKey = VK_LBUTTON;
-            MouseDownEvent mouseDownEvent { vKey };
-            app.DispatchEvent(mouseDownEvent);
+            constexpr Int32 vKey = VK_LBUTTON;
+            MouseDownEvent  event { vKey };
+            app.DispatchEvent(event);
         }
         break;
 
         case WM_LBUTTONUP:
         {
-            constexpr int vKey = VK_LBUTTON;
-            MouseUpEvent  mouseUpEvent { vKey };
+            constexpr Int32 vKey = VK_LBUTTON;
+            MouseUpEvent    mouseUpEvent { vKey };
             app.DispatchEvent(mouseUpEvent);
         }
         break;
 
         case WM_RBUTTONDOWN:
         {
-            constexpr int  vKey = VK_RBUTTON;
-            MouseDownEvent mouseDownEvent { vKey };
+            constexpr Int32 vKey = VK_RBUTTON;
+            MouseDownEvent  mouseDownEvent { vKey };
             app.DispatchEvent(mouseDownEvent);
         }
         break;
 
         case WM_RBUTTONUP:
         {
-            constexpr int vKey = VK_RBUTTON;
-            MouseUpEvent  mouseUpEvent { vKey };
+            constexpr Int32 vKey = VK_RBUTTON;
+            MouseUpEvent    mouseUpEvent { vKey };
             app.DispatchEvent(mouseUpEvent);
         }
         break;
 
         case WM_MBUTTONDOWN:
         {
-            constexpr int  vKey = VK_MBUTTON;
-            MouseDownEvent mouseDownEvent { vKey };
+            constexpr Int32 vKey = VK_MBUTTON;
+            MouseDownEvent  mouseDownEvent { vKey };
             app.DispatchEvent(mouseDownEvent);
         }
         break;
 
         case WM_MBUTTONUP:
         {
-            constexpr int vKey = VK_MBUTTON;
-            MouseUpEvent  mouseUpEvent { vKey };
+            constexpr Int32 vKey = VK_MBUTTON;
+            MouseUpEvent    mouseUpEvent { vKey };
             app.DispatchEvent(mouseUpEvent);
         }
         break;
@@ -404,7 +401,7 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
 
         case WM_KEYDOWN:
         {
-            const int    vKey = static_cast<int>(wParam);
+            const Int32  vKey = static_cast<int>(wParam);
             KeyDownEvent keyDownEvent { vKey };
             app.DispatchEvent(keyDownEvent);
         }
@@ -412,8 +409,8 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
 
         case WM_KEYUP:
         {
-            const int  vKey = static_cast<int>(wParam);
-            KeyUpEvent keyUpEvent { vKey };
+            const Int32 vKey = static_cast<int>(wParam);
+            KeyUpEvent  keyUpEvent { vKey };
             app.DispatchEvent(keyUpEvent);
         }
         break;
@@ -466,8 +463,8 @@ void WindowsPlatform::SetClient(const Int32 _clientWidth, const Int32 _clientHei
     ::UpdateWindow(m_hWnd);
     ::ShowWindow(m_hWnd, SW_SHOW);
 
-    m_clientPos  = { _clientLeftTopX, _clientLeftTopY };
-    m_clientSize = { _clientWidth, _clientHeight };
+    m_clientPos = { _clientLeftTopX, _clientLeftTopY };
+    m_clientRes = { _clientWidth, _clientHeight };
 }
 
 }   // namespace jam

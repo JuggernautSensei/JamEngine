@@ -50,7 +50,7 @@ void ImportImageDialog::operator()()
         // Path selection
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("path");
+        Widget_FrameAlignedText("path");
         ImGui::TableNextColumn();
         if (Widget_OpenFileDialog("##FileDialog", m_importPath, k_filters))
             m_bDirty = true;
@@ -58,21 +58,21 @@ void ImportImageDialog::operator()()
         // Preview
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("preview");
+        Widget_FrameAlignedText("preview");
         ImGui::TableNextColumn();
         Widget_PreviewTexture_();
 
         // Name & Extension
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         Widget_NameInput_();
 
         // Convert format
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("convert format");
+        Widget_FrameAlignedText("convert format");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##ConvertFormat", &m_bConvertFormat))
             m_bDirty = true;
@@ -82,10 +82,10 @@ void ImportImageDialog::operator()()
             ImGui::Indent();
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            Widget_FramePaddingAlignedTextUnformatted("format");
+            Widget_FrameAlignedText("format");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_TextureFormatSelector("##ConvertTextureFormat", m_convertFormat, true))
+            if (Widget_TextureFormatCombo("##ConvertTextureFormat", m_convertFormat, true))
                 m_bDirty = true;
 
             ImGui::Unindent();
@@ -94,7 +94,7 @@ void ImportImageDialog::operator()()
         // Force sRGB
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("force sRGB");
+        Widget_FrameAlignedText("force sRGB");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##forceSrgb", &m_bForceSrgb))
             m_bDirty = true;
@@ -102,7 +102,7 @@ void ImportImageDialog::operator()()
         // Resize
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("resize");
+        Widget_FrameAlignedText("resize");
         ImGui::TableNextColumn();
         ImGui::Checkbox("##resize", &m_bResize);
 
@@ -113,7 +113,7 @@ void ImportImageDialog::operator()()
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            Widget_FramePaddingAlignedTextUnformatted("width");
+            Widget_FrameAlignedText("width");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
             if (ImGui::InputScalar("##resizeWidth", ImGuiDataType_U64, &m_resizeW))
@@ -121,7 +121,7 @@ void ImportImageDialog::operator()()
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            Widget_FramePaddingAlignedTextUnformatted("height");
+            Widget_FrameAlignedText("height");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
             if (ImGui::InputScalar("##resizeHeight", ImGuiDataType_U64, &m_resizeH))
@@ -133,7 +133,7 @@ void ImportImageDialog::operator()()
         // Generate mips
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("drop mips");
+        Widget_FrameAlignedText("drop mips");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##dropMips", &m_bDropMips))
             m_bDirty = true;
@@ -141,7 +141,7 @@ void ImportImageDialog::operator()()
         // Flip vertical
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("flip vertical");
+        Widget_FrameAlignedText("flip vertical");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##flipV", &m_bFlipV))
             m_bDirty = true;
@@ -149,7 +149,7 @@ void ImportImageDialog::operator()()
         // Flip horizontal
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("flip horizontal");
+        Widget_FrameAlignedText("flip horizontal");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##flipH", &m_bFlipH))
             m_bDirty = true;
@@ -157,7 +157,7 @@ void ImportImageDialog::operator()()
         // Pre-multiply alpha
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("pre-multiply alpha");
+        Widget_FrameAlignedText("pre-multiply alpha");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##preMultAlpha", &m_bPreMultAlpha))
             m_bDirty = true;
@@ -215,7 +215,7 @@ bool ImportImageDialog::OnClickImportButton_()
 
     // build output
     fs::path outputPath = m_parentDir / m_nameBuf;
-    outputPath.replace_extension(ImageFormatToString(m_imageFormat));
+    outputPath.replace_extension(ErrorMessageFrom(m_imageFormat));
 
     // Validation: Check extension
     if (outputPath.extension().empty())
@@ -239,7 +239,7 @@ bool ImportImageDialog::OnClickImportButton_()
 
     if (!exporter.Export())
     {
-        std::string msg = std::format("Failed to save texture:\n{}\n\nError: {}", outputPath.native(), GetErrorString());
+        std::string msg = std::format("Failed to save texture:\n{}\n\nError: {}", outputPath.native(), ErrorBuffer::Get());
         m_popup.Open("import texture error", msg);
 
         return false;
@@ -256,7 +256,7 @@ void ImportImageDialog::LoadPreviewTexture_()
     // apply import options in correct order
     importer.ForceSRGB(m_bForceSrgb);
     importer.Resize(m_bResize, m_resizeW, m_resizeH);
-    importer.DropMips(m_bDropMips);
+    importer.GenerateMips(m_bDropMips);
     importer.FlipVertical(m_bFlipV);
     importer.FlipHorizontal(m_bFlipH);
     importer.PreMultiplyAlpha(m_bPreMultAlpha);
@@ -264,7 +264,7 @@ void ImportImageDialog::LoadPreviewTexture_()
 
     if (!importer.Import())
     {
-        m_popup.Open("error", std::format("failed to import image: {}\n{}", m_importPath.native(), GetErrorString()));
+        m_popup.Open("error", std::format("failed to import image: {}\n{}", m_importPath.native(), ErrorBuffer::Get()));
         return;
     }
 
@@ -282,13 +282,13 @@ void ImportImageDialog::Widget_PreviewTexture_() const
         const ImVec2       size    = aspect >= 1.f ? ImVec2(k_previewSize.x, k_previewSize.x / aspect)
                                                    : ImVec2(k_previewSize.y * aspect, k_previewSize.y);
 
-        ImGui::ImageWithBg(ToImTextureRef(m_pPreviewTex->GetHandle()), size);
+        ImGui::ImageWithBg(ImTextureRefFrom(m_pPreviewTex->GetHandle()), size);
 
         if (ImGui::BeginItemTooltip())
         {
             ImGui::Text("resolution: %d x %d x %d", texInfo.width, texInfo.height, texInfo.depth);
-            ImGui::Text("format: %s", EnumToString(texInfo.format).data());
-            ImGui::Text("texture type: %s", EnumToString(texInfo.type).data());
+            ImGui::Text("format: %s", StringFrom(texInfo.format).data());
+            ImGui::Text("texture type: %s", StringFrom(texInfo.type).data());
             ImGui::Text("array size: %d", texInfo.arraySize);
             ImGui::Text("samples: %d", texInfo.samples);
             ImGui::Text("mip levels: %d", texInfo.numMips);
@@ -314,7 +314,7 @@ bool ImportImageDialog::Widget_NameInput_()
 
     ImGui::SameLine();
     ImGui::SetNextItemWidth(k_selectorWidth);
-    bDirty |= Widget_ImageFormatSelector("##Extension", m_imageFormat);
+    bDirty |= Widget_ImageFormatCombo("##Extension", m_imageFormat);
     return bDirty;
 }
 

@@ -20,7 +20,7 @@ constexpr const char* k_editorPayloadTable[] = {
 
 const char* GetEditorPayload(const eEditorPayload _payload)
 {
-    return k_editorPayloadTable[EnumToInt(_payload)];
+    return k_editorPayloadTable[IntFrom(_payload)];
 }
 
 bool SetFileDragDropPayload(const fs::path& _path)
@@ -40,8 +40,8 @@ fs::path ResolvePathDragDropPayload(const ImGuiPayload* _pPayload)
 {
     JAM_ASSERT(_pPayload, "payload is nullptr");
     JAM_ASSERT(_pPayload->IsDataType(GetEditorPayload(eEditorPayload::File)), "payload type mismatch");
-    const char* strPath = static_cast<const char*>(_pPayload->Data);
-    return fs::path { strPath };
+    const char* path = static_cast<const char*>(_pPayload->Data);
+    return path;
 }
 
 bool SetEntityDragDropPayload(const Entity _entity)

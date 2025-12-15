@@ -1,7 +1,6 @@
 namespace jam.jmsh;
 
 enum eVertexAttribute : ubyte {
-    UnknownAttribute,
     Position,
     Normal,
     Tangent,
@@ -19,13 +18,12 @@ enum eVertexAttribute : ubyte {
 }
 
 enum eAttributeFormat : ubyte {
-    UnknownFormat = 0,
-    Float         = 1,
-    Float2        = 2,
-    Float3        = 3,
-    Float4        = 4,
-    UNorm8x4      = 5,
-    UInt8x4       = 6
+    Float         ,
+    Float2        ,
+    Float3        ,
+    Float4        ,
+    UNorm8x4      ,
+    UInt8x4       
 }
 
 struct VertexLayoutElement

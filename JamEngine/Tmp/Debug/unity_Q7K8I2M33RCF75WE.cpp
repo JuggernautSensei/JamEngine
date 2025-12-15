@@ -3,9 +3,6 @@
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderGraph.cpp"
 
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\VisibleItem.cpp"
-
-
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderPass.cpp"
 
 
@@ -31,4 +28,7 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\SceneSerializer.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ShaderCompiler.cpp"
 

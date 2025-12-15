@@ -11,14 +11,19 @@ ComponentDB* ComponentDB::s_instance = nullptr;
 ComponentDB& ComponentDB::GetInstance()
 {
     if (!s_instance)
+    {
         s_instance = JAM_NEW(ComponentDB);
+    }
+
     return *s_instance;
 }
 
 void ComponentDB::DestroyInstance()
 {
     if (s_instance)
+    {
         JAM_DELETE(s_instance);
+    }
 }
 
 void ComponentDB::Reflect(const ComponentInfo& info)
@@ -77,12 +82,12 @@ Json ComponentDB::Serialize(const std::string_view _name, const void* _pComponen
     return info.serializeFn(_pComponent, _pScene, _entity);
 }
 
-bool ComponentDB::Deserialize(const std::string_view _name, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, const Entity _entity) const
+void ComponentDB::Deserialize(const std::string_view _name, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, const Entity _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
     JAM_ASSERT(info.deserializeFn, "Component '{}' does not have a deserialize function", _name);
-    return info.deserializeFn(_pComponent, _json, _pScene, _entity);
+    info.deserializeFn(_pComponent, _json, _pScene, _entity);
 }
 
 void ComponentDB::DrawEditor(const std::string_view _name, void* _pComponent, Ref<Scene>& _pScene, const Entity _entity) const
@@ -112,6 +117,12 @@ std::string_view ComponentDB::GetDisplayName(const std::string_view _name) const
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
     return info.displayName;
+}
+
+bool ComponentDB::IsReflected(const std::string_view _name) const
+{
+    const UInt32 hash = HashOf(_name);
+    return m_infos.contains(hash);
 }
 
 void ComponentDB::Create(const UInt32 _typeID, const Entity _entity) const
@@ -162,12 +173,12 @@ Json ComponentDB::Serialize(const UInt32 _typeID, const void* _pComponent, const
     return info.serializeFn(_pComponent, _pScene, _entity);
 }
 
-bool ComponentDB::Deserialize(const UInt32 _typeID, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, const Entity _entity) const
+void ComponentDB::Deserialize(const UInt32 _typeID, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, const Entity _entity) const
 {
     const UInt32         hash = m_typeToNameContainer.at(_typeID);
     const ComponentInfo& info = m_infos.at(hash);
     JAM_ASSERT(info.deserializeFn, "Component with type hash {} does not have a deserialize function", _typeID);
-    return info.deserializeFn(_pComponent, _json, _pScene, _entity);
+    info.deserializeFn(_pComponent, _json, _pScene, _entity);
 }
 
 void ComponentDB::DrawEditor(const UInt32 _typeID, void* _pComponent, Ref<Scene>& _pScene, const Entity _entity) const
@@ -204,6 +215,11 @@ std::string_view ComponentDB::GetComponentName(const UInt32 _typeID) const
     const UInt32         hash = m_typeToNameContainer.at(_typeID);
     const ComponentInfo& info = m_infos.at(hash);
     return info.name;
+}
+
+bool ComponentDB::IsReflected(const UInt32 _typeID) const
+{
+    return m_typeToNameContainer.contains(_typeID);
 }
 
 const ComponentDB::ContainerT& ComponentDB::GetContainer() const

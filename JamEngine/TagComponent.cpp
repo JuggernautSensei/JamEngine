@@ -8,28 +8,58 @@
 namespace jam
 {
 
-Json TagComponent::Serialize(const Ref<Scene>& _pScene, Entity _entity) const
+TagComponent::TagComponent()
 {
-    Json json;
-    json["name"] = name;
-    return json;
 }
 
-bool TagComponent::Deserialize(const Json& _json, const Ref<Scene>& _pScene, Entity _entity)
+TagComponent::TagComponent(
+    const std::string_view _name)
+    : name(_name)
 {
-    try
-    {
-        name = _json["name"].get<std::string>();
-        return true;
-    }
-    catch (const std::exception& e)
-    {
-        SetErrorString(JAM_PRETTY_FUNCTION " failed: {}", e.what());
-        return false;
-    }
 }
 
-void TagComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
+bool TagComponent::operator==(
+    const TagComponent& _other) const
+{
+    return name == _other.name;
+}
+
+bool TagComponent::operator!=(
+    const TagComponent& _other) const
+{
+    return !(*this == _other);
+}
+
+bool TagComponent::operator==(
+    const std::string_view _name) const
+{
+    return name == _name;
+}
+
+bool TagComponent::operator!=(
+    const std::string_view _name) const
+{
+    return !(*this == _name);
+}
+
+Json TagComponent::Serialize(
+    const Ref<Scene>& _pScene,
+    Entity            _entity) const
+{
+    return name;
+}
+
+void TagComponent::Deserialize(
+    const Json&       _json,
+    const Ref<Scene>& _pScene,
+    Entity            _entity)
+{
+    TryParseJson(_json, name);
+}
+
+void TagComponent::DrawEditor(
+    Ref<Scene>& _pScene,
+    Entity      _entity)
 {
     if (ImGui::BeginTable("TagEdtior", 2, ImGuiTableFlags_SizingFixedFit))
     {
@@ -38,7 +68,7 @@ void TagComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        Widget_FramePaddingAlignedTextUnformatted("name");
+        Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##TagName", &name);
