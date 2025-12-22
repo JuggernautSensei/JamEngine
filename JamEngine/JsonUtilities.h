@@ -1,26 +1,25 @@
 #pragma once
-
-// 1. object 형식 json은 필드 추가, 삭제에 유연하게 대응할 수 있어야 한다.
-//    필드가 추가, 삭제 되었다고 해도 throw 하지 않고 정상적으로 직렬화, 역직렬화가 되어야 한다.
-//    필드 추가 및 삭제는 로깅 후 무시 or 기본값으로 조용히 처리한다.
-//    단, 필수 필드가 누락된 경우, 데이터 파싱에 실패한 경우에는 throw 한다.
-// 2. object 외의 형식의 실패는 대부분 데이터 파싱 실패이므로 throw 한다.
-
+#include "JsonReader.h"
+#include "JsonWriter.h"
 
 namespace jam
 {
 
+class Mesh;
 class ImageTexture;
 class Material;
 class Camera;
 
-}
+}   // namespace jam
 
 namespace nlohmann
 {
 
 using Json = jam::Json;
 using namespace jam;
+
+void to_json(Json& _outJson, StringView _str);
+// void from_json(const Json& _json, StringView& _outStr); not supported since StringView does not own memory
 
 void to_json(Json& _outJson, const fs::path& _path);
 void from_json(const Json& _json, fs::path& _outPath);
@@ -46,14 +45,11 @@ void from_json(const Json& _json, Ref<Material>& _outMaterial);
 void to_json(Json& _outJson, const Ref<ImageTexture>& _pTexture);
 void from_json(const Json& _json, Ref<ImageTexture>& _outTexture);
 
-void to_json(Json& _outJson, const Camera& _camera);
-void from_json(const Json& _json, Camera& _outCamera);
-
 template<typename E>
     requires std::is_enum_v<E>
-void to_json(Json& _outJson, E _enum)
+void to_json(Json& _outJson, E _e)
 {
-    _outJson = ErrorMessageFrom(_enum);
+    _outJson = StringFrom(_e);
 }
 
 template<typename E>
@@ -61,13 +57,37 @@ void from_json(const Json& _json, E& _outEnum)
     requires std::is_enum_v<E>
 {
     const EnumIntType<E> strValue = _json.get<std::string>();   // or throw
-    if (const std::optional<E> opt = EnumFrom<E>(strValue))
+    if (const Optional<E> opt = EnumFrom<E>(strValue))
     {
         _outEnum = opt.value();
     }
     else
     {
         throw std::runtime_error(std::format("invalid enum value: {}", strValue));
+    }
+}
+
+template<typename TValue, size_t N>
+void to_json(Json& _outJson, const Array<TValue, N>& _arr)
+{
+    _outJson = Json::array();
+    for (const TValue& val: _arr)
+    {
+        _outJson.push_back(val);
+    }
+}
+
+template<typename TValue, size_t N>
+void from_json(const Json& _json, Array<TValue, N>& _outArr)
+{
+    if (_json.size() != N)
+    {
+        throw std::runtime_error(std::format("invalid array size: expected {}, got {}", N, _json.size()));
+    }
+
+    for (size_t i = 0; i < N; ++i)
+    {
+        _outArr[i] = _json.at(i).get<TValue>();
     }
 }
 

@@ -155,15 +155,15 @@ public:
     Ref& operator=(const Ref<U>& _other)
         requires(std::is_base_of_v<RefCounted, U> && std::is_base_of_v<T, U>)
     {
-        T* otherPtr = static_cast<T*>(_other.m_ptr);
-        if (m_ptr != otherPtr)
+        T* pOther = static_cast<T*>(_other.m_ptr);
+        if (m_ptr != pOther)
         {
-            if (otherPtr)
+            if (pOther)
             {
-                otherPtr->Retain();
+                pOther->Retain();
             }
             Release_();
-            m_ptr = otherPtr;
+            m_ptr = pOther;
         }
         return *this;
     }
@@ -218,7 +218,7 @@ public:
         return m_ptr != nullptr;
     }
 
-    [[nodiscard]] T* Get() const
+    [[nodiscard]] T* GetPtr() const
     {
         return m_ptr;
     }

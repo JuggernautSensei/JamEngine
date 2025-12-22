@@ -77,7 +77,7 @@ class Editor_FileBrowser
 
     private:
         void                                CollectThumbnailsInDirectory_(const fs::path& _dirPath);
-        [[nodiscard]] std::optional<UInt64> GetLastModifiedTime_(const fs::path& _path) const;
+        [[nodiscard]] Optional<UInt64> GetLastModifiedTime_(const fs::path& _path) const;
 
         Ref<Thumbnail>              m_pDummyThumbnail = nullptr;
         HashMap<fs::path, Item>     m_pathToItem      = {};

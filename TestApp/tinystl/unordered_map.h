@@ -295,7 +295,7 @@ namespace tinystl {
 
 	template<typename Key, typename Value, typename Alloc>
 	inline void unordered_map<Key, Value, Alloc>::swap(unordered_map& other) {
-		size_t tsize = other.m_size;
+		const size_t tsize = other.m_size;
 		other.m_size = m_size, m_size = tsize;
 		buffer_swap(&m_buckets, &other.m_buckets);
 	}

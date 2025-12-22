@@ -11,7 +11,7 @@ public:
     {
     }
 
-    VertexLayoutEntry(const std::string_view _name, const VertexLayout& _layout)
+    VertexLayoutEntry(const StringView _name, const VertexLayout& _layout)
         : m_name(_name)
         , m_vertexLayout(_layout)
     {
@@ -35,10 +35,10 @@ private:
 class VertexLayoutStorage
 {
 public:
-    void                                 Add(std::string_view _name, const VertexLayout& _vl);
-    void                                 Remove(std::string_view _name);
-    [[nodiscard]] bool                   Has(std::string_view _name) const;
-    [[nodiscard]] Ref<VertexLayoutEntry> Get(std::string_view _name) const;
+    void                                 Add(StringView _name, const VertexLayout& _vl);
+    void                                 Remove(StringView _name);
+    [[nodiscard]] bool                   Has(StringView _name) const;
+    [[nodiscard]] Ref<VertexLayoutEntry> Get(StringView _name) const;
     void                                 Clear();
 
     [[nodiscard]] decltype(auto) begin() const { return m_container.begin(); }

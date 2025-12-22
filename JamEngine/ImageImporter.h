@@ -22,14 +22,14 @@ public:
     [[nodiscard]] const DirectX::ScratchImage& GetScratchImage() const;
 
     // set source
-    void SetSource(ConstMemView _source, eImageFormat _imageFormat);
-    void SetPath(const fs::path& _path) override;
+    void SetMemory(CMemView _memory, eImageFormat _imageFormat);   // load from memory
+    void SetPath(const fs::path& _path) override;                  // load from file
 
     // post process
     void ConvertFormat(bool _bEnable, eTextureFormat _format, float _threshold = 0.5f);
     void ForceSRGB(bool _bEnable);
     void GenerateMips(bool _bEnable);
-    void Resize(bool _bEnable, size_t _newWidth, size_t _newHeight);
+    void Resize(bool _bEnable, Int32 _newWidth, Int32 _newHeight);
     void FlipVertical(bool _bEnable);
     void FlipHorizontal(bool _bEnable);
     void PreMultiplyAlpha(bool _bEnable);
@@ -45,8 +45,8 @@ private:
     fs::path m_path = {};
 
     // import from mem
-    ConstMemView m_source       = {};
-    eImageFormat m_sourceFormat = eImageFormat::DDS;
+    CMemView     m_mem       = {};
+    eImageFormat m_memFormat = eImageFormat::DDS;
 
     // import type
     eImportType m_importType = eImportType::Unknown;
@@ -63,9 +63,9 @@ private:
     bool m_bGenerateMips = false;
 
     // resize
-    bool   m_bResize   = false;
-    size_t m_newWidth  = 0;
-    size_t m_newHeight = 0;
+    bool  m_bResize   = false;
+    Int32 m_newWidth  = 0;
+    Int32 m_newHeight = 0;
 
     // flip
     bool m_bFlipVertical   = false;

@@ -15,7 +15,7 @@ bool ImageTexture::Load(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
     CleanUp_();
 
-    if (const std::optional<TextureHandle> opt = Graphics::LoadTextureFile(_path))
+    if (const Optional<TextureHandle> opt = Graphics::LoadTextureFile(_path))
     {
         const TextureInfo info = Graphics::GetTextureInfo(m_texh);
 
@@ -32,14 +32,14 @@ bool ImageTexture::Load(
 }
 
 bool ImageTexture::LoadSource(
-    const ConstMemView _source,
+    const CMemView _source,
     const eImageFormat _format,
     const fs::path&    _virtualPath)
 {
     JAM_FUNCTION_MSG_PROFILE("virtualPath: {}", _virtualPath.native());
     CleanUp_();
 
-    if (const std::optional<TextureHandle> opt = Graphics::LoadTextureSource(_source, _format))
+    if (const Optional<TextureHandle> opt = Graphics::LoadTextureSource(_source, _format))
     {
         const TextureInfo info = Graphics::GetTextureInfo(m_texh);
 
@@ -120,7 +120,7 @@ UInt32 ImageTexture::GetTypeHash() const
     return k_hash;
 }
 
-std::string_view ImageTexture::GetTypeName() const
+StringView ImageTexture::GetTypeName() const
 {
     return k_name;
 }

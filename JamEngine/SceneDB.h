@@ -41,8 +41,8 @@ public:
         Reflect(info);
     }
 
-    [[nodiscard]] Ref<Scene>        Create(std::string_view _name) const;
-    [[nodiscard]] bool              IsReflected(std::string_view _name) const;
+    [[nodiscard]] Ref<Scene>        Create(StringView _name) const;
+    [[nodiscard]] bool              IsReflected(StringView _name) const;
     [[nodiscard]] const ContainerT& GetContainer() const;
 
 private:

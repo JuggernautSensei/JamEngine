@@ -27,7 +27,7 @@ void ExampleApp::OnCreate()
 
     // auto pScene = MakeRef<HelloJamScene>();
     // auto pScene = MakeRef<TriangleScene>();
-    Ref<Scene> pScene = MakeRef<HelloBasicRenderer>();
+    const Ref<Scene> pScene = MakeRef<HelloBasicRenderer>();
     SceneManager::LoadScene(pScene);
 }
 

@@ -40,7 +40,7 @@ bool RemoveNotEmptyDirectoryDialog::OnClickYes_()
     }
     catch (const fs::filesystem_error& ec)
     {
-        std::string msg = std::format("failed to remove directory: {}\nerror: {}", m_path.native(), ec.what());
+        const std::string msg = std::format("failed to remove directory: {}\nerror: {}", m_path.native(), ec.what());
         m_popup.Open("directory remove error", msg);
         return false;
     }

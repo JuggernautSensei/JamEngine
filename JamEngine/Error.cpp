@@ -2,7 +2,6 @@
 
 #include "Error.h"
 
-#include "FString.h"
 #include "Log.h"
 #include "StringUtilities.h"
 #include "Timer.h"
@@ -11,10 +10,12 @@
 namespace jam::details
 {
 
-[[nodiscard]] static std::string MakeErrorMessage(std::string_view _msg, const std::source_location& _loc)
+[[nodiscard]] static std::string FormatErrorMessage(
+    const std::source_location& _loc,
+    const StringView            _str)
 {
-    TimeStamp   stamp   = TimeStamp::Current();
-    std::string timeStr = std::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:03}", stamp.year, stamp.month, stamp.day, stamp.hour, stamp.minute, stamp.second, stamp.millisecond);
+    const TimeStamp ts      = TimeStamp::Current();
+    std::string     strTime = std::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:03}", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
 
     return std::format(
         "\n"
@@ -29,8 +30,10 @@ namespace jam::details
         "text encoding: {}\n"
         "graphics api: {}\n"
         "engine version: {} {}\n"
-        "is debug: {}\n"
         "time: {}\n"
+#ifdef JAM_DEBUG
+        "debug build enabled\n"
+#endif
         "------------------------------------\n"
         "file name: {}\n"
         "function name: {}\n"
@@ -49,38 +52,37 @@ namespace jam::details
         JAM_GFX_API_NAME,
         JAM_ENGINE_NAME,
         JAM_VERSION_NAME,
-#ifdef JAM_DEBUG
-        "true",
-#else
-        "false",
-#endif
-        timeStr,
+        strTime,
         _loc.file_name(),
         _loc.function_name(),
         _loc.line(),
         _loc.column(),
-        _msg);
+        _str);
 }
 
-void AssertFail(const std::source_location& _loc, const std::string_view _msg)
+void AssertFail(
+    const std::source_location& _loc,
+    const StringView            _str)
 {
-    const std::string msg = MakeErrorMessage(_msg, _loc);
+    const std::string msg = FormatErrorMessage(_loc, _str);
     Log::Critical(msg);
     std::this_thread::sleep_for(100ms);   // wait for logging
     OutputDebugStringA(msg.c_str());
 }
 
-void Crash(const std::source_location& _loc, const std::string_view _msg)
+void Crash(
+    const std::source_location& _loc,
+    const StringView            _str)
 {
-    std::string msg = MakeErrorMessage(_msg, _loc);
+    const std::string msg = FormatErrorMessage(_loc, _str);
     Log::Critical(msg);
-    std::this_thread::sleep_for(100ms);   // wait for logging
+    Log::Shutdown();   // shutdown for filesink & flush
     OutputDebugStringA(msg.c_str());
 
     // crash dump
-    const TimeStamp timeStamp = TimeStamp::Current();
-    const fs::path  dir       = std::format("CrashDump\\{:04}.{:02}.{:02}", timeStamp.year, timeStamp.month, timeStamp.day);
-    const fs::path  filename  = std::format("{:02}h {:02}m {:02}.{:03}s.txt", timeStamp.hour, timeStamp.minute, timeStamp.second, timeStamp.millisecond);
+    const TimeStamp ts       = TimeStamp::Current();
+    const fs::path  dir      = std::format("CrashDump\\{:04}.{:02}.{:02}", ts.year, ts.month, ts.day);
+    const fs::path  filename = std::format("{:02}h {:02}m {:02}.{:03}s.txt", ts.hour, ts.minute, ts.second, ts.millisecond);
 
     try
     {
@@ -101,9 +103,12 @@ void Crash(const std::source_location& _loc, const std::string_view _msg)
     std::abort();
 }
 
-void CrashWithComHint(const std::source_location& _loc, const char* _func, HRESULT _hr)
+void CrashWithComHint(
+    const std::source_location& _loc,
+    StringView                  _func,
+    HRESULT                     _hr)
 {
-    Crash(_loc, "\"{}\" failed!\nerror code: {:#X}\n{}", _func, _hr, ErrorMessageFrom(_hr));
+    Crash(_loc, "\"{}\" failed!\nerror code: {:#X}\n{}", _func, _hr, StringFrom(_hr));
 }
 
 }   // namespace jam::details
@@ -111,12 +116,13 @@ void CrashWithComHint(const std::source_location& _loc, const char* _func, HRESU
 namespace jam
 {
 
-std::string ErrorMessageFrom(const HRESULT _hr)
+std::string StringFrom(
+    const HRESULT _hr)
 {
-    _com_error err(_hr);
+    const _com_error err(_hr);
 #ifdef JAM_TEXT_ENCODING_UNICODE
-    std::wstring_view wmsg = err.ErrorMessage();
-    return ToUTF8(wmsg);
+    const WStringView wmsg = err.ErrorMessage();
+    return ToUtf8(wmsg);
 #else
     return err.ErrorMessage();
 #endif

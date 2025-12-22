@@ -36,7 +36,7 @@ private:
     std::string m_nameBuf;
 
     // vertex vertexLayout
-    Element m_elems[EnumCount<eVertexAttribute>()];
+    Element m_elems[NumEnums<eVertexAttribute>()];
     Int32   m_count  = 0;
     Int32   m_stride = 0;
     bool    m_bIsAttribDuplicated = false;

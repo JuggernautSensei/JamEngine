@@ -3,68 +3,83 @@
 #include "Json.h"
 
 #include "AssetManager.h"
-#include "Camera.h"
 #include "FileUtilities.h"
 
 namespace jam
 {
 
-std::optional<Json> LoadJsonFile(const fs::path& _path)
+Optional<Json> LoadJsonFile(const fs::path& _path)
 {
-    if (std::optional<Vector<Byte>> opt = LoadBinaryFile(_path))
+    std::ifstream ifs { _path, std::ios::binary };
+    if (!ifs)
     {
-        try
-        {
-            return Json::parse(*opt);
-        }
-        catch (const Json::parse_error& e)
-        {
-            ErrorBuffer::Set("Failed to parse JSON from file: {}. {}", _path.native(), e.what());
-            return std::nullopt;
-        }
+        GlobalBuffer::SetLastError("failed to open file: {}", _path.native());
+        return k_nullopt;
     }
-    else
+
+    try
     {
-        return std::nullopt;
+        return Json::parse(ifs);
+    }
+    catch (const std::exception& e)
+    {
+        GlobalBuffer::SetLastError("failed to parse json file: {}. {}", _path.native(), e.what());
+        return k_nullopt;
     }
 }
 
 bool SaveJsonFile(const fs::path& _path, const Json& _json, const Int32 _dump)
 {
-    if (_dump <= 0)
+    std::ofstream ofs { _path, std::ios::binary };
+    if (!ofs)
     {
-        return SaveBinaryFile(_path, _json.dump());
+        GlobalBuffer::SetLastError("failed to open file for writing: {}", _path.native());
+        return false;
     }
-    else
+
+    try
     {
-        return SaveBinaryFile(_path, _json.dump(_dump));
+        if (_dump < 0)
+        {
+            ofs << _json;
+        }
+        else
+        {
+            ofs << _json.dump(_dump);
+        }
+        return true;
+    }
+    catch (const std::exception& e)
+    {
+        GlobalBuffer::SetLastError("failed to write json file: {}. {}", _path.native(), e.what());
+        return false;
     }
 }
 
-std::optional<Json> LoadBsonFile(const fs::path& _path)
+Optional<Json> LoadBsonFile(const fs::path& _path)
 {
-    if (std::optional<Vector<Byte>> opt = LoadBinaryFile(_path))
+    std::ifstream ifs { _path, std::ios::binary };
+    if (!ifs)
     {
-        try
-        {
-            return Json::from_bson(*opt);
-        }
-        catch (const Json::parse_error& e)
-        {
-            ErrorBuffer::Set("Failed to parse BSON from file: {}. {}", _path.native(), e.what());
-            return std::nullopt;
-        }
+        GlobalBuffer::SetLastError("failed to open file: {}", _path.native());
+        return k_nullopt;
     }
-    else
+
+    try
     {
-        return std::nullopt;
+        return Json::from_bson(ifs);
+    }
+    catch (const std::exception& e)
+    {
+        GlobalBuffer::SetLastError("failed to parse bson file: {}. {}", _path.native(), e.what());
+        return k_nullopt;
     }
 }
 
 bool SaveBsonFile(const fs::path& _path, const Json& _j)
 {
-    Vector<Byte> bson = Json::to_bson(_j);
-    return SaveBinaryFile(_path, bson);
+    std::vector<std::uint8_t> bytes = Json::to_bson(_j);
+    return SaveBinaryFile(_path, bytes);
 }
 
 }   // namespace jam

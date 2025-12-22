@@ -35,14 +35,14 @@ void SceneDB::Reflect(
 }
 
 bool SceneDB::IsReflected(
-    const std::string_view _name) const
+    const StringView _name) const
 {
     const UInt32 hash = HashOf(_name);
     return m_infos.contains(hash);
 }
 
 Ref<Scene> SceneDB::Create(
-    std::string_view _name) const
+    StringView _name) const
 {
     const UInt32 hash = HashOf(_name);
     JAM_ASSERT(m_infos.contains(hash), "No SceneBehavior registered with name '{}'", _name);

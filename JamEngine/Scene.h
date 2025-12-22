@@ -35,8 +35,8 @@ public:
     [[nodiscard]] virtual TextureHandle GetDepthTexture() const;
 
     // item management
-    [[nodiscard]] Entity CreateEntity(std::string_view _name = {});
-    [[nodiscard]] Entity CreateEntity(UID _uid, std::string_view _name = {});   // 특정 UID로 엔티티 생성, 이미 존재하는 UID면 assert 발생
+    [[nodiscard]] Entity CreateEntity(StringView _name = {});
+    [[nodiscard]] Entity CreateEntity(UID _uid, StringView _name = {});   // 특정 UID로 엔티티 생성, 이미 존재하는 UID면 assert 발생
 
     [[nodiscard]] Entity GetEntity(UID _uid) const;
     [[nodiscard]] Entity FindEntity(UID _uid) const;   // 해당 UID를 가진 엔티티가 없으면 null 엔티티 반환
@@ -75,10 +75,10 @@ public:
 
     // item
     [[nodiscard]] Entity                      GetRootEntity() const;
-    [[nodiscard]] Int32                       GetEntityCount() const;
+    [[nodiscard]] Int32                       GetNumEntities() const;
     [[nodiscard]] const HashMap<UID, Entity>& GetEntities() const;
 
-    [[nodiscard]] virtual std::string_view GetTypeName() const = 0;
+    [[nodiscard]] virtual StringView GetTypeName() const = 0;
 
 protected:
     Scene();
@@ -86,31 +86,31 @@ protected:
 private:
     void                 DestroyEntity_Recursive_(Entity _entity);
     [[nodiscard]] Entity CloneEntity_Recursive_(Entity _srcEntity);
-    [[nodiscard]] Entity CreateEntity_(UID _uid, std::string_view _name = {});
+    [[nodiscard]] Entity CreateEntity_(UID _uid, StringView _name = {});
     [[nodiscard]] Entity CreateRootEntity_();
 
-    void UpdateSceneTree_();                  // call before rendering
+    void UpdateSceneGraph_();                 // call before rendering
     void ProcessDeferredDestroyEntities_();   // call begin frame
 
     entt::registry       m_registry                = {};
     UIDGenerator         m_uidGenerator            = {};
     HashMap<UID, Entity> m_entities                = {};
     Entity               m_root                    = Entity::s_null;
-    Vector<Entity>  m_deferredDestroyEntities = {};
+    Vector<Entity>       m_deferredDestroyEntities = {};
 
-    constexpr static UID k_rootEntityReservedUid = 0;
+    constexpr static UID k_reservedUidForRoot = 0;
 };
 
 }   // namespace jam
 
-#define JAM_SCENE(_class)                                                             \
-public:                                                                               \
-    constexpr static std::string_view k_name = NameOf<_class>();                      \
-    [[nodiscard]] std::string_view    GetTypeName() const override { return k_name; } \
-                                                                                      \
-private:                                                                              \
-    inline static bool _scene_reflect_ = []                                           \
-    {                                                                                 \
-        jam::SceneDB::GetInstance().Reflect<_class>();                                \
-        return true;                                                                  \
+#define JAM_SCENE(_class)                                                       \
+public:                                                                         \
+    constexpr static StringView k_name = NameOf<_class>();                      \
+    [[nodiscard]] StringView    GetTypeName() const override { return k_name; } \
+                                                                                \
+private:                                                                        \
+    inline static bool _scene_reflect_ = []                                     \
+    {                                                                           \
+        jam::SceneDB::GetInstance().Reflect<_class>();                          \
+        return true;                                                            \
     }()

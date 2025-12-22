@@ -9,7 +9,7 @@
 namespace jam
 {
 
-constexpr const char* k_attribNames[EnumCount<eVertexAttribute>()] = {
+constexpr const char* k_attribNames[NumEnums<eVertexAttribute>()] = {
     "position",
     "normal",
     "tangent",
@@ -26,7 +26,7 @@ constexpr const char* k_attribNames[EnumCount<eVertexAttribute>()] = {
     "texCoord3",
 };
 
-constexpr const char* k_formatNames[EnumCount<eAttributeFormat>()] = {
+constexpr const char* k_formatNames[NumEnums<eAttributeFormat>()] = {
     "float",
     "float2",
     "float3",
@@ -48,7 +48,7 @@ VertexLayout VertexLayoutEditorDialog::BuildLayout_() const
 
 VertexLayoutEditorDialog::VertexLayoutEditorDialog(const Ref<VertexLayoutEntry>& _pEntry)
 {
-    const std::string_view name = _pEntry->GetName();
+    const StringView name = _pEntry->GetName();
     const VertexLayout&    vl   = _pEntry->GetVertexLayout();
 
     m_oldName = name;
@@ -134,7 +134,7 @@ void VertexLayoutEditorDialog::RemoveElement_(const Int32 _idx)
 
 void VertexLayoutEditorDialog::AddNewElement_()
 {
-    if (m_count >= EnumCount<eVertexAttribute>())
+    if (m_count >= NumEnums<eVertexAttribute>())
         return;
 
     Element& elem = m_elems[m_count];
@@ -242,7 +242,7 @@ void VertexLayoutEditorDialog::UpdateState_()
     m_stride              = 0;
     m_bIsAttribDuplicated = true;
 
-    bool usedAttribs[EnumCount<eVertexAttribute>()] = {};
+    bool usedAttribs[NumEnums<eVertexAttribute>()] = {};
 
     for (Int32 i = 0; i < m_count; ++i)
     {

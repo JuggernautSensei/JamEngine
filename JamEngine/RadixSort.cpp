@@ -25,7 +25,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
             UInt32 prev = in[0];
             for (UInt32 i = 0; i < n; ++i)
             {
-                UInt32 k = in[i];
+                const UInt32 k = in[i];
                 ++hist[(k >> shift) & radix_detail::k_mask];
                 alreadySorted &= (prev <= k);
                 prev = k;
@@ -37,7 +37,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
         UInt32 sum = 0;
         for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
-            UInt32 c = hist[b];
+            const UInt32 c = hist[b];
             hist[b]    = sum;
             sum += c;
         }
@@ -45,8 +45,8 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
         // stable scatter
         for (UInt32 i = 0; i < n; ++i)
         {
-            UInt32 k     = in[i];
-            UInt32 b     = (k >> shift) & radix_detail::k_mask;
+            const UInt32 k     = in[i];
+            const UInt32 b     = (k >> shift) & radix_detail::k_mask;
             out[hist[b]++] = k;
         }
 
@@ -83,7 +83,7 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
             uint64_t prev = in[0];
             for (UInt32 i = 0; i < n; ++i)
             {
-                uint64_t k = in[i];
+                const uint64_t k = in[i];
                 ++hist[static_cast<UInt32>((k >> shift) & radix_detail::k_mask)];
                 alreadySorted &= (prev <= k);
                 prev = k;
@@ -94,15 +94,15 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
         UInt32 sum = 0;
         for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
-            UInt32 c = hist[b];
+            const UInt32 c = hist[b];
             hist[b]  = sum;
             sum += c;
         }
 
         for (UInt32 i = 0; i < n; ++i)
         {
-            uint64_t k     = in[i];
-            UInt32   b     = static_cast<UInt32>((k >> shift) & radix_detail::k_mask);
+            const uint64_t k     = in[i];
+            const UInt32   b     = static_cast<UInt32>((k >> shift) & radix_detail::k_mask);
             out[hist[b]++] = k;
         }
 

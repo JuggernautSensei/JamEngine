@@ -4,9 +4,6 @@
     <ClCompile Include="Log.cpp">
       <Filter>1. Core\Log</Filter>
     </ClCompile>
-    <ClCompile Include="StringUtilities.cpp">
-      <Filter>99. Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Application.cpp">
       <Filter>1. Core</Filter>
     </ClCompile>
@@ -106,9 +103,6 @@
     <ClCompile Include="Profile.cpp">
       <Filter>99. Utilities\Profile</Filter>
     </ClCompile>
-    <ClCompile Include="FString.cpp">
-      <Filter>99. Utilities\Container\String</Filter>
-    </ClCompile>
     <ClCompile Include="Editor.cpp">
       <Filter>6. Editor</Filter>
     </ClCompile>
@@ -163,7 +157,7 @@
     <ClCompile Include="RenderView.cpp">
       <Filter>3. Scene\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="MathUtilities.cpp">
+    <ClCompile Include="Math.cpp">
       <Filter>99. Utilities\Math</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -361,7 +355,7 @@
     <ClCompile Include="JsonUtilities.cpp">
       <Filter>99. Utilities\Serialize</Filter>
     </ClCompile>
-    <ClCompile Include="ErrorBuffer.cpp">
+    <ClCompile Include="GlobalBuffer.cpp">
       <Filter>1. Core\Error</Filter>
     </ClCompile>
     <ClCompile Include="STL.cpp">
@@ -369,6 +363,27 @@
     </ClCompile>
     <ClCompile Include="Environment.cpp">
       <Filter>4. Rendering\BasicRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Optional.cpp">
+      <Filter>99. Utilities\Optional</Filter>
+    </ClCompile>
+    <ClCompile Include="StringUtilities.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="StringView.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="FixedString.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="Fwd.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonReader.cpp">
+      <Filter>99. Utilities\Serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonWriter.cpp">
+      <Filter>99. Utilities\Serialize</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -389,9 +404,6 @@
     </Filter>
     <Filter Include="1. Core\Input">
       <UniqueIdentifier>{d5ba1c24-3e7d-4ab4-9142-f7b950bb110d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor">
-      <UniqueIdentifier>{ed21789a-ec9c-4244-b273-74e478329680}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities">
       <UniqueIdentifier>{348ab829-ff51-4e7b-85b2-dc5dcff535d5}</UniqueIdentifier>
@@ -492,23 +504,11 @@
     <Filter Include="98. Vendor\Imgui">
       <UniqueIdentifier>{e5664dc5-d23a-4250-992d-ca7788f70203}</UniqueIdentifier>
     </Filter>
-    <Filter Include="6. Editor\Utilities">
-      <UniqueIdentifier>{e98e4db0-869b-4238-a9f5-852a1dff06c4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\ViewportLayoutManager">
-      <UniqueIdentifier>{5fcf4b66-4ab0-4e8e-af41-d7293d4bd3fc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="5. Assets\Model">
       <UniqueIdentifier>{9fc452ab-3049-44d1-99ab-4036cc25f531}</UniqueIdentifier>
     </Filter>
     <Filter Include="5. Assets\Model\Assimp">
       <UniqueIdentifier>{64fabbcd-340a-4634-90b0-556f51f43eff}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\FileBrowser">
-      <UniqueIdentifier>{12c053dc-0f0e-44cc-9e18-ec89e82d0de4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\FileBrowser\Dialogs">
-      <UniqueIdentifier>{902964f7-cee0-4ace-a3a4-214c30fcb526}</UniqueIdentifier>
     </Filter>
     <Filter Include="98. Vendor\Imgui\ImGuizmo">
       <UniqueIdentifier>{7dce9da0-7d49-4e63-97aa-7addb4d1c40f}</UniqueIdentifier>
@@ -558,20 +558,11 @@
     <Filter Include="99. Utilities\Container\HisotryStack">
       <UniqueIdentifier>{cb7fab1c-8c53-458f-9143-d15f7a63ffaf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="6. Editor\FileBrowser\Dialogs\ImportImageDialog">
-      <UniqueIdentifier>{e5e0db46-5002-44e8-a825-814dc8b8772b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog">
-      <UniqueIdentifier>{e65067ff-df1c-43bd-b786-600fd60e9228}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Base">
       <UniqueIdentifier>{b3ec96ff-d86c-4b8c-9f78-6f7699184564}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Base\Config">
       <UniqueIdentifier>{4622a439-0e58-430b-8a58-a2fe31bcf3b2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\Container\String">
-      <UniqueIdentifier>{ba2b2df5-aabb-4f98-87c7-e425de1a0cd0}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Container\HashMap">
       <UniqueIdentifier>{40d865df-bd8b-4267-8d0d-b3d34725f645}</UniqueIdentifier>
@@ -585,13 +576,40 @@
     <Filter Include="99. Utilities\Container\STL">
       <UniqueIdentifier>{816a5cb1-2c55-4e1c-8dff-573b14d1877a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="99. Utilities\Optional">
+      <UniqueIdentifier>{04d7e39b-4a01-4639-adf0-c485da73f1d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\optional">
+      <UniqueIdentifier>{27be41b3-ba5c-4d92-825b-db1564e8bb50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\String">
+      <UniqueIdentifier>{358e1fa5-4c3e-4f99-81d8-be282504da4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor">
+      <UniqueIdentifier>{ed21789a-ec9c-4244-b273-74e478329680}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Utilities">
+      <UniqueIdentifier>{e98e4db0-869b-4238-a9f5-852a1dff06c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\ViewportLayoutManager">
+      <UniqueIdentifier>{5fcf4b66-4ab0-4e8e-af41-d7293d4bd3fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\FileBrowser">
+      <UniqueIdentifier>{12c053dc-0f0e-44cc-9e18-ec89e82d0de4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\FileBrowser\Dialogs">
+      <UniqueIdentifier>{902964f7-cee0-4ace-a3a4-214c30fcb526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\FileBrowser\Dialogs\ImportImageDialog">
+      <UniqueIdentifier>{e5e0db46-5002-44e8-a825-814dc8b8772b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog">
+      <UniqueIdentifier>{e65067ff-df1c-43bd-b786-600fd60e9228}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Log.h">
       <Filter>1. Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="StringUtilities.h">
-      <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="EntryPoint.h">
       <Filter>1. Core</Filter>
@@ -703,9 +721,6 @@
     </ClInclude>
     <ClInclude Include="ImGuiGlue.h">
       <Filter>4. Rendering\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="FString.h">
-      <Filter>99. Utilities\Container\String</Filter>
     </ClInclude>
     <ClInclude Include="Editor.h">
       <Filter>6. Editor</Filter>
@@ -863,7 +878,7 @@
     <ClInclude Include="RenderView.h">
       <Filter>3. Scene\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="MathUtilities.h">
+    <ClInclude Include="Math.h">
       <Filter>99. Utilities\Math</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
@@ -1046,7 +1061,7 @@
     <ClInclude Include="JsonUtilities.h">
       <Filter>99. Utilities\Serialize</Filter>
     </ClInclude>
-    <ClInclude Include="ErrorBuffer.h">
+    <ClInclude Include="GlobalBuffer.h">
       <Filter>1. Core\Error</Filter>
     </ClInclude>
     <ClInclude Include="STL.h">
@@ -1054,6 +1069,30 @@
     </ClInclude>
     <ClInclude Include="Environment.h">
       <Filter>4. Rendering\BasicRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Optional.h">
+      <Filter>99. Utilities\Optional</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\optional\optional.hpp">
+      <Filter>98. Vendor\optional</Filter>
+    </ClInclude>
+    <ClInclude Include="StringUtilities.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="StringView.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="FixedString.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="Fwd.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonReader.h">
+      <Filter>99. Utilities\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonWriter.h">
+      <Filter>99. Utilities\Serialize</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -32,7 +32,6 @@ VertexLayout& VertexLayout::Add(
     vlm.byteWidth = ByteFrom(_format);
     vlm.offset    = m_stride;
     m_stride += vlm.byteWidth;
-
     m_vleLut[IntFrom(_attrib)] = m_numElems;
     m_vles[m_numElems]         = std::move(vlm);
     ++m_numElems;

@@ -69,8 +69,8 @@ void from_json(const Json& j, ShaderItem& item)
     item.path = j.value<std::string>("path", "none");
 
     // EnumFromString returns optional, need to handle it
-    std::string stageStr = j.value<std::string>("stage", "VertexShader");
-    if (auto optStage = EnumFrom<eShader>(stageStr))
+    const std::string stageStr = j.value<std::string>("stage", "VertexShader");
+    if (const auto optStage = EnumFrom<eShader>(stageStr))
     {
         item.stage = *optStage;
     }
@@ -127,35 +127,35 @@ static std::vector<ShaderMacro> MakeShaderMacros(const std::vector<Macro>& src)
 
 static void DrawCenteredNote(const char* msg)
 {
-    ImVec2 curCursor = ImGui::GetCursorScreenPos();
-    ImVec2 textSize  = ImGui::CalcTextSize(msg);
-    ImVec2 winSize   = ImGui::GetWindowSize();
-    ImVec2 textStart = { (winSize.x - textSize.x) * 0.5f, (winSize.y - textSize.y) * 0.5f };
+    const ImVec2 curCursor = ImGui::GetCursorScreenPos();
+    const ImVec2 textSize  = ImGui::CalcTextSize(msg);
+    const ImVec2 winSize   = ImGui::GetWindowSize();
+    const ImVec2 textStart = { (winSize.x - textSize.x) * 0.5f, (winSize.y - textSize.y) * 0.5f };
     ImGui::SetCursorScreenPos({ curCursor.x + textStart.x, curCursor.y + textStart.y });
     ImGui::TextDisabled(msg);
 }
 
 static void EmitBytecodeArrays(std::stringstream& _stream, const std::vector<ShaderItem>& _items, const bool _bIsDebug)
 {
-    eShaderCompileFlags flags = _bIsDebug ? eShaderCompileFlags_DebugDefault : eShaderCompileFlags_Optimization;
+    const eShaderCompileFlags flags = _bIsDebug ? eShaderCompileFlags_DebugDefault : eShaderCompileFlags_Optimization;
 
-    Int32 itemCount = NarrowCast<Int32>(_items.size());
+    const Int32 itemCount = NarrowCast<Int32>(_items.size());
     for (Int32 idx = 0; idx < itemCount; ++idx)
     {
         const ShaderItem&        item   = _items[idx];
         std::vector<ShaderMacro> macros = MakeShaderMacros(item.macros);
 
         ShaderCompiler compiler;
-        bool           success = compiler.CompileFile(item.path, item.stage, item.entryPoint, flags, macros);
+        const bool           success = compiler.CompileFile(item.path, item.stage, item.entryPoint, flags, macros);
         if (!success)
         {
-            Log::Error(R"(Failed to compile shader "{}". {})", item.name, ErrorBuffer::Get());
+            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GlobalBuffer::GetLastError());
             continue;
         }
 
-        ConstMemView bytecode  = compiler.GetBytecode();
-        const Byte*     pByte     = bytecode.GetPointer();
-        size_t          byteWidth = bytecode.GetByteWidth();
+        CMemView bytecode  = compiler.GetBytecode();
+        const Byte*     pByte     = bytecode.GetPtr();
+        const size_t          byteWidth = bytecode.GetByteWidth();
         std::string     varName   = MakeVariableName(item.name);
 
         _stream << "constexpr std::uint8_t " << varName << "_Bytecode" << "[] = {";
@@ -194,10 +194,10 @@ private:
 
         // save
         Json json    = m_project;
-        bool success = SaveJsonToFile(path, json);
+        const bool success = SaveJsonToFile(path, json);
         if (!success)
         {
-            Log::Error(ErrorBuffer::Get());
+            Log::Error(GlobalBuffer::GetLastError());
         }
     }
 
@@ -207,10 +207,10 @@ private:
         m_project.shaderItems.clear();
 
         // load json
-        std::optional<Json> optJson = LoadJsonFromFile(_path);
+        const std::optional<Json> optJson = LoadJsonFromFile(_path);
         if (!optJson)
         {
-            Log::Error(ErrorBuffer::Get());
+            Log::Error(GlobalBuffer::GetLastError());
             return;
         }
 
@@ -223,7 +223,7 @@ private:
             std::optional<std::string> optSrc = LoadFromFile(item.path);
             if (!optSrc)
             {
-                Log::Error(ErrorBuffer::Get());
+                Log::Error(GlobalBuffer::GetLastError());
                 continue;
             }
             item.source = std::move(*optSrc);
@@ -239,7 +239,7 @@ private:
         item.path = path;
 
         // load source
-        std::optional<std::string> optSource = LoadFromFile(path);
+        const std::optional<std::string> optSource = LoadFromFile(path);
         if (!optSource)
         {
             return std::nullopt;
@@ -252,10 +252,10 @@ private:
 
     void SaveShaderItem(const ShaderItem& item) const
     {
-        bool success = SaveToFile(item.path, item.source);
+        const bool success = SaveToFile(item.path, item.source);
         if (!success)
         {
-            Log::Error(ErrorBuffer::Get());
+            Log::Error(GlobalBuffer::GetLastError());
             return;
         }
     }
@@ -286,10 +286,10 @@ private:
                << "} // namespace jam::shader\n";
 
         // save
-        bool success = SaveToFile(headerPath, header.str());
+        const bool success = SaveToFile(headerPath, header.str());
         if (!success)
         {
-            Log::Error(ErrorBuffer::Get());
+            Log::Error(GlobalBuffer::GetLastError());
             return;
         }
 
@@ -341,7 +341,7 @@ private:
                         }
                         else
                         {
-                            Log::Error(ErrorBuffer::Get());
+                            Log::Error(GlobalBuffer::GetLastError());
                         }
                     }
                 }
@@ -549,7 +549,7 @@ private:
                         bool success = CompileShader(item, true);
                         if (!success)
                         {
-                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, ErrorBuffer::Get());
+                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GlobalBuffer::GetLastError());
                         }
                     }
 
@@ -559,7 +559,7 @@ private:
                         bool success = CompileShader(item, false);
                         if (!success)
                         {
-                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, ErrorBuffer::Get());
+                            Log::Error(R"(Failed to compile shader "{}". {})", item.name, GlobalBuffer::GetLastError());
                         }
                     }
 
@@ -608,7 +608,7 @@ private:
                         {  "All Files",    "*.*" }
                     };
 
-                    std::optional<fs::path> pathOpt = OpenFileDialog("Open Project", {}, k_filters);
+                    const std::optional<fs::path> pathOpt = OpenFileDialog("Open Project", {}, k_filters);
                     if (pathOpt)
                     {
                         OpenProject(pathOpt.value());
@@ -623,7 +623,7 @@ private:
                         {  "All Files",    "*.*" }
                     };
 
-                    std::optional<fs::path> pathOpt = SaveFileDialog("Save Project", {}, k_filters);
+                    const std::optional<fs::path> pathOpt = SaveFileDialog("Save Project", {}, k_filters);
                     if (pathOpt)
                     {
                         SaveProject(pathOpt.value());
@@ -636,7 +636,7 @@ private:
                         { "Header Files", "*.h" },
                         {    "All Files", "*.*" }
                     };
-                    std::optional<fs::path> pathOpt = SaveFileDialog("Export as C++ Source", {}, k_filters);
+                    const std::optional<fs::path> pathOpt = SaveFileDialog("Export as C++ Source", {}, k_filters);
                     if (pathOpt)
                     {
                         ExportAsSingleHeader(pathOpt.value());
@@ -704,7 +704,7 @@ public:
     {
         std::locale::global(std::locale::classic());
 
-        Ref<Scene> pScene = MakeRef<WorkScene>();
+        const Ref<Scene> pScene = MakeRef<WorkScene>();
         SceneManager::LoadScene(pScene);
 
         Application&     app    = Application::GetInstance();

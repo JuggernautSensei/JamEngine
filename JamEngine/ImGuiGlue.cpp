@@ -84,6 +84,12 @@ struct IMGUI_CONSTANT_BUFFER
     float mvp[4][4];
 };
 
+struct TextureData
+{
+    TextureHandle texh = k_invalidHandle;
+    eTextureType  type = eTextureType::Texture2D;
+};
+
 struct ImGuiGlueContext
 {
     void Init();
@@ -92,11 +98,10 @@ struct ImGuiGlueContext
     void UpdateTexture(ImTextureData* _pTex) const;
     void DestroyTexture(ImTextureData* _tex) const;
 
-    [[nodiscard]] ShaderHandle  CreateShader(const char* _pShaderCode, eShader _shaderStage) const;
-    [[nodiscard]] ImTextureRef  ImTextureRefFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D) const;
-    [[nodiscard]] ImTextureID   ImTextureIDFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D) const;
-    void                        DecompositeImTextureID(ImTextureID _texId, TextureHandle& _outTexh, eTextureType& _outType) const;
-    [[nodiscard]] TextureHandle ExtractTextureHandleFrom(ImTextureID _texId) const;
+    [[nodiscard]] ShaderHandle CreateShader(const char* _pShaderCode, eShader _shaderStage) const;
+    [[nodiscard]] ImTextureRef ImTextureRefFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D) const;
+    [[nodiscard]] ImTextureID  ImTextureIDFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D) const;
+    [[nodiscard]] TextureData  TextureDataFrom(ImTextureID _texId) const;
 
     ProgramHandle basicPh;
     ProgramHandle textureCubePh;
@@ -235,11 +240,11 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
     }
 
     // copy data to cpu buffers
-    MemView gpuVtxData  = Graphics::BeginUploadBuffer(vbh);
-    Byte*   pGpuVtxData = gpuVtxData.GetPointer();
+    const MemView gpuVtxData  = Graphics::BeginUploadBuffer(vbh);
+    Byte*         pGpuVtxData = gpuVtxData.GetPtr();
 
-    MemView gpuIdxData  = Graphics::BeginUploadBuffer(ibh);
-    Byte*   pGpuIdxData = gpuIdxData.GetPointer();
+    const MemView gpuIdxData  = Graphics::BeginUploadBuffer(ibh);
+    Byte*         pGpuIdxData = gpuIdxData.GetPtr();
 
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
     {
@@ -327,15 +332,13 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
             Graphics::SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
 
             // Bind texture
-            TextureHandle texh;
-            eTextureType  texType;
-            DecompositeImTextureID(cmd.GetTexID(), texh, texType);
+            const auto [texh, texType] = TextureDataFrom(cmd.GetTexID());
 
             // set program
             const ProgramHandle ph = (texType == eTextureType::TextureCube) ? textureCubePh : basicPh;
-
-            // 중복된 바인딩은 컬링되기에 동일한 파이프라인을 유지한다면 오버헤드는 function call 1 + branch 1
             Graphics::SetProgram(ph);
+
+            // submit
             Graphics::Submit();
         }
 
@@ -356,8 +359,8 @@ void ImGuiGlueContext::UpdateTexture(ImTextureData* _pTex) const
         JAM_ASSERT(_pTex->TexID == ImTextureID_Invalid && _pTex->BackendUserData == nullptr, "Trying to create a texture that is already created.");
         JAM_ASSERT(_pTex->Format == ImTextureFormat_RGBA32, "ImGuiGlueContext::UpdateTexture - Unsupported texture format.");
 
-        ConstMemView texData[] = {
-            ConstMemView { _pTex->GetPixels(), static_cast<size_t>(_pTex->GetSizeInBytes()) }
+        const CMemView texData[] = {
+            CMemView { _pTex->GetPixels(), _pTex->GetSizeInBytes() }
         };
 
         // dynamic texture creation
@@ -367,12 +370,12 @@ void ImGuiGlueContext::UpdateTexture(ImTextureData* _pTex) const
     }
     else if (_pTex->Status == ImTextureStatus_WantUpdates)
     {
-        const TextureHandle texh = ExtractTextureHandleFrom(_pTex->GetTexID());
+        const auto [texh, _] = TextureDataFrom(_pTex->GetTexID());
 
         // upload dynamic
-        for (ImTextureRect& rect: _pTex->Updates)
+        for (const ImTextureRect& rect: _pTex->Updates)
         {
-            const ConstMemView texData = { _pTex->GetPixelsAt(rect.x, rect.y), static_cast<size_t>(_pTex->GetSizeInBytes()) };
+            const CMemView texData = { _pTex->GetPixelsAt(rect.x, rect.y), _pTex->GetSizeInBytes() };
             Graphics::UploadTexture2D(texh, 0, 0, rect.x, rect.y, texData, rect.w, rect.h, _pTex->GetPitch());
         }
         _pTex->SetStatus(ImTextureStatus_OK);
@@ -389,7 +392,7 @@ void ImGuiGlueContext::DestroyTexture(ImTextureData* _tex) const
     JAM_ASSERT(_tex->Status != ImTextureStatus_Destroyed && _tex->Status != ImTextureStatus_WantCreate, "Trying to destroy a texture that is not created.");
 
     // destroy texture
-    const TextureHandle texh = ExtractTextureHandleFrom(_tex->GetTexID());
+    const auto [texh, _] = TextureDataFrom(_tex->GetTexID());
     Graphics::DestroyTexture(texh);
 
     // clear info
@@ -399,7 +402,7 @@ void ImGuiGlueContext::DestroyTexture(ImTextureData* _tex) const
 
 ShaderHandle ImGuiGlueContext::CreateShader(const char* _pShaderCode, const eShader _shaderStage) const
 {
-    if (const std::optional<ShaderHandle> sh = Graphics::LoadShaderSource(_pShaderCode, _shaderStage, "main", eShaderCompileFlags_ReleaseDefault))
+    if (const Optional<ShaderHandle> sh = Graphics::LoadShaderSource(_pShaderCode, _shaderStage, "main", eShaderCompileFlags_ReleaseDefault))
     {
         return sh.value();
     }
@@ -425,21 +428,13 @@ ImTextureID ImGuiGlueContext::ImTextureIDFrom(
          | static_cast<UInt64>(_type);
 }
 
-void ImGuiGlueContext::DecompositeImTextureID(
-    const ImTextureID _texId,
-    TextureHandle&    _outTexh,
-    eTextureType&     _outType) const
-{
-    _outTexh.value = static_cast<UInt32>(_texId >> 32);
-    _outType       = EnumFromOrAssert<eTextureType>(_texId & 0xFFFFFFFF);
-}
-
-TextureHandle ImGuiGlueContext::ExtractTextureHandleFrom(
+TextureData ImGuiGlueContext::TextureDataFrom(
     const ImTextureID _texId) const
 {
-    TextureHandle texh;
-    texh.value = static_cast<UInt32>(_texId >> 32);
-    return texh;
+    TextureData texData;
+    texData.texh.value = static_cast<UInt32>(_texId >> 32);
+    texData.type       = EnumFromOrAssert<eTextureType>(_texId & 0xFFFFFFFF);
+    return texData;
 }
 
 }   // namespace jam

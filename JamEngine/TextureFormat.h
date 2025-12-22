@@ -68,7 +68,7 @@ enum eTextureFormat : Int8
     D32_Float_S8_UInt,
 };
 
-using PlatformTextureFormat = DXGI_FORMAT;   // todo: change this alias per platform
+using PlatformTextureFormat = DXGI_FORMAT;  
 struct TextureFormatInfo
 {
     PlatformTextureFormat texFormat   = static_cast<PlatformTextureFormat>(0);

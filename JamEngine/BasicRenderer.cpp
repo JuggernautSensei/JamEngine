@@ -38,12 +38,12 @@ struct BasicRendererContext
     void UploadSpotLight(Vec3 _radiance, float _lightIntensity, Vec3 _pos, Vec3 _dir, float _fallOffStart, float _fallOffEnd, float _innerConeAngle, float _outerConeAngle, bool _bShadow) const;
 
     // factory
-    [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, std::string_view _name) const;
-    [[nodiscard]] TextureHandle     CreateTextureCube(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, std::string_view _name) const;
-    [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eTextureFormat _format, eAttachmentType _type, std::string_view _name) const;
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(std::span<const TextureHandle> _attachment, bool _bDestroyTexture, std::string_view _name) const;
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(TextureHandle _texh, bool _bDestroyTexture, std::string_view _name) const;
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, std::string_view _name) const;
+    [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
+    [[nodiscard]] TextureHandle     CreateTextureCube(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
+    [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
+    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(std::span<const TextureHandle> _attachment, bool _bDestroyTexture, StringView _name) const;
+    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(TextureHandle _texh, bool _bDestroyTexture, StringView _name) const;
+    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, StringView _name) const;
 
     // submit
     void Submit(const Ref<Mesh>& _mesh, const Ref<Material>& _material, const Mat4& _world) const;
@@ -477,11 +477,11 @@ void BasicRendererContext::UploadSpotLight(
 }
 
 TextureHandle BasicRendererContext::CreateTexture2D(
-    const Int32            _width,
-    const Int32            _height,
-    const eTextureFormat   _format,
-    const eAttachmentType  _type,
-    const std::string_view _name) const
+    const Int32           _width,
+    const Int32           _height,
+    const eTextureFormat  _format,
+    const eAttachmentType _type,
+    const StringView    _name) const
 {
     eTextureCreateFlags flags = eTextureCreateFlags_None;
 
@@ -496,7 +496,7 @@ TextureHandle BasicRendererContext::CreateTexture2D(
     }
 
     const TextureHandle texh = Graphics::CreateTexture2D(_width, _height, _format, 1, flags);
-    if (!_name.empty())
+    if (!_name.IsEmpty())
     {
         Graphics::SetTextureName(texh, _name);
     }
@@ -504,11 +504,11 @@ TextureHandle BasicRendererContext::CreateTexture2D(
 }
 
 TextureHandle BasicRendererContext::CreateTextureCube(
-    const Int32            _width,
-    const Int32            _height,
-    const eTextureFormat   _format,
-    const eAttachmentType  _type,
-    const std::string_view _name) const
+    const Int32           _width,
+    const Int32           _height,
+    const eTextureFormat  _format,
+    const eAttachmentType _type,
+    const StringView    _name) const
 {
     eTextureCreateFlags flags = eTextureCreateFlags_None;
 
@@ -523,7 +523,7 @@ TextureHandle BasicRendererContext::CreateTextureCube(
     }
 
     const TextureHandle texh = Graphics::CreateTextureCube(_width, _height, _format, 1, flags);
-    if (!_name.empty())
+    if (!_name.IsEmpty())
     {
         Graphics::SetTextureName(texh, _name);
     }
@@ -531,12 +531,12 @@ TextureHandle BasicRendererContext::CreateTextureCube(
 }
 
 TextureHandle BasicRendererContext::CreateTextureArray(
-    const Int32            _width,
-    const Int32            _height,
-    const Int32            _arraySize,
-    const eTextureFormat   _format,
-    const eAttachmentType  _type,
-    const std::string_view _name) const
+    const Int32           _width,
+    const Int32           _height,
+    const Int32           _arraySize,
+    const eTextureFormat  _format,
+    const eAttachmentType _type,
+    const StringView    _name) const
 {
     eTextureCreateFlags flags = eTextureCreateFlags_None;
 
@@ -551,7 +551,7 @@ TextureHandle BasicRendererContext::CreateTextureArray(
     }
 
     const TextureHandle texh = Graphics::CreateTexture2D(_width, _height, _format, _arraySize, flags);
-    if (!_name.empty())
+    if (!_name.IsEmpty())
     {
         Graphics::SetTextureName(texh, _name);
     }
@@ -561,10 +561,10 @@ TextureHandle BasicRendererContext::CreateTextureArray(
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
     const std::span<const TextureHandle> _attachment,
     const bool                           _bDestroyTexture,
-    const std::string_view               _name) const
+    const StringView                   _name) const
 {
     const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_attachment, _bDestroyTexture);
-    if (!_name.empty())
+    if (!_name.IsEmpty())
     {
         Graphics::SetFrameBufferName(fbh, _name);
     }
@@ -572,12 +572,12 @@ FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
 }
 
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
-    const TextureHandle    _texh,
-    const bool             _bDestroyTexture,
-    const std::string_view _name) const
+    const TextureHandle _texh,
+    const bool          _bDestroyTexture,
+    const StringView  _name) const
 {
     const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_texh, _bDestroyTexture);
-    if (!_name.empty())
+    if (!_name.IsEmpty())
     {
         Graphics::SetFrameBufferName(fbh, _name);
     }
@@ -585,13 +585,13 @@ FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
 }
 
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
-    const Int32            _width,
-    const Int32            _height,
-    const eTextureFormat   _format,
-    const std::string_view _name) const
+    const Int32          _width,
+    const Int32          _height,
+    const eTextureFormat _format,
+    const StringView   _name) const
 {
     const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_width, _height, _format);
-    if (!_name.empty())
+    if (!_name.IsEmpty())
     {
         Graphics::SetFrameBufferName(fbh, _name);
     }
@@ -618,7 +618,7 @@ void BasicRendererContext::BakeSSAOKernel() const
         sample *= MakeRandom(0.f, 1.f);
 
         // 가까운 샘플에 더 집중
-        float t = Square(static_cast<float>(i) / static_cast<float>(JAM_SSAO_KERNEL_SIZE));
+        const float t = Square(static_cast<float>(i) / static_cast<float>(JAM_SSAO_KERNEL_SIZE));
         sample *= Lerp(0.1f, 1.f, t);
 
         kernel[i] = sample;
@@ -643,8 +643,8 @@ void BasicRendererContext::BakeSSAONoise()
         noiseData[idx + 3] = ToFloat16(0.f);
     }
 
-    ConstMemView mem[] = { noiseData };
-    ssaoNoiseTexture   = Graphics::CreateTexture2D(k_length, k_length, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags_None, mem);
+    const CMemView mem[] = { noiseData };
+    ssaoNoiseTexture     = Graphics::CreateTexture2D(k_length, k_length, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags_None, mem);
 }
 
 void BasicRendererContext::BuildRenderGraph(
@@ -1004,9 +1004,9 @@ void BasicRendererContext::BuildRenderGraph(
             const Int32             w             = Max(1, width >> (i + 1));
             const Int32             h             = Max(1, height >> (i + 1));
             const Viewport          vpDown        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
-            const char*             name          = FormatStringToTmpBuffer("Bloom Down Texture %d", i);
+            const StringView      name          = GlobalBuffer::FormatTmp("Bloom Down Texture %d", i);
             const TextureHandle     bloomDownTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, name);
-            const char*             fbhName       = FormatStringToTmpBuffer("Bloom Down FrameBuffer %d", i);
+            const StringView      fbhName       = GlobalBuffer::FormatTmp("Bloom Down FrameBuffer %d", i);
             const FrameBufferHandle bloomDownFbh  = CreateFrameBuffer(bloomDownTexh, true, fbhName);
 
             RenderPass pass;
@@ -1031,9 +1031,9 @@ void BasicRendererContext::BuildRenderGraph(
             const Int32             w           = Max(1, width >> (i + 1));
             const Int32             h           = Max(1, height >> (i + 1));
             const Viewport          vpUp        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
-            const char*             name        = FormatStringToTmpBuffer("Bloom Up Texture %d", i);
+            const StringView      name        = GlobalBuffer::FormatTmp("Bloom Up Texture %d", i);
             const TextureHandle     bloomUpTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, name);
-            const char*             fbhName     = FormatStringToTmpBuffer("Bloom Up FrameBuffer %d", i);
+            const StringView      fbhName     = GlobalBuffer::FormatTmp("Bloom Up FrameBuffer %d", i);
             const FrameBufferHandle bloomUpFbh  = CreateFrameBuffer(bloomUpTexh, true, fbhName);
 
             RenderPass pass;

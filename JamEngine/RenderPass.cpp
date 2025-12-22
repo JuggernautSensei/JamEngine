@@ -126,6 +126,7 @@ RenderPass& RenderPass::SetClearDepthStencilCommand(
 {
     SetBit(m_flags, eFlags_ClearDepth, _bClearDepth);
     SetBit(m_flags, eFlags_ClearStencil, _bClearStencil);
+
     m_clearDepth   = _depth;
     m_clearStencil = _stencil;
     return *this;
@@ -280,58 +281,61 @@ bool RenderPass::Validate() const
     {
         const FrameBufferInfo fbInfo = Graphics::GetFrameBufferInfo(m_fbh);
 
-        HashSet<UInt32> outputResources;   // key: handle value
-        outputResources.reserve(fbInfo.numRenderTargets + 1);
+        HashSet<UInt32> outputTexes;   // key: handle value
+        outputTexes.reserve(fbInfo.numRenderTargets + 1);
 
-        // 렌더타겟 텍스처 수집
-        for (Int32 i = 0; i < fbInfo.numRenderTargets; ++i)
+        // 출력 리소스 수집
         {
-            const TextureHandle texh = fbInfo.renderTargetTexhs[i];
-            JAM_ASSERT(JAM_IS_VALID_HANDLE(texh), "Frame buffer has invalid render target texture handle.");
-            outputResources.emplace(texh.value);
-        }
+            // 렌더타겟 텍스처 수집
+            for (Int32 i = 0; i < fbInfo.numRenderTargets; ++i)
+            {
+                const TextureHandle texh = fbInfo.renderTargetTexhs[i];
+                JAM_ASSERT(JAM_IS_VALID_HANDLE(texh), "Frame buffer has invalid render target texture handle.");
+                outputTexes.emplace(texh.value);
+            }
 
-        // 뎁스스텐실 텍스처 수집
-        if (JAM_IS_VALID_HANDLE(fbInfo.depthStencilTexh))
-        {
-            outputResources.emplace(fbInfo.depthStencilTexh.value);
+            // 뎁스스텐실 텍스처 수집
+            if (JAM_IS_VALID_HANDLE(fbInfo.depthStencilTexh))
+            {
+                outputTexes.emplace(fbInfo.depthStencilTexh.value);
+            }
         }
 
         // 입력 리소스와 충돌 검사
         for (const TextureBind& texBind: m_textureBinds)
         {
-            if (outputResources.contains(texBind.texh.value))
+            if (outputTexes.contains(texBind.texh.value))
             {
                 return false;
             }
         }
     }
 
-    // A: 동일 스테이지 + 동일 리소스  -> 충돌
+    // A: 동일 스테이지 + 동일 리소스   -> 충돌
     // B: 동일 쉐이더 + 동일 슬롯      -> 중복 명령
     {
-        HashSet<UInt64> textureStage;   // key: handle | stage
-        textureStage.reserve(m_textureBinds.size());
+        HashSet<UInt64> texhStageMap;   // key: texture handle | stage
+        texhStageMap.reserve(m_textureBinds.size());
 
-        HashSet<UInt64> stageSlot;   // key: stage | slot
-        stageSlot.reserve(m_textureBinds.size());
+        HashSet<UInt64> stageSlotMap;   // key: stage | slot
+        stageSlotMap.reserve(m_textureBinds.size());
 
         for (const TextureBind& bind: m_textureBinds)
         {
-            // A
+            // 동일 스테이지에 동일 리소스가 바인딩 되는지 검사
             {
                 const UInt64 key          = CreateKeyByHandleStage_(bind.texh, bind.stage);
-                const auto [_, bSucceded] = textureStage.emplace(key);
+                const auto [_, bSucceded] = texhStageMap.emplace(key);
                 if (!bSucceded)   // dup
                 {
                     return false;
                 }
             }
 
-            // check slot bindings for duplicates at same stage
+            // 동일 쉐이더 + 동일 슬롯에 바인딩 되는지 검사
             {
                 const UInt64 key          = CreateKeyByStageSlot_(bind.stage, bind.slot);
-                const auto [_, bSucceded] = stageSlot.emplace(key);
+                const auto [_, bSucceded] = stageSlotMap.emplace(key);
                 if (!bSucceded)   // dup
                 {
                     return false;

@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "MathUtilities.h"
+#include "Math.h"
 #include "Transform.h"
 
 namespace jam

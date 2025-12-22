@@ -81,18 +81,18 @@ void TriangleScene::OnEnter()
         ShaderCompiler compiler;
         if (!compiler.CompileSource(k_source, eShader::VertexShader, "VSMain"))
         {
-            Log::Error("shader compile failed. {}", ErrorBuffer::Get());
+            Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
             JAM_ASSERT(0, "shader compile failed");
         }
-        ShaderHandle vsh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle vsh = Graphics::CreateShader(compiler.GetBytecode());
 
         // pixel shader
         if (!compiler.CompileSource(k_source, eShader::PixelShader, "PSMain"))
         {
-            Log::Error("shader compile failed. {}", ErrorBuffer::Get());
+            Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
             JAM_ASSERT(0, "shader compile failed");
         }
-        ShaderHandle psh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle psh = Graphics::CreateShader(compiler.GetBytecode());
 
         m_program = Graphics::CreateProgram(vsh, psh, true);
     }

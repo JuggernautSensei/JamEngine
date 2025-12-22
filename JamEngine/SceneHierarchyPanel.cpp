@@ -45,7 +45,7 @@ void SceneHierarchyPanel::Show(bool* _pOpenOrNull) const
             const char* previewName = "no active scene";   // 콤보박스의 프리뷰 문자열
             if (bHasActiveScene)                           // 만약 활성화된 씬이 있다면
             {
-                std::string_view sceneName = pActiveScene->GetName();
+                StringView sceneName = pActiveScene->GetName();
                 previewName                = sceneName.data();
             }
 

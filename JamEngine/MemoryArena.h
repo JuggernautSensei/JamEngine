@@ -37,7 +37,7 @@ public:
     void* Alloc(const size_t _byteWidth)
     {
         constexpr size_t k_alignent = alignof(std::max_align_t);
-        size_t           byteWidth  = (_byteWidth + (k_alignent - 1)) & ~(k_alignent - 1);
+        const size_t           byteWidth  = (_byteWidth + (k_alignent - 1)) & ~(k_alignent - 1);
         JAM_ASSERT(byteWidth <= m_byteWidthPerArena, "한 아레나에 할당할 수 있는 최대 크기를 초과했습니다.");
 
         if (m_pCur == nullptr)   // 아레나 초기화 필요

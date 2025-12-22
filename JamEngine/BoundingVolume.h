@@ -5,25 +5,41 @@ namespace jam
 
 struct Ray;
 
+enum class eRegion
+{
+    NearLeftTop,
+    NearRightTop,
+    NearLeftBottom,
+    NearRightBottom,
+    FarLeftTop,
+    FarRightTop,
+    FarLeftBottom,
+    FarRightBottom
+};
+
 struct CornerPoints
 {
-    CornerPoints() = default;
-
-    union
+    [[nodiscard]] Vec3& At(const eRegion region)
     {
-        struct
-        {
-            Vec3 nearLeftTop;
-            Vec3 nearRightTop;
-            Vec3 nearLeftBottom;
-            Vec3 nearRightBottom;
-            Vec3 farLeftTop;
-            Vec3 farRightTop;
-            Vec3 farLeftBottom;
-            Vec3 farRightBottom;
-        };
-        std::array<Vec3, 8> points = {};
-    };
+        return points[IntFrom(region)];
+    }
+
+    [[nodiscard]] const Vec3& At(const eRegion region) const
+    {
+        return points[IntFrom(region)];
+    }
+
+    [[nodiscard]] Vec3& operator[](const eRegion region)
+    {
+        return points[IntFrom(region)];
+    }
+
+    [[nodiscard]] const Vec3& operator[](const eRegion region) const
+    {
+        return points[IntFrom(region)];
+    }
+
+    Array<Vec3, NumEnums<eRegion>()> points = {};
 };
 
 struct RayCastResult
@@ -34,7 +50,7 @@ struct RayCastResult
 
 struct Aabb
 {
-    [[nodiscard]] static Aabb FromCenterExtents(Vec3 _center, Vec3 _extents);
+    [[nodiscard]] static Aabb FromCenterExtents(Vec3 _center, Vec3 _ext);
 
     void               Transform(const Mat4& _mtx);
     [[nodiscard]] Aabb Transformed(const Mat4& _mtx) const;

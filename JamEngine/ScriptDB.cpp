@@ -19,10 +19,7 @@ ScriptDB& ScriptDB::GetInstance()
 
 void ScriptDB::DestroyInstance()
 {
-    if (s_pInstance)
-    {
-        JAM_DELETE(s_pInstance);
-    }
+    JAM_DELETE(s_pInstance);
 }
 
 void ScriptDB::Reflect(const ScriptInfo& info)
@@ -32,12 +29,13 @@ void ScriptDB::Reflect(const ScriptInfo& info)
     m_infos.emplace(hash, info);
 }
 
-bool ScriptDB::IsReflected(const std::string_view _name) const
+bool ScriptDB::IsReflected(const StringView _name) const
 {
-    return m_infos.contains(HashOf(_name));
+    const UInt32 hash = HashOf(_name);
+    return m_infos.contains(hash);
 }
 
-Ref<Script> ScriptDB::Create(const std::string_view _name, const Entity _entity) const
+Ref<Script> ScriptDB::Create(const StringView _name, const Entity _entity) const
 {
     const UInt32 hash = HashOf(_name);
     JAM_ASSERT(m_infos.contains(hash), "No Script registered with name '{}'", _name);

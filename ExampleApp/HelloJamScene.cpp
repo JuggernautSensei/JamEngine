@@ -154,8 +154,8 @@ struct CubeMeshComponent
 void HelloJamScene::OnEnter()
 {
     // program
-    ShaderHandle vs = CompileShader(k_helloJamSource, eShader::VertexShader, "VSMain");
-    ShaderHandle ps = CompileShader(k_helloJamSource, eShader::PixelShader, "PSMain");
+    const ShaderHandle vs = CompileShader(k_helloJamSource, eShader::VertexShader, "VSMain");
+    const ShaderHandle ps = CompileShader(k_helloJamSource, eShader::PixelShader, "PSMain");
     m_program       = Graphics::CreateProgram(vs, ps, true);
 
     // cbuffer
@@ -169,8 +169,8 @@ void HelloJamScene::OnEnter()
     }
     else
     {
-        Log::Error("Graphics::LoadTextureFromMemory failed: {}", ErrorBuffer::Get());
-        JAM_ASSERT(0, "Graphics::LoadTextureFromMemory failed: {}", ErrorBuffer::Get());
+        Log::Error("Graphics::LoadTextureFromMemory failed: {}", GlobalBuffer::GetLastError());
+        JAM_ASSERT(0, "Graphics::LoadTextureFromMemory failed: {}", GlobalBuffer::GetLastError());
     }
 
     // cube mesh
@@ -276,7 +276,7 @@ void HelloJamScene::OnImGuiRender()
     {
         ImGui::Separator();
 
-        float dt    = ImGui::GetIO().DeltaTime;
+        const float dt    = ImGui::GetIO().DeltaTime;
         auto [w, h] = Graphics::GetBackBufferResolution();
         ImGui::Text("resolution: %d x %d", w, h);
         ImGui::Text("delta time: %.3f ms", dt * 1000.f);
@@ -286,7 +286,7 @@ void HelloJamScene::OnImGuiRender()
     {
         ImGui::Separator();
 
-        constexpr const char* const k_primitiveLabels[EnumCount<ePrimitive>()] = {
+        constexpr const char* const k_primitiveLabels[NumEnums<ePrimitive>()] = {
             "triangle list",
             "triangle strip",
             "line list",
@@ -294,13 +294,13 @@ void HelloJamScene::OnImGuiRender()
             "point list",
         };
 
-        constexpr const char* const k_cullModeLabels[EnumCount<eCullMode>()] = {
+        constexpr const char* const k_cullModeLabels[NumEnums<eCullMode>()] = {
             "none",
             "back",
             "front",
         };
 
-        constexpr const char* const k_depthTestFuncLabels[EnumCount<eCompareFunc>()] = {
+        constexpr const char* const k_depthTestFuncLabels[NumEnums<eCompareFunc>()] = {
             "none",
             "less",
             "less equal",
@@ -315,12 +315,12 @@ void HelloJamScene::OnImGuiRender()
         ImGui::Text("gfx state");
 
         Int32 i32Prim = IntFrom(m_gfxState.primitive);
-        Int32 numPrim = NarrowCast<Int32>(EnumCount<ePrimitive>());
+        const Int32 numPrim = NarrowCast<Int32>(NumEnums<ePrimitive>());
         if (ImGui::Combo("primitive", &i32Prim, k_primitiveLabels, numPrim))
             m_gfxState.primitive = static_cast<ePrimitive>(i32Prim);
 
         Int32 i32CullMode = static_cast<Int32>(m_gfxState.cullMode);
-        Int32 numCullMode = NarrowCast<Int32>(EnumCount<eCullMode>());
+        const Int32 numCullMode = NarrowCast<Int32>(NumEnums<eCullMode>());
         if (ImGui::Combo("cull mode", &i32CullMode, k_cullModeLabels, numCullMode))
             m_gfxState.cullMode = static_cast<eCullMode>(i32CullMode);
 
@@ -333,7 +333,7 @@ void HelloJamScene::OnImGuiRender()
             m_gfxState.bDepthClamp = bDepthClamp;
 
         Int32 i32DepthFunc = static_cast<int>(m_gfxState.depthTestFunc);
-        Int32 numDepthFunc = NarrowCast<Int32>(EnumCount<eCompareFunc>());
+        const Int32 numDepthFunc = NarrowCast<Int32>(NumEnums<eCompareFunc>());
         if (ImGui::Combo("depth test func", &i32DepthFunc, k_depthTestFuncLabels, numDepthFunc))
             m_gfxState.depthTestFunc = static_cast<eCompareFunc>(i32DepthFunc);
 
@@ -377,7 +377,7 @@ void HelloJamScene::OnResize(const Int32 _width, const Int32 _height)
     m_renderTh = Graphics::CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget | eTextureCreateFlags_WriteOnly);
     m_depthTh  = Graphics::CreateTexture2D(_width, _height, eTextureFormat::D32_Float, 1, eTextureCreateFlags_DepthStencil | eTextureCreateFlags_WriteOnly);
 
-    TextureHandle attachments[] = { m_renderTh, m_depthTh };
+    const TextureHandle attachments[] = { m_renderTh, m_depthTh };
     m_fbh                       = Graphics::CreateFrameBuffer(attachments);
 
     for (auto&& [_, cc]: Each<CameraComponent>())

@@ -2,13 +2,14 @@
 
 #include "EditorWidgets.h"
 
+#include <flatbuffers/string.h>
+
 #include "AssetManager.h"
 #include "Camera.h"
 #include "DialogUtilities.h"
 #include "Editor.h"
 #include "EditorUtilities.h"
 #include "Entity.h"
-#include "FString.h"
 #include "Graphics.h"
 #include "ImGuiUtilities.h"
 #include "Input.h"
@@ -61,15 +62,16 @@ void Widget_CenteredTextV(
     const char*   _fmt,
     const va_list _args)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return;
     }
 
-    const char*  str      = FormatStringToTmpBufferV(_fmt, _args);
-    const ImVec2 textSize = ImGui::CalcTextSize(str, NULL, true);
-    const ImVec2 offset   = (_region - textSize) * 0.5f;
+    const StringView sv       = GlobalBuffer::PrintfTmp(_fmt, _args);
+    const char*      text     = sv.GetPtr();
+    const ImVec2     textSize = ImGui::CalcTextSize(text, NULL, true);
+    const ImVec2     offset   = (_region - textSize) * 0.5f;
     ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + offset);
     ImGui::TextV(_fmt, _args);
 }
@@ -90,7 +92,7 @@ void Widget_FrameAlignedTextV(
     const char*   _fmt,
     const va_list _args)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
     if (pWin->SkipItems)
     {
         return;
@@ -107,7 +109,7 @@ bool Widget_DragTranslation(
     const float _min,
     const float _max)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return false;
@@ -164,8 +166,8 @@ bool Widget_DragScale(
     const float _minPerc,
     const float _maxPerc)
 {
-    Vec3 scalePerc = _scaleNorm * 100.f;
-    bool bChanged  = Widget_DragScalePerc(_label, scalePerc, _speedPerc, _minPerc, _maxPerc);
+    Vec3       scalePerc = _scaleNorm * 100.f;
+    const bool bChanged  = Widget_DragScalePerc(_label, scalePerc, _speedPerc, _minPerc, _maxPerc);
     if (bChanged)
     {
         _scaleNorm = scalePerc * 0.01f;
@@ -180,7 +182,7 @@ bool Widget_DragScalePerc(
     const float _minPerc,
     const float _maxPerc)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return false;
@@ -270,7 +272,7 @@ bool Widget_DragPitchYawRollDeg(
     const float _minDeg,
     const float _maxDeg)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return false;
@@ -327,7 +329,7 @@ bool Widget_DragPitchYawDeg(
     const float _minDeg,
     const float _maxDeg)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return false;
@@ -374,8 +376,8 @@ bool Widget_DragAngle(
     const float _minDeg,
     const float _maxDeg)
 {
-    float deg      = ToDeg(_pRad);
-    bool  bChanged = Widget_DragFloat(_label, &deg, _degSpeed, _minDeg, _maxDeg, "%.0f deg", ImGuiSliderFlags_WrapAround);
+    float      deg      = ToDeg(_pRad);
+    const bool bChanged = Widget_DragFloat(_label, &deg, _degSpeed, _minDeg, _maxDeg, "%.1f deg", ImGuiSliderFlags_WrapAround);
     if (bChanged)
         _pRad = ToRad(deg);
     return bChanged;
@@ -389,8 +391,8 @@ bool Widget_DragPercent(
     const float _maxPerc,
     const char* _format)
 {
-    float perc     = _pNorm * 100.f;
-    bool  bChanged = Widget_DragFloat(_label, &perc, _speedPerc, _minPerc, _maxPerc, _format, ImGuiSliderFlags_AlwaysClamp);
+    float      perc     = _pNorm * 100.f;
+    const bool bChanged = Widget_DragFloat(_label, &perc, _speedPerc, _minPerc, _maxPerc, _format, ImGuiSliderFlags_AlwaysClamp);
     if (bChanged)
     {
         _pNorm = perc / 100.f;
@@ -404,17 +406,17 @@ void Widget_BorderedText(
     const ImVec2& _size,
     const bool    _bDisabled)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return;
     }
 
-    ImGuiContext&     g        = *GImGui;
-    const ImGuiStyle& style    = g.Style;
-    const ImVec2      textSize = ImGui::CalcTextSize(_text, NULL, true);
-    const ImVec2      pos      = window->DC.CursorPos;
-    const ImVec2      size     = ImGui::CalcItemSize(_size, textSize.x + style.FramePadding.x * 2.0f, textSize.y + style.FramePadding.y * 2.0f);
+    const ImGuiContext& g        = *GImGui;
+    const ImGuiStyle&   style    = g.Style;
+    const ImVec2        textSize = ImGui::CalcTextSize(_text, NULL, true);
+    const ImVec2        pos      = window->DC.CursorPos;
+    const ImVec2        size     = ImGui::CalcItemSize(_size, textSize.x + style.FramePadding.x * 2.0f, textSize.y + style.FramePadding.y * 2.0f);
 
     const ImRect bb(pos, pos + size);
     ImGui::ItemSize(size, style.FramePadding.y);
@@ -462,14 +464,19 @@ void Widget_ShadowedTextV(
     const char*   _fmt,
     const va_list _args)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
+    {
         return;
+    }
 
-    const char* text = FormatStringToTmpBufferV(_fmt, _args);
-    if (!text || *text == '\0')
+    const StringView sv = GlobalBuffer::FormatTmp(_fmt, _args);
+    if (sv.IsEmpty())
+    {
         return;
+    }
 
+    const char*  text     = sv.GetPtr();
     const ImVec2 textPos  = { window->DC.CursorPos.x, window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset };
     const ImVec2 textSize = ImGui::CalcTextSize(text);
     const ImRect bb       = { textPos, textPos + textSize };
@@ -560,14 +567,14 @@ bool Widget_MeshSelector(
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
             const fs::path path = ResolvePathDragDropPayload(pPayload);
-            if (const std::optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(path))
+            if (const Optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(path))
             {
                 _pMesh   = opt.value();
                 bChanged = true;
             }
             else
             {
-                std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+                const std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
                 Editor::OpenCorePopupDialog("error", msg);
             }
         }
@@ -617,14 +624,14 @@ bool Widget_MaterialSelector(
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
             const fs::path path = ResolvePathDragDropPayload(pPayload);
-            if (std::optional<Ref<Material>> opt = AssetManager::GetOrLoadMaterial(path))
+            if (const Optional<Ref<Material>> opt = AssetManager::GetOrLoadMaterial(path))
             {
                 _pMaterial = opt.value();
                 bChanged   = true;
             }
             else
             {
-                std::string msg = std::format("failed to load material from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+                const std::string msg = std::format("failed to load material from path: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
                 Editor::OpenCorePopupDialog("error", msg);
             }
         }
@@ -682,14 +689,14 @@ bool Widget_ImageTextureSelector(
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
             const fs::path path = ResolvePathDragDropPayload(pPayload);
-            if (std::optional<Ref<ImageTexture>> opt = AssetManager::GetOrLoadImageTexture(path))
+            if (const Optional<Ref<ImageTexture>> opt = AssetManager::GetOrLoadImageTexture(path))
             {
                 _pImageTexture = opt.value();
                 bChanged       = true;
             }
             else
             {
-                const std::string msg = std::format("failed to load image texture from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+                const std::string msg = std::format("failed to load image texture from path: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
                 Editor::OpenCorePopupDialog("error", msg);
             }
         }
@@ -704,11 +711,11 @@ bool Widget_ImageTextureSelector(
         {
             constexpr const char* const k_typenames[] = { "texture 2D", "texture 3D", "texture cube" };
 
-            TextureInfo info = Graphics::GetTextureInfo(_pImageTexture->GetHandle());
+            const TextureInfo info = Graphics::GetTextureInfo(_pImageTexture->GetHandle());
             ImGui::Text("path: %s", _pImageTexture->GetPath().c_str());
             ImGui::Text("size: %d x %d x %d", info.width, info.height, info.depth);
             ImGui::Text("type: %s", k_typenames[IntFrom(info.type)]);
-            ImGui::Text("format: %s", StringFrom(info.format).data());
+            ImGui::Text("format: %s", StringFrom(info.format).GetPtr());
             ImGui::Text("array size: %d", info.arraySize);
             ImGui::Text("samples: %d", info.samples);
             ImGui::Text(" mip levels: %d", info.numMips);
@@ -794,7 +801,7 @@ bool Widget_DragScalarN(
     const char*            _format,
     const ImGuiSliderFlags _flags)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return false;
@@ -882,6 +889,26 @@ bool Widget_DragFloat4(
     return Widget_DragScalarN(label, ImGuiDataType_Float, p_data, 4, v_speed, &v_min, &v_max, format, flags);
 }
 
+bool Widget_DragDistance(const char* label, float& _distance, const float _speed, const float _min, const float _max, const char* _format, const ImGuiSliderFlags _flags)
+{
+    return Widget_DragFloat(label, &_distance, _speed, _min, _max, _format, _flags);
+}
+
+bool Widget_DragDistance2(const char* label, Vec2& _distanceVec2, const float _speed, const float _min, const float _max, const char* _format, const ImGuiSliderFlags _flags)
+{
+    return Widget_DragFloat2(label, &_distanceVec2.x, _speed, _min, _max, _format, _flags);
+}
+
+bool Widget_DragDistance3(const char* label, Vec3& _distanceVec3, const float _speed, const float _min, const float _max, const char* _format, const ImGuiSliderFlags _flags)
+{
+    return Widget_DragFloat3(label, &_distanceVec3.x, _speed, _min, _max, _format, _flags);
+}
+
+bool Widget_DragLightIntensity(const char* _label, float& _intensity, const float _speed, const float _min, const float _max, const char* _format, const ImGuiSliderFlags _flags)
+{
+    return Widget_DragFloat(_label, &_intensity, _speed, _min, _max, _format, _flags);
+}
+
 bool Widget_IconButton(
     const char*        _label,
     const ImTextureRef _icon,
@@ -893,14 +920,14 @@ bool Widget_IconButton(
         return false;
     }
 
-    ImGuiContext&     g        = *GImGui;
-    const ImGuiStyle& style    = g.Style;
-    const ImGuiID     id       = window->GetID(_label);
-    const ImVec2      textSize = ImGui::CalcTextSize(_label, NULL, true);
-    const ImVec2      iconSize = { ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() };
-    const float       defaultW = iconSize.x + textSize.x + style.ItemInnerSpacing.x + style.FramePadding.x * 2.0f;
-    const float       defaultH = iconSize.y + style.FramePadding.y * 2.0f;
-    const ImVec2      size     = ImGui::CalcItemSize(_size, defaultW, defaultH);
+    const ImGuiContext& g        = *GImGui;
+    const ImGuiStyle&   style    = g.Style;
+    const ImGuiID       id       = window->GetID(_label);
+    const ImVec2        textSize = ImGui::CalcTextSize(_label, NULL, true);
+    const ImVec2        iconSize = { ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() };
+    const float         defaultW = iconSize.x + textSize.x + style.ItemInnerSpacing.x + style.FramePadding.x * 2.0f;
+    const float         defaultH = iconSize.y + style.FramePadding.y * 2.0f;
+    const ImVec2        size     = ImGui::CalcItemSize(_size, defaultW, defaultH);
 
     const ImVec2 cursor = window->DC.CursorPos;
     const ImRect bb     = { cursor, cursor + size };
@@ -910,8 +937,8 @@ bool Widget_IconButton(
         return false;
     }
 
-    bool hovered, held;
-    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
+    bool       hovered, held;
+    const bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
 
     // render frame
     const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive
@@ -944,9 +971,9 @@ bool Widget_Acroball(
         return false;
     }
 
-    ImGuiContext&     g     = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID     id    = window->GetID(_label);
+    const ImGuiContext& g     = *GImGui;
+    const ImGuiStyle&   style = g.Style;
+    const ImGuiID       id    = window->GetID(_label);
 
     // add item
     const float  radius = _length * 0.5f;
@@ -962,10 +989,10 @@ bool Widget_Acroball(
     }
 
     // interaction
-    bool bHovered, bHold;
-    bool bReleased = ImGui::ButtonBehavior(bb, id, &bHovered, &bHold);
-    bool bPressed  = bHold && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-    bool bDirty    = false;
+    bool       bHovered, bHold;
+    const bool bReleased = ImGui::ButtonBehavior(bb, id, &bHovered, &bHold);
+    const bool bPressed  = bHold && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+    bool       bDirty    = false;
 
     // infinite drag
     static bool   s_bIsCapturingMouse = false;
@@ -1127,7 +1154,7 @@ bool Widget_OpenFileDialog(
     fs::path&                               _path,
     const std::span<const FileDialogFilter> _filters)
 {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
     {
         return false;
@@ -1153,7 +1180,7 @@ bool Widget_OpenFileDialog(
     ImGui::SameLine();
     if (ImGui::Button("open", btnSize))
     {
-        if (std::optional<fs::path> opt = OpenFileDialog("open file", {}, _filters))
+        if (const Optional<fs::path> opt = OpenFileDialog("open file", {}, _filters))
         {
             _path  = *opt;
             bDirty = true;
@@ -1185,10 +1212,10 @@ bool Widget_TextureFormatCombo(
     eTextureFormat& _format,
     const bool      _bExcludeDepthFormat)
 {
-    const char* preview  = StringFrom(_format).data();
-    bool        bChanged = false;
+    const StringView preview  = StringFrom(_format);
+    bool             bChanged = false;
 
-    if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
+    if (ImGui::BeginCombo(_label, preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
     {
         for (const eTextureFormat format: EnumRanges<eTextureFormat>())
         {
@@ -1198,10 +1225,10 @@ bool Widget_TextureFormatCombo(
                 continue;
             }
 
-            const bool  bSelected = (format == _format);
-            const char* label     = StringFrom(format).data();
+            const bool       bSelected = (format == _format);
+            const StringView label     = StringFrom(format);
 
-            if (ImGui::Selectable(label, bSelected))
+            if (ImGui::Selectable(label.GetPtr(), bSelected))
             {
                 _format  = format;
                 bChanged = true;

@@ -1,21 +1,22 @@
 #pragma once
+
 #include "IImporter.h"
 #include "ImageBase.h"
 #include "Material.h"
 
-#include <assimp/mesh.h>
-#include <assimp/scene.h>
+struct aiMaterial;
+struct aiScene;
 
 namespace jam
 {
 
-constexpr Int32 k_invalidImportedTexIndex = -1;
+constexpr Int32 k_invalidImportedIdx = -1;
 
 struct ImportedMesh
 {
     // bone weight, bone index 추후 구현 예정
 
-    std::string name;
+    std::string name = {};
 
     Vector<Vec3> positions    = {};
     Vector<Vec3> normals      = {};
@@ -29,7 +30,7 @@ struct ImportedMesh
 
 struct ImportedMaterial
 {
-    std::string name;
+    std::string name = {};
 
     Vec3  ambientColor  = Vec3::One;
     Vec3  diffuseColor  = Vec3::One;
@@ -47,34 +48,35 @@ struct ImportedMaterial
     eTextureChannel metallicTexChannel  = eTextureChannel::Red;
     eTextureChannel roughnessTexChannel = eTextureChannel::Red;
 
-    Int32 albedoTexIndex             = k_invalidImportedTexIndex;
-    Int32 normalTexIndex             = k_invalidImportedTexIndex;
-    Int32 metallicTexIndex           = k_invalidImportedTexIndex;
-    Int32 roughnessTexIndex          = k_invalidImportedTexIndex;
-    Int32 aoTexIndex                 = k_invalidImportedTexIndex;
-    Int32 emissiveTexIndex           = k_invalidImportedTexIndex;
-    Int32 lightTexIndex              = k_invalidImportedTexIndex;
-    Int32 vertexDisplacementTexIndex = k_invalidImportedTexIndex;
+    Int32 albedoTexIdx             = k_invalidImportedIdx;
+    Int32 normalTexIdx             = k_invalidImportedIdx;
+    Int32 metallicTexIdx           = k_invalidImportedIdx;
+    Int32 roughnessTexIdx          = k_invalidImportedIdx;
+    Int32 aoTexIdx                 = k_invalidImportedIdx;
+    Int32 emissiveTexIdx           = k_invalidImportedIdx;
+    Int32 lightTexIdx              = k_invalidImportedIdx;
+    Int32 vertexDisplacementTexIdx = k_invalidImportedIdx;
 };
 
 struct ImportedTexture
 {
     // only embedded texture is supported
-    ConstMemView pixels        = {};
+    CMemView     pixels        = {};
     Int32        width         = 0;
     Int32        height        = 0;
     eImageFormat format        = {};
     bool         bIsCompressed = false;
+    bool         bTombstone    = false;   // for import failed
 };
 
 struct ImportedModelNode
 {
-    std::string   name;
-    Mat4          mtx = Mat4::Identity;
-    Vector<Int32> meshIndices;
-    Vector<Int32> materialIndices;
+    std::string   name          = {};
+    Mat4          mtx           = Mat4::Identity;
+    Vector<Int32> meshIdxes     = {};
+    Vector<Int32> materialIdxes = {};
 
-    Vector<ImportedModelNode> children;
+    Vector<ImportedModelNode> children = {};
 };
 
 class AssimpImporter : public IImporter
@@ -83,7 +85,7 @@ public:
     bool Import() override;
 
     void SetPath(const fs::path& _path) override;
-    void GenerateTangentFrame();
+    void GenerateTangentFrame(bool _bDropExistTangents);
     void GenerateNormals(bool _bDropExistNormals);
     void LimitBoneWeight();
     void LoadOptimizationForStaticMesh();
@@ -103,12 +105,13 @@ private:
     Vector<ImportedMaterial> m_materials = {};
     Vector<ImportedTexture>  m_textures  = {};
 
-    fs::path m_path                  = {};
-    bool     m_bGenerateTangentFrame = false;
-    bool     m_bGenerateNormals      = false;
-    bool     m_bDropExistingNormals  = false;
-    bool     m_bLimitBondWeights     = false;
-    bool     m_bLoadStaticMesh       = false;
+    fs::path m_path                      = {};
+    bool     m_bGenerateTangentFrame     = false;
+    bool     m_bDropExistingTangentFrame = false;
+    bool     m_bGenerateNormals          = false;
+    bool     m_bDropExistingNormals      = false;
+    bool     m_bLimitBondWeights         = false;
+    bool     m_bLoadStaticMesh           = false;
 };
 
 }   // namespace jam

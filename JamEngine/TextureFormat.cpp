@@ -126,7 +126,8 @@ TextureFormatInfo TextureFormatInfoFrom(
     }
 }
 
-eTextureFormat TextureFormatFrom(const PlatformTextureFormat _format)
+eTextureFormat TextureFormatFrom(
+    const PlatformTextureFormat _format)
 {
     switch (_format)
     {

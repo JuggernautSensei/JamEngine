@@ -22,7 +22,7 @@ Ref<Editor_FileBrowser::Thumbnail> Editor_FileBrowser::ThumbnailCache::LoadThumb
     if (m_pathToItem.contains(_path))
     {
         const Item&                 item = m_pathToItem.at(_path);
-        const std::optional<UInt64> opt  = GetLastModifiedTime_(_path);
+        const Optional<UInt64> opt  = GetLastModifiedTime_(_path);
 
         if (opt)
         {
@@ -37,7 +37,7 @@ Ref<Editor_FileBrowser::Thumbnail> Editor_FileBrowser::ThumbnailCache::LoadThumb
             else
             {
                 // file modified
-                Ref<Thumbnail> pNewThumbnail = MakeRef<Thumbnail>();
+                const Ref<Thumbnail> pNewThumbnail = MakeRef<Thumbnail>();
                 if (pNewThumbnail->Load(_path))
                 {
                     m_thumbnails[item.bufferIdx]  = pNewThumbnail;
@@ -92,7 +92,7 @@ void Editor_FileBrowser::ThumbnailCache::CollectThumbnailsInDirectory_(const fs:
     for (const fs::directory_entry& entry: fs::directory_iterator(_dirPath))
     {
         const fs::path&             path = entry.path();
-        const std::optional<UInt64> opt  = GetLastModifiedTime_(path);
+        const Optional<UInt64> opt  = GetLastModifiedTime_(path);
 
         // check if already cached
         if (m_pathToItem.contains(path) && opt)
@@ -103,7 +103,7 @@ void Editor_FileBrowser::ThumbnailCache::CollectThumbnailsInDirectory_(const fs:
             if (item.timePoint != timePoint)
             {
                 // modified - reload thumbnail
-                Ref<Thumbnail> pNew = MakeRef<Thumbnail>();
+                const Ref<Thumbnail> pNew = MakeRef<Thumbnail>();
                 if (pNew->Load(path))
                 {
                     m_thumbnails[item.bufferIdx] = pNew;
@@ -122,7 +122,7 @@ void Editor_FileBrowser::ThumbnailCache::CollectThumbnailsInDirectory_(const fs:
         }
 
         // new thumbnail
-        Ref<Thumbnail> pNewThumbnail = MakeRef<Thumbnail>();
+        const Ref<Thumbnail> pNewThumbnail = MakeRef<Thumbnail>();
         if (opt && pNewThumbnail->Load(path))
         {
             const UInt64 timePoint = opt.value();
@@ -146,16 +146,16 @@ void Editor_FileBrowser::ThumbnailCache::CollectThumbnailsInDirectory_(const fs:
     }
 }
 
-std::optional<UInt64> Editor_FileBrowser::ThumbnailCache::GetLastModifiedTime_(const fs::path& _path) const
+Optional<UInt64> Editor_FileBrowser::ThumbnailCache::GetLastModifiedTime_(const fs::path& _path) const
 {
     try
     {
-        fs::file_time_type modTime = fs::last_write_time(_path);
+        const fs::file_time_type modTime = fs::last_write_time(_path);
         return modTime.time_since_epoch().count();
     }
     catch (...)
     {
-        return std::nullopt;
+        return k_nullopt;
     }
 }
 

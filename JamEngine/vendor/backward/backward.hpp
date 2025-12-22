@@ -726,7 +726,7 @@ namespace details
         std::vector<std::string> out;
         size_t                   last           = 0;
         size_t                   next           = 0;
-        size_t                   delimiter_size = sizeof(kBackwardPathDelimiter) - 1;
+        const size_t                   delimiter_size = sizeof(kBackwardPathDelimiter) - 1;
         while ((next = s.find(kBackwardPathDelimiter, last)) != std::string::npos)
         {
             out.push_back(s.substr(last, next - last));
@@ -1332,7 +1332,7 @@ public:
             thd_ = GetCurrentThread();
         }
 
-        HANDLE process = GetCurrentProcess();
+        const HANDLE process = GetCurrentProcess();
 
         STACKFRAME64 s;
         memset(&s, 0, sizeof(STACKFRAME64));
@@ -4140,8 +4140,8 @@ public:
         ret.image_name = temp;
         GetModuleBaseNameA(process, module, temp, sizeof(temp));
         ret.module_name = temp;
-        std::vector<char> img(ret.image_name.begin(), ret.image_name.end());
-        std::vector<char> mod(ret.module_name.begin(), ret.module_name.end());
+        const std::vector<char> img(ret.image_name.begin(), ret.image_name.end());
+        const std::vector<char> mod(ret.module_name.begin(), ret.module_name.end());
         SymLoadModule64(process, 0, &img[0], &mod[0], (DWORD64)ret.base_address, ret.load_size);
         return ret;
     }
@@ -4154,7 +4154,7 @@ public:
     TraceResolverImpl()
     {
 
-        HANDLE process = GetCurrentProcess();
+        const HANDLE process = GetCurrentProcess();
 
         std::vector<module_data> modules;
         DWORD                    cbNeeded;
@@ -4168,7 +4168,7 @@ public:
         EnumProcessModules(process, &module_handles[0], static_cast<DWORD>(module_handles.size() * sizeof(HMODULE)), &cbNeeded);
         std::transform(module_handles.begin(), module_handles.end(), std::back_inserter(modules), get_mod_info(process));
         void*             base = modules[0].base_address;
-        IMAGE_NT_HEADERS* h    = ImageNtHeader(base);
+        const IMAGE_NT_HEADERS* h    = ImageNtHeader(base);
         image_type             = h->FileHeader.Machine;
     }
 
@@ -4183,7 +4183,7 @@ public:
 
     ResolvedTrace resolve(ResolvedTrace t) override
     {
-        HANDLE process = GetCurrentProcess();
+        const HANDLE process = GetCurrentProcess();
 
         char name[256];
 
@@ -4195,7 +4195,7 @@ public:
         {
             // TODO:  error handling everywhere
             char* lpMsgBuf;
-            DWORD dw = GetLastError();
+            const DWORD dw = GetLastError();
 
             if (FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                                NULL,
@@ -4442,7 +4442,7 @@ public:
     {
 
         SourceFile& src_file = get_src_file(filename);
-        unsigned    start    = line_start - context_size / 2;
+        const unsigned    start    = line_start - context_size / 2;
         return src_file.get_lines(start, context_size);
     }
 
@@ -4463,8 +4463,8 @@ public:
 
         using std::max;
         using std::min;
-        unsigned a = min(line_a, line_b);
-        unsigned b = max(line_a, line_b);
+        const unsigned a = min(line_a, line_b);
+        const unsigned b = max(line_a, line_b);
 
         if ((b - a) < (context_size / 3))
         {
@@ -4482,7 +4482,7 @@ private:
 
     SourceFile& get_src_file(const std::string& filename)
     {
-        src_files_t::iterator it = _src_files.find(filename);
+        const src_files_t::iterator it = _src_files.find(filename);
         if (it != _src_files.end())
         {
             return it->second;

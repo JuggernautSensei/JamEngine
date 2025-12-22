@@ -56,8 +56,8 @@ public:
 private:
     static constexpr Int32 k_invalidElement = -1;
 
-    VertexLayoutElement m_vles[EnumCount<eVertexAttribute>()]   = {};
-    Int32               m_vleLut[EnumCount<eVertexAttribute>()] = {};   // lookup table for attribute to m_elems index
+    VertexLayoutElement m_vles[NumEnums<eVertexAttribute>()]   = {};
+    Int32               m_vleLut[NumEnums<eVertexAttribute>()] = {};
     Int32               m_numElems                              = 0;
     Int32               m_stride                                = 0;
 };

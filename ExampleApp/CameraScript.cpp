@@ -55,9 +55,9 @@ void CameraScript::OnUpdate(const float _deltaSec)
 
     if (Input::IsMouseDown(eMouse::RightButton))
     {
-        Vec2i dPos   = Input::GetMouseDeltaPos();
-        float     dYaw   = static_cast<float>(dPos.x) * m_pData->rotSpeedRad;
-        float     dPitch = static_cast<float>(dPos.y) * m_pData->rotSpeedRad;
+        const Vec2i dPos   = Input::GetMouseDeltaPos();
+        const float     dYaw   = static_cast<float>(dPos.x) * m_pData->rotSpeedRad;
+        const float     dPitch = static_cast<float>(dPos.y) * m_pData->rotSpeedRad;
 
         m_pData->yaw += dYaw;
         m_pData->pitch += dPitch;

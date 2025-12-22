@@ -142,7 +142,7 @@ private:
         auto area_diff = parent_area;
         auto sibling_id = Bvh<Node>::get_sibling_id(node_id);
         auto pivot_bbox = bvh_.nodes[sibling_id].get_bbox();
-        auto parent_id = parents_[node_id];
+        const auto parent_id = parents_[node_id];
         auto pivot_id = parent_id;
 
         std::vector<std::pair<Scalar, size_t>> stack;
@@ -235,7 +235,7 @@ private:
 
     template <typename Derived>
     void optimize(Executor<Derived>& executor, const Config& config) {
-        auto batch_size = std::max(size_t{1},
+        const auto batch_size = std::max(size_t{1},
             static_cast<size_t>(static_cast<Scalar>(bvh_.nodes.size()) * config.batch_size_ratio));
         std::vector<Reinsertion> reinsertions;
         std::vector<bool> touched(bvh_.nodes.size());

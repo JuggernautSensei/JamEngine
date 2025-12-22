@@ -410,7 +410,7 @@ void Editor_FileBrowser::UpdateDirTree_()
 
 void Editor_FileBrowser::Widget_DirNode_Recursive_(const DirNode& _node)
 {
-    bool bHasChild = !_node.children.empty();
+    const bool bHasChild = !_node.children.empty();
 
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DrawLinesFull | ImGuiTreeNodeFlags_SpanAllColumns;
     if (!bHasChild)
@@ -492,7 +492,7 @@ void Editor_FileBrowser::Widget_FileEntry_(const FileEntry& _entry, const ImVec2
         }
         else
         {
-            const char* shortName = FormatStringToTmpBuffer("%.*s..", maxChars - 1, displayName.c_str());
+            const char* shortName = GlobalBuffer::FormatTmp("%.*s..", maxChars - 1, displayName.c_str());
             ImGui::TextUnformatted(shortName);
         }
     }
@@ -712,7 +712,7 @@ void Editor_FileBrowser::RenameFile_(const fs::path& _src, const fs::path& _dst)
     }
     catch (const fs::filesystem_error& e)
     {
-        std::string msg = std::format("failed to rename file from '{}' to '{}'.\n{}", _src.native(), _dst.native(), e.what());
+        const std::string msg = std::format("failed to rename file from '{}' to '{}'.\n{}", _src.native(), _dst.native(), e.what());
         Editor::OpenCorePopupDialog("error", msg);
     }
 }
@@ -721,7 +721,7 @@ void Editor_FileBrowser::OpenFileAsDefaultApplication_(const fs::path& _path) co
 {
     if (!OpenFileWithDefaultApplication(_path))
     {
-        std::string msg = std::format("failed to open file '{}'.\n{}", _path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to open file '{}'.\n{}", _path.native(), GlobalBuffer::GetLastError());
         Editor::OpenCorePopupDialog("error", msg);
     }
 }
@@ -730,7 +730,7 @@ void Editor_FileBrowser::OpenFileOnFileExplorer_(const fs::path& _path) const
 {
     if (!OpenFileExplorer(_path))
     {
-        std::string msg = std::format("failed to open file explorer at '{}'.\n{}", _path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to open file explorer at '{}'.\n{}", _path.native(), GlobalBuffer::GetLastError());
         Editor::OpenCorePopupDialog("error", msg);
     }
 }
@@ -761,7 +761,7 @@ void Editor_FileBrowser::DeleteFile_(const fs::path& _path) const
         }
         catch (const fs::filesystem_error& e)
         {
-            std::string msg = std::format("failed to remove file: {}\n{}", _path.native(), e.what());
+            const std::string msg = std::format("failed to remove file: {}\n{}", _path.native(), e.what());
             Editor::OpenCorePopupDialog("error", msg);
         }
     }
@@ -779,7 +779,7 @@ void Editor_FileBrowser::CreateNewFolder_(const fs::path& _parentDir) const
         // create path
         fs::path path = _parentDir / "new folder";
         if (attempt > 0)
-            path += FormatStringToTmpBuffer(" (%d)", attempt);
+            path += GlobalBuffer::FormatTmp(" (%d)", attempt);
 
         if (!fs::exists(path))
         {
@@ -789,7 +789,7 @@ void Editor_FileBrowser::CreateNewFolder_(const fs::path& _parentDir) const
             }
             catch (const fs::filesystem_error& e)
             {
-                std::string msg = std::format("failed to create new folder in '{}'.\n{}", _parentDir.native(), e.what());
+                const std::string msg = std::format("failed to create new folder in '{}'.\n{}", _parentDir.native(), e.what());
                 Editor::OpenCorePopupDialog("error", msg);
             }
 
@@ -798,7 +798,7 @@ void Editor_FileBrowser::CreateNewFolder_(const fs::path& _parentDir) const
     }
 
     // failed
-    std::string msg = std::format("failed to create new folder in '{}'. too many folders with the same name exist.", _parentDir.native());
+    const std::string msg = std::format("failed to create new folder in '{}'. too many folders with the same name exist.", _parentDir.native());
     Editor::OpenCorePopupDialog("error", msg);
 }
 

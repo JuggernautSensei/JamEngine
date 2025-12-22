@@ -16,11 +16,11 @@ public:
 private:
     bool                               Widget_NormalGenSelector_(eNormalGenType& _type) const;
     bool                               OnClickImportButton_();
-    [[nodiscard]] std::optional<Model> CreateModelFromImportedModelRootNode_(const AssimpImporter& _importer, const fs::path& _baseDir) const;
+    [[nodiscard]] Optional<Model> CreateModelFromImportedModelRootNode_(const AssimpImporter& _importer, const fs::path& _baseDir) const;
 
     // Helper functions for mesh processing
     static void CopyVec3Attribute_(
-        Vector<Byte>&       _vertexData,
+        Vector<Byte>&       _vertData,
         const Vector<Vec3>& _srcData,
         Int32                    _numVerts,
         Int32                    _vertexStride,
@@ -28,14 +28,14 @@ private:
         Int32                    _byteWidth);
 
     static void CopyVec4Attribute_(
-        Vector<Byte>&       _vertexData,
+        Vector<Byte>&       _vertData,
         const Vector<Vec4>& _srcData,
         Int32                    _numVerts,
         Int32                    _vertexStride,
         Int32                    _offset,
         Int32                    _byteWidth);
 
-    [[nodiscard]] static std::optional<Mesh> CreateMeshFromImported_(
+    [[nodiscard]] static Optional<Mesh> CreateMeshFromImported_(
         const ImportedMesh& _mesh,
         const VertexLayout& _layout);
 
@@ -50,12 +50,12 @@ private:
         const ImportedTexture& _tex);
 
     // Helper functions for material processing
-    [[nodiscard]] static std::optional<Material> CreateMaterialFromImported_(
+    [[nodiscard]] static Optional<Material> CreateMaterialFromImported_(
         const ImportedMaterial&               _importedMat,
         const Vector<Ref<ImageTexture>>& _textures);
 
     // Helper functions for node processing
-    [[nodiscard]] static std::optional<ModelNode> ConvertNodeRecursive_(
+    [[nodiscard]] static Optional<ModelNode> ConvertNodeRecursive_(
         const ImportedModelNode& _node);
 
     PopupDialog            m_popup;

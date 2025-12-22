@@ -7,18 +7,6 @@
 namespace jam
 {
 
-struct CommandLineArguments
-{
-    [[nodiscard]] const char* GetArgument(const int _index) const
-    {
-        JAM_ASSERT(_index >= 0 && _index < numArgs, "Argument index out of range");
-        return args[_index];
-    }
-
-    Int32  numArgs = 0;
-    char** args    = nullptr;
-};
-
 struct ApplicationCreateInfo
 {
     std::string applicationName  = "jam engine application";
@@ -37,7 +25,7 @@ public:
     Application& operator=(Application&&)      = delete;
 
     Int32 Run();
-    void Quit();
+    void  Quit();
 
     void DispatchEvent(Event& _event);
     void SubmitCommand(const std::function<void()>& _command);
@@ -45,7 +33,7 @@ public:
     void               SetVsync(bool _bVsync);
     [[nodiscard]] bool IsVsyncEnabled() const;
 
-    [[nodiscard]] std::string_view       GetApplicationName() const;
+    [[nodiscard]] StringView             GetApplicationName() const;
     [[nodiscard]] WindowsPlatform&       GetPlatform();
     [[nodiscard]] const WindowsPlatform& GetPlatform() const;
     [[nodiscard]] float                  GetDeltaTimeSec() const;
@@ -57,7 +45,7 @@ public:
     [[nodiscard]] fs::path        JoinWorkingDirectory(const fs::path& _dir) const;
     [[nodiscard]] fs::path        JoinContentsDirectory(const fs::path& _dir) const;
 
-    static void Create(const CommandLineArguments& _args);
+    static void Create(Int32 _argc, char** _argv);
     static void Destroy();
 
     static [[nodiscard]] Application& GetInstance();
@@ -95,4 +83,4 @@ private:
 }   // namespace jam
 
 // this function must define in user's code
-[[nodiscard]] jam::Application* CreateApplication(const jam::CommandLineArguments& _args);
+[[nodiscard]] jam::Application* CreateApplication(jam::Int32 argc, char** argv);

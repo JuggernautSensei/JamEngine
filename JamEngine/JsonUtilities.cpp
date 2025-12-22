@@ -10,6 +10,11 @@
 namespace nlohmann
 {
 
+void to_json(Json& _outJson, const StringView _str)
+{
+    _outJson = _str.ToString();
+}
+
 void to_json(Json& _outJson, const fs::path& _path)
 {
     _outJson = _path.native();
@@ -117,14 +122,14 @@ void from_json(const Json& _json, Ref<Mesh>& _pOutMesh)
     }
     else
     {
-        fs::path path = _json.get<fs::path>();
-        if (const std::optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(path))
+        const fs::path path = _json.get<fs::path>();
+        if (const Optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(path))
         {
             _pOutMesh = opt.value();
         }
         else
         {
-            throw std::runtime_error(std::format("failed to load Mesh from path: {}. {}", path.native(), ErrorBuffer::Get()));
+            throw std::runtime_error(std::format("failed to load Mesh from path: {}. {}", path.native(), GlobalBuffer::GetLastError()));
         }
     }
 }
@@ -149,14 +154,14 @@ void from_json(const Json& _json, Ref<Material>& _pOutMaterial)
     }
     else
     {
-        fs::path path = _json.get<fs::path>();
-        if (const std::optional<Ref<Material>> opt = AssetManager::GetOrLoadMaterial(path))
+        const fs::path path = _json.get<fs::path>();
+        if (const Optional<Ref<Material>> opt = AssetManager::GetOrLoadMaterial(path))
         {
             _pOutMaterial = opt.value();
         }
         else
         {
-            throw std::runtime_error(std::format("failed to load Material from path: {}. {}", path.native(), ErrorBuffer::Get()));
+            throw std::runtime_error(std::format("failed to load Material from path: {}. {}", path.native(), GlobalBuffer::GetLastError()));
         }
     }
 }
@@ -181,50 +186,16 @@ void from_json(const Json& _json, Ref<ImageTexture>& _pOutImageTexture)
     }
     else
     {
-        fs::path path = _json.get<fs::path>();
-        if (const std::optional<Ref<ImageTexture>> opt = AssetManager::GetOrLoadImageTexture(path))
+        const fs::path path = _json.get<fs::path>();
+        if (const Optional<Ref<ImageTexture>> opt = AssetManager::GetOrLoadImageTexture(path))
         {
             _pOutImageTexture = opt.value();
         }
         else
         {
-            throw std::runtime_error(std::format("failed to load ImageTexture from path: {}. {}", path.native(), ErrorBuffer::Get()));
+            throw std::runtime_error(std::format("failed to load ImageTexture from path: {}. {}", path.native(), GlobalBuffer::GetLastError()));
         }
     }
-}
-
-void to_json(Json& _outJson, const Camera& _camera)
-{
-    _outJson["projection"] = _camera.GetProjection();
-    _outJson["nearZ"]      = _camera.GetNearZ();
-    _outJson["farZ"]       = _camera.GetFarZ();
-    _outJson["fovYRad"]    = _camera.GetFovYRad();
-    _outJson["width"]      = _camera.GetWidth();
-    _outJson["height"]     = _camera.GetHeight();
-}
-
-void from_json(const Json& _json, Camera& _outCamera)
-{
-    eProjection proj    = _outCamera.GetProjection();
-    float       nearZ   = _outCamera.GetNearZ();
-    float       farZ    = _outCamera.GetFarZ();
-    float       fovYRad = _outCamera.GetFovYRad();
-    float       width   = _outCamera.GetWidth();
-    float       height  = _outCamera.GetHeight();
-
-    TryParseJsonField_ThrowOnParseError(_json, "projection", proj);
-    TryParseJsonField_ThrowOnParseError(_json, "nearZ", nearZ);
-    TryParseJsonField_ThrowOnParseError(_json, "farZ", farZ);
-    TryParseJsonField_ThrowOnParseError(_json, "fovYRad", fovYRad);
-    TryParseJsonField_ThrowOnParseError(_json, "width", width);
-    TryParseJsonField_ThrowOnParseError(_json, "height", height);
-
-    _outCamera.SetProjection(proj);
-    _outCamera.SetNearZ(nearZ);
-    _outCamera.SetFarZ(farZ);
-    _outCamera.SetFovYRad(fovYRad);
-    _outCamera.SetWidth(width);
-    _outCamera.SetHeight(height);
 }
 
 }   // namespace nlohmann

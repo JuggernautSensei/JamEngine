@@ -442,15 +442,15 @@ bool CreatePrimitiveDialog::OnClickCreateCubeTableOkButton_(const float _width, 
     path.replace_extension(k_jamMeshExt);
     if (fs::exists(path))
     {
-        std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
+        const std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
         m_popup.Open("error", msg);
         return false;
     }
 
-    Mesh mesh = CreateCubeMesh(Vec3 { _width, _height, _depth }, m_pEntry->GetVertexLayout());
+    const Mesh mesh = CreateCubeMesh(Vec3 { _width, _height, _depth }, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
         m_popup.Open("error", msg);
         return false;
     }
@@ -490,15 +490,15 @@ bool CreatePrimitiveDialog::OnClickCreateSphereTableOkButton_(const float _radiu
     path.replace_extension(k_jamMeshExt);
     if (fs::exists(path))
     {
-        std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
+        const std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
         m_popup.Open("error", msg);
         return false;
     }
 
-    Mesh mesh = CreateSphereMesh(_radius, _subdivisionLevel, m_pEntry->GetVertexLayout());
+    const Mesh mesh = CreateSphereMesh(_radius, _subdivisionLevel, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
         m_popup.Open("error", msg);
         return false;
     }
@@ -532,15 +532,15 @@ bool CreatePrimitiveDialog::OnClickCreatePlaneTableOkButton_(const float _width,
     path.replace_extension(k_jamMeshExt);
     if (fs::exists(path))
     {
-        std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
+        const std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
         m_popup.Open("error", msg);
         return false;
     }
 
-    Mesh mesh = CreatePlaneMesh(Vec2 { _width, _depth }, m_pEntry->GetVertexLayout());
+    const Mesh mesh = CreatePlaneMesh(Vec2 { _width, _depth }, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
         m_popup.Open("error", msg);
         return false;
     }
@@ -580,15 +580,15 @@ bool CreatePrimitiveDialog::OnClickCreateCircleTableOkButton_(const float _radiu
     path.replace_extension(k_jamMeshExt);
     if (fs::exists(path))
     {
-        std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
+        const std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
         m_popup.Open("error", msg);
         return false;
     }
 
-    Mesh mesh = CreateCircle(_radius, _numTri, m_pEntry->GetVertexLayout());
+    const Mesh mesh = CreateCircle(_radius, _numTri, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
         m_popup.Open("error", msg);
         return false;
     }
@@ -628,15 +628,15 @@ bool CreatePrimitiveDialog::OnClickCreateConeTableOkButton_(const float _height,
     path.replace_extension(k_jamMeshExt);
     if (fs::exists(path))
     {
-        std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
+        const std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
         m_popup.Open("error", msg);
         return false;
     }
 
-    Mesh mesh = CreateCone(_height, _radius, _numBottomTri, m_pEntry->GetVertexLayout());
+    const Mesh mesh = CreateCone(_height, _radius, _numBottomTri, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
         m_popup.Open("error", msg);
         return false;
     }
@@ -676,15 +676,15 @@ bool CreatePrimitiveDialog::OnClickCreateCylinderTableOkButton_(const float _hei
     path.replace_extension(k_jamMeshExt);
     if (fs::exists(path))
     {
-        std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
+        const std::string msg = std::format("cannot create mesh.\ntarget file already exists: {}", path.native());
         m_popup.Open("error", msg);
         return false;
     }
 
-    Mesh mesh = CreateCylinder(_height, _radius, _numBottomTri, m_pEntry->GetVertexLayout());
+    const Mesh mesh = CreateCylinder(_height, _radius, _numBottomTri, m_pEntry->GetVertexLayout());
     if (!mesh.Save(path))
     {
-        std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("failed to create mesh: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
         m_popup.Open("error", msg);
         return false;
     }

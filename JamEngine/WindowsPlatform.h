@@ -28,7 +28,7 @@ public:
 
     void ResizeClient(Int32 _clientWidth, Int32 _clientHeight);
     void MoveClient(Int32 _clientLeftTopX, Int32 _clientLeftTopY);
-    void SetTitle(std::string_view _name) const;
+    void SetTitle(StringView _name) const;
 
     void                               SetWindowProperty(eWindowPropertyFlags _flags);
     [[nodiscard]] eWindowPropertyFlags GetWindowProperty() const;
@@ -52,9 +52,9 @@ private:
     HWND      m_hWnd      = NULL;   // 윈도우 핸들
     MSG       m_msg       = {};     // 윈도우 메시지
 
-    Vec2i                m_clientPos  = { 0, 0 };
+    Vec2i                m_clientPos = { 0, 0 };
     Vec2i                m_clientRes = { 0, 0 };
-    eWindowPropertyFlags m_flags      = eWindowPropertyFlags_None;
+    eWindowPropertyFlags m_flags     = eWindowPropertyFlags_None;
 
     constexpr static const wchar_t* const k_windowClassName = L"jam engine window class";
     constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";

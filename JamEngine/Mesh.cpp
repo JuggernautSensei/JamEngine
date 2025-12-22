@@ -160,7 +160,7 @@ bool Mesh::Load(const fs::path& _path)
     CleanUp_();
 
     // file io
-    std::optional<Vector<Byte>> optData = LoadBinaryFile(_path);
+    const Optional<Vector<Byte>> optData = LoadBinaryFile(_path);
     if (!optData)
     {
         return false;
@@ -171,7 +171,7 @@ bool Mesh::Load(const fs::path& _path)
     flatbuffers::Verifier verifier = { data.data(), data.size() };
     if (!jmsh::VerifyMeshBuffer(verifier))
     {
-        ErrorBuffer::Set(R"(Mesh file is corrupted or invalid: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Mesh file is corrupted or invalid: "{}")", _path.native());
         return false;
     }
 
@@ -179,7 +179,7 @@ bool Mesh::Load(const fs::path& _path)
     const jmsh::Mesh* pJmshMesh = jmsh::GetMesh(data.data());
     if (!pJmshMesh)
     {
-        ErrorBuffer::Set(R"(Failed to parse mesh file: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Failed to parse mesh file: "{}")", _path.native());
         return false;
     }
 
@@ -187,7 +187,7 @@ bool Mesh::Load(const fs::path& _path)
     const jmsh::VertexLayout* pJmshVl = pJmshMesh->vertex_layout();
     if (!pJmshVl)
     {
-        ErrorBuffer::Set(R"(Failed to parse vertex vertexLayout in mesh file: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Failed to parse vertex vertexLayout in mesh file: "{}")", _path.native());
         return false;
     }
 
@@ -196,7 +196,7 @@ bool Mesh::Load(const fs::path& _path)
     const Int32 numJmshVles = pJmshVl->count();
     if (!pJmshVles || numJmshVles == 0)
     {
-        ErrorBuffer::Set(R"(Vertex vertexLayout in mesh file is empty: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Vertex vertexLayout in mesh file is empty: "{}")", _path.native());
         return false;
     }
 
@@ -213,7 +213,7 @@ bool Mesh::Load(const fs::path& _path)
         }
         else
         {
-            ErrorBuffer::Set(R"(Failed to parse vertex vertexLayout element in mesh file: "{}")", _path.native());
+            GlobalBuffer::SetLastError(R"(Failed to parse vertex vertexLayout element in mesh file: "{}")", _path.native());
             return false;
         }
     }
@@ -222,7 +222,7 @@ bool Mesh::Load(const fs::path& _path)
     const flatbuffers::Vector<Byte>* pJmshVertData = pJmshMesh->vertices();
     if (!pJmshVertData || pJmshVertData->size() == 0)
     {
-        ErrorBuffer::Set(R"(Vertex data in mesh file is empty: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Vertex data in mesh file is empty: "{}")", _path.native());
         return false;
     }
 
@@ -230,15 +230,15 @@ bool Mesh::Load(const fs::path& _path)
     const flatbuffers::Vector<Byte>* pJmshIdxData = pJmshMesh->indices();
     if (!pJmshIdxData || pJmshIdxData->size() == 0)
     {
-        ErrorBuffer::Set(R"(Index data in mesh file is empty: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Index data in mesh file is empty: "{}")", _path.native());
         return false;
     }
 
     // geometry data
     const Int32        numVerts = NarrowCast<Int32>(pJmshVertData->size() / vl.GetStride());
     const bool         bUseU32  = (numVerts > 0xFFFF);
-    const ConstMemView vertData = { pJmshVertData->data(), pJmshVertData->size() };
-    const ConstMemView idxData  = { pJmshIdxData->data(), pJmshIdxData->size() };
+    const CMemView vertData = { pJmshVertData->data(), pJmshVertData->size() };
+    const CMemView idxData  = { pJmshIdxData->data(), pJmshIdxData->size() };
 
     // gpu resource creation
     m_path = _path;
@@ -264,9 +264,9 @@ bool Mesh::Load(const fs::path& _path)
 }
 
 void Mesh::LoadMemory(
-    const ConstMemView  _verts,
+    const CMemView  _verts,
     const VertexLayout& _vl,
-    const ConstMemView  _idxData,
+    const CMemView  _idxData,
     const bool          _bUseU32,
     const fs::path&     _virtualPath)
 {
@@ -285,9 +285,9 @@ void Mesh::LoadMemory(
     {
         MurmurHash64 hasher;
         hasher.Begin();
-        hasher.Add(_verts.GetPointer(), _verts.GetByteWidth());
+        hasher.Add(_verts.GetPtr(), _verts.GetByteWidth());
         hasher.Add(&_vl, sizeof(VertexLayout));
-        hasher.Add(_idxData.GetPointer(), _idxData.GetByteWidth());
+        hasher.Add(_idxData.GetPtr(), _idxData.GetByteWidth());
         hasher.Add(&_bUseU32, sizeof(bool));
 
         const UInt64 hash = hasher.End();
@@ -295,7 +295,7 @@ void Mesh::LoadMemory(
     }
     else
     {
-        const std::string_view path = m_path.native();
+        const StringView path = m_path.native();
         const UInt64           hash = HashOf(path);
         m_sortKey                   = static_cast<UInt16>(hash & 0xFFFF);
     }
@@ -320,7 +320,7 @@ bool Mesh::Save(const fs::path& _path) const
         const Int16                  offset     = NarrowCast<Int16>(vle.offset);
         jmshVles[i]                             = jmsh::VertexLayoutElement { jmshAttrib, jmshFormat, offset };
     }
-    jmsh::VertexLayout jmshVl = { jmshVles, numVles };
+    const jmsh::VertexLayout jmshVl = { jmshVles, numVles };
 
     // fbs geometry data
     Vector<Byte> vertData     = Graphics::DownloadBuffer(m_vbh);
@@ -329,7 +329,7 @@ bool Mesh::Save(const fs::path& _path) const
     const auto   jmshIdxData  = builder.CreateVector(idxData.data(), idxData.size());
 
     // aabb
-    jmsh::AABB jmshAabb = { JmshVec3From(m_boundingBox.min), JmshVec3From(m_boundingBox.max) };
+    const jmsh::AABB jmshAabb = { JmshVec3From(m_boundingBox.min), JmshVec3From(m_boundingBox.max) };
 
     // mesh
     const auto jmshMesh = jmsh::CreateMesh(builder, jmshVertData, &jmshVl, jmshIdxData, &jmshAabb);
@@ -339,7 +339,7 @@ bool Mesh::Save(const fs::path& _path) const
     return SaveBinaryFile(_path, { builder.GetBufferPointer(), builder.GetSize() });
 }
 
-void Mesh::ComputeBoundingBox_(const ConstMemView _verts, const VertexLayout& _vl)
+void Mesh::ComputeBoundingBox_(const CMemView _verts, const VertexLayout& _vl)
 {
     JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required to calculate bounding box");
 
@@ -350,7 +350,7 @@ void Mesh::ComputeBoundingBox_(const ConstMemView _verts, const VertexLayout& _v
 
     // vertex info
     const Int32 numVerts  = NarrowCast<Int32>(_verts.GetByteWidth() / stride);
-    const Byte* pVertData = _verts.GetPointer();
+    const Byte* pVertData = _verts.GetPtr();
 
     m_boundingBox = {};
     for (Int32 i = 0; i < numVerts; ++i)
@@ -427,7 +427,7 @@ UInt32 Mesh::GetTypeHash() const
     return k_hash;
 }
 
-std::string_view Mesh::GetTypeName() const
+StringView Mesh::GetTypeName() const
 {
     return k_name;
 }

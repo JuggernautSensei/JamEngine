@@ -10,27 +10,27 @@ bool OpenFileWithDefaultApplication(const fs::path& _path);
 // file dialog
 struct FileDialogFilter
 {
-    std::string_view desc;   // e.g. "Image Files"
-    std::string_view ext;    // e.g. "*.png *.jpg *.bmp"
+    StringView desc;   // e.g. "Image Files"
+    StringView ext;    // e.g. "*.png *.jpg *.bmp"
 };
 
-[[nodiscard]] std::optional<fs::path> OpenFileDialog(
-    std::string_view                  _title              = "open file",
-    std::string_view                  _defaultPathOrEmpty = {},
+[[nodiscard]] Optional<fs::path> OpenFileDialog(
+    StringView                  _title              = "open file",
+    StringView                  _defaultPathOrEmpty = {},
     std::span<const FileDialogFilter> _filtersOrEmpty     = {});
 
-[[nodiscard]] std::optional<Vector<fs::path>> OpenMultiFileDialog(
-    std::string_view                  _title              = "open files",
-    std::string_view                  _defaultPathOrEmpty = {},
+[[nodiscard]] Optional<Vector<fs::path>> OpenMultiFileDialog(
+    StringView                  _title              = "open files",
+    StringView                  _defaultPathOrEmpty = {},
     std::span<const FileDialogFilter> _filtersOrEmpty     = {});
 
-[[nodiscard]] std::optional<fs::path> SaveFileDialog(
-    std::string_view                  _title              = "save file",
-    std::string_view                  _defaultPathOrEmpty = {},
+[[nodiscard]] Optional<fs::path> SaveFileDialog(
+    StringView                  _title              = "save file",
+    StringView                  _defaultPathOrEmpty = {},
     std::span<const FileDialogFilter> _filtersOrEmpty     = {});
 
-[[nodiscard]] std::optional<fs::path> OpenFolderDialog(
-    std::string_view _title              = "open folder",
-    std::string_view _defaultPathOrEmpty = {});
+[[nodiscard]] Optional<fs::path> OpenFolderDialog(
+    StringView _title              = "open folder",
+    StringView _defaultPathOrEmpty = {});
 
 }   // namespace jam

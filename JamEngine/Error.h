@@ -5,23 +5,25 @@
 namespace jam::details
 {
 
-void AssertFail(const std::source_location& _loc, std::string_view _msg);
+void AssertFail(const std::source_location& _loc, StringView _str);
 
 template<typename... Args>
 void AssertFail(const std::source_location& _loc, const std::format_string<Args...> _fmt, Args&&... _args)
 {
-    AssertFail(_loc, std::format(_fmt, std::forward<Args>(_args)...));
+    const std::string msg = std::format(_fmt, std::forward<Args>(_args)...);
+    AssertFail(_loc, msg.c_str());
 }
 
-void Crash(const std::source_location& _loc, std::string_view _msg);
+void Crash(const std::source_location& _loc, StringView _str);
 
 template<typename... Args>
 void Crash(const std::source_location& _loc, const std::format_string<Args...> _fmt, Args&&... _args)
 {
-    Crash(_loc, std::format(_fmt, std::forward<Args>(_args)...));
+    const std::string msg = std::format(_fmt, std::forward<Args>(_args)...);
+    Crash(_loc, std::format(_fmt, msg.c_str()));
 }
 
-void CrashWithComHint(const std::source_location& _loc, const char* _func, HRESULT _hr);
+void CrashWithComHint(const std::source_location& _loc, StringView _func, HRESULT _hr);
 
 }   // namespace jam::details
 
@@ -59,6 +61,6 @@ namespace jam
 {
 
 // com error message helper
-[[nodiscard]] std::string ErrorMessageFrom(HRESULT _hr);
+[[nodiscard]] std::string StringFrom(HRESULT _hr);
 
 }   // namespace jam

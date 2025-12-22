@@ -72,3 +72,4 @@ BraceWrapping:
 AllowAllParametersOfDeclarationOnNextLine: false
 BinPackParameters: false
 BinPackArguments: false
+SortIncludes: false

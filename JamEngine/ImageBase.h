@@ -3,7 +3,7 @@
 namespace jam
 {
 
-enum class eImageFormat : Int8
+enum class eImageFormat
 {
     DDS = 0,
     EXR,
@@ -25,7 +25,8 @@ enum class eImageFormat : Int8
     HEIC
 };
 
-[[nodiscard]] eImageFormat     ImageFormatFrom(const fs::path& _path);
-[[nodiscard]] std::string_view ErrorMessageFrom(eImageFormat _format);
+[[nodiscard]] Optional<eImageFormat> ImageFormatFrom(const fs::path& _path);
+[[nodiscard]] Optional<eImageFormat> ImageFormatFrom(StringView _ext);
+[[nodiscard]] StringView             StringFrom(eImageFormat _format);
 
 }   // namespace jam

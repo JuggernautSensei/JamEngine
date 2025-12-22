@@ -1,5 +1,5 @@
 #pragma once
-#include "MathUtilities.h"
+#include "Math.h"
 
 namespace jam
 {

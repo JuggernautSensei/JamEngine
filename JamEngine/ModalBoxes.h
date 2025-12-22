@@ -8,7 +8,7 @@ namespace jam
 class OkModalBox : public IModalBoxPanel
 {
 public:
-    OkModalBox(const std::string_view _title, const std::string_view _msg)
+    OkModalBox(const StringView _title, const StringView _msg)
         : m_title(_title)
         , m_msg(_msg)
     {
@@ -28,7 +28,7 @@ public:
         }
     }
 
-    JAM_NODISCARD std::string_view GetTitle() const override
+    JAM_NODISCARD StringView GetTitle() const override
     {
         return m_title;
     }
@@ -43,7 +43,7 @@ private:
 class CallbackModalBox : public IModalBoxPanel
 {
 public:
-    CallbackModalBox(const std::string_view _title, const std::function<void()>& _showCallback)
+    CallbackModalBox(const StringView _title, const std::function<void()>& _showCallback)
         : m_title(_title)
         , m_showCallback(_showCallback)
     {
@@ -55,7 +55,7 @@ public:
         m_showCallback();
     }
 
-    JAM_NODISCARD std::string_view GetTitle() const override
+    JAM_NODISCARD StringView GetTitle() const override
     {
         return m_title;
     }
@@ -69,7 +69,7 @@ private:
 class YesOrNoModalBox : public IModalBoxPanel
 {
 public:
-    explicit YesOrNoModalBox(const std::string_view _title, const std::string_view _msg, const std::function<void()>& _onPressYesCallbackOrNull = nullptr, const std::function<void()>& _onPressNoCallbackOrNull = nullptr)
+    explicit YesOrNoModalBox(const StringView _title, const StringView _msg, const std::function<void()>& _onPressYesCallbackOrNull = nullptr, const std::function<void()>& _onPressNoCallbackOrNull = nullptr)
         : m_title(_title)
         , m_msg(_msg)
         , m_onPressYesCallbackOrNull(_onPressYesCallbackOrNull)
@@ -110,7 +110,7 @@ public:
         }
     }
 
-    JAM_NODISCARD std::string_view GetTitle() const override
+    JAM_NODISCARD StringView GetTitle() const override
     {
         return m_title;
     }

@@ -20,13 +20,11 @@ ComponentDB& ComponentDB::GetInstance()
 
 void ComponentDB::DestroyInstance()
 {
-    if (s_instance)
-    {
-        JAM_DELETE(s_instance);
-    }
+    JAM_DELETE(s_instance);
 }
 
-void ComponentDB::Reflect(const ComponentInfo& info)
+void ComponentDB::Reflect(
+    const ComponentInfo& info)
 {
     const UInt32 hash = HashOf(info.name);
     JAM_ASSERT(!m_infos.contains(hash), "Component '{}' is already registered", info.name);
@@ -34,7 +32,9 @@ void ComponentDB::Reflect(const ComponentInfo& info)
     m_typeToNameContainer[info.hash] = hash;
 }
 
-void ComponentDB::Create(const std::string_view _name, const Entity _entity) const
+void ComponentDB::Create(
+    const StringView _name,
+    const Entity     _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
@@ -42,7 +42,10 @@ void ComponentDB::Create(const std::string_view _name, const Entity _entity) con
     info.createFn(_entity);
 }
 
-void ComponentDB::CreateByCopy(const std::string_view _name, const Entity _entity, const void* _pComponent) const
+void ComponentDB::CreateByCopy(
+    const StringView _name,
+    const Entity     _entity,
+    const void*      _pComponent) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
@@ -50,7 +53,9 @@ void ComponentDB::CreateByCopy(const std::string_view _name, const Entity _entit
     info.createByCopyFn(_entity, _pComponent);
 }
 
-void ComponentDB::Remove(const std::string_view _name, const Entity _entity) const
+void ComponentDB::Remove(
+    const StringView _name,
+    const Entity     _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
@@ -58,7 +63,9 @@ void ComponentDB::Remove(const std::string_view _name, const Entity _entity) con
     info.removeFn(_entity);
 }
 
-void* ComponentDB::Get(const std::string_view _name, const Entity _entity) const
+void* ComponentDB::Get(
+    const StringView _name,
+    const Entity     _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
@@ -66,7 +73,9 @@ void* ComponentDB::Get(const std::string_view _name, const Entity _entity) const
     return info.getFn(_entity);
 }
 
-bool ComponentDB::Has(const std::string_view _name, const Entity _entity) const
+bool ComponentDB::Has(
+    const StringView _name,
+    const Entity     _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
@@ -74,15 +83,25 @@ bool ComponentDB::Has(const std::string_view _name, const Entity _entity) const
     return info.hasFn(_entity);
 }
 
-Json ComponentDB::Serialize(const std::string_view _name, const void* _pComponent, const Ref<Scene>& _pScene, const Entity _entity) const
+void ComponentDB::Serialize(
+    StringView        _name,
+    const void*       _pComponent,
+    JsonWriter&       _writer,
+    const Ref<Scene>& _pScene,
+    const Entity      _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
     JAM_ASSERT(info.serializeFn, "Component '{}' does not have a serialize function", _name);
-    return info.serializeFn(_pComponent, _pScene, _entity);
+    info.serializeFn(_pComponent, _writer, _pScene, _entity);
 }
 
-void ComponentDB::Deserialize(const std::string_view _name, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, const Entity _entity) const
+void ComponentDB::Deserialize(
+    StringView        _name,
+    void*             _pComponent,
+    JsonReader&       _json,
+    const Ref<Scene>& _pScene,
+    const Entity      _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
@@ -90,7 +109,37 @@ void ComponentDB::Deserialize(const std::string_view _name, void* _pComponent, c
     info.deserializeFn(_pComponent, _json, _pScene, _entity);
 }
 
-void ComponentDB::DrawEditor(const std::string_view _name, void* _pComponent, Ref<Scene>& _pScene, const Entity _entity) const
+void ComponentDB::Serialize(
+    UInt32            _typeId,
+    const void*       _pComponent,
+    JsonWriter&       _writer,
+    const Ref<Scene>& _pScene,
+    const Entity      _entity) const
+{
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
+    const ComponentInfo& info = m_infos.at(hash);
+    JAM_ASSERT(info.serializeFn, "Component with type hash {} does not have a serialize function", _typeId);
+    info.serializeFn(_pComponent, _writer, _pScene, _entity);
+}
+
+void ComponentDB::Deserialize(
+    UInt32            _typeId,
+    void*             _pComponent,
+    JsonReader&       _json,
+    const Ref<Scene>& _pScene,
+    const Entity      _entity) const
+{
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
+    const ComponentInfo& info = m_infos.at(hash);
+    JAM_ASSERT(info.deserializeFn, "Component with type hash {} does not have a deserialize function", _typeId);
+    info.deserializeFn(_pComponent, _json, _pScene, _entity);
+}
+
+void ComponentDB::DrawEditor(
+    const StringView _name,
+    void*            _pComponent,
+    Ref<Scene>&      _pScene,
+    const Entity     _entity) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
@@ -98,128 +147,136 @@ void ComponentDB::DrawEditor(const std::string_view _name, void* _pComponent, Re
     info.drawEditorFn(_pComponent, _pScene, _entity);
 }
 
-bool ComponentDB::IsSerializable(const std::string_view _name) const
+bool ComponentDB::IsSerializable(
+    const StringView _name) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
     return !!info.serializeFn;
 }
 
-bool ComponentDB::IsEditable(const std::string_view _name) const
+bool ComponentDB::IsEditable(
+    const StringView _name) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
     return !!info.drawEditorFn;
 }
 
-std::string_view ComponentDB::GetDisplayName(const std::string_view _name) const
+StringView ComponentDB::GetDisplayName(
+    const StringView _name) const
 {
     const UInt32         hash = HashOf(_name);
     const ComponentInfo& info = m_infos.at(hash);
     return info.displayName;
 }
 
-bool ComponentDB::IsReflected(const std::string_view _name) const
+bool ComponentDB::IsReflected(
+    const StringView _name) const
 {
     const UInt32 hash = HashOf(_name);
     return m_infos.contains(hash);
 }
 
-void ComponentDB::Create(const UInt32 _typeID, const Entity _entity) const
+void ComponentDB::Create(
+    const UInt32 _typeId,
+    const Entity _entity) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.createFn, "Component with type hash {} does not have a create function", _typeID);
+    JAM_ASSERT(info.createFn, "Component with type hash {} does not have a create function", _typeId);
     info.createFn(_entity);
 }
 
-void ComponentDB::CreateByCopy(const UInt32 _typeID, const Entity _entity, const void* _pComponent) const
+void ComponentDB::CreateByCopy(
+    const UInt32 _typeId,
+    const Entity _entity,
+    const void*  _pComponent) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.createByCopyFn, "Component with type hash {} does not have a copy constructor function", _typeID);
+    JAM_ASSERT(info.createByCopyFn, "Component with type hash {} does not have a copy constructor function", _typeId);
     info.createByCopyFn(_entity, _pComponent);
 }
 
-void ComponentDB::Remove(const UInt32 _typeID, const Entity _entity) const
+void ComponentDB::Remove(
+    const UInt32 _typeId,
+    const Entity _entity) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.removeFn, "Component with type hash {} does not have a remove function", _typeID);
+    JAM_ASSERT(info.removeFn, "Component with type hash {} does not have a remove function", _typeId);
     info.removeFn(_entity);
 }
 
-void* ComponentDB::Get(const UInt32 _typeID, const Entity _entity) const
+void* ComponentDB::Get(
+    const UInt32 _typeId,
+    const Entity _entity) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.getFn, "Component with type hash {} does not have a get function", _typeID);
+    JAM_ASSERT(info.getFn, "Component with type hash {} does not have a get function", _typeId);
     return info.getFn(_entity);
 }
 
-bool ComponentDB::Has(const UInt32 _typeID, const Entity _entity) const
+bool ComponentDB::Has(
+    const UInt32 _typeId,
+    const Entity _entity) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.hasFn, "Component with type hash {} does not have a has function", _typeID);
+    JAM_ASSERT(info.hasFn, "Component with type hash {} does not have a has function", _typeId);
     return info.hasFn(_entity);
 }
 
-Json ComponentDB::Serialize(const UInt32 _typeID, const void* _pComponent, const Ref<Scene>& _pScene, const Entity _entity) const
+void ComponentDB::DrawEditor(
+    const UInt32 _typeId,
+    void*        _pComponent,
+    Ref<Scene>&  _pScene,
+    const Entity _entity) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.serializeFn, "Component with type hash {} does not have a serialize function", _typeID);
-    return info.serializeFn(_pComponent, _pScene, _entity);
-}
-
-void ComponentDB::Deserialize(const UInt32 _typeID, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, const Entity _entity) const
-{
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
-    const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.deserializeFn, "Component with type hash {} does not have a deserialize function", _typeID);
-    info.deserializeFn(_pComponent, _json, _pScene, _entity);
-}
-
-void ComponentDB::DrawEditor(const UInt32 _typeID, void* _pComponent, Ref<Scene>& _pScene, const Entity _entity) const
-{
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
-    const ComponentInfo& info = m_infos.at(hash);
-    JAM_ASSERT(info.drawEditorFn, "Component with type hash {} does not have a draw editor function", _typeID);
+    JAM_ASSERT(info.drawEditorFn, "Component with type hash {} does not have a draw editor function", _typeId);
     info.drawEditorFn(_pComponent, _pScene, _entity);
 }
 
-bool ComponentDB::IsSerializable(const UInt32 _typeID) const
+bool ComponentDB::IsSerializable(
+    const UInt32 _typeId) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
     return !!info.serializeFn;
 }
 
-bool ComponentDB::IsEditable(const UInt32 _typeID) const
+bool ComponentDB::IsEditable(
+    const UInt32 _typeId) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
     return !!info.drawEditorFn;
 }
 
-std::string_view ComponentDB::GetDisplayName(const UInt32 _typeID) const
+StringView ComponentDB::GetDisplayName(
+    const UInt32 _typeId) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
     return info.displayName;
 }
 
-std::string_view ComponentDB::GetComponentName(const UInt32 _typeID) const
+StringView ComponentDB::GetComponentName(
+    const UInt32 _typeId) const
 {
-    const UInt32         hash = m_typeToNameContainer.at(_typeID);
+    const UInt32         hash = m_typeToNameContainer.at(_typeId);
     const ComponentInfo& info = m_infos.at(hash);
     return info.name;
 }
 
-bool ComponentDB::IsReflected(const UInt32 _typeID) const
+bool ComponentDB::IsReflected(
+    const UInt32 _typeId) const
 {
-    return m_typeToNameContainer.contains(_typeID);
+    return m_typeToNameContainer.contains(_typeId);
 }
 
 const ComponentDB::ContainerT& ComponentDB::GetContainer() const

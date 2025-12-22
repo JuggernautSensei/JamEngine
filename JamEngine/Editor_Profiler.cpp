@@ -38,8 +38,8 @@ void Editor_Profiler::OnImGuiRender(bool& _pShow) const
 void Editor_Profiler::DrawFrameTabItem_() const
 {
     const Application& app         = Application::GetInstance();
-    float              deltaTimeMs = app.GetDeltaTimeSec() / 0.001f;
-    float              frameRate   = app.GetFrameRate();
+    const float              deltaTimeMs = app.GetDeltaTimeSec() / 0.001f;
+    const float              frameRate   = app.GetFrameRate();
 
     ImGui::Text("delta time: %.3f ms", deltaTimeMs);
     ImGui::Text("frame rate: %.1f fps", frameRate);
@@ -59,7 +59,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         Button5,
     };
 
-    constexpr const char* k_mouseName[EnumCount<eMouseButton>()] = {
+    constexpr const char* k_mouseName[NumEnums<eMouseButton>()] = {
         "left",
         "right",
         "middle",
@@ -67,7 +67,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         "button 5",
     };
 
-    constexpr eMouse k_mouseButtonTable[EnumCount<eMouseButton>()] = {
+    constexpr eMouse k_mouseButtonTable[NumEnums<eMouseButton>()] = {
         eMouse::LeftButton,
         eMouse::RightButton,
         eMouse::MiddleButton,
@@ -83,7 +83,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         Away
     };
 
-    constexpr const char* k_mouseStateName[EnumCount<eMouseState>()] = {
+    constexpr const char* k_mouseStateName[NumEnums<eMouseState>()] = {
         "pressed",
         "hold",
         "released",
@@ -160,7 +160,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         {
             static bool IsLegacyNativeDupe(ImGuiKey) { return false; }
         };
-        ImGuiKey start_key = ImGuiKey_NamedKey_BEGIN;
+        const ImGuiKey start_key = ImGuiKey_NamedKey_BEGIN;
         ImGui::Text("Keys down:");
         for (ImGuiKey key = start_key; key < ImGuiKey_NamedKey_END; key = static_cast<ImGuiKey>(key + 1))
         {
@@ -174,7 +174,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         ImGui::Text("Chars queue:");
         for (int i = 0; i < io.InputQueueCharacters.Size; i++)
         {
-            ImWchar c = io.InputQueueCharacters[i];
+            const ImWchar c = io.InputQueueCharacters[i];
             ImGui::SameLine();
             ImGui::Text("\'%c\' (0x%04X)", (c > ' ' && c <= 255) ? static_cast<char>(c) : '?', c);
         }

@@ -7,27 +7,27 @@
 #include "ImGuiUtilities.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "JsonUtilities.h"
 
 namespace jam
 {
 
-Json RenderableComponent::Serialize(
+void RenderableComponent::Serialize(
+    JsonWriter&       _writer,
     const Ref<Scene>& _pScene,
-    Entity            _entity) const
+    Entity            _owner) const
 {
-    Json json;
-    json["mesh"]     = renderable.pMesh;
-    json["material"] = renderable.pMaterial;
-    return json;
+    _writer.WriteField("mesh", renderable.pMesh);
+    _writer.WriteField("material", renderable.pMaterial);
 }
 
 void RenderableComponent::Deserialize(
-    const Json& _json,
-    Ref<Scene>& _pScene,
-    Entity      _entity)
+    JsonReader&       _reader,
+    const Ref<Scene>& _pScene,
+    Entity            _owner)
 {
-    TryParseJsonField(_json, "mesh", renderable.pMesh);
-    TryParseJsonField(_json, "material", renderable.pMaterial);
+    _reader.ReadField("mesh", renderable.pMesh);
+    _reader.ReadField("material", renderable.pMaterial);
 }
 
 void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)

@@ -262,11 +262,11 @@ void EditorRenderer::Init()
     {
         if (!compiler.CompileSource(k_editorRendererGridShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor grid vertex shader compilation failed");
-        ShaderHandle gridVsh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle gridVsh = Graphics::CreateShader(compiler.GetBytecode());
 
         if (!compiler.CompileSource(k_editorRendererGridShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor grid pixel shader compilation failed");
-        ShaderHandle gridPsh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle gridPsh = Graphics::CreateShader(compiler.GetBytecode());
 
         m_gridProgramHandle = Graphics::CreateProgram(gridVsh, gridPsh, true);
     }
@@ -275,11 +275,11 @@ void EditorRenderer::Init()
     {
         if (!compiler.CompileSource(k_editorRendererLineShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor line vertex shader compilation failed");
-        ShaderHandle lineVsh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle lineVsh = Graphics::CreateShader(compiler.GetBytecode());
 
         if (!compiler.CompileSource(k_editorRendererLineShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor line pixel shader compilation failed");
-        ShaderHandle linePsh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle linePsh = Graphics::CreateShader(compiler.GetBytecode());
 
         m_lineProgramHandle = Graphics::CreateProgram(lineVsh, linePsh, true);
     }
@@ -288,11 +288,11 @@ void EditorRenderer::Init()
     {
         if (!compiler.CompileSource(k_editorRendererFilledShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor filled vertex shader compilation failed");
-        ShaderHandle filledVsh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle filledVsh = Graphics::CreateShader(compiler.GetBytecode());
 
         if (!compiler.CompileSource(k_editorRendererFilledShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor filled pixel shader compilation failed");
-        ShaderHandle filledPsh = Graphics::CreateShader(compiler.GetBytecode());
+        const ShaderHandle filledPsh = Graphics::CreateShader(compiler.GetBytecode());
 
         m_filledProgramHandle = Graphics::CreateProgram(filledVsh, filledPsh, true);
     }
@@ -438,8 +438,8 @@ void EditorRenderer::FlushLines_()
     cb.eye      = m_eye;
     Graphics::UploadBuffer(m_cbh, cb);
 
-    Graphics::UploadBuffer(m_lineVbh, ConstMemView { m_lineVertices, sizeof(LineVertex) * m_numLineVerts });
-    Graphics::UploadBuffer(m_lineIbh, ConstMemView { m_lineIndices, sizeof(UInt16) * m_numLineIndices });
+    Graphics::UploadBuffer(m_lineVbh, CMemView { m_lineVertices, sizeof(LineVertex) * m_numLineVerts });
+    Graphics::UploadBuffer(m_lineIbh, CMemView { m_lineIndices, sizeof(UInt16) * m_numLineIndices });
 
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::LineList;
@@ -479,7 +479,7 @@ void EditorRenderer::DrawLine(const Vec3 _from, const Vec3 _to, const RGBA _colo
         FlushLines_();
     }
 
-    UInt16 baseIdx = NarrowCast<UInt16>(m_numLineVerts);
+    const UInt16 baseIdx = NarrowCast<UInt16>(m_numLineVerts);
 
     m_lineVertices[m_numLineVerts++]  = LineVertex { _from, _color };
     m_lineVertices[m_numLineVerts++]  = LineVertex { _to, _color };
@@ -568,7 +568,7 @@ void EditorRenderer::DrawFilledSphere(const Vec3 _center, const float _radius, c
 
     m_currentColor = _color;
 
-    Mat4 world = Mat4::CreateScale(_radius) * Mat4::CreateTranslation(_center);
+    const Mat4 world = Mat4::CreateScale(_radius) * Mat4::CreateTranslation(_center);
     UploadTransform_(world);
 
     RenderState state = m_lineState;
@@ -586,7 +586,7 @@ void EditorRenderer::DrawFilledCube(const Vec3 _center, const Vec3 _size, const 
 
     m_currentColor = _color;
 
-    Mat4 world = Mat4::CreateScale(_size) * Mat4::CreateTranslation(_center);
+    const Mat4 world = Mat4::CreateScale(_size) * Mat4::CreateTranslation(_center);
     UploadTransform_(world);
 
     RenderState state = m_lineState;
@@ -603,8 +603,8 @@ void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, con
     FlushLines_();
 
     m_currentColor = _color;
-    Quat q         = Quat::FromToRotation(Vec3::Up, _dir);
-    Mat4 world     = Mat4::CreateScale(Vec3(_radius, _height, _radius)) * Mat4::CreateFromQuaternion(q) * Mat4::CreateTranslation(_center);
+    const Quat q         = Quat::FromToRotation(Vec3::Up, _dir);
+    const Mat4 world     = Mat4::CreateScale(Vec3(_radius, _height, _radius)) * Mat4::CreateFromQuaternion(q) * Mat4::CreateTranslation(_center);
     UploadTransform_(world);
 
     RenderState state = m_lineState;
@@ -618,17 +618,17 @@ void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, con
 
 void EditorRenderer::DrawFilledCapsule(const Vec3 _center, const Vec3 _dir, const float _height, const float _radius, const RGBA _color)
 {
-    float cylinderHeight = Max(0.f, _height - 2.f * _radius);
+    const float cylinderHeight = Max(0.f, _height - 2.f * _radius);
 
     // 실린더
     DrawFilledCylinder(_center, _dir, cylinderHeight, _radius, _color);
 
     // 위쪽 반구
-    Vec3 topCenter = _center + _dir * cylinderHeight * 0.5f;
+    const Vec3 topCenter = _center + _dir * cylinderHeight * 0.5f;
     DrawFilledSphere(topCenter, _radius, _color);
 
     // 아래쪽 반구
-    Vec3 bottomCenter = _center - _dir * cylinderHeight * 0.5f;
+    const Vec3 bottomCenter = _center - _dir * cylinderHeight * 0.5f;
     DrawFilledSphere(bottomCenter, _radius, _color);
 }
 

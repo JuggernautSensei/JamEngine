@@ -7,7 +7,8 @@
 namespace jam
 {
 
-[[nodiscard]] static eImageFormat ImageFormatFromLowerExt(const std::string_view _ext)
+[[nodiscard]] Optional<eImageFormat> ImageFormatFromLowerExt(
+    const StringView _ext)
 {
     switch (HashOf(_ext))
     {
@@ -63,30 +64,45 @@ namespace jam
         case HashOf("heic"):
             return eImageFormat::HEIC;
         default:
-            return eImageFormat::Unknown;
+            return k_nullopt;
     }
 }
 
 ///////////////////////////////////////////////////////
 
-eImageFormat ImageFormatFrom(
+Optional<eImageFormat> ImageFormatFrom(
     const fs::path& _path)
 {
-    const std::string_view path = _path.native();
+    const StringView path = _path.native();
     if (path[0] == '.')   // already an extension
     {
-        std::string ext = ToLower(path);
-        return ImageFormatFromLowerExt(ext);
+        const std::string lowerExt = ToLower(path);
+        return ImageFormatFromLowerExt(lowerExt);
     }
     else
     {
-        fs::path    ext      = _path.extension();
-        std::string lowerExt = ToLower(ext.native());
+        const fs::path    ext      = _path.extension();
+        const std::string lowerExt = ToLower(ext.native());
         return ImageFormatFromLowerExt(lowerExt);
     }
 }
 
-std::string_view ErrorMessageFrom(
+Optional<eImageFormat> ImageFormatFrom(
+    const StringView _ext)
+{
+    // check
+    if (_ext.IsEmpty())
+    {
+        return k_nullopt;
+    }
+    else
+    {
+        const std::string lowerExt = ToLower(_ext);
+        return ImageFormatFromLowerExt(lowerExt);
+    }
+}
+
+StringView StringFrom(
     const eImageFormat _format)
 {
     switch (_format)

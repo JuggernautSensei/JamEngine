@@ -6,7 +6,7 @@
 namespace jam
 {
 
-enum class eLogLevel : Int8
+enum class eLogLevel
 {
     Trace    = spdlog::level::trace,
     Debug    = spdlog::level::debug,
@@ -17,24 +17,26 @@ enum class eLogLevel : Int8
     Off      = spdlog::level::off
 };
 
+using SinkPtr = spdlog::sink_ptr;
+
 class Log
 {
 public:
     static void Init();
     static void Shutdown();
 
-    static void AddSink(std::string_view _sinkName, const spdlog::sink_ptr& _sink);
-    static void RemoveSink(std::string_view _sinkName);
+    static void AddSink(StringView _name, const spdlog::sink_ptr& _pSink);
+    static void RemoveSink(StringView _name);
 
-    [[nodiscard]] static const spdlog::sink_ptr& GetSink(std::string_view _sinkName);
-    [[nodiscard]] static const spdlog::sink_ptr& GetConsoleSink();
-    [[nodiscard]] static const spdlog::sink_ptr& GetFileSink();
+    [[nodiscard]] static const SinkPtr& GetSink(StringView _name);
+    [[nodiscard]] static const SinkPtr& GetConsoleSink();
+    [[nodiscard]] static const SinkPtr& GetFileSink();
 
     template<typename... Args>
     static void Logging(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
         spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-        spdlog::default_logger_raw()->log(level, _format, std::forward<Args>(args)...);
+        spdlog::default_logger_raw()->log(level, _format, args...);
     }
 
     template<typename T>
@@ -47,37 +49,37 @@ public:
     template<typename... Args>
     static void Trace(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Trace, _format, std::forward<Args>(args)...);
+        Logging(eLogLevel::Trace, _format, args...);
     }
 
     template<typename... Args>
     static void Debug(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Debug, _format, std::forward<Args>(args)...);
+        Logging(eLogLevel::Debug, _format, args...);
     }
 
     template<typename... Args>
     static void Info(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Info, _format, std::forward<Args>(args)...);
+        Logging(eLogLevel::Info, _format, args...);
     }
 
     template<typename... Args>
     static void Warn(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Warn, _format, std::forward<Args>(args)...);
+        Logging(eLogLevel::Warn, _format, args...);
     }
 
     template<typename... Args>
     static void Error(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Error, _format, std::forward<Args>(args)...);
+        Logging(eLogLevel::Error, _format, args...);
     }
 
     template<typename... Args>
     static void Critical(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Critical, _format, std::forward<Args>(args)...);
+        Logging(eLogLevel::Critical, _format, args...);
     }
 
     template<typename T>
@@ -117,10 +119,10 @@ public:
     }
 
     static void SetLogLevel(eLogLevel _level);
-    static void SetLogLevel(std::string_view _sinkName, eLogLevel _level);
+    static void SetLogLevel(StringView _name, eLogLevel _level);
 
-    static void SetLogPattern(std::string_view _pattern);
-    static void SetLogPattern(std::string_view _sinkName, std::string_view _pattern);
+    static void SetLogPattern(StringView _pattern);
+    static void SetLogPattern(StringView _name, StringView _pattern);
 };
 
 }   // namespace jam

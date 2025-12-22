@@ -1,6 +1,4 @@
 #pragma once
-#include "Macros.h"
-#include "TypeTrait.h"
 #include <numbers>
 #include <random>
 
@@ -229,7 +227,7 @@ template<typename T>
     {
         return _min;
     }
-    float result = _x - (range * Floor((_x - _min) / range));
+    const float result = _x - (range * Floor((_x - _min) / range));
     if (IsEqualApprox(result, _max))
     {
         return _min;

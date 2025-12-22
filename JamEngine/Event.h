@@ -14,9 +14,9 @@ public:
     Event(Event&&) noexcept            = default;
     Event& operator=(Event&&) noexcept = default;
 
-    [[nodiscard]] virtual std::string      ToString() const    = 0;
-    [[nodiscard]] virtual std::string_view GetTypeName() const = 0;
-    [[nodiscard]] virtual UInt32           GetTypeHash() const = 0;
+    [[nodiscard]] virtual std::string ToString() const    = 0;
+    [[nodiscard]] virtual StringView  GetTypeName() const = 0;
+    [[nodiscard]] virtual UInt32      GetTypeHash() const = 0;
 
     [[nodiscard]] bool IsHandled() const;
     void               SetHandled(bool _bHandled);
@@ -25,11 +25,11 @@ private:
     bool m_bHandled = false;
 };
 
-#define JAM_EVENT(_eventT, _eventCategory)                                            \
-    constexpr static std::string_view k_name = NameOf<_eventT>();                     \
-    constexpr static UInt32           k_hash = HashOf<_eventT>();                     \
-    [[nodiscard]] std::string_view    GetTypeName() const override { return k_name; } \
-    [[nodiscard]] UInt32              GetTypeHash() const override { return k_hash; }
+#define JAM_EVENT(_eventT, _eventCategory)                                      \
+    constexpr static StringView k_name = NameOf<_eventT>();                     \
+    constexpr static UInt32     k_hash = HashOf<_eventT>();                     \
+    [[nodiscard]] StringView    GetTypeName() const override { return k_name; } \
+    [[nodiscard]] UInt32        GetTypeHash() const override { return k_hash; }
 
 class EventDispatcher
 {

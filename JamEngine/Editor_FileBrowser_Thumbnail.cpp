@@ -44,20 +44,20 @@ bool Editor_FileBrowser::Thumbnail::Load(const fs::path& _path)
 {
     CleanUp_();
 
-    std::wstring path = _path.wstring();
+    const std::wstring path = _path.wstring();
 
     CComPtr<IShellItem>             psi;
     CComPtr<IShellItemImageFactory> pImageFactory;
 
     if (FAILED(SHCreateItemFromParsingName(path.c_str(), nullptr, IID_PPV_ARGS(&psi))))
     {
-        ErrorBuffer::Set("Failed to create IShellItem from path: {}", _path.native());
+        GlobalBuffer::SetLastError("Failed to create IShellItem from path: {}", _path.native());
         return false;
     }
 
     if (FAILED(psi->QueryInterface(IID_PPV_ARGS(&pImageFactory))))
     {
-        ErrorBuffer::Set("Failed to get IShellItemImageFactory from IShellItem: {}", _path.native());
+        GlobalBuffer::SetLastError("Failed to get IShellItemImageFactory from IShellItem: {}", _path.native());
         return false;
     }
 
@@ -66,7 +66,7 @@ bool Editor_FileBrowser::Thumbnail::Load(const fs::path& _path)
     {
         if (FAILED(pImageFactory->GetImage(k_thumbnailSize, SIIGBF_RESIZETOFIT, &hBmp)))
         {
-            ErrorBuffer::Set("Failed to get thumbnail image for path: {}", _path.native());
+            GlobalBuffer::SetLastError("Failed to get thumbnail image for path: {}", _path.native());
             return false;
         }
     }
@@ -75,7 +75,7 @@ bool Editor_FileBrowser::Thumbnail::Load(const fs::path& _path)
     if (GetObject(hBmp, sizeof(BITMAP), &bmp) == 0)
     {
         DeleteObject(hBmp);
-        ErrorBuffer::Set("GetObject failed for thumbnail bitmap: {}", _path.native());
+        GlobalBuffer::SetLastError("GetObject failed for thumbnail bitmap: {}", _path.native());
         return false;
     }
 
@@ -86,11 +86,11 @@ bool Editor_FileBrowser::Thumbnail::Load(const fs::path& _path)
     if (GetBitmapBits(hBmp, NarrowCast<LONG>(pixels.size()), pixels.data()) == 0)
     {
         DeleteObject(hBmp);
-        ErrorBuffer::Set("GetBitmapBits failed for thumbnail bitmap: {}", _path.native());
+        GlobalBuffer::SetLastError("GetBitmapBits failed for thumbnail bitmap: {}", _path.native());
         return false;
     }
 
-    ConstMemView mems[] = { pixels };
+    const CMemView mems[] = { pixels };
     m_handle        = Graphics::CreateTexture2D(width, height, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags_None, mems);
     m_res           = { width, height };
     m_path          = _path;
@@ -108,7 +108,7 @@ void Editor_FileBrowser::Thumbnail::LoadDummy()
     constexpr Int32    rowPitch = ((w * 32 + 31) / 32) * 4;
     Vector<UInt8> pixels(rowPitch * h, 255);
 
-    ConstMemView bytes[] = { pixels };
+    const CMemView bytes[] = { pixels };
     m_handle         = Graphics::CreateTexture2D(w, h, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags_None, bytes);
     m_res            = { w, h };
 }

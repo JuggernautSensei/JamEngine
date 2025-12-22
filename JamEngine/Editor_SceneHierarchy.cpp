@@ -181,12 +181,12 @@ void Editor_SceneHierarchy::OnImGuiRender(bool& _pShow)
         return;
     }
 
-    Ref<Scene>& pScene = SceneManager::GetActiveScene();
+    const Ref<Scene>& pScene = SceneManager::GetActiveScene();
 
     // scene info
     {
         ImGui::Text("scene type: %s", pScene->GetTypeName().data());
-        ImGui::Text("entity count: %d", pScene->GetEntityCount());
+        ImGui::Text("entity count: %d", pScene->GetNumEntities());
     }
 
     // entities
@@ -250,14 +250,14 @@ void Editor_SceneHierarchy::OnEntityListChildWindowDragDropTarget_()
         const fs::path ext  = path.extension();
         if (ext == k_jamModelExt)
         {
-            if (std::optional<Ref<Model>> opt = AssetManager::GetOrLoadModel(path))
+            if (const Optional<Ref<Model>> opt = AssetManager::GetOrLoadModel(path))
             {
                 const Ref<Model>& pModel = opt.value();
                 CreateEntityTreeFromModel_(pModel);
             }
             else
             {
-                std::string msg = std::format("failed to load model from path: {}\nerror: {}", path.native(), ErrorBuffer::Get());
+                const std::string msg = std::format("failed to load model from path: {}\nerror: {}", path.native(), GlobalBuffer::GetLastError());
                 Log::Error(msg);
                 Editor::OpenCorePopupDialog("error", msg);
             }
@@ -304,24 +304,24 @@ void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const Model
         const fs::path       matPath  = _mats[_node.materialIndices[i]];
         RenderableComponent& rc       = leaf.CreateComponent<RenderableComponent>();
 
-        if (std::optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(meshPath))
+        if (Optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(meshPath))
         {
             rc.renderable.pMesh = opt.value();
         }
         else
         {
-            std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", meshPath.native(), ErrorBuffer::Get());
+            std::string msg = std::format("failed to load mesh from path: {}\nerror: {}", meshPath.native(), GlobalBuffer::GetLastError());
             Log::Error(msg);
             Editor::OpenCorePopupDialog("error", msg);
         }
 
-        if (std::optional<Ref<Material>> opt = AssetManager::GetOrLoadMaterial(matPath))
+        if (Optional<Ref<Material>> opt = AssetManager::GetOrLoadMaterial(matPath))
         {
             rc.renderable.pMaterial = opt.value();
         }
         else
         {
-            std::string msg = std::format("failed to load material from path: {}\nerror: {}", matPath.native(), ErrorBuffer::Get());
+            std::string msg = std::format("failed to load material from path: {}\nerror: {}", matPath.native(), GlobalBuffer::GetLastError());
             Log::Error(msg);
             Editor::OpenCorePopupDialog("error", msg);
         }
@@ -354,7 +354,7 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(Entity _entity)
     }
     else
     {
-        label = FormatStringToTmpBuffer("entity %d", uid);
+        label = GlobalBuffer::FormatTmp("entity %d", uid);
     }
 
     // render node

@@ -56,7 +56,7 @@ void SceneManager::Init()
 void SceneManager::Shutdown()
 {
     JAM_ASSERT(g_pSceneMgrCtx, "SceneManager not initialized");
-    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
+    if (const Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         pScene->OnExit();
     }
@@ -66,7 +66,7 @@ void SceneManager::Shutdown()
 
 void SceneManager::OnEvent(Event& _event)
 {
-    Application& app = Application::GetInstance();
+    const Application& app = Application::GetInstance();
     if (!app.IsEditorEnabled())   // runtime mode
     {
         // handle window events in runtime mode
@@ -74,7 +74,7 @@ void SceneManager::OnEvent(Event& _event)
         HandleEvent<WindowMaximizedEvent>(_event, g_pSceneMgrCtx, &SceneManagerContext::OnWindowMaximizeEvent);
     }
 
-    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
+    if (const Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         pScene->OnEvent(_event);
     }
@@ -88,7 +88,7 @@ void SceneManager::Resize(const Int32 _width, const Int32 _height)
 void SceneManager::Update(const float _deltaSec)
 {
     // update active scene
-    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
+    if (const Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         // first call of frame
         pScene->ProcessDeferredDestroyEntities_();
@@ -121,7 +121,7 @@ void SceneManager::RenderRuntime(
     if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         // update dirty transforms
-        pScene->UpdateSceneTree_();
+        pScene->UpdateSceneGraph_();
 
         // create view
         RenderView view = { _fbh, _vp };
@@ -129,7 +129,7 @@ void SceneManager::RenderRuntime(
         // find first enabled camera
         for (const auto&& [_, sc, cc]: pScene->Each<SceneComponent, CameraComponent>())
         {
-            if (cc.enable)
+            if (cc.bEnabled)
             {
                 const Transform& wt  = sc.node.GetWorldTransform();
                 const Camera&    cmr = cc.camera;
@@ -148,16 +148,16 @@ void SceneManager::RenderRuntime(
 
 void SceneManager::Render(const RenderView& _view)
 {
-    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
+    if (const Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
-        pScene->UpdateSceneTree_();
+        pScene->UpdateSceneGraph_();
         pScene->OnRender(_view);
     }
 }
 
 void SceneManager::ImGuiRender()
 {
-    if (Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
+    if (const Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
         pScene->OnImGuiRender();
     }
@@ -166,7 +166,7 @@ void SceneManager::ImGuiRender()
 bool SceneManager::LoadScene(const fs::path& _path)
 {
     SceneDeserializer deserializer;
-    if (!deserializer.LoadFile(_path))
+    if (!deserializer.LoadJsonFile(_path))
     {
         return false;
     }
@@ -224,7 +224,7 @@ void SceneManager::ChangeSceneIfNeed_()
         AssetManager::CleanGarbageAll();
 
         // dispatch scene changed event
-        SceneChangedEvent event {};
+        SceneChangedEvent event = {};
         Application::GetInstance().DispatchEvent(event);
     }
 }

@@ -9,14 +9,6 @@ enum class eProjection : Int8
     Orthographic
 };
 
-constexpr float k_cameraNearestZ       = 0.01f;
-constexpr float k_cameraFarestZ        = 30000.f;
-constexpr float k_cameraZEpsilon       = 0.01f;
-constexpr float k_cameraMinFovYRad     = ToRad(1.f);
-constexpr float k_cameraMaxFovYRad     = ToRad(179.f);
-constexpr float k_cameraMinWidthHeight = 0.1f;
-constexpr float k_cameraMaxWidthHeight = 10000.f;
-
 class Camera
 {
 public:
@@ -38,6 +30,14 @@ public:
     [[nodiscard]] float       GetFovYRad() const;
     [[nodiscard]] float       GetWidth() const;
     [[nodiscard]] float       GetHeight() const;
+
+    constexpr static float k_minZ           = 0.01f;
+    constexpr static float k_maxZ           = 30000.f;
+    constexpr static float k_epsilonZ       = 0.01f;
+    constexpr static float k_minFovYRad     = ToRad(1.f);
+    constexpr static float k_maxFovYRad     = ToRad(179.f);
+    constexpr static float k_minWidthHeight = 0.1f;
+    constexpr static float k_maxWidthHeight = 10000.f;
 
 private:
     eProjection m_projection = eProjection::Perspective;

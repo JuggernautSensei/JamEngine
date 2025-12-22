@@ -5,16 +5,19 @@
 namespace jam
 {
 
-struct ShaderMacro
-{
-    [[nodiscard]] bool IsNullTerminator() const { return name == nullptr && value == nullptr; }
-
-    const char* name  = nullptr;
-    const char* value = nullptr;
-};
-
 class ShaderCompiler
 {
+    struct Macro
+    {
+        [[nodiscard]] bool IsNull() const
+        {
+            return (name == nullptr) && (value == nullptr);
+        }
+
+        const char* name  = nullptr;
+        const char* value = nullptr;
+    };
+
 public:
     ShaderCompiler()  = default;
     ~ShaderCompiler() = default;
@@ -25,30 +28,33 @@ public:
     ShaderCompiler& operator=(ShaderCompiler&&)      = default;
 
     bool CompileFile(
-        const fs::path&              _path,
-        eShader                      _stage,
-        std::string_view             _entryPoint,
-        eShaderCompileFlags          _flags  = eShaderCompileFlags_Default,
-        std::span<const ShaderMacro> _macros = {});
+        const fs::path&     _path,
+        eShader             _stage,
+        StringView          _entryPoint,
+        eShaderCompileFlags _flags = eShaderCompileFlags_Default);
 
     bool CompileSource(
-        std::string_view             _hlslSource,
-        eShader                      _stage,
-        std::string_view             _entryPoint,
-        eShaderCompileFlags          _flags  = eShaderCompileFlags_Default,
-        std::span<const ShaderMacro> _macros = {});
+        StringView          _hlslSource,
+        eShader             _stage,
+        StringView          _entryPoint,
+        eShaderCompileFlags _flags = eShaderCompileFlags_Default);
 
     bool LoadFile(const fs::path& _path);
-    bool LoadSource(ConstMemView _bytecode);
+    bool LoadSource(CMemView _bytecode);
 
-    [[nodiscard]] ConstMemView GetBytecode() const;
-    [[nodiscard]] bool         IsValid() const;
+    void AddMacro(StringView _name, StringView _value);
+    void ResetMacros();
+
+    [[nodiscard]] bool     IsValid() const;
+    [[nodiscard]] CMemView GetBytecode() const;
 
 private:
-    [[nodiscard]] UINT        CompileFlagsFrom_(eShaderCompileFlags _flags) const;
-    [[nodiscard]] const char* ShaderModelNameFrom_(eShader _stage) const;
+    [[nodiscard]] UINT       CompileFlagsFrom_(eShaderCompileFlags _flags) const;
+    [[nodiscard]] StringView ShaderModelNameFrom_(eShader _stage) const;
+    void                     PreProcess();
 
-    ComPtr<ID3DBlob> m_pBlob = nullptr;
+    ComPtr<ID3DBlob> m_pBlob      = nullptr;
+    Vector<Macro>    m_macros     = {};
 };
 
 }   // namespace jam

@@ -46,12 +46,12 @@ bool RenameFileDialog::OnClickOk_()
         return false;
     }
 
-    fs::path dstPath = m_srcPath.parent_path() / m_buf;
+    const fs::path dstPath = m_srcPath.parent_path() / m_buf;
     if (dstPath != m_srcPath)
     {
         if (fs::exists(dstPath))
         {
-            std::string msg = std::format("cannot rename file.\ntarget file already exists: {}", dstPath.native());
+            const std::string msg = std::format("cannot rename file.\ntarget file already exists: {}", dstPath.native());
             m_popup.Open("error", msg);
             return false;
         }
@@ -62,7 +62,7 @@ bool RenameFileDialog::OnClickOk_()
         }
         catch (const fs::filesystem_error& e)
         {
-            std::string msg = std::format("failed to rename file: {}\nerror: {}", m_srcPath.native(), e.what());
+            const std::string msg = std::format("failed to rename file: {}\nerror: {}", m_srcPath.native(), e.what());
             m_popup.Open("error", msg);
             return false;
         }

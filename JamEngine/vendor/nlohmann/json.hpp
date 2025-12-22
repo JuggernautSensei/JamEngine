@@ -4422,7 +4422,7 @@ inline void concat_into(OutStringType& /*out*/)
 {}
 
 template<typename StringType, typename Arg>
-using string_can_append = decltype(std::declval<StringType&>().append(std::declval < Arg && > ()));
+using string_can_append = decltype(std::declval<StringType&>().Append(std::declval < Arg && > ()));
 
 template<typename StringType, typename Arg>
 using detect_string_can_append = is_detected<string_can_append, StringType, Arg>;
@@ -4434,13 +4434,13 @@ template<typename StringType, typename Arg>
 using detect_string_can_append_op = is_detected<string_can_append_op, StringType, Arg>;
 
 template<typename StringType, typename Arg>
-using string_can_append_iter = decltype(std::declval<StringType&>().append(std::declval<const Arg&>().begin(), std::declval<const Arg&>().end()));
+using string_can_append_iter = decltype(std::declval<StringType&>().Append(std::declval<const Arg&>().begin(), std::declval<const Arg&>().end()));
 
 template<typename StringType, typename Arg>
 using detect_string_can_append_iter = is_detected<string_can_append_iter, StringType, Arg>;
 
 template<typename StringType, typename Arg>
-using string_can_append_data = decltype(std::declval<StringType&>().append(std::declval<const Arg&>().data(), std::declval<const Arg&>().size()));
+using string_can_append_data = decltype(std::declval<StringType&>().Append(std::declval<const Arg&>().data(), std::declval<const Arg&>().size()));
 
 template<typename StringType, typename Arg>
 using detect_string_can_append_data = is_detected<string_can_append_data, StringType, Arg>;
@@ -4467,7 +4467,7 @@ template<typename OutStringType, typename Arg, typename... Args,
          enable_if_t<detect_string_can_append<OutStringType, Arg>::value, int> = 0>
 inline void concat_into(OutStringType& out, Arg && arg, Args && ... rest)
 {
-    out.append(std::forward<Arg>(arg));
+    out.Append(std::forward<Arg>(arg));
     concat_into(out, std::forward<Args>(rest)...);
 }
 
@@ -4486,7 +4486,7 @@ template < typename OutStringType, typename Arg, typename... Args,
                          && detect_string_can_append_iter<OutStringType, Arg>::value, int > >
 inline void concat_into(OutStringType& out, const Arg& arg, Args&& ... rest)
 {
-    out.append(arg.begin(), arg.end());
+    out.Append(arg.begin(), arg.end());
     concat_into(out, std::forward<Args>(rest)...);
 }
 
@@ -4497,7 +4497,7 @@ template < typename OutStringType, typename Arg, typename... Args,
                          && detect_string_can_append_data<OutStringType, Arg>::value, int > >
 inline void concat_into(OutStringType& out, const Arg& arg, Args&& ... rest)
 {
-    out.append(arg.data(), arg.size());
+    out.Append(arg.data(), arg.size());
     concat_into(out, std::forward<Args>(rest)...);
 }
 
@@ -6619,7 +6619,7 @@ class input_stream_adapter
     // end up as the same value, e.g., 0xFFFFFFFF.
     std::char_traits<char>::int_type get_character()
     {
-        auto res = sb->sbumpc();
+        const auto res = sb->sbumpc();
         // set eof manually, as we don't use the istream interface.
         if (JSON_HEDLEY_UNLIKELY(res == std::char_traits<char>::eof()))
         {
@@ -6631,7 +6631,7 @@ class input_stream_adapter
     template<class T>
     std::size_t get_elements(T* dest, std::size_t count = 1)
     {
-        auto res = static_cast<std::size_t>(sb->sgetn(reinterpret_cast<char*>(dest), static_cast<std::streamsize>(count * sizeof(T))));
+        const auto res = static_cast<std::size_t>(sb->sgetn(reinterpret_cast<char*>(dest), static_cast<std::streamsize>(count * sizeof(T))));
         if (JSON_HEDLEY_UNLIKELY(res < count * sizeof(T)))
         {
             is->clear(is->rdstate() | std::ios::eofbit);
@@ -6997,7 +6997,7 @@ contiguous_bytes_input_adapter input_adapter(CharT b)
     {
         JSON_THROW(parse_error::create(101, 0, "attempting to parse an empty input; check that your input string or stream contains the expected JSON", nullptr));
     }
-    auto length = std::strlen(reinterpret_cast<const char*>(b));
+    const auto length = std::strlen(reinterpret_cast<const char*>(b));
     const auto* ptr = reinterpret_cast<const char*>(b);
     return input_adapter(ptr, ptr + length); // cppcheck-suppress[nullPointerArithmeticRedundantCheck]
 }
@@ -10809,7 +10809,7 @@ class binary_reader
                     {
                         return false;
                     }
-                    result.append(chunk);
+                    result.Append(chunk);
                 }
                 return true;
             }
@@ -11997,7 +11997,7 @@ class binary_reader
                 }
                 if (!dim.empty())  // if ndarray, convert to an object in JData annotated array format
                 {
-                    for (auto i : dim) // test if any dimension in an ndarray is 0, if so, return a 1D empty container
+                    for (const auto i : dim) // test if any dimension in an ndarray is 0, if so, return a 1D empty container
                     {
                         if ( i == 0 )
                         {
@@ -13566,7 +13566,7 @@ class primitive_iterator_t
 
     primitive_iterator_t operator++(int)& noexcept // NOLINT(cert-dcl21-cpp)
     {
-        auto result = *this;
+        const auto result = *this;
         ++m_it;
         return result;
     }
@@ -13579,7 +13579,7 @@ class primitive_iterator_t
 
     primitive_iterator_t operator--(int)& noexcept // NOLINT(cert-dcl21-cpp)
     {
-        auto result = *this;
+        const auto result = *this;
         --m_it;
         return result;
     }
@@ -15802,7 +15802,7 @@ class output_string_adapter : public output_adapter_protocol<CharType>
     JSON_HEDLEY_NON_NULL(2)
     void write_characters(const CharType* s, std::size_t length) override
     {
-        str.append(s, length);
+        str.Append(s, length);
     }
 
   private:

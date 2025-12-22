@@ -127,144 +127,162 @@ void RenderGraph::AnalyzePassDependencies_()
     const Int32 numNodes = NarrowCast<Int32>(m_nodes.size());
     JAM_ASSERT(numNodes > 1, "RenderGraph must have at least two passes to analyze pass dependencies.");
 
-    HashMap<UInt32, const TextureBind*> inputTextures;   // key: texture handle value, value: TextureBind*
-    HashMap<UInt32, const TextureBind*> stageSlots;      // key: stage+slot, value: TextureBind*
-    HashSet<UInt32>                     attachments;     // key: texture handle value
+    /*
+    의존성 1: 현재 입력 텍스처가 다른 패스의 출력으로 사용되는가?
+            -> 현재 패스를 제외한 모든 패스를 순회하며 확인
+            -> 해당 슬롯에 다른 텍스처가 덮어씌워지는지 확인 -> yes: 충돌 가능성 없음
+            -> no 인데 출력과 충돌하는 경우 -> unbind list에 추가
+    의존성 2: 현재 출력 텍스처가 다음 패스의 입력으로 사용되는가?
+            -> 다음 패스만 확인해도 충분
+    */
+
+    HashMap<UInt32, const TextureBind*> texhMap;         // key: texture handle value
+    HashMap<UInt32, const TextureBind*> stageSloMsp;     // key: stage + slot
+    HashSet<UInt32>                     attachmentSet;   // key: texture handle value
 
     for (Int32 i = 0; i < numNodes; ++i)
     {
         // 초기화
-        inputTextures.clear();
-        stageSlots.clear();
-        attachments.clear();
+        texhMap.clear();
+        stageSloMsp.clear();
+        attachmentSet.clear();
 
+        // 현재 패스
         Node&             node = m_nodes[i];
         const RenderPass& pass = node.pass;
         JAM_ASSERT(pass.Validate(), "RenderPass at index {} is not valid.", i);
 
-        // 현재 패스의 입력 텍스처 바인딩 수집
-        // 입력 텍스처가 다음의 출력 텍스처로 사용되면 Conflict
-        for (const TextureBind& bind: pass.m_textureBinds)
+        // 의존성 1: 입력 텍스처 충돌 검사
         {
-            JAM_ASSERT(JAM_IS_VALID_HANDLE(bind.texh), "RenderPass at index {} has invalid texture handle.", i);
-            const UInt32 key = CreateStageSlotKey_(bind.stage, bind.slot);
-
-            inputTextures.emplace(bind.texh.value, &bind);
-            stageSlots.emplace(key, &bind);
-        }
-
-        // 모든 패스들을 순회하며 충돌해결
-        for (Int32 j = 1; j < numNodes; ++j)
-        {
-            const Int32       idx      = (i + j) % numNodes;
-            const RenderPass& nextPass = m_nodes[idx].pass;
-
-            // 같은 슬롯 + 쉐이더에 다른 텍스처가 바인딩 되면 conflict 발생하지 않음
-            for (const TextureBind& nextPassBind: nextPass.m_textureBinds)
+            // 현재 패스의 입력 텍스처 바인딩 수집, 입력 텍스처가 다음의 출력 텍스처로 사용되면 Conflict
+            for (const TextureBind& bind: pass.m_textureBinds)
             {
-                JAM_ASSERT(JAM_IS_VALID_HANDLE(nextPassBind.texh), "RenderPass at index {} has invalid texture handle.", idx);
-                const UInt32 key = CreateStageSlotKey_(nextPassBind.stage, nextPassBind.slot);
-                const auto   it  = stageSlots.find(key);
+                JAM_ASSERT(JAM_IS_VALID_HANDLE(bind.texh), "RenderPass at index {} has invalid texture handle.", i);
+                const UInt32 key = CreateStageSlotKey_(bind.stage, bind.slot);
 
-                // 같은 슬롯 + 쉐이더에 다른 텍스처 바인딩.
-                if (it != stageSlots.end() && it->second->texh != nextPassBind.texh)
+                texhMap.emplace(bind.texh.value, &bind);
+                stageSloMsp.emplace(key, &bind);
+            }
+
+            // 모든 패스들을 순회하며 충돌해결
+            for (Int32 j = 1; j < numNodes; ++j)
+            {
+                const Int32       idx      = (i + j) % numNodes;
+                const RenderPass& nextPass = m_nodes[idx].pass;
+
+                // 같은 슬롯 + 쉐이더에 다른 텍스처가 바인딩 되면 conflict 발생하지 않음
+                for (const TextureBind& nextPassBind: nextPass.m_textureBinds)
                 {
-                    inputTextures.erase(it->second->texh.value);
-                    stageSlots.erase(it);
+                    JAM_ASSERT(JAM_IS_VALID_HANDLE(nextPassBind.texh), "RenderPass at index {} has invalid texture handle.", idx);
+                    const UInt32 key = CreateStageSlotKey_(nextPassBind.stage, nextPassBind.slot);
+                    const auto   it  = stageSloMsp.find(key);
+
+                    // 같은 슬롯 + 쉐이더에 다른 텍스처가 바인딩 되는 경우 추적 종료 (overwrite)
+                    if (it != stageSloMsp.end() && it->second->texh != nextPassBind.texh)
+                    {
+                        texhMap.erase(it->second->texh.value);
+                        stageSloMsp.erase(it);
+                    }
+                }
+
+                // 인풋 텍스처가 모두 해결되었으면 종료
+                if (texhMap.empty())
+                {
+                    break;
+                }
+
+                // 다음 패스의 출력 프레임버퍼 확인.
+                // 유효하지 않으면 스킵 (= 백버퍼라는 의미. 백버퍼 자원은 입력으로 사용할 수 없음)
+                if (!JAM_IS_VALID_HANDLE(nextPass.m_fbh))
+                {
+                    continue;
+                }
+
+                // 다음 패스의 프레임버퍼와 충돌 확인
+                const FrameBufferInfo nextPassFbInfo = Graphics::GetFrameBufferInfo(nextPass.m_fbh);
+                for (Int32 k = 0; k < nextPassFbInfo.numRenderTargets; ++k)
+                {
+                    const TextureHandle texh = nextPassFbInfo.renderTargetTexhs[k];
+                    const auto          it   = texhMap.find(texh.value);
+
+                    // 만약 충돌하면, unbindTextures에 추가
+                    if (it != texhMap.end())
+                    {
+                        const TextureBind* bind = it->second;
+                        const UInt32       key  = CreateStageSlotKey_(bind->stage, bind->slot);
+
+                        node.bNeedUnbindResources = true;
+                        node.unbindTextures.emplace_back(bind->stage, bind->slot);   // unbind conflicting texture
+
+                        // 해결됨. 추적종료
+                        texhMap.erase(texh.value);
+                        stageSloMsp.erase(key);
+                    }
+                }
+
+                // depth stencil 충돌 확인
+                if (JAM_IS_VALID_HANDLE(nextPassFbInfo.depthStencilTexh))
+                {
+                    const TextureHandle texh = nextPassFbInfo.depthStencilTexh;
+                    const auto          it   = texhMap.find(texh.value);
+
+                    if (it != texhMap.end())
+                    {
+                        const TextureBind* bind = it->second;
+                        const UInt32       key  = CreateStageSlotKey_(bind->stage, bind->slot);
+
+                        node.bNeedUnbindResources = true;
+                        node.unbindTextures.emplace_back(bind->stage, bind->slot);
+
+                        // remove from tracking
+                        texhMap.erase(texh.value);
+                        stageSloMsp.erase(key);
+                    }
+                }
+
+                // 모든 인풋 텍스처가 해결되었으면 종료
+                if (texhMap.empty())
+                {
+                    break;
                 }
             }
+        }
 
-            // 인풋 텍스처가 모두 해결되었으면 종료
-            if (inputTextures.empty())
-            {
-                break;
-            }
+        // 의존성 2: 출력 텍스처 충돌 검사
+        {
+            // 현재 패스의 출력이 다음 입력으로 사용되는지
+            // 만약, 충돌한다면 프레임버퍼 언바인딩 필요
 
-            // 다음 패스의 출력 프레임버퍼 확인.
-            if (!JAM_IS_VALID_HANDLE(nextPass.m_fbh))
+            // 유효하지 않은 프레임버퍼는 스킵
+            if (!JAM_IS_VALID_HANDLE(pass.m_fbh))
             {
                 continue;
             }
 
-            // 다음 패스의 프레임버퍼와 충돌 확인
-            const FrameBufferInfo nextPassFbInfo = Graphics::GetFrameBufferInfo(nextPass.m_fbh);
-            for (Int32 k = 0; k < nextPassFbInfo.numRenderTargets; ++k)
+            // 현재 패스의 출력 프레임버퍼 어태치먼트 수집
+            const FrameBufferInfo fbInfo = Graphics::GetFrameBufferInfo(pass.m_fbh);
+            for (Int32 k = 0; k < fbInfo.numRenderTargets; ++k)
             {
-                const TextureHandle texh = nextPassFbInfo.renderTargetTexhs[k];
-                const auto          it   = inputTextures.find(texh.value);
+                attachmentSet.emplace(fbInfo.renderTargetTexhs[k].value);
+            }
 
-                // 만약 충돌하면, unbindTextures에 추가
-                if (it != inputTextures.end())
+            if (JAM_IS_VALID_HANDLE(fbInfo.depthStencilTexh))
+            {
+                attachmentSet.emplace(fbInfo.depthStencilTexh.value);
+            }
+
+            // 다음 패스의 입력 텍스처 바인딩과 충돌 확인
+            const Int32       nextIdx  = (i + 1) % numNodes;
+            const RenderPass& nextPass = m_nodes[nextIdx].pass;
+            for (const TextureBind& nextPassBind: nextPass.m_textureBinds)
+            {
+                // 충돌 발견
+                if (attachmentSet.contains(nextPassBind.texh.value))
                 {
-                    const TextureBind* bind = it->second;
-                    const UInt32       key  = CreateStageSlotKey_(bind->stage, bind->slot);
-
-                    node.bNeedUnbindResources = true;
-                    node.unbindTextures.emplace_back(bind->stage, bind->slot);   // unbind conflicting texture
-
-                    // 해결됨. 추적종료
-                    inputTextures.erase(texh.value);
-                    stageSlots.erase(key);
+                    node.bNeedUnbindResources   = true;
+                    node.bNeedUnbindFrameBuffer = true;
+                    break;   // 프레임버퍼는 하나이므로 하나만 발견해도 충분
                 }
-            }
-
-            // depth stencil 충돌 확인
-            if (JAM_IS_VALID_HANDLE(nextPassFbInfo.depthStencilTexh))
-            {
-                const TextureHandle texh = nextPassFbInfo.depthStencilTexh;
-                const auto          it   = inputTextures.find(texh.value);
-
-                if (it != inputTextures.end())
-                {
-                    const TextureBind* bind = it->second;
-                    const UInt32       key  = CreateStageSlotKey_(bind->stage, bind->slot);
-
-                    node.bNeedUnbindResources = true;
-                    node.unbindTextures.emplace_back(bind->stage, bind->slot);
-
-                    // remove from tracking
-                    inputTextures.erase(texh.value);
-                    stageSlots.erase(key);
-                }
-            }
-
-            // 모든 인풋 텍스처가 해결되었으면 종료
-            if (inputTextures.empty())
-            {
-                break;
-            }
-        }
-
-        // 현재 패스의 출력이 다음 입력으로 사용되는지
-        // 만약, 충돌한다면 프레임버퍼 언바인딩 필요
-        if (!JAM_IS_VALID_HANDLE(pass.m_fbh))
-        {
-            continue;
-        }
-
-        // 현재 패스의 출력 프레임버퍼 어태치먼트 수집
-        const FrameBufferInfo fbInfo = Graphics::GetFrameBufferInfo(pass.m_fbh);
-        for (Int32 k = 0; k < fbInfo.numRenderTargets; ++k)
-        {
-            attachments.emplace(fbInfo.renderTargetTexhs[k].value);
-        }
-
-        if (JAM_IS_VALID_HANDLE(fbInfo.depthStencilTexh))
-        {
-            attachments.emplace(fbInfo.depthStencilTexh.value);
-        }
-
-        // 다음 패스의 입력 텍스처 바인딩과 충돌 확인
-        const Int32       nextIdx  = (i + 1) % numNodes;
-        const RenderPass& nextPass = m_nodes[nextIdx].pass;
-        for (const TextureBind& nextPassBind: nextPass.m_textureBinds)
-        {
-            // 충돌 발견
-            if (attachments.contains(nextPassBind.texh.value))
-            {
-                node.bNeedUnbindResources   = true;
-                node.bNeedUnbindFrameBuffer = true;
-                break;   // 프레임버퍼는 하나이므로 하나만 발견해도 충분
             }
         }
     }

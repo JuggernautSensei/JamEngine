@@ -27,7 +27,7 @@ enum eEditorStyleColor
     eEditorStyleColor_AcroballBgHovered,
     eEditorStyleColor_AcroballBgActive,
 };
-constexpr size_t k_numEditorStyleColors = EnumCount<eEditorStyleColor>();
+constexpr size_t k_numEditorStyleColors = NumEnums<eEditorStyleColor>();
 
 struct EditorStyle
 {

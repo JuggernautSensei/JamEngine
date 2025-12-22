@@ -10,7 +10,7 @@ namespace jam
 
 bool OpenFileExplorer(const fs::path& _path)
 {
-    fs::path     absPath = fs::absolute(_path);
+    const fs::path     absPath = fs::absolute(_path);
     std::wstring wPath   = absPath.wstring();
 
     HINSTANCE result;
@@ -20,19 +20,19 @@ bool OpenFileExplorer(const fs::path& _path)
     }
     else if (fs::exists(absPath))
     {
-        std::wstring arg = std::format(L"/select,\"{}\"", wPath);
+        const std::wstring arg = std::format(L"/select,\"{}\"", wPath);
         result           = ShellExecute(nullptr, L"open", L"explorer.exe", arg.c_str(), nullptr, SW_SHOW);
     }
     else
     {
-        ErrorBuffer::Set("Invalid path (does not exist): {}", absPath.string());
+        GlobalBuffer::SetLastError("Invalid path (does not exist): {}", absPath.string());
         return false;
     }
 
     const INT_PTR ret = reinterpret_cast<INT_PTR>(result);
     if (ret <= 32)
     {
-        ErrorBuffer::Set("Failed to open file explorer (code {}): {}", ret, absPath.string());
+        GlobalBuffer::SetLastError("Failed to open file explorer (code {}): {}", ret, absPath.string());
         return false;
     }
 
@@ -43,24 +43,24 @@ bool OpenFileWithDefaultApplication(const fs::path& _path)
 {
     JAM_ASSERT(!fs::is_directory(_path), "Cannot open a directory with default application");
 
-    fs::path     absPath = fs::absolute(_path);
-    std::wstring wPath   = absPath.wstring();
+    const fs::path     absPath = fs::absolute(_path);
+    const std::wstring wPath   = absPath.wstring();
 
     HINSTANCE result = ShellExecute(nullptr, L"open", wPath.c_str(), nullptr, nullptr, SW_SHOW);
 
     const INT_PTR ret = reinterpret_cast<INT_PTR>(result);
     if (ret <= 32)
     {
-        ErrorBuffer::Set("Failed to open file with default application (code {}): {}", ret, absPath.string());
+        GlobalBuffer::SetLastError("Failed to open file with default application (code {}): {}", ret, absPath.string());
         return false;
     }
 
     return true;
 }
 
-std::optional<fs::path> OpenFileDialog(
-    const std::string_view                  _title,
-    const std::string_view                  _defaultPathOrEmpty,
+Optional<fs::path> OpenFileDialog(
+    const StringView                  _title,
+    const StringView                  _defaultPathOrEmpty,
     const std::span<const FileDialogFilter> _filtersOrEmpty)
 {
     Vector<std::string> filters;
@@ -76,14 +76,14 @@ std::optional<fs::path> OpenFileDialog(
     Vector<std::string> result = of.result();
     if (result.empty())
     {
-        return std::nullopt;
+        return k_nullopt;
     }
     return result[0];
 }
 
-std::optional<Vector<fs::path>> OpenMultiFileDialog(
-    const std::string_view                  _title,
-    const std::string_view                  _defaultPathOrEmpty,
+Optional<Vector<fs::path>> OpenMultiFileDialog(
+    const StringView                  _title,
+    const StringView                  _defaultPathOrEmpty,
     const std::span<const FileDialogFilter> _filtersOrEmpty)
 {
     Vector<std::string> filters;
@@ -106,9 +106,9 @@ std::optional<Vector<fs::path>> OpenMultiFileDialog(
     return paths;
 }
 
-std::optional<fs::path> SaveFileDialog(
-    const std::string_view                  _title,
-    const std::string_view                  _defaultPathOrEmpty,
+Optional<fs::path> SaveFileDialog(
+    const StringView                  _title,
+    const StringView                  _defaultPathOrEmpty,
     const std::span<const FileDialogFilter> _filtersOrEmpty)
 {
     Vector<std::string> filters;
@@ -124,7 +124,7 @@ std::optional<fs::path> SaveFileDialog(
     const std::string result = sf.result();
     if (result.empty())
     {
-        return std::nullopt;
+        return k_nullopt;
     }
     else
     {
@@ -132,16 +132,16 @@ std::optional<fs::path> SaveFileDialog(
     }
 }
 
-std::optional<fs::path> OpenFolderDialog(
-    const std::string_view _title,
-    const std::string_view _defaultPathOrEmpty)
+Optional<fs::path> OpenFolderDialog(
+    const StringView _title,
+    const StringView _defaultPathOrEmpty)
 {
     pfd::select_folder sf { std::string(_title), std::string(_defaultPathOrEmpty) };
 
     const std::string result = sf.result();
     if (result.empty())
     {
-        return std::nullopt;
+        return k_nullopt;
     }
     else
     {

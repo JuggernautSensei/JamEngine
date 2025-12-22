@@ -10,9 +10,9 @@ struct SpotLightComponent :
 {
     JAM_COMPONENT(SpotLightComponent);
 
-    [[nodiscard]] Json Serialize(const Ref<Scene>& _pScene, Entity _entity) const;
-    void               Deserialize(const Json& _json, Ref<Scene>& _pScene, Entity _entity);
-    void               DrawEditor(Ref<Scene>& _pScene, Entity _entity);
+    void Serialize(JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _owner) const;
+    void Deserialize(JsonReader& _reader, const Ref<Scene>& _pScene, Entity _owner);
+    void DrawEditor(Ref<Scene>& _pScene, Entity _entity);
 
     Vec3  radiance         = Vec3::Zero;
     float intensity        = 1.f;

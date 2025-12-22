@@ -32,40 +32,42 @@ void SceneNode::SetParent(const Entity _parent, const bool _bKeepLocal)
     JAM_ASSERT(!IsRoot(), "root cannot has parent");
     JAM_ASSERT(!IsAncestorOf(_parent), "Cannot set descendant as parent");
 
-    if (m_parent != _parent)
+    if (m_parent == _parent)
     {
-        // release existing parent
-        ReleaseParent_();
-
-        // set new parent
-        m_parent              = _parent;
-        SceneNode& parentNode = m_parent.GetSceneNode();
-
-        // new parent's first child becomes me
-        Entity oldFirstChild    = parentNode.m_firstChild;
-        parentNode.m_firstChild = m_owner;
-        m_nextSibling           = oldFirstChild;
-        m_prevSibling           = Entity::s_null;
-        if (oldFirstChild)
-        {
-            // if there was an old first child, update its prev sibling to me
-            SceneNode& oldFirstChildNode    = oldFirstChild.GetSceneNode();
-            oldFirstChildNode.m_prevSibling = m_owner;
-        }
-
-        if (_bKeepLocal)
-        {
-            // keep local -> update world
-            m_dirty = eDirty::WorldNeedUpdate;
-        }
-        else
-        {
-            // keep world -> update local
-            m_dirty = eDirty::LocalNeedUpdate;
-        }
-
-        NotifyDirty_();
+        return;
     }
+
+    // release existing parent
+    ReleaseParent_();
+
+    // set new parent
+    m_parent              = _parent;
+    SceneNode& parentNode = m_parent.GetSceneNode();
+
+    // new parent's first child becomes me
+    Entity oldFirstChild    = parentNode.m_firstChild;
+    parentNode.m_firstChild = m_owner;
+    m_nextSibling           = oldFirstChild;
+    m_prevSibling           = Entity::s_null;
+    if (oldFirstChild)
+    {
+        // if there was an old first child, update its prev sibling to me
+        SceneNode& oldFirstChildNode    = oldFirstChild.GetSceneNode();
+        oldFirstChildNode.m_prevSibling = m_owner;
+    }
+
+    if (_bKeepLocal)
+    {
+        // keep local -> update world
+        m_dirty = eDirty::WorldNeedUpdate;
+    }
+    else
+    {
+        // keep world -> update local
+        m_dirty = eDirty::LocalNeedUpdate;
+    }
+
+    NotifyDirty_();
 }
 
 void SceneNode::SetParentAsRoot(const bool _bKeepLocal)
@@ -81,34 +83,36 @@ void SceneNode::Orphanize()
 void SceneNode::ReleaseParent_()
 {
     // only release if has parent
-    if (HasParent())
+    if (!HasParent())
     {
-        // detach from parent
-        SceneNode& parentNode = m_parent.GetSceneNode();
-        if (m_prevSibling)
-        {
-            // there is a previous sibling
-            SceneNode& prevSiblingNode    = m_prevSibling.GetSceneNode();
-            prevSiblingNode.m_nextSibling = m_nextSibling;
-        }
-        else
-        {
-            // this is the first child
-            parentNode.m_firstChild = m_nextSibling;
-        }
-
-        if (m_nextSibling)
-        {
-            // there is a next sibling
-            SceneNode& nextSiblingNode    = m_nextSibling.GetSceneNode();
-            nextSiblingNode.m_prevSibling = m_prevSibling;
-        }
-
-        // clear links
-        m_parent      = Entity::s_null;
-        m_nextSibling = Entity::s_null;
-        m_prevSibling = Entity::s_null;
+        return;
     }
+
+    // detach from parent
+    SceneNode& parentNode = m_parent.GetSceneNode();
+    if (m_prevSibling)
+    {
+        // there is a previous sibling
+        SceneNode& prevSiblingNode    = m_prevSibling.GetSceneNode();
+        prevSiblingNode.m_nextSibling = m_nextSibling;
+    }
+    else
+    {
+        // this is the first child
+        parentNode.m_firstChild = m_nextSibling;
+    }
+
+    if (m_nextSibling)
+    {
+        // there is a next sibling
+        SceneNode& nextSiblingNode    = m_nextSibling.GetSceneNode();
+        nextSiblingNode.m_prevSibling = m_prevSibling;
+    }
+
+    // clear links
+    m_parent      = Entity::s_null;
+    m_nextSibling = Entity::s_null;
+    m_prevSibling = Entity::s_null;
 }
 
 bool SceneNode::IsDescendantOf(const Entity _entity) const
@@ -123,8 +127,8 @@ bool SceneNode::IsDescendantOf(const Entity _entity) const
             return true;   // 조상임
         }
 
-        SceneNode& parentNode = parent.GetSceneNode();
-        parent                = parentNode.m_parent;
+        const SceneNode& parentNode = parent.GetSceneNode();
+        parent                      = parentNode.m_parent;
     }
     return false;
 }
@@ -133,7 +137,7 @@ bool SceneNode::IsAncestorOf(Entity _entity) const
 {
     JAM_ASSERT(_entity, "Entity is invalid");
 
-    SceneNode& node = _entity.GetSceneNode();
+    const SceneNode& node = _entity.GetSceneNode();
     return node.IsDescendantOf(m_owner);
 }
 
@@ -203,57 +207,64 @@ Transform& SceneNode::ModifyWorldTransform()
 
 void SceneNode::UpdateDirty_Recursive_()
 {
-    if (m_dirty != eDirty::None)   // else: not dirty
+    if (m_dirty == eDirty::None)   // else: not dirty
     {
-        if (m_dirty == eDirty::LocalNeedUpdate)
-        {
-            if (HasParent())
-            {
-                // update local based on world
-                SceneNode& parentNode = m_parent.GetSceneNode();
-                m_local               = m_world;
-                m_local.Mult(parentNode.GetWorldTransform().Inverted());
-            }
-            else
-            {
-                // root
-                m_local = m_world;
-            }
-        }
-        else if (m_dirty == eDirty::WorldNeedUpdate)
-        {
-            if (HasParent())
-            {
-                // update world based on local
-                SceneNode& parentNode = m_parent.GetSceneNode();
-                m_world               = m_local;
-                m_world.Mult(parentNode.GetWorldTransform());
-            }
-            else
-            {
-                // root
-                m_world = m_local;
-            }
-        }
-
-        Entity child = m_firstChild;
-        while (child)
-        {
-            // if parent changed directly, mark child as world need update
-            // but not if child itself is already marked as world need update
-            SceneNode& childNode = child.GetSceneNode();
-            if (m_dirty != eDirty::ChildDirty && childNode.m_dirty != eDirty::LocalNeedUpdate)
-            {
-                childNode.m_dirty = eDirty::WorldNeedUpdate;
-            }
-
-            // recursive update
-            childNode.UpdateDirty_Recursive_();
-            child = childNode.m_nextSibling;
-        }
-
-        m_dirty = eDirty::None;   // clear dirty flag
+        return;
     }
+
+    if (m_dirty == eDirty::LocalNeedUpdate)
+    {
+        if (HasParent())
+        {
+            // update local based on world
+            const SceneNode& parentNode  = m_parent.GetSceneNode();
+            const Transform& parentWt    = parentNode.GetWorldTransform();
+            const Transform  parentWtInv = parentWt.Inverted();
+
+            m_local = m_world;
+            m_local.Mult(parentWtInv);
+        }
+        else
+        {
+            // root
+            m_local = m_world;
+        }
+    }
+    else if (m_dirty == eDirty::WorldNeedUpdate)
+    {
+        if (HasParent())
+        {
+            // update world based on local
+            const SceneNode& parentNode = m_parent.GetSceneNode();
+            const Transform& parentWt   = parentNode.GetWorldTransform();
+
+            m_world = m_local;
+            m_world.Mult(parentWt);
+        }
+        else
+        {
+            // root
+            m_world = m_local;
+        }
+    }
+
+    Entity child = m_firstChild;
+    while (child)
+    {
+        // if parent changed directly, mark child as world need update
+        // but not if child itself is already marked as world need update
+        SceneNode& childNode = child.GetSceneNode();
+        if (m_dirty != eDirty::ChildDirty && childNode.m_dirty != eDirty::LocalNeedUpdate)
+        {
+            childNode.m_dirty = eDirty::WorldNeedUpdate;
+        }
+
+        // recursive update
+        childNode.UpdateDirty_Recursive_();
+        child = childNode.m_nextSibling;
+    }
+
+    m_dirty = eDirty::None;   // clear dirty flag
 }
 
 void SceneNode::NotifyDirty_()

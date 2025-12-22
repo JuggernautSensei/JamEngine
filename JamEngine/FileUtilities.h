@@ -3,10 +3,10 @@
 namespace jam
 {
 
-[[nodiscard]] std::optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path);
-bool                                           SaveBinaryFile(const fs::path& _path, ConstMemView _data);
+[[nodiscard]] Optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path);
+bool                                 SaveBinaryFile(const fs::path& _path, CMemView _data);
 
-[[nodiscard]] std::optional<std::string> LoadTextFile(const fs::path& _path);
-bool                                     SaveTextFile(const fs::path& _path, std::string_view _text);
+[[nodiscard]] Optional<std::string> LoadTextFile(const fs::path& _path);
+bool                                SaveTextFile(const fs::path& _path, StringView _text);
 
 }   // namespace jam

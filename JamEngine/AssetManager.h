@@ -16,11 +16,11 @@ public:
     static void Shutdown();
     static void OnEvent(Event& _event);
 
-    static std::optional<Ref<IAsset>>       Load(eAssetType _type, const fs::path& _path, bool _bForceReload = false);
-    static std::optional<Ref<Model>>        LoadModel(const fs::path& _path, bool _bForceReload = false);
-    static std::optional<Ref<Mesh>>         LoadMesh(const fs::path& _path, bool _bForceReload = false);
-    static std::optional<Ref<Material>>     LoadMaterial(const fs::path& _path, bool _bForceReload = false);
-    static std::optional<Ref<ImageTexture>> LoadImageTexture(const fs::path& _path, bool _bForceReload = false);
+    static Optional<Ref<IAsset>>       Load(eAssetType _type, const fs::path& _path, bool _bForceReload = false);
+    static Optional<Ref<Model>>        LoadModel(const fs::path& _path, bool _bForceReload = false);
+    static Optional<Ref<Mesh>>         LoadMesh(const fs::path& _path, bool _bForceReload = false);
+    static Optional<Ref<Material>>     LoadMaterial(const fs::path& _path, bool _bForceReload = false);
+    static Optional<Ref<ImageTexture>> LoadImageTexture(const fs::path& _path, bool _bForceReload = false);
 
     [[nodiscard]] static Ref<IAsset>       Get(eAssetType _type, const fs::path& _path);
     [[nodiscard]] static Ref<Model>        GetModel(const fs::path& _path);
@@ -28,11 +28,11 @@ public:
     [[nodiscard]] static Ref<Material>     GetMaterial(const fs::path& _path);
     [[nodiscard]] static Ref<ImageTexture> GetImageTexture(const fs::path& _path);
 
-    [[nodiscard]] static std::optional<Ref<IAsset>>       GetOrLoad(eAssetType _type, const fs::path& _path);
-    [[nodiscard]] static std::optional<Ref<Model>>        GetOrLoadModel(const fs::path& _path);
-    [[nodiscard]] static std::optional<Ref<Mesh>>         GetOrLoadMesh(const fs::path& _path);
-    [[nodiscard]] static std::optional<Ref<Material>>     GetOrLoadMaterial(const fs::path& _path);
-    [[nodiscard]] static std::optional<Ref<ImageTexture>> GetOrLoadImageTexture(const fs::path& _path);
+    [[nodiscard]] static Optional<Ref<IAsset>>       GetOrLoad(eAssetType _type, const fs::path& _path);
+    [[nodiscard]] static Optional<Ref<Model>>        GetOrLoadModel(const fs::path& _path);
+    [[nodiscard]] static Optional<Ref<Mesh>>         GetOrLoadMesh(const fs::path& _path);
+    [[nodiscard]] static Optional<Ref<Material>>     GetOrLoadMaterial(const fs::path& _path);
+    [[nodiscard]] static Optional<Ref<ImageTexture>> GetOrLoadImageTexture(const fs::path& _path);
 
     static void Unload(eAssetType _type, const fs::path& _path);
     static void UnloadModel(const fs::path& _path);

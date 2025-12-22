@@ -20,7 +20,7 @@ public:
     Mesh& operator=(Mesh&& _other) noexcept;
 
     bool Load(const fs::path& _path) override;
-    void LoadMemory(ConstMemView _verts, const VertexLayout& _vl, ConstMemView _idxData, bool _bUseU32 = false, const fs::path& _virtualPath = {});
+    void LoadMemory(CMemView _verts, const VertexLayout& _vl, CMemView _idxData, bool _bUseU32 = false, const fs::path& _virtualPath = {});
     bool Save(const fs::path& _path) const override;
     void Unload() override;
 
@@ -28,7 +28,7 @@ public:
     [[nodiscard]] const fs::path&  GetPath() const override;
     [[nodiscard]] eAssetType       GetAssetType() const override;
     [[nodiscard]] UInt32           GetTypeHash() const override;
-    [[nodiscard]] std::string_view GetTypeName() const override;
+    [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt16           GetSortKey() const;
 
     [[nodiscard]] VertexBufferHandle GetVertexBuffer() const;
@@ -38,13 +38,13 @@ public:
     void Submit() const;
 
     static constexpr UInt32           k_hash      = HashOf<Mesh>();
-    static constexpr std::string_view k_name      = NameOf<Mesh>();
+    static constexpr StringView k_name      = NameOf<Mesh>();
     static constexpr eAssetType       k_type      = eAssetType::Mesh;
-    static constexpr std::string_view k_extension = k_jamMeshExt;
+    static constexpr StringView k_extension = k_jamMeshExt;
 
 private:
     void CleanUp_();
-    void ComputeBoundingBox_(ConstMemView _verts, const VertexLayout& _vl);
+    void ComputeBoundingBox_(CMemView _verts, const VertexLayout& _vl);
 
     fs::path           m_path        = {};
     VertexBufferHandle m_vbh         = k_invalidHandle;

@@ -20,7 +20,7 @@ class ConsolePanel
         eLogLevelFilterFlags_Off      = 1 << EnumToInt(eLogLevel::off),
         eLogLevelFilterFlags_All      = eLogLevelFilterFlags_Trace | eLogLevelFilterFlags_Debug | eLogLevelFilterFlags_Info | eLogLevelFilterFlags_Warn | eLogLevelFilterFlags_Error | eLogLevelFilterFlags_Critical | eLogLevelFilterFlags_Off
     };
-    static_assert(EnumCount<eLogLevelFilterFlags_>() == EnumCount<eLogLevel>() + 1, "eLogLevelFilterFlags_ must have the same count as eLogLevel plus one for None.");
+    static_assert(NumEnums<eLogLevelFilterFlags_>() == NumEnums<eLogLevel>() + 1, "eLogLevelFilterFlags_ must have the same count as eLogLevel plus one for None.");
     using eLogLevelFilterFlags = std::underlying_type_t<eLogLevelFilterFlags_>;
 
 public:
@@ -44,7 +44,7 @@ private:
     bool m_bAutoScroll = true;   // 자동 스크롤 여부
 
     // 로그 레벨별 텍스트 색상
-    constexpr static ImVec4 k_logColors[EnumCount<spdlog::level::level_enum>()] = {
+    constexpr static ImVec4 k_logColors[NumEnums<spdlog::level::level_enum>()] = {
         ImVec4(1.0f, 1.0f, 1.0f, 1.0f),   // trace, white
         ImVec4(0.2f, 0.8f, 0.2f, 1.0f),   // debug, green
         ImVec4(0.3f, 0.6f, 1.0f, 1.0f),   // info, blue

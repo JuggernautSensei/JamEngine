@@ -1,5 +1,4 @@
 #pragma once
-#include "MathUtilities.h"
 
 namespace jam
 {
@@ -51,43 +50,6 @@ void SetBit(T& _value, R _bit, const bool _bSet) noexcept
     else
     {
         _value &= ~static_cast<T>(_bit);
-    }
-}
-
-template<typename T>
-    requires std::is_integral_v<T>
-[[nodiscard]] constexpr std::optional<T> TryParseStringToInt(
-    const std::string_view _str)
-{
-    try
-    {
-        std::string str;
-        if constexpr (std::is_same_v<T, Int32>)
-        {
-            return std::stoi(str);
-        }
-        else if constexpr (std::is_same_v<T, UInt32>)
-        {
-            return static_cast<UInt32>(std::stoul(str));
-        }
-        else if constexpr (std::is_same_v<T, Int64>)
-        {
-            return std::stoll(str);
-        }
-        else if constexpr (std::is_same_v<T, UInt64>)
-        {
-            return static_cast<UInt64>(std::stoull(str));
-        }
-        else
-        {
-            static_assert(AlwaysFalse<T>, "Unsupported type for TryParseStrToInt");
-            return std::nullopt;
-        }
-    }
-    catch (...)
-    {
-        ErrorBuffer::Set("failed to parse '{}' to integer", _str);
-        return std::nullopt;
     }
 }
 

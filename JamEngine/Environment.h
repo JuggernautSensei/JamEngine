@@ -89,6 +89,8 @@ struct ToneMappingData
 
 struct BloomData
 {
+    static constexpr Int32 k_maxBlurPasses = 10;
+
     bool  bEnabled      = false;
     float blurRadius    = 0.005f;   // sigma
     float bloomStrength = 0.05f;

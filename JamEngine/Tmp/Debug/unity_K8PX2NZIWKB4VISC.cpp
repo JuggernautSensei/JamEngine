@@ -1,11 +1,5 @@
 #include "pch.h"
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\MemoryPool.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Mesh.cpp"
-
-
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\MeshFactory.cpp"
 
 
@@ -31,4 +25,13 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenameFileDialog.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderGraph.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderPass.cpp"
+
+
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\SceneDB.cpp"
 

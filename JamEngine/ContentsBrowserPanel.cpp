@@ -90,7 +90,7 @@ public:
         }
     }
 
-    std::string_view GetTitle() const override
+    StringView GetTitle() const override
     {
         return "rename content";
     }
@@ -150,7 +150,7 @@ public:
         }
     }
 
-    std::string_view GetTitle() const override
+    StringView GetTitle() const override
     {
         return "delete content";
     }

@@ -36,8 +36,8 @@ void WindowsPlatform::Init()
 
         if (RegisterClassExW(&wClassEx) == 0)
         {
-            DWORD lastError = GetLastError();
-            JAM_CRASH("Failed to register window class: {}", ErrorMessageFrom(lastError));
+            const DWORD lastError = GetLastError();
+            JAM_CRASH("Failed to register window class: {}", StringFrom(lastError));
         }
     }
 
@@ -46,8 +46,8 @@ void WindowsPlatform::Init()
         m_hWnd = CreateWindowExW(0, k_windowClassName, k_windowTitleName, WS_OVERLAPPEDWINDOW, k_defaultPosX, k_defaultPosY, k_defaultWidth, k_defaultHeight, nullptr, nullptr, m_hInstance, nullptr);
         if (m_hWnd == NULL)
         {
-            DWORD lastError = GetLastError();
-            JAM_CRASH("Failed to create window: {}", ErrorMessageFrom(lastError));
+            const DWORD lastError = GetLastError();
+            JAM_CRASH("Failed to create window: {}", StringFrom(lastError));
         }
 
         ResizeClient(k_defaultWidth, k_defaultHeight);
@@ -106,12 +106,12 @@ void WindowsPlatform::MoveClient(const Int32 _clientLeftTopX, const Int32 _clien
     SetClient(m_clientRes.x, m_clientRes.y, _clientLeftTopX, _clientLeftTopY, wsFlags, exFlags);
 }
 
-void WindowsPlatform::SetTitle(const std::string_view _name) const
+void WindowsPlatform::SetTitle(const StringView _name) const
 {
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
     JAM_ASSERT(m_hInstance, "WindowsPlatform instance handle is null");
 
-    const std::wstring title = ToUTF16(_name);
+    const std::wstring title = ToUtf16(_name);
     ::SetWindowText(m_hWnd, title.c_str());
 }
 
@@ -155,7 +155,7 @@ void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
             if (_flags & eWindowPropertyFlags_DisableCloseButton)
             {
                 // Close 버튼만 비활성화
-                if (HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
+                if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
                 {
                     ::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
                 }
@@ -163,7 +163,7 @@ void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
             else
             {
                 // Close 버튼 활성화
-                if (HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
+                if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
                 {
                     ::EnableMenuItem(hMenu, SC_CLOSE, 0);
                 }
@@ -438,7 +438,7 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
 
 void WindowsPlatform::SetClient(const Int32 _clientWidth, const Int32 _clientHeight, const Int32 _clientLeftTopX, const Int32 _clientLeftTopY, const DWORD _wsFlags, const DWORD _exFlags)
 {
-    bool bHasMenu = ::GetMenu(m_hWnd) != NULL;
+    const bool bHasMenu = ::GetMenu(m_hWnd) != NULL;
 
     // cli -> win
     RECT adjRect = { 0, 0, _clientWidth, _clientHeight };

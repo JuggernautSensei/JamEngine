@@ -61,7 +61,7 @@ struct EditorContext
 
     VertexLayoutStorage vlStorage;
 
-    std::array<bool, EnumCount<eEditorWindowType>()> windowShows = {};
+    std::array<bool, NumEnums<eEditorWindowType>()> windowShows = {};
 
 }* g_pEdtCtx;
 
@@ -120,7 +120,7 @@ void EditorContext::DrawFileMenu() const
 
 void EditorContext::DrawWindowMenu() const
 {
-    const char* k_panelNames[EnumCount<eEditorWindowType>()] = {
+    const char* k_panelNames[NumEnums<eEditorWindowType>()] = {
         "viewport",
         "scene hierarchy",
         "entity inspector",
@@ -159,7 +159,7 @@ void EditorContext::ShowWorkspace() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
-    bool bOpen = ImGui::Begin("Workspace", nullptr, k_flags);
+    const bool bOpen = ImGui::Begin("Workspace", nullptr, k_flags);
     ImGui::PopStyleVar(3);
 
     if (!bOpen)
@@ -216,13 +216,13 @@ void EditorContext::SaveConfig() const
 
 void EditorContext::LoadConfig() const
 {
-    fs::path path = g_pEdtCtx->CreateConfigFilePath();
+    const fs::path path = g_pEdtCtx->CreateConfigFilePath();
     if (!fs::exists(path))   // no config file
     {
         return;
     }
 
-    std::optional<Json> opt = LoadJsonFile(path);
+    const Optional<Json> opt = LoadJsonFile(path);
     if (!opt)
     {
         // discard if failed to load
@@ -242,21 +242,21 @@ void EditorContext::LoadConfig() const
         g_pEdtCtx->windowShows = json.value("windowShows", g_pEdtCtx->windowShows);
 
         // vertex layout
-        if (auto it = json.find("vertexLayoutStorage"); it != json.end())
+        if (const auto it = json.find("vertexLayoutStorage"); it != json.end())
         {
             const Json& vlJson   = *it;
             g_pEdtCtx->vlStorage = DeserializeVertexLayoutStorage(vlJson);
         }
 
         // viewport
-        if (auto it = json.find("viewport"); it != json.end())
+        if (const auto it = json.find("viewport"); it != json.end())
         {
             const Json& vpJson = *it;
             g_pEdtCtx->renderViewWindow.OnDeserialize(vpJson);
         }
 
         // file browser
-        if (auto it = json.find("fileBrowser"); it != json.end())
+        if (const auto it = json.find("fileBrowser"); it != json.end())
         {
             const Json& fileBrowserJson = *it;
             g_pEdtCtx->fileBrowserWindow.OnDeserialize(fileBrowserJson);
@@ -537,12 +537,12 @@ Entity Editor::GetFocusEntity()
     return g_pEdtCtx->focusEntity;
 }
 
-void Editor::OpenCorePopupDialog(const std::string_view _name, const std::string_view _message)
+void Editor::OpenCorePopupDialog(const StringView _name, const StringView _message)
 {
     g_pEdtCtx->popup.Open(_name, _message);
 }
 
-void Editor::OpenCorePopupDialog(const std::string_view _name, std::function<void()> _onImGuiRender)
+void Editor::OpenCorePopupDialog(const StringView _name, std::function<void()> _onImGuiRender)
 {
     g_pEdtCtx->popup.Open(_name, std::move(_onImGuiRender));
 }
@@ -619,7 +619,7 @@ void Editor::SaveActiveSceneByDialog()
         { "jam scene (.jsc)", k_jamSceneExtFilter }
     };
 
-    if (std::optional<fs::path> opt = SaveFileDialog("save scene", {}, filter))
+    if (const Optional<fs::path> opt = SaveFileDialog("save scene", {}, filter))
     {
         const Ref<Scene>& pScene = SceneManager::GetActiveScene();
         fs::path          path   = opt.value();
@@ -630,9 +630,9 @@ void Editor::SaveActiveSceneByDialog()
 
         // save to file
         path.replace_extension(k_jamSceneExt);
-        if (!serializer.SaveFile(path))
+        if (!serializer.SaveJsonFile(path))
         {
-            std::string msg = std::format("failed to save scene to file: {}\n{}", path.native(), ErrorBuffer::Get());
+            const std::string msg = std::format("failed to save scene to file: {}\n{}", path.native(), GlobalBuffer::GetLastError());
             Editor::OpenCorePopupDialog("error", msg);
         }
     }
@@ -647,12 +647,12 @@ void Editor::LoadActiveSceneByDialog()
         { "jam scene (.jsc)", k_jamSceneExtFilter }
     };
 
-    if (std::optional<fs::path> opt = OpenFileDialog("load scene", {}, filter))
+    if (const Optional<fs::path> opt = OpenFileDialog("load scene", {}, filter))
     {
         const fs::path& path = opt.value();
         if (!SceneManager::LoadScene(path))
         {
-            std::string msg = std::format("failed to load scene from file: {}\n{}", path.native(), ErrorBuffer::Get());
+            const std::string msg = std::format("failed to load scene from file: {}\n{}", path.native(), GlobalBuffer::GetLastError());
             Editor::OpenCorePopupDialog("error", msg);
         }
     }

@@ -132,7 +132,7 @@ TimeStamp TimeStamp::Current()
     return stamp;
 }
 
-ScopedTimer::ScopedTimer(const std::string_view _name, const eSIPrefix _unit)
+ScopedTimer::ScopedTimer(const StringView _name, const eSIPrefix _unit)
     : m_name(_name)
     , m_unit(_unit)
 {

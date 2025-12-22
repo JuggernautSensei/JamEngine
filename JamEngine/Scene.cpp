@@ -26,7 +26,7 @@ TextureHandle Scene::GetDepthTexture() const
     return k_invalidHandle;   // override in derived class if needed
 }
 
-void Scene::UpdateSceneTree_()
+void Scene::UpdateSceneGraph_()
 {
     JAM_ASSERT(m_root, "Root entity is null");
     SceneNode& node = m_root.GetSceneNode();
@@ -46,15 +46,15 @@ void Scene::ProcessDeferredDestroyEntities_()
     m_deferredDestroyEntities.clear();
 }
 
-Entity Scene::CreateEntity(const std::string_view _name)
+Entity Scene::CreateEntity(const StringView _name)
 {
     const UID uid = m_uidGenerator.Alloc();
     return CreateEntity_(uid, _name);
 }
 
 Entity Scene::CreateEntity(
-    const UID              _uid,
-    const std::string_view _name)
+    const UID        _uid,
+    const StringView _name)
 {
     const UID uid = m_uidGenerator.Alloc(_uid);
     return CreateEntity_(uid, _name);
@@ -105,7 +105,7 @@ Entity Scene::GetRootEntity() const
     return m_root;
 }
 
-Int32 Scene::GetEntityCount() const
+Int32 Scene::GetNumEntities() const
 {
     return NarrowCast<Int32>(m_entities.size());
 }
@@ -130,7 +130,7 @@ void Scene::DestroyEntity_Recursive_(Entity _entity)
     Entity     child = node.GetFirstChild();
     while (child)
     {
-        Entity childSibling = child.GetSceneNode().GetNextSibling();
+        const Entity childSibling = child.GetSceneNode().GetNextSibling();
         DestroyEntity_Recursive_(child);
         child = childSibling;
     }
@@ -159,7 +159,7 @@ Entity Scene::CloneEntity_Recursive_(Entity _srcEntity)
 
     // copy
     const ComponentDB& db = ComponentDB::GetInstance();
-    for (UInt32 typeId: m_registry.storage() | std::views::keys)
+    for (const UInt32 typeId: m_registry.storage() | std::views::keys)
     {
         // scene component do not trivial copy
         // just copy transform
@@ -171,15 +171,15 @@ Entity Scene::CloneEntity_Recursive_(Entity _srcEntity)
         {
             if (db.Has(typeId, _srcEntity))
             {
-                void* pCompData = db.Get(typeId, _srcEntity);
+                const void* pCompData = db.Get(typeId, _srcEntity);
                 db.CreateByCopy(typeId, entity, pCompData);
             }
         }
     }
 
     // clone children recursively
-    SceneNode& srcNode  = _srcEntity.GetSceneNode();
-    Entity     srcChild = srcNode.GetFirstChild();
+    const SceneNode& srcNode  = _srcEntity.GetSceneNode();
+    Entity           srcChild = srcNode.GetFirstChild();
     while (srcChild)
     {
         Entity clonedChild = CloneEntity_Recursive_(srcChild);
@@ -191,7 +191,7 @@ Entity Scene::CloneEntity_Recursive_(Entity _srcEntity)
     return entity;
 }
 
-Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
+Entity Scene::CreateEntity_(UID _uid, const StringView _name)
 {
     JAM_ASSERT(m_uidGenerator.IsAllocated(_uid), "UID {} is not allocated", _uid);
 
@@ -207,7 +207,7 @@ Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
     entity.CreateComponent<SceneComponent>(SceneNode { m_root, entity });
 
     // create tag component if need
-    if (!_name.empty())
+    if (!_name.IsEmpty())
     {
         entity.CreateComponent<TagComponent>(_name);
     }
@@ -221,10 +221,10 @@ Entity Scene::CreateEntity_(UID _uid, const std::string_view _name)
 Entity Scene::CreateRootEntity_()
 {
     JAM_ASSERT(!m_root, "Root entity already exists");
-    JAM_ASSERT(!m_uidGenerator.IsAllocated(k_rootEntityReservedUid), "Root entity reserved UID is already allocated");
+    JAM_ASSERT(!m_uidGenerator.IsAllocated(k_reservedUidForRoot), "Root entity reserved UID is already allocated");
 
     // create entt handle
-    const UID          uid    = m_uidGenerator.Alloc(k_rootEntityReservedUid);
+    const UID          uid    = m_uidGenerator.Alloc(k_reservedUidForRoot);
     const entt::entity handle = m_registry.create();
     Entity             root   = { m_registry, handle, uid };
 

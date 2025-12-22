@@ -20,14 +20,14 @@ public:
     ImageTexture& operator=(ImageTexture&& _other) noexcept;
 
     bool Load(const fs::path& _path) override;
-    bool LoadSource(ConstMemView _source, eImageFormat _format, const fs::path& _virtualPath = {});
+    bool LoadSource(CMemView _source, eImageFormat _format, const fs::path& _virtualPath = {});
 
     void Unload() override;
     bool Save(const fs::path& _path) const override;
 
     [[nodiscard]] bool             IsValid() const override;
     [[nodiscard]] eAssetType       GetAssetType() const override;
-    [[nodiscard]] std::string_view GetTypeName() const override;
+    [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt32           GetTypeHash() const override;
     [[nodiscard]] const fs::path&  GetPath() const override;
     [[nodiscard]] TextureHandle    GetHandle() const;
@@ -37,7 +37,7 @@ public:
     void Bind(eShader _shader, Int32 _slot) const;
     void Unbind(eShader _shader, Int32 _slot) const;
 
-    static constexpr std::string_view k_name = NameOf<ImageTexture>();
+    static constexpr StringView k_name = NameOf<ImageTexture>();
     static constexpr UInt32           k_hash = HashOf<ImageTexture>();
     static constexpr eAssetType       k_type = eAssetType::ImageTexture;
 

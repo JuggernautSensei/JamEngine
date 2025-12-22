@@ -54,7 +54,7 @@ private:
 class ScopedTimer : private Timer
 {
 public:
-    explicit ScopedTimer(std::string_view _name, eSIPrefix _unit = eSIPrefix::Milli);
+    explicit ScopedTimer(StringView _name, eSIPrefix _unit = eSIPrefix::Milli);
     ~ScopedTimer();
 
     ScopedTimer(const ScopedTimer&)                = delete;

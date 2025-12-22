@@ -16,7 +16,7 @@ public:
     IModalBoxPanel& operator=(IModalBoxPanel&&) noexcept = default;
 
     virtual void                       Show()           = 0;
-    JAM_NODISCARD virtual std::string_view GetTitle() const = 0;
+    JAM_NODISCARD virtual StringView GetTitle() const = 0;
 };
 
 }   // namespace jam

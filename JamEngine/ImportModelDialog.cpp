@@ -154,7 +154,7 @@ bool ImportModelDialog::OnClickImportButton_()
         importer.SetPath(m_importPath);
         importer.ComputeNormal(m_normalGenType);
         if (m_bComputeTangent)
-            importer.GenerateTangentFrame();
+            importer.GenerateTangentFrame(TODO);
         if (m_bDropNormal)
             importer.DropExistingNormal();
         if (m_bLimitBoneWeight)
@@ -164,7 +164,7 @@ bool ImportModelDialog::OnClickImportButton_()
 
         if (!importer.Import())
         {
-            const std::string msg = std::format("Failed to import model from file '{}': {}", m_importPath.native(), ErrorBuffer::Get());
+            const std::string msg = std::format("Failed to import model from file '{}': {}", m_importPath.native(), GlobalBuffer::GetLastError());
             m_popup.Open("error", msg);
             return false;
         }
@@ -183,7 +183,7 @@ bool ImportModelDialog::OnClickImportButton_()
     }
 
     // model creation
-    if (const std::optional<Model> optModel = CreateModelFromImportedModelRootNode_(importer, dirPath))
+    if (const Optional<Model> optModel = CreateModelFromImportedModelRootNode_(importer, dirPath))
     {
         const Model& model     = optModel.value();
         fs::path     modelPath = dirPath / m_buf;
@@ -194,14 +194,14 @@ bool ImportModelDialog::OnClickImportButton_()
         }
         else
         {
-            const std::string msg = std::format("Failed to save model to disk. {}", ErrorBuffer::Get());
+            const std::string msg = std::format("Failed to save model to disk. {}", GlobalBuffer::GetLastError());
             m_popup.Open("error", msg);
             return false;
         }
     }
     else
     {
-        const std::string msg = std::format("Failed to create model from imported data. {}", ErrorBuffer::Get());
+        const std::string msg = std::format("Failed to create model from imported data. {}", GlobalBuffer::GetLastError());
         m_popup.Open("error", msg);
         return false;
     }
@@ -233,7 +233,7 @@ bool ImportModelDialog::Widget_NormalGenSelector_(eNormalGenType& _type) const
 }
 
 void ImportModelDialog::CopyVec3Attribute_(
-    Vector<Byte>&       _vertexData,
+    Vector<Byte>&       _vertData,
     const Vector<Vec3>& _srcData,
     const Int32              _numVerts,
     const Int32              _vertexStride,
@@ -244,7 +244,7 @@ void ImportModelDialog::CopyVec3Attribute_(
     {
         for (Int32 i = 0; i < _numVerts; ++i)
         {
-            Byte*       pDst = _vertexData.data() + i * _vertexStride + _offset;
+            Byte*       pDst = _vertData.data() + i * _vertexStride + _offset;
             const Vec3* pSrc = &_srcData[i];
             std::memcpy(pDst, pSrc, _byteWidth);
         }
@@ -252,7 +252,7 @@ void ImportModelDialog::CopyVec3Attribute_(
 }
 
 void ImportModelDialog::CopyVec4Attribute_(
-    Vector<Byte>&       _vertexData,
+    Vector<Byte>&       _vertData,
     const Vector<Vec4>& _srcData,
     const Int32              _numVerts,
     const Int32              _vertexStride,
@@ -263,14 +263,14 @@ void ImportModelDialog::CopyVec4Attribute_(
     {
         for (Int32 i = 0; i < _numVerts; ++i)
         {
-            Byte*       pDst = _vertexData.data() + i * _vertexStride + _offset;
+            Byte*       pDst = _vertData.data() + i * _vertexStride + _offset;
             const Vec4* pSrc = &_srcData[i];
             std::memcpy(pDst, pSrc, _byteWidth);
         }
     }
 }
 
-std::optional<Mesh> ImportModelDialog::CreateMeshFromImported_(
+Optional<Mesh> ImportModelDialog::CreateMeshFromImported_(
     const ImportedMesh& _mesh,
     const VertexLayout& _layout)
 {
@@ -279,8 +279,8 @@ std::optional<Mesh> ImportModelDialog::CreateMeshFromImported_(
 
     if (numVerts == 0 || vertexStride == 0)
     {
-        ErrorBuffer::Set("Invalid mesh data: numVerts={}, stride={}", numVerts, vertexStride);
-        return std::nullopt;
+        GlobalBuffer::SetLastError("Invalid mesh data: numVerts={}, stride={}", numVerts, vertexStride);
+        return k_nullopt;
     }
 
     Vector<Byte> vertsData(numVerts * vertexStride);
@@ -361,7 +361,7 @@ fs::path ImportModelDialog::GenerateTexturePath_(
 
     if (_tex.bIsCompressed && _tex.format != eImageFormat::Unknown)
     {
-        path.replace_extension(std::format(".{}", ErrorMessageFrom(_tex.format)));
+        path.replace_extension(std::format(".{}", StringFrom(_tex.format)));
     }
     else
     {
@@ -371,7 +371,7 @@ fs::path ImportModelDialog::GenerateTexturePath_(
     return path;
 }
 
-std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
+Optional<Material> ImportModelDialog::CreateMaterialFromImported_(
     const ImportedMaterial&               _importedMat,
     const Vector<Ref<ImageTexture>>& _textures)
 {
@@ -394,9 +394,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
     mat.SetFlipYNormalTexture(true);   // normally normal map is based on OpenGL uv coordinate system
 
     // Set texture maps
-    if (_importedMat.albedoTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.albedoTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.albedoTexIndex;
+        const Int32 idx = _importedMat.albedoTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -406,9 +406,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.normalTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.normalTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.normalTexIndex;
+        const Int32 idx = _importedMat.normalTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -418,9 +418,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.metallicTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.metallicTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.metallicTexIndex;
+        const Int32 idx = _importedMat.metallicTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -430,9 +430,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.roughnessTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.roughnessTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.roughnessTexIndex;
+        const Int32 idx = _importedMat.roughnessTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -442,9 +442,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.aoTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.aoTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.aoTexIndex;
+        const Int32 idx = _importedMat.aoTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -454,9 +454,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.emissiveTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.emissiveTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.emissiveTexIndex;
+        const Int32 idx = _importedMat.emissiveTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -466,9 +466,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.lightTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.lightTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.lightTexIndex;
+        const Int32 idx = _importedMat.lightTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -478,9 +478,9 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
         }
     }
 
-    if (_importedMat.vertexDisplacementTexIndex != k_invalidImportedTexIndex)
+    if (_importedMat.vertexDisplacementTexIdx != k_invalidImportedIdx)
     {
-        const Int32 idx = _importedMat.vertexDisplacementTexIndex;
+        const Int32 idx = _importedMat.vertexDisplacementTexIdx;
         if (idx >= 0 && idx < static_cast<Int32>(_textures.size()))
         {
             if (const Ref<ImageTexture>& pTex = _textures[idx])
@@ -493,27 +493,27 @@ std::optional<Material> ImportModelDialog::CreateMaterialFromImported_(
     return mat;
 }
 
-std::optional<ModelNode> ImportModelDialog::ConvertNodeRecursive_(
+Optional<ModelNode> ImportModelDialog::ConvertNodeRecursive_(
     const ImportedModelNode& _node)
 {
     ModelNode node;
     node.name      = _node.name;
     node.mtx = _node.mtx;
-    node.meshIndices.reserve(_node.meshIndices.size());
-    node.materialIndices.reserve(_node.materialIndices.size());
+    node.meshIndices.reserve(_node.meshIdxes.size());
+    node.materialIndices.reserve(_node.materialIdxes.size());
     node.children.reserve(_node.children.size());
 
     // Copy mesh and material indices
-    for (const Int32 idx: _node.meshIndices)
+    for (const Int32 idx: _node.meshIdxes)
         node.meshIndices.push_back(idx);
 
-    for (const Int32 idx: _node.materialIndices)
+    for (const Int32 idx: _node.materialIdxes)
         node.materialIndices.push_back(idx);
 
     // Process children recursively
     for (const ImportedModelNode& child: _node.children)
     {
-        if (std::optional<ModelNode> optChild = ConvertNodeRecursive_(child))
+        if (Optional<ModelNode> optChild = ConvertNodeRecursive_(child))
         {
             node.children.push_back(std::move(optChild.value()));
         }
@@ -522,7 +522,7 @@ std::optional<ModelNode> ImportModelDialog::ConvertNodeRecursive_(
     return node;
 }
 
-std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
+Optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
     const AssimpImporter& _importer,
     const fs::path&       _baseDir) const
 {
@@ -550,8 +550,8 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
     }
     catch (const fs::filesystem_error& ec)
     {
-        ErrorBuffer::Set("Failed to create output directories: {}", ec.what());
-        return std::nullopt;
+        GlobalBuffer::SetLastError("Failed to create output directories: {}", ec.what());
+        return k_nullopt;
     }
 
     ModelDesc desc;
@@ -565,15 +565,15 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
 
         if (fs::exists(outputPath))
         {
-            ErrorBuffer::Set("Mesh file already exists: {}", outputPath.native());
-            return std::nullopt;
+            GlobalBuffer::SetLastError("Mesh file already exists: {}", outputPath.native());
+            return k_nullopt;
         }
 
-        std::optional<Mesh> optMesh = CreateMeshFromImported_(mesh, layout);
+        Optional<Mesh> optMesh = CreateMeshFromImported_(mesh, layout);
         if (!optMesh || !optMesh->Save(outputPath))
         {
-            ErrorBuffer::Set("Failed to save mesh: {}", outputPath.native());
-            return std::nullopt;
+            GlobalBuffer::SetLastError("Failed to save mesh: {}", outputPath.native());
+            return k_nullopt;
         }
 
         desc.meshPaths.push_back(std::move(outputPath));
@@ -590,8 +590,8 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
         const fs::path outputPath = GenerateTexturePath_(texOutputDir, i, tex);
         if (fs::exists(outputPath))
         {
-            ErrorBuffer::Set("Texture file already exists: {}", outputPath.native());
-            return std::nullopt;
+            GlobalBuffer::SetLastError("Texture file already exists: {}", outputPath.native());
+            return k_nullopt;
         }
 
         Ref<ImageTexture> pImageTexture = CreateImageTextureFromImportedTexture_(tex, outputPath);
@@ -604,8 +604,8 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
 
         if (!pImageTexture->Save(outputPath))
         {
-            ErrorBuffer::Set("Failed to save texture: {}", outputPath.native());
-            return std::nullopt;
+            GlobalBuffer::SetLastError("Failed to save texture: {}", outputPath.native());
+            return k_nullopt;
         }
 
         imageTextures.push_back(std::move(pImageTexture));
@@ -620,22 +620,22 @@ std::optional<Model> ImportModelDialog::CreateModelFromImportedModelRootNode_(
 
         if (fs::exists(outputPath))
         {
-            ErrorBuffer::Set("Material file already exists: {}", outputPath.native());
-            return std::nullopt;
+            GlobalBuffer::SetLastError("Material file already exists: {}", outputPath.native());
+            return k_nullopt;
         }
 
-        std::optional<Material> optMat = CreateMaterialFromImported_(importedMat, imageTextures);
+        Optional<Material> optMat = CreateMaterialFromImported_(importedMat, imageTextures);
         if (!optMat || !optMat->Save(outputPath))
         {
-            ErrorBuffer::Set("Failed to save material: {}", outputPath.native());
-            return std::nullopt;
+            GlobalBuffer::SetLastError("Failed to save material: {}", outputPath.native());
+            return k_nullopt;
         }
 
         desc.matPaths.push_back(std::move(outputPath));
     }
 
     // Convert root node
-    if (std::optional<ModelNode> optRootNode = ConvertNodeRecursive_(rootNode))
+    if (Optional<ModelNode> optRootNode = ConvertNodeRecursive_(rootNode))
     {
         desc.rootNode = std::move(optRootNode.value());
     }

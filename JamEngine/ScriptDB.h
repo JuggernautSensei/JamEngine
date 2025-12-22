@@ -25,6 +25,7 @@ class ScriptDB
 public:
     using ContainerT = HashMap<UInt32, ScriptInfo>;
 
+    // singletone
     [[nodiscard]] static ScriptDB& GetInstance();
     static void                    DestroyInstance();
 
@@ -39,8 +40,8 @@ public:
         Reflect(info);
     }
 
-    [[nodiscard]] Ref<Script>       Create(std::string_view _name, Entity _entity) const;
-    [[nodiscard]] bool              IsReflected(std::string_view _name) const;
+    [[nodiscard]] Ref<Script>       Create(StringView _name, Entity _entity) const;
+    [[nodiscard]] bool              IsReflected(StringView _name) const;
     [[nodiscard]] const ContainerT& GetContainer() const;
 
 private:

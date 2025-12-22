@@ -4,6 +4,7 @@
 
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
+#include "JsonUtilities.h"
 
 namespace jam
 {
@@ -13,8 +14,8 @@ TagComponent::TagComponent()
 }
 
 TagComponent::TagComponent(
-    const std::string_view _name)
-    : name(_name)
+    const StringView _name)
+    : name(_name.ToString())
 {
 }
 
@@ -31,30 +32,31 @@ bool TagComponent::operator!=(
 }
 
 bool TagComponent::operator==(
-    const std::string_view _name) const
+    const StringView _name) const
 {
     return name == _name;
 }
 
 bool TagComponent::operator!=(
-    const std::string_view _name) const
+    const StringView _name) const
 {
     return !(*this == _name);
 }
 
-Json TagComponent::Serialize(
+void TagComponent::Serialize(
+    JsonWriter&       _writer,
     const Ref<Scene>& _pScene,
-    Entity            _entity) const
+    Entity            _owner) const
 {
-    return name;
+    _writer.Write(name);
 }
 
 void TagComponent::Deserialize(
-    const Json&       _json,
+    JsonReader&       _reader,
     const Ref<Scene>& _pScene,
-    Entity            _entity)
+    Entity            _owner)
 {
-    TryParseJson(_json, name);
+    _reader.Read(name);
 }
 
 void TagComponent::DrawEditor(

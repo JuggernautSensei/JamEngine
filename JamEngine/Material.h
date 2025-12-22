@@ -98,13 +98,13 @@ public:
     [[nodiscard]] bool             IsValid() const override;
     [[nodiscard]] const fs::path&  GetPath() const override;
     [[nodiscard]] eAssetType       GetAssetType() const override;
-    [[nodiscard]] std::string_view GetTypeName() const override;
+    [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt32           GetTypeHash() const override;
     [[nodiscard]] UInt16           GetSortKey() const;
 
-    static constexpr std::string_view k_name      = NameOf<Material>();
+    static constexpr StringView k_name      = NameOf<Material>();
     static constexpr UInt32           k_hash      = HashOf<Material>();
-    static constexpr std::string_view k_extension = k_jamMaterialExt;
+    static constexpr StringView k_extension = k_jamMaterialExt;
     static constexpr eAssetType       k_type      = eAssetType::Material;
 
 private:

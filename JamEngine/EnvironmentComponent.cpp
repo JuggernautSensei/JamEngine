@@ -6,236 +6,212 @@
 #include "ImGuiUtilities.h"
 #include "JsonUtilities.h"
 
-// todo: texture2d cube. array imgui 포팅하기
-// repactory..
-
 namespace jam
 {
 
-Json EnvironmentComponent::Serialize(
+void EnvironmentComponent::Serialize(
+    JsonWriter&       _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
-    const DirectionalLightData&   dirLight    = environment.GetDirectionalLight();
-    const ImageBasedLightingData& ibl         = environment.GetIBL();
-    const SkyboxData&             skybox      = environment.GetSkybox();
-    const SSAOData&               ssao        = environment.GetSSAO();
-    const FogData&                fog         = environment.GetFog();
-    const ToneMappingData&        toneMapping = environment.GetToneMapping();
-    const BloomData&              bloom       = environment.GetBloom();
-    const FXAAData&               fxaa        = environment.GetFXAA();
-    const EnvironmentMisc&        misc        = environment.GetMisc();
-
-    Json json;
-
     // Directional Light
     {
-        Json dirLightJson;
-        dirLightJson["enabled"]          = dirLight.bShadowEnabled;
-        dirLightJson["radiance"]         = dirLight.radiance;
-        dirLightJson["intensity"]        = dirLight.intensity;
-        dirLightJson["direction"]        = dirLight.direction;
-        dirLightJson["shadowEnabled"]    = dirLight.bShadowEnabled;
-        dirLightJson["cascadeDistances"] = dirLight.cascadeDistances;
-        json["dirLight"]                 = std::move(dirLightJson);
+        const DirectionalLightData& dirLight = environment.GetDirectionalLight();
+
+        JsonWriter dirLightWriter = _writer.EnterField("dirLight");
+        dirLightWriter.WriteField("enabled", dirLight.bEnabled);
+        dirLightWriter.WriteField("radiance", dirLight.radiance);
+        dirLightWriter.WriteField("intensity", dirLight.intensity);
+        dirLightWriter.WriteField("direction", dirLight.direction);
+        dirLightWriter.WriteField("shadowEnabled", dirLight.bShadowEnabled);
+        dirLightWriter.WriteField("cascadeDistances", dirLight.cascadeDistances);
     }
 
     // Image Based Lighting
     {
-        Json iblJson;
-        iblJson["irradianceTexturePath"]      = ibl.pIrradianceTexture;
-        iblJson["specularMapPath"]            = ibl.pSpecularTexture;
-        iblJson["brdfLutPath"]                = ibl.pBrdfLutTexture;
-        iblJson["irradianceTextureIntensity"] = ibl.irradianceTextureIntensity;
-        iblJson["specularTextureIntensity"]   = ibl.specularTextureIntensity;
-        json["ibl"]                           = std::move(iblJson);
+        const ImageBasedLightingData& ibl = environment.GetIBL();
+
+        JsonWriter iblWriter = _writer.EnterField("ibl");
+        iblWriter.WriteField("irradianceTexturePath", ibl.pIrradianceTexture);
+        iblWriter.WriteField("specularMapPath", ibl.pSpecularTexture);
+        iblWriter.WriteField("brdfLUTPath", ibl.pBrdfLutTexture);
+        iblWriter.WriteField("irradianceTextureIntensity", ibl.irradianceTextureIntensity);
+        iblWriter.WriteField("specularTextureIntensity", ibl.specularTextureIntensity);
     }
 
     // Skybox
     {
-        Json skyboxJson;
-        skyboxJson["type"]       = skybox.type;
-        skyboxJson["path"]       = skybox.pSkyboxTexture;
-        skyboxJson["solidColor"] = skybox.solidColor;
-        json["skybox"]           = std::move(skyboxJson);
+        const SkyboxData& skybox = environment.GetSkybox();
+
+        JsonWriter skyboxWriter = _writer.EnterField("skybox");
+        skyboxWriter.WriteField("type", skybox.type);
+        skyboxWriter.WriteField("path", skybox.pSkyboxTexture);
+        skyboxWriter.WriteField("solidColor", skybox.solidColor);
     }
 
     // SSAO
     {
-        Json ssaoJson;
-        ssaoJson["enabled"] = ssao.bEnabled;
-        ssaoJson["radius"]  = ssao.radius;
-        ssaoJson["bias"]    = ssao.bias;
-        json["ssao"]        = std::move(ssaoJson);
+        const SSAOData& ssao = environment.GetSSAO();
+
+        JsonWriter ssaoWriter = _writer.EnterField("ssao");
+        ssaoWriter.WriteField("enabled", ssao.bEnabled);
+        ssaoWriter.WriteField("radius", ssao.radius);
+        ssaoWriter.WriteField("bias", ssao.bias);
     }
 
     // Fog
     {
-        Json fogJson;
-        fogJson["enabled"]           = fog.bEnabled;
-        fogJson["radiance"]          = fog.radiance;
-        fogJson["density"]           = fog.density;
-        fogJson["fallOffStart"]      = fog.fallOffStart;
-        fogJson["fallOffEnd"]        = fog.fallOffEnd;
-        fogJson["heightAttenuation"] = fog.heightAttenuation;
-        json["fog"]                  = std::move(fogJson);
+        const FogData& fog = environment.GetFog();
+
+        JsonWriter fogWriter = _writer.EnterField("fog");
+        fogWriter.WriteField("enabled", fog.bEnabled);
+        fogWriter.WriteField("radiance", fog.radiance);
+        fogWriter.WriteField("density", fog.density);
+        fogWriter.WriteField("fallOffStart", fog.fallOffStart);
+        fogWriter.WriteField("fallOffEnd", fog.fallOffEnd);
+        fogWriter.WriteField("heightAttenuation", fog.heightAttenuation);
     }
 
     // Tone Mapping
     {
-        Json toneMappingJson;
-        toneMappingJson["enabled"]  = toneMapping.bEnabled;
-        toneMappingJson["type"]     = toneMapping.type;
-        toneMappingJson["exposure"] = toneMapping.exposure;
-        toneMappingJson["gamma"]    = toneMapping.gamma;
-        json["toneMapping"]         = std::move(toneMappingJson);
+        const ToneMappingData& toneMapping = environment.GetToneMapping();
+
+        JsonWriter toneMappingWriter = _writer.EnterField("toneMapping");
+        toneMappingWriter.WriteField("enabled", toneMapping.bEnabled);
+        toneMappingWriter.WriteField("type", toneMapping.type);
+        toneMappingWriter.WriteField("exposure", toneMapping.exposure);
+        toneMappingWriter.WriteField("gamma", toneMapping.gamma);
     }
 
     // Bloom
     {
-        Json bloomJson;
-        bloomJson["enabled"]       = bloom.bEnabled;
-        bloomJson["blurRadius"]    = bloom.blurRadius;
-        bloomJson["bloomStrength"] = bloom.bloomStrength;
-        bloomJson["numBlurPasses"] = bloom.numBlurPasses;
-        json["bloom"]              = std::move(bloomJson);
+        const BloomData& bloom = environment.GetBloom();
+
+        JsonWriter bloomWriter = _writer.EnterField("bloom");
+        bloomWriter.WriteField("enabled", bloom.bEnabled);
+        bloomWriter.WriteField("blurRadius", bloom.blurRadius);
+        bloomWriter.WriteField("bloomStrength", bloom.bloomStrength);
+        bloomWriter.WriteField("numBlurPasses", bloom.numBlurPasses);
     }
 
     // FXAA
     {
-        Json fxaaJson;
-        fxaaJson["enabled"] = fxaa.bEnabled;
-        fxaaJson["quality"] = fxaa.quality;
-        json["fxaa"]        = std::move(fxaaJson);
+        const FXAAData& fxaa = environment.GetFXAA();
+
+        JsonWriter fxaaWriter = _writer.EnterField("fxaa");
+        fxaaWriter.WriteField("enabled", fxaa.bEnabled);
+        fxaaWriter.WriteField("quality", fxaa.quality);
     }
 
     // Misc
     {
-        Json miscJson;
-        miscJson["shadowBias"] = misc.shadowBias;
-        json["misc"]           = std::move(miscJson);
-    }
+        const EnvironmentMisc& misc = environment.GetMisc();
 
-    return json;
+        JsonWriter miscWriter = _writer.EnterField("misc");
+        miscWriter.WriteField("shadowBias", misc.shadowBias);
+    }
 }
 
 void EnvironmentComponent::Deserialize(
-    const Json& _json,
-    Ref<Scene>& _pScene,
-    Entity      _owner)
+    JsonReader&       _reader,
+    const Ref<Scene>& _pScene,
+    Entity            _owner)
 {
-    // Directional Light
-    if (const std::optional<Json> opt = FindJsonField(_json, "skybox"))
-    {
-        const Json& json = *opt;
 
+    // Directional Light
+    if (Optional<JsonReader> dirLightReader = _reader.EnterField("dirLight"))
+    {
         DirectionalLightData dirLight;
-        TryParseJsonField(json, "enabled", dirLight.bEnabled);
-        TryParseJsonField(json, "radiance", dirLight.radiance);
-        TryParseJsonField(json, "intensity", dirLight.intensity);
-        TryParseJsonField(json, "direction", dirLight.direction);
-        TryParseJsonField(json, "shadowEnabled", dirLight.bShadowEnabled);
-        TryParseJsonField(json, "cascadeDistances", dirLight.cascadeDistances);
+        dirLightReader->ReadField("enabled", dirLight.bEnabled);
+        dirLightReader->ReadField("radiance", dirLight.radiance);
+        dirLightReader->ReadField("intensity", dirLight.intensity);
+        dirLightReader->ReadField("direction", dirLight.direction);
+        dirLightReader->ReadField("shadowEnabled", dirLight.bShadowEnabled);
+        dirLightReader->ReadField("cascadeDistances", dirLight.cascadeDistances);
         environment.SetDirectionalLight(dirLight);
     }
 
     // Image Based Lighting
-    if (const std::optional<Json> opt = FindJsonField(_json, "ibl"))
+    if (Optional<JsonReader> iblReader = _reader.EnterField("ibl"))
     {
-        const Json& json = *opt;
-
         ImageBasedLightingData ibl;
-        TryParseJsonField(json, "irradianceTexturePath", ibl.pIrradianceTexture);
-        TryParseJsonField(json, "specularMapPath", ibl.pSpecularTexture);
-        TryParseJsonField(json, "brdfLUTPath", ibl.pBrdfLutTexture);
-        TryParseJsonField(json, "irradianceTextureIntensity", ibl.irradianceTextureIntensity);
-        TryParseJsonField(json, "specularTextureIntensity", ibl.specularTextureIntensity);
+        iblReader->ReadField("irradianceTexturePath", ibl.pIrradianceTexture);
+        iblReader->ReadField("specularMapPath", ibl.pSpecularTexture);
+        iblReader->ReadField("brdfLUTPath", ibl.pBrdfLutTexture);
+        iblReader->ReadField("irradianceTextureIntensity", ibl.irradianceTextureIntensity);
+        iblReader->ReadField("specularTextureIntensity", ibl.specularTextureIntensity);
         environment.SetIBL(ibl);
     }
 
     // Skybox
-    if (const std::optional<Json> opt = FindJsonField(_json, "skybox"))
+    if (Optional<JsonReader> skyboxReader = _reader.EnterField("skybox"))
     {
-        const Json& json = *opt;
-
         SkyboxData skybox;
-        TryParseJsonField(json, "type", skybox.type);
-        TryParseJsonField(json, "solidColor", skybox.solidColor);
-        TryParseJsonField(json, "path", skybox.pSkyboxTexture);
+        skyboxReader->ReadField("type", skybox.type);
+        skyboxReader->ReadField("path", skybox.pSkyboxTexture);
+        skyboxReader->ReadField("solidColor", skybox.solidColor);
         environment.SetSkybox(skybox);
     }
 
     // SSAO
-    if (const std::optional<Json> opt = FindJsonField(_json, "ssao"))
+    if (Optional<JsonReader> ssaoReader = _reader.EnterField("ssao"))
     {
-        const Json& json = *opt;
-
         SSAOData ssao;
-        TryParseJsonField(json, "enabled", ssao.bEnabled);
-        TryParseJsonField(json, "radius", ssao.radius);
-        TryParseJsonField(json, "bias", ssao.bias);
+        ssaoReader->ReadField("enabled", ssao.bEnabled);
+        ssaoReader->ReadField("radius", ssao.radius);
+        ssaoReader->ReadField("bias", ssao.bias);
         environment.SetSSAO(ssao);
     }
 
     // Fog
-    if (const std::optional<Json> opt = FindJsonField(_json, "fog"))
+    if (Optional<JsonReader> fogReader = _reader.EnterField("fog"))
     {
-        const Json& json = *opt;
-
         FogData fog;
-        TryParseJsonField(json, "enabled", fog.bEnabled);
-        TryParseJsonField(json, "radiance", fog.radiance);
-        TryParseJsonField(json, "density", fog.density);
-        TryParseJsonField(json, "fallOffStart", fog.fallOffStart);
-        TryParseJsonField(json, "fallOffEnd", fog.fallOffEnd);
-        TryParseJsonField(json, "heightAttenuation", fog.heightAttenuation);
+        fogReader->ReadField("enabled", fog.bEnabled);
+        fogReader->ReadField("radiance", fog.radiance);
+        fogReader->ReadField("density", fog.density);
+        fogReader->ReadField("fallOffStart", fog.fallOffStart);
+        fogReader->ReadField("fallOffEnd", fog.fallOffEnd);
+        fogReader->ReadField("heightAttenuation", fog.heightAttenuation);
         environment.SetFog(fog);
     }
 
     // Tone Mapping
-    if (const std::optional<Json> opt = FindJsonField(_json, "toneMapping"))
+    if (Optional<JsonReader> toneMappingReader = _reader.EnterField("toneMapping"))
     {
-        const Json& json = *opt;
-
         ToneMappingData toneMapping;
-        TryParseJsonField(json, "enabled", toneMapping.bEnabled);
-        TryParseJsonField(json, "type", toneMapping.type);
-        TryParseJsonField(json, "exposure", toneMapping.exposure);
-        TryParseJsonField(json, "gamma", toneMapping.gamma);
+        toneMappingReader->ReadField("enabled", toneMapping.bEnabled);
+        toneMappingReader->ReadField("type", toneMapping.type);
+        toneMappingReader->ReadField("exposure", toneMapping.exposure);
+        toneMappingReader->ReadField("gamma", toneMapping.gamma);
         environment.SetToneMapping(toneMapping);
     }
 
     // Bloom
-    if (const std::optional<Json> opt = FindJsonField(_json, "bloom"))
+    if (Optional<JsonReader> bloomReader = _reader.EnterField("bloom"))
     {
-        const Json& json = *opt;
-
         BloomData bloom;
-        TryParseJsonField(json, "enabled", bloom.bEnabled);
-        TryParseJsonField(json, "blurRadius", bloom.blurRadius);
-        TryParseJsonField(json, "bloomStrength", bloom.bloomStrength);
-        TryParseJsonField(json, "numBlurPasses", bloom.numBlurPasses);
+        bloomReader->ReadField("enabled", bloom.bEnabled);
+        bloomReader->ReadField("blurRadius", bloom.blurRadius);
+        bloomReader->ReadField("bloomStrength", bloom.bloomStrength);
+        bloomReader->ReadField("numBlurPasses", bloom.numBlurPasses);
         environment.SetBloom(bloom);
     }
 
     // FXAA
-    if (const std::optional<Json> opt = FindJsonField(_json, "fxaa"))
+    if (Optional<JsonReader> fxaaReader = _reader.EnterField("fxaa"))
     {
-        const Json& json = *opt;
-
         FXAAData fxaa;
-        TryParseJsonField(json, "enabled", fxaa.bEnabled);
-        TryParseJsonField(json, "quality", fxaa.quality);
+        fxaaReader->ReadField("enabled", fxaa.bEnabled);
+        fxaaReader->ReadField("quality", fxaa.quality);
         environment.SetFXAA(fxaa);
     }
 
     // Misc
-    if (const std::optional<Json> opt = FindJsonField(_json, "misc"))
+    if (Optional<JsonReader> miscReader = _reader.EnterField("misc"))
     {
-        const Json& json = *opt;
-
         EnvironmentMisc misc;
-        TryParseJsonField(json, "shadowBias", misc.shadowBias);
+        miscReader->ReadField("shadowBias", misc.shadowBias);
         environment.SetMisc(misc);
     }
 }
@@ -248,10 +224,11 @@ void EnvironmentComponent::DrawEditor(
     if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
     {
         // use for direction editing
-        static Vec2          s_pyRad      = {};
-        static bool          s_bPyEditing = false;
-        DirectionalLightData dirLight     = environment.GetDirectionalLight();
-        bool                 bDirty       = false;
+        static Vec2 s_pyRad      = {};
+        static bool s_bPyEditing = false;
+
+        DirectionalLightData dirLight = environment.GetDirectionalLight();
+        bool                 bDirty   = false;
 
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
@@ -262,10 +239,7 @@ void EnvironmentComponent::DrawEditor(
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##DirLightEnabled", &dirLight.bEnabled))
-            {
-                bDirty = true;
-            }
+            bDirty |= ImGui::Checkbox("##DirLightEnabled", &dirLight.bEnabled);
         }
 
         // row: radiance
@@ -275,10 +249,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("radiance");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (ImGui::ColorEdit3("##DirLightRadiance", &dirLight.radiance.x))
-            {
-                bDirty = true;
-            }
+            bDirty |= ImGui::ColorEdit3("##DirLightRadiance", &dirLight.radiance.x);
         }
 
         // row: intensity
@@ -288,10 +259,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("intensity");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##DirLightIntensity", &dirLight.intensity, 0.001f, 0.f, 10.f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_DragLightIntensity("##DirLightIntensity", dirLight.intensity);
         }
 
         // row: direction
@@ -324,41 +292,26 @@ void EnvironmentComponent::DrawEditor(
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("shadow cast");
             ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##DirLightShadowCast", &dirLight.bShadowEnabled))
-            {
-                bDirty = true;
-            }
+            bDirty |= ImGui::Checkbox("##DirLightShadowCast", &dirLight.bShadowEnabled);
         }
 
         // cascade distances
         {
-            const ImGuiStyle& style   = ImGui::GetStyle();
-            const float       spacing = style.ItemInnerSpacing.x;
-
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("cascade distances");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
 
-            // 1
-            if (Widget_DragFloat("##CascadeDistances1", &dirLight.cascadeDistances[0], 0.1f, k_cameraNearestZ, dirLight.cascadeDistances[1] - k_epsilon, "%.1f", ImGuiSliderFlags_AlwaysClamp))
+            Vec3 distances = { dirLight.cascadeDistances[0], dirLight.cascadeDistances[1], dirLight.cascadeDistances[2] };
+            if (Widget_DragDistance3("##CascadeDistances", distances, 0.01f, Camera::k_minZ, Camera::k_maxZ))
             {
-                bDirty = true;
-            }
-
-            // 2
-            ImGui::SameLine(spacing);
-            if (Widget_DragFloat("##CascadeDistances2", &dirLight.cascadeDistances[1], 0.1f, dirLight.cascadeDistances[0] + k_epsilon, dirLight.cascadeDistances[2] - k_epsilon, "%.1f", ImGuiSliderFlags_AlwaysClamp))
-            {
-                bDirty = true;
-            }
-
-            // 3
-            ImGui::SameLine(spacing);
-            if (Widget_DragFloat("##CascadeDistances3", &dirLight.cascadeDistances[2], 0.1f, dirLight.cascadeDistances[1] + k_epsilon, k_cameraFarestZ, "%.1f", ImGuiSliderFlags_AlwaysClamp))
-            {
-                bDirty = true;
+                // ensure ascending order
+                std::sort(&distances.x, &distances.x + 3);
+                dirLight.cascadeDistances[0] = distances.x;
+                dirLight.cascadeDistances[1] = distances.y;
+                dirLight.cascadeDistances[2] = distances.z;
+                bDirty |= true;
             }
         }
 
@@ -387,10 +340,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("irradiance texture");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_ImageTextureSelector("##IBLIrradianceTexture", ibl.pIrradianceTexture))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_ImageTextureSelector("##IBLIrradianceTexture", ibl.pIrradianceTexture);
         }
 
         // row: irradiance texture intensity
@@ -400,10 +350,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("irradiance intensity");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##IBLIrradianceIntensity", &ibl.irradianceTextureIntensity, 0.001f, 0.f, 10.f))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_DragLightIntensity("##IBLIrradianceIntensity", ibl.irradianceTextureIntensity);
         }
 
         // row: specular texture
@@ -413,10 +360,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("specular texture");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_ImageTextureSelector("##IBLSpecularTexture", ibl.pSpecularTexture, { 0.f, 0.f }))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_ImageTextureSelector("##IBLSpecularTexture", ibl.pSpecularTexture);
         }
 
         // row: specular texture intensity
@@ -426,10 +370,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("specular intensity");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##IBLSpecularIntensity", &ibl.specularTextureIntensity, 0.01f, 0.f, 100.f))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_DragLightIntensity("##IBLSpecularIntensity", ibl.specularTextureIntensity);
         }
 
         // row: BRDF LUT texture
@@ -439,16 +380,14 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("Brdf Lut texture");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_ImageTextureSelector("##IBLBrdfLUTTexture", ibl.pBrdfLutTexture))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_ImageTextureSelector("##IBLBrdfLUTTexture", ibl.pBrdfLutTexture);
         }
 
         if (bDirty)
         {
             environment.SetIBL(ibl);
         }
+
         ImGui::EndTable();
     }
 
@@ -464,32 +403,13 @@ void EnvironmentComponent::DrawEditor(
         // row: type
         {
             constexpr const char* k_names[] = { "solid color", "cube map" };
-            const char*           preview   = k_names[IntFrom(skybox.type)];
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("type");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (ImGui::BeginCombo("##SkyboxType", preview))
-            {
-                for (Int32 i = 0; i < EnumCount<eSkyboxType>(); ++i)
-                {
-                    const bool bSelected = (preview == k_names[i]);
-                    if (ImGui::Selectable(k_names[i], bSelected))
-                    {
-                        skybox.type = static_cast<eSkyboxType>(i);
-                        bDirty      = true;
-                    }
-
-                    if (bSelected)
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-
-                ImGui::EndCombo();
-            }
+            bDirty |= Widget_EnumCombo("##SkyboxType", reinterpret_cast<Int32&>(skybox.type), k_names);
         }
 
         // row: texture
@@ -500,10 +420,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("texture");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_ImageTextureSelector("##SkyboxTexture", skybox.pSkyboxTexture, { 0.f, 0.f }))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_ImageTextureSelector("##SkyboxTexture", skybox.pSkyboxTexture);
         }
 
         // row: solid color
@@ -514,16 +431,14 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("solid color");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (ImGui::ColorEdit3("##SkyboxSolidColor", &skybox.solidColor.x))
-            {
-                bDirty = true;
-            }
+            bDirty |= ImGui::ColorEdit3("##SkyboxSolidColor", &skybox.solidColor.x);
         }
 
         if (bDirty)
         {
             environment.SetSkybox(skybox);
         }
+
         ImGui::EndTable();
     }
 
@@ -543,10 +458,7 @@ void EnvironmentComponent::DrawEditor(
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##SSAOEnabled", &ssao.bEnabled))
-            {
-                bDirty = true;
-            }
+            bDirty |= ImGui::Checkbox("##SSAOEnabled", &ssao.bEnabled);
         }
 
         // row: radius
@@ -556,10 +468,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("radius");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##SSAORadius", &ssao.radius, 0.01f, 0.f, 10.f))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_DragFloat("##SSAORadius", &ssao.radius, 0.001f, 0.f, 10.f);
         }
 
         // row: bias
@@ -569,10 +478,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("bias");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##SSAOBias", &ssao.bias, 0.01f, 0.f, 100.f))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_DragFloat("##SSAOBias", &ssao.bias, 0.001f, 0.f, 10.f);
         }
 
         if (bDirty)
@@ -598,10 +504,7 @@ void EnvironmentComponent::DrawEditor(
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##FogEnabled", &fog.bEnabled))
-            {
-                bDirty = true;
-            }
+            bDirty |= ImGui::Checkbox("##FogEnabled", &fog.bEnabled);
         }
 
         // row: radiance
@@ -611,10 +514,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("radiance");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (ImGui::ColorEdit3("##FogRadiance", &fog.radiance.x))
-            {
-                bDirty = true;
-            }
+            bDirty |= ImGui::ColorEdit3("##FogRadiance", &fog.radiance.x);
         }
 
         // row: density
@@ -624,10 +524,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("density");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##FogDensity", &fog.density, 0.0001f, 0.f, 1.f))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_DragFloat("##FogDensity", &fog.density, 0.0001f, 0.f, 1.f, "%.4f");
         }
 
         // row: fall off start
@@ -637,11 +534,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("fall off start");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##FogFallOffStart", &fog.fallOffStart, 0.1f, 0.f, 10000.f))
-            {
-                fog.fallOffStart = Min(fog.fallOffStart, fog.fallOffEnd);
-                bDirty           = true;
-            }
+            bDirty |= Widget_DragDistance("##FogFallOffStart", fog.fallOffStart, 0.01f, 0.f, fog.fallOffEnd);
         }
 
         // row: fall off end
@@ -651,11 +544,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("fall off end");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##FogFallOffEnd", &fog.fallOffEnd, 0.1f, 0.f, 10000.f))
-            {
-                fog.fallOffEnd = Max(fog.fallOffEnd, fog.fallOffStart);
-                bDirty         = true;
-            }
+            bDirty |= Widget_DragDistance("##FogFallOffEnd", fog.fallOffEnd, 0.01f, fog.fallOffStart, Camera::k_maxZ);
         }
 
         // row: height attenuation
@@ -665,10 +554,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("height attenuation");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##FogHeightAttenuation", &fog.heightAttenuation, 0.01f, 0.f, 1.f))
-            {
-                bDirty = true;
-            }
+            bDirty |= Widget_DragFloat("##FogHeightAttenuation", &fog.heightAttenuation, 0.01f, 0.f, 1.f);
         }
 
         if (bDirty)
@@ -695,41 +581,19 @@ void EnvironmentComponent::DrawEditor(
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##ToneMappingEnabled", &toneMapping.bEnabled))
-            {
-                bDirty = true;
-            }
+            bDirty &= ImGui::Checkbox("##ToneMappingEnabled", &toneMapping.bEnabled);
         }
 
         // row: type
         {
             constexpr const char* k_toneMappingTypeNames[] = { "linear", "reinhard", "luma based reinhard", "white preserving reinhard", "rom bin da house", "uncharted2", "filmic" };
-            const char*           preview                  = k_toneMappingTypeNames[IntFrom(toneMapping.type)];
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("type");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (ImGui::BeginCombo("##ToneMappingType", preview))
-            {
-                for (Int32 i = 0; i < EnumCount<eToneMappingType>(); ++i)
-                {
-                    const bool bSelected = (preview == k_toneMappingTypeNames[i]);
-                    if (ImGui::Selectable(k_toneMappingTypeNames[i], bSelected))
-                    {
-                        toneMapping.type = static_cast<eToneMappingType>(i);
-                        bDirty           = true;
-                    }
-
-                    if (bSelected)
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-
-                ImGui::EndCombo();
-            }
+            bDirty &= Widget_EnumCombo("##ToneMappingType", reinterpret_cast<Int32&>(toneMapping.type), k_toneMappingTypeNames);
         }
 
         // row: exposure
@@ -739,10 +603,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("exposure");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##ToneMappingExposure", &toneMapping.exposure, 0.01f, 0.f, 100.f))
-            {
-                bDirty = true;
-            }
+            bDirty &= Widget_DragFloat("##ToneMappingExposure", &toneMapping.exposure, 0.01f, 0.f, 100.f);
         }
 
         // row: gamma
@@ -752,10 +613,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("gamma");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##ToneMappingGamma", &toneMapping.gamma, 0.01f, 0.1f, 5.f))
-            {
-                bDirty = true;
-            }
+            bDirty &= Widget_DragFloat("##ToneMappingGamma", &toneMapping.gamma, 0.01f, 0.1f, 5.f);
         }
 
         if (bDirty)
@@ -782,10 +640,7 @@ void EnvironmentComponent::DrawEditor(
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##BloomEnabled", &bloom.bEnabled))
-            {
-                bDirty = true;
-            }
+            bDirty &= ImGui::Checkbox("##BloomEnabled", &bloom.bEnabled);
         }
 
         // row: blur radius
@@ -795,10 +650,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("blur radius");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##BloomBlurRadius", &bloom.blurRadius, 0.001f, 0.001f, 1.f))
-            {
-                bDirty = true;
-            }
+            bDirty &= Widget_DragFloat("##BloomBlurRadius", &bloom.blurRadius, 0.001f, 0.001f, 1.f);
         }
 
         // row: combine factor
@@ -808,10 +660,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("combine factor");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##BloomCombineFactor", &bloom.bloomStrength, 0.01f, 0.f, 1.f))
-            {
-                bDirty = true;
-            }
+            bDirty &= Widget_DragFloat("##BloomCombineFactor", &bloom.bloomStrength, 0.01f, 0.f, 1.f);
         }
 
         // row: number of blur passes
@@ -823,7 +672,7 @@ void EnvironmentComponent::DrawEditor(
             SetNextItemWidthToAvailableWidth();
             if (ImGui::InputInt("##BloomNumBlurPasses", &bloom.numBlurPasses))
             {
-                bloom.numBlurPasses = Clamp(bloom.numBlurPasses, 1, 10);
+                bloom.numBlurPasses = Clamp(bloom.numBlurPasses, 1, BloomData::k_maxBlurPasses);
                 bDirty              = true;
             }
         }
@@ -867,23 +716,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("quality");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (ImGui::BeginCombo("##FXAAQuality", k_qualityLevels[IntFrom(fxaa.quality)]))
-            {
-                for (Int32 i = 0; i < EnumCount<eFxaaQuality>(); ++i)
-                {
-                    const bool bSelected = (fxaa.quality == static_cast<eFxaaQuality>(i));
-                    if (ImGui::Selectable(k_qualityLevels[i], bSelected))
-                    {
-                        fxaa.quality = static_cast<eFxaaQuality>(i);
-                        bDirty       = true;
-                    }
-                    if (bSelected)
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-                ImGui::EndCombo();
-            }
+            Widget_EnumCombo("##FXAAQuality", reinterpret_cast<Int32&>(fxaa.quality), k_qualityLevels);
         }
 
         if (bDirty)
@@ -911,10 +744,7 @@ void EnvironmentComponent::DrawEditor(
             Widget_FrameAlignedText("shadow bias");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            if (Widget_DragFloat("##MiscShadowBias", &misc.shadowBias, 0.0001f, 0.f, 1.f))
-            {
-                bDirty = true;
-            }
+            bDirty &= Widget_DragFloat("##MiscShadowBias", &misc.shadowBias, 0.0001f, 0.f, 1.f);
         }
 
         if (bDirty)

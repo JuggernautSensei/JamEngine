@@ -100,14 +100,14 @@ struct SamplerInfo
 
 struct HLSLSemanticInfo
 {
-    const char* name;
-    Int32       index;
+    StringView name  = {};
+    Int32      index = {};
 };
 
 struct HLSLDataTypeInfo
 {
-    const char* name;
-    DXGI_FORMAT format;
+    StringView  name   = {};
+    DXGI_FORMAT format = {};
 };
 
 struct ConstantBufferBinds
@@ -222,19 +222,19 @@ struct GfxContext
     void OnWindowMaxizeEvent(const WindowMaximizedEvent& _event);
 
     // native resource factory
-    [[nodiscard]] TextureRef     CreateTexture(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, eTextureCreateFlags _flags, eTextureType _type, const std::span<const ConstMemView>& _initOrEmpty) const;
-    [[nodiscard]] HardwareBuffer CreateBuffer(Int32 _byteWidth, eBufferType _type, const std::optional<ConstMemView>& _optInit) const;
+    [[nodiscard]] TextureRef     CreateTexture(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, eTextureCreateFlags _flags, eTextureType _type, const std::span<const CMemView>& _initDataOrEmpty) const;
+    [[nodiscard]] HardwareBuffer CreateBuffer(Int32 _byteWidth, eBufferType _type, const Optional<CMemView>& _optInitData) const;
     [[nodiscard]] FrameBuffer    CreateFrameBuffer(std::span<const TextureHandle> _attachments, bool _bDestoryTexture);
 
-    [[nodiscard]] ShaderHandle       GetOrCreateShader(ConstMemView _shaderByteCode);
+    [[nodiscard]] ShaderHandle       GetOrCreateShader(CMemView _shaderByteCode);
     [[nodiscard]] VertexLayoutHandle GetOrCreateVertexLayout(const VertexLayout& _vl);
 
     // buffer upload/download
     [[nodiscard]] MemView      BeginUploadBuffer(const HardwareBuffer& _buffer) const;
     void                       EndUploadBuffer(const HardwareBuffer& _buffer) const;
-    void                       UploadBuffer(const HardwareBuffer& _buffer, ConstMemView _uploadData, Int32 _offset, bool _bDiscard) const;
+    void                       UploadBuffer(const HardwareBuffer& _buffer, CMemView _uploadData, Int32 _offset, bool _bDiscard) const;
     [[nodiscard]] Vector<Byte> DownloadBuffer(const HardwareBuffer& _buffer) const;
-    void                       UploadTexture(const TextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, ConstMemView _uploadData, Int32 _uploadWidth, Int32 _uploadHeight, Int32 _uploadDepth, Int32 _uploadDataRowPitch, Int32 _uploadDataDepthPitch) const;
+    void                       UploadTexture(const TextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, CMemView _uploadData, Int32 _uploadWidth, Int32 _uploadHeight, Int32 _uploadDepth, Int32 _uploadDataRowPitch, Int32 _uploadDataDepthPitch) const;
     [[nodiscard]] Vector<Byte> DownloadTexture(const TextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex) const;
     void                       Blit(const TextureRef& _blitDstTexture, Int32 _blitDstMipIndex, Int32 _blitDstArrayIndex, Int32 _blitDstX, Int32 _blitDstY, Int32 _blitDstZ, const TextureRef& _blitSrcTexture, Int32 _blitSrcMipIndex, Int32 _blitSrcArrayIndex, Int32 _blitSrcX, Int32 _blitSrcY, Int32 _blitSrcZ, Int32 _blitSrcWidthOrZero, Int32 _blitSrcHeightOrZero, Int32 _blitSrcDepthOrZero) const;
 
@@ -255,10 +255,10 @@ struct GfxContext
     [[nodiscard]] HLSLDataTypeInfo           HLSLDataTypeInfoFrom(eAttributeFormat _format) const;
 
     // debug name helpers
-    [[nodiscard]] std::string CreateName(std::string_view _tag, AnyHandle _handle) const;
-    [[nodiscard]] std::string CreateNameCustom(std::string_view _tag, AnyHandle _handle, std::string_view _username) const;
+    [[nodiscard]] std::string FormatName(StringView _tag, AnyHandle _handle) const;
+    [[nodiscard]] std::string FormatNameCustom(StringView _tag, AnyHandle _handle, StringView _username) const;
     [[nodiscard]] std::string StringFrom(const SourceLoc& _loc) const;
-    void                      SetD3D11Name(ID3D11DeviceChild* _pDeviceChild, std::string_view _name) const;
+    void                      SetD3D11Name(ID3D11DeviceChild* _pDeviceChild, StringView _name) const;
 
     // misc
     [[nodiscard]] UInt32 QueryMaxMsaaQualityLevel(DXGI_FORMAT _format, Int32 _numSamples) const;
@@ -301,9 +301,9 @@ struct GfxContext
     FrameBufferHandle fbhBind = k_invalidHandle;
     ProgramHandle     phBind  = k_invalidHandle;
 
-    ConstantBufferBinds cbufferBinds[EnumCount<eShader>()] = {};
-    TextureBinds        textureBinds[EnumCount<eShader>()] = {};
-    SamplerBinds        samplerBinds[EnumCount<eShader>()] = {};
+    ConstantBufferBinds cbufferBinds[NumEnums<eShader>()] = {};
+    TextureBinds        textureBinds[NumEnums<eShader>()] = {};
+    SamplerBinds        samplerBinds[NumEnums<eShader>()] = {};
 
     Viewport vpBind          = {};
     Rect     scissorRectBind = {};
@@ -317,9 +317,9 @@ struct GfxContext
     RasterizerStateD3D11   rasterizerStateBind   = {};                              // invalid at start
     BlendStateD3D11        blendStateBind        = {};                              // invalid at start
 
-    ePipelineDirtyFlags dirtyFlags = ePipelineDirtyFlags_All;
+    Int32 submitParams[NumEnums<eSubmitParameterType>()];
 
-    Int32 submitParams[EnumCount<eSubmitParameterType>()];
+    ePipelineDirtyFlags dirtyFlags = ePipelineDirtyFlags_All;
 
     // back buffer
     Vec2i             backBufferRes  = {};
@@ -327,89 +327,6 @@ struct GfxContext
     FrameBufferHandle backBufferFbh  = k_invalidHandle;
 
 }* g_pGfxCtx;
-
-std::string GfxContext::CreateName(
-    std::string_view _tag,
-    AnyHandle        _handle) const
-{
-    return std::format("[{}] Index: {}, Token: {}", _tag, _handle.index, _handle.token);
-}
-
-std::string GfxContext::CreateNameCustom(
-    const std::string_view _tag,
-    const AnyHandle        _handle,
-    std::string_view       _username) const
-{
-    std::string name = CreateName(_tag, _handle);
-    if (!_username.empty())
-    {
-        name += std::format(", Name: {}", _username);
-    }
-    return name;
-}
-
-std::string GfxContext::StringFrom(const SourceLoc& _loc) const
-{
-    return std::format(", File: {}, Func: {}, Line: {}", _loc.filename, _loc.function, _loc.line);
-}
-
-HLSLSemanticInfo GfxContext::HLSLSemanticInfoFrom(
-    const eVertexAttribute _attrib) const
-{
-    switch (_attrib)
-    {
-        case eVertexAttribute::Position:
-            return { "POSITION", 0 };
-        case eVertexAttribute::Normal:
-            return { "NORMAL", 0 };
-        case eVertexAttribute::Tangent:
-            return { "TANGENT", 0 };
-        case eVertexAttribute::Bitangent:
-            return { "BINORMAL", 0 };
-        case eVertexAttribute::Color0:
-            return { "COLOR", 0 };
-        case eVertexAttribute::Color1:
-            return { "COLOR", 1 };
-        case eVertexAttribute::Color2:
-            return { "COLOR", 2 };
-        case eVertexAttribute::Color3:
-            return { "COLOR", 3 };
-        case eVertexAttribute::TexCoord0:
-            return { "TEXCOORD", 0 };
-        case eVertexAttribute::TexCoord1:
-            return { "TEXCOORD", 1 };
-        case eVertexAttribute::TexCoord2:
-            return { "TEXCOORD", 2 };
-        case eVertexAttribute::TexCoord3:
-            return { "TEXCOORD", 3 };
-        default:
-            JAM_ASSERT(0, "Unknown vertex attribute");
-            return { "UNKNOWN", 0 };
-    }
-}
-
-HLSLDataTypeInfo GfxContext::HLSLDataTypeInfoFrom(
-    const eAttributeFormat _format) const
-{
-    switch (_format)
-    {
-        case eAttributeFormat::Float:
-            return { "float", DXGI_FORMAT_R32_FLOAT };
-        case eAttributeFormat::Float2:
-            return { "float2", DXGI_FORMAT_R32G32_FLOAT };
-        case eAttributeFormat::Float3:
-            return { "float3", DXGI_FORMAT_R32G32B32_FLOAT };
-        case eAttributeFormat::Float4:
-            return { "float4", DXGI_FORMAT_R32G32B32A32_FLOAT };
-        case eAttributeFormat::UNorm8x4:
-            return { "float4", DXGI_FORMAT_R8G8B8A8_UNORM };
-        case eAttributeFormat::UInt8x4:
-            return { "uint4", DXGI_FORMAT_R8G8B8A8_UINT };
-        default:
-            JAM_ASSERT(0, "Unknown attribute format");
-            return { "UNKNOWN", DXGI_FORMAT_UNKNOWN };
-    }
-}
 
 void GfxContext::BindConstantBuffers(
     const eShader _stage)
@@ -513,7 +430,8 @@ void GfxContext::BindShaderResourceViews(
     binds.dirtyEnd   = 0;
 }
 
-void GfxContext::BindSamplerStates(const eShader _shader)
+void GfxContext::BindSamplerStates(
+    const eShader _shader)
 {
     static ID3D11SamplerState* s_binder[k_numSamplerLimit];
     SamplerBinds&              binds = samplerBinds[IntFrom(_shader)];
@@ -529,8 +447,8 @@ void GfxContext::BindSamplerStates(const eShader _shader)
     for (Int32 i = 0; i < numDirtySlots; ++i)
     {
         const SamplerState sampler = binds.samplers[dirtyStart + i];
-        const RGBA         color   = binds.borderColors[dirtyStart + i];
-        s_binder[i]                = GetOrCreateD3D11SamplerState(sampler, color);
+        const RGBA         rgba    = binds.borderColors[dirtyStart + i];
+        s_binder[i]                = GetOrCreateD3D11SamplerState(sampler, rgba);
     }
 
     // bind
@@ -834,7 +752,9 @@ void GfxContext::BindPipeline()
     }
 }
 
-void GfxContext::OnResize(const Int32 _width, const Int32 _height)
+void GfxContext::OnResize(
+    const Int32 _width,
+    const Int32 _height)
 {
     backBufferRes.x = _width;
     backBufferRes.y = _height;
@@ -895,32 +815,34 @@ void GfxContext::OnResize(const Int32 _width, const Int32 _height)
     }
 }
 
-void GfxContext::OnWindowResizedEvent(const WindowResizedEvent& _event)
+void GfxContext::OnWindowResizedEvent(
+    const WindowResizedEvent& _event)
 {
     OnResize(_event.GetWidth(), _event.GetHeight());
 }
 
-void GfxContext::OnWindowMaxizeEvent(const WindowMaximizedEvent& _event)
+void GfxContext::OnWindowMaxizeEvent(
+    const WindowMaximizedEvent& _event)
 {
     OnResize(_event.GetWidth(), _event.GetHeight());
 }
 
 TextureRef GfxContext::CreateTexture(
-    const Int32                          _width,
-    const Int32                          _height,
-    const Int32                          _depth,
-    const eTextureFormat                 _format,
-    const Int32                          _arraySize,
-    const eTextureCreateFlags            _flags,
-    const eTextureType                   _type,
-    const std::span<const ConstMemView>& _initOrEmpty) const
+    const Int32                      _width,
+    const Int32                      _height,
+    const Int32                      _depth,
+    const eTextureFormat             _format,
+    const Int32                      _arraySize,
+    const eTextureCreateFlags        _flags,
+    const eTextureType               _type,
+    const std::span<const CMemView>& _initDataOrEmpty) const
 {
     const bool  bGenMips       = (_flags & eTextureCreateFlags_GenerateMips) != 0;
     const bool  bIsMSAA        = (_flags & (eTextureCreateFlags_MultiSampled_Internal)) != 0;
     const bool  bWriteOnly     = (_flags & eTextureCreateFlags_WriteOnly) != 0;
     const bool  bRtvAttachable = (_flags & eTextureCreateFlags_RenderTarget) != 0;
     const bool  bDsvAttachable = (_flags & eTextureCreateFlags_DepthStencil) != 0;
-    const bool  bMutable       = _initOrEmpty.empty() || (_flags & eTextureCreateFlags_Mutable) != 0;
+    const bool  bMutable       = _initDataOrEmpty.empty() || (_flags & eTextureCreateFlags_Mutable) != 0;
     const bool  bIsCubemap     = _type == eTextureType::TextureCube;
     const Int32 numMips        = bGenMips ? CalcNumMips(_width, _height, _depth) : 1;
     const Int32 samples        = (_flags & eTextureCreateFlags_MSAAx4) != 0  ? 4
@@ -985,13 +907,13 @@ TextureRef GfxContext::CreateTexture(
         if (bGenMips)
             desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-        if (_initOrEmpty.empty())
+        if (_initDataOrEmpty.empty())
         {
             JAM_CHECK_COM(pd3d11Device->CreateTexture2D(&desc, nullptr, &tex.pTexture2D));
         }
         else
         {
-            JAM_ASSERT(_initOrEmpty.size() == _arraySize * numMips, "Texture data count mismatch");
+            JAM_ASSERT(_initDataOrEmpty.size() == _arraySize * numMips, "Texture data count mismatch");
 
             Vector<D3D11_SUBRESOURCE_DATA> initData;
             initData.reserve(_arraySize * numMips);
@@ -1000,11 +922,11 @@ TextureRef GfxContext::CreateTexture(
                 for (Int32 mipIdx = 0; mipIdx < numMips; mipIdx++)
                 {
                     const auto [width, height, _] = CalcTextureResolution(_width, _height, 0, mipIdx);
-                    const Int32        texIndex   = CalcTextureIndex(mipIdx, arrayIdx, numMips);
-                    const ConstMemView mem        = _initOrEmpty[texIndex];
-                    const UINT         rowPitch   = width * ByteFrom(_format);
+                    const Int32    texIndex       = CalcTextureIndex(mipIdx, arrayIdx, numMips);
+                    const CMemView mem            = _initDataOrEmpty[texIndex];
+                    const UINT     rowPitch       = width * ByteFrom(_format);
                     JAM_ASSERT(mem.GetByteWidth() == rowPitch * height, "Texture data size mismatch");
-                    initData.emplace_back(mem.GetPointer(), rowPitch, 0);
+                    initData.emplace_back(mem.GetPtr(), rowPitch, 0);
                 }
             }
 
@@ -1041,13 +963,13 @@ TextureRef GfxContext::CreateTexture(
         if (bGenMips)
             desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-        if (_initOrEmpty.empty())
+        if (_initDataOrEmpty.empty())
         {
             JAM_CHECK_COM(pd3d11Device->CreateTexture3D(&desc, nullptr, &tex.pTexture3D));
         }
         else
         {
-            JAM_ASSERT(_initOrEmpty.size() == numMips, "Texture data count mismatch");
+            JAM_ASSERT(_initDataOrEmpty.size() == numMips, "Texture data count mismatch");
 
             Vector<D3D11_SUBRESOURCE_DATA> initData;
             initData.reserve(numMips);
@@ -1055,11 +977,11 @@ TextureRef GfxContext::CreateTexture(
             for (Int32 mipIdx = 0; mipIdx < numMips; mipIdx++)
             {
                 const auto [width, height, depth] = CalcTextureResolution(_width, _height, _depth, mipIdx);
-                const ConstMemView mem            = _initOrEmpty[mipIdx];
-                const UINT         rowPitch       = width * ByteFrom(_format);
-                const UINT         slicePitch     = rowPitch * height;
+                const CMemView mem                = _initDataOrEmpty[mipIdx];
+                const UINT     rowPitch           = width * ByteFrom(_format);
+                const UINT     slicePitch         = rowPitch * height;
                 JAM_ASSERT(mem.GetByteWidth() == slicePitch * depth, "Texture data size mismatch");
-                initData.emplace_back(mem.GetPointer(), rowPitch, slicePitch);
+                initData.emplace_back(mem.GetPtr(), rowPitch, slicePitch);
             }
 
             JAM_CHECK_COM(pd3d11Device->CreateTexture3D(&desc, initData.data(), &tex.pTexture3D));
@@ -1140,14 +1062,14 @@ TextureRef GfxContext::CreateTexture(
 }
 
 HardwareBuffer GfxContext::CreateBuffer(
-    const Int32                        _byteWidth,
-    const eBufferType                  _type,
-    const std::optional<ConstMemView>& _optInit) const
+    const Int32               _byteWidth,
+    const eBufferType         _type,
+    const Optional<CMemView>& _optInitData) const
 {
     JAM_ASSERT(_byteWidth > 0, "Buffer size must be greater than zero.");
 
     // validation
-    const bool bDynamic = !_optInit;
+    const bool bDynamic = !_optInitData;
     if (_type == eBufferType::ConstantBuffer)
     {
         JAM_ASSERT(_byteWidth % 16 == 0, "Constant buffer size must be multiple of 16 bytes.");
@@ -1173,10 +1095,10 @@ HardwareBuffer GfxContext::CreateBuffer(
     desc.MiscFlags = 0;
 
     // create
-    if (_optInit)
+    if (_optInitData)
     {
         D3D11_SUBRESOURCE_DATA initData = {};
-        initData.pSysMem                = _optInit->GetPointer();
+        initData.pSysMem                = _optInitData->GetPtr();
         JAM_CHECK_COM(pd3d11Device->CreateBuffer(&desc, &initData, &buffer.pBuffer));
     }
     else
@@ -1321,13 +1243,15 @@ FrameBuffer GfxContext::CreateFrameBuffer(
     return fb;
 }
 
-ShaderHandle GfxContext::GetOrCreateShader(const ConstMemView _shaderByteCode)
+ShaderHandle GfxContext::GetOrCreateShader(
+    const CMemView _shaderByteCode)
 {
-    const void*  pByteCode = _shaderByteCode.GetPointer();
-    const size_t byteWidth = _shaderByteCode.GetByteWidth();
+    const void* pByteCode = _shaderByteCode.GetPtr();
+    const Int32 byteWidth = _shaderByteCode.GetByteWidth();
 
     const ShaderCacheKey key = Hash_Murmur64(pByteCode, byteWidth);
-    if (const auto it = shaderCache.find(key); it != shaderCache.end())
+    const auto           it  = shaderCache.find(key);
+    if (it != shaderCache.end())
     {
         const ShaderHandle sh = it->second;
         ++shaders[sh].refCount;
@@ -1346,7 +1270,7 @@ ShaderHandle GfxContext::GetOrCreateShader(const ConstMemView _shaderByteCode)
     JAM_CHECK_COM(pReflect->GetDesc(&desc));
 
     // 쉐이더 객체 생성
-    D3D11_SHADER_VERSION_TYPE stage = static_cast<D3D11_SHADER_VERSION_TYPE>(D3D11_SHVER_GET_TYPE(desc.Version));
+    const D3D11_SHADER_VERSION_TYPE stage = static_cast<D3D11_SHADER_VERSION_TYPE>(D3D11_SHVER_GET_TYPE(desc.Version));
     switch (stage)
     {
         case D3D11_SHVER_PIXEL_SHADER:
@@ -1395,20 +1319,22 @@ ShaderHandle GfxContext::GetOrCreateShader(const ConstMemView _shaderByteCode)
             JAM_ASSERT(0, "Unsupported shader stage");
     }
 
-    ShaderHandle handle = shaders.Alloc();
-    shaders[handle]     = std::move(shader);
-    shaderCache[key]    = handle;
+    const ShaderHandle handle = shaders.Alloc();
+    shaders[handle]           = std::move(shader);
+    shaderCache[key]          = handle;
     Graphics::SetShaderName(handle);
     return handle;
 }
 
-VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(const VertexLayout& _vl)
+VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(
+    const VertexLayout& _vl)
 {
     // calculate hash
     const VertexLayoutCacheKey hash = Hash_Murmur64(&_vl, sizeof(VertexLayout));
 
     // check cache
-    if (const auto it = vlCache.find(hash); it != vlCache.end())
+    const auto it = vlCache.find(hash);
+    if (it != vlCache.end())
     {
         const VertexLayoutHandle vlh = it->second;
         ++vertexLayouts[vlh].refCount;
@@ -1429,9 +1355,9 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(const VertexLayout& _vl)
         const HLSLDataTypeInfo&    dataTypeInfo = HLSLDataTypeInfoFrom(vle.format);
 
         // generate hlsl struct field
-        const char* const typeName   = dataTypeInfo.name;
+        StringView        typeName   = dataTypeInfo.name;
         const DXGI_FORMAT dxgiFormat = dataTypeInfo.format;
-        const char* const semantic   = semanticInfo.name;
+        StringView        semantic   = semanticInfo.name;
         const Int32       index      = semanticInfo.index;
 
         // append to hlsl source
@@ -1447,15 +1373,15 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(const VertexLayout& _vl)
     // compile dummy vertex shader to get bytecode signature
     ShaderCompiler compiler;
     const bool     bResult = compiler.CompileSource(dummySource, eShader::VertexShader, "main", eShaderCompileFlags_Optimization);
-    JAM_ASSERT(bResult, "Failed to compile dummy vertex shader for input layout creation. Error: {}", ErrorBuffer::Get());
-    const ConstMemView bytecode = compiler.GetBytecode();
+    JAM_ASSERT(bResult, "Failed to compile dummy vertex shader for input layout creation. Error: {}", GlobalBuffer::GetLastError());
+    const CMemView bytecode = compiler.GetBytecode();
 
     // create d3d11 input layout
     ID3D11InputLayout* pd3d11InputLayout = nullptr;
     JAM_CHECK_COM(pd3d11Device->CreateInputLayout(
         inputElems.data(),
         NarrowCast<UINT>(vles.size()),
-        bytecode.GetPointer(),
+        bytecode.GetPtr(),
         bytecode.GetByteWidth(),
         &pd3d11InputLayout));
 
@@ -1470,7 +1396,7 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(const VertexLayout& _vl)
     vl.hash         = hash;
 
     // set debug name
-    SetD3D11Name(pd3d11InputLayout, CreateName("InputLayout", vlh));
+    SetD3D11Name(pd3d11InputLayout, FormatName("InputLayout", vlh));
 
     // register to cache
     vertexLayouts[vlh] = std::move(vl);
@@ -1478,28 +1404,30 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(const VertexLayout& _vl)
     return vlh;
 }
 
-MemView GfxContext::BeginUploadBuffer(const HardwareBuffer& _buffer) const
+MemView GfxContext::BeginUploadBuffer(
+    const HardwareBuffer& _buffer) const
 {
     D3D11_MAPPED_SUBRESOURCE mapped;
     JAM_CHECK_COM(pd3d11DeviceContext->Map(_buffer.pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
-    return { mapped.pData, static_cast<size_t>(_buffer.byteWidth) };
+    return { mapped.pData, _buffer.byteWidth };
 }
 
-void GfxContext::EndUploadBuffer(const HardwareBuffer& _buffer) const
+void GfxContext::EndUploadBuffer(
+    const HardwareBuffer& _buffer) const
 {
     pd3d11DeviceContext->Unmap(_buffer.pBuffer, 0);
 }
 
 void GfxContext::UploadBuffer(
     const HardwareBuffer& _buffer,
-    const ConstMemView    _uploadData,
+    const CMemView        _uploadData,
     const Int32           _offset,
     const bool            _bDiscard) const
 {
     JAM_ASSERT(_buffer.bDynamic, "Only dynamic buffer can be updated");
 
-    const Byte* pUploadData     = _uploadData.GetPointer();
-    Int32       uploadDataWidth = NarrowCast<Int32>(_uploadData.GetByteWidth());
+    const Byte* pUploadData     = _uploadData.GetPtr();
+    Int32       uploadDataWidth = _uploadData.GetByteWidth();
     uploadDataWidth             = Min<Int32>(uploadDataWidth, _buffer.byteWidth - _offset);
 
     if (_bDiscard)
@@ -1548,7 +1476,7 @@ Vector<Byte> GfxContext::DownloadBuffer(
     const HardwareBuffer& _buffer) const
 {
     ComPtr<ID3D11Buffer> pStagingBuffer;
-    Vector<UInt8>        readData(_buffer.byteWidth);
+    Vector<Byte>         readData(_buffer.byteWidth);
 
     // create staging buffer
     {
@@ -1577,18 +1505,18 @@ Vector<Byte> GfxContext::DownloadBuffer(
 }
 
 void GfxContext::UploadTexture(
-    const TextureRef&  _dstTexture,
-    const Int32        _dstMipIndex,
-    const Int32        _dstArrayIndex,
-    const Int32        _dstX,
-    const Int32        _dstY,
-    const Int32        _dstZ,
-    const ConstMemView _uploadData,
-    const Int32        _uploadWidth,
-    const Int32        _uploadHeight,
-    const Int32        _uploadDepth,
-    const Int32        _uploadDataRowPitch,
-    const Int32        _uploadDataDepthPitch) const
+    const TextureRef& _dstTexture,
+    const Int32       _dstMipIndex,
+    const Int32       _dstArrayIndex,
+    const Int32       _dstX,
+    const Int32       _dstY,
+    const Int32       _dstZ,
+    const CMemView    _uploadData,
+    const Int32       _uploadWidth,
+    const Int32       _uploadHeight,
+    const Int32       _uploadDepth,
+    const Int32       _uploadDataRowPitch,
+    const Int32       _uploadDataDepthPitch) const
 {
     JAM_ASSERT(_dstTexture.pResource, "Destination texture resource is null!");
 
@@ -1607,7 +1535,7 @@ void GfxContext::UploadTexture(
         _dstTexture.pResource,
         dstIndex,
         &dstBox,
-        _uploadData.GetPointer(),
+        _uploadData.GetPtr(),
         _uploadDataRowPitch,
         _uploadDataDepthPitch);
 }
@@ -1768,7 +1696,8 @@ ID3D11RasterizerState* GfxContext::GetOrCreateD3D11RasterizerState(
     const RasterizerStateD3D11 _state)
 {
     const UInt32 hash = Hash_Murmur32(&_state, sizeof(RasterizerStateD3D11));
-    if (const auto it = d3d11RasterizerStateCache.find(hash); it != d3d11RasterizerStateCache.end())
+    const auto   it   = d3d11RasterizerStateCache.find(hash);
+    if (it != d3d11RasterizerStateCache.end())
     {
         return it->second;
     }
@@ -1797,7 +1726,8 @@ ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(
     const BlendStateD3D11& _state)
 {
     const UInt64 hash = Hash_Murmur64(&_state, sizeof(BlendStateD3D11));
-    if (const auto it = d3d11BlendStateCache.find(hash); it != d3d11BlendStateCache.end())
+    const auto   it   = d3d11BlendStateCache.find(hash);
+    if (it != d3d11BlendStateCache.end())
     {
         return it->second;
     }
@@ -1839,7 +1769,8 @@ ID3D11DepthStencilState* GfxContext::GetOrCreateD3D11DepthStencilState(
     const DepthStencilStateD3D11 _state)
 {
     const UInt64 hash = Hash_Murmur64(&_state, sizeof(DepthStencilStateD3D11));
-    if (const auto it = d3d11DepthStencilStateCache.find(hash); it != d3d11DepthStencilStateCache.end())
+    const auto   it   = d3d11DepthStencilStateCache.find(hash);
+    if (it != d3d11DepthStencilStateCache.end())
     {
         return it->second;
     }
@@ -1876,7 +1807,8 @@ ID3D11SamplerState* GfxContext::GetOrCreateD3D11SamplerState(
 {
     const UInt64 value = static_cast<UInt64>(_state.value);
     const UInt64 key   = (value << 32ull) | _color.color;
-    if (const auto it = d3d11SamplerStateCache.find(key); it != d3d11SamplerStateCache.end())
+    const auto   it    = d3d11SamplerStateCache.find(key);
+    if (it != d3d11SamplerStateCache.end())
     {
         return it->second;
     }
@@ -2071,13 +2003,100 @@ SamplerInfo GfxContext::SamplerInfoFrom(
     }
 }
 
+HLSLSemanticInfo GfxContext::HLSLSemanticInfoFrom(
+    const eVertexAttribute _attrib) const
+{
+    switch (_attrib)
+    {
+        case eVertexAttribute::Position:
+            return { "POSITION", 0 };
+        case eVertexAttribute::Normal:
+            return { "NORMAL", 0 };
+        case eVertexAttribute::Tangent:
+            return { "TANGENT", 0 };
+        case eVertexAttribute::Bitangent:
+            return { "BINORMAL", 0 };
+        case eVertexAttribute::Color0:
+            return { "COLOR", 0 };
+        case eVertexAttribute::Color1:
+            return { "COLOR", 1 };
+        case eVertexAttribute::Color2:
+            return { "COLOR", 2 };
+        case eVertexAttribute::Color3:
+            return { "COLOR", 3 };
+        case eVertexAttribute::TexCoord0:
+            return { "TEXCOORD", 0 };
+        case eVertexAttribute::TexCoord1:
+            return { "TEXCOORD", 1 };
+        case eVertexAttribute::TexCoord2:
+            return { "TEXCOORD", 2 };
+        case eVertexAttribute::TexCoord3:
+            return { "TEXCOORD", 3 };
+        default:
+            JAM_ASSERT(0, "Unknown vertex attribute");
+            return { "UNKNOWN", 0 };
+    }
+}
+
+HLSLDataTypeInfo GfxContext::HLSLDataTypeInfoFrom(
+    const eAttributeFormat _format) const
+{
+    switch (_format)
+    {
+        case eAttributeFormat::Float:
+            return { "float", DXGI_FORMAT_R32_FLOAT };
+        case eAttributeFormat::Float2:
+            return { "float2", DXGI_FORMAT_R32G32_FLOAT };
+        case eAttributeFormat::Float3:
+            return { "float3", DXGI_FORMAT_R32G32B32_FLOAT };
+        case eAttributeFormat::Float4:
+            return { "float4", DXGI_FORMAT_R32G32B32A32_FLOAT };
+        case eAttributeFormat::UNorm8x4:
+            return { "float4", DXGI_FORMAT_R8G8B8A8_UNORM };
+        case eAttributeFormat::UInt8x4:
+            return { "uint4", DXGI_FORMAT_R8G8B8A8_UINT };
+        default:
+            JAM_ASSERT(0, "Unknown attribute format");
+            return { "UNKNOWN", DXGI_FORMAT_UNKNOWN };
+    }
+}
+
+std::string GfxContext::FormatName(
+    StringView _tag,
+    AnyHandle  _handle) const
+{
+    return std::format("[{}] Index: {}, Token: {}", _tag, _handle.index, _handle.token);
+}
+
+std::string GfxContext::FormatNameCustom(
+    const StringView _tag,
+    const AnyHandle  _handle,
+    StringView       _username) const
+{
+    std::string name = FormatName(_tag, _handle);
+    if (_username.IsEmpty())
+    {
+        return name;
+    }
+    else
+    {
+        return std::format("{}, Name: {}", name, _username);
+    }
+}
+
+std::string GfxContext::StringFrom(
+    const SourceLoc& _loc) const
+{
+    return std::format(", File: {}, Func: {}, Line: {}", _loc.filename, _loc.function, _loc.line);
+}
+
 void GfxContext::SetD3D11Name(
-    ID3D11DeviceChild*     _pDeviceChild,
-    const std::string_view _name) const
+    ID3D11DeviceChild* _pDeviceChild,
+    const StringView   _name) const
 {
     JAM_ASSERT(_pDeviceChild, "Resource is null");
     JAM_CHECK_COM(_pDeviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, 0, nullptr));
-    JAM_CHECK_COM(_pDeviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, NarrowCast<UINT>(_name.size()), _name.data()));
+    JAM_CHECK_COM(_pDeviceChild->SetPrivateData(WKPDID_D3DDebugObjectName, _name.GetLength(), _name.GetPtr()));
 }
 
 UInt32 GfxContext::QueryMaxMsaaQualityLevel(
@@ -2096,7 +2115,10 @@ UInt32 GfxContext::QueryMaxMsaaQualityLevel(
 namespace jam
 {
 
-void Graphics::Init(const HWND _hwnd, const Int32 _width, const Int32 _height)
+void Graphics::Init(
+    const HWND  _hwnd,
+    const Int32 _width,
+    const Int32 _height)
 {
     JAM_ASSERT(g_pGfxCtx == nullptr, "Graphics already initialized");
     g_pGfxCtx = JAM_NEW(GfxContext);
@@ -2117,6 +2139,7 @@ void Graphics::Init(const HWND _hwnd, const Int32 _width, const Int32 _height)
 #ifdef JAM_DEBUG
         flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
+
         JAM_CHECK_COM(D3D11CreateDevice(
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
@@ -2264,7 +2287,7 @@ bool Graphics::DetectLeak()
         bLeakDetected = true;
     }
 
-    for (ProgramHandle handle: g_pGfxCtx->programs | std::views::keys)
+    for (const ProgramHandle handle: g_pGfxCtx->programs | std::views::keys)
     {
         UInt32 index = handle.index;
         UInt32 token = handle.token;
@@ -2288,13 +2311,13 @@ void Graphics::Frame(const bool _bVSync)
 }
 
 VertexBufferHandle Graphics::CreateVertexBuffer(
-    ConstMemView        _vertexData,
+    CMemView            _vertData,
     const VertexLayout& _vl)
 {
-    const Int32 byteWidth = NarrowCast<Int32>(_vertexData.GetByteWidth());
+    const Int32 byteWidth = _vertData.GetByteWidth();
 
     VertexBuffer vb;
-    vb.buffer   = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::VertexBuffer, _vertexData);
+    vb.buffer   = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::VertexBuffer, _vertData);
     vb.stride   = _vl.GetStride();
     vb.numVerts = byteWidth / vb.stride;
     vb.vlh      = g_pGfxCtx->GetOrCreateVertexLayout(_vl);
@@ -2321,7 +2344,7 @@ VertexBufferHandle Graphics::CreateDynamicVertexBuffer(
     const Int32 stride = _vl.GetStride();
 
     VertexBuffer vb;
-    vb.buffer   = g_pGfxCtx->CreateBuffer(_numVerts * stride, eBufferType::VertexBuffer, std::nullopt);
+    vb.buffer   = g_pGfxCtx->CreateBuffer(_numVerts * stride, eBufferType::VertexBuffer, k_nullopt);
     vb.stride   = stride;
     vb.numVerts = _numVerts;
     vb.vlh      = g_pGfxCtx->GetOrCreateVertexLayout(_vl);
@@ -2340,14 +2363,14 @@ VertexBufferHandle Graphics::CreateDynamicVertexBuffer(
 }
 
 IndexBufferHandle Graphics::CreateIndexBuffer(
-    ConstMemView _indexData,
-    const bool   _bUseU32)
+    CMemView   _idxData,
+    const bool _bUseU32)
 {
     const Int32 stride    = CalcIndexStride(_bUseU32);
-    const Int32 byteWidth = NarrowCast<Int32>(_indexData.GetByteWidth());
+    const Int32 byteWidth = _idxData.GetByteWidth();
 
     IndexBuffer ib;
-    ib.buffer     = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::IndexBuffer, _indexData);
+    ib.buffer     = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::IndexBuffer, _idxData);
     ib.numIndices = byteWidth / stride;
     ib.stride     = stride;
     ib.bUseU32    = _bUseU32;
@@ -2374,7 +2397,7 @@ IndexBufferHandle Graphics::CreateDynamicIndexBuffer(
     const Int32 stride = CalcIndexStride(_bUseU32);
 
     IndexBuffer ib;
-    ib.buffer     = g_pGfxCtx->CreateBuffer(_numIndices * stride, eBufferType::IndexBuffer, std::nullopt);
+    ib.buffer     = g_pGfxCtx->CreateBuffer(_numIndices * stride, eBufferType::IndexBuffer, k_nullopt);
     ib.numIndices = _numIndices;
     ib.stride     = stride;
     ib.bUseU32    = _bUseU32;
@@ -2398,10 +2421,10 @@ ConstantBufferHandle Graphics::CreateConstantBuffer(const Int32 _byteWidth)
     JAM_ASSERT(_byteWidth % 16 == 0, "Constant buffer size must be a multiple of 16 bytes");
 
     ConstantBuffer cb;
-    cb.buffer = g_pGfxCtx->CreateBuffer(_byteWidth, eBufferType::ConstantBuffer, std::nullopt);
+    cb.buffer = g_pGfxCtx->CreateBuffer(_byteWidth, eBufferType::ConstantBuffer, k_nullopt);
 
-    ConstantBufferHandle cbh = g_pGfxCtx->cbuffers.Alloc();
-    g_pGfxCtx->cbuffers[cbh] = std::move(cb);
+    const ConstantBufferHandle cbh = g_pGfxCtx->cbuffers.Alloc();
+    g_pGfxCtx->cbuffers[cbh]       = std::move(cb);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
@@ -2414,12 +2437,12 @@ ConstantBufferHandle Graphics::CreateConstantBuffer(const Int32 _byteWidth)
 }
 
 TextureHandle Graphics::CreateTexture2D(
-    const Int32                          _width,
-    const Int32                          _height,
-    const eTextureFormat                 _format,
-    const Int32                          _arraySize,
-    const eTextureCreateFlags            _flags,
-    const std::span<const ConstMemView>& _initData)
+    const Int32                      _width,
+    const Int32                      _height,
+    const eTextureFormat             _format,
+    const Int32                      _arraySize,
+    const eTextureCreateFlags        _flags,
+    const std::span<const CMemView>& _initData)
 {
     const TextureHandle texh  = g_pGfxCtx->textures.Alloc();
     g_pGfxCtx->textures[texh] = g_pGfxCtx->CreateTexture(_width, _height, 1, _format, _arraySize, _flags, eTextureType::Texture2D, _initData);
@@ -2434,12 +2457,12 @@ TextureHandle Graphics::CreateTexture2D(
     return texh;
 }
 TextureHandle Graphics::CreateTextureCube(
-    const Int32                          _width,
-    const Int32                          _height,
-    const eTextureFormat                 _format,
-    const Int32                          _cubeCount,
-    const eTextureCreateFlags            _flags,
-    const std::span<const ConstMemView>& _initData)
+    const Int32                      _width,
+    const Int32                      _height,
+    const eTextureFormat             _format,
+    const Int32                      _cubeCount,
+    const eTextureCreateFlags        _flags,
+    const std::span<const CMemView>& _initData)
 {
     const TextureHandle texh  = g_pGfxCtx->textures.Alloc();
     g_pGfxCtx->textures[texh] = g_pGfxCtx->CreateTexture(_width, _height, 1, _format, _cubeCount * 6, _flags, eTextureType::TextureCube, _initData);
@@ -2455,12 +2478,12 @@ TextureHandle Graphics::CreateTextureCube(
 }
 
 TextureHandle Graphics::CreateTexture3D(
-    const Int32                          _width,
-    const Int32                          _height,
-    const Int32                          _depth,
-    const eTextureFormat                 _format,
-    const eTextureCreateFlags            _texFlags,
-    const std::span<const ConstMemView>& _initData)
+    const Int32                      _width,
+    const Int32                      _height,
+    const Int32                      _depth,
+    const eTextureFormat             _format,
+    const eTextureCreateFlags        _texFlags,
+    const std::span<const CMemView>& _initData)
 {
     const TextureHandle texh  = g_pGfxCtx->textures.Alloc();
     g_pGfxCtx->textures[texh] = g_pGfxCtx->CreateTexture(_width, _height, _depth, _format, 1, _texFlags, eTextureType::Texture3D, _initData);
@@ -2493,7 +2516,7 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
 }
 
 ShaderHandle Graphics::CreateShader(
-    const ConstMemView _shaderByteCode)
+    const CMemView _shaderByteCode)
 {
     const ShaderHandle sh = g_pGfxCtx->GetOrCreateShader(_shaderByteCode);
 
@@ -2556,23 +2579,23 @@ ProgramHandle Graphics::CreateProgram(
         _bDestroyShader);
 }
 
-void Graphics::DestroyVertexBuffer(const VertexBufferHandle _vbh)
+void Graphics::DestroyVertexBuffer(
+    const VertexBufferHandle _vbh)
 {
-    Int32         refCount;
-    VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
+    const VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
 
     // destory d3d11 resource
     {
         ID3D11Buffer* pd3d11Buffer = vb.buffer.pBuffer;
-        refCount                   = NarrowCast<Int32>(pd3d11Buffer->Release());
+        const Int32   refCount     = pd3d11Buffer->Release();
         JAM_ASSERT(refCount == 0, "Vertex buffer.pBuffer reference count is not zero. RefCount: {}", refCount);
     }
 
     // release VertexLayoutRef
     {
-        VertexLayoutHandle vlh = vb.vlh;
-        VertexLayoutRef&   vl  = g_pGfxCtx->vertexLayouts[vlh];
-        refCount               = --vl.refCount;
+        const VertexLayoutHandle vlh      = vb.vlh;
+        VertexLayoutRef&         vl       = g_pGfxCtx->vertexLayouts[vlh];
+        Int32                    refCount = --vl.refCount;
         JAM_ASSERT(refCount >= 0, "VertexLayoutRef reference count is already zero");
 
         // destroy vertex vertexLayout if no more references
@@ -2591,8 +2614,8 @@ void Graphics::DestroyVertexBuffer(const VertexBufferHandle _vbh)
 
 void Graphics::DestroyIndexBuffer(const IndexBufferHandle _ibh)
 {
-    IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
-    UINT         refCount;
+    const IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
+    UINT               refCount;
 
     // destroy d3d11 resource
     {
@@ -2605,11 +2628,12 @@ void Graphics::DestroyIndexBuffer(const IndexBufferHandle _ibh)
     g_pGfxCtx->indexBuffers.Free(_ibh);
 }
 
-void Graphics::DestroyTexture(const TextureHandle _texh)
+void Graphics::DestroyTexture(
+    const TextureHandle _texh)
 {
     // 텍스처 참조 해제
     TextureRef& tex      = g_pGfxCtx->textures[_texh];
-    Int32       refCount = --tex.refCount;
+    const Int32 refCount = --tex.refCount;
     JAM_ASSERT(refCount >= 0, "TextureRef reference count is already zero");
 
     // 텍스처 파괴
@@ -2628,12 +2652,13 @@ void Graphics::DestroyTexture(const TextureHandle _texh)
     }
 }
 
-void Graphics::DestroyFrameBuffer(const FrameBufferHandle _fbh)
+void Graphics::DestroyFrameBuffer(
+    const FrameBufferHandle _fbh)
 {
     JAM_ASSERT(JAM_IS_VALID_HANDLE(_fbh), "Invalid FrameBuffer handle");
 
-    FrameBuffer& fb = g_pGfxCtx->frameBuffers[_fbh];
-    UINT         refCount;
+    const FrameBuffer& fb = g_pGfxCtx->frameBuffers[_fbh];
+    UINT               refCount;
 
     // destory rtv
     for (Int32 i = 0; i < fb.numRenderTarget; ++i)
@@ -2658,7 +2683,8 @@ void Graphics::DestroyFrameBuffer(const FrameBufferHandle _fbh)
     g_pGfxCtx->frameBuffers.Free(_fbh);   // FrameBuffer 핸들 해제
 }
 
-void Graphics::DestroyProgram(const ProgramHandle _ph)
+void Graphics::DestroyProgram(
+    const ProgramHandle _ph)
 {
     Program& program = g_pGfxCtx->programs[_ph];
 
@@ -2673,7 +2699,8 @@ void Graphics::DestroyProgram(const ProgramHandle _ph)
     g_pGfxCtx->programs.Free(_ph);   // Program 핸들 해제
 }
 
-void Graphics::DestroyShader(const ShaderHandle _sh)
+void Graphics::DestroyShader(
+    const ShaderHandle _sh)
 {
     ShaderRef& shader = g_pGfxCtx->shaders[_sh];
     Int32      refCount;
@@ -2688,22 +2715,22 @@ void Graphics::DestroyShader(const ShaderHandle _sh)
         switch (shader.stage)
         {
             case eShader::VertexShader:
-                refCount = NarrowCast<Int32>(shader.pVertexShader->Release());
+                refCount = shader.pVertexShader->Release();
                 break;
             case eShader::PixelShader:
-                refCount = NarrowCast<Int32>(shader.pPixelShader->Release());
+                refCount = shader.pPixelShader->Release();
                 break;
             case eShader::GeometryShader:
-                refCount = NarrowCast<Int32>(shader.pGeometryShader->Release());
+                refCount = shader.pGeometryShader->Release();
                 break;
             case eShader::HullShader:
-                refCount = NarrowCast<Int32>(shader.pHullShader->Release());
+                refCount = shader.pHullShader->Release();
                 break;
             case eShader::DomainShader:
-                refCount = NarrowCast<Int32>(shader.pDomainShader->Release());
+                refCount = shader.pDomainShader->Release();
                 break;
             case eShader::ComputeShader:
-                refCount = NarrowCast<Int32>(shader.pComputeShader->Release());
+                refCount = shader.pComputeShader->Release();
                 break;
             default:
                 JAM_ASSERT(0, "Unsupported shader stage");
@@ -2718,8 +2745,8 @@ void Graphics::DestroyShader(const ShaderHandle _sh)
 void Graphics::DestroyConstantBuffer(
     const ConstantBufferHandle _cbh)
 {
-    ConstantBuffer& cbuffer  = g_pGfxCtx->cbuffers[_cbh];
-    const UINT      refCount = cbuffer.buffer.pBuffer->Release();
+    const ConstantBuffer& cbuffer  = g_pGfxCtx->cbuffers[_cbh];
+    const UINT            refCount = cbuffer.buffer.pBuffer->Release();
     if (refCount > 0)
     {
         JAM_ASSERT(0, "Constant buffer.pBuffer reference count is not zero. RefCount: {}", refCount);
@@ -2730,63 +2757,54 @@ void Graphics::DestroyConstantBuffer(
 
 void Graphics::SetVertexBufferName(
     const VertexBufferHandle _vbh,
-    const std::string_view   _name)
+    const StringView         _name)
 {
     VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
-    vb.name          = g_pGfxCtx->CreateNameCustom("VertexBuffer", _vbh, _name);
+    vb.name          = g_pGfxCtx->FormatNameCustom("VertexBuffer", _vbh, _name);
     g_pGfxCtx->SetD3D11Name(vb.buffer.pBuffer, vb.name);
 }
 
 void Graphics::SetIndexBufferName(
     const IndexBufferHandle _ibh,
-    const std::string_view  _name)
+    const StringView        _name)
 {
     IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
-    ib.name         = g_pGfxCtx->CreateNameCustom("IndexBuffer", _ibh, _name);
+    ib.name         = g_pGfxCtx->FormatNameCustom("IndexBuffer", _ibh, _name);
     g_pGfxCtx->SetD3D11Name(ib.buffer.pBuffer, ib.name);
 }
 
 void Graphics::SetConstantBufferName(
     const ConstantBufferHandle _cbh,
-    const std::string_view     _name)
+    const StringView           _name)
 {
     ConstantBuffer& cb = g_pGfxCtx->cbuffers[_cbh];
-    cb.name            = g_pGfxCtx->CreateNameCustom("ConstantBuffer", _cbh, _name);
+    cb.name            = g_pGfxCtx->FormatNameCustom("ConstantBuffer", _cbh, _name);
     g_pGfxCtx->SetD3D11Name(cb.buffer.pBuffer, cb.name);
 }
 
 void Graphics::SetTextureName(
-    const TextureHandle    _texh,
-    const std::string_view _name)
+    const TextureHandle _texh,
+    const StringView    _name)
 {
-    constexpr const char* const k_texNames[EnumCount<eTextureType>()] = {
-        "Texture2D",
-        "Texture3D",
-        "TextureCube",
-    };
-
-    constexpr const char* const k_srvNames[EnumCount<eTextureType>()] = {
-        "Texture2D_SRV",
-        "Texture3D_SRV",
-        "TextureCube_SRV",
-    };
+    constexpr StringView k_texNames[NumEnums<eTextureType>()] = { "Texture2D", "Texture3D", "TextureCube" };
+    constexpr StringView k_srvNames[NumEnums<eTextureType>()] = { "Texture2D_SRV", "Texture3D_SRV", "TextureCube_SRV" };
 
     TextureRef& tex = g_pGfxCtx->textures[_texh];
-    tex.name        = g_pGfxCtx->CreateNameCustom(k_texNames[IntFrom(tex.type)], _texh, _name);
+    tex.name        = g_pGfxCtx->FormatNameCustom(k_texNames[IntFrom(tex.type)], _texh, _name);
     g_pGfxCtx->SetD3D11Name(tex.pResource, tex.name);
 
     if (tex.pSRV)
     {
-        const std::string name = g_pGfxCtx->CreateNameCustom(k_srvNames[IntFrom(tex.type)], _texh, _name);
+        const std::string name = g_pGfxCtx->FormatNameCustom(k_srvNames[IntFrom(tex.type)], _texh, _name);
         g_pGfxCtx->SetD3D11Name(tex.pSRV, name);
     }
 }
 
 void Graphics::SetFrameBufferName(
     const FrameBufferHandle _fbh,
-    const std::string_view  _name)
+    const StringView        _name)
 {
-    constexpr const char* const k_names[k_numRenderTargetLimit] = {
+    constexpr StringView k_names[k_numRenderTargetLimit] = {
         "FrameBuffer_RTV0",
         "FrameBuffer_RTV1",
         "FrameBuffer_RTV2",
@@ -2798,34 +2816,34 @@ void Graphics::SetFrameBufferName(
     };
 
     FrameBuffer& fb = g_pGfxCtx->frameBuffers[_fbh];
-    fb.name         = g_pGfxCtx->CreateNameCustom("FrameBuffer", _fbh, _name);
+    fb.name         = g_pGfxCtx->FormatNameCustom("FrameBuffer", _fbh, _name);
 
     for (Int32 i = 0; i < fb.numRenderTarget; ++i)
     {
         if (fb.pRTV[i])
         {
-            std::string name = g_pGfxCtx->CreateNameCustom(k_names[i], _fbh, _name);
+            std::string name = g_pGfxCtx->FormatNameCustom(k_names[i], _fbh, _name);
             g_pGfxCtx->SetD3D11Name(fb.pRTV[i], name);
         }
     }
 
     if (fb.pDSV)
     {
-        std::string name = g_pGfxCtx->CreateNameCustom("FrameBuffer_DSV", _fbh, _name);
+        const std::string name = g_pGfxCtx->FormatNameCustom("FrameBuffer_DSV", _fbh, _name);
         g_pGfxCtx->SetD3D11Name(fb.pDSV, name);
     }
 }
 
 void Graphics::SetShaderName(
-    const ShaderHandle     _sh,
-    const std::string_view _name)
+    const ShaderHandle _sh,
+    const StringView   _name)
 {
-    constexpr const char* const k_names[EnumCount<eShader>()] = {
+    constexpr StringView k_names[NumEnums<eShader>()] = {
         "VertexShader", "PixelShader", "GeometryShader", "HullShader", "DomainShader", "ComputeShader"
     };
 
     ShaderRef& shader = g_pGfxCtx->shaders[_sh];
-    shader.name       = g_pGfxCtx->CreateNameCustom(k_names[IntFrom(shader.stage)], _sh, _name);
+    shader.name       = g_pGfxCtx->FormatNameCustom(k_names[IntFrom(shader.stage)], _sh, _name);
 
     switch (shader.stage)
     {
@@ -2904,7 +2922,7 @@ void Graphics::UploadTexture2D(
     const Int32         _dstArrayIndex,
     const Int32         _dstX,
     const Int32         _dstY,
-    const ConstMemView  _uploadData,
+    const CMemView      _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -2927,7 +2945,7 @@ void Graphics::UploadTexture2D(
 
 void Graphics::UploadTexture2D(
     const TextureHandle _texh,
-    const ConstMemView  _uploadData,
+    const CMemView      _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -2951,7 +2969,7 @@ void Graphics::UploadTextureCube(
     const eCubeFace     _dstCubeFace,
     const Int32         _dstX,
     const Int32         _dstY,
-    const ConstMemView  _uploadData,
+    const CMemView      _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -2975,7 +2993,7 @@ void Graphics::UploadTextureCube(
 void Graphics::UploadTextureCube(
     const TextureHandle _texh,
     const eCubeFace     _dstCubeFace,
-    const ConstMemView  _uploadData,
+    const CMemView      _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -3000,7 +3018,7 @@ void Graphics::UploadTexture3D(
     const Int32         _dstX,
     const Int32         _dstY,
     const Int32         _dstZ,
-    const ConstMemView  _uploadData,
+    const CMemView      _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDepth,
@@ -3025,7 +3043,7 @@ void Graphics::UploadTexture3D(
 
 void Graphics::UploadTexture3D(
     const TextureHandle _texh,
-    const ConstMemView  _uploadData,
+    const CMemView      _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDepth,
@@ -3047,7 +3065,7 @@ void Graphics::UploadTexture3D(
         _uploadDataDepthPitch);
 }
 
-Vector<UInt8> Graphics::DownloadTexture2D(
+Vector<Byte> Graphics::DownloadTexture2D(
     const TextureHandle _texh,
     const Int32         _mipIndex,
     const Int32         _arrayIndex)
@@ -3059,7 +3077,7 @@ Vector<UInt8> Graphics::DownloadTexture2D(
         _arrayIndex);
 }
 
-Vector<UInt8> Graphics::DownloadTextureCube(
+Vector<Byte> Graphics::DownloadTextureCube(
     const TextureHandle _texh,
     const Int32         _mipIndex,
     const Int32         _cubeIndex,
@@ -3072,7 +3090,7 @@ Vector<UInt8> Graphics::DownloadTextureCube(
         _cubeIndex * 6 + IntFrom(_cubeFace));
 }
 
-Vector<UInt8> Graphics::DownloadTexture3D(
+Vector<Byte> Graphics::DownloadTexture3D(
     const TextureHandle _texh,
     const Int32         _mipIndex)
 {
@@ -3098,8 +3116,8 @@ void Graphics::Resolve(
     const TextureHandle _dstTexh,
     const Int32         _dstArrayIndex)
 {
-    TextureRef& srcTex = g_pGfxCtx->textures[_srcTexh];
-    TextureRef& dstTex = g_pGfxCtx->textures[_dstTexh];
+    const TextureRef& srcTex = g_pGfxCtx->textures[_srcTexh];
+    const TextureRef& dstTex = g_pGfxCtx->textures[_dstTexh];
     JAM_ASSERT(dstTex.samples == 1, "Destination texture must not be multi-sampled.");
 
     const Int32             srcIndex   = srcTex.numMips * _srcArrayIndex;
@@ -3130,16 +3148,16 @@ void Graphics::ClearRenderTarget(
     const RGBA              _color,
     const Int32             _renderTargetIndex)
 {
-    FrameBufferHandle fbh         = JAM_IS_VALID_HANDLE(_fbh) ? _fbh : g_pGfxCtx->backBufferFbh;
-    FrameBuffer&      frameBuffer = g_pGfxCtx->frameBuffers[fbh];
-    JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < frameBuffer.numRenderTarget, "Render target m_index out of range.");
-    FLOAT colors[4] = {
+    const FrameBufferHandle fbh = JAM_IS_VALID_HANDLE(_fbh) ? _fbh : g_pGfxCtx->backBufferFbh;
+    const FrameBuffer&      fb  = g_pGfxCtx->frameBuffers[fbh];
+    JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < fb.numRenderTarget, "Render target m_index out of range.");
+    const FLOAT colors[4] = {
         static_cast<float>(_color.r) / 255.0f,
         static_cast<float>(_color.g) / 255.0f,
         static_cast<float>(_color.b) / 255.0f,
         static_cast<float>(_color.a) / 255.0f
     };
-    g_pGfxCtx->pd3d11DeviceContext->ClearRenderTargetView(frameBuffer.pRTV[_renderTargetIndex], colors);
+    g_pGfxCtx->pd3d11DeviceContext->ClearRenderTargetView(fb.pRTV[_renderTargetIndex], colors);
 }
 
 void Graphics::ClearDepthStencil(
@@ -3151,7 +3169,7 @@ void Graphics::ClearDepthStencil(
 {
     JAM_ASSERT(JAM_IS_VALID_HANDLE(_fbh), "back buffer do not have depth stencil.");
 
-    FrameBuffer& fb = g_pGfxCtx->frameBuffers[_fbh];
+    const FrameBuffer& fb = g_pGfxCtx->frameBuffers[_fbh];
     JAM_ASSERT(fb.pDSV, "Frame buffer does not have a depth stencil view.");
 
     UINT flags = 0;
@@ -3282,7 +3300,7 @@ ProgramInfo Graphics::GetProgramInfo(
 
 void Graphics::UploadBuffer(
     const VertexBufferHandle _vbh,
-    const ConstMemView       _writeData,
+    const CMemView           _writeData,
     const Int32              _offset,
     const bool               _bDiscard)
 {
@@ -3292,7 +3310,7 @@ void Graphics::UploadBuffer(
 
 void Graphics::UploadBuffer(
     const IndexBufferHandle _ibh,
-    const ConstMemView      _writeData,
+    const CMemView          _writeData,
     const Int32             _offset,
     const bool              _bDiscard)
 {
@@ -3302,48 +3320,48 @@ void Graphics::UploadBuffer(
 
 void Graphics::UploadBuffer(
     const ConstantBufferHandle _cbh,
-    const ConstMemView         _writeData)
+    const CMemView             _writeData)
 {
-    ConstantBuffer& cb = g_pGfxCtx->cbuffers[_cbh];
+    const ConstantBuffer& cb = g_pGfxCtx->cbuffers[_cbh];
     g_pGfxCtx->UploadBuffer(cb.buffer, _writeData, 0, true);
 }
 
 MemView Graphics::BeginUploadBuffer(
     const VertexBufferHandle _vbh)
 {
-    VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
+    const VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
     return g_pGfxCtx->BeginUploadBuffer(vb.buffer);
 }
 
 MemView Graphics::BeginUploadBuffer(
     const IndexBufferHandle _ibh)
 {
-    IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
+    const IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
     return g_pGfxCtx->BeginUploadBuffer(ib.buffer);
 }
 
 void Graphics::EndUploadBuffer(
     const VertexBufferHandle _vbh)
 {
-    VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
+    const VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
     g_pGfxCtx->EndUploadBuffer(vb.buffer);
 }
 
 void Graphics::EndUploadBuffer(
     const IndexBufferHandle _ibh)
 {
-    IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
+    const IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
     g_pGfxCtx->EndUploadBuffer(ib.buffer);
 }
 
-Vector<UInt8> Graphics::DownloadBuffer(
+Vector<Byte> Graphics::DownloadBuffer(
     const VertexBufferHandle _vbh)
 {
     const VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
     return g_pGfxCtx->DownloadBuffer(vb.buffer);
 }
 
-Vector<UInt8> Graphics::DownloadBuffer(
+Vector<Byte> Graphics::DownloadBuffer(
     const IndexBufferHandle _ibh)
 {
     const IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
@@ -3382,9 +3400,9 @@ void Graphics::SetVertexBuffer(
 void Graphics::SetVertexBuffer(
     const VertexBufferHandle _vbh,
     const Int32              _numVerts,
-    const Int32              _vertexOffset)
+    const Int32              _vertOffset)
 {
-    if (g_pGfxCtx->vbhBind != _vbh || g_pGfxCtx->vbOffsetBind != _vertexOffset)
+    if (g_pGfxCtx->vbhBind != _vbh || g_pGfxCtx->vbOffsetBind != _vertOffset)
     {
         if (JAM_IS_VALID_HANDLE(_vbh))
         {
@@ -3397,7 +3415,7 @@ void Graphics::SetVertexBuffer(
         }
 
         g_pGfxCtx->vbhBind      = _vbh;
-        g_pGfxCtx->vbOffsetBind = _vertexOffset;
+        g_pGfxCtx->vbOffsetBind = _vertOffset;
         g_pGfxCtx->dirtyFlags |= ePipelineDirtyFlags_VertexBuffer;
     }
     g_pGfxCtx->numVertsBind = _numVerts;
@@ -3411,16 +3429,16 @@ void Graphics::SetIndexBuffer(const IndexBufferHandle _handleOrInvalid)
 
 void Graphics::SetIndexBuffer(
     const IndexBufferHandle _ibh,
-    const Int32             _indexCount,
-    const Int32             _indexOffset)
+    const Int32             _numIdxes,
+    const Int32             _idxOffset)
 {
-    if (g_pGfxCtx->ibhBind != _ibh || g_pGfxCtx->ibOffsetBind != _indexOffset)
+    if (g_pGfxCtx->ibhBind != _ibh || g_pGfxCtx->ibOffsetBind != _idxOffset)
     {
         g_pGfxCtx->ibhBind      = _ibh;
-        g_pGfxCtx->ibOffsetBind = _indexOffset;
+        g_pGfxCtx->ibOffsetBind = _idxOffset;
         g_pGfxCtx->dirtyFlags |= ePipelineDirtyFlags_IndexBuffer;
     }
-    g_pGfxCtx->numIndicesBind = _indexCount;
+    g_pGfxCtx->numIndicesBind = _numIdxes;
 }
 
 void Graphics::SetConstantBuffer(
@@ -3490,7 +3508,8 @@ void Graphics::SetBorderColor(
     }
 }
 
-void Graphics::SetRenderState(const RenderState _state)
+void Graphics::SetRenderState(
+    const RenderState _state)
 {
     if (!MemEqual(g_pGfxCtx->renderStateBind, _state))
     {
@@ -3545,7 +3564,7 @@ void Graphics::SetBlendState(
     const Int32      _renderTargetIndex)
 {
     JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < k_numRenderTargetLimit, "Render target index out of range.");
-    BlendState bs = g_pGfxCtx->blendStateBind.blends[_renderTargetIndex];
+    const BlendState bs = g_pGfxCtx->blendStateBind.blends[_renderTargetIndex];
     if (!MemEqual(bs, _state))
     {
         g_pGfxCtx->blendStateBind.blends[_renderTargetIndex] = _state;
@@ -3553,7 +3572,8 @@ void Graphics::SetBlendState(
     }
 }
 
-void Graphics::SetBlendFactor(const RGBA _rgba)
+void Graphics::SetBlendFactor(
+    const RGBA _rgba)
 {
     if (g_pGfxCtx->blendFactorBind.color != _rgba.color)
     {
@@ -3586,7 +3606,8 @@ void Graphics::SetStencil(
     }
 }
 
-void Graphics::SetProgram(const ProgramHandle _ph)
+void Graphics::SetProgram(
+    const ProgramHandle _ph)
 {
     if (g_pGfxCtx->phBind != _ph)
     {
@@ -3595,7 +3616,8 @@ void Graphics::SetProgram(const ProgramHandle _ph)
     }
 }
 
-void Graphics::SetFrameBuffer(const FrameBufferHandle _fbh)
+void Graphics::SetFrameBuffer(
+    const FrameBufferHandle _fbh)
 {
     const FrameBufferHandle fbh = JAM_IS_VALID_HANDLE(_fbh) ? _fbh : g_pGfxCtx->backBufferFbh;
     if (g_pGfxCtx->fbhBind != fbh)
@@ -3605,21 +3627,27 @@ void Graphics::SetFrameBuffer(const FrameBufferHandle _fbh)
     }
 }
 
-void Graphics::SetViewport(const Viewport _viewport)
+void Graphics::SetViewport(
+    const Viewport _vp)
 {
-    if (!MemEqual(g_pGfxCtx->vpBind, _viewport))
+    if (!MemEqual(g_pGfxCtx->vpBind, _vp))
     {
-        g_pGfxCtx->vpBind = _viewport;
+        g_pGfxCtx->vpBind = _vp;
         g_pGfxCtx->dirtyFlags |= ePipelineDirtyFlags_Viewport;
     }
 }
 
-void Graphics::SetViewport(const UInt16 _x, const UInt16 _y, const UInt16 _width, const UInt16 _height)
+void Graphics::SetViewport(
+    const UInt16 _x,
+    const UInt16 _y,
+    const UInt16 _width,
+    const UInt16 _height)
 {
     SetViewport(Viewport { _x, _y, _width, _height });
 }
 
-void Graphics::SetScissorRect(const Rect _rect)
+void Graphics::SetScissorRect(
+    const Rect _rect)
 {
     if (!MemEqual(g_pGfxCtx->scissorRectBind, _rect))
     {
@@ -3628,12 +3656,18 @@ void Graphics::SetScissorRect(const Rect _rect)
     }
 }
 
-void Graphics::SetScissorRect(const UInt16 _left, const UInt16 _top, const UInt16 _right, const UInt16 _bottom)
+void Graphics::SetScissorRect(
+    const UInt16 _left,
+    const UInt16 _top,
+    const UInt16 _right,
+    const UInt16 _bottom)
 {
     SetScissorRect(Rect { _left, _top, _right, _bottom });
 }
 
-void Graphics::SetSubmitParameter(const eSubmitParameterType _type, const Int32 _value)
+void Graphics::SetSubmitParameter(
+    const eSubmitParameterType _type,
+    const Int32                _value)
 {
     g_pGfxCtx->submitParams[IntFrom(_type)] = _value;
 }
@@ -3794,7 +3828,7 @@ TextureHandle Graphics::LoadTexture(
     return texh;
 }
 
-std::optional<TextureHandle> Graphics::LoadTextureFile(
+Optional<TextureHandle> Graphics::LoadTextureFile(
     const fs::path& _path,
     const bool      _bGenerateMips)
 {
@@ -3813,17 +3847,17 @@ std::optional<TextureHandle> Graphics::LoadTextureFile(
     }
     else
     {
-        return std::nullopt;
+        return k_nullopt;
     }
 }
 
-std::optional<TextureHandle> Graphics::LoadTextureSource(
-    const ConstMemView _source,
+Optional<TextureHandle> Graphics::LoadTextureSource(
+    const CMemView     _source,
     const eImageFormat _format,
     const bool         _bGenerateMips)
 {
     ImageImporter importer;
-    importer.SetSource(_source, _format);
+    importer.SetMemory(_source, _format);
     importer.GenerateMips(_bGenerateMips);
 
     if (importer.Import())
@@ -3837,14 +3871,14 @@ std::optional<TextureHandle> Graphics::LoadTextureSource(
     }
     else
     {
-        return std::nullopt;
+        return k_nullopt;
     }
 }
 
-std::optional<ShaderHandle> Graphics::LoadShaderFile(
+Optional<ShaderHandle> Graphics::LoadShaderFile(
     const fs::path&           _path,
     const eShader             _stage,
-    const std::string_view    _entryPoint,
+    const StringView          _entryPoint,
     const eShaderCompileFlags _flags)
 {
     ShaderCompiler compiler;
@@ -3859,14 +3893,14 @@ std::optional<ShaderHandle> Graphics::LoadShaderFile(
     }
     else
     {
-        return std::nullopt;
+        return k_nullopt;
     }
 }
 
-std::optional<ShaderHandle> Graphics::LoadShaderSource(
-    const std::string_view    _source,
+Optional<ShaderHandle> Graphics::LoadShaderSource(
+    const StringView          _source,
     const eShader             _stage,
-    const std::string_view    _entryPoint,
+    const StringView          _entryPoint,
     const eShaderCompileFlags _flags)
 {
     ShaderCompiler compiler;
@@ -3881,7 +3915,7 @@ std::optional<ShaderHandle> Graphics::LoadShaderSource(
     }
     else
     {
-        return std::nullopt;
+        return k_nullopt;
     }
 }
 

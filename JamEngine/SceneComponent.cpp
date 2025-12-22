@@ -3,6 +3,7 @@
 #include "Json.h"
 #include "Scene.h"
 #include "SceneComponent.h"
+#include "JsonUtilities.h"
 
 #include "EditorWidgets.h"
 
@@ -19,50 +20,67 @@ SceneComponent::SceneComponent(
 {
 }
 
-Json SceneComponent::Serialize(
+void SceneComponent::Serialize(
+    JsonWriter&       _writer,
     const Ref<Scene>& _pScene,
-    Entity            _entity) const
+    Entity            _owner) const
 {
-    const SceneNode& node = _entity.GetSceneNode();
-    JAM_ASSERT(node.GetRoot().IsValid(), "root entity is invalid");
-    JAM_ASSERT(node.GetOwner().IsValid(), "owner entity is invalid");
-
     // local matrix
-    Json json;
-    json["mtx"] = node.GetLocalTransform().GetMatrix();
+    {
+        const Mat4 mtx = node.GetLocalTransform().GetMatrix();
+        _writer.WriteField("mtx", mtx);
+    }
 
-    // if has local transform, save it
+    // parent
     if (node.HasParent())
     {
         const Entity parent = node.GetParent();
-        json["parent"]      = parent.GetUID();
+        _writer.WriteField("parent", parent.GetUID());
     }
-
-    return json;
+    else
+    {
+        _writer.WriteField("parent", nullptr);
+    }
 }
 
 void SceneComponent::Deserialize(
-    const Json&       _json,
+    JsonReader&       _reader,
     const Ref<Scene>& _pScene,
-    Entity            _entity)
+    Entity            _owner)
 {
     // local matrix
-    Mat4 mtx;
-    TryParseJsonField(_json, "mtx", mtx);
-    node.ModifyLocalTransform().SetMatrix(mtx);
+    {
+        Mat4 mtx = Mat4::Identity;
+        if (_reader.ReadField("mtx", mtx))
+        {
+            node.ModifyLocalTransform().SetMatrix(mtx);
+        }
+    }
 
     // parent
-    if (const auto it = _json.find("parent"); it != _json.end())
+    if (Optional<JsonReader> parentReader = _reader.EnterField("parent"))
     {
-        const UID uid = *it;
-        if (const Entity parent = _pScene->FindEntity(uid))
+        if (parentReader->IsNull())
         {
-            node.SetParent(parent, true);
+            // no parent (maybe root)
+            node.SetParent(Entity::s_null);
         }
         else
         {
-            JAM_ASSERT(0, "sceneComponent deserialization failed: 'parent' entity with UID {} does not exist.", uid);
-            Log::Warn("sceneComponent deserialization failed: 'parent' entity with UID {} does not exist.", uid);
+            UID parentUid;
+            if (parentReader->Read(parentUid))
+            {
+                if (const Entity parent = _pScene->FindEntity(parentUid))
+                {
+                    node.SetParent(parent, true);
+                }
+                else
+                {
+                    GlobalBuffer::SetLastError("SceneComponent::Deserialize() failed: parent entity with UID {} not found", parentUid);
+                    Log::Error(GlobalBuffer::GetLastError());
+                    _reader.MarkFailed();
+                }
+            }
         }
     }
 }
@@ -170,9 +188,9 @@ void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("mode");
             ImGui::TableNextColumn();
-            Widget_EnumRadioButton("world", s_coord, eCoordinate::World);
+            ImGui::RadioButton("world", reinterpret_cast<Int32*>(s_coord), static_cast<Int32>(eCoordinate::World));
             ImGui::SameLine();
-            Widget_EnumRadioButton("local", s_coord, eCoordinate::Local);
+            ImGui::RadioButton("local", reinterpret_cast<Int32*>(s_coord), static_cast<Int32>(eCoordinate::Local));
         }
 
         ImGui::EndTable();

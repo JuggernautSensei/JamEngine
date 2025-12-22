@@ -151,7 +151,7 @@ void Editor_EntityInspector::DrawAddComponentPopup_() const
     }
 }
 
-void Editor_EntityInspector::AddComponent_(const UInt32 _typeID, const Entity _entity) const
+void Editor_EntityInspector::AddComponent_(const UInt32 _typeId, const Entity _entity) const
 {
     struct CreateComponentCommand
     {
@@ -164,10 +164,10 @@ void Editor_EntityInspector::AddComponent_(const UInt32 _typeID, const Entity _e
         Entity entity;
     };
 
-    Application::GetInstance().SubmitCommand(CreateComponentCommand { _typeID, _entity });
+    Application::GetInstance().SubmitCommand(CreateComponentCommand { _typeId, _entity });
 }
 
-void Editor_EntityInspector::RemoveComponent_(const UInt32 _typeID, const Entity _entity) const
+void Editor_EntityInspector::RemoveComponent_(const UInt32 _typeId, const Entity _entity) const
 {
     struct RemoveComponentCommand
     {
@@ -180,7 +180,7 @@ void Editor_EntityInspector::RemoveComponent_(const UInt32 _typeID, const Entity
         Entity entity;
     };
 
-    Application::GetInstance().SubmitCommand(RemoveComponentCommand { _typeID, _entity });
+    Application::GetInstance().SubmitCommand(RemoveComponentCommand { _typeId, _entity });
 }
 
 }   // namespace jam

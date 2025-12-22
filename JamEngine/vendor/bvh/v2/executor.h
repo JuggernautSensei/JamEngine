@@ -52,7 +52,7 @@ struct ParallelExecutor : Executor<ParallelExecutor> {
         if (end - begin < parallel_threshold)
             return loop(begin, end);
 
-        auto chunk_size = std::max(size_t{1}, (end - begin) / thread_pool.get_thread_count());
+        const auto chunk_size = std::max(size_t{1}, (end - begin) / thread_pool.get_thread_count());
         for (size_t i = begin; i < end; i += chunk_size) {
             size_t next = std::min(end, i + chunk_size);
             thread_pool.push([=] (size_t) { loop(i, next); });
@@ -68,7 +68,7 @@ struct ParallelExecutor : Executor<ParallelExecutor> {
             return result;
         }
 
-        auto chunk_size = std::max(size_t{1}, (end - begin) / thread_pool.get_thread_count());
+        const auto chunk_size = std::max(size_t{1}, (end - begin) / thread_pool.get_thread_count());
         std::vector<T> per_thread_result(thread_pool.get_thread_count(), init);
         for (size_t i = begin; i < end; i += chunk_size) {
             size_t next = std::min(end, i + chunk_size);

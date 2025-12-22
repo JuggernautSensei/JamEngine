@@ -25,7 +25,7 @@ const char* GetEditorPayload(const eEditorPayload _payload)
 
 bool SetFileDragDropPayload(const fs::path& _path)
 {
-    const std::string_view path    = _path.native();
+    const StringView path    = _path.native();
     const char*            strPath = path.data();
     const Int32            len     = NarrowCast<Int32>(path.size()) + 1;
     return ImGui::SetDragDropPayload(GetEditorPayload(eEditorPayload::File), strPath, len);

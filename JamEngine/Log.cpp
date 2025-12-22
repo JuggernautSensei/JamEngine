@@ -10,35 +10,36 @@
 namespace jam
 {
 
-constexpr const char* const k_defaultLogPattern = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] %v";
-constexpr const char* const k_consoleSinkName   = "_jam_console_sink_";
-constexpr const char* const k_fileSinkName      = "_jam_file_sink_";
-
 struct LogContext
 {
-    void UpdateLogger()
+    void UpdateLogger() const
     {
+        // create thread pool if nee
         if (!spdlog::thread_pool())
         {
             spdlog::init_thread_pool(8192, 1);
         }
 
-        Vector<spdlog::sink_ptr> sinks;
-        sinks.reserve(sinkMap.size());
-        for (const spdlog::sink_ptr& sink: sinkMap | std::views::values)
+        // make new logger
+        Vector<SinkPtr> sinks;
+        sinks.reserve(sinks.size());
+        for (const SinkPtr& sink: this->sinks | std::views::values)
         {
-            sinks.push_back(sink);
+            sinks.emplace_back(sink);
         }
 
-        auto pNewLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-        pNewLogger->set_level(globalLevel);
-        pNewLogger->set_pattern(globalPattern);
-        spdlog::set_default_logger(std::move(pNewLogger));
+        std::shared_ptr<spdlog::async_logger> pLogger = std::make_shared<spdlog::async_logger>("CORE", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+        pLogger->set_level(globalLevel);
+        pLogger->set_pattern(globalPattern);
+        spdlog::set_default_logger(std::move(pLogger));
     }
 
-    HashMap<std::string, spdlog::sink_ptr> sinkMap       = {};
-    std::string                            globalPattern = k_defaultLogPattern;
-    spdlog::level::level_enum              globalLevel   = spdlog::level::trace;
+    HashMap<std::string, SinkPtr> sinks        = {};
+    SinkPtr                       pConsoleSink = nullptr;
+    SinkPtr                       pFileSink    = nullptr;
+
+    std::string               globalPattern = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [thread %t] %v";
+    spdlog::level::level_enum globalLevel   = spdlog::level::trace;
 
 }* g_pLogCtx = nullptr;
 
@@ -52,14 +53,14 @@ void Log::Init()
     JAM_ASSERT(g_pLogCtx == nullptr, "Log is already initialized.");
     g_pLogCtx = JAM_NEW(LogContext);
 
-    const TimeStamp   timeStamp = TimeStamp::Current();
-    const std::string filename  = std::format("logs/{:04}-{:02}-{:02}/{:02}h {:02}m {:02}.{:03}s.txt", timeStamp.year, timeStamp.month, timeStamp.day, timeStamp.hour, timeStamp.minute, timeStamp.second, timeStamp.millisecond);
+    const TimeStamp   ts       = TimeStamp::Current();
+    const std::string filename = std::format("Logs/{:04}-{:02}-{:02}/{:02}h {:02}m {:02}.{:03}s.log", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
 
-    auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    auto fileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
+    g_pLogCtx->pConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    g_pLogCtx->pFileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
 
-    AddSink(k_consoleSinkName, consoleSink);
-    AddSink(k_fileSinkName, fileSink);
+    AddSink("_JAM_CONSOLE_SINK_", g_pLogCtx->pConsoleSink);
+    AddSink("_JAM_FILE_SINK_", g_pLogCtx->pFileSink);
     JAM_DEBUG_LOG("log initialized successfully.");
 }
 
@@ -73,61 +74,73 @@ void Log::Shutdown()
     JAM_DELETE(g_pLogCtx);
 }
 
-void Log::AddSink(std::string_view _sinkName, const spdlog::sink_ptr& _sink)
+void Log::AddSink(
+    StringView     _name,
+    const SinkPtr& _pSink)
 {
-    JAM_ASSERT(!g_pLogCtx->sinkMap.contains(std::string(_sinkName)), "Sink already exists: {}", _sinkName);
-    g_pLogCtx->sinkMap.emplace(std::string(_sinkName), _sink);
+    const std::string name  = _name.ToString();
+    const auto [_, bResult] = g_pLogCtx->sinks.emplace(name, _pSink);
+    JAM_ASSERT(bResult, "Sink already exists: {}", _name);
     g_pLogCtx->UpdateLogger();
 }
 
-void Log::RemoveSink(std::string_view _sinkName)
+void Log::RemoveSink(
+    StringView _name)
 {
-    auto it = g_pLogCtx->sinkMap.find(std::string(_sinkName));
-    JAM_ASSERT(it != g_pLogCtx->sinkMap.end(), "Sink not found: {}", _sinkName);
-    g_pLogCtx->sinkMap.erase(it);
+    const std::string name = _name.ToString();
+    JAM_ASSERT(g_pLogCtx->sinks.contains(name), "Sink not found: {}", _name);
+    g_pLogCtx->sinks.erase(name);
     g_pLogCtx->UpdateLogger();
 }
 
-const spdlog::sink_ptr& Log::GetSink(std::string_view _sinkName)
+const SinkPtr& Log::GetSink(
+    StringView _name)
 {
-    std::string key { _sinkName };
-    JAM_ASSERT(g_pLogCtx->sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    return g_pLogCtx->sinkMap[key];
+    const std::string name = _name.ToString();
+    JAM_ASSERT(g_pLogCtx->sinks.contains(name), "Sink not found: {}", _name);
+    return g_pLogCtx->sinks[name];
 }
 
-const spdlog::sink_ptr& Log::GetConsoleSink()
+const SinkPtr& Log::GetConsoleSink()
 {
-    return GetSink(k_consoleSinkName);
+    return g_pLogCtx->pConsoleSink;
 }
 
-const spdlog::sink_ptr& Log::GetFileSink()
+const SinkPtr& Log::GetFileSink()
 {
-    return GetSink(k_fileSinkName);
+    return g_pLogCtx->pFileSink;
 }
 
-void Log::SetLogLevel(eLogLevel _level)
+void Log::SetLogLevel(
+    eLogLevel _level)
 {
     g_pLogCtx->globalLevel = static_cast<spdlog::level::level_enum>(_level);
     spdlog::set_level(g_pLogCtx->globalLevel);
 }
 
-void Log::SetLogLevel(std::string_view _sinkName, eLogLevel _level)
+void Log::SetLogLevel(
+    const StringView _name,
+    eLogLevel        _level)
 {
-    std::string key { _sinkName };
-    JAM_ASSERT(g_pLogCtx->sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    g_pLogCtx->sinkMap[key]->set_level(static_cast<spdlog::level::level_enum>(_level));
+    const std::string name  = _name.ToString();
+    const SinkPtr     pSink = GetSink(_name);
+    pSink->set_level(static_cast<spdlog::level::level_enum>(_level));
 }
 
-void Log::SetLogPattern(std::string_view _sinkName, const std::string_view _pattern)
+void Log::SetLogPattern(
+    const StringView _name,
+    const StringView _pattern)
 {
-    std::string key { _sinkName };
-    JAM_ASSERT(g_pLogCtx->sinkMap.contains(key), "Sink not found: {}", _sinkName);
-    g_pLogCtx->sinkMap[key]->set_pattern(std::string(_pattern));
+    const std::string name    = _name.ToString();
+    const std::string pattern = _pattern.ToString();
+    const SinkPtr     pSink   = GetSink(_name);
+    pSink->set_pattern(pattern);
 }
 
-void Log::SetLogPattern(const std::string_view _pattern)
+void Log::SetLogPattern(
+    const StringView _pattern)
 {
-    g_pLogCtx->globalPattern = std::string(_pattern);
+    g_pLogCtx->globalPattern = _pattern.ToString();
     spdlog::set_pattern(g_pLogCtx->globalPattern);
 }
 

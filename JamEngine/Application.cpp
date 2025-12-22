@@ -5,7 +5,7 @@
 #include "AssetManager.h"
 #include "ComponentDB.h"
 #include "Editor.h"
-#include "ErrorBuffer.h"
+#include "GlobalBuffer.h"
 #include "Graphics.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
@@ -19,7 +19,7 @@ namespace jam
 
 Application* Application::s_instance = nullptr;
 
-void Application::Create(const CommandLineArguments& _args)
+void Application::Create(const Int32 _argc, char** _argv)
 {
     JAM_ASSERT(s_instance == nullptr, "Application instance already exists");
 
@@ -32,10 +32,9 @@ void Application::Create(const CommandLineArguments& _args)
 
     // init
     Log::Init();
-    ErrorBuffer::Init();
 
     // create application
-    s_instance = CreateApplication(_args);
+    s_instance = CreateApplication(_argc, _argv);
 
     // project file directory
     fs::create_directory(s_instance->m_contentsDir);
@@ -123,7 +122,6 @@ void Application::Destroy()
     JAM_DELETE(s_instance);
 
     // shutdown
-    ErrorBuffer::Shutdown();
     Log::Shutdown();
 }
 
@@ -137,12 +135,13 @@ Application::Application(const ApplicationCreateInfo& _info)
     : m_applicationName(_info.applicationName)
     , m_bEditorEnabled(_info.bEnableEditor)
     , m_workingDir(_info.workingDirectory)
-    , m_contentsDir(m_workingDir / k_contentsDirName)
+    , m_contentsDir(m_workingDir / k_contentsDirName.GetPtr())
 {
     JAM_ASSERT(fs::exists(_info.workingDirectory), "Working directory does not exist: {}", _info.workingDirectory.native());
 }
 
-void Application::OnWindowCloseEvent_(const WindowCloseEvent& _event)
+void Application::OnWindowCloseEvent_(
+    [[maybe_unused]] const WindowCloseEvent& _event)
 {
     Quit();
 }
@@ -244,7 +243,7 @@ bool Application::IsVsyncEnabled() const
     return m_bVsync;
 }
 
-std::string_view Application::GetApplicationName() const
+StringView Application::GetApplicationName() const
 {
     return m_applicationName;
 }

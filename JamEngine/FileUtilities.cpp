@@ -9,21 +9,21 @@
 namespace jam
 {
 
-std::optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path)
+Optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path)
 {
     std::ifstream ifs { _path, std::ios::binary };
     if (!ifs)
     {
-        ErrorBuffer::Set("failed to open file: {}", _path.native());
-        return std::nullopt;
+        GlobalBuffer::SetLastError("failed to open file: {}", _path.native());
+        return k_nullopt;
     }
 
     std::error_code ec;
     const size_t    fileSize = fs::file_size(_path, ec);
     if (ec)
     {
-        ErrorBuffer::Set("failed to query file size: {}. {}", _path.native(), ec.message());
-        return std::nullopt;
+        GlobalBuffer::SetLastError("failed to query file size: {}. {}", _path.native(), ec.message());
+        return k_nullopt;
     }
 
     if (fileSize == 0)
@@ -37,19 +37,19 @@ std::optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path)
 
     if (!ifs)
     {
-        ErrorBuffer::Set("failed to read file: {}", _path.native());
-        return std::nullopt;
+        GlobalBuffer::SetLastError("failed to read file: {}", _path.native());
+        return k_nullopt;
     }
 
     return result;
 }
 
-bool SaveBinaryFile(const fs::path& _path, const ConstMemView _data)
+bool SaveBinaryFile(const fs::path& _path, const CMemView _data)
 {
     std::ofstream ofs { _path, std::ios::binary };
     if (!ofs)
     {
-        ErrorBuffer::Set("failed to open file for writing: {}", _path.native());
+        GlobalBuffer::SetLastError("failed to open file for writing: {}", _path.native());
         return false;
     }
 
@@ -58,32 +58,32 @@ bool SaveBinaryFile(const fs::path& _path, const ConstMemView _data)
         return true;
     }
 
-    ofs.write(reinterpret_cast<const char*>(_data.GetPointer()), static_cast<std::streamsize>(_data.GetByteWidth()));
+    ofs.write(reinterpret_cast<const char*>(_data.GetPtr()), static_cast<std::streamsize>(_data.GetByteWidth()));
 
     if (!ofs)
     {
-        ErrorBuffer::Set("failed to write data to file: {}", _path.native());
+        GlobalBuffer::SetLastError("failed to write data to file: {}", _path.native());
         return false;
     }
 
     return true;
 }
 
-std::optional<std::string> LoadTextFile(const fs::path& _path)
+Optional<std::string> LoadTextFile(const fs::path& _path)
 {
     std::ifstream ifs(_path);
     if (!ifs)
     {
-        ErrorBuffer::Set("failed to open file: {}", _path.native());
-        return std::nullopt;
+        GlobalBuffer::SetLastError("failed to open file: {}", _path.native());
+        return k_nullopt;
     }
 
     std::error_code ec;
     const size_t    fileSize = fs::file_size(_path, ec);
     if (ec)
     {
-        ErrorBuffer::Set("failed to query file size: {}. {}", _path.native(), ec.message());
-        return std::nullopt;
+        GlobalBuffer::SetLastError("failed to query file size: {}. {}", _path.native(), ec.message());
+        return k_nullopt;
     }
 
     if (fileSize == 0)
@@ -97,16 +97,16 @@ std::optional<std::string> LoadTextFile(const fs::path& _path)
 
     if (!ifs)
     {
-        ErrorBuffer::Set("failed to read file: {}", _path.native());
-        return std::nullopt;
+        GlobalBuffer::SetLastError("failed to read file: {}", _path.native());
+        return k_nullopt;
     }
 
     return buffer;
 }
 
-bool SaveTextFile(const fs::path& _path, const std::string_view _text)
+bool SaveTextFile(const fs::path& _path, const StringView _text)
 {
-    return SaveBinaryFile(_path, { reinterpret_cast<const Byte*>(_text.data()), _text.size() });
+    return SaveBinaryFile(_path, { reinterpret_cast<const Byte*>(_text.GetPtr()), _text.GetLength() });
 }
 
 }   // namespace jam

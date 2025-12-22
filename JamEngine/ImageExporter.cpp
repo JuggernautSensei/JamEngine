@@ -14,14 +14,21 @@ bool ImageExporter::Export()
 
     if (m_path.empty())
     {
-        ErrorBuffer::Set("file path is empty");
+        GlobalBuffer::SetLastError("file path is empty");
         return false;
     }
 
-    HRESULT               hr;
-    const std::wstring    path       = m_path.wstring();
-    const eImageFormat    format     = ImageFormatFrom(m_path);
-    DirectX::ScratchImage scratchImg = Graphics::Capture(m_texh);
+    const Optional<eImageFormat> optFormat = ImageFormatFrom(m_path);
+    if (!optFormat)
+    {
+        GlobalBuffer::SetLastError("cannot determine image format from file extension: '{}'", m_path.native());
+        return false;
+    }
+
+    const DirectX::ScratchImage scratchImg = Graphics::Capture(m_texh);
+    const eImageFormat          format     = optFormat.value();
+    const std::wstring          path       = m_path.wstring();
+    HRESULT                     hr         = E_FAIL;
 
     switch (format)
     {
@@ -58,13 +65,13 @@ bool ImageExporter::Export()
             break;
 
         default:
-            ErrorBuffer::Set("Unsupported image format: '{}'", m_path.native());
+            GlobalBuffer::SetLastError("Unsupported image format: '{}'", m_path.native());
             return false;
     }
 
     if (FAILED(hr))
     {
-        ErrorBuffer::Set("Failed to save image to file: '{}', {}", m_path.native(), ErrorMessageFrom(hr));
+        GlobalBuffer::SetLastError("Failed to save image to file: '{}', {}", m_path.native(), StringFrom(hr));
         return false;
     }
 
@@ -119,7 +126,7 @@ DirectX::WICCodecs ImageExporter::WICCodecsFrom_(
             return DirectX::WIC_CODEC_HEIF;
 
         default:
-            JAM_ASSERT(0, "Unsupported image format: {}", ErrorMessageFrom(_format));
+            JAM_ASSERT(0, "Unsupported image format: {}", StringFrom(_format));
             return static_cast<DirectX::WICCodecs>(0);
     }
 }

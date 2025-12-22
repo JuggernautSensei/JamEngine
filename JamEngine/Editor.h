@@ -48,8 +48,8 @@ public:
     [[nodiscard]] static ImU32                GetStyleColorU32(eEditorStyleColor _color);
     [[nodiscard]] static VertexLayoutStorage& GetVertexLayoutStorage();
 
-    static void OpenCorePopupDialog(std::string_view _name, std::string_view _message);
-    static void OpenCorePopupDialog(std::string_view _name, std::function<void()> _onImGuiRender);
+    static void OpenCorePopupDialog(StringView _name, StringView _message);
+    static void OpenCorePopupDialog(StringView _name, std::function<void()> _onImGuiRender);
 
     static void CreateEntityToActiveScene(Entity _parentOrNull = Entity::s_null);
     static void CloneEntityToActiveScene(Entity _entity, Entity _parentOrNull = Entity::s_null);

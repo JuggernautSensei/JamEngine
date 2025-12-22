@@ -170,7 +170,8 @@ namespace DirectX
 
             float Dot(const Vector2& V) const noexcept { return (x * V.x) + (y * V.y); }
             void Cross(const Vector2& V, Vector2& result) const noexcept { result.x = result.y = (x * V.y) - (y * V.x); }
-            Vector2 Cross(const Vector2& V) const noexcept { float c = (x * V.y) - (y * V.x); return Vector2(c, c); }
+            Vector2 Cross(const Vector2& V) const noexcept {
+ const float c = (x * V.y) - (y * V.x); return Vector2(c, c); }
 
             void Normalize() noexcept;
             void Normalize(Vector2& result) const noexcept;

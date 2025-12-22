@@ -4,49 +4,92 @@
 
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
-#include "JsonUtilities.h"
 #include "Scene.h"
 #include "Script.h"
 #include "ScriptDB.h"
+#include "JsonUtilities.h"
 
 namespace jam
 {
 
-Json ScriptComponent::Serialize(
+static bool Widget_ScriptCombo(const Entity _entity, Ref<Script>& _pScript)
+{
+    bool bChanged = false;
+
+    const bool       bHasScript = (_pScript != nullptr);
+    const StringView preview    = bHasScript ? _pScript->GetTypeName() : "none";
+
+    if (ImGui::BeginCombo("##ScriptComponent", preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
+    {
+        const ScriptDB& db = ScriptDB::GetInstance();
+        for (const ScriptInfo& info: db.GetContainer() | std::views::values)
+        {
+            const StringView label     = info.name;
+            const bool       bSelected = bHasScript && (preview == info.name);
+
+            if (ImGui::Selectable(label.GetPtr(), bSelected))
+            {
+                _pScript = info.createFn(_entity);
+                bChanged = true;
+            }
+
+            if (bSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+
+    return bChanged;
+}
+
+}   // namespace jam
+
+namespace jam
+{
+
+void ScriptComponent::Serialize(
+    JsonWriter&       _writer,
     const Ref<Scene>& _pScene,
-    Entity            _entity) const
+    Entity            _owner) const
 {
     if (pScript)
     {
-        return pScript->GetTypeName();
+        _writer.Write(pScript->GetTypeName());
     }
     else
     {
-        return nullptr;
+        _writer.Write(nullptr);
     }
 }
 
 void ScriptComponent::Deserialize(
-    const Json&  _json,
-    Ref<Scene>&  _pScene,
-    const Entity _entity)
+    JsonReader&       _reader,
+    const Ref<Scene>& _pScene,
+    const Entity      _owner)
 {
-    if (_json.is_null())
+    if (_reader.IsNull())
     {
         pScript = nullptr;
     }
     else
     {
-        std::string     name = _json.get<std::string>();
-        const ScriptDB& db   = ScriptDB::GetInstance();
-        if (db.IsReflected(name))
+        std::string name;
+        if (_reader.Read(name))
         {
-            pScript = db.Create(name, _entity);
-        }
-        else
-        {
-            Log::Warn("ScriptComponent::Deserialize: Script '{}' not found in ScriptDB. Setting script to null.", name);
-            pScript = nullptr;
+            const ScriptDB& db = ScriptDB::GetInstance();
+            if (db.IsReflected(name))
+            {
+                pScript = db.Create(name, _owner);
+            }
+            else
+            {
+                GlobalBuffer::SetLastError("ScriptComponent - script '{}' is not reflected in ScriptDB", name);
+                Log::Error(GlobalBuffer::GetLastError());
+                _reader.MarkFailed();
+            }
         }
     }
 }
@@ -57,38 +100,18 @@ void ScriptComponent::DrawEditor(
 {
     if (ImGui::BeginTable("ScriptEditor", 2, ImGuiTableFlags_SizingFixedFit))
     {
-        const char* preview = pScript ? pScript->GetTypeName().data() : "none";
-
         // setup table
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-        // row script
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("script");
 
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        if (ImGui::BeginCombo("##ScriptComponent", preview, ImGuiComboFlags_NoArrowButton))
-        {
-            ScriptDB& db = ScriptDB::GetInstance();
-            for (const ScriptInfo& info: db.GetContainer() | std::views::values)
-            {
-                const std::string& label     = info.name;
-                const bool         bSelected = pScript && pScript->GetTypeName() == label;
-                if (ImGui::Selectable(label.c_str(), bSelected))
-                {
-                    pScript = info.createFn(_entity);
-                }
+        Widget_ScriptCombo(_entity, pScript);
 
-                if (bSelected)
-                {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
-        }
         ImGui::EndTable();
     }
 }

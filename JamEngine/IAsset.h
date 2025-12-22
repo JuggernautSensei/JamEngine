@@ -34,7 +34,7 @@ public:
 
     [[nodiscard]] virtual bool             IsValid() const      = 0;
     [[nodiscard]] virtual eAssetType       GetAssetType() const = 0;
-    [[nodiscard]] virtual std::string_view GetTypeName() const  = 0;
+    [[nodiscard]] virtual StringView GetTypeName() const  = 0;
     [[nodiscard]] virtual UInt32           GetTypeHash() const  = 0;
     [[nodiscard]] virtual const fs::path&  GetPath() const      = 0;
 };

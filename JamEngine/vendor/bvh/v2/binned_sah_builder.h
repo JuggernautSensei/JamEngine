@@ -116,7 +116,7 @@ protected:
     }
 
     size_t fallback_split(size_t axis, const size_t begin, const size_t end) {
-        size_t mid = (begin + end + 1) / 2;
+        const size_t mid = (begin + end + 1) / 2;
         std::partial_sort(
             prim_ids_.begin() + begin,
             prim_ids_.begin() + mid,

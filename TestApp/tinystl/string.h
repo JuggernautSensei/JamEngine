@@ -157,7 +157,7 @@ namespace tinystl {
 	template<typename allocator>
 	inline size_t basic_string<allocator>::size() const
 	{
-		ptrdiff_t size = m_last - m_first;
+		const ptrdiff_t size = m_last - m_first;
 		return (size_t)size;
 	}
 
@@ -168,7 +168,7 @@ namespace tinystl {
 
 		const ptrdiff_t size = m_last - m_first;
 
-		pointer newfirst = (pointer)allocator::static_allocate(capacity + 1);
+		const pointer newfirst = (pointer)allocator::static_allocate(capacity + 1);
 		for (pointer it = m_first, newit = newfirst, end = m_last; it != end; ++it, ++newit)
 			*newit = *it;
 		if (m_first != m_buffer)
@@ -249,7 +249,7 @@ namespace tinystl {
 			other.m_buffer[i] = temp;
 		}
 		if (m_first == other.m_buffer) {
-			ptrdiff_t len = m_last - m_first;
+			const ptrdiff_t len = m_last - m_first;
 			m_first = m_buffer;
 			m_last = m_buffer + len;
 			m_capacity = m_buffer + c_nbuffer;
@@ -271,7 +271,7 @@ namespace tinystl {
 			return false;
 
 		pointer lit = lhs.c_str(), rit = rhs.c_str();
-		pointer lend = lit + lsize;
+		const pointer lend = lit + lsize;
 		while (lit != lend)
 			if (*lit++ != *rit++)
 				return false;

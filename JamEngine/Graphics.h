@@ -3,6 +3,8 @@
 #include "ImageBase.h"
 #include "MemView.h"
 
+#include <DirectXTex.h>
+
 // 리소스를 로드하고 생성한 콜 스택 정보를 추적하여 디버그 시 리소스 누수를 파악하는데 도움을 줍니다.
 // 이 매크로를 활성화하면 그래픽스 리소스 생성 시점의 호출자 정보를 캡처하므로 성능에 엄청난 영향을 미칠 수 있습니다.
 // 자원 생성 속도가 매우 느려질 수 있으므로, 이 매크로는 디버깅 목적으로만 사용해야 합니다.
@@ -17,7 +19,10 @@ class Graphics
 {
 public:
     /// @brief 그래픽스 코어를 초기화합니다.
-    static void Init(HWND _hwnd, Int32 _width, Int32 _height);
+    static void Init(
+        HWND  _hwnd,
+        Int32 _width,
+        Int32 _height);
 
     /// @brief 그래픽스 코어를 종료하고 리소스를 정리합니다.
     static void Shutdown();
@@ -34,12 +39,12 @@ public:
     static void Frame(bool _bVSync);
 
     /// @brief 수정 불가능한(Immutable) 버텍스 버퍼를 생성합니다.
-    /// @param _vertexData 버텍스 데이터
+    /// @param _vertData 버텍스 데이터
     /// @param _vl 버텍스 레이아웃
     /// @return 버텍스 버퍼에 대한 참조
     /// @note 일반적으로 사용하는 버텍스 버퍼이며, 성능이 뛰어납니다. 단, 생성 후에는 데이터를 수정할 수 없습니다.
     [[nodiscard]] static VertexBufferHandle CreateVertexBuffer(
-        ConstMemView        _vertexData,
+        CMemView            _vertData,
         const VertexLayout& _vl);
 
     /// @brief 수정 가능한(Dynamic) 버텍스 버퍼를 생성합니다.
@@ -52,13 +57,13 @@ public:
         const VertexLayout& _vl);
 
     /// @brief 수정 불가능한(Immutable) 인덱스 버퍼를 생성합니다.
-    /// @param _indexData 인덱스 데이터
+    /// @param _idxData 인덱스 데이터
     /// @param _bUseU32 16비트 또는 32비트 인덱스 포맷
     /// @return 인덱스 버퍼에 대한 참조
     /// @note 일반적으로 사용하는 인덱스 버퍼이며, 성능이 뛰어납니다. 단, 생성 후에는 데이터를 수정할 수 없습니다.
     [[nodiscard]] static IndexBufferHandle CreateIndexBuffer(
-        ConstMemView _indexData,
-        bool         _bUseU32 = false);
+        CMemView _idxData,
+        bool     _bUseU32 = false);
 
     /// @brief 수정 가능한(Dynamic) 인덱스 버퍼를 생성합니다.
     /// @param _numIndices 인덱스 개수
@@ -87,12 +92,12 @@ public:
     /// @note _initData가 제공되면 immutable 텍스처를 생성하고, 아니면 default 텍스처를 생성합니다.
     /// 텍스처를 프레임 버퍼로 사용할 경우 _viewFlags에 eViewFlags_RenderTarget 또는 eViewFlags_DepthStencil 플래그를 포함해야 합니다.
     [[nodiscard]] static TextureHandle CreateTexture2D(
-        Int32                                _width,
-        Int32                                _height,
-        eTextureFormat                       _format,
-        Int32                                _arraySize = 1,
-        eTextureCreateFlags                  _flags     = eTextureCreateFlags_None,
-        const std::span<const ConstMemView>& _initData  = {});
+        Int32                            _width,
+        Int32                            _height,
+        eTextureFormat                   _format,
+        Int32                            _arraySize = 1,
+        eTextureCreateFlags              _flags     = eTextureCreateFlags_None,
+        const std::span<const CMemView>& _initData  = {});
 
     /// @brief 큐브맵 텍스처를 생성합니다.
     /// @param _width 텍스처 너비
@@ -104,12 +109,12 @@ public:
     /// @return 큐브맵 텍스처에 대한 참조
     /// @note 초기화 데이터가 제공되면 immutable 텍스처로 생성하고, 아니면 default 텍스처를 생성합니다.
     [[nodiscard]] static TextureHandle CreateTextureCube(
-        Int32                                _width,
-        Int32                                _height,
-        eTextureFormat                       _format,
-        Int32                                _cubeCount = 1,
-        eTextureCreateFlags                  _flags     = eTextureCreateFlags_None,
-        const std::span<const ConstMemView>& _initData  = {});
+        Int32                            _width,
+        Int32                            _height,
+        eTextureFormat                   _format,
+        Int32                            _cubeCount = 1,
+        eTextureCreateFlags              _flags     = eTextureCreateFlags_None,
+        const std::span<const CMemView>& _initData  = {});
 
     /// @brief 3D 텍스처를 생성합니다.
     /// @param _width 텍스처 너비
@@ -121,12 +126,12 @@ public:
     /// @return 3D 텍스처에 대한 참조
     /// @note 초기화 데이터가 제공되면 immutable 텍스처로 생성하고, 아니면 default 텍스처를 생성합니다.
     [[nodiscard]] static TextureHandle CreateTexture3D(
-        Int32                                _width,
-        Int32                                _height,
-        Int32                                _depth,
-        eTextureFormat                       _format,
-        eTextureCreateFlags                  _texFlags = eTextureCreateFlags_None,
-        const std::span<const ConstMemView>& _initData = {});
+        Int32                            _width,
+        Int32                            _height,
+        Int32                            _depth,
+        eTextureFormat                   _format,
+        eTextureCreateFlags              _texFlags = eTextureCreateFlags_None,
+        const std::span<const CMemView>& _initData = {});
 
     /// @brief 프레임 버퍼를 생성합니다.
     /// @param _attachments 프레임 버퍼에 첨부할 텍스처 핸들 배열
@@ -143,7 +148,7 @@ public:
     /// @param _shaderByteCode 쉐이더 바이트코드
     /// @return 셰이더에 대한 참조
     [[nodiscard]] static ShaderHandle CreateShader(
-        ConstMemView _shaderByteCode);
+        CMemView _shaderByteCode);
 
     /// @brief 프로그램을 생성합니다.
     /// @param _vsh 버텍스 셰이더 핸들
@@ -213,7 +218,7 @@ public:
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetVertexBufferName(
         VertexBufferHandle _vbh,
-        std::string_view   _name = "");
+        StringView         _name = "");
 
     /// @brief 인덱스 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _ibh 인덱스 버퍼 리소스
@@ -221,7 +226,7 @@ public:
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetIndexBufferName(
         IndexBufferHandle _ibh,
-        std::string_view  _name = "");
+        StringView        _name = "");
 
     /// @brief 상수 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _cbh 상수 버퍼 리소스
@@ -229,15 +234,15 @@ public:
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetConstantBufferName(
         ConstantBufferHandle _cbh,
-        std::string_view     _name = "");
+        StringView           _name = "");
 
     /// @brief 텍스처에 디버깅용 이름을 설정합니다.
     /// @param _texh 텍스처 리소스
     /// @param _name 텍스처 이름
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetTextureName(
-        TextureHandle    _texh,
-        std::string_view _name = "");
+        TextureHandle _texh,
+        StringView    _name = "");
 
     /// @brief 프레임 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _fbh 프레임 버퍼 리소스
@@ -245,14 +250,14 @@ public:
     /// @note GPU 디버거에서 리소스를 식별하는데 사용됩니다.
     static void SetFrameBufferName(
         FrameBufferHandle _fbh,
-        std::string_view  _name = "");
+        StringView        _name = "");
 
     /// @brief 프로그램에 디버깅용 이름을 설정합니다.
     /// @param _sh 프로그램 리소스
     /// @param _name 프로그램 이름
     static void SetShaderName(
-        ShaderHandle     _sh,
-        std::string_view _name = "");
+        ShaderHandle _sh,
+        StringView   _name = "");
 
     /// @brief 텍스처를 블릿합니다.
     /// @param _blitDstTexh 대상 텍스처
@@ -310,7 +315,7 @@ public:
         Int32         _dstArrayIndex,
         Int32         _dstX,
         Int32         _dstY,
-        ConstMemView  _uploadData,
+        CMemView      _uploadData,
         Int32         _uploadWidth,
         Int32         _uploadHeight,
         Int32         _uploadDataRowPitch);
@@ -323,7 +328,7 @@ public:
     /// @param _uploadDataRowPitch 데이터 행 간격
     static void UploadTexture2D(
         TextureHandle _texh,
-        ConstMemView  _uploadData,
+        CMemView      _uploadData,
         Int32         _uploadWidth,
         Int32         _uploadHeight,
         Int32         _uploadDataRowPitch);
@@ -346,7 +351,7 @@ public:
         eCubeFace     _dstCubeFace,
         Int32         _dstX,
         Int32         _dstY,
-        ConstMemView  _uploadData,
+        CMemView      _uploadData,
         Int32         _uploadWidth,
         Int32         _uploadHeight,
         Int32         _uploadDataRowPitch);
@@ -361,7 +366,7 @@ public:
     static void UploadTextureCube(
         TextureHandle _texh,
         eCubeFace     _dstCubeFace,
-        ConstMemView  _uploadData,
+        CMemView      _uploadData,
         Int32         _uploadWidth,
         Int32         _uploadHeight,
         Int32         _uploadDataRowPitch);
@@ -386,7 +391,7 @@ public:
         Int32         _dstX,
         Int32         _dstY,
         Int32         _dstZ,
-        ConstMemView  _uploadData,
+        CMemView      _uploadData,
         Int32         _uploadWidth,
         Int32         _uploadHeight,
         Int32         _uploadDepth,
@@ -403,7 +408,7 @@ public:
     /// @param _uploadDataDepthPitch 데이터 깊이 간격
     static void UploadTexture3D(
         TextureHandle _texh,
-        ConstMemView  _uploadData,
+        CMemView      _uploadData,
         Int32         _uploadWidth,
         Int32         _uploadHeight,
         Int32         _uploadDepth,
@@ -541,7 +546,7 @@ public:
     ///       Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
     static void UploadBuffer(
         VertexBufferHandle _vbh,
-        ConstMemView       _writeData,
+        CMemView           _writeData,
         Int32              _offset   = 0,
         bool               _bDiscard = true);
 
@@ -554,7 +559,7 @@ public:
     ///       Dynamic VertexBuffer에만 데이터를 업로드할 수 있습니다.
     static void UploadBuffer(
         IndexBufferHandle _ibh,
-        ConstMemView      _writeData,
+        CMemView          _writeData,
         Int32             _offset   = 0,
         bool              _bDiscard = true);
 
@@ -564,7 +569,7 @@ public:
     /// @note 상수 버퍼는 부분 업로드가 불가능하며, 항상 버퍼 전체를 덮어씁니다.
     static void UploadBuffer(
         ConstantBufferHandle _cbh,
-        ConstMemView         _writeData);
+        CMemView             _writeData);
 
     /// @brief 버텍스 버퍼에 대한 업로드용 메모리 뷰를 반환합니다.
     /// @param _vbh 업로드할 버텍스 버퍼 핸들
@@ -631,11 +636,11 @@ public:
     /// @brief 버텍스 버퍼를 오프셋과 개수를 지정하여 파이프라인에 바인딩합니다.
     /// @param _vbh 버텍스 버퍼 핸들
     /// @param _numVerts 버텍스 개수
-    /// @param _vertexOffset 버퍼 내의 오프셋 (버텍스 단위)
+    /// @param _vertOffset 버퍼 내의 오프셋 (버텍스 단위)
     static void SetVertexBuffer(
         VertexBufferHandle _vbh,
         Int32              _numVerts,
-        Int32              _vertexOffset);
+        Int32              _vertOffset);
 
     /// @brief 인덱스 버퍼를 파이프라인에 바인딩합니다.
     /// @param _handleOrInvalid 인덱스 버퍼 핸들 (k_invalidResource 사용 시 바인딩 해제)
@@ -644,12 +649,12 @@ public:
 
     /// @brief 인덱스 버퍼를 오프셋과 개수를 지정하여 파이프라인에 바인딩합니다.
     /// @param _ibh 인덱스 버퍼 핸들
-    /// @param _indexCount 인덱스 개수
-    /// @param _indexOffset 버퍼 내의 오프셋 (인덱스 단위)
+    /// @param _numIdxes 인덱스 개수
+    /// @param _idxOffset 버퍼 내의 오프셋 (인덱스 단위)
     static void SetIndexBuffer(
         IndexBufferHandle _ibh,
-        Int32             _indexCount,
-        Int32             _indexOffset);
+        Int32             _numIdxes,
+        Int32             _idxOffset);
 
     /// @brief 상수 버퍼를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
     /// @param _cbh 바인딩할 상수 버퍼 핸들 (k_invalidResource 사용 시 바인딩 해제)
@@ -724,9 +729,9 @@ public:
         FrameBufferHandle _fbh);
 
     /// @brief 뷰포트를 설정합니다.
-    /// @param _viewport 뷰포트 설정
+    /// @param _vp 뷰포트 설정
     static void SetViewport(
-        Viewport _viewport);
+        Viewport _vp);
 
     /// @brief 뷰포트를 개별 매개변수로 설정합니다.
     /// @param _x 뷰포트 X 좌표
@@ -825,7 +830,7 @@ public:
     /// @brief LoadTexture의 간략화 버전입니다.
     /// @param _path 로드할 이미지 파일 경로
     /// @param _bGenerateMips 밉맵을 생성할지 여부 (기본값: true)
-    [[nodiscard]] static std::optional<TextureHandle> LoadTextureFile(
+    [[nodiscard]] static Optional<TextureHandle> LoadTextureFile(
         const fs::path& _path,
         bool            _bGenerateMips = true);
 
@@ -833,8 +838,8 @@ public:
     /// @param _source 메모리 뷰
     /// @param _format 이미지 포맷
     /// @param _bGenerateMips 밉맵을 생성할지 여부 (기본값: true)
-    [[nodiscard]] static std::optional<TextureHandle> LoadTextureSource(
-        ConstMemView _source,
+    [[nodiscard]] static Optional<TextureHandle> LoadTextureSource(
+        CMemView     _source,
         eImageFormat _format,
         bool         _bGenerateMips = true);
 
@@ -844,10 +849,10 @@ public:
     /// @param _entryPoint 셰이더 진입점 함수 이름
     /// @param _flags 컴파일 플래그
     /// @return 셰이더 핸들
-    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderFile(
+    [[nodiscard]] static Optional<ShaderHandle> LoadShaderFile(
         const fs::path&     _path,
         eShader             _stage,
-        std::string_view    _entryPoint,
+        StringView          _entryPoint,
         eShaderCompileFlags _flags = eShaderCompileFlags_None);
 
     /// @brief 셰이더를 소스 코드에서 로드합니다.
@@ -856,10 +861,10 @@ public:
     /// @param _entryPoint 셰이더 진입점 함수 이름
     /// @param _flags 컴파일 플래그
     /// @return 셰이더 핸들
-    [[nodiscard]] static std::optional<ShaderHandle> LoadShaderSource(
-        std::string_view    _source,
+    [[nodiscard]] static Optional<ShaderHandle> LoadShaderSource(
+        StringView          _source,
         eShader             _stage,
-        std::string_view    _entryPoint,
+        StringView          _entryPoint,
         eShaderCompileFlags _flags = eShaderCompileFlags_None);
 
     /// @brief 드로우 콜을 제출합니다.

@@ -30,4 +30,3 @@
 
 #define JAM_STRINGIFY_MACRO(x) #x
 #define JAM_EXPAND_MACRO(x)    x
-

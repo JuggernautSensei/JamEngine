@@ -1992,7 +1992,7 @@ public:
 
     void rehash(size_t count) {
         count = (std::min)(count, max_size());
-        auto shifts = calc_shifts_for_size((std::max)(count, size()));
+        const auto shifts = calc_shifts_for_size((std::max)(count, size()));
         if (shifts != m_shifts) {
             m_shifts = shifts;
             deallocate_buckets();
@@ -2008,7 +2008,7 @@ public:
             // std::deque doesn't have reserve(). Make sure we only call when available
             m_values.reserve(capa);
         }
-        auto shifts = calc_shifts_for_size((std::max)(capa, size()));
+        const auto shifts = calc_shifts_for_size((std::max)(capa, size()));
         if (0 == bucket_count() || shifts < m_shifts) {
             m_shifts = shifts;
             deallocate_buckets();

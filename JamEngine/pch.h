@@ -24,7 +24,6 @@
 #include <format>
 #include <functional>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -39,29 +38,37 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
 
+// 3rd party
 #include "HashMap.h"
+#include "Optional.h"
 #include "STL.h"
 #include <entt/entt.hpp>
 
+// forward declarations
+
+// non-dependent core
 #include "Configs.h"
+#include "Macros.h"
 #include "DataType.h"
+#include "Fwd.h"
+
+// dependent core
 #include "Error.h"
-#include "ErrorBuffer.h"
+#include "TypeTrait.h"
+#include "Math.h"
+#include "BaseUtilities.h"
+#include "StringView.h"
+#include "RefCounted.h"
+#include "MemView.h"
 #include "Log.h"
 
-#include "Macros.h"
-
-#include "MemView.h"
-
-#include "BaseUtilities.h"
-#include "MathUtilities.h"
-#include "RefCounted.h"
-
-#include "FileSystemUtilities.h"
-
-#include "EnumUtilities.h"
+// utilities
+#include "GlobalBuffer.h"
 #include "StringUtilities.h"
+#include "FileSystemUtilities.h"
+#include "EnumUtilities.h"
+#include "FunctionRef.h"
 
+// 3rd party glue
 #include "Json.h"
-
 #include "ImGuiGlue.h"

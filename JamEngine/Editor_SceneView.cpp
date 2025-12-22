@@ -42,13 +42,13 @@ void Editor_SceneView::Init()
     // load icons
     {
         bool bSucceeded = false;
-        bSucceeded |= m_cursorIcon.LoadSource(ConstMemView { CursorIcon_png, CursorIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_editIcon.LoadSource(ConstMemView { EditIcon_png, EditIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_menuIcon.LoadSource(ConstMemView { MenuIcon_png, MenuIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_playIcon.LoadSource(ConstMemView { PlayIcon_png, PlayIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_rotateIcon.LoadSource(ConstMemView { RotationIcon_png, RotationIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_scaleIcon.LoadSource(ConstMemView { ScalingIcon_png, ScalingIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_tranlateIcon.LoadSource(ConstMemView { TranslateIcon_png, TranslateIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_cursorIcon.LoadSource(CMemView { CursorIcon_png, CursorIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_editIcon.LoadSource(CMemView { EditIcon_png, EditIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_menuIcon.LoadSource(CMemView { MenuIcon_png, MenuIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_playIcon.LoadSource(CMemView { PlayIcon_png, PlayIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_rotateIcon.LoadSource(CMemView { RotationIcon_png, RotationIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_scaleIcon.LoadSource(CMemView { ScalingIcon_png, ScalingIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_tranlateIcon.LoadSource(CMemView { TranslateIcon_png, TranslateIcon_png_size }, eImageFormat::PNG);
         JAM_ASSERT(bSucceeded, "Failed to load editor scene view icons");
     }
 }
@@ -742,7 +742,7 @@ void Editor_SceneView::OnClickEditButton_()
     // deserialize
     if (!deserializer.Deserialize())
     {
-        JAM_ASSERT(0, "Failed to deserialize scene on stop: {}", ErrorBuffer::Get());
+        JAM_ASSERT(0, "Failed to deserialize scene on stop: {}", GlobalBuffer::GetLastError());
     }
 
     // clear temporary json
@@ -865,7 +865,7 @@ bool Editor_SceneView::Widget_GizmoOrientButton(const eGizmoOrient _orient)
 
 void Editor_SceneView::Widget_GizmoSnapButton()
 {
-    bool bSelected = m_bGizmoSnap;
+    const bool bSelected = m_bGizmoSnap;
 
     // button
     if (bSelected)

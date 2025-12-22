@@ -128,7 +128,7 @@ namespace tinystl {
 
 	constexpr void string_view::swap(string_view& v) {
 		const char* strtmp = m_str;
-		size_type sizetmp = m_size;
+		const size_type sizetmp = m_size;
 		m_str = v.m_str;
 		m_size = v.m_size;
 		v.m_str = strtmp;

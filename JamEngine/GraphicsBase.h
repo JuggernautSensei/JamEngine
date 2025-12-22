@@ -2,7 +2,7 @@
 #include <DirectXTex.h>
 
 #include "HandleAllocator.h"
-#include "MathUtilities.h"
+#include "Math.h"
 #include "TextureFormat.h"
 #include "VertexLayout.h"
 
@@ -156,7 +156,7 @@ enum class eTextureFilter : UInt8
     Anisotropic8,
     Anisotropic16,
 };
-constexpr size_t k_numTextureFilters = EnumCount<eTextureFilter>();
+constexpr size_t k_numTextureFilters = NumEnums<eTextureFilter>();
 
 enum class eCubeFace : Int8
 {
@@ -167,7 +167,7 @@ enum class eCubeFace : Int8
     Front,       // positive Z
     Back,        // negative Z
 };
-constexpr size_t k_numCubeFaces = EnumCount<eCubeFace>();
+constexpr size_t k_numCubeFaces = NumEnums<eCubeFace>();
 
 enum eShaderCompileFlags_ : UInt8
 {

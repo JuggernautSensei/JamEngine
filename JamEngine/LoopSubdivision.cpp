@@ -137,7 +137,7 @@ struct SDEdge
 
 Int32 SDVertex::CalcValence() const
 {
-    SDFace* pFace = pStartFace;
+    const SDFace* pFace = pStartFace;
     if (!bBoundary)
     {
         Int32 nf = 1;
@@ -175,7 +175,7 @@ Vector<SDPoint> SDVertex::OneRing() const
 
     if (!bBoundary)
     {
-        SDFace* face = pStartFace;
+        const SDFace* face = pStartFace;
         do
         {
             pRing.emplace_back(face->GetNextVertex(this)->point);
@@ -184,7 +184,7 @@ Vector<SDPoint> SDVertex::OneRing() const
     }
     else
     {
-        SDFace* pFace = pStartFace;
+        const SDFace* pFace = pStartFace;
         SDFace* f2;
         while ((f2 = pFace->GetNextFace(this)))
         {
@@ -249,11 +249,11 @@ static SDPoint WeightBoundary(
 
 LoopSubdivisionOutput LoopSubdivide(
     const std::span<const Vec3> _positions,
-    const ConstMemView          _indexData,
+    const CMemView          _idxData,
     const bool                  _bUseU32,
     const Int32                 _level)
 {
-    LoopSubdivisionOutputWithTexcoords result = LoopSubdivide(_positions, {}, _indexData, _bUseU32, _level);
+    LoopSubdivisionOutputWithTexcoords result = LoopSubdivide(_positions, {}, _idxData, _bUseU32, _level);
 
     LoopSubdivisionOutput output;
     output.positions = std::move(result.positions);
@@ -265,17 +265,17 @@ LoopSubdivisionOutput LoopSubdivide(
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     std::span<const Vec3> _positions,
     std::span<const Vec2> _texcoords,   // or empty
-    ConstMemView          _indexData,
+    CMemView          _idxData,
     bool                  _bUseU32,
     Int32                 _level)
 {
     JAM_ASSERT(!_positions.empty(), "position data is empty.");
-    JAM_ASSERT(_indexData.IsValid(), "index data is invalid.");
+    JAM_ASSERT(_idxData.IsEmpty(), "index data is invalid.");
 
     MemoryArena arena { 1024 };   // 메모리 아레나
 
     const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
-    const Int32 idxByteWidth = NarrowCast<Int32>(_indexData.GetByteWidth());
+    const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
     const Int32 idxStride    = _bUseU32 ? 4 : 2;
     const Int32 numIdxes     = idxByteWidth / idxStride;
     const Int32 numFaces     = numIdxes / 3;
@@ -309,7 +309,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 페이스의 버텍스 정보 설정
-    const Byte* pIdxData = _indexData.GetPointer();
+    const Byte* pIdxData = _idxData.GetPtr();
     for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];

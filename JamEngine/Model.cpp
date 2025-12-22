@@ -51,7 +51,7 @@ namespace jam
     return mtx;
 }
 
-static std::optional<ModelNode> ModelNodeFrom_Recursive(
+static Optional<ModelNode> ModelNodeFrom_Recursive(
     const jmtl::ModelNode* _pJmtlNode)
 {
     ModelNode node = {};
@@ -62,8 +62,8 @@ static std::optional<ModelNode> ModelNodeFrom_Recursive(
     }
     else
     {
-        ErrorBuffer::Set("Model node is missing name field");
-        return std::nullopt;
+        GlobalBuffer::SetLastError("Model node is missing name field");
+        return k_nullopt;
     }
 
     if (const flatbuffers::Vector<Int32>* pMeshIndices = _pJmtlNode->mesh_indices())
@@ -90,8 +90,8 @@ static std::optional<ModelNode> ModelNodeFrom_Recursive(
     }
     else
     {
-        ErrorBuffer::Set("Model node is missing local_transform field");
-        return std::nullopt;
+        GlobalBuffer::SetLastError("Model node is missing local_transform field");
+        return k_nullopt;
     }
 
     if (const auto* pJmtlNode = _pJmtlNode->children())
@@ -99,13 +99,13 @@ static std::optional<ModelNode> ModelNodeFrom_Recursive(
         node.children.reserve(pJmtlNode->size());
         for (const jmtl::ModelNode* pFbsChildNode: *pJmtlNode)
         {
-            if (std::optional<ModelNode> optNode = ModelNodeFrom_Recursive(pFbsChildNode))
+            if (Optional<ModelNode> optNode = ModelNodeFrom_Recursive(pFbsChildNode))
             {
                 node.children.emplace_back(std::move(*optNode));
             }
             else
             {
-                return std::nullopt;
+                return k_nullopt;
             }
         }
     }
@@ -121,7 +121,7 @@ static flatbuffers::Offset<jmtl::ModelNode> JmtlModelNodeFrom_Recursive(
     const auto      jmtlName          = _builder.CreateString(_node.name);
     const auto      jmtlMeshIdxes     = _node.meshIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.meshIndices);
     const auto      jmtlMaterialIdxes = _node.materialIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.materialIndices);
-    jmtl::Matrix4x4 jmtlMatrix        = JmtlMatrixFrom(_node.mtx);
+    const jmtl::Matrix4x4 jmtlMatrix        = JmtlMatrixFrom(_node.mtx);
 
     // children
     std::vector<flatbuffers::Offset<jmtl::ModelNode>> children;
@@ -161,7 +161,7 @@ bool Model::Load(
     Unload();
 
     // read
-    std::optional<Vector<Byte>> optData = LoadBinaryFile(_path);
+    Optional<Vector<Byte>> optData = LoadBinaryFile(_path);
     if (!optData)
     {
         return false;
@@ -172,7 +172,7 @@ bool Model::Load(
     flatbuffers::Verifier verifier = { data.data(), data.size() };
     if (!jmtl::VerifyModelBuffer(verifier))
     {
-        ErrorBuffer::Set(R"(model file is corrupted or invalid: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(model file is corrupted or invalid: "{}")", _path.native());
         return false;
     }
 
@@ -180,7 +180,7 @@ bool Model::Load(
     const jmtl::Model* pJmtlModel = jmtl::GetModel(data.data());
     if (!pJmtlModel)
     {
-        ErrorBuffer::Set(R"(Failed to parse model file: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Failed to parse model file: "{}")", _path.native());
         return false;
     }
 
@@ -210,18 +210,18 @@ bool Model::Load(
     const jmtl::ModelNode* pJmtlNode = pJmtlModel->root_node();
     if (!pJmtlNode)
     {
-        ErrorBuffer::Set(R"(Model file is missing root_node: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Model file is missing root_node: "{}")", _path.native());
         return false;
     }
 
     m_path = _path;
-    if (std::optional<ModelNode> optNode = ModelNodeFrom_Recursive(pJmtlNode))
+    if (Optional<ModelNode> optNode = ModelNodeFrom_Recursive(pJmtlNode))
     {
         m_root = std::move(*optNode);
     }
     else
     {
-        ErrorBuffer::Set(R"(Failed to parse model node tree for model file: "{}")", _path.native());
+        GlobalBuffer::SetLastError(R"(Failed to parse model node tree for model file: "{}")", _path.native());
         return false;
     }
 
@@ -265,7 +265,7 @@ bool Model::Save(const fs::path& _path) const
     {
         matPaths.emplace_back(builder.CreateString(path.native()));
     }
-    auto jmtlMatPaths = matPaths.empty() ? 0 : builder.CreateVector(matPaths.data(), matPaths.size());
+    const auto jmtlMatPaths = matPaths.empty() ? 0 : builder.CreateVector(matPaths.data(), matPaths.size());
 
     // create model
     const auto jmtlModel = jmtl::CreateModel(builder, jmtlNode, jmtlMeshPaths, jmtlMatPaths);
@@ -283,7 +283,7 @@ eAssetType Model::GetAssetType() const
     return k_type;
 }
 
-std::string_view Model::GetTypeName() const
+StringView Model::GetTypeName() const
 {
     return k_name;
 }

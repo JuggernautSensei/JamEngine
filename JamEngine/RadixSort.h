@@ -37,7 +37,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const U
             UInt32 prev = inK[0];
             for (UInt32 i = 0; i < n; ++i)
             {
-                UInt32 k = inK[i];
+                const UInt32 k = inK[i];
                 ++hist[(k >> shift) & radix_detail::k_mask];
                 alreadySorted &= (prev <= k);
                 prev = k;
@@ -50,7 +50,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const U
         UInt32 sum = 0;
         for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
-            UInt32 c = hist[b];
+            const UInt32 c = hist[b];
             hist[b]  = sum;
             sum += c;
         }
@@ -58,8 +58,8 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const U
         // stable scatter (key+value)
         for (UInt32 i = 0; i < n; ++i)
         {
-            UInt32 k   = inK[i];
-            UInt32 b   = (k >> shift) & radix_detail::k_mask;
+            const UInt32 k   = inK[i];
+            const UInt32 b   = (k >> shift) & radix_detail::k_mask;
             UInt32 dst = hist[b]++;
             outK[dst]  = k;
             outV[dst]  = inV[i];
@@ -67,7 +67,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const U
 
         // swap buffers
         {
-            auto tmp = inK;
+            const auto tmp = inK;
             inK      = outK;
             outK     = tmp;
         }
@@ -113,7 +113,7 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, T* values, T* tempValues, con
             uint64_t prev = inK[0];
             for (UInt32 i = 0; i < n; ++i)
             {
-                uint64_t k = inK[i];
+                const uint64_t k = inK[i];
                 ++hist[static_cast<UInt32>((k >> shift) & radix_detail::k_mask)];
                 alreadySorted &= (prev <= k);
                 prev = k;
@@ -125,22 +125,22 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, T* values, T* tempValues, con
         UInt32 sum = 0;
         for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
-            UInt32 c = hist[b];
+            const UInt32 c = hist[b];
             hist[b]  = sum;
             sum += c;
         }
 
         for (UInt32 i = 0; i < n; ++i)
         {
-            uint64_t k   = inK[i];
-            UInt32   b   = static_cast<UInt32>((k >> shift) & radix_detail::k_mask);
+            const uint64_t k   = inK[i];
+            const UInt32   b   = static_cast<UInt32>((k >> shift) & radix_detail::k_mask);
             UInt32   dst = hist[b]++;
             outK[dst]    = k;
             outV[dst]    = inV[i];
         }
 
         {
-            auto tmp = inK;
+            const auto tmp = inK;
             inK      = outK;
             outK     = tmp;
         }

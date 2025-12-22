@@ -5,6 +5,8 @@
 namespace jam
 {
 
+enum class eImageFormat;
+
 class ImageExporter : public IExporter
 {
 public:

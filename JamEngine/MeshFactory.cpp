@@ -14,14 +14,14 @@ namespace jam
 [[nodiscard]] static Mesh CreateMeshHelper(
     const std::span<const Vec3> _positions,
     const std::span<const Vec2> _texCoords,
-    const ConstMemView          _idxData,
+    const CMemView          _idxData,
     const bool                  _bUseU32,
     const VertexLayout&         _vl)
 {
     // validation
     JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required in the vertex layout.");
     JAM_ASSERT(!_positions.empty(), "Position data is empty.");
-    JAM_ASSERT(!_idxData.IsValid() || _idxData.GetByteWidth() > 0, "Index data is empty.");
+    JAM_ASSERT(!_idxData.IsEmpty() || _idxData.GetByteWidth() > 0, "Index data is empty.");
 
     // allocate vertex buffer
     const Int32 numVerts   = NarrowCast<Int32>(_positions.size());
@@ -105,7 +105,7 @@ namespace jam
 
 Vector<Vec3> ComputeNormals(
     const std::span<const Vec3> _positions,
-    const ConstMemView          _idxData,
+    const CMemView          _idxData,
     const bool                  _bUseU32) noexcept
 {
     const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
@@ -113,7 +113,7 @@ Vector<Vec3> ComputeNormals(
     const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
     const Int32 numIdxes     = idxByteWidth / idxStride;
     const Int32 numFaces     = numIdxes / 3;
-    const Byte* pIndices     = _idxData.GetPointer();
+    const Byte* pIndices     = _idxData.GetPtr();
 
     // accumulate weighted normals per vertex
     Vector<Vec3> tmpNormals;
@@ -181,7 +181,7 @@ TangentFrame ComputeTangentFrame(
     const std::span<const Vec3> _positions,
     const std::span<const Vec3> _normals,
     const std::span<const Vec2> _texCoords,
-    const ConstMemView          _idxData,
+    const CMemView          _idxData,
     const bool                  _bUseU32)
 {
     using namespace DirectX;
@@ -191,7 +191,7 @@ TangentFrame ComputeTangentFrame(
     const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
     const Int32 numIdxes     = idxByteWidth / idxStride;
     const Int32 numFaces     = numIdxes / 3;
-    const Byte* pIndices     = _idxData.GetPointer();
+    const Byte* pIndices     = _idxData.GetPtr();
 
     // temporary accumulation vectors
     Vector<Vec3> tan1, tan2;

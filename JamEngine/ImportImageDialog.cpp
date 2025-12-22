@@ -215,7 +215,7 @@ bool ImportImageDialog::OnClickImportButton_()
 
     // build output
     fs::path outputPath = m_parentDir / m_nameBuf;
-    outputPath.replace_extension(ErrorMessageFrom(m_imageFormat));
+    outputPath.replace_extension(StringFrom(m_imageFormat));
 
     // Validation: Check extension
     if (outputPath.extension().empty())
@@ -239,7 +239,7 @@ bool ImportImageDialog::OnClickImportButton_()
 
     if (!exporter.Export())
     {
-        std::string msg = std::format("Failed to save texture:\n{}\n\nError: {}", outputPath.native(), ErrorBuffer::Get());
+        const std::string msg = std::format("Failed to save texture:\n{}\n\nError: {}", outputPath.native(), GlobalBuffer::GetLastError());
         m_popup.Open("import texture error", msg);
 
         return false;
@@ -264,7 +264,7 @@ void ImportImageDialog::LoadPreviewTexture_()
 
     if (!importer.Import())
     {
-        m_popup.Open("error", std::format("failed to import image: {}\n{}", m_importPath.native(), ErrorBuffer::Get()));
+        m_popup.Open("error", std::format("failed to import image: {}\n{}", m_importPath.native(), GlobalBuffer::GetLastError()));
         return;
     }
 

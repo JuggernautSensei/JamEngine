@@ -29,7 +29,7 @@ void PopupDialog::Show()
     }
 }
 
-void PopupDialog::Open(const std::string_view _title, const std::string_view _message)
+void PopupDialog::Open(const StringView _title, const StringView _message)
 {
     struct Func
     {
@@ -52,7 +52,7 @@ void PopupDialog::Open(const std::string_view _title, const std::string_view _me
     m_func  = Func { std::string { _message } };
 }
 
-void PopupDialog::Open(const std::string_view _title, std::function<void()>&& _fn)
+void PopupDialog::Open(const StringView _title, std::function<void()>&& _fn)
 {
     m_bOpen = true;
     m_title = _title;

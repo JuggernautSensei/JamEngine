@@ -6,21 +6,23 @@ namespace jam
 
 UID UIDGenerator::Alloc()
 {
-    while (m_allocatedUIDs.contains(nextUID))
+    while (m_allocatedUids.contains(nextUid))
     {
-        ++nextUID;
-        if (nextUID == k_invalidUID)
-            nextUID = 0;
+        ++nextUid;
+        if (nextUid == k_invalidUID)
+        {
+            nextUid = 0;
+        }
     }
-    m_allocatedUIDs.insert(nextUID);
-    return nextUID++;
+    m_allocatedUids.insert(nextUid);
+    return nextUid++;
 }
 
 UID UIDGenerator::Alloc(UID _uid)
 {
     JAM_ASSERT(_uid != k_invalidUID, "Cannot allocate invalid UID");
-    JAM_ASSERT(m_allocatedUIDs.contains(_uid) == false, "UID {} is already allocated", _uid);
-    m_allocatedUIDs.insert(_uid);
+    JAM_ASSERT(m_allocatedUids.contains(_uid) == false, "UID {} is already allocated", _uid);
+    m_allocatedUids.insert(_uid);
     return _uid;
 }
 
@@ -36,18 +38,18 @@ UID UIDGenerator::AllocWithHint(const UID _hint)
 void UIDGenerator::Free(UID _uid)
 {
     JAM_ASSERT(_uid != k_invalidUID, "Cannot free invalid UID");
-    size_t numOfErase = m_allocatedUIDs.erase(_uid);
+    const size_t numOfErase = m_allocatedUids.erase(_uid);
     JAM_ASSERT(numOfErase == 1, "UID {} is not allocated", _uid);
 }
 
 void UIDGenerator::Clear()
 {
-    m_allocatedUIDs.clear();
-    nextUID = 0;
+    m_allocatedUids.clear();
+    nextUid = 0;
 }
 
 bool UIDGenerator::IsAllocated(const UID _uid) const
 {
-    return m_allocatedUIDs.contains(_uid);
+    return m_allocatedUids.contains(_uid);
 }
-}
+}   // namespace jam

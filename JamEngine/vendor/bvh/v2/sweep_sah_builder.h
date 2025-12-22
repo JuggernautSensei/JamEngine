@@ -72,7 +72,7 @@ protected:
         auto right_bbox = BBox::make_empty();
         for (size_t i = end - 1; i > begin;) {
             static constexpr size_t chunk_size = 32;
-            size_t next = i - std::min(i - begin, chunk_size);
+            const size_t next = i - std::min(i - begin, chunk_size);
             auto right_cost = static_cast<Scalar>(0.);
             for (; i > next; --i) {
                 right_bbox.extend(bboxes_[prim_ids_[axis][i]]);

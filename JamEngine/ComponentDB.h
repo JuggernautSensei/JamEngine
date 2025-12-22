@@ -1,7 +1,6 @@
 #pragma once
 #include "EditableComponent.h"
 #include "Entity.h"
-#include "Json.h"
 #include "SerializableComponent.h"
 
 namespace jam
@@ -13,16 +12,18 @@ struct ComponentInfo
     std::string displayName = {};
     UInt32      hash        = 0;
 
-    std::function<void(Entity)>                                  createFn         = nullptr;
-    std::function<void(Entity, const void*)>                     createByCopyFn   = nullptr;
-    std::function<void(Entity)>                                  removeFn         = nullptr;
-    std::function<void*(Entity)>                                 getFn            = nullptr;
-    std::function<bool(Entity)>                                  hasFn            = nullptr;
-    std::function<Json(const void*, const Ref<Scene>&, Entity)>  serializeFn      = nullptr;
-    std::function<void(void*, const Json&, Ref<Scene>&, Entity)> deserializeFn    = nullptr;
-    std::function<void(void*, Ref<Scene>&, Entity)>              drawEditorFn     = nullptr;
-    bool                                                         bCannotRemovable = false;
-    bool                                                         bCannotCreatable = false;
+    std::function<void(Entity)>              createFn       = nullptr;
+    std::function<void(Entity, const void*)> createByCopyFn = nullptr;
+    std::function<void(Entity)>              removeFn       = nullptr;
+    std::function<void*(Entity)>             getFn          = nullptr;
+    std::function<bool(Entity)>              hasFn          = nullptr;
+
+    std::function<void(const void*, JsonWriter&, const Ref<Scene>&, Entity)> serializeFn   = nullptr;
+    std::function<void(void*, JsonReader&, const Ref<Scene>&, Entity)>       deserializeFn = nullptr;
+    std::function<void(void*, Ref<Scene>&, Entity)>                          drawEditorFn  = nullptr;
+
+    bool bCannotRemovable = false;
+    bool bCannotCreatable = false;
 };
 
 namespace details
@@ -66,14 +67,14 @@ namespace details
     }
 
     template<typename T>
-    Json Serialize(const void* _pComponent, const Ref<Scene>& _pScene, Entity _entity)
+    void Serialize(const void* _pComponent, JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _entity)
     {
         const T& component = *static_cast<const T*>(_pComponent);
-        return component.Serialize(_pScene, _entity);
+        component.Serialize(_writer, _pScene, _entity);
     }
 
     template<typename T>
-    void Deserialize(void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity)
+    void Deserialize(void* _pComponent, JsonReader& _json, const Ref<Scene>& _pScene, Entity _entity)
     {
         T& component = *static_cast<T*>(_pComponent);
         component.Deserialize(_json, _pScene, _entity);
@@ -86,13 +87,39 @@ namespace details
         component.DrawEditor(_pScene, _entity);
     }
 
+    template<typename T>
+    std::string DisplayNameOf()
+    {
+        const StringView name = NameOf<T>();
+
+        std::string result;
+        result.reserve(name.GetLength());
+
+        for (Int32 i = 0; i < name.GetLength(); ++i)
+        {
+            const char c     = name[i];
+            const char lower = static_cast<char>(std::tolower(c));
+            if (std::isupper(c) && !result.empty())
+            {
+                result += ' ';   // add space
+                result += lower;
+            }
+            else
+            {
+                result += lower;
+            }
+        }
+
+        return result;
+    }
+
 }   // namespace details
 
 class ComponentDB
 {
 public:
-    using ContainerT          = HashMap<UInt32, ComponentInfo>;
-    using TypeToNameContainer = HashMap<UInt32, UInt32>;
+    using ContainerT           = HashMap<UInt32, ComponentInfo>;
+    using TypeIdHashContainerT = HashMap<UInt32, UInt32>;
 
     [[nodiscard]] static ComponentDB& GetInstance();
     static void                       DestroyInstance();
@@ -104,6 +131,7 @@ public:
     {
         ComponentInfo info;
         info.name           = NameOf<T>();
+        info.displayName    = details::DisplayNameOf<T>();
         info.hash           = HashOf<T>();
         info.createFn       = details::Create<T>;
         info.createByCopyFn = details::CreateByCopy<T>;
@@ -136,65 +164,45 @@ public:
             info.bCannotCreatable = true;
         }
 
-        // display name = after last '::' + lower case
-        {
-            const size_t      pos = info.name.rfind("::");
-            const std::string tmp = (pos == std::string::npos) ? info.name : info.name.substr(pos + 2);
-            info.displayName.reserve(tmp.size());
-            for (char c: tmp)
-            {
-                const char lower = static_cast<char>(std::tolower(c));
-                if (std::isupper(c) && !info.displayName.empty())
-                {
-                    info.displayName += ' ';
-                    info.displayName += lower;
-                }
-                else
-                {
-                    info.displayName += lower;
-                }
-            }
-        }
-
         Reflect(info);
     }
 
     // by name
-    void                           Create(std::string_view _name, Entity _entity) const;
-    void                           CreateByCopy(std::string_view _name, Entity _entity, const void* _pComponent) const;
-    void                           Remove(std::string_view _name, Entity _entity) const;
-    [[nodiscard]] void*            Get(std::string_view _name, Entity _entity) const;
-    [[nodiscard]] bool             Has(std::string_view _name, Entity _entity) const;
-    [[nodiscard]] Json             Serialize(std::string_view _name, const void* _pComponent, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                           Deserialize(std::string_view _name, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity) const;
-    void                           DrawEditor(std::string_view _name, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
-    [[nodiscard]] bool             IsSerializable(std::string_view _name) const;
-    [[nodiscard]] bool             IsEditable(std::string_view _name) const;
-    [[nodiscard]] std::string_view GetDisplayName(std::string_view _name) const;
-    [[nodiscard]] bool             IsReflected(std::string_view _name) const;
+    void                     Create(StringView _name, Entity _entity) const;
+    void                     CreateByCopy(StringView _name, Entity _entity, const void* _pComponent) const;
+    void                     Remove(StringView _name, Entity _entity) const;
+    [[nodiscard]] void*      Get(StringView _name, Entity _entity) const;
+    [[nodiscard]] bool       Has(StringView _name, Entity _entity) const;
+    void                     Serialize(StringView _name, const void* _pComponent, JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     Deserialize(StringView _name, void* _pComponent, JsonReader& _json, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     DrawEditor(StringView _name, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
+    [[nodiscard]] bool       IsSerializable(StringView _name) const;
+    [[nodiscard]] bool       IsEditable(StringView _name) const;
+    [[nodiscard]] StringView GetDisplayName(StringView _name) const;
+    [[nodiscard]] bool       IsReflected(StringView _name) const;
 
     // by type id ( = type hash. TypeOf<T>() )
-    void                           Create(UInt32 _typeID, Entity _entity) const;
-    void                           CreateByCopy(UInt32 _typeID, Entity _entity, const void* _pComponent) const;
-    void                           Remove(UInt32 _typeID, Entity _entity) const;
-    [[nodiscard]] void*            Get(UInt32 _typeID, Entity _entity) const;
-    [[nodiscard]] bool             Has(UInt32 _typeID, Entity _entity) const;
-    [[nodiscard]] Json             Serialize(UInt32 _typeID, const void* _pComponent, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                           Deserialize(UInt32 _typeID, void* _pComponent, const Json& _json, Ref<Scene>& _pScene, Entity _entity) const;
-    void                           DrawEditor(UInt32 _typeID, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
-    [[nodiscard]] bool             IsSerializable(UInt32 _typeID) const;
-    [[nodiscard]] bool             IsEditable(UInt32 _typeID) const;
-    [[nodiscard]] std::string_view GetDisplayName(UInt32 _typeID) const;
-    [[nodiscard]] std::string_view GetComponentName(UInt32 _typeID) const;
-    [[nodiscard]] bool             IsReflected(UInt32 _typeID) const;
+    void                     Create(UInt32 _typeId, Entity _entity) const;
+    void                     CreateByCopy(UInt32 _typeId, Entity _entity, const void* _pComponent) const;
+    void                     Remove(UInt32 _typeId, Entity _entity) const;
+    [[nodiscard]] void*      Get(UInt32 _typeId, Entity _entity) const;
+    [[nodiscard]] bool       Has(UInt32 _typeId, Entity _entity) const;
+    void                     Serialize(UInt32 _typeId, const void* _pComponent, JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     Deserialize(UInt32 _typeId, void* _pComponent, JsonReader& _json, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     DrawEditor(UInt32 _typeId, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
+    [[nodiscard]] bool       IsSerializable(UInt32 _typeId) const;
+    [[nodiscard]] bool       IsEditable(UInt32 _typeId) const;
+    [[nodiscard]] StringView GetDisplayName(UInt32 _typeId) const;
+    [[nodiscard]] StringView GetComponentName(UInt32 _typeId) const;
+    [[nodiscard]] bool       IsReflected(UInt32 _typeId) const;
 
     [[nodiscard]] const ContainerT& GetContainer() const;
 
 private:
     static ComponentDB* s_instance;
 
-    ContainerT          m_infos;
-    TypeToNameContainer m_typeToNameContainer;
+    ContainerT           m_infos;
+    TypeIdHashContainerT m_typeToNameContainer;
 };   // namespace component_db
 
 }   // namespace jam

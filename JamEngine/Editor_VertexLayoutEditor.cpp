@@ -81,10 +81,10 @@ void Editor_VertexLayoutEditor::OnClickCreateButton_()
 
     while (storage.Has(name))
     {
-        name = FormatStringToTmpBuffer("new vertex layout %d", ++suffix);
+        name = GlobalBuffer::FormatTmp("new vertex layout %d", ++suffix);
     }
 
-    VertexLayout vertexLayout;   // dummy vertexLayout
+    const VertexLayout vertexLayout;   // dummy vertexLayout
     storage.Add(name, vertexLayout);
     m_pFocusedVle = storage.Get(name);
 }

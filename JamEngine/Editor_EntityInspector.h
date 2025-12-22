@@ -13,8 +13,8 @@ private:
     void DrawRemoveComponentPopup_() const;
     void DrawAddComponentPopup_() const;
 
-    void AddComponent_(UInt32 _typeID, Entity _entity) const;
-    void RemoveComponent_(UInt32 _typeID, Entity _entity) const;
+    void AddComponent_(UInt32 _typeId, Entity _entity) const;
+    void RemoveComponent_(UInt32 _typeId, Entity _entity) const;
 };
 
 }   // namespace jam

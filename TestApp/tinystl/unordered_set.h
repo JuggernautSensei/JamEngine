@@ -267,7 +267,7 @@ namespace tinystl {
 
 	template <typename Key, typename Alloc>
 	void unordered_set<Key, Alloc>::swap(unordered_set& other) {
-		size_t tsize = other.m_size;
+		const size_t tsize = other.m_size;
 		other.m_size = m_size, m_size = tsize;
 		buffer_swap(&m_buckets, &other.m_buckets);
 	}

@@ -15,6 +15,7 @@ template<typename E>
 using EnumIntType = std::underlying_type_t<E>;
 
 template<typename E>
+    requires std::is_enum_v<E>
 [[nodiscard]] constexpr auto IntFrom(E _value) noexcept
 {
     return static_cast<EnumIntType<E>>(_value);
@@ -22,24 +23,27 @@ template<typename E>
 
 template<typename E>
     requires std::is_enum_v<E>
-[[nodiscard]] constexpr std::string_view StringFrom(E _value) noexcept
+[[nodiscard]] constexpr StringView StringFrom(E _value) noexcept
 {
     return magic_enum::enum_name(_value);
 }
 
 template<typename E>
+    requires std::is_enum_v<E>
 [[nodiscard]] constexpr decltype(auto) EnumFrom(std::underlying_type_t<E> _value) noexcept
 {
     return magic_enum::enum_cast<E>(_value);
 }
 
 template<typename E>
-[[nodiscard]] constexpr decltype(auto) EnumFrom(const std::string_view _value) noexcept
+    requires std::is_enum_v<E>
+[[nodiscard]] constexpr decltype(auto) EnumFrom(const StringView _value) noexcept
 {
     return magic_enum::enum_cast<E>(_value);
 }
 
 template<typename E>
+    requires std::is_enum_v<E>
 [[nodiscard]] constexpr E EnumFromOrAssert(std::underlying_type_t<E> _value) noexcept
 {
     const E e = static_cast<E>(_value);
@@ -48,19 +52,22 @@ template<typename E>
 }
 
 template<typename E>
+    requires std::is_enum_v<E>
 [[nodiscard]] constexpr bool IsEnumValid(E _value) noexcept
 {
     return magic_enum::enum_contains<E>(_value);
 }
 
 template<typename E>
+    requires std::is_enum_v<E>
 [[nodiscard]] constexpr auto EnumRanges()
 {
     return magic_enum::enum_values<E>();
 }
 
 template<typename E>
-[[nodiscard]] constexpr auto EnumCount()
+    requires std::is_enum_v<E>
+[[nodiscard]] constexpr auto NumEnums()
 {
     return magic_enum::enum_count<E>();
 }

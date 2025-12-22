@@ -32,7 +32,7 @@ public:
 
     [[nodiscard]] bool                    IsValid() const override;
     [[nodiscard]] eAssetType              GetAssetType() const override;
-    [[nodiscard]] std::string_view        GetTypeName() const override;
+    [[nodiscard]] StringView        GetTypeName() const override;
     [[nodiscard]] UInt32                  GetTypeHash() const override;
     [[nodiscard]] const fs::path&         GetPath() const override;
     [[nodiscard]] const ModelNode&        GetRootNode() const;
@@ -40,9 +40,9 @@ public:
     [[nodiscard]] const Vector<fs::path>& GetMaterials() const;
 
     static constexpr UInt32           k_hash      = HashOf<Model>();
-    static constexpr std::string_view k_name      = NameOf<Model>();
+    static constexpr StringView k_name      = NameOf<Model>();
     static constexpr eAssetType       k_type      = eAssetType::Model;
-    static constexpr std::string_view k_extension = k_jamModelExt;
+    static constexpr StringView k_extension = k_jamModelExt;
 
 private:
     fs::path         m_path      = {};

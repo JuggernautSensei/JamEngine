@@ -62,7 +62,7 @@ void ConsolePanel::Show(bool* _pOpenOrNull)
             // 클립보드에 복사
             if (ImGui::MenuItem("copy to clipboard"))
             {
-                constexpr std::string_view k_format = "[{}] {}\n";
+                constexpr StringView k_format = "[{}] {}\n";
                 std::string                buf;   // 문자열 버퍼
 
                 // 재할당 방지를 위한 버퍼 크기 계산
