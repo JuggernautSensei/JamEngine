@@ -24,7 +24,7 @@ void RenderGraph::Compile()
     if (numNodes == 1)
     {
         // 단일 패스는 의존성 관리 필요없음
-        JAM_ASSERT(m_nodes[0].pass.Validate(), "RenderGraph with a single pass contains an invalid RenderPass.");
+        JAM_ASSERT(m_nodes[0].pass.IsValid(), "RenderGraph with a single pass contains an invalid RenderPass.");
     }
     else
     {
@@ -53,11 +53,16 @@ void RenderGraph::DeduplicateResourceBindings_()
                             {
                                 for (const ConstantBufferBind& prevBind: m_nodes[j].pass.m_cbufferBinds)
                                 {
-                                    return prevBind.stage == _bind.stage
-                                        && prevBind.slot == _bind.slot
-                                        && prevBind.cbh == _bind.cbh;
+                                    // 동일 스테이지 + 동일 슬롯에 바인딩된 상수 버퍼가 있다면 중복
+                                    // 가장 근접한 경우만 체크하면 됨
+                                    if (prevBind.stage == _bind.stage && prevBind.slot == _bind.slot)
+                                    {
+                                        return prevBind.cbh == _bind.cbh;
+                                    }
                                 }
                             }
+
+                            // 중복된 바인딩이 없음
                             return false;
                         });
 
@@ -69,22 +74,27 @@ void RenderGraph::DeduplicateResourceBindings_()
                             {
                                 for (const SamplerBind& prevBind: m_nodes[j].pass.m_samplerBinds)
                                 {
-                                    return prevBind.stage == _bind.stage
-                                        && prevBind.slot == _bind.slot
-                                        && MemEqual(prevBind.state, _bind.state);
+                                    // 동일 스테이지 + 동일 슬롯에 바인딩된 샘플러가 있다면 중복
+                                    // 가장 근접한 경우만 체크하면 됨
+                                    if (prevBind.stage == _bind.stage && prevBind.slot == _bind.slot)
+                                    {
+                                        return MemEqual(prevBind.state, _bind.state);
+                                    }
                                 }
                             }
+
+                            // 중복된 바인딩이 없음
                             return false;
                         });
     }
 
     // 가상으로 패스를 실행시키며 중복된 텍스처 바인딩 제거
-    HashMap<UInt32, TextureHandle> prevTexBinds = {};
+    HashMap<UInt32, TextureHandle> prevTexBindMap = {};
     for (Int32 i = 0; i < numNodes; ++i)
     {
-        HashMap<UInt32, TextureHandle> texBinds = prevTexBinds;   // 현재 바인딩 정보
-        Node&                          node     = m_nodes[i];
-        RenderPass&                    pass     = node.pass;
+        HashMap<UInt32, TextureHandle> texBindMap = prevTexBindMap;   // 현재 바인딩 정보
+        Node&                          node       = m_nodes[i];
+        RenderPass&                    pass       = node.pass;
 
         Vector<TextureBind> textureBinds;
         textureBinds.reserve(pass.m_textureBinds.size());
@@ -93,30 +103,30 @@ void RenderGraph::DeduplicateResourceBindings_()
         for (const TextureBind& bind: pass.m_textureBinds)
         {
             const UInt32 key = CreateStageSlotKey_(bind.stage, bind.slot);
-            const auto   it  = texBinds.find(key);
+            const auto   it  = texBindMap.find(key);
 
             // 같은 쉐이더 + 슬롯에 같은 텍스처가 바인딩되어 있는 경우 바인딩 스킵
-            if (it != texBinds.end() && it->second == bind.texh)
+            if (it != texBindMap.end() && it->second == bind.texh)
             {
                 continue;
             }
 
             // add binding
             textureBinds.emplace_back(bind);
-            texBinds[key] = bind.texh;
+            texBindMap[key] = bind.texh;
         }
 
         // 유의미한 바인딩으로 교체
         pass.m_textureBinds.swap(textureBinds);
-        prevTexBinds.swap(texBinds);   // 현재 바인딩 상태로 업데이트
+        prevTexBindMap.swap(texBindMap);   // 현재 바인딩 상태로 업데이트
 
-        // unbinding
+        // unbinding 시뮬레이션
         if (node.bNeedUnbindResources)
         {
             for (const BindInfo& info: node.unbindTextures)
             {
                 const UInt32 key = CreateStageSlotKey_(info.stage, info.slot);
-                prevTexBinds.erase(key);
+                prevTexBindMap.erase(key);
             }
         }
     }
@@ -137,20 +147,20 @@ void RenderGraph::AnalyzePassDependencies_()
     */
 
     HashMap<UInt32, const TextureBind*> texhMap;         // key: texture handle value
-    HashMap<UInt32, const TextureBind*> stageSloMsp;     // key: stage + slot
+    HashMap<UInt32, const TextureBind*> stageSlotMsp;    // key: stage + slot
     HashSet<UInt32>                     attachmentSet;   // key: texture handle value
 
     for (Int32 i = 0; i < numNodes; ++i)
     {
         // 초기화
         texhMap.clear();
-        stageSloMsp.clear();
+        stageSlotMsp.clear();
         attachmentSet.clear();
 
         // 현재 패스
         Node&             node = m_nodes[i];
         const RenderPass& pass = node.pass;
-        JAM_ASSERT(pass.Validate(), "RenderPass at index {} is not valid.", i);
+        JAM_ASSERT(pass.IsValid(), "RenderPass at index {} is not valid.", i);
 
         // 의존성 1: 입력 텍스처 충돌 검사
         {
@@ -161,7 +171,7 @@ void RenderGraph::AnalyzePassDependencies_()
                 const UInt32 key = CreateStageSlotKey_(bind.stage, bind.slot);
 
                 texhMap.emplace(bind.texh.value, &bind);
-                stageSloMsp.emplace(key, &bind);
+                stageSlotMsp.emplace(key, &bind);
             }
 
             // 모든 패스들을 순회하며 충돌해결
@@ -175,13 +185,13 @@ void RenderGraph::AnalyzePassDependencies_()
                 {
                     JAM_ASSERT(JAM_IS_VALID_HANDLE(nextPassBind.texh), "RenderPass at index {} has invalid texture handle.", idx);
                     const UInt32 key = CreateStageSlotKey_(nextPassBind.stage, nextPassBind.slot);
-                    const auto   it  = stageSloMsp.find(key);
+                    const auto   it  = stageSlotMsp.find(key);
 
                     // 같은 슬롯 + 쉐이더에 다른 텍스처가 바인딩 되는 경우 추적 종료 (overwrite)
-                    if (it != stageSloMsp.end() && it->second->texh != nextPassBind.texh)
+                    if (it != stageSlotMsp.end() && it->second->texh != nextPassBind.texh)
                     {
                         texhMap.erase(it->second->texh.value);
-                        stageSloMsp.erase(it);
+                        stageSlotMsp.erase(it);
                     }
                 }
 
@@ -192,7 +202,7 @@ void RenderGraph::AnalyzePassDependencies_()
                 }
 
                 // 다음 패스의 출력 프레임버퍼 확인.
-                // 유효하지 않으면 스킵 (= 백버퍼라는 의미. 백버퍼 자원은 입력으로 사용할 수 없음)
+                // 유효하지 않으면 스킵 (= 백버퍼라는 의미. 백버퍼 자원은 입력으로 사용할 수 없음. 즉, 충돌 불가)
                 if (!JAM_IS_VALID_HANDLE(nextPass.m_fbh))
                 {
                     continue;
@@ -216,7 +226,7 @@ void RenderGraph::AnalyzePassDependencies_()
 
                         // 해결됨. 추적종료
                         texhMap.erase(texh.value);
-                        stageSloMsp.erase(key);
+                        stageSlotMsp.erase(key);
                     }
                 }
 
@@ -236,7 +246,7 @@ void RenderGraph::AnalyzePassDependencies_()
 
                         // remove from tracking
                         texhMap.erase(texh.value);
-                        stageSloMsp.erase(key);
+                        stageSlotMsp.erase(key);
                     }
                 }
 

@@ -60,7 +60,7 @@ public:
         JAM_ASSERT(m_pJson != nullptr, "JsonReader::EnterField() called at invalid state");
         if (NeedSkip_())
         {
-            return *this;
+            return k_nullopt;
         }
 
         const auto it = m_pJson->find(_field.GetPtr());
@@ -109,7 +109,7 @@ public:
         JAM_ASSERT(m_pJson != nullptr, "JsonReader::EnterAt() called at invalid state");
         if (NeedSkip_())
         {
-            return *this;
+            return k_nullopt;
         }
 
         try

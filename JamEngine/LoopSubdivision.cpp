@@ -185,7 +185,7 @@ Vector<SDPoint> SDVertex::OneRing() const
     else
     {
         const SDFace* pFace = pStartFace;
-        SDFace* f2;
+        SDFace*       f2;
         while ((f2 = pFace->GetNextFace(this)))
         {
             pFace = f2;
@@ -249,7 +249,7 @@ static SDPoint WeightBoundary(
 
 LoopSubdivisionOutput LoopSubdivide(
     const std::span<const Vec3> _positions,
-    const CMemView          _idxData,
+    const CMemView              _idxData,
     const bool                  _bUseU32,
     const Int32                 _level)
 {
@@ -264,8 +264,8 @@ LoopSubdivisionOutput LoopSubdivide(
 
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     std::span<const Vec3> _positions,
-    std::span<const Vec2> _texcoords,   // or empty
-    CMemView          _idxData,
+    std::span<const Vec2> _texcoordsOrEmpty,   // or empty
+    CMemView              _idxData,
     bool                  _bUseU32,
     Int32                 _level)
 {
@@ -275,11 +275,9 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     MemoryArena arena { 1024 };   // 메모리 아레나
 
     const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
-    const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
-    const Int32 idxStride    = _bUseU32 ? 4 : 2;
-    const Int32 numIdxes     = idxByteWidth / idxStride;
+    const Int32 numIdxes     = CalcNumIndices(_idxData, _bUseU32);
     const Int32 numFaces     = numIdxes / 3;
-    const bool  bHasTexCoord = !_texcoords.empty();
+    const bool  bHasTexCoord = !_texcoordsOrEmpty.empty();
 
     // 버텍스 및 페이스
     Vector<SDVertex*> verts;
@@ -296,7 +294,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
         pVert->point.position = _positions[i];
         if (bHasTexCoord)
         {
-            pVert->point.texcoord = _texcoords[i];
+            pVert->point.texcoord = _texcoordsOrEmpty[i];
         }
 
         verts.emplace_back(pVert);
@@ -309,19 +307,15 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 페이스의 버텍스 정보 설정
-    const Byte* pIdxData = _idxData.GetPtr();
     for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];
         for (Int32 j = 0; j < 3; ++j)
         {
-            const Byte*  pIdx = pIdxData + (i * 3 + j) * idxStride;
-            const UInt32 idx  = _bUseU32 ? *reinterpret_cast<const UInt32*>(pIdx)
-                                         : *reinterpret_cast<const UInt16*>(pIdx);
-
-            SDVertex* pVert   = verts[idx];
-            pFace->pVerts[j]  = pVert;
-            pVert->pStartFace = pFace;   // 임의의 면 설정
+            const UInt32 idx   = IndexFrom(_idxData, i * 3 + j, _bUseU32);
+            SDVertex*    pVert = verts[idx];
+            pFace->pVerts[j]   = pVert;
+            pVert->pStartFace  = pFace;   // 임의의 면 설정
         }
     }
 
@@ -533,10 +527,12 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 인덱스 배열 생성
-    const Int32 finalNumFaces  = NarrowCast<Int32>(faces.size());
-    const bool  bUseU32        = finalNumVerts > 0xFFFF;
-    const Int32 finalIdxStride = bUseU32 ? 4 : 2;
+    const Int32 finalNumFaces     = NarrowCast<Int32>(faces.size());
+    const bool  bUseU32           = finalNumVerts > 0xFFFF;
+    const Int32 finalNumIdxes     = finalNumFaces * 3;
+    const Int32 finalIdxByteWidth = CalcIndicesByteWidth(finalNumIdxes, bUseU32);
 
+    // 버텍스 맵 생성
     HashMap<SDVertex*, Int32> usedVertsMap;
     for (Int32 i = 0; i < finalNumVerts; ++i)
     {
@@ -544,34 +540,21 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 인덱스 삽입
-    Vector<Byte> finalIdxes;
-    finalIdxes.resize(finalNumFaces * 3 * finalIdxStride);
-
-    Byte* pFinalIdxes = finalIdxes.data();
+    Vector<Byte> finalIdxData;
+    finalIdxData.resize(finalIdxByteWidth);
     for (Int32 i = 0; i < finalNumFaces; ++i)
     {
         for (Int32 j = 0; j < 3; ++j)
         {
-            const Int32 idx  = usedVertsMap[faces[i]->pVerts[j]];
-            Byte*       pDst = pFinalIdxes + (i * 3 + j) * finalIdxStride;
-
-            if (bUseU32)
-            {
-                const UInt16 u16Idx = NarrowCast<UInt16>(u16Idx);
-                std::memcpy(pDst, &u16Idx, sizeof(UInt16));
-            }
-            else
-            {
-                const UInt32 u32Idx = NarrowCast<UInt32>(idx);
-                std::memcpy(pDst, &u32Idx, sizeof(UInt32));
-            }
+            const Int32 idx = usedVertsMap[faces[i]->pVerts[j]];
+            StoreIndex(finalIdxData, idx, bUseU32, i * 3 + j);
         }
     }
 
     LoopSubdivisionOutputWithTexcoords output;
     output.positions = std::move(finalPositions);
     output.texcoords = std::move(finalTexcoords);
-    output.indices   = std::move(finalIdxes);
+    output.indices   = std::move(finalIdxData);
     output.bUseU32   = bUseU32;
     return output;
 }

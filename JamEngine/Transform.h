@@ -29,6 +29,8 @@ public:
     // transform
     [[nodiscard]] Transform Inverted() const;
     void                    Invert();
+
+    [[nodiscard]] Transform Multed(const Transform& _trans) const;
     void                    Mult(const Transform& _trans);
 
     // scale
@@ -89,8 +91,6 @@ public:
     void AddTranslationZ(float _z);
 
 private:
-    void UpdateDirty_() const;
-
     Vec3 m_right   = Vec3::UnitX;
     Vec3 m_up      = Vec3::UnitY;
     Vec3 m_forward = Vec3::UnitZ;

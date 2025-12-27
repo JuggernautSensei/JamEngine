@@ -7,20 +7,11 @@ namespace jam
 // 기존 nlohmann json은 try catch 떡칠이라 사용이 불편해서 래핑한 클래스
 // write failed은 대부분 프로그래머 실책. assert로 처리함
 
-enum eJsonWriterFlags_
-{
-    eJsonWriterFlags_None,
-    eJsonWriterFlags_LogOnError  = 1 << 0,
-    eJsonWriterFlags_StopOnError = 1 << 1,
-};
-using eJsonWriterFlags = EnumIntType<eJsonWriterFlags_>;
-
 class JsonWriter
 {
 public:
-    explicit JsonWriter(Json& _json, const eJsonWriterFlags _flags = eJsonWriterFlags_LogOnError)
+    explicit JsonWriter(Json& _json)
         : m_pJson(&_json)
-        , m_flags(_flags)
     {
     }
 
@@ -32,7 +23,7 @@ public:
         try
         {
             *m_pJson = std::forward<TValue>(_value);
-            return JsonWriter { *m_pJson, m_flags };
+            return JsonWriter { *m_pJson };
         }
         catch (const std::exception& e)
         {
@@ -52,7 +43,7 @@ public:
         {
             Json& json = (*m_pJson)[_field.GetPtr()];
             json       = std::forward<TValue>(_value);
-            return JsonWriter { json, m_flags };
+            return JsonWriter { json };
         }
         catch (const std::exception& e)
         {
@@ -73,7 +64,7 @@ public:
         try
         {
             Json& json = (*m_pJson)[_field.GetPtr()];
-            return JsonWriter { json, m_flags };
+            return JsonWriter { json };
         }
         catch (const std::exception& e)
         {
@@ -92,7 +83,7 @@ public:
         try
         {
             Json& json = m_pJson->emplace_back(_value);
-            return JsonWriter { json, m_flags };
+            return JsonWriter { json };
         }
         catch (const std::exception& e)
         {
@@ -115,7 +106,7 @@ public:
         {
             Json& json = m_pJson->at(_idx);
             json       = std::forward<TValue>(_value);
-            return JsonWriter { json, m_flags };
+            return JsonWriter { json };
         }
         catch (const std::exception& e)
         {
@@ -131,7 +122,7 @@ public:
         try
         {
             Json& json = (*m_pJson)[_idx];
-            return JsonWriter { json, m_flags };
+            return JsonWriter { json };
         }
         catch (const std::exception& e)
         {
@@ -148,7 +139,7 @@ public:
         try
         {
             Json& json = m_pJson->back();
-            return JsonWriter { json, m_flags };
+            return JsonWriter { json };
         }
         catch (const std::exception& e)
         {
@@ -167,8 +158,7 @@ public:
 private:
     JsonWriter() = default;
 
-    Json*            m_pJson = nullptr;
-    eJsonWriterFlags m_flags = eJsonWriterFlags_None;
+    Json* m_pJson = nullptr;
 };
 
 }   // namespace jam

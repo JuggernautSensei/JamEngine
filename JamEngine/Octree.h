@@ -19,11 +19,9 @@ struct OctreeDesc
     float looseFactor          = 2.f;   // loose factor (>= 1.f). 1.f = tight octree
 };
 
-// template<typename T>
+template<typename T>
 class Octree
 {
-    using T = UInt64;   // user data type
-
     struct OcNode;
     struct OcItem;
 
@@ -45,9 +43,9 @@ class Octree
         ObjectPool<OcItem>* pPool = nullptr;
     };
 
-    using OcNodeOwn     = std::unique_ptr<OcNode, OcNodeDeletor>;
-    using OcItemOwn     = std::unique_ptr<OcItem, OcItemDeletor>;
-    using OcItemOwnList = Vector<OcItemOwn>;
+    using OcNodeScoped     = Scoped<OcNode, OcNodeDeletor>;
+    using OcItemScoped     = Scoped<OcItem, OcItemDeletor>;
+    using OcItemScopedList = Vector<OcItemScoped>;
 
     struct OcItem
     {
@@ -127,36 +125,36 @@ class Octree
         [[nodiscard]] OcNode* GetChildPtr(const eRegion _region) const
         {
             const Int32 iRegion = IntFrom(_region);
-            return children[iRegion].get();
+            return children[iRegion].GetPtr();
         }
 
-        void SetChild(const eRegion _region, OcNodeOwn&& _pChild)
+        void SetChild(const eRegion _region, OcNodeScoped&& _pChild)
         {
             const Int32 iRegion = IntFrom(_region);
             children[iRegion]   = std::move(_pChild);
         }
 
-        OcNodeOwn PopChild(const eRegion _region)
+        OcNodeScoped PopChild(const eRegion _region)
         {
             const Int32 iRegion = IntFrom(_region);
             return std::move(children[iRegion]);
         }
 
-        Array<OcNodeOwn, NumEnums<eRegion>()> children    = { nullptr };
-        OcNode*                               pParentNode = nullptr;
+        Array<OcNodeScoped, NumEnums<eRegion>()> children    = { nullptr };
+        OcNode*                                  pParentNode = nullptr;
 
-        OcItemOwnList items          = {};
-        Aabb          aabb           = {};
-        Int32         depth          = -1;
-        Int32         numItemsInTree = 0;   // total number of items in this node and all children
+        OcItemScopedList items          = {};
+        Aabb             aabb           = {};
+        Int32            depth          = -1;
+        Int32            numItemsInTree = 0;   // total number of items in this node and all children
     };
 
 public:
     explicit Octree(
         const OctreeDesc& _desc = {})
-        : m_desc(_desc)
-        , m_itemPool(2048)
+        : m_itemPool(2048)
         , m_nodePool(512)
+        , m_desc(_desc)
     {
         JAM_ASSERT(_desc.looseFactor >= 1.f, "looseFactor must be >= 1.f");
         JAM_ASSERT(_desc.maxDepth >= 2, "maxDepth must be >= 2");
@@ -186,8 +184,8 @@ public:
         }
 
         // while 문을 통과헀다면, 반드시 insert 가능
-        OcItemOwn pItem = MakeItem_(_entity, _aabb, _userdata);
-        Insert_Recursive_(m_pRootNode.get(), std::move(pItem));
+        OcItemScoped pItem = MakeItem_(_entity, _aabb, _userdata);
+        Insert_Recursive_(m_pRootNode.GetPtr(), std::move(pItem));
     }
 
     void Update(
@@ -199,7 +197,7 @@ public:
         const auto it = m_itemCache.find(_entity.GetUID());
         JAM_ASSERT(it != m_itemCache.end(), "Entity does not exist");
 
-        // update aabb
+        // aabb 갱신
         OcItem* pItem = it->second;
         pItem->aabb   = _aabb;
 
@@ -213,24 +211,25 @@ public:
 
         // 자신을 포함하는 가장 작은 노드를 바텀-업으로 찾기
         OcNode* pOwnerNode = pItem->pOwnerNode;
-        OcNode* pRootNode  = pOwnerNode;
-        while (pRootNode && !pRootNode->Contain(pItem))
+        OcNode* pNode      = pOwnerNode;
+        while (pNode && !pNode->Contain(pItem))
         {
-            --pRootNode->numItemsInTree;   // 부모로 올라가기 전에 기존 트리의 numItemsInTree 감소
-            pRootNode = pRootNode->pParentNode;
+            --pNode->numItemsInTree;   // 부모로 올라가기 전에 기존 트리의 numItemsInTree 감소
+            pNode = pNode->pParentNode;
         }
 
         // 만약 기존과 같은 트리에 머무른다면
-        if (pRootNode == pOwnerNode)
+        if (pNode == pOwnerNode)
         {
+            // pInsertNode의 numItemsInTree 는 변하지 않음
+
             // 자식이 있다면 자식한테 넣어봄
             if (pOwnerNode->HasChildren())
             {
                 // 맞는 자식이 있다면, 그 자식 노드로 이동
-                // numItemsInTree 는 변하지 않음
-                if (OcNode* pChildRootNode = TryFindBestChildNode_(pOwnerNode, _aabb))
+                if (OcNode* pChildNode = FindBestChildNode_(pOwnerNode, _aabb))
                 {
-                    Insert_Recursive_(pChildRootNode, PopItemFromList_(pItem));
+                    Insert_Recursive_(pChildNode, PopItemFromList_(pItem));
                 }
             }
             // 자식이 없다면, 혹은 맞는 자식이 없다면
@@ -239,10 +238,10 @@ public:
         else   // 다른 트리로 이동해야 한다면
         {
             // 아이템이 아예 현재 옥트리 밖에 존재
-            if (pRootNode == nullptr)
+            if (pNode == nullptr)
             {
                 // expand octree에서 재삽입이 꼬일 수 있기 때문에, 미리 아이템을 제거
-                OcItemOwn pPopedItem = PopItemFromList_(pItem);
+                OcItemScoped pPopedItem = PopItemFromList_(pItem);
 
                 // 옥트리 확장
                 while (!m_pRootNode->Contain(_aabb))
@@ -251,12 +250,13 @@ public:
                 }
 
                 // 재삽입
-                Insert_Recursive_(m_pRootNode.get(), std::move(pPopedItem));
+                Insert_Recursive_(m_pRootNode.GetPtr(), std::move(pPopedItem));
             }
             else
             {
-                --pRootNode->numItemsInTree;   // Insert_Recursive_ 에서 증가시켜주기 때문에 미리 감소
-                Insert_Recursive_(pRootNode, PopItemFromList_(pItem));
+                // Insert_Recursive_ 에서 증가시켜주기 때문에 미리 감소
+                --pNode->numItemsInTree;
+                Insert_Recursive_(pNode, PopItemFromList_(pItem));
             }
         }
     }
@@ -286,67 +286,68 @@ public:
 
     void ShrinkToFit()
     {
-        // 루트에 일부 아이템이 있거나, 트리에 아이템이 없는 경우 shrink 불가
-        if (!m_pRootNode->items.empty() || m_pRootNode->numItemsInTree == 0)
+        // 1. 모든 아이템을 포함하는 자식 노드 탐색 -> 새로운 루트로 설정
+        // root에 일부 아이템이 있거나, 빈 옥트리의 경우 shrink root 불가
+        if (m_pRootNode->items.empty() && m_pRootNode->numItemsInTree > 0)
         {
-            return;
-        }
+            OcNode* pRootNode    = m_pRootNode.GetPtr();
+            OcNode* pTargetNode  = pRootNode;         // shrink 할 노드 후보
+            eRegion targetRegion = k_invalidRegion;   // shrink 할 노드의 부모 노드로 부터의 위치
 
-        OcNode* pRootNode    = m_pRootNode.get();
-        OcNode* pTargetNode  = pRootNode;
-        eRegion targetRegion = k_invalidRegion;   // target node region in parent
-
-        // find child that contains all items
-        while (pTargetNode->HasChildren())
-        {
-            // 너무 작아질 경우 스킵
-            const Vec3 baseExt = pTargetNode->GetExtents() / m_desc.looseFactor;
-            if (baseExt.x <= m_desc.minBaseExtents.x
-                && baseExt.y <= m_desc.minBaseExtents.y
-                && baseExt.z <= m_desc.minBaseExtents.z)
+            // find child that contains all items
+            while (pTargetNode->HasChildren())
             {
-                break;
-            }
-
-            // 현재 트리의 모든 아이템을 포함하는 자식 노드 탐색
-            // 최종적으로 발견한 자식 노드가 재로운 루트가 될것
-            OcNode* pNextNode  = nullptr;
-            eRegion nextRegion = k_invalidRegion;
-            for (const eRegion region: EnumRanges<eRegion>())
-            {
-                OcNode* pChildNode = pTargetNode->GetChildPtr(region);
-                if (pChildNode->numItemsInTree == m_pRootNode->numItemsInTree)   // 발견
-                {
-                    pNextNode  = pChildNode;
-                    nextRegion = region;
-                    break;
-                }
-                else if (pChildNode->numItemsInTree != 0)   // 일부라도 가지고 있는 경우. shrink 불가
+                // 너무 작아질 경우 스킵
+                const Vec3 baseExt = pTargetNode->GetExtents() / m_desc.looseFactor;
+                if (baseExt.x <= m_desc.minBaseExtents.x
+                    && baseExt.y <= m_desc.minBaseExtents.y
+                    && baseExt.z <= m_desc.minBaseExtents.z)
                 {
                     break;
                 }
+
+                // 현재 트리의 모든 아이템을 포함하는 자식 노드 탐색
+                // 최종적으로 발견한 자식 노드가 재로운 루트가 될것
+                OcNode* pNextNode  = nullptr;
+                eRegion nextRegion = k_invalidRegion;
+                for (const eRegion region: EnumRanges<eRegion>())
+                {
+                    OcNode* pChildNode = pTargetNode->GetChildPtr(region);
+                    if (pChildNode->numItemsInTree == m_pRootNode->numItemsInTree)   // 발견
+                    {
+                        pNextNode  = pChildNode;
+                        nextRegion = region;
+                        break;
+                    }
+                    else if (pChildNode->numItemsInTree != 0)   // 일부라도 가지고 있는 경우. shrink 불가
+                    {
+                        break;
+                    }
+                }
+
+                // 1. 아이템들이 흩어져 있음
+                // 2. 모든 아이템들이 pTargetNode 에 있음
+                if (!pNextNode)
+                {
+                    break;
+                }
+
+                // 다음 단계로 진행
+                pTargetNode  = pNextNode;
+                targetRegion = nextRegion;
             }
 
-            // 하나의 자식이 모든 아이템을 포함하는 경우에만 진행
-            if (!pNextNode)
+            // shrink 할 노드를 찾은 경우
+            if (pTargetNode != pRootNode)
             {
-                break;
+                OcNodeScoped pNewRoot = pTargetNode->pParentNode->PopChild(targetRegion);
+                pNewRoot->pParentNode = nullptr;
+                m_pRootNode           = std::move(pNewRoot);
             }
-
-            pTargetNode  = pNextNode;
-            targetRegion = nextRegion;
         }
 
-        // shrink 할 노드를 찾은 경우
-        if (pTargetNode != pRootNode)
-        {
-            OcNodeOwn pNewRoot    = pTargetNode->pParentNode->PopChild(targetRegion);
-            pNewRoot->pParentNode = nullptr;
-            m_pRootNode           = std::move(pNewRoot);
-        }
-
-        // 빈 자식 노드 병합
-        ShrinkToFitMergeEmptyChildren_Recursive_(m_pRootNode.get());
+        // 2. 빈 자식 노드 병합
+        ShrinkToFitMergeEmptyChildren_Recursive_(m_pRootNode.GetPtr());
     }
 
     template<
@@ -358,7 +359,7 @@ public:
         IntersactFunc&&        _intersactFunc,
         CollectFunc&&          _collectFunc)
     {
-        Query_Recursive_(m_pRootNode.get(), _bv, _intersactFunc, _collectFunc);
+        Query_Recursive_(m_pRootNode.GetPtr(), _bv, _intersactFunc, _collectFunc);
     }
 
 private:
@@ -378,7 +379,7 @@ private:
         }
 
         // check items in current node
-        for (const OcItemOwn& pItem: _pNode->items)
+        for (const OcItemScoped& pItem: _pNode->items)
         {
             if (_intersactFunc(_bv, pItem->aabb))
             {
@@ -389,9 +390,9 @@ private:
         // check children
         if (_pNode->HasChildren())
         {
-            for (const eRegion region: EnumRanges<eRegion>())
+            for (const OcNodeScoped& pChildNode: _pNode->children)
             {
-                Query_Recursive_(_pNode->GetChildPtr(region), _bv, _intersactFunc, _collectFunc);
+                Query_Recursive_(pChildNode.GetPtr(), _bv, _intersactFunc, _collectFunc);
             }
         }
     }
@@ -402,20 +403,22 @@ private:
         JAM_ASSERT(_pNode->IsLeaf(), "Node already has children");
 
         const Vec3 center       = _pNode->GetCenter();
-        const Vec3 childExt     = _pNode->GetExtents() * 0.5f;
-        const Vec3 childBaseExt = childExt / m_desc.looseFactor;
+        const Vec3 childExt     = _pNode->GetExtents() * 0.5f;     // loose box
+        const Vec3 childBaseExt = childExt / m_desc.looseFactor;   // tight box
 
         for (const eRegion region: EnumRanges<eRegion>())
         {
             const Int32 iRegion = IntFrom(region);
 
+            // 중심은 base box 기준으로 계산
             Vec3 childCenter = center;
             childCenter.x += (iRegion & 0b0001) ? childBaseExt.x : -childBaseExt.x;
             childCenter.y += (iRegion & 0b0010) ? -childBaseExt.y : childBaseExt.y;
             childCenter.z += (iRegion & 0b0100) ? childBaseExt.z : -childBaseExt.z;
 
-            const Aabb aabb         = Aabb::FromCenterExtents(childCenter, childExt);
-            OcNodeOwn  pChildNode   = MakeNode_(aabb);
+            // 자식 노드 생성
+            const Aabb   aabb       = Aabb::FromCenterExtents(childCenter, childExt);
+            OcNodeScoped pChildNode = MakeNode_(aabb);
             pChildNode->pParentNode = _pNode;
             pChildNode->depth       = _pNode->depth + 1;
             _pNode->SetChild(region, std::move(pChildNode));
@@ -427,18 +430,21 @@ private:
     {
         if (!_pNode->IsLeaf())
         {
-            return;   // already subdivided
+            // 이미 분할됨
+            return;
         }
 
         const Int32 numItems = NarrowCast<Int32>(_pNode->items.size());
         if (numItems <= m_desc.subdivisionThreshold)
         {
-            return;   // below threshold
+            // 임계치에 도달하지 못함
+            return;
         }
 
         if (m_desc.bUseMaxDepthPolicy && _pNode->depth >= m_desc.maxDepth)
         {
-            return;   // max depth reached
+            // 최대 깊이 도달
+            return;
         }
 
         // check if children would be too small
@@ -446,6 +452,7 @@ private:
         const Vec3 childExt     = ext * 0.5f;
         const Vec3 childBaseExt = childExt / m_desc.looseFactor;
 
+        // 너무 작아지면 분할하지 않음
         if (childBaseExt.x < m_desc.minBaseExtents.x
             || childBaseExt.y < m_desc.minBaseExtents.y
             || childBaseExt.z < m_desc.minBaseExtents.z)
@@ -453,24 +460,24 @@ private:
             return;   // would violate min size constraint
         }
 
-        // perform split
+        // 분할 수행
         SplitNode_(_pNode);
 
-        // redistribute items to children
-        OcItemOwnList existItems = std::move(_pNode->items);
-        _pNode->numItemsInTree   = 0;   // will be recalculated in Insert_Recursive_
-        for (OcItemOwn& pItem: existItems)
+        // 기본 노드에 있던 아이템을 재분배
+        OcItemScopedList existItems = std::move(_pNode->items);
+        _pNode->numItemsInTree      = 0;   // will be recalculated in Insert_Recursive_
+        for (OcItemScoped& pItem: existItems)
         {
             Insert_Recursive_(_pNode, std::move(pItem));
         }
     }
 
     void AddItemToNode_(
-        OcNode*     _pNode,
-        OcItemOwn&& _pItem)
+        OcNode*        _pNode,
+        OcItemScoped&& _pItem)
     {
         const UID uid      = _pItem->entity.GetUID();
-        m_itemCache[uid]   = _pItem.get();
+        m_itemCache[uid]   = _pItem.GetPtr();
         _pItem->pOwnerNode = _pNode;
 
         PushItemToList_(_pNode->items, std::move(_pItem));
@@ -478,20 +485,20 @@ private:
     }
 
     void PushItemToList_(
-        OcItemOwnList& _items,
-        OcItemOwn&&    _pItem) const
+        OcItemScopedList& _items,
+        OcItemScoped&&    _pItem) const
     {
         _pItem->index = NarrowCast<Int32>(_items.size());
         _items.emplace_back(std::move(_pItem));
     }
 
-    OcItemOwn PopItemFromList_(
+    OcItemScoped PopItemFromList_(
         const OcItem* _pItem) const
     {
-        OcItemOwnList& items      = _pItem->pOwnerNode->items;
-        const Int32    itemIdx    = _pItem->index;
-        const Int32    lastIdx    = NarrowCast<Int32>(items.size() - 1);
-        OcItemOwn      pPopedItem = std::move(items[itemIdx]);
+        OcItemScopedList& items      = _pItem->pOwnerNode->items;
+        const Int32       itemIdx    = _pItem->index;
+        const Int32       lastIdx    = NarrowCast<Int32>(items.size() - 1);
+        OcItemScoped      pPopedItem = std::move(items[itemIdx]);
 
         if (itemIdx != lastIdx)
         {
@@ -508,8 +515,8 @@ private:
     }
 
     void Insert_Recursive_(
-        OcNode*     _pRoot,
-        OcItemOwn&& _pItem)
+        OcNode*        _pRoot,
+        OcItemScoped&& _pItem)
     {
         JAM_ASSERT(_pRoot->Contain(_pItem->aabb), "Item does not fit in node");
 
@@ -519,7 +526,7 @@ private:
 
         if (_pRoot->HasChildren())
         {
-            if (OcNode* pBestChild = TryFindBestChildNode_(_pRoot, _pItem->aabb))
+            if (OcNode* pBestChild = FindBestChildNode_(_pRoot, _pItem->aabb))
             {
                 Insert_Recursive_(pBestChild, std::move(_pItem));
             }
@@ -542,16 +549,17 @@ private:
         const Vec3 ext    = m_pRootNode->GetExtents() * 2.f;
         const Aabb aabb   = Aabb::FromCenterExtents(center, ext);
 
-        OcNodeOwn pNewRoot = MakeNode_(aabb);
-        pNewRoot->depth    = 0;
+        OcNodeScoped pNewRoot    = MakeNode_(aabb);
+        pNewRoot->depth          = 0;
+        pNewRoot->numItemsInTree = 0;
 
         if (m_pRootNode->HasChildren())   // 기존 root가 자식이 있으면..
         {
             // 이중 분할 후. 중심은 유지하고, 기존 root의 자식들을 손자 노드로 이동
-            SplitNode_(pNewRoot.get());
-            for (const eRegion region: EnumRanges<eRegion>())
+            SplitNode_(pNewRoot.GetPtr());
+            for (const OcNodeScoped& pChildNode: m_pRootNode->children)
             {
-                SplitNode_(pNewRoot->GetChildPtr(region));
+                SplitNode_(pChildNode.GetPtr());
             }
 
             // 매핑 테이블, 기존 root의 자식 노드들을 새로운 손자 노드 위치로 이동
@@ -567,91 +575,106 @@ private:
             };
 
             // move old children to new grandchildren positions
-            Int32 numOldRootChildrenItems = 0;
             for (const eRegion region: EnumRanges<eRegion>())
             {
                 const Int32   iRegion          = IntFrom(region);
                 const eRegion grandchildRegion = k_grandchildMapping[iRegion];
 
-                OcNode*     pNewRootChildNode  = pNewRoot->GetChildPtr(region);
-                OcNodeOwn   pOldRootChildNode  = m_pRootNode->PopChild(region);
-                const Int32 numItemsInOldChild = pOldRootChildNode->numItemsInTree;
+                OcNode*      pNewRootChildNode  = pNewRoot->GetChildPtr(region);
+                OcNodeScoped pOldRootChildNode  = m_pRootNode->PopChild(region);
+                const Int32  numItemsInOldChild = pOldRootChildNode->numItemsInTree;
 
-                // transfer ownership
+                // update node parent and depth
                 pOldRootChildNode->pParentNode = pNewRootChildNode;
                 pOldRootChildNode->depth       = pNewRootChildNode->depth + 1;
+
+                // transfer
                 pNewRootChildNode->SetChild(grandchildRegion, std::move(pOldRootChildNode));
-                numOldRootChildrenItems += numItemsInOldChild;   // accumulate item count
+
+                // sync numItemsInTree
+                pNewRootChildNode->numItemsInTree = numItemsInOldChild;
+                pNewRoot->numItemsInTree += numItemsInOldChild;
             }
-            pNewRoot->numItemsInTree = numOldRootChildrenItems;   // old root's numItemsInTree will be recalculated below
 
             // 구 루트 자체에 있던 아이템은 모두 새로 삽입.
             // 이로써 신 루트의 numItemsInTree가 정확히 계산됨
-            OcItemOwnList oldRootItems = std::move(m_pRootNode->items);
-            for (OcItemOwn& pItem: oldRootItems)
+            OcItemScopedList oldRootItems = std::move(m_pRootNode->items);
+            for (OcItemScoped& pItem: oldRootItems)
             {
-                Insert_Recursive_(pNewRoot.get(), std::move(pItem));
+                Insert_Recursive_(pNewRoot.GetPtr(), std::move(pItem));
             }
 
-            // policy: increase max depth on expand
-            if (m_desc.bIncreaseMaxDepthOnExpand)
-            {
-                m_desc.maxDepth += 1;
-            }
+            // 새로운 루트 설정
+            m_pRootNode = std::move(pNewRoot);
 
-            // update all depths
-            UpdateDepth_Recursive_(pNewRoot.get());
-
-            // policy: merge children that exceed max depth
-            if (m_desc.bUseMaxDepthPolicy && !m_desc.bIncreaseMaxDepthOnExpand)
+            // post process
             {
-                MergeTooDeepChildren_Recursive_(pNewRoot.get());
+                // 정책에 따라 max depth 증가
+                if (m_desc.bIncreaseMaxDepthOnExpand)
+                {
+                    m_desc.maxDepth += 1;
+                }
+
+                // 모든 노드의 깊이 갱신
+                UpdateDepth_();
+
+                // max depth 정책에 따라 너무 깊은 노드 병합
+                if (m_desc.bUseMaxDepthPolicy && !m_desc.bIncreaseMaxDepthOnExpand)
+                {
+                    MergeTooDeepChildren_();
+                }
             }
         }
         else
         {
-            // 기존 root가 자식이 없으면.. 다순히 기존 root의 아이템들을 새 루트에 옮기기만 하면 됨
-            OcItemOwnList oldRootItems = std::move(m_pRootNode->items);
-            for (OcItemOwn& pItem: oldRootItems)
+            // 기존 root가 자식이 없으면.. 단순히 기존 root의 아이템들을 새 루트에 옮기기만 하면 됨
+            OcItemScopedList oldRootItems = std::move(m_pRootNode->items);
+            for (OcItemScoped& pItem: oldRootItems)
             {
-                Insert_Recursive_(pNewRoot.get(), std::move(pItem));
+                Insert_Recursive_(pNewRoot.GetPtr(), std::move(pItem));
             }
-        }
 
-        // set new root
-        m_pRootNode = std::move(pNewRoot);
+            // 새로운 루트 설정
+            m_pRootNode = std::move(pNewRoot);
+        }
     }
 
-    [[nodiscard]] OcNodeOwn NewNode_()
+    [[nodiscard]] OcNodeScoped NewNode_()
     {
         const OcNodeDeletor deletor { &m_nodePool };
-        return OcNodeOwn(m_nodePool.New(), deletor);
+        return OcNodeScoped(m_nodePool.New(), deletor);
     }
 
-    [[nodiscard]] OcItemOwn NewItem_()
+    [[nodiscard]] OcItemScoped NewItem_()
     {
         const OcItemDeletor deletor { &m_itemPool };
-        return OcItemOwn(m_itemPool.New(), deletor);
+        return OcItemScoped(m_itemPool.New(), deletor);
     }
 
-    [[nodiscard]] OcItemOwn MakeItem_(
+    [[nodiscard]] OcItemScoped MakeItem_(
         const Entity _entity,
         const Aabb&  _aabb,
         const T&     _userdata)
     {
-        OcItemOwn pItem = NewItem_();
-        pItem->entity   = _entity;
-        pItem->aabb     = _aabb;
-        pItem->userdata = _userdata;
+        OcItemScoped pItem = NewItem_();
+        pItem->entity      = _entity;
+        pItem->aabb        = _aabb;
+        pItem->userdata    = _userdata;
         return pItem;
     }
 
-    [[nodiscard]] OcNodeOwn MakeNode_(
+    [[nodiscard]] OcNodeScoped MakeNode_(
         const Aabb& _aabb)
     {
-        OcNodeOwn pNode = NewNode_();
-        pNode->aabb     = _aabb;
+        OcNodeScoped pNode = NewNode_();
+        pNode->aabb        = _aabb;
         return pNode;
+    }
+
+    void UpdateDepth_()
+    {
+        m_pRootNode->depth = 0;
+        UpdateDepth_Recursive_(m_pRootNode.GetPtr());
     }
 
     void UpdateDepth_Recursive_(
@@ -660,39 +683,41 @@ private:
         // 탑-다운 방식. 부모 노드가 자식의 깊이를 결정
         if (_pRoot->HasChildren())
         {
-            for (const eRegion region: EnumRanges<eRegion>())
+            for (const OcNodeScoped& pChildNode: _pRoot->children)
             {
-                OcNode* pChild = _pRoot->GetChildPtr(region);
-                pChild->depth  = _pRoot->depth + 1;
-                UpdateDepth_Recursive_(pChild);
+                pChildNode->depth = _pRoot->depth + 1;
+                UpdateDepth_Recursive_(pChildNode.GetPtr());
             }
         }
     }
 
-    void MergeTooDeepChildren_Recursive_(
-        OcNode* _pRoot)
+    void MergeTooDeepChildren_()
     {
-        if (_pRoot->HasChildren())
+        MergeTooDeepChildren_Recursive_(m_pRootNode.GetPtr());
+    }
+
+    void MergeTooDeepChildren_Recursive_(
+        OcNode* _pNode)
+    {
+        if (_pNode->HasChildren())
         {
             // 바텀-업으로 깊이가 너무 깊은 자식은 병합
-            for (const eRegion region: EnumRanges<eRegion>())
+            for (const OcNodeScoped& pChildNode: _pNode->children)
             {
-                MergeTooDeepChildren_Recursive_(_pRoot->GetChildPtr(region));
+                MergeTooDeepChildren_Recursive_(pChildNode.GetPtr());
             }
 
             // then merge this node's children if too deep
-            if (_pRoot->depth >= m_desc.maxDepth)
+            if (_pNode->depth >= m_desc.maxDepth)
             {
                 // 자식들의 아이템들을 모두 현재 노드로 이동
                 // numItemsInTree는 이미 정확하므로, 아이템들만 이동시키면 됨
-                for (const eRegion region: EnumRanges<eRegion>())
+                for (const OcNodeScoped& pChildNode: _pNode->children)
                 {
-                    OcNodeOwn     pChild     = _pRoot->PopChild(region);
-                    OcItemOwnList childItems = std::move(pChild->items);
-
-                    for (OcItemOwn& pItem: childItems)
+                    OcItemScopedList childItems = std::move(pChildNode->items);
+                    for (OcItemScoped& pItem: childItems)
                     {
-                        AddItemToNode_(_pRoot, std::move(pItem));
+                        AddItemToNode_(_pNode, std::move(pItem));
                     }
                 }
             }
@@ -705,49 +730,46 @@ private:
         if (_pNode->HasChildren())
         {
             // 바텀-업으로 빈 자식 노드들을 제거
-            for (const eRegion region: EnumRanges<eRegion>())
+            for (const OcNodeScoped& pChildNode: _pNode->children)
             {
-                ShrinkToFitMergeEmptyChildren_Recursive_(_pNode->GetChildPtr(region));
+                ShrinkToFitMergeEmptyChildren_Recursive_(pChildNode.GetPtr());
             }
 
             // numItemsInTree 확인하여 빈 자식 노드 제거
             const Int32 numItemsInCurNode = NarrowCast<Int32>(_pNode->items.size());
-            if (_pNode->numItemsInTree - numItemsInCurNode == 0)   // 현재 노드에만 아이템이 있고, 모든 자식 노드가 비어있음
+            if (_pNode->numItemsInTree - numItemsInCurNode == 0)   // 현재 노드에만 아이템이 있고, 모든 자식 노드가 비어있는 경우 병합
             {
-                // all children empty, remove them
-                for (const eRegion region: EnumRanges<eRegion>())
-                {
-                    _pNode->PopChild(region);
-                }
+                // 모든 자식들은 비어있으므로 단순 노드 제거로 충분
+                _pNode->children.fill(nullptr);
             }
         }
     }
 
-    [[nodiscard]] OcNode* TryFindBestChildNode_(   // or nullptr
+    [[nodiscard]] OcNode* FindBestChildNode_(   // or nullptr
         const OcNode* _pRoot,
         const Aabb&   _aabb) const
     {
         JAM_ASSERT(_pRoot->HasChildren(), "Node has no children");
 
         // determine quadrant based on center point
-        const Vec3 rootCenter = _pRoot->GetCenter();
+        const Vec3 center     = _pRoot->GetCenter();
         const Vec3 aabbCenter = _aabb.GetCenter();
 
-        Int32 quadrant = 0;
-        if (aabbCenter.x > rootCenter.x) quadrant |= 0b0001;   // Right
-        if (aabbCenter.y < rootCenter.y) quadrant |= 0b0010;   // Bottom
-        if (aabbCenter.z > rootCenter.z) quadrant |= 0b0100;   // Far
+        Int32 iRegion = 0;
+        if (aabbCenter.x > center.x) iRegion |= 0b0001;   // Right
+        if (aabbCenter.y < center.y) iRegion |= 0b0010;   // Bottom
+        if (aabbCenter.z > center.z) iRegion |= 0b0100;   // Far
 
         // check if candidate child contains the aabb
-        OcNode* pCandidateNode = _pRoot->children[quadrant].get();
-        return pCandidateNode->Contain(_aabb) ? pCandidateNode : nullptr;
+        OcNode* pNode = _pRoot->children[iRegion].GetPtr();
+        return pNode->Contain(_aabb) ? pNode : nullptr;
     }
 
-    OctreeDesc         m_desc = {};
     ObjectPool<OcItem> m_itemPool;
     ObjectPool<OcNode> m_nodePool;
+    OctreeDesc         m_desc = {};
 
-    OcNodeOwn             m_pRootNode = nullptr;
+    OcNodeScoped          m_pRootNode = nullptr;
     HashMap<UID, OcItem*> m_itemCache = {};
 };
 }   // namespace jam

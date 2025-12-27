@@ -14,7 +14,7 @@ namespace jam
 [[nodiscard]] static Mesh CreateMeshHelper(
     const std::span<const Vec3> _positions,
     const std::span<const Vec2> _texCoords,
-    const CMemView          _idxData,
+    const CMemView              _idxData,
     const bool                  _bUseU32,
     const VertexLayout&         _vl)
 {
@@ -23,120 +23,113 @@ namespace jam
     JAM_ASSERT(!_positions.empty(), "Position data is empty.");
     JAM_ASSERT(!_idxData.IsEmpty() || _idxData.GetByteWidth() > 0, "Index data is empty.");
 
-    // allocate vertex buffer
-    const Int32 numVerts   = NarrowCast<Int32>(_positions.size());
-    const Int32 vertStride = _vl.GetStride();
-
-    // check required attributes
+    // 레이아웃 요구 체크
     const bool bHasNormal    = _vl.Has(eVertexAttribute::Normal);
     const bool bHasTangent   = _vl.Has(eVertexAttribute::Tangent);
     const bool bHasBitangent = _vl.Has(eVertexAttribute::Bitangent);
     const bool bHasTexCoord  = _vl.Has(eVertexAttribute::TexCoord0);
 
-    // compute normals if needed
-    Vector<Vec3> normals;
+    // 노멀 계산
+    Vector<Vec3> normals = {};
     if (bHasNormal)
     {
         normals = ComputeNormals(_positions, _idxData, _bUseU32);
     }
 
-    // compute tangents and bitangents if needed
-    TangentFrame frame;
+    // 탄젠트 프레임 계산
+    TangentFrame tangentFrame;
     if (bHasTangent || bHasBitangent)
     {
         JAM_ASSERT(bHasTexCoord, "TexCoord0 attribute is required to compute tangents and bitangents.");
         JAM_ASSERT(!_texCoords.empty(), "TexCoord0 data is required to compute tangents and bitangents.");
         JAM_ASSERT(!normals.empty(), "Normals must be computed before computing tangents and bitangents.");
-        frame = ComputeTangentFrame(_positions, normals, _texCoords, _idxData, _bUseU32);
+        tangentFrame = ComputeTangentFrame(_positions, normals, _texCoords, _idxData, _bUseU32);
     }
 
-    // verts
-    Vector<Byte> vertsData;
-    vertsData.resize(numVerts * vertStride);
+    // 버텍스 버퍼
+    const Int32 numVerts   = NarrowCast<Int32>(_positions.size());
+    const Int32 vertStride = _vl.GetStride();
+
+    Vector<Byte> vertData;
+    vertData.resize(numVerts * vertStride);
     for (Int32 i = 0; i < numVerts; ++i)
     {
-        Byte* pDst = vertsData.data() + vertStride * i;
+        Byte* pVert = vertData.data() + vertStride * i;
 
         // write position
         {
-            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Position);
-            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
-            std::memcpy(pDst + vle.offset, &_positions[i], byteWidth);
+            const VertexLayoutElement& vle = _vl.GetElement(eVertexAttribute::Position);
+
+            const Int32 byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            Byte*       pDst      = pVert + vle.offset;
+            std::memcpy(pDst, &_positions[i], byteWidth);
         }
 
         // write normal
         if (bHasNormal)
         {
-            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Normal);
-            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
-            std::memcpy(pDst + vle.offset, &normals[i], byteWidth);
+            const VertexLayoutElement& vle = _vl.GetElement(eVertexAttribute::Normal);
+
+            const Int32 byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            Byte*       pDst      = pVert + vle.offset;
+            std::memcpy(pDst, &normals[i], byteWidth);
         }
 
         // write tangent
         if (bHasTangent)
         {
-            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Tangent);
-            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
-            std::memcpy(pDst + vle.offset, &frame.tangents[i], byteWidth);
+            const VertexLayoutElement& vle = _vl.GetElement(eVertexAttribute::Tangent);
+
+            const Int32 byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            Byte*       pDst      = pVert + vle.offset;
+            std::memcpy(pDst, &tangentFrame.tangents[i], byteWidth);
         }
 
         // write bitangent
         if (bHasBitangent)
         {
-            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Bitangent);
-            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));
-            std::memcpy(pDst + vle.offset, &frame.bitangents[i], byteWidth);
+            const VertexLayoutElement& vle = _vl.GetElement(eVertexAttribute::Bitangent);
+
+            const Int32 byteWidth = Min(vle.byteWidth, sizeof(Vec3));
+            Byte*       pDst      = pVert + vle.offset;
+            std::memcpy(pDst, &tangentFrame.bitangents[i], byteWidth);
         }
 
         // write texcoord
         if (bHasTexCoord)
         {
-            const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::TexCoord0);
-            const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec2));
-            std::memcpy(pDst + vle.offset, &_texCoords[i], byteWidth);
+            const VertexLayoutElement& vle = _vl.GetElement(eVertexAttribute::TexCoord0);
+
+            const Int32 byteWidth = Min(vle.byteWidth, sizeof(Vec2));
+            Byte*       pDst      = pVert + vle.offset;
+            std::memcpy(pDst, &_texCoords[i], byteWidth);
         }
     }
 
-    // create and return mesh
+    // 메시 생성
     Mesh mesh;
-    mesh.LoadMemory(vertsData, _vl, _idxData, _bUseU32);
+    mesh.LoadMemory(vertData, _vl, _idxData, _bUseU32);
     return mesh;
 }
 
 Vector<Vec3> ComputeNormals(
     const std::span<const Vec3> _positions,
-    const CMemView          _idxData,
+    const CMemView              _idxData,
     const bool                  _bUseU32) noexcept
 {
-    const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
-    const Int32 idxStride    = CalcIndexStride(_bUseU32);
-    const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
-    const Int32 numIdxes     = idxByteWidth / idxStride;
-    const Int32 numFaces     = numIdxes / 3;
-    const Byte* pIndices     = _idxData.GetPtr();
+    const Int32 numVerts = NarrowCast<Int32>(_positions.size());
+    const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
+    const Int32 numFaces = numIdxes / 3;
 
     // accumulate weighted normals per vertex
     Vector<Vec3> tmpNormals;
     tmpNormals.resize(numVerts);
     for (Int32 i = 0; i < numFaces; ++i)
     {
-        const Byte* pSrc = pIndices + i * 3 * idxStride;
-
         // read triangle indices
-        UInt32 i0, i1, i2;
-        if (_bUseU32)
-        {
-            i0 = *reinterpret_cast<const UInt32*>(pSrc + 0 * idxStride);
-            i1 = *reinterpret_cast<const UInt32*>(pSrc + 1 * idxStride);
-            i2 = *reinterpret_cast<const UInt32*>(pSrc + 2 * idxStride);
-        }
-        else
-        {
-            i0 = *reinterpret_cast<const UInt16*>(pSrc + 0 * idxStride);
-            i1 = *reinterpret_cast<const UInt16*>(pSrc + 1 * idxStride);
-            i2 = *reinterpret_cast<const UInt16*>(pSrc + 2 * idxStride);
-        }
-
+        const UInt32 i0 = IndexFrom(_idxData, i * 3 + 0, _bUseU32);
+        const UInt32 i1 = IndexFrom(_idxData, i * 3 + 1, _bUseU32);
+        const UInt32 i2 = IndexFrom(_idxData, i * 3 + 2, _bUseU32);
         JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
 
         // get triangle positions
@@ -181,40 +174,24 @@ TangentFrame ComputeTangentFrame(
     const std::span<const Vec3> _positions,
     const std::span<const Vec3> _normals,
     const std::span<const Vec2> _texCoords,
-    const CMemView          _idxData,
+    const CMemView              _idxData,
     const bool                  _bUseU32)
 {
     using namespace DirectX;
 
-    const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
-    const Int32 idxStride    = CalcIndexStride(_bUseU32);
-    const Int32 idxByteWidth = NarrowCast<Int32>(_idxData.GetByteWidth());
-    const Int32 numIdxes     = idxByteWidth / idxStride;
-    const Int32 numFaces     = numIdxes / 3;
-    const Byte* pIndices     = _idxData.GetPtr();
+    const Int32 numVerts = NarrowCast<Int32>(_positions.size());
+    const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
+    const Int32 numFaces = numIdxes / 3;
 
     // temporary accumulation vectors
     Vector<Vec3> tan1, tan2;
     tan1.resize(numVerts);
-    tan2.resize(numVerts);
     for (Int32 i = 0; i < numFaces; ++i)
     {
-        const Byte* pIndex = pIndices + i * 3 * idxStride;
-
         // read triangle indices
-        UInt32 i0, i1, i2;
-        if (_bUseU32)
-        {
-            i0 = *reinterpret_cast<const UInt32*>(pIndex + 0 * idxStride);
-            i1 = *reinterpret_cast<const UInt32*>(pIndex + 1 * idxStride);
-            i2 = *reinterpret_cast<const UInt32*>(pIndex + 2 * idxStride);
-        }
-        else
-        {
-            i0 = *reinterpret_cast<const UInt16*>(pIndex + 0 * idxStride);
-            i1 = *reinterpret_cast<const UInt16*>(pIndex + 1 * idxStride);
-            i2 = *reinterpret_cast<const UInt16*>(pIndex + 2 * idxStride);
-        }
+        const UInt32 i0 = IndexFrom(_idxData, i * 3 + 0, _bUseU32);
+        const UInt32 i1 = IndexFrom(_idxData, i * 3 + 1, _bUseU32);
+        const UInt32 i2 = IndexFrom(_idxData, i * 3 + 2, _bUseU32);
 
         JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
 

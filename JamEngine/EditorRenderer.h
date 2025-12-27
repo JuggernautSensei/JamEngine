@@ -69,8 +69,8 @@ private:
         static void Init()
         {
             VertexLayout layout;
-            layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
-            layout.Add(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+            layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+            layout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
             s_layout = std::move(layout);
         }
     };

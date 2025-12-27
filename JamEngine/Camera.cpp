@@ -72,7 +72,6 @@ void Camera::SetFovYRad(
 void Camera::SetWidth(
     const float _width)
 {
-    JAM_ASSERT(_width > 0.f, "Camera width must be greater than 0.");
     m_width = _width;
     m_width = Clamp(m_width, k_minWidthHeight, k_maxWidthHeight);
 }
@@ -80,7 +79,6 @@ void Camera::SetWidth(
 void Camera::SetHeight(
     const float _height)
 {
-    JAM_ASSERT(_height > 0.f, "Camera height must be greater than 0.");
     m_height = _height;
     m_height = Clamp(m_height, k_minWidthHeight, k_maxWidthHeight);
 }

@@ -14,7 +14,8 @@
 namespace jam
 {
 
-void Editor_EntityInspector::OnImGuiRender(bool& _pShow) const
+void Editor_EntityInspector::OnImGuiRender(
+    bool& _pShow) const
 {
     if (!ImGui::Begin("entity inspector", &_pShow))
     {
@@ -24,8 +25,8 @@ void Editor_EntityInspector::OnImGuiRender(bool& _pShow) const
 
     if (!SceneManager::HasActiveScene())
     {
-        constexpr const char* k_msg = "no active scene.\nplease load scene.";
-        Widget_CenterAlignedTextDisabled(k_msg);
+        Widget_CenteredText(ImGui::GetContentRegionAvail(), "no active scene.\nplease load scene.");
+
         ImGui::End();
         return;
     }

@@ -20,14 +20,14 @@ struct LoopSubdivisionOutputWithTexcoords
 
 LoopSubdivisionOutput LoopSubdivide(
     std::span<const Vec3> _positions,
-    CMemView          _idxData,
+    CMemView              _idxData,
     bool                  _bUseU32,
     Int32                 _level);
 
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     std::span<const Vec3> _positions,
-    std::span<const Vec2> _texcoords,
-    CMemView          _idxData,
+    std::span<const Vec2> _texcoordsOrEmpty,
+    CMemView              _idxData,
     bool                  _bUseU32,
     Int32                 _level);
 

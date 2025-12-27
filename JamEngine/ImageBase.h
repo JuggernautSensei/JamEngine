@@ -26,7 +26,7 @@ enum class eImageFormat
 };
 
 [[nodiscard]] Optional<eImageFormat> ImageFormatFrom(const fs::path& _path);
-[[nodiscard]] Optional<eImageFormat> ImageFormatFrom(StringView _ext);
+[[nodiscard]] Optional<eImageFormat> ImageFormatFrom(StringView _format);
 [[nodiscard]] StringView             StringFrom(eImageFormat _format);
 
 }   // namespace jam

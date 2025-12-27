@@ -1,3 +1,4 @@
+
 #include "pch.h"
 
 #include "Application.h"
@@ -9,7 +10,7 @@
 #include "Graphics.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
-#include "Magic.h"
+#include "Magics.h"
 #include "SceneDB.h"
 #include "SceneManager.h"
 #include "ScriptDB.h"
@@ -89,7 +90,7 @@ void Application::Destroy()
     // close event dispatch
     s_instance->m_bEventDispatchable = false;
 
-    // destroy db
+    // destroy db (this must destroy manually, cannot use onDestroyCallbacks)
     SceneDB::DestroyInstance();
     ScriptDB::DestroyInstance();
     ComponentDB::DestroyInstance();
@@ -227,7 +228,8 @@ void Application::DispatchEvent(Event& _event)
     Input::OnEvent(_event);
 }
 
-void Application::SubmitCommand(const std::function<void()>& _command)
+void Application::SubmitCommand(
+    const std::function<void()>& _command)
 {
     JAM_ASSERT(_command, "Command is null");
     m_commandQueue.Submit(_command);

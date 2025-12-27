@@ -74,6 +74,11 @@ public:
         return m_len;
     }
 
+    [[nodiscard]] constexpr Int32 GetLengthWithNullTerminator() const
+    {
+        return m_str ? m_len + 1 : 0;
+    }
+
     constexpr void Clear()
     {
         m_str = nullptr;
@@ -85,11 +90,11 @@ public:
         return m_len == 0;
     }
 
-    [[nodiscard]] Int32 FindFirstOf(const T _ch) const   // reurns -1 if not found
+    [[nodiscard]] Optional<Int32> FindFirstOf(const T _ch) const
     {
         if (m_str == nullptr)
         {
-            return -1;
+            return k_nullopt;
         }
 
         const T* c = CharTrait::find(m_str, m_len, _ch);
@@ -99,8 +104,24 @@ public:
         }
         else
         {
-            return -1;
+            return k_nullopt;
         }
+    }
+
+    [[nodiscard]] Optional<Int32> FindLastOf(const T _ch) const
+    {
+        if (m_str == nullptr)
+        {
+            return k_nullopt;
+        }
+        for (Int32 i = m_len - 1; i >= 0; --i)
+        {
+            if (m_str[i] == _ch)
+            {
+                return i;
+            }
+        }
+        return k_nullopt;
     }
 
     [[nodiscard]] constexpr const T* begin() const

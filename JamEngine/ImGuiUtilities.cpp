@@ -15,11 +15,6 @@ ImVec4 ImVec4FromHex(const UInt32 _rgba)
     };
 }
 
-ImTextureRef ImTextureRefFrom(const TextureHandle _texh)
-{
-    return _texh.value;
-}
-
 ImVec2 CalcFitButtonSize(const Int32 _count, ImVec2 _region)
 {
     if (_region == ImVec2 { 0.f, 0.f })

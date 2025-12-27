@@ -74,32 +74,22 @@ Optional<eImageFormat> ImageFormatFrom(
     const fs::path& _path)
 {
     const StringView path = _path.native();
-    if (path[0] == '.')   // already an extension
-    {
-        const std::string lowerExt = ToLower(path);
-        return ImageFormatFromLowerExt(lowerExt);
-    }
-    else
-    {
-        const fs::path    ext      = _path.extension();
-        const std::string lowerExt = ToLower(ext.native());
-        return ImageFormatFromLowerExt(lowerExt);
-    }
-}
 
-Optional<eImageFormat> ImageFormatFrom(
-    const StringView _ext)
-{
-    // check
-    if (_ext.IsEmpty())
+    const Optional<Int32> optIdx = path.FindLastOf('.');
+    if (!optIdx)
     {
         return k_nullopt;
     }
-    else
-    {
-        const std::string lowerExt = ToLower(_ext);
-        return ImageFormatFromLowerExt(lowerExt);
-    }
+
+    const Int32      idx = optIdx.value();
+    const StringView ext = path.SubView(idx);
+    return ImageFormatFrom(ext);
+}
+
+Optional<eImageFormat> ImageFormatFrom(const StringView _format)
+{
+    const std::string lower = ToLower(_format);
+    return ImageFormatFromLowerExt(lower);
 }
 
 StringView StringFrom(

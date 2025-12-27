@@ -14,9 +14,9 @@
 #include "SceneDB.h"
 #include "SceneManager.h"
 
-#include "FileUtilities.h"
+#include "FileIOUtilities.h"
 #include "Input.h"
-#include "DialogUtilities.h"
+#include "WindowsUtilities.h"
 
 #include "Script.h"
 #include "ScriptDB.h"

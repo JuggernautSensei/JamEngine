@@ -41,21 +41,23 @@ void PopupDialog::Open(const StringView _title, const StringView _message)
             ImGui::PopTextWrapPos();
             ImGui::Spacing();
             if (ImGui::Button("ok", CalcFitButtonSize()))
+            {
                 ImGui::CloseCurrentPopup();
+            }
         }
 
         std::string message;
     };
 
     m_bOpen = true;
-    m_title = _title;
-    m_func  = Func { std::string { _message } };
+    m_title = _title.ToString();
+    m_func  = Func { _message.ToString() };
 }
 
-void PopupDialog::Open(const StringView _title, std::function<void()>&& _fn)
+void PopupDialog::Open(const StringView _title, const std::function<void()>& _fn)
 {
     m_bOpen = true;
-    m_title = _title;
+    m_title = _title.ToString();
     m_func  = _fn;
 }
 

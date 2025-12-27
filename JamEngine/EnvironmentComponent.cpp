@@ -2,6 +2,7 @@
 
 #include "EnvironmentComponent.h"
 
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
 #include "JsonUtilities.h"
@@ -10,7 +11,7 @@ namespace jam
 {
 
 void EnvironmentComponent::Serialize(
-    JsonWriter&       _writer,
+    JsonWriter       _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -113,7 +114,7 @@ void EnvironmentComponent::Serialize(
 }
 
 void EnvironmentComponent::Deserialize(
-    JsonReader&       _reader,
+    JsonReader       _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -221,7 +222,7 @@ void EnvironmentComponent::DrawEditor(
     Entity      _entity)
 {
     ImGui::SeparatorText("directional light");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         // use for direction editing
         static Vec2 s_pyRad      = {};
@@ -230,12 +231,8 @@ void EnvironmentComponent::DrawEditor(
         DirectionalLightData dirLight = environment.GetDirectionalLight();
         bool                 bDirty   = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: enabled
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
@@ -244,7 +241,7 @@ void EnvironmentComponent::DrawEditor(
 
         // row: radiance
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("radiance");
             ImGui::TableNextColumn();
@@ -254,12 +251,11 @@ void EnvironmentComponent::DrawEditor(
 
         // row: intensity
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("intensity");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragLightIntensity("##DirLightIntensity", dirLight.intensity);
+            bDirty |= Widget_SliderFloat("##DirLightIntensity", &dirLight.intensity, 0.f, 1.f);
         }
 
         // row: direction
@@ -269,7 +265,6 @@ void EnvironmentComponent::DrawEditor(
                 s_pyRad = ForwardToPitchYaw(dirLight.direction);
             }
 
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("direction");
             ImGui::TableNextColumn();
@@ -288,7 +283,7 @@ void EnvironmentComponent::DrawEditor(
 
         // row: shadow cast
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("shadow cast");
             ImGui::TableNextColumn();
@@ -297,22 +292,16 @@ void EnvironmentComponent::DrawEditor(
 
         // cascade distances
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("cascade distances");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
 
             Vec3 distances = { dirLight.cascadeDistances[0], dirLight.cascadeDistances[1], dirLight.cascadeDistances[2] };
-            if (Widget_DragDistance3("##CascadeDistances", distances, 0.01f, Camera::k_minZ, Camera::k_maxZ))
-            {
-                // ensure ascending order
-                std::sort(&distances.x, &distances.x + 3);
-                dirLight.cascadeDistances[0] = distances.x;
-                dirLight.cascadeDistances[1] = distances.y;
-                dirLight.cascadeDistances[2] = distances.z;
-                bDirty |= true;
-            }
+            bDirty |= Widget_DragFloat("##CascadeDistance1", &distances.x, 0.01f,           0,    distances.y, "%.2fm", 0, eEditorSliderWidgetFlags_ClampBoth);
+            bDirty |= Widget_DragFloat("##CascadeDistance2", &distances.y, 0.01f, distances.x,    distances.z, "%.2fm", 0, eEditorSliderWidgetFlags_ClampBoth);
+            bDirty |= Widget_DragFloat("##CascadeDistance3", &distances.z, 0.01f, distances.y, Camera::k_maxZ, "%.2fm", 0, eEditorSliderWidgetFlags_ClampBoth);
         }
 
         if (bDirty)
@@ -321,21 +310,17 @@ void EnvironmentComponent::DrawEditor(
             environment.SetDirectionalLight(dirLight);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     ImGui::SeparatorText("image based lighting");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         ImageBasedLightingData ibl    = environment.GetIBL();
         bool                   bDirty = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: irradiance texture
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("irradiance texture");
             ImGui::TableNextColumn();
@@ -345,17 +330,15 @@ void EnvironmentComponent::DrawEditor(
 
         // row: irradiance texture intensity
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("irradiance intensity");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragLightIntensity("##IBLIrradianceIntensity", ibl.irradianceTextureIntensity);
+            bDirty |= Widget_SliderFloat("##IBLIrradianceIntensity", &ibl.irradianceTextureIntensity, 0.f, 1.f);
         }
 
         // row: specular texture
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("specular texture");
             ImGui::TableNextColumn();
@@ -365,17 +348,15 @@ void EnvironmentComponent::DrawEditor(
 
         // row: specular texture intensity
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("specular intensity");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragLightIntensity("##IBLSpecularIntensity", ibl.specularTextureIntensity);
+            bDirty |= Widget_SliderFloat("##IBLSpecularIntensity", &ibl.specularTextureIntensity, 0.f, 1.f);
         }
 
         // row: BRDF LUT texture
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("Brdf Lut texture");
             ImGui::TableNextColumn();
@@ -388,34 +369,29 @@ void EnvironmentComponent::DrawEditor(
             environment.SetIBL(ibl);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     ImGui::SeparatorText("skybox");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         SkyboxData skybox = environment.GetSkybox();
         bool       bDirty = false;
-
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
         // row: type
         {
             constexpr const char* k_names[] = { "solid color", "cube map" };
 
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("type");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_EnumCombo("##SkyboxType", reinterpret_cast<Int32&>(skybox.type), k_names);
+            bDirty |= Widget_Combo("##SkyboxType", reinterpret_cast<Int32&>(skybox.type), k_names);
         }
 
         // row: texture
         if (skybox.type == eSkyboxType::CubeMap)
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("texture");
             ImGui::TableNextColumn();
@@ -426,7 +402,7 @@ void EnvironmentComponent::DrawEditor(
         // row: solid color
         if (skybox.type == eSkyboxType::SolidColor)
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("solid color");
             ImGui::TableNextColumn();
@@ -439,22 +415,18 @@ void EnvironmentComponent::DrawEditor(
             environment.SetSkybox(skybox);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     // ssao
     ImGui::SeparatorText("ssao");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         SSAOData ssao   = environment.GetSSAO();
         bool     bDirty = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: enabled
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
@@ -463,22 +435,22 @@ void EnvironmentComponent::DrawEditor(
 
         // row: radius
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("radius");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragFloat("##SSAORadius", &ssao.radius, 0.001f, 0.f, 10.f);
+            bDirty |= Widget_DragFloat("##SSAORadius", &ssao.radius, 0.001f, 0.f, 1.f);
         }
 
         // row: bias
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("bias");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragFloat("##SSAOBias", &ssao.bias, 0.001f, 0.f, 10.f);
+            bDirty |= Widget_DragFloat("##SSAOBias", &ssao.bias, 0.001f, 0.f, 1.f);
         }
 
         if (bDirty)
@@ -486,21 +458,17 @@ void EnvironmentComponent::DrawEditor(
             environment.SetSSAO(ssao);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     ImGui::SeparatorText("height fog");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         FogData fog    = environment.GetFog();
         bool    bDirty = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: enabled
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
@@ -509,7 +477,6 @@ void EnvironmentComponent::DrawEditor(
 
         // row: radiance
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("radiance");
             ImGui::TableNextColumn();
@@ -519,7 +486,6 @@ void EnvironmentComponent::DrawEditor(
 
         // row: density
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("density");
             ImGui::TableNextColumn();
@@ -529,32 +495,29 @@ void EnvironmentComponent::DrawEditor(
 
         // row: fall off start
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("fall off start");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragDistance("##FogFallOffStart", fog.fallOffStart, 0.01f, 0.f, fog.fallOffEnd);
+            bDirty |= Widget_DragFloat("##FogFallOffStart", &fog.fallOffStart, 0.01f, 0.f, fog.fallOffEnd, "%.2fm");
         }
 
         // row: fall off end
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("fall off end");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragDistance("##FogFallOffEnd", fog.fallOffEnd, 0.01f, fog.fallOffStart, Camera::k_maxZ);
+            bDirty |= Widget_DragFloat("##FogFallOffEnd", &fog.fallOffEnd, 0.01f, fog.fallOffStart, Camera::k_maxZ, "%.2fm");
         }
 
         // row: height attenuation
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("height attenuation");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty |= Widget_DragFloat("##FogHeightAttenuation", &fog.heightAttenuation, 0.01f, 0.f, 1.f);
+            bDirty |= Widget_DragFloat("##FogHeightAttenuation", &fog.heightAttenuation, 0.001f, 0.f, 1.f);
         }
 
         if (bDirty)
@@ -562,58 +525,54 @@ void EnvironmentComponent::DrawEditor(
             environment.SetFog(fog);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     // tonemap
     ImGui::SeparatorText("tone mapping");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         ToneMappingData toneMapping = environment.GetToneMapping();
         bool            bDirty      = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: enabled
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
-            bDirty &= ImGui::Checkbox("##ToneMappingEnabled", &toneMapping.bEnabled);
+            bDirty |= ImGui::Checkbox("##ToneMappingEnabled", &toneMapping.bEnabled);
         }
 
         // row: type
         {
-            constexpr const char* k_toneMappingTypeNames[] = { "linear", "reinhard", "luma based reinhard", "white preserving reinhard", "rom bin da house", "uncharted2", "filmic" };
+            constexpr const char* k_name[] = { "linear", "reinhard", "luma based reinhard", "white preserving reinhard", "rom bin da house", "uncharted2", "filmic" };
 
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("type");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty &= Widget_EnumCombo("##ToneMappingType", reinterpret_cast<Int32&>(toneMapping.type), k_toneMappingTypeNames);
+            bDirty |= Widget_Combo("##ToneMappingType", reinterpret_cast<Int32&>(toneMapping.type), k_name);
         }
 
         // row: exposure
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("exposure");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty &= Widget_DragFloat("##ToneMappingExposure", &toneMapping.exposure, 0.01f, 0.f, 100.f);
+            bDirty |= Widget_DragFloat("##ToneMappingExposure", &toneMapping.exposure, 0.01f, 0.f, 10.f, "%.2f");
         }
 
         // row: gamma
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("gamma");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty &= Widget_DragFloat("##ToneMappingGamma", &toneMapping.gamma, 0.01f, 0.1f, 5.f);
+            bDirty |= Widget_DragFloat("##ToneMappingGamma", &toneMapping.gamma, 0.01f, 0.1f, 10.f, "%.2f");
         }
 
         if (bDirty)
@@ -621,51 +580,47 @@ void EnvironmentComponent::DrawEditor(
             environment.SetToneMapping(toneMapping);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     // bloom
     ImGui::SeparatorText("bloom");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         BloomData bloom  = environment.GetBloom();
         bool      bDirty = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: enabled
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
-            bDirty &= ImGui::Checkbox("##BloomEnabled", &bloom.bEnabled);
+            bDirty |= ImGui::Checkbox("##BloomEnabled", &bloom.bEnabled);
         }
 
         // row: blur radius
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("blur radius");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty &= Widget_DragFloat("##BloomBlurRadius", &bloom.blurRadius, 0.001f, 0.001f, 1.f);
+            bDirty |= Widget_DragFloat("##BloomBlurRadius", &bloom.blurRadius, 0.001f, 0.001f, 1.f);
         }
 
         // row: combine factor
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("combine factor");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty &= Widget_DragFloat("##BloomCombineFactor", &bloom.bloomStrength, 0.01f, 0.f, 1.f);
+            bDirty |= Widget_SliderFloat("##BloomCombineFactor", &bloom.bloomStrength, 0.f, 1.f, "%.2f");
         }
 
         // row: number of blur passes
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("number of blur passes");
             ImGui::TableNextColumn();
@@ -682,22 +637,19 @@ void EnvironmentComponent::DrawEditor(
             environment.SetBloom(bloom);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     // fxaa
     ImGui::SeparatorText("fxaa");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         FXAAData fxaa   = environment.GetFXAA();
         bool     bDirty = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: enabled
         {
-            ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("enabled");
             ImGui::TableNextColumn();
@@ -711,12 +663,11 @@ void EnvironmentComponent::DrawEditor(
         {
             constexpr const char* k_qualityLevels[] = { "very low", "low", "medium", "high", "very high", "ultra" };
 
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("quality");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            Widget_EnumCombo("##FXAAQuality", reinterpret_cast<Int32&>(fxaa.quality), k_qualityLevels);
+            bDirty |= Widget_Combo("##FXAAQuality", reinterpret_cast<Int32&>(fxaa.quality), k_qualityLevels);
         }
 
         if (bDirty)
@@ -724,27 +675,23 @@ void EnvironmentComponent::DrawEditor(
             environment.SetFXAA(fxaa);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 
     // misc
     ImGui::SeparatorText("miscellaneous");
-    if (ImGui::BeginTable("EnvironmentTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("EnvironmentComponent"))
     {
         EnvironmentMisc misc   = environment.GetMisc();
         bool            bDirty = false;
 
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // row: shadow bias
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("shadow bias");
             ImGui::TableNextColumn();
             SetNextItemWidthToAvailableWidth();
-            bDirty &= Widget_DragFloat("##MiscShadowBias", &misc.shadowBias, 0.0001f, 0.f, 1.f);
+            bDirty |= Widget_DragFloat("##MiscShadowBias", &misc.shadowBias, 0.0001f, 0.f, 1.f, "%.4f");
         }
 
         if (bDirty)
@@ -752,7 +699,7 @@ void EnvironmentComponent::DrawEditor(
             environment.SetMisc(misc);
         }
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 }
 

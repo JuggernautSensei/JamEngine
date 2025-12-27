@@ -409,6 +409,9 @@
     <ClCompile Include="CreatePrimitiveDialog.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="DestroyNotLeafEntityDialog.cpp" />
+    <ClCompile Include="DialogStack.cpp" />
+    <ClCompile Include="EditorCommands.cpp" />
+    <ClCompile Include="EditorCommandManager.cpp" />
     <ClCompile Include="EditorStyle.cpp" />
     <ClCompile Include="EditorUtilities.cpp" />
     <ClCompile Include="EditorWidgets.cpp" />
@@ -426,15 +429,21 @@
     <ClCompile Include="FixedString.cpp" />
     <ClCompile Include="Fwd.cpp" />
     <ClCompile Include="GlobalBuffer.cpp" />
-    <ClCompile Include="FileUtilities.cpp" />
+    <ClCompile Include="FileIOUtilities.cpp" />
+    <ClCompile Include="Dialog.cpp" />
+    <ClCompile Include="IEditorCommand.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="JsonReader.cpp" />
     <ClCompile Include="JsonWriter.cpp" />
+    <ClCompile Include="Magics.cpp" />
+    <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="Octree.cpp" />
     <ClCompile Include="JsonUtilities.cpp" />
     <ClCompile Include="Optional.cpp" />
+    <ClCompile Include="Scoped.cpp" />
     <ClCompile Include="STL.cpp" />
     <ClCompile Include="StringView.cpp" />
+    <ClCompile Include="SVGImporter.cpp" />
     <ClCompile Include="TextureFormat.cpp" />
     <ClCompile Include="HistoryStack.cpp" />
     <ClCompile Include="ImGuiGlue.cpp" />
@@ -446,8 +455,6 @@
     <ClCompile Include="IAsset.cpp" />
     <ClCompile Include="BaseUtilities.cpp" />
     <ClCompile Include="Error.cpp" />
-    <ClCompile Include="IExporter.cpp" />
-    <ClCompile Include="IImporter.cpp" />
     <ClCompile Include="ImageBase.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ImageImporter.cpp" />
@@ -618,7 +625,7 @@
     <ClCompile Include="VertexLayoutStorage.cpp" />
     <ClCompile Include="VertexLayoutEditorDialog.cpp" />
     <ClCompile Include="WindowsPlatform.cpp" />
-    <ClCompile Include="DialogUtilities.cpp" />
+    <ClCompile Include="WindowsUtilities.cpp" />
     <ClCompile Include="FileSystemUtilities.cpp" />
     <ClCompile Include="ImportModelDialog.cpp" />
     <ClCompile Include="Editor_FileBrowser_Thumbnail.cpp" />
@@ -638,6 +645,10 @@
     <ClInclude Include="CreatePrimitiveDialog.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="DestroyNotLeafEntityDialog.h" />
+    <ClInclude Include="DialogStack.h" />
+    <ClInclude Include="EditorCommands.h" />
+    <ClInclude Include="EditorCommandManager.h" />
+    <ClInclude Include="EditorIcons.h" />
     <ClInclude Include="EditorStyle.h" />
     <ClInclude Include="EditorUtilities.h" />
     <ClInclude Include="EditorWidgets.h" />
@@ -656,14 +667,19 @@
     <ClInclude Include="Fwd.h" />
     <ClInclude Include="GlobalBuffer.h" />
     <ClInclude Include="FileSystemUtilities.h" />
-    <ClInclude Include="FileUtilities.h" />
+    <ClInclude Include="FileIOUtilities.h" />
+    <ClInclude Include="Dialog.h" />
+    <ClInclude Include="IEditorCommand.h" />
     <ClInclude Include="JsonReader.h" />
     <ClInclude Include="JsonWriter.h" />
+    <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="JsonUtilities.h" />
     <ClInclude Include="Optional.h" />
+    <ClInclude Include="Scoped.h" />
     <ClInclude Include="STL.h" />
     <ClInclude Include="StringView.h" />
+    <ClInclude Include="SVGImporter.h" />
     <ClInclude Include="TextureFormat.h" />
     <ClInclude Include="HistoryStack.h" />
     <ClInclude Include="ImGuiUtilities.h" />
@@ -677,8 +693,6 @@
     <ClInclude Include="BaseUtilities.h" />
     <ClInclude Include="Configs.h" />
     <ClInclude Include="Error.h" />
-    <ClInclude Include="IExporter.h" />
-    <ClInclude Include="IImporter.h" />
     <ClInclude Include="ImageBase.h" />
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="ImageImporter.h" />
@@ -859,9 +873,9 @@
     <ClInclude Include="VertexLayoutStorage.h" />
     <ClInclude Include="VertexLayoutEditorDialog.h" />
     <ClInclude Include="WindowsPlatform.h" />
-    <ClInclude Include="DialogUtilities.h" />
+    <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="EmbeddedShaderGlue.h" />
-    <ClInclude Include="Magic.h" />
+    <ClInclude Include="Magics.h" />
     <None Include="Vendor\DirectXTK\SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>

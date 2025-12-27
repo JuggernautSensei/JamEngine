@@ -1,24 +1,21 @@
 #pragma once
 #include "GraphicsBase.h"
-#include "IExporter.h"
+#include "ImageBase.h"
 
 namespace jam
 {
 
-enum class eImageFormat;
+// todo : maybe support more export options later
 
-class ImageExporter : public IExporter
+class ImageExporter
 {
 public:
-    bool Export() override;
-    void SetPath(const fs::path& _path) override;
-    void SetTexture(TextureHandle _texh);
+    bool Export(TextureHandle _texh, const fs::path& _path, eImageFormat _format, bool _bChangeExtenstion = true) const;
 
 private:
     [[nodiscard]] DirectX::WICCodecs WICCodecsFrom_(eImageFormat _format) const;
 
     TextureHandle m_texh = k_invalidHandle;
-    fs::path      m_path = {};
 };
 
 }   // namespace jam

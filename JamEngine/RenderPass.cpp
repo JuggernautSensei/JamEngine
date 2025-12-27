@@ -269,7 +269,7 @@ void RenderPass::Execute(
     m_executor();
 }
 
-bool RenderPass::Validate() const
+bool RenderPass::IsValid() const
 {
     // 프로그램이 없다면 유효하지 않음
     if (!JAM_IS_VALID_HANDLE(m_ph))
@@ -281,8 +281,8 @@ bool RenderPass::Validate() const
     {
         const FrameBufferInfo fbInfo = Graphics::GetFrameBufferInfo(m_fbh);
 
-        HashSet<UInt32> outputTexes;   // key: handle value
-        outputTexes.reserve(fbInfo.numRenderTargets + 1);
+        HashSet<UInt32> texhSet;   // key: handle value
+        texhSet.reserve(fbInfo.numRenderTargets + 1);
 
         // 출력 리소스 수집
         {
@@ -291,20 +291,20 @@ bool RenderPass::Validate() const
             {
                 const TextureHandle texh = fbInfo.renderTargetTexhs[i];
                 JAM_ASSERT(JAM_IS_VALID_HANDLE(texh), "Frame buffer has invalid render target texture handle.");
-                outputTexes.emplace(texh.value);
+                texhSet.emplace(texh.value);
             }
 
             // 뎁스스텐실 텍스처 수집
             if (JAM_IS_VALID_HANDLE(fbInfo.depthStencilTexh))
             {
-                outputTexes.emplace(fbInfo.depthStencilTexh.value);
+                texhSet.emplace(fbInfo.depthStencilTexh.value);
             }
         }
 
         // 입력 리소스와 충돌 검사
         for (const TextureBind& texBind: m_textureBinds)
         {
-            if (outputTexes.contains(texBind.texh.value))
+            if (texhSet.contains(texBind.texh.value))
             {
                 return false;
             }

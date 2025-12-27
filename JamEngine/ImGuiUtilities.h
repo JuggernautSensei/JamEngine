@@ -138,9 +138,8 @@ namespace jam
     return !(_lhs == _rhs);
 }
 
-[[nodiscard]] ImVec4       ImVec4FromHex(UInt32 _rgba);
-[[nodiscard]] ImTextureRef ImTextureRefFrom(TextureHandle _texh);
-[[nodiscard]] ImVec2       CalcFitButtonSize(Int32 _count = 1, ImVec2 _region = ImVec2 { 0.f, 0.f });
-void                       SetNextItemWidthToAvailableWidth();
+[[nodiscard]] ImVec4 ImVec4FromHex(UInt32 _rgba);
+[[nodiscard]] ImVec2 CalcFitButtonSize(Int32 _count = 1, ImVec2 _region = ImVec2 { 0.f, 0.f });
+void                 SetNextItemWidthToAvailableWidth();
 
 }   // namespace jam

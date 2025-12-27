@@ -8,7 +8,7 @@ class PopupDialog
 public:
     void Show();
     void Open(StringView _title, StringView _message);
-    void Open(StringView _title, std::function<void()>&& _fn);
+    void Open(StringView _title, const std::function<void()>& _fn);
 
 private:
     bool                  m_bOpen = false;

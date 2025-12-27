@@ -63,9 +63,10 @@ template<typename T>
     return entt::hashed_wstring { _wStr.GetPtr(), static_cast<size_t>(_wStr.GetLength()) }.value();
 }
 
-[[nodiscard]] std::string  ToLower(StringView _str);
-[[nodiscard]] std::string  ToUtf8(WStringView _wstr);
-[[nodiscard]] std::wstring ToUtf16(StringView _str);
+[[nodiscard]] std::string ToLower(StringView _str);
+
+[[nodiscard]] Optional<std::string>  ToUtf8(WStringView _wstr);
+[[nodiscard]] Optional<std::wstring> ToUtf16(StringView _str);
 
 template<typename T>
     requires std::is_integral_v<T>

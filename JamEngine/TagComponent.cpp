@@ -2,6 +2,7 @@
 
 #include "TagComponent.h"
 
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
 #include "JsonUtilities.h"
@@ -44,7 +45,7 @@ bool TagComponent::operator!=(
 }
 
 void TagComponent::Serialize(
-    JsonWriter&       _writer,
+    JsonWriter       _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -52,7 +53,7 @@ void TagComponent::Serialize(
 }
 
 void TagComponent::Deserialize(
-    JsonReader&       _reader,
+    JsonReader       _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -63,19 +64,15 @@ void TagComponent::DrawEditor(
     Ref<Scene>& _pScene,
     Entity      _entity)
 {
-    if (ImGui::BeginTable("TagEdtior", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("TagComponent"))
     {
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::InputText("##TagName", &name);
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 }
 

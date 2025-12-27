@@ -2,6 +2,7 @@
 
 #include "SpotLightComponent.h"
 
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
 #include "JsonUtilities.h"
@@ -10,7 +11,7 @@ namespace jam
 {
 
 void SpotLightComponent::Serialize(
-    JsonWriter&       _writer,
+    JsonWriter       _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -23,7 +24,7 @@ void SpotLightComponent::Serialize(
 }
 
 void SpotLightComponent::Deserialize(
-    JsonReader&       _reader,
+    JsonReader       _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -39,55 +40,45 @@ void SpotLightComponent::DrawEditor(
     Ref<Scene>& _pScene,
     Entity      _entity)
 {
-    if (ImGui::BeginTable("SpotLightEditor", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("SpotLightComponent"))
     {
-        // setup table
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("radiance");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::ColorEdit3("##SpotlightRadiance", &radiance.x);
 
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("intensity");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_DragFloat("##SpotlightIntensity", &intensity, 0.005f, 0.f, 10.f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        Widget_SliderFloat("##SpotlightIntensity", &intensity, 0.f, 1.f);
 
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("fall off start");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_DragFloat("##SpotlightFallOffStart", &fallOffStart, 0.05f, 0.f, fallOffEnd - k_epsilon, "%.1f", ImGuiSliderFlags_ClampOnInput);
+        Widget_DragFloat("##SpotlightFallOffStart", &fallOffStart, 0.01f, 0.f, fallOffEnd, "%.2f");
 
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("fall off end");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_DragFloat("##SpotlightFallOffEnd", &fallOffEnd, 0.05f, fallOffStart + k_epsilon, k_floatMax, "%.1f", ImGuiSliderFlags_ClampOnInput);
+        Widget_DragFloat("##SpotlightFallOffEnd", &fallOffEnd, 0.01f, fallOffStart, Camera::k_maxZ, "%.2f");
 
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("inner cone half rad (deg)");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         Widget_DragAngle("##SpotlightInnerConeHalfRad", innerConeHalfRad, 1.f, 0.f, 179.f);
 
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("outer cone half rad (deg)");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_DragAngle("##SpotlightOuterConeHalfRad", outerConeHalfRad, 1.f, innerConeHalfRad + ToRad(1.f), 179.f);
+        Widget_DragAngle("##SpotlightOuterConeHalfRad", outerConeHalfRad, 1.f, ToDeg(innerConeHalfRad), 179.f);
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 }
 

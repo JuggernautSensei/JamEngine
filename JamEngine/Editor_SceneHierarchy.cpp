@@ -5,7 +5,7 @@
 #include "AssetManager.h"
 #include "Editor.h"
 #include "EditorUtilities.h"
-#include "Magic.h"
+#include "Magics.h"
 #include "Model.h"
 
 #include "Scene.h"
@@ -276,7 +276,7 @@ void Editor_SceneHierarchy::CreateEntityTreeFromModel_(const Ref<Model>& _model)
 void Editor_SceneHierarchy::CreateEntityTreeFromModelNode_Recursive_(const ModelNode& _node, const Entity _parentOrNull, const Vector<fs::path>& _meshs, const Vector<fs::path>& _mats)
 {
     Ref<Scene>&         pScene = SceneManager::GetActiveScene();
-    Entity              entity = pScene->CreateEntity(_node.name);
+    Entity              entity = pScene->CreateEntity();
     SceneNode& th     = entity.GetSceneNode();
 
     // _parentOrNull 이 유효하면 부모 설정

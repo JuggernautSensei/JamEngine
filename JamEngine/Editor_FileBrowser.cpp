@@ -14,7 +14,7 @@
 #include "Input.h"
 #include "RemoveNotEmptyDirectoryDialog.h"
 #include "RenameFileDialog.h"
-#include "DialogUtilities.h"
+#include "WindowsUtilities.h"
 
 namespace jam
 {
@@ -501,9 +501,9 @@ void Editor_FileBrowser::Widget_FileEntry_(const FileEntry& _entry, const ImVec2
     {
         const Ref<Thumbnail>& pThumbnail = _entry.pThumbnail;
 
-        const Vec2i res       = pThumbnail->GetResolution();
-        const float      aspect    = static_cast<float>(res.width) / static_cast<float>(res.height);
-        const ImVec2     imgaeSize = aspect >= 1.f ? ImVec2 { _size.x, _size.x / aspect } : ImVec2 { _size.y * aspect, _size.y };
+        const Vec2i  res       = pThumbnail->GetResolution();
+        const float  aspect    = static_cast<float>(res.width) / static_cast<float>(res.height);
+        const ImVec2 imgaeSize = aspect >= 1.f ? ImVec2 { _size.x, _size.x / aspect } : ImVec2 { _size.y * aspect, _size.y };
 
         const ImVec2 offset = (_size - imgaeSize) * 0.5f;
         const ImVec2 p0     = itemLeftTop + offset;
@@ -554,7 +554,6 @@ void Editor_FileBrowser::Widget_FileEntry_(const FileEntry& _entry, const ImVec2
             {
                 OpenFileAsDefaultApplication_(_entry.path);
             }
-
         }
 
         if (ImGui::MenuItem("open in explorer"))

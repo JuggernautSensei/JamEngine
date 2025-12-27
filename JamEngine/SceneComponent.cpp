@@ -3,6 +3,8 @@
 #include "Json.h"
 #include "Scene.h"
 #include "SceneComponent.h"
+
+#include "EditorUtilities.h"
 #include "JsonUtilities.h"
 
 #include "EditorWidgets.h"
@@ -21,7 +23,7 @@ SceneComponent::SceneComponent(
 }
 
 void SceneComponent::Serialize(
-    JsonWriter&       _writer,
+    JsonWriter       _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -44,7 +46,7 @@ void SceneComponent::Serialize(
 }
 
 void SceneComponent::Deserialize(
-    JsonReader&       _reader,
+    JsonReader       _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -60,12 +62,7 @@ void SceneComponent::Deserialize(
     // parent
     if (Optional<JsonReader> parentReader = _reader.EnterField("parent"))
     {
-        if (parentReader->IsNull())
-        {
-            // no parent (maybe root)
-            node.SetParent(Entity::s_null);
-        }
-        else
+        if (!parentReader->IsNull())
         {
             UID parentUid;
             if (parentReader->Read(parentUid))
@@ -87,7 +84,7 @@ void SceneComponent::Deserialize(
 
 void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
 {
-    if (ImGui::BeginTable("TransformEditor", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("SceneComponent"))
     {
         // coordinate space
         enum class eCoordinate
@@ -104,12 +101,6 @@ void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
         const bool       bIsWorld  = s_coord == eCoordinate::World;
         const Transform& transform = bIsWorld ? node.GetWorldTransform() : node.GetLocalTransform();
 
-        // get rotation (if not editing)
-        if (s_bPyrEditing == false)
-        {
-            s_pyr = transform.ToPitchYawRoll();
-        }
-
         // get translation & scale
         Vec3 translation = transform.GetTranslation();
         Vec3 scale       = transform.GetScale();
@@ -120,11 +111,10 @@ void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
 
         // translation
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("translation");
             ImGui::TableNextColumn();
-            if (Widget_DragTranslation("##TransformTranslation", &translation))
+            if (Widget_DragTranslation("##TransformTranslation", translation))
             {
                 if (bIsWorld)
                 {
@@ -139,7 +129,13 @@ void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
 
         // rotation
         {
-            ImGui::TableNextRow();
+
+            // get rotation (if not editing)
+            if (s_bPyrEditing == false)
+            {
+                s_pyr = transform.ToPitchYawRoll();
+            }
+
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("rotation");
             ImGui::TableNextColumn();
@@ -165,11 +161,10 @@ void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
 
         // scale
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("scale");
             ImGui::TableNextColumn();
-            if (Widget_DragScale("##TransformScale", scale, 0.5f, 0.5f))
+            if (Widget_DragScale("##TransformScale", scale))
             {
                 if (bIsWorld)
                 {
@@ -184,7 +179,6 @@ void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
 
         // space radio buttons
         {
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
             Widget_FrameAlignedText("mode");
             ImGui::TableNextColumn();

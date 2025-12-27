@@ -17,7 +17,7 @@ enum class eLogLevel
     Off      = spdlog::level::off
 };
 
-using SinkPtr = spdlog::sink_ptr;
+using SinkRef = spdlog::sink_ptr;
 
 class Log
 {
@@ -28,9 +28,9 @@ public:
     static void AddSink(StringView _name, const spdlog::sink_ptr& _pSink);
     static void RemoveSink(StringView _name);
 
-    [[nodiscard]] static const SinkPtr& GetSink(StringView _name);
-    [[nodiscard]] static const SinkPtr& GetConsoleSink();
-    [[nodiscard]] static const SinkPtr& GetFileSink();
+    [[nodiscard]] static const SinkRef& GetSink(StringView _name);
+    [[nodiscard]] static const SinkRef& GetConsoleSink();
+    [[nodiscard]] static const SinkRef& GetFileSink();
 
     template<typename... Args>
     static void Logging(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)

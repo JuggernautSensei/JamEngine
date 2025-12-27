@@ -31,6 +31,16 @@ void SceneSerializer::Serialize(
     JAM_ASSERT(_pScene, "scene is null");
     JAM_FUNCTION_MSG_PROFILE("scene name: {}", _pScene->GetTypeName());
 
+    /*
+    ["sceneType"]  = scene type name
+    ["entities"]   = array of entity UIDs
+    ["components"] = array of component entries
+
+    component entry = [ typeName, [ array of component values ] ]    << this is size 2 array
+    component value = [ uid, data ]                                  << this is size 2 array
+
+    */
+
     // scene data
     const HashMap<UID, Entity>& entities    = _pScene->GetEntities();
     const Int32&                numEntities = _pScene->GetNumEntities();
@@ -65,12 +75,7 @@ void SceneSerializer::Serialize(
         writer.WriteField("entities", std::move(uids));
     }
 
-    // components
-    // ㄴ array of component entries
-    // component entry
-    // ㄴ [ typeName, [ array of component values ] ]
-    // component value
-    // ㄴ [ uid, data ]
+    // write components
     {
         JsonWriter         cmpsWriter = writer.WriteField("components");   // components array
         const ComponentDB& db         = ComponentDB::GetInstance();

@@ -60,8 +60,8 @@ float4 PSMain(PS_INPUT _input) : SV_TARGET
 void TriangleScene::OnEnter()
 {
     VertexLayout layout;
-    layout.Add(eVertexAttribute::Position, eAttributeFormat::Float2);
-    layout.Add(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+    layout.Push(eVertexAttribute::Position, eAttributeFormat::Float2);
+    layout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
 
     // 버텍스 버퍼
     MyVertex verts[3] = {
@@ -79,7 +79,7 @@ void TriangleScene::OnEnter()
     {
         // vertex shader
         ShaderCompiler compiler;
-        if (!compiler.CompileSource(k_source, eShader::VertexShader, "VSMain"))
+        if (!compiler.CompileHLSLSource(k_source, eShader::VertexShader, "VSMain"))
         {
             Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
             JAM_ASSERT(0, "shader compile failed");
@@ -87,7 +87,7 @@ void TriangleScene::OnEnter()
         const ShaderHandle vsh = Graphics::CreateShader(compiler.GetBytecode());
 
         // pixel shader
-        if (!compiler.CompileSource(k_source, eShader::PixelShader, "PSMain"))
+        if (!compiler.CompileHLSLSource(k_source, eShader::PixelShader, "PSMain"))
         {
             Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
             JAM_ASSERT(0, "shader compile failed");

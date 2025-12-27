@@ -41,7 +41,7 @@ VertexLayout VertexLayoutEditorDialog::BuildLayout_() const
     for (Int32 i = 0; i < m_count; ++i)
     {
         const Element& elem = m_elems[i];
-        vl.Add(elem.attrib, elem.format);
+        vl.Push(elem.attrib, elem.format);
     }
     return vl;
 }

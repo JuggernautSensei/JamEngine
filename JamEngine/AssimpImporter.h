@@ -1,6 +1,5 @@
 #pragma once
 
-#include "IImporter.h"
 #include "ImageBase.h"
 #include "Material.h"
 
@@ -18,14 +17,14 @@ struct ImportedMesh
 
     std::string name = {};
 
-    Vector<Vec3> positions    = {};
-    Vector<Vec3> normals      = {};
-    Vector<Vec3> tangents     = {};
-    Vector<Vec3> bitangents   = {};
-    Vector<Vec4> colors[4]    = {};
-    Vector<Vec2> texCoords[4] = {};
-    Vector<Byte> idxData      = {};
-    bool         bUseU32      = false;
+    Vector<Vec3>           positions  = {};
+    Vector<Vec3>           normals    = {};
+    Vector<Vec3>           tangents   = {};
+    Vector<Vec3>           bitangents = {};
+    Array<Vector<Vec4>, 4> colors     = {};
+    Array<Vector<Vec2>, 4> texCoords  = {};
+    Vector<Byte>           idxData    = {};
+    bool                   bUseU32    = false;
 };
 
 struct ImportedMaterial
@@ -48,6 +47,7 @@ struct ImportedMaterial
     eTextureChannel metallicTexChannel  = eTextureChannel::Red;
     eTextureChannel roughnessTexChannel = eTextureChannel::Red;
 
+    // texture index of m_textures array
     Int32 albedoTexIdx             = k_invalidImportedIdx;
     Int32 normalTexIdx             = k_invalidImportedIdx;
     Int32 metallicTexIdx           = k_invalidImportedIdx;
@@ -79,12 +79,11 @@ struct ImportedModelNode
     Vector<ImportedModelNode> children = {};
 };
 
-class AssimpImporter : public IImporter
+class AssimpImporter
 {
 public:
-    bool Import() override;
+    bool Import(const fs::path& _path);
 
-    void SetPath(const fs::path& _path) override;
     void GenerateTangentFrame(bool _bDropExistTangents);
     void GenerateNormals(bool _bDropExistNormals);
     void LimitBoneWeight();
@@ -96,6 +95,8 @@ public:
     [[nodiscard]] const Vector<ImportedTexture>&  GetTextures() const;
 
 private:
+    void CleanUp_();
+
     [[nodiscard]] Vector<ImportedMesh>     ImportMeshesFrom_(const aiScene* _pScene) const;
     [[nodiscard]] Vector<ImportedTexture>  ImportTexturesFrom_(const aiScene* _pScene) const;
     [[nodiscard]] Vector<ImportedMaterial> ImportMaterialsFrom_(const aiScene* _pScene) const;
@@ -105,13 +106,12 @@ private:
     Vector<ImportedMaterial> m_materials = {};
     Vector<ImportedTexture>  m_textures  = {};
 
-    fs::path m_path                      = {};
-    bool     m_bGenerateTangentFrame     = false;
-    bool     m_bDropExistingTangentFrame = false;
-    bool     m_bGenerateNormals          = false;
-    bool     m_bDropExistingNormals      = false;
-    bool     m_bLimitBondWeights         = false;
-    bool     m_bLoadStaticMesh           = false;
+    bool m_bGenerateTangentFrame     = false;
+    bool m_bDropExistingTangentFrame = false;
+    bool m_bGenerateNormals          = false;
+    bool m_bDropExistingNormals      = false;
+    bool m_bLimitBondWeights         = false;
+    bool m_bLoadStaticMesh           = false;
 };
 
 }   // namespace jam

@@ -30,3 +30,5 @@
 
 #define JAM_STRINGIFY_MACRO(x) #x
 #define JAM_EXPAND_MACRO(x)    x
+
+#define JAM_COUNT_OF(_arr) ((int)(sizeof(_arr) / sizeof(_arr[0])))

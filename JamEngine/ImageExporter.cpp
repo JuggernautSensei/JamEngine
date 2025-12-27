@@ -5,47 +5,46 @@
 #include "Graphics.h"
 #include <DirectXTexEXR.h>
 
+#include "Profile.h"
+
 namespace jam
 {
 
-bool ImageExporter::Export()
+bool ImageExporter::Export(
+    const TextureHandle _texh,
+    const fs::path&     _path,
+    const eImageFormat  _format,
+    const bool          _bChangeExtenstion) const
 {
-    JAM_ASSERT(JAM_IS_VALID_HANDLE(m_texh), "invalid texture handle");
+    JAM_FUNCTION_MSG_PROFILE("Export Image: {}", _path.native());
+    JAM_ASSERT(_texh != k_invalidHandle, "Invalid texture handle");
 
-    if (m_path.empty())
+    fs::path exportPath = _path;
+    if (_bChangeExtenstion)
     {
-        GlobalBuffer::SetLastError("file path is empty");
-        return false;
+        const StringView ext = StringFrom(_format);
+        exportPath.replace_extension(ext.GetPtr());
     }
 
-    const Optional<eImageFormat> optFormat = ImageFormatFrom(m_path);
-    if (!optFormat)
-    {
-        GlobalBuffer::SetLastError("cannot determine image format from file extension: '{}'", m_path.native());
-        return false;
-    }
-
-    const DirectX::ScratchImage scratchImg = Graphics::Capture(m_texh);
-    const eImageFormat          format     = optFormat.value();
-    const std::wstring          path       = m_path.wstring();
-    HRESULT                     hr         = E_FAIL;
-
-    switch (format)
+    const DirectX::ScratchImage scratchImg = Graphics::Capture(_texh);
+    const std::wstring          wPath      = exportPath.wstring();
+    HRESULT                     hr;
+    switch (_format)
     {
         case eImageFormat::EXR:
-            hr = DirectX::SaveToEXRFile(*scratchImg.GetImage(0, 0, 0), path.c_str());
+            hr = DirectX::SaveToEXRFile(*scratchImg.GetImage(0, 0, 0), wPath.c_str());
             break;
 
         case eImageFormat::DDS:
-            hr = DirectX::SaveToDDSFile(scratchImg.GetImages(), scratchImg.GetImageCount(), scratchImg.GetMetadata(), DirectX::DDS_FLAGS_NONE, path.c_str());
+            hr = DirectX::SaveToDDSFile(scratchImg.GetImages(), scratchImg.GetImageCount(), scratchImg.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath.c_str());
             break;
 
         case eImageFormat::HDR:
-            hr = DirectX::SaveToHDRFile(*scratchImg.GetImage(0, 0, 0), path.c_str());
+            hr = DirectX::SaveToHDRFile(*scratchImg.GetImage(0, 0, 0), wPath.c_str());
             break;
 
         case eImageFormat::TGA:
-            hr = DirectX::SaveToTGAFile(*scratchImg.GetImage(0, 0, 0), path.c_str());
+            hr = DirectX::SaveToTGAFile(*scratchImg.GetImage(0, 0, 0), wPath.c_str());
             break;
 
         case eImageFormat::BMP:
@@ -61,34 +60,19 @@ bool ImageExporter::Export()
         case eImageFormat::ICO:
         case eImageFormat::HEIF:
         case eImageFormat::HEIC:
-            hr = DirectX::SaveToWICFile(*scratchImg.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(format)), path.c_str());
+            hr = DirectX::SaveToWICFile(*scratchImg.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), wPath.c_str());
             break;
 
         default:
-            GlobalBuffer::SetLastError("Unsupported image format: '{}'", m_path.native());
+            GlobalBuffer::SetLastError("Unsupported image format: '{}'", exportPath.native());
             return false;
     }
-
     if (FAILED(hr))
     {
-        GlobalBuffer::SetLastError("Failed to save image to file: '{}', {}", m_path.native(), StringFrom(hr));
+        GlobalBuffer::SetLastError("Failed to save image to file: '{}', {}", exportPath.native(), StringFrom(hr));
         return false;
     }
-
     return true;
-}
-
-void ImageExporter::SetPath(
-    const fs::path& _path)
-{
-    m_path = _path;
-}
-
-void ImageExporter::SetTexture(
-    const TextureHandle _texh)
-{
-    JAM_ASSERT(_texh != k_invalidHandle, "invalid texture handle");
-    m_texh = _texh;
 }
 
 DirectX::WICCodecs ImageExporter::WICCodecsFrom_(

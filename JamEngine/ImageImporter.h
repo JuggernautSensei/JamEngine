@@ -1,13 +1,12 @@
 #pragma once
 #include "GraphicsBase.h"
-#include "IImporter.h"
 #include "ImageBase.h"
 #include "MemView.h"
 
 namespace jam
 {
 
-class ImageImporter : public IImporter
+class ImageImporter
 {
 
     enum eImportType
@@ -18,14 +17,10 @@ class ImageImporter : public IImporter
     };
 
 public:
-    bool                                       Import() override;
-    [[nodiscard]] const DirectX::ScratchImage& GetScratchImage() const;
+    bool Import(const fs::path& _path);
+    bool ImportMemory(CMemView _mem, eImageFormat _imageFormat);
 
-    // set source
-    void SetMemory(CMemView _memory, eImageFormat _imageFormat);   // load from memory
-    void SetPath(const fs::path& _path) override;                  // load from file
-
-    // post process
+    // postprocess settings
     void ConvertFormat(bool _bEnable, eTextureFormat _format, float _threshold = 0.5f);
     void ForceSRGB(bool _bEnable);
     void GenerateMips(bool _bEnable);
@@ -34,19 +29,14 @@ public:
     void FlipHorizontal(bool _bEnable);
     void PreMultiplyAlpha(bool _bEnable);
 
+    // result
+    [[nodiscard]] TextureHandle GetTexture() const;
+
 private:
-    bool ImportFile_();
-    bool ImportSource_();
+    [[nodiscard]] Optional<DirectX::ScratchImage> PostProcess_(DirectX::ScratchImage&& _srcScratchImg);
 
     // result
-    DirectX::ScratchImage m_scratchImg;
-
-    // import from path
-    fs::path m_path = {};
-
-    // import from mem
-    CMemView     m_mem       = {};
-    eImageFormat m_memFormat = eImageFormat::DDS;
+    TextureHandle m_texh = k_invalidHandle;
 
     // import type
     eImportType m_importType = eImportType::Unknown;

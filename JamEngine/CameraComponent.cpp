@@ -2,6 +2,7 @@
 
 #include "CameraComponent.h"
 
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
 #include "JsonUtilities.h"
@@ -11,7 +12,7 @@ namespace jam
 {
 
 void CameraComponent::Serialize(
-    JsonWriter&       _writer,
+    JsonWriter       _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -29,7 +30,7 @@ void CameraComponent::Serialize(
 }
 
 void CameraComponent::Deserialize(
-    JsonReader&       _reader,
+    JsonReader       _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -66,12 +67,8 @@ void CameraComponent::DrawEditor(
     const Ref<Scene>& _pScene,
     const Entity      _entity)
 {
-    if (ImGui::BeginTable("CameraEditor", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("CameraComponent"))
     {
-        // setup table
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
         // variables
         eProjection proj        = camera.GetProjection();
         Vec2        nearFarZ    = { camera.GetNearZ(), camera.GetFarZ() };
@@ -79,30 +76,27 @@ void CameraComponent::DrawEditor(
         Vec2        widthHeight = { camera.GetWidth(), camera.GetHeight() };
 
         // projection
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("projection");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        if (Widget_ProjectionEnumCombo("##CameraProjSelector", proj))
+        if (Widget_ProjectionCombo("##CameraProjSelector", proj))
         {
             camera.SetProjection(proj);
         }
 
         // near z
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("near / far z");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        if (Widget_DragDistance2("##CameraNearFarZ", nearFarZ, 0.01f, Camera::k_minZ, Camera::k_maxZ))
+        if (Widget_DragFloat2("##CameraNearFarZ", &nearFarZ.x, 0.01f, Camera::k_minZ, Camera::k_maxZ, "%.2fm"))
         {
             camera.SetNearZ(nearFarZ.x);
             camera.SetFarZ(nearFarZ.y);
         }
 
         // fov y
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("fov y");
         ImGui::TableNextColumn();
@@ -113,25 +107,24 @@ void CameraComponent::DrawEditor(
         }
 
         // width / height
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("width / height");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        if (Widget_DragDistance2("##CameraWidthHeight", widthHeight, 0.01f, Camera::k_minWidthHeight, Camera::k_maxWidthHeight, "%.2f"))
+        if (Widget_DragFloat2("##CameraWidthHeight", &widthHeight.x, 0.1f, Camera::k_minWidthHeight, Camera::k_maxWidthHeight, "%.1f"))
         {
             camera.SetWidth(widthHeight.x);
             camera.SetHeight(widthHeight.y);
         }
 
         // main
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("enable");
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
         ImGui::Checkbox("##CameraEnable", &bEnabled);
-        ImGui::EndTable();
+
+        ImGui::EndTable()();
     }
 }
 

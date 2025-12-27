@@ -38,7 +38,19 @@ Vec3 Transform::GetBackward() const
 
 const Mat4& Transform::GetMatrix() const
 {
-    UpdateDirty_();
+    // update dirty
+    if (m_bDirty)
+    {
+        m_mtxCache = Mat4 {
+            ToVec4(m_right, 0.0f),
+            ToVec4(m_up, 0.0f),
+            ToVec4(m_forward, 0.0f),
+            ToVec4(m_origin, 1.0f)
+        };
+
+        m_bDirty = false;
+    }
+
     return m_mtxCache;
 }
 
@@ -61,7 +73,8 @@ Mat4 Transform::ToViewMatrix() const
     };
 }
 
-void Transform::SetMatrix(const Mat4& _mtx)
+void Transform::SetMatrix(
+    const Mat4& _mtx)
 {
     m_right    = _mtx.Right();
     m_up       = _mtx.Up();
@@ -99,10 +112,18 @@ void Transform::Invert()
     m_bDirty  = true;
 }
 
-void Transform::Mult(const Transform& _trans)
+Transform Transform::Multed(
+    const Transform& _trans) const
 {
-    UpdateDirty_();
-    SetMatrix(m_mtxCache * _trans.GetMatrix());
+    Transform result = *this;
+    result.Mult(_trans);
+    return result;
+}
+
+void Transform::Mult(
+    const Transform& _trans)
+{
+    SetMatrix(GetMatrix() * _trans.GetMatrix());
 }
 
 Vec3 Transform::GetScale() const
@@ -394,21 +415,6 @@ void Transform::AddTranslationZ(const float _z)
 {
     m_origin.z += _z;
     m_bDirty = true;
-}
-
-void Transform::UpdateDirty_() const
-{
-    if (m_bDirty)
-    {
-        m_mtxCache = Mat4 {
-            ToVec4(m_right, 0.0f),
-            ToVec4(m_up, 0.0f),
-            ToVec4(m_forward, 0.0f),
-            ToVec4(m_origin, 1.0f)
-        };
-
-        m_bDirty = false;
-    }
 }
 
 }   // namespace jam

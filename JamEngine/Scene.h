@@ -35,8 +35,10 @@ public:
     [[nodiscard]] virtual TextureHandle GetDepthTexture() const;
 
     // item management
-    [[nodiscard]] Entity CreateEntity(StringView _name = {});
-    [[nodiscard]] Entity CreateEntity(UID _uid, StringView _name = {});   // 특정 UID로 엔티티 생성, 이미 존재하는 UID면 assert 발생
+    Entity CreateEntity();
+    Entity CreateEntity(StringView _name);
+    Entity CreateEntity(UID _uid);   // 특정 UID로 엔티티 생성, 이미 존재하는 UID면 assert 발생
+    Entity CreateEntity(UID _uid, StringView _name);
 
     [[nodiscard]] Entity GetEntity(UID _uid) const;
     [[nodiscard]] Entity FindEntity(UID _uid) const;   // 해당 UID를 가진 엔티티가 없으면 null 엔티티 반환
@@ -77,6 +79,7 @@ public:
     [[nodiscard]] Entity                      GetRootEntity() const;
     [[nodiscard]] Int32                       GetNumEntities() const;
     [[nodiscard]] const HashMap<UID, Entity>& GetEntities() const;
+    [[nodiscard]] Vector<Entity>              GetModifiedTransformEntities() const;   // 해당 배열은 OnRender 함수 호출 직전에 초기화됨
 
     [[nodiscard]] virtual StringView GetTypeName() const = 0;
 
@@ -86,31 +89,30 @@ protected:
 private:
     void                 DestroyEntity_Recursive_(Entity _entity);
     [[nodiscard]] Entity CloneEntity_Recursive_(Entity _srcEntity);
-    [[nodiscard]] Entity CreateEntity_(UID _uid, StringView _name = {});
+    [[nodiscard]] Entity CreateEntity_(UID _uid, Optional<StringView> _name);
     [[nodiscard]] Entity CreateRootEntity_();
 
-    void UpdateSceneGraph_();                 // call before rendering
-    void ProcessDeferredDestroyEntities_();   // call begin frame
+    void UpdateSceneGraph_();   // call before rendering
 
-    entt::registry       m_registry                = {};
-    UIDGenerator         m_uidGenerator            = {};
-    HashMap<UID, Entity> m_entities                = {};
-    Entity               m_root                    = Entity::s_null;
-    Vector<Entity>       m_deferredDestroyEntities = {};
+    entt::registry       m_registry                  = {};
+    UIDGenerator         m_uidGenerator              = {};
+    HashMap<UID, Entity> m_entities                  = {};
+    Entity               m_root                      = Entity::s_null;
+    Vector<Entity>       m_modifiedTransformEntities = {};
 
     constexpr static UID k_reservedUidForRoot = 0;
 };
 
 }   // namespace jam
 
-#define JAM_SCENE(_class)                                                       \
-public:                                                                         \
-    constexpr static StringView k_name = NameOf<_class>();                      \
-    [[nodiscard]] StringView    GetTypeName() const override { return k_name; } \
-                                                                                \
-private:                                                                        \
-    inline static bool _scene_reflect_ = []                                     \
-    {                                                                           \
-        jam::SceneDB::GetInstance().Reflect<_class>();                          \
-        return true;                                                            \
+#define JAM_SCENE(_class)                                                           \
+public:                                                                             \
+    constexpr static StringView k_typename = NameOf<_class>();                      \
+    [[nodiscard]] StringView    GetTypeName() const override { return k_typename; } \
+                                                                                    \
+private:                                                                            \
+    inline static bool _scene_reflect_ = []                                         \
+    {                                                                               \
+        jam::SceneDB::GetInstance().Reflect<_class>();                              \
+        return true;                                                                \
     }()

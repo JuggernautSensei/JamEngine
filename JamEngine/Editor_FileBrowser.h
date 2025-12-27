@@ -34,14 +34,14 @@ class Editor_FileBrowser
 
         [[nodiscard]] bool            IsDummy() const;
         [[nodiscard]] ImTextureRef    GetImTexturRef() const;
-        [[nodiscard]] Vec2i      GetResolution() const;
+        [[nodiscard]] Vec2i           GetResolution() const;
         [[nodiscard]] const fs::path& GetPath() const;
 
     private:
         void CleanUp_();
 
         fs::path      m_path   = {};
-        Vec2i    m_res    = {};
+        Vec2i         m_res    = {};
         TextureHandle m_handle = k_invalidHandle;
 
         constexpr static SIZE k_thumbnailSize = { 128, 128 };
@@ -49,10 +49,10 @@ class Editor_FileBrowser
 
     struct DirNode
     {
-        std::string          name       = {};
-        fs::path             path       = {};
+        std::string     name       = {};
+        fs::path        path       = {};
         Vector<DirNode> children   = {};
-        bool                 bIsFocused = false;
+        bool            bIsFocused = false;
     };
 
     struct FileEntry
@@ -76,14 +76,14 @@ class Editor_FileBrowser
         [[nodiscard]] Ref<Thumbnail> LoadThumbnail(const fs::path& _path);
 
     private:
-        void                                CollectThumbnailsInDirectory_(const fs::path& _dirPath);
+        void                           CollectThumbnailsInDirectory_(const fs::path& _dirPath);
         [[nodiscard]] Optional<UInt64> GetLastModifiedTime_(const fs::path& _path) const;
 
-        Ref<Thumbnail>              m_pDummyThumbnail = nullptr;
-        HashMap<fs::path, Item>     m_pathToItem      = {};
-        Vector<Ref<Thumbnail>> m_thumbnails      = {};
-        Int32                       m_end             = 0;
-        Int32                       m_cap             = 0;
+        Ref<Thumbnail>          m_pDummyThumbnail = nullptr;
+        HashMap<fs::path, Item> m_pathToItem      = {};
+        Vector<Ref<Thumbnail>>  m_thumbnails      = {};
+        Int32                   m_end             = 0;
+        Int32                   m_cap             = 0;
     };
 
 public:
@@ -142,9 +142,9 @@ private:
     void OpenFileOnFileExplorer_(const fs::path& _path) const;
 
     // file watcher
-    std::unique_ptr<efsw::FileWatcher>       m_pFileWatcher       = nullptr;
-    std::unique_ptr<efsw::FileWatchListener> m_pFileWatchListener = nullptr;
-    efsw::WatchID                            m_watchID            = 0;
+    Scoped<efsw::FileWatcher>       m_pFileWatcher       = nullptr;
+    Scoped<efsw::FileWatchListener> m_pFileWatchListener = nullptr;
+    efsw::WatchID                   m_watchID            = 0;
 
     // navigation state
     fs::path               m_focusDir          = {};
@@ -156,8 +156,8 @@ private:
 
     // file entries
     Vector<FileEntry> m_fileEntries;
-    ImGuiTextFilter        m_fileEntryFilter;
-    ThumbnailCache         m_thumbnailCache;
+    ImGuiTextFilter   m_fileEntryFilter;
+    ThumbnailCache    m_thumbnailCache;
 
     // update flags
     bool m_bNeedUpdateDirTree     = true;

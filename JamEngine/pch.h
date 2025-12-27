@@ -56,10 +56,11 @@
 #include "Error.h"
 #include "TypeTrait.h"
 #include "Math.h"
+#include "MemView.h"
 #include "BaseUtilities.h"
 #include "StringView.h"
 #include "RefCounted.h"
-#include "MemView.h"
+#include "Scoped.h"
 #include "Log.h"
 
 // utilities
@@ -67,7 +68,6 @@
 #include "StringUtilities.h"
 #include "FileSystemUtilities.h"
 #include "EnumUtilities.h"
-#include "FunctionRef.h"
 
 // 3rd party glue
 #include "Json.h"

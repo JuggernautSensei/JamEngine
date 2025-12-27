@@ -18,9 +18,9 @@ struct ComponentInfo
     std::function<void*(Entity)>             getFn          = nullptr;
     std::function<bool(Entity)>              hasFn          = nullptr;
 
-    std::function<void(const void*, JsonWriter&, const Ref<Scene>&, Entity)> serializeFn   = nullptr;
-    std::function<void(void*, JsonReader&, const Ref<Scene>&, Entity)>       deserializeFn = nullptr;
-    std::function<void(void*, Ref<Scene>&, Entity)>                          drawEditorFn  = nullptr;
+    std::function<void(const void*, JsonWriter, const Ref<Scene>&, Entity)> serializeFn   = nullptr;
+    std::function<void(void*, JsonReader, const Ref<Scene>&, Entity)>       deserializeFn = nullptr;
+    std::function<void(void*, Ref<Scene>&, Entity)>                         drawEditorFn  = nullptr;
 
     bool bCannotRemovable = false;
     bool bCannotCreatable = false;
@@ -67,14 +67,14 @@ namespace details
     }
 
     template<typename T>
-    void Serialize(const void* _pComponent, JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _entity)
+    void Serialize(const void* _pComponent, JsonWriter _writer, const Ref<Scene>& _pScene, Entity _entity)
     {
         const T& component = *static_cast<const T*>(_pComponent);
         component.Serialize(_writer, _pScene, _entity);
     }
 
     template<typename T>
-    void Deserialize(void* _pComponent, JsonReader& _json, const Ref<Scene>& _pScene, Entity _entity)
+    void Deserialize(void* _pComponent, JsonReader _json, const Ref<Scene>& _pScene, Entity _entity)
     {
         T& component = *static_cast<T*>(_pComponent);
         component.Deserialize(_json, _pScene, _entity);
@@ -173,8 +173,8 @@ public:
     void                     Remove(StringView _name, Entity _entity) const;
     [[nodiscard]] void*      Get(StringView _name, Entity _entity) const;
     [[nodiscard]] bool       Has(StringView _name, Entity _entity) const;
-    void                     Serialize(StringView _name, const void* _pComponent, JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                     Deserialize(StringView _name, void* _pComponent, JsonReader& _json, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     Serialize(StringView _name, const void* _pComponent, JsonWriter _writer, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     Deserialize(StringView _name, void* _pComponent, JsonReader _json, const Ref<Scene>& _pScene, Entity _entity) const;
     void                     DrawEditor(StringView _name, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
     [[nodiscard]] bool       IsSerializable(StringView _name) const;
     [[nodiscard]] bool       IsEditable(StringView _name) const;
@@ -187,8 +187,8 @@ public:
     void                     Remove(UInt32 _typeId, Entity _entity) const;
     [[nodiscard]] void*      Get(UInt32 _typeId, Entity _entity) const;
     [[nodiscard]] bool       Has(UInt32 _typeId, Entity _entity) const;
-    void                     Serialize(UInt32 _typeId, const void* _pComponent, JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                     Deserialize(UInt32 _typeId, void* _pComponent, JsonReader& _json, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     Serialize(UInt32 _typeId, const void* _pComponent, JsonWriter _writer, const Ref<Scene>& _pScene, Entity _entity) const;
+    void                     Deserialize(UInt32 _typeId, void* _pComponent, JsonReader _json, const Ref<Scene>& _pScene, Entity _entity) const;
     void                     DrawEditor(UInt32 _typeId, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
     [[nodiscard]] bool       IsSerializable(UInt32 _typeId) const;
     [[nodiscard]] bool       IsEditable(UInt32 _typeId) const;
@@ -207,11 +207,8 @@ private:
 
 }   // namespace jam
 
-#define JAM_COMPONENT(_type)                           \
-private:                                               \
+#define JAM_COMPONENT(_type) \
+private:                     \
     inline static bool _component_reflect_ = [] { \
         jam::ComponentDB::GetInstance().Reflect<_type>(); \
-        return true; }(); \
-                                                       \
-public:                                                \
-    constexpr static bool _component_marker_ = true
+        return true; }();

@@ -1,6 +1,6 @@
 #pragma once
 #include "IAsset.h"
-#include "Magic.h"
+#include "Magics.h"
 
 namespace jam
 {
@@ -32,19 +32,21 @@ public:
 
     [[nodiscard]] bool                    IsValid() const override;
     [[nodiscard]] eAssetType              GetAssetType() const override;
-    [[nodiscard]] StringView        GetTypeName() const override;
+    [[nodiscard]] StringView              GetTypeName() const override;
     [[nodiscard]] UInt32                  GetTypeHash() const override;
     [[nodiscard]] const fs::path&         GetPath() const override;
     [[nodiscard]] const ModelNode&        GetRootNode() const;
     [[nodiscard]] const Vector<fs::path>& GetMeshs() const;
     [[nodiscard]] const Vector<fs::path>& GetMaterials() const;
 
-    static constexpr UInt32           k_hash      = HashOf<Model>();
+    static constexpr UInt32     k_hash      = HashOf<Model>();
     static constexpr StringView k_name      = NameOf<Model>();
-    static constexpr eAssetType       k_type      = eAssetType::Model;
+    static constexpr eAssetType k_type      = eAssetType::Model;
     static constexpr StringView k_extension = k_jamModelExt;
 
 private:
+    void CleanUp_();
+
     fs::path         m_path      = {};
     ModelNode        m_root      = {};
     Vector<fs::path> m_meshPaths = {};

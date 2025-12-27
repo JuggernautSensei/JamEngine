@@ -30,23 +30,17 @@ void Scene::UpdateSceneGraph_()
 {
     JAM_ASSERT(m_root, "Root entity is null");
     SceneNode& node = m_root.GetSceneNode();
-    node.UpdateDirty_Recursive_();
+    node.UpdateDirty_(m_modifiedTransformEntities);   // collect modified nodes
 }
 
-void Scene::ProcessDeferredDestroyEntities_()
+Entity Scene::CreateEntity()
 {
-    for (const Entity entity: m_deferredDestroyEntities)
-    {
-        if (entity)   // block duplicated destroy
-        {
-            DestroyEntity_Recursive_(entity);
-        }
-    }
-
-    m_deferredDestroyEntities.clear();
+    const UID uid = m_uidGenerator.Alloc();
+    return CreateEntity_(uid, k_nullopt);
 }
 
-Entity Scene::CreateEntity(const StringView _name)
+Entity Scene::CreateEntity(
+    const StringView _name)
 {
     const UID uid = m_uidGenerator.Alloc();
     return CreateEntity_(uid, _name);
@@ -60,6 +54,13 @@ Entity Scene::CreateEntity(
     return CreateEntity_(uid, _name);
 }
 
+Entity Scene::CreateEntity(
+    const UID _uid)
+{
+    const UID uid = m_uidGenerator.Alloc(_uid);
+    return CreateEntity_(uid, k_nullopt);
+}
+
 Entity Scene::GetEntity(
     UID _uid) const
 {
@@ -71,7 +72,8 @@ Entity Scene::GetEntity(
 Entity Scene::FindEntity(
     const UID _uid) const
 {
-    if (const auto it = m_entities.find(_uid); it == m_entities.end())
+    const auto it = m_entities.find(_uid);
+    if (it == m_entities.end())
     {
         return Entity::s_null;
     }
@@ -87,14 +89,14 @@ Entity Scene::CloneEntity(
     return CloneEntity_Recursive_(_entity);
 }
 
-void Scene::DestroyEntity(const Entity _entity)
+void Scene::DestroyEntity(
+    const Entity _entity)
 {
-    JAM_ASSERT(_entity, "Entity is not valid");
-    JAM_ASSERT(_entity != m_root, "Cannot delete root entity");
-    m_deferredDestroyEntities.emplace_back(_entity);
+    DestroyEntity_Recursive_(_entity);
 }
 
-bool Scene::IsEntityValid(const Entity _entity) const
+bool Scene::IsEntityValid(
+    const Entity _entity) const
 {
     return m_registry.valid(_entity.GetHandle());
 }
@@ -115,6 +117,11 @@ const HashMap<UID, Entity>& Scene::GetEntities() const
     return m_entities;
 }
 
+Vector<Entity> Scene::GetModifiedTransformEntities() const
+{
+    return m_modifiedTransformEntities;
+}
+
 Scene::Scene()
 {
     m_root = CreateRootEntity_();
@@ -125,7 +132,9 @@ void Scene::DestroyEntity_Recursive_(Entity _entity)
     JAM_ASSERT(_entity, "Entity is not valid");
     JAM_ASSERT(_entity != m_root, "Cannot delete root entity");
 
-    // destroy all children recursively
+    // bottom -> up
+
+    // 자식들을 먼저 모두 파괴
     SceneNode& node  = _entity.GetSceneNode();
     Entity     child = node.GetFirstChild();
     while (child)
@@ -135,16 +144,16 @@ void Scene::DestroyEntity_Recursive_(Entity _entity)
         child = childSibling;
     }
 
-    // orphanize destroyed entity
+    // 씬 그래프에서 분리
     node.Orphanize();
 
-    // clean up resource
+    // 리소스 제거
     const UID uid = _entity.GetUID();
     m_entities.erase(uid);
     m_uidGenerator.Free(uid);
     m_registry.destroy(_entity.GetHandle());   // destroy
 
-    // dispatch event
+    // 이벤트 디스패치
     EntityDestroyedEvent event { uid };
     Application::GetInstance().DispatchEvent(event);
 }
@@ -154,10 +163,12 @@ Entity Scene::CloneEntity_Recursive_(Entity _srcEntity)
     JAM_ASSERT(_srcEntity, "Entity is not valid");
     JAM_ASSERT(_srcEntity != m_root, "Cannot clone root entity");
 
-    // cloned entity
+    // top -> down
+
+    // 새로운 엔티티 생성
     Entity entity = CreateEntity();
 
-    // copy
+    // 컴포넌트 카피
     const ComponentDB& db = ComponentDB::GetInstance();
     for (const UInt32 typeId: m_registry.storage() | std::views::keys)
     {
@@ -177,7 +188,7 @@ Entity Scene::CloneEntity_Recursive_(Entity _srcEntity)
         }
     }
 
-    // clone children recursively
+    // 자식들도 재귀적으로 클론
     const SceneNode& srcNode  = _srcEntity.GetSceneNode();
     Entity           srcChild = srcNode.GetFirstChild();
     while (srcChild)
@@ -191,7 +202,9 @@ Entity Scene::CloneEntity_Recursive_(Entity _srcEntity)
     return entity;
 }
 
-Entity Scene::CreateEntity_(UID _uid, const StringView _name)
+Entity Scene::CreateEntity_(
+    UID                  _uid,
+    Optional<StringView> _name)
 {
     JAM_ASSERT(m_uidGenerator.IsAllocated(_uid), "UID {} is not allocated", _uid);
 
@@ -207,7 +220,7 @@ Entity Scene::CreateEntity_(UID _uid, const StringView _name)
     entity.CreateComponent<SceneComponent>(SceneNode { m_root, entity });
 
     // create tag component if need
-    if (!_name.IsEmpty())
+    if (_name)
     {
         entity.CreateComponent<TagComponent>(_name);
     }

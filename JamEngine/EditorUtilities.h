@@ -12,4 +12,6 @@ bool                              SetEntityDragDropPayload(Entity _entity);
 [[nodiscard]] const ImGuiPayload* AcceptEntityDragDropPayload();
 [[nodiscard]] Entity              ResolveEntityDragDropPayload(const ImGuiPayload* _pPayload);
 
+bool BeginComponentEditTable(const char* _label);
+
 }   // namespace jam

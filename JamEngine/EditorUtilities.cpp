@@ -13,22 +13,26 @@ enum class eEditorPayload
     Entity,
 };
 
-constexpr const char* k_editorPayloadTable[] = {
-    "EDITOR_FILE",
-    "EDITOR_ENTITY",
-};
-
 const char* GetEditorPayload(const eEditorPayload _payload)
 {
-    return k_editorPayloadTable[IntFrom(_payload)];
+    switch (_payload)
+    {
+        case eEditorPayload::File:
+            return "JAM_EDITOR_PAYLOAD_FILE";
+        case eEditorPayload::Entity:
+            return "JAM_EDITOR_PAYLOAD_ENTITY";
+        default:
+            JAM_ASSERT(0, "unknown editor payload");
+            return "";
+    }
 }
 
 bool SetFileDragDropPayload(const fs::path& _path)
 {
-    const StringView path    = _path.native();
-    const char*            strPath = path.data();
-    const Int32            len     = NarrowCast<Int32>(path.size()) + 1;
-    return ImGui::SetDragDropPayload(GetEditorPayload(eEditorPayload::File), strPath, len);
+    const StringView path = _path.native();
+    const char*      str  = path.GetPtr();
+    const Int32      len  = path.GetLengthWithNullTerminator();
+    return ImGui::SetDragDropPayload(GetEditorPayload(eEditorPayload::File), str, len);
 }
 
 const ImGuiPayload* AcceptFileDragDropPayload()
@@ -63,6 +67,20 @@ Entity ResolveEntityDragDropPayload(const ImGuiPayload* _pPayload)
 
     const UID uid = *static_cast<const UID*>(_pPayload->Data);
     return SceneManager::GetActiveScene()->GetEntity(uid);
+}
+
+bool BeginComponentEditTable(const char* _label)
+{
+    if (ImGui::BeginTable(_label, 2, ImGuiTableFlags_SizingFixedFit))
+    {
+        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 }   // namespace jam

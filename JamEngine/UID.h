@@ -4,7 +4,7 @@ namespace jam
 {
 
 using UID                  = UInt32;
-constexpr UID k_invalidUID = std::numeric_limits<UID>::max();
+constexpr UID k_invalidUid = std::numeric_limits<UID>::max();
 
 class UIDGenerator
 {
@@ -18,7 +18,9 @@ public:
     void               Clear();
 
 private:
-    UID          nextUid = 0;
+    UID nextUid = 0;
+
+    Vector<UID>  m_freeUids;
     HashSet<UID> m_allocatedUids;
 };
 

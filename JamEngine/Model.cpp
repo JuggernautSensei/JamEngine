@@ -2,7 +2,7 @@
 
 #include "Model.h"
 
-#include "FileUtilities.h"
+#include "FileIOUtilities.h"
 #include "Profile.h"
 #include "Resources/flatc/jmtl_generated.h"
 
@@ -20,13 +20,12 @@ namespace jam
         }
     }
 
-    // delete invalid values
+    // 4행 고정
     vals[0 + 3]  = 0.0f;
     vals[4 + 3]  = 0.0f;
     vals[8 + 3]  = 0.0f;
     vals[12 + 3] = 1.0f;
 
-    // construct
     return jmtl::Matrix4x4(::flatbuffers::span<const float, 16>(vals.data(), vals.size()));
 }
 
@@ -56,6 +55,7 @@ static Optional<ModelNode> ModelNodeFrom_Recursive(
 {
     ModelNode node = {};
 
+    // name
     if (const flatbuffers::String* pName = _pJmtlNode->name())
     {
         node.name = pName->str();
@@ -66,6 +66,7 @@ static Optional<ModelNode> ModelNodeFrom_Recursive(
         return k_nullopt;
     }
 
+    // mesh indices
     if (const flatbuffers::Vector<Int32>* pMeshIndices = _pJmtlNode->mesh_indices())
     {
         node.meshIndices.reserve(pMeshIndices->size());
@@ -75,6 +76,7 @@ static Optional<ModelNode> ModelNodeFrom_Recursive(
         }
     }
 
+    // material indices
     if (const flatbuffers::Vector<Int32>* pMaterialIndices = _pJmtlNode->material_indice())
     {
         node.materialIndices.reserve(pMaterialIndices->size());
@@ -94,14 +96,16 @@ static Optional<ModelNode> ModelNodeFrom_Recursive(
         return k_nullopt;
     }
 
+    // children
     if (const auto* pJmtlNode = _pJmtlNode->children())
     {
         node.children.reserve(pJmtlNode->size());
         for (const jmtl::ModelNode* pFbsChildNode: *pJmtlNode)
         {
+            // recursive
             if (Optional<ModelNode> optNode = ModelNodeFrom_Recursive(pFbsChildNode))
             {
-                node.children.emplace_back(std::move(*optNode));
+                node.children.emplace_back(std::move(optNode.value()));
             }
             else
             {
@@ -114,13 +118,13 @@ static Optional<ModelNode> ModelNodeFrom_Recursive(
     return node;
 }
 
-static flatbuffers::Offset<jmtl::ModelNode> JmtlModelNodeFrom_Recursive(
+static flatbuffers::Offset<jmtl::ModelNode> JmtlModelNodeOffsetFrom_Recursive(
     flatbuffers::FlatBufferBuilder& _builder,
     const ModelNode&                _node)
 {
-    const auto      jmtlName          = _builder.CreateString(_node.name);
-    const auto      jmtlMeshIdxes     = _node.meshIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.meshIndices);
-    const auto      jmtlMaterialIdxes = _node.materialIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.materialIndices);
+    const auto            jmtlName          = _builder.CreateString(_node.name);
+    const auto            jmtlMeshIdxes     = _node.meshIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.meshIndices);
+    const auto            jmtlMaterialIdxes = _node.materialIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.materialIndices);
     const jmtl::Matrix4x4 jmtlMatrix        = JmtlMatrixFrom(_node.mtx);
 
     // children
@@ -128,7 +132,7 @@ static flatbuffers::Offset<jmtl::ModelNode> JmtlModelNodeFrom_Recursive(
     children.reserve(_node.children.size());
     for (const ModelNode& child: _node.children)
     {
-        children.emplace_back(JmtlModelNodeFrom_Recursive(_builder, child));
+        children.emplace_back(JmtlModelNodeOffsetFrom_Recursive(_builder, child));
     }
     const auto jmtlChildren = children.empty() ? 0 : _builder.CreateVector(children);
 
@@ -136,6 +140,8 @@ static flatbuffers::Offset<jmtl::ModelNode> JmtlModelNodeFrom_Recursive(
 }
 
 }   // namespace jam
+
+//////////////////////////////////////////////////////
 
 namespace jam
 {
@@ -145,7 +151,7 @@ void Model::LoadMemory(
     const fs::path&  _virtualPath)
 {
     JAM_FUNCTION_PROFILE();
-    Unload();
+    CleanUp_();
 
     m_root      = _desc.rootNode;
     m_meshPaths = _desc.meshPaths;
@@ -158,7 +164,7 @@ bool Model::Load(
     const fs::path& _path)
 {
     JAM_FUNCTION_PROFILE();
-    Unload();
+    CleanUp_();
 
     // read
     Optional<Vector<Byte>> optData = LoadBinaryFile(_path);
@@ -168,7 +174,7 @@ bool Model::Load(
     }
 
     // verify
-    const Vector<Byte>&   data     = *optData;
+    const Vector<Byte>&   data     = optData.value();
     flatbuffers::Verifier verifier = { data.data(), data.size() };
     if (!jmtl::VerifyModelBuffer(verifier))
     {
@@ -185,7 +191,6 @@ bool Model::Load(
     }
 
     // parse mesh
-    m_meshPaths.clear();
     if (const auto* pJmtlMeshPaths = pJmtlModel->mesh_paths())
     {
         m_meshPaths.reserve(pJmtlMeshPaths->size());
@@ -196,7 +201,6 @@ bool Model::Load(
     }
 
     // parse material
-    m_matPaths.clear();
     if (const auto* pJmtlMaterialPaths = pJmtlModel->material_paths())
     {
         m_matPaths.reserve(pJmtlMaterialPaths->size());
@@ -214,10 +218,9 @@ bool Model::Load(
         return false;
     }
 
-    m_path = _path;
     if (Optional<ModelNode> optNode = ModelNodeFrom_Recursive(pJmtlNode))
     {
-        m_root = std::move(*optNode);
+        m_root = std::move(optNode.value());
     }
     else
     {
@@ -226,17 +229,14 @@ bool Model::Load(
     }
 
     // load done
+    m_path   = _path;
     m_bValid = true;
     return true;
 }
 
 void Model::Unload()
 {
-    m_path.clear();
-    m_meshPaths.clear();
-    m_matPaths.clear();
-    m_root   = {};
-    m_bValid = false;
+    CleanUp_();
 }
 
 bool Model::Save(const fs::path& _path) const
@@ -247,7 +247,7 @@ bool Model::Save(const fs::path& _path) const
     flatbuffers::FlatBufferBuilder builder { 1024 };
 
     // create node tree
-    const auto jmtlNode = JmtlModelNodeFrom_Recursive(builder, m_root);
+    const auto jmtlNode = JmtlModelNodeOffsetFrom_Recursive(builder, m_root);
 
     // create mesh path strings vector
     Vector<flatbuffers::Offset<flatbuffers::String>> meshPaths;
@@ -270,7 +270,7 @@ bool Model::Save(const fs::path& _path) const
     // create model
     const auto jmtlModel = jmtl::CreateModel(builder, jmtlNode, jmtlMeshPaths, jmtlMatPaths);
     jmtl::FinishModelBuffer(builder, jmtlModel);
-    return SaveBinaryFile(_path, { builder.GetBufferPointer(), builder.GetSize() });
+    return SaveBinaryFile(_path, { builder.GetBufferPointer(), NarrowCast<Int32>(builder.GetSize()) });
 }
 
 bool Model::IsValid() const
@@ -311,6 +311,15 @@ const Vector<fs::path>& Model::GetMeshs() const
 const Vector<fs::path>& Model::GetMaterials() const
 {
     return m_matPaths;
+}
+
+void Model::CleanUp_()
+{
+    m_path.clear();
+    m_meshPaths.clear();
+    m_matPaths.clear();
+    m_root   = {};
+    m_bValid = false;
 }
 
 }   // namespace jam

@@ -22,6 +22,11 @@ public:
     explicit SceneNode(Entity _root, Entity _owner);   // create regular pNode
     explicit SceneNode(Entity _root);                  // create root pNode
 
+    SceneNode(const SceneNode&)                = delete;
+    SceneNode& operator=(const SceneNode&)     = delete;
+    SceneNode(SceneNode&&) noexcept            = default;
+    SceneNode& operator=(SceneNode&&) noexcept = default;
+
     // hierarchy operations
     void SetParent(Entity _parent, bool _bKeepLocal = false);
     void SetParentAsRoot(bool _bKeepLocal = false);
@@ -48,7 +53,8 @@ public:
 private:
     void NotifyDirty_();
     void ReleaseParent_();
-    void UpdateDirty_Recursive_();
+    void UpdateDirty_(Vector<Entity>& _updatedNodes);
+    void UpdateDirty_Recursive_(Vector<Entity>& _updatedNodes);
 
     eDirty m_dirty = eDirty::None;
 

@@ -29,7 +29,7 @@ struct ShaderItem
     fs::path           path       = {};
     eShader            stage      = eShader::VertexShader;
     std::string        entryPoint = "main";
-    std::vector<Macro> macros     = {};
+    std::vector<ShaderMacro> macros     = {};
 };
 
 struct Project
@@ -42,13 +42,13 @@ struct Project
 ///          JSON GLUE          ///
 ///////////////////////////////////
 
-void to_json(Json& j, const Macro& macro)
+void to_json(Json& j, const ShaderMacro& macro)
 {
     j["name"]  = macro.name;
     j["value"] = macro.value;
 }
 
-void from_json(const Json& j, Macro& macro)
+void from_json(const Json& j, ShaderMacro& macro)
 {
     macro.name  = j.value<std::string>("name", "none");
     macro.value = j.value<std::string>("value", "none");
@@ -81,7 +81,7 @@ void from_json(const Json& j, ShaderItem& item)
 
     item.entryPoint = j.value<std::string>("entryPoint", "main");
     if (j.contains("macros") && j["macros"].is_array())
-        item.macros = j["macros"].get<std::vector<Macro>>();
+        item.macros = j["macros"].get<std::vector<ShaderMacro>>();
 }
 
 void to_json(Json& j, const Project& project)
@@ -108,13 +108,13 @@ static std::string MakeVariableName(std::string v)
     return v;
 }
 
-static std::vector<ShaderMacro> MakeShaderMacros(const std::vector<Macro>& src)
+static std::vector<ShaderMacro> MakeShaderMacros(const std::vector<ShaderMacro>& src)
 {
     std::vector<ShaderMacro> dst;
     dst.reserve(src.size() + 1);
     for (size_t i = 0; i < src.size(); ++i)
     {
-        const Macro& m = src[i];
+        const ShaderMacro& m = src[i];
         dst.push_back({ m.name.c_str(), m.value.c_str() });
     }
 
@@ -481,7 +481,7 @@ private:
                             Int32 macroCount = NarrowCast<Int32>(item.macros.size());
                             for (Int32 i = 0; i < macroCount; ++i)
                             {
-                                Macro& macro = item.macros[i];
+                                ShaderMacro& macro = item.macros[i];
                                 ImGui::PushID(i);
                                 ImGui::TableNextRow();
 

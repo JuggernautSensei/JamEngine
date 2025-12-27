@@ -90,20 +90,12 @@ bool WindowsPlatform::PollEvents()
 
 void WindowsPlatform::ResizeClient(const Int32 _clientWidth, const Int32 _clientHeight)
 {
-    JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
-
-    const DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-    const DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
-    SetClient(_clientWidth, _clientHeight, m_clientPos.x, m_clientPos.y, wsFlags, exFlags);
+    SetClientRect(m_clientPos.x, m_clientPos.y, _clientWidth, _clientHeight);
 }
 
 void WindowsPlatform::MoveClient(const Int32 _clientLeftTopX, const Int32 _clientLeftTopY)
 {
-    JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
-
-    const DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-    const DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
-    SetClient(m_clientRes.x, m_clientRes.y, _clientLeftTopX, _clientLeftTopY, wsFlags, exFlags);
+    SetClientRect(_clientLeftTopX, _clientLeftTopY, m_clientRes.x, m_clientRes.y);
 }
 
 void WindowsPlatform::SetTitle(const StringView _name) const
@@ -111,80 +103,88 @@ void WindowsPlatform::SetTitle(const StringView _name) const
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
     JAM_ASSERT(m_hInstance, "WindowsPlatform instance handle is null");
 
-    const std::wstring title = ToUtf16(_name);
-    ::SetWindowText(m_hWnd, title.c_str());
+    if (Optional<std::wstring> optStr = ToUtf16(_name))
+    {
+        ::SetWindowText(m_hWnd, optStr->c_str());
+    }
+    else
+    {
+        JAM_ASSERT(0, "Failed to convert title to utf16");
+    }
 }
 
 void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
 {
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
 
-    if (m_flags != _flags)
+    if (m_flags == _flags)
     {
-        m_flags = _flags;
+        return;
+    }
 
-        DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-        DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+    m_flags = _flags;
 
-        // basic style
-        wsFlags &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_POPUP | WS_OVERLAPPED);
-        exFlags &= ~WS_EX_TOPMOST;
+    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
-        // Borderless
-        if (_flags & eWindowPropertyFlags_Borderless)
+    // basic style
+    wsFlags &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_POPUP | WS_OVERLAPPED);
+    exFlags &= ~WS_EX_TOPMOST;
+
+    // Borderless
+    if (_flags & eWindowPropertyFlags_Borderless)
+    {
+        wsFlags |= WS_POPUP;
+    }
+    else
+    {
+        wsFlags |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
+
+        // NoResizable
+        if (!(_flags & eWindowPropertyFlags_NoResizable))
+            wsFlags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+
+        // Minimize
+        if (!(_flags & eWindowPropertyFlags_DisableMinimizeButton))
+            wsFlags |= WS_MINIMIZEBOX;
+
+        // Maximize
+        if (!(_flags & eWindowPropertyFlags_DisableMaximizeButton))
+            wsFlags |= WS_MAXIMIZEBOX;
+
+        // Close
+        if (_flags & eWindowPropertyFlags_DisableCloseButton)
         {
-            wsFlags |= WS_POPUP;
+            // Close 버튼만 비활성화
+            if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
+            {
+                ::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
+            }
         }
         else
         {
-            wsFlags |= WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
-
-            // NoResizable
-            if (!(_flags & eWindowPropertyFlags_NoResizable))
-                wsFlags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
-
-            // Minimize
-            if (!(_flags & eWindowPropertyFlags_DisableMinimizeButton))
-                wsFlags |= WS_MINIMIZEBOX;
-
-            // Maximize
-            if (!(_flags & eWindowPropertyFlags_DisableMaximizeButton))
-                wsFlags |= WS_MAXIMIZEBOX;
-
-            // Close
-            if (_flags & eWindowPropertyFlags_DisableCloseButton)
+            // Close 버튼 활성화
+            if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
             {
-                // Close 버튼만 비활성화
-                if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
-                {
-                    ::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
-                }
-            }
-            else
-            {
-                // Close 버튼 활성화
-                if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
-                {
-                    ::EnableMenuItem(hMenu, SC_CLOSE, 0);
-                }
+                ::EnableMenuItem(hMenu, SC_CLOSE, 0);
             }
         }
-
-        // TopMost
-        if (_flags & eWindowPropertyFlags_TopMost)
-            exFlags |= WS_EX_TOPMOST;
-
-        // 스타일 적용
-        ::SetWindowLongPtr(m_hWnd, GWL_STYLE, wsFlags);
-        ::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, exFlags);
-
-        // TopMost 위치 설정
-        const HWND hWndInsertAfter = (_flags & eWindowPropertyFlags_TopMost) ? HWND_TOPMOST : HWND_NOTOPMOST;
-        ::SetWindowPos(m_hWnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-
-        // 윈도우 업데이트
-        ::UpdateWindow(m_hWnd);
     }
+
+    // TopMost
+    if (_flags & eWindowPropertyFlags_TopMost)
+        exFlags |= WS_EX_TOPMOST;
+
+    // 스타일 적용
+    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, wsFlags);
+    ::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, exFlags);
+
+    // TopMost 위치 설정
+    const HWND hWndInsertAfter = (_flags & eWindowPropertyFlags_TopMost) ? HWND_TOPMOST : HWND_NOTOPMOST;
+    ::SetWindowPos(m_hWnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+
+    // 윈도우 업데이트
+    ::UpdateWindow(m_hWnd);
 }
 
 eWindowPropertyFlags WindowsPlatform::GetWindowProperty() const
@@ -275,13 +275,15 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
         {
             s_bIsResizing = false;
 
-            RECT rect;
-            ::GetClientRect(hWnd, &rect);
-            const Int32 width  = Max(rect.right - rect.left, 1);
-            const Int32 height = Max(rect.bottom - rect.top, 1);
-
-            WindowResizedEvent event { width, height };
-            app.DispatchEvent(event);
+            // todo: need?
+            //
+            // RECT rect;
+            //::GetClientRect(hWnd, &rect);
+            // const Int32 width  = Max(rect.right - rect.left, 1);
+            // const Int32 height = Max(rect.bottom - rect.top, 1);
+            //
+            // WindowResizedEvent event { width, height };
+            // app.DispatchEvent(event);
         }
         break;
 
@@ -308,7 +310,7 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
 
                 case SIZE_RESTORED:
                 {
-                    if (!s_bIsResizing)
+                    if (!s_bIsResizing)   // 사용자의 크기 조절이 끝난 직후 한 번
                     {
                         WindowResizedEvent event { width, height };
                         app.DispatchEvent(event);
@@ -436,13 +438,15 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
     return result;
 }
 
-void WindowsPlatform::SetClient(const Int32 _clientWidth, const Int32 _clientHeight, const Int32 _clientLeftTopX, const Int32 _clientLeftTopY, const DWORD _wsFlags, const DWORD _exFlags)
+void WindowsPlatform::SetClientRect(const Int32 _x, const Int32 _y, const Int32 _width, const Int32 _height)
 {
-    const bool bHasMenu = ::GetMenu(m_hWnd) != NULL;
+    const bool  bHasMenu = (::GetMenu(m_hWnd) != NULL);
+    const DWORD wsFlags  = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    const DWORD exFlags  = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
     // cli -> win
-    RECT adjRect = { 0, 0, _clientWidth, _clientHeight };
-    ::AdjustWindowRectExForDpi(&adjRect, _wsFlags, bHasMenu, _exFlags, ::GetDpiForWindow(m_hWnd));
+    RECT adjRect = { 0, 0, _width, _height };
+    ::AdjustWindowRectExForDpi(&adjRect, wsFlags, bHasMenu, exFlags, ::GetDpiForWindow(m_hWnd));
     const Int32 windowWidth  = adjRect.right - adjRect.left;
     const Int32 windowHeight = adjRect.bottom - adjRect.top;
 
@@ -456,15 +460,15 @@ void WindowsPlatform::SetClient(const Int32 _clientWidth, const Int32 _clientHei
     const Int32 frameOffsetY = clientPos.y - curWinRect.top;
 
     // 윈도우 위치 계산
-    const Int32 windowPosX = _clientLeftTopX - frameOffsetX;
-    const Int32 windowPosY = _clientLeftTopY - frameOffsetY;
+    const Int32 windowPosX = _x - frameOffsetX;
+    const Int32 windowPosY = _y - frameOffsetY;
 
     ::SetWindowPos(m_hWnd, NULL, windowPosX, windowPosY, windowWidth, windowHeight, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
     ::UpdateWindow(m_hWnd);
     ::ShowWindow(m_hWnd, SW_SHOW);
 
-    m_clientPos = { _clientLeftTopX, _clientLeftTopY };
-    m_clientRes = { _clientWidth, _clientHeight };
+    m_clientPos = { _x, _y };
+    m_clientRes = { _width, _height };
 }
 
 }   // namespace jam

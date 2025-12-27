@@ -7,7 +7,7 @@
     <ClCompile Include="Application.cpp">
       <Filter>1. Core</Filter>
     </ClCompile>
-    <ClCompile Include="DialogUtilities.cpp">
+    <ClCompile Include="WindowsUtilities.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="WindowsPlatform.cpp">
@@ -91,12 +91,6 @@
     <ClCompile Include="MemView.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
-    <ClCompile Include="IExporter.cpp">
-      <Filter>99. Utilities\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="IImporter.cpp">
-      <Filter>99. Utilities\IO</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderCompiler.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
@@ -139,7 +133,7 @@
     <ClCompile Include="SceneDB.cpp">
       <Filter>7. Reflection</Filter>
     </ClCompile>
-    <ClCompile Include="FileUtilities.cpp">
+    <ClCompile Include="FileIOUtilities.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Vendor\DirectXTK\SimpleMath.cpp">
@@ -234,12 +228,6 @@
     </ClCompile>
     <ClCompile Include="PopupDialog.cpp">
       <Filter>6. Editor\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor_VertexLayoutEditor.cpp">
-      <Filter>6. Editor\ViewportLayoutManager</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexLayoutEditorDialog.cpp">
-      <Filter>6. Editor\ViewportLayoutManager</Filter>
     </ClCompile>
     <ClCompile Include="RenameFileDialog.cpp">
       <Filter>6. Editor\FileBrowser\Dialogs</Filter>
@@ -385,6 +373,39 @@
     <ClCompile Include="JsonWriter.cpp">
       <Filter>99. Utilities\Serialize</Filter>
     </ClCompile>
+    <ClCompile Include="Magics.cpp">
+      <Filter>99. Utilities\Base\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog.cpp">
+      <Filter>6. Editor\Dialog %28new%29</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageDialog.cpp">
+      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="IEditorCommand.cpp">
+      <Filter>6. Editor\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorCommands.cpp">
+      <Filter>6. Editor\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorCommandManager.cpp">
+      <Filter>6. Editor\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogStack.cpp">
+      <Filter>6. Editor\Dialog %28new%29</Filter>
+    </ClCompile>
+    <ClCompile Include="Scoped.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_VertexLayoutEditor.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLayoutEditorDialog.cpp">
+      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="SVGImporter.cpp">
+      <Filter>99. Utilities\SVG</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -437,9 +458,6 @@
     </Filter>
     <Filter Include="2. Graphics\Core">
       <UniqueIdentifier>{22356f61-f4c2-44c0-a886-5f8829e8cb5e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\IO">
-      <UniqueIdentifier>{999d4eb4-2d52-4717-adf7-72e11a6ece7c}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Profile">
       <UniqueIdentifier>{4eaecd7b-865d-4eb1-8ba5-db1e11db51ea}</UniqueIdentifier>
@@ -591,9 +609,6 @@
     <Filter Include="6. Editor\Utilities">
       <UniqueIdentifier>{e98e4db0-869b-4238-a9f5-852a1dff06c4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="6. Editor\ViewportLayoutManager">
-      <UniqueIdentifier>{5fcf4b66-4ab0-4e8e-af41-d7293d4bd3fc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="6. Editor\FileBrowser">
       <UniqueIdentifier>{12c053dc-0f0e-44cc-9e18-ec89e82d0de4}</UniqueIdentifier>
     </Filter>
@@ -605,6 +620,18 @@
     </Filter>
     <Filter Include="6. Editor\Dialog">
       <UniqueIdentifier>{e65067ff-df1c-43bd-b786-600fd60e9228}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog %28new%29">
+      <UniqueIdentifier>{b8e2973b-00f2-4da4-8915-fb90c263d9aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog %28new%29\Dialogs">
+      <UniqueIdentifier>{31df0483-c3c2-4a67-b0fb-356a60340060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Command">
+      <UniqueIdentifier>{1da62877-db37-482a-ac83-68505a84f4fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\SVG">
+      <UniqueIdentifier>{d45992a7-e02a-4fc3-9aca-89a7d6bd84b5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -620,7 +647,7 @@
     <ClInclude Include="Application.h">
       <Filter>1. Core</Filter>
     </ClInclude>
-    <ClInclude Include="DialogUtilities.h">
+    <ClInclude Include="WindowsUtilities.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="WindowsPlatform.h">
@@ -701,12 +728,6 @@
     <ClInclude Include="MemView.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="IExporter.h">
-      <Filter>99. Utilities\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="IImporter.h">
-      <Filter>99. Utilities\IO</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderCompiler.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
@@ -716,7 +737,7 @@
     <ClInclude Include="Profile.h">
       <Filter>99. Utilities\Profile</Filter>
     </ClInclude>
-    <ClInclude Include="Magic.h">
+    <ClInclude Include="Magics.h">
       <Filter>99. Utilities\Base\Config</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiGlue.h">
@@ -788,7 +809,7 @@
     <ClInclude Include="SceneDB.h">
       <Filter>7. Reflection</Filter>
     </ClInclude>
-    <ClInclude Include="FileUtilities.h">
+    <ClInclude Include="FileIOUtilities.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="EmbeddedShaderGlue.h">
@@ -953,12 +974,6 @@
     <ClInclude Include="PopupDialog.h">
       <Filter>6. Editor\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_VertexLayoutEditor.h">
-      <Filter>6. Editor\ViewportLayoutManager</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexLayoutEditorDialog.h">
-      <Filter>6. Editor\ViewportLayoutManager</Filter>
-    </ClInclude>
     <ClInclude Include="RenameFileDialog.h">
       <Filter>6. Editor\FileBrowser\Dialogs</Filter>
     </ClInclude>
@@ -1093,6 +1108,39 @@
     </ClInclude>
     <ClInclude Include="JsonWriter.h">
       <Filter>99. Utilities\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialog.h">
+      <Filter>6. Editor\Dialog %28new%29</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageDialog.h">
+      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="IEditorCommand.h">
+      <Filter>6. Editor\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorCommands.h">
+      <Filter>6. Editor\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorCommandManager.h">
+      <Filter>6. Editor\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogStack.h">
+      <Filter>6. Editor\Dialog %28new%29</Filter>
+    </ClInclude>
+    <ClInclude Include="Scoped.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_VertexLayoutEditor.h">
+      <Filter>6. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayoutEditorDialog.h">
+      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="SVGImporter.h">
+      <Filter>99. Utilities\SVG</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorIcons.h">
+      <Filter>6. Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

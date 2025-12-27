@@ -14,9 +14,9 @@ struct HelloJamVertex
     static void         InitLayout()
     {
         VertexLayout layout;
-        layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
-        layout.Add(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
-        layout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+        layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+        layout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+        layout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
         s_layout = std::move(layout);
     }
 };
@@ -180,7 +180,7 @@ void HelloJamScene::OnEnter()
 
     // camera
     {
-        Entity entity = CreateEntity("camera");
+        Entity entity = CreateEntity();
 
         // set camera
         entity.CreateComponent<CameraComponent>();

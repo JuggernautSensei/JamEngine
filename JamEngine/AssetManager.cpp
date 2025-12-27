@@ -13,38 +13,39 @@ struct AssetManagerContext
     using Container = HashMap<fs::path, Ref<IAsset>>;
 
     [[nodiscard]] Optional<fs::path> RelativeFromWorkingDirectory(const fs::path& _path) const;
-    [[nodiscard]] Ref<IAsset>             MakeAssetRef(eAssetType _type) const;
+    [[nodiscard]] Ref<IAsset>        MakeAssetRef(eAssetType _type) const;
 
     void OnFileModifiedEvent(const FileModifiedEvent& _event) const;
     void OnFileRenamedEvent(const FileRenamedEvent& _event);
     void OnFileDeletedEvent(const FileDeletedEvent& _event);
 
     Optional<Ref<IAsset>> Load(eAssetType _type, const fs::path& _path, bool _bForceReload);
-    void                       Unload(eAssetType _type, const fs::path& _path);
+    void                  Unload(eAssetType _type, const fs::path& _path);
     Optional<Ref<IAsset>> GetOrLoad(eAssetType _type, const fs::path& _path);
-    Ref<IAsset>                Get(eAssetType _type, const fs::path& _path) const;
-    [[nodiscard]] bool         Has(eAssetType _type, const fs::path& _path) const;
+    Ref<IAsset>           Get(eAssetType _type, const fs::path& _path) const;
+    [[nodiscard]] bool    Has(eAssetType _type, const fs::path& _path) const;
 
     void Clear(eAssetType _type);
     void CleanGarbage(eAssetType _type);
 
-    Container assetMaps[NumEnums<eAssetType>()] = {};
+    Array<Container, NumEnums<eAssetType>()> assetMaps;
 
 }* g_assetMgrCtx = nullptr;
 
 Optional<fs::path> AssetManagerContext::RelativeFromWorkingDirectory(
     const fs::path& _path) const
 {
-    try
+    const Application& app = Application::GetInstance();
+
+    std::error_code ec;
+    const fs::path  relPath = fs::relative(_path, app.GetWorkingDirectory(), ec);
+    if (ec)
     {
-        const Application& app = Application::GetInstance();
-        return fs::relative(_path, app.GetWorkingDirectory());
-    }
-    catch (const fs::filesystem_error& ec)
-    {
-        GlobalBuffer::SetLastError("AssetManagerContext - failed to calculate relative path: {}", ec.what());
+        GlobalBuffer::SetLastError("AssetManagerContext - failed to calculate relative path: {}. {}", _path.native(), ec.message());
         return k_nullopt;
     }
+
+    return relPath;
 }
 
 Ref<IAsset> AssetManagerContext::MakeAssetRef(
@@ -69,18 +70,23 @@ Ref<IAsset> AssetManagerContext::MakeAssetRef(
 void AssetManagerContext::OnFileRenamedEvent(
     const FileRenamedEvent& _event)
 {
-    // reload existing asset without creating new object
+    // old path
     const Optional<fs::path> optOld = RelativeFromWorkingDirectory(_event.GetOldPath());
-    const Optional<fs::path> optNew = RelativeFromWorkingDirectory(_event.GetNewPath());
-
-    if (!optOld || !optNew)
+    if (!optOld)
     {
         return;
     }
-
     const fs::path& oldPath = optOld.value();
+
+    // new path
+    const Optional<fs::path> optNew = RelativeFromWorkingDirectory(_event.GetNewPath());
+    if (!optNew)
+    {
+        return;
+    }
     const fs::path& newPath = optNew.value();
 
+    // for each asset type
     for (const eAssetType type: EnumRanges<eAssetType>())
     {
         if (!Has(type, oldPath))
@@ -110,9 +116,9 @@ void AssetManagerContext::OnFileDeletedEvent(
     const FileDeletedEvent& _event)
 {
     // unload existing asset
-    if (const Optional<fs::path> opt = RelativeFromWorkingDirectory(_event.GetPath()))
+    if (const Optional<fs::path> optPath = RelativeFromWorkingDirectory(_event.GetPath()))
     {
-        const fs::path& path = opt.value();
+        const fs::path& path = optPath.value();
         for (const eAssetType type: EnumRanges<eAssetType>())
         {
             if (Has(type, path))
@@ -127,9 +133,9 @@ void AssetManagerContext::OnFileModifiedEvent(
     const FileModifiedEvent& _event) const
 {
     // reload existing asset without creating new object
-    if (const Optional<fs::path> opt = RelativeFromWorkingDirectory(_event.GetPath()))
+    if (const Optional<fs::path> optPath = RelativeFromWorkingDirectory(_event.GetPath()))
     {
-        const fs::path& path = opt.value();
+        const fs::path& path = optPath.value();
         for (const eAssetType type: EnumRanges<eAssetType>())
         {
             if (Has(type, path))

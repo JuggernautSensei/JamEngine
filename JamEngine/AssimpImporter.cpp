@@ -13,26 +13,39 @@
 namespace jam
 {
 
-[[nodiscard]] static Int32 TryTextureIndexFrom(
+[[nodiscard]] static Int32 TryTextureIndexFrom(   // << return k_invalidImportedIdx if failed
     const aiMaterial*   _pMat,
     const aiTextureType _type,
     const Int32         _maxIndex)
 {
+    // str 추출
     aiString str;
-    if (_pMat->GetTexture(_type, 0, &str) == AI_SUCCESS)
+    if (!_pMat->GetTexture(_type, 0, &str) == AI_SUCCESS)
     {
-        const StringView sv          = { str.C_Str(), NarrowCast<Int32>(str.length) };
-        const StringView afterStarSv = sv.SubView(sv.FindFirstOf('*') + 1);
-
-        if (const Optional<Int32> optIdx = IntFrom<Int32>(afterStarSv))
-        {
-            const Int32 idx = optIdx.value();
-            return idx < _maxIndex ? idx : k_invalidImportedIdx;
-        }
-        // else: parsing failed
+        return k_invalidImportedIdx;
     }
 
-    return k_invalidImportedIdx;   // this is legal
+    // 이름 파싱
+    const StringView      rawName   = { str.C_Str(), NarrowCast<Int32>(str.length) };
+    const Optional<Int32> optOffset = rawName.FindFirstOf('*');
+    if (!optOffset)
+    {
+        return k_invalidImportedIdx;
+    }
+
+    // 인덱스 파싱
+    const Int32      offset = optOffset.value();
+    const StringView name   = rawName.SubView(offset + 1);
+
+    // 인덱스 변환
+    const Optional<Int32> optIdx = IntFrom<Int32>(name);
+    if (!optIdx)
+    {
+        return k_invalidImportedIdx;
+    }
+
+    const Int32 idx = optIdx.value();
+    return idx < _maxIndex ? idx : k_invalidImportedIdx;
 }
 
 [[nodiscard]] static Vec2 Vec2From(
@@ -59,7 +72,7 @@ namespace jam
 {
     ImportedModelNode node;
 
-    // name
+    // 이름
     {
         if (_pNode->mName.length > 0)
         {
@@ -71,7 +84,7 @@ namespace jam
         }
     }
 
-    // matrix
+    // 행렬
     {
         const aiMatrix4x4& aiMtx = _pNode->mTransformation;
 
@@ -83,13 +96,13 @@ namespace jam
         node.mtx = mtx;
     }
 
-    // meshes & materials
+    // 메쉬와 메쉬의 머테리얼 인덱스
     if (_pNode->mNumMeshes > 0)
     {
         node.meshIdxes.reserve(_pNode->mNumMeshes);
         node.materialIdxes.reserve(_pNode->mNumMeshes);
 
-        // mesh use single material
+        // 메쉬는 반드시 하나의 머테리얼과 연관되어있음
         for (UINT i = 0; i < _pNode->mNumMeshes; ++i)
         {
             const UINT    mshIdx = _pNode->mMeshes[i];
@@ -100,10 +113,10 @@ namespace jam
         }
     }
 
-    // children
-    UINT numChildren = _pNode->mNumChildren;
+    // 하위 자식 노드들
+    const Int32 numChildren = NarrowCast<Int32>(_pNode->mNumChildren);
     node.children.reserve(numChildren);
-    for (UINT i = 0; i < numChildren; ++i)
+    for (Int32 i = 0; i < numChildren; ++i)
     {
         ImportedModelNode childNode = ImportedModelNodeFrom_Recursive(_pNode->mChildren[i], _pScene);
         node.children.emplace_back(std::move(childNode));
@@ -132,62 +145,45 @@ Vector<ImportedMesh> AssimpImporter::ImportMeshesFrom_(
         return {};
     }
 
-    const aiMesh* const* pAiMeshes = _pScene->mMeshes;
-
-    Vector<ImportedMesh> result;
-    result.reserve(numMeshes);
+    Vector<ImportedMesh> meshes;
+    meshes.reserve(numMeshes);
 
     for (Int32 i = 0; i < numMeshes; ++i)
     {
-        const aiMesh* pAiMesh  = pAiMeshes[i];
+        const aiMesh* pAiMesh  = _pScene->mMeshes[i];
         const Int32   numVerts = NarrowCast<Int32>(pAiMesh->mNumVertices);
 
-        ImportedMesh importedMesh;
+        ImportedMesh mesh = {};
 
-        // name
+        // 이름
         {
             const aiString& aiName = pAiMesh->mName;
             if (aiName.Empty())
             {
-                importedMesh.name = std::format("mesh_{}", i);
+                mesh.name = std::format("mesh_{}", i);
             }
             else
             {
-                importedMesh.name = std::format("{}_{}", aiName.C_Str(), i);
+                mesh.name = std::format("{}_{}", aiName.C_Str(), i);
             }
         }
 
-        // indices
+        // 인덱스
         {
             const bool  bUseU32   = numVerts > 0xFFFF;
-            const Int32 idxStride = importedMesh.bUseU32 ? 4 : 2;
             const Int32 numFaces  = NarrowCast<Int32>(pAiMesh->mNumFaces);
             const Int32 numIdxes  = numFaces * 3;
+            const Int32 byteWidth = CalcIndicesByteWidth(numIdxes, bUseU32);
 
-            importedMesh.bUseU32 = bUseU32;
-            importedMesh.idxData.resize(numIdxes * idxStride);
+            mesh.bUseU32 = bUseU32;
+            mesh.idxData.resize(byteWidth);
             for (Int32 f = 0; f < numFaces; ++f)
             {
                 const aiFace& aiFace = pAiMesh->mFaces[f];
                 JAM_ASSERT(aiFace.mNumIndices == 3, "AssimpImporter::Import() - Face is not a triangle");
-
                 for (Int32 p = 0; p < 3; ++p)
                 {
-                    const Int32  offset = f * 3 + p;
-                    const UInt32 idx    = aiFace.mIndices[p];
-                    Byte*        pDst   = importedMesh.idxData.data() + idxStride * offset;
-
-                    // write index
-                    if (importedMesh.bUseU32)
-                    {
-                        UInt32* pDstU32 = reinterpret_cast<UInt32*>(pDst);
-                        *pDstU32        = idx;
-                    }
-                    else
-                    {
-                        UInt16* pDstU16 = reinterpret_cast<UInt16*>(pDst);
-                        *pDstU16        = NarrowCast<UInt16>(idx);
-                    }
+                    StoreIndex(mesh.idxData, f * 3 + p, bUseU32, aiFace.mIndices[p]);
                 }
             }
         }
@@ -196,11 +192,11 @@ Vector<ImportedMesh> AssimpImporter::ImportMeshesFrom_(
         {
             if (pAiMesh->HasPositions())
             {
-                importedMesh.positions.reserve(numVerts);
+                mesh.positions.reserve(numVerts);
                 for (Int32 v = 0; v < numVerts; ++v)
                 {
                     const Vec3 pos = Vec3From(pAiMesh->mVertices[v]);
-                    importedMesh.positions.emplace_back(pos);
+                    mesh.positions.emplace_back(pos);
                 }
             }
         }
@@ -211,7 +207,7 @@ Vector<ImportedMesh> AssimpImporter::ImportMeshesFrom_(
             {
                 if (pAiMesh->HasTextureCoords(j))
                 {
-                    Vector<Vec2>& texCoord = importedMesh.texCoords[j];
+                    Vector<Vec2>& texCoord = mesh.texCoords[j];
                     texCoord.reserve(numVerts);
                     for (Int32 k = 0; k < numVerts; ++k)
                     {
@@ -228,7 +224,7 @@ Vector<ImportedMesh> AssimpImporter::ImportMeshesFrom_(
             {
                 if (pAiMesh->HasVertexColors(j))
                 {
-                    Vector<Vec4>& color = importedMesh.colors[j];
+                    Vector<Vec4>& color = mesh.colors[j];
                     color.reserve(numVerts);
                     for (Int32 k = 0; k < numVerts; ++k)
                     {
@@ -244,16 +240,16 @@ Vector<ImportedMesh> AssimpImporter::ImportMeshesFrom_(
         {
             if (pAiMesh->HasNormals() && !m_bDropExistingNormals)
             {
-                importedMesh.normals.reserve(numVerts);
+                mesh.normals.reserve(numVerts);
                 for (Int32 v = 0; v < numVerts; ++v)
                 {
                     const Vec3 normal = Vec3From(pAiMesh->mNormals[v]);
-                    importedMesh.normals.emplace_back(normal);
+                    mesh.normals.emplace_back(normal);
                 }
             }
             else if (m_bGenerateNormals)   // 내장 normals가 없거나, 드롭된 경우
             {
-                importedMesh.normals = ComputeNormals(importedMesh.positions, importedMesh.idxData, importedMesh.bUseU32);
+                mesh.normals = ComputeNormals(mesh.positions, mesh.idxData, mesh.bUseU32);
             }
         }
 
@@ -261,67 +257,64 @@ Vector<ImportedMesh> AssimpImporter::ImportMeshesFrom_(
         {
             if (pAiMesh->HasTangentsAndBitangents() && !m_bDropExistingTangentFrame)
             {
-                importedMesh.tangents.reserve(numVerts);
-                importedMesh.bitangents.reserve(numVerts);
+                mesh.tangents.reserve(numVerts);
+                mesh.bitangents.reserve(numVerts);
                 for (Int32 v = 0; v < numVerts; ++v)
                 {
                     const Vec3 tangent   = Vec3From(pAiMesh->mTangents[v]);
                     const Vec3 bitangent = Vec3From(pAiMesh->mBitangents[v]);
-                    importedMesh.tangents.emplace_back(tangent);
-                    importedMesh.bitangents.emplace_back(bitangent);
+                    mesh.tangents.emplace_back(tangent);
+                    mesh.bitangents.emplace_back(bitangent);
                 }
             }
             else if (m_bGenerateTangentFrame)   // 내장 tangent & bitangent가 없는 경우, 드롭된 경우
             {
-                const TangentFrame tf   = ComputeTangentFrame(importedMesh.positions, importedMesh.normals, importedMesh.texCoords[0], importedMesh.idxData, importedMesh.bUseU32);
-                importedMesh.tangents   = std::move(tf.tangents);
-                importedMesh.bitangents = std::move(tf.bitangents);
+                const TangentFrame tf = ComputeTangentFrame(mesh.positions, mesh.normals, mesh.texCoords[0], mesh.idxData, mesh.bUseU32);
+                mesh.tangents         = std::move(tf.tangents);
+                mesh.bitangents       = std::move(tf.bitangents);
             }
         }
 
         // create ImportedMesh
-        result.emplace_back(std::move(importedMesh));
+        meshes.emplace_back(std::move(mesh));
     }
 
-    return result;
+    return meshes;
 }
 
 Vector<ImportedTexture> AssimpImporter::ImportTexturesFrom_(
     const aiScene* _pScene) const
 {
-    const Int32 numTexes = NarrowCast<Int32>(_pScene->mNumTextures);
-    if (numTexes < 0)
+    const Int32 numTextures = NarrowCast<Int32>(_pScene->mNumTextures);
+    if (numTextures < 0)
     {
         return {};
     }
 
-    const aiTexture* const* pAiTexes = _pScene->mTextures;
-
     Vector<ImportedTexture> textures;
-    textures.reserve(numTexes);
+    textures.reserve(numTextures);
 
-    for (Int32 i = 0; i < numTexes; ++i)
+    for (Int32 i = 0; i < numTextures; ++i)
     {
-        const aiTexture* pAiTex        = pAiTexes[i];
+        const aiTexture* pAiTex        = _pScene->mTextures[i];
         const bool       bIsCompressed = (pAiTex->mHeight == 0);
 
-        ImportedTexture tex;
-        tex.width         = NarrowCast<Int32>(pAiTex->mWidth);
-        tex.height        = NarrowCast<Int32>(pAiTex->mHeight);
-        tex.bIsCompressed = bIsCompressed;
+        ImportedTexture tex = {};
+        tex.width           = NarrowCast<Int32>(pAiTex->mWidth);
+        tex.height          = NarrowCast<Int32>(pAiTex->mHeight);
+        tex.bIsCompressed   = bIsCompressed;
 
         // pixel data
         if (bIsCompressed)
         {
             // 압축된 경우, format hint에 따라 포맷 결정
-            const Int32 byteWidth = tex.width;
-            const Byte* pPixel    = reinterpret_cast<const Byte*>(pAiTex->pcData);
-            tex.pixels            = CMemView { pPixel, byteWidth };
+            tex.pixels = CMemView { pAiTex->pcData, tex.width };
 
             // 포맷 힌트로부터 이미지 포맷 결정
-            const StringView             formatHint = { pAiTex->achFormatHint };
-            const Optional<eImageFormat> optFormat  = ImageFormatFrom(formatHint);
+            const StringView             format    = { pAiTex->achFormatHint };
+            const Optional<eImageFormat> optFormat = ImageFormatFrom(format);
 
+            // 포맷 결정
             if (optFormat)
             {
                 tex.format = optFormat.value();
@@ -329,7 +322,7 @@ Vector<ImportedTexture> AssimpImporter::ImportTexturesFrom_(
             else
             {
                 // unknown format -> failed
-                JAM_ASSERT(0, "AssimpImporter::ImportTexturesFrom_() - Unsupported embedded texture format: {}", formatHint);
+                JAM_ASSERT(0, "AssimpImporter::ImportTexturesFrom_() - Unsupported embedded texture format: {}", format);
                 tex            = {};
                 tex.bTombstone = true;
             }
@@ -356,24 +349,22 @@ Vector<ImportedMaterial> AssimpImporter::ImportMaterialsFrom_(
         return {};
     }
 
-    aiMaterial* const* pMats = _pScene->mMaterials;
-
     Vector<ImportedMaterial> result;
     result.reserve(numMats);
-
     for (Int32 i = 0; i < numMats; ++i)
     {
-        const aiMaterial* pMat = pMats[i];
+        const aiMaterial* pMat     = _pScene->mMaterials[i];
+        ImportedMaterial  material = {};
 
-        ImportedMaterial material;
-        aiString         strParam;
-        aiColor3D        color3Param;
-        float            fParam;
-        int              iParam;
+        // temp param
+        aiString  strParam;
+        aiColor3D colParam;
+        float     fParam;
+        int       iParam;
 
         // Name
         {
-            if (pMat->Get(AI_MATKEY_NAME, strParam) == AI_SUCCESS && !strParam.Empty())
+            if (pMat->Get(AI_MATKEY_NAME, strParam) == AI_SUCCESS)
             {
                 material.name = std::format("{}_{}", strParam.C_Str(), i);
             }
@@ -384,21 +375,21 @@ Vector<ImportedMaterial> AssimpImporter::ImportMaterialsFrom_(
         }
 
         // Ambient
-        if (pMat->Get(AI_MATKEY_COLOR_AMBIENT, color3Param) == AI_SUCCESS)
+        if (pMat->Get(AI_MATKEY_COLOR_AMBIENT, colParam) == AI_SUCCESS)
         {
-            material.ambientColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+            material.ambientColor = Vec3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Diffuse
-        if (pMat->Get(AI_MATKEY_COLOR_DIFFUSE, color3Param) == AI_SUCCESS)
+        if (pMat->Get(AI_MATKEY_COLOR_DIFFUSE, colParam) == AI_SUCCESS)
         {
-            material.diffuseColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+            material.diffuseColor = Vec3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Specular
-        if (pMat->Get(AI_MATKEY_COLOR_SPECULAR, color3Param) == AI_SUCCESS)
+        if (pMat->Get(AI_MATKEY_COLOR_SPECULAR, colParam) == AI_SUCCESS)
         {
-            material.specularColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+            material.specularColor = Vec3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Shininess
@@ -408,9 +399,9 @@ Vector<ImportedMaterial> AssimpImporter::ImportMaterialsFrom_(
         }
 
         // Base color / Albedo (PBR)
-        if (pMat->Get(AI_MATKEY_BASE_COLOR, color3Param) == AI_SUCCESS)
+        if (pMat->Get(AI_MATKEY_BASE_COLOR, colParam) == AI_SUCCESS)
         {
-            material.albedoColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+            material.albedoColor = Vec3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Roughness
@@ -432,9 +423,9 @@ Vector<ImportedMaterial> AssimpImporter::ImportMaterialsFrom_(
         }
 
         // Emissive
-        if (pMat->Get(AI_MATKEY_COLOR_EMISSIVE, color3Param) == AI_SUCCESS)
+        if (pMat->Get(AI_MATKEY_COLOR_EMISSIVE, colParam) == AI_SUCCESS)
         {
-            material.emissiveColor = Vec3 { color3Param.r, color3Param.g, color3Param.b };
+            material.emissiveColor = Vec3 { colParam.r, colParam.g, colParam.b };
         }
 
         // emissive intensity
@@ -446,15 +437,15 @@ Vector<ImportedMaterial> AssimpImporter::ImportMaterialsFrom_(
         // texture parsing
         if (_pScene->mNumTextures > 0)
         {
-            const Int32 numTexes              = NarrowCast<Int32>(_pScene->mNumTextures);
-            material.albedoTexIdx             = TryTextureIndexFrom(pMat, aiTextureType_DIFFUSE, numTexes);
-            material.normalTexIdx             = TryTextureIndexFrom(pMat, aiTextureType_NORMALS, numTexes);
-            material.metallicTexIdx           = TryTextureIndexFrom(pMat, aiTextureType_METALNESS, numTexes);
-            material.roughnessTexIdx          = TryTextureIndexFrom(pMat, aiTextureType_DIFFUSE_ROUGHNESS, numTexes);
-            material.aoTexIdx                 = TryTextureIndexFrom(pMat, aiTextureType_LIGHTMAP, numTexes);
-            material.emissiveTexIdx           = TryTextureIndexFrom(pMat, aiTextureType_EMISSIVE, numTexes);
-            material.lightTexIdx              = TryTextureIndexFrom(pMat, aiTextureType_LIGHTMAP, numTexes);
-            material.vertexDisplacementTexIdx = TryTextureIndexFrom(pMat, aiTextureType_DISPLACEMENT, numTexes);
+            const Int32 numTextures           = NarrowCast<Int32>(_pScene->mNumTextures);
+            material.albedoTexIdx             = TryTextureIndexFrom(pMat, aiTextureType_DIFFUSE, numTextures);
+            material.normalTexIdx             = TryTextureIndexFrom(pMat, aiTextureType_NORMALS, numTextures);
+            material.metallicTexIdx           = TryTextureIndexFrom(pMat, aiTextureType_METALNESS, numTextures);
+            material.roughnessTexIdx          = TryTextureIndexFrom(pMat, aiTextureType_DIFFUSE_ROUGHNESS, numTextures);
+            material.aoTexIdx                 = TryTextureIndexFrom(pMat, aiTextureType_LIGHTMAP, numTextures);
+            material.emissiveTexIdx           = TryTextureIndexFrom(pMat, aiTextureType_EMISSIVE, numTextures);
+            material.lightTexIdx              = TryTextureIndexFrom(pMat, aiTextureType_LIGHTMAP, numTextures);
+            material.vertexDisplacementTexIdx = TryTextureIndexFrom(pMat, aiTextureType_DISPLACEMENT, numTextures);
 
             // additional channel mapping
             if (pMat->GetTexture(aiTextureType_GLTF_METALLIC_ROUGHNESS, 0, &strParam) == AI_SUCCESS)
@@ -470,12 +461,10 @@ Vector<ImportedMaterial> AssimpImporter::ImportMaterialsFrom_(
     return result;
 }
 
-bool AssimpImporter::Import()
+bool AssimpImporter::Import(
+    const fs::path& _path)
 {
-    m_rootNode = {};
-    m_meshes.clear();
-    m_materials.clear();
-    m_textures.clear();
+    CleanUp_();
 
     UINT32 flags = aiProcess_JoinIdenticalVertices
                  | aiProcess_Triangulate
@@ -527,7 +516,7 @@ bool AssimpImporter::Import()
     importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
 
     // scene load
-    const aiScene* pAiScene = importer.ReadFile(m_path.native(), flags);
+    const aiScene* pAiScene = importer.ReadFile(_path.native(), flags);
     if (!pAiScene)
     {
         GlobalBuffer::SetLastError("failed to load file: {}", importer.GetErrorString());
@@ -541,7 +530,7 @@ bool AssimpImporter::Import()
     }
 
     // texture load
-    if (pAiScene->mNumTextures > 0)
+    if (pAiScene->HasTextures())
     {
         m_textures = ImportTexturesFrom_(pAiScene);
     }
@@ -559,12 +548,6 @@ bool AssimpImporter::Import()
     }
 
     return true;
-}
-
-void AssimpImporter::SetPath(
-    const fs::path& _path)
-{
-    m_path = _path;
 }
 
 void AssimpImporter::GenerateTangentFrame(
@@ -609,6 +592,14 @@ const Vector<ImportedMaterial>& AssimpImporter::GetMaterials() const
 const Vector<ImportedTexture>& AssimpImporter::GetTextures() const
 {
     return m_textures;
+}
+
+void AssimpImporter::CleanUp_()
+{
+    m_rootNode = {};
+    m_meshes.clear();
+    m_materials.clear();
+    m_textures.clear();
 }
 
 }   // namespace jam

@@ -59,13 +59,13 @@ private:
     virtual void OnCreate() {}
     virtual void OnDestroy() {}
 
-    std::string     m_applicationName    = {};
-    bool            m_bRunning           = false;
-    bool            m_bEventDispatchable = false;
-    bool            m_bVsync             = false;
-    bool            m_bEditorEnabled     = false;
-    WindowsPlatform m_window             = {};
-    CommandQueue    m_commandQueue       = {};
+    std::string                   m_applicationName    = {};
+    bool                          m_bRunning           = false;
+    bool                          m_bEventDispatchable = false;
+    bool                          m_bVsync             = false;
+    bool                          m_bEditorEnabled     = false;
+    WindowsPlatform               m_window             = {};
+    CommandQueue                  m_commandQueue       = {};
 
     // timer
     TickTimer m_timer        = {};

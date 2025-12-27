@@ -44,7 +44,7 @@ class VertexLayout
 public:
     VertexLayout();
 
-    VertexLayout&      Add(eVertexAttribute _attrib, eAttributeFormat _format);
+    VertexLayout&      Push(eVertexAttribute _attrib, eAttributeFormat _format);
     [[nodiscard]] bool Has(eVertexAttribute _attrib) const;
     void               Reset();
 
@@ -56,10 +56,10 @@ public:
 private:
     static constexpr Int32 k_invalidElement = -1;
 
-    VertexLayoutElement m_vles[NumEnums<eVertexAttribute>()]   = {};
-    Int32               m_vleLut[NumEnums<eVertexAttribute>()] = {};
-    Int32               m_numElems                              = 0;
-    Int32               m_stride                                = 0;
+    Array<VertexLayoutElement, NumEnums<eVertexAttribute>()> m_vles     = {};
+    Array<Int32, NumEnums<eVertexAttribute>()>               m_vleLut   = {};
+    Int32                                                    m_numElems = 0;
+    Int32                                                    m_stride   = 0;
 };
 
 [[nodiscard]] Int32 ByteFrom(eAttributeFormat _format);

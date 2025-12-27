@@ -87,7 +87,7 @@ public:
     /// @param _format 텍스처 포맷
     /// @param _arraySize 텍스처 배열 크기
     /// @param _flags 텍스처 생성 플래그
-    /// @param _initData 초기화 데이터 (없으면 빈 배열 전달)
+    /// @param _initDataOrEmpty 초기화 데이터 (없으면 빈 배열 전달)
     /// @return 2D 텍스처에 대한 참조
     /// @note _initData가 제공되면 immutable 텍스처를 생성하고, 아니면 default 텍스처를 생성합니다.
     /// 텍스처를 프레임 버퍼로 사용할 경우 _viewFlags에 eViewFlags_RenderTarget 또는 eViewFlags_DepthStencil 플래그를 포함해야 합니다.
@@ -97,7 +97,7 @@ public:
         eTextureFormat                   _format,
         Int32                            _arraySize = 1,
         eTextureCreateFlags              _flags     = eTextureCreateFlags_None,
-        const std::span<const CMemView>& _initData  = {});
+        const std::span<const CMemView>& _initDataOrEmpty  = {});
 
     /// @brief 큐브맵 텍스처를 생성합니다.
     /// @param _width 텍스처 너비
@@ -835,11 +835,11 @@ public:
         bool            _bGenerateMips = true);
 
     /// @brief LoadTexture의 간략화 버전입니다.
-    /// @param _source 메모리 뷰
+    /// @param _mem 메모리 뷰
     /// @param _format 이미지 포맷
     /// @param _bGenerateMips 밉맵을 생성할지 여부 (기본값: true)
-    [[nodiscard]] static Optional<TextureHandle> LoadTextureSource(
-        CMemView     _source,
+    [[nodiscard]] static Optional<TextureHandle> LoadTextureMemory(
+        CMemView     _mem,
         eImageFormat _format,
         bool         _bGenerateMips = true);
 
@@ -849,7 +849,7 @@ public:
     /// @param _entryPoint 셰이더 진입점 함수 이름
     /// @param _flags 컴파일 플래그
     /// @return 셰이더 핸들
-    [[nodiscard]] static Optional<ShaderHandle> LoadShaderFile(
+    [[nodiscard]] static Optional<ShaderHandle> LoadHLSLShaderFile(
         const fs::path&     _path,
         eShader             _stage,
         StringView          _entryPoint,
@@ -861,7 +861,7 @@ public:
     /// @param _entryPoint 셰이더 진입점 함수 이름
     /// @param _flags 컴파일 플래그
     /// @return 셰이더 핸들
-    [[nodiscard]] static Optional<ShaderHandle> LoadShaderSource(
+    [[nodiscard]] static Optional<ShaderHandle> LoadHLSLShaderSource(
         StringView          _source,
         eShader             _stage,
         StringView          _entryPoint,

@@ -86,7 +86,7 @@ bool ComponentDB::Has(
 void ComponentDB::Serialize(
     StringView        _name,
     const void*       _pComponent,
-    JsonWriter&       _writer,
+    const JsonWriter  _writer,
     const Ref<Scene>& _pScene,
     const Entity      _entity) const
 {
@@ -99,7 +99,7 @@ void ComponentDB::Serialize(
 void ComponentDB::Deserialize(
     StringView        _name,
     void*             _pComponent,
-    JsonReader&       _json,
+    JsonReader        _json,
     const Ref<Scene>& _pScene,
     const Entity      _entity) const
 {
@@ -112,7 +112,7 @@ void ComponentDB::Deserialize(
 void ComponentDB::Serialize(
     UInt32            _typeId,
     const void*       _pComponent,
-    JsonWriter&       _writer,
+    const JsonWriter  _writer,
     const Ref<Scene>& _pScene,
     const Entity      _entity) const
 {
@@ -125,7 +125,7 @@ void ComponentDB::Serialize(
 void ComponentDB::Deserialize(
     UInt32            _typeId,
     void*             _pComponent,
-    JsonReader&       _json,
+    JsonReader        _json,
     const Ref<Scene>& _pScene,
     const Entity      _entity) const
 {

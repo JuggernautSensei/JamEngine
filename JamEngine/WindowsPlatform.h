@@ -43,7 +43,8 @@ public:
 private:
     static LRESULT CALLBACK WindowProc_(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    void SetClient(Int32 _clientWidth, Int32 _clientHeight, Int32 _clientLeftTopX, Int32 _clientLeftTopY, DWORD _wsFlags, DWORD _exFlags);
+    void SetClientRect(Int32 _x, Int32 _y, Int32 _width, Int32 _height);
+
     void OnWindowResizedEvent_(const WindowResizedEvent& _event);
     void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event);
     void OnWindowMoveEvent_(const WindowMoveEvent& _event);

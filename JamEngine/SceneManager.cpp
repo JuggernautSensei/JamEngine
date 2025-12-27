@@ -90,7 +90,7 @@ void SceneManager::Update(const float _deltaSec)
     // update active scene
     if (const Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
-        // first call of frame
+        // 이전 프레임에 예약된 파괴 후보를 처리
         pScene->ProcessDeferredDestroyEntities_();
 
         // udpate script
@@ -208,9 +208,8 @@ void SceneManager::ChangeSceneIfNeed_()
             pActiveScene->OnExit();
         }
 
-        pActiveScene = pNextScene;   // change scene
-        pNextScene   = nullptr;      // clear next scene
-        pActiveScene->OnEnter();     // enter scene
+        pActiveScene = std::move(pNextScene);   // change scene
+        pActiveScene->OnEnter();                // enter scene
 
         // resize in runtime.
         // in editor mode, scene resize is handled by editor

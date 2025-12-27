@@ -18,8 +18,8 @@ struct TagComponent :
     [[nodiscard]] bool operator==(StringView _name) const;
     [[nodiscard]] bool operator!=(StringView _name) const;
 
-    void Serialize(JsonWriter& _writer, const Ref<Scene>& _pScene, Entity _owner) const;
-    void Deserialize(JsonReader& _reader, const Ref<Scene>& _pScene, Entity _owner);
+    void Serialize(JsonWriter _writer, const Ref<Scene>& _pScene, Entity _owner) const;
+    void Deserialize(JsonReader _reader, const Ref<Scene>& _pScene, Entity _owner);
     void DrawEditor(Ref<Scene>& _pScene, Entity _entity);
 
     std::string name = "unknown";

@@ -15,11 +15,11 @@ bool ImageTexture::Load(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
     CleanUp_();
 
-    if (const Optional<TextureHandle> opt = Graphics::LoadTextureFile(_path))
+    if (const Optional<TextureHandle> optTex = Graphics::LoadTextureFile(_path))
     {
         const TextureInfo info = Graphics::GetTextureInfo(m_texh);
 
-        m_texh = opt.value();
+        m_texh = optTex.value();
         m_path = _path;
         m_res  = { info.width, info.height };
         m_type = info.type;
@@ -31,19 +31,36 @@ bool ImageTexture::Load(
     }
 }
 
-bool ImageTexture::LoadSource(
-    const CMemView _source,
+bool ImageTexture::LoadMemory(
+    const CMemView     _mem,
     const eImageFormat _format,
     const fs::path&    _virtualPath)
 {
     JAM_FUNCTION_MSG_PROFILE("virtualPath: {}", _virtualPath.native());
     CleanUp_();
 
-    if (const Optional<TextureHandle> opt = Graphics::LoadTextureSource(_source, _format))
+    if (const Optional<TextureHandle> optTex = Graphics::LoadTextureMemory(_mem, _format))
     {
-        const TextureInfo info = Graphics::GetTextureInfo(m_texh);
+        return LoadMemory(optTex.value(), _virtualPath);
+    }
+    else
+    {
+        return false;
+    }
+}
 
-        m_texh = opt.value();
+bool ImageTexture::LoadMemory(
+    const TextureHandle _texh,
+    const fs::path&     _virtualPath)
+{
+    JAM_FUNCTION_PROFILE();
+    CleanUp_();
+
+    if (JAM_IS_VALID_HANDLE(_texh))
+    {
+        const TextureInfo info = Graphics::GetTextureInfo(_texh);
+
+        m_texh = _texh;
         m_path = _virtualPath;
         m_res  = { info.width, info.height };
         m_type = info.type;
@@ -61,9 +78,8 @@ bool ImageTexture::Save(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
 
     ImageExporter exporter;
-    exporter.SetPath(_path);
     exporter.SetTexture(m_texh);
-    return exporter.Export();
+    return exporter.Export(_path);
 }
 
 bool ImageTexture::IsValid() const

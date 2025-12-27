@@ -1,0 +1,23 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\Editor_Magics.obj",
+            "outputs": [
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\Editor_Magics.h_1D5DA1A1E78561B9.ifc.dt.module.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\Editor_Magics.h_1D5DA1A1E78561B9.ifc.dt.d.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\Editor_Magics.h.ifc",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\JamEngine.pch"
+            ],
+            "provides": [
+                {
+                    "logical-name": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Editor_Magics.h",
+                    "source-path": "c:\\users\\ahnjiwoo\\desktop\\jamengine\\jamengine\\jamengine\\editor_magics.h",
+                    "lookup-method": "absolute"
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

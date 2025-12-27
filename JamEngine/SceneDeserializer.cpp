@@ -76,7 +76,7 @@ bool SceneDeserializer::Deserialize()
             return false;
         }
 
-        JsonReader& sceneReader = optSceneReader.value();
+        JsonReader sceneReader = optSceneReader.value();
 
         // read scene type
         std::string sceneType;
@@ -86,16 +86,14 @@ bool SceneDeserializer::Deserialize()
         }
 
         // create scene from SceneDB
+        const SceneDB& db = SceneDB::GetInstance();
+        if (!db.IsReflected(sceneType))
         {
-            const SceneDB& db = SceneDB::GetInstance();
-            if (!db.IsReflected(sceneType))
-            {
-                GlobalBuffer::SetLastError("Scene type '{}' is not reflected in SceneDB", sceneType);
-                return false;
-            }
-
-            m_pScene = db.Create(sceneType);
+            GlobalBuffer::SetLastError("Scene type '{}' is not reflected in SceneDB", sceneType);
+            return false;
         }
+
+        m_pScene = db.Create(sceneType);
     }
 
     // create entities
@@ -107,7 +105,7 @@ bool SceneDeserializer::Deserialize()
             return false;
         }
 
-        JsonReader& entityReader = optEntityReader.value();
+        JsonReader entityReader = optEntityReader.value();
 
         // entity UIDs
         const Entity root    = m_pScene->GetRootEntity();
@@ -135,7 +133,7 @@ bool SceneDeserializer::Deserialize()
             return false;
         }
 
-        JsonReader&        cmpsReader = optCmpsReader.value();
+        JsonReader        cmpsReader = optCmpsReader.value();
         const ComponentDB& db         = ComponentDB::GetInstance();
 
         // components
@@ -148,7 +146,7 @@ bool SceneDeserializer::Deserialize()
                 JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component entry at index: {}", i);
             }
 
-            JsonReader& entryReader = optEntryReader.value();
+            JsonReader entryReader = optEntryReader.value();
 
             // type name
             std::string typeName;
@@ -170,7 +168,7 @@ bool SceneDeserializer::Deserialize()
                 JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component values at entry index: {}", i);
             }
 
-            JsonReader& valuesReader = optValuesReader.value();
+            JsonReader valuesReader = optValuesReader.value();
             for (Int32 j = 0; j < valuesReader.GetSize(); ++j)
             {
                 // value
@@ -180,7 +178,7 @@ bool SceneDeserializer::Deserialize()
                     JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component value at entry index: {}, value index: {}", i, j);
                 }
 
-                JsonReader& valueReader = optValueReader.value();
+                JsonReader valueReader = optValueReader.value();
 
                 // entity UID
                 UID uid;
@@ -206,18 +204,18 @@ bool SceneDeserializer::Deserialize()
                 if (void* pCmpValue = db.Get(typeName, entity))
                 {
                     // component data
-                    Optional<JsonReader> optCmpDataReader = valueReader.EnterAt(1);
-                    if (!optCmpDataReader)
+                    Optional<JsonReader> optDataReader = valueReader.EnterAt(1);
+                    if (!optDataReader)
                     {
                         JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component data at entry index: {}, value index: {}", i, j);
                     }
 
                     // component data reader
-                    JsonReader& cmpDataReader = optCmpDataReader.value();
-                    db.Deserialize(typeName, pCmpValue, cmpDataReader, m_pScene, entity);
+                    JsonReader dataReader = optDataReader.value();
+                    db.Deserialize(typeName, pCmpValue, dataReader, m_pScene, entity);
 
                     // check success
-                    if (!cmpDataReader.IsSucceeded())
+                    if (!dataReader.IsSucceeded())
                     {
                         JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to deserialize component type ID {} for entity UID {} at entry index: {}, value index: {}", typeName, uid, i, j);
                     }

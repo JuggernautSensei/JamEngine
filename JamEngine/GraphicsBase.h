@@ -351,6 +351,33 @@ struct RGBA
         };
     }
 
+    // RRGGBBAA
+    [[nodiscard]] constexpr UInt32 ToRGBA() const
+    {
+        return (static_cast<UInt32>(r) << 24)
+             | (static_cast<UInt32>(g) << 16)
+             | (static_cast<UInt32>(b) << 8)
+             | static_cast<UInt32>(a);
+    }
+
+    // AABBGGRR
+    [[nodiscard]] constexpr UInt32 ToABGR() const
+    {
+        return (static_cast<UInt32>(a) << 24)
+             | (static_cast<UInt32>(b) << 16)
+             | (static_cast<UInt32>(g) << 8)
+             | static_cast<UInt32>(r);
+    }
+
+    // BBGGRRAA
+    [[nodiscard]] constexpr UInt32 ToBGRA() const
+    {
+        return (static_cast<UInt32>(b) << 24)
+             | (static_cast<UInt32>(g) << 16)
+             | (static_cast<UInt32>(r) << 8)
+             | static_cast<UInt32>(a);
+    }
+
     [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
     {
         return color == _other.color;
@@ -721,9 +748,14 @@ struct ProgramInfo
 
 [[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);
 [[nodiscard]] Int32             ByteFrom(eTextureFormat _format);
-[[nodiscard]] Int32             CalcIndexStride(bool _bIsU32);
 [[nodiscard]] Int32             CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
 [[nodiscard]] TextureResolution CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
 [[nodiscard]] Int32             CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _numMips);
+
+[[nodiscard]] UInt32 IndexFrom(CMemView _idxData, Int32 _idx, bool _bUseU32);                     // index from typeless index data
+void                 StoreIndex(MemView _dstIdxData, Int32 _idx, bool _bUseU32, UInt32 _value);   // store index to typeless index data
+[[nodiscard]] Int32  CalcNumIndices(CMemView _idxData, bool _bUseU32);                            // calculate number of indices from typeless index data
+[[nodiscard]] Int32  CalcIndicesByteWidth(Int32 _numIndices, bool _bUseU32);                      // calculate byte width of typeless index data
+[[nodiscard]] Int32  CalcNumVertices(CMemView _vertData, const VertexLayout& _vl);                // calculate number of vertices from vertex data and layout
 
 }   // namespace jam

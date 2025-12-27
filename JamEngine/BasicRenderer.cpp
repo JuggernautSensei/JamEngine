@@ -481,7 +481,7 @@ TextureHandle BasicRendererContext::CreateTexture2D(
     const Int32           _height,
     const eTextureFormat  _format,
     const eAttachmentType _type,
-    const StringView    _name) const
+    const StringView      _name) const
 {
     eTextureCreateFlags flags = eTextureCreateFlags_None;
 
@@ -508,7 +508,7 @@ TextureHandle BasicRendererContext::CreateTextureCube(
     const Int32           _height,
     const eTextureFormat  _format,
     const eAttachmentType _type,
-    const StringView    _name) const
+    const StringView      _name) const
 {
     eTextureCreateFlags flags = eTextureCreateFlags_None;
 
@@ -536,7 +536,7 @@ TextureHandle BasicRendererContext::CreateTextureArray(
     const Int32           _arraySize,
     const eTextureFormat  _format,
     const eAttachmentType _type,
-    const StringView    _name) const
+    const StringView      _name) const
 {
     eTextureCreateFlags flags = eTextureCreateFlags_None;
 
@@ -561,7 +561,7 @@ TextureHandle BasicRendererContext::CreateTextureArray(
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
     const std::span<const TextureHandle> _attachment,
     const bool                           _bDestroyTexture,
-    const StringView                   _name) const
+    const StringView                     _name) const
 {
     const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_attachment, _bDestroyTexture);
     if (!_name.IsEmpty())
@@ -574,7 +574,7 @@ FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
     const TextureHandle _texh,
     const bool          _bDestroyTexture,
-    const StringView  _name) const
+    const StringView    _name) const
 {
     const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_texh, _bDestroyTexture);
     if (!_name.IsEmpty())
@@ -588,7 +588,7 @@ FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
     const Int32          _width,
     const Int32          _height,
     const eTextureFormat _format,
-    const StringView   _name) const
+    const StringView     _name) const
 {
     const FrameBufferHandle fbh = Graphics::CreateFrameBuffer(_width, _height, _format);
     if (!_name.IsEmpty())
@@ -1004,9 +1004,9 @@ void BasicRendererContext::BuildRenderGraph(
             const Int32             w             = Max(1, width >> (i + 1));
             const Int32             h             = Max(1, height >> (i + 1));
             const Viewport          vpDown        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
-            const StringView      name          = GlobalBuffer::FormatTmp("Bloom Down Texture %d", i);
+            const StringView        name          = GlobalBuffer::FormatTmp("Bloom Down Texture %d", i);
             const TextureHandle     bloomDownTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, name);
-            const StringView      fbhName       = GlobalBuffer::FormatTmp("Bloom Down FrameBuffer %d", i);
+            const StringView        fbhName       = GlobalBuffer::FormatTmp("Bloom Down FrameBuffer %d", i);
             const FrameBufferHandle bloomDownFbh  = CreateFrameBuffer(bloomDownTexh, true, fbhName);
 
             RenderPass pass;
@@ -1031,9 +1031,9 @@ void BasicRendererContext::BuildRenderGraph(
             const Int32             w           = Max(1, width >> (i + 1));
             const Int32             h           = Max(1, height >> (i + 1));
             const Viewport          vpUp        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
-            const StringView      name        = GlobalBuffer::FormatTmp("Bloom Up Texture %d", i);
+            const StringView        name        = GlobalBuffer::FormatTmp("Bloom Up Texture %d", i);
             const TextureHandle     bloomUpTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, name);
-            const StringView      fbhName     = GlobalBuffer::FormatTmp("Bloom Up FrameBuffer %d", i);
+            const StringView        fbhName     = GlobalBuffer::FormatTmp("Bloom Up FrameBuffer %d", i);
             const FrameBufferHandle bloomUpFbh  = CreateFrameBuffer(bloomUpTexh, true, fbhName);
 
             RenderPass pass;

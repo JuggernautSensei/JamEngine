@@ -42,13 +42,13 @@ void Editor_SceneView::Init()
     // load icons
     {
         bool bSucceeded = false;
-        bSucceeded |= m_cursorIcon.LoadSource(CMemView { CursorIcon_png, CursorIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_editIcon.LoadSource(CMemView { EditIcon_png, EditIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_menuIcon.LoadSource(CMemView { MenuIcon_png, MenuIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_playIcon.LoadSource(CMemView { PlayIcon_png, PlayIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_rotateIcon.LoadSource(CMemView { RotationIcon_png, RotationIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_scaleIcon.LoadSource(CMemView { ScalingIcon_png, ScalingIcon_png_size }, eImageFormat::PNG);
-        bSucceeded |= m_tranlateIcon.LoadSource(CMemView { TranslateIcon_png, TranslateIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_cursorIcon.LoadMemory(CMemView { CursorIcon_png, CursorIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_editIcon.LoadMemory(CMemView { EditIcon_png, EditIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_menuIcon.LoadMemory(CMemView { MenuIcon_png, MenuIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_playIcon.LoadMemory(CMemView { PlayIcon_png, PlayIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_rotateIcon.LoadMemory(CMemView { RotationIcon_png, RotationIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_scaleIcon.LoadMemory(CMemView { ScalingIcon_png, ScalingIcon_png_size }, eImageFormat::PNG);
+        bSucceeded |= m_tranlateIcon.LoadMemory(CMemView { TranslateIcon_png, TranslateIcon_png_size }, eImageFormat::PNG);
         JAM_ASSERT(bSucceeded, "Failed to load editor scene view icons");
     }
 }
@@ -659,13 +659,13 @@ void Editor_SceneView::Resize_(const Int32 _width, const Int32 _height)
 
 void Editor_SceneView::OnSceneChangedEvent_(const SceneChangedEvent& _event)
 {
-    if (m_bNeedRecover && m_backupEntityUID != k_invalidUID)
+    if (m_bNeedRecover && m_backupEntityUID != k_invalidUid)
     {
         const Ref<Scene>& pScene = SceneManager::GetActiveScene();
         const Entity      entity = pScene->GetEntity(m_backupEntityUID);
         Editor::SetFocusEntity(entity);
 
-        m_backupEntityUID = k_invalidUID;
+        m_backupEntityUID = k_invalidUid;
         m_bNeedRecover    = false;
     }
 
@@ -714,7 +714,7 @@ void Editor_SceneView::OnMouseWheelEvent_(MouseWheelEvent& _event) const
 
 void Editor_SceneView::OnClickRunButton_()
 {
-    Editor::SetEditorMode(eEditorMode::Runtime);
+    Editor::SetEditorMode(eEditorMode::Play);
 
     // current scene serialize -> backup
     SceneSerializer serializer;

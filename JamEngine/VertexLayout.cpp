@@ -12,13 +12,12 @@ VertexLayout::VertexLayout()
 
 void VertexLayout::Reset()
 {
-    std::memset(m_vles, 0, sizeof(m_vles));
-    std::ranges::fill(m_vleLut, k_invalidElement);
+    m_vleLut.fill(k_invalidElement);
     m_stride   = 0;
     m_numElems = 0;
 }
 
-VertexLayout& VertexLayout::Add(
+VertexLayout& VertexLayout::Push(
     const eVertexAttribute _attrib,
     const eAttributeFormat _format)
 {
@@ -64,7 +63,7 @@ Int32 VertexLayout::GetNumElements() const
 
 std::span<const VertexLayoutElement> VertexLayout::GetElements() const
 {
-    return { m_vles, m_numElems };
+    return { m_vles.data(), m_numElems };
 }
 
 Int32 ByteFrom(

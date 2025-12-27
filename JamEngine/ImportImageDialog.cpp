@@ -2,7 +2,7 @@
 
 #include "ImportImageDialog.h"
 
-#include "DialogUtilities.h"
+#include "WindowsUtilities.h"
 #include "EditorWidgets.h"
 #include "Graphics.h"
 #include "GraphicsBase.h"
@@ -52,7 +52,7 @@ void ImportImageDialog::operator()()
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("path");
         ImGui::TableNextColumn();
-        if (Widget_OpenFileDialog("##FileDialog", m_importPath, k_filters))
+        if (Widget_SingleFileDialog("##FileDialog", m_importPath, TODO))
             m_bDirty = true;
 
         // Preview

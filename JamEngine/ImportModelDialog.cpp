@@ -3,7 +3,7 @@
 #include "ImportModelDialog.h"
 
 #include "AssimpImporter.h"
-#include "DialogUtilities.h"
+#include "WindowsUtilities.h"
 #include "EditorWidgets.h"
 
 #include "Graphics.h"
@@ -47,7 +47,7 @@ void ImportModelDialog::operator()()
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("path");
         ImGui::TableNextColumn();
-        Widget_OpenFileDialog("##OpenModelFileDialog", m_importPath, k_filters);
+        Widget_SingleFileDialog("##OpenModelFileDialog", m_importPath, TODO);
 
         // Row 1: Name
         ImGui::TableNextRow();
@@ -347,7 +347,7 @@ Ref<ImageTexture> ImportModelDialog::CreateImageTextureFromImportedTexture_(
     }
 
     Ref<ImageTexture> pImageTexture = MakeRef<ImageTexture>();
-    pImageTexture->LoadSource(_tex.pixels, format, _virtualPath);
+    pImageTexture->LoadMemory(_tex.pixels, format, _virtualPath);
     return pImageTexture;
 }
 

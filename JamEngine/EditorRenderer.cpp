@@ -260,11 +260,11 @@ void EditorRenderer::Init()
 
     // Grid shaders
     {
-        if (!compiler.CompileSource(k_editorRendererGridShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererGridShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor grid vertex shader compilation failed");
         const ShaderHandle gridVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileSource(k_editorRendererGridShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererGridShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor grid pixel shader compilation failed");
         const ShaderHandle gridPsh = Graphics::CreateShader(compiler.GetBytecode());
 
@@ -273,11 +273,11 @@ void EditorRenderer::Init()
 
     // Line shaders
     {
-        if (!compiler.CompileSource(k_editorRendererLineShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererLineShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor line vertex shader compilation failed");
         const ShaderHandle lineVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileSource(k_editorRendererLineShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererLineShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor line pixel shader compilation failed");
         const ShaderHandle linePsh = Graphics::CreateShader(compiler.GetBytecode());
 
@@ -286,11 +286,11 @@ void EditorRenderer::Init()
 
     // Filled shaders
     {
-        if (!compiler.CompileSource(k_editorRendererFilledShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererFilledShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor filled vertex shader compilation failed");
         const ShaderHandle filledVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileSource(k_editorRendererFilledShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererFilledShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
             JAM_ASSERT(0, "Editor filled pixel shader compilation failed");
         const ShaderHandle filledPsh = Graphics::CreateShader(compiler.GetBytecode());
 
@@ -353,7 +353,7 @@ void EditorRenderer::CreateGridQuad_()
     };
 
     VertexLayout vl;
-    vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
+    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
 
     constexpr GridVertex verts[4] = {
         { Vec3(-k_gridSize, 0.0f, -k_gridSize) },
@@ -371,8 +371,8 @@ void EditorRenderer::CreateGridQuad_()
 void EditorRenderer::CreatePrimitives_()
 {
     VertexLayout vl;
-    vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
-    vl.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+    vl.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
     m_sphere   = CreateSphereMesh(1.0f, 4, vl);
     m_cylinder = CreateCylinder(1.0f, 1.0f, 32, vl);

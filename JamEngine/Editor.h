@@ -3,26 +3,25 @@
 
 namespace jam
 {
+class Dialog;
+class IEditorCommand;
 
-class Scene;
-class VertexLayoutStorage;
-class Entity;
 class Event;
 
 enum class eEditorWindowType : Int8
 {
-    Viewport,
+    SceneView,
     SceneHierarchy,
     EntityInspector,
-    FileSystemBrowser,
+    FileBrowser,
     Profiler,
-    VertexLayoutManager,
+    VertexLayoutEditor,
 };
 
 enum class eEditorMode
 {
     Edit = 0,
-    Runtime,
+    Play,
 };
 
 class Editor
@@ -36,27 +35,31 @@ public:
     static void ImGuiRender();
     static void OnEvent(Event& _event);
 
-    [[nodiscard]] static bool IsEditMode();
-    [[nodiscard]] static bool IsRuntimeMode();
-    static void               SetEditorMode(eEditorMode _mode);
+    static void                      SetMode(eEditorMode _mode);
+    [[nodiscard]] static eEditorMode GetMode();
 
-    static void                 SetFocusEntity(Entity _entity);
-    [[nodiscard]] static Entity GetFocusEntity();
+    static void                 SetFocusedEntity(Entity _entity);
+    [[nodiscard]] static Entity GetFocusedEntity();
 
-    [[nodiscard]] static const EditorStyle&   GetStyle();
-    [[nodiscard]] static ImVec4               GetStyleColor(eEditorStyleColor _color);
-    [[nodiscard]] static ImU32                GetStyleColorU32(eEditorStyleColor _color);
+    // style
+    [[nodiscard]] static EditorStyle& GetStyle();
+    [[nodiscard]] static ImVec4       GetStyleColor(eEditorStyleColor _col);
+    [[nodiscard]] static ImU32        GetStyleColorU32(eEditorStyleColor _col);
+
     [[nodiscard]] static VertexLayoutStorage& GetVertexLayoutStorage();
 
-    static void OpenCorePopupDialog(StringView _name, StringView _message);
-    static void OpenCorePopupDialog(StringView _name, std::function<void()> _onImGuiRender);
+    // command
+    static void               ExecuteCommand(Scoped<IEditorCommand>&& _command);
+    static void               UndoCommand();
+    static void               RedoCommand();
+    [[nodiscard]] static bool CanUndoCommand();
+    [[nodiscard]] static bool CanRedoCommand();
 
-    static void CreateEntityToActiveScene(Entity _parentOrNull = Entity::s_null);
-    static void CloneEntityToActiveScene(Entity _entity, Entity _parentOrNull = Entity::s_null);
-    static void DestroyEntityToActiveScene(Entity _entity, bool _bForce = false);
+    // dialog
+    static void PushDialog(Scoped<Dialog>&& _pDialog);
 
-    static void SaveActiveSceneByDialog();
-    static void LoadActiveSceneByDialog();
+private:
+    static void UpdateAutoSaveConfig_(float _deltaSec);
 };
 
 }   // namespace jam

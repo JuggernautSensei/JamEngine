@@ -145,9 +145,9 @@ void ImGuiGlueContext::Init()
     textureCubePh = Graphics::CreateProgram(vsh, textureCubePsh);
 
     // create vertex vertexLayout
-    vl.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
-        .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
-        .Add(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
+    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float2)
+        .Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
+        .Push(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
 
     // create constant buffer
     cbh = Graphics::CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
@@ -402,7 +402,7 @@ void ImGuiGlueContext::DestroyTexture(ImTextureData* _tex) const
 
 ShaderHandle ImGuiGlueContext::CreateShader(const char* _pShaderCode, const eShader _shaderStage) const
 {
-    if (const Optional<ShaderHandle> sh = Graphics::LoadShaderSource(_pShaderCode, _shaderStage, "main", eShaderCompileFlags_ReleaseDefault))
+    if (const Optional<ShaderHandle> sh = Graphics::LoadHLSLShaderSource(_pShaderCode, _shaderStage, "main", eShaderCompileFlags_ReleaseDefault))
     {
         return sh.value();
     }
@@ -424,8 +424,7 @@ ImTextureID ImGuiGlueContext::ImTextureIDFrom(
     const TextureHandle _texh,
     const eTextureType  _type) const
 {
-    return static_cast<UInt64>(_texh.value) << 32
-         | static_cast<UInt64>(_type);
+    return static_cast<UInt64>(_texh.value) << 32 | static_cast<UInt64>(_type);
 }
 
 TextureData ImGuiGlueContext::TextureDataFrom(

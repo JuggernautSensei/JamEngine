@@ -3,7 +3,7 @@
 #include "Mesh.h"
 
 #include "BaseUtilities.h"
-#include "FileUtilities.h"
+#include "FileIOUtilities.h"
 #include "Graphics.h"
 #include "Hash.h"
 #include "Profile.h"
@@ -30,34 +30,20 @@ namespace jam
 {
     switch (_attrib)
     {
-        case jmsh::eVertexAttribute_Position:
-            return eVertexAttribute::Position;
-        case jmsh::eVertexAttribute_Normal:
-            return eVertexAttribute::Normal;
-        case jmsh::eVertexAttribute_Tangent:
-            return eVertexAttribute::Tangent;
-        case jmsh::eVertexAttribute_Bitangent:
-            return eVertexAttribute::Bitangent;
-        case jmsh::eVertexAttribute_Color0:
-            return eVertexAttribute::Color0;
-        case jmsh::eVertexAttribute_Color1:
-            return eVertexAttribute::Color1;
-        case jmsh::eVertexAttribute_Color2:
-            return eVertexAttribute::Color2;
-        case jmsh::eVertexAttribute_Color3:
-            return eVertexAttribute::Color3;
-        case jmsh::eVertexAttribute_BlendIndices:
-            return eVertexAttribute::BlendIndex;
-        case jmsh::eVertexAttribute_BlendWeights:
-            return eVertexAttribute::BlendWeight;
-        case jmsh::eVertexAttribute_TexCoord0:
-            return eVertexAttribute::TexCoord0;
-        case jmsh::eVertexAttribute_TexCoord1:
-            return eVertexAttribute::TexCoord1;
-        case jmsh::eVertexAttribute_TexCoord2:
-            return eVertexAttribute::TexCoord2;
-        case jmsh::eVertexAttribute_TexCoord3:
-            return eVertexAttribute::TexCoord3;
+        case jmsh::eVertexAttribute_Position: return eVertexAttribute::Position;
+        case jmsh::eVertexAttribute_Normal: return eVertexAttribute::Normal;
+        case jmsh::eVertexAttribute_Tangent: return eVertexAttribute::Tangent;
+        case jmsh::eVertexAttribute_Bitangent: return eVertexAttribute::Bitangent;
+        case jmsh::eVertexAttribute_Color0: return eVertexAttribute::Color0;
+        case jmsh::eVertexAttribute_Color1: return eVertexAttribute::Color1;
+        case jmsh::eVertexAttribute_Color2: return eVertexAttribute::Color2;
+        case jmsh::eVertexAttribute_Color3: return eVertexAttribute::Color3;
+        case jmsh::eVertexAttribute_BlendIndices: return eVertexAttribute::BlendIndex;
+        case jmsh::eVertexAttribute_BlendWeights: return eVertexAttribute::BlendWeight;
+        case jmsh::eVertexAttribute_TexCoord0: return eVertexAttribute::TexCoord0;
+        case jmsh::eVertexAttribute_TexCoord1: return eVertexAttribute::TexCoord1;
+        case jmsh::eVertexAttribute_TexCoord2: return eVertexAttribute::TexCoord2;
+        case jmsh::eVertexAttribute_TexCoord3: return eVertexAttribute::TexCoord3;
         default:
             JAM_ASSERT(0, "Unknown jmsh::eVertexAttribute");
             return static_cast<eVertexAttribute>(-1);
@@ -69,34 +55,20 @@ namespace jam
 {
     switch (_attrib)
     {
-        case eVertexAttribute::Position:
-            return jmsh::eVertexAttribute_Position;
-        case eVertexAttribute::Normal:
-            return jmsh::eVertexAttribute_Normal;
-        case eVertexAttribute::Tangent:
-            return jmsh::eVertexAttribute_Tangent;
-        case eVertexAttribute::Bitangent:
-            return jmsh::eVertexAttribute_Bitangent;
-        case eVertexAttribute::Color0:
-            return jmsh::eVertexAttribute_Color0;
-        case eVertexAttribute::Color1:
-            return jmsh::eVertexAttribute_Color1;
-        case eVertexAttribute::Color2:
-            return jmsh::eVertexAttribute_Color2;
-        case eVertexAttribute::Color3:
-            return jmsh::eVertexAttribute_Color3;
-        case eVertexAttribute::BlendIndex:
-            return jmsh::eVertexAttribute_BlendIndices;
-        case eVertexAttribute::BlendWeight:
-            return jmsh::eVertexAttribute_BlendWeights;
-        case eVertexAttribute::TexCoord0:
-            return jmsh::eVertexAttribute_TexCoord0;
-        case eVertexAttribute::TexCoord1:
-            return jmsh::eVertexAttribute_TexCoord1;
-        case eVertexAttribute::TexCoord2:
-            return jmsh::eVertexAttribute_TexCoord2;
-        case eVertexAttribute::TexCoord3:
-            return jmsh::eVertexAttribute_TexCoord3;
+        case eVertexAttribute::Position: return jmsh::eVertexAttribute_Position;
+        case eVertexAttribute::Normal: return jmsh::eVertexAttribute_Normal;
+        case eVertexAttribute::Tangent: return jmsh::eVertexAttribute_Tangent;
+        case eVertexAttribute::Bitangent: return jmsh::eVertexAttribute_Bitangent;
+        case eVertexAttribute::Color0: return jmsh::eVertexAttribute_Color0;
+        case eVertexAttribute::Color1: return jmsh::eVertexAttribute_Color1;
+        case eVertexAttribute::Color2: return jmsh::eVertexAttribute_Color2;
+        case eVertexAttribute::Color3: return jmsh::eVertexAttribute_Color3;
+        case eVertexAttribute::BlendIndex: return jmsh::eVertexAttribute_BlendIndices;
+        case eVertexAttribute::BlendWeight: return jmsh::eVertexAttribute_BlendWeights;
+        case eVertexAttribute::TexCoord0: return jmsh::eVertexAttribute_TexCoord0;
+        case eVertexAttribute::TexCoord1: return jmsh::eVertexAttribute_TexCoord1;
+        case eVertexAttribute::TexCoord2: return jmsh::eVertexAttribute_TexCoord2;
+        case eVertexAttribute::TexCoord3: return jmsh::eVertexAttribute_TexCoord3;
         default:
             JAM_ASSERT(0, "Unknown eVertexAttribute");
             return static_cast<jmsh::eVertexAttribute>(-1);
@@ -108,18 +80,12 @@ namespace jam
 {
     switch (_format)
     {
-        case jmsh::eAttributeFormat_Float:
-            return eAttributeFormat::Float;
-        case jmsh::eAttributeFormat_Float2:
-            return eAttributeFormat::Float2;
-        case jmsh::eAttributeFormat_Float3:
-            return eAttributeFormat::Float3;
-        case jmsh::eAttributeFormat_Float4:
-            return eAttributeFormat::Float4;
-        case jmsh::eAttributeFormat_UNorm8x4:
-            return eAttributeFormat::UNorm8x4;
-        case jmsh::eAttributeFormat_UInt8x4:
-            return eAttributeFormat::UInt8x4;
+        case jmsh::eAttributeFormat_Float: return eAttributeFormat::Float;
+        case jmsh::eAttributeFormat_Float2: return eAttributeFormat::Float2;
+        case jmsh::eAttributeFormat_Float3: return eAttributeFormat::Float3;
+        case jmsh::eAttributeFormat_Float4: return eAttributeFormat::Float4;
+        case jmsh::eAttributeFormat_UNorm8x4: return eAttributeFormat::UNorm8x4;
+        case jmsh::eAttributeFormat_UInt8x4: return eAttributeFormat::UInt8x4;
         default:
             JAM_ASSERT(0, "Unknown jmsh::eAttributeFormat");
             return static_cast<eAttributeFormat>(-1);
@@ -131,18 +97,12 @@ namespace jam
 {
     switch (_format)
     {
-        case eAttributeFormat::Float:
-            return jmsh::eAttributeFormat_Float;
-        case eAttributeFormat::Float2:
-            return jmsh::eAttributeFormat_Float2;
-        case eAttributeFormat::Float3:
-            return jmsh::eAttributeFormat_Float3;
-        case eAttributeFormat::Float4:
-            return jmsh::eAttributeFormat_Float4;
-        case eAttributeFormat::UNorm8x4:
-            return jmsh::eAttributeFormat_UNorm8x4;
-        case eAttributeFormat::UInt8x4:
-            return jmsh::eAttributeFormat_UInt8x4;
+        case eAttributeFormat::Float: return jmsh::eAttributeFormat_Float;
+        case eAttributeFormat::Float2: return jmsh::eAttributeFormat_Float2;
+        case eAttributeFormat::Float3: return jmsh::eAttributeFormat_Float3;
+        case eAttributeFormat::Float4: return jmsh::eAttributeFormat_Float4;
+        case eAttributeFormat::UNorm8x4: return jmsh::eAttributeFormat_UNorm8x4;
+        case eAttributeFormat::UInt8x4: return jmsh::eAttributeFormat_UInt8x4;
         default:
             JAM_ASSERT(0, "Unknown eAttributeFormat");
             return static_cast<jmsh::eAttributeFormat>(-1);
@@ -165,9 +125,9 @@ bool Mesh::Load(const fs::path& _path)
     {
         return false;
     }
+    const Vector<Byte>& data = optData.value();
 
     // verify
-    const Vector<Byte>&   data     = optData.value();
     flatbuffers::Verifier verifier = { data.data(), data.size() };
     if (!jmsh::VerifyMeshBuffer(verifier))
     {
@@ -204,12 +164,11 @@ bool Mesh::Load(const fs::path& _path)
     VertexLayout vl;
     for (Int32 i = 0; i < numJmshVles; ++i)
     {
-        const jmsh::VertexLayoutElement* pVle = pJmshVles->Get(i);
-        if (pVle)
+        if (const jmsh::VertexLayoutElement* pVle = pJmshVles->Get(i))
         {
             const eVertexAttribute attrib = VertexAttributeFrom(pVle->attrib());
             const eAttributeFormat format = AttributeFormatFrom(pVle->format());
-            vl.Add(attrib, format);
+            vl.Push(attrib, format);
         }
         else
         {
@@ -235,10 +194,10 @@ bool Mesh::Load(const fs::path& _path)
     }
 
     // geometry data
-    const Int32        numVerts = NarrowCast<Int32>(pJmshVertData->size() / vl.GetStride());
-    const bool         bUseU32  = (numVerts > 0xFFFF);
-    const CMemView vertData = { pJmshVertData->data(), pJmshVertData->size() };
-    const CMemView idxData  = { pJmshIdxData->data(), pJmshIdxData->size() };
+    const Int32    numVerts = NarrowCast<Int32>(pJmshVertData->size() / vl.GetStride());
+    const bool     bUseU32  = numVerts > 0xFFFF;
+    const CMemView vertData = { pJmshVertData->data(), NarrowCast<Int32>(pJmshVertData->size()) };
+    const CMemView idxData  = { pJmshIdxData->data(), NarrowCast<Int32>(pJmshIdxData->size()) };
 
     // gpu resource creation
     m_path = _path;
@@ -258,21 +217,22 @@ bool Mesh::Load(const fs::path& _path)
     }
 
     // update hash based on file path
-    const UInt64 hash = HashOf(m_path.native());
-    m_sortKey         = static_cast<UInt16>(hash & 0xFFFF);
+    const UInt32 hash = HashOf(m_path.native());
+    m_sortKey         = static_cast<UInt16>(hash);
     return true;
 }
 
 void Mesh::LoadMemory(
-    const CMemView  _verts,
+    const CMemView      _verts,
     const VertexLayout& _vl,
-    const CMemView  _idxData,
+    const CMemView      _idxData,
     const bool          _bUseU32,
     const fs::path&     _virtualPath)
 {
     JAM_FUNCTION_PROFILE();
     CleanUp_();
 
+    // gpu resource creation
     m_path = _virtualPath;
     m_vbh  = Graphics::CreateVertexBuffer(_verts, _vl);
     m_ibh  = Graphics::CreateIndexBuffer(_idxData, _bUseU32);
@@ -291,13 +251,12 @@ void Mesh::LoadMemory(
         hasher.Add(&_bUseU32, sizeof(bool));
 
         const UInt64 hash = hasher.End();
-        m_sortKey         = static_cast<UInt16>(hash & 0xFFFF);
+        m_sortKey         = static_cast<UInt16>(hash);
     }
     else
     {
-        const StringView path = m_path.native();
-        const UInt64           hash = HashOf(path);
-        m_sortKey                   = static_cast<UInt16>(hash & 0xFFFF);
+        const UInt32 hash = HashOf(m_path.native());
+        m_sortKey         = static_cast<UInt16>(hash);
     }
 }
 
@@ -336,29 +295,30 @@ bool Mesh::Save(const fs::path& _path) const
     builder.Finish(jmshMesh);
 
     // io
-    return SaveBinaryFile(_path, { builder.GetBufferPointer(), builder.GetSize() });
+    return SaveBinaryFile(_path, { builder.GetBufferPointer(), NarrowCast<Int32>(builder.GetSize()) });
 }
 
-void Mesh::ComputeBoundingBox_(const CMemView _verts, const VertexLayout& _vl)
+void Mesh::ComputeBoundingBox_(const CMemView _vertData, const VertexLayout& _vl)
 {
     JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required to calculate bounding box");
 
-    const VertexLayoutElement& posVle    = _vl.GetElement(eVertexAttribute::Position);
-    const Int32                byteWidth = Min(posVle.byteWidth, sizeof(Vec3));
-    const Int32                offset    = posVle.offset;
+    // position attribute info
+    const VertexLayoutElement& vle       = _vl.GetElement(eVertexAttribute::Position);
+    const Int32                byteWidth = Min(vle.byteWidth, sizeof(Vec3));   // assume float3
+    const Int32                offset    = vle.offset;
     const Int32                stride    = _vl.GetStride();
 
     // vertex info
-    const Int32 numVerts  = NarrowCast<Int32>(_verts.GetByteWidth() / stride);
-    const Byte* pVertData = _verts.GetPtr();
+    const Int32 numVerts  = CalcNumVertices(_vertData, _vl);
+    const Byte* pVertData = _vertData.GetPtr();
 
     m_boundingBox = {};
     for (Int32 i = 0; i < numVerts; ++i)
     {
-        const Byte* pSrc = pVertData + i * stride + offset;
-
-        Vec3 pos = Vec3::Zero;
-        std::memcpy(&pos, pSrc, byteWidth);
+        // get position (assume float3)
+        const Byte* pSrcData = pVertData + i * stride + offset;
+        Vec3        pos      = Vec3::Zero;
+        std::memcpy(&pos, pSrcData, byteWidth);
 
         // merge
         m_boundingBox.Merge(pos);

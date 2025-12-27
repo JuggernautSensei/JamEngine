@@ -18,7 +18,10 @@ template<class T>
 void RadixSort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const UInt32 n)
 {
     static_assert(std::is_trivially_move_assignable_v<T>, "Value type must be trivially move assignable.");
-    if (n <= 1) return;
+    if (n <= 1)
+    {
+        return;
+    }
 
     UInt32* inK  = keys;
     UInt32* outK = tempKeys;
@@ -51,7 +54,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const U
         for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
             const UInt32 c = hist[b];
-            hist[b]  = sum;
+            hist[b]        = sum;
             sum += c;
         }
 
@@ -60,16 +63,16 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const U
         {
             const UInt32 k   = inK[i];
             const UInt32 b   = (k >> shift) & radix_detail::k_mask;
-            UInt32 dst = hist[b]++;
-            outK[dst]  = k;
-            outV[dst]  = inV[i];
+            UInt32       dst = hist[b]++;
+            outK[dst]        = k;
+            outV[dst]        = inV[i];
         }
 
         // swap buffers
         {
             const auto tmp = inK;
-            inK      = outK;
-            outK     = tmp;
+            inK            = outK;
+            outK           = tmp;
         }
         {
             auto tmp = inV;
@@ -126,7 +129,7 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, T* values, T* tempValues, con
         for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
         {
             const UInt32 c = hist[b];
-            hist[b]  = sum;
+            hist[b]        = sum;
             sum += c;
         }
 
@@ -134,15 +137,15 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, T* values, T* tempValues, con
         {
             const uint64_t k   = inK[i];
             const UInt32   b   = static_cast<UInt32>((k >> shift) & radix_detail::k_mask);
-            UInt32   dst = hist[b]++;
-            outK[dst]    = k;
-            outV[dst]    = inV[i];
+            UInt32         dst = hist[b]++;
+            outK[dst]          = k;
+            outV[dst]          = inV[i];
         }
 
         {
             const auto tmp = inK;
-            inK      = outK;
-            outK     = tmp;
+            inK            = outK;
+            outK           = tmp;
         }
         {
             auto tmp = inV;

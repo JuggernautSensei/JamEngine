@@ -74,7 +74,7 @@ public:
 private:
     entt::registry* m_pRegistry = nullptr;
     entt::entity    m_handle    = entt::null;
-    UID             m_uid       = k_invalidUID;
+    UID             m_uid       = k_invalidUid;
 };
 
 }   // namespace jam

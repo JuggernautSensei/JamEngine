@@ -2,7 +2,7 @@
 #include "BoundingVolume.h"
 #include "GraphicsBase.h"
 #include "IAsset.h"
-#include "Magic.h"
+#include "Magics.h"
 
 namespace jam
 {
@@ -24,12 +24,12 @@ public:
     bool Save(const fs::path& _path) const override;
     void Unload() override;
 
-    [[nodiscard]] bool             IsValid() const override;
-    [[nodiscard]] const fs::path&  GetPath() const override;
-    [[nodiscard]] eAssetType       GetAssetType() const override;
-    [[nodiscard]] UInt32           GetTypeHash() const override;
-    [[nodiscard]] StringView GetTypeName() const override;
-    [[nodiscard]] UInt16           GetSortKey() const;
+    [[nodiscard]] bool            IsValid() const override;
+    [[nodiscard]] const fs::path& GetPath() const override;
+    [[nodiscard]] eAssetType      GetAssetType() const override;
+    [[nodiscard]] UInt32          GetTypeHash() const override;
+    [[nodiscard]] StringView      GetTypeName() const override;
+    [[nodiscard]] UInt16          GetSortKey() const;
 
     [[nodiscard]] VertexBufferHandle GetVertexBuffer() const;
     [[nodiscard]] IndexBufferHandle  GetIndexBuffer() const;
@@ -37,14 +37,14 @@ public:
 
     void Submit() const;
 
-    static constexpr UInt32           k_hash      = HashOf<Mesh>();
+    static constexpr UInt32     k_hash      = HashOf<Mesh>();
     static constexpr StringView k_name      = NameOf<Mesh>();
-    static constexpr eAssetType       k_type      = eAssetType::Mesh;
+    static constexpr eAssetType k_type      = eAssetType::Mesh;
     static constexpr StringView k_extension = k_jamMeshExt;
 
 private:
     void CleanUp_();
-    void ComputeBoundingBox_(CMemView _verts, const VertexLayout& _vl);
+    void ComputeBoundingBox_(CMemView _vertData, const VertexLayout& _vl);
 
     fs::path           m_path        = {};
     VertexBufferHandle m_vbh         = k_invalidHandle;

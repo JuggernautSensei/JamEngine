@@ -32,6 +32,3 @@
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\DestroyNotLeafEntityDialog.cpp"
 
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\EditorStyle.cpp"
-

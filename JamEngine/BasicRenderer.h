@@ -20,8 +20,8 @@ struct VertexPosTex2D
     inline static VertexLayout s_layout = []
     {
         VertexLayout vl;
-        vl.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
-            .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+        vl.Push(eVertexAttribute::Position, eAttributeFormat::Float2)
+            .Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
         return vl;
     }();
 };
@@ -37,11 +37,11 @@ struct VertexStaticMesh
     inline static VertexLayout s_layout = []
     {
         VertexLayout vl;
-        vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3)
-            .Add(eVertexAttribute::Normal, eAttributeFormat::Float3)
-            .Add(eVertexAttribute::Tangent, eAttributeFormat::Float3)
-            .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
-            .Add(eVertexAttribute::TexCoord1, eAttributeFormat::Float2);
+        vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3)
+            .Push(eVertexAttribute::Normal, eAttributeFormat::Float3)
+            .Push(eVertexAttribute::Tangent, eAttributeFormat::Float3)
+            .Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
+            .Push(eVertexAttribute::TexCoord1, eAttributeFormat::Float2);
         return vl;
     }();
 };
@@ -53,7 +53,7 @@ struct VertexPos3D
     inline static VertexLayout s_layout = []
     {
         VertexLayout vl;
-        vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
+        vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
         return vl;
     }();
 };

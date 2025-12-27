@@ -1,7 +1,7 @@
 #pragma once
 #include "IAsset.h"
 #include "ImageTexture.h"
-#include "Magic.h"
+#include "Magics.h"
 
 namespace jam
 {
@@ -108,6 +108,8 @@ public:
     static constexpr eAssetType       k_type      = eAssetType::Material;
 
 private:
+    void CleanUp_();
+
     fs::path m_path    = {};
     UInt16   m_sortKey = 0;
     bool     m_bValid  = false;

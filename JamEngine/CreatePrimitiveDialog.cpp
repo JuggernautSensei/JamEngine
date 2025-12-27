@@ -4,7 +4,7 @@
 
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
-#include "Magic.h"
+#include "Magics.h"
 #include "Mesh.h"
 #include "MeshFactory.h"
 

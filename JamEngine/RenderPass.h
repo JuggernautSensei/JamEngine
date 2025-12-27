@@ -71,7 +71,7 @@ public:
     void Execute() const;
     void Execute(FrameBufferHandle _fbh, Viewport _vp) const;
 
-    [[nodiscard]] bool Validate() const;
+    [[nodiscard]] bool IsValid() const;
 
 private:
     void                 CleanUp_();

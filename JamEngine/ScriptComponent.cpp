@@ -2,6 +2,7 @@
 
 #include "ScriptComponent.h"
 
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
 #include "Scene.h"
@@ -12,46 +13,8 @@
 namespace jam
 {
 
-static bool Widget_ScriptCombo(const Entity _entity, Ref<Script>& _pScript)
-{
-    bool bChanged = false;
-
-    const bool       bHasScript = (_pScript != nullptr);
-    const StringView preview    = bHasScript ? _pScript->GetTypeName() : "none";
-
-    if (ImGui::BeginCombo("##ScriptComponent", preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
-    {
-        const ScriptDB& db = ScriptDB::GetInstance();
-        for (const ScriptInfo& info: db.GetContainer() | std::views::values)
-        {
-            const StringView label     = info.name;
-            const bool       bSelected = bHasScript && (preview == info.name);
-
-            if (ImGui::Selectable(label.GetPtr(), bSelected))
-            {
-                _pScript = info.createFn(_entity);
-                bChanged = true;
-            }
-
-            if (bSelected)
-            {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-
-        ImGui::EndCombo();
-    }
-
-    return bChanged;
-}
-
-}   // namespace jam
-
-namespace jam
-{
-
 void ScriptComponent::Serialize(
-    JsonWriter&       _writer,
+    JsonWriter       _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -66,7 +29,7 @@ void ScriptComponent::Serialize(
 }
 
 void ScriptComponent::Deserialize(
-    JsonReader&       _reader,
+    JsonReader       _reader,
     const Ref<Scene>& _pScene,
     const Entity      _owner)
 {
@@ -98,21 +61,16 @@ void ScriptComponent::DrawEditor(
     Ref<Scene>&  _pScene,
     const Entity _entity)
 {
-    if (ImGui::BeginTable("ScriptEditor", 2, ImGuiTableFlags_SizingFixedFit))
+    if (BeginComponentEditTable("ScriptComponent"))
     {
-        // setup table
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("script");
 
         ImGui::TableNextColumn();
         SetNextItemWidthToAvailableWidth();
-        Widget_ScriptCombo(_entity, pScript);
+        Widget_ScriptCombo("##ScriptCombo", pScript, _entity);
 
-        ImGui::EndTable();
+        ImGui::EndTable()();
     }
 }
 
