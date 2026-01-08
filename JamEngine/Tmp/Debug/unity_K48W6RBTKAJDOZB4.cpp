@@ -6,6 +6,9 @@
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\AssetDialog.cpp"
 
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Cista.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ConfirmationDialog.cpp"
 
 
@@ -28,7 +31,4 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\CameraComponent.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\EditorIcons.cpp"
 

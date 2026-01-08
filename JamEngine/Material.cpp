@@ -7,110 +7,35 @@
 #include "Magics.h"
 #include "MemView.h"
 #include "Profile.h"
-
-#include "resources/flatc/jmat_generated.h"
-namespace fbs = flatbuffers;
+#include "Cista.h"
 
 namespace jam
 {
 
-[[nodiscard]] static Vec3 Vec3From(
-    const jmat::Vec3& _vec)
+struct MaterialTexturesSchema
 {
-    return { _vec.x(), _vec.y(), _vec.z() };
-}
-
-[[nodiscard]] static fs::path PathFrom(
-    const fbs::String& _str)
-{
-    return _str.c_str();
-}
-
-[[nodiscard]] static eTextureChannel TextureChannelFrom(
-    const jmat::eTextureChannel _channel)
-{
-    switch (_channel)
+    [[nodiscard]] const cista::offset::string& Get(const eMaterialTextureType _type) const
     {
-        case jmat::eTextureChannel_Red:
-            return eTextureChannel::Red;
-        case jmat::eTextureChannel_Green:
-            return eTextureChannel::Green;
-        case jmat::eTextureChannel_Blue:
-            return eTextureChannel::Blue;
-        case jmat::eTextureChannel_Alpha:
-            return eTextureChannel::Alpha;
-        default:
-            JAM_ASSERT(0, "Unknown color channel");
-            return eTextureChannel::Red;
-    }
-}
-
-[[nodiscard]] static jmat::Vec3 JmatVec3From(
-    const Vec3 _vec)
-{
-    return { _vec.x, _vec.y, _vec.z };
-}
-
-[[nodiscard]] static fbs::Offset<fbs::String> FbsStringOffsetFrom(
-    fbs::FlatBufferBuilder&  _builder,
-    const Ref<ImageTexture>& _pTexOrNull)
-{
-    if (!_pTexOrNull)
-    {
-        return 0;
+        return textures[IntFrom(_type)];
     }
 
-    const fs::path& path = _pTexOrNull->GetPath();
-    return _builder.CreateString(path.native());
-}
-
-[[nodiscard]] static jmat::eTextureChannel JmatTextureChannelFrom(
-    const eTextureChannel _channel)
-{
-    switch (_channel)
+    void Set(const eMaterialTextureType _type, const cista::offset::string& _texturePath)
     {
-        case eTextureChannel::Red:
-            return jmat::eTextureChannel_Red;
-        case eTextureChannel::Green:
-            return jmat::eTextureChannel_Green;
-        case eTextureChannel::Blue:
-            return jmat::eTextureChannel_Blue;
-        case eTextureChannel::Alpha:
-            return jmat::eTextureChannel_Alpha;
-        default:
-            JAM_ASSERT(0, "Unknown color channel");
-            return jmat::eTextureChannel_Red;
-    }
-}
-
-[[nodiscard]] static Ref<ImageTexture> ImageTextureFromOrNull(
-    const fbs::String* _pStrOrNull)
-{
-    // no texture
-    if (!_pStrOrNull)
-    {
-        return nullptr;
+        textures[IntFrom(_type)] = _texturePath;
     }
 
-    // get path
-    const fs::path path = PathFrom(*_pStrOrNull);
+    CistaArray<CistaString, NumEnums<eMaterialTextureType>()> textures = {};
+};
 
-    // load texture
-    Ref<ImageTexture> pTex;
-    if (!MoveIfHasValue(AssetManager::LoadImageTexture(path), pTex))
-    {
-        return nullptr;
-    }
-
-    return pTex;
-}
-
-}   // namespace jam
-
-//////////////////////////////////////////////////////////////////////
-
-namespace jam
+struct MaterialSchema
 {
+    CistaString             name     = {};
+    MaterialParams          params   = {};
+    MaterialTexturesSchema  textures = {};
+    MaterialTextureSettings settings = {};
+};
+
+//////////////////////////////////////////////////////////////
 
 bool Material::Load(
     const fs::path& _path)
@@ -122,104 +47,41 @@ bool Material::Load(
     Vector<Byte> data = {};
     if (!MoveIfHasValue(LoadBinaryFile(_path), data))
     {
-        GlobalBuffer::SetLastError("Failed to load material file: {}. {}", _path.native(), GlobalBuffer::GetLastError());
         return false;
     }
 
-    // verify
-    fbs::Verifier verifier { data.data(), static_cast<size_t>(data.size()) };
-    if (!jmat::VerifyMaterialBuffer(verifier))
+    // deserialize
+    MaterialSchema* const pMat = nullptr;
+    if (!MoveIfHasValue(DeserializeCista<MaterialSchema>(data), pMat))
     {
-        GlobalBuffer::SetLastError(R"(Material file is corrupted or invalid: "{}")", _path.native());
         return false;
     }
 
-    // parse
-    const jmat::Material* pJmatMat = jmat::GetMaterial(data.data());
-    if (!pJmatMat)
-    {
-        GlobalBuffer::SetLastError(R"(Failed to parse material file: "{}")", _path.native());
-        return false;
-    }
-
-    // name
-    {
-        const fbs::String* pJmatName = pJmatMat->name();
-        if (!pJmatName)
-        {
-            GlobalBuffer::SetLastError(R"(Material file is missing name: "{}")", _path.native());
-            return false;
-        }
-
-        m_name = pJmatName->c_str();
-    }
-
-    // params
-    {
-        const jmat::MaterialParams* pJmatParams = pJmatMat->params();
-        if (!pJmatParams)
-        {
-            GlobalBuffer::SetLastError(R"(Material file is missing parameters: "{}")", _path.native());
-            return false;
-        }
-
-        // fill native data
-        m_params.ambient           = Vec3From(pJmatParams->ambient());
-        m_params.diffuse           = Vec3From(pJmatParams->diffuse());
-        m_params.specular          = Vec3From(pJmatParams->specular());
-        m_params.shininess         = pJmatParams->shininess();
-        m_params.albedo            = Vec3From(pJmatParams->albedo());
-        m_params.roughness         = pJmatParams->roughness();
-        m_params.metallic          = pJmatParams->metallic();
-        m_params.emissive          = Vec3From(pJmatParams->emissive());
-        m_params.emissiveIntensity = pJmatParams->emission_intensity();
-        m_params.bAlphaCutout      = pJmatParams->b_alpha_cutout();
-        m_params.bDoubleSided      = pJmatParams->b_double_sided();
-    }
+    // fill native data
+    m_name     = pMat->name;
+    m_params   = pMat->params;
+    m_settings = pMat->settings;
 
     // textures
+    MaterialTexturesSchema& texSchema = pMat->textures;
+    for (eMaterialTextureType type: eMaterialTextureType {})
     {
-        const jmat::MaterialTextures* pJmatTextures = pJmatMat->textures();
-        if (!pJmatTextures)
+        const CistaString& path = texSchema.Get(type);
+        if (!path.empty())
         {
-            GlobalBuffer::SetLastError(R"(Material file is missing textures: "{}")", _path.native());
-            return false;
+            Ref<ImageTexture> pTexture = nullptr;
+            if (!MoveIfHasValue(AssetManager::LoadImageTexture(path.str()), pTexture))
+            {
+                return false;
+            }
+
+            SetTexture(type, pTexture);
         }
-
-        // fill native textures
-        SetTexture(eMaterialTextureType::Albedo, ImageTextureFromOrNull(pJmatTextures->albedo_map_path()));
-        SetTexture(eMaterialTextureType::Ao, ImageTextureFromOrNull(pJmatTextures->ao_map_path()));
-        SetTexture(eMaterialTextureType::Light, ImageTextureFromOrNull(pJmatTextures->light_map_path()));
-        SetTexture(eMaterialTextureType::VertexDisplacement, ImageTextureFromOrNull(pJmatTextures->vertex_displacement_map_path()));
-        SetTexture(eMaterialTextureType::Emissive, ImageTextureFromOrNull(pJmatTextures->emissive_map_path()));
-        SetTexture(eMaterialTextureType::Normal, ImageTextureFromOrNull(pJmatTextures->normal_map_path()));
-        SetTexture(eMaterialTextureType::Metallic, ImageTextureFromOrNull(pJmatTextures->metallic_map_path()));
-        SetTexture(eMaterialTextureType::Roughness, ImageTextureFromOrNull(pJmatTextures->roughness_map_path()));
-    }
-
-    // settings
-    {
-        const jmat::MaterialTextureSettings* pJmatSettings = pJmatMat->texture_settings();
-        if (!pJmatSettings)
-        {
-            GlobalBuffer::SetLastError(R"(Material file is missing texture settings: "{}")", _path.native());
-            return false;
-        }
-
-        // fill texture settings
-        m_settings.lightMapIntensity          = pJmatSettings->light_map_intensity();
-        m_settings.vertexDisplacementMapScale = pJmatSettings->vertex_displacement_scale();
-        m_settings.emissiveMapIntensity       = pJmatSettings->emissive_map_intensity();
-        m_settings.bNormalMapFlipedY          = pJmatSettings->normal_map_fliped_y();
-        m_settings.metallicMapChannel         = TextureChannelFrom(pJmatSettings->metallic_map_channel());
-        m_settings.roughnessMapChannel        = TextureChannelFrom(pJmatSettings->roughness_map_channel());
     }
 
     // sort key
-    {
-        const UInt32 hash = HashOf(_path.native());
-        m_sortKey         = static_cast<UInt16>(hash);
-    }
+    const UInt32 hash = HashOf(_path.native());
+    m_sortKey         = static_cast<UInt16>(hash);
 
     // finalize
     m_path            = _path;
@@ -256,80 +118,38 @@ bool Material::Save(
     const eSaveFileFlags _flags) const
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
-    JAM_ASSERT(IsValid(), "Cannot save invalid material");
-
-    fbs::FlatBufferBuilder builder { 1024 };
-
-    // name
-    const fbs::Offset<fbs::String> fbsName = builder.CreateString(m_name);
-
-    // params
-    jmat::MaterialParams fbsParams = {
-        JmatVec3From(m_params.ambient),
-        JmatVec3From(m_params.diffuse),
-        JmatVec3From(m_params.specular),
-        m_params.shininess,
-        JmatVec3From(m_params.albedo),
-        m_params.roughness,
-        m_params.metallic,
-        JmatVec3From(m_params.emissive),
-        m_params.emissiveIntensity,
-        m_params.bAlphaCutout,
-        m_params.bDoubleSided
-    };
-
-    // texture
-    const fbs::Offset<fbs::String> fbsAlbedoMapPath             = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::Albedo));
-    const fbs::Offset<fbs::String> fbsAoMapPath                 = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::Ao));
-    const fbs::Offset<fbs::String> fbsLightMapPath              = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::Light));
-    const fbs::Offset<fbs::String> fbsVertexDisplacementMapPath = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::VertexDisplacement));
-    const fbs::Offset<fbs::String> fbsEmissiveMapPath           = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::Emissive));
-    const fbs::Offset<fbs::String> fbsNormalMapPath             = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::Normal));
-    const fbs::Offset<fbs::String> fbsMetallicMapPath           = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::Metallic));
-    const fbs::Offset<fbs::String> fbsRoughnessMapPath          = FbsStringOffsetFrom(builder, GetTexture(eMaterialTextureType::Roughness));
-
-    // textures
-    const fbs::Offset<jmat::MaterialTextures> fbsTextures = jmat::CreateMaterialTextures(
-        builder,
-        fbsAlbedoMapPath,
-        fbsAoMapPath,
-        fbsLightMapPath,
-        fbsVertexDisplacementMapPath,
-        fbsEmissiveMapPath,
-        fbsNormalMapPath,
-        fbsMetallicMapPath,
-        fbsRoughnessMapPath);
-
-    // texture settings
-    const float                 fbsLightMapIntensity       = m_settings.lightMapIntensity;
-    const float                 fbsVertexDisplacementScale = m_settings.vertexDisplacementMapScale;
-    const float                 fbsEmissiveMapIntensity    = m_settings.emissiveMapIntensity;
-    const bool                  bFbsNormalMapFlipedY       = m_settings.bNormalMapFlipedY;
-    const jmat::eTextureChannel fbsMetallicMapChannel      = JmatTextureChannelFrom(m_settings.metallicMapChannel);
-    const jmat::eTextureChannel fbsRoughnessMapChannel     = JmatTextureChannelFrom(m_settings.roughnessMapChannel);
-
-    const jmat::MaterialTextureSettings fbsTextureSettings = {
-        fbsLightMapIntensity,
-        fbsVertexDisplacementScale,
-        fbsEmissiveMapIntensity,
-        bFbsNormalMapFlipedY,
-        fbsMetallicMapChannel,
-        fbsRoughnessMapChannel
-    };
-
-    // material
-    fbs::Offset<jmat::Material> fbsMaterial = jmat::CreateMaterial(builder, fbsName, &fbsParams, fbsTextures, &fbsTextureSettings);
-    builder.Finish(fbsMaterial);
-
-    // path
-    if (_bReplaceExtension)
+    if (!IsValid())
     {
-        fs::path path = _path;
-        path.replace_extension(k_jamMaterialExt.GetPtr());
-        return SaveBinaryFile(_path, { builder.GetBufferPointer(), NarrowCast<Int32>(builder.GetSize()) }, _flags);
+        GlobalBuffer::SetLastError("Cannot save invalid material to file: {}", _path.native());
+        return false;
     }
 
-    return SaveBinaryFile(_path, { builder.GetBufferPointer(), NarrowCast<Int32>(builder.GetSize()) }, _flags);
+    // prepare schema
+    MaterialSchema schema = {};
+    schema.name           = m_name;
+    schema.params         = m_params;
+    schema.settings       = m_settings;
+
+    // textures
+    MaterialTexturesSchema& texSchema = schema.textures;
+    for (eMaterialTextureType type: eMaterialTextureType {})
+    {
+        const Ref<ImageTexture> pTexture = GetTexture(type);
+        if (pTexture)
+        {
+            texSchema.Set(type, CistaString { pTexture->GetPath().native() });
+        }
+    }
+
+    // serialize
+    Vector<Byte> data = {};
+    if (!MoveIfHasValue(SerializeCista(schema), data))
+    {
+        return false;
+    }
+
+    // save file
+    return SaveBinaryFile(_path, data, _flags);
 }
 
 void Material::SetName(

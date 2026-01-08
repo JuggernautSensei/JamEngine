@@ -400,6 +400,7 @@
   <ItemGroup>
     <ClCompile Include="AssetUtilities.cpp" />
     <ClCompile Include="AssetDialog.cpp" />
+    <ClCompile Include="Cista.cpp" />
     <ClCompile Include="ConfirmationDialog.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetManager.cpp" />
@@ -441,7 +442,6 @@
     <ClCompile Include="Magics.cpp" />
     <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="Octree.cpp" />
-    <ClCompile Include="JsonUtilities.cpp" />
     <ClCompile Include="Optional.cpp" />
     <ClCompile Include="Scoped.cpp" />
     <ClCompile Include="STL.cpp" />
@@ -635,6 +635,7 @@
   <ItemGroup>
     <ClInclude Include="AssetUtilities.h" />
     <ClInclude Include="AssetDialog.h" />
+    <ClInclude Include="Cista.h" />
     <ClInclude Include="ConfirmationDialog.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="AssetManager.h" />
@@ -676,7 +677,6 @@
     <ClInclude Include="LRUCache.h" />
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="Octree.h" />
-    <ClInclude Include="JsonUtilities.h" />
     <ClInclude Include="Optional.h" />
     <ClInclude Include="Scoped.h" />
     <ClInclude Include="STL.h" />

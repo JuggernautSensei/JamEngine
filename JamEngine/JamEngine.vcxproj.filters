@@ -289,9 +289,6 @@
     <ClCompile Include="ImageImporter.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="JsonUtilities.cpp">
-      <Filter>99. Utilities\Serialize</Filter>
-    </ClCompile>
     <ClCompile Include="GlobalBuffer.cpp">
       <Filter>1. Core\Error</Filter>
     </ClCompile>
@@ -402,6 +399,9 @@
     </ClCompile>
     <ClCompile Include="EditorIcons.cpp">
       <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Cista.cpp">
+      <Filter>99. Utilities\Serialize</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1046,9 +1046,6 @@
     <ClInclude Include="ImageImporter.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="JsonUtilities.h">
-      <Filter>99. Utilities\Serialize</Filter>
-    </ClInclude>
     <ClInclude Include="GlobalBuffer.h">
       <Filter>1. Core\Error</Filter>
     </ClInclude>
@@ -1160,7 +1157,12 @@
     <ClInclude Include="GeometryUtilities.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="JamEngineEditorEmbededIcons.h" />
+    <ClInclude Include="Cista.h">
+      <Filter>99. Utilities\Serialize</Filter>
+    </ClInclude>
+    <ClInclude Include="JamEngineEditorEmbededIcons.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">
