@@ -2,14 +2,11 @@
 
 #include "Editor_EntityInspector.h"
 
-#include "Application.h"
+#include "ComponentDB.h"
 #include "Editor.h"
-#include "EditorUtilities.h"
 #include "Entity.h"
 #include "Scene.h"
 #include "SceneManager.h"
-
-#include <efsw/efsw.hpp>
 
 namespace jam
 {
@@ -23,89 +20,110 @@ void Editor_EntityInspector::OnImGuiRender(
         return;
     }
 
+    // scene check
     if (!SceneManager::HasActiveScene())
     {
-        Widget_CenteredText(ImGui::GetContentRegionAvail(), "no active scene.\nplease load scene.");
-
+        Widget_CenteredText("scene not loaded");
         ImGui::End();
         return;
     }
 
-    const Entity entity = Editor::GetFocusEntity();
+    // entity check
+    const Entity entity = Editor::GetFocusedEntity();
     if (!entity)
     {
-        constexpr const char* k_msg = "no focused entity.\nplease select an entity\nfrom scene hierarchy.";
-        Widget_CenterAlignedTextDisabled(k_msg);
+        Widget_CenteredText("entity not selected");
         ImGui::End();
         return;
     }
 
-    // entity info
+    // render uid
     {
         ImGui::Text("uid: %d", entity.GetUID());
         ImGui::Separator();
     }
 
-    // create or delete component
+    // render add / remove component buttons
     {
         const ImVec2 btnSize = CalcFitButtonSize(2);
 
+        // add component button
         ImGui::Button("add component", btnSize);
         if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonLeft))
         {
-            DrawAddComponentPopup_();
+            Menu_AddComponent_();
             ImGui::EndPopup();
         }
 
+        // remove component button
         ImGui::SameLine();
         ImGui::Button("remove component", btnSize);
         if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonLeft))
         {
-            DrawRemoveComponentPopup_();
+            Menu_RemoveComponent_();
             ImGui::EndPopup();
         }
     }
 
     // component editor
-    const ComponentDB::ContainerT& container = ComponentDB::GetInstance().GetContainer();
-    for (const ComponentInfo& info: std::views::values(container))
+    const ComponentDB& db     = ComponentDB::GetInstance();
+    Ref<Scene>&        pScene = SceneManager::GetActiveScene();
+    for (const ComponentInfo& info: db.GetComponentInfoMap() | std::views::values)
     {
         if (info.hasFn(entity) && info.drawEditorFn)
         {
+            // render collapsing header
             const char* label = info.displayName.c_str();
-            const bool  bOpen = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
-
-            // remove button
-            if (info.removeFn && ImGui::BeginPopupContextItem(0))
+            bool        bOpen = false;
+            if (info.bCannotRemovable)
             {
-                if (ImGui::MenuItem("remove"))
-                    RemoveComponent_(info.hash, entity);
-                ImGui::EndPopup();
+                bOpen = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
+            }
+            else
+            {
+                bool bVisible = true;
+                bOpen         = ImGui::CollapsingHeader(label, &bVisible, ImGuiTreeNodeFlags_DefaultOpen);
+
+                // render collapsing header right popup
+                if (ImGui::BeginPopupContextItem(0))
+                {
+                    if (Widget_MenuItem("remove"))
+                    {
+                        info.removeDeferedFn(entity);
+                    }
+                    ImGui::EndPopup();
+                }
+
+                // if not visible anymore, remove component
+                if (!bVisible)
+                {
+                    info.removeDeferedFn(entity);
+                }
             }
 
-            // draw editor
+            // render editors if open collapsing header
             if (bOpen)
             {
-                Ref<Scene>& pScene = SceneManager::GetActiveScene();
-                void*       pComp  = info.getFn(entity);
-
-                info.drawEditorFn(pComp, pScene, entity);
+                if (void* pCmp = info.getFn(entity))
+                {
+                    info.drawEditorFn(pCmp, pScene, entity);
+                }
                 ImGui::Spacing();
             }
         }
     }
 
-    // popup
+    // popup on void space
     if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_NoOpenOverExistingPopup | ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
     {
         if (ImGui::BeginMenu("add component"))
         {
-            DrawAddComponentPopup_();
+            Menu_AddComponent_();
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("remove component"))
         {
-            DrawRemoveComponentPopup_();
+            Menu_RemoveComponent_();
             ImGui::EndMenu();
         }
         ImGui::EndPopup();
@@ -114,74 +132,35 @@ void Editor_EntityInspector::OnImGuiRender(
     ImGui::End();
 }
 
-void Editor_EntityInspector::DrawRemoveComponentPopup_() const
+void Editor_EntityInspector::Menu_RemoveComponent_() const
 {
-    const ComponentDB::ContainerT& container = ComponentDB::GetInstance().GetContainer();
-    const Entity                   entity    = Editor::GetFocusEntity();
-
-    for (const ComponentInfo& info: std::views::values(container))
+    const ComponentDB& db     = ComponentDB::GetInstance();
+    const Entity       entity = Editor::GetFocusedEntity();
+    for (const ComponentInfo& info: db.GetComponentInfoMap() | std::views::values)
     {
-        if (info.hasFn(entity) && info.removeFn && !info.bCannotRemovable)
+        if (info.hasFn(entity) && !info.bCannotRemovable)
         {
-            if (ImGui::MenuItem(info.displayName.c_str()))
+            if (Widget_MenuItem(info.displayName.c_str()))
             {
-                RemoveComponent_(info.hash, entity);
-                ImGui::CloseCurrentPopup();
-                break;
+                info.removeDeferedFn(entity);
             }
         }
     }
 }
 
-void Editor_EntityInspector::DrawAddComponentPopup_() const
+void Editor_EntityInspector::Menu_AddComponent_() const
 {
-    const ComponentDB::ContainerT& container = ComponentDB::GetInstance().GetContainer();
-    const Entity                   entity    = Editor::GetFocusEntity();
-
-    for (const ComponentInfo& info: std::views::values(container))
+    const ComponentDB& db     = ComponentDB::GetInstance();
+    const Entity       entity = Editor::GetFocusedEntity();
+    for (const ComponentInfo& info: db.GetComponentInfoMap() | std::views::values)
     {
-        if (!info.hasFn(entity) && info.createFn && !info.bCannotCreatable)
+        if (!info.hasFn(entity) && !info.bCannotCreatable)
         {
-            if (ImGui::MenuItem(info.displayName.c_str()))
+            if (Widget_MenuItem(info.displayName.c_str()))
             {
-                AddComponent_(info.hash, entity);
-                ImGui::CloseCurrentPopup();
-                break;
+                info.createDeferedFn(entity);
             }
         }
     }
 }
-
-void Editor_EntityInspector::AddComponent_(const UInt32 _typeId, const Entity _entity) const
-{
-    struct CreateComponentCommand
-    {
-        void operator()() const
-        {
-            ComponentDB::GetInstance().Create(typeID, entity);
-        }
-
-        UInt32 typeID;
-        Entity entity;
-    };
-
-    Application::GetInstance().SubmitCommand(CreateComponentCommand { _typeId, _entity });
-}
-
-void Editor_EntityInspector::RemoveComponent_(const UInt32 _typeId, const Entity _entity) const
-{
-    struct RemoveComponentCommand
-    {
-        void operator()() const
-        {
-            ComponentDB::GetInstance().Remove(typeID, entity);
-        }
-
-        UInt32 typeID;
-        Entity entity;
-    };
-
-    Application::GetInstance().SubmitCommand(RemoveComponentCommand { _typeId, _entity });
-}
-
 }   // namespace jam

@@ -1,4 +1,5 @@
 #pragma once
+#include "Application.h"
 #include "Properties.h"
 #include "Transform.h"
 #include "UID.h"
@@ -39,6 +40,13 @@ public:
         return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
     }
 
+    template<typename T, typename... Args>
+    void CreateComponentDefered(Args&&... args)
+    {
+        Application& app = Application::GetInstance();
+        app.SubmitCommand(JAM_BIND_METHOD(this, Entity::CreateComponent<T>, args...));
+    }
+
     template<typename... T>
     decltype(auto) GetComponent() const
     {
@@ -61,12 +69,20 @@ public:
     }
 
     template<typename... T>
-    void RemoveComponent() 
+    void RemoveComponent()
     {
         static_assert((!std::is_base_of_v<CannotRemovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         JAM_ASSERT(HasComponent<T...>(), "Entity does not have the specified component(s)");
         m_pRegistry->remove<T...>(m_handle);
+    }
+
+    template<typename... T>
+    void RemoveComponentDefered()
+    {
+        static_assert((!std::is_base_of_v<CannotRemovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
+        Application& app = Application::GetInstance();
+        app.SubmitCommand(JAM_BIND_METHOD(this, Entity::RemoveComponent<T...>));
     }
 
     static Entity s_null;

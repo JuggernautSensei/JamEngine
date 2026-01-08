@@ -1,5 +1,4 @@
 #pragma once
-#include "ComponentDB.h"
 
 namespace jam
 {
@@ -10,11 +9,8 @@ public:
     void OnImGuiRender(bool& _pShow) const;
 
 private:
-    void DrawRemoveComponentPopup_() const;
-    void DrawAddComponentPopup_() const;
-
-    void AddComponent_(UInt32 _typeId, Entity _entity) const;
-    void RemoveComponent_(UInt32 _typeId, Entity _entity) const;
+    void Menu_RemoveComponent_() const;
+    void Menu_AddComponent_() const;
 };
 
 }   // namespace jam

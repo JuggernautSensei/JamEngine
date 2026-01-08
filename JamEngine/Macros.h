@@ -11,7 +11,7 @@
 #    define JAM_DEBUG_BREAK     __builtin_trap()
 #endif
 
-#define JAM_NOOP __noop
+#define JAM_NOOP       __noop
 #define JAM_UNUSED(_x) (void)_x
 
 #define JAM_BEGIN_MACRO_BLOCK \
@@ -31,4 +31,14 @@
 #define JAM_STRINGIFY_MACRO(x) #x
 #define JAM_EXPAND_MACRO(x)    x
 
-#define JAM_COUNT_OF(_arr) ((int)(sizeof(_arr) / sizeof(_arr[0])))
+// member function as command
+#define JAM_BIND_METHOD(_pObj, _fn, ...)   [_pObj, __VA_ARGS__] { _pObj->_fn(__VA_ARGS__); }
+#define JAM_BIND_METHOD_R(_pObj, _fn, ...) [_pObj, __VA_ARGS__] { return _pObj->_fn(__VA_ARGS__); }
+
+// global scope function as command
+#define JAM_BIND_FUNCTION(_fn, ...)   [__VA_ARGS__] { _fn(__VA_ARGS__); }
+#define JAM_BIND_FUNCTION_R(_fn, ...) [__VA_ARGS__] { return _fn(__VA_ARGS__); }
+
+// for event
+#define JAM_BIND_LISTENER_METHOD(_obj, _fn) _obj, &_fn
+#define JAM_BIND_LISTENER_FUNCTION(_fn)     &_fn

@@ -38,8 +38,8 @@ void Editor_Profiler::OnImGuiRender(bool& _pShow) const
 void Editor_Profiler::DrawFrameTabItem_() const
 {
     const Application& app         = Application::GetInstance();
-    const float              deltaTimeMs = app.GetDeltaTimeSec() / 0.001f;
-    const float              frameRate   = app.GetFrameRate();
+    const float        deltaTimeMs = app.GetDeltaTimeSec() / 0.001f;
+    const float        frameRate   = app.GetFrameRate();
 
     ImGui::Text("delta time: %.3f ms", deltaTimeMs);
     ImGui::Text("frame rate: %.1f fps", frameRate);
@@ -59,7 +59,23 @@ void Editor_Profiler::DrawInputTabItem_() const
         Button5,
     };
 
-    constexpr const char* k_mouseName[NumEnums<eMouseButton>()] = {
+    constexpr Array k_mouseButtonRanges = {
+        eMouseButton::Left,
+        eMouseButton::Right,
+        eMouseButton::Middle,
+        eMouseButton::Button4,
+        eMouseButton::Button5
+    };
+
+    enum class eMouseState
+    {
+        Pressed = 0,
+        Hold,
+        Released,
+        Away,
+    };
+
+    constexpr const char* k_mouseNames[NumEnums<eMouseButton>()] = {
         "left",
         "right",
         "middle",
@@ -67,7 +83,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         "button 5",
     };
 
-    constexpr eMouse k_mouseButtonTable[NumEnums<eMouseButton>()] = {
+    constexpr eMouse k_mouseButtons[NumEnums<eMouseButton>()] = {
         eMouse::LeftButton,
         eMouse::RightButton,
         eMouse::MiddleButton,
@@ -75,15 +91,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         eMouse::XButton2,
     };
 
-    enum class eMouseState
-    {
-        Pressed,
-        Hold,
-        Released,
-        Away
-    };
-
-    constexpr const char* k_mouseStateName[NumEnums<eMouseState>()] = {
+    constexpr const char* k_mouseStateNames[NumEnums<eMouseState>()] = {
         "pressed",
         "hold",
         "released",
@@ -93,9 +101,7 @@ void Editor_Profiler::DrawInputTabItem_() const
     const auto [x, y]      = Input::GetMousePos();
     const auto [dx, dy]    = Input::GetMouseDeltaPos();
     const float wheelDelta = Input::GetMouseDeltaWheel();
-
-    const bool bVisible = Input::IsMouseVisible();
-    const bool bGrabbed = Input::IsMouseCursorGrabbed();
+    const bool  bVisible   = Input::IsMouseVisible();
 
     ImGui::BulletText("game mouse");
     ImGui::TreePush("game mouse");
@@ -103,24 +109,29 @@ void Editor_Profiler::DrawInputTabItem_() const
         ImGui::Text("mouse position: (%d, %d)", x, y);
         ImGui::Text("mouse delta position: (%d, %d)", dx, dy);
         ImGui::Text("mouse delta wheel: %.1f", wheelDelta);
-        for (const eMouseButton e: EnumRanges<eMouseButton>())
+        for (const eMouseButton e: k_mouseButtonRanges)
         {
             const Int32  idx    = IntFrom(e);
-            const eMouse button = k_mouseButtonTable[idx];
+            const eMouse button = k_mouseButtons[idx];
             eMouseState  state  = eMouseState::Away;
 
             if (Input::IsMousePressed(button))
+            {
                 state = eMouseState::Pressed;
+            }
             else if (Input::IsMouseHold(button))
+            {
                 state = eMouseState::Hold;
+            }
             else if (Input::IsMouseReleased(button))
+            {
                 state = eMouseState::Released;
+            }
 
-            ImGui::Text("mouse %s: %s", k_mouseName[idx], k_mouseStateName[IntFrom(state)]);
+            ImGui::Text("mouse %s: %s", k_mouseNames[idx], k_mouseStateNames[IntFrom(state)]);
         }
 
         ImGui::Text("mouse visible: %s", bVisible ? "true" : "false");
-        ImGui::Text("mouse cursor grabbed: %s", bGrabbed ? "true" : "false");
     }
     ImGui::TreePop();
 
@@ -128,9 +139,14 @@ void Editor_Profiler::DrawInputTabItem_() const
     ImGui::TreePush("application mouse");
     {
         if (ImGui::IsMousePosValid())
+        {
             ImGui::Text("mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
+        }
         else
+        {
             ImGui::Text("mouse pos: <INVALID>");
+        }
+
         ImGui::Text("mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
         ImGui::Text("mouse down:");
         for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
@@ -160,12 +176,14 @@ void Editor_Profiler::DrawInputTabItem_() const
         {
             static bool IsLegacyNativeDupe(ImGuiKey) { return false; }
         };
-        const ImGuiKey start_key = ImGuiKey_NamedKey_BEGIN;
+        constexpr ImGuiKey start_key = ImGuiKey_NamedKey_BEGIN;
         ImGui::Text("Keys down:");
         for (ImGuiKey key = start_key; key < ImGuiKey_NamedKey_END; key = static_cast<ImGuiKey>(key + 1))
         {
             if (Func::IsLegacyNativeDupe(key) || !ImGui::IsKeyDown(key))
+            {
                 continue;
+            }
 
             ImGui::SameLine();
             ImGui::Text((key < ImGuiKey_NamedKey_BEGIN) ? "\"%s\"" : "\"%s\" %d", ImGui::GetKeyName(key), key);

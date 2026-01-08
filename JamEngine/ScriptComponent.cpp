@@ -14,7 +14,7 @@ namespace jam
 {
 
 void ScriptComponent::Serialize(
-    JsonWriter       _writer,
+    JsonWriter        _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -29,7 +29,7 @@ void ScriptComponent::Serialize(
 }
 
 void ScriptComponent::Deserialize(
-    JsonReader       _reader,
+    JsonReader        _reader,
     const Ref<Scene>& _pScene,
     const Entity      _owner)
 {
@@ -57,17 +57,17 @@ void ScriptComponent::Deserialize(
     }
 }
 
-void ScriptComponent::DrawEditor(
+void ScriptComponent::Panel_EditComponent(
     Ref<Scene>&  _pScene,
     const Entity _entity)
 {
-    if (BeginComponentEditTable("ScriptComponent"))
+    if (BeginLabelValueTable("ScriptComponent"))
     {
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("script");
 
         ImGui::TableNextColumn();
-        SetNextItemWidthToAvailableWidth();
+        SetNextItemAvailWidth();
         Widget_ScriptCombo("##ScriptCombo", pScript, _entity);
 
         ImGui::EndTable()();

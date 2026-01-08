@@ -33,7 +33,6 @@ public:
 
     constexpr static float k_minZ           = 0.01f;
     constexpr static float k_maxZ           = 30000.f;
-    constexpr static float k_epsilonZ       = 0.01f;
     constexpr static float k_minFovYRad     = ToRad(1.f);
     constexpr static float k_maxFovYRad     = ToRad(179.f);
     constexpr static float k_minWidthHeight = 0.1f;

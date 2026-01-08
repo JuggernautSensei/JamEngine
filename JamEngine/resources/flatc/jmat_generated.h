@@ -18,6 +18,13 @@ namespace jmat {
 
 struct Vec3;
 
+struct MaterialParams;
+
+struct MaterialTextureSettings;
+
+struct MaterialTextures;
+struct MaterialTexturesBuilder;
+
 struct Material;
 struct MaterialBuilder;
 
@@ -86,145 +93,317 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vec3, 12);
 
-struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef MaterialBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_AMBIENT_COLOR = 4,
-    VT_DIFFUSE_COLOR = 6,
-    VT_SPECULAR_COLOR = 8,
-    VT_SHININESS = 10,
-    VT_ALBEDO_COLOR = 12,
-    VT_ROUGHNESS = 14,
-    VT_METALLIC = 16,
-    VT_EMISSIVE_COLOR = 18,
-    VT_EMISSIVE_INTENSITY = 20,
-    VT_B_ALPHA_CUTOUT = 22,
-    VT_B_DOUBLE_SIDED = 24,
-    VT_B_NORMAL_TEXTURE_FLIPED = 26,
-    VT_LIGHT_TEXTURE_INTENSITY = 28,
-    VT_EMISSIVE_TEXTURE_INTENSITY = 30,
-    VT_VERTEX_DISPLACEMENT_SCALE = 32,
-    VT_METALLIC_TEXTURE_CHANNEL = 34,
-    VT_ROUGHNESS_TEXTURE_CHANNEL = 36,
-    VT_ALBEDO_TEXTURE_PATH = 38,
-    VT_NORMAL_TEXTURE_PATH = 40,
-    VT_METALLIC_TEXTURE_PATH = 42,
-    VT_ROUGHNESS_TEXTURE_PATH = 44,
-    VT_AO_TEXTURE_PATH = 46,
-    VT_EMISSIVE_TEXTURE_PATH = 48,
-    VT_LIGHT_TEXTURE_PATH = 50,
-    VT_VERTEX_DISPLACEMENT_TEXTURE_PATH = 52
-  };
-  const jam::jmat::Vec3 *ambient_color() const {
-    return GetStruct<const jam::jmat::Vec3 *>(VT_AMBIENT_COLOR);
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) MaterialParams FLATBUFFERS_FINAL_CLASS {
+ private:
+  jam::jmat::Vec3 ambient_;
+  jam::jmat::Vec3 diffuse_;
+  jam::jmat::Vec3 specular_;
+  float shininess_;
+  jam::jmat::Vec3 albedo_;
+  float roughness_;
+  float metallic_;
+  jam::jmat::Vec3 emissive_;
+  float emission_intensity_;
+  uint8_t b_alpha_cutout_;
+  uint8_t b_double_sided_;
+  int16_t padding0__;
+
+ public:
+  MaterialParams()
+      : ambient_(),
+        diffuse_(),
+        specular_(),
+        shininess_(0),
+        albedo_(),
+        roughness_(0),
+        metallic_(0),
+        emissive_(),
+        emission_intensity_(0),
+        b_alpha_cutout_(0),
+        b_double_sided_(0),
+        padding0__(0) {
+    (void)padding0__;
   }
-  const jam::jmat::Vec3 *diffuse_color() const {
-    return GetStruct<const jam::jmat::Vec3 *>(VT_DIFFUSE_COLOR);
+  MaterialParams(const jam::jmat::Vec3 &_ambient, const jam::jmat::Vec3 &_diffuse, const jam::jmat::Vec3 &_specular, float _shininess, const jam::jmat::Vec3 &_albedo, float _roughness, float _metallic, const jam::jmat::Vec3 &_emissive, float _emission_intensity, bool _b_alpha_cutout, bool _b_double_sided)
+      : ambient_(_ambient),
+        diffuse_(_diffuse),
+        specular_(_specular),
+        shininess_(::flatbuffers::EndianScalar(_shininess)),
+        albedo_(_albedo),
+        roughness_(::flatbuffers::EndianScalar(_roughness)),
+        metallic_(::flatbuffers::EndianScalar(_metallic)),
+        emissive_(_emissive),
+        emission_intensity_(::flatbuffers::EndianScalar(_emission_intensity)),
+        b_alpha_cutout_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_b_alpha_cutout))),
+        b_double_sided_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_b_double_sided))),
+        padding0__(0) {
+    (void)padding0__;
   }
-  const jam::jmat::Vec3 *specular_color() const {
-    return GetStruct<const jam::jmat::Vec3 *>(VT_SPECULAR_COLOR);
+  const jam::jmat::Vec3 &ambient() const {
+    return ambient_;
+  }
+  const jam::jmat::Vec3 &diffuse() const {
+    return diffuse_;
+  }
+  const jam::jmat::Vec3 &specular() const {
+    return specular_;
   }
   float shininess() const {
-    return GetField<float>(VT_SHININESS, 0.0f);
+    return ::flatbuffers::EndianScalar(shininess_);
   }
-  const jam::jmat::Vec3 *albedo_color() const {
-    return GetStruct<const jam::jmat::Vec3 *>(VT_ALBEDO_COLOR);
+  const jam::jmat::Vec3 &albedo() const {
+    return albedo_;
   }
   float roughness() const {
-    return GetField<float>(VT_ROUGHNESS, 0.0f);
+    return ::flatbuffers::EndianScalar(roughness_);
   }
   float metallic() const {
-    return GetField<float>(VT_METALLIC, 0.0f);
+    return ::flatbuffers::EndianScalar(metallic_);
   }
-  const jam::jmat::Vec3 *emissive_color() const {
-    return GetStruct<const jam::jmat::Vec3 *>(VT_EMISSIVE_COLOR);
+  const jam::jmat::Vec3 &emissive() const {
+    return emissive_;
   }
-  float emissive_intensity() const {
-    return GetField<float>(VT_EMISSIVE_INTENSITY, 0.0f);
+  float emission_intensity() const {
+    return ::flatbuffers::EndianScalar(emission_intensity_);
   }
   bool b_alpha_cutout() const {
-    return GetField<uint8_t>(VT_B_ALPHA_CUTOUT, 0) != 0;
+    return ::flatbuffers::EndianScalar(b_alpha_cutout_) != 0;
   }
   bool b_double_sided() const {
-    return GetField<uint8_t>(VT_B_DOUBLE_SIDED, 0) != 0;
+    return ::flatbuffers::EndianScalar(b_double_sided_) != 0;
   }
-  bool b_normal_texture_fliped() const {
-    return GetField<uint8_t>(VT_B_NORMAL_TEXTURE_FLIPED, 0) != 0;
+};
+FLATBUFFERS_STRUCT_END(MaterialParams, 80);
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) MaterialTextureSettings FLATBUFFERS_FINAL_CLASS {
+ private:
+  float light_map_intensity_;
+  float vertex_displacement_scale_;
+  float emissive_map_intensity_;
+  uint8_t normal_map_fliped_y_;
+  int8_t metallic_map_channel_;
+  int8_t roughness_map_channel_;
+  int8_t padding0__;
+
+ public:
+  MaterialTextureSettings()
+      : light_map_intensity_(0),
+        vertex_displacement_scale_(0),
+        emissive_map_intensity_(0),
+        normal_map_fliped_y_(0),
+        metallic_map_channel_(0),
+        roughness_map_channel_(0),
+        padding0__(0) {
+    (void)padding0__;
   }
-  float light_texture_intensity() const {
-    return GetField<float>(VT_LIGHT_TEXTURE_INTENSITY, 0.0f);
+  MaterialTextureSettings(float _light_map_intensity, float _vertex_displacement_scale, float _emissive_map_intensity, bool _normal_map_fliped_y, jam::jmat::eTextureChannel _metallic_map_channel, jam::jmat::eTextureChannel _roughness_map_channel)
+      : light_map_intensity_(::flatbuffers::EndianScalar(_light_map_intensity)),
+        vertex_displacement_scale_(::flatbuffers::EndianScalar(_vertex_displacement_scale)),
+        emissive_map_intensity_(::flatbuffers::EndianScalar(_emissive_map_intensity)),
+        normal_map_fliped_y_(::flatbuffers::EndianScalar(static_cast<uint8_t>(_normal_map_fliped_y))),
+        metallic_map_channel_(::flatbuffers::EndianScalar(static_cast<int8_t>(_metallic_map_channel))),
+        roughness_map_channel_(::flatbuffers::EndianScalar(static_cast<int8_t>(_roughness_map_channel))),
+        padding0__(0) {
+    (void)padding0__;
   }
-  float emissive_texture_intensity() const {
-    return GetField<float>(VT_EMISSIVE_TEXTURE_INTENSITY, 0.0f);
+  float light_map_intensity() const {
+    return ::flatbuffers::EndianScalar(light_map_intensity_);
   }
   float vertex_displacement_scale() const {
-    return GetField<float>(VT_VERTEX_DISPLACEMENT_SCALE, 0.0f);
+    return ::flatbuffers::EndianScalar(vertex_displacement_scale_);
   }
-  jam::jmat::eTextureChannel metallic_texture_channel() const {
-    return static_cast<jam::jmat::eTextureChannel>(GetField<int8_t>(VT_METALLIC_TEXTURE_CHANNEL, 0));
+  float emissive_map_intensity() const {
+    return ::flatbuffers::EndianScalar(emissive_map_intensity_);
   }
-  jam::jmat::eTextureChannel roughness_texture_channel() const {
-    return static_cast<jam::jmat::eTextureChannel>(GetField<int8_t>(VT_ROUGHNESS_TEXTURE_CHANNEL, 0));
+  bool normal_map_fliped_y() const {
+    return ::flatbuffers::EndianScalar(normal_map_fliped_y_) != 0;
   }
-  const ::flatbuffers::String *albedo_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ALBEDO_TEXTURE_PATH);
+  jam::jmat::eTextureChannel metallic_map_channel() const {
+    return static_cast<jam::jmat::eTextureChannel>(::flatbuffers::EndianScalar(metallic_map_channel_));
   }
-  const ::flatbuffers::String *normal_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_NORMAL_TEXTURE_PATH);
+  jam::jmat::eTextureChannel roughness_map_channel() const {
+    return static_cast<jam::jmat::eTextureChannel>(::flatbuffers::EndianScalar(roughness_map_channel_));
   }
-  const ::flatbuffers::String *metallic_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_METALLIC_TEXTURE_PATH);
+};
+FLATBUFFERS_STRUCT_END(MaterialTextureSettings, 16);
+
+struct MaterialTextures FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef MaterialTexturesBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ALBEDO_MAP_PATH = 4,
+    VT_AO_MAP_PATH = 6,
+    VT_LIGHT_MAP_PATH = 8,
+    VT_VERTEX_DISPLACEMENT_MAP_PATH = 10,
+    VT_EMISSIVE_MAP_PATH = 12,
+    VT_NORMAL_MAP_PATH = 14,
+    VT_METALLIC_MAP_PATH = 16,
+    VT_ROUGHNESS_MAP_PATH = 18
+  };
+  const ::flatbuffers::String *albedo_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ALBEDO_MAP_PATH);
   }
-  const ::flatbuffers::String *roughness_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ROUGHNESS_TEXTURE_PATH);
+  const ::flatbuffers::String *ao_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_AO_MAP_PATH);
   }
-  const ::flatbuffers::String *ao_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_AO_TEXTURE_PATH);
+  const ::flatbuffers::String *light_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_LIGHT_MAP_PATH);
   }
-  const ::flatbuffers::String *emissive_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_EMISSIVE_TEXTURE_PATH);
+  const ::flatbuffers::String *vertex_displacement_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_VERTEX_DISPLACEMENT_MAP_PATH);
   }
-  const ::flatbuffers::String *light_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_LIGHT_TEXTURE_PATH);
+  const ::flatbuffers::String *emissive_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_EMISSIVE_MAP_PATH);
   }
-  const ::flatbuffers::String *vertex_displacement_texture_path() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_VERTEX_DISPLACEMENT_TEXTURE_PATH);
+  const ::flatbuffers::String *normal_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NORMAL_MAP_PATH);
+  }
+  const ::flatbuffers::String *metallic_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_METALLIC_MAP_PATH);
+  }
+  const ::flatbuffers::String *roughness_map_path() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ROUGHNESS_MAP_PATH);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyFieldRequired<jam::jmat::Vec3>(verifier, VT_AMBIENT_COLOR, 4) &&
-           VerifyFieldRequired<jam::jmat::Vec3>(verifier, VT_DIFFUSE_COLOR, 4) &&
-           VerifyFieldRequired<jam::jmat::Vec3>(verifier, VT_SPECULAR_COLOR, 4) &&
-           VerifyField<float>(verifier, VT_SHININESS, 4) &&
-           VerifyFieldRequired<jam::jmat::Vec3>(verifier, VT_ALBEDO_COLOR, 4) &&
-           VerifyField<float>(verifier, VT_ROUGHNESS, 4) &&
-           VerifyField<float>(verifier, VT_METALLIC, 4) &&
-           VerifyFieldRequired<jam::jmat::Vec3>(verifier, VT_EMISSIVE_COLOR, 4) &&
-           VerifyField<float>(verifier, VT_EMISSIVE_INTENSITY, 4) &&
-           VerifyField<uint8_t>(verifier, VT_B_ALPHA_CUTOUT, 1) &&
-           VerifyField<uint8_t>(verifier, VT_B_DOUBLE_SIDED, 1) &&
-           VerifyField<uint8_t>(verifier, VT_B_NORMAL_TEXTURE_FLIPED, 1) &&
-           VerifyField<float>(verifier, VT_LIGHT_TEXTURE_INTENSITY, 4) &&
-           VerifyField<float>(verifier, VT_EMISSIVE_TEXTURE_INTENSITY, 4) &&
-           VerifyField<float>(verifier, VT_VERTEX_DISPLACEMENT_SCALE, 4) &&
-           VerifyField<int8_t>(verifier, VT_METALLIC_TEXTURE_CHANNEL, 1) &&
-           VerifyField<int8_t>(verifier, VT_ROUGHNESS_TEXTURE_CHANNEL, 1) &&
-           VerifyOffset(verifier, VT_ALBEDO_TEXTURE_PATH) &&
-           verifier.VerifyString(albedo_texture_path()) &&
-           VerifyOffset(verifier, VT_NORMAL_TEXTURE_PATH) &&
-           verifier.VerifyString(normal_texture_path()) &&
-           VerifyOffset(verifier, VT_METALLIC_TEXTURE_PATH) &&
-           verifier.VerifyString(metallic_texture_path()) &&
-           VerifyOffset(verifier, VT_ROUGHNESS_TEXTURE_PATH) &&
-           verifier.VerifyString(roughness_texture_path()) &&
-           VerifyOffset(verifier, VT_AO_TEXTURE_PATH) &&
-           verifier.VerifyString(ao_texture_path()) &&
-           VerifyOffset(verifier, VT_EMISSIVE_TEXTURE_PATH) &&
-           verifier.VerifyString(emissive_texture_path()) &&
-           VerifyOffset(verifier, VT_LIGHT_TEXTURE_PATH) &&
-           verifier.VerifyString(light_texture_path()) &&
-           VerifyOffset(verifier, VT_VERTEX_DISPLACEMENT_TEXTURE_PATH) &&
-           verifier.VerifyString(vertex_displacement_texture_path()) &&
+           VerifyOffset(verifier, VT_ALBEDO_MAP_PATH) &&
+           verifier.VerifyString(albedo_map_path()) &&
+           VerifyOffset(verifier, VT_AO_MAP_PATH) &&
+           verifier.VerifyString(ao_map_path()) &&
+           VerifyOffset(verifier, VT_LIGHT_MAP_PATH) &&
+           verifier.VerifyString(light_map_path()) &&
+           VerifyOffset(verifier, VT_VERTEX_DISPLACEMENT_MAP_PATH) &&
+           verifier.VerifyString(vertex_displacement_map_path()) &&
+           VerifyOffset(verifier, VT_EMISSIVE_MAP_PATH) &&
+           verifier.VerifyString(emissive_map_path()) &&
+           VerifyOffset(verifier, VT_NORMAL_MAP_PATH) &&
+           verifier.VerifyString(normal_map_path()) &&
+           VerifyOffset(verifier, VT_METALLIC_MAP_PATH) &&
+           verifier.VerifyString(metallic_map_path()) &&
+           VerifyOffset(verifier, VT_ROUGHNESS_MAP_PATH) &&
+           verifier.VerifyString(roughness_map_path()) &&
+           verifier.EndTable();
+  }
+};
+
+struct MaterialTexturesBuilder {
+  typedef MaterialTextures Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_albedo_map_path(::flatbuffers::Offset<::flatbuffers::String> albedo_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_ALBEDO_MAP_PATH, albedo_map_path);
+  }
+  void add_ao_map_path(::flatbuffers::Offset<::flatbuffers::String> ao_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_AO_MAP_PATH, ao_map_path);
+  }
+  void add_light_map_path(::flatbuffers::Offset<::flatbuffers::String> light_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_LIGHT_MAP_PATH, light_map_path);
+  }
+  void add_vertex_displacement_map_path(::flatbuffers::Offset<::flatbuffers::String> vertex_displacement_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_VERTEX_DISPLACEMENT_MAP_PATH, vertex_displacement_map_path);
+  }
+  void add_emissive_map_path(::flatbuffers::Offset<::flatbuffers::String> emissive_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_EMISSIVE_MAP_PATH, emissive_map_path);
+  }
+  void add_normal_map_path(::flatbuffers::Offset<::flatbuffers::String> normal_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_NORMAL_MAP_PATH, normal_map_path);
+  }
+  void add_metallic_map_path(::flatbuffers::Offset<::flatbuffers::String> metallic_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_METALLIC_MAP_PATH, metallic_map_path);
+  }
+  void add_roughness_map_path(::flatbuffers::Offset<::flatbuffers::String> roughness_map_path) {
+    fbb_.AddOffset(MaterialTextures::VT_ROUGHNESS_MAP_PATH, roughness_map_path);
+  }
+  explicit MaterialTexturesBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<MaterialTextures> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<MaterialTextures>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<MaterialTextures> CreateMaterialTextures(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> albedo_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> ao_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> light_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> vertex_displacement_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> emissive_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> normal_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> metallic_map_path = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> roughness_map_path = 0) {
+  MaterialTexturesBuilder builder_(_fbb);
+  builder_.add_roughness_map_path(roughness_map_path);
+  builder_.add_metallic_map_path(metallic_map_path);
+  builder_.add_normal_map_path(normal_map_path);
+  builder_.add_emissive_map_path(emissive_map_path);
+  builder_.add_vertex_displacement_map_path(vertex_displacement_map_path);
+  builder_.add_light_map_path(light_map_path);
+  builder_.add_ao_map_path(ao_map_path);
+  builder_.add_albedo_map_path(albedo_map_path);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<MaterialTextures> CreateMaterialTexturesDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *albedo_map_path = nullptr,
+    const char *ao_map_path = nullptr,
+    const char *light_map_path = nullptr,
+    const char *vertex_displacement_map_path = nullptr,
+    const char *emissive_map_path = nullptr,
+    const char *normal_map_path = nullptr,
+    const char *metallic_map_path = nullptr,
+    const char *roughness_map_path = nullptr) {
+  auto albedo_map_path__ = albedo_map_path ? _fbb.CreateString(albedo_map_path) : 0;
+  auto ao_map_path__ = ao_map_path ? _fbb.CreateString(ao_map_path) : 0;
+  auto light_map_path__ = light_map_path ? _fbb.CreateString(light_map_path) : 0;
+  auto vertex_displacement_map_path__ = vertex_displacement_map_path ? _fbb.CreateString(vertex_displacement_map_path) : 0;
+  auto emissive_map_path__ = emissive_map_path ? _fbb.CreateString(emissive_map_path) : 0;
+  auto normal_map_path__ = normal_map_path ? _fbb.CreateString(normal_map_path) : 0;
+  auto metallic_map_path__ = metallic_map_path ? _fbb.CreateString(metallic_map_path) : 0;
+  auto roughness_map_path__ = roughness_map_path ? _fbb.CreateString(roughness_map_path) : 0;
+  return jam::jmat::CreateMaterialTextures(
+      _fbb,
+      albedo_map_path__,
+      ao_map_path__,
+      light_map_path__,
+      vertex_displacement_map_path__,
+      emissive_map_path__,
+      normal_map_path__,
+      metallic_map_path__,
+      roughness_map_path__);
+}
+
+struct Material FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef MaterialBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_NAME = 4,
+    VT_PARAMS = 6,
+    VT_TEXTURES = 8,
+    VT_TEXTURE_SETTINGS = 10
+  };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  const jam::jmat::MaterialParams *params() const {
+    return GetStruct<const jam::jmat::MaterialParams *>(VT_PARAMS);
+  }
+  const jam::jmat::MaterialTextures *textures() const {
+    return GetPointer<const jam::jmat::MaterialTextures *>(VT_TEXTURES);
+  }
+  const jam::jmat::MaterialTextureSettings *texture_settings() const {
+    return GetStruct<const jam::jmat::MaterialTextureSettings *>(VT_TEXTURE_SETTINGS);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyField<jam::jmat::MaterialParams>(verifier, VT_PARAMS, 4) &&
+           VerifyOffset(verifier, VT_TEXTURES) &&
+           verifier.VerifyTable(textures()) &&
+           VerifyField<jam::jmat::MaterialTextureSettings>(verifier, VT_TEXTURE_SETTINGS, 4) &&
            verifier.EndTable();
   }
 };
@@ -233,80 +412,17 @@ struct MaterialBuilder {
   typedef Material Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_ambient_color(const jam::jmat::Vec3 *ambient_color) {
-    fbb_.AddStruct(Material::VT_AMBIENT_COLOR, ambient_color);
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(Material::VT_NAME, name);
   }
-  void add_diffuse_color(const jam::jmat::Vec3 *diffuse_color) {
-    fbb_.AddStruct(Material::VT_DIFFUSE_COLOR, diffuse_color);
+  void add_params(const jam::jmat::MaterialParams *params) {
+    fbb_.AddStruct(Material::VT_PARAMS, params);
   }
-  void add_specular_color(const jam::jmat::Vec3 *specular_color) {
-    fbb_.AddStruct(Material::VT_SPECULAR_COLOR, specular_color);
+  void add_textures(::flatbuffers::Offset<jam::jmat::MaterialTextures> textures) {
+    fbb_.AddOffset(Material::VT_TEXTURES, textures);
   }
-  void add_shininess(float shininess) {
-    fbb_.AddElement<float>(Material::VT_SHININESS, shininess, 0.0f);
-  }
-  void add_albedo_color(const jam::jmat::Vec3 *albedo_color) {
-    fbb_.AddStruct(Material::VT_ALBEDO_COLOR, albedo_color);
-  }
-  void add_roughness(float roughness) {
-    fbb_.AddElement<float>(Material::VT_ROUGHNESS, roughness, 0.0f);
-  }
-  void add_metallic(float metallic) {
-    fbb_.AddElement<float>(Material::VT_METALLIC, metallic, 0.0f);
-  }
-  void add_emissive_color(const jam::jmat::Vec3 *emissive_color) {
-    fbb_.AddStruct(Material::VT_EMISSIVE_COLOR, emissive_color);
-  }
-  void add_emissive_intensity(float emissive_intensity) {
-    fbb_.AddElement<float>(Material::VT_EMISSIVE_INTENSITY, emissive_intensity, 0.0f);
-  }
-  void add_b_alpha_cutout(bool b_alpha_cutout) {
-    fbb_.AddElement<uint8_t>(Material::VT_B_ALPHA_CUTOUT, static_cast<uint8_t>(b_alpha_cutout), 0);
-  }
-  void add_b_double_sided(bool b_double_sided) {
-    fbb_.AddElement<uint8_t>(Material::VT_B_DOUBLE_SIDED, static_cast<uint8_t>(b_double_sided), 0);
-  }
-  void add_b_normal_texture_fliped(bool b_normal_texture_fliped) {
-    fbb_.AddElement<uint8_t>(Material::VT_B_NORMAL_TEXTURE_FLIPED, static_cast<uint8_t>(b_normal_texture_fliped), 0);
-  }
-  void add_light_texture_intensity(float light_texture_intensity) {
-    fbb_.AddElement<float>(Material::VT_LIGHT_TEXTURE_INTENSITY, light_texture_intensity, 0.0f);
-  }
-  void add_emissive_texture_intensity(float emissive_texture_intensity) {
-    fbb_.AddElement<float>(Material::VT_EMISSIVE_TEXTURE_INTENSITY, emissive_texture_intensity, 0.0f);
-  }
-  void add_vertex_displacement_scale(float vertex_displacement_scale) {
-    fbb_.AddElement<float>(Material::VT_VERTEX_DISPLACEMENT_SCALE, vertex_displacement_scale, 0.0f);
-  }
-  void add_metallic_texture_channel(jam::jmat::eTextureChannel metallic_texture_channel) {
-    fbb_.AddElement<int8_t>(Material::VT_METALLIC_TEXTURE_CHANNEL, static_cast<int8_t>(metallic_texture_channel), 0);
-  }
-  void add_roughness_texture_channel(jam::jmat::eTextureChannel roughness_texture_channel) {
-    fbb_.AddElement<int8_t>(Material::VT_ROUGHNESS_TEXTURE_CHANNEL, static_cast<int8_t>(roughness_texture_channel), 0);
-  }
-  void add_albedo_texture_path(::flatbuffers::Offset<::flatbuffers::String> albedo_texture_path) {
-    fbb_.AddOffset(Material::VT_ALBEDO_TEXTURE_PATH, albedo_texture_path);
-  }
-  void add_normal_texture_path(::flatbuffers::Offset<::flatbuffers::String> normal_texture_path) {
-    fbb_.AddOffset(Material::VT_NORMAL_TEXTURE_PATH, normal_texture_path);
-  }
-  void add_metallic_texture_path(::flatbuffers::Offset<::flatbuffers::String> metallic_texture_path) {
-    fbb_.AddOffset(Material::VT_METALLIC_TEXTURE_PATH, metallic_texture_path);
-  }
-  void add_roughness_texture_path(::flatbuffers::Offset<::flatbuffers::String> roughness_texture_path) {
-    fbb_.AddOffset(Material::VT_ROUGHNESS_TEXTURE_PATH, roughness_texture_path);
-  }
-  void add_ao_texture_path(::flatbuffers::Offset<::flatbuffers::String> ao_texture_path) {
-    fbb_.AddOffset(Material::VT_AO_TEXTURE_PATH, ao_texture_path);
-  }
-  void add_emissive_texture_path(::flatbuffers::Offset<::flatbuffers::String> emissive_texture_path) {
-    fbb_.AddOffset(Material::VT_EMISSIVE_TEXTURE_PATH, emissive_texture_path);
-  }
-  void add_light_texture_path(::flatbuffers::Offset<::flatbuffers::String> light_texture_path) {
-    fbb_.AddOffset(Material::VT_LIGHT_TEXTURE_PATH, light_texture_path);
-  }
-  void add_vertex_displacement_texture_path(::flatbuffers::Offset<::flatbuffers::String> vertex_displacement_texture_path) {
-    fbb_.AddOffset(Material::VT_VERTEX_DISPLACEMENT_TEXTURE_PATH, vertex_displacement_texture_path);
+  void add_texture_settings(const jam::jmat::MaterialTextureSettings *texture_settings) {
+    fbb_.AddStruct(Material::VT_TEXTURE_SETTINGS, texture_settings);
   }
   explicit MaterialBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -315,133 +431,37 @@ struct MaterialBuilder {
   ::flatbuffers::Offset<Material> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<Material>(end);
-    fbb_.Required(o, Material::VT_AMBIENT_COLOR);
-    fbb_.Required(o, Material::VT_DIFFUSE_COLOR);
-    fbb_.Required(o, Material::VT_SPECULAR_COLOR);
-    fbb_.Required(o, Material::VT_ALBEDO_COLOR);
-    fbb_.Required(o, Material::VT_EMISSIVE_COLOR);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<Material> CreateMaterial(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const jam::jmat::Vec3 *ambient_color = nullptr,
-    const jam::jmat::Vec3 *diffuse_color = nullptr,
-    const jam::jmat::Vec3 *specular_color = nullptr,
-    float shininess = 0.0f,
-    const jam::jmat::Vec3 *albedo_color = nullptr,
-    float roughness = 0.0f,
-    float metallic = 0.0f,
-    const jam::jmat::Vec3 *emissive_color = nullptr,
-    float emissive_intensity = 0.0f,
-    bool b_alpha_cutout = false,
-    bool b_double_sided = false,
-    bool b_normal_texture_fliped = false,
-    float light_texture_intensity = 0.0f,
-    float emissive_texture_intensity = 0.0f,
-    float vertex_displacement_scale = 0.0f,
-    jam::jmat::eTextureChannel metallic_texture_channel = jam::jmat::eTextureChannel_Red,
-    jam::jmat::eTextureChannel roughness_texture_channel = jam::jmat::eTextureChannel_Red,
-    ::flatbuffers::Offset<::flatbuffers::String> albedo_texture_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> normal_texture_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> metallic_texture_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> roughness_texture_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> ao_texture_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> emissive_texture_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> light_texture_path = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> vertex_displacement_texture_path = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    const jam::jmat::MaterialParams *params = nullptr,
+    ::flatbuffers::Offset<jam::jmat::MaterialTextures> textures = 0,
+    const jam::jmat::MaterialTextureSettings *texture_settings = nullptr) {
   MaterialBuilder builder_(_fbb);
-  builder_.add_vertex_displacement_texture_path(vertex_displacement_texture_path);
-  builder_.add_light_texture_path(light_texture_path);
-  builder_.add_emissive_texture_path(emissive_texture_path);
-  builder_.add_ao_texture_path(ao_texture_path);
-  builder_.add_roughness_texture_path(roughness_texture_path);
-  builder_.add_metallic_texture_path(metallic_texture_path);
-  builder_.add_normal_texture_path(normal_texture_path);
-  builder_.add_albedo_texture_path(albedo_texture_path);
-  builder_.add_vertex_displacement_scale(vertex_displacement_scale);
-  builder_.add_emissive_texture_intensity(emissive_texture_intensity);
-  builder_.add_light_texture_intensity(light_texture_intensity);
-  builder_.add_emissive_intensity(emissive_intensity);
-  builder_.add_emissive_color(emissive_color);
-  builder_.add_metallic(metallic);
-  builder_.add_roughness(roughness);
-  builder_.add_albedo_color(albedo_color);
-  builder_.add_shininess(shininess);
-  builder_.add_specular_color(specular_color);
-  builder_.add_diffuse_color(diffuse_color);
-  builder_.add_ambient_color(ambient_color);
-  builder_.add_roughness_texture_channel(roughness_texture_channel);
-  builder_.add_metallic_texture_channel(metallic_texture_channel);
-  builder_.add_b_normal_texture_fliped(b_normal_texture_fliped);
-  builder_.add_b_double_sided(b_double_sided);
-  builder_.add_b_alpha_cutout(b_alpha_cutout);
+  builder_.add_texture_settings(texture_settings);
+  builder_.add_textures(textures);
+  builder_.add_params(params);
+  builder_.add_name(name);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<Material> CreateMaterialDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const jam::jmat::Vec3 *ambient_color = nullptr,
-    const jam::jmat::Vec3 *diffuse_color = nullptr,
-    const jam::jmat::Vec3 *specular_color = nullptr,
-    float shininess = 0.0f,
-    const jam::jmat::Vec3 *albedo_color = nullptr,
-    float roughness = 0.0f,
-    float metallic = 0.0f,
-    const jam::jmat::Vec3 *emissive_color = nullptr,
-    float emissive_intensity = 0.0f,
-    bool b_alpha_cutout = false,
-    bool b_double_sided = false,
-    bool b_normal_texture_fliped = false,
-    float light_texture_intensity = 0.0f,
-    float emissive_texture_intensity = 0.0f,
-    float vertex_displacement_scale = 0.0f,
-    jam::jmat::eTextureChannel metallic_texture_channel = jam::jmat::eTextureChannel_Red,
-    jam::jmat::eTextureChannel roughness_texture_channel = jam::jmat::eTextureChannel_Red,
-    const char *albedo_texture_path = nullptr,
-    const char *normal_texture_path = nullptr,
-    const char *metallic_texture_path = nullptr,
-    const char *roughness_texture_path = nullptr,
-    const char *ao_texture_path = nullptr,
-    const char *emissive_texture_path = nullptr,
-    const char *light_texture_path = nullptr,
-    const char *vertex_displacement_texture_path = nullptr) {
-  auto albedo_texture_path__ = albedo_texture_path ? _fbb.CreateString(albedo_texture_path) : 0;
-  auto normal_texture_path__ = normal_texture_path ? _fbb.CreateString(normal_texture_path) : 0;
-  auto metallic_texture_path__ = metallic_texture_path ? _fbb.CreateString(metallic_texture_path) : 0;
-  auto roughness_texture_path__ = roughness_texture_path ? _fbb.CreateString(roughness_texture_path) : 0;
-  auto ao_texture_path__ = ao_texture_path ? _fbb.CreateString(ao_texture_path) : 0;
-  auto emissive_texture_path__ = emissive_texture_path ? _fbb.CreateString(emissive_texture_path) : 0;
-  auto light_texture_path__ = light_texture_path ? _fbb.CreateString(light_texture_path) : 0;
-  auto vertex_displacement_texture_path__ = vertex_displacement_texture_path ? _fbb.CreateString(vertex_displacement_texture_path) : 0;
+    const char *name = nullptr,
+    const jam::jmat::MaterialParams *params = nullptr,
+    ::flatbuffers::Offset<jam::jmat::MaterialTextures> textures = 0,
+    const jam::jmat::MaterialTextureSettings *texture_settings = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
   return jam::jmat::CreateMaterial(
       _fbb,
-      ambient_color,
-      diffuse_color,
-      specular_color,
-      shininess,
-      albedo_color,
-      roughness,
-      metallic,
-      emissive_color,
-      emissive_intensity,
-      b_alpha_cutout,
-      b_double_sided,
-      b_normal_texture_fliped,
-      light_texture_intensity,
-      emissive_texture_intensity,
-      vertex_displacement_scale,
-      metallic_texture_channel,
-      roughness_texture_channel,
-      albedo_texture_path__,
-      normal_texture_path__,
-      metallic_texture_path__,
-      roughness_texture_path__,
-      ao_texture_path__,
-      emissive_texture_path__,
-      light_texture_path__,
-      vertex_displacement_texture_path__);
+      name__,
+      params,
+      textures,
+      texture_settings);
 }
 
 inline const jam::jmat::Material *GetMaterial(const void *buf) {

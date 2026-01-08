@@ -1,21 +1,25 @@
 #pragma once
-#include "PopupDialog.h"
+#include "Dialog.h"
 
 namespace jam
 {
 
-class RenameFileDialog
+class RenameFileDialog : public Dialog
 {
 public:
-    explicit RenameFileDialog(const fs::path& _path);
+    explicit RenameFileDialog(
+        const fs::path& _path,
+        ImVec2          _size  = ImVec2 { 0.f, 0.f },
+        eDialogFlags    _flags = eDialogFlags_None);
 
-    void operator()();
+    void OnShow() override;
 
 private:
-    bool OnClickOk_();
+    bool OnClickOkButton() const;
 
-    PopupDialog m_popup;
-    std::string m_buf;
-    fs::path    m_srcPath;
+    fs::path    m_parentPath  = {};
+    fs::path    m_srcFilename = {};
+    std::string m_name        = {};
 };
-}
+
+}   // namespace jam

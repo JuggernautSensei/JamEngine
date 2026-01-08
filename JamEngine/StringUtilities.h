@@ -72,17 +72,15 @@ template<typename T>
     requires std::is_integral_v<T>
 [[nodiscard]] Optional<T> IntFrom(const StringView _str)
 {
-    T value;
-
+    T                            value;
     const std::from_chars_result result = std::from_chars(_str.GetPtr(), _str.GetPtr() + _str.GetLength(), value);
-    if (result.ec == std::errc())
+    if (result.ec == std::errc {})
     {
         return value;
     }
-    else
-    {
-        return k_nullopt;
-    }
+
+    // conversion failed
+    return k_nullopt;
 }
 
 }   // namespace jam

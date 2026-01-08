@@ -8,8 +8,9 @@ enum eDialogFlags_
     eDialogFlags_None     = 0,
     eDialogFlags_Modal    = 1 << 0,
     eDialogFlags_NoResize = 1 << 1,
+    eDialogFlags_NoMove   = 1 << 2,
 };
-using eDialogFlags = EnumIntType<eDialogFlags_>;
+using eDialogFlags = UnderlyingType<eDialogFlags_>;
 
 class Dialog
 {
@@ -24,15 +25,19 @@ public:
     Dialog& operator=(Dialog&&)      = default;
 
     void               Open();
+    void               Close();
     void               Show();
     [[nodiscard]] bool IsOpen() const;
-    virtual void       OnShow() = 0;
+
+protected:
+    static constexpr float k_textWrapWidth = 400.f;
 
 private:
-    bool OpenPopup_() const;
+    virtual void OnShow() = 0;
+    bool         BeginPopup_() const;
 
     std::string  m_title       = {};
-    bool         m_bSignal     = false;
+    bool         m_bOpenRequest     = false;
     bool         m_bOpen       = false;
     ImVec2       m_size        = {};
     bool         m_bAutoResize = false;

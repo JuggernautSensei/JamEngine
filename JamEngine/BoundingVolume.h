@@ -7,15 +7,19 @@ struct Ray;
 
 enum class eRegion
 {
-    NearLeftTop,
+    NearLeftTop = 0,
     NearRightTop,
     NearLeftBottom,
     NearRightBottom,
     FarLeftTop,
     FarRightTop,
     FarLeftBottom,
-    FarRightBottom
+    FarRightBottom,
+
+    Min = NearLeftTop,
+    Max = FarRightBottom,
 };
+JAM_ENUM_STATIC_ASSERT(eRegion);
 
 struct CornerPoints
 {

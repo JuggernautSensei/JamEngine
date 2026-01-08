@@ -8,9 +8,10 @@ namespace jam
 
 namespace fs = ghc::filesystem;
 
-[[nodiscard]] bool IsAncestorPathOf(const fs::path& _ancester, const fs::path& _descendant);
+// if _base == _path -> true
+[[nodiscard]] bool IsBasePathOf(const fs::path& _base, const fs::path& _path);
 
-}
+}   // namespace jam
 
 template<>
 struct std::hash<jam::fs::path>

@@ -48,11 +48,11 @@ struct InputContext
 
     void OnWindowLostFocusEvent(const WindowLostFocusEvent& _event)
     {
-        std::memset(bKeyDown, 0, sizeof(bKeyDown));
+        bKeyDown.fill(false);
     }
 
-    bool bPrevKeyDown[256] = { false };
-    bool bKeyDown[256]     = { false };
+    Array<bool, 256> bPrevKeyDown = {};
+    Array<bool, 256> bKeyDown     = {};
 
     Int32 mousePrevX = 0;
     Int32 mousePrevY = 0;
@@ -92,15 +92,18 @@ void Input::Shutdown()
 
 void Input::Update()
 {
-    const Application&     app = Application::GetInstance();
-    const WindowsPlatform& win = app.GetPlatform();
-    const auto [x, y]          = win.GetClientPos();
+    // update key info
+    std::ranges::copy(g_pInputCtx->bKeyDown, g_pInputCtx->bPrevKeyDown.begin());
 
-    std::memcpy(g_pInputCtx->bPrevKeyDown, g_pInputCtx->bKeyDown, sizeof(g_pInputCtx->bKeyDown));
-
+    // update mouse info
     g_pInputCtx->mousePrevX      = g_pInputCtx->mouseX;
     g_pInputCtx->mousePrevY      = g_pInputCtx->mouseY;
     g_pInputCtx->mouseDeltaWheel = 0;
+
+    // get cursor pos
+    const Application&     app = Application::GetInstance();
+    const WindowsPlatform& win = app.GetPlatform();
+    const auto [x, y]          = win.GetClientPos();
 
     POINT p;
     ::GetCursorPos(&p);

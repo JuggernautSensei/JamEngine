@@ -97,9 +97,6 @@
     <ClCompile Include="Profile.cpp">
       <Filter>99. Utilities\Profile</Filter>
     </ClCompile>
-    <ClCompile Include="Editor.cpp">
-      <Filter>6. Editor</Filter>
-    </ClCompile>
     <ClCompile Include="SerializableComponent.cpp">
       <Filter>3. Scene\Component\Property</Filter>
     </ClCompile>
@@ -157,18 +154,6 @@
     <ClCompile Include="Camera.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_SceneView.cpp">
-      <Filter>6. Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor_Profiler.cpp">
-      <Filter>6. Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor_SceneHierarchy.cpp">
-      <Filter>6. Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor_EntityInspector.cpp">
-      <Filter>6. Editor</Filter>
-    </ClCompile>
     <ClCompile Include="ImGuiGlue.cpp">
       <Filter>4. Rendering\ImGui</Filter>
     </ClCompile>
@@ -199,9 +184,6 @@
     <ClCompile Include="EditorWidgets.cpp">
       <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="VertexLayoutStorage.cpp">
-      <Filter>6. Editor\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="TagComponent.cpp">
       <Filter>3. Scene\Component</Filter>
     </ClCompile>
@@ -226,29 +208,8 @@
     <ClCompile Include="SceneDeserializer.cpp">
       <Filter>3. Scene\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="PopupDialog.cpp">
-      <Filter>6. Editor\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="RenameFileDialog.cpp">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="RemoveNotEmptyDirectoryDialog.cpp">
       <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="CreatePrimitiveDialog.cpp">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="CreateMaterialDialog.cpp">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor_FileBrowser.cpp">
-      <Filter>6. Editor\FileBrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor_FileBrowser_Thumbnail.cpp">
-      <Filter>6. Editor\FileBrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor_FileBrowser_ThumbnailCache.cpp">
-      <Filter>6. Editor\FileBrowser</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>5. Assets\Model</Filter>
@@ -286,12 +247,6 @@
     <ClCompile Include="EditorUtilities.cpp">
       <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="ImportImageDialog_PreviewTexture.cpp">
-      <Filter>6. Editor\FileBrowser\Dialogs\ImportImageDialog</Filter>
-    </ClCompile>
-    <ClCompile Include="DestroyNotLeafEntityDialog.cpp">
-      <Filter>6. Editor\Dialog</Filter>
-    </ClCompile>
     <ClCompile Include="ImageBase.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
@@ -312,12 +267,6 @@
     </ClCompile>
     <ClCompile Include="TypeTrait.cpp">
       <Filter>99. Utilities\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="ImportImageDialog.cpp">
-      <Filter>6. Editor\FileBrowser\Dialogs\ImportImageDialog</Filter>
-    </ClCompile>
-    <ClCompile Include="ImportModelDialog.cpp">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="Octree.cpp">
       <Filter>4. Rendering\Octree</Filter>
@@ -376,35 +325,83 @@
     <ClCompile Include="Magics.cpp">
       <Filter>99. Utilities\Base\Config</Filter>
     </ClCompile>
-    <ClCompile Include="Dialog.cpp">
-      <Filter>6. Editor\Dialog %28new%29</Filter>
-    </ClCompile>
-    <ClCompile Include="MessageDialog.cpp">
-      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="IEditorCommand.cpp">
-      <Filter>6. Editor\Command</Filter>
-    </ClCompile>
-    <ClCompile Include="EditorCommands.cpp">
-      <Filter>6. Editor\Command</Filter>
-    </ClCompile>
-    <ClCompile Include="EditorCommandManager.cpp">
-      <Filter>6. Editor\Command</Filter>
-    </ClCompile>
     <ClCompile Include="DialogStack.cpp">
-      <Filter>6. Editor\Dialog %28new%29</Filter>
+      <Filter>6. Editor\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="Scoped.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_VertexLayoutEditor.cpp">
-      <Filter>6. Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexLayoutEditorDialog.cpp">
-      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="SVGImporter.cpp">
       <Filter>99. Utilities\SVG</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_VertexLayoutEditor.cpp">
+      <Filter>6. Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_EntityInspector.cpp">
+      <Filter>6. Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_Profiler.cpp">
+      <Filter>6. Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_SceneHierarchy.cpp">
+      <Filter>6. Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_SceneView.cpp">
+      <Filter>6. Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor.cpp">
+      <Filter>6. Editor\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="LRUCache.cpp">
+      <Filter>99. Utilities\Container\LRUCache</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor_FileBrowser.cpp">
+      <Filter>6. Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailCache.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLayoutEntry.cpp">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLayoutEditorDialog.cpp">
+      <Filter>6. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfirmationDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="RenameFileDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialCreationDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimitiveCreationDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageImportDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelImportDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog.cpp">
+      <Filter>6. Editor\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetUtilities.cpp">
+      <Filter>5. Assets\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryUtilities.cpp">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorIcons.cpp">
+      <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -618,20 +615,38 @@
     <Filter Include="6. Editor\FileBrowser\Dialogs\ImportImageDialog">
       <UniqueIdentifier>{e5e0db46-5002-44e8-a825-814dc8b8772b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="6. Editor\Dialog">
-      <UniqueIdentifier>{e65067ff-df1c-43bd-b786-600fd60e9228}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog %28new%29">
-      <UniqueIdentifier>{b8e2973b-00f2-4da4-8915-fb90c263d9aa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog %28new%29\Dialogs">
-      <UniqueIdentifier>{31df0483-c3c2-4a67-b0fb-356a60340060}</UniqueIdentifier>
-    </Filter>
     <Filter Include="6. Editor\Command">
       <UniqueIdentifier>{1da62877-db37-482a-ac83-68505a84f4fa}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\SVG">
       <UniqueIdentifier>{d45992a7-e02a-4fc3-9aca-89a7d6bd84b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Windows">
+      <UniqueIdentifier>{bb100911-1ffa-4785-be6c-a7cc973991cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Core">
+      <UniqueIdentifier>{811e6ef7-7613-4a0c-a8f5-4ba623af573b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\LRUCache">
+      <UniqueIdentifier>{a6e8c344-4115-4f5b-8cf3-9d53979960d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog">
+      <UniqueIdentifier>{b8e2973b-00f2-4da4-8915-fb90c263d9aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog\Dialogs">
+      <UniqueIdentifier>{31df0483-c3c2-4a67-b0fb-356a60340060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog\Dialogs\Common">
+      <UniqueIdentifier>{68773a4d-b5bf-42b8-923f-056d3fedd625}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog\Dialogs\Filesystem">
+      <UniqueIdentifier>{b7c72ae4-caf1-4949-b122-c49fbb0636ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\Dialog\Dialogs\Asset">
+      <UniqueIdentifier>{09afdf49-57fb-49ba-8025-5b3bb647debb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Utilities">
+      <UniqueIdentifier>{ab6dae66-647b-4c07-8073-7bb172380f14}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -742,9 +757,6 @@
     </ClInclude>
     <ClInclude Include="ImGuiGlue.h">
       <Filter>4. Rendering\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor.h">
-      <Filter>6. Editor</Filter>
     </ClInclude>
     <ClInclude Include="SerializableComponent.h">
       <Filter>3. Scene\Component\Property</Filter>
@@ -905,18 +917,6 @@
     <ClInclude Include="Camera.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_SceneView.h">
-      <Filter>6. Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor_Profiler.h">
-      <Filter>6. Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor_SceneHierarchy.h">
-      <Filter>6. Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor_EntityInspector.h">
-      <Filter>6. Editor</Filter>
-    </ClInclude>
     <ClInclude Include="Vendor\imgui\imconfig.h">
       <Filter>98. Vendor\Imgui</Filter>
     </ClInclude>
@@ -944,9 +944,6 @@
     <ClInclude Include="EditorWidgets.h">
       <Filter>6. Editor\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="VertexLayoutStorage.h">
-      <Filter>6. Editor\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="TagComponent.h">
       <Filter>3. Scene\Component</Filter>
     </ClInclude>
@@ -971,26 +968,8 @@
     <ClInclude Include="SceneDeserializer.h">
       <Filter>3. Scene\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="PopupDialog.h">
-      <Filter>6. Editor\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="RenameFileDialog.h">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="RemoveNotEmptyDirectoryDialog.h">
       <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ImportModelDialog.h">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="CreatePrimitiveDialog.h">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="CreateMaterialDialog.h">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor_FileBrowser.h">
-      <Filter>6. Editor\FileBrowser</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
       <Filter>5. Assets\Model</Filter>
@@ -1030,12 +1009,6 @@
     </ClInclude>
     <ClInclude Include="EditorUtilities.h">
       <Filter>6. Editor\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="ImportImageDialog.h">
-      <Filter>6. Editor\FileBrowser\Dialogs\ImportImageDialog</Filter>
-    </ClInclude>
-    <ClInclude Include="DestroyNotLeafEntityDialog.h">
-      <Filter>6. Editor\Dialog</Filter>
     </ClInclude>
     <ClInclude Include="ImageBase.h">
       <Filter>2. Graphics\Utilities</Filter>
@@ -1109,39 +1082,85 @@
     <ClInclude Include="JsonWriter.h">
       <Filter>99. Utilities\Serialize</Filter>
     </ClInclude>
-    <ClInclude Include="Dialog.h">
-      <Filter>6. Editor\Dialog %28new%29</Filter>
-    </ClInclude>
-    <ClInclude Include="MessageDialog.h">
-      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="IEditorCommand.h">
-      <Filter>6. Editor\Command</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorCommands.h">
-      <Filter>6. Editor\Command</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorCommandManager.h">
-      <Filter>6. Editor\Command</Filter>
-    </ClInclude>
     <ClInclude Include="DialogStack.h">
-      <Filter>6. Editor\Dialog %28new%29</Filter>
+      <Filter>6. Editor\Dialog</Filter>
     </ClInclude>
     <ClInclude Include="Scoped.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_VertexLayoutEditor.h">
-      <Filter>6. Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexLayoutEditorDialog.h">
-      <Filter>6. Editor\Dialog %28new%29\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="SVGImporter.h">
       <Filter>99. Utilities\SVG</Filter>
     </ClInclude>
+    <ClInclude Include="Editor_VertexLayoutEditor.h">
+      <Filter>6. Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_EntityInspector.h">
+      <Filter>6. Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_Profiler.h">
+      <Filter>6. Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_SceneHierarchy.h">
+      <Filter>6. Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_SceneView.h">
+      <Filter>6. Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor.h">
+      <Filter>6. Editor\Core</Filter>
+    </ClInclude>
     <ClInclude Include="EditorIcons.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="LRUCache.h">
+      <Filter>99. Utilities\Container\LRUCache</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor_FileBrowser.h">
+      <Filter>6. Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailCache.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayoutEntry.h">
+      <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayoutEditorDialog.h">
       <Filter>6. Editor</Filter>
     </ClInclude>
+    <ClInclude Include="MessageDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfirmationDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="RenameFileDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialog.h">
+      <Filter>6. Editor\Dialog\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialCreationDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveCreationDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageImportDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelImportDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetUtilities.h">
+      <Filter>5. Assets\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryUtilities.h">
+      <Filter>2. Graphics\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="JamEngineEditorEmbededIcons.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">

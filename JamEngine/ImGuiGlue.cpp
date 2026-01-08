@@ -2,8 +2,10 @@
 
 #include "ImGuiGlue.h"
 
+#include "GeometryUtilities.h"
 #include "Graphics.h"
 #include "ImageTexture.h"
+#include "ShaderCompiler.h"
 #include "Vendor/imgui/ImGuizmo.h"
 #include "Vendor/imgui/imgui_impl_win32.h"
 
@@ -145,9 +147,9 @@ void ImGuiGlueContext::Init()
     textureCubePh = Graphics::CreateProgram(vsh, textureCubePsh);
 
     // create vertex vertexLayout
-    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float2)
-        .Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
-        .Push(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
+    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float2);
+    vl.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    vl.Push(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
 
     // create constant buffer
     cbh = Graphics::CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
@@ -234,7 +236,7 @@ void ImGuiGlueContext::Render(ImDrawData* _pDrawData)
     if (ibCap < _pDrawData->TotalIdxCount)
     {
         JAM_DESTROY_INDEX_BUFFER(ibh);
-        const bool bUseU32 = vbCap > 0xFFFFFFFF;
+        const bool bUseU32 = IsGreaterThanUInt16(_pDrawData->TotalVtxCount);
         ibCap              = _pDrawData->TotalIdxCount + 10000;
         ibh                = Graphics::CreateDynamicIndexBuffer(ibCap, bUseU32);
     }
@@ -402,15 +404,13 @@ void ImGuiGlueContext::DestroyTexture(ImTextureData* _tex) const
 
 ShaderHandle ImGuiGlueContext::CreateShader(const char* _pShaderCode, const eShader _shaderStage) const
 {
-    if (const Optional<ShaderHandle> sh = Graphics::LoadHLSLShaderSource(_pShaderCode, _shaderStage, "main", eShaderCompileFlags_ReleaseDefault))
+    ShaderCompiler compiler;
+    if (!compiler.CompileHLSLSource(_pShaderCode, _shaderStage, "main", {}, eShaderCompileFlags_ReleaseDefault))
     {
-        return sh.value();
+        JAM_ASSERT(0, "Failed to compile ImGui shader: {}", GlobalBuffer::GetLastError());
     }
-    else
-    {
-        JAM_ASSERT(0, "unreachable");
-        return k_invalidHandle;
-    }
+
+    return Graphics::CreateShader(compiler.GetBytecode());
 }
 
 ImTextureRef ImGuiGlueContext::ImTextureRefFrom(
@@ -432,7 +432,7 @@ TextureData ImGuiGlueContext::TextureDataFrom(
 {
     TextureData texData;
     texData.texh.value = static_cast<UInt32>(_texId >> 32);
-    texData.type       = EnumFromOrAssert<eTextureType>(_texId & 0xFFFFFFFF);
+    texData.type       = static_cast<eTextureType>(_texId & 0xFFFFFFFF);
     return texData;
 }
 

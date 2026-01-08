@@ -6,6 +6,32 @@
 namespace jam
 {
 
+struct ImageImporterOptions
+{
+    // format conversion
+    bool           bConvertFormat   = false;
+    eTextureFormat convertFormat    = eTextureFormat::Unknown;
+    float          convertThreshold = 0.5f;
+
+    // sRGB
+    bool bForceSRGB = false;
+
+    // mips
+    bool bGenerateMips = false;
+
+    // resize
+    bool  bResize   = false;
+    Int32 newWidth  = 0;
+    Int32 newHeight = 0;
+
+    // flip
+    bool bFlipVertical   = false;
+    bool bFlipHorizontal = false;
+
+    // alpha
+    bool bPreMultiplyAlpha = false;
+};
+
 class ImageImporter
 {
 
@@ -18,7 +44,8 @@ class ImageImporter
 
 public:
     bool Import(const fs::path& _path);
-    bool ImportMemory(CMemView _mem, eImageFormat _imageFormat);
+    bool Import(const fs::path& _path, eImageFormat _format);
+    bool ImportMemory(CMemView _mem, eImageFormat _format);
 
     // postprocess settings
     void ConvertFormat(bool _bEnable, eTextureFormat _format, float _threshold = 0.5f);
@@ -28,41 +55,17 @@ public:
     void FlipVertical(bool _bEnable);
     void FlipHorizontal(bool _bEnable);
     void PreMultiplyAlpha(bool _bEnable);
+    void SetOptions(const ImageImporterOptions& _options);
 
     // result
-    [[nodiscard]] TextureHandle GetTexture() const;
+    [[nodiscard]] const DirectX::ScratchImage& GetScratchImage() const;
 
 private:
     [[nodiscard]] Optional<DirectX::ScratchImage> PostProcess_(DirectX::ScratchImage&& _srcScratchImg);
 
     // result
-    TextureHandle m_texh = k_invalidHandle;
-
-    // import type
-    eImportType m_importType = eImportType::Unknown;
-
-    // format conversion
-    bool           m_bConvertFormat   = false;
-    eTextureFormat m_convertFormat    = eTextureFormat::Unknown;
-    float          m_convertThreshold = 0.5f;
-
-    // sRGB
-    bool m_bForceSRGB = false;
-
-    // mips
-    bool m_bGenerateMips = false;
-
-    // resize
-    bool  m_bResize   = false;
-    Int32 m_newWidth  = 0;
-    Int32 m_newHeight = 0;
-
-    // flip
-    bool m_bFlipVertical   = false;
-    bool m_bFlipHorizontal = false;
-
-    // alpha
-    bool m_bPreMultiplyAlpha = false;
+    DirectX::ScratchImage m_scratchImg = {};
+    ImageImporterOptions  m_options    = {};
 };
 
 }   // namespace jam

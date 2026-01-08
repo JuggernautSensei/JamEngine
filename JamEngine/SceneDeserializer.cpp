@@ -31,28 +31,12 @@ SceneDeserializer::SceneDeserializer(
 
 bool SceneDeserializer::LoadJsonFile(const fs::path& _path)
 {
-    if (const Optional<Json> optJson = jam::LoadJsonFile(_path))
-    {
-        m_json = std::move(optJson.value());
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return MoveIfHasValue(jam::LoadJsonFile(_path), m_json);
 }
 
 bool SceneDeserializer::LoadBsonFile(const fs::path& _path)
 {
-    if (const Optional<Json> optJson = jam::LoadBsonFile(_path))
-    {
-        m_json = std::move(optJson.value());
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return MoveIfHasValue(jam::LoadBsonFile(_path), m_json);
 }
 
 void SceneDeserializer::LoadJson(const Json& _json)
@@ -70,13 +54,11 @@ bool SceneDeserializer::Deserialize()
 
     // create scene
     {
-        Optional<JsonReader> optSceneReader = reader.EnterField("sceneType");
-        if (!optSceneReader)
+        JsonReader sceneReader = {};
+        if (!MoveIfHasValue(reader.EnterField("sceneType"), sceneReader))
         {
             return false;
         }
-
-        JsonReader sceneReader = optSceneReader.value();
 
         // read scene type
         std::string sceneType;
@@ -99,13 +81,11 @@ bool SceneDeserializer::Deserialize()
     // create entities
     {
         // entity reader
-        Optional<JsonReader> optEntityReader = reader.EnterField("entities");
-        if (!optEntityReader)
+        JsonReader entityReader = {};
+        if (!MoveIfHasValue(reader.EnterField("entities"), entityReader))
         {
             return false;
         }
-
-        JsonReader entityReader = optEntityReader.value();
 
         // entity UIDs
         const Entity root    = m_pScene->GetRootEntity();
@@ -127,26 +107,23 @@ bool SceneDeserializer::Deserialize()
 
     // components [2]
     {
-        Optional<JsonReader> optCmpsReader = reader.EnterField("components");
-        if (!optCmpsReader)
+        JsonReader cmpsReader = {};
+        if (!MoveIfHasValue(reader.EnterField("components"), cmpsReader))
         {
             return false;
         }
 
-        JsonReader        cmpsReader = optCmpsReader.value();
-        const ComponentDB& db         = ComponentDB::GetInstance();
+        const ComponentDB& db = ComponentDB::GetInstance();
 
         // components
         for (Int32 i = 0; i < cmpsReader.GetSize(); ++i)
         {
             // entry
-            Optional<JsonReader> optEntryReader = cmpsReader.EnterAt(i);
-            if (!optEntryReader)
+            JsonReader entryReader;
+            if (!MoveIfHasValue(cmpsReader.EnterAt(i), entryReader))
             {
                 JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component entry at index: {}", i);
             }
-
-            JsonReader entryReader = optEntryReader.value();
 
             // type name
             std::string typeName;
@@ -156,29 +133,27 @@ bool SceneDeserializer::Deserialize()
             }
 
             // check reflected type
-            if (!db.IsReflected(typeName) || !db.IsSerializable(typeName))
+            const ComponentInfo& info = db.GetComponentInfo(typeName);
+            if (!db.IsReflected(typeName) || !info.serializeFn)
             {
                 JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Component type ID {} at entry index {} is not reflected in ComponentDB", typeName, i);
             }
 
             // values
-            Optional<JsonReader> optValuesReader = entryReader.EnterAt(1);
-            if (!optValuesReader)
+            JsonReader valuesReader = {};
+            if (!MoveIfHasValue(entryReader.EnterAt(1), valuesReader))
             {
                 JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component values at entry index: {}", i);
             }
 
-            JsonReader valuesReader = optValuesReader.value();
             for (Int32 j = 0; j < valuesReader.GetSize(); ++j)
             {
                 // value
-                Optional<JsonReader> optValueReader = valuesReader.EnterAt(j);
-                if (!optValueReader)
+                JsonReader valueReader = {};
+                if (!MoveIfHasValue(valuesReader.EnterAt(j), valueReader))
                 {
                     JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component value at entry index: {}, value index: {}", i, j);
                 }
-
-                JsonReader valueReader = optValueReader.value();
 
                 // entity UID
                 UID uid;
@@ -195,24 +170,23 @@ bool SceneDeserializer::Deserialize()
                 }
 
                 // create component if not exists
-                if (!db.Has(typeName, entity))
+                if (!info.hasFn(entity))
                 {
-                    db.Create(typeName, entity);
+                    info.createFn(entity);
                 }
 
                 // deserialize component
-                if (void* pCmpValue = db.Get(typeName, entity))
+                if (void* pCmpValue = info.getFn(entity))
                 {
-                    // component data
-                    Optional<JsonReader> optDataReader = valueReader.EnterAt(1);
-                    if (!optDataReader)
+
+                    // component data reader
+                    JsonReader dataReader = {};
+                    if (!MoveIfHasValue(valueReader.EnterAt(1), dataReader))
                     {
                         JAM_HANDLE_SCENE_DESERIALIZER_ERROR("Failed to enter component data at entry index: {}, value index: {}", i, j);
                     }
 
-                    // component data reader
-                    JsonReader dataReader = optDataReader.value();
-                    db.Deserialize(typeName, pCmpValue, dataReader, m_pScene, entity);
+                    info.deserializeFn(pCmpValue, dataReader, m_pScene, entity);
 
                     // check success
                     if (!dataReader.IsSucceeded())

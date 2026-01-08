@@ -46,14 +46,22 @@ enum class eShader : Int8
     HullShader,
     DomainShader,
     ComputeShader,
+
+    Min = VertexShader,
+    Max = ComputeShader,
 };
+JAM_ENUM_STATIC_ASSERT(eShader);
 
 enum class eTextureType : Int8
 {
     Texture2D = 0,
     Texture3D,
     TextureCube,
+
+    Min = Texture2D,
+    Max = TextureCube,
 };
+JAM_ENUM_STATIC_ASSERT(eTextureType);
 
 enum class eBlend : UInt8
 {
@@ -156,7 +164,6 @@ enum class eTextureFilter : UInt8
     Anisotropic8,
     Anisotropic16,
 };
-constexpr size_t k_numTextureFilters = NumEnums<eTextureFilter>();
 
 enum class eCubeFace : Int8
 {
@@ -167,7 +174,6 @@ enum class eCubeFace : Int8
     Front,       // positive Z
     Back,        // negative Z
 };
-constexpr size_t k_numCubeFaces = NumEnums<eCubeFace>();
 
 enum eShaderCompileFlags_ : UInt8
 {
@@ -196,7 +202,11 @@ enum class eSubmitParameterType : Int8
     StartVertexLocation = 0,
     StartIndexLocation,
     BaseVertexLocation,
+
+    Min = StartVertexLocation,
+    Max = BaseVertexLocation,
 };
+JAM_ENUM_STATIC_ASSERT(eSubmitParameterType);
 
 using ShaderCacheKey       = UInt64;
 using VertexLayoutCacheKey = UInt64;
@@ -751,11 +761,5 @@ struct ProgramInfo
 [[nodiscard]] Int32             CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
 [[nodiscard]] TextureResolution CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
 [[nodiscard]] Int32             CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _numMips);
-
-[[nodiscard]] UInt32 IndexFrom(CMemView _idxData, Int32 _idx, bool _bUseU32);                     // index from typeless index data
-void                 StoreIndex(MemView _dstIdxData, Int32 _idx, bool _bUseU32, UInt32 _value);   // store index to typeless index data
-[[nodiscard]] Int32  CalcNumIndices(CMemView _idxData, bool _bUseU32);                            // calculate number of indices from typeless index data
-[[nodiscard]] Int32  CalcIndicesByteWidth(Int32 _numIndices, bool _bUseU32);                      // calculate byte width of typeless index data
-[[nodiscard]] Int32  CalcNumVertices(CMemView _vertData, const VertexLayout& _vl);                // calculate number of vertices from vertex data and layout
 
 }   // namespace jam

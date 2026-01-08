@@ -49,22 +49,13 @@ template<typename E>
     requires std::is_enum_v<E>
 void to_json(Json& _outJson, E _e)
 {
-    _outJson = StringFrom(_e);
+    
 }
 
 template<typename E>
 void from_json(const Json& _json, E& _outEnum)
     requires std::is_enum_v<E>
 {
-    const EnumIntType<E> strValue = _json.get<std::string>();   // or throw
-    if (const Optional<E> opt = EnumFrom<E>(strValue))
-    {
-        _outEnum = opt.value();
-    }
-    else
-    {
-        throw std::runtime_error(std::format("invalid enum value: {}", strValue));
-    }
 }
 
 template<typename TValue, size_t N>

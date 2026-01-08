@@ -8,7 +8,7 @@ class SceneDeserializer
 {
 public:
     SceneDeserializer() = default;
-    explicit SceneDeserializer(bool _bAllowPartialSucceeded = false);
+    explicit SceneDeserializer(bool _bAllowPartialSucceeded);
 
     bool LoadJsonFile(const fs::path& _path);
     bool LoadBsonFile(const fs::path& _path);

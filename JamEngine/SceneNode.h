@@ -37,6 +37,7 @@ public:
 
     [[nodiscard]] bool IsRoot() const;
     [[nodiscard]] bool HasParent() const;
+    [[nodiscard]] bool HasChildren() const;
 
     [[nodiscard]] Entity GetRoot() const;
     [[nodiscard]] Entity GetOwner() const;

@@ -7,28 +7,13 @@ namespace jam
 class MessageDialog : public Dialog
 {
 public:
-    explicit MessageDialog(
-        const StringView _title,
-        const StringView _message)
-        : Dialog(_title, ImVec2 { 0.f, 0.f }, eDialogFlags_Modal)
-        , m_message(_message)
-    {
-    }
+    explicit MessageDialog(StringView _title, StringView _msg, ImVec2 _size = { 0.f, 0.f }, eDialogFlags _flags = 0);
+    void OnShow() override;
 
-    void OnShow() override
-    {
-        ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 400.f);   // wrap at 400px
-        ImGui::TextUnformatted(m_message.GetPtr());
-        ImGui::PopTextWrapPos();
-        ImGui::Spacing();
-        if (ImGui::Button("ok"))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-    }
+    void SetMessage(StringView _msg);
 
 private:
-    StringView m_message;
+    std::string m_msg = {};
 };
 
 }   // namespace jam

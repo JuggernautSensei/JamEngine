@@ -2,43 +2,53 @@
 
 #include "Model.h"
 
+#include "AssetManager.h"
 #include "FileIOUtilities.h"
+#include "Material.h"
+#include "Mesh.h"
 #include "Profile.h"
+
 #include "Resources/flatc/jmtl_generated.h"
+namespace fbs = flatbuffers;
 
 namespace jam
 {
 
-[[nodiscard]] static jmtl::Matrix4x4 JmtlMatrixFrom(const Mat4& _mtx)
+[[nodiscard]] static jmtl::Matrix4x4 JmtlMatrixFrom(
+    const Mat4& _mtx)
 {
-    Array<float, 16> vals {};
+    Array<float, 16> elems = {};
     for (int r = 0; r < 4; ++r)
     {
         for (int c = 0; c < 4; ++c)
         {
-            vals[r * 4 + c] = _mtx.m[r][c];
+            elems[r * 4 + c] = _mtx.m[r][c];
         }
     }
 
     // 4행 고정
-    vals[0 + 3]  = 0.0f;
-    vals[4 + 3]  = 0.0f;
-    vals[8 + 3]  = 0.0f;
-    vals[12 + 3] = 1.0f;
+    elems[0 + 3]  = 0.0f;
+    elems[4 + 3]  = 0.0f;
+    elems[8 + 3]  = 0.0f;
+    elems[12 + 3] = 1.0f;
 
-    return jmtl::Matrix4x4(::flatbuffers::span<const float, 16>(vals.data(), vals.size()));
+    return {
+        fbs::span<float, 16> { elems.data(), elems.size() }
+    };
 }
 
-[[nodiscard]] static Mat4 Mat4From(const jmtl::Matrix4x4& _fbsMtx)
+[[nodiscard]] static Mat4 Mat4From(
+    const jmtl::Matrix4x4& _fbsMtx)
 {
-    Mat4                                 mtx  = Mat4::Identity;
-    const flatbuffers::Array<float, 16>* vals = _fbsMtx.values();
+    Mat4                         mtx   = {};
+    const fbs::Array<float, 16>* elems = _fbsMtx.values();
+
     for (int r = 0; r < 4; ++r)
     {
         for (int c = 0; c < 4; ++c)
         {
             const Int32 idx = r * 4 + c;
-            mtx.m[r][c]     = vals->Get(idx);
+            mtx.m[r][c]     = elems->Get(idx);
         }
     }
 
@@ -56,109 +66,114 @@ static Optional<ModelNode> ModelNodeFrom_Recursive(
     ModelNode node = {};
 
     // name
-    if (const flatbuffers::String* pName = _pJmtlNode->name())
     {
+        const fbs::String* pName = _pJmtlNode->name();
+        if (!pName)
+        {
+            GlobalBuffer::SetLastError("Model node is missing name field");
+            return k_nullopt;
+        }
         node.name = pName->str();
-    }
-    else
-    {
-        GlobalBuffer::SetLastError("Model node is missing name field");
-        return k_nullopt;
     }
 
     // mesh indices
-    if (const flatbuffers::Vector<Int32>* pMeshIndices = _pJmtlNode->mesh_indices())
     {
-        node.meshIndices.reserve(pMeshIndices->size());
-        for (Int32 idx: *pMeshIndices)
+        const fbs::Vector<Int32>* meshIdxes = _pJmtlNode->mesh_indices();
+        if (!meshIdxes)
         {
-            node.meshIndices.emplace_back(idx);
+            GlobalBuffer ::SetLastError("Model node is missing mesh_indices field");
+            return k_nullopt;
+        }
+
+        node.meshIdxes.reserve(meshIdxes->size());
+        for (Int32 idx: *meshIdxes)
+        {
+            node.meshIdxes.emplace_back(idx);
         }
     }
 
     // material indices
-    if (const flatbuffers::Vector<Int32>* pMaterialIndices = _pJmtlNode->material_indice())
     {
-        node.materialIndices.reserve(pMaterialIndices->size());
-        for (Int32 idx: *pMaterialIndices)
+        const fbs::Vector<Int32>* matIdxes = _pJmtlNode->material_indice();
+        if (!matIdxes)
         {
-            node.materialIndices.emplace_back(idx);
+            GlobalBuffer ::SetLastError("Model node is missing material_indice field");
+            return k_nullopt;
+        }
+
+        node.matIdxes.reserve(matIdxes->size());
+        for (Int32 idx: *matIdxes)
+        {
+            node.matIdxes.emplace_back(idx);
         }
     }
 
-    if (const jmtl::Matrix4x4* pFbsMtx = _pJmtlNode->transform())
+    // local transform
     {
+        const jmtl::Matrix4x4* pFbsMtx = _pJmtlNode->transform();
+        if (!pFbsMtx)
+        {
+            GlobalBuffer::SetLastError("Model node is missing transform field");
+            return k_nullopt;
+        }
+
         node.mtx = Mat4From(*pFbsMtx);
-    }
-    else
-    {
-        GlobalBuffer::SetLastError("Model node is missing local_transform field");
-        return k_nullopt;
     }
 
     // children
-    if (const auto* pJmtlNode = _pJmtlNode->children())
     {
-        node.children.reserve(pJmtlNode->size());
-        for (const jmtl::ModelNode* pFbsChildNode: *pJmtlNode)
+        const fbs::Vector<fbs::Offset<jmtl::ModelNode>>* pJmtlChildren = _pJmtlNode->children();
+        if (pJmtlChildren)
         {
-            // recursive
-            if (Optional<ModelNode> optNode = ModelNodeFrom_Recursive(pFbsChildNode))
+            node.children.reserve(pJmtlChildren->size());
+            for (const jmtl::ModelNode* pJmtlChildNode: *pJmtlChildren)
             {
-                node.children.emplace_back(std::move(optNode.value()));
-            }
-            else
-            {
-                return k_nullopt;
+                // recursive
+                ModelNode childNode = {};
+                if (!MoveIfHasValue(ModelNodeFrom_Recursive(pJmtlChildNode), childNode))
+                {
+                    return k_nullopt;
+                }
+
+                // add
+                node.children.emplace_back(std::move(childNode));
             }
         }
+        // else: no children, leave as empty vector
     }
-    // else: no children, leave as empty vector
 
     return node;
 }
 
-static flatbuffers::Offset<jmtl::ModelNode> JmtlModelNodeOffsetFrom_Recursive(
-    flatbuffers::FlatBufferBuilder& _builder,
-    const ModelNode&                _node)
+static fbs::Offset<jmtl::ModelNode> JmtlModelNodeOffsetFrom_Recursive(
+    fbs::FlatBufferBuilder& _builder,
+    const ModelNode&        _node)
 {
-    const auto            jmtlName          = _builder.CreateString(_node.name);
-    const auto            jmtlMeshIdxes     = _node.meshIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.meshIndices);
-    const auto            jmtlMaterialIdxes = _node.materialIndices.empty() ? 0 : _builder.CreateVector<Int32>(_node.materialIndices);
-    const jmtl::Matrix4x4 jmtlMatrix        = JmtlMatrixFrom(_node.mtx);
-
-    // children
-    std::vector<flatbuffers::Offset<jmtl::ModelNode>> children;
+    // make children offsets recursively
+    Vector<fbs::Offset<jmtl::ModelNode>> children = {};
     children.reserve(_node.children.size());
     for (const ModelNode& child: _node.children)
     {
         children.emplace_back(JmtlModelNodeOffsetFrom_Recursive(_builder, child));
     }
-    const auto jmtlChildren = children.empty() ? 0 : _builder.CreateVector(children);
 
-    return jmtl::CreateModelNode(_builder, jmtlName, &jmtlMatrix, jmtlMeshIdxes, jmtlMaterialIdxes, jmtlChildren);
+    // create node offset
+    const jmtl::Matrix4x4 jmtlMtx = JmtlMatrixFrom(_node.mtx);
+    return jmtl::CreateModelNode(
+        _builder,
+        _builder.CreateString(_node.name),
+        &jmtlMtx,
+        _builder.CreateVector<Int32>(_node.meshIdxes),
+        _builder.CreateVector<Int32>(_node.matIdxes),
+        _builder.CreateVector(children.data(), children.size()));
 }
 
 }   // namespace jam
 
-//////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 
 namespace jam
 {
-
-void Model::LoadMemory(
-    const ModelDesc& _desc,
-    const fs::path&  _virtualPath)
-{
-    JAM_FUNCTION_PROFILE();
-    CleanUp_();
-
-    m_root      = _desc.rootNode;
-    m_meshPaths = _desc.meshPaths;
-    m_matPaths  = _desc.matPaths;
-    m_path      = _virtualPath;
-    m_bValid    = true;
-}
 
 bool Model::Load(
     const fs::path& _path)
@@ -167,15 +182,15 @@ bool Model::Load(
     CleanUp_();
 
     // read
-    Optional<Vector<Byte>> optData = LoadBinaryFile(_path);
-    if (!optData)
+    Vector<Byte> data = {};
+    if (!MoveIfHasValue(LoadBinaryFile(_path), data))
     {
+        GlobalBuffer::SetLastError("Failed to load model file: {}. {}", _path.native(), GlobalBuffer::GetLastError());
         return false;
     }
 
     // verify
-    const Vector<Byte>&   data     = optData.value();
-    flatbuffers::Verifier verifier = { data.data(), data.size() };
+    fbs::Verifier verifier { data.data(), static_cast<size_t>(data.size()) };
     if (!jmtl::VerifyModelBuffer(verifier))
     {
         GlobalBuffer::SetLastError(R"(model file is corrupted or invalid: "{}")", _path.native());
@@ -190,27 +205,55 @@ bool Model::Load(
         return false;
     }
 
-    // parse mesh
-    if (const auto* pJmtlMeshPaths = pJmtlModel->mesh_paths())
+    // name
     {
-        m_meshPaths.reserve(pJmtlMeshPaths->size());
-        for (const flatbuffers::String* pStr: *pJmtlMeshPaths)
+        const fbs::String* pJmtlName = pJmtlModel->name();
+        if (!pJmtlName)
         {
-            m_meshPaths.emplace_back(pStr->c_str());
+            GlobalBuffer::SetLastError(R"(Model file is missing name: "{}")", _path.native());
+            return false;
+        }
+
+        m_name = pJmtlName->str();
+    }
+
+    // mesh
+    const fbs::Vector<fbs::Offset<fbs::String>>* pJmtlMeshPaths = pJmtlModel->mesh_paths();
+    if (pJmtlMeshPaths)
+    {
+        m_meshes.reserve(pJmtlMeshPaths->size());
+        for (const fbs::String* pStr: *pJmtlMeshPaths)
+        {
+            Ref<Mesh> pMesh = nullptr;
+            if (!MoveIfHasValue(AssetManager::LoadMesh(pStr->c_str()), pMesh))
+            {
+                GlobalBuffer::SetLastError(R"(Failed to load mesh "{}" for model file: "{}")", pStr->c_str(), _path.native());
+                return false;
+            }
+
+            m_meshes.emplace_back(pMesh);
         }
     }
 
-    // parse material
-    if (const auto* pJmtlMaterialPaths = pJmtlModel->material_paths())
+    // material
+    const fbs::Vector<fbs::Offset<fbs::String>>* pJmtlMaterialPaths = pJmtlModel->material_paths();
+    if (pJmtlMaterialPaths)
     {
-        m_matPaths.reserve(pJmtlMaterialPaths->size());
-        for (const flatbuffers::String* pStr: *pJmtlMaterialPaths)
+        m_mats.reserve(pJmtlMaterialPaths->size());
+        for (const fbs::String* pStr: *pJmtlMaterialPaths)
         {
-            m_matPaths.emplace_back(pStr->c_str());
+            Ref<Material> pMat = nullptr;
+            if (!MoveIfHasValue(AssetManager::LoadMaterial(pStr->c_str()), pMat))
+            {
+                GlobalBuffer::SetLastError(R"(Failed to load material "{}" for model file: "{}")", pStr->c_str(), _path.native());
+                return false;
+            }
+
+            m_mats.emplace_back(pMat);
         }
     }
 
-    // parse root node
+    // root node
     const jmtl::ModelNode* pJmtlNode = pJmtlModel->root_node();
     if (!pJmtlNode)
     {
@@ -218,20 +261,33 @@ bool Model::Load(
         return false;
     }
 
-    if (Optional<ModelNode> optNode = ModelNodeFrom_Recursive(pJmtlNode))
-    {
-        m_root = std::move(optNode.value());
-    }
-    else
+    // parse node tree recursively
+    if (!MoveIfHasValue(ModelNodeFrom_Recursive(pJmtlNode), m_root))
     {
         GlobalBuffer::SetLastError(R"(Failed to parse model node tree for model file: "{}")", _path.native());
         return false;
     }
 
-    // load done
-    m_path   = _path;
-    m_bValid = true;
+    // done
+    m_path            = _path;
+    m_bValid          = true;
+    m_bLoadedFromFile = true;
     return true;
+}
+
+void Model::LoadMemory(
+    const ModelNode&             _node,
+    const Vector<Ref<Mesh>>&     _meshes,
+    const Vector<Ref<Material>>& _mats)
+{
+    JAM_FUNCTION_PROFILE();
+    CleanUp_();
+
+    m_root            = _node;
+    m_meshes          = _meshes;
+    m_mats            = _mats;
+    m_bValid          = true;
+    m_bLoadedFromFile = false;
 }
 
 void Model::Unload()
@@ -239,38 +295,67 @@ void Model::Unload()
     CleanUp_();
 }
 
-bool Model::Save(const fs::path& _path) const
+bool Model::Save(
+    const fs::path&      _path,
+    const bool           _bReplaceExtension,
+    const eSaveFileFlags _flags) const
 {
     JAM_FUNCTION_PROFILE();
 
     JAM_ASSERT(IsValid(), "Model is not valid to save");
-    flatbuffers::FlatBufferBuilder builder { 1024 };
+    fbs::FlatBufferBuilder builder { 1024 };
 
-    // create node tree
-    const auto jmtlNode = JmtlModelNodeOffsetFrom_Recursive(builder, m_root);
-
-    // create mesh path strings vector
-    Vector<flatbuffers::Offset<flatbuffers::String>> meshPaths;
-    meshPaths.reserve(m_meshPaths.size());
-    for (const fs::path& path: m_meshPaths)
+    // create mesh asset pathes
+    Vector<fbs::Offset<fbs::String>> meshPathes = {};
+    meshPathes.reserve(m_meshes.size());
+    for (const Ref<Mesh>& pMesh: m_meshes)
     {
-        meshPaths.emplace_back(builder.CreateString(path.native()));
+        const fs::path& path = pMesh->GetPath();
+        meshPathes.emplace_back(builder.CreateString(path.native()));
     }
-    const auto jmtlMeshPaths = meshPaths.empty() ? 0 : builder.CreateVector(meshPaths.data(), meshPaths.size());
 
     // create material path strings vector
-    Vector<flatbuffers::Offset<flatbuffers::String>> matPaths;
-    matPaths.reserve(m_matPaths.size());
-    for (const fs::path& path: m_matPaths)
+    Vector<fbs::Offset<fbs::String>> matPathes;
+    matPathes.reserve(m_mats.size());
+    for (const Ref<Material>& pMat: m_mats)
     {
-        matPaths.emplace_back(builder.CreateString(path.native()));
+        const fs::path& path = pMat->GetPath();
+        matPathes.emplace_back(builder.CreateString(path.native()));
     }
-    const auto jmtlMatPaths = matPaths.empty() ? 0 : builder.CreateVector(matPaths.data(), matPaths.size());
 
     // create model
-    const auto jmtlModel = jmtl::CreateModel(builder, jmtlNode, jmtlMeshPaths, jmtlMatPaths);
+    const fbs::Offset<jmtl::Model> jmtlModel = jmtl::CreateModel(
+        builder,
+        builder.CreateString(m_name),
+        JmtlModelNodeOffsetFrom_Recursive(builder, m_root),
+        builder.CreateVector(meshPathes.data(), meshPathes.size()),
+        builder.CreateVector(matPathes.data(), matPathes.size()));
+
     jmtl::FinishModelBuffer(builder, jmtlModel);
-    return SaveBinaryFile(_path, { builder.GetBufferPointer(), NarrowCast<Int32>(builder.GetSize()) });
+
+    // make path
+    if (_bReplaceExtension)
+    {
+        fs::path path = _path;
+        path.replace_extension(k_jamModelExt.GetPtr());
+        return SaveBinaryFile(path, { builder.GetBufferPointer(), NarrowCast<Int32>(builder.GetSize()) }, _flags);
+    }
+
+    // io
+    return SaveBinaryFile(_path, { builder.GetBufferPointer(), NarrowCast<Int32>(builder.GetSize()) }, _flags);
+}
+
+void Model::SetName(
+    const StringView _name)
+{
+    m_name = _name.ToString();
+}
+
+void Model::SetVirtualPath(
+    const fs::path& _path)
+{
+    JAM_ASSERT(!m_bLoadedFromFile, "Cannot change path of model loaded from file");
+    m_path = _path;
 }
 
 bool Model::IsValid() const
@@ -298,28 +383,35 @@ const fs::path& Model::GetPath() const
     return m_path;
 }
 
+const StringView Model::GetName() const
+{
+    return m_name;
+}
+
 const ModelNode& Model::GetRootNode() const
 {
     return m_root;
 }
 
-const Vector<fs::path>& Model::GetMeshs() const
+const Vector<Ref<Mesh>>& Model::GetMeshs() const
 {
-    return m_meshPaths;
+    return m_meshes;
 }
 
-const Vector<fs::path>& Model::GetMaterials() const
+const Vector<Ref<Material>>& Model::GetMaterials() const
 {
-    return m_matPaths;
+    return m_mats;
 }
 
 void Model::CleanUp_()
 {
     m_path.clear();
-    m_meshPaths.clear();
-    m_matPaths.clear();
-    m_root   = {};
-    m_bValid = false;
+    m_meshes.clear();
+    m_mats.clear();
+    m_name            = {};
+    m_root            = {};
+    m_bValid          = false;
+    m_bLoadedFromFile = false;
 }
 
 }   // namespace jam

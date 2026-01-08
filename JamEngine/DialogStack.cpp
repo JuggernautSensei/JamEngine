@@ -9,31 +9,77 @@ namespace jam
 void DialogStack::Push(
     Scoped<Dialog>&& _pDialog)
 {
-    JAM_ASSERT(m_top + 1 < k_maxDialogStackSize, "DialogStack overflow.");
-    m_dialogs[++m_top] = std::move(_pDialog);
+    m_dialogs.emplace_back(std::move(_pDialog));
+}
+
+void DialogStack::ShrinkToFit_()
+{
+    const Int32 numDlgs = m_dialogs.size();
+
+    Int32 i = 0;
+    Int32 j = 0;
+    while (true)
+    {
+        // find nullptr
+        while (i < numDlgs && m_dialogs[i])
+        {
+            ++i;
+        }
+
+        // reached end
+        if (i == numDlgs)
+        {
+            break;
+        }
+
+        j = i + 1;
+
+        // find next non-nullptr
+        while (j < numDlgs && !m_dialogs[j])
+        {
+            ++j;
+        }
+
+        // reached end
+        if (j == numDlgs)
+        {
+            break;
+        }
+
+        // swap
+        JAM_ASSERT(m_dialogs[i] == nullptr, "Expected nullptr at position i");
+        JAM_ASSERT(m_dialogs[j], "Expected non-nullptr at position j");
+        std::swap(m_dialogs[i], m_dialogs[j]);
+
+        // next
+        ++i;
+    }
 }
 
 void DialogStack::Show()
 {
-    if (!IsEmpty())
+    bool bClosedAny = false;
+    for (Scoped<Dialog>& pDlg: m_dialogs)
     {
-        // render only top dialog (not overlapped)
-        Scoped<Dialog>& pDlg = m_dialogs[m_top];
-        if (pDlg->IsOpen())
+        if (pDlg)
         {
-            pDlg->Show();
-        }
-        else
-        {
-            m_dialogs[m_top].Reset();   // pop from stack
-            --m_top;
+            if (pDlg->IsOpen())
+            {
+                pDlg->Show();
+            }
+            else
+            {
+                bClosedAny = true;
+                pDlg.Reset();
+            }
         }
     }
-}
 
-bool DialogStack::IsEmpty() const
-{
-    return m_top < 0;
+    // compact closed dialogs
+    if (bClosedAny)
+    {
+        ShrinkToFit_();
+    }
 }
 
 }   // namespace jam

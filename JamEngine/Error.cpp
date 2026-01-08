@@ -3,20 +3,21 @@
 #include "Error.h"
 
 #include "Log.h"
-#include "StringUtilities.h"
 #include "Timer.h"
 #include <comdef.h>
 
+#include "Debug.h"
+#include "FileIOUtilities.h"
+#include "Magics.h"
+#include "WindowsUtilities.h"
+
 namespace jam::details
 {
-
-[[nodiscard]] static std::string FormatErrorMessage(
+[[nodiscard]] static std::string FormatErrorString(
     const std::source_location& _loc,
-    const StringView            _str)
+    const StringView            _userReport)
 {
-    const TimeStamp ts      = TimeStamp::Current();
-    std::string     strTime = std::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:03}", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
-
+    const TimeStamp ts = TimeStamp::Current();
     return std::format(
         "\n"
         "====================================\n"
@@ -30,7 +31,7 @@ namespace jam::details
         "text encoding: {}\n"
         "graphics api: {}\n"
         "engine version: {} {}\n"
-        "time: {}\n"
+        "time: {:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:03}\n"
 #ifdef JAM_DEBUG
         "debug build enabled\n"
 #endif
@@ -52,80 +53,54 @@ namespace jam::details
         JAM_GFX_API_NAME,
         JAM_ENGINE_NAME,
         JAM_VERSION_NAME,
-        strTime,
+        ts.year,
+        ts.month,
+        ts.day,
+        ts.hour,
+        ts.minute,
+        ts.second,
+        ts.millisecond,
         _loc.file_name(),
         _loc.function_name(),
         _loc.line(),
         _loc.column(),
-        _str);
+        _userReport);
 }
 
 void AssertFail(
     const std::source_location& _loc,
     const StringView            _str)
 {
-    const std::string msg = FormatErrorMessage(_loc, _str);
+    const std::string msg = FormatErrorString(_loc, _str);
     Log::Critical(msg);
     std::this_thread::sleep_for(100ms);   // wait for logging
-    OutputDebugStringA(msg.c_str());
+    PrintToDebugConsole(msg);             // print to debug console
 }
 
 void Crash(
     const std::source_location& _loc,
     const StringView            _str)
 {
-    const std::string msg = FormatErrorMessage(_loc, _str);
+    const std::string msg = FormatErrorString(_loc, _str);
     Log::Critical(msg);
-    Log::Shutdown();   // shutdown for filesink & flush
-    OutputDebugStringA(msg.c_str());
+    Log::Shutdown();            // shutdown for filesink & flush
+    PrintToDebugConsole(msg);   // print to debug console
 
     // crash dump
-    const TimeStamp ts       = TimeStamp::Current();
-    const fs::path  dir      = std::format("CrashDump\\{:04}.{:02}.{:02}", ts.year, ts.month, ts.day);
-    const fs::path  filename = std::format("{:02}h {:02}m {:02}.{:03}s.txt", ts.hour, ts.minute, ts.second, ts.millisecond);
+    const TimeStamp ts   = TimeStamp::Current();
+    const fs::path  path = std::format("{}\\{:04}.{:02}.{:02}\\{:02}h {:02}m {:02}.{:03}s.txt", k_crashDumpsDirName, ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
 
-    try
-    {
-        fs::create_directories(dir);
-        std::ofstream fs { dir / filename, std::ios::out };
-        if (fs)
-        {
-            fs << msg << "\n";
-        }
-    }
-    catch (...)
-    {
-        JAM_NOOP;   // ignore
-    }
-
-    // show message box
+    SaveTextFile(path, msg, eSaveFileFlags_CreateDirs);
     MessageBoxA(NULL, msg.c_str(), "jam engine crash", MB_OK | MB_ICONERROR);
     std::abort();
 }
 
-void CrashWithComHint(
+void CrashWithHRESULT(
     const std::source_location& _loc,
     StringView                  _func,
     HRESULT                     _hr)
 {
-    Crash(_loc, "\"{}\" failed!\nerror code: {:#X}\n{}", _func, _hr, StringFrom(_hr));
+    Crash(_loc, "\"{}\" failed!\nerror code: {:#X}\n{}", _func, _hr, CreateErrorMessageFromHRESULT(_hr));
 }
 
 }   // namespace jam::details
-
-namespace jam
-{
-
-std::string StringFrom(
-    const HRESULT _hr)
-{
-    const _com_error err(_hr);
-#ifdef JAM_TEXT_ENCODING_UNICODE
-    const WStringView wmsg = err.ErrorMessage();
-    return ToUtf8(wmsg);
-#else
-    return err.ErrorMessage();
-#endif
-}
-
-}   // namespace jam

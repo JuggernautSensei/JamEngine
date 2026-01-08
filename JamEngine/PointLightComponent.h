@@ -12,7 +12,7 @@ struct PointLightComponent :
 
     void Serialize(JsonWriter _writer, const Ref<Scene>& _pScene, Entity _owner) const;
     void Deserialize(JsonReader _reader, const Ref<Scene>& _pScene, Entity _owner);
-    void DrawEditor(Ref<Scene>& _pScene, Entity _entity);
+    void Panel_EditComponent(Ref<Scene>& _pScene, Entity _entity);
 
     Vec3  radiance     = Vec3::Zero;
     float intensity    = 1.0f;

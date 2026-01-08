@@ -24,7 +24,9 @@ ImVec2 CalcFitButtonSize(const Int32 _count, ImVec2 _region)
     }
 
     if (_count == 1)
+    {
         return _region;
+    }
 
     const float spacing = ImGui::GetStyle().ItemSpacing.x;
     const float totalW  = _region.x - spacing * static_cast<float>(_count - 1);
@@ -32,9 +34,9 @@ ImVec2 CalcFitButtonSize(const Int32 _count, ImVec2 _region)
     return ImVec2 { buttonW, _region.y };
 }
 
-void SetNextItemWidthToAvailableWidth()
+void SetNextItemAvailWidth()
 {
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 }
 
-}
+}   // namespace jam

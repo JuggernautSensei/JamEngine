@@ -7,26 +7,22 @@
 namespace jam
 {
 
-StringView GetWindowsLastErrorMessage()
+std::string CreateErrorMessageFromWin32LastError()
 {
-    const DWORD err = GetLastError();
+    const DWORD   errCode = GetLastError();
+    const HRESULT hr      = HRESULT_FROM_WIN32(errCode);
+    return CreateErrorMessageFromHRESULT(hr);
+}
 
-    LPVOID      pMsgBuf;
-    const DWORD len = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        err,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        reinterpret_cast<LPSTR>(&pMsgBuf),
-        0,
-        NULL);
-
-    if (len == 0)
+std::string CreateErrorMessageFromHRESULT(
+    const HRESULT _hr)
+{
+    if (SUCCEEDED(_hr))
     {
-        return "unknown error.";
+        return "succeeded.";
     }
 
-    return StringView { static_cast<const char*>(pMsgBuf), NarrowCast<Int32>(len) };
+    return std::system_category().message(_hr);
 }
 
 bool OpenFileExplorer(const fs::path& _path)
@@ -35,6 +31,7 @@ bool OpenFileExplorer(const fs::path& _path)
     std::wstring   wPath   = absPath.wstring();
 
     HINSTANCE result;
+
     if (fs::is_directory(absPath))
     {
         result = ShellExecute(nullptr, L"open", L"explorer.exe", wPath.c_str(), nullptr, SW_SHOW);
@@ -60,7 +57,7 @@ bool OpenFileExplorer(const fs::path& _path)
     return true;
 }
 
-bool OpenFileWithDefaultApplication(const fs::path& _path)
+bool OpenFileAsDefaultApplication(const fs::path& _path)
 {
     JAM_ASSERT(!fs::is_directory(_path), "Cannot open a directory with default application");
 
@@ -146,10 +143,10 @@ bool FileDialog::Open()
     if ((options & FOS_ALLOWMULTISELECT) != 0)
     {
         // 다중 선택 케이스
-        ComPtr<IFileOpenDialog> pOpenDlg;
+        ComPtr<IFileOpenDialog> pOpenDlg = nullptr;
         JAM_CHECK_COM(m_pfd.As(&pOpenDlg), "Failed to query IFileOpenDialog from IFileDialog");
 
-        ComPtr<IShellItemArray> items;
+        ComPtr<IShellItemArray> items = nullptr;
         JAM_CHECK_COM(pOpenDlg->GetResults(&items), "Failed to get multi-selected results");
 
         DWORD count = 0;
@@ -159,7 +156,7 @@ bool FileDialog::Open()
 
         for (DWORD i = 0; i < count; ++i)
         {
-            ComPtr<IShellItem> item;
+            ComPtr<IShellItem> item = nullptr;
             JAM_CHECK_COM(items->GetItemAt(i, &item), "Failed to get result item");
 
             PWSTR pszPath = nullptr;
@@ -174,7 +171,7 @@ bool FileDialog::Open()
     else
     {
         // 단일 선택 케이스
-        ComPtr<IShellItem> item;
+        ComPtr<IShellItem> item = nullptr;
         JAM_CHECK_COM(m_pfd->GetResult(&item), "Failed to get file dialog result");
 
         PWSTR pszPath = nullptr;
@@ -203,18 +200,15 @@ void FileDialog::SetDefaultPath(
     fs::path dir = _path.parent_path();
 
     // 폴더 ShellItem 생성
-    ComPtr<IShellItem> folderItem;
-    std::wstring       wStr = dir.wstring();
+    std::wstring wStr = dir.wstring();
 
-    JAM_CHECK_COM(
-        SHCreateItemFromParsingName(wStr.c_str(), nullptr, IID_PPV_ARGS(folderItem.ReleaseAndGetAddressOf())),
-        "Failed to create IShellItem from default path");
-
+    ComPtr<IShellItem> folderItem = nullptr;
+    JAM_CHECK_COM(SHCreateItemFromParsingName(wStr.c_str(), nullptr, IID_PPV_ARGS(folderItem.ReleaseAndGetAddressOf())), "Failed to create IShellItem from default path");
     JAM_CHECK_COM(m_pfd->SetDefaultFolder(folderItem.Get()), "Failed to set default folder");
 }
 
 void FileDialog::SetFilters(
-    const std::span<const FileDialogFilter> _filters) const
+    const Span<const FileDialogFilter> _filters) const
 {
     struct Filter
     {
@@ -242,6 +236,26 @@ void FileDialog::SetFilters(
     JAM_CHECK_COM(
         m_pfd->SetFileTypes(static_cast<UINT>(filterSpecs.size()), filterSpecs.data()),
         "Failed to set file dialog filters");
+}
+
+void FileDialog::SetDefaultFileName(
+    const StringView _fileName) const
+{
+    JAM_ASSERT(m_mode == eFileDialogMode::SaveFile, "Default file name can only be set in SaveFile mode");
+    Optional<std::wstring> optWFileName = ToUtf16(_fileName);
+    JAM_ASSERT(optWFileName, "Failed to convert default file name to UTF-16");
+    const std::wstring& wFileName = optWFileName.value();
+    JAM_CHECK_COM(m_pfd->SetFileName(wFileName.c_str()), "Failed to set default file name");
+}
+
+void FileDialog::SetDefaultExtension(
+    const StringView _ext) const
+{
+    JAM_ASSERT(m_mode == eFileDialogMode::SaveFile, "Default extension can only be set in SaveFile mode");
+    Optional<std::wstring> optWExt = ToUtf16(_ext);
+    JAM_ASSERT(optWExt, "Failed to convert default extension to UTF-16");
+    const std::wstring& wExt = optWExt.value();
+    JAM_CHECK_COM(m_pfd->SetDefaultExtension(wExt.c_str()), "Failed to set default extension");
 }
 
 const Vector<fs::path>& FileDialog::GetSelectedPaths() const

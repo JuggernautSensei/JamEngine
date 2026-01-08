@@ -17,13 +17,13 @@ SceneComponent::SceneComponent()
 }
 
 SceneComponent::SceneComponent(
-    const SceneNode& _node)
-    : node(_node)
+    SceneNode&& _node)
+    : node(std::move(_node))
 {
 }
 
 void SceneComponent::Serialize(
-    JsonWriter       _writer,
+    JsonWriter        _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -46,7 +46,7 @@ void SceneComponent::Serialize(
 }
 
 void SceneComponent::Deserialize(
-    JsonReader       _reader,
+    JsonReader        _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -60,12 +60,13 @@ void SceneComponent::Deserialize(
     }
 
     // parent
-    if (Optional<JsonReader> parentReader = _reader.EnterField("parent"))
+    JsonReader parentReader;
+    if (MoveIfHasValue(_reader.EnterField("parent"), parentReader))
     {
-        if (!parentReader->IsNull())
+        if (!parentReader.IsNull())
         {
             UID parentUid;
-            if (parentReader->Read(parentUid))
+            if (parentReader.Read(parentUid))
             {
                 if (const Entity parent = _pScene->FindEntity(parentUid))
                 {
@@ -82,9 +83,11 @@ void SceneComponent::Deserialize(
     }
 }
 
-void SceneComponent::DrawEditor(Ref<Scene>& _pScene, const Entity _entity)
+void SceneComponent::Panel_EditComponent(
+    Ref<Scene>&  _pScene,
+    const Entity _entity)
 {
-    if (BeginComponentEditTable("SceneComponent"))
+    if (BeginLabelValueTable("SceneComponent"))
     {
         // coordinate space
         enum class eCoordinate

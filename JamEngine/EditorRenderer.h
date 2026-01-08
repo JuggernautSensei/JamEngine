@@ -8,7 +8,7 @@ namespace jam
 
 struct RenderView;
 
-enum class eAxis
+enum class eAcroballAxis
 {
     X,
     Y,
@@ -61,25 +61,24 @@ private:
     // 라인 배칭
     struct LineVertex
     {
-        Vec3 position;
-        RGBA rgba;
+        Vec3 position = Vec3::Zero;
+        RGBA rgba     = RGBA::k_white;
 
-        static VertexLayout s_layout;
+        inline static VertexLayout s_vl = {};
 
         static void Init()
         {
-            VertexLayout layout;
-            layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-            layout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
-            s_layout = std::move(layout);
+            s_vl.Reset();
+            s_vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+            s_vl.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
         }
     };
 
-    static constexpr Int32 k_lineLimit                     = 512;
-    LineVertex             m_lineVertices[k_lineLimit * 2] = {};
-    UInt16                 m_lineIndices[k_lineLimit * 2]  = {};
-    Int32                  m_numLineVerts                  = 0;
-    Int32                  m_numLineIndices                = 0;
+    static constexpr Int32             k_lineLimit      = 512;
+    Array<LineVertex, k_lineLimit * 2> m_lineVertices   = {};
+    Array<UInt16, k_lineLimit * 2>     m_lineIndices    = {};
+    Int32                              m_numLineVerts   = 0;
+    Int32                              m_numLineIndices = 0;
 
     // 버퍼
     VertexBufferHandle   m_gridVbh = k_invalidHandle;
@@ -89,21 +88,21 @@ private:
     ConstantBufferHandle m_cbh     = k_invalidHandle;
 
     // 프로그램
-    ProgramHandle m_gridProgramHandle   = k_invalidHandle;
-    ProgramHandle m_lineProgramHandle   = k_invalidHandle;
-    ProgramHandle m_filledProgramHandle = k_invalidHandle;
+    ProgramHandle m_gridPh   = k_invalidHandle;
+    ProgramHandle m_linePh   = k_invalidHandle;
+    ProgramHandle m_filledPh = k_invalidHandle;
 
     // 프리미티브 메쉬
-    Mesh m_sphere;
-    Mesh m_cylinder;
-    Mesh m_cube;
+    Mesh m_sphereMesh   = {};
+    Mesh m_cylinderMesh = {};
+    Mesh m_cubeMesh     = {};
 
     // 상태
-    RenderState m_lineState;
-    RenderState m_gridState;
-    RenderState m_filledState;
+    RenderState m_lineState   = {};
+    RenderState m_gridState   = {};
+    RenderState m_filledState = {};
 
-    BlendState     m_blendState;
+    BlendState     m_blendState    = {};
     RGBA           m_currentColor  = RGBA::k_white;
     eDrawGridFlags m_drawGridFlags = eDrawGridFlags_None;
     bool           m_bBeginRender  = false;
@@ -112,6 +111,10 @@ private:
     Vec3 m_eye  = Vec3::Zero;
     Mat4 m_view = Mat4::Identity;
     Mat4 m_proj = Mat4::Identity;
+    
+    // 쉐이더 코드
+    static const char* const k_gridShaderSource;
+    static const char* const k_lineShaderSource;
 };
 
 }   // namespace jam

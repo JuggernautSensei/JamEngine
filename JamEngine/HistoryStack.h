@@ -3,99 +3,51 @@
 namespace jam
 {
 
-template<typename T, size_t N>
-class FixedHistoryStack
+template<typename T>
+class HistoryStack
 {
 public:
     void Push(const T& _item)
     {
-        const Int32 nextIdx = IndexMod_(m_curIdx + 1);
-        m_items[nextIdx]    = _item;
-        m_curIdx            = nextIdx;
-        m_endIdx            = IndexMod_(m_curIdx + 1);
-
-        if (m_endIdx == m_beginIdx)
-        {
-            m_beginIdx = IndexMod_(m_beginIdx + 1);
-        }
+        m_items.push_back(_item);
+        m_redoItems.clear();
     }
 
-    void Pop()
+    const T& Undo()
     {
-        JAM_ASSERT(!IsEmpty(), "FixedHistoryStack is empty.");
-        if (m_curIdx == m_beginIdx)
-        {
-            Clear();
-        }
-        else
-        {
-            m_curIdx = IndexMod_(m_curIdx - 1);
-            m_endIdx = IndexMod_(m_curIdx + 1);
-        }
+        JAM_ASSERT(CanUndo(), "HistoryStack::Undo() - Cannot undo.");
+        m_redoItems.push_back(m_items.back());
+        m_items.pop_back();
+        return m_redoItems.back();   // return the undone item
     }
 
-    [[nodiscard]] bool IsEmpty() const
+    const T& Redo()
     {
-        return m_beginIdx == m_endIdx || m_curIdx == -1;
-    }
-
-    [[nodiscard]] const T& GetCurrent() const
-    {
-        JAM_ASSERT(!IsEmpty(), "FixedHistoryStack is empty.");
-        return m_items[m_curIdx];
-    }
-
-    void Undo()
-    {
-        JAM_ASSERT(CanUndo(), "Cannot undo.");
-        m_curIdx = IndexMod_(m_curIdx - 1);
-    }
-
-    void Redo()
-    {
-        JAM_ASSERT(CanRedo(), "Cannot redo.");
-        m_curIdx = IndexMod_(m_curIdx + 1);
+        JAM_ASSERT(CanRedo(), "HistoryStack::Redo() - Cannot redo.");
+        m_items.push_back(m_redoItems.back());
+        m_redoItems.pop_back();
+        return m_items.back();   // return the redone item
     }
 
     bool CanUndo() const
     {
-        return m_curIdx != m_beginIdx && !IsEmpty();
+        return !m_items.empty();
     }
 
     bool CanRedo() const
     {
-        return m_curIdx != IndexMod_(m_endIdx - 1) && !IsEmpty();
+        return !m_redoItems.empty();
     }
 
     void Clear()
     {
-        m_curIdx   = -1;
-        m_beginIdx = 0;
-        m_endIdx   = 0;
-    }
-
-    [[nodiscard]] Int32 NumItems() const
-    {
-        if (m_endIdx >= m_beginIdx)
-        {
-            return m_endIdx - m_beginIdx;
-        }
-        else
-        {
-            return (N + 1 - m_beginIdx) + m_endIdx;
-        }
+        m_items.clear();
+        m_redoItems.clear();
     }
 
 private:
-    [[nodiscard]] Int32 IndexMod_(const Int32 v) const
-    {
-        return (v + (N + 1)) % (N + 1);
-    }
-
-    Array<T, N + 1> m_items    = {};
-    Int32           m_curIdx   = -1;
-    Int32           m_beginIdx = 0;
-    Int32           m_endIdx   = 0;
+    List<T> m_items;
+    List<T> m_redoItems;
 };
 
 }   // namespace jam

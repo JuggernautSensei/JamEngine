@@ -53,4 +53,47 @@ void SetBit(T& _value, R _bit, const bool _bSet) noexcept
     }
 }
 
+template<typename T, typename R>
+[[nodiscard]] bool CmpLess(const T& _a, const R& _b) noexcept
+{
+    using CommonType = std::common_type_t<T, R>;
+    return static_cast<CommonType>(_a) < static_cast<CommonType>(_b);
+}
+
+template<typename T, typename R>
+[[nodiscard]] bool CmpGreater(const T& _a, const R& _b) noexcept
+{
+    using CommonType = std::common_type_t<T, R>;
+    return static_cast<CommonType>(_a) > static_cast<CommonType>(_b);
+}
+
+template<typename T, typename R>
+[[nodiscard]] bool CmpLessEqual(const T& _a, const R& _b) noexcept
+{
+    using CommonType = std::common_type_t<T, R>;
+    return static_cast<CommonType>(_a) <= static_cast<CommonType>(_b);
+}
+
+template<typename T, typename R>
+[[nodiscard]] bool CmpGreaterEqual(const T& _a, const R& _b) noexcept
+{
+    using CommonType = std::common_type_t<T, R>;
+    return static_cast<CommonType>(_a) >= static_cast<CommonType>(_b);
+}
+
+template<typename T, typename R>
+[[nodiscard]] bool CmpEqual(const T& _a, const R& _b) noexcept
+{
+    using CommonType = std::common_type_t<T, R>;
+    return static_cast<CommonType>(_a) == static_cast<CommonType>(_b);
+}
+
+template<typename T, typename R>
+[[nodiscard]] bool CmpNotEqual(const T& _a, const R& _b) noexcept
+{
+    using CommonType = std::common_type_t<T, R>;
+    return static_cast<CommonType>(_a) != static_cast<CommonType>(_b);
+}
+
+
 }   // namespace jam

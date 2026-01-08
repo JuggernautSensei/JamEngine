@@ -6,7 +6,6 @@
 
 #include <d3dcompiler.h>
 
-#include "Graphics.h"
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace jam
@@ -65,11 +64,11 @@ StringView ShaderCompiler::ShaderModelNameFrom_(
 }
 
 bool ShaderCompiler::CompileHLSLFile(
-    const fs::path&                    _path,
-    const eShader                      _stage,
-    const StringView                   _entryPoint,
-    const std::span<const ShaderMacro> _macrosOrEmpty,
-    const eShaderCompileFlags          _flags)
+    const fs::path&               _path,
+    const eShader                 _stage,
+    const StringView              _entryPoint,
+    const Span<const ShaderMacro> _macrosOrEmpty,
+    const eShaderCompileFlags     _flags) const
 {
     JAM_ASSERT(!_path.empty(), "File path must not be empty.");
     JAM_ASSERT(!_entryPoint.IsEmpty(), "Entry point must not be empty.");
@@ -81,9 +80,10 @@ bool ShaderCompiler::CompileHLSLFile(
         pMacros = reinterpret_cast<const D3D_SHADER_MACRO*>(_macrosOrEmpty.data());
     }
 
-    ComPtr<ID3DBlob>   pBlob, pErrorBlob;
-    const std::wstring path = _path.wstring();
-    const HRESULT      hr   = D3DCompileFromFile(
+    ComPtr<ID3DBlob>   pBlob      = nullptr;
+    ComPtr<ID3DBlob>   pErrorBlob = nullptr;
+    const std::wstring path       = _path.wstring();
+    const HRESULT      hr         = D3DCompileFromFile(
         path.c_str(),
         pMacros,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
@@ -104,21 +104,20 @@ bool ShaderCompiler::CompileHLSLFile(
         }
         else
         {
-            GlobalBuffer::SetLastError("shader compilation failed: {}", StringFrom(hr));
+            GlobalBuffer::SetLastError("shader compilation failed: {}", CreateErrorMessageFromHRESULT(hr));
             return false;
         }
     }
 
-    m_sh = Graphics::CreateShader({ pBlob->GetBufferPointer(), NarrowCast<Int32>(pBlob->GetBufferSize()) });
     return true;
 }
 
 bool ShaderCompiler::CompileHLSLSource(
-    const StringView                   _source,
-    const eShader                      _stage,
-    const StringView                   _entryPoint,
-    const std::span<const ShaderMacro> _macrosOrEmpty,
-    const eShaderCompileFlags          _flags)
+    const StringView              _source,
+    const eShader                 _stage,
+    const StringView              _entryPoint,
+    const Span<const ShaderMacro> _macrosOrEmpty,
+    const eShaderCompileFlags     _flags) const
 {
     JAM_ASSERT(!_source.IsEmpty(), "File path must not be empty.");
     JAM_ASSERT(!_entryPoint.IsEmpty(), "Entry point must not be empty.");
@@ -130,8 +129,9 @@ bool ShaderCompiler::CompileHLSLSource(
         pMacros = reinterpret_cast<const D3D_SHADER_MACRO*>(_macrosOrEmpty.data());
     }
 
-    ComPtr<ID3DBlob> pBlob, pErrorBlob;
-    const HRESULT    hr = D3DCompile(
+    ComPtr<ID3DBlob> pBlob      = nullptr;
+    ComPtr<ID3DBlob> pErrorBlob = nullptr;
+    const HRESULT    hr         = D3DCompile(
         _source.GetPtr(),
         _source.GetLength(),
         nullptr,
@@ -153,39 +153,39 @@ bool ShaderCompiler::CompileHLSLSource(
         }
         else
         {
-            GlobalBuffer::SetLastError("shader compilation failed: {}", StringFrom(hr));
+            GlobalBuffer::SetLastError("shader compilation failed: {}", CreateErrorMessageFromHRESULT(hr));
             return false;
         }
     }
 
-    m_sh = Graphics::CreateShader({ pBlob->GetBufferPointer(), NarrowCast<Int32>(pBlob->GetBufferSize()) });
     return true;
 }
 
 bool ShaderCompiler::LoadCSOFile(
     const fs::path& _path)
 {
-    if (const Optional<Vector<Byte>> optData = LoadBinaryFile(_path))
-    {
-        return LoadCSOMemory(optData.value());
-    }
-    else
+    Vector<Byte> data = {};
+    if (!MoveIfHasValue(LoadBinaryFile(_path), data))
     {
         return false;
     }
+
+    return LoadCSOMemory(data);
 }
 
 bool ShaderCompiler::LoadCSOMemory(
     const CMemView _bytecode)
 {
-    m_sh = Graphics::CreateShader(_bytecode);
+    JAM_ASSERT(!_bytecode.IsEmpty(), "Bytecode must not be empty.");
+    const HRESULT hr = D3DCreateBlob(_bytecode.GetByteWidth(), m_pBytecode.ReleaseAndGetAddressOf());
+    JAM_ASSERT(SUCCEEDED(hr) && m_pBytecode, "Failed to create D3D blob for bytecode.");
     return true;
 }
 
-ShaderHandle ShaderCompiler::GetShader() const
+CMemView ShaderCompiler::GetBytecode() const
 {
-    JAM_ASSERT(JAM_IS_VALID_HANDLE(m_sh), "Shader is not compiled or loaded.");
-    return m_sh;
+    JAM_ASSERT(m_pBytecode, "Shader bytecode is not loaded.");
+    return { m_pBytecode->GetBufferPointer(), static_cast<Int32>(m_pBytecode->GetBufferSize()) };
 }
 
 }   // namespace jam

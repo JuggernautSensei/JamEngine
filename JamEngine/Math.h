@@ -913,17 +913,17 @@ struct SinCos
 
 [[nodiscard]] constexpr bool IsZeroApprox(const Vec2 vec)
 {
-    return IsZeroApprox(LengthSq(vec));
+    return IsZeroApprox(vec.x) && IsZeroApprox(vec.y);
 }
 
 [[nodiscard]] constexpr bool IsZeroApprox(const Vec3 vec)
 {
-    return IsZeroApprox(LengthSq(vec));
+    return IsZeroApprox(vec.x) && IsZeroApprox(vec.y) && IsZeroApprox(vec.z);
 }
 
 [[nodiscard]] constexpr bool IsZeroApprox(const Vec4 vec)
 {
-    return IsZeroApprox(LengthSq(vec));
+    return IsZeroApprox(vec.x) && IsZeroApprox(vec.y) && IsZeroApprox(vec.z) && IsZeroApprox(vec.w);
 }
 
 [[nodiscard]] constexpr Vec2 Abs(const Vec2& vec)
@@ -958,7 +958,10 @@ namespace details
 }   // namespace details
 
 template<typename T>
-[[nodiscard]] T MakeRandom(T _min, T _max, const UInt32 _seed = std::mt19937::default_seed)
+[[nodiscard]] T MakeRandom(
+    const T      _min  = std::numeric_limits<T>::lowest(),
+    const T      _max  = std::numeric_limits<T>::max(),
+    const UInt32 _seed = std::mt19937::default_seed)
 {
     if (_seed != details::g_randomSeed)
     {

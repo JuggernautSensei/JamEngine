@@ -1,13 +1,17 @@
 #pragma once
 
 #include "EditorWidgets.h"
-#include "Graphics.h"
 #include "HistoryStack.h"
 
 #include <efsw/efsw.hpp>
 
+#include "JsonReader.h"
+#include "JsonWriter.h"
+#include "ThumbnailCache.h"
+
 namespace jam
 {
+enum class ePrimitiveCreationType;
 
 class FileDeletedEvent;
 class FileRenamedEvent;
@@ -17,36 +21,7 @@ class Event;
 
 class Editor_FileBrowser
 {
-    class Thumbnail : public RefCounted
-    {
-    public:
-        Thumbnail();
-        ~Thumbnail() override;
-
-        Thumbnail(const Thumbnail&)            = delete;
-        Thumbnail& operator=(const Thumbnail&) = delete;
-
-        Thumbnail(Thumbnail&& other) noexcept;
-        Thumbnail& operator=(Thumbnail&& other) noexcept;
-
-        bool Load(const fs::path& _path);
-        void LoadDummy();
-
-        [[nodiscard]] bool            IsDummy() const;
-        [[nodiscard]] ImTextureRef    GetImTexturRef() const;
-        [[nodiscard]] Vec2i           GetResolution() const;
-        [[nodiscard]] const fs::path& GetPath() const;
-
-    private:
-        void CleanUp_();
-
-        fs::path      m_path   = {};
-        Vec2i         m_res    = {};
-        TextureHandle m_handle = k_invalidHandle;
-
-        constexpr static SIZE k_thumbnailSize = { 128, 128 };
-    };
-
+    // only file directory structure
     struct DirNode
     {
         std::string     name       = {};
@@ -55,35 +30,13 @@ class Editor_FileBrowser
         bool            bIsFocused = false;
     };
 
+    // all file entry (regular + directory)
     struct FileEntry
     {
-        std::string    name;
-        fs::path       path;
-        bool           bIsDir     = false;
-        Ref<Thumbnail> pThumbnail = nullptr;
-    };
-
-    class ThumbnailCache
-    {
-        struct Item
-        {
-            Int32  bufferIdx;
-            UInt64 timePoint;
-        };
-
-    public:
-        void                         Init();
-        [[nodiscard]] Ref<Thumbnail> LoadThumbnail(const fs::path& _path);
-
-    private:
-        void                           CollectThumbnailsInDirectory_(const fs::path& _dirPath);
-        [[nodiscard]] Optional<UInt64> GetLastModifiedTime_(const fs::path& _path) const;
-
-        Ref<Thumbnail>          m_pDummyThumbnail = nullptr;
-        HashMap<fs::path, Item> m_pathToItem      = {};
-        Vector<Ref<Thumbnail>>  m_thumbnails      = {};
-        Int32                   m_end             = 0;
-        Int32                   m_cap             = 0;
+        std::string       filename   = {};
+        fs::path          path       = {};
+        bool              bIsDir     = false;
+        Ref<ImageTexture> pThumbnail = nullptr;
     };
 
 public:
@@ -92,39 +45,36 @@ public:
     void OnEvent(Event& _event);
     void OnImGuiRender(bool& _pOpen);
 
-    [[nodiscard]] Json OnSerialize() const;
-    void               OnDeserialize(const Json& _json);
+    void Serialize(JsonWriter _writer);
+    void Deserialize(JsonReader _reader);
 
 private:
     // widgets
     void Widget_FileEntry_(const FileEntry& _entry, ImVec2 _size);
-    void Widget_DirNode_Recursive_(const DirNode& _node);
     void Widget_UndoButton_();
     void Widget_RedoButton_();
     void Widget_BackButton_();
+    void Widget_FileEntries();
+    void Widget_DirTree_();
+    void Widget_DirNode_Recursive_(const DirNode& _node);
 
     // popup
-    void DrawFileEntriesChildPopup_();
-    void DrawCreatePopup_() const;
-    void DrawImportPopup_() const;
-    void DrawImportFromFileEntryPopup_(const fs::path& _path) const;
+    void Menu_FileEntriesPanel();
+    void Menu_CreateFileEntry() const;
+    void Menu_ImportAsset(const fs::path& _path) const;
 
     // file entries
-    void DrawFileEntries_();
-    void BuildFileEntries_();
+    void GatherFileEntries_();
 
     // directory tree
     void                  BuildDirTree_();
     [[nodiscard]] DirNode BuildDirNode_Recursive_(const fs::path& _path);
-    void                  UpdateDirTree_();
-    void                  UpdateDirNode_Recursive_(DirNode& _node);
+    void                  MarkFocuedDirNode_();
+    bool                  MarkFocusedDirNode_Recursive_(DirNode& _node);
 
     // navigation
-    void SetFocusDir_(const fs::path& _dir, bool _bPushHistory = true);
+    void SetFocusDir_(const fs::path& _dir, bool _bPushHistroyStack = true);
     void GoToParentDir_();
-
-    // drag and drop
-    void OnDragDropTargetBackButton_() const;
 
     // event handlers
     void OnFileAddEvent_(const FileAddedEvent& _event);
@@ -133,9 +83,12 @@ private:
     void OnFileRenamedEvent_(const FileRenamedEvent& _event);
 
     // file operations
-    void RenameFile_(const fs::path& _src, const fs::path& _dst) const;
+    void MoveFile_(const fs::path& _path, const fs::path& _newDir) const;
     void DeleteFile_(const fs::path& _path) const;
-    void CreateNewFolder_(const fs::path& _parentDir) const;
+    void CreateFolder_(const fs::path& _parentDir) const;
+
+    // dialog 
+    void OnClickRemoveNotEmptyDirectoryYesButton_(const fs::path& _dir) const;
 
     // file explorer operations
     void OpenFileAsDefaultApplication_(const fs::path& _path) const;
@@ -147,21 +100,25 @@ private:
     efsw::WatchID                   m_watchID            = 0;
 
     // navigation state
-    fs::path               m_focusDir          = {};
+    fs::path               m_focusedDir          = {};
     bool                   m_bIsRootDirFocused = false;
     HistoryStack<fs::path> m_historyStack      = {};
 
     // directory tree
     DirNode m_rootDirNode = {};
 
+    // misc
+    ThumbnailCache m_thumbnailCache = {};
+
     // file entries
     Vector<FileEntry> m_fileEntries;
     ImGuiTextFilter   m_fileEntryFilter;
-    ThumbnailCache    m_thumbnailCache;
+    float             m_fileEntryGatheringCounterSec  = 0.f;
+    constexpr float   k_fileEntryGatheringDebounceSec = 0.5f;
 
     // update flags
-    bool m_bNeedUpdateDirTree     = true;
-    bool m_bNeedUpdateFileEntries = true;
+    bool m_bNeedBuildDirTree      = true;
+    bool m_bNeedGatherFileEntries = true;
 
     float                  m_zoom        = 1.f;
     constexpr static float k_minZoomPerc = 50.f;

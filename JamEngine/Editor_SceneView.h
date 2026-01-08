@@ -4,6 +4,8 @@
 #include "EditorWidgets.h"
 #include "Event.h"
 #include "GraphicsBase.h"
+#include "JsonWriter.h"
+#include "JsonReader.h"
 #include "Transform.h"
 
 namespace jam
@@ -44,13 +46,13 @@ public:
     void OnImGuiRender(bool& _bShow);
     void OnEvent(Event& _event);
 
-    [[nodiscard]] Json OnSerialize();
-    void               OnDeserialize(const Json& _json);
+    void Serialize(JsonWriter _writer) const;
+    void Deserialize(JsonReader _reader);
 
 private:
     // draws
-    void DrawFocusEntityGizmo_() const;
-    void DrawOptionPopup_();
+    void DrawGizmo_() const;
+    void Menu_Options();
 
     // update
     void OnUpdateEdit_(float _deltaSec);
@@ -69,36 +71,33 @@ private:
     void OnKeyUpEvent_(KeyUpEvent& _event) const;
     void OnMouseWheelEvent_(MouseWheelEvent& _event) const;
 
-    void OnClickRunButton_();
-    void OnClickEditButton_();
-
     // widget
-    bool Widget_GizmoButton(eGizmoOp _op, ImTextureRef _tex);
+    bool Widget_GizmoButton(eGizmoOp _op, const Ref<ImageTexture>& _pTex);
     bool Widget_GizmoOrientButton(eGizmoOrient _orient);
     void Widget_GizmoSnapButton();
     void Widget_CameraAcroball_();
     bool Widget_RunButton_() const;
-    bool Widget_EditButton_() const;
-    void Widget_EditorModeButton();
+    bool Widget_StopButton_() const;
+    void Widget_EditorModeSwitchButton();
 
     // view
     FrameBufferHandle m_fbh        = k_invalidHandle;
     TextureHandle     m_renderTexh = k_invalidHandle;
 
-    FrameBufferHandle m_fbhWithSceneDepth = k_invalidHandle;
-    TextureHandle     m_sceneDepthTexh    = k_invalidHandle;
+    FrameBufferHandle m_fbhWithDepth   = k_invalidHandle;
+    TextureHandle     m_sceneDepthTexh = k_invalidHandle;
 
     // resize
-    Int32 m_width        = 0;
-    Int32 m_height       = 0;
-    Int32 m_resizeWidth  = 0;
-    Int32 m_resizeHeight = 0;
-    bool  m_bNeedResize  = false;
+    Int32 m_width            = 0;
+    Int32 m_height           = 0;
+    Int32 m_resizeWidth      = 0;
+    Int32 m_resizeHeight     = 0;
+    bool  m_bResizeRequested = false;
 
     // play <-> edit 상태 복구용
-    bool m_bNeedRecover    = false;
-    Json m_backupSceneJson = {};
-    UID  m_backupEntityUID = {};
+    bool m_bRecoverRequested      = false;
+    Json m_backupSceneJson        = {};
+    UID  m_focusedEntityBackupUid = {};
 
     // camera
     Camera    m_camera                 = {};
@@ -107,11 +106,10 @@ private:
     float     m_yawRad                 = 0.f;
     float     m_cameraMoveSpeed        = 5.f;
     float     m_cameraRotSpeed         = 1.2f;
-    Int32     m_moveStartMouseX        = 0;
-    Int32     m_moveStartMouseY        = 0;
-    bool      m_bMouseCaptured         = false;
     bool      m_bShowCameraTranslation = true;
     bool      m_bShowCameraForward     = true;
+
+    InfiniteDragHelper m_dragHelper = {};
 
     // edit camera overlay window
     ImVec2 m_sceneViewLeftTop = ImVec2 { 0.f, 0.f };
@@ -132,31 +130,29 @@ private:
     bool           m_bShowAxis = true;
 
     // icons
-    ImageTexture m_cursorIcon   = {};
-    ImageTexture m_editIcon     = {};
-    ImageTexture m_menuIcon     = {};
-    ImageTexture m_playIcon     = {};
-    ImageTexture m_rotateIcon   = {};
-    ImageTexture m_scaleIcon    = {};
-    ImageTexture m_tranlateIcon = {};
+    Ref<ImageTexture> m_cursorIcon     = {};
+    Ref<ImageTexture> m_stopIcon       = {};
+    Ref<ImageTexture> m_optionsIcon       = {};
+    Ref<ImageTexture> m_playIcon       = {};
+    Ref<ImageTexture> m_rotatationIcon = {};
+    Ref<ImageTexture> m_scaleIcon      = {};
+    Ref<ImageTexture> m_tranlationIcon = {};
 
     static constexpr Vec3   k_translateSnap    = Vec3 { 0.5f };
     static constexpr Vec3   k_rotateSnapDeg    = Vec3 { 15.f };
     static constexpr Vec3   k_scaleSnap        = Vec3 { 0.5f };
-    static constexpr ImVec2 k_editModeBtnSize  = ImVec2 { 100.f, 0.f };
+    static constexpr ImVec2 k_modeBtnSize      = ImVec2 { 100.f, 0.f };
     static constexpr RGBA   k_boundingBoxCol   = RGBA { 0xFF9D23FF };
     static constexpr float  k_dragSensitivity  = 0.001f;
     static constexpr float  k_wheelSensitivity = 0.05f;
 
     static constexpr float k_cameraMoveDecelerationFactor = 0.5f;
     static constexpr float k_cameraMoveSpeedAdjustFactor  = 5.f;
-    static constexpr float k_cameraMoveSpeedMax           = 100.f;
     static constexpr float k_cameraMoveSpeedMin           = 0.1f;
-    static constexpr float k_cameraRotSpeedMax            = 10.f;
     static constexpr float k_cameraRotSpeedMin            = 0.01f;
 
     static constexpr float    k_acroballLength = 120.f;
-    static constexpr ImGuiCol k_acroballBgCol    = IM_COL32(0, 0, 0, 120);
+    static constexpr ImGuiCol k_acroballBgCol  = IM_COL32(0, 0, 0, 120);
 };
 
 }   // namespace jam

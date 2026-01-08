@@ -52,14 +52,14 @@ void Camera::SetNearZ(
     const float _nearZ)
 {
     m_nearZ = _nearZ;
-    m_nearZ = Clamp(m_nearZ, k_minZ, m_farZ - k_epsilonZ);
+    m_nearZ = Clamp(m_nearZ, k_minZ, m_farZ - 0.001f);
 }
 
 void Camera::SetFarZ(
     const float _farZ)
 {
     m_farZ = _farZ;
-    m_farZ = Clamp(m_farZ, m_nearZ + k_epsilonZ, k_maxZ);
+    m_farZ = Clamp(m_farZ, m_nearZ + 0.001f, k_maxZ);
 }
 
 void Camera::SetFovYRad(

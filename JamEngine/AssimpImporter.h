@@ -1,7 +1,11 @@
 #pragma once
 
+#include <assimp/mesh.h>
+#include <assimp/texture.h>
+
 #include "ImageBase.h"
 #include "Material.h"
+#include "Model.h"
 
 struct aiMaterial;
 struct aiScene;
@@ -9,12 +13,16 @@ struct aiScene;
 namespace jam
 {
 
+struct ModelNode;
+class Mesh;
+class Material;
+class Model;
+class ImageTexture;
+
 constexpr Int32 k_invalidImportedIdx = -1;
 
 struct ImportedMesh
 {
-    // bone weight, bone index 추후 구현 예정
-
     std::string name = {};
 
     Vector<Vec3>           positions  = {};
@@ -27,57 +35,51 @@ struct ImportedMesh
     bool                   bUseU32    = false;
 };
 
+struct ImportedMaterialTextures
+{
+    void Set(const eMaterialTextureType _type, const Int32 _idx)
+    {
+        mapIdxes[IntFrom(_type)] = _idx;
+    }
+
+    Int32 Get(const eMaterialTextureType _type) const
+    {
+        return mapIdxes[IntFrom(_type)];
+    }
+
+    Array<Int32, NumEnums<eMaterialTextureType>()> mapIdxes = {};
+};
+
 struct ImportedMaterial
 {
     std::string name = {};
 
-    Vec3  ambientColor  = Vec3::One;
-    Vec3  diffuseColor  = Vec3::One;
-    Vec3  specularColor = Vec3::One;
-    float shininess     = 0.f;
-
-    Vec3  albedoColor  = Vec3::One;
-    float roughness    = 1.f;
-    float metallic     = 1.f;
-    bool  bDoubleSided = false;
-
-    Vec3  emissiveColor     = Vec3::Zero;
-    float emissiveIntensity = 1.f;
-
-    eTextureChannel metallicTexChannel  = eTextureChannel::Red;
-    eTextureChannel roughnessTexChannel = eTextureChannel::Red;
-
-    // texture index of m_textures array
-    Int32 albedoTexIdx             = k_invalidImportedIdx;
-    Int32 normalTexIdx             = k_invalidImportedIdx;
-    Int32 metallicTexIdx           = k_invalidImportedIdx;
-    Int32 roughnessTexIdx          = k_invalidImportedIdx;
-    Int32 aoTexIdx                 = k_invalidImportedIdx;
-    Int32 emissiveTexIdx           = k_invalidImportedIdx;
-    Int32 lightTexIdx              = k_invalidImportedIdx;
-    Int32 vertexDisplacementTexIdx = k_invalidImportedIdx;
+    MaterialParams           params   = {};
+    MaterialTextureSettings  settings = {};
+    ImportedMaterialTextures textures = {};
 };
 
 struct ImportedTexture
 {
-    // only embedded texture is supported
     CMemView     pixels        = {};
     Int32        width         = 0;
     Int32        height        = 0;
     eImageFormat format        = {};
     bool         bIsCompressed = false;
-    bool         bTombstone    = false;   // for import failed
+    bool         bPlaceholder  = false;   // for import failed
 };
 
-struct ImportedModelNode
+struct AssimpImportOptions
 {
-    std::string   name          = {};
-    Mat4          mtx           = Mat4::Identity;
-    Vector<Int32> meshIdxes     = {};
-    Vector<Int32> materialIdxes = {};
-
-    Vector<ImportedModelNode> children = {};
+    bool bGenerateNormals          = false;
+    bool bDropExistingNormals      = false;
+    bool bGenerateTangentFrame     = false;
+    bool bDropExistingTangentFrame = false;
+    bool bLimitBondWeights         = false;
+    bool bLoadStaticMesh           = false;
 };
+
+using ImportedModelNode = ModelNode;   // 동일한 구조이므로 별도 정의 없이 재사용
 
 class AssimpImporter
 {
@@ -88,30 +90,32 @@ public:
     void GenerateNormals(bool _bDropExistNormals);
     void LimitBoneWeight();
     void LoadOptimizationForStaticMesh();
+    void SetOptions(const AssimpImportOptions& _options);
 
     [[nodiscard]] const ImportedModelNode&        GetRootNode() const;
     [[nodiscard]] const Vector<ImportedMesh>&     GetMeshes() const;
     [[nodiscard]] const Vector<ImportedMaterial>& GetMaterials() const;
     [[nodiscard]] const Vector<ImportedTexture>&  GetTextures() const;
 
+    [[nodiscard]] Ref<Model> CreateModel(const VertexLayout& _vl) const;
+
 private:
     void CleanUp_();
 
-    [[nodiscard]] Vector<ImportedMesh>     ImportMeshesFrom_(const aiScene* _pScene) const;
-    [[nodiscard]] Vector<ImportedTexture>  ImportTexturesFrom_(const aiScene* _pScene) const;
-    [[nodiscard]] Vector<ImportedMaterial> ImportMaterialsFrom_(const aiScene* _pScene) const;
+    [[nodiscard]] Vector<Ref<Mesh>>         CreateMeshes_(const VertexLayout& _vl) const;
+    [[nodiscard]] Vector<Ref<ImageTexture>> CreateTextures_() const;
+    [[nodiscard]] Vector<Ref<Material>>     CreateMaterials_(const Vector<Ref<ImageTexture>>& _textures) const;
+
+    [[nodiscard]] Vector<ImportedMesh>     CreateImportedMeshes_(aiMesh** _ppMesh, Int32 _numMeshes) const;
+    [[nodiscard]] Vector<ImportedTexture>  CreateImportedTextures_(aiTexture** _pTexture, Int32 _numTextures) const;
+    [[nodiscard]] Vector<ImportedMaterial> CreateImportedMaterials_(aiMaterial** _pMats, Int32 _numMats) const;
 
     ImportedModelNode        m_rootNode  = {};
     Vector<ImportedMesh>     m_meshes    = {};
     Vector<ImportedMaterial> m_materials = {};
     Vector<ImportedTexture>  m_textures  = {};
 
-    bool m_bGenerateTangentFrame     = false;
-    bool m_bDropExistingTangentFrame = false;
-    bool m_bGenerateNormals          = false;
-    bool m_bDropExistingNormals      = false;
-    bool m_bLimitBondWeights         = false;
-    bool m_bLoadStaticMesh           = false;
+    AssimpImportOptions m_options = {};
 };
 
 }   // namespace jam

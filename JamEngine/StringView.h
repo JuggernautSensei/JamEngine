@@ -12,7 +12,7 @@ class BasicStringView
 {
 public:
     static_assert(std::is_same_v<T, char> || std::is_same_v<T, wchar_t>);
-    using CharTrait  = std::char_traits<T>;
+    using CharTraits = std::char_traits<T>;
     using StringType = std::basic_string<T>;
 
     constexpr BasicStringView()
@@ -35,7 +35,7 @@ public:
         {
             if (_len < 0)
             {
-                m_len = NarrowCast<Int32>(std::char_traits<T>::length(m_str));
+                m_len = NarrowCast<Int32>(CharTraits::length(m_str));
             }
             else
             {
@@ -90,30 +90,29 @@ public:
         return m_len == 0;
     }
 
-    [[nodiscard]] Optional<Int32> FindFirstOf(const T _ch) const
+    [[nodiscard]] constexpr Optional<Int32> FindFirstOf(const T _ch) const
     {
         if (m_str == nullptr)
         {
             return k_nullopt;
         }
 
-        const T* c = CharTrait::find(m_str, m_len, _ch);
-        if (c)
+        const T* found = CharTraits::find(m_str, m_len, _ch);
+        if (found != nullptr)
         {
-            return (c - m_str) / sizeof(CharTrait::char_type);
+            return NarrowCast<Int32>(found - m_str);
         }
-        else
-        {
-            return k_nullopt;
-        }
+
+        return k_nullopt;
     }
 
-    [[nodiscard]] Optional<Int32> FindLastOf(const T _ch) const
+    [[nodiscard]] constexpr Optional<Int32> FindLastOf(const T _ch) const
     {
         if (m_str == nullptr)
         {
             return k_nullopt;
         }
+
         for (Int32 i = m_len - 1; i >= 0; --i)
         {
             if (m_str[i] == _ch)
@@ -121,7 +120,23 @@ public:
                 return i;
             }
         }
+
         return k_nullopt;
+    }
+
+    [[nodiscard]] constexpr bool StartWith(const BasicStringView _sv) const
+    {
+        if (_sv.m_len > m_len)
+        {
+            return false;
+        }
+
+        if (m_str == nullptr || _sv.m_str == nullptr)
+        {
+            return false;
+        }
+
+        return CharTraits::compare(m_str, _sv.m_str, _sv.m_len) == 0;
     }
 
     [[nodiscard]] constexpr const T* begin() const

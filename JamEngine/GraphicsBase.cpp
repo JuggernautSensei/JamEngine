@@ -120,18 +120,25 @@ Int32 ByteFrom(const eTextureFormat _format)
             return 8;
 
         default:
-            JAM_ASSERT(0, "Unknown format: {}", StringFrom(_format));
+            JAM_ASSERT(0, "Unknown format");
             return 0;
     }
 }
 
-Int32 CalcNumMips(const Int32 _width, const Int32 _height, const Int32 _depth)
+Int32 CalcNumMips(
+    const Int32 _width,
+    const Int32 _height,
+    const Int32 _depth)
 {
     JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "텍스처 크기는 0보다 커야합니다.");
     return 1 + Log2(Max(_width, _height, _depth));
 }
 
-TextureResolution CalcTextureResolution(const Int32 _width, const Int32 _height, const Int32 _depth, const Int32 _mipIndex)
+TextureResolution CalcTextureResolution(
+    const Int32 _width,
+    const Int32 _height,
+    const Int32 _depth,
+    const Int32 _mipIndex)
 {
     JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "texture width, height, depth must be greater than 0");
     JAM_ASSERT(_mipIndex >= 0, "mip index must be non-negative");
@@ -142,68 +149,12 @@ TextureResolution CalcTextureResolution(const Int32 _width, const Int32 _height,
     return { mipWidth, mipHeight, mipDepth };
 }
 
-Int32 CalcTextureIndex(const Int32 _mipIndex, const Int32 _arrayIndex, const Int32 _numMips)
+Int32 CalcTextureIndex(
+    const Int32 _mipIndex,
+    const Int32 _arrayIndex,
+    const Int32 _numMips)
 {
     return _mipIndex + _arrayIndex * _numMips;
-}
-
-UInt32 IndexFrom(
-    const CMemView _idxData,
-    const Int32    _idx,
-    const bool     _bUseU32)
-{
-    if (_bUseU32)
-    {
-        const UInt32* pIdxData = reinterpret_cast<const UInt32*>(_idxData.GetPtr());
-        return pIdxData[_idx];
-    }
-    else
-    {
-        const UInt16* pIdxData = reinterpret_cast<const UInt16*>(_idxData.GetPtr());
-        return static_cast<UInt32>(pIdxData[_idx]);
-    }
-}
-
-void StoreIndex(
-    MemView      _dstIdxData,
-    const Int32  _idx,
-    const bool   _bUseU32,
-    const UInt32 _value)
-{
-    if (_bUseU32)
-    {
-        UInt32* pIdxData = reinterpret_cast<UInt32*>(_dstIdxData.GetPtr());
-        pIdxData[_idx]   = _value;
-    }
-    else
-    {
-        UInt16* pIdxData = reinterpret_cast<UInt16*>(_dstIdxData.GetPtr());
-        pIdxData[_idx]   = NarrowCast<UInt16>(_value);
-    }
-}
-
-Int32 CalcNumIndices(
-    const CMemView _idxData,
-    const bool     _bUseU32)
-{
-    const Int32 stride = _bUseU32 ? sizeof(UInt32) : sizeof(UInt16);
-    return _idxData.GetByteWidth() / stride;
-}
-
-Int32 CalcIndicesByteWidth(
-    const Int32 _numIndices,
-    const bool  _bUseU32)
-{
-    const Int32 stride = _bUseU32 ? sizeof(UInt32) : sizeof(UInt16);
-    return _numIndices * stride;
-}
-
-Int32 CalcNumVertices(
-    const CMemView      _vertData,
-    const VertexLayout& _vl)
-{
-    const Int32 stride = _vl.GetStride();
-    return _vertData.GetByteWidth() / stride;
 }
 
 }   // namespace jam

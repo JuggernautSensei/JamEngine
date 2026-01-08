@@ -22,7 +22,7 @@ struct CB_EDITOR_RENDERER
 ///      GRID SHADER          ///
 //////////////////////////////////
 
-constexpr const char* k_editorRendererGridShaderSource = R"(
+const char* const EditorRenderer::k_gridShaderSource = R"(
 static const float4 k_axisXCol = float4(253 / 255.f, 54 / 255.f, 83 / 255.f, 1.f);
 static const float4 k_axisZCol = float4(48 / 255.f, 128 / 255.f, 219 / 255.f, 1.f);
 static const float4 k_minorGridCol = float4(140.f / 255.f, 140.f / 255.f, 140.f / 255.f, 1.f);
@@ -147,7 +147,7 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
 ///      LINE SHADER          ///
 //////////////////////////////////
 
-constexpr const char* k_editorRendererLineShaderSource = R"(
+const char* const EditorRenderer::k_lineShaderSource = R"(
 static const float k_depthBias = 0.0001f;
 
 cbuffer CB_EDITOR_RENDERER : register(b0)
@@ -245,9 +245,6 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
 namespace jam
 {
 
-// define static vertexLayout
-VertexLayout EditorRenderer::LineVertex::s_layout;
-
 void EditorRenderer::Init()
 {
     LineVertex::Init();
@@ -260,45 +257,57 @@ void EditorRenderer::Init()
 
     // Grid shaders
     {
-        if (!compiler.CompileHLSLSource(k_editorRendererGridShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_gridShaderSource, eShader::VertexShader, "VSMain", {}, eShaderCompileFlags_DebugDefault))
+        {
             JAM_ASSERT(0, "Editor grid vertex shader compilation failed");
+        }
         const ShaderHandle gridVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileHLSLSource(k_editorRendererGridShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_gridShaderSource, eShader::PixelShader, "PSMain", {}, eShaderCompileFlags_DebugDefault))
+        {
             JAM_ASSERT(0, "Editor grid pixel shader compilation failed");
+        }
         const ShaderHandle gridPsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        m_gridProgramHandle = Graphics::CreateProgram(gridVsh, gridPsh, true);
+        m_gridPh = Graphics::CreateProgram(gridVsh, gridPsh, true);
     }
 
     // Line shaders
     {
-        if (!compiler.CompileHLSLSource(k_editorRendererLineShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_lineShaderSource, eShader::VertexShader, "VSMain", {}, eShaderCompileFlags_DebugDefault))
+        {
             JAM_ASSERT(0, "Editor line vertex shader compilation failed");
+        }
         const ShaderHandle lineVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileHLSLSource(k_editorRendererLineShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_lineShaderSource, eShader::PixelShader, "PSMain", {}, eShaderCompileFlags_DebugDefault))
+        {
             JAM_ASSERT(0, "Editor line pixel shader compilation failed");
+        }
         const ShaderHandle linePsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        m_lineProgramHandle = Graphics::CreateProgram(lineVsh, linePsh, true);
+        m_linePh = Graphics::CreateProgram(lineVsh, linePsh, true);
     }
 
     // Filled shaders
     {
-        if (!compiler.CompileHLSLSource(k_editorRendererFilledShaderSource, eShader::VertexShader, "VSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererFilledShaderSource, eShader::VertexShader, "VSMain", {}, eShaderCompileFlags_DebugDefault))
+        {
             JAM_ASSERT(0, "Editor filled vertex shader compilation failed");
+        }
         const ShaderHandle filledVsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        if (!compiler.CompileHLSLSource(k_editorRendererFilledShaderSource, eShader::PixelShader, "PSMain", eShaderCompileFlags_DebugDefault))
+        if (!compiler.CompileHLSLSource(k_editorRendererFilledShaderSource, eShader::PixelShader, "PSMain", {}, eShaderCompileFlags_DebugDefault))
+        {
             JAM_ASSERT(0, "Editor filled pixel shader compilation failed");
+        }
         const ShaderHandle filledPsh = Graphics::CreateShader(compiler.GetBytecode());
 
-        m_filledProgramHandle = Graphics::CreateProgram(filledVsh, filledPsh, true);
+        m_filledPh = Graphics::CreateProgram(filledVsh, filledPsh, true);
     }
 
     // 라인 버퍼 생성
-    m_lineVbh = Graphics::CreateDynamicVertexBuffer(k_lineLimit * 2, LineVertex::s_layout);
+    m_lineVbh = Graphics::CreateDynamicVertexBuffer(k_lineLimit * 2, LineVertex::s_vl);
     m_lineIbh = Graphics::CreateDynamicIndexBuffer(k_lineLimit * 2);
 
     // 그리드 쿼드 생성
@@ -333,13 +342,13 @@ void EditorRenderer::Shutdown()
     JAM_DESTROY_VERTEX_BUFFER(m_lineVbh);
     JAM_DESTROY_INDEX_BUFFER(m_lineIbh);
     JAM_DESTROY_CONSTANT_BUFFER(m_cbh);
-    JAM_DESTROY_PROGRAM(m_gridProgramHandle);
-    JAM_DESTROY_PROGRAM(m_lineProgramHandle);
-    JAM_DESTROY_PROGRAM(m_filledProgramHandle);
+    JAM_DESTROY_PROGRAM(m_gridPh);
+    JAM_DESTROY_PROGRAM(m_linePh);
+    JAM_DESTROY_PROGRAM(m_filledPh);
 
-    m_cube.Unload();
-    m_sphere.Unload();
-    m_cylinder.Unload();
+    m_cubeMesh.Unload();
+    m_sphereMesh.Unload();
+    m_cylinderMesh.Unload();
 }
 
 void EditorRenderer::CreateGridQuad_()
@@ -352,7 +361,7 @@ void EditorRenderer::CreateGridQuad_()
         Vec3 pos;
     };
 
-    VertexLayout vl;
+    VertexLayout vl = {};
     vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
 
     constexpr GridVertex verts[4] = {
@@ -370,13 +379,13 @@ void EditorRenderer::CreateGridQuad_()
 
 void EditorRenderer::CreatePrimitives_()
 {
-    VertexLayout vl;
+    VertexLayout vl = {};
     vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
     vl.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
-    m_sphere   = CreateSphereMesh(1.0f, 4, vl);
-    m_cylinder = CreateCylinder(1.0f, 1.0f, 32, vl);
-    m_cube     = CreateCubeMesh(Vec3::One, vl);
+    m_sphereMesh   = CreateSphereMesh(1.0f, 4, vl);
+    m_cylinderMesh = CreateCylinder(1.0f, 1.0f, 32, vl);
+    m_cubeMesh     = CreateCubeMesh(Vec3::One, vl);
 }
 
 void EditorRenderer::Begin(const RenderView& _view)
@@ -432,19 +441,19 @@ void EditorRenderer::FlushLines_()
         return;
     }
 
-    CB_EDITOR_RENDERER cb;
-    cb.viewProj = (m_view * m_proj).Transpose();
-    cb.mtx      = Mat4::Identity.Transpose();
-    cb.eye      = m_eye;
+    CB_EDITOR_RENDERER cb = {};
+    cb.viewProj           = (m_view * m_proj).Transpose();
+    cb.mtx                = Mat4::Identity.Transpose();
+    cb.eye                = m_eye;
     Graphics::UploadBuffer(m_cbh, cb);
 
-    Graphics::UploadBuffer(m_lineVbh, CMemView { m_lineVertices, sizeof(LineVertex) * m_numLineVerts });
-    Graphics::UploadBuffer(m_lineIbh, CMemView { m_lineIndices, sizeof(UInt16) * m_numLineIndices });
+    Graphics::UploadBuffer(m_lineVbh, { m_lineVertices.data(), sizeof(LineVertex) * m_numLineVerts });
+    Graphics::UploadBuffer(m_lineIbh, { m_lineIndices.data(), sizeof(UInt16) * m_numLineIndices });
 
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::LineList;
     Graphics::SetRenderState(state);
-    Graphics::SetProgram(m_lineProgramHandle);
+    Graphics::SetProgram(m_linePh);
     Graphics::SetVertexBuffer(m_lineVbh, m_numLineVerts, 0);
     Graphics::SetIndexBuffer(m_lineIbh, m_numLineIndices, 0);
     Graphics::Submit();
@@ -455,16 +464,16 @@ void EditorRenderer::FlushLines_()
 
 void EditorRenderer::DrawGrid_() const
 {
-    CB_EDITOR_RENDERER cb;
-    cb.viewProj = (m_view * m_proj).Transpose();
-    cb.mtx      = Mat4::Identity.Transpose();
-    cb.eye      = m_eye;
-    cb.flags    = m_drawGridFlags;
+    CB_EDITOR_RENDERER cb = {};
+    cb.viewProj           = (m_view * m_proj).Transpose();
+    cb.mtx                = Mat4::Identity.Transpose();
+    cb.eye                = m_eye;
+    cb.flags              = m_drawGridFlags;
     Graphics::UploadBuffer(m_cbh, cb);
 
     Graphics::SetRenderState(m_gridState);
     Graphics::SetBlendState(m_blendState, 0);
-    Graphics::SetProgram(m_gridProgramHandle);
+    Graphics::SetProgram(m_gridPh);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     Graphics::SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
     Graphics::SetVertexBuffer(m_gridVbh);
@@ -495,22 +504,22 @@ void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Mat4& _mtx, con
     const CornerPoints corners = obb.GetCornerPoints();
 
     // near plane
-    DrawLine(corners.nearLeftTop, corners.nearRightTop, _color);
-    DrawLine(corners.nearRightTop, corners.nearRightBottom, _color);
-    DrawLine(corners.nearRightBottom, corners.nearLeftBottom, _color);
-    DrawLine(corners.nearLeftBottom, corners.nearLeftTop, _color);
+    DrawLine(corners.At(eOctreeRegion::NearLeftTop), corners.At(eOctreeRegion::NearRightTop), _color);
+    DrawLine(corners.At(eOctreeRegion::NearRightTop), corners.At(eOctreeRegion::NearRightBottom), _color);
+    DrawLine(corners.At(eOctreeRegion::NearRightBottom), corners.At(eOctreeRegion::NearLeftBottom), _color);
+    DrawLine(corners.At(eOctreeRegion::NearLeftBottom), corners.At(eOctreeRegion::NearLeftTop), _color);
 
     // far plane
-    DrawLine(corners.farLeftTop, corners.farRightTop, _color);
-    DrawLine(corners.farRightTop, corners.farRightBottom, _color);
-    DrawLine(corners.farRightBottom, corners.farLeftBottom, _color);
-    DrawLine(corners.farLeftBottom, corners.farLeftTop, _color);
+    DrawLine(corners.At(eOctreeRegion::FarLeftTop), corners.At(eOctreeRegion::FarRightTop), _color);
+    DrawLine(corners.At(eOctreeRegion::FarRightTop), corners.At(eOctreeRegion::FarRightBottom), _color);
+    DrawLine(corners.At(eOctreeRegion::FarRightBottom), corners.At(eOctreeRegion::FarLeftBottom), _color);
+    DrawLine(corners.At(eOctreeRegion::FarLeftBottom), corners.At(eOctreeRegion::FarLeftTop), _color);
 
     // sides
-    DrawLine(corners.nearLeftTop, corners.farLeftTop, _color);
-    DrawLine(corners.nearRightTop, corners.farRightTop, _color);
-    DrawLine(corners.nearRightBottom, corners.farRightBottom, _color);
-    DrawLine(corners.nearLeftBottom, corners.farLeftBottom, _color);
+    DrawLine(corners.At(eOctreeRegion::NearLeftTop), corners.At(eOctreeRegion::FarLeftTop), _color);
+    DrawLine(corners.At(eOctreeRegion::NearRightTop), corners.At(eOctreeRegion::FarRightTop), _color);
+    DrawLine(corners.At(eOctreeRegion::NearRightBottom), corners.At(eOctreeRegion::FarRightBottom), _color);
+    DrawLine(corners.At(eOctreeRegion::NearLeftBottom), corners.At(eOctreeRegion::FarLeftBottom), _color);
 }
 
 void EditorRenderer::DrawFrustum(const Mat4& _viewProjMtx, const RGBA _rgba)
@@ -519,22 +528,22 @@ void EditorRenderer::DrawFrustum(const Mat4& _viewProjMtx, const RGBA _rgba)
     const CornerPoints corners = frustum.GetCornerPoints();
 
     // near plane
-    DrawLine(corners.nearLeftTop, corners.nearRightTop, _rgba);
-    DrawLine(corners.nearRightTop, corners.nearRightBottom, _rgba);
-    DrawLine(corners.nearRightBottom, corners.nearLeftBottom, _rgba);
-    DrawLine(corners.nearLeftBottom, corners.nearLeftTop, _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearLeftTop), corners.At(eOctreeRegion::NearRightTop), _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearRightTop), corners.At(eOctreeRegion::NearRightBottom), _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearRightBottom), corners.At(eOctreeRegion::NearLeftBottom), _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearLeftBottom), corners.At(eOctreeRegion::NearLeftTop), _rgba);
 
     // far plane
-    DrawLine(corners.farLeftTop, corners.farRightTop, _rgba);
-    DrawLine(corners.farRightTop, corners.farRightBottom, _rgba);
-    DrawLine(corners.farRightBottom, corners.farLeftBottom, _rgba);
-    DrawLine(corners.farLeftBottom, corners.farLeftTop, _rgba);
+    DrawLine(corners.At(eOctreeRegion::FarLeftTop), corners.At(eOctreeRegion::FarRightTop), _rgba);
+    DrawLine(corners.At(eOctreeRegion::FarRightTop), corners.At(eOctreeRegion::FarRightBottom), _rgba);
+    DrawLine(corners.At(eOctreeRegion::FarRightBottom), corners.At(eOctreeRegion::FarLeftBottom), _rgba);
+    DrawLine(corners.At(eOctreeRegion::FarLeftBottom), corners.At(eOctreeRegion::FarLeftTop), _rgba);
 
     // sides
-    DrawLine(corners.nearLeftTop, corners.farLeftTop, _rgba);
-    DrawLine(corners.nearRightTop, corners.farRightTop, _rgba);
-    DrawLine(corners.nearRightBottom, corners.farRightBottom, _rgba);
-    DrawLine(corners.nearLeftBottom, corners.farLeftBottom, _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearLeftTop), corners.At(eOctreeRegion::FarLeftTop), _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearRightTop), corners.At(eOctreeRegion::FarRightTop), _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearRightBottom), corners.At(eOctreeRegion::FarRightBottom), _rgba);
+    DrawLine(corners.At(eOctreeRegion::NearLeftBottom), corners.At(eOctreeRegion::FarLeftBottom), _rgba);
 }
 
 void EditorRenderer::DrawCircle(const Vec3 _center, const Vec3 _normal, const float _radius, const RGBA _color, const Int32 _segments)
@@ -574,10 +583,10 @@ void EditorRenderer::DrawFilledSphere(const Vec3 _center, const float _radius, c
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::TriangleList;
     Graphics::SetRenderState(state);
-    Graphics::SetProgram(m_filledProgramHandle);
+    Graphics::SetProgram(m_filledPh);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     Graphics::SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
-    m_sphere.Submit();
+    m_sphereMesh.Submit();
 }
 
 void EditorRenderer::DrawFilledCube(const Vec3 _center, const Vec3 _size, const RGBA _color)
@@ -592,28 +601,29 @@ void EditorRenderer::DrawFilledCube(const Vec3 _center, const Vec3 _size, const 
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::TriangleList;
     Graphics::SetRenderState(state);
-    Graphics::SetProgram(m_filledProgramHandle);
+    Graphics::SetProgram(m_filledPh);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     Graphics::SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
-    m_cube.Submit();
+    m_cubeMesh.Submit();
 }
 
 void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, const float _height, const float _radius, const RGBA _color)
 {
     FlushLines_();
 
-    m_currentColor = _color;
-    const Quat q         = Quat::FromToRotation(Vec3::Up, _dir);
-    const Mat4 world     = Mat4::CreateScale(Vec3(_radius, _height, _radius)) * Mat4::CreateFromQuaternion(q) * Mat4::CreateTranslation(_center);
+    m_currentColor   = _color;
+    const Quat q     = Quat::FromToRotation(Vec3::Up, _dir);
+    const Mat4 world = Mat4::CreateScale(Vec3(_radius, _height, _radius)) * Mat4::CreateFromQuaternion(q) * Mat4::CreateTranslation(_center);
     UploadTransform_(world);
 
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::TriangleList;
+
     Graphics::SetRenderState(state);
-    Graphics::SetProgram(m_filledProgramHandle);
+    Graphics::SetProgram(m_filledPh);
     Graphics::SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     Graphics::SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
-    m_cylinder.Submit();
+    m_cylinderMesh.Submit();
 }
 
 void EditorRenderer::DrawFilledCapsule(const Vec3 _center, const Vec3 _dir, const float _height, const float _radius, const RGBA _color)
@@ -639,11 +649,11 @@ void EditorRenderer::FlushLines()
 
 void EditorRenderer::UploadTransform_(const Mat4& _world) const
 {
-    CB_EDITOR_RENDERER cb;
-    cb.viewProj = (m_view * m_proj).Transpose();
-    cb.mtx      = _world.Transpose();
-    cb.eye      = m_eye;
-    cb.color    = m_currentColor.ToLinear();
+    CB_EDITOR_RENDERER cb = {};
+    cb.viewProj           = (m_view * m_proj).Transpose();
+    cb.mtx                = _world.Transpose();
+    cb.eye                = m_eye;
+    cb.color              = m_currentColor.ToLinear();
     Graphics::UploadBuffer(m_cbh, cb);
 }
 

@@ -9,7 +9,8 @@
 namespace jam
 {
 
-Optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path)
+Optional<Vector<Byte>> LoadBinaryFile(
+    const fs::path& _path)
 {
     std::ifstream ifs { _path, std::ios::binary };
     if (!ifs)
@@ -18,7 +19,7 @@ Optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path)
         return k_nullopt;
     }
 
-    std::error_code ec;
+    std::error_code ec       = {};
     const size_t    fileSize = fs::file_size(_path, ec);
     if (ec)
     {
@@ -31,8 +32,7 @@ Optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path)
         return Vector<Byte>();
     }
 
-    Vector<Byte> result;
-    result.resize(fileSize);
+    Vector<Byte> result(fileSize);
     ifs.read(reinterpret_cast<char*>(result.data()), static_cast<std::streamsize>(fileSize));
 
     if (!ifs)
@@ -44,8 +44,17 @@ Optional<Vector<Byte>> LoadBinaryFile(const fs::path& _path)
     return result;
 }
 
-bool SaveBinaryFile(const fs::path& _path, const CMemView _data)
+bool SaveBinaryFile(
+    const fs::path&      _path,
+    const CMemView       _data,
+    const eSaveFileFlags _flags)
 {
+    if (!CheckSaveFileFlags(_path, _flags))
+    {
+        return false;
+    }
+
+    // io
     std::ofstream ofs { _path, std::ios::binary };
     if (!ofs)
     {
@@ -69,7 +78,38 @@ bool SaveBinaryFile(const fs::path& _path, const CMemView _data)
     return true;
 }
 
-Optional<std::string> LoadTextFile(const fs::path& _path)
+bool CheckSaveFileFlags(
+    const fs::path&      _path,
+    const eSaveFileFlags _flags)
+{
+    // check existence
+    if (_flags & eSaveFileFlags_FailIfExists)
+    {
+        if (fs::exists(_path))
+        {
+            GlobalBuffer::SetLastError("file already exists: {}", _path.native());
+            return false;
+        }
+    }
+
+    // create directories
+    if (_flags & eSaveFileFlags_CreateDirs)
+    {
+        const fs::path  parentPath = _path.parent_path();
+        std::error_code ec         = {};
+        fs::create_directories(parentPath, ec);
+        if (ec)
+        {
+            GlobalBuffer::SetLastError("failed to create directories: {}. {}", parentPath.native(), ec.message());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+Optional<std::string> LoadTextFile(
+    const fs::path& _path)
 {
     std::ifstream ifs(_path);
     if (!ifs)
@@ -78,7 +118,7 @@ Optional<std::string> LoadTextFile(const fs::path& _path)
         return k_nullopt;
     }
 
-    std::error_code ec;
+    std::error_code ec       = {};
     const size_t    fileSize = fs::file_size(_path, ec);
     if (ec)
     {
@@ -91,8 +131,7 @@ Optional<std::string> LoadTextFile(const fs::path& _path)
         return std::string();
     }
 
-    std::string buffer;
-    buffer.resize(fileSize);
+    std::string buffer(fileSize, '\0');
     ifs.read(buffer.data(), static_cast<std::streamsize>(fileSize));
 
     if (!ifs)
@@ -104,9 +143,12 @@ Optional<std::string> LoadTextFile(const fs::path& _path)
     return buffer;
 }
 
-bool SaveTextFile(const fs::path& _path, const StringView _text)
+bool SaveTextFile(
+    const fs::path&      _path,
+    const StringView     _text,
+    const eSaveFileFlags _flags)
 {
-    return SaveBinaryFile(_path, { reinterpret_cast<const Byte*>(_text.GetPtr()), _text.GetLength() });
+    return SaveBinaryFile(_path, { reinterpret_cast<const Byte*>(_text.GetPtr()), _text.GetLength() }, _flags);
 }
 
 }   // namespace jam

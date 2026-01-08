@@ -3,7 +3,7 @@
 namespace jam
 {
 
-enum eTextureFormat : Int8
+enum class eTextureFormat
 {
     Unknown = 0,
 
@@ -66,11 +66,17 @@ enum eTextureFormat : Int8
     D24_UNorm_S8_UInt,
     D32_Float,
     D32_Float_S8_UInt,
-};
 
-using PlatformTextureFormat = DXGI_FORMAT;  
+    Min = Unknown,
+    Max = D32_Float_S8_UInt
+};
+JAM_ENUM_STATIC_ASSERT(eTextureFormat);
+JAM_ENABLE_ENUM_ITERATOR(eTextureFormat);
+
+using PlatformTextureFormat = DXGI_FORMAT;
 struct TextureFormatInfo
 {
+    StringView            name        = {};
     PlatformTextureFormat texFormat   = static_cast<PlatformTextureFormat>(0);
     PlatformTextureFormat colorFormat = static_cast<PlatformTextureFormat>(0);
     PlatformTextureFormat depthFormat = static_cast<PlatformTextureFormat>(0);

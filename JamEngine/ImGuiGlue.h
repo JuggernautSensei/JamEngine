@@ -1,5 +1,6 @@
 #pragma once
 #include "GraphicsBase.h"
+#include "IAsset.h"
 #include "Vendor/imgui/imgui.h"
 #include "Vendor/imgui/imgui_internal.h"
 #include "Vendor/imgui/imgui_stdlib.h"

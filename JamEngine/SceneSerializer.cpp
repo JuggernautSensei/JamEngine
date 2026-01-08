@@ -86,7 +86,8 @@ void SceneSerializer::Serialize(
         {
             // can serialize?
             // skip non-reflected or non-serializable or components that have no instances
-            if (!db.IsReflected(typeId) || !db.IsSerializable(typeId) || storage.empty())
+            const ComponentInfo& info = db.GetComponentInfo(typeId);
+            if (!db.IsReflected(typeId) || !info.serializeFn || storage.empty())
             {
                 continue;
             }
@@ -117,7 +118,7 @@ void SceneSerializer::Serialize(
 
                 // serialize component data
                 JsonWriter dataWriter = valueWriter.EnterBack();
-                db.Serialize(typeId, pCmpValue, dataWriter, _pScene, entity);
+                info.serializeFn(pCmpValue, dataWriter, _pScene, entity);
             }
         }
     }

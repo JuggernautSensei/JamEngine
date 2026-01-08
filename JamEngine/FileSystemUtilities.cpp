@@ -1,3 +1,4 @@
+
 #include "pch.h"
 
 #include "FileSystemUtilities.h"
@@ -5,16 +6,19 @@
 namespace jam
 {
 
-bool IsAncestorPathOf(const fs::path& _ancester, const fs::path& _descendant)
+bool IsBasePathOf(
+    const fs::path& _base,
+    const fs::path& _path)
 {
-    JAM_ASSERT(_ancester.empty() == false, "Ancestor path is empty!");
-    JAM_ASSERT(_descendant.empty() == false, "Path is empty!");
+    fs::path base = fs::absolute(_base);
+    base          = base.lexically_normal();
 
-    const fs::path         ancestor = fs::absolute(_ancester).lexically_normal();
-    const fs::path         target   = fs::absolute(_descendant).lexically_normal();
-    const fs::path         rel      = target.lexically_relative(ancestor);
-    const StringView strRel   = rel.native();
-    return !strRel.empty() && strRel != "." && !strRel.starts_with("..");
+    fs::path path = fs::absolute(_path);
+    path          = path.lexically_normal();
+
+    const fs::path   rel    = path.lexically_relative(base);
+    const StringView strRel = rel.native();
+    return !strRel.StartWith("..");
 }
 
 }   // namespace jam

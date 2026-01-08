@@ -87,12 +87,12 @@ void SceneHierarchyPanel::Show(bool* _pOpenOrNull) const
                 if (ImGui::BeginPopupContextItem())
                 {
                     // 파일로 씬 저장
-                    if (ImGui::MenuItem("save", "ctrl + s"))
+                    if (Widget_MenuItem("save", "ctrl + s"))
                     {
                         m_pEditorLayer->SaveScene(pActiveScene);   // 씬 저장
                     }
                     // 다른 이름으로 저장
-                    if (ImGui::MenuItem("save as..."))
+                    if (Widget_MenuItem("save as..."))
                     {
                         auto [path, bResult] = SaveFileDialog(k_sceneFileFilters);   // 다이얼 로그로 저장할 경로 선택
                         if (bResult)
@@ -116,12 +116,12 @@ void SceneHierarchyPanel::Show(bool* _pOpenOrNull) const
                 if (ImGui::BeginPopupContextItem())
                 {
                     // 현재 씬 로드
-                    if (ImGui::MenuItem("load", "ctrl + o"))   // Ctrl + O 단축키로 씬 로드
+                    if (Widget_MenuItem("load", "ctrl + o"))   // Ctrl + O 단축키로 씬 로드
                     {
                         m_pEditorLayer->LoadScene(pActiveScene);   // 씬 로드
                     }
                     // 파일에서 씬 로드
-                    if (ImGui::MenuItem("load from file..."))   // 다른 씬 파일 로드
+                    if (Widget_MenuItem("load from file..."))   // 다른 씬 파일 로드
                     {
                         auto [path, bResult] = OpenFileDialog(k_sceneFileFilters);   // 다이얼 로그로 씬 파일 선택
                         if (bResult)

@@ -7,11 +7,11 @@ namespace jam
 class Scene;
 
 template<typename T>
-class EditableComponent
+struct EditableComponent
 {
-    void DrawEditor_(Ref<Scene>& _pScene, Entity _entity)
+    void Panel_EditComponent_(Ref<Scene>& _pScene, Entity _entity)
     {
-        static_cast<T*>(this)->DrawEditor(_pScene, _entity);
+        static_cast<T*>(this)->Panel_EditComponent(_pScene, _entity);
     }
 };
 

@@ -40,7 +40,7 @@ class RenderPass
         eFlags_ClearDepth   = 1 << 3,
         eFlags_ClearStencil = 1 << 4,
     };
-    using eFlags = EnumIntType<eFlags_>;
+    using eFlags = UnderlyingType<eFlags_>;
 
 public:
     RenderPass() = default;

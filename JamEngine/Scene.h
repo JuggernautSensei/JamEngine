@@ -7,8 +7,12 @@
 namespace jam
 {
 
+class Model;
+class Mesh;
 class Event;
+class Material;
 class Transform;
+struct ModelNode;
 
 class Scene : public RefCounted
 {
@@ -35,17 +39,23 @@ public:
     [[nodiscard]] virtual TextureHandle GetDepthTexture() const;
 
     // item management
-    Entity CreateEntity();
-    Entity CreateEntity(StringView _name);
-    Entity CreateEntity(UID _uid);   // 특정 UID로 엔티티 생성, 이미 존재하는 UID면 assert 발생
-    Entity CreateEntity(UID _uid, StringView _name);
+    Entity CreateEntity(StringView _nameOrEmpty = {});
+    Entity CreateEntity(UID _uid, StringView _nameOrEmpty = {});
+    UID    CreateEntityDefered(StringView _nameOrEmpty = {});             // returns the UID of the created entity. UID is invalid this frame, valid next frame
+    UID    CreateEntityDefered(UID _uid, StringView _nameOrEmpty = {});   // returns the UID of the created entity. UID is invalid this frame, valid next frame
+
+    Entity CloneEntity(Entity _entity);
+    UID    CloneEntityDefered(Entity _entity);   // returns the UID of the cloned entity. UID is invalid this frame, valid next frame
+
+    void DestroyEntity(Entity _entity);
+    void DestroyEntityDefered(Entity _entity);
 
     [[nodiscard]] Entity GetEntity(UID _uid) const;
     [[nodiscard]] Entity FindEntity(UID _uid) const;   // 해당 UID를 가진 엔티티가 없으면 null 엔티티 반환
-
-    [[nodiscard]] Entity CloneEntity(Entity _entity);
-    void                 DestroyEntity(Entity _entity);
     [[nodiscard]] bool   IsEntityValid(Entity _entity) const;
+
+    Entity CreateEntitiesFrom(const Ref<Model>& _pModel);
+    UID    CreateEntitiesDeferedFrom(const Ref<Model>& _pModel);   // returns the UID of the root entity. UID is invalid this frame, valid next frame
 
     // item iteration
     template<typename... Args>
@@ -87,11 +97,25 @@ protected:
     Scene();
 
 private:
-    void                 DestroyEntity_Recursive_(Entity _entity);
-    [[nodiscard]] Entity CloneEntity_Recursive_(Entity _srcEntity);
-    [[nodiscard]] Entity CreateEntity_(UID _uid, Optional<StringView> _name);
-    [[nodiscard]] Entity CreateRootEntity_();
+    // create entity. create entity must support create with uid. so param _allocedUid is required.
+    Entity CreateRootEntity_();
+    Entity CreateEntity_(UID _allocedUid, StringView _nameOrEmpty);
+    void   CreateEntityDefered_(UID _allocedUid, StringView _nameOrEmpty);
 
+    // clone entity
+    Entity CloneEntity_(UID _allocatedUid, Entity _srcEntity);
+    Entity CloneEntity_Recursive_(UID _allocatedUid, Entity _srcEntity);
+    void   CloneEntityDefered_(UID _allocatedUid, Entity _srcEntity);
+
+    // create from model
+    Entity CreateEntitiesFrom_Recursive_(UID _allocatedUid, const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
+    Entity CreateEntitiesFrom_(UID _allocatedUid, const Ref<Model>& _pModel);
+    void   CreateEntitiesFromDefered_(UID _allocatedUid, const Ref<Model>& _pModel);
+
+    // destroy entity
+    void DestroyEntity_Recursive_(Entity _entity);
+
+    // scene graph update
     void UpdateSceneGraph_();   // call before rendering
 
     entt::registry       m_registry                  = {};

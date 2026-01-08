@@ -2,35 +2,40 @@
 
 #include "Hash.h"
 
-#include "BaseUtilities.h"
-
 namespace jam
 {
 
-static UInt32 RotL32(const UInt32 x, const int r)
+static UInt32 RotL32(
+    const UInt32 x,
+    const int    r)
 {
     return (x << r) | (x >> (32 - r));
 }
 
-static UInt64 RotL64(const UInt64 x, const int r)
+static UInt64 RotL64(
+    const UInt64 x,
+    const int    r)
 {
     return (x << r) | (x >> (64 - r));
 }
 
-void MurmurHash32::Begin(const UInt32 _seed)
+MurmurHash32::MurmurHash32(
+    const UInt32 _seed)
+    : m_hash(_seed)
+    , m_length(0)
 {
-    m_hash   = _seed;
-    m_length = 0;
 }
 
-void MurmurHash32::Add(const void* _pByte, const size_t _byteWidth)
+void MurmurHash32::Mix(
+    const void* _pByte,
+    const Int32 _byteWidth)
 {
     constexpr UInt32 k_c1 = 0xcc9e2d51;
     constexpr UInt32 k_c2 = 0x1b873593;
 
     const Byte* pByte     = static_cast<const Byte*>(_pByte);
-    const Int32 numBlocks = NarrowCast<Int32>(_byteWidth / 4);
-    m_length += NarrowCast<Int32>(_byteWidth);
+    const Int32 numBlocks = _byteWidth / 4;
+    m_length += _byteWidth;
 
     const UInt32* pBlock = reinterpret_cast<const UInt32*>(pByte);
     for (Int32 i = 0; i < numBlocks; ++i)
@@ -65,7 +70,7 @@ void MurmurHash32::Add(const void* _pByte, const size_t _byteWidth)
     }
 }
 
-UInt32 MurmurHash32::End() const
+UInt32 MurmurHash32::Finish() const
 {
     UInt32 h1 = m_hash;
     h1 ^= m_length;
@@ -77,20 +82,23 @@ UInt32 MurmurHash32::End() const
     return h1;
 }
 
-void MurmurHash64::Begin(const UInt64 _seed)
+MurmurHash64::MurmurHash64(
+    const UInt64 _seed)
+    : m_hash(_seed)
+    , m_length(0)
 {
-    m_hash   = _seed;
-    m_length = 0;
 }
 
-void MurmurHash64::Add(const void* _pByte, const size_t _byteWidth)
+void MurmurHash64::Mix(
+    const void* _pByte,
+    const Int32 _byteWidth)
 {
     constexpr UInt64 k_c1 = 0x87c37b91114253d5;
     constexpr UInt64 k_c2 = 0x4cf5ad432745937f;
 
     const Byte* pByte      = static_cast<const Byte*>(_pByte);
-    const Int32 blockCount = NarrowCast<Int32>(_byteWidth / 8);
-    m_length += NarrowCast<Int32>(_byteWidth);
+    const Int32 blockCount = _byteWidth / 8;
+    m_length += _byteWidth;
 
     const UInt64* pBlock = reinterpret_cast<const UInt64*>(pByte);
     for (Int32 i = 0; i < blockCount; ++i)
@@ -137,7 +145,7 @@ void MurmurHash64::Add(const void* _pByte, const size_t _byteWidth)
     }
 }
 
-UInt64 MurmurHash64::End() const
+UInt64 MurmurHash64::Finish() const
 {
     UInt64 h1 = m_hash;
     h1 ^= m_length;
@@ -149,20 +157,24 @@ UInt64 MurmurHash64::End() const
     return h1;
 }
 
-UInt32 Hash_Murmur32(const void* _pData, const size_t _byteWidth, const UInt32 _seed)
+UInt32 Hash_Murmur32(
+    const void*  _pData,
+    const Int32  _byteWidth,
+    const UInt32 _seed)
 {
-    MurmurHash32 hasher;
-    hasher.Begin(_seed);
-    hasher.Add(_pData, _byteWidth);
-    return hasher.End();
+    MurmurHash32 murmur { _seed };
+    murmur.Mix(_pData, _byteWidth);
+    return murmur.Finish();
 }
 
-UInt64 Hash_Murmur64(const void* _pData, const size_t _byteWidth, const UInt64 _seed)
+UInt64 Hash_Murmur64(
+    const void*  _pData,
+    const Int32  _byteWidth,
+    const UInt64 _seed)
 {
-    MurmurHash64 hasher;
-    hasher.Begin(_seed);
-    hasher.Add(_pData, _byteWidth);
-    return hasher.End();
+    MurmurHash64 murmur { _seed };
+    murmur.Mix(_pData, _byteWidth);
+    return murmur.Finish();
 }
 
 }   // namespace jam

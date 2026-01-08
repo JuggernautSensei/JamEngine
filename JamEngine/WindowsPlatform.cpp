@@ -13,14 +13,14 @@ namespace jam
 void WindowsPlatform::Init()
 {
     ::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    JAM_CHECK_COM(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
+    JAM_CHECK_WIN32(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
 
     // check window class
     {
         m_hInstance = GetModuleHandle(NULL);
 
         // win class initialize
-        WNDCLASSEXW wClassEx;
+        WNDCLASSEXW wClassEx   = {};
         wClassEx.cbSize        = sizeof(WNDCLASSEX);
         wClassEx.style         = CS_HREDRAW | CS_VREDRAW;
         wClassEx.lpfnWndProc   = WindowProc_;
@@ -37,7 +37,7 @@ void WindowsPlatform::Init()
         if (RegisterClassExW(&wClassEx) == 0)
         {
             const DWORD lastError = GetLastError();
-            JAM_CRASH("Failed to register window class: {}", StringFrom(lastError));
+            JAM_CRASH("Failed to register window class: {}", CreateErrorMessageFromHRESULT(lastError));
         }
     }
 
@@ -47,7 +47,7 @@ void WindowsPlatform::Init()
         if (m_hWnd == NULL)
         {
             const DWORD lastError = GetLastError();
-            JAM_CRASH("Failed to create window: {}", StringFrom(lastError));
+            JAM_CRASH("Failed to create window: {}", CreateErrorMessageFromHRESULT(lastError));
         }
 
         ResizeClient(k_defaultWidth, k_defaultHeight);
@@ -90,27 +90,20 @@ bool WindowsPlatform::PollEvents()
 
 void WindowsPlatform::ResizeClient(const Int32 _clientWidth, const Int32 _clientHeight)
 {
-    SetClientRect(m_clientPos.x, m_clientPos.y, _clientWidth, _clientHeight);
+    AdjustClientRect(m_clientPos.x, m_clientPos.y, _clientWidth, _clientHeight);
 }
 
 void WindowsPlatform::MoveClient(const Int32 _clientLeftTopX, const Int32 _clientLeftTopY)
 {
-    SetClientRect(_clientLeftTopX, _clientLeftTopY, m_clientRes.x, m_clientRes.y);
+    AdjustClientRect(_clientLeftTopX, _clientLeftTopY, m_clientRes.x, m_clientRes.y);
 }
 
-void WindowsPlatform::SetTitle(const StringView _name) const
+void WindowsPlatform::SetTitle(
+    const StringView _name) const
 {
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
     JAM_ASSERT(m_hInstance, "WindowsPlatform instance handle is null");
-
-    if (Optional<std::wstring> optStr = ToUtf16(_name))
-    {
-        ::SetWindowText(m_hWnd, optStr->c_str());
-    }
-    else
-    {
-        JAM_ASSERT(0, "Failed to convert title to utf16");
-    }
+    JAM_CHECK_WIN32(::SetWindowTextA(m_hWnd, _name.GetPtr()));
 }
 
 void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
@@ -158,7 +151,7 @@ void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
             // Close 버튼만 비활성화
             if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
             {
-                ::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
+                JAM_CHECK_WIN32(::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED));
             }
         }
         else
@@ -166,7 +159,7 @@ void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
             // Close 버튼 활성화
             if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
             {
-                ::EnableMenuItem(hMenu, SC_CLOSE, 0);
+                JAM_CHECK_WIN32(::EnableMenuItem(hMenu, SC_CLOSE, 0));
             }
         }
     }
@@ -181,10 +174,10 @@ void WindowsPlatform::SetWindowProperty(const eWindowPropertyFlags _flags)
 
     // TopMost 위치 설정
     const HWND hWndInsertAfter = (_flags & eWindowPropertyFlags_TopMost) ? HWND_TOPMOST : HWND_NOTOPMOST;
-    ::SetWindowPos(m_hWnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+    JAM_CHECK_WIN32(::SetWindowPos(m_hWnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED));
 
     // 윈도우 업데이트
-    ::UpdateWindow(m_hWnd);
+    JAM_CHECK_WIN32(::UpdateWindow(m_hWnd));
 }
 
 eWindowPropertyFlags WindowsPlatform::GetWindowProperty() const
@@ -221,9 +214,9 @@ HINSTANCE WindowsPlatform::GetPlatformInstance() const
 
 void WindowsPlatform::OnEvent(Event& _event)
 {
-    HandleEvent<WindowResizedEvent>(_event, this, &WindowsPlatform::OnWindowResizedEvent_);
-    HandleEvent<WindowMaximizedEvent>(_event, this, &WindowsPlatform::OnWindowMaximizeEvent_);
-    HandleEvent<WindowMoveEvent>(_event, this, &WindowsPlatform::OnWindowMoveEvent_);
+    HandleEvent<WindowResizedEvent>(_event, JAM_BIND_LISTENER_METHOD(this,WindowsPlatform::OnWindowResizedEvent_));
+    HandleEvent<WindowMaximizedEvent>(_event, JAM_BIND_LISTENER_METHOD(this,WindowsPlatform::OnWindowMaximizeEvent_));
+    HandleEvent<WindowMoveEvent>(_event, JAM_BIND_LISTENER_METHOD(this,WindowsPlatform::OnWindowMoveEvent_));
 }
 
 void WindowsPlatform::OnWindowResizedEvent_(const WindowResizedEvent& _event)
@@ -438,24 +431,28 @@ LRESULT WindowsPlatform::WindowProc_(const HWND hWnd, const UINT uMsg, const WPA
     return result;
 }
 
-void WindowsPlatform::SetClientRect(const Int32 _x, const Int32 _y, const Int32 _width, const Int32 _height)
+void WindowsPlatform::AdjustClientRect(
+    const Int32 _x,
+    const Int32 _y,
+    const Int32 _width,
+    const Int32 _height)
 {
     const bool  bHasMenu = (::GetMenu(m_hWnd) != NULL);
     const DWORD wsFlags  = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
     const DWORD exFlags  = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
     // cli -> win
-    RECT adjRect = { 0, 0, _width, _height };
-    ::AdjustWindowRectExForDpi(&adjRect, wsFlags, bHasMenu, exFlags, ::GetDpiForWindow(m_hWnd));
+    RECT adjRect = {};
+    JAM_CHECK_WIN32(::AdjustWindowRectExForDpi(&adjRect, wsFlags, bHasMenu, exFlags, ::GetDpiForWindow(m_hWnd)));
     const Int32 windowWidth  = adjRect.right - adjRect.left;
     const Int32 windowHeight = adjRect.bottom - adjRect.top;
 
-    RECT curWinRect;
-    ::GetWindowRect(m_hWnd, &curWinRect);
+    RECT curWinRect = {};
+    JAM_CHECK_WIN32(::GetWindowRect(m_hWnd, &curWinRect));
 
     // 오프셋 계산
-    POINT clientPos = { 0, 0 };
-    ::ClientToScreen(m_hWnd, &clientPos);
+    POINT clientPos = {};
+    JAM_CHECK_WIN32(::ClientToScreen(m_hWnd, &clientPos));
     const Int32 frameOffsetX = clientPos.x - curWinRect.left;
     const Int32 frameOffsetY = clientPos.y - curWinRect.top;
 
@@ -463,9 +460,9 @@ void WindowsPlatform::SetClientRect(const Int32 _x, const Int32 _y, const Int32 
     const Int32 windowPosX = _x - frameOffsetX;
     const Int32 windowPosY = _y - frameOffsetY;
 
-    ::SetWindowPos(m_hWnd, NULL, windowPosX, windowPosY, windowWidth, windowHeight, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-    ::UpdateWindow(m_hWnd);
-    ::ShowWindow(m_hWnd, SW_SHOW);
+    JAM_CHECK_WIN32(::SetWindowPos(m_hWnd, NULL, windowPosX, windowPosY, windowWidth, windowHeight, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED));
+    JAM_CHECK_WIN32(::UpdateWindow(m_hWnd));
+    JAM_CHECK_WIN32(::ShowWindow(m_hWnd, SW_SHOW));
 
     m_clientPos = { _x, _y };
     m_clientRes = { _width, _height };

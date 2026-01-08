@@ -18,4 +18,6 @@ struct SourceLoc
 /// @note _stackIndex = 2 : TraceCallerInfo 함수를 호출한 함수의 호출자 (일반적으로 이 값을 사용)
 [[nodiscard]] SourceLoc TraceCallerInfo(Int32 _stackIndex = 2);
 
+void PrintToDebugConsole(StringView _msg);
+
 }   // namespace jam

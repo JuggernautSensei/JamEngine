@@ -60,16 +60,16 @@ void TagComponent::Deserialize(
     _reader.Read(name);
 }
 
-void TagComponent::DrawEditor(
+void TagComponent::Panel_EditComponent(
     Ref<Scene>& _pScene,
     Entity      _entity)
 {
-    if (BeginComponentEditTable("TagComponent"))
+    if (BeginLabelValueTable("TagComponent"))
     {
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("name");
         ImGui::TableNextColumn();
-        SetNextItemWidthToAvailableWidth();
+        SetNextItemAvailWidth();
         ImGui::InputText("##TagName", &name);
 
         ImGui::EndTable()();

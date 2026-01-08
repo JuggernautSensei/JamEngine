@@ -6,7 +6,6 @@
 #include "AssetManager.h"
 #include "ComponentDB.h"
 #include "Editor.h"
-#include "GlobalBuffer.h"
 #include "Graphics.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
@@ -24,9 +23,11 @@ void Application::Create(const Int32 _argc, char** _argv)
 {
     JAM_ASSERT(s_instance == nullptr, "Application instance already exists");
 
-#ifdef JAM_DEBUG
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif
+    // 메모리 디버거
+    if (JAM_DEBUG_ENABLED)
+    {
+        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    }
 
     // locale
     std::locale::global(std::locale(""));
@@ -38,7 +39,11 @@ void Application::Create(const Int32 _argc, char** _argv)
     s_instance = CreateApplication(_argc, _argv);
 
     // project file directory
-    fs::create_directory(s_instance->m_contentsDir);
+    fs::create_directories(s_instance->m_contentsDir);
+
+    // create cache directories
+    const fs::path cacheDir = s_instance->JoinWorkingDirectory(k_cachesDirName.GetPtr());
+    fs::create_directories(cacheDir);
 
     // init window
     s_instance->m_window.Init();
@@ -138,7 +143,6 @@ Application::Application(const ApplicationCreateInfo& _info)
     , m_workingDir(_info.workingDirectory)
     , m_contentsDir(m_workingDir / k_contentsDirName.GetPtr())
 {
-    JAM_ASSERT(fs::exists(_info.workingDirectory), "Working directory does not exist: {}", _info.workingDirectory.native());
 }
 
 void Application::OnWindowCloseEvent_(
@@ -159,7 +163,7 @@ Int32 Application::Run()
 
             m_timer.Tick();
             m_deltaTimeSec = static_cast<float>(m_timer.GetDelta(eSIPrefix::Sec));
-            m_frameRate    = 1.f / m_deltaTimeSec;
+            m_frameRate    = Div(1.f, m_deltaTimeSec);
 
             // update loop
             if (m_bEditorEnabled)
@@ -215,8 +219,9 @@ void Application::DispatchEvent(Event& _event)
     }
 
     // application level event handling
-    HandleEvent<WindowCloseEvent>(_event, this, &Application::OnWindowCloseEvent_);
+    HandleEvent<WindowCloseEvent>(_event, JAM_BIND_LISTENER_METHOD(this,Application::OnWindowCloseEvent_));
 
+    // propagate event to subsystems
     m_window.OnEvent(_event);
     Graphics::OnEvent(_event);
     AssetManager::OnEvent(_event);
@@ -270,12 +275,14 @@ const fs::path& Application::GetContentsDirectory() const
     return m_contentsDir;
 }
 
-fs::path Application::JoinWorkingDirectory(const fs::path& _dir) const
+fs::path Application::JoinWorkingDirectory(
+    const fs::path& _dir) const
 {
     return m_workingDir / _dir;
 }
 
-fs::path Application::JoinContentsDirectory(const fs::path& _dir) const
+fs::path Application::JoinContentsDirectory(
+    const fs::path& _dir) const
 {
     return m_contentsDir / _dir;
 }

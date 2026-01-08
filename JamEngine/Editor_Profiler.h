@@ -18,9 +18,6 @@ public:
 private:
     void DrawFrameTabItem_() const;
     void DrawInputTabItem_() const;
-
-    eKey  m_keyHistoryStack[eKeyHistoryStackCap] = { eKey::None, eKey::None, eKey::None, eKey::None, eKey::None };
-    Int32 m_keyHistoryTop                        = -1;
 };
 
 }   // namespace jam

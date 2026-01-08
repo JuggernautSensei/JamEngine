@@ -150,10 +150,14 @@ inline ::flatbuffers::Offset<ModelNode> CreateModelNodeDirect(
 struct Model FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef ModelBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ROOT_NODE = 4,
-    VT_MESH_PATHS = 6,
-    VT_MATERIAL_PATHS = 8
+    VT_NAME = 4,
+    VT_ROOT_NODE = 6,
+    VT_MESH_PATHS = 8,
+    VT_MATERIAL_PATHS = 10
   };
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
   const jam::jmtl::ModelNode *root_node() const {
     return GetPointer<const jam::jmtl::ModelNode *>(VT_ROOT_NODE);
   }
@@ -165,6 +169,8 @@ struct Model FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
            VerifyOffset(verifier, VT_ROOT_NODE) &&
            verifier.VerifyTable(root_node()) &&
            VerifyOffset(verifier, VT_MESH_PATHS) &&
@@ -181,6 +187,9 @@ struct ModelBuilder {
   typedef Model Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(Model::VT_NAME, name);
+  }
   void add_root_node(::flatbuffers::Offset<jam::jmtl::ModelNode> root_node) {
     fbb_.AddOffset(Model::VT_ROOT_NODE, root_node);
   }
@@ -203,6 +212,7 @@ struct ModelBuilder {
 
 inline ::flatbuffers::Offset<Model> CreateModel(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<jam::jmtl::ModelNode> root_node = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> mesh_paths = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> material_paths = 0) {
@@ -210,18 +220,22 @@ inline ::flatbuffers::Offset<Model> CreateModel(
   builder_.add_material_paths(material_paths);
   builder_.add_mesh_paths(mesh_paths);
   builder_.add_root_node(root_node);
+  builder_.add_name(name);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<Model> CreateModelDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
     ::flatbuffers::Offset<jam::jmtl::ModelNode> root_node = 0,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *mesh_paths = nullptr,
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *material_paths = nullptr) {
+  auto name__ = name ? _fbb.CreateString(name) : 0;
   auto mesh_paths__ = mesh_paths ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*mesh_paths) : 0;
   auto material_paths__ = material_paths ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*material_paths) : 0;
   return jam::jmtl::CreateModel(
       _fbb,
+      name__,
       root_node,
       mesh_paths__,
       material_paths__);

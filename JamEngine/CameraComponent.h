@@ -13,7 +13,7 @@ struct CameraComponent :
 
     void Serialize(JsonWriter _writer, const Ref<Scene>& _pScene, Entity _owner) const;
     void Deserialize(JsonReader _reader, const Ref<Scene>& _pScene, Entity _owner);
-    void DrawEditor(const Ref<Scene>& _pScene, Entity _entity);
+    void Panel_EditComponent(const Ref<Scene>& _pScene, Entity _entity);
 
     Camera camera   = {};
     bool   bEnabled = true;

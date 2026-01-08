@@ -4,7 +4,7 @@ struct CameraScriptDataComponent
 {
     JAM_COMPONENT(CameraScriptDataComponent);
 
-    void DrawEditor(const Scene* _pScene, Entity _entity);
+    void Panel_EditComponent(const Scene* _pScene, Entity _entity);
 
     float moveSpeed   = 10.f;
     float rotSpeedRad = ToRad(0.2f);

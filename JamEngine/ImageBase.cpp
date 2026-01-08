@@ -75,13 +75,12 @@ Optional<eImageFormat> ImageFormatFrom(
 {
     const StringView path = _path.native();
 
-    const Optional<Int32> optIdx = path.FindLastOf('.');
-    if (!optIdx)
+    Int32 idx = 0;
+    if (!MoveIfHasValue(path.FindLastOf('.'), idx))
     {
         return k_nullopt;
     }
 
-    const Int32      idx = optIdx.value();
     const StringView ext = path.SubView(idx);
     return ImageFormatFrom(ext);
 }
@@ -92,49 +91,76 @@ Optional<eImageFormat> ImageFormatFrom(const StringView _format)
     return ImageFormatFromLowerExt(lower);
 }
 
-StringView StringFrom(
-    const eImageFormat _format)
+StringView ExtensionOf(
+    const eImageFormat _format,
+    const bool         _bIncludeDot)
 {
+    StringView str;
+
     switch (_format)
     {
         case eImageFormat::EXR:
-            return "exr";
+            str = ".exr";
+            break;
         case eImageFormat::DDS:
-            return "dds";
+            str = ".dds";
+            break;
         case eImageFormat::HDR:
-            return "hdr";
+            str = ".hdr";
+            break;
         case eImageFormat::TGA:
-            return "tga";
+            str = ".tga";
+            break;
         case eImageFormat::BMP:
-            return "bmp";
+            str = ".bmp";
+            break;
         case eImageFormat::JPG:
-            return "jpg";
+            str = ".jpg";
+            break;
         case eImageFormat::JPEG:
-            return "jpeg";
+            str = ".jpeg";
+            break;
         case eImageFormat::PNG:
-            return "png";
+            str = ".png";
+            break;
         case eImageFormat::TIF:
-            return "tif";
+            str = ".tif";
+            break;
         case eImageFormat::TIFF:
-            return "tiff";
+            str = ".tiff";
+            break;
         case eImageFormat::GIF:
-            return "gif";
+            str = ".gif";
+            break;
         case eImageFormat::HDP:
-            return "hdp";
+            str = ".hdp";
+            break;
         case eImageFormat::JXR:
-            return "jxr";
+            str = ".jxr";
+            break;
         case eImageFormat::WDP:
-            return "wdp";
+            str = ".wdp";
+            break;
         case eImageFormat::ICO:
-            return "ico";
+            str = ".ico";
+            break;
         case eImageFormat::HEIF:
-            return "heif";
+            str = ".heif";
+            break;
         case eImageFormat::HEIC:
-            return "heic";
+            str = ".heic";
+            break;
         default:
             JAM_ASSERT(0, "Unknown image format");
-            return "Unknown";
+            str = "unknown";
     }
+
+    if (!_bIncludeDot)
+    {
+        str = str.SubView(1);
+    }
+
+    return str;
 }
 
 }   // namespace jam

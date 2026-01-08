@@ -10,43 +10,57 @@ enum eTextureChannel : byte
 
 struct Vec3
 {
-  x:float;
-  y:float;
-  z:float;
+	x							 : float;	
+	y							 : float;
+	z							 : float;
+}
+
+struct MaterialParams
+{
+	ambient						 : Vec3;
+	diffuse						 : Vec3;
+	specular					 : Vec3;
+	shininess					 : float;
+								 
+	albedo						 : Vec3;
+	roughness					 : float;
+	metallic					 : float;
+								 
+	emissive					 : Vec3;
+	emission_intensity			 : float;
+								 
+	b_alpha_cutout				 : bool;
+	b_double_sided				 : bool;
+}
+
+struct MaterialTextureSettings
+{
+	light_map_intensity			 : float;
+	vertex_displacement_scale	 : float;
+	emissive_map_intensity		 : float;
+	normal_map_fliped_y			 : bool;
+	metallic_map_channel		 : eTextureChannel;
+	roughness_map_channel		 : eTextureChannel;
+}
+
+table MaterialTextures
+{
+	albedo_map_path				 : string;
+	ao_map_path					 : string;
+	light_map_path 				 : string;
+	vertex_displacement_map_path : string;
+	emissive_map_path			 : string;
+	normal_map_path				 : string;
+	metallic_map_path			 : string;
+	roughness_map_path			 : string;
 }
 
 table Material
 {
-	ambient_color                    : Vec3 (required);
-	diffuse_color                    : Vec3 (required);
-	specular_color                   : Vec3 (required);
-	shininess                        : float;
-						             
-	albedo_color                     : Vec3 (required);
-	roughness                        : float;
-	metallic                         : float;
-						             
-	emissive_color                   : Vec3 (required);
-	emissive_intensity               : float;
-						             
-	b_alpha_cutout				     : bool;
-	b_double_sided                   : bool;
-	b_normal_texture_fliped          : bool;
-	light_texture_intensity          : float;
-	emissive_texture_intensity       : float;
-	vertex_displacement_scale        : float;
-
-	metallic_texture_channel         : eTextureChannel;
-	roughness_texture_channel        : eTextureChannel;
-
-	albedo_texture_path              : string;
-	normal_texture_path              : string;
-	metallic_texture_path            : string;
-	roughness_texture_path           : string;
-	ao_texture_path                  : string;
-	emissive_texture_path            : string;
-	light_texture_path               : string;
-	vertex_displacement_texture_path : string;
+	name 						 : string;
+	params						 : MaterialParams;
+	textures					 : MaterialTextures;
+	texture_settings			 : MaterialTextureSettings;
 }
 
 root_type Material;

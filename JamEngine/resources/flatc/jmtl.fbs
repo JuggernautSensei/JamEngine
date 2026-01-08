@@ -13,6 +13,7 @@ table ModelNode {
 }
 
 table Model {
+	name           : string;
 	root_node      : ModelNode;
 	mesh_paths     : [string];
 	material_paths : [string];

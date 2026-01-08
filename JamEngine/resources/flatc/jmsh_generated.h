@@ -28,28 +28,26 @@ struct Mesh;
 struct MeshBuilder;
 
 enum eVertexAttribute : uint8_t {
-  eVertexAttribute_UnknownAttribute = 0,
-  eVertexAttribute_Position = 1,
-  eVertexAttribute_Normal = 2,
-  eVertexAttribute_Tangent = 3,
-  eVertexAttribute_Bitangent = 4,
-  eVertexAttribute_Color0 = 5,
-  eVertexAttribute_Color1 = 6,
-  eVertexAttribute_Color2 = 7,
-  eVertexAttribute_Color3 = 8,
-  eVertexAttribute_BlendIndices = 9,
-  eVertexAttribute_BlendWeights = 10,
-  eVertexAttribute_TexCoord0 = 11,
-  eVertexAttribute_TexCoord1 = 12,
-  eVertexAttribute_TexCoord2 = 13,
-  eVertexAttribute_TexCoord3 = 14,
-  eVertexAttribute_MIN = eVertexAttribute_UnknownAttribute,
+  eVertexAttribute_Position = 0,
+  eVertexAttribute_Normal = 1,
+  eVertexAttribute_Tangent = 2,
+  eVertexAttribute_Bitangent = 3,
+  eVertexAttribute_Color0 = 4,
+  eVertexAttribute_Color1 = 5,
+  eVertexAttribute_Color2 = 6,
+  eVertexAttribute_Color3 = 7,
+  eVertexAttribute_BlendIndices = 8,
+  eVertexAttribute_BlendWeights = 9,
+  eVertexAttribute_TexCoord0 = 10,
+  eVertexAttribute_TexCoord1 = 11,
+  eVertexAttribute_TexCoord2 = 12,
+  eVertexAttribute_TexCoord3 = 13,
+  eVertexAttribute_MIN = eVertexAttribute_Position,
   eVertexAttribute_MAX = eVertexAttribute_TexCoord3
 };
 
-inline const eVertexAttribute (&EnumValueseVertexAttribute())[15] {
+inline const eVertexAttribute (&EnumValueseVertexAttribute())[14] {
   static const eVertexAttribute values[] = {
-    eVertexAttribute_UnknownAttribute,
     eVertexAttribute_Position,
     eVertexAttribute_Normal,
     eVertexAttribute_Tangent,
@@ -69,8 +67,7 @@ inline const eVertexAttribute (&EnumValueseVertexAttribute())[15] {
 }
 
 inline const char * const *EnumNameseVertexAttribute() {
-  static const char * const names[16] = {
-    "UnknownAttribute",
+  static const char * const names[15] = {
     "Position",
     "Normal",
     "Tangent",
@@ -91,26 +88,24 @@ inline const char * const *EnumNameseVertexAttribute() {
 }
 
 inline const char *EnumNameeVertexAttribute(eVertexAttribute e) {
-  if (::flatbuffers::IsOutRange(e, eVertexAttribute_UnknownAttribute, eVertexAttribute_TexCoord3)) return "";
+  if (::flatbuffers::IsOutRange(e, eVertexAttribute_Position, eVertexAttribute_TexCoord3)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNameseVertexAttribute()[index];
 }
 
 enum eAttributeFormat : uint8_t {
-  eAttributeFormat_UnknownFormat = 0,
-  eAttributeFormat_Float = 1,
-  eAttributeFormat_Float2 = 2,
-  eAttributeFormat_Float3 = 3,
-  eAttributeFormat_Float4 = 4,
-  eAttributeFormat_UNorm8x4 = 5,
-  eAttributeFormat_UInt8x4 = 6,
-  eAttributeFormat_MIN = eAttributeFormat_UnknownFormat,
+  eAttributeFormat_Float = 0,
+  eAttributeFormat_Float2 = 1,
+  eAttributeFormat_Float3 = 2,
+  eAttributeFormat_Float4 = 3,
+  eAttributeFormat_UNorm8x4 = 4,
+  eAttributeFormat_UInt8x4 = 5,
+  eAttributeFormat_MIN = eAttributeFormat_Float,
   eAttributeFormat_MAX = eAttributeFormat_UInt8x4
 };
 
-inline const eAttributeFormat (&EnumValueseAttributeFormat())[7] {
+inline const eAttributeFormat (&EnumValueseAttributeFormat())[6] {
   static const eAttributeFormat values[] = {
-    eAttributeFormat_UnknownFormat,
     eAttributeFormat_Float,
     eAttributeFormat_Float2,
     eAttributeFormat_Float3,
@@ -122,8 +117,7 @@ inline const eAttributeFormat (&EnumValueseAttributeFormat())[7] {
 }
 
 inline const char * const *EnumNameseAttributeFormat() {
-  static const char * const names[8] = {
-    "UnknownFormat",
+  static const char * const names[7] = {
     "Float",
     "Float2",
     "Float3",
@@ -136,7 +130,7 @@ inline const char * const *EnumNameseAttributeFormat() {
 }
 
 inline const char *EnumNameeAttributeFormat(eAttributeFormat e) {
-  if (::flatbuffers::IsOutRange(e, eAttributeFormat_UnknownFormat, eAttributeFormat_UInt8x4)) return "";
+  if (::flatbuffers::IsOutRange(e, eAttributeFormat_Float, eAttributeFormat_UInt8x4)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNameseAttributeFormat()[index];
 }
@@ -173,26 +167,26 @@ FLATBUFFERS_STRUCT_END(VertexLayoutElement, 4);
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) VertexLayout FLATBUFFERS_FINAL_CLASS {
  private:
   jam::jmsh::VertexLayoutElement elems_[14];
-  int32_t count_;
+  int32_t num_elems_;
 
  public:
   VertexLayout()
       : elems_(),
-        count_(0) {
+        num_elems_(0) {
   }
-  VertexLayout(int32_t _count)
+  VertexLayout(int32_t _num_elems)
       : elems_(),
-        count_(::flatbuffers::EndianScalar(_count)) {
+        num_elems_(::flatbuffers::EndianScalar(_num_elems)) {
   }
-  VertexLayout(::flatbuffers::span<const jam::jmsh::VertexLayoutElement, 14> _elems, int32_t _count)
-      : count_(::flatbuffers::EndianScalar(_count)) {
+  VertexLayout(::flatbuffers::span<const jam::jmsh::VertexLayoutElement, 14> _elems, int32_t _num_elems)
+      : num_elems_(::flatbuffers::EndianScalar(_num_elems)) {
     ::flatbuffers::CastToArray(elems_).CopyFromSpan(_elems);
   }
   const ::flatbuffers::Array<jam::jmsh::VertexLayoutElement, 14> *elems() const {
     return &::flatbuffers::CastToArray(elems_);
   }
-  int32_t count() const {
-    return ::flatbuffers::EndianScalar(count_);
+  int32_t num_elems() const {
+    return ::flatbuffers::EndianScalar(num_elems_);
   }
 };
 FLATBUFFERS_STRUCT_END(VertexLayout, 60);
@@ -252,30 +246,36 @@ FLATBUFFERS_STRUCT_END(AABB, 24);
 struct Mesh FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef MeshBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VERTICES = 4,
-    VT_VERTEX_LAYOUT = 6,
-    VT_INDICES = 8,
-    VT_AABB = 10
+    VT_NAME = 4,
+    VT_VERT_DATA = 6,
+    VT_VERTEX_LAYOUT = 8,
+    VT_IDX_DATA = 10,
+    VT_AABB = 12
   };
-  const ::flatbuffers::Vector<uint8_t> *vertices() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_VERTICES);
+  const ::flatbuffers::String *name() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_NAME);
+  }
+  const ::flatbuffers::Vector<uint8_t> *vert_data() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_VERT_DATA);
   }
   const jam::jmsh::VertexLayout *vertex_layout() const {
     return GetStruct<const jam::jmsh::VertexLayout *>(VT_VERTEX_LAYOUT);
   }
-  const ::flatbuffers::Vector<uint8_t> *indices() const {
-    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_INDICES);
+  const ::flatbuffers::Vector<uint8_t> *idx_data() const {
+    return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_IDX_DATA);
   }
   const jam::jmsh::AABB *aabb() const {
     return GetStruct<const jam::jmsh::AABB *>(VT_AABB);
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_VERTICES) &&
-           verifier.VerifyVector(vertices()) &&
-           VerifyFieldRequired<jam::jmsh::VertexLayout>(verifier, VT_VERTEX_LAYOUT, 4) &&
-           VerifyOffsetRequired(verifier, VT_INDICES) &&
-           verifier.VerifyVector(indices()) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           VerifyOffset(verifier, VT_VERT_DATA) &&
+           verifier.VerifyVector(vert_data()) &&
+           VerifyField<jam::jmsh::VertexLayout>(verifier, VT_VERTEX_LAYOUT, 4) &&
+           VerifyOffset(verifier, VT_IDX_DATA) &&
+           verifier.VerifyVector(idx_data()) &&
            VerifyField<jam::jmsh::AABB>(verifier, VT_AABB, 4) &&
            verifier.EndTable();
   }
@@ -285,14 +285,17 @@ struct MeshBuilder {
   typedef Mesh Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_vertices(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices) {
-    fbb_.AddOffset(Mesh::VT_VERTICES, vertices);
+  void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
+    fbb_.AddOffset(Mesh::VT_NAME, name);
+  }
+  void add_vert_data(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vert_data) {
+    fbb_.AddOffset(Mesh::VT_VERT_DATA, vert_data);
   }
   void add_vertex_layout(const jam::jmsh::VertexLayout *vertex_layout) {
     fbb_.AddStruct(Mesh::VT_VERTEX_LAYOUT, vertex_layout);
   }
-  void add_indices(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> indices) {
-    fbb_.AddOffset(Mesh::VT_INDICES, indices);
+  void add_idx_data(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> idx_data) {
+    fbb_.AddOffset(Mesh::VT_IDX_DATA, idx_data);
   }
   void add_aabb(const jam::jmsh::AABB *aabb) {
     fbb_.AddStruct(Mesh::VT_AABB, aabb);
@@ -304,40 +307,42 @@ struct MeshBuilder {
   ::flatbuffers::Offset<Mesh> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<Mesh>(end);
-    fbb_.Required(o, Mesh::VT_VERTICES);
-    fbb_.Required(o, Mesh::VT_VERTEX_LAYOUT);
-    fbb_.Required(o, Mesh::VT_INDICES);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<Mesh> CreateMesh(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vertices = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> name = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> vert_data = 0,
     const jam::jmsh::VertexLayout *vertex_layout = nullptr,
-    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> indices = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> idx_data = 0,
     const jam::jmsh::AABB *aabb = nullptr) {
   MeshBuilder builder_(_fbb);
   builder_.add_aabb(aabb);
-  builder_.add_indices(indices);
+  builder_.add_idx_data(idx_data);
   builder_.add_vertex_layout(vertex_layout);
-  builder_.add_vertices(vertices);
+  builder_.add_vert_data(vert_data);
+  builder_.add_name(name);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<Mesh> CreateMeshDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<uint8_t> *vertices = nullptr,
+    const char *name = nullptr,
+    const std::vector<uint8_t> *vert_data = nullptr,
     const jam::jmsh::VertexLayout *vertex_layout = nullptr,
-    const std::vector<uint8_t> *indices = nullptr,
+    const std::vector<uint8_t> *idx_data = nullptr,
     const jam::jmsh::AABB *aabb = nullptr) {
-  auto vertices__ = vertices ? _fbb.CreateVector<uint8_t>(*vertices) : 0;
-  auto indices__ = indices ? _fbb.CreateVector<uint8_t>(*indices) : 0;
+  auto name__ = name ? _fbb.CreateString(name) : 0;
+  auto vert_data__ = vert_data ? _fbb.CreateVector<uint8_t>(*vert_data) : 0;
+  auto idx_data__ = idx_data ? _fbb.CreateVector<uint8_t>(*idx_data) : 0;
   return jam::jmsh::CreateMesh(
       _fbb,
-      vertices__,
+      name__,
+      vert_data__,
       vertex_layout,
-      indices__,
+      idx_data__,
       aabb);
 }
 

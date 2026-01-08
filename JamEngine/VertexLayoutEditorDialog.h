@@ -1,48 +1,37 @@
 #pragma once
-#include "PopupDialog.h"
-#include "VertexLayout.h"
-#include "VertexLayoutStorage.h"
+#include "Dialog.h"
 
 namespace jam
 {
 
-class VertexLayoutEditorDialog
+class VertexLayoutEntry;
+
+class VertexLayoutEditorDialog : public Dialog
 {
-    struct Element
+    enum class eDirection
     {
-        eVertexAttribute attrib = eVertexAttribute::Unknown;
-        eAttributeFormat format = eAttributeFormat::Unknown;
-        Int32            offset = 0;
+        Up,
+        Down,
     };
 
+    constexpr Int32 k_invalidIndex = -1;
+
 public:
-    explicit VertexLayoutEditorDialog(const Ref<VertexLayoutEntry>& _pEntry);
-    void operator()();
+    explicit VertexLayoutEditorDialog(const Ref<VertexLayoutEntry>& _pVle);
+    void OnShow() override;
 
 private:
-    bool OnClickOkButton_();
+    bool Widget_VertexAttributeCombo_(const char* _label, eVertexAttribute& _attrib) const;
+    bool Widget_AttributeFormatCombo_(const char* _label, eAttributeFormat& _format) const;
 
-    bool Widget_VertexFormatSelector_(eAttributeFormat& _format);
-    bool Widget_VertexAttributeSelector_(eVertexAttribute& _attrib);
+    void OnClickRemoveButton_(eVertexAttribute _attrib);
+    void OnClickAddButton_();
+    bool OnClickSaveButton_();
 
-    void RemoveElement_(Int32 _idx);
-    void AddNewElement_();
-    void UpdateState_();
+    VertexLayout m_vl = {};
 
-    [[nodiscard]] VertexLayout BuildLayout_() const;
-
-    // buffer
-    std::string m_oldName;
-    std::string m_nameBuf;
-
-    // vertex vertexLayout
-    Element m_elems[NumEnums<eVertexAttribute>()];
-    Int32   m_count  = 0;
-    Int32   m_stride = 0;
-    bool    m_bIsAttribDuplicated = false;
-
-    // popup
-    PopupDialog m_popup;
+    std::string m_name    = {};
+    std::string m_oldName = {};
 };
 
 }   // namespace jam

@@ -13,33 +13,33 @@ Dialog::Dialog(
     , m_size(_size)
     , m_flags(_flags)
 {
-    m_bAutoResize = (IsZeroApprox(_size.x) && IsZeroApprox(_size.y));
-    m_bSignal     = false;
+    m_bAutoResize  = (IsZeroApprox(_size.x) && IsZeroApprox(_size.y));
+    m_bOpenRequest = false;
 }
 
 void Dialog::Open()
 {
-    m_bSignal = true;
+    m_bOpenRequest = true;
 }
 
 void Dialog::Show()
 {
-    if (m_bSignal)
+    if (m_bOpenRequest)
     {
         ImGui::OpenPopup(m_title.c_str());
-        m_bOpen = true;
+        m_bOpen        = true;
+        m_bOpenRequest = false;
     }
 
-    if (OpenPopup_())
+    if (m_bOpen && BeginPopup_())
     {
-        m_bSignal = false;
-        m_bOpen   = true;
-
         OnShow();
         ImGui::EndPopup();
     }
     else
     {
+        // prevent m_bOpen == true && BeginPopup_() == false
+        // m_bOpen must track the actual open state of the dialog
         m_bOpen = false;
     }
 }
@@ -49,14 +49,19 @@ bool Dialog::IsOpen() const
     return m_bOpen;
 }
 
-bool Dialog::OpenPopup_() const
+void Dialog::Close()
 {
-    ImGuiContext& g    = *ImGui::GetCurrentContext();
+    m_bOpen = false;
+}
+
+bool Dialog::BeginPopup_() const
+{
+    ImGuiContext* pCtx = ImGui::GetCurrentContext();
     ImGuiWindow*  pWin = ImGui::GetCurrentWindow();
     const ImGuiID id   = pWin->GetID(m_title.c_str());
     if (!ImGui::IsPopupOpen(id, ImGuiPopupFlags_None))
     {
-        g.NextWindowData.ClearFlags();
+        pCtx->NextWindowData.ClearFlags();
         return false;
     }
 
@@ -71,6 +76,9 @@ bool Dialog::OpenPopup_() const
 
     if (m_flags & eDialogFlags_NoResize)
         flags |= ImGuiWindowFlags_NoResize;
+
+    if (m_flags & eDialogFlags_NoMove)
+        flags |= ImGuiWindowFlags_NoMove;
 
     // set next window pos to center of screen
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2 { 0.5f, 0.5f });
@@ -92,7 +100,7 @@ bool Dialog::OpenPopup_() const
         ImGui::EndPopup();
         if (bWinOpen)
         {
-            ImGui::ClosePopupToLevel(g.BeginPopupStack.Size, true);
+            ImGui::ClosePopupToLevel(pCtx->BeginPopupStack.Size, true);
         }
 
         return false;

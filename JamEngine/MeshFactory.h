@@ -39,19 +39,19 @@ struct TangentFrame
 [[nodiscard]] Mesh CreateCylinder(
     float               _height,
     float               _radius,
-    Int32               _numTri,
+    Int32               _numTries,
     const VertexLayout& _vl);
 
 [[nodiscard]] Vector<Vec3> ComputeNormals(
-    std::span<const Vec3> _positions,
-    CMemView              _idxData,
-    bool                  _bUseU32);
+    Span<const Vec3> _positions,
+    CMemView         _idxData,
+    bool             _bUseU32);
 
 [[nodiscard]] TangentFrame ComputeTangentFrame(
-    std::span<const Vec3> _positions,
-    std::span<const Vec3> _normals,
-    std::span<const Vec2> _texCoords,
-    CMemView              _idxData,
-    bool                  _bUseU32);
+    Span<const Vec3> _positions,
+    Span<const Vec3> _normals,
+    Span<const Vec2> _texCoords,
+    CMemView         _idxData,
+    bool             _bUseU32);
 
 }   // namespace jam

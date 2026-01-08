@@ -38,7 +38,6 @@ struct SceneManagerContext
     }
 
     Ref<Scene> pActiveScene = nullptr;
-    Ref<Scene> pNextScene   = nullptr;
 
 }* g_pSceneMgrCtx = nullptr;
 
@@ -90,9 +89,6 @@ void SceneManager::Update(const float _deltaSec)
     // update active scene
     if (const Ref<Scene>& pScene = g_pSceneMgrCtx->pActiveScene)
     {
-        // 이전 프레임에 예약된 파괴 후보를 처리
-        pScene->ProcessDeferredDestroyEntities_();
-
         // udpate script
         for (const auto&& [_, sc]: pScene->Each<ScriptComponent>())
         {
@@ -176,19 +172,19 @@ bool SceneManager::LoadScene(const fs::path& _path)
         return false;
     }
 
-    g_pSceneMgrCtx->pNextScene = deserializer.GetScene();
+    ChangeSceneDefered_(deserializer.GetScene());
     return true;
 }
 
 void SceneManager::LoadScene(const Ref<Scene>& _pScene)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
-    g_pSceneMgrCtx->pNextScene = _pScene;
+    ChangeSceneDefered_(_pScene);
 }
 
 bool SceneManager::HasActiveScene()
 {
-    return !!g_pSceneMgrCtx->pActiveScene;
+    return g_pSceneMgrCtx->pActiveScene != nullptr;
 }
 
 Ref<Scene>& SceneManager::GetActiveScene()
@@ -197,35 +193,38 @@ Ref<Scene>& SceneManager::GetActiveScene()
     return g_pSceneMgrCtx->pActiveScene;
 }
 
-void SceneManager::ChangeSceneIfNeed_()
+void SceneManager::ChangeSceneDefered_(
+    const Ref<Scene>& _pScene)
 {
-    if (Ref<Scene>& pNextScene = g_pSceneMgrCtx->pNextScene)
+    Application& app = Application::GetInstance();
+    app.SubmitCommand(JAM_BIND_FUNCTION(ChangeScene_, _pScene));
+}
+
+void SceneManager::ChangeScene_(
+    const Ref<Scene>& _pScene)
+{
+    Ref<Scene>& pActiveScene = g_pSceneMgrCtx->pActiveScene;
+    if (pActiveScene)
     {
-        Ref<Scene>& pActiveScene = g_pSceneMgrCtx->pActiveScene;
-
-        if (pActiveScene)   // 기존 씬 퇴장
-        {
-            pActiveScene->OnExit();
-        }
-
-        pActiveScene = std::move(pNextScene);   // change scene
-        pActiveScene->OnEnter();                // enter scene
-
-        // resize in runtime.
-        // in editor mode, scene resize is handled by editor
-        if (!Application::GetInstance().IsEditorEnabled())
-        {
-            const auto [w, h] = Graphics::GetBackBufferResolution();
-            g_pSceneMgrCtx->Resize(w, h);
-        }
-
-        // resource garbage collection
-        AssetManager::CleanGarbageAll();
-
-        // dispatch scene changed event
-        SceneChangedEvent event = {};
-        Application::GetInstance().DispatchEvent(event);
+        pActiveScene->OnExit();
     }
+
+    pActiveScene = _pScene;
+    pActiveScene->OnEnter();
+
+    // resize in runtime.
+    if (!Application::GetInstance().IsEditorEnabled())
+    {
+        const auto [w, h] = Graphics::GetBackBufferResolution();
+        g_pSceneMgrCtx->Resize(w, h);
+    }
+
+    // resource garbage collection
+    AssetManager::CleanGarbageAll();
+
+    // dispatch scene changed event
+    SceneChangedEvent event = {};
+    Application::GetInstance().DispatchEvent(event);
 }
 
 }   // namespace jam

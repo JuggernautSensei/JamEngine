@@ -33,20 +33,11 @@ public:
         return s_tmpBuffer.ToStringView();
     }
 
-    [[nodiscard]] static StringView PrintfTmp(const char* _fmt, ...)
-    {
-        va_list args;
-        va_start(args, _fmt);
-        s_tmpBuffer.VPrintf(_fmt, args);
-        va_end(args);
-        return s_tmpBuffer.ToStringView();
-    }
-
 private:
     static constexpr Int32 k_bufferCap = 2048;
 
-    static thread_local FixedString<k_bufferCap> s_errorBuffer;
-    static thread_local FixedString<k_bufferCap> s_tmpBuffer;
+    inline static thread_local FixedString<k_bufferCap> s_errorBuffer = {};
+    inline static thread_local FixedString<k_bufferCap> s_tmpBuffer   = {};
 };
 
 }   // namespace jam

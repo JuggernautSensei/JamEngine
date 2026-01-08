@@ -138,6 +138,12 @@
 #    define JAM_DEBUG
 #endif
 
+#ifdef JAM_DEBUG
+#    define JAM_DEBUG_ENABLED 1
+#else
+#    define JAM_DEBUG_ENABLED 0
+#endif
+
 #define JAM_ENGINE_NAME "Jam Engine"
 
 #define JAM_VERSION_TO_STRING_HELPER(_x) #_x
@@ -176,4 +182,3 @@
 #if defined(JAM_SIMD_SSE) || defined(JAM_SIMD_NEON) || defined(JAM_SIMD_LANGEXT)
 #    define JAM_SIMD_ENABLED
 #endif
-

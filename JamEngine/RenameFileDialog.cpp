@@ -2,28 +2,41 @@
 
 #include "RenameFileDialog.h"
 
+#include "Editor.h"
 #include "EditorWidgets.h"
 #include "ImGuiUtilities.h"
 
 namespace jam
 {
 
-RenameFileDialog::RenameFileDialog(const fs::path& _path)
-    : m_srcPath(_path)
+RenameFileDialog::RenameFileDialog(
+    const fs::path&    _path,
+    const ImVec2       _size,
+    const eDialogFlags _flags)
+    : Dialog("rename file", _size, _flags)
+    , m_parentPath(_path.parent_path())
+    , m_srcFilename(_path.filename())
+    , m_name(m_srcFilename.native())
 {
-    m_buf = _path.filename();
 }
 
-void RenameFileDialog::operator()()
+void RenameFileDialog::OnShow()
 {
-    ImGui::TextUnformatted("write new file name");
-    SetNextItemWidthToAvailableWidth();
-    ImGui::InputText("##RenameFileInputText", &m_buf);
-
     const ImVec2 btnSize = CalcFitButtonSize(2);
+
+    // message
+    Widget_WrappedText("enter new name for file:", k_textWrapWidth);
+    ImGui::Spacing();
+
+    // input
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::InputText("##Input", &m_name);
+    ImGui::Spacing();
+
+    // buttons
     if (ImGui::Button("ok", btnSize))
     {
-        if (OnClickOk_())
+        if (OnClickOkButton())
         {
             ImGui::CloseCurrentPopup();
         }
@@ -34,40 +47,23 @@ void RenameFileDialog::operator()()
     {
         ImGui::CloseCurrentPopup();
     }
-
-    m_popup.Show();
 }
 
-bool RenameFileDialog::OnClickOk_()
+bool RenameFileDialog::OnClickOkButton() const
 {
-    if (m_buf.empty())
+    const fs::path oldPath = m_parentPath / m_srcFilename;
+    const fs::path newPath = m_parentPath / m_name;
+
+    std::error_code ec = {};
+    fs::rename(oldPath, newPath, ec);
+    if (ec)
     {
-        m_popup.Open("error", "file name cannot be empty.");
+        const StringView msg = GlobalBuffer::FormatTmp("failed to rename file from '{}' to '{}'.\n{}", oldPath.native(), newPath.native(), ec.message());
+        Editor::PushMessageDialog("error", msg);
         return false;
     }
 
-    const fs::path dstPath = m_srcPath.parent_path() / m_buf;
-    if (dstPath != m_srcPath)
-    {
-        if (fs::exists(dstPath))
-        {
-            const std::string msg = std::format("cannot rename file.\ntarget file already exists: {}", dstPath.native());
-            m_popup.Open("error", msg);
-            return false;
-        }
-
-        try
-        {
-            fs::rename(m_srcPath, dstPath);
-        }
-        catch (const fs::filesystem_error& e)
-        {
-            const std::string msg = std::format("failed to rename file: {}\nerror: {}", m_srcPath.native(), e.what());
-            m_popup.Open("error", msg);
-            return false;
-        }
-    }
-
+    // succeeded
     return true;
 }
 

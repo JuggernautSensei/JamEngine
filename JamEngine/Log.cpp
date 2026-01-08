@@ -7,6 +7,8 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include "Magics.h"
+
 namespace jam
 {
 
@@ -54,11 +56,11 @@ void Log::Init()
     JAM_ASSERT(g_pLogCtx == nullptr, "Log is already initialized.");
     g_pLogCtx = JAM_NEW(LogContext);
 
-    const TimeStamp   ts       = TimeStamp::Current();
-    const std::string filename = std::format("Logs/{:04}-{:02}-{:02}/{:02}h {:02}m {:02}.{:03}s.log", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
+    const TimeStamp   ts   = TimeStamp::Current();
+    const std::string path = std::format("{}/{:04}-{:02}-{:02}/{:02}h {:02}m {:02}.{:03}s.log", k_logsDirName, ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
 
     g_pLogCtx->pConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    g_pLogCtx->pFileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
+    g_pLogCtx->pFileSink    = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path, true);
 
     AddSink("_JAM_CONSOLE_SINK_", g_pLogCtx->pConsoleSink);
     AddSink("_JAM_FILE_SINK_", g_pLogCtx->pFileSink);

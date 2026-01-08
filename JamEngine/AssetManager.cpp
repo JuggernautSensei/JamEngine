@@ -5,47 +5,48 @@
 #include "Application.h"
 #include "Events.h"
 
+#include "Material.h"
+#include "Mesh.h"
+#include "ImageTexture.h"
+#include "Model.h"
+
 namespace jam
 {
 
 struct AssetManagerContext
 {
-    using Container = HashMap<fs::path, Ref<IAsset>>;
+    using AssetMap     = HashMap<fs::path, Ref<IAsset>>;
+    using AssetMapIter = AssetMap::iterator;
 
-    [[nodiscard]] Optional<fs::path> RelativeFromWorkingDirectory(const fs::path& _path) const;
-    [[nodiscard]] Ref<IAsset>        MakeAssetRef(eAssetType _type) const;
+    [[nodiscard]] fs::path    ProcessPath(const fs::path& _path) const;
+    [[nodiscard]] Ref<IAsset> MakeAssetRef(eAssetType _type) const;
 
-    void OnFileModifiedEvent(const FileModifiedEvent& _event) const;
+    void OnFileModifiedEvent(const FileModifiedEvent& _event);
     void OnFileRenamedEvent(const FileRenamedEvent& _event);
     void OnFileDeletedEvent(const FileDeletedEvent& _event);
 
-    Optional<Ref<IAsset>> Load(eAssetType _type, const fs::path& _path, bool _bForceReload);
-    void                  Unload(eAssetType _type, const fs::path& _path);
-    Optional<Ref<IAsset>> GetOrLoad(eAssetType _type, const fs::path& _path);
-    Ref<IAsset>           Get(eAssetType _type, const fs::path& _path) const;
-    [[nodiscard]] bool    Has(eAssetType _type, const fs::path& _path) const;
+    [[nodiscard]] AssetMapIter Find(eAssetType _type, const fs::path& _processedPath);
+    [[nodiscard]] bool         Has(eAssetType _type, AssetMapIter _it);
+    Optional<Ref<IAsset>>      Load(eAssetType _type, const fs::path& _processedPath, bool _bReloadIfExist);
+    Optional<Ref<IAsset>>      Reload(eAssetType _type, AssetMapIter _it);
+    void                       Unload(eAssetType _type, AssetMapIter _it);
+    void                       Rename(eAssetType _type, AssetMapIter _oldIt, const fs::path& _newProcessedPath);
+
+    [[nodiscard]] AssetMap& GetAssetMap(eAssetType _type);
 
     void Clear(eAssetType _type);
     void CleanGarbage(eAssetType _type);
 
-    Array<Container, NumEnums<eAssetType>()> assetMaps;
+    Array<AssetMap, NumEnums<eAssetType>()> assetMaps;
 
 }* g_assetMgrCtx = nullptr;
 
-Optional<fs::path> AssetManagerContext::RelativeFromWorkingDirectory(
+fs::path AssetManagerContext::ProcessPath(
     const fs::path& _path) const
 {
-    const Application& app = Application::GetInstance();
-
-    std::error_code ec;
-    const fs::path  relPath = fs::relative(_path, app.GetWorkingDirectory(), ec);
-    if (ec)
-    {
-        GlobalBuffer::SetLastError("AssetManagerContext - failed to calculate relative path: {}. {}", _path.native(), ec.message());
-        return k_nullopt;
-    }
-
-    return relPath;
+    const Application& app        = Application::GetInstance();
+    const fs::path&    workingDir = app.GetWorkingDirectory();
+    return fs::relative(_path, workingDir);
 }
 
 Ref<IAsset> AssetManagerContext::MakeAssetRef(
@@ -70,45 +71,22 @@ Ref<IAsset> AssetManagerContext::MakeAssetRef(
 void AssetManagerContext::OnFileRenamedEvent(
     const FileRenamedEvent& _event)
 {
-    // old path
-    const Optional<fs::path> optOld = RelativeFromWorkingDirectory(_event.GetOldPath());
-    if (!optOld)
-    {
-        return;
-    }
-    const fs::path& oldPath = optOld.value();
-
-    // new path
-    const Optional<fs::path> optNew = RelativeFromWorkingDirectory(_event.GetNewPath());
-    if (!optNew)
-    {
-        return;
-    }
-    const fs::path& newPath = optNew.value();
+    // process path
+    const fs::path& oldPath = ProcessPath(_event.GetOldPath());
+    const fs::path& newPath = ProcessPath(_event.GetNewPath());
 
     // for each asset type
-    for (const eAssetType type: EnumRanges<eAssetType>())
+    for (eAssetType type: eAssetType {})
     {
-        if (!Has(type, oldPath))
+        // 없으면 스킵
+        AssetMapIter oldIt = Find(type, oldPath);
+        if (Has(type, oldIt) == false)
         {
             continue;
         }
 
-        // if asset already exists at new path, unload it first
-        if (Has(type, newPath))
-        {
-            Unload(type, newPath);
-        }
-
-        // reload into the same object instance
-        const Ref<IAsset> pAsset = Get(type, oldPath);
-        if (pAsset->Load(newPath))
-        {
-            // update container key: remove old, insert new
-            Container& container = assetMaps[IntFrom(type)];
-            container.erase(oldPath);
-            container[newPath] = pAsset;
-        }
+        // rename
+        Rename(type, oldIt, newPath);
     }
 }
 
@@ -116,159 +94,147 @@ void AssetManagerContext::OnFileDeletedEvent(
     const FileDeletedEvent& _event)
 {
     // unload existing asset
-    if (const Optional<fs::path> optPath = RelativeFromWorkingDirectory(_event.GetPath()))
+    const fs::path path = ProcessPath(_event.GetPath());
+    for (const eAssetType type: eAssetType {})
     {
-        const fs::path& path = optPath.value();
-        for (const eAssetType type: EnumRanges<eAssetType>())
+        const AssetMapIter it = Find(type, path);
+        if (Has(type, it))
         {
-            if (Has(type, path))
-            {
-                Unload(type, path);
-            }
+            Unload(type, it);
         }
     }
 }
 
-void AssetManagerContext::OnFileModifiedEvent(
-    const FileModifiedEvent& _event) const
+AssetManagerContext::AssetMapIter AssetManagerContext::Find(
+    const eAssetType _type,
+    const fs::path&  _processedPath)
 {
-    // reload existing asset without creating new object
-    if (const Optional<fs::path> optPath = RelativeFromWorkingDirectory(_event.GetPath()))
-    {
-        const fs::path& path = optPath.value();
-        for (const eAssetType type: EnumRanges<eAssetType>())
-        {
-            if (Has(type, path))
-            {
-                Get(type, path)->Load(path);
-            }
-        }
-    }
+    AssetMap& map = GetAssetMap(_type);
+    return map.find(_processedPath);
+}
+
+bool AssetManagerContext::Has(const eAssetType _type, const AssetMapIter _it)
+{
+    AssetMap& map = GetAssetMap(_type);
+    return _it != map.end();
 }
 
 Optional<Ref<IAsset>> AssetManagerContext::Load(
     const eAssetType _type,
-    const fs::path&  _path,
-    const bool       _bForceReload)
+    const fs::path&  _processedPath,
+    const bool       _bReloadIfExist)
 {
-    const Optional<fs::path> opt = RelativeFromWorkingDirectory(_path);
-    if (!opt)
-    {
-        return k_nullopt;
-    }
+    AssetMapIter it  = Find(_type, _processedPath);
+    AssetMap&    map = GetAssetMap(_type);
 
-    const fs::path& path      = opt.value();
-    Container&      container = assetMaps[IntFrom(_type)];
-
-    // check if already exists
-    if (container.contains(path))
+    // 만약 존재할 경우 그대로 리턴
+    if (it != map.end())
     {
-        Ref<IAsset>& asset = container[path];
-        if (_bForceReload)
+        if (_bReloadIfExist)
         {
-            if (asset->Load(path))
-                return asset;
-
-            // load failed, remove invalid asset
-            container.erase(path);
-            return k_nullopt;
+            // 필요시 리로드
+            return Reload(_type, it);
         }
-        return asset;
+        else
+        {
+            // 그대로 리턴
+            return it->second;
+        }
     }
 
-    // create new asset
+    // 없으면 새롭게 생성 후 로드
     Ref<IAsset> pAsset = MakeAssetRef(_type);
-    if (pAsset->Load(path))
-    {
-        container[path] = pAsset;
-        return pAsset;
-    }
-    else
+    if (!pAsset->Load(_processedPath))
     {
         return k_nullopt;
     }
+
+    map[_processedPath] = pAsset;
+    return pAsset;
 }
 
-Ref<IAsset> AssetManagerContext::Get(
-    const eAssetType _type,
-    const fs::path&  _path) const
+Optional<Ref<IAsset>> AssetManagerContext::Reload(const eAssetType _type, AssetMapIter _it)
 {
-    if (const Optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
+    Ref<IAsset>& pAsset = _it->second;
+    if (!pAsset->Load(pAsset->GetPath()))
     {
-        const fs::path&  path      = opt.value();
-        const Container& container = assetMaps[IntFrom(_type)];
-        JAM_ASSERT(container.contains(path), "asset not found: {}", path.native());
-        return container.at(path);
+        AssetMap& map = GetAssetMap(_type);
+        map.erase(_it);   // remove invalid asset
+        return k_nullopt;
     }
-    else
-    {
-        JAM_ASSERT(0, "failed to calculate relative path for asset: {}", _path.native());
-        return nullptr;
-    }
+    return pAsset;
 }
 
-void AssetManagerContext::Unload(
-    const eAssetType _type,
-    const fs::path&  _path)
+void AssetManagerContext::Unload(const eAssetType _type, AssetMapIter _it)
 {
-    if (const Optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
-    {
-        const fs::path& path      = opt.value();
-        Container&      container = assetMaps[IntFrom(_type)];
+    AssetMap& map = GetAssetMap(_type);
+    JAM_ASSERT(_it != map.end(), "AssetManagerContext::Unload() called with invalid iterator.");
+    Ref<IAsset>& pAsset = _it->second;
+    pAsset->Unload();
+    map.erase(_it);
+}
 
-        if (container.contains(path))
+void AssetManagerContext::Rename(
+    const eAssetType _type,
+    AssetMapIter     _oldIt,
+    const fs::path&  _newProcessedPath)
+{
+    // new path에 이미 에셋이 있으면 unload.
+    const AssetMapIter it = Find(_type, _newProcessedPath);
+    if (Has(_type, it))
+    {
+        Unload(_type, it);
+    }
+
+    // new path load
+    Load(_type, _newProcessedPath, false);
+
+    // old path unload
+    Unload(_type, _oldIt);
+}
+
+AssetManagerContext::AssetMap& AssetManagerContext::GetAssetMap(
+    const eAssetType _type)
+{
+    return assetMaps[IntFrom(_type)];
+}
+
+void AssetManagerContext::OnFileModifiedEvent(
+    const FileModifiedEvent& _event)
+{
+    // reload existing asset without creating new object
+    const fs::path path = ProcessPath(_event.GetPath());
+    for (const eAssetType type: eAssetType {})
+    {
+        // 존재하면 리로드
+        AssetMapIter it = Find(type, path);
+        if (Has(type, it))
         {
-            container.at(path)->Unload();
-            container.erase(path);
+            Reload(type, it);
         }
-    }
-}
-
-bool AssetManagerContext::Has(
-    const eAssetType _type,
-    const fs::path&  _path) const
-{
-    if (const Optional<fs::path> opt = RelativeFromWorkingDirectory(_path))
-    {
-        const Container& container = assetMaps[IntFrom(_type)];
-        return container.contains(opt.value());
-    }
-    else
-    {
-        return false;
-    }
-}
-
-Optional<Ref<IAsset>> AssetManagerContext::GetOrLoad(
-    const eAssetType _type,
-    const fs::path&  _path)
-{
-    if (Has(_type, _path))
-    {
-        return Get(_type, _path);
-    }
-    else
-    {
-        return Load(_type, _path, false);
     }
 }
 
 void AssetManagerContext::Clear(
     const eAssetType _type)
 {
-    assetMaps[IntFrom(_type)].clear();
+    AssetMap& map = GetAssetMap(_type);
+    for (auto it = map.begin(); it != map.end();)
+    {
+        Unload(_type, it++);
+    }
 }
 
 void AssetManagerContext::CleanGarbage(
     const eAssetType _type)
 {
-    Container& container = assetMaps[IntFrom(_type)];
-    for (auto it = container.begin(); it != container.end();)
+    AssetMap& map = GetAssetMap(_type);
+    for (auto it = map.begin(); it != map.end();)
     {
         // if ref count is 1, it means only the manager holds it
         if (it->second->GetRefCount() == 1)
         {
-            it = container.erase(it);
+            it = map.erase(it);
         }
         else
         {
@@ -307,160 +273,72 @@ Optional<Ref<IAsset>> AssetManager::Load(
     const fs::path&  _path,
     const bool       _bForceReload)
 {
-    return g_assetMgrCtx->Load(_type, _path, _bForceReload);
+    const fs::path path = g_assetMgrCtx->ProcessPath(_path);
+    return g_assetMgrCtx->Load(_type, path, _bForceReload);
 }
 
 Optional<Ref<Model>> AssetManager::LoadModel(
     const fs::path& _path,
     const bool      _bForceReload)
 {
-    if (const Optional<Ref<IAsset>> opt = g_assetMgrCtx->Load(eAssetType::Model, _path, _bForceReload))
-    {
-        return opt->As<Model>();
-    }
-    else
+    Ref<IAsset> pAsset;
+    if (!MoveIfHasValue(Load(eAssetType::Model, _path, _bForceReload), pAsset))
     {
         return k_nullopt;
     }
+
+    return pAsset.As<Model>();
 }
 
 Optional<Ref<Mesh>> AssetManager::LoadMesh(
     const fs::path& _path,
     const bool      _bForceReload)
 {
-    if (const Optional<Ref<IAsset>> opt = Load(eAssetType::Mesh, _path, _bForceReload))
-    {
-        return opt->As<Mesh>();
-    }
-    else
+    Ref<IAsset> pAsset;
+    if (!MoveIfHasValue(Load(eAssetType::Mesh, _path, _bForceReload), pAsset))
     {
         return k_nullopt;
     }
+
+    return pAsset.As<Mesh>();
 }
 
 Optional<Ref<Material>> AssetManager::LoadMaterial(
     const fs::path& _path,
     const bool      _bForceReload)
 {
-    if (const Optional<Ref<IAsset>> opt = Load(eAssetType::Material, _path, _bForceReload))
-    {
-        return opt->As<Material>();
-    }
-    else
+    Ref<IAsset> pAsset;
+    if (!MoveIfHasValue(Load(eAssetType::Material, _path, _bForceReload), pAsset))
     {
         return k_nullopt;
     }
+
+    return pAsset.As<Material>();
 }
 
 Optional<Ref<ImageTexture>> AssetManager::LoadImageTexture(
     const fs::path& _path,
     const bool      _bForceReload)
 {
-    if (const Optional<Ref<IAsset>> opt = Load(eAssetType::ImageTexture, _path, _bForceReload))
-    {
-        return opt->As<ImageTexture>();
-    }
-    else
+    Ref<IAsset> pAsset;
+    if (!MoveIfHasValue(Load(eAssetType::ImageTexture, _path, _bForceReload), pAsset))
     {
         return k_nullopt;
     }
-}
 
-Ref<IAsset> AssetManager::Get(
-    const eAssetType _type,
-    const fs::path&  _path)
-{
-    return g_assetMgrCtx->Get(_type, _path);
-}
-
-Ref<Model> AssetManager::GetModel(
-    const fs::path& _path)
-{
-    return g_assetMgrCtx->Get(eAssetType::Model, _path).As<Model>();
-}
-
-Ref<Mesh> AssetManager::GetMesh(
-    const fs::path& _path)
-{
-    return g_assetMgrCtx->Get(eAssetType::Mesh, _path).As<Mesh>();
-}
-
-Ref<Material> AssetManager::GetMaterial(
-    const fs::path& _path)
-{
-    return g_assetMgrCtx->Get(eAssetType::Material, _path).As<Material>();
-}
-
-Ref<ImageTexture> AssetManager::GetImageTexture(
-    const fs::path& _path)
-{
-    return g_assetMgrCtx->Get(eAssetType::ImageTexture, _path).As<ImageTexture>();
-}
-
-Optional<Ref<IAsset>> AssetManager::GetOrLoad(
-    const eAssetType _type,
-    const fs::path&  _path)
-{
-    return g_assetMgrCtx->GetOrLoad(_type, _path);
-}
-
-Optional<Ref<Model>> AssetManager::GetOrLoadModel(
-    const fs::path& _path)
-{
-    if (const Optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Model, _path))
-    {
-        return opt->As<Model>();
-    }
-    else
-    {
-        return k_nullopt;
-    }
-}
-
-Optional<Ref<Mesh>> AssetManager::GetOrLoadMesh(
-    const fs::path& _path)
-{
-    if (const Optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Mesh, _path))
-    {
-        return opt->As<Mesh>();
-    }
-    else
-    {
-        return k_nullopt;
-    }
-}
-
-Optional<Ref<Material>> AssetManager::GetOrLoadMaterial(
-    const fs::path& _path)
-{
-    if (const Optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::Material, _path))
-    {
-        return opt->As<Material>();
-    }
-    else
-    {
-        return k_nullopt;
-    }
-}
-
-Optional<Ref<ImageTexture>> AssetManager::GetOrLoadImageTexture(
-    const fs::path& _path)
-{
-    if (const Optional<Ref<IAsset>> opt = g_assetMgrCtx->GetOrLoad(eAssetType::ImageTexture, _path))
-    {
-        return opt->As<ImageTexture>();
-    }
-    else
-    {
-        return k_nullopt;
-    }
+    return pAsset.As<ImageTexture>();
 }
 
 void AssetManager::Unload(
     const eAssetType _type,
     const fs::path&  _path)
 {
-    g_assetMgrCtx->Unload(_type, _path);
+    const fs::path                    path = g_assetMgrCtx->ProcessPath(_path);
+    AssetManagerContext::AssetMapIter it   = g_assetMgrCtx->Find(_type, path);
+    if (g_assetMgrCtx->Has(_type, it))
+    {
+        g_assetMgrCtx->Unload(_type, it);
+    }
 }
 
 void AssetManager::UnloadModel(
@@ -495,7 +373,7 @@ void AssetManager::CleanGarbage(
 
 void AssetManager::CleanGarbageAll()
 {
-    for (const eAssetType type: EnumRanges<eAssetType>())
+    for (const eAssetType type: eAssetType {})
     {
         g_assetMgrCtx->CleanGarbage(type);
     }
@@ -509,7 +387,7 @@ void AssetManager::Clear(
 
 void AssetManager::ClearAll()
 {
-    for (const eAssetType type: EnumRanges<eAssetType>())
+    for (const eAssetType type: eAssetType {})
     {
         g_assetMgrCtx->Clear(type);
     }

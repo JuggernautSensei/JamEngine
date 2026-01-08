@@ -27,19 +27,19 @@ public:
     ShaderCompiler(ShaderCompiler&&)                 = default;
     ShaderCompiler& operator=(ShaderCompiler&&)      = default;
 
-    bool CompileHLSLFile(const fs::path& _path, eShader _stage, StringView _entryPoint, std::span<const ShaderMacro> _macrosOrEmpty, eShaderCompileFlags _flags = eShaderCompileFlags_Default);
-    bool CompileHLSLSource(StringView _source, eShader _stage, StringView _entryPoint, std::span<const ShaderMacro> _macrosOrEmpty, eShaderCompileFlags _flags = eShaderCompileFlags_Default);
+    bool CompileHLSLFile(const fs::path& _path, eShader _stage, StringView _entryPoint, Span<const ShaderMacro> _macrosOrEmpty, eShaderCompileFlags _flags = eShaderCompileFlags_Default) const;
+    bool CompileHLSLSource(StringView _source, eShader _stage, StringView _entryPoint, Span<const ShaderMacro> _macrosOrEmpty, eShaderCompileFlags _flags = eShaderCompileFlags_Default) const;
 
     bool LoadCSOFile(const fs::path& _path);
     bool LoadCSOMemory(CMemView _bytecode);
 
-    [[nodiscard]] ShaderHandle GetShader() const;
+    [[nodiscard]] CMemView GetBytecode() const;
 
 private:
     [[nodiscard]] UINT       CompileFlagsFrom_(eShaderCompileFlags _flags) const;
     [[nodiscard]] StringView ShaderModelNameFrom_(eShader _stage) const;
 
-    ShaderHandle m_sh = k_invalidHandle;
+    ComPtr<ID3DBlob> m_pBytecode = nullptr;
 };
 
 }   // namespace jam

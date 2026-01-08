@@ -37,16 +37,14 @@ public:
     template<typename EventType, typename ListenerType>
     void AddListener(ListenerType&& _listener)
     {
-        using RawEventType = std::remove_cvref_t<EventType>;
-
         static_assert(std::is_base_of_v<Event, EventType>, "EventType must inherit from Event.");
-        static_assert(std::is_invocable_v<ListenerType, RawEventType>, "ListenerType must be invocable with EventType as an argument.");
+        static_assert(std::is_invocable_v<ListenerType, EventType>, "ListenerType must be invocable with EventType as an argument.");
 
         JAM_ASSERT(!m_listeners.contains(EventType::k_hash), "Listener for event type '{}' already exists.", EventType::k_name);
         m_listeners.emplace(EventType::k_hash,
-                            [_listener](Event& _event) mutable
+                            [_listener](Event& _event)
                             {
-                                _listener(static_cast<RawEventType&>(_event));
+                                _listener(static_cast<EventType&>(_event));
                             });
     }
 
@@ -61,7 +59,7 @@ public:
 
         JAM_ASSERT(!m_listeners.contains(EventType::k_hash), "Listener for event type '{}' already exists.", EventType::k_name);
         m_listeners.emplace(EventType::k_hash,
-                            [_pCaller, _listener](Event& _event) mutable
+                            [_pCaller, _listener](Event& _event)
                             {
                                 (_pCaller->*_listener)(static_cast<RawEventType&>(_event));
                             });
@@ -69,13 +67,16 @@ public:
 
     void Dispatch(Event& _event) const
     {
-        if (!_event.IsHandled())
+        if (_event.IsHandled())
         {
-            const UInt32 hash = _event.GetTypeHash();
-            if (const auto it = m_listeners.find(hash); it != m_listeners.end())
-            {
-                it->second(_event);
-            }
+            return;
+        }
+
+        const UInt32 hash = _event.GetTypeHash();
+        const auto   it   = m_listeners.find(hash);
+        if (it != m_listeners.end())
+        {
+            it->second(_event);
         }
     }
 
@@ -86,26 +87,30 @@ private:
 template<typename EventType, typename ListenerType>
 void HandleEvent(Event& _event, ListenerType&& _listenerType)
 {
-    if (!_event.IsHandled())
+    if (_event.IsHandled())
     {
-        if (_event.GetTypeHash() == EventType::k_hash)
-        {
-            EventType& event = static_cast<EventType&>(_event);
-            _listenerType(event);
-        }
+        return;
+    }
+
+    if (_event.GetTypeHash() == EventType::k_hash)
+    {
+        EventType& event = static_cast<EventType&>(_event);
+        _listenerType(event);
     }
 }
 
 template<typename EventType, typename CallerType, typename ListenerType>
 void HandleEvent(Event& _event, CallerType* _pCaller, ListenerType&& _listenerType)
 {
-    if (!_event.IsHandled())
+    if (_event.IsHandled())
     {
-        if (_event.GetTypeHash() == EventType::k_hash)
-        {
-            EventType& event = static_cast<EventType&>(_event);
-            (_pCaller->*_listenerType)(event);
-        }
+        return;
+    }
+
+    if (_event.GetTypeHash() == EventType::k_hash)
+    {
+        EventType& event = static_cast<EventType&>(_event);
+        (_pCaller->*_listenerType)(event);
     }
 }
 

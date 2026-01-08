@@ -37,7 +37,7 @@ void RenderGraph::Compile()
 
 void RenderGraph::DeduplicateResourceBindings_()
 {
-    const Int32 numNodes = NarrowCast<Int32>(m_nodes.size());
+    const Int32 numNodes = m_nodes.size();
     JAM_ASSERT(numNodes > 1, "RenderGraph must have at least two passes to deduplicate resource bindings.");
 
     // deduplicate constant buffers and samplers
@@ -134,7 +134,7 @@ void RenderGraph::DeduplicateResourceBindings_()
 
 void RenderGraph::AnalyzePassDependencies_()
 {
-    const Int32 numNodes = NarrowCast<Int32>(m_nodes.size());
+    const Int32 numNodes = m_nodes.size();
     JAM_ASSERT(numNodes > 1, "RenderGraph must have at least two passes to analyze pass dependencies.");
 
     /*
@@ -313,7 +313,7 @@ void RenderGraph::Execute(const FrameBufferHandle _fbh, const Viewport _viewport
 {
     JAM_ASSERT(m_bCompiled, "RenderGraph must be compiled before execution.");
 
-    const Int32 lastIdx = NarrowCast<Int32>(m_nodes.size()) - 1;
+    const Int32 lastIdx = m_nodes.size() - 1;
 
     for (Int32 i = 0; i <= lastIdx; ++i)
     {

@@ -30,4 +30,10 @@ SourceLoc TraceCallerInfo(const Int32 _stackIndex)
     return sc;
 }
 
+void PrintToDebugConsole(
+    const StringView _msg)
+{
+    OutputDebugStringA(_msg.GetPtr());
+}
+
 }   // namespace jam

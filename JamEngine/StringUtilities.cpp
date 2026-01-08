@@ -32,15 +32,14 @@ Optional<std::string> ToUtf8(
     const int size = ::WideCharToMultiByte(CP_UTF8, 0, _wstr.GetPtr(), _wstr.GetLength(), nullptr, 0, nullptr, nullptr);
     if (size == 0)
     {
-        GlobalBuffer::SetLastError("WideCharToMultiByte failed in ToUtf8. {}", GetWindowsLastErrorMessage());
+        GlobalBuffer::SetLastError("WideCharToMultiByte failed in ToUtf8. {}", CreateErrorMessageFromWin32LastError());
         return k_nullopt;
     }
 
-    std::string result;
-    result.resize(size);
+    std::string result(size, '\0');
     if (::WideCharToMultiByte(CP_UTF8, 0, _wstr.GetPtr(), _wstr.GetLength(), result.data(), size, nullptr, nullptr) == 0)
     {
-        GlobalBuffer::SetLastError("WideCharToMultiByte failed in ToUtf8. {}", GetWindowsLastErrorMessage());
+        GlobalBuffer::SetLastError("WideCharToMultiByte failed in ToUtf8. {}", CreateErrorMessageFromWin32LastError());
         return k_nullopt;
     }
 
@@ -58,15 +57,14 @@ Optional<std::wstring> ToUtf16(
     const int size = ::MultiByteToWideChar(CP_UTF8, 0, _str.GetPtr(), _str.GetLength(), nullptr, 0);
     if (size == 0)
     {
-        GlobalBuffer::SetLastError("MultiByteToWideChar failed in ToUtf16. {}", GetWindowsLastErrorMessage());
+        GlobalBuffer::SetLastError("MultiByteToWideChar failed in ToUtf16. {}", CreateErrorMessageFromWin32LastError());
         return k_nullopt;
     }
 
-    std::wstring result;
-    result.resize(size);
+    std::wstring result(size, L'\0');
     if (MultiByteToWideChar(CP_UTF8, 0, _str.GetPtr(), _str.GetLength(), result.data(), size) == 0)
     {
-        GlobalBuffer::SetLastError("MultiByteToWideChar failed in ToUtf16. {}", GetWindowsLastErrorMessage());
+        GlobalBuffer::SetLastError("MultiByteToWideChar failed in ToUtf16. {}", CreateErrorMessageFromWin32LastError());
         return k_nullopt;
     }
 

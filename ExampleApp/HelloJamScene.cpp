@@ -163,7 +163,7 @@ void HelloJamScene::OnEnter()
     m_globalCbh    = Graphics::CreateConstantBuffer(sizeof(CB_HELLO_JAM_GLOBAL));
 
     // pSkyboxTexture
-    if (const std::optional<TextureHandle>& optTh = Graphics::LoadTextureFile(R"(contents\assets\Imagetextures\kokona.png)", TODO))
+    if (const std::optional<TextureHandle>& optTh = Graphics::LoadTextureFile(R"(contents\assets\Imagetextures\kokona.png)"))
     {
         m_cubeTh = optTh.value();
     }
@@ -180,7 +180,7 @@ void HelloJamScene::OnEnter()
 
     // camera
     {
-        Entity entity = CreateEntity();
+        Entity entity = CreateEntity(TODO, TODO, TODO);
 
         // set camera
         entity.CreateComponent<CameraComponent>();

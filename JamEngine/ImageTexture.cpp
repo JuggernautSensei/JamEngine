@@ -5,6 +5,8 @@
 #include "Graphics.h"
 #include "ImageExporter.h"
 #include "Profile.h"
+#include "ImageImporter.h"
+#include "Magics.h"
 
 namespace jam
 {
@@ -15,71 +17,71 @@ bool ImageTexture::Load(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
     CleanUp_();
 
-    if (const Optional<TextureHandle> optTex = Graphics::LoadTextureFile(_path))
-    {
-        const TextureInfo info = Graphics::GetTextureInfo(m_texh);
-
-        m_texh = optTex.value();
-        m_path = _path;
-        m_res  = { info.width, info.height };
-        m_type = info.type;
-        return true;
-    }
-    else
+    // import dds (native image format is dds.)
+    ImageImporter importer = {};
+    importer.GenerateMips(true);
+    if (!importer.Import(_path, eImageFormat::DDS))
     {
         return false;
     }
+
+    // import
+    const DirectX::ScratchImage& scratchImg = importer.GetScratchImage();
+    m_texh                                  = Graphics::CreateTexture(scratchImg);
+
+    // cache
+    const TextureInfo info = Graphics::GetTextureInfo(m_texh);
+    m_res                  = { info.width, info.height };
+    m_type                 = info.type;
+
+    // set path
+    m_path            = _path;
+    m_bLoadedFromFile = true;
+    return true;
 }
 
-bool ImageTexture::LoadMemory(
-    const CMemView     _mem,
-    const eImageFormat _format,
-    const fs::path&    _virtualPath)
+void ImageTexture::LoadHandle(
+    const TextureHandle _texh)
 {
-    JAM_FUNCTION_MSG_PROFILE("virtualPath: {}", _virtualPath.native());
+    JAM_ASSERT(JAM_IS_VALID_HANDLE(_texh), "_texh is invalid.");
     CleanUp_();
 
-    if (const Optional<TextureHandle> optTex = Graphics::LoadTextureMemory(_mem, _format))
-    {
-        return LoadMemory(optTex.value(), _virtualPath);
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool ImageTexture::LoadMemory(
-    const TextureHandle _texh,
-    const fs::path&     _virtualPath)
-{
-    JAM_FUNCTION_PROFILE();
-    CleanUp_();
-
-    if (JAM_IS_VALID_HANDLE(_texh))
-    {
-        const TextureInfo info = Graphics::GetTextureInfo(_texh);
-
-        m_texh = _texh;
-        m_path = _virtualPath;
-        m_res  = { info.width, info.height };
-        m_type = info.type;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    const TextureInfo info = Graphics::GetTextureInfo(m_texh);
+    m_texh                 = _texh;
+    m_res                  = { info.width, info.height };
+    m_type                 = info.type;
+    m_bLoadedFromFile      = false;
 }
 
 bool ImageTexture::Save(
-    const fs::path& _path) const
+    const fs::path&      _path,
+    const bool           _bReplaceExtension,
+    const eSaveFileFlags _flags) const
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+    JAM_ASSERT(JAM_IS_VALID_HANDLE(m_texh), "..");
 
-    ImageExporter exporter;
-    exporter.SetTexture(m_texh);
-    return exporter.Export(_path);
+    ImageExporter exporter = {};
+    if (_bReplaceExtension)
+    {
+        fs::path path = _path;
+        path.replace_extension(k_jamImageTextureExt.GetPtr());
+        return exporter.Export(m_texh, path, eImageFormat::DDS, false, _flags);
+    }
+    return exporter.Export(m_texh, _path, eImageFormat::DDS, false, _flags);
+}
+
+void ImageTexture::SetName(
+    const StringView _name)
+{
+    m_name = _name.ToString();
+}
+
+void ImageTexture::SetVirtualPath(
+    const fs::path& _path)
+{
+    JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of an asset loaded from file.");
+    m_path = _path;
 }
 
 bool ImageTexture::IsValid() const
@@ -94,11 +96,14 @@ ImageTexture::~ImageTexture()
 
 ImageTexture::ImageTexture(
     ImageTexture&& _other) noexcept
+    : m_path(std::move(_other.m_path))
+    , m_name(std::move(_other.m_name))
+    , m_texh(_other.m_texh)
+    , m_bLoadedFromFile(_other.m_bLoadedFromFile)
+    , m_res(_other.m_res)
+    , m_type(_other.m_type)
 {
-    m_texh        = _other.m_texh;
-    m_path        = std::move(_other.m_path);
-    _other.m_texh = k_invalidHandle;
-    _other.m_path.clear();
+    _other.CleanUp_();
 }
 
 ImageTexture& ImageTexture::operator=(
@@ -106,12 +111,16 @@ ImageTexture& ImageTexture::operator=(
 {
     if (this != &_other)
     {
-        CleanUp_();
+        JAM_DESTROY_TEXTURE(m_texh);
 
-        m_texh        = _other.m_texh;
-        m_path        = std::move(_other.m_path);
-        _other.m_texh = k_invalidHandle;
-        _other.m_path.clear();
+        m_path            = std::move(_other.m_path);
+        m_name            = std::move(_other.m_name);
+        m_texh            = _other.m_texh;
+        m_bLoadedFromFile = _other.m_bLoadedFromFile;
+        m_res             = _other.m_res;
+        m_type            = _other.m_type;
+
+        _other.CleanUp_();
     }
     return *this;
 }
@@ -124,6 +133,11 @@ void ImageTexture::Unload()
 const fs::path& ImageTexture::GetPath() const
 {
     return m_path;
+}
+
+const StringView ImageTexture::GetName() const
+{
+    return m_name;
 }
 
 eAssetType ImageTexture::GetAssetType() const
@@ -174,6 +188,12 @@ void ImageTexture::CleanUp_()
 {
     JAM_DESTROY_TEXTURE(m_texh);
     m_path.clear();
+    m_name            = {};
+    m_bLoadedFromFile = false;
+
+    // cache
+    m_res  = { 0, 0 };
+    m_type = eTextureType::Texture2D;
 }
 
 }   // namespace jam

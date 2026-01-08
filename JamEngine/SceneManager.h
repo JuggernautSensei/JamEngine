@@ -9,8 +9,6 @@ class Event;
 
 class SceneManager
 {
-    friend class Application;
-
 public:
     static void Init();
     static void Shutdown();
@@ -32,7 +30,8 @@ public:
     [[nodiscard]] static Ref<Scene>& GetActiveScene();
 
 private:
-    static void ChangeSceneIfNeed_();
+    static void ChangeSceneDefered_(const Ref<Scene>& _pScene);
+    static void ChangeScene_(const Ref<Scene>& _pScene);
 };
 
 }   // namespace jam

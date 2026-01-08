@@ -11,7 +11,7 @@ namespace jam
 {
 
 void PointLightComponent::Serialize(
-    JsonWriter       _writer,
+    JsonWriter        _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -22,7 +22,7 @@ void PointLightComponent::Serialize(
 }
 
 void PointLightComponent::Deserialize(
-    JsonReader       _reader,
+    JsonReader        _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -32,33 +32,33 @@ void PointLightComponent::Deserialize(
     _reader.ReadField("fallOffEnd", fallOffEnd);
 }
 
-void PointLightComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
+void PointLightComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entity)
 {
     // if (ImGui::BeginTable("PointLightEditor", 2, ImGuiTableFlags_SizingFixedFit))
-    if (BeginComponentEditTable("PointLightComponent"))
+    if (BeginLabelValueTable("PointLightComponent"))
     {
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("radiance");
         ImGui::TableNextColumn();
-        SetNextItemWidthToAvailableWidth();
+        SetNextItemAvailWidth();
         ImGui::ColorEdit3("##PointlightRadiance", &radiance.x);
 
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("intensity");
         ImGui::TableNextColumn();
-        SetNextItemWidthToAvailableWidth();
-        Widget_SliderFloat("##PointlightIntensity", &intensity, 0.f, 1.f);
+        SetNextItemAvailWidth();
+        Widget_DragFloat("##PointlightIntensity", &intensity, 0.01f, 0.f);
 
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("fall off start");
         ImGui::TableNextColumn();
-        SetNextItemWidthToAvailableWidth();
+        SetNextItemAvailWidth();
         Widget_DragFloat("##PointlightFallOffStart", &fallOffStart, 0.01f, 0.f, fallOffEnd, "%.2fm");
 
         ImGui::TableNextColumn();
         Widget_FrameAlignedText("fall off end");
         ImGui::TableNextColumn();
-        SetNextItemWidthToAvailableWidth();
+        SetNextItemAvailWidth();
         Widget_DragFloat("##PointlightFallOffEnd", &fallOffEnd, 0.01f, fallOffStart, Camera::k_maxZ, "%.2fm");
 
         ImGui::EndTable()();

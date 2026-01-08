@@ -41,7 +41,7 @@ struct BasicRendererContext
     [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
     [[nodiscard]] TextureHandle     CreateTextureCube(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
     [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(std::span<const TextureHandle> _attachment, bool _bDestroyTexture, StringView _name) const;
+    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Span<const TextureHandle> _attachment, bool _bDestroyTexture, StringView _name) const;
     [[nodiscard]] FrameBufferHandle CreateFrameBuffer(TextureHandle _texh, bool _bDestroyTexture, StringView _name) const;
     [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, StringView _name) const;
 
@@ -559,7 +559,7 @@ TextureHandle BasicRendererContext::CreateTextureArray(
 }
 
 FrameBufferHandle BasicRendererContext::CreateFrameBuffer(
-    const std::span<const TextureHandle> _attachment,
+    const Span<const TextureHandle> _attachment,
     const bool                           _bDestroyTexture,
     const StringView                     _name) const
 {

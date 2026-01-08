@@ -92,12 +92,12 @@ public:
     /// @note _initData가 제공되면 immutable 텍스처를 생성하고, 아니면 default 텍스처를 생성합니다.
     /// 텍스처를 프레임 버퍼로 사용할 경우 _viewFlags에 eViewFlags_RenderTarget 또는 eViewFlags_DepthStencil 플래그를 포함해야 합니다.
     [[nodiscard]] static TextureHandle CreateTexture2D(
-        Int32                            _width,
-        Int32                            _height,
-        eTextureFormat                   _format,
-        Int32                            _arraySize = 1,
-        eTextureCreateFlags              _flags     = eTextureCreateFlags_None,
-        const std::span<const CMemView>& _initDataOrEmpty  = {});
+        Int32                       _width,
+        Int32                       _height,
+        eTextureFormat              _format,
+        Int32                       _arraySize       = 1,
+        eTextureCreateFlags         _flags           = eTextureCreateFlags_None,
+        const Span<const CMemView>& _initDataOrEmpty = {});
 
     /// @brief 큐브맵 텍스처를 생성합니다.
     /// @param _width 텍스처 너비
@@ -109,12 +109,12 @@ public:
     /// @return 큐브맵 텍스처에 대한 참조
     /// @note 초기화 데이터가 제공되면 immutable 텍스처로 생성하고, 아니면 default 텍스처를 생성합니다.
     [[nodiscard]] static TextureHandle CreateTextureCube(
-        Int32                            _width,
-        Int32                            _height,
-        eTextureFormat                   _format,
-        Int32                            _cubeCount = 1,
-        eTextureCreateFlags              _flags     = eTextureCreateFlags_None,
-        const std::span<const CMemView>& _initData  = {});
+        Int32                       _width,
+        Int32                       _height,
+        eTextureFormat              _format,
+        Int32                       _cubeCount = 1,
+        eTextureCreateFlags         _flags     = eTextureCreateFlags_None,
+        const Span<const CMemView>& _initData  = {});
 
     /// @brief 3D 텍스처를 생성합니다.
     /// @param _width 텍스처 너비
@@ -126,12 +126,12 @@ public:
     /// @return 3D 텍스처에 대한 참조
     /// @note 초기화 데이터가 제공되면 immutable 텍스처로 생성하고, 아니면 default 텍스처를 생성합니다.
     [[nodiscard]] static TextureHandle CreateTexture3D(
-        Int32                            _width,
-        Int32                            _height,
-        Int32                            _depth,
-        eTextureFormat                   _format,
-        eTextureCreateFlags              _texFlags = eTextureCreateFlags_None,
-        const std::span<const CMemView>& _initData = {});
+        Int32                       _width,
+        Int32                       _height,
+        Int32                       _depth,
+        eTextureFormat              _format,
+        eTextureCreateFlags         _texFlags = eTextureCreateFlags_None,
+        const Span<const CMemView>& _initData = {});
 
     /// @brief 프레임 버퍼를 생성합니다.
     /// @param _attachments 프레임 버퍼에 첨부할 텍스처 핸들 배열
@@ -141,8 +141,8 @@ public:
     /// @note 렌더 타겟 텍스처는 최대 k_renderTargetCountMax개까지 첨부할 수 있습니다.
     /// @note 뎁스 스텐실 텍스처는 최대 1개까지 첨부할 수 있습니다.
     [[nodiscard]] static FrameBufferHandle CreateFrameBuffer(
-        std::span<const TextureHandle> _attachments,
-        bool                           _bDestroyTexture = false);
+        Span<const TextureHandle> _attachments,
+        bool                      _bDestroyTexture = false);
 
     /// @brief 쉐이더를 생성합니다.
     /// @param _shaderByteCode 쉐이더 바이트코드
@@ -820,52 +820,9 @@ public:
         eTextureFormat _format,
         bool           _bWriteOnly = false);
 
-    /// @brief 텍스처를 로드합니다.
-    /// @param _scratchImage 로드할 스크래치 이미지
-    /// @note ScratchImage는 DirectXTex 라이브러리가 제공하는 이미지 컨테이너입니다.
-    /// ImageImporter 클래스를 이용하여 생성할 수 있습니다.
-    [[nodiscard]] static TextureHandle LoadTexture(
+    /// @brief DirectX::ScratchImage로부터 텍스처를 생성합니다.
+    [[nodiscard]] static TextureHandle CreateTexture(
         const DirectX::ScratchImage& _scratchImage);
-
-    /// @brief LoadTexture의 간략화 버전입니다.
-    /// @param _path 로드할 이미지 파일 경로
-    /// @param _bGenerateMips 밉맵을 생성할지 여부 (기본값: true)
-    [[nodiscard]] static Optional<TextureHandle> LoadTextureFile(
-        const fs::path& _path,
-        bool            _bGenerateMips = true);
-
-    /// @brief LoadTexture의 간략화 버전입니다.
-    /// @param _mem 메모리 뷰
-    /// @param _format 이미지 포맷
-    /// @param _bGenerateMips 밉맵을 생성할지 여부 (기본값: true)
-    [[nodiscard]] static Optional<TextureHandle> LoadTextureMemory(
-        CMemView     _mem,
-        eImageFormat _format,
-        bool         _bGenerateMips = true);
-
-    /// @brief 셰이더를 파일에서 로드합니다.
-    /// @param _path 셰이더 파일 경로
-    /// @param _stage 셰이더 스테이지
-    /// @param _entryPoint 셰이더 진입점 함수 이름
-    /// @param _flags 컴파일 플래그
-    /// @return 셰이더 핸들
-    [[nodiscard]] static Optional<ShaderHandle> LoadHLSLShaderFile(
-        const fs::path&     _path,
-        eShader             _stage,
-        StringView          _entryPoint,
-        eShaderCompileFlags _flags = eShaderCompileFlags_None);
-
-    /// @brief 셰이더를 소스 코드에서 로드합니다.
-    /// @param _source 셰이더 소스 코드
-    /// @param _stage 셰이더 스테이지
-    /// @param _entryPoint 셰이더 진입점 함수 이름
-    /// @param _flags 컴파일 플래그
-    /// @return 셰이더 핸들
-    [[nodiscard]] static Optional<ShaderHandle> LoadHLSLShaderSource(
-        StringView          _source,
-        eShader             _stage,
-        StringView          _entryPoint,
-        eShaderCompileFlags _flags = eShaderCompileFlags_None);
 
     /// @brief 드로우 콜을 제출합니다.
     /// @note Submit을 호출하기 이전에 리소스를 바인딩해야 합니다.

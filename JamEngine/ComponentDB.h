@@ -8,15 +8,18 @@ namespace jam
 
 struct ComponentInfo
 {
-    std::string name        = {};
+    std::string typeName    = {};
     std::string displayName = {};
-    UInt32      hash        = 0;
+    UInt32      typeHash    = 0;
 
-    std::function<void(Entity)>              createFn       = nullptr;
-    std::function<void(Entity, const void*)> createByCopyFn = nullptr;
-    std::function<void(Entity)>              removeFn       = nullptr;
-    std::function<void*(Entity)>             getFn          = nullptr;
-    std::function<bool(Entity)>              hasFn          = nullptr;
+    std::function<void(Entity)>              createFn              = nullptr;
+    std::function<void(Entity)>              createDeferedFn       = nullptr;
+    std::function<void(Entity, const void*)> createByCopyFn        = nullptr;
+    std::function<void(Entity, const void*)> createByCopyDeferedFn = nullptr;
+    std::function<void(Entity)>              removeFn              = nullptr;
+    std::function<void(Entity)>              removeDeferedFn       = nullptr;
+    std::function<void*(Entity)>             getFn                 = nullptr;
+    std::function<bool(Entity)>              hasFn                 = nullptr;
 
     std::function<void(const void*, JsonWriter, const Ref<Scene>&, Entity)> serializeFn   = nullptr;
     std::function<void(void*, JsonReader, const Ref<Scene>&, Entity)>       deserializeFn = nullptr;
@@ -35,16 +38,35 @@ namespace details
     }
 
     template<typename T>
-    void CreateByCopy(Entity _entity, const void* _pComponent)
+    void CreateDefered(Entity _entity)
     {
-        const T& component = *static_cast<const T*>(_pComponent);
+        _entity.CreateComponentDefered<T>();
+    }
+
+    template<typename T>
+    void CreateByCopy(Entity _entity, const void* _pCmp)
+    {
+        const T& component = *static_cast<const T*>(_pCmp);
         _entity.CreateComponent<T>(component);
+    }
+
+    template<typename T>
+    void CreateByCopyDefered(Entity _entity, const void* _pCmp)
+    {
+        const T& component = *static_cast<const T*>(_pCmp);
+        _entity.CreateComponentDefered<T>(component);
     }
 
     template<typename T>
     void Remove(Entity _entity)
     {
         _entity.RemoveComponent<T>();
+    }
+
+    template<typename T>
+    void RemoveDefered(Entity _entity)
+    {
+        _entity.RemoveComponentDefered<T>();
     }
 
     template<typename T>
@@ -81,10 +103,10 @@ namespace details
     }
 
     template<typename T>
-    void DrawEditor(void* _pComponent, Ref<Scene>& _pScene, Entity _entity)
+    void Panel_EditComponent(void* _pComponent, Ref<Scene>& _pScene, Entity _entity)
     {
         T& component = *static_cast<T*>(_pComponent);
-        component.DrawEditor(_pScene, _entity);
+        component.Panel_EditComponent(_pScene, _entity);
     }
 
     template<typename T>
@@ -92,7 +114,7 @@ namespace details
     {
         const StringView name = NameOf<T>();
 
-        std::string result;
+        std::string result = {};
         result.reserve(name.GetLength());
 
         for (Int32 i = 0; i < name.GetLength(); ++i)
@@ -118,8 +140,8 @@ namespace details
 class ComponentDB
 {
 public:
-    using ContainerT           = HashMap<UInt32, ComponentInfo>;
-    using TypeIdHashContainerT = HashMap<UInt32, UInt32>;
+    using ComponentInfoMap = HashMap<UInt32, ComponentInfo>;   // [type name hash]
+    using ComponentHashMap = HashMap<UInt32, UInt32>;          // [type id] = type name hash
 
     [[nodiscard]] static ComponentDB& GetInstance();
     static void                       DestroyInstance();
@@ -130,22 +152,25 @@ public:
     void Reflect()
     {
         ComponentInfo info;
-        info.name           = NameOf<T>();
-        info.displayName    = details::DisplayNameOf<T>();
-        info.hash           = HashOf<T>();
-        info.createFn       = details::Create<T>;
-        info.createByCopyFn = details::CreateByCopy<T>;
-        info.getFn          = details::Get<T>;
-        info.hasFn          = details::Has<T>;
+        info.typeName              = NameOf<T>();
+        info.displayName           = details::DisplayNameOf<T>();
+        info.typeHash              = HashOf<T>();
+        info.createFn              = details::Create<T>;
+        info.createDeferedFn       = details::CreateDefered<T>;
+        info.createByCopyFn        = details::CreateByCopy<T>;
+        info.createByCopyDeferedFn = details::CreateByCopyDefered<T>;
+        info.getFn                 = details::Get<T>;
+        info.hasFn                 = details::Has<T>;
 
         if constexpr (!std::is_base_of_v<CannotRemovableComponent<T>, T>)
         {
-            info.removeFn = details::Remove<T>;
+            info.removeFn        = details::Remove<T>;
+            info.removeDeferedFn = details::RemoveDefered<T>;
         }
 
         if constexpr (std::is_base_of_v<EditableComponent<T>, T>)
         {
-            info.drawEditorFn = details::DrawEditor<T>;
+            info.drawEditorFn = details::Panel_EditComponent<T>;
         }
 
         if constexpr (std::is_base_of_v<SerializableComponent<T>, T>)
@@ -167,48 +192,27 @@ public:
         Reflect(info);
     }
 
-    // by name
-    void                     Create(StringView _name, Entity _entity) const;
-    void                     CreateByCopy(StringView _name, Entity _entity, const void* _pComponent) const;
-    void                     Remove(StringView _name, Entity _entity) const;
-    [[nodiscard]] void*      Get(StringView _name, Entity _entity) const;
-    [[nodiscard]] bool       Has(StringView _name, Entity _entity) const;
-    void                     Serialize(StringView _name, const void* _pComponent, JsonWriter _writer, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                     Deserialize(StringView _name, void* _pComponent, JsonReader _json, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                     DrawEditor(StringView _name, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
-    [[nodiscard]] bool       IsSerializable(StringView _name) const;
-    [[nodiscard]] bool       IsEditable(StringView _name) const;
-    [[nodiscard]] StringView GetDisplayName(StringView _name) const;
     [[nodiscard]] bool       IsReflected(StringView _name) const;
-
-    // by type id ( = type hash. TypeOf<T>() )
-    void                     Create(UInt32 _typeId, Entity _entity) const;
-    void                     CreateByCopy(UInt32 _typeId, Entity _entity, const void* _pComponent) const;
-    void                     Remove(UInt32 _typeId, Entity _entity) const;
-    [[nodiscard]] void*      Get(UInt32 _typeId, Entity _entity) const;
-    [[nodiscard]] bool       Has(UInt32 _typeId, Entity _entity) const;
-    void                     Serialize(UInt32 _typeId, const void* _pComponent, JsonWriter _writer, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                     Deserialize(UInt32 _typeId, void* _pComponent, JsonReader _json, const Ref<Scene>& _pScene, Entity _entity) const;
-    void                     DrawEditor(UInt32 _typeId, void* _pComponent, Ref<Scene>& _pScene, Entity _entity) const;
-    [[nodiscard]] bool       IsSerializable(UInt32 _typeId) const;
-    [[nodiscard]] bool       IsEditable(UInt32 _typeId) const;
-    [[nodiscard]] StringView GetDisplayName(UInt32 _typeId) const;
-    [[nodiscard]] StringView GetComponentName(UInt32 _typeId) const;
     [[nodiscard]] bool       IsReflected(UInt32 _typeId) const;
+    [[nodiscard]] StringView GetComponentName(UInt32 _typeId) const;
 
-    [[nodiscard]] const ContainerT& GetContainer() const;
+    [[nodiscard]] const ComponentInfoMap& GetComponentInfoMap() const;
+    [[nodiscard]] const ComponentInfo&    GetComponentInfo(StringView _name) const;
+    [[nodiscard]] const ComponentInfo&    GetComponentInfo(UInt32 _typeId) const;
 
 private:
     static ComponentDB* s_instance;
 
-    ContainerT           m_infos;
-    TypeIdHashContainerT m_typeToNameContainer;
+    ComponentInfoMap m_infoMap;
+    ComponentHashMap m_typeToNameMap;
 };   // namespace component_db
 
 }   // namespace jam
 
-#define JAM_COMPONENT(_type) \
-private:                     \
+#define JAM_COMPONENT(_type)                           \
+private:                                               \
     inline static bool _component_reflect_ = [] { \
         jam::ComponentDB::GetInstance().Reflect<_type>(); \
-        return true; }();
+        return true; }(); \
+                                                       \
+public:

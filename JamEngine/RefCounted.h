@@ -81,7 +81,7 @@ public:
 
     template<typename U>
     /* implicit */ Ref(U* _ptr)
-        requires(std::is_base_of_v<RefCounted, U> && std::is_base_of_v<T, U>)
+        requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
         : m_ptr(static_cast<T*>(_ptr))
     {
         if (m_ptr)
@@ -92,7 +92,7 @@ public:
 
     template<typename U>
     /* implicit */ Ref(const Ref<U>& _other)
-        requires(std::is_base_of_v<RefCounted, U> && std::is_base_of_v<T, U>)
+        requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
         : m_ptr(static_cast<T*>(_other.m_ptr))
     {
         if (m_ptr)
@@ -153,7 +153,7 @@ public:
 
     template<typename U>
     Ref& operator=(const Ref<U>& _other)
-        requires(std::is_base_of_v<RefCounted, U> && std::is_base_of_v<T, U>)
+        requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
     {
         T* pOther = static_cast<T*>(_other.m_ptr);
         if (m_ptr != pOther)
@@ -230,7 +230,7 @@ public:
 
     template<typename U>
     [[nodiscard]] Ref<U> As() const
-        requires(std::is_base_of_v<RefCounted, U> && std::is_base_of_v<T, U>)
+        requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
     {
         return Ref<U>(static_cast<U*>(m_ptr));
     }

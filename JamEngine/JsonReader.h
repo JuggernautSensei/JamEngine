@@ -9,11 +9,12 @@ enum eJsonReaderFlags_
     eJsonReaderFlags_LogOnError  = 1 << 0,
     eJsonReaderFlags_StopOnError = 1 << 1,
 };
-using eJsonReaderFlags = EnumIntType<eJsonReaderFlags_>;
+using eJsonReaderFlags = UnderlyingType<eJsonReaderFlags_>;
 
 class JsonReader
 {
 public:
+    JsonReader() = default;
     explicit JsonReader(const Json& _json, const eJsonReaderFlags _flags = eJsonReaderFlags_LogOnError)
         : m_pJson(&_json)
         , m_flags(_flags)

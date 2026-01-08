@@ -9,13 +9,13 @@
 
 #include "Event.h"
 #include "Hash.h"
-#include "ImageImporter.h"
 #include "ResourcePool.h"
-#include "ShaderCompiler.h"
 #include "WindowsPlatform.h"
 
 #include <DirectXTex.h>
 #include <d3dcompiler.h>
+
+#include "GeometryUtilities.h"
 
 namespace jam
 {
@@ -83,7 +83,7 @@ enum ePipelineDirtyFlags_ : UInt32
 
     ePipelineDirtyFlags_All = 0xFFFFFFFF
 };
-using ePipelineDirtyFlags = EnumIntType<ePipelineDirtyFlags_>;
+using ePipelineDirtyFlags = UnderlyingType<ePipelineDirtyFlags_>;
 
 enum class eBufferType
 {
@@ -114,24 +114,24 @@ struct ConstantBufferBinds
 {
     ConstantBufferBinds()
     {
-        std::ranges::fill(cbhs, k_invalidHandle);
+        cbhs.fill(k_invalidHandle);
     }
 
-    ConstantBufferHandle cbhs[k_numConstantBufferLimit] = {};
-    Int32                dirtyStart                     = k_int32Max;
-    Int32                dirtyEnd                       = 0;
+    Array<ConstantBufferHandle, k_numConstantBufferLimit> cbhs       = {};
+    Int32                                                 dirtyStart = k_int32Max;
+    Int32                                                 dirtyEnd   = 0;
 };
 
 struct TextureBinds
 {
     TextureBinds()
     {
-        std::ranges::fill(texhs, k_invalidHandle);
+        texhs.fill(k_invalidHandle);
     }
 
-    TextureHandle texhs[k_numShaderResourceLimit] = {};
-    Int32         dirtyStart                      = k_int32Max;
-    Int32         dirtyEnd                        = 0;
+    Array<TextureHandle, k_numShaderResourceLimit> texhs      = {};
+    Int32                                          dirtyStart = k_int32Max;
+    Int32                                          dirtyEnd   = 0;
 };
 
 struct SamplerBinds
@@ -140,36 +140,26 @@ struct SamplerBinds
     {
         SamplerState invalid;
         invalid.value = 0xFFFFFFFF;
-        std::ranges::fill(samplers, invalid);
-        std::ranges::fill(borderColors, RGBA::k_black);
+        samplers.fill(invalid);
+
+        borderColors.fill(RGBA::k_black);
     }
 
-    SamplerState samplers[k_numSamplerLimit]     = {};
-    RGBA         borderColors[k_numSamplerLimit] = {};
-    Int32        dirtyStart                      = k_int32Max;
-    Int32        dirtyEnd                        = 0;
+    Array<SamplerState, k_numSamplerLimit> samplers     = {};
+    Array<RGBA, k_numSamplerLimit>         borderColors = {};
+    Int32                                  dirtyStart   = k_int32Max;
+    Int32                                  dirtyEnd     = 0;
 };
 
 struct RasterizerStateD3D11
 {
-    RasterizerStateD3D11()
-    {
-        cullMode     = static_cast<eCullMode>(0xFF);   // invalid
-        bWireframe   = false;
-        bDepthClamp  = false;
-        bMultiSample = false;
-        bLineAA      = false;
-        bScissor     = false;
-        bCCWFront    = false;
-    }
-
-    eCullMode cullMode;
-    bool      bWireframe : 1;
-    bool      bDepthClamp : 1;
-    bool      bMultiSample : 1;
-    bool      bLineAA : 1;
-    bool      bScissor : 1;
-    bool      bCCWFront : 1;
+    eCullMode cullMode         = static_cast<eCullMode>(0xFF);
+    bool      bWireframe : 1   = false;
+    bool      bDepthClamp : 1  = false;
+    bool      bMultiSample : 1 = false;
+    bool      bLineAA : 1      = false;
+    bool      bScissor : 1     = false;
+    bool      bCCWFront : 1    = false;
 };
 
 struct BlendStateD3D11
@@ -178,34 +168,34 @@ struct BlendStateD3D11
     {
         BlendState invalid;
         invalid.value = 0xFFFFFFFF;
-        std::ranges::fill(blends, invalid);
+        blends.fill(invalid);
 
         bIndependentBlend = false;
         bAlphaToCoverage  = false;
     }
 
-    bool       bIndependentBlend : 1;
-    bool       bAlphaToCoverage : 1;
-    BlendState blends[k_numRenderTargetLimit];
+    bool                                      bIndependentBlend : 1 = false;
+    bool                                      bAlphaToCoverage : 1  = false;
+    Array<BlendState, k_numRenderTargetLimit> blends                = {};
 };
 
 struct DepthStencilStateD3D11
 {
     DepthStencilStateD3D11()
     {
-        StencilState invalid;
-        invalid.value = 0xFFFF;
-
         bDepthWrite   = false;
         depthTestFunc = eCompareFunc::Less;
+
+        StencilState invalid;
+        invalid.value = 0xFFFF;
         fStencil      = invalid;
         bStencil      = invalid;
     }
 
-    bool         bDepthWrite : 1;
-    eCompareFunc depthTestFunc : 4;
-    StencilState fStencil;
-    StencilState bStencil;
+    bool         bDepthWrite : 1   = false;
+    eCompareFunc depthTestFunc : 4 = eCompareFunc::Less;
+    StencilState fStencil          = StencilState::k_disable;
+    StencilState bStencil          = StencilState::k_disable;
 };
 
 struct GfxContext
@@ -222,9 +212,9 @@ struct GfxContext
     void OnWindowMaxizeEvent(const WindowMaximizedEvent& _event);
 
     // native resource factory
-    [[nodiscard]] TextureRef     CreateTexture(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, eTextureCreateFlags _flags, eTextureType _type, const std::span<const CMemView>& _initDataOrEmpty) const;
+    [[nodiscard]] TextureRef     CreateTexture(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, eTextureCreateFlags _flags, eTextureType _type, const Span<const CMemView>& _initDataOrEmpty) const;
     [[nodiscard]] HardwareBuffer CreateBuffer(Int32 _byteWidth, eBufferType _type, const Optional<CMemView>& _initData) const;
-    [[nodiscard]] FrameBuffer    CreateFrameBuffer(std::span<const TextureHandle> _attachments, bool _bDestoryTexture);
+    [[nodiscard]] FrameBuffer    CreateFrameBuffer(Span<const TextureHandle> _attachments, bool _bDestoryTexture);
 
     [[nodiscard]] ShaderHandle       GetOrCreateShader(CMemView _bytecode);
     [[nodiscard]] VertexLayoutHandle GetOrCreateVertexLayout(const VertexLayout& _vl);
@@ -257,7 +247,7 @@ struct GfxContext
     // debug name helpers
     [[nodiscard]] std::string FormatName(StringView _tag, AnyHandle _handle) const;
     [[nodiscard]] std::string FormatNameCustom(StringView _tag, AnyHandle _handle, StringView _username) const;
-    [[nodiscard]] std::string StringFrom(const SourceLoc& _loc) const;
+    [[nodiscard]] std::string CreateStringFrom(const SourceLoc& _loc) const;
     void                      SetD3D11Name(ID3D11DeviceChild* _pDeviceChild, StringView _name) const;
 
     // misc
@@ -284,9 +274,9 @@ struct GfxContext
 
     // d3d11 state caches
     HashMap<UInt32, ID3D11RasterizerState*>   d3d11RasterizerStateCache   = {};
-    HashMap<UInt64, ID3D11BlendState*>        d3d11BlendStateCache        = {};
-    HashMap<UInt64, ID3D11DepthStencilState*> d3d11DepthStencilStateCache = {};
-    HashMap<UInt64, ID3D11SamplerState*>      d3d11SamplerStateCache      = {};
+    HashMap<UInt32, ID3D11BlendState*>        d3d11BlendStateCache        = {};
+    HashMap<UInt32, ID3D11DepthStencilState*> d3d11DepthStencilStateCache = {};
+    HashMap<UInt32, ID3D11SamplerState*>      d3d11SamplerStateCache      = {};
 
     // pipeline bind state
     VertexLayoutHandle vlhBind      = k_invalidHandle;
@@ -317,9 +307,8 @@ struct GfxContext
     RasterizerStateD3D11   rasterizerStateBind   = {};                              // invalid at start
     BlendStateD3D11        blendStateBind        = {};                              // invalid at start
 
-    Int32 submitParams[NumEnums<eSubmitParameterType>()];
-
-    ePipelineDirtyFlags dirtyFlags = ePipelineDirtyFlags_All;
+    Array<Int32, NumEnums<eSubmitParameterType>()> submitParams = {};
+    ePipelineDirtyFlags                            dirtyFlags   = ePipelineDirtyFlags_All;
 
     // back buffer
     Vec2i             backBufferRes  = {};
@@ -331,7 +320,8 @@ struct GfxContext
 void GfxContext::BindConstantBuffers(
     const eShader _stage)
 {
-    static ID3D11Buffer* s_binder[k_numConstantBufferLimit];
+    static ID3D11Buffer* s_binder[k_numConstantBufferLimit] = {};
+
     ConstantBufferBinds& binds = cbufferBinds[IntFrom(_stage)];
 
     // dirty range
@@ -383,8 +373,9 @@ void GfxContext::BindConstantBuffers(
 void GfxContext::BindShaderResourceViews(
     const eShader _shader)
 {
-    static ID3D11ShaderResourceView* s_binder[k_numShaderResourceLimit];
-    TextureBinds&                    binds = textureBinds[IntFrom(_shader)];
+    static ID3D11ShaderResourceView* s_binder[k_numShaderResourceLimit] = {};
+
+    TextureBinds& binds = textureBinds[IntFrom(_shader)];
 
     const Int32 dirtyStart = binds.dirtyStart;
     const Int32 dirtyEnd   = binds.dirtyEnd;
@@ -434,8 +425,9 @@ void GfxContext::BindShaderResourceViews(
 void GfxContext::BindSamplerStates(
     const eShader _shader)
 {
-    static ID3D11SamplerState* s_binder[k_numSamplerLimit];
-    SamplerBinds&              binds = samplerBinds[IntFrom(_shader)];
+    static ID3D11SamplerState* s_binder[k_numSamplerLimit] = {};
+
+    SamplerBinds& binds = samplerBinds[IntFrom(_shader)];
 
     const Int32 dirtyStart = binds.dirtyStart;
     const Int32 dirtyEnd   = binds.dirtyEnd;
@@ -525,30 +517,27 @@ void GfxContext::BindPipeline()
         // topology
         if (dirtyFlags & ePipelineDirtyFlags_Primitive)
         {
-            D3D11_PRIMITIVE_TOPOLOGY d3d11PrimTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
             switch (primBind)
             {
                 case ePrimitive::TriangleList:
-                    d3d11PrimTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+                    pd3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                     break;
                 case ePrimitive::TriangleStrip:
-                    d3d11PrimTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+                    pd3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
                     break;
                 case ePrimitive::LineList:
-                    d3d11PrimTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+                    pd3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
                     break;
                 case ePrimitive::LineStrip:
-                    d3d11PrimTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+                    pd3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
                     break;
                 case ePrimitive::PointList:
-                    d3d11PrimTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+                    pd3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
                     break;
                 default:
                     JAM_ASSERT(0, "Unknown primitive type");
                     break;
             }
-
-            pd3d11DeviceContext->IASetPrimitiveTopology(d3d11PrimTopology);
         }
 
         // input vertexLayout
@@ -725,7 +714,7 @@ void GfxContext::BindPipeline()
         // viewport
         if (dirtyFlags & ePipelineDirtyFlags_Viewport)
         {
-            const D3D11_VIEWPORT vp {
+            const D3D11_VIEWPORT vp = {
                 static_cast<FLOAT>(vpBind.x),
                 static_cast<FLOAT>(vpBind.y),
                 static_cast<FLOAT>(vpBind.w),
@@ -739,7 +728,7 @@ void GfxContext::BindPipeline()
         // scissor rect
         if (dirtyFlags & ePipelineDirtyFlags_ScissorRect)
         {
-            const D3D11_RECT rect {
+            const D3D11_RECT rect = {
                 scissorRectBind.left,
                 scissorRectBind.top,
                 scissorRectBind.right,
@@ -767,7 +756,7 @@ void GfxContext::OnResize(
         JAM_DESTROY_TEXTURE(backBufferTexh);
         JAM_DESTROY_FRAME_BUFFER(backBufferFbh);
 
-#ifdef JAM_DEBUG
+        if (JAM_DEBUG_ENABLED)
         {
             // check back buffer dependencies destroyed
             ID3D11Resource* pRes;
@@ -775,7 +764,6 @@ void GfxContext::OnResize(
             const UINT refCount = pRes->Release();
             JAM_ASSERT(refCount == 0, "Back buffer.pBuffer reference numVerts is not zero after cleanup. RefCount: {}", refCount);
         }
-#endif
 
         // resize
         JAM_CHECK_COM(pdxgiSwapchain->ResizeBuffers(0, _width, _height, DXGI_FORMAT_UNKNOWN, 0));
@@ -783,31 +771,31 @@ void GfxContext::OnResize(
         // create dependencies
         {
             // render target texture
-            ID3D11Resource* pRes = nullptr;
+            ID3D11Resource* pRes;
             JAM_CHECK_COM(pdxgiSwapchain->GetBuffer(0, IID_PPV_ARGS(&pRes)));
 
             DXGI_SWAP_CHAIN_DESC1 desc;
             JAM_CHECK_COM(pdxgiSwapchain->GetDesc1(&desc));
 
-            TextureRef backBufferTex;
-            backBufferTex.width          = NarrowCast<Int32>(desc.Width);
-            backBufferTex.height         = NarrowCast<Int32>(desc.Height);
-            backBufferTex.depth          = 1;
-            backBufferTex.type           = eTextureType::Texture2D;
-            backBufferTex.format         = eTextureFormat::RGBA8_UNorm;
-            backBufferTex.numMips        = 1;
-            backBufferTex.arraySize      = 1;
-            backBufferTex.samples        = 1;
-            backBufferTex.bMutable       = true;
-            backBufferTex.refCount       = 1;
-            backBufferTex.bManaged       = false;
-            backBufferTex.bRtvAttachable = true;
-            backBufferTex.bDsvAttachable = false;
-            backBufferTex.pResource      = pRes;
+            TextureRef tex     = {};
+            tex.width          = NarrowCast<Int32>(desc.Width);
+            tex.height         = NarrowCast<Int32>(desc.Height);
+            tex.depth          = 1;
+            tex.type           = eTextureType::Texture2D;
+            tex.format         = eTextureFormat::RGBA8_UNorm;
+            tex.numMips        = 1;
+            tex.arraySize      = 1;
+            tex.samples        = 1;
+            tex.bMutable       = true;
+            tex.refCount       = 1;
+            tex.bManaged       = false;
+            tex.bRtvAttachable = true;
+            tex.bDsvAttachable = false;
+            tex.pResource      = pRes;
 
             // register to texture resource pool
             const TextureHandle texh = textures.Alloc();
-            textures[texh]           = std::move(backBufferTex);
+            textures[texh]           = std::move(tex);
             Graphics::SetTextureName(texh, "BackBuffer");
 
             backBufferTexh = texh;
@@ -829,14 +817,14 @@ void GfxContext::OnWindowMaxizeEvent(
 }
 
 TextureRef GfxContext::CreateTexture(
-    const Int32                      _width,
-    const Int32                      _height,
-    const Int32                      _depth,
-    const eTextureFormat             _format,
-    const Int32                      _arraySize,
-    const eTextureCreateFlags        _flags,
-    const eTextureType               _type,
-    const std::span<const CMemView>& _initDataOrEmpty) const
+    const Int32                 _width,
+    const Int32                 _height,
+    const Int32                 _depth,
+    const eTextureFormat        _format,
+    const Int32                 _arraySize,
+    const eTextureCreateFlags   _flags,
+    const eTextureType          _type,
+    const Span<const CMemView>& _initDataOrEmpty) const
 {
     const bool  bGenMips       = (_flags & eTextureCreateFlags_GenerateMips) != 0;
     const bool  bIsMSAA        = (_flags & (eTextureCreateFlags_MultiSampled_Internal)) != 0;
@@ -862,7 +850,7 @@ TextureRef GfxContext::CreateTexture(
     const DXGI_FORMAT       dxgiFormat       = bWriteOnlyDsvTex ? formatInfo.depthFormat : formatInfo.texFormat;
 
     // native
-    TextureRef tex;
+    TextureRef tex     = {};
     tex.width          = _width;
     tex.height         = _height;
     tex.depth          = _depth;
@@ -879,14 +867,14 @@ TextureRef GfxContext::CreateTexture(
 
     if (_type == eTextureType::Texture2D || _type == eTextureType::TextureCube)
     {
-        D3D11_TEXTURE2D_DESC desc;
-        desc.Width          = tex.width;
-        desc.Height         = tex.height;
-        desc.MipLevels      = tex.numMips;
-        desc.ArraySize      = _arraySize;
-        desc.Format         = dxgiFormat;
-        desc.Usage          = bMutable ? D3D11_USAGE_DEFAULT : D3D11_USAGE_IMMUTABLE;
-        desc.CPUAccessFlags = 0;
+        D3D11_TEXTURE2D_DESC desc = {};
+        desc.Width                = tex.width;
+        desc.Height               = tex.height;
+        desc.MipLevels            = tex.numMips;
+        desc.ArraySize            = _arraySize;
+        desc.Format               = dxgiFormat;
+        desc.Usage                = bMutable ? D3D11_USAGE_DEFAULT : D3D11_USAGE_IMMUTABLE;
+        desc.CPUAccessFlags       = 0;
 
         // MSAA 설정
         desc.SampleDesc.Count   = samples;
@@ -941,14 +929,14 @@ TextureRef GfxContext::CreateTexture(
         JAM_ASSERT(!bIsCubemap, "3D texture cannot be a cubemap");
         JAM_ASSERT(!bDsvAttachable, "3D texture cannot be a Depth/Stencil view.");
 
-        D3D11_TEXTURE3D_DESC desc;
-        desc.Width          = tex.width;
-        desc.Height         = tex.height;
-        desc.Depth          = tex.depth;
-        desc.MipLevels      = tex.numMips;
-        desc.Format         = dxgiFormat;
-        desc.Usage          = bMutable ? D3D11_USAGE_DEFAULT : D3D11_USAGE_IMMUTABLE;
-        desc.CPUAccessFlags = 0;
+        D3D11_TEXTURE3D_DESC desc = {};
+        desc.Width                = tex.width;
+        desc.Height               = tex.height;
+        desc.Depth                = tex.depth;
+        desc.MipLevels            = tex.numMips;
+        desc.Format               = dxgiFormat;
+        desc.Usage                = bMutable ? D3D11_USAGE_DEFAULT : D3D11_USAGE_IMMUTABLE;
+        desc.CPUAccessFlags       = 0;
 
         // bind flags 설정
         desc.BindFlags = 0;
@@ -972,7 +960,7 @@ TextureRef GfxContext::CreateTexture(
         {
             JAM_ASSERT(_initDataOrEmpty.size() == numMips, "Texture data count mismatch");
 
-            Vector<D3D11_SUBRESOURCE_DATA> initData = {};
+            Vector<D3D11_SUBRESOURCE_DATA> initData;
             initData.reserve(numMips);
             for (Int32 mipIdx = 0; mipIdx < numMips; mipIdx++)
             {
@@ -1077,12 +1065,12 @@ HardwareBuffer GfxContext::CreateBuffer(
     }
 
     // native buffer
-    HardwareBuffer buffer;
-    buffer.byteWidth = _byteWidth;
-    buffer.bDynamic  = bDynamic;
+    HardwareBuffer buffer = {};
+    buffer.byteWidth      = _byteWidth;
+    buffer.bDynamic       = bDynamic;
 
     // d3d11 buffer
-    D3D11_BUFFER_DESC desc;
+    D3D11_BUFFER_DESC desc   = {};
     desc.ByteWidth           = _byteWidth;
     desc.CPUAccessFlags      = bDynamic ? D3D11_CPU_ACCESS_WRITE : 0;
     desc.StructureByteStride = 0;
@@ -1099,6 +1087,8 @@ HardwareBuffer GfxContext::CreateBuffer(
     {
         D3D11_SUBRESOURCE_DATA initData = {};
         initData.pSysMem                = _initData->GetPtr();
+        initData.SysMemPitch            = 0;
+        initData.SysMemSlicePitch       = 0;
         JAM_CHECK_COM(pd3d11Device->CreateBuffer(&desc, &initData, &buffer.pBuffer));
     }
     else
@@ -1110,8 +1100,8 @@ HardwareBuffer GfxContext::CreateBuffer(
 }
 
 FrameBuffer GfxContext::CreateFrameBuffer(
-    std::span<const TextureHandle> _attachments,
-    const bool                     _bDestoryTexture)
+    Span<const TextureHandle> _attachments,
+    const bool                _bDestoryTexture)
 {
     JAM_ASSERT(!_attachments.empty(), "Framebuffer must have at least one attachment.");
 
@@ -1150,8 +1140,8 @@ FrameBuffer GfxContext::CreateFrameBuffer(
             JAM_ASSERT(bIsCubemap == false, "Cubemap depth stencil view is not supported.");
             JAM_ASSERT(tex.type != eTextureType::Texture3D, "3D texture depth stencil view is not supported.");
 
-            D3D11_DEPTH_STENCIL_VIEW_DESC desc {};
-            desc.Format = TextureFormatInfoFrom(tex.format).depthFormat;
+            D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
+            desc.Format                        = TextureFormatInfoFrom(tex.format).depthFormat;
 
             if (bIsArray)
             {
@@ -1192,8 +1182,8 @@ FrameBuffer GfxContext::CreateFrameBuffer(
             JAM_ASSERT(tex.bRtvAttachable, "Render target texture must be created with RenderTarget flag.");
             JAM_ASSERT(bIsCubemap == false, "Cubemap render target view is not supported.");
 
-            D3D11_RENDER_TARGET_VIEW_DESC desc {};
-            desc.Format = TextureFormatInfoFrom(tex.format).texFormat;
+            D3D11_RENDER_TARGET_VIEW_DESC desc = {};
+            desc.Format                        = TextureFormatInfoFrom(tex.format).texFormat;
 
             if (tex.type == eTextureType::Texture2D || tex.type == eTextureType::TextureCube)
             {
@@ -1266,7 +1256,7 @@ ShaderHandle GfxContext::GetOrCreateShader(
     shader.cache    = key;
 
     // 리플렉션 생성
-    D3D11_SHADER_DESC              desc;
+    D3D11_SHADER_DESC              desc     = {};
     ComPtr<ID3D11ShaderReflection> pReflect = nullptr;
     JAM_CHECK_COM(D3DReflect(pByteCode, byteWidth, IID_PPV_ARGS(pReflect.ReleaseAndGetAddressOf())));
     JAM_CHECK_COM(pReflect->GetDesc(&desc));
@@ -1321,18 +1311,18 @@ ShaderHandle GfxContext::GetOrCreateShader(
             JAM_ASSERT(0, "Unsupported shader stage");
     }
 
-    const ShaderHandle handle = shaders.Alloc();
-    shaders[handle]           = std::move(shader);
-    shaderCache[key]          = handle;
-    Graphics::SetShaderName(handle);
-    return handle;
+    const ShaderHandle sh = shaders.Alloc();
+    shaders[sh]           = std::move(shader);
+    shaderCache[key]      = sh;
+    Graphics::SetShaderName(sh);
+    return sh;
 }
 
 VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(
     const VertexLayout& _vl)
 {
     // calculate hash
-    const VertexLayoutCacheKey hash = Hash_Murmur64(&_vl, sizeof(VertexLayout));
+    const VertexLayoutCacheKey hash = Hash_Murmur64(_vl);
 
     // check cache
     const auto it = vlCache.find(hash);
@@ -1344,8 +1334,8 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(
     }
 
     // generate dummy hlsl source
-    const std::span<const VertexLayoutElement> vles        = _vl.GetElements();
-    std::string                                dummySource = "struct VSInput {";
+    const Span<const VertexLayoutElement> vles        = _vl.GetElements();
+    std::string                           dummySource = "struct VSInput {";
 
     // generate input element descs
     Vector<D3D11_INPUT_ELEMENT_DESC> inputElems;
@@ -1373,7 +1363,8 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(
     dummySource += "}; void main(VSInput IN) { }";
 
     // compile dummy vertex shader to get bytecode signature
-    ComPtr<ID3DBlob> pBytecode, pErrorBlob;
+    ComPtr<ID3DBlob> pBytecode  = nullptr;
+    ComPtr<ID3DBlob> pErrorBlob = nullptr;
     JAM_CHECK_COM(D3DCompile(
         dummySource.c_str(),
         dummySource.size(),
@@ -1388,7 +1379,7 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(
         pErrorBlob.ReleaseAndGetAddressOf()));
 
     // create d3d11 input layout
-    ID3D11InputLayout* pd3d11InputLayout = nullptr;
+    ID3D11InputLayout* pd3d11InputLayout;
     JAM_CHECK_COM(pd3d11Device->CreateInputLayout(
         inputElems.data(),
         NarrowCast<UINT>(vles.size()),
@@ -1400,11 +1391,11 @@ VertexLayoutHandle GfxContext::GetOrCreateVertexLayout(
     const VertexLayoutHandle vlh = vertexLayouts.Alloc();
 
     // store vertex layout
-    VertexLayoutRef vl;
-    vl.refCount     = 1;
-    vl.vertexLayout = _vl;
-    vl.pInputLayout = pd3d11InputLayout;
-    vl.hash         = hash;
+    VertexLayoutRef vl = {};
+    vl.refCount        = 1;
+    vl.vertexLayout    = _vl;
+    vl.pInputLayout    = pd3d11InputLayout;
+    vl.hash            = hash;
 
     // set debug name
     SetD3D11Name(pd3d11InputLayout, FormatName("InputLayout", vlh));
@@ -1454,30 +1445,29 @@ void GfxContext::UploadBuffer(
         // ConstantBuffer는 CopySubresourceRegion로 복사가 안됨.
         // https://learn.microsoft.com/ko-kr/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-copysubresourceregion
 
-        ComPtr<ID3D11Buffer> pStagingBuffer;
+        D3D11_BUFFER_DESC desc   = {};
+        desc.Usage               = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
+        desc.BindFlags           = 0;
+        desc.MiscFlags           = 0;
+        desc.ByteWidth           = uploadDataWidth;
+        desc.StructureByteStride = 0;
 
-        D3D11_BUFFER_DESC desc;
-        _buffer.pBuffer->GetDesc(&desc);
-        desc.Usage          = D3D11_USAGE_STAGING;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        desc.BindFlags      = 0;
-        desc.MiscFlags      = 0;
-        desc.ByteWidth      = uploadDataWidth;
+        D3D11_SUBRESOURCE_DATA initData = {};
+        initData.pSysMem                = pUploadData;
+        initData.SysMemPitch            = 0;
+        initData.SysMemSlicePitch       = 0;
 
-        D3D11_SUBRESOURCE_DATA initData;
-        initData.pSysMem          = pUploadData;
-        initData.SysMemPitch      = 0;
-        initData.SysMemSlicePitch = 0;
-
+        ComPtr<ID3D11Buffer> pStagingBuffer = nullptr;
         JAM_CHECK_COM(pd3d11Device->CreateBuffer(&desc, &initData, pStagingBuffer.ReleaseAndGetAddressOf()));
 
-        D3D11_BOX box;
-        box.left   = 0;
-        box.right  = uploadDataWidth;
-        box.top    = 0;
-        box.bottom = 1;
-        box.front  = 0;
-        box.back   = 1;
+        D3D11_BOX box = {};
+        box.left      = 0;
+        box.right     = uploadDataWidth;
+        box.top       = 0;
+        box.bottom    = 1;
+        box.front     = 0;
+        box.back      = 1;
 
         pd3d11DeviceContext->CopySubresourceRegion(_buffer.pBuffer, 0, _offset, 0, 0, pStagingBuffer.Get(), 0, &box);
     }
@@ -1486,20 +1476,19 @@ void GfxContext::UploadBuffer(
 Vector<Byte> GfxContext::DownloadBuffer(
     const HardwareBuffer& _buffer) const
 {
-    ComPtr<ID3D11Buffer> pStagingBuffer;
-    Vector<Byte>         readData(_buffer.byteWidth);
+    Vector<Byte> readData(_buffer.byteWidth);
 
     // create staging buffer
-    {
-        D3D11_BUFFER_DESC desc;
-        _buffer.pBuffer->GetDesc(&desc);
-        desc.Usage          = D3D11_USAGE_STAGING;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-        desc.BindFlags      = 0;
-        desc.MiscFlags      = 0;
+    D3D11_BUFFER_DESC desc   = {};
+    desc.ByteWidth           = _buffer.byteWidth;
+    desc.Usage               = D3D11_USAGE_STAGING;
+    desc.CPUAccessFlags      = D3D11_CPU_ACCESS_READ;
+    desc.BindFlags           = 0;
+    desc.MiscFlags           = 0;
+    desc.StructureByteStride = 0;
 
-        JAM_CHECK_COM(pd3d11Device->CreateBuffer(&desc, nullptr, pStagingBuffer.ReleaseAndGetAddressOf()));
-    }
+    ComPtr<ID3D11Buffer> pStagingBuffer = nullptr;
+    JAM_CHECK_COM(pd3d11Device->CreateBuffer(&desc, nullptr, pStagingBuffer.ReleaseAndGetAddressOf()));
 
     // copy to staging buffer
     pd3d11DeviceContext->CopyResource(pStagingBuffer.Get(), _buffer.pBuffer);
@@ -1533,13 +1522,13 @@ void GfxContext::UploadTexture(
 
     const auto [w, h, d] = CalcTextureResolution(_dstTexture.width, _dstTexture.height, _dstTexture.depth, _dstMipIndex);
 
-    D3D11_BOX dstBox;
-    dstBox.left   = _dstX;
-    dstBox.top    = _dstY;
-    dstBox.front  = _dstZ;
-    dstBox.right  = Min(_dstX + _uploadWidth, w);
-    dstBox.bottom = Min(_dstY + _uploadHeight, h);
-    dstBox.back   = Min(_dstZ + _uploadDepth, d);
+    D3D11_BOX dstBox = {};
+    dstBox.left      = _dstX;
+    dstBox.top       = _dstY;
+    dstBox.front     = _dstZ;
+    dstBox.right     = Min(_dstX + _uploadWidth, w);
+    dstBox.bottom    = Min(_dstY + _uploadHeight, h);
+    dstBox.back      = Min(_dstZ + _uploadDepth, d);
 
     const UINT dstIndex = CalcTextureIndex(_dstMipIndex, _dstArrayIndex, _dstTexture.numMips);
     pd3d11DeviceContext->UpdateSubresource(
@@ -1564,26 +1553,28 @@ Vector<Byte> GfxContext::DownloadTexture(
     const Int32 rowPitch              = width * ByteFrom(_texture.format);
     const Int32 slicePitch            = rowPitch * height;
 
-    Vector<Byte> downloadData;
-    downloadData.resize(slicePitch * depth);
-
+    Vector<Byte> data(slicePitch * depth);
     if (_texture.type == eTextureType::TextureCube || _texture.type == eTextureType::Texture2D)
     {
-        ComPtr<ID3D11Texture2D> pReadback;
 
         // create staging texture
-        {
-            D3D11_TEXTURE2D_DESC desc;
-            _texture.pTexture2D->GetDesc(&desc);
-            desc.Usage          = D3D11_USAGE_STAGING;
-            desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-            desc.BindFlags      = 0;
-            desc.MiscFlags      = 0;
-            desc.MipLevels      = 1;
-            desc.ArraySize      = 1;
+        const TextureFormatInfo& formatInfo = TextureFormatInfoFrom(_texture.format);
 
-            JAM_CHECK_COM(pd3d11Device->CreateTexture2D(&desc, nullptr, pReadback.ReleaseAndGetAddressOf()));
-        }
+        D3D11_TEXTURE2D_DESC desc = {};
+        desc.Width                = width;
+        desc.Height               = height;
+        desc.MipLevels            = 1;
+        desc.ArraySize            = 1;
+        desc.Format               = formatInfo.texFormat;
+        desc.SampleDesc.Count     = 1;
+        desc.SampleDesc.Quality   = 0;
+        desc.Usage                = D3D11_USAGE_STAGING;
+        desc.BindFlags            = 0;
+        desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
+        desc.MiscFlags            = 0;
+
+        ComPtr<ID3D11Texture2D> pReadback = nullptr;
+        JAM_CHECK_COM(pd3d11Device->CreateTexture2D(&desc, nullptr, pReadback.ReleaseAndGetAddressOf()));
 
         // copy to staging texture
         {
@@ -1596,7 +1587,7 @@ Vector<Byte> GfxContext::DownloadTexture(
             D3D11_MAPPED_SUBRESOURCE mapped;
             JAM_CHECK_COM(pd3d11DeviceContext->Map(pReadback.Get(), 0, D3D11_MAP_READ, 0, &mapped));
 
-            Byte*       pDstHead = downloadData.data();
+            Byte*       pDstHead = data.data();
             const Byte* pSrcHead = static_cast<const Byte*>(mapped.pData);
             for (Int32 row = 0; row < height; ++row)
             {
@@ -1610,20 +1601,23 @@ Vector<Byte> GfxContext::DownloadTexture(
     }
     else
     {
-        ComPtr<ID3D11Texture3D> pStagingTexture3D;
 
         // create staging texture
-        {
-            D3D11_TEXTURE3D_DESC desc;
-            _texture.pTexture3D->GetDesc(&desc);
-            desc.Usage          = D3D11_USAGE_STAGING;
-            desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-            desc.BindFlags      = 0;
-            desc.MiscFlags      = 0;
-            desc.MipLevels      = 1;
+        const TextureFormatInfo& formatInfo = TextureFormatInfoFrom(_texture.format);
 
-            JAM_CHECK_COM(pd3d11Device->CreateTexture3D(&desc, nullptr, pStagingTexture3D.ReleaseAndGetAddressOf()));
-        }
+        D3D11_TEXTURE3D_DESC desc = {};
+        desc.Width                = width;
+        desc.Height               = height;
+        desc.Depth                = depth;
+        desc.MipLevels            = 1;
+        desc.Format               = formatInfo.texFormat;
+        desc.Usage                = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
+        desc.BindFlags            = 0;
+        desc.MiscFlags            = 0;
+
+        ComPtr<ID3D11Texture3D> pStagingTexture3D = nullptr;
+        JAM_CHECK_COM(pd3d11Device->CreateTexture3D(&desc, nullptr, pStagingTexture3D.ReleaseAndGetAddressOf()));
 
         // copy to staging texture
         {
@@ -1636,7 +1630,7 @@ Vector<Byte> GfxContext::DownloadTexture(
             D3D11_MAPPED_SUBRESOURCE mapped;
             JAM_CHECK_COM(pd3d11DeviceContext->Map(pStagingTexture3D.Get(), 0, D3D11_MAP_READ, 0, &mapped));
 
-            Byte*       pDstHead = downloadData.data();
+            Byte*       pDstHead = data.data();
             const Byte* pSrcHead = static_cast<const Byte*>(mapped.pData);
             for (Int32 slice = 0; slice < depth; ++slice)
             {
@@ -1651,7 +1645,7 @@ Vector<Byte> GfxContext::DownloadTexture(
         }
     }
 
-    return downloadData;
+    return data;
 }
 
 void GfxContext::Blit(
@@ -1681,13 +1675,13 @@ void GfxContext::Blit(
     blitHeight       = Min(blitHeight, srcHeight - _blitSrcY, dstHeight - _blitDstY);
     blitDepth        = Min(blitDepth, srcDepth - _blitSrcZ, dstDepth - _blitDstZ);
 
-    D3D11_BOX box;
-    box.left   = _blitSrcX;
-    box.top    = _blitSrcY;
-    box.front  = _blitSrcZ;
-    box.right  = _blitSrcX + blitWidth;
-    box.bottom = _blitSrcY + blitHeight;
-    box.back   = _blitSrcZ + blitDepth;
+    D3D11_BOX box = {};
+    box.left      = _blitSrcX;
+    box.top       = _blitSrcY;
+    box.front     = _blitSrcZ;
+    box.right     = _blitSrcX + blitWidth;
+    box.bottom    = _blitSrcY + blitHeight;
+    box.back      = _blitSrcZ + blitDepth;
 
     const UINT srcIndex = CalcTextureIndex(_blitSrcMipIndex, _blitSrcArrayIndex, _blitSrcTexture.numMips);
     const UINT dstIndex = CalcTextureIndex(_blitDstMipIndex, _blitDstArrayIndex, _blitDstTexture.numMips);
@@ -1706,14 +1700,14 @@ void GfxContext::Blit(
 ID3D11RasterizerState* GfxContext::GetOrCreateD3D11RasterizerState(
     const RasterizerStateD3D11 _state)
 {
-    const UInt32 hash = Hash_Murmur32(&_state, sizeof(RasterizerStateD3D11));
+    const UInt32 hash = Hash_Murmur32(_state);
     const auto   it   = d3d11RasterizerStateCache.find(hash);
     if (it != d3d11RasterizerStateCache.end())
     {
         return it->second;
     }
 
-    D3D11_RASTERIZER_DESC desc;
+    D3D11_RASTERIZER_DESC desc = {};
     desc.FillMode              = _state.bWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
     desc.CullMode              = _state.cullMode == eCullMode::None  ? D3D11_CULL_NONE
                                : _state.cullMode == eCullMode::Front ? D3D11_CULL_FRONT
@@ -1736,14 +1730,14 @@ ID3D11RasterizerState* GfxContext::GetOrCreateD3D11RasterizerState(
 ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(
     const BlendStateD3D11& _state)
 {
-    const UInt64 hash = Hash_Murmur64(&_state, sizeof(BlendStateD3D11));
+    const UInt32 hash = Hash_Murmur32(_state);
     const auto   it   = d3d11BlendStateCache.find(hash);
     if (it != d3d11BlendStateCache.end())
     {
         return it->second;
     }
 
-    D3D11_BLEND_DESC desc {};
+    D3D11_BLEND_DESC desc       = {};
     desc.AlphaToCoverageEnable  = _state.bAlphaToCoverage;
     desc.IndependentBlendEnable = _state.bIndependentBlend;
     for (Int32 i = 0; i < k_numRenderTargetLimit; ++i)
@@ -1770,7 +1764,7 @@ ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(
             rtDesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
     }
 
-    ID3D11BlendState* pBlendState = nullptr;
+    ID3D11BlendState* pBlendState;
     JAM_CHECK_COM(pd3d11Device->CreateBlendState(&desc, &pBlendState));
     d3d11BlendStateCache[hash] = pBlendState;
     return pBlendState;
@@ -1779,20 +1773,20 @@ ID3D11BlendState* GfxContext::GetOrCreateD3D11BlendState(
 ID3D11DepthStencilState* GfxContext::GetOrCreateD3D11DepthStencilState(
     const DepthStencilStateD3D11 _state)
 {
-    const UInt64 hash = Hash_Murmur64(&_state, sizeof(DepthStencilStateD3D11));
+    const UInt32 hash = Hash_Murmur32(_state);
     const auto   it   = d3d11DepthStencilStateCache.find(hash);
     if (it != d3d11DepthStencilStateCache.end())
     {
         return it->second;
     }
 
-    D3D11_DEPTH_STENCIL_DESC desc;
-    desc.DepthEnable      = _state.depthTestFunc != eCompareFunc::None;
-    desc.DepthWriteMask   = _state.bDepthWrite ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    desc.DepthFunc        = D3D11ComparisonFuncFrom(_state.depthTestFunc);
-    desc.StencilEnable    = _state.fStencil.compareFunc != eCompareFunc::None || _state.bStencil.compareFunc != eCompareFunc::None;
-    desc.StencilReadMask  = 0xFF;
-    desc.StencilWriteMask = 0xFF;
+    D3D11_DEPTH_STENCIL_DESC desc = {};
+    desc.DepthEnable              = _state.depthTestFunc != eCompareFunc::None;
+    desc.DepthWriteMask           = _state.bDepthWrite ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+    desc.DepthFunc                = D3D11ComparisonFuncFrom(_state.depthTestFunc);
+    desc.StencilEnable            = _state.fStencil.compareFunc != eCompareFunc::None || _state.bStencil.compareFunc != eCompareFunc::None;
+    desc.StencilReadMask          = 0xFF;
+    desc.StencilWriteMask         = 0xFF;
 
     // front
     desc.FrontFace.StencilFailOp      = D3D11StencilOpFrom(_state.fStencil.stencilFailOp);
@@ -1806,7 +1800,7 @@ ID3D11DepthStencilState* GfxContext::GetOrCreateD3D11DepthStencilState(
     desc.BackFace.StencilPassOp      = D3D11StencilOpFrom(_state.bStencil.passOp);
     desc.BackFace.StencilFunc        = D3D11ComparisonFuncFrom(_state.fStencil.compareFunc);
 
-    ID3D11DepthStencilState* pDepthStencilState = nullptr;
+    ID3D11DepthStencilState* pDepthStencilState;
     JAM_CHECK_COM(pd3d11Device->CreateDepthStencilState(&desc, &pDepthStencilState));
     d3d11DepthStencilStateCache[hash] = pDepthStencilState;
     return pDepthStencilState;
@@ -1816,9 +1810,11 @@ ID3D11SamplerState* GfxContext::GetOrCreateD3D11SamplerState(
     const SamplerState _state,
     const RGBA         _color)
 {
-    const UInt64 value = static_cast<UInt64>(_state.value);
-    const UInt64 key   = (value << 32ull) | _color.color;
-    const auto   it    = d3d11SamplerStateCache.find(key);
+    MurmurHash32 hasher {};
+    hasher.Mix(_state);
+    hasher.Mix(_color);
+    const UInt32 hash = hasher.Finish();
+    const auto   it   = d3d11SamplerStateCache.find(hash);
     if (it != d3d11SamplerStateCache.end())
     {
         return it->second;
@@ -1830,24 +1826,25 @@ ID3D11SamplerState* GfxContext::GetOrCreateD3D11SamplerState(
                                        : _state.filter == eTextureFilter::Anisotropic8  ? 8
                                        : _state.filter == eTextureFilter::Anisotropic16 ? 16
                                                                                         : 1;
-    D3D11_SAMPLER_DESC desc;
-    desc.Filter         = bIsComparison ? filter.comparisonFilter : filter.filter;
-    desc.AddressU       = D3D11TextureAddressModeFrom(_state.addressU);
-    desc.AddressV       = D3D11TextureAddressModeFrom(_state.addressV);
-    desc.AddressW       = D3D11TextureAddressModeFrom(_state.addressW);
-    desc.MipLODBias     = 0.0f;
-    desc.MaxAnisotropy  = anisotopicLevel;
-    desc.ComparisonFunc = bIsComparison ? D3D11ComparisonFuncFrom(_state.compareFunc) : D3D11_COMPARISON_ALWAYS;
-    desc.BorderColor[0] = static_cast<FLOAT>(_color.r) / 255.0f;
-    desc.BorderColor[1] = static_cast<FLOAT>(_color.g) / 255.0f;
-    desc.BorderColor[2] = static_cast<FLOAT>(_color.b) / 255.0f;
-    desc.BorderColor[3] = static_cast<FLOAT>(_color.a) / 255.0f;
-    desc.MinLOD         = k_floatMin;
-    desc.MaxLOD         = k_floatMax;
+
+    D3D11_SAMPLER_DESC desc = {};
+    desc.Filter             = bIsComparison ? filter.comparisonFilter : filter.filter;
+    desc.AddressU           = D3D11TextureAddressModeFrom(_state.addressU);
+    desc.AddressV           = D3D11TextureAddressModeFrom(_state.addressV);
+    desc.AddressW           = D3D11TextureAddressModeFrom(_state.addressW);
+    desc.MipLODBias         = 0.0f;
+    desc.MaxAnisotropy      = anisotopicLevel;
+    desc.ComparisonFunc     = bIsComparison ? D3D11ComparisonFuncFrom(_state.compareFunc) : D3D11_COMPARISON_ALWAYS;
+    desc.BorderColor[0]     = static_cast<FLOAT>(_color.r) / 255.0f;
+    desc.BorderColor[1]     = static_cast<FLOAT>(_color.g) / 255.0f;
+    desc.BorderColor[2]     = static_cast<FLOAT>(_color.b) / 255.0f;
+    desc.BorderColor[3]     = static_cast<FLOAT>(_color.a) / 255.0f;
+    desc.MinLOD             = k_floatMin;
+    desc.MaxLOD             = k_floatMax;
 
     ID3D11SamplerState* pSamplerState = nullptr;
     JAM_CHECK_COM(pd3d11Device->CreateSamplerState(&desc, &pSamplerState));
-    d3d11SamplerStateCache[key] = pSamplerState;
+    d3d11SamplerStateCache[hash] = pSamplerState;
     return pSamplerState;
 }
 
@@ -2095,7 +2092,7 @@ std::string GfxContext::FormatNameCustom(
     }
 }
 
-std::string GfxContext::StringFrom(
+std::string GfxContext::CreateStringFrom(
     const SourceLoc& _loc) const
 {
     return std::format(", File: {}, Func: {}, Line: {}", _loc.filename, _loc.function, _loc.line);
@@ -2166,13 +2163,13 @@ void Graphics::Init(
 
     // 스왑체인 생성
     {
-        ComPtr<IDXGIDevice2> dxgiDevice;
+        ComPtr<IDXGIDevice2> dxgiDevice = nullptr;
         JAM_CHECK_COM(g_pGfxCtx->pd3d11Device->QueryInterface(IID_PPV_ARGS(dxgiDevice.ReleaseAndGetAddressOf())));
 
-        ComPtr<IDXGIAdapter1> dxgiAdapter;
+        ComPtr<IDXGIAdapter1> dxgiAdapter = nullptr;
         JAM_CHECK_COM(dxgiDevice->GetParent(IID_PPV_ARGS(dxgiAdapter.ReleaseAndGetAddressOf())));
 
-        ComPtr<IDXGIFactory2> dxgiFactory;
+        ComPtr<IDXGIFactory2> dxgiFactory = nullptr;
         JAM_CHECK_COM(dxgiAdapter->GetParent(IID_PPV_ARGS(dxgiFactory.ReleaseAndGetAddressOf())));
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
@@ -2276,9 +2273,14 @@ bool Graphics::DetectLeak()
 
     for (const auto& [handle, value]: g_pGfxCtx->shaders)
     {
-        const UInt32 index = handle.index;
-        const UInt32 token = handle.token;
-        Log::Warn("Shader leak detected: Handle index = {}, Token = {}, Stage = {}, RefCount = {}", index, token, StringFrom(value.stage), value.refCount);
+        constexpr const char* k_names[] = {
+            "VertexShader", "PixelShader", "GeometryShader", "HullShader", "DomainShader", "ComputeShader"
+        };
+
+        const UInt32 index     = handle.index;
+        const UInt32 token     = handle.token;
+        const char*  stageName = k_names[IntFrom(value.stage)];
+        Log::Warn("Shader leak detected: Handle index = {}, Token = {}, Stage = {}, RefCount = {}", index, token, stageName, value.refCount);
         bLeakDetected = true;
     }
 
@@ -2327,18 +2329,18 @@ VertexBufferHandle Graphics::CreateVertexBuffer(
 {
     const Int32 byteWidth = _vertData.GetByteWidth();
 
-    VertexBuffer vb;
-    vb.buffer   = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::VertexBuffer, _vertData);
-    vb.stride   = _vl.GetStride();
-    vb.numVerts = byteWidth / vb.stride;
-    vb.vlh      = g_pGfxCtx->GetOrCreateVertexLayout(_vl);
+    VertexBuffer vb = {};
+    vb.buffer       = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::VertexBuffer, _vertData);
+    vb.stride       = _vl.GetStride();
+    vb.numVerts     = byteWidth / vb.stride;
+    vb.vlh          = g_pGfxCtx->GetOrCreateVertexLayout(_vl);
 
     const VertexBufferHandle vbh  = g_pGfxCtx->vertexBuffers.Alloc();
     g_pGfxCtx->vertexBuffers[vbh] = std::move(vb);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetVertexBufferName(vbh, g_pGfxCtx->StringFrom(loc));
+    SetVertexBufferName(vbh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetVertexBufferName(vbh);
 #endif
@@ -2354,18 +2356,18 @@ VertexBufferHandle Graphics::CreateDynamicVertexBuffer(
 
     const Int32 stride = _vl.GetStride();
 
-    VertexBuffer vb;
-    vb.buffer   = g_pGfxCtx->CreateBuffer(_numVerts * stride, eBufferType::VertexBuffer, k_nullopt);
-    vb.stride   = stride;
-    vb.numVerts = _numVerts;
-    vb.vlh      = g_pGfxCtx->GetOrCreateVertexLayout(_vl);
+    VertexBuffer vb = {};
+    vb.buffer       = g_pGfxCtx->CreateBuffer(_numVerts * stride, eBufferType::VertexBuffer, k_nullopt);
+    vb.stride       = stride;
+    vb.numVerts     = _numVerts;
+    vb.vlh          = g_pGfxCtx->GetOrCreateVertexLayout(_vl);
 
     const VertexBufferHandle vbh  = g_pGfxCtx->vertexBuffers.Alloc();
     g_pGfxCtx->vertexBuffers[vbh] = std::move(vb);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetVertexBufferName(vbh, g_pGfxCtx->StringFrom(loc));
+    SetVertexBufferName(vbh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetVertexBufferName(vbh);
 #endif
@@ -2379,18 +2381,18 @@ IndexBufferHandle Graphics::CreateIndexBuffer(
 {
     const Int32 byteWidth = _idxData.GetByteWidth();
 
-    IndexBuffer ib;
-    ib.buffer     = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::IndexBuffer, _idxData);
-    ib.numIndices = CalcNumIndices(_idxData, _bUseU32);
-    ib.stride     = _bUseU32 ? 4 : 2;
-    ib.bUseU32    = _bUseU32;
+    IndexBuffer ib = {};
+    ib.buffer      = g_pGfxCtx->CreateBuffer(byteWidth, eBufferType::IndexBuffer, _idxData);
+    ib.numIndices  = CalcNumIndices(_idxData, _bUseU32);
+    ib.stride      = _bUseU32 ? 4 : 2;
+    ib.bUseU32     = _bUseU32;
 
     const IndexBufferHandle ibh  = g_pGfxCtx->indexBuffers.Alloc();
     g_pGfxCtx->indexBuffers[ibh] = std::move(ib);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetIndexBufferName(ibh, g_pGfxCtx->StringFrom(loc));
+    SetIndexBufferName(ibh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetIndexBufferName(ibh);
 #endif
@@ -2417,7 +2419,7 @@ IndexBufferHandle Graphics::CreateDynamicIndexBuffer(
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetIndexBufferName(ibh, g_pGfxCtx->StringFrom(loc));
+    SetIndexBufferName(ibh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetIndexBufferName(ibh);
 #endif
@@ -2430,15 +2432,15 @@ ConstantBufferHandle Graphics::CreateConstantBuffer(const Int32 _byteWidth)
     JAM_ASSERT(_byteWidth > 0 && _byteWidth <= 0xFFFF, "Constant buffer size must be between 1 and 65536 bytes");
     JAM_ASSERT(_byteWidth % 16 == 0, "Constant buffer size must be a multiple of 16 bytes");
 
-    ConstantBuffer cb;
-    cb.buffer = g_pGfxCtx->CreateBuffer(_byteWidth, eBufferType::ConstantBuffer, k_nullopt);
+    ConstantBuffer cb = {};
+    cb.buffer         = g_pGfxCtx->CreateBuffer(_byteWidth, eBufferType::ConstantBuffer, k_nullopt);
 
     const ConstantBufferHandle cbh = g_pGfxCtx->cbuffers.Alloc();
     g_pGfxCtx->cbuffers[cbh]       = std::move(cb);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetConstantBufferName(cbh, g_pGfxCtx->StringFrom(loc));
+    SetConstantBufferName(cbh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetConstantBufferName(cbh);
 #endif
@@ -2447,19 +2449,19 @@ ConstantBufferHandle Graphics::CreateConstantBuffer(const Int32 _byteWidth)
 }
 
 TextureHandle Graphics::CreateTexture2D(
-    const Int32                      _width,
-    const Int32                      _height,
-    const eTextureFormat             _format,
-    const Int32                      _arraySize,
-    const eTextureCreateFlags        _flags,
-    const std::span<const CMemView>& _initDataOrEmpty)
+    const Int32                 _width,
+    const Int32                 _height,
+    const eTextureFormat        _format,
+    const Int32                 _arraySize,
+    const eTextureCreateFlags   _flags,
+    const Span<const CMemView>& _initDataOrEmpty)
 {
     const TextureHandle texh  = g_pGfxCtx->textures.Alloc();
     g_pGfxCtx->textures[texh] = g_pGfxCtx->CreateTexture(_width, _height, 1, _format, _arraySize, _flags, eTextureType::Texture2D, _initDataOrEmpty);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetTextureName(texh, g_pGfxCtx->StringFrom(loc));
+    SetTextureName(texh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetTextureName(texh);
 #endif
@@ -2467,19 +2469,19 @@ TextureHandle Graphics::CreateTexture2D(
     return texh;
 }
 TextureHandle Graphics::CreateTextureCube(
-    const Int32                      _width,
-    const Int32                      _height,
-    const eTextureFormat             _format,
-    const Int32                      _cubeCount,
-    const eTextureCreateFlags        _flags,
-    const std::span<const CMemView>& _initData)
+    const Int32                 _width,
+    const Int32                 _height,
+    const eTextureFormat        _format,
+    const Int32                 _cubeCount,
+    const eTextureCreateFlags   _flags,
+    const Span<const CMemView>& _initData)
 {
     const TextureHandle texh  = g_pGfxCtx->textures.Alloc();
     g_pGfxCtx->textures[texh] = g_pGfxCtx->CreateTexture(_width, _height, 1, _format, _cubeCount * 6, _flags, eTextureType::TextureCube, _initData);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetTextureName(texh, g_pGfxCtx->StringFrom(loc));
+    SetTextureName(texh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetTextureName(texh);
 #endif
@@ -2488,19 +2490,19 @@ TextureHandle Graphics::CreateTextureCube(
 }
 
 TextureHandle Graphics::CreateTexture3D(
-    const Int32                      _width,
-    const Int32                      _height,
-    const Int32                      _depth,
-    const eTextureFormat             _format,
-    const eTextureCreateFlags        _texFlags,
-    const std::span<const CMemView>& _initData)
+    const Int32                 _width,
+    const Int32                 _height,
+    const Int32                 _depth,
+    const eTextureFormat        _format,
+    const eTextureCreateFlags   _texFlags,
+    const Span<const CMemView>& _initData)
 {
     const TextureHandle texh  = g_pGfxCtx->textures.Alloc();
     g_pGfxCtx->textures[texh] = g_pGfxCtx->CreateTexture(_width, _height, _depth, _format, 1, _texFlags, eTextureType::Texture3D, _initData);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetTextureName(texh, g_pGfxCtx->StringFrom(loc));
+    SetTextureName(texh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetTextureName(texh);
 #endif
@@ -2509,15 +2511,15 @@ TextureHandle Graphics::CreateTexture3D(
 }
 
 FrameBufferHandle Graphics::CreateFrameBuffer(
-    const std::span<const TextureHandle> _attachments,
-    const bool                           _bDestroyTexture)
+    const Span<const TextureHandle> _attachments,
+    const bool                      _bDestroyTexture)
 {
     const FrameBufferHandle fbh  = g_pGfxCtx->frameBuffers.Alloc();
     g_pGfxCtx->frameBuffers[fbh] = g_pGfxCtx->CreateFrameBuffer(_attachments, _bDestroyTexture);
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetFrameBufferName(fbh, g_pGfxCtx->StringFrom(loc));
+    SetFrameBufferName(fbh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetFrameBufferName(fbh);
 #endif
@@ -2532,7 +2534,7 @@ ShaderHandle Graphics::CreateShader(
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetShaderName(sh, g_pGfxCtx->StringFrom(loc));
+    SetShaderName(sh, g_pGfxCtx->CreateStringFrom(loc));
 #endif
 
     return sh;
@@ -2548,7 +2550,7 @@ ProgramHandle Graphics::CreateProgram(
 {
     JAM_ASSERT(JAM_IS_VALID_HANDLE(_vsh) || JAM_IS_VALID_HANDLE(_psh), "At least one of VS or PS must be provided");
 
-    const ShaderHandle shs[k_numGraphicsShaderStage] = { _vsh, _psh, _gsh, _hsh, _dsh };
+    Array<ShaderHandle, k_numGraphicsShaderStage> shs = { _vsh, _psh, _gsh, _hsh, _dsh };
 
     Program program = {};
     for (Int32 i = 0; i < k_numGraphicsShaderStage; ++i)
@@ -2597,7 +2599,7 @@ void Graphics::DestroyVertexBuffer(
     // destory d3d11 resource
     {
         ID3D11Buffer* pd3d11Buffer = vb.buffer.pBuffer;
-        const Int32   refCount     = pd3d11Buffer->Release();
+        const Int32   refCount     = NarrowCast<Int32>(pd3d11Buffer->Release());
         JAM_ASSERT(refCount == 0, "Vertex buffer.pBuffer reference count is not zero. RefCount: {}", refCount);
     }
 
@@ -2625,12 +2627,11 @@ void Graphics::DestroyVertexBuffer(
 void Graphics::DestroyIndexBuffer(const IndexBufferHandle _ibh)
 {
     const IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
-    UINT               refCount;
 
     // destroy d3d11 resource
     {
         ID3D11Buffer* pd3d11Buffer = ib.buffer.pBuffer;
-        refCount                   = pd3d11Buffer->Release();
+        const UINT    refCount     = pd3d11Buffer->Release();
         JAM_ASSERT(refCount == 0, "Index buffer.pBuffer reference count is not zero. RefCount: {}", refCount);
     }
 
@@ -2651,11 +2652,11 @@ void Graphics::DestroyTexture(
     {
         if (tex.pSRV)   // SRV 파괴
         {
-            UINT d3dRefCount = tex.pSRV->Release();
+            const UINT d3dRefCount = tex.pSRV->Release();
             JAM_ASSERT(d3dRefCount == 0, "TextureRef SRV reference count is not zero. RefCount: {}", d3dRefCount);
         }
 
-        UINT d3dRefCount = tex.pResource->Release();   // 리소스 파괴
+        const UINT d3dRefCount = tex.pResource->Release();   // 리소스 파괴
         JAM_ASSERT(d3dRefCount == 0, "TextureRef resource reference count is not zero. RefCount: {}", d3dRefCount);
 
         g_pGfxCtx->textures.Free(_texh);   // 핸들 해제
@@ -2668,13 +2669,12 @@ void Graphics::DestroyFrameBuffer(
     JAM_ASSERT(JAM_IS_VALID_HANDLE(_fbh), "Invalid FrameBuffer handle");
 
     const FrameBuffer& fb = g_pGfxCtx->frameBuffers[_fbh];
-    UINT               refCount;
 
     // destory rtv
     for (Int32 i = 0; i < fb.numRenderTarget; ++i)
     {
-        ID3D11RenderTargetView* pRTV = fb.pRTV[i];
-        refCount                     = pRTV->Release();   // d3d 리소스 파괴
+        ID3D11RenderTargetView* pRTV     = fb.pRTV[i];
+        const UINT              refCount = pRTV->Release();   // d3d 리소스 파괴
         JAM_ASSERT(refCount == 0, "Render target view reference count is not zero. RefCount: {}", refCount);
 
         DestroyTexture(fb.renderTargetTexhs[i]);   // TextureHandle 해제
@@ -2683,8 +2683,8 @@ void Graphics::DestroyFrameBuffer(
     // DSV 파괴
     if (fb.pDSV)
     {
-        ID3D11DepthStencilView* pDSV = fb.pDSV;
-        refCount                     = pDSV->Release();   // d3d 리소스 파괴
+        ID3D11DepthStencilView* pDSV     = fb.pDSV;
+        const UINT              refCount = pDSV->Release();   // d3d 리소스 파괴
         JAM_ASSERT(refCount == 0, "Depth stencil view reference count is not zero. RefCount: {}", refCount);
 
         DestroyTexture(fb.depthStencilTexh);   // TextureHandle 해제
@@ -2713,10 +2713,9 @@ void Graphics::DestroyShader(
     const ShaderHandle _sh)
 {
     ShaderRef& shader = g_pGfxCtx->shaders[_sh];
-    Int32      refCount;
 
     // 참조 해제
-    refCount = --shader.refCount;
+    Int32 refCount = --shader.refCount;
     JAM_ASSERT(refCount >= 0, "ShaderRef reference count is already zero");
 
     if (refCount == 0)
@@ -2796,8 +2795,8 @@ void Graphics::SetTextureName(
     const TextureHandle _texh,
     const StringView    _name)
 {
-    constexpr StringView k_texNames[NumEnums<eTextureType>()] = { "Texture2D", "Texture3D", "TextureCube" };
-    constexpr StringView k_srvNames[NumEnums<eTextureType>()] = { "Texture2D_SRV", "Texture3D_SRV", "TextureCube_SRV" };
+    constexpr Array k_texNames = { "Texture2D", "Texture3D", "TextureCube" };
+    constexpr Array k_srvNames = { "Texture2D_SRV", "Texture3D_SRV", "TextureCube_SRV" };
 
     TextureRef& tex = g_pGfxCtx->textures[_texh];
     tex.name        = g_pGfxCtx->FormatNameCustom(k_texNames[IntFrom(tex.type)], _texh, _name);
@@ -2814,15 +2813,8 @@ void Graphics::SetFrameBufferName(
     const FrameBufferHandle _fbh,
     const StringView        _name)
 {
-    constexpr StringView k_names[k_numRenderTargetLimit] = {
-        "FrameBuffer_RTV0",
-        "FrameBuffer_RTV1",
-        "FrameBuffer_RTV2",
-        "FrameBuffer_RTV3",
-        "FrameBuffer_RTV4",
-        "FrameBuffer_RTV5",
-        "FrameBuffer_RTV6",
-        "FrameBuffer_RTV7",
+    constexpr Array k_names = {
+        "FrameBuffer_RTV0", "FrameBuffer_RTV1", "FrameBuffer_RTV2", "FrameBuffer_RTV3", "FrameBuffer_RTV4", "FrameBuffer_RTV5", "FrameBuffer_RTV6", "FrameBuffer_RTV7"
     };
 
     FrameBuffer& fb = g_pGfxCtx->frameBuffers[_fbh];
@@ -2848,7 +2840,7 @@ void Graphics::SetShaderName(
     const ShaderHandle _sh,
     const StringView   _name)
 {
-    constexpr StringView k_names[NumEnums<eShader>()] = {
+    constexpr Array k_names = {
         "VertexShader", "PixelShader", "GeometryShader", "HullShader", "DomainShader", "ComputeShader"
     };
 
@@ -3219,12 +3211,12 @@ VertexBufferInfo Graphics::GetVertexBufferInfo(
 {
     const VertexBuffer& vb = g_pGfxCtx->vertexBuffers[_vbh];
 
-    VertexBufferInfo vbi;
-    vbi.byteWidth    = vb.buffer.byteWidth;
-    vbi.numVerts     = vb.numVerts;
-    vbi.vertexStride = vb.stride;
-    vbi.bDynamic     = vb.buffer.bDynamic;
-    vbi.layoutHandle = vb.vlh;
+    VertexBufferInfo vbi = {};
+    vbi.byteWidth        = vb.buffer.byteWidth;
+    vbi.numVerts         = vb.numVerts;
+    vbi.vertexStride     = vb.stride;
+    vbi.bDynamic         = vb.buffer.bDynamic;
+    vbi.layoutHandle     = vb.vlh;
     return vbi;
 }
 
@@ -3233,11 +3225,11 @@ IndexBufferInfo Graphics::GetIndexBufferInfo(
 {
     const IndexBuffer& ib = g_pGfxCtx->indexBuffers[_ibh];
 
-    IndexBufferInfo ibi;
-    ibi.byteWidth  = ib.buffer.byteWidth;
-    ibi.numIndices = ib.numIndices;
-    ibi.bUseU32    = ib.bUseU32;
-    ibi.bDynamic   = ib.buffer.bDynamic;
+    IndexBufferInfo ibi = {};
+    ibi.byteWidth       = ib.buffer.byteWidth;
+    ibi.numIndices      = ib.numIndices;
+    ibi.bUseU32         = ib.bUseU32;
+    ibi.bDynamic        = ib.buffer.bDynamic;
     return ibi;
 }
 
@@ -3246,8 +3238,8 @@ ConstantBufferInfo Graphics::GetConstantBufferInfo(
 {
     const ConstantBuffer& cb = g_pGfxCtx->cbuffers[_cbh];
 
-    ConstantBufferInfo cbi;
-    cbi.byteWidth = cb.buffer.byteWidth;
+    ConstantBufferInfo cbi = {};
+    cbi.byteWidth          = cb.buffer.byteWidth;
     return cbi;
 }
 
@@ -3256,7 +3248,7 @@ TextureInfo Graphics::GetTextureInfo(
 {
     const TextureRef& tex = g_pGfxCtx->textures[_texh];
 
-    TextureInfo texi;
+    TextureInfo texi             = {};
     texi.width                   = tex.width;
     texi.height                  = tex.height;
     texi.depth                   = tex.depth;
@@ -3277,7 +3269,7 @@ FrameBufferInfo Graphics::GetFrameBufferInfo(
     const FrameBufferHandle fbh = JAM_IS_VALID_HANDLE(_fbh) ? _fbh : g_pGfxCtx->backBufferFbh;
     const FrameBuffer&      fb  = g_pGfxCtx->frameBuffers[fbh];
 
-    FrameBufferInfo fbi;
+    FrameBufferInfo fbi  = {};
     fbi.numRenderTargets = fb.numRenderTarget;
     fbi.bHasDepthStencil = JAM_IS_VALID_HANDLE(fb.depthStencilTexh);
     std::memcpy(&fbi.renderTargetTexhs, fb.renderTargetTexhs, sizeof(fb.renderTargetTexhs));
@@ -3290,8 +3282,8 @@ ShaderInfo Graphics::GetShaderInfo(
 {
     const ShaderRef& shader = g_pGfxCtx->shaders[_sh];
 
-    ShaderInfo si;
-    si.stage = shader.stage;
+    ShaderInfo si = {};
+    si.stage      = shader.stage;
     return si;
 }
 
@@ -3300,7 +3292,7 @@ ProgramInfo Graphics::GetProgramInfo(
 {
     const Program& program = g_pGfxCtx->programs[_ph];
 
-    ProgramInfo pi;
+    ProgramInfo pi = {};
     std::memcpy(pi.shs, program.shs, sizeof(program.shs));
     return pi;
 }
@@ -3708,7 +3700,7 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetFrameBufferName(fbh, g_pGfxCtx->StringFrom(loc));
+    SetFrameBufferName(fbh, g_pGfxCtx->CreateStringFrom(loc));
 #endif
 
     return fbh;
@@ -3744,7 +3736,7 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetFrameBufferName(fbh, g_pGfxCtx->StringFrom(loc));
+    SetFrameBufferName(fbh, g_pGfxCtx->CreateStringFrom(loc));
 #endif
 
     return fbh;
@@ -3776,13 +3768,13 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetFrameBufferName(fbh, g_pGfxCtx->StringFrom(loc));
+    SetFrameBufferName(fbh, g_pGfxCtx->CreateStringFrom(loc));
 #endif
 
     return fbh;
 }
 
-TextureHandle Graphics::LoadTexture(
+TextureHandle Graphics::CreateTexture(
     const DirectX::ScratchImage& _scratchImage)
 {
     ID3D11Resource* pResource = nullptr;
@@ -3799,21 +3791,21 @@ TextureHandle Graphics::LoadTexture(
                    || metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D,
                "Only 2D, Cube, and 3D textures are supported.");
 
-    TextureRef tex;
-    tex.width     = NarrowCast<Int32>(metadata.width);
-    tex.height    = NarrowCast<Int32>(metadata.height);
-    tex.depth     = NarrowCast<Int32>(metadata.depth);
-    tex.format    = TextureFormatFrom(metadata.format);
-    tex.arraySize = NarrowCast<Int32>(metadata.arraySize);
-    tex.samples   = 1;
-    tex.numMips   = NarrowCast<Int32>(metadata.mipLevels);
-    tex.refCount  = 1;
-    tex.bManaged  = false;
-    tex.bMutable  = false;
-    tex.pResource = pResource;
-    tex.type      = metadata.IsCubemap()                                   ? eTextureType::TextureCube
-                  : metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D ? eTextureType::Texture3D
-                                                                           : eTextureType::Texture2D;
+    TextureRef tex = {};
+    tex.width      = NarrowCast<Int32>(metadata.width);
+    tex.height     = NarrowCast<Int32>(metadata.height);
+    tex.depth      = NarrowCast<Int32>(metadata.depth);
+    tex.format     = TextureFormatFrom(metadata.format);
+    tex.arraySize  = NarrowCast<Int32>(metadata.arraySize);
+    tex.samples    = 1;
+    tex.numMips    = NarrowCast<Int32>(metadata.mipLevels);
+    tex.refCount   = 1;
+    tex.bManaged   = false;
+    tex.bMutable   = false;
+    tex.pResource  = pResource;
+    tex.type       = metadata.IsCubemap()                                   ? eTextureType::TextureCube
+                   : metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D ? eTextureType::Texture3D
+                                                                            : eTextureType::Texture2D;
 
     JAM_CHECK_COM(DirectX::CreateShaderResourceView(
         g_pGfxCtx->pd3d11Device,
@@ -3827,101 +3819,12 @@ TextureHandle Graphics::LoadTexture(
 
 #ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
     const SourceLoc loc = TraceCallerInfo();
-    SetTextureName(texh, g_pGfxCtx->StringFrom(loc));
+    SetTextureName(texh, g_pGfxCtx->CreateStringFrom(loc));
 #else
     SetTextureName(texh);
 #endif
 
     return texh;
-}
-
-Optional<TextureHandle> Graphics::LoadTextureFile(
-    const fs::path& _path,
-    const bool      _bGenerateMips)
-{
-    ImageImporter importer;
-    importer.GenerateMips(_bGenerateMips);
-
-    if (importer.Import(_path))
-    {
-        const TextureHandle texh = importer.GetTexture();
-#ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
-        const SourceLoc loc = TraceCallerInfo();
-        SetTextureName(texh, g_pGfxCtx->StringFrom(loc));
-#endif
-        return texh;
-    }
-    else
-    {
-        return k_nullopt;
-    }
-}
-
-Optional<TextureHandle> Graphics::LoadTextureMemory(
-    const CMemView     _mem,
-    const eImageFormat _format,
-    const bool         _bGenerateMips)
-{
-    ImageImporter importer;
-    importer.GenerateMips(_bGenerateMips);
-
-    if (importer.ImportMemory(_mem, _format))
-    {
-        const TextureHandle texh = importer.GetTexture();
-#ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
-        const SourceLoc loc = TraceCallerInfo();
-        SetTextureName(texh, g_pGfxCtx->StringFrom(loc));
-#endif
-        return texh;
-    }
-    else
-    {
-        return k_nullopt;
-    }
-}
-
-Optional<ShaderHandle> Graphics::LoadHLSLShaderFile(
-    const fs::path&           _path,
-    const eShader             _stage,
-    const StringView          _entryPoint,
-    const eShaderCompileFlags _flags)
-{
-    ShaderCompiler compiler;
-    if (compiler.CompileHLSLFile(_path, _stage, _entryPoint, {}, _flags))
-    {
-        const ShaderHandle sh = compiler.GetShader();
-#ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
-        const SourceLoc loc = TraceCallerInfo();
-        SetShaderName(sh, g_pGfxCtx->StringFrom(loc));
-#endif
-        return sh;
-    }
-    else
-    {
-        return k_nullopt;
-    }
-}
-
-Optional<ShaderHandle> Graphics::LoadHLSLShaderSource(
-    const StringView          _source,
-    const eShader             _stage,
-    const StringView          _entryPoint,
-    const eShaderCompileFlags _flags)
-{
-    ShaderCompiler compiler;
-    if (compiler.CompileHLSLSource(_source, _stage, _entryPoint, {}, _flags))
-    {
-        const ShaderHandle sh = compiler.GetShader();
-#ifdef JAM_GRAPHICS_TRACE_RESOURCE_CREATION_CALLER
-        const SourceLoc loc = TraceCallerInfo();
-        SetShaderName(sh, g_pGfxCtx->StringFrom(loc));
-#endif
-        return sh;
-    }
-    else
-    {
-        return k_nullopt;
-    }
 }
 
 void Graphics::Submit()

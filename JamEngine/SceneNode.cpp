@@ -9,23 +9,28 @@ SceneNode::SceneNode()
 {
 }
 
-SceneNode::SceneNode(const Entity _root, const Entity _owner)
+SceneNode::SceneNode(
+    const Entity _root,
+    const Entity _owner)
     : m_root(_root)
     , m_owner(_owner)
 {
-    JAM_ASSERT(_root.IsValid(), "Root entity is invalid");
-    JAM_ASSERT(_owner.IsValid(), "Owner entity is invalid");
+    JAM_ASSERT(_root, "Root entity is invalid");
+    JAM_ASSERT(_owner, "Owner entity is invalid");
     SetParent(m_root);
 }
 
-SceneNode::SceneNode(const Entity _root)
+SceneNode::SceneNode(
+    const Entity _root)
     : m_root(_root)
     , m_owner(_root)
 {
-    JAM_ASSERT(_root.IsValid(), "Root entity is invalid");
+    JAM_ASSERT(_root, "Root entity is invalid");
 }
 
-void SceneNode::SetParent(const Entity _parent, const bool _bKeepLocal)
+void SceneNode::SetParent(
+    const Entity _parent,
+    const bool   _bKeepLocal)
 {
     JAM_ASSERT(_parent, "Parent entity is invalid");
     JAM_ASSERT(_parent != m_owner, "Cannot set self as parent");
@@ -140,8 +145,7 @@ void SceneNode::UpdateDirty_Recursive_(Vector<Entity>& _updatedNodes)
             const SceneNode& parentNode  = m_parent.GetSceneNode();
             const Transform& parentWt    = parentNode.GetWorldTransform();
             const Transform  parentWtInv = parentWt.Inverted();
-
-            m_local = m_world.Multed(parentWtInv);
+            m_local                      = m_world.Multed(parentWtInv);
         }
         else
         {
@@ -158,8 +162,7 @@ void SceneNode::UpdateDirty_Recursive_(Vector<Entity>& _updatedNodes)
             // update world based on local
             const SceneNode& parentNode = m_parent.GetSceneNode();
             const Transform& parentWt   = parentNode.GetWorldTransform();
-
-            m_world = m_local.Multed(parentWt);
+            m_world                     = m_local.Multed(parentWt);
         }
         else
         {
@@ -224,6 +227,11 @@ bool SceneNode::IsRoot() const
 bool SceneNode::HasParent() const
 {
     return m_parent.IsValid();
+}
+
+bool SceneNode::HasChildren() const
+{
+    return m_firstChild.IsValid();
 }
 
 Entity SceneNode::GetRoot() const

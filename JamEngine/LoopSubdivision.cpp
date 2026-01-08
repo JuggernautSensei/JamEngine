@@ -2,7 +2,7 @@
 
 #include "LoopSubdivision.h"
 
-#include "BaseUtilities.h"
+#include "GeometryUtilities.h"
 #include "MemView.h"
 #include "MemoryArena.h"
 
@@ -20,7 +20,7 @@ struct SDPoint
 {
     [[nodiscard]] SDPoint operator*(const float _scalar) const
     {
-        SDPoint p;
+        SDPoint p  = {};
         p.position = position * _scalar;
         p.texcoord = texcoord * _scalar;
         return p;
@@ -28,7 +28,7 @@ struct SDPoint
 
     [[nodiscard]] SDPoint operator+(const SDPoint& _other) const
     {
-        SDPoint p;
+        SDPoint p  = {};
         p.position = position + _other.position;
         p.texcoord = texcoord + _other.texcoord;
         return p;
@@ -50,7 +50,7 @@ struct SDVertex
     [[nodiscard]] Int32           CalcValence() const;
     [[nodiscard]] Vector<SDPoint> OneRing() const;
 
-    SDPoint   point;                  // 정점의 위치 및 텍스처 좌표
+    SDPoint   point      = {};        // 정점의 위치 및 텍스처 좌표
     SDFace*   pStartFace = nullptr;   // 임의의 면
     SDVertex* pChildVert = nullptr;   // 세분화 후 생성된 자식 버텍스
     bool      bRegular   = false;     // 정점이 Regular한지 여부
@@ -168,9 +168,8 @@ Int32 SDVertex::CalcValence() const
 
 Vector<SDPoint> SDVertex::OneRing() const
 {
-    const Int32 valence = CalcValence();
-
-    Vector<SDPoint> pRing;
+    const Int32     valence = CalcValence();
+    Vector<SDPoint> pRing   = {};
     pRing.reserve(valence);
 
     if (!bBoundary)
@@ -248,42 +247,43 @@ static SDPoint WeightBoundary(
 ///////////////////////////////////////////////////////////
 
 LoopSubdivisionOutput LoopSubdivide(
-    const std::span<const Vec3> _positions,
-    const CMemView              _idxData,
-    const bool                  _bUseU32,
-    const Int32                 _level)
+    const Span<const Vec3> _positions,
+    const CMemView         _idxData,
+    const bool             _bUseU32,
+    const Int32            _level)
 {
     LoopSubdivisionOutputWithTexcoords result = LoopSubdivide(_positions, {}, _idxData, _bUseU32, _level);
 
-    LoopSubdivisionOutput output;
-    output.positions = std::move(result.positions);
-    output.indices   = std::move(result.indices);
-    output.bUseU32   = result.bUseU32;
+    LoopSubdivisionOutput output = {};
+    output.positions             = std::move(result.positions);
+    output.indices               = std::move(result.indices);
+    output.bUseU32               = result.bUseU32;
     return output;
 }
 
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
-    std::span<const Vec3> _positions,
-    std::span<const Vec2> _texcoordsOrEmpty,   // or empty
-    CMemView              _idxData,
-    bool                  _bUseU32,
-    Int32                 _level)
+    Span<const Vec3> _positions,
+    Span<const Vec2> _texcoordsOrEmpty,   // or empty
+    CMemView         _idxData,
+    bool             _bUseU32,
+    Int32            _level)
 {
     JAM_ASSERT(!_positions.empty(), "position data is empty.");
     JAM_ASSERT(_idxData.IsEmpty(), "index data is invalid.");
 
     MemoryArena arena { 1024 };   // 메모리 아레나
 
-    const Int32 numVerts     = NarrowCast<Int32>(_positions.size());
-    const Int32 numIdxes     = CalcNumIndices(_idxData, _bUseU32);
-    const Int32 numFaces     = numIdxes / 3;
-    const bool  bHasTexCoord = !_texcoordsOrEmpty.empty();
+    const IndexReader indexReader { _idxData, _bUseU32 };
+    const Int32       numVerts     = _positions.size();
+    const Int32       numIdxes     = CalcNumIndices(_idxData, _bUseU32);
+    const Int32       numFaces     = numIdxes / 3;
+    const bool        bHasTexCoord = !_texcoordsOrEmpty.empty();
 
     // 버텍스 및 페이스
-    Vector<SDVertex*> verts;
+    Vector<SDVertex*> verts = {};
     verts.reserve(numVerts);
 
-    Vector<SDFace*> faces;
+    Vector<SDFace*> faces = {};
     faces.reserve(numFaces);
 
     // 초기 데이터 삽입
@@ -312,7 +312,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
         SDFace* pFace = faces[i];
         for (Int32 j = 0; j < 3; ++j)
         {
-            const UInt32 idx   = IndexFrom(_idxData, i * 3 + j, _bUseU32);
+            const UInt32 idx   = indexReader.ReadAt(i * 3 + j);
             SDVertex*    pVert = verts[idx];
             pFace->pVerts[j]   = pVert;
             pVert->pStartFace  = pFace;   // 임의의 면 설정
@@ -320,7 +320,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 엣지 정보 설정
-    HashSet<SDEdge> edgeSet;
+    HashSet<SDEdge> edgeSet = {};
     for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];
@@ -329,7 +329,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
             const Int32 v0 = j;
             const Int32 v1 = (j + 1) % 3;
 
-            SDEdge edge;
+            SDEdge edge    = {};
             edge.pVerts[0] = Min(pFace->pVerts[v0], pFace->pVerts[v1]);
             edge.pVerts[1] = Max(pFace->pVerts[v0], pFace->pVerts[v1]);
 
@@ -370,10 +370,10 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     // 세분화 수행
     for (Int32 i = 0; i < _level; ++i)
     {
-        Vector<SDFace*> newFaces;
+        Vector<SDFace*> newFaces = {};
         newFaces.reserve(faces.size() * 4);   // 대략적인 크기 예약
 
-        Vector<SDVertex*> newVerts;
+        Vector<SDVertex*> newVerts = {};
         newVerts.reserve(verts.size() * 2);   // 대략적인 크기 예약
 
         // 새로운 버텍스 및 페이스 생성
@@ -410,7 +410,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
         }
 
         // odd 에지 버텍스 위치 계산
-        HashMap<SDEdge, SDVertex*> edgeVertMap;
+        HashMap<SDEdge, SDVertex*> edgeVertMap = {};
         for (SDFace* pFace: faces)
         {
             for (Int32 k = 0; k < 3; ++k)
@@ -490,9 +490,9 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 최종 위치 보정
-    const Int32 finalNumVerts = NarrowCast<Int32>(verts.size());
+    const Int32 finalNumVerts = verts.size();
 
-    Vector<SDPoint> limits;
+    Vector<SDPoint> limits = {};
     limits.reserve(finalNumVerts);
     for (Int32 i = 0; i < finalNumVerts; ++i)
     {
@@ -514,10 +514,10 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 포지션 + texCoord 배열 생성
-    Vector<Vec3> finalPositions;
+    Vector<Vec3> finalPositions = {};
     finalPositions.reserve(finalNumVerts);
 
-    Vector<Vec2> finalTexcoords;
+    Vector<Vec2> finalTexcoords = {};
     finalTexcoords.reserve(finalNumVerts);
 
     for (Int32 i = 0; i < finalNumVerts; ++i)
@@ -527,35 +527,35 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 인덱스 배열 생성
-    const Int32 finalNumFaces     = NarrowCast<Int32>(faces.size());
-    const bool  bUseU32           = finalNumVerts > 0xFFFF;
+    const Int32 finalNumFaces     = faces.size();
+    const bool  bUseU32           = IsGreaterThanUInt16(numVerts);
     const Int32 finalNumIdxes     = finalNumFaces * 3;
     const Int32 finalIdxByteWidth = CalcIndicesByteWidth(finalNumIdxes, bUseU32);
 
     // 버텍스 맵 생성
-    HashMap<SDVertex*, Int32> usedVertsMap;
+    HashMap<SDVertex*, Int32> usedVertsMap = {};
     for (Int32 i = 0; i < finalNumVerts; ++i)
     {
         usedVertsMap[verts[i]] = i;
     }
 
-    // 인덱스 삽입
-    Vector<Byte> finalIdxData;
-    finalIdxData.resize(finalIdxByteWidth);
+    // 인덱스 버퍼
+    Vector<Byte> finalIdxData(finalIdxByteWidth);
+    IndexWriter  indexWriter { finalIdxData, bUseU32 };
     for (Int32 i = 0; i < finalNumFaces; ++i)
     {
         for (Int32 j = 0; j < 3; ++j)
         {
             const Int32 idx = usedVertsMap[faces[i]->pVerts[j]];
-            StoreIndex(finalIdxData, idx, bUseU32, i * 3 + j);
+            indexWriter.WriteAt(i * 3 + j, idx);
         }
     }
 
-    LoopSubdivisionOutputWithTexcoords output;
-    output.positions = std::move(finalPositions);
-    output.texcoords = std::move(finalTexcoords);
-    output.indices   = std::move(finalIdxData);
-    output.bUseU32   = bUseU32;
+    LoopSubdivisionOutputWithTexcoords output = {};
+    output.positions                          = std::move(finalPositions);
+    output.texcoords                          = std::move(finalTexcoords);
+    output.indices                            = std::move(finalIdxData);
+    output.bUseU32                            = bUseU32;
     return output;
 }
 

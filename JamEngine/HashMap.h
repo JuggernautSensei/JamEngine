@@ -18,9 +18,13 @@ template<typename KeyT,
          typename BucketContainer = ankerl::unordered_dense::detail::default_container_t>
 using HashSet = ankerl::unordered_dense::set<KeyT, Hash, KeyEqual, Alloc, Bucket, BucketContainer>;
 
-namespace jam
-{
-
-namespace hash_map = ankerl::unordered_dense;
-
-}
+#define JAM_HASH_MAP_HASHER_SPECIALIZATION(T)                        \
+    template<>                                                       \
+    struct ankerl::unordered_dense::hash<T>                          \
+    {                                                                \
+        using is_avalanching = void;                                 \
+        auto operator()(T const& obj) const noexcept -> uint64_t     \
+        {                                                            \
+            return detail::wyhash::hash(static_cast<uint64_t>(obj)); \
+        }                                                            \
+    }

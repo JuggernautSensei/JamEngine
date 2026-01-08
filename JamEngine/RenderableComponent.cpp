@@ -12,7 +12,7 @@ namespace jam
 {
 
 void RenderableComponent::Serialize(
-    JsonWriter       _writer,
+    JsonWriter        _writer,
     const Ref<Scene>& _pScene,
     Entity            _owner) const
 {
@@ -21,7 +21,7 @@ void RenderableComponent::Serialize(
 }
 
 void RenderableComponent::Deserialize(
-    JsonReader       _reader,
+    JsonReader        _reader,
     const Ref<Scene>& _pScene,
     Entity            _owner)
 {
@@ -29,10 +29,10 @@ void RenderableComponent::Deserialize(
     _reader.ReadField("material", renderable.pMaterial);
 }
 
-void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
+void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entity)
 {
     ImGui::SeparatorText("mesh");
-    if (BeginComponentEditTable("MeshRendererComponent"))
+    if (BeginLabelValueTable("MeshRendererComponent"))
     {
         // Mesh
         {
@@ -46,7 +46,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
     }
 
     ImGui::SeparatorText("material");
-    if (BeginComponentEditTable("MeshRendererMaterial"))
+    if (BeginLabelValueTable("MeshRendererMaterial"))
     {
 
         // Material
@@ -94,7 +94,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("ambient color");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererAmbient", &ambientCol.x))
                 {
                     renderable.pMaterial->SetAmbientColor(ambientCol);
@@ -109,7 +109,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("diffuse color");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererDiffuse", &diffuseCol.x))
                 {
                     renderable.pMaterial->SetDiffuseColor(diffuseCol);
@@ -124,7 +124,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("specular color");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererSpecular", &specularCol.x))
                 {
                     renderable.pMaterial->SetSpecularColor(specularCol);
@@ -139,7 +139,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("shininess");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (Widget_DragFloat("##MeshRendererShininess", &shininess, 0.1f, 0.f, 1000.f, "%.1f"))
                 {
                     renderable.pMaterial->SetShininess(shininess);
@@ -157,7 +157,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("albedo color");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererAlbedo", &albedoCol.x))
                 {
                     renderable.pMaterial->SetAlbedoColor(albedoCol);
@@ -172,8 +172,8 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("roughness");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                if (Widget_SliderFloat("##MeshRendererRoughness", &roughness, 0.f, 1.f))
+                SetNextItemAvailWidth();
+                if (Widget_DragFloat("##MeshRendererRoughness", &roughness, 0.01f, 0.f, 1.f))
                 {
                     renderable.pMaterial->SetRoughness(roughness);
                 }
@@ -188,8 +188,8 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("metallic");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                if (Widget_SliderFloat("##MeshRendererMetallic", &metallic, 0.f, 1.f))
+                SetNextItemAvailWidth();
+                if (Widget_DragFloat("##MeshRendererMetallic", &metallic, 0.01f, 0.f, 1.f))
                 {
                     renderable.pMaterial->SetMetallic(metallic);
                 }
@@ -207,7 +207,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("emissive color");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererEmissive", &emissiveCol.x))
                 {
                     renderable.pMaterial->SetEmissiveColor(emissiveCol);
@@ -223,8 +223,8 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("emissive intensity");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                if (Widget_DragFloat("##MeshRendererEmissiveIntensity", &emissiveIntensity, 0.01f, 0.f, 1000.f, "%.2f"))
+                SetNextItemAvailWidth();
+                if (Widget_DragFloat("##MeshRendererEmissiveIntensity", &emissiveIntensity, 0.01f, 0.f))
                 {
                     renderable.pMaterial->SetEmissiveIntensity(emissiveIntensity);
                 }
@@ -241,7 +241,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("alpha cut-out");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (ImGui::Checkbox("##MeshRendererAlphaCutOff", &bAlphaCutout))
                 {
                     renderable.pMaterial->SetAlphaCutout(bAlphaCutout);
@@ -253,7 +253,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("double sided");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (ImGui::Checkbox("##MeshRendererDoubleSide", &bDoubleSide))
                 {
                     renderable.pMaterial->SetDoubleSide(bDoubleSide);
@@ -312,7 +312,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("texture channel");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (Widget_TextureChannelCombo("##MeshRendererMetallicMapColorChannel", metallicChannel, true))
                 {
                     renderable.pMaterial->SetMetallicTextureChannel(metallicChannel);
@@ -335,7 +335,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("texture channel");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
+                SetNextItemAvailWidth();
                 if (Widget_TextureChannelCombo("##MeshRendererRoughnessMapColorChannel", roughnessChannel, true))
                 {
                     renderable.pMaterial->SetRoughnessTextureChannel(roughnessChannel);
@@ -366,8 +366,8 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("texture intensity");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                if (Widget_DragFloat("##MeshRendererEmissiveTextureIntensity", &emissiveTexIntensity, 0.01f, 0.f, 1000.f, "%.2f"))
+                SetNextItemAvailWidth();
+                if (Widget_DragFloat("##MeshRendererEmissiveTextureIntensity", &emissiveTexIntensity, 0.01f, 0.f))
                 {
                     renderable.pMaterial->SetEmissiveTextureIntensity(emissiveTexIntensity);
                 }
@@ -394,8 +394,8 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("texture intensity");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                if (Widget_DragFloat("##MeshRendererLightMapIntensity", &lightTexIntensity, 0.01f, 0.f, 1000.f, "%.2f"))
+                SetNextItemAvailWidth();
+                if (Widget_DragFloat("##MeshRendererLightMapIntensity", &lightTexIntensity, 0.01f, 0.f))
                 {
                     renderable.pMaterial->SetLightTextureIntensity(lightTexIntensity);
                 }
@@ -424,8 +424,8 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
                 ImGui::TableNextColumn();
                 Widget_FrameAlignedText("texture scale");
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                if (Widget_DragFloat("##MeshRendererDisplacementMapScale", &displacementScale, 0.01f, -1000.f, 1000.f, "%.2f"))
+                SetNextItemAvailWidth();
+                if (Widget_DragFloat("##MeshRendererDisplacementMapScale", &displacementScale, 0.001f, 0.f, FLT_MAX, "%.4f"))
                 {
                     renderable.pMaterial->SetVertexDisplacementTextureScale(displacementScale);
                 }
@@ -440,7 +440,7 @@ void RenderableComponent::DrawEditor(Ref<Scene>& _pScene, Entity _entity)
             if (bDirty)
             {
                 const fs::path& path = renderable.pMaterial->GetPath();
-                renderable.pMaterial->Save(path);
+                renderable.pMaterial->Save(path, TODO);
             }
         }
 

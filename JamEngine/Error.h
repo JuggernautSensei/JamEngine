@@ -1,6 +1,7 @@
 #pragma once
 
 #include <source_location>
+#include <type_traits>
 
 namespace jam::details
 {
@@ -23,7 +24,7 @@ void Crash(const std::source_location& _loc, const std::format_string<Args...> _
     Crash(_loc, std::format(_fmt, msg.c_str()));
 }
 
-void CrashWithComHint(const std::source_location& _loc, StringView _func, HRESULT _hr);
+void CrashWithHRESULT(const std::source_location& _loc, StringView _func, HRESULT _hr);
 
 }   // namespace jam::details
 
@@ -32,13 +33,16 @@ void CrashWithComHint(const std::source_location& _loc, StringView _func, HRESUL
 #endif
 
 #ifdef JAM_ENABLE_ASSERTS
-#    define JAM_ASSERT(_cond, ...)                                                  \
-        JAM_BEGIN_MACRO_BLOCK                                                       \
-        if (!(_cond))                                                               \
-        {                                                                           \
-            jam::details::AssertFail(std::source_location::current(), __VA_ARGS__); \
-            JAM_DEBUG_BREAK;                                                        \
-        }                                                                           \
+#    define JAM_ASSERT(_cond, ...)                                                      \
+        JAM_BEGIN_MACRO_BLOCK                                                           \
+        if (!std::is_constant_evaluated())                                              \
+        {                                                                               \
+            if (!(_cond))                                                               \
+            {                                                                           \
+                jam::details::AssertFail(std::source_location::current(), __VA_ARGS__); \
+                JAM_DEBUG_BREAK;                                                        \
+            }                                                                           \
+        }                                                                               \
         JAM_END_MACRO_BLOCK
 
 #else
@@ -54,13 +58,15 @@ void CrashWithComHint(const std::source_location& _loc, StringView _func, HRESUL
 #define JAM_CHECK_COM(_func)                                                         \
     JAM_BEGIN_MACRO_BLOCK                                                            \
     if (HRESULT hr = (_func); FAILED(hr))                                            \
-        jam::details::CrashWithComHint(std::source_location::current(), #_func, hr); \
+        jam::details::CrashWithHRESULT(std::source_location::current(), #_func, hr); \
     JAM_END_MACRO_BLOCK
 
-namespace jam
-{
-
-// com error message helper
-[[nodiscard]] std::string StringFrom(HRESULT _hr);
-
-}   // namespace jam
+#define JAM_CHECK_WIN32(_func)                                                       \
+    JAM_BEGIN_MACRO_BLOCK                                                            \
+    if (BOOL res = (_func); res == FALSE)                                            \
+    {                                                                                \
+        const DWORD   lastError = GetLastError();                                    \
+        const HRESULT hr        = HRESULT_FROM_WIN32(lastError);                     \
+        jam::details::CrashWithHRESULT(std::source_location::current(), #_func, hr); \
+    }                                                                                \
+    JAM_END_MACRO_BLOCK

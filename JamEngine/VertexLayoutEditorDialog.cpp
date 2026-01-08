@@ -3,290 +3,240 @@
 #include "VertexLayoutEditorDialog.h"
 
 #include "Editor.h"
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "VertexLayoutStorage.h"
+#include "VertexLayoutEntry.h"
 
 namespace jam
 {
 
-constexpr const char* k_attribNames[NumEnums<eVertexAttribute>()] = {
-    "position",
-    "normal",
-    "tangent",
-    "bitangent",
-    "color0",
-    "color1",
-    "color2",
-    "color3",
-    "blendIndex",
-    "blendWeight",
-    "texCoord0",
-    "texCoord1",
-    "texCoord2",
-    "texCoord3",
-};
-
-constexpr const char* k_formatNames[NumEnums<eAttributeFormat>()] = {
-    "float",
-    "float2",
-    "float3",
-    "float4",
-    "unorm8x4",
-    "uint8x4",
-};
-
-VertexLayout VertexLayoutEditorDialog::BuildLayout_() const
+VertexLayoutEditorDialog::VertexLayoutEditorDialog(
+    const Ref<VertexLayoutEntry>& _pVle)
+    : Dialog("vertex layout editor")
+    , m_vl(_pVle->GetVertexLayout())
+    , m_name(_pVle->GetName().ToString())
+    , m_oldName(m_name)
 {
-    VertexLayout vl;
-    for (Int32 i = 0; i < m_count; ++i)
-    {
-        const Element& elem = m_elems[i];
-        vl.Push(elem.attrib, elem.format);
-    }
-    return vl;
 }
 
-VertexLayoutEditorDialog::VertexLayoutEditorDialog(const Ref<VertexLayoutEntry>& _pEntry)
-{
-    const StringView name = _pEntry->GetName();
-    const VertexLayout&    vl   = _pEntry->GetVertexLayout();
-
-    m_oldName = name;
-    m_nameBuf = name;
-    m_count   = 0;
-
-    for (const VertexLayoutElement& elem: vl.GetElements())
-    {
-        m_elems[m_count].attrib = elem.attrib;
-        m_elems[m_count].format = elem.format;
-        ++m_count;
-    }
-
-    UpdateState_();
-}
-
-bool VertexLayoutEditorDialog::Widget_VertexFormatSelector_(eAttributeFormat& _format)
-{
-    bool bChanged = false;
-
-    const int   curIdx  = IntFrom(_format);
-    const char* preview = k_formatNames[curIdx];
-    if (ImGui::BeginCombo("##Format", preview, ImGuiComboFlags_NoArrowButton))
-    {
-        for (const eAttributeFormat format: EnumRanges<eAttributeFormat>())
-        {
-            const bool  bSelected = (_format == format);
-            const char* name      = k_formatNames[IntFrom(format)];
-            if (ImGui::Selectable(name, bSelected))
-            {
-                if (_format != format)
-                {
-                    _format = format;
-                    UpdateState_();
-                    bChanged = true;
-                }
-            }
-        }
-        ImGui::EndCombo();
-    }
-    return bChanged;
-}
-
-bool VertexLayoutEditorDialog::Widget_VertexAttributeSelector_(eVertexAttribute& _attrib)
-{
-    bool bChanged = false;
-
-    const Int32 curIdx  = IntFrom(_attrib);
-    const char* preview = k_attribNames[curIdx];
-    if (ImGui::BeginCombo("##Attrib", preview, ImGuiComboFlags_NoArrowButton))
-    {
-        for (const eVertexAttribute attrib: EnumRanges<eVertexAttribute>())
-        {
-            const bool  bSelected = (_attrib == attrib);
-            const char* name      = k_attribNames[IntFrom(attrib)];
-            if (ImGui::Selectable(name, bSelected))
-            {
-                if (_attrib != attrib)
-                {
-                    _attrib = attrib;
-                    UpdateState_();
-                    bChanged = true;
-                }
-            }
-        }
-        ImGui::EndCombo();
-    }
-    return bChanged;
-}
-
-void VertexLayoutEditorDialog::RemoveElement_(const Int32 _idx)
-{
-    JAM_ASSERT(_idx >= 0 && _idx < m_count, "invalid element index.");
-
-    for (Int32 j = _idx; j < m_count - 1; ++j)
-    {
-        m_elems[j] = m_elems[j + 1];
-    }
-
-    --m_count;
-    UpdateState_();
-}
-
-void VertexLayoutEditorDialog::AddNewElement_()
-{
-    if (m_count >= NumEnums<eVertexAttribute>())
-        return;
-
-    Element& elem = m_elems[m_count];
-    elem.attrib   = eVertexAttribute::Position;
-    elem.format   = eAttributeFormat::Float3;
-
-    ++m_count;
-    UpdateState_();
-}
-
-void VertexLayoutEditorDialog::operator()()
+void VertexLayoutEditorDialog::OnShow()
 {
     // name input
-    Widget_FrameAlignedText("name");
-    ImGui::SameLine();
-    SetNextItemWidthToAvailableWidth();
-    ImGui::InputText("##EntryName", &m_nameBuf);
+    {
+        Widget_FrameAlignedText("name");
+        ImGui::SameLine();
+        SetNextItemAvailWidth();
+        ImGui::InputText("##EntryName", &m_name);
+    }
 
     // vertexLayout editor
-    if (ImGui::BeginChild("LayoutEditorDialogChild", {}, ImGuiChildFlags_Border))
+    ImGui::Spacing();
+    if (ImGui::BeginTable("VertexLayoutEditorTable", 4, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders))
     {
-        if (ImGui::BeginTable("LayoutEditorDialogTable", 5, ImGuiTableFlags_SizingFixedFit))
-        {
-            // table header
-            ImGui::TableSetupColumn("attribute", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("format", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("size", ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("offset", ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("action", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableHeadersRow();
+        const ImVec2 btnSize = { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() };
+        const float  btnW    = btnSize.x + ImGui::GetStyle().FramePadding.x * 2.f;
 
-            for (Int32 i = 0; i < m_count; ++i)
+        // table header
+        ImGui::TableSetupColumn("attribute", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("format", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("byteWidth", ImGuiTableColumnFlags_WidthFixed, 50.f);
+        ImGui::TableSetupColumn("offset", ImGuiTableColumnFlags_WidthFixed, 50.f);
+        ImGui::TableSetupColumn("action", ImGuiTableColumnFlags_WidthFixed, btnW);
+        ImGui::TableHeadersRow();
+
+        // render elements
+        for (VertexLayoutElement vle: m_vl.GetElements())
+        {
+            ImGui::PushID(IntFrom(vle.attrib));
+
+            // attribute column
             {
-                Element& elem = m_elems[i];
-
-                ImGui::PushID(i);
-                ImGui::TableNextRow();
-
-                // attribute column
                 ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                Widget_VertexAttributeSelector_(elem.attrib);
-
-                // format column
-                ImGui::TableNextColumn();
-                SetNextItemWidthToAvailableWidth();
-                Widget_VertexFormatSelector_(elem.format);
-
-                // size column
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", ByteFrom(elem.format));
-
-                // offset column
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", elem.offset);
-
-                // action column
-                ImGui::TableNextColumn();
-                if (ImGui::Button("remove", CalcFitButtonSize()))
+                if (Widget_VertexAttributeCombo_("##Attrib", vle.attrib))
                 {
-                    RemoveElement_(i);
-                    ImGui::PopID();
-                    break;   // break loop (element list has changed)
+                    m_vl.Modify(vle.attrib, vle.format);
                 }
-
-                ImGui::PopID();
             }
-            ImGui::EndTable();
+
+            // format column
+            {
+                ImGui::TableNextColumn();
+                if (Widget_AttributeFormatCombo_("##Format", vle.format))
+                {
+                    m_vl.Modify(vle.attrib, vle.format);
+                }
+            }
+
+            // byteWidth column
+            {
+                const StringView text = GlobalBuffer::FormatTmp("{}", vle.byteWidth);
+                ImGui::TableNextColumn();
+                Widget_FrameAlignedText(text.GetPtr());
+            }
+
+            // offset column
+            {
+                const StringView text = GlobalBuffer::FormatTmp("{}", vle.byteWidth);
+                ImGui::TableNextColumn();
+                Widget_FrameAlignedText(text.GetPtr());
+            }
+
+            // action column
+            if (ImGui::Button("x", btnSize))
+            {
+                OnClickRemoveButton_(vle.attrib);
+            }
+
+            ImGui::PopID();
         }
 
+        ImGui::EndTable();
+    }
+
+    // add
+    {
         ImGui::Spacing();
-        if (ImGui::Button("add element", CalcFitButtonSize()))
+        if (ImGui::Button("add", CalcFitButtonSize()))
         {
-            AddNewElement_();
+            OnClickAddButton_();
+        }
+    }
+
+    // info
+    {
+        ImGui::Spacing();
+        const StringView info = GlobalBuffer::FormatTmp("stride: {} bytes, {} elements", m_vl.GetStride(), m_vl.GetNumElements());
+        Widget_FrameAlignedText(info.GetPtr());
+    }
+
+    ImGui::Spacing();
+    {
+        const ImVec2 btnSize = CalcFitButtonSize(2);
+        if (ImGui::Button("save", btnSize))
+        {
+            if (OnClickSaveButton_())
+            {
+                ImGui::CloseCurrentPopup();
+            }
         }
 
-    }
-    ImGui::EndChild();
-
-    // layout info
-    ImGui::Text("element count: %d, stride: %d bytes", m_count, m_stride);
-
-    // action buttons
-    const ImVec2 btnRes = CalcFitButtonSize(2);
-
-    // ok
-    if (ImGui::Button("ok", btnRes))
-    {
-        if (OnClickOkButton_())
+        ImGui::SameLine();
+        if (ImGui::Button("close", btnSize))
+        {
             ImGui::CloseCurrentPopup();
-    }
-
-    ImGui::SameLine();
-
-    // cancel
-    if (ImGui::Button("cancel", btnRes))
-        ImGui::CloseCurrentPopup();
-
-    // show popup
-    m_popup.Show();
-}
-
-void VertexLayoutEditorDialog::UpdateState_()
-{
-    m_stride              = 0;
-    m_bIsAttribDuplicated = true;
-
-    bool usedAttribs[NumEnums<eVertexAttribute>()] = {};
-
-    for (Int32 i = 0; i < m_count; ++i)
-    {
-        Element&    elem      = m_elems[i];
-        const Int32 attribIdx = IntFrom(elem.attrib);
-
-        // calculate offset, stride
-        elem.offset = m_stride;
-        m_stride += ByteFrom(elem.format);
-
-        // check duplicate attrib
-        if (usedAttribs[attribIdx])
-        {
-            m_bIsAttribDuplicated = false;
         }
-        usedAttribs[attribIdx] = true;
     }
 }
 
-bool VertexLayoutEditorDialog::OnClickOkButton_()
+void VertexLayoutEditorDialog::OnClickRemoveButton_(
+    const eVertexAttribute _attrib)
 {
-    if (!m_bIsAttribDuplicated)
+    JAM_ASSERT(m_vl.Has(_attrib), "attribute does not exist in the vertex layout.");
+    // remove deferedly to avoid invalidating iterators
+
+    VertexLayout* pVl = &m_vl;   // for passing to lambda
+    Application&  app = Application::GetInstance();
+    app.SubmitCommand(JAM_BIND_METHOD(pVl, VertexLayout::Remove, _attrib));
+}
+
+bool VertexLayoutEditorDialog::Widget_VertexAttributeCombo_(
+    const char*       _label,
+    eVertexAttribute& _attrib) const
+{
+    bool bChanged = false;
+
+    const StringView preview = EditorDisplayStringFrom(_attrib);
+    if (ImGui::BeginCombo(_label, preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
     {
-        m_popup.Open("error", "duplicate vertex attributes are not allowed.");
+        for (const eVertexAttribute attrib: eVertexAttribute {})
+        {
+            // if attrib is already used in the layout, skip it
+            if (m_vl.Has(attrib))
+            {
+                continue;
+            }
+
+            const StringView label = EditorDisplayStringFrom(attrib);
+            if (ImGui::Selectable(label.GetPtr()))
+            {
+                _attrib  = attrib;
+                bChanged = true;
+            }
+        }
+        ImGui::EndCombo();
+    }
+    return bChanged;
+}
+
+bool VertexLayoutEditorDialog::Widget_AttributeFormatCombo_(
+    const char*       _label,
+    eAttributeFormat& _format) const
+{
+    bool                      bChanged    = false;
+    const AttributeFormatInfo previewInfo = AttributeFormatInfoFrom(_format);
+    const StringView          preview     = previewInfo.editorDisplayName;
+
+    if (ImGui::BeginCombo(_label, preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
+    {
+        for (const eAttributeFormat format: eAttributeFormat {})
+        {
+            const bool                bSelected = (_format == format);
+            const AttributeFormatInfo info      = AttributeFormatInfoFrom(format);
+            const StringView          label     = info.editorDisplayName;
+
+            if (ImGui::Selectable(label.GetPtr(), bSelected))
+            {
+                _format  = format;
+                bChanged = true;
+            }
+
+            if (bSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+
+    return bChanged;
+}
+
+void VertexLayoutEditorDialog::OnClickAddButton_()
+{
+    // find first unused attribute
+    for (const eVertexAttribute attrib: eVertexAttribute {})
+    {
+        if (!m_vl.Has(attrib))
+        {
+            // add with default format
+            m_vl.Push(attrib, eAttributeFormat::Float);
+            return;
+        }
+    }
+
+    // all attributes are used
+    Editor::PushMessageDialog("error", "all vertex attributes are already used in the vertex layout.");
+}
+
+bool VertexLayoutEditorDialog::OnClickSaveButton_()
+{
+    if (m_name.empty())
+    {
+        Editor::PushMessageDialog("error", "vertex layout name cannot be empty.");
         return false;
     }
 
-    if (m_nameBuf.empty())
+    VertexLayoutMap& map = Editor::GetVertexLayoutMap();
+    if (m_name != m_oldName && map.contains(m_name))
     {
-        m_popup.Open("error", "vertex vertexLayout name cannot be empty.");
-        return false;
-    }
-
-    VertexLayoutStorage& storage = Editor::GetVertexLayoutStorage();
-    if (m_nameBuf != m_oldName && storage.Has(m_nameBuf))
-    {
-        m_popup.Open("error", "vertex vertexLayout name already exists.");
+        Editor::PushMessageDialog("error", "vertex layout name already exists.");
         return false;
     }
 
     // apply changes
-    const VertexLayout layout = BuildLayout_();
-    storage.Remove(m_oldName);
-    storage.Add(m_nameBuf, layout);
+    map.erase(m_oldName);
+    map.emplace(m_name, MakeRef<VertexLayoutEntry>(m_name, m_vl));
     return true;
 }
 

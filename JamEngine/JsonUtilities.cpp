@@ -4,6 +4,9 @@
 
 #include "AssetManager.h"
 #include "Camera.h"
+#include "ImageTexture.h"
+#include "Material.h"
+#include "Mesh.h"
 #include "SceneDB.h"
 #include "ScriptDB.h"
 
@@ -123,11 +126,7 @@ void from_json(const Json& _json, Ref<Mesh>& _pOutMesh)
     else
     {
         const fs::path path = _json.get<fs::path>();
-        if (const Optional<Ref<Mesh>> opt = AssetManager::GetOrLoadMesh(path))
-        {
-            _pOutMesh = opt.value();
-        }
-        else
+        if (!MoveIfHasValue(AssetManager::LoadMesh(path), _pOutMesh))
         {
             throw std::runtime_error(std::format("failed to load Mesh from path: {}. {}", path.native(), GlobalBuffer::GetLastError()));
         }
@@ -155,11 +154,7 @@ void from_json(const Json& _json, Ref<Material>& _pOutMaterial)
     else
     {
         const fs::path path = _json.get<fs::path>();
-        if (const Optional<Ref<Material>> opt = AssetManager::GetOrLoadMaterial(path))
-        {
-            _pOutMaterial = opt.value();
-        }
-        else
+        if (!MoveIfHasValue(AssetManager::LoadMaterial(path), _pOutMaterial))
         {
             throw std::runtime_error(std::format("failed to load Material from path: {}. {}", path.native(), GlobalBuffer::GetLastError()));
         }
@@ -187,11 +182,7 @@ void from_json(const Json& _json, Ref<ImageTexture>& _pOutImageTexture)
     else
     {
         const fs::path path = _json.get<fs::path>();
-        if (const Optional<Ref<ImageTexture>> opt = AssetManager::GetOrLoadImageTexture(path))
-        {
-            _pOutImageTexture = opt.value();
-        }
-        else
+        if (!MoveIfHasValue(AssetManager::LoadImageTexture(path), _pOutImageTexture))
         {
             throw std::runtime_error(std::format("failed to load ImageTexture from path: {}. {}", path.native(), GlobalBuffer::GetLastError()));
         }

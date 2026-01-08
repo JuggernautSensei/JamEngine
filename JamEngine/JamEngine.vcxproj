@@ -398,6 +398,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AssetUtilities.cpp" />
+    <ClCompile Include="AssetDialog.cpp" />
+    <ClCompile Include="ConfirmationDialog.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="AssimpImporter.cpp" />
@@ -405,13 +408,11 @@
     <ClCompile Include="BoundingVolume.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
-    <ClCompile Include="CreateMaterialDialog.cpp" />
-    <ClCompile Include="CreatePrimitiveDialog.cpp" />
+    <ClCompile Include="EditorIcons.cpp" />
+    <ClCompile Include="MaterialCreationDialog.cpp" />
+    <ClCompile Include="PrimitiveCreationDialog.cpp" />
     <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="DestroyNotLeafEntityDialog.cpp" />
     <ClCompile Include="DialogStack.cpp" />
-    <ClCompile Include="EditorCommands.cpp" />
-    <ClCompile Include="EditorCommandManager.cpp" />
     <ClCompile Include="EditorStyle.cpp" />
     <ClCompile Include="EditorUtilities.cpp" />
     <ClCompile Include="EditorWidgets.cpp" />
@@ -431,10 +432,12 @@
     <ClCompile Include="GlobalBuffer.cpp" />
     <ClCompile Include="FileIOUtilities.cpp" />
     <ClCompile Include="Dialog.cpp" />
-    <ClCompile Include="IEditorCommand.cpp" />
+    <ClCompile Include="GeometryUtilities.cpp" />
+    <ClCompile Include="RenameFileDialog.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="JsonReader.cpp" />
     <ClCompile Include="JsonWriter.cpp" />
+    <ClCompile Include="LRUCache.cpp" />
     <ClCompile Include="Magics.cpp" />
     <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="Octree.cpp" />
@@ -448,7 +451,7 @@
     <ClCompile Include="HistoryStack.cpp" />
     <ClCompile Include="ImGuiGlue.cpp" />
     <ClCompile Include="ImGuiUtilities.cpp" />
-    <ClCompile Include="ImportImageDialog.cpp" />
+    <ClCompile Include="ImageImportDialog.cpp" />
     <ClCompile Include="RefCounted.cpp" />
     <ClCompile Include="RenderableComponent.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -470,12 +473,10 @@
     <ClCompile Include="MeshFactory.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
-    <ClCompile Include="PopupDialog.cpp" />
     <ClCompile Include="Profile.cpp" />
     <ClCompile Include="EditableComponent.cpp" />
     <ClCompile Include="RadixSort.cpp" />
     <ClCompile Include="RemoveNotEmptyDirectoryDialog.cpp" />
-    <ClCompile Include="RenameFileDialog.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SceneDB.cpp" />
@@ -500,6 +501,7 @@
     <ClCompile Include="SpotLightComponent.cpp" />
     <ClCompile Include="TagComponent.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
+    <ClCompile Include="ThumbnailCache.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="TypeTrait.cpp" />
     <ClCompile Include="DataType.cpp" />
@@ -622,18 +624,18 @@
     </ClCompile>
     <ClCompile Include="VertexLayout.cpp" />
     <ClCompile Include="RenderView.cpp" />
-    <ClCompile Include="VertexLayoutStorage.cpp" />
     <ClCompile Include="VertexLayoutEditorDialog.cpp" />
+    <ClCompile Include="VertexLayoutEntry.cpp" />
     <ClCompile Include="WindowsPlatform.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
     <ClCompile Include="FileSystemUtilities.cpp" />
-    <ClCompile Include="ImportModelDialog.cpp" />
-    <ClCompile Include="Editor_FileBrowser_Thumbnail.cpp" />
-    <ClCompile Include="Editor_FileBrowser_ThumbnailCache.cpp" />
-    <ClCompile Include="ImportImageDialog_PreviewTexture.cpp" />
+    <ClCompile Include="ModelImportDialog.cpp" />
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssetUtilities.h" />
+    <ClInclude Include="AssetDialog.h" />
+    <ClInclude Include="ConfirmationDialog.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="AssimpImporter.h" />
@@ -641,13 +643,11 @@
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="CreateMaterialDialog.h" />
-    <ClInclude Include="CreatePrimitiveDialog.h" />
+    <ClInclude Include="JamEngineEditorEmbededIcons.h" />
+    <ClInclude Include="MaterialCreationDialog.h" />
+    <ClInclude Include="PrimitiveCreationDialog.h" />
     <ClInclude Include="Debug.h" />
-    <ClInclude Include="DestroyNotLeafEntityDialog.h" />
     <ClInclude Include="DialogStack.h" />
-    <ClInclude Include="EditorCommands.h" />
-    <ClInclude Include="EditorCommandManager.h" />
     <ClInclude Include="EditorIcons.h" />
     <ClInclude Include="EditorStyle.h" />
     <ClInclude Include="EditorUtilities.h" />
@@ -669,9 +669,11 @@
     <ClInclude Include="FileSystemUtilities.h" />
     <ClInclude Include="FileIOUtilities.h" />
     <ClInclude Include="Dialog.h" />
-    <ClInclude Include="IEditorCommand.h" />
+    <ClInclude Include="GeometryUtilities.h" />
+    <ClInclude Include="RenameFileDialog.h" />
     <ClInclude Include="JsonReader.h" />
     <ClInclude Include="JsonWriter.h" />
+    <ClInclude Include="LRUCache.h" />
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="JsonUtilities.h" />
@@ -683,8 +685,8 @@
     <ClInclude Include="TextureFormat.h" />
     <ClInclude Include="HistoryStack.h" />
     <ClInclude Include="ImGuiUtilities.h" />
-    <ClInclude Include="ImportImageDialog.h" />
-    <ClInclude Include="ImportModelDialog.h" />
+    <ClInclude Include="ImageImportDialog.h" />
+    <ClInclude Include="ModelImportDialog.h" />
     <ClInclude Include="RefCounted.h" />
     <ClInclude Include="RenderableComponent.h" />
     <ClInclude Include="Model.h" />
@@ -709,13 +711,12 @@
     <ClInclude Include="MeshFactory.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="PointLightComponent.h" />
-    <ClInclude Include="PopupDialog.h" />
     <ClInclude Include="Profile.h" />
     <ClInclude Include="EditableComponent.h" />
     <ClInclude Include="RadixSort.h" />
     <ClInclude Include="RemoveNotEmptyDirectoryDialog.h" />
-    <ClInclude Include="RenameFileDialog.h" />
     <ClInclude Include="RenderGraph.h" />
+    <ClInclude Include="ThumbnailCache.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="SceneDB.h" />
@@ -870,8 +871,8 @@
     </ClInclude>
     <ClInclude Include="VertexLayout.h" />
     <ClInclude Include="RenderView.h" />
-    <ClInclude Include="VertexLayoutStorage.h" />
     <ClInclude Include="VertexLayoutEditorDialog.h" />
+    <ClInclude Include="VertexLayoutEntry.h" />
     <ClInclude Include="WindowsPlatform.h" />
     <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="EmbeddedShaderGlue.h" />

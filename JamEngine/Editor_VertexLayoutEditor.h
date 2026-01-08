@@ -1,10 +1,9 @@
 #pragma once
-#include "PopupDialog.h"
 #include "VertexLayout.h"
-#include "VertexLayoutStorage.h"
 
 namespace jam
 {
+class VertexLayoutEntry;
 
 class Editor_VertexLayoutEditor
 {

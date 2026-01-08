@@ -3,13 +3,16 @@
 #include "Editor_VertexLayoutEditor.h"
 
 #include "Editor.h"
-#include "VertexLayout.h"
+
+#include "EditorUtilities.h"
 #include "VertexLayoutEditorDialog.h"
+#include "VertexLayoutEntry.h"
 
 namespace jam
 {
 
-void Editor_VertexLayoutEditor::OnImGuiRender(bool& _pShow)
+void Editor_VertexLayoutEditor::OnImGuiRender(
+    bool& _pShow)
 {
     if (!ImGui::Begin("vertex layout editor", &_pShow))
     {
@@ -20,20 +23,24 @@ void Editor_VertexLayoutEditor::OnImGuiRender(bool& _pShow)
     // vertex layout list
     ImGui::BeginGroup();
     {
-        const ImVec2 avail   = ImGui::GetContentRegionAvail();
-        const ImVec2 winSize = { avail.x * 0.7f, avail.y };
-
         ImGui::TextUnformatted("vertex layout list");
-        if (ImGui::BeginChild("VertexLayoutListChild", winSize, ImGuiChildFlags_Border))
+
+        ImGui::SetNextWindowSizeConstraints({ 300.f, 0.f }, { FLT_MAX, FLT_MAX });
+        if (ImGui::BeginChild("VertexLayoutListPanel", GetContentRegionAvailScaled(0.7f, 1.f), ImGuiChildFlags_Border))
         {
-            const VertexLayoutStorage& storage = Editor::GetVertexLayoutStorage();
-            for (const auto& [name, pVle]: storage)
+            // render vertex layout entries
+            for (const auto& [name, pVle]: Editor::GetVertexLayoutMap())
             {
                 const char* label      = name.c_str();
                 const bool  bIsFocused = m_pFocusedVle == pVle;
                 if (ImGui::Selectable(label, bIsFocused))
                 {
                     m_pFocusedVle = pVle;
+                }
+
+                if (bIsFocused)
+                {
+                    ImGui::SetItemDefaultFocus();
                 }
             }
         }
@@ -45,54 +52,79 @@ void Editor_VertexLayoutEditor::OnImGuiRender(bool& _pShow)
     ImGui::SameLine();
     ImGui::BeginGroup();
     {
-        ImGui::NewLine();
+        ImGui::NewLine();   // align with the vertex layout list
 
         const ImVec2 btnSize = CalcFitButtonSize();
         if (ImGui::Button("create", btnSize))
+        {
             OnClickCreateButton_();
+        }
 
         ImGui::BeginDisabled(!m_pFocusedVle);
         if (ImGui::Button("edit", btnSize))
+        {
             OnClickEditButton_();
+        }
 
         if (ImGui::Button("remove", btnSize))
+        {
             OnClickRemoveButton_();
+        }
         ImGui::EndDisabled();
 
         if (ImGui::Button("close", btnSize))
+        {
             _pShow = false;
+        }
     }
     ImGui::EndGroup();
+
     ImGui::End();
 }
 
 void Editor_VertexLayoutEditor::OnClickRemoveButton_()
 {
     JAM_ASSERT(m_pFocusedVle, "No vertex vertexLayout is selected for removal.");
-    Editor::GetVertexLayoutStorage().Remove(m_pFocusedVle->GetName());
+    VertexLayoutMap& map  = Editor::GetVertexLayoutMap();
+    const StringView name = m_pFocusedVle->GetName();
+    map.erase(name.GetPtr());
     m_pFocusedVle = nullptr;
 }
 
 void Editor_VertexLayoutEditor::OnClickCreateButton_()
 {
-    VertexLayoutStorage& storage = Editor::GetVertexLayoutStorage();
-    const char*          name    = "new vertex layout";
-    Int32                suffix  = 0;
+    constexpr Int32 k_attemptLimit = 1000;
 
-    while (storage.Has(name))
+    VertexLayoutMap& map = Editor::GetVertexLayoutMap();
+    for (Int32 i = 0; i < k_attemptLimit; ++i)
     {
-        name = GlobalBuffer::FormatTmp("new vertex layout %d", ++suffix);
+        StringView name = {};
+        if (i == 0)
+        {
+            name = "new vertex layout";
+        }
+        else
+        {
+            name = GlobalBuffer::FormatTmp("new vertex layout {}", i);
+        }
+
+        if (!map.contains(name.GetPtr()))
+        {
+            const Ref<VertexLayoutEntry> pVle = MakeRef<VertexLayoutEntry>(name);
+            map.emplace(name.ToString(), pVle);
+            m_pFocusedVle = pVle;
+            return;
+        }
+        // else: retry
     }
 
-    const VertexLayout vertexLayout;   // dummy vertexLayout
-    storage.Add(name, vertexLayout);
-    m_pFocusedVle = storage.Get(name);
+    Editor::PushMessageDialog("error", "failed to create a new vertex layout. too many vertex layouts with similar names exist.");
 }
 
 void Editor_VertexLayoutEditor::OnClickEditButton_() const
 {
     JAM_ASSERT(m_pFocusedVle, "No vertex vertexLayout is selected for editing.");
-    Editor::OpenCorePopupDialog("vertex vertexLayout editor", VertexLayoutEditorDialog { m_pFocusedVle });
+    Editor::PushDialog(MakeScoped<VertexLayoutEditorDialog>(m_pFocusedVle));
 }
 
 }   // namespace jam

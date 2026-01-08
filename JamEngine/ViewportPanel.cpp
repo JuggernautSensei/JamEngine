@@ -127,11 +127,11 @@ void ViewportPanel::Show(bool* _pOpen)
                 Camera&    cameraRef    = m_editorCamera.camera;
                 Transform& transformRef = m_editorCamera.transform;
 
-                if (ImGui::MenuItem("reset transform"))
+                if (Widget_MenuItem("reset transform"))
                 {
                     transformRef = Transform {};
                 }
-                if (ImGui::MenuItem("reset propertise"))
+                if (Widget_MenuItem("reset propertise"))
                 {
                     cameraRef = Camera {};
                 }
@@ -139,11 +139,11 @@ void ViewportPanel::Show(bool* _pOpen)
                 if (ImGui::BeginMenu("projection"))
                 {
                     Camera::eProjection projection = cameraRef.projection;
-                    if (ImGui::MenuItem("perspective", NULL, projection == Camera::eProjection::Perspective))
+                    if (Widget_MenuItem("perspective", NULL, projection == Camera::eProjection::Perspective))
                     {
                         cameraRef.projection = Camera::eProjection::Perspective;
                     }
-                    if (ImGui::MenuItem("orthographic", NULL, projection == Camera::eProjection::Orthographic))
+                    if (Widget_MenuItem("orthographic", NULL, projection == Camera::eProjection::Orthographic))
                     {
                         cameraRef.projection = Camera::eProjection::Orthographic;
                     }

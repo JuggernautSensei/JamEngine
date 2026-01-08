@@ -1,8 +1,6 @@
 #pragma once
 #include "GraphicsBase.h"
 #include "IAsset.h"
-#include "ImageBase.h"
-#include "MemView.h"
 
 namespace jam
 {
@@ -20,20 +18,23 @@ public:
     ImageTexture& operator=(ImageTexture&& _other) noexcept;
 
     bool Load(const fs::path& _path) override;
-    bool LoadMemory(CMemView _mem, eImageFormat _format, const fs::path& _virtualPath = {});
-    bool LoadMemory(TextureHandle _texh, const fs::path& _virtualPath = {});
+    void LoadHandle(TextureHandle _texh);
 
     void Unload() override;
-    bool Save(const fs::path& _path) const override;
+    bool Save(const fs::path& _path, bool _bReplaceExtension, eSaveFileFlags _flags = eSaveFileFlags_None) const override;
+    void SetName(StringView _name) override;
+    void SetVirtualPath(const fs::path& _path) override;
 
-    [[nodiscard]] bool            IsValid() const override;
-    [[nodiscard]] eAssetType      GetAssetType() const override;
-    [[nodiscard]] StringView      GetTypeName() const override;
-    [[nodiscard]] UInt32          GetTypeHash() const override;
-    [[nodiscard]] const fs::path& GetPath() const override;
-    [[nodiscard]] TextureHandle   GetHandle() const;
-    [[nodiscard]] Vec2i           GetResolution() const;
-    [[nodiscard]] eTextureType    GetTextureType() const;
+    [[nodiscard]] bool             IsValid() const override;
+    [[nodiscard]] eAssetType       GetAssetType() const override;
+    [[nodiscard]] StringView       GetTypeName() const override;
+    [[nodiscard]] UInt32           GetTypeHash() const override;
+    [[nodiscard]] const fs::path&  GetPath() const override;
+    [[nodiscard]] const StringView GetName() const override;
+
+    [[nodiscard]] TextureHandle GetHandle() const;
+    [[nodiscard]] Vec2i         GetResolution() const;
+    [[nodiscard]] eTextureType  GetTextureType() const;
 
     void Bind(eShader _shader, Int32 _slot) const;
     void Unbind(eShader _shader, Int32 _slot) const;
@@ -45,8 +46,10 @@ public:
 private:
     void CleanUp_();
 
-    fs::path      m_path = {};
-    TextureHandle m_texh = k_invalidHandle;
+    fs::path      m_path            = {};
+    std::string   m_name            = {};
+    TextureHandle m_texh            = k_invalidHandle;
+    bool          m_bLoadedFromFile = false;
 
     // cache
     Vec2i        m_res  = { 0, 0 };

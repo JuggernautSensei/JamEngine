@@ -18,9 +18,11 @@ public:
     void Execute();
 
 private:
-    std::mutex                         m_mutex;             // mutex for thread safety
+    std::mutex                    m_mutex;             // mutex for thread safety
     Vector<std::function<void()>> m_commands;          // queue of commands
     Vector<std::function<void()>> m_pendingCommands;   // pending commands for execution
 };
 
 }   // namespace jam
+
+// all arguments will be captured by value (copy)

@@ -18,11 +18,11 @@ enum eVertexAttribute : ubyte {
 }
 
 enum eAttributeFormat : ubyte {
-    Float         ,
-    Float2        ,
-    Float3        ,
-    Float4        ,
-    UNorm8x4      ,
+    Float,
+    Float2,
+    Float3,
+    Float4,
+    UNorm8x4,
     UInt8x4       
 }
 
@@ -35,8 +35,8 @@ struct VertexLayoutElement
 
 struct VertexLayout
 {
-    elems : [VertexLayoutElement: 14];
-    count : int;
+    elems     : [VertexLayoutElement: 14];
+    num_elems : int;
 }
 
 struct Vec3
@@ -53,9 +53,10 @@ struct AABB
 }
 
 table Mesh {
-    vertices      : [ubyte]      (required);
-    vertex_layout : VertexLayout (required);
-    indices       : [ubyte]      (required);
+    name          : string;
+    vert_data     : [ubyte];
+    vertex_layout : VertexLayout;
+    idx_data      : [ubyte];
     aabb          : AABB;
 }
 
