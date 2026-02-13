@@ -3,7 +3,6 @@
 #include "Editor_FileBrowser.h"
 
 #include "Application.h"
-#include "ConfirmationDialog.h"
 #include "MaterialCreationDialog.h"
 #include "PrimitiveCreationDialog.h"
 #include "Editor.h"
@@ -11,11 +10,11 @@
 #include "EditorWidgets.h"
 #include "Events.h"
 #include "ImageImportDialog.h"
+
 #include "ModelImportDialog.h"
 #include "RenameFileDialog.h"
-#include "WindowsUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 class JamFileWatcher : public efsw::FileWatchListener
@@ -26,69 +25,78 @@ public:
         const std::string& dir,
         const std::string& filename,
         const efsw::Action action,
-        std::string        oldFilename) override
+        const std::string  oldFilename) override
     {
-        Application& app = Application::GetInstance();
-
-        fs::path path = dir;
+        Path path = dir;
         path /= filename;
 
         switch (action)
         {
             case efsw::Action::Add:
             {
-                FileAddedEvent event { path };
-                app.SubmitCommand(JAM_BIND_METHOD(this, JamFileWatcher::HandleFileAction<FileAddedEvent>, event));
+                auto func = [path]
+                {
+                    FileAddedEvent event { path };
+                    JAM_APP.DispatchEvent(event);
+                };
+
+                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
             }
             break;
 
             case efsw::Action::Delete:
             {
-                FileDeletedEvent event { path };
-                app.SubmitCommand(JAM_BIND_METHOD(this, JamFileWatcher::HandleFileAction<FileDeletedEvent>, event));
+                auto func = [path]
+                {
+                    FileDeletedEvent event { path };
+                    JAM_APP.DispatchEvent(event);
+                };
+
+                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
             }
             break;
 
             case efsw::Action::Modified:
             {
-                FileModifiedEvent event { path };
-                app.SubmitCommand(JAM_BIND_METHOD(this, JamFileWatcher::HandleFileAction<FileModifiedEvent>, event));
+                auto func = [path]
+                {
+                    FileModifiedEvent event { path };
+                    JAM_APP.DispatchEvent(event);
+                };
+
+                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
             }
             break;
 
             case efsw::Action::Moved:
             {
-                fs::path oldPath = dir;
+                Path oldPath = dir;
                 oldPath /= oldFilename;
 
-                FileRenamedEvent event { oldPath, path };
-                app.SubmitCommand(JAM_BIND_METHOD(this, JamFileWatcher::HandleFileAction<FileRenamedEvent>, event));
+                auto func = [oldPath, path]
+                {
+                    FileRenamedEvent event { oldPath, path };
+                    JAM_APP.DispatchEvent(event);
+                };
+
+                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
             }
             break;
 
             default:
-                JAM_ASSERT(0, "Should never happen!");
+                JAM_UNREACHABLE;
         }
-    }
-
-private:
-    template<typename EventType>
-    void HandleFileAction(EventType _event)
-    {
-        Application& app = Application::GetInstance();
-        app.DispatchEvent(_event);
     }
 };
 
-}   // namespace jam
+}   // namespace Jam
 
-namespace jam
+namespace Jam
 {
 
-void Editor_FileBrowser::Init()
+Editor_FileBrowser::Editor_FileBrowser()
 {
-    const Application& app         = Application::GetInstance();
-    const fs::path&    contentsDir = app.GetContentsDirectory();
+    const Path& contentsDir = JAM_APP.GetContentsDirectory();
 
     // file watcher
     {
@@ -98,112 +106,23 @@ void Editor_FileBrowser::Init()
         m_pFileWatcher->watch();
     }
 
-    SetFocusDir_(contentsDir, false);
+    SetFocusingDir_(contentsDir, false);
 }
 
-void Editor_FileBrowser::Shutdown() const
+Editor_FileBrowser::~Editor_FileBrowser()
 {
     m_pFileWatcher->removeWatch(m_watchID);
 }
 
 void Editor_FileBrowser::OnEvent(Event& _event)
 {
-    HandleEvent<FileAddedEvent>(_event, JAM_BIND_LISTENER_METHOD(this, Editor_FileBrowser::OnFileAddEvent_));
-    HandleEvent<FileDeletedEvent>(_event, JAM_BIND_LISTENER_METHOD(this, Editor_FileBrowser::OnFileDeleteEvent_));
-    HandleEvent<FileModifiedEvent>(_event, JAM_BIND_LISTENER_METHOD(this, Editor_FileBrowser::OnFileModifiedEvent_));
-    HandleEvent<FileRenamedEvent>(_event, JAM_BIND_LISTENER_METHOD(this, Editor_FileBrowser::OnFileRenamedEvent_));
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<FileAddedEvent>(this, &Editor_FileBrowser::OnFileAddEvent_);
+    dispatcher.Dispatch<FileDeletedEvent>(this, &Editor_FileBrowser::OnFileDeleteEvent_);
+    dispatcher.Dispatch<FileModifiedEvent>(this, &Editor_FileBrowser::OnFileModifiedEvent_);
+    dispatcher.Dispatch<FileRenamedEvent>(this, &Editor_FileBrowser::OnFileRenamedEvent_);
+
     m_thumbnailCache.OnEvent(_event);
-}
-
-void Editor_FileBrowser::Menu_FileEntriesPanel()
-{
-    if (ImGui::BeginMenu("create"))
-    {
-        Menu_CreateFileEntry();
-        ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu("import"))
-    {
-        Menu_ImportAsset(m_focusedDir);
-        ImGui::EndMenu();
-    }
-
-    ImGui::Separator();
-    if (Widget_MenuItem("open in exploror"))
-    {
-        OpenFileOnFileExplorer_(m_focusedDir);
-    }
-
-    if (Widget_MenuItem("back", 0, false, !m_bIsRootDirFocused))
-    {
-        GoToParentDir_();
-    }
-}
-
-void Editor_FileBrowser::Widget_UndoButton_()
-{
-    ImGui::BeginDisabled(!m_historyStack.CanUndo());
-
-    // button
-    ButtonDesc desc = {};
-    desc.text       = "undo";
-    desc.direction  = ImGuiDir_Left;
-    desc.shortcut   = ImGuiKey_MouseX1;
-    if (Widget_Button(desc))
-    {
-        const fs::path path = m_historyStack.Undo();
-        SetFocusDir_(path, false);
-    }
-
-    ImGui::EndDisabled();
-}
-
-void Editor_FileBrowser::Widget_RedoButton_()
-{
-    ImGui::BeginDisabled(!m_historyStack.CanRedo());
-
-    // button
-    ButtonDesc desc = {};
-    desc.text       = "undo";
-    desc.direction  = ImGuiDir_Right;
-    desc.shortcut   = ImGuiKey_MouseX2;
-    if (Widget_Button(desc))
-    {
-        const fs::path path = m_historyStack.Redo();
-        SetFocusDir_(path, false);
-    }
-
-    ImGui::EndDisabled();
-}
-
-void Editor_FileBrowser::Widget_BackButton_()
-{
-    ImGui::BeginDisabled(m_bIsRootDirFocused);
-
-    // button
-    ButtonDesc desc = {};
-    desc.text       = "..";
-    desc.shortcut   = ImGuiKey_ModAlt | ImGuiKey_LeftArrow;
-    if (Widget_Button(desc))
-    {
-        GoToParentDir_();
-    }
-
-    // drag and drop target
-    if (ImGui::BeginDragDropTarget())
-    {
-        // 만약 파일을 받으면, 이전 디렉토리로 파일을 이동시켜줌
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
-        {
-            const fs::path srcPath = ResolvePathDragDropPayload(pPayload);
-            MoveFile_(srcPath, m_focusedDir.parent_path());
-        }
-
-        ImGui::EndDragDropTarget();
-    }
-
-    ImGui::EndDisabled();
 }
 
 void Editor_FileBrowser::OnImGuiRender(
@@ -216,18 +135,18 @@ void Editor_FileBrowser::OnImGuiRender(
     }
 
     // update directory tree
-    if (m_bNeedBuildDirTree)
+    if (m_bBuildDirTreeRequired)
     {
         BuildDirTree_();
-        m_bNeedBuildDirTree = false;
+        m_bBuildDirTreeRequired = false;
     }
 
     // update file entries
-    if (m_bNeedGatherFileEntries && m_fileEntryGatheringCounterSec >= k_fileEntryGatheringDebounceSec)
+    if (m_bGatherFileEntriesRequried && m_fileEntryGatheringCounterSec >= k_fileEntryGatheringDebounceSec)
     {
         GatherFileEntries_();
         m_fileEntryGatheringCounterSec = 0.f;
-        m_bNeedGatherFileEntries       = false;
+        m_bGatherFileEntriesRequried   = false;
     }
 
     // toolbar
@@ -245,7 +164,7 @@ void Editor_FileBrowser::OnImGuiRender(
         ImGui::Button("import");
         if (ImGui::BeginPopupContextItem(nullptr, ImGuiPopupFlags_MouseButtonLeft))
         {
-            Menu_ImportAsset(m_focusedDir);
+            Menu_ImportAsset(m_focusingDir);
             ImGui::EndPopup();
         }
 
@@ -263,8 +182,8 @@ void Editor_FileBrowser::OnImGuiRender(
 
         // current path
         ImGui::SameLine();
-        SetNextItemAvailWidth();
-        ImGui::InputText("##path", const_cast<std::string*>(&m_focusedDir.native()), ImGuiInputTextFlags_ReadOnly);
+        SetNextItemToAvailWidth();
+        ImGui::InputText("##path", const_cast<std::string*>(&m_focusingDir.native()), ImGuiInputTextFlags_ReadOnly);
     }
     ImGui::Separator();
 
@@ -273,10 +192,10 @@ void Editor_FileBrowser::OnImGuiRender(
     {
         ImGui::TextUnformatted("directories");
 
-        ImGui::SetNextWindowSizeConstraints({ 200.f, -FLT_MAX }, { 400.f, FLT_MAX });
-        if (ImGui::BeginChild("directories", ImVec2 { 0.f, 0.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX))
+        ImGui::SetNextWindowSizeConstraints({ 200.f, 0.f }, { 400.f, Limits<float>::k_max });
+        if (ImGui::BeginChild("directories", ImVec2 { 0.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX))
         {
-            Widget_DirTree_();
+            Widget_DirNode_Recursive_(m_rootDirNode);
         }
         ImGui::EndChild();
     }
@@ -293,20 +212,18 @@ void Editor_FileBrowser::OnImGuiRender(
             m_fileEntryGatheringCounterSec += dt;
 
             // render filter input
-            Widget_FrameAlignedText("filter:");
+            Widget_Text("filter:", true);
 
             ImGui::SameLine();
             if (m_fileEntryFilter.Draw("##Filter", 150.f))
             {
-                m_bNeedGatherFileEntries = true;
+                m_bGatherFileEntriesRequried = true;
             }
 
             ImGui::SameLine();
             if (ImGui::Button("clear"))
             {
-                m_fileEntryFilter.Clear();
-                m_fileEntryGatheringCounterSec = 0.f;
-                m_bNeedGatherFileEntries       = true;
+                m_bGatherFileEntriesRequried = true;
             }
         }
 
@@ -315,7 +232,7 @@ void Editor_FileBrowser::OnImGuiRender(
         if (ImGui::Button("refresh"))
         {
             m_fileEntryGatheringCounterSec = 0.f;
-            m_bNeedGatherFileEntries       = true;
+            m_bGatherFileEntriesRequried   = true;
         }
 
         // zoom control
@@ -326,7 +243,7 @@ void Editor_FileBrowser::OnImGuiRender(
         }
 
         // file entries area
-        if (ImGui::BeginChild("FileEntriesPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Border))
+        if (ImGui::BeginChild("FileEntriesPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Borders))
         {
             // draw file entries
             Widget_FileEntries();
@@ -345,31 +262,247 @@ void Editor_FileBrowser::OnImGuiRender(
     ImGui::End();
 }
 
-void Editor_FileBrowser::Serialize(JsonWriter _writer)
+void Editor_FileBrowser::WriteToArchive(
+    ArchiveWriter& _writer) const
 {
     _writer.WriteField("zoom", m_zoom);
 }
 
-void Editor_FileBrowser::Deserialize(JsonReader _reader)
+Error Editor_FileBrowser::ReadFromArchive(
+    ArchiveReader& _reader)
 {
-    _reader.ReadField("zoom", m_zoom);
+    return _reader.ReadField("zoom", m_zoom);
+}
+
+void Editor_FileBrowser::Widget_FileEntry_(
+    const FileEntry& _entry,
+    const ImVec2     _size)
+{
+    ImGui::PushStyleColor(ImGuiCol_Button, 0);   // invisible button bg
+    ImGui::BeginGroup();
+    ImGui::PushID(_entry.name.GetPtr());
+
+    // draw button
+    const ImVec2 itemLeftTop = ImGui::GetCursorScreenPos();
+    ImGui::Button("##fileEntry", _size);
+    ImGui::OpenPopupOnItemClick("Menu");   // right click popup
+
+    // button state
+    const bool bTooltip        = ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
+    const bool bDoubleClicked  = ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+    bool       bIsDragDropping = false;   // tooltip과 drag drop이 동시에 뜨는걸 방지하기 위한 플래그
+
+    // drag drop source
+    if (ImGui::BeginDragDropSource())
+    {
+        bIsDragDropping = true;
+
+        // set payload
+        SetFileDragDropPayload(_entry.path);
+
+        // preview
+        ImGui::TextUnformatted(_entry.name.GetPtr());
+        ImGui::EndDragDropSource();
+    }
+
+    // drag drop target (디렉토리인 경우만. accept path의 parent dir을 자신으로 변경)
+    if (_entry.bIsDir && ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        {
+            const Path srcPath = ResolvePathDragDropPayload(pPayload);
+            JAM_EDITOR.ReplaceFileDir(srcPath, _entry.path);
+        }
+
+        ImGui::EndDragDropTarget();
+    }
+
+    // render filename
+    {
+        const SizeT len           = _entry.name.GetLength();
+        const SizeT clipThreshold = NumericCast<SizeT>(_size.x / ImGui::CalcTextSize("W").x);
+
+        if (len <= clipThreshold)
+        {
+            // no clipping
+            ImGui::TextUnformatted(_entry.name.GetPtr());
+        }
+        else
+        {
+            ScratchBuffer buf;
+            buf.Format("{:.{}s}..", _entry.name.GetPtr(), clipThreshold - 1);
+            ImGui::TextUnformatted(buf.GetPtr());
+        }
+    }
+
+    // draw thumbnail
+    {
+        ImGui::SetCursorScreenPos(itemLeftTop);
+
+        const Ref<Texture>& pThumbnail = _entry.pThumbnail;
+        const Vec2i         res        = pThumbnail->GetResolution();
+        const ImVec2        imageSize  = ImVec2From(res);
+        Widget_ImageFrame(pThumbnail, imageSize, _size);
+    }
+
+    // draw tooltip
+    if (bTooltip && !bIsDragDropping && ImGui::BeginTooltip())
+    {
+        ImGui::TextUnformatted(_entry.name.GetPtr());
+        ImGui::EndTooltip();
+    }
+
+    // Double click action
+    if (bDoubleClicked)
+    {
+        if (_entry.bIsDir)
+        {
+            SetFocusingDir_(_entry.path);
+        }
+        else
+        {
+            OpenFileWithDefaultApp_(_entry.path);
+        }
+    }
+
+    // Right click popup
+    if (ImGui::BeginPopup("Menu"))
+    {
+        ImGui::TextUnformatted(_entry.name.GetPtr());
+
+        ImGui::Separator();
+        if (ImGui::BeginMenu("import"))
+        {
+            Menu_ImportAsset(_entry.path);
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+        if (Widget_MenuItem("open"))
+        {
+            if (_entry.bIsDir)
+            {
+                SetFocusingDir_(_entry.path);
+            }
+            else
+            {
+                OpenFileWithDefaultApp_(_entry.path);
+            }
+        }
+
+        if (Widget_MenuItem("open in explorer"))
+        {
+            OpenFileInExplorer_(_entry.path, true);
+        }
+
+        if (Widget_MenuItem("rename"))
+        {
+            RenameFileDialogDesc desc = {};
+            desc.baseDesc.title       = "rename file";
+            desc.srcPath              = _entry.path;
+
+            JAM_EDITOR.PushDialog(MakeRef<RenameFileDialog>(desc));
+        }
+
+        if (Widget_MenuItem("delete"))
+        {
+            JAM_EDITOR.RemoveFile(_entry.path);
+        }
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::PopID();
+    ImGui::EndGroup();
+    ImGui::PopStyleColor();
+}
+
+void Editor_FileBrowser::Widget_UndoButton_()
+{
+    ImGui::BeginDisabled(!m_historyStack.CanUndo());
+
+    // button
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::FileBrowserNavUndo));
+    if (ImGui::ArrowButton("undo", ImGuiDir_Left))
+    {
+        const Path path = m_historyStack.Undo();
+        SetFocusingDir_(path, false);
+    }
+
+    // tooltip
+    Widget_ItemDescriptionTooltip(
+        "undo",
+        "go back to the previous directory in history.");
+
+    ImGui::EndDisabled();
+}
+
+void Editor_FileBrowser::Widget_RedoButton_()
+{
+    ImGui::BeginDisabled(!m_historyStack.CanRedo());
+
+    // button
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::FileBrowserNavRedo));
+    if (ImGui::ArrowButton("redo", ImGuiDir_Right))
+    {
+        const Path path = m_historyStack.Redo();
+        SetFocusingDir_(path, false);
+    }
+
+    // tooltip
+    Widget_ItemDescriptionTooltip(
+        "redo",
+        "go forward to the next directory in history.");
+
+    ImGui::EndDisabled();
+}
+
+void Editor_FileBrowser::Widget_BackButton_()
+{
+    ImGui::BeginDisabled(m_rootDirNode.bIsFocusing);
+
+    // button
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::FileBrowserNavBack));
+    if (ImGui::Button(".."))
+    {
+        GoToParentDir_();
+    }
+
+    // tooltip
+    Widget_ItemDescriptionTooltip(
+        "back",
+        "go to the parent directory.\n"
+        "if drag and drop a file here, the file will be moved to the parent directory.");
+
+    // drag and drop target
+    if (ImGui::BeginDragDropTarget())
+    {
+        // 만약 파일을 받으면, 이전 디렉토리로 파일을 이동시켜줌
+        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        {
+            const Path srcPath = ResolvePathDragDropPayload(pPayload);
+            const Path newDir  = m_focusingDir.parent_path();
+            JAM_EDITOR.ReplaceFileDir(srcPath, newDir);
+        }
+
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::EndDisabled();
 }
 
 void Editor_FileBrowser::Widget_FileEntries()
 {
-    const float displayWidth = ImGui::GetContentRegionAvail().x;
-    if (displayWidth < 0.f)
+    const float visibleWidth = ImGui::GetContentRegionAvail().x;
+    if (visibleWidth < 0.f)
     {
         return;
     }
 
-    constexpr ImVec2 k_itemSize = { 100.f, 100.f };
-    constexpr float  k_itemPad  = 20.f;
-
-    const ImVec2 btnSize      = k_itemSize * m_zoom;
-    const float  pad          = k_itemPad * m_zoom;
-    const Int32  numBtnPerRow = Max(1, static_cast<Int32>(Div(displayWidth + pad, btnSize.x + pad)));
-    const Int32  numItems     = NarrowCast<Int32>(m_fileEntries.size());
+    const ImVec2 btnSize      = k_fileEntrySize * m_zoom;
+    const float  pad          = k_fileEntrySpacingX * m_zoom;
+    const Int32  numBtnPerRow = Max<Int32>(1, NumericCast<Int32>(Div(visibleWidth + pad, btnSize.x + pad)));
+    const Int32  numItems     = NumericCast<Int32>(m_fileEntries.size());
     const Int32  numRows      = Div(numItems + numBtnPerRow - 1, numBtnPerRow);
     const float  itemHeight   = btnSize.y + ImGui::GetTextLineHeightWithSpacing();
 
@@ -403,55 +536,6 @@ void Editor_FileBrowser::Widget_FileEntries()
     }
 }
 
-void Editor_FileBrowser::BuildDirTree_()
-{
-    const Application& app      = Application::GetInstance();
-    const fs::path&    rootPath = app.GetContentsDirectory();
-    m_rootDirNode               = BuildDirNode_Recursive_(rootPath);
-}
-
-Editor_FileBrowser::DirNode Editor_FileBrowser::BuildDirNode_Recursive_(
-    const fs::path& _path)
-{
-    DirNode node = { _path.filename(), _path, {}, _path == m_focusedDir };
-    for (const fs::directory_entry& entry: fs::directory_iterator(_path))
-    {
-        if (entry.is_directory())
-        {
-            const fs::path& path = entry.path();
-            node.children.emplace_back(BuildDirNode_Recursive_(path));
-        }
-    }
-    return node;
-}
-
-void Editor_FileBrowser::MarkFocuedDirNode_()
-{
-    MarkFocusedDirNode_Recursive_(m_rootDirNode);
-}
-
-bool Editor_FileBrowser::MarkFocusedDirNode_Recursive_(
-    DirNode& _node)
-{
-    if (_node.path == m_focusedDir)
-    {
-        _node.bIsFocused = true;
-        return true;
-    }
-    else
-    {
-        for (DirNode& child: _node.children)
-        {
-            if (MarkFocusedDirNode_Recursive_(child))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-}
-
 void Editor_FileBrowser::Widget_DirNode_Recursive_(
     const DirNode& _node)
 {
@@ -463,12 +547,12 @@ void Editor_FileBrowser::Widget_DirNode_Recursive_(
     {
         flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
-    if (_node.bIsFocused)
+    if (_node.bIsFocusing)
     {
         flags |= ImGuiTreeNodeFlags_Selected;
     }
 
-    const bool bIsNodeOpen     = ImGui::TreeNodeEx(_node.name.c_str(), flags);
+    const bool bIsNodeOpen     = ImGui::TreeNodeEx(_node.name.GetPtr(), flags);
     const bool bRenderChildren = bHasChild && bIsNodeOpen;
     const bool bClicked        = ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen();
 
@@ -477,8 +561,8 @@ void Editor_FileBrowser::Widget_DirNode_Recursive_(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const fs::path acceptedPath = ResolvePathDragDropPayload(pPayload);
-            MoveFile_(acceptedPath, _node.path);
+            const Path acceptedPath = ResolvePathDragDropPayload(pPayload);
+            JAM_EDITOR.ReplaceFileDir(acceptedPath, _node.path);
         }
 
         ImGui::EndDragDropTarget();
@@ -487,7 +571,7 @@ void Editor_FileBrowser::Widget_DirNode_Recursive_(
     // click action
     if (bClicked)
     {
-        SetFocusDir_(_node.path);
+        SetFocusingDir_(_node.path);
     }
 
     // render children
@@ -502,392 +586,293 @@ void Editor_FileBrowser::Widget_DirNode_Recursive_(
     }
 }
 
-void Editor_FileBrowser::Widget_FileEntry_(
-    const FileEntry& _entry,
-    const ImVec2     _size)
+void Editor_FileBrowser::Menu_FileEntriesPanel()
 {
-    ImGui::PushStyleColor(ImGuiCol_Button, 0);   // invisible button bg
-    ImGui::BeginGroup();
-    ImGui::PushID(_entry.filename.c_str());
-
-    // draw button
-    const ImVec2 startPos = ImGui::GetCursorScreenPos();
-    ImGui::Button("##fileEntry", _size);
-    ImGui::OpenPopupOnItemClick("Menu");   // right click popup
-
-    // button state
-    const bool bTooltip        = ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
-    const bool bDoubleClicked  = ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
-    bool       bIsDragDropping = false;   // tooltip과 drag drop이 동시에 뜨는걸 방지하기 위한 플래그
-
-    // drag drop source
-    if (ImGui::BeginDragDropSource())
+    if (ImGui::BeginMenu("create"))
     {
-        bIsDragDropping = true;
-
-        // set payload
-        SetFileDragDropPayload(_entry.path);
-
-        // preview
-        ImGui::TextUnformatted(_entry.filename.c_str());
-        ImGui::EndDragDropSource();
+        Menu_CreateFileEntry();
+        ImGui::EndMenu();
     }
 
-    // drag drop target (디렉토리인 경우만. accept path의 parent dir을 자신으로 변경)
-    if (_entry.bIsDir && ImGui::BeginDragDropTarget())
+    if (ImGui::BeginMenu("import"))
     {
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
-        {
-            const fs::path srcPath = ResolvePathDragDropPayload(pPayload);
-            MoveFile_(srcPath, _entry.path);
-        }
-
-        ImGui::EndDragDropTarget();
+        Menu_ImportAsset(m_focusingDir);
+        ImGui::EndMenu();
     }
 
-    // render filename
+    ImGui::Separator();
+    if (Widget_MenuItem("open in exploror"))
     {
-        const std::string& text          = _entry.filename;
-        const Int32        len           = NarrowCast<Int32>(text.size());
-        const Int32        clipThreshold = static_cast<Int32>(_size.x / ImGui::CalcTextSize("W").x);
-
-        if (len <= clipThreshold)
-        {
-            // no clipping
-            ImGui::TextUnformatted(text.c_str());
-        }
-        else
-        {
-            StringView shortText = GlobalBuffer::FormatTmp("{.{}}..", text, clipThreshold - 1);
-            ImGui::TextUnformatted(shortText.GetPtr());
-        }
+        OpenFileInExplorer_(m_focusingDir, true);
     }
 
-    // draw thumbnail
+    if (Widget_MenuItem("back", 0, false, !m_rootDirNode.bIsFocusing))
     {
-        const Ref<ImageTexture>& pThumbnail = _entry.pThumbnail;
-
-        const Vec2i  res       = pThumbnail->GetResolution();
-        const float  aspect    = static_cast<float>(res.x) / static_cast<float>(res.y);
-        const ImVec2 imageSize = aspect >= 1.f ? ImVec2 { _size.x, _size.x / aspect } : ImVec2 { _size.y * aspect, _size.y };
-
-        const ImVec2 offset = (_size - imageSize) * 0.5f;
-        const ImVec2 p0     = startPos + offset;
-        const ImVec2 p1     = p0 + imageSize;
-
-        ImGui::GetWindowDrawList()->AddImage(ImGuiGlue::ImTextureRefFrom(pThumbnail), p0, p1);
+        GoToParentDir_();
     }
-
-    // draw tooltip
-    if (bTooltip && !bIsDragDropping && ImGui::BeginTooltip())
-    {
-        ImGui::TextUnformatted(_entry.filename.c_str());
-        ImGui::EndTooltip();
-    }
-
-    // Double click action
-    if (bDoubleClicked)
-    {
-        if (_entry.bIsDir)
-        {
-            SetFocusDir_(_entry.path);
-        }
-        else
-        {
-            OpenFileAsDefaultApplication_(_entry.path);
-        }
-    }
-
-    // Right click popup
-    if (ImGui::BeginPopup("Menu"))
-    {
-        ImGui::TextUnformatted(_entry.filename.c_str());
-
-        ImGui::Separator();
-        if (ImGui::BeginMenu("import"))
-        {
-            Menu_ImportAsset(_entry.path);
-            ImGui::EndMenu();
-        }
-
-        ImGui::Separator();
-        if (Widget_MenuItem("open"))
-        {
-            if (_entry.bIsDir)
-            {
-                SetFocusDir_(_entry.path);
-            }
-            else
-            {
-                OpenFileAsDefaultApplication_(_entry.path);
-            }
-        }
-
-        if (Widget_MenuItem("open in explorer"))
-        {
-            OpenFileOnFileExplorer_(_entry.path);
-        }
-
-        if (Widget_MenuItem("rename"))
-        {
-            Editor::PushDialog(MakeScoped<RenameFileDialog>(_entry.path));
-        }
-
-        if (Widget_MenuItem("delete"))
-        {
-            DeleteFile_(_entry.path);
-        }
-
-        ImGui::EndPopup();
-    }
-
-    ImGui::PopID();
-    ImGui::EndGroup();
-    ImGui::PopStyleColor();
-}
-
-void Editor_FileBrowser::Widget_DirTree_()
-{
-    Widget_DirNode_Recursive_(m_rootDirNode);
 }
 
 void Editor_FileBrowser::Menu_CreateFileEntry() const
 {
     if (Widget_MenuItem("new folder"))
-        CreateFolder_(m_focusedDir);
+    {
+        JAM_EDITOR.CreateNewDir(m_focusingDir);
+    }
 
     ImGui::Separator();
 
     if (ImGui::BeginMenu("primitive"))
     {
         if (Widget_MenuItem("cube"))
-            Editor::PushDialog(MakeScoped<PrimitiveCreationDialog>(m_focusedDir, ePrimitiveCreationType::Cube));
+        {
+            PrimitiveCreationDialogDesc desc = {};
+            desc.baseDesc.title              = "create primitive";
+            desc.saveDirOrEmpty              = m_focusingDir;
+            desc.type                        = ePrimitiveCreationType::Cube;
+
+            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+        }
 
         if (Widget_MenuItem("sphere"))
-            Editor::PushDialog(MakeScoped<PrimitiveCreationDialog>(m_focusedDir, ePrimitiveCreationType::Sphere));
+        {
+            PrimitiveCreationDialogDesc desc = {};
+            desc.baseDesc.title              = "create primitive";
+            desc.saveDirOrEmpty              = m_focusingDir;
+            desc.type                        = ePrimitiveCreationType::Sphere;
+
+            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+        }
 
         if (Widget_MenuItem("plane"))
-            Editor::PushDialog(MakeScoped<PrimitiveCreationDialog>(m_focusedDir, ePrimitiveCreationType::Plane));
+        {
+            PrimitiveCreationDialogDesc desc = {};
+            desc.baseDesc.title              = "create primitive";
+            desc.saveDirOrEmpty              = m_focusingDir;
+            desc.type                        = ePrimitiveCreationType::Plane;
+
+            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+        }
 
         if (Widget_MenuItem("circle"))
-            Editor::PushDialog(MakeScoped<PrimitiveCreationDialog>(m_focusedDir, ePrimitiveCreationType::Circle));
+        {
+            PrimitiveCreationDialogDesc desc = {};
+            desc.baseDesc.title              = "create primitive";
+            desc.saveDirOrEmpty              = m_focusingDir;
+            desc.type                        = ePrimitiveCreationType::Circle;
+
+            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+        }
 
         if (Widget_MenuItem("cone"))
-            Editor::PushDialog(MakeScoped<PrimitiveCreationDialog>(m_focusedDir, ePrimitiveCreationType::Cone));
+        {
+            PrimitiveCreationDialogDesc desc = {};
+            desc.baseDesc.title              = "create primitive";
+            desc.saveDirOrEmpty              = m_focusingDir;
+            desc.type                        = ePrimitiveCreationType::Cone;
+
+            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+        }
 
         if (Widget_MenuItem("cylinder"))
-            Editor::PushDialog(MakeScoped<PrimitiveCreationDialog>(m_focusedDir, ePrimitiveCreationType::Cylinder));
+        {
+            PrimitiveCreationDialogDesc desc = {};
+            desc.baseDesc.title              = "create primitive";
+            desc.saveDirOrEmpty              = m_focusingDir;
+            desc.type                        = ePrimitiveCreationType::Cylinder;
+
+            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+        }
 
         ImGui::EndMenu();
     }
 
     if (Widget_MenuItem("material"))
-        Editor::PushDialog(MakeScoped<MaterialCreationDialog>(m_focusedDir));
+    {
+        MaterialCreationDialogDesc desc = {};
+        desc.baseDesc.title             = "create material";
+        desc.dirOrEmpty                 = m_focusingDir;
+
+        JAM_EDITOR.PushDialog(MakeRef<MaterialCreationDialog>(desc));
+    }
 }
 
 void Editor_FileBrowser::Menu_ImportAsset(
-    const fs::path& _path) const
+    const Path& _path) const
 {
     if (Widget_MenuItem("import model"))
-        Editor::PushDialog(MakeScoped<ModelImportDialog>(_path));
+    {
+        ModelImportDialogDesc desc = {};
+        desc.baseDesc.title        = "import model";
+        desc.importPathOrEmpty     = _path;
+
+        JAM_EDITOR.PushDialog(MakeRef<ModelImportDialog>(desc));
+    }
 
     if (Widget_MenuItem("import image"))
-        Editor::PushDialog(MakeScoped<ImageImportDialog>(_path));
+    {
+        ImageImportDialogDesc desc = {};
+        desc.baseDesc.title        = "import image";
+        desc.importPathOrEmpty     = _path;
+
+        JAM_EDITOR.PushDialog(MakeRef<ImageImportDialog>(desc));
+    }
 }
 
 void Editor_FileBrowser::GatherFileEntries_()
 {
     m_fileEntries.clear();
-    for (const fs::directory_entry& entry: fs::directory_iterator(m_focusedDir))
+    for (const fs::directory_entry& entry: fs::directory_iterator(m_focusingDir))
     {
-        const fs::path& path     = entry.path();
-        const fs::path  filename = path.filename();
+        const Path&      path     = entry.path();
+        const StringView filename = FileNameViewOf(path);
 
-        if (m_fileEntryFilter.PassFilter(filename.c_str()))
+        if (m_fileEntryFilter.PassFilter(filename.GetPtr()))
         {
-            m_fileEntries.emplace_back(filename, path, entry.is_directory(), m_thumbnailCache.GetOrPlaceholder(path));
+            m_fileEntries.emplace_back(path, filename, entry.is_directory(), m_thumbnailCache.GetOrPlaceholder(path));
         }
     }
 }
 
-void Editor_FileBrowser::SetFocusDir_(
-    const fs::path& _dir,
-    const bool      _bPushHistroyStack)
+void Editor_FileBrowser::BuildDirTree_()
+{
+    const Path& root = JAM_APP.GetContentsDirectory();
+    m_rootDirNode    = BuildDirNode_Recursive_(root);
+}
+
+Editor_FileBrowser::DirNode Editor_FileBrowser::BuildDirNode_Recursive_(
+    const Path& _path)
+{
+    DirNode node     = {};
+    node.path        = _path;
+    node.name        = FileNameViewOf(node.path);
+    node.bIsFocusing = (m_focusingDir == node.path);
+
+    // iterate sub directories. and build child nodes
+    for (const fs::directory_entry& entry: fs::directory_iterator { _path })
+    {
+        if (entry.is_directory())
+        {
+            const Path& path = entry.path();
+            node.children.emplace_back(BuildDirNode_Recursive_(path));
+        }
+    }
+
+    return node;
+}
+
+bool Editor_FileBrowser::MarkFocusingDirNode_Recursive_(
+    DirNode& _node)
+{
+    if (_node.path == m_focusingDir)
+    {
+        _node.bIsFocusing = true;
+        return true;
+    }
+
+    for (DirNode& node: _node.children)
+    {
+        if (MarkFocusingDirNode_Recursive_(node))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Editor_FileBrowser::SetFocusingDir_(
+    const Path& _dir,
+    const bool  _bPushHistroyStack)
 {
     JAM_ASSERT(fs::is_directory(_dir), "Path is not a directory!");
+    if (JAM_DEBUG_ENABLED)
+    {
+        const Path& root = JAM_APP.GetContentsDirectory();
+        JAM_ASSERT(IsBasePathOf(root, m_focusingDir) || root == m_focusingDir, "Focused directory is not a child of contents directory!");
+    }
 
     // no change
-    if (m_focusedDir == _dir)
+    if (m_focusingDir == _dir)
     {
         return;
     }
 
-    // set focus dir
-    const fs::path oldPath = m_focusedDir;
-    m_focusedDir           = _dir;
-
-    // is child of contents dir
-    const Application& app         = Application::GetInstance();
-    const fs::path&    contentsDir = app.GetContentsDirectory();
-    JAM_ASSERT(IsBasePathOf(contentsDir, m_focusedDir) || contentsDir == m_focusedDir, "Focused directory is not a child of contents directory!");
-
-    // history stack
-    if (_bPushHistroyStack && !oldPath.empty())
+    // push history stack
+    if (_bPushHistroyStack && !m_focusingDir.empty())
     {
-        m_historyStack.Push(oldPath);
+        m_historyStack.Push(m_focusingDir);
     }
 
-    // need update flags
-    m_bIsRootDirFocused      = (contentsDir == m_focusedDir);
-    m_bNeedGatherFileEntries = true;
-
-    // update focused dir node
-    MarkFocuedDirNode_();
+    // set focus dir
+    m_focusingDir                = _dir;
+    m_bGatherFileEntriesRequried = true;
+    MarkFocusingDirNode_Recursive_(m_rootDirNode);
 }
 
 void Editor_FileBrowser::GoToParentDir_()
 {
-    SetFocusDir_(m_focusedDir.parent_path());
+    SetFocusingDir_(m_focusingDir.parent_path());
 }
 
-void Editor_FileBrowser::OnFileAddEvent_(const FileAddedEvent& _event)
+void Editor_FileBrowser::OnFileAddEvent_(
+    const FileAddedEvent& _event)
 {
-    m_bNeedBuildDirTree      = true;
-    m_bNeedGatherFileEntries = true;
+    OnFileEvent_(_event.GetPath());
 }
 
-void Editor_FileBrowser::OnFileDeleteEvent_(const FileDeletedEvent& _event)
+void Editor_FileBrowser::OnFileDeleteEvent_(
+    const FileDeletedEvent& _event)
 {
-    m_bNeedBuildDirTree      = true;
-    m_bNeedGatherFileEntries = true;
+    OnFileEvent_(_event.GetPath());
 }
 
-void Editor_FileBrowser::OnFileModifiedEvent_(const FileModifiedEvent& _event)
+void Editor_FileBrowser::OnFileModifiedEvent_(
+    const FileModifiedEvent& _event)
 {
-    m_bNeedBuildDirTree      = true;
-    m_bNeedGatherFileEntries = true;
+    OnFileEvent_(_event.GetPath());
 }
 
-void Editor_FileBrowser::OnFileRenamedEvent_(const FileRenamedEvent& _event)
+void Editor_FileBrowser::OnFileRenamedEvent_(
+    const FileRenamedEvent& _event)
 {
-    m_bNeedBuildDirTree      = true;
-    m_bNeedGatherFileEntries = true;
+    OnFileEvent_(_event.GetOldPath());   // 하나만 처리해도 충분
 }
 
-void Editor_FileBrowser::MoveFile_(
-    const fs::path& _path,
-    const fs::path& _newDir) const
+void Editor_FileBrowser::OnFileEvent_(
+    const Path& _path)
 {
-    JAM_ASSERT(fs::is_directory(_newDir), "New directory path is not a directory!");
-
-    const fs::path patn = _newDir / _path.filename();
-
-    // rename
-    std::error_code ec = {};
-    fs::rename(_path, patn, ec);
-    if (ec)
+    if (fs::is_directory(_path))
     {
-        const StringView msg = GlobalBuffer::FormatTmp("failed to move file from '{}' to '{}'.\n{}", _path.native(), patn.native(), ec.message());
-        Editor::PushMessageDialog("error", msg);
+        m_bBuildDirTreeRequired = true;
     }
-}
-
-void Editor_FileBrowser::DeleteFile_(
-    const fs::path& _path) const
-{
-    bool bHasAnyFile = false;
-    for (const fs::directory_entry& _: fs::directory_iterator(_path))
+    else if (fs::is_regular_file(_path))
     {
-        bHasAnyFile = true;
-        break;
-    }
-
-    if (bHasAnyFile)
-    {
-        const StringView msg = GlobalBuffer::FormatTmp("the directory '{}' is not empty. are you sure you want to remove it and all its contents?", _path.native());
-        Editor::PushDialog(MakeScoped<ConfirmationDialog>("remove not empty directory", msg, JAM_BIND_METHOD(this, Editor_FileBrowser::OnClickRemoveNotEmptyDirectoryYesButton_, _path)));
-    }
-    else
-    {
-        std::error_code ec = {};
-        fs::remove(_path, ec);
-        if (ec)
+        if (_path.parent_path() == m_focusingDir)
         {
-            Editor::PushMessageDialog(
-                "error",
-                GlobalBuffer::FormatTmp("failed to remove file '{}'.\n{}", _path.native(), ec.message()));
+            m_bGatherFileEntriesRequried = true;
         }
     }
 }
 
-void Editor_FileBrowser::CreateFolder_(
-    const fs::path& _parentDir) const
+void Editor_FileBrowser::OpenFileInExplorer_(
+    const Path& _path,
+    const bool  _bSelected) const
 {
-    constexpr Int32 k_attemptLimit = 1000;
+    ScratchBuffer buf;
+    buf.Format(R"( explorer.exe {} "{}" )", _bSelected ? "/select," : "", _path);
 
-    for (Int32 i = 0; i < k_attemptLimit; ++i)
-    {
-        StringView filename = {};
-        if (i == 0)   // first attempt
-        {
-            filename = GlobalBuffer::FormatTmp("new folder");
-        }
-        else
-        {
-            filename = GlobalBuffer::FormatTmp("new folder ({})", i);
-        }
-
-        const fs::path  dirPath = _parentDir / filename.GetPtr();
-        std::error_code ec      = {};
-        if (fs::create_directory(dirPath, ec))
-        {
-            return;   // succeeded
-        }
-
-        // error occured
-        if (ec)
-        {
-            const StringView msg = GlobalBuffer::FormatTmp("failed to create new folder in '{}'.\n{}", _parentDir.native(), ec.message());
-            Editor::PushMessageDialog("error", msg);
-            return;
-        }
-
-        // already exists. retry
-    }
-
-    // no error but too many folders with same name exist
-    const StringView msg = GlobalBuffer::FormatTmp("failed to create new folder in '{}'. too many folders with the same name exist.", _parentDir.native());
-    Editor::PushMessageDialog("error", msg);
+    const Int32 ret = std::system(buf.GetPtr());
+    JAM_ASSERT(ret == 0, "Failed to open file in explorer. Return code: {}", ret);
 }
 
-void Editor_FileBrowser::OnClickRemoveNotEmptyDirectoryYesButton_(
-    const fs::path& _dir) const
+void Editor_FileBrowser::OpenFileWithDefaultApp_(
+    const Path& _path) const
 {
-    std::error_code ec = {};
-    fs::remove_all(_dir, ec);
-    if (ec)
-    {
-        const StringView msg = GlobalBuffer::FormatTmp("failed to remove directory '{}'.\n{}", _dir.native(), ec.message());
-        Editor::PushMessageDialog("error", msg);
-    }
+    ScratchBuffer command;
+    command.Format(R"( start "" "{}" )", _path);
+
+    const Int32 ret = std::system(command.GetPtr());
+    JAM_ASSERT(ret == 0, "Failed to open file with default application. Return code: {}", ret);
 }
 
-void Editor_FileBrowser::OpenFileAsDefaultApplication_(const fs::path& _path) const
-{
-    if (!OpenFileAsDefaultApplication(_path))
-    {
-        const StringView msg = GlobalBuffer::FormatTmp("failed to open file '{}' with default application. {}", _path.native(), GlobalBuffer::GetLastError());
-        Editor::PushMessageDialog("error", msg);
-    }
-}
-
-void Editor_FileBrowser::OpenFileOnFileExplorer_(const fs::path& _path) const
-{
-    if (!OpenFileExplorer(_path))
-    {
-        const StringView msg = GlobalBuffer::FormatTmp("failed to open file explorer at '{}'. {}", _path.native(), GlobalBuffer::GetLastError());
-        Editor::PushMessageDialog("error", msg);
-    }
-}
-
-}   // namespace jam
+}   // namespace Jam

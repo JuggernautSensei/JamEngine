@@ -2,17 +2,17 @@
 
 #include "Event.h"
 
-namespace jam
+namespace Jam
 {
 
-bool jam::Event::IsHandled() const
+bool Event::IsHandled() const
 {
     return m_bHandled;
 }
 
-void jam::Event::SetHandled(const bool _bHandled)
+void Event::SetHandled(const bool _bHandled)
 {
     m_bHandled = _bHandled;
 }
 
-}   // namespace jam
+}   // namespace Jam

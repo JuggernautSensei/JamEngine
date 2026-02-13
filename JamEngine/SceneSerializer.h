@@ -1,24 +1,18 @@
 #pragma once
-#include "Environment.h"
-#include "JsonWriter.h"
-#include "UID.h"
 
-namespace jam
+namespace Jam
 {
 
 class Scene;
 
-class SceneSerializer
+enum class eSceneDeserializeMode : UInt32
 {
-public:
-    bool SaveJsonFile(const fs::path& _path) const;
-    bool SaveBsonFile(const fs::path& _path) const;
-    void Serialize(const Ref<Scene>& _pScene);
-
-    [[nodiscard]] const Json& GetJson() const;
-
-private:
-    Json m_json = {};
+    None,
+    RemoveComponentOnDeserializeFailure,   // invalid component is destroyed during deserialization.
+                                           // if you not set this flag, invalid component deserialization will cause an whole error.
 };
 
-}   // namespace jam
+void               SerializeScene(ArchiveWriter& _writer, const Ref<Scene>& _pScene);
+Expect<Ref<Scene>> DeserializeScene(ArchiveReader& _reader, Flags<eSceneDeserializeMode> _flags = {});
+
+}   // namespace Jam

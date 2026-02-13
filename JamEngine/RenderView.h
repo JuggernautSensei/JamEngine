@@ -1,7 +1,7 @@
 #pragma once
 #include "GraphicsBase.h"
 
-namespace jam
+namespace Jam
 {
 
 struct RenderView
@@ -9,9 +9,9 @@ struct RenderView
     FrameBufferHandle fbh = k_invalidHandle;   // output
     Viewport          vp  = {};                // output vp
 
-    Vec3 eye  = Vec3::Zero;       // camera position
-    Mat4 view = Mat4::Identity;   // view matrix
-    Mat4 proj = Mat4::Identity;   // projection matrix
+    Vec3 eye  = vec3::k_zero;       // camera position
+    Mtx4 view = mtx4::k_identity;   // view matrix
+    Mtx4 proj = mtx4::k_identity;   // projection matrix
 };
 
-}   // namespace jam
+}   // namespace Jam

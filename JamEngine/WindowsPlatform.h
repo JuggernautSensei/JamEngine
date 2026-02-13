@@ -1,37 +1,39 @@
 #pragma once
 #include "Events.h"
 
-namespace jam
+namespace Jam
 {
 
-enum eWindowPropertyFlags_ : UInt32
+enum class eWindowPropertyFlags : UInt32
 {
-    eWindowPropertyFlags_None        = 0,
-    eWindowPropertyFlags_NoResizable = 1 << 0,
-    eWindowPropertyFlags_TopMost     = 1 << 1,
+    None        = 0,
+    NoResizable = 1 << 0,
+    TopMost     = 1 << 1,
 
-    eWindowPropertyFlags_DisableMinimizeButton = 1 << 2,
-    eWindowPropertyFlags_DisableMaximizeButton = 1 << 3,
-    eWindowPropertyFlags_DisableCloseButton    = 1 << 4,
+    DisableMinimizeButton = 1 << 2,
+    DisableMaximizeButton = 1 << 3,
+    DisableCloseButton    = 1 << 4,
 
-    eWindowPropertyFlags_Borderless = 1 << 5,
+    Borderless = 1 << 5,
 };
-using eWindowPropertyFlags = UInt32;
 
 class WindowsPlatform
 {
 public:
-    void Init();
-    void Shutdown();
-    void OnEvent(Event& _event);
-    bool PollEvents();
+    WindowsPlatform(const WindowsPlatform&)            = delete;
+    WindowsPlatform& operator=(const WindowsPlatform&) = delete;
+    WindowsPlatform(WindowsPlatform&&)                 = delete;
+    WindowsPlatform& operator=(WindowsPlatform&&)      = delete;
+
+    [[nodiscard]] static WindowsPlatform& GetInstance();
 
     void ResizeClient(Int32 _clientWidth, Int32 _clientHeight);
     void MoveClient(Int32 _clientLeftTopX, Int32 _clientLeftTopY);
+    void AdjustClientRect(Int32 _clientLeftTopX, Int32 _clientLeftTopY, Int32 _clientWidth, Int32 _clientHeight);
     void SetTitle(StringView _name) const;
 
-    void                               SetWindowProperty(eWindowPropertyFlags _flags);
-    [[nodiscard]] eWindowPropertyFlags GetWindowProperty() const;
+    void                                      SetWindowProperty(Flags<eWindowPropertyFlags> _flags);
+    [[nodiscard]] Flags<eWindowPropertyFlags> GetWindowProperty() const;
 
     [[nodiscard]] Vec2i GetClientPos() const;
     [[nodiscard]] Vec2i GetClientResolution() const;
@@ -41,28 +43,39 @@ public:
     [[nodiscard]] HINSTANCE GetPlatformInstance() const;
 
 private:
-    static LRESULT CALLBACK WindowProc_(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    WindowsPlatform();
+    ~WindowsPlatform();
 
-    void AdjustClientRect(Int32 _x, Int32 _y, Int32 _width, Int32 _height);
+    static void CreateInstance();
+    static void DestroyInstance();
 
+    void OnEvent(Event& _event);
+    bool PollEvents();
+
+    void AdjustClientRect_(Int32 _x, Int32 _y, Int32 _width, Int32 _height);
     void OnWindowResizedEvent_(const WindowResizedEvent& _event);
     void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event);
     void OnWindowMoveEvent_(const WindowMoveEvent& _event);
 
-    HINSTANCE m_hInstance = NULL;   // 윈도우 인스턴스
-    HWND      m_hWnd      = NULL;   // 윈도우 핸들
-    MSG       m_msg       = {};     // 윈도우 메시지
+    HINSTANCE m_hInstance = NULL;
+    HWND      m_hWnd      = NULL;
+    MSG       m_msg       = {};
 
-    Vec2i                m_clientPos = { 0, 0 };
-    Vec2i                m_clientRes = { 0, 0 };
-    eWindowPropertyFlags m_flags     = eWindowPropertyFlags_None;
+    Vec2i                       m_clientPos = { 0, 0 };
+    Vec2i                       m_clientRes = { 0, 0 };
+    Flags<eWindowPropertyFlags> m_flags     = eWindowPropertyFlags::None;
 
-    constexpr static const wchar_t* const k_windowClassName = L"jam engine window class";
-    constexpr static const wchar_t* const k_windowTitleName = L"jam engine window";
-    constexpr static Int32                k_defaultWidth    = 800;
-    constexpr static Int32                k_defaultHeight   = 600;
-    constexpr static Int32                k_defaultPosX     = 100;
-    constexpr static Int32                k_defaultPosY     = 100;
+    constexpr static const char* k_windowClassName     = "Jam engine application window class";
+    constexpr static const char* k_windowTitleName     = "Jam engine application window";
+    constexpr static Int32       k_initialClientWidth  = 800;
+    constexpr static Int32       k_initialClientHeight = 600;
+    constexpr static Int32       k_initialClientPosX   = 0;
+    constexpr static Int32       k_initialClientPosY   = 0;
+
+    inline static WindowsPlatform* s_pInstance = nullptr;
+    friend class Application;
 };
 
-}   // namespace jam
+}   // namespace Jam
+
+#define JAM_WIN Jam::WindowsPlatform::GetInstance()

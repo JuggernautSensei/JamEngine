@@ -1,45 +1,42 @@
 #pragma once
 #include "GraphicsBase.h"
-#include "MemView.h"
+#include "MemoryBlock.h"
 
-namespace jam
+namespace Jam
 {
 
 struct ShaderMacro
 {
     [[nodiscard]] bool IsNull() const
     {
-        return (name == nullptr) && (value == nullptr);
+        return name == nullptr && value == nullptr;
     }
 
-    const char* name  = nullptr;
-    const char* value = nullptr;
+    StringView name  = nullptr;
+    StringView value = nullptr;
+};
+
+struct ShaderCompilerDesc
+{
+    eShader                    stage      = eShader::VertexShader;
+    StringView                 entryPoint = "main";
+    Span<const ShaderMacro>    macros     = {};
+    Flags<eShaderCompileFlags> flags      = eShaderCompileFlags::None;
 };
 
 class ShaderCompiler
 {
 public:
-    ShaderCompiler()  = default;
-    ~ShaderCompiler() = default;
-
-    ShaderCompiler(const ShaderCompiler&)            = delete;
-    ShaderCompiler& operator=(const ShaderCompiler&) = delete;
-    ShaderCompiler(ShaderCompiler&&)                 = default;
-    ShaderCompiler& operator=(ShaderCompiler&&)      = default;
-
-    bool CompileHLSLFile(const fs::path& _path, eShader _stage, StringView _entryPoint, Span<const ShaderMacro> _macrosOrEmpty, eShaderCompileFlags _flags = eShaderCompileFlags_Default) const;
-    bool CompileHLSLSource(StringView _source, eShader _stage, StringView _entryPoint, Span<const ShaderMacro> _macrosOrEmpty, eShaderCompileFlags _flags = eShaderCompileFlags_Default) const;
-
-    bool LoadCSOFile(const fs::path& _path);
-    bool LoadCSOMemory(CMemView _bytecode);
-
-    [[nodiscard]] CMemView GetBytecode() const;
+    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLFile(const Path& _path, const ShaderCompilerDesc& _desc = {});
+    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLSource(StringView _source, const ShaderCompilerDesc& _desc = {});
+    [[nodiscard]] CMemoryBlock                  GetBytecode() const;
 
 private:
-    [[nodiscard]] UINT       CompileFlagsFrom_(eShaderCompileFlags _flags) const;
-    [[nodiscard]] StringView ShaderModelNameFrom_(eShader _stage) const;
+    ShaderCompiler() = default;
+    Error CompileFromHLSLFile_(const Path& _path, const ShaderCompilerDesc& _desc = {});
+    Error CompileHLSLSource_(StringView _source, const ShaderCompilerDesc& _desc = {});
 
-    ComPtr<ID3DBlob> m_pBytecode = nullptr;
+    ComPtr<ID3DBlob> m_pBlob = nullptr;
 };
 
-}   // namespace jam
+}   // namespace Jam

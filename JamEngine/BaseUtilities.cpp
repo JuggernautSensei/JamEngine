@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "BaseUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
-}   // namespace jam
+}   // namespace Jam

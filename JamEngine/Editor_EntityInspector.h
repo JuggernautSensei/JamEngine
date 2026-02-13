@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 class Editor_EntityInspector
@@ -13,4 +13,4 @@ private:
     void Menu_AddComponent_() const;
 };
 
-}   // namespace jam
+}   // namespace Jam

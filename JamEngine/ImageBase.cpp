@@ -2,165 +2,105 @@
 
 #include "ImageBase.h"
 
-#include "StringUtilities.h"
-
-namespace jam
+namespace Jam
 {
 
-[[nodiscard]] Optional<eImageFormat> ImageFormatFromLowerExt(
+Optional<eImageFormat> ParseAsImageFormat(
+    const Path& _path)
+{
+    const StringView ext = ExtensionViewOf(_path);
+    return ParseAsImageFormat(ext);
+}
+
+Optional<eImageFormat> ParseAsImageFormat(
     const StringView _ext)
 {
-    switch (HashOf(_ext))
+    const StringView ext  = _ext.StartsWith(".") ? _ext.SubView(1) : _ext;
+    const UInt32     hash = ext.Hash32IgnoreCase();
+
+    switch (hash)
     {
-        case HashOf(".exr"):
-        case HashOf("exr"):
-            return eImageFormat::EXR;
-        case HashOf(".dds"):
-        case HashOf("dds"):
+        case HashString32IgnoreCase("dds"):
             return eImageFormat::DDS;
-        case HashOf(".hdr"):
-        case HashOf("hdr"):
+        case HashString32IgnoreCase("exr"):
+            return eImageFormat::EXR;
+        case HashString32IgnoreCase("hdr"):
             return eImageFormat::HDR;
-        case HashOf(".tga"):
-        case HashOf("tga"):
+        case HashString32IgnoreCase("tga"):
             return eImageFormat::TGA;
-        case HashOf(".bmp"):
-        case HashOf("bmp"):
+        case HashString32IgnoreCase("bmp"):
             return eImageFormat::BMP;
-        case HashOf(".jpg"):
-        case HashOf("jpg"):
+        case HashString32IgnoreCase("jpg"):
             return eImageFormat::JPG;
-        case HashOf(".jpeg"):
-        case HashOf("jpeg"):
+        case HashString32IgnoreCase("jpeg"):
             return eImageFormat::JPEG;
-        case HashOf(".png"):
-        case HashOf("png"):
+        case HashString32IgnoreCase("png"):
             return eImageFormat::PNG;
-        case HashOf(".tif"):
-        case HashOf("tif"):
+        case HashString32IgnoreCase("tif"):
             return eImageFormat::TIF;
-        case HashOf(".tiff"):
-        case HashOf("tiff"):
+        case HashString32IgnoreCase("tiff"):
             return eImageFormat::TIFF;
-        case HashOf(".gif"):
-        case HashOf("gif"):
+        case HashString32IgnoreCase("gif"):
             return eImageFormat::GIF;
-        case HashOf(".hdp"):
-        case HashOf("hdp"):
+        case HashString32IgnoreCase("hdp"):
             return eImageFormat::HDP;
-        case HashOf(".jxr"):
-        case HashOf("jxr"):
+        case HashString32IgnoreCase("jxr"):
             return eImageFormat::JXR;
-        case HashOf(".wdp"):
-        case HashOf("wdp"):
+        case HashString32IgnoreCase("wdp"):
             return eImageFormat::WDP;
-        case HashOf(".ico"):
-        case HashOf("ico"):
+        case HashString32IgnoreCase("ico"):
             return eImageFormat::ICO;
-        case HashOf(".heif"):
-        case HashOf("heif"):
+        case HashString32IgnoreCase("heif"):
             return eImageFormat::HEIF;
-        case HashOf(".heic"):
-        case HashOf("heic"):
+        case HashString32IgnoreCase("heic"):
             return eImageFormat::HEIC;
         default:
             return k_nullopt;
     }
 }
 
-///////////////////////////////////////////////////////
-
-Optional<eImageFormat> ImageFormatFrom(
-    const fs::path& _path)
-{
-    const StringView path = _path.native();
-
-    Int32 idx = 0;
-    if (!MoveIfHasValue(path.FindLastOf('.'), idx))
-    {
-        return k_nullopt;
-    }
-
-    const StringView ext = path.SubView(idx);
-    return ImageFormatFrom(ext);
-}
-
-Optional<eImageFormat> ImageFormatFrom(const StringView _format)
-{
-    const std::string lower = ToLower(_format);
-    return ImageFormatFromLowerExt(lower);
-}
-
 StringView ExtensionOf(
-    const eImageFormat _format,
-    const bool         _bIncludeDot)
+    const eImageFormat _format)
 {
-    StringView str;
-
     switch (_format)
     {
-        case eImageFormat::EXR:
-            str = ".exr";
-            break;
         case eImageFormat::DDS:
-            str = ".dds";
-            break;
+            return ".dds";
+        case eImageFormat::EXR:
+            return ".exr";
         case eImageFormat::HDR:
-            str = ".hdr";
-            break;
+            return ".hdr";
         case eImageFormat::TGA:
-            str = ".tga";
-            break;
+            return ".tga";
         case eImageFormat::BMP:
-            str = ".bmp";
-            break;
+            return ".bmp";
         case eImageFormat::JPG:
-            str = ".jpg";
-            break;
+            return ".jpg";
         case eImageFormat::JPEG:
-            str = ".jpeg";
-            break;
+            return ".jpeg";
         case eImageFormat::PNG:
-            str = ".png";
-            break;
+            return ".png";
         case eImageFormat::TIF:
-            str = ".tif";
-            break;
+            return ".tif";
         case eImageFormat::TIFF:
-            str = ".tiff";
-            break;
+            return ".tiff";
         case eImageFormat::GIF:
-            str = ".gif";
-            break;
+            return ".gif";
         case eImageFormat::HDP:
-            str = ".hdp";
-            break;
+            return ".hdp";
         case eImageFormat::JXR:
-            str = ".jxr";
-            break;
+            return ".jxr";
         case eImageFormat::WDP:
-            str = ".wdp";
-            break;
+            return ".wdp";
         case eImageFormat::ICO:
-            str = ".ico";
-            break;
+            return ".ico";
         case eImageFormat::HEIF:
-            str = ".heif";
-            break;
+            return ".heif";
         case eImageFormat::HEIC:
-            str = ".heic";
-            break;
+            return ".heic";
         default:
-            JAM_ASSERT(0, "Unknown image format");
-            str = "unknown";
+            JAM_UNREACHABLE;
     }
-
-    if (!_bIncludeDot)
-    {
-        str = str.SubView(1);
-    }
-
-    return str;
 }
 
-}   // namespace jam
+}   // namespace Jam

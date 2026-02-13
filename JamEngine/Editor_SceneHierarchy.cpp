@@ -2,18 +2,18 @@
 
 #include "Editor_SceneHierarchy.h"
 
-#include "AssetManager.h"
 #include "Editor.h"
 #include "EditorUtilities.h"
-#include "Magics.h"
+
 #include "Scene.h"
 #include "SceneManager.h"
-#include "SceneSerializer.h"
 #include "TagComponent.h"
 #include "SceneNode.h"
 #include "EditorWidgets.h"
+#include "MessageDialog.h"
+#include "Model.h"
 
-namespace jam
+namespace Jam
 {
 
 void Editor_SceneHierarchy::OnImGuiRender(
@@ -25,41 +25,30 @@ void Editor_SceneHierarchy::OnImGuiRender(
         return;
     }
 
-    const bool        bHasScene     = SceneManager::HasActiveScene();
-    const Ref<Scene>& pScene        = bHasScene ? SceneManager::GetActiveScene() : nullptr;
-    const Entity      focusedEntity = Editor::GetFocusedEntity();
+    const bool bHasScene = JAM_SCENE_MGR.HasActiveScene();
 
     // scene save load
     {
         const ImVec2 btnSize = CalcFitButtonSize(2);
 
-        // save scene button
-        ImGui::BeginDisabled(bHasScene);
-        if (Widget_Button("save scene", btnSize, ImGuiMod_Ctrl | ImGuiKey_S))
-        {
-            Editor::SaveSceneBySaveDialog(pScene);
-        }
-        ImGui::EndDisabled();
+        Widget_SaveSceneButton_(btnSize);
 
-        // load scene button
         ImGui::SameLine();
-        if (Widget_Button("load scene", btnSize, ImGuiMod_Ctrl | ImGuiKey_O))
-        {
-            Editor::LoadSceneByOpenDialog();
-        }
+        Widget_LoadSceneButton_(btnSize);
     }
 
     // scene inspector
     ImGui::Separator();
     if (!bHasScene)
     {
-        Widget_CenteredText("no active scene.\nplease load scene.");
+        Widget_TextFrame("no active scene.\nplease load scene.", ImGui::GetContentRegionAvail());
         ImGui::End();
         return;
     }
 
     // scene info
     {
+        const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
         ImGui::Text("scene type: %s", pScene->GetTypeName().GetPtr());
         ImGui::Text("entity count: %d", pScene->GetNumEntities());
     }
@@ -70,36 +59,22 @@ void Editor_SceneHierarchy::OnImGuiRender(
         const ImVec2 btnSize = CalcFitButtonSize(3);
 
         // create new entity
-        if (Widget_Button("create", btnSize, ImGuiMod_Ctrl | ImGuiKey_N))
-        {
-            Editor::CreateEntity(pScene, Entity::s_null);
-        }
+        Widget_CreateEntityButton_(btnSize);
 
         // clone focused entity
         ImGui::SameLine();
-        ImGui::BeginDisabled(!Editor::IsClonableEntity(pScene, focusedEntity));
-        if (Widget_Button("clone", btnSize, ImGuiMod_Ctrl | ImGuiKey_D))
-        {
-            Editor::CloneEntity(pScene, focusedEntity);
-        }
-        ImGui::EndDisabled();
 
         // destroy focused entity
         ImGui::SameLine();
-        ImGui::BeginDisabled(!Editor::IsDestroyableEntity(pScene, focusedEntity));
-        if (Widget_Button("destroy", btnSize, ImGuiKey_Delete))
-        {
-            Editor::DestroyEntity(pScene, focusedEntity);
-        }
-        ImGui::EndDisabled();
     }
 
     // entity list
     {
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);   // root entity는 열려있도록
-        if (ImGui::BeginChild("EntityListPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Border))
+        if (ImGui::BeginChild("EntityListPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Borders))
         {
             // draw entityItems
+            const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
             Widget_EntityItem_Recursive_(pScene->GetRootEntity());
 
             // window popup
@@ -120,7 +95,7 @@ void Editor_SceneHierarchy::OnImGuiRender(
             // if click window empty space, clear focus entity
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
             {
-                Editor::SetFocusedEntity(Entity::s_null);
+                JAM_EDITOR.ReleaseFocusingEntity();
             }
         }
         ImGui::EndChild();
@@ -129,29 +104,37 @@ void Editor_SceneHierarchy::OnImGuiRender(
     ImGui::End();
 }
 
-void Editor_SceneHierarchy::OnBeginDragDropTarget_EntityListPanel_() const
+void Editor_SceneHierarchy::Widget_SaveSceneButton_(
+    const ImVec2 _btnSize) const
 {
-    if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+    ImGui::BeginDisabled(!JAM_SCENE_MGR.HasActiveScene());
+
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::SaveScene));
+    if (ImGui::Button("save scene", _btnSize))
     {
-        const fs::path   path  = ResolvePathDragDropPayload(pPayload);
-        const fs::path   ext   = path.extension();
-        const StringView svExt = ext.native();
-
-        if (svExt == k_jamModelExt)   // model file
-        {
-            Ref<Model> pModel = nullptr;
-            if (!MoveIfHasValue(AssetManager::LoadModel(path), pModel))
-            {
-                const StringView msg = GlobalBuffer::FormatTmp("failed to load model asset from path: {}. {}", path.native(), GlobalBuffer::GetLastError());
-                Editor::PushMessageDialog("error", msg);
-                return;
-            }
-
-            JAM_ASSERT(SceneManager::HasActiveScene(), "no active scene to create entities into.");
-            const Ref<Scene>& pScene = SceneManager::GetActiveScene();
-            Editor::CreateEntitiesFrom(pScene, pModel);
-        }
+        const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+        JAM_EDITOR.SaveSceneByFileDialog(pScene);
     }
+
+    Widget_ItemDescriptionTooltip(
+        "save scene",
+        "save the current active scene to a file.");
+
+    ImGui::EndDisabled();
+}
+
+void Editor_SceneHierarchy::Widget_LoadSceneButton_(
+    const ImVec2 _btnSize) const
+{
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::LoadScene));
+    if (ImGui::Button("load scene", _btnSize))
+    {
+        JAM_EDITOR.LoadScenByFileDialog();
+    }
+
+    Widget_ItemDescriptionTooltip(
+        "load scene",
+        "load a scene from a file and set it as the active scene.");
 }
 
 void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
@@ -159,24 +142,23 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
 {
     SceneNode& node         = _entity.GetSceneNode();
     const bool bHasChildren = node.HasChildren();
-    const bool bIsFocused   = _entity == Editor::GetFocusedEntity();
+    const bool bIsFocused   = _entity == JAM_EDITOR.GetFocusingEntity();
     const UID  uid          = _entity.GetUID();
     const bool bHasTag      = _entity.HasComponent<TagComponent>();
 
     // push id
-    ImGui::PushID(NarrowCast<Int32>(uid));
+    ImGui::PushID(NumericCast<Int32>(uid.GetValue()));
 
     // set label
-    const char* label = nullptr;
+    ScratchBuffer buf;
     if (bHasTag)
     {
         const TagComponent& tag = _entity.GetComponent<TagComponent>();
-        label                   = tag.name.c_str();
+        buf.Set(tag.name);
     }
     else
     {
-        const StringView tmp = GlobalBuffer::FormatTmp("entity %d", uid);
-        label                = tmp.GetPtr();
+        buf.Format("entity {}", uid);
     }
 
     // render node flags
@@ -191,7 +173,7 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
     }
 
     // render node
-    bool       bOpen          = ImGui::TreeNodeEx(label, flags);
+    bool       bOpen          = ImGui::TreeNodeEx(buf.GetPtr(), flags);
     bool       bRenderChilren = bOpen && bHasChildren;
     const bool bIsClicked     = ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen();   // for focus on click (not toggle)
 
@@ -202,7 +184,7 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
     if (ImGui::BeginDragDropSource())
     {
         // render label
-        ImGui::TextUnformatted(label);
+        ImGui::TextUnformatted(buf.GetPtr());
         if (!bHasTag)
         {
             ImGui::TextDisabled("uid: %d", uid);
@@ -225,7 +207,10 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
             // check circular reference
             if (acceptedNode.IsAncestorOf(_entity))
             {
-                Editor::PushMessageDialog("error", "cannot set parent.s would create circular reference.");
+                MessageDialogDesc desc = {};
+                desc.baseDesc.title    = "error";
+                desc.msg               = "cannot set parent.s would create circular reference.";
+                JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
             }
             else
             {
@@ -239,17 +224,17 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
     // click to focus
     if (bIsClicked)
     {
-        Editor::SetFocusedEntity(_entity);
+        JAM_EDITOR.SetFocusingEntity(_entity);
     }
 
     // context menu
     if (ImGui::BeginPopup("Menu"))
     {
-        JAM_ASSERT(SceneManager::HasActiveScene(), "no active scene to create entity into.");
-        const Ref<Scene>& _pScene = SceneManager::GetActiveScene();
+        JAM_ASSERT(JAM_SCENE_MGR.HasActiveScene(), "no active scene to create entity into.");
+        const Ref<Scene>& _pScene = JAM_SCENE_MGR.GetActiveScene();
 
         // render label
-        ImGui::TextUnformatted(label);
+        ImGui::TextUnformatted(buf.GetPtr());
         if (!bHasTag)
         {
             ImGui::TextDisabled("uid: %d", uid);
@@ -259,22 +244,22 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
         // create child
         if (Widget_MenuItem("create child"))
         {
-            Editor::CreateEntity(_pScene, _entity);
+            JAM_EDITOR.CreateEntity(_pScene, _entity);
         }
 
         // clone entity
-        ImGui::BeginDisabled(!Editor::IsClonableEntity(_pScene, _entity));
+        ImGui::BeginDisabled(!JAM_EDITOR.CanEntityClone(_entity));
         if (Widget_MenuItem("clone"))
         {
-            Editor::CloneEntity(_pScene, _entity);
+            JAM_EDITOR.CloneEntity(_pScene, _entity);
         }
         ImGui::EndDisabled();
 
         // destroy entity
-        ImGui::BeginDisabled(!Editor::IsDestroyableEntity(_pScene, _entity));
+        ImGui::BeginDisabled(!JAM_EDITOR.CanEntityDestroy(_entity));
         if (Widget_MenuItem("destroy"))
         {
-            Editor::DestroyEntity(_pScene, _entity);
+            JAM_EDITOR.DestroyEntity(_pScene, _entity);
         }
         ImGui::EndDisabled();
 
@@ -295,14 +280,77 @@ void Editor_SceneHierarchy::Widget_EntityItem_Recursive_(
     ImGui::PopID();
 }
 
+void Editor_SceneHierarchy::Widget_CreateEntityButton_(
+    const ImVec2 _btnSize) const
+{
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::CreateEntity));
+    if (ImGui::Button("create", _btnSize))
+    {
+        const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+        JAM_EDITOR.CreateEntity(pScene, Entity::k_invalid);
+    }
+
+    Widget_ItemDescriptionTooltip(
+        "create entity",
+        "create a new entity in the active scene.");
+}
+
+void Editor_SceneHierarchy::Widget_DeleteEntityButton_(
+    const ImVec2 _btnSize) const
+{
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::DeleteEntity));
+    if (ImGui::Button("delete", _btnSize))
+    {
+        const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+        Entity            entity = JAM_EDITOR.GetFocusingEntity();
+        JAM_EDITOR.DestroyEntity(pScene, entity);
+    }
+
+    Widget_ItemDescriptionTooltip(
+        "delete entity",
+        "delete the focused entity from the active scene.");
+}
+
+void Editor_SceneHierarchy::Widget_CloneEntityButton_(
+    const ImVec2 _btnSize) const
+{
+    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::CloneEntity));
+    if (ImGui::Button("clone", _btnSize))
+    {
+        const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+        Entity            entity = JAM_EDITOR.GetFocusingEntity();
+        JAM_EDITOR.CloneEntity(pScene, entity);
+    }
+
+    Widget_ItemDescriptionTooltip(
+        "clone entity",
+        "create a copy of the focused entity in the active scene.");
+}
+
+void Editor_SceneHierarchy::OnBeginDragDropTarget_EntityListPanel_() const
+{
+    if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+    {
+        const Path path = ResolvePathDragDropPayload(pPayload);
+        if (MatchesExtension(path, Model::k_extension))
+        {
+            if (Optional<Ref<Model>> pModel = JAM_EDITOR.LoadModel(path))
+            {
+                const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+                JAM_EDITOR.CreateEntitiesFrom(pScene, pModel.GetValue());
+            }
+        }
+    }
+}
+
 void Editor_SceneHierarchy::Menu_EntityListPanel_() const
 {
     if (Widget_MenuItem("create"))
     {
-        JAM_ASSERT(SceneManager::HasActiveScene(), "no active scene to create entity into.");
-        const Ref<Scene>& pScene = SceneManager::GetActiveScene();
-        Editor::CreateEntity(pScene, Entity::s_null);
+        JAM_ASSERT(JAM_SCENE_MGR.HasActiveScene(), "no active scene to create entity into.");
+        const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+        JAM_EDITOR.CreateEntity(pScene, Entity::k_invalid);
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

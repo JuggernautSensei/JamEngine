@@ -1,19 +1,19 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 class Dialog;
 
 class DialogStack
 {
 public:
-    void Push(Scoped<Dialog>&& _pDialog);
+    void Push(const Ref<Dialog>& _pDialog);
     void Show();
 
 private:
     void ShrinkToFit_();
 
-    Vector<Scoped<Dialog>> m_dialogs;
+    Vector<Ref<Dialog>> m_dialogs = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

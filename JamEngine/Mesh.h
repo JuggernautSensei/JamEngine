@@ -1,16 +1,15 @@
 #pragma once
 #include "BoundingVolume.h"
+#include "File.h"
 #include "GraphicsBase.h"
 #include "IAsset.h"
-#include "Magics.h"
 
-namespace jam
+namespace Jam
 {
 
 class Mesh : public IAsset
 {
 public:
-    Mesh() = default;
     ~Mesh() override;
 
     Mesh(const Mesh& _other)            = delete;
@@ -18,22 +17,25 @@ public:
     Mesh(Mesh&& _other) noexcept;
     Mesh& operator=(Mesh&& _other) noexcept;
 
-    bool Load(const fs::path& _path) override;
-    void LoadMemory(CMemView _verts, const VertexLayout& _vl, CMemView _idxData, bool _bUseU32 = false);
-    void LoadPlaceholder();   // this cannot be used to render, only for placeholder
+    [[nodiscard]] static Expect<Ref<Mesh>> Create(const Path& _path);
+    [[nodiscard]] static Ref<Mesh>         Create(CMemoryBlock _vertData, const VertexLayout& _vl, CMemoryBlock _idxData, bool _bUseU32 = false);
 
-    bool Save(const fs::path& _path, bool _bReplaceExtension = true, eSaveFileFlags _flags = eSaveFileFlags_None) const override;
-    void Unload() override;
-    void SetName(StringView _name) override;
-    void SetVirtualPath(const fs::path& _path) override;
+    Error Load(const Path& _path) override;
+    void  Load(CMemoryBlock _vertData, const VertexLayout& _vl, CMemoryBlock _idxData, bool _bUseU32 = false);
+    Error Save(const Path& _path, bool _bReplaceExtension = true, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None) const override;
+    void  SetName(StringView _name) override;
+    void  SetVirtualPath(const Path& _path) override;
+    void  Invalidate() override;
 
-    [[nodiscard]] bool             IsValid() const override;
-    [[nodiscard]] const fs::path&  GetPath() const override;
-    [[nodiscard]] eAssetType       GetAssetType() const override;
-    [[nodiscard]] UInt32           GetTypeHash() const override;
-    [[nodiscard]] StringView       GetTypeName() const override;
-    [[nodiscard]] UInt16           GetSortKey() const;
-    [[nodiscard]] const StringView GetName() const override;
+    [[nodiscard]] bool        IsValid() const override;
+    [[nodiscard]] const Path& GetPath() const override;
+    [[nodiscard]] eAssetType  GetAssetType() const override;
+    [[nodiscard]] UInt32      GetTypeHash() const override;
+    [[nodiscard]] StringView  GetTypeName() const override;
+    [[nodiscard]] UInt16      GetSortKey() const;
+    [[nodiscard]] StringView  GetName() const override;
+    [[nodiscard]] StringView  GetExtension() const override;
+    [[nodiscard]] StringView  GetFilter() const override;
 
     [[nodiscard]] VertexBufferHandle GetVertexBuffer() const;
     [[nodiscard]] IndexBufferHandle  GetIndexBuffer() const;
@@ -41,16 +43,19 @@ public:
 
     void Submit() const;
 
-    static constexpr UInt32     k_hash = HashOf<Mesh>();
-    static constexpr StringView k_name = NameOf<Mesh>();
-    static constexpr eAssetType k_type = eAssetType::Mesh;
+    static constexpr StringView k_typeName  = NameOf<Mesh>();
+    static constexpr UInt32     k_typeHash  = HashOf<Mesh>();
+    static constexpr eAssetType k_assetType = eAssetType::Mesh;
+    static constexpr StringView k_extension = ".jmsh";
+    static constexpr StringView k_filter    = "*.jmsh";
 
 private:
+    Mesh() = default;
     void CleanUp_();
-    void ComputeBoundingBox_(CMemView _vertData, const VertexLayout& _vl);
+    void ComputeBoundingBox_(CMemoryBlock _vertData, const VertexLayout& _vl);
 
-    fs::path           m_path            = {};
-    std::string        m_name            = {};
+    Path               m_path            = {};
+    String             m_name            = {};
     VertexBufferHandle m_vbh             = k_invalidHandle;
     IndexBufferHandle  m_ibh             = k_invalidHandle;
     Aabb               m_boundingBox     = {};
@@ -58,4 +63,8 @@ private:
     bool               m_bLoadedFromFile = false;
 };
 
-}   // namespace jam
+void  WriteToArchive(ArchiveWriter& _archive, const Ref<Mesh>& _pMesh);
+Error ReadFromArchive(ArchiveReader& _archive, Ref<Mesh>& _pMesh);
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Ref<Mesh>);
+
+}   // namespace Jam

@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "Input.h"
 
-namespace jam
+namespace Jam
 {
 
 void Editor_Profiler::OnImGuiRender(bool& _pShow) const
@@ -37,9 +37,9 @@ void Editor_Profiler::OnImGuiRender(bool& _pShow) const
 
 void Editor_Profiler::DrawFrameTabItem_() const
 {
-    const Application& app         = Application::GetInstance();
-    const float        deltaTimeMs = app.GetDeltaTimeSec() / 0.001f;
-    const float        frameRate   = app.GetFrameRate();
+
+    const float deltaTimeMs = JAM_APP.GetDeltaTimeSec() / 0.001f;
+    const float frameRate   = JAM_APP.GetFrameRate();
 
     ImGui::Text("delta time: %.3f ms", deltaTimeMs);
     ImGui::Text("frame rate: %.1f fps", frameRate);
@@ -59,7 +59,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         Button5,
     };
 
-    constexpr Array k_mouseButtonRanges = {
+    constexpr eMouseButton k_mouseButtonRanges[CountOf<eMouseButton>()] = {
         eMouseButton::Left,
         eMouseButton::Right,
         eMouseButton::Middle,
@@ -73,9 +73,10 @@ void Editor_Profiler::DrawInputTabItem_() const
         Hold,
         Released,
         Away,
+
     };
 
-    constexpr const char* k_mouseNames[NumEnums<eMouseButton>()] = {
+    constexpr const char* k_mouseNames[CountOf<eMouseButton>()] = {
         "left",
         "right",
         "middle",
@@ -83,7 +84,7 @@ void Editor_Profiler::DrawInputTabItem_() const
         "button 5",
     };
 
-    constexpr eMouse k_mouseButtons[NumEnums<eMouseButton>()] = {
+    constexpr eMouse k_mouseButtons[CountOf<eMouseButton>()] = {
         eMouse::LeftButton,
         eMouse::RightButton,
         eMouse::MiddleButton,
@@ -91,17 +92,17 @@ void Editor_Profiler::DrawInputTabItem_() const
         eMouse::XButton2,
     };
 
-    constexpr const char* k_mouseStateNames[NumEnums<eMouseState>()] = {
+    constexpr const char* k_mouseStateNames[CountOf<eMouseState>()] = {
         "pressed",
         "hold",
         "released",
         "away"
     };
 
-    const auto [x, y]      = Input::GetMousePos();
-    const auto [dx, dy]    = Input::GetMouseDeltaPos();
-    const float wheelDelta = Input::GetMouseDeltaWheel();
-    const bool  bVisible   = Input::IsMouseVisible();
+    const auto [x, y]      = JAM_INPUT.GetMousePos();
+    const auto [dx, dy]    = JAM_INPUT.GetMouseDeltaPos();
+    const float wheelDelta = JAM_INPUT.GetMouseDeltaWheel();
+    const bool  bVisible   = JAM_INPUT.IsMouseVisible();
 
     ImGui::BulletText("game mouse");
     ImGui::TreePush("game mouse");
@@ -111,24 +112,24 @@ void Editor_Profiler::DrawInputTabItem_() const
         ImGui::Text("mouse delta wheel: %.1f", wheelDelta);
         for (const eMouseButton e: k_mouseButtonRanges)
         {
-            const Int32  idx    = IntFrom(e);
+            const Int32  idx    = UnderlyingFrom(e);
             const eMouse button = k_mouseButtons[idx];
             eMouseState  state  = eMouseState::Away;
 
-            if (Input::IsMousePressed(button))
+            if (JAM_INPUT.IsMousePressed(button))
             {
                 state = eMouseState::Pressed;
             }
-            else if (Input::IsMouseHold(button))
+            else if (JAM_INPUT.IsMouseHold(button))
             {
                 state = eMouseState::Hold;
             }
-            else if (Input::IsMouseReleased(button))
+            else if (JAM_INPUT.IsMouseReleased(button))
             {
                 state = eMouseState::Released;
             }
 
-            ImGui::Text("mouse %s: %s", k_mouseNames[idx], k_mouseStateNames[IntFrom(state)]);
+            ImGui::Text("mouse %s: %s", k_mouseNames[idx], k_mouseStateNames[UnderlyingFrom(state)]);
         }
 
         ImGui::Text("mouse visible: %s", bVisible ? "true" : "false");
@@ -200,4 +201,4 @@ void Editor_Profiler::DrawInputTabItem_() const
     ImGui::TreePop();
 }
 
-}   // namespace jam
+}   // namespace Jam

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 template<typename TKey, typename TValue>
@@ -12,13 +12,11 @@ class LRUCache   // Last Recently Used Cache
         TValue value;
     };
 
-    using ListIter = typename List<Node>::iterator;
-
 public:
-    using Iter      = ListIter;
-    using ConstIter = typename List<Node>::const_iterator;
+    using Iter      = List<Node>::iterator;
+    using ConstIter = List<Node>::const_iterator;
 
-    explicit LRUCache(const Int32 capacity)
+    explicit LRUCache(const SizeT capacity)
         : m_capacity(capacity)
     {
         JAM_ASSERT(m_capacity > 0, "LRUCache::LRUCache() - Capacity must be greater than zero.");
@@ -38,6 +36,27 @@ public:
         else
         {
             m_items.push_front(Node { key, value });
+            m_map.emplace(key, m_items.begin());
+
+            // evict oldest if over capacity
+            RemoveOldestUntilFit_();
+        }
+    }
+
+    void Insert(const TKey& key, TValue&& value)
+    {
+        JAM_ASSERT(m_capacity > 0, "LRUCache::Insert() - Capacity must be greater than zero.");
+
+        // update existing key
+        auto it = m_map.find(key);
+        if (it != m_map.end())
+        {
+            it->second->value = std::move(value);
+            UpdateUsage_(it->second);
+        }
+        else
+        {
+            m_items.push_front(Node { key, std::move(value) });
             m_map.emplace(key, m_items.begin());
 
             // evict oldest if over capacity
@@ -80,9 +99,7 @@ public:
         }
         else
         {
-            JAM_ASSERT(0, "LRUCache::Get() - Key not found.");
-            static TValue dummy {};
-            return dummy;
+            JAM_UNREACHABLE;
         }
     }
 
@@ -116,9 +133,9 @@ public:
         return m_map.contains(key);
     }
 
-    [[nodiscard]] Int32 GetNumItems() const
+    [[nodiscard]] SizeT GetNumItems() const
     {
-        return NarrowCast<Int32>(m_items.size());
+        return m_items.size();
     }
 
     [[nodiscard]] bool IsEmpty() const
@@ -126,7 +143,7 @@ public:
         return m_items.empty();
     }
 
-    void SetCapacity(const Int32 capacity)
+    void SetCapacity(const SizeT capacity)
     {
         JAM_ASSERT(capacity > 0, "LRUCache::SetCapacity() - Capacity must be greater than zero.");
         m_capacity = capacity;
@@ -135,7 +152,7 @@ public:
         RemoveOldestUntilFit_();
     }
 
-    [[nodiscard]] Int32 GetCapacity() const
+    [[nodiscard]] SizeT GetCapacity() const
     {
         return m_capacity;
     }
@@ -196,14 +213,14 @@ private:
         }
     }
 
-    void UpdateUsage_(const ListIter _iter)
+    void UpdateUsage_(const Iter _iter)
     {
         m_items.splice(m_items.begin(), m_items, _iter);
     }
 
-    List<Node>              m_items    = {};   // front: newest, back: oldest
-    HashMap<TKey, ListIter> m_map      = {};
-    Int32                   m_capacity = 0;
+    List<Node>          m_items    = {};   // front: newest, back: oldest
+    HashMap<TKey, Iter> m_map      = {};
+    SizeT               m_capacity = 0;
 };
 
-}   // namespace jam
+}   // namespace Jam

@@ -1,9 +1,10 @@
 #pragma once
-#include "AssetDialog.h"
+#include "AssetCreationDialog.h"
+#include "Dialog.h"
 #include "Mesh.h"
 #include "WindowsUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 class VertexLayoutEntry;
@@ -18,10 +19,17 @@ enum class ePrimitiveCreationType
     Cylinder
 };
 
-class PrimitiveCreationDialog : public AssetDialog
+struct PrimitiveCreationDialogDesc
+{
+    DialogDesc             baseDesc       = {};
+    ePrimitiveCreationType type           = ePrimitiveCreationType::Cube;
+    Path                   saveDirOrEmpty = {};
+};
+
+class PrimitiveCreationDialog : public AssetCreationDialog
 {
 public:
-    explicit PrimitiveCreationDialog(ePrimitiveCreationType _meshType, const fs::path& _dirOrEmpty);
+    explicit PrimitiveCreationDialog(const PrimitiveCreationDialogDesc& _desc);
     void OnShow() override;
 
 private:
@@ -32,13 +40,16 @@ private:
     void Panel_ConeCreation_();
     void Panel_CylinderCreation_();
 
-    bool OnClickCreateButton_() const;
+    bool      OnClickCreateButton_();
+    Ref<Mesh> CreatePrimitiveMesh_() const;
+    bool      CreateAndSaveAsset_(const Path& _path) override;
 
-    ePrimitiveCreationType m_meshType = ePrimitiveCreationType::Cube;
-    fs::path               m_dir      = {};
-    std::string            m_name     = {};
-    Ref<VertexLayoutEntry> m_pVle     = nullptr;
-    FileDialog             m_fd;
+    ePrimitiveCreationType m_type = ePrimitiveCreationType::Cube;
+    Ref<VertexLayoutEntry> m_pVle = nullptr;
+    FileDialog             m_saveFd { eFileDialogMode::SaveFile };
+
+    Path   m_assetSaveDir  = {};
+    String m_assetBaseName = {};
 
     float m_fParam0 = 1.f;
     float m_fParam1 = 1.f;
@@ -46,4 +57,4 @@ private:
     Int32 m_iParam  = 1;
 };
 
-}   // namespace jam
+}   // namespace Jam

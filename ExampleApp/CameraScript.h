@@ -2,7 +2,7 @@
 
 struct CameraScriptDataComponent
 {
-    JAM_COMPONENT(CameraScriptDataComponent);
+    JAM_REFLECT_COMPONENT(CameraScriptDataComponent);
 
     void Panel_EditComponent(const Scene* _pScene, Entity _entity);
 

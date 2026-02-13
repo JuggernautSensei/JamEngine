@@ -4,10 +4,8 @@
 
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
-#include "JsonUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 TagComponent::TagComponent()
@@ -45,35 +43,35 @@ bool TagComponent::operator!=(
 }
 
 void TagComponent::Serialize(
-    JsonWriter       _writer,
-    const Ref<Scene>& _pScene,
-    Entity            _owner) const
+    ArchiveWriter& _writer,
+    const Ref<Scene>&,
+    Entity) const
 {
     _writer.Write(name);
 }
 
 void TagComponent::Deserialize(
-    JsonReader       _reader,
-    const Ref<Scene>& _pScene,
-    Entity            _owner)
+    ArchiveReader& _reader,
+    const Ref<Scene>&,
+    Entity)
 {
     _reader.Read(name);
 }
 
-void TagComponent::Panel_EditComponent(
-    Ref<Scene>& _pScene,
-    Entity      _entity)
+void TagComponent::DrawEditPanel(
+    const Ref<Scene>&,
+    Entity)
 {
-    if (BeginLabelValueTable("TagComponent"))
+    if (BeginLabelTable("TagComponent"))
     {
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("typeName", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        ImGui::InputText("##TagName", &name);
+        SetNextItemToAvailWidth();
+        Widget_InputText("##TagName", name);
 
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

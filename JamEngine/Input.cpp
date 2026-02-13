@@ -2,208 +2,162 @@
 
 #include "Input.h"
 
-#include "Application.h"
 #include "Event.h"
 #include "Events.h"
+#include "WindowsPlatform.h"
 
-namespace jam
+namespace Jam
 {
 
-struct InputContext
+void Input::CreateInstance()
 {
-    static constexpr Int32 k_wheelDelta = 120;
-
-    void OnMouseDown(const MouseDownEvent& _event)
-    {
-        Int32 vKey = _event.GetVKey();
-        JAM_ASSERT(vKey >= 0 && vKey < 256, "Invalid virtual key code: {}", vKey);
-        bKeyDown[vKey] = true;
-    }
-
-    void OnMouseUp(const MouseUpEvent& _event)
-    {
-        Int32 vKey = _event.GetVKey();
-        JAM_ASSERT(vKey >= 0 && vKey < 256, "Invalid virtual key code: {}", vKey);
-        bKeyDown[vKey] = false;
-    }
-
-    void OnMouseWheel(const MouseWheelEvent& _event)
-    {
-        mouseDeltaWheel = static_cast<float>(_event.GetDelta()) / k_wheelDelta;
-    }
-
-    void OnKeyDown(const KeyDownEvent& _event)
-    {
-        Int32 vKey = _event.GetVKey();
-        JAM_ASSERT(vKey >= 0 && vKey < 256, "Invalid virtual key code: {}", vKey);
-        bKeyDown[vKey] = true;
-    }
-
-    void OnKeyUp(const KeyUpEvent& _event)
-    {
-        Int32 vKey = _event.GetVKey();
-        JAM_ASSERT(vKey >= 0 && vKey < 256, "Invalid virtual key code: {}", vKey);
-        bKeyDown[vKey] = false;
-    }
-
-    void OnWindowLostFocusEvent(const WindowLostFocusEvent& _event)
-    {
-        bKeyDown.fill(false);
-    }
-
-    Array<bool, 256> bPrevKeyDown = {};
-    Array<bool, 256> bKeyDown     = {};
-
-    Int32 mousePrevX = 0;
-    Int32 mousePrevY = 0;
-    Int32 mouseX     = 0;
-    Int32 mouseY     = 0;
-
-    float mouseDeltaWheel  = 0;
-    bool  bCursorVisiblity = true;
-
-    EventDispatcher eventDispatcher;
-}* g_pInputCtx;
-
-}   // namespace jam
-
-namespace jam
-{
-
-void Input::Init()
-{
-    JAM_ASSERT(!g_pInputCtx, "InputContext is already initialized.");
-    g_pInputCtx = JAM_NEW(InputContext);
-
-    EventDispatcher& dispatcher = g_pInputCtx->eventDispatcher;
-    dispatcher.AddListener<KeyDownEvent>(g_pInputCtx, &InputContext::OnKeyDown);
-    dispatcher.AddListener<KeyUpEvent>(g_pInputCtx, &InputContext::OnKeyUp);
-    dispatcher.AddListener<MouseDownEvent>(g_pInputCtx, &InputContext::OnMouseDown);
-    dispatcher.AddListener<MouseUpEvent>(g_pInputCtx, &InputContext::OnMouseUp);
-    dispatcher.AddListener<MouseWheelEvent>(g_pInputCtx, &InputContext::OnMouseWheel);
-    dispatcher.AddListener<WindowLostFocusEvent>(g_pInputCtx, &InputContext::OnWindowLostFocusEvent);
+    JAM_ASSERT(!s_pInstance, "Input instance already exists.");
+    s_pInstance = new Input;
 }
 
-void Input::Shutdown()
+void Input::DestroyInstance()
 {
-    JAM_ASSERT(g_pInputCtx, "InputContext is not initialized.");
-    JAM_DELETE(g_pInputCtx);
+    JAM_ASSERT(s_pInstance, "Input instance does not exist.");
+    delete s_pInstance;
+}
+
+Input& Input::GetInstance()
+{
+    JAM_ASSERT(s_pInstance, "Input instance does not exist.");
+    return *s_pInstance;
 }
 
 void Input::Update()
 {
     // update key info
-    std::ranges::copy(g_pInputCtx->bKeyDown, g_pInputCtx->bPrevKeyDown.begin());
+    static_assert(sizeof(m_bKeyDown) == sizeof(m_bPrevKeyDown), "Key state arrays size mismatch.");
+    std::memcpy(m_bPrevKeyDown.data(), m_bKeyDown.data(), sizeof(m_bKeyDown));
 
     // update mouse info
-    g_pInputCtx->mousePrevX      = g_pInputCtx->mouseX;
-    g_pInputCtx->mousePrevY      = g_pInputCtx->mouseY;
-    g_pInputCtx->mouseDeltaWheel = 0;
+    m_mousePrevX      = m_mouseX;
+    m_mousePrevY      = m_mouseY;
+    m_mouseDeltaWheel = 0;
 
     // get cursor pos
-    const Application&     app = Application::GetInstance();
-    const WindowsPlatform& win = app.GetPlatform();
-    const auto [x, y]          = win.GetClientPos();
+    const auto [x, y] = JAM_WIN.GetClientPos();
 
-    POINT p;
+    POINT p = {};
     ::GetCursorPos(&p);
-    g_pInputCtx->mouseX = p.x - x;
-    g_pInputCtx->mouseY = p.y - y;
+    m_mouseX = p.x - x;
+    m_mouseY = p.y - y;
 }
 
 void Input::OnEvent(Event& _event)
 {
-    const EventDispatcher& dispatcher = g_pInputCtx->eventDispatcher;
-    dispatcher.Dispatch(_event);
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<KeyDownEvent>(this, &Input::OnKeyDown_);
+    dispatcher.Dispatch<KeyUpEvent>(this, &Input::OnKeyUp_);
+    dispatcher.Dispatch<MouseDownEvent>(this, &Input::OnMouseDown_);
+    dispatcher.Dispatch<MouseUpEvent>(this, &Input::OnMouseUp_);
+    dispatcher.Dispatch<MouseWheelEvent>(this, &Input::OnMouseWheel_);
+    dispatcher.Dispatch<WindowLostFocusEvent>(this, &Input::OnWindowLostFocusEvent_);
 }
 
 bool Input::IsKeyDown(const eKey _key) noexcept
 {
-    const Int32 index = IntFrom(_key);
-    return g_pInputCtx->bKeyDown[index];
+    const Int32 index = UnderlyingFrom(_key);
+    return m_bKeyDown[index];
 }
 
 bool Input::IsKeyPressed(const eKey _key) noexcept
 {
-    const Int32 index = IntFrom(_key);
-    return g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_key);
+    return m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 
 bool Input::IsKeyHold(const eKey _key) noexcept
 {
-    const Int32 index = IntFrom(_key);
-    return g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_key);
+    return m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsKeyUp(const eKey _key) noexcept
 {
-    const Int32 index = IntFrom(_key);
-    return !g_pInputCtx->bKeyDown[index];
+    const Int32 index = UnderlyingFrom(_key);
+    return !m_bKeyDown[index];
 }
 
 bool Input::IsKeyReleased(const eKey _key) noexcept
 {
-    const Int32 index = IntFrom(_key);
-    return !g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_key);
+    return !m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsKeyAway(const eKey _key) noexcept
 {
-    const Int32 index = IntFrom(_key);
-    return !g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_key);
+    return !m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseDown(const eMouse _mouse) noexcept
 {
-    const Int32 index = IntFrom(_mouse);
-    return g_pInputCtx->bKeyDown[index];
+    const Int32 index = UnderlyingFrom(_mouse);
+    return m_bKeyDown[index];
 }
 
 bool Input::IsMousePressed(const eMouse _mouse) noexcept
 {
-    const Int32 index = IntFrom(_mouse);
-    return g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_mouse);
+    return m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseHold(const eMouse _mouse) noexcept
 {
-    const Int32 index = IntFrom(_mouse);
-    return g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_mouse);
+    return m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseUp(const eMouse _mouse) noexcept
 {
-    const Int32 index = IntFrom(_mouse);
-    return !g_pInputCtx->bKeyDown[index];
+    const Int32 index = UnderlyingFrom(_mouse);
+    return !m_bKeyDown[index];
 }
 
 bool Input::IsMouseReleased(const eMouse _mouse) noexcept
 {
-    const Int32 index = IntFrom(_mouse);
-    return !g_pInputCtx->bKeyDown[index] && g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_mouse);
+    return !m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseAway(const eMouse _mouse) noexcept
 {
-    const Int32 index = IntFrom(_mouse);
-    return !g_pInputCtx->bKeyDown[index] && !g_pInputCtx->bPrevKeyDown[index];
+    const Int32 index = UnderlyingFrom(_mouse);
+    return !m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 
-Vec2i Input::GetMousePos() noexcept
+Vec2i Input::GetMousePos() const noexcept
 {
-    return { g_pInputCtx->mouseX, g_pInputCtx->mouseY };
+    return { m_mouseX, m_mouseY };
 }
 
-float Input::GetMouseDeltaWheel() noexcept
+Vec2i Input::GetMouseDeltaPos() const noexcept
 {
-    return g_pInputCtx->mouseDeltaWheel;
-}
-
-Vec2i Input::GetMouseDeltaPos() noexcept
-{
-    const Int32 deltaX = g_pInputCtx->mouseX - g_pInputCtx->mousePrevX;
-    const Int32 deltaY = g_pInputCtx->mouseY - g_pInputCtx->mousePrevY;
+    const Int32 deltaX = m_mouseX - m_mousePrevX;
+    const Int32 deltaY = m_mouseY - m_mousePrevY;
     return { deltaX, deltaY };
+}
+
+float Input::GetMouseDeltaWheel() const noexcept
+{
+    return m_mouseDeltaWheel;
+}
+
+void Input::SetMousePos(
+    const Int32 _x,
+    const Int32 _y) noexcept
+{
+    const auto [cliX, cliY] = JAM_WIN.GetClientPos();
+    const Int32 screenX     = cliX + _x;
+    const Int32 screenY     = cliY + _y;
+
+    ::SetCursorPos(screenX, screenY);
+    m_mouseX = _x;
+    m_mouseY = _y;
 }
 
 void Input::SetMouseVisibility(const bool _bVisible) noexcept
@@ -211,33 +165,65 @@ void Input::SetMouseVisibility(const bool _bVisible) noexcept
     if (_bVisible)
     {
         while (::ShowCursor(TRUE) < 0)
-            ;
+        {
+            JAM_NOOP;
+        }
     }
     else
     {
         while (::ShowCursor(FALSE) >= 0)
-            ;
+        {
+            JAM_NOOP;
+        }
     }
 
-    g_pInputCtx->bCursorVisiblity = _bVisible;
+    m_bCursorVisiblity = _bVisible;
 }
 
-bool Input::IsMouseVisible() noexcept
+bool Input::IsMouseVisible() const noexcept
 {
-    return g_pInputCtx->bCursorVisiblity;
+    return m_bCursorVisiblity;
 }
 
-void Input::SetMousePos(const Int32 _x, const Int32 _y) noexcept
+void Input::OnMouseDown_(
+    const MouseDownEvent& _event)
 {
-    const Application&     app = Application::GetInstance();
-    const WindowsPlatform& win = app.GetPlatform();
-    const auto [cliX, cliY]    = win.GetClientPos();
-    const Int32 screenX        = cliX + _x;
-    const Int32 screenY        = cliY + _y;
-
-    ::SetCursorPos(screenX, screenY);
-    g_pInputCtx->mouseX = _x;
-    g_pInputCtx->mouseY = _y;
+    const Int32 vKey = _event.GetVKey();
+    m_bKeyDown[vKey] = true;
 }
 
-}   // namespace jam
+void Input::OnKeyDown_(
+    const KeyDownEvent& _event)
+{
+    const Int32 vKey = _event.GetVKey();
+    m_bKeyDown[vKey] = true;
+}
+
+void Input::OnKeyUp_(
+    const KeyUpEvent& _event)
+{
+    const Int32 vKey = _event.GetVKey();
+    m_bKeyDown[vKey] = false;
+}
+
+void Input::OnMouseUp_(
+    const MouseUpEvent& _event)
+{
+    const Int32 vKey = _event.GetVKey();
+    m_bKeyDown[vKey] = false;
+}
+
+void Input::OnMouseWheel_(
+    const MouseWheelEvent& _event)
+{
+    static_assert(k_wheelSensitive != 0, "Wheel sensitivity cannot be zero.");
+    m_mouseDeltaWheel = NumericCast<float>(_event.GetDelta()) / NumericCast<float>(k_wheelSensitive);
+}
+
+void Input::OnWindowLostFocusEvent_(
+    const WindowLostFocusEvent&)
+{
+    m_bKeyDown.fill(false);
+}
+
+}   // namespace Jam

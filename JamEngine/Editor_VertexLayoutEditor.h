@@ -1,7 +1,7 @@
 #pragma once
 #include "VertexLayout.h"
 
-namespace jam
+namespace Jam
 {
 class VertexLayoutEntry;
 
@@ -18,4 +18,4 @@ private:
     Ref<VertexLayoutEntry> m_pFocusedVle = nullptr;
 };
 
-}   // namespace jam
+}   // namespace Jam

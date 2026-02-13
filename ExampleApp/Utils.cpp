@@ -3,11 +3,11 @@
 
 ShaderHandle CompileShader(const std::string_view _source, const eShader _stage, const std::string_view _entryPoint)
 {
-    ShaderCompiler compiler;
+    ShaderCodeBlob compiler;
     if (!compiler.CompileSource(_source, _stage, _entryPoint))
     {
         Log::Error("Shader compilation failed. {}", GlobalBuffer::GetLastError());
-        JAM_ASSERT(0, "Shader compilation failed.");
+        JAM_UNREACHABLE;
     }
     return Graphics::CreateShader(compiler.GetBytecode());
 }

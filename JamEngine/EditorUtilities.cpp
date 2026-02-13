@@ -2,11 +2,69 @@
 
 #include "EditorUtilities.h"
 
+#include "Editor.h"
 #include "Graphics.h"
 #include "SceneManager.h"
 
-namespace jam
+namespace Jam
 {
+
+bool IsZeroApprox(
+    const ImVec2 _vec)
+{
+    return IsZeroApprox(_vec.x) && IsZeroApprox(_vec.y);
+}
+
+ImVec4 ImVec4FromHex(
+    const UInt32 _rgba)
+{
+    return ImVec4 {
+        NumericCast<float>((_rgba >> 24) & 0xFF) / 255.f,
+        NumericCast<float>((_rgba >> 16) & 0xFF) / 255.f,
+        NumericCast<float>((_rgba >> 8) & 0xFF) / 255.f,
+        NumericCast<float>(_rgba & 0xFF) / 255.f
+    };
+}
+
+ImVec2 ImVec2From(
+    const Vec2i _vec)
+{
+    return ImVec2 { NumericCast<float>(_vec.x), NumericCast<float>(_vec.y) };
+}
+
+ImVec2 CalcFitButtonSize(
+    const Int32 _numButtons,
+    ImVec2      _region)
+{
+    if (_region == ImVec2 { 0.f, 0.f })
+    {
+        _region   = ImGui::GetContentRegionAvail();
+        _region.y = 0.f;
+    }
+
+    if (_numButtons == 1)
+    {
+        return _region;
+    }
+
+    const float spacing = ImGui::GetStyle().ItemSpacing.x;
+    const float totalW  = _region.x - spacing * NumericCast<float>(_numButtons - 1);
+    const float buttonW = totalW / NumericCast<float>(_numButtons);
+    return ImVec2 { buttonW, _region.y };
+}
+
+void SetNextItemToAvailWidth()
+{
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+}
+
+ImVec2 GetContentRegionAvailScaled(
+    const float _sx,
+    const float _sy)
+{
+    const ImVec2 avail = ImGui::GetContentRegionAvail();
+    return { avail.x * _sx, avail.y * _sy };
+}
 
 enum class eEditorPayload
 {
@@ -24,17 +82,16 @@ const char* EditorPayloadFrom(
         case eEditorPayload::Entity:
             return "JAM_EDITOR_PAYLOAD_ENTITY";
         default:
-            JAM_ASSERT(0, "unknown editor payload");
-            return "";
+            JAM_UNREACHABLE;
     }
 }
 
 bool SetFileDragDropPayload(
-    const fs::path& _path)
+    const Path& _path)
 {
-    const StringView path = _path.native();
-    const char*      str  = path.GetPtr();
-    const Int32      len  = path.GetLengthWithNullTerminator();
+    const std::string& path = _path.native();
+    const char*        str  = path.c_str();
+    const USizeT       len  = path.size();
     return ImGui::SetDragDropPayload(EditorPayloadFrom(eEditorPayload::File), str, len);
 }
 
@@ -43,13 +100,14 @@ const ImGuiPayload* AcceptFileDragDropPayload()
     return ImGui::AcceptDragDropPayload(EditorPayloadFrom(eEditorPayload::File));
 }
 
-fs::path ResolvePathDragDropPayload(
+Path ResolvePathDragDropPayload(
     const ImGuiPayload* _pPayload)
 {
     JAM_ASSERT(_pPayload, "payload is nullptr");
     JAM_ASSERT(_pPayload->IsDataType(EditorPayloadFrom(eEditorPayload::File)), "payload type mismatch");
     const char* path = static_cast<const char*>(_pPayload->Data);
-    return path;
+    const Int32 len  = _pPayload->DataSize;
+    return std::string { path, NumericCast<USizeT>(len) };
 }
 
 bool SetEntityDragDropPayload(
@@ -69,13 +127,13 @@ Entity ResolveEntityDragDropPayload(
 {
     JAM_ASSERT(_pPayload, "payload is nullptr");
     JAM_ASSERT(_pPayload->IsDataType(EditorPayloadFrom(eEditorPayload::Entity)), "payload type mismatch");
-    JAM_ASSERT(SceneManager::HasActiveScene(), "There is no active scene");
+    JAM_ASSERT(JAM_SCENE_MGR.HasActiveScene(), "There is no active scene");
 
     const UID uid = *static_cast<const UID*>(_pPayload->Data);
-    return SceneManager::GetActiveScene()->GetEntity(uid);
+    return JAM_SCENE_MGR.GetActiveScene()->GetEntity(uid);
 }
 
-StringView EditorDisplayStringFrom(
+StringView EditorDisplayNameOf(
     const ImGuiKey _key)
 {
     switch (_key)
@@ -398,95 +456,7 @@ StringView EditorDisplayStringFrom(
     }
 }
 
-StringView EditorDisplayStringFrom(
-    const eAssetType _type)
-{
-    switch (_type)
-    {
-        case eAssetType::ImageTexture:
-            return "image texture";
-        case eAssetType::Material:
-            return "material";
-        case eAssetType::Mesh:
-            return "mesh";
-        case eAssetType::Model:
-            return "model";
-        default:
-            JAM_ASSERT(0, "unknown asset type");
-            return "unknown";
-    }
-}
-
-StringView EditorDisplayStringFrom(
-    const eVertexAttribute _attrib)
-{
-    switch (_attrib)
-    {
-        case eVertexAttribute::Position:
-            return "position";
-        case eVertexAttribute::Normal:
-            return "normal";
-        case eVertexAttribute::Tangent:
-            return "tangent";
-        case eVertexAttribute::Bitangent:
-            return "bitangent";
-        case eVertexAttribute::Color0:
-            return "color 0";
-        case eVertexAttribute::Color1:
-            return "color 1";
-        case eVertexAttribute::Color2:
-            return "color 2";
-        case eVertexAttribute::Color3:
-            return "color 3";
-        case eVertexAttribute::BlendIndex:
-            return "blend index";
-        case eVertexAttribute::BlendWeight:
-            return "blend weight";
-        case eVertexAttribute::TexCoord0:
-            return "texture coord 0";
-        case eVertexAttribute::TexCoord1:
-            return "texture coord 1";
-        case eVertexAttribute::TexCoord2:
-            return "texture coord 2";
-        case eVertexAttribute::TexCoord3:
-            return "texture coord 3";
-        default:
-            JAM_ASSERT(0, "unknown vertex attribute");
-            return "unknown";
-    }
-}
-
-AttributeFormatInfo AttributeFormatInfoFrom(
-    const eAttributeFormat _format)
-{
-    switch (_format)
-    {
-        case eAttributeFormat::Float:
-            return { "float", 4 };
-        case eAttributeFormat::Float2:
-            return { "float2", 8 };
-        case eAttributeFormat::Float3:
-            return { "float3", 12 };
-        case eAttributeFormat::Float4:
-            return { "float4", 16 };
-        case eAttributeFormat::UNorm8x4:
-            return { "unorm8x4", 4 };
-        case eAttributeFormat::UInt8x4:
-            return { "uint8x4", 4 };
-        default:
-            JAM_ASSERT(0, "unknown attribute format");
-            return {};
-    }
-}
-
-ImVec2 GetContentRegionAvailScaled(const float _sx, const float _sy)
-{
-    const ImVec2 avail = ImGui::GetContentRegionAvail();
-    return { avail.x * _sx, avail.y * _sy };
-}
-
-bool BeginLabelValueTable(
-    const char* _label)
+bool BeginLabelTable(const char* _label)
 {
     if (ImGui::BeginTable(_label, 2, ImGuiTableFlags_SizingFixedFit))
     {
@@ -498,4 +468,4 @@ bool BeginLabelValueTable(
     return false;
 }
 
-}   // namespace jam
+}   // namespace Jam

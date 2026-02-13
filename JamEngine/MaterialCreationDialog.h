@@ -1,20 +1,29 @@
 #pragma once
-#include "AssetDialog.h"
+#include "AssetCreationDialog.h"
+#include "WindowsUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
-class MaterialCreationDialog : public AssetDialog
+struct MaterialCreationDialogDesc
+{
+    DialogDesc baseDesc   = {};
+    Path       dirOrEmpty = {};
+};
+
+class MaterialCreationDialog : public AssetCreationDialog
 {
 public:
-    explicit MaterialCreationDialog(const fs::path& _dir);
+    explicit MaterialCreationDialog(const MaterialCreationDialogDesc& _desc);
     void OnShow() override;
 
 private:
-    bool OnClickCreate_();
+    bool OnClickCreateButton_();
+    bool CreateAndSaveAsset_(const Path& _path) override;
 
-    fs::path    m_dir;
-    std::string m_name;
+    FileDialog m_saveFd { eFileDialogMode::SaveFile };
+    Path       m_saveDir       = {};
+    String     m_assetBaseName = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

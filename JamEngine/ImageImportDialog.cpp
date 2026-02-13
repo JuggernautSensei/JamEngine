@@ -6,27 +6,24 @@
 #include "EditorUtilities.h"
 #include "WindowsUtilities.h"
 #include "EditorWidgets.h"
+#include "Graphics.h"
 #include "GraphicsBase.h"
-#include "ImGuiUtilities.h"
-#include "ImageImporter.h"
+#include "MessageDialog.h"
 
-namespace jam
+namespace Jam
 {
 
 ImageImportDialog::ImageImportDialog(
-    const fs::path& _path)
-    : AssetDialog("import image")
-    , m_pPreviewTex(MakeRef<ImageTexture>())
+    const ImageImportDialogDesc& _desc)
+    : AssetCreationDialog(_desc.baseDesc)
+    , m_importPath(_desc.importPathOrEmpty)
+    , m_pPreviewTex(nullptr)
 {
-    if (fs::is_directory(_path))
+    if (!_desc.importPathOrEmpty.empty())
     {
-        m_dir = _path;
-    }
-    else
-    {
-        // if not a directory, load preview immediately
+        m_assetSaveDir  = _desc.importPathOrEmpty.parent_path();
+        m_assetBaseName = BaseNameOf(_desc.importPathOrEmpty);
         LoadPreviewTexture_();
-        m_dir = _path.parent_path();
     }
 
     // default import option
@@ -34,14 +31,19 @@ ImageImportDialog::ImageImportDialog(
         m_options.bGenerateMips = true;
     }
 
-    // file dialog
+    // import file dialog
     {
         constexpr FileDialogFilter k_filters[] = {
             { "image files", "*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.dds;*.hdr;*.psd;*.tiff" }
-       };
+        };
 
-        m_fd.SetTitle("open image file");
-        m_fd.SetFilters(k_filters);
+        m_importFd.SetTitle("select image file");
+        m_importFd.SetFilters(k_filters);
+    }
+
+    // save file dialog
+    {
+        m_saveFd.SetTitle("select save directory");
     }
 }
 
@@ -58,32 +60,38 @@ void ImageImportDialog::OnShow()
     }
 
     // render table
-    if (BeginLabelValueTable("ImportImageDialog"))
+    if (BeginLabelTable("ImportImageDialog"))
     {
         // path
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("path");
+        Widget_Text("import path", true);
         ImGui::TableNextColumn();
-        if (Widget_PathSelector("##ImagePathSelector", m_dir, m_fd))
+        if (Widget_FileDialog("##ImagePathSelector", m_importPath, m_importFd))
         {
             m_bPreviewLoadRequested = true;
         }
 
         // preview
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("preview");
+        Widget_Text("preview", true);
         ImGui::TableNextColumn();
         Widget_PreviewTexture_();
 
+        // output directory
+        ImGui::TableNextColumn();
+        Widget_Text("output directory", true);
+        ImGui::TableNextColumn();
+        Widget_FileDialog("##ImageSaveDirSelector", m_assetSaveDir, m_saveFd);
+
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("asset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##ImageName", &m_name);
+        Widget_InputText("##ImageName", m_assetBaseName);
 
         // format conversion
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("format conversion");
+        Widget_Text("format conversion", true);
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##ConvertFormat", &m_options.bConvertFormat))
         {
@@ -94,10 +102,10 @@ void ImageImportDialog::OnShow()
         {
             ImGui::Indent();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("format");
+            Widget_Text("format", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            if (Widget_TextureFormatCombo("##ConvertTextureFormat", m_options.convertFormat, true))
+            SetNextItemToAvailWidth();
+            if (Widget_TextureFormatCombo_("##ConvertTextureFormat", m_options.convertFormat))
             {
                 m_bPreviewLoadRequested = true;
             }
@@ -106,7 +114,7 @@ void ImageImportDialog::OnShow()
 
         // force sRGB
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("force sRGB");
+        Widget_Text("force sRGB", true);
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##ForceSrgb", &m_options.bForceSRGB))
         {
@@ -115,7 +123,7 @@ void ImageImportDialog::OnShow()
 
         // resize
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("resize");
+        Widget_Text("resize", true);
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##Resize", &m_options.bResize))
         {
@@ -127,13 +135,13 @@ void ImageImportDialog::OnShow()
         {
             ImGui::Indent();
 
-            Vec2i size = { static_cast<Int32>(m_options.newWidth), static_cast<Int32>(m_options.newHeight) };
+            Vec2i size = { NumericCast<Int32>(m_options.newWidth), NumericCast<Int32>(m_options.newHeight) };
 
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("width x heigth");
+            Widget_Text("width x heigth", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            if (Widget_DragInt2("##ResizeWidthHeight", &size.x, 0.05, 0, INT16_MAX))
+            SetNextItemToAvailWidth();
+            if (Widget_DragInt2("##ResizeWidthHeight", &size.x, 0.05f, 0, INT16_MAX))
             {
                 m_options.newWidth      = size.x;
                 m_options.newHeight     = size.y;
@@ -143,11 +151,9 @@ void ImageImportDialog::OnShow()
             ImGui::Unindent();
         }
 
-        // generate mips << not supported for preview
-
         // flip vertical
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("flip vertical");
+        Widget_Text("flip vertical", true);
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##FlipV", &m_options.bFlipVertical))
         {
@@ -156,7 +162,7 @@ void ImageImportDialog::OnShow()
 
         // flip horizontal
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("flip horizontal");
+        Widget_Text("flip horizontal", true);
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##FlipH", &m_options.bFlipHorizontal))
         {
@@ -165,7 +171,7 @@ void ImageImportDialog::OnShow()
 
         // pre-multiply alpha
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("pre-multiply alpha");
+        Widget_Text("pre-multiply alpha", true);
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##PreMultAlpha", &m_options.bPreMultiplyAlpha))
         {
@@ -192,17 +198,85 @@ void ImageImportDialog::OnShow()
     }
 }
 
-void ImageImportDialog::LoadPreviewTexture_()
+Error ImageImportDialog::LoadPreviewTexture_()
 {
-    m_pPreviewTex.Reset();
-
-    m_importer.SetOptions(m_options);
-    if (!m_importer.Import(m_dir))
+    // import
+    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(m_importPath, m_options);
+    if (!importer)
     {
-        // silently fail
-        // because this is only for preview
-        Log::Error("failed to import preview image '{}': {}", m_dir.native(), GlobalBuffer::GetLastError());
+        return importer.GetError();
     }
+
+    // create tex
+    const TextureHandle texh = JAM_GFX.CreateTexture(importer->GetImageContainer());
+
+    // set preview tex
+    if (m_pPreviewTex)
+    {
+        m_pPreviewTex->Load(texh);   // reload
+    }
+    else
+    {
+        m_pPreviewTex = Texture::Create(texh);   // alloc
+    }
+
+    return Error::None;
+}
+
+bool ImageImportDialog::OnClickImportButton_()
+{
+    if (m_assetBaseName.IsEmpty())
+    {
+        PushEmptyNameErrorMessageDialog_();
+        return false;
+    }
+
+    if (m_importPath.empty())
+    {
+        PushEmptyImportPathErrorMessageDialog_();
+        return false;
+    }
+
+    if (m_assetSaveDir.empty())
+    {
+        PushEmptySavePathErrorMessageDialog_();
+        return false;
+    }
+
+    Path path = JoinedPath(m_assetSaveDir, m_assetBaseName);
+    ReplaceExtension(path, Texture::k_extension);
+
+    if (fs::exists(path))
+    {
+        PushOverwriteConfirmationDialog_(path);
+        return false;
+    }
+
+    return CreateAndSaveAsset_(path);
+}
+
+bool ImageImportDialog::CreateAndSaveAsset_(
+    const Path& _path)
+{
+    // use preview tex for saving
+    if (m_bPreviewLoadRequested)
+    {
+        if (const Error err = LoadPreviewTexture_())
+        {
+            ScratchBuffer tmp;
+            tmp.Format("failed to import image file: {}. {}", m_importPath.native(), err.ToErrorMessage());
+
+            MessageDialogDesc desc = {};
+            desc.baseDesc.title    = "error";
+            desc.msg               = tmp.ToStringView();
+            JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
+            return false;
+        }
+        m_bPreviewLoadRequested = false;
+    }
+
+    // create tex asset
+    return SaveAsset_(_path, m_pPreviewTex);
 }
 
 void ImageImportDialog::Widget_PreviewTexture_() const
@@ -211,31 +285,49 @@ void ImageImportDialog::Widget_PreviewTexture_() const
     if (m_pPreviewTex)
     {
         const auto [w, h]    = m_pPreviewTex->GetResolution();
-        const ImVec2 texSize = { static_cast<float>(w), static_cast<float>(h) };
+        const ImVec2 texSize = { NumericCast<float>(w), NumericCast<float>(h) };
         Widget_ImageFrame(m_pPreviewTex, texSize, k_previewSize, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
     }
     else
     {
-        Widget_BorderedText("no preview image", k_previewSize, true);
+        Widget_TextFrame("no preview image", k_previewSize, {}, true);
     }
 }
 
-bool ImageImportDialog::OnClickImportButton_()
+bool ImageImportDialog::Widget_TextureFormatCombo_(
+    const char*     _label,
+    eTextureFormat& _format) const
 {
-    if (m_bPreviewLoadRequested)
+    const char* preview  = NameOf(_format).GetPtr();
+    bool        bChanged = false;
+    if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        LoadPreviewTexture_();
-        m_bPreviewLoadRequested = false;
+        for (const eTextureFormat type: EnumRanges<eTextureFormat>())
+        {
+            // exclude depth & unknown
+            if (IsDepthFormat(type) || type == eTextureFormat::Unknown)
+            {
+                continue;
+            }
+
+            const bool  bSelected = (type == _format);
+            const char* typeName  = NameOf(type).GetPtr();
+            if (ImGui::Selectable(typeName, bSelected))
+            {
+                _format  = type;
+                bChanged = true;
+            }
+
+            if (bSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
     }
 
-    // check preview texture
-    if (!m_pPreviewTex)
-    {
-        Editor::PushMessageDialog("import image error", "No image to import. Please select a valid image file.");
-        return false;
-    }
-
-    return SaveAsset(m_pPreviewTex, TODO);
+    return bChanged;
 }
 
-}   // namespace jam
+}   // namespace Jam

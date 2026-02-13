@@ -2,7 +2,7 @@
 
 #include "CommandQueue.h"
 
-namespace jam
+namespace Jam
 {
 
 CommandQueue::CommandQueue()
@@ -13,12 +13,13 @@ CommandQueue::~CommandQueue()
 {
 }
 
-void CommandQueue::Submit(const std::function<void()>& _command)
+void CommandQueue::Submit(
+    const Delegate<void()>& _command)
 {
     JAM_ASSERT(_command, "Command cannot be null");
 
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_commands.push_back(_command);
+    m_commands.emplace_back(_command);
 }
 
 void CommandQueue::Execute()
@@ -28,13 +29,13 @@ void CommandQueue::Execute()
         m_pendingCommands.swap(m_commands);
     }
 
-    for (const std::function<void()>& command: m_pendingCommands)
+    for (const Delegate<void()>& command: m_pendingCommands)
     {
         JAM_ASSERT(command, "Command cannot be null");
-        command();
+        command.Call();
     }
 
     m_pendingCommands.clear();
 }
 
-}   // namespace jam
+}   // namespace Jam

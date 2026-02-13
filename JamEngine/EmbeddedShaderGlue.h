@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 
 #    define JAM_NAMESPACE_BEGIN \
-        namespace jam           \
+        namespace Jam           \
         {
 
 #    define JAM_NAMESPACE_END }
@@ -17,7 +17,7 @@
 #    define JAM_FLOAT2 Vec2
 #    define JAM_FLOAT3 Vec3
 #    define JAM_FLOAT4 Vec4
-#    define JAM_MATRIX Mat4
+#    define JAM_MATRIX Mtx4
 #    define JAM_INT32  __int32
 #    define JAM_UINT32 unsigned __int32
 #    define JAM_BOOL   __int32

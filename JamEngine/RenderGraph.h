@@ -2,15 +2,15 @@
 #pragma once
 #include "RenderPass.h"
 
-namespace jam
+namespace Jam
 {
 
 class RenderGraph
 {
     struct BindInfo
     {
-        eShader stage;
-        Int32   slot;
+        eShader stage = {};
+        Int32   slot  = {};
     };
 
     struct Node
@@ -42,10 +42,10 @@ private:
     void                 DeduplicateResourceBindings_();
     void                 AnalyzePassDependencies_();
     void                 UnbindPassResourcesIfNeed_(const Node& _node) const;
-    [[nodiscard]] UInt32 CreateStageSlotKey_(eShader _stage, Int32 _slot) const;
+    [[nodiscard]] UInt64 MakeStageSlotKey_(eShader _stage, Int32 _slot) const;
 
     Vector<Node> m_nodes     = {};
     bool         m_bCompiled = false;
 };
 
-}   // namespace jam
+}   // namespace Jam

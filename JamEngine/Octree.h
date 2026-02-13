@@ -3,7 +3,7 @@
 #include "MemoryPool.h"
 #include "BoundingVolume.h"
 
-namespace jam
+namespace Jam
 {
 
 enum class eOctreeRegion
@@ -16,12 +16,7 @@ enum class eOctreeRegion
     FarRightTop,
     FarLeftBottom,
     FarRightBottom,
-
-    Min = NearLeftTop,
-    Max = FarRightBottom,
 };
-JAM_ENUM_STATIC_ASSERT(eOctreeRegion);
-JAM_ENABLE_ENUM_ITERATOR(eOctreeRegion);
 constexpr static eOctreeRegion k_invalidOctreeRegion = static_cast<eOctreeRegion>(-1);
 
 struct OctreeDesc
@@ -37,7 +32,7 @@ struct OctreeDesc
     float looseFactor          = 2.f;   // loose factor (>= 1.f). 1.f = tight octree
 };
 
-//template<typename T>
+// template<typename T>
 class Octree
 {
     using T = int;
@@ -80,28 +75,32 @@ class Octree
             return aabb.GetExtents();
         }
 
-        Entity  entity     = Entity::s_null;   // owner entity
-        Aabb    aabb       = {};               // bounding box
-        OcNode* pOwnerNode = nullptr;          // owner node
-        Int32   index      = -1;               // index in owner's item list
-        T       userdata   = {};               // user data
+        Entity  entity     = Entity::k_invalid;   // owner entity
+        Aabb    aabb       = {};                  // bounding box
+        OcNode* pOwnerNode = nullptr;             // owner node
+        Int32   index      = -1;                  // pos in owner's item list
+        T       userdata   = {};                  // user data
     };
 
     struct ChildrenNodes
     {
-        void Set(const eOctreeRegion _region, OcNodeScoped&& _pNode)
+        void Set(
+            const eOctreeRegion _region,
+            OcNodeScoped&&      _pNode)
         {
-            nodes[IntFrom(_region)] = std::move(_pNode);
+            nodes[UnderlyingFrom(_region)] = std::move(_pNode);
         }
 
-        [[nodiscard]] OcNode* Get(const eOctreeRegion _region) const
+        [[nodiscard]] OcNode* Get(
+            const eOctreeRegion _region) const
         {
-            return nodes[IntFrom(_region)].GetPtr();
+            return nodes[UnderlyingFrom(_region)].GetPtr();
         }
 
-        [[nodiscard]] OcNodeScoped Pop(const eOctreeRegion _region)
+        [[nodiscard]] OcNodeScoped Pop(
+            const eOctreeRegion _region)
         {
-            return std::move(nodes[IntFrom(_region)]);
+            return std::move(nodes[UnderlyingFrom(_region)]);
         }
 
         [[nodiscard]] bool IsEmpty() const
@@ -111,10 +110,33 @@ class Octree
 
         void Clear()
         {
-            nodes.fill(nullptr);
+            for (OcNodeScoped& pNode: nodes)
+            {
+                pNode.Reset();
+            }
         }
 
-        Array<OcNodeScoped, NumEnums<eOctreeRegion>()> nodes = {};
+        auto begin()
+        {
+            return nodes.begin();
+        }
+
+        auto end()
+        {
+            return nodes.end();
+        }
+
+        auto begin() const
+        {
+            return nodes.begin();
+        }
+
+        auto end() const
+        {
+            return nodes.end();
+        }
+
+        Array<OcNodeScoped, CountOf<eOctreeRegion>()> nodes = {};
     };
 
     struct OcNode
@@ -131,7 +153,8 @@ class Octree
 
         [[nodiscard]] bool HasGrandChildren() const
         {
-            return HasChildren() && children.nodes[0]->HasChildren();
+            return HasChildren()
+                && children.nodes[0]->HasChildren();
         }
 
         [[nodiscard]] bool HasParent() const
@@ -139,12 +162,14 @@ class Octree
             return pParentNode != nullptr;
         }
 
-        [[nodiscard]] bool Contain(const Aabb& _aabb) const
+        [[nodiscard]] bool Contain(
+            const Aabb& _aabb) const
         {
             return aabb.Contain(_aabb);
         }
 
-        [[nodiscard]] bool Contain(const OcItem* _pItem) const
+        [[nodiscard]] bool Contain(
+            const OcItem* _pItem) const
         {
             return aabb.Contain(_pItem->aabb);
         }
@@ -182,7 +207,7 @@ public:
         JAM_ASSERT(_desc.initialBaseExtents.x >= _desc.minBaseExtents.x && _desc.initialBaseExtents.y >= _desc.minBaseExtents.y && _desc.initialBaseExtents.z >= _desc.minBaseExtents.z, "initialBaseExtents must be >= minBaseExtents");
 
         const Vec3 ext  = m_desc.initialBaseExtents * m_desc.looseFactor;
-        const Aabb aabb = Aabb::FromCenterExtents(Vec3::Zero, ext);
+        const Aabb aabb = Aabb::FromCenterExtents(vec3::k_zero, ext);
 
         m_pRootNode        = MakeNode_(aabb);
         m_pRootNode->depth = 0;
@@ -329,7 +354,7 @@ public:
                 // 최종적으로 발견한 자식 노드가 재로운 루트가 될것
                 OcNode*       pNextNode  = nullptr;
                 eOctreeRegion nextRegion = k_invalidOctreeRegion;
-                for (const eOctreeRegion region: eOctreeRegion {})
+                for (const eOctreeRegion region: EnumRanges<eOctreeRegion>())
                 {
                     OcNode* pChildNode = pTargetNode->children.Get(region);
                     if (pChildNode->numItemsInTree == m_pRootNode->numItemsInTree)   // 발견
@@ -425,9 +450,9 @@ private:
         const Vec3 childExt     = _pNode->GetExtents() * 0.5f;     // loose box
         const Vec3 childBaseExt = childExt / m_desc.looseFactor;   // tight box
 
-        for (const eOctreeRegion region: eOctreeRegion {})
+        for (const eOctreeRegion region: EnumRanges<eOctreeRegion>())
         {
-            const Int32 iRegion = IntFrom(region);
+            const Int32 iRegion = UnderlyingFrom(region);
 
             // 중심은 base box 기준으로 계산
             Vec3 childCenter = center;
@@ -453,7 +478,7 @@ private:
             return;
         }
 
-        const Int32 numItems = _pNode->items.size();
+        const Int32 numItems = NumericCast<Int32>(_pNode->items.size());
         if (numItems <= m_desc.subdivisionThreshold)
         {
             // 임계치에 도달하지 못함
@@ -507,7 +532,7 @@ private:
         OcItemScopedList& _items,
         OcItemScoped&&    _pItem) const
     {
-        _pItem->index = _items.size();
+        _pItem->index = NumericCast<Int32>(_items.size());
         _items.emplace_back(std::move(_pItem));
     }
 
@@ -516,12 +541,12 @@ private:
     {
         OcItemScopedList& items      = _pItem->pOwnerNode->items;
         const Int32       itemIdx    = _pItem->index;
-        const Int32       lastIdx    = items.size() - 1;
+        const Int32       lastIdx    = NumericCast<Int32>(items.size() - 1);
         OcItemScoped      pPopedItem = std::move(items[itemIdx]);
 
         if (itemIdx != lastIdx)
         {
-            // swap with last and update index
+            // swap with last and update pos
             items[itemIdx]        = std::move(items[lastIdx]);
             items[itemIdx]->index = itemIdx;
         }
@@ -582,7 +607,7 @@ private:
             }
 
             // 매핑 테이블, 기존 root의 자식 노드들을 새로운 손자 노드 위치로 이동
-            constexpr eOctreeRegion k_grandchildTable[NumEnums<eOctreeRegion>()] = {
+            constexpr eOctreeRegion k_grandchildTable[CountOf<eOctreeRegion>()] = {
                 eOctreeRegion::FarRightBottom,
                 eOctreeRegion::FarLeftBottom,
                 eOctreeRegion::FarRightTop,
@@ -594,9 +619,9 @@ private:
             };
 
             // move old children to new grandchildren positions
-            for (const eOctreeRegion region: eOctreeRegion {})
+            for (const eOctreeRegion region: EnumRanges<eOctreeRegion>())
             {
-                const Int32         iRegion          = IntFrom(region);
+                const Int32         iRegion          = UnderlyingFrom(region);
                 const eOctreeRegion grandchildRegion = k_grandchildTable[iRegion];
 
                 OcNode*      pNewRootChildNode  = pNewRoot->children.Get(region);
@@ -661,13 +686,13 @@ private:
     [[nodiscard]] OcNodeScoped NewNode_()
     {
         const OcNodeDeletor deletor { &m_nodePool };
-        return OcNodeScoped(m_nodePool.New(), deletor);
+        return OcNodeScoped { m_nodePool.New(), deletor };
     }
 
     [[nodiscard]] OcItemScoped NewItem_()
     {
         const OcItemDeletor deletor { &m_itemPool };
-        return OcItemScoped(m_itemPool.New(), deletor);
+        return OcItemScoped { m_itemPool.New(), deletor };
     }
 
     [[nodiscard]] OcItemScoped MakeItem_(
@@ -757,7 +782,7 @@ private:
             }
 
             // numItemsInTree 확인하여 빈 자식 노드 제거
-            const Int32 numItemsInCurNode = _pNode->items.size();
+            const Int32 numItemsInCurNode = NumericCast<Int32>(_pNode->items.size());
             if (_pNode->numItemsInTree - numItemsInCurNode == 0)   // 현재 노드에만 아이템이 있고, 모든 자식 노드가 비어있는 경우 병합
             {
                 // 모든 자식들은 비어있으므로 단순 노드 제거로 충분
@@ -795,4 +820,4 @@ private:
     OcNodeScoped          m_pRootNode = nullptr;
     HashMap<UID, OcItem*> m_itemCache = {};
 };
-}   // namespace jam
+}   // namespace Jam

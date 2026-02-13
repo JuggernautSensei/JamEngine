@@ -1,12 +1,10 @@
 #pragma once
-#include "GraphicsBase.h"
 #include "ImageBase.h"
-#include "MemView.h"
 
-namespace jam
+namespace Jam
 {
 
-struct ImageImporterOptions
+struct ImageImportOptions
 {
     // format conversion
     bool           bConvertFormat   = false;
@@ -34,38 +32,22 @@ struct ImageImporterOptions
 
 class ImageImporter
 {
-
-    enum eImportType
-    {
-        Unknown = 0,
-        FromPath,
-        FromSource
-    };
-
 public:
-    bool Import(const fs::path& _path);
-    bool Import(const fs::path& _path, eImageFormat _format);
-    bool ImportMemory(CMemView _mem, eImageFormat _format);
+    [[nodiscard]] static Expect<ImageImporter> ImportFromFile(const Path& _path, eImageFormat _format, const ImageImportOptions& _options = {});
+    [[nodiscard]] static Expect<ImageImporter> ImportFromFile(const Path& _path, const ImageImportOptions& _options = {});
+    [[nodiscard]] static Expect<ImageImporter> ImportFromMemory(CMemoryBlock _mem, eImageFormat _format, const ImageImportOptions& _options = {});
 
-    // postprocess settings
-    void ConvertFormat(bool _bEnable, eTextureFormat _format, float _threshold = 0.5f);
-    void ForceSRGB(bool _bEnable);
-    void GenerateMips(bool _bEnable);
-    void Resize(bool _bEnable, Int32 _newWidth, Int32 _newHeight);
-    void FlipVertical(bool _bEnable);
-    void FlipHorizontal(bool _bEnable);
-    void PreMultiplyAlpha(bool _bEnable);
-    void SetOptions(const ImageImporterOptions& _options);
-
-    // result
-    [[nodiscard]] const DirectX::ScratchImage& GetScratchImage() const;
+    [[nodiscard]] const ImageContainer& GetImageContainer();
 
 private:
-    [[nodiscard]] Optional<DirectX::ScratchImage> PostProcess_(DirectX::ScratchImage&& _srcScratchImg);
+    ImageImporter() = default;
 
-    // result
-    DirectX::ScratchImage m_scratchImg = {};
-    ImageImporterOptions  m_options    = {};
+    Error ImportFromFile_(const Path& _path, eImageFormat _format, const ImageImportOptions& _options = {});
+    Error ImportFromFile_(const Path& _path, const ImageImportOptions& _options = {});
+    Error ImportFromMemory_(CMemoryBlock _mem, eImageFormat _format, const ImageImportOptions& _options = {});
+    Error PostProcess_(const ImageImportOptions& _options);
+
+    ImageContainer m_container = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

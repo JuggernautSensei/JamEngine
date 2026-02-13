@@ -2,36 +2,58 @@
 #include "RenderView.h"
 #include "Scene.h"
 
-namespace jam
+namespace Jam
 {
+class WindowMaximizedEvent;
+class WindowResizedEvent;
 
 class Event;
 
 class SceneManager
 {
 public:
-    static void Init();
-    static void Shutdown();
-    static void OnEvent(Event& _event);
+    SceneManager(const SceneManager&)            = delete;
+    SceneManager& operator=(const SceneManager&) = delete;
+    SceneManager(SceneManager&&)                 = delete;
+    SceneManager& operator=(SceneManager&&)      = delete;
 
-    static void Resize(Int32 _width, Int32 _height);
-    static void Update(float _deltaSec);
+    [[nodiscard]] static SceneManager& GetInstance();
 
-    static void RenderRuntime();                                       // 백버퍼에 메인 카메라로 렌더링
-    static void RenderRuntime(FrameBufferHandle _fbh, Viewport _vp);   // 특정 버퍼에 메인 카메라로 렌더링
-    static void Render(const RenderView& _view);
+    void Resize(Int32 _width, Int32 _height) const;
+    void Update(float _deltaSec) const;
 
-    static void ImGuiRender();
+    void RenderRuntime() const;                                       // 백버퍼에 메인 카메라로 렌더링
+    void RenderRuntime(FrameBufferHandle _fbh, Viewport _vp) const;   // 특정 버퍼에 메인 카메라로 렌더링
+    void Render(const RenderView& _view) const;
 
-    [[nodiscard]] static bool LoadScene(const fs::path& _path);
-    static void               LoadScene(const Ref<Scene>& _pScene);
+    void ImGuiRender() const;
 
-    [[nodiscard]] static bool        HasActiveScene();
-    [[nodiscard]] static Ref<Scene>& GetActiveScene();
+    [[nodiscard]] Error LoadScene(const Path& _path);
+    void                LoadScene(const Ref<Scene>& _pScene);
+
+    [[nodiscard]] bool              HasActiveScene() const;
+    [[nodiscard]] const Ref<Scene>& GetActiveScene() const;
 
 private:
-    static void ChangeSceneDefered_(const Ref<Scene>& _pScene);
-    static void ChangeScene_(const Ref<Scene>& _pScene);
+    SceneManager() = default;
+    ~SceneManager();
+
+    static void CreateInstance();
+    static void DestroyInstance();
+
+    void OnEvent(Event& _event);
+    void OnWindowResizedEvent_(const WindowResizedEvent& _event) const;
+    void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event) const;
+
+    void ChangeSceneDefered_(const Ref<Scene>& _pScene);
+    void ChangeScene_(const Ref<Scene>& _pScene);
+
+    Ref<Scene> m_pActiveScene = nullptr;
+
+    inline static SceneManager* s_pInstance = nullptr;
+    friend class Application;
 };
 
-}   // namespace jam
+}   // namespace Jam
+
+#define JAM_SCENE_MGR Jam::SceneManager::GetInstance()

@@ -5,35 +5,27 @@
 #include "Editor.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
-#include "Magics.h"
+
 #include "Mesh.h"
 #include "MeshFactory.h"
 #include "VertexLayoutEntry.h"
 
-namespace jam
+namespace Jam
 {
 
 PrimitiveCreationDialog::PrimitiveCreationDialog(
-    const ePrimitiveCreationType _meshType,
-    const fs::path&              _dirOrEmpty)
-    : AssetDialog("create primitive")
-    , m_meshType(_meshType)
-    , m_dir(_dirOrEmpty)
-    , m_fd(eFileDialogMode::SelectFolder)
+    const PrimitiveCreationDialogDesc& _desc)
+    : AssetCreationDialog(_desc.baseDesc)
+    , m_type(_desc.type)
+    , m_assetSaveDir(_desc.saveDirOrEmpty)
 {
-    if (JAM_DEBUG_ENABLED)
-    {
-        if (!_dirOrEmpty.empty())
-        {
-            JAM_ASSERT(fs::is_directory(_dirOrEmpty), "given path is not a directory: {}", _dirOrEmpty.native());
-        }
-    }
+    JAM_ASSERT(fs::is_directory(_desc.saveDirOrEmpty), "save directory must exist.");
+    m_saveFd.SetTitle("select save directory");
 }
 
 void PrimitiveCreationDialog::OnShow()
 {
-    switch (m_meshType)
+    switch (m_type)
     {
         case ePrimitiveCreationType::Cube:
             Panel_CubeCreation_();
@@ -60,439 +52,411 @@ void PrimitiveCreationDialog::OnShow()
             break;
 
         default:
-            JAM_ASSERT(0, "should never happen.");
+            JAM_UNREACHABLE;
+    }
+
+    const ImVec2 btnSize = CalcFitButtonSize(2);
+    if (ImGui::Button("create", btnSize))
+    {
+        if (OnClickCreateButton_())
+        {
+            ImGui::CloseCurrentPopup();
+        }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("cancel", btnSize))
+    {
+        ImGui::CloseCurrentPopup();
     }
 }
 
 void PrimitiveCreationDialog::Panel_CubeCreation_()
 {
-    JAM_ASSERT(m_meshType == ePrimitiveCreationType::Cube, "mesh type must be cube.");
+    JAM_ASSERT(m_type == ePrimitiveCreationType::Cube, "mesh type must be cube.");
 
-    if (BeginLabelValueTable("ShowCreateCube"))
+    if (BeginLabelTable("ShowCreateCube"))
     {
         // dir
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("directory");
+        Widget_Text("output directory", true);
         ImGui::TableNextColumn();
-        Widget_PathSelector("##DirectorySelector", m_dir, m_fd);
+        Widget_FileDialog("##DirectorySelector", m_assetSaveDir, m_saveFd);
 
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("asset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##name", &m_name);
+        Widget_InputText("##name", m_assetBaseName);
 
         // width
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("width");
+        Widget_Text("width", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##width", &m_fParam0, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##width",m_fParam0, 0.01f, 0.001f);
 
         // height
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("height");
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##height", &m_fParam1, 0.01f, 0.001f);
+        Widget_Text("height", true);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##height",m_fParam1, 0.01f, 0.001f);
 
         // depth
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("depth");
+        Widget_Text("depth", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##depth", &m_fParam2, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##depth",m_fParam2, 0.01f, 0.001f);
 
         // vertex layout
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("vertex layout");
+        Widget_Text("vertex layout", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pVle);
 
         ImGui::EndTable();
-    }
-
-    // buttons
-    const ImVec2 btnSize = CalcFitButtonSize(2);
-    if (ImGui::Button("create", btnSize))
-    {
-        if (OnClickCreateButton_())
-        {
-            ImGui::CloseCurrentPopup();
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("cancel", btnSize))
-    {
-        ImGui::CloseCurrentPopup();
     }
 }
 
 void PrimitiveCreationDialog::Panel_SphereCreation_()
 {
-    JAM_ASSERT(m_meshType == ePrimitiveCreationType::Sphere, "mesh type must be sphere.");
+    JAM_ASSERT(m_type == ePrimitiveCreationType::Sphere, "mesh type must be sphere.");
 
-    if (BeginLabelValueTable("ShowCreateSphere"))
+    if (BeginLabelTable("ShowCreateSphere"))
     {
+        // dir
+        ImGui::TableNextColumn();
+        Widget_Text("output directory", true);
+        ImGui::TableNextColumn();
+        Widget_FileDialog("##DirectorySelector", m_assetSaveDir, m_saveFd);
+
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("asset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##name", &m_name);
+        Widget_InputText("##name", m_assetBaseName);
 
         // radius
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("radius");
+        Widget_Text("radius", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##radius", &m_fParam0, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##radius",m_fParam0, 0.01f, 0.001f);
 
         // subdivisions level
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("subdivisions level");
+        Widget_Text("subdivisions level", true);
         ImGui::SameLine();
         Widget_HelpMark("number of times to subdivide the icosahedron faces to increase the sphere's resolution.\n"
                         "higher values result in a smoother sphere but also increase the number of vertices and triangles.");
 
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragInt("##subdivisionsLevel", &m_iParam, 0.05, 0, 8);
+        SetNextItemToAvailWidth();
+        Widget_DragInt("##subdivisionsLevel",m_iParam, 0.05f, 0, 8);
 
         // vertex layout
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("vertex layout");
+        Widget_Text("vertex layout", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pVle);
 
         ImGui::EndTable();
-    }
-
-    const ImVec2 btnSize = CalcFitButtonSize(2);
-    if (ImGui::Button("create", btnSize))
-    {
-        if (OnClickCreateButton_())
-        {
-            ImGui::CloseCurrentPopup();
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("cancel", btnSize))
-    {
-        ImGui::CloseCurrentPopup();
     }
 }
 
 void PrimitiveCreationDialog::Panel_PlaneCreation_()
 {
-    JAM_ASSERT(m_meshType == ePrimitiveCreationType::Plane, "mesh type must be plane.");
+    JAM_ASSERT(m_type == ePrimitiveCreationType::Plane, "mesh type must be plane.");
 
-    if (BeginLabelValueTable("ShowCreatePlane"))
+    if (BeginLabelTable("ShowCreatePlane"))
     {
+        // dir
+        ImGui::TableNextColumn();
+        Widget_Text("output directory", true);
+        ImGui::TableNextColumn();
+        Widget_FileDialog("##DirectorySelector", m_assetSaveDir, m_saveFd);
+
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("asset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##name", &m_name);
+        Widget_InputText("##name", m_assetBaseName);
 
         // width
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("width");
+        Widget_Text("width", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##width", &m_fParam0, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##width",m_fParam0, 0.01f, 0.001f);
 
         // depth
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("depth");
+        Widget_Text("depth", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##depth", &m_fParam1, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##depth",m_fParam1, 0.01f, 0.001f);
 
         // vertex layout
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("vertex layout");
+        Widget_Text("vertex layout", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pVle);
 
         ImGui::EndTable();
-    }
-
-    const ImVec2 btnSize = CalcFitButtonSize(2);
-    if (ImGui::Button("create", btnSize))
-    {
-        if (OnClickCreateButton_())
-        {
-            ImGui::CloseCurrentPopup();
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("cancel", btnSize))
-    {
-        ImGui::CloseCurrentPopup();
     }
 }
 
 void PrimitiveCreationDialog::Panel_CircleCreation_()
 {
-    JAM_ASSERT(m_meshType == ePrimitiveCreationType::Circle, "mesh type must be circle.");
+    JAM_ASSERT(m_type == ePrimitiveCreationType::Circle, "mesh type must be circle.");
 
-    if (BeginLabelValueTable("ShowCreateCircle"))
+    if (BeginLabelTable("ShowCreateCircle"))
     {
+        // dir
+        ImGui::TableNextColumn();
+        Widget_Text("output directory", true);
+        ImGui::TableNextColumn();
+        Widget_FileDialog("##DirectorySelector", m_assetSaveDir, m_saveFd);
+
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("asset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##name", &m_name);
+        Widget_InputText("##name", m_assetBaseName);
 
         // radius
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("radius");
+        Widget_Text("radius", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##radius", &m_fParam0, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##radius",m_fParam0, 0.01f, 0.001f);
 
         // triangle count
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("triangle count");
+        Widget_Text("triangle count", true);
         ImGui::SameLine();
         Widget_HelpMark("number of triangles that form the circle.\n"
                         "higher values result in a smoother circle.");
 
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragInt("##TriangleCount", &m_iParam, 3, 256);
+        SetNextItemToAvailWidth();
+        Widget_DragInt("##TriangleCount",m_iParam, 3, 256);
 
         // vertex layout
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("vertex layout");
+        Widget_Text("vertex layout", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pVle);
 
         ImGui::EndTable();
-    }
-
-    const ImVec2 btnSize = CalcFitButtonSize(2);
-    if (ImGui::Button("create", btnSize))
-    {
-        if (OnClickCreateButton_())
-        {
-            ImGui::CloseCurrentPopup();
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("cancel", btnSize))
-    {
-        ImGui::CloseCurrentPopup();
     }
 }
 
 void PrimitiveCreationDialog::Panel_ConeCreation_()
 {
-    JAM_ASSERT(m_meshType == ePrimitiveCreationType::Cone, "mesh type must be cone.");
+    JAM_ASSERT(m_type == ePrimitiveCreationType::Cone, "mesh type must be cone.");
 
-    if (BeginLabelValueTable("ShowCreateCone"))
+    if (BeginLabelTable("ShowCreateCone"))
     {
+        // dir
+        ImGui::TableNextColumn();
+        Widget_Text("output directory", true);
+        ImGui::TableNextColumn();
+        Widget_FileDialog("##DirectorySelector", m_assetSaveDir, m_saveFd);
+
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("asset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##name", &m_name);
+        Widget_InputText("##name", m_assetBaseName);
 
         // height
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("height");
+        Widget_Text("height", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##height", &m_fParam0, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##height",m_fParam0, 0.01f, 0.001f);
 
         // radius
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("radius");
+        Widget_Text("radius", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##radius", &m_fParam1, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##radius",m_fParam1, 0.01f, 0.001f);
 
         // bottom triangle count
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("bottom triangle count");
+        Widget_Text("bottom triangle count", true);
         ImGui::SameLine();
         Widget_HelpMark("number of triangles that form the bottom circle of the cone.\n"
                         "higher values result in a smoother cone base.");
 
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragInt("##BottomTriangleCount", &m_iParam, 3, 256);
+        SetNextItemToAvailWidth();
+        Widget_DragInt("##BottomTriangleCount",m_iParam, 3, 256);
 
         // vertex layout
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("vertex layout");
+        Widget_Text("vertex layout", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pVle);
 
         ImGui::EndTable();
-    }
-
-    // buttons
-    const ImVec2 btnSize = CalcFitButtonSize(2);
-    if (ImGui::Button("create", btnSize))
-    {
-        if (OnClickCreateButton_())
-        {
-            ImGui::CloseCurrentPopup();
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("cancel", btnSize))
-    {
-        ImGui::CloseCurrentPopup();
     }
 }
 
 void PrimitiveCreationDialog::Panel_CylinderCreation_()
 {
-    JAM_ASSERT(m_meshType == ePrimitiveCreationType::Cylinder, "mesh type must be cylinder.");
+    JAM_ASSERT(m_type == ePrimitiveCreationType::Cylinder, "mesh type must be cylinder.");
 
-    if (BeginLabelValueTable("ShowCreateCylinder"))
+    if (BeginLabelTable("ShowCreateCylinder"))
     {
+        // dir
+        ImGui::TableNextColumn();
+        Widget_Text("output directory", true);
+        ImGui::TableNextColumn();
+        Widget_FileDialog("##DirectorySelector", m_assetSaveDir, m_saveFd);
+
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("asset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##name", &m_name);
+        Widget_InputText("##name", m_assetBaseName);
 
         // height
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("height");
+        Widget_Text("height", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##height", &m_fParam0, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##height",m_fParam0, 0.01f, 0.001f);
 
         // radius
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("radius");
+        Widget_Text("radius", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##radius", &m_fParam1, 0.01f, 0.001f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##radius",m_fParam1, 0.01f, 0.001f);
 
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("bottom triangle count");
+        Widget_Text("bottom triangle count", true);
         ImGui::SameLine();
         Widget_HelpMark("number of triangles that form the top and bottom circles of the cylinder.\n"
                         "higher values result in a smoother cylinder.");
 
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragInt("##BottomTriangleCount", &m_iParam, 3, 256);
+        SetNextItemToAvailWidth();
+        Widget_DragInt("##BottomTriangleCount",m_iParam, 3, 256);
 
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("vertex layout");
+        Widget_Text("vertex layout", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pVle);
 
         ImGui::EndTable();
     }
-
-    const ImVec2 btnSize = CalcFitButtonSize(2);
-    if (ImGui::Button("create", btnSize))
-    {
-        if (OnClickCreateButton_())
-        {
-            ImGui::CloseCurrentPopup();
-        }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("cancel", btnSize))
-    {
-        ImGui::CloseCurrentPopup();
-    }
 }
 
-bool PrimitiveCreationDialog::OnClickCreateButton_() const
+bool PrimitiveCreationDialog::OnClickCreateButton_()
 {
-    // check vertex layout entry
-    if (!m_pVle)
-    {
-        Editor::PushMessageDialog("error", "please select a valid vertex layout.");
-        return false;
-    }
-
     // check name
-    if (m_name.empty())
+    if (m_assetBaseName.IsEmpty())
     {
-        Editor::PushMessageDialog("error", "please enter a valid name.");
+        PushEmptyNameErrorMessageDialog_();
         return false;
     }
 
-    // create mesh
+    // check save dir
+    if (m_assetSaveDir.empty())
+    {
+        PushEmptySavePathErrorMessageDialog_();
+        return false;
+    }
+
+    // check vertex layout
+    if (m_pVle == nullptr)
+    {
+        PushNullVertexLayoutEntryErrorMessageDialog_();
+        return false;
+    }
+
+    Path path = JoinedPath(m_assetSaveDir, m_assetBaseName);
+    ReplaceExtension(path, Mesh::k_extension);
+
+    if (fs::exists(path))
+    {
+        PushOverwriteConfirmationDialog_(path);
+        return false;
+    }
+
+    // save mesh
+    return CreateAndSaveAsset_(path);
+}
+
+Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
+{
+    JAM_ASSERT(m_pVle, "vertex layout entry must be valid.");
     const VertexLayout& vl = m_pVle->GetVertexLayout();
 
-    Ref<Mesh> pMesh = nullptr;
-    switch (m_meshType)
+    switch (m_type)
     {
         case ePrimitiveCreationType::Cube:
         {
             const Vec3 size { m_fParam0, m_fParam1, m_fParam2 };
-            pMesh = MakeRef<Mesh>(CreateCubeMesh(size, vl));
-            break;
+            return CreateCubeMesh(size, vl);
         }
+
         case ePrimitiveCreationType::Sphere:
         {
             const float radius      = m_fParam0;
             const Int32 subdivLevel = m_iParam;
-            pMesh                   = MakeRef<Mesh>(CreateSphereMesh(radius, subdivLevel, vl));
-            break;
+            return CreateSphereMesh(radius, subdivLevel, vl);
         }
+
         case ePrimitiveCreationType::Plane:
         {
             const Vec2 size { m_fParam0, m_fParam1 };
-            pMesh = MakeRef<Mesh>(CreatePlaneMesh(size, vl));
-            break;
+            return CreatePlaneMesh(size, vl);
         }
+
         case ePrimitiveCreationType::Circle:
         {
             const float radius   = m_fParam0;
             const Int32 triCount = m_iParam;
-            pMesh                = MakeRef<Mesh>(CreateCircle(radius, triCount, vl));
-            break;
+            return CreateCircle(radius, triCount, vl);
         }
+
         case ePrimitiveCreationType::Cone:
         {
             const float height   = m_fParam0;
             const float radius   = m_fParam1;
             const Int32 triCount = m_iParam;
-            pMesh                = MakeRef<Mesh>(CreateCone(height, radius, triCount, vl));
-            break;
+            return CreateCone(height, radius, triCount, vl);
         }
+
         case ePrimitiveCreationType::Cylinder:
         {
             const float height   = m_fParam0;
             const float radius   = m_fParam1;
             const Int32 numTries = m_iParam;
-            pMesh                = MakeRef<Mesh>(CreateCylinder(height, radius, numTries, vl));
-            break;
+            return CreateCylinder(height, radius, numTries, vl);
         }
-        default:
-            JAM_ASSERT(0, "should never happen.");
-            return false;
-    }
 
-    // save mesh
-    if (!pMesh->Save(m_dir / m_name, eSaveFileFlags_FailIfExists))
-    {
-        PushOverwriteConfirmationDialog_(pMesh, m_dir / m_name);
-        return false;
+        default:
+            JAM_UNREACHABLE;
     }
 }
 
-}   // namespace jam
+bool PrimitiveCreationDialog::CreateAndSaveAsset_(const Path& _path)
+{
+    const Ref<Mesh> pMesh = CreatePrimitiveMesh_();
+    return SaveAsset_(_path, pMesh);
+}
+
+}   // namespace Jam

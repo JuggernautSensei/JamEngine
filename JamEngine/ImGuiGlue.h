@@ -1,25 +1,70 @@
 #pragma once
-#include "GraphicsBase.h"
-#include "IAsset.h"
+// ReSharper disable CppUnusedIncludeDirective
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "Vendor/imgui/imgui.h"
 #include "Vendor/imgui/imgui_internal.h"
 #include "Vendor/imgui/imgui_stdlib.h"
+#include "Vendor/ImGuizmo/ImGuizmo.h"
 
-namespace jam
+#include "GraphicsBase.h"
+
+namespace Jam
 {
-
-class ImageTexture;
+class Texture;
 
 class ImGuiGlue
 {
 public:
-    static void Init(HWND _hwnd);
-    static void Shutdown();
-    static void BeginFrame();
-    static void EndFrame();
+    ImGuiGlue(const ImGuiGlue&)            = delete;
+    ImGuiGlue& operator=(const ImGuiGlue&) = delete;
+    ImGuiGlue(ImGuiGlue&&)                 = delete;
+    ImGuiGlue& operator=(ImGuiGlue&&)      = delete;
 
-    [[nodiscard]] static ImTextureRef ImTextureRefFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D);
-    [[nodiscard]] static ImTextureRef ImTextureRefFrom(const Ref<ImageTexture>& _pTex);
+    [[nodiscard]] static ImGuiGlue& GetInstance();
+
+private:
+    explicit ImGuiGlue(HWND _hWnd);
+    ~ImGuiGlue();
+
+    static void CreateInstance(HWND _hWnd);
+    static void DestroyInstance();
+
+    void BeginFrame() const;
+    void EndFrame();
+
+    void Render_(ImDrawData* _pDrawData);
+    void UpdateTexture_(ImTextureData* _pTex) const;
+    void DestroyTexture_(ImTextureData* _tex) const;
+
+    ProgramHandle m_basicPh       = k_invalidHandle;
+    ProgramHandle m_textureCubePh = k_invalidHandle;
+
+    ShaderHandle m_vsh            = k_invalidHandle;
+    ShaderHandle m_basicPsh       = k_invalidHandle;
+    ShaderHandle m_textureCubePsh = k_invalidHandle;
+
+    VertexLayout         m_vl  = {};
+    ConstantBufferHandle m_cbh = k_invalidHandle;
+
+    BlendState   m_bs = {};
+    RenderState  m_rs = {};
+    SamplerState m_ss = {};
+
+    VertexBufferHandle m_vbh   = k_invalidHandle;
+    Int32              m_vbCap = 0;
+
+    IndexBufferHandle m_ibh   = k_invalidHandle;
+    Int32             m_ibCap = 0;
+
+    bool m_bNeedCleanUpPlatformTextures = false;
+
+    inline static ImGuiGlue* s_pInstance = nullptr;
+    friend class Application;
 };
 
-}   // namespace jam
+[[nodiscard]] ImTextureRef ImTextureRefFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D);
+[[nodiscard]] ImTextureRef ImTextureRefFrom(const Ref<Texture>& _pTex);
+
+}   // namespace Jam
+
+#define JAM_IMGUI_GLUE Jam::ImGuiGlue::GetInstance()

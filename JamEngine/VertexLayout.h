@@ -1,6 +1,7 @@
 #pragma once
+#include "Archive.h"
 
-namespace jam
+namespace Jam
 {
 
 enum class eVertexAttribute
@@ -19,12 +20,7 @@ enum class eVertexAttribute
     TexCoord1,
     TexCoord2,
     TexCoord3,
-
-    Min = Position,
-    Max = TexCoord3,
 };
-JAM_ENUM_STATIC_ASSERT(eVertexAttribute);
-JAM_ENABLE_ENUM_ITERATOR(eVertexAttribute);
 
 enum class eAttributeFormat
 {
@@ -34,12 +30,7 @@ enum class eAttributeFormat
     Float4,
     UNorm8x4,
     UInt8x4,
-
-    Min = Float,
-    Max = UInt8x4,
 };
-JAM_ENUM_STATIC_ASSERT(eAttributeFormat);
-JAM_ENABLE_ENUM_ITERATOR(eAttributeFormat);
 
 struct VertexLayoutElement
 {
@@ -65,15 +56,20 @@ public:
     [[nodiscard]] Span<const VertexLayoutElement> GetElements() const;
     [[nodiscard]] Int32                           GetNumElements() const;
 
+    void  WriteToArchive(ArchiveWriter& _archive) const;
+    Error ReadFromArchive(ArchiveReader& _archive);
+
 private:
     static constexpr Int32 k_invalidIndex = -1;
 
-    Array<VertexLayoutElement, NumEnums<eVertexAttribute>()> m_vles     = {};   // 레이아웃의 요소는 offset 순서대로 정렬됨
-    Array<Int32, NumEnums<eVertexAttribute>()>               m_vleLut   = {};   // O(1)로 요소에 접근하기 위한 룩업 테이블. 요소는 VertexLayout 에서 유일함. 그러므로 역매핑 가능
-    Int32                                                    m_numElems = 0;
-    Int32                                                    m_stride   = 0;
+    Array<VertexLayoutElement, CountOf<eVertexAttribute>()> m_vles     = {};   // 레이아웃의 요소는 offset 순서대로 정렬됨
+    Array<Int32, CountOf<eVertexAttribute>()>               m_vleLut   = {};   // O(1)로 요소에 접근하기 위한 룩업 테이블. attribute는 VertexLayout 에서 유일함. 그러므로 역매핑 가능
+    Int32                                                   m_numElems = 0;
+    Int32                                                   m_stride   = 0;
 };
 
-[[nodiscard]] Int32 ByteFrom(eAttributeFormat _format);
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(VertexLayout);
 
-}   // namespace jam
+[[nodiscard]] SizeT ByteWidthOf(eAttributeFormat _format);
+
+}   // namespace Jam

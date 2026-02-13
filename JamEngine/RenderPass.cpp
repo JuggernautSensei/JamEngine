@@ -3,8 +3,9 @@
 #include "RenderPass.h"
 
 #include "Graphics.h"
+#include "MemoryHasher.h"
 
-namespace jam
+namespace Jam
 {
 
 RenderPass::~RenderPass()
@@ -37,7 +38,7 @@ RenderPass::RenderPass(
     std::memcpy(m_rgba, _pass.m_rgba, sizeof(m_rgba));
     std::memcpy(m_blend, _pass.m_blend, sizeof(m_blend));
 
-    _pass.m_flags = eFlags_None;
+    _pass.m_flags = eFlags::None;
     _pass.m_ph    = k_invalidHandle;
     _pass.m_fbh   = k_invalidHandle;
 }
@@ -72,42 +73,41 @@ RenderPass& RenderPass::operator=(
         m_stencilRef      = _pass.m_stencilRef;
         m_executor        = std::move(_pass.m_executor);
 
-        _pass.m_flags = eFlags_None;
+        _pass.m_flags = eFlags::None;
         _pass.m_ph    = k_invalidHandle;
         _pass.m_fbh   = k_invalidHandle;
     }
+
     return *this;
 }
 
-RenderPass& RenderPass::SetProgram(
+void RenderPass::SetProgram(
     const ProgramHandle _ph,
     const bool          _bDestoryProgram)
 {
-    if (JAM_IS_VALID_HANDLE(m_ph) && (m_flags & eFlags_DestroyProgram))
+    if (m_ph && (m_flags & eFlags::DestroyProgram))
     {
-        Graphics::DestroyProgram(m_ph);
+        JAM_GFX.DestroyProgram(m_ph);
     }
 
     m_ph = _ph;
-    SetBit(m_flags, eFlags_DestroyProgram, _bDestoryProgram);
-    return *this;
+    m_flags.Set(eFlags::DestroyProgram, _bDestoryProgram);
 }
 
-RenderPass& RenderPass::SetFrameBuffer(
+void RenderPass::SetFrameBuffer(
     const FrameBufferHandle _fbh,
     const bool              _bDestoryFrameBuffer)
 {
-    if (JAM_IS_VALID_HANDLE(m_fbh) && (m_flags & eFlags_DestroyFrameBuffer))
+    if (m_fbh && (m_flags & eFlags::DestroyFrameBuffer))
     {
-        Graphics::DestroyFrameBuffer(m_fbh);
+        JAM_GFX.DestroyFrameBuffer(m_fbh);
     }
 
     m_fbh = _fbh;
-    SetBit(m_flags, eFlags_DestroyFrameBuffer, _bDestoryFrameBuffer);
-    return *this;
+    m_flags.Set(eFlags::DestroyFrameBuffer, _bDestoryFrameBuffer);
 }
 
-RenderPass& RenderPass::SetClearRenderTargetCommand(
+void RenderPass::SetClearRenderTargetCommand(
     const RGBA  _rgba,
     const Int32 _renderTargetIdx)
 {
@@ -115,88 +115,79 @@ RenderPass& RenderPass::SetClearRenderTargetCommand(
     m_rgba[_renderTargetIdx] = _rgba;
     m_clearColorStart        = Min(m_clearColorStart, _renderTargetIdx);
     m_clearColorEnd          = Max(m_clearColorEnd, _renderTargetIdx);
-    return *this;
 }
 
-RenderPass& RenderPass::SetClearDepthStencilCommand(
+void RenderPass::SetClearDepthStencilCommand(
     const bool  _bClearDepth,
     const bool  _bClearStencil,
     const float _depth,
     const UInt8 _stencil)
 {
-    SetBit(m_flags, eFlags_ClearDepth, _bClearDepth);
-    SetBit(m_flags, eFlags_ClearStencil, _bClearStencil);
+    m_flags.Set(eFlags::ClearDepth, _bClearDepth);
+    m_flags.Set(eFlags::ClearStencil, _bClearStencil);
 
     m_clearDepth   = _depth;
     m_clearStencil = _stencil;
-    return *this;
 }
 
-RenderPass& RenderPass::SetViewport(
+void RenderPass::SetViewport(
     const Viewport _vp)
 {
     m_vp = _vp;
-    return *this;
 }
 
-RenderPass& RenderPass::SetViewport(
+void RenderPass::SetViewport(
     const UInt16 _x,
     const UInt16 _y,
     const UInt16 _width,
     const UInt16 _height)
 {
     m_vp = Viewport { _x, _y, _width, _height };
-    return *this;
 }
 
-RenderPass& RenderPass::AddConstantBuffer(
+void RenderPass::AddConstantBuffer(
     const ConstantBufferHandle _cbh,
     const eShader              _stage,
     const Int32                _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_numConstantBufferLimit, "Constant buffer slot out of range.");
     m_cbufferBinds.emplace_back(_cbh, _stage, _slot);
-    return *this;
 }
 
-RenderPass& RenderPass::AddTexture(
+void RenderPass::AddTexture(
     const TextureHandle _texh,
     const eShader       _stage,
     const Int32         _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_numShaderResourceLimit, "Texture slot out of range.");
     m_textureBinds.emplace_back(_texh, _stage, _slot);
-    return *this;
 }
 
-RenderPass& RenderPass::AddSampler(
+void RenderPass::AddSampler(
     const SamplerState _state,
     const eShader      _stage,
     const Int32        _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_numSamplerLimit, "Sampler slot out of range.");
     m_samplerBinds.emplace_back(_state, _stage, _slot);
-    return *this;
 }
 
-RenderPass& RenderPass::SetRenderState(
+void RenderPass::SetRenderState(
     const RenderState _state)
 {
     m_state = _state;
-    return *this;
 }
 
-RenderPass& RenderPass::SetBlendState(
+void RenderPass::SetBlendState(
     const BlendState _state,
     const Int32      _renderTargetIdx)
 {
     m_blend[_renderTargetIdx] = _state;
     m_blendStart              = Min(m_blendStart, _renderTargetIdx);
     m_blendEnd                = Max(m_blendEnd, _renderTargetIdx);
-    return *this;
 }
 
-RenderPass& RenderPass::SetStencil(
+void RenderPass::SetStencil(
     const StencilState _fstencil,
     const StencilState _bstencil,
     const UInt8        _ref)
@@ -204,14 +195,12 @@ RenderPass& RenderPass::SetStencil(
     m_fstencil   = _fstencil;
     m_bstencil   = _bstencil;
     m_stencilRef = _ref;
-    return *this;
 }
 
-RenderPass& RenderPass::SetExecutor(
-    const std::function<void()>& _executor)
+void RenderPass::SetExecutor(
+    const Delegate<void()>& _executor)
 {
     m_executor = _executor;
-    return *this;
 }
 
 void RenderPass::Execute() const
@@ -223,65 +212,65 @@ void RenderPass::Execute(
     const FrameBufferHandle _fbh,
     const Viewport          _vp) const
 {
-    Graphics::SetProgram(m_ph);
-    Graphics::SetRenderState(m_state);
-    Graphics::SetStencil(m_fstencil, m_bstencil, m_stencilRef);
-    Graphics::SetFrameBuffer(_fbh);
-    Graphics::SetViewport(_vp);
+    JAM_GFX.SetProgram(m_ph);
+    JAM_GFX.SetRenderState(m_state);
+    JAM_GFX.SetStencil(m_fstencil, m_bstencil, m_stencilRef);
+    JAM_GFX.SetFrameBuffer(_fbh);
+    JAM_GFX.SetViewport(_vp);
 
     for (const ConstantBufferBind& bind: m_cbufferBinds)
     {
-        Graphics::SetConstantBuffer(bind.cbh, bind.stage, bind.slot);
+        JAM_GFX.SetConstantBuffer(bind.cbh, bind.stage, bind.slot);
     }
 
     for (const TextureBind& bind: m_textureBinds)
     {
-        Graphics::SetTexture(bind.texh, bind.stage, bind.slot);
+        JAM_GFX.SetTexture(bind.texh, bind.stage, bind.slot);
     }
 
     for (const SamplerBind& bind: m_samplerBinds)
     {
-        Graphics::SetSampler(bind.state, bind.stage, bind.slot);
+        JAM_GFX.SetSampler(bind.state, bind.stage, bind.slot);
     }
 
     // clear render targets
     for (Int32 i = m_clearColorStart; i <= m_clearColorEnd; ++i)
     {
-        Graphics::ClearRenderTarget(_fbh, m_rgba[i], i);
+        JAM_GFX.ClearRenderTarget(_fbh, m_rgba[i], i);
     }
 
     // clear depth/stencil
-    const bool bClearDepth   = (m_flags & eFlags_ClearDepth) != 0;
-    const bool bClearStencil = (m_flags & eFlags_ClearStencil) != 0;
+    const bool bClearDepth   = (m_flags & eFlags::ClearDepth);
+    const bool bClearStencil = (m_flags & eFlags::ClearStencil);
     if (bClearDepth || bClearStencil)
     {
-        Graphics::ClearDepthStencil(_fbh, bClearDepth, bClearStencil, m_clearDepth, m_clearStencil);
+        JAM_GFX.ClearDepthStencil(_fbh, bClearDepth, bClearStencil, m_clearDepth, m_clearStencil);
     }
 
     // blend
     for (Int32 i = m_blendStart; i <= m_blendEnd; ++i)
     {
-        Graphics::SetBlendState(m_blend[i], i);
+        JAM_GFX.SetBlendState(m_blend[i], i);
     }
-    Graphics::SetBlendFactor(m_blendFactor);
+    JAM_GFX.SetBlendFactor(m_blendFactor);
 
     JAM_ASSERT(m_executor, "Render pass executor is not set.");
-    m_executor();
+    m_executor.Call();
 }
 
-bool RenderPass::IsValid() const
+bool RenderPass::CheckValidation() const
 {
     // 프로그램이 없다면 유효하지 않음
-    if (!JAM_IS_VALID_HANDLE(m_ph))
+    if (!m_ph)
     {
         return false;
     }
 
     // 입력과 출력 리소스가 중복되면 conflict
     {
-        const FrameBufferInfo fbInfo = Graphics::GetFrameBufferInfo(m_fbh);
+        const FrameBufferInfo fbInfo = JAM_GFX.GetFrameBufferInfo(m_fbh);
 
-        HashSet<UInt32> texhSet;   // key: handle value
+        HashSet<UInt32> texhSet = {};   // key: handle value
         texhSet.reserve(fbInfo.numRenderTargets + 1);
 
         // 출력 리소스 수집
@@ -290,12 +279,12 @@ bool RenderPass::IsValid() const
             for (Int32 i = 0; i < fbInfo.numRenderTargets; ++i)
             {
                 const TextureHandle texh = fbInfo.renderTargetTexhs[i];
-                JAM_ASSERT(JAM_IS_VALID_HANDLE(texh), "Frame buffer has invalid render target texture handle.");
+                JAM_ASSERT(texh, "Frame buffer has invalid render target texture handle.");
                 texhSet.emplace(texh.value);
             }
 
             // 뎁스스텐실 텍스처 수집
-            if (JAM_IS_VALID_HANDLE(fbInfo.depthStencilTexh))
+            if (fbInfo.depthStencilTexh)
             {
                 texhSet.emplace(fbInfo.depthStencilTexh.value);
             }
@@ -314,19 +303,18 @@ bool RenderPass::IsValid() const
     // A: 동일 스테이지 + 동일 리소스   -> 충돌
     // B: 동일 쉐이더 + 동일 슬롯      -> 중복 명령
     {
-        HashSet<UInt64> texhStageMap;   // key: texture handle | stage
+        HashSet<UInt64> texhStageMap = {};   // key: tex handle | stage
         texhStageMap.reserve(m_textureBinds.size());
 
-        HashSet<UInt64> stageSlotMap;   // key: stage | slot
+        HashSet<UInt64> stageSlotMap = {};   // key: stage | slot
         stageSlotMap.reserve(m_textureBinds.size());
 
         for (const TextureBind& bind: m_textureBinds)
         {
             // 동일 스테이지에 동일 리소스가 바인딩 되는지 검사
             {
-                const UInt64 key          = CreateKeyByHandleStage_(bind.texh, bind.stage);
-                const auto [_, bSucceded] = texhStageMap.emplace(key);
-                if (!bSucceded)   // dup
+                const UInt64 key = MakeHandleStageKey_(bind.texh, bind.stage);
+                if (!texhStageMap.emplace(key).second)   // dup
                 {
                     return false;
                 }
@@ -334,9 +322,8 @@ bool RenderPass::IsValid() const
 
             // 동일 쉐이더 + 동일 슬롯에 바인딩 되는지 검사
             {
-                const UInt64 key          = CreateKeyByStageSlot_(bind.stage, bind.slot);
-                const auto [_, bSucceded] = stageSlotMap.emplace(key);
-                if (!bSucceded)   // dup
+                const UInt64 key = MakeStageSlotKey_(bind.stage, bind.slot);
+                if (!stageSlotMap.emplace(key).second)   // dup
                 {
                     return false;
                 }
@@ -348,12 +335,12 @@ bool RenderPass::IsValid() const
     {
         // cbuffer | stage set
         // check cbuffer bindings for duplicates at same stage
-        HashSet<UInt64> cbufferStageSet;
+        HashSet<UInt64> cbufferStageSet = {};
         cbufferStageSet.reserve(m_cbufferBinds.size());
 
         // stage | slot set
         // check slot bindings for duplicates at same stage
-        HashSet<UInt64> stageSlotSet;
+        HashSet<UInt64> stageSlotSet = {};
         stageSlotSet.reserve(m_cbufferBinds.size());
 
         // check cbuffer bindings for duplicates at same stage
@@ -361,9 +348,8 @@ bool RenderPass::IsValid() const
         {
             // check cbuffer bindings for duplicates at same stage
             {
-                const UInt64 key          = CreateKeyByHandleStage_(cbBind.cbh, cbBind.stage);
-                const auto [_, bSucceded] = cbufferStageSet.emplace(key);
-                if (!bSucceded)   // dup
+                const UInt64 key = MakeHandleStageKey_(cbBind.cbh, cbBind.stage);
+                if (!cbufferStageSet.emplace(key).second)   // dup
                 {
                     return false;
                 }
@@ -371,9 +357,8 @@ bool RenderPass::IsValid() const
 
             // check slot bindings for duplicates at same stage
             {
-                const UInt64 key          = CreateKeyByStageSlot_(cbBind.stage, cbBind.slot);
-                const auto [_, bSucceded] = stageSlotSet.emplace(key);
-                if (!bSucceded)   // dup
+                const UInt64 key = MakeStageSlotKey_(cbBind.stage, cbBind.slot);
+                if (!stageSlotSet.emplace(key).second)   // dup
                 {
                     return false;
                 }
@@ -386,36 +371,36 @@ bool RenderPass::IsValid() const
 
 void RenderPass::CleanUp_()
 {
-    if (m_flags & eFlags_DestroyProgram)
+    if (m_flags & eFlags::DestroyProgram)
     {
         JAM_DESTROY_PROGRAM(m_ph);
     }
 
-    if (m_flags & eFlags_DestroyFrameBuffer)
+    if (m_flags & eFlags::DestroyFrameBuffer)
     {
         JAM_DESTROY_FRAME_BUFFER(m_fbh);
     }
 }
 
-UInt64 RenderPass::CreateKeyByHandleStage_(
+UInt64 RenderPass::MakeHandleStageKey_(
     const AnyHandle _handle,
     const eShader   _stage) const
 {
-    return (static_cast<UInt64>(_handle.value) << 32) | static_cast<UInt64>(_stage);
+    return (NumericCast<UInt64>(_handle.value) << 32) | NumericCast<UInt64>(_stage);
 }
 
-UInt64 RenderPass::CreateKeyBySamplerStage_(
+UInt64 RenderPass::MakeSamplerStageKey_(
     const SamplerState _state,
     const eShader      _stage) const
 {
-    return (static_cast<UInt64>(_state.value) << 32) | static_cast<UInt64>(_stage);
+    return (NumericCast<UInt64>(_state.value) << 32) | NumericCast<UInt64>(_stage);
 }
 
-UInt64 RenderPass::CreateKeyByStageSlot_(
-    eShader     _stage,
-    const Int32 _slot) const
+UInt64 RenderPass::MakeStageSlotKey_(
+    const eShader _stage,
+    const Int32   _slot) const
 {
-    return (static_cast<UInt64>(_stage) << 32) | static_cast<UInt64>(_slot);
+    return (NumericCast<UInt64>(_stage) << 32) | NumericCast<UInt64>(_slot);
 }
 
-}   // namespace jam
+}   // namespace Jam

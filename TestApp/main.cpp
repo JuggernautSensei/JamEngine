@@ -1,33 +1,48 @@
 #include "pch.h"
 
-#include <cstdio>
-#include <stdarg.h>
-
-class GlobalBuffer
+enum class eColor
 {
-    using Buffer = char[1024];
-
-public:
-    char* TmpFormat(const char* _fmt, ...)
-    {
-        va_list args;
-        va_start(args, _fmt);
-        ::vsnprintf(m_buffer[m_curIdx], sizeof(Buffer), _fmt, args);
-        va_end(args);
-        int returnIdx = m_curIdx;
-        m_curIdx      = (m_curIdx + 1) % 5;
-        return m_buffer[returnIdx];
-    }
-
-private:
-    Buffer m_buffer[5] = {};
-    int    m_curIdx    = 0;
+    Red,
+    Green,
+    Blue
 };
+//
+// template<typename TEnum, TEnum k_enum>
+// class EnumNameExtractor
+//{
+// public:
+//    static constexpr StringView GetName()
+//    {
+//        return { k_name.data(), static_cast<Int32>(k_name.size()) - 1 };
+//    }
+//
+// private:
+//    static constexpr auto ExtractName()
+//    {
+//        constexpr StringView      raw { __FUNCSIG__ };
+//        constexpr StringView      prefixEnum { "EnumNameExtractor<enum " };
+//        constexpr StringView      prefixEnumClass { "EnumNameExtractor<enum class " };
+//        constexpr Optional<Int32> beginEnumIdx      = raw.FindFirstOf(prefixEnumClass);
+//        constexpr Optional<Int32> beginEnumClassIdx = raw.FindFirstOf(prefixEnum);
+//        constexpr Int32           beginIdx          = beginEnumClassIdx ? beginEnumClassIdx.GetValue() + prefixEnumClass.GetLength() : beginEnumIdx.GetValue() + prefixEnum.GetLength();
+//        constexpr Int32           endIdx            = raw.FindLastOf('>').GetValue();
+//        constexpr Int32           len               = endIdx - beginIdx;
+//        return false;
+//    }
+//
+//    static constexpr auto k_name = ExtractName();
+//};
 
 int main()
 {
-    GlobalBuffer gb;
-    printf("%s", gb.TmpFormat("Hello, %s! The answer is %d.", "World", 42));
-    printf("%s", gb.TmpFormat("Test number: %d, string: %s", 123, gb.TmpFormat("inner %s", "value")));
+    //::printf("Enum name: %s\n", EnumNameExtractor<eColor, eColor::Green>::GetName().GetPtr());
+    constexpr StringView raw { __FUNCSIG__ };
+    constexpr StringView prefixEnum { "EnumNameExtractor<enum " };
+    constexpr StringView prefixEnumClass { "EnumNameExtractor<enum class " };
+    auto                 beginEnumIdx = raw.FindFirstOf(prefixEnumClass);
+    // constexpr Optional<Int32> beginEnumClassIdx = raw.FindFirstOf(prefixEnum);
+    // constexpr Int32           beginIdx          = beginEnumClassIdx ? beginEnumClassIdx.GetValue() + prefixEnumClass.GetLength() : beginEnumIdx.GetValue() + prefixEnum.GetLength();
+    // constexpr Int32           endIdx            = raw.FindLastOf('>').GetValue();
+    // constexpr Int32           len               = endIdx - beginIdx;
     return 0;
 }

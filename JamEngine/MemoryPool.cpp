@@ -2,14 +2,18 @@
 
 #include "MemoryPool.h"
 
-namespace jam
+#include "MemoryAllocator.h"
+
+namespace Jam
 {
 
-MemoryPool::MemoryPool(const uint32_t _bytePerBlock, const uint32_t _blocksPerPool)
+MemoryPool::MemoryPool(
+    const USizeT _bytePerBlock,
+    const USizeT _blocksPerPool)
     : m_bytePerBlock(_bytePerBlock >= sizeof(Node) ? _bytePerBlock : sizeof(Node))
     , m_blocksPerPool(_blocksPerPool)
 {
-    m_bytePerBlock = (m_bytePerBlock + (alignof(std::max_align_t) - 1)) & ~(alignof(std::max_align_t) - 1);
+    m_bytePerBlock = AlignUp(m_bytePerBlock);
 }
 
 MemoryPool::~MemoryPool()
@@ -49,7 +53,7 @@ void* MemoryPool::Alloc()
 {
     if (m_pCurBlock == nullptr)   // 풀 초기화 필요
     {
-        uint8_t* pMem      = static_cast<uint8_t*>(std::malloc(sizeof(Node) + m_bytePerBlock * m_blocksPerPool));
+        Byte* pMem         = static_cast<Byte*>(Malloc(sizeof(Node) + m_bytePerBlock * m_blocksPerPool));
         m_pCurBlock        = reinterpret_cast<Node*>(pMem + sizeof(Node));
         m_pEndBlock        = reinterpret_cast<Node*>(pMem + sizeof(Node) + m_blocksPerPool * m_bytePerBlock);
         m_pPoolHead        = reinterpret_cast<Node*>(pMem);
@@ -67,9 +71,9 @@ void* MemoryPool::Alloc()
     {
         if (m_pCurBlock >= m_pEndBlock)   // 새로운 풀 할당 필요
         {
-            uint8_t* pMem = static_cast<uint8_t*>(std::malloc(sizeof(Node) + m_bytePerBlock * m_blocksPerPool));
-            m_pCurBlock   = reinterpret_cast<Node*>(pMem + sizeof(Node));
-            m_pEndBlock   = reinterpret_cast<Node*>(pMem + sizeof(Node) + m_blocksPerPool * m_bytePerBlock);
+            Byte* pMem  = static_cast<Byte*>(Malloc(sizeof(Node) + m_bytePerBlock * m_blocksPerPool));
+            m_pCurBlock = reinterpret_cast<Node*>(pMem + sizeof(Node));
+            m_pEndBlock = reinterpret_cast<Node*>(pMem + sizeof(Node) + m_blocksPerPool * m_bytePerBlock);
 
             // 새 풀을 링크드 리스트에 추가
             Node* pNewPoolHead  = reinterpret_cast<Node*>(pMem);
@@ -79,7 +83,7 @@ void* MemoryPool::Alloc()
 
         // 현재 블록에서 새 블록 할당
         Node* pRet  = m_pCurBlock;
-        m_pCurBlock = reinterpret_cast<Node*>(reinterpret_cast<uint8_t*>(m_pCurBlock) + m_bytePerBlock);
+        m_pCurBlock = reinterpret_cast<Node*>(reinterpret_cast<Byte*>(m_pCurBlock) + m_bytePerBlock);
         pRet->pNext = nullptr;
         return pRet;
     }
@@ -88,7 +92,9 @@ void* MemoryPool::Alloc()
 void MemoryPool::Free(void* p)
 {
     if (p == nullptr)
+    {
         return;
+    }
 
     Node* pNode  = static_cast<Node*>(p);
     pNode->pNext = m_pFreeBlock;
@@ -100,7 +106,7 @@ void MemoryPool::Reset()
     while (m_pPoolHead)
     {
         Node* pPrev = m_pPoolHead->pNext;
-        std::free(m_pPoolHead);
+        Free(m_pPoolHead);
         m_pPoolHead = pPrev;
     }
     m_pCurBlock  = nullptr;
@@ -109,4 +115,4 @@ void MemoryPool::Reset()
     m_pPoolHead  = nullptr;
 }
 
-}   // namespace jam
+}   // namespace Jam

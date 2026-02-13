@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 enum class eEditorIcon
@@ -12,18 +12,14 @@ enum class eEditorIcon
     Rotation,
     Scale,
     Translation,
-
-    Min = Cursor,
-    Max = Translation,
 };
-JAM_ENUM_STATIC_ASSERT(eEditorIcon);
 
 struct EditorIcons
 {
-    [[nodiscard]] const Ref<ImageTexture>& GetIcon(eEditorIcon _icon) const;
-    void                                   SetIcon(eEditorIcon _icon, const Ref<ImageTexture>& _pTexure);
+    [[nodiscard]] const Ref<Texture>& GetIcon(eEditorIcon _icon) const;
+    void                              SetIcon(eEditorIcon _icon, const Ref<Texture>& _pTexure);
 
-    Ref<ImageTexture> pIcons[NumEnums<eEditorIcon>()] = {};
+    Ref<Texture> pIcons[CountOf<eEditorIcon>()] = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

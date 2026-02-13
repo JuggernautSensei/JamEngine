@@ -1,74 +1,26 @@
 #include "pch.h"
 #include "UID.h"
 
-namespace jam
+namespace Jam
 {
 
-UID UIDGenerator::Alloc()
+UID UID::k_invalid = UID::k_invalid;
+
+void WriteToArchive(ArchiveWriter& _archive, const UID& _uid)
 {
-    JAM_ASSERT(m_allocatedUids.size() < k_invalidUid, "All UIDs are allocated");
+    _archive.Write(_uid.GetValue());
+}
 
-    UID uid = k_invalidUid;
-    if (m_freeUids.empty())
+Error ReadFromArchive(ArchiveReader& _archive, UID& _uid)
+{
+    UInt32 uid = 0;
+    if (const Error err = _archive.Read(uid))
     {
-        while (IsAllocated(nextUid))
-        {
-            ++nextUid;
-            if (nextUid == k_invalidUid)
-            {
-                nextUid = 0;   // wrap
-            }
-        }
-
-        uid = nextUid++;
-    }
-    else
-    {
-        uid = m_freeUids.back();
-        m_freeUids.pop_back();
-        JAM_ASSERT(IsAllocated(uid) == false, "UID {} is already allocated", uid);
+        return err;
     }
 
-    m_allocatedUids.insert(uid);
-    return uid;
+    _uid = UID { uid };
+    return Error::None;
 }
 
-UID UIDGenerator::Alloc(UID _uid)
-{
-    JAM_ASSERT(_uid != k_invalidUid, "Cannot allocate invalid UID");
-    JAM_ASSERT(m_allocatedUids.contains(_uid) == false, "UID {} is already allocated", _uid);
-    m_allocatedUids.insert(_uid);
-    return _uid;
-}
-
-UID UIDGenerator::AllocWithHint(const UID _hint)
-{
-    if (IsAllocated(_hint))
-    {
-        return Alloc();
-    }
-    else
-    {
-        return Alloc(_hint);
-    }
-}
-
-void UIDGenerator::Free(UID _uid)
-{
-    JAM_ASSERT(IsAllocated(_uid), "UID {} is not allocated", _uid);
-    m_allocatedUids.erase(_uid);
-    m_freeUids.push_back(_uid);
-}
-
-void UIDGenerator::Clear()
-{
-    m_allocatedUids.clear();
-    m_freeUids.clear();
-    nextUid = 0;
-}
-
-bool UIDGenerator::IsAllocated(const UID _uid) const
-{
-    return m_allocatedUids.contains(_uid);
-}
-}   // namespace jam
+}   // namespace Jam

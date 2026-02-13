@@ -82,13 +82,13 @@ constexpr UInt16 k_helloJamCubeIndices[] = {
 
 struct CB_HELLO_JAM_TRANSFORM
 {
-    Mat4 world;
+    Mtx4 world;
 };
 
 struct CB_HELLO_JAM_GLOBAL
 {
-    Mat4   view;
-    Mat4   proj;
+    Mtx4   view;
+    Mtx4   proj;
     UInt32 bTextureMapping;
     float  pad[3];
 };
@@ -162,15 +162,15 @@ void HelloJamScene::OnEnter()
     m_transformCbh = Graphics::CreateConstantBuffer(sizeof(CB_HELLO_JAM_TRANSFORM));
     m_globalCbh    = Graphics::CreateConstantBuffer(sizeof(CB_HELLO_JAM_GLOBAL));
 
-    // pSkyboxTexture
-    if (const std::optional<TextureHandle>& optTh = Graphics::LoadTextureFile(R"(contents\assets\Imagetextures\kokona.png)"))
+    // pSkyboxTeX
+    if (const std::optional<TextureHandle>& optTh = Graphics::LoadTextureFile(R"(contents\assets\Textures\kokona.png)"))
     {
         m_cubeTh = optTh.value();
     }
     else
     {
         Log::Error("Graphics::LoadTextureFromMemory failed: {}", GlobalBuffer::GetLastError());
-        JAM_ASSERT(0, "Graphics::LoadTextureFromMemory failed: {}", GlobalBuffer::GetLastError());
+        JAM_UNREACHABLE;);
     }
 
     // cube mesh
@@ -267,7 +267,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
 
 void HelloJamScene::OnImGuiRender()
 {
-    ImGui::Begin("hello jam engine!");
+    ImGui::Begin("hello Jam engine!");
 
     {
         ImGui::Text("this is a simple example scene.");
@@ -315,12 +315,12 @@ void HelloJamScene::OnImGuiRender()
         ImGui::Text("gfx state");
 
         Int32 i32Prim = IntFrom(m_gfxState.primitive);
-        const Int32 numPrim = NarrowCast<Int32>(NumEnums<ePrimitive>());
+        const Int32 numPrim = NumericCast<Int32>(NumEnums<ePrimitive>());
         if (ImGui::Combo("primitive", &i32Prim, k_primitiveLabels, numPrim))
             m_gfxState.primitive = static_cast<ePrimitive>(i32Prim);
 
         Int32 i32CullMode = static_cast<Int32>(m_gfxState.cullMode);
-        const Int32 numCullMode = NarrowCast<Int32>(NumEnums<eCullMode>());
+        const Int32 numCullMode = NumericCast<Int32>(NumEnums<eCullMode>());
         if (ImGui::Combo("cull mode", &i32CullMode, k_cullModeLabels, numCullMode))
             m_gfxState.cullMode = static_cast<eCullMode>(i32CullMode);
 
@@ -333,7 +333,7 @@ void HelloJamScene::OnImGuiRender()
             m_gfxState.bDepthClamp = bDepthClamp;
 
         Int32 i32DepthFunc = static_cast<int>(m_gfxState.depthTestFunc);
-        const Int32 numDepthFunc = NarrowCast<Int32>(NumEnums<eCompareFunc>());
+        const Int32 numDepthFunc = NumericCast<Int32>(NumEnums<eCompareFunc>());
         if (ImGui::Combo("depth test func", &i32DepthFunc, k_depthTestFuncLabels, numDepthFunc))
             m_gfxState.depthTestFunc = static_cast<eCompareFunc>(i32DepthFunc);
 
@@ -361,7 +361,7 @@ void HelloJamScene::OnImGuiRender()
         ImGui::Text("cube count: %d (%d x %d)", m_numCubePerRow * m_numCubePerRow, m_numCubePerRow, m_numCubePerRow);
         ImGui::DragInt("cube count per row", &m_numCubePerRow, 1, 1, k_cubeCountPerRowMax);
         ImGui::SliderAngle("rotation speed", &m_rotSpeedRad);
-        ImGui::Checkbox("pSkyboxTexture mapping", &m_bTextureMapping);
+        ImGui::Checkbox("pSkyboxTeX mapping", &m_bTextureMapping);
         ImGui::Checkbox("animation", &m_bAnimation);
     }
 

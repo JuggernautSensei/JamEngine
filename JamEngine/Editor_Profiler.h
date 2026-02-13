@@ -1,17 +1,11 @@
 #pragma once
 #include "Input.h"
 
-namespace jam
+namespace Jam
 {
 
 class Editor_Profiler
 {
-    enum eMagic
-    {
-        eKeyHistoryStackCap  = 8,
-        eKeyHistoryStackMask = eKeyHistoryStackCap - 1,
-    };
-
 public:
     void OnImGuiRender(bool& _pShow) const;
 
@@ -20,4 +14,4 @@ private:
     void DrawInputTabItem_() const;
 };
 
-}   // namespace jam
+}   // namespace Jam

@@ -1,132 +1,222 @@
 #include "pch.h"
-
 #include "SceneSerializer.h"
-
-#include "ComponentDB.h"
-#include "JsonWriter.h"
-#include "Profile.h"
+#include "ReflectionDB.h"
 #include "Scene.h"
 
-namespace jam
+namespace Jam
 {
+Error DeserializeComponent_(
+    const Ref<Scene>&                  _pScene,
+    const ComponentMetadata&           _meta,
+    ArchiveReader&                     _reader,
+    const Flags<eSceneDeserializeMode> _flags)
+{
+    UID uid = {};
+    if (const Error err = _reader.ReadField("uid", uid))
+    {
+        JAM_LOG.Error("Scene deserialization failed: cannot read entity UID for component '{}'. {}", _meta.typeName, err.ToErrorMessage());
+        return err;
+    }
 
-bool SceneSerializer::SaveJsonFile(
-    const fs::path& _path) const
-{
-    JAM_ASSERT(!_path.empty(), "file path is empty");
-    JAM_ASSERT(!m_json.empty(), "no data to serialize");
-    return jam::SaveJsonFile(_path, m_json);
+    Optional<Entity> optEntity = _pScene->FindEntity(uid);
+    if (!optEntity)
+    {
+        JAM_LOG.Error("Scene deserialization failed: entity with UID {} not found for component '{}'.", uid, _meta.typeName);
+        return Error::RuntimeError;
+    }
+    const Entity entity = optEntity.GetValue();
+
+    if (const Error err = _reader.EnterField("data"))
+    {
+        JAM_LOG.Error("Scene deserialization failed: cannot enter component data field for component '{}' of entity UID {}. {}", _meta.typeName, uid.GetValue(), err.ToErrorMessage());
+        if (_flags & eSceneDeserializeMode::RemoveComponentOnDeserializeFailure)
+        {
+            _reader.ClearLastError();   // handled
+            return Error::None;
+        }
+
+        return err;
+    }
+
+    if (!_meta.Has(entity))
+    {
+        _meta.Create(entity);
+    }
+
+    JAM_ASSERT(_reader.IsFine(), "ArchiveReader is not in a fine state before deserializing component.");
+
+    _reader.ClearLastError();   // for collect component deserialization error
+    Error err   = Error::None;
+    void* pData = _meta.Get(entity);
+    if (_meta.Deserialize)
+    {
+        _meta.Deserialize(pData, _reader, _pScene, entity);
+        err = _reader.GetLastError();
+
+        if (err)   // on error.
+        {
+            JAM_LOG.Error("Scene deserialization failed: cannot deserialize component '{}' for entity UID {}. {}", _meta.typeName, uid.GetValue(), err.ToErrorMessage());
+            if (_flags & eSceneDeserializeMode::RemoveComponentOnDeserializeFailure)
+            {
+                _meta.Remove(entity);
+                _reader.ClearLastError();   // handled
+            }
+        }
+    }
+
+    _reader.Exit();
+    return err;
 }
 
-bool SceneSerializer::SaveBsonFile(const fs::path& _path) const
+Error DeserilaizeComponents_(
+    const Ref<Scene>&            _pScene,
+    ArchiveReader&               _reader,
+    Flags<eSceneDeserializeMode> _flags)
 {
-    JAM_ASSERT(!_path.empty(), "file path is empty");
-    JAM_ASSERT(!m_json.empty(), "no data to serialize");
-    return jam::SaveBsonFile(_path, m_json);
+    StringView typeName = {};
+    if (const Error err = _reader.ReadField("typeName", typeName))
+    {
+        JAM_LOG.Error("Scene deserialization failed: cannot read component type typeName. {}", err.ToErrorMessage());
+        return err;
+    }
+
+    if (!JAM_REFLECTION_DB.IsComponentReflected(typeName))
+    {
+        JAM_LOG.Error("Scene deserialization failed: component type '{}' is not registered in ReflectionDB", typeName);
+        if (_flags & eSceneDeserializeMode::RemoveComponentOnDeserializeFailure)
+        {
+            return Error::None;
+        }
+        return Error::RuntimeError;
+    }
+
+    const ComponentMetadata& meta = JAM_REFLECTION_DB.GetComponentMetadata(typeName);
+    if (const Error err = _reader.EnterField("values"))
+    {
+        JAM_LOG.Error("Scene deserialization failed: cannot enter component values field. {}", err.ToErrorMessage());
+        return err;
+    }
+
+    const Error err = _reader.ForEach(
+        [&_pScene, &meta, _flags](const SizeT, ArchiveReader& _reader) -> Error
+        {
+            return DeserializeComponent_(_pScene, meta, _reader, _flags);
+        });
+
+    _reader.Exit();
+    return err;
 }
 
-void SceneSerializer::Serialize(
+void SerializeScene(
+    ArchiveWriter&    _writer,
     const Ref<Scene>& _pScene)
 {
-    JAM_ASSERT(_pScene, "scene is null");
-    JAM_FUNCTION_MSG_PROFILE("scene name: {}", _pScene->GetTypeName());
+    _writer.WriteField("sceneType", _pScene->GetTypeName());
 
-    /*
-    ["sceneType"]  = scene type name
-    ["entities"]   = array of entity UIDs
-    ["components"] = array of component entries
+    // entities. gather UIDs and handle-Entity map
+    HashMap<entt::entity, Entity> handleEntityMap = {};
+    const HashMap<UID, Entity>    entities        = _pScene->GetEntities();
 
-    component entry = [ typeName, [ array of component values ] ]    << this is size 2 array
-    component value = [ uid, data ]                                  << this is size 2 array
-
-    */
-
-    // scene data
-    const HashMap<UID, Entity>& entities    = _pScene->GetEntities();
-    const Int32&                numEntities = _pScene->GetNumEntities();
-
-    // clean up
-    m_json.clear();
-
-    // start
-    JsonWriter writer { m_json };
-
-    // write scene type
-    writer.WriteField("sceneType", _pScene->GetTypeName());
-
-    // [handle, UID] map (entt::entity 와 uid 추적용)
-    HashMap<UInt32, UID> handleUidMap;
-    handleUidMap.reserve(numEntities);
-
-    // gather entities + write all entities
+    Vector<UID> uids = {};
+    uids.reserve(NumericCast<SizeT>(entities.size()));
+    for (const auto& [uid, entity]: entities)
     {
-        // gather
-        Vector<UID> uids;
-        uids.reserve(numEntities);
-        for (const auto& [uid, entity]: entities)
-        {
-            uids.emplace_back(uid);
-
-            const UInt32 iHandle  = entt::to_integral(entity.GetHandle());
-            handleUidMap[iHandle] = uid;
-        }
-
-        // write entities
-        writer.WriteField("entities", std::move(uids));
+        uids.emplace_back(uid);
+        handleEntityMap[entity.GetHandle()] = entity;
     }
+    _writer.WriteField("entities", std::move(uids));
 
-    // write components
+    // components
+    _writer.OpenField("components");   // components array
+    const SceneRegistry& reg = _pScene->GetRegistry();
+    for (const auto [enttTypeId, storage]: reg.storage())
     {
-        JsonWriter         cmpsWriter = writer.WriteField("components");   // components array
-        const ComponentDB& db         = ComponentDB::GetInstance();
+        const ComponentMetadata& meta = JAM_REFLECTION_DB.GetComponentMetadataByEnttHash(enttTypeId);
 
-        // iterate all reflected component types
-        const entt::registry& reg = _pScene->GetRegistry();
-        for (const auto& [typeId, storage]: reg.storage())
+        _writer.OpenAtBack();                            // component entry
+        _writer.WriteField("typeName", meta.typeName);   // type typeName
+        _writer.OpenField("values");                     // open values array
+        for (const EntityHandle handle: storage)
         {
-            // can serialize?
-            // skip non-reflected or non-serializable or components that have no instances
-            const ComponentInfo& info = db.GetComponentInfo(typeId);
-            if (!db.IsReflected(typeId) || !info.serializeFn || storage.empty())
+            const Entity entity    = handleEntityMap.at(handle);
+            const void*  pCmpValue = storage.value(handle);
+            _writer.OpenAtBack();                         // component value
+            _writer.WriteField("uid", entity.GetUID());   // entity uid
+            _writer.OpenField("data");                    // component data
+
+            if (meta.Serialize)
             {
-                continue;
+                meta.Serialize(pCmpValue, _writer, _pScene, entity);
+            }
+            else
+            {
+                _writer.Write(nullptr);
             }
 
-            // entry
-            JsonWriter entryWriter = cmpsWriter.PushBack();
-
-            StringView typeName = db.GetComponentName(typeId);
-            entryWriter.PushBack(typeName);   // type name
-            entryWriter.PushBack();           // array of component values
-
-            // fill values
-            JsonWriter valuesWriter = entryWriter.EnterBack();
-            for (const entt::entity handle: storage)
-            {
-                const UInt32 iHandle = entt::to_integral(handle);
-                JAM_ASSERT(handleUidMap.contains(iHandle), "entity UID not found for handle: {}", iHandle);
-
-                // find entity by handle
-                const UID    uid       = handleUidMap.at(iHandle);
-                const Entity entity    = entities.at(uid);
-                const void*  pCmpValue = storage.value(handle);
-
-                // value
-                JsonWriter valueWriter = valuesWriter.PushBack();
-                valueWriter.PushBack(uid);   // entity uid
-                valueWriter.PushBack();      // component data
-
-                // serialize component data
-                JsonWriter dataWriter = valueWriter.EnterBack();
-                info.serializeFn(pCmpValue, dataWriter, _pScene, entity);
-            }
+            _writer.Close();
+            _writer.Close();
         }
+        _writer.Close();
+        _writer.Close();
     }
+    _writer.Close();
 }
 
-const Json& SceneSerializer::GetJson() const
+Expect<Ref<Scene>> DeserializeScene(
+    ArchiveReader&               _reader,
+    Flags<eSceneDeserializeMode> _flags)
 {
-    return m_json;
-}
+    StringView sceneTypeName = {};
+    if (const Error err = _reader.ReadField("sceneType", sceneTypeName))
+    {
+        JAM_LOG.Error("Scene deserialization failed: cannot read scene type typeName. {}", err.ToErrorMessage());
+        return err;
+    }
 
-}   // namespace jam
+    if (!JAM_REFLECTION_DB.IsSceneReflected(sceneTypeName))
+    {
+        JAM_LOG.Error("Scene deserialization failed: scene type '{}' is not registered in ReflectionDB", sceneTypeName);
+        return Error::RuntimeError;
+    }
+
+    Ref<Scene> pScene = JAM_REFLECTION_DB.GetSceneMetadata(sceneTypeName).Create();
+
+    Vector<UID> entityUids = {};
+    if (const Error err = _reader.ReadField("entities", entityUids))
+    {
+        JAM_LOG.Error("Scene deserialization failed: cannot read entity UIDs. {}", err.ToErrorMessage());
+        return err;
+    }
+
+    const Entity root    = pScene->GetRootEntity();
+    const UID    rootUid = root.GetUID();
+    for (const UID uid: entityUids)
+    {
+        if (uid != rootUid)
+        {
+            pScene->CreateEntity(uid);
+        }
+    }
+
+    if (const Error err = _reader.EnterField("components"))
+    {
+        JAM_LOG.Error("Scene deserialization failed: cannot enter components field. {}", err.ToErrorMessage());
+        return err;
+    }
+
+    const Error err = _reader.ForEach(
+        [&pScene, _flags](const SizeT, ArchiveReader& _reader) -> Error
+        {
+            return DeserilaizeComponents_(pScene, _reader, _flags);
+        });
+
+    _reader.Exit();
+
+    if (err)
+    {
+        return err;
+    }
+
+    return pScene;
+}
+}   // namespace Jam

@@ -2,196 +2,45 @@
 
 #include "Mesh.h"
 
-#include "BaseUtilities.h"
-#include "Cista.h"
-#include "FileIOUtilities.h"
+#include "AssetSaveLoader.h"
+
 #include "Graphics.h"
-#include "Hash.h"
+#include "MemoryHasher.h"
 #include "Profile.h"
 #include "GeometryUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
-struct VertexLayoutElementSchema
+namespace
 {
-    eVertexAttribute attrib = eVertexAttribute::Position;
-    eAttributeFormat format = eAttributeFormat::Float;
-};
-
-struct MeshSchema
-{
-    CistaString       name       = {};
-    CistaVector<Byte> vertexData = {};
-    CistaVector<Byte> indexData  = {};
-    Aabb              aabb       = {};
-
-    Array<VertexLayoutElementSchema, NumEnums<eVertexAttribute>()> vles    = {};
-    Int32                                                          numVles = 0;
-};
-
-////////////////////////////////////////////////////////////////////
-
-bool Mesh::Load(
-    const fs::path& _path)
-{
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
-    CleanUp_();
-
-    // io
-    Vector<Byte> data = {};
-    if (!MoveIfHasValue(LoadBinaryFile(_path), data))
+    struct VertexLayoutElementDto
     {
-        return false;
-    }
+        eVertexAttribute attrib = eVertexAttribute::Position;
+        eAttributeFormat format = eAttributeFormat::Float;
+    };
 
-    // deserialize
-    MeshSchema* const pMesh = nullptr;
-    if (!MoveIfHasValue(DeserializeCista<MeshSchema>(data), pMesh))
+    struct VertexLayoutDto
     {
-        return false;
-    }
+        ArrayDto<VertexLayoutElementDto, CountOf<eVertexAttribute>()> elems    = {};
+        Int32                                                         numElems = 0;
+    };
 
-    // name
-    m_name = pMesh->name.str();
-
-    // vertex layout
-    VertexLayout vl = {};
-    for (Int32 i = 0; i < pMesh->numVles; ++i)
+    struct MeshDto
     {
-        const VertexLayoutElementSchema& vleSchema = pMesh->vles[i];
-        vl.Push(vleSchema.attrib, vleSchema.format);
-    }
+        StringViewDto   name     = {};
+        VectorDto<Byte> vertData = {};
+        VectorDto<Byte> idxData  = {};
+        AabbDto         aabb     = {};
+        VertexLayoutDto vl       = {};
+    };
 
-    // gpu resource creation
-    {
-        const CMemView vertData { pMesh->vertexData.data(), NarrowCast<Int32>(pMesh->vertexData.size()) };
-        const CMemView idxData { pMesh->indexData.data(), NarrowCast<Int32>(pMesh->indexData.size()) };
-        const Int32    numVerts = CalcNumVertices(vertData, vl);
-        const bool     bUseU32  = IsGreaterThanUInt16(numVerts);
+    using MeshLoader = AssetLoader<MeshDto>;
+    using MeshSaver  = AssetSaver<MeshDto>;
 
-        m_vbh = Graphics::CreateVertexBuffer(vertData, vl);
-        m_ibh = Graphics::CreateIndexBuffer(idxData, bUseU32);
-    }
+}   // namespace
 
-    // aabb
-    m_boundingBox = pMesh->aabb;
-
-    // update sort key
-    const UInt32 hash = HashOf(_path.native());
-    m_sortKey         = static_cast<Int16>(hash);
-
-    // path
-    m_path = _path;
-
-    // mark
-    m_bLoadedFromFile = true;
-
-    return true;
-}
-
-void Mesh::LoadMemory(
-    const CMemView      _verts,
-    const VertexLayout& _vl,
-    const CMemView      _idxData,
-    const bool          _bUseU32)
-{
-    JAM_FUNCTION_PROFILE();
-    CleanUp_();
-
-    // gpu resource creation
-    m_vbh = Graphics::CreateVertexBuffer(_verts, _vl);
-    m_ibh = Graphics::CreateIndexBuffer(_idxData, _bUseU32);
-
-    // compute bounding box
-    ComputeBoundingBox_(_verts, _vl);
-
-    // update sort key
-    MurmurHash64 hasher {};
-    hasher.Mix(_verts.GetPtr(), _verts.GetByteWidth());
-    hasher.Mix(_idxData.GetPtr(), _idxData.GetByteWidth());
-    hasher.Mix(_vl);
-    hasher.Mix(_bUseU32);
-    m_sortKey = static_cast<Int16>(hasher.Finish());
-
-    // mark
-    m_bLoadedFromFile = false;
-}
-
-void Mesh::LoadPlaceholder()
-{
-    JAM_FUNCTION_PROFILE();
-    CleanUp_();
-
-    m_vbh             = k_invalidHandle;
-    m_ibh             = k_invalidHandle;
-    m_sortKey         = MakeRandom<UInt16>(0, 0xFFFF);
-    m_bLoadedFromFile = false;
-}
-
-bool Mesh::Save(
-    const fs::path&      _path,
-    const bool           _bReplaceExtension,
-    const eSaveFileFlags _flags) const
-{
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
-    if (!IsValid())
-    {
-        GlobalBuffer::SetLastError("Cannot save invalid mesh to file: {}", _path.native());
-        return false;
-    }
-
-    // prepare schema
-    MeshSchema schema = {};
-    schema.name       = CistaString { m_name };
-    schema.vertexData = cista::offset::to_vec(Graphics::DownloadBuffer(m_vbh));
-    schema.indexData  = cista::offset::to_vec(Graphics::DownloadBuffer(m_ibh));
-    schema.aabb       = m_boundingBox;
-
-    // vertex layout
-    {
-        const VertexLayout vl = Graphics::GetVertexLayout(m_vbh);
-        schema.numVles        = vl.GetNumElements();
-
-        Int32 idx = 0;
-        for (const VertexLayoutElement& vle: vl.GetElements())
-        {
-            VertexLayoutElementSchema& vleSchema = schema.vles[idx++];
-            vleSchema.attrib                     = vle.attrib;
-            vleSchema.format                     = vle.format;
-        }
-    }
-
-    // serialize
-    Vector<Byte> data = {};
-    if (!MoveIfHasValue(SerializeCista(schema), data))
-    {
-        return false;
-    }
-
-    // io
-    return SaveBinaryFile(_path, data, _flags);
-}
-
-void Mesh::ComputeBoundingBox_(
-    const CMemView      _vertData,
-    const VertexLayout& _vl)
-{
-    JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required to calculate bounding box");
-
-    // get position attribute info
-    VertexReader vertReader { _vertData, _vl };
-    const Int32  numVerts = CalcNumVertices(_vertData, _vl);
-
-    // compute aabb
-    m_boundingBox = {};
-    for (Int32 i = 0; i < numVerts; ++i)
-    {
-        Vec3 pos = {};
-        vertReader.ReadAt(i, eVertexAttribute::Position, pos);   // read position
-        m_boundingBox.Merge(pos);                                // merge aabb
-    }
-}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mesh::~Mesh()
 {
@@ -230,9 +79,145 @@ Mesh& Mesh::operator=(Mesh&& _other) noexcept
     return *this;
 }
 
-void Mesh::Unload()
+Expect<Ref<Mesh>> Mesh::Create(
+    const Path& _path)
 {
+    Ref<Mesh> pMesh = new Mesh;
+    if (const Error err = pMesh->Load(_path))
+    {
+        return err;
+    }
+    return pMesh;
+}
+
+Ref<Mesh> Mesh::Create(
+    const CMemoryBlock  _vertData,
+    const VertexLayout& _vl,
+    const CMemoryBlock  _idxData,
+    const bool          _bUseU32)
+{
+    Ref<Mesh> pMesh = new Mesh;
+    pMesh->Load(_vertData, _vl, _idxData, _bUseU32);
+    return pMesh;
+}
+
+Error Mesh::Load(
+    const Path& _path)
+{
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+
+    // io
+    Expect<AssetLoader<MeshDto>> loader = MeshLoader::Open(_path);
+    if (!loader)
+    {
+        return loader.GetError();
+    }
+
+    // deserialize
+    Expect<MeshDto> pDto = loader->Read();
+    if (!pDto)
+    {
+        return pDto.GetError();
+    }
+
     CleanUp_();
+    m_name = StringFrom(pDto->name);
+
+    // vertex layout
+    VertexLayout vl = {};
+    for (Int32 i = 0; i < pDto->vl.numElems; ++i)
+    {
+        const VertexLayoutElementDto& elemDto = pDto->vl.elems[i];
+        vl.Push(elemDto.attrib, elemDto.format);
+    }
+
+    // gpu resource creation
+    const bool bUseU32 = NeedU32Index(pDto->vertData, vl);
+    m_vbh              = JAM_GFX.CreateVertexBuffer(pDto->vertData, vl);
+    m_ibh              = JAM_GFX.CreateIndexBuffer(pDto->idxData, bUseU32);
+    m_boundingBox      = pDto->aabb.ToAabb();
+
+    // finalize
+    const StringView path = _path.native();
+    const UInt32     hash = path.Hash32();
+    m_sortKey             = static_cast<UInt16>(hash);
+    m_path                = _path;
+    m_bLoadedFromFile     = true;
+    return Error::None;
+}
+
+void Mesh::Load(
+    const CMemoryBlock  _vertData,
+    const VertexLayout& _vl,
+    const CMemoryBlock  _idxData,
+    const bool          _bUseU32)
+{
+    JAM_FUNCTION_PROFILE();
+
+    // gpu resource creation
+    m_vbh = JAM_GFX.CreateVertexBuffer(_vertData, _vl);
+    m_ibh = JAM_GFX.CreateIndexBuffer(_idxData, _bUseU32);
+
+    // compute bounding box
+    ComputeBoundingBox_(_vertData, _vl);
+
+    // sort key
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(_vertData);
+    hasher.Mix(_idxData);
+    hasher.Mix(_vl);
+    hasher.Mix(_bUseU32);
+    const UInt64 hash = hasher.Finish();
+    m_sortKey         = static_cast<UInt16>(hash);
+    m_bLoadedFromFile = false;
+}
+
+Error Mesh::Save(
+    const Path&                 _path,
+    const bool                  _bReplaceExtension,
+    const Flags<eSaveFileFlags> _flags) const
+{
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+    JAM_ASSERT(IsValid(), "Cannot save an invalid mesh");
+
+    // open mmap
+    Expect<MeshSaver> saver = {};
+    if (_bReplaceExtension)
+    {
+        const Path path = ReplacedExtension(_path, k_extension);
+        saver           = MeshSaver::Open(path, _flags);
+    }
+    else
+    {
+        saver = MeshSaver::Open(_path, _flags);
+    }
+
+    if (!saver)
+    {
+        return saver.GetError();
+    }
+
+    MeshDto dto  = {};
+    dto.name     = StringViewDtoFrom(m_name);
+    dto.vertData = VectorDtoFrom(JAM_GFX.DownloadBuffer(m_vbh));
+    dto.idxData  = VectorDtoFrom(JAM_GFX.DownloadBuffer(m_ibh));
+    dto.aabb     = AabbDto::FromAabb(m_boundingBox);
+
+    // vertex layout
+    const VertexLayout              vl      = JAM_GFX.GetVertexLayout(m_vbh);
+    Span<const VertexLayoutElement> vles    = vl.GetElements();
+    const Int32                     numVles = NumericCast<Int32>(vles.size());
+    dto.vl.numElems                         = numVles;
+    for (Int32 i = 0; i < numVles; ++i)
+    {
+        VertexLayoutElementDto&    elemDto = dto.vl.elems[i];
+        const VertexLayoutElement& elem    = vles[i];
+
+        elemDto.attrib = elem.attrib;
+        elemDto.format = elem.format;
+    }
+
+    return saver->Write(dto);
 }
 
 void Mesh::SetName(
@@ -242,36 +227,40 @@ void Mesh::SetName(
 }
 
 void Mesh::SetVirtualPath(
-    const fs::path& _path)
+    const Path& _path)
 {
     JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of a file-loaded asset");
     m_path = _path;
 }
 
-bool Mesh::IsValid() const
+void Mesh::Invalidate()
 {
-    return JAM_IS_VALID_HANDLE(m_vbh)
-        && JAM_IS_VALID_HANDLE(m_ibh);
+    CleanUp_();
 }
 
-const fs::path& Mesh::GetPath() const
+bool Mesh::IsValid() const
+{
+    return m_vbh && m_ibh;
+}
+
+const Path& Mesh::GetPath() const
 {
     return m_path;
 }
 
 eAssetType Mesh::GetAssetType() const
 {
-    return k_type;
+    return k_assetType;
 }
 
 UInt32 Mesh::GetTypeHash() const
 {
-    return k_hash;
+    return k_typeHash;
 }
 
 StringView Mesh::GetTypeName() const
 {
-    return k_name;
+    return k_typeName;
 }
 
 UInt16 Mesh::GetSortKey() const
@@ -279,16 +268,19 @@ UInt16 Mesh::GetSortKey() const
     return m_sortKey;
 }
 
-const StringView Mesh::GetName() const
+StringView Mesh::GetName() const
 {
     return m_name;
 }
 
-void Mesh::Submit() const
+StringView Mesh::GetExtension() const
 {
-    Graphics::SetVertexBuffer(m_vbh);
-    Graphics::SetIndexBuffer(m_ibh);
-    Graphics::Submit();
+    return k_extension;
+}
+
+StringView Mesh::GetFilter() const
+{
+    return k_filter;
 }
 
 VertexBufferHandle Mesh::GetVertexBuffer() const
@@ -306,15 +298,71 @@ const Aabb& Mesh::GetBoundingBox() const
     return m_boundingBox;
 }
 
+void Mesh::Submit() const
+{
+    JAM_GFX.SetVertexBuffer(m_vbh);
+    JAM_GFX.SetIndexBuffer(m_ibh);
+    JAM_GFX.Submit();
+}
+
 void Mesh::CleanUp_()
 {
     JAM_DESTROY_VERTEX_BUFFER(m_vbh);
     JAM_DESTROY_INDEX_BUFFER(m_ibh);
 
     m_path.clear();
-    m_name        = {};
+    m_name.Clear();
     m_boundingBox = {};
     m_sortKey     = 0;
 }
 
-}   // namespace jam
+void Mesh::ComputeBoundingBox_(
+    const CMemoryBlock  _vertData,
+    const VertexLayout& _vl)
+{
+    JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required to calculate bounding box");
+
+    // get position attribute info
+    VertexReader reader { _vertData, _vl };
+    const Int32  numVerts = CalcNumVertices(_vertData, _vl);
+
+    // compute aabb
+    m_boundingBox = {};
+    for (Int32 i = 0; i < numVerts; ++i)
+    {
+        const Vec3 pos = reader.ReadAt<Vec3>(i, eVertexAttribute::Position);
+        m_boundingBox.Merge(pos);   // merge aabb
+    }
+}
+
+void WriteToArchive(
+    ArchiveWriter&   _archive,
+    const Ref<Mesh>& _pMesh)
+{
+    if (_pMesh && _pMesh->IsValid())
+    {
+        _archive.Write(_pMesh->GetPath());
+    }
+}
+
+Error ReadFromArchive(
+    ArchiveReader& _archive,
+    Ref<Mesh>&     _pMesh)
+{
+    StringView path = {};
+    if (const Error err = _archive.Read(path))
+    {
+        return err;
+    }
+
+    Expect<Ref<Mesh>> mesh = Mesh::Create(PathFrom(path));
+    if (!mesh)
+    {
+        return mesh.GetError();
+    }
+
+    _pMesh = mesh.Take();
+    return Error::None;
+}
+
+}   // namespace Jam

@@ -2,190 +2,222 @@
 
 #include "ShaderCompiler.h"
 
-#include "FileIOUtilities.h"
-
 #include <d3dcompiler.h>
-
+#include "WindowsUtilities.h"
 #pragma comment(lib, "d3dcompiler.lib")
 
-namespace jam
+namespace Jam
 {
 
-UINT ShaderCompiler::CompileFlagsFrom_(
-    const eShaderCompileFlags _flags) const
+namespace
 {
-    UINT flags = 0;
 
-    if (_flags & eShaderCompileFlags_Debug)
-        flags |= D3DCOMPILE_DEBUG;
+    using D3DShaderMacroBuffer = Array<D3D_SHADER_MACRO, 128>;
 
-    if (_flags & eShaderCompileFlags_SkipOptimization)
-        flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-
-    if (_flags & eShaderCompileFlags_PackMatrixRowMajor)
-        flags |= D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
-
-    if (_flags & eShaderCompileFlags_PackMatrixColumnMajor)
-        flags |= D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
-
-    if (_flags & eShaderCompileFlags_Optimization)
-        flags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
-
-    if (_flags & eShaderCompileFlags_AvoidFlowControl)
-        flags |= D3DCOMPILE_AVOID_FLOW_CONTROL;
-
-    if (_flags & eShaderCompileFlags_WarningsAsErrors)
-        flags |= D3DCOMPILE_WARNINGS_ARE_ERRORS;
-
-    return flags;
-}
-
-StringView ShaderCompiler::ShaderModelNameFrom_(
-    const eShader _stage) const
-{
-    switch (_stage)
+    void BuildD3D11ShaderMacroBuffer_(
+        D3DShaderMacroBuffer&         _outBuffer,
+        const Span<const ShaderMacro> _macrosOrEmpty)   // return number of macros written
     {
-        case eShader::VertexShader:
-            return "vs_5_0";
-        case eShader::PixelShader:
-            return "ps_5_0";
-        case eShader::GeometryShader:
-            return "gs_5_0";
-        case eShader::HullShader:
-            return "hs_5_0";
-        case eShader::DomainShader:
-            return "ds_5_0";
-        case eShader::ComputeShader:
-            return "cs_5_0";
-        default:
-            JAM_ASSERT(0, "Invalid shader stage.");
-            return nullptr;
+        JAM_ASSERT(_macrosOrEmpty.size() < 127, "Too many shader macros specified.");
+
+        // fill d3d macro
+        const SizeT numMacros = _macrosOrEmpty.size();
+        for (SizeT i = 0; i < numMacros; ++i)
+        {
+            const ShaderMacro& srcMacro = _macrosOrEmpty[i];
+            _outBuffer[i]               = { srcMacro.name.GetPtr(), srcMacro.value.GetPtr() };
+        }
+
+        // Ensure null-termination
+        if (numMacros > 0 && _macrosOrEmpty.back().IsNull() == false)
+        {
+            _outBuffer[numMacros] = { nullptr, nullptr };
+        }
     }
+
+    [[nodiscard]] UINT CompileFlagsFrom_(
+        const Flags<eShaderCompileFlags> _flags)
+    {
+        UINT flags = 0;
+
+        if (_flags & eShaderCompileFlags::Debug)
+        {
+            flags |= D3DCOMPILE_DEBUG;
+        }
+
+        if (_flags & eShaderCompileFlags::SkipOptimization)
+        {
+            flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+        }
+
+        if (_flags & eShaderCompileFlags::PackMatrixRowMajor)
+        {
+            flags |= D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
+        }
+
+        if (_flags & eShaderCompileFlags::PackMatrixColumnMajor)
+        {
+            flags |= D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
+        }
+
+        if (_flags & eShaderCompileFlags::Optimization)
+        {
+            flags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+        }
+
+        if (_flags & eShaderCompileFlags::AvoidFlowControl)
+        {
+            flags |= D3DCOMPILE_AVOID_FLOW_CONTROL;
+        }
+
+        if (_flags & eShaderCompileFlags::WarningsAsErrors)
+        {
+            flags |= D3DCOMPILE_WARNINGS_ARE_ERRORS;
+        }
+
+        return flags;
+    }
+
+    [[nodiscard]] StringView ShaderModelNameFrom(
+        const eShader _stage)
+    {
+        switch (_stage)
+        {
+            case eShader::VertexShader:
+                return "vs_5_0";
+            case eShader::PixelShader:
+                return "ps_5_0";
+            case eShader::GeometryShader:
+                return "gs_5_0";
+            case eShader::HullShader:
+                return "hs_5_0";
+            case eShader::DomainShader:
+                return "ds_5_0";
+            case eShader::ComputeShader:
+                return "cs_5_0";
+            default:
+                JAM_UNREACHABLE;
+        }
+    }
+}   // namespace
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLFile(
+    const Path&              _path,
+    const ShaderCompilerDesc& _desc)
+{
+    ShaderCompiler compiler = {};
+    if (const Error err = compiler.CompileFromHLSLFile_(_path, _desc))
+    {
+        return err;
+    }
+
+    return compiler;
 }
 
-bool ShaderCompiler::CompileHLSLFile(
-    const fs::path&               _path,
-    const eShader                 _stage,
-    const StringView              _entryPoint,
-    const Span<const ShaderMacro> _macrosOrEmpty,
-    const eShaderCompileFlags     _flags) const
+Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLSource(
+    const StringView         _source,
+    const ShaderCompilerDesc& _desc)
+{
+    ShaderCompiler compiler = {};
+    if (const Error err = compiler.CompileHLSLSource_(_source, _desc))
+    {
+        return err;
+    }
+
+    return compiler;
+}
+
+CMemoryBlock ShaderCompiler::GetBytecode() const
+{
+    JAM_ASSERT(m_pBlob, "Shader blob is null.");
+    return { m_pBlob->GetBufferPointer(), NumericCast<Int32>(m_pBlob->GetBufferSize()) };
+}
+
+Error ShaderCompiler::CompileFromHLSLFile_(
+    const Path&              _path,
+    const ShaderCompilerDesc& _desc)
 {
     JAM_ASSERT(!_path.empty(), "File path must not be empty.");
-    JAM_ASSERT(!_entryPoint.IsEmpty(), "Entry point must not be empty.");
 
-    const D3D_SHADER_MACRO* pMacros = nullptr;
-    if (!_macrosOrEmpty.empty())
-    {
-        JAM_ASSERT(_macrosOrEmpty.back().IsNull(), "Shader macros must be null-terminated.");
-        pMacros = reinterpret_cast<const D3D_SHADER_MACRO*>(_macrosOrEmpty.data());
-    }
+    D3DShaderMacroBuffer macroBuf;
+    BuildD3D11ShaderMacroBuffer_(macroBuf, _desc.macros);
 
-    ComPtr<ID3DBlob>   pBlob      = nullptr;
-    ComPtr<ID3DBlob>   pErrorBlob = nullptr;
-    const std::wstring path       = _path.wstring();
-    const HRESULT      hr         = D3DCompileFromFile(
-        path.c_str(),
-        pMacros,
+    ScratchWBuffer pathBuf;
+    pathBuf.SetUtf8(_path.native());
+
+    ComPtr<ID3DBlob> pErrorBlob = nullptr;
+    const HRESULT    hr         = D3DCompileFromFile(
+        pathBuf.GetPtr(),
+        macroBuf.data(),
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
-        _entryPoint.GetPtr(),
-        ShaderModelNameFrom_(_stage).GetPtr(),
-        CompileFlagsFrom_(_flags),
+        _desc.entryPoint.GetPtr(),
+        ShaderModelNameFrom(_desc.stage).GetPtr(),
+        CompileFlagsFrom_(_desc.flags),
         0,
-        pBlob.ReleaseAndGetAddressOf(),
+        m_pBlob.ReleaseAndGetAddressOf(),
         pErrorBlob.ReleaseAndGetAddressOf());
 
-    if (FAILED(hr) || !pBlob)
+    if (FAILED(hr) || !m_pBlob)
     {
         if (pErrorBlob)
         {
-            const char* pErrorMsg = static_cast<const char*>(pErrorBlob->GetBufferPointer());
-            GlobalBuffer::SetLastError("shader compilation failed: {}", pErrorMsg);
-            return false;
+            JAM_LOG.Error("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            GlobalBuffer::SetLastError("shader compilation failed: {}", CreateErrorMessageFromHRESULT(hr));
-            return false;
+            ScratchBuffer buf;
+            FormatHRESULTMessage(buf, hr);
+            JAM_LOG.Error("shader compilation failed: {}", buf.ToStringView());
         }
+
+        return Error::ShaderCompileFailed;
     }
 
-    return true;
+    return Error::None;
 }
 
-bool ShaderCompiler::CompileHLSLSource(
-    const StringView              _source,
-    const eShader                 _stage,
-    const StringView              _entryPoint,
-    const Span<const ShaderMacro> _macrosOrEmpty,
-    const eShaderCompileFlags     _flags) const
+Error ShaderCompiler::CompileHLSLSource_(
+    const StringView         _source,
+    const ShaderCompilerDesc& _desc)
 {
-    JAM_ASSERT(!_source.IsEmpty(), "File path must not be empty.");
-    JAM_ASSERT(!_entryPoint.IsEmpty(), "Entry point must not be empty.");
+    JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 
-    const D3D_SHADER_MACRO* pMacros = nullptr;
-    if (!_macrosOrEmpty.empty())
-    {
-        JAM_ASSERT(_macrosOrEmpty.back().IsNull(), "Shader macros must be null-terminated.");
-        pMacros = reinterpret_cast<const D3D_SHADER_MACRO*>(_macrosOrEmpty.data());
-    }
+    D3DShaderMacroBuffer macroBuf;
+    BuildD3D11ShaderMacroBuffer_(macroBuf, _desc.macros);
 
-    ComPtr<ID3DBlob> pBlob      = nullptr;
     ComPtr<ID3DBlob> pErrorBlob = nullptr;
     const HRESULT    hr         = D3DCompile(
         _source.GetPtr(),
         _source.GetLength(),
         nullptr,
-        pMacros,
+        macroBuf.data(),
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
-        _entryPoint.GetPtr(),
-        ShaderModelNameFrom_(_stage).GetPtr(),
-        CompileFlagsFrom_(_flags),
+        _desc.entryPoint.GetPtr(),
+        ShaderModelNameFrom(_desc.stage).GetPtr(),
+        CompileFlagsFrom_(_desc.flags),
         0,
-        pBlob.ReleaseAndGetAddressOf(),
+        m_pBlob.ReleaseAndGetAddressOf(),
         pErrorBlob.ReleaseAndGetAddressOf());
 
-    if (FAILED(hr) || !pBlob)
+    if (FAILED(hr) || !m_pBlob)
     {
         if (pErrorBlob)
         {
-            const char* pErrorMsg = static_cast<const char*>(pErrorBlob->GetBufferPointer());
-            GlobalBuffer::SetLastError("shader compilation failed: {}", pErrorMsg);
+            JAM_LOG.Error("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            GlobalBuffer::SetLastError("shader compilation failed: {}", CreateErrorMessageFromHRESULT(hr));
-            return false;
+            ScratchBuffer buf;
+            FormatHRESULTMessage(buf, hr);
+            JAM_LOG.Error("shader compilation failed: {}", buf.ToStringView());
         }
+
+        return Error::ShaderCompileFailed;
     }
 
-    return true;
+    return Error::None;
 }
 
-bool ShaderCompiler::LoadCSOFile(
-    const fs::path& _path)
-{
-    Vector<Byte> data = {};
-    if (!MoveIfHasValue(LoadBinaryFile(_path), data))
-    {
-        return false;
-    }
-
-    return LoadCSOMemory(data);
-}
-
-bool ShaderCompiler::LoadCSOMemory(
-    const CMemView _bytecode)
-{
-    JAM_ASSERT(!_bytecode.IsEmpty(), "Bytecode must not be empty.");
-    const HRESULT hr = D3DCreateBlob(_bytecode.GetByteWidth(), m_pBytecode.ReleaseAndGetAddressOf());
-    JAM_ASSERT(SUCCEEDED(hr) && m_pBytecode, "Failed to create D3D blob for bytecode.");
-    return true;
-}
-
-CMemView ShaderCompiler::GetBytecode() const
-{
-    JAM_ASSERT(m_pBytecode, "Shader bytecode is not loaded.");
-    return { m_pBytecode->GetBufferPointer(), static_cast<Int32>(m_pBytecode->GetBufferSize()) };
-}
-
-}   // namespace jam
+}   // namespace Jam

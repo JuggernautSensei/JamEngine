@@ -4,70 +4,53 @@
 #include "Graphics.h"
 #include "Profile.h"
 
-namespace jam
+namespace Jam
 {
 
-bool SVGImporter::Import(
-    const fs::path& _path)
+Expect<SVGImporter> SVGImporter::ImportFromFile(
+    const Path&            _path,
+    const SVGImporterDesc& _desc)
 {
     JAM_FUNCTION_PROFILE();
 
     std::unique_ptr<lunasvg::Document> doc = lunasvg::Document::loadFromFile(_path.native());
     if (!doc)
     {
-        return false;
+        JAM_LOG.Error("SVGImporter::ImportFromFile: failed to load SVG file: {}", _path);
+        return Error::ImportFailed;
     }
 
-    m_bitmap = doc->renderToBitmap(m_width, m_height, m_bgCol.ToRGBA());
-    if (m_bitmap.isNull())
+    SVGImporter importer = {};
+    if (const Error err = importer.Import_(std::move(doc), _desc))
     {
-        return false;
+        return err;
     }
-
-    JAM_ASSERT(m_bitmap.stride() % 4 == 0, "Unexpected stride in rendered SVG bitmap");
-    return true;
+    return importer;
 }
 
-bool SVGImporter::ImportSource(
-    const StringView _source)
+Expect<SVGImporter> SVGImporter::ImportFromSource(
+    const StringView       _source,
+    const SVGImporterDesc& _desc)
 {
     JAM_FUNCTION_PROFILE();
 
     std::unique_ptr<lunasvg::Document> doc = lunasvg::Document::loadFromData(_source.GetPtr(), _source.GetLength());
     if (!doc)
     {
-        return false;
+        JAM_LOG.Error("SVGImporter::ImportFromSource: failed to load SVG source data.");
+        return Error::ImportFailed;
     }
 
-    m_bitmap = doc->renderToBitmap(m_width, m_height, m_bgCol.ToRGBA());
-    if (m_bitmap.isNull())
+    SVGImporter importer = {};
+    if (const Error err = importer.Import_(std::move(doc), _desc))
     {
-        return false;
+        return err;
     }
 
-    JAM_ASSERT(m_bitmap.stride() % 4 == 0, "Unexpected stride in rendered SVG bitmap");
-    return true;
+    return importer;
 }
 
-void SVGImporter::SetWidth(
-    const Int32 _width)
-{
-    m_width = _width;
-}
-
-void SVGImporter::SetHeight(
-    const Int32 _height)
-{
-    m_height = _height;
-}
-
-void SVGImporter::SetBackgroundColor(
-    const RGBA _rgba)
-{
-    m_bgCol = _rgba;
-}
-
-CMemView SVGImporter::GetPixels() const
+CMemoryBlock SVGImporter::GetPixels() const
 {
     JAM_ASSERT(!m_bitmap.isNull(), "SVG image not imported yet");
     return { m_bitmap.data(), m_bitmap.stride() * m_bitmap.height() };
@@ -85,4 +68,24 @@ Int32 SVGImporter::GetHeight() const
     return m_bitmap.height();
 }
 
-}   // namespace jam
+Error SVGImporter::Import_(
+    std::unique_ptr<lunasvg::Document>&& _doc,
+    const SVGImporterDesc&               _desc)
+{
+    JAM_ASSERT(_doc, "Invalid SVG document");
+
+    const Int32  w  = _desc.width > 0 ? _desc.width : -1;
+    const Int32  h  = _desc.height > 0 ? _desc.height : -1;
+    const UInt32 bg = _desc.backgroundColor.ToRGBA();
+    m_bitmap        = _doc->renderToBitmap(w, h, bg);
+    if (m_bitmap.isNull())
+    {
+        JAM_LOG.Error("SVGImporter::Import_: failed to render SVG document to bitmap.");
+        return Error::ImportFailed;
+    }
+
+    JAM_ASSERT(m_bitmap.stride() % 4 == 0, "Unexpected stride in rendered SVG bitmap");
+    return Error::None;
+}
+
+}   // namespace Jam

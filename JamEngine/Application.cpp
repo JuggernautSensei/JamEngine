@@ -4,151 +4,35 @@
 #include "Application.h"
 
 #include "AssetManager.h"
-#include "ComponentDB.h"
+#include "ReflectionDB.h"
 #include "Editor.h"
 #include "Graphics.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
-#include "Magics.h"
-#include "SceneDB.h"
+
 #include "SceneManager.h"
-#include "ScriptDB.h"
+#include "WindowsPlatform.h"
 
-namespace jam
+namespace Jam
 {
 
-Application* Application::s_instance = nullptr;
-
-void Application::Create(const Int32 _argc, char** _argv)
+void Application::CreateInstance(
+    const Int32 _argc,
+    char**      _argv)
 {
-    JAM_ASSERT(s_instance == nullptr, "Application instance already exists");
-
-    // 메모리 디버거
-    if (JAM_DEBUG_ENABLED)
-    {
-        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    }
-
-    // locale
-    std::locale::global(std::locale(""));
-
-    // init
-    Log::Init();
-
-    // create application
-    s_instance = CreateApplication(_argc, _argv);
-
-    // project file directory
-    fs::create_directories(s_instance->m_contentsDir);
-
-    // create cache directories
-    const fs::path cacheDir = s_instance->JoinWorkingDirectory(k_cachesDirName.GetPtr());
-    fs::create_directories(cacheDir);
-
-    // init window
-    s_instance->m_window.Init();
-    s_instance->m_window.SetTitle(s_instance->m_applicationName);
-
-    // init graphics
-    const auto [width, height] = s_instance->m_window.GetClientResolution();
-    const HWND hwnd            = s_instance->m_window.GetPlatformHandle();
-    Graphics::Init(hwnd, width, height);
-
-    // init input
-    Input::Init();
-
-    // init asset manager
-    AssetManager::Init();
-
-    // init scene manager
-    SceneManager::Init();
-
-    // init imgui glue
-    ImGuiGlue::Init(hwnd);
-
-    // init editor if need
-    if (s_instance->IsEditorEnabled())
-    {
-        Editor::Init();
-    }
-
-    // init done
-    s_instance->m_bEventDispatchable = true;
-    s_instance->m_bRunning           = true;
-    Log::Trace("application '{}' started.", s_instance->m_applicationName);
-
-    // init user application
-    s_instance->OnCreate();
+    JAM_ASSERT(s_pInstance == nullptr, "Application instance already exists");
+    s_pInstance = CreateApplication(_argc, _argv);
 }
 
-void Application::Destroy()
+void Application::DestroyInstance()
 {
-    JAM_ASSERT(s_instance, "Application instance is null");
-    JAM_ASSERT(s_instance->m_bRunning, "Application is still running, cannot destroy instance");
-
-    // shutdown start
-    Log::Trace("application '{}' shutdown.", s_instance->m_applicationName);
-
-    // destroy user application
-    s_instance->OnDestroy();
-
-    // close event dispatch
-    s_instance->m_bEventDispatchable = false;
-
-    // destroy db (this must destroy manually, cannot use onDestroyCallbacks)
-    SceneDB::DestroyInstance();
-    ScriptDB::DestroyInstance();
-    ComponentDB::DestroyInstance();
-
-    // shutdown window
-    s_instance->m_window.Shutdown();
-
-    // shutdown editor
-    if (s_instance->IsEditorEnabled())
-    {
-        Editor::Shutdown();
-    }
-
-    // shutdown imgui glue
-    ImGuiGlue::Shutdown();
-
-    // shutdown scene manager
-    SceneManager::Shutdown();
-
-    // shutdown asset manager
-    AssetManager::Shutdown();
-
-    // shutdown input
-    Input::Shutdown();
-
-    // shutdown graphics lib
-    Graphics::Shutdown();
-
-    // destroy application instance
-    JAM_DELETE(s_instance);
-
-    // shutdown
-    Log::Shutdown();
+    JAM_ASSERT(s_pInstance, "Application instance is null");
+    delete s_pInstance;
 }
 
 Application& Application::GetInstance()
 {
-    JAM_ASSERT(s_instance, "Application instance is null");
-    return *s_instance;
-}
-
-Application::Application(const ApplicationCreateInfo& _info)
-    : m_applicationName(_info.applicationName)
-    , m_bEditorEnabled(_info.bEnableEditor)
-    , m_workingDir(_info.workingDirectory)
-    , m_contentsDir(m_workingDir / k_contentsDirName.GetPtr())
-{
-}
-
-void Application::OnWindowCloseEvent_(
-    [[maybe_unused]] const WindowCloseEvent& _event)
-{
-    Quit();
+    return *s_pInstance;
 }
 
 Int32 Application::Run()
@@ -157,46 +41,46 @@ Int32 Application::Run()
 
     while (m_bRunning)
     {
-        if (!m_window.PollEvents())
+        if (!JAM_WIN.PollEvents())
         {
             m_commandQueue.Execute();   // execute submitted commands
 
             m_timer.Tick();
-            m_deltaTimeSec = static_cast<float>(m_timer.GetDelta(eSIPrefix::Sec));
-            m_frameRate    = Div(1.f, m_deltaTimeSec);
+            m_deltaTimeSec = m_timer.GetDeltaFloat(eSIPrefix::Sec);
+            m_framerate    = Div(1.f, m_deltaTimeSec);
 
             // update loop
             if (m_bEditorEnabled)
             {
-                Editor::Update(m_deltaTimeSec);
+                JAM_EDITOR.Update(m_deltaTimeSec);
             }
             else
             {
-                SceneManager::Update(m_deltaTimeSec);
+                JAM_SCENE_MGR.Update(m_deltaTimeSec);
             }
 
             // rendering loop
             if (m_bEditorEnabled)
             {
-                Editor::Render();
-                ImGuiGlue::BeginFrame();
-                Editor::ImGuiRender();
-                SceneManager::ImGuiRender();
-                ImGuiGlue::EndFrame();
+                JAM_EDITOR.Render();
+                JAM_IMGUI_GLUE.BeginFrame();
+                JAM_EDITOR.ImGuiRender();
+                JAM_SCENE_MGR.ImGuiRender();
+                JAM_IMGUI_GLUE.EndFrame();
             }
             else
             {
                 // runtime
-                SceneManager::RenderRuntime();
-                ImGuiGlue::BeginFrame();
-                SceneManager::ImGuiRender();
-                ImGuiGlue::EndFrame();
+                JAM_SCENE_MGR.RenderRuntime();
+                JAM_IMGUI_GLUE.BeginFrame();
+                JAM_SCENE_MGR.ImGuiRender();
+                JAM_IMGUI_GLUE.EndFrame();
             }
 
-            Graphics::Frame(m_bVsync);
+            JAM_GFX.Frame(m_bVsync);
 
             // update input
-            Input::Update();
+            JAM_INPUT.Update();
         }
     }
 
@@ -210,7 +94,6 @@ void Application::Quit()
 
 void Application::DispatchEvent(Event& _event)
 {
-    JAM_ASSERT(s_instance, "Application instance is null");
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetTypeName());
 
     if (m_bEventDispatchable == false)
@@ -218,23 +101,22 @@ void Application::DispatchEvent(Event& _event)
         return;
     }
 
-    // application level event handling
-    HandleEvent<WindowCloseEvent>(_event, JAM_BIND_LISTENER_METHOD(this,Application::OnWindowCloseEvent_));
+    OnEvent_(_event);
+    JAM_WIN.OnEvent(_event);
+    JAM_GFX.OnEvent(_event);
+    JAM_ASSET_MGR.OnEvent(_event);
 
-    // propagate event to subsystems
-    m_window.OnEvent(_event);
-    Graphics::OnEvent(_event);
-    AssetManager::OnEvent(_event);
     if (m_bEditorEnabled)
     {
-        Editor::OnEvent(_event);
+        JAM_EDITOR.OnEvent(_event);
     }
-    SceneManager::OnEvent(_event);
-    Input::OnEvent(_event);
+
+    JAM_SCENE_MGR.OnEvent(_event);
+    JAM_INPUT.OnEvent(_event);
 }
 
-void Application::SubmitCommand(
-    const std::function<void()>& _command)
+void Application::SubmitCommandToMainThread(
+    const Delegate<void()>& _command)
 {
     JAM_ASSERT(_command, "Command is null");
     m_commandQueue.Submit(_command);
@@ -255,43 +137,6 @@ StringView Application::GetApplicationName() const
     return m_applicationName;
 }
 
-WindowsPlatform& Application::GetPlatform()
-{
-    return m_window;
-}
-
-const WindowsPlatform& Application::GetPlatform() const
-{
-    return m_window;
-}
-
-const fs::path& Application::GetWorkingDirectory() const
-{
-    return m_workingDir;
-}
-
-const fs::path& Application::GetContentsDirectory() const
-{
-    return m_contentsDir;
-}
-
-fs::path Application::JoinWorkingDirectory(
-    const fs::path& _dir) const
-{
-    return m_workingDir / _dir;
-}
-
-fs::path Application::JoinContentsDirectory(
-    const fs::path& _dir) const
-{
-    return m_contentsDir / _dir;
-}
-
-bool Application::IsEditorEnabled() const
-{
-    return m_bEditorEnabled;
-}
-
 float Application::GetDeltaTimeSec() const
 {
     return m_deltaTimeSec;
@@ -299,7 +144,135 @@ float Application::GetDeltaTimeSec() const
 
 float Application::GetFrameRate() const
 {
-    return m_frameRate;
+    return m_framerate;
 }
 
-}   // namespace jam
+bool Application::IsEditorEnabled() const
+{
+    return m_bEditorEnabled;
+}
+
+const Path& Application::GetWorkingDirectory() const
+{
+    return m_workingDir;
+}
+
+const Path& Application::GetContentsDirectory() const
+{
+    return m_contentsDir;
+}
+
+Application::Application(const ApplicationCreateInfo& _info)
+    : m_applicationName(_info.applicationName)
+      , m_bEditorEnabled(_info.bEnableEditor)
+      , m_workingDir(_info.workingDirectory)
+      , m_contentsDir(m_workingDir / "Contents")
+      , m_cacheDir(m_workingDir / "Caches")
+{
+    // 메모리 디버거
+    if (JAM_DEBUG_ENABLED)
+    {
+        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    }
+
+    // locale
+    std::locale::global(std::locale(""));
+
+    // init
+    Log::CreateInstance();
+
+    // project file directory
+    fs::create_directories(m_contentsDir);
+    fs::create_directories(m_cacheDir);
+
+    // init window
+    WindowsPlatform::CreateInstance();
+    JAM_WIN.SetTitle(m_applicationName);
+
+    // init graphics
+    const auto [w, h] = JAM_WIN.GetClientResolution();
+    const HWND hWnd   = JAM_WIN.GetPlatformHandle();
+    Graphics::CreateInstance(hWnd, w, h);
+
+    // init input
+    Input::CreateInstance();
+
+    // init asset manager
+    AssetManager::CreateInstance();
+
+    // init scene manager
+    SceneManager::CreateInstance();
+
+    // init imgui glue
+    ImGuiGlue::CreateInstance(hWnd);
+
+    // init editor if need
+    if (IsEditorEnabled())
+    {
+        Editor::CreateInstance();
+    }
+
+    // init done
+    m_bEventDispatchable = true;
+    m_bRunning           = true;
+    JAM_LOG.Trace("application '{}' started.", m_applicationName);
+}
+
+Application::~Application()
+{
+    JAM_ASSERT(m_bRunning, "Application is still running, cannot destroy instance");
+
+    // shutdown start
+    JAM_LOG.Trace("application '{}' shutdown.", m_applicationName);
+
+    // close event dispatch
+    m_bEventDispatchable = false;
+
+    // destroy db (this must destroy manually, cannot use onDestroyCallbacks)
+    ReflectionDB::DestroyInstance();
+
+    // shutdown window
+    WindowsPlatform::DestroyInstance();
+
+    // shutdown editor
+    if (IsEditorEnabled())
+    {
+        Editor::DestroyInstance();
+    }
+
+    // shutdown imgui glue
+    ImGuiGlue::DestroyInstance();
+
+    // shutdown scene manager
+    SceneManager::DestroyInstance();
+
+    // shutdown asset manager
+    AssetManager::DestroyInstance();
+
+    // shutdown input
+    Input::DestroyInstance();
+
+    // shutdown graphics lib
+    Graphics::DestroyInstance();
+
+    JAM_LOG.Trace("application '{}' shutdown complete.", m_applicationName);
+    JAM_LOG.Flush();
+
+    // shutdown
+    Log::DestroyInstance();
+}
+
+void Application::OnEvent_(
+    Event& _event)
+{
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<WindowCloseEvent>(this, &Application::OnWindowCloseEvent_);
+}
+
+void Application::OnWindowCloseEvent_(
+    [[maybe_unused]] const WindowCloseEvent& _event)
+{
+    Quit();
+}
+
+}   // namespace Jam

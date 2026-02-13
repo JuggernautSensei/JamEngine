@@ -1,44 +1,43 @@
 #pragma once
+// ReSharper disable once CppUnusedIncludeDirective
 #include <DirectXTex.h>
-
 #include "HandleAllocator.h"
 #include "Math.h"
 #include "TextureFormat.h"
 #include "VertexLayout.h"
 
-namespace jam
+namespace Jam
 {
 
-constexpr Int32 k_numRenderTargetLimit   = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
-constexpr Int32 k_numSamplerLimit        = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
-constexpr Int32 k_numShaderResourceLimit = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-constexpr Int32 k_numConstantBufferLimit = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-constexpr Int32 k_numGraphicsShaderStage = 5;   // vs, ps, gs, hs, ds
+constexpr Int32 k_numRenderTargetLimit    = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+constexpr Int32 k_numSamplerLimit         = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
+constexpr Int32 k_numShaderResourceLimit  = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+constexpr Int32 k_numConstantBufferLimit  = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+constexpr Int32 k_numGraphicsShaderStages = 5;   // vs, ps, m_rs, hs, ds
 
 template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-enum eTextureCreateFlags_ : UInt32
+enum class eTextureCreateFlags : UInt32
 {
-    eTextureCreateFlags_None         = 0,
-    eTextureCreateFlags_GenerateMips = 1 << 0,
+    None         = 0,
+    GenerateMips = 1 << 0,
 
     // if multiple MSAA flags are set, the lowest one takes precedence
-    eTextureCreateFlags_MSAAx4  = 1 << 2,   // 4x MSAA
-    eTextureCreateFlags_MSAAx8  = 1 << 3,   // 8x MSAA
-    eTextureCreateFlags_MSAAx16 = 1 << 4,   // 16x MSAA
+    MSAAx4  = 1 << 2,   // 4x MSAA
+    MSAAx8  = 1 << 3,   // 8x MSAA
+    MSAAx16 = 1 << 4,   // 16x MSAA
 
-    eTextureCreateFlags_WriteOnly    = 1 << 5,   // do not create shader resource view. read only
-    eTextureCreateFlags_RenderTarget = 1 << 6,   // for render target usage
-    eTextureCreateFlags_DepthStencil = 1 << 7,   // for depth stencil usage
+    WriteOnly    = 1 << 5,   // do not create shader resource view. read only
+    RenderTarget = 1 << 6,   // for render target usage
+    DepthStencil = 1 << 7,   // for depth stencil usage
 
-    eTextureCreateFlags_Mutable = 1 << 8,   // when creating with initial renderable, create immutable texture. this flag makes it mutable even though initial renderable is provided
+    Mutable = 1 << 8,   // when creating with initial renderable, create immutable tex. this flag makes it mutable even though initial renderable is provided
 
-    eTextureCreateFlags_MultiSampled_Internal = eTextureCreateFlags_MSAAx4 | eTextureCreateFlags_MSAAx8 | eTextureCreateFlags_MSAAx16,
+    MultiSampled_Internal = MSAAx4 | MSAAx8 | MSAAx16,
 };
-using eTextureCreateFlags = UInt32;
 
-enum class eShader : Int8
+enum class eShader
 {
     VertexShader = 0,
     PixelShader,
@@ -47,21 +46,15 @@ enum class eShader : Int8
     DomainShader,
     ComputeShader,
 
-    Min = VertexShader,
-    Max = ComputeShader,
 };
-JAM_ENUM_STATIC_ASSERT(eShader);
 
-enum class eTextureType : Int8
+enum class eTextureType
 {
     Texture2D = 0,
     Texture3D,
     TextureCube,
 
-    Min = Texture2D,
-    Max = TextureCube,
 };
-JAM_ENUM_STATIC_ASSERT(eTextureType);
 
 enum class eBlend : UInt8
 {
@@ -118,16 +111,15 @@ enum class eCompareFunc : UInt8
     Never,
 };
 
-enum eWriteFlags_ : UInt8
+enum class eWriteFlags : UInt8
 {
-    eWriteFlags_None  = 0,
-    eWriteFlags_Red   = 1 << 0,
-    eWriteFlags_Green = 1 << 1,
-    eWriteFlags_Blue  = 1 << 2,
-    eWriteFlags_Alpha = 1 << 3,
-    eWriteFlags_All   = eWriteFlags_Red | eWriteFlags_Green | eWriteFlags_Blue | eWriteFlags_Alpha,
+    None  = 0,
+    Red   = 1 << 0,
+    Green = 1 << 1,
+    Blue  = 1 << 2,
+    Alpha = 1 << 3,
+    All   = Red | Green | Blue | Alpha,
 };
-using eWriteFlags = UInt8;
 
 enum class eStencilOp : UInt8
 {
@@ -175,38 +167,33 @@ enum class eCubeFace : Int8
     Back,        // negative Z
 };
 
-enum eShaderCompileFlags_ : UInt8
+enum class eShaderCompileFlags : UInt32
 {
-    eShaderCompileFlags_None                  = 0,
-    eShaderCompileFlags_Debug                 = 1 << 0,
-    eShaderCompileFlags_Optimization          = 1 << 1,
-    eShaderCompileFlags_SkipOptimization      = 1 << 2,
-    eShaderCompileFlags_WarningsAsErrors      = 1 << 3,
-    eShaderCompileFlags_AvoidFlowControl      = 1 << 4,
-    eShaderCompileFlags_PackMatrixRowMajor    = 1 << 5,
-    eShaderCompileFlags_PackMatrixColumnMajor = 1 << 6,
+    None                  = 0,
+    Debug                 = 1 << 0,
+    Optimization          = 1 << 1,
+    SkipOptimization      = 1 << 2,
+    WarningsAsErrors      = 1 << 3,
+    AvoidFlowControl      = 1 << 4,
+    PackMatrixRowMajor    = 1 << 5,
+    PackMatrixColumnMajor = 1 << 6,
 
-    eShaderCompileFlags_DebugDefault   = eShaderCompileFlags_Debug | eShaderCompileFlags_SkipOptimization,
-    eShaderCompileFlags_ReleaseDefault = eShaderCompileFlags_Optimization,
+    DebugDefault   = Debug | SkipOptimization,
+    ReleaseDefault = Optimization,
 
 #ifdef JAM_DEBUG
-    eShaderCompileFlags_Default = eShaderCompileFlags_DebugDefault,
+    Default = DebugDefault,
 #else
-    eShaderCompileFlags_Default = eShaderCompileFlags_ReleaseDefault,
+    Default = ReleaseDefault,
 #endif
 };
-using eShaderCompileFlags = UInt8;
 
-enum class eSubmitParameterType : Int8
+enum class eSubmitParameterType
 {
     StartVertexLocation = 0,
     StartIndexLocation,
     BaseVertexLocation,
-
-    Min = StartVertexLocation,
-    Max = BaseVertexLocation,
 };
-JAM_ENUM_STATIC_ASSERT(eSubmitParameterType);
 
 using ShaderCacheKey       = UInt64;
 using VertexLayoutCacheKey = UInt64;
@@ -227,34 +214,31 @@ struct HardwareBuffer
     bool          bDynamic  = false;
 };
 
-struct VertexBuffer
+struct VertexBuffer : public HardwareBuffer
 {
-    std::string        name     = {};
-    HardwareBuffer     buffer   = {};
+    String             name     = {};
     Int32              numVerts = 0;
     Int32              stride   = 0;
     VertexLayoutHandle vlh      = k_invalidHandle;
 };
 using VertexBufferHandle = Handle<VertexBuffer>;
 
-struct IndexBuffer
+struct IndexBuffer : public HardwareBuffer
 {
-    std::string    name       = {};
-    HardwareBuffer buffer     = {};
-    Int32          numIndices = 0;
-    Int32          stride     = 0;
-    bool           bUseU32    = false;
+    String name     = {};
+    Int32  numIdxes = 0;
+    Int32  stride   = 0;
+    bool   bUseU32  = false;
 };
 using IndexBufferHandle = Handle<IndexBuffer>;
 
-struct ConstantBuffer
+struct ConstantBuffer : public HardwareBuffer
 {
-    std::string    name   = {};
-    HardwareBuffer buffer = {};
+    String name = {};
 };
 using ConstantBufferHandle = Handle<ConstantBuffer>;
 
-struct TextureRef
+struct HardwareTextureRef
 {
     union
     {
@@ -262,9 +246,9 @@ struct TextureRef
         ID3D11Texture2D* pTexture2D;
         ID3D11Texture3D* pTexture3D;
     };
-    ID3D11ShaderResourceView* pSRV = nullptr;
+    ID3D11ShaderResourceView* pSrv = nullptr;
 
-    std::string    name           = {};
+    String         name           = {};
     Int32          width          = 0;
     Int32          height         = 0;
     Int32          depth          = 0;
@@ -279,18 +263,18 @@ struct TextureRef
     bool           bRtvAttachable = false;
     bool           bDsvAttachable = false;
 };
-using TextureHandle = Handle<TextureRef>;
+using TextureHandle = Handle<HardwareTextureRef>;
 
 struct FrameBuffer
 {
-    std::string name            = {};
-    Int32       numRenderTarget = 0;
+    String name             = {};
+    Int32  numRenderTargets = 0;
 
-    TextureHandle renderTargetTexhs[k_numRenderTargetLimit] = { k_invalidHandle };
-    TextureHandle depthStencilTexh                          = { k_invalidHandle };
+    Array<TextureHandle, k_numRenderTargetLimit> renderTargetTexhs = { k_invalidHandle };
+    TextureHandle                                depthStencilTexh  = { k_invalidHandle };
 
-    ID3D11RenderTargetView* pRTV[k_numRenderTargetLimit] = { nullptr };
-    ID3D11DepthStencilView* pDSV                         = nullptr;
+    Array<ID3D11RenderTargetView*, k_numRenderTargetLimit> pRtvs = { nullptr };
+    ID3D11DepthStencilView*                                pDsv  = nullptr;
 };
 using FrameBufferHandle = Handle<FrameBuffer>;
 
@@ -306,7 +290,7 @@ struct ShaderRef
         ID3D11ComputeShader*  pComputeShader;
     };
 
-    std::string    name     = {};
+    String         name     = {};
     eShader        stage    = eShader::VertexShader;
     Int32          refCount = 0;
     ShaderCacheKey cache    = 0;
@@ -315,7 +299,7 @@ using ShaderHandle = Handle<ShaderRef>;
 
 struct Program
 {
-    ShaderHandle shs[k_numGraphicsShaderStage] = { k_invalidHandle };
+    Array<ShaderHandle, k_numGraphicsShaderStages> shs = { k_invalidHandle };
 };
 using ProgramHandle = Handle<Program>;
 
@@ -326,10 +310,10 @@ struct RGBA
     }
 
     explicit constexpr RGBA(const UInt32 _rgba)
-        : r(static_cast<UInt8>((_rgba >> 24) & 0xFF))
-        , g(static_cast<UInt8>((_rgba >> 16) & 0xFF))
-        , b(static_cast<UInt8>((_rgba >> 8) & 0xFF))
-        , a(static_cast<UInt8>(_rgba & 0xFF))
+        : r(NumericCast<UInt8>((_rgba >> 24) & 0xFF))
+        , g(NumericCast<UInt8>((_rgba >> 16) & 0xFF))
+        , b(NumericCast<UInt8>((_rgba >> 8) & 0xFF))
+        , a(NumericCast<UInt8>(_rgba & 0xFF))
     {
     }
 
@@ -344,58 +328,58 @@ struct RGBA
     [[nodiscard]] constexpr static RGBA FromLinear(const float _r, const float _g, const float _b, const float _a = 1.0f)
     {
         return {
-            static_cast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
-            static_cast<UInt8>(Clamp(_g, 0.0f, 1.0f) * 255.0f),
-            static_cast<UInt8>(Clamp(_b, 0.0f, 1.0f) * 255.0f),
-            static_cast<UInt8>(Clamp(_a, 0.0f, 1.0f) * 255.0f)
+            NumericCast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
+            NumericCast<UInt8>(Clamp(_g, 0.0f, 1.0f) * 255.0f),
+            NumericCast<UInt8>(Clamp(_b, 0.0f, 1.0f) * 255.0f),
+            NumericCast<UInt8>(Clamp(_a, 0.0f, 1.0f) * 255.0f)
         };
     }
 
     [[nodiscard]] constexpr Vec4 ToLinear() const
     {
         return {
-            static_cast<float>(r) / 255.0f,
-            static_cast<float>(g) / 255.0f,
-            static_cast<float>(b) / 255.0f,
-            static_cast<float>(a) / 255.0f
+            NumericCast<float>(r) / 255.0f,
+            NumericCast<float>(g) / 255.0f,
+            NumericCast<float>(b) / 255.0f,
+            NumericCast<float>(a) / 255.0f
         };
     }
 
     // RRGGBBAA
     [[nodiscard]] constexpr UInt32 ToRGBA() const
     {
-        return (static_cast<UInt32>(r) << 24)
-             | (static_cast<UInt32>(g) << 16)
-             | (static_cast<UInt32>(b) << 8)
-             | static_cast<UInt32>(a);
+        return (NumericCast<UInt32>(r) << 24)
+             | (NumericCast<UInt32>(g) << 16)
+             | (NumericCast<UInt32>(b) << 8)
+             | NumericCast<UInt32>(a);
     }
 
     // AABBGGRR
     [[nodiscard]] constexpr UInt32 ToABGR() const
     {
-        return (static_cast<UInt32>(a) << 24)
-             | (static_cast<UInt32>(b) << 16)
-             | (static_cast<UInt32>(g) << 8)
-             | static_cast<UInt32>(r);
+        return (NumericCast<UInt32>(a) << 24)
+             | (NumericCast<UInt32>(b) << 16)
+             | (NumericCast<UInt32>(g) << 8)
+             | NumericCast<UInt32>(r);
     }
 
     // BBGGRRAA
     [[nodiscard]] constexpr UInt32 ToBGRA() const
     {
-        return (static_cast<UInt32>(b) << 24)
-             | (static_cast<UInt32>(g) << 16)
-             | (static_cast<UInt32>(r) << 8)
-             | static_cast<UInt32>(a);
+        return (NumericCast<UInt32>(b) << 24)
+             | (NumericCast<UInt32>(g) << 16)
+             | (NumericCast<UInt32>(r) << 8)
+             | NumericCast<UInt32>(a);
     }
 
     [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
     {
-        return color == _other.color;
+        return value == _other.value;
     }
 
     [[nodiscard]] constexpr bool operator!=(const RGBA& _other) const
     {
-        return color != _other.color;
+        return value != _other.value;
     }
 
     static RGBA k_white;
@@ -411,7 +395,7 @@ struct RGBA
             UInt8 b;
             UInt8 a;
         };
-        UInt32 color = 0;
+        UInt32 value = 0;
     };
 };
 
@@ -557,19 +541,19 @@ struct BlendState
         , srcBlendAlpha(eBlend::One)
         , dstBlendAlpha(eBlend::Zero)
         , blendOpAlpha(eBlendOp::Add)
-        , writeMask(eWriteFlags_All)
+        , writeMask(eWriteFlags::All)
     {
     }
 
     constexpr BlendState(
-        const bool        _bEnable,
-        const eBlend      _srcBlend,
-        const eBlend      _dstBlend,
-        const eBlendOp    _blendOp,
-        const eBlend      _srcBlendAlpha,
-        const eBlend      _dstBlendAlpha,
-        const eBlendOp    _blendOpAlpha,
-        const eWriteFlags _writeMask)
+        const bool               _bEnable,
+        const eBlend             _srcBlend,
+        const eBlend             _dstBlend,
+        const eBlendOp           _blendOp,
+        const eBlend             _srcBlendAlpha,
+        const eBlend             _dstBlendAlpha,
+        const eBlendOp           _blendOpAlpha,
+        const Flags<eWriteFlags> _writeMask)
         : bEnable(_bEnable)
         , srcBlend(_srcBlend)
         , dstBlend(_dstBlend)
@@ -590,19 +574,19 @@ struct BlendState
     static BlendState k_screen;
     static BlendState k_overlay;
 
-    // final color = (src color * src blend) (blend op) (dst color * dst blend)
+    // final value = (src value * src blend) (blend op) (dst value * dst blend)
     union
     {
         struct
         {
-            bool        bEnable : 1;         // 블렌딩 활성화 여부 (기본: 비활성화, true: 활성화)
-            eBlend      srcBlend : 4;        // 소스 블렌드 팩터 (기본: One)
-            eBlend      dstBlend : 4;        // 대상 블렌드 팩터 (기본: Zero)
-            eBlendOp    blendOp : 3;         // 블렌드 연산자 (기본: Add)
-            eBlend      srcBlendAlpha : 4;   // 소스 알파 블렌드 팩터 (기본: One)
-            eBlend      dstBlendAlpha : 4;   // 대상 알파 블렌드 팩터 (기본: Zero)
-            eBlendOp    blendOpAlpha : 3;    // 알파 블렌드 연산자 (기본: Add)
-            eWriteFlags writeMask : 4;       // 렌더 타겟에 쓰기 마스크 (기본: RGBA 모두 활성화)
+            bool               bEnable : 1;         // 블렌딩 활성화 여부 (기본: 비활성화, true: 활성화)
+            eBlend             srcBlend : 4;        // 소스 블렌드 팩터 (기본: One)
+            eBlend             dstBlend : 4;        // 대상 블렌드 팩터 (기본: Zero)
+            eBlendOp           blendOp : 3;         // 블렌드 연산자 (기본: Add)
+            eBlend             srcBlendAlpha : 4;   // 소스 알파 블렌드 팩터 (기본: One)
+            eBlend             dstBlendAlpha : 4;   // 대상 알파 블렌드 팩터 (기본: Zero)
+            eBlendOp           blendOpAlpha : 3;    // 알파 블렌드 연산자 (기본: Add)
+            Flags<eWriteFlags> writeMask;           // 렌더 타겟에 쓰기 마스크 (기본: RGBA 모두 활성화)
         };
         UInt32 value = 0;
     };
@@ -742,8 +726,8 @@ struct FrameBufferInfo
     Int32 numRenderTargets = 0;
     bool  bHasDepthStencil = false;
 
-    TextureHandle renderTargetTexhs[k_numRenderTargetLimit] = { k_invalidHandle };
-    TextureHandle depthStencilTexh                          = { k_invalidHandle };
+    Array<TextureHandle, k_numRenderTargetLimit> renderTargetTexhs = { k_invalidHandle };
+    TextureHandle                                depthStencilTexh  = { k_invalidHandle };
 };
 
 struct ShaderInfo
@@ -753,13 +737,13 @@ struct ShaderInfo
 
 struct ProgramInfo
 {
-    ShaderHandle shs[k_numGraphicsShaderStage] = { k_invalidHandle };
+    Array<ShaderHandle, k_numGraphicsShaderStages> shs = { k_invalidHandle };
 };
 
 [[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);
-[[nodiscard]] Int32             ByteFrom(eTextureFormat _format);
+[[nodiscard]] Int32             BytePerPixelOf(eTextureFormat _format);
 [[nodiscard]] Int32             CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
 [[nodiscard]] TextureResolution CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
 [[nodiscard]] Int32             CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _numMips);
 
-}   // namespace jam
+}   // namespace Jam

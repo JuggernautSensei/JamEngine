@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 struct Ray;
@@ -15,35 +15,35 @@ enum class eRegion
     FarRightTop,
     FarLeftBottom,
     FarRightBottom,
-
-    Min = NearLeftTop,
-    Max = FarRightBottom,
 };
-JAM_ENUM_STATIC_ASSERT(eRegion);
 
 struct CornerPoints
 {
-    [[nodiscard]] Vec3& At(const eRegion region)
+    [[nodiscard]] Vec3& At(
+        const eRegion region)
     {
-        return points[IntFrom(region)];
+        return points[UnderlyingFrom(region)];
     }
 
-    [[nodiscard]] const Vec3& At(const eRegion region) const
+    [[nodiscard]] const Vec3& At(
+        const eRegion region) const
     {
-        return points[IntFrom(region)];
+        return points[UnderlyingFrom(region)];
     }
 
-    [[nodiscard]] Vec3& operator[](const eRegion region)
+    [[nodiscard]] Vec3& operator[](
+        const eRegion region)
     {
-        return points[IntFrom(region)];
+        return points[UnderlyingFrom(region)];
     }
 
-    [[nodiscard]] const Vec3& operator[](const eRegion region) const
+    [[nodiscard]] const Vec3& operator[](
+        const eRegion region) const
     {
-        return points[IntFrom(region)];
+        return points[UnderlyingFrom(region)];
     }
 
-    Array<Vec3, NumEnums<eRegion>()> points = {};
+    Array<Vec3, CountOf<eRegion>()> points = {};
 };
 
 struct RayCastResult
@@ -54,10 +54,13 @@ struct RayCastResult
 
 struct Aabb
 {
+    Aabb() = default;
+    explicit Aabb(Vec3 _min, Vec3 _max);
+
     [[nodiscard]] static Aabb FromCenterExtents(Vec3 _center, Vec3 _ext);
 
-    void               Transform(const Mat4& _mtx);
-    [[nodiscard]] Aabb Transformed(const Mat4& _mtx) const;
+    void               Transform(const Mtx4& _mtx);
+    [[nodiscard]] Aabb Transformed(const Mtx4& _mtx) const;
 
     void Merge(const Aabb& _aabb);
     void Merge(Vec3 _p);
@@ -74,16 +77,19 @@ struct Aabb
     [[nodiscard]] bool          Intersect(const Aabb& _other) const;
     [[nodiscard]] RayCastResult Intersect(const Ray& _ray) const;
 
-    Vec3 min = Vec3(k_floatMax);
-    Vec3 max = Vec3(k_floatMin);
+    Vec3 min = Vec3 { Limits<float>::k_max };
+    Vec3 max = Vec3 { -Limits<float>::k_max };
 };
 
 struct Obb
 {
+    Obb() = default;
+    explicit Obb(const Mtx4& _mtx);
+
     [[nodiscard]] static Obb FromAabb(const Aabb& _aabb);
 
-    void              Transform(const Mat4& _mtx);
-    [[nodiscard]] Obb Transformed(const Mat4& _mtx) const;
+    void              Transform(const Mtx4& _mtx);
+    [[nodiscard]] Obb Transformed(const Mtx4& _mtx) const;
 
     [[nodiscard]] Aabb         ToAabb() const;
     [[nodiscard]] Vec3         GetCenter() const;
@@ -96,7 +102,7 @@ struct Obb
     [[nodiscard]] bool          Contain(Vec3 _point) const;
     [[nodiscard]] RayCastResult Intersect(const Ray& _ray) const;
 
-    Mat4 mtx = Mat4::Identity;
+    Mtx4 mtx = mtx4::k_identity;
 };
 
 enum class ePlaneIntersectType
@@ -108,34 +114,37 @@ enum class ePlaneIntersectType
 
 struct Plane
 {
-    [[nodiscard]] static Plane FromNormalD(Vec3 _normal, float _d);
-    [[nodiscard]] static Plane FromPoints(Vec3 _p1, Vec3 _p2, Vec3 _p3);
-    [[nodiscard]] static Plane FromPointNormal(Vec3 _point, Vec3 _normal);
-    [[nodiscard]] static Vec3  IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3);
+    Plane() = default;
+    explicit Plane(float _a, float _b, float _c, float _d);
+    explicit Plane(Vec4 _vec);
+    explicit Plane(Vec3 _normal, float _d);
+    explicit Plane(Vec3 _p1, Vec3 _p2, Vec3 _p3);
+    explicit Plane(Vec3 _point, Vec3 _normal);
 
-    [[nodiscard]] Vec3  GetNormal() const;
-    [[nodiscard]] float GetD() const;
+    [[nodiscard]] static Vec3 IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3);
+    [[nodiscard]] Vec3        GetNormal() const;
+    [[nodiscard]] float       GetD() const;
 
     void                Normalize();
     [[nodiscard]] Plane Normalized() const;
 
-    void                Transform(const Mat4& _mtx);
-    [[nodiscard]] Plane Transformed(const Mat4& _mtx) const;
+    void                Transform(const Mtx4& _mtx);
+    [[nodiscard]] Plane Transformed(const Mtx4& _mtx) const;
 
     [[nodiscard]] float         DistanceToPoint(Vec3 _point) const;
     [[nodiscard]] RayCastResult Intersect(const Ray& _ray) const;
 
-    Vec4 vec = Vec4::Zero;
+    Vec4 vec = vec4::k_zero;
 };
 
 struct Frustum
 {
     Frustum() = default;
+    explicit Frustum(Plane _near, Plane _far, Plane _left, Plane _right, Plane _top, Plane _bottom);
+    explicit Frustum(const Mtx4& _mtx);
 
-    [[nodiscard]] static Frustum FromMatrix(const Mat4& _mtx);
-
-    void                  Transform(const Mat4& _mtx);
-    [[nodiscard]] Frustum Transformed(const Mat4& _mtx) const;
+    void                  Transform(const Mtx4& _mtx);
+    [[nodiscard]] Frustum Transformed(const Mtx4& _mtx) const;
 
     [[nodiscard]] Frustum      SplitFrustum(float _startDist, float _endDist) const;
     [[nodiscard]] Vec3         GetCenter() const;
@@ -155,14 +164,15 @@ struct Frustum
             Plane topPlane;
             Plane bottomPlane;
         };
-        Plane planes[6] = {};
+
+        Array<Plane, 6> planes = {};
     };
 };
 
 struct Ray
 {
-    Vec3 origin;
-    Vec3 direction;
+    Vec3 origin    = vec3::k_zero;
+    Vec3 direction = vec3::k_zero;
 };
 
-}   // namespace jam
+}   // namespace Jam

@@ -1,93 +1,63 @@
 #include "pch.h"
 
-#include "Json.h"
 #include "Scene.h"
 #include "SceneComponent.h"
 
 #include "EditorUtilities.h"
-#include "JsonUtilities.h"
-
 #include "EditorWidgets.h"
 
-namespace jam
+namespace Jam
 {
-
-SceneComponent::SceneComponent()
-{
-}
-
-SceneComponent::SceneComponent(
-    SceneNode&& _node)
-    : node(std::move(_node))
-{
-}
 
 void SceneComponent::Serialize(
-    JsonWriter        _writer,
-    const Ref<Scene>& _pScene,
-    Entity            _owner) const
+    ArchiveWriter& _writer,
+    const Ref<Scene>&,
+    Entity) const
 {
-    // local matrix
-    {
-        const Mat4 mtx = node.GetLocalTransform().GetMatrix();
-        _writer.WriteField("mtx", mtx);
-    }
-
-    // parent
-    if (node.HasParent())
-    {
-        const Entity parent = node.GetParent();
-        _writer.WriteField("parent", parent.GetUID());
-    }
-    else
-    {
-        _writer.WriteField("parent", nullptr);
-    }
+    _writer.WriteField("localMatrix", node.GetLocalTransform().GetMatrix());
+    _writer.WriteField("parent", node.GetParent().GetUID());   // if root parent entity is invalid UID.
 }
 
 void SceneComponent::Deserialize(
-    JsonReader        _reader,
+    ArchiveReader&    _reader,
     const Ref<Scene>& _pScene,
-    Entity            _owner)
+    const Entity      _owner)
 {
-    // local matrix
+    // transform
+    Mtx4 localMtx = mtx4::k_identity;
+    if (_reader.ReadField("localTransform", localMtx))
     {
-        Mat4 mtx = Mat4::Identity;
-        if (_reader.ReadField("mtx", mtx))
-        {
-            node.ModifyLocalTransform().SetMatrix(mtx);
-        }
+        return;
     }
+    node.ModifyLocalTransform().SetMatrix(localMtx);
 
     // parent
-    JsonReader parentReader;
-    if (MoveIfHasValue(_reader.EnterField("parent"), parentReader))
+    UID parentUid = UID::k_invalid;
+    if (_reader.ReadField("parent", parentUid))
     {
-        if (!parentReader.IsNull())
+        return;
+    }
+
+    // set parent if null uid -> root node
+    if (parentUid)
+    {
+        const Optional<Entity> parent = _pScene->FindEntity(parentUid);
+        if (!parent)
         {
-            UID parentUid;
-            if (parentReader.Read(parentUid))
-            {
-                if (const Entity parent = _pScene->FindEntity(parentUid))
-                {
-                    node.SetParent(parent, true);
-                }
-                else
-                {
-                    GlobalBuffer::SetLastError("SceneComponent::Deserialize() failed: parent entity with UID {} not found", parentUid);
-                    Log::Error(GlobalBuffer::GetLastError());
-                    _reader.MarkFailed();
-                }
-            }
+            JAM_LOG.Error("SceneComponent::Deserialize: Parent entity with UID '{}' not found for entity with UID '{}'.", parentUid.GetValue(), _owner.GetUID());
+            _reader.MarkError(Error::InvalidData);
+            return;
         }
+
+        node.SetParent(parent.GetValue(), true);
     }
 }
 
-void SceneComponent::Panel_EditComponent(
-    Ref<Scene>&  _pScene,
-    const Entity _entity)
+void SceneComponent::DrawEditPanel(
+    const Ref<Scene>& _pScene,
+    Entity            _owner)
 {
-    if (BeginLabelValueTable("SceneComponent"))
+    if (BeginLabelTable("SceneComponent"))
     {
         // coordinate space
         enum class eCoordinate
@@ -97,9 +67,7 @@ void SceneComponent::Panel_EditComponent(
         };
 
         // static variables
-        static eCoordinate s_coord       = eCoordinate::World;
-        static bool        s_bPyrEditing = false;
-        static Vec3        s_pyr         = Vec3::Zero;
+        static eCoordinate s_coord = eCoordinate::World;
 
         const bool       bIsWorld  = s_coord == eCoordinate::World;
         const Transform& transform = bIsWorld ? node.GetWorldTransform() : node.GetLocalTransform();
@@ -115,7 +83,7 @@ void SceneComponent::Panel_EditComponent(
         // translation
         {
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("translation");
+            Widget_Text("translation", true);
             ImGui::TableNextColumn();
             if (Widget_DragTranslation("##TransformTranslation", translation))
             {
@@ -132,40 +100,32 @@ void SceneComponent::Panel_EditComponent(
 
         // rotation
         {
-
-            // get rotation (if not editing)
-            if (s_bPyrEditing == false)
-            {
-                s_pyr = transform.ToPitchYawRoll();
-            }
+            static EulerProxy s_proxy = {};
+            s_proxy.OnBeforeWidget(transform);
+            Vec3& eulerRad = s_proxy.GetEulerProxy();
 
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("rotation");
+            Widget_Text("rotation", true);
             ImGui::TableNextColumn();
-            if (Widget_DragPitchYawRoll("##TransformRotation", s_pyr))
+            if (Widget_DragEuler("##TransformRotation", eulerRad))
             {
-                s_bPyrEditing = true;
                 if (bIsWorld)
                 {
-                    node.ModifyWorldTransform().SetRotation(s_pyr);
+                    node.ModifyWorldTransform().SetRotation(eulerRad);
                 }
                 else
                 {
-                    node.ModifyLocalTransform().SetRotation(s_pyr);
+                    node.ModifyLocalTransform().SetRotation(eulerRad);
                 }
             }
 
-            // editing rotation done
-            if (ImGui::IsItemDeactivated())
-            {
-                s_bPyrEditing = false;
-            }
+            s_proxy.OnAfterWidget();
         }
 
         // scale
         {
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("scale");
+            Widget_Text("scale", true);
             ImGui::TableNextColumn();
             if (Widget_DragScale("##TransformScale", scale))
             {
@@ -183,15 +143,15 @@ void SceneComponent::Panel_EditComponent(
         // space radio buttons
         {
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("mode");
+            Widget_Text("mode", true);
             ImGui::TableNextColumn();
-            ImGui::RadioButton("world", reinterpret_cast<Int32*>(s_coord), static_cast<Int32>(eCoordinate::World));
+            ImGui::RadioButton("world", reinterpret_cast<int*>(&s_coord), static_cast<int>(eCoordinate::World));
             ImGui::SameLine();
-            ImGui::RadioButton("local", reinterpret_cast<Int32*>(s_coord), static_cast<Int32>(eCoordinate::Local));
+            ImGui::RadioButton("local", reinterpret_cast<int*>(&s_coord), static_cast<int>(eCoordinate::Local));
         }
 
         ImGui::EndTable();
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

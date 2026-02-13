@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 class RefCounted
@@ -18,21 +18,16 @@ public:
         ++m_refCount;
     }
 
-    bool Release()
+    Int32 Release()
     {
         JAM_ASSERT(m_refCount > 0, "Reference count underflow");
         --m_refCount;
-        return m_refCount == 0;
+        return m_refCount;
     }
 
     [[nodiscard]] Int32 GetRefCount() const
     {
         return m_refCount;
-    }
-
-    [[nodiscard]] bool IsReferenced() const
-    {
-        return m_refCount > 1;
     }
 
 private:
@@ -42,8 +37,6 @@ private:
 template<typename T>
 class Ref
 {
-    static_assert(std::is_base_of_v<RefCounted, T>, "T must derive from RefCounted");
-
 public:
     Ref()
         : m_ptr(nullptr)
@@ -81,7 +74,7 @@ public:
 
     template<typename U>
     /* implicit */ Ref(U* _ptr)
-        requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
         : m_ptr(static_cast<T*>(_ptr))
     {
         if (m_ptr)
@@ -92,7 +85,7 @@ public:
 
     template<typename U>
     /* implicit */ Ref(const Ref<U>& _other)
-        requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
         : m_ptr(static_cast<T*>(_other.m_ptr))
     {
         if (m_ptr)
@@ -153,7 +146,7 @@ public:
 
     template<typename U>
     Ref& operator=(const Ref<U>& _other)
-        requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
     {
         T* pOther = static_cast<T*>(_other.m_ptr);
         if (m_ptr != pOther)
@@ -213,7 +206,7 @@ public:
         return m_ptr < _other.m_ptr;
     }
 
-    [[nodiscard]] explicit operator bool() const
+    /* implicit */ operator bool() const
     {
         return m_ptr != nullptr;
     }
@@ -243,7 +236,7 @@ private:
     {
         if (m_ptr)
         {
-            if (m_ptr->Release())
+            if (m_ptr->Release() == 0)
             {
                 delete m_ptr;
             }
@@ -251,8 +244,10 @@ private:
         }
     }
 
-    T* m_ptr;
+    T* m_ptr = nullptr;
 };
+
+using AnyRef = Ref<RefCounted>;
 
 template<typename T, typename... Args>
 [[nodiscard]] Ref<T> MakeRef(Args&&... args)
@@ -260,4 +255,13 @@ template<typename T, typename... Args>
     return Ref<T>(new T(std::forward<Args>(args)...));
 }
 
-}   // namespace jam
+}   // namespace Jam
+
+template<typename T>
+struct ankerl::unordered_dense::hash<Jam::Ref<T>>
+{
+    [[nodiscard]] uint64_t operator()(const Jam::Ref<T>& value) const noexcept
+    {
+        return ankerl::unordered_dense::hash<T*> {}(value.GetPtr());
+    }
+};

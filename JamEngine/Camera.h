@@ -1,20 +1,21 @@
 #pragma once
+#include "Archive.h"
 
-namespace jam
+namespace Jam
 {
 
-enum class eProjection : Int8
+enum class eProjection
 {
     Perspective = 0,
-    Orthographic
+    Orthographic,
 };
 
 class Camera
 {
 public:
-    Camera();
+    Camera() = default;
 
-    [[nodiscard]] Mat4 ToProjMatrix() const;
+    [[nodiscard]] Mtx4 ToProjMatrix() const;
 
     void SetProjection(eProjection _projection);
     void SetNearZ(float _nearZ);
@@ -30,6 +31,9 @@ public:
     [[nodiscard]] float       GetFovYRad() const;
     [[nodiscard]] float       GetWidth() const;
     [[nodiscard]] float       GetHeight() const;
+
+    void  WriteToArchive(ArchiveWriter& _writer) const;
+    Error ReadFromArchive(ArchiveReader& _reader);
 
     constexpr static float k_minZ           = 0.01f;
     constexpr static float k_maxZ           = 30000.f;
@@ -47,4 +51,6 @@ private:
     float       m_height     = 1.f;
 };
 
-}   // namespace jam
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Camera);
+
+}   // namespace Jam

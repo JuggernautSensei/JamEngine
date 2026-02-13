@@ -1,9 +1,10 @@
 #pragma once
+
 #include "EmbeddedShaderGlue.h"
-#include "ImageTexture.h"
+#include "Texture.h"
 #include "RefCounted.h"
 
-namespace jam
+namespace Jam
 {
 
 enum class eSkyboxType
@@ -20,7 +21,7 @@ enum class eToneMappingType
     WhitePreservingReinhard,
     RomBinDaHouse,
     Uncharted2,
-    Filmic
+    Filmic,
 };
 
 enum class eFxaaQuality
@@ -33,125 +34,163 @@ enum class eFxaaQuality
     Ultra,
 };
 
-struct DirectionalLightData
-{
-    // environment
-    bool  bEnabled  = false;
-    Vec3  radiance  = Vec3(1.f, 1.f, 1.f);
-    float intensity = 1.f;
-    Vec3  direction = Vec3(0.f, -1.f, 0.f);
-
-    // shadow
-    bool                            bShadowEnabled   = false;
-    Array<float, JAM_CASCADE_LEVEL> cascadeDistances = { 100, 200, 400 };
-};
-
-struct ImageBasedLightingData
-{
-    Ref<ImageTexture> pIrradianceTexture         = nullptr;
-    Ref<ImageTexture> pSpecularTexture           = nullptr;
-    Ref<ImageTexture> pBrdfLutTexture            = nullptr;
-    float             irradianceTextureIntensity = 1.f;
-    float             specularTextureIntensity   = 1.f;
-};
-
-struct SkyboxData
-{
-    eSkyboxType       type           = eSkyboxType::SolidColor;
-    Ref<ImageTexture> pSkyboxTexture = nullptr;                  // cubemap
-    Vec3              solidColor     = Vec3(0.2f, 0.2f, 0.2f);   // solid radiance
-};
-
-struct SSAOData
-{
-    bool  bEnabled = false;
-    float radius   = 0.5f;
-    float bias     = 0.025f;
-};
-
-struct FogData
-{
-    bool  bEnabled          = false;
-    Vec3  radiance          = Vec3(0.5f, 0.5f, 0.5f);
-    float density           = 0.01f;
-    float fallOffStart      = 10.f;
-    float fallOffEnd        = 100.f;
-    float heightAttenuation = 0.1f;
-};
-
-struct ToneMappingData
-{
-    bool             bEnabled = false;
-    eToneMappingType type     = eToneMappingType::Linear;
-    float            exposure = 1.f;
-    float            gamma    = 2.2f;
-};
-
-struct BloomData
-{
-    static constexpr Int32 k_maxBlurPasses = 10;
-
-    bool  bEnabled      = false;
-    float blurRadius    = 0.005f;   // sigma
-    float bloomStrength = 0.05f;
-    Int32 numBlurPasses = 5;   // downsample level
-};
-
-struct FXAAData
-{
-    bool         bEnabled = false;
-    eFxaaQuality quality  = eFxaaQuality::Medium;
-};
-
-struct EnvironmentMisc
-{
-    float shadowBias = 0.005f;
-};
+using CascadeDistancesArray = Array<float, JAM_CASCADE_LEVEL>;
 
 class Environment
 {
 public:
-    [[nodiscard]] const DirectionalLightData& GetDirectionalLight() const;
-    void                                      SetDirectionalLight(const DirectionalLightData& _dirLight);
+    // directional light
+    void                SetDirectionalLightEnabled(bool _bEnabled);
+    [[nodiscard]] bool  IsDirectionalLightEnabled() const;
+    void                SetDirectionalLightRadiance(Vec3 _radiance);
+    [[nodiscard]] Vec3  GetDirectionalLightRadiance() const;
+    void                SetDirectionalLightIntensity(float _intensity);
+    [[nodiscard]] float GetDirectionalLightIntensity() const;
+    void                SetDirectionalLightDirection(Vec3 _direction);
+    [[nodiscard]] Vec3  GetDirectionalLightDirection() const;
 
-    [[nodiscard]] const ImageBasedLightingData& GetIBL() const;
-    void                                        SetIBL(const ImageBasedLightingData& _ibl);
+    // directional light shadow (CSM)
+    void                                       SetDirectionalLightShadowEnabled(bool _bEnabled);
+    [[nodiscard]] bool                         IsDirectionalLightShadowEnabled() const;
+    void                                       SetDirectionalLightShadowBias(float _bias);
+    [[nodiscard]] float                        GetDirectionalLightShadowBias() const;
+    void                                       SetDirectionalLightCascadeDistances(const CascadeDistancesArray& _distances);
+    [[nodiscard]] const CascadeDistancesArray& GetDirectionalLightCascadeDistances() const;
 
-    [[nodiscard]] const SkyboxData& GetSkybox() const;
-    void                            SetSkybox(const SkyboxData& _skybox);
+    // image based lighting
+    void                              SetIblIrradianceTex(const Ref<Texture>& _pTex);
+    [[nodiscard]] const Ref<Texture>& GetIblIrradianceTex() const;
+    void                              SetIblSpecularTex(const Ref<Texture>& _pTex);
+    [[nodiscard]] const Ref<Texture>& GetIblSpecularTex() const;
+    void                              SetIblBrdfLutTex(const Ref<Texture>& _pTex);
+    [[nodiscard]] const Ref<Texture>& GetIblBrdfLutTex() const;
+    void                              SetIblIrradianceIntensity(float _intensity);
+    [[nodiscard]] float               GetIblIrradianceIntensity() const;
+    void                              SetIblSpecularIntensity(float _intensity);
+    [[nodiscard]] float               GetIblSpecularIntensity() const;
 
-    [[nodiscard]] const SSAOData& GetSSAO() const;
-    void                          SetSSAO(const SSAOData& _ssao);
+    // skybox
+    void                              SetSkyboxType(eSkyboxType _type);
+    [[nodiscard]] eSkyboxType         GetSkyboxType() const;
+    void                              SetSkyboxTex(const Ref<Texture>& _pTex);
+    [[nodiscard]] const Ref<Texture>& GetSkyboxTex() const;
+    void                              SetSkyboxSolidColor(Vec3 _color);
+    [[nodiscard]] Vec3                GetSkyboxSolidColor() const;
 
-    [[nodiscard]] const FogData& GetFog() const;
-    void                         SetFog(const FogData& _fog);
+    // ssao
+    void                SetSsaoEnabled(bool _bEnabled);
+    [[nodiscard]] bool  IsSsaoEnabled() const;
+    void                SetSsaoRadius(float _radius);
+    [[nodiscard]] float GetSsaoRadius() const;
+    void                SetSsaoBias(float _bias);
+    [[nodiscard]] float GetSsaoBias() const;
 
-    [[nodiscard]] const ToneMappingData& GetToneMapping() const;
-    void                                 SetToneMapping(const ToneMappingData& _toneMapping);
+    // fog
+    void                SetFogEnabled(bool _bEnabled);
+    [[nodiscard]] bool  IsFogEnabled() const;
+    void                SetFogRadiance(Vec3 _radiance);
+    [[nodiscard]] Vec3  GetFogRadiance() const;
+    void                SetFogDensity(float _density);
+    [[nodiscard]] float GetFogDensity() const;
+    void                SetFogFallOffStart(float _start);
+    [[nodiscard]] float GetFogFallOffStart() const;
+    void                SetFogFallOffEnd(float _end);
+    [[nodiscard]] float GetFogFallOffEnd() const;
+    void                SetFogHeightAttenuation(float _attenuation);
+    [[nodiscard]] float GetFogHeightAttenuation() const;
 
-    [[nodiscard]] const BloomData& GetBloom() const;
-    void                           SetBloom(const BloomData& _bloom);
+    // tone mapping
+    void                           SetToneMappingEnabled(bool _bEnabled);
+    [[nodiscard]] bool             IsToneMappingEnabled() const;
+    void                           SetToneMappingType(eToneMappingType _type);
+    [[nodiscard]] eToneMappingType GetToneMappingType() const;
+    void                           SetToneMappingExposure(float _exposure);
+    [[nodiscard]] float            GetToneMappingExposure() const;
+    void                           SetToneMappingGamma(float _gamma);
+    [[nodiscard]] float            GetToneMappingGamma() const;
 
-    [[nodiscard]] const FXAAData& GetFXAA() const;
-    void                          SetFXAA(const FXAAData& _fxaa);
+    // bloom
+    void                SetBloomEnabled(bool _bEnabled);
+    [[nodiscard]] bool  IsBloomEnabled() const;
+    void                SetBloomBlurRadius(float _radius);
+    [[nodiscard]] float GetBloomBlurRadius() const;
+    void                SetBloomStrength(float _strength);
+    [[nodiscard]] float GetBloomStrength() const;
+    void                SetBloomNumBlurPasses(Int32 _numPasses);
+    [[nodiscard]] Int32 GetBloomNumBlurPasses() const;
 
-    [[nodiscard]] const EnvironmentMisc& GetMisc() const;
-    void                                 SetMisc(const EnvironmentMisc& _misc);
+    // fxaa
+    void                       SetFxaaEnabled(bool _bEnabled);
+    [[nodiscard]] bool         IsFxaaEnabled() const;
+    void                       SetFxaaQuality(eFxaaQuality _quality);
+    [[nodiscard]] eFxaaQuality GetFxaaQuality() const;
 
+    // dirty flag
     [[nodiscard]] bool IsDirty() const;
     void               ClearDirty();
 
+    void  WriteToArchive(ArchiveWriter& _writer) const;
+    Error ReadFromArchive(ArchiveReader& _reader);
+
+    static constexpr Int32 k_maxNumbloomPasses = 10;
+
 private:
-    DirectionalLightData   m_dirLight    = {};
-    ImageBasedLightingData m_ibl         = {};
-    SkyboxData             m_skybox      = {};
-    SSAOData               m_ssao        = {};
-    FogData                m_fog         = {};
-    ToneMappingData        m_toneMapping = {};
-    BloomData              m_bloom       = {};
-    FXAAData               m_fxaa        = {};
-    EnvironmentMisc        m_misc        = {};
-    bool                   m_bDirty      = true;
+    // directional light
+    bool  m_bDirLightEnabled  = false;
+    Vec3  m_dirLightRadiance  = { 1.f, 1.f, 1.f };
+    float m_dirLightIntensity = 1.f;
+    Vec3  m_dirLightDirection = { 0.f, -1.f, 0.f };
+
+    // directional light shadow (CSM)
+    bool                  m_bDirLightShadowEnabled   = false;
+    float                 m_dirLightShadowBias       = 0.005f;
+    CascadeDistancesArray m_dirLightCascadeDistances = { 100, 200, 400 };
+
+    // image based lighting
+    Ref<Texture> m_pIblIrradianceTex         = nullptr;
+    Ref<Texture> m_pIblSpecularTex           = nullptr;
+    Ref<Texture> m_pIblBrdfLutTex            = nullptr;
+    float        m_iblIrradianceTexIntensity = 1.f;
+    float        m_iblSpecularTexIntensity   = 1.f;
+
+    // skybox
+    eSkyboxType  m_skyboxType       = eSkyboxType::SolidColor;
+    Ref<Texture> m_pSkyboxTex       = nullptr;                // cubemap
+    Vec3         m_skyboxSolidColor = { 0.2f, 0.2f, 0.2f };   // solid radiance
+
+    // ssao
+    bool  m_bSsaoEnabled = false;
+    float m_ssaoRadius   = 0.5f;
+    float m_ssaoBias     = 0.025f;
+
+    // fog
+    bool  m_bFogEnabled          = false;
+    Vec3  m_fogRadiance          = { 0.5f, 0.5f, 0.5f };
+    float m_fogDensity           = 0.01f;
+    float m_fogFallOffStart      = 10.f;
+    float m_fogFallOffEnd        = 100.f;
+    float m_fogHeightAttenuation = 0.1f;
+
+    // tone mapping
+    bool             m_bToneMappingEnabled = false;
+    eToneMappingType m_toneMappingType     = eToneMappingType::Linear;
+    float            m_toneMappingExposure = 1.f;
+    float            m_toneMappingGamma    = 2.2f;
+
+    // bloom
+    bool  m_bBloomEnabled      = false;
+    float m_bloomBlurRadius    = 0.005f;   // sigma
+    float m_bloomStrength      = 0.05f;
+    Int32 m_bloomNumBlurPasses = 5;   // downsample level
+
+    // fxaa
+    bool         m_bFxaaEnabled = false;
+    eFxaaQuality m_fxaaQuality  = eFxaaQuality::Medium;
+
+    // dirty flag
+    bool m_bDirty = false;
 };
 
-}   // namespace jam
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Environment);
+
+}   // namespace Jam

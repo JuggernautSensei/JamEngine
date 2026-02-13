@@ -1,35 +1,337 @@
 #pragma once
-#include "Vendor/optional/optional.hpp"
 
-namespace jam
+namespace Jam
 {
 
-template<typename T>
-using Optional                           = tl::optional<T>;
-static constexpr tl::nullopt_t k_nullopt = tl::nullopt;
-
-template<typename T>
-bool MoveIfHasValue(Optional<T>& _opt, T& _outValue)
+struct NullOptionalT
 {
-    if (!_opt)
+    struct Tag
     {
-        return false;
+    };
+
+    constexpr explicit NullOptionalT(Tag) {}
+};
+constexpr NullOptionalT k_nullopt { NullOptionalT::Tag() };
+
+struct OptionalDummyT
+{
+    constexpr explicit OptionalDummyT() {}
+};
+
+template<typename T>
+class Optional;
+
+template<typename T>
+class Optional
+{
+public:
+    constexpr Optional()
+        : m_dummy()
+        , m_bHasValue(false)
+    {
     }
 
-    _outValue = std::move(*_opt);
-    return true;
-}
-
-template<typename T>
-bool MoveIfHasValue(Optional<T>&& _opt, T& _outValue)
-{
-    if (_opt)
+    constexpr ~Optional()
     {
-        _outValue = std::move(*_opt);
-        return true;
+        Reset();
     }
 
-    return false;
-}
+    template<typename... TArgs>
+    constexpr explicit Optional(TArgs&&... _args)
+        : m_bHasValue(true)
+    {
+        std::construct_at(&m_value, std::forward<TArgs>(_args)...);
+    }
 
-}   // namespace jam
+    /* implicit */ constexpr Optional(const T& _value)
+        : m_bHasValue(true)
+    {
+        std::construct_at(&m_value, _value);
+    }
+
+    /* implicit */ constexpr Optional(T&& _value)
+        : m_bHasValue(true)
+    {
+        std::construct_at(&m_value, std::move(_value));
+    }
+
+    /* implicit */ constexpr Optional(const NullOptionalT&)
+        : m_dummy()
+        , m_bHasValue(false)
+    {
+    }
+
+    /* implicit */ constexpr Optional(NullOptionalT&&)
+        : m_dummy()
+        , m_bHasValue(false)
+    {
+    }
+
+    constexpr Optional(Optional&& _other) noexcept
+        : m_bHasValue(_other.m_bHasValue)
+    {
+        if (m_bHasValue)
+        {
+            std::construct_at(&m_value, std::move(_other.m_value));
+        }
+        else
+        {
+            std::construct_at(&m_dummy, OptionalDummyT {});
+        }
+        _other.Reset();
+    }
+
+    constexpr Optional& operator=(Optional&& _other) noexcept
+    {
+        if (this != &_other)
+        {
+            Reset();
+            m_bHasValue = _other.m_bHasValue;
+            if (m_bHasValue)
+            {
+                std::construct_at(&m_value, std::move(_other.m_value));
+            }
+            else
+            {
+                std::construct_at(&m_dummy, OptionalDummyT {});
+            }
+            _other.Reset();
+        }
+        return *this;
+    }
+
+    constexpr Optional(const Optional& _other)
+        : m_bHasValue(_other.m_bHasValue)
+    {
+        if (m_bHasValue)
+        {
+            std::construct_at(&m_value, _other.m_value);
+        }
+        else
+        {
+            std::construct_at(&m_dummy, OptionalDummyT {});
+        }
+    }
+
+    constexpr Optional& operator=(const Optional& _other)
+    {
+        if (this != &_other)
+        {
+            Reset();
+            m_bHasValue = _other.m_bHasValue;
+            if (m_bHasValue)
+            {
+                std::construct_at(&m_value, _other.m_value);
+            }
+            else
+            {
+                std::construct_at(&m_dummy, OptionalDummyT {});
+            }
+        }
+        return *this;
+    }
+
+    constexpr Optional& operator=(const NullOptionalT&)
+    {
+        Reset();
+        return *this;
+    }
+
+    constexpr Optional& operator=(NullOptionalT&&)
+    {
+        Reset();
+        return *this;
+    }
+
+    template<typename U>
+        requires std::is_convertible_v<U, T>
+    /* implicit */ constexpr Optional(Optional<U>&& _other) noexcept(std::is_nothrow_constructible_v<T, U&&>)
+        : m_bHasValue(_other.m_bHasValue)
+    {
+        if (m_bHasValue)
+        {
+            std::construct_at(&m_value, std::move(_other.m_value));
+        }
+        else
+        {
+            std::construct_at(&m_dummy, OptionalDummyT {});
+        }
+
+        _other.Reset();
+    }
+
+    template<typename U>
+        requires std::is_convertible_v<U, T>
+    /* implicit */ constexpr Optional(const Optional<U>& _other)
+        : m_bHasValue(_other.HasValue())
+    {
+        if (m_bHasValue)
+        {
+            std::construct_at(&m_value, _other.m_value);
+        }
+        else
+        {
+            std::construct_at(&m_dummy, OptionalDummyT {});
+        }
+    }
+
+    [[nodiscard]] constexpr bool HasValue() const
+    {
+        return m_bHasValue;
+    }
+
+    /* implicit */ explicit operator bool() const
+    {
+        return m_bHasValue;
+    }
+
+    [[nodiscard]] constexpr const T& GetValue() const
+    {
+        JAM_ASSERT(m_bHasValue, "Optional does not contain a value");
+        return m_value;
+    }
+
+    [[nodiscard]] constexpr T& GetValue()
+    {
+        JAM_ASSERT(m_bHasValue, "Optional does not contain a value");
+        return m_value;
+    }
+
+    [[nodiscard]] constexpr T Take()
+    {
+        JAM_ASSERT(m_bHasValue, "Optional does not contain a value");
+        T value = std::move(m_value);
+        Reset();
+        return value;
+    }
+
+    constexpr const T& operator*() const
+    {
+        return GetValue();
+    }
+
+    constexpr T& operator*()
+    {
+        return GetValue();
+    }
+
+    constexpr const T* operator->() const
+    {
+        return &GetValue();
+    }
+
+    constexpr T* operator->()
+    {
+        return &GetValue();
+    }
+
+    constexpr void Reset()
+    {
+        if (m_bHasValue)
+        {
+            std::destroy_at(&m_value);
+        }
+
+        std::construct_at(&m_dummy, OptionalDummyT {});
+        m_bHasValue = false;
+    }
+
+private:
+    template<typename U>
+    friend class Optional;
+
+    union
+    {
+        OptionalDummyT m_dummy;
+        T              m_value;
+    };
+    bool m_bHasValue = false;
+};
+
+template<typename T>
+class Optional<T&>
+{
+public:
+    constexpr Optional()
+        : m_value(nullptr)
+    {
+    }
+
+    constexpr ~Optional() = default;
+
+    /* implicit */ constexpr Optional(T& _value)
+        : m_value(std::addressof(_value))
+    {
+    }
+
+    /* implicit */ constexpr Optional(const NullOptionalT&)
+        : m_value(nullptr)
+    {
+    }
+
+    /* implicit */ constexpr Optional(NullOptionalT&&)
+        : m_value(nullptr)
+    {
+    }
+
+    constexpr Optional(const Optional& _other)                = default;
+    constexpr Optional& operator=(const Optional& _other)     = default;
+    constexpr Optional(Optional&& _other) noexcept            = default;
+    constexpr Optional& operator=(Optional&& _other) noexcept = default;
+
+    constexpr Optional& operator=(const NullOptionalT&)
+    {
+        Reset();
+        return *this;
+    }
+
+    constexpr Optional& operator=(NullOptionalT&&)
+    {
+        Reset();
+        return *this;
+    }
+
+    [[nodiscard]] constexpr bool HasValue() const
+    {
+        return m_value != nullptr;
+    }
+
+    /* implicit */ explicit operator bool() const
+    {
+        return m_value != nullptr;
+    }
+
+    [[nodiscard]] constexpr T& GetValue() const
+    {
+        JAM_ASSERT(m_value != nullptr, "Optional does not contain a value");
+        return *m_value;
+    }
+
+    [[nodiscard]] constexpr T& Take()
+    {
+        JAM_ASSERT(m_value != nullptr, "Optional does not contain a value");
+        T* pValue = m_value;
+        Reset();
+        return *pValue;
+    }
+
+    constexpr T& operator*() const
+    {
+        return GetValue();
+    }
+
+    constexpr T* operator->() const
+    {
+        return m_value;
+    }
+
+    constexpr void Reset()
+    {
+        m_value = nullptr;
+    }
+
+private:
+    T* m_value = nullptr;
+};
+
+}   // namespace Jam

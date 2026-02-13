@@ -1,57 +1,301 @@
 #pragma once
-#include <numbers>
 #include <random>
 
-namespace jam
+#include "TypeTraits.h"
+
+namespace Jam
 {
 
-constexpr float k_pi        = std::numbers::pi_v<float>;
-constexpr float k_2pi       = 2.f * k_pi;
-constexpr float k_halfPi    = k_pi / 2.f;
-constexpr float k_invPi     = 1.f / k_pi;
-constexpr float k_inv2Pi    = 1.f / k_2pi;
-constexpr float k_invHalfPi = 1.f / k_halfPi;
-constexpr float k_epsilon   = 1e-5f;
-constexpr float k_toRad     = k_pi / 180.f;
-constexpr float k_toDeg     = 180.f / k_pi;
-
-constexpr float  k_floatMin  = std::numeric_limits<float>::lowest();
-constexpr float  k_floatMax  = std::numeric_limits<float>::max();
-constexpr UInt64 k_uint64Min = std::numeric_limits<UInt64>::min();
-constexpr UInt64 k_uint64Max = std::numeric_limits<UInt64>::max();
-constexpr Int64  k_int64Min  = std::numeric_limits<Int64>::min();
-constexpr Int64  k_int64Max  = std::numeric_limits<Int64>::max();
-constexpr UInt32 k_uint32Min = std::numeric_limits<UInt32>::min();
-constexpr UInt32 k_uint32Max = std::numeric_limits<UInt32>::max();
-constexpr Int32  k_int32Min  = std::numeric_limits<Int32>::min();
-constexpr Int32  k_int32Max  = std::numeric_limits<Int32>::max();
-constexpr UInt16 k_uint16Min = std::numeric_limits<UInt16>::min();
-constexpr UInt16 k_uint16Max = std::numeric_limits<UInt16>::max();
-constexpr Int16  k_int16Min  = std::numeric_limits<Int16>::min();
-constexpr Int16  k_int16Max  = std::numeric_limits<Int16>::max();
-constexpr UInt8  k_uint8Min  = std::numeric_limits<UInt8>::min();
-constexpr UInt8  k_uint8Max  = std::numeric_limits<UInt8>::max();
-constexpr Int8   k_int8Min   = std::numeric_limits<Int8>::min();
-constexpr Int8   k_int8Max   = std::numeric_limits<Int8>::max();
-
+constexpr float  k_pi                    = 3.1415926535897932f;
+constexpr float  k_2pi                   = 2.f * k_pi;
+constexpr float  k_halfPi                = k_pi / 2.f;
+constexpr float  k_invPi                 = 1.f / k_pi;
+constexpr float  k_inv2Pi                = 1.f / k_2pi;
+constexpr float  k_invHalfPi             = 1.f / k_halfPi;
+constexpr float  k_e                     = 2.7182818284590451f;
+constexpr float  k_epsilon               = 1e-5f;
+constexpr float  k_ln2                   = 0.6931471805599453f;
+constexpr float  k_ln10                  = 2.302585092994046f;
+constexpr float  k_sqrt2                 = 1.4142135623730951f;
+constexpr float  k_toRad                 = k_pi / 180.f;
+constexpr float  k_toDeg                 = 180.f / k_pi;
 constexpr UInt32 k_floatExponentMask     = UINT32_C(0x7f800000);
 constexpr UInt32 k_floatMantissaMask     = UINT32_C(0x007fffff);
 constexpr UInt32 k_floatSignMask         = UINT32_C(0x80000000);
 constexpr UInt32 k_floatExponentBitShift = 23;
-constexpr float  k_floatInfinity         = std::numeric_limits<float>::infinity();
-constexpr float  k_floatSmallest         = 1.175494351e-38f;
-constexpr float  k_floatLargest          = 3.402823466e+38f;
-constexpr float  k_sqrt2                 = std::numbers::sqrt2_v<float>;
-constexpr float  k_logNat10              = std::numbers::ln10_v<float>;
-constexpr float  k_logNat2               = std::numbers::ln2_v<float>;
-constexpr float  k_invLogNat2            = std::numbers::log2e_v<float>;
-constexpr float  k_e                     = std::numbers::e_v<float>;
+constexpr float  k_inf                   = std::bit_cast<float>(k_floatExponentMask);
+
+// vec2 vec3 vec4 quat mtx4 magic numbers
+// use this instead of DirectX::SimpleMath's magic numbers
+// because not matching my application coordinate system
+
+namespace vec2
+{
+    constexpr Vec2 k_left  = Vec2(-1.f, 0.f);
+    constexpr Vec2 k_right = Vec2(1.f, 0.f);
+    constexpr Vec2 k_up    = Vec2(0.f, 1.f);
+    constexpr Vec2 k_down  = Vec2(0.f, -1.f);
+    constexpr Vec2 k_unitX = Vec2(1.f, 0.f);
+    constexpr Vec2 k_unitY = Vec2(0.f, 1.f);
+    constexpr Vec2 k_zero  = Vec2(0.f, 0.f);
+    constexpr Vec2 k_one   = Vec2(1.f, 1.f);
+}   // namespace vec2
+
+namespace vec3
+{
+    constexpr Vec3 k_left     = Vec3(-1.f, 0.f, 0.f);
+    constexpr Vec3 k_right    = Vec3(1.f, 0.f, 0.f);
+    constexpr Vec3 k_up       = Vec3(0.f, 1.f, 0.f);
+    constexpr Vec3 k_down     = Vec3(0.f, -1.f, 0.f);
+    constexpr Vec3 k_forward  = Vec3(0.f, 0.f, 1.f);
+    constexpr Vec3 k_backward = Vec3(0.f, 0.f, -1.f);
+    constexpr Vec3 k_unitX    = Vec3(1.f, 0.f, 0.f);
+    constexpr Vec3 k_unitY    = Vec3(0.f, 1.f, 0.f);
+    constexpr Vec3 k_unitZ    = Vec3(0.f, 0.f, 1.f);
+    constexpr Vec3 k_zero     = Vec3(0.f, 0.f, 0.f);
+    constexpr Vec3 k_one      = Vec3(1.f, 1.f, 1.f);
+}   // namespace vec3
+
+namespace vec4
+{
+    constexpr Vec4 k_left     = Vec4(-1.f, 0.f, 0.f, 0.f);
+    constexpr Vec4 k_right    = Vec4(1.f, 0.f, 0.f, 0.f);
+    constexpr Vec4 k_up       = Vec4(0.f, 1.f, 0.f, 0.f);
+    constexpr Vec4 k_down     = Vec4(0.f, -1.f, 0.f, 0.f);
+    constexpr Vec4 k_forward  = Vec4(0.f, 0.f, 1.f, 0.f);
+    constexpr Vec4 k_backward = Vec4(0.f, 0.f, -1.f, 0.f);
+    constexpr Vec4 k_unitX    = Vec4(1.f, 0.f, 0.f, 0.f);
+    constexpr Vec4 k_unitY    = Vec4(0.f, 1.f, 0.f, 0.f);
+    constexpr Vec4 k_unitZ    = Vec4(0.f, 0.f, 1.f, 0.f);
+    constexpr Vec4 k_unitW    = Vec4(0.f, 0.f, 0.f, 1.f);
+    constexpr Vec4 k_zero     = Vec4(0.f, 0.f, 0.f, 0.f);
+    constexpr Vec4 k_one      = Vec4(1.f, 1.f, 1.f, 1.f);
+}   // namespace vec4
+
+namespace quat
+{
+    constexpr Quat k_identity = Quat(0.f, 0.f, 0.f, 1.f);
+}
+
+namespace mtx4
+{
+    constexpr Mtx4 k_identity = Mtx4 { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f };
+}
+
+template<typename T>
+struct Limits
+{
+};
+
+template<>
+struct Limits<bool>
+{
+    static constexpr bool k_min     = false;
+    static constexpr bool k_max     = true;
+    static constexpr bool k_highest = true;
+    static constexpr bool k_lowest  = false;
+};
+
+template<>
+struct Limits<double>
+{
+    static constexpr double k_min     = DBL_MIN;
+    static constexpr double k_max     = DBL_MAX;
+    static constexpr double k_highest = DBL_MAX;
+    static constexpr double k_lowest  = -DBL_MAX;
+};
+
+template<>
+struct Limits<float>
+{
+    static constexpr float k_min     = FLT_MIN;
+    static constexpr float k_max     = FLT_MAX;
+    static constexpr float k_highest = FLT_MAX;
+    static constexpr float k_lowest  = -FLT_MAX;
+};
+
+template<>
+struct Limits<Int32>
+{
+    static constexpr Int32 k_min     = INT32_MIN;
+    static constexpr Int32 k_max     = INT32_MAX;
+    static constexpr Int32 k_highest = INT32_MAX;
+    static constexpr Int32 k_lowest  = INT32_MIN;
+};
+
+template<>
+struct Limits<UInt32>
+{
+    static constexpr UInt32 k_min     = 0;
+    static constexpr UInt32 k_max     = UINT32_MAX;
+    static constexpr UInt32 k_highest = UINT32_MAX;
+    static constexpr UInt32 k_lowest  = 0;
+};
+
+template<>
+struct Limits<Int64>
+{
+    static constexpr Int64 k_min     = INT64_MIN;
+    static constexpr Int64 k_max     = INT64_MAX;
+    static constexpr Int64 k_highest = INT64_MAX;
+    static constexpr Int64 k_lowest  = INT64_MIN;
+};
+
+template<>
+struct Limits<UInt64>
+{
+    static constexpr UInt64 k_min     = 0;
+    static constexpr UInt64 k_max     = UINT64_MAX;
+    static constexpr UInt64 k_highest = UINT64_MAX;
+    static constexpr UInt64 k_lowest  = 0;
+};
+
+template<>
+struct Limits<UInt16>
+{
+    static constexpr UInt16 k_min     = 0;
+    static constexpr UInt16 k_max     = UINT16_MAX;
+    static constexpr UInt16 k_highest = UINT16_MAX;
+    static constexpr UInt16 k_lowest  = 0;
+};
+
+template<>
+struct Limits<Int16>
+{
+    static constexpr Int16 k_min     = INT16_MIN;
+    static constexpr Int16 k_max     = INT16_MAX;
+    static constexpr Int16 k_highest = INT16_MAX;
+    static constexpr Int16 k_lowest  = INT16_MIN;
+};
+
+template<>
+struct Limits<UInt8>
+{
+    static constexpr UInt8 k_min     = 0;
+    static constexpr UInt8 k_max     = UINT8_MAX;
+    static constexpr UInt8 k_highest = UINT8_MAX;
+    static constexpr UInt8 k_lowest  = 0;
+};
+
+template<>
+struct Limits<Int8>
+{
+    static constexpr Int8 k_min     = INT8_MIN;
+    static constexpr Int8 k_max     = INT8_MAX;
+    static constexpr Int8 k_highest = INT8_MAX;
+    static constexpr Int8 k_lowest  = INT8_MIN;
+};
 
 struct Vec2i
 {
+    static const Vec2i k_zero;
+    static const Vec2i k_one;
+
+    constexpr Vec2i() = default;
+    constexpr Vec2i(const Int32 _x, const Int32 _y)
+        : x(_x)
+        , y(_y)
+    {
+    }
+
+    constexpr Vec2i operator+(const Vec2i other) const
+    {
+        return Vec2i { x + other.x, y + other.y };
+    }
+
+    constexpr Vec2i operator-(const Vec2i other) const
+    {
+        return Vec2i { x - other.x, y - other.y };
+    }
+
+    constexpr Vec2i operator*(const Int32 scalar) const
+    {
+        return Vec2i { x * scalar, y * scalar };
+    }
+
+    constexpr Vec2i& operator+=(const Vec2i other)
+    {
+        x += other.x;
+        y += other.y;
+        return *this;
+    }
+
+    constexpr Vec2i& operator-=(const Vec2i other)
+    {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }
+
+    constexpr Vec2i& operator*=(const Int32 scalar)
+    {
+        x *= scalar;
+        y *= scalar;
+        return *this;
+    }
+
     Int32 x = 0;
     Int32 y = 0;
 };
+
+struct SinCos
+{
+    float sin = 0.f;
+    float cos = 0.f;
+};
+
+template<typename To, typename From>
+    requires std::is_arithmetic_v<To> && std::is_arithmetic_v<From>
+[[nodiscard]] constexpr bool CheckOverflow(From _value) noexcept   // do not check float precision loss, only check if value is out of range of target type
+{
+    if constexpr (std::is_floating_point_v<From> && std::is_floating_point_v<To>)
+    {
+        return CmpLess(_value, Limits<To>::k_min) || CmpGreater(_value, Limits<To>::k_max);
+    }
+    else if constexpr (std::is_integral_v<From> && std::is_integral_v<To>)
+    {
+        if constexpr (std::is_signed_v<To> == std::is_signed_v<From>)
+        {
+            return static_cast<From>(static_cast<To>(_value)) != _value;
+        }
+        else if constexpr (std::is_signed_v<From>)
+        {
+            // signed to unsigned
+            return _value < 0 || static_cast<From>(static_cast<To>(_value)) != _value;
+        }
+        else
+        {
+            // unsigned to signed
+            return CmpGreater(_value, Limits<To>::k_max);
+        }
+    }
+    else if constexpr (std::is_floating_point_v<From>)
+    {
+        // float to integral
+        return CmpLess(_value, Limits<To>::k_min) || CmpGreater(_value, Limits<To>::k_max);
+    }
+    else
+    {
+        // integral to float
+        return false;   // always no overflow. but may cause precision loss, which is not checked by this function
+    }
+}
+
+template<typename To, typename From>
+    requires std::is_arithmetic_v<To> && std::is_arithmetic_v<From>
+[[nodiscard]] constexpr To NumericCast(From _value) noexcept
+{
+    JAM_ASSERT(!CheckOverflow<To>(_value), "NumericCast overflow: cannot cast value {} to target type.", _value);
+    return static_cast<To>(_value);
+}
+
+template<typename To, typename From>
+    requires std::is_arithmetic_v<To> && std::is_enum_v<From>
+[[nodiscard]] constexpr To NumericCast(From _value) noexcept
+{
+    using UnderlyingT = std::underlying_type_t<From>;
+    return NumericCast<To>(static_cast<UnderlyingT>(_value));
+}
 
 template<typename T>
 [[nodiscard]] constexpr T Max(const T a, const std::type_identity_t<T> b)
@@ -105,11 +349,11 @@ template<typename T>
 
 [[nodiscard]] constexpr float ToRad(const float degrees)
 {
-    return degrees * (k_pi / 180.f);
+    return degrees * k_toRad;
 }
 [[nodiscard]] constexpr float ToDeg(const float radians)
 {
-    return radians * (180.f / k_pi);
+    return radians * k_toDeg;
 }
 
 [[nodiscard]] constexpr UInt32 FloatToBits(const float _x)
@@ -129,7 +373,7 @@ template<typename T>
 
 [[nodiscard]] constexpr float Trunc(const float _x)
 {
-    return static_cast<float>(static_cast<int>(_x));
+    return NumericCast<float>(NumericCast<Int32>(_x));
 }
 
 [[nodiscard]] constexpr float Fract(const float _x)
@@ -191,18 +435,18 @@ template<typename T>
     return _x - _y * Floor(_x / _y);
 }
 
-[[nodiscard]] constexpr bool IsZeroApprox(const float _x)
+[[nodiscard]] constexpr bool IsZeroApprox(const float _x, const float _epsilon = k_epsilon)
 {
-    return Abs(_x) < k_epsilon;
+    return Abs(_x) < _epsilon;
 }
 
-[[nodiscard]] constexpr bool IsEqualApprox(const float _x, const float _y)
+[[nodiscard]] constexpr bool IsEqualApprox(const float _x, const float _y, const float _epsilon = k_epsilon)
 {
-    return Abs(_x - _y) < k_epsilon;
+    return Abs(_x - _y) < _epsilon;
 }
 
 template<typename T>
-[[nodiscard]] __forceinline T Div(const T num, const T denom)
+[[nodiscard]] constexpr T Div(const T num, const T denom)
 {
     if constexpr (std::is_floating_point_v<T>)
     {
@@ -214,7 +458,7 @@ template<typename T>
     }
     else
     {
-        static_assert(AlwaysFalse<T>, "Div only supports integral and floating point types");
+        static_assert(AlwaysFalseV<T>, "Div only supports integral and floating point types");
     }
 
     return num / denom;
@@ -244,7 +488,7 @@ template<typename T>
 
     if (_x == 0.0f)
     {
-        return -k_floatInfinity;
+        return -k_inf;
     }
 
     const UInt32 ftob = FloatToBits(_x);
@@ -273,8 +517,8 @@ template<typename T>
     constexpr float kLogNat2Lo = 1.90821492927058770002e-10f;
 
     ff -= 1.0f;
-    const float kk = static_cast<float>(exp);
-    const float hi = kk * k_logNat2;
+    const float kk = NumericCast<float>(exp);
+    const float hi = kk * k_ln2;
     const float lo = kk * kLogNat2Lo;
     const float ss = ff / (2.0f + ff);
     const float s2 = ss * ss;
@@ -298,12 +542,13 @@ template<typename T>
 
 [[nodiscard]] constexpr float Log2(const float _x)
 {
+    constexpr float k_invLogNat2 = 1.f / k_ln2;
     return Log(_x) * k_invLogNat2;
 }
 
 [[nodiscard]] constexpr UInt32 Log2(const UInt32 _x)
 {
-    constexpr Int32 k_log2Table[32] = {
+    constexpr UInt32 k_log2Table[32] = {
         0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30, 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
     };
 
@@ -313,17 +558,18 @@ template<typename T>
     result |= result >> 4;
     result |= result >> 8;
     result |= result >> 16;
-    return k_log2Table[static_cast<UInt32>(result * 0x07C4ACDD) >> 27];
+    return k_log2Table[(result * 0x07C4ACDD) >> 27];
 }
 
 [[nodiscard]] constexpr Int32 Log2(const Int32 _x)
 {
-    return static_cast<Int32>(Log2(static_cast<UInt32>(_x)));
+    JAM_ASSERT(_x > 0, "Log2 is only defined for positive integers.");
+    return NumericCast<Int32>(Log2(NumericCast<UInt32>(_x)));
 }
 
 [[nodiscard]] constexpr UInt64 Log2(const UInt64 _x)
 {
-    constexpr Int32 k_log2Table[64] = {
+    constexpr UInt32 k_log2Table[64] = {
         63, 0, 58, 1, 59, 47, 53, 2, 60, 39, 48, 27, 54, 33, 42, 3, 61, 51, 37, 40, 49, 18, 28, 20, 55, 30, 34, 11, 43, 14, 22, 4, 62, 57, 46, 52, 38, 26, 32, 41, 50, 36, 17, 19, 29, 10, 13, 21, 56, 45, 25, 31, 35, 16, 9, 12, 44, 24, 15, 8, 23, 7, 6, 5
     };
 
@@ -334,21 +580,21 @@ template<typename T>
     result |= result >> 8;
     result |= result >> 16;
     result |= result >> 32;
-    return k_log2Table[static_cast<UInt64>((result - (result >> 1)) * 0x07EDD5E59A4E28C2) >> 58];
+    return k_log2Table[((result - (result >> 1)) * 0x07EDD5E59A4E28C2) >> 58];
 }
 
 [[nodiscard]] constexpr Int64 Log2(const Int64 _x)
 {
-    return static_cast<Int64>(Log2(static_cast<UInt64>(_x)));
+    return NumericCast<Int64>(Log2(NumericCast<UInt64>(_x)));
 }
 
 [[nodiscard]] constexpr bool IsInfinite(const float _x)
 {
-    const UInt32 tmp = FloatToBits(_x) & INT32_MAX;
+    const UInt32 tmp = FloatToBits(_x) & Limits<Int32>::k_max;
     return tmp == k_floatExponentMask;
 }
 
-[[nodiscard]] constexpr float LdExp(const float _a, const int32_t _b)
+[[nodiscard]] constexpr float LdExp(const float _a, const Int32 _b)
 {
     const UInt32 ftob     = FloatToBits(_a);
     const UInt32 masked   = ftob & (k_floatSignMask | k_floatExponentMask);
@@ -368,7 +614,7 @@ template<typename T>
         return _x + 1.0f;
     }
 
-    constexpr float expMin = Log(k_floatSmallest);
+    const float expMin = Log(Limits<float>::k_min);
 
     if (_x <= expMin)
     {
@@ -387,31 +633,32 @@ template<typename T>
     constexpr float kExpC4     = 4.13813679705723846039e-08f;
     constexpr float kLogNat2Lo = 1.90821492927058770002e-10f;
 
-    const float kk     = Round(_x * k_invLogNat2);
-    const float hi     = _x - kk * k_logNat2;
-    const float lo     = kk * kLogNat2Lo;
-    const float hml    = hi - lo;
-    const float hmlsq  = hml * hml;
-    const float tmp0   = kExpC4 * hmlsq + kExpC3;
-    const float tmp1   = tmp0 * hmlsq + kExpC2;
-    const float tmp2   = tmp1 * hmlsq + kExpC1;
-    const float tmp3   = tmp2 * hmlsq + kExpC0;
-    const float tmp4   = hml - hmlsq * tmp3;
-    const float tmp5   = hml * tmp4 / (2.0f - tmp4);
-    const float tmp6   = 1.0f - ((lo - tmp5) - hi);
-    const float result = LdExp(tmp6, static_cast<Int32>(kk));
+    constexpr float k_invLogNat2 = 1.f / k_ln2;
+    const float     kk           = Round(_x * k_invLogNat2);
+    const float     hi           = _x - kk * k_ln2;
+    const float     lo           = kk * kLogNat2Lo;
+    const float     hml          = hi - lo;
+    const float     hmlsq        = hml * hml;
+    const float     tmp0         = kExpC4 * hmlsq + kExpC3;
+    const float     tmp1         = tmp0 * hmlsq + kExpC2;
+    const float     tmp2         = tmp1 * hmlsq + kExpC1;
+    const float     tmp3         = tmp2 * hmlsq + kExpC0;
+    const float     tmp4         = hml - hmlsq * tmp3;
+    const float     tmp5         = hml * tmp4 / (2.0f - tmp4);
+    const float     tmp6         = 1.0f - ((lo - tmp5) - hi);
+    const float     result       = LdExp(tmp6, static_cast<Int32>(kk));
 
     return result;
 }
 
 [[nodiscard]] constexpr float Power(const float _x, const float _y)
 {
-    if (Abs(_y) < k_floatSmallest)
+    if (Abs(_y) < Limits<float>::k_min)
     {
         return 1.f;
     }
 
-    if (Abs(_x) < k_floatSmallest)
+    if (Abs(_x) < Limits<float>::k_min)
     {
         return 0.f;
     }
@@ -436,7 +683,7 @@ template<typename T>
         {
             return BitsToFloat(k_floatExponentMask | k_floatMantissaMask);
         }
-        else if (_x < k_floatSmallest)
+        else if (_x < Limits<float>::k_min)
         {
             return 0.0f;
         }
@@ -454,18 +701,18 @@ template<typename T>
 {
     if (std::is_constant_evaluated())
     {
-        if (_x < k_floatSmallest)
+        if (_x < Limits<float>::k_min)
         {
-            return k_floatInfinity;
+            return k_inf;
         }
 
         return Power(_x, -0.5f);
     }
     else
     {
-        if (_x < k_floatSmallest)
+        if (_x < Limits<float>::k_min)
         {
-            return k_floatInfinity;
+            return k_inf;
         }
 
         const __m128 aa    = _mm_set1_ps(_x);
@@ -479,10 +726,10 @@ template<typename T>
 
 [[nodiscard]] constexpr float Cos(const float _x)
 {
-    const float   scaled = _x * 2.0f * k_invPi;
-    const float   real   = Floor(scaled);
-    const float   xx     = _x - real * k_halfPi;
-    const int32_t bits   = static_cast<int32_t>(real) & 3;
+    const float scaled = _x * 2.0f * k_invPi;
+    const float real   = Floor(scaled);
+    const float xx     = _x - real * k_halfPi;
+    const Int32 bits   = static_cast<Int32>(real) & 3;
 
     constexpr float kSinC2  = -0.16666667163372039794921875f;
     constexpr float kSinC4  = 8.333347737789154052734375e-3f;
@@ -534,12 +781,6 @@ template<typename T>
 {
     return Sin(_x) / Cos(_x);
 }
-
-struct SinCos
-{
-    float sin = 0.f;
-    float cos = 0.f;
-};
 
 [[nodiscard]] constexpr SinCos SinCosApprox(const float _x)
 {
@@ -644,6 +885,78 @@ struct SinCos
 [[nodiscard]] constexpr Vec4 ToRad(const Vec4& _degrees)
 {
     return { ToRad(_degrees.x), ToRad(_degrees.y), ToRad(_degrees.z), ToRad(_degrees.w) };
+}
+
+[[nodiscard]] constexpr Vec2 Add(const Vec2 a, const Vec2 b)
+{
+    if (std::is_constant_evaluated())
+    {
+        return { a.x + b.x, a.y + b.y };
+    }
+    else
+    {
+        return DirectX::XMVectorAdd(a, b);
+    }
+}
+
+[[nodiscard]] constexpr Vec2 Sub(const Vec2 a, const Vec2 b)
+{
+    if (std::is_constant_evaluated())
+    {
+        return { a.x - b.x, a.y - b.y };
+    }
+    else
+    {
+        return DirectX::XMVectorSubtract(a, b);
+    }
+}
+
+[[nodiscard]] constexpr Vec3 Add(const Vec3 a, const Vec3 b)
+{
+    if (std::is_constant_evaluated())
+    {
+        return { a.x + b.x, a.y + b.y, a.z + b.z };
+    }
+    else
+    {
+        return DirectX::XMVectorAdd(a, b);
+    }
+}
+
+[[nodiscard]] constexpr Vec3 Sub(const Vec3 a, const Vec3 b)
+{
+    if (std::is_constant_evaluated())
+    {
+        return { a.x - b.x, a.y - b.y, a.z - b.z };
+    }
+    else
+    {
+        return DirectX::XMVectorSubtract(a, b);
+    }
+}
+
+[[nodiscard]] constexpr Vec4 Add(const Vec4 a, const Vec4 b)
+{
+    if (std::is_constant_evaluated())
+    {
+        return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+    }
+    else
+    {
+        return DirectX::XMVectorAdd(a, b);
+    }
+}
+
+[[nodiscard]] constexpr Vec4 Sub(const Vec4 a, const Vec4 b)
+{
+    if (std::is_constant_evaluated())
+    {
+        return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+    }
+    else
+    {
+        return DirectX::XMVectorSubtract(a, b);
+    }
 }
 
 [[nodiscard]] constexpr float Dot(const Vec2 a, const Vec2 b)
@@ -808,57 +1121,62 @@ struct SinCos
 
 [[nodiscard]] constexpr float DistanceSq(const Vec2 a, const Vec2 b)
 {
-    return LengthSq(b - a);
+    return LengthSq(Sub(b, a));
 }
 
 [[nodiscard]] constexpr float DistanceSq(const Vec3 a, const Vec3 b)
 {
-    return LengthSq(b - a);
+    return LengthSq(Sub(b, a));
 }
 
 [[nodiscard]] constexpr float DistanceSq(const Vec4 a, const Vec4 b)
 {
-    return LengthSq(b - a);
+    return LengthSq(Sub(b, a));
 }
 
 [[nodiscard]] constexpr float Distance(const Vec2 a, const Vec2 b)
 {
-    return Length(b - a);
+    return Length(Sub(b, a));
 }
 
 [[nodiscard]] constexpr float Distance(const Vec3 a, const Vec3 b)
 {
-    return Length(b - a);
+    return Length(Sub(b, a));
 }
 
 [[nodiscard]] constexpr float Distance(const Vec4 a, const Vec4 b)
 {
-    return Length(b - a);
+    return Length(Sub(b, a));
 }
 
-[[nodiscard]] constexpr Vec2 ToVec2(Vec3 a)
+[[nodiscard]] constexpr Vec2 Vec2From(Vec3 a)
 {
     return { a.x, a.y };
 }
 
-[[nodiscard]] constexpr Vec2 ToVec2(Vec4 a)
+[[nodiscard]] constexpr Vec2 Vec2From(Vec4 a)
 {
     return { a.x, a.y };
 }
 
-[[nodiscard]] constexpr Vec3 ToVec3(Vec4 a)
+[[nodiscard]] constexpr Vec3 Vec3From(Vec2 a, float z = 0.f)
+{
+    return { a.x, a.y, z };
+}
+
+[[nodiscard]] constexpr Vec3 Vec3From(Vec4 a)
 {
     return { a.x, a.y, a.z };
 }
 
-[[nodiscard]] constexpr Vec4 ToVec4(Vec3 a, float w = 0.f)
-{
-    return { a.x, a.y, a.z, w };
-}
-
-[[nodiscard]] constexpr Vec4 ToVec4(Vec2 a, float z = 0.f, float w = 0.f)
+[[nodiscard]] constexpr Vec4 Vec4From(Vec2 a, float z = 0.f, float w = 0.f)
 {
     return { a.x, a.y, z, w };
+}
+
+[[nodiscard]] constexpr Vec4 Vec4From(Vec3 a, float w = 0.f)
+{
+    return { a.x, a.y, a.z, w };
 }
 
 [[nodiscard]] constexpr Vec2 Normalized(const Vec2 vec)
@@ -868,7 +1186,7 @@ struct SinCos
         const float lenSq = LengthSq(vec);
         if (IsZeroApprox(lenSq))
         {
-            return Vec2::Zero;
+            return vec2::k_zero;
         }
         return vec * InvSqrt(lenSq);
     }
@@ -884,7 +1202,7 @@ struct SinCos
         const float lenSq = LengthSq(vec);
         if (IsZeroApprox(lenSq))
         {
-            return Vec3::Zero;
+            return vec3::k_zero;
         }
         return vec * InvSqrt(lenSq);
     }
@@ -901,7 +1219,7 @@ struct SinCos
         const float lenSq = LengthSq(vec);
         if (IsZeroApprox(lenSq))
         {
-            return Vec4::Zero;
+            return vec4::k_zero;
         }
         return vec * InvSqrt(lenSq);
     }
@@ -944,46 +1262,46 @@ struct SinCos
 [[nodiscard]] Float16 ToFloat16(float value);
 [[nodiscard]] float   ToFloat32(Float16 value);
 
-[[nodiscard]] Vec2 ForwardToPitchYaw(Vec3 _forward);
-[[nodiscard]] Vec3 PitchYawToForward(float pitch, float yaw);
+[[nodiscard]] Vec3 EulerFrom(Vec3 _forward);      // euler: pitch, yaw, roll
+[[nodiscard]] Vec3 ForwardFrom(Vec3 _eulerRad);   // euler: pitch, yaw, roll
 
-[[nodiscard]] Mat4 CreateOrthoMatrix(float width, float height, float nearZ, float farZ);
-[[nodiscard]] Mat4 CreateOrthoMatrix(float left, float right, float bottom, float top, float nearZ, float farZ);
-[[nodiscard]] Mat4 CreatePerspectiveMatrix(float fovYRad, float aspect, float zNear, float zFar);
+[[nodiscard]] Mtx4 CreateOrthoMatrix(float width, float height, float nearZ, float farZ);
+[[nodiscard]] Mtx4 CreateOrthoMatrix(float left, float right, float bottom, float top, float nearZ, float farZ);
+[[nodiscard]] Mtx4 CreatePerspectiveMatrix(float fovYRad, float aspect, float zNear, float zFar);
 
-namespace details
+namespace Details
 {
     extern std::mt19937 g_randomGenerator;
     extern UInt32       g_randomSeed;
-}   // namespace details
+}   // namespace Details
 
 template<typename T>
 [[nodiscard]] T MakeRandom(
-    const T      _min  = std::numeric_limits<T>::lowest(),
-    const T      _max  = std::numeric_limits<T>::max(),
+    const T      _min  = Limits<T>::k_min,
+    const T      _max  = Limits<T>::k_max,
     const UInt32 _seed = std::mt19937::default_seed)
 {
-    if (_seed != details::g_randomSeed)
+    if (_seed != Details::g_randomSeed)
     {
-        details::g_randomGenerator.seed(_seed);
-        details::g_randomSeed = _seed;
+        Details::g_randomGenerator.seed(_seed);
+        Details::g_randomSeed = _seed;
     }
 
     if constexpr (std::is_integral_v<T>)
     {
         std::uniform_int_distribution<T> dist(_min, _max);
-        return dist(details::g_randomGenerator);
+        return dist(Details::g_randomGenerator);
     }
     else if constexpr (std::is_floating_point_v<T>)
     {
         std::uniform_real_distribution<T> dist(_min, _max);
-        return dist(details::g_randomGenerator);
+        return dist(Details::g_randomGenerator);
     }
     else
     {
-        static_assert(AlwaysFalse, "MakeRandom: T must be an integral or floating-point type.");
+        static_assert(AlwaysFalseV<T>, "MakeRandom: T must be an integral or floating-point type.");
         return T {};
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

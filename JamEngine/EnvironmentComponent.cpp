@@ -4,710 +4,540 @@
 
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
-#include "JsonUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 void EnvironmentComponent::Serialize(
-    JsonWriter        _writer,
-    const Ref<Scene>& _pScene,
-    Entity            _owner) const
+    ArchiveWriter& _writer,
+    const Ref<Scene>&,
+    Entity) const
 {
-    // Directional Light
-    {
-        const DirectionalLightData& dirLight = environment.GetDirectionalLight();
-
-        JsonWriter dirLightWriter = _writer.EnterField("dirLight");
-        dirLightWriter.WriteField("enabled", dirLight.bEnabled);
-        dirLightWriter.WriteField("radiance", dirLight.radiance);
-        dirLightWriter.WriteField("intensity", dirLight.intensity);
-        dirLightWriter.WriteField("direction", dirLight.direction);
-        dirLightWriter.WriteField("shadowEnabled", dirLight.bShadowEnabled);
-        dirLightWriter.WriteField("cascadeDistances", dirLight.cascadeDistances);
-    }
-
-    // Image Based Lighting
-    {
-        const ImageBasedLightingData& ibl = environment.GetIBL();
-
-        JsonWriter iblWriter = _writer.EnterField("ibl");
-        iblWriter.WriteField("irradianceTexturePath", ibl.pIrradianceTexture);
-        iblWriter.WriteField("specularMapPath", ibl.pSpecularTexture);
-        iblWriter.WriteField("brdfLUTPath", ibl.pBrdfLutTexture);
-        iblWriter.WriteField("irradianceTextureIntensity", ibl.irradianceTextureIntensity);
-        iblWriter.WriteField("specularTextureIntensity", ibl.specularTextureIntensity);
-    }
-
-    // Skybox
-    {
-        const SkyboxData& skybox = environment.GetSkybox();
-
-        JsonWriter skyboxWriter = _writer.EnterField("skybox");
-        skyboxWriter.WriteField("type", skybox.type);
-        skyboxWriter.WriteField("path", skybox.pSkyboxTexture);
-        skyboxWriter.WriteField("solidColor", skybox.solidColor);
-    }
-
-    // SSAO
-    {
-        const SSAOData& ssao = environment.GetSSAO();
-
-        JsonWriter ssaoWriter = _writer.EnterField("ssao");
-        ssaoWriter.WriteField("enabled", ssao.bEnabled);
-        ssaoWriter.WriteField("radius", ssao.radius);
-        ssaoWriter.WriteField("bias", ssao.bias);
-    }
-
-    // Fog
-    {
-        const FogData& fog = environment.GetFog();
-
-        JsonWriter fogWriter = _writer.EnterField("fog");
-        fogWriter.WriteField("enabled", fog.bEnabled);
-        fogWriter.WriteField("radiance", fog.radiance);
-        fogWriter.WriteField("density", fog.density);
-        fogWriter.WriteField("fallOffStart", fog.fallOffStart);
-        fogWriter.WriteField("fallOffEnd", fog.fallOffEnd);
-        fogWriter.WriteField("heightAttenuation", fog.heightAttenuation);
-    }
-
-    // Tone Mapping
-    {
-        const ToneMappingData& toneMapping = environment.GetToneMapping();
-
-        JsonWriter toneMappingWriter = _writer.EnterField("toneMapping");
-        toneMappingWriter.WriteField("enabled", toneMapping.bEnabled);
-        toneMappingWriter.WriteField("type", toneMapping.type);
-        toneMappingWriter.WriteField("exposure", toneMapping.exposure);
-        toneMappingWriter.WriteField("gamma", toneMapping.gamma);
-    }
-
-    // Bloom
-    {
-        const BloomData& bloom = environment.GetBloom();
-
-        JsonWriter bloomWriter = _writer.EnterField("bloom");
-        bloomWriter.WriteField("enabled", bloom.bEnabled);
-        bloomWriter.WriteField("blurRadius", bloom.blurRadius);
-        bloomWriter.WriteField("bloomStrength", bloom.bloomStrength);
-        bloomWriter.WriteField("numBlurPasses", bloom.numBlurPasses);
-    }
-
-    // FXAA
-    {
-        const FXAAData& fxaa = environment.GetFXAA();
-
-        JsonWriter fxaaWriter = _writer.EnterField("fxaa");
-        fxaaWriter.WriteField("enabled", fxaa.bEnabled);
-        fxaaWriter.WriteField("quality", fxaa.quality);
-    }
-
-    // Misc
-    {
-        const EnvironmentMisc& misc = environment.GetMisc();
-
-        JsonWriter miscWriter = _writer.EnterField("misc");
-        miscWriter.WriteField("shadowBias", misc.shadowBias);
-    }
+    _writer.Write(environment);
 }
 
 void EnvironmentComponent::Deserialize(
-    JsonReader        _reader,
-    const Ref<Scene>& _pScene,
-    Entity            _owner)
+    ArchiveReader& _reader,
+    const Ref<Scene>&,
+    Entity)
 {
-    // Directional Light
-    JsonReader dirLightReader;
-    if (MoveIfHasValue(_reader.EnterField("dirLight"), dirLightReader))
-    {
-        DirectionalLightData dirLight;
-        dirLightReader.ReadField("enabled", dirLight.bEnabled);
-        dirLightReader.ReadField("radiance", dirLight.radiance);
-        dirLightReader.ReadField("intensity", dirLight.intensity);
-        dirLightReader.ReadField("direction", dirLight.direction);
-        dirLightReader.ReadField("shadowEnabled", dirLight.bShadowEnabled);
-        dirLightReader.ReadField("cascadeDistances", dirLight.cascadeDistances);
-        environment.SetDirectionalLight(dirLight);
-    }
-
-    // Image Based Lighting
-    JsonReader iblReader;
-    if (MoveIfHasValue(_reader.EnterField("ibl"), iblReader))
-    {
-        ImageBasedLightingData ibl;
-        iblReader.ReadField("irradianceTexturePath", ibl.pIrradianceTexture);
-        iblReader.ReadField("specularMapPath", ibl.pSpecularTexture);
-        iblReader.ReadField("brdfLUTPath", ibl.pBrdfLutTexture);
-        iblReader.ReadField("irradianceTextureIntensity", ibl.irradianceTextureIntensity);
-        iblReader.ReadField("specularTextureIntensity", ibl.specularTextureIntensity);
-        environment.SetIBL(ibl);
-    }
-
-    // Skybox
-    JsonReader skyboxReader;
-    if (MoveIfHasValue(_reader.EnterField("skybox"), skyboxReader))
-    {
-        SkyboxData skybox;
-        skyboxReader.ReadField("type", skybox.type);
-        skyboxReader.ReadField("path", skybox.pSkyboxTexture);
-        skyboxReader.ReadField("solidColor", skybox.solidColor);
-        environment.SetSkybox(skybox);
-    }
-
-    // SSAO
-    JsonReader ssaoReader;
-    if (MoveIfHasValue(_reader.EnterField("ssao"), ssaoReader))
-    {
-        SSAOData ssao;
-        ssaoReader.ReadField("enabled", ssao.bEnabled);
-        ssaoReader.ReadField("radius", ssao.radius);
-        ssaoReader.ReadField("bias", ssao.bias);
-        environment.SetSSAO(ssao);
-    }
-
-    // Fog
-    JsonReader fogReader;
-    if (MoveIfHasValue(_reader.EnterField("fog"), fogReader))
-    {
-        FogData fog;
-        fogReader.ReadField("enabled", fog.bEnabled);
-        fogReader.ReadField("radiance", fog.radiance);
-        fogReader.ReadField("density", fog.density);
-        fogReader.ReadField("fallOffStart", fog.fallOffStart);
-        fogReader.ReadField("fallOffEnd", fog.fallOffEnd);
-        fogReader.ReadField("heightAttenuation", fog.heightAttenuation);
-        environment.SetFog(fog);
-    }
-
-    // Tone Mapping
-    JsonReader toneMappingReader;
-    if (MoveIfHasValue(_reader.EnterField("toneMapping"), toneMappingReader))
-    {
-        ToneMappingData toneMapping;
-        toneMappingReader.ReadField("enabled", toneMapping.bEnabled);
-        toneMappingReader.ReadField("type", toneMapping.type);
-        toneMappingReader.ReadField("exposure", toneMapping.exposure);
-        toneMappingReader.ReadField("gamma", toneMapping.gamma);
-        environment.SetToneMapping(toneMapping);
-    }
-
-    // Bloom
-    JsonReader bloomReader;
-    if (MoveIfHasValue(_reader.EnterField("bloom"), bloomReader))
-    {
-        BloomData bloom;
-        bloomReader.ReadField("enabled", bloom.bEnabled);
-        bloomReader.ReadField("blurRadius", bloom.blurRadius);
-        bloomReader.ReadField("bloomStrength", bloom.bloomStrength);
-        bloomReader.ReadField("numBlurPasses", bloom.numBlurPasses);
-        environment.SetBloom(bloom);
-    }
-
-    // FXAA
-    JsonReader fxaaReader;
-    if (MoveIfHasValue(_reader.EnterField("fxaa"), fxaaReader))
-    {
-        FXAAData fxaa;
-        fxaaReader.ReadField("enabled", fxaa.bEnabled);
-        fxaaReader.ReadField("quality", fxaa.quality);
-        environment.SetFXAA(fxaa);
-    }
-
-    // Misc
-    JsonReader miscReader;
-    if (MoveIfHasValue(_reader.EnterField("misc"), miscReader))
-    {
-        EnvironmentMisc misc;
-        miscReader.ReadField("shadowBias", misc.shadowBias);
-        environment.SetMisc(misc);
-    }
+    _reader.Read(environment);
 }
 
-void EnvironmentComponent::Panel_EditComponent(
-    Ref<Scene>& _pScene,
-    Entity      _entity)
+void EnvironmentComponent::DrawEditPanel(
+    const Ref<Scene>&,
+    Entity)
 {
     ImGui::SeparatorText("directional light");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_DirLight"))
     {
-        // use for direction editing
-        static Vec2 s_pyRad      = {};
-        static bool s_bPyEditing = false;
-
-        DirectionalLightData dirLight = environment.GetDirectionalLight();
-        bool                 bDirty   = false;
-
         // row: enabled
         {
+            bool bEnabled = environment.IsDirectionalLightEnabled();
+
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("enabled");
+            Widget_Text("enabled", true);
             ImGui::TableNextColumn();
-            bDirty |= ImGui::Checkbox("##DirLightEnabled", &dirLight.bEnabled);
+            if (ImGui::Checkbox("##DirLightEnabled", &bEnabled))
+            {
+                environment.SetDirectionalLightEnabled(bEnabled);
+            }
         }
 
         // row: radiance
         {
+            Vec3 radiance = environment.GetDirectionalLightRadiance();
 
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("radiance");
+            Widget_Text("radiance", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= ImGui::ColorEdit3("##DirLightRadiance", &dirLight.radiance.x);
+            SetNextItemToAvailWidth();
+            if (ImGui::ColorEdit3("##DirLightRadiance", &radiance.x))
+            {
+                environment.SetDirectionalLightRadiance(radiance);
+            }
         }
 
         // row: intensity
         {
+            float intensity = environment.GetDirectionalLightIntensity();
+
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("intensity");
+            Widget_Text("intensity", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##DirLightIntensity", &dirLight.intensity, 0.01f, 0.f);
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##DirLightIntensity",intensity, 0.01f, 0.f, Limits<float>::k_max))
+            {
+                environment.SetDirectionalLightIntensity(intensity);
+            }
         }
 
         // row: direction
         {
-            if (!s_bPyEditing)
-            {
-                s_pyRad = ForwardToPitchYaw(dirLight.direction);
-            }
+            static EulerProxy s_proxy = {};
+
+            Vec3 direction = environment.GetDirectionalLightDirection();
+            s_proxy.OnBeforeWidget(direction);
+            Vec3& euler = s_proxy.GetEulerProxy();
 
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("direction");
+            Widget_Text("direction", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            if (Widget_DragPitchYaw("##DirLightDirection", s_pyRad))
+            SetNextItemToAvailWidth();
+            if (Widget_DragEuler("##DirLightDirectionEuler", euler))
             {
-                s_bPyEditing = true;
-                bDirty       = true;
+                environment.SetDirectionalLightDirection(ForwardFrom(euler));
             }
 
-            if (ImGui::IsItemDeactivated())
-            {
-                s_bPyEditing = false;
-            }
+            s_proxy.OnAfterWidget();
         }
 
         // row: shadow cast
         {
+            bool bShadow = environment.IsDirectionalLightShadowEnabled();
 
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("shadow cast");
+            Widget_Text("shadow cast", true);
             ImGui::TableNextColumn();
-            bDirty |= ImGui::Checkbox("##DirLightShadowCast", &dirLight.bShadowEnabled);
+            if (ImGui::Checkbox("##DirLightShadowCast", &bShadow))
+            {
+                environment.SetDirectionalLightShadowEnabled(bShadow);
+            }
+        }
+
+        // row: shadow bias
+        {
+            float bias = environment.GetDirectionalLightShadowBias();
+
+            ImGui::TableNextColumn();
+            Widget_Text("shadow bias", true);
+            ImGui::TableNextColumn();
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##DirLightShadowBias",bias, 0.0001f, 0.f, Limits<float>::k_max, "%.5f"))
+            {
+                environment.SetDirectionalLightShadowBias(bias);
+            }
         }
 
         // cascade distances
         {
+            CascadeDistancesArray distances = environment.GetDirectionalLightCascadeDistances();
+            bool                  bDirty    = false;
 
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("cascade distances");
+            Widget_Text("cascade distances", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
+            SetNextItemToAvailWidth();
+            bDirty = Widget_DragFloat3("##CascadeDistances", &distances[0], 0.01f, 0.f, Limits<float>::k_max, "%.3fm");
 
-            bDirty |= Widget_DragFloat("##CascadeDistance1", &dirLight.cascadeDistances[0], 0.01f, 0.f, dirLight.cascadeDistances[1], "%.3fm");
-            bDirty |= Widget_DragFloat("##CascadeDistance2", &dirLight.cascadeDistances[1], 0.01f, dirLight.cascadeDistances[0], dirLight.cascadeDistances[2], "%.3fm");
-            bDirty |= Widget_DragFloat("##CascadeDistance3", &dirLight.cascadeDistances[2], 0.01f, dirLight.cascadeDistances[1], FLT_MAX, "%.3fm");
+            if (bDirty)
+            {
+                std::ranges::sort(distances, std::ranges::greater {});   // ensure sorted
+                environment.SetDirectionalLightCascadeDistances(distances);
+            }
         }
 
-        if (bDirty)
-        {
-            dirLight.direction = PitchYawToForward(s_pyRad.x, s_pyRad.y);
-            environment.SetDirectionalLight(dirLight);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     ImGui::SeparatorText("image based lighting");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_IBL"))
     {
-        ImageBasedLightingData ibl    = environment.GetIBL();
-        bool                   bDirty = false;
-
-        // row: irradiance texture
+        // row: irradiance tex
         {
+            Ref<Texture> pTex = environment.GetIblIrradianceTex();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("irradiance texture");
+            Widget_Text("irradiance texture", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_ImageTextureSelector("##IBLIrradianceTexture", ibl.pIrradianceTexture);
+            SetNextItemToAvailWidth();
+            if (Widget_TexturePicker("##IBLIrradianceTexture", pTex))
+            {
+                environment.SetIblIrradianceTex(pTex);
+            }
         }
 
-        // row: irradiance texture intensity
+        // row: irradiance tex intensity
         {
+            float intensity = environment.GetIblIrradianceIntensity();
+
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("irradiance intensity");
+            Widget_Text("irradiance intensity", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##IBLIrradianceIntensity", &ibl.irradianceTextureIntensity, 0.01f, 0.f);
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##IBLIrradianceIntensity",intensity, 0.01f, 0.f, Limits<float>::k_max))
+            {
+                environment.SetIblIrradianceIntensity(intensity);
+            }
         }
 
-        // row: specular texture
+        // row: specular tex
         {
+            Ref<Texture> pTex = environment.GetIblSpecularTex();
+
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("specular texture");
+            Widget_Text("specular texture", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_ImageTextureSelector("##IBLSpecularTexture", ibl.pSpecularTexture);
+            SetNextItemToAvailWidth();
+            if (Widget_TexturePicker("##IBLSpecularTexture", pTex))
+            {
+                environment.SetIblSpecularTex(pTex);
+            }
         }
 
-        // row: specular texture intensity
+        // row: specular tex intensity
         {
+            float intensity = environment.GetIblSpecularIntensity();
+
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("specular intensity");
+            Widget_Text("specular intensity", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##IBLSpecularIntensity", &ibl.specularTextureIntensity, 0.01f, 0.f);
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##IBLSpecularIntensity",intensity, 0.01f, 0.f, Limits<float>::k_max))
+            {
+                environment.SetIblSpecularIntensity(intensity);
+            }
         }
 
-        // row: BRDF LUT texture
+        // row: BRDF LUT tex
         {
+            Ref<Texture> pTex = environment.GetIblBrdfLutTex();
+
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("Brdf Lut texture");
+            Widget_Text("Brdf Lut texture", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_ImageTextureSelector("##IBLBrdfLUTTexture", ibl.pBrdfLutTexture);
+            SetNextItemToAvailWidth();
+            if (Widget_TexturePicker("##IBLBrdfLUTTexture", pTex))
+            {
+                environment.SetIblBrdfLutTex(pTex);
+            }
         }
 
-        if (bDirty)
-        {
-            environment.SetIBL(ibl);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     ImGui::SeparatorText("skybox");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_Skybox"))
     {
-        SkyboxData skybox = environment.GetSkybox();
-        bool       bDirty = false;
+        eSkyboxType type = environment.GetSkyboxType();
 
         // row: type
         {
-            constexpr const char* k_names[] = { "solid color", "cube map" };
-
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("type");
+            Widget_Text("type", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_Combo("##SkyboxType", reinterpret_cast<Int32&>(skybox.type), k_names);
+            SetNextItemToAvailWidth();
+            if (Widget_EnumCombo("##SkyboxType", type))
+            {
+                environment.SetSkyboxType(type);
+            }
         }
 
-        // row: texture
-        if (skybox.type == eSkyboxType::CubeMap)
+        // row: tex
+        if (type == eSkyboxType::CubeMap)
         {
+            Ref<Texture> pTex = environment.GetSkyboxTex();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("texture");
+            Widget_Text("texture", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_ImageTextureSelector("##SkyboxTexture", skybox.pSkyboxTexture);
+            SetNextItemToAvailWidth();
+            if (Widget_TexturePicker("##SkyboxTexture", pTex))
+            {
+                environment.SetSkyboxTex(pTex);
+            }
         }
 
-        // row: solid color
-        if (skybox.type == eSkyboxType::SolidColor)
+        // row: solid value
+        if (type == eSkyboxType::SolidColor)
         {
-
+            Vec3 color = environment.GetSkyboxSolidColor();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("solid color");
+            Widget_Text("solid value", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= ImGui::ColorEdit3("##SkyboxSolidColor", &skybox.solidColor.x);
+            SetNextItemToAvailWidth();
+            if (ImGui::ColorEdit3("##SkyboxSolidColor", &color.x))
+            {
+                environment.SetSkyboxSolidColor(color);
+            }
         }
 
-        if (bDirty)
-        {
-            environment.SetSkybox(skybox);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     // ssao
     ImGui::SeparatorText("ssao");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_SSAO"))
     {
-        SSAOData ssao   = environment.GetSSAO();
-        bool     bDirty = false;
-
         // row: enabled
         {
+            bool bEnabled = environment.IsSsaoEnabled();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("enabled");
+            Widget_Text("enabled", true);
             ImGui::TableNextColumn();
-            bDirty |= ImGui::Checkbox("##SSAOEnabled", &ssao.bEnabled);
+            if (ImGui::Checkbox("##SSAOEnabled", &bEnabled))
+            {
+                environment.SetSsaoEnabled(bEnabled);
+            }
         }
 
         // row: radius
         {
-
+            float radius = environment.GetSsaoRadius();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("radius");
+            Widget_Text("radius", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##SSAORadius", &ssao.radius, 0.001f, 0.f, FLT_MAX, "%.4f");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##SSAORadius",radius, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
+            {
+                environment.SetSsaoRadius(radius);
+            }
         }
 
         // row: bias
         {
-
+            float bias = environment.GetSsaoBias();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("bias");
+            Widget_Text("bias", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##SSAOBias", &ssao.bias, 0.001f, 0.f, FLT_MAX, "%.4f");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##SSAOBias",bias, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
+            {
+                environment.SetSsaoBias(bias);
+            }
         }
 
-        if (bDirty)
-        {
-            environment.SetSSAO(ssao);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     ImGui::SeparatorText("height fog");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_Fog"))
     {
-        FogData fog    = environment.GetFog();
-        bool    bDirty = false;
-
         // row: enabled
         {
+            bool bEnabled = environment.IsFogEnabled();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("enabled");
+            Widget_Text("enabled", true);
             ImGui::TableNextColumn();
-            bDirty |= ImGui::Checkbox("##FogEnabled", &fog.bEnabled);
+            if (ImGui::Checkbox("##FogEnabled", &bEnabled))
+            {
+                environment.SetFogEnabled(bEnabled);
+            }
         }
 
         // row: radiance
         {
+            Vec3 radiance = environment.GetFogRadiance();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("radiance");
+            Widget_Text("radiance", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= ImGui::ColorEdit3("##FogRadiance", &fog.radiance.x);
+            SetNextItemToAvailWidth();
+            if (ImGui::ColorEdit3("##FogRadiance", &radiance.x))
+            {
+                environment.SetFogRadiance(radiance);
+            }
         }
 
         // row: density
         {
+            float density = environment.GetFogDensity();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("density");
+            Widget_Text("density", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##FogDensity", &fog.density, 0.0001f, 0.f, FLT_MAX, "%.5f");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##FogDensity",density, 0.0001f, 0.f, Limits<float>::k_max, "%.6f"))
+            {
+                environment.SetFogDensity(density);
+            }
         }
 
         // row: fall off start
         {
+            float start = environment.GetFogFallOffStart();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("fall off start");
+            Widget_Text("fall off start", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##FogFallOffStart", &fog.fallOffStart, 0.01f, 0.f, fog.fallOffEnd, "%.3fm");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##FogFallOffStart",start, 0.01f, 0.f, environment.GetFogFallOffEnd(), "%.3fm"))
+            {
+                environment.SetFogFallOffStart(start);
+            }
         }
 
         // row: fall off end
         {
+            float end = environment.GetFogFallOffEnd();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("fall off end");
+            Widget_Text("fall off end", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##FogFallOffEnd", &fog.fallOffEnd, 0.01f, fog.fallOffStart, FLT_MAX, "%.3fm");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##FogFallOffEnd",end, 0.01f, environment.GetFogFallOffStart(), Limits<float>::k_max, "%.3fm"))
+            {
+                environment.SetFogFallOffEnd(end);
+            }
         }
 
         // row: height attenuation
         {
+            float atten = environment.GetFogHeightAttenuation();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("height attenuation");
+            Widget_Text("height attenuation", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##FogHeightAttenuation", &fog.heightAttenuation, 0.001f, 0.f, FLT_MAX, "%.3f");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##FogHeightAttenuation",atten, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
+            {
+                environment.SetFogHeightAttenuation(atten);
+            }
         }
 
-        if (bDirty)
-        {
-            environment.SetFog(fog);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     // tonemap
     ImGui::SeparatorText("tone mapping");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_ToneMap"))
     {
-        ToneMappingData toneMapping = environment.GetToneMapping();
-        bool            bDirty      = false;
-
         // row: enabled
         {
-
+            bool bEnabled = environment.IsToneMappingEnabled();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("enabled");
+            Widget_Text("enabled", true);
             ImGui::TableNextColumn();
-            bDirty |= ImGui::Checkbox("##ToneMappingEnabled", &toneMapping.bEnabled);
+            if (ImGui::Checkbox("##ToneMappingEnabled", &bEnabled))
+            {
+                environment.SetToneMappingEnabled(bEnabled);
+            }
         }
 
         // row: type
         {
-            constexpr const char* k_name[] = { "linear", "reinhard", "luma based reinhard", "white preserving reinhard", "rom bin da house", "uncharted2", "filmic" };
-
+            eToneMappingType type = environment.GetToneMappingType();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("type");
+            Widget_Text("type", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_Combo("##ToneMappingType", reinterpret_cast<Int32&>(toneMapping.type), k_name);
+            SetNextItemToAvailWidth();
+            if (Widget_EnumCombo("##ToneMappingType", type))
+            {
+                environment.SetToneMappingType(type);
+            }
         }
 
         // row: exposure
         {
-
+            float exposure = environment.GetToneMappingExposure();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("exposure");
+            Widget_Text("exposure", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##ToneMappingExposure", &toneMapping.exposure, 0.01f, 0.f, FLT_MAX, "%.3f");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##ToneMappingExposure",exposure, 0.01f, 0.f, Limits<float>::k_max, "%.3f"))
+            {
+                environment.SetToneMappingExposure(exposure);
+            }
         }
 
         // row: gamma
         {
-
+            float gamma = environment.GetToneMappingGamma();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("gamma");
+            Widget_Text("gamma", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##ToneMappingGamma", &toneMapping.gamma, 0.01f, 0.f, FLT_MAX, "%.3f");
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##ToneMappingGamma",gamma, 0.01f, 0.f, Limits<float>::k_max, "%.3f"))
+            {
+                environment.SetToneMappingGamma(gamma);
+            }
         }
 
-        if (bDirty)
-        {
-            environment.SetToneMapping(toneMapping);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     // bloom
     ImGui::SeparatorText("bloom");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_Bloom"))
     {
-        BloomData bloom  = environment.GetBloom();
-        bool      bDirty = false;
-
         // row: enabled
         {
-
+            bool bEnabled = environment.IsBloomEnabled();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("enabled");
+            Widget_Text("enabled", true);
             ImGui::TableNextColumn();
-            bDirty |= ImGui::Checkbox("##BloomEnabled", &bloom.bEnabled);
+            if (ImGui::Checkbox("##BloomEnabled", &bEnabled))
+            {
+                environment.SetBloomEnabled(bEnabled);
+            }
         }
 
         // row: blur radius
         {
-
+            float radius = environment.GetBloomBlurRadius();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("blur radius");
+            Widget_Text("blur radius", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            if (Widget_DragFloat("##BloomBlurRadius", &bloom.blurRadius, 0.001f))
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##BloomBlurRadius",radius, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
             {
-                bloom.blurRadius = Max(bloom.blurRadius, 0.f);
-                bDirty |= true;
+                environment.SetBloomBlurRadius(Max(radius, 0.f));
             }
         }
 
         // row: combine factor
         {
-
+            float strength = environment.GetBloomStrength();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("combine factor");
+            Widget_Text("combine factor", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##BloomCombineFactor", &bloom.bloomStrength, 0.01f, 0.f);
+            SetNextItemToAvailWidth();
+            if (Widget_DragFloat("##BloomCombineFactor",strength, 0.01f, 0.f, Limits<float>::k_max))
+            {
+                environment.SetBloomStrength(strength);
+            }
         }
 
         // row: number of blur passes
         {
+            Int32 passes = environment.GetBloomNumBlurPasses();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("number of blur passes");
+            Widget_Text("number of blur passes", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragInt("##BloomNumBlurPasses", &bloom.numBlurPasses, 0.05, 0, BloomData::k_maxBlurPasses);
+            SetNextItemToAvailWidth();
+            if (Widget_DragInt("##BloomNumBlurPasses",passes, 0.05f, 0, environment.k_maxNumbloomPasses))
+            {
+                environment.SetBloomNumBlurPasses(passes);
+            }
         }
 
-        if (bDirty)
-        {
-            environment.SetBloom(bloom);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     // fxaa
     ImGui::SeparatorText("fxaa");
-    if (BeginLabelValueTable("EnvironmentComponent"))
+    if (BeginLabelTable("EnvironmentComponent_FXAA"))
     {
-        FXAAData fxaa   = environment.GetFXAA();
-        bool     bDirty = false;
-
         // row: enabled
         {
-
+            bool bEnabled = environment.IsFxaaEnabled();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("enabled");
+            Widget_Text("enabled", true);
             ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##FXAAEnabled", &fxaa.bEnabled))
+            if (ImGui::Checkbox("##FXAAEnabled", &bEnabled))
             {
-                bDirty = true;
+                environment.SetFxaaEnabled(bEnabled);
             }
         }
 
         // row: quality
         {
-            constexpr const char* k_qualityLevels[] = { "very low", "low", "medium", "high", "very high", "ultra" };
-
+            eFxaaQuality quality = environment.GetFxaaQuality();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("quality");
+            Widget_Text("quality", true);
             ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_Combo("##FXAAQuality", reinterpret_cast<Int32&>(fxaa.quality), k_qualityLevels);
+            SetNextItemToAvailWidth();
+            if (Widget_EnumCombo("##FXAAQuality", quality))
+            {
+                environment.SetFxaaQuality(quality);
+            }
         }
 
-        if (bDirty)
-        {
-            environment.SetFXAA(fxaa);
-        }
-
-        ImGui::EndTable()();
-    }
-
-    // misc
-    ImGui::SeparatorText("miscellaneous");
-    if (BeginLabelValueTable("EnvironmentComponent"))
-    {
-        EnvironmentMisc misc   = environment.GetMisc();
-        bool            bDirty = false;
-
-        // row: shadow bias
-        {
-            ImGui::TableNextColumn();
-            Widget_FrameAlignedText("shadow bias");
-            ImGui::TableNextColumn();
-            SetNextItemAvailWidth();
-            bDirty |= Widget_DragFloat("##ShadowBias", &misc.shadowBias, 0.0001f, 0.f, FLT_MAX, "%.5f");
-        }
-
-        if (bDirty)
-        {
-            environment.SetMisc(misc);
-        }
-
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

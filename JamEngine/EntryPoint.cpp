@@ -4,15 +4,15 @@
 
 #include "Application.h"
 
-namespace jam
+namespace Jam
 {
 
 Int32 EntryPoint(const Int32 argc, char* argv[])
 {
-    Application::Create(argc, argv);
-    const Int32 result = Application::GetInstance().Run();
-    Application::Destroy();
+    Application::CreateInstance(argc, argv);
+    const Int32 result = JAM_APP.Run();
+    Application::DestroyInstance();
     return result;
 }
 
-}   // namespace jam
+}   // namespace Jam

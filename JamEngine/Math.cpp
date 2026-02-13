@@ -2,54 +2,79 @@
 
 #include "Math.h"
 
-namespace jam
+namespace Jam
 {
 
-namespace details
+namespace Details
 {
-    std::mt19937 g_randomGenerator;
-    UInt32       g_randomSeed;
-}   // namespace details
+    std::mt19937 g_randomGenerator = {};
+    UInt32       g_randomSeed      = {};
+}   // namespace Details
 
-Float16 ToFloat16(const float value)
+const Vec2i Vec2i::k_zero = { 0, 0 };
+const Vec2i Vec2i::k_one  = { 1, 1 };
+
+Float16 ToFloat16(
+    const float value)
 {
     return DirectX::PackedVector::XMConvertFloatToHalf(value);
 }
 
-float ToFloat32(const Float16 value)
+float ToFloat32(
+    const Float16 value)
 {
     return DirectX::PackedVector::XMConvertHalfToFloat(value);
 }
 
-Vec2 ForwardToPitchYaw(const Vec3 _forward)
+Vec3 EulerFrom(
+    const Vec3 _forward)
 {
-    const Vec3 f = Normalized(_forward);
+    const Vec3  f  = Normalized(_forward);
+    const float cy = Sqrt(f.z * f.z + f.x * f.x);
+    const float cx = Atan2(-f.y, cy);
+    if (cy > k_epsilon)
+    {
+        return { cx, Atan2(f.x, f.z), 0.0f };
+    }
 
-    Vec2 py;
-    py.x = Asin(-f.y);        // pitch
-    py.y = Atan2(f.x, f.z);   // yaw
-    return py;
+    return { cx, 0.0f, 0.0f };
 }
 
-Vec3 PitchYawToForward(const float pitch, const float yaw)
+Vec3 ForwardFrom(
+    const Vec3 _eulerRad)
 {
-    const Quat q = Quat::CreateFromYawPitchRoll(yaw, pitch, 0.f);
-    return Vec3::Transform(Vec3::Forward, q);
+    const auto y = SinCosApprox(_eulerRad.y);
+    const auto x = SinCosApprox(_eulerRad.x);
+    return Normalized({ y.sin * x.cos, -x.sin, y.cos * x.cos });
 }
 
-Mat4 CreateOrthoMatrix(const float width, const float height, const float nearZ, const float farZ)
+Mtx4 CreateOrthoMatrix(
+    const float width,
+    const float height,
+    const float nearZ,
+    const float farZ)
 {
     return DirectX::XMMatrixOrthographicLH(width, height, nearZ, farZ);
 }
 
-Mat4 CreateOrthoMatrix(const float left, const float right, const float bottom, const float top, const float nearZ, const float farZ)
+Mtx4 CreateOrthoMatrix(
+    const float left,
+    const float right,
+    const float bottom,
+    const float top,
+    const float nearZ,
+    const float farZ)
 {
     return DirectX::XMMatrixOrthographicOffCenterLH(left, right, bottom, top, nearZ, farZ);
 }
 
-Mat4 CreatePerspectiveMatrix(const float fovYRad, const float aspect, const float zNear, const float zFar)
+Mtx4 CreatePerspectiveMatrix(
+    const float fovYRad,
+    const float aspect,
+    const float zNear,
+    const float zFar)
 {
     return DirectX::XMMatrixPerspectiveFovLH(fovYRad, aspect, zNear, zFar);
 }
 
-}   // namespace jam
+}   // namespace Jam

@@ -5,10 +5,11 @@
 #include "Editor.h"
 
 #include "EditorUtilities.h"
+#include "MessageDialog.h"
 #include "VertexLayoutEditorDialog.h"
 #include "VertexLayoutEntry.h"
 
-namespace jam
+namespace Jam
 {
 
 void Editor_VertexLayoutEditor::OnImGuiRender(
@@ -25,14 +26,16 @@ void Editor_VertexLayoutEditor::OnImGuiRender(
     {
         ImGui::TextUnformatted("vertex layout list");
 
-        ImGui::SetNextWindowSizeConstraints({ 300.f, 0.f }, { FLT_MAX, FLT_MAX });
-        if (ImGui::BeginChild("VertexLayoutListPanel", GetContentRegionAvailScaled(0.7f, 1.f), ImGuiChildFlags_Border))
+        ImGui::SetNextWindowSizeConstraints({ 300.f, 0.f }, { Limits<float>::k_max, Limits<float>::k_max });
+        if (ImGui::BeginChild("VertexLayoutListPanel", GetContentRegionAvailScaled(0.7f, 1.f), ImGuiChildFlags_Borders))
         {
             // render vertex layout entries
-            for (const auto& [name, pVle]: Editor::GetVertexLayoutMap())
+            const VertexLayoutMap& map = JAM_EDITOR.GetVertexLayoutMap();
+            for (const auto& [name, pVle]: map.GetContainer())
             {
-                const char* label      = name.c_str();
+                const char* label      = name.GetPtr();
                 const bool  bIsFocused = m_pFocusedVle == pVle;
+
                 if (ImGui::Selectable(label, bIsFocused))
                 {
                     m_pFocusedVle = pVle;
@@ -82,49 +85,57 @@ void Editor_VertexLayoutEditor::OnImGuiRender(
     ImGui::End();
 }
 
-void Editor_VertexLayoutEditor::OnClickRemoveButton_()
-{
-    JAM_ASSERT(m_pFocusedVle, "No vertex vertexLayout is selected for removal.");
-    VertexLayoutMap& map  = Editor::GetVertexLayoutMap();
-    const StringView name = m_pFocusedVle->GetName();
-    map.erase(name.GetPtr());
-    m_pFocusedVle = nullptr;
-}
-
 void Editor_VertexLayoutEditor::OnClickCreateButton_()
 {
     constexpr Int32 k_attemptLimit = 1000;
 
-    VertexLayoutMap& map = Editor::GetVertexLayoutMap();
+    VertexLayoutMap& map = JAM_EDITOR.GetVertexLayoutMap();
     for (Int32 i = 0; i < k_attemptLimit; ++i)
     {
-        StringView name = {};
-        if (i == 0)
+        ScratchBuffer tmp;
+        tmp.Set("new vertex layout");
+
+        if (i > 0)
         {
-            name = "new vertex layout";
-        }
-        else
-        {
-            name = GlobalBuffer::FormatTmp("new vertex layout {}", i);
+            tmp.AppendFormat(" ({})", i);
         }
 
-        if (!map.contains(name.GetPtr()))
+        // check duplicate
+        const StringView name = tmp.ToStringView();
+        if (!map.Has(name))
         {
-            const Ref<VertexLayoutEntry> pVle = MakeRef<VertexLayoutEntry>(name);
-            map.emplace(name.ToString(), pVle);
+            const Ref<VertexLayoutEntry> pVle = MakeRef<VertexLayoutEntry>(name, VertexLayout {});   // empty layout
+            map.Insert(pVle);
             m_pFocusedVle = pVle;
             return;
         }
+
         // else: retry
     }
 
-    Editor::PushMessageDialog("error", "failed to create a new vertex layout. too many vertex layouts with similar names exist.");
+    MessageDialogDesc desc = {};
+    desc.baseDesc.title    = "error";
+    desc.msg               = "failed to create new vertex layout: too many vertex layouts named 'new vertex layout' exist.";
+    JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
 }
 
 void Editor_VertexLayoutEditor::OnClickEditButton_() const
 {
     JAM_ASSERT(m_pFocusedVle, "No vertex vertexLayout is selected for editing.");
-    Editor::PushDialog(MakeScoped<VertexLayoutEditorDialog>(m_pFocusedVle));
+
+    VertexLayoutEditorDialogDesc desc = {};
+    desc.baseDesc.title               = "vertex layout editor";
+    desc.pVle                         = m_pFocusedVle;
+
+    JAM_EDITOR.PushDialog(MakeRef<VertexLayoutEditorDialog>(desc));
 }
 
-}   // namespace jam
+void Editor_VertexLayoutEditor::OnClickRemoveButton_()
+{
+    JAM_ASSERT(m_pFocusedVle, "No vertex vertexLayout is selected for removal.");
+    VertexLayoutMap& map = JAM_EDITOR.GetVertexLayoutMap();
+    map.Remove(m_pFocusedVle->GetName());
+    m_pFocusedVle = nullptr;
+}
+
+}   // namespace Jam

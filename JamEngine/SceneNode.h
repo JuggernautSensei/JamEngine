@@ -2,8 +2,10 @@
 #include "Entity.h"
 #include "Transform.h"
 
-namespace jam
+namespace Jam
 {
+
+
 
 class SceneNode
 {
@@ -21,11 +23,6 @@ public:
     SceneNode();
     explicit SceneNode(Entity _root, Entity _owner);   // create regular pNode
     explicit SceneNode(Entity _root);                  // create root pNode
-
-    SceneNode(const SceneNode&)                = delete;
-    SceneNode& operator=(const SceneNode&)     = delete;
-    SceneNode(SceneNode&&) noexcept            = default;
-    SceneNode& operator=(SceneNode&&) noexcept = default;
 
     // hierarchy operations
     void SetParent(Entity _parent, bool _bKeepLocal = false);
@@ -56,18 +53,19 @@ private:
     void ReleaseParent_();
     void UpdateDirty_(Vector<Entity>& _updatedNodes);
     void UpdateDirty_Recursive_(Vector<Entity>& _updatedNodes);
+    void UpdateDirty_Recursive_();
 
     eDirty m_dirty = eDirty::None;
 
     Transform m_local = {};
     Transform m_world = {};
 
-    Entity m_root        = Entity::s_null;
-    Entity m_owner       = Entity::s_null;
-    Entity m_parent      = Entity::s_null;
-    Entity m_firstChild  = Entity::s_null;
-    Entity m_nextSibling = Entity::s_null;
-    Entity m_prevSibling = Entity::s_null;
+    Entity m_root        = Entity::k_invalid;
+    Entity m_owner       = Entity::k_invalid;
+    Entity m_parent      = Entity::k_invalid;
+    Entity m_firstChild  = Entity::k_invalid;
+    Entity m_nextSibling = Entity::k_invalid;
+    Entity m_prevSibling = Entity::k_invalid;
 };
 
-}   // namespace jam
+}   // namespace Jam

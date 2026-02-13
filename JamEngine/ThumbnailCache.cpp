@@ -6,9 +6,9 @@
 #include <atlstr.h>
 
 #include "Graphics.h"
-#include "ImageTexture.h"
+#include "Texture.h"
 
-namespace jam
+namespace Jam
 {
 
 ThumbnailCache::ThumbnailCache()
@@ -17,39 +17,11 @@ ThumbnailCache::ThumbnailCache()
     // create placeholder thumbnail (solid white)
     Array<Byte, 4 * 128 * 128> pixels = {};
     pixels.fill(0xFF);
-    m_pPlaceholderThumbnail = CreateImageTexture_(128, 128, pixels);
+    m_pPlaceholderThumbnail = CreateTexture_(128, 128, pixels);
 }
 
-void ThumbnailCache::GatherThumbnailsFrom_(
-    const fs::path& _dir)
-{
-    JAM_ASSERT(fs::is_directory(_dir), "Path is not a directory: {}", _dir.native());
-
-    // count files first
-    // because.. if too many files, expand lru cache capacity
-    m_tmpEntries.clear();
-    for (const fs::directory_entry& entry: fs::directory_iterator(_dir))
-    {
-        m_tmpEntries.push_back(entry);
-    }
-
-    // expand cache if needed
-    const Int32 numEntries = m_tmpEntries.size();
-    if (numEntries > m_cache.GetCapacity())
-    {
-        m_cache.SetCapacity(numEntries + 16);   // add some margin
-    }
-
-    // gather thumbnails
-    for (const fs::directory_entry& entry: m_tmpEntries)
-    {
-        const fs::path& path = entry.path();
-        InsertThumbnail_(path);
-    }
-}
-
-Ref<ImageTexture> ThumbnailCache::GetOrPlaceholder(
-    const fs::path& _path)
+Ref<Texture> ThumbnailCache::GetOrPlaceholder(
+    const Path& _path)
 {
     // first search
     {
@@ -71,22 +43,50 @@ Ref<ImageTexture> ThumbnailCache::GetOrPlaceholder(
             return it->value;   // or placeholder
         }
 
-        JAM_ASSERT(0, "never reach here");
-        return m_pPlaceholderThumbnail;
+        JAM_UNREACHABLE;
     }
 }
 
 void ThumbnailCache::OnEvent(Event& _event)
 {
-    HandleEvent<FileModifiedEvent>(_event, JAM_BIND_LISTENER_METHOD(this,ThumbnailCache::OnFileModifiedEvent_));
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<FileModifiedEvent>(this, &ThumbnailCache::OnFileModifiedEvent_);
 
     // on add -> 다루지 않음. 필요하면 그때 로드
     // on delete -> 다루지 않음. lru 캐시에서 자연스럽게 사라지도록 둠
     // on rename -> 다루지 않음. 필요하면 그때 로드 + modified로 자연스럽게 처리되는 부분도 있음
 }
 
+void ThumbnailCache::GatherThumbnailsFrom_(
+    const Path& _dir)
+{
+    JAM_ASSERT(fs::is_directory(_dir), "Path is not a directory: {}", _dir.native());
+
+    // count files first
+    // because.. if too many files, expand lru cache capacity
+    m_tmpEntries.clear();
+    for (const fs::directory_entry& entry: fs::directory_iterator(_dir))
+    {
+        m_tmpEntries.emplace_back(entry);
+    }
+
+    // expand cache if needed
+    const SizeT numEntries = m_tmpEntries.size();
+    if (numEntries > m_cache.GetCapacity())
+    {
+        m_cache.SetCapacity(numEntries + 16);   // add some margin
+    }
+
+    // gather thumbnails
+    for (const fs::directory_entry& entry: m_tmpEntries)
+    {
+        const Path& path = entry.path();
+        InsertThumbnail_(path);
+    }
+}
+
 void ThumbnailCache::InsertThumbnail_(
-    const fs::path& _path)
+    const Path& _path)
 {
     // already cached
     const auto it = m_cache.Find(_path);
@@ -96,42 +96,44 @@ void ThumbnailCache::InsertThumbnail_(
     }
 
     // create
-    Ref<ImageTexture> pThumbnail;
-    if (!MoveIfHasValue(CreateThumbnail_(_path), pThumbnail))
+    Optional<Ref<Texture>> pThumbnail = CreateThumbnail_(_path);
+    if (!pThumbnail)
     {
         // insert placeholder
         pThumbnail = m_pPlaceholderThumbnail;
     }
 
-    m_cache.Insert(_path, pThumbnail);
+    m_cache.Insert(_path, pThumbnail.Take());
 }
 
-Optional<Ref<ImageTexture>> ThumbnailCache::CreateThumbnail_(
-    const fs::path& _path) const
+Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
+    const Path& _path) const
 {
-    constexpr SIZE     k_thumbnailSize = { 128, 128 };
-    const std::wstring path            = _path.wstring();
+    constexpr SIZE k_thumbnailSize = { 128, 128 };
+
+    ScratchWBuffer buf;
+    buf.SetUtf8(_path.native());
 
     CComPtr<IShellItem> psi = nullptr;
-    if (FAILED(SHCreateItemFromParsingName(path.c_str(), nullptr, IID_PPV_ARGS(&psi))))
+    if (FAILED(SHCreateItemFromParsingName(buf.GetPtr(), nullptr, IID_PPV_ARGS(&psi))))
     {
-        GlobalBuffer::SetLastError("Failed to create IShellItem from path: {}", _path.native());
+        JAM_LOG.Error("Failed to create IShellItem from path: {}", _path.native());
         return k_nullopt;
     }
 
     CComPtr<IShellItemImageFactory> pImageFactory = nullptr;
     if (FAILED(psi->QueryInterface(IID_PPV_ARGS(&pImageFactory))))
     {
-        GlobalBuffer::SetLastError("Failed to get IShellItemImageFactory from IShellItem: {}", _path.native());
+        JAM_LOG.Error("Failed to get IShellItemImageFactory from IShellItem: {}", _path.native());
         return k_nullopt;
     }
 
-    HBITMAP hBmp = NULL;
+    HBITMAP hBmp = {};
     if (FAILED(pImageFactory->GetImage(k_thumbnailSize, SIIGBF_THUMBNAILONLY, &hBmp)))
     {
         if (FAILED(pImageFactory->GetImage(k_thumbnailSize, SIIGBF_RESIZETOFIT, &hBmp)))
         {
-            GlobalBuffer::SetLastError("Failed to get thumbnail image for path: {}", _path.native());
+            JAM_LOG.Error("Failed to get thumbnail image for path: {}", _path.native());
             return k_nullopt;
         }
     }
@@ -139,45 +141,41 @@ Optional<Ref<ImageTexture>> ThumbnailCache::CreateThumbnail_(
     BITMAP bmp = {};
     if (GetObject(hBmp, sizeof(BITMAP), &bmp) == 0)
     {
-        GlobalBuffer::SetLastError("GetObject failed for thumbnail bitmap: {}", _path.native());
-        goto lb_error;
+        JAM_LOG.Error("GetObject failed for thumbnail bitmap: {}", _path.native());
+        DeleteObject(hBmp);
+        return k_nullopt;
     }
 
     // read pixel
     const Int32   width  = bmp.bmWidth;
     const Int32   height = bmp.bmHeight;
     Vector<UInt8> pixels(4 * width * height);
-    if (GetBitmapBits(hBmp, pixels.size(), pixels.data()) == 0)
+    if (GetBitmapBits(hBmp, NumericCast<LONG>(pixels.size()), pixels.data()) == 0)
     {
-        GlobalBuffer::SetLastError("GetBitmapBits failed for thumbnail bitmap: {}", _path.native());
-        goto lb_error;
+        JAM_LOG.Error("GetBitmapBits failed for thumbnail bitmap: {}", _path.native());
+        DeleteObject(hBmp);
+        return k_nullopt;
     }
 
     DeleteObject(hBmp);
-    return CreateImageTexture_(width, height, pixels);
-
-lb_error:
-    DeleteObject(hBmp);
-    return k_nullopt;
+    return CreateTexture_(width, height, pixels);
 }
 
-Ref<ImageTexture> ThumbnailCache::CreateImageTexture_(
-    const Int32    _w,
-    const Int32    _h,
-    const CMemView _initData) const
+Ref<Texture> ThumbnailCache::CreateTexture_(
+    const Int32        _w,
+    const Int32        _h,
+    const CMemoryBlock _initData) const
 {
-    const CMemView      mems[]   = { _initData };
-    const TextureHandle texh     = Graphics::CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, 1, 0, mems);
-    Ref<ImageTexture>   pTexture = MakeRef<ImageTexture>();
-    pTexture->LoadHandle(texh);
-    return pTexture;
+    const CMemoryBlock  mems[] = { _initData };
+    const TextureHandle texh   = JAM_GFX.CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
+    return Texture::Create(texh);
 }
 
 void ThumbnailCache::OnFileModifiedEvent_(
     const FileModifiedEvent& _event)
 {
-    const fs::path& path = _event.GetPath();
-    const auto      it   = m_cache.Find(path);
+    const Path& path = _event.GetPath();
+    const auto  it   = m_cache.Find(path);
     if (it != m_cache.End())
     {
         m_cache.Remove(path);
@@ -185,4 +183,4 @@ void ThumbnailCache::OnFileModifiedEvent_(
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

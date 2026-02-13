@@ -169,10 +169,18 @@
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'" Label="Vcpkg" />
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'" Label="Vcpkg" />
-  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'" Label="Vcpkg" />
-  <PropertyGroup Label="Vcpkg" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'" Label="Vcpkg">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'" Label="Vcpkg">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -398,9 +406,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AssetUtilities.cpp" />
-    <ClCompile Include="AssetDialog.cpp" />
-    <ClCompile Include="Cista.cpp" />
+    <ClCompile Include="Archive.cpp" />
+    <ClCompile Include="Assertion.cpp" />
+    <ClCompile Include="AssetCreationDialog.cpp" />
+    <ClCompile Include="Colony.cpp" />
+    <ClCompile Include="CommandLineArgumentParser.cpp" />
+    <ClCompile Include="ComponentMetadata.cpp" />
+    <ClCompile Include="ImageExporter.cpp" />
+    <ClCompile Include="ImageImporter.cpp" />
+    <ClCompile Include="InfiniteDragger.cpp" />
+    <ClCompile Include="MemoryAllocator.cpp" />
+    <ClCompile Include="MemoryReadWriter.cpp" />
+    <ClCompile Include="MockApplication.cpp" />
+    <ClCompile Include="ComponentProperties.cpp" />
+    <ClCompile Include="ScratchBuffer.cpp" />
+    <ClCompile Include="ConstexprStringHashMap.cpp" />
+    <ClCompile Include="EnumUtilities.cpp" />
+    <ClCompile Include="CleanUp.cpp" />
+    <ClCompile Include="File.cpp" />
+    <ClCompile Include="JsonArchive.cpp" />
+    <ClCompile Include="MemoryBlock.cpp" />
+    <ClCompile Include="NameOf.cpp" />
+    <ClCompile Include="ReflectionDB.cpp" />
+    <ClCompile Include="Delegate.cpp" />
+    <ClCompile Include="AssetSaveLoader.cpp" />
     <ClCompile Include="ConfirmationDialog.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetManager.cpp" />
@@ -417,7 +446,6 @@
     <ClCompile Include="EditorStyle.cpp" />
     <ClCompile Include="EditorUtilities.cpp" />
     <ClCompile Include="EditorWidgets.cpp" />
-    <ClCompile Include="ComponentDB.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Editor_EntityInspector.cpp" />
     <ClCompile Include="Editor_FileBrowser.cpp" />
@@ -428,29 +456,22 @@
     <ClCompile Include="Editor_SceneView.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="EnvironmentComponent.cpp" />
-    <ClCompile Include="FixedString.cpp" />
-    <ClCompile Include="Fwd.cpp" />
-    <ClCompile Include="GlobalBuffer.cpp" />
-    <ClCompile Include="FileIOUtilities.cpp" />
     <ClCompile Include="Dialog.cpp" />
     <ClCompile Include="GeometryUtilities.cpp" />
     <ClCompile Include="RenameFileDialog.cpp" />
-    <ClCompile Include="Json.cpp" />
-    <ClCompile Include="JsonReader.cpp" />
-    <ClCompile Include="JsonWriter.cpp" />
     <ClCompile Include="LRUCache.cpp" />
-    <ClCompile Include="Magics.cpp" />
     <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="Octree.cpp" />
     <ClCompile Include="Optional.cpp" />
+    <ClCompile Include="Scalar.cpp" />
     <ClCompile Include="Scoped.cpp" />
     <ClCompile Include="STL.cpp" />
-    <ClCompile Include="StringView.cpp" />
+    <ClCompile Include="String.cpp" />
+    <ClCompile Include="StringHashMap.cpp" />
     <ClCompile Include="SVGImporter.cpp" />
     <ClCompile Include="TextureFormat.cpp" />
     <ClCompile Include="HistoryStack.cpp" />
     <ClCompile Include="ImGuiGlue.cpp" />
-    <ClCompile Include="ImGuiUtilities.cpp" />
     <ClCompile Include="ImageImportDialog.cpp" />
     <ClCompile Include="RefCounted.cpp" />
     <ClCompile Include="RenderableComponent.cpp" />
@@ -459,14 +480,11 @@
     <ClCompile Include="BaseUtilities.cpp" />
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="ImageBase.cpp" />
-    <ClCompile Include="ImageExporter.cpp" />
-    <ClCompile Include="ImageImporter.cpp" />
     <ClCompile Include="Material.cpp" />
-    <ClCompile Include="ImageTexture.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="HandleAllocator.cpp" />
-    <ClCompile Include="Hash.cpp" />
+    <ClCompile Include="MemoryHasher.cpp" />
     <ClCompile Include="LoopSubdivision.cpp" />
-    <ClCompile Include="MemView.cpp" />
     <ClCompile Include="MemoryArena.cpp" />
     <ClCompile Include="MemoryPool.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -474,22 +492,15 @@
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="Profile.cpp" />
-    <ClCompile Include="EditableComponent.cpp" />
     <ClCompile Include="RadixSort.cpp" />
-    <ClCompile Include="RemoveNotEmptyDirectoryDialog.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderPass.cpp" />
-    <ClCompile Include="SceneDB.cpp" />
-    <ClCompile Include="SceneDeserializer.cpp" />
-    <ClCompile Include="ScriptComponent.cpp" />
-    <ClCompile Include="ScriptDB.cpp" />
-    <ClCompile Include="SerializableComponent.cpp" />
     <ClCompile Include="ResourcePool.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
-    <ClCompile Include="EnumUtilities.cpp" />
+    <ClCompile Include="Flags.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntryPoint.cpp" />
     <ClCompile Include="Events.cpp" />
@@ -497,13 +508,12 @@
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="GraphicsBase.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Script.cpp" />
     <ClCompile Include="SpotLightComponent.cpp" />
     <ClCompile Include="TagComponent.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
     <ClCompile Include="ThumbnailCache.cpp" />
+    <ClCompile Include="TinyVector.cpp" />
     <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="TypeTrait.cpp" />
     <ClCompile Include="DataType.cpp" />
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -518,109 +528,57 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="StringUtilities.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TypeTraits.cpp" />
     <ClCompile Include="UID.cpp" />
-    <ClCompile Include="Properties.cpp" />
-    <ClCompile Include="Vendor\backward\backward.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="ComponentTag.cpp" />
+    <ClCompile Include="UIDGenerator.cpp" />
+    <ClCompile Include="Vendor\ImGuizmo\ImGuizmo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Vendor\DirectXTK\SimpleMath.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\ImGuizmo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_demo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_draw.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_impl_win32.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui_stdlib.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="Vendor\imgui\imgui_tables.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_widgets.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Vendor\mimalloc\static.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="VertexLayout.cpp" />
     <ClCompile Include="RenderView.cpp" />
@@ -633,9 +591,29 @@
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AssetUtilities.h" />
-    <ClInclude Include="AssetDialog.h" />
-    <ClInclude Include="Cista.h" />
+    <ClInclude Include="Archive.h" />
+    <ClInclude Include="Assertion.h" />
+    <ClInclude Include="AssetCreationDialog.h" />
+    <ClInclude Include="Colony.h" />
+    <ClInclude Include="CommandLineArgumentParser.h" />
+    <ClInclude Include="ComponentMetadata.h" />
+    <ClInclude Include="ConstexprStringHashMap.h" />
+    <ClInclude Include="EnumUtilities.h" />
+    <ClInclude Include="CleanUp.h" />
+    <ClInclude Include="File.h" />
+    <ClInclude Include="ImageExporter.h" />
+    <ClInclude Include="ImageImporter.h" />
+    <ClInclude Include="InfiniteDragger.h" />
+    <ClInclude Include="JsonArchive.h" />
+    <ClInclude Include="MemoryAllocator.h" />
+    <ClInclude Include="MemoryBlock.h" />
+    <ClInclude Include="MemoryReadWriter.h" />
+    <ClInclude Include="MockApplication.h" />
+    <ClInclude Include="NameOf.h" />
+    <ClInclude Include="ComponentProperties.h" />
+    <ClInclude Include="ReflectionDB.h" />
+    <ClInclude Include="Delegate.h" />
+    <ClInclude Include="AssetSaveLoader.h" />
     <ClInclude Include="ConfirmationDialog.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="AssetManager.h" />
@@ -653,7 +631,6 @@
     <ClInclude Include="EditorStyle.h" />
     <ClInclude Include="EditorUtilities.h" />
     <ClInclude Include="EditorWidgets.h" />
-    <ClInclude Include="ComponentDB.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="Editor_EntityInspector.h" />
     <ClInclude Include="Editor_FileBrowser.h" />
@@ -664,27 +641,22 @@
     <ClInclude Include="Editor_SceneView.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="EnvironmentComponent.h" />
-    <ClInclude Include="FixedString.h" />
-    <ClInclude Include="Fwd.h" />
-    <ClInclude Include="GlobalBuffer.h" />
     <ClInclude Include="FileSystemUtilities.h" />
-    <ClInclude Include="FileIOUtilities.h" />
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="GeometryUtilities.h" />
     <ClInclude Include="RenameFileDialog.h" />
-    <ClInclude Include="JsonReader.h" />
-    <ClInclude Include="JsonWriter.h" />
     <ClInclude Include="LRUCache.h" />
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="Optional.h" />
+    <ClInclude Include="Scalar.h" />
     <ClInclude Include="Scoped.h" />
     <ClInclude Include="STL.h" />
-    <ClInclude Include="StringView.h" />
+    <ClInclude Include="String.h" />
+    <ClInclude Include="StringHashMap.h" />
     <ClInclude Include="SVGImporter.h" />
     <ClInclude Include="TextureFormat.h" />
     <ClInclude Include="HistoryStack.h" />
-    <ClInclude Include="ImGuiUtilities.h" />
     <ClInclude Include="ImageImportDialog.h" />
     <ClInclude Include="ModelImportDialog.h" />
     <ClInclude Include="RefCounted.h" />
@@ -696,15 +668,12 @@
     <ClInclude Include="Configs.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="ImageBase.h" />
-    <ClInclude Include="ImageExporter.h" />
-    <ClInclude Include="ImageImporter.h" />
     <ClInclude Include="ImGuiGlue.h" />
     <ClInclude Include="Material.h" />
-    <ClInclude Include="ImageTexture.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="HandleAllocator.h" />
-    <ClInclude Include="Hash.h" />
+    <ClInclude Include="MemoryHasher.h" />
     <ClInclude Include="LoopSubdivision.h" />
-    <ClInclude Include="MemView.h" />
     <ClInclude Include="MemoryArena.h" />
     <ClInclude Include="MemoryPool.h" />
     <ClInclude Include="Mesh.h" />
@@ -712,43 +681,34 @@
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="Profile.h" />
-    <ClInclude Include="EditableComponent.h" />
     <ClInclude Include="RadixSort.h" />
-    <ClInclude Include="RemoveNotEmptyDirectoryDialog.h" />
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="ThumbnailCache.h" />
+    <ClInclude Include="ScratchBuffer.h" />
+    <ClInclude Include="TinyVector.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="RenderPass.h" />
-    <ClInclude Include="SceneDB.h" />
-    <ClInclude Include="SceneDeserializer.h" />
-    <ClInclude Include="ScriptComponent.h" />
-    <ClInclude Include="ScriptDB.h" />
-    <ClInclude Include="SerializableComponent.h" />
     <ClInclude Include="ResourcePool.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="CommandQueue.h" />
-    <ClInclude Include="EnumUtilities.h" />
+    <ClInclude Include="Flags.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="GraphicsBase.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="Script.h" />
-    <None Include="Resources\flatc\jmtl.fbs" />
     <ClInclude Include="SpotLightComponent.h" />
     <ClInclude Include="TagComponent.h" />
     <ClInclude Include="SceneComponent.h" />
     <ClInclude Include="SceneNode.h" />
-    <ClInclude Include="TypeTrait.h" />
     <ClInclude Include="DataType.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="StringUtilities.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="EntryPoint.h" />
     <ClInclude Include="JamEngine.h">
@@ -761,114 +721,31 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="TypeTraits.h" />
     <ClInclude Include="UID.h" />
-    <ClInclude Include="Properties.h" />
-    <ClInclude Include="Json.h" />
-    <ClInclude Include="Vendor\backward\backward.hpp" />
-    <ClInclude Include="Vendor\bvh\v2\bbox.h" />
-    <ClInclude Include="Vendor\bvh\v2\binned_sah_builder.h" />
-    <ClInclude Include="Vendor\bvh\v2\BoundBox.h" />
-    <ClInclude Include="Vendor\bvh\v2\default_builder.h" />
-    <ClInclude Include="Vendor\bvh\v2\executor.h" />
-    <ClInclude Include="Vendor\bvh\v2\index.h" />
-    <ClInclude Include="Vendor\bvh\v2\mini_tree_builder.h" />
-    <ClInclude Include="Vendor\bvh\v2\node.h" />
-    <ClInclude Include="Vendor\bvh\v2\platform.h" />
-    <ClInclude Include="Vendor\bvh\v2\ray.h" />
-    <ClInclude Include="Vendor\bvh\v2\reinsertion_optimizer.h" />
-    <ClInclude Include="Vendor\bvh\v2\sphere.h" />
-    <ClInclude Include="Vendor\bvh\v2\split_heuristic.h" />
-    <ClInclude Include="Vendor\bvh\v2\stack.h" />
-    <ClInclude Include="Vendor\bvh\v2\stream.h" />
-    <ClInclude Include="Vendor\bvh\v2\sweep_sah_builder.h" />
-    <ClInclude Include="Vendor\bvh\v2\thread_pool.h" />
-    <ClInclude Include="Vendor\bvh\v2\top_down_sah_builder.h" />
-    <ClInclude Include="Vendor\bvh\v2\tri.h" />
-    <ClInclude Include="Vendor\bvh\v2\utils.h" />
-    <ClInclude Include="Vendor\bvh\v2\vec.h" />
-    <ClInclude Include="Vendor\DirectXTK\SimpleMath.h" />
-    <ClInclude Include="vendor\ghc\filesystem.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_fwd.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_impl.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_std.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_std_fwd.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_std_impl.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="ComponentTag.h" />
+    <ClInclude Include="UIDGenerator.h" />
+    <ClInclude Include="Vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Vendor\imgui\imconfig.h" />
     <ClInclude Include="Vendor\imgui\imgui.h" />
-    <ClInclude Include="Vendor\imgui\ImGuizmo.h" />
     <ClInclude Include="Vendor\imgui\imgui_impl_win32.h" />
     <ClInclude Include="Vendor\imgui\imgui_internal.h" />
     <ClInclude Include="Vendor\imgui\imgui_stdlib.h" />
     <ClInclude Include="Vendor\imgui\imstb_rectpack.h" />
     <ClInclude Include="Vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="Vendor\imgui\imstb_truetype.h" />
-    <ClInclude Include="Vendor\nlohmann\Json.hpp" />
-    <ClInclude Include="Vendor\nlohmann\json_fwd.hpp" />
-    <ClInclude Include="Vendor\optional\optional.hpp" />
-    <ClInclude Include="vendor\unordered_dense\unordered_dense.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">false</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\bitmap.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc-new-delete.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc-override.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc-stats.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc\atomic.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc\internal.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc\prim.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc\track.h" />
+    <ClInclude Include="Vendor\mimalloc\mimalloc\types.h" />
+    <ClInclude Include="Vendor\plf_colony\plf_colony.h" />
+    <ClInclude Include="Vendor\rapidstring\rapidstring.h" />
     <ClInclude Include="VertexLayout.h" />
     <ClInclude Include="RenderView.h" />
     <ClInclude Include="VertexLayoutEditorDialog.h" />
@@ -876,14 +753,10 @@
     <ClInclude Include="WindowsPlatform.h" />
     <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="EmbeddedShaderGlue.h" />
-    <ClInclude Include="Magics.h" />
-    <None Include="Vendor\DirectXTK\SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".editorconfig" />
-    <None Include="resources\flatc\jmat.fbs" />
-    <None Include="resources\flatc\jmsh.fbs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\HLSL\BloomBlurUpPS.hlsl">

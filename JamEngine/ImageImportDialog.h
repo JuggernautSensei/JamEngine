@@ -1,34 +1,45 @@
 #pragma once
-#include "AssetDialog.h"
+#include "AssetCreationDialog.h"
+#include "ImageBase.h"
 #include "ImageImporter.h"
 #include "WindowsUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
-class ImageImportDialog : public AssetDialog
+struct ImageImportDialogDesc
+{
+    DialogDesc baseDesc          = {};
+    Path       importPathOrEmpty = {};
+};
+
+class ImageImportDialog : public AssetCreationDialog
 {
 
 public:
-    explicit ImageImportDialog(const fs::path& _path);
+    explicit ImageImportDialog(const ImageImportDialogDesc& _desc);
     void OnShow() override;
 
 private:
-    void LoadPreviewTexture_();
-    bool OnClickImportButton_();
-    void Widget_PreviewTexture_() const;
+    Error LoadPreviewTexture_();
+    bool  OnClickImportButton_();
+    bool  CreateAndSaveAsset_(const Path& _path) override;
+    void  Widget_PreviewTexture_() const;
+    bool  Widget_TextureFormatCombo_(const char* _label, eTextureFormat& _format) const;
 
-    fs::path    m_dir;
-    std::string m_name;
+    Path       m_importPath = {};
+    FileDialog m_importFd { eFileDialogMode::OpenFile };
+    FileDialog m_saveFd { eFileDialogMode::SaveFile };
 
-    ImageImporter        m_importer    = {};
-    Ref<ImageTexture>    m_pPreviewTex = nullptr;
-    ImageImporterOptions m_options     = {};
-    FileDialog           m_fd;   // init in ctor
+    Ref<Texture>       m_pPreviewTex = nullptr;
+    ImageImportOptions m_options     = {};
 
-    float           m_previewLoadCounterSec  = 0.f;
-    bool            m_bPreviewLoadRequested  = false;
-    constexpr float k_previewLoadDebounceSec = 1.f;
+    Path   m_assetSaveDir  = {};
+    String m_assetBaseName = {};
+
+    float                  m_previewLoadCounterSec  = 0.f;
+    bool                   m_bPreviewLoadRequested  = false;
+    constexpr static float k_previewLoadDebounceSec = 1.f;
 };
 
-}   // namespace jam
+}   // namespace Jam

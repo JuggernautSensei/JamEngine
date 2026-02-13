@@ -11,15 +11,13 @@
 #include "ShaderCompiler.h"
 
 #include "Scene.h"
-#include "SceneDB.h"
 #include "SceneManager.h"
 
-#include "FileIOUtilities.h"
+
 #include "Input.h"
 #include "WindowsUtilities.h"
 
 #include "Script.h"
-#include "ScriptDB.h"
 
 #include "BasicRenderer.h"
 #include "MeshFactory.h"

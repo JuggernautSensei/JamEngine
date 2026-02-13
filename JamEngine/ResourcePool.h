@@ -1,7 +1,7 @@
 #pragma once
 #include "HandleAllocator.h"
 
-namespace jam
+namespace Jam
 {
 
 template<typename T>
@@ -104,7 +104,7 @@ public:
     [[nodiscard]] HandleT Alloc()
     {
         HandleT handle = m_handleAlloc.Alloc();
-        if (handle.index >= m_resources.size())
+        if (CmpGreaterEqual(handle.index, m_resources.size()))
         {
             m_resources.resize(handle.index + 1);
         }
@@ -125,25 +125,25 @@ public:
 
     [[nodiscard]] T& GetResource(const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
     [[nodiscard]] const T& GetResource(const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
     [[nodiscard]] const T& operator[](const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
     [[nodiscard]] T& operator[](const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. index = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
@@ -196,8 +196,8 @@ public:
 
 private:
     HandleAllocator<T> m_handleAlloc = {};
-    Vector<T>     m_resources   = {};
+    Vector<T>          m_resources   = {};
     UInt32             m_numItems    = 0;
 };
 
-}   // namespace jam
+}   // namespace Jam

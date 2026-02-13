@@ -2,76 +2,126 @@
 
 #include "EditorWidgets.h"
 
-#include "AssetManager.h"
-#include "Camera.h"
 #include "Editor.h"
 #include "EditorUtilities.h"
 #include "Entity.h"
 #include "Graphics.h"
-#include "ImGuiUtilities.h"
-#include "ScriptDB.h"
+#include "ReflectionDB.h"
 #include "Transform.h"
 #include "VertexLayoutEntry.h"
 
-namespace jam
+namespace Jam
 {
 
-enum class eAcroballAxis
+namespace
 {
-    X,
-    Y,
-    Z
-};
-
-struct AcroballAxisData
-{
-    static bool CompareDepthAscending(
-        const AcroballAxisData& a,
-        const AcroballAxisData& b)
+    struct AcroballAxisData
     {
-        return a.depth < b.depth;
+        static bool CompareDepthAscending(
+            const AcroballAxisData& a,
+            const AcroballAxisData& b)
+        {
+            return a.depth < b.depth;
+        }
+
+        const char* name;
+        ImVec4      color;
+        ImVec4      outlineColor;
+
+        Vec3  dir;
+        float depth;
+        bool  bPos;   // positive direction
+    };
+
+    struct WidgetInputTextCallback_UserData
+    {
+        String*                pStr           = nullptr;
+        ImGuiInputTextCallback ChainCallback  = nullptr;
+        void*                  pChainUserData = nullptr;
+    };
+
+    Int32 Widget_InputTextCallback(
+        ImGuiInputTextCallbackData* _pData)
+    {
+        const WidgetInputTextCallback_UserData* pUserData = static_cast<WidgetInputTextCallback_UserData*>(_pData->UserData);
+        if (_pData->EventFlag == ImGuiInputTextFlags_CallbackResize)
+        {
+            // Resize string callback
+            // If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
+            String* pStr = pUserData->pStr;
+            JAM_ASSERT(_pData->Buf == pStr->GetPtr(), "Invalid string buffer pointer in InputText callback.");
+            pStr->Resize(_pData->BufTextLen);
+            _pData->Buf = static_cast<char*>(pStr->GetPtr());
+        }
+        else if (pUserData->ChainCallback)
+        {
+            // Forward to user callback, if any
+            _pData->UserData = pUserData->pChainUserData;
+            return pUserData->ChainCallback(_pData);
+        }
+        return 0;
     }
 
-    const char* name;
-    ImVec4      color;
-    ImVec4      outlineColor;
+    void FormatTextureInfoText_(
+        ScratchBuffer&      _buf,
+        const Ref<Texture>& _pTexture)
+    {
+        const TextureInfo texInfo = JAM_GFX.GetTextureInfo(_pTexture->GetHandle());
+        _buf.Format("path: {}\n"
+                    "size: {} x {} x {}\n"
+                    "type: {}\n"
+                    "format: {}\n"
+                    "array size: {}\n"
+                    "samples: {}\n"
+                    "mip levels: {}",
+                    _pTexture->GetPath(),
+                    texInfo.width,
+                    texInfo.height,
+                    texInfo.depth,
+                    NameOf(texInfo.type),
+                    NameOf(texInfo.format),
+                    texInfo.arraySize,
+                    texInfo.samples,
+                    texInfo.numMips);
+    }
 
-    Vec3          dir;
-    eAcroballAxis axis;
-    float         depth;
-    bool          bPos;   // positive direction
-};
+    void FormatShortcutDisplayText_Minimal_(
+        ScratchBuffer&      _buf,
+        const ImGuiKeyChord _shortcut)
+    {
+        if (_shortcut & ImGuiMod_Ctrl)
+        {
+            _buf.Append("Ctrl + ");
+        }
 
-static StringView TmpImageTextureInfoString(
-    const Ref<ImageTexture>& _pTexture)
-{
-    constexpr const char* const k_names[] = { "texture 2D", "texture 3D", "texture cube" };
+        if (_shortcut & ImGuiMod_Shift)
+        {
+            _buf.Append("Shift + ");
+        }
 
-    const TextureInfo        texInfo    = Graphics::GetTextureInfo(_pTexture->GetHandle());
-    const TextureFormatInfo& formatInfo = TextureFormatInfoFrom(texInfo.format);
+        if (_shortcut & ImGuiMod_Alt)
+        {
+            _buf.Append("Alt + ");
+        }
 
-    return GlobalBuffer::FormatTmp("path: {}\n"
-                                   "size: {} x {} x {}\n"
-                                   "type: {}\n"
-                                   "format: {}\n"
-                                   "array size: {}\n"
-                                   "samples: {}\n"
-                                   "mip levels: {}",
-                                   _pTexture->GetPath().native(),
-                                   texInfo.width,
-                                   texInfo.height,
-                                   texInfo.depth,
-                                   k_names[IntFrom(texInfo.type)],
-                                   formatInfo.name,
-                                   texInfo.arraySize,
-                                   texInfo.samples,
-                                   texInfo.numMips);
-}
+        const ImGuiKey key = static_cast<ImGuiKey>(_shortcut & ~ImGuiMod_Mask_);
+        if (key != ImGuiKey_None)
+        {
+            _buf.Append(EditorDisplayNameOf(key));
+        }
+    }
 
-}   // namespace jam
+    void FormatShortcutDisplayText_(
+        ScratchBuffer&      _buf,
+        const ImGuiKeyChord _shortcut)
+    {
+        _buf.Set("shortcut: ");
+        FormatShortcutDisplayText_Minimal_(_buf, _shortcut);
+    }
 
-namespace jam
-{
+}   // namespace
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Widget_DragTranslation(
     const char*            _label,
@@ -88,9 +138,6 @@ bool Widget_DragTranslation(
         return false;
     }
 
-    ImGui::PushID(_label);
-    ImGui::BeginGroup();
-
     const ImGuiStyle& style     = ImGui::GetStyle();
     const float       textW     = ImGui::CalcTextSize("X").x;
     const float       btnW      = textW + 2.f * style.FramePadding.x;
@@ -99,35 +146,40 @@ bool Widget_DragTranslation(
     const float       dragItemW = (itemW - (btnW * 3.f) - (spacing * 5.f)) / 3.f;
     bool              bChanged  = false;
 
+    ImGui::PushID(_label);
+    ImGui::BeginGroup();
+    ImGui::PushStyleVarX(ImGuiStyleVar_ItemSpacing, spacing);
+
     if (ImGui::Button("X"))
     {
         _translation.x = 0.f;
         bChanged       = true;
     }
-    ImGui::SameLine(0, spacing);
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##X", &_translation.x, _speed, _min, _max, _fmt, _flag);
+    bChanged |= Widget_DragFloat("##X", _translation.x, _speed, _min, _max, _fmt, _flag);
 
-    ImGui::SameLine(0, spacing);
+    ImGui::SameLine();
     if (ImGui::Button("Y"))
     {
         _translation.y = 0.f;
         bChanged       = true;
     }
-    ImGui::SameLine(0, spacing);
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##Y", &_translation.y, _speed, _min, _max, _fmt, _flag);
+    bChanged |= Widget_DragFloat("##Y", _translation.y, _speed, _min, _max, _fmt, _flag);
 
-    ImGui::SameLine(0, spacing);
+    ImGui::SameLine();
     if (ImGui::Button("Z"))
     {
         _translation.z = 0.f;
         bChanged       = true;
     }
-    ImGui::SameLine(0, spacing);
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##Z", &_translation.z, _speed, _min, _max, _fmt, _flag);
+    bChanged |= Widget_DragFloat("##Z", _translation.z, _speed, _min, _max, _fmt, _flag);
 
+    ImGui::PopStyleVar();
     ImGui::EndGroup();
     ImGui::PopID();
     return bChanged;
@@ -148,10 +200,6 @@ bool Widget_DragScale(
         return false;
     }
 
-    ImGui::PushID(_label);
-    ImGui::BeginGroup();
-
-    Vec3              scalePerc = _scaleNorm * 100.f;
     const ImGuiStyle& style     = ImGui::GetStyle();
     const float       textW     = ImGui::CalcTextSize("X").x;
     const float       btnW      = textW + 2.f * style.FramePadding.x;
@@ -160,198 +208,44 @@ bool Widget_DragScale(
     const float       dragItemW = (itemW - (btnW * 3.f) - (spacing * 5.f)) / 3.f;
     bool              bChanged  = false;
 
-    if (ImGui::Button("X"))
-    {
-        scalePerc.x = 100.f;
-        bChanged    = true;
-    }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##x", &scalePerc.x, _speedPerc, _minPerc, _maxPerc, _fmt, _flag);
-
-    ImGui::SameLine(0, spacing);
-    if (ImGui::Button("Y"))
-    {
-        scalePerc.y = 100.f;
-        bChanged    = true;
-    }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##y", &scalePerc.y, _speedPerc, _minPerc, _maxPerc, _fmt, _flag);
-
-    ImGui::SameLine(0, spacing);
-    if (ImGui::Button("Z"))
-    {
-        scalePerc.z = 100.f;
-        bChanged    = true;
-    }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##z", &scalePerc.z, _speedPerc, _minPerc, _maxPerc, _fmt, _flag);
-
-    ImGui::EndGroup();
-    ImGui::PopID();
-
-    if (bChanged)
-    {
-        _scaleNorm = scalePerc * 0.01f;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool Widget_DragPitchYawRoll(
-    const char*            _label,
-    Vec3&                  _pitchYawRollRad,
-    const float            _speedDeg,
-    const float            _minDeg,
-    const float            _maxDeg,
-    const char*            _fmt,
-    const ImGuiSliderFlags _flag)
-{
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
-    if (pWin->SkipItems)
-    {
-        return false;
-    }
-
     ImGui::PushID(_label);
     ImGui::BeginGroup();
-
-    Vec3              pyrDeg        = ToDeg(_pitchYawRollRad);
-    const ImGuiStyle& style         = ImGui::GetStyle();
-    const float       textW         = ImGui::CalcTextSize("X").x;
-    const float       btnW          = textW + 2.f * style.FramePadding.x;
-    const float       itemW         = ImGui::CalcItemWidth();
-    const float       spacing       = style.ItemInnerSpacing.x;
-    const float       dragItemWidth = (itemW - (btnW * 3.f) - (spacing * 5.f)) / 3.f;
-    bool              bChanged      = false;
+    ImGui::PushStyleVarX(ImGuiStyleVar_ItemSpacing, spacing);
 
     if (ImGui::Button("X"))
     {
-        pyrDeg.x = 0.f;
-        bChanged = true;
+        _scaleNorm.x = 1.f;
+        bChanged     = true;
     }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemWidth);
-    bChanged |= Widget_DragFloat("##pitch", &pyrDeg.x, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(dragItemW);
+    bChanged |= Widget_DragPercent("##X", _scaleNorm.x, _speedPerc, _minPerc, _maxPerc, _fmt, _flag);
 
-    ImGui::SameLine(0, spacing);
+    ImGui::SameLine();
     if (ImGui::Button("Y"))
     {
-        pyrDeg.y = 0.f;
-        bChanged = true;
+        _scaleNorm.y = 1.f;
+        bChanged     = true;
     }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemWidth);
-    bChanged |= Widget_DragFloat("##yaw", &pyrDeg.y, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(dragItemW);
+    bChanged |= Widget_DragPercent("##Y", _scaleNorm.y, _speedPerc, _minPerc, _maxPerc, _fmt, _flag);
 
-    ImGui::SameLine(0, spacing);
+    ImGui::SameLine();
     if (ImGui::Button("Z"))
     {
-        pyrDeg.z = 0.f;
-        bChanged = true;
+        _scaleNorm.z = 1.f;
+        bChanged     = true;
     }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemWidth);
-    bChanged |= Widget_DragFloat("##roll", &pyrDeg.z, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(dragItemW);
+    bChanged |= Widget_DragPercent("##Z", _scaleNorm.z, _speedPerc, _minPerc, _maxPerc, _fmt, _flag);
 
+    ImGui::PopStyleVar();
     ImGui::EndGroup();
     ImGui::PopID();
 
-    if (bChanged)
-    {
-        _pitchYawRollRad = ToRad(pyrDeg);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool Widget_DragPitchYaw(
-    const char*            _label,
-    Vec2&                  _pitchYawRad,
-    const float            _speedDeg,
-    const float            _minDeg,
-    const float            _maxDeg,
-    const char*            _fmt,
-    const ImGuiSliderFlags _flag)
-{
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
-    if (pWin->SkipItems)
-    {
-        return false;
-    }
-
-    ImGui::PushID(_label);
-    ImGui::BeginGroup();
-
-    Vec2              pyDeg     = ToDeg(_pitchYawRad);
-    const ImGuiStyle& style     = ImGui::GetStyle();
-    const float       textW     = ImGui::CalcTextSize("X").x;
-    const float       btnW      = textW + 2.f * style.FramePadding.x;
-    const float       itemW     = ImGui::CalcItemWidth();
-    const float       spacing   = style.ItemInnerSpacing.x;
-    const float       dragItemW = (itemW - (btnW * 2.f) - (spacing * 4.f)) / 2.f;
-    bool              bChanged  = false;
-
-    if (ImGui::Button("X"))
-    {
-        pyDeg.x  = 0.f;
-        bChanged = true;
-    }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##pitch", &pyDeg.x, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
-
-    ImGui::SameLine(0, spacing);
-    if (ImGui::Button("Y"))
-    {
-        pyDeg.y  = 0.f;
-        bChanged = true;
-    }
-    ImGui::SameLine(0, spacing);
-    ImGui::SetNextItemWidth(dragItemW);
-    bChanged |= Widget_DragFloat("##yaw", &pyDeg.y, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
-
-    ImGui::EndGroup();
-    ImGui::PopID();
-
-    if (bChanged)
-    {
-        _pitchYawRad = ToRad(pyDeg);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool Widget_DragAngle(
-    const char*            _label,
-    float&                 _pRad,
-    const float            _speedDeg,
-    const float            _minDeg,
-    const float            _maxDeg,
-    const char*            _fmt,
-    const ImGuiSliderFlags _flag)
-{
-    float deg = ToDeg(_pRad);
-    if (Widget_DragFloat(_label, &deg, _speedDeg, _minDeg, _maxDeg, _fmt, _flag))
-    {
-        _pRad = ToRad(deg);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return bChanged;
 }
 
 bool Widget_DragPercent(
@@ -364,15 +258,96 @@ bool Widget_DragPercent(
     const ImGuiSliderFlags _flag)
 {
     float perc = _pNorm * 100.f;
-    if (Widget_DragFloat(_label, &perc, _speedPerc, _minPerc, _maxPerc, _format, _flag))
+    if (Widget_DragFloat(_label, perc, _speedPerc, _minPerc, _maxPerc, _format, _flag))
     {
         _pNorm = perc * 0.01f;
         return true;
     }
-    else
+
+    return false;
+}
+
+bool Widget_DragAngle(
+    const char*            _label,
+    float&                 _pRad,
+    const float            _speedDeg,
+    const float            _minDeg,
+    const float            _maxDeg,
+    const char*            _fmt,
+    const ImGuiSliderFlags _flag)
+{
+    float deg = ToDeg(_pRad);
+    if (Widget_DragFloat(_label, deg, _speedDeg, _minDeg, _maxDeg, _fmt, _flag))
+    {
+        _pRad = ToRad(deg);
+        return true;
+    }
+
+    return false;
+}
+
+bool Widget_DragEuler(
+    const char*            _label,
+    Vec3&                  _eulerRad,
+    const float            _speedDeg,
+    const float            _minDeg,
+    const float            _maxDeg,
+    const char*            _fmt,
+    const ImGuiSliderFlags _flag)
+{
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
     {
         return false;
     }
+
+    const ImGuiStyle& style         = ImGui::GetStyle();
+    const float       spacing       = style.ItemInnerSpacing.x;
+    const float       textW         = ImGui::CalcTextSize("X").x;
+    const float       btnW          = textW + 2.f * style.FramePadding.x;
+    const float       itemW         = ImGui::CalcItemWidth();
+    const float       dragItemWidth = (itemW - (btnW * 3.f) - (spacing * 5.f)) / 3.f;
+    bool              bChanged      = false;
+
+    ImGui::PushID(_label);
+    ImGui::BeginGroup();
+    ImGui::PushStyleVarX(ImGuiStyleVar_ItemSpacing, spacing);
+
+    if (ImGui::Button("Y"))
+    {
+        _eulerRad.x = 0.f;
+        bChanged    = true;
+    }
+
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(dragItemWidth);
+    bChanged |= Widget_DragAngle("##Yaw", _eulerRad.x, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
+
+    ImGui::SameLine();
+    if (ImGui::Button("X"))
+    {
+        _eulerRad.y = 0.f;
+        bChanged    = true;
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(dragItemWidth);
+    bChanged |= Widget_DragAngle("##Pitch", _eulerRad.y, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
+
+    ImGui::SameLine();
+    if (ImGui::Button("Z"))
+    {
+        _eulerRad.z = 0.f;
+        bChanged    = true;
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(dragItemWidth);
+    bChanged |= Widget_DragAngle("##Roll", _eulerRad.z, _speedDeg, _minDeg, _maxDeg, _fmt, _flag);
+
+    ImGui::PopStyleVar();
+    ImGui::EndGroup();
+    ImGui::PopID();
+
+    return bChanged;
 }
 
 void Widget_ImageFrame(
@@ -418,23 +393,167 @@ void Widget_Image(
     ImGui::Image(_tex.texture, _size, _uv0, _uv1);
 }
 
+void Widget_ItemDescriptionTooltip(
+    const char* _summery,
+    const char* _desc)
+{
+    if (ImGui::BeginItemTooltip())
+    {
+        const ImGuiContext&      g     = *GImGui;
+        const ImGuiLastItemData& data  = g.LastItemData;
+        const ImGuiKeyChord      chord = data.Shortcut;
+
+        /*
+
+        [SUMMERY] [SHORTCUT (optional)]
+        -------------------------------------
+        [DESCRIPTION]
+
+        */
+
+        // summery
+        ImGui::TextUnformatted(_summery);
+
+        // shortcut
+        if (chord != ImGuiKey_None)
+        {
+            ScratchBuffer buf;
+            FormatShortcutDisplayText_(buf, chord);
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", buf.GetPtr());
+        }
+
+        // description
+        ImGui::Separator();
+        Widget_TextWrapped(_desc, 100.f);
+        ImGui::EndTooltip();
+    }
+}
+
 void Widget_ImageFrame(
-    const Ref<ImageTexture>& _pTexture,
-    const ImVec2             _frameSize,
-    const ImVec2             _uv0,
-    const ImVec2             _uv1,
-    const ImVec4             _bgCol,
-    const bool               _bBorder)
+    const Ref<Texture>& _pTexture,
+    const ImVec2        _frameSize,
+    const ImVec2        _uv0,
+    const ImVec2        _uv1,
+    const ImVec4        _bgCol,
+    const bool          _bBorder)
 {
     JAM_ASSERT(_pTexture, "Texture is null");
     const Vec2i  texRes  = _pTexture->GetResolution();
-    const ImVec2 texSize = { static_cast<float>(texRes.x), static_cast<float>(texRes.y) };
-    Widget_ImageFrame(ImGuiGlue::ImTextureRefFrom(_pTexture), texSize, _frameSize, _uv0, _uv1, _bgCol, _bBorder);
+    const ImVec2 texSize = { NumericCast<float>(texRes.x), NumericCast<float>(texRes.y) };
+    Widget_ImageFrame(ImTextureRefFrom(_pTexture), texSize, _frameSize, _uv0, _uv1, _bgCol, _bBorder);
 }
 
-void Widget_CenteredText(
-    const char*  _text,
-    const ImVec2 _region)
+void WidgetInfiniteDragger::OnAfterWidget()
+{
+    ImGuiContext& g        = *GImGui;
+    const bool    bActived = ImGui::IsItemActivated();
+
+    // on begin drag
+    if (bActived)
+    {
+        m_capturedPos = ImGui::GetMousePos();
+        JAM_INPUT.SetMouseVisibility(false);
+
+        // for debug
+        if (JAM_DEBUG_ENABLED)
+        {
+            JAM_ASSERT(!s_bSharedBitForDebug, "Another WidgetInfiniteDragger is already capturing mouse. Only one can capture at a time.");
+            s_bSharedBitForDebug = true;
+        }
+    }
+
+    // dragging
+    if (!bActived && ImGui::IsItemActive())
+    {
+        // fix mouse pos to captured pos
+        JAM_INPUT.SetMousePos(NumericCast<Int32>(m_capturedPos.x), NumericCast<Int32>(m_capturedPos.y));
+
+        // for imgui use
+        ImGuiIO& io     = ImGui::GetIO();
+        io.MousePosPrev = m_capturedPos;
+        io.MouseDelta   = io.MousePos - io.MousePosPrev;
+    }
+
+    // on end drag
+    if (ImGui::IsItemDeactivated() || ImGui::TempInputIsActive(g.LastItemData.ID))
+    {
+        JAM_INPUT.SetMouseVisibility(true);
+    }
+}
+
+ImVec2 WidgetInfiniteDragger::GetDragDelta(const ImGuiMouseButton _button, const float _threshold) const
+{
+    return ImGui::GetMouseDragDelta(_button, _threshold);
+}
+
+ImTextureProxy::ImTextureProxy() = default;
+
+ImTextureProxy::ImTextureProxy(
+    const Ref<Texture>& _pTexture)
+    : texture(ImTextureRefFrom(_pTexture))
+{
+    JAM_ASSERT(_pTexture, "Invalid texture passed to ImTextureProxy");
+    JAM_ASSERT(_pTexture->IsValid(), "Invalid texture passed to ImTextureProxy");
+}
+
+ImTextureProxy::ImTextureProxy(
+    const ImTextureRef& _texture)
+    : texture(_texture)
+{
+}
+
+ImTextureProxy::ImTextureProxy(
+    const TextureHandle _texh)
+    : texture(ImTextureRefFrom(_texh))
+{
+}
+
+void EulerProxy::OnBeforeWidget(const Vec3& _forward)
+{
+    if (!m_bIsEditing)
+    {
+        m_eulerRad = EulerFrom(_forward);
+    }
+}
+
+void EulerProxy::OnBeforeWidget(const Mtx4& _mtx)
+{
+    if (!m_bIsEditing)
+    {
+        m_eulerRad = _mtx.ToEuler();
+    }
+}
+
+void EulerProxy::OnBeforeWidget(const Quat& _quat)
+{
+    if (!m_bIsEditing)
+    {
+        m_eulerRad = _quat.ToEuler();
+    }
+}
+
+void EulerProxy::OnBeforeWidget(const Transform& _t)
+{
+    if (!m_bIsEditing)
+    {
+        m_eulerRad = _t.ToEuler();
+    }
+}
+
+void EulerProxy::OnAfterWidget()
+{
+    m_bIsEditing = ImGui::IsItemActive();
+}
+
+Vec3& EulerProxy::GetEulerProxy()
+{
+    return m_eulerRad;
+}
+
+void Widget_Text(
+    const char* _text,
+    const bool  _bFrameAligned)
 {
     const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
     if (pWin->SkipItems)
@@ -442,43 +561,19 @@ void Widget_CenteredText(
         return;
     }
 
-    // det region
-    const ImVec2 avail  = ImGui::GetContentRegionAvail();
-    ImVec2       region = _region;
-    if (IsZeroApprox(region.x))
+    if (_bFrameAligned)
     {
-        region.x = avail.x;
+        ImGui::AlignTextToFramePadding();
     }
 
-    if (IsZeroApprox(region.y))
-    {
-        region.y = avail.y;
-    }
-
-    // render
-    const ImVec2 textSize = ImGui::CalcTextSize(_text, NULL, true);
-    const ImVec2 offset   = (region - textSize) * 0.5f;
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + offset);
     ImGui::TextUnformatted(_text);
 }
 
-void Widget_FrameAlignedText(
-    const char* _text)
-{
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
-    if (pWin->SkipItems)
-    {
-        return;
-    }
-
-    ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(_text);
-}
-
-void Widget_BorderedText(
+void Widget_TextFrame(
     const char*  _text,
-    const ImVec2 _size,
-    const bool   _bDisabled)
+    const ImVec2 _frameSize,
+    const ImVec4 _bgCol,
+    const bool   _bRenderBorder)
 {
     const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
     if (pWin->SkipItems)
@@ -489,32 +584,24 @@ void Widget_BorderedText(
     const ImGuiStyle& style    = ImGui::GetStyle();
     const ImVec2      textSize = ImGui::CalcTextSize(_text, NULL, true);
     const ImVec2      pos      = pWin->DC.CursorPos;
-    const ImVec2      size     = ImGui::CalcItemSize(_size, textSize.x + style.FramePadding.x * 2.0f, textSize.y + style.FramePadding.y * 2.0f);
+    const ImVec2      size     = ImGui::CalcItemSize(_frameSize, textSize.x + style.FramePadding.x * 2.0f, textSize.y + style.FramePadding.y * 2.0f);
 
-    const ImRect bb(pos, pos + size);
+    const ImRect bb { pos, pos + size };
     ImGui::ItemSize(size, style.FramePadding.y);
     if (!ImGui::ItemAdd(bb, 0))
     {
         return;
     }
 
-    ImGui::RenderFrame(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
-
-    if (_bDisabled)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_TextDisabled));
-    }
-
-    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, _text, NULL, &textSize, style.ButtonTextAlign, &bb);
-
-    if (_bDisabled)
-    {
-        ImGui::PopStyleColor();
-    }
+    // calc center aligned text pos
+    ImGui::RenderFrame(bb.Min, bb.Max, ImGui::ColorConvertFloat4ToU32(_bgCol), _bRenderBorder, style.FrameRounding);
+    ImGui::RenderTextClipped(bb.Min, bb.Max, _text, NULL, &textSize, ImGui::GetStyle().ButtonTextAlign, &bb);
 }
 
-bool Widget_Button(
-    const ButtonDesc& _desc)
+bool Widget_IconButton(
+    const char*          _text,
+    const ImTextureProxy _icon,
+    const ImVec2         _size)
 {
     ImGuiWindow* pWin = ImGui::GetCurrentWindow();
     if (pWin->SkipItems)
@@ -522,101 +609,57 @@ bool Widget_Button(
         return false;
     }
 
-    // shortcut
-    if (_desc.shortcut != 0)
-    {
-        ImGui::SetNextItemShortcut(_desc.shortcut);
-    }
-
     // button
-    bool bPressed = false;
-    if (_desc.direction != ImGuiDir_None)
+    bool              bPressed = false;
+    const ImGuiStyle& style    = ImGui::GetStyle();
+    const ImGuiID     id       = pWin->GetID(_text);
+    const ImVec2      textSize = ImGui::CalcTextSize(_text, NULL, true);
+    const float       iconLen  = Max(ImGui::GetTextLineHeight(), _size.y - style.FramePadding.y * 2.0f);
+    const float       defaultW = iconLen + textSize.x + style.IndentSpacing + style.FramePadding.x * 2.0f;
+    const float       defaultH = ImGui::GetFrameHeight();
+    const ImVec2      size     = ImGui::CalcItemSize(_size, defaultW, defaultH);
+
+    const ImVec2 cursor = pWin->DC.CursorPos;
+    const ImRect bb     = { cursor, cursor + size };
+    ImGui::ItemSize(size, style.FramePadding.y);
+    if (!ImGui::ItemAdd(bb, id))
     {
-        bPressed = ImGui::ArrowButton(_desc.text, _desc.direction);
-    }
-    else
-    {
-        const ImGuiStyle& style         = ImGui::GetStyle();
-        const bool        bHasIcon      = _desc.icon.IsValid();
-        const ImGuiID     id            = pWin->GetID(_desc.text);
-        const ImVec2      textSize      = _desc.bRenderText ? ImGui::CalcTextSize(_desc.text, NULL, true) : ImVec2 { 0.f, 0.f };
-        const ImVec2      iconSize      = bHasIcon ? ImVec2 { ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() } : ImVec2 { 0.f, 0.f };
-        const float       innerSpacingX = (bHasIcon && _desc.bRenderText) ? style.ItemInnerSpacing.x : 0.f;
-        const float       defaultW      = iconSize.x + textSize.x + innerSpacingX + style.FramePadding.x * 2.0f;
-        const float       defaultH      = ImGui::GetTextLineHeight() + style.FramePadding.y * 2.0f;
-        const ImVec2      size          = ImGui::CalcItemSize(_desc.size, defaultW, defaultH);
-
-        const ImVec2 cursor = pWin->DC.CursorPos;
-        const ImRect bb     = { cursor, cursor + size };
-        ImGui::ItemSize(size, style.FramePadding.y);
-        if (!ImGui::ItemAdd(bb, id))
-        {
-            return false;
-        }
-
-        bool hovered, held;
-        bPressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
-
-        // render frame
-        const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive
-                                             : hovered         ? ImGuiCol_ButtonHovered
-                                                               : ImGuiCol_Button);
-        ImGui::RenderNavCursor(bb, id);
-        ImGui::RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
-
-        // render image
-        const ImVec2 iconP0 = cursor + style.FramePadding;
-        const ImVec2 iconP1 = iconP0 + iconSize;
-        if (bHasIcon)
-        {
-            ImDrawList* pDrawList = ImGui::GetWindowDrawList();
-            pDrawList->AddImage(_desc.icon.texture, iconP0, iconP1);
-        }
-
-        // render text
-        if (_desc.bRenderText)
-        {
-            const ImVec2 textP0 = { iconP1.x + innerSpacingX, iconP0.y };
-            const ImVec2 textP1 = { bb.Max.x - style.FramePadding.x, bb.Max.y - style.FramePadding.y };
-            ImGui::RenderTextClipped(textP0, textP1, _desc.text, NULL, &textSize, style.ButtonTextAlign, &bb);
-        }
+        return false;
     }
 
-    if (_desc.bRenderDescriptionTooltip)
-    {
-        if (ImGui::BeginItemTooltip())
-        {
-            // label
-            ImGui::TextUnformatted(_desc.text);
+    bool hovered = false;
+    bool held    = false;
+    bPressed     = ImGui::ButtonBehavior(bb, id, &hovered, &held);
 
-            // shortcut
-            if (_desc.shortcut != 0)
-            {
-                const ImGuiKey   key      = static_cast<ImGuiKey>(_desc.shortcut & ~(ImGuiMod_Mask_));
-                const StringView svText   = GlobalBuffer::FormatTmp("(short cut: {}{}{}{})",
-                                                                  (_desc.shortcut & ImGuiMod_Ctrl) ? "ctrl + " : "",
-                                                                  (_desc.shortcut & ImGuiMod_Shift) ? "shift + " : "",
-                                                                  (_desc.shortcut & ImGuiMod_Alt) ? "alt + " : "",
-                                                                  EditorDisplayStringFrom(key));
-                const char*      text     = svText.GetPtr();
-                const ImVec2     textSize = ImGui::CalcTextSize(text);
-                const ImVec2     avail    = ImGui::GetCursorScreenPos();
-                ImGui::SetCursorScreenPos({ avail.x - textSize.x, avail.y });
-                ImGui::TextDisabled(text);   // right aligned
-            }
+    // render frame
+    const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive
+                                         : hovered         ? ImGuiCol_ButtonHovered
+                                                           : ImGuiCol_Button);
 
-            // description
-            if (_desc.tooltipDescription)
-            {
-                ImGui::Separator();
-                ImGui::TextUnformatted(_desc.tooltipDescription);
-            }
+    ImGui::RenderNavCursor(bb, id);
+    ImGui::RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
 
-            ImGui::EndTooltip();
-        }
-    }
+    // render image
+    const ImVec2 imageSize = { iconLen, iconLen };
+    const ImVec2 iconP0    = cursor + style.FramePadding;
+    const ImVec2 iconP1    = iconP0 + imageSize;
+    ImDrawList*  pDrawList = ImGui::GetWindowDrawList();
+    pDrawList->AddImage(_icon.texture, iconP0, iconP1);
 
+    // render text
+    const ImVec2 textP0 = { iconP1.x + style.ItemInnerSpacing.x, iconP0.y };
+    const ImVec2 textP1 = bb.Max - style.FramePadding;
+    ImGui::RenderTextClipped(textP0, textP1, _text, NULL, &textSize, style.ButtonTextAlign);
     return bPressed;
+}
+
+void Widget_TextWrapped(
+    const char* _text,
+    const float _wrapWidth)
+{
+    ImGui::PushTextWrapPos(_wrapWidth);
+    ImGui::TextUnformatted(_text);
+    ImGui::PopTextWrapPos();
 }
 
 bool Widget_DragScalar(
@@ -631,30 +674,10 @@ bool Widget_DragScalar(
 {
     JAM_ASSERT(ImGui::DataTypeCompare(_dataType, _pData, _pMin) <= 0, "min value is greater than data");
 
-    static InfiniteDragHelper s_dragHelper;
+    static WidgetInfiniteDragger s_dragHelper = {};
 
-    const bool    bChanged          = ImGui::DragScalar(_label, _dataType, _pData, _vSpeed, _pMin, _pMax, _format, _flags);
-    const ImGuiID id                = ImGui::GetItemID();
-    const bool    bIsActivated      = ImGui::IsItemActivated();
-    const bool    bIsActive         = ImGui::IsItemActive();
-    const bool    bIsDeactived      = ImGui::IsItemDeactivated();
-    const bool    bIsTmpInputActive = ImGui::TempInputIsActive(id);
-
-    if (bIsActivated)
-    {
-        s_dragHelper.Begin();
-    }
-
-    if (bIsActive)
-    {
-        s_dragHelper.Update();
-    }
-
-    if (bIsDeactived || bIsTmpInputActive)
-    {
-        s_dragHelper.End();
-    }
-
+    const bool bChanged = ImGui::DragScalar(_label, _dataType, _pData, _vSpeed, _pMin, _pMax, _format, _flags);
+    s_dragHelper.OnAfterWidget();
     return bChanged;
 }
 
@@ -676,10 +699,12 @@ bool Widget_DragScalarN(
     }
 
     const ImGuiDataTypeInfo* pInfo   = ImGui::DataTypeGetInfo(_dataType);
-    const float              spacing = ImGui::GetStyle().ItemInnerSpacing.x;
+    const ImGuiStyle&        style   = ImGui::GetStyle();
+    const float              spacing = style.ItemInnerSpacing.x;
     bool                     bDirty  = false;
 
     ImGui::BeginGroup();
+    ImGui::PushStyleVarX(ImGuiStyleVar_ItemSpacing, spacing);
 
     ImGui::PushID(_label);
     ImGui::PushMultiItemsWidths(_numComps, ImGui::CalcItemWidth());
@@ -688,7 +713,7 @@ bool Widget_DragScalarN(
         ImGui::PushID(i);
         if (i > 0)
         {
-            ImGui::SameLine(0, spacing);
+            ImGui::SameLine();
         }
 
         bDirty |= Widget_DragScalar("", _dataType, _pData, _speed, _pMin, _pMax, _format, _flags);
@@ -698,20 +723,14 @@ bool Widget_DragScalarN(
     }
     ImGui::PopID();
 
-    const char* label_end = ImGui::FindRenderedTextEnd(_label);
-    if (_label != label_end)
-    {
-        ImGui::SameLine(0, spacing);
-        ImGui::TextEx(_label, label_end);
-    }
-
+    ImGui::PopStyleVar();
     ImGui::EndGroup();
     return bDirty;
 }
 
 bool Widget_DragFloat(
     const char*            label,
-    float*                 p_data,
+    float&                 p_data,
     const float            v_speed,
     const float            v_min,
     const float            v_max,
@@ -721,7 +740,7 @@ bool Widget_DragFloat(
     return Widget_DragScalar(
         label,
         ImGuiDataType_Float,
-        p_data,
+        &p_data,
         v_speed,
         &v_min,
         &v_max,
@@ -794,7 +813,7 @@ bool Widget_DragFloat4(
 
 bool Widget_DragInt(
     const char*            label,
-    int*                   p_data,
+    int&                   p_data,
     const float            v_speed,
     const int              v_min,
     const int              v_max,
@@ -804,7 +823,7 @@ bool Widget_DragInt(
     return Widget_DragScalar(
         label,
         ImGuiDataType_S32,
-        p_data,
+        &p_data,
         v_speed,
         &v_min,
         &v_max,
@@ -850,46 +869,22 @@ void Widget_HelpMark(
 bool Widget_MenuItem(
     const char*         _label,
     const ImGuiKeyChord _shortcut,
-    bool*               _pSelected,
-    const bool          _bEnabled)
-{
-    const char* shortcutText = nullptr;
-    if (_shortcut != 0)
-    {
-        ImGui::SetNextItemShortcut(_shortcut);
-
-        const ImGuiKey   key  = static_cast<ImGuiKey>(_shortcut & ~(ImGuiMod_Mask_));
-        const StringView text = GlobalBuffer::FormatTmp("{}{}{}{}",
-                                                        (_shortcut & ImGuiMod_Ctrl) ? "ctrl + " : "",
-                                                        (_shortcut & ImGuiMod_Shift) ? "shift + " : "",
-                                                        (_shortcut & ImGuiMod_Alt) ? "alt + " : "",
-                                                        EditorDisplayStringFrom(key));
-
-        shortcutText = text.GetPtr();
-    }
-
-    return ImGui::MenuItem(_label, shortcutText, _pSelected, _bEnabled);
-}
-
-bool Widget_MenuItem(
-    const char*         _label,
-    const ImGuiKeyChord _shortcut,
     const bool          _bSelected,
     const bool          _bEnabled)
 {
-    const char* shortcutText = nullptr;
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return false;
+    }
+
+    ScratchBuffer buf;   // for shortcut text
+    const char*   shortcutText = nullptr;
     if (_shortcut != 0)
     {
         ImGui::SetNextItemShortcut(_shortcut);
-
-        const ImGuiKey   key  = static_cast<ImGuiKey>(_shortcut & ~(ImGuiMod_Mask_));
-        const StringView text = GlobalBuffer::FormatTmp("{}{}{}{}",
-                                                        (_shortcut & ImGuiMod_Ctrl) ? "ctrl + " : "",
-                                                        (_shortcut & ImGuiMod_Shift) ? "shift + " : "",
-                                                        (_shortcut & ImGuiMod_Alt) ? "alt + " : "",
-                                                        EditorDisplayStringFrom(key));
-
-        shortcutText = text.GetPtr();
+        FormatShortcutDisplayText_Minimal_(buf, _shortcut);
+        shortcutText = buf.GetPtr();
     }
 
     return ImGui::MenuItem(_label, shortcutText, _bSelected, _bEnabled);
@@ -899,15 +894,21 @@ bool Widget_VertexLayoutEntryCombo(
     const char*             _label,
     Ref<VertexLayoutEntry>& _pVle)
 {
-    const VertexLayoutMap& map      = Editor::GetVertexLayoutMap();
-    const StringView       preview  = _pVle ? _pVle->GetName() : "none";
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return false;
+    }
+
+    const VertexLayoutMap& map      = JAM_EDITOR.GetVertexLayoutMap();
+    const char*            preview  = _pVle ? _pVle->GetName().GetPtr() : "none";
     bool                   bChanged = false;
 
-    if (ImGui::BeginCombo(_label, preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
+    if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const auto& [name, pVle]: map)
+        for (const auto& [name, pVle]: map.GetContainer())
         {
-            const char* label     = name.c_str();
+            const char* label     = name.GetPtr();
             const bool  bSelected = (_pVle == pVle);
 
             if (ImGui::Selectable(label, bSelected))
@@ -927,114 +928,16 @@ bool Widget_VertexLayoutEntryCombo(
     return bChanged;
 }
 
-bool Widget_ScriptCombo(
-    const char*  _label,
-    Ref<Script>& _pScript,
-    const Entity _owner)
-{
-    const ScriptDB db = ScriptDB::GetInstance();
-
-    const bool       bValidScript = _pScript != nullptr;
-    const StringView preview      = bValidScript ? _pScript->GetTypeName() : "none";
-    bool             bChanged     = false;
-
-    if (ImGui::BeginCombo(_label, preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
-    {
-        for (const ScriptInfo& scriptInfo: db.GetContainer() | std::views::values)
-        {
-            const StringView name      = scriptInfo.name;
-            const bool       bSelected = bValidScript && (preview == name);
-
-            if (ImGui::Selectable(name.GetPtr(), bSelected))
-            {
-                _pScript = db.Create(name, _owner);
-                bChanged = true;
-            }
-
-            if (bSelected)
-            {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-        ImGui::EndCombo();
-    }
-
-    return bChanged;
-}
-
-bool Widget_ProjectionCombo(
-    const char*  _label,
-    eProjection& _projection)
-{
-    constexpr const char* k_names[] = { "perspective", "orthographic" };
-    return Widget_Combo(_label, reinterpret_cast<Int32&>(_projection), k_names);
-}
-
-bool Widget_TextureChannelCombo(
-    const char*      _label,
-    eTextureChannel& _colorChannel,
-    const bool       _bExcludeAlphaChannel)
-{
-    if (_bExcludeAlphaChannel)
-    {
-        constexpr const char* k_names[] = { "R", "G", "B" };
-        return Widget_Combo(_label, reinterpret_cast<Int32&>(_colorChannel), k_names);
-    }
-    else
-    {
-        constexpr const char* k_names[] = { "R", "G", "B", "A" };
-        return Widget_Combo(_label, reinterpret_cast<Int32&>(_colorChannel), k_names);
-    }
-}
-
-bool Widget_TextureFormatCombo(
-    const char*     _label,
-    eTextureFormat& _format,
-    const bool      _bExcludeDepthFormat)
-{
-    const TextureFormatInfo& previewInfo = TextureFormatInfoFrom(_format);
-    const StringView         preview     = previewInfo.name;
-    bool                     bChanged    = false;
-
-    // begin combo
-    if (ImGui::BeginCombo(_label, preview.GetPtr(), ImGuiComboFlags_NoArrowButton))
-    {
-        for (const eTextureFormat format: eTextureFormat {})
-        {
-            // unkown format and depth format are excluded
-            if (_bExcludeDepthFormat && IsDepthFormat(format))
-            {
-                continue;
-            }
-
-            // render selectable
-            const bool               bSelected = (format == _format);
-            const TextureFormatInfo& info      = TextureFormatInfoFrom(format);
-            const StringView         label     = info.name;
-
-            if (ImGui::Selectable(label.GetPtr(), bSelected))
-            {
-                _format  = format;
-                bChanged = true;
-            }
-
-            // set default focus
-            if (bSelected)
-            {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-
-        ImGui::EndCombo();
-    }
-
-    return bChanged;
-}
-
-bool Widget_MeshSelector(
+bool Widget_MeshPicker(
     const char* _label,
     Ref<Mesh>&  _pMesh)
 {
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return false;
+    }
+
     const char* text     = _pMesh ? _pMesh->GetPath().c_str() : "no mesh";
     bool        bChanged = false;
 
@@ -1042,7 +945,7 @@ bool Widget_MeshSelector(
     ImGui::PushID(_label);
 
     // text
-    Widget_BorderedText(text, CalcFitButtonSize());
+    Widget_TextFrame(text, CalcFitButtonSize());
 
     // action
     const bool bTooltip = ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
@@ -1053,15 +956,10 @@ bool Widget_MeshSelector(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const fs::path path = ResolvePathDragDropPayload(pPayload);
-            if (MoveIfHasValue(AssetManager::LoadMesh(path), _pMesh))
+            const Path path = ResolvePathDragDropPayload(pPayload);
+            if (Optional<Ref<Mesh>> pMesh = JAM_EDITOR.LoadMesh(path))
             {
-                bChanged = true;
-            }
-            else
-            {
-                const StringView msg = GlobalBuffer::FormatTmp("failed to load mesh from path: {}. {}", path.native(), GlobalBuffer::GetLastError());
-                Editor::PushMessageDialog("error", msg);
+                _pMesh = pMesh.Take();
             }
         }
         ImGui::EndDragDropTarget();
@@ -1096,10 +994,16 @@ bool Widget_MeshSelector(
     return bChanged;
 }
 
-bool Widget_MaterialSelector(
+bool Widget_MaterialPicker(
     const char*    _label,
     Ref<Material>& _pMaterial)
 {
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return false;
+    }
+
     bool        bChanged = false;
     const char* text     = _pMaterial ? _pMaterial->GetPath().c_str() : "no material";
 
@@ -1107,7 +1011,7 @@ bool Widget_MaterialSelector(
     ImGui::PushID(_label);
 
     // preview item
-    Widget_BorderedText(text, CalcFitButtonSize());
+    Widget_TextFrame(text, CalcFitButtonSize());
 
     const bool bTooltip = ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
     ImGui::OpenPopupOnItemClick("Menu");
@@ -1117,15 +1021,10 @@ bool Widget_MaterialSelector(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const fs::path path = ResolvePathDragDropPayload(pPayload);
-            if (MoveIfHasValue(AssetManager::LoadMaterial(path), _pMaterial))
+            const Path path = ResolvePathDragDropPayload(pPayload);
+            if (Optional<Ref<Material>> pMaterial = JAM_EDITOR.LoadMaterial(path))
             {
-                bChanged = true;
-            }
-            else
-            {
-                const StringView msg = GlobalBuffer::FormatTmp("failed to load material from path: {}. {}", path.native(), GlobalBuffer::GetLastError());
-                Editor::PushMessageDialog("error", msg);
+                _pMaterial = pMaterial.Take();
             }
         }
         ImGui::EndDragDropTarget();
@@ -1160,22 +1059,28 @@ bool Widget_MaterialSelector(
     return bChanged;
 }
 
-bool Widget_ImageTextureSelector(
-    const char*        _label,
-    Ref<ImageTexture>& _pImageTexture,
-    const ImVec2&      _size)
+bool Widget_TexturePicker(
+    const char*   _label,
+    Ref<Texture>& _pTexture,
+    const ImVec2& _size)
 {
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return false;
+    }
+
     ImGui::PushID(_label);
     bool bChanged = false;
 
     // preview item
-    if (_pImageTexture)
+    if (_pTexture)
     {
-        Widget_ImageFrame(_pImageTexture, _size, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
+        Widget_ImageFrame(_pTexture, _size, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
     }
     else
     {
-        Widget_BorderedText("no image", _size, true);
+        Widget_TextFrame("no image", _size, {}, true);
     }
 
     // tooltip & context menu
@@ -1187,15 +1092,10 @@ bool Widget_ImageTextureSelector(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const fs::path path = ResolvePathDragDropPayload(pPayload);
-            if (MoveIfHasValue(AssetManager::LoadImageTexture(path), _pImageTexture))
+            const Path path = ResolvePathDragDropPayload(pPayload);
+            if (Optional<Ref<Texture>> pTexture = JAM_EDITOR.LoadTexture(path))
             {
-                bChanged = true;
-            }
-            else
-            {
-                const StringView msg = GlobalBuffer::FormatTmp("failed to load image texture from path: {}. {}", path.native(), GlobalBuffer::GetLastError());
-                Editor::PushMessageDialog("error", msg);
+                _pTexture = pTexture.Take();
             }
         }
 
@@ -1205,10 +1105,11 @@ bool Widget_ImageTextureSelector(
     // tooltip
     if (bTooltip && ImGui::BeginTooltip())
     {
-        if (_pImageTexture)
+        if (_pTexture)
         {
-            const StringView info = TmpImageTextureInfoString(_pImageTexture);
-            ImGui::TextUnformatted(info.GetPtr());
+            ScratchBuffer tmp;
+            FormatTextureInfoText_(tmp, _pTexture);
+            ImGui::TextUnformatted(tmp.GetPtr());
         }
         else
         {
@@ -1222,8 +1123,8 @@ bool Widget_ImageTextureSelector(
     {
         if (Widget_MenuItem("clear"))
         {
-            _pImageTexture = nullptr;
-            bChanged       = true;
+            _pTexture = nullptr;
+            bChanged  = true;
         }
 
         ImGui::EndPopup();
@@ -1235,7 +1136,7 @@ bool Widget_ImageTextureSelector(
 
 bool Widget_Acroball(
     const char*  _label,
-    Transform&   _transform,
+    Transform&   _t,
     const ImVec2 _pos,
     const float  _length)
 {
@@ -1262,47 +1163,34 @@ bool Widget_Acroball(
     }
 
     // interaction
-    bool       bHovered, bHold;
-    const bool bReleased = ImGui::ButtonBehavior(bb, id, &bHovered, &bHold);
-    const bool bPressed  = bHold && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-    bool       bChanged  = false;
+    bool bHovered = false;
+    bool bHold    = false;
+    ImGui::ButtonBehavior(bb, id, &bHovered, &bHold);
+    bool bChanged = false;
 
     // infinite drag
-    static InfiniteDragHelper s_dragHelper = {};
-    static float              s_pitchRad   = 0.f;
-    static float              s_yawRad     = 0.f;
+    static WidgetInfiniteDragger s_dragHelper = {};
+    s_dragHelper.OnAfterWidget();
 
-    // pressed: store current rotation
-    if (bPressed)
-    {
-        // capture current rotation
-        const auto [p, y, _] = _transform.ToPitchYawRoll();
-        s_pitchRad           = p;
-        s_yawRad             = y;
-
-        // freeze cursor
-        s_dragHelper.Begin();
-    }
-
-    // released: unfreeze cursor
-    if (bReleased)
-    {
-        s_dragHelper.End();
-    }
+    // stored rotation
+    static EulerProxy s_proxy = {};
+    s_proxy.OnBeforeWidget(_t);
+    s_proxy.OnAfterWidget();
 
     // held: update rotation
     if (bHold)
     {
-        s_dragHelper.Update();
-        const auto [dx, dy] = s_dragHelper.GetDragDelta();
-        if (!IsZeroApprox({ dx, dy }))
+        const ImVec2 delta = s_dragHelper.GetDragDelta();
+        if (!IsZeroApprox(delta))
         {
             constexpr float k_sensitivity = 0.005f;
 
             // apply rotation
-            s_yawRad   = Wrap(s_yawRad + dx * k_sensitivity, -k_2pi, k_2pi);
-            s_pitchRad = Clamp(s_pitchRad + dy * k_sensitivity, ToRad(-89.f), ToRad(89.f));
-            _transform.SetRotation(s_pitchRad, s_yawRad, 0.f);
+            Vec3& euler = s_proxy.GetEulerProxy();
+            euler.x     = Wrap(euler.x + delta.x * k_sensitivity, -k_2pi, k_2pi);
+            euler.y     = Clamp(euler.y + delta.y * k_sensitivity, ToRad(-89.f), ToRad(89.f));
+            euler.z     = 0.f;   // no roll
+            _t.SetRotation(euler);
 
             // dirty check
             bChanged = true;
@@ -1314,39 +1202,39 @@ bool Widget_Acroball(
                                 : bHovered ? eEditorStyleColor::AcroballBgHovered
                                            : eEditorStyleColor::AcroballBg;
 
-    const ImU32 bgCol     = Editor::GetStyleColorU32(col);
+    const ImU32 bgCol     = JAM_EDITOR.GetStyleColorU32(col);
     ImDrawList* pDrawList = ImGui::GetWindowDrawList();
     pDrawList->AddCircleFilled(center, radius, bgCol, 64);
 
-    // color
-    const ImVec4 axisXCol = Editor::GetStyleColor(eEditorStyleColor::AcroballAxisX);
-    const ImVec4 axisYCol = Editor::GetStyleColor(eEditorStyleColor::AcroballAxisY);
-    const ImVec4 axisZCol = Editor::GetStyleColor(eEditorStyleColor::AcroballAxisZ);
+    // value
+    const ImVec4 axisXCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisX);
+    const ImVec4 axisYCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisY);
+    const ImVec4 axisZCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisZ);
 
-    const ImVec4 axisXOutlineCol = Editor::GetStyleColor(eEditorStyleColor::AcroballAxisXOutline);
-    const ImVec4 axisYOutlineCol = Editor::GetStyleColor(eEditorStyleColor::AcroballAxisYOutline);
-    const ImVec4 axisZOutlineCol = Editor::GetStyleColor(eEditorStyleColor::AcroballAxisZOutline);
+    const ImVec4 axisXOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisXOutline);
+    const ImVec4 axisYOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisYOutline);
+    const ImVec4 axisZOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisZOutline);
 
     // style value
-    const float axisLineThickness    = Editor::GetStyleVar(eEditorStyleVar::AcroballAxisLineThickness);
-    const float axisLineRatio        = Editor::GetStyleVar(eEditorStyleVar::AcroballAxisLineLengthRatio);
+    const float axisLineThickness    = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisLineThickness);
+    const float axisLineRatio        = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisLineLengthRatio);
     const float axisLineLen          = radius * axisLineRatio;
-    const float headRadius           = Editor::GetStyleVar(eEditorStyleVar::AcroballAxisHeadRadius);
-    const float headOutlineThickness = Editor::GetStyleVar(eEditorStyleVar::AcroballAxisHeadOutlineThickness);
+    const float headRadius           = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisHeadRadius);
+    const float headOutlineThickness = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisHeadOutlineThickness);
 
     // acroball data
-    const Vec3 axisX = _transform.GetRight();
-    const Vec3 axisY = _transform.GetUp();
-    const Vec3 axisZ = _transform.GetForward();
+    const Vec3 axisX = _t.GetRight();
+    const Vec3 axisY = _t.GetUp();
+    const Vec3 axisZ = _t.GetForward();
 
     // axis data
     AcroballAxisData axes[6] = {
-        {  "X", axisXCol, axisXOutlineCol,  axisX, eAcroballAxis::X,  axisX.z,  true },
-        { "-X", axisXCol, axisXOutlineCol, -axisX, eAcroballAxis::X, -axisX.z, false },
-        {  "Y", axisYCol, axisYOutlineCol,  axisY, eAcroballAxis::Y,  axisY.z,  true },
-        { "-Y", axisYCol, axisYOutlineCol, -axisY, eAcroballAxis::Y, -axisY.z, false },
-        {  "Z", axisZCol, axisZOutlineCol,  axisZ, eAcroballAxis::Z,  axisZ.z,  true },
-        { "-Z", axisZCol, axisZOutlineCol, -axisZ, eAcroballAxis::Z, -axisZ.z, false },
+        {  "X", axisXCol, axisXOutlineCol,  axisX,  axisX.z,  true },
+        { "-X", axisXCol, axisXOutlineCol, -axisX, -axisX.z, false },
+        {  "Y", axisYCol, axisYOutlineCol,  axisY,  axisY.z,  true },
+        { "-Y", axisYCol, axisYOutlineCol, -axisY, -axisY.z, false },
+        {  "Z", axisZCol, axisZOutlineCol,  axisZ,  axisZ.z,  true },
+        { "-Z", axisZCol, axisZOutlineCol, -axisZ, -axisZ.z, false },
     };
 
     // sort by depth
@@ -1357,7 +1245,7 @@ bool Widget_Acroball(
     {
         const ImVec2 endPos = { center.x + axis.dir.x * axisLineLen, center.y - axis.dir.y * axisLineLen };
 
-        // depth based color (far faces are darker)
+        // depth based value (far faces are darker)
         const float  depth01    = (axis.depth + 1.f) * 0.5f;                   // map from [-1,1] to [0,1]
         const float  t0         = Clamp(Lerp(0.5f, 1.f, depth01), 0.f, 1.f);   // bright for front faces
         const ImVec4 axisCol    = { axis.color.x * t0, axis.color.y * t0, axis.color.z * t0, axis.color.w };
@@ -1385,55 +1273,9 @@ bool Widget_Acroball(
     return bChanged;
 }
 
-bool Widget_Combo(
-    const char*                   _label,
-    Int32&                        _curItem,
-    const Span<const char* const> _items)
-{
-    const Int32 numItems = _items.size();
-    const char* preview  = 0 <= _curItem && _curItem < numItems ? _items[_curItem] : "none";
-    bool        bChanged = false;
-
-    // render combo
-    if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
-    {
-        for (Int32 i = 0; i < numItems; ++i)
-        {
-            const bool  bSelected = (i == _curItem);
-            const char* label     = _items[i];
-
-            // render selectable
-            if (ImGui::Selectable(label, bSelected))
-            {
-                _curItem = i;
-                bChanged = true;
-            }
-
-            // set default focus
-            if (bSelected)
-            {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-
-        ImGui::EndCombo();
-    }
-
-    return bChanged;
-}
-
-void Widget_WrappedText(
-    const char* _text,
-    const float _wrapWidth)
-{
-    ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + _wrapWidth);   // wrap at 400px
-    ImGui::TextUnformatted(_text);
-    ImGui::PopTextWrapPos();
-}
-
-bool Widget_PathSelector(
+bool Widget_FileDialog(
     const char* _label,
-    fs::path&   _path,
+    Path&       _path,
     FileDialog& _fd)
 {
     ImGuiWindow* pWin = ImGui::GetCurrentWindow();
@@ -1450,7 +1292,10 @@ bool Widget_PathSelector(
 
     // inputW
     ImGui::SetNextItemWidth(inputW);
-    bChanged |= ImGui::InputText(_label, const_cast<std::string*>(&_path.native()), ImGuiInputTextFlags_ReadOnly);
+    if (ImGui::InputText(_label, const_cast<std::string*>(&_path.native()), ImGuiInputTextFlags_ReadOnly))
+    {
+        bChanged = true;
+    }
 
     // button
     ImGui::SameLine(0.f, style.ItemInnerSpacing.x);
@@ -1466,4 +1311,138 @@ bool Widget_PathSelector(
     return bChanged;
 }
 
-}   // namespace jam
+bool Widget_InputText(
+    const char*                  _label,
+    String&                      _str,
+    ImGuiInputTextFlags          _flags,
+    const ImGuiInputTextCallback _callback,
+    void*                        _pUserData)
+{
+    JAM_ASSERT((_flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    _flags |= ImGuiInputTextFlags_CallbackResize;
+
+    WidgetInputTextCallback_UserData userData = {};
+    userData.pStr                             = &_str;
+    userData.ChainCallback                    = _callback;
+    userData.pChainUserData                   = _pUserData;
+    return ImGui::InputText(_label, static_cast<char*>(_str.GetPtr()), _str.GetCapacity() + 1, _flags, Widget_InputTextCallback, &userData);
+}
+
+bool Widget_EnumCombo(
+    const char*                     _label,
+    EnumComboItem&                  _curItem,
+    const Span<const EnumComboItem> _items)
+{
+    bool bChanged = false;
+    if (ImGui::BeginCombo(_label, _curItem.name, ImGuiComboFlags_NoArrowButton))
+    {
+        for (const EnumComboItem& item: _items)
+        {
+            const bool bSelected = (_curItem.value == item.value);
+            if (ImGui::Selectable(item.name, bSelected))
+            {
+                _curItem = item;
+                bChanged = true;
+            }
+
+            if (bSelected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+
+    return bChanged;
+}
+
+bool Widget_EnumToggle(
+    const char*                     _label,
+    EnumComboItem&                  _curItem,
+    const Span<const EnumComboItem> _items)
+{
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return false;
+    }
+
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const float       w     = ImGui::CalcItemWidth();
+    const ImGuiID     id    = pWin->GetID(_label);
+    const ImVec2      size  = { w, ImGui::GetFrameHeight() };
+    const ImRect      bb    = { ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + size };
+    ImGui::ItemSize(bb);
+    if (!ImGui::ItemAdd(bb, id))
+    {
+        return false;
+    }
+
+    ImGui::BeginGroup();
+    ImGui::PushID(_label);
+
+    // frame
+    ImGui::RenderFrame(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+
+    // buttons
+    const float  btnWidth = Div(bb.GetWidth(), NumericCast<float>(_items.size()));
+    const ImVec2 btnSize  = { btnWidth, bb.GetHeight() };
+    bool         bChanged = false;
+    Int32        idx      = 0;
+    Int32        curIdx   = 0;
+    for (const EnumComboItem& item: _items)
+    {
+        const ImVec2  btnP0 = { bb.Min.x + btnWidth * NumericCast<float>(idx), bb.Min.y };
+        const ImVec2  btnP1 = btnP0 + btnSize;
+        const ImRect  btnBb = { btnP0, btnP1 };
+        const ImGuiID btnId = pWin->GetID(idx);
+
+        bool bSelected = false;
+        if (_curItem.value == item.value)
+        {
+            bSelected = true;
+            curIdx    = idx;
+        }
+
+        bool       bHovered = false;
+        bool       bHeld    = false;
+        const bool bPressed = ImGui::ButtonBehavior(btnBb, btnId, &bHovered, &bHeld);
+        if (bPressed)
+        {
+            _curItem = item;
+            bChanged = true;
+        }
+
+        // render button
+        const ImU32 col = ImGui::GetColorU32((bHeld && bHovered) ? ImGuiCol_ButtonActive
+                                             : bHovered          ? ImGuiCol_ButtonHovered
+                                             : bSelected         ? ImGuiCol_Button
+                                                                 : ImGuiCol_FrameBg);
+
+        ImGui::RenderNavCursor(btnBb, btnId);
+        ImGui::RenderFrame(btnBb.Min, btnBb.Max, col, true, style.FrameRounding);
+        ImGui::RenderTextClipped(btnBb.Min + style.FramePadding, btnBb.Max - style.FramePadding, item.name, nullptr, nullptr, style.ButtonTextAlign, &btnBb);
+        ++idx;
+    }
+
+    ImGui::PopID();
+    ImGui::EndGroup();
+
+    // short cut
+    const ImGuiLastItemData& lastData = ImGui::GetCurrentContext()->LastItemData;
+    if (lastData.StatusFlags & ImGuiItemStatusFlags_HasShortcut)
+    {
+        // toggle wrap around
+        if (ImGui::Shortcut(lastData.Shortcut))
+        {
+            const Int32 wrappedIdx = (curIdx + 1) % _items.size();
+            _curItem               = _items[wrappedIdx];
+            bChanged               = true;
+        }
+    }
+
+    return bChanged;
+}
+
+}   // namespace Jam

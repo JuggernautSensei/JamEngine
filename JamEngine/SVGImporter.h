@@ -1,31 +1,32 @@
 #pragma once
 #include "lunasvg/lunasvg.h"
 
-namespace jam
+namespace Jam
 {
+
+struct SVGImporterDesc
+{
+    Int32 width           = -1;                    // desired width, -1 for original size
+    Int32 height          = -1;                    // desired height, -1 for original size
+    RGBA  backgroundColor = RGBA::k_transparent;   // background color
+};
 
 class SVGImporter
 {
 public:
-    bool Import(const fs::path& _path);
-    bool ImportSource(StringView _source);
+    [[nodiscard]] static Expect<SVGImporter> ImportFromFile(const Path& _path, const SVGImporterDesc& _desc = {});
+    [[nodiscard]] static Expect<SVGImporter> ImportFromSource(StringView _source, const SVGImporterDesc& _desc = {});
 
-    void SetWidth(Int32 _width);
-    void SetHeight(Int32 _height);
-    void SetBackgroundColor(RGBA _rgba);
-
-    [[nodiscard]] CMemView GetPixels() const;
-    [[nodiscard]] Int32       GetWidth() const;
-    [[nodiscard]] Int32       GetHeight() const;
+    [[nodiscard]] CMemoryBlock GetPixels() const;
+    [[nodiscard]] Int32        GetWidth() const;
+    [[nodiscard]] Int32        GetHeight() const;
 
 private:
-    // importer options
-    Int32 m_width  = -1;
-    Int32 m_height = -1;
-    RGBA  m_bgCol  = RGBA::k_transparent;
+    SVGImporter() = default;
+    Error Import_(std::unique_ptr<lunasvg::Document>&& _doc, const SVGImporterDesc& _desc);
 
     // result
     lunasvg::Bitmap m_bitmap = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

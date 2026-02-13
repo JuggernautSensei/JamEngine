@@ -1,14 +1,22 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
-constexpr Int32 k_invalidHandleIndex = 0xFFFFFF;
+constexpr UInt32 k_invalidHandleIdx = 0x00FF'FFFF;
 
 struct InvalidHandleType
 {
+    struct Tag
+    {
+    };
+
+    constexpr explicit InvalidHandleType(Tag) noexcept
+    {
+    }
 };
-constexpr InvalidHandleType k_invalidHandle {};
+
+constexpr InvalidHandleType k_invalidHandle = InvalidHandleType { InvalidHandleType::Tag {} };
 
 /// @brief A stage-safe handle for a resource.
 /// @tparam T The resource stage this handle references.
@@ -16,13 +24,13 @@ template<typename T>
 struct Handle
 {
     Handle()
-        : index(k_invalidHandleIndex)
+        : index(k_invalidHandleIdx)
         , token(0)
     {
     }
 
     /* implicit */ Handle(const InvalidHandleType) noexcept
-        : index(k_invalidHandleIndex)
+        : index(k_invalidHandleIdx)
         , token(0)
     {
     }
@@ -35,7 +43,7 @@ struct Handle
 
     Handle& operator=(const InvalidHandleType) noexcept
     {
-        index = k_invalidHandleIndex;
+        index = k_invalidHandleIdx;
         token = 0;
         return *this;
     }
@@ -48,6 +56,16 @@ struct Handle
     [[nodiscard]] bool operator!=(const Handle& other) const noexcept
     {
         return !(*this == other);
+    }
+
+    [[nodiscard]] bool IsValid() const noexcept
+    {
+        return index != k_invalidHandleIdx;
+    }
+
+    /* implicit */  operator bool() const noexcept
+    {
+        return IsValid();
     }
 
     union
@@ -64,13 +82,13 @@ struct Handle
 struct AnyHandle
 {
     AnyHandle()
-        : index(k_invalidHandleIndex)
+        : index(k_invalidHandleIdx)
         , token(0)
     {
     }
 
     /* implicit */ AnyHandle(const InvalidHandleType) noexcept
-        : index(k_invalidHandleIndex)
+        : index(k_invalidHandleIdx)
         , token(0)
     {
     }
@@ -89,7 +107,7 @@ struct AnyHandle
 
     AnyHandle& operator=(const InvalidHandleType) noexcept
     {
-        index = k_invalidHandleIndex;
+        index = k_invalidHandleIdx;
         token = 0;
         return *this;
     }
@@ -121,7 +139,7 @@ class HandleAllocator
 {
     struct Slot
     {
-        UInt32 nextFreeIndex = k_invalidHandleIndex;
+        UInt32 nextFreeIndex = k_invalidHandleIdx;
         UInt8  token         = 0;
         bool   bAlloced      = false;
     };
@@ -151,7 +169,7 @@ class HandleAllocator
         explicit Iterator(AllocatorT* _pAllocator, const UInt32 _startIndex) noexcept
             : m_pAllocator(_pAllocator)
             , m_index(_startIndex)
-            , m_endIndex(static_cast<UInt32>(_pAllocator->m_slots.size()))
+            , m_endIndex(NumericCast<UInt32>(_pAllocator->m_slots.size()))
         {
             Advance_();
         }
@@ -220,14 +238,14 @@ public:
     [[nodiscard]] HandleT Alloc()
     {
         UInt32 index;
-        if (m_freeSlotIndex != k_invalidHandleIndex)
+        if (m_freeSlotIndex != k_invalidHandleIdx)
         {
             index           = m_freeSlotIndex;
             m_freeSlotIndex = m_slots[index].nextFreeIndex;
         }
         else
         {
-            index = static_cast<UInt32>(m_slots.size());
+            index = NumericCast<UInt32>(m_slots.size());
             m_slots.emplace_back();
         }
 
@@ -250,13 +268,15 @@ public:
     [[nodiscard]] bool IsValid(const HandleT handle) const noexcept
     {
         const Slot& slot = m_slots[handle.index];
-        return handle.index < m_slots.size() && slot.token == handle.token && slot.bAlloced;
+        return CmpLess(handle.index, m_slots.size())
+            && slot.token == handle.token
+            && slot.bAlloced;
     }
 
     void Clear() noexcept
     {
         m_slots.clear();
-        m_freeSlotIndex = k_invalidHandleIndex;
+        m_freeSlotIndex = k_invalidHandleIdx;
         m_numAlloced    = 0;
     }
 
@@ -272,7 +292,7 @@ public:
 
     [[nodiscard]] IteratorT end() noexcept
     {
-        return IteratorT(this, static_cast<UInt32>(m_slots.size()));
+        return IteratorT(this, NumericCast<UInt32>(m_slots.size()));
     }
 
     [[nodiscard]] ConstIteratorT begin() const noexcept
@@ -282,7 +302,7 @@ public:
 
     [[nodiscard]] ConstIteratorT end() const noexcept
     {
-        return ConstIteratorT(this, static_cast<UInt32>(m_slots.size()));
+        return ConstIteratorT(this, NumericCast<UInt32>(m_slots.size()));
     }
 
     [[nodiscard]] ConstIteratorT cbegin() const noexcept
@@ -292,13 +312,13 @@ public:
 
     [[nodiscard]] ConstIteratorT cend() const noexcept
     {
-        return ConstIteratorT(this, static_cast<UInt32>(m_slots.size()));
+        return ConstIteratorT(this, NumericCast<UInt32>(m_slots.size()));
     }
 
 private:
     Vector<Slot> m_slots         = {};
-    UInt32            m_freeSlotIndex = k_invalidHandleIndex;
-    Int32             m_numAlloced    = 0;
+    UInt32       m_freeSlotIndex = k_invalidHandleIdx;
+    Int32        m_numAlloced    = 0;
 };
 
-}   // namespace jam
+}   // namespace Jam

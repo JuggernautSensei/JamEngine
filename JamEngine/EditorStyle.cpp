@@ -2,7 +2,9 @@
 
 #include "EditorStyle.h"
 
-namespace jam
+#include "EditorUtilities.h"
+
+namespace Jam
 {
 
 EditorStyle::EditorStyle()
@@ -15,7 +17,7 @@ EditorStyle::EditorStyle()
         SetVar(eEditorStyleVar::AcroballAxisLineLengthRatio, 0.7f);
     }
 
-    // color
+    // value
     {
         SetColor(eEditorStyleColor::Error, ImVec4FromHex(0xFF5656FF));
         SetColor(eEditorStyleColor::Correct, ImVec4FromHex(0x50C878FF));
@@ -35,33 +37,72 @@ EditorStyle::EditorStyle()
         SetColor(eEditorStyleColor::AcroballBg, { 1.f, 1.f, 1.f, 0.f });
         SetColor(eEditorStyleColor::AcroballBgHovered, { 1.f, 1.f, 1.f, 0.2f });
         SetColor(eEditorStyleColor::AcroballBgActive, { 1.f, 1.f, 1.f, 0.3f });
+
+        // clamp alpha
+        for (ImVec4& col: colors)
+        {
+            col.w = Clamp(col.w, 0.f, 1.f);
+        }
     }
 
-    // clamp alpha
-    for (ImVec4& col: colors)
+    // eEditorShortCut
     {
-        col.w = Clamp(col.w, 0.f, 1.f);
+        SetShortCut(eEditorShortCut::SaveScene, ImGuiKey_S | ImGuiMod_Ctrl);
+        SetShortCut(eEditorShortCut::LoadScene, ImGuiKey_O | ImGuiMod_Ctrl);
+        SetShortCut(eEditorShortCut::CreateEntity, ImGuiKey_N | ImGuiMod_Ctrl);
+        SetShortCut(eEditorShortCut::DeleteEntity, ImGuiKey_Delete);
+        SetShortCut(eEditorShortCut::CloneEntity, ImGuiKey_D | ImGuiMod_Ctrl);
+        SetShortCut(eEditorShortCut::RunGameToggle, ImGuiKey_F5);
+        SetShortCut(eEditorShortCut::FileBrowserNavUndo, ImGuiKey_MouseX1);
+        SetShortCut(eEditorShortCut::FileBrowserNavRedo, ImGuiKey_MouseX2);
+        SetShortCut(eEditorShortCut::FileBrowserNavBack, ImGuiKey_LeftAlt | ImGuiKey_LeftArrow);
+        SetShortCut(eEditorShortCut::GizmoCursorMode, ImGuiKey_Q);
+        SetShortCut(eEditorShortCut::GizmoTranslationMode, ImGuiKey_W);
+        SetShortCut(eEditorShortCut::GizmoRotationMode, ImGuiKey_E);
+        SetShortCut(eEditorShortCut::GizmoScaleMode, ImGuiKey_R);
+        SetShortCut(eEditorShortCut::GizmoOrientToggle, ImGuiKey_T);
+        SetShortCut(eEditorShortCut::GizmoSnapToggle, ImGuiKey_Y);
+        SetShortCut(eEditorShortCut::GizmoTempSnapToggle, ImGuiKey_LeftCtrl);
     }
 }
 
-float EditorStyle::GetVar(const eEditorStyleVar _var) const
+float EditorStyle::GetVar(
+    const eEditorStyleVar _var) const
 {
-    return vars[IntFrom(_var)];
+    return vars[UnderlyingFrom(_var)];
 }
 
-ImVec4 EditorStyle::GetColor(const eEditorStyleColor _color) const
+ImVec4 EditorStyle::GetColor(
+    const eEditorStyleColor _color) const
 {
-    return colors[IntFrom(_color)];
+    return colors[UnderlyingFrom(_color)];
 }
 
-void EditorStyle::SetVar(const eEditorStyleVar _var, const float _value)
+ImGuiKeyChord EditorStyle::GetShortCut(
+    const eEditorShortCut _shortCut) const
 {
-    vars[IntFrom(_var)] = _value;
+    return shortCuts[UnderlyingFrom(_shortCut)];
 }
 
-void EditorStyle::SetColor(const eEditorStyleColor _color, const ImVec4& _value)
+void EditorStyle::SetVar(
+    const eEditorStyleVar _var,
+    const float           _value)
 {
-    colors[IntFrom(_color)] = _value;
+    vars[UnderlyingFrom(_var)] = _value;
 }
 
-}   // namespace jam
+void EditorStyle::SetColor(
+    const eEditorStyleColor _color,
+    const ImVec4&           _value)
+{
+    colors[UnderlyingFrom(_color)] = _value;
+}
+
+void EditorStyle::SetShortCut(
+    const eEditorShortCut _shortCut,
+    const ImGuiKeyChord   _value)
+{
+    shortCuts[UnderlyingFrom(_shortCut)] = _value;
+}
+
+}   // namespace Jam

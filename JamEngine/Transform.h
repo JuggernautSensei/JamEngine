@@ -1,12 +1,11 @@
 #pragma once
-#include "Math.h"
 
-namespace jam
+namespace Jam
 {
 
 struct AxisAngle
 {
-    Vec3  axis = Vec3::Zero;
+    Vec3  axis = vec3::k_zero;
     float rad  = 0.f;
 };
 
@@ -22,9 +21,9 @@ public:
     [[nodiscard]] Vec3 GetBackward() const;
 
     // matrix
-    [[nodiscard]] const Mat4& GetMatrix() const;
-    void                      SetMatrix(const Mat4& _mtx);
-    [[nodiscard]] Mat4        ToViewMatrix() const;
+    [[nodiscard]] const Mtx4& GetMatrix() const;
+    void                      SetMatrix(const Mtx4& _mtx);
+    [[nodiscard]] Mtx4        ToViewMatrix() const;
 
     // transform
     [[nodiscard]] Transform Inverted() const;
@@ -56,21 +55,21 @@ public:
     // rotation
     [[nodiscard]] Quat      ToQuat() const;
     [[nodiscard]] AxisAngle ToAxisAngle() const;
-    [[nodiscard]] Vec3      ToPitchYawRoll() const;
+    [[nodiscard]] Vec3      ToEuler() const;   // pitch yaw roll
 
     void SetRotation(Quat _q);
     void SetRotation(Vec3 _axis, float _rad);
-    void SetRotation(Vec3 _pitchYawRollRad);
+    void SetRotation(Vec3 _eulerRad);
     void SetRotation(float _pitchRad, float _yawRad, float _rollRad);
     void SetLookAt(Vec3 _point);
     void SetLookTo(Vec3 _forward);
 
     void AddRotation(Quat _q);
     void AddRotation(Vec3 _axis, float _rad);
-    void AddRotation(Vec3 _pitchYawRollRad);
+    void AddRotation(Vec3 _eulerRad);
     void AddRotation(float _pitchRad, float _yawRad, float _rollRad);
-    void AddRotationYaw(float _rad);
     void AddRotationPitch(float _rad);
+    void AddRotationYaw(float _rad);
     void AddRotationRoll(float _rad);
 
     [[nodiscard]] Vec3  GetTranslation() const;
@@ -91,13 +90,13 @@ public:
     void AddTranslationZ(float _z);
 
 private:
-    Vec3 m_right   = Vec3::UnitX;
-    Vec3 m_up      = Vec3::UnitY;
-    Vec3 m_forward = Vec3::UnitZ;
-    Vec3 m_origin  = Vec3::Zero;
+    Vec3 m_right   = vec3::k_unitX;
+    Vec3 m_up      = vec3::k_unitY;
+    Vec3 m_forward = vec3::k_unitZ;
+    Vec3 m_origin  = vec3::k_zero;
 
     mutable bool m_bDirty   = false;
-    mutable Mat4 m_mtxCache = Mat4::Identity;
+    mutable Mtx4 m_mtxCache = mtx4::k_identity;
 };
 
-}   // namespace jam
+}   // namespace Jam

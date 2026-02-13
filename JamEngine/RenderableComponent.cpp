@@ -4,100 +4,74 @@
 
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
-#include "Material.h"
-#include "JsonUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 void RenderableComponent::Serialize(
-    JsonWriter        _writer,
-    const Ref<Scene>& _pScene,
-    Entity            _owner) const
+    ArchiveWriter& _writer,
+    const Ref<Scene>&,
+    Entity) const
 {
-    _writer.WriteField("mesh", renderable.pMesh);
-    _writer.WriteField("material", renderable.pMaterial);
+    _writer.WriteField("mesh", pMesh);
+    _writer.WriteField("material", pMaterial);
 }
 
 void RenderableComponent::Deserialize(
-    JsonReader        _reader,
-    const Ref<Scene>& _pScene,
-    Entity            _owner)
+    ArchiveReader& _reader,
+    const Ref<Scene>&,
+    Entity)
 {
-    _reader.ReadField("mesh", renderable.pMesh);
-    _reader.ReadField("material", renderable.pMaterial);
+    _reader.ReadField("mesh", pMesh);
+    _reader.ReadField("material", pMaterial);
 }
 
-void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entity)
+void RenderableComponent::DrawEditPanel(
+    const Ref<Scene>&,
+    Entity)
 {
     ImGui::SeparatorText("mesh");
-    if (BeginLabelValueTable("MeshRendererComponent"))
+    if (BeginLabelTable("RenderableComponent"))
     {
         // Mesh
-        {
-            ImGui::TableNextColumn();
-            Widget_FrameAlignedText("mesh");
-            ImGui::TableNextColumn();
-            Widget_MeshSelector("##MeshSelector", renderable.pMesh);
-        }
+        ImGui::TableNextColumn();
+        Widget_Text("mesh", true);
+        ImGui::TableNextColumn();
+        Widget_MeshPicker("##MeshSelector", pMesh);
 
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 
     ImGui::SeparatorText("material");
-    if (BeginLabelValueTable("MeshRendererMaterial"))
+    if (BeginLabelTable("RenderableComponent"))
     {
-
         // Material
-        {
-            ImGui::TableNextColumn();
-            Widget_FrameAlignedText("material");
-            ImGui::TableNextColumn();
-            Widget_MaterialSelector("##MaterialSelector", renderable.pMaterial);
-        }
+        ImGui::TableNextColumn();
+        Widget_Text("material", true);
+        ImGui::TableNextColumn();
+        Widget_MaterialPicker("##MaterialSelector", pMaterial);
+
+        // todo indent?
 
         // Material Properties
-        if (renderable.pMaterial)
+        if (pMaterial)
         {
-            Vec3              ambientCol           = renderable.pMaterial->GetAmbientColor();
-            Vec3              diffuseCol           = renderable.pMaterial->GetDiffuseColor();
-            Vec3              specularCol          = renderable.pMaterial->GetSpecularColor();
-            float             shininess            = renderable.pMaterial->GetShininess();
-            Vec3              albedoCol            = renderable.pMaterial->GetAlbedoColor();
-            float             roughness            = renderable.pMaterial->GetRoughness();
-            float             metallic             = renderable.pMaterial->GetMetallic();
-            Vec3              emissiveCol          = renderable.pMaterial->GetEmissiveColor();
-            float             emissiveIntensity    = renderable.pMaterial->GetEmissiveIntensity();
-            bool              bAlphaCutout         = renderable.pMaterial->IsAlphaCutout();
-            bool              bDoubleSide          = renderable.pMaterial->IsDoubleSide();
-            bool              bFlipYNormalMap      = renderable.pMaterial->IsFlipYNormalTexture();
-            eTextureChannel   metallicChannel      = renderable.pMaterial->GetMetallicTextureChannel();
-            eTextureChannel   roughnessChannel     = renderable.pMaterial->GetRoughnessTextureChannel();
-            float             emissiveTexIntensity = renderable.pMaterial->GetEmissiveTextureIntensity();
-            float             lightTexIntensity    = renderable.pMaterial->GetLightTextureIntensity();
-            float             displacementScale    = renderable.pMaterial->GetVertexDisplacementTextureScale();
-            Ref<ImageTexture> albedoTex            = renderable.pMaterial->GetAlbedoTexture();
-            Ref<ImageTexture> normalTex            = renderable.pMaterial->GetNormalTexture();
-            Ref<ImageTexture> metallicTex          = renderable.pMaterial->GetMetallicTexture();
-            Ref<ImageTexture> roughnessTex         = renderable.pMaterial->GetRoughnessTexture();
-            Ref<ImageTexture> aoTex                = renderable.pMaterial->GetAoTexture();
-            Ref<ImageTexture> emissiveTex          = renderable.pMaterial->GetEmissiveTexture();
-            Ref<ImageTexture> lightTex             = renderable.pMaterial->GetLightTexture();
-            Ref<ImageTexture> displacementTex      = renderable.pMaterial->GetVertexDisplacementTexture();
+            MaterialParams          params   = pMaterial->GetParams();
+            MaterialTextures        texs     = pMaterial->GetTextures();
+            MaterialTextureSettings settings = pMaterial->GetTextureSettings();
 
             bool bDirty = false;
 
             // Phong/Blinn-Phong Properties
             {
-                // Ambient color
+                // Ambient value
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("ambient color");
+                Widget_Text("ambient value", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (ImGui::ColorEdit3("##MeshRendererAmbient", &ambientCol.x))
+                SetNextItemToAvailWidth();
+                if (ImGui::ColorEdit3("##MeshRendererAmbient", &params.ambient.x))
                 {
-                    renderable.pMaterial->SetAmbientColor(ambientCol);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -105,14 +79,14 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
                     bDirty = true;
                 }
 
-                // Diffuse color
+                // Diffuse value
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("diffuse color");
+                Widget_Text("diffuse value", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (ImGui::ColorEdit3("##MeshRendererDiffuse", &diffuseCol.x))
+                SetNextItemToAvailWidth();
+                if (ImGui::ColorEdit3("##MeshRendererDiffuse", &params.diffuse.x))
                 {
-                    renderable.pMaterial->SetDiffuseColor(diffuseCol);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -120,14 +94,14 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
                     bDirty = true;
                 }
 
-                // Specular color
+                // Specular value
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("specular color");
+                Widget_Text("specular value", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (ImGui::ColorEdit3("##MeshRendererSpecular", &specularCol.x))
+                SetNextItemToAvailWidth();
+                if (ImGui::ColorEdit3("##MeshRendererSpecular", &params.specular.x))
                 {
-                    renderable.pMaterial->SetSpecularColor(specularCol);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -137,12 +111,12 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
 
                 // Shininess
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("shininess");
+                Widget_Text("shininess", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_DragFloat("##MeshRendererShininess", &shininess, 0.1f, 0.f, 1000.f, "%.1f"))
+                SetNextItemToAvailWidth();
+                if (Widget_DragFloat("##MeshRendererShininess", params.shininess, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    renderable.pMaterial->SetShininess(shininess);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -153,14 +127,14 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
 
             // PBR Properties
             {
-                // Albedo color
+                // Albedo value
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("albedo color");
+                Widget_Text("albedo value", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (ImGui::ColorEdit3("##MeshRendererAlbedo", &albedoCol.x))
+                SetNextItemToAvailWidth();
+                if (ImGui::ColorEdit3("##MeshRendererAlbedo", &params.albedo.x))
                 {
-                    renderable.pMaterial->SetAlbedoColor(albedoCol);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -170,12 +144,12 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
 
                 // Roughness
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("roughness");
+                Widget_Text("roughness", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_DragFloat("##MeshRendererRoughness", &roughness, 0.01f, 0.f, 1.f))
+                SetNextItemToAvailWidth();
+                if (Widget_DragFloat("##MeshRendererRoughness", params.roughness, 0.01f, 0.f, 1.f))
                 {
-                    renderable.pMaterial->SetRoughness(roughness);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -186,12 +160,12 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
                 // Metallic
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("metallic");
+                Widget_Text("metallic", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_DragFloat("##MeshRendererMetallic", &metallic, 0.01f, 0.f, 1.f))
+                SetNextItemToAvailWidth();
+                if (Widget_DragFloat("##MeshRendererMetallic", params.metallic, 0.01f, 0.f, 1.f))
                 {
-                    renderable.pMaterial->SetMetallic(metallic);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -202,15 +176,15 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
 
             // Emissive Properties
             {
-                // Emissive color
+                // Emissive value
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("emissive color");
+                Widget_Text("emissive value", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (ImGui::ColorEdit3("##MeshRendererEmissive", &emissiveCol.x))
+                SetNextItemToAvailWidth();
+                if (ImGui::ColorEdit3("##MeshRendererEmissive", &params.emissive.x))
                 {
-                    renderable.pMaterial->SetEmissiveColor(emissiveCol);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -221,12 +195,12 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
                 // Emissive intensity
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("emissive intensity");
+                Widget_Text("emissive intensity", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_DragFloat("##MeshRendererEmissiveIntensity", &emissiveIntensity, 0.01f, 0.f))
+                SetNextItemToAvailWidth();
+                if (Widget_DragFloat("##MeshRendererEmissiveIntensity", params.emissiveIntensity, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    renderable.pMaterial->SetEmissiveIntensity(emissiveIntensity);
+                    pMaterial->SetParams(params);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -239,137 +213,155 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
             {
                 // Alpha cut-off
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("alpha cut-out");
+                Widget_Text("alpha cut-out", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (ImGui::Checkbox("##MeshRendererAlphaCutOff", &bAlphaCutout))
+                SetNextItemToAvailWidth();
+                if (ImGui::Checkbox("##MeshRendererAlphaCutOff", &params.bAlphaCutout))
                 {
-                    renderable.pMaterial->SetAlphaCutout(bAlphaCutout);
+                    pMaterial->SetParams(params);
                     bDirty = true;
                 }
 
                 // Double side
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("double sided");
+                Widget_Text("double sided", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (ImGui::Checkbox("##MeshRendererDoubleSide", &bDoubleSide))
+                SetNextItemToAvailWidth();
+                if (ImGui::Checkbox("##MeshRendererDoubleSide", &params.bDoubleSided))
                 {
-                    renderable.pMaterial->SetDoubleSide(bDoubleSide);
+                    pMaterial->SetParams(params);
                     bDirty = true;
                 }
             }
 
-            // Texture textures
+            // Texture texes
             {
-                // Albedo texture
+                // Albedo tex
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("albedo texture");
+                Widget_Text("albedo texture", true);
                 ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererAlbedoMap", albedoTex))
                 {
-                    renderable.pMaterial->SetAlbedoTexture(albedoTex);
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::Albedo);
+                    if (Widget_TexturePicker("##MeshRendererAlbedoMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::Albedo, tex);
+                        bDirty = true;
+                    }
+                }
+
+                // Normal tex
+
+                ImGui::TableNextColumn();
+                Widget_Text("normal texture", true);
+                ImGui::TableNextColumn();
+                {
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::Normal);
+                    if (Widget_TexturePicker("##MeshRendererNormalMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::Normal, tex);
+                        bDirty = true;
+                    }
+                }
+
+                // Flip Y normal tex
+
+                ImGui::TableNextColumn();
+                Widget_Text("texture flip Y", true);
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##MeshRendererFlipYNormalMap", &settings.bNormalMapFlipedY))
+                {
+                    pMaterial->SetTextureSettings(settings);
                     bDirty = true;
                 }
 
-                // Normal texture
+                // Metallic tex
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("normal texture");
+                Widget_Text("metallic texture", true);
                 ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererNormalMap", normalTex))
                 {
-                    renderable.pMaterial->SetNormalTexture(normalTex);
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::Metallic);
+                    if (Widget_TexturePicker("##MeshRendererMetallicMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::Metallic, tex);
+                        bDirty = true;
+                    }
+                }
+
+                // Metallic tex value channel
+
+                ImGui::TableNextColumn();
+                Widget_Text("texture channel", true);
+                ImGui::TableNextColumn();
+                SetNextItemToAvailWidth();
+                if (Widget_EnumCombo("##MeshRendererMetallicMapColorChannel", settings.metallicMapChannel))
+                {
+                    pMaterial->SetTextureSettings(settings);
                     bDirty = true;
                 }
 
-                // Flip Y normal texture
+                // Roughness tex
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("texture flip Y");
+                Widget_Text("roughness texture", true);
                 ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##MeshRendererFlipYNormalMap", &bFlipYNormalMap))
                 {
-                    renderable.pMaterial->SetFlipYNormalTexture(bFlipYNormalMap);
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::Roughness);
+                    if (Widget_TexturePicker("##MeshRendererRoughnessMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::Roughness, tex);
+                        bDirty = true;
+                    }
+                }
+
+                // Roughness tex value channel
+
+                ImGui::TableNextColumn();
+                Widget_Text("texture channel", true);
+                ImGui::TableNextColumn();
+                SetNextItemToAvailWidth();
+                if (Widget_EnumCombo("##MeshRendererRoughnessMapColorChannel", settings.roughnessMapChannel))
+                {
+                    pMaterial->SetTextureSettings(settings);
                     bDirty = true;
                 }
 
-                // Metallic texture
-
+                // AO tex
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("metallic texture");
+                Widget_Text("ao texture", true);
                 ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererMetallicMap", metallicTex))
                 {
-                    renderable.pMaterial->SetMetallicTexture(metallicTex);
-                    bDirty = true;
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::Ao);
+                    if (Widget_TexturePicker("##MeshRendererAoMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::Ao, tex);
+                        bDirty = true;
+                    }
                 }
 
-                // Metallic texture color channel
-
+                // Emissive tex
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("texture channel");
+                Widget_Text("emissive texture", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_TextureChannelCombo("##MeshRendererMetallicMapColorChannel", metallicChannel, true))
                 {
-                    renderable.pMaterial->SetMetallicTextureChannel(metallicChannel);
-                    bDirty = true;
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::Emissive);
+                    if (Widget_TexturePicker("##MeshRendererEmissiveMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::Emissive, tex);
+                        bDirty = true;
+                    }
                 }
 
-                // Roughness texture
-
+                // Emissive tex intensity
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("roughness texture");
+                Widget_Text("texture intensity", true);
                 ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererRoughnessMap", roughnessTex))
+                SetNextItemToAvailWidth();
+                if (Widget_DragFloat("##MeshRendererEmissiveTextureIntensity", settings.emissiveMapIntensity, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    renderable.pMaterial->SetRoughnessTexture(roughnessTex);
-                    bDirty = true;
-                }
-
-                // Roughness texture color channel
-
-                ImGui::TableNextColumn();
-                Widget_FrameAlignedText("texture channel");
-                ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_TextureChannelCombo("##MeshRendererRoughnessMapColorChannel", roughnessChannel, true))
-                {
-                    renderable.pMaterial->SetRoughnessTextureChannel(roughnessChannel);
-                    bDirty = true;
-                }
-
-                // AO texture
-                ImGui::TableNextColumn();
-                Widget_FrameAlignedText("ao texture");
-                ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererAoMap", aoTex))
-                {
-                    renderable.pMaterial->SetAoTexture(aoTex);
-                    bDirty = true;
-                }
-
-                // Emissive texture
-                ImGui::TableNextColumn();
-                Widget_FrameAlignedText("emissive texture");
-                ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererEmissiveMap", emissiveTex))
-                {
-                    renderable.pMaterial->SetEmissiveTexture(emissiveTex);
-                    bDirty = true;
-                }
-
-                // Emissive texture intensity
-                ImGui::TableNextColumn();
-                Widget_FrameAlignedText("texture intensity");
-                ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_DragFloat("##MeshRendererEmissiveTextureIntensity", &emissiveTexIntensity, 0.01f, 0.f))
-                {
-                    renderable.pMaterial->SetEmissiveTextureIntensity(emissiveTexIntensity);
+                    pMaterial->SetTextureSettings(settings);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -378,26 +370,29 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
                 }
             }
 
-            // Light texture
+            // Light tex
             {
-                // Light texture
+                // Light tex
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("light texture");
+                Widget_Text("light texture", true);
                 ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererLightMap", lightTex))
                 {
-                    renderable.pMaterial->SetLightTexture(lightTex);
-                    bDirty = true;
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::Light);
+                    if (Widget_TexturePicker("##MeshRendererLightMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::Light, tex);
+                        bDirty = true;
+                    }
                 }
 
-                // Light texture intensity
+                // Light tex intensity
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("texture intensity");
+                Widget_Text("texture intensity", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_DragFloat("##MeshRendererLightMapIntensity", &lightTexIntensity, 0.01f, 0.f))
+                SetNextItemToAvailWidth();
+                if (Widget_DragFloat("##MeshRendererLightMapIntensity", settings.lightMapIntensity, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    renderable.pMaterial->SetLightTextureIntensity(lightTexIntensity);
+                    pMaterial->SetTextureSettings(settings);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -408,26 +403,28 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
 
             // Vertex Displacement
             {
-                // Displacement texture
-
+                // Displacement tex
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("displacement texture");
+                Widget_Text("displacement texture", true);
                 ImGui::TableNextColumn();
-                if (Widget_ImageTextureSelector("##MeshRendererDisplacementMap", displacementTex))
                 {
-                    renderable.pMaterial->SetVertexDisplacementTexture(displacementTex);
-                    bDirty = true;
+                    Ref<Texture> tex = texs.Get(eMaterialTextureType::VertexDisplacement);
+                    if (Widget_TexturePicker("##MeshRendererDisplacementMap", tex))
+                    {
+                        pMaterial->SetTexture(eMaterialTextureType::VertexDisplacement, tex);
+                        bDirty = true;
+                    }
                 }
 
-                // Displacement texture scale
+                // Displacement tex scale
 
                 ImGui::TableNextColumn();
-                Widget_FrameAlignedText("texture scale");
+                Widget_Text("texture scale", true);
                 ImGui::TableNextColumn();
-                SetNextItemAvailWidth();
-                if (Widget_DragFloat("##MeshRendererDisplacementMapScale", &displacementScale, 0.001f, 0.f, FLT_MAX, "%.4f"))
+                SetNextItemToAvailWidth();
+                if (Widget_DragFloat("##MeshRendererDisplacementMapScale", settings.vertexDisplacementMapScale, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
                 {
-                    renderable.pMaterial->SetVertexDisplacementTextureScale(displacementScale);
+                    pMaterial->SetTextureSettings(settings);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -439,13 +436,16 @@ void RenderableComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entit
             // Save material if dirty
             if (bDirty)
             {
-                const fs::path& path = renderable.pMaterial->GetPath();
-                renderable.pMaterial->Save(path, TODO);
+                const Path& path = pMaterial->GetPath();
+                if (const Error err = pMaterial->Save(path))
+                {
+                    JAM_LOG.Warn("Failed to save material '{}': {}", path, err.ToErrorMessage());
+                }
             }
         }
 
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

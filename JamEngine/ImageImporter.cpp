@@ -1,413 +1,408 @@
 #include "pch.h"
-
 #include "ImageImporter.h"
 
-#include "TextureFormat.h"
 #include <DirectXTexEXR.h>
 
-#include "Graphics.h"
 #include "WindowsUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
-void ImageImporter::ConvertFormat(
-    const bool           _bEnable,
-    const eTextureFormat _format,
-    const float          _threshold)
+Expect<ImageImporter> ImageImporter::ImportFromFile(
+    const Path&               _path,
+    const eImageFormat        _format,
+    const ImageImportOptions& _options)
 {
-    JAM_ASSERT(_format != eTextureFormat::Unknown, "invalid format");
-    m_options.bConvertFormat   = _bEnable;
-    m_options.convertFormat    = _format;
-    m_options.convertThreshold = _threshold;
-}
-
-void ImageImporter::ForceSRGB(
-    const bool _bEnable)
-{
-    m_options.bForceSRGB = _bEnable;
-}
-
-void ImageImporter::GenerateMips(
-    const bool _bEnable)
-{
-    m_options.bGenerateMips = _bEnable;
-}
-
-void ImageImporter::Resize(
-    const bool  _bEnable,
-    const Int32 _newWidth,
-    const Int32 _newHeight)
-{
-    m_options.bResize   = _bEnable;
-    m_options.newWidth  = _newWidth;
-    m_options.newHeight = _newHeight;
-}
-
-void ImageImporter::FlipVertical(const bool _bEnable)
-{
-    m_options.bFlipVertical = _bEnable;
-}
-
-void ImageImporter::FlipHorizontal(const bool _bEnable)
-{
-    m_options.bFlipHorizontal = _bEnable;
-}
-
-void ImageImporter::PreMultiplyAlpha(const bool _bEnable)
-{
-    m_options.bPreMultiplyAlpha = _bEnable;
-}
-
-void ImageImporter::SetOptions(
-    const ImageImporterOptions& _options)
-{
-    m_options = _options;
-}
-
-Optional<DirectX::ScratchImage> ImageImporter::PostProcess_(
-    DirectX::ScratchImage&& _srcScratchImg)
-{
-    DirectX::ScratchImage outputImg = std::move(_srcScratchImg);
-
-    // convert format
-    if (m_options.bConvertFormat)
+    ImageImporter importer = {};
+    if (const Error err = importer.ImportFromFile_(_path, _format, _options))
     {
-        JAM_ASSERT(m_options.convertFormat != eTextureFormat::Unknown, "invalid format to convert");
+        return err;
+    }
 
-        const TextureFormatInfo& texInfo = TextureFormatInfoFrom(m_options.convertFormat);
+    return importer;
+}
+
+Expect<ImageImporter> ImageImporter::ImportFromFile(
+    const Path&               _path,
+    const ImageImportOptions& _options)
+{
+    ImageImporter importer = {};
+    if (const Error err = importer.ImportFromFile_(_path, _options))
+    {
+        return err;
+    }
+
+    return importer;
+}
+
+Expect<ImageImporter> ImageImporter::ImportFromMemory(
+    const CMemoryBlock        _mem,
+    const eImageFormat        _format,
+    const ImageImportOptions& _options)
+{
+    ImageImporter importer = {};
+    if (const Error err = importer.ImportFromMemory_(_mem, _format, _options))
+    {
+        return err;
+    }
+
+    return importer;
+}
+
+const ImageContainer& ImageImporter::GetImageContainer()
+{
+    return m_container;
+}
+
+Error ImageImporter::ImportFromFile_(
+    const Path&               _path,
+    const eImageFormat        _format,
+    const ImageImportOptions& _options)
+{
+    // load from file
+    ImageContainer     container = {};
+    const std::wstring wPath     = _path.wstring();
+    HRESULT            hr        = S_OK;
+
+    switch (_format)
+    {
+        case eImageFormat::EXR:
+            hr = DirectX::LoadFromEXRFile(wPath.c_str(), nullptr, container);
+            break;
+
+        case eImageFormat::DDS:
+            hr = DirectX::LoadFromDDSFile(wPath.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, container);
+            break;
+
+        case eImageFormat::HDR:
+            hr = DirectX::LoadFromHDRFile(wPath.c_str(), nullptr, container);
+            break;
+
+        case eImageFormat::TGA:
+            hr = DirectX::LoadFromTGAFile(wPath.c_str(), nullptr, container);
+            break;
+
+        case eImageFormat::BMP:
+        case eImageFormat::JPG:
+        case eImageFormat::JPEG:
+        case eImageFormat::PNG:
+        case eImageFormat::TIF:
+        case eImageFormat::TIFF:
+        case eImageFormat::GIF:
+        case eImageFormat::HDP:
+        case eImageFormat::JXR:
+        case eImageFormat::WDP:
+        case eImageFormat::ICO:
+        case eImageFormat::HEIF:
+        case eImageFormat::HEIC:
+            hr = DirectX::LoadFromWICFile(wPath.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, container);
+            break;
+
+        default:
+            JAM_UNREACHABLE;
+    }
+
+    if (FAILED(hr))
+    {
+        ScratchBuffer buf;
+        FormatHRESULTMessage(buf, hr);
+        JAM_LOG.Error("Failed to load image file '{}': {}", _path.native(), buf.ToStringView());
+        return Error::ImportFailed;
+    }
+
+    // post process
+    return PostProcess_(_options);
+}
+
+Error ImageImporter::ImportFromFile_(
+    const Path&               _path,
+    const ImageImportOptions& _options)
+{
+    Optional<eImageFormat> format = ParseAsImageFormat(_path);
+    if (!format)
+    {
+        JAM_LOG.Error("Unsupported image format for file import: '{}'", _path.extension().string());
+        return Error::UnsupportedFormat;
+    }
+
+    return ImportFromFile_(_path, format.GetValue(), _options);
+}
+
+Error ImageImporter::ImportFromMemory_(
+    const CMemoryBlock        _mem,
+    const eImageFormat        _format,
+    const ImageImportOptions& _options)
+{
+    // load from memory
+    ImageContainer container = {};
+    const Byte*    pMem      = _mem.GetPtr();
+    const SizeT    byteWidth = _mem.GetByteWidth();
+    HRESULT        hr        = S_OK;
+
+    switch (_format)
+    {
+        case eImageFormat::DDS:
+            hr = DirectX::LoadFromDDSMemory(pMem, byteWidth, DirectX::DDS_FLAGS_NONE, nullptr, container);
+            break;
+
+        case eImageFormat::HDR:
+            hr = DirectX::LoadFromHDRMemory(pMem, byteWidth, nullptr, container);
+            break;
+
+        case eImageFormat::TGA:
+            hr = DirectX::LoadFromTGAMemory(pMem, byteWidth, DirectX::TGA_FLAGS_NONE, nullptr, container);
+            break;
+
+        case eImageFormat::BMP:
+        case eImageFormat::JPG:
+        case eImageFormat::JPEG:
+        case eImageFormat::PNG:
+        case eImageFormat::TIF:
+        case eImageFormat::TIFF:
+        case eImageFormat::GIF:
+        case eImageFormat::HDP:
+        case eImageFormat::JXR:
+        case eImageFormat::WDP:
+        case eImageFormat::ICO:
+        case eImageFormat::HEIF:
+        case eImageFormat::HEIC:
+            hr = DirectX::LoadFromWICMemory(pMem, byteWidth, DirectX::WIC_FLAGS_NONE, nullptr, container);
+            break;
+
+        default:
+            JAM_LOG.Error("Unsupported image format for memory import: '{}'", ExtensionOf(_format));
+            return Error::UnsupportedFormat;
+    }
+
+    if (FAILED(hr))
+    {
+        ScratchBuffer buf;
+        FormatHRESULTMessage(buf, hr);
+
+        JAM_LOG.Error("Failed to load image from memory: {}", buf.ToStringView());
+        return Error::ImportFailed;
+    }
+
+    // post process
+    return PostProcess_(_options);
+}
+
+Error ImageImporter::PostProcess_(
+    const ImageImportOptions& _options)
+{
+    // convert format
+    if (_options.bConvertFormat)
+    {
+        const TextureFormatInfo& texInfo = TextureFormatInfoFrom(_options.convertFormat);
         if (texInfo.texFormat == DXGI_FORMAT_UNKNOWN)
         {
-            GlobalBuffer::SetLastError("invalid format to convert: '{}'", texInfo.name);
-            return k_nullopt;
+            JAM_LOG.Error("invalid format to convert: '{}'", NameOf(_options.convertFormat));
+            return Error::InvalidArgument;
         }
 
-        DirectX::ScratchImage resultImg = {};
-        const HRESULT         hr        = DirectX::Convert(
-            outputImg.GetImages(),
-            outputImg.GetImageCount(),
-            outputImg.GetMetadata(),
+        ImageContainer result = {};
+        const HRESULT  hr     = DirectX::Convert(
+            m_container.GetImages(),
+            m_container.GetImageCount(),
+            m_container.GetMetadata(),
             texInfo.texFormat,
             DirectX::TEX_FILTER_DEFAULT,
-            m_options.convertThreshold,
-            resultImg);
+            _options.convertThreshold,
+            result);
 
         if (FAILED(hr))
         {
-            GlobalBuffer::SetLastError("Failed to convert image format: {}", CreateErrorMessageFromHRESULT(hr));
-            return k_nullopt;
+            ScratchBuffer buf;
+            FormatHRESULTMessage(buf, hr);
+
+            JAM_LOG.Error("Failed to convert image format: {}", buf.ToStringView());
+            return Error::RuntimeError;
         }
 
-        outputImg = std::move(resultImg);
+        m_container = std::move(result);
     }
 
     // force sRGB
-    if (m_options.bForceSRGB)
+    if (_options.bForceSRGB)
     {
-        const DirectX::TexMetadata& metadata = outputImg.GetMetadata();
+        const DirectX::TexMetadata& metadata = m_container.GetMetadata();
         if (!DirectX::IsSRGB(metadata.format))
         {
             const DXGI_FORMAT srgbFormat = DirectX::MakeSRGB(metadata.format);
             if (srgbFormat == DXGI_FORMAT_UNKNOWN)
             {
-                GlobalBuffer::SetLastError("Failed to convert image format to sRGB");
-                return k_nullopt;
+                JAM_LOG.Error("Failed to convert image format to sRGB");
+                return Error::InvalidArgument;
             }
 
-            DirectX::ScratchImage resultImg = {};
-            const HRESULT         hr        = DirectX::Convert(
-                outputImg.GetImages(),
-                outputImg.GetImageCount(),
-                outputImg.GetMetadata(),
+            ImageContainer result = {};
+            const HRESULT  hr     = DirectX::Convert(
+                m_container.GetImages(),
+                m_container.GetImageCount(),
+                m_container.GetMetadata(),
                 srgbFormat,
                 DirectX::TEX_FILTER_DEFAULT,
-                m_options.convertThreshold,
-                resultImg);
+                _options.convertThreshold,
+                result);
 
             if (FAILED(hr))
             {
-                GlobalBuffer::SetLastError("Failed to convert to sRGB: {}", CreateErrorMessageFromHRESULT(hr));
-                return k_nullopt;
+                ScratchBuffer buf;
+                FormatHRESULTMessage(buf, hr);
+
+                JAM_LOG.Error("Failed to convert to sRGB: {}", buf.ToStringView());
+                return Error::RuntimeError;
             }
 
-            outputImg = std::move(resultImg);
+            m_container = std::move(result);
         }
     }
 
     // premultiply alpha
-    if (m_options.bPreMultiplyAlpha)
+    if (_options.bPreMultiplyAlpha)
     {
-        DirectX::ScratchImage resultImg = {};
-        const HRESULT         hr        = DirectX::PremultiplyAlpha(
-            outputImg.GetImages(),
-            outputImg.GetImageCount(),
-            outputImg.GetMetadata(),
+        ImageContainer result = {};
+        const HRESULT  hr     = DirectX::PremultiplyAlpha(
+            m_container.GetImages(),
+            m_container.GetImageCount(),
+            m_container.GetMetadata(),
             DirectX::TEX_PMALPHA_DEFAULT,
-            resultImg);
+            result);
 
         if (FAILED(hr))
         {
-            GlobalBuffer::SetLastError("Failed to premultiply alpha: {}", CreateErrorMessageFromHRESULT(hr));
-            return k_nullopt;
+            ScratchBuffer buf;
+            FormatHRESULTMessage(buf, hr);
+
+            JAM_LOG.Error("Failed to premultiply alpha: {}", buf.ToStringView());
+            return Error::RuntimeError;
         }
 
-        outputImg = std::move(resultImg);
+        m_container = std::move(result);
     }
 
     // resize image
-    if (m_options.bResize)
+    if (_options.bResize)
     {
-        JAM_ASSERT(m_options.newWidth > 0 && m_options.newHeight > 0, "new width and height must be greater than 0");
-        JAM_ASSERT(outputImg.GetMetadata().dimension != DirectX::TEX_DIMENSION_TEXTURE3D, "3D texture resizing is not supported");
+        JAM_ASSERT(_options.newWidth > 0 && _options.newHeight > 0, "new width and height must be greater than 0");
+        JAM_ASSERT(m_container.GetMetadata().dimension != DirectX::TEX_DIMENSION_TEXTURE3D, "3D texture resizing is not supported");
 
-        DirectX::ScratchImage resultImg = {};
-        const HRESULT         hr        = DirectX::Resize(
-            outputImg.GetImages(),
-            outputImg.GetImageCount(),
-            outputImg.GetMetadata(),
-            m_options.newWidth,
-            m_options.newHeight,
+        ImageContainer result = {};
+        const HRESULT  hr     = DirectX::Resize(
+            m_container.GetImages(),
+            m_container.GetImageCount(),
+            m_container.GetMetadata(),
+            _options.newWidth,
+            _options.newHeight,
             DirectX::TEX_FILTER_DEFAULT,
-            resultImg);
+            result);
 
         if (FAILED(hr))
         {
-            GlobalBuffer::SetLastError("Failed to resize image to {}x{}: {}", m_options.newWidth, m_options.newHeight, CreateErrorMessageFromHRESULT(hr));
-            return k_nullopt;
+            ScratchBuffer buf;
+            FormatHRESULTMessage(buf, hr);
+
+            JAM_LOG.Error("Failed to resize image to {}x{}: {}", _options.newWidth, _options.newHeight, buf.ToStringView());
+            return Error::RuntimeError;
         }
 
-        outputImg = std::move(resultImg);
+        m_container = std::move(result);
     }
 
     // drop or generate mips
-    if (m_options.bGenerateMips)
+    if (_options.bGenerateMips)
     {
-        const DirectX::TexMetadata& metadata = outputImg.GetMetadata();
+        const DirectX::TexMetadata& metadata = m_container.GetMetadata();
 
         // Generate mipmaps if there is only one level
         if (metadata.mipLevels == 1)
         {
             const bool bIs3d = (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D);
 
-            DirectX::ScratchImage resultImg = {};
-            HRESULT               hr        = S_OK;
+            ImageContainer result = {};
+            HRESULT        hr     = S_OK;
 
             if (bIs3d)
             {
                 hr = DirectX::GenerateMipMaps3D(
-                    outputImg.GetImages(),
-                    outputImg.GetImageCount(),
-                    outputImg.GetMetadata(),
+                    m_container.GetImages(),
+                    m_container.GetImageCount(),
+                    m_container.GetMetadata(),
                     DirectX::TEX_FILTER_DEFAULT,
                     0,
-                    resultImg);
+                    result);
             }
             else
             {
                 hr = DirectX::GenerateMipMaps(
-                    outputImg.GetImages(),
-                    outputImg.GetImageCount(),
-                    outputImg.GetMetadata(),
+                    m_container.GetImages(),
+                    m_container.GetImageCount(),
+                    m_container.GetMetadata(),
                     DirectX::TEX_FILTER_DEFAULT,
                     0,
-                    resultImg);
+                    result);
             }
 
             if (FAILED(hr))
             {
-                GlobalBuffer::SetLastError("Failed to generate mipmaps: {}", CreateErrorMessageFromHRESULT(hr));
-                return k_nullopt;
+                ScratchBuffer buf;
+                FormatHRESULTMessage(buf, hr);
+
+                JAM_LOG.Error("Failed to generate mipmaps: {}", buf.ToStringView());
+                return Error::RuntimeError;
             }
 
-            outputImg = std::move(resultImg);
+            m_container = std::move(result);
         }
     }
 
     // flip vertical
-    if (m_options.bFlipVertical)
+    if (_options.bFlipVertical)
     {
-        DirectX::ScratchImage resultImg = {};
-        const HRESULT         hr        = DirectX::FlipRotate(
-            outputImg.GetImages(),
-            outputImg.GetImageCount(),
-            outputImg.GetMetadata(),
+        ImageContainer result = {};
+        const HRESULT  hr     = DirectX::FlipRotate(
+            m_container.GetImages(),
+            m_container.GetImageCount(),
+            m_container.GetMetadata(),
             DirectX::TEX_FR_FLIP_VERTICAL,
-            resultImg);
+            result);
 
         if (FAILED(hr))
         {
-            GlobalBuffer::SetLastError("Failed to flip image vertically: {}", CreateErrorMessageFromHRESULT(hr));
-            return k_nullopt;
+            ScratchBuffer buf;
+            FormatHRESULTMessage(buf, hr);
+
+            JAM_LOG.Error("Failed to flip image vertically: {}", buf.ToStringView());
+            return Error::RuntimeError;
         }
 
-        outputImg = std::move(resultImg);
+        m_container = std::move(result);
     }
 
     // flip horizontal
-    if (m_options.bFlipHorizontal)
+    if (_options.bFlipHorizontal)
     {
-        DirectX::ScratchImage resultImg = {};
-        const HRESULT         hr        = DirectX::FlipRotate(
-            outputImg.GetImages(),
-            outputImg.GetImageCount(),
-            outputImg.GetMetadata(),
+        ImageContainer result = {};
+        const HRESULT  hr     = DirectX::FlipRotate(
+            m_container.GetImages(),
+            m_container.GetImageCount(),
+            m_container.GetMetadata(),
             DirectX::TEX_FR_FLIP_HORIZONTAL,
-            resultImg);
+            result);
 
         if (FAILED(hr))
         {
-            GlobalBuffer::SetLastError("Failed to flip image horizontally: {}", CreateErrorMessageFromHRESULT(hr));
-            return k_nullopt;
+            ScratchBuffer buf;
+            FormatHRESULTMessage(buf, hr);
+
+            JAM_LOG.Error("Failed to flip image horizontally: {}", buf.ToStringView());
+            return Error::RuntimeError;
         }
 
-        outputImg = std::move(resultImg);
+        m_container = std::move(result);
     }
 
-    return outputImg;
+    return Error::None;
 }
 
-bool ImageImporter::Import(
-    const fs::path& _path)
-{
-    eImageFormat format = {};
-    if (!MoveIfHasValue(ImageFormatFrom(_path), format))
-    {
-        GlobalBuffer::SetLastError("Unknown image format for file: '{}'", _path.native());
-        return false;
-    }
-
-    return Import(_path, format);
-}
-
-bool ImageImporter::Import(
-    const fs::path&    _path,
-    const eImageFormat _format)
-{
-    // load from file
-    DirectX::ScratchImage scratchImg = {};
-    const std::wstring    wPath      = _path.wstring();
-    HRESULT               hr         = S_OK;
-
-    switch (_format)
-    {
-        case eImageFormat::EXR:
-            hr = DirectX::LoadFromEXRFile(wPath.c_str(), nullptr, scratchImg);
-            break;
-
-        case eImageFormat::DDS:
-            hr = DirectX::LoadFromDDSFile(wPath.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scratchImg);
-            break;
-
-        case eImageFormat::HDR:
-            hr = DirectX::LoadFromHDRFile(wPath.c_str(), nullptr, scratchImg);
-            break;
-
-        case eImageFormat::TGA:
-            hr = DirectX::LoadFromTGAFile(wPath.c_str(), nullptr, scratchImg);
-            break;
-
-        case eImageFormat::BMP:
-        case eImageFormat::JPG:
-        case eImageFormat::JPEG:
-        case eImageFormat::PNG:
-        case eImageFormat::TIF:
-        case eImageFormat::TIFF:
-        case eImageFormat::GIF:
-        case eImageFormat::HDP:
-        case eImageFormat::JXR:
-        case eImageFormat::WDP:
-        case eImageFormat::ICO:
-        case eImageFormat::HEIF:
-        case eImageFormat::HEIC:
-            hr = DirectX::LoadFromWICFile(wPath.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, scratchImg);
-            break;
-
-        default:
-            GlobalBuffer::SetLastError("Unknown image format: {}", ExtensionOf(_format));
-            return false;
-    }
-
-    if (FAILED(hr))
-    {
-        GlobalBuffer::SetLastError("Failed to load image file '{}': {}", _path.native(), CreateErrorMessageFromHRESULT(hr));
-        return false;
-    }
-
-    // post process
-    if (!MoveIfHasValue(PostProcess_(std::move(scratchImg)), m_scratchImg))
-    {
-        return false;
-    }
-
-    return true;
-}
-
-bool ImageImporter::ImportMemory(
-    const CMemView     _mem,
-    const eImageFormat _format)
-{
-    JAM_ASSERT(_mem.IsEmpty(), "memory is empty");
-
-    // load from memory
-    DirectX::ScratchImage scratchImg = {};
-    const Byte*           pMem       = _mem.GetPtr();
-    const Int32           byteWidth  = _mem.GetByteWidth();
-    HRESULT               hr         = S_OK;
-
-    switch (_format)
-    {
-        case eImageFormat::DDS:
-            hr = DirectX::LoadFromDDSMemory(pMem, byteWidth, DirectX::DDS_FLAGS_NONE, nullptr, scratchImg);
-            break;
-
-        case eImageFormat::HDR:
-            hr = DirectX::LoadFromHDRMemory(pMem, byteWidth, nullptr, scratchImg);
-            break;
-
-        case eImageFormat::TGA:
-            hr = DirectX::LoadFromTGAMemory(pMem, byteWidth, DirectX::TGA_FLAGS_NONE, nullptr, scratchImg);
-            break;
-
-        case eImageFormat::BMP:
-        case eImageFormat::JPG:
-        case eImageFormat::JPEG:
-        case eImageFormat::PNG:
-        case eImageFormat::TIF:
-        case eImageFormat::TIFF:
-        case eImageFormat::GIF:
-        case eImageFormat::HDP:
-        case eImageFormat::JXR:
-        case eImageFormat::WDP:
-        case eImageFormat::ICO:
-        case eImageFormat::HEIF:
-        case eImageFormat::HEIC:
-            hr = DirectX::LoadFromWICMemory(pMem, byteWidth, DirectX::WIC_FLAGS_NONE, nullptr, scratchImg);
-            break;
-
-        default:
-            GlobalBuffer::SetLastError("Unsupported image format for memory import: '{}'", ExtensionOf(_format));
-            return false;
-    }
-
-    if (FAILED(hr))
-    {
-        GlobalBuffer::SetLastError("Failed to load image from memory: {}", CreateErrorMessageFromHRESULT(hr));
-        return false;
-    }
-
-    // post process
-    if (!MoveIfHasValue(PostProcess_(std::move(scratchImg)), m_scratchImg))
-    {
-        return false;
-    }
-
-    return true;
-}
-
-const DirectX::ScratchImage& ImageImporter::GetScratchImage() const
-{
-    JAM_ASSERT(m_scratchImg.GetImageCount() > 0, "scratch image is not initialized");
-    return m_scratchImg;
-}
-
-}   // namespace jam
+}   // namespace Jam

@@ -3,7 +3,7 @@
 #include "Math.h"
 #include "Transform.h"
 
-namespace jam
+namespace Jam
 {
 
 Vec3 Transform::GetRight() const
@@ -36,16 +36,16 @@ Vec3 Transform::GetBackward() const
     return -Normalized(m_forward);
 }
 
-const Mat4& Transform::GetMatrix() const
+const Mtx4& Transform::GetMatrix() const
 {
     // update dirty
     if (m_bDirty)
     {
-        m_mtxCache = Mat4 {
-            ToVec4(m_right, 0.0f),
-            ToVec4(m_up, 0.0f),
-            ToVec4(m_forward, 0.0f),
-            ToVec4(m_origin, 1.0f)
+        m_mtxCache = Mtx4 {
+            Vec4From(m_right, 0.0f),
+            Vec4From(m_up, 0.0f),
+            Vec4From(m_forward, 0.0f),
+            Vec4From(m_origin, 1.0f)
         };
 
         m_bDirty = false;
@@ -54,7 +54,18 @@ const Mat4& Transform::GetMatrix() const
     return m_mtxCache;
 }
 
-Mat4 Transform::ToViewMatrix() const
+void Transform::SetMatrix(
+    const Mtx4& _mtx)
+{
+    m_right    = _mtx.Right();
+    m_up       = _mtx.Up();
+    m_forward  = _mtx.Forward();
+    m_origin   = _mtx.Translation();
+    m_bDirty   = false;
+    m_mtxCache = _mtx;
+}
+
+Mtx4 Transform::ToViewMatrix() const
 {
     const Vec3 r = Normalized(m_right);
     const Vec3 u = Normalized(m_up);
@@ -65,23 +76,12 @@ Mat4 Transform::ToViewMatrix() const
     const float ty = -Dot(u, t);
     const float tz = -Dot(f, t);
 
-    return Mat4 {
+    return Mtx4 {
         { r.x, u.x, f.x, 0.0f },
         { r.y, u.y, f.y, 0.0f },
         { r.z, u.z, f.z, 0.0f },
         {  tx,  ty,  tz, 1.0f }
     };
-}
-
-void Transform::SetMatrix(
-    const Mat4& _mtx)
-{
-    m_right    = _mtx.Right();
-    m_up       = _mtx.Up();
-    m_forward  = _mtx.Forward();
-    m_origin   = _mtx.Translation();
-    m_bDirty   = false;
-    m_mtxCache = _mtx;
 }
 
 Transform Transform::Inverted() const
@@ -224,7 +224,7 @@ Quat Transform::ToQuat() const
     const Vec3 r   = Normalized(m_right);
     const Vec3 u   = Normalized(m_up);
     const Vec3 f   = Normalized(m_forward);
-    const Mat4 mtx = Mat4 { r, u, f };
+    const Mtx4 mtx = Mtx4 { r, u, f };
     return Quat::CreateFromRotationMatrix(mtx);
 }
 
@@ -234,7 +234,7 @@ AxisAngle Transform::ToAxisAngle() const
     const float rad  = 2.f * Acos(q.w);
     const float sqrt = Sqrt(1.f - q.w * q.w);
 
-    Vec3 axis;
+    Vec3 axis = {};
     if (IsZeroApprox(sqrt))
     {
         axis = Vec3 { 1.0f, 0.0f, 0.0f };
@@ -246,15 +246,29 @@ AxisAngle Transform::ToAxisAngle() const
     return { axis, rad };
 }
 
-Vec3 Transform::ToPitchYawRoll() const
+Vec3 Transform::ToEuler() const
 {
-    return ToQuat().ToEuler();
+    const Vec3 r = Normalized(m_right);
+    const Vec3 u = Normalized(m_up);
+    const Vec3 f = Normalized(m_forward);
+
+    const float cy = Sqrt(f.z * f.z + f.x * f.x);
+    const float cx = Atan2(-f.y, cy);
+    if (cy > k_epsilon)
+    {
+
+        return { cx, Atan2(f.x, f.z), Atan2(r.y, u.y) };
+    }
+    else
+    {
+        return { cx, 0.f, Atan2(-u.x, r.x) };
+    }
 }
 
 void Transform::SetRotation(const Quat _q)
 {
     const Vec3 s   = GetScale();
-    const Mat4 mtx = Mat4::CreateFromQuaternion(_q);
+    const Mtx4 mtx = Mtx4::CreateFromQuaternion(_q);
 
     m_right   = mtx.Right() * s.x;
     m_up      = mtx.Up() * s.y;
@@ -267,9 +281,9 @@ void Transform::SetRotation(const Vec3 _axis, const float _rad)
     SetRotation(Quat::CreateFromAxisAngle(_axis, _rad));
 }
 
-void Transform::SetRotation(const Vec3 _pitchYawRollRad)
+void Transform::SetRotation(const Vec3 _eulerRad)
 {
-    SetRotation(_pitchYawRollRad.x, _pitchYawRollRad.y, _pitchYawRollRad.z);
+    SetRotation(Quat::CreateFromYawPitchRoll(_eulerRad.y, _eulerRad.x, _eulerRad.z));
 }
 
 void Transform::SetRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
@@ -288,10 +302,10 @@ void Transform::SetLookTo(const Vec3 _forward)
     const Vec3 s = GetScale();
     const Vec3 f = Normalized(_forward);
 
-    Vec3 base = Vec3::Up;
+    Vec3 base = vec3::k_up;
     if (IsEqualApprox(Abs(Dot(base, f)), 1.f))
     {
-        base = Vec3::Right;
+        base = vec3::k_right;
     }
 
     const Vec3 r = Normalized(Cross(base, f));
@@ -314,9 +328,9 @@ void Transform::AddRotation(const Vec3 _axis, const float _rad)
     AddRotation(Quat::CreateFromAxisAngle(_axis, _rad));
 }
 
-void Transform::AddRotation(const Vec3 _pitchYawRollRad)
+void Transform::AddRotation(const Vec3 _eulerRad)
 {
-    AddRotation(_pitchYawRollRad.x, _pitchYawRollRad.y, _pitchYawRollRad.z);
+    AddRotation(Quat::CreateFromYawPitchRoll(_eulerRad.y, _eulerRad.x, _eulerRad.z));
 }
 
 void Transform::AddRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
@@ -324,14 +338,14 @@ void Transform::AddRotation(const float _pitchRad, const float _yawRad, const fl
     AddRotation(Quat::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
 }
 
-void Transform::AddRotationYaw(const float _rad)
-{
-    AddRotation(0.0f, _rad, 0.0f);
-}
-
 void Transform::AddRotationPitch(const float _rad)
 {
     AddRotation(_rad, 0.0f, 0.0f);
+}
+
+void Transform::AddRotationYaw(const float _rad)
+{
+    AddRotation(0.0f, _rad, 0.0f);
 }
 
 void Transform::AddRotationRoll(const float _rad)
@@ -417,4 +431,4 @@ void Transform::AddTranslationZ(const float _z)
     m_bDirty = true;
 }
 
-}   // namespace jam
+}   // namespace Jam

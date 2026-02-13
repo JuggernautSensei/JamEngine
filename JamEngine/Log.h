@@ -1,9 +1,9 @@
 #pragma once
-
-#define FMT_UNICODE 0
 #include <spdlog/spdlog.h>
 
-namespace jam
+#include "StringHashMap.h"
+
+namespace Jam
 {
 
 enum class eLogLevel
@@ -17,119 +17,212 @@ enum class eLogLevel
     Off      = spdlog::level::off
 };
 
-using SinkRef = spdlog::sink_ptr;
+using SinkRef   = std::shared_ptr<spdlog::sinks::sink>;
+using LoggerRef = std::shared_ptr<spdlog::logger>;
+
+class LogChannel : public RefCounted
+{
+public:
+    explicit LogChannel(const LoggerRef& _pLogger);
+
+    void AddSink(StringView _name, const SinkRef& _pSink);
+    void RemoveSink(StringView _name);
+    void SetPattern(StringView _pattern) const;
+    void SetLevel(eLogLevel _level) const;
+
+    [[nodiscard]] const SinkRef&   GetSink(StringView _name) const;
+    [[nodiscard]] const LoggerRef& GetLogger() const;
+
+    template<typename... Args>
+    void Log(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
+    {
+        const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
+        m_pLogger->log(level, _format, std::forward<Args>(args)...);
+    }
+
+    void Log(const eLogLevel _level, const StringView _msg) const
+    {
+        const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
+        m_pLogger->log(level, _msg.ToStdStringView());
+    }
+
+    void Flush() const
+    {
+        m_pLogger->flush();
+    }
+
+private:
+    LoggerRef              m_pLogger = nullptr;
+    StringHashMap<SinkRef> m_sinkMap = {};
+};
 
 class Log
 {
 public:
-    static void Init();
-    static void Shutdown();
+    Log(const Log&)            = delete;
+    Log& operator=(const Log&) = delete;
+    Log(Log&&)                 = delete;
+    Log& operator=(Log&&)      = delete;
 
-    static void AddSink(StringView _name, const spdlog::sink_ptr& _pSink);
-    static void RemoveSink(StringView _name);
+    [[nodiscard]] static Log& GetInstance();
 
-    [[nodiscard]] static const SinkRef& GetSink(StringView _name);
-    [[nodiscard]] static const SinkRef& GetConsoleSink();
-    [[nodiscard]] static const SinkRef& GetFileSink();
+    [[nodiscard]] const Ref<LogChannel>& GetCoreChannel();
+    void                                 SetCoreChannel(const Ref<LogChannel>& _pChannel);
 
     template<typename... Args>
-    static void Logging(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Trace(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-        spdlog::default_logger_raw()->log(level, _format, args...);
+        _pChannel->Log(eLogLevel::Trace, _format, std::forward<Args>(args)...);
     }
 
-    template<typename T>
-    static void Logging(const eLogLevel _level, const T& _msg)
+    void Trace(const Ref<LogChannel>& _pChannel, const StringView _msg) const
     {
-        spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-        spdlog::default_logger_raw()->log(level, _msg);
+        _pChannel->Log(eLogLevel::Trace, _msg);
     }
 
     template<typename... Args>
-    static void Trace(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Trace(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Trace, _format, args...);
+        m_pCoreLogger->Log(eLogLevel::Trace, _format, std::forward<Args>(args)...);
+    }
+
+    void Trace(const StringView _msg) const
+    {
+        m_pCoreLogger->Log(eLogLevel::Trace, _msg);
     }
 
     template<typename... Args>
-    static void Debug(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Debug(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Debug, _format, args...);
+        _pChannel->Log(eLogLevel::Debug, _format, std::forward<Args>(args)...);
+    }
+
+    void Debug(const Ref<LogChannel>& _pChannel, const StringView _msg) const
+    {
+        _pChannel->Log(eLogLevel::Debug, _msg);
     }
 
     template<typename... Args>
-    static void Info(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Debug(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Info, _format, args...);
+        m_pCoreLogger->Log(eLogLevel::Debug, _format, std::forward<Args>(args)...);
+    }
+
+    void Debug(const StringView _msg) const
+    {
+        m_pCoreLogger->Log(eLogLevel::Debug, _msg);
     }
 
     template<typename... Args>
-    static void Warn(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Info(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Warn, _format, args...);
+        _pChannel->Log(eLogLevel::Info, _format, std::forward<Args>(args)...);
+    }
+
+    void Info(const Ref<LogChannel>& _pChannel, const StringView _msg) const
+    {
+        _pChannel->Log(eLogLevel::Info, _msg);
     }
 
     template<typename... Args>
-    static void Error(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Info(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Error, _format, args...);
+        m_pCoreLogger->Log(eLogLevel::Info, _format, std::forward<Args>(args)...);
+    }
+
+    void Info(const StringView _msg) const
+    {
+        m_pCoreLogger->Log(eLogLevel::Info, _msg);
     }
 
     template<typename... Args>
-    static void Critical(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Warn(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Critical, _format, args...);
+        _pChannel->Log(eLogLevel::Warn, _format, std::forward<Args>(args)...);
     }
 
-    template<typename T>
-    static void Trace(const T& _msg)
+    void Warn(const Ref<LogChannel>& _pChannel, const StringView _msg) const
     {
-        Logging(eLogLevel::Trace, _msg);
+        _pChannel->Log(eLogLevel::Warn, _msg);
     }
 
-    template<typename T>
-    static void Debug(const T& _msg)
+    template<typename... Args>
+    void Warn(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Debug, _msg);
+        m_pCoreLogger->Log(eLogLevel::Warn, _format, std::forward<Args>(args)...);
     }
 
-    template<typename T>
-    static void Info(const T& _msg)
+    void Warn(const StringView _msg) const
     {
-        Logging(eLogLevel::Info, _msg);
+        m_pCoreLogger->Log(eLogLevel::Warn, _msg);
     }
 
-    template<typename T>
-    static void Warn(const T& _msg)
+    template<typename... Args>
+    void Error(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Warn, _msg);
+        _pChannel->Log(eLogLevel::Error, _format, std::forward<Args>(args)...);
     }
 
-    template<typename T>
-    static void Error(const T& _msg)
+    void Error(const Ref<LogChannel>& _pChannel, const StringView _msg) const
     {
-        Logging(eLogLevel::Error, _msg);
+        _pChannel->Log(eLogLevel::Error, _msg);
     }
 
-    template<typename T>
-    static void Critical(const T& _msg)
+    template<typename... Args>
+    void Error(spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        Logging(eLogLevel::Critical, _msg);
+        m_pCoreLogger->Log(eLogLevel::Error, _format, std::forward<Args>(args)...);
     }
 
-    static void SetLogLevel(eLogLevel _level);
-    static void SetLogLevel(StringView _name, eLogLevel _level);
+    void Error(const StringView _msg) const
+    {
+        m_pCoreLogger->Log(eLogLevel::Error, _msg);
+    }
 
-    static void SetLogPattern(StringView _pattern);
-    static void SetLogPattern(StringView _name, StringView _pattern);
+    template<typename... Args>
+    void Critical(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
+    {
+        _pChannel->Log(eLogLevel::Critical, _format, std::forward<Args>(args)...);
+    }
+
+    void Critical(const Ref<LogChannel>& _pChannel, const StringView _msg) const
+    {
+        _pChannel->Log(eLogLevel::Critical, _msg);
+    }
+
+    template<typename... Args>
+    void Critical(spdlog::format_string_t<Args...> _format, Args&&... args)
+    {
+        m_pCoreLogger->Log(eLogLevel::Critical, _format, std::forward<Args>(args)...);
+    }
+
+    void Critical(const StringView _msg) const
+    {
+        m_pCoreLogger->Log(eLogLevel::Critical, _msg);
+    }
+
+    void Flush() const;
+    void Flush(const Ref<LogChannel>& _pChannel) const;
+
+private:
+    Log();
+    ~Log();
+
+    static void CreateInstance();
+    static void DestroyInstance();
+
+    Ref<LogChannel> m_pCoreLogger = nullptr;
+
+    inline static Log* s_pInstance = nullptr;
+    friend class Application;
 };
 
-}   // namespace jam
+}   // namespace Jam
 
-// 디버그에서만 동작하는 로그
+#define JAM_LOG Jam::Log::GetInstance()
+
 #ifdef JAM_DEBUG
-#    define JAM_DEBUG_LOG(...) jam::Log::Debug(__VA_ARGS__)
+#    define JAM_DEBUG_LOG(...) JAM_LOG.Debug(__VA_ARGS__)
 #else
 #    define JAM_DEBUG_LOG(...) JAM_NOOP
 #endif

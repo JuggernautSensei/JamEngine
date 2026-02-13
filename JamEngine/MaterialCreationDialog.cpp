@@ -5,32 +5,43 @@
 #include "Editor.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
+
 #include "Material.h"
 
-namespace jam
+namespace Jam
 {
 
 MaterialCreationDialog::MaterialCreationDialog(
-    const fs::path& _dir)
-    : AssetDialog("create material")
-    , m_dir(_dir)
+    const MaterialCreationDialogDesc& _desc)
+    : AssetCreationDialog(_desc.baseDesc)
+    , m_saveDir(_desc.dirOrEmpty)
 {
-    JAM_ASSERT(fs::is_directory(_dir), "parent path must be a directory.");
 }
 
 void MaterialCreationDialog::OnShow()
 {
-    // test & input
-    Widget_WrappedText("write the name of the new material.", k_textWrapWidth);
-    SetNextItemAvailWidth();
-    ImGui::InputText("##CreateMaterialDialogInput", &m_name);
+    if (BeginLabelTable("MaterialCreationDialog"))
+    {
+        // dir
+        ImGui::TableNextColumn();
+        Widget_Text("output directory", true);
+        ImGui::TableNextColumn();
+        Widget_FileDialog("##DirectorySelector", m_saveDir, m_saveFd);
+
+        // name
+        ImGui::TableNextColumn();
+        Widget_Text("asset name", true);
+        ImGui::TableNextColumn();
+        Widget_InputText("##name", m_assetBaseName);
+
+        ImGui::EndTable();
+    }
 
     // buttons
     const ImVec2 btnSize = CalcFitButtonSize(2);
     if (ImGui::Button("create", btnSize))
     {
-        if (OnClickCreate_())
+        if (OnClickCreateButton_())
         {
             ImGui::CloseCurrentPopup();
         }
@@ -43,14 +54,37 @@ void MaterialCreationDialog::OnShow()
     }
 }
 
-bool MaterialCreationDialog::OnClickCreate_()
+bool MaterialCreationDialog::OnClickCreateButton_()
 {
-    fs::path filename = m_name;
-    filename.replace_extension(k_jamMaterialExt.GetPtr());
+    if (m_assetBaseName.IsEmpty())
+    {
+        PushEmptyNameErrorMessageDialog_();
+        return false;
+    }
 
-    Ref<Material> material = MakeRef<Material>();
-    material->LoadMemory({}, {}, {});
-    return SaveAsset(material, m_dir, filename);
+    if (m_saveDir.empty())
+    {
+        PushEmptySavePathErrorMessageDialog_();
+        return false;
+    }
+
+    Path path = JoinedPath(m_saveDir, m_assetBaseName);
+    ReplaceExtension(path, Material::k_extension);
+
+    if (fs::exists(path))
+    {
+        PushOverwriteConfirmationDialog_(path);
+        return false;
+    }
+
+    return CreateAndSaveAsset_(path);
 }
 
-}   // namespace jam
+bool MaterialCreationDialog::CreateAndSaveAsset_(
+    const Path& _path)
+{
+    Ref<Material> pMat = Material::Create({}, {}, {});
+    return SaveAsset_(_path, pMat);
+}
+
+}   // namespace Jam

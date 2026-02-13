@@ -2,19 +2,12 @@
 
 #include "VertexLayout.h"
 
-namespace jam
+namespace Jam
 {
 
 VertexLayout::VertexLayout()
 {
     Reset();
-}
-
-void VertexLayout::Reset()
-{
-    m_vleLut.fill(k_invalidIndex);
-    m_stride   = 0;
-    m_numElems = 0;
 }
 
 void VertexLayout::Push(
@@ -26,11 +19,11 @@ void VertexLayout::Push(
     VertexLayoutElement vlm = {};
     vlm.attrib              = _attrib;
     vlm.format              = _format;
-    vlm.byteWidth           = ByteFrom(_format);
+    vlm.byteWidth           = NumericCast<Int32>(ByteWidthOf(_format));
     vlm.offset              = m_stride;
 
-    m_vleLut[IntFrom(_attrib)] = m_numElems;
-    m_vles[m_numElems]         = vlm;
+    m_vleLut[UnderlyingFrom(_attrib)] = m_numElems;
+    m_vles[m_numElems]                = vlm;
 
     m_stride += vlm.byteWidth;
     ++m_numElems;
@@ -41,27 +34,27 @@ void VertexLayout::Modify(
     const eAttributeFormat _format)
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32          idx          = m_vleLut[IntFrom(_attrib)];
+    const Int32          idx          = m_vleLut[UnderlyingFrom(_attrib)];
     VertexLayoutElement& vleToMod     = m_vles[idx];
     const Int32          oldByteWidth = vleToMod.byteWidth;
 
     // 수정
-    vleToMod.format           = _format;
-    vleToMod.byteWidth        = ByteFrom(_format);
-    const Int32 diffByteWidth = vleToMod.byteWidth - oldByteWidth;
-    if (diffByteWidth == 0)
+    vleToMod.format    = _format;
+    vleToMod.byteWidth = NumericCast<Int32>(ByteWidthOf(_format));
+    const Int32 diff   = vleToMod.byteWidth - oldByteWidth;
+    if (diff == 0)
     {
-        return; // 변경사항 없음
+        return;   // 변경사항 없음
     }
 
     // stride 먼저 계산
-    m_stride += diffByteWidth;
+    m_stride += diff;
 
     // 이후의 모든 offset을 수정해야함.
     for (Int32 i = idx + 1; i < m_numElems; ++i)
     {
         VertexLayoutElement& vle = m_vles[i];
-        vle.offset += diffByteWidth;
+        vle.offset += diff;
     }
 }
 
@@ -69,7 +62,7 @@ void VertexLayout::Remove(
     const eVertexAttribute _attrib)
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32 idx = m_vleLut[IntFrom(_attrib)];
+    const Int32 idx = m_vleLut[UnderlyingFrom(_attrib)];
 
     const VertexLayoutElement& vleToRemove       = m_vles[idx];
     const Int32                byteWidthToRemove = vleToRemove.byteWidth;
@@ -84,14 +77,27 @@ void VertexLayout::Remove(
         vle.offset -= byteWidthToRemove;
 
         // 왼쪽으로 shift
-        m_vles[i - 1]                 = vle;
-        m_vleLut[IntFrom(vle.attrib)] = i - 1;   // 룩업 테이블도 갱신
+        m_vles[i - 1]                        = vle;
+        m_vleLut[UnderlyingFrom(vle.attrib)] = i - 1;   // 룩업 테이블도 갱신
     }
 
     // 마지막 요소 초기화
-    m_vleLut[IntFrom(_attrib)] = k_invalidIndex;
-    m_vles[m_numElems - 1]     = {};
+    m_vleLut[UnderlyingFrom(_attrib)] = k_invalidIndex;
+    m_vles[m_numElems - 1]            = {};
     --m_numElems;
+}
+
+bool VertexLayout::Has(
+    const eVertexAttribute _attrib) const
+{
+    return m_vleLut[UnderlyingFrom(_attrib)] != k_invalidIndex;
+}
+
+void VertexLayout::Reset()
+{
+    m_vleLut.fill(k_invalidIndex);
+    m_stride   = 0;
+    m_numElems = 0;
 }
 
 Int32 VertexLayout::GetStride() const
@@ -99,23 +105,12 @@ Int32 VertexLayout::GetStride() const
     return m_stride;
 }
 
-bool VertexLayout::Has(
-    const eVertexAttribute _attrib) const
-{
-    return m_vleLut[IntFrom(_attrib)] != k_invalidIndex;
-}
-
 const VertexLayoutElement& VertexLayout::GetElement(
     const eVertexAttribute _attrib) const
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32 idx = m_vleLut[IntFrom(_attrib)];
+    const Int32 idx = m_vleLut[UnderlyingFrom(_attrib)];
     return m_vles[idx];
-}
-
-Int32 VertexLayout::GetNumElements() const
-{
-    return m_numElems;
 }
 
 Span<const VertexLayoutElement> VertexLayout::GetElements() const
@@ -123,7 +118,50 @@ Span<const VertexLayoutElement> VertexLayout::GetElements() const
     return { m_vles.data(), m_numElems };
 }
 
-Int32 ByteFrom(
+Int32 VertexLayout::GetNumElements() const
+{
+    return m_numElems;
+}
+
+void VertexLayout::WriteToArchive(
+    ArchiveWriter& _archive) const
+{
+    for (Int32 i = 0; i < m_numElems; ++i)
+    {
+        const VertexLayoutElement& vle = m_vles[i];
+        _archive.OpenAtBack();
+        _archive.WriteField("attrib", vle.attrib);
+        _archive.WriteField("format", vle.format);
+        _archive.Close();
+    }
+}
+
+Error VertexLayout::ReadFromArchive(
+    ArchiveReader& _archive)
+{
+    Reset();
+
+    return _archive.ForEach(
+        [this](const SizeT, ArchiveReader& reader) -> Error
+        {
+            eVertexAttribute attrib = {};
+            if (const Error err = reader.ReadField("attrib", attrib))
+            {
+                return err;
+            }
+
+            eAttributeFormat format = {};
+            if (const Error err = reader.ReadField("format", format))
+            {
+                return err;
+            }
+
+            Push(attrib, format);
+            return Error::None;
+        });
+}
+
+SizeT ByteWidthOf(
     const eAttributeFormat _format)
 {
     switch (_format)
@@ -141,9 +179,8 @@ Int32 ByteFrom(
         case eAttributeFormat::UInt8x4:
             return 4;
         default:
-            JAM_ASSERT(0, "unknown attribute format.");
-            return 0;
+            JAM_UNREACHABLE;
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

@@ -1,26 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Octree.cpp" />
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="OctreeTest.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Octree.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="OctreeTest.h" />
-    <ClInclude Include="tinystl\allocator.h" />
-    <ClInclude Include="tinystl\buffer.h" />
-    <ClInclude Include="tinystl\hash.h" />
-    <ClInclude Include="tinystl\hash_base.h" />
-    <ClInclude Include="tinystl\new.h" />
-    <ClInclude Include="tinystl\stddef.h" />
-    <ClInclude Include="tinystl\string.h" />
-    <ClInclude Include="tinystl\string_view.h" />
-    <ClInclude Include="tinystl\traits.h" />
-    <ClInclude Include="tinystl\unordered_map.h" />
-    <ClInclude Include="tinystl\unordered_set.h" />
-    <ClInclude Include="tinystl\vector.h" />
   </ItemGroup>
 </Project>

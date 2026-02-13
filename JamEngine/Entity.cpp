@@ -4,22 +4,16 @@
 
 #include "SceneComponent.h"
 
-namespace jam
+namespace Jam
 {
-
-Entity Entity::s_null = Entity {};
-
-Entity::Entity()
-{
-}
 
 Entity::Entity(
-    entt::registry&    _registry,
-    const entt::entity _handle,
+    SceneRegistry&    _registry,
+    const EntityHandle _handle,
     const UID          _uid)
     : m_pRegistry(&_registry)
-    , m_handle(_handle)
-    , m_uid(_uid)
+      , m_handle(_handle)
+      , m_uid(_uid)
 {
 }
 
@@ -35,29 +29,19 @@ bool Entity::operator!=(
     return !(*this == _other);
 }
 
-entt::registry* Entity::GetRegistry() const
-{
-    return m_pRegistry;
-}
-
-entt::entity Entity::GetHandle() const
-{
-    return m_handle;
-}
-
 bool Entity::IsValid() const
 {
     return m_pRegistry && m_pRegistry->valid(m_handle);
 }
 
-Entity::operator bool() const
-{
-    return IsValid();
-}
-
 UID Entity::GetUID() const
 {
     return m_uid;
+}
+
+EntityHandle Entity::GetHandle() const
+{
+    return m_handle;
 }
 
 SceneNode& Entity::GetSceneNode()
@@ -68,6 +52,11 @@ SceneNode& Entity::GetSceneNode()
 const SceneNode& Entity::GetSceneNode() const
 {
     return m_pRegistry->get<SceneComponent>(m_handle).node;
+}
+
+Entity::operator bool() const
+{
+    return IsValid();
 }
 
 const Transform& Entity::GetWorldTransform() const
@@ -90,4 +79,6 @@ Transform& Entity::ModifyLocalTransform()
     return GetSceneNode().ModifyLocalTransform();
 }
 
-}   // namespace jam
+Entity Entity::k_invalid = Entity {};
+
+}   // namespace Jam

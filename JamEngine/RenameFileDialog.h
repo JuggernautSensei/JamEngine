@@ -1,25 +1,24 @@
 #pragma once
 #include "Dialog.h"
 
-namespace jam
+namespace Jam
 {
+
+struct RenameFileDialogDesc
+{
+    DialogDesc baseDesc = {};
+    Path       srcPath  = {};
+};
 
 class RenameFileDialog : public Dialog
 {
 public:
-    explicit RenameFileDialog(
-        const fs::path& _path,
-        ImVec2          _size  = ImVec2 { 0.f, 0.f },
-        eDialogFlags    _flags = eDialogFlags_None);
-
+    explicit RenameFileDialog(const RenameFileDialogDesc& _desc);
     void OnShow() override;
 
 private:
-    bool OnClickOkButton() const;
-
-    fs::path    m_parentPath  = {};
-    fs::path    m_srcFilename = {};
-    std::string m_name        = {};
+    Path   m_oldPath  = {};
+    String m_filename = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

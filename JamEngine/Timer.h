@@ -1,9 +1,9 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
-enum class eSIPrefix : UInt8
+enum class eSIPrefix
 {
     Nano = 0,
     Micro,
@@ -11,7 +11,9 @@ enum class eSIPrefix : UInt8
     Sec,
 };
 
-[[nodiscard]] double NsTo(Int64 _ns, eSIPrefix _unit);
+[[nodiscard]] StringView StringFrom(eSIPrefix _unit);
+[[nodiscard]] double     NsTo(Int64 _ns, eSIPrefix _unit);
+[[nodiscard]] float      NsToFloat(Int64 _ns, eSIPrefix _unit);
 
 class Timer
 {
@@ -24,12 +26,14 @@ public:
 
     [[nodiscard]] bool   IsRunning() const;
     [[nodiscard]] double GetTotal(eSIPrefix _unit) const;
+    [[nodiscard]] float  GetTotalFloat(eSIPrefix _unit) const;
     [[nodiscard]] double GetInterval(eSIPrefix _unit) const;
+    [[nodiscard]] float  GetIntervalFloat(eSIPrefix _unit) const;
     [[nodiscard]] Int64  GetTotalNs() const;
     [[nodiscard]] Int64  GetIntervalNs() const;
 
 protected:
-    std::chrono::steady_clock::time_point m_startCounter;
+    std::chrono::steady_clock::time_point m_startCounter = {};
 
     Int64 m_totalNs    = 0;
     Int64 m_intervalNs = 0;
@@ -45,6 +49,7 @@ public:
 
     [[nodiscard]] Int64  GetDeltaNs() const;
     [[nodiscard]] double GetDelta(eSIPrefix _unit) const;
+    [[nodiscard]] float  GetDeltaFloat(eSIPrefix _unit) const;
 
 private:
     Timer m_timer   = {};
@@ -63,14 +68,14 @@ public:
     ScopedTimer& operator=(ScopedTimer&&) noexcept = delete;
 
 private:
-    std::string m_name;
-    eSIPrefix   m_unit = eSIPrefix::Milli;
+    StringView m_name = {};
+    eSIPrefix  m_unit = eSIPrefix::Milli;
 };
 
 // time utilities
 struct TimeStamp
 {
-    static [[nodiscard]] TimeStamp Current();
+    [[nodiscard]] static TimeStamp Current();
 
     Int32 year        = 0;
     Int32 month       = 0;
@@ -81,4 +86,4 @@ struct TimeStamp
     Int32 millisecond = 0;
 };
 
-}   // namespace jam
+}   // namespace Jam

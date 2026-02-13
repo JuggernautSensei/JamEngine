@@ -1,12 +1,12 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 class MemoryPool
 {
 public:
-    explicit MemoryPool(uint32_t _bytePerBlock, uint32_t _blocksPerPool);
+    explicit MemoryPool(USizeT _bytePerBlock, USizeT _blocksPerPool);
     ~MemoryPool();
 
     MemoryPool(const MemoryPool&)            = delete;
@@ -30,15 +30,15 @@ private:
     Node* m_pFreeBlock = nullptr;
     Node* m_pPoolHead  = nullptr;
 
-    uint32_t m_bytePerBlock  = 0;
-    uint32_t m_blocksPerPool = 0;
+    USizeT m_bytePerBlock  = 0;
+    USizeT m_blocksPerPool = 0;
 };
 
 template<typename T>
 class ObjectPool
 {
 public:
-    explicit ObjectPool(const uint32_t BlocksPerPool = 2048)
+    explicit ObjectPool(const USizeT BlocksPerPool = 2048)
         : m_pool(sizeof(T), BlocksPerPool)
     {
     }
@@ -70,7 +70,7 @@ public:
         }
         else
         {
-            JAM_ASSERT(0, "ObjectPool::Delete - nullptr");
+            JAM_UNREACHABLE;
         }
     }
 
@@ -78,4 +78,4 @@ private:
     MemoryPool m_pool;
 };
 
-}   // namespace jam
+}   // namespace Jam

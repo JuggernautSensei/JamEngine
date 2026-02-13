@@ -1,14 +1,13 @@
 #pragma once
-#include "ComponentDB.h"
+#include "ReflectionDB.h"
 
-namespace jam
+namespace Jam
 {
 
-struct TagComponent :
-    SerializableComponent<TagComponent>,
-    EditableComponent<TagComponent>
+struct TagComponent
 {
-    JAM_COMPONENT(TagComponent);
+    JAM_REFLECT_COMPONENT(TagComponent);
+    JAM_COMPONENT_DISPLAY_NAME_IN_EDITOR("tag component");
 
     TagComponent();
     explicit TagComponent(StringView _name);
@@ -18,11 +17,14 @@ struct TagComponent :
     [[nodiscard]] bool operator==(StringView _name) const;
     [[nodiscard]] bool operator!=(StringView _name) const;
 
-    void Serialize(JsonWriter _writer, const Ref<Scene>& _pScene, Entity _owner) const;
-    void Deserialize(JsonReader _reader, const Ref<Scene>& _pScene, Entity _owner);
-    void Panel_EditComponent(Ref<Scene>& _pScene, Entity _entity);
+    void Serialize(ArchiveWriter& _writer, const Ref<Scene>& _pScene, Entity _owner) const;
+    void Deserialize(ArchiveReader& _reader, const Ref<Scene>& _pScene, Entity _owner);
+    void DrawEditPanel(const Ref<Scene>& _pScene, Entity _entity);
 
-    std::string name = "unknown";
+    String name = "unknown";
 };
 
-}   // namespace jam
+JAM_STATIC_ASSERT_IS_COMPONENT_SERIALIZABLE(TagComponent);
+JAM_STATIC_ASSERT_IS_COMPONENT_EDITABLE(TagComponent);
+
+}   // namespace Jam

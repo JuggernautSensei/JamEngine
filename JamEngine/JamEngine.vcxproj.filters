@@ -31,10 +31,7 @@
     <ClCompile Include="Input.cpp">
       <Filter>1. Core\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Script.cpp">
-      <Filter>3. Scene\Script</Filter>
-    </ClCompile>
-    <ClCompile Include="EnumUtilities.cpp">
+    <ClCompile Include="Flags.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="AssetManager.cpp">
@@ -51,9 +48,6 @@
     </ClCompile>
     <ClCompile Include="IAsset.cpp">
       <Filter>5. Assets</Filter>
-    </ClCompile>
-    <ClCompile Include="Hash.cpp">
-      <Filter>99. Utilities\Hash</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>5. Assets\Mesh</Filter>
@@ -76,8 +70,8 @@
     <ClCompile Include="ResourcePool.cpp">
       <Filter>99. Utilities\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="ImageTexture.cpp">
-      <Filter>5. Assets\ImageTexture</Filter>
+    <ClCompile Include="Texture.cpp">
+      <Filter>5. Assets\Texture</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>5. Assets\Material</Filter>
@@ -88,35 +82,20 @@
     <ClCompile Include="VertexLayout.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="MemView.cpp">
-      <Filter>99. Utilities\Memory</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderCompiler.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Profile.cpp">
       <Filter>99. Utilities\Profile</Filter>
     </ClCompile>
-    <ClCompile Include="SerializableComponent.cpp">
-      <Filter>3. Scene\Component\Property</Filter>
-    </ClCompile>
-    <ClCompile Include="EditableComponent.cpp">
-      <Filter>3. Scene\Component\Property</Filter>
-    </ClCompile>
-    <ClCompile Include="Properties.cpp">
-      <Filter>3. Scene\Component\Property</Filter>
+    <ClCompile Include="ComponentTag.cpp">
+      <Filter>3. Scene\Component\Metadata</Filter>
     </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>3. Scene\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentDB.cpp">
-      <Filter>7. Reflection</Filter>
-    </ClCompile>
     <ClCompile Include="AssimpImporter.cpp">
       <Filter>5. Assets\Model\Assimp</Filter>
-    </ClCompile>
-    <ClCompile Include="ScriptDB.cpp">
-      <Filter>7. Reflection</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>3. Scene\Scene</Filter>
@@ -127,15 +106,6 @@
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>3. Scene\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="SceneDB.cpp">
-      <Filter>7. Reflection</Filter>
-    </ClCompile>
-    <ClCompile Include="FileIOUtilities.cpp">
-      <Filter>99. Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\DirectXTK\SimpleMath.cpp">
-      <Filter>98. Vendor\SimpleMath</Filter>
-    </ClCompile>
     <ClCompile Include="RadixSort.cpp">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClCompile>
@@ -143,7 +113,7 @@
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="RenderPass.cpp">
-      <Filter>4. Rendering\RenderGraph</Filter>
+      <Filter>4. Renderer\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="RenderView.cpp">
       <Filter>3. Scene\Scene</Filter>
@@ -155,28 +125,7 @@
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="ImGuiGlue.cpp">
-      <Filter>4. Rendering\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui.cpp">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui_demo.cpp">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui_draw.cpp">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui_impl_win32.cpp">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui_stdlib.cpp">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui_tables.cpp">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\imgui_widgets.cpp">
-      <Filter>98. Vendor\Imgui</Filter>
+      <Filter>4. Renderer\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="FileSystemUtilities.cpp">
       <Filter>99. Utilities</Filter>
@@ -193,9 +142,6 @@
     <ClCompile Include="CameraComponent.cpp">
       <Filter>3. Scene\Component</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptComponent.cpp">
-      <Filter>3. Scene\Component</Filter>
-    </ClCompile>
     <ClCompile Include="RenderableComponent.cpp">
       <Filter>3. Scene\Component</Filter>
     </ClCompile>
@@ -205,17 +151,8 @@
     <ClCompile Include="SpotLightComponent.cpp">
       <Filter>3. Scene\Component</Filter>
     </ClCompile>
-    <ClCompile Include="SceneDeserializer.cpp">
-      <Filter>3. Scene\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="RemoveNotEmptyDirectoryDialog.cpp">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>5. Assets\Model</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\imgui\ImGuizmo.cpp">
-      <Filter>98. Vendor\Imgui\ImGuizmo</Filter>
     </ClCompile>
     <ClCompile Include="EditorRenderer.cpp">
       <Filter>6. Editor\Utilities</Filter>
@@ -230,10 +167,7 @@
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
     <ClCompile Include="RenderGraph.cpp">
-      <Filter>4. Rendering\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Vendor\backward\backward.cpp">
-      <Filter>98. Vendor\backward</Filter>
+      <Filter>4. Renderer\RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="Debug.cpp">
       <Filter>99. Utilities\Debug</Filter>
@@ -241,20 +175,14 @@
     <ClCompile Include="HistoryStack.cpp">
       <Filter>99. Utilities\Container\HisotryStack</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiUtilities.cpp">
-      <Filter>99. Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="EditorUtilities.cpp">
       <Filter>6. Editor\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageBase.cpp">
-      <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="TextureFormat.cpp">
       <Filter>2. Graphics\Core</Filter>
     </ClCompile>
     <ClCompile Include="BasicRenderer.cpp">
-      <Filter>4. Rendering\BasicRenderer</Filter>
+      <Filter>4. Renderer\BasicRenderer</Filter>
     </ClCompile>
     <ClCompile Include="DataType.cpp">
       <Filter>99. Utilities\Base</Filter>
@@ -265,14 +193,8 @@
     <ClCompile Include="pch.cpp">
       <Filter>99. Utilities\Base</Filter>
     </ClCompile>
-    <ClCompile Include="TypeTrait.cpp">
-      <Filter>99. Utilities\Base</Filter>
-    </ClCompile>
     <ClCompile Include="Octree.cpp">
-      <Filter>4. Rendering\Octree</Filter>
-    </ClCompile>
-    <ClCompile Include="Json.cpp">
-      <Filter>99. Utilities\Serialize</Filter>
+      <Filter>4. Renderer\Octree</Filter>
     </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>99. Utilities\Math</Filter>
@@ -283,44 +205,14 @@
     <ClCompile Include="Error.cpp">
       <Filter>1. Core\Error</Filter>
     </ClCompile>
-    <ClCompile Include="ImageExporter.cpp">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageImporter.cpp">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="GlobalBuffer.cpp">
-      <Filter>1. Core\Error</Filter>
-    </ClCompile>
     <ClCompile Include="STL.cpp">
       <Filter>99. Utilities\Container\STL</Filter>
     </ClCompile>
     <ClCompile Include="Environment.cpp">
-      <Filter>4. Rendering\BasicRenderer</Filter>
+      <Filter>4. Renderer\BasicRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Optional.cpp">
       <Filter>99. Utilities\Optional</Filter>
-    </ClCompile>
-    <ClCompile Include="StringUtilities.cpp">
-      <Filter>99. Utilities\String</Filter>
-    </ClCompile>
-    <ClCompile Include="StringView.cpp">
-      <Filter>99. Utilities\String</Filter>
-    </ClCompile>
-    <ClCompile Include="FixedString.cpp">
-      <Filter>99. Utilities\String</Filter>
-    </ClCompile>
-    <ClCompile Include="Fwd.cpp">
-      <Filter>99. Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonReader.cpp">
-      <Filter>99. Utilities\Serialize</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonWriter.cpp">
-      <Filter>99. Utilities\Serialize</Filter>
-    </ClCompile>
-    <ClCompile Include="Magics.cpp">
-      <Filter>99. Utilities\Base\Config</Filter>
     </ClCompile>
     <ClCompile Include="DialogStack.cpp">
       <Filter>6. Editor\Dialog</Filter>
@@ -361,9 +253,6 @@
     <ClCompile Include="VertexLayoutEntry.cpp">
       <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="VertexLayoutEditorDialog.cpp">
-      <Filter>6. Editor</Filter>
-    </ClCompile>
     <ClCompile Include="MessageDialog.cpp">
       <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
     </ClCompile>
@@ -388,20 +277,137 @@
     <ClCompile Include="Dialog.cpp">
       <Filter>6. Editor\Dialog</Filter>
     </ClCompile>
-    <ClCompile Include="AssetDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetUtilities.cpp">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="GeometryUtilities.cpp">
       <Filter>2. Graphics\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="EditorIcons.cpp">
       <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Cista.cpp">
-      <Filter>99. Utilities\Serialize</Filter>
+    <ClCompile Include="VertexLayoutEditorDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Delegate.cpp">
+      <Filter>99. Utilities\Delegate</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetCreationDialog.cpp">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeTraits.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="ScratchBuffer.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Assertion.cpp">
+      <Filter>1. Core\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="UIDGenerator.cpp">
+      <Filter>3. Scene\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="TinyVector.cpp">
+      <Filter>99. Utilities\Container\Tiny</Filter>
+    </ClCompile>
+    <ClCompile Include="NameOf.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumUtilities.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstexprStringHashMap.cpp">
+      <Filter>99. Utilities\Container\Constexpr</Filter>
+    </ClCompile>
+    <ClCompile Include="Scalar.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="CleanUp.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="File.cpp">
+      <Filter>99. Utilities\File</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryBlock.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Archive.cpp">
+      <Filter>99. Utilities\Serialize\Archive</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonArchive.cpp">
+      <Filter>99. Utilities\Serialize\Archive\Json</Filter>
+    </ClCompile>
+    <ClCompile Include="String.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentProperties.cpp">
+      <Filter>3. Scene\Component\Metadata</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetSaveLoader.cpp">
+      <Filter>5. Assets\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="StringHashMap.cpp">
+      <Filter>99. Utilities\Container\HashMap</Filter>
+    </ClCompile>
+    <ClCompile Include="InfiniteDragger.cpp">
+      <Filter>99. Utilities\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryReadWriter.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryAllocator.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryHasher.cpp">
+      <Filter>99. Utilities\Hash</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\ImGuizmo\ImGuizmo.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_demo.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_draw.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_impl_win32.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_tables.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_widgets.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\imgui\imgui_stdlib.cpp">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="MockApplication.cpp">
+      <Filter>1. Core\MockApplication</Filter>
+    </ClCompile>
+    <ClCompile Include="Vendor\mimalloc\static.c">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClCompile>
+    <ClCompile Include="Colony.cpp">
+      <Filter>99. Utilities\Container\Colony</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBase.cpp">
+      <Filter>2. Graphics\Utilities\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageExporter.cpp">
+      <Filter>2. Graphics\Utilities\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageImporter.cpp">
+      <Filter>2. Graphics\Utilities\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentMetadata.cpp">
+      <Filter>3. Scene\Component\Metadata</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandLineArgumentParser.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="ReflectionDB.cpp">
+      <Filter>3. Scene\Reflection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -450,9 +456,6 @@
     <Filter Include="2. Graphics">
       <UniqueIdentifier>{7e87f941-ee9f-42c4-8e36-9c6b8c9758b9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2. Graphics\Utilities">
-      <UniqueIdentifier>{e722dad5-777c-4d75-9c0b-98ba91707ece}</UniqueIdentifier>
-    </Filter>
     <Filter Include="2. Graphics\Core">
       <UniqueIdentifier>{22356f61-f4c2-44c0-a886-5f8829e8cb5e}</UniqueIdentifier>
     </Filter>
@@ -468,35 +471,14 @@
     <Filter Include="5. Assets\Material">
       <UniqueIdentifier>{de571042-d00e-48a8-b86c-6c3a16660e45}</UniqueIdentifier>
     </Filter>
-    <Filter Include="5. Assets\ImageTexture">
-      <UniqueIdentifier>{8aa95e93-4a42-41cd-a87c-decb1c553725}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="7. Reflection">
-      <UniqueIdentifier>{dfa07466-c9e5-4517-8a43-82d35cc0d7fe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="98. Vendor\ghc">
-      <UniqueIdentifier>{7089b5b8-f7fc-4809-8fbf-a17cc046f7ef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="98. Vendor\unordered_densce">
-      <UniqueIdentifier>{564c3992-81a5-4f88-939b-e74dd394eb05}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Serialize">
       <UniqueIdentifier>{1a3a8ef2-743e-4922-a241-93e752fb1dfa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="98. Vendor\SimpleMath">
-      <UniqueIdentifier>{6f35c8ea-6c3b-4362-a3d9-af1611a83fb1}</UniqueIdentifier>
     </Filter>
     <Filter Include="3. Scene">
       <UniqueIdentifier>{e5acf42d-946d-459b-aad0-d02d7d60efb6}</UniqueIdentifier>
     </Filter>
     <Filter Include="3. Scene\Component">
       <UniqueIdentifier>{ebf7e7a5-cff9-4d8a-9453-dd629a43cb1a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3. Scene\Component\Property">
-      <UniqueIdentifier>{23f5a5fe-ac2e-490a-bb3b-cae1b67d611d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3. Scene\Script">
-      <UniqueIdentifier>{6602e37e-aa2e-46cc-b03e-b37267c332b2}</UniqueIdentifier>
     </Filter>
     <Filter Include="3. Scene\Entitiy">
       <UniqueIdentifier>{f8606bf7-e19f-44bd-bd28-1cfe88774dea}</UniqueIdentifier>
@@ -510,14 +492,8 @@
     <Filter Include="99. Utilities\Algorithm">
       <UniqueIdentifier>{0b1542b2-3090-4cca-af70-551b2c9020ae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="98. Vendor\bvh">
-      <UniqueIdentifier>{8ac959a2-43d2-47db-ab30-55b52c019169}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Math">
       <UniqueIdentifier>{983c628d-c07e-4f45-a151-6e9c01e67075}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="98. Vendor\Imgui">
-      <UniqueIdentifier>{e5664dc5-d23a-4250-992d-ca7788f70203}</UniqueIdentifier>
     </Filter>
     <Filter Include="5. Assets\Model">
       <UniqueIdentifier>{9fc452ab-3049-44d1-99ab-4036cc25f531}</UniqueIdentifier>
@@ -525,50 +501,8 @@
     <Filter Include="5. Assets\Model\Assimp">
       <UniqueIdentifier>{64fabbcd-340a-4634-90b0-556f51f43eff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="98. Vendor\Imgui\ImGuizmo">
-      <UniqueIdentifier>{7dce9da0-7d49-4e63-97aa-7addb4d1c40f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering">
-      <UniqueIdentifier>{638827b8-117f-4a1d-b48e-b43142fcb176}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\ImGui">
-      <UniqueIdentifier>{b3b02ff0-0cff-479b-be5d-b4cb49c06bd8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer">
-      <UniqueIdentifier>{9c597240-4bda-4dce-859f-c0e82fad73bc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Shader">
-      <UniqueIdentifier>{66593e55-73f5-4705-9f1f-224a7d365853}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Shader\PBR">
-      <UniqueIdentifier>{ad5ee0eb-4518-4c67-a5f4-1aa9112414d0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Shader\LightVolume">
-      <UniqueIdentifier>{06bcf7c8-8be9-447f-b6e0-38a23fe7ec2d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Shader\Shadow">
-      <UniqueIdentifier>{bed0f8f5-90d1-4e22-84b7-7f8c4efb936b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Shader\SSAO">
-      <UniqueIdentifier>{61661d0e-7a23-4b2c-a592-f35b4839c624}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Shader\Skybox">
-      <UniqueIdentifier>{621b0303-6a78-407f-ae0d-a7f4941d65c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\BasicRenderer\Shader\PostProcess">
-      <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="4. Rendering\RenderGraph">
-      <UniqueIdentifier>{f43b2563-91e4-4be3-955e-fbb9af5a0d98}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="98. Vendor\backward">
-      <UniqueIdentifier>{6413fae2-1ef5-4792-a94a-20e24f16c8d0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Debug">
       <UniqueIdentifier>{09ddcd14-5fd3-4bff-96db-c8ae8ce63260}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="98. Vendor\nlohmann">
-      <UniqueIdentifier>{8d0e1414-5c31-4826-9b0e-e3d091e33911}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Container\HisotryStack">
       <UniqueIdentifier>{cb7fab1c-8c53-458f-9143-d15f7a63ffaf}</UniqueIdentifier>
@@ -582,9 +516,6 @@
     <Filter Include="99. Utilities\Container\HashMap">
       <UniqueIdentifier>{40d865df-bd8b-4267-8d0d-b3d34725f645}</UniqueIdentifier>
     </Filter>
-    <Filter Include="4. Rendering\Octree">
-      <UniqueIdentifier>{bd52fca9-980c-4848-b76a-500b0ec1e435}</UniqueIdentifier>
-    </Filter>
     <Filter Include="1. Core\Error">
       <UniqueIdentifier>{1020e61a-8f4d-42ae-ab41-780395d0e77e}</UniqueIdentifier>
     </Filter>
@@ -594,9 +525,6 @@
     <Filter Include="99. Utilities\Optional">
       <UniqueIdentifier>{04d7e39b-4a01-4639-adf0-c485da73f1d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="98. Vendor\optional">
-      <UniqueIdentifier>{27be41b3-ba5c-4d92-825b-db1564e8bb50}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\String">
       <UniqueIdentifier>{358e1fa5-4c3e-4f99-81d8-be282504da4e}</UniqueIdentifier>
     </Filter>
@@ -605,18 +533,6 @@
     </Filter>
     <Filter Include="6. Editor\Utilities">
       <UniqueIdentifier>{e98e4db0-869b-4238-a9f5-852a1dff06c4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\FileBrowser">
-      <UniqueIdentifier>{12c053dc-0f0e-44cc-9e18-ec89e82d0de4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\FileBrowser\Dialogs">
-      <UniqueIdentifier>{902964f7-cee0-4ace-a3a4-214c30fcb526}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\FileBrowser\Dialogs\ImportImageDialog">
-      <UniqueIdentifier>{e5e0db46-5002-44e8-a825-814dc8b8772b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Command">
-      <UniqueIdentifier>{1da62877-db37-482a-ac83-68505a84f4fa}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\SVG">
       <UniqueIdentifier>{d45992a7-e02a-4fc3-9aca-89a7d6bd84b5}</UniqueIdentifier>
@@ -645,8 +561,101 @@
     <Filter Include="6. Editor\Dialog\Dialogs\Asset">
       <UniqueIdentifier>{09afdf49-57fb-49ba-8025-5b3bb647debb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="6. Editor\Dialog\Dialogs\Misc">
+      <UniqueIdentifier>{ca42f69b-2ac1-437b-8e0f-18b70bc3bbc1}</UniqueIdentifier>
+    </Filter>
     <Filter Include="5. Assets\Utilities">
-      <UniqueIdentifier>{ab6dae66-647b-4c07-8073-7bb172380f14}</UniqueIdentifier>
+      <UniqueIdentifier>{5f0dfcfc-4c5e-4e5a-b294-2c245866ba7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\Tiny">
+      <UniqueIdentifier>{9419f6e7-3e2c-4d62-946f-beed0325a08b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\Constexpr">
+      <UniqueIdentifier>{54024868-ecac-4d61-94e0-cda34dda2933}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\File">
+      <UniqueIdentifier>{ac1a2057-690b-4ade-b538-7c7cd1a604f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="5. Assets\Texture">
+      <UniqueIdentifier>{8aa95e93-4a42-41cd-a87c-decb1c553725}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Serialize\Archive">
+      <UniqueIdentifier>{7655366a-9fc2-4bfa-906a-c94c4b5a87d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Serialize\Archive\Json">
+      <UniqueIdentifier>{96c3b48a-e5a7-4ca7-a874-37e53cb31771}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\rapidstring">
+      <UniqueIdentifier>{faa1ac42-9a2c-4f0f-bc8c-de03bd9b2389}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Scene\Component\Metadata">
+      <UniqueIdentifier>{23f5a5fe-ac2e-490a-bb3b-cae1b67d611d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Delegate">
+      <UniqueIdentifier>{af4425b8-51e9-4b18-a950-8969eec341ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Game">
+      <UniqueIdentifier>{458d3ebd-2688-4977-b4a4-b4f61ad83a2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\imgui">
+      <UniqueIdentifier>{13c98ae6-6537-41ec-aaf1-040e8570f4a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="1. Core\MockApplication">
+      <UniqueIdentifier>{46c20297-e973-4fa9-a2aa-bd96bc4265ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\mimalloc">
+      <UniqueIdentifier>{8f7f728e-6dad-44a9-9d2e-6807b7d0652e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Vendor\colony">
+      <UniqueIdentifier>{d3760a3a-967f-4a4b-811c-6b26100187f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\Colony">
+      <UniqueIdentifier>{225d3afb-a62b-4311-beb8-d4c1dfc87001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer">
+      <UniqueIdentifier>{638827b8-117f-4a1d-b48e-b43142fcb176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\ImGui">
+      <UniqueIdentifier>{b3b02ff0-0cff-479b-be5d-b4cb49c06bd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer">
+      <UniqueIdentifier>{9c597240-4bda-4dce-859f-c0e82fad73bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer\Shader">
+      <UniqueIdentifier>{66593e55-73f5-4705-9f1f-224a7d365853}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer\Shader\PBR">
+      <UniqueIdentifier>{ad5ee0eb-4518-4c67-a5f4-1aa9112414d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer\Shader\LightVolume">
+      <UniqueIdentifier>{06bcf7c8-8be9-447f-b6e0-38a23fe7ec2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer\Shader\Shadow">
+      <UniqueIdentifier>{bed0f8f5-90d1-4e22-84b7-7f8c4efb936b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer\Shader\SSAO">
+      <UniqueIdentifier>{61661d0e-7a23-4b2c-a592-f35b4839c624}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer\Shader\Skybox">
+      <UniqueIdentifier>{621b0303-6a78-407f-ae0d-a7f4941d65c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\BasicRenderer\Shader\PostProcess">
+      <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\RenderGraph">
+      <UniqueIdentifier>{f43b2563-91e4-4be3-955e-fbb9af5a0d98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="4. Renderer\Octree">
+      <UniqueIdentifier>{bd52fca9-980c-4848-b76a-500b0ec1e435}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Graphics\Utilities">
+      <UniqueIdentifier>{e722dad5-777c-4d75-9c0b-98ba91707ece}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2. Graphics\Utilities\Image">
+      <UniqueIdentifier>{5dec5990-6a18-4f62-a4de-99a8f2260a50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Scene\Reflection">
+      <UniqueIdentifier>{f5a9bb26-90bf-4019-ac50-ad5a98860dcc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -683,10 +692,7 @@
     <ClInclude Include="Input.h">
       <Filter>1. Core\Input</Filter>
     </ClInclude>
-    <ClInclude Include="Script.h">
-      <Filter>3. Scene\Script</Filter>
-    </ClInclude>
-    <ClInclude Include="EnumUtilities.h">
+    <ClInclude Include="Flags.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="AssetManager.h">
@@ -703,9 +709,6 @@
     </ClInclude>
     <ClInclude Include="IAsset.h">
       <Filter>5. Assets</Filter>
-    </ClInclude>
-    <ClInclude Include="Hash.h">
-      <Filter>99. Utilities\Hash</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>5. Assets\Mesh</Filter>
@@ -728,8 +731,8 @@
     <ClInclude Include="ResourcePool.h">
       <Filter>99. Utilities\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="ImageTexture.h">
-      <Filter>5. Assets\ImageTexture</Filter>
+    <ClInclude Include="Texture.h">
+      <Filter>5. Assets\Texture</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>5. Assets\Material</Filter>
@@ -740,9 +743,6 @@
     <ClInclude Include="VertexLayout.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="MemView.h">
-      <Filter>99. Utilities\Memory</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderCompiler.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
@@ -752,32 +752,17 @@
     <ClInclude Include="Profile.h">
       <Filter>99. Utilities\Profile</Filter>
     </ClInclude>
-    <ClInclude Include="Magics.h">
-      <Filter>99. Utilities\Base\Config</Filter>
-    </ClInclude>
     <ClInclude Include="ImGuiGlue.h">
-      <Filter>4. Rendering\ImGui</Filter>
+      <Filter>4. Renderer\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="SerializableComponent.h">
-      <Filter>3. Scene\Component\Property</Filter>
-    </ClInclude>
-    <ClInclude Include="EditableComponent.h">
-      <Filter>3. Scene\Component\Property</Filter>
-    </ClInclude>
-    <ClInclude Include="Properties.h">
-      <Filter>3. Scene\Component\Property</Filter>
+    <ClInclude Include="ComponentTag.h">
+      <Filter>3. Scene\Component\Metadata</Filter>
     </ClInclude>
     <ClInclude Include="UID.h">
       <Filter>3. Scene\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentDB.h">
-      <Filter>7. Reflection</Filter>
-    </ClInclude>
     <ClInclude Include="AssimpImporter.h">
       <Filter>5. Assets\Model\Assimp</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptDB.h">
-      <Filter>7. Reflection</Filter>
     </ClInclude>
     <ClInclude Include="SceneSerializer.h">
       <Filter>3. Scene\Scene</Filter>
@@ -794,41 +779,8 @@
     <ClInclude Include="HashMap.h">
       <Filter>99. Utilities\Container\HashMap</Filter>
     </ClInclude>
-    <ClInclude Include="Json.h">
-      <Filter>99. Utilities\Serialize</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\unordered_dense\unordered_dense.h">
-      <Filter>98. Vendor\unordered_densce</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_std_impl.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_std_fwd.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_std.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_impl.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\fs_fwd.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\ghc\filesystem.hpp">
-      <Filter>98. Vendor\ghc</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneDB.h">
-      <Filter>7. Reflection</Filter>
-    </ClInclude>
-    <ClInclude Include="FileIOUtilities.h">
-      <Filter>99. Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="EmbeddedShaderGlue.h">
-      <Filter>4. Rendering\BasicRenderer\Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\DirectXTK\SimpleMath.h">
-      <Filter>98. Vendor\SimpleMath</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader</Filter>
     </ClInclude>
     <ClInclude Include="RadixSort.h">
       <Filter>99. Utilities\Algorithm</Filter>
@@ -836,77 +788,14 @@
     <ClInclude Include="BoundingVolume.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\BoundBox.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\default_builder.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\executor.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\index.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\mini_tree_builder.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\node.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\platform.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\ray.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\reinsertion_optimizer.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\sphere.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\split_heuristic.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\stack.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\stream.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\sweep_sah_builder.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\thread_pool.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\top_down_sah_builder.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\tri.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\utils.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\vec.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\bbox.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\bvh\v2\binned_sah_builder.h">
-      <Filter>98. Vendor\bvh</Filter>
-    </ClInclude>
     <ClInclude Include="SceneNode.h">
       <Filter>3. Scene\Entitiy</Filter>
     </ClInclude>
     <ClInclude Include="RenderPass.h">
-      <Filter>4. Rendering\RenderGraph</Filter>
+      <Filter>4. Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="RenderGraph.h">
-      <Filter>4. Rendering\RenderGraph</Filter>
+      <Filter>4. Renderer\RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="RenderView.h">
       <Filter>3. Scene\Scene</Filter>
@@ -916,30 +805,6 @@
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>2. Graphics\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imconfig.h">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imgui.h">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imgui_impl_win32.h">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imgui_internal.h">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imgui_stdlib.h">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imstb_rectpack.h">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imstb_textedit.h">
-      <Filter>98. Vendor\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\imstb_truetype.h">
-      <Filter>98. Vendor\Imgui</Filter>
     </ClInclude>
     <ClInclude Include="EditorWidgets.h">
       <Filter>6. Editor\Utilities</Filter>
@@ -953,9 +818,6 @@
     <ClInclude Include="CameraComponent.h">
       <Filter>3. Scene\Component</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptComponent.h">
-      <Filter>3. Scene\Component</Filter>
-    </ClInclude>
     <ClInclude Include="RenderableComponent.h">
       <Filter>3. Scene\Component</Filter>
     </ClInclude>
@@ -965,17 +827,8 @@
     <ClInclude Include="SpotLightComponent.h">
       <Filter>3. Scene\Component</Filter>
     </ClInclude>
-    <ClInclude Include="SceneDeserializer.h">
-      <Filter>3. Scene\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="RemoveNotEmptyDirectoryDialog.h">
-      <Filter>6. Editor\FileBrowser\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="Model.h">
       <Filter>5. Assets\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\imgui\ImGuizmo.h">
-      <Filter>98. Vendor\Imgui\ImGuizmo</Filter>
     </ClInclude>
     <ClInclude Include="EditorRenderer.h">
       <Filter>6. Editor\Utilities</Filter>
@@ -989,38 +842,20 @@
     <ClInclude Include="RefCounted.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Vendor\backward\backward.hpp">
-      <Filter>98. Vendor\backward</Filter>
-    </ClInclude>
     <ClInclude Include="Debug.h">
       <Filter>99. Utilities\Debug</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\nlohmann\Json.hpp">
-      <Filter>98. Vendor\nlohmann</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\nlohmann\json_fwd.hpp">
-      <Filter>98. Vendor\nlohmann</Filter>
     </ClInclude>
     <ClInclude Include="HistoryStack.h">
       <Filter>99. Utilities\Container\HisotryStack</Filter>
     </ClInclude>
-    <ClInclude Include="ImGuiUtilities.h">
-      <Filter>99. Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="EditorUtilities.h">
       <Filter>6. Editor\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageBase.h">
-      <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="TextureFormat.h">
       <Filter>2. Graphics\Core</Filter>
     </ClInclude>
     <ClInclude Include="BasicRenderer.h">
-      <Filter>4. Rendering\BasicRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="TypeTrait.h">
-      <Filter>99. Utilities\Base</Filter>
+      <Filter>4. Renderer\BasicRenderer</Filter>
     </ClInclude>
     <ClInclude Include="DataType.h">
       <Filter>99. Utilities\Base</Filter>
@@ -1032,7 +867,7 @@
       <Filter>99. Utilities\Base</Filter>
     </ClInclude>
     <ClInclude Include="Octree.h">
-      <Filter>4. Rendering\Octree</Filter>
+      <Filter>4. Renderer\Octree</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>99. Utilities\Math</Filter>
@@ -1040,44 +875,14 @@
     <ClInclude Include="Error.h">
       <Filter>1. Core\Error</Filter>
     </ClInclude>
-    <ClInclude Include="ImageExporter.h">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageImporter.h">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="GlobalBuffer.h">
-      <Filter>1. Core\Error</Filter>
-    </ClInclude>
     <ClInclude Include="STL.h">
       <Filter>99. Utilities\Container\STL</Filter>
     </ClInclude>
     <ClInclude Include="Environment.h">
-      <Filter>4. Rendering\BasicRenderer</Filter>
+      <Filter>4. Renderer\BasicRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Optional.h">
       <Filter>99. Utilities\Optional</Filter>
-    </ClInclude>
-    <ClInclude Include="Vendor\optional\optional.hpp">
-      <Filter>98. Vendor\optional</Filter>
-    </ClInclude>
-    <ClInclude Include="StringUtilities.h">
-      <Filter>99. Utilities\String</Filter>
-    </ClInclude>
-    <ClInclude Include="StringView.h">
-      <Filter>99. Utilities\String</Filter>
-    </ClInclude>
-    <ClInclude Include="FixedString.h">
-      <Filter>99. Utilities\String</Filter>
-    </ClInclude>
-    <ClInclude Include="Fwd.h">
-      <Filter>99. Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonReader.h">
-      <Filter>99. Utilities\Serialize</Filter>
-    </ClInclude>
-    <ClInclude Include="JsonWriter.h">
-      <Filter>99. Utilities\Serialize</Filter>
     </ClInclude>
     <ClInclude Include="DialogStack.h">
       <Filter>6. Editor\Dialog</Filter>
@@ -1121,9 +926,6 @@
     <ClInclude Include="VertexLayoutEntry.h">
       <Filter>6. Editor\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="VertexLayoutEditorDialog.h">
-      <Filter>6. Editor</Filter>
-    </ClInclude>
     <ClInclude Include="MessageDialog.h">
       <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
     </ClInclude>
@@ -1148,20 +950,173 @@
     <ClInclude Include="ModelImportDialog.h">
       <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
     </ClInclude>
-    <ClInclude Include="AssetDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
-    </ClInclude>
-    <ClInclude Include="AssetUtilities.h">
-      <Filter>5. Assets\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="GeometryUtilities.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Cista.h">
-      <Filter>99. Utilities\Serialize</Filter>
-    </ClInclude>
     <ClInclude Include="JamEngineEditorEmbededIcons.h">
       <Filter>6. Editor\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayoutEditorDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Delegate.h">
+      <Filter>99. Utilities\Delegate</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetCreationDialog.h">
+      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeTraits.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ScratchBuffer.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Assertion.h">
+      <Filter>1. Core\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="UIDGenerator.h">
+      <Filter>3. Scene\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="TinyVector.h">
+      <Filter>99. Utilities\Container\Tiny</Filter>
+    </ClInclude>
+    <ClInclude Include="NameOf.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumUtilities.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstexprStringHashMap.h">
+      <Filter>99. Utilities\Container\Constexpr</Filter>
+    </ClInclude>
+    <ClInclude Include="Scalar.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CleanUp.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="File.h">
+      <Filter>99. Utilities\File</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryBlock.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Archive.h">
+      <Filter>99. Utilities\Serialize\Archive</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonArchive.h">
+      <Filter>99. Utilities\Serialize\Archive\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="String.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\rapidstring\rapidstring.h">
+      <Filter>98. Vendor\rapidstring</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentProperties.h">
+      <Filter>3. Scene\Component\Metadata</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetSaveLoader.h">
+      <Filter>5. Assets\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="StringHashMap.h">
+      <Filter>99. Utilities\Container\HashMap</Filter>
+    </ClInclude>
+    <ClInclude Include="InfiniteDragger.h">
+      <Filter>99. Utilities\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryReadWriter.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryAllocator.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryHasher.h">
+      <Filter>99. Utilities\Hash</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\ImGuizmo\ImGuizmo.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imconfig.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_impl_win32.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_internal.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_rectpack.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_textedit.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_truetype.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_stdlib.h">
+      <Filter>98. Vendor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="MockApplication.h">
+      <Filter>1. Core\MockApplication</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\bitmap.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc-new-delete.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc-override.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc-stats.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc\atomic.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc\internal.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc\prim.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc\track.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\mimalloc\mimalloc\types.h">
+      <Filter>98. Vendor\mimalloc</Filter>
+    </ClInclude>
+    <ClInclude Include="Vendor\plf_colony\plf_colony.h">
+      <Filter>98. Vendor\colony</Filter>
+    </ClInclude>
+    <ClInclude Include="Colony.h">
+      <Filter>99. Utilities\Container\Colony</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBase.h">
+      <Filter>2. Graphics\Utilities\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageImporter.h">
+      <Filter>2. Graphics\Utilities\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageExporter.h">
+      <Filter>2. Graphics\Utilities\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentMetadata.h">
+      <Filter>3. Scene\Component\Metadata</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandLineArgumentParser.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectionDB.h">
+      <Filter>3. Scene\Reflection</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1171,82 +1126,70 @@
     <None Include=".editorconfig">
       <Filter>99. Utilities\Base\Config</Filter>
     </None>
-    <None Include="resources\flatc\jmsh.fbs">
-      <Filter>5. Assets\Mesh</Filter>
-    </None>
-    <None Include="resources\flatc\jmat.fbs">
-      <Filter>5. Assets\Material</Filter>
-    </None>
-    <None Include="Vendor\DirectXTK\SimpleMath.inl">
-      <Filter>98. Vendor\SimpleMath</Filter>
-    </None>
-    <None Include="Resources\flatc\jmtl.fbs">
-      <Filter>5. Assets\Model</Filter>
-    </None>
     <None Include="Shaders\HLSL\BloomBlurUpPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PostProcess</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\hlsl\FXAAPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\FogPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\BloomBlurDownPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\BloomCombinePS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PassThroughPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRVS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PBR</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PBR</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRGBufferShader.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PBR</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PBR</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRLightingShader.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PBR</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PBR</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\PBRLightVolumeShader.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\LightVolume</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\LightVolume</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\ShadowMappingShader.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\Shadow</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\SSAOPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\SSAO</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\SSAO</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\SkyboxShader.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\Skybox</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\Skybox</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\ToneMappingPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\PostProcess</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\CascadeShaderMappingShader.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\Shadow</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\OmniDirectionalShaderMappingShader.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\Shadow</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="shaders\hlsl\ShaderBase.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\FullScreenVS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\PBRLightVolumeShaderForDirectional.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\LightVolume</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\LightVolume</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\SSAOBlurXPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\SSAO</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\SSAO</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\HLSL\SSAOBlurYPS.hlsl">
-      <Filter>4. Rendering\BasicRenderer\Shader\SSAO</Filter>
+      <Filter>4. Renderer\BasicRenderer\Shader\SSAO</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

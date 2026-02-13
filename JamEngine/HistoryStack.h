@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 template<typename T>
@@ -50,4 +50,4 @@ private:
     List<T> m_redoItems;
 };
 
-}   // namespace jam
+}   // namespace Jam

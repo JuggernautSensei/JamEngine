@@ -2,38 +2,33 @@
 
 #include "ConfirmationDialog.h"
 
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 ConfirmationDialog::ConfirmationDialog(
-    const StringView             _title,
-    const StringView             _message,
-    const std::function<void()>& _onOk,
-    const std::function<void()>& _onCancel,
-    const ImVec2                 _size,
-    const eDialogFlags           _flags)
-    : Dialog(_title, _size, _flags)
-    , m_onOk(_onOk)
-    , m_onCancel(_onCancel)
-    , m_msg(_message.ToString())
+    const ConfirmationDialogDesc& _desc)
+    : Dialog(_desc.baseDesc)
+    , m_msg(_desc.msg.ToString())
+    , m_OnClickOk(_desc.OnConfirm)
+    , m_OnClickCancel(_desc.OnCancel)
 {
 }
 
 void ConfirmationDialog::OnShow()
 {
-    Widget_WrappedText(m_msg.c_str(), k_textWrapWidth);
+    Widget_TextWrapped(m_msg.GetPtr(), k_textWrapWidth);
     ImGui::Spacing();
 
     // buttons
     const ImVec2 btnSize = CalcFitButtonSize(2);
     if (ImGui::Button("ok", btnSize))
     {
-        if (m_onOk)
+        if (m_OnClickOk)
         {
-            m_onOk();
+            m_OnClickOk.Call();
         }
         ImGui::CloseCurrentPopup();
     }
@@ -41,12 +36,12 @@ void ConfirmationDialog::OnShow()
     ImGui::SameLine();
     if (ImGui::Button("cancel", btnSize))
     {
-        if (m_onCancel)
+        if (m_OnClickCancel)
         {
-            m_onCancel();
+            m_OnClickCancel.Call();
         }
         ImGui::CloseCurrentPopup();
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 constexpr const char* const k_cursorIconSvg = R"<svg>(
@@ -52,4 +52,4 @@ constexpr const char* const k_translationIconSvg = R"<svg>(
 </svg>
 )<svg>";
 
-}   // namespace jam
+}   // namespace Jam

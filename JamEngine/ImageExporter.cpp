@@ -1,90 +1,99 @@
 #include "pch.h"
-
 #include "ImageExporter.h"
 
-#include "Graphics.h"
 #include <DirectXTexEXR.h>
 
-#include "Profile.h"
+#include "Graphics.h"
 #include "WindowsUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
-bool ImageExporter::Export(
-    const TextureHandle  _texh,
-    const fs::path&      _path,
-    const eImageFormat   _format,
-    const bool           _bReplaceExtension,
-    const eSaveFileFlags _flags) const
+namespace
 {
-    JAM_FUNCTION_MSG_PROFILE("Export Image: {}", _path.native());
-    JAM_ASSERT(_texh != k_invalidHandle, "Invalid texture handle");
 
-    if (!CheckSaveFileFlags(_path, _flags))
+    [[nodiscard]] DirectX::WICCodecs WICCodecsFrom_(
+        const eImageFormat _format)
     {
-        return false;
+        switch (_format)
+        {
+            case eImageFormat::BMP:
+                return DirectX::WIC_CODEC_BMP;
+
+            case eImageFormat::JPG:
+            case eImageFormat::JPEG:
+                return DirectX::WIC_CODEC_JPEG;
+
+            case eImageFormat::PNG:
+                return DirectX::WIC_CODEC_PNG;
+
+            case eImageFormat::TIF:
+            case eImageFormat::TIFF:
+                return DirectX::WIC_CODEC_TIFF;
+
+            case eImageFormat::GIF:
+                return DirectX::WIC_CODEC_GIF;
+
+            case eImageFormat::HDP:
+            case eImageFormat::JXR:
+            case eImageFormat::WDP:
+                return DirectX::WIC_CODEC_WMP;
+
+            case eImageFormat::ICO:
+                return DirectX::WIC_CODEC_ICO;
+
+            case eImageFormat::HEIF:
+            case eImageFormat::HEIC:
+                return DirectX::WIC_CODEC_HEIF;
+
+            default:
+                JAM_UNREACHABLE;
+        }
+    }
+}   // namespace
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Error ImageExporter::ExportToFile(
+    const ImageContainer&       _container,
+    const Path&                 _path,
+    const eImageFormat          _format,
+    const bool                  _bReplaceExtension,
+    const Flags<eSaveFileFlags> _flags)
+{
+    if (const Error err = ResolveSaveFileFlags(_path, _flags))
+    {
+        return err;
     }
 
-    // capture texture to scratch image
-    DirectX::ScratchImage scratchImg = Graphics::Capture(_texh);
+    ScratchWBuffer pathBuf;
     if (_bReplaceExtension)
     {
-        fs::path path = _path;
-        path.replace_extension(ExtensionOf(_format).GetPtr());
-        return Export_(scratchImg, path, _format);
+        const Path path = ReplacedExtension(_path, ExtensionOf(_format));
+        pathBuf.SetUtf8(path.native());
     }
-
-    return Export_(scratchImg, _path, _format);
-}
-
-bool ImageExporter::Export(
-    const DirectX::ScratchImage& _scratchImg,
-    const fs::path&              _path,
-    const eImageFormat           _format,
-    const bool                   _bReplaceExtension,
-    const eSaveFileFlags         _flags) const
-{
-    JAM_FUNCTION_MSG_PROFILE("Export Image: {}", _path.native());
-
-    if (!CheckSaveFileFlags(_path, _flags))
+    else
     {
-        return false;
+        pathBuf.SetUtf8(_path.native());
     }
 
-    if (_bReplaceExtension)
-    {
-        fs::path path = _path;
-        path.replace_extension(ExtensionOf(_format).GetPtr());
-        return Export_(_scratchImg, path, _format);
-    }
-
-    return Export_(_scratchImg, _path, _format);
-}
-
-bool ImageExporter::Export_(
-    const DirectX::ScratchImage& _scratchImg,
-    const fs::path&              _path,
-    const eImageFormat           _format) const
-{
-    const std::wstring wPath = _path.wstring();
-    HRESULT            hr    = S_OK;
+    HRESULT hr = S_OK;
     switch (_format)
     {
         case eImageFormat::EXR:
-            hr = DirectX::SaveToEXRFile(*_scratchImg.GetImage(0, 0, 0), wPath.c_str());
+            hr = DirectX::SaveToEXRFile(*_container.GetImage(0, 0, 0), pathBuf.GetPtr());
             break;
 
         case eImageFormat::DDS:
-            hr = DirectX::SaveToDDSFile(_scratchImg.GetImages(), _scratchImg.GetImageCount(), _scratchImg.GetMetadata(), DirectX::DDS_FLAGS_NONE, wPath.c_str());
+            hr = DirectX::SaveToDDSFile(_container.GetImages(), _container.GetImageCount(), _container.GetMetadata(), DirectX::DDS_FLAGS_NONE, pathBuf.GetPtr());
             break;
 
         case eImageFormat::HDR:
-            hr = DirectX::SaveToHDRFile(*_scratchImg.GetImage(0, 0, 0), wPath.c_str());
+            hr = DirectX::SaveToHDRFile(*_container.GetImage(0, 0, 0), pathBuf.GetPtr());
             break;
 
         case eImageFormat::TGA:
-            hr = DirectX::SaveToTGAFile(*_scratchImg.GetImage(0, 0, 0), wPath.c_str());
+            hr = DirectX::SaveToTGAFile(*_container.GetImage(0, 0, 0), pathBuf.GetPtr());
             break;
 
         case eImageFormat::BMP:
@@ -100,61 +109,89 @@ bool ImageExporter::Export_(
         case eImageFormat::ICO:
         case eImageFormat::HEIF:
         case eImageFormat::HEIC:
-            hr = DirectX::SaveToWICFile(*_scratchImg.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), wPath.c_str());
+            hr = DirectX::SaveToWICFile(*_container.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), pathBuf.GetPtr());
             break;
 
         default:
-            GlobalBuffer::SetLastError("Unsupported image format: '{}'", _path.native());
-            return false;
+            JAM_LOG.Error("Unsupported image format: '{}'", _path.native());
+            return Error::UnsupportedFormat;
     }
 
     if (FAILED(hr))
     {
-        GlobalBuffer::SetLastError("Failed to save image to file: '{}', {}", _path.native(), CreateErrorMessageFromHRESULT(hr));
-        return false;
+        ScratchBuffer buf;
+        FormatHRESULTMessage(buf, hr);
+
+        JAM_LOG.Error("Failed to save image to file: '{}', {}", _path, buf.ToStringView());
+        return Error::ExportFailed;
     }
 
-    return true;
+    return Error::None;
 }
 
-DirectX::WICCodecs ImageExporter::WICCodecsFrom_(
-    const eImageFormat _format) const
+Error ImageExporter::ExportToFile(
+    const TextureHandle         _texh,
+    const Path&                 _path,
+    const eImageFormat          _format,
+    const bool                  _bReplaceExtension,
+    const Flags<eSaveFileFlags> _flags)
 {
+    return ExportToFile(JAM_GFX.Capture(_texh), _path, _format, _bReplaceExtension, _flags);
+}
+
+Expect<ImageBlob> ImageExporter::ExportToMemory(
+    const ImageContainer& _container,
+    const eImageFormat    _format)
+{
+    ImageBlob blob = {};
+    HRESULT   hr   = S_OK;
     switch (_format)
     {
-        case eImageFormat::BMP:
-            return DirectX::WIC_CODEC_BMP;
+        case eImageFormat::DDS:
+            hr = DirectX::SaveToDDSMemory(_container.GetImages(), _container.GetImageCount(), _container.GetMetadata(), DirectX::DDS_FLAGS_NONE, blob);
+            break;
 
+        case eImageFormat::HDR:
+            hr = DirectX::SaveToHDRMemory(*_container.GetImage(0, 0, 0), blob);
+            break;
+
+        case eImageFormat::TGA:
+            hr = DirectX::SaveToTGAMemory(*_container.GetImage(0, 0, 0), DirectX::TGA_FLAGS_NONE, blob);
+            break;
+        case eImageFormat::BMP:
         case eImageFormat::JPG:
         case eImageFormat::JPEG:
-            return DirectX::WIC_CODEC_JPEG;
-
         case eImageFormat::PNG:
-            return DirectX::WIC_CODEC_PNG;
-
         case eImageFormat::TIF:
         case eImageFormat::TIFF:
-            return DirectX::WIC_CODEC_TIFF;
-
         case eImageFormat::GIF:
-            return DirectX::WIC_CODEC_GIF;
-
         case eImageFormat::HDP:
         case eImageFormat::JXR:
         case eImageFormat::WDP:
-            return DirectX::WIC_CODEC_WMP;
-
         case eImageFormat::ICO:
-            return DirectX::WIC_CODEC_ICO;
-
         case eImageFormat::HEIF:
         case eImageFormat::HEIC:
-            return DirectX::WIC_CODEC_HEIF;
-
-        default:
-            JAM_ASSERT(0, "Unsupported image format: {}", ExtensionOf(_format));
-            return static_cast<DirectX::WICCodecs>(0);
+            hr = DirectX::SaveToWICMemory(_container.GetImages(), _container.GetImageCount(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), blob);
+            break;
     }
+
+    if (FAILED(hr))
+    {
+        ScratchBuffer buf;
+        FormatHRESULTMessage(buf, hr);
+
+        JAM_LOG.Error("Failed to export image to memory: {}", buf.ToStringView());
+        return Error::ExportFailed;
+    }
+
+    return Error::None;
 }
 
-}   // namespace jam
+Expect<ImageBlob> ImageExporter::ExportToMemory(
+    const TextureHandle _texh,
+    const eImageFormat  _format)
+{
+    return ExportToMemory(JAM_GFX.Capture(_texh), _format);
+}
+
+}   // namespace Jam

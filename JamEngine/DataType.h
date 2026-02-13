@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 using Int8   = std::int8_t;
@@ -12,14 +12,19 @@ using UInt16 = std::uint16_t;
 using UInt32 = std::uint32_t;
 using UInt64 = std::uint64_t;
 using Byte   = UInt8;
+using SizeT  = std::ptrdiff_t;   // now my application use Int32 as size type. future: change to Int32
+using USizeT = size_t;
 
 using Vec2    = DirectX::SimpleMath::Vector2;
-using Vec3    = DirectX::SimpleMath::Vector3;
+using Vec3    = DirectX::SimpleMath::Vector3;   // euler: pitch, yaw, roll
 using Vec4    = DirectX::SimpleMath::Vector4;
-using Mat4    = DirectX::SimpleMath::Matrix;
+using Mtx4    = DirectX::SimpleMath::Matrix;
 using Quat    = DirectX::SimpleMath::Quaternion;
 using Float16 = DirectX::PackedVector::HALF;
 
+using EntityHandle  = entt::entity;
+using SceneRegistry = entt::registry;
+
 using namespace std::chrono_literals;
 
-}   // namespace jam
+}   // namespace Jam

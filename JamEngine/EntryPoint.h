@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 [[nodiscard]] Int32 EntryPoint(Int32 argc, char* argv[]);
@@ -10,5 +10,5 @@ namespace jam
 #define JAM_MAIN()                          \
     int main(const int argc, char* argv[])  \
     {                                       \
-        return jam::EntryPoint(argc, argv); \
+        return Jam::EntryPoint(argc, argv); \
     }

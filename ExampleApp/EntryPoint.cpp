@@ -18,7 +18,7 @@ Application* CreateApplication(const CommandLineArguments& _args)
         if (std::strcmp(arg, "-editor") == 0)
         {
             info.bEnableEditor = true;
-            Log::Info("jam engine editor enabled");
+            Log::Info("Jam engine editor enabled");
         }
     }
 

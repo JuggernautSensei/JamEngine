@@ -1,8 +1,9 @@
 #include "pch.h"
 
 #include "SceneNode.h"
+#include "Scene.h"
 
-namespace jam
+namespace Jam
 {
 
 SceneNode::SceneNode()
@@ -13,7 +14,7 @@ SceneNode::SceneNode(
     const Entity _root,
     const Entity _owner)
     : m_root(_root)
-    , m_owner(_owner)
+      , m_owner(_owner)
 {
     JAM_ASSERT(_root, "Root entity is invalid");
     JAM_ASSERT(_owner, "Owner entity is invalid");
@@ -23,7 +24,7 @@ SceneNode::SceneNode(
 SceneNode::SceneNode(
     const Entity _root)
     : m_root(_root)
-    , m_owner(_root)
+      , m_owner(_root)
 {
     JAM_ASSERT(_root, "Root entity is invalid");
 }
@@ -53,7 +54,7 @@ void SceneNode::SetParent(
     Entity oldFirstChild    = parentNode.m_firstChild;
     parentNode.m_firstChild = m_owner;
     m_nextSibling           = oldFirstChild;
-    m_prevSibling           = Entity::s_null;
+    m_prevSibling           = Entity::k_invalid;
     if (oldFirstChild)
     {
         // 기존 자식의 이전 형제를 나로 설정함
@@ -84,113 +85,6 @@ void SceneNode::SetParentAsRoot(const bool _bKeepLocal)
 void SceneNode::Orphanize()
 {
     ReleaseParent_();
-}
-
-void SceneNode::ReleaseParent_()
-{
-    // only release if has parent
-    if (!HasParent())
-    {
-        return;
-    }
-
-    // 부모를 제거.
-    // 이전 형제에게 다음 형제 정보를 설정
-    SceneNode& parentNode = m_parent.GetSceneNode();
-    if (m_prevSibling)
-    {
-        // there is a previous sibling
-        SceneNode& prevSiblingNode    = m_prevSibling.GetSceneNode();
-        prevSiblingNode.m_nextSibling = m_nextSibling;
-    }
-    else
-    {
-        // 만약 이전 형제가 없는 경우는 내가 첫번째 자식.
-        // 부모의 첫번째 자식을 다음 형제로 설정
-        parentNode.m_firstChild = m_nextSibling;
-    }
-
-    // 다음 형제에게 이전 형제 정보를 설정
-    if (m_nextSibling)
-    {
-        // there is a next sibling
-        SceneNode& nextSiblingNode    = m_nextSibling.GetSceneNode();
-        nextSiblingNode.m_prevSibling = m_prevSibling;
-    }
-
-    // 링크 제거
-    m_parent      = Entity::s_null;
-    m_nextSibling = Entity::s_null;
-    m_prevSibling = Entity::s_null;
-}
-
-void SceneNode::UpdateDirty_(Vector<Entity>& _updatedNodes)
-{
-    _updatedNodes.clear();
-    UpdateDirty_Recursive_(_updatedNodes);
-}
-
-void SceneNode::UpdateDirty_Recursive_(Vector<Entity>& _updatedNodes)
-{
-    if (m_dirty == eDirty::None)
-    {
-        return;
-    }
-
-    if (m_dirty == eDirty::LocalNeedUpdate)
-    {
-        if (HasParent())
-        {
-            // update local based on world
-            const SceneNode& parentNode  = m_parent.GetSceneNode();
-            const Transform& parentWt    = parentNode.GetWorldTransform();
-            const Transform  parentWtInv = parentWt.Inverted();
-            m_local                      = m_world.Multed(parentWtInv);
-        }
-        else
-        {
-            // root
-            m_local = m_world;
-        }
-
-        _updatedNodes.emplace_back(m_owner);
-    }
-    else if (m_dirty == eDirty::WorldNeedUpdate)
-    {
-        if (HasParent())
-        {
-            // update world based on local
-            const SceneNode& parentNode = m_parent.GetSceneNode();
-            const Transform& parentWt   = parentNode.GetWorldTransform();
-            m_world                     = m_local.Multed(parentWt);
-        }
-        else
-        {
-            // root
-            m_world = m_local;
-        }
-
-        _updatedNodes.emplace_back(m_owner);
-    }
-    // else: ChildDirty -> do nothing for self
-
-    Entity child = m_firstChild;
-    while (child)
-    {
-        // 부모가 직접적으로 변경되었을경우 (= ChildDirty가 아닌 경우). 자식의 월드 갱신이 필요함
-        // 단, 자식이 월드를 변경했을 경우 (= LocalNeedUpdate) 는 제외. 자식의 변경을 존중
-        SceneNode& childNode = child.GetSceneNode();
-        if (m_dirty != eDirty::ChildDirty && childNode.m_dirty != eDirty::LocalNeedUpdate)
-        {
-            childNode.m_dirty = eDirty::WorldNeedUpdate;
-        }
-
-        // recursive update
-        childNode.UpdateDirty_Recursive_(_updatedNodes);
-        child = childNode.m_nextSibling;
-    }
-
-    m_dirty = eDirty::None;   // clear dirty flag
 }
 
 bool SceneNode::IsDescendantOf(const Entity _entity) const
@@ -303,4 +197,170 @@ void SceneNode::NotifyDirty_()
     }
 }
 
-}   // namespace jam
+void SceneNode::ReleaseParent_()
+{
+    // only release if has parent
+    if (!HasParent())
+    {
+        return;
+    }
+
+    // 부모를 제거.
+    // 이전 형제에게 다음 형제 정보를 설정
+    SceneNode& parentNode = m_parent.GetSceneNode();
+    if (m_prevSibling)
+    {
+        // there is a previous sibling
+        SceneNode& prevSiblingNode    = m_prevSibling.GetSceneNode();
+        prevSiblingNode.m_nextSibling = m_nextSibling;
+    }
+    else
+    {
+        // 만약 이전 형제가 없는 경우는 내가 첫번째 자식.
+        // 부모의 첫번째 자식을 다음 형제로 설정
+        parentNode.m_firstChild = m_nextSibling;
+    }
+
+    // 다음 형제에게 이전 형제 정보를 설정
+    if (m_nextSibling)
+    {
+        // there is a next sibling
+        SceneNode& nextSiblingNode    = m_nextSibling.GetSceneNode();
+        nextSiblingNode.m_prevSibling = m_prevSibling;
+    }
+
+    // 링크 제거
+    m_parent      = Entity::k_invalid;
+    m_nextSibling = Entity::k_invalid;
+    m_prevSibling = Entity::k_invalid;
+}
+
+void SceneNode::UpdateDirty_(Vector<Entity>& _updatedNodes)
+{
+    _updatedNodes.clear();
+    UpdateDirty_Recursive_(_updatedNodes);
+}
+
+void SceneNode::UpdateDirty_Recursive_(Vector<Entity>& _updatedNodes)
+{
+    if (m_dirty == eDirty::None)
+    {
+        return;
+    }
+
+    if (m_dirty == eDirty::LocalNeedUpdate)
+    {
+        if (HasParent())
+        {
+            // update local based on world
+            const SceneNode& parentNode  = m_parent.GetSceneNode();
+            const Transform& parentWt    = parentNode.GetWorldTransform();
+            const Transform  parentWtInv = parentWt.Inverted();
+            m_local                      = m_world.Multed(parentWtInv);
+        }
+        else
+        {
+            // root
+            m_local = m_world;
+        }
+
+        _updatedNodes.emplace_back(m_owner);
+    }
+    else if (m_dirty == eDirty::WorldNeedUpdate)
+    {
+        if (HasParent())
+        {
+            // update world based on local
+            const SceneNode& parentNode = m_parent.GetSceneNode();
+            const Transform& parentWt   = parentNode.GetWorldTransform();
+            m_world                     = m_local.Multed(parentWt);
+        }
+        else
+        {
+            // root
+            m_world = m_local;
+        }
+
+        _updatedNodes.emplace_back(m_owner);
+    }
+    // else: ChildDirty -> do nothing for self
+
+    Entity child = m_firstChild;
+    while (child)
+    {
+        // 부모가 직접적으로 변경되었을경우 (= ChildDirty가 아닌 경우). 자식의 월드 갱신이 필요함
+        // 단, 자식이 월드를 변경했을 경우 (= LocalNeedUpdate) 는 제외. 자식의 변경을 존중
+        SceneNode& childNode = child.GetSceneNode();
+        if (m_dirty != eDirty::ChildDirty && childNode.m_dirty != eDirty::LocalNeedUpdate)
+        {
+            childNode.m_dirty = eDirty::WorldNeedUpdate;
+        }
+
+        // recursive update
+        childNode.UpdateDirty_Recursive_(_updatedNodes);
+        child = childNode.m_nextSibling;
+    }
+
+    m_dirty = eDirty::None;   // clear dirty flag
+}
+
+void SceneNode::UpdateDirty_Recursive_()
+{
+    if (m_dirty == eDirty::None)
+    {
+        return;
+    }
+
+    if (m_dirty == eDirty::LocalNeedUpdate)
+    {
+        if (HasParent())
+        {
+            // update local based on world
+            const SceneNode& parentNode  = m_parent.GetSceneNode();
+            const Transform& parentWt    = parentNode.GetWorldTransform();
+            const Transform  parentWtInv = parentWt.Inverted();
+            m_local                      = m_world.Multed(parentWtInv);
+        }
+        else
+        {
+            // root
+            m_local = m_world;
+        }
+    }
+    else if (m_dirty == eDirty::WorldNeedUpdate)
+    {
+        if (HasParent())
+        {
+            // update world based on local
+            const SceneNode& parentNode = m_parent.GetSceneNode();
+            const Transform& parentWt   = parentNode.GetWorldTransform();
+            m_world                     = m_local.Multed(parentWt);
+        }
+        else
+        {
+            // root
+            m_world = m_local;
+        }
+    }
+    // else: ChildDirty -> do nothing for self
+
+    Entity child = m_firstChild;
+    while (child)
+    {
+        // 부모가 직접적으로 변경되었을경우 (= ChildDirty가 아닌 경우). 자식의 월드 갱신이 필요함
+        // 단, 자식이 월드를 변경했을 경우 (= LocalNeedUpdate) 는 제외. 자식의 변경을 존중
+        SceneNode& childNode = child.GetSceneNode();
+        if (m_dirty != eDirty::ChildDirty && childNode.m_dirty != eDirty::LocalNeedUpdate)
+        {
+            childNode.m_dirty = eDirty::WorldNeedUpdate;
+        }
+
+        // recursive update
+        childNode.UpdateDirty_Recursive_();
+        child = childNode.m_nextSibling;
+    }
+
+    m_dirty = eDirty::None;   // clear dirty flag
+}
+
+}   // namespace Jam

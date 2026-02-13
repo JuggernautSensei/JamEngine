@@ -2,7 +2,7 @@
 
 #include "GraphicsBase.h"
 
-namespace jam
+namespace Jam
 {
 
 RGBA RGBA::k_white       = RGBA(255, 255, 255, 255);
@@ -10,16 +10,16 @@ RGBA RGBA::k_black       = RGBA(0, 0, 0, 255);
 RGBA RGBA::k_transparent = RGBA(0, 0, 0, 0);
 
 RenderState RenderState::k_default   = {};
-RenderState RenderState::k_depthTest = { ePrimitive::TriangleList, eCullMode::Back, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, true };   // namespace jam
+RenderState RenderState::k_depthTest = { ePrimitive::TriangleList, eCullMode::Back, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, true };   // namespace Jam
 
 BlendState BlendState::k_opaque             = {};
-BlendState BlendState::k_alphaBlend         = { true, eBlend::SrcAlpha, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags_All };
-BlendState BlendState::k_additive           = { true, eBlend::One, eBlend::One, eBlendOp::Add, eBlend::One, eBlend::One, eBlendOp::Add, eWriteFlags_All };
-BlendState BlendState::k_premultipliedAlpha = { true, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags_All };
-BlendState BlendState::k_subtractive        = { true, eBlend::InvDstColor, eBlend::Zero, eBlendOp::Add, eBlend::InvDstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags_All };
-BlendState BlendState::k_multiply           = { true, eBlend::DstColor, eBlend::Zero, eBlendOp::Add, eBlend::DstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags_All };
-BlendState BlendState::k_screen             = { true, eBlend::One, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags_All };
-BlendState BlendState::k_overlay            = { true, eBlend::DstColor, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::Zero, eBlendOp::Add, eWriteFlags_All };
+BlendState BlendState::k_alphaBlend         = { true, eBlend::SrcAlpha, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags::All };
+BlendState BlendState::k_additive           = { true, eBlend::One, eBlend::One, eBlendOp::Add, eBlend::One, eBlend::One, eBlendOp::Add, eWriteFlags::All };
+BlendState BlendState::k_premultipliedAlpha = { true, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags::All };
+BlendState BlendState::k_subtractive        = { true, eBlend::InvDstColor, eBlend::Zero, eBlendOp::Add, eBlend::InvDstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags::All };
+BlendState BlendState::k_multiply           = { true, eBlend::DstColor, eBlend::Zero, eBlendOp::Add, eBlend::DstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags::All };
+BlendState BlendState::k_screen             = { true, eBlend::One, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags::All };
+BlendState BlendState::k_overlay            = { true, eBlend::DstColor, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::Zero, eBlendOp::Add, eWriteFlags::All };
 
 StencilState StencilState::k_disable = {};
 
@@ -32,10 +32,10 @@ bool IsDepthFormat(const eTextureFormat _format)
 {
     switch (_format)
     {
-        case D16_UNorm:
-        case D24_UNorm_S8_UInt:
-        case D32_Float:
-        case D32_Float_S8_UInt:
+        case eTextureFormat::D16_UNorm:
+        case eTextureFormat::D24_UNorm_S8_UInt:
+        case eTextureFormat::D32_Float:
+        case eTextureFormat::D32_Float_S8_UInt:
             return true;
 
         default:
@@ -43,85 +43,84 @@ bool IsDepthFormat(const eTextureFormat _format)
     }
 }
 
-Int32 ByteFrom(const eTextureFormat _format)
+Int32 BytePerPixelOf(const eTextureFormat _format)
 {
     switch (_format)
     {
-        case Unknown:
+        case eTextureFormat::Unknown:
             return 0;
 
-        case R8_UNorm:
-        case R8_SNorm:
-        case R8_UInt:
-        case R8_Int:
+        case eTextureFormat::R8_UNorm:
+        case eTextureFormat::R8_SNorm:
+        case eTextureFormat::R8_UInt:
+        case eTextureFormat::R8_Int:
             return 1;
 
-        case R16_UNorm:
-        case R16_SNorm:
-        case R16_UInt:
-        case R16_Int:
-        case R16_Float:
+        case eTextureFormat::R16_UNorm:
+        case eTextureFormat::R16_SNorm:
+        case eTextureFormat::R16_UInt:
+        case eTextureFormat::R16_Int:
+        case eTextureFormat::R16_Float:
             return 2;
 
-        case R32_UInt:
-        case R32_Int:
-        case R32_Float:
+        case eTextureFormat::R32_UInt:
+        case eTextureFormat::R32_Int:
+        case eTextureFormat::R32_Float:
             return 4;
 
-        case RG8_UNorm:
-        case RG8_SNorm:
-        case RG8_UInt:
-        case RG8_Int:
+        case eTextureFormat::RG8_UNorm:
+        case eTextureFormat::RG8_SNorm:
+        case eTextureFormat::RG8_UInt:
+        case eTextureFormat::RG8_Int:
             return 2;
 
-        case RG16_UNorm:
-        case RG16_SNorm:
-        case RG16_UInt:
-        case RG16_Int:
-        case RG16_Float:
+        case eTextureFormat::RG16_UNorm:
+        case eTextureFormat::RG16_SNorm:
+        case eTextureFormat::RG16_UInt:
+        case eTextureFormat::RG16_Int:
+        case eTextureFormat::RG16_Float:
             return 4;
 
-        case RG32_UInt:
-        case RG32_Int:
-        case RG32_Float:
+        case eTextureFormat::RG32_UInt:
+        case eTextureFormat::RG32_Int:
+        case eTextureFormat::RG32_Float:
             return 8;
 
-        case RGBA8_UNorm:
-        case RGBA8_SNorm:
-        case RGBA8_UInt:
-        case RGBA8_Int:
-        case RGBA8_UNorm_SRGB:
-        case BGRA8_UNorm:
-        case BGRA8_UNorm_SRGB:
+        case eTextureFormat::RGBA8_UNorm:
+        case eTextureFormat::RGBA8_SNorm:
+        case eTextureFormat::RGBA8_UInt:
+        case eTextureFormat::RGBA8_Int:
+        case eTextureFormat::RGBA8_UNorm_SRGB:
+        case eTextureFormat::BGRA8_UNorm:
+        case eTextureFormat::BGRA8_UNorm_SRGB:
             return 4;
 
-        case RGBA16_UNorm:
-        case RGBA16_SNorm:
-        case RGBA16_UInt:
-        case RGBA16_Int:
-        case RGBA16_Float:
+        case eTextureFormat::RGBA16_UNorm:
+        case eTextureFormat::RGBA16_SNorm:
+        case eTextureFormat::RGBA16_UInt:
+        case eTextureFormat::RGBA16_Int:
+        case eTextureFormat::RGBA16_Float:
             return 8;
 
-        case RGBA32_UInt:
-        case RGBA32_Int:
-        case RGBA32_Float:
+        case eTextureFormat::RGBA32_UInt:
+        case eTextureFormat::RGBA32_Int:
+        case eTextureFormat::RGBA32_Float:
             return 16;
 
-        case D16_UNorm:
+        case eTextureFormat::D16_UNorm:
             return 2;
 
-        case D24_UNorm_S8_UInt:
+        case eTextureFormat::D24_UNorm_S8_UInt:
             return 4;
 
-        case D32_Float:
+        case eTextureFormat::D32_Float:
             return 4;
 
-        case D32_Float_S8_UInt:
+        case eTextureFormat::D32_Float_S8_UInt:
             return 8;
 
         default:
-            JAM_ASSERT(0, "Unknown format");
-            return 0;
+            JAM_UNREACHABLE;
     }
 }
 
@@ -157,4 +156,4 @@ Int32 CalcTextureIndex(
     return _mipIndex + _arrayIndex * _numMips;
 }
 
-}   // namespace jam
+}   // namespace Jam

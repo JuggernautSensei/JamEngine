@@ -8,22 +8,26 @@
 #include "WindowsUtilities.h"
 #include "EditorWidgets.h"
 
-#include "ImGuiUtilities.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "MessageDialog.h"
 #include "Model.h"
 #include "VertexLayoutEntry.h"
 
-namespace jam
+namespace Jam
 {
 
 ModelImportDialog::ModelImportDialog(
-    const fs::path& _importPathOrEmpty)
-    : AssetDialog("import model")
-    , m_importPath(_importPathOrEmpty)
-    , m_importFd(eFileDialogMode::OpenFile)
-    , m_selectDirFd(eFileDialogMode::SelectFolder)
+    const ModelImportDialogDesc& _desc)
+    : AssetCreationDialog(_desc.baseDesc)
+    , m_importPath(_desc.importPathOrEmpty)
 {
+    if (!_desc.importPathOrEmpty.empty())
+    {
+        m_assetSaveDir  = _desc.importPathOrEmpty.parent_path();
+        m_assetBaseName = BaseNameOf(_desc.importPathOrEmpty);
+    }
+
     // import file dialog
     {
         FileDialogFilter k_filters[] = {
@@ -36,49 +40,43 @@ ModelImportDialog::ModelImportDialog(
 
     // select directory dialog
     {
-        m_selectDirFd.SetTitle("select save directory");
-    }
-
-    if (!_importPathOrEmpty.empty())
-    {
-        m_dir  = _importPathOrEmpty.parent_path();
-        m_name = _importPathOrEmpty.stem();
+        m_saveFd.SetTitle("select save directory");
     }
 }
 
 void ModelImportDialog::OnShow()
 {
     // render table
-    if (BeginLabelValueTable("ImportImageDialog"))
+    if (BeginLabelTable("ImportImageDialog"))
     {
         // import path
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("import path");
+        Widget_Text("import path", true);
         ImGui::TableNextColumn();
-        Widget_PathSelector("##ModelImportSelector", m_importPath, m_importFd);
+        Widget_FileDialog("##ModelImportSelector", m_importPath, m_importFd);
 
         // save directory
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("save directory");
+        Widget_Text("output directory", true);
         ImGui::TableNextColumn();
-        Widget_PathSelector("##ModelSaveDirSelector", m_dir, m_selectDirFd);
+        Widget_FileDialog("##ModelSaveDirSelector", m_assetSaveDir, m_saveFd);
 
         // name
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("name");
+        Widget_Text("assset name", true);
         ImGui::TableNextColumn();
-        ImGui::InputText("##ImageName", &m_name);
+        Widget_InputText("##ImageName", m_assetBaseName);
 
         // vertex layout
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("vertex layout");
+        Widget_Text("vertex layout", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         Widget_VertexLayoutEntryCombo("##VertexLayoutSelector", m_pVle);
 
         // generate normals
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("generate normals");
+        Widget_Text("generate normals", true);
         ImGui::SameLine();
         Widget_HelpMark("generate normals if they do not exist in the model file");
         ImGui::TableNextColumn();
@@ -88,7 +86,7 @@ void ModelImportDialog::OnShow()
         {
             ImGui::Indent();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("drop existing normals");
+            Widget_Text("drop existing normals", true);
             ImGui::TableNextColumn();
             ImGui::Checkbox("##DropExistingNormals", &m_options.bDropExistingNormals);
             ImGui::Unindent();
@@ -96,7 +94,7 @@ void ModelImportDialog::OnShow()
 
         // compute tangent frame
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("compute tangent frame");
+        Widget_Text("compute tangent frame", true);
         ImGui::SameLine();
         Widget_HelpMark("compute tangent frame if it does not exist in the model file");
         ImGui::TableNextColumn();
@@ -106,7 +104,7 @@ void ModelImportDialog::OnShow()
         {
             ImGui::Indent();
             ImGui::TableNextColumn();
-            Widget_FrameAlignedText("drop existing tangent frame");
+            Widget_Text("drop existing tangent frame", true);
             ImGui::TableNextColumn();
             ImGui::Checkbox("##DropExistingTangentFrame", &m_options.bDropExistingTangentFrame);
             ImGui::Unindent();
@@ -114,13 +112,13 @@ void ModelImportDialog::OnShow()
 
         // limit bone weights
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("limit bone weights");
+        Widget_Text("limit bone weights", true);
         ImGui::TableNextColumn();
         ImGui::Checkbox("##LimitBoneWeights", &m_options.bLimitBondWeights);
 
         // load optimization for static mesh
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("static mesh optimization");
+        Widget_Text("static mesh optimization", true);
         ImGui::TableNextColumn();
         ImGui::Checkbox("##StaticMeshOpt", &m_options.bLoadStaticMesh);
 
@@ -146,136 +144,192 @@ void ModelImportDialog::OnShow()
 
 bool ModelImportDialog::OnClickImportButton_()
 {
-    if (m_name.empty())
+    // empty checks
+    if (m_assetBaseName.IsEmpty())
     {
-        Editor::PushMessageDialog("error", "model name cannot be empty.");
+        PushEmptyNameErrorMessageDialog_();
         return false;
     }
 
+    // save dir
+    if (m_assetSaveDir.empty())
+    {
+        PushEmptySavePathErrorMessageDialog_();
+        return false;
+    }
+
+    // vertex layout
     if (!m_pVle)
     {
-        Editor::PushMessageDialog("error", "vertex layout must be selected.");
+        PushNullVertexLayoutEntryErrorMessageDialog_();
         return false;
     }
 
-    // m_name 과 같은 이름의 파일이 존재하는지 검사
-    const fs::path mdlDir = m_dir / m_name;
-    if (fs::exists(mdlDir))
+    // import path
+    if (m_importPath.empty())
     {
-        const StringView msg = GlobalBuffer::FormatTmp("a file or directory with the name '{}' already exists in the target directory.", m_name);
-        Editor::PushMessageDialog("error", msg);
+        PushEmptyImportPathErrorMessageDialog_();
         return false;
     }
 
-    // 폴더 생성
-    fs::create_directory(mdlDir);
+    // save path
+    const Path saveDir = JoinedPath(m_assetSaveDir, m_assetBaseName);
+    if (fs::exists(saveDir))
+    {
+        PushOverwriteConfirmationDialog_(saveDir);
+        return false;
+    }
+
+    // save asset
+    return CreateAndSaveAsset_(saveDir);
+}
+
+bool ModelImportDialog::CreateAndSaveAsset_(
+    const Path& _path)   // _path is dir
+{
+    JAM_ASSERT(m_pVle, "vertex layout must be valid here");
+    JAM_ASSERT(fs::is_directory(_path), "_path must be directory here");
+
+    // create _path directory
+    if (!JAM_EDITOR.CreateDir(_path))
+    {
+        return false;
+    }
 
     // assimp import
-    AssimpImporter importer = {};
-    importer.SetOptions(m_options);
-    if (!importer.Import(m_importPath))
+    Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile(m_importPath, m_options);
+    if (!importer)
     {
-        const StringView msg = GlobalBuffer::FormatTmp("failed to import model from file '{}': {}", m_importPath.native(), GlobalBuffer::GetLastError());
-        Editor::PushMessageDialog("error", msg);
+        ScratchBuffer tmp;
+        tmp.Format("failed to import model file '{}': {}", m_importPath, importer.GetError().ToErrorMessage());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = tmp.ToStringView();
         return false;
     }
 
-    // 모델 로딩을 위해 필요한 자원들 생성
-    const Ref<Model>&            pModel     = importer.CreateModel(m_pVle->GetVertexLayout());
-    const Vector<Ref<Mesh>>&     pMeshes    = pModel->GetMeshs();
-    const Vector<Ref<Material>>& pMaterials = pModel->GetMaterials();
-    HashSet<Ref<ImageTexture>>   textureSet = {};
-
-    // mesh
-    if (!pMeshes.empty())
+    // instantiate model asset
+    const Expect<Ref<Model>> expect = importer->ConvertToModel(m_pVle->GetVertexLayout());
+    if (!expect)
     {
-        // create mesh directory
-        const fs::path meshDir = mdlDir / "Meshes";
-        fs::create_directory(meshDir);
+        ScratchBuffer tmp;
+        tmp.Format("failed to convert imported model data to model asset: {}", expect.GetError().ToErrorMessage());
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = tmp.ToStringView();
+        return false;
+    }
+
+    // 모델을 저장하기 위해서는
+    // 메쉬, 머테리얼, 텍스처를 각각 별도의 파일로 저장 + 정확한 경로 데이터가 필요함
+    const Ref<Model>& pModel = expect.GetValue();
+
+    // process mesh
+    {
+        // create meshes
+        const Path meshDir = _path / "Meshes";
+        if (!JAM_EDITOR.CreateDir(meshDir))
+        {
+            return false;
+        }
 
         // save meshes
-        for (Ref<Mesh> pMesh: pMeshes)
+        const Vector<Ref<Mesh>>& meshes = pModel->GetMeshes();
+        for (const Ref<Mesh>& pMesh: meshes)
         {
-            // make virtual path
-            fs::path meshPath = meshDir / pMesh->GetName().GetPtr();
-            meshPath.replace_extension(k_jamMeshExt.GetPtr());
+            // set virtual path
+            const StringView name     = pMesh->GetName();
+            Path             meshPath = meshDir / name.GetPtr();
+            meshPath.replace_extension(Mesh::k_extension.GetPtr());
             pMesh->SetVirtualPath(meshPath);
 
-            // save
-            if (!pMesh->Save(meshPath, false))
+            // save mesh asset
+            if (!SaveAsset_(meshPath, pMesh))
             {
-                const StringView msg = GlobalBuffer::FormatTmp("failed to save mesh to disk. {}", GlobalBuffer::GetLastError());
-                Editor::PushMessageDialog("error", msg);
                 return false;
             }
         }
     }
 
-    // material
-    if (!pMaterials.empty())
+    // process materials & texes
     {
-        // create material directory
-        const fs::path matDir = mdlDir / "Materials";
-        fs::create_directory(matDir);
+        // 머테리얼을 저장할 때 Texture의 정확한 경로가 필요하므로
+        // material을 순회하며 필요한 텍스처를 머저 수집하고
+        // 그 후에 텍스처를 저장한 뒤 머테리얼을 저장한다.
 
-        // collect textures
-        for (const Ref<Material>& pMat: pMaterials)
+        HashSet<Ref<Texture>> textureSet = {};
+
+        // create materials directory
+        const Path matDir = _path / "Materials";
+        if (!JAM_EDITOR.CreateDir(matDir))
         {
-            // collect textures (avoid duplicates)
-            const MaterialTextures& textures = pMat->GetTextures();
-            for (eMaterialTextureType type: eMaterialTextureType {})
-            {
-                textureSet.emplace(textures.Get(type));
-            }
+            return false;
         }
 
-        // save textures
-        if (!textureSet.empty())
+        // create texes directory
+        const Path texDir = _path / "Textures";
+        if (!JAM_EDITOR.CreateDir(texDir))
         {
-            // create texture directory
-            const fs::path texDir = mdlDir / "ImageTextures";
-            fs::create_directory(texDir);
+            return false;
+        }
 
-            // save textures
-            for (Ref<ImageTexture> pTex: textureSet)
+        // gather texes
+        const Vector<Ref<Material>>& materials = pModel->GetMaterials();
+        for (const Ref<Material>& pMaterial: materials)
+        {
+            for (eMaterialTextureType type: EnumRanges<eMaterialTextureType>())
             {
-                // make virtual path
-                fs::path texPath = texDir / pTex->GetName().GetPtr();
-                texPath.replace_extension(k_jamImageTextureExt.GetPtr());
-                pTex->SetVirtualPath(texPath);
-
-                // save
-                if (!pTex->Save(texPath, false))
+                if (pMaterial->HasTexture(type))
                 {
-                    const StringView msg = GlobalBuffer::FormatTmp("failed to save texture to disk. {}", GlobalBuffer::GetLastError());
-                    Editor::PushMessageDialog("error", msg);
-                    return false;
+                    textureSet.emplace(pMaterial->GetTexture(type));
                 }
             }
         }
 
-        // save materials
-        for (Ref<Material> pMat: pMaterials)
+        // save texes
+        for (const Ref<Texture>& pTexture: textureSet)
         {
-            // make virtual path
-            fs::path matPath = matDir / pMat->GetName().GetPtr();
-            matPath.replace_extension(k_jamMaterialExt.GetPtr());
-            pMat->SetVirtualPath(matPath);
+            // set virtual path
+            const StringView name    = pTexture->GetName();
+            Path             texPath = texDir / name.GetPtr();
+            texPath.replace_extension(Texture::k_extension.GetPtr());
+            pTexture->SetVirtualPath(texPath);
 
-            // save
-            if (!pMat->Save(matPath, false))
+            // save tex asset
+            if (!SaveAsset_(texPath, pTexture))
             {
-                const StringView msg = GlobalBuffer::FormatTmp("failed to save material to disk. {}", GlobalBuffer::GetLastError());
-                Editor::PushMessageDialog("error", msg);
                 return false;
             }
         }
 
-        // why collect textures -> save textures -> save materials?
-        // 머테리얼 저장시 텍스처의 경로가 필요하기 때문임.
+        // save materials
+        for (const Ref<Material>& pMaterial: materials)
+        {
+            // set virtual path
+            const StringView name    = pMaterial->GetName();
+            Path             matPath = matDir / name.GetPtr();
+            matPath.replace_extension(Material::k_extension.GetPtr());
+            pMaterial->SetVirtualPath(matPath);
+
+            // save material asset
+            if (!SaveAsset_(matPath, pMaterial))
+            {
+                return false;
+            }
+        }
     }
 
-    return SaveAsset(pModel, mdlDir, m_name);
+    // save model
+    // const Path path = ReplacedExtension(_path / m_assetBaseName, Model::k_extension);
+    Path path = JoinedPath(_path, m_assetBaseName);
+    ReplaceExtension(path, Model::k_extension);
+    if (!SaveAsset_(path, pModel))
+    {
+        return false;
+    }
+
+    return true;
 }
 
-}   // namespace jam
+}   // namespace Jam

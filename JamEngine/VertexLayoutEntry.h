@@ -1,6 +1,7 @@
 #pragma once
+#include "StringHashMap.h"
 
-namespace jam
+namespace Jam
 {
 
 class VertexLayoutEntry : public RefCounted
@@ -12,8 +13,31 @@ public:
     [[nodiscard]] const VertexLayout& GetVertexLayout() const;
 
 private:
-    std::string  m_name;
-    VertexLayout m_vl;
+    String       m_name = {};
+    VertexLayout m_vl   = {};
 };
 
-}   // namespace jam
+class VertexLayoutMap
+{
+public:
+    void Emplace(StringView _name, const VertexLayout& _vl);
+    void Insert(const Ref<VertexLayoutEntry>& _vle);
+    void InsertOrReplace(const Ref<VertexLayoutEntry>& _vle);
+    void Remove(StringView _name);
+    void Clear();
+
+    [[nodiscard]] Ref<VertexLayoutEntry> Get(StringView _name) const;
+    [[nodiscard]] bool                   Has(StringView _name) const;
+
+    void  WriteToArchive(ArchiveWriter& _archive) const;
+    Error ReadFromArchive(ArchiveReader& _archive);
+
+    [[nodiscard]] const StringHashMap<Ref<VertexLayoutEntry>>& GetContainer() const;
+
+private:
+    StringHashMap<Ref<VertexLayoutEntry>> m_container = {};
+};
+
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(VertexLayoutMap);
+
+}   // namespace Jam

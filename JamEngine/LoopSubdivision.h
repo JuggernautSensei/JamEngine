@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 struct LoopSubdivisionOutput
@@ -20,15 +20,15 @@ struct LoopSubdivisionOutputWithTexcoords
 
 LoopSubdivisionOutput LoopSubdivide(
     Span<const Vec3> _positions,
-    CMemView         _idxData,
+    CMemoryBlock     _idxData,
     bool             _bUseU32,
     Int32            _level);
 
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     Span<const Vec3> _positions,
     Span<const Vec2> _texcoordsOrEmpty,
-    CMemView         _idxData,
+    CMemoryBlock     _idxData,
     bool             _bUseU32,
     Int32            _level);
 
-}   // namespace jam
+}   // namespace Jam

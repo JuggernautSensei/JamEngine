@@ -3,21 +3,47 @@
 
 #include "Dialog.h"
 
-namespace jam
+namespace Jam
 {
 
 void DialogStack::Push(
-    Scoped<Dialog>&& _pDialog)
+    const Ref<Dialog>& _pDialog)
 {
-    m_dialogs.emplace_back(std::move(_pDialog));
+    m_dialogs.emplace_back(_pDialog);
+}
+
+void DialogStack::Show()
+{
+    bool bClosedAny = false;
+    for (Ref<Dialog>& pDlg: m_dialogs)
+    {
+        if (pDlg)
+        {
+            if (pDlg->IsOpen())
+            {
+                pDlg->Show();
+            }
+            else
+            {
+                bClosedAny = true;
+                pDlg.Reset();
+            }
+        }
+    }
+
+    // compact closed dialogs
+    if (bClosedAny)
+    {
+        ShrinkToFit_();
+    }
 }
 
 void DialogStack::ShrinkToFit_()
 {
-    const Int32 numDlgs = m_dialogs.size();
+    const SizeT numDlgs = m_dialogs.size();
 
-    Int32 i = 0;
-    Int32 j = 0;
+    SizeT i = 0;
+    SizeT j = 0;
     while (true)
     {
         // find nullptr
@@ -56,30 +82,4 @@ void DialogStack::ShrinkToFit_()
     }
 }
 
-void DialogStack::Show()
-{
-    bool bClosedAny = false;
-    for (Scoped<Dialog>& pDlg: m_dialogs)
-    {
-        if (pDlg)
-        {
-            if (pDlg->IsOpen())
-            {
-                pDlg->Show();
-            }
-            else
-            {
-                bClosedAny = true;
-                pDlg.Reset();
-            }
-        }
-    }
-
-    // compact closed dialogs
-    if (bClosedAny)
-    {
-        ShrinkToFit_();
-    }
-}
-
-}   // namespace jam
+}   // namespace Jam

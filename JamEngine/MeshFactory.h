@@ -1,10 +1,10 @@
 #pragma once
 #include "GraphicsBase.h"
-#include "MemView.h"
-#include "Mesh.h"
+#include "MemoryBlock.h"
 
-namespace jam
+namespace Jam
 {
+class Mesh;
 
 struct TangentFrame
 {
@@ -12,31 +12,31 @@ struct TangentFrame
     Vector<Vec3> bitangents;
 };
 
-[[nodiscard]] Mesh CreateCubeMesh(
+[[nodiscard]] Ref<Mesh> CreateCubeMesh(
     Vec3                _size,
     const VertexLayout& _vl);
 
-[[nodiscard]] Mesh CreateSphereMesh(
+[[nodiscard]] Ref<Mesh> CreateSphereMesh(
     float               _radius,
     Int32               _divisionLevel,
     const VertexLayout& _vl);
 
-[[nodiscard]] Mesh CreatePlaneMesh(
+[[nodiscard]] Ref<Mesh> CreatePlaneMesh(
     const Vec2&         _size,
     const VertexLayout& _vl);
 
-[[nodiscard]] Mesh CreateCircle(
+[[nodiscard]] Ref<Mesh> CreateCircle(
     float               _radius,
     Int32               _numTri,
     const VertexLayout& _vl);
 
-[[nodiscard]] Mesh CreateCone(
+[[nodiscard]] Ref<Mesh> CreateCone(
     float               _height,
     float               _radius,
     Int32               _numTri,
     const VertexLayout& _vl);
 
-[[nodiscard]] Mesh CreateCylinder(
+[[nodiscard]] Ref<Mesh> CreateCylinder(
     float               _height,
     float               _radius,
     Int32               _numTries,
@@ -44,14 +44,14 @@ struct TangentFrame
 
 [[nodiscard]] Vector<Vec3> ComputeNormals(
     Span<const Vec3> _positions,
-    CMemView         _idxData,
+    CMemoryBlock     _idxData,
     bool             _bUseU32);
 
 [[nodiscard]] TangentFrame ComputeTangentFrame(
     Span<const Vec3> _positions,
     Span<const Vec3> _normals,
     Span<const Vec2> _texCoords,
-    CMemView         _idxData,
+    CMemoryBlock     _idxData,
     bool             _bUseU32);
 
-}   // namespace jam
+}   // namespace Jam

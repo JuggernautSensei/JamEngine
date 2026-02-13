@@ -3,14 +3,14 @@
 #include "LoopSubdivision.h"
 
 #include "GeometryUtilities.h"
-#include "MemView.h"
 #include "MemoryArena.h"
+#include "MemoryHasher.h"
 
 // 루프 세분화 알고리즘
 // https://pbr-book.org/3ed-2018/Shapes/Subdivision_Surfaces
 // https://en.wikipedia.org/wiki/Loop_subdivision_surface
 
-namespace jam
+namespace Jam
 {
 
 struct SDFace;
@@ -41,8 +41,8 @@ struct SDPoint
         return *this;
     }
 
-    Vec3 position = Vec3::Zero;
-    Vec2 texcoord = Vec2::Zero;
+    Vec3 position = vec3::k_zero;
+    Vec2 texcoord = vec2::k_zero;
 };
 
 struct SDVertex
@@ -69,8 +69,7 @@ struct SDFace
                 return i;
             }
         }
-        JAM_ASSERT(0, "Basic logic error in SDFace::CalcVertexIndex()");
-        return -1;
+        JAM_UNREACHABLE;
     }
 
     [[nodiscard]] SDFace* GetNextFace(
@@ -108,8 +107,7 @@ struct SDFace
                 return pVerts[i];
             }
         }
-        JAM_ASSERT(0, "Basic logic error in SDFace::GetOtherVertex()");
-        return nullptr;
+        JAM_UNREACHABLE;
     }
 
     SDVertex* pVerts[3]      = { nullptr, nullptr, nullptr };
@@ -119,20 +117,27 @@ struct SDFace
 
 struct SDEdge
 {
-    bool operator<(
-        const SDEdge& _other) const
-    {
-        if (pVerts[0] == _other.pVerts[0])
-        {
-            return pVerts[1] < _other.pVerts[1];
-        }
-
-        return pVerts[0] < _other.pVerts[0];
-    }
-
     SDVertex* pVerts[2]    = { nullptr, nullptr };
     SDFace*   pFaces[2]    = { nullptr, nullptr };
     Int32     face0EdgeNum = -1;
+};
+
+struct SDEdgeHash
+{
+    [[nodiscard]] size_t operator()(const SDEdge& _edge) const noexcept
+    {
+        Murmur3Hasher64 hasher {};
+        hasher.Mix(_edge);
+        return hasher.Finish();
+    }
+};
+
+struct SDEdgeEqual
+{
+    [[nodiscard]] bool operator()(const SDEdge& _lhs, const SDEdge& _rhs) const noexcept
+    {
+        return MemEqual(_lhs, _rhs);
+    }
 };
 
 Int32 SDVertex::CalcValence() const
@@ -204,13 +209,13 @@ static float Beta(
     const Int32 _valence)
 {
     return _valence == 3 ? 3.f / 16.f
-                         : 3.f / (8.f * static_cast<float>(_valence));
+                         : 3.f / (8.f * NumericCast<float>(_valence));
 }
 
 static float LoopGamma(
     const Int32 _valence)
 {
-    return 1.f / (static_cast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
+    return 1.f / (NumericCast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
 }
 
 static SDPoint WeightOneRing(
@@ -219,7 +224,7 @@ static SDPoint WeightOneRing(
 {
     const Int32 valence = _pVert->CalcValence();
     const auto  ring    = _pVert->OneRing();
-    const float scale   = 1.0f - static_cast<float>(valence) * _beta;
+    const float scale   = 1.0f - NumericCast<float>(valence) * _beta;
 
     SDPoint point = _pVert->point * scale;
     for (const SDPoint& p: ring)
@@ -244,11 +249,14 @@ static SDPoint WeightBoundary(
     return point;
 }
 
-///////////////////////////////////////////////////////////
+}   // namespace Jam
+
+namespace Jam
+{
 
 LoopSubdivisionOutput LoopSubdivide(
     const Span<const Vec3> _positions,
-    const CMemView         _idxData,
+    const CMemoryBlock     _idxData,
     const bool             _bUseU32,
     const Int32            _level)
 {
@@ -264,17 +272,16 @@ LoopSubdivisionOutput LoopSubdivide(
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     Span<const Vec3> _positions,
     Span<const Vec2> _texcoordsOrEmpty,   // or empty
-    CMemView         _idxData,
+    CMemoryBlock     _idxData,
     bool             _bUseU32,
     Int32            _level)
 {
     JAM_ASSERT(!_positions.empty(), "position data is empty.");
-    JAM_ASSERT(_idxData.IsEmpty(), "index data is invalid.");
 
     MemoryArena arena { 1024 };   // 메모리 아레나
 
     const IndexReader indexReader { _idxData, _bUseU32 };
-    const Int32       numVerts     = _positions.size();
+    const Int32       numVerts     = NumericCast<Int32>(_positions.size());
     const Int32       numIdxes     = CalcNumIndices(_idxData, _bUseU32);
     const Int32       numFaces     = numIdxes / 3;
     const bool        bHasTexCoord = !_texcoordsOrEmpty.empty();
@@ -312,7 +319,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
         SDFace* pFace = faces[i];
         for (Int32 j = 0; j < 3; ++j)
         {
-            const UInt32 idx   = indexReader.ReadAt(i * 3 + j);
+            const UInt32 idx   = indexReader.ReadAt<UInt32>(i * 3 + j);
             SDVertex*    pVert = verts[idx];
             pFace->pVerts[j]   = pVert;
             pVert->pStartFace  = pFace;   // 임의의 면 설정
@@ -320,7 +327,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 엣지 정보 설정
-    HashSet<SDEdge> edgeSet = {};
+    HashSet<SDEdge, SDEdgeHash, SDEdgeEqual> edgeSet = {};
     for (Int32 i = 0; i < numFaces; ++i)
     {
         SDFace* pFace = faces[i];
@@ -398,24 +405,24 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
         // even 버텍스 위치 계산
         for (SDVertex* pVert: verts)
         {
-            if (!pVert->bBoundary)
+            if (pVert->bBoundary)
+            {
+                pVert->pChildVert->point = WeightBoundary(pVert, 1.f / 8.f);
+            }
+            else
             {
                 pVert->pChildVert->point = pVert->bRegular ? WeightOneRing(pVert, 1.f / 16.f)
                                                            : WeightOneRing(pVert, Beta(pVert->CalcValence()));
             }
-            else
-            {
-                pVert->pChildVert->point = WeightBoundary(pVert, 1.f / 8.f);
-            }
         }
 
         // odd 에지 버텍스 위치 계산
-        HashMap<SDEdge, SDVertex*> edgeVertMap = {};
+        HashMap<SDEdge, SDVertex*, SDEdgeHash, SDEdgeEqual> edgeVertMap = {};
         for (SDFace* pFace: faces)
         {
             for (Int32 k = 0; k < 3; ++k)
             {
-                SDEdge edge;
+                SDEdge edge    = {};
                 edge.pVerts[0] = Min(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
                 edge.pVerts[1] = Max(pFace->pVerts[k], pFace->pVerts[(k + 1) % 3]);
 
@@ -490,7 +497,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 최종 위치 보정
-    const Int32 finalNumVerts = verts.size();
+    const Int32 finalNumVerts = NumericCast<Int32>(verts.size());
 
     Vector<SDPoint> limits = {};
     limits.reserve(finalNumVerts);
@@ -527,8 +534,8 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 인덱스 배열 생성
-    const Int32 finalNumFaces     = faces.size();
-    const bool  bUseU32           = IsGreaterThanUInt16(numVerts);
+    const Int32 finalNumFaces     = NumericCast<Int32>(faces.size());
+    const bool  bUseU32           = NeedU32Index(numVerts);
     const Int32 finalNumIdxes     = finalNumFaces * 3;
     const Int32 finalIdxByteWidth = CalcIndicesByteWidth(finalNumIdxes, bUseU32);
 
@@ -559,4 +566,4 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     return output;
 }
 
-}   // namespace jam
+}   // namespace Jam

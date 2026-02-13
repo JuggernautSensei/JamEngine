@@ -2,18 +2,17 @@
 
 #include "PointLightComponent.h"
 
+#include "Camera.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
-#include "JsonUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 void PointLightComponent::Serialize(
-    JsonWriter        _writer,
-    const Ref<Scene>& _pScene,
-    Entity            _owner) const
+    ArchiveWriter& _writer,
+    const Ref<Scene>&,
+    Entity) const
 {
     _writer.WriteField("radiance", radiance);
     _writer.WriteField("intensity", intensity);
@@ -22,9 +21,9 @@ void PointLightComponent::Serialize(
 }
 
 void PointLightComponent::Deserialize(
-    JsonReader        _reader,
-    const Ref<Scene>& _pScene,
-    Entity            _owner)
+    ArchiveReader& _reader,
+    const Ref<Scene>&,
+    Entity)
 {
     _reader.ReadField("radiance", radiance);
     _reader.ReadField("intensity", intensity);
@@ -32,37 +31,38 @@ void PointLightComponent::Deserialize(
     _reader.ReadField("fallOffEnd", fallOffEnd);
 }
 
-void PointLightComponent::Panel_EditComponent(Ref<Scene>& _pScene, Entity _entity)
+void PointLightComponent::DrawEditPanel(
+    const Ref<Scene>&,
+    Entity)
 {
-    // if (ImGui::BeginTable("PointLightEditor", 2, ImGuiTableFlags_SizingFixedFit))
-    if (BeginLabelValueTable("PointLightComponent"))
+    if (BeginLabelTable("PointLightComponent"))
     {
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("radiance");
+        Widget_Text("radiance", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         ImGui::ColorEdit3("##PointlightRadiance", &radiance.x);
 
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("intensity");
+        Widget_Text("intensity", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##PointlightIntensity", &intensity, 0.01f, 0.f);
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##PointlightIntensity", intensity, 0.01f, 0.f, Limits<float>::k_max);
 
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("fall off start");
+        Widget_Text("fall off start", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##PointlightFallOffStart", &fallOffStart, 0.01f, 0.f, fallOffEnd, "%.2fm");
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##PointlightFallOffStart", fallOffStart, 0.01f, 0.f, fallOffEnd, "%.3fm");
 
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("fall off end");
+        Widget_Text("fall off end", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        Widget_DragFloat("##PointlightFallOffEnd", &fallOffEnd, 0.01f, fallOffStart, Camera::k_maxZ, "%.2fm");
+        SetNextItemToAvailWidth();
+        Widget_DragFloat("##PointlightFallOffEnd", fallOffEnd, 0.01f, fallOffStart, Camera::k_maxZ, "%.3fm");
 
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

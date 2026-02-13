@@ -2,99 +2,59 @@
 
 #include "CameraComponent.h"
 
+#include "Archive.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
-#include "JsonUtilities.h"
 #include "Scene.h"
 
-namespace jam
+namespace Jam
 {
 
 void CameraComponent::Serialize(
-    JsonWriter        _writer,
-    const Ref<Scene>& _pScene,
-    Entity            _owner) const
+    ArchiveWriter& _writer,
+    const Ref<Scene>&,
+    Entity) const
 {
-    // camera
-    JsonWriter cmrWriter = _writer.EnterField("camera");
-    cmrWriter.WriteField("projection", camera.GetProjection());
-    cmrWriter.WriteField("nearZ", camera.GetNearZ());
-    cmrWriter.WriteField("farZ", camera.GetFarZ());
-    cmrWriter.WriteField("fovYRad", camera.GetFovYRad());
-    cmrWriter.WriteField("width", camera.GetWidth());
-    cmrWriter.WriteField("height", camera.GetHeight());
-
-    // enable
+    _writer.WriteField("camera", camera);
     _writer.WriteField("enable", bEnabled);
 }
 
 void CameraComponent::Deserialize(
-    JsonReader        _reader,
-    const Ref<Scene>& _pScene,
-    Entity            _owner)
+    ArchiveReader& _reader,
+    const Ref<Scene>&,
+    Entity)
 {
-    // camera
-    JsonReader cmrReader;
-    if (MoveIfHasValue(_reader.EnterField("camera"), cmrReader))
-    {
-        eProjection proj    = camera.GetProjection();
-        float       nearZ   = camera.GetNearZ();
-        float       farZ    = camera.GetFarZ();
-        float       fovYRad = camera.GetFovYRad();
-        float       width   = camera.GetWidth();
-        float       height  = camera.GetHeight();
-
-        cmrReader.ReadField("projection", proj);
-        cmrReader.ReadField("nearZ", nearZ);
-        cmrReader.ReadField("farZ", farZ);
-        cmrReader.ReadField("fovYRad", fovYRad);
-        cmrReader.ReadField("width", width);
-        cmrReader.ReadField("height", height);
-
-        camera.SetProjection(proj);
-        camera.SetNearZ(nearZ);
-        camera.SetFarZ(farZ);
-        camera.SetFovYRad(fovYRad);
-        camera.SetWidth(width);
-        camera.SetHeight(height);
-    }
-
-    // enable
+    _reader.ReadField("camera", camera);
     _reader.ReadField("enable", bEnabled);
 }
 
-void CameraComponent::Panel_EditComponent(
-    const Ref<Scene>& _pScene,
-    const Entity      _entity)
+void CameraComponent::DrawEditPanel(
+    const Ref<Scene>&,
+    Entity)
 {
-    if (BeginLabelValueTable("CameraComponent"))
+    if (BeginLabelTable("CameraComponent"))
     {
-        // variables
-        constexpr Int32 k_minWH = static_cast<Int32>(Camera::k_minWidthHeight);
-        constexpr Int32 k_maxWH = static_cast<Int32>(Camera::k_maxWidthHeight);
-
-        eProjection proj        = camera.GetProjection();
-        Vec2        nearFarZ    = { camera.GetNearZ(), camera.GetFarZ() };
-        float       fovYRad     = camera.GetFovYRad();
-        Vec2i       widthHeight = { static_cast<Int32>(camera.GetWidth()), static_cast<Int32>(camera.GetHeight()) };
+        eProjection proj     = camera.GetProjection();
+        Vec2        nearFarZ = { camera.GetNearZ(), camera.GetFarZ() };
+        float       fovYRad  = camera.GetFovYRad();
+        Vec2        res      = { camera.GetWidth(), camera.GetHeight() };
 
         // projection
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("projection");
+        Widget_Text("projection", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        if (Widget_ProjectionCombo("##CameraProjSelector", proj))
+        SetNextItemToAvailWidth();
+        if (Widget_EnumCombo("##CameraProjSelector", proj))
         {
             camera.SetProjection(proj);
         }
 
         // near z
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("near / far z");
+        Widget_Text("near / far z", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        if (Widget_DragFloat2("##CameraNearFarZ", &nearFarZ.x, 0.01f, Camera::k_minZ, Camera::k_maxZ, "%.3fm"))
+        SetNextItemToAvailWidth();
+        if (Widget_DragFloat2("##CameraNearFarZ", &nearFarZ.x, 0.01f, 0.f, 0.f, "%.3fm"))
         {
             camera.SetNearZ(nearFarZ.x);
             camera.SetFarZ(nearFarZ.y);
@@ -102,9 +62,9 @@ void CameraComponent::Panel_EditComponent(
 
         // fov y
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("fov y");
+        Widget_Text("fov y", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         if (Widget_DragAngle("##CameraFovY", fovYRad))
         {
             camera.SetFovYRad(fovYRad);
@@ -112,24 +72,24 @@ void CameraComponent::Panel_EditComponent(
 
         // width / height
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("width / height");
+        Widget_Text("width / height", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
-        if (Widget_DragInt("##CameraWidthHeight", &widthHeight.x, 0.05f, k_minWH, k_maxWH))
+        SetNextItemToAvailWidth();
+        if (Widget_DragFloat2("##CameraWidthHeight", &res.x))
         {
-            camera.SetWidth(static_cast<float>(widthHeight.x));
-            camera.SetHeight(static_cast<float>(widthHeight.y));
+            camera.SetWidth(res.x);
+            camera.SetHeight(res.y);
         }
 
         // main
         ImGui::TableNextColumn();
-        Widget_FrameAlignedText("enable");
+        Widget_Text("enable", true);
         ImGui::TableNextColumn();
-        SetNextItemAvailWidth();
+        SetNextItemToAvailWidth();
         ImGui::Checkbox("##CameraEnable", &bEnabled);
 
-        ImGui::EndTable()();
+        ImGui::EndTable();
     }
 }
 
-}   // namespace jam
+}   // namespace Jam

@@ -1,10 +1,6 @@
 #pragma once
 
-#include <memory>
-#include <type_traits>
-#include <utility>
-
-namespace jam
+namespace Jam
 {
 
 template<typename T, typename Deleter = std::default_delete<T>>
@@ -22,19 +18,19 @@ public:
     {
     }
 
-    explicit Scoped(T* _ptr)
+    /* implicit */ Scoped(T* _ptr)
         : m_ptr(_ptr)
         , m_deleter()
     {
     }
 
-    explicit Scoped(T* _ptr, const Deleter& _deleter) noexcept
+    /* implicit */ Scoped(T* _ptr, const Deleter& _deleter) noexcept
         : m_ptr(_ptr)
         , m_deleter(_deleter)
     {
     }
 
-    explicit Scoped(T* _ptr, Deleter&& _deleter) noexcept
+    /* implicit */ Scoped(T* _ptr, Deleter&& _deleter) noexcept
         : m_ptr(_ptr)
         , m_deleter(std::move(_deleter))
     {
@@ -147,7 +143,7 @@ public:
         return m_ptr;
     }
 
-    [[nodiscard]] explicit operator bool() const noexcept
+    /* implicit */ operator bool() const noexcept
     {
         return m_ptr != nullptr;
     }
@@ -175,7 +171,7 @@ public:
 private:
     T* m_ptr = nullptr;
 
-    [[no_unique_address]] Deleter m_deleter = Deleter();
+    [[no_unique_address]] Deleter m_deleter = Deleter {};
 };
 
 template<typename T, typename... Args>
@@ -184,4 +180,93 @@ template<typename T, typename... Args>
     return Scoped<T>(new T(std::forward<Args>(args)...));
 }
 
-}   // namespace jam
+template<typename T, typename Deleter>
+class HScoped
+{
+public:
+    HScoped() noexcept
+        : m_handle(NULL)
+        , m_deleter()
+    {
+    }
+
+    /* implicit */ HScoped(T _ptr)
+        : m_handle(_ptr)
+        , m_deleter()
+    {
+    }
+
+    /* implicit */ HScoped(T _ptr, const Deleter& _deleter) noexcept
+        : m_handle(_ptr)
+        , m_deleter(_deleter)
+    {
+    }
+
+    /* implicit */ HScoped(T _ptr, Deleter&& _deleter) noexcept
+        : m_handle(_ptr)
+        , m_deleter(std::move(_deleter))
+    {
+    }
+
+    ~HScoped()
+    {
+        Reset();
+    }
+
+    HScoped(const HScoped&) = delete;
+    HScoped(HScoped&& _other) noexcept
+        : m_handle(_other.Release())
+        , m_deleter(std::move(_other.m_deleter))
+    {
+    }
+
+    HScoped& operator=(const HScoped&) = delete;
+    HScoped& operator=(HScoped&& _other) noexcept
+    {
+        if (this != &_other)
+        {
+            Reset(_other.Release());
+            m_deleter = std::move(_other.m_deleter);
+        }
+        return *this;
+    }
+
+    [[nodiscard]] T Get() const noexcept
+    {
+        return m_handle;
+    }
+
+    [[nodiscard]] T Release() noexcept
+    {
+        T handle = m_handle;
+        m_handle = NULL;
+        return handle;
+    }
+
+    void Reset(T _handle = NULL) noexcept
+    {
+        const T old = m_handle;
+        m_handle    = _handle;
+        if (old != NULL)
+        {
+            m_deleter(old);
+        }
+    }
+
+    /* implicit */ operator bool() const noexcept
+    {
+        return m_handle != NULL;
+    }
+
+    /* implicit */ operator T() const noexcept
+    {
+        return m_handle;
+    }
+
+private:
+    T m_handle = NULL;
+
+    [[no_unique_address]] Deleter m_deleter = Deleter {};
+};
+
+}   // namespace Jam

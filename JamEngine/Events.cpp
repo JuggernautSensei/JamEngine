@@ -2,12 +2,12 @@
 
 #include "Events.h"
 
-namespace jam
+namespace Jam
 {
 
 WindowResizedEvent::WindowResizedEvent(const Int32 _width, const Int32 _height)
     : m_width(_width)
-    , m_height(_height)
+      , m_height(_height)
 {
 }
 
@@ -21,14 +21,15 @@ Int32 WindowResizedEvent::GetHeight() const
     return m_height;
 }
 
-std::string WindowResizedEvent::ToString() const
+void WindowResizedEvent::FormatEventMessage(
+    ScratchBuffer& _buf) const
 {
-    return std::format("WindowResizedEvent: width: {}, height: {}", m_width, m_height);
+    _buf.Format("Window Resized: width={}, height={}", m_width, m_height);
 }
 
 WindowMaximizedEvent::WindowMaximizedEvent(const Int32 _width, const Int32 _height)
     : m_width(_width)
-    , m_height(_height)
+      , m_height(_height)
 {
 }
 
@@ -42,21 +43,21 @@ Int32 WindowMaximizedEvent::GetHeight() const
     return m_height;
 }
 
-std::string WindowMaximizedEvent::ToString() const
+void WindowMaximizedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("WindowMaximizedEvent: width: {}, height: {}", m_width, m_height);
+    _buf.Format("Window Maximized: width={}, height={}", m_width, m_height);
 }
 
 WindowMinimizedEvent::WindowMinimizedEvent() = default;
 
-std::string WindowMinimizedEvent::ToString() const
+void WindowMinimizedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return "WindowMinimizedEvent: WindowsPlatform is minimized";
+    _buf.Format("Window Minimized");
 }
 
 WindowMoveEvent::WindowMoveEvent(const Int32 _x, const Int32 _y)
     : m_x(_x)
-    , m_y(_y)
+      , m_y(_y)
 {
 }
 
@@ -70,16 +71,16 @@ Int32 WindowMoveEvent::GetY() const
     return m_y;
 }
 
-std::string WindowMoveEvent::ToString() const
+void WindowMoveEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("WindowMoveEvent: x: {}, y: {}", m_x, m_y);
+    _buf.Format("Window Moved: x={}, y={}", m_x, m_y);
 }
 
 WindowCloseEvent::WindowCloseEvent() = default;
 
-std::string WindowCloseEvent::ToString() const
+void WindowCloseEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return "WindowCloseEvent: WindowsPlatform is closing";
+    _buf.Format("Window Close Requested");
 }
 
 MouseWheelEvent::MouseWheelEvent(const Int32 _delta)
@@ -87,19 +88,19 @@ MouseWheelEvent::MouseWheelEvent(const Int32 _delta)
 {
 }
 
+void MouseWheelEvent::FormatEventMessage(ScratchBuffer& _buf) const
+{
+    _buf.Format("Mouse Wheel: delta={}", m_delta);
+}
+
 Int32 MouseWheelEvent::GetDelta() const
 {
     return m_delta;
 }
 
-std::string MouseWheelEvent::ToString() const
-{
-    return std::format("MouseWheelEvent: delta: {}", m_delta);
-}
-
 MouseMoveEvent::MouseMoveEvent(const Int32 _x, const Int32 _y)
     : m_x(_x)
-    , m_y(_y)
+      , m_y(_y)
 {
 }
 
@@ -113,9 +114,9 @@ Int32 MouseMoveEvent::GetY() const
     return m_y;
 }
 
-std::string MouseMoveEvent::ToString() const
+void MouseMoveEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("MouseMoveEvent: x: {}, y: {}", m_x, m_y);
+    _buf.Format("Mouse Move: x={}, y={}", m_x, m_y);
 }
 
 MouseDownEvent::MouseDownEvent(const Int32 _vKey)
@@ -128,9 +129,9 @@ Int32 MouseDownEvent::GetVKey() const
     return m_vKey;
 }
 
-std::string MouseDownEvent::ToString() const
+void MouseDownEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("MouseDownEvent: vKey: {}", m_vKey);
+    _buf.Format("Mouse Down: vKey={}", m_vKey);
 }
 
 MouseUpEvent::MouseUpEvent(const Int32 _vKey)
@@ -143,9 +144,9 @@ Int32 MouseUpEvent::GetVKey() const
     return m_vKey;
 }
 
-std::string MouseUpEvent::ToString() const
+void MouseUpEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("MouseUpEvent: vKey: {}", m_vKey);
+    _buf.Format("Mouse Up: vKey={}", m_vKey);
 }
 
 KeyDownEvent::KeyDownEvent(const Int32 _vKey)
@@ -158,9 +159,9 @@ Int32 KeyDownEvent::GetVKey() const
     return m_key;
 }
 
-std::string KeyDownEvent::ToString() const
+void KeyDownEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("KeyDownEvent: vKey: {}", m_key);
+    _buf.Format("Key Down: vKey={}", m_key);
 }
 
 KeyUpEvent::KeyUpEvent(const Int32 _vKey)
@@ -173,28 +174,28 @@ Int32 KeyUpEvent::GetVKey() const
     return m_key;
 }
 
-std::string KeyUpEvent::ToString() const
+void KeyUpEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("KeyUpEvent: vKey: {}", m_key);
+    _buf.Format("Key Up: vKey={}", m_key);
 }
 
 WindowFocusedEvent::WindowFocusedEvent() = default;
 
-std::string WindowFocusedEvent::ToString() const
+void WindowFocusedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return "window focused";
+    _buf.Format("Window Focused");
 }
 
 WindowLostFocusEvent::WindowLostFocusEvent() = default;
 
-std::string WindowLostFocusEvent::ToString() const
+void WindowLostFocusEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return "window lost focus";
+    _buf.Format("Window Lost Focus");
 }
 
-std::string SceneChangedEvent::ToString() const
+void SceneChangedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return "scene changed";
+    _buf.Format("Scene Changed");
 }
 
 EntityCreatedEvent::EntityCreatedEvent(const UID _uid)
@@ -207,9 +208,9 @@ UID EntityCreatedEvent::GetEntityUID() const
     return m_uid;
 }
 
-std::string EntityCreatedEvent::ToString() const
+void EntityCreatedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("EntityCreateEvent: entity UID: {}", m_uid);
+    _buf.Format("Entity Created: UID={}", m_uid);
 }
 
 EntityDestroyedEvent::EntityDestroyedEvent(const UID _uid)
@@ -222,74 +223,75 @@ UID EntityDestroyedEvent::GetEntityUID() const
     return m_uid;
 }
 
-std::string EntityDestroyedEvent::ToString() const
+void EntityDestroyedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("EntityDestroyEvent: entity UID: {}", m_uid);
+    _buf.Format("Entity Destroyed: UID={}", m_uid);
 }
 
-FileAddedEvent::FileAddedEvent(const fs::path& _path)
+FileAddedEvent::FileAddedEvent(const Path& _path)
     : m_path(_path)
 {
 }
 
-fs::path FileAddedEvent::GetPath() const
+Path FileAddedEvent::GetPath() const
 {
     return m_path;
 }
 
-std::string FileAddedEvent::ToString() const
+void FileAddedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("FileAddEvent: path: {}", m_path.string());
+    _buf.Format("File Added: Path={}", m_path);
 }
 
-FileDeletedEvent::FileDeletedEvent(const fs::path& _path)
+FileDeletedEvent::FileDeletedEvent(const Path& _path)
     : m_path(_path)
 {
 }
 
-fs::path FileDeletedEvent::GetPath() const
+Path FileDeletedEvent::GetPath() const
 {
     return m_path;
 }
 
-std::string FileDeletedEvent::ToString() const
+void FileDeletedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("FileDeleteEvent: path: {}", m_path.string());
+    _buf.Format("File Deleted: Path={}", m_path);
 }
 
-FileModifiedEvent::FileModifiedEvent(const fs::path& _path)
+FileModifiedEvent::FileModifiedEvent(const Path& _path)
     : m_path(_path)
 {
 }
 
-fs::path FileModifiedEvent::GetPath() const
+Path FileModifiedEvent::GetPath() const
 {
     return m_path;
 }
 
-std::string FileModifiedEvent::ToString() const
+void FileModifiedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("FileModifiedEvent: path: {}", m_path.string());
+    _buf.Format("File Modified: Path={}", m_path);
 }
 
-FileRenamedEvent::FileRenamedEvent(const fs::path& _old, const fs::path& _new)
+FileRenamedEvent::FileRenamedEvent(const Path& _old, const Path& _new)
     : m_old(_old)
-    , m_new(_new)
+      , m_new(_new)
 {
 }
 
-fs::path FileRenamedEvent::GetOldPath() const
+Path FileRenamedEvent::GetOldPath() const
 {
     return m_old;
 }
 
-fs::path FileRenamedEvent::GetNewPath() const
+Path FileRenamedEvent::GetNewPath() const
 {
     return m_new;
 }
 
-std::string FileRenamedEvent::ToString() const
+void FileRenamedEvent::FormatEventMessage(ScratchBuffer& _buf) const
 {
-    return std::format("FileRenamedEvent: old path: {}, new path: {}", m_old.string(), m_new.string());
+    _buf.Format("File Renamed: OldPath={} NewPath={}", m_old, m_new);
 }
-}   // namespace jam
+
+}   // namespace Jam

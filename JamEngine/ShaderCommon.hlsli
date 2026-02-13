@@ -1,7 +1,7 @@
 #ifndef SHADER_COMMON_HLSL_H
 #define SHADER_COMMON_HLSL_H
 
-#include "ShaderBridge.h"
+//#include "ShaderBridge.h"
 
 //// far: close to 0, near: close to 1
 //float ComputeAttenuation(float _distance, float _cb_light_fallOffStart, float _cb_light_fallOffEnd)

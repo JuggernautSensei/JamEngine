@@ -1,7 +1,11 @@
 #pragma once
+#include "GraphicsBase.h"
 
-namespace jam
+namespace Jam
 {
+
+using ImageContainer = DirectX::ScratchImage;
+using ImageBlob      = DirectX::Blob;
 
 enum class eImageFormat
 {
@@ -25,9 +29,8 @@ enum class eImageFormat
     HEIC
 };
 
-// extract image format from _path or string
-[[nodiscard]] Optional<eImageFormat> ImageFormatFrom(const fs::path& _path);
-[[nodiscard]] Optional<eImageFormat> ImageFormatFrom(StringView _format);
-[[nodiscard]] StringView             ExtensionOf(eImageFormat _format, bool _bIncludeDot = false);
+[[nodiscard]] Optional<eImageFormat> ParseAsImageFormat(const Path& _path);
+[[nodiscard]] Optional<eImageFormat> ParseAsImageFormat(StringView _ext);
+[[nodiscard]] StringView             ExtensionOf(eImageFormat _format);   // include dot
 
-}   // namespace jam
+}   // namespace Jam

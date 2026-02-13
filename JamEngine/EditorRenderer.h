@@ -3,31 +3,28 @@
 #include "GraphicsBase.h"
 #include "Mesh.h"
 
-namespace jam
+namespace Jam
 {
 
 struct RenderView;
 
-enum class eAcroballAxis
+enum class eDrawGridFlags : UInt32
 {
-    X,
-    Y,
-    Z,
+    None = 0,
+    Grid = 1 << 0,
+    Axis = 1 << 1,
 };
-
-enum eDrawGridFlags_
-{
-    eDrawGridFlags_None = 0,
-    eDrawGridFlags_Grid = 1 << 0,
-    eDrawGridFlags_Axis = 1 << 1,
-};
-using eDrawGridFlags = UInt32;
 
 class EditorRenderer
 {
 public:
-    void Init();
-    void Shutdown();
+    EditorRenderer();
+    ~EditorRenderer();
+
+    EditorRenderer(const EditorRenderer&)            = delete;
+    EditorRenderer& operator=(const EditorRenderer&) = delete;
+    EditorRenderer(EditorRenderer&&)                 = delete;
+    EditorRenderer& operator=(EditorRenderer&&)      = delete;
 
     void Begin(const RenderView& _view);
     void End();
@@ -36,12 +33,12 @@ public:
     void SetColor(RGBA _color);
 
     // grid rendering
-    void DrawGrid(eDrawGridFlags _flags);
+    void DrawGrid(Flags<eDrawGridFlags> _flags);
 
     // line rendering
     void DrawLine(Vec3 _from, Vec3 _to, RGBA _color);
-    void DrawBoundingBox(const Aabb& _aabbInL, const Mat4& _mtx, RGBA _color);
-    void DrawFrustum(const Mat4& _viewProjMtx, RGBA _rgba);
+    void DrawBoundingBox(const Aabb& _aabbInL, const Mtx4& _mtx, RGBA _color);
+    void DrawFrustum(const Mtx4& _viewProjMtx, RGBA _rgba);
     void DrawCircle(Vec3 _center, Vec3 _normal, float _radius, RGBA _color, Int32 _segments = 32);
     void FlushLines();
 
@@ -52,16 +49,14 @@ public:
     void DrawFilledCapsule(Vec3 _center, Vec3 _dir, float _height, float _radius, RGBA _color);
 
 private:
-    void CreateGridQuad_();
-    void CreatePrimitives_();
     void FlushLines_();
-    void UploadTransform_(const Mat4& _world) const;
+    void UploadTransform_(const Mtx4& _world) const;
     void DrawGrid_() const;
 
     // 라인 배칭
     struct LineVertex
     {
-        Vec3 position = Vec3::Zero;
+        Vec3 position = vec3::k_zero;
         RGBA rgba     = RGBA::k_white;
 
         inline static VertexLayout s_vl = {};
@@ -93,28 +88,28 @@ private:
     ProgramHandle m_filledPh = k_invalidHandle;
 
     // 프리미티브 메쉬
-    Mesh m_sphereMesh   = {};
-    Mesh m_cylinderMesh = {};
-    Mesh m_cubeMesh     = {};
+    Ref<Mesh> m_sphereMesh   = nullptr;
+    Ref<Mesh> m_cylinderMesh = nullptr;
+    Ref<Mesh> m_cubeMesh     = nullptr;
 
     // 상태
     RenderState m_lineState   = {};
     RenderState m_gridState   = {};
     RenderState m_filledState = {};
 
-    BlendState     m_blendState    = {};
-    RGBA           m_currentColor  = RGBA::k_white;
-    eDrawGridFlags m_drawGridFlags = eDrawGridFlags_None;
-    bool           m_bBeginRender  = false;
+    BlendState            m_blendState    = {};
+    RGBA                  m_currentColor  = RGBA::k_white;
+    Flags<eDrawGridFlags> m_drawGridFlags = eDrawGridFlags::None;
+    bool                  m_bBeginRender  = false;
 
     // 카메라
-    Vec3 m_eye  = Vec3::Zero;
-    Mat4 m_view = Mat4::Identity;
-    Mat4 m_proj = Mat4::Identity;
-    
+    Vec3 m_eye  = vec3::k_zero;
+    Mtx4 m_view = mtx4::k_identity;
+    Mtx4 m_proj = mtx4::k_identity;
+
     // 쉐이더 코드
     static const char* const k_gridShaderSource;
     static const char* const k_lineShaderSource;
 };
 
-}   // namespace jam
+}   // namespace Jam

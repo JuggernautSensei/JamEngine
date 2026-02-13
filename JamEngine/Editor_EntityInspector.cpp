@@ -2,13 +2,15 @@
 
 #include "Editor_EntityInspector.h"
 
-#include "ComponentDB.h"
+#include "ReflectionDB.h"
 #include "Editor.h"
+#include "EditorUtilities.h"
+#include "EditorWidgets.h"
 #include "Entity.h"
 #include "Scene.h"
 #include "SceneManager.h"
 
-namespace jam
+namespace Jam
 {
 
 void Editor_EntityInspector::OnImGuiRender(
@@ -21,18 +23,18 @@ void Editor_EntityInspector::OnImGuiRender(
     }
 
     // scene check
-    if (!SceneManager::HasActiveScene())
+    if (!JAM_SCENE_MGR.HasActiveScene())
     {
-        Widget_CenteredText("scene not loaded");
+        Widget_TextFrame("scene not loaded", ImGui::GetContentRegionAvail());
         ImGui::End();
         return;
     }
 
     // entity check
-    const Entity entity = Editor::GetFocusedEntity();
+    const Entity entity = JAM_EDITOR.GetFocusingEntity();
     if (!entity)
     {
-        Widget_CenteredText("entity not selected");
+        Widget_TextFrame("entity not selected", ImGui::GetContentRegionAvail());
         ImGui::End();
         return;
     }
@@ -66,16 +68,17 @@ void Editor_EntityInspector::OnImGuiRender(
     }
 
     // component editor
-    const ComponentDB& db     = ComponentDB::GetInstance();
-    Ref<Scene>&        pScene = SceneManager::GetActiveScene();
-    for (const ComponentInfo& info: db.GetComponentInfoMap() | std::views::values)
+    const ReflectionDB& db     = ReflectionDB::GetInstance();
+    const Ref<Scene>&   pScene = JAM_SCENE_MGR.GetActiveScene();
+    for (const ComponentMetadata& meta: db.GetComponentMetadataContainer() | std::views::values)
     {
-        if (info.hasFn(entity) && info.drawEditorFn)
+        if (meta.Has(entity) && meta.Panel_EditComponent)
         {
             // render collapsing header
-            const char* label = info.displayName.c_str();
+            const char* label = meta.editorDisplayName.GetPtr();
             bool        bOpen = false;
-            if (info.bCannotRemovable)
+
+            if (meta.bCannotRemove)
             {
                 bOpen = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
             }
@@ -85,11 +88,11 @@ void Editor_EntityInspector::OnImGuiRender(
                 bOpen         = ImGui::CollapsingHeader(label, &bVisible, ImGuiTreeNodeFlags_DefaultOpen);
 
                 // render collapsing header right popup
-                if (ImGui::BeginPopupContextItem(0))
+                if (ImGui::BeginPopupContextItem())
                 {
                     if (Widget_MenuItem("remove"))
                     {
-                        info.removeDeferedFn(entity);
+                        meta.RemoveDefered(entity);
                     }
                     ImGui::EndPopup();
                 }
@@ -97,16 +100,16 @@ void Editor_EntityInspector::OnImGuiRender(
                 // if not visible anymore, remove component
                 if (!bVisible)
                 {
-                    info.removeDeferedFn(entity);
+                    meta.RemoveDefered(entity);
                 }
             }
 
             // render editors if open collapsing header
             if (bOpen)
             {
-                if (void* pCmp = info.getFn(entity))
+                if (void* pCmp = meta.Get(entity))
                 {
-                    info.drawEditorFn(pCmp, pScene, entity);
+                    meta.Panel_EditComponent(pCmp, pScene, entity);
                 }
                 ImGui::Spacing();
             }
@@ -134,15 +137,15 @@ void Editor_EntityInspector::OnImGuiRender(
 
 void Editor_EntityInspector::Menu_RemoveComponent_() const
 {
-    const ComponentDB& db     = ComponentDB::GetInstance();
-    const Entity       entity = Editor::GetFocusedEntity();
-    for (const ComponentInfo& info: db.GetComponentInfoMap() | std::views::values)
+    const Entity        entity = JAM_EDITOR.GetFocusingEntity();
+    const ReflectionDB& db     = ReflectionDB::GetInstance();
+    for (const ComponentMetadata& meta: db.GetComponentMetadataContainer() | std::views::values)
     {
-        if (info.hasFn(entity) && !info.bCannotRemovable)
+        if (meta.Has(entity) && !meta.bCannotRemove)
         {
-            if (Widget_MenuItem(info.displayName.c_str()))
+            if (Widget_MenuItem(meta.editorDisplayName.GetPtr()))
             {
-                info.removeDeferedFn(entity);
+                meta.RemoveDefered(entity);
             }
         }
     }
@@ -150,17 +153,17 @@ void Editor_EntityInspector::Menu_RemoveComponent_() const
 
 void Editor_EntityInspector::Menu_AddComponent_() const
 {
-    const ComponentDB& db     = ComponentDB::GetInstance();
-    const Entity       entity = Editor::GetFocusedEntity();
-    for (const ComponentInfo& info: db.GetComponentInfoMap() | std::views::values)
+    const Entity        entity = JAM_EDITOR.GetFocusingEntity();
+    const ReflectionDB& db     = ReflectionDB::GetInstance();
+    for (const ComponentMetadata& meta: db.GetComponentMetadataContainer() | std::views::values)
     {
-        if (!info.hasFn(entity) && !info.bCannotCreatable)
+        if (!meta.Has(entity) && !meta.bCannotCreateInEditor)
         {
-            if (Widget_MenuItem(info.displayName.c_str()))
+            if (Widget_MenuItem(meta.editorDisplayName.GetPtr()))
             {
-                info.createDeferedFn(entity);
+                meta.CreateDefered(entity);
             }
         }
     }
 }
-}   // namespace jam
+}   // namespace Jam

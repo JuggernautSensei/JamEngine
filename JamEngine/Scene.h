@@ -3,8 +3,9 @@
 #include "Environment.h"
 #include "RenderView.h"
 #include "UID.h"
+#include "UIDGenerator.h"
 
-namespace jam
+namespace Jam
 {
 
 class Model;
@@ -35,6 +36,11 @@ public:
     virtual void OnEvent(Event& _event) {}
     virtual void OnResize(Int32 _width, Int32 _height) {}
 
+    // rtti
+    virtual StringView GetTypeFullName() const = 0;
+    virtual StringView GetTypeName() const     = 0;
+    virtual UInt32     GetTypeHash() const     = 0;
+
     // scene buffer
     [[nodiscard]] virtual TextureHandle GetDepthTexture() const;
 
@@ -50,9 +56,9 @@ public:
     void DestroyEntity(Entity _entity);
     void DestroyEntityDefered(Entity _entity);
 
-    [[nodiscard]] Entity GetEntity(UID _uid) const;
-    [[nodiscard]] Entity FindEntity(UID _uid) const;   // 해당 UID를 가진 엔티티가 없으면 null 엔티티 반환
-    [[nodiscard]] bool   IsEntityValid(Entity _entity) const;
+    [[nodiscard]] Entity           GetEntity(UID _uid) const;
+    [[nodiscard]] Optional<Entity> FindEntity(UID _uid) const;
+    [[nodiscard]] bool             IsEntityValid(Entity _entity) const;
 
     Entity CreateEntitiesFrom(const Ref<Model>& _pModel);
     UID    CreateEntitiesDeferedFrom(const Ref<Model>& _pModel);   // returns the UID of the root entity. UID is invalid this frame, valid next frame
@@ -82,8 +88,8 @@ public:
         return m_registry.view<Args...>().each();
     }
 
-    [[nodiscard]] const entt::registry& GetRegistry() const;
-    [[nodiscard]] entt::registry&       GetRegistry();
+    [[nodiscard]] const SceneRegistry& GetRegistry() const;
+    [[nodiscard]] SceneRegistry&       GetRegistry();
 
     // item
     [[nodiscard]] Entity                      GetRootEntity() const;
@@ -91,7 +97,8 @@ public:
     [[nodiscard]] const HashMap<UID, Entity>& GetEntities() const;
     [[nodiscard]] Vector<Entity>              GetModifiedTransformEntities() const;   // 해당 배열은 OnRender 함수 호출 직전에 초기화됨
 
-    [[nodiscard]] virtual StringView GetTypeName() const = 0;
+    static constexpr StringView k_extension = ".jsc";
+    static constexpr StringView k_filter    = "*.jsc";
 
 protected:
     Scene();
@@ -103,14 +110,14 @@ private:
     void   CreateEntityDefered_(UID _allocedUid, StringView _nameOrEmpty);
 
     // clone entity
-    Entity CloneEntity_(UID _allocatedUid, Entity _srcEntity);
-    Entity CloneEntity_Recursive_(UID _allocatedUid, Entity _srcEntity);
-    void   CloneEntityDefered_(UID _allocatedUid, Entity _srcEntity);
+    Entity CloneEntity_(UID _allocedUid, Entity _srcEntity);
+    Entity CloneEntity_Recursive_(UID _allocedUid, Entity _srcEntity);
+    void   CloneEntityDefered_(UID _allocedUid, Entity _srcEntity);
 
     // create from model
-    Entity CreateEntitiesFrom_Recursive_(UID _allocatedUid, const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
-    Entity CreateEntitiesFrom_(UID _allocatedUid, const Ref<Model>& _pModel);
-    void   CreateEntitiesFromDefered_(UID _allocatedUid, const Ref<Model>& _pModel);
+    Entity CreateEntitiesFrom_Recursive_(UID _allocedUid, const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
+    Entity CreateEntitiesFrom_(UID _allocedUid, const Ref<Model>& _pModel);
+    void   CreateEntitiesFromDefered_(UID _allocedUid, const Ref<Model>& _pModel);
 
     // destroy entity
     void DestroyEntity_Recursive_(Entity _entity);
@@ -118,25 +125,13 @@ private:
     // scene graph update
     void UpdateSceneGraph_();   // call before rendering
 
-    entt::registry       m_registry                  = {};
+    SceneRegistry        m_registry                  = {};
     UIDGenerator         m_uidGenerator              = {};
     HashMap<UID, Entity> m_entities                  = {};
-    Entity               m_root                      = Entity::s_null;
-    Vector<Entity>       m_modifiedTransformEntities = {};
+    Entity               m_root                      = Entity::k_invalid;
+    Vector<Entity>       m_transformModifiedEntities = {};
 
-    constexpr static UID k_reservedUidForRoot = 0;
+    inline static UID k_rootEntityUid = UID { 0 };
 };
 
-}   // namespace jam
-
-#define JAM_SCENE(_class)                                                           \
-public:                                                                             \
-    constexpr static StringView k_typename = NameOf<_class>();                      \
-    [[nodiscard]] StringView    GetTypeName() const override { return k_typename; } \
-                                                                                    \
-private:                                                                            \
-    inline static bool _scene_reflect_ = []                                         \
-    {                                                                               \
-        jam::SceneDB::GetInstance().Reflect<_class>();                              \
-        return true;                                                                \
-    }()
+}   // namespace Jam

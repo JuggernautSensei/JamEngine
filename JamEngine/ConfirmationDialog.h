@@ -1,19 +1,27 @@
 #pragma once
 #include "Dialog.h"
 
-namespace jam
+namespace Jam
 {
+
+struct ConfirmationDialogDesc
+{
+    DialogDesc       baseDesc  = {};
+    StringView       msg       = {};
+    Delegate<void()> OnConfirm = nullptr;
+    Delegate<void()> OnCancel  = nullptr;
+};
 
 class ConfirmationDialog : public Dialog
 {
 public:
-    explicit ConfirmationDialog(StringView _title, StringView _msg, const std::function<void()>& _onOk, const std::function<void()>& _onCancel = nullptr, ImVec2 _size = { 0.f, 0.f }, eDialogFlags _flags = 0);
+    explicit ConfirmationDialog(const ConfirmationDialogDesc& _desc);
     void OnShow() override;
 
 private:
-    std::function<void()> m_onOk     = nullptr;
-    std::function<void()> m_onCancel = nullptr;
-    std::string           m_msg      = {};
+    String           m_msg           = {};
+    Delegate<void()> m_OnClickOk     = nullptr;
+    Delegate<void()> m_OnClickCancel = nullptr;
 };
 
-}   // namespace jam
+}   // namespace Jam

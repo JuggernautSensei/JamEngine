@@ -2,10 +2,26 @@
 
 #include "Timer.h"
 
-namespace jam
+namespace Jam
 {
 
-double NsTo(const Int64 _ns, const eSIPrefix _unit)
+StringView StringFrom(
+    const eSIPrefix _unit)
+{
+    switch (_unit)
+    {
+        case eSIPrefix::Nano: return "ns";
+        case eSIPrefix::Micro: return "µs";
+        case eSIPrefix::Milli: return "ms";
+        case eSIPrefix::Sec: return "s";
+        default:
+            JAM_UNREACHABLE;
+    }
+}
+
+double NsTo(
+    const Int64     _ns,
+    const eSIPrefix _unit)
 {
     switch (_unit)
     {
@@ -14,8 +30,26 @@ double NsTo(const Int64 _ns, const eSIPrefix _unit)
         case eSIPrefix::Milli: return static_cast<double>(_ns) * 1e-6;
         case eSIPrefix::Sec: return static_cast<double>(_ns) * 1e-9;
         default:
-            JAM_ASSERT(0, "Unknown time unit");
-            return 0.f;
+            JAM_UNREACHABLE;
+    }
+}
+
+float NsToFloat(
+    const Int64     _ns,
+    const eSIPrefix _unit)
+{
+    switch (_unit)
+    {
+        case eSIPrefix::Nano:
+            return NumericCast<float>(_ns);
+        case eSIPrefix::Micro:
+            return NumericCast<float>(_ns) * 1e-3f;
+        case eSIPrefix::Milli:
+            return NumericCast<float>(_ns) * 1e-6f;
+        case eSIPrefix::Sec:
+            return NumericCast<float>(_ns) * 1e-9f;
+        default:
+            JAM_UNREACHABLE;
     }
 }
 
@@ -66,9 +100,21 @@ double Timer::GetTotal(const eSIPrefix _unit) const
     return NsTo(m_totalNs, _unit);
 }
 
+float Timer::GetTotalFloat(
+    const eSIPrefix _unit) const
+{
+    return NsToFloat(m_totalNs, _unit);
+}
+
 double Timer::GetInterval(const eSIPrefix _unit) const
 {
     return NsTo(m_intervalNs, _unit);
+}
+
+float Timer::GetIntervalFloat(
+    const eSIPrefix _unit) const
+{
+    return NsToFloat(m_intervalNs, _unit);
 }
 
 Int64 Timer::GetTotalNs() const
@@ -104,9 +150,33 @@ Int64 TickTimer::GetDeltaNs() const
     return m_deltaNs;
 }
 
-double TickTimer::GetDelta(const eSIPrefix _unit) const
+double TickTimer::GetDelta(
+    const eSIPrefix _unit) const
 {
     return NsTo(m_deltaNs, _unit);
+}
+
+float TickTimer::GetDeltaFloat(
+    const eSIPrefix _unit) const
+{
+    return NsToFloat(m_deltaNs, _unit);
+}
+
+ScopedTimer::ScopedTimer(
+    const StringView _name,
+    const eSIPrefix  _unit)
+    : m_name(_name)
+    , m_unit(_unit)
+{
+    JAM_LOG.Trace(R"([TIMER START] {})", m_name);
+    Start();
+}
+
+ScopedTimer::~ScopedTimer()
+{
+    Stop();
+    double elapsedTime = GetTotal(m_unit);
+    JAM_LOG.Trace(R"([TIMER END] {} [{:3f}{}])", m_name, elapsedTime, StringFrom(m_unit));
 }
 
 TimeStamp TimeStamp::Current()
@@ -115,10 +185,10 @@ TimeStamp TimeStamp::Current()
     const auto        now = system_clock::now();
     const auto        ms  = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
     const std::time_t t   = system_clock::to_time_t(now);
-    std::tm           tm;
-    TimeStamp         stamp;
 
-    if (localtime_s(&tm, &t) == 0)
+    std::tm   tm    = {};
+    TimeStamp stamp = {};
+    if (::localtime_s(&tm, &t) == 0)
     {
         stamp.year        = 1900 + tm.tm_year;
         stamp.month       = 1 + tm.tm_mon;
@@ -132,19 +202,4 @@ TimeStamp TimeStamp::Current()
     return stamp;
 }
 
-ScopedTimer::ScopedTimer(const StringView _name, const eSIPrefix _unit)
-    : m_name(_name)
-    , m_unit(_unit)
-{
-    Log::Trace(R"([TIMER START] {})", m_name);
-    Start();
-}
-
-ScopedTimer::~ScopedTimer()
-{
-    Stop();
-    double elapsedTime = GetTotal(m_unit);
-    Log::Trace(R"([TIMER END] {} [{:3f} {}])", m_name, elapsedTime, StringFrom(m_unit));
-}
-
-}   // namespace jam
+}   // namespace Jam

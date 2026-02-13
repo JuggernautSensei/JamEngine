@@ -3,6 +3,7 @@
 #include "Editor.h"
 
 #include "Application.h"
+#include "AssetManager.h"
 #include "ConfirmationDialog.h"
 #include "Editor_EntityInspector.h"
 #include "Editor_FileBrowser.h"
@@ -11,102 +12,46 @@
 #include "Editor_SceneView.h"
 #include "Editor_VertexLayoutEditor.h"
 #include "Entity.h"
-#include "Vendor/imgui/ImGuizmo.h"
 #include "DialogStack.h"
-#include "EditorUtilities.h"
 #include "Graphics.h"
 #include "MessageDialog.h"
 #include "SVGImporter.h"
 #include "JamEngineEditorEmbededIcons.h"
-#include "SceneDeserializer.h"
+#include "JsonArchive.h"
 #include "SceneManager.h"
 #include "SceneNode.h"
+#include "VertexLayoutEntry.h"
+#include "Model.h"
+#include "Profile.h"
 #include "SceneSerializer.h"
 
-namespace jam
+namespace Jam
 {
 
-struct EditorContext
-{
-    void OnSceneChanged(SceneChangedEvent& _event);
-    void OnEntityDestroyed(const EntityDestroyedEvent& _event);
-
-    void Menu_File() const;
-    void Menu_Window();
-    void Menu_Options() const;
-
-    void ShowWorkspace();
-    void SetupDefaultTheme() const;
-    void LoadIcons();
-
-    // config
-    void UpdateAutoSaveConfig(float _deltaSec);
-    void SaveConfig() const;
-    void LoadConfig() const;
-
-    [[nodiscard]] Ref<ImageTexture> LoadIconFromSvg(StringView _svg) const;
-    [[nodiscard]] bool&             GetWindowShow(eEditorWindowType _type);
-
-    void OnClickDestroyEntityConfirmationDialogYesButton(const Ref<Scene>& _pScene, Entity _entity) const;
-
-    // windows
-    Editor_SceneView          renderViewWindow         = {};
-    Editor_Profiler           profilerWindow           = {};
-    Editor_SceneHierarchy     sceneHierarchyWindow     = {};
-    Editor_EntityInspector    entityInspectorWindow    = {};
-    Editor_FileBrowser        fileBrowserWindow        = {};
-    Editor_VertexLayoutEditor vertexLayoutEditorWindow = {};
-
-    Array<bool, NumEnums<eEditorWindowType>()> windowShows = {};
-
-    // data
-    Entity              focusedEntity = Entity::s_null;
-    eEditorMode         mode          = eEditorMode::Edit;
-    EditorStyle         style         = {};
-    VertexLayoutMap vlStorage     = {};
-    DialogStack         dialogStack   = {};
-    EditorIcons         icons         = {};
-
-    fs::path configPath           = {};
-    float    configSaveCounterSec = 0.f;
-
-    constexpr static float       k_configSaveIntervalSec = 10.f;   // save config every 10 seconds
-    constexpr static const char* k_configFileName        = "EditorConfig.json";
-    constexpr static Vec2i       k_iconSize              = { 64, 64 };
-
-}* g_pEdtCtx;
-
-void EditorContext::OnClickDestroyEntityConfirmationDialogYesButton(
-    const Ref<Scene>& _pScene,
-    const Entity      _entity) const
-{
-    _pScene->DestroyEntity(_entity);
-}
-
-void EditorContext::OnSceneChanged(
+void Editor::OnSceneChanged_(
     SceneChangedEvent& _event)
 {
-    focusedEntity = Entity::s_null;
+    focusedEntity = Entity::k_invalid;
 }
 
-void EditorContext::OnEntityDestroyed(
+void Editor::OnEntityDestroyed_(
     const EntityDestroyedEvent& _event)
 {
     if (focusedEntity.GetUID() == _event.GetEntityUID())
     {
-        focusedEntity = Entity::s_null;
+        focusedEntity = Entity::k_invalid;
     }
 }
 
-void EditorContext::Menu_File() const
+void Editor::Menu_File_() const
 {
     if (Widget_MenuItem("exit"))
     {
-        Application::GetInstance().Quit();
+        JAM_APP.Quit();
     }
 }
 
-void EditorContext::Menu_Window()
+void Editor::Menu_Window_()
 {
     Widget_MenuItem("scene view", 0, &GetWindowShow(eEditorWindowType::SceneView));
     Widget_MenuItem("scene hierarchy", 0, &GetWindowShow(eEditorWindowType::SceneHierarchy));
@@ -116,7 +61,7 @@ void EditorContext::Menu_Window()
     Widget_MenuItem("vertex layout editor", 0, &GetWindowShow(eEditorWindowType::VertexLayoutEditor));
 }
 
-void EditorContext::Menu_Options() const
+void Editor::Menu_Options_() const
 {
     if (ImGui::BeginMenu("font scale"))
     {
@@ -125,7 +70,7 @@ void EditorContext::Menu_Options() const
     }
 }
 
-void EditorContext::ShowWorkspace()
+void Editor::ShowWorkspace_()
 {
     // 풀스크린 도크스페이스. 에디터의 베이스가 됨
     {
@@ -158,19 +103,19 @@ void EditorContext::ShowWorkspace()
         {
             if (ImGui::BeginMenu("file"))
             {
-                Menu_File();
+                Menu_File_();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("window"))
             {
-                Menu_Window();
+                Menu_Window_();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("options"))
             {
-                Menu_Options();
+                Menu_Options_();
                 ImGui::EndMenu();
             }
 
@@ -181,7 +126,7 @@ void EditorContext::ShowWorkspace()
     ImGui::End();
 }
 
-void EditorContext::SetupDefaultTheme() const
+void Editor::SetupDefaultTheme_() const
 {
     // imgui style
     {
@@ -303,427 +248,634 @@ void EditorContext::SetupDefaultTheme() const
     }
 }
 
-void EditorContext::SaveConfig() const
+void Editor::LoadIcons_()
 {
-    // Json json;
-    // json["windowShows"] = g_pEdtCtx->windowShows;
-    // json["fontScale"]   = ImGui::GetIO().FontGlobalScale;
-    // json["viewport"]    = g_pEdtCtx->renderViewWindow.OnSerialize();
-    // json["fileBrowser"] = g_pEdtCtx->fileBrowserWindow.OnSerialize();
-    //
-    // const fs::path path = g_pEdtCtx->CreateConfigFilePath();
-    // if (SaveJsonFile(path, json))
-    //{
-    //     JAM_DEBUG_LOG("editor config saved.");
-    // }
-    // else
-    //{
-    //     JAM_ASSERT(0, "failed to save editor config file.");
-    // }
-
-    //   Json       json;
-    //   JsonWriter writer { json };
-    //   writer.WriteField("windowShows", g_pEdtCtx->windowShows);
-    //   writer.WriteField("fontScale", ImGui::GetIO().FontGlobalScale);
+    icons.SetIcon(eEditorIcon::Cursor, LoadIconFromSvgSource(k_cursorIconSvg));
+    icons.SetIcon(eEditorIcon::Stop, LoadIconFromSvgSource(k_stopIconSvg));
+    icons.SetIcon(eEditorIcon::Menu, LoadIconFromSvgSource(k_menuIconSvg));
+    icons.SetIcon(eEditorIcon::Play, LoadIconFromSvgSource(k_playIconSvg));
+    icons.SetIcon(eEditorIcon::Rotation, LoadIconFromSvgSource(k_rotationIconSvg));
+    icons.SetIcon(eEditorIcon::Scale, LoadIconFromSvgSource(k_scaleIconSvg));
+    icons.SetIcon(eEditorIcon::Translation, LoadIconFromSvgSource(k_translationIconSvg));
 }
 
-void EditorContext::LoadConfig() const
-{
-    //    const fs::path path = g_pEdtCtx->CreateConfigFilePath();
-    //    if (!fs::exists(path))   // no config file
-    //    {
-    //        return;
-    //    }
-    //
-    //    const Optional<Json> opt = LoadJsonFile(path);
-    //    if (!opt)
-    //    {
-    //        // discard if failed to load
-    //        return;
-    //    }
-    //
-    //    // json
-    //    const Json& json = opt.value();
-    //
-    //    try
-    //    {
-    //        // font scale
-    //        ImGuiIO& io        = ImGui::GetIO();
-    //        io.FontGlobalScale = json.value("fontScale", io.FontGlobalScale);
-    //
-    //        // window shows
-    //        g_pEdtCtx->windowShows = json.value("windowShows", g_pEdtCtx->windowShows);
-    //
-    //        // vertex layout
-    //        if (const auto it = json.find("vertexLayoutStorage"); it != json.end())
-    //        {
-    //            const Json& vlJson   = *it;
-    //            g_pEdtCtx->vlStorage = DeserializeVertexLayoutStorage(vlJson);
-    //        }
-    //
-    //        // viewport
-    //        if (const auto it = json.find("viewport"); it != json.end())
-    //        {
-    //            const Json& vpJson = *it;
-    //            g_pEdtCtx->renderViewWindow.OnDeserialize(vpJson);
-    //        }
-    //
-    //        // file browser
-    //        if (const auto it = json.find("fileBrowser"); it != json.end())
-    //        {
-    //            const Json& fileBrowserJson = *it;
-    //            g_pEdtCtx->fileBrowserWindow.OnDeserialize(fileBrowserJson);
-    //        }
-    //    }
-    //    catch (const std::exception& e)
-    //    {
-    //        // not a critical error, just discard
-    //        Log::Warn("failed to parse editor config file: {}", e.what());
-    //    }
-}
-
-void EditorContext::LoadIcons()
-{
-    icons.SetIcon(eEditorIcon::Cursor, LoadIconFromSvg(k_cursorIconSvg));
-    icons.SetIcon(eEditorIcon::Stop, LoadIconFromSvg(k_stopIconSvg));
-    icons.SetIcon(eEditorIcon::Menu, LoadIconFromSvg(k_menuIconSvg));
-    icons.SetIcon(eEditorIcon::Play, LoadIconFromSvg(k_playIconSvg));
-    icons.SetIcon(eEditorIcon::Rotation, LoadIconFromSvg(k_rotationIconSvg));
-    icons.SetIcon(eEditorIcon::Scale, LoadIconFromSvg(k_scaleIconSvg));
-    icons.SetIcon(eEditorIcon::Translation, LoadIconFromSvg(k_translationIconSvg));
-}
-
-void EditorContext::UpdateAutoSaveConfig(
+void Editor::UpdateAutoSaveState_(
     const float _deltaSec)
 {
     configSaveCounterSec += _deltaSec;
-    if (configSaveCounterSec >= EditorContext::k_configSaveIntervalSec)
+    if (configSaveCounterSec >= Editor::k_configSaveIntervalSec)
     {
         // save config only in edit mode
         if (mode == eEditorMode::Edit)
         {
-            SaveConfig();
+            SaveConfig_();
             configSaveCounterSec = 0.f;
         }
     }
 }
 
-Ref<ImageTexture> EditorContext::LoadIconFromSvg(
-    const StringView _svg) const
+void Editor::SaveConfig_() const
 {
-    SVGImporter importer = {};
-    importer.SetWidth(k_iconSize.x);
-    importer.SetHeight(k_iconSize.y);
-    if (!importer.ImportSource(_svg))
+    JAM_FUNCTION_PROFILE();
+
+    JsonWriter writer {};
+    writer.WriteField("windowShows", windowShows);
+    writer.WriteField("fontScale", ImGui::GetIO().FontGlobalScale);
+    writer.WriteField("renderView", renderViewWindow);
+    writer.WriteField("fileBrowser", fileBrowserWindow);
+    writer.WriteField("vertexLayoutMap", vlMap);
+
+    if (const Error err = writer.SaveToFile(configPath, eJsonWriteFlags::Pretty))
     {
-        JAM_ASSERT(0, "failed to load editor icon from svg.");
-        return nullptr;
+        JAM_LOG.Warn("Editor::SaveConfig_() - failed to save editor config file. {}.", err.ToErrorMessage());
     }
 
-    const CMemView      mems[] = { importer.GetPixels() };
-    const Int32         w      = importer.GetWidth();
-    const Int32         h      = importer.GetHeight();
-    const TextureHandle texh   = Graphics::CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, 1, 0, mems);
+    JAM_DEBUG_LOG("Editor::SaveConfig_() - saved editor config file.");
+}
 
-    Ref<ImageTexture> pTex = {};
-    pTex->LoadHandle(texh);
+void Editor::LoadConfigIfExist_()
+{
+    if (!fs::exists(configPath))
+    {
+        return;
+    }
+
+    Expect<JsonReader> reader = JsonReader::ParseFromFile(configPath);
+    if (!reader)
+    {
+        return;
+    }
+
+    // general
+    reader->ReadField("windowShows", windowShows);
+    reader->ReadField("fontScale", ImGui::GetIO().FontGlobalScale);
+    reader->ReadField("renderView", renderViewWindow);
+    reader->ReadField("fileBrowser", fileBrowserWindow);
+    reader->ReadField("vertexLayoutMap", vlMap);
+}
+
+Ref<Texture> Editor::LoadIconFromSvgSource(
+    const StringView _svgSource) const
+{
+    SVGImporterDesc desc = {};
+    desc.width           = k_iconSize.x;
+    desc.height          = k_iconSize.y;
+
+    Expect<SVGImporter> importer = SVGImporter::ImportFromSource(_svgSource, desc);
+    if (!importer)
+    {
+        JAM_UNREACHABLE;
+    }
+
+    const CMemoryBlock  mems[] = { importer->GetPixels() };
+    const Int32         w      = importer->GetWidth();
+    const Int32         h      = importer->GetHeight();
+    const TextureHandle texh   = JAM_GFX.CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, mems);
+
+    Ref<Texture> pTex = {};
+    pTex->Load(texh);
     return pTex;
 }
 
-bool& EditorContext::GetWindowShow(
+bool& Editor::GetWindowShow(
     const eEditorWindowType _type)
 {
-    return windowShows[IntFrom(_type)];
+    return windowShows[UnderlyingFrom(_type)];
 }
 
-}   // namespace jam
+}   // namespace Jam
 
-namespace jam
+namespace Jam
 {
 
-void Editor::Init()
+Editor& Editor::GetInstance()
 {
-    JAM_ASSERT(g_pEdtCtx == nullptr, "Editor::Load() called more than once without Shutdown().");
-    g_pEdtCtx = JAM_NEW(EditorContext);
-
-    Application& app      = Application::GetInstance();
-    g_pEdtCtx->configPath = app.JoinWorkingDirectory(EditorContext::k_configFileName);
-    g_pEdtCtx->fileBrowserWindow.Init();
-    g_pEdtCtx->renderViewWindow.Init();
-    g_pEdtCtx->SetupDefaultTheme();
-    g_pEdtCtx->LoadIcons();
-    g_pEdtCtx->LoadConfig();
-}
-
-void Editor::Shutdown()
-{
-    JAM_ASSERT(g_pEdtCtx, "Editor::Shutdown() called without Load().");
-
-    g_pEdtCtx->SaveConfig();
-    g_pEdtCtx->fileBrowserWindow.Shutdown();
-    g_pEdtCtx->renderViewWindow.Shutdown();
-    JAM_DELETE(g_pEdtCtx);
-}
-
-void Editor::Update(const float _deltaSec)
-{
-    // auto save config
-    g_pEdtCtx->UpdateAutoSaveConfig(_deltaSec);
-
-    // update render view
-    g_pEdtCtx->renderViewWindow.OnUpdate(_deltaSec);
-}
-
-void Editor::Render()
-{
-    g_pEdtCtx->renderViewWindow.OnRender();
-}
-
-void Editor::ImGuiRender()
-{
-    g_pEdtCtx->ShowWorkspace();
-
-    // viewport
-    if (bool& bShow = g_pEdtCtx->GetWindowShow(eEditorWindowType::SceneView))
-    {
-        g_pEdtCtx->renderViewWindow.OnImGuiRender(bShow);
-    }
-
-    ImGui::BeginDisabled(g_pEdtCtx->mode == eEditorMode::Play);
-
-    // profiler
-    if (bool& bShow = g_pEdtCtx->GetWindowShow(eEditorWindowType::Profiler))
-    {
-        g_pEdtCtx->profilerWindow.OnImGuiRender(bShow);
-    }
-
-    // scene hierarchy
-    if (bool& bShow = g_pEdtCtx->GetWindowShow(eEditorWindowType::SceneHierarchy))
-    {
-        g_pEdtCtx->sceneHierarchyWindow.OnImGuiRender(bShow);
-    }
-
-    // entity inspector
-    if (bool& bShow = g_pEdtCtx->GetWindowShow(eEditorWindowType::EntityInspector))
-    {
-        g_pEdtCtx->entityInspectorWindow.OnImGuiRender(bShow);
-    }
-
-    // file system browser
-    if (bool& bShow = g_pEdtCtx->GetWindowShow(eEditorWindowType::FileBrowser))
-    {
-        g_pEdtCtx->fileBrowserWindow.OnImGuiRender(bShow);
-    }
-
-    // vertex vertexLayout manager
-    if (bool& bShow = g_pEdtCtx->GetWindowShow(eEditorWindowType::VertexLayoutEditor))
-    {
-        g_pEdtCtx->vertexLayoutEditorWindow.OnImGuiRender(bShow);
-    }
-
-    ImGui::EndDisabled();
-
-    // show dialog
-    g_pEdtCtx->dialogStack.Show();
-}
-
-void Editor::OnEvent(Event& _event)
-{
-    HandleEvent<SceneChangedEvent>(_event, g_pEdtCtx, &EditorContext::OnSceneChanged);
-    HandleEvent<EntityDestroyedEvent>(_event, g_pEdtCtx, &EditorContext::OnEntityDestroyed);
-    g_pEdtCtx->fileBrowserWindow.OnEvent(_event);
-    g_pEdtCtx->renderViewWindow.OnEvent(_event);
+    JAM_ASSERT(s_pInstance, "Editor::GetInstance() - editor instance is null.");
+    return *s_pInstance;
 }
 
 void Editor::SetMode(
     const eEditorMode _mode)
 {
-    g_pEdtCtx->mode = _mode;
+    mode = _mode;
 }
 
-eEditorMode Editor::GetMode()
+eEditorMode Editor::GetMode() const
 {
-    return g_pEdtCtx->mode;
+    return mode;
 }
 
-void Editor::SetFocusedEntity(
-    const Entity _entityOrNull)
+void Editor::SetFocusingEntity(
+    const Entity _entity)
 {
-    g_pEdtCtx->focusedEntity = _entityOrNull;
+    focusedEntity = _entity;
 }
 
-Entity Editor::GetFocusedEntity()
+void Editor::ReleaseFocusingEntity()
 {
-    return g_pEdtCtx->focusedEntity;
+    focusedEntity = Entity::k_invalid;
 }
 
-VertexLayoutMap& Editor::GetVertexLayoutMap()
+Entity Editor::GetFocusingEntity() const
 {
-    return g_pEdtCtx->vlStorage;
+    return focusedEntity;
 }
 
 EditorStyle& Editor::GetStyle()
 {
-    return g_pEdtCtx->style;
+    return style;
 }
 
 float Editor::GetStyleVar(
-    const eEditorStyleVar _var)
+    const eEditorStyleVar _var) const
 {
-    return g_pEdtCtx->style.vars[IntFrom(_var)];
+    return style.vars[UnderlyingFrom(_var)];
 }
 
 ImVec4 Editor::GetStyleColor(
-    const eEditorStyleColor _col)
+    const eEditorStyleColor _col) const
 {
-    return g_pEdtCtx->style.colors[IntFrom(_col)];
+    return style.colors[UnderlyingFrom(_col)];
 }
 
 ImU32 Editor::GetStyleColorU32(
-    const eEditorStyleColor _col)
+    const eEditorStyleColor _col) const
 {
-    const ImVec4 col = g_pEdtCtx->style.colors[IntFrom(_col)];
+    const ImVec4 col = style.colors[UnderlyingFrom(_col)];
     return ImGui::ColorConvertFloat4ToU32(col);
 }
 
-Ref<ImageTexture> Editor::GetIcon(
-    const eEditorIcon _icon)
+ImGuiKeyChord Editor::GetStyleShortCut(
+    const eEditorShortCut _shortCut) const
 {
-    return g_pEdtCtx->icons.GetIcon(_icon);
+    return style.shortCuts[UnderlyingFrom(_shortCut)];
+}
+
+Ref<Texture> Editor::GetIcon(
+    const eEditorIcon _icon) const
+{
+    return icons.GetIcon(_icon);
+}
+
+VertexLayoutMap& Editor::GetVertexLayoutMap()
+{
+    return vlMap;
 }
 
 void Editor::PushDialog(
-    Scoped<Dialog>&& _pDialog)
+    const Ref<Dialog>& _pDialog)
 {
-    g_pEdtCtx->dialogStack.Push(std::move(_pDialog));
+    dialogStack.Push(_pDialog);
 }
 
-void Editor::PushMessageDialog(
-    StringView _title,
-    StringView _msg)
+void Editor::LoadScenByFileDialog()
 {
-    g_pEdtCtx->dialogStack.Push(MakeScoped<MessageDialog>(_title, _msg));
-}
-
-void Editor::CreateEntitiesFrom(
-    const Ref<Scene>& _pScene,
-    const Ref<Model>& _pModel)
-{
-    JAM_ASSERT(SceneManager::HasActiveScene(), "no active scene to create entities");
-    JAM_ASSERT(_pModel, "null model to create entities from");
-
-    const Entity entity = _pScene->CreateEntitiesFrom(_pModel);
-    Editor::SetFocusedEntity(entity);
-}
-
-void Editor::CreateEntity(
-    const Ref<Scene>& _pScene,
-    const Entity      _parentOrNull)
-{
-    JAM_ASSERT(_pScene, "null scene to create entity");
-    Entity entity = _pScene->CreateEntity();
-
-    // parent 설정
-    if (_parentOrNull)
-    {
-        JAM_ASSERT(_pScene->IsEntityValid(_parentOrNull), "parent entity is not valid in the given scene");
-        entity.GetSceneNode().SetParent(_parentOrNull);
-    }
-
-    // focus 설정
-    SetFocusedEntity(entity);
-}
-
-void Editor::CloneEntity(
-    const Ref<Scene>& _pScene,
-    const Entity      _srcEntity)
-{
-    JAM_ASSERT(_pScene, "null scene to clone entity");
-    JAM_ASSERT(IsClonableEntity(_pScene, _srcEntity), "entity is not clonable");
-
-    // clone & focus 설정
-    const Entity entity = _pScene->CloneEntity(_srcEntity);
-    Editor::SetFocusedEntity(entity);
-}
-
-void Editor::DestroyEntity(
-    const Ref<Scene>& _pScene,
-    Entity            _entity)
-{
-    JAM_ASSERT(_pScene, "null scene to destroy entity");
-    JAM_ASSERT(IsDestroyableEntity(_pScene, _entity), "entity is not destroyable");
-
-    // 자식이 있는 경우 확인 다이얼로그 표시
-    if (_entity.GetSceneNode().HasChildren())
-    {
-        // show confirmation dialog
-        constexpr StringView k_msg = "the entity has child entities.\nare you sure to destroy it and all its children?";
-        Editor::PushDialog(MakeScoped<ConfirmationDialog>("confirm destroy entity", k_msg, JAM_BIND_FUNCTION(g_pEdtCtx->OnClickDestroyEntityConfirmationDialogYesButton, _pScene, _entity)));
-    }
-    else
-    {
-        // 자식이 없으면 즉시 삭제
-        _pScene->DestroyEntity(_entity);
-    }
-}
-
-bool Editor::IsClonableEntity(
-    const Ref<Scene>& _pScene,
-    const Entity      _entity)
-{
-    return _pScene
-        && _entity
-        && _pScene->IsEntityValid(_entity)
-        && _entity != _pScene->GetRootEntity();
-}
-
-bool Editor::IsDestroyableEntity(
-    const Ref<Scene>& _pScene,
-    const Entity      _entity)
-{
-    return IsClonableEntity(_pScene, _entity);
-}
-
-void Editor::SaveSceneBySaveDialog(
-    const Ref<Scene>& _pScene)
-{
-    JAM_ASSERT(_pScene, "null scene to save");
-
-    constexpr FileDialogFilter k_filters[] = { k_jamSceneFdFilter };
-
-    FileDialog fd { eFileDialogMode::SaveFile };
-    fd.SetTitle("save scene");
-    fd.SetFilters(k_filters);
-    if (fd.Open())
-    {
-        const fs::path& path = fd.GetFirstSelectedPath();
-
-        SceneSerializer serializer = {};
-        serializer.Serialize(_pScene);
-        if (!serializer.SaveJsonFile(path))
-        {
-            const StringView msg = GlobalBuffer::FormatTmp("failed to save scene to path: {}.\n{}", path.native(), GlobalBuffer::GetLastError());
-            Editor::PushMessageDialog("error", msg);
-        }
-    }
-}
-
-void Editor::LoadSceneByOpenDialog()
-{
-    constexpr FileDialogFilter k_filters[] = { k_jamSceneFdFilter };
+    constexpr FileDialogFilter k_filters[] = {
+        { "scene file", Scene::k_extension }
+    };
 
     FileDialog fd { eFileDialogMode::OpenFile };
     fd.SetTitle("load scene");
     fd.SetFilters(k_filters);
     if (fd.Open())
     {
-        const fs::path& path = fd.GetFirstSelectedPath();
-        if (!SceneManager::LoadScene(path))
+        const Path& path = fd.GetFirstSelectedPath();
+        if (!JAM_SCENE_MGR.LoadScene(path))
         {
-            const StringView msg = GlobalBuffer::FormatTmp("failed to load scene from path: {}.\n{}", path.native(), GlobalBuffer::GetLastError());
-            Editor::PushMessageDialog("error", msg);
+            ScratchBuffer tmp;
+            tmp.Format("failed to load scene file: {}.", path.native());
+
+            MessageDialogDesc desc = {};
+            desc.baseDesc.title    = "error";
+            desc.msg               = tmp.ToStringView();
+            PushDialog(MakeRef<MessageDialog>(desc));
         }
     }
 }
 
-}   // namespace jam
+void Editor::SaveSceneByFileDialog(
+    const Ref<Scene>&           _pScene,
+    const Flags<eSaveFileFlags> _flags)
+{
+    constexpr FileDialogFilter k_filters[] = {
+        { "scene file", Scene::k_extension }
+    };
+
+    FileDialog fd { eFileDialogMode::SaveFile };
+    fd.SetTitle("save scene");
+    fd.SetFilters(k_filters);
+    if (fd.Open())
+    {
+        const Path& path = fd.GetFirstSelectedPath();
+
+        JsonWriter writer = {};
+        SerializeScene(writer, _pScene);
+        if (const Error err = writer.SaveToFile(path, eJsonWriteFlags::Pretty, _flags))
+        {
+            ScratchBuffer buf;
+            buf.Format("failed to save scene file: {}.\n{}", path, err.ToErrorMessage());
+
+            MessageDialogDesc desc = {};
+            desc.baseDesc.title    = "error";
+            desc.msg               = buf.ToStringView();
+            PushDialog(MakeRef<MessageDialog>(desc));
+        }
+    }
+}
+
+void Editor::CreateEntitiesFrom(
+    const Ref<Scene>& _pScene,
+    const Ref<Model>& _pModel)
+{
+    const Entity entity = _pScene->CreateEntitiesFrom(_pModel);
+    SetFocusingEntity(entity);
+}
+
+void Editor::CreateEntity(
+    const Ref<Scene>&      _pScene,
+    const Optional<Entity> _parent)
+{
+    Entity entity = _pScene->CreateEntity();
+    if (_parent)
+    {
+        SceneNode& node = entity.GetSceneNode();
+        node.SetParent(_parent.GetValue());
+    }
+    SetFocusingEntity(entity);
+}
+
+void Editor::CloneEntity(
+    const Ref<Scene>& _pScene,
+    const Entity      _srcEntity)
+{
+    JAM_ASSERT(CanEntityClone(_srcEntity), "Editor::CloneEntity() - cannot clone the given entity.");
+    const Entity entity = _pScene->CloneEntity(_srcEntity);
+    SetFocusingEntity(entity);
+}
+
+void Editor::DestroyEntity(
+    const Ref<Scene>& _pScene,
+    const Entity      _entity)
+{
+    JAM_ASSERT(CanEntityDestroy(_entity), "Editor::DestroyEntity() - cannot destroy the given entity.");
+
+    const SceneNode& node = _entity.GetSceneNode();
+    if (node.HasChildren())   // if has children, show confirmation dialog
+    {
+        auto onClickConfirm = [_pScene, _entity]
+        {
+            _pScene->DestroyEntity(_entity);
+        };
+
+        ConfirmationDialogDesc desc = {};
+        desc.baseDesc.title         = "confirmation";
+        desc.msg                    = "the entity has child entities. are you sure you want to destroy it and all its children?";
+        desc.OnConfirm              = Bind(std::move(onClickConfirm));
+        PushDialog(MakeRef<ConfirmationDialog>(desc));
+        return;
+    }
+
+    _pScene->DestroyEntity(_entity);
+}
+
+bool Editor::CanEntityClone(
+    Entity _entity) const
+{
+    return _entity && !_entity.GetSceneNode().IsRoot();
+}
+
+bool Editor::CanEntityDestroy(
+    Entity _entity) const
+{
+    return _entity && !_entity.GetSceneNode().IsRoot();
+}
+
+bool Editor::RemoveFile(
+    const Path& _path)
+{
+    // 만약, 디렉토리이고 비어있지 않다면 삭제 불가 -> 확인 다이얼로그 표시
+    if (fs::is_directory(_path) && !fs::is_empty(_path))
+    {
+        auto onClickConfirm = [this, _path]
+        {
+            std::error_code ec = {};
+            fs::remove_all(_path, ec);
+            if (ec)
+            {
+                ScratchBuffer tmp;
+                tmp.Format("failed to remove directory: {}.\n{}", _path, ec.message());
+
+                MessageDialogDesc desc = {};
+                desc.baseDesc.title    = "error";
+                desc.msg               = tmp.ToStringView();
+                PushDialog(MakeRef<MessageDialog>(desc));
+            }
+        };
+
+        ConfirmationDialogDesc desc = {};
+        desc.baseDesc.title         = "confirmation";
+        desc.msg                    = "the directory is not empty. are you sure you want to remove it and all its contents?";
+        desc.OnConfirm              = Bind(std::move(onClickConfirm));
+        PushDialog(MakeRef<ConfirmationDialog>(desc));
+        return false;
+    }
+
+    // 빈 디렉토리 혹은 파일인 경우 바로 삭제
+    std::error_code ec = {};
+    fs::remove(_path, ec);
+    if (ec)
+    {
+        ScratchBuffer tmp;
+        tmp.Format("failed to remove file: {}.\n{}", _path, ec.message());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = tmp.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return false;
+    }
+
+    return true;
+}
+
+bool Editor::ReplaceFileDir(
+    const Path& _srcPath,
+    const Path& _newDir)
+{
+    JAM_ASSERT(fs::is_directory(_newDir), "New directory path is not a directory!");
+    return RenameFile(_srcPath, _newDir / _srcPath.filename());
+}
+
+bool Editor::ReplaceFileName(
+    const Path&      _srcPath,
+    const StringView _newFilename)
+{
+    Path path = _srcPath;
+    path.replace_filename(_newFilename.GetPtr());
+    return RenameFile(_srcPath, path);
+}
+
+bool Editor::RenameFile(
+    const Path& _srcPath,
+    const Path& _dstPath)
+{
+    // same path
+    if (_srcPath == _dstPath)
+    {
+        return true;
+    }
+
+    // destination file already exists
+    if (fs::exists(_dstPath))
+    {
+        ScratchBuffer tmp;
+        tmp.Format("cannot rename file to '{}': file already exists.", _dstPath);
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = tmp.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return false;
+    }
+
+    // rename
+    std::error_code ec = {};
+    fs::rename(_srcPath, _dstPath, ec);
+    if (ec)
+    {
+        ScratchBuffer tmp;
+        tmp.Format("failed to rename file from '{}' to '{}'.\n{}", _srcPath.native(), _dstPath.native(), ec.message());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = tmp.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return false;
+    }
+
+    return true;
+}
+
+bool Editor::CreateDir(
+    const Path& _dirPath)
+{
+    std::error_code ec = {};
+    fs::create_directories(_dirPath, ec);
+    if (ec)
+    {
+        ScratchBuffer tmp;
+        tmp.Format("failed to create directory: {}.\n{}", _dirPath.native(), ec.message());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = tmp.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return false;
+    }
+
+    return true;
+}
+
+bool Editor::CreateNewDir(
+    const Path& _parentDir)
+{
+    JAM_ASSERT(fs::is_directory(_parentDir), "Parent directory path is not a directory!");
+
+    constexpr Int32 k_limit = 1'000;
+    for (Int32 i = 0; i < k_limit; ++i)
+    {
+        ScratchBuffer tmp;
+        tmp.Set("new folder");
+        if (i > 0)
+        {
+            tmp.AppendFormat(" ({})", i);
+        }
+
+        const Path dirPath = _parentDir / tmp.GetPtr();
+        if (!fs::exists(dirPath))
+        {
+            return CreateDir(dirPath);
+        }
+    }
+
+    // too many folders named "new folder"
+    MessageDialogDesc desc = {};
+    desc.baseDesc.title    = "error";
+    desc.msg               = "failed to create new folder: too many folders named 'new folder' exist.";
+    PushDialog(MakeRef<MessageDialog>(desc));
+    return false;
+}
+
+Optional<Ref<Mesh>> Editor::LoadMesh(
+    const Path& _path,
+    const bool  _bForceReload)
+{
+    Expect<Ref<Mesh>> pMesh = JAM_ASSET_MGR.LoadMesh(_path, _bForceReload);
+    if (!pMesh)
+    {
+        ScratchBuffer buf;
+        buf.Format("failed to load mesh file: {}. {}.", _path.native(), pMesh.GetError().ToErrorMessage());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = buf.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return k_nullopt;
+    }
+    return pMesh.Take();
+}
+
+Optional<Ref<Texture>> Editor::LoadTexture(
+    const Path& _path,
+    const bool  _bForceReload)
+{
+    Expect<Ref<Texture>> pTex = JAM_ASSET_MGR.LoadTexture(_path, _bForceReload);
+    if (!pTex)
+    {
+        ScratchBuffer buf;
+        buf.Format("failed to load texture file: {}. {}.", _path.native(), pTex.GetError().ToErrorMessage());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = buf.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return k_nullopt;
+    }
+    return pTex.Take();
+}
+
+Optional<Ref<Material>> Editor::LoadMaterial(
+    const Path& _path,
+    const bool  _bForceReload)
+{
+    Expect<Ref<Material>> pMat = JAM_ASSET_MGR.LoadMaterial(_path, _bForceReload);
+    if (!pMat)
+    {
+        ScratchBuffer buf;
+        buf.Format("failed to load material file: {}. {}.", _path.native(), pMat.GetError().ToErrorMessage());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = buf.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return k_nullopt;
+    }
+    return pMat.Take();
+}
+
+Optional<Ref<Model>> Editor::LoadModel(
+    const Path& _path,
+    const bool  _bForceReload)
+{
+    Expect<Ref<Model>> pModel = JAM_ASSET_MGR.LoadModel(_path, _bForceReload);
+    if (!pModel)
+    {
+        ScratchBuffer buf;
+        buf.Format("failed to load model file: {}. {}.", _path.native(), pModel.GetError().ToErrorMessage());
+
+        MessageDialogDesc desc = {};
+        desc.baseDesc.title    = "error";
+        desc.msg               = buf.ToStringView();
+        PushDialog(MakeRef<MessageDialog>(desc));
+        return k_nullopt;
+    }
+    return pModel.Take();
+}
+
+Editor::Editor()
+{
+    configPath = JoinedPath(JAM_APP.GetWorkingDirectory(), Editor::k_configFileName);
+    SetupDefaultTheme_();
+    LoadIcons_();
+    LoadConfigIfExist_();
+}
+
+Editor::~Editor()
+{
+    SaveConfig_();
+}
+
+void Editor::CreateInstance()
+{
+    JAM_ASSERT(s_pInstance == nullptr, "Editor instance already exists!");
+    s_pInstance = new Editor;
+}
+
+void Editor::DestroyInstance()
+{
+    JAM_ASSERT(s_pInstance != nullptr, "Editor instance does not exist!");
+    delete s_pInstance;
+}
+
+void Editor::Update(const float _deltaSec)
+{
+    // auto save config
+    UpdateAutoSaveState_(_deltaSec);
+
+    // update render view
+    renderViewWindow.OnUpdate(_deltaSec);
+}
+
+void Editor::Render()
+{
+    renderViewWindow.OnRender();
+}
+
+void Editor::ImGuiRender()
+{
+    ShowWorkspace_();
+
+    // viewport
+    if (bool& bShow = GetWindowShow(eEditorWindowType::SceneView))
+    {
+        renderViewWindow.OnImGuiRender(bShow);
+    }
+
+    ImGui::BeginDisabled(mode == eEditorMode::Play);
+
+    // profiler
+    if (bool& bShow = GetWindowShow(eEditorWindowType::Profiler))
+    {
+        profilerWindow.OnImGuiRender(bShow);
+    }
+
+    // scene hierarchy
+    if (bool& bShow = GetWindowShow(eEditorWindowType::SceneHierarchy))
+    {
+        sceneHierarchyWindow.OnImGuiRender(bShow);
+    }
+
+    // entity inspector
+    if (bool& bShow = GetWindowShow(eEditorWindowType::EntityInspector))
+    {
+        entityInspectorWindow.OnImGuiRender(bShow);
+    }
+
+    // file system browser
+    if (bool& bShow = GetWindowShow(eEditorWindowType::FileBrowser))
+    {
+        fileBrowserWindow.OnImGuiRender(bShow);
+    }
+
+    // vertex vertexLayout manager
+    if (bool& bShow = GetWindowShow(eEditorWindowType::VertexLayoutEditor))
+    {
+        vertexLayoutEditorWindow.OnImGuiRender(bShow);
+    }
+
+    ImGui::EndDisabled();
+
+    // show dialog
+    dialogStack.Show();
+}
+
+void Editor::OnEvent(Event& _event)
+{
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<SceneChangedEvent>(this, &Editor::OnSceneChanged_);
+    dispatcher.Dispatch<EntityDestroyedEvent>(this, &Editor::OnEntityDestroyed_);
+    fileBrowserWindow.OnEvent(_event);
+    renderViewWindow.OnEvent(_event);
+}
+
+}   // namespace Jam

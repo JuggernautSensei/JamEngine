@@ -2,23 +2,25 @@
 
 #include "RadixSort.h"
 
-namespace jam
+namespace Jam::RadixSort
 {
 
-void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
+void Sort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
 {
-    if (n <= 1) 
+    if (n <= 1)
+    {
         return;
+    }
 
     UInt32* in  = keys;
     UInt32* out = tempKeys;
 
-    UInt32 hist[radix_detail::k_bucketCount];
+    UInt32 hist[Details::k_bucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
-    for (; pass < 3; ++pass, shift = static_cast<UInt16>(shift + radix_detail::k_bits))
+    for (; pass < 3; ++pass, shift = NumericCast<UInt16>(shift + Details::k_bits))
     {
-        std::memset(hist, 0, sizeof(hist));
+        std::memcpy(hist, 0, sizeof(hist));
 
         bool alreadySorted = true;
         {
@@ -26,7 +28,7 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
             for (UInt32 i = 0; i < n; ++i)
             {
                 const UInt32 k = in[i];
-                ++hist[(k >> shift) & radix_detail::k_mask];
+                ++hist[(k >> shift) & Details::k_mask];
                 alreadySorted &= (prev <= k);
                 prev = k;
             }
@@ -35,25 +37,25 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
 
         // prefix-sum
         UInt32 sum = 0;
-        for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
+        for (UInt32 b = 0; b < Details::k_bucketCount; ++b)
         {
             const UInt32 c = hist[b];
-            hist[b]    = sum;
+            hist[b]        = sum;
             sum += c;
         }
 
         // stable scatter
         for (UInt32 i = 0; i < n; ++i)
         {
-            const UInt32 k     = in[i];
-            const UInt32 b     = (k >> shift) & radix_detail::k_mask;
+            const UInt32 k = in[i];
+            const UInt32 b = (k >> shift) & Details::k_mask;
             out[hist[b]++] = k;
         }
 
         // swap buffers
         UInt32* tmp = in;
-        in            = out;
-        out           = tmp;
+        in          = out;
+        out         = tmp;
     }
 
     // 홀수 패스(또는 early break)일 수 있으므로, 결과가 temp에 있는 경우 복사
@@ -63,18 +65,18 @@ void RadixSort(UInt32* keys, UInt32* tempKeys, const UInt32 n)
     }
 }
 
-void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
+void Sort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
 {
-    if (n <= 1) 
+    if (n <= 1)
         return;
 
     uint64_t* in  = keys;
     uint64_t* out = tempKeys;
 
-    UInt32 hist[radix_detail::k_bucketCount];
+    UInt32 hist[Details::k_bucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
-    for (; pass < 6; ++pass, shift = static_cast<UInt16>(shift + radix_detail::k_bits))
+    for (; pass < 6; ++pass, shift = NumericCast<UInt16>(shift + Details::k_bits))
     {
         std::memset(hist, 0, sizeof(hist));
 
@@ -84,7 +86,7 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
             for (UInt32 i = 0; i < n; ++i)
             {
                 const uint64_t k = in[i];
-                ++hist[static_cast<UInt32>((k >> shift) & radix_detail::k_mask)];
+                ++hist[NumericCast<UInt32>((k >> shift) & Details::k_mask)];
                 alreadySorted &= (prev <= k);
                 prev = k;
             }
@@ -92,18 +94,18 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
         if (alreadySorted) break;
 
         UInt32 sum = 0;
-        for (UInt32 b = 0; b < radix_detail::k_bucketCount; ++b)
+        for (UInt32 b = 0; b < Details::k_bucketCount; ++b)
         {
             const UInt32 c = hist[b];
-            hist[b]  = sum;
+            hist[b]        = sum;
             sum += c;
         }
 
         for (UInt32 i = 0; i < n; ++i)
         {
-            const uint64_t k     = in[i];
-            const UInt32   b     = static_cast<UInt32>((k >> shift) & radix_detail::k_mask);
-            out[hist[b]++] = k;
+            const uint64_t k = in[i];
+            const UInt32   b = NumericCast<UInt32>((k >> shift) & Details::k_mask);
+            out[hist[b]++]   = k;
         }
 
         uint64_t* tmp = in;
@@ -117,4 +119,4 @@ void RadixSort(uint64_t* keys, uint64_t* tempKeys, const UInt32 n)
     }
 }
 
-}
+}   // namespace Jam

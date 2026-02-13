@@ -1,7 +1,13 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
+class KeyDownEvent;
+class KeyUpEvent;
+class MouseUpEvent;
+class MouseWheelEvent;
+class WindowLostFocusEvent;
+class MouseDownEvent;
 
 class Event;
 
@@ -122,40 +128,63 @@ enum class eMouse
     None = 0x00
 };
 
-/// @brief 입력 처리 클래스
 class Input
 {
 public:
-    static void Init();
-    static void Shutdown();
+    static void                 CreateInstance();
+    static void                 DestroyInstance();
+    [[nodiscard]] static Input& GetInstance();
 
-    static void Update();
-    static void OnEvent(Event& _event);
+    void Update();
+    void OnEvent(Event& _event);
 
-    [[nodiscard]] static bool IsKeyDown(eKey _key) noexcept;
-    [[nodiscard]] static bool IsKeyPressed(eKey _key) noexcept;
-    [[nodiscard]] static bool IsKeyHold(eKey _key) noexcept;
+    [[nodiscard]] bool IsKeyDown(eKey _key) noexcept;
+    [[nodiscard]] bool IsKeyPressed(eKey _key) noexcept;
+    [[nodiscard]] bool IsKeyHold(eKey _key) noexcept;
 
-    [[nodiscard]] static bool IsKeyUp(eKey _key) noexcept;
-    [[nodiscard]] static bool IsKeyReleased(eKey _key) noexcept;
-    [[nodiscard]] static bool IsKeyAway(eKey _key) noexcept;
+    [[nodiscard]] bool IsKeyUp(eKey _key) noexcept;
+    [[nodiscard]] bool IsKeyReleased(eKey _key) noexcept;
+    [[nodiscard]] bool IsKeyAway(eKey _key) noexcept;
 
-    [[nodiscard]] static bool IsMouseDown(eMouse _mouse) noexcept;
-    [[nodiscard]] static bool IsMousePressed(eMouse _mouse) noexcept;
-    [[nodiscard]] static bool IsMouseHold(eMouse _mouse) noexcept;
+    [[nodiscard]] bool IsMouseDown(eMouse _mouse) noexcept;
+    [[nodiscard]] bool IsMousePressed(eMouse _mouse) noexcept;
+    [[nodiscard]] bool IsMouseHold(eMouse _mouse) noexcept;
 
-    [[nodiscard]] static bool IsMouseUp(eMouse _mouse) noexcept;
-    [[nodiscard]] static bool IsMouseReleased(eMouse _mouse) noexcept;
-    [[nodiscard]] static bool IsMouseAway(eMouse _mouse) noexcept;
+    [[nodiscard]] bool IsMouseUp(eMouse _mouse) noexcept;
+    [[nodiscard]] bool IsMouseReleased(eMouse _mouse) noexcept;
+    [[nodiscard]] bool IsMouseAway(eMouse _mouse) noexcept;
 
-    [[nodiscard]] static Vec2i GetMousePos() noexcept;
-    [[nodiscard]] static Vec2i GetMouseDeltaPos() noexcept;
-    [[nodiscard]] static float GetMouseDeltaWheel() noexcept;
+    [[nodiscard]] Vec2i GetMousePos() const noexcept;
+    [[nodiscard]] Vec2i GetMouseDeltaPos() const noexcept;
+    [[nodiscard]] float GetMouseDeltaWheel() const noexcept;
 
-    static void               SetMousePos(Int32 _x, Int32 _y) noexcept;   // window coords
-    static void               SetMouseVisibility(bool _bVisible) noexcept;
-    [[nodiscard]] static bool IsMouseVisible() noexcept;
+    void               SetMousePos(Int32 _x, Int32 _y) noexcept;   // window coords
+    void               SetMouseVisibility(bool _bVisible) noexcept;
+    [[nodiscard]] bool IsMouseVisible() const noexcept;
 
-};   // namespace input
+private:
+    void OnMouseDown_(const MouseDownEvent& _event);
+    void OnKeyDown_(const KeyDownEvent& _event);
+    void OnKeyUp_(const KeyUpEvent& _event);
+    void OnMouseUp_(const MouseUpEvent& _event);
+    void OnMouseWheel_(const MouseWheelEvent& _event);
+    void OnWindowLostFocusEvent_(const WindowLostFocusEvent& _event);
 
-}   // namespace jam
+    Array<bool, 256> m_bPrevKeyDown = {};
+    Array<bool, 256> m_bKeyDown     = {};
+
+    Int32 m_mousePrevX = 0;
+    Int32 m_mousePrevY = 0;
+    Int32 m_mouseX     = 0;
+    Int32 m_mouseY     = 0;
+
+    float m_mouseDeltaWheel  = 0;
+    bool  m_bCursorVisiblity = true;
+
+    static constexpr Int32 k_wheelSensitive = 120;
+    inline static Input*   s_pInstance      = nullptr;
+};
+
+}   // namespace Jam
+
+#define JAM_INPUT Jam::Input::GetInstance()

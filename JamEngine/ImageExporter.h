@@ -1,22 +1,21 @@
 #pragma once
-#include "FileIOUtilities.h"
-#include "GraphicsBase.h"
+#include "File.h"
 #include "ImageBase.h"
 
-namespace jam
+namespace Jam
 {
-
-// todo : maybe support more export options later
 
 class ImageExporter
 {
 public:
-    bool Export(TextureHandle _texh, const fs::path& _path, eImageFormat _format, bool _bReplaceExtension = true, eSaveFileFlags _flags = eSaveFileFlags_None) const;
-    bool Export(const DirectX::ScratchImage& _image, const fs::path& _path, eImageFormat _format, bool _bReplaceExtension = true, eSaveFileFlags _flags = eSaveFileFlags_None) const;
+    static Error ExportToFile(const ImageContainer& _container, const Path& _path, eImageFormat _format, bool _bReplaceExtension, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None);
+    static Error ExportToFile(TextureHandle _texh, const Path& _path, eImageFormat _format, bool _bReplaceExtension, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None);
+
+    [[nodiscard]] static Expect<ImageBlob> ExportToMemory(const ImageContainer& _container, eImageFormat _format);
+    [[nodiscard]] static Expect<ImageBlob> ExportToMemory(TextureHandle _texh, eImageFormat _format);
 
 private:
-    bool                             Export_(const DirectX::ScratchImage& _scratchImg, const fs::path& _path, eImageFormat _format) const;
-    [[nodiscard]] DirectX::WICCodecs WICCodecsFrom_(eImageFormat _format) const;
+    ImageExporter() = default;
 };
 
-}   // namespace jam
+}   // namespace Jam

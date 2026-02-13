@@ -1,17 +1,13 @@
 #pragma once
 #include <shobjidl_core.h>
 
-namespace jam
+namespace Jam
 {
 
-// error message
-[[nodiscard]] std::string CreateErrorMessageFromWin32LastError();
-[[nodiscard]] std::string CreateErrorMessageFromHRESULT(HRESULT _hr);
+void FormatErrnoMessage(ScratchBuffer& _buf, UInt32 _errnum = errno);
+void FormatHRESULTMessage(ScratchBuffer& _buf, HRESULT _hr);
 
-// file explorer
-bool OpenFileExplorer(const fs::path& _path);
-bool OpenFileAsDefaultApplication(const fs::path& _path);
-
+// file dialog
 enum class eFileDialogMode
 {
     OpenFile,
@@ -22,8 +18,8 @@ enum class eFileDialogMode
 
 struct FileDialogFilter
 {
-    StringView desc;   // e.g. "Image Files"
-    StringView ext;    // e.g. "*.png *.jpg *.bmp"
+    StringView desc = {};   // e.g. "Image Files"
+    StringView ext  = {};   // e.g. "*.png *.jpg *.bmp"
 };
 
 class FileDialog
@@ -33,20 +29,20 @@ public:
 
     bool Open();
     void SetTitle(StringView _title) const;
-    void SetDefaultPath(const fs::path& _path) const;
+    void SetDefaultPath(const Path& _path) const;
     void SetFilters(Span<const FileDialogFilter> _filters) const;
 
-    // option in SaveFile mode
+    // option in WriteFileAsBinary mode
     void SetDefaultFileName(StringView _fileName) const;
     void SetDefaultExtension(StringView _ext) const;
 
-    [[nodiscard]] const Vector<fs::path>& GetSelectedPaths() const;
-    [[nodiscard]] const fs::path&         GetFirstSelectedPath() const;
+    [[nodiscard]] const Vector<Path>& GetSelectedPaths() const;
+    [[nodiscard]] const Path&         GetFirstSelectedPath() const;
 
 private:
     ComPtr<IFileDialog> m_pfd           = nullptr;
     eFileDialogMode     m_mode          = eFileDialogMode::OpenFile;
-    Vector<fs::path>    m_selectedPaths = {};
+    Vector<Path>        m_selectedPaths = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

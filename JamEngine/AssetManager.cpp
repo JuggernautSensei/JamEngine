@@ -7,233 +7,193 @@
 
 #include "Material.h"
 #include "Mesh.h"
-#include "ImageTexture.h"
+#include "Texture.h"
 #include "Model.h"
 
-namespace jam
+namespace Jam
 {
 
-struct AssetManagerContext
+namespace
 {
-    using AssetMap     = HashMap<fs::path, Ref<IAsset>>;
-    using AssetMapIter = AssetMap::iterator;
 
-    [[nodiscard]] fs::path    ProcessPath(const fs::path& _path) const;
-    [[nodiscard]] Ref<IAsset> MakeAssetRef(eAssetType _type) const;
-
-    void OnFileModifiedEvent(const FileModifiedEvent& _event);
-    void OnFileRenamedEvent(const FileRenamedEvent& _event);
-    void OnFileDeletedEvent(const FileDeletedEvent& _event);
-
-    [[nodiscard]] AssetMapIter Find(eAssetType _type, const fs::path& _processedPath);
-    [[nodiscard]] bool         Has(eAssetType _type, AssetMapIter _it);
-    Optional<Ref<IAsset>>      Load(eAssetType _type, const fs::path& _processedPath, bool _bReloadIfExist);
-    Optional<Ref<IAsset>>      Reload(eAssetType _type, AssetMapIter _it);
-    void                       Unload(eAssetType _type, AssetMapIter _it);
-    void                       Rename(eAssetType _type, AssetMapIter _oldIt, const fs::path& _newProcessedPath);
-
-    [[nodiscard]] AssetMap& GetAssetMap(eAssetType _type);
-
-    void Clear(eAssetType _type);
-    void CleanGarbage(eAssetType _type);
-
-    Array<AssetMap, NumEnums<eAssetType>()> assetMaps;
-
-}* g_assetMgrCtx = nullptr;
-
-fs::path AssetManagerContext::ProcessPath(
-    const fs::path& _path) const
-{
-    const Application& app        = Application::GetInstance();
-    const fs::path&    workingDir = app.GetWorkingDirectory();
-    return fs::relative(_path, workingDir);
-}
-
-Ref<IAsset> AssetManagerContext::MakeAssetRef(
-    const eAssetType _type) const
-{
-    switch (_type)
+    [[nodiscard]] Path CreateProcessedPath(
+        const Path& _path)
     {
-        case eAssetType::ImageTexture:
-            return MakeRef<ImageTexture>();
-        case eAssetType::Material:
-            return MakeRef<Material>();
-        case eAssetType::Mesh:
-            return MakeRef<Mesh>();
-        case eAssetType::Model:
-            return MakeRef<Model>();
-        default:
-            JAM_ASSERT(0, "unsupported asset type: {}", IntFrom(_type));
-            return nullptr;
+        const Path& workingDir = JAM_APP.GetWorkingDirectory();
+        return fs::relative(_path, workingDir);
     }
-}
 
-void AssetManagerContext::OnFileRenamedEvent(
-    const FileRenamedEvent& _event)
-{
-    // process path
-    const fs::path& oldPath = ProcessPath(_event.GetOldPath());
-    const fs::path& newPath = ProcessPath(_event.GetNewPath());
-
-    // for each asset type
-    for (eAssetType type: eAssetType {})
+    [[nodiscard]] Expect<Ref<IAsset>> CreateAsset(
+        const Path&      _processedPath,
+        const eAssetType _type)
     {
-        // 없으면 스킵
-        AssetMapIter oldIt = Find(type, oldPath);
-        if (Has(type, oldIt) == false)
+        switch (_type)
         {
-            continue;
-        }
-
-        // rename
-        Rename(type, oldIt, newPath);
-    }
-}
-
-void AssetManagerContext::OnFileDeletedEvent(
-    const FileDeletedEvent& _event)
-{
-    // unload existing asset
-    const fs::path path = ProcessPath(_event.GetPath());
-    for (const eAssetType type: eAssetType {})
-    {
-        const AssetMapIter it = Find(type, path);
-        if (Has(type, it))
-        {
-            Unload(type, it);
+            case eAssetType::Texture:
+                return Texture::Create(_processedPath);
+            case eAssetType::Material:
+                return Material::Create(_processedPath);
+            case eAssetType::Mesh:
+                return Mesh::Create(_processedPath);
+            case eAssetType::Model:
+                return Model::Create(_processedPath);
+            default:
+                JAM_UNREACHABLE;
         }
     }
-}
 
-AssetManagerContext::AssetMapIter AssetManagerContext::Find(
-    const eAssetType _type,
-    const fs::path&  _processedPath)
+}   // namespace
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+AssetManager& AssetManager::GetInstance()
 {
-    AssetMap& map = GetAssetMap(_type);
-    return map.find(_processedPath);
+    return *s_pInstance;
 }
 
-bool AssetManagerContext::Has(const eAssetType _type, const AssetMapIter _it)
-{
-    AssetMap& map = GetAssetMap(_type);
-    return _it != map.end();
-}
-
-Optional<Ref<IAsset>> AssetManagerContext::Load(
+Expect<Ref<IAsset>> AssetManager::Load(
     const eAssetType _type,
-    const fs::path&  _processedPath,
+    const Path&      _path,
     const bool       _bReloadIfExist)
 {
-    AssetMapIter it  = Find(_type, _processedPath);
-    AssetMap&    map = GetAssetMap(_type);
+    const Path   path = CreateProcessedPath(_path);
+    AssetMap&    map  = GetAssetMap_(_type);
+    AssetMapIter it   = map.find(path);
 
-    // 만약 존재할 경우 그대로 리턴
+    // 만약 존재할 경우
     if (it != map.end())
     {
+        // 필요시 리로드
         if (_bReloadIfExist)
         {
-            // 필요시 리로드
-            return Reload(_type, it);
+            Ref<IAsset>& pAsset = it->second;
+            if (const Error err = pAsset->Load(path))
+            {
+                // 실패해도 pAsset 자체가 invalid 상태가 아니므로
+                // 에러만 리턴하고, 맵에서는 제거하지 않음
+                return err;
+            }
+
+            return pAsset;
         }
-        else
-        {
-            // 그대로 리턴
-            return it->second;
-        }
+
+        // 아니면 그대로 리턴
+        return it->second;
     }
 
     // 없으면 새롭게 생성 후 로드
-    Ref<IAsset> pAsset = MakeAssetRef(_type);
-    if (!pAsset->Load(_processedPath))
+    Expect<Ref<IAsset>> pAsset = CreateAsset(path, _type);
+    if (pAsset)
     {
-        return k_nullopt;
+        map[path] = pAsset.GetValue();
     }
 
-    map[_processedPath] = pAsset;
     return pAsset;
 }
 
-Optional<Ref<IAsset>> AssetManagerContext::Reload(const eAssetType _type, AssetMapIter _it)
+Expect<Ref<Model>> AssetManager::LoadModel(
+    const Path& _path,
+    const bool  _bForceReload)
 {
-    Ref<IAsset>& pAsset = _it->second;
-    if (!pAsset->Load(pAsset->GetPath()))
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Model, _path, _bForceReload))
     {
-        AssetMap& map = GetAssetMap(_type);
-        map.erase(_it);   // remove invalid asset
-        return k_nullopt;
+        return pAsset->As<Model>();
     }
-    return pAsset;
+    else
+    {
+        return pAsset.GetError();
+    }
 }
 
-void AssetManagerContext::Unload(const eAssetType _type, AssetMapIter _it)
+Expect<Ref<Mesh>> AssetManager::LoadMesh(
+    const Path& _path,
+    const bool  _bForceReload)
 {
-    AssetMap& map = GetAssetMap(_type);
-    JAM_ASSERT(_it != map.end(), "AssetManagerContext::Unload() called with invalid iterator.");
-    Ref<IAsset>& pAsset = _it->second;
-    pAsset->Unload();
-    map.erase(_it);
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Mesh, _path, _bForceReload))
+    {
+        return pAsset->As<Mesh>();
+    }
+    else
+    {
+        return pAsset.GetError();
+    }
 }
 
-void AssetManagerContext::Rename(
+Expect<Ref<Material>> AssetManager::LoadMaterial(
+    const Path& _path,
+    const bool  _bForceReload)
+{
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Material, _path, _bForceReload))
+    {
+        return pAsset->As<Material>();
+    }
+    else
+    {
+        return pAsset.GetError();
+    }
+}
+
+Expect<Ref<Texture>> AssetManager::LoadTexture(
+    const Path& _path,
+    const bool  _bForceReload)
+{
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Texture, _path, _bForceReload))
+    {
+        return pAsset->As<Texture>();
+    }
+    else
+    {
+        return pAsset.GetError();
+    }
+}
+
+void AssetManager::Unload(
     const eAssetType _type,
-    AssetMapIter     _oldIt,
-    const fs::path&  _newProcessedPath)
+    const Path&      _path)
 {
-    // new path에 이미 에셋이 있으면 unload.
-    const AssetMapIter it = Find(_type, _newProcessedPath);
-    if (Has(_type, it))
+    const Path   path = CreateProcessedPath(_path);
+    AssetMap&    map  = GetAssetMap_(_type);
+    AssetMapIter it   = map.find(path);
+    if (it != map.end())
     {
-        Unload(_type, it);
+        Unload_(map, it);
     }
-
-    // new path load
-    Load(_type, _newProcessedPath, false);
-
-    // old path unload
-    Unload(_type, _oldIt);
 }
 
-AssetManagerContext::AssetMap& AssetManagerContext::GetAssetMap(
+void AssetManager::UnloadModel(
+    const Path& _path)
+{
+    Unload(eAssetType::Model, _path);
+}
+
+void AssetManager::UnloadMesh(
+    const Path& _path)
+{
+    Unload(eAssetType::Mesh, _path);
+}
+
+void AssetManager::UnloadMaterial(
+    const Path& _path)
+{
+    Unload(eAssetType::Material, _path);
+}
+
+void AssetManager::UnloadTexture(
+    const Path& _path)
+{
+    Unload(eAssetType::Texture, _path);
+}
+
+void AssetManager::CleanGarbage(
     const eAssetType _type)
 {
-    return assetMaps[IntFrom(_type)];
-}
-
-void AssetManagerContext::OnFileModifiedEvent(
-    const FileModifiedEvent& _event)
-{
-    // reload existing asset without creating new object
-    const fs::path path = ProcessPath(_event.GetPath());
-    for (const eAssetType type: eAssetType {})
+    AssetMap& map = GetAssetMap_(_type);
+    for (AssetMapIter it = map.begin(); it != map.end();)
     {
-        // 존재하면 리로드
-        AssetMapIter it = Find(type, path);
-        if (Has(type, it))
+        Ref<IAsset>& pAsset = it->second;
+        if (pAsset->GetRefCount() <= 1)
         {
-            Reload(type, it);
-        }
-    }
-}
-
-void AssetManagerContext::Clear(
-    const eAssetType _type)
-{
-    AssetMap& map = GetAssetMap(_type);
-    for (auto it = map.begin(); it != map.end();)
-    {
-        Unload(_type, it++);
-    }
-}
-
-void AssetManagerContext::CleanGarbage(
-    const eAssetType _type)
-{
-    AssetMap& map = GetAssetMap(_type);
-    for (auto it = map.begin(); it != map.end();)
-    {
-        // if ref count is 1, it means only the manager holds it
-        if (it->second->GetRefCount() == 1)
-        {
+            // map에서 asset을 제거하는 순간 invalidate 되므로 invalidate 호출 불필요
             it = map.erase(it);
         }
         else
@@ -243,154 +203,147 @@ void AssetManagerContext::CleanGarbage(
     }
 }
 
-}   // namespace jam
-
-namespace jam
-{
-
-void AssetManager::Init()
-{
-    JAM_ASSERT(g_assetMgrCtx == nullptr, "AssetManager::Init() called more than once.");
-    g_assetMgrCtx = JAM_NEW(AssetManagerContext);
-}
-
-void AssetManager::Shutdown()
-{
-    JAM_ASSERT(g_assetMgrCtx, "AssetManager::Shutdown() called without Init().");
-    JAM_DELETE(g_assetMgrCtx);
-}
-
-void AssetManager::OnEvent(
-    Event& _event)
-{
-    HandleEvent<FileModifiedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileModifiedEvent);
-    HandleEvent<FileRenamedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileRenamedEvent);
-    HandleEvent<FileDeletedEvent>(_event, g_assetMgrCtx, &AssetManagerContext::OnFileDeletedEvent);
-}
-
-Optional<Ref<IAsset>> AssetManager::Load(
-    const eAssetType _type,
-    const fs::path&  _path,
-    const bool       _bForceReload)
-{
-    const fs::path path = g_assetMgrCtx->ProcessPath(_path);
-    return g_assetMgrCtx->Load(_type, path, _bForceReload);
-}
-
-Optional<Ref<Model>> AssetManager::LoadModel(
-    const fs::path& _path,
-    const bool      _bForceReload)
-{
-    Ref<IAsset> pAsset;
-    if (!MoveIfHasValue(Load(eAssetType::Model, _path, _bForceReload), pAsset))
-    {
-        return k_nullopt;
-    }
-
-    return pAsset.As<Model>();
-}
-
-Optional<Ref<Mesh>> AssetManager::LoadMesh(
-    const fs::path& _path,
-    const bool      _bForceReload)
-{
-    Ref<IAsset> pAsset;
-    if (!MoveIfHasValue(Load(eAssetType::Mesh, _path, _bForceReload), pAsset))
-    {
-        return k_nullopt;
-    }
-
-    return pAsset.As<Mesh>();
-}
-
-Optional<Ref<Material>> AssetManager::LoadMaterial(
-    const fs::path& _path,
-    const bool      _bForceReload)
-{
-    Ref<IAsset> pAsset;
-    if (!MoveIfHasValue(Load(eAssetType::Material, _path, _bForceReload), pAsset))
-    {
-        return k_nullopt;
-    }
-
-    return pAsset.As<Material>();
-}
-
-Optional<Ref<ImageTexture>> AssetManager::LoadImageTexture(
-    const fs::path& _path,
-    const bool      _bForceReload)
-{
-    Ref<IAsset> pAsset;
-    if (!MoveIfHasValue(Load(eAssetType::ImageTexture, _path, _bForceReload), pAsset))
-    {
-        return k_nullopt;
-    }
-
-    return pAsset.As<ImageTexture>();
-}
-
-void AssetManager::Unload(
-    const eAssetType _type,
-    const fs::path&  _path)
-{
-    const fs::path                    path = g_assetMgrCtx->ProcessPath(_path);
-    AssetManagerContext::AssetMapIter it   = g_assetMgrCtx->Find(_type, path);
-    if (g_assetMgrCtx->Has(_type, it))
-    {
-        g_assetMgrCtx->Unload(_type, it);
-    }
-}
-
-void AssetManager::UnloadModel(
-    const fs::path& _path)
-{
-    Unload(eAssetType::Model, _path);
-}
-
-void AssetManager::UnloadMesh(
-    const fs::path& _path)
-{
-    Unload(eAssetType::Mesh, _path);
-}
-
-void AssetManager::UnloadMaterial(
-    const fs::path& _path)
-{
-    Unload(eAssetType::Material, _path);
-}
-
-void AssetManager::UnloadImageTexture(
-    const fs::path& _path)
-{
-    Unload(eAssetType::ImageTexture, _path);
-}
-
-void AssetManager::CleanGarbage(
-    const eAssetType _type)
-{
-    g_assetMgrCtx->CleanGarbage(_type);
-}
-
 void AssetManager::CleanGarbageAll()
 {
-    for (const eAssetType type: eAssetType {})
+    for (const eAssetType type: EnumRanges<eAssetType>())
     {
-        g_assetMgrCtx->CleanGarbage(type);
+        CleanGarbage(type);
     }
 }
 
 void AssetManager::Clear(
     const eAssetType _type)
 {
-    g_assetMgrCtx->Clear(_type);
+    AssetMap& map = GetAssetMap_(_type);
+    for (AssetMapIter it = map.begin(); it != map.end(); ++it)
+    {
+        Ref<IAsset>& pAsset = it->second;
+        pAsset->Invalidate();
+    }
+    map.clear();
 }
 
 void AssetManager::ClearAll()
 {
-    for (const eAssetType type: eAssetType {})
+    for (const eAssetType type: EnumRanges<eAssetType>())
     {
-        g_assetMgrCtx->Clear(type);
+        Clear(type);
     }
 }
 
-}   // namespace jam
+void AssetManager::CreateInstance()
+{
+    JAM_ASSERT(s_pInstance == nullptr, "AssetManager instance already exists on CreateInstance.");
+    s_pInstance = new AssetManager;
+}
+
+void AssetManager::DestroyInstance()
+{
+    JAM_ASSERT(s_pInstance, "AssetManager instance is null on DestroyInstance.");
+    delete s_pInstance;
+}
+
+void AssetManager::OnEvent(
+    Event& _event)
+{
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<FileModifiedEvent>(this, &AssetManager::OnFileModifiedEvent_);
+    dispatcher.Dispatch<FileRenamedEvent>(this, &AssetManager::OnFileRenamedEvent_);
+    dispatcher.Dispatch<FileDeletedEvent>(this, &AssetManager::OnFileDeletedEvent_);
+}
+
+void AssetManager::OnFileModifiedEvent_(
+    const FileModifiedEvent& _event)
+{
+    // 존재하면 forced reload
+    const Path path = CreateProcessedPath(_event.GetPath());
+    for (eAssetType type: EnumRanges<eAssetType>())
+    {
+        AssetMap&    map = GetAssetMap_(type);
+        AssetMapIter it  = map.find(path);
+        if (it != map.end())
+        {
+            Ref<IAsset>& pAsset = it->second;
+            pAsset->Load(path);
+        }
+    }
+}
+
+void AssetManager::OnFileRenamedEvent_(
+    const FileRenamedEvent& _event)
+{
+    // process path
+    const Path& oldPath = CreateProcessedPath(_event.GetOldPath());
+    const Path& newPath = CreateProcessedPath(_event.GetNewPath());
+    JAM_ASSERT(oldPath != newPath, "Old path and new path are the same in OnFileRenamedEvent_.");
+
+    // for each asset type
+    for (eAssetType type: EnumRanges<eAssetType>())
+    {
+        // 없으면 스킵
+        AssetMap&    map   = GetAssetMap_(type);
+        AssetMapIter oldIt = map.find(oldPath);
+        if (oldIt == map.end())
+        {
+            continue;
+        }
+
+        // 1. 새로운 경로에 존재하는 에셋을 unload (덮어쓰기 방식)
+        AssetMapIter newIt = map.find(newPath);
+        if (newIt != map.end())
+        {
+            Unload_(map, newIt);
+        }
+
+        // 2. 기존 에셋의 참조 카운트 획득
+        Ref<IAsset> pAsset = oldIt->second;
+
+        // 3. 기존 경로에서 에셋 제거
+        Unload_(map, oldIt);
+
+        // 4. 에셋을 새로운 경로로 로드 및 맵에 삽입
+        //    만약 실패했다면, 에셋은 무효화된 상태
+        const Error err = pAsset->Load(newPath);
+        if (err)
+        {
+            continue;
+        }
+
+        // 5. 맵에 삽입
+        map[newPath] = pAsset;
+    }
+}
+
+void AssetManager::OnFileDeletedEvent_(
+    const FileDeletedEvent& _event)
+{
+    // 존재하면 언로드
+    const Path path = CreateProcessedPath(_event.GetPath());
+    for (const eAssetType type: EnumRanges<eAssetType>())
+    {
+        AssetMap&    map = GetAssetMap_(type);
+        AssetMapIter it  = map.find(path);
+        if (it != map.end())
+        {
+            Unload_(map, it);
+        }
+    }
+}
+
+void AssetManager::Unload_(
+    AssetMap&    _pAssetMap,
+    AssetMapIter _iter) const
+{
+    // 무효화 및 맵에서 제거
+    Ref<IAsset>& pAsset = _iter->second;
+    pAsset->Invalidate();
+    _pAssetMap.erase(_iter);
+}
+
+AssetManager::AssetMap& AssetManager::GetAssetMap_(
+    const eAssetType _type)
+{
+    return m_assetMaps[UnderlyingFrom(_type)];
+}
+
+}   // namespace Jam

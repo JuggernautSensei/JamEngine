@@ -2,44 +2,20 @@
 
 #include "Camera.h"
 
-namespace jam
+namespace Jam
 {
 
-Camera::Camera() = default;
-
-eProjection Camera::GetProjection() const
+Mtx4 Camera::ToProjMatrix() const
 {
-    return m_projection;
-}
-
-float Camera::GetAspectRatio() const
-{
-    return Div(m_width, m_height);
-}
-
-float Camera::GetNearZ() const
-{
-    return m_nearZ;
-}
-
-float Camera::GetFarZ() const
-{
-    return m_farZ;
-}
-
-float Camera::GetFovYRad() const
-{
-    return m_fovYRad;
-}
-
-float Camera::GetWidth() const
-{
-    return m_width;
-}
-
-float Camera::GetHeight() const
-{
-    return m_height;
+    if (m_projection == eProjection::Orthographic)
+    {
+        return CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
+    }
+    else
+    {
+        const float ar = GetAspectRatio();
+        return CreatePerspectiveMatrix(m_fovYRad, ar, m_nearZ, m_farZ);
+    }
 }
 
 void Camera::SetProjection(
@@ -83,17 +59,95 @@ void Camera::SetHeight(
     m_height = Clamp(m_height, k_minWidthHeight, k_maxWidthHeight);
 }
 
-Mat4 Camera::ToProjMatrix() const
+eProjection Camera::GetProjection() const
 {
-    if (m_projection == eProjection::Orthographic)
-    {
-        return CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
-    }
-    else
-    {
-        const float ar = GetAspectRatio();
-        return CreatePerspectiveMatrix(m_fovYRad, ar, m_nearZ, m_farZ);
-    }
+    return m_projection;
 }
 
-}   // namespace jam
+float Camera::GetAspectRatio() const
+{
+    return Div(m_width, m_height);
+}
+
+float Camera::GetNearZ() const
+{
+    return m_nearZ;
+}
+
+float Camera::GetFarZ() const
+{
+    return m_farZ;
+}
+
+float Camera::GetFovYRad() const
+{
+    return m_fovYRad;
+}
+
+float Camera::GetWidth() const
+{
+    return m_width;
+}
+
+float Camera::GetHeight() const
+{
+    return m_height;
+}
+
+void Camera::WriteToArchive(
+    ArchiveWriter& _writer) const
+{
+    _writer.WriteField("projection", m_projection);
+    _writer.WriteField("nearZ", m_nearZ);
+    _writer.WriteField("farZ", m_farZ);
+    _writer.WriteField("fovYRad", m_fovYRad);
+    _writer.WriteField("width", m_width);
+    _writer.WriteField("height", m_height);
+}
+
+Error Camera::ReadFromArchive(
+    ArchiveReader& _reader)
+{
+    eProjection projValue = {};
+    float       fValue    = 0.f;
+
+    if (const Error err = _reader.ReadField("projection", projValue))
+    {
+        return err;
+    }
+    SetProjection(projValue);
+
+    if (const Error err = _reader.ReadField("nearZ", fValue))
+    {
+        return err;
+    }
+    SetNearZ(fValue);
+
+    if (const Error err = _reader.ReadField("farZ", fValue))
+    {
+        return err;
+    }
+    SetFarZ(fValue);
+
+    if (const Error err = _reader.ReadField("fovYRad", fValue))
+    {
+        return err;
+    }
+    SetFovYRad(fValue);
+
+    if (const Error err = _reader.ReadField("width", fValue))
+    {
+        return err;
+    }
+    SetWidth(fValue);
+
+    if (const Error err = _reader.ReadField("height", fValue))
+    {
+        return err;
+    }
+    SetHeight(fValue);
+
+    return Error::None;
+}
+
+}   // namespace Jam

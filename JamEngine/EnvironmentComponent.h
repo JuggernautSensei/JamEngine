@@ -1,25 +1,24 @@
 #pragma once
-#include "ComponentDB.h"
-#include "EditableComponent.h"
+#include "ReflectionDB.h"
 #include "Environment.h"
-#include "SerializableComponent.h"
 
-namespace jam
+namespace Jam
 {
 
-struct EnvironmentComponent :
-    public SerializableComponent<EnvironmentComponent>,
-    public EditableComponent<EnvironmentComponent>,
-    public CannotRemovableComponent<EnvironmentComponent>,
-    public CannotCreatableInEditorComponent<EnvironmentComponent>
+struct EnvironmentComponent
 {
-    JAM_COMPONENT(EnvironmentComponent);
+    JAM_REFLECT_COMPONENT(EnvironmentComponent);
+    JAM_COMPONENT_TAG(eComponentTag::NonRemoveable, eComponentTag::CannotCreateInEditor);
+    JAM_COMPONENT_DISPLAY_NAME_IN_EDITOR("environment component");
 
-    void Serialize(JsonWriter _writer, const Ref<Scene>& _pScene, Entity _owner) const;
-    void Deserialize(JsonReader _reader, const Ref<Scene>& _pScene, Entity _owner);
-    void Panel_EditComponent(Ref<Scene>& _pScene, Entity _entity);
+    void Serialize(ArchiveWriter& _writer, const Ref<Scene>& _pScene, Entity _owner) const;
+    void Deserialize(ArchiveReader& _reader, const Ref<Scene>& _pScene, Entity _owner);
+    void DrawEditPanel(const Ref<Scene>& _pScene, Entity _owner);
 
-    Environment environment;
+    Environment environment = {};
 };
 
-}   // namespace jam
+JAM_STATIC_ASSERT_IS_COMPONENT_SERIALIZABLE(EnvironmentComponent);
+JAM_STATIC_ASSERT_IS_COMPONENT_EDITABLE(EnvironmentComponent);
+
+}   // namespace Jam

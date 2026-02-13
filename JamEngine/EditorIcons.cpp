@@ -2,20 +2,20 @@
 
 #include "EditorIcons.h"
 
-namespace jam
+namespace Jam
 {
 
-const Ref<ImageTexture>& EditorIcons::GetIcon(
+const Ref<Texture>& EditorIcons::GetIcon(
     const eEditorIcon _icon) const
 {
-    return pIcons[IntFrom(_icon)];
+    return pIcons[UnderlyingFrom(_icon)];
 }
 
 void EditorIcons::SetIcon(
     const eEditorIcon        _icon,
-    const Ref<ImageTexture>& _pTexure)
+    const Ref<Texture>& _pTexure)
 {
-    pIcons[IntFrom(_icon)] = _pTexure;
+    pIcons[UnderlyingFrom(_icon)] = _pTexure;
 }
 
-}   // namespace jam
+}   // namespace Jam

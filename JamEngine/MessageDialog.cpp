@@ -2,37 +2,28 @@
 
 #include "MessageDialog.h"
 
+#include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "ImGuiUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 MessageDialog::MessageDialog(
-    const StringView   _title,
-    const StringView   _msg,
-    const ImVec2       _size,
-    const eDialogFlags _flags)
-    : Dialog(_title, _size, _flags)
-    , m_msg(_msg.ToString())
+    const MessageDialogDesc& _desc)
+    : Dialog(_desc.baseDesc)
+    , m_msg(_desc.msg.ToString())
 {
 }
 
 void MessageDialog::OnShow()
 {
-    Widget_WrappedText(m_msg.c_str(), k_textWrapWidth);
+    Widget_TextWrapped(m_msg.GetPtr(), k_textWrapWidth);
     ImGui::Spacing();
 
-    if (ImGui::Button("ok", CalcFitButtonSize(1)))
+    if (ImGui::Button("ok", CalcFitButtonSize()))
     {
         ImGui::CloseCurrentPopup();
     }
 }
 
-void MessageDialog::SetMessage(
-    const StringView _msg)
-{
-    m_msg = _msg.ToString();
-}
-
-}   // namespace jam
+}   // namespace Jam

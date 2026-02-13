@@ -1,32 +1,31 @@
 #pragma once
+#include "ComponentTag.h"
 #include "Application.h"
-#include "Properties.h"
-#include "Transform.h"
+#include "ComponentMetadata.h"
 #include "UID.h"
 
-namespace jam
+namespace Jam
 {
 
+class Transform;
 class SceneNode;
 
 class Entity
 {
 public:
-    Entity();
-    Entity(entt::registry& _registry, entt::entity _handle, UID _uid);
+    constexpr Entity() = default;
+    Entity(SceneRegistry& _registry, EntityHandle _handle, UID _uid);
 
     [[nodiscard]] bool operator==(Entity _other) const;
     [[nodiscard]] bool operator!=(Entity _other) const;
 
-    [[nodiscard]] entt::registry* GetRegistry() const;
-    [[nodiscard]] entt::entity    GetHandle() const;
-
-    [[nodiscard]] bool IsValid() const;
-    explicit           operator bool() const;
-
+    [[nodiscard]] bool             IsValid() const;
     [[nodiscard]] UID              GetUID() const;
+    [[nodiscard]] EntityHandle     GetHandle() const;
     [[nodiscard]] SceneNode&       GetSceneNode();
     [[nodiscard]] const SceneNode& GetSceneNode() const;
+
+    /* implicit */ operator bool() const;
 
     [[nodiscard]] const Transform& GetWorldTransform() const;
     [[nodiscard]] Transform&       ModifyWorldTransform();
@@ -34,27 +33,35 @@ public:
     [[nodiscard]] Transform&       ModifyLocalTransform();
 
     template<typename T, typename... Args>
-    decltype(auto) CreateComponent(Args&&... args)
+        requires IsComponentReflected<T>
+    decltype(auto) CreateComponent(Args&&... _args)
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
-        return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(args)...);
+        return m_pRegistry->emplace_or_replace<T>(m_handle, std::forward<Args>(_args)...);
     }
 
     template<typename T, typename... Args>
-    void CreateComponentDefered(Args&&... args)
+        requires IsComponentReflected<T>
+    void CreateComponentDefered(Args&&... _args)
     {
-        Application& app = Application::GetInstance();
-        app.SubmitCommand(JAM_BIND_METHOD(this, Entity::CreateComponent<T>, args...));
+        JAM_APP.SubmitCommandToMainThread(Bind(
+            [this, ... args = std::forward<Args>(_args)]
+            {
+                CreateComponent<T>(std::move(args)...);
+            }));
     }
 
     template<typename... T>
+        requires(IsComponentReflected<T>, ...)
     decltype(auto) GetComponent() const
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->get<T...>(m_handle);
     }
 
+    // ReSharper disable once CppMemberFunctionMayBeConst
     template<typename... T>
+        requires(IsComponentReflected<T>, ...)
     decltype(auto) GetComponent()
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
@@ -62,35 +69,41 @@ public:
     }
 
     template<typename... T>
+        requires(IsComponentReflected<T>, ...)
     bool HasComponent() const
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->all_of<T...>(m_handle);
     }
 
+    // ReSharper disable once CppMemberFunctionMayBeConst
     template<typename... T>
+        requires(IsComponentReflected<T>, ...)
     void RemoveComponent()
     {
-        static_assert((!std::is_base_of_v<CannotRemovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
+        static_assert((!IsComponentTagEnabled<T, eComponentTag::NonRemoveable>, ...), "One or more components are marked as NonRemoveable and cannot be removed from the entity.");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         JAM_ASSERT(HasComponent<T...>(), "Entity does not have the specified component(s)");
         m_pRegistry->remove<T...>(m_handle);
     }
 
     template<typename... T>
+        requires(IsComponentReflected<T>, ...)
     void RemoveComponentDefered()
     {
-        static_assert((!std::is_base_of_v<CannotRemovableComponent<T>, T> && ...), "Attempting to remove an unremovable component");
-        Application& app = Application::GetInstance();
-        app.SubmitCommand(JAM_BIND_METHOD(this, Entity::RemoveComponent<T...>));
+        JAM_APP.SubmitCommandToMainThread(Bind(
+            [this]
+            {
+                RemoveComponent<T...>();
+            }));
     }
 
-    static Entity s_null;
+    static Entity k_invalid;
 
 private:
-    entt::registry* m_pRegistry = nullptr;
-    entt::entity    m_handle    = entt::null;
-    UID             m_uid       = k_invalidUid;
+    SceneRegistry* m_pRegistry = nullptr;
+    EntityHandle   m_handle    = entt::null;
+    UID            m_uid       = UID::k_invalid;
 };
 
-}   // namespace jam
+}   // namespace Jam

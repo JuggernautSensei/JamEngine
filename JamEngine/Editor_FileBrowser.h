@@ -2,17 +2,14 @@
 
 #include "EditorWidgets.h"
 #include "HistoryStack.h"
+#include "ThumbnailCache.h"
 
 #include <efsw/efsw.hpp>
 
-#include "JsonReader.h"
-#include "JsonWriter.h"
-#include "ThumbnailCache.h"
-
-namespace jam
+namespace Jam
 {
-enum class ePrimitiveCreationType;
 
+enum class ePrimitiveCreationType;
 class FileDeletedEvent;
 class FileRenamedEvent;
 class FileModifiedEvent;
@@ -24,29 +21,35 @@ class Editor_FileBrowser
     // only file directory structure
     struct DirNode
     {
-        std::string     name       = {};
-        fs::path        path       = {};
-        Vector<DirNode> children   = {};
-        bool            bIsFocused = false;
+        Path            path        = {};
+        StringView      name        = {};
+        Vector<DirNode> children    = {};
+        bool            bIsFocusing = false;
     };
 
     // all file entry (regular + directory)
     struct FileEntry
     {
-        std::string       filename   = {};
-        fs::path          path       = {};
-        bool              bIsDir     = false;
-        Ref<ImageTexture> pThumbnail = nullptr;
+        Path         path       = {};
+        StringView   name       = {};
+        bool         bIsDir     = false;
+        Ref<Texture> pThumbnail = nullptr;
     };
 
 public:
-    void Init();
-    void Shutdown() const;
+    Editor_FileBrowser();
+    ~Editor_FileBrowser();
+
+    Editor_FileBrowser(const Editor_FileBrowser&)                = delete;
+    Editor_FileBrowser& operator=(const Editor_FileBrowser&)     = delete;
+    Editor_FileBrowser(Editor_FileBrowser&&) noexcept            = delete;   // not impled yet.
+    Editor_FileBrowser& operator=(Editor_FileBrowser&&) noexcept = delete;   // not impled yet.
+
     void OnEvent(Event& _event);
     void OnImGuiRender(bool& _pOpen);
 
-    void Serialize(JsonWriter _writer);
-    void Deserialize(JsonReader _reader);
+    void  WriteToArchive(ArchiveWriter& _writer) const;
+    Error ReadFromArchive(ArchiveReader& _reader);
 
 private:
     // widgets
@@ -55,25 +58,23 @@ private:
     void Widget_RedoButton_();
     void Widget_BackButton_();
     void Widget_FileEntries();
-    void Widget_DirTree_();
     void Widget_DirNode_Recursive_(const DirNode& _node);
 
     // popup
     void Menu_FileEntriesPanel();
     void Menu_CreateFileEntry() const;
-    void Menu_ImportAsset(const fs::path& _path) const;
+    void Menu_ImportAsset(const Path& _path) const;
 
     // file entries
     void GatherFileEntries_();
 
     // directory tree
     void                  BuildDirTree_();
-    [[nodiscard]] DirNode BuildDirNode_Recursive_(const fs::path& _path);
-    void                  MarkFocuedDirNode_();
-    bool                  MarkFocusedDirNode_Recursive_(DirNode& _node);
+    [[nodiscard]] DirNode BuildDirNode_Recursive_(const Path& _path);
+    bool                  MarkFocusingDirNode_Recursive_(DirNode& _node);
 
     // navigation
-    void SetFocusDir_(const fs::path& _dir, bool _bPushHistroyStack = true);
+    void SetFocusingDir_(const Path& _dir, bool _bPushHistroyStack = true);
     void GoToParentDir_();
 
     // event handlers
@@ -81,18 +82,11 @@ private:
     void OnFileDeleteEvent_(const FileDeletedEvent& _event);
     void OnFileModifiedEvent_(const FileModifiedEvent& _event);
     void OnFileRenamedEvent_(const FileRenamedEvent& _event);
+    void OnFileEvent_(const Path& _path);
 
-    // file operations
-    void MoveFile_(const fs::path& _path, const fs::path& _newDir) const;
-    void DeleteFile_(const fs::path& _path) const;
-    void CreateFolder_(const fs::path& _parentDir) const;
-
-    // dialog 
-    void OnClickRemoveNotEmptyDirectoryYesButton_(const fs::path& _dir) const;
-
-    // file explorer operations
-    void OpenFileAsDefaultApplication_(const fs::path& _path) const;
-    void OpenFileOnFileExplorer_(const fs::path& _path) const;
+    // shell helper
+    void OpenFileInExplorer_(const Path& _path, bool _bSelected) const;
+    void OpenFileWithDefaultApp_(const Path& _path) const;
 
     // file watcher
     Scoped<efsw::FileWatcher>       m_pFileWatcher       = nullptr;
@@ -100,9 +94,8 @@ private:
     efsw::WatchID                   m_watchID            = 0;
 
     // navigation state
-    fs::path               m_focusedDir          = {};
-    bool                   m_bIsRootDirFocused = false;
-    HistoryStack<fs::path> m_historyStack      = {};
+    Path               m_focusingDir  = {};
+    HistoryStack<Path> m_historyStack = {};
 
     // directory tree
     DirNode m_rootDirNode = {};
@@ -111,18 +104,23 @@ private:
     ThumbnailCache m_thumbnailCache = {};
 
     // file entries
-    Vector<FileEntry> m_fileEntries;
-    ImGuiTextFilter   m_fileEntryFilter;
-    float             m_fileEntryGatheringCounterSec  = 0.f;
-    constexpr float   k_fileEntryGatheringDebounceSec = 0.5f;
+    Vector<FileEntry>      m_fileEntries;
+    ImGuiTextFilter        m_fileEntryFilter;
+    float                  m_fileEntryGatheringCounterSec  = 0.f;
+    constexpr static float k_fileEntryGatheringDebounceSec = 0.5f;
 
     // update flags
-    bool m_bNeedBuildDirTree      = true;
-    bool m_bNeedGatherFileEntries = true;
+    bool m_bBuildDirTreeRequired      = true;
+    bool m_bGatherFileEntriesRequried = true;
 
     float                  m_zoom        = 1.f;
     constexpr static float k_minZoomPerc = 50.f;
     constexpr static float k_maxZoomPerc = 300.f;
+
+    constexpr static ImVec2 k_fileEntrySize     = { 100.f, 100.f };
+    constexpr static float  k_fileEntrySpacingX = 20.f;
 };
 
-}   // namespace jam
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Editor_FileBrowser);
+
+}   // namespace Jam

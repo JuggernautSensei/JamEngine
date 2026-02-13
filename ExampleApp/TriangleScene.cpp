@@ -78,11 +78,11 @@ void TriangleScene::OnEnter()
     // 쉐이더 핸들
     {
         // vertex shader
-        ShaderCompiler compiler;
+        ShaderCodeBlob compiler;
         if (!compiler.CompileHLSLSource(k_source, eShader::VertexShader, "VSMain"))
         {
             Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
-            JAM_ASSERT(0, "shader compile failed");
+            JAM_UNREACHABLE;
         }
         const ShaderHandle vsh = Graphics::CreateShader(compiler.GetBytecode());
 
@@ -90,7 +90,7 @@ void TriangleScene::OnEnter()
         if (!compiler.CompileHLSLSource(k_source, eShader::PixelShader, "PSMain"))
         {
             Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
-            JAM_ASSERT(0, "shader compile failed");
+            JAM_UNREACHABLE;
         }
         const ShaderHandle psh = Graphics::CreateShader(compiler.GetBytecode());
 

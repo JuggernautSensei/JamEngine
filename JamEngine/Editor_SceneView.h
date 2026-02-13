@@ -2,13 +2,11 @@
 #include "Camera.h"
 #include "EditorRenderer.h"
 #include "EditorWidgets.h"
-#include "Event.h"
 #include "GraphicsBase.h"
-#include "JsonWriter.h"
-#include "JsonReader.h"
+#include "InfiniteDragger.h"
 #include "Transform.h"
 
-namespace jam
+namespace Jam
 {
 
 class MouseWheelEvent;
@@ -38,16 +36,21 @@ class Editor_SceneView
     };
 
 public:
-    void Init();
-    void Shutdown();
+    Editor_SceneView();
+    ~Editor_SceneView();
+
+    Editor_SceneView(const Editor_SceneView&)                = delete;
+    Editor_SceneView& operator=(const Editor_SceneView&)     = delete;
+    Editor_SceneView(Editor_SceneView&&) noexcept            = delete;
+    Editor_SceneView& operator=(Editor_SceneView&&) noexcept = delete;
 
     void OnUpdate(float _deltaTime);
     void OnRender();
     void OnImGuiRender(bool& _bShow);
     void OnEvent(Event& _event);
 
-    void Serialize(JsonWriter _writer) const;
-    void Deserialize(JsonReader _reader);
+    void  WriteToArchive(ArchiveWriter& _writer) const;
+    Error ReadFromArchive(ArchiveReader& _reader);
 
 private:
     // draws
@@ -72,13 +75,13 @@ private:
     void OnMouseWheelEvent_(MouseWheelEvent& _event) const;
 
     // widget
-    bool Widget_GizmoButton(eGizmoOp _op, const Ref<ImageTexture>& _pTex);
-    bool Widget_GizmoOrientButton(eGizmoOrient _orient);
-    void Widget_GizmoSnapButton();
+    void Widget_GizmoSelector(eGizmoOp _op);
+    void Widget_GizmoOriendToggle_();
+    void Widget_GizmoSnapToggle_();
     void Widget_CameraAcroball_();
-    bool Widget_RunButton_() const;
-    bool Widget_StopButton_() const;
-    void Widget_EditorModeSwitchButton();
+    void Widget_RunButton_();
+    void Widget_StopButton_() const;
+    void Widget_EditorModeSwitchButton_();
 
     // view
     FrameBufferHandle m_fbh        = k_invalidHandle;
@@ -95,25 +98,23 @@ private:
     bool  m_bResizeRequested = false;
 
     // play <-> edit 상태 복구용
-    bool m_bRecoverRequested      = false;
-    Json m_backupSceneJson        = {};
-    UID  m_focusedEntityBackupUid = {};
+    bool   m_bRecoverRequested      = false;
+    String m_backUpSceneData        = {};
+    UID    m_focusedEntityBackupUid = {};
 
     // camera
     Camera    m_camera                 = {};
     Transform m_cameraTransform        = {};
-    float     m_pitchRad               = 0.f;
-    float     m_yawRad                 = 0.f;
+    Vec3      m_cameraEulerRad         = vec3::k_zero;
     float     m_cameraMoveSpeed        = 5.f;
     float     m_cameraRotSpeed         = 1.2f;
     bool      m_bShowCameraTranslation = true;
     bool      m_bShowCameraForward     = true;
 
-    InfiniteDragHelper m_dragHelper = {};
-
     // edit camera overlay window
-    ImVec2 m_sceneViewLeftTop = ImVec2 { 0.f, 0.f };
-    ImVec2 m_sceneViewRes     = ImVec2 { 0.f, 0.f };
+    InfiniteDragger m_infiniteDragger;   // init in constructor
+    ImVec2          m_sceneViewLeftTop = { 0.f, 0.f };
+    ImVec2          m_sceneViewRes     = { 0.f, 0.f };
 
     bool m_bFocusing = false;
     bool m_bHovering = false;
@@ -130,13 +131,13 @@ private:
     bool           m_bShowAxis = true;
 
     // icons
-    Ref<ImageTexture> m_cursorIcon     = {};
-    Ref<ImageTexture> m_stopIcon       = {};
-    Ref<ImageTexture> m_optionsIcon       = {};
-    Ref<ImageTexture> m_playIcon       = {};
-    Ref<ImageTexture> m_rotatationIcon = {};
-    Ref<ImageTexture> m_scaleIcon      = {};
-    Ref<ImageTexture> m_tranlationIcon = {};
+    Ref<Texture> m_cursorIcon     = nullptr;
+    Ref<Texture> m_stopIcon       = nullptr;
+    Ref<Texture> m_optionsIcon    = nullptr;
+    Ref<Texture> m_playIcon       = nullptr;
+    Ref<Texture> m_rotatationIcon = nullptr;
+    Ref<Texture> m_scaleIcon      = nullptr;
+    Ref<Texture> m_tranlationIcon = nullptr;
 
     static constexpr Vec3   k_translateSnap    = Vec3 { 0.5f };
     static constexpr Vec3   k_rotateSnapDeg    = Vec3 { 15.f };
@@ -155,4 +156,6 @@ private:
     static constexpr ImGuiCol k_acroballBgCol  = IM_COL32(0, 0, 0, 120);
 };
 
-}   // namespace jam
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Editor_SceneView);
+
+}   // namespace Jam

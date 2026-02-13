@@ -2,7 +2,7 @@
 #include "Event.h"
 #include "UID.h"
 
-namespace jam
+namespace Jam
 {
 
 class WindowResizedEvent : public Event
@@ -10,9 +10,9 @@ class WindowResizedEvent : public Event
 public:
     WindowResizedEvent(Int32 _width, Int32 _height);
 
-    [[nodiscard]] Int32       GetWidth() const;
-    [[nodiscard]] Int32       GetHeight() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetWidth() const;
+    [[nodiscard]] Int32 GetHeight() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(WindowResizedEvent)
 
@@ -26,9 +26,9 @@ class WindowMaximizedEvent : public Event
 public:
     WindowMaximizedEvent(Int32 _width, Int32 _height);
 
-    [[nodiscard]] Int32       GetWidth() const;
-    [[nodiscard]] Int32       GetHeight() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetWidth() const;
+    [[nodiscard]] Int32 GetHeight() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(WindowMaximizedEvent)
 
@@ -41,8 +41,7 @@ class WindowMinimizedEvent : public Event
 {
 public:
     WindowMinimizedEvent();
-
-    [[nodiscard]] std::string ToString() const override;
+    void FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(WindowMinimizedEvent)
 };
@@ -52,9 +51,9 @@ class WindowMoveEvent : public Event
 public:
     WindowMoveEvent(Int32 _x, Int32 _y);
 
-    [[nodiscard]] Int32       GetX() const;
-    [[nodiscard]] Int32       GetY() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetX() const;
+    [[nodiscard]] Int32 GetY() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(WindowMoveEvent)
 
@@ -67,8 +66,7 @@ class WindowCloseEvent : public Event
 {
 public:
     WindowCloseEvent();
-
-    [[nodiscard]] std::string ToString() const override;
+    void FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(WindowCloseEvent)
 };
@@ -77,9 +75,9 @@ class MouseWheelEvent : public Event
 {
 public:
     explicit MouseWheelEvent(Int32 _delta);
+    void FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    [[nodiscard]] Int32       GetDelta() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetDelta() const;
 
     JAM_EVENT(MouseWheelEvent)
 
@@ -92,9 +90,9 @@ class MouseMoveEvent : public Event
 public:
     MouseMoveEvent(Int32 _x, Int32 _y);
 
-    [[nodiscard]] Int32       GetX() const;
-    [[nodiscard]] Int32       GetY() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetX() const;
+    [[nodiscard]] Int32 GetY() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(MouseMoveEvent)
 
@@ -108,8 +106,8 @@ class MouseDownEvent : public Event
 public:
     explicit MouseDownEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32       GetVKey() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetVKey() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(MouseDownEvent)
 
@@ -122,8 +120,8 @@ class MouseUpEvent : public Event
 public:
     explicit MouseUpEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32       GetVKey() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetVKey() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(MouseUpEvent)
 
@@ -136,8 +134,8 @@ class KeyDownEvent : public Event
 public:
     explicit KeyDownEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32       GetVKey() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetVKey() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(KeyDownEvent)
 
@@ -150,8 +148,8 @@ class KeyUpEvent : public Event
 public:
     explicit KeyUpEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32       GetVKey() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Int32 GetVKey() const;
+    void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(KeyUpEvent)
 
@@ -163,8 +161,7 @@ class WindowFocusedEvent : public Event
 {
 public:
     WindowFocusedEvent();
-
-    [[nodiscard]] std::string ToString() const override;
+    void FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(WindowFocusedEvent)
 };
@@ -173,8 +170,7 @@ class WindowLostFocusEvent : public Event
 {
 public:
     WindowLostFocusEvent();
-
-    [[nodiscard]] std::string ToString() const override;
+    void FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(WindowLostFocusEvent)
 };
@@ -182,8 +178,7 @@ public:
 class SceneChangedEvent : public Event
 {
 public:
-    [[nodiscard]] std::string ToString() const override;
-
+    void FormatEventMessage(ScratchBuffer& _buf) const override;
     JAM_EVENT(SceneChangedEvent)
 };
 
@@ -192,13 +187,13 @@ class EntityCreatedEvent : public Event
 public:
     explicit EntityCreatedEvent(UID _uid);
 
-    [[nodiscard]] UID         GetEntityUID() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] UID GetEntityUID() const;
+    void              FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(EntityCreatedEvent)
 
 private:
-    UID m_uid;
+    UID m_uid = UID::k_invalid;
 };
 
 class EntityDestroyedEvent : public Event
@@ -206,71 +201,71 @@ class EntityDestroyedEvent : public Event
 public:
     explicit EntityDestroyedEvent(UID _uid);
 
-    [[nodiscard]] UID         GetEntityUID() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] UID GetEntityUID() const;
+    void              FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(EntityDestroyedEvent)
 
 private:
-    UID m_uid;
+    UID m_uid = {};
 };
 
 class FileAddedEvent : public Event
 {
 public:
-    explicit FileAddedEvent(const fs::path& _path);
+    explicit FileAddedEvent(const Path& _path);
 
-    [[nodiscard]] fs::path    GetPath() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Path GetPath() const;
+    void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(FileAddedEvent);
 
 private:
-    fs::path m_path;
+    Path m_path = {};
 };
 
 class FileDeletedEvent : public Event
 {
 public:
-    explicit FileDeletedEvent(const fs::path& _path);
+    explicit FileDeletedEvent(const Path& _path);
 
-    [[nodiscard]] fs::path    GetPath() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Path GetPath() const;
+    void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(FileDeletedEvent);
 
 private:
-    fs::path m_path;
+    Path m_path = {};
 };
 
 class FileModifiedEvent : public Event
 {
 public:
-    explicit FileModifiedEvent(const fs::path& _path);
+    explicit FileModifiedEvent(const Path& _path);
 
-    [[nodiscard]] fs::path    GetPath() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Path GetPath() const;
+    void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(FileModifiedEvent);
 
 private:
-    fs::path m_path;
+    Path m_path = {};
 };
 
 class FileRenamedEvent : public Event
 {
 public:
-    explicit FileRenamedEvent(const fs::path& _old, const fs::path& _new);
+    explicit FileRenamedEvent(const Path& _old, const Path& _new);
 
-    [[nodiscard]] fs::path    GetOldPath() const;
-    [[nodiscard]] fs::path    GetNewPath() const;
-    [[nodiscard]] std::string ToString() const override;
+    [[nodiscard]] Path GetOldPath() const;
+    [[nodiscard]] Path GetNewPath() const;
+    void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
     JAM_EVENT(FileRenamedEvent);
 
 private:
-    fs::path m_old;
-    fs::path m_new;
+    Path m_old = {};
+    Path m_new = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

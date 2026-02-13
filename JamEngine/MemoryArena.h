@@ -1,87 +1,54 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 class MemoryArena
 {
 public:
-    explicit MemoryArena(const UInt32 _byteWidthPerArena)
-        : m_byteWidthPerArena(_byteWidthPerArena)
-    {
-        JAM_ASSERT(_byteWidthPerArena > 0, "아레나의 크기는 0보다 커야 합니다.");
-    }
+    explicit MemoryArena(USizeT _byteWidthPerArena);
 
-    ~MemoryArena()
-    {
-        Reset();
-    }
+    ~MemoryArena();
 
     MemoryArena(const MemoryArena&)            = delete;
     MemoryArena(MemoryArena&&)                 = delete;
     MemoryArena& operator=(const MemoryArena&) = delete;
     MemoryArena& operator=(MemoryArena&&)      = delete;
 
-    void* Alloc(const size_t _byteWidth)
+    void* Alloc(USizeT _byteWidth);
+
+    template<typename T>
+    T* Alloc()
     {
-        constexpr size_t k_alignent = alignof(std::max_align_t);
-        const size_t     byteWidth  = (_byteWidth + (k_alignent - 1)) & ~(k_alignent - 1);
-        JAM_ASSERT(byteWidth <= m_byteWidthPerArena, "한 아레나에 할당할 수 있는 최대 크기를 초과했습니다.");
-
-        if (m_pCur == nullptr)   // 아레나 초기화 필요
-        {
-            void* pMem = std::malloc(m_byteWidthPerArena + sizeof(Head));
-            JAM_ASSERT(pMem, "메모리 할당에 실패했습니다.");
-            m_pCurHead            = static_cast<Head*>(pMem);
-            m_pCurHead->pPrevHead = nullptr;
-            m_pCur                = static_cast<UInt8*>(pMem) + sizeof(Head);
-            m_pEnd                = m_pCur + m_byteWidthPerArena;
-        }
-
-        if (m_pCur + byteWidth >= m_pEnd)
-        {
-            void* pMem = std::malloc(m_byteWidthPerArena + sizeof(Head));
-            JAM_ASSERT(pMem, "메모리 할당에 실패했습니다.");
-            Head* newHead      = static_cast<Head*>(pMem);
-            newHead->pPrevHead = m_pCurHead;
-            m_pCurHead         = newHead;
-            m_pCur             = static_cast<UInt8*>(pMem) + sizeof(Head);
-            m_pEnd             = m_pCur + m_byteWidthPerArena;
-        }
-
-        void* pRet = m_pCur;
-        m_pCur     = m_pCur + byteWidth;
-        return pRet;
+        return static_cast<T*>(Alloc(sizeof(T)));
     }
 
     template<typename T>
-    [[nodiscard]] T* Alloc(const size_t _count = 1)
+    T* Alloc(const USizeT _count)
     {
         return static_cast<T*>(Alloc(_count * sizeof(T)));
     }
 
-    template<typename T, typename... Args>
-    [[nodiscard]] T* New(const size_t _count = 1, Args&&... _args)
+    template<typename T, typename... TArgs>
+    T* New(TArgs&&... _args)
+    {
+        T* pRet = Alloc<T>();
+        std::construct_at(pRet, std::forward<TArgs>(_args)...);
+        return pRet;
+    }
+
+    template<typename T, typename... TArgs>
+    T* New(const USizeT _count, TArgs&&... _args)
     {
         T* pRet = Alloc<T>(_count);
-        for (size_t i = 0; i < _count; ++i)
+        for (USizeT i = 0; i < _count; ++i)
         {
-            std::construct_at(&pRet[i], std::forward<Args>(_args)...);
+            std::construct_at(&pRet[i], std::forward<TArgs>(_args)...);
         }
         return pRet;
     }
 
-    void Reset()
-    {
-        while (m_pCurHead)
-        {
-            Head* pPrev = m_pCurHead->pPrevHead;
-            std::free(m_pCurHead);
-            m_pCurHead = pPrev;
-        }
-        m_pCur = nullptr;
-        m_pEnd = nullptr;
-    }
+    void Reset();
 
 private:
     struct Head
@@ -90,9 +57,9 @@ private:
     };
 
     Head*  m_pCurHead          = {};
-    UInt8* m_pCur              = nullptr;
-    UInt8* m_pEnd              = nullptr;
-    UInt32 m_byteWidthPerArena = 0;
+    Byte*  m_pCur              = nullptr;
+    Byte*  m_pEnd              = nullptr;
+    USizeT m_byteWidthPerArena = 0;
 };
 
-}   // namespace jam
+}   // namespace Jam

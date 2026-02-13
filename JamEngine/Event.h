@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jam
+namespace Jam
 {
 
 class Event
@@ -14,9 +14,9 @@ public:
     Event(Event&&) noexcept            = default;
     Event& operator=(Event&&) noexcept = default;
 
-    [[nodiscard]] virtual std::string ToString() const    = 0;
-    [[nodiscard]] virtual StringView  GetTypeName() const = 0;
-    [[nodiscard]] virtual UInt32      GetTypeHash() const = 0;
+    virtual void                     FormatEventMessage(ScratchBuffer& _buf) const = 0;   // for logging or debugging
+    [[nodiscard]] virtual StringView GetTypeName() const                           = 0;
+    [[nodiscard]] virtual UInt32     GetTypeHash() const                           = 0;
 
     [[nodiscard]] bool IsHandled() const;
     void               SetHandled(bool _bHandled);
@@ -25,93 +25,80 @@ private:
     bool m_bHandled = false;
 };
 
-#define JAM_EVENT(_eventT, _eventCategory)                                      \
-    constexpr static StringView k_name = NameOf<_eventT>();                     \
-    constexpr static UInt32     k_hash = HashOf<_eventT>();                     \
-    [[nodiscard]] StringView    GetTypeName() const override { return k_name; } \
-    [[nodiscard]] UInt32        GetTypeHash() const override { return k_hash; }
+#define JAM_EVENT(_eventT)                                                          \
+    constexpr static StringView k_typeName = NameOf<_eventT>();                     \
+    constexpr static UInt32     k_typeHash = HashOf<_eventT>();                     \
+    [[nodiscard]] StringView    GetTypeName() const override { return k_typeName; } \
+    [[nodiscard]] UInt32        GetTypeHash() const override { return k_typeHash; } \
+    constexpr static bool       k_bIsEvent = true;
+
+template<typename T>
+concept EventBasedType = requires(T _event) {
+    { T::k_bIsEvent } -> std::convertible_to<bool>;
+    std::is_base_of_v<Event, T>;
+};
+
+template<typename TEvent, typename TFunc>
+concept EventHandlerFuncType = requires(
+    TFunc   _func,
+    TEvent& _event) {
+    EventBasedType<TEvent>;
+    { _func(_event) } -> std::same_as<void>;   // const or non-const member function or lambda
+};
+
+template<typename TEvent, typename TCaller, typename TMethod>
+concept EventHandlerMethodType = requires(
+    TCaller* _caller,
+    TMethod  _method,
+    TEvent&  _event) {
+    EventBasedType<TEvent>;
+    { (_caller->*_method)(_event) } -> std::same_as<void>;   // const or non-const member function
+};
 
 class EventDispatcher
 {
 public:
-    template<typename EventType, typename ListenerType>
-    void AddListener(ListenerType&& _listener)
+    explicit EventDispatcher(Event& _event)
+        : m_event(&_event)
+        , m_typeHash(_event.GetTypeHash())
     {
-        static_assert(std::is_base_of_v<Event, EventType>, "EventType must inherit from Event.");
-        static_assert(std::is_invocable_v<ListenerType, EventType>, "ListenerType must be invocable with EventType as an argument.");
-
-        JAM_ASSERT(!m_listeners.contains(EventType::k_hash), "Listener for event type '{}' already exists.", EventType::k_name);
-        m_listeners.emplace(EventType::k_hash,
-                            [_listener](Event& _event)
-                            {
-                                _listener(static_cast<EventType&>(_event));
-                            });
     }
 
-    template<typename EventType, typename CallerType, typename ListenerType>
-    void AddListener(CallerType* _pCaller, ListenerType&& _listener)
+    template<EventBasedType TEvent, typename TFunc>
+        requires EventHandlerFuncType<TEvent, TFunc>
+    void Dispatch(TFunc&& _func)
     {
-        using RawEventType = std::remove_cvref_t<EventType>;
-
-        static_assert(std::is_base_of_v<Event, EventType>, "EventType must inherit from Event.");
-        static_assert(std::is_invocable_v<ListenerType, CallerType*, RawEventType>, "ListenerType must be invocable with EventType as an argument.");
-        static_assert(std::is_member_function_pointer_v<ListenerType>, "ListenerType must be a member function pointer.");
-
-        JAM_ASSERT(!m_listeners.contains(EventType::k_hash), "Listener for event type '{}' already exists.", EventType::k_name);
-        m_listeners.emplace(EventType::k_hash,
-                            [_pCaller, _listener](Event& _event)
-                            {
-                                (_pCaller->*_listener)(static_cast<RawEventType&>(_event));
-                            });
-    }
-
-    void Dispatch(Event& _event) const
-    {
-        if (_event.IsHandled())
+        if (m_event->IsHandled())
         {
             return;
         }
 
-        const UInt32 hash = _event.GetTypeHash();
-        const auto   it   = m_listeners.find(hash);
-        if (it != m_listeners.end())
+        if (m_typeHash == TEvent::k_typeHash)
         {
-            it->second(_event);
+            TEvent& event = *static_cast<TEvent*>(m_event);
+            _func(event);
+        }
+    }
+
+    template<EventBasedType TEvent, typename TCaller, typename TMethod>
+        requires EventHandlerMethodType<TEvent, TCaller, TMethod>
+    void Dispatch(TCaller* _caller, TMethod&& _method)
+    {
+        if (m_event->IsHandled())
+        {
+            return;
+        }
+
+        if (m_typeHash == TEvent::k_typeHash)
+        {
+            TEvent& event = *static_cast<TEvent*>(m_event);
+            (_caller->*_method)(event);
         }
     }
 
 private:
-    HashMap<UInt32, std::function<void(Event&)>> m_listeners;
+    Event* m_event    = nullptr;
+    UInt32 m_typeHash = 0;
 };
 
-template<typename EventType, typename ListenerType>
-void HandleEvent(Event& _event, ListenerType&& _listenerType)
-{
-    if (_event.IsHandled())
-    {
-        return;
-    }
-
-    if (_event.GetTypeHash() == EventType::k_hash)
-    {
-        EventType& event = static_cast<EventType&>(_event);
-        _listenerType(event);
-    }
-}
-
-template<typename EventType, typename CallerType, typename ListenerType>
-void HandleEvent(Event& _event, CallerType* _pCaller, ListenerType&& _listenerType)
-{
-    if (_event.IsHandled())
-    {
-        return;
-    }
-
-    if (_event.GetTypeHash() == EventType::k_hash)
-    {
-        EventType& event = static_cast<EventType&>(_event);
-        (_pCaller->*_listenerType)(event);
-    }
-}
-
-}   // namespace jam
+}   // namespace Jam

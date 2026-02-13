@@ -1,7 +1,6 @@
 #pragma once
-#include "ImGuiUtilities.h"
 
-namespace jam
+namespace Jam
 {
 
 enum class eEditorStyleVar
@@ -10,6 +9,26 @@ enum class eEditorStyleVar
     AcroballAxisLineLengthRatio,
     AcroballAxisHeadRadius,
     AcroballAxisHeadOutlineThickness,
+};
+
+enum class eEditorShortCut
+{
+    SaveScene,
+    LoadScene,
+    CreateEntity,
+    DeleteEntity,
+    CloneEntity,
+    RunGameToggle,
+    FileBrowserNavUndo,
+    FileBrowserNavRedo,
+    FileBrowserNavBack,
+    GizmoCursorMode,
+    GizmoTranslationMode,
+    GizmoRotationMode,
+    GizmoScaleMode,
+    GizmoOrientToggle,
+    GizmoSnapToggle,
+    GizmoTempSnapToggle,
 };
 
 enum class eEditorStyleColor
@@ -37,23 +56,22 @@ enum class eEditorStyleColor
     AcroballBg,
     AcroballBgHovered,
     AcroballBgActive,
-
-    Min = Error,
-    Max = AcroballBgActive,
 };
-JAM_ENUM_STATIC_ASSERT(eEditorStyleColor);
 
 struct EditorStyle
 {
     EditorStyle();
 
-    [[nodiscard]] float  GetVar(eEditorStyleVar _var) const;
-    [[nodiscard]] ImVec4 GetColor(eEditorStyleColor _color) const;
-    void                 SetVar(eEditorStyleVar _var, float _value);
-    void                 SetColor(eEditorStyleColor _color, const ImVec4& _value);
+    [[nodiscard]] float         GetVar(eEditorStyleVar _var) const;
+    [[nodiscard]] ImVec4        GetColor(eEditorStyleColor _color) const;
+    [[nodiscard]] ImGuiKeyChord GetShortCut(eEditorShortCut _shortCut) const;
+    void                        SetVar(eEditorStyleVar _var, float _value);
+    void                        SetColor(eEditorStyleColor _color, const ImVec4& _value);
+    void                        SetShortCut(eEditorShortCut _shortCut, ImGuiKeyChord _value);
 
-    float  vars[NumEnums<eEditorStyleVar>()]     = {};
-    ImVec4 colors[NumEnums<eEditorStyleColor>()] = {};
+    float         vars[CountOf<eEditorStyleVar>()]      = {};
+    ImVec4        colors[CountOf<eEditorStyleColor>()]  = {};
+    ImGuiKeyChord shortCuts[CountOf<eEditorShortCut>()] = {};
 };
 
-}   // namespace jam
+}   // namespace Jam

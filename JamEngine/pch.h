@@ -1,5 +1,8 @@
 #pragma once
 
+// intercept memory allocators
+#include "MemoryAllocator.h"
+
 // predefine macros
 #ifndef NOMINMAX
 #    define NOMINMAX
@@ -9,10 +12,6 @@
 #    define WIN32_LEAN_AND_MEAN
 #endif
 
-// crt
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-
 // windows
 #include <windows.h>
 
@@ -21,7 +20,6 @@
 #include <cassert>
 #include <chrono>
 #include <cstdint>
-#include <format>
 #include <functional>
 #include <memory>
 #include <string>
@@ -31,44 +29,48 @@
 #include <vector>
 
 // directX
-#include "Vendor/DirectXTK/SimpleMath.h"
-#include "Vendor/DirectXTK/SimpleMath.inl"
+#include <DirectXTK/SimpleMath.h>
+#include <DirectXTK/SimpleMath.inl>
 #include <d3d11.h>
 #include <wrl.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "DirectXTK.lib")
 
-// 3rd party
-#include "HashMap.h"
-#include "Optional.h"
-#include "STL.h"
+// entt
 #include <entt/entt.hpp>
 
-// forward declarations
+// fmt
+#define FMT_UNICODE 0
+#include <fmt/format.h>
+#include <fmt/printf.h>
+#include <fmt/xchar.h>
 
 // non-dependent core
 #include "Configs.h"
+#include "STL.h"
 #include "Macros.h"
 #include "DataType.h"
-#include "Fwd.h"
+#include "Assertion.h"
+#include "HashMap.h"
 
 // dependent core
-#include "Error.h"
-#include "TypeTrait.h"
-#include "Math.h"
-#include "MemView.h"
 #include "BaseUtilities.h"
-#include "StringView.h"
+#include "Optional.h"
+#include "Math.h"
+#include "String.h"
 #include "RefCounted.h"
-#include "Scoped.h"
 #include "Log.h"
+#include "MemoryBlock.h"
+#include "Error.h"
+#include "Scoped.h"
+#include "Delegate.h"
 
 // utilities
-#include "GlobalBuffer.h"
-#include "StringUtilities.h"
 #include "FileSystemUtilities.h"
 #include "EnumUtilities.h"
+#include "Flags.h"
+#include "ScratchBuffer.h"
 
 // 3rd party glue
-#include "Json.h"
 #include "ImGuiGlue.h"
