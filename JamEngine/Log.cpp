@@ -102,11 +102,12 @@ Log::Log()
     // file sink
     const TimeStamp ts       = TimeStamp::Current();
     const Path      filepath = fmt::format("Logs\\{:04}.{:02}.{:02}\\{:02}h {:02}m {:02}.{:03}s.log", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
-    fs::create_directories(filepath);
+    fs::create_directories(filepath.parent_path());
     const SinkRef pFileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filepath.native(), true);
 
     // core logger
     const LoggerRef pCoreLogger = std::make_shared<spdlog::async_logger>("CORE", spdlog::sinks_init_list { pConsoleSink, pFileSink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+    pCoreLogger->set_level(spdlog::level::trace);
     SetCoreChannel(MakeRef<LogChannel>(pCoreLogger));
 }
 

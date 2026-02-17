@@ -53,7 +53,7 @@ private:
 
     Path          m_path            = {};
     String        m_name            = {};
-    TextureHandle m_texh            = k_invalidHandle;
+    TextureHandle m_texh            = k_nullHandle;
     Vec2i         m_res             = { 0, 0 };
     eTextureType  m_type            = eTextureType::Texture2D;
     bool          m_bLoadedFromFile = false;

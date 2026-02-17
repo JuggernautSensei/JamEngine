@@ -1,13 +1,14 @@
 #pragma once
-#include "ReflectionDB.h"
+#include "ComponentDatabase.h"
 
 namespace Jam
 {
 
 struct TagComponent
 {
-    JAM_REFLECT_COMPONENT(TagComponent);
-    JAM_COMPONENT_DISPLAY_NAME_IN_EDITOR("tag component");
+    JAM_COMPONENT_BODY(TagComponent);
+    JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME("tag component");
+    JAM_COMPONENT_METADATA_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable);
 
     TagComponent();
     explicit TagComponent(StringView _name);
@@ -23,8 +24,5 @@ struct TagComponent
 
     String name = "unknown";
 };
-
-JAM_STATIC_ASSERT_IS_COMPONENT_SERIALIZABLE(TagComponent);
-JAM_STATIC_ASSERT_IS_COMPONENT_EDITABLE(TagComponent);
 
 }   // namespace Jam

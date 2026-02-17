@@ -19,9 +19,6 @@
     <ClCompile Include="Events.cpp">
       <Filter>1. Core\Event</Filter>
     </ClCompile>
-    <ClCompile Include="EntryPoint.cpp">
-      <Filter>1. Core</Filter>
-    </ClCompile>
     <ClCompile Include="CommandQueue.cpp">
       <Filter>99. Utilities\MultiThread</Filter>
     </ClCompile>
@@ -87,9 +84,6 @@
     </ClCompile>
     <ClCompile Include="Profile.cpp">
       <Filter>99. Utilities\Profile</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentTag.cpp">
-      <Filter>3. Scene\Component\Metadata</Filter>
     </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>3. Scene\Utilities</Filter>
@@ -223,19 +217,19 @@
     <ClCompile Include="SVGImporter.cpp">
       <Filter>99. Utilities\SVG</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_VertexLayoutEditor.cpp">
+    <ClCompile Include="Editor_VertexLayoutEditorWindow.cpp">
       <Filter>6. Editor\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_EntityInspector.cpp">
+    <ClCompile Include="Editor_EntityInspectorWindow.cpp">
       <Filter>6. Editor\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_Profiler.cpp">
+    <ClCompile Include="Editor_ProfilerWindow.cpp">
       <Filter>6. Editor\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_SceneHierarchy.cpp">
+    <ClCompile Include="Editor_SceneHierarchyWindow.cpp">
       <Filter>6. Editor\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_SceneView.cpp">
+    <ClCompile Include="Editor_SceneViewWindow.cpp">
       <Filter>6. Editor\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Editor.cpp">
@@ -244,7 +238,7 @@
     <ClCompile Include="LRUCache.cpp">
       <Filter>99. Utilities\Container\LRUCache</Filter>
     </ClCompile>
-    <ClCompile Include="Editor_FileBrowser.cpp">
+    <ClCompile Include="Editor_FileBrowserWindow.cpp">
       <Filter>6. Editor\Windows</Filter>
     </ClCompile>
     <ClCompile Include="ThumbnailCache.cpp">
@@ -337,9 +331,6 @@
     <ClCompile Include="String.cpp">
       <Filter>99. Utilities\String</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentProperties.cpp">
-      <Filter>3. Scene\Component\Metadata</Filter>
-    </ClCompile>
     <ClCompile Include="AssetSaveLoader.cpp">
       <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
@@ -382,9 +373,6 @@
     <ClCompile Include="Vendor\imgui\imgui_stdlib.cpp">
       <Filter>98. Vendor\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="MockApplication.cpp">
-      <Filter>1. Core\MockApplication</Filter>
-    </ClCompile>
     <ClCompile Include="Vendor\mimalloc\static.c">
       <Filter>98. Vendor\mimalloc</Filter>
     </ClCompile>
@@ -400,14 +388,23 @@
     <ClCompile Include="ImageImporter.cpp">
       <Filter>2. Graphics\Utilities\Image</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentMetadata.cpp">
-      <Filter>3. Scene\Component\Metadata</Filter>
-    </ClCompile>
     <ClCompile Include="CommandLineArgumentParser.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="ReflectionDB.cpp">
-      <Filter>3. Scene\Reflection</Filter>
+    <ClCompile Include="ComponentMetadata.cpp">
+      <Filter>3. Scene\Component\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentDatabase.cpp">
+      <Filter>3. Scene\Component\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneDatabase.cpp">
+      <Filter>3. Scene\Scene\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneMetadata.cpp">
+      <Filter>3. Scene\Scene\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumArray.cpp">
+      <Filter>99. Utilities\Container\EnumArray</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -570,9 +567,6 @@
     <Filter Include="99. Utilities\Container\Tiny">
       <UniqueIdentifier>{9419f6e7-3e2c-4d62-946f-beed0325a08b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="99. Utilities\Container\Constexpr">
-      <UniqueIdentifier>{54024868-ecac-4d61-94e0-cda34dda2933}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\File">
       <UniqueIdentifier>{ac1a2057-690b-4ade-b538-7c7cd1a604f4}</UniqueIdentifier>
     </Filter>
@@ -587,9 +581,6 @@
     </Filter>
     <Filter Include="98. Vendor\rapidstring">
       <UniqueIdentifier>{faa1ac42-9a2c-4f0f-bc8c-de03bd9b2389}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3. Scene\Component\Metadata">
-      <UniqueIdentifier>{23f5a5fe-ac2e-490a-bb3b-cae1b67d611d}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Delegate">
       <UniqueIdentifier>{af4425b8-51e9-4b18-a950-8969eec341ce}</UniqueIdentifier>
@@ -654,16 +645,28 @@
     <Filter Include="2. Graphics\Utilities\Image">
       <UniqueIdentifier>{5dec5990-6a18-4f62-a4de-99a8f2260a50}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3. Scene\Reflection">
-      <UniqueIdentifier>{f5a9bb26-90bf-4019-ac50-ad5a98860dcc}</UniqueIdentifier>
+    <Filter Include="3. Scene\Component\Base">
+      <UniqueIdentifier>{3794f56a-658d-4003-9cd4-9a301f444a50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Scene\Component\Database">
+      <UniqueIdentifier>{10f18986-44cd-4f27-9a47-4f9da62b308f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Scene\Scene\Database">
+      <UniqueIdentifier>{18707fa2-cf5f-4c79-acbb-aa22951b52b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3. Scene\Scene\Base">
+      <UniqueIdentifier>{b6750cda-99ce-4dca-9e49-fa90c9afd8e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\EnumArray">
+      <UniqueIdentifier>{f2b9b6b7-4462-4aa2-a07a-d80148a38fdf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\Constexpr">
+      <UniqueIdentifier>{54024868-ecac-4d61-94e0-cda34dda2933}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Log.h">
       <Filter>1. Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="EntryPoint.h">
-      <Filter>1. Core</Filter>
     </ClInclude>
     <ClInclude Include="JamEngine.h">
       <Filter>0. Include</Filter>
@@ -754,9 +757,6 @@
     </ClInclude>
     <ClInclude Include="ImGuiGlue.h">
       <Filter>4. Renderer\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentTag.h">
-      <Filter>3. Scene\Component\Metadata</Filter>
     </ClInclude>
     <ClInclude Include="UID.h">
       <Filter>3. Scene\Utilities</Filter>
@@ -893,19 +893,19 @@
     <ClInclude Include="SVGImporter.h">
       <Filter>99. Utilities\SVG</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_VertexLayoutEditor.h">
+    <ClInclude Include="Editor_VertexLayoutEditorWindow.h">
       <Filter>6. Editor\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_EntityInspector.h">
+    <ClInclude Include="Editor_EntityInspectorWindow.h">
       <Filter>6. Editor\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_Profiler.h">
+    <ClInclude Include="Editor_ProfilerWindow.h">
       <Filter>6. Editor\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_SceneHierarchy.h">
+    <ClInclude Include="Editor_SceneHierarchyWindow.h">
       <Filter>6. Editor\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_SceneView.h">
+    <ClInclude Include="Editor_SceneViewWindow.h">
       <Filter>6. Editor\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Editor.h">
@@ -917,7 +917,7 @@
     <ClInclude Include="LRUCache.h">
       <Filter>99. Utilities\Container\LRUCache</Filter>
     </ClInclude>
-    <ClInclude Include="Editor_FileBrowser.h">
+    <ClInclude Include="Editor_FileBrowserWindow.h">
       <Filter>6. Editor\Windows</Filter>
     </ClInclude>
     <ClInclude Include="ThumbnailCache.h">
@@ -1013,9 +1013,6 @@
     <ClInclude Include="Vendor\rapidstring\rapidstring.h">
       <Filter>98. Vendor\rapidstring</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentProperties.h">
-      <Filter>3. Scene\Component\Metadata</Filter>
-    </ClInclude>
     <ClInclude Include="AssetSaveLoader.h">
       <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
@@ -1060,9 +1057,6 @@
     </ClInclude>
     <ClInclude Include="Vendor\imgui\imgui_stdlib.h">
       <Filter>98. Vendor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="MockApplication.h">
-      <Filter>1. Core\MockApplication</Filter>
     </ClInclude>
     <ClInclude Include="Vendor\mimalloc\bitmap.h">
       <Filter>98. Vendor\mimalloc</Filter>
@@ -1109,14 +1103,23 @@
     <ClInclude Include="ImageExporter.h">
       <Filter>2. Graphics\Utilities\Image</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentMetadata.h">
-      <Filter>3. Scene\Component\Metadata</Filter>
-    </ClInclude>
     <ClInclude Include="CommandLineArgumentParser.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="ReflectionDB.h">
-      <Filter>3. Scene\Reflection</Filter>
+    <ClInclude Include="ComponentMetadata.h">
+      <Filter>3. Scene\Component\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentDatabase.h">
+      <Filter>3. Scene\Component\Database</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDatabase.h">
+      <Filter>3. Scene\Scene\Database</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneMetadata.h">
+      <Filter>3. Scene\Scene\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumArray.h">
+      <Filter>99. Utilities\Container\EnumArray</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

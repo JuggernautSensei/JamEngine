@@ -24,13 +24,13 @@ public:
     FileRWBase(FileRWBase&& _other) noexcept;
     FileRWBase& operator=(FileRWBase&& _other) noexcept;
 
-    void                Seek(Int32 _offset, eSeekOp _op) const;
-    void                Skip(Int32 _numBytes) const;
-    [[nodiscard]] Int32 Tell() const;
-    [[nodiscard]] Int32 Remaining() const;
+    SizeT               Seek(SizeT _offset, eSeekOp _op) const;
+    SizeT               Skip(SizeT _numBytes) const;
+    [[nodiscard]] SizeT Tell() const;
+    [[nodiscard]] SizeT Remaining() const;
     void                Rewind() const;
 
-    [[nodiscard]] Int32 CalcTotalSize() const;
+    [[nodiscard]] SizeT CalcTotalSize() const;
     void                Close();
     [[nodiscard]] bool  IsClosed() const;
     [[nodiscard]] bool  IsError() const;
@@ -49,9 +49,9 @@ public:
     static Error                            WriteFileFromMemory(CMemoryBlock _data, const Path& _path, Flags<eSaveFileFlags> _flags = {});
     static Error                            WriteFileFromString(StringView _str, const Path& _path, Flags<eSaveFileFlags> _flags = {});
 
-    Error Write(CMemoryBlock _data) const;
-    Error Write(StringView _str) const;
-    void  Flush() const;
+    Expect<SizeT> Write(CMemoryBlock _data) const;
+    Expect<SizeT> Write(StringView _str) const;
+    void          Flush() const;
 
 private:
     explicit FileWriter(FILE* _pFile);
@@ -64,7 +64,7 @@ public:
     static Expect<Vector<Byte>>             ReadFileAsMemory(const Path& _path);
     static Expect<String>                   ReadFileAsString(const Path& _path);
 
-    Error              Read(MemoryBlock _dst) const;
+    Expect<SizeT>      Read(MemoryBlock _dst) const;
     [[nodiscard]] bool IsEof() const;
 
 private:

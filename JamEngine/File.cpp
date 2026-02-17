@@ -61,11 +61,11 @@ FileRWBase& FileRWBase::operator=(
     return *this;
 }
 
-void FileRWBase::Seek(
-    const Int32   _offset,
+SizeT FileRWBase::Seek(
+    const SizeT   _offset,
     const eSeekOp _op) const
 {
-    Int32 origin = 0;
+    SizeT origin = 0;
     switch (_op)
     {
         case eSeekOp::Set:
@@ -81,30 +81,32 @@ void FileRWBase::Seek(
             JAM_UNREACHABLE;
     }
 
-    if (::fseek(m_pFile, _offset, origin) != 0)
+    if (::_fseeki64(m_pFile, _offset, NumericCast<int>(origin)) != 0)
     {
-        JAM_UNREACHABLE;
+        JAM_ASSERT(0, "Failed to seek file position.");
     }
+
+    return Tell();
 }
 
-void FileRWBase::Skip(
-    const Int32 _numBytes) const
+SizeT FileRWBase::Skip(
+    const SizeT _numBytes) const
 {
-    Seek(_numBytes, eSeekOp::Current);
+    return Seek(_numBytes, eSeekOp::Current);
 }
 
-Int32 FileRWBase::Tell() const
+SizeT FileRWBase::Tell() const
 {
-    const long pos = ::ftell(m_pFile);
+    const SizeT pos = ::_ftelli64(m_pFile);
     JAM_ASSERT(pos >= 0, "Failed to tell file position.");
-    return NumericCast<Int32>(pos);
+    return pos;
 }
 
-Int32 FileRWBase::Remaining() const
+SizeT FileRWBase::Remaining() const
 {
-    const Int32 cur = Tell();
+    const SizeT cur = Tell();
     Seek(0, eSeekOp::End);
-    const Int32 end = Tell();
+    const SizeT end = Tell();
     Seek(cur, eSeekOp::Set);
     return end - cur;
 }
@@ -114,11 +116,11 @@ void FileRWBase::Rewind() const
     Seek(0, eSeekOp::Set);
 }
 
-Int32 FileRWBase::CalcTotalSize() const
+SizeT FileRWBase::CalcTotalSize() const
 {
-    const Int32 cur = Tell();
+    const SizeT cur = Tell();
     Seek(0, eSeekOp::End);
-    const Int32 end = Tell();
+    const SizeT end = Tell();
     Seek(cur, eSeekOp::Set);
     return end;
 }
@@ -182,7 +184,7 @@ Error FileWriter::WriteFileFromMemory(
         return writer.GetError();
     }
 
-    return writer->Write(_data);
+    return writer->Write(_data).GetError();
 }
 
 Error FileWriter::WriteFileFromString(
@@ -193,7 +195,7 @@ Error FileWriter::WriteFileFromString(
     return WriteFileFromMemory(CMemoryBlock { _str.GetPtr(), _str.GetLength() }, _path, _flags);
 }
 
-Error FileWriter::Write(
+Expect<SizeT> FileWriter::Write(
     const CMemoryBlock _data) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
@@ -203,10 +205,10 @@ Error FileWriter::Write(
         JAM_LOG.Error("Failed to write {} bytes to file, only {} bytes were written.", _data.GetByteWidth(), written);
         return Error::WriteFailed;
     }
-    return Error::None;
+    return NumericCast<SizeT>(written);
 }
 
-Error FileWriter::Write(
+Expect<SizeT> FileWriter::Write(
     const StringView _str) const
 {
     return Write(CMemoryBlock { _str.GetPtr(), _str.GetLength() });
@@ -244,12 +246,13 @@ Expect<Vector<Byte>> FileReader::ReadFileAsMemory(
     {
         return reader.GetError();
     }
-    const Int32  totalSize = reader->CalcTotalSize();
+    const SizeT  totalSize = reader->CalcTotalSize();
     Vector<Byte> data(totalSize);
-    if (const Error err = reader->Read(data))
+    if (const Error err = reader->Read(data).GetError())
     {
         return err;
     }
+
     return data;
 }
 
@@ -261,16 +264,17 @@ Expect<String> FileReader::ReadFileAsString(
     {
         return reader.GetError();
     }
-    const Int32 totalSize = reader->CalcTotalSize();
+    const SizeT totalSize = reader->CalcTotalSize();
     String      str { totalSize, '\0' };
-    if (const Error err = reader->Read(MemoryBlock { str.GetPtr(), totalSize }))
+    if (const Error err = reader->Read({ str.GetPtr(), totalSize }).GetError())
     {
         return err;
     }
+
     return str;
 }
 
-Error FileReader::Read(
+Expect<SizeT> FileReader::Read(
     const MemoryBlock _dst) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
@@ -285,10 +289,11 @@ Error FileReader::Read(
         {
             JAM_LOG.Error("Failed to read {} bytes from file, only {} bytes were read.", _dst.GetByteWidth(), read);
         }
+
         return Error::ReadFailed;
     }
 
-    return Error::None;
+    return NumericCast<SizeT>(read);
 }
 
 bool FileReader::IsEof() const

@@ -135,14 +135,14 @@ Error Model::Load(
     m_materials.reserve(pDto->matPaths.size());
     for (const StringViewDto path: pDto->matPaths)
     {
-        Expect<Ref<Material>> pMat = JAM_ASSET_MGR.LoadMaterial(PathFrom(path));
-        if (!pMat)
+        Expect<Ref<Material>> pMaterial = JAM_ASSET_MGR.LoadMaterial(PathFrom(path));
+        if (!pMaterial)
         {
             CleanUp_();
-            return pMat.GetError();
+            return pMaterial.GetError();
         }
 
-        m_materials.emplace_back(pMat.Take());
+        m_materials.emplace_back(pMaterial.Take());
     }
 
     // finalize
@@ -204,9 +204,9 @@ Error Model::Save(
 
     // materials
     dto.matPaths.reserve(NumericCast<UInt32>(m_materials.size()));
-    for (const Ref<Material>& pMat: m_materials)
+    for (const Ref<Material>& pMaterial: m_materials)
     {
-        dto.matPaths.emplace_back(StringViewDtoFrom(pMat->GetPath()));
+        dto.matPaths.emplace_back(StringViewDtoFrom(pMaterial->GetPath()));
     }
 
     // serialize

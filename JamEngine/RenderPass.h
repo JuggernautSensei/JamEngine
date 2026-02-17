@@ -8,7 +8,7 @@ class RenderGraph;
 
 struct ConstantBufferBind
 {
-    ConstantBufferHandle cbh   = k_invalidHandle;
+    ConstantBufferHandle cbh   = k_nullHandle;
     eShader              stage = eShader::VertexShader;
     Int32                slot  = 0;
 };
@@ -22,7 +22,7 @@ struct SamplerBind
 
 struct TextureBind
 {
-    TextureHandle texh  = k_invalidHandle;
+    TextureHandle texh  = k_nullHandle;
     eShader       stage = eShader::VertexShader;
     Int32         slot  = 0;
 };
@@ -78,8 +78,8 @@ private:
     Flags<eFlags> m_flags = eFlags::None;
 
     // core
-    ProgramHandle     m_ph  = k_invalidHandle;
-    FrameBufferHandle m_fbh = k_invalidHandle;
+    ProgramHandle     m_ph  = k_nullHandle;
+    FrameBufferHandle m_fbh = k_nullHandle;
     Viewport          m_vp  = {};
 
     // rendering state

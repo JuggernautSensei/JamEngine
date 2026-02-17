@@ -5,12 +5,12 @@
 #include "Application.h"
 #include "AssetManager.h"
 #include "ConfirmationDialog.h"
-#include "Editor_EntityInspector.h"
-#include "Editor_FileBrowser.h"
-#include "Editor_Profiler.h"
-#include "Editor_SceneHierarchy.h"
-#include "Editor_SceneView.h"
-#include "Editor_VertexLayoutEditor.h"
+#include "Editor_EntityInspectorWindow.h"
+#include "Editor_FileBrowserWindow.h"
+#include "Editor_ProfilerWindow.h"
+#include "Editor_SceneHierarchyWindow.h"
+#include "Editor_SceneViewWindow.h"
+#include "Editor_VertexLayoutEditorWindow.h"
 #include "Entity.h"
 #include "DialogStack.h"
 #include "Graphics.h"
@@ -29,17 +29,17 @@ namespace Jam
 {
 
 void Editor::OnSceneChanged_(
-    SceneChangedEvent& _event)
+    SceneChangedEvent&)
 {
-    focusedEntity = Entity::k_invalid;
+    m_focusedEntity = Entity::k_invalid;
 }
 
 void Editor::OnEntityDestroyed_(
     const EntityDestroyedEvent& _event)
 {
-    if (focusedEntity.GetUID() == _event.GetEntityUID())
+    if (m_focusedEntity.GetUID() == _event.GetEntityUID())
     {
-        focusedEntity = Entity::k_invalid;
+        m_focusedEntity = Entity::k_invalid;
     }
 }
 
@@ -128,7 +128,7 @@ void Editor::ShowWorkspace_()
 
 void Editor::SetupDefaultTheme_() const
 {
-    // imgui style
+    // imgui m_style
     {
         ImGuiStyle& style = ImGui::GetStyle();
 
@@ -217,7 +217,7 @@ void Editor::SetupDefaultTheme_() const
         style.Colors[ImGuiCol_ModalWindowDimBg]      = ImVec4(0.8f, 0.8f, 0.8f, 0.35f);
     }
 
-    // imguizmo style
+    // imguizmo m_style
     {
         ImGuizmo::Style& style = ImGuizmo::GetStyle();
 
@@ -250,26 +250,26 @@ void Editor::SetupDefaultTheme_() const
 
 void Editor::LoadIcons_()
 {
-    icons.SetIcon(eEditorIcon::Cursor, LoadIconFromSvgSource(k_cursorIconSvg));
-    icons.SetIcon(eEditorIcon::Stop, LoadIconFromSvgSource(k_stopIconSvg));
-    icons.SetIcon(eEditorIcon::Menu, LoadIconFromSvgSource(k_menuIconSvg));
-    icons.SetIcon(eEditorIcon::Play, LoadIconFromSvgSource(k_playIconSvg));
-    icons.SetIcon(eEditorIcon::Rotation, LoadIconFromSvgSource(k_rotationIconSvg));
-    icons.SetIcon(eEditorIcon::Scale, LoadIconFromSvgSource(k_scaleIconSvg));
-    icons.SetIcon(eEditorIcon::Translation, LoadIconFromSvgSource(k_translationIconSvg));
+    m_icons[eEditorIcon::Cursor]      = LoadIconFromSvgSource(k_cursorIconSvg);
+    m_icons[eEditorIcon::Stop]        = LoadIconFromSvgSource(k_stopIconSvg);
+    m_icons[eEditorIcon::Menu]        = LoadIconFromSvgSource(k_menuIconSvg);
+    m_icons[eEditorIcon::Play]        = LoadIconFromSvgSource(k_playIconSvg);
+    m_icons[eEditorIcon::Rotation]    = LoadIconFromSvgSource(k_rotationIconSvg);
+    m_icons[eEditorIcon::Scale]       = LoadIconFromSvgSource(k_scaleIconSvg);
+    m_icons[eEditorIcon::Translation] = LoadIconFromSvgSource(k_translationIconSvg);
 }
 
 void Editor::UpdateAutoSaveState_(
     const float _deltaSec)
 {
-    configSaveCounterSec += _deltaSec;
-    if (configSaveCounterSec >= Editor::k_configSaveIntervalSec)
+    m_configSaveCounterSec += _deltaSec;
+    if (m_configSaveCounterSec >= Editor::k_configSaveIntervalSec)
     {
-        // save config only in edit mode
-        if (mode == eEditorMode::Edit)
+        // save config only in edit m_mode
+        if (m_mode == eEditorMode::Edit)
         {
             SaveConfig_();
-            configSaveCounterSec = 0.f;
+            m_configSaveCounterSec = 0.f;
         }
     }
 }
@@ -279,13 +279,13 @@ void Editor::SaveConfig_() const
     JAM_FUNCTION_PROFILE();
 
     JsonWriter writer {};
-    writer.WriteField("windowShows", windowShows);
+    writer.WriteField("windowShows", m_windowShows);
     writer.WriteField("fontScale", ImGui::GetIO().FontGlobalScale);
-    writer.WriteField("renderView", renderViewWindow);
-    writer.WriteField("fileBrowser", fileBrowserWindow);
-    writer.WriteField("vertexLayoutMap", vlMap);
+    writer.WriteField("renderView", *m_pSceneViewWindow);
+    writer.WriteField("fileBrowser", *m_pFileBrowserWindow);
+    writer.WriteField("vertexLayoutMap", m_vlMap);
 
-    if (const Error err = writer.SaveToFile(configPath, eJsonWriteFlags::Pretty))
+    if (const Error err = writer.SaveToFile(m_configPath, eJsonWriteFlags::Pretty))
     {
         JAM_LOG.Warn("Editor::SaveConfig_() - failed to save editor config file. {}.", err.ToErrorMessage());
     }
@@ -295,29 +295,29 @@ void Editor::SaveConfig_() const
 
 void Editor::LoadConfigIfExist_()
 {
-    if (!fs::exists(configPath))
+    if (!fs::exists(m_configPath))
     {
         return;
     }
 
-    Expect<JsonReader> reader = JsonReader::ParseFromFile(configPath);
+    Expect<JsonReader> reader = JsonReader::ParseFromFile(m_configPath);
     if (!reader)
     {
         return;
     }
 
     // general
-    reader->ReadField("windowShows", windowShows);
+    reader->ReadField("windowShows", m_windowShows);
     reader->ReadField("fontScale", ImGui::GetIO().FontGlobalScale);
-    reader->ReadField("renderView", renderViewWindow);
-    reader->ReadField("fileBrowser", fileBrowserWindow);
-    reader->ReadField("vertexLayoutMap", vlMap);
+    reader->ReadField("renderView", *m_pSceneViewWindow);
+    reader->ReadField("fileBrowser", *m_pFileBrowserWindow);
+    reader->ReadField("vertexLayoutMap", m_vlMap);
 }
 
 Ref<Texture> Editor::LoadIconFromSvgSource(
     const StringView _svgSource) const
 {
-    SVGImporterDesc desc = {};
+    SVGImporterInfo desc = {};
     desc.width           = k_iconSize.x;
     desc.height          = k_iconSize.y;
 
@@ -332,15 +332,15 @@ Ref<Texture> Editor::LoadIconFromSvgSource(
     const Int32         h      = importer->GetHeight();
     const TextureHandle texh   = JAM_GFX.CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, mems);
 
-    Ref<Texture> pTex = {};
-    pTex->Load(texh);
-    return pTex;
+    Ref<Texture> pTexture = {};
+    pTexture->Load(texh);
+    return pTexture;
 }
 
 bool& Editor::GetWindowShow(
     const eEditorWindowType _type)
 {
-    return windowShows[UnderlyingFrom(_type)];
+    return m_windowShows[UnderlyingFrom(_type)];
 }
 
 }   // namespace Jam
@@ -357,75 +357,70 @@ Editor& Editor::GetInstance()
 void Editor::SetMode(
     const eEditorMode _mode)
 {
-    mode = _mode;
+    m_mode = _mode;
 }
 
 eEditorMode Editor::GetMode() const
 {
-    return mode;
+    return m_mode;
 }
 
 void Editor::SetFocusingEntity(
     const Entity _entity)
 {
-    focusedEntity = _entity;
+    m_focusedEntity = _entity;
 }
 
 void Editor::ReleaseFocusingEntity()
 {
-    focusedEntity = Entity::k_invalid;
+    m_focusedEntity = Entity::k_invalid;
 }
 
 Entity Editor::GetFocusingEntity() const
 {
-    return focusedEntity;
-}
-
-EditorStyle& Editor::GetStyle()
-{
-    return style;
+    return m_focusedEntity;
 }
 
 float Editor::GetStyleVar(
     const eEditorStyleVar _var) const
 {
-    return style.vars[UnderlyingFrom(_var)];
+    return m_style.vars[UnderlyingFrom(_var)];
 }
 
 ImVec4 Editor::GetStyleColor(
     const eEditorStyleColor _col) const
 {
-    return style.colors[UnderlyingFrom(_col)];
+    return m_style.colors[UnderlyingFrom(_col)];
 }
 
 ImU32 Editor::GetStyleColorU32(
     const eEditorStyleColor _col) const
 {
-    const ImVec4 col = style.colors[UnderlyingFrom(_col)];
+    const ImVec4 col = m_style.colors[UnderlyingFrom(_col)];
     return ImGui::ColorConvertFloat4ToU32(col);
 }
 
 ImGuiKeyChord Editor::GetStyleShortCut(
     const eEditorShortCut _shortCut) const
 {
-    return style.shortCuts[UnderlyingFrom(_shortCut)];
+    return m_style.shortCuts[UnderlyingFrom(_shortCut)];
 }
 
 Ref<Texture> Editor::GetIcon(
     const eEditorIcon _icon) const
 {
-    return icons.GetIcon(_icon);
+    return m_icons[_icon];
 }
 
 VertexLayoutMap& Editor::GetVertexLayoutMap()
 {
-    return vlMap;
+    return m_vlMap;
 }
 
 void Editor::PushDialog(
     const Ref<Dialog>& _pDialog)
 {
-    dialogStack.Push(_pDialog);
+    m_dialogStack.Push(_pDialog);
 }
 
 void Editor::LoadScenByFileDialog()
@@ -445,8 +440,8 @@ void Editor::LoadScenByFileDialog()
             ScratchBuffer tmp;
             tmp.Format("failed to load scene file: {}.", path.native());
 
-            MessageDialogDesc desc = {};
-            desc.baseDesc.title    = "error";
+            MessageDialogInfo desc = {};
+            desc.baseInfo.title    = "error";
             desc.msg               = tmp.ToStringView();
             PushDialog(MakeRef<MessageDialog>(desc));
         }
@@ -475,8 +470,8 @@ void Editor::SaveSceneByFileDialog(
             ScratchBuffer buf;
             buf.Format("failed to save scene file: {}.\n{}", path, err.ToErrorMessage());
 
-            MessageDialogDesc desc = {};
-            desc.baseDesc.title    = "error";
+            MessageDialogInfo desc = {};
+            desc.baseInfo.title    = "error";
             desc.msg               = buf.ToStringView();
             PushDialog(MakeRef<MessageDialog>(desc));
         }
@@ -527,8 +522,8 @@ void Editor::DestroyEntity(
             _pScene->DestroyEntity(_entity);
         };
 
-        ConfirmationDialogDesc desc = {};
-        desc.baseDesc.title         = "confirmation";
+        ConfirmationDialogInfo desc = {};
+        desc.baseInfo.title         = "confirmation";
         desc.msg                    = "the entity has child entities. are you sure you want to destroy it and all its children?";
         desc.OnConfirm              = Bind(std::move(onClickConfirm));
         PushDialog(MakeRef<ConfirmationDialog>(desc));
@@ -565,15 +560,15 @@ bool Editor::RemoveFile(
                 ScratchBuffer tmp;
                 tmp.Format("failed to remove directory: {}.\n{}", _path, ec.message());
 
-                MessageDialogDesc desc = {};
-                desc.baseDesc.title    = "error";
+                MessageDialogInfo desc = {};
+                desc.baseInfo.title    = "error";
                 desc.msg               = tmp.ToStringView();
                 PushDialog(MakeRef<MessageDialog>(desc));
             }
         };
 
-        ConfirmationDialogDesc desc = {};
-        desc.baseDesc.title         = "confirmation";
+        ConfirmationDialogInfo desc = {};
+        desc.baseInfo.title         = "confirmation";
         desc.msg                    = "the directory is not empty. are you sure you want to remove it and all its contents?";
         desc.OnConfirm              = Bind(std::move(onClickConfirm));
         PushDialog(MakeRef<ConfirmationDialog>(desc));
@@ -588,8 +583,8 @@ bool Editor::RemoveFile(
         ScratchBuffer tmp;
         tmp.Format("failed to remove file: {}.\n{}", _path, ec.message());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = tmp.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return false;
@@ -631,8 +626,8 @@ bool Editor::RenameFile(
         ScratchBuffer tmp;
         tmp.Format("cannot rename file to '{}': file already exists.", _dstPath);
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = tmp.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return false;
@@ -646,8 +641,8 @@ bool Editor::RenameFile(
         ScratchBuffer tmp;
         tmp.Format("failed to rename file from '{}' to '{}'.\n{}", _srcPath.native(), _dstPath.native(), ec.message());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = tmp.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return false;
@@ -666,8 +661,8 @@ bool Editor::CreateDir(
         ScratchBuffer tmp;
         tmp.Format("failed to create directory: {}.\n{}", _dirPath.native(), ec.message());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = tmp.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return false;
@@ -699,10 +694,10 @@ bool Editor::CreateNewDir(
     }
 
     // too many folders named "new folder"
-    MessageDialogDesc desc = {};
-    desc.baseDesc.title    = "error";
-    desc.msg               = "failed to create new folder: too many folders named 'new folder' exist.";
-    PushDialog(MakeRef<MessageDialog>(desc));
+    MessageDialogInfo info = {};
+    info.baseInfo.title    = "error";
+    info.msg               = "failed to create new folder: too many folders named 'new folder' exist.";
+    PushDialog(MakeRef<MessageDialog>(info));
     return false;
 }
 
@@ -716,8 +711,8 @@ Optional<Ref<Mesh>> Editor::LoadMesh(
         ScratchBuffer buf;
         buf.Format("failed to load mesh file: {}. {}.", _path.native(), pMesh.GetError().ToErrorMessage());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = buf.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return k_nullopt;
@@ -729,38 +724,38 @@ Optional<Ref<Texture>> Editor::LoadTexture(
     const Path& _path,
     const bool  _bForceReload)
 {
-    Expect<Ref<Texture>> pTex = JAM_ASSET_MGR.LoadTexture(_path, _bForceReload);
-    if (!pTex)
+    Expect<Ref<Texture>> pTexture = JAM_ASSET_MGR.LoadTexture(_path, _bForceReload);
+    if (!pTexture)
     {
         ScratchBuffer buf;
-        buf.Format("failed to load texture file: {}. {}.", _path.native(), pTex.GetError().ToErrorMessage());
+        buf.Format("failed to load texture file: {}. {}.", _path.native(), pTexture.GetError().ToErrorMessage());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = buf.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return k_nullopt;
     }
-    return pTex.Take();
+    return pTexture.Take();
 }
 
 Optional<Ref<Material>> Editor::LoadMaterial(
     const Path& _path,
     const bool  _bForceReload)
 {
-    Expect<Ref<Material>> pMat = JAM_ASSET_MGR.LoadMaterial(_path, _bForceReload);
-    if (!pMat)
+    Expect<Ref<Material>> pMaterial = JAM_ASSET_MGR.LoadMaterial(_path, _bForceReload);
+    if (!pMaterial)
     {
         ScratchBuffer buf;
-        buf.Format("failed to load material file: {}. {}.", _path.native(), pMat.GetError().ToErrorMessage());
+        buf.Format("failed to load material file: {}. {}.", _path.native(), pMaterial.GetError().ToErrorMessage());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = buf.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return k_nullopt;
     }
-    return pMat.Take();
+    return pMaterial.Take();
 }
 
 Optional<Ref<Model>> Editor::LoadModel(
@@ -773,8 +768,8 @@ Optional<Ref<Model>> Editor::LoadModel(
         ScratchBuffer buf;
         buf.Format("failed to load model file: {}. {}.", _path.native(), pModel.GetError().ToErrorMessage());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = buf.ToStringView();
         PushDialog(MakeRef<MessageDialog>(desc));
         return k_nullopt;
@@ -783,8 +778,14 @@ Optional<Ref<Model>> Editor::LoadModel(
 }
 
 Editor::Editor()
+    : m_pSceneViewWindow(MakeScoped<Editor_SceneViewWindow>())
+    , m_pProfilerWindow(MakeScoped<Editor_ProfilerWindow>())
+    , m_pSceneHierarchyWindow(MakeScoped<Editor_SceneHierarchyWindow>())
+    , m_pEntityInspectorWindow(MakeScoped<Editor_EntityInspectorWindow>())
+    , m_pFileBrowserWindow(MakeScoped<Editor_FileBrowserWindow>())
+    , m_pVertexLayoutEditorWindow(MakeScoped<Editor_VertexLayoutEditorWindow>())
 {
-    configPath = JoinedPath(JAM_APP.GetWorkingDirectory(), Editor::k_configFileName);
+    m_configPath = JoinedPath(JAM_APP.GetWorkingDirectory(), Editor::k_configFileName);
     SetupDefaultTheme_();
     LoadIcons_();
     LoadConfigIfExist_();
@@ -813,12 +814,12 @@ void Editor::Update(const float _deltaSec)
     UpdateAutoSaveState_(_deltaSec);
 
     // update render view
-    renderViewWindow.OnUpdate(_deltaSec);
+    m_pSceneViewWindow->OnUpdate(_deltaSec);
 }
 
-void Editor::Render()
+void Editor::Render() const
 {
-    renderViewWindow.OnRender();
+    m_pSceneViewWindow->OnRender();
 }
 
 void Editor::ImGuiRender()
@@ -828,54 +829,55 @@ void Editor::ImGuiRender()
     // viewport
     if (bool& bShow = GetWindowShow(eEditorWindowType::SceneView))
     {
-        renderViewWindow.OnImGuiRender(bShow);
+        m_pSceneViewWindow->OnImGuiRender(bShow);
     }
 
-    ImGui::BeginDisabled(mode == eEditorMode::Play);
+    ImGui::BeginDisabled(m_mode == eEditorMode::Play);
 
     // profiler
     if (bool& bShow = GetWindowShow(eEditorWindowType::Profiler))
     {
-        profilerWindow.OnImGuiRender(bShow);
+        m_pProfilerWindow->OnImGuiRender(bShow);
     }
 
     // scene hierarchy
     if (bool& bShow = GetWindowShow(eEditorWindowType::SceneHierarchy))
     {
-        sceneHierarchyWindow.OnImGuiRender(bShow);
+        m_pSceneHierarchyWindow->OnImGuiRender(bShow);
     }
 
     // entity inspector
     if (bool& bShow = GetWindowShow(eEditorWindowType::EntityInspector))
     {
-        entityInspectorWindow.OnImGuiRender(bShow);
+        m_pEntityInspectorWindow->OnImGuiRender(bShow);
     }
 
     // file system browser
     if (bool& bShow = GetWindowShow(eEditorWindowType::FileBrowser))
     {
-        fileBrowserWindow.OnImGuiRender(bShow);
+        m_pFileBrowserWindow->OnImGuiRender(bShow);
     }
 
     // vertex vertexLayout manager
     if (bool& bShow = GetWindowShow(eEditorWindowType::VertexLayoutEditor))
     {
-        vertexLayoutEditorWindow.OnImGuiRender(bShow);
+        m_pVertexLayoutEditorWindow->OnImGuiRender(bShow);
     }
 
     ImGui::EndDisabled();
 
     // show dialog
-    dialogStack.Show();
+    m_dialogStack.Show();
 }
 
-void Editor::OnEvent(Event& _event)
+void Editor::OnEvent(
+    Event& _event)
 {
     EventDispatcher dispatcher { _event };
     dispatcher.Dispatch<SceneChangedEvent>(this, &Editor::OnSceneChanged_);
     dispatcher.Dispatch<EntityDestroyedEvent>(this, &Editor::OnEntityDestroyed_);
-    fileBrowserWindow.OnEvent(_event);
-    renderViewWindow.OnEvent(_event);
+    m_pFileBrowserWindow->OnEvent(_event);
+    m_pSceneViewWindow->OnEvent(_event);
 }
 
 }   // namespace Jam

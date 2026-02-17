@@ -171,7 +171,7 @@ void FileDialog::SetFilters(
 {
     JAM_ASSERT(_filters.size() < 64, "Too many filters specified");
 
-    BasicScratchWBuffer<8192>    wbuf;
+    ScratchWBufferN<8192>    wbuf;
     Array<COMDLG_FILTERSPEC, 64> filterSpecs;
 
     for (SizeT i = 0; i < _filters.size(); ++i)

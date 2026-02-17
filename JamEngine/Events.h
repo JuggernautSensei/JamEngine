@@ -14,7 +14,7 @@ public:
     [[nodiscard]] Int32 GetHeight() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(WindowResizedEvent)
+    JAM_EVENT(WindowResizedEvent);
 
 private:
     Int32 m_width  = 0;
@@ -30,7 +30,7 @@ public:
     [[nodiscard]] Int32 GetHeight() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(WindowMaximizedEvent)
+    JAM_EVENT(WindowMaximizedEvent);
 
 private:
     Int32 m_width  = 0;
@@ -43,7 +43,7 @@ public:
     WindowMinimizedEvent();
     void FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(WindowMinimizedEvent)
+    JAM_EVENT(WindowMinimizedEvent);
 };
 
 class WindowMoveEvent : public Event
@@ -55,7 +55,7 @@ public:
     [[nodiscard]] Int32 GetY() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(WindowMoveEvent)
+    JAM_EVENT(WindowMoveEvent);
 
 private:
     Int32 m_x = 0;
@@ -68,7 +68,7 @@ public:
     WindowCloseEvent();
     void FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(WindowCloseEvent)
+    JAM_EVENT(WindowCloseEvent);
 };
 
 class MouseWheelEvent : public Event
@@ -79,7 +79,7 @@ public:
 
     [[nodiscard]] Int32 GetDelta() const;
 
-    JAM_EVENT(MouseWheelEvent)
+    JAM_EVENT(MouseWheelEvent);
 
 private:
     Int32 m_delta = 0;
@@ -94,7 +94,7 @@ public:
     [[nodiscard]] Int32 GetY() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(MouseMoveEvent)
+    JAM_EVENT(MouseMoveEvent);
 
 private:
     Int32 m_x = 0;
@@ -109,7 +109,7 @@ public:
     [[nodiscard]] Int32 GetVKey() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(MouseDownEvent)
+    JAM_EVENT(MouseDownEvent);
 
 private:
     Int32 m_vKey = 0;
@@ -123,7 +123,7 @@ public:
     [[nodiscard]] Int32 GetVKey() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(MouseUpEvent)
+    JAM_EVENT(MouseUpEvent);
 
 private:
     Int32 m_vKey = 0;
@@ -137,7 +137,7 @@ public:
     [[nodiscard]] Int32 GetVKey() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(KeyDownEvent)
+    JAM_EVENT(KeyDownEvent);
 
 private:
     Int32 m_key = 0;
@@ -151,7 +151,7 @@ public:
     [[nodiscard]] Int32 GetVKey() const;
     void                FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(KeyUpEvent)
+    JAM_EVENT(KeyUpEvent);
 
 private:
     Int32 m_key = 0;
@@ -163,7 +163,7 @@ public:
     WindowFocusedEvent();
     void FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(WindowFocusedEvent)
+    JAM_EVENT(WindowFocusedEvent);
 };
 
 class WindowLostFocusEvent : public Event
@@ -172,14 +172,14 @@ public:
     WindowLostFocusEvent();
     void FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(WindowLostFocusEvent)
+    JAM_EVENT(WindowLostFocusEvent);
 };
 
 class SceneChangedEvent : public Event
 {
 public:
     void FormatEventMessage(ScratchBuffer& _buf) const override;
-    JAM_EVENT(SceneChangedEvent)
+    JAM_EVENT(SceneChangedEvent);
 };
 
 class EntityCreatedEvent : public Event
@@ -190,7 +190,7 @@ public:
     [[nodiscard]] UID GetEntityUID() const;
     void              FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(EntityCreatedEvent)
+    JAM_EVENT(EntityCreatedEvent);
 
 private:
     UID m_uid = UID::k_invalid;
@@ -204,7 +204,7 @@ public:
     [[nodiscard]] UID GetEntityUID() const;
     void              FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(EntityDestroyedEvent)
+    JAM_EVENT(EntityDestroyedEvent);
 
 private:
     UID m_uid = {};
@@ -218,7 +218,7 @@ public:
     [[nodiscard]] Path GetPath() const;
     void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(FileAddedEvent);
+    JAM_EVENT(FileAddedEvent);;
 
 private:
     Path m_path = {};
@@ -232,7 +232,7 @@ public:
     [[nodiscard]] Path GetPath() const;
     void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(FileDeletedEvent);
+    JAM_EVENT(FileDeletedEvent);;
 
 private:
     Path m_path = {};
@@ -246,7 +246,7 @@ public:
     [[nodiscard]] Path GetPath() const;
     void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(FileModifiedEvent);
+    JAM_EVENT(FileModifiedEvent);;
 
 private:
     Path m_path = {};
@@ -261,7 +261,7 @@ public:
     [[nodiscard]] Path GetNewPath() const;
     void               FormatEventMessage(ScratchBuffer& _buf) const override;
 
-    JAM_EVENT(FileRenamedEvent);
+    JAM_EVENT(FileRenamedEvent);;
 
 private:
     Path m_old = {};

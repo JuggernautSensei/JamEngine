@@ -4,37 +4,38 @@
 
 #include "ConfirmationDialog.h"
 #include "Editor.h"
+#include "IAsset.h"
 #include "MessageDialog.h"
 
 namespace Jam
 {
 
 AssetCreationDialog::AssetCreationDialog(
-    const DialogDesc& _desc)
+    const DialogInfo& _desc)
     : Dialog(_desc)
 {
 }
 
 void AssetCreationDialog::PushEmptyNameErrorMessageDialog_() const
 {
-    MessageDialogDesc desc = {};
-    desc.baseDesc.title    = "error";
+    MessageDialogInfo desc = {};
+    desc.baseInfo.title    = "error";
     desc.msg               = "asset name cannot be empty.";
     JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
 }
 
 void AssetCreationDialog::PushEmptySavePathErrorMessageDialog_() const
 {
-    MessageDialogDesc desc = {};
-    desc.baseDesc.title    = "error";
+    MessageDialogInfo desc = {};
+    desc.baseInfo.title    = "error";
     desc.msg               = "save path cannot be empty.";
     JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
 }
 
 void AssetCreationDialog::PushNullVertexLayoutEntryErrorMessageDialog_() const
 {
-    MessageDialogDesc desc = {};
-    desc.baseDesc.title    = "error";
+    MessageDialogInfo desc = {};
+    desc.baseInfo.title    = "error";
     desc.msg               = "vertex layout cannot be null.";
     JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
 }
@@ -50,8 +51,8 @@ void AssetCreationDialog::PushOverwriteConfirmationDialog_(
     ScratchBuffer buf;
     buf.Format("file already exists: {}. do you want to overwrite it?", _path);
 
-    ConfirmationDialogDesc desc = {};
-    desc.baseDesc.title         = "confirmation";
+    ConfirmationDialogInfo desc = {};
+    desc.baseInfo.title         = "confirmation";
     desc.msg                    = buf.ToStringView();
     desc.OnConfirm              = Bind(std::move(onConfirm));
     JAM_EDITOR.PushDialog(MakeRef<ConfirmationDialog>(std::move(desc)));
@@ -59,8 +60,8 @@ void AssetCreationDialog::PushOverwriteConfirmationDialog_(
 
 void AssetCreationDialog::PushEmptyImportPathErrorMessageDialog_() const
 {
-    MessageDialogDesc desc = {};
-    desc.baseDesc.title    = "error";
+    MessageDialogInfo desc = {};
+    desc.baseInfo.title    = "error";
     desc.msg               = "import path cannot be empty.";
     JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
 }
@@ -74,8 +75,8 @@ bool AssetCreationDialog::SaveAsset_(
         ScratchBuffer tmp;
         tmp.Format("failed to save asset file: {}. {}.", _path, err.ToErrorMessage());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = tmp.ToStringView();
         JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
         return true;

@@ -1,4 +1,5 @@
 #pragma once
+#include "ImGuiGlue.h"
 
 namespace Jam
 {
@@ -62,16 +63,9 @@ struct EditorStyle
 {
     EditorStyle();
 
-    [[nodiscard]] float         GetVar(eEditorStyleVar _var) const;
-    [[nodiscard]] ImVec4        GetColor(eEditorStyleColor _color) const;
-    [[nodiscard]] ImGuiKeyChord GetShortCut(eEditorShortCut _shortCut) const;
-    void                        SetVar(eEditorStyleVar _var, float _value);
-    void                        SetColor(eEditorStyleColor _color, const ImVec4& _value);
-    void                        SetShortCut(eEditorShortCut _shortCut, ImGuiKeyChord _value);
-
-    float         vars[CountOf<eEditorStyleVar>()]      = {};
-    ImVec4        colors[CountOf<eEditorStyleColor>()]  = {};
-    ImGuiKeyChord shortCuts[CountOf<eEditorShortCut>()] = {};
+    EnumArray<eEditorStyleVar, float>         vars      = {};
+    EnumArray<eEditorStyleColor, ImVec4>      colors    = {};
+    EnumArray<eEditorShortCut, ImGuiKeyChord> shortCuts = {};
 };
 
 }   // namespace Jam

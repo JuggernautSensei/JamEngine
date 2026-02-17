@@ -249,7 +249,7 @@ CornerPoints Obb::GetCornerPoints() const
     const Aabb aabb = Aabb::FromCenterExtents(vec3::k_zero, { 0.5f, 0.5f, 0.5f });
 
     CornerPoints corners = aabb.GetCornerPoints();
-    for (Vec3& p: corners.points)
+    for (Vec3& p: corners)
     {
         p = Vec3::Transform(p, mtx);
     }

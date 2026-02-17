@@ -13,14 +13,13 @@
 #include "TagComponent.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "ReflectionDB.h"
 
 namespace Jam
 {
 
 TextureHandle Scene::GetDepthTexture() const
 {
-    return k_invalidHandle;   // override in derived class if needed
+    return k_nullHandle;   // override in derived class if needed
 }
 
 Entity Scene::CreateEntity(
@@ -268,20 +267,19 @@ Entity Scene::CloneEntity_Recursive_(
     Entity entity = CreateEntity_(_allocedUid, {});
 
     // 컴포넌트 카피
-    const ReflectionDB& db = ReflectionDB::GetInstance();
-    for (const ComponentMetadata& meta: db.GetComponentMetadataContainer() | std::views::values)
+    for (const ComponentReflectionData& data: JAM_COMPONENT_DB.GetComponentReflectionContainer() | std::views::values)
     {
-        if (meta.Has(_srcEntity))
+        if (data.Has(_srcEntity))
         {
             // scene component do not trivial copy
-            if (meta.typeHash == HashOf<SceneComponent>())
+            if (data.typeHash == HashOf<SceneComponent>())
             {
                 entity.ModifyWorldTransform() = _srcEntity.GetWorldTransform();
             }
             else
             {
-                const void* pSrcValue = meta.Get(_srcEntity);
-                meta.CreateByCopy(entity, pSrcValue);
+                const void* pSrcValue = data.Get(_srcEntity);
+                data.CreateByCopy(entity, pSrcValue);
             }
         }
     }

@@ -31,37 +31,14 @@ namespace   // data transfer objects
     };
     static_assert(sizeof(MaterialParamsDto) == sizeof(MaterialParams));
 
-    struct MaterialTexturesDto
-    {
-        [[nodiscard]] StringViewDto Get(
-            const eMaterialTextureType _type) const
-        {
-            return texes[UnderlyingFrom(_type)];
-        }
-
-        void Set(
-            const eMaterialTextureType _type,
-            const StringViewDto        _pTexPath)
-        {
-            texes[UnderlyingFrom(_type)] = _pTexPath;
-        }
-
-        [[nodiscard]] bool Has(
-            const eMaterialTextureType _type) const
-        {
-            return texes[UnderlyingFrom(_type)].empty() == false;
-        }
-
-        ArrayDto<StringViewDto, CountOf<eMaterialTextureType>()> texes = {};
-    };
-
+    using MaterialTexturesDto        = ArrayDto<StringViewDto, CountOf<eMaterialTextureType>()>;
     using MaterialTextureSettingsDto = MaterialTextureSettings;   // same layout
 
     struct MaterialDto
     {
         StringViewDto              name     = {};
         MaterialParamsDto          params   = {};
-        MaterialTexturesDto        texes    = {};
+        MaterialTexturesDto        textures = {};
         MaterialTextureSettingsDto settings = {};
     };
 
@@ -75,22 +52,22 @@ namespace   // data transfer objects
 Expect<Ref<Material>> Material::Create(
     const Path& _path)
 {
-    Ref<Material> pMat = new Material;
-    if (const Error err = pMat->Load(_path))
+    Ref<Material> pMaterial = new Material;
+    if (const Error err = pMaterial->Load(_path))
     {
         return err;
     }
-    return pMat;
+    return pMaterial;
 }
 
 Ref<Material> Material::Create(
     const MaterialParams&          _params,
-    const MaterialTextures&        _texes,
+    const MaterialTextures&        _textures,
     const MaterialTextureSettings& _settings)
 {
-    Ref<Material> pMat = new Material;
-    pMat->Load(_params, _texes, _settings);
-    return pMat;
+    Ref<Material> pMaterial = new Material;
+    pMaterial->Load(_params, _textures, _settings);
+    return pMaterial;
 }
 
 Error Material::Load(
@@ -105,14 +82,14 @@ Error Material::Load(
         return loader.GetError();
     }
 
-    // deserialize
+    // read
     Expect<MaterialDto> pDto = loader->Read();
     if (!pDto)
     {
         return pDto.GetError();
     }
 
-    // load done
+    // read data
     CleanUp_();
     m_name                                = StringFrom(pDto->name);
     m_params.ambient                      = pDto->params.ambient.ToVec3();
@@ -131,19 +108,19 @@ Error Material::Load(
     m_settings.bNormalMapFlipedY          = pDto->settings.bNormalMapFlipedY;
     m_settings.emissiveMapIntensity       = pDto->settings.emissiveMapIntensity;
 
+    // load texture
     for (eMaterialTextureType type: EnumRanges<eMaterialTextureType>())
     {
-        if (pDto->texes.Has(type))
+        const StringViewDto& path = pDto->textures[UnderlyingFrom(type)];
+        if (!path.empty())
         {
-            const StringViewDto& path = pDto->texes.Get(type);
-            Expect<Ref<Texture>> pTex = JAM_ASSET_MGR.LoadTexture(PathFrom(path));
-            if (!pTex)
+            Expect<Ref<Texture>> pTexture = JAM_ASSET_MGR.LoadTexture(PathFrom(path));
+            if (!pTexture)
             {
-                CleanUp_();
-                return pTex.GetError();
+                return pTexture.GetError();
             }
 
-            m_textures.Set(type, pTex.Take());
+            m_textures[type] = pTexture.Take();
         }
     }
 
@@ -159,12 +136,12 @@ Error Material::Load(
 
 void Material::Load(
     const MaterialParams&          _params,
-    const MaterialTextures&        _texes,
+    const MaterialTextures&        _textures,
     const MaterialTextureSettings& _settings)
 {
     CleanUp_();
     m_params          = _params;
-    m_textures        = _texes;
+    m_textures        = _textures;
     m_settings        = _settings;
     m_bValid          = true;
     m_bLoadedFromFile = false;
@@ -179,7 +156,6 @@ Error Material::Save(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
     JAM_ASSERT(IsValid(), "Cannot save an invalid material");
 
-    // open mmap buffer
     Expect<MaterialSaver> saver = {};
     if (_bReplaceExtension)
     {
@@ -196,7 +172,7 @@ Error Material::Save(
         return saver.GetError();
     }
 
-    // serializer
+    // write data
     MaterialDto dto                         = {};
     dto.name                                = StringViewDtoFrom(m_name);
     dto.params.ambient                      = Vec3Dto::FromVec3(m_params.ambient);
@@ -215,12 +191,13 @@ Error Material::Save(
     dto.settings.bNormalMapFlipedY          = m_settings.bNormalMapFlipedY;
     dto.settings.emissiveMapIntensity       = m_settings.emissiveMapIntensity;
 
+    // write texture paths
     for (eMaterialTextureType type: EnumRanges<eMaterialTextureType>())
     {
-        if (m_textures.Has(type))
+        const Ref<Texture>& pTexture = m_textures[type];
+        if (pTexture && pTexture->IsValid())
         {
-            const Ref<Texture>& pTex = m_textures.Get(type);
-            dto.texes.Set(type, StringViewDtoFrom(pTex->GetPath()));
+            dto.textures[UnderlyingFrom(type)] = StringViewDtoFrom(pTexture->GetPath());
         }
     }
 
@@ -265,25 +242,6 @@ void Material::SetTextures(
 const MaterialTextures& Material::GetTextures() const
 {
     return m_textures;
-}
-
-void Material::SetTexture(
-    const eMaterialTextureType _type,
-    const Ref<Texture>&        _tex)
-{
-    m_textures.Set(_type, _tex);
-}
-
-Ref<Texture> Material::GetTexture(
-    const eMaterialTextureType _type) const
-{
-    return m_textures.Get(_type);
-}
-
-bool Material::HasTexture(
-    const eMaterialTextureType _type) const
-{
-    return m_textures.Has(_type);
 }
 
 void Material::SetTextureSettings(
@@ -356,17 +314,17 @@ void Material::CleanUp_()
 
 void WriteToArchive(
     ArchiveWriter&       _archive,
-    const Ref<Material>& _pMat)
+    const Ref<Material>& _pMaterial)
 {
-    if (_pMat && _pMat->IsValid())
+    if (_pMaterial && _pMaterial->IsValid())
     {
-        _archive.Write(_pMat->GetPath());
+        _archive.Write(_pMaterial->GetPath());
     }
 }
 
 Error ReadFromArchive(
     ArchiveReader& _archive,
-    Ref<Material>& _pMat)
+    Ref<Material>& _pMaterial)
 {
     StringView path = {};
     if (const Error err = _archive.Read(path))
@@ -374,13 +332,13 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Material>> pMat = JAM_ASSET_MGR.LoadMaterial(path.ToStdString());
-    if (!pMat)
+    Expect<Ref<Material>> pMaterial = JAM_ASSET_MGR.LoadMaterial(path.ToStdString());
+    if (!pMaterial)
     {
-        return pMat.GetError();
+        return pMaterial.GetError();
     }
 
-    _pMat = pMat.Take();
+    _pMaterial = pMaterial.Take();
     return Error::None;
 }
 

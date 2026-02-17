@@ -13,246 +13,248 @@
 namespace Jam
 {
 
-struct SDFace;
-struct SDVertex;
-
-struct SDPoint
+namespace
 {
-    [[nodiscard]] SDPoint operator*(const float _scalar) const
+
+    struct SDFace;
+    struct SDVertex;
+
+    struct SDPoint
     {
-        SDPoint p  = {};
-        p.position = position * _scalar;
-        p.texcoord = texcoord * _scalar;
-        return p;
-    }
-
-    [[nodiscard]] SDPoint operator+(const SDPoint& _other) const
-    {
-        SDPoint p  = {};
-        p.position = position + _other.position;
-        p.texcoord = texcoord + _other.texcoord;
-        return p;
-    }
-
-    SDPoint& operator+=(const SDPoint& _other)
-    {
-        position += _other.position;
-        texcoord += _other.texcoord;
-        return *this;
-    }
-
-    Vec3 position = vec3::k_zero;
-    Vec2 texcoord = vec2::k_zero;
-};
-
-struct SDVertex
-{
-    [[nodiscard]] Int32           CalcValence() const;
-    [[nodiscard]] Vector<SDPoint> OneRing() const;
-
-    SDPoint   point      = {};        // 정점의 위치 및 텍스처 좌표
-    SDFace*   pStartFace = nullptr;   // 임의의 면
-    SDVertex* pChildVert = nullptr;   // 세분화 후 생성된 자식 버텍스
-    bool      bRegular   = false;     // 정점이 Regular한지 여부
-    bool      bBoundary  = false;     // 경계 버텍스 여부
-};
-
-struct SDFace
-{
-    [[nodiscard]] Int32 CalcVertexIndex(
-        const SDVertex* pVert) const
-    {
-        for (Int32 i = 0; i < 3; ++i)
+        [[nodiscard]] SDPoint operator*(const float _scalar) const
         {
-            if (pVerts[i] == pVert)
+            SDPoint p  = {};
+            p.position = position * _scalar;
+            p.texcoord = texcoord * _scalar;
+            return p;
+        }
+
+        [[nodiscard]] SDPoint operator+(const SDPoint& _other) const
+        {
+            SDPoint p  = {};
+            p.position = position + _other.position;
+            p.texcoord = texcoord + _other.texcoord;
+            return p;
+        }
+
+        SDPoint& operator+=(const SDPoint& _other)
+        {
+            position += _other.position;
+            texcoord += _other.texcoord;
+            return *this;
+        }
+
+        Vec3 position = vec3::k_zero;
+        Vec2 texcoord = vec2::k_zero;
+    };
+
+    struct SDVertex
+    {
+        [[nodiscard]] Int32           CalcValence() const;
+        [[nodiscard]] Vector<SDPoint> OneRing() const;
+
+        SDPoint   point      = {};        // 정점의 위치 및 텍스처 좌표
+        SDFace*   pStartFace = nullptr;   // 임의의 면
+        SDVertex* pChildVert = nullptr;   // 세분화 후 생성된 자식 버텍스
+        bool      bRegular   = false;     // 정점이 Regular한지 여부
+        bool      bBoundary  = false;     // 경계 버텍스 여부
+    };
+
+    struct SDFace
+    {
+        [[nodiscard]] Int32 CalcVertexIndex(
+            const SDVertex* pVert) const
+        {
+            for (Int32 i = 0; i < 3; ++i)
             {
-                return i;
+                if (pVerts[i] == pVert)
+                {
+                    return i;
+                }
             }
+            JAM_UNREACHABLE;
         }
-        JAM_UNREACHABLE;
-    }
 
-    [[nodiscard]] SDFace* GetNextFace(
-        const SDVertex* pVert) const
-    {
-        return pFaces[CalcVertexIndex(pVert)];
-    }
-
-    [[nodiscard]] SDFace* GetPrevFace(
-        const SDVertex* pVert) const
-    {
-        return pFaces[(CalcVertexIndex(pVert) + 2) % 3];
-    }
-
-    [[nodiscard]] SDVertex* GetNextVertex(
-        const SDVertex* pVert) const
-    {
-        return pVerts[(CalcVertexIndex(pVert) + 1) % 3];
-    }
-
-    [[nodiscard]] SDVertex* GetPrevVertex(
-        const SDVertex* pVert) const
-    {
-        return pVerts[(CalcVertexIndex(pVert) + 2) % 3];
-    }
-
-    [[nodiscard]] SDVertex* GetOtherVertex(
-        const SDVertex* pV0,
-        const SDVertex* pV1) const
-    {
-        for (Int32 i = 0; i < 3; ++i)
+        [[nodiscard]] SDFace* GetNextFace(
+            const SDVertex* pVert) const
         {
-            if (pVerts[i] != pV0 && pVerts[i] != pV1)
+            return pFaces[CalcVertexIndex(pVert)];
+        }
+
+        [[nodiscard]] SDFace* GetPrevFace(
+            const SDVertex* pVert) const
+        {
+            return pFaces[(CalcVertexIndex(pVert) + 2) % 3];
+        }
+
+        [[nodiscard]] SDVertex* GetNextVertex(
+            const SDVertex* pVert) const
+        {
+            return pVerts[(CalcVertexIndex(pVert) + 1) % 3];
+        }
+
+        [[nodiscard]] SDVertex* GetPrevVertex(
+            const SDVertex* pVert) const
+        {
+            return pVerts[(CalcVertexIndex(pVert) + 2) % 3];
+        }
+
+        [[nodiscard]] SDVertex* GetOtherVertex(
+            const SDVertex* pV0,
+            const SDVertex* pV1) const
+        {
+            for (Int32 i = 0; i < 3; ++i)
             {
-                return pVerts[i];
+                if (pVerts[i] != pV0 && pVerts[i] != pV1)
+                {
+                    return pVerts[i];
+                }
             }
-        }
-        JAM_UNREACHABLE;
-    }
-
-    SDVertex* pVerts[3]      = { nullptr, nullptr, nullptr };
-    SDFace*   pFaces[3]      = { nullptr, nullptr, nullptr };
-    SDFace*   pChildFaces[4] = { nullptr, nullptr, nullptr, nullptr };
-};
-
-struct SDEdge
-{
-    SDVertex* pVerts[2]    = { nullptr, nullptr };
-    SDFace*   pFaces[2]    = { nullptr, nullptr };
-    Int32     face0EdgeNum = -1;
-};
-
-struct SDEdgeHash
-{
-    [[nodiscard]] size_t operator()(const SDEdge& _edge) const noexcept
-    {
-        Murmur3Hasher64 hasher {};
-        hasher.Mix(_edge);
-        return hasher.Finish();
-    }
-};
-
-struct SDEdgeEqual
-{
-    [[nodiscard]] bool operator()(const SDEdge& _lhs, const SDEdge& _rhs) const noexcept
-    {
-        return MemEqual(_lhs, _rhs);
-    }
-};
-
-Int32 SDVertex::CalcValence() const
-{
-    const SDFace* pFace = pStartFace;
-    if (!bBoundary)
-    {
-        Int32 nf = 1;
-        while ((pFace = pFace->GetNextFace(this)) != pStartFace)
-        {
-            ++nf;
+            JAM_UNREACHABLE;
         }
 
-        return nf;
-    }
-    else
+        SDVertex* pVerts[3]      = { nullptr, nullptr, nullptr };
+        SDFace*   pFaces[3]      = { nullptr, nullptr, nullptr };
+        SDFace*   pChildFaces[4] = { nullptr, nullptr, nullptr, nullptr };
+    };
+
+    struct SDEdge
     {
-        Int32 nf = 1;
-        while ((pFace = pFace->GetNextFace(this)))
-        {
-            ++nf;
-        }
+        SDVertex* pVerts[2]    = { nullptr, nullptr };
+        SDFace*   pFaces[2]    = { nullptr, nullptr };
+        Int32     face0EdgeNum = -1;
+    };
 
-        pFace = pStartFace;
-        while ((pFace = pFace->GetPrevFace(this)))
-        {
-            ++nf;
-        }
-
-        return nf + 1;
-    }
-}
-
-Vector<SDPoint> SDVertex::OneRing() const
-{
-    const Int32     valence = CalcValence();
-    Vector<SDPoint> pRing   = {};
-    pRing.reserve(valence);
-
-    if (!bBoundary)
+    struct SDEdgeHash
     {
-        const SDFace* face = pStartFace;
-        do
+        [[nodiscard]] size_t operator()(const SDEdge& _edge) const noexcept
         {
-            pRing.emplace_back(face->GetNextVertex(this)->point);
-            face = face->GetNextFace(this);
-        } while (face != pStartFace);
-    }
-    else
+            Murmur3Hasher64 hasher {};
+            hasher.Mix(_edge);
+            return hasher.Finish();
+        }
+    };
+
+    struct SDEdgeEqual
+    {
+        [[nodiscard]] bool operator()(const SDEdge& _lhs, const SDEdge& _rhs) const noexcept
+        {
+            return MemEqual(_lhs, _rhs);
+        }
+    };
+
+    Int32 SDVertex::CalcValence() const
     {
         const SDFace* pFace = pStartFace;
-        SDFace*       f2;
-        while ((f2 = pFace->GetNextFace(this)))
+        if (!bBoundary)
         {
-            pFace = f2;
+            Int32 nf = 1;
+            while ((pFace = pFace->GetNextFace(this)) != pStartFace)
+            {
+                ++nf;
+            }
+
+            return nf;
         }
-
-        pRing.emplace_back(pFace->GetNextVertex(this)->point);
-        do
+        else
         {
-            pRing.emplace_back(pFace->GetPrevVertex(this)->point);
-            pFace = pFace->GetPrevFace(this);
-        } while (pFace);
+            Int32 nf = 1;
+            while ((pFace = pFace->GetNextFace(this)))
+            {
+                ++nf;
+            }
+
+            pFace = pStartFace;
+            while ((pFace = pFace->GetPrevFace(this)))
+            {
+                ++nf;
+            }
+
+            return nf + 1;
+        }
     }
-    return pRing;
-}
 
-static float Beta(
-    const Int32 _valence)
-{
-    return _valence == 3 ? 3.f / 16.f
-                         : 3.f / (8.f * NumericCast<float>(_valence));
-}
-
-static float LoopGamma(
-    const Int32 _valence)
-{
-    return 1.f / (NumericCast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
-}
-
-static SDPoint WeightOneRing(
-    const SDVertex* _pVert,
-    const float     _beta)
-{
-    const Int32 valence = _pVert->CalcValence();
-    const auto  ring    = _pVert->OneRing();
-    const float scale   = 1.0f - NumericCast<float>(valence) * _beta;
-
-    SDPoint point = _pVert->point * scale;
-    for (const SDPoint& p: ring)
+    Vector<SDPoint> SDVertex::OneRing() const
     {
-        point += p * _beta;
+        const Int32     valence = CalcValence();
+        Vector<SDPoint> pRing   = {};
+        pRing.reserve(valence);
+
+        if (!bBoundary)
+        {
+            const SDFace* face = pStartFace;
+            do
+            {
+                pRing.emplace_back(face->GetNextVertex(this)->point);
+                face = face->GetNextFace(this);
+            } while (face != pStartFace);
+        }
+        else
+        {
+            const SDFace* pFace = pStartFace;
+            SDFace*       f2;
+            while ((f2 = pFace->GetNextFace(this)))
+            {
+                pFace = f2;
+            }
+
+            pRing.emplace_back(pFace->GetNextVertex(this)->point);
+            do
+            {
+                pRing.emplace_back(pFace->GetPrevVertex(this)->point);
+                pFace = pFace->GetPrevFace(this);
+            } while (pFace);
+        }
+        return pRing;
     }
-    return point;
-}
 
-static SDPoint WeightBoundary(
-    const SDVertex* _pVert,
-    const float     _beta)
-{
-    const Int32           valence = _pVert->CalcValence();
-    const Vector<SDPoint> ring    = _pVert->OneRing();
+    float Beta(
+        const Int32 _valence)
+    {
+        return _valence == 3 ? 3.f / 16.f
+                             : 3.f / (8.f * NumericCast<float>(_valence));
+    }
 
-    const float scale = 1.0f - 2.0f * _beta;
-    SDPoint     point = _pVert->point * scale;
+    float LoopGamma(
+        const Int32 _valence)
+    {
+        return 1.f / (NumericCast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
+    }
 
-    point += ring[0] * _beta;
-    point += ring[valence - 1] * _beta;
-    return point;
-}
+    SDPoint WeightOneRing(
+        const SDVertex* _pVert,
+        const float     _beta)
+    {
+        const Int32 valence = _pVert->CalcValence();
+        const auto  ring    = _pVert->OneRing();
+        const float scale   = 1.0f - NumericCast<float>(valence) * _beta;
 
-}   // namespace Jam
+        SDPoint point = _pVert->point * scale;
+        for (const SDPoint& p: ring)
+        {
+            point += p * _beta;
+        }
+        return point;
+    }
 
-namespace Jam
-{
+    SDPoint WeightBoundary(
+        const SDVertex* _pVert,
+        const float     _beta)
+    {
+        const Int32           valence = _pVert->CalcValence();
+        const Vector<SDPoint> ring    = _pVert->OneRing();
+
+        const float scale = 1.0f - 2.0f * _beta;
+        SDPoint     point = _pVert->point * scale;
+
+        point += ring[0] * _beta;
+        point += ring[valence - 1] * _beta;
+        return point;
+    }
+
+}   // namespace
+
+////////////////////////////////////////////////////////////////////////////////////////
 
 LoopSubdivisionOutput LoopSubdivide(
     const Span<const Vec3> _positions,

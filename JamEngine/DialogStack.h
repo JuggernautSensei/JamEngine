@@ -2,6 +2,7 @@
 
 namespace Jam
 {
+
 class Dialog;
 
 class DialogStack

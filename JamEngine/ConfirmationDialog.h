@@ -4,9 +4,9 @@
 namespace Jam
 {
 
-struct ConfirmationDialogDesc
+struct ConfirmationDialogInfo
 {
-    DialogDesc       baseDesc  = {};
+    DialogInfo       baseInfo  = {};
     StringView       msg       = {};
     Delegate<void()> OnConfirm = nullptr;
     Delegate<void()> OnCancel  = nullptr;
@@ -15,7 +15,7 @@ struct ConfirmationDialogDesc
 class ConfirmationDialog : public Dialog
 {
 public:
-    explicit ConfirmationDialog(const ConfirmationDialogDesc& _desc);
+    explicit ConfirmationDialog(const ConfirmationDialogInfo& _desc);
     void OnShow() override;
 
 private:

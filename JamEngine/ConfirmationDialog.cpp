@@ -9,8 +9,8 @@ namespace Jam
 {
 
 ConfirmationDialog::ConfirmationDialog(
-    const ConfirmationDialogDesc& _desc)
-    : Dialog(_desc.baseDesc)
+    const ConfirmationDialogInfo& _desc)
+    : Dialog(_desc.baseInfo)
     , m_msg(_desc.msg.ToString())
     , m_OnClickOk(_desc.OnConfirm)
     , m_OnClickCancel(_desc.OnCancel)

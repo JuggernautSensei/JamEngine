@@ -59,76 +59,76 @@
 //    bool CheckEnvironmentDiff(const Environment& _env) const;
 //
 //    // shaders
-//    ShaderHandle pbrVsh                       = k_invalidHandle;
-//    ShaderHandle fullscreenVsh                = k_invalidHandle;
-//    ShaderHandle pbrLightVolumeVsh            = k_invalidHandle;
-//    ShaderHandle pbrEnvironmentLIghtVolumeVsh = k_invalidHandle;
-//    ShaderHandle csmVsh                       = k_invalidHandle;
-//    ShaderHandle osmVsh                       = k_invalidHandle;
-//    ShaderHandle shadowMappingVsh             = k_invalidHandle;
-//    ShaderHandle skyboxVsh                    = k_invalidHandle;
-//    ShaderHandle csmLevel3Gsh                 = k_invalidHandle;
-//    ShaderHandle osmGsh                       = k_invalidHandle;
-//    ShaderHandle pbrGBufferPsh                = k_invalidHandle;
-//    ShaderHandle pbrLightingPsh               = k_invalidHandle;
-//    ShaderHandle pbrLightVolumePsh            = k_invalidHandle;
-//    ShaderHandle pbrEnvironmentLightVolumePsh = k_invalidHandle;
-//    ShaderHandle csmPsh                       = k_invalidHandle;
-//    ShaderHandle osmPsh                       = k_invalidHandle;
-//    ShaderHandle shadowMappingPsh             = k_invalidHandle;
-//    ShaderHandle skyboxPsh                    = k_invalidHandle;
-//    ShaderHandle ssaoPsh                      = k_invalidHandle;
-//    ShaderHandle ssaoBlurXPsh                 = k_invalidHandle;
-//    ShaderHandle ssaoBlurYPsh                 = k_invalidHandle;
-//    ShaderHandle bloomUpPsh                   = k_invalidHandle;
-//    ShaderHandle bloomDownPsh                 = k_invalidHandle;
-//    ShaderHandle bloomCombinePsh              = k_invalidHandle;
-//    ShaderHandle toneMappingPsh               = k_invalidHandle;
-//    ShaderHandle fxaaVeryLowPsh               = k_invalidHandle;
-//    ShaderHandle fxaaLowPsh                   = k_invalidHandle;
-//    ShaderHandle fxaaMediumPsh                = k_invalidHandle;
-//    ShaderHandle fxaaHighPsh                  = k_invalidHandle;
-//    ShaderHandle fxaaVeryHighPsh              = k_invalidHandle;
-//    ShaderHandle fxaaUltraPsh                 = k_invalidHandle;
-//    ShaderHandle fogPsh                       = k_invalidHandle;
-//    ShaderHandle passTexhroughPsh             = k_invalidHandle;
+//    ShaderHandle pbrVsh                       = k_nullHandle;
+//    ShaderHandle fullscreenVsh                = k_nullHandle;
+//    ShaderHandle pbrLightVolumeVsh            = k_nullHandle;
+//    ShaderHandle pbrEnvironmentLIghtVolumeVsh = k_nullHandle;
+//    ShaderHandle csmVsh                       = k_nullHandle;
+//    ShaderHandle osmVsh                       = k_nullHandle;
+//    ShaderHandle shadowMappingVsh             = k_nullHandle;
+//    ShaderHandle skyboxVsh                    = k_nullHandle;
+//    ShaderHandle csmLevel3Gsh                 = k_nullHandle;
+//    ShaderHandle osmGsh                       = k_nullHandle;
+//    ShaderHandle pbrGBufferPsh                = k_nullHandle;
+//    ShaderHandle pbrLightingPsh               = k_nullHandle;
+//    ShaderHandle pbrLightVolumePsh            = k_nullHandle;
+//    ShaderHandle pbrEnvironmentLightVolumePsh = k_nullHandle;
+//    ShaderHandle csmPsh                       = k_nullHandle;
+//    ShaderHandle osmPsh                       = k_nullHandle;
+//    ShaderHandle shadowMappingPsh             = k_nullHandle;
+//    ShaderHandle skyboxPsh                    = k_nullHandle;
+//    ShaderHandle ssaoPsh                      = k_nullHandle;
+//    ShaderHandle ssaoBlurXPsh                 = k_nullHandle;
+//    ShaderHandle ssaoBlurYPsh                 = k_nullHandle;
+//    ShaderHandle bloomUpPsh                   = k_nullHandle;
+//    ShaderHandle bloomDownPsh                 = k_nullHandle;
+//    ShaderHandle bloomCombinePsh              = k_nullHandle;
+//    ShaderHandle toneMappingPsh               = k_nullHandle;
+//    ShaderHandle fxaaVeryLowPsh               = k_nullHandle;
+//    ShaderHandle fxaaLowPsh                   = k_nullHandle;
+//    ShaderHandle fxaaMediumPsh                = k_nullHandle;
+//    ShaderHandle fxaaHighPsh                  = k_nullHandle;
+//    ShaderHandle fxaaVeryHighPsh              = k_nullHandle;
+//    ShaderHandle fxaaUltraPsh                 = k_nullHandle;
+//    ShaderHandle fogPsh                       = k_nullHandle;
+//    ShaderHandle passTexhroughPsh             = k_nullHandle;
 //
 //    // programs
-//    ProgramHandle pbrGBufferProgram                = k_invalidHandle;
-//    ProgramHandle pbrLightingProgram               = k_invalidHandle;
-//    ProgramHandle pbrLightVolumeProgram            = k_invalidHandle;
-//    ProgramHandle pbrEnvironmentLightVolumeProgram = k_invalidHandle;
-//    ProgramHandle csmLevel3CasterProgram           = k_invalidHandle;
-//    ProgramHandle osmCasterProgram                 = k_invalidHandle;
-//    ProgramHandle shadowCasterProgram              = k_invalidHandle;
-//    ProgramHandle skyboxProgram                    = k_invalidHandle;
-//    ProgramHandle ssaoProgram                      = k_invalidHandle;
-//    ProgramHandle ssaoBlurXProgram                 = k_invalidHandle;
-//    ProgramHandle ssaoBlurYProgram                 = k_invalidHandle;
-//    ProgramHandle bloomUpProgram                   = k_invalidHandle;
-//    ProgramHandle bloomDownProgram                 = k_invalidHandle;
-//    ProgramHandle bloomCombineProgram              = k_invalidHandle;
-//    ProgramHandle toneMappingProgram               = k_invalidHandle;
-//    ProgramHandle fxaaVeryLowProgram               = k_invalidHandle;
-//    ProgramHandle fxaaLowProgram                   = k_invalidHandle;
-//    ProgramHandle fxaaMediumProgram                = k_invalidHandle;
-//    ProgramHandle fxaaHighProgram                  = k_invalidHandle;
-//    ProgramHandle fxaaVeryHighProgram              = k_invalidHandle;
-//    ProgramHandle fxaaUltraProgram                 = k_invalidHandle;
-//    ProgramHandle fogProgram                       = k_invalidHandle;
-//    ProgramHandle passTexhroughProgram             = k_invalidHandle;
+//    ProgramHandle pbrGBufferProgram                = k_nullHandle;
+//    ProgramHandle pbrLightingProgram               = k_nullHandle;
+//    ProgramHandle pbrLightVolumeProgram            = k_nullHandle;
+//    ProgramHandle pbrEnvironmentLightVolumeProgram = k_nullHandle;
+//    ProgramHandle csmLevel3CasterProgram           = k_nullHandle;
+//    ProgramHandle osmCasterProgram                 = k_nullHandle;
+//    ProgramHandle shadowCasterProgram              = k_nullHandle;
+//    ProgramHandle skyboxProgram                    = k_nullHandle;
+//    ProgramHandle ssaoProgram                      = k_nullHandle;
+//    ProgramHandle ssaoBlurXProgram                 = k_nullHandle;
+//    ProgramHandle ssaoBlurYProgram                 = k_nullHandle;
+//    ProgramHandle bloomUpProgram                   = k_nullHandle;
+//    ProgramHandle bloomDownProgram                 = k_nullHandle;
+//    ProgramHandle bloomCombineProgram              = k_nullHandle;
+//    ProgramHandle toneMappingProgram               = k_nullHandle;
+//    ProgramHandle fxaaVeryLowProgram               = k_nullHandle;
+//    ProgramHandle fxaaLowProgram                   = k_nullHandle;
+//    ProgramHandle fxaaMediumProgram                = k_nullHandle;
+//    ProgramHandle fxaaHighProgram                  = k_nullHandle;
+//    ProgramHandle fxaaVeryHighProgram              = k_nullHandle;
+//    ProgramHandle fxaaUltraProgram                 = k_nullHandle;
+//    ProgramHandle fogProgram                       = k_nullHandle;
+//    ProgramHandle passTexhroughProgram             = k_nullHandle;
 //
 //    // cbuffer
-//    ConstantBufferHandle transformCbh    = k_invalidHandle;
-//    ConstantBufferHandle cameraCbh       = k_invalidHandle;
-//    ConstantBufferHandle materialCbh     = k_invalidHandle;
-//    ConstantBufferHandle lightCbh        = k_invalidHandle;
-//    ConstantBufferHandle environmentCbh  = k_invalidHandle;
-//    ConstantBufferHandle shadowCasterCbh = k_invalidHandle;
-//    ConstantBufferHandle csmCasterCbh    = k_invalidHandle;
-//    ConstantBufferHandle osmCasterCbh    = k_invalidHandle;
-//    ConstantBufferHandle ssaoCbh         = k_invalidHandle;
-//    ConstantBufferHandle screenCbh       = k_invalidHandle;
+//    ConstantBufferHandle transformCbh    = k_nullHandle;
+//    ConstantBufferHandle cameraCbh       = k_nullHandle;
+//    ConstantBufferHandle materialCbh     = k_nullHandle;
+//    ConstantBufferHandle lightCbh        = k_nullHandle;
+//    ConstantBufferHandle environmentCbh  = k_nullHandle;
+//    ConstantBufferHandle shadowCasterCbh = k_nullHandle;
+//    ConstantBufferHandle csmCasterCbh    = k_nullHandle;
+//    ConstantBufferHandle osmCasterCbh    = k_nullHandle;
+//    ConstantBufferHandle ssaoCbh         = k_nullHandle;
+//    ConstantBufferHandle screenCbh       = k_nullHandle;
 //
 //    // meshes
 //    Mesh fullScreenTri            = {};
@@ -150,7 +150,7 @@
 //    RenderState skyboxState      = {};
 //
 //    // misc
-//    TextureHandle ssaoNoiseTexture = k_invalidHandle;
+//    TextureHandle ssaoNoiseTexture = k_nullHandle;
 //
 //    // render graph
 //    RenderGraph renderGraph = {};
@@ -173,15 +173,15 @@
 //    bool              bBloomEnabled          = false;
 //    bool              bFXAAEnabled           = false;
 //
-//    TextureHandle hdrTexh             = k_invalidHandle;
-//    TextureHandle depthTexh           = k_invalidHandle;
-//    TextureHandle gbufferAlbedoTexh   = k_invalidHandle;
-//    TextureHandle gbufferMaterialTexh = k_invalidHandle;
-//    TextureHandle gbufferNormalTexh   = k_invalidHandle;
-//    TextureHandle gbufferLightingTexh = k_invalidHandle;
+//    TextureHandle hdrTexh             = k_nullHandle;
+//    TextureHandle depthTexh           = k_nullHandle;
+//    TextureHandle gbufferAlbedoTexh   = k_nullHandle;
+//    TextureHandle gbufferMaterialTexh = k_nullHandle;
+//    TextureHandle gbufferNormalTexh   = k_nullHandle;
+//    TextureHandle gbufferLightingTexh = k_nullHandle;
 //
-//    FrameBufferHandle hdrNoDepthFbh = k_invalidHandle;
-//    FrameBufferHandle hdrDepthFbh   = k_invalidHandle;
+//    FrameBufferHandle hdrNoDepthFbh = k_nullHandle;
+//    FrameBufferHandle hdrDepthFbh   = k_nullHandle;
 //
 //}* g_basicRendererCtx = nullptr;
 //
@@ -372,53 +372,53 @@
 //    cb.cb_displacementMapScaling = settings.vertexDisplacementMapScale;
 //    cb.cb_materialFlags          = 0;
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::Albedo))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Albedo))
 //    {
-//        pTex->Bind(eShader::PixelShader, t_albedoSlot);
+//        pTexture->Bind(eShader::PixelShader, t_albedoSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_ALBEDO;
 //    }
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::Normal))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Normal))
 //    {
-//        pTex->Bind(eShader::PixelShader, t_normalSlot);
+//        pTexture->Bind(eShader::PixelShader, t_normalSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_NORMAL;
 //    }
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::Metallic))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Metallic))
 //    {
 //        const eTextureChannel channel = settings.metallicMapChannel;
-//        pTex->Bind(eShader::PixelShader, t_metallicSlot);
+//        pTexture->Bind(eShader::PixelShader, t_metallicSlot);
 //        cb.cb_materialFlags |= k_metaliicChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
 //    }
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::Roughness))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Roughness))
 //    {
 //        const eTextureChannel channel = settings.roughnessMapChannel;
-//        pTex->Bind(eShader::PixelShader, t_roughnessSlot);
+//        pTexture->Bind(eShader::PixelShader, t_roughnessSlot);
 //        cb.cb_materialFlags |= k_roughnessChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
 //    }
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::Ao))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Ao))
 //    {
-//        pTex->Bind(eShader::PixelShader, t_aoSlot);
+//        pTexture->Bind(eShader::PixelShader, t_aoSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_AO;
 //    }
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::Emissive))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Emissive))
 //    {
-//        pTex->Bind(eShader::PixelShader, t_emissiveSlot);
+//        pTexture->Bind(eShader::PixelShader, t_emissiveSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_EMISSIVE;
 //    }
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::VertexDisplacement))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::VertexDisplacement))
 //    {
-//        pTex->Bind(eShader::VertexShader, t_displacementMapSlot);
+//        pTexture->Bind(eShader::VertexShader, t_displacementMapSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_VERTEX_DISPLACEMENT_MAP;
 //    }
 //
-//    if (const Ref<Texture>& pTex = texes.Get(eMaterialTextureType::Light))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Light))
 //    {
-//        pTex->Bind(eShader::PixelShader, t_lightmapSlot);
+//        pTexture->Bind(eShader::PixelShader, t_lightmapSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_LIGHT_MAP;
 //    }
 //
@@ -673,12 +673,12 @@
 //    {
 //        for (const auto& [_, sc, rc]: _pScene->Each<SceneComponent, RenderableComponent>())
 //        {
-//            const Ref<Material>& pMat  = rc.renderable.pMaterial;
+//            const Ref<Material>& pMaterial  = rc.renderable.pMaterial;
 //            const Ref<Mesh>&     pMesh = rc.renderable.pMesh;
-//            if (pMat && pMesh)
+//            if (pMaterial && pMesh)
 //            {
 //                const Transform& wt = sc.node.GetWorldTransform();
-//                g_basicRendererCtx->Submit(pMesh, pMat, wt.GetMatrix());
+//                g_basicRendererCtx->Submit(pMesh, pMaterial, wt.GetMatrix());
 //            }
 //        }
 //    };
@@ -741,7 +741,7 @@
 //    gbufferLightingTexh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, " GBuffer Lighting Texture");
 //
 //    // will be created if ssao is enabled
-//    TextureHandle ssaoTexh = k_invalidHandle;
+//    TextureHandle ssaoTexh = k_nullHandle;
 //
 //    // hdr fbh
 //    {
@@ -831,7 +831,7 @@
 //        pass2.SetViewport(vp);
 //        pass2.SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
-//        // final ssao tex
+//        // final ssao texture
 //        ssaoTexh = ssaoTexh2;
 //
 //        graph.AddPass(std::move(pass0));
@@ -1301,8 +1301,8 @@
 //        pCtx->pbrLightingProgram               = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->pbrLightingPsh);
 //        pCtx->pbrLightVolumeProgram            = JAM_GFX.CreateProgram(pCtx->pbrLightVolumeVsh, pCtx->pbrLightVolumePsh);
 //        pCtx->pbrEnvironmentLightVolumeProgram = JAM_GFX.CreateProgram(pCtx->pbrEnvironmentLIghtVolumeVsh, pCtx->pbrEnvironmentLightVolumePsh);
-//        pCtx->csmLevel3CasterProgram           = JAM_GFX.CreateProgram(pCtx->csmVsh, pCtx->csmPsh, pCtx->csmLevel3Gsh, k_invalidHandle, k_invalidHandle);
-//        pCtx->osmCasterProgram                 = JAM_GFX.CreateProgram(pCtx->osmVsh, pCtx->osmPsh, pCtx->osmGsh, k_invalidHandle, k_invalidHandle);
+//        pCtx->csmLevel3CasterProgram           = JAM_GFX.CreateProgram(pCtx->csmVsh, pCtx->csmPsh, pCtx->csmLevel3Gsh, k_nullHandle, k_nullHandle);
+//        pCtx->osmCasterProgram                 = JAM_GFX.CreateProgram(pCtx->osmVsh, pCtx->osmPsh, pCtx->osmGsh, k_nullHandle, k_nullHandle);
 //        pCtx->shadowCasterProgram              = JAM_GFX.CreateProgram(pCtx->shadowMappingVsh, pCtx->shadowMappingPsh);
 //        pCtx->skyboxProgram                    = JAM_GFX.CreateProgram(pCtx->skyboxVsh, pCtx->skyboxPsh);
 //        pCtx->ssaoProgram                      = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoPsh);
@@ -1765,7 +1765,7 @@
 ////        .AddTexture(gBufferDesc.albedoAoTexture, eShader::PixelShader, t_gBufferAlbedoAOSlot)
 ////        .AddTexture(gBufferDesc.emissiveMetallicTexture, eShader::PixelShader, t_gBufferEmissiveMetallicSlot)
 ////        .AddTexture(gBufferDesc.depthTexture, eShader::PixelShader, t_depthSlot)
-////        .SetFrameBuffer(_desc.frameBuffer)
+////        .SetFrameBuffer(_Dedesc.frameBuffer)
 ////        .SetViewport(_desc.vp)
 ////        .SetGfxState(GfxState::Default())
 ////        .SetBlendState(BlendState::k_opaque, 0)

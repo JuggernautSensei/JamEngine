@@ -1,4 +1,5 @@
 #pragma once
+#include "EnumArray.h"
 #include "IAsset.h"
 
 namespace Jam
@@ -57,10 +58,9 @@ private:
     void OnFileRenamedEvent_(const FileRenamedEvent& _event);
     void OnFileDeletedEvent_(const FileDeletedEvent& _event);
 
-    void                    Unload_(AssetMap& _pAssetMap, AssetMapIter _iter) const;
-    [[nodiscard]] AssetMap& GetAssetMap_(eAssetType _type);
+    void Unload_(AssetMap& _pAssetMap, AssetMapIter _iter) const;
 
-    Array<AssetMap, CountOf<eAssetType>()> m_assetMaps = {};
+    EnumArray<eAssetType, AssetMap> m_assetMaps = {};
 
     inline static AssetManager* s_pInstance = nullptr;
     friend class Application;

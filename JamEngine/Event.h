@@ -26,34 +26,28 @@ private:
 };
 
 #define JAM_EVENT(_eventT)                                                          \
+public:                                                                             \
     constexpr static StringView k_typeName = NameOf<_eventT>();                     \
     constexpr static UInt32     k_typeHash = HashOf<_eventT>();                     \
     [[nodiscard]] StringView    GetTypeName() const override { return k_typeName; } \
     [[nodiscard]] UInt32        GetTypeHash() const override { return k_typeHash; } \
-    constexpr static bool       k_bIsEvent = true;
+    constexpr static bool       __JAM_EVENT_MARKER__ = true
 
-template<typename T>
-concept EventBasedType = requires(T _event) {
-    { T::k_bIsEvent } -> std::convertible_to<bool>;
-    std::is_base_of_v<Event, T>;
+template<typename TEvent>
+concept EventType = requires(TEvent _event) {
+    { TEvent::__JAM_EVENT_MARKER__ };
+    std::derived_from<TEvent, Event>;
 };
 
 template<typename TEvent, typename TFunc>
-concept EventHandlerFuncType = requires(
-    TFunc   _func,
-    TEvent& _event) {
-    EventBasedType<TEvent>;
-    { _func(_event) } -> std::same_as<void>;   // const or non-const member function or lambda
-};
+concept IsEventHandlerType =
+    EventType<TEvent>
+    && requires(TFunc _func, TEvent& _event) {{ _func(_event) }; };
 
 template<typename TEvent, typename TCaller, typename TMethod>
-concept EventHandlerMethodType = requires(
-    TCaller* _caller,
-    TMethod  _method,
-    TEvent&  _event) {
-    EventBasedType<TEvent>;
-    { (_caller->*_method)(_event) } -> std::same_as<void>;   // const or non-const member function
-};
+concept IsEventHandlerMethodType =
+    EventType<TEvent>
+    && requires(TCaller* _caller, TMethod _method, TEvent& _event) {{ (_caller->*_method)(_event) }; };
 
 class EventDispatcher
 {
@@ -64,8 +58,8 @@ public:
     {
     }
 
-    template<EventBasedType TEvent, typename TFunc>
-        requires EventHandlerFuncType<TEvent, TFunc>
+    template<EventType TEvent, typename TFunc>
+        requires IsEventHandlerType<TEvent, TFunc>
     void Dispatch(TFunc&& _func)
     {
         if (m_event->IsHandled())
@@ -80,8 +74,8 @@ public:
         }
     }
 
-    template<EventBasedType TEvent, typename TCaller, typename TMethod>
-        requires EventHandlerMethodType<TEvent, TCaller, TMethod>
+    template<EventType TEvent, typename TCaller, typename TMethod>
+        requires IsEventHandlerMethodType<TEvent, TCaller, TMethod>
     void Dispatch(TCaller* _caller, TMethod&& _method)
     {
         if (m_event->IsHandled())

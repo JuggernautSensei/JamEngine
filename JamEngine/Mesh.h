@@ -56,8 +56,8 @@ private:
 
     Path               m_path            = {};
     String             m_name            = {};
-    VertexBufferHandle m_vbh             = k_invalidHandle;
-    IndexBufferHandle  m_ibh             = k_invalidHandle;
+    VertexBufferHandle m_vbh             = k_nullHandle;
+    IndexBufferHandle  m_ibh             = k_nullHandle;
     Aabb               m_boundingBox     = {};
     UInt16             m_sortKey         = 0;
     bool               m_bLoadedFromFile = false;

@@ -4,11 +4,12 @@
 #include "Application.h"
 
 #include "AssetManager.h"
-#include "ReflectionDB.h"
+#include "ComponentDatabase.h"
 #include "Editor.h"
 #include "Graphics.h"
 #include "ImGuiGlue.h"
 #include "Input.h"
+#include "SceneDatabase.h"
 
 #include "SceneManager.h"
 #include "WindowsPlatform.h"
@@ -16,29 +17,18 @@
 namespace Jam
 {
 
-void Application::CreateInstance(
-    const Int32 _argc,
-    char**      _argv)
-{
-    JAM_ASSERT(s_pInstance == nullptr, "Application instance already exists");
-    s_pInstance = CreateApplication(_argc, _argv);
-}
-
-void Application::DestroyInstance()
-{
-    JAM_ASSERT(s_pInstance, "Application instance is null");
-    delete s_pInstance;
-}
-
 Application& Application::GetInstance()
 {
     return *s_pInstance;
 }
 
-Int32 Application::Run()
+Int32 Application::Run(
+    const Int32 _argc,
+    char**      _argv)
 {
-    m_timer.Start();
+    Init_(_argc, _argv);
 
+    m_timer.Start();
     while (m_bRunning)
     {
         if (!JAM_WIN.PollEvents())
@@ -63,18 +53,18 @@ Int32 Application::Run()
             if (m_bEditorEnabled)
             {
                 JAM_EDITOR.Render();
-                JAM_IMGUI_GLUE.BeginFrame();
+                JAM_IMGUI.BeginFrame();
                 JAM_EDITOR.ImGuiRender();
                 JAM_SCENE_MGR.ImGuiRender();
-                JAM_IMGUI_GLUE.EndFrame();
+                JAM_IMGUI.EndFrame();
             }
             else
             {
                 // runtime
                 JAM_SCENE_MGR.RenderRuntime();
-                JAM_IMGUI_GLUE.BeginFrame();
+                JAM_IMGUI.BeginFrame();
                 JAM_SCENE_MGR.ImGuiRender();
-                JAM_IMGUI_GLUE.EndFrame();
+                JAM_IMGUI.EndFrame();
             }
 
             JAM_GFX.Frame(m_bVsync);
@@ -84,6 +74,7 @@ Int32 Application::Run()
         }
     }
 
+    Shutdown_();
     return 0;
 }
 
@@ -96,7 +87,8 @@ void Application::DispatchEvent(Event& _event)
 {
     JAM_ASSERT(_event.IsHandled() == false, "Event '{}' is already handled.", _event.GetTypeName());
 
-    if (m_bEventDispatchable == false)
+    // not initialized other systems
+    if (m_bInited == false)
     {
         return;
     }
@@ -132,9 +124,9 @@ bool Application::IsVsyncEnabled() const
     return m_bVsync;
 }
 
-StringView Application::GetApplicationName() const
+StringView Application::GetAppName() const
 {
-    return m_applicationName;
+    return m_appName;
 }
 
 float Application::GetDeltaTimeSec() const
@@ -162,16 +154,29 @@ const Path& Application::GetContentsDirectory() const
     return m_contentsDir;
 }
 
-Application::Application(const ApplicationCreateInfo& _info)
-    : m_applicationName(_info.applicationName)
-      , m_bEditorEnabled(_info.bEnableEditor)
-      , m_workingDir(_info.workingDirectory)
-      , m_contentsDir(m_workingDir / "Contents")
-      , m_cacheDir(m_workingDir / "Caches")
+Application::Application(
+    const StringView _appName,
+    const bool       _bEnableEditor)
+    : m_appName(_appName.ToString())
+    , m_bEditorEnabled(_bEnableEditor)
+    , m_workingDir(fs::current_path())
+    , m_contentsDir(m_workingDir / "Contents")
+    , m_cacheDir(m_workingDir / "Caches")
 {
-    // 메모리 디버거
-    if (JAM_DEBUG_ENABLED)
+    s_pInstance = this;
+}
+
+void Application::Init_(
+    const Int32 _argc,
+    char**      _argv)
+{
+    JAM_ASSERT(!m_bInited, "Application is already initialized.");
+
+    if (JAM_DEBUG_ENABLED)   // memory debugger
     {
+#ifdef JAM_DEBUG_BREAK_ALLOC
+        _CrtSetBreakAlloc(JAM_DEBUG_BREAK_ALLOC);
+#endif
         _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     }
 
@@ -187,7 +192,7 @@ Application::Application(const ApplicationCreateInfo& _info)
 
     // init window
     WindowsPlatform::CreateInstance();
-    JAM_WIN.SetTitle(m_applicationName);
+    JAM_WIN.SetTitle(m_appName);
 
     // init graphics
     const auto [w, h] = JAM_WIN.GetClientResolution();
@@ -213,23 +218,34 @@ Application::Application(const ApplicationCreateInfo& _info)
     }
 
     // init done
-    m_bEventDispatchable = true;
-    m_bRunning           = true;
-    JAM_LOG.Trace("application '{}' started.", m_applicationName);
+    m_bInited  = true;
+    m_bRunning = true;
+
+    // init deriven type
+    Init(_argc, _argv);
+
+    // done
+    JAM_LOG.Info("app '{}' initialization complete.", m_appName);
 }
 
-Application::~Application()
+void Application::Init(
+    const Int32 _argc,
+    char**      _argv)
 {
-    JAM_ASSERT(m_bRunning, "Application is still running, cannot destroy instance");
+}
+
+void Application::Shutdown_()
+{
+    JAM_ASSERT(m_bInited, "Application is not initialized.");
 
     // shutdown start
-    JAM_LOG.Trace("application '{}' shutdown.", m_applicationName);
+    JAM_LOG.Info("app '{}' is shutting down...", m_appName);
+    m_bInited = false;
+    Shutdown();   // shutdown derived type
 
-    // close event dispatch
-    m_bEventDispatchable = false;
-
-    // destroy db (this must destroy manually, cannot use onDestroyCallbacks)
-    ReflectionDB::DestroyInstance();
+    // destroy db
+    ComponentDatabase::DestroyInstance();
+    SceneDatabase::DestroyInstance();
 
     // shutdown window
     WindowsPlatform::DestroyInstance();
@@ -255,11 +271,13 @@ Application::~Application()
     // shutdown graphics lib
     Graphics::DestroyInstance();
 
-    JAM_LOG.Trace("application '{}' shutdown complete.", m_applicationName);
-    JAM_LOG.Flush();
-
     // shutdown
+    JAM_LOG.Trace("app '{}' shutdown complete.", m_appName);
     Log::DestroyInstance();
+}
+
+void Application::Shutdown()
+{
 }
 
 void Application::OnEvent_(

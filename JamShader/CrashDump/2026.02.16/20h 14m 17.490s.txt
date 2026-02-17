@@ -1,0 +1,23 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-02-16 20:14:17.490
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: enum D3D11_COMPARISON_FUNC __cdecl Jam::`anonymous-namespace'::D3D11ComparisonFuncFrom_(const enum Jam::eCompareFunc)
+line: 116
+column: 17
+------------------------------------
+user report: 
+Unreachable code reached.
+====================================

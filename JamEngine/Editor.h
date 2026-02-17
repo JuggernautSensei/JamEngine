@@ -1,24 +1,29 @@
 #pragma once
-#include "BasicRenderer.h"
 #include "DialogStack.h"
 #include "EditorIcons.h"
 #include "EditorStyle.h"
-#include "Editor_EntityInspector.h"
-#include "Editor_FileBrowser.h"
-#include "Editor_Profiler.h"
-#include "Editor_SceneHierarchy.h"
-#include "Editor_SceneView.h"
-#include "Editor_VertexLayoutEditor.h"
+#include "Entity.h"
+#include "File.h"
 #include "VertexLayoutEntry.h"
 
 namespace Jam
 {
 
+class Mesh;
+class Model;
 class Event;
 class Dialog;
-class IEditorCommand;
+class Material;
 class VertexLayoutMap;
 class VertexLayoutEntry;
+class SceneChangedEvent;
+class EntityDestroyedEvent;
+class Editor_SceneViewWindow;
+class Editor_ProfilerWindow;
+class Editor_SceneHierarchyWindow;
+class Editor_EntityInspectorWindow;
+class Editor_FileBrowserWindow;
+class Editor_VertexLayoutEditorWindow;
 
 enum class eEditorWindowType
 {
@@ -46,7 +51,7 @@ public:
 
     [[nodiscard]] static Editor& GetInstance();
 
-    // mode
+    // m_mode
     void                      SetMode(eEditorMode _mode);
     [[nodiscard]] eEditorMode GetMode() const;
 
@@ -56,14 +61,11 @@ public:
     [[nodiscard]] Entity GetFocusingEntity() const;
 
     // style
-    [[nodiscard]] EditorStyle&  GetStyle();
     [[nodiscard]] float         GetStyleVar(eEditorStyleVar _var) const;
     [[nodiscard]] ImVec4        GetStyleColor(eEditorStyleColor _col) const;
     [[nodiscard]] ImU32         GetStyleColorU32(eEditorStyleColor _col) const;
     [[nodiscard]] ImGuiKeyChord GetStyleShortCut(eEditorShortCut _shortCut) const;
-
-    // icons
-    [[nodiscard]] Ref<Texture> GetIcon(eEditorIcon _icon) const;
+    [[nodiscard]] Ref<Texture>  GetIcon(eEditorIcon _icon) const;
 
     // vertex layout
     [[nodiscard]] VertexLayoutMap& GetVertexLayoutMap();
@@ -105,7 +107,7 @@ private:
     static void DestroyInstance();
 
     void Update(float _deltaSec);
-    void Render();
+    void Render() const;
     void ImGuiRender();
     void OnEvent(Event& _event);
 
@@ -129,25 +131,24 @@ private:
     [[nodiscard]] bool&        GetWindowShow(eEditorWindowType _type);
 
     // windows
-    Editor_SceneView          renderViewWindow         = {};
-    Editor_Profiler           profilerWindow           = {};
-    Editor_SceneHierarchy     sceneHierarchyWindow     = {};
-    Editor_EntityInspector    entityInspectorWindow    = {};
-    Editor_FileBrowser        fileBrowserWindow        = {};
-    Editor_VertexLayoutEditor vertexLayoutEditorWindow = {};
+    Scoped<Editor_SceneViewWindow>          m_pSceneViewWindow          = nullptr;
+    Scoped<Editor_ProfilerWindow>           m_pProfilerWindow           = nullptr;
+    Scoped<Editor_SceneHierarchyWindow>     m_pSceneHierarchyWindow     = nullptr;
+    Scoped<Editor_EntityInspectorWindow>    m_pEntityInspectorWindow    = nullptr;
+    Scoped<Editor_FileBrowserWindow>        m_pFileBrowserWindow        = nullptr;
+    Scoped<Editor_VertexLayoutEditorWindow> m_pVertexLayoutEditorWindow = nullptr;
 
-    Array<bool, CountOf<eEditorWindowType>()> windowShows = {};
+    EnumArray<eEditorWindowType, bool> m_windowShows = {};
 
-    // data
-    Entity          focusedEntity = Entity::k_invalid;
-    eEditorMode     mode          = eEditorMode::Edit;
-    EditorStyle     style         = {};
-    VertexLayoutMap vlMap         = {};
-    DialogStack     dialogStack   = {};
-    EditorIcons     icons         = {};
+    Entity          m_focusedEntity = Entity::k_invalid;
+    eEditorMode     m_mode          = eEditorMode::Edit;
+    EditorStyle     m_style         = {};
+    VertexLayoutMap m_vlMap         = {};
+    DialogStack     m_dialogStack   = {};
+    EditorIcons     m_icons         = {};
 
-    Path  configPath           = {};
-    float configSaveCounterSec = 0.f;
+    Path  m_configPath           = {};
+    float m_configSaveCounterSec = 0.f;
 
     constexpr static float       k_configSaveIntervalSec = 10.f;   // save config every 10 seconds
     constexpr static const char* k_configFileName        = "EditorConfig.json";

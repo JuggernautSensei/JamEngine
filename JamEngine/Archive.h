@@ -1,49 +1,58 @@
 #pragma once
+#include "EnumArray.h"
 
 namespace Jam
 {
 
-template<typename T>
-constexpr bool k_alwaysFalseV = false;
-
 class ArchiveWriter;
 class ArchiveReader;
 
-template<typename T>
-concept HasIntrusiveWriteFunc = requires(
-    ArchiveWriter& _archive,
-    T              _value) {
-    { _value.WriteToArchive(_archive) } -> std::same_as<void>;
-};
+// intrusive write to archive func
+// allowed:     void WriteToArchive(ArchiveWriter& _archive) const;
+// allowed:     void WriteToArchive(ArchiveWriter& _archive);
+// not allowed: void WriteToArchive(const ArchiveWriter& _archive) const;
 
 template<typename T>
-concept HasIntrusiveReadFunc = requires(
-    ArchiveReader& _archive,
-    T&             _value) {
-    { _value.ReadFromArchive(_archive) } -> std::same_as<Error>;
+concept HasIntrusiveWriteFunc =
+    requires(ArchiveWriter& _archive, T _value) {
+        { _value.WriteToArchive(_archive) };
+    }
+    && !requires(const ArchiveWriter& _archive, T _value) { _value.WriteToArchive(_archive); };
 
-    requires !requires(const T& _cvlaue) {
-        _cvlaue.ReadFromArchive(_archive);
-    };
-};
-
-template<typename T>
-concept HasNonIntrusiveWriteFunc = requires(
-    ArchiveWriter& _archive,
-    T              _value) {
-    { WriteToArchive(_archive, _value) } -> std::same_as<void>;
-};
+// intrusive read from archive func
+// allowed:     Error ReadFromArchive(ArchiveReader& _archive);
+// not allowed: Error ReadFromArchive(ArchiveReader& _archive) const;
+// not allowed: Error ReadFromArchive(const ArchiveReader& _archive);
 
 template<typename T>
-concept HasNonIntrusiveReadFunc = requires(
-    ArchiveReader& _archive,
-    T&             _value) {
-    { ReadFromArchive(_archive, _value) } -> std::same_as<Error>;
+concept HasIntrusiveReadFunc =
+    requires(ArchiveReader& _archive, T value) {
+        { value.ReadFromArchive(_archive) } -> std::same_as<Error>;
+    }
+    && !requires(const ArchiveReader& _archive, T _value) { _value.ReadFromArchive(_archive); }
+    && !requires(ArchiveReader& _archive, const T _value) { _value.ReadFromArchive(_archive); };
 
-    requires !requires(T&& _rvalue) {
-        ReadFromArchive(_archive, std::move(_rvalue));
-    };
-};
+// non-intrusive write to archive func
+// allowed:     void WriteToArchive(ArchiveWriter& _archive, T _value);
+// not allowed: void WriteToArchive(const ArchiveWriter& _archive, T _value);
+
+template<typename T>
+concept HasNonIntrusiveWriteFunc =
+    requires(ArchiveWriter& _archive, T _value) { WriteToArchive(_archive, _value); }
+    && !requires(const ArchiveWriter& _archive, T _value) { WriteToArchive(_archive, _value); };
+
+// non-intrusive read from archive func
+// allowed:     Error ReadFromArchive(ArchiveReader& _archive, T& _value);
+// not allowed: Error ReadFromArchive(const ArchiveReader& _archive, T& _value);
+// not allowed: Error ReadFromArchive(ArchiveReader& _archive, const T& _value);
+
+template<typename T>
+concept HasNonIntrusiveReadFunc =
+    requires(ArchiveReader& _archive, T value) {
+        { ReadFromArchive(_archive, value) } -> std::same_as<Error>;
+    }
+    && !requires(ArchiveReader& _archive) { ReadFromArchive(_archive, T {}); }
+    && !requires(const ArchiveReader& _archive, T value) { ReadFromArchive(_archive, value); };
 
 template<typename T>
 concept IsArchivePrimitive = std::is_null_pointer_v<T>
@@ -57,12 +66,14 @@ concept IsArchivePrimitive = std::is_null_pointer_v<T>
                           || std::is_same_v<T, StringView>;
 
 template<typename T>
-concept IsArchiveSerializable = ((HasIntrusiveWriteFunc<T> || HasNonIntrusiveWriteFunc<T>) && (HasIntrusiveReadFunc<T> || HasNonIntrusiveReadFunc<T>))
-                             || IsArchivePrimitive<T>;
+concept IsArchiveSerializable =
+    ((HasIntrusiveWriteFunc<T> || HasNonIntrusiveWriteFunc<T>) && (HasIntrusiveReadFunc<T> || HasNonIntrusiveReadFunc<T>))
+    || IsArchivePrimitive<T>;
 
 #define JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(T) \
     static_assert(Jam::IsArchiveSerializable<T>, "Type '" #T "' is not _archive serializable. Please implement either intrusive or non-intrusive WriteToArchive() and ReadFromArchive() functions, or make it a primitive type.")
 
+// not using yet
 enum class eErrorPolicy
 {
     Ignore,
@@ -96,9 +107,13 @@ public:
         {
             WriteToArchive(*this, _value);
         }
-        else
+        else if constexpr (IsArchivePrimitive<TDecayed>)
         {
             WritePrimitive_(std::forward<T>(_value));
+        }
+        else
+        {
+            static_assert(AlwaysFalseV<T>, "T is not serializable to archive. Please implement either intrusive or non-intrusive WriteToArchive() functions, or make it a primitive type.");
         }
     }
 
@@ -158,6 +173,7 @@ public:
     virtual void  ClearLastError()            = 0;
 
     template<typename T>
+        requires(!std::is_const_v<T>)
     Error Read(T& _value)
     {
         using TDecayed = std::decay_t<T>;
@@ -181,9 +197,14 @@ public:
 
             return err;
         }
-        else
+        else if constexpr (IsArchivePrimitive<TDecayed>)
         {
             return ReadPrimitive_(_value);
+        }
+        else
+        {
+            static_assert(AlwaysFalseV<T>, "T is not deserializable from archive. Please implement either intrusive or non-intrusive ReadFromArchive() functions, or make it a primitive type.");
+            return Error::NotImplemented;
         }
     }
 
@@ -325,14 +346,46 @@ Error ReadFromArchive(ArchiveReader& _reader, Array<T, N>& _arr)
     if (CmpNotEqual(size, N))
     {
         JAM_LOG.Error("Archive read error: expected array size {} but got {}.", N, size);
-        _reader.MarkError(Error::TypeMismatch);
-        return Error::TypeMismatch;
+        _reader.MarkError(Error::InvalidData);
+        return Error::InvalidData;
     }
 
     return _reader.ForEach(
         [&](SizeT idx, ArchiveReader& reader) -> Error
         {
             if (const Error err = reader.Read(_arr[idx]))
+            {
+                return err;
+            }
+
+            return Error::None;
+        });
+}
+
+template<typename TEnum, typename TValue>
+void WriteToArchive(ArchiveWriter& _writer, const EnumArray<TEnum, TValue>& _enumArray)
+{
+    for (const auto& item: _enumArray)
+    {
+        _writer.PushBack(item);
+    }
+}
+
+template<typename TEnum, typename TValue>
+Error ReadFromArchive(ArchiveReader& _reader, EnumArray<TEnum, TValue>& _enumArray)
+{
+    const SizeT size = _reader.GetSize();
+    if (CmpNotEqual(size, _enumArray.size()))
+    {
+        JAM_LOG.Error("Archive read error: expected EnumArray size {} but got {}.", _enumArray.size(), size);
+        _reader.MarkError(Error::InvalidData);
+        return Error::InvalidData;
+    }
+
+    return _reader.ForEach(
+        [&](SizeT idx, ArchiveReader& reader) -> Error
+        {
+            if (const Error err = reader.Read(_enumArray[idx]))
             {
                 return err;
             }

@@ -9,14 +9,10 @@
 namespace Jam
 {
 
-constexpr Int32 k_numRenderTargetLimit    = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
-constexpr Int32 k_numSamplerLimit         = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
-constexpr Int32 k_numShaderResourceLimit  = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-constexpr Int32 k_numConstantBufferLimit  = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-constexpr Int32 k_numGraphicsShaderStages = 5;   // vs, ps, m_rs, hs, ds
-
-template<typename T>
-using ComPtr = Microsoft::WRL::ComPtr<T>;
+constexpr Int32 k_maxNumRenderTargetViewSlots   = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+constexpr Int32 k_maxNumSamplerSlots            = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
+constexpr Int32 k_maxNumShaderResourceViewSlots = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+constexpr Int32 k_maxNumConstantBufferSlots     = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
 
 enum class eTextureCreateFlags : UInt32
 {
@@ -32,7 +28,7 @@ enum class eTextureCreateFlags : UInt32
     RenderTarget = 1 << 6,   // for render target usage
     DepthStencil = 1 << 7,   // for depth stencil usage
 
-    Mutable = 1 << 8,   // when creating with initial renderable, create immutable tex. this flag makes it mutable even though initial renderable is provided
+    Mutable = 1 << 8,   // when creating with initial renderable, create immutable texture. this flag makes it mutable even though initial renderable is provided
 
     MultiSampled_Internal = MSAAx4 | MSAAx8 | MSAAx16,
 };
@@ -45,7 +41,15 @@ enum class eShader
     HullShader,
     DomainShader,
     ComputeShader,
+};
 
+constexpr eShader k_gfxShaderStages[] = {
+    eShader::VertexShader,
+    eShader::PixelShader,
+    eShader::GeometryShader,
+    eShader::HullShader,
+    eShader::DomainShader
+    // exclude compute shader
 };
 
 enum class eTextureType
@@ -195,15 +199,12 @@ enum class eSubmitParameterType
     BaseVertexLocation,
 };
 
-using ShaderCacheKey       = UInt64;
-using VertexLayoutCacheKey = UInt64;
-
 struct VertexLayoutRef
 {
-    ID3D11InputLayout*   pInputLayout = nullptr;
-    VertexLayout         vertexLayout = {};
-    Int32                refCount     = 0;
-    VertexLayoutCacheKey hash         = 0;
+    ID3D11InputLayout* pInputLayout = nullptr;
+    VertexLayout       vertexLayout = {};
+    Int32              refCount     = 0;
+    UInt64             hash         = 0;
 };
 using VertexLayoutHandle = Handle<VertexLayoutRef>;
 
@@ -214,16 +215,16 @@ struct HardwareBuffer
     bool          bDynamic  = false;
 };
 
-struct VertexBuffer : public HardwareBuffer
+struct VertexBuffer : HardwareBuffer
 {
     String             name     = {};
     Int32              numVerts = 0;
     Int32              stride   = 0;
-    VertexLayoutHandle vlh      = k_invalidHandle;
+    VertexLayoutHandle vlh      = k_nullHandle;
 };
 using VertexBufferHandle = Handle<VertexBuffer>;
 
-struct IndexBuffer : public HardwareBuffer
+struct IndexBuffer : HardwareBuffer
 {
     String name     = {};
     Int32  numIdxes = 0;
@@ -232,7 +233,7 @@ struct IndexBuffer : public HardwareBuffer
 };
 using IndexBufferHandle = Handle<IndexBuffer>;
 
-struct ConstantBuffer : public HardwareBuffer
+struct ConstantBuffer : HardwareBuffer
 {
     String name = {};
 };
@@ -270,11 +271,11 @@ struct FrameBuffer
     String name             = {};
     Int32  numRenderTargets = 0;
 
-    Array<TextureHandle, k_numRenderTargetLimit> renderTargetTexhs = { k_invalidHandle };
-    TextureHandle                                depthStencilTexh  = { k_invalidHandle };
+    Array<TextureHandle, k_maxNumRenderTargetViewSlots> renderTargetTexhs = { k_nullHandle };
+    TextureHandle                                       depthStencilTexh  = { k_nullHandle };
 
-    Array<ID3D11RenderTargetView*, k_numRenderTargetLimit> pRtvs = { nullptr };
-    ID3D11DepthStencilView*                                pDsv  = nullptr;
+    Array<ID3D11RenderTargetView*, k_maxNumRenderTargetViewSlots> pRtvs = { nullptr };
+    ID3D11DepthStencilView*                                       pDsv  = nullptr;
 };
 using FrameBufferHandle = Handle<FrameBuffer>;
 
@@ -290,16 +291,16 @@ struct ShaderRef
         ID3D11ComputeShader*  pComputeShader;
     };
 
-    String         name     = {};
-    eShader        stage    = eShader::VertexShader;
-    Int32          refCount = 0;
-    ShaderCacheKey cache    = 0;
+    String  name     = {};
+    eShader stage    = eShader::VertexShader;
+    Int32   refCount = 0;
+    UInt64  cache    = 0;
 };
 using ShaderHandle = Handle<ShaderRef>;
 
 struct Program
 {
-    Array<ShaderHandle, k_numGraphicsShaderStages> shs = { k_invalidHandle };
+    EnumArray<eShader, ShaderHandle> shs = {};
 };
 using ProgramHandle = Handle<Program>;
 
@@ -683,7 +684,7 @@ struct VertexBufferInfo
     Int32              numVerts     = 0;
     Int32              vertexStride = 0;
     bool               bDynamic     = false;
-    VertexLayoutHandle layoutHandle = k_invalidHandle;
+    VertexLayoutHandle layoutHandle = k_nullHandle;
 };
 
 struct IndexBufferInfo
@@ -726,8 +727,8 @@ struct FrameBufferInfo
     Int32 numRenderTargets = 0;
     bool  bHasDepthStencil = false;
 
-    Array<TextureHandle, k_numRenderTargetLimit> renderTargetTexhs = { k_invalidHandle };
-    TextureHandle                                depthStencilTexh  = { k_invalidHandle };
+    Array<TextureHandle, k_maxNumRenderTargetViewSlots> renderTargetTexhs = { k_nullHandle };
+    TextureHandle                                       depthStencilTexh  = { k_nullHandle };
 };
 
 struct ShaderInfo
@@ -737,7 +738,7 @@ struct ShaderInfo
 
 struct ProgramInfo
 {
-    Array<ShaderHandle, k_numGraphicsShaderStages> shs = { k_invalidHandle };
+    EnumArray<eShader, ShaderHandle> shs = {};
 };
 
 [[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);

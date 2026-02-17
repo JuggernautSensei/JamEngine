@@ -13,7 +13,7 @@ namespace Jam
 
 MaterialCreationDialog::MaterialCreationDialog(
     const MaterialCreationDialogDesc& _desc)
-    : AssetCreationDialog(_desc.baseDesc)
+    : AssetCreationDialog(_desc.baseInfo)
     , m_saveDir(_desc.dirOrEmpty)
 {
 }
@@ -83,8 +83,8 @@ bool MaterialCreationDialog::OnClickCreateButton_()
 bool MaterialCreationDialog::CreateAndSaveAsset_(
     const Path& _path)
 {
-    Ref<Material> pMat = Material::Create({}, {}, {});
-    return SaveAsset_(_path, pMat);
+    Ref<Material> pMaterial = Material::Create({}, {}, {});
+    return SaveAsset_(_path, pMaterial);
 }
 
 }   // namespace Jam

@@ -1,4 +1,5 @@
 #pragma once
+#include "EnumArray.h"
 
 namespace Jam
 {
@@ -16,35 +17,7 @@ enum class eRegion
     FarLeftBottom,
     FarRightBottom,
 };
-
-struct CornerPoints
-{
-    [[nodiscard]] Vec3& At(
-        const eRegion region)
-    {
-        return points[UnderlyingFrom(region)];
-    }
-
-    [[nodiscard]] const Vec3& At(
-        const eRegion region) const
-    {
-        return points[UnderlyingFrom(region)];
-    }
-
-    [[nodiscard]] Vec3& operator[](
-        const eRegion region)
-    {
-        return points[UnderlyingFrom(region)];
-    }
-
-    [[nodiscard]] const Vec3& operator[](
-        const eRegion region) const
-    {
-        return points[UnderlyingFrom(region)];
-    }
-
-    Array<Vec3, CountOf<eRegion>()> points = {};
-};
+using CornerPoints = EnumArray<eRegion, Vec3>;
 
 struct RayCastResult
 {

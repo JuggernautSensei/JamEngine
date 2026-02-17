@@ -1,13 +1,14 @@
 #include "pch.h"
 #include "SceneSerializer.h"
-#include "ReflectionDB.h"
+#include "ComponentDatabase.h"
 #include "Scene.h"
+#include "SceneDatabase.h"
 
 namespace Jam
 {
 Error DeserializeComponent_(
     const Ref<Scene>&                  _pScene,
-    const ComponentMetadata&           _meta,
+    const ComponentReflectionData&           _meta,
     ArchiveReader&                     _reader,
     const Flags<eSceneDeserializeMode> _flags)
 {
@@ -80,7 +81,7 @@ Error DeserilaizeComponents_(
         return err;
     }
 
-    if (!JAM_REFLECTION_DB.IsComponentReflected(typeName))
+    if (!JAM_COMPONENT_DB.IsComponentReflected(typeName))
     {
         JAM_LOG.Error("Scene deserialization failed: component type '{}' is not registered in ReflectionDB", typeName);
         if (_flags & eSceneDeserializeMode::RemoveComponentOnDeserializeFailure)
@@ -90,7 +91,7 @@ Error DeserilaizeComponents_(
         return Error::RuntimeError;
     }
 
-    const ComponentMetadata& meta = JAM_REFLECTION_DB.GetComponentMetadata(typeName);
+    const ComponentReflectionData& data = JAM_COMPONENT_DB.GetComponentReflection(typeName);
     if (const Error err = _reader.EnterField("values"))
     {
         JAM_LOG.Error("Scene deserialization failed: cannot enter component values field. {}", err.ToErrorMessage());
@@ -98,9 +99,9 @@ Error DeserilaizeComponents_(
     }
 
     const Error err = _reader.ForEach(
-        [&_pScene, &meta, _flags](const SizeT, ArchiveReader& _reader) -> Error
+        [&_pScene, &data, _flags](const SizeT, ArchiveReader& _reader) -> Error
         {
-            return DeserializeComponent_(_pScene, meta, _reader, _flags);
+            return DeserializeComponent_(_pScene, data, _reader, _flags);
         });
 
     _reader.Exit();
@@ -131,10 +132,10 @@ void SerializeScene(
     const SceneRegistry& reg = _pScene->GetRegistry();
     for (const auto [enttTypeId, storage]: reg.storage())
     {
-        const ComponentMetadata& meta = JAM_REFLECTION_DB.GetComponentMetadataByEnttHash(enttTypeId);
+        const ComponentReflectionData& data = JAM_COMPONENT_DB.GetComponentReflectionByEnttHash(enttTypeId);
 
         _writer.OpenAtBack();                            // component entry
-        _writer.WriteField("typeName", meta.typeName);   // type typeName
+        _writer.WriteField("typeName", data.typeName);   // type typeName
         _writer.OpenField("values");                     // open values array
         for (const EntityHandle handle: storage)
         {
@@ -144,9 +145,9 @@ void SerializeScene(
             _writer.WriteField("uid", entity.GetUID());   // entity uid
             _writer.OpenField("data");                    // component data
 
-            if (meta.Serialize)
+            if (data.Serialize)
             {
-                meta.Serialize(pCmpValue, _writer, _pScene, entity);
+                data.Serialize(pCmpValue, _writer, _pScene, entity);
             }
             else
             {
@@ -173,13 +174,13 @@ Expect<Ref<Scene>> DeserializeScene(
         return err;
     }
 
-    if (!JAM_REFLECTION_DB.IsSceneReflected(sceneTypeName))
+    if (!JAM_SCENE_DB.IsSceneReflected(sceneTypeName))
     {
         JAM_LOG.Error("Scene deserialization failed: scene type '{}' is not registered in ReflectionDB", sceneTypeName);
         return Error::RuntimeError;
     }
 
-    Ref<Scene> pScene = JAM_REFLECTION_DB.GetSceneMetadata(sceneTypeName).Create();
+    Ref<Scene> pScene = JAM_SCENE_DB.GetSceneReflectionData(sceneTypeName).Create();
 
     Vector<UID> entityUids = {};
     if (const Error err = _reader.ReadField("entities", entityUids))
@@ -219,4 +220,5 @@ Expect<Ref<Scene>> DeserializeScene(
 
     return pScene;
 }
+
 }   // namespace Jam

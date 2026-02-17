@@ -22,8 +22,8 @@ void VertexLayout::Push(
     vlm.byteWidth           = NumericCast<Int32>(ByteWidthOf(_format));
     vlm.offset              = m_stride;
 
-    m_vleLut[UnderlyingFrom(_attrib)] = m_numElems;
-    m_vles[m_numElems]                = vlm;
+    m_vleLut[_attrib]  = m_numElems;
+    m_vles[m_numElems] = vlm;
 
     m_stride += vlm.byteWidth;
     ++m_numElems;
@@ -34,7 +34,7 @@ void VertexLayout::Modify(
     const eAttributeFormat _format)
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32          idx          = m_vleLut[UnderlyingFrom(_attrib)];
+    const Int32          idx          = m_vleLut[_attrib];
     VertexLayoutElement& vleToMod     = m_vles[idx];
     const Int32          oldByteWidth = vleToMod.byteWidth;
 
@@ -62,7 +62,7 @@ void VertexLayout::Remove(
     const eVertexAttribute _attrib)
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32 idx = m_vleLut[UnderlyingFrom(_attrib)];
+    const Int32 idx = m_vleLut[_attrib];
 
     const VertexLayoutElement& vleToRemove       = m_vles[idx];
     const Int32                byteWidthToRemove = vleToRemove.byteWidth;
@@ -82,20 +82,20 @@ void VertexLayout::Remove(
     }
 
     // 마지막 요소 초기화
-    m_vleLut[UnderlyingFrom(_attrib)] = k_invalidIndex;
-    m_vles[m_numElems - 1]            = {};
+    m_vleLut[_attrib]      = k_invalidIdx;
+    m_vles[m_numElems - 1] = {};
     --m_numElems;
 }
 
 bool VertexLayout::Has(
     const eVertexAttribute _attrib) const
 {
-    return m_vleLut[UnderlyingFrom(_attrib)] != k_invalidIndex;
+    return m_vleLut[_attrib] != k_invalidIdx;
 }
 
 void VertexLayout::Reset()
 {
-    m_vleLut.fill(k_invalidIndex);
+    m_vleLut.Fill(k_invalidIdx);
     m_stride   = 0;
     m_numElems = 0;
 }
@@ -109,7 +109,7 @@ const VertexLayoutElement& VertexLayout::GetElement(
     const eVertexAttribute _attrib) const
 {
     JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32 idx = m_vleLut[UnderlyingFrom(_attrib)];
+    const Int32 idx = m_vleLut[_attrib];
     return m_vles[idx];
 }
 

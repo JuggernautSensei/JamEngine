@@ -8,7 +8,7 @@ class VertexLayoutEntry;
 
 struct VertexLayoutEditorDialogDesc
 {
-    DialogDesc             baseDesc = {};
+    DialogInfo             baseInfo = {};
     Ref<VertexLayoutEntry> pVle     = nullptr;
 };
 

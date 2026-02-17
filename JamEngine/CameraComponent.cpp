@@ -6,6 +6,7 @@
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "Scene.h"
+#include "ImGuiGlue.h"
 
 namespace Jam
 {

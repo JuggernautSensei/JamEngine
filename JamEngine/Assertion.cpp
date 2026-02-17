@@ -17,7 +17,7 @@ namespace Jam::Details
 namespace
 {
 
-    using AssertScratchBuffer = BasicScratchBuffer<8192>;
+    using AssertScratchBuffer = ScratchBufferN<8192>;
 
     void FormatErrorMessage(
         AssertScratchBuffer&        _buf,

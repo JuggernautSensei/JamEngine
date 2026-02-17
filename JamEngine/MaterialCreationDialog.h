@@ -7,7 +7,7 @@ namespace Jam
 
 struct MaterialCreationDialogDesc
 {
-    DialogDesc baseDesc   = {};
+    DialogInfo baseInfo   = {};
     Path       dirOrEmpty = {};
 };
 

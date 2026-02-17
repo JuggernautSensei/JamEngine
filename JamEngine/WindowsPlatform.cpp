@@ -2,8 +2,11 @@
 
 #include "WindowsPlatform.h"
 
+#include <shellapi.h>
+
 #include "Application.h"
 #include "WindowsUtilities.h"
+#include "Vendor/imgui/imgui.h"
 
 // imgui win32 backend
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -11,22 +14,22 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARA
 namespace Jam
 {
 
-static LRESULT CALLBACK WindowProc(
-    const HWND   hWnd,
-    const UINT   uMsg,
-    const WPARAM wParam,
-    const LPARAM lParam)
+namespace
 {
+    LRESULT CALLBACK WindowProc(
+        const HWND   hWnd,
+        const UINT   uMsg,
+        const WPARAM wParam,
+        const LPARAM lParam)
     {
         if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
         {
             return true;
         }
 
-        static bool s_bIsResizing = false;
+        static bool s_bUserGrabResizing = false;
 
-        
-        LRESULT      result = 0;
+        LRESULT result = 0;
 
         switch (uMsg)
         {
@@ -39,23 +42,21 @@ static LRESULT CALLBACK WindowProc(
 
             case WM_ENTERSIZEMOVE:
             {
-                s_bIsResizing = true;
+                s_bUserGrabResizing = true;
             }
             break;
 
             case WM_EXITSIZEMOVE:
             {
-                s_bIsResizing = false;
+                s_bUserGrabResizing = false;
 
-                // todo: need?
-                //
-                // RECT rect;
-                //::GetClientRect(hWnd, &rect);
-                // const Int32 width  = Max(rect.right - rect.left, 1);
-                // const Int32 height = Max(rect.bottom - rect.top, 1);
-                //
-                // WindowResizedEvent event { width, height };
-                // JAM_APP.DispatchEvent(event);
+                RECT rect = {};
+                ::GetClientRect(hWnd, &rect);
+                const Int32 width  = Max(rect.right - rect.left, 1);
+                const Int32 height = Max(rect.bottom - rect.top, 1);
+
+                WindowResizedEvent event { width, height };
+                JAM_APP.DispatchEvent(event);
             }
             break;
 
@@ -82,7 +83,7 @@ static LRESULT CALLBACK WindowProc(
 
                     case SIZE_RESTORED:
                     {
-                        if (!s_bIsResizing)   // 사용자의 크기 조절이 끝난 직후 한 번
+                        if (!s_bUserGrabResizing)   // grab으로 리사이즈하는 경우는 처리하지 않음.
                         {
                             WindowResizedEvent event { width, height };
                             JAM_APP.DispatchEvent(event);
@@ -209,13 +210,13 @@ static LRESULT CALLBACK WindowProc(
         }
         return result;
     }
-}
+}   // namespace
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WindowsPlatform& WindowsPlatform::GetInstance()
 {
-    JAM_ASSERT(s_pInstance, "WindowsPlatform instance is null. Call CreateInstance() first.");
+    JAM_ASSERT(s_pInstance, "WindowsPlatform instance is null. Call CreateInstance_() first.");
     return *s_pInstance;
 }
 
@@ -259,7 +260,10 @@ void WindowsPlatform::SetTitle(
 {
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
     JAM_ASSERT(m_hInstance, "WindowsPlatform instance handle is null");
-    JAM_CHECK_WIN32(::SetWindowTextA(m_hWnd, _name.GetPtr()));
+
+    ScratchWBuffer buf;
+    buf.SetUtf8(_name);
+    JAM_CHECK_WIN32(::SetWindowText(m_hWnd, buf.GetPtr()));
 }
 
 void WindowsPlatform::SetWindowProperty(
@@ -312,7 +316,7 @@ void WindowsPlatform::SetWindowProperty(
         if (_flags & eWindowPropertyFlags::DisableCloseButton)
         {
             // Close 버튼만 비활성화
-            if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
+            if (const HMENU hMenu = GetSystemMenu(m_hWnd, FALSE))
             {
                 JAM_CHECK_WIN32(::EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED));
             }
@@ -320,7 +324,7 @@ void WindowsPlatform::SetWindowProperty(
         else
         {
             // Close 버튼 활성화
-            if (const HMENU hMenu = ::GetSystemMenu(m_hWnd, FALSE))
+            if (const HMENU hMenu = GetSystemMenu(m_hWnd, FALSE))
             {
                 JAM_CHECK_WIN32(::EnableMenuItem(hMenu, SC_CLOSE, 0));
             }
@@ -362,8 +366,8 @@ Vec2i WindowsPlatform::GetClientResolution() const
 
 Vec2i WindowsPlatform::GetFullScreenResolution() const
 {
-    const Int32 w = ::GetSystemMetrics(SM_CXSCREEN);
-    const Int32 h = ::GetSystemMetrics(SM_CYSCREEN);
+    const Int32 w = GetSystemMetrics(SM_CXSCREEN);
+    const Int32 h = GetSystemMetrics(SM_CYSCREEN);
     return { w, h };
 }
 
@@ -380,10 +384,10 @@ HINSTANCE WindowsPlatform::GetPlatformInstance() const
 WindowsPlatform::WindowsPlatform()
 {
     // set dpi awareness
-    ::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     // initialize com
-    JAM_CHECK_HRESULT(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
+    JAM_CHECK_HRESULT(::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
 
     // create window
     {
@@ -391,7 +395,7 @@ WindowsPlatform::WindowsPlatform()
 
         // win class initialize
         {
-            WNDCLASSEXA wClassEx   = {};
+            WNDCLASSEX wClassEx    = {};
             wClassEx.cbSize        = sizeof(WNDCLASSEX);
             wClassEx.style         = CS_HREDRAW | CS_VREDRAW;
             wClassEx.lpfnWndProc   = WindowProc;
@@ -402,10 +406,10 @@ WindowsPlatform::WindowsPlatform()
             wClassEx.hCursor       = LoadCursor(nullptr, IDC_ARROW);
             wClassEx.hbrBackground = NULL;
             wClassEx.lpszMenuName  = nullptr;
-            wClassEx.lpszClassName = WindowsPlatform::k_windowClassName;
+            wClassEx.lpszClassName = k_winClassName;
             wClassEx.hIconSm       = nullptr;
 
-            if (RegisterClassExA(&wClassEx) == 0)
+            if (RegisterClassEx(&wClassEx) == 0)
             {
                 ScratchBuffer buf;
                 FormatErrnoMessage(buf, GetLastError());
@@ -415,13 +419,16 @@ WindowsPlatform::WindowsPlatform()
         }
 
         // create window
-        m_hWnd = CreateWindowExA(0, WindowsPlatform::k_windowClassName, WindowsPlatform::k_windowTitleName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, NULL, NULL, m_hInstance, NULL);
+        m_hWnd = CreateWindowEx(0, k_winClassName, k_winTitleName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, NULL, NULL, m_hInstance, NULL);
         if (m_hWnd == NULL)
         {
             ScratchBuffer buf;
             FormatErrnoMessage(buf, GetLastError());
             JAM_CRASH("Failed to create window: {}", buf.ToStringView());
         }
+
+        ::ShowWindow(m_hWnd, SW_SHOW);
+        ::UpdateWindow(m_hWnd);
     }
 
     // etc
@@ -435,7 +442,7 @@ WindowsPlatform::~WindowsPlatform()
 {
     CoUninitialize();
     DestroyWindow(m_hWnd);
-    UnregisterClassA(WindowsPlatform::k_windowClassName, m_hInstance);
+    UnregisterClass(k_winClassName, m_hInstance);
 
     m_hWnd      = NULL;
     m_hInstance = NULL;
@@ -479,12 +486,12 @@ void WindowsPlatform::AdjustClientRect_(
     const Int32 _width,
     const Int32 _height)
 {
-    const bool  bHasMenu = (::GetMenu(m_hWnd) != NULL);
+    const bool  bHasMenu = (GetMenu(m_hWnd) != NULL);
     const DWORD wsFlags  = NumericCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
     const DWORD exFlags  = NumericCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
     // cli -> win
-    RECT adjRect = {};
+    RECT adjRect = { _x, _y, _x + _width, _y + _height };
     JAM_CHECK_WIN32(::AdjustWindowRectExForDpi(&adjRect, wsFlags, bHasMenu, exFlags, ::GetDpiForWindow(m_hWnd)));
     const Int32 windowWidth  = adjRect.right - adjRect.left;
     const Int32 windowHeight = adjRect.bottom - adjRect.top;

@@ -3,7 +3,6 @@
 #include "Mesh.h"
 
 #include "AssetSaveLoader.h"
-
 #include "Graphics.h"
 #include "MemoryHasher.h"
 #include "Profile.h"
@@ -212,9 +211,8 @@ Error Mesh::Save(
     {
         VertexLayoutElementDto&    elemDto = dto.vl.elems[i];
         const VertexLayoutElement& elem    = vles[i];
-
-        elemDto.attrib = elem.attrib;
-        elemDto.format = elem.format;
+        elemDto.attrib                     = elem.attrib;
+        elemDto.format                     = elem.format;
     }
 
     return saver->Write(dto);

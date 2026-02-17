@@ -255,7 +255,7 @@ EditorRenderer::EditorRenderer()
 
     // Grid shaders
     {
-        ShaderCompilerDesc vsDesc = {};
+        ShaderCompilerInfo vsDesc = {};
         vsDesc.stage              = eShader::VertexShader;
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -264,7 +264,7 @@ EditorRenderer::EditorRenderer()
         JAM_ASSERT(vsCompiler, "Editor grid vertex shader compilation failed");
         const ShaderHandle gridVsh = JAM_GFX.CreateShader(vsCompiler->GetBytecode());
 
-        ShaderCompilerDesc psDesc = {};
+        ShaderCompilerInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -278,7 +278,7 @@ EditorRenderer::EditorRenderer()
 
     // Line shaders
     {
-        ShaderCompilerDesc vsDesc = {};
+        ShaderCompilerInfo vsDesc = {};
         vsDesc.stage              = eShader::VertexShader;
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -287,7 +287,7 @@ EditorRenderer::EditorRenderer()
         JAM_ASSERT(vsCompiler, "Editor line vertex shader compilation failed");
         const ShaderHandle lineVsh = JAM_GFX.CreateShader(vsCompiler->GetBytecode());
 
-        ShaderCompilerDesc psDesc = {};
+        ShaderCompilerInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -301,7 +301,7 @@ EditorRenderer::EditorRenderer()
 
     // Filled shaders
     {
-        ShaderCompilerDesc vsDesc = {};
+        ShaderCompilerInfo vsDesc = {};
         vsDesc.stage              = eShader::VertexShader;
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -310,7 +310,7 @@ EditorRenderer::EditorRenderer()
         JAM_ASSERT(vsCompiler, "Editor filled vertex shader compilation failed");
         const ShaderHandle filledVsh = JAM_GFX.CreateShader(vsCompiler->GetBytecode());
 
-        ShaderCompilerDesc psDesc = {};
+        ShaderCompilerInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -464,22 +464,22 @@ void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Mtx4& _mtx, con
     const CornerPoints corners = obb.GetCornerPoints();
 
     // near plane
-    DrawLine(corners.At(eRegion::NearLeftTop), corners.At(eRegion::NearRightTop), _color);
-    DrawLine(corners.At(eRegion::NearRightTop), corners.At(eRegion::NearRightBottom), _color);
-    DrawLine(corners.At(eRegion::NearRightBottom), corners.At(eRegion::NearLeftBottom), _color);
-    DrawLine(corners.At(eRegion::NearLeftBottom), corners.At(eRegion::NearLeftTop), _color);
+    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::NearRightTop], _color);
+    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::NearRightBottom], _color);
+    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::NearLeftBottom], _color);
+    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::NearLeftTop], _color);
 
     // far plane
-    DrawLine(corners.At(eRegion::FarLeftTop), corners.At(eRegion::FarRightTop), _color);
-    DrawLine(corners.At(eRegion::FarRightTop), corners.At(eRegion::FarRightBottom), _color);
-    DrawLine(corners.At(eRegion::FarRightBottom), corners.At(eRegion::FarLeftBottom), _color);
-    DrawLine(corners.At(eRegion::FarLeftBottom), corners.At(eRegion::FarLeftTop), _color);
+    DrawLine(corners[eRegion::FarLeftTop], corners[eRegion::FarRightTop], _color);
+    DrawLine(corners[eRegion::FarRightTop], corners[eRegion::FarRightBottom], _color);
+    DrawLine(corners[eRegion::FarRightBottom], corners[eRegion::FarLeftBottom], _color);
+    DrawLine(corners[eRegion::FarLeftBottom], corners[eRegion::FarLeftTop], _color);
 
     // sides
-    DrawLine(corners.At(eRegion::NearLeftTop), corners.At(eRegion::FarLeftTop), _color);
-    DrawLine(corners.At(eRegion::NearRightTop), corners.At(eRegion::FarRightTop), _color);
-    DrawLine(corners.At(eRegion::NearRightBottom), corners.At(eRegion::FarRightBottom), _color);
-    DrawLine(corners.At(eRegion::NearLeftBottom), corners.At(eRegion::FarLeftBottom), _color);
+    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::FarLeftTop], _color);
+    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::FarRightTop], _color);
+    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::FarRightBottom], _color);
+    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::FarLeftBottom], _color);
 }
 
 void EditorRenderer::DrawFrustum(const Mtx4& _viewProjMtx, const RGBA _rgba)
@@ -488,22 +488,22 @@ void EditorRenderer::DrawFrustum(const Mtx4& _viewProjMtx, const RGBA _rgba)
     const CornerPoints corners = frustum.GetCornerPoints();
 
     // near plane
-    DrawLine(corners.At(eRegion::NearLeftTop), corners.At(eRegion::NearRightTop), _rgba);
-    DrawLine(corners.At(eRegion::NearRightTop), corners.At(eRegion::NearRightBottom), _rgba);
-    DrawLine(corners.At(eRegion::NearRightBottom), corners.At(eRegion::NearLeftBottom), _rgba);
-    DrawLine(corners.At(eRegion::NearLeftBottom), corners.At(eRegion::NearLeftTop), _rgba);
+    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::NearRightTop], _rgba);
+    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::NearRightBottom], _rgba);
+    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::NearLeftBottom], _rgba);
+    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::NearLeftTop], _rgba);
 
     // far plane
-    DrawLine(corners.At(eRegion::FarLeftTop), corners.At(eRegion::FarRightTop), _rgba);
-    DrawLine(corners.At(eRegion::FarRightTop), corners.At(eRegion::FarRightBottom), _rgba);
-    DrawLine(corners.At(eRegion::FarRightBottom), corners.At(eRegion::FarLeftBottom), _rgba);
-    DrawLine(corners.At(eRegion::FarLeftBottom), corners.At(eRegion::FarLeftTop), _rgba);
+    DrawLine(corners[eRegion::FarLeftTop], corners[eRegion::FarRightTop], _rgba);
+    DrawLine(corners[eRegion::FarRightTop], corners[eRegion::FarRightBottom], _rgba);
+    DrawLine(corners[eRegion::FarRightBottom], corners[eRegion::FarLeftBottom], _rgba);
+    DrawLine(corners[eRegion::FarLeftBottom], corners[eRegion::FarLeftTop], _rgba);
 
     // sides
-    DrawLine(corners.At(eRegion::NearLeftTop), corners.At(eRegion::FarLeftTop), _rgba);
-    DrawLine(corners.At(eRegion::NearRightTop), corners.At(eRegion::FarRightTop), _rgba);
-    DrawLine(corners.At(eRegion::NearRightBottom), corners.At(eRegion::FarRightBottom), _rgba);
-    DrawLine(corners.At(eRegion::NearLeftBottom), corners.At(eRegion::FarLeftBottom), _rgba);
+    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::FarLeftTop], _rgba);
+    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::FarRightTop], _rgba);
+    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::FarRightBottom], _rgba);
+    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::FarLeftBottom], _rgba);
 }
 
 void EditorRenderer::DrawCircle(const Vec3 _center, const Vec3 _normal, const float _radius, const RGBA _color, const Int32 _segments)

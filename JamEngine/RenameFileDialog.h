@@ -6,7 +6,7 @@ namespace Jam
 
 struct RenameFileDialogDesc
 {
-    DialogDesc baseDesc = {};
+    DialogInfo baseInfo = {};
     Path       srcPath  = {};
 };
 

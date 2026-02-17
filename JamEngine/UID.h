@@ -1,15 +1,16 @@
 #pragma once
+#include "Archive.h"
 
 namespace Jam
 {
 
 class UID
 {
-    static constexpr UInt32 k_invalidValue = Limits<UInt32>::k_max;
+    static constexpr UInt32 k_invalidId = Limits<UInt32>::k_max;
 
 public:
     constexpr UID()
-        : value(k_invalidValue)
+        : value(k_invalidId)
     {
     }
 
@@ -20,7 +21,7 @@ public:
 
     [[nodiscard]] constexpr bool IsValid() const noexcept
     {
-        return value != k_invalidValue;
+        return value != k_invalidId;
     }
 
     /*implicit*/ constexpr operator bool() const noexcept
@@ -46,7 +47,7 @@ public:
     static UID k_invalid;
 
 private:
-    UInt32 value = 0;
+    UInt32 value = k_invalidId;
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const UID& _uid);

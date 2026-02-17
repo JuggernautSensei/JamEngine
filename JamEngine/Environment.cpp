@@ -87,9 +87,9 @@ const CascadeDistancesArray& Environment::GetDirectionalLightCascadeDistances() 
     return m_dirLightCascadeDistances;
 }
 
-void Environment::SetIblIrradianceTex(const Ref<Texture>& _pTex)
+void Environment::SetIblIrradianceTex(const Ref<Texture>& _pTexture)
 {
-    m_pIblIrradianceTex = _pTex;
+    m_pIblIrradianceTex = _pTexture;
     m_bDirty            = true;
 }
 
@@ -98,9 +98,9 @@ const Ref<Texture>& Environment::GetIblIrradianceTex() const
     return m_pIblIrradianceTex;
 }
 
-void Environment::SetIblSpecularTex(const Ref<Texture>& _pTex)
+void Environment::SetIblSpecularTex(const Ref<Texture>& _pTexture)
 {
-    m_pIblSpecularTex = _pTex;
+    m_pIblSpecularTex = _pTexture;
     m_bDirty          = true;
 }
 
@@ -109,9 +109,9 @@ const Ref<Texture>& Environment::GetIblSpecularTex() const
     return m_pIblSpecularTex;
 }
 
-void Environment::SetIblBrdfLutTex(const Ref<Texture>& _pTex)
+void Environment::SetIblBrdfLutTex(const Ref<Texture>& _pTexture)
 {
-    m_pIblBrdfLutTex = _pTex;
+    m_pIblBrdfLutTex = _pTexture;
     m_bDirty         = true;
 }
 
@@ -153,9 +153,9 @@ eSkyboxType Environment::GetSkyboxType() const
     return m_skyboxType;
 }
 
-void Environment::SetSkyboxTex(const Ref<Texture>& _pTex)
+void Environment::SetSkyboxTex(const Ref<Texture>& _pTexture)
 {
-    m_pSkyboxTex = _pTex;
+    m_pSkyboxTex = _pTexture;
     m_bDirty     = true;
 }
 

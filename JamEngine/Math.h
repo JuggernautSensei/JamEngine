@@ -614,7 +614,7 @@ template<typename T>
         return _x + 1.0f;
     }
 
-    const float expMin = Log(Limits<float>::k_min);
+    constexpr float expMin = Log(Limits<float>::k_min);
 
     if (_x <= expMin)
     {

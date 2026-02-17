@@ -57,7 +57,7 @@ Expect<Ref<IAsset>> AssetManager::Load(
     const bool       _bReloadIfExist)
 {
     const Path   path = CreateProcessedPath(_path);
-    AssetMap&    map  = GetAssetMap_(_type);
+    AssetMap&    map  = m_assetMaps[_type];
     AssetMapIter it   = map.find(path);
 
     // 만약 존재할 경우
@@ -152,7 +152,7 @@ void AssetManager::Unload(
     const Path&      _path)
 {
     const Path   path = CreateProcessedPath(_path);
-    AssetMap&    map  = GetAssetMap_(_type);
+    AssetMap&    map  = m_assetMaps[_type];
     AssetMapIter it   = map.find(path);
     if (it != map.end())
     {
@@ -187,7 +187,7 @@ void AssetManager::UnloadTexture(
 void AssetManager::CleanGarbage(
     const eAssetType _type)
 {
-    AssetMap& map = GetAssetMap_(_type);
+    AssetMap& map = m_assetMaps[_type];
     for (AssetMapIter it = map.begin(); it != map.end();)
     {
         Ref<IAsset>& pAsset = it->second;
@@ -214,7 +214,7 @@ void AssetManager::CleanGarbageAll()
 void AssetManager::Clear(
     const eAssetType _type)
 {
-    AssetMap& map = GetAssetMap_(_type);
+    AssetMap& map = m_assetMaps[_type];
     for (AssetMapIter it = map.begin(); it != map.end(); ++it)
     {
         Ref<IAsset>& pAsset = it->second;
@@ -233,13 +233,13 @@ void AssetManager::ClearAll()
 
 void AssetManager::CreateInstance()
 {
-    JAM_ASSERT(s_pInstance == nullptr, "AssetManager instance already exists on CreateInstance.");
+    JAM_ASSERT(s_pInstance == nullptr, "AssetManager instance already exists on CreateInstance_.");
     s_pInstance = new AssetManager;
 }
 
 void AssetManager::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance, "AssetManager instance is null on DestroyInstance.");
+    JAM_ASSERT(s_pInstance, "AssetManager instance is null on DestroyInstance_.");
     delete s_pInstance;
 }
 
@@ -259,7 +259,7 @@ void AssetManager::OnFileModifiedEvent_(
     const Path path = CreateProcessedPath(_event.GetPath());
     for (eAssetType type: EnumRanges<eAssetType>())
     {
-        AssetMap&    map = GetAssetMap_(type);
+        AssetMap&    map = m_assetMaps[type];
         AssetMapIter it  = map.find(path);
         if (it != map.end())
         {
@@ -281,7 +281,7 @@ void AssetManager::OnFileRenamedEvent_(
     for (eAssetType type: EnumRanges<eAssetType>())
     {
         // 없으면 스킵
-        AssetMap&    map   = GetAssetMap_(type);
+        AssetMap&    map   = m_assetMaps[type];
         AssetMapIter oldIt = map.find(oldPath);
         if (oldIt == map.end())
         {
@@ -321,7 +321,7 @@ void AssetManager::OnFileDeletedEvent_(
     const Path path = CreateProcessedPath(_event.GetPath());
     for (const eAssetType type: EnumRanges<eAssetType>())
     {
-        AssetMap&    map = GetAssetMap_(type);
+        AssetMap&    map = m_assetMaps[type];
         AssetMapIter it  = map.find(path);
         if (it != map.end())
         {
@@ -338,12 +338,6 @@ void AssetManager::Unload_(
     Ref<IAsset>& pAsset = _iter->second;
     pAsset->Invalidate();
     _pAssetMap.erase(_iter);
-}
-
-AssetManager::AssetMap& AssetManager::GetAssetMap_(
-    const eAssetType _type)
-{
-    return m_assetMaps[UnderlyingFrom(_type)];
 }
 
 }   // namespace Jam

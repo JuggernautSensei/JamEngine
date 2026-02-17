@@ -189,9 +189,9 @@ void RenderGraph::AnalyzePassDependencies_()
             -> 다음 패스만 확인해도 충분
     */
 
-    HashMap<UInt64, const TextureBind*> texhMap       = {};   // key: tex handle value
+    HashMap<UInt64, const TextureBind*> texhMap       = {};   // key: texture handle value
     HashMap<UInt64, const TextureBind*> stageSlotMsp  = {};   // key: stage + slot
-    HashSet<UInt32>                     attachmentSet = {};   // key: tex handle value
+    HashSet<UInt32>                     attachmentSet = {};   // key: texture handle value
 
     for (SizeT i = 0; i < numNodes; ++i)
     {
@@ -265,7 +265,7 @@ void RenderGraph::AnalyzePassDependencies_()
                         const UInt64       key  = MakeStageSlotKey_(bind->stage, bind->slot);
 
                         node.bNeedUnbindResources = true;
-                        node.unbindTextures.emplace_back(bind->stage, bind->slot);   // unbind conflicting tex
+                        node.unbindTextures.emplace_back(bind->stage, bind->slot);   // unbind conflicting texture
 
                         // 해결됨. 추적종료
                         texhMap.erase(texh.value);
@@ -351,12 +351,12 @@ void RenderGraph::UnbindPassResourcesIfNeed_(
 
     if (_node.bNeedUnbindFrameBuffer)
     {
-        JAM_GFX.SetFrameBuffer(k_invalidHandle);
+        JAM_GFX.SetFrameBuffer(k_nullHandle);
     }
 
     for (const BindInfo& info: _node.unbindTextures)
     {
-        JAM_GFX.SetTexture(k_invalidHandle, info.stage, info.slot);
+        JAM_GFX.SetTexture(k_nullHandle, info.stage, info.slot);
     }
 
     JAM_GFX.Flush();

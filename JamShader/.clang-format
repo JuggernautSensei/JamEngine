@@ -24,7 +24,6 @@ AlignConsecutiveDeclarations:
 AlignEscapedNewlines: Right
 AlignTrailingComments: true
 AlwaysBreakTemplateDeclarations: Yes
-BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: AfterColon
@@ -66,9 +65,27 @@ BreakBeforeBinaryOperators: NonAssignment
 AllowShortCaseLabelsOnASingleLine: true
 BreakBeforeInheritanceComma: true
 AlignArrayOfStructures: Right
+BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterNamespace: false
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: true   
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false 
+  SplitEmptyRecord: false
   SplitEmptyNamespace: false
 AllowAllParametersOfDeclarationOnNextLine: false
 BinPackParameters: false
 BinPackArguments: false
+SortIncludes: false

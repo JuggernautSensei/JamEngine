@@ -1,26 +1,24 @@
-#include "../JamEngine/JamEngine.h"
-using namespace Jam;
-
-#ifdef JAM_DEBUG
-#    pragma comment(lib, "../JamEngine/bin/Debug/JamEngine.lib")
-#else
-#    pragma comment(lib, "../JamEngine/bin/Release/JamEngine.lib")
-#endif
-
-JAM_MAIN();
+#include "pch.h"
+#include "MainScene.h"
 
 class ShaderApp : public Application
 {
 public:
     explicit ShaderApp(
-        const ApplicationCreateInfo& _info)
-        : Application(_info)
+        const StringView _appName,
+        const bool       _bEnableEditor)
+        : Application(_appName, _bEnableEditor)
     {
     }
 
+    void Init(Int32, char**) override
+    {
+        SetVsync(true);
+        JAM_WIN.AdjustClientRect(100, 100, 1600, 900);
 
+        const Ref<MainScene> pScene = MakeRef<MainScene>();
+        JAM_SCENE_MGR.LoadScene(pScene);
+    }
 };
 
-class MainScene : public Scene
-{
-};
+JAM_MAIN(ShaderApp, "JamShader", false);

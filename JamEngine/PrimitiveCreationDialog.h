@@ -21,7 +21,7 @@ enum class ePrimitiveCreationType
 
 struct PrimitiveCreationDialogDesc
 {
-    DialogDesc             baseDesc       = {};
+    DialogInfo             baseInfo       = {};
     ePrimitiveCreationType type           = ePrimitiveCreationType::Cube;
     Path                   saveDirOrEmpty = {};
 };

@@ -1,5 +1,4 @@
 #pragma once
-#include "StringHashMap.h"
 
 namespace Jam
 {

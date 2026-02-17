@@ -411,14 +411,16 @@
     <ClCompile Include="AssetCreationDialog.cpp" />
     <ClCompile Include="Colony.cpp" />
     <ClCompile Include="CommandLineArgumentParser.cpp" />
+    <ClCompile Include="ComponentDatabase.cpp" />
     <ClCompile Include="ComponentMetadata.cpp" />
+    <ClCompile Include="EnumArray.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ImageImporter.cpp" />
     <ClCompile Include="InfiniteDragger.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="MemoryReadWriter.cpp" />
-    <ClCompile Include="MockApplication.cpp" />
-    <ClCompile Include="ComponentProperties.cpp" />
+    <ClCompile Include="SceneDatabase.cpp" />
+    <ClCompile Include="SceneMetadata.cpp" />
     <ClCompile Include="ScratchBuffer.cpp" />
     <ClCompile Include="ConstexprStringHashMap.cpp" />
     <ClCompile Include="EnumUtilities.cpp" />
@@ -427,7 +429,6 @@
     <ClCompile Include="JsonArchive.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />
     <ClCompile Include="NameOf.cpp" />
-    <ClCompile Include="ReflectionDB.cpp" />
     <ClCompile Include="Delegate.cpp" />
     <ClCompile Include="AssetSaveLoader.cpp" />
     <ClCompile Include="ConfirmationDialog.cpp" />
@@ -447,13 +448,13 @@
     <ClCompile Include="EditorUtilities.cpp" />
     <ClCompile Include="EditorWidgets.cpp" />
     <ClCompile Include="Editor.cpp" />
-    <ClCompile Include="Editor_EntityInspector.cpp" />
-    <ClCompile Include="Editor_FileBrowser.cpp" />
-    <ClCompile Include="Editor_Profiler.cpp" />
+    <ClCompile Include="Editor_EntityInspectorWindow.cpp" />
+    <ClCompile Include="Editor_FileBrowserWindow.cpp" />
+    <ClCompile Include="Editor_ProfilerWindow.cpp" />
     <ClCompile Include="EditorRenderer.cpp" />
-    <ClCompile Include="Editor_SceneHierarchy.cpp" />
-    <ClCompile Include="Editor_VertexLayoutEditor.cpp" />
-    <ClCompile Include="Editor_SceneView.cpp" />
+    <ClCompile Include="Editor_SceneHierarchyWindow.cpp" />
+    <ClCompile Include="Editor_VertexLayoutEditorWindow.cpp" />
+    <ClCompile Include="Editor_SceneViewWindow.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="EnvironmentComponent.cpp" />
     <ClCompile Include="Dialog.cpp" />
@@ -502,7 +503,6 @@
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Flags.cpp" />
     <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="EntryPoint.cpp" />
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Math.cpp" />
@@ -531,7 +531,6 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TypeTraits.cpp" />
     <ClCompile Include="UID.cpp" />
-    <ClCompile Include="ComponentTag.cpp" />
     <ClCompile Include="UIDGenerator.cpp" />
     <ClCompile Include="Vendor\ImGuizmo\ImGuizmo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -596,8 +595,10 @@
     <ClInclude Include="AssetCreationDialog.h" />
     <ClInclude Include="Colony.h" />
     <ClInclude Include="CommandLineArgumentParser.h" />
+    <ClInclude Include="ComponentDatabase.h" />
     <ClInclude Include="ComponentMetadata.h" />
     <ClInclude Include="ConstexprStringHashMap.h" />
+    <ClInclude Include="EnumArray.h" />
     <ClInclude Include="EnumUtilities.h" />
     <ClInclude Include="CleanUp.h" />
     <ClInclude Include="File.h" />
@@ -608,10 +609,7 @@
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="MemoryBlock.h" />
     <ClInclude Include="MemoryReadWriter.h" />
-    <ClInclude Include="MockApplication.h" />
     <ClInclude Include="NameOf.h" />
-    <ClInclude Include="ComponentProperties.h" />
-    <ClInclude Include="ReflectionDB.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="AssetSaveLoader.h" />
     <ClInclude Include="ConfirmationDialog.h" />
@@ -632,13 +630,13 @@
     <ClInclude Include="EditorUtilities.h" />
     <ClInclude Include="EditorWidgets.h" />
     <ClInclude Include="Editor.h" />
-    <ClInclude Include="Editor_EntityInspector.h" />
-    <ClInclude Include="Editor_FileBrowser.h" />
-    <ClInclude Include="Editor_Profiler.h" />
+    <ClInclude Include="Editor_EntityInspectorWindow.h" />
+    <ClInclude Include="Editor_FileBrowserWindow.h" />
+    <ClInclude Include="Editor_ProfilerWindow.h" />
     <ClInclude Include="EditorRenderer.h" />
-    <ClInclude Include="Editor_SceneHierarchy.h" />
-    <ClInclude Include="Editor_VertexLayoutEditor.h" />
-    <ClInclude Include="Editor_SceneView.h" />
+    <ClInclude Include="Editor_SceneHierarchyWindow.h" />
+    <ClInclude Include="Editor_VertexLayoutEditorWindow.h" />
+    <ClInclude Include="Editor_SceneViewWindow.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="EnvironmentComponent.h" />
     <ClInclude Include="FileSystemUtilities.h" />
@@ -650,6 +648,8 @@
     <ClInclude Include="Octree.h" />
     <ClInclude Include="Optional.h" />
     <ClInclude Include="Scalar.h" />
+    <ClInclude Include="SceneDatabase.h" />
+    <ClInclude Include="SceneMetadata.h" />
     <ClInclude Include="Scoped.h" />
     <ClInclude Include="STL.h" />
     <ClInclude Include="String.h" />
@@ -710,7 +710,6 @@
     <ClInclude Include="Macros.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Timer.h" />
-    <ClInclude Include="EntryPoint.h" />
     <ClInclude Include="JamEngine.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|Win32'">false</ExcludedFromBuild>
@@ -723,7 +722,6 @@
     </ClInclude>
     <ClInclude Include="TypeTraits.h" />
     <ClInclude Include="UID.h" />
-    <ClInclude Include="ComponentTag.h" />
     <ClInclude Include="UIDGenerator.h" />
     <ClInclude Include="Vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Vendor\imgui\imconfig.h" />

@@ -13,7 +13,7 @@ namespace Jam
 
 VertexLayoutEditorDialog::VertexLayoutEditorDialog(
     const VertexLayoutEditorDialogDesc& _desc)
-    : Dialog(_desc.baseDesc)
+    : Dialog(_desc.baseInfo)
     , m_pEditVle(_desc.pVle)
     , m_vl(_desc.pVle->GetVertexLayout())
     , m_name(_desc.pVle->GetName().ToString())
@@ -155,8 +155,8 @@ void VertexLayoutEditorDialog::OnClickAddButton_()
     }
 
     // all attributes are used
-    MessageDialogDesc desc = {};
-    desc.baseDesc.title    = "error";
+    MessageDialogInfo desc = {};
+    desc.baseInfo.title    = "error";
     desc.msg               = "all vertex attributes are already used in the vertex layout.";
     JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
 }
@@ -165,8 +165,8 @@ bool VertexLayoutEditorDialog::OnClickSaveButton_()
 {
     if (m_name.IsEmpty())
     {
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = "vertex layout entry name cannot be empty.";
         JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
         return false;
@@ -189,8 +189,8 @@ bool VertexLayoutEditorDialog::OnClickSaveButton_()
         ScratchBuffer buf;
         buf.Format("vertex layout entry named '{}' already exists.", m_name);
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = buf.ToStringView();
         JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
         return false;

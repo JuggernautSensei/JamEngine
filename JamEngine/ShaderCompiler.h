@@ -16,7 +16,7 @@ struct ShaderMacro
     StringView value = nullptr;
 };
 
-struct ShaderCompilerDesc
+struct ShaderCompilerInfo
 {
     eShader                    stage      = eShader::VertexShader;
     StringView                 entryPoint = "main";
@@ -27,14 +27,14 @@ struct ShaderCompilerDesc
 class ShaderCompiler
 {
 public:
-    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLFile(const Path& _path, const ShaderCompilerDesc& _desc = {});
-    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLSource(StringView _source, const ShaderCompilerDesc& _desc = {});
+    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLFile(const Path& _path, const ShaderCompilerInfo& _info = {});
+    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLSource(StringView _source, const ShaderCompilerInfo& _info = {});
     [[nodiscard]] CMemoryBlock                  GetBytecode() const;
 
 private:
     ShaderCompiler() = default;
-    Error CompileFromHLSLFile_(const Path& _path, const ShaderCompilerDesc& _desc = {});
-    Error CompileHLSLSource_(StringView _source, const ShaderCompilerDesc& _desc = {});
+    Error CompileFromHLSLFile_(const Path& _path, const ShaderCompilerInfo& _desc = {});
+    Error CompileHLSLSource_(StringView _source, const ShaderCompilerInfo& _desc = {});
 
     ComPtr<ID3DBlob> m_pBlob = nullptr;
 };

@@ -1,15 +1,14 @@
 #pragma once
 // ReSharper disable CppUnusedIncludeDirective
-#define IMGUI_DEFINE_MATH_OPERATORS
+#include "GraphicsBase.h"
 #include "Vendor/imgui/imgui.h"
 #include "Vendor/imgui/imgui_internal.h"
 #include "Vendor/imgui/imgui_stdlib.h"
 #include "Vendor/ImGuizmo/ImGuizmo.h"
 
-#include "GraphicsBase.h"
-
 namespace Jam
 {
+
 class Texture;
 
 class ImGuiGlue
@@ -33,27 +32,27 @@ private:
     void EndFrame();
 
     void Render_(ImDrawData* _pDrawData);
-    void UpdateTexture_(ImTextureData* _pTex) const;
-    void DestroyTexture_(ImTextureData* _tex) const;
+    void UpdateTexture_(ImTextureData* _pTexture) const;
+    void DestroyTexture_(ImTextureData* _texture) const;
 
-    ProgramHandle m_basicPh       = k_invalidHandle;
-    ProgramHandle m_textureCubePh = k_invalidHandle;
+    ProgramHandle m_basicPh       = k_nullHandle;
+    ProgramHandle m_textureCubePh = k_nullHandle;
 
-    ShaderHandle m_vsh            = k_invalidHandle;
-    ShaderHandle m_basicPsh       = k_invalidHandle;
-    ShaderHandle m_textureCubePsh = k_invalidHandle;
+    ShaderHandle m_vsh            = k_nullHandle;
+    ShaderHandle m_basicPsh       = k_nullHandle;
+    ShaderHandle m_textureCubePsh = k_nullHandle;
 
     VertexLayout         m_vl  = {};
-    ConstantBufferHandle m_cbh = k_invalidHandle;
+    ConstantBufferHandle m_cbh = k_nullHandle;
 
     BlendState   m_bs = {};
     RenderState  m_rs = {};
     SamplerState m_ss = {};
 
-    VertexBufferHandle m_vbh   = k_invalidHandle;
+    VertexBufferHandle m_vbh   = k_nullHandle;
     Int32              m_vbCap = 0;
 
-    IndexBufferHandle m_ibh   = k_invalidHandle;
+    IndexBufferHandle m_ibh   = k_nullHandle;
     Int32             m_ibCap = 0;
 
     bool m_bNeedCleanUpPlatformTextures = false;
@@ -63,8 +62,8 @@ private:
 };
 
 [[nodiscard]] ImTextureRef ImTextureRefFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D);
-[[nodiscard]] ImTextureRef ImTextureRefFrom(const Ref<Texture>& _pTex);
+[[nodiscard]] ImTextureRef ImTextureRefFrom(const Ref<Texture>& _pTexture);
 
 }   // namespace Jam
 
-#define JAM_IMGUI_GLUE Jam::ImGuiGlue::GetInstance()
+#define JAM_IMGUI Jam::ImGuiGlue::GetInstance()

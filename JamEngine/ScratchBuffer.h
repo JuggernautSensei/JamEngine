@@ -16,7 +16,7 @@ namespace Jam
 //
 
 template<SizeT k_cap = 512>
-class BasicScratchBuffer
+class ScratchBufferN
 {
     static_assert(k_cap > 0, "Capacity must be greater than zero.");
 
@@ -102,11 +102,11 @@ private:
     SizeT m_len;
 };
 
-using ScratchBuffer = BasicScratchBuffer<>;
-static_assert(std::is_trivial_v<BasicScratchBuffer<>>, "BasicScratchBuffer must be a trivial type.");
+using ScratchBuffer = ScratchBufferN<>;
+static_assert(std::is_trivial_v<ScratchBufferN<>>, "ScratchBufferN must be a trivial type.");
 
 template<SizeT k_cap = 512>
-class BasicScratchWBuffer
+class ScratchWBufferN
 {
 public:
     template<typename... TArgs>
@@ -192,7 +192,7 @@ private:
     wchar_t m_buf[k_cap];
     SizeT   m_len;
 };
-using ScratchWBuffer = BasicScratchWBuffer<>;
-static_assert(std::is_trivial_v<BasicScratchWBuffer<>>, "BasicScratchBuffer must be a trivial type.");
+using ScratchWBuffer = ScratchWBufferN<>;
+static_assert(std::is_trivial_v<ScratchWBufferN<>>, "ScratchBufferN must be a trivial type.");
 
 }   // namespace Jam

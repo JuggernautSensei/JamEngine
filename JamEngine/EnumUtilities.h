@@ -90,6 +90,7 @@ namespace Details
         requires std::is_enum_v<TEnum>
     struct EnumReflection
     {
+        using Underlying                   = UnderlyingT<TEnum>;
         static constexpr SizeT k_numValues = CountEnumValues<TEnum>();
         static constexpr SizeT k_lutSize   = NumericCast<SizeT>(2 * k_numValues * k_invConstexprStringHashMapLoadFactor);
 
@@ -98,6 +99,8 @@ namespace Details
         Array<TEnum, k_numValues>                values           = {};   // look up by seq
         Array<SizeT, k_enumReflectionRange>      rangeIdxToSeqLut = {};   // look up by range index
         ConstexprStringHashMap<k_lutSize, SizeT> nameToSeqLut     = {};   // look up by name
+        TEnum                                    minValue         = static_cast<TEnum>(k_enumReflectionRangeMax);
+        TEnum                                    maxValue         = static_cast<TEnum>(k_enumReflectionRangeMin);
     };
 
     template<typename TEnum, TEnum k_enum>
@@ -117,6 +120,8 @@ namespace Details
             _refl.rangeIdxToSeqLut[_rangeIdx] = _seq;
             _refl.nameToSeqLut.Insert(NameHolderT::k_name, _seq);
             _refl.nameToSeqLut.Insert(NameHolderT::k_fullName, _seq);
+            _refl.minValue = Min(_refl.minValue, k_enum);
+            _refl.maxValue = Max(_refl.maxValue, k_enum);
             ++_seq;
         }
         else
@@ -145,15 +150,22 @@ namespace Details
         TEnum _value)
     {
         const SizeT rangeIdx = UnderlyingFrom(_value) - k_enumReflectionRangeMin;
-        if (rangeIdx >= k_enumReflectionRange)
-        {
-            return k_enumReflectionInvalidSeq;
-        }
-        return k_enumReflection<TEnum>.rangeIdxToSeqLut[rangeIdx];
+        return (rangeIdx < k_enumReflectionRange) ? k_enumReflection<TEnum>.rangeIdxToSeqLut[rangeIdx] : k_enumReflectionInvalidSeq;
     }
 
 }   // namespace Details
 
+// check is valid enum value
+// ex)
+// enum class eColor
+// {
+//     Red = 0,
+//     Green = 1,
+//     Blue = 2,
+//     Yellow = 3,
+// };
+// IsValid(eColor::Red) -> true
+// IsValid(static_cast<eColor>(-1)) -> false
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr SizeT IsValid(
@@ -163,6 +175,64 @@ template<typename TEnum>
     return seq != Details::k_enumReflectionInvalidSeq;
 }
 
+// get the sequence index of the enum value.
+// ex)
+// enum class eColor
+// {
+//     Red = 5,
+//     Green = 10,
+//     Blue = 15,
+//     Yellow = 20,
+// };
+// GetSequence(eColor::Red) -> 0
+// GetSequence(eColor::Green) -> 1
+// GetSequence(eColor::Blue) -> 2
+// GetSequence(eColor::Yellow) -> 3
+template<typename TEnum>
+    requires std::is_enum_v<TEnum>
+[[nodiscard]] constexpr SizeT GetSequence(
+    TEnum _value)
+{
+    const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
+    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum value.");
+    return seq;
+}
+
+// get the minimum enum value defined in the enum type.
+// // ex)
+// enum class eColor
+// {
+//     Red = 5,
+//     Green = 10,
+//     Blue = 15,
+//     Yellow = 20,
+// };
+// MinOf<eColor>() -> eColor::Red
+// MaxOf<eColor>() -> eColor::Yellow
+template<typename TEnum>
+    requires std::is_enum_v<TEnum>
+[[nodiscard]] constexpr TEnum MinOf()
+{
+    return Details::k_enumReflection<TEnum>.minValue;
+}
+
+template<typename TEnum>
+    requires std::is_enum_v<TEnum>
+[[nodiscard]] constexpr TEnum MaxOf()
+{
+    return Details::k_enumReflection<TEnum>.maxValue;
+}
+
+// get the number of enum values defined in the enum type.
+// ex)
+// enum class eColor
+// {
+//     Red,
+//     Green,
+//     Blue,
+//     Yellow,
+// };
+// CountOf<eColor>() -> 4
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr SizeT CountOf()
@@ -170,6 +240,16 @@ template<typename TEnum>
     return Details::k_enumReflection<TEnum>.k_numValues;
 }
 
+// get the name of the enum value.
+// ex)
+// enum class eColor
+// {
+//     Red = 5,
+//     Green = 10,
+//     Blue = 15,
+//     Yellow = 20,
+// };
+// NameOf(eColor::Red) -> "Red"
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr StringView NameOf(
@@ -180,6 +260,19 @@ template<typename TEnum>
     return Details::k_enumReflection<TEnum>.names[seq];
 }
 
+// get the full name of the enum value. full name includes the enum type name and the enum value name.
+// ex)
+// namespace Jam
+// {
+//     enum class eColor
+//     {
+//         Red = 5,
+//         Green = 10,
+//         Blue = 15,
+//         Yellow = 20,
+//     };
+// }
+// FullNameOf(eColor::Red) -> "Jam::eColor::Red"
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr StringView FullNameOf(
@@ -190,6 +283,17 @@ template<typename TEnum>
     return Details::k_enumReflection<TEnum>.fullNames[seq];
 }
 
+// get the enum value array. this is useful for iterating over all enum values defined in the enum type.
+// ex)
+// enum class eColor
+// {
+//     Red = 5,
+//     Green = 10,
+//     Blue = 15,
+//     Yellow = 20,
+// };
+// EnumRanges<eColor>() -> { eColor::Red, eColor::Green, eColor::Blue, eColor::Yellow }
+// for (eColor color : EnumRanges<eColor>()) { ... }
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr const auto& EnumRanges()
@@ -197,6 +301,18 @@ template<typename TEnum>
     return Details::k_enumReflection<TEnum>.values;
 }
 
+// parse enum value from string. this is useful for parsing enum value from config file or user input.
+// ex)
+// enum class eColor
+// {
+//     Red = 5,
+//     Green = 10,
+//     Blue = 15,
+//     Yellow = 20,
+// };
+// ParseAs<eColor>("Red") -> eColor::Red
+// ParseAs<eColor>("eColor::Red") -> eColor::Red
+// ParseAs<eColor>("Invalid") -> k_nullopt
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr Optional<TEnum> ParseAs(
@@ -211,6 +327,18 @@ template<typename TEnum>
     return k_nullopt;
 }
 
+// cast from underlying value to enum value. this is useful for parsing enum value from config file or user input when the enum value is represented as its underlying value.
+// ex)
+// enum class eColor
+// {
+//     Red = 5,
+//     Green = 10,
+//     Blue = 15,
+//     Yellow = 20,
+// };
+// EnumCast<eColor>(5) -> eColor::Red
+// EnumCast<eColor>(20) -> eColor::Yellow
+// EnumCast<eColor>(0) -> k_nullopt
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr Optional<TEnum> EnumCast(
@@ -227,6 +355,7 @@ template<typename TEnum>
     {
         return k_nullopt;
     }
+
     return Details::k_enumReflection<TEnum>.values[seq];
 }
 

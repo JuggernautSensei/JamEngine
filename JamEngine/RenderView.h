@@ -6,7 +6,7 @@ namespace Jam
 
 struct RenderView
 {
-    FrameBufferHandle fbh = k_invalidHandle;   // output
+    FrameBufferHandle fbh = k_nullHandle;   // output
     Viewport          vp  = {};                // output vp
 
     Vec3 eye  = vec3::k_zero;       // camera position

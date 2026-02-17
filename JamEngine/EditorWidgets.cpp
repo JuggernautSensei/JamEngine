@@ -4,9 +4,8 @@
 
 #include "Editor.h"
 #include "EditorUtilities.h"
-#include "Entity.h"
 #include "Graphics.h"
-#include "ReflectionDB.h"
+#include "Input.h"
 #include "Transform.h"
 #include "VertexLayoutEntry.h"
 
@@ -351,7 +350,7 @@ bool Widget_DragEuler(
 }
 
 void Widget_ImageFrame(
-    const ImTextureProxy _tex,
+    const ImTextureProxy _texture,
     const ImVec2         _texSize,
     const ImVec2         _frameSize,
     const ImVec2         _uv0,
@@ -381,16 +380,16 @@ void Widget_ImageFrame(
     }
 
     ImGui::RenderFrame(bb.Min, bb.Max, ImGui::ColorConvertFloat4ToU32(_bgCol), _bBorder, style.FrameRounding);
-    ImGui::GetWindowDrawList()->AddImage(_tex.texture, imgP0, imgP1, _uv0, _uv1);
+    ImGui::GetWindowDrawList()->AddImage(_texture.texture, imgP0, imgP1, _uv0, _uv1);
 }
 
 void Widget_Image(
-    const ImTextureProxy _tex,
+    const ImTextureProxy _texture,
     const ImVec2         _size,
     const ImVec2         _uv0,
     const ImVec2         _uv1)
 {
-    ImGui::Image(_tex.texture, _size, _uv0, _uv1);
+    ImGui::Image(_texture.texture, _size, _uv0, _uv1);
 }
 
 void Widget_ItemDescriptionTooltip(
@@ -1215,7 +1214,7 @@ bool Widget_Acroball(
     const ImVec4 axisYOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisYOutline);
     const ImVec4 axisZOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisZOutline);
 
-    // style value
+    // m_style value
     const float axisLineThickness    = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisLineThickness);
     const float axisLineRatio        = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisLineLengthRatio);
     const float axisLineLen          = radius * axisLineRatio;

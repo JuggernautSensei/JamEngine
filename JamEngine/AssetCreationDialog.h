@@ -9,7 +9,7 @@ class IAsset;
 class AssetCreationDialog : public Dialog
 {
 public:
-    explicit AssetCreationDialog(const DialogDesc& _desc);
+    explicit AssetCreationDialog(const DialogInfo& _desc);
 
 protected:
     // utility

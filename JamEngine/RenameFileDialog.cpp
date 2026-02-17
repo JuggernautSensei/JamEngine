@@ -12,7 +12,7 @@ namespace Jam
 
 RenameFileDialog::RenameFileDialog(
     const RenameFileDialogDesc& _desc)
-    : Dialog(_desc.baseDesc)
+    : Dialog(_desc.baseInfo)
     , m_oldPath(_desc.srcPath)
     , m_filename(FileNameOf(_desc.srcPath))
 {

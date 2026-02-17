@@ -37,9 +37,8 @@ public:
     virtual void OnResize(Int32 _width, Int32 _height) {}
 
     // rtti
-    virtual StringView GetTypeFullName() const = 0;
-    virtual StringView GetTypeName() const     = 0;
-    virtual UInt32     GetTypeHash() const     = 0;
+    virtual StringView GetTypeName() const = 0;
+    virtual UInt32     GetTypeHash() const = 0;
 
     // scene buffer
     [[nodiscard]] virtual TextureHandle GetDepthTexture() const;

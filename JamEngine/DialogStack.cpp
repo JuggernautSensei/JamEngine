@@ -80,6 +80,8 @@ void DialogStack::ShrinkToFit_()
         // next
         ++i;
     }
+
+    m_dialogs.erase(m_dialogs.begin() + i, m_dialogs.end());
 }
 
 }   // namespace Jam

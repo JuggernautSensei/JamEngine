@@ -12,6 +12,9 @@
 #    define WIN32_LEAN_AND_MEAN
 #endif
 
+// imgui
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 // windows
 #include <windows.h>
 
@@ -71,6 +74,3 @@
 #include "EnumUtilities.h"
 #include "Flags.h"
 #include "ScratchBuffer.h"
-
-// 3rd party glue
-#include "ImGuiGlue.h"

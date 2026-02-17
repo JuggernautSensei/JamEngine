@@ -4,7 +4,7 @@
 namespace Jam
 {
 
-struct ImageImportOptions
+struct ImageImporterInfo
 {
     // format conversion
     bool           bConvertFormat   = false;
@@ -33,19 +33,19 @@ struct ImageImportOptions
 class ImageImporter
 {
 public:
-    [[nodiscard]] static Expect<ImageImporter> ImportFromFile(const Path& _path, eImageFormat _format, const ImageImportOptions& _options = {});
-    [[nodiscard]] static Expect<ImageImporter> ImportFromFile(const Path& _path, const ImageImportOptions& _options = {});
-    [[nodiscard]] static Expect<ImageImporter> ImportFromMemory(CMemoryBlock _mem, eImageFormat _format, const ImageImportOptions& _options = {});
+    [[nodiscard]] static Expect<ImageImporter> ImportFromFile(const Path& _path, eImageFormat _format, const ImageImporterInfo& _info = {});
+    [[nodiscard]] static Expect<ImageImporter> ImportFromFile(const Path& _path, const ImageImporterInfo& _info = {});
+    [[nodiscard]] static Expect<ImageImporter> ImportFromMemory(CMemoryBlock _mem, eImageFormat _format, const ImageImporterInfo& _info = {});
 
     [[nodiscard]] const ImageContainer& GetImageContainer();
 
 private:
     ImageImporter() = default;
 
-    Error ImportFromFile_(const Path& _path, eImageFormat _format, const ImageImportOptions& _options = {});
-    Error ImportFromFile_(const Path& _path, const ImageImportOptions& _options = {});
-    Error ImportFromMemory_(CMemoryBlock _mem, eImageFormat _format, const ImageImportOptions& _options = {});
-    Error PostProcess_(const ImageImportOptions& _options);
+    Error ImportFromFile_(const Path& _path, eImageFormat _format, const ImageImporterInfo& _options = {});
+    Error ImportFromFile_(const Path& _path, const ImageImporterInfo& _options = {});
+    Error ImportFromMemory_(CMemoryBlock _mem, eImageFormat _format, const ImageImporterInfo& _options = {});
+    Error PostProcess_(const ImageImporterInfo& _options);
 
     ImageContainer m_container = {};
 };

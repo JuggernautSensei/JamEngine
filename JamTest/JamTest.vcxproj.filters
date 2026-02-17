@@ -2,6 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="AdvString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -24,6 +25,7 @@
     <ClCompile Include="EnumUtilitiesTest.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="AdvString.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />

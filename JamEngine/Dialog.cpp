@@ -7,10 +7,10 @@ namespace Jam
 {
 
 Dialog::Dialog(
-    const DialogDesc& _desc)
+    const DialogInfo& _desc)
     : m_title(_desc.title.ToString())
-      , m_size(_desc.size)
-      , m_flags(_desc.flags)
+    , m_size(_desc.size)
+    , m_flags(_desc.flags)
 {
 }
 
@@ -48,7 +48,7 @@ void Dialog::Show()
 
 bool Dialog::IsOpen() const
 {
-    return m_bOpen;
+    return m_bOpen || m_bOpenRequest;   // consider dialog open if there is an open request, even if the popup hasn't actually opened yet (BeginPopup_() will return false until the popup is actually open)
 }
 
 bool Dialog::BeginPopup_() const

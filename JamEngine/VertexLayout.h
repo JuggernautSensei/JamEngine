@@ -1,5 +1,6 @@
 #pragma once
 #include "Archive.h"
+#include "EnumArray.h"
 
 namespace Jam
 {
@@ -60,12 +61,13 @@ public:
     Error ReadFromArchive(ArchiveReader& _archive);
 
 private:
-    static constexpr Int32 k_invalidIndex = -1;
+    static constexpr Int32 k_invalidIdx = -1;
 
-    Array<VertexLayoutElement, CountOf<eVertexAttribute>()> m_vles     = {};   // 레이아웃의 요소는 offset 순서대로 정렬됨
-    Array<Int32, CountOf<eVertexAttribute>()>               m_vleLut   = {};   // O(1)로 요소에 접근하기 위한 룩업 테이블. attribute는 VertexLayout 에서 유일함. 그러므로 역매핑 가능
-    Int32                                                   m_numElems = 0;
-    Int32                                                   m_stride   = 0;
+    Array<VertexLayoutElement, CountOf<eVertexAttribute>()> m_vles   = {};   // 레이아웃의 요소는 offset 순서대로 정렬됨
+    EnumArray<eVertexAttribute, Int32>                      m_vleLut = {};   // O(1)로 요소에 접근하기 위한 룩업 테이블. attribute는 VertexLayout 에서 유일함. 그러므로 역매핑 가능
+
+    Int32 m_numElems = 0;
+    Int32 m_stride   = 0;
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(VertexLayout);

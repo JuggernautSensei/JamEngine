@@ -39,8 +39,8 @@ RenderPass::RenderPass(
     std::memcpy(m_blend, _pass.m_blend, sizeof(m_blend));
 
     _pass.m_flags = eFlags::None;
-    _pass.m_ph    = k_invalidHandle;
-    _pass.m_fbh   = k_invalidHandle;
+    _pass.m_ph    = k_nullHandle;
+    _pass.m_fbh   = k_nullHandle;
 }
 
 RenderPass& RenderPass::operator=(
@@ -74,8 +74,8 @@ RenderPass& RenderPass::operator=(
         m_executor        = std::move(_pass.m_executor);
 
         _pass.m_flags = eFlags::None;
-        _pass.m_ph    = k_invalidHandle;
-        _pass.m_fbh   = k_invalidHandle;
+        _pass.m_ph    = k_nullHandle;
+        _pass.m_fbh   = k_nullHandle;
     }
 
     return *this;
@@ -111,7 +111,7 @@ void RenderPass::SetClearRenderTargetCommand(
     const RGBA  _rgba,
     const Int32 _renderTargetIdx)
 {
-    JAM_ASSERT(_renderTargetIdx >= 0 && _renderTargetIdx < k_numRenderTargetLimit, "Render target index out of range.");
+    JAM_ASSERT(_renderTargetIdx >= 0 && _renderTargetIdx < k_maxNumRenderTargetViewSlots, "Render target index out of range.");
     m_rgba[_renderTargetIdx] = _rgba;
     m_clearColorStart        = Min(m_clearColorStart, _renderTargetIdx);
     m_clearColorEnd          = Max(m_clearColorEnd, _renderTargetIdx);
@@ -150,7 +150,7 @@ void RenderPass::AddConstantBuffer(
     const eShader              _stage,
     const Int32                _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_numConstantBufferLimit, "Constant buffer slot out of range.");
+    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumConstantBufferSlots, "Constant buffer slot out of range.");
     m_cbufferBinds.emplace_back(_cbh, _stage, _slot);
 }
 
@@ -159,7 +159,7 @@ void RenderPass::AddTexture(
     const eShader       _stage,
     const Int32         _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_numShaderResourceLimit, "Texture slot out of range.");
+    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Texture slot out of range.");
     m_textureBinds.emplace_back(_texh, _stage, _slot);
 }
 
@@ -168,7 +168,7 @@ void RenderPass::AddSampler(
     const eShader      _stage,
     const Int32        _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_numSamplerLimit, "Sampler slot out of range.");
+    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumSamplerSlots, "Sampler slot out of range.");
     m_samplerBinds.emplace_back(_state, _stage, _slot);
 }
 
@@ -236,7 +236,7 @@ void RenderPass::Execute(
     // clear render targets
     for (Int32 i = m_clearColorStart; i <= m_clearColorEnd; ++i)
     {
-        JAM_GFX.ClearRenderTarget(_fbh, m_rgba[i], i);
+        JAM_GFX.ClearColor(_fbh, m_rgba[i], i);
     }
 
     // clear depth/stencil
@@ -244,7 +244,7 @@ void RenderPass::Execute(
     const bool bClearStencil = (m_flags & eFlags::ClearStencil);
     if (bClearDepth || bClearStencil)
     {
-        JAM_GFX.ClearDepthStencil(_fbh, bClearDepth, bClearStencil, m_clearDepth, m_clearStencil);
+        JAM_GFX.ClearDepth(_fbh, bClearDepth, bClearStencil, m_clearDepth, m_clearStencil);
     }
 
     // blend
@@ -303,7 +303,7 @@ bool RenderPass::CheckValidation() const
     // A: 동일 스테이지 + 동일 리소스   -> 충돌
     // B: 동일 쉐이더 + 동일 슬롯      -> 중복 명령
     {
-        HashSet<UInt64> texhStageMap = {};   // key: tex handle | stage
+        HashSet<UInt64> texhStageMap = {};   // key: texture handle | stage
         texhStageMap.reserve(m_textureBinds.size());
 
         HashSet<UInt64> stageSlotMap = {};   // key: stage | slot

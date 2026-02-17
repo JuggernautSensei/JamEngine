@@ -7,16 +7,16 @@ namespace Jam
 {
 class VertexLayoutEntry;
 
-struct ModelImportDialogDesc
+struct ModelImportDialogInfo
 {
-    DialogDesc baseDesc          = {};
+    DialogInfo baseInfo          = {};
     Path       importPathOrEmpty = {};
 };
 
 class ModelImportDialog : public AssetCreationDialog
 {
 public:
-    explicit ModelImportDialog(const ModelImportDialogDesc& _desc);
+    explicit ModelImportDialog(const ModelImportDialogInfo& _info);
     void OnShow() override;
 
 protected:
@@ -30,7 +30,7 @@ protected:
     Path   m_assetSaveDir  = {};
     String m_assetBaseName = {};
 
-    AssimpImporterOptions  m_options = {};
+    AssimpImporterInfo  m_options = {};
     Ref<VertexLayoutEntry> m_pVle    = nullptr;
 };
 

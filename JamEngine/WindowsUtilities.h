@@ -32,7 +32,7 @@ public:
     void SetDefaultPath(const Path& _path) const;
     void SetFilters(Span<const FileDialogFilter> _filters) const;
 
-    // option in WriteFileAsBinary mode
+    // option in WriteFileAsBinary m_mode
     void SetDefaultFileName(StringView _fileName) const;
     void SetDefaultExtension(StringView _ext) const;
 

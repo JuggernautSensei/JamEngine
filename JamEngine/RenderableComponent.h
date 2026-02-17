@@ -1,6 +1,5 @@
 #pragma once
-#include "ReflectionDB.h"
-#include "ComponentProperties.h"
+#include "ComponentDatabase.h"
 #include "Mesh.h"
 #include "Material.h"
 
@@ -9,8 +8,9 @@ namespace Jam
 
 struct RenderableComponent
 {
-    JAM_REFLECT_COMPONENT(RenderableComponent);
-    JAM_COMPONENT_DISPLAY_NAME_IN_EDITOR("renderable component");
+    JAM_COMPONENT_BODY(RenderableComponent);
+    JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME("renderable component");
+    JAM_COMPONENT_METADATA_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable);
 
     void Serialize(ArchiveWriter& _writer, const Ref<Scene>& _pScene, Entity _uid) const;
     void Deserialize(ArchiveReader& _reader, const Ref<Scene>& _pScene, Entity _uid);
@@ -19,8 +19,5 @@ struct RenderableComponent
     Ref<Mesh>     pMesh     = nullptr;
     Ref<Material> pMaterial = nullptr;
 };
-
-JAM_STATIC_ASSERT_IS_COMPONENT_SERIALIZABLE(RenderableComponent);
-JAM_STATIC_ASSERT_IS_COMPONENT_EDITABLE(RenderableComponent);
 
 }   // namespace Jam

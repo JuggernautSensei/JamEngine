@@ -11,10 +11,10 @@ public:
     void OnImGuiRender() override;
 
 private:
-    VertexBufferHandle m_vbh     = k_invalidHandle;
-    IndexBufferHandle  m_ibh     = k_invalidHandle;
-    ProgramHandle      m_program = k_invalidHandle;
+    VertexBufferHandle m_vbh     = k_nullHandle;
+    IndexBufferHandle  m_ibh     = k_nullHandle;
+    ProgramHandle      m_program = k_nullHandle;
 
-    ConstantBufferHandle m_cbh = k_invalidHandle;
+    ConstantBufferHandle m_cbh = k_nullHandle;
     Vec3                 m_offset = Vec3::Zero;
 };

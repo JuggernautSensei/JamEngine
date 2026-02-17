@@ -131,12 +131,12 @@ enum class eMouse
 class Input
 {
 public:
-    static void                 CreateInstance();
-    static void                 DestroyInstance();
-    [[nodiscard]] static Input& GetInstance();
+    Input(const Input&)            = delete;
+    Input(Input&&)                 = delete;
+    Input& operator=(const Input&) = delete;
+    Input& operator=(Input&&)      = delete;
 
-    void Update();
-    void OnEvent(Event& _event);
+    [[nodiscard]] static Input& GetInstance();
 
     [[nodiscard]] bool IsKeyDown(eKey _key) noexcept;
     [[nodiscard]] bool IsKeyPressed(eKey _key) noexcept;
@@ -163,6 +163,13 @@ public:
     [[nodiscard]] bool IsMouseVisible() const noexcept;
 
 private:
+    Input() = default;
+
+    static void CreateInstance();
+    static void DestroyInstance();
+    void        Update();
+    void        OnEvent(Event& _event);
+
     void OnMouseDown_(const MouseDownEvent& _event);
     void OnKeyDown_(const KeyDownEvent& _event);
     void OnKeyUp_(const KeyUpEvent& _event);
@@ -183,6 +190,7 @@ private:
 
     static constexpr Int32 k_wheelSensitive = 120;
     inline static Input*   s_pInstance      = nullptr;
+    friend class Application;
 };
 
 }   // namespace Jam

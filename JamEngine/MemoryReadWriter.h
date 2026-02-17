@@ -14,8 +14,8 @@ enum class eSeekOp
 class MemoryReadWriterBase
 {
 public:
-    void                Seek(SizeT _offset, eSeekOp _op) const;
-    void                Skip(SizeT _numBytes) const;
+    SizeT               Seek(SizeT _offset, eSeekOp _op) const;
+    SizeT               Skip(SizeT _numBytes) const;
     [[nodiscard]] SizeT Tell() const;
     [[nodiscard]] SizeT Remaining() const;
     void                Rewind() const;
@@ -32,7 +32,7 @@ class MemoryWriter : public MemoryReadWriterBase
 {
 public:
     explicit MemoryWriter(MemoryBlock _mem);
-    void Write(CMemoryBlock _src) const;
+    SizeT Write(CMemoryBlock _src) const;
 
 private:
     MemoryBlock m_mem = {};
@@ -42,7 +42,7 @@ class MemoryReader : public MemoryReadWriterBase
 {
 public:
     explicit MemoryReader(CMemoryBlock _mem);
-    void Read(MemoryBlock _dst) const;
+    SizeT Read(MemoryBlock _dst) const;
 
 private:
     CMemoryBlock m_mem = {};

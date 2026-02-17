@@ -4,7 +4,7 @@
 namespace Jam
 {
 
-void MemoryReadWriterBase::Seek(
+SizeT MemoryReadWriterBase::Seek(
     const SizeT   _offset,
     const eSeekOp _op) const
 {
@@ -25,12 +25,13 @@ void MemoryReadWriterBase::Seek(
     }
 
     JAM_ASSERT(m_offset >= 0 && m_offset <= m_byteWidth, "Seek resulted in invalid offset.");
+    return m_offset;
 }
 
-void MemoryReadWriterBase::Skip(
+SizeT MemoryReadWriterBase::Skip(
     const SizeT _numBytes) const
 {
-    Seek(_numBytes, eSeekOp::Current);
+    return Seek(_numBytes, eSeekOp::Current);
 }
 
 SizeT MemoryReadWriterBase::Tell() const
@@ -66,13 +67,13 @@ MemoryWriter::MemoryWriter(
 {
 }
 
-void MemoryWriter::Write(
+SizeT MemoryWriter::Write(
     const CMemoryBlock _src) const
 {
     JAM_ASSERT(m_byteWidth >= m_offset + _src.GetByteWidth(), "Not enough space in memory block to write data.");
     const SizeT byteWidth = _src.GetByteWidth();
     std::memcpy(m_mem.GetPtr() + m_offset, _src.GetPtr(), byteWidth);
-    Seek(byteWidth, eSeekOp::Current);
+    return Seek(byteWidth, eSeekOp::Current);
 }
 
 MemoryReader::MemoryReader(
@@ -82,13 +83,13 @@ MemoryReader::MemoryReader(
 {
 }
 
-void MemoryReader::Read(
+SizeT MemoryReader::Read(
     const MemoryBlock _dst) const
 {
     JAM_ASSERT(m_byteWidth >= m_offset + _dst.GetByteWidth(), "Not enough space in memory block to read data.");
     const SizeT byteWidth = _dst.GetByteWidth();
     std::memcpy(_dst.GetPtr(), m_mem.GetPtr() + m_offset, byteWidth);
-    Seek(byteWidth, eSeekOp::Current);
+    return Seek(byteWidth, eSeekOp::Current);
 }
 
 }   // namespace Jam

@@ -1,7 +1,10 @@
 #pragma once
+#include "EnumArray.h"
 
 namespace Jam
 {
+
+class Texture;
 
 enum class eEditorIcon
 {
@@ -14,12 +17,6 @@ enum class eEditorIcon
     Translation,
 };
 
-struct EditorIcons
-{
-    [[nodiscard]] const Ref<Texture>& GetIcon(eEditorIcon _icon) const;
-    void                              SetIcon(eEditorIcon _icon, const Ref<Texture>& _pTexure);
-
-    Ref<Texture> pIcons[CountOf<eEditorIcon>()] = {};
-};
+using EditorIcons = EnumArray<eEditorIcon, Ref<Texture>>;
 
 }   // namespace Jam

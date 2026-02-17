@@ -1,4 +1,5 @@
 #pragma once
+#include "EnumArray.h"
 #include "File.h"
 #include "IAsset.h"
 #include "Texture.h"
@@ -34,40 +35,17 @@ struct MaterialParams
 
 enum class eMaterialTextureType
 {
-    Albedo,
-    Ao,
-    Light,
-    VertexDisplacement,
-    Emissive,
+    Albedo = 0,
     Normal,
     Metallic,
     Roughness,
-
+    Emissive,
+    Light,
+    Ao,
+    VertexDisplacement,
 };
-
-struct MaterialTextures
-{
-    [[nodiscard]] const Ref<Texture>& Get(
-        const eMaterialTextureType _type) const
-    {
-        return texes[UnderlyingFrom(_type)];
-    }
-
-    void Set(
-        const eMaterialTextureType _type,
-        const Ref<Texture>&        _pTexture)
-    {
-        texes[UnderlyingFrom(_type)] = _pTexture;
-    }
-
-    [[nodiscard]] bool Has(
-        const eMaterialTextureType _type) const
-    {
-        return texes[UnderlyingFrom(_type)] != nullptr;
-    }
-
-    Array<Ref<Texture>, CountOf<eMaterialTextureType>()> texes = {};
-};
+// ReSharper disable once CppStaticAssertFailure
+using MaterialTextures = EnumArray<eMaterialTextureType, Ref<Texture>>;
 
 struct MaterialTextureSettings
 {
@@ -83,10 +61,10 @@ class Material : public IAsset
 {
 public:
     [[nodiscard]] static Expect<Ref<Material>> Create(const Path& _path);
-    [[nodiscard]] static Ref<Material>         Create(const MaterialParams& _params, const MaterialTextures& _texes, const MaterialTextureSettings& _settings);
+    [[nodiscard]] static Ref<Material>         Create(const MaterialParams& _params, const MaterialTextures& _textures, const MaterialTextureSettings& _settings);
 
     Error Load(const Path& _path) override;
-    void  Load(const MaterialParams& _params, const MaterialTextures& _texes, const MaterialTextureSettings& _settings);
+    void  Load(const MaterialParams& _params, const MaterialTextures& _textures, const MaterialTextureSettings& _settings);
     Error Save(const Path& _path, bool _bReplaceExtension = true, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None) const override;
     void  SetName(StringView _name) override;
     void  SetVirtualPath(const Path& _path) override;
@@ -96,9 +74,6 @@ public:
     [[nodiscard]] const MaterialParams&          GetParams() const;
     void                                         SetTextures(const MaterialTextures& _texes);
     [[nodiscard]] const MaterialTextures&        GetTextures() const;
-    void                                         SetTexture(eMaterialTextureType _type, const Ref<Texture>& _tex);
-    [[nodiscard]] Ref<Texture>                   GetTexture(eMaterialTextureType _type) const;
-    [[nodiscard]] bool                           HasTexture(eMaterialTextureType _type) const;
     void                                         SetTextureSettings(const MaterialTextureSettings& _settings);
     [[nodiscard]] const MaterialTextureSettings& GetTextureSettings() const;
 
@@ -133,8 +108,8 @@ private:
     MaterialTextures        m_textures = {};
 };
 
-void  WriteToArchive(ArchiveWriter& _archive, const Ref<Material>& _pMat);
-Error ReadFromArchive(ArchiveReader& _archive, Ref<Material>& _pMat);
+void  WriteToArchive(ArchiveWriter& _archive, const Ref<Material>& _pMaterial);
+Error ReadFromArchive(ArchiveReader& _archive, Ref<Material>& _pMaterial);
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Ref<Material>);
 
 }   // namespace Jam

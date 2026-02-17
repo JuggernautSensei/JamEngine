@@ -89,48 +89,37 @@ class Graphics
     {
         ConstantBufferBinds()
         {
-            cbhs.fill(k_invalidHandle);
+            cbhs.fill(k_nullHandle);
         }
 
-        Array<ConstantBufferHandle, k_numConstantBufferLimit> cbhs = {};
-
-        Int32 dirtyStart = Limits<Int32>::k_max;
-        Int32 dirtyEnd   = 0;
+        Array<ConstantBufferHandle, k_maxNumConstantBufferSlots> cbhs       = {};
+        Int32                                                    dirtyStart = Limits<Int32>::k_max;
+        Int32                                                    dirtyEnd   = 0;
     };
 
     struct TextureBinds
     {
         TextureBinds()
         {
-            texhs.fill(k_invalidHandle);
+            texhs.fill(k_nullHandle);
         }
 
-        Array<TextureHandle, k_numShaderResourceLimit> texhs = {};
-
-        Int32 dirtyStart = Limits<Int32>::k_max;
-        Int32 dirtyEnd   = 0;
+        Array<TextureHandle, k_maxNumShaderResourceViewSlots> texhs      = {};
+        Int32                                                 dirtyStart = Limits<Int32>::k_max;
+        Int32                                                 dirtyEnd   = 0;
     };
 
     struct SamplerBinds
     {
-        SamplerBinds()
-        {
-            SamplerState invalid = {};
-            invalid.value        = 0xFFFFFFFF;
-            samplers.fill(invalid);
-            borderColors.fill(RGBA::k_black);
-        }
-
-        Array<SamplerState, k_numSamplerLimit> samplers     = {};
-        Array<RGBA, k_numSamplerLimit>         borderColors = {};
-
-        Int32 dirtyStart = Limits<Int32>::k_max;
-        Int32 dirtyEnd   = 0;
+        Array<SamplerState, k_maxNumSamplerSlots> samplers     = {};
+        Array<RGBA, k_maxNumSamplerSlots>         borderColors = {};
+        Int32                                     dirtyStart   = Limits<Int32>::k_max;
+        Int32                                     dirtyEnd     = 0;
     };
 
     struct RasterizerStateD3D11
     {
-        eCullMode cullMode         = static_cast<eCullMode>(0xFF);
+        eCullMode cullMode         = eCullMode::None;
         bool      bWireframe : 1   = false;
         bool      bDepthClamp : 1  = false;
         bool      bMultiSample : 1 = false;
@@ -141,35 +130,13 @@ class Graphics
 
     struct BlendStateD3D11
     {
-        BlendStateD3D11()
-        {
-            BlendState invalid = {};
-            invalid.value      = 0xFFFFFFFF;
-            blends.fill(invalid);
-
-            bIndependentBlend = false;
-            bAlphaToCoverage  = false;
-        }
-
-        Array<BlendState, k_numRenderTargetLimit> blends = {};
-
-        bool bIndependentBlend : 1 = false;
-        bool bAlphaToCoverage : 1  = false;
+        Array<BlendState, k_maxNumRenderTargetViewSlots> blends                = {};
+        bool                                             bIndependentBlend : 1 = false;
+        bool                                             bAlphaToCoverage : 1  = false;
     };
 
     struct DepthStencilStateD3D11
     {
-        DepthStencilStateD3D11()
-        {
-            bDepthWrite   = false;
-            depthTestFunc = eCompareFunc::Less;
-
-            StencilState invalid = {};
-            invalid.value        = 0xFFFF;
-            fStencil             = invalid;
-            bStencil             = invalid;
-        }
-
         bool         bDepthWrite : 1   = false;
         eCompareFunc depthTestFunc : 4 = eCompareFunc::Less;
         StencilState fStencil          = StencilState::k_disable;
@@ -311,9 +278,9 @@ public:
     /// @brief 프로그램을 생성합니다.
     /// @param _vsh 버텍스 셰이더 핸들
     /// @param _psh 픽셀 셰이더 핸들
-    /// @param _gsh 지오메트리 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
-    /// @param _dsh 도메인 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
-    /// @param _hsh 홀 셰이더 핸들 (k_invalidHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
+    /// @param _gsh 지오메트리 셰이더 핸들 (k_nullHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
+    /// @param _dsh 도메인 셰이더 핸들 (k_nullHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
+    /// @param _hsh 홀 셰이더 핸들 (k_nullHandle 전달 시 해당 셰이더 스테이지는 생성되지 않음)
     /// @param _bDestroyShader true로 설정하면 프로그램이 파괴될 때 셰이더도 함께 파괴됩니다.
     /// @return 프로그램에 대한 참조
     /// @note nullopt가 전달되면 해당 셰이더 스테이지는 생성되지 않습니다.
@@ -636,7 +603,7 @@ public:
     /// @param _fbh 프레임 버퍼 핸들 (k_invalidResource 사용 시 백버퍼)
     /// @param _color 클리어 색상
     /// @param _renderTargetIndex 클리어할 렌더 타겟 인덱스
-    void ClearRenderTarget(
+    void ClearColor(
         FrameBufferHandle _fbh,
         RGBA              _color,
         Int32             _renderTargetIndex = 0);
@@ -647,7 +614,7 @@ public:
     /// @param _bClearStencil 스텐실 클리어 여부
     /// @param _depth 클리어할 깊이 값 (0.0 ~ 1.0)
     /// @param _stencil 클리어할 스텐실 값
-    void ClearDepthStencil(
+    void ClearDepth(
         FrameBufferHandle _fbh,
         bool              _bClearDepth,
         bool              _bClearStencil,
@@ -1017,7 +984,7 @@ private:
     void                       UploadBuffer_(const HardwareBuffer& _buffer, CMemoryBlock _uploadData, Int32 _offset, bool _bDiscard) const;
     [[nodiscard]] Vector<Byte> DownloadBuffer_(const HardwareBuffer& _buffer) const;
     void                       UploadTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, CMemoryBlock _uploadData, Int32 _uploadWidth, Int32 _uploadHeight, Int32 _uploadDepth, Int32 _uploadDataRowPitch, Int32 _uploadDataDepthPitch) const;
-    [[nodiscard]] Vector<Byte> DownloadTexture_(const HardwareTextureRef& _tex, Int32 _mipIndex, Int32 _arrayIndex) const;
+    [[nodiscard]] Vector<Byte> DownloadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex) const;
     void                       Blit_(const HardwareTextureRef& _blitDstTexture, Int32 _blitDstMipIndex, Int32 _blitDstArrayIndex, Int32 _blitDstX, Int32 _blitDstY, Int32 _blitDstZ, const HardwareTextureRef& _blitSrcTexture, Int32 _blitSrcMipIndex, Int32 _blitSrcArrayIndex, Int32 _blitSrcX, Int32 _blitSrcY, Int32 _blitSrcZ, Int32 _blitSrcWidthOrZero, Int32 _blitSrcHeightOrZero, Int32 _blitSrcDepthOrZero) const;
 
     // d3d11 state cache
@@ -1045,8 +1012,8 @@ private:
     ResourcePool<Program>            m_programs      = {};
 
     // resource caches
-    HashMap<ShaderCacheKey, ShaderHandle>             m_shaderCache = {};
-    HashMap<VertexLayoutCacheKey, VertexLayoutHandle> m_vlCache     = {};
+    HashMap<UInt64, ShaderHandle>       m_shaderCache = {};
+    HashMap<UInt64, VertexLayoutHandle> m_vlCache     = {};
 
     // d3d11 state caches
     HashMap<UInt32, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
@@ -1055,21 +1022,21 @@ private:
     HashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
 
     // pipeline bind state
-    VertexLayoutHandle m_vlhBind      = k_invalidHandle;
-    VertexBufferHandle m_vbhBind      = k_invalidHandle;
+    VertexLayoutHandle m_vlhBind      = k_nullHandle;
+    VertexBufferHandle m_vbhBind      = k_nullHandle;
     Int32              m_vbOffsetBind = 0;
     Int32              m_numVertsBind = 0;
 
-    IndexBufferHandle m_ibhBind        = k_invalidHandle;
+    IndexBufferHandle m_ibhBind        = k_nullHandle;
     Int32             m_ibOffsetBind   = 0;
     Int32             m_numIndicesBind = 0;
 
-    FrameBufferHandle m_fbhBind = k_invalidHandle;
-    ProgramHandle     m_phBind  = k_invalidHandle;
+    FrameBufferHandle m_fbhBind = k_nullHandle;
+    ProgramHandle     m_phBind  = k_nullHandle;
 
-    ConstantBufferBinds m_cbufferBinds[CountOf<eShader>()] = {};
-    TextureBinds        m_textureBinds[CountOf<eShader>()] = {};
-    SamplerBinds        m_samplerBinds[CountOf<eShader>()] = {};
+    EnumArray<eShader, ConstantBufferBinds> m_cbufferBinds = {};
+    EnumArray<eShader, TextureBinds>        m_textureBinds = {};
+    EnumArray<eShader, SamplerBinds>        m_samplerBinds = {};
 
     Viewport m_vpBind          = {};
     Rect     m_scissorRectBind = {};
@@ -1083,13 +1050,13 @@ private:
     RasterizerStateD3D11   m_rasterizerStateBind   = {};                              // invalid at start
     BlendStateD3D11        m_blendStateBind        = {};                              // invalid at start
 
-    Array<Int32, CountOf<eSubmitParameterType>()> m_submitParams = {};
-    Flags<ePipelineDirtyFlags>                          m_dirtyFlags   = ePipelineDirtyFlags::All;
+    EnumArray<eSubmitParameterType, Int32> m_submitParams = {};
+    Flags<ePipelineDirtyFlags>             m_dirtyFlags   = ePipelineDirtyFlags::All;
 
     // back buffer
     Vec2i             m_backBufferRes  = {};
-    TextureHandle     m_backBufferTexh = k_invalidHandle;
-    FrameBufferHandle m_backBufferFbh  = k_invalidHandle;
+    TextureHandle     m_backBufferTexh = k_nullHandle;
+    FrameBufferHandle m_backBufferFbh  = k_nullHandle;
 
     inline static Graphics* s_pInstance = nullptr;
     friend class Application;
@@ -1105,7 +1072,7 @@ private:
     if (_handle)                                    \
     {                                               \
         (_func)((_handle));                         \
-        (_handle) = Jam::k_invalidHandle;           \
+        (_handle) = Jam::k_nullHandle;              \
     }                                               \
     JAM_END_MACRO_BLOCK
 

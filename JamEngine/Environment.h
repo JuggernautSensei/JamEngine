@@ -58,11 +58,11 @@ public:
     [[nodiscard]] const CascadeDistancesArray& GetDirectionalLightCascadeDistances() const;
 
     // image based lighting
-    void                              SetIblIrradianceTex(const Ref<Texture>& _pTex);
+    void                              SetIblIrradianceTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetIblIrradianceTex() const;
-    void                              SetIblSpecularTex(const Ref<Texture>& _pTex);
+    void                              SetIblSpecularTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetIblSpecularTex() const;
-    void                              SetIblBrdfLutTex(const Ref<Texture>& _pTex);
+    void                              SetIblBrdfLutTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetIblBrdfLutTex() const;
     void                              SetIblIrradianceIntensity(float _intensity);
     [[nodiscard]] float               GetIblIrradianceIntensity() const;
@@ -72,7 +72,7 @@ public:
     // skybox
     void                              SetSkyboxType(eSkyboxType _type);
     [[nodiscard]] eSkyboxType         GetSkyboxType() const;
-    void                              SetSkyboxTex(const Ref<Texture>& _pTex);
+    void                              SetSkyboxTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetSkyboxTex() const;
     void                              SetSkyboxSolidColor(Vec3 _color);
     [[nodiscard]] Vec3                GetSkyboxSolidColor() const;

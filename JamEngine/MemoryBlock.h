@@ -28,7 +28,7 @@ public:
     {
     }
 
-    // C-style 배열
+    // C-m_style 배열
     template<typename T, std::size_t N>
         requires(!std::is_const_v<T>)
     /* implicit */ MemoryBlock(T (&_array)[N])
@@ -77,7 +77,7 @@ public:
     {
     }
 
-    // C-style 배열
+    // C-m_style 배열
     template<typename T, std::size_t N>
     /* implicit */ CMemoryBlock(const T (&_array)[N])
         : m_pData(reinterpret_cast<const Byte*>(_array))

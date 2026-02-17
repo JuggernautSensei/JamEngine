@@ -1,5 +1,4 @@
 #pragma once
-#include "ComponentTag.h"
 #include "Application.h"
 #include "ComponentMetadata.h"
 #include "UID.h"
@@ -28,12 +27,12 @@ public:
     /* implicit */ operator bool() const;
 
     [[nodiscard]] const Transform& GetWorldTransform() const;
-    [[nodiscard]] Transform&       ModifyWorldTransform();
     [[nodiscard]] const Transform& GetLocalTransform() const;
+    [[nodiscard]] Transform&       ModifyWorldTransform();
     [[nodiscard]] Transform&       ModifyLocalTransform();
 
     template<typename T, typename... Args>
-        requires IsComponentReflected<T>
+        requires HasComponentMetadataEssentialMarker<T>
     decltype(auto) CreateComponent(Args&&... _args)
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
@@ -41,7 +40,7 @@ public:
     }
 
     template<typename T, typename... Args>
-        requires IsComponentReflected<T>
+        requires HasComponentMetadataEssentialMarker<T>
     void CreateComponentDefered(Args&&... _args)
     {
         JAM_APP.SubmitCommandToMainThread(Bind(
@@ -52,7 +51,7 @@ public:
     }
 
     template<typename... T>
-        requires(IsComponentReflected<T>, ...)
+        requires(HasComponentMetadataEssentialMarker<T> && ...)
     decltype(auto) GetComponent() const
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
@@ -61,7 +60,7 @@ public:
 
     // ReSharper disable once CppMemberFunctionMayBeConst
     template<typename... T>
-        requires(IsComponentReflected<T>, ...)
+        requires(HasComponentMetadataEssentialMarker<T> && ...)
     decltype(auto) GetComponent()
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
@@ -69,7 +68,7 @@ public:
     }
 
     template<typename... T>
-        requires(IsComponentReflected<T>, ...)
+        requires(HasComponentMetadataEssentialMarker<T> && ...)
     bool HasComponent() const
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
@@ -78,17 +77,16 @@ public:
 
     // ReSharper disable once CppMemberFunctionMayBeConst
     template<typename... T>
-        requires(IsComponentReflected<T>, ...)
+        requires(HasComponentMetadataEssentialMarker<T> && ...)
     void RemoveComponent()
     {
-        static_assert((!IsComponentTagEnabled<T, eComponentTag::NonRemoveable>, ...), "One or more components are marked as NonRemoveable and cannot be removed from the entity.");
         JAM_ASSERT(IsValid(), "Entity is not valid");
         JAM_ASSERT(HasComponent<T...>(), "Entity does not have the specified component(s)");
         m_pRegistry->remove<T...>(m_handle);
     }
 
     template<typename... T>
-        requires(IsComponentReflected<T>, ...)
+        requires(HasComponentMetadataEssentialMarker<T> && ...)
     void RemoveComponentDefered()
     {
         JAM_APP.SubmitCommandToMainThread(Bind(

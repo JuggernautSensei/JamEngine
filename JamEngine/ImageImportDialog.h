@@ -7,9 +7,9 @@
 namespace Jam
 {
 
-struct ImageImportDialogDesc
+struct ImageImportDialogInfo
 {
-    DialogDesc baseDesc          = {};
+    DialogInfo baseInfo          = {};
     Path       importPathOrEmpty = {};
 };
 
@@ -17,7 +17,7 @@ class ImageImportDialog : public AssetCreationDialog
 {
 
 public:
-    explicit ImageImportDialog(const ImageImportDialogDesc& _desc);
+    explicit ImageImportDialog(const ImageImportDialogInfo& _info);
     void OnShow() override;
 
 private:
@@ -31,8 +31,8 @@ private:
     FileDialog m_importFd { eFileDialogMode::OpenFile };
     FileDialog m_saveFd { eFileDialogMode::SaveFile };
 
-    Ref<Texture>       m_pPreviewTex = nullptr;
-    ImageImportOptions m_options     = {};
+    Ref<Texture>      m_pPreviewTex = nullptr;
+    ImageImporterInfo m_options     = {};
 
     Path   m_assetSaveDir  = {};
     String m_assetBaseName = {};

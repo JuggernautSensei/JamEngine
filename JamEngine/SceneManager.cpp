@@ -11,6 +11,7 @@
 #include "JsonArchive.h"
 #include "Scene.h"
 #include "SceneComponent.h"
+#include "SceneDatabase.h"
 #include "SceneNode.h"
 #include "SceneSerializer.h"
 
@@ -47,7 +48,7 @@ void SceneManager::RenderRuntime() const
 {
     const auto [w, h] = JAM_GFX.GetBackBufferResolution();
     const Viewport vp = { NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
-    RenderRuntime(k_invalidHandle, vp);
+    RenderRuntime(k_nullHandle, vp);
 }
 
 void SceneManager::RenderRuntime(
@@ -123,7 +124,7 @@ void SceneManager::LoadScene(
     const Ref<Scene>& _pScene)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
-    JAM_ASSERT(JAM_REFLECTION_DB.IsSceneReflected(_pScene->GetTypeHash()), "Scene type '{}' is not reflected. you must JAM_SCENE macro in the scene class definition.", _pScene->GetTypeFullName());
+    JAM_ASSERT(JAM_SCENE_DB.IsSceneReflected(_pScene->GetTypeHash()), "Scene type '{}' is not reflected. you must JAM_SCENE macro in the scene class definition.", _pScene->GetTypeName());
     ChangeSceneDefered_(_pScene);
 }
 
@@ -169,7 +170,10 @@ void SceneManager::OnEvent(
         dispatcher.Dispatch<WindowMaximizedEvent>(this, &SceneManager::OnWindowMaximizeEvent_);
     }
 
-    m_pActiveScene->OnEvent(_event);
+    if (m_pActiveScene)
+    {
+        m_pActiveScene->OnEvent(_event);
+    }
 }
 
 void SceneManager::OnWindowResizedEvent_(

@@ -1,4 +1,5 @@
 #pragma once
+#include "VertexLayout.h"
 
 namespace Jam
 {
@@ -12,7 +13,7 @@ namespace Details
         bool  bValid    = false;
     };
 
-    using TinyLayout = Array<TinyElem, CountOf<eVertexAttribute>()>;
+    using TinyLayout = EnumArray<eVertexAttribute, TinyElem>;
 
 }   // namespace Details
 
@@ -28,8 +29,8 @@ public:
     {
         for (const VertexLayoutElement& vle: _vl.GetElements())
         {
-            Details::TinyElem elem             = { vle.offset, vle.byteWidth, true };
-            m_vles[UnderlyingFrom(vle.attrib)] = elem;
+            Details::TinyElem elem = { vle.offset, vle.byteWidth, true };
+            m_vles[vle.attrib]     = elem;
         }
     }
 
@@ -39,7 +40,7 @@ public:
         const eVertexAttribute _attrib,
         const T                _value) const
     {
-        const Details::TinyElem& elem = m_vles[UnderlyingFrom(_attrib)];
+        const Details::TinyElem& elem = m_vles[_attrib];
         JAM_ASSERT(elem.bValid, "Vertex attribute is not valid in the given vertex layout.");
         const SizeT offset = _vertIdx * m_stride + elem.offset;
         JAM_ASSERT(sizeof(T) <= elem.byteWidth, "Value size does not match vertex attribute size.");
@@ -65,8 +66,8 @@ public:
     {
         for (const VertexLayoutElement& vle: _vl.GetElements())
         {
-            Details::TinyElem elem             = { vle.offset, vle.byteWidth, true };
-            m_vles[UnderlyingFrom(vle.attrib)] = elem;
+            Details::TinyElem elem = { vle.offset, vle.byteWidth, true };
+            m_vles[vle.attrib]     = elem;
         }
     }
 
@@ -75,7 +76,7 @@ public:
         const SizeT            _vertIdx,
         const eVertexAttribute _attrib) const
     {
-        const Details::TinyElem& elem = m_vles[UnderlyingFrom(_attrib)];
+        const Details::TinyElem& elem = m_vles[_attrib];
         JAM_ASSERT(elem.bValid, "Vertex attribute is not valid in the given vertex layout.");
         const SizeT offset = _vertIdx * m_stride + elem.offset;
         JAM_ASSERT(sizeof(T) <= elem.byteWidth, "Value size does not match vertex attribute size.");

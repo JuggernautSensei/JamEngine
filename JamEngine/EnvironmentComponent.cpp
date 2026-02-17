@@ -143,20 +143,20 @@ void EnvironmentComponent::DrawEditPanel(
     ImGui::SeparatorText("image based lighting");
     if (BeginLabelTable("EnvironmentComponent_IBL"))
     {
-        // row: irradiance tex
+        // row: irradiance texture
         {
-            Ref<Texture> pTex = environment.GetIblIrradianceTex();
+            Ref<Texture> pTexture = environment.GetIblIrradianceTex();
             ImGui::TableNextColumn();
             Widget_Text("irradiance texture", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_TexturePicker("##IBLIrradianceTexture", pTex))
+            if (Widget_TexturePicker("##IBLIrradianceTexture", pTexture))
             {
-                environment.SetIblIrradianceTex(pTex);
+                environment.SetIblIrradianceTex(pTexture);
             }
         }
 
-        // row: irradiance tex intensity
+        // row: irradiance texture intensity
         {
             float intensity = environment.GetIblIrradianceIntensity();
 
@@ -170,21 +170,21 @@ void EnvironmentComponent::DrawEditPanel(
             }
         }
 
-        // row: specular tex
+        // row: specular texture
         {
-            Ref<Texture> pTex = environment.GetIblSpecularTex();
+            Ref<Texture> pTexture = environment.GetIblSpecularTex();
 
             ImGui::TableNextColumn();
             Widget_Text("specular texture", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_TexturePicker("##IBLSpecularTexture", pTex))
+            if (Widget_TexturePicker("##IBLSpecularTexture", pTexture))
             {
-                environment.SetIblSpecularTex(pTex);
+                environment.SetIblSpecularTex(pTexture);
             }
         }
 
-        // row: specular tex intensity
+        // row: specular texture intensity
         {
             float intensity = environment.GetIblSpecularIntensity();
 
@@ -198,17 +198,17 @@ void EnvironmentComponent::DrawEditPanel(
             }
         }
 
-        // row: BRDF LUT tex
+        // row: BRDF LUT texture
         {
-            Ref<Texture> pTex = environment.GetIblBrdfLutTex();
+            Ref<Texture> pTexture = environment.GetIblBrdfLutTex();
 
             ImGui::TableNextColumn();
             Widget_Text("Brdf Lut texture", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_TexturePicker("##IBLBrdfLUTTexture", pTex))
+            if (Widget_TexturePicker("##IBLBrdfLUTTexture", pTexture))
             {
-                environment.SetIblBrdfLutTex(pTex);
+                environment.SetIblBrdfLutTex(pTexture);
             }
         }
 
@@ -232,17 +232,17 @@ void EnvironmentComponent::DrawEditPanel(
             }
         }
 
-        // row: tex
+        // row: texture
         if (type == eSkyboxType::CubeMap)
         {
-            Ref<Texture> pTex = environment.GetSkyboxTex();
+            Ref<Texture> pTexture = environment.GetSkyboxTex();
             ImGui::TableNextColumn();
             Widget_Text("texture", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_TexturePicker("##SkyboxTexture", pTex))
+            if (Widget_TexturePicker("##SkyboxTexture", pTexture))
             {
-                environment.SetSkyboxTex(pTex);
+                environment.SetSkyboxTex(pTexture);
             }
         }
 

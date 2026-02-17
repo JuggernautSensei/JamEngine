@@ -92,7 +92,7 @@ Index of this file:
 #endif
 #pragma clang diagnostic ignored "-Wunknown-pragmas"                // warning: unknown warning group 'xxx'
 #pragma clang diagnostic ignored "-Wfloat-equal"                    // warning: comparing floating point with == or != is unsafe // storing and comparing against same constants ok, for ImFloor()
-#pragma clang diagnostic ignored "-Wold-style-cast"                 // warning: use of old-style cast
+#pragma clang diagnostic ignored "-Wold-m_style-cast"                 // warning: use of old-m_style cast
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"  // warning: zero as null pointer constant
 #pragma clang diagnostic ignored "-Wdouble-promotion"               // warning: implicit conversion from 'float' to 'double' when passing argument to function
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"  // warning: implicit conversion from 'xxx' to 'float' may lose precision
@@ -174,8 +174,8 @@ struct ImGuiOldColumnData;          // Storage data for a single column for lega
 struct ImGuiOldColumns;             // Storage data for a columns set for legacy Columns() api
 struct ImGuiPopupData;              // Storage for current popup stack
 struct ImGuiSettingsHandler;        // Storage for one type registered in the .ini file
-struct ImGuiStyleMod;               // Stacked style modifier, backup of modified data so we can restore it
-struct ImGuiStyleVarInfo;           // Style variable information (e.g. to access style variables from an enum)
+struct ImGuiStyleMod;               // Stacked m_style modifier, backup of modified data so we can restore it
+struct ImGuiStyleVarInfo;           // Style variable information (e.g. to access m_style variables from an enum)
 struct ImGuiTabBar;                 // Storage for a tab bar
 struct ImGuiTabItem;                // Storage for a tab item (within a tab bar)
 struct ImGuiTable;                  // Storage for a table
@@ -189,7 +189,7 @@ struct ImGuiTreeNodeStackData;      // Temporary storage for TreeNode().
 struct ImGuiTypingSelectState;      // Storage for GetTypingSelectRequest()
 struct ImGuiTypingSelectRequest;    // Storage for GetTypingSelectRequest() (aimed to be public)
 struct ImGuiWindow;                 // Storage for one window
-struct ImGuiWindowDockStyle;        // Storage for window-style data which needs to be stored for docking purpose
+struct ImGuiWindowDockStyle;        // Storage for window-m_style data which needs to be stored for docking purpose
 struct ImGuiWindowTempData;         // Temporary storage for one window (that's the data which in theory we could ditch at the end of the frame, in practice we currently keep it for each window)
 struct ImGuiWindowSettings;         // Storage for a window .ini settings (we keep one of those even if the actual window wasn't instanced during this session)
 
@@ -278,7 +278,7 @@ extern IMGUI_API ImGuiContext* GImGui;  // Current implicit context pointer
 // Misc Macros
 #define IM_PI                           3.14159265358979323846f
 #ifdef _WIN32
-#define IM_NEWLINE                      "\r\n"   // Play it nice with Windows users (Update: since 2018-05, Notepad finally appears to support Unix-style carriage returns!)
+#define IM_NEWLINE                      "\r\n"   // Play it nice with Windows users (Update_: since 2018-05, Notepad finally appears to support Unix-m_style carriage returns!)
 #else
 #define IM_NEWLINE                      "\n"
 #endif
@@ -551,7 +551,7 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 // Helpers: Geometry
 IMGUI_API ImVec2     ImBezierCubicCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, float t);
 IMGUI_API ImVec2     ImBezierCubicClosestPoint(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& p, int num_segments);       // For curves with explicit number of segments
-IMGUI_API ImVec2     ImBezierCubicClosestPointCasteljau(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& p, float tess_tol);// For auto-tessellated curves you can use tess_tol = style.CurveTessellationTol
+IMGUI_API ImVec2     ImBezierCubicClosestPointCasteljau(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& p, float tess_tol);// For auto-tessellated curves you can use tess_tol = m_style.CurveTessellationTol
 IMGUI_API ImVec2     ImBezierQuadraticCalc(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, float t);
 IMGUI_API ImVec2     ImLineClosestPoint(const ImVec2& a, const ImVec2& b, const ImVec2& p);
 IMGUI_API bool       ImTriangleContainsPoint(const ImVec2& a, const ImVec2& b, const ImVec2& c, const ImVec2& p);
@@ -906,7 +906,7 @@ struct ImDrawDataBuilder
 struct ImFontStackData
 {
     ImFont*     Font;
-    float       FontSizeBeforeScaling;      // ~~ style.FontSizeBase
+    float       FontSizeBeforeScaling;      // ~~ m_style.FontSizeBase
     float       FontSizeAfterScaling;       // ~~ g.FontSize
 };
 
@@ -929,7 +929,7 @@ struct ImGuiColorMod
     ImVec4          BackupValue;
 };
 
-// Stacked style modifier, backup of modified data so we can restore it. Data type inferred from the variable.
+// Stacked m_style modifier, backup of modified data so we can restore it. Data type inferred from the variable.
 struct ImGuiStyleMod
 {
     ImGuiStyleVar   VarIdx;
@@ -978,12 +978,12 @@ enum ImGuiItemFlagsPrivate_
     ImGuiItemFlags_MixedValue               = 1 << 12, // false     // [BETA] Represent a mixed/indeterminate value, generally multi-selection where values differ. Currently only supported by Checkbox() (later should support all sorts of widgets)
     ImGuiItemFlags_NoWindowHoverableCheck   = 1 << 13, // false     // Disable hoverable check in ItemHoverable()
     ImGuiItemFlags_AllowOverlap             = 1 << 14, // false     // Allow being overlapped by another widget. Not-hovered to Hovered transition deferred by a frame.
-    ImGuiItemFlags_NoNavDisableMouseHover   = 1 << 15, // false     // Nav keyboard/gamepad mode doesn't disable hover highlight (behave as if NavHighlightItemUnderNav==false).
+    ImGuiItemFlags_NoNavDisableMouseHover   = 1 << 15, // false     // Nav keyboard/gamepad m_mode doesn't disable hover highlight (behave as if NavHighlightItemUnderNav==false).
     ImGuiItemFlags_NoMarkEdited             = 1 << 16, // false     // Skip calling MarkItemEdited()
     ImGuiItemFlags_NoFocus                  = 1 << 17, // false     // [EXPERIMENTAL: Not very well specced] Clicking doesn't take focus. Automatically sets ImGuiButtonFlags_NoFocus + ImGuiButtonFlags_NoNavFocus in ButtonBehavior().
 
     // Controlled by widget code
-    ImGuiItemFlags_Inputable                = 1 << 20, // false     // [WIP] Auto-activate input mode when tab focused. Currently only used and supported by a few items before it becomes a generic feature.
+    ImGuiItemFlags_Inputable                = 1 << 20, // false     // [WIP] Auto-activate input m_mode when tab focused. Currently only used and supported by a few items before it becomes a generic feature.
     ImGuiItemFlags_HasSelectionUserData     = 1 << 21, // false     // Set by SetNextItemSelectionUserData()
     ImGuiItemFlags_IsMultiSelect            = 1 << 22, // false     // Set by SetNextItemSelectionUserData()
 
@@ -1204,7 +1204,7 @@ struct IMGUI_API ImGuiMenuColumns
     ImU32       NextTotalWidth;
     ImU16       Spacing;
     ImU16       OffsetIcon;         // Always zero for now
-    ImU16       OffsetLabel;        // Offsets are locked in Update()
+    ImU16       OffsetLabel;        // Offsets are locked in Update_()
     ImU16       OffsetShortcut;
     ImU16       OffsetMark;
     ImU16       Widths[4];          // Width of:   Icon, Label, Shortcut, Mark  (accumulators for current frame)
@@ -1632,11 +1632,11 @@ struct ImGuiKeyOwnerData
 enum ImGuiInputFlagsPrivate_
 {
     // Flags for IsKeyPressed(), IsKeyChordPressed(), IsMouseClicked(), Shortcut()
-    // - Repeat mode: Repeat rate selection
+    // - Repeat m_mode: Repeat rate selection
     ImGuiInputFlags_RepeatRateDefault           = 1 << 1,   // Repeat rate: Regular (default)
     ImGuiInputFlags_RepeatRateNavMove           = 1 << 2,   // Repeat rate: Fast
     ImGuiInputFlags_RepeatRateNavTweak          = 1 << 3,   // Repeat rate: Faster
-    // - Repeat mode: Specify when repeating key pressed can be interrupted.
+    // - Repeat m_mode: Specify when repeating key pressed can be interrupted.
     // - In theory ImGuiInputFlags_RepeatUntilOtherKeyPress may be a desirable default, but it would break too many behavior so everything is opt-in.
     ImGuiInputFlags_RepeatUntilRelease          = 1 << 4,   // Stop repeating when released (default for all functions except Shortcut). This only exists to allow overriding Shortcut() default behavior.
     ImGuiInputFlags_RepeatUntilKeyModsChange    = 1 << 5,   // Stop repeating when released OR if keyboard mods are changed (default for Shortcut)
@@ -1805,7 +1805,7 @@ enum ImGuiTypingSelectFlags_
 {
     ImGuiTypingSelectFlags_None                 = 0,
     ImGuiTypingSelectFlags_AllowBackspace       = 1 << 0,   // Backspace to delete character inputs. If using: ensure GetTypingSelectRequest() is not called more than once per frame (filter by e.g. focus state)
-    ImGuiTypingSelectFlags_AllowSingleCharMode  = 1 << 1,   // Allow "single char" search mode which is activated when pressing the same character multiple times.
+    ImGuiTypingSelectFlags_AllowSingleCharMode  = 1 << 1,   // Allow "single char" search m_mode which is activated when pressing the same character multiple times.
 };
 
 // Returned by GetTypingSelectRequest(), designed to eventually be public.
@@ -1815,7 +1815,7 @@ struct IMGUI_API ImGuiTypingSelectRequest
     int                     SearchBufferLen;
     const char*             SearchBuffer;       // Search buffer contents (use full string. unless SingleCharMode is set, in which case use SingleCharSize).
     bool                    SelectRequest;      // Set when buffer was modified this frame, requesting a selection.
-    bool                    SingleCharMode;     // Notify when buffer contains same character repeated, to implement special mode. In this situation it preferred to not display any on-screen search indication.
+    bool                    SingleCharMode;     // Notify when buffer contains same character repeated, to implement special m_mode. In this situation it preferred to not display any on-screen search indication.
     ImS8                    SingleCharSize;     // Length in bytes of first letter codepoint (1 for ascii, 2-4 for UTF-8). If (SearchBufferLen==RepeatCharSize) only 1 letter has been input.
 };
 
@@ -1827,7 +1827,7 @@ struct IMGUI_API ImGuiTypingSelectState
     ImGuiID         FocusScope;
     int             LastRequestFrame = 0;
     float           LastRequestTime = 0.0f;
-    bool            SingleCharModeLock = false; // After a certain single char repeat count we lock into SingleCharMode. Two benefits: 1) buffer never fill, 2) we can provide an immediate SingleChar mode without timer elapsing.
+    bool            SingleCharModeLock = false; // After a certain single char repeat count we lock into SingleCharMode. Two benefits: 1) buffer never fill, 2) we can provide an immediate SingleChar m_mode without timer elapsing.
 
     ImGuiTypingSelectState() { memset(this, 0, sizeof(*this)); }
     void            Clear()  { SearchBuffer[0] = 0; SingleCharModeLock = false; } // We preserve remaining data for easier debugging
@@ -2103,7 +2103,7 @@ enum ImGuiWindowDockStyleCol
     ImGuiWindowDockStyleCol_COUNT
 };
 
-// We don't store style.Alpha: dock_node->LastBgColor embeds it and otherwise it would only affect the docking tab, which intuitively I would say we don't want to.
+// We don't store m_style.Alpha: dock_node->LastBgColor embeds it and otherwise it would only affect the docking tab, which intuitively I would say we don't want to.
 struct ImGuiWindowDockStyle
 {
     ImU32 Colors[ImGuiWindowDockStyleCol_COUNT];
@@ -2163,7 +2163,7 @@ struct ImGuiViewportP : public ImGuiViewport
     // Calculate work rect pos/size given a set of offset (we have 1 pair of offset for rect locked from last frame data, and 1 pair for currently building rect)
     ImVec2  CalcWorkRectPos(const ImVec2& inset_min) const                           { return ImVec2(Pos.x + inset_min.x, Pos.y + inset_min.y); }
     ImVec2  CalcWorkRectSize(const ImVec2& inset_min, const ImVec2& inset_max) const { return ImVec2(ImMax(0.0f, Size.x - inset_min.x - inset_max.x), ImMax(0.0f, Size.y - inset_min.y - inset_max.y)); }
-    void    UpdateWorkRect()            { WorkPos = CalcWorkRectPos(WorkInsetMin); WorkSize = CalcWorkRectSize(WorkInsetMin, WorkInsetMax); } // Update public fields
+    void    UpdateWorkRect()            { WorkPos = CalcWorkRectPos(WorkInsetMin); WorkSize = CalcWorkRectSize(WorkInsetMin, WorkInsetMax); } // Update_ public fields
 
     // Helpers to retrieve ImRect (we don't need to store BuildWorkRect as every access tend to change it, hence the code asymmetry)
     ImRect  GetMainRect() const         { return ImRect(Pos.x, Pos.y, Pos.x + Size.x, Pos.y + Size.y); }
@@ -2401,7 +2401,7 @@ struct ImGuiContext
     ImFont*                 Font;                               // Currently bound font. (== FontStack.back().Font)
     ImFontBaked*            FontBaked;                          // Currently bound font at currently bound size. (== Font->GetFontBaked(FontSize))
     float                   FontSize;                           // Currently bound font size == line height (== FontSizeBase + externals scales applied in the UpdateCurrentFontSize() function).
-    float                   FontSizeBase;                       // Font size before scaling == style.FontSizeBase == value passed to PushFont() when specified.
+    float                   FontSizeBase;                       // Font size before scaling == m_style.FontSizeBase == value passed to PushFont() when specified.
     float                   FontBakedScale;                     // == FontBaked->Size / FontSize. Scale factor over baked size. Rarely used nowadays, very often == 1.0f.
     float                   FontRasterizerDensity;              // Current font density. Used by all calls to GetFontBaked().
     float                   CurrentDpiScale;                    // Current window/viewport DpiScale == CurrentViewport->DpiScale
@@ -2422,7 +2422,7 @@ struct ImGuiContext
     ImVector<ImGuiWindowStackData> CurrentWindowStack;
     ImGuiStorage            WindowsById;                        // Map window's ImGuiID to ImGuiWindow*
     int                     WindowsActiveCount;                 // Number of unique windows submitted by frame
-    float                   WindowsBorderHoverPadding;          // Padding around resizable windows for which hovering on counts as hovering the window == ImMax(style.TouchExtraPadding, style.WindowBorderHoverPadding). This isn't so multi-dpi friendly.
+    float                   WindowsBorderHoverPadding;          // Padding around resizable windows for which hovering on counts as hovering the window == ImMax(m_style.TouchExtraPadding, m_style.WindowBorderHoverPadding). This isn't so multi-dpi friendly.
     ImGuiID                 DebugBreakInWindow;                 // Set to break in Begin() call.
     ImGuiWindow*            CurrentWindow;                      // Window being drawn into
     ImGuiWindow*            HoveredWindow;                      // Window the mouse is hovering. Will typically catch mouse inputs.
@@ -2538,7 +2538,7 @@ struct ImGuiContext
     float                   NavHighlightActivatedTimer;
     ImGuiID                 NavNextActivateId;                  // Set by ActivateItemByID(), queued until next frame.
     ImGuiActivateFlags      NavNextActivateFlags;
-    ImGuiInputSource        NavInputSource;                     // Keyboard or Gamepad mode? THIS CAN ONLY BE ImGuiInputSource_Keyboard or ImGuiInputSource_Gamepad
+    ImGuiInputSource        NavInputSource;                     // Keyboard or Gamepad m_mode? THIS CAN ONLY BE ImGuiInputSource_Keyboard or ImGuiInputSource_Gamepad
     ImGuiSelectionUserData  NavLastValidSelectionUserData;      // Last valid data passed to SetNextItemSelectionUser(), or -1. For current window. Not reset when focusing an item that doesn't have selection data.
     ImS8                    NavCursorHideFrames;
     //ImGuiID               NavActivateInputId;                 // Removed in 1.89.4 (July 2023). This is now part of g.NavActivateId and sets g.NavActivateFlags |= ImGuiActivateFlags_PreferInput. See commit c9a53aa74, issue #5606.
@@ -2682,7 +2682,7 @@ struct ImGuiContext
     bool                    DragCurrentAccumDirty;
     float                   DragCurrentAccum;                   // Accumulator for dragging modification. Always high-precision, not rounded by end-user precision settings
     float                   DragSpeedDefaultRatio;              // If speed == 0.0f, uses (max-min) * DragSpeedDefaultRatio
-    float                   DisabledAlphaBackup;                // Backup for style.Alpha for BeginDisabled()
+    float                   DisabledAlphaBackup;                // Backup for m_style.Alpha for BeginDisabled()
     short                   DisabledStackSize;
     short                   TooltipOverrideCount;
     ImGuiWindow*            TooltipPreviousWindow;              // Window of last tooltip submitted during the frame
@@ -2798,7 +2798,7 @@ struct IMGUI_API ImGuiWindowTempData
     ImVec2                  IdealMaxPos;            // Used to implicitly calculate ContentSizeIdeal at the beginning of next frame, for auto-resize only. Always growing during the frame.
     ImVec2                  CurrLineSize;
     ImVec2                  PrevLineSize;
-    float                   CurrLineTextBaseOffset; // Baseline offset (0.0f by default on a new line, generally == style.FramePadding.y when a framed item has been added).
+    float                   CurrLineTextBaseOffset; // Baseline offset (0.0f by default on a new line, generally == m_style.FramePadding.y when a framed item has been added).
     float                   PrevLineTextBaseOffset;
     bool                    IsSameLine;
     bool                    IsSetPos;
@@ -3075,7 +3075,7 @@ struct IMGUI_API ImGuiTabBar
     ImS16               TabsActiveCount;        // Number of tabs submitted this frame.
     ImS16               LastTabItemIdx;         // Index of last BeginTabItem() tab for use by EndTabItem()
     float               ItemSpacingY;
-    ImVec2              FramePadding;           // style.FramePadding locked at the time of BeginTabBar()
+    ImVec2              FramePadding;           // m_style.FramePadding locked at the time of BeginTabBar()
     ImVec2              BackupCursorPos;
     ImGuiTextBuffer     TabsNames;              // For non-docking tab bar we re-append names in a contiguous buffer.
 
@@ -3759,7 +3759,7 @@ namespace ImGui
     IMGUI_API void          RenderDragDropTargetRectEx(ImDrawList* draw_list, const ImRect& bb);
 
     // Typing-Select API
-    // (provide Windows Explorer style "select items by typing partial typeName" + "cycle through items by typing same letter" feature)
+    // (provide Windows Explorer m_style "select items by typing partial typeName" + "cycle through items by typing same letter" feature)
     // (this is currently not documented nor used by main library, but should work. See "widgets_typingselect" in imgui_test_suite for usage code. Please let us know if you use this!)
     IMGUI_API ImGuiTypingSelectRequest* GetTypingSelectRequest(ImGuiTypingSelectFlags flags = ImGuiTypingSelectFlags_None);
     IMGUI_API int           TypingSelectFindMatch(ImGuiTypingSelectRequest* req, int items_count, const char* (*get_item_name_func)(void*, int), void* user_data, int nav_item_idx);

@@ -25,6 +25,9 @@ using Float16 = DirectX::PackedVector::HALF;
 using EntityHandle  = entt::entity;
 using SceneRegistry = entt::registry;
 
+template<typename T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
+
 using namespace std::chrono_literals;
 
 }   // namespace Jam

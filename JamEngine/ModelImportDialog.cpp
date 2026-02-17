@@ -18,14 +18,14 @@ namespace Jam
 {
 
 ModelImportDialog::ModelImportDialog(
-    const ModelImportDialogDesc& _desc)
-    : AssetCreationDialog(_desc.baseDesc)
-    , m_importPath(_desc.importPathOrEmpty)
+    const ModelImportDialogInfo& _info)
+    : AssetCreationDialog(_info.baseInfo)
+    , m_importPath(_info.importPathOrEmpty)
 {
-    if (!_desc.importPathOrEmpty.empty())
+    if (!_info.importPathOrEmpty.empty())
     {
-        m_assetSaveDir  = _desc.importPathOrEmpty.parent_path();
-        m_assetBaseName = BaseNameOf(_desc.importPathOrEmpty);
+        m_assetSaveDir  = _info.importPathOrEmpty.parent_path();
+        m_assetBaseName = BaseNameOf(_info.importPathOrEmpty);
     }
 
     // import file dialog
@@ -203,8 +203,8 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         ScratchBuffer tmp;
         tmp.Format("failed to import model file '{}': {}", m_importPath, importer.GetError().ToErrorMessage());
 
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = tmp.ToStringView();
         return false;
     }
@@ -215,8 +215,8 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     {
         ScratchBuffer tmp;
         tmp.Format("failed to convert imported model data to model asset: {}", expect.GetError().ToErrorMessage());
-        MessageDialogDesc desc = {};
-        desc.baseDesc.title    = "error";
+        MessageDialogInfo desc = {};
+        desc.baseInfo.title    = "error";
         desc.msg               = tmp.ToStringView();
         return false;
     }
@@ -280,9 +280,10 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         {
             for (eMaterialTextureType type: EnumRanges<eMaterialTextureType>())
             {
-                if (pMaterial->HasTexture(type))
+                const MaterialTextures& textures = pMaterial->GetTextures();
+                if (const Ref<Texture>& pTexture = textures[type])
                 {
-                    textureSet.emplace(pMaterial->GetTexture(type));
+                    textureSet.emplace(pTexture);
                 }
             }
         }
@@ -296,7 +297,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
             texPath.replace_extension(Texture::k_extension.GetPtr());
             pTexture->SetVirtualPath(texPath);
 
-            // save tex asset
+            // save texture asset
             if (!SaveAsset_(texPath, pTexture))
             {
                 return false;

@@ -15,7 +15,7 @@ namespace Jam
 
 PrimitiveCreationDialog::PrimitiveCreationDialog(
     const PrimitiveCreationDialogDesc& _desc)
-    : AssetCreationDialog(_desc.baseDesc)
+    : AssetCreationDialog(_desc.baseInfo)
     , m_type(_desc.type)
     , m_assetSaveDir(_desc.saveDirOrEmpty)
 {

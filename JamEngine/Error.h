@@ -315,7 +315,6 @@ public:
 
     [[nodiscard]] Error GetError() const
     {
-        JAM_ASSERT(!m_bHasValue, "Expect does not contain an error");
         return m_error;
     }
 

@@ -11,10 +11,10 @@ namespace Jam
 Expect<ImageImporter> ImageImporter::ImportFromFile(
     const Path&               _path,
     const eImageFormat        _format,
-    const ImageImportOptions& _options)
+    const ImageImporterInfo& _info)
 {
     ImageImporter importer = {};
-    if (const Error err = importer.ImportFromFile_(_path, _format, _options))
+    if (const Error err = importer.ImportFromFile_(_path, _format, _info))
     {
         return err;
     }
@@ -24,10 +24,10 @@ Expect<ImageImporter> ImageImporter::ImportFromFile(
 
 Expect<ImageImporter> ImageImporter::ImportFromFile(
     const Path&               _path,
-    const ImageImportOptions& _options)
+    const ImageImporterInfo& _info)
 {
     ImageImporter importer = {};
-    if (const Error err = importer.ImportFromFile_(_path, _options))
+    if (const Error err = importer.ImportFromFile_(_path, _info))
     {
         return err;
     }
@@ -38,10 +38,10 @@ Expect<ImageImporter> ImageImporter::ImportFromFile(
 Expect<ImageImporter> ImageImporter::ImportFromMemory(
     const CMemoryBlock        _mem,
     const eImageFormat        _format,
-    const ImageImportOptions& _options)
+    const ImageImporterInfo& _info)
 {
     ImageImporter importer = {};
-    if (const Error err = importer.ImportFromMemory_(_mem, _format, _options))
+    if (const Error err = importer.ImportFromMemory_(_mem, _format, _info))
     {
         return err;
     }
@@ -57,7 +57,7 @@ const ImageContainer& ImageImporter::GetImageContainer()
 Error ImageImporter::ImportFromFile_(
     const Path&               _path,
     const eImageFormat        _format,
-    const ImageImportOptions& _options)
+    const ImageImporterInfo& _options)
 {
     // load from file
     ImageContainer     container = {};
@@ -116,7 +116,7 @@ Error ImageImporter::ImportFromFile_(
 
 Error ImageImporter::ImportFromFile_(
     const Path&               _path,
-    const ImageImportOptions& _options)
+    const ImageImporterInfo& _options)
 {
     Optional<eImageFormat> format = ParseAsImageFormat(_path);
     if (!format)
@@ -131,7 +131,7 @@ Error ImageImporter::ImportFromFile_(
 Error ImageImporter::ImportFromMemory_(
     const CMemoryBlock        _mem,
     const eImageFormat        _format,
-    const ImageImportOptions& _options)
+    const ImageImporterInfo& _options)
 {
     // load from memory
     ImageContainer container = {};
@@ -188,7 +188,7 @@ Error ImageImporter::ImportFromMemory_(
 }
 
 Error ImageImporter::PostProcess_(
-    const ImageImportOptions& _options)
+    const ImageImporterInfo& _options)
 {
     // convert format
     if (_options.bConvertFormat)

@@ -1,4 +1,5 @@
 #pragma once
+#include "ImGuiGlue.h"
 
 namespace Jam
 {
@@ -12,7 +13,7 @@ enum class eDialogFlags : UInt32
     AutoResize = 1 << 3
 };
 
-struct DialogDesc
+struct DialogInfo
 {
     StringView          title = {};
     ImVec2              size  = { 0.f, 0.f };
@@ -22,7 +23,7 @@ struct DialogDesc
 class Dialog : public RefCounted
 {
 public:
-    explicit Dialog(const DialogDesc& _desc);
+    explicit Dialog(const DialogInfo& _desc);
 
     void               Open();
     void               Close();
@@ -37,7 +38,7 @@ private:
     bool         BeginPopup_() const;
 
     String              m_title        = {};
-    bool                m_bOpenRequest = false;
+    bool                m_bOpenRequest = true;
     bool                m_bOpen        = false;
     ImVec2              m_size         = {};
     Flags<eDialogFlags> m_flags        = eDialogFlags::None;

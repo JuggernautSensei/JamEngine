@@ -14,15 +14,15 @@ namespace Jam
 {
 
 ImageImportDialog::ImageImportDialog(
-    const ImageImportDialogDesc& _desc)
-    : AssetCreationDialog(_desc.baseDesc)
-    , m_importPath(_desc.importPathOrEmpty)
+    const ImageImportDialogInfo& _info)
+    : AssetCreationDialog(_info.baseInfo)
+    , m_importPath(_info.importPathOrEmpty)
     , m_pPreviewTex(nullptr)
 {
-    if (!_desc.importPathOrEmpty.empty())
+    if (!_info.importPathOrEmpty.empty())
     {
-        m_assetSaveDir  = _desc.importPathOrEmpty.parent_path();
-        m_assetBaseName = BaseNameOf(_desc.importPathOrEmpty);
+        m_assetSaveDir  = _info.importPathOrEmpty.parent_path();
+        m_assetBaseName = BaseNameOf(_info.importPathOrEmpty);
         LoadPreviewTexture_();
     }
 
@@ -207,10 +207,10 @@ Error ImageImportDialog::LoadPreviewTexture_()
         return importer.GetError();
     }
 
-    // create tex
+    // create texture
     const TextureHandle texh = JAM_GFX.CreateTexture(importer->GetImageContainer());
 
-    // set preview tex
+    // set preview texture
     if (m_pPreviewTex)
     {
         m_pPreviewTex->Load(texh);   // reload
@@ -258,7 +258,7 @@ bool ImageImportDialog::OnClickImportButton_()
 bool ImageImportDialog::CreateAndSaveAsset_(
     const Path& _path)
 {
-    // use preview tex for saving
+    // use preview texture for saving
     if (m_bPreviewLoadRequested)
     {
         if (const Error err = LoadPreviewTexture_())
@@ -266,8 +266,8 @@ bool ImageImportDialog::CreateAndSaveAsset_(
             ScratchBuffer tmp;
             tmp.Format("failed to import image file: {}. {}", m_importPath.native(), err.ToErrorMessage());
 
-            MessageDialogDesc desc = {};
-            desc.baseDesc.title    = "error";
+            MessageDialogInfo desc = {};
+            desc.baseInfo.title    = "error";
             desc.msg               = tmp.ToStringView();
             JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
             return false;
@@ -275,7 +275,7 @@ bool ImageImportDialog::CreateAndSaveAsset_(
         m_bPreviewLoadRequested = false;
     }
 
-    // create tex asset
+    // create texture asset
     return SaveAsset_(_path, m_pPreviewTex);
 }
 

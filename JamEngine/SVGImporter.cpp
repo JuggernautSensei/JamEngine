@@ -9,7 +9,7 @@ namespace Jam
 
 Expect<SVGImporter> SVGImporter::ImportFromFile(
     const Path&            _path,
-    const SVGImporterDesc& _desc)
+    const SVGImporterInfo& _info)
 {
     JAM_FUNCTION_PROFILE();
 
@@ -21,7 +21,7 @@ Expect<SVGImporter> SVGImporter::ImportFromFile(
     }
 
     SVGImporter importer = {};
-    if (const Error err = importer.Import_(std::move(doc), _desc))
+    if (const Error err = importer.Import_(std::move(doc), _info))
     {
         return err;
     }
@@ -30,7 +30,7 @@ Expect<SVGImporter> SVGImporter::ImportFromFile(
 
 Expect<SVGImporter> SVGImporter::ImportFromSource(
     const StringView       _source,
-    const SVGImporterDesc& _desc)
+    const SVGImporterInfo& _info)
 {
     JAM_FUNCTION_PROFILE();
 
@@ -42,7 +42,7 @@ Expect<SVGImporter> SVGImporter::ImportFromSource(
     }
 
     SVGImporter importer = {};
-    if (const Error err = importer.Import_(std::move(doc), _desc))
+    if (const Error err = importer.Import_(std::move(doc), _info))
     {
         return err;
     }
@@ -70,7 +70,7 @@ Int32 SVGImporter::GetHeight() const
 
 Error SVGImporter::Import_(
     std::unique_ptr<lunasvg::Document>&& _doc,
-    const SVGImporterDesc&               _desc)
+    const SVGImporterInfo&               _desc)
 {
     JAM_ASSERT(_doc, "Invalid SVG document");
 

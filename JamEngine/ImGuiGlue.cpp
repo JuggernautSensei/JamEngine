@@ -90,7 +90,7 @@ namespace
 
     struct TextureData
     {
-        TextureHandle texh = k_invalidHandle;
+        TextureHandle texh = k_nullHandle;
         eTextureType  type = eTextureType::Texture2D;
     };
 
@@ -98,7 +98,7 @@ namespace
         const TextureHandle _texh,
         const eTextureType  _type)
     {
-        return NumericCast<UInt64>(_texh.value) << 32 | NumericCast<UInt64>(_type);
+        return (NumericCast<UInt64>(_texh.value) << 32) | NumericCast<UInt64>(_type);
     }
 
     TextureData TextureDataFrom_(
@@ -114,8 +114,8 @@ namespace
         const StringView _source,
         const eShader    _stage)
     {
-        ShaderCompilerDesc desc = {};
-        desc.stage             = _stage;
+        ShaderCompilerInfo desc = {};
+        desc.stage              = _stage;
 
         Expect<ShaderCompiler> blob = ShaderCompiler::CompileFromHLSLSource(_source, desc);
         JAM_ASSERT(blob, "Failed to compile ImGui shader: {}", blob.GetError().ToErrorMessage());
@@ -186,15 +186,15 @@ ImGuiGlue::~ImGuiGlue()
     platformIo.ClearRendererHandlers();
 
     // 텍스처 정리
-    for (ImTextureData* tex: platformIo.Textures)
+    for (ImTextureData* texture: platformIo.Textures)
     {
-        const bool bIsDestroyStatus = tex->Status == ImTextureStatus_WantDestroy
-                                   || tex->Status == ImTextureStatus_OK
-                                   || tex->Status == ImTextureStatus_WantUpdates;
+        const bool bIsDestroyStatus = texture->Status == ImTextureStatus_WantDestroy
+                                   || texture->Status == ImTextureStatus_OK
+                                   || texture->Status == ImTextureStatus_WantUpdates;
 
-        if (tex->RefCount == 1 && bIsDestroyStatus)
+        if (texture->RefCount == 1 && bIsDestroyStatus)
         {
-            DestroyTexture_(tex);
+            DestroyTexture_(texture);
         }
     }
 
@@ -236,7 +236,7 @@ void ImGuiGlue::EndFrame()
 {
     // 백버퍼 바인딩
     const auto [w, h] = JAM_GFX.GetBackBufferResolution();
-    JAM_GFX.SetFrameBuffer(k_invalidHandle);
+    JAM_GFX.SetFrameBuffer(k_nullHandle);
     JAM_GFX.SetViewport(0, 0, w, h);
 
     // draw data 처리
@@ -387,12 +387,13 @@ void ImGuiGlue::Render_(
             JAM_GFX.SetSubmitParameter(eSubmitParameterType::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
             JAM_GFX.SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
 
-            // Bind tex
-            const auto [texh, texType] = TextureDataFrom_(cmd.GetTexID());
+            // Bind texture
+            const auto [texh, type] = TextureDataFrom_(cmd.GetTexID());
 
             // set program
-            const ProgramHandle ph = (texType == eTextureType::TextureCube) ? m_textureCubePh : m_basicPh;
+            const ProgramHandle ph = (type == eTextureType::TextureCube) ? m_textureCubePh : m_basicPh;
             JAM_GFX.SetProgram(ph);
+            JAM_GFX.SetTexture(texh, eShader::PixelShader, 0);
 
             // submit
             JAM_GFX.Submit();
@@ -409,52 +410,52 @@ void ImGuiGlue::Render_(
 }
 
 void ImGuiGlue::UpdateTexture_(
-    ImTextureData* _pTex) const
+    ImTextureData* _pTexture) const
 {
-    if (_pTex->Status == ImTextureStatus_WantCreate)
+    if (_pTexture->Status == ImTextureStatus_WantCreate)
     {
-        JAM_ASSERT(_pTex->TexID == ImTextureID_Invalid && _pTex->BackendUserData == nullptr, "Trying to create a texture that is already created.");
-        JAM_ASSERT(_pTex->Format == ImTextureFormat_RGBA32, "ImGuiGlueContext::UpdateTexture - Unsupported texture format.");
+        JAM_ASSERT(_pTexture->TexID == ImTextureID_Invalid && _pTexture->BackendUserData == nullptr, "Trying to create a texture that is already created.");
+        JAM_ASSERT(_pTexture->Format == ImTextureFormat_RGBA32, "ImGuiGlueContext::UpdateTexture - Unsupported texture format.");
 
         const CMemoryBlock texData[] = {
-            CMemoryBlock { _pTex->GetPixels(), _pTex->GetSizeInBytes() }
+            CMemoryBlock { _pTexture->GetPixels(), _pTexture->GetSizeInBytes() }
         };
 
-        // dynamic tex creation
-        const TextureHandle texh = JAM_GFX.CreateTexture2D(_pTex->Width, _pTex->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::Mutable, texData);
-        _pTex->SetTexID(texh.value);
-        _pTex->SetStatus(ImTextureStatus_OK);
+        // dynamic texture creation
+        const TextureHandle texh = JAM_GFX.CreateTexture2D(_pTexture->Width, _pTexture->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::Mutable, texData);
+        _pTexture->SetTexID(ImTextureIDFrom_(texh, eTextureType::Texture2D));
+        _pTexture->SetStatus(ImTextureStatus_OK);
     }
-    else if (_pTex->Status == ImTextureStatus_WantUpdates)
+    else if (_pTexture->Status == ImTextureStatus_WantUpdates)
     {
-        const auto [texh, _] = TextureDataFrom_(_pTex->GetTexID());
+        const auto [texh, _] = TextureDataFrom_(_pTexture->GetTexID());
 
         // upload dynamic
-        for (const ImTextureRect& rect: _pTex->Updates)
+        for (const ImTextureRect& rect: _pTexture->Updates)
         {
-            const CMemoryBlock texData = { _pTex->GetPixelsAt(rect.x, rect.y), _pTex->GetSizeInBytes() };
-            JAM_GFX.UploadTexture2D(texh, 0, 0, rect.x, rect.y, texData, rect.w, rect.h, _pTex->GetPitch());
+            const CMemoryBlock texData = { _pTexture->GetPixelsAt(rect.x, rect.y), _pTexture->GetSizeInBytes() };
+            JAM_GFX.UploadTexture2D(texh, 0, 0, rect.x, rect.y, texData, rect.w, rect.h, _pTexture->GetPitch());
         }
-        _pTex->SetStatus(ImTextureStatus_OK);
+        _pTexture->SetStatus(ImTextureStatus_OK);
     }
 
-    if (_pTex->Status == ImTextureStatus_WantDestroy && _pTex->UnusedFrames > 0)
+    if (_pTexture->Status == ImTextureStatus_WantDestroy && _pTexture->UnusedFrames > 0)
     {
-        DestroyTexture_(_pTex);
+        DestroyTexture_(_pTexture);
     }
 }
 
-void ImGuiGlue::DestroyTexture_(ImTextureData* _tex) const
+void ImGuiGlue::DestroyTexture_(ImTextureData* _texture) const
 {
-    JAM_ASSERT(_tex->Status != ImTextureStatus_Destroyed && _tex->Status != ImTextureStatus_WantCreate, "Trying to destroy a texture that is not created.");
+    JAM_ASSERT(_texture->Status != ImTextureStatus_Destroyed && _texture->Status != ImTextureStatus_WantCreate, "Trying to destroy a texture that is not created.");
 
-    // destroy tex
-    const auto [texh, _] = TextureDataFrom_(_tex->GetTexID());
+    // destroy texture
+    const auto [texh, _] = TextureDataFrom_(_texture->GetTexID());
     JAM_GFX.DestroyTexture(texh);
 
     // clear info
-    _tex->SetTexID(ImTextureID_Invalid);
-    _tex->SetStatus(ImTextureStatus_Destroyed);
+    _texture->SetTexID(ImTextureID_Invalid);
+    _texture->SetStatus(ImTextureStatus_Destroyed);
 }
 
 ImTextureRef ImTextureRefFrom(
@@ -465,9 +466,9 @@ ImTextureRef ImTextureRefFrom(
 }
 
 ImTextureRef ImTextureRefFrom(
-    const Ref<Texture>& _pTex)
+    const Ref<Texture>& _pTexture)
 {
-    return ImTextureIDFrom_(_pTex->GetHandle(), _pTex->GetTextureType());
+    return ImTextureIDFrom_(_pTexture->GetHandle(), _pTexture->GetTextureType());
 }
 
 }   // namespace Jam

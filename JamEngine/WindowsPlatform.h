@@ -65,12 +65,12 @@ private:
     Vec2i                       m_clientRes = { 0, 0 };
     Flags<eWindowPropertyFlags> m_flags     = eWindowPropertyFlags::None;
 
-    constexpr static const char* k_windowClassName     = "Jam engine application window class";
-    constexpr static const char* k_windowTitleName     = "Jam engine application window";
-    constexpr static Int32       k_initialClientWidth  = 800;
-    constexpr static Int32       k_initialClientHeight = 600;
-    constexpr static Int32       k_initialClientPosX   = 0;
-    constexpr static Int32       k_initialClientPosY   = 0;
+    constexpr static const wchar_t* k_winClassName     = L"JAM_ENGINE_APP_WINDOW_CLASS";
+    constexpr static const wchar_t* k_winTitleName     = L"Jam Engine Application";
+    constexpr static Int32          k_initClientWidth  = 800;
+    constexpr static Int32          k_initClientHeight = 600;
+    constexpr static Int32          k_initClientPosX   = 0;
+    constexpr static Int32          k_initClientPosY   = 0;
 
     inline static WindowsPlatform* s_pInstance = nullptr;
     friend class Application;

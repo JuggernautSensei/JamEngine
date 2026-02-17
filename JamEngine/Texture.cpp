@@ -25,7 +25,7 @@ Texture::Texture(Texture&& _other) noexcept
     , m_type(_other.m_type)
     , m_bLoadedFromFile(_other.m_bLoadedFromFile)
 {
-    _other.m_texh            = k_invalidHandle;
+    _other.m_texh            = k_nullHandle;
     _other.m_res             = { 0, 0 };
     _other.m_type            = eTextureType::Texture2D;
     _other.m_bLoadedFromFile = false;
@@ -44,7 +44,7 @@ Texture& Texture::operator=(Texture&& _other) noexcept
         m_type            = _other.m_type;
         m_bLoadedFromFile = _other.m_bLoadedFromFile;
 
-        _other.m_texh            = k_invalidHandle;
+        _other.m_texh            = k_nullHandle;
         _other.m_res             = { 0, 0 };
         _other.m_type            = eTextureType::Texture2D;
         _other.m_bLoadedFromFile = false;
@@ -55,20 +55,20 @@ Texture& Texture::operator=(Texture&& _other) noexcept
 Expect<Ref<Texture>> Texture::Create(
     const Path& _path)
 {
-    Ref<Texture> pTex = new Texture;
-    if (const Error err = pTex->Load(_path))
+    Ref<Texture> pTexture = new Texture;
+    if (const Error err = pTexture->Load(_path))
     {
         return err;
     }
-    return pTex;
+    return pTexture;
 }
 
 Ref<Texture> Texture::Create(
     const TextureHandle _texh)
 {
-    Ref<Texture> pTex = new Texture;
-    pTex->Load(_texh);
-    return pTex;
+    Ref<Texture> pTexture = new Texture;
+    pTexture->Load(_texh);
+    return pTexture;
 }
 
 Error Texture::Load(
@@ -77,7 +77,7 @@ Error Texture::Load(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // import dds (native image format is dds.)
-    ImageImportOptions options = {};
+    ImageImporterInfo options = {};
     options.bGenerateMips      = true;
 
     Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path, eImageFormat::DDS, options);
@@ -213,7 +213,7 @@ void Texture::Unbind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    JAM_GFX.SetTexture(k_invalidHandle, _shader, _slot);
+    JAM_GFX.SetTexture(k_nullHandle, _shader, _slot);
 }
 
 void Texture::CleanUp_()
@@ -246,13 +246,13 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Texture>> pTex = JAM_ASSET_MGR.LoadTexture(PathFrom(path));
-    if (!pTex)
+    Expect<Ref<Texture>> pTexture = JAM_ASSET_MGR.LoadTexture(PathFrom(path));
+    if (!pTexture)
     {
-        return pTex.GetError();
+        return pTexture.GetError();
     }
 
-    _pTexture = pTex.Take();
+    _pTexture = pTexture.Take();
     return Error::None;
 }
 

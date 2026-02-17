@@ -29,7 +29,7 @@ namespace
         }
 
         // Ensure null-termination
-        if (numMacros > 0 && _macrosOrEmpty.back().IsNull() == false)
+        if (_macrosOrEmpty.empty() || _macrosOrEmpty.back().IsNull() == false)
         {
             _outBuffer[numMacros] = { nullptr, nullptr };
         }
@@ -104,11 +104,11 @@ namespace
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLFile(
-    const Path&              _path,
-    const ShaderCompilerDesc& _desc)
+    const Path&               _path,
+    const ShaderCompilerInfo& _info)
 {
     ShaderCompiler compiler = {};
-    if (const Error err = compiler.CompileFromHLSLFile_(_path, _desc))
+    if (const Error err = compiler.CompileFromHLSLFile_(_path, _info))
     {
         return err;
     }
@@ -117,11 +117,11 @@ Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLFile(
 }
 
 Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLSource(
-    const StringView         _source,
-    const ShaderCompilerDesc& _desc)
+    const StringView          _source,
+    const ShaderCompilerInfo& _info)
 {
     ShaderCompiler compiler = {};
-    if (const Error err = compiler.CompileHLSLSource_(_source, _desc))
+    if (const Error err = compiler.CompileHLSLSource_(_source, _info))
     {
         return err;
     }
@@ -136,8 +136,8 @@ CMemoryBlock ShaderCompiler::GetBytecode() const
 }
 
 Error ShaderCompiler::CompileFromHLSLFile_(
-    const Path&              _path,
-    const ShaderCompilerDesc& _desc)
+    const Path&               _path,
+    const ShaderCompilerInfo& _desc)
 {
     JAM_ASSERT(!_path.empty(), "File path must not be empty.");
 
@@ -179,8 +179,8 @@ Error ShaderCompiler::CompileFromHLSLFile_(
 }
 
 Error ShaderCompiler::CompileHLSLSource_(
-    const StringView         _source,
-    const ShaderCompilerDesc& _desc)
+    const StringView          _source,
+    const ShaderCompilerInfo& _desc)
 {
     JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 

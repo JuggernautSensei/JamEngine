@@ -211,8 +211,8 @@ void HelloJamScene::OnExit()
 void HelloJamScene::OnRender(const RenderView& _view)
 {
     Graphics::SetFrameBuffer(m_fbh);
-    Graphics::ClearRenderTarget(m_fbh, k_background);
-    Graphics::ClearDepthStencil(m_fbh, true, false);
+    Graphics::ClearColor(m_fbh, k_background);
+    Graphics::ClearDepth(m_fbh, true, false);
     Graphics::SetViewport(_view.vp);
 
     Graphics::SetProgram(m_program);
