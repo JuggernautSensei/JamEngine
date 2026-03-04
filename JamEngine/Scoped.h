@@ -49,8 +49,8 @@ public:
     }
 
     template<typename U, typename E>
-        requires(std::is_convertible_v<U*, T*> && std::is_constructible_v<Deleter, E &&>)
-    /* implicit */ Scoped(Scoped<U, E>&& _other) noexcept(std::is_nothrow_constructible_v<Deleter, E&&>)
+        requires(std::is_convertible_v<U*, T*> && std::is_convertible_v<E, Deleter>)
+    /* implicit */ Scoped(Scoped<U, E>&& _other) noexcept
         : m_ptr(static_cast<T*>(_other.Release()))
         , m_deleter(std::forward<E>(_other.GetDeleter()))
     {
@@ -68,8 +68,8 @@ public:
     }
 
     template<typename U, typename E>
-        requires(std::is_convertible_v<U*, T*> && std::is_assignable_v<Deleter&, E &&>)
-    Scoped& operator=(Scoped<U, E>&& _other) noexcept(std::is_nothrow_assignable_v<Deleter&, E&&>)
+        requires(std::is_convertible_v<U*, T*> && std::is_convertible_v<E, Deleter>)
+    Scoped& operator=(Scoped<U, E>&& _other) noexcept
     {
         Reset(static_cast<T*>(_other.Release()));
         m_deleter = std::forward<E>(_other.GetDeleter());
@@ -104,13 +104,13 @@ public:
         }
     }
 
-    void Reset(T* _ptr, const Deleter& _deleter) noexcept(std::is_nothrow_copy_assignable_v<Deleter>)
+    void Reset(T* _ptr, const Deleter& _deleter) noexcept
     {
         m_deleter = _deleter;
         Reset(_ptr);
     }
 
-    void Reset(T* _ptr, Deleter&& _deleter) noexcept(std::is_nothrow_move_assignable_v<Deleter>)
+    void Reset(T* _ptr, Deleter&& _deleter) noexcept
     {
         m_deleter = std::move(_deleter);
         Reset(_ptr);
@@ -258,11 +258,6 @@ public:
         return m_handle != NULL;
     }
 
-    /* implicit */ operator T() const noexcept
-    {
-        return m_handle;
-    }
-
 private:
     T m_handle = NULL;
 
@@ -270,3 +265,39 @@ private:
 };
 
 }   // namespace Jam
+
+template<typename T, typename Deleter>
+struct ankerl::unordered_dense::hash<Jam::Scoped<T, Deleter>>
+{
+    [[nodiscard]] std::size_t operator()(const Jam::Scoped<T, Deleter>& _str) const noexcept
+    {
+        return ankerl::unordered_dense::hash<std::size_t> {}(reinterpret_cast<std::size_t>(_str.GetPtr()));
+    }
+};
+
+template<typename T, typename Deleter>
+struct ankerl::unordered_dense::hash<Jam::HScoped<T, Deleter>>
+{
+    [[nodiscard]] std::size_t operator()(const Jam::HScoped<T, Deleter>& _str) const noexcept
+    {
+        return ankerl::unordered_dense::hash<std::size_t> {}(reinterpret_cast<std::size_t>(_str.Get()));
+    }
+};
+
+template<typename T, typename Deleter>
+struct std::hash<Jam::Scoped<T, Deleter>>
+{
+    [[nodiscard]] std::size_t operator()(const Jam::Scoped<T, Deleter>& _str) const noexcept
+    {
+        return std::hash<std::size_t> {}(reinterpret_cast<std::size_t>(_str.GetPtr()));
+    }
+};
+
+template<typename T, typename Deleter>
+struct std::hash<Jam::HScoped<T, Deleter>>
+{
+    [[nodiscard]] std::size_t operator()(const Jam::HScoped<T, Deleter>& _str) const noexcept
+    {
+        return std::hash<std::size_t> {}(reinterpret_cast<std::size_t>(_str.Get()));
+    }
+};

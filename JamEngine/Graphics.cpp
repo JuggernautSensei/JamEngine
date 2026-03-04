@@ -113,7 +113,7 @@ namespace
             case eCompareFunc::Always:
                 return D3D11_COMPARISON_ALWAYS;
             case eCompareFunc::None:
-                return D3D11_COMPARISON_LESS; // None 일 경우 comparisonFunc은 의미 없음. 단 d3d11 에러를 피하기 위해서 placeholder
+                return D3D11_COMPARISON_LESS;   // None 일 경우 comparisonFunc은 의미 없음. 단 d3d11 에러를 피하기 위해서 placeholder
             default:
                 JAM_UNREACHABLE;
         }
@@ -251,17 +251,19 @@ namespace
         }
     }
 
-    void FormatName_(
-        ScratchBuffer&   _buf,
+    String CreateName_(
         const StringView _handleName,
         const AnyHandle  _handle,
         const StringView _userName)
     {
-        _buf.Format("[{}] index: {}, token: {}", _handleName, _handle.index, _handle.token);
+        String result = {};
+        result.Format("[{}] index: {}, token: {}", _handleName, _handle.index, _handle.token);
         if (!_userName.IsEmpty())
         {
-            _buf.AppendFormat(", name: {}", _userName);
+            result.AppendFormat(", name: {}", _userName);
         }
+
+        return result;
     }
 
     void SetD3DDebugName_(
@@ -289,7 +291,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.index;
         const UInt32 token = handle.token;
-        JAM_LOG.Warn("VertexBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("VertexBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -297,7 +299,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.index;
         const UInt32 token = handle.token;
-        JAM_LOG.Warn("IndexBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("IndexBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -305,7 +307,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.index;
         const UInt32 token = handle.token;
-        JAM_LOG.Warn("Texture leak detected: Handle pos = {}, Token = {}, Name = '{}', RefCount = {}", index, token, value.name, value.refCount);
+        JAM_LOG_WARN("Texture leak detected: Handle pos = {}, Token = {}, Name = '{}', RefCount = {}", index, token, value.name, value.refCount);
         bLeakDetected = true;
     }
 
@@ -313,7 +315,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.index;
         const UInt32 token = handle.token;
-        JAM_LOG.Warn("FrameBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("FrameBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -326,7 +328,7 @@ bool Graphics::DetectLeak()
         const UInt32 index     = handle.index;
         const UInt32 token     = handle.token;
         const char*  stageName = k_names[value.stage];
-        JAM_LOG.Warn("Shader leak detected: Handle pos = {}, Token = {}, Stage = {}, RefCount = {}", index, token, stageName, value.refCount);
+        JAM_LOG_WARN("Shader leak detected: Handle pos = {}, Token = {}, Stage = {}, RefCount = {}", index, token, stageName, value.refCount);
         bLeakDetected = true;
     }
 
@@ -334,7 +336,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.index;
         const UInt32 token = handle.token;
-        JAM_LOG.Warn("VertexLayout leak detected: Handle pos = {}, Token = {}, RefCount = {}", index, token, value.refCount);
+        JAM_LOG_WARN("VertexLayout leak detected: Handle pos = {}, Token = {}, RefCount = {}", index, token, value.refCount);
         bLeakDetected = true;
     }
 
@@ -342,7 +344,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.index;
         const UInt32 token = handle.token;
-        JAM_LOG.Warn("ConstantBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
+        JAM_LOG_WARN("ConstantBuffer leak detected: Handle pos = {}, Token = {}, Name = '{}'", index, token, value.name);
         bLeakDetected = true;
     }
 
@@ -350,7 +352,7 @@ bool Graphics::DetectLeak()
     {
         const UInt32 index = handle.index;
         const UInt32 token = handle.token;
-        JAM_LOG.Warn("Program leak detected: Handle pos = {}, Token = {}", index, token);
+        JAM_LOG_WARN("Program leak detected: Handle pos = {}, Token = {}", index, token);
         bLeakDetected = true;
     }
 
@@ -779,11 +781,8 @@ void Graphics::SetVertexBufferName(
     const VertexBufferHandle _vbh,
     const StringView         _name)
 {
-    ScratchBuffer buf;
-    FormatName_(buf, "VertexBuffer", _vbh, _name);
-
     VertexBuffer& vb = m_vertexBuffers[_vbh];
-    vb.name          = buf.ToString();
+    vb.name          = CreateName_("VertexBuffer", _vbh, _name);
     SetD3DDebugName_(vb.pBuffer, vb.name);
 }
 
@@ -791,11 +790,8 @@ void Graphics::SetIndexBufferName(
     const IndexBufferHandle _ibh,
     const StringView        _name)
 {
-    ScratchBuffer buf;
-    FormatName_(buf, "IndexBuffer", _ibh, _name);
-
     IndexBuffer& ib = m_indexBuffers[_ibh];
-    ib.name         = buf.ToString();
+    ib.name         = CreateName_("IndexBuffer", _ibh, _name);
     SetD3DDebugName_(ib.pBuffer, ib.name);
 }
 
@@ -803,11 +799,8 @@ void Graphics::SetConstantBufferName(
     const ConstantBufferHandle _cbh,
     const StringView           _name)
 {
-    ScratchBuffer buf;
-    FormatName_(buf, "ConstantBuffer", _cbh, _name);
-
     ConstantBuffer& cb = m_cbuffers[_cbh];
-    cb.name            = buf.ToString();
+    cb.name            = CreateName_("ConstantBuffer", _cbh, _name);
     SetD3DDebugName_(cb.pBuffer, cb.name);
 }
 
@@ -821,17 +814,14 @@ void Graphics::SetTextureName(
     HardwareTextureRef& texture = m_textures[_texh];
 
     // 리소스 이름 설정
-    ScratchBuffer buf;
-    FormatName_(buf, k_texNames[texture.type], _texh, _name);
-
-    texture.name = buf.ToString();
+    texture.name = CreateName_(k_texNames[texture.type], _texh, _name);
     SetD3DDebugName_(texture.pResource, texture.name);
 
     // SRV 이름 설정
     if (texture.pSrv)
     {
-        FormatName_(buf, k_srvNames[texture.type], _texh, _name);
-        SetD3DDebugName_(texture.pSrv, buf.ToStringView());
+        CreateName_(k_srvNames[texture.type], _texh, _name);
+        SetD3DDebugName_(texture.pSrv, texture.name);
     }
 }
 
@@ -852,22 +842,18 @@ void Graphics::SetFrameBufferName(
 
     FrameBuffer& fb = m_frameBuffers[_fbh];
 
-    ScratchBuffer buf;
-    FormatName_(buf, "FrameBuffer", _fbh, _name);
-
     for (Int32 i = 0; i < fb.numRenderTargets; ++i)
     {
         if (fb.pRtvs[i])
         {
-            FormatName_(buf, k_names[i], _fbh, _name);
-            SetD3DDebugName_(fb.pRtvs[i], buf.ToStringView());
+            CreateName_(k_names[i], _fbh, _name);
+            SetD3DDebugName_(fb.pRtvs[i], CreateName_("FrameBuffer", _fbh, _name));
         }
     }
 
     if (fb.pDsv)
     {
-        FormatName_(buf, "FrameBuffer_DSV", _fbh, _name);
-        SetD3DDebugName_(fb.pDsv, buf.ToStringView());
+        SetD3DDebugName_(fb.pDsv, CreateName_("FrameBuffer_DSV", _fbh, _name));
     }
 }
 
@@ -885,10 +871,7 @@ void Graphics::SetShaderName(
     };
 
     ShaderRef& shader = m_shaders[_sh];
-
-    ScratchBuffer buf;
-    FormatName_(buf, k_names[shader.stage], _sh, _name);
-    shader.name = buf.ToString();
+    shader.name       = CreateName_(k_names[shader.stage], _sh, _name);
 
     switch (shader.stage)
     {
@@ -2011,8 +1994,8 @@ void Graphics::CreateInstance(
 
 void Graphics::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance, "Graphics instance not created");
     delete s_pInstance;
+    s_pInstance = nullptr;
 }
 
 void Graphics::BindConstantBuffers_(
@@ -3064,7 +3047,11 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
 {
     // calculate hash
     Murmur3Hasher64 hasher {};
-    hasher.Mix(_vl);
+    for (const VertexLayoutElement& vle: _vl.GetElems())
+    {
+        hasher.Mix(vle.attrib);
+        hasher.Mix(vle.format);
+    }
     const UInt64 hash = hasher.Finish();
 
     // check cache
@@ -3077,17 +3064,16 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
     }
 
     // generate dummy hlsl source
-    const Span<const VertexLayoutElement> vles   = _vl.GetElements();
-    String                                source = "struct VSInput {";
+    String source = "struct VSInput {";
 
     // generate input element descs
     Vector<D3D11_INPUT_ELEMENT_DESC> inputElems = {};
-    inputElems.reserve(vles.size());
-    for (Int32 i = 0; i < _vl.GetNumElements(); ++i)
+    inputElems.reserve(_vl.GetNumElems());
+    Int32 i = 0;
+    for (const VertexLayoutElement& elem: _vl.GetElems())
     {
-        const VertexLayoutElement& vle          = vles[i];
-        const HLSLSemanticInfo&    semanticInfo = HLSLSemanticInfoFrom_(vle.attrib);
-        const HLSLDataTypeInfo&    dataTypeInfo = HLSLDataTypeInfoFrom_(vle.format);
+        const HLSLSemanticInfo& semanticInfo = HLSLSemanticInfoFrom_(elem.attrib);
+        const HLSLDataTypeInfo& dataTypeInfo = HLSLDataTypeInfoFrom_(elem.format);
 
         // generate hlsl struct field
         const StringView  typeName   = dataTypeInfo.name;
@@ -3096,7 +3082,7 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
         const UINT        index      = semanticInfo.index;
 
         // append to hlsl source
-        source.AppendFormat("{} variable_{} : {}{};", typeName, i, semantic, index);
+        source.AppendFormat("{} variable_{} : {}{};", typeName, i++, semantic, index);
 
         // create input element desc
         inputElems.emplace_back(semantic.GetPtr(), index, dxgiFormat, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0);
@@ -3119,7 +3105,7 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
     ID3D11InputLayout* pd3d11InputLayout = nullptr;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateInputLayout(
         inputElems.data(),
-        NumericCast<UInt32>(vles.size()),
+        NumericCast<UINT>(inputElems.size()),
         pBytecode.GetPtr(),
         pBytecode.GetByteWidth(),
         &pd3d11InputLayout));
@@ -3135,9 +3121,7 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
     vl.hash            = hash;
 
     // set debug name
-    ScratchBuffer buf;
-    FormatName_(buf, "InputLayout", vlh, "");
-    SetD3DDebugName_(pd3d11InputLayout, buf.GetPtr());
+    SetD3DDebugName_(pd3d11InputLayout, CreateName_("InputLayout", vlh, ""));
 
     // register to cache
     m_vertexLayouts[vlh] = std::move(vl);
@@ -3439,10 +3423,9 @@ void Graphics::Blit_(
 ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerState_(
     const RasterizerStateD3D11 _state)
 {
-    // RasterizerStateD3D11 is small than UInt32, so we can use its binary data as hash directly.
-    UInt32 key = 0;
-    std::memcpy(&key, &_state, sizeof(_state));
-    static_assert(sizeof(RasterizerStateD3D11) <= sizeof(UInt32), "RasterizerStateD3D11 size exceeds hash size.");
+    Murmur3Hasher32 hasher {};
+    hasher.Mix(_state);
+    const UInt32 key = hasher.Finish();
 
     const auto it = m_d3d11RasterizerStateCache.find(key);
     if (it != m_d3d11RasterizerStateCache.end())
@@ -3473,7 +3456,6 @@ ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerState_(
 ID3D11BlendState* Graphics::GetOrCreateD3D11BlendState_(
     const BlendStateD3D11& _state)
 {
-    // BlendStateD3D11 is large. use 64bit hash.
     Murmur3Hasher64 hasher {};
     hasher.Mix(_state);
     const UInt64 hash = hasher.Finish();
@@ -3532,10 +3514,9 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendState_(
 ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilState_(
     const DepthStencilStateD3D11 _state)
 {
-    // DepthStencilStateD3D11 is small than UInt64, so we can use its binary data as hash directly.
-    UInt64 key = 0;
-    std::memcpy(&key, &_state, sizeof(_state));
-    static_assert(sizeof(DepthStencilStateD3D11) <= sizeof(UInt64), "DepthStencilStateD3D11 size exceeds hash size.");
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(_state);
+    const UInt64 key = hasher.Finish();
 
     const auto it = m_d3d11DepthStencilStateCache.find(key);
     if (it != m_d3d11DepthStencilStateCache.end())
@@ -3573,10 +3554,10 @@ ID3D11SamplerState* Graphics::GetOrCreateD3D11SamplerState_(
     const SamplerState _state,
     const RGBA         _color)
 {
-    // SamplerState + BorderColor is 8byte, so we can use its binary data as hash directly.
-    static_assert(sizeof(SamplerState) + sizeof(RGBA) <= sizeof(UInt64), "SamplerStateD3D11 size exceeds hash size.");
-    const UInt64 key = NumericCast<UInt64>(_state.value) << 32
-                     | NumericCast<UInt64>(_color.value);
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(_state);
+    hasher.Mix(_color);
+    const UInt64 key = hasher.Finish();
 
     const auto it = m_d3d11SamplerStateCache.find(key);
     if (it != m_d3d11SamplerStateCache.end())

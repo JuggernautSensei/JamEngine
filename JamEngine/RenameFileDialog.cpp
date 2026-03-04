@@ -11,10 +11,10 @@ namespace Jam
 {
 
 RenameFileDialog::RenameFileDialog(
-    const RenameFileDialogDesc& _desc)
-    : Dialog(_desc.baseInfo)
-    , m_oldPath(_desc.srcPath)
-    , m_filename(FileNameOf(_desc.srcPath))
+    const RenameFileDialogInfo& _info)
+    : Dialog(_info.title, _info.size)
+    , m_oldPath(_info.srcPath)
+    , m_filename(_info.srcPath.GetFileName())
 {
 }
 
@@ -22,7 +22,7 @@ void RenameFileDialog::OnShow()
 {
     const ImVec2 btnSize = CalcFitButtonSize(2);
 
-    // message
+    // msg
     Widget_TextWrapped("enter new name for file:", k_textWrapWidth);
     ImGui::Spacing();
 
@@ -34,7 +34,8 @@ void RenameFileDialog::OnShow()
     // buttons
     if (ImGui::Button("ok", btnSize))
     {
-        if (JAM_EDITOR.ReplaceFileName(m_oldPath, m_filename))
+        const String dstPath = String::Joined(m_oldPath.GetDirectory(), m_filename, eJoinType::File);
+        if (GetEditor().RenameFile(m_oldPath, dstPath))
         {
             ImGui::CloseCurrentPopup();
         }

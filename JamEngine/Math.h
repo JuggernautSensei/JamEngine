@@ -1,3 +1,4 @@
+// ReSharper disable CppClangTidyModernizeUseStdNumbers
 #pragma once
 #include <random>
 
@@ -246,7 +247,7 @@ struct SinCos
 
 template<typename To, typename From>
     requires std::is_arithmetic_v<To> && std::is_arithmetic_v<From>
-[[nodiscard]] constexpr bool CheckOverflow(From _value) noexcept   // do not check float precision loss, only check if value is out of range of target type
+[[nodiscard]] constexpr bool CheckOverflow(From _value) noexcept   // do not check float precision loss, only check if m_value is out of range of target type
 {
     if constexpr (std::is_floating_point_v<From> && std::is_floating_point_v<To>)
     {
@@ -285,7 +286,7 @@ template<typename To, typename From>
     requires std::is_arithmetic_v<To> && std::is_arithmetic_v<From>
 [[nodiscard]] constexpr To NumericCast(From _value) noexcept
 {
-    JAM_ASSERT(!CheckOverflow<To>(_value), "NumericCast overflow: cannot cast value {} to target type.", _value);
+    JAM_ASSERT(!CheckOverflow<To>(_value), "NumericCast overflow: cannot cast m_value {} to target type.", +_value);
     return static_cast<To>(_value);
 }
 

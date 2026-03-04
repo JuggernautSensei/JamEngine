@@ -27,7 +27,7 @@ public:
         : m_mem(_vertData)
         , m_stride(_vl.GetStride())
     {
-        for (const VertexLayoutElement& vle: _vl.GetElements())
+        for (const VertexLayoutElement& vle: _vl.GetElems())
         {
             Details::TinyElem elem = { vle.offset, vle.byteWidth, true };
             m_vles[vle.attrib]     = elem;
@@ -64,7 +64,7 @@ public:
         : m_mem(_vertData)
         , m_stride(_vl.GetStride())
     {
-        for (const VertexLayoutElement& vle: _vl.GetElements())
+        for (const VertexLayoutElement& vle: _vl.GetElems())
         {
             Details::TinyElem elem = { vle.offset, vle.byteWidth, true };
             m_vles[vle.attrib]     = elem;

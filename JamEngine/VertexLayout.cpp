@@ -21,81 +21,20 @@ void VertexLayout::Push(
     vlm.format              = _format;
     vlm.byteWidth           = NumericCast<Int32>(ByteWidthOf(_format));
     vlm.offset              = m_stride;
-
-    m_vleLut[_attrib]  = m_numElems;
-    m_vles[m_numElems] = vlm;
-
+    m_vles[m_numElems++]    = vlm;
     m_stride += vlm.byteWidth;
-    ++m_numElems;
+    m_vleLut[_attrib] = &m_vles[m_numElems - 1];
 }
-
-void VertexLayout::Modify(
-    const eVertexAttribute _attrib,
-    const eAttributeFormat _format)
-{
-    JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32          idx          = m_vleLut[_attrib];
-    VertexLayoutElement& vleToMod     = m_vles[idx];
-    const Int32          oldByteWidth = vleToMod.byteWidth;
-
-    // 수정
-    vleToMod.format    = _format;
-    vleToMod.byteWidth = NumericCast<Int32>(ByteWidthOf(_format));
-    const Int32 diff   = vleToMod.byteWidth - oldByteWidth;
-    if (diff == 0)
-    {
-        return;   // 변경사항 없음
-    }
-
-    // stride 먼저 계산
-    m_stride += diff;
-
-    // 이후의 모든 offset을 수정해야함.
-    for (Int32 i = idx + 1; i < m_numElems; ++i)
-    {
-        VertexLayoutElement& vle = m_vles[i];
-        vle.offset += diff;
-    }
-}
-
-void VertexLayout::Remove(
-    const eVertexAttribute _attrib)
-{
-    JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32 idx = m_vleLut[_attrib];
-
-    const VertexLayoutElement& vleToRemove       = m_vles[idx];
-    const Int32                byteWidthToRemove = vleToRemove.byteWidth;
-
-    // stride 먼저 계산
-    m_stride -= vleToRemove.byteWidth;
-
-    // idx 이후의 모든 offset을 수정해야함.
-    for (Int32 i = idx + 1; i < m_numElems; ++i)
-    {
-        VertexLayoutElement& vle = m_vles[i];
-        vle.offset -= byteWidthToRemove;
-
-        // 왼쪽으로 shift
-        m_vles[i - 1]                        = vle;
-        m_vleLut[UnderlyingFrom(vle.attrib)] = i - 1;   // 룩업 테이블도 갱신
-    }
-
-    // 마지막 요소 초기화
-    m_vleLut[_attrib]      = k_invalidIdx;
-    m_vles[m_numElems - 1] = {};
-    --m_numElems;
-}
-
 bool VertexLayout::Has(
     const eVertexAttribute _attrib) const
 {
-    return m_vleLut[_attrib] != k_invalidIdx;
+    return m_vleLut[_attrib] != nullptr;
 }
 
 void VertexLayout::Reset()
 {
-    m_vleLut.Fill(k_invalidIdx);
+    m_vles.fill({});
+    m_vleLut.Fill(nullptr);
     m_stride   = 0;
     m_numElems = 0;
 }
@@ -105,20 +44,19 @@ Int32 VertexLayout::GetStride() const
     return m_stride;
 }
 
-const VertexLayoutElement& VertexLayout::GetElement(
+const VertexLayoutElement& VertexLayout::GetElem(
     const eVertexAttribute _attrib) const
 {
-    JAM_ASSERT(Has(_attrib), "vertex attribute does not exist.");
-    const Int32 idx = m_vleLut[_attrib];
-    return m_vles[idx];
+    JAM_ASSERT(Has(_attrib), "vertex attribute '{}' does not exist in this vertex layout.", NameOf(_attrib));
+    return *m_vleLut[_attrib];
 }
 
-Span<const VertexLayoutElement> VertexLayout::GetElements() const
+Span<const VertexLayoutElement> VertexLayout::GetElems() const
 {
     return { m_vles.data(), m_numElems };
 }
 
-Int32 VertexLayout::GetNumElements() const
+Int32 VertexLayout::GetNumElems() const
 {
     return m_numElems;
 }
@@ -126,9 +64,8 @@ Int32 VertexLayout::GetNumElements() const
 void VertexLayout::WriteToArchive(
     ArchiveWriter& _archive) const
 {
-    for (Int32 i = 0; i < m_numElems; ++i)
+    for (const VertexLayoutElement& vle: GetElems())
     {
-        const VertexLayoutElement& vle = m_vles[i];
         _archive.OpenAtBack();
         _archive.WriteField("attrib", vle.attrib);
         _archive.WriteField("format", vle.format);

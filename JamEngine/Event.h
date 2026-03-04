@@ -14,9 +14,9 @@ public:
     Event(Event&&) noexcept            = default;
     Event& operator=(Event&&) noexcept = default;
 
-    virtual void                     FormatEventMessage(ScratchBuffer& _buf) const = 0;   // for logging or debugging
-    [[nodiscard]] virtual StringView GetTypeName() const                           = 0;
-    [[nodiscard]] virtual UInt32     GetTypeHash() const                           = 0;
+    [[nodiscard]] virtual String     ToString() const    = 0;
+    [[nodiscard]] virtual StringView GetTypeName() const = 0;
+    [[nodiscard]] virtual UInt32     GetTypeHash() const = 0;
 
     [[nodiscard]] bool IsHandled() const;
     void               SetHandled(bool _bHandled);
@@ -25,13 +25,17 @@ private:
     bool m_bHandled = false;
 };
 
-#define JAM_EVENT(_eventT)                                                          \
+#define JAM_EVENT_BODY(_eventT)                                                     \
 public:                                                                             \
     constexpr static StringView k_typeName = NameOf<_eventT>();                     \
     constexpr static UInt32     k_typeHash = HashOf<_eventT>();                     \
     [[nodiscard]] StringView    GetTypeName() const override { return k_typeName; } \
     [[nodiscard]] UInt32        GetTypeHash() const override { return k_typeHash; } \
-    constexpr static bool       __JAM_EVENT_MARKER__ = true
+    constexpr static bool       __JAM_EVENT_MARKER__ = true;                        \
+                                                                                    \
+private:                                                                            \
+    static_assert(true)   // for semicolon after the macro
+
 
 template<typename TEvent>
 concept EventType = requires(TEvent _event) {

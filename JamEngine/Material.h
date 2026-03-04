@@ -60,14 +60,14 @@ struct MaterialTextureSettings
 class Material : public IAsset
 {
 public:
-    [[nodiscard]] static Expect<Ref<Material>> Create(const Path& _path);
+    [[nodiscard]] static Expect<Ref<Material>> Create(StringView _path);
     [[nodiscard]] static Ref<Material>         Create(const MaterialParams& _params, const MaterialTextures& _textures, const MaterialTextureSettings& _settings);
 
-    Error Load(const Path& _path) override;
+    Error Load(StringView _path) override;
     void  Load(const MaterialParams& _params, const MaterialTextures& _textures, const MaterialTextureSettings& _settings);
-    Error Save(const Path& _path, bool _bReplaceExtension = true, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None) const override;
+    Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
-    void  SetVirtualPath(const Path& _path) override;
+    void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
     void                                         SetParams(const MaterialParams& _params);
@@ -77,15 +77,15 @@ public:
     void                                         SetTextureSettings(const MaterialTextureSettings& _settings);
     [[nodiscard]] const MaterialTextureSettings& GetTextureSettings() const;
 
-    [[nodiscard]] bool        IsValid() const override;
-    [[nodiscard]] const Path& GetPath() const override;
-    [[nodiscard]] eAssetType  GetAssetType() const override;
-    [[nodiscard]] StringView  GetTypeName() const override;
-    [[nodiscard]] UInt32      GetTypeHash() const override;
-    [[nodiscard]] UInt16      GetSortKey() const;
-    [[nodiscard]] StringView  GetName() const override;
-    [[nodiscard]] StringView  GetExtension() const override;
-    [[nodiscard]] StringView  GetFilter() const override;
+    [[nodiscard]] bool       IsValid() const override;
+    [[nodiscard]] StringView GetPath() const override;
+    [[nodiscard]] eAssetType GetAssetType() const override;
+    [[nodiscard]] StringView GetTypeName() const override;
+    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] UInt16     GetSortKey() const;
+    [[nodiscard]] StringView GetName() const override;
+    [[nodiscard]] StringView GetExtension() const override;
+    [[nodiscard]] StringView GetFilter() const override;
 
     static constexpr StringView k_typeName  = NameOf<Material>();
     static constexpr UInt32     k_typeHash  = HashOf<Material>();
@@ -98,7 +98,7 @@ private:
     void CleanUp_();
 
     String m_name            = {};
-    Path   m_path            = {};
+    String m_path            = {};
     UInt16 m_sortKey         = 0;
     bool   m_bValid          = false;
     bool   m_bLoadedFromFile = false;

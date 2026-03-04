@@ -50,7 +50,7 @@ namespace   // data transfer objects
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Expect<Ref<Material>> Material::Create(
-    const Path& _path)
+    StringView _path)
 {
     Ref<Material> pMaterial = new Material;
     if (const Error err = pMaterial->Load(_path))
@@ -71,9 +71,9 @@ Ref<Material> Material::Create(
 }
 
 Error Material::Load(
-    const Path& _path)
+    StringView _path)
 {
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // io
     Expect<MaterialLoader> loader = MaterialLoader::Open(_path);
@@ -114,7 +114,7 @@ Error Material::Load(
         const StringViewDto& path = pDto->textures[UnderlyingFrom(type)];
         if (!path.empty())
         {
-            Expect<Ref<Texture>> pTexture = JAM_ASSET_MGR.LoadTexture(PathFrom(path));
+            Expect<Ref<Texture>> pTexture = GetAssetManager().LoadTexture(StringViewFrom(path));
             if (!pTexture)
             {
                 return pTexture.GetError();
@@ -125,7 +125,7 @@ Error Material::Load(
     }
 
     // finalize
-    const StringView path = _path.native();
+    const StringView path = _path;
     const UInt32     hash = path.Hash32();
     m_sortKey             = static_cast<UInt16>(hash);
     m_path                = _path;
@@ -149,24 +149,21 @@ void Material::Load(
 }
 
 Error Material::Save(
-    const Path&                 _path,
-    const bool                  _bReplaceExtension,
-    const Flags<eSaveFileFlags> _flags) const
+    const StringView                 _path,
+    const bool                       _bReplaceExtension,
+    const eFileWriterCollisionPolicy _policy) const
 {
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid material");
 
-    Expect<MaterialSaver> saver = {};
-    if (_bReplaceExtension)
-    {
-        const Path path = ReplacedExtension(_path, k_extension);
-        saver           = MaterialSaver::Open(path, _flags);
-    }
-    else
-    {
-        saver = MaterialSaver::Open(_path, _flags);
-    }
+    StringView dir = {}, base = {}, ext = {};
+    _path.Decompose(&dir, nullptr, &base, &ext);
 
+    String path = dir;
+    path.Append(base);
+    path.Append(_bReplaceExtension ? k_extension : ext);
+
+    Expect<MaterialSaver> saver = MaterialSaver::Open(path, _policy);
     if (!saver)
     {
         return saver.GetError();
@@ -207,11 +204,11 @@ Error Material::Save(
 void Material::SetName(
     const StringView _name)
 {
-    m_name = _name.ToString();
+    m_name = _name;
 }
 
 void Material::SetVirtualPath(
-    const Path& _path)
+    StringView _path)
 {
     JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of a material loaded from file");
     m_path = _path;
@@ -260,7 +257,7 @@ bool Material::IsValid() const
     return m_bValid;
 }
 
-const Path& Material::GetPath() const
+StringView Material::GetPath() const
 {
     return m_path;
 }
@@ -302,7 +299,7 @@ StringView Material::GetFilter() const
 
 void Material::CleanUp_()
 {
-    m_path.clear();
+    m_path.Clear();
     m_name.Clear();
     m_sortKey         = 0;
     m_bValid          = false;
@@ -332,7 +329,7 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Material>> pMaterial = JAM_ASSET_MGR.LoadMaterial(path.ToStdString());
+    Expect<Ref<Material>> pMaterial = GetAssetManager().LoadMaterial(path);
     if (!pMaterial)
     {
         return pMaterial.GetError();

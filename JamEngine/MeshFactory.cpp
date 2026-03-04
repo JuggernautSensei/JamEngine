@@ -519,12 +519,12 @@ Ref<Mesh> CreateCylinder(
         idxes[i * 12 + 4] = botNext;
         idxes[i * 12 + 5] = botCurr;
 
-        // top cap triangle
+        // top heapCap triangle
         idxes[i * 12 + 6] = topCircleCenterIdx;
         idxes[i * 12 + 7] = topNext;
         idxes[i * 12 + 8] = topCurr;
 
-        // bottom cap triangle
+        // bottom heapCap triangle
         idxes[i * 12 + 9]  = botCircleCenterIdx;
         idxes[i * 12 + 10] = botCurr;
         idxes[i * 12 + 11] = botNext;

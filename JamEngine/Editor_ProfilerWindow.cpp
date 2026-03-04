@@ -3,7 +3,7 @@
 #include "Editor_ProfilerWindow.h"
 
 #include "Application.h"
-#include "ImGuiGlue.h"
+#include "ImGuiEngine.h"
 #include "Input.h"
 
 namespace Jam
@@ -39,8 +39,8 @@ void Editor_ProfilerWindow::OnImGuiRender(bool& _pShow) const
 void Editor_ProfilerWindow::DrawFrameTabItem_() const
 {
 
-    const float deltaTimeMs = JAM_APP.GetDeltaTimeSec() / 0.001f;
-    const float frameRate   = JAM_APP.GetFrameRate();
+    const float deltaTimeMs = GetApp().GetDeltaTimeSec() / 0.001f;
+    const float frameRate   = GetApp().GetFrameRate();
 
     ImGui::Text("delta time: %.3f ms", deltaTimeMs);
     ImGui::Text("frame rate: %.1f fps", frameRate);
@@ -100,10 +100,10 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
         "away"
     };
 
-    const auto [x, y]      = JAM_INPUT.GetMousePos();
-    const auto [dx, dy]    = JAM_INPUT.GetMouseDeltaPos();
-    const float wheelDelta = JAM_INPUT.GetMouseDeltaWheel();
-    const bool  bVisible   = JAM_INPUT.IsMouseVisible();
+    const auto [x, y]      = GetInput().GetMousePos();
+    const auto [dx, dy]    = GetInput().GetMouseDeltaPos();
+    const float wheelDelta = GetInput().GetMouseDeltaWheel();
+    const bool  bVisible   = GetInput().IsMouseVisible();
 
     ImGui::BulletText("game mouse");
     ImGui::TreePush("game mouse");
@@ -117,15 +117,15 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
             const eMouse button = k_mouseButtons[idx];
             eMouseState  state  = eMouseState::Away;
 
-            if (JAM_INPUT.IsMousePressed(button))
+            if (GetInput().IsMousePressed(button))
             {
                 state = eMouseState::Pressed;
             }
-            else if (JAM_INPUT.IsMouseHold(button))
+            else if (GetInput().IsMouseHold(button))
             {
                 state = eMouseState::Hold;
             }
-            else if (JAM_INPUT.IsMouseReleased(button))
+            else if (GetInput().IsMouseReleased(button))
             {
                 state = eMouseState::Released;
             }

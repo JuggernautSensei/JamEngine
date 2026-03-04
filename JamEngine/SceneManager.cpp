@@ -46,7 +46,7 @@ void SceneManager::Update(
 
 void SceneManager::RenderRuntime() const
 {
-    const auto [w, h] = JAM_GFX.GetBackBufferResolution();
+    const auto [w, h] = GetGraphics().GetBackBufferResolution();
     const Viewport vp = { NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
     RenderRuntime(k_nullHandle, vp);
 }
@@ -102,7 +102,8 @@ void SceneManager::ImGuiRender() const
 }
 
 Error SceneManager::LoadScene(
-    const Path& _path)
+    const StringView _path,
+    const bool       _bDefered)
 {
     Expect<JsonReader> reader = JsonReader::ParseFromFile(_path);
     if (!reader)
@@ -116,16 +117,25 @@ Error SceneManager::LoadScene(
         return pScene.GetError();
     }
 
-    LoadScene(pScene.GetValue());
+    LoadScene(pScene.GetValue(), _bDefered);
     return Error::None;
 }
 
 void SceneManager::LoadScene(
-    const Ref<Scene>& _pScene)
+    const Ref<Scene>& _pScene,
+    const bool        _bDefered)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
     JAM_ASSERT(JAM_SCENE_DB.IsSceneReflected(_pScene->GetTypeHash()), "Scene type '{}' is not reflected. you must JAM_SCENE macro in the scene class definition.", _pScene->GetTypeName());
-    ChangeSceneDefered_(_pScene);
+
+    if (_bDefered)
+    {
+        ChangeSceneDefered_(_pScene);
+    }
+    else
+    {
+        ChangeScene_(_pScene);
+    }
 }
 
 bool SceneManager::HasActiveScene() const
@@ -155,14 +165,14 @@ void SceneManager::CreateInstance()
 
 void SceneManager::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance, "SceneManager not initialized");
     delete s_pInstance;
+    s_pInstance = nullptr;
 }
 
 void SceneManager::OnEvent(
     Event& _event)
 {
-    if (!JAM_APP.IsEditorEnabled())   // runtime mode
+    if (!GetApp().IsSubSystemEnabled(eAppSubSystemFlags::Editor))   // runtime mode
     {
         // handle window events in runtime mode
         EventDispatcher dispatcher { _event };
@@ -191,12 +201,11 @@ void SceneManager::OnWindowMaximizeEvent_(
 void SceneManager::ChangeSceneDefered_(
     const Ref<Scene>& _pScene)
 {
-    auto changeScene = [this, _pScene]
-    {
-        ChangeScene_(_pScene);
-    };
-
-    JAM_APP.SubmitCommandToMainThread(Bind(std::move(changeScene)));
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _pScene]
+        {
+            ChangeScene_(_pScene);
+        }));
 }
 
 void SceneManager::ChangeScene_(
@@ -211,18 +220,21 @@ void SceneManager::ChangeScene_(
     m_pActiveScene->OnEnter();
 
     // resize in runtime.
-    if (!JAM_APP.IsEditorEnabled())
+    if (!GetApp().IsSubSystemEnabled(eAppSubSystemFlags::Editor))   // runtime mode
     {
-        const auto [w, h] = JAM_GFX.GetBackBufferResolution();
+        const auto [w, h] = GetGraphics().GetBackBufferResolution();
         Resize(w, h);
     }
 
     // resource garbage collection
-    JAM_ASSET_MGR.CleanGarbageAll();
+    if (GetApp().IsSubSystemEnabled(eAppSubSystemFlags::AssetManager))
+    {
+        GetAssetManager().CleanGarbageAll();
+    }
 
     // dispatch scene changed event
     SceneChangedEvent event = {};
-    JAM_APP.DispatchEvent(event);
+    GetApp().DispatchEvent(event);
 }
 
 }   // namespace Jam

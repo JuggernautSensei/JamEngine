@@ -8,14 +8,17 @@ template<typename T>
     requires std::is_default_constructible_v<T>
 class ResourcePool
 {
+public:
+    using HandleT = Handle<T>;
+
     template<bool IsConst>
-    class Iterator
+    class IteratorBase
     {
     public:
-        using PoolT           = std::conditional_t<IsConst, const ResourcePool, ResourcePool>;
-        using HandleIteratorT = std::conditional_t<IsConst, typename HandleAllocator<T>::ConstIteratorT, typename HandleAllocator<T>::IteratorT>;
-        using HandleT         = Handle<T>;
-        using ResourceT       = std::conditional_t<IsConst, const T, T>;
+        using PoolT          = std::conditional_t<IsConst, const ResourcePool, ResourcePool>;
+        using HandleT        = Handle<T>;
+        using ResourceT      = std::conditional_t<IsConst, const T, T>;
+        using HandleIterator = std::conditional_t<IsConst, typename HandleAllocator<T>::ConstIterator, typename HandleAllocator<T>::Iterator>;
 
         using iterator_category = std::forward_iterator_tag;
         using value_type        = std::pair<HandleT, ResourceT&>;
@@ -23,57 +26,57 @@ class ResourcePool
         using pointer           = const value_type*;
         using reference         = const value_type&;
 
-        Iterator() = default;
+        IteratorBase() = default;
 
-        explicit Iterator(PoolT* _pPool) noexcept
-            : Iterator(_pPool, _pPool->m_handleAlloc.begin())
+        explicit IteratorBase(PoolT* _pPool) noexcept
+            : IteratorBase(_pPool, _pPool->m_handleAlloc.begin())
         {
         }
 
-        explicit Iterator(PoolT* _pPool, HandleIteratorT _handleIter) noexcept
+        explicit IteratorBase(PoolT* _pPool, HandleIterator _handleIter) noexcept
             : m_pPool(_pPool)
             , m_handleIter(_handleIter)
         {
         }
 
-        Iterator& operator++() noexcept
+        IteratorBase& operator++() noexcept
         {
             ++m_handleIter;
             return *this;
         }
 
-        Iterator operator++(int) noexcept
+        IteratorBase operator++(int) noexcept
         {
-            Iterator temp = *this;
+            IteratorBase temp = *this;
             ++(*this);
             return temp;
         }
 
         [[nodiscard]] value_type operator*() const noexcept
         {
-            JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
+            JAM_ASSERT(IsValid_(), "IteratorBase not initialized or out of bounds");
             HandleT handle = *m_handleIter;
             return { handle, m_pPool->GetResource(handle) };
         }
 
         [[nodiscard]] HandleT GetHandle() const noexcept
         {
-            JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
+            JAM_ASSERT(IsValid_(), "IteratorBase not initialized or out of bounds");
             return *m_handleIter;
         }
 
         [[nodiscard]] ResourceT& GetResource() const noexcept
         {
-            JAM_ASSERT(IsValid_(), "Iterator not initialized or out of bounds");
+            JAM_ASSERT(IsValid_(), "IteratorBase not initialized or out of bounds");
             return m_pPool->GetResource(*m_handleIter);
         }
 
-        [[nodiscard]] bool operator==(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator==(const IteratorBase& other) const noexcept
         {
             return m_pPool == other.m_pPool && m_handleIter == other.m_handleIter;
         }
 
-        [[nodiscard]] bool operator!=(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator!=(const IteratorBase& other) const noexcept
         {
             return !(*this == other);
         }
@@ -84,14 +87,12 @@ class ResourcePool
             return m_pPool && m_handleIter != m_pPool->m_handleAlloc.end();
         }
 
-        PoolT*          m_pPool      = nullptr;
-        HandleIteratorT m_handleIter = {};
+        PoolT*         m_pPool      = nullptr;
+        HandleIterator m_handleIter = {};
     };
 
-public:
-    using HandleT        = Handle<T>;
-    using IteratorT      = Iterator<false>;
-    using ConstIteratorT = Iterator<true>;
+    using Iterator      = IteratorBase<false>;
+    using ConstIterator = IteratorBase<true>;
 
     ResourcePool()  = default;
     ~ResourcePool() = default;
@@ -164,34 +165,34 @@ public:
         m_numItems = 0;
     }
 
-    [[nodiscard]] IteratorT begin() noexcept
+    [[nodiscard]] Iterator begin() noexcept
     {
-        return IteratorT(this);
+        return Iterator(this);
     }
 
-    [[nodiscard]] IteratorT end() noexcept
+    [[nodiscard]] Iterator end() noexcept
     {
-        return IteratorT(this, m_handleAlloc.end());
+        return Iterator(this, m_handleAlloc.end());
     }
 
-    [[nodiscard]] ConstIteratorT begin() const noexcept
+    [[nodiscard]] ConstIterator begin() const noexcept
     {
-        return ConstIteratorT(this);
+        return ConstIterator(this);
     }
 
-    [[nodiscard]] ConstIteratorT end() const noexcept
+    [[nodiscard]] ConstIterator end() const noexcept
     {
-        return ConstIteratorT(this, m_handleAlloc.end());
+        return ConstIterator(this, m_handleAlloc.end());
     }
 
-    [[nodiscard]] ConstIteratorT cbegin() const noexcept
+    [[nodiscard]] ConstIterator cbegin() const noexcept
     {
-        return ConstIteratorT(this);
+        return ConstIterator(this);
     }
 
-    [[nodiscard]] ConstIteratorT cend() const noexcept
+    [[nodiscard]] ConstIterator cend() const noexcept
     {
-        return ConstIteratorT(this, m_handleAlloc.end());
+        return ConstIterator(this, m_handleAlloc.end());
     }
 
 private:

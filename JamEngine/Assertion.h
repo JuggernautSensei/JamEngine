@@ -9,7 +9,10 @@ void ReportAssertion(const std::source_location& _loc, std::string_view _msg);
 void ReportHRESULTFailure(const std::source_location& _loc, std::string_view _msg, HRESULT _hr);
 
 template<typename... TArgs>
-void ReportCrash(const std::source_location& _loc, fmt::format_string<TArgs...> _fmt, TArgs&&... _args)
+void ReportCrash(
+    const std::source_location&        _loc,
+    const fmt::format_string<TArgs...> _fmt,
+    TArgs&&... _args)
 {
     char buf[2048];
     const auto [end, _] = fmt::format_to_n(buf, sizeof(buf) - 1, _fmt, std::forward<TArgs>(_args)...);
@@ -19,7 +22,10 @@ void ReportCrash(const std::source_location& _loc, fmt::format_string<TArgs...> 
 }
 
 template<typename... TArgs>
-void ReportAssertion(const std::source_location& _loc, fmt::format_string<TArgs...> _fmt, TArgs&&... _args)
+void ReportAssertion(
+    const std::source_location&  _loc,
+    const fmt::format_string<TArgs...> _fmt,
+    TArgs&&... _args)
 {
     char buf[2048];
     const auto [end, _] = fmt::format_to_n(buf, sizeof(buf) - 1, _fmt, std::forward<TArgs>(_args)...);
@@ -42,7 +48,7 @@ void ReportAssertion(const std::source_location& _loc, fmt::format_string<TArgs.
         {                                                                                                                     \
             if (!(_condition))                                                                                                \
             {                                                                                                                 \
-                Jam::Details::ReportAssertion(std::source_location::current(), "Assertion failed! " #_condition __VA_ARGS__); \
+                Jam::Details::ReportAssertion(std::source_location::current(), "DebugAssert failed! " #_condition __VA_ARGS__); \
                 JAM_DEBUG_BREAK;                                                                                              \
             }                                                                                                                 \
         }                                                                                                                     \
@@ -69,12 +75,12 @@ void ReportAssertion(const std::source_location& _loc, fmt::format_string<TArgs.
     }                                                                                                          \
     JAM_END_MACRO_BLOCK
 
-#define JAM_CHECK_WIN32(_func)                                                                                \
-    JAM_BEGIN_MACRO_BLOCK                                                                                     \
-    if ((_func) == FALSE)                                                                                     \
-    {                                                                                                         \
-        Jam::Details::ReportHRESULTFailure(                                                                   \
-            std::source_location::current(), "Win32 failure in " #_func, HRESULT_FROM_WIN32(GetLastError())); \
-        std::abort();                                                                                         \
-    }                                                                                                         \
+#define JAM_CHECK_WIN32(_func)                                                                                    \
+    JAM_BEGIN_MACRO_BLOCK                                                                                         \
+    if ((_func) == FALSE)                                                                                         \
+    {                                                                                                             \
+        Jam::Details::ReportHRESULTFailure(                                                                       \
+            std::source_location::current(), "Win32 failure in " #_func, ::HRESULT_FROM_WIN32(::GetLastError())); \
+        std::abort();                                                                                             \
+    }                                                                                                             \
     JAM_END_MACRO_BLOCK

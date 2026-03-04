@@ -25,8 +25,8 @@
 //
 // -------------------------------------------------------------------------------------------
 // History :
-// 2019/11/03 View gizmo
-// 2016/09/11 Behind camera culling. Scaling Delta matrix not multiplied by source matrix scales. local/world rotation and translation fixed. Display message is incorrect (X: ... Y:...) in local m_mode.
+// 2019/11/03 ViewT gizmo
+// 2016/09/11 Behind camera culling. Scaling Delta matrix not multiplied by source matrix scales. local/world rotation and translation fixed. Display msg is incorrect (X: ... Y:...) in local m_mode.
 // 2016/09/09 Hatched negative axis. Snapping. Documentation update.
 // 2016/09/04 Axis switch and translation plan autohiding. Scale transform stability improved
 // 2016/09/01 Mogwai changed to Manipulate. Draw debug cube. Fixed inverted scale. Mixing scale and translation/rotation gives bad results.
@@ -228,23 +228,23 @@ namespace IMGUIZMO_NAMESPACE
    [[deprecated("Use PushID/PopID instead.")]]
    IMGUI_API void SetID(int id);
 
-	// ID stack/scopes
+	// ID sso/scopes
 	// Read the FAQ (docs/FAQ.md or http://dearimgui.org/faq) for more details about how ID are handled in dear imgui.
-	// - Those questions are answered and impacted by understanding of the ID stack system:
+	// - Those questions are answered and impacted by understanding of the ID sso system:
 	//   - "Q: Why is my widget not reacting when I click on it?"
 	//   - "Q: How can I have widgets with an empty label?"
 	//   - "Q: How can I have multiple widgets with the same label?"
-	// - Short version: ID are hashes of the entire ID stack. If you are creating widgets in a loop you most likely
+	// - Short version: ID are hashes of the entire ID sso. If you are creating widgets in a loop you most likely
 	//   want to push a unique identifier (e.g. object pointer, loop index) to uniquely differentiate them.
 	// - You can also use the "Label##foobar" syntax within widget label to distinguish them from each others.
 	// - In this header file we use the "label"/"typeName" terminology to denote a string that will be displayed + used as an ID,
 	//   whereas "str_id" denote a string that is only used as an ID and not normally displayed.
-	IMGUI_API void          PushID(const char* str_id);                                     // push string into the ID stack (will hash string).
-	IMGUI_API void          PushID(const char* str_id_begin, const char* str_id_end);       // push string into the ID stack (will hash string).
-	IMGUI_API void          PushID(const void* ptr_id);                                     // push pointer into the ID stack (will hash pointer).
-	IMGUI_API void          PushID(int int_id);                                             // push integer into the ID stack (will hash integer).
-	IMGUI_API void          PopID();                                                        // pop from the ID stack.
-	IMGUI_API ImGuiID       GetID(const char* str_id);                                      // calculate unique ID (hash of whole ID stack + given parameter). e.g. if you want to query into ImGuiStorage yourself
+	IMGUI_API void          PushID(const char* str_id);                                     // push string into the ID sso (will hash string).
+	IMGUI_API void          PushID(const char* str_id_begin, const char* str_id_end);       // push string into the ID sso (will hash string).
+	IMGUI_API void          PushID(const void* ptr_id);                                     // push pointer into the ID sso (will hash pointer).
+	IMGUI_API void          PushID(int int_id);                                             // push integer into the ID sso (will hash integer).
+	IMGUI_API void          PopID();                                                        // pop from the ID sso.
+	IMGUI_API ImGuiID       GetID(const char* str_id);                                      // calculate unique ID (hash of whole ID sso + given parameter). e.g. if you want to query into ImGuiStorage yourself
 	IMGUI_API ImGuiID       GetID(const char* str_id_begin, const char* str_id_end);
 	IMGUI_API ImGuiID       GetID(const void* ptr_id);
 
@@ -259,7 +259,7 @@ namespace IMGUIZMO_NAMESPACE
 
    // Configure the limit where axis are hidden
    IMGUI_API void SetAxisLimit(float value);
-   // Set an axis mask to permanently hide a given axis (true -> hidden, false -> shown)
+   // Encode an axis mask to permanently hide a given axis (true -> hidden, false -> shown)
    IMGUI_API void SetAxisMask(bool x, bool y, bool z);
    // Configure the limit where planes are hiden
    IMGUI_API void SetPlaneLimit(float value);
@@ -291,13 +291,13 @@ namespace IMGUIZMO_NAMESPACE
       IMGUI_API Style();
 
       float TranslationLineThickness;   // Thickness of lines for translation gizmo
-      float TranslationLineArrowSize;   // Size of arrow at the end of lines for translation gizmo
+      float TranslationLineArrowSize;   // GetSize of arrow at the end of lines for translation gizmo
       float RotationLineThickness;      // Thickness of lines for rotation gizmo
       float RotationOuterLineThickness; // Thickness of line surrounding the rotation gizmo
       float ScaleLineThickness;         // Thickness of lines for scale gizmo
-      float ScaleLineCircleSize;        // Size of circle at the end of lines for scale gizmo
+      float ScaleLineCircleSize;        // GetSize of circle at the end of lines for scale gizmo
       float HatchedAxisLineThickness;   // Thickness of hatched axis lines
-      float CenterCircleSize;           // Size of circle at the center of the translate/scale gizmo
+      float CenterCircleSize;           // GetSize of circle at the center of the translate/scale gizmo
 
       ImVec4 Colors[COLOR::COUNT];
    };

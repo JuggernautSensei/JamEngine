@@ -1,5 +1,7 @@
 #pragma once
 #include <type_traits>
+#include "FunctionTraits.h"
+#include "FunctionHasher.h"
 
 namespace Jam
 {
@@ -38,6 +40,7 @@ public:
         : m_func(_other.m_func)
         , m_deleter(_other.m_deleter)
         , m_copier(_other.m_copier)
+        , m_hash(_other.m_hash)
     {
         if (m_copier)
         {
@@ -53,12 +56,14 @@ public:
         : m_func(_other.m_func)
         , m_deleter(_other.m_deleter)
         , m_copier(_other.m_copier)
+        , m_hash(_other.m_hash)
     {
         m_storage        = _other.m_storage;
         _other.m_func    = nullptr;
         _other.m_deleter = nullptr;
         _other.m_copier  = nullptr;
         _other.m_empty   = {};
+        _other.m_hash    = 0;
     }
 
     Delegate& operator=(std::nullptr_t)
@@ -72,6 +77,7 @@ public:
         if (this != &_other)
         {
             Disconnect();
+            m_hash    = _other.m_hash;
             m_func    = _other.m_func;
             m_deleter = _other.m_deleter;
             m_copier  = _other.m_copier;
@@ -96,19 +102,22 @@ public:
             m_deleter        = _other.m_deleter;
             m_copier         = _other.m_copier;
             m_storage        = _other.m_storage;
+            m_hash           = _other.m_hash;
             _other.m_func    = nullptr;
             _other.m_deleter = nullptr;
             _other.m_copier  = nullptr;
             _other.m_empty   = {};
+            _other.m_hash    = 0;
         }
         return *this;
     }
 
     template<auto TFunc>
         requires std::is_invocable_r_v<TRet, decltype(TFunc), TArg...>
-    void Connect()
+    void Connect()   // for free function or static member function or non-capturing lambda
     {
         Disconnect();
+        m_hash = HashOf<TFunc>();
         m_func = [](const Delegate*, TArg... args) -> TRet
         {
             return TFunc(std::forward<TArg>(args)...);
@@ -117,9 +126,10 @@ public:
 
     template<auto TMethod, typename TCaller>
         requires std::is_invocable_r_v<TRet, decltype(TMethod), TCaller*, TArg...>
-    void Connect(TCaller* _pInst)
+    void Connect(TCaller* _pInst)   // for non-const member function
     {
         Disconnect();
+        m_hash  = HashOf<TMethod>(_pInst);
         m_pInst = static_cast<void*>(_pInst);
         m_func  = [](const Delegate* _pDel, TArg... args) -> TRet
         {
@@ -130,9 +140,10 @@ public:
 
     template<auto TMethod, typename TCaller>
         requires std::is_invocable_r_v<TRet, decltype(TMethod), const TCaller*, TArg...>
-    void Connect(const TCaller* _pInst)
+    void Connect(const TCaller* _pInst)   // for const member function
     {
         Disconnect();
+        m_hash       = HashOf<TMethod>(_pInst);
         m_pConstInst = static_cast<const void*>(_pInst);
         m_func       = [](const Delegate* _pDel, TArg... args) -> TRet
         {
@@ -142,11 +153,13 @@ public:
     }
 
     template<typename TCallable>
-    void Connect(TCallable&& _func)
+    void Connect(TCallable&& _func)   // for functor. capturing lambda ...
     {
         using TDecayed = std::decay_t<TCallable>;
 
         Disconnect();
+
+        m_hash = HashOf(_func);
 
         if constexpr (sizeof(TDecayed) <= k_storageSize && alignof(TDecayed) <= k_storageAlign)
         {
@@ -174,7 +187,7 @@ public:
         }
         else
         {
-            struct FuncHolder : public RefCounted
+            struct FuncHolder : RefCounted
             {
                 explicit FuncHolder(TDecayed&& _f)
                     : func(std::forward<TDecayed>(_f))
@@ -250,6 +263,37 @@ public:
         m_copier  = nullptr;
         m_empty   = {};
         m_func    = nullptr;
+        m_hash    = 0;
+    }
+
+    [[nodiscard]] UInt64 GetHash() const
+    {
+        return m_hash;
+    }
+
+    [[nodiscard]] UInt64 GetCallerAddress() const
+    {
+        if (!IsMethodConnected())
+        {
+            return 0;
+        }
+
+        return reinterpret_cast<UInt64>(m_pInst);   // cosnt + non-const. 같은 메모리.
+    }
+
+    [[nodiscard]] bool IsFunctionConnected() const   // check free function + non-capturing lambda
+    {
+        return IsConnected() && m_pInst == nullptr && m_deleter == nullptr;
+    }
+
+    [[nodiscard]] bool IsMethodConnected() const   // check member function
+    {
+        return IsConnected() && m_pInst && m_deleter == nullptr;
+    }
+
+    [[nodiscard]] bool IsFunctorConnected() const
+    {
+        return IsConnected() && m_pInst && m_deleter;
     }
 
 private:
@@ -265,29 +309,7 @@ private:
     TFunc    m_func    = nullptr;
     TDeleter m_deleter = nullptr;
     TCloner  m_copier  = nullptr;
-};
-
-template<typename T>
-struct FunctionTraits : FunctionTraits<decltype(&T::operator())>
-{
-};
-
-template<typename R, typename C, typename... Args>
-struct FunctionTraits<R (C::*)(Args...) const>   // const member function traits
-{
-    using Type = R(Args...);
-};
-
-template<typename R, typename C, typename... Args>
-struct FunctionTraits<R (C::*)(Args...)>   // member function traits
-{
-    using Type = R(Args...);
-};
-
-template<typename R, typename... Args>
-struct FunctionTraits<R (*)(Args...)>   // free function traits
-{
-    using Type = R(Args...);
+    UInt64   m_hash    = 0;
 };
 
 template<auto TFunc>
@@ -327,8 +349,26 @@ template<typename TCallable>
     using TSign    = FunctionTraits<TDecayed>::Type;
 
     Delegate<TSign> del = {};
-    del.Connect(std::forward<TDecayed>(func));
+    del.Connect(std::forward<TCallable>(func));
     return del;
 }
 
 }   // namespace Jam
+
+template<typename TRet, typename... TArg>
+struct std::hash<Jam::Delegate<TRet(TArg...)>>
+{
+    size_t operator()(const Jam::Delegate<TRet(TArg...)>& del) const noexcept
+    {
+        return std::hash<Jam::UInt64> {}(del.GetHash());
+    }
+};
+
+template<typename TRet, typename... TArg>
+struct ankerl::unordered_dense::hash<Jam::Delegate<TRet(TArg...)>>
+{
+    size_t operator()(const Jam::Delegate<TRet(TArg...)>& del) const noexcept
+    {
+        return std::hash<Jam::UInt64> {}(del.GetHash());
+    }
+};

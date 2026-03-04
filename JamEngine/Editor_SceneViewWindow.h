@@ -18,7 +18,7 @@ class SceneChangedEvent;
 class Scene;
 class Event;
 
-class Editor_SceneViewWindow
+class Editor_SceneViewWindow 
 {
 
     enum class eGizmoOp

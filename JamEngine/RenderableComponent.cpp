@@ -429,10 +429,10 @@ void RenderableComponent::DrawEditPanel(
             // Save material if dirty
             if (bDirty)
             {
-                const Path& path = pMaterial->GetPath();
+                StringView path = pMaterial->GetPath();
                 if (const Error err = pMaterial->Save(path))
                 {
-                    JAM_LOG.Warn("Failed to save material '{}': {}", path, err.ToErrorMessage());
+                    JAM_LOG_WARN("Failed to save material '{}': {}", path, err.ToErrorMessage());
                 }
             }
         }

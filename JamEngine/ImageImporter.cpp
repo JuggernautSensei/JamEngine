@@ -9,8 +9,8 @@ namespace Jam
 {
 
 Expect<ImageImporter> ImageImporter::ImportFromFile(
-    const Path&               _path,
-    const eImageFormat        _format,
+    StringView               _path,
+    const eImageFormat       _format,
     const ImageImporterInfo& _info)
 {
     ImageImporter importer = {};
@@ -23,7 +23,7 @@ Expect<ImageImporter> ImageImporter::ImportFromFile(
 }
 
 Expect<ImageImporter> ImageImporter::ImportFromFile(
-    const Path&               _path,
+    StringView               _path,
     const ImageImporterInfo& _info)
 {
     ImageImporter importer = {};
@@ -36,8 +36,8 @@ Expect<ImageImporter> ImageImporter::ImportFromFile(
 }
 
 Expect<ImageImporter> ImageImporter::ImportFromMemory(
-    const CMemoryBlock        _mem,
-    const eImageFormat        _format,
+    const CMemoryBlock       _mem,
+    const eImageFormat       _format,
     const ImageImporterInfo& _info)
 {
     ImageImporter importer = {};
@@ -55,31 +55,31 @@ const ImageContainer& ImageImporter::GetImageContainer()
 }
 
 Error ImageImporter::ImportFromFile_(
-    const Path&               _path,
-    const eImageFormat        _format,
-    const ImageImporterInfo& _options)
+    StringView               _path,
+    const eImageFormat       _format,
+    const ImageImporterInfo& _info)
 {
     // load from file
-    ImageContainer     container = {};
-    const std::wstring wPath     = _path.wstring();
-    HRESULT            hr        = S_OK;
+    const WString path = WString::Encoded(_path);
 
+    ImageContainer container = {};
+    HRESULT        hr        = S_OK;
     switch (_format)
     {
         case eImageFormat::EXR:
-            hr = DirectX::LoadFromEXRFile(wPath.c_str(), nullptr, container);
+            hr = DirectX::LoadFromEXRFile(path.GetPtr(), nullptr, container);
             break;
 
         case eImageFormat::DDS:
-            hr = DirectX::LoadFromDDSFile(wPath.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, container);
+            hr = DirectX::LoadFromDDSFile(path.GetPtr(), DirectX::DDS_FLAGS_NONE, nullptr, container);
             break;
 
         case eImageFormat::HDR:
-            hr = DirectX::LoadFromHDRFile(wPath.c_str(), nullptr, container);
+            hr = DirectX::LoadFromHDRFile(path.GetPtr(), nullptr, container);
             break;
 
         case eImageFormat::TGA:
-            hr = DirectX::LoadFromTGAFile(wPath.c_str(), nullptr, container);
+            hr = DirectX::LoadFromTGAFile(path.GetPtr(), nullptr, container);
             break;
 
         case eImageFormat::BMP:
@@ -95,7 +95,7 @@ Error ImageImporter::ImportFromFile_(
         case eImageFormat::ICO:
         case eImageFormat::HEIF:
         case eImageFormat::HEIC:
-            hr = DirectX::LoadFromWICFile(wPath.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, container);
+            hr = DirectX::LoadFromWICFile(path.GetPtr(), DirectX::WIC_FLAGS_NONE, nullptr, container);
             break;
 
         default:
@@ -104,34 +104,32 @@ Error ImageImporter::ImportFromFile_(
 
     if (FAILED(hr))
     {
-        ScratchBuffer buf;
-        FormatHRESULTMessage(buf, hr);
-        JAM_LOG.Error("Failed to load image file '{}': {}", _path.native(), buf.ToStringView());
+        JAM_LOG_ERROR("Failed to load image file '{}': {}", _path, CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
         return Error::ImportFailed;
     }
 
     // post process
-    return PostProcess_(_options);
+    return PostProcess_(_info);
 }
 
 Error ImageImporter::ImportFromFile_(
-    const Path&               _path,
-    const ImageImporterInfo& _options)
+    const StringView         _path,
+    const ImageImporterInfo& _info)
 {
     Optional<eImageFormat> format = ParseAsImageFormat(_path);
     if (!format)
     {
-        JAM_LOG.Error("Unsupported image format for file import: '{}'", _path.extension().string());
+        JAM_LOG_ERROR("Unsupported image format for file import: '{}'", _path.GetExtension());
         return Error::UnsupportedFormat;
     }
 
-    return ImportFromFile_(_path, format.GetValue(), _options);
+    return ImportFromFile_(_path, format.GetValue(), _info);
 }
 
 Error ImageImporter::ImportFromMemory_(
-    const CMemoryBlock        _mem,
-    const eImageFormat        _format,
-    const ImageImporterInfo& _options)
+    const CMemoryBlock       _mem,
+    const eImageFormat       _format,
+    const ImageImporterInfo& _info)
 {
     // load from memory
     ImageContainer container = {};
@@ -170,33 +168,30 @@ Error ImageImporter::ImportFromMemory_(
             break;
 
         default:
-            JAM_LOG.Error("Unsupported image format for memory import: '{}'", ExtensionOf(_format));
+            JAM_LOG_ERROR("Unsupported image format for memory import: '{}'", ExtensionOf(_format));
             return Error::UnsupportedFormat;
     }
 
     if (FAILED(hr))
     {
-        ScratchBuffer buf;
-        FormatHRESULTMessage(buf, hr);
-
-        JAM_LOG.Error("Failed to load image from memory: {}", buf.ToStringView());
+        JAM_LOG_ERROR("Failed to load image from memory: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
         return Error::ImportFailed;
     }
 
     // post process
-    return PostProcess_(_options);
+    return PostProcess_(_info);
 }
 
 Error ImageImporter::PostProcess_(
-    const ImageImporterInfo& _options)
+    const ImageImporterInfo& _info)
 {
     // convert format
-    if (_options.bConvertFormat)
+    if (_info.bConvertFormat)
     {
-        const TextureFormatInfo& texInfo = TextureFormatInfoFrom(_options.convertFormat);
+        const TextureFormatInfo& texInfo = TextureFormatInfoFrom(_info.convertFormat);
         if (texInfo.texFormat == DXGI_FORMAT_UNKNOWN)
         {
-            JAM_LOG.Error("invalid format to convert: '{}'", NameOf(_options.convertFormat));
+            JAM_LOG_ERROR("invalid format to convert: '{}'", NameOf(_info.convertFormat));
             return Error::InvalidArgument;
         }
 
@@ -207,15 +202,12 @@ Error ImageImporter::PostProcess_(
             m_container.GetMetadata(),
             texInfo.texFormat,
             DirectX::TEX_FILTER_DEFAULT,
-            _options.convertThreshold,
+            _info.convertThreshold,
             result);
 
         if (FAILED(hr))
         {
-            ScratchBuffer buf;
-            FormatHRESULTMessage(buf, hr);
-
-            JAM_LOG.Error("Failed to convert image format: {}", buf.ToStringView());
+            JAM_LOG_ERROR("Failed to convert image format: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -223,7 +215,7 @@ Error ImageImporter::PostProcess_(
     }
 
     // force sRGB
-    if (_options.bForceSRGB)
+    if (_info.bForceSRGB)
     {
         const DirectX::TexMetadata& metadata = m_container.GetMetadata();
         if (!DirectX::IsSRGB(metadata.format))
@@ -231,7 +223,7 @@ Error ImageImporter::PostProcess_(
             const DXGI_FORMAT srgbFormat = DirectX::MakeSRGB(metadata.format);
             if (srgbFormat == DXGI_FORMAT_UNKNOWN)
             {
-                JAM_LOG.Error("Failed to convert image format to sRGB");
+                JAM_LOG_ERROR("Failed to convert image format to sRGB");
                 return Error::InvalidArgument;
             }
 
@@ -242,15 +234,12 @@ Error ImageImporter::PostProcess_(
                 m_container.GetMetadata(),
                 srgbFormat,
                 DirectX::TEX_FILTER_DEFAULT,
-                _options.convertThreshold,
+                _info.convertThreshold,
                 result);
 
             if (FAILED(hr))
             {
-                ScratchBuffer buf;
-                FormatHRESULTMessage(buf, hr);
-
-                JAM_LOG.Error("Failed to convert to sRGB: {}", buf.ToStringView());
+                JAM_LOG_ERROR("Failed to convert to sRGB: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
                 return Error::RuntimeError;
             }
 
@@ -259,7 +248,7 @@ Error ImageImporter::PostProcess_(
     }
 
     // premultiply alpha
-    if (_options.bPreMultiplyAlpha)
+    if (_info.bPreMultiplyAlpha)
     {
         ImageContainer result = {};
         const HRESULT  hr     = DirectX::PremultiplyAlpha(
@@ -271,10 +260,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            ScratchBuffer buf;
-            FormatHRESULTMessage(buf, hr);
-
-            JAM_LOG.Error("Failed to premultiply alpha: {}", buf.ToStringView());
+            JAM_LOG_ERROR("Failed to premultiply alpha: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -282,9 +268,9 @@ Error ImageImporter::PostProcess_(
     }
 
     // resize image
-    if (_options.bResize)
+    if (_info.bResize)
     {
-        JAM_ASSERT(_options.newWidth > 0 && _options.newHeight > 0, "new width and height must be greater than 0");
+        JAM_ASSERT(_info.newWidth > 0 && _info.newHeight > 0, "new width and height must be greater than 0");
         JAM_ASSERT(m_container.GetMetadata().dimension != DirectX::TEX_DIMENSION_TEXTURE3D, "3D texture resizing is not supported");
 
         ImageContainer result = {};
@@ -292,17 +278,14 @@ Error ImageImporter::PostProcess_(
             m_container.GetImages(),
             m_container.GetImageCount(),
             m_container.GetMetadata(),
-            _options.newWidth,
-            _options.newHeight,
+            _info.newWidth,
+            _info.newHeight,
             DirectX::TEX_FILTER_DEFAULT,
             result);
 
         if (FAILED(hr))
         {
-            ScratchBuffer buf;
-            FormatHRESULTMessage(buf, hr);
-
-            JAM_LOG.Error("Failed to resize image to {}x{}: {}", _options.newWidth, _options.newHeight, buf.ToStringView());
+            JAM_LOG_ERROR("Failed to resize image to {}x{}: {}", _info.newWidth, _info.newHeight, CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -310,7 +293,7 @@ Error ImageImporter::PostProcess_(
     }
 
     // drop or generate mips
-    if (_options.bGenerateMips)
+    if (_info.bGenerateMips)
     {
         const DirectX::TexMetadata& metadata = m_container.GetMetadata();
 
@@ -345,10 +328,7 @@ Error ImageImporter::PostProcess_(
 
             if (FAILED(hr))
             {
-                ScratchBuffer buf;
-                FormatHRESULTMessage(buf, hr);
-
-                JAM_LOG.Error("Failed to generate mipmaps: {}", buf.ToStringView());
+                JAM_LOG_ERROR("Failed to generate mipmaps: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
                 return Error::RuntimeError;
             }
 
@@ -357,7 +337,7 @@ Error ImageImporter::PostProcess_(
     }
 
     // flip vertical
-    if (_options.bFlipVertical)
+    if (_info.bFlipVertical)
     {
         ImageContainer result = {};
         const HRESULT  hr     = DirectX::FlipRotate(
@@ -369,10 +349,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            ScratchBuffer buf;
-            FormatHRESULTMessage(buf, hr);
-
-            JAM_LOG.Error("Failed to flip image vertically: {}", buf.ToStringView());
+            JAM_LOG_ERROR("Failed to flip image vertically: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -380,7 +357,7 @@ Error ImageImporter::PostProcess_(
     }
 
     // flip horizontal
-    if (_options.bFlipHorizontal)
+    if (_info.bFlipHorizontal)
     {
         ImageContainer result = {};
         const HRESULT  hr     = DirectX::FlipRotate(
@@ -392,10 +369,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            ScratchBuffer buf;
-            FormatHRESULTMessage(buf, hr);
-
-            JAM_LOG.Error("Failed to flip image horizontally: {}", buf.ToStringView());
+            JAM_LOG_ERROR("Failed to flip image horizontally: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
             return Error::RuntimeError;
         }
 

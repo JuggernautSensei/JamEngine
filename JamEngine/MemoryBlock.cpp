@@ -5,14 +5,6 @@ namespace Jam
 {
 
 MemoryBlock::MemoryBlock(
-    Byte* const _pData,
-    const SizeT _byteWidth)
-    : m_pData(_pData)
-    , m_size(_byteWidth)
-{
-}
-
-MemoryBlock::MemoryBlock(
     void*       _pData,
     const SizeT _byteWidth)
     : m_pData(static_cast<Byte*>(_pData))
@@ -45,14 +37,6 @@ MemoryBlock MemoryBlock::SubBlock(const SizeT _offset, const SizeT _byteWidth) c
 bool MemoryBlock::IsEmpty() const
 {
     return m_pData == nullptr || m_size == 0;
-}
-
-CMemoryBlock::CMemoryBlock(
-    const Byte* const _pData,
-    const SizeT       _byteWidth)
-    : m_pData(_pData)
-    , m_size(_byteWidth)
-{
 }
 
 CMemoryBlock::CMemoryBlock(

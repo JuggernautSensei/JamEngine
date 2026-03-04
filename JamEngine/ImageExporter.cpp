@@ -3,6 +3,7 @@
 
 #include <DirectXTexEXR.h>
 
+#include "FileSystem.h"
 #include "Graphics.h"
 #include "WindowsUtilities.h"
 
@@ -55,45 +56,55 @@ namespace
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Error ImageExporter::ExportToFile(
-    const ImageContainer&       _container,
-    const Path&                 _path,
-    const eImageFormat          _format,
-    const bool                  _bReplaceExtension,
-    const Flags<eSaveFileFlags> _flags)
+    const ImageContainer&            _container,
+    const StringView                 _path,
+    const eImageFormat               _format,
+    const bool                       _bReplaceExtension,
+    const eFileWriterCollisionPolicy _policy)
 {
-    if (const Error err = ResolveSaveFileFlags(_path, _flags))
-    {
-        return err;
-    }
+    JAM_ASSERT(_policy != eFileWriterCollisionPolicy::Append, "Append policy is not supported for image export.");
 
-    ScratchWBuffer pathBuf;
-    if (_bReplaceExtension)
+    StringView dir = {}, base = {}, ext = {};
+    _path.Decompose(&dir, nullptr, &base, &ext);
+
+    WString path = WString::Encoded(dir);
+    path.AppendEncode(base);
+    path.AppendEncode(_bReplaceExtension ? ExtensionOf(_format) : ext);
+
+    if (_policy != eFileWriterCollisionPolicy::Overwrite && FileSystem::Utf16::Exists(path))
     {
-        const Path path = ReplacedExtension(_path, ExtensionOf(_format));
-        pathBuf.SetUtf8(path.native());
-    }
-    else
-    {
-        pathBuf.SetUtf8(_path.native());
+        switch (_policy)
+        {
+            case eFileWriterCollisionPolicy::Rename:
+                path = FileSystem::Utf16::GenerateUniquePath(path);
+                break;
+
+            case eFileWriterCollisionPolicy::Fail:
+                JAM_LOG_ERROR(L"File already exists: '{}'", path);
+                return Error::AlreadyExists;
+
+            default:
+                JAM_UNREACHABLE;
+        }
     }
 
     HRESULT hr = S_OK;
     switch (_format)
     {
         case eImageFormat::EXR:
-            hr = DirectX::SaveToEXRFile(*_container.GetImage(0, 0, 0), pathBuf.GetPtr());
+            hr = DirectX::SaveToEXRFile(*_container.GetImage(0, 0, 0), path.GetPtr());
             break;
 
         case eImageFormat::DDS:
-            hr = DirectX::SaveToDDSFile(_container.GetImages(), _container.GetImageCount(), _container.GetMetadata(), DirectX::DDS_FLAGS_NONE, pathBuf.GetPtr());
+            hr = DirectX::SaveToDDSFile(_container.GetImages(), _container.GetImageCount(), _container.GetMetadata(), DirectX::DDS_FLAGS_NONE, path.GetPtr());
             break;
 
         case eImageFormat::HDR:
-            hr = DirectX::SaveToHDRFile(*_container.GetImage(0, 0, 0), pathBuf.GetPtr());
+            hr = DirectX::SaveToHDRFile(*_container.GetImage(0, 0, 0), path.GetPtr());
             break;
 
         case eImageFormat::TGA:
-            hr = DirectX::SaveToTGAFile(*_container.GetImage(0, 0, 0), pathBuf.GetPtr());
+            hr = DirectX::SaveToTGAFile(*_container.GetImage(0, 0, 0), path.GetPtr());
             break;
 
         case eImageFormat::BMP:
@@ -109,20 +120,17 @@ Error ImageExporter::ExportToFile(
         case eImageFormat::ICO:
         case eImageFormat::HEIF:
         case eImageFormat::HEIC:
-            hr = DirectX::SaveToWICFile(*_container.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), pathBuf.GetPtr());
+            hr = DirectX::SaveToWICFile(*_container.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), path.GetPtr());
             break;
 
         default:
-            JAM_LOG.Error("Unsupported image format: '{}'", _path.native());
+            JAM_LOG_ERROR("Unsupported image format: '{}'", _path);
             return Error::UnsupportedFormat;
     }
 
     if (FAILED(hr))
     {
-        ScratchBuffer buf;
-        FormatHRESULTMessage(buf, hr);
-
-        JAM_LOG.Error("Failed to save image to file: '{}', {}", _path, buf.ToStringView());
+        JAM_LOG_ERROR("Failed to save image to file: '{}', {}", _path, CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
         return Error::ExportFailed;
     }
 
@@ -130,13 +138,13 @@ Error ImageExporter::ExportToFile(
 }
 
 Error ImageExporter::ExportToFile(
-    const TextureHandle         _texh,
-    const Path&                 _path,
-    const eImageFormat          _format,
-    const bool                  _bReplaceExtension,
-    const Flags<eSaveFileFlags> _flags)
+    const TextureHandle              _texh,
+    const StringView                 _path,
+    const eImageFormat               _format,
+    const bool                       _bReplaceExtension,
+    const eFileWriterCollisionPolicy _policy)
 {
-    return ExportToFile(JAM_GFX.Capture(_texh), _path, _format, _bReplaceExtension, _flags);
+    return ExportToFile(GetGraphics().Capture(_texh), _path, _format, _bReplaceExtension, _policy);
 }
 
 Expect<ImageBlob> ImageExporter::ExportToMemory(
@@ -158,6 +166,7 @@ Expect<ImageBlob> ImageExporter::ExportToMemory(
         case eImageFormat::TGA:
             hr = DirectX::SaveToTGAMemory(*_container.GetImage(0, 0, 0), DirectX::TGA_FLAGS_NONE, blob);
             break;
+
         case eImageFormat::BMP:
         case eImageFormat::JPG:
         case eImageFormat::JPEG:
@@ -173,14 +182,14 @@ Expect<ImageBlob> ImageExporter::ExportToMemory(
         case eImageFormat::HEIC:
             hr = DirectX::SaveToWICMemory(_container.GetImages(), _container.GetImageCount(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), blob);
             break;
+        default:
+            JAM_LOG_ERROR("Unsupported image format for memory export: '{}'", NameOf(_format));
+            return Error::UnsupportedFormat;
     }
 
     if (FAILED(hr))
     {
-        ScratchBuffer buf;
-        FormatHRESULTMessage(buf, hr);
-
-        JAM_LOG.Error("Failed to export image to memory: {}", buf.ToStringView());
+        JAM_LOG_ERROR("Failed to export image to memory: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
         return Error::ExportFailed;
     }
 
@@ -191,7 +200,7 @@ Expect<ImageBlob> ImageExporter::ExportToMemory(
     const TextureHandle _texh,
     const eImageFormat  _format)
 {
-    return ExportToMemory(JAM_GFX.Capture(_texh), _format);
+    return ExportToMemory(GetGraphics().Capture(_texh), _format);
 }
 
 }   // namespace Jam

@@ -3,114 +3,47 @@
 #include "Editor_FileBrowserWindow.h"
 
 #include "Application.h"
+#include "DirIter.h"
 #include "MaterialCreationDialog.h"
 #include "PrimitiveCreationDialog.h"
 #include "Editor.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "Events.h"
+#include "FileSystem.h"
 #include "ImageImportDialog.h"
 #include "ModelImportDialog.h"
 #include "RenameFileDialog.h"
-
-namespace Jam
-{
-
-class JamFileWatcher : public efsw::FileWatchListener
-{
-public:
-    void handleFileAction(
-        efsw::WatchID      watchid,
-        const std::string& dir,
-        const std::string& filename,
-        const efsw::Action action,
-        const std::string  oldFilename) override
-    {
-        Path path = dir;
-        path /= filename;
-
-        switch (action)
-        {
-            case efsw::Action::Add:
-            {
-                auto func = [path]
-                {
-                    FileAddedEvent event { path };
-                    JAM_APP.DispatchEvent(event);
-                };
-
-                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
-            }
-            break;
-
-            case efsw::Action::Delete:
-            {
-                auto func = [path]
-                {
-                    FileDeletedEvent event { path };
-                    JAM_APP.DispatchEvent(event);
-                };
-
-                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
-            }
-            break;
-
-            case efsw::Action::Modified:
-            {
-                auto func = [path]
-                {
-                    FileModifiedEvent event { path };
-                    JAM_APP.DispatchEvent(event);
-                };
-
-                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
-            }
-            break;
-
-            case efsw::Action::Moved:
-            {
-                Path oldPath = dir;
-                oldPath /= oldFilename;
-
-                auto func = [oldPath, path]
-                {
-                    FileRenamedEvent event { oldPath, path };
-                    JAM_APP.DispatchEvent(event);
-                };
-
-                JAM_APP.SubmitCommandToMainThread(Bind(std::move(func)));
-            }
-            break;
-
-            default:
-                JAM_UNREACHABLE;
-        }
-    }
-};
-
-}   // namespace Jam
+#include "EditorEvents.h"
 
 namespace Jam
 {
 
 Editor_FileBrowserWindow::Editor_FileBrowserWindow()
 {
-    const Path& contentsDir = JAM_APP.GetContentsDirectory();
+    const StringView contentsDir = GetApp().GetContentsDirectory();
 
     // file watcher
-    {
-        m_pFileWatcher       = MakeScoped<efsw::FileWatcher>();
-        m_pFileWatchListener = MakeScoped<JamFileWatcher>();
-        m_watchID            = m_pFileWatcher->addWatch(contentsDir, m_pFileWatchListener.GetPtr(), true);
-        m_pFileWatcher->watch();
-    }
+    FileWatcherInfo info     = {};
+    info.path                = contentsDir;
+    info.bRecursive          = true;
+    info.pollingDelayMs      = 100;
+    info.FileWatcherListener = Bind<&Editor_FileBrowserWindow::OnFileWatcherEvent_>(this);
 
-    SetFocusingDir_(contentsDir, false);
+    Expect<Scoped<FileWatcher>> pFileWatcher = FileWatcher::Create(info);
+    JAM_ASSERT(pFileWatcher, "Failed to create file watcher: %s", pFileWatcher.GetError().ToErrorMessage());
+    m_pFileWatcher = pFileWatcher.Take();
+
+    // gather
+    GatherDirEntries_();
+    GatherFileEntries_();
 }
 
-Editor_FileBrowserWindow::~Editor_FileBrowserWindow()
+void Editor_FileBrowserWindow::OnUpdate(
+    const float _dt)
 {
-    m_pFileWatcher->removeWatch(m_watchID);
+    m_fileEntryFilterCounterSec += _dt;
+    GatherFilteredFileEntriesIfNeed_();
 }
 
 void Editor_FileBrowserWindow::OnEvent(Event& _event)
@@ -118,8 +51,8 @@ void Editor_FileBrowserWindow::OnEvent(Event& _event)
     EventDispatcher dispatcher { _event };
     dispatcher.Dispatch<FileAddedEvent>(this, &Editor_FileBrowserWindow::OnFileAddEvent_);
     dispatcher.Dispatch<FileDeletedEvent>(this, &Editor_FileBrowserWindow::OnFileDeleteEvent_);
-    dispatcher.Dispatch<FileModifiedEvent>(this, &Editor_FileBrowserWindow::OnFileModifiedEvent_);
     dispatcher.Dispatch<FileRenamedEvent>(this, &Editor_FileBrowserWindow::OnFileRenamedEvent_);
+    dispatcher.Dispatch<FocusingDirEntryChangedEvent>(this, &Editor_FileBrowserWindow::OnFocusingDirEntryChanged_);
 
     m_thumbnailCache.OnEvent(_event);
 }
@@ -131,21 +64,6 @@ void Editor_FileBrowserWindow::OnImGuiRender(
     {
         ImGui::End();
         return;
-    }
-
-    // update directory tree
-    if (m_bBuildDirTreeRequired)
-    {
-        BuildDirTree_();
-        m_bBuildDirTreeRequired = false;
-    }
-
-    // update file entries
-    if (m_bGatherFileEntriesRequried && m_fileEntryGatheringCounterSec >= k_fileEntryGatheringDebounceSec)
-    {
-        GatherFileEntries_();
-        m_fileEntryGatheringCounterSec = 0.f;
-        m_bGatherFileEntriesRequried   = false;
     }
 
     // toolbar
@@ -163,7 +81,8 @@ void Editor_FileBrowserWindow::OnImGuiRender(
         ImGui::Button("import");
         if (ImGui::BeginPopupContextItem(nullptr, ImGuiPopupFlags_MouseButtonLeft))
         {
-            Menu_ImportAsset(m_focusingDir);
+            const Ref<DirEntry>& pEntry = GetEditor().GetFocusingDirEntry();
+            Menu_ImportAsset(pEntry->path);
             ImGui::EndPopup();
         }
 
@@ -182,7 +101,7 @@ void Editor_FileBrowserWindow::OnImGuiRender(
         // current path
         ImGui::SameLine();
         SetNextItemToAvailWidth();
-        ImGui::InputText("##path", const_cast<std::string*>(&m_focusingDir.native()), ImGuiInputTextFlags_ReadOnly);
+        Widget_ReadOnlyInputText("##path", GetEditor().GetFocusingDirEntry()->name);
     }
     ImGui::Separator();
 
@@ -192,9 +111,9 @@ void Editor_FileBrowserWindow::OnImGuiRender(
         ImGui::TextUnformatted("directories");
 
         ImGui::SetNextWindowSizeConstraints({ 200.f, 0.f }, { 400.f, Limits<float>::k_max });
-        if (ImGui::BeginChild("directories", ImVec2 { 0.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX))
+        if (ImGui::BeginChild("DirectoryTreePanel", ImVec2 { 0.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX))
         {
-            Widget_DirNode_Recursive_(m_rootDirNode);
+            Widget_DirEntries_Recursive_(m_pRootDirNode);
         }
         ImGui::EndChild();
     }
@@ -204,34 +123,21 @@ void Editor_FileBrowserWindow::OnImGuiRender(
     ImGui::SameLine();
     ImGui::BeginGroup();
     {
+        // render filter input
+        Widget_Text("filter:", true);
+
         // filter input
+        ImGui::SameLine();
+        if (m_fileEntryFilter.Draw("##Filter", 150.f))
         {
-            // update gathering time for debounce
-            const float dt = ImGui::GetIO().DeltaTime;
-            m_fileEntryGatheringCounterSec += dt;
-
-            // render filter input
-            Widget_Text("filter:", true);
-
-            ImGui::SameLine();
-            if (m_fileEntryFilter.Draw("##Filter", 150.f))
-            {
-                m_bGatherFileEntriesRequried = true;
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("clear"))
-            {
-                m_bGatherFileEntriesRequried = true;
-            }
+            m_bGatherFilteredFileEntries = true;
         }
 
-        // refresh button
+        // filter clear
         ImGui::SameLine();
-        if (ImGui::Button("refresh"))
+        if (ImGui::Button("clear"))
         {
-            m_fileEntryGatheringCounterSec = 0.f;
-            m_bGatherFileEntriesRequried   = true;
+            m_bGatherFilteredFileEntries = true;
         }
 
         // zoom control
@@ -241,7 +147,7 @@ void Editor_FileBrowserWindow::OnImGuiRender(
             Widget_DragPercent("##Zoom", m_zoom, 0.5f, k_minZoomPerc, k_maxZoomPerc, "zoom: %.0f%%");
         }
 
-        // file entries area
+        // file entries panel
         if (ImGui::BeginChild("FileEntriesPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Borders))
         {
             // draw file entries
@@ -250,7 +156,7 @@ void Editor_FileBrowserWindow::OnImGuiRender(
             // menu
             if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverExistingPopup | ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
             {
-                Menu_FileEntriesPanel();
+                Menu_FileEntriesPanel_();
                 ImGui::EndPopup();
             }
         }
@@ -274,12 +180,12 @@ Error Editor_FileBrowserWindow::ReadFromArchive(
 }
 
 void Editor_FileBrowserWindow::Widget_FileEntry_(
-    const FileEntry& _entry,
-    const ImVec2     _size)
+    const Ref<FileEntry>& _pEntry,
+    const ImVec2          _size)
 {
     ImGui::PushStyleColor(ImGuiCol_Button, 0);   // invisible button bg
     ImGui::BeginGroup();
-    ImGui::PushID(_entry.name.GetPtr());
+    ImGui::PushID(_pEntry->name.GetPtr());
 
     // draw button
     const ImVec2 itemLeftTop = ImGui::GetCursorScreenPos();
@@ -297,20 +203,22 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
         bIsDragDropping = true;
 
         // set payload
-        SetFileDragDropPayload(_entry.path);
+        SetFileDragDropPayload(_pEntry->path);
 
         // preview
-        ImGui::TextUnformatted(_entry.name.GetPtr());
+        ImGui::TextUnformatted(_pEntry->name.GetPtr());
         ImGui::EndDragDropSource();
     }
 
     // drag drop target (디렉토리인 경우만. accept path의 parent dir을 자신으로 변경)
-    if (_entry.bIsDir && ImGui::BeginDragDropTarget())
+    if (_pEntry->path.IsDirectory() && ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const Path srcPath = ResolvePathDragDropPayload(pPayload);
-            JAM_EDITOR.ReplaceFileDir(srcPath, _entry.path);
+            const String srcPath = ResolvePathDragDropPayload(pPayload);
+            String       dstPath = _pEntry->path;
+            dstPath.Join(srcPath.GetFileName(), eJoinType::File);
+            GetEditor().RenameFile(srcPath, dstPath);
         }
 
         ImGui::EndDragDropTarget();
@@ -318,18 +226,18 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
 
     // render filename
     {
-        const SizeT len           = _entry.name.GetLength();
+        const SizeT len           = _pEntry->name.GetLength();
         const SizeT clipThreshold = NumericCast<SizeT>(_size.x / ImGui::CalcTextSize("W").x);
 
         if (len <= clipThreshold)
         {
             // no clipping
-            ImGui::TextUnformatted(_entry.name.GetPtr());
+            ImGui::TextUnformatted(_pEntry->name.GetPtr());
         }
         else
         {
-            ScratchBuffer buf;
-            buf.Format("{:.{}s}..", _entry.name.GetPtr(), clipThreshold - 1);
+            StackString<256> buf;
+            buf.Format("{:.{}s}..", _pEntry->name.GetPtr(), clipThreshold - 1);
             ImGui::TextUnformatted(buf.GetPtr());
         }
     }
@@ -338,7 +246,7 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
     {
         ImGui::SetCursorScreenPos(itemLeftTop);
 
-        const Ref<Texture>& pThumbnail = _entry.pThumbnail;
+        const Ref<Texture>& pThumbnail = _pEntry->pThumbnail;
         const Vec2i         res        = pThumbnail->GetResolution();
         const ImVec2        imageSize  = ImVec2From(res);
         Widget_ImageFrame(pThumbnail, imageSize, _size);
@@ -347,65 +255,65 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
     // draw tooltip
     if (bTooltip && !bIsDragDropping && ImGui::BeginTooltip())
     {
-        ImGui::TextUnformatted(_entry.name.GetPtr());
+        ImGui::TextUnformatted(_pEntry->name.GetPtr());
         ImGui::EndTooltip();
     }
 
     // Double click action
     if (bDoubleClicked)
     {
-        if (_entry.bIsDir)
+        if (_pEntry->path.IsDirectory())
         {
-            SetFocusingDir_(_entry.path);
+            SetFocusingDirEntry_(m_dirEntryLookUp[_pEntry->path], true);
         }
         else
         {
-            OpenFileWithDefaultApp_(_entry.path);
+            OpenAsDefaultApp_(_pEntry->path);
         }
     }
 
     // Right click popup
     if (ImGui::BeginPopup("Menu"))
     {
-        ImGui::TextUnformatted(_entry.name.GetPtr());
+        ImGui::TextUnformatted(_pEntry->name.GetPtr());
 
         ImGui::Separator();
         if (ImGui::BeginMenu("import"))
         {
-            Menu_ImportAsset(_entry.path);
+            Menu_ImportAsset(_pEntry->path);
             ImGui::EndMenu();
         }
 
         ImGui::Separator();
         if (Widget_MenuItem("open"))
         {
-            if (_entry.bIsDir)
+            if (_pEntry->IsDirectory())
             {
-                SetFocusingDir_(_entry.path);
+                SetFocusingDirEntry_(m_dirEntryLookUp[_pEntry->path], true);
             }
             else
             {
-                OpenFileWithDefaultApp_(_entry.path);
+                OpenAsDefaultApp_(_pEntry->path);
             }
         }
 
         if (Widget_MenuItem("open in explorer"))
         {
-            OpenFileInExplorer_(_entry.path, true);
+            OpenInFileExplorer_(_pEntry->path, true);
         }
 
         if (Widget_MenuItem("rename"))
         {
-            RenameFileDialogDesc desc = {};
-            desc.baseInfo.title       = "rename file";
-            desc.srcPath              = _entry.path;
+            RenameFileDialogInfo info = {};
+            info.title                = "rename file";
+            info.srcPath              = _pEntry->path;
 
-            JAM_EDITOR.PushDialog(MakeRef<RenameFileDialog>(desc));
+            GetEditor().PushDialog(MakeRef<RenameFileDialog>(info));
         }
 
         if (Widget_MenuItem("delete"))
         {
-            JAM_EDITOR.RemoveFile(_entry.path);
+            GetEditor().RemoveFile(_pEntry->path);
         }
 
         ImGui::EndPopup();
@@ -421,11 +329,11 @@ void Editor_FileBrowserWindow::Widget_UndoButton_()
     ImGui::BeginDisabled(!m_historyStack.CanUndo());
 
     // button
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::FileBrowserNavUndo));
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavUndo));
     if (ImGui::ArrowButton("undo", ImGuiDir_Left))
     {
-        const Path path = m_historyStack.Undo();
-        SetFocusingDir_(path, false);
+        const Ref<DirEntry>& pEntry = m_historyStack.Undo();
+        SetFocusingDirEntry_(pEntry, false);
     }
 
     // tooltip
@@ -441,11 +349,11 @@ void Editor_FileBrowserWindow::Widget_RedoButton_()
     ImGui::BeginDisabled(!m_historyStack.CanRedo());
 
     // button
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::FileBrowserNavRedo));
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavRedo));
     if (ImGui::ArrowButton("redo", ImGuiDir_Right))
     {
-        const Path path = m_historyStack.Redo();
-        SetFocusingDir_(path, false);
+        const Ref<DirEntry>& pEntry = m_historyStack.Redo();
+        SetFocusingDirEntry_(pEntry, false);
     }
 
     // tooltip
@@ -458,10 +366,11 @@ void Editor_FileBrowserWindow::Widget_RedoButton_()
 
 void Editor_FileBrowserWindow::Widget_BackButton_()
 {
-    ImGui::BeginDisabled(m_rootDirNode.bIsFocusing);
+    const Ref<DirEntry>& pFocusingDirEntry = GetEditor().GetFocusingDirEntry();
+    ImGui::BeginDisabled(pFocusingDirEntry == m_pRootDirNode);
 
     // button
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::FileBrowserNavBack));
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavBack));
     if (ImGui::Button(".."))
     {
         GoToParentDir_();
@@ -479,9 +388,10 @@ void Editor_FileBrowserWindow::Widget_BackButton_()
         // 만약 파일을 받으면, 이전 디렉토리로 파일을 이동시켜줌
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const Path srcPath = ResolvePathDragDropPayload(pPayload);
-            const Path newDir  = m_focusingDir.parent_path();
-            JAM_EDITOR.ReplaceFileDir(srcPath, newDir);
+            const String srcPath = ResolvePathDragDropPayload(pPayload);
+            String       dstPath = pFocusingDirEntry->path;
+            dstPath.Join(srcPath.GetFileName());
+            GetEditor().RenameFile(srcPath, dstPath);
         }
 
         ImGui::EndDragDropTarget();
@@ -501,7 +411,7 @@ void Editor_FileBrowserWindow::Widget_FileEntries()
     const ImVec2 btnSize      = k_fileEntrySize * m_zoom;
     const float  pad          = k_fileEntrySpacingX * m_zoom;
     const Int32  numBtnPerRow = Max<Int32>(1, NumericCast<Int32>(Div(visibleWidth + pad, btnSize.x + pad)));
-    const Int32  numItems     = NumericCast<Int32>(m_fileEntries.size());
+    const Int32  numItems     = NumericCast<Int32>(m_filteredFileEntries.size());
     const Int32  numRows      = Div(numItems + numBtnPerRow - 1, numBtnPerRow);
     const float  itemHeight   = btnSize.y + ImGui::GetTextLineHeightWithSpacing();
 
@@ -522,8 +432,7 @@ void Editor_FileBrowserWindow::Widget_FileEntries()
                 }
 
                 // render file entry
-                const FileEntry& entry = m_fileEntries[idx];
-                Widget_FileEntry_(entry, btnSize);
+                Widget_FileEntry_(m_filteredFileEntries[idx], btnSize);
 
                 // sameline except last
                 if (i < numBtnPerRow - 1)
@@ -535,10 +444,15 @@ void Editor_FileBrowserWindow::Widget_FileEntries()
     }
 }
 
-void Editor_FileBrowserWindow::Widget_DirNode_Recursive_(
-    const DirNode& _node)
+void Editor_FileBrowserWindow::Widget_DirEntries()
 {
-    const bool bHasChild = !_node.children.empty();
+    Widget_DirEntries_Recursive_(m_pRootDirNode);
+}
+
+void Editor_FileBrowserWindow::Widget_DirEntries_Recursive_(
+    const Ref<DirEntry>& _pEntry)
+{
+    const bool bHasChild = !_pEntry->children.empty();
 
     // falgs
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DrawLinesFull | ImGuiTreeNodeFlags_SpanAllColumns;
@@ -546,12 +460,12 @@ void Editor_FileBrowserWindow::Widget_DirNode_Recursive_(
     {
         flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
     }
-    if (_node.bIsFocusing)
+    if (_pEntry == GetEditor().GetFocusingDirEntry())
     {
         flags |= ImGuiTreeNodeFlags_Selected;
     }
 
-    const bool bIsNodeOpen     = ImGui::TreeNodeEx(_node.name.GetPtr(), flags);
+    const bool bIsNodeOpen     = ImGui::TreeNodeEx(_pEntry->name.GetPtr(), flags);
     const bool bRenderChildren = bHasChild && bIsNodeOpen;
     const bool bClicked        = ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen();
 
@@ -560,8 +474,10 @@ void Editor_FileBrowserWindow::Widget_DirNode_Recursive_(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const Path acceptedPath = ResolvePathDragDropPayload(pPayload);
-            JAM_EDITOR.ReplaceFileDir(acceptedPath, _node.path);
+            const String srcPath = ResolvePathDragDropPayload(pPayload);
+            String       dstPath = _pEntry->path;
+            dstPath.Join(srcPath.GetFileName());
+            GetEditor().RenameFile(srcPath, dstPath);
         }
 
         ImGui::EndDragDropTarget();
@@ -570,23 +486,26 @@ void Editor_FileBrowserWindow::Widget_DirNode_Recursive_(
     // click action
     if (bClicked)
     {
-        SetFocusingDir_(_node.path);
+        SetFocusingDirEntry_(_pEntry, true);
     }
 
     // render children
     if (bRenderChildren)
     {
-        for (const DirNode& node: _node.children)
+        for (const Ref<DirEntry>& pEntry: _pEntry->children)
         {
-            Widget_DirNode_Recursive_(node);
+            Widget_DirEntries_Recursive_(pEntry);
         }
 
         ImGui::TreePop();
     }
 }
 
-void Editor_FileBrowserWindow::Menu_FileEntriesPanel()
+void Editor_FileBrowserWindow::Menu_FileEntriesPanel_()
 {
+    const Ref<DirEntry>& pEntry          = GetEditor().GetFocusingDirEntry();
+    const bool           bIsRootFocusing = pEntry == m_pRootDirNode;
+
     if (ImGui::BeginMenu("create"))
     {
         Menu_CreateFileEntry();
@@ -595,17 +514,17 @@ void Editor_FileBrowserWindow::Menu_FileEntriesPanel()
 
     if (ImGui::BeginMenu("import"))
     {
-        Menu_ImportAsset(m_focusingDir);
+        Menu_ImportAsset(pEntry->path);
         ImGui::EndMenu();
     }
 
     ImGui::Separator();
     if (Widget_MenuItem("open in exploror"))
     {
-        OpenFileInExplorer_(m_focusingDir, true);
+        OpenInFileExplorer_(GetEditor().GetFocusingDirEntry()->path, true);
     }
 
-    if (Widget_MenuItem("back", 0, false, !m_rootDirNode.bIsFocusing))
+    if (Widget_MenuItem("back", 0, false, !bIsRootFocusing))
     {
         GoToParentDir_();
     }
@@ -613,9 +532,12 @@ void Editor_FileBrowserWindow::Menu_FileEntriesPanel()
 
 void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
 {
+    const Ref<DirEntry>& pEntry = GetEditor().GetFocusingDirEntry();
+
     if (Widget_MenuItem("new folder"))
     {
-        JAM_EDITOR.CreateNewDir(m_focusingDir);
+        const String path = String::Joined(pEntry->path, "new folder", eJoinType::File);
+        GetEditor().CreateDir(path, FileSystem::eMakeDirectoryCollisionPolicy::Rename);
     }
 
     ImGui::Separator();
@@ -624,62 +546,56 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
     {
         if (Widget_MenuItem("cube"))
         {
-            PrimitiveCreationDialogDesc desc = {};
-            desc.baseInfo.title              = "create primitive";
-            desc.saveDirOrEmpty              = m_focusingDir;
-            desc.type                        = ePrimitiveCreationType::Cube;
-
-            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+            PrimitiveCreationDialogInfo info = {};
+            info.title                       = "create primitive";
+            info.saveDirOrEmpty              = pEntry->path;
+            info.type                        = ePrimitiveCreationType::Cube;
+            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("sphere"))
         {
-            PrimitiveCreationDialogDesc desc = {};
-            desc.baseInfo.title              = "create primitive";
-            desc.saveDirOrEmpty              = m_focusingDir;
-            desc.type                        = ePrimitiveCreationType::Sphere;
-
-            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+            PrimitiveCreationDialogInfo info = {};
+            info.title                       = "create primitive";
+            info.saveDirOrEmpty              = pEntry->path;
+            info.type                        = ePrimitiveCreationType::Sphere;
+            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("plane"))
         {
-            PrimitiveCreationDialogDesc desc = {};
-            desc.baseInfo.title              = "create primitive";
-            desc.saveDirOrEmpty              = m_focusingDir;
-            desc.type                        = ePrimitiveCreationType::Plane;
-
-            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+            PrimitiveCreationDialogInfo info = {};
+            info.title                       = "create primitive";
+            info.saveDirOrEmpty              = pEntry->path;
+            info.type                        = ePrimitiveCreationType::Plane;
+            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("circle"))
         {
-            PrimitiveCreationDialogDesc desc = {};
-            desc.baseInfo.title              = "create primitive";
-            desc.saveDirOrEmpty              = m_focusingDir;
-            desc.type                        = ePrimitiveCreationType::Circle;
-
-            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+            PrimitiveCreationDialogInfo info = {};
+            info.title                       = "create primitive";
+            info.saveDirOrEmpty              = pEntry->path;
+            info.type                        = ePrimitiveCreationType::Circle;
+            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("cone"))
         {
-            PrimitiveCreationDialogDesc desc = {};
-            desc.baseInfo.title              = "create primitive";
-            desc.saveDirOrEmpty              = m_focusingDir;
-            desc.type                        = ePrimitiveCreationType::Cone;
-
-            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+            PrimitiveCreationDialogInfo info = {};
+            info.title                       = "create primitive";
+            info.saveDirOrEmpty              = pEntry->path;
+            info.type                        = ePrimitiveCreationType::Cone;
+            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("cylinder"))
         {
-            PrimitiveCreationDialogDesc desc = {};
-            desc.baseInfo.title              = "create primitive";
-            desc.saveDirOrEmpty              = m_focusingDir;
-            desc.type                        = ePrimitiveCreationType::Cylinder;
-
-            JAM_EDITOR.PushDialog(MakeRef<PrimitiveCreationDialog>(desc));
+            PrimitiveCreationDialogInfo info = {};
+            info.title                       = "create primitive";
+            info.saveDirOrEmpty              = pEntry->path;
+            info.type                        = ePrimitiveCreationType::Cylinder;
+            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
         }
 
         ImGui::EndMenu();
@@ -687,191 +603,317 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
 
     if (Widget_MenuItem("material"))
     {
-        MaterialCreationDialogDesc desc = {};
-        desc.baseInfo.title             = "create material";
-        desc.dirOrEmpty                 = m_focusingDir;
-
-        JAM_EDITOR.PushDialog(MakeRef<MaterialCreationDialog>(desc));
+        MaterialCreationDialogInfo info = {};
+        info.title                      = "create material";
+        info.dirOrEmpty                 = pEntry->path;
+        GetEditor().PushDialog(MakeRef<MaterialCreationDialog>(info));
     }
 }
 
 void Editor_FileBrowserWindow::Menu_ImportAsset(
-    const Path& _path) const
+    const StringView _path) const
 {
     if (Widget_MenuItem("import model"))
     {
-        ModelImportDialogInfo desc = {};
-        desc.baseInfo.title        = "import model";
-        desc.importPathOrEmpty     = _path;
-
-        JAM_EDITOR.PushDialog(MakeRef<ModelImportDialog>(desc));
+        ModelImportDialogInfo info = {};
+        info.title                 = "import model";
+        info.importPathOrEmpty     = _path;
+        GetEditor().PushDialog(MakeRef<ModelImportDialog>(info));
     }
 
     if (Widget_MenuItem("import image"))
     {
-        ImageImportDialogInfo desc = {};
-        desc.baseInfo.title        = "import image";
-        desc.importPathOrEmpty     = _path;
-
-        JAM_EDITOR.PushDialog(MakeRef<ImageImportDialog>(desc));
+        ImageImportDialogInfo info = {};
+        info.title                 = "import image";
+        info.importPathOrEmpty     = _path;
+        GetEditor().PushDialog(MakeRef<ImageImportDialog>(info));
     }
 }
 
 void Editor_FileBrowserWindow::GatherFileEntries_()
 {
-    m_fileEntries.clear();
-    for (const fs::directory_entry& entry: fs::directory_iterator(m_focusingDir))
-    {
-        const Path&      path     = entry.path();
-        const StringView filename = FileNameViewOf(path);
+    m_fileEntryLookUp.clear();
 
-        if (m_fileEntryFilter.PassFilter(filename.GetPtr()))
-        {
-            m_fileEntries.emplace_back(path, filename, entry.is_directory(), m_thumbnailCache.GetOrPlaceholder(path));
-        }
+    const Ref<DirEntry>& pFocusingDirEntry = GetEditor().GetFocusingDirEntry();
+    Expect<DirIter>      iter              = DirIter::Create(pFocusingDirEntry->path);
+    JAM_ASSERT(iter, "Failed to create directory iterator. Path: {}", pFocusingDirEntry->path);
+    for (const StringView path: iter.GetValue())
+    {
+        GatherFileEntry_(path);
     }
+
+    // filtered entry force update
+    m_bGatherFilteredFileEntries = true;
+    m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
 }
 
-void Editor_FileBrowserWindow::BuildDirTree_()
+Ref<FileEntry> Editor_FileBrowserWindow::GatherFileEntry_(
+    const StringView _path)
 {
-    const Path& root = JAM_APP.GetContentsDirectory();
-    m_rootDirNode    = BuildDirNode_Recursive_(root);
+    Ref<FileEntry> pEntry    = MakeRef<FileEntry>();
+    pEntry->path             = _path;
+    pEntry->name             = _path.GetFileName();
+    pEntry->pThumbnail       = m_thumbnailCache.GetOrPlaceholder(_path);
+    m_fileEntryLookUp[_path] = pEntry;
+    return pEntry;
 }
 
-Editor_FileBrowserWindow::DirNode Editor_FileBrowserWindow::BuildDirNode_Recursive_(
-    const Path& _path)
+void Editor_FileBrowserWindow::GatherFilteredFileEntriesIfNeed_()
 {
-    DirNode node     = {};
-    node.path        = _path;
-    node.name        = FileNameViewOf(node.path);
-    node.bIsFocusing = (m_focusingDir == node.path);
-
-    // iterate sub directories. and build child nodes
-    for (const fs::directory_entry& entry: fs::directory_iterator { _path })
-    {
-        if (entry.is_directory())
-        {
-            const Path& path = entry.path();
-            node.children.emplace_back(BuildDirNode_Recursive_(path));
-        }
-    }
-
-    return node;
-}
-
-bool Editor_FileBrowserWindow::MarkFocusingDirNode_Recursive_(
-    DirNode& _node)
-{
-    if (_node.path == m_focusingDir)
-    {
-        _node.bIsFocusing = true;
-        return true;
-    }
-
-    for (DirNode& node: _node.children)
-    {
-        if (MarkFocusingDirNode_Recursive_(node))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void Editor_FileBrowserWindow::SetFocusingDir_(
-    const Path& _dir,
-    const bool  _bPushHistroyStack)
-{
-    JAM_ASSERT(fs::is_directory(_dir), "Path is not a directory!");
-    if (JAM_DEBUG_ENABLED)
-    {
-        const Path& root = JAM_APP.GetContentsDirectory();
-        JAM_ASSERT(IsBasePathOf(root, m_focusingDir) || root == m_focusingDir, "Focused directory is not a child of contents directory!");
-    }
-
-    // no change
-    if (m_focusingDir == _dir)
+    if (!m_bGatherFilteredFileEntries || m_fileEntryFilterCounterSec < k_fileEntryFilterUpdateIntervalSec)
     {
         return;
     }
 
-    // push history stack
-    if (_bPushHistroyStack && !m_focusingDir.empty())
+    // filter
+    m_filteredFileEntries.clear();
+    for (const Ref<FileEntry>& pEntry: m_fileEntryLookUp | std::views::values)
     {
-        m_historyStack.Push(m_focusingDir);
+        if (m_fileEntryFilter.PassFilter(pEntry->name.GetPtr()))
+        {
+            m_filteredFileEntries.emplace_back(pEntry);
+        }
+    }
+
+    m_fileEntryFilterCounterSec  = 0.f;
+    m_bGatherFilteredFileEntries = false;
+}
+
+void Editor_FileBrowserWindow::GatherDirEntries_()
+{
+    m_dirEntryLookUp.clear();
+
+    const StringView contentDir = GetApp().GetContentsDirectory();
+    m_pRootDirNode              = GatherDirEntries_Recursive_(contentDir);
+    if (const Ref<DirEntry>& pFocusingEntry = GetEditor().GetFocusingDirEntryOrNull())
+    {
+        GetEditor().SetFocusingDirEntry(m_dirEntryLookUp[pFocusingEntry->path]);
+    }
+    else
+    {
+        GetEditor().SetFocusingDirEntry(m_pRootDirNode);
+    }
+}
+
+Ref<DirEntry> Editor_FileBrowserWindow::GatherDirEntries_Recursive_(
+    const StringView _dir)
+{
+    JAM_ASSERT(_dir.IsDirectory(), "Path must be a directory.");
+
+    Ref<DirEntry> pEntry = MakeRef<DirEntry>();
+    pEntry->path         = _dir;
+    pEntry->name         = _dir.GetBaseName();
+    pEntry->bOpened      = false;   // 어떤 값이던 상관없음.
+
+    Expect<DirIter> iter = DirIter::Create(_dir);
+    JAM_ASSERT(iter, "Failed to create directory iterator. Path: {}", _dir);
+    for (const StringView path: iter.GetValue())
+    {
+        if (path.IsDirectory())
+        {
+            pEntry->children.emplace_back(GatherDirEntries_Recursive_(path));
+        }
+    }
+
+    m_dirEntryLookUp[_dir] = pEntry;
+    return pEntry;
+}
+
+void Editor_FileBrowserWindow::SetFocusingDirEntry_(
+    const Ref<DirEntry>& _pEntry,
+    const bool           _bPushHistroyStack)
+{
+    JAM_ASSERT(_pEntry, "Directory entry cannot be null.");
+
+    // no change
+    const Ref<FileEntry>& pFocusingFileEntry = GetEditor().GetFocusingFileEntry();
+    if (pFocusingFileEntry == _pEntry)
+    {
+        return;
+    }
+
+    // push history sso
+    if (_bPushHistroyStack)
+    {
+        m_historyStack.Push(GetEditor().GetFocusingDirEntry());
     }
 
     // set focus dir
-    m_focusingDir                = _dir;
-    m_bGatherFileEntriesRequried = true;
-    MarkFocusingDirNode_Recursive_(m_rootDirNode);
+    GetEditor().SetFocusingDirEntry(_pEntry);
 }
 
 void Editor_FileBrowserWindow::GoToParentDir_()
 {
-    SetFocusingDir_(m_focusingDir.parent_path());
+    const Ref<DirEntry>& pEntry = GetEditor().GetFocusingDirEntry();
+    JAM_ASSERT(!pEntry->IsRoot(), "Current focusing directory is root. There is no parent directory.");
+    SetFocusingDirEntry_(pEntry->pParent, true);
 }
 
 void Editor_FileBrowserWindow::OnFileAddEvent_(
     const FileAddedEvent& _event)
 {
-    OnFileEvent_(_event.GetPath());
+    const StringView path = _event.GetPath();
+    if (path.IsDirectory())
+    {
+        GatherDirEntries_Recursive_(path);
+    }
+
+    if (path.GetDirectory() == GetEditor().GetFocusingDirEntry()->path)
+    {
+        GatherFileEntry_(path);
+
+        // 필터 즉시 수집
+        m_bGatherFilteredFileEntries = true;
+        m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
+    }
 }
 
 void Editor_FileBrowserWindow::OnFileDeleteEvent_(
     const FileDeletedEvent& _event)
 {
-    OnFileEvent_(_event.GetPath());
-}
+    JAM_ASSERT(GetEditor().GetFocusingFileEntry()->path != _event.GetPath(), "Currently focusing file entry is deleted. Path: {}", _event.GetPath());
 
-void Editor_FileBrowserWindow::OnFileModifiedEvent_(
-    const FileModifiedEvent& _event)
-{
-    OnFileEvent_(_event.GetPath());
+    // 만약 지금 참조중인 entry가 삭제되었다면..
+    const StringView path = _event.GetPath();
+
+    const StringView focusingDirEntryPath = GetEditor().GetFocusingDirEntry()->path;
+    if (focusingDirEntryPath == path)
+    {
+        GoToParentDir_();   // 삭제된 디렉토리가 포커싱중이었다면, 부모 디렉토리로 이동
+    }
+
+    const StringView focusingFileEntryPath = GetEditor().GetFocusingFileEntry()->path;
+    if (path == focusingFileEntryPath)
+    {
+        GetEditor().SetFocusingFileEntry(nullptr);   // 포커싱중인 파일이 삭제되었다면, 포커싱 해제
+    }
+
+    // lookup에서 제거
+    if (path.IsDirectory())
+    {
+        m_dirEntryLookUp.erase(path);
+    }
+
+    // 만약 삭제된 파일이 현재 포커싱중인 디렉토리에 속한 파일이라면, 해당 entry를 lookup에서 제거
+    if (path.GetDirectory() == focusingFileEntryPath)
+    {
+        m_fileEntryLookUp.erase(path);
+
+        // 필터 즉시 수집
+        m_bGatherFilteredFileEntries = true;
+        m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
+    }
 }
 
 void Editor_FileBrowserWindow::OnFileRenamedEvent_(
     const FileRenamedEvent& _event)
 {
-    OnFileEvent_(_event.GetOldPath());   // 하나만 처리해도 충분
+    const StringView oldPath              = _event.GetOldPath();
+    const StringView newPath              = _event.GetNewPath();
+    const StringView focusingDirEntryPath = GetEditor().GetFocusingDirEntry()->path;
+
+    // lookup에서 제거
+    if (oldPath.IsDirectory())
+    {
+        Ref<DirEntry> pEntry = m_dirEntryLookUp[oldPath];
+        m_dirEntryLookUp.erase(oldPath);       // old path로 lookup에서 제거
+        pEntry->path              = newPath;   // entry의 path를 new path로 변경
+        m_dirEntryLookUp[newPath] = pEntry;    // new path로 lookup에 추가
+    }
+
+    // 만약 이름이 변경된 파일이 현재 포커싱중인 디렉토리에 속한 파일이라면, lookup에서 제거 후 새로 수집
+    if (oldPath.GetDirectory() == focusingDirEntryPath)
+    {
+        m_fileEntryLookUp.erase(oldPath);   // old path로 lookup에서 제거
+        GatherFileEntry_(newPath);          // new path로 entry를 새로 수집
+
+        // 필터 즉시 수집
+        m_bGatherFilteredFileEntries = true;
+        m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
+    }
 }
 
-void Editor_FileBrowserWindow::OnFileEvent_(
-    const Path& _path)
+void Editor_FileBrowserWindow::OnFileWatcherEvent_(
+    const FileWatcherEvent& _event) const
 {
-    if (fs::is_directory(_path))
+    JAM_ASSERT(std::this_thread::get_id() != GetApp().GetMainThreadId(), "File watcher event should not be called in main thread.");
+
+    switch (_event.type)
     {
-        m_bBuildDirTreeRequired = true;
-    }
-    else if (fs::is_regular_file(_path))
-    {
-        if (_path.parent_path() == m_focusingDir)
+        case eFileEventType::Added:
         {
-            m_bGatherFileEntriesRequried = true;
+            GetApp().SubmitCommandToMainThread(Bind(
+                [this, path = _event.newPath]
+                {
+                    FileAddedEvent event { path };
+                    GetApp().DispatchEvent(event);
+                }));
         }
+        break;
+
+        case eFileEventType::Deleted:
+        {
+            GetApp().SubmitCommandToMainThread(Bind(
+                [this, path = _event.oldPath]
+                {
+                    FileDeletedEvent event { path };
+                    GetApp().DispatchEvent(event);
+                }));
+        }
+        break;
+
+        case eFileEventType::Renamed:
+        {
+            GetApp().SubmitCommandToMainThread(Bind(
+                [this, oldPath = _event.oldPath, newPath = _event.newPath]
+                {
+                    FileRenamedEvent event { oldPath, newPath };
+                    GetApp().DispatchEvent(event);
+                }));
+        }
+        break;
+
+        case eFileEventType::Modified:
+        {
+            GetApp().SubmitCommandToMainThread(Bind(
+                [this, path = _event.newPath]
+                {
+                    FileModifiedEvent event { path };
+                    GetApp().DispatchEvent(event);
+                }));
+        }
+        break;
+
+        default:
+            JAM_UNREACHABLE;
     }
 }
 
-void Editor_FileBrowserWindow::OpenFileInExplorer_(
-    const Path& _path,
-    const bool  _bSelected) const
+void Editor_FileBrowserWindow::OnFocusingDirEntryChanged_(
+    const FocusingDirEntryChangedEvent&)
 {
-    ScratchBuffer buf;
-    buf.Format(R"( explorer.exe {} "{}" )", _bSelected ? "/select," : "", _path);
-
-    const Int32 ret = std::system(buf.GetPtr());
-    JAM_ASSERT(ret == 0, "Failed to open file in explorer. Return code: {}", ret);
+    GatherFileEntries_();
 }
 
-void Editor_FileBrowserWindow::OpenFileWithDefaultApp_(
-    const Path& _path) const
+void Editor_FileBrowserWindow::OpenInFileExplorer_(
+    const StringView _path,
+    const bool       _bSelected) const
 {
-    ScratchBuffer command;
-    command.Format(R"( start "" "{}" )", _path);
+    const String cmd = String::Formatted(R"( explorer.exe {} "{}" )", _bSelected ? "/select," : "", _path);
+    if (std::system(cmd.GetPtr()) != 0)
+    {
+        JAM_ASSERT(0, "Failed to open file in explorer. Path: {}", _path);
+    }
+}
 
-    const Int32 ret = std::system(command.GetPtr());
-    JAM_ASSERT(ret == 0, "Failed to open file with default application. Return code: {}", ret);
+void Editor_FileBrowserWindow::OpenAsDefaultApp_(
+    const StringView _path) const
+{
+    const String cmd = String::Formatted(R"( start "" "{}" )", _path);
+    if (std::system(cmd.GetPtr()) != 0)
+    {
+        JAM_ASSERT(0, "Failed to open file with default app. Path: {}", _path);
+    }
 }
 
 }   // namespace Jam

@@ -65,7 +65,7 @@ namespace
 }   // namespace
 
 Expect<AssimpImporter> AssimpImporter::ImportFromFile(
-    const Path&                  _path,
+    StringView                _path,
     const AssimpImporterInfo& _info)
 {
     AssimpImporter importer = {};
@@ -120,7 +120,7 @@ Expect<Ref<Model>> AssimpImporter::ConvertToModel(
 }
 
 Error AssimpImporter::ImportFromFile_(
-    const Path&                  _path,
+    StringView                _path,
     const AssimpImporterInfo& _options)
 {
     UInt32 flags = aiProcess_JoinIdenticalVertices
@@ -168,10 +168,10 @@ Error AssimpImporter::ImportFromFile_(
     importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
 
     // import
-    const aiScene* pScene = importer.ReadFile(_path, flags);
+    const aiScene* pScene = importer.ReadFile(_path.GetPtr(), flags);
     if (!pScene)
     {
-        JAM_LOG.Error("failed to load file: {}", importer.GetErrorString());
+        JAM_LOG_ERROR("failed to load file: {}", importer.GetErrorString());
         return Error::ImportFailed;
     }
 
@@ -319,13 +319,13 @@ Expect<Vector<Ref<Texture>>> AssimpImporter::ConvertToTextures_() const
             }
 
             // texture 생성
-            texh = JAM_GFX.CreateTexture(importer->GetImageContainer());
+            texh = GetGraphics().CreateTexture(importer->GetImageContainer());
         }
         else
         {
             // 비압축된 경우, 이미지 포맷은 BGRA8_UNorm 고정
             const CMemoryBlock mems[] = { importedTexture.pixels };
-            texh                      = JAM_GFX.CreateTexture2D(importedTexture.width, importedTexture.height, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
+            texh                      = GetGraphics().CreateTexture2D(importedTexture.width, importedTexture.height, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
         }
 
         // texture 생성
@@ -367,7 +367,7 @@ Vector<Ref<Material>> AssimpImporter::ConvertToMaterials_(
 }
 
 void AssimpImporter::ImportMeshes_(
-    const aiScene*               _pScene,
+    const aiScene*            _pScene,
     const AssimpImporterInfo& _options)
 {
     JAM_ASSERT(_pScene != nullptr, "AssimpImporter::ImportMeshesFrom_() - _pScene is nullptr");
@@ -391,10 +391,7 @@ void AssimpImporter::ImportMeshes_(
         // 이름
         {
             const aiString& aiName = pMesh->mName;
-
-            ScratchBuffer tmp;
-            tmp.Format("{}_{}", aiName.Empty() ? "mesh" : aiName.C_Str(), i);
-            importedMesh.name = tmp.ToString();
+            importedMesh.name      = String::Formatted("{}_{}", aiName.Empty() ? "mesh" : aiName.C_Str(), i);
         }
 
         // 인덱스
@@ -493,9 +490,9 @@ void AssimpImporter::ImportMeshes_(
         }
         else if (_options.bGenerateTangentFrame)   // 내장 tangent & bitangent가 없는 경우, 드롭된 경우
         {
-            const TangentFrame tangentFrame = ComputeTangentFrame(importedMesh.positions, importedMesh.normals, importedMesh.texCoords[0], importedMesh.idxData, importedMesh.bUseU32);
-            importedMesh.tangents           = std::move(tangentFrame.tangents);
-            importedMesh.bitangents         = std::move(tangentFrame.bitangents);
+            TangentFrame tangentFrame = ComputeTangentFrame(importedMesh.positions, importedMesh.normals, importedMesh.texCoords[0], importedMesh.idxData, importedMesh.bUseU32);
+            importedMesh.tangents     = std::move(tangentFrame.tangents);
+            importedMesh.bitangents   = std::move(tangentFrame.bitangents);
         }
     }
 }
@@ -529,10 +526,7 @@ Error AssimpImporter::ImportTextures_(
         // 이름 생성
         {
             const aiString& filename = pTexture->mFilename;
-
-            ScratchBuffer tmp;
-            tmp.Format("{}_{}", filename.Empty() ? "texture" : filename.C_Str(), i);
-            importedTexture.name = tmp.ToString();
+            importedTexture.name     = String::Formatted("{}_{}", filename.Empty() ? "texture" : filename.C_Str(), i);
         }
 
         // 픽셀 데이터
@@ -545,7 +539,7 @@ Error AssimpImporter::ImportTextures_(
             const Optional<eImageFormat> format = ParseAsImageFormat(hint);
             if (!format)
             {
-                JAM_LOG.Error("AssimpImporter::ImportTextures_() - Failed to parse image format from hint: {}", hint);
+                JAM_LOG_ERROR("AssimpImporter::ImportTextures_() - Failed to parse image format from hint: {}", hint);
                 return Error::ImportFailed;
             }
 
@@ -589,11 +583,8 @@ void AssimpImporter::ImportMaterials_(
         int       iParam   = 0;
 
         // Name
-        pMaterial->Get(AI_MATKEY_NAME, strParam);
-
-        ScratchBuffer tmp;
-        tmp.Format("{}_{}", strParam.Empty() ? "material" : strParam.C_Str(), i);
-        importedMaterial.name = tmp.ToString();
+        const bool bHasName   = pMaterial->Get(AI_MATKEY_NAME, strParam) == AI_SUCCESS;
+        importedMaterial.name = String::Formatted("{}_{}", (bHasName || strParam.Empty()) ? "material" : strParam.C_Str(), i);
 
         // Ambient
         if (pMaterial->Get(AI_MATKEY_COLOR_AMBIENT, colParam) == AI_SUCCESS)
@@ -689,7 +680,7 @@ ImportedModelNode AssimpImporter::ImportModelNode_Recursive_(
     ImportedModelNode importedNode = {};
 
     // 이름
-    importedNode.name = { _pNode->mName.C_Str(), _pNode->mName.length };
+    importedNode.name = String { _pNode->mName.C_Str(), _pNode->mName.length };
 
     // 행렬
     {

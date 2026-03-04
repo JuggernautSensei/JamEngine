@@ -5,12 +5,8 @@
 namespace Jam
 {
 
-
-
 class SceneNode
 {
-    friend class Scene;
-
     enum class eDirty
     {
         None,
@@ -48,24 +44,24 @@ public:
     [[nodiscard]] Transform&       ModifyLocalTransform();
     [[nodiscard]] Transform&       ModifyWorldTransform();
 
+    void UpdateSceneGraph(Vector<Entity>& _updatedEntities);
+
 private:
     void NotifyDirty_();
     void ReleaseParent_();
-    void UpdateDirty_(Vector<Entity>& _updatedNodes);
-    void UpdateDirty_Recursive_(Vector<Entity>& _updatedNodes);
-    void UpdateDirty_Recursive_();
+    void UpdateSceneGraph_Recursive_(Vector<Entity>& _updatedNodes);
 
     eDirty m_dirty = eDirty::None;
 
     Transform m_local = {};
     Transform m_world = {};
 
-    Entity m_root        = Entity::k_invalid;
-    Entity m_owner       = Entity::k_invalid;
-    Entity m_parent      = Entity::k_invalid;
-    Entity m_firstChild  = Entity::k_invalid;
-    Entity m_nextSibling = Entity::k_invalid;
-    Entity m_prevSibling = Entity::k_invalid;
+    Entity m_root        = Entity::k_null;
+    Entity m_owner       = Entity::k_null;
+    Entity m_parent      = Entity::k_null;
+    Entity m_firstChild  = Entity::k_null;
+    Entity m_nextSibling = Entity::k_null;
+    Entity m_prevSibling = Entity::k_null;
 };
 
 }   // namespace Jam

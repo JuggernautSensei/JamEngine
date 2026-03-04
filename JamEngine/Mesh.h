@@ -17,25 +17,25 @@ public:
     Mesh(Mesh&& _other) noexcept;
     Mesh& operator=(Mesh&& _other) noexcept;
 
-    [[nodiscard]] static Expect<Ref<Mesh>> Create(const Path& _path);
+    [[nodiscard]] static Expect<Ref<Mesh>> Create(StringView _path);
     [[nodiscard]] static Ref<Mesh>         Create(CMemoryBlock _vertData, const VertexLayout& _vl, CMemoryBlock _idxData, bool _bUseU32 = false);
 
-    Error Load(const Path& _path) override;
+    Error Load(StringView _path) override;
     void  Load(CMemoryBlock _vertData, const VertexLayout& _vl, CMemoryBlock _idxData, bool _bUseU32 = false);
-    Error Save(const Path& _path, bool _bReplaceExtension = true, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None) const override;
+    Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
-    void  SetVirtualPath(const Path& _path) override;
+    void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
-    [[nodiscard]] bool        IsValid() const override;
-    [[nodiscard]] const Path& GetPath() const override;
-    [[nodiscard]] eAssetType  GetAssetType() const override;
-    [[nodiscard]] UInt32      GetTypeHash() const override;
-    [[nodiscard]] StringView  GetTypeName() const override;
-    [[nodiscard]] UInt16      GetSortKey() const;
-    [[nodiscard]] StringView  GetName() const override;
-    [[nodiscard]] StringView  GetExtension() const override;
-    [[nodiscard]] StringView  GetFilter() const override;
+    [[nodiscard]] bool       IsValid() const override;
+    [[nodiscard]] StringView GetPath() const override;
+    [[nodiscard]] eAssetType GetAssetType() const override;
+    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] StringView GetTypeName() const override;
+    [[nodiscard]] UInt16     GetSortKey() const;
+    [[nodiscard]] StringView GetName() const override;
+    [[nodiscard]] StringView GetExtension() const override;
+    [[nodiscard]] StringView GetFilter() const override;
 
     [[nodiscard]] VertexBufferHandle GetVertexBuffer() const;
     [[nodiscard]] IndexBufferHandle  GetIndexBuffer() const;
@@ -54,7 +54,7 @@ private:
     void CleanUp_();
     void ComputeBoundingBox_(CMemoryBlock _vertData, const VertexLayout& _vl);
 
-    Path               m_path            = {};
+    String             m_path            = {};
     String             m_name            = {};
     VertexBufferHandle m_vbh             = k_nullHandle;
     IndexBufferHandle  m_ibh             = k_nullHandle;

@@ -8,19 +8,28 @@
 
 #include "Mesh.h"
 #include "MeshFactory.h"
-#include "VertexLayoutEntry.h"
+#include "VertexLayoutEntryManager.h"
 
 namespace Jam
 {
 
+namespace
+{
+    FileDialog CreateDirectorySelectorFileDialog_()
+    {
+        OpenDirectoryDialogInfo info = {};
+        info.title                   = "select save directory";
+        return FileDialog(info);
+    }
+}
+
 PrimitiveCreationDialog::PrimitiveCreationDialog(
-    const PrimitiveCreationDialogDesc& _desc)
-    : AssetCreationDialog(_desc.baseInfo)
+    const PrimitiveCreationDialogInfo& _desc)
+    : AssetCreationDialog(_desc.title, _desc.size)
     , m_type(_desc.type)
+    , m_saveFd(CreateDirectorySelectorFileDialog_())
     , m_assetSaveDir(_desc.saveDirOrEmpty)
 {
-    JAM_ASSERT(fs::is_directory(_desc.saveDirOrEmpty), "save directory must exist.");
-    m_saveFd.SetTitle("select save directory");
 }
 
 void PrimitiveCreationDialog::OnShow()
@@ -94,20 +103,20 @@ void PrimitiveCreationDialog::Panel_CubeCreation_()
         Widget_Text("width", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##width",m_fParam0, 0.01f, 0.001f);
+        Widget_DragFloat("##width", m_fParam0, 0.01f, 0.001f);
 
         // height
         ImGui::TableNextColumn();
         Widget_Text("height", true);
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##height",m_fParam1, 0.01f, 0.001f);
+        Widget_DragFloat("##height", m_fParam1, 0.01f, 0.001f);
 
         // depth
         ImGui::TableNextColumn();
         Widget_Text("depth", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##depth",m_fParam2, 0.01f, 0.001f);
+        Widget_DragFloat("##depth", m_fParam2, 0.01f, 0.001f);
 
         // vertex layout
         ImGui::TableNextColumn();
@@ -143,7 +152,7 @@ void PrimitiveCreationDialog::Panel_SphereCreation_()
         Widget_Text("radius", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##radius",m_fParam0, 0.01f, 0.001f);
+        Widget_DragFloat("##radius", m_fParam0, 0.01f, 0.001f);
 
         // subdivisions level
         ImGui::TableNextColumn();
@@ -154,7 +163,7 @@ void PrimitiveCreationDialog::Panel_SphereCreation_()
 
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragInt("##subdivisionsLevel",m_iParam, 0.05f, 0, 8);
+        Widget_DragInt("##subdivisionsLevel", m_iParam, 0.05f, 0, 8);
 
         // vertex layout
         ImGui::TableNextColumn();
@@ -190,14 +199,14 @@ void PrimitiveCreationDialog::Panel_PlaneCreation_()
         Widget_Text("width", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##width",m_fParam0, 0.01f, 0.001f);
+        Widget_DragFloat("##width", m_fParam0, 0.01f, 0.001f);
 
         // depth
         ImGui::TableNextColumn();
         Widget_Text("depth", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##depth",m_fParam1, 0.01f, 0.001f);
+        Widget_DragFloat("##depth", m_fParam1, 0.01f, 0.001f);
 
         // vertex layout
         ImGui::TableNextColumn();
@@ -233,7 +242,7 @@ void PrimitiveCreationDialog::Panel_CircleCreation_()
         Widget_Text("radius", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##radius",m_fParam0, 0.01f, 0.001f);
+        Widget_DragFloat("##radius", m_fParam0, 0.01f, 0.001f);
 
         // triangle count
         ImGui::TableNextColumn();
@@ -244,7 +253,7 @@ void PrimitiveCreationDialog::Panel_CircleCreation_()
 
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragInt("##TriangleCount",m_iParam, 3, 256);
+        Widget_DragInt("##TriangleCount", m_iParam, 3, 256);
 
         // vertex layout
         ImGui::TableNextColumn();
@@ -280,14 +289,14 @@ void PrimitiveCreationDialog::Panel_ConeCreation_()
         Widget_Text("height", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##height",m_fParam0, 0.01f, 0.001f);
+        Widget_DragFloat("##height", m_fParam0, 0.01f, 0.001f);
 
         // radius
         ImGui::TableNextColumn();
         Widget_Text("radius", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##radius",m_fParam1, 0.01f, 0.001f);
+        Widget_DragFloat("##radius", m_fParam1, 0.01f, 0.001f);
 
         // bottom triangle count
         ImGui::TableNextColumn();
@@ -298,7 +307,7 @@ void PrimitiveCreationDialog::Panel_ConeCreation_()
 
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragInt("##BottomTriangleCount",m_iParam, 3, 256);
+        Widget_DragInt("##BottomTriangleCount", m_iParam, 3, 256);
 
         // vertex layout
         ImGui::TableNextColumn();
@@ -334,14 +343,14 @@ void PrimitiveCreationDialog::Panel_CylinderCreation_()
         Widget_Text("height", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##height",m_fParam0, 0.01f, 0.001f);
+        Widget_DragFloat("##height", m_fParam0, 0.01f, 0.001f);
 
         // radius
         ImGui::TableNextColumn();
         Widget_Text("radius", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##radius",m_fParam1, 0.01f, 0.001f);
+        Widget_DragFloat("##radius", m_fParam1, 0.01f, 0.001f);
 
         ImGui::TableNextColumn();
         Widget_Text("bottom triangle count", true);
@@ -351,7 +360,7 @@ void PrimitiveCreationDialog::Panel_CylinderCreation_()
 
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragInt("##BottomTriangleCount",m_iParam, 3, 256);
+        Widget_DragInt("##BottomTriangleCount", m_iParam, 3, 256);
 
         ImGui::TableNextColumn();
         Widget_Text("vertex layout", true);
@@ -373,7 +382,7 @@ bool PrimitiveCreationDialog::OnClickCreateButton_()
     }
 
     // check save dir
-    if (m_assetSaveDir.empty())
+    if (m_assetSaveDir.IsEmpty())
     {
         PushEmptySavePathErrorMessageDialog_();
         return false;
@@ -386,10 +395,10 @@ bool PrimitiveCreationDialog::OnClickCreateButton_()
         return false;
     }
 
-    Path path = JoinedPath(m_assetSaveDir, m_assetBaseName);
-    ReplaceExtension(path, Mesh::k_extension);
+    String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoinType::File);
+    path.ReplaceExtension(Mesh::k_extension);
 
-    if (fs::exists(path))
+    if (FileSystem::Exists(path))
     {
         PushOverwriteConfirmationDialog_(path);
         return false;
@@ -453,7 +462,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
     }
 }
 
-bool PrimitiveCreationDialog::CreateAndSaveAsset_(const Path& _path)
+bool PrimitiveCreationDialog::CreateAndSaveAsset_(StringView _path)
 {
     const Ref<Mesh> pMesh = CreatePrimitiveMesh_();
     return SaveAsset_(_path, pMesh);

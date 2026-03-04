@@ -250,8 +250,8 @@ EditorRenderer::EditorRenderer()
     LineVertex::Init();
 
     // constant buffer
-    m_cbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_EDITOR_RENDERER));
-    JAM_GFX.SetConstantBufferName(m_cbh, "EditorRenderer_ConstantBuffer");
+    m_cbh = GetGraphics().CreateConstantBuffer(sizeof(CB_EDITOR_RENDERER));
+    GetGraphics().SetConstantBufferName(m_cbh, "EditorRenderer_ConstantBuffer");
 
     // Grid shaders
     {
@@ -262,7 +262,7 @@ EditorRenderer::EditorRenderer()
 
         Expect<ShaderCompiler> vsCompiler = ShaderCompiler::CompileFromHLSLSource(k_gridShaderSource, vsDesc);
         JAM_ASSERT(vsCompiler, "Editor grid vertex shader compilation failed");
-        const ShaderHandle gridVsh = JAM_GFX.CreateShader(vsCompiler->GetBytecode());
+        const ShaderHandle gridVsh = GetGraphics().CreateShader(vsCompiler->GetBytecode());
 
         ShaderCompilerInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
@@ -271,9 +271,9 @@ EditorRenderer::EditorRenderer()
 
         Expect<ShaderCompiler> psCompiler = ShaderCompiler::CompileFromHLSLSource(k_gridShaderSource, psDesc);
         JAM_ASSERT(psCompiler, "Editor grid pixel shader compilation failed");
-        const ShaderHandle gridPsh = JAM_GFX.CreateShader(vsCompiler->GetBytecode());
+        const ShaderHandle gridPsh = GetGraphics().CreateShader(vsCompiler->GetBytecode());
 
-        m_gridPh = JAM_GFX.CreateProgram(gridVsh, gridPsh, true);
+        m_gridPh = GetGraphics().CreateProgram(gridVsh, gridPsh, true);
     }
 
     // Line shaders
@@ -285,7 +285,7 @@ EditorRenderer::EditorRenderer()
 
         Expect<ShaderCompiler> vsCompiler = ShaderCompiler::CompileFromHLSLSource(k_lineShaderSource, vsDesc);
         JAM_ASSERT(vsCompiler, "Editor line vertex shader compilation failed");
-        const ShaderHandle lineVsh = JAM_GFX.CreateShader(vsCompiler->GetBytecode());
+        const ShaderHandle lineVsh = GetGraphics().CreateShader(vsCompiler->GetBytecode());
 
         ShaderCompilerInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
@@ -294,9 +294,9 @@ EditorRenderer::EditorRenderer()
 
         Expect<ShaderCompiler> psCompiler = ShaderCompiler::CompileFromHLSLSource(k_lineShaderSource, psDesc);
         JAM_ASSERT(psCompiler, "Editor line pixel shader compilation failed");
-        const ShaderHandle linePsh = JAM_GFX.CreateShader(psCompiler->GetBytecode());
+        const ShaderHandle linePsh = GetGraphics().CreateShader(psCompiler->GetBytecode());
 
-        m_linePh = JAM_GFX.CreateProgram(lineVsh, linePsh, true);
+        m_linePh = GetGraphics().CreateProgram(lineVsh, linePsh, true);
     }
 
     // Filled shaders
@@ -308,7 +308,7 @@ EditorRenderer::EditorRenderer()
 
         Expect<ShaderCompiler> vsCompiler = ShaderCompiler::CompileFromHLSLSource(k_editorRendererFilledShaderSource, vsDesc);
         JAM_ASSERT(vsCompiler, "Editor filled vertex shader compilation failed");
-        const ShaderHandle filledVsh = JAM_GFX.CreateShader(vsCompiler->GetBytecode());
+        const ShaderHandle filledVsh = GetGraphics().CreateShader(vsCompiler->GetBytecode());
 
         ShaderCompilerInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
@@ -317,14 +317,14 @@ EditorRenderer::EditorRenderer()
 
         Expect<ShaderCompiler> psCompiler = ShaderCompiler::CompileFromHLSLSource(k_editorRendererFilledShaderSource, psDesc);
         JAM_ASSERT(psCompiler, "Editor filled pixel shader compilation failed");
-        const ShaderHandle filledPsh = JAM_GFX.CreateShader(psCompiler->GetBytecode());
+        const ShaderHandle filledPsh = GetGraphics().CreateShader(psCompiler->GetBytecode());
 
-        m_filledPh = JAM_GFX.CreateProgram(filledVsh, filledPsh, true);
+        m_filledPh = GetGraphics().CreateProgram(filledVsh, filledPsh, true);
     }
 
     // 라인 버퍼 생성
-    m_lineVbh = JAM_GFX.CreateDynamicVertexBuffer(k_lineLimit * 2, LineVertex::s_vl);
-    m_lineIbh = JAM_GFX.CreateDynamicIndexBuffer(k_lineLimit * 2);
+    m_lineVbh = GetGraphics().CreateDynamicVertexBuffer(k_lineLimit * 2, LineVertex::s_vl);
+    m_lineIbh = GetGraphics().CreateDynamicIndexBuffer(k_lineLimit * 2);
 
     // 그리드 쿼드 생성
     {
@@ -348,8 +348,8 @@ EditorRenderer::EditorRenderer()
 
         constexpr UInt16 k_idxes[6] = { 0, 1, 2, 0, 2, 3 };
 
-        m_gridVbh = JAM_GFX.CreateVertexBuffer(k_verts, vl);
-        m_gridIbh = JAM_GFX.CreateIndexBuffer(k_idxes);
+        m_gridVbh = GetGraphics().CreateVertexBuffer(k_verts, vl);
+        m_gridIbh = GetGraphics().CreateIndexBuffer(k_idxes);
     }
 
     // 프리미티브 생성
@@ -408,12 +408,12 @@ void EditorRenderer::Begin(const RenderView& _view)
     m_drawGridFlags = eDrawGridFlags::None;
     m_bBeginRender  = true;
 
-    JAM_GFX.SetFrameBuffer(_view.fbh);
-    JAM_GFX.SetViewport(_view.vp);
+    GetGraphics().SetFrameBuffer(_view.fbh);
+    GetGraphics().SetViewport(_view.vp);
 
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
-    JAM_GFX.SetBlendState(m_blendState, 0);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
+    GetGraphics().SetBlendState(m_blendState, 0);
 }
 
 void EditorRenderer::End()
@@ -547,10 +547,10 @@ void EditorRenderer::DrawFilledSphere(const Vec3 _center, const float _radius, c
 
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::TriangleList;
-    JAM_GFX.SetRenderState(state);
-    JAM_GFX.SetProgram(m_filledPh);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
+    GetGraphics().SetRenderState(state);
+    GetGraphics().SetProgram(m_filledPh);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
     m_sphereMesh->Submit();
 }
 
@@ -565,10 +565,10 @@ void EditorRenderer::DrawFilledCube(const Vec3 _center, const Vec3 _size, const 
 
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::TriangleList;
-    JAM_GFX.SetRenderState(state);
-    JAM_GFX.SetProgram(m_filledPh);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
+    GetGraphics().SetRenderState(state);
+    GetGraphics().SetProgram(m_filledPh);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
     m_cubeMesh->Submit();
 }
 
@@ -584,10 +584,10 @@ void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, con
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::TriangleList;
 
-    JAM_GFX.SetRenderState(state);
-    JAM_GFX.SetProgram(m_filledPh);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
+    GetGraphics().SetRenderState(state);
+    GetGraphics().SetProgram(m_filledPh);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
     m_cylinderMesh->Submit();
 }
 
@@ -618,18 +618,18 @@ void EditorRenderer::FlushLines_()
     cb.viewProj           = (m_view * m_proj).Transpose();
     cb.mtx                = mtx4::k_identity.Transpose();
     cb.eye                = m_eye;
-    JAM_GFX.UploadBuffer(m_cbh, cb);
+    GetGraphics().UploadBuffer(m_cbh, cb);
 
-    JAM_GFX.UploadBuffer(m_lineVbh, { m_lineVertices.data(), NumericCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
-    JAM_GFX.UploadBuffer(m_lineIbh, { m_lineIndices.data(), NumericCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
+    GetGraphics().UploadBuffer(m_lineVbh, { m_lineVertices.data(), NumericCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
+    GetGraphics().UploadBuffer(m_lineIbh, { m_lineIndices.data(), NumericCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
 
     RenderState state = m_lineState;
     state.primitive   = ePrimitive::LineList;
-    JAM_GFX.SetRenderState(state);
-    JAM_GFX.SetProgram(m_linePh);
-    JAM_GFX.SetVertexBuffer(m_lineVbh, m_numLineVerts, 0);
-    JAM_GFX.SetIndexBuffer(m_lineIbh, m_numLineIndices, 0);
-    JAM_GFX.Submit();
+    GetGraphics().SetRenderState(state);
+    GetGraphics().SetProgram(m_linePh);
+    GetGraphics().SetVertexBuffer(m_lineVbh, m_numLineVerts, 0);
+    GetGraphics().SetIndexBuffer(m_lineIbh, m_numLineIndices, 0);
+    GetGraphics().Submit();
 
     m_numLineVerts   = 0;
     m_numLineIndices = 0;
@@ -642,7 +642,7 @@ void EditorRenderer::UploadTransform_(const Mtx4& _world) const
     cb.mtx                = _world.Transpose();
     cb.eye                = m_eye;
     cb.color              = m_currentColor.ToLinear();
-    JAM_GFX.UploadBuffer(m_cbh, cb);
+    GetGraphics().UploadBuffer(m_cbh, cb);
 }
 
 void EditorRenderer::DrawGrid_() const
@@ -652,16 +652,16 @@ void EditorRenderer::DrawGrid_() const
     cb.mtx                = mtx4::k_identity.Transpose();
     cb.eye                = m_eye;
     cb.flags              = m_drawGridFlags;
-    JAM_GFX.UploadBuffer(m_cbh, cb);
+    GetGraphics().UploadBuffer(m_cbh, cb);
 
-    JAM_GFX.SetRenderState(m_gridState);
-    JAM_GFX.SetBlendState(m_blendState, 0);
-    JAM_GFX.SetProgram(m_gridPh);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    JAM_GFX.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
-    JAM_GFX.SetVertexBuffer(m_gridVbh);
-    JAM_GFX.SetIndexBuffer(m_gridIbh, 6, 0);
-    JAM_GFX.Submit();
+    GetGraphics().SetRenderState(m_gridState);
+    GetGraphics().SetBlendState(m_blendState, 0);
+    GetGraphics().SetProgram(m_gridPh);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
+    GetGraphics().SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
+    GetGraphics().SetVertexBuffer(m_gridVbh);
+    GetGraphics().SetIndexBuffer(m_gridIbh, 6, 0);
+    GetGraphics().Submit();
 }
 
 }   // namespace Jam

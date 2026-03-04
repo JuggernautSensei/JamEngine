@@ -4,6 +4,7 @@
 #include <cista/serialization.h>
 
 #include "File.h"
+#include "FileSystem.h"
 
 namespace Jam
 {
@@ -17,21 +18,38 @@ class AssetSaver
 {
 public:
     static Expect<AssetSaver> Open(
-        const Path&                 _path,
-        const Flags<eSaveFileFlags> _flags)
+        const StringView                 _path,
+        const eFileWriterCollisionPolicy _policy)
     {
-        if (const Error err = ResolveSaveFileFlags(_path, _flags))
+        JAM_ASSERT(_policy != eFileWriterCollisionPolicy::Append, "Append mode is not supported for AssetSaver.");
+
+        if (_policy != eFileWriterCollisionPolicy::Overwrite && FileSystem::Exists(_path))
         {
-            return err;
+            switch (_policy)
+            {
+                case eFileWriterCollisionPolicy::Rename:
+                {
+                    return Open(FileSystem::GenerateUniquePath(_path), eFileWriterCollisionPolicy::Overwrite);
+                }
+
+                case eFileWriterCollisionPolicy::Fail:
+                {
+                    JAM_LOG_ERROR("File '{}' already exists. Open failed due to collision policy.", _path);
+                    return Error::AlreadyExists;
+                }
+
+                default:
+                    JAM_UNREACHABLE;
+            }
         }
 
         try
         {
-            return AssetSaver { AssetMMIOBuffer { AssetMMIO { _path.c_str(), cista::mmap::protection::WRITE } } };
+            return AssetSaver { AssetMMIOBuffer { AssetMMIO { _path.GetPtr(), cista::mmap::protection::WRITE } } };
         }
         catch (const std::exception& e)
         {
-            JAM_LOG.Error("Failed to open AssetLoader for file '{}': {}", _path.native(), e.what());
+            JAM_LOG_ERROR("Failed to open AssetLoader for file '{}': {}", _path, e.what());
             return Error::OpenFailed;
         }
     }
@@ -45,7 +63,7 @@ public:
         }
         catch (const std::exception& e)
         {
-            JAM_LOG.Error("Failed to serialize cista object: {}", e.what());
+            JAM_LOG_ERROR("Failed to serialize cista object: {}", e.what());
             return Error::ParseError;
         }
     }
@@ -65,15 +83,15 @@ class AssetLoader
 {
 public:
     static Expect<AssetLoader> Open(
-        const Path& _path)
+        StringView _path)
     {
         try
         {
-            return AssetLoader { AssetMMIOBuffer { AssetMMIO { _path.c_str(), cista::mmap::protection::READ } } };
+            return AssetLoader { AssetMMIOBuffer { AssetMMIO { _path.GetPtr(), cista::mmap::protection::READ } } };
         }
         catch (const std::exception& e)
         {
-            JAM_LOG.Error("Failed to open AssetLoader for file '{}': {}", _path.native(), e.what());
+            JAM_LOG_ERROR("Failed to open AssetLoader for file '{}': {}", _path, e.what());
             return Error::OpenFailed;
         }
     }
@@ -86,7 +104,7 @@ public:
         }
         catch (const std::exception& e)
         {
-            JAM_LOG.Error("Failed to deserialize cista object: {}", e.what());
+            JAM_LOG_ERROR("Failed to deserialize cista object: {}", e.what());
             return Error::ParseError;
         }
     }
@@ -153,11 +171,9 @@ template<typename T>
 
 // string
 using StringViewDto = cista::offset::string_view;
-[[nodiscard]] Path          PathFrom(StringViewDto _str);
 [[nodiscard]] String        StringFrom(StringViewDto _str);
 [[nodiscard]] StringView    StringViewFrom(StringViewDto _str);
 [[nodiscard]] StringViewDto StringViewDtoFrom(StringView _str);
-[[nodiscard]] StringViewDto StringViewDtoFrom(const fs::path& _path);
 
 struct Vec3Dto
 {

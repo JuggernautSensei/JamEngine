@@ -193,6 +193,10 @@ private:
     friend class Application;
 };
 
+[[nodiscard]] inline Input& GetInput()
+{
+    return Input::GetInstance();
+}
+
 }   // namespace Jam
 
-#define JAM_INPUT Jam::Input::GetInstance()

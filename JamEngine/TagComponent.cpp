@@ -14,7 +14,7 @@ TagComponent::TagComponent()
 
 TagComponent::TagComponent(
     const StringView _name)
-    : name(_name.ToString())
+    : name(_name)
 {
 }
 

@@ -17,7 +17,7 @@ namespace Details
 {
 
     // config
-    constexpr SizeT k_enumReflectionRangeMin   = 0;   // < if you need negative enum values, change this value accordingly
+    constexpr SizeT k_enumReflectionRangeMin   = 0;   // < if you need negative enum values, change this m_value accordingly
     constexpr SizeT k_enumReflectionRangeMax   = 127;
     constexpr SizeT k_enumReflectionRange      = k_enumReflectionRangeMax - k_enumReflectionRangeMin + 1;
     constexpr SizeT k_enumReflectionInvalidSeq = -1;
@@ -33,10 +33,10 @@ namespace Details
     {
         constexpr StringView raw { JAM_PRETTY_FUNCTION };
         constexpr CharResult suffixResult = raw.RFind(">(");
-        static_assert(suffixResult.IsSucceeded(), "Failed to extract enum name from pretty function.");
+        static_assert(suffixResult.IsSucceeded(), "Failed to extract enum title from pretty function.");
         constexpr SizeT      end          = suffixResult.pos;
-        constexpr CharResult prefixResult = raw.RFind("::", end);
-        static_assert(prefixResult.IsSucceeded(), "Failed to extract enum name from pretty function.");
+        constexpr CharResult prefixResult = raw.RFind("::");
+        static_assert(prefixResult.IsSucceeded(), "Failed to extract enum title from pretty function.");
         constexpr SizeT start = prefixResult.pos + 2;
         return { raw.GetPtr() + start, end - start };
     }
@@ -46,10 +46,10 @@ namespace Details
     {
         constexpr StringView raw { JAM_PRETTY_FUNCTION };
         constexpr CharResult suffixResult = raw.RFind(">(");
-        static_assert(suffixResult.IsSucceeded(), "Failed to extract enum name from pretty function.");
+        static_assert(suffixResult.IsSucceeded(), "Failed to extract enum title from pretty function.");
         constexpr SizeT      end          = suffixResult.pos;
-        constexpr CharResult prefixResult = raw.RFind(",", end);
-        static_assert(prefixResult.IsSucceeded(), "Failed to extract enum name from pretty function.");
+        constexpr CharResult prefixResult = raw.RFind(",");
+        static_assert(prefixResult.IsSucceeded(), "Failed to extract enum title from pretty function.");
         constexpr SizeT start = prefixResult.pos + 1;
         return { raw.GetPtr() + start, end - start };
     }
@@ -98,7 +98,7 @@ namespace Details
         Array<StringView, k_numValues>           names            = {};   // look up by seq
         Array<TEnum, k_numValues>                values           = {};   // look up by seq
         Array<SizeT, k_enumReflectionRange>      rangeIdxToSeqLut = {};   // look up by range index
-        ConstexprStringHashMap<k_lutSize, SizeT> nameToSeqLut     = {};   // look up by name
+        ConstexprStringHashMap<k_lutSize, SizeT> nameToSeqLut     = {};   // look up by title
         TEnum                                    minValue         = static_cast<TEnum>(k_enumReflectionRangeMax);
         TEnum                                    maxValue         = static_cast<TEnum>(k_enumReflectionRangeMin);
     };
@@ -155,7 +155,7 @@ namespace Details
 
 }   // namespace Details
 
-// check is valid enum value
+// check is valid enum m_value
 // ex)
 // enum class eColor
 // {
@@ -175,7 +175,7 @@ template<typename TEnum>
     return seq != Details::k_enumReflectionInvalidSeq;
 }
 
-// get the sequence index of the enum value.
+// get the sequence index of the enum m_value.
 // ex)
 // enum class eColor
 // {
@@ -194,11 +194,11 @@ template<typename TEnum>
     TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
-    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum value.");
+    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");
     return seq;
 }
 
-// get the minimum enum value defined in the enum type.
+// get the minimum enum m_value defined in the enum type.
 // // ex)
 // enum class eColor
 // {
@@ -240,7 +240,7 @@ template<typename TEnum>
     return Details::k_enumReflection<TEnum>.k_numValues;
 }
 
-// get the name of the enum value.
+// get the title of the enum m_value.
 // ex)
 // enum class eColor
 // {
@@ -256,11 +256,11 @@ template<typename TEnum>
     TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
-    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum value.");
+    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");
     return Details::k_enumReflection<TEnum>.names[seq];
 }
 
-// get the full name of the enum value. full name includes the enum type name and the enum value name.
+// get the full title of the enum m_value. full title includes the enum type title and the enum m_value title.
 // ex)
 // namespace Jam
 // {
@@ -279,11 +279,11 @@ template<typename TEnum>
     TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
-    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum value.");
+    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");
     return Details::k_enumReflection<TEnum>.fullNames[seq];
 }
 
-// get the enum value array. this is useful for iterating over all enum values defined in the enum type.
+// get the enum m_value array. this is useful for iterating over all enum values defined in the enum type.
 // ex)
 // enum class eColor
 // {
@@ -301,7 +301,7 @@ template<typename TEnum>
     return Details::k_enumReflection<TEnum>.values;
 }
 
-// parse enum value from string. this is useful for parsing enum value from config file or user input.
+// parse enum m_value from string. this is useful for parsing enum m_value from config file or user input.
 // ex)
 // enum class eColor
 // {
@@ -310,9 +310,9 @@ template<typename TEnum>
 //     Blue = 15,
 //     Yellow = 20,
 // };
-// ParseAs<eColor>("Red") -> eColor::Red
-// ParseAs<eColor>("eColor::Red") -> eColor::Red
-// ParseAs<eColor>("Invalid") -> k_nullopt
+// ParseAsIntegral<eColor>("Red") -> eColor::Red
+// ParseAsIntegral<eColor>("eColor::Red") -> eColor::Red
+// ParseAsIntegral<eColor>("Invalid") -> k_nullopt
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr Optional<TEnum> ParseAs(
@@ -327,7 +327,7 @@ template<typename TEnum>
     return k_nullopt;
 }
 
-// cast from underlying value to enum value. this is useful for parsing enum value from config file or user input when the enum value is represented as its underlying value.
+// cast from underlying m_value to enum m_value. this is useful for parsing enum m_value from config file or user input when the enum m_value is represented as its underlying m_value.
 // ex)
 // enum class eColor
 // {
@@ -342,7 +342,7 @@ template<typename TEnum>
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr Optional<TEnum> EnumCast(
-    UnderlyingT<TEnum> _value)
+    const UnderlyingT<TEnum> _value)
 {
     const SizeT rangeIdx = _value - Details::k_enumReflectionRangeMin;
     if (rangeIdx >= Details::k_enumReflectionRange)

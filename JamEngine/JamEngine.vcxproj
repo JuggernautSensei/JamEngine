@@ -406,6 +406,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="Archive.cpp" />
     <ClCompile Include="Assertion.cpp" />
     <ClCompile Include="AssetCreationDialog.cpp" />
@@ -413,15 +414,26 @@
     <ClCompile Include="CommandLineArgumentParser.cpp" />
     <ClCompile Include="ComponentDatabase.cpp" />
     <ClCompile Include="ComponentMetadata.cpp" />
+    <ClCompile Include="DirIter.cpp" />
+    <ClCompile Include="EditorEvents.cpp" />
     <ClCompile Include="EnumArray.cpp" />
+    <ClCompile Include="FileDialog.cpp" />
+    <ClCompile Include="FileEntry.cpp" />
+    <ClCompile Include="FileLock.cpp" />
+    <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="FileWatcher.cpp" />
+    <ClCompile Include="FunctionTraits.cpp" />
+    <ClCompile Include="FunctionHasher.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ImageImporter.cpp" />
     <ClCompile Include="InfiniteDragger.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="MemoryReadWriter.cpp" />
+    <ClCompile Include="OrderedHashMap.cpp" />
+    <ClCompile Include="OrderedHashSet.cpp" />
+    <ClCompile Include="PathIter.cpp" />
     <ClCompile Include="SceneDatabase.cpp" />
     <ClCompile Include="SceneMetadata.cpp" />
-    <ClCompile Include="ScratchBuffer.cpp" />
     <ClCompile Include="ConstexprStringHashMap.cpp" />
     <ClCompile Include="EnumUtilities.cpp" />
     <ClCompile Include="CleanUp.cpp" />
@@ -466,13 +478,16 @@
     <ClCompile Include="Optional.cpp" />
     <ClCompile Include="Scalar.cpp" />
     <ClCompile Include="Scoped.cpp" />
+    <ClCompile Include="Signal.cpp" />
+    <ClCompile Include="StackList.cpp" />
+    <ClCompile Include="StackString.cpp" />
     <ClCompile Include="STL.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="StringHashMap.cpp" />
     <ClCompile Include="SVGImporter.cpp" />
     <ClCompile Include="TextureFormat.cpp" />
     <ClCompile Include="HistoryStack.cpp" />
-    <ClCompile Include="ImGuiGlue.cpp" />
+    <ClCompile Include="ImGuiEngine.cpp" />
     <ClCompile Include="ImageImportDialog.cpp" />
     <ClCompile Include="RefCounted.cpp" />
     <ClCompile Include="RenderableComponent.cpp" />
@@ -531,7 +546,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TypeTraits.cpp" />
     <ClCompile Include="UID.cpp" />
-    <ClCompile Include="UIDGenerator.cpp" />
+    <ClCompile Include="UIDAllocator.cpp" />
     <ClCompile Include="Vendor\ImGuizmo\ImGuizmo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
@@ -582,14 +597,14 @@
     <ClCompile Include="VertexLayout.cpp" />
     <ClCompile Include="RenderView.cpp" />
     <ClCompile Include="VertexLayoutEditorDialog.cpp" />
-    <ClCompile Include="VertexLayoutEntry.cpp" />
+    <ClCompile Include="VertexLayoutEntryManager.cpp" />
     <ClCompile Include="WindowsPlatform.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
-    <ClCompile Include="FileSystemUtilities.cpp" />
     <ClCompile Include="ModelImportDialog.cpp" />
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Allocator.h" />
     <ClInclude Include="Archive.h" />
     <ClInclude Include="Assertion.h" />
     <ClInclude Include="AssetCreationDialog.h" />
@@ -598,10 +613,19 @@
     <ClInclude Include="ComponentDatabase.h" />
     <ClInclude Include="ComponentMetadata.h" />
     <ClInclude Include="ConstexprStringHashMap.h" />
+    <ClInclude Include="DirIter.h" />
+    <ClInclude Include="EditorEvents.h" />
     <ClInclude Include="EnumArray.h" />
     <ClInclude Include="EnumUtilities.h" />
     <ClInclude Include="CleanUp.h" />
     <ClInclude Include="File.h" />
+    <ClInclude Include="FileDialog.h" />
+    <ClInclude Include="FileEntry.h" />
+    <ClInclude Include="FileLock.h" />
+    <ClInclude Include="FileSystem.h" />
+    <ClInclude Include="FileWatcher.h" />
+    <ClInclude Include="FunctionTraits.h" />
+    <ClInclude Include="FunctionHasher.h" />
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="ImageImporter.h" />
     <ClInclude Include="InfiniteDragger.h" />
@@ -620,8 +644,10 @@
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="JamEngineEditorEmbededIcons.h" />
     <ClInclude Include="MaterialCreationDialog.h" />
+    <ClInclude Include="OrderedHashMap.h" />
+    <ClInclude Include="OrderedHashSet.h" />
+    <ClInclude Include="PathIter.h" />
     <ClInclude Include="PrimitiveCreationDialog.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="DialogStack.h" />
@@ -639,7 +665,6 @@
     <ClInclude Include="Editor_SceneViewWindow.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="EnvironmentComponent.h" />
-    <ClInclude Include="FileSystemUtilities.h" />
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="GeometryUtilities.h" />
     <ClInclude Include="RenameFileDialog.h" />
@@ -651,6 +676,9 @@
     <ClInclude Include="SceneDatabase.h" />
     <ClInclude Include="SceneMetadata.h" />
     <ClInclude Include="Scoped.h" />
+    <ClInclude Include="Signal.h" />
+    <ClInclude Include="StackList.h" />
+    <ClInclude Include="StackString.h" />
     <ClInclude Include="STL.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="StringHashMap.h" />
@@ -668,7 +696,7 @@
     <ClInclude Include="Configs.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="ImageBase.h" />
-    <ClInclude Include="ImGuiGlue.h" />
+    <ClInclude Include="ImGuiEngine.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="HandleAllocator.h" />
@@ -684,7 +712,6 @@
     <ClInclude Include="RadixSort.h" />
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="ThumbnailCache.h" />
-    <ClInclude Include="ScratchBuffer.h" />
     <ClInclude Include="TinyVector.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="RenderPass.h" />
@@ -722,7 +749,7 @@
     </ClInclude>
     <ClInclude Include="TypeTraits.h" />
     <ClInclude Include="UID.h" />
-    <ClInclude Include="UIDGenerator.h" />
+    <ClInclude Include="UIDAllocator.h" />
     <ClInclude Include="Vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Vendor\imgui\imconfig.h" />
     <ClInclude Include="Vendor\imgui\imgui.h" />
@@ -743,11 +770,10 @@
     <ClInclude Include="Vendor\mimalloc\mimalloc\track.h" />
     <ClInclude Include="Vendor\mimalloc\mimalloc\types.h" />
     <ClInclude Include="Vendor\plf_colony\plf_colony.h" />
-    <ClInclude Include="Vendor\rapidstring\rapidstring.h" />
     <ClInclude Include="VertexLayout.h" />
     <ClInclude Include="RenderView.h" />
     <ClInclude Include="VertexLayoutEditorDialog.h" />
-    <ClInclude Include="VertexLayoutEntry.h" />
+    <ClInclude Include="VertexLayoutEntryManager.h" />
     <ClInclude Include="WindowsPlatform.h" />
     <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="EmbeddedShaderGlue.h" />

@@ -1,4 +1,5 @@
 #pragma once
+#include "Archive.h"
 
 namespace Jam
 {
@@ -17,7 +18,7 @@ concept HasComponentMetadataEssentialMarker = requires {
 };
 
 ////////// Editor Display Name //////////
-// provide more readable display name for editor, if not provided, the component type name will be used as fallback
+// provide more readable display title for editor, if not provided, the component type title will be used as fallback
 
 #define JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME(_name) \
     static constexpr StringView JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME { _name }

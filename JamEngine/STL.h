@@ -12,17 +12,17 @@
 namespace Jam
 {
 
-template<typename T>
-using Vector = eastl::vector<T>;
+template<typename T, typename Allocator = eastl::allocator>
+using Vector = eastl::vector<T, Allocator>;
 
 template<typename T, size_t N>
 using Array = eastl::array<T, N>;
 
-template<typename T>
-using List = eastl::list<T>;
+template<typename T, typename Allocator = eastl::allocator>
+using List = eastl::list<T, Allocator>;
 
-template<typename T>
-using Span = eastl::span<T>;
+template<typename T, size_t Extent = eastl::dynamic_extent>
+using Span = eastl::span<T, Extent>;
 
 }   // namespace Jam
 

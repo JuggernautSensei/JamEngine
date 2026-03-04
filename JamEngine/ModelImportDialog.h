@@ -1,16 +1,18 @@
 #pragma once
 #include "AssetCreationDialog.h"
 #include "AssimpImporter.h"
-#include "WindowsUtilities.h"
+#include "FileDialog.h"
 
 namespace Jam
 {
+
 class VertexLayoutEntry;
 
 struct ModelImportDialogInfo
 {
-    DialogInfo baseInfo          = {};
-    Path       importPathOrEmpty = {};
+    StringView title             = {};
+    ImVec2     size              = {};
+    StringView importPathOrEmpty = {};
 };
 
 class ModelImportDialog : public AssetCreationDialog
@@ -21,16 +23,16 @@ public:
 
 protected:
     bool OnClickImportButton_();
-    bool CreateAndSaveAsset_(const Path& _path) override;
+    bool CreateAndSaveAsset_(StringView _path) override;
 
-    Path       m_importPath = {};
-    FileDialog m_importFd { eFileDialogMode::OpenFile };
-    FileDialog m_saveFd { eFileDialogMode::SaveFile };
+    String     m_importPath = {};
+    FileDialog m_importFd;
+    FileDialog m_saveFd;
 
-    Path   m_assetSaveDir  = {};
+    String m_assetSaveDir  = {};
     String m_assetBaseName = {};
 
-    AssimpImporterInfo  m_options = {};
+    AssimpImporterInfo     m_options = {};
     Ref<VertexLayoutEntry> m_pVle    = nullptr;
 };
 

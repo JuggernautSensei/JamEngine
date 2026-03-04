@@ -13,17 +13,19 @@
 #include "Editor_VertexLayoutEditorWindow.h"
 #include "Entity.h"
 #include "DialogStack.h"
+#include "EditorEvents.h"
+#include "FileDialog.h"
 #include "Graphics.h"
 #include "MessageDialog.h"
 #include "SVGImporter.h"
-#include "JamEngineEditorEmbededIcons.h"
 #include "JsonArchive.h"
 #include "SceneManager.h"
 #include "SceneNode.h"
-#include "VertexLayoutEntry.h"
+#include "VertexLayoutEntryManager.h"
 #include "Model.h"
 #include "Profile.h"
 #include "SceneSerializer.h"
+#include "FileSystem.h"
 
 namespace Jam
 {
@@ -31,15 +33,15 @@ namespace Jam
 void Editor::OnSceneChanged_(
     SceneChangedEvent&)
 {
-    m_focusedEntity = Entity::k_invalid;
+    SetFocusingEntity(Entity::k_null);
 }
 
 void Editor::OnEntityDestroyed_(
     const EntityDestroyedEvent& _event)
 {
-    if (m_focusedEntity.GetUID() == _event.GetEntityUID())
+    if (GetFocusingEntityOrNull() == _event.GetEntity())
     {
-        m_focusedEntity = Entity::k_invalid;
+        SetFocusingEntity(Entity::k_null);
     }
 }
 
@@ -47,7 +49,7 @@ void Editor::Menu_File_() const
 {
     if (Widget_MenuItem("exit"))
     {
-        JAM_APP.Quit();
+        GetApp().Quit();
     }
 }
 
@@ -70,60 +72,59 @@ void Editor::Menu_Options_() const
     }
 }
 
-void Editor::ShowWorkspace_()
+void Editor::Panel_Dockspace_() const
 {
-    // 풀스크린 도크스페이스. 에디터의 베이스가 됨
+    constexpr ImGuiWindowFlags k_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar
+                                       | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+                                       | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+    const ImGuiViewport* pViewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(pViewport->WorkPos);
+    ImGui::SetNextWindowSize(pViewport->WorkSize);
+    ImGui::SetNextWindowViewport(pViewport->ID);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+    const bool bOpen = ImGui::Begin("workspace", nullptr, k_flags);
+    ImGui::PopStyleVar(3);
+
+    if (!bOpen)
     {
-        constexpr ImGuiWindowFlags k_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar
-                                           | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
-                                           | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-        const ImGuiViewport* pViewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(pViewport->WorkPos);
-        ImGui::SetNextWindowSize(pViewport->WorkSize);
-        ImGui::SetNextWindowViewport(pViewport->ID);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
-        const bool bOpen = ImGui::Begin("workspace", nullptr, k_flags);
-        ImGui::PopStyleVar(3);
-
-        if (!bOpen)
-        {
-            ImGui::End();
-            return;
-        }
-
-        ImGui::DockSpace(ImGui::GetID("Dockspace"));
+        ImGui::End();
+        return;
     }
 
-    // 메인 메뉴 바
-    {
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("file"))
-            {
-                Menu_File_();
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("window"))
-            {
-                Menu_Window_();
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("options"))
-            {
-                Menu_Options_();
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
-        }
-    }
-
+    ImGui::DockSpace(ImGui::GetID("Dockspace"));
     ImGui::End();
+}
+
+void Editor::Panel_MainMenuBar_()
+{
+    if (!ImGui::BeginMenuBar())
+    {
+        ImGui::EndMainMenuBar();
+        return;
+    }
+
+    if (ImGui::BeginMenu("file"))
+    {
+        Menu_File_();
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("window"))
+    {
+        Menu_Window_();
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("options"))
+    {
+        Menu_Options_();
+        ImGui::EndMenu();
+    }
+
+    ImGui::EndMenuBar();
 }
 
 void Editor::SetupDefaultTheme_() const
@@ -248,25 +249,23 @@ void Editor::SetupDefaultTheme_() const
     }
 }
 
-void Editor::LoadIcons_()
+void Editor::SetupIcons_()
 {
-    m_icons[eEditorIcon::Cursor]      = LoadIconFromSvgSource(k_cursorIconSvg);
-    m_icons[eEditorIcon::Stop]        = LoadIconFromSvgSource(k_stopIconSvg);
-    m_icons[eEditorIcon::Menu]        = LoadIconFromSvgSource(k_menuIconSvg);
-    m_icons[eEditorIcon::Play]        = LoadIconFromSvgSource(k_playIconSvg);
-    m_icons[eEditorIcon::Rotation]    = LoadIconFromSvgSource(k_rotationIconSvg);
-    m_icons[eEditorIcon::Scale]       = LoadIconFromSvgSource(k_scaleIconSvg);
-    m_icons[eEditorIcon::Translation] = LoadIconFromSvgSource(k_translationIconSvg);
+    for (const eEditorIcon icon: EnumRanges<eEditorIcon>())
+    {
+        const StringView svgSource = g_embededEditorIconSVGSources[icon];
+        SetIcon(icon, LoadIconFromSvgSource(svgSource));
+    }
 }
 
-void Editor::UpdateAutoSaveState_(
+void Editor::UpdateAutoSaveConfig_(
     const float _deltaSec)
 {
     m_configSaveCounterSec += _deltaSec;
-    if (m_configSaveCounterSec >= Editor::k_configSaveIntervalSec)
+    if (m_configSaveCounterSec >= Editor::k_configFileAutoSaveIntervalSec)
     {
         // save config only in edit m_mode
-        if (m_mode == eEditorMode::Edit)
+        if (GetMode() == eEditorMode::Edit)
         {
             SaveConfig_();
             m_configSaveCounterSec = 0.f;
@@ -283,24 +282,24 @@ void Editor::SaveConfig_() const
     writer.WriteField("fontScale", ImGui::GetIO().FontGlobalScale);
     writer.WriteField("renderView", *m_pSceneViewWindow);
     writer.WriteField("fileBrowser", *m_pFileBrowserWindow);
-    writer.WriteField("vertexLayoutMap", m_vlMap);
+    writer.WriteField("vertexLayoutMap", m_sharedData.vertexLayoutEntryManager);
 
-    if (const Error err = writer.SaveToFile(m_configPath, eJsonWriteFlags::Pretty))
+    if (const Error err = writer.SaveToFile(k_configFileName, eJsonWriteFlags::Pretty))
     {
-        JAM_LOG.Warn("Editor::SaveConfig_() - failed to save editor config file. {}.", err.ToErrorMessage());
+        JAM_LOG_WARN("Editor::SaveConfig_() - failed to save editor config file. {}.", err.ToErrorMessage());
     }
 
-    JAM_DEBUG_LOG("Editor::SaveConfig_() - saved editor config file.");
+    JAM_LOG_DEBUG("Editor::SaveConfig_() - saved editor config file.");
 }
 
-void Editor::LoadConfigIfExist_()
+void Editor::TryLoadConfig_()
 {
-    if (!fs::exists(m_configPath))
+    if (!FileSystem::Exists(k_configFileName))
     {
         return;
     }
 
-    Expect<JsonReader> reader = JsonReader::ParseFromFile(m_configPath);
+    Expect<JsonReader> reader = JsonReader::ParseFromFile(k_configFileName);
     if (!reader)
     {
         return;
@@ -311,17 +310,17 @@ void Editor::LoadConfigIfExist_()
     reader->ReadField("fontScale", ImGui::GetIO().FontGlobalScale);
     reader->ReadField("renderView", *m_pSceneViewWindow);
     reader->ReadField("fileBrowser", *m_pFileBrowserWindow);
-    reader->ReadField("vertexLayoutMap", m_vlMap);
+    reader->ReadField("vertexLayoutMap", m_sharedData.vertexLayoutEntryManager);
 }
 
 Ref<Texture> Editor::LoadIconFromSvgSource(
     const StringView _svgSource) const
 {
-    SVGImporterInfo desc = {};
-    desc.width           = k_iconSize.x;
-    desc.height          = k_iconSize.y;
+    SVGImporterInfo info = {};
+    info.width           = k_iconSize.x;
+    info.height          = k_iconSize.y;
 
-    Expect<SVGImporter> importer = SVGImporter::ImportFromSource(_svgSource, desc);
+    Expect<SVGImporter> importer = SVGImporter::ImportFromSource(_svgSource, info);
     if (!importer)
     {
         JAM_UNREACHABLE;
@@ -330,7 +329,7 @@ Ref<Texture> Editor::LoadIconFromSvgSource(
     const CMemoryBlock  mems[] = { importer->GetPixels() };
     const Int32         w      = importer->GetWidth();
     const Int32         h      = importer->GetHeight();
-    const TextureHandle texh   = JAM_GFX.CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, mems);
+    const TextureHandle texh   = GetGraphics().CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, mems);
 
     Ref<Texture> pTexture = {};
     pTexture->Load(texh);
@@ -357,64 +356,130 @@ Editor& Editor::GetInstance()
 void Editor::SetMode(
     const eEditorMode _mode)
 {
-    m_mode = _mode;
+    m_sharedData.mode = _mode;
 }
 
 eEditorMode Editor::GetMode() const
 {
-    return m_mode;
+    return m_sharedData.mode;
 }
 
 void Editor::SetFocusingEntity(
     const Entity _entity)
 {
-    m_focusedEntity = _entity;
+    if (_entity == m_sharedData.focusingEntity)
+    {
+        return;
+    }
+
+    m_sharedData.focusingEntity = _entity;
+
+    FocusingEntityChangedEvent event { _entity };
+    GetApp().DispatchEvent(event);
 }
 
-void Editor::ReleaseFocusingEntity()
+Entity Editor::GetFocusingEntityOrNull() const
 {
-    m_focusedEntity = Entity::k_invalid;
+    return m_sharedData.focusingEntity;
 }
 
 Entity Editor::GetFocusingEntity() const
 {
-    return m_focusedEntity;
+    JAM_ASSERT(m_sharedData.focusingEntity, "Editor::GetFocusingEntity() - focusing entity is null.");
+    return m_sharedData.focusingEntity;
+}
+
+const EditorStyle& Editor::GetStyle() const
+{
+    return m_sharedData.style;
 }
 
 float Editor::GetStyleVar(
     const eEditorStyleVar _var) const
 {
-    return m_style.vars[UnderlyingFrom(_var)];
+    return GetStyle().vars[_var];
 }
 
 ImVec4 Editor::GetStyleColor(
     const eEditorStyleColor _col) const
 {
-    return m_style.colors[UnderlyingFrom(_col)];
+    return GetStyle().colors[_col];
 }
 
 ImU32 Editor::GetStyleColorU32(
     const eEditorStyleColor _col) const
 {
-    const ImVec4 col = m_style.colors[UnderlyingFrom(_col)];
-    return ImGui::ColorConvertFloat4ToU32(col);
+    return ImGui::ColorConvertFloat4ToU32(GetStyleColor(_col));
 }
 
 ImGuiKeyChord Editor::GetStyleShortCut(
     const eEditorShortCut _shortCut) const
 {
-    return m_style.shortCuts[UnderlyingFrom(_shortCut)];
+    return GetStyle().shortCuts[_shortCut];
 }
 
 Ref<Texture> Editor::GetIcon(
     const eEditorIcon _icon) const
 {
-    return m_icons[_icon];
+    return m_sharedData.icons[_icon];
 }
 
-VertexLayoutMap& Editor::GetVertexLayoutMap()
+void Editor::SetIcon(
+    const eEditorIcon   _icon,
+    const Ref<Texture>& _pTexture)
 {
-    return m_vlMap;
+    m_sharedData.icons[_icon] = _pTexture;
+}
+
+void Editor::SetFocusingFileEntry(const Ref<FileEntry>& _pEntry)
+{
+    if (_pEntry == m_sharedData.pFocusingFileEntry)
+    {
+        return;
+    }
+
+    m_sharedData.pFocusingFileEntry = _pEntry;
+    FocusingFileEntryChangedEvent event { _pEntry };
+    GetApp().DispatchEvent(event);
+}
+
+const Ref<FileEntry>& Editor::GetFocusingFileEntryOrNull() const
+{
+    return m_sharedData.pFocusingFileEntry;
+}
+
+const Ref<FileEntry>& Editor::GetFocusingFileEntry() const
+{
+    JAM_ASSERT(m_sharedData.pFocusingFileEntry, "Editor::GetFocusingFileEntry() - focusing file entry is null.");
+    return m_sharedData.pFocusingFileEntry;
+}
+
+void Editor::SetFocusingDirEntry(const Ref<DirEntry>& _pEntry)
+{
+    if (_pEntry == m_sharedData.pFocusingDirEntry)
+    {
+        return;
+    }
+
+    m_sharedData.pFocusingDirEntry = _pEntry;
+    FocusingDirEntryChangedEvent event { _pEntry };
+    GetApp().DispatchEvent(event);
+}
+
+const Ref<DirEntry>& Editor::GetFocusingDirEntryOrNull() const
+{
+    return m_sharedData.pFocusingDirEntry;
+}
+
+const Ref<DirEntry>& Editor::GetFocusingDirEntry() const
+{
+    JAM_ASSERT(m_sharedData.pFocusingDirEntry, "Editor::GetFocusingDirEntry() - focusing dir entry is null.");
+    return m_sharedData.pFocusingDirEntry;
+}
+
+VertexLayoutEntryManager& Editor::GetVertexLayoutManager()
+{
+    return m_sharedData.vertexLayoutEntryManager;
 }
 
 void Editor::PushDialog(
@@ -423,57 +488,74 @@ void Editor::PushDialog(
     m_dialogStack.Push(_pDialog);
 }
 
+void Editor::PushMessageDialog(
+    const StringView _title,
+    const StringView _msg)
+{
+    MessageDialogInfo info = {};
+    info.title             = _title;
+    info.msg               = _msg;
+    PushDialog(MakeRef<MessageDialog>(info));
+}
+
+void Editor::PushConfirmationDialog(
+    const StringView        _title,
+    const StringView        _msg,
+    const Delegate<void()>& _onConfirm)
+{
+    ConfirmationDialogInfo info = {};
+    info.title                  = _title;
+    info.msg                    = _msg;
+    info.OnConfirm              = _onConfirm;
+    PushDialog(MakeRef<ConfirmationDialog>(info));
+}
+
 void Editor::LoadScenByFileDialog()
 {
     constexpr FileDialogFilter k_filters[] = {
-        { "scene file", Scene::k_extension }
+        { "scene file", Scene::k_filter }
     };
 
-    FileDialog fd { eFileDialogMode::OpenFile };
-    fd.SetTitle("load scene");
-    fd.SetFilters(k_filters);
+    OpenFileDialogInfo info = {};
+    info.title              = "load scene";
+    info.filtersOrEmpty     = k_filters;
+
+    FileDialog fd { info };
     if (fd.Open())
     {
-        const Path& path = fd.GetFirstSelectedPath();
-        if (!JAM_SCENE_MGR.LoadScene(path))
+        StringView path = fd.GetFirstSelectedPath();
+        if (!GetSceneManager().LoadScene(path))
         {
-            ScratchBuffer tmp;
-            tmp.Format("failed to load scene file: {}.", path.native());
-
-            MessageDialogInfo desc = {};
-            desc.baseInfo.title    = "error";
-            desc.msg               = tmp.ToStringView();
-            PushDialog(MakeRef<MessageDialog>(desc));
+            PushMessageDialog(
+                "error",
+                String::Formatted("failed to load scene file: {}.", path));
         }
     }
 }
 
 void Editor::SaveSceneByFileDialog(
-    const Ref<Scene>&           _pScene,
-    const Flags<eSaveFileFlags> _flags)
+    const Ref<Scene>& _pScene)
 {
     constexpr FileDialogFilter k_filters[] = {
         { "scene file", Scene::k_extension }
     };
 
-    FileDialog fd { eFileDialogMode::SaveFile };
-    fd.SetTitle("save scene");
-    fd.SetFilters(k_filters);
+    SaveFileDialogInfo info = {};
+    info.title              = "save scene";
+    info.filtersOrEmpty     = k_filters;
+
+    FileDialog fd { info };
     if (fd.Open())
     {
-        const Path& path = fd.GetFirstSelectedPath();
+        StringView path = fd.GetFirstSelectedPath();
 
         JsonWriter writer = {};
         SerializeScene(writer, _pScene);
-        if (const Error err = writer.SaveToFile(path, eJsonWriteFlags::Pretty, _flags))
+        if (const Error err = writer.SaveToFile(path, eJsonWriteFlags::Pretty))
         {
-            ScratchBuffer buf;
-            buf.Format("failed to save scene file: {}.\n{}", path, err.ToErrorMessage());
-
-            MessageDialogInfo desc = {};
-            desc.baseInfo.title    = "error";
-            desc.msg               = buf.ToStringView();
-            PushDialog(MakeRef<MessageDialog>(desc));
+            PushMessageDialog(
+                "error",
+                String::Formatted("failed to save scene file: {}.\n{}", path, err.ToErrorMessage()));
         }
     }
 }
@@ -517,16 +599,15 @@ void Editor::DestroyEntity(
     const SceneNode& node = _entity.GetSceneNode();
     if (node.HasChildren())   // if has children, show confirmation dialog
     {
-        auto onClickConfirm = [_pScene, _entity]
-        {
-            _pScene->DestroyEntity(_entity);
-        };
-
-        ConfirmationDialogInfo desc = {};
-        desc.baseInfo.title         = "confirmation";
-        desc.msg                    = "the entity has child entities. are you sure you want to destroy it and all its children?";
-        desc.OnConfirm              = Bind(std::move(onClickConfirm));
-        PushDialog(MakeRef<ConfirmationDialog>(desc));
+        ConfirmationDialogInfo info = {};
+        info.title                  = "confirmation";
+        info.msg                    = "the entity has child entities. are you sure you want to destroy it and all its children?";
+        info.OnConfirm              = Bind(
+            [_pScene, _entity]
+            {
+                _pScene->DestroyEntity(_entity);
+            });
+        PushDialog(MakeRef<ConfirmationDialog>(info));
         return;
     }
 
@@ -546,73 +627,43 @@ bool Editor::CanEntityDestroy(
 }
 
 bool Editor::RemoveFile(
-    const Path& _path)
+    const StringView _path,
+    const bool       _bForced)
 {
     // 만약, 디렉토리이고 비어있지 않다면 삭제 불가 -> 확인 다이얼로그 표시
-    if (fs::is_directory(_path) && !fs::is_empty(_path))
+    if (_path.IsDirectory() && !FileSystem::IsEmpty(_path) && !_bForced)
     {
-        auto onClickConfirm = [this, _path]
-        {
-            std::error_code ec = {};
-            fs::remove_all(_path, ec);
-            if (ec)
+        const Delegate<void()> OnConfirm = Bind(
+            [_path]
             {
-                ScratchBuffer tmp;
-                tmp.Format("failed to remove directory: {}.\n{}", _path, ec.message());
+                GetEditor().RemoveFile(_path, true);
+            });
 
-                MessageDialogInfo desc = {};
-                desc.baseInfo.title    = "error";
-                desc.msg               = tmp.ToStringView();
-                PushDialog(MakeRef<MessageDialog>(desc));
-            }
-        };
+        PushConfirmationDialog(
+            "confirmation",
+            String::Formatted("the directory is not empty. are you sure you want to delete it and all its contents?"),
+            OnConfirm);
 
-        ConfirmationDialogInfo desc = {};
-        desc.baseInfo.title         = "confirmation";
-        desc.msg                    = "the directory is not empty. are you sure you want to remove it and all its contents?";
-        desc.OnConfirm              = Bind(std::move(onClickConfirm));
-        PushDialog(MakeRef<ConfirmationDialog>(desc));
         return false;
     }
 
     // 빈 디렉토리 혹은 파일인 경우 바로 삭제
-    std::error_code ec = {};
-    fs::remove(_path, ec);
-    if (ec)
+    if (const Error err = FileSystem::Remove(_path))
     {
-        ScratchBuffer tmp;
-        tmp.Format("failed to remove file: {}.\n{}", _path, ec.message());
+        PushMessageDialog(
+            "error",
+            String::Formatted("failed to delete {}.\n{}", _path, err.ToErrorMessage()));
 
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = tmp.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
         return false;
     }
 
     return true;
 }
 
-bool Editor::ReplaceFileDir(
-    const Path& _srcPath,
-    const Path& _newDir)
-{
-    JAM_ASSERT(fs::is_directory(_newDir), "New directory path is not a directory!");
-    return RenameFile(_srcPath, _newDir / _srcPath.filename());
-}
-
-bool Editor::ReplaceFileName(
-    const Path&      _srcPath,
-    const StringView _newFilename)
-{
-    Path path = _srcPath;
-    path.replace_filename(_newFilename.GetPtr());
-    return RenameFile(_srcPath, path);
-}
-
 bool Editor::RenameFile(
-    const Path& _srcPath,
-    const Path& _dstPath)
+    const StringView                   _srcPath,
+    const StringView                   _dstPath,
+    const FileSystem::eCollisionPolicy _policy)
 {
     // same path
     if (_srcPath == _dstPath)
@@ -620,31 +671,13 @@ bool Editor::RenameFile(
         return true;
     }
 
-    // destination file already exists
-    if (fs::exists(_dstPath))
+    // if dst path already exists, show confirmation dialog
+    if (const Error err = FileSystem::Rename(_srcPath, _dstPath, _policy))
     {
-        ScratchBuffer tmp;
-        tmp.Format("cannot rename file to '{}': file already exists.", _dstPath);
+        PushMessageDialog(
+            "error",
+            String::Formatted("failed to rename {} to {}.\n{}", _srcPath, _dstPath, err.ToErrorMessage()));
 
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = tmp.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
-        return false;
-    }
-
-    // rename
-    std::error_code ec = {};
-    fs::rename(_srcPath, _dstPath, ec);
-    if (ec)
-    {
-        ScratchBuffer tmp;
-        tmp.Format("failed to rename file from '{}' to '{}'.\n{}", _srcPath.native(), _dstPath.native(), ec.message());
-
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = tmp.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
         return false;
     }
 
@@ -652,129 +685,76 @@ bool Editor::RenameFile(
 }
 
 bool Editor::CreateDir(
-    const Path& _dirPath)
+    const StringView                                _dir,
+    const FileSystem::eMakeDirectoryCollisionPolicy _policy)
 {
-    std::error_code ec = {};
-    fs::create_directories(_dirPath, ec);
-    if (ec)
-    {
-        ScratchBuffer tmp;
-        tmp.Format("failed to create directory: {}.\n{}", _dirPath.native(), ec.message());
+    JAM_ASSERT(_dir.IsDirectory(), "Editor::MakeDirectory() - the given path is not a directory.");
 
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = tmp.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
+    if (const Error err = FileSystem::MakeDirectory(_dir, _policy))
+    {
+        PushMessageDialog(
+            "error",
+            String::Formatted("failed to create directory: {}.\n{}", _dir, err.ToErrorMessage()));
+
         return false;
     }
-
     return true;
 }
 
-bool Editor::CreateNewDir(
-    const Path& _parentDir)
+Expect<Ref<Mesh>> Editor::LoadMesh(
+    StringView _path,
+    const bool _bForceReload)
 {
-    JAM_ASSERT(fs::is_directory(_parentDir), "Parent directory path is not a directory!");
-
-    constexpr Int32 k_limit = 1'000;
-    for (Int32 i = 0; i < k_limit; ++i)
-    {
-        ScratchBuffer tmp;
-        tmp.Set("new folder");
-        if (i > 0)
-        {
-            tmp.AppendFormat(" ({})", i);
-        }
-
-        const Path dirPath = _parentDir / tmp.GetPtr();
-        if (!fs::exists(dirPath))
-        {
-            return CreateDir(dirPath);
-        }
-    }
-
-    // too many folders named "new folder"
-    MessageDialogInfo info = {};
-    info.baseInfo.title    = "error";
-    info.msg               = "failed to create new folder: too many folders named 'new folder' exist.";
-    PushDialog(MakeRef<MessageDialog>(info));
-    return false;
-}
-
-Optional<Ref<Mesh>> Editor::LoadMesh(
-    const Path& _path,
-    const bool  _bForceReload)
-{
-    Expect<Ref<Mesh>> pMesh = JAM_ASSET_MGR.LoadMesh(_path, _bForceReload);
+    Expect<Ref<Mesh>> pMesh = GetAssetManager().LoadMesh(_path, _bForceReload);
     if (!pMesh)
     {
-        ScratchBuffer buf;
-        buf.Format("failed to load mesh file: {}. {}.", _path.native(), pMesh.GetError().ToErrorMessage());
-
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = buf.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
-        return k_nullopt;
+        PushMessageDialog(
+            "error",
+            String::Formatted("failed to load mesh file: {}.\n{}", _path, pMesh.GetError().ToErrorMessage()));
     }
-    return pMesh.Take();
+    return pMesh;
 }
 
-Optional<Ref<Texture>> Editor::LoadTexture(
-    const Path& _path,
-    const bool  _bForceReload)
+Expect<Ref<Texture>> Editor::LoadTexture(
+    StringView _path,
+    const bool _bForceReload)
 {
-    Expect<Ref<Texture>> pTexture = JAM_ASSET_MGR.LoadTexture(_path, _bForceReload);
+    Expect<Ref<Texture>> pTexture = GetAssetManager().LoadTexture(_path, _bForceReload);
     if (!pTexture)
     {
-        ScratchBuffer buf;
-        buf.Format("failed to load texture file: {}. {}.", _path.native(), pTexture.GetError().ToErrorMessage());
-
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = buf.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
-        return k_nullopt;
+        PushMessageDialog(
+            "error",
+            String::Formatted("failed to load texture file: {}.\n{}", _path, pTexture.GetError().ToErrorMessage()));
     }
-    return pTexture.Take();
+    return pTexture;
 }
 
-Optional<Ref<Material>> Editor::LoadMaterial(
-    const Path& _path,
-    const bool  _bForceReload)
+Expect<Ref<Material>> Editor::LoadMaterial(
+    StringView _path,
+    const bool _bForceReload)
 {
-    Expect<Ref<Material>> pMaterial = JAM_ASSET_MGR.LoadMaterial(_path, _bForceReload);
+    Expect<Ref<Material>> pMaterial = GetAssetManager().LoadMaterial(_path, _bForceReload);
     if (!pMaterial)
     {
-        ScratchBuffer buf;
-        buf.Format("failed to load material file: {}. {}.", _path.native(), pMaterial.GetError().ToErrorMessage());
-
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = buf.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
-        return k_nullopt;
+        PushMessageDialog(
+            "error",
+            String::Formatted("failed to load material file: {}.\n{}", _path, pMaterial.GetError().ToErrorMessage()));
     }
-    return pMaterial.Take();
+    return pMaterial;
 }
 
-Optional<Ref<Model>> Editor::LoadModel(
-    const Path& _path,
-    const bool  _bForceReload)
+Expect<Ref<Model>> Editor::LoadModel(
+    StringView _path,
+    const bool _bForceReload)
 {
-    Expect<Ref<Model>> pModel = JAM_ASSET_MGR.LoadModel(_path, _bForceReload);
+    Expect<Ref<Model>> pModel = GetAssetManager().LoadModel(_path, _bForceReload);
     if (!pModel)
     {
-        ScratchBuffer buf;
-        buf.Format("failed to load model file: {}. {}.", _path.native(), pModel.GetError().ToErrorMessage());
-
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = buf.ToStringView();
-        PushDialog(MakeRef<MessageDialog>(desc));
-        return k_nullopt;
+        PushMessageDialog(
+            "error",
+            String::Formatted("failed to load model file: {}.\n{}", _path, pModel.GetError().ToErrorMessage()));
     }
-    return pModel.Take();
+    return pModel;
 }
 
 Editor::Editor()
@@ -785,10 +765,9 @@ Editor::Editor()
     , m_pFileBrowserWindow(MakeScoped<Editor_FileBrowserWindow>())
     , m_pVertexLayoutEditorWindow(MakeScoped<Editor_VertexLayoutEditorWindow>())
 {
-    m_configPath = JoinedPath(JAM_APP.GetWorkingDirectory(), Editor::k_configFileName);
     SetupDefaultTheme_();
-    LoadIcons_();
-    LoadConfigIfExist_();
+    SetupIcons_();
+    TryLoadConfig_();
 }
 
 Editor::~Editor()
@@ -804,14 +783,14 @@ void Editor::CreateInstance()
 
 void Editor::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance != nullptr, "Editor instance does not exist!");
     delete s_pInstance;
+    s_pInstance = nullptr;
 }
 
 void Editor::Update(const float _deltaSec)
 {
     // auto save config
-    UpdateAutoSaveState_(_deltaSec);
+    UpdateAutoSaveConfig_(_deltaSec);
 
     // update render view
     m_pSceneViewWindow->OnUpdate(_deltaSec);
@@ -824,7 +803,7 @@ void Editor::Render() const
 
 void Editor::ImGuiRender()
 {
-    ShowWorkspace_();
+    Panel_Dockspace_();
 
     // viewport
     if (bool& bShow = GetWindowShow(eEditorWindowType::SceneView))
@@ -832,7 +811,7 @@ void Editor::ImGuiRender()
         m_pSceneViewWindow->OnImGuiRender(bShow);
     }
 
-    ImGui::BeginDisabled(m_mode == eEditorMode::Play);
+    ImGui::BeginDisabled(GetMode() == eEditorMode::Play);
 
     // profiler
     if (bool& bShow = GetWindowShow(eEditorWindowType::Profiler))

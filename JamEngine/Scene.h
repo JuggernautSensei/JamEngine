@@ -3,7 +3,7 @@
 #include "Environment.h"
 #include "RenderView.h"
 #include "UID.h"
-#include "UIDGenerator.h"
+#include "UIDAllocator.h"
 
 namespace Jam
 {
@@ -55,9 +55,9 @@ public:
     void DestroyEntity(Entity _entity);
     void DestroyEntityDefered(Entity _entity);
 
-    [[nodiscard]] Entity           GetEntity(UID _uid) const;
-    [[nodiscard]] Optional<Entity> FindEntity(UID _uid) const;
-    [[nodiscard]] bool             IsEntityValid(Entity _entity) const;
+    [[nodiscard]] Entity GetEntity(UID _uid) const;
+    [[nodiscard]] Entity FindEntityOrNull(UID _uid) const;
+    [[nodiscard]] bool   IsEntityValid(Entity _entity) const;
 
     Entity CreateEntitiesFrom(const Ref<Model>& _pModel);
     UID    CreateEntitiesDeferedFrom(const Ref<Model>& _pModel);   // returns the UID of the root entity. UID is invalid this frame, valid next frame
@@ -87,14 +87,14 @@ public:
         return m_registry.view<Args...>().each();
     }
 
-    [[nodiscard]] const SceneRegistry& GetRegistry() const;
-    [[nodiscard]] SceneRegistry&       GetRegistry();
+    [[nodiscard]] const Registry& GetRegistry() const;
+    [[nodiscard]] Registry&       GetRegistry();
 
     // item
     [[nodiscard]] Entity                      GetRootEntity() const;
     [[nodiscard]] Int32                       GetNumEntities() const;
     [[nodiscard]] const HashMap<UID, Entity>& GetEntities() const;
-    [[nodiscard]] Vector<Entity>              GetModifiedTransformEntities() const;   // 해당 배열은 OnRender 함수 호출 직전에 초기화됨
+    [[nodiscard]] Vector<Entity>              GetModifiedTransformEntities() const;   // 해당 배열은 Render 함수 호출 직전에 초기화됨
 
     static constexpr StringView k_extension = ".jsc";
     static constexpr StringView k_filter    = "*.jsc";
@@ -124,10 +124,10 @@ private:
     // scene graph update
     void UpdateSceneGraph_();   // call before rendering
 
-    SceneRegistry        m_registry                  = {};
-    UIDGenerator         m_uidGenerator              = {};
+    Registry             m_registry                  = {};
+    UIDAllocator         m_uidGenerator              = {};
     HashMap<UID, Entity> m_entities                  = {};
-    Entity               m_root                      = Entity::k_invalid;
+    Entity               m_root                      = Entity::k_null;
     Vector<Entity>       m_transformModifiedEntities = {};
 
     inline static UID k_rootEntityUid = UID { 0 };

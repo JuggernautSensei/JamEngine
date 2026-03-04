@@ -8,7 +8,7 @@ class Error
 public:
     enum Type
     {
-        None,
+        None = 0,
 
         // general
         Unknown,
@@ -17,6 +17,8 @@ public:
         RuntimeError,
         InternalError,
         NotImplemented,
+        OutOfMemory,
+        NotSupported,
 
         // graphics
         ShaderCompileFailed,
@@ -41,13 +43,79 @@ public:
         // runtime
         ReflectionFailed,
 
-        // file system
-        DirectoryCreationFailed,
-        FileRemovalFailed,
+        // OS
+        DirectoryNotEmpty,
+        FileInUse,
+        DiskFull,
+        InvalidPath,
+        TooManyOpenFiles,
+        NotFoundHardwareAdapter,
+
+        // asset
+        NotIdealAssetPath,
+
+        // network
+        BadNetworkPath,
     };
 
+private:
+    struct ErrorMessage
+    {
+        Type        type = {};
+        StringView  msg  = {};
+        WStringView msgW = {};
+    };
+
+#define ERROR_MSG(_type, _msg) \
+    case _type:                \
+        return { _type, _msg, L##_msg }
+
+    [[nodiscard]] constexpr ErrorMessage GetErrorMessage_() const
+    {
+        switch (m_type)
+        {
+            ERROR_MSG(None, "no error occurred");
+            ERROR_MSG(Unknown, "an unspecified unknown error has occurred");
+            ERROR_MSG(InvalidArgument, "one or more arguments are invalid");
+            ERROR_MSG(OutOfRange, "index or m_value is out of the valid range");
+            ERROR_MSG(RuntimeError, "a generic error occurred during execution");
+            ERROR_MSG(InternalError, "an unexpected internal logic error was detected");
+            ERROR_MSG(NotImplemented, "the requested feature is not yet implemented");
+            ERROR_MSG(ShaderCompileFailed, "failed to compile the graphics shader");
+            ERROR_MSG(NotFound, "the requested file or resource could not be found");
+            ERROR_MSG(AccessDenied, "permission denied while accessing the resource");
+            ERROR_MSG(AlreadyExists, "cannot create because the file or resource already exists");
+            ERROR_MSG(OpenFailed, "failed to open the file stream or handle");
+            ERROR_MSG(ReadFailed, "failed to read data from the storage device");
+            ERROR_MSG(WriteFailed, "failed to write data to the storage device");
+            ERROR_MSG(UnsupportedFormat, "the provided data format is not supported");
+            ERROR_MSG(ImportFailed, "failed to import the external asset or data");
+            ERROR_MSG(ExportFailed, "failed to export the asset to the specified format");
+            ERROR_MSG(InvalidData, "the data content is corrupted or invalid");
+            ERROR_MSG(ParseError, "failed to parse the structured data (json/xml/etc)");
+            ERROR_MSG(MissingField, "a required data field is missing from the source");
+            ERROR_MSG(TypeMismatch, "the data type does not match the expected type");
+            ERROR_MSG(ReflectionFailed, "failed to perform reflection on the specified type or object");
+            ERROR_MSG(DirectoryNotEmpty, "the directory is not empty");
+            ERROR_MSG(FileInUse, "the file is currently in use by another process");
+            ERROR_MSG(DiskFull, "the disk is full, not enough space to complete the operation");
+            ERROR_MSG(NotIdealAssetPath, "the asset path is not ideal (e.g. missing expected file extension or located outside of the assets directory)");
+            ERROR_MSG(OutOfMemory, "the system ran out of memory to complete the operation");
+            ERROR_MSG(NotSupported, "the requested operation or feature is not supported on the current platform or configuration");
+            ERROR_MSG(InvalidPath, "the specified file path is invalid or contains illegal characters");
+            ERROR_MSG(TooManyOpenFiles, "the process has too many open files, cannot open more");
+            ERROR_MSG(NotFoundHardwareAdapter, "no compatible hardware adapter was found for graphics operations");
+            ERROR_MSG(BadNetworkPath, "the network path is invalid or unreachable");
+            default:
+                JAM_UNREACHABLE;
+        }
+    }
+
+#undef ERROR_MSG
+
+public:
     constexpr Error()
-        : m_type(Unknown)
+        : m_type(None)
     {
     }
 
@@ -66,6 +134,15 @@ public:
     {
         return m_type != _other.m_type;
     }
+    constexpr bool operator==(const Error::Type _type) const
+    {
+        return m_type == _type;
+    }
+
+    constexpr bool operator!=(const Error::Type _type) const
+    {
+        return m_type != _type;
+    }
 
     [[nodiscard]] constexpr bool IsOk() const
     {
@@ -79,59 +156,12 @@ public:
 
     [[nodiscard]] constexpr StringView ToErrorMessage() const
     {
-        switch (m_type)
-        {
-            case Error::None:
-                return "no error occurred";
-            case Error::Unknown:
-                return "an unspecified unknown error has occurred";
-            case Error::InvalidArgument:
-                return "one or more arguments are invalid";
-            case Error::OutOfRange:
-                return "index or value is out of the valid range";
-            case Error::RuntimeError:
-                return "a generic error occurred during execution";
-            case Error::InternalError:
-                return "an unexpected internal logic error was detected";
-            case Error::NotImplemented:
-                return "the requested feature is not yet implemented";
-            case Error::ShaderCompileFailed:
-                return "failed to compile the graphics shader";
-            case Error::NotFound:
-                return "the requested file or resource could not be found";
-            case Error::AccessDenied:
-                return "permission denied while accessing the resource";
-            case Error::AlreadyExists:
-                return "cannot create because the file or resource already exists";
-            case Error::OpenFailed:
-                return "failed to open the file stream or handle";
-            case Error::ReadFailed:
-                return "failed to read data from the storage device";
-            case Error::WriteFailed:
-                return "failed to write data to the storage device";
-            case Error::UnsupportedFormat:
-                return "the provided data format is not supported";
-            case Error::ImportFailed:
-                return "failed to import the external asset or data";
-            case Error::ExportFailed:
-                return "failed to export the asset to the specified format";
-            case Error::InvalidData:
-                return "the data content is corrupted or invalid";
-            case Error::ParseError:
-                return "failed to parse the structured data (json/xml/etc)";
-            case Error::MissingField:
-                return "a required data field is missing from the source";
-            case Error::TypeMismatch:
-                return "the data type does not match the expected type";
-            case Error::DirectoryCreationFailed:
-                return "failed to create the requested directory path";
-            case Error::FileRemovalFailed:
-                return "failed to delete the specified file or directory";
-            case ReflectionFailed:
-                return "failed to perform reflection on the specified type or object";
-            default:
-                JAM_UNREACHABLE;
-        }
+        return GetErrorMessage_().msg;
+    }
+
+    [[nodiscard]] constexpr WStringView ToErrorMessageW() const
+    {
+        return GetErrorMessage_().msgW;
     }
 
     /* implicit */ constexpr operator bool() const
@@ -295,19 +325,19 @@ public:
 
     [[nodiscard]] const T& GetValue() const
     {
-        JAM_ASSERT(m_bHasValue, "Expect does not contain a value");
+        JAM_ASSERT(m_bHasValue, "Expect does not contain a m_value");
         return m_value;
     }
 
     [[nodiscard]] T& GetValue()
     {
-        JAM_ASSERT(m_bHasValue, "Expect does not contain a value");
+        JAM_ASSERT(m_bHasValue, "Expect does not contain a m_value");
         return m_value;
     }
 
     [[nodiscard]] T Take()
     {
-        JAM_ASSERT(m_bHasValue, "Expect does not contain a value");
+        JAM_ASSERT(m_bHasValue, "Expect does not contain a m_value");
         T value = std::move(m_value);
         Reset_();
         return value;

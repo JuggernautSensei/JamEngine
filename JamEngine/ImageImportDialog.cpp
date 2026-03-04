@@ -4,8 +4,8 @@
 
 #include "Editor.h"
 #include "EditorUtilities.h"
-#include "WindowsUtilities.h"
 #include "EditorWidgets.h"
+#include "FileDialog.h"
 #include "Graphics.h"
 #include "GraphicsBase.h"
 #include "MessageDialog.h"
@@ -13,38 +13,45 @@
 namespace Jam
 {
 
-ImageImportDialog::ImageImportDialog(
-    const ImageImportDialogInfo& _info)
-    : AssetCreationDialog(_info.baseInfo)
-    , m_importPath(_info.importPathOrEmpty)
-    , m_pPreviewTex(nullptr)
+namespace
 {
-    if (!_info.importPathOrEmpty.empty())
-    {
-        m_assetSaveDir  = _info.importPathOrEmpty.parent_path();
-        m_assetBaseName = BaseNameOf(_info.importPathOrEmpty);
-        LoadPreviewTexture_();
-    }
-
-    // default import option
-    {
-        m_options.bGenerateMips = true;
-    }
-
-    // import file dialog
+    [[nodiscard]] FileDialog CreateImportFileDialog_()
     {
         constexpr FileDialogFilter k_filters[] = {
             { "image files", "*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.dds;*.hdr;*.psd;*.tiff" }
         };
-
-        m_importFd.SetTitle("select image file");
-        m_importFd.SetFilters(k_filters);
+        OpenFileDialogInfo info = {};
+        info.title              = "select image file";
+        info.filtersOrEmpty     = k_filters;
+        return FileDialog { info };
     }
 
-    // save file dialog
+    [[nodiscard]] FileDialog CreateSaveFileDialog_()
     {
-        m_saveFd.SetTitle("select save directory");
+        SaveFileDialogInfo info = {};
+        info.title              = "select save directory";
+        return FileDialog { info };
     }
+
+}   // namespace
+
+ImageImportDialog::ImageImportDialog(
+    const ImageImportDialogInfo& _info)
+    : AssetCreationDialog(_info.title, _info.size)
+    , m_importPath(_info.importPathOrEmpty)
+    , m_importFd(CreateImportFileDialog_())
+    , m_saveFd(CreateSaveFileDialog_())
+    , m_pPreviewTex(nullptr)
+{
+    if (!_info.importPathOrEmpty.IsEmpty())
+    {
+        m_assetSaveDir  = _info.importPathOrEmpty.GetDirectory();
+        m_assetBaseName = _info.importPathOrEmpty.GetBaseName();
+        LoadPreviewTexture_();
+    }
+
+    // default import option
+    m_options.bGenerateMips = true;
 }
 
 void ImageImportDialog::OnShow()
@@ -208,7 +215,7 @@ Error ImageImportDialog::LoadPreviewTexture_()
     }
 
     // create texture
-    const TextureHandle texh = JAM_GFX.CreateTexture(importer->GetImageContainer());
+    const TextureHandle texh = GetGraphics().CreateTexture(importer->GetImageContainer());
 
     // set preview texture
     if (m_pPreviewTex)
@@ -231,22 +238,22 @@ bool ImageImportDialog::OnClickImportButton_()
         return false;
     }
 
-    if (m_importPath.empty())
+    if (m_importPath.IsEmpty())
     {
         PushEmptyImportPathErrorMessageDialog_();
         return false;
     }
 
-    if (m_assetSaveDir.empty())
+    if (m_assetSaveDir.IsEmpty())
     {
         PushEmptySavePathErrorMessageDialog_();
         return false;
     }
 
-    Path path = JoinedPath(m_assetSaveDir, m_assetBaseName);
-    ReplaceExtension(path, Texture::k_extension);
+    String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoinType::File);
+    path.ReplaceExtension(Texture::k_extension);
 
-    if (fs::exists(path))
+    if (FileSystem::Exists(path))
     {
         PushOverwriteConfirmationDialog_(path);
         return false;
@@ -256,20 +263,17 @@ bool ImageImportDialog::OnClickImportButton_()
 }
 
 bool ImageImportDialog::CreateAndSaveAsset_(
-    const Path& _path)
+    const StringView _path)
 {
     // use preview texture for saving
     if (m_bPreviewLoadRequested)
     {
         if (const Error err = LoadPreviewTexture_())
         {
-            ScratchBuffer tmp;
-            tmp.Format("failed to import image file: {}. {}", m_importPath.native(), err.ToErrorMessage());
+            GetEditor().PushMessageDialog(
+                "error",
+                String::Formatted("failed to load preview texture for '{}': {}", m_importPath, err.ToErrorMessage()));
 
-            MessageDialogInfo desc = {};
-            desc.baseInfo.title    = "error";
-            desc.msg               = tmp.ToStringView();
-            JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
             return false;
         }
         m_bPreviewLoadRequested = false;

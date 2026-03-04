@@ -17,8 +17,8 @@ void Input::CreateInstance()
 
 void Input::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance, "Input instance does not exist.");
     delete s_pInstance;
+    s_pInstance = nullptr;
 }
 
 Input& Input::GetInstance()
@@ -39,7 +39,7 @@ void Input::Update()
     m_mouseDeltaWheel = 0;
 
     // get cursor pos
-    const auto [x, y] = JAM_WIN.GetClientPos();
+    const auto [x, y] = GetWindowsPlatform().GetClientPos();
 
     POINT p = {};
     ::GetCursorPos(&p);
@@ -151,7 +151,7 @@ void Input::SetMousePos(
     const Int32 _x,
     const Int32 _y) noexcept
 {
-    const auto [cliX, cliY] = JAM_WIN.GetClientPos();
+    const auto [cliX, cliY] = GetWindowsPlatform().GetClientPos();
     const Int32 screenX     = cliX + _x;
     const Int32 screenY     = cliY + _y;
 

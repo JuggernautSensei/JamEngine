@@ -74,7 +74,7 @@ namespace
 }   // namespace
 
 Expect<Ref<Model>> Model::Create(
-    const Path& _path)
+    StringView _path)
 {
     Ref<Model> pModel = new Model;
     if (const Error err = pModel->Load(_path))
@@ -95,7 +95,7 @@ Ref<Model> Model::Create(
 }
 
 Error Model::Load(
-    const Path& _path)
+    StringView _path)
 {
     JAM_FUNCTION_PROFILE();
 
@@ -121,7 +121,7 @@ Error Model::Load(
     m_meshes.reserve(pDto->meshPaths.size());
     for (const StringViewDto path: pDto->meshPaths)
     {
-        Expect<Ref<Mesh>> pMesh = JAM_ASSET_MGR.LoadMesh(PathFrom(path));
+        Expect<Ref<Mesh>> pMesh = GetAssetManager().LoadMesh(StringViewFrom(path));
         if (!pMesh)
         {
             CleanUp_();
@@ -135,7 +135,7 @@ Error Model::Load(
     m_materials.reserve(pDto->matPaths.size());
     for (const StringViewDto path: pDto->matPaths)
     {
-        Expect<Ref<Material>> pMaterial = JAM_ASSET_MGR.LoadMaterial(PathFrom(path));
+        Expect<Ref<Material>> pMaterial = GetAssetManager().LoadMaterial(StringViewFrom(path));
         if (!pMaterial)
         {
             CleanUp_();
@@ -166,25 +166,22 @@ void Model::Load(
 }
 
 Error Model::Save(
-    const Path&           _path,
-    const bool            _bReplaceExtension,
-    Flags<eSaveFileFlags> _flags) const
+    StringView                 _path,
+    const bool                 _bReplaceExtension,
+    eFileWriterCollisionPolicy _policy) const
+
 {
     JAM_FUNCTION_PROFILE();
     JAM_ASSERT(IsValid(), "Cannot save invalid model");
 
-    // io
-    Expect<ModelSaver> saver = {};
-    if (_bReplaceExtension)
-    {
-        const Path path = ReplacedExtension(_path, k_extension);
-        saver           = ModelSaver::Open(path, _flags);
-    }
-    else
-    {
-        saver = ModelSaver::Open(_path, _flags);
-    }
+    StringView dir = {}, base = {}, ext = {};
+    _path.Decompose(&dir, nullptr, &base, &ext);
 
+    String path = dir;
+    path.Append(base);
+    path.Append(_bReplaceExtension ? k_extension : ext);
+
+    Expect<ModelSaver> saver = ModelSaver::Open(path.ToStringView(), _policy);
     if (!saver)
     {
         return saver.GetError();
@@ -216,11 +213,11 @@ Error Model::Save(
 void Model::SetName(
     const StringView _name)
 {
-    m_name = _name.ToString();
+    m_name = _name;
 }
 
 void Model::SetVirtualPath(
-    const Path& _path)
+    StringView _path)
 {
     JAM_ASSERT(!m_bLoadedFromFile, "Cannot change path of model loaded from file");
     m_path = _path;
@@ -251,7 +248,7 @@ UInt32 Model::GetTypeHash() const
     return k_typeHash;
 }
 
-const Path& Model::GetPath() const
+StringView Model::GetPath() const
 {
     return m_path;
 }
@@ -288,7 +285,7 @@ const Vector<Ref<Material>>& Model::GetMaterials() const
 
 void Model::CleanUp_()
 {
-    m_path.clear();
+    m_path.Clear();
     m_meshes.clear();
     m_materials.clear();
     m_name.Clear();
@@ -317,7 +314,7 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Model>> pModel = JAM_ASSET_MGR.LoadModel(path.ToStdString());
+    Expect<Ref<Model>> pModel = GetAssetManager().LoadModel(path);
     if (pModel)
     {
         _value = pModel.Take();

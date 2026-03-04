@@ -187,19 +187,19 @@ public:
 
     [[nodiscard]] constexpr const T& GetValue() const
     {
-        JAM_ASSERT(m_bHasValue, "Optional does not contain a value");
+        JAM_ASSERT(m_bHasValue, "Optional does not contain a m_value");
         return m_value;
     }
 
     [[nodiscard]] constexpr T& GetValue()
     {
-        JAM_ASSERT(m_bHasValue, "Optional does not contain a value");
+        JAM_ASSERT(m_bHasValue, "Optional does not contain a m_value");
         return m_value;
     }
 
     [[nodiscard]] constexpr T Take()
     {
-        JAM_ASSERT(m_bHasValue, "Optional does not contain a value");
+        JAM_ASSERT(m_bHasValue, "Optional does not contain a m_value");
         T value = std::move(m_value);
         Reset();
         return value;
@@ -303,13 +303,13 @@ public:
 
     [[nodiscard]] constexpr T& GetValue() const
     {
-        JAM_ASSERT(m_value != nullptr, "Optional does not contain a value");
+        JAM_ASSERT(m_value != nullptr, "Optional does not contain a m_value");
         return *m_value;
     }
 
     [[nodiscard]] constexpr T& Take()
     {
-        JAM_ASSERT(m_value != nullptr, "Optional does not contain a value");
+        JAM_ASSERT(m_value != nullptr, "Optional does not contain a m_value");
         T* pValue = m_value;
         Reset();
         return *pValue;

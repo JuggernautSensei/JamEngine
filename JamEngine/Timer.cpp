@@ -168,7 +168,7 @@ ScopedTimer::ScopedTimer(
     : m_name(_name)
     , m_unit(_unit)
 {
-    JAM_LOG.Trace(R"([TIMER START] {})", m_name);
+    JAM_LOG_TRACE(R"([TIMER START] {})", m_name);
     Start();
 }
 
@@ -176,7 +176,7 @@ ScopedTimer::~ScopedTimer()
 {
     Stop();
     double elapsedTime = GetTotal(m_unit);
-    JAM_LOG.Trace(R"([TIMER END] {} [{:3f}{}])", m_name, elapsedTime, StringFrom(m_unit));
+    JAM_LOG_TRACE(R"([TIMER END] {} [{:3f}{}])", m_name, elapsedTime, StringFrom(m_unit));
 }
 
 TimeStamp TimeStamp::Current()

@@ -1,41 +1,11 @@
 #include "pch.h"
 #include "File.h"
 
+#include "FileSystem.h"
 #include "MemoryReadWriter.h"
 
 namespace Jam
 {
-
-Error ResolveSaveFileFlags(
-    const Path&                 _path,
-    const Flags<eSaveFileFlags> _flags)
-{
-    if (_flags & eSaveFileFlags::FailIfExists)
-    {
-        if (fs::exists(_path))
-        {
-            JAM_LOG.Error("File '{}' already exists.", _path.native());
-            return Error::AlreadyExists;
-        }
-    }
-
-    if (_flags & eSaveFileFlags::CreateDirs)
-    {
-        const Path parent = _path.parent_path();
-        if (!parent.empty() && !fs::exists(parent))
-        {
-            std::error_code ec = {};
-            fs::create_directories(parent, ec);
-            if (ec)
-            {
-                JAM_LOG.Error("Failed to create directories for path '{}'. {}", parent.native(), ec.message());
-                return Error::DirectoryCreationFailed;
-            }
-        }
-    }
-
-    return Error::None;
-}
 
 FileRWBase::~FileRWBase()
 {
@@ -155,17 +125,40 @@ FileRWBase::FileRWBase(FILE* _pFile)
 }
 
 Expect<FileWriter> FileWriter::Open(
-    const Path&                 _path,
-    const Flags<eSaveFileFlags> _flags)
+    const StringView                 _path,
+    const eFileWriterCollisionPolicy _policy)
 {
-    if (const Error err = ResolveSaveFileFlags(_path, _flags))
+    // Handle file name collision based on the specified policy.
+    if (_policy != eFileWriterCollisionPolicy::Overwrite && _policy != eFileWriterCollisionPolicy::Append && FileSystem::Exists(_path))
     {
-        return err;
+        switch (_policy)
+        {
+            case eFileWriterCollisionPolicy::Rename:
+                return Open(FileSystem::GenerateUniquePath(_path), eFileWriterCollisionPolicy::Overwrite);
+
+            case eFileWriterCollisionPolicy::Fail:
+                return Error::AlreadyExists;
+
+            case eFileWriterCollisionPolicy::Append:
+            case eFileWriterCollisionPolicy::Overwrite:
+            default:
+                JAM_UNREACHABLE;
+        }
     }
 
-    const char* mode  = (_flags & eSaveFileFlags::Append) ? "ab" : "wb";
+    // create directories if not exist
+    const StringView dir = _path.GetDirectory();
+    if (!dir.IsEmpty())
+    {
+        if (const Error err = FileSystem::MakeDirectory(dir))
+        {
+            return err;
+        }
+    }
+
+    const char* mode  = (_policy == eFileWriterCollisionPolicy::Append) ? "ab" : "wb";
     FILE*       pFile = nullptr;
-    if (::fopen_s(&pFile, _path.c_str(), mode) != 0)
+    if (::fopen_s(&pFile, _path.GetPtr(), mode) != 0)
     {
         return Error::OpenFailed;
     }
@@ -174,25 +167,31 @@ Expect<FileWriter> FileWriter::Open(
 }
 
 Error FileWriter::WriteFileFromMemory(
-    const CMemoryBlock          _data,
-    const Path&                 _path,
-    const Flags<eSaveFileFlags> _flags)
+    const CMemoryBlock         _data,
+    const StringView           _path,
+    eFileWriterCollisionPolicy _policy)
 {
-    Expect<FileWriter> writer = Open(_path, _flags);
+    Expect<FileWriter> writer = Open(_path, _policy);
     if (!writer)
     {
         return writer.GetError();
     }
 
-    return writer->Write(_data).GetError();
+    const Expect<SizeT> ret = writer->Write(_data);
+    if (!ret)
+    {
+        return ret.GetError();
+    }
+
+    return Error::None;
 }
 
 Error FileWriter::WriteFileFromString(
-    const StringView            _str,
-    const Path&                 _path,
-    const Flags<eSaveFileFlags> _flags)
+    const StringView           _str,
+    const StringView           _path,
+    eFileWriterCollisionPolicy _policy)
 {
-    return WriteFileFromMemory(CMemoryBlock { _str.GetPtr(), _str.GetLength() }, _path, _flags);
+    return WriteFileFromMemory(CMemoryBlock { _str.GetPtr(), _str.GetLength() }, _path, _policy);
 }
 
 Expect<SizeT> FileWriter::Write(
@@ -202,7 +201,7 @@ Expect<SizeT> FileWriter::Write(
     const size_t written = ::fwrite(_data.GetPtr(), 1, _data.GetByteWidth(), m_pFile);
     if (CmpLess(written, _data.GetByteWidth()))
     {
-        JAM_LOG.Error("Failed to write {} bytes to file, only {} bytes were written.", _data.GetByteWidth(), written);
+        JAM_LOG_ERROR("Failed to write {} bytes to file, only {} bytes were written.", _data.GetByteWidth(), written);
         return Error::WriteFailed;
     }
     return NumericCast<SizeT>(written);
@@ -226,12 +225,12 @@ FileWriter::FileWriter(FILE* _pFile)
 }
 
 Expect<FileReader> FileReader::Open(
-    const Path& _path)
+    StringView _path)
 {
     FILE* pFile = nullptr;
-    if (::fopen_s(&pFile, _path.c_str(), "rb") != 0)
+    if (::fopen_s(&pFile, _path.GetPtr(), "rb") != 0)
     {
-        JAM_LOG.Error("Failed to open file '{}'.", _path.native());
+        JAM_LOG_ERROR("Failed to open file '{}'.", _path);
         return Error::OpenFailed;
     }
 
@@ -239,36 +238,40 @@ Expect<FileReader> FileReader::Open(
 }
 
 Expect<Vector<Byte>> FileReader::ReadFileAsMemory(
-    const Path& _path)
+    const StringView _path)
 {
     Expect<FileReader> reader = Open(_path);
     if (!reader)
     {
         return reader.GetError();
     }
-    const SizeT  totalSize = reader->CalcTotalSize();
-    Vector<Byte> data(totalSize);
-    if (const Error err = reader->Read(data).GetError())
+
+    const SizeT         totalSize = reader->CalcTotalSize();
+    Vector<Byte>        data(totalSize);
+    const Expect<SizeT> ret = reader->Read(data);
+    if (!ret)
     {
-        return err;
+        return ret.GetError();
     }
 
     return data;
 }
 
 Expect<String> FileReader::ReadFileAsString(
-    const Path& _path)
+    const StringView _path)
 {
     Expect<FileReader> reader = Open(_path);
     if (!reader)
     {
         return reader.GetError();
     }
-    const SizeT totalSize = reader->CalcTotalSize();
-    String      str { totalSize, '\0' };
-    if (const Error err = reader->Read({ str.GetPtr(), totalSize }).GetError())
+
+    const SizeT         totalSize = reader->CalcTotalSize();
+    String              str { totalSize, '\0' };
+    const Expect<SizeT> ret = reader->Read({ str.GetPtr(), totalSize });
+    if (!ret)
     {
-        return err;
+        return ret.GetError();
     }
 
     return str;
@@ -283,11 +286,11 @@ Expect<SizeT> FileReader::Read(
     {
         if (IsEof())
         {
-            JAM_LOG.Error("Reached end of file while reading {} bytes, only {} bytes were read.", _dst.GetByteWidth(), read);
+            JAM_LOG_ERROR("Reached end of file while reading {} bytes, only {} bytes were read.", _dst.GetByteWidth(), read);
         }
         else
         {
-            JAM_LOG.Error("Failed to read {} bytes from file, only {} bytes were read.", _dst.GetByteWidth(), read);
+            JAM_LOG_ERROR("Failed to read {} bytes from file, only {} bytes were read.", _dst.GetByteWidth(), read);
         }
 
         return Error::ReadFailed;

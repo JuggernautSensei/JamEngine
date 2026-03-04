@@ -1,6 +1,7 @@
 #pragma once
 #include "AssetCreationDialog.h"
 #include "Dialog.h"
+#include "FileDialog.h"
 #include "Mesh.h"
 #include "WindowsUtilities.h"
 
@@ -19,17 +20,18 @@ enum class ePrimitiveCreationType
     Cylinder
 };
 
-struct PrimitiveCreationDialogDesc
+struct PrimitiveCreationDialogInfo
 {
-    DialogInfo             baseInfo       = {};
+    StringView             title          = {};
+    ImVec2                 size           = {};
     ePrimitiveCreationType type           = ePrimitiveCreationType::Cube;
-    Path                   saveDirOrEmpty = {};
+    String                 saveDirOrEmpty = {};
 };
 
 class PrimitiveCreationDialog : public AssetCreationDialog
 {
 public:
-    explicit PrimitiveCreationDialog(const PrimitiveCreationDialogDesc& _desc);
+    explicit PrimitiveCreationDialog(const PrimitiveCreationDialogInfo& _desc);
     void OnShow() override;
 
 private:
@@ -42,13 +44,13 @@ private:
 
     bool      OnClickCreateButton_();
     Ref<Mesh> CreatePrimitiveMesh_() const;
-    bool      CreateAndSaveAsset_(const Path& _path) override;
+    bool      CreateAndSaveAsset_(StringView _path) override;
 
     ePrimitiveCreationType m_type = ePrimitiveCreationType::Cube;
     Ref<VertexLayoutEntry> m_pVle = nullptr;
-    FileDialog             m_saveFd { eFileDialogMode::SaveFile };
+    FileDialog             m_saveFd;
 
-    Path   m_assetSaveDir  = {};
+    String m_assetSaveDir  = {};
     String m_assetBaseName = {};
 
     float m_fParam0 = 1.f;

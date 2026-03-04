@@ -575,7 +575,7 @@ struct BlendState
     static BlendState k_screen;
     static BlendState k_overlay;
 
-    // final value = (src value * src blend) (blend op) (dst value * dst blend)
+    // final m_value = (src m_value * src blend) (blend op) (dst m_value * dst blend)
     union
     {
         struct
@@ -583,10 +583,10 @@ struct BlendState
             bool               bEnable : 1;         // 블렌딩 활성화 여부 (기본: 비활성화, true: 활성화)
             eBlend             srcBlend : 4;        // 소스 블렌드 팩터 (기본: One)
             eBlend             dstBlend : 4;        // 대상 블렌드 팩터 (기본: Zero)
-            eBlendOp           blendOp : 3;         // 블렌드 연산자 (기본: Add)
+            eBlendOp           blendOp : 3;         // 블렌드 연산자 (기본: Add_)
             eBlend             srcBlendAlpha : 4;   // 소스 알파 블렌드 팩터 (기본: One)
             eBlend             dstBlendAlpha : 4;   // 대상 알파 블렌드 팩터 (기본: Zero)
-            eBlendOp           blendOpAlpha : 3;    // 알파 블렌드 연산자 (기본: Add)
+            eBlendOp           blendOpAlpha : 3;    // 알파 블렌드 연산자 (기본: Add_)
             Flags<eWriteFlags> writeMask;           // 렌더 타겟에 쓰기 마스크 (기본: RGBA 모두 활성화)
         };
         UInt32 value = 0;

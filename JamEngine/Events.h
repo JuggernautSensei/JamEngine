@@ -1,20 +1,19 @@
 #pragma once
+#include "Entity.h"
 #include "Event.h"
-#include "UID.h"
 
 namespace Jam
 {
 
 class WindowResizedEvent : public Event
 {
+    JAM_EVENT_BODY(WindowResizedEvent);
+
 public:
     WindowResizedEvent(Int32 _width, Int32 _height);
-
-    [[nodiscard]] Int32 GetWidth() const;
-    [[nodiscard]] Int32 GetHeight() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(WindowResizedEvent);
+    [[nodiscard]] Int32  GetWidth() const;
+    [[nodiscard]] Int32  GetHeight() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_width  = 0;
@@ -23,14 +22,14 @@ private:
 
 class WindowMaximizedEvent : public Event
 {
+    JAM_EVENT_BODY(WindowMaximizedEvent);
+
 public:
     WindowMaximizedEvent(Int32 _width, Int32 _height);
 
-    [[nodiscard]] Int32 GetWidth() const;
-    [[nodiscard]] Int32 GetHeight() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(WindowMaximizedEvent);
+    [[nodiscard]] Int32  GetWidth() const;
+    [[nodiscard]] Int32  GetHeight() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_width  = 0;
@@ -39,23 +38,23 @@ private:
 
 class WindowMinimizedEvent : public Event
 {
+    JAM_EVENT_BODY(WindowMinimizedEvent);
+
 public:
     WindowMinimizedEvent();
-    void FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(WindowMinimizedEvent);
+    [[nodiscard]] String ToString() const override;
 };
 
 class WindowMoveEvent : public Event
 {
+    JAM_EVENT_BODY(WindowMoveEvent);
+
 public:
     WindowMoveEvent(Int32 _x, Int32 _y);
 
-    [[nodiscard]] Int32 GetX() const;
-    [[nodiscard]] Int32 GetY() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(WindowMoveEvent);
+    [[nodiscard]] Int32  GetX() const;
+    [[nodiscard]] Int32  GetY() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_x = 0;
@@ -64,22 +63,21 @@ private:
 
 class WindowCloseEvent : public Event
 {
+    JAM_EVENT_BODY(WindowCloseEvent);
+
 public:
     WindowCloseEvent();
-    void FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(WindowCloseEvent);
+    [[nodiscard]] String ToString() const override;
 };
 
 class MouseWheelEvent : public Event
 {
+    JAM_EVENT_BODY(MouseWheelEvent);
+
 public:
     explicit MouseWheelEvent(Int32 _delta);
-    void FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    [[nodiscard]] Int32 GetDelta() const;
-
-    JAM_EVENT(MouseWheelEvent);
+    [[nodiscard]] String ToString() const override;
+    [[nodiscard]] Int32  GetDelta() const;
 
 private:
     Int32 m_delta = 0;
@@ -87,14 +85,14 @@ private:
 
 class MouseMoveEvent : public Event
 {
+    JAM_EVENT_BODY(MouseMoveEvent);
+
 public:
     MouseMoveEvent(Int32 _x, Int32 _y);
 
-    [[nodiscard]] Int32 GetX() const;
-    [[nodiscard]] Int32 GetY() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(MouseMoveEvent);
+    [[nodiscard]] Int32  GetX() const;
+    [[nodiscard]] Int32  GetY() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_x = 0;
@@ -103,13 +101,13 @@ private:
 
 class MouseDownEvent : public Event
 {
+    JAM_EVENT_BODY(MouseDownEvent);
+
 public:
     explicit MouseDownEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32 GetVKey() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(MouseDownEvent);
+    [[nodiscard]] Int32  GetVKey() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_vKey = 0;
@@ -117,13 +115,13 @@ private:
 
 class MouseUpEvent : public Event
 {
+    JAM_EVENT_BODY(MouseUpEvent);
+
 public:
     explicit MouseUpEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32 GetVKey() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(MouseUpEvent);
+    [[nodiscard]] Int32  GetVKey() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_vKey = 0;
@@ -131,13 +129,13 @@ private:
 
 class KeyDownEvent : public Event
 {
+    JAM_EVENT_BODY(KeyDownEvent);
+
 public:
     explicit KeyDownEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32 GetVKey() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(KeyDownEvent);
+    [[nodiscard]] Int32  GetVKey() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_key = 0;
@@ -145,13 +143,13 @@ private:
 
 class KeyUpEvent : public Event
 {
+    JAM_EVENT_BODY(KeyUpEvent);
+
 public:
     explicit KeyUpEvent(Int32 _vKey);
 
-    [[nodiscard]] Int32 GetVKey() const;
-    void                FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(KeyUpEvent);
+    [[nodiscard]] Int32  GetVKey() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
     Int32 m_key = 0;
@@ -159,113 +157,111 @@ private:
 
 class WindowFocusedEvent : public Event
 {
+    JAM_EVENT_BODY(WindowFocusedEvent);
+
 public:
     WindowFocusedEvent();
-    void FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(WindowFocusedEvent);
+    [[nodiscard]] String ToString() const override;
 };
 
 class WindowLostFocusEvent : public Event
 {
+    JAM_EVENT_BODY(WindowLostFocusEvent);
+
 public:
     WindowLostFocusEvent();
-    void FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(WindowLostFocusEvent);
+    [[nodiscard]] String ToString() const override;
 };
 
 class SceneChangedEvent : public Event
 {
+    JAM_EVENT_BODY(SceneChangedEvent);
+
 public:
-    void FormatEventMessage(ScratchBuffer& _buf) const override;
-    JAM_EVENT(SceneChangedEvent);
+    [[nodiscard]] String ToString() const override;
 };
 
 class EntityCreatedEvent : public Event
 {
+    JAM_EVENT_BODY(EntityCreatedEvent);
+
 public:
-    explicit EntityCreatedEvent(UID _uid);
-
-    [[nodiscard]] UID GetEntityUID() const;
-    void              FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(EntityCreatedEvent);
+    explicit EntityCreatedEvent(Entity _entity);
+    [[nodiscard]] Entity GetEntity() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
-    UID m_uid = UID::k_invalid;
+    Entity m_entity = Entity::k_null;
 };
 
 class EntityDestroyedEvent : public Event
 {
+    JAM_EVENT_BODY(EntityDestroyedEvent);
+
 public:
-    explicit EntityDestroyedEvent(UID _uid);
-
-    [[nodiscard]] UID GetEntityUID() const;
-    void              FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(EntityDestroyedEvent);
+    explicit EntityDestroyedEvent(Entity _entity);
+    [[nodiscard]] Entity GetEntity() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
-    UID m_uid = {};
+    Entity m_entity = Entity::k_null;
 };
 
 class FileAddedEvent : public Event
 {
+    JAM_EVENT_BODY(FileAddedEvent);
+
 public:
-    explicit FileAddedEvent(const Path& _path);
-
-    [[nodiscard]] Path GetPath() const;
-    void               FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(FileAddedEvent);;
+    explicit FileAddedEvent(StringView _path);
+    [[nodiscard]] String GetPath() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
-    Path m_path = {};
+    String m_path = {};
 };
 
 class FileDeletedEvent : public Event
 {
+    JAM_EVENT_BODY(FileDeletedEvent);
+
 public:
-    explicit FileDeletedEvent(const Path& _path);
+    explicit FileDeletedEvent(StringView _path);
 
-    [[nodiscard]] Path GetPath() const;
-    void               FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(FileDeletedEvent);;
+    [[nodiscard]] String GetPath() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
-    Path m_path = {};
+    String m_path = {};
 };
 
 class FileModifiedEvent : public Event
 {
+    JAM_EVENT_BODY(FileModifiedEvent);
+
 public:
-    explicit FileModifiedEvent(const Path& _path);
+    explicit FileModifiedEvent(StringView _path);
 
-    [[nodiscard]] Path GetPath() const;
-    void               FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(FileModifiedEvent);;
+    [[nodiscard]] String GetPath() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
-    Path m_path = {};
+    String m_path = {};
 };
 
 class FileRenamedEvent : public Event
 {
+    JAM_EVENT_BODY(FileRenamedEvent);
+
 public:
-    explicit FileRenamedEvent(const Path& _old, const Path& _new);
+    explicit FileRenamedEvent(StringView _old, StringView _new);
 
-    [[nodiscard]] Path GetOldPath() const;
-    [[nodiscard]] Path GetNewPath() const;
-    void               FormatEventMessage(ScratchBuffer& _buf) const override;
-
-    JAM_EVENT(FileRenamedEvent);;
+    [[nodiscard]] String GetOldPath() const;
+    [[nodiscard]] String GetNewPath() const;
+    [[nodiscard]] String ToString() const override;
 
 private:
-    Path m_old = {};
-    Path m_new = {};
+    String m_old = {};
+    String m_new = {};
 };
 
 }   // namespace Jam

@@ -3,7 +3,7 @@
 namespace Jam
 {
 
-constexpr UInt32 k_nullHandleIdx = 0x00FF'FFFF;
+constexpr UInt32 k_nullHandleIndex = 0x00FF'FFFF;
 
 struct NullHandleType
 {
@@ -18,19 +18,19 @@ struct NullHandleType
 
 constexpr NullHandleType k_nullHandle = NullHandleType { NullHandleType::Tag {} };
 
-/// @brief A stage-safe handle for a resource.
-/// @tparam T The resource stage this handle references.
+/// @brief A m_stage-safe handle for a resource.
+/// @tparam T The resource m_stage this handle references.
 template<typename T>
 struct Handle
 {
     Handle()
-        : index(k_nullHandleIdx)
+        : index(k_nullHandleIndex)
         , token(0)
     {
     }
 
     /* implicit */ Handle(const NullHandleType) noexcept
-        : index(k_nullHandleIdx)
+        : index(k_nullHandleIndex)
         , token(0)
     {
     }
@@ -43,7 +43,7 @@ struct Handle
 
     Handle& operator=(const NullHandleType) noexcept
     {
-        index = k_nullHandleIdx;
+        index = k_nullHandleIndex;
         token = 0;
         return *this;
     }
@@ -60,7 +60,7 @@ struct Handle
 
     [[nodiscard]] bool IsValid() const noexcept
     {
-        return index != k_nullHandleIdx;
+        return index != k_nullHandleIndex;
     }
 
     /* implicit */ operator bool() const noexcept
@@ -82,13 +82,13 @@ struct Handle
 struct AnyHandle
 {
     AnyHandle()
-        : index(k_nullHandleIdx)
+        : index(k_nullHandleIndex)
         , token(0)
     {
     }
 
     /* implicit */ AnyHandle(const NullHandleType) noexcept
-        : index(k_nullHandleIdx)
+        : index(k_nullHandleIndex)
         , token(0)
     {
     }
@@ -107,7 +107,7 @@ struct AnyHandle
 
     AnyHandle& operator=(const NullHandleType) noexcept
     {
-        index = k_nullHandleIdx;
+        index = k_nullHandleIndex;
         token = 0;
         return *this;
     }
@@ -133,19 +133,21 @@ struct AnyHandle
     };
 };
 
-/// @brief 핸들 할당기
 template<typename T>
 class HandleAllocator
 {
     struct Slot
     {
-        UInt32 nextFreeIndex = k_nullHandleIdx;
+        UInt32 nextFreeIndex = k_nullHandleIndex;
         UInt8  token         = 0;
         bool   bAlloced      = false;
     };
 
+public:
+    using HandleT = Handle<T>;
+
     template<bool IsConst>
-    class Iterator
+    class IteratorBase
     {
     public:
         using iterator_category = std::forward_iterator_tag;
@@ -157,16 +159,16 @@ class HandleAllocator
         using AllocatorT = std::conditional_t<IsConst, const HandleAllocator, HandleAllocator>;
         using HandleT    = Handle<T>;
 
-        Iterator()
+        IteratorBase()
         {
         }
 
-        explicit Iterator(AllocatorT* _pAllocator) noexcept
-            : Iterator(_pAllocator, 0)
+        explicit IteratorBase(AllocatorT* _pAllocator) noexcept
+            : IteratorBase(_pAllocator, 0)
         {
         }
 
-        explicit Iterator(AllocatorT* _pAllocator, const UInt32 _startIndex) noexcept
+        explicit IteratorBase(AllocatorT* _pAllocator, const UInt32 _startIndex) noexcept
             : m_pAllocator(_pAllocator)
             , m_index(_startIndex)
             , m_endIndex(NumericCast<UInt32>(_pAllocator->m_slots.size()))
@@ -174,7 +176,7 @@ class HandleAllocator
             Advance_();
         }
 
-        Iterator& operator++() noexcept
+        IteratorBase& operator++() noexcept
         {
             ++m_index;
             Advance_();
@@ -183,22 +185,22 @@ class HandleAllocator
 
         [[nodiscard]] HandleT operator*() const noexcept
         {
-            JAM_ASSERT(IsValid_(), "Iterator out of bounds");
+            JAM_ASSERT(IsValid_(), "IteratorBase out of bounds");
             return HandleT { m_index, m_pAllocator->m_slots[m_index].token };
         }
 
         [[nodiscard]] HandleT GetHandle() const noexcept
         {
-            JAM_ASSERT(IsValid_(), "Iterator out of bounds");
+            JAM_ASSERT(IsValid_(), "IteratorBase out of bounds");
             return **this;
         }
 
-        [[nodiscard]] bool operator==(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator==(const IteratorBase& other) const noexcept
         {
             return m_pAllocator == other.m_pAllocator && m_index == other.m_index;
         }
 
-        [[nodiscard]] bool operator!=(const Iterator& other) const noexcept
+        [[nodiscard]] bool operator!=(const IteratorBase& other) const noexcept
         {
             return !(*this == other);
         }
@@ -222,10 +224,8 @@ class HandleAllocator
         UInt32      m_endIndex   = 0;
     };
 
-public:
-    using HandleT        = Handle<T>;
-    using IteratorT      = Iterator<false>;
-    using ConstIteratorT = Iterator<true>;
+    using Iterator      = IteratorBase<false>;
+    using ConstIterator = IteratorBase<true>;
 
     HandleAllocator()  = default;
     ~HandleAllocator() = default;
@@ -237,8 +237,8 @@ public:
 
     [[nodiscard]] HandleT Alloc()
     {
-        UInt32 index;
-        if (m_freeSlotIndex != k_nullHandleIdx)
+        UInt32 index = 0;
+        if (m_freeSlotIndex != k_nullHandleIndex)
         {
             index           = m_freeSlotIndex;
             m_freeSlotIndex = m_slots[index].nextFreeIndex;
@@ -258,7 +258,7 @@ public:
     {
         JAM_ASSERT(IsValid(handle), "Invalid handle");
         UInt32 index = handle.index;
-        ++m_slots[index].token;   // 오버플로우는 오휴가 아님
+        ++m_slots[index].token;   // 오버플로우는 오류가 아님
         m_slots[index].bAlloced      = false;
         m_slots[index].nextFreeIndex = m_freeSlotIndex;
         m_freeSlotIndex              = index;
@@ -276,7 +276,7 @@ public:
     void Clear() noexcept
     {
         m_slots.clear();
-        m_freeSlotIndex = k_nullHandleIdx;
+        m_freeSlotIndex = k_nullHandleIndex;
         m_numAlloced    = 0;
     }
 
@@ -285,39 +285,39 @@ public:
         return m_numAlloced;
     }
 
-    [[nodiscard]] IteratorT begin() noexcept
+    [[nodiscard]] Iterator begin() noexcept
     {
-        return IteratorT(this);
+        return Iterator(this);
     }
 
-    [[nodiscard]] IteratorT end() noexcept
+    [[nodiscard]] Iterator end() noexcept
     {
-        return IteratorT(this, NumericCast<UInt32>(m_slots.size()));
+        return Iterator(this, NumericCast<UInt32>(m_slots.size()));
     }
 
-    [[nodiscard]] ConstIteratorT begin() const noexcept
+    [[nodiscard]] ConstIterator begin() const noexcept
     {
-        return ConstIteratorT(this);
+        return ConstIterator(this);
     }
 
-    [[nodiscard]] ConstIteratorT end() const noexcept
+    [[nodiscard]] ConstIterator end() const noexcept
     {
-        return ConstIteratorT(this, NumericCast<UInt32>(m_slots.size()));
+        return ConstIterator(this, NumericCast<UInt32>(m_slots.size()));
     }
 
-    [[nodiscard]] ConstIteratorT cbegin() const noexcept
+    [[nodiscard]] ConstIterator cbegin() const noexcept
     {
-        return ConstIteratorT(this);
+        return ConstIterator(this);
     }
 
-    [[nodiscard]] ConstIteratorT cend() const noexcept
+    [[nodiscard]] ConstIterator cend() const noexcept
     {
-        return ConstIteratorT(this, NumericCast<UInt32>(m_slots.size()));
+        return ConstIterator(this, NumericCast<UInt32>(m_slots.size()));
     }
 
 private:
     Vector<Slot> m_slots         = {};
-    UInt32       m_freeSlotIndex = k_nullHandleIdx;
+    UInt32       m_freeSlotIndex = k_nullHandleIndex;
     Int32        m_numAlloced    = 0;
 };
 

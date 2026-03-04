@@ -79,7 +79,7 @@ Mesh& Mesh::operator=(Mesh&& _other) noexcept
 }
 
 Expect<Ref<Mesh>> Mesh::Create(
-    const Path& _path)
+    const StringView _path)
 {
     Ref<Mesh> pMesh = new Mesh;
     if (const Error err = pMesh->Load(_path))
@@ -101,9 +101,9 @@ Ref<Mesh> Mesh::Create(
 }
 
 Error Mesh::Load(
-    const Path& _path)
+    StringView _path)
 {
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // io
     Expect<AssetLoader<MeshDto>> loader = MeshLoader::Open(_path);
@@ -132,12 +132,12 @@ Error Mesh::Load(
 
     // gpu resource creation
     const bool bUseU32 = NeedU32Index(pDto->vertData, vl);
-    m_vbh              = JAM_GFX.CreateVertexBuffer(pDto->vertData, vl);
-    m_ibh              = JAM_GFX.CreateIndexBuffer(pDto->idxData, bUseU32);
+    m_vbh              = GetGraphics().CreateVertexBuffer(pDto->vertData, vl);
+    m_ibh              = GetGraphics().CreateIndexBuffer(pDto->idxData, bUseU32);
     m_boundingBox      = pDto->aabb.ToAabb();
 
     // finalize
-    const StringView path = _path.native();
+    const StringView path = _path;
     const UInt32     hash = path.Hash32();
     m_sortKey             = static_cast<UInt16>(hash);
     m_path                = _path;
@@ -154,8 +154,8 @@ void Mesh::Load(
     JAM_FUNCTION_PROFILE();
 
     // gpu resource creation
-    m_vbh = JAM_GFX.CreateVertexBuffer(_vertData, _vl);
-    m_ibh = JAM_GFX.CreateIndexBuffer(_idxData, _bUseU32);
+    m_vbh = GetGraphics().CreateVertexBuffer(_vertData, _vl);
+    m_ibh = GetGraphics().CreateIndexBuffer(_idxData, _bUseU32);
 
     // compute bounding box
     ComputeBoundingBox_(_vertData, _vl);
@@ -172,25 +172,21 @@ void Mesh::Load(
 }
 
 Error Mesh::Save(
-    const Path&                 _path,
-    const bool                  _bReplaceExtension,
-    const Flags<eSaveFileFlags> _flags) const
+    const StringView                 _path,
+    const bool                       _bReplaceExtension,
+    const eFileWriterCollisionPolicy _policy) const
 {
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid mesh");
 
-    // open mmap
-    Expect<MeshSaver> saver = {};
-    if (_bReplaceExtension)
-    {
-        const Path path = ReplacedExtension(_path, k_extension);
-        saver           = MeshSaver::Open(path, _flags);
-    }
-    else
-    {
-        saver = MeshSaver::Open(_path, _flags);
-    }
+    StringView dir = {}, base = {}, ext = {};
+    _path.Decompose(&dir, nullptr, &base, &ext);
 
+    String path = dir;
+    path.Append(base);
+    path.Append(_bReplaceExtension ? k_extension : ext);
+
+    Expect<MeshSaver> saver = MeshSaver::Open(path.ToStringView(), _policy);
     if (!saver)
     {
         return saver.GetError();
@@ -198,21 +194,20 @@ Error Mesh::Save(
 
     MeshDto dto  = {};
     dto.name     = StringViewDtoFrom(m_name);
-    dto.vertData = VectorDtoFrom(JAM_GFX.DownloadBuffer(m_vbh));
-    dto.idxData  = VectorDtoFrom(JAM_GFX.DownloadBuffer(m_ibh));
+    dto.vertData = VectorDtoFrom(GetGraphics().DownloadBuffer(m_vbh));
+    dto.idxData  = VectorDtoFrom(GetGraphics().DownloadBuffer(m_ibh));
     dto.aabb     = AabbDto::FromAabb(m_boundingBox);
 
     // vertex layout
-    const VertexLayout              vl      = JAM_GFX.GetVertexLayout(m_vbh);
-    Span<const VertexLayoutElement> vles    = vl.GetElements();
-    const Int32                     numVles = NumericCast<Int32>(vles.size());
-    dto.vl.numElems                         = numVles;
-    for (Int32 i = 0; i < numVles; ++i)
+    const VertexLayout vl = GetGraphics().GetVertexLayout(m_vbh);
+    dto.vl.numElems       = vl.GetNumElems();
+
+    Int32 idx = 0;
+    for (const VertexLayoutElement& elem: vl.GetElems())
     {
-        VertexLayoutElementDto&    elemDto = dto.vl.elems[i];
-        const VertexLayoutElement& elem    = vles[i];
-        elemDto.attrib                     = elem.attrib;
-        elemDto.format                     = elem.format;
+        VertexLayoutElementDto& elemDto = dto.vl.elems[idx++];
+        elemDto.attrib                  = elem.attrib;
+        elemDto.format                  = elem.format;
     }
 
     return saver->Write(dto);
@@ -221,11 +216,11 @@ Error Mesh::Save(
 void Mesh::SetName(
     const StringView _name)
 {
-    m_name = _name.ToString();
+    m_name = _name;
 }
 
 void Mesh::SetVirtualPath(
-    const Path& _path)
+    const StringView _path)
 {
     JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of a file-loaded asset");
     m_path = _path;
@@ -241,7 +236,7 @@ bool Mesh::IsValid() const
     return m_vbh && m_ibh;
 }
 
-const Path& Mesh::GetPath() const
+StringView Mesh::GetPath() const
 {
     return m_path;
 }
@@ -298,9 +293,9 @@ const Aabb& Mesh::GetBoundingBox() const
 
 void Mesh::Submit() const
 {
-    JAM_GFX.SetVertexBuffer(m_vbh);
-    JAM_GFX.SetIndexBuffer(m_ibh);
-    JAM_GFX.Submit();
+    GetGraphics().SetVertexBuffer(m_vbh);
+    GetGraphics().SetIndexBuffer(m_ibh);
+    GetGraphics().Submit();
 }
 
 void Mesh::CleanUp_()
@@ -308,7 +303,7 @@ void Mesh::CleanUp_()
     JAM_DESTROY_VERTEX_BUFFER(m_vbh);
     JAM_DESTROY_INDEX_BUFFER(m_ibh);
 
-    m_path.clear();
+    m_path.Clear();
     m_name.Clear();
     m_boundingBox = {};
     m_sortKey     = 0;
@@ -353,13 +348,13 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Mesh>> mesh = Mesh::Create(PathFrom(path));
-    if (!mesh)
+    Expect<Ref<Mesh>> pMesh = Mesh::Create(path);
+    if (!pMesh)
     {
-        return mesh.GetError();
+        return pMesh.GetError();
     }
 
-    _pMesh = mesh.Take();
+    _pMesh = pMesh.Take();
     return Error::None;
 }
 

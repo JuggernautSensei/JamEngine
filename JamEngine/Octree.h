@@ -32,16 +32,16 @@ struct OctreeDesc
     float looseFactor          = 2.f;   // loose factor (>= 1.f). 1.f = tight octree
 };
 
-// template<typename T>
+template<typename T>
 class Octree
 {
-    using T = int;
     struct OcNode;
     struct OcItem;
 
     struct OcNodeDeletor
     {
-        void operator()(OcNode* _pNode) const
+        void operator()(
+            OcNode* _pNode) const
         {
             pPool->Delete(_pNode);
         }
@@ -51,7 +51,8 @@ class Octree
 
     struct OcItemDeletor
     {
-        void operator()(OcItem* _pItem) const
+        void operator()(
+            OcItem* _pItem) const
         {
             pPool->Delete(_pItem);
         }
@@ -75,14 +76,12 @@ class Octree
             return aabb.GetExtents();
         }
 
-        Entity  entity     = Entity::k_invalid;   // owner entity
+        Entity  entity     = Entity::k_null;   // owner entity
         Aabb    aabb       = {};                  // bounding box
         OcNode* pOwnerNode = nullptr;             // owner node
         Int32   index      = -1;                  // pos in owner's item list
         T       userdata   = {};                  // user data
     };
-
-    using ChildrenNodes = EnumArray<eOctreeRegion, OcNodeScoped>;
 
     struct OcNode
     {
@@ -136,9 +135,9 @@ class Octree
             return aabb.GetExtents();
         }
 
-        ChildrenNodes children = {};
-        OcNode*       pParent  = nullptr;
+        EnumArray<eOctreeRegion, OcNodeScoped> children = {};
 
+        OcNode*          pParent        = nullptr;
         OcItemScopedList items          = {};
         Aabb             aabb           = {};
         Int32            depth          = -1;
@@ -160,9 +159,8 @@ public:
 
         const Vec3 ext  = m_desc.initialBaseExtents * m_desc.looseFactor;
         const Aabb aabb = Aabb::FromCenterExtents(vec3::k_zero, ext);
-
-        m_pRoot        = MakeNode_(aabb);
-        m_pRoot->depth = 0;
+        m_pRoot         = MakeNode_(aabb);
+        m_pRoot->depth  = 0;
     }
 
     void Insert(

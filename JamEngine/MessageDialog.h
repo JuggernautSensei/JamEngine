@@ -6,14 +6,15 @@ namespace Jam
 
 struct MessageDialogInfo
 {
-    DialogInfo baseInfo = {};
-    StringView msg      = {};
+    StringView title = {};
+    StringView msg   = {};
+    ImVec2     size  = { 0.f, 0.f };
 };
 
 class MessageDialog : public Dialog
 {
 public:
-    explicit MessageDialog(const MessageDialogInfo& _desc);
+    explicit MessageDialog(const MessageDialogInfo& _info);
     void OnShow() override;
 
 private:

@@ -61,7 +61,7 @@
 //class BasicRenderer
 //{
 //public:
-//    static void Init();
+//    static void InitFileWatcher();
 //    static void Shutdown();
 //    static void Render(const RenderView& _renderView, const Ref<Scene>& _scene);
 //

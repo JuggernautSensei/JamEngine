@@ -2,7 +2,6 @@
 
 #include "EmbeddedShaderGlue.h"
 #include "Texture.h"
-#include "RefCounted.h"
 
 namespace Jam
 {

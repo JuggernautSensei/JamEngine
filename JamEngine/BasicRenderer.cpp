@@ -191,7 +191,7 @@
 //    CB_TRANSFORM cb;
 //    cb.cb_world         = _world.Transpose();
 //    cb.cb_worldInvTrans = _world.Invert();
-//    JAM_GFX.UploadBuffer(transformCbh, cb);
+//    GetGraphics().UploadBuffer(transformCbh, cb);
 //}
 //
 //void BasicRendererContext::UploadCamera(
@@ -205,7 +205,7 @@
 //    cb.cb_proj        = _proj.Transpose();
 //    cb.cb_viewProjInv = (cb.cb_proj * cb.cb_view).Invert();   // (_view * _proj).GetInvert().Transpose() == (_proj.Transpose() * _view.Transpose()).GetInvert()
 //    cb.cb_eye         = _eye;
-//    JAM_GFX.UploadBuffer(g_basicRendererCtx->cameraCbh, cb);
+//    GetGraphics().UploadBuffer(g_basicRendererCtx->cameraCbh, cb);
 //}
 //
 //void BasicRendererContext::UploadEnvironment(
@@ -265,7 +265,7 @@
 //        if (ibl.pSpecularTex)
 //        {
 //            const TextureHandle texh = ibl.pSpecularTex->GetHandle();
-//            const TextureInfo   info = JAM_GFX.GetTextureInfo(texh);
+//            const TextureInfo   info = GetGraphics().GetTextureInfo(texh);
 //            cb.cb_specularMapNumMips = info.numMips;
 //        }
 //        else
@@ -322,7 +322,7 @@
 //        cb.cb_envFlags |= JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR;
 //    }
 //
-//    JAM_GFX.UploadBuffer(g_basicRendererCtx->environmentCbh, cb);
+//    GetGraphics().UploadBuffer(g_basicRendererCtx->environmentCbh, cb);
 //}
 //
 //void BasicRendererContext::UploadScreen(
@@ -334,7 +334,7 @@
 //    cb.cb_screenHeight = NumericCast<float>(_height);
 //    cb.cb_texelX       = 1.f / NumericCast<float>(_width);
 //    cb.cb_texelY       = 1.f / NumericCast<float>(_height);
-//    JAM_GFX.UploadBuffer(screenCbh, cb);
+//    GetGraphics().UploadBuffer(screenCbh, cb);
 //}
 //
 //void BasicRendererContext::UploadMaterial(
@@ -432,7 +432,7 @@
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_ALPHA_CUTOUT;
 //    }
 //
-//    JAM_GFX.UploadBuffer(materialCbh, cb);
+//    GetGraphics().UploadBuffer(materialCbh, cb);
 //}
 //
 //void BasicRendererContext::UploadPointLight(
@@ -454,7 +454,7 @@
 //    cb.cb_lightInnerConeHalfRad = 0;
 //    cb.cb_lightOuterConeHalfRad = 0;
 //    cb.cb_bShadowMapping        = _bShadow ? JAM_TRUE : JAM_FALSE;
-//    JAM_GFX.UploadBuffer(lightCbh, cb);
+//    GetGraphics().UploadBuffer(lightCbh, cb);
 //}
 //
 //void BasicRendererContext::UploadSpotLight(
@@ -479,7 +479,7 @@
 //    cb.cb_lightInnerConeHalfRad = _innerConeAngle;
 //    cb.cb_lightOuterConeHalfRad = _outerConeAngle;
 //    cb.cb_bShadowMapping        = _bShadow ? JAM_TRUE : JAM_FALSE;
-//    JAM_GFX.UploadBuffer(lightCbh, cb);
+//    GetGraphics().UploadBuffer(lightCbh, cb);
 //}
 //
 //TextureHandle BasicRendererContext::CreateTexture2D(
@@ -501,10 +501,10 @@
 //        flags |= eTextureCreateFlags::DepthStencil;
 //    }
 //
-//    const TextureHandle texh = JAM_GFX.CreateTexture2D(_width, _height, _format, 1, flags);
+//    const TextureHandle texh = GetGraphics().CreateTexture2D(_width, _height, _format, 1, flags);
 //    if (!_name.IsEmpty())
 //    {
-//        JAM_GFX.SetTextureName(texh, _name);
+//        GetGraphics().SetTextureName(texh, _name);
 //    }
 //    return texh;
 //}
@@ -528,10 +528,10 @@
 //        flags |= eTextureCreateFlags::DepthStencil;
 //    }
 //
-//    const TextureHandle texh = JAM_GFX.CreateTextureCube(_width, _height, _format, 1, flags);
+//    const TextureHandle texh = GetGraphics().CreateTextureCube(_width, _height, _format, 1, flags);
 //    if (!_name.IsEmpty())
 //    {
-//        JAM_GFX.SetTextureName(texh, _name);
+//        GetGraphics().SetTextureName(texh, _name);
 //    }
 //    return texh;
 //}
@@ -556,10 +556,10 @@
 //        flags |= eTextureCreateFlags::DepthStencil;
 //    }
 //
-//    const TextureHandle texh = JAM_GFX.CreateTexture2D(_width, _height, _format, _arraySize, flags);
+//    const TextureHandle texh = GetGraphics().CreateTexture2D(_width, _height, _format, _arraySize, flags);
 //    if (!_name.IsEmpty())
 //    {
-//        JAM_GFX.SetTextureName(texh, _name);
+//        GetGraphics().SetTextureName(texh, _name);
 //    }
 //    return texh;
 //}
@@ -569,10 +569,10 @@
 //    const bool                      _bDestroyTexture,
 //    const StringView                _name) const
 //{
-//    const FrameBufferHandle fbh = JAM_GFX.CreateFrameBuffer(_attachment, _bDestroyTexture);
+//    const FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(_attachment, _bDestroyTexture);
 //    if (!_name.IsEmpty())
 //    {
-//        JAM_GFX.SetFrameBufferName(fbh, _name);
+//        GetGraphics().SetFrameBufferName(fbh, _name);
 //    }
 //    return fbh;
 //}
@@ -582,10 +582,10 @@
 //    const bool          _bDestroyTexture,
 //    const StringView    _name) const
 //{
-//    const FrameBufferHandle fbh = JAM_GFX.CreateFrameBuffer(_texh, _bDestroyTexture);
+//    const FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(_texh, _bDestroyTexture);
 //    if (!_name.IsEmpty())
 //    {
-//        JAM_GFX.SetFrameBufferName(fbh, _name);
+//        GetGraphics().SetFrameBufferName(fbh, _name);
 //    }
 //    return fbh;
 //}
@@ -596,10 +596,10 @@
 //    const eTextureFormat _format,
 //    const StringView     _name) const
 //{
-//    const FrameBufferHandle fbh = JAM_GFX.CreateFrameBuffer(_width, _height, _format);
+//    const FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(_width, _height, _format);
 //    if (!_name.IsEmpty())
 //    {
-//        JAM_GFX.SetFrameBufferName(fbh, _name);
+//        GetGraphics().SetFrameBufferName(fbh, _name);
 //    }
 //    return fbh;
 //}
@@ -640,7 +640,7 @@
 //        kernel[i] = sample;
 //    }
 //
-//    JAM_GFX.UploadBuffer(ssaoCbh, kernel);
+//    GetGraphics().UploadBuffer(ssaoCbh, kernel);
 //}
 //
 //void BasicRendererContext::BakeSSAONoise()
@@ -660,7 +660,7 @@
 //    }
 //
 //    const CMemoryBlock mem[] = { noiseData };
-//    ssaoNoiseTexture     = JAM_GFX.CreateTexture2D(k_length, k_length, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags::None, mem);
+//    ssaoNoiseTexture     = GetGraphics().CreateTexture2D(k_length, k_length, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags::None, mem);
 //}
 //
 //void BasicRendererContext::BuildRenderGraph(
@@ -843,22 +843,22 @@
 //    {
 //        if (!pIrrdianceMap)
 //        {
-//           JAM_LOG.Warn("IBL irradiance map is not set in environment, the lighting may look incorrect.");
+//           JAM_LOG_WARN("IBL irradiance map is not set in environment, the lighting may look incorrect.");
 //        }
 //
 //        if (!pSpecularMap)
 //        {
-//           JAM_LOG.Warn("IBL specular map is not set in environment, the lighting may look incorrect.");
+//           JAM_LOG_WARN("IBL specular map is not set in environment, the lighting may look incorrect.");
 //        }
 //
 //        if (!pBrdfLutMap)
 //        {
-//           JAM_LOG.Warn("IBL BRDF LUT is not set in environment, the lighting may look incorrect.");
+//           JAM_LOG_WARN("IBL BRDF LUT is not set in environment, the lighting may look incorrect.");
 //        }
 //
 //        if (bSSAOEnabled && !ssaoTexh)
 //        {
-//           JAM_LOG.Warn("SSAO is enabled in environment but SSAO texture is not generated, the ambient occlusion effect will not be applied.");
+//           JAM_LOG_WARN("SSAO is enabled in environment but SSAO texture is not generated, the ambient occlusion effect will not be applied.");
 //        }
 //
 //        RenderPass pass = {};
@@ -905,7 +905,7 @@
 //    {
 //        if (skybox.type == eSkyboxType::CubeMap && !pSkyboxTeX)
 //        {
-//           JAM_LOG.Warn("Skybox type is set to CubeMap in environment but skybox texture is not set, the skybox will not be rendered.");
+//           JAM_LOG_WARN("Skybox type is set to CubeMap in environment but skybox texture is not set, the skybox will not be rendered.");
 //        }
 //
 //        RenderPass pass = {};
@@ -1189,170 +1189,170 @@
 //
 //    // vertex shaders
 //    {
-//        pCtx->pbrVsh = JAM_GFX.CreateShader({ shader::PBRVS_Bytecode, shader::PBRVS_Size });
-//        JAM_GFX.SetShaderName(pCtx->pbrVsh, "Jam engine predefined shader: pbrVsh");
+//        pCtx->pbrVsh = GetGraphics().CreateShader({ shader::PBRVS_Bytecode, shader::PBRVS_Size });
+//        GetGraphics().SetShaderName(pCtx->pbrVsh, "Jam engine predefined shader: pbrVsh");
 //
-//        pCtx->fullscreenVsh = JAM_GFX.CreateShader({ shader::FullScreenVS_Bytecode, shader::FullScreenVS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fullscreenVsh, "Jam engine predefined shader: fullscreenVsh");
+//        pCtx->fullscreenVsh = GetGraphics().CreateShader({ shader::FullScreenVS_Bytecode, shader::FullScreenVS_Size });
+//        GetGraphics().SetShaderName(pCtx->fullscreenVsh, "Jam engine predefined shader: fullscreenVsh");
 //
-//        pCtx->pbrLightVolumeVsh = JAM_GFX.CreateShader({ shader::PBRLightVolumeShader_VS_Bytecode, shader::PBRLightVolumeShader_VS_Size });
-//        JAM_GFX.SetShaderName(pCtx->pbrLightVolumeVsh, "Jam engine predefined shader: pbrLightVolumeVsh");
+//        pCtx->pbrLightVolumeVsh = GetGraphics().CreateShader({ shader::PBRLightVolumeShader_VS_Bytecode, shader::PBRLightVolumeShader_VS_Size });
+//        GetGraphics().SetShaderName(pCtx->pbrLightVolumeVsh, "Jam engine predefined shader: pbrLightVolumeVsh");
 //
-//        pCtx->pbrEnvironmentLIghtVolumeVsh = JAM_GFX.CreateShader({ shader::PBRLightVolumeShaderForDirectional_VS_Bytecode, shader::PBRLightVolumeShaderForDirectional_VS_Size });
-//        JAM_GFX.SetShaderName(pCtx->pbrEnvironmentLIghtVolumeVsh, "Jam engine predefined shader: pbrEnvironmentLightVolumeVsh");
+//        pCtx->pbrEnvironmentLIghtVolumeVsh = GetGraphics().CreateShader({ shader::PBRLightVolumeShaderForDirectional_VS_Bytecode, shader::PBRLightVolumeShaderForDirectional_VS_Size });
+//        GetGraphics().SetShaderName(pCtx->pbrEnvironmentLIghtVolumeVsh, "Jam engine predefined shader: pbrEnvironmentLightVolumeVsh");
 //
-//        pCtx->csmVsh = JAM_GFX.CreateShader({ shader::CascadeShaderMappingShader_VS_Bytecode, shader::CascadeShaderMappingShader_VS_Size });
-//        JAM_GFX.SetShaderName(pCtx->csmVsh, "Jam engine predefined shader: csmVsh");
+//        pCtx->csmVsh = GetGraphics().CreateShader({ shader::CascadeShaderMappingShader_VS_Bytecode, shader::CascadeShaderMappingShader_VS_Size });
+//        GetGraphics().SetShaderName(pCtx->csmVsh, "Jam engine predefined shader: csmVsh");
 //
-//        pCtx->osmVsh = JAM_GFX.CreateShader({ shader::OmniDirectionalShaderMappingShader_VS_Bytecode, shader::OmniDirectionalShaderMappingShader_VS_Size });
-//        JAM_GFX.SetShaderName(pCtx->osmVsh, "Jam engine predefined shader: osmVsh");
+//        pCtx->osmVsh = GetGraphics().CreateShader({ shader::OmniDirectionalShaderMappingShader_VS_Bytecode, shader::OmniDirectionalShaderMappingShader_VS_Size });
+//        GetGraphics().SetShaderName(pCtx->osmVsh, "Jam engine predefined shader: osmVsh");
 //
-//        pCtx->shadowMappingVsh = JAM_GFX.CreateShader({ shader::ShadowMappingShader_VS_Bytecode, shader::ShadowMappingShader_VS_Size });
-//        JAM_GFX.SetShaderName(pCtx->shadowMappingVsh, "Jam engine predefined shader: shadowMappingVsh");
+//        pCtx->shadowMappingVsh = GetGraphics().CreateShader({ shader::ShadowMappingShader_VS_Bytecode, shader::ShadowMappingShader_VS_Size });
+//        GetGraphics().SetShaderName(pCtx->shadowMappingVsh, "Jam engine predefined shader: shadowMappingVsh");
 //
-//        pCtx->skyboxVsh = JAM_GFX.CreateShader({ shader::SkyboxShader_VS_Bytecode, shader::SkyboxShader_VS_Size });
-//        JAM_GFX.SetShaderName(pCtx->skyboxVsh, "Jam engine predefined shader: skyboxVsh");
+//        pCtx->skyboxVsh = GetGraphics().CreateShader({ shader::SkyboxShader_VS_Bytecode, shader::SkyboxShader_VS_Size });
+//        GetGraphics().SetShaderName(pCtx->skyboxVsh, "Jam engine predefined shader: skyboxVsh");
 //    }
 //
 //    // geometry shaders
 //    {
-//        pCtx->csmLevel3Gsh = JAM_GFX.CreateShader({ shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Bytecode, shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Size });
-//        JAM_GFX.SetShaderName(pCtx->csmLevel3Gsh, "Jam engine predefined shader: csmLevel3Gsh");
+//        pCtx->csmLevel3Gsh = GetGraphics().CreateShader({ shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Bytecode, shader::CascadeShaderMappingShader_CASCADE_LEVEL_3_GS_Size });
+//        GetGraphics().SetShaderName(pCtx->csmLevel3Gsh, "Jam engine predefined shader: csmLevel3Gsh");
 //
-//        pCtx->osmGsh = JAM_GFX.CreateShader({ shader::OmniDirectionalShaderMappingShader_GS_Bytecode, shader::OmniDirectionalShaderMappingShader_GS_Size });
-//        JAM_GFX.SetShaderName(pCtx->osmGsh, "Jam engine predefined shader: osmGsh");
+//        pCtx->osmGsh = GetGraphics().CreateShader({ shader::OmniDirectionalShaderMappingShader_GS_Bytecode, shader::OmniDirectionalShaderMappingShader_GS_Size });
+//        GetGraphics().SetShaderName(pCtx->osmGsh, "Jam engine predefined shader: osmGsh");
 //    }
 //
 //    // pixel shaders
 //    {
-//        pCtx->pbrGBufferPsh = JAM_GFX.CreateShader({ shader::PBRGBufferShader_PS_Bytecode, shader::PBRGBufferShader_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->pbrGBufferPsh, "Jam engine predefined shader: pbrGBufferPsh");
+//        pCtx->pbrGBufferPsh = GetGraphics().CreateShader({ shader::PBRGBufferShader_PS_Bytecode, shader::PBRGBufferShader_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->pbrGBufferPsh, "Jam engine predefined shader: pbrGBufferPsh");
 //
-//        pCtx->pbrLightingPsh = JAM_GFX.CreateShader({ shader::PBRLightingShader_PS_Bytecode, shader::PBRLightingShader_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->pbrLightingPsh, "Jam engine predefined shader: pbrLightingPsh");
+//        pCtx->pbrLightingPsh = GetGraphics().CreateShader({ shader::PBRLightingShader_PS_Bytecode, shader::PBRLightingShader_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->pbrLightingPsh, "Jam engine predefined shader: pbrLightingPsh");
 //
-//        pCtx->pbrLightVolumePsh = JAM_GFX.CreateShader({ shader::PBRLightVolumeShader_PS_Bytecode, shader::PBRLightVolumeShader_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->pbrLightVolumePsh, "Jam engine predefined shader: pbrLightVolumePsh");
+//        pCtx->pbrLightVolumePsh = GetGraphics().CreateShader({ shader::PBRLightVolumeShader_PS_Bytecode, shader::PBRLightVolumeShader_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->pbrLightVolumePsh, "Jam engine predefined shader: pbrLightVolumePsh");
 //
-//        pCtx->pbrEnvironmentLightVolumePsh = JAM_GFX.CreateShader({ shader::PBRLightVolumeShaderForDirectional_PS_Bytecode, shader::PBRLightVolumeShaderForDirectional_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->pbrEnvironmentLightVolumePsh, "Jam engine predefined shader: pbrEnvironmentLightVolumePsh");
+//        pCtx->pbrEnvironmentLightVolumePsh = GetGraphics().CreateShader({ shader::PBRLightVolumeShaderForDirectional_PS_Bytecode, shader::PBRLightVolumeShaderForDirectional_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->pbrEnvironmentLightVolumePsh, "Jam engine predefined shader: pbrEnvironmentLightVolumePsh");
 //
-//        pCtx->csmPsh = JAM_GFX.CreateShader({ shader::CascadeShaderMappingShader_PS_Bytecode, shader::CascadeShaderMappingShader_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->csmPsh, "Jam engine predefined shader: csmPsh");
+//        pCtx->csmPsh = GetGraphics().CreateShader({ shader::CascadeShaderMappingShader_PS_Bytecode, shader::CascadeShaderMappingShader_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->csmPsh, "Jam engine predefined shader: csmPsh");
 //
-//        pCtx->osmPsh = JAM_GFX.CreateShader({ shader::OmniDirectionalShaderMappingShader_PS_Bytecode, shader::OmniDirectionalShaderMappingShader_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->osmPsh, "Jam engine predefined shader: osmPsh");
+//        pCtx->osmPsh = GetGraphics().CreateShader({ shader::OmniDirectionalShaderMappingShader_PS_Bytecode, shader::OmniDirectionalShaderMappingShader_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->osmPsh, "Jam engine predefined shader: osmPsh");
 //
-//        pCtx->shadowMappingPsh = JAM_GFX.CreateShader({ shader::ShadowMappingShader_PS_Bytecode, shader::ShadowMappingShader_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->shadowMappingPsh, "Jam engine predefined shader: shadowMappingPsh");
+//        pCtx->shadowMappingPsh = GetGraphics().CreateShader({ shader::ShadowMappingShader_PS_Bytecode, shader::ShadowMappingShader_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->shadowMappingPsh, "Jam engine predefined shader: shadowMappingPsh");
 //
-//        pCtx->skyboxPsh = JAM_GFX.CreateShader({ shader::SkyboxShader_PS_Bytecode, shader::SkyboxShader_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->skyboxPsh, "Jam engine predefined shader: skyboxPsh");
+//        pCtx->skyboxPsh = GetGraphics().CreateShader({ shader::SkyboxShader_PS_Bytecode, shader::SkyboxShader_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->skyboxPsh, "Jam engine predefined shader: skyboxPsh");
 //
-//        pCtx->ssaoPsh = JAM_GFX.CreateShader({ shader::SSAOPS_Bytecode, shader::SSAOPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->ssaoPsh, "Jam engine predefined shader: ssaoPsh");
+//        pCtx->ssaoPsh = GetGraphics().CreateShader({ shader::SSAOPS_Bytecode, shader::SSAOPS_Size });
+//        GetGraphics().SetShaderName(pCtx->ssaoPsh, "Jam engine predefined shader: ssaoPsh");
 //
-//        pCtx->ssaoBlurXPsh = JAM_GFX.CreateShader({ shader::SSAOBlurXPS_Bytecode, shader::SSAOBlurXPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->ssaoBlurXPsh, "Jam engine predefined shader: ssaoBlurXPsh");
+//        pCtx->ssaoBlurXPsh = GetGraphics().CreateShader({ shader::SSAOBlurXPS_Bytecode, shader::SSAOBlurXPS_Size });
+//        GetGraphics().SetShaderName(pCtx->ssaoBlurXPsh, "Jam engine predefined shader: ssaoBlurXPsh");
 //
-//        pCtx->ssaoBlurYPsh = JAM_GFX.CreateShader({ shader::SSAOBlurYPS_Bytecode, shader::SSAOBlurYPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->ssaoBlurYPsh, "Jam engine predefined shader: ssaoBlurYPsh");
+//        pCtx->ssaoBlurYPsh = GetGraphics().CreateShader({ shader::SSAOBlurYPS_Bytecode, shader::SSAOBlurYPS_Size });
+//        GetGraphics().SetShaderName(pCtx->ssaoBlurYPsh, "Jam engine predefined shader: ssaoBlurYPsh");
 //
-//        pCtx->bloomUpPsh = JAM_GFX.CreateShader({ shader::BloomBlurUpPS_Bytecode, shader::BloomBlurUpPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->bloomUpPsh, "Jam engine predefined shader: bloomXPsh");
+//        pCtx->bloomUpPsh = GetGraphics().CreateShader({ shader::BloomBlurUpPS_Bytecode, shader::BloomBlurUpPS_Size });
+//        GetGraphics().SetShaderName(pCtx->bloomUpPsh, "Jam engine predefined shader: bloomXPsh");
 //
-//        pCtx->bloomDownPsh = JAM_GFX.CreateShader({ shader::BloomBlurDownPS_Bytecode, shader::BloomBlurDownPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->bloomDownPsh, "Jam engine predefined shader: bloomYPsh");
+//        pCtx->bloomDownPsh = GetGraphics().CreateShader({ shader::BloomBlurDownPS_Bytecode, shader::BloomBlurDownPS_Size });
+//        GetGraphics().SetShaderName(pCtx->bloomDownPsh, "Jam engine predefined shader: bloomYPsh");
 //
-//        pCtx->bloomCombinePsh = JAM_GFX.CreateShader({ shader::BloomCombinePS_Bytecode, shader::BloomCombinePS_Size });
-//        JAM_GFX.SetShaderName(pCtx->bloomCombinePsh, "Jam engine predefined shader: bloomCombinePsh");
+//        pCtx->bloomCombinePsh = GetGraphics().CreateShader({ shader::BloomCombinePS_Bytecode, shader::BloomCombinePS_Size });
+//        GetGraphics().SetShaderName(pCtx->bloomCombinePsh, "Jam engine predefined shader: bloomCombinePsh");
 //
-//        pCtx->toneMappingPsh = JAM_GFX.CreateShader({ shader::ToneMappingPS_Bytecode, shader::ToneMappingPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->toneMappingPsh, "Jam engine predefined shader: toneMappingPsh");
+//        pCtx->toneMappingPsh = GetGraphics().CreateShader({ shader::ToneMappingPS_Bytecode, shader::ToneMappingPS_Size });
+//        GetGraphics().SetShaderName(pCtx->toneMappingPsh, "Jam engine predefined shader: toneMappingPsh");
 //
-//        pCtx->fxaaVeryLowPsh = JAM_GFX.CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fxaaVeryLowPsh, "Jam engine predefined shader: fxaaVeryLowPsh");
+//        pCtx->fxaaVeryLowPsh = GetGraphics().CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->fxaaVeryLowPsh, "Jam engine predefined shader: fxaaVeryLowPsh");
 //
-//        pCtx->fxaaLowPsh = JAM_GFX.CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fxaaLowPsh, "Jam engine predefined shader: fxaaLowPsh");
+//        pCtx->fxaaLowPsh = GetGraphics().CreateShader({ shader::FXAA_VeryLow_PS_Bytecode, shader::FXAA_VeryLow_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->fxaaLowPsh, "Jam engine predefined shader: fxaaLowPsh");
 //
-//        pCtx->fxaaMediumPsh = JAM_GFX.CreateShader({ shader::FXAA_Medium_PS_Bytecode, shader::FXAA_Medium_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fxaaMediumPsh, "Jam engine predefined shader: fxaaMediumPsh");
+//        pCtx->fxaaMediumPsh = GetGraphics().CreateShader({ shader::FXAA_Medium_PS_Bytecode, shader::FXAA_Medium_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->fxaaMediumPsh, "Jam engine predefined shader: fxaaMediumPsh");
 //
-//        pCtx->fxaaHighPsh = JAM_GFX.CreateShader({ shader::FXAA_High_PS_Bytecode, shader::FXAA_High_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fxaaHighPsh, "Jam engine predefined shader: fxaaHighPsh");
+//        pCtx->fxaaHighPsh = GetGraphics().CreateShader({ shader::FXAA_High_PS_Bytecode, shader::FXAA_High_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->fxaaHighPsh, "Jam engine predefined shader: fxaaHighPsh");
 //
-//        pCtx->fxaaVeryHighPsh = JAM_GFX.CreateShader({ shader::FXAA_VeryHigh_PS_Bytecode, shader::FXAA_VeryHigh_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fxaaVeryHighPsh, "Jam engine predefined shader: fxaaVeryHighPsh");
+//        pCtx->fxaaVeryHighPsh = GetGraphics().CreateShader({ shader::FXAA_VeryHigh_PS_Bytecode, shader::FXAA_VeryHigh_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->fxaaVeryHighPsh, "Jam engine predefined shader: fxaaVeryHighPsh");
 //
-//        pCtx->fxaaUltraPsh = JAM_GFX.CreateShader({ shader::FXAA_Ultra_PS_Bytecode, shader::FXAA_Ultra_PS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fxaaUltraPsh, "Jam engine predefined shader: fxaaUltraPsh");
+//        pCtx->fxaaUltraPsh = GetGraphics().CreateShader({ shader::FXAA_Ultra_PS_Bytecode, shader::FXAA_Ultra_PS_Size });
+//        GetGraphics().SetShaderName(pCtx->fxaaUltraPsh, "Jam engine predefined shader: fxaaUltraPsh");
 //
-//        pCtx->fogPsh = JAM_GFX.CreateShader({ shader::FogPS_Bytecode, shader::FogPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->fogPsh, "Jam engine predefined shader: fogPsh");
+//        pCtx->fogPsh = GetGraphics().CreateShader({ shader::FogPS_Bytecode, shader::FogPS_Size });
+//        GetGraphics().SetShaderName(pCtx->fogPsh, "Jam engine predefined shader: fogPsh");
 //
-//        pCtx->passTexhroughPsh = JAM_GFX.CreateShader({ shader::PassThroughPS_Bytecode, shader::PassThroughPS_Size });
-//        JAM_GFX.SetShaderName(pCtx->passTexhroughPsh, "Jam engine predefined shader: passTexhroughPsh");
+//        pCtx->passTexhroughPsh = GetGraphics().CreateShader({ shader::PassThroughPS_Bytecode, shader::PassThroughPS_Size });
+//        GetGraphics().SetShaderName(pCtx->passTexhroughPsh, "Jam engine predefined shader: passTexhroughPsh");
 //    }
 //
 //    // programs
 //    {
-//        pCtx->pbrGBufferProgram                = JAM_GFX.CreateProgram(pCtx->pbrVsh, pCtx->pbrGBufferPsh);
-//        pCtx->pbrLightingProgram               = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->pbrLightingPsh);
-//        pCtx->pbrLightVolumeProgram            = JAM_GFX.CreateProgram(pCtx->pbrLightVolumeVsh, pCtx->pbrLightVolumePsh);
-//        pCtx->pbrEnvironmentLightVolumeProgram = JAM_GFX.CreateProgram(pCtx->pbrEnvironmentLIghtVolumeVsh, pCtx->pbrEnvironmentLightVolumePsh);
-//        pCtx->csmLevel3CasterProgram           = JAM_GFX.CreateProgram(pCtx->csmVsh, pCtx->csmPsh, pCtx->csmLevel3Gsh, k_nullHandle, k_nullHandle);
-//        pCtx->osmCasterProgram                 = JAM_GFX.CreateProgram(pCtx->osmVsh, pCtx->osmPsh, pCtx->osmGsh, k_nullHandle, k_nullHandle);
-//        pCtx->shadowCasterProgram              = JAM_GFX.CreateProgram(pCtx->shadowMappingVsh, pCtx->shadowMappingPsh);
-//        pCtx->skyboxProgram                    = JAM_GFX.CreateProgram(pCtx->skyboxVsh, pCtx->skyboxPsh);
-//        pCtx->ssaoProgram                      = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoPsh);
-//        pCtx->ssaoBlurXProgram                 = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoBlurXPsh);
-//        pCtx->ssaoBlurYProgram                 = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoBlurYPsh);
-//        pCtx->bloomUpProgram                   = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->bloomUpPsh);
-//        pCtx->bloomDownProgram                 = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->bloomDownPsh);
-//        pCtx->bloomCombineProgram              = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->bloomCombinePsh);
-//        pCtx->toneMappingProgram               = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->toneMappingPsh);
-//        pCtx->fxaaVeryLowProgram               = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaVeryLowPsh);
-//        pCtx->fxaaLowProgram                   = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaLowPsh);
-//        pCtx->fxaaMediumProgram                = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaMediumPsh);
-//        pCtx->fxaaHighProgram                  = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaHighPsh);
-//        pCtx->fxaaVeryHighProgram              = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaVeryHighPsh);
-//        pCtx->fxaaUltraProgram                 = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaUltraPsh);
-//        pCtx->fogProgram                       = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->fogPsh);
-//        pCtx->passTexhroughProgram             = JAM_GFX.CreateProgram(pCtx->fullscreenVsh, pCtx->passTexhroughPsh);
+//        pCtx->pbrGBufferProgram                = GetGraphics().CreateProgram(pCtx->pbrVsh, pCtx->pbrGBufferPsh);
+//        pCtx->pbrLightingProgram               = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->pbrLightingPsh);
+//        pCtx->pbrLightVolumeProgram            = GetGraphics().CreateProgram(pCtx->pbrLightVolumeVsh, pCtx->pbrLightVolumePsh);
+//        pCtx->pbrEnvironmentLightVolumeProgram = GetGraphics().CreateProgram(pCtx->pbrEnvironmentLIghtVolumeVsh, pCtx->pbrEnvironmentLightVolumePsh);
+//        pCtx->csmLevel3CasterProgram           = GetGraphics().CreateProgram(pCtx->csmVsh, pCtx->csmPsh, pCtx->csmLevel3Gsh, k_nullHandle, k_nullHandle);
+//        pCtx->osmCasterProgram                 = GetGraphics().CreateProgram(pCtx->osmVsh, pCtx->osmPsh, pCtx->osmGsh, k_nullHandle, k_nullHandle);
+//        pCtx->shadowCasterProgram              = GetGraphics().CreateProgram(pCtx->shadowMappingVsh, pCtx->shadowMappingPsh);
+//        pCtx->skyboxProgram                    = GetGraphics().CreateProgram(pCtx->skyboxVsh, pCtx->skyboxPsh);
+//        pCtx->ssaoProgram                      = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoPsh);
+//        pCtx->ssaoBlurXProgram                 = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoBlurXPsh);
+//        pCtx->ssaoBlurYProgram                 = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoBlurYPsh);
+//        pCtx->bloomUpProgram                   = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->bloomUpPsh);
+//        pCtx->bloomDownProgram                 = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->bloomDownPsh);
+//        pCtx->bloomCombineProgram              = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->bloomCombinePsh);
+//        pCtx->toneMappingProgram               = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->toneMappingPsh);
+//        pCtx->fxaaVeryLowProgram               = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaVeryLowPsh);
+//        pCtx->fxaaLowProgram                   = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaLowPsh);
+//        pCtx->fxaaMediumProgram                = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaMediumPsh);
+//        pCtx->fxaaHighProgram                  = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaHighPsh);
+//        pCtx->fxaaVeryHighProgram              = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaVeryHighPsh);
+//        pCtx->fxaaUltraProgram                 = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->fxaaUltraPsh);
+//        pCtx->fogProgram                       = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->fogPsh);
+//        pCtx->passTexhroughProgram             = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->passTexhroughPsh);
 //    }
 //
 //    // constant buffers
 //    {
-//        pCtx->transformCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_TRANSFORM));
-//        JAM_GFX.SetConstantBufferName(pCtx->transformCbh, "Jam engine predefined constant buffer: CB_TRANSFORM");
+//        pCtx->transformCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_TRANSFORM));
+//        GetGraphics().SetConstantBufferName(pCtx->transformCbh, "Jam engine predefined constant buffer: CB_TRANSFORM");
 //
-//        pCtx->cameraCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_CAMERA));
-//        JAM_GFX.SetConstantBufferName(pCtx->cameraCbh, "Jam engine predefined constant buffer: CB_CAMERA");
+//        pCtx->cameraCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_CAMERA));
+//        GetGraphics().SetConstantBufferName(pCtx->cameraCbh, "Jam engine predefined constant buffer: CB_CAMERA");
 //
-//        pCtx->materialCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_MATERIAL));
-//        JAM_GFX.SetConstantBufferName(pCtx->materialCbh, "Jam engine predefined constant buffer: CB_MATERIAL");
+//        pCtx->materialCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_MATERIAL));
+//        GetGraphics().SetConstantBufferName(pCtx->materialCbh, "Jam engine predefined constant buffer: CB_MATERIAL");
 //
-//        pCtx->lightCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_LIGHT));
-//        JAM_GFX.SetConstantBufferName(pCtx->lightCbh, "Jam engine predefined constant buffer: CB_LIGHT");
+//        pCtx->lightCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_LIGHT));
+//        GetGraphics().SetConstantBufferName(pCtx->lightCbh, "Jam engine predefined constant buffer: CB_LIGHT");
 //
-//        pCtx->environmentCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_ENVIRONMENT));
-//        JAM_GFX.SetConstantBufferName(pCtx->environmentCbh, "Jam engine predefined constant buffer: CB_ENVIRONMENT");
+//        pCtx->environmentCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_ENVIRONMENT));
+//        GetGraphics().SetConstantBufferName(pCtx->environmentCbh, "Jam engine predefined constant buffer: CB_ENVIRONMENT");
 //
-//        pCtx->shadowCasterCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_SHADOW_CASTER));
-//        JAM_GFX.SetConstantBufferName(pCtx->shadowCasterCbh, "Jam engine predefined constant buffer: CB_SHADOW_CASTER");
+//        pCtx->shadowCasterCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_SHADOW_CASTER));
+//        GetGraphics().SetConstantBufferName(pCtx->shadowCasterCbh, "Jam engine predefined constant buffer: CB_SHADOW_CASTER");
 //
-//        pCtx->csmCasterCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_CASCADE_SHADOW_CASTER));
-//        JAM_GFX.SetConstantBufferName(pCtx->csmCasterCbh, "Jam engine predefined constant buffer: CB_CASCADE_SHADOW_CASTER");
+//        pCtx->csmCasterCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_CASCADE_SHADOW_CASTER));
+//        GetGraphics().SetConstantBufferName(pCtx->csmCasterCbh, "Jam engine predefined constant buffer: CB_CASCADE_SHADOW_CASTER");
 //
-//        pCtx->osmCasterCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_OMNIDIRECTIONAL_SHADOW_CASTER));
-//        JAM_GFX.SetConstantBufferName(pCtx->osmCasterCbh, "Jam engine predefined constant buffer: CB_OMNIDIRECTIONAL_SHADOW_CASTER");
+//        pCtx->osmCasterCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_OMNIDIRECTIONAL_SHADOW_CASTER));
+//        GetGraphics().SetConstantBufferName(pCtx->osmCasterCbh, "Jam engine predefined constant buffer: CB_OMNIDIRECTIONAL_SHADOW_CASTER");
 //
-//        pCtx->ssaoCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_SSAO_KERNEL));
-//        JAM_GFX.SetConstantBufferName(pCtx->ssaoCbh, "Jam engine predefined constant buffer: CB_SSAO_KERNEL");
+//        pCtx->ssaoCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_SSAO_KERNEL));
+//        GetGraphics().SetConstantBufferName(pCtx->ssaoCbh, "Jam engine predefined constant buffer: CB_SSAO_KERNEL");
 //
-//        pCtx->screenCbh = JAM_GFX.CreateConstantBuffer(sizeof(CB_SCREEN));
-//        JAM_GFX.SetConstantBufferName(pCtx->screenCbh, "Jam engine predefined constant buffer: CB_SCREEN");
+//        pCtx->screenCbh = GetGraphics().CreateConstantBuffer(sizeof(CB_SCREEN));
+//        GetGraphics().SetConstantBufferName(pCtx->screenCbh, "Jam engine predefined constant buffer: CB_SCREEN");
 //    }
 //
 //    // full screen tri
@@ -1665,7 +1665,7 @@
 ////        }
 ////    }
 ////
-////    JAM_GFX.UploadBuffer_(g_basicRendererCtx->csmCasterCbh, cb);
+////    GetGraphics().UploadBuffer_(g_basicRendererCtx->csmCasterCbh, cb);
 ////}
 ////
 //// void BasicRenderer::UploadOmniDirectionalShadowCasterData(const Vec3 _pos, const float _range)
@@ -1679,7 +1679,7 @@
 ////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Bottom)] = (CreateViewLookTo(_pos, vec3::k_down) * lightP).Transpose();
 ////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Front)]  = (CreateViewLookTo(_pos, vec3::k_forward) * lightP).Transpose();
 ////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Back)]   = (CreateViewLookTo(_pos, vec3::k_backward) * lightP).Transpose();
-////    JAM_GFX.UploadBuffer_(g_basicRendererCtx->osmCasterCbh, cb);
+////    GetGraphics().UploadBuffer_(g_basicRendererCtx->osmCasterCbh, cb);
 ////}
 ////
 //// void BasicRenderer::BakeSSAONoiseTexture()
@@ -1717,7 +1717,7 @@
 //// void BasicRenderer::SubmitPointLightWithShadow(const Vec3 _radiance, const float _lightIntensity, const Vec3 _pos, const float _fallOffStart, const float _fallOffEnd, const TextureHandle _shadowMap)
 ////{
 ////    JAM_ASSERT(!_shadowMap, "Not implemented yet");
-////    JAM_GFX.SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);
+////    GetGraphics().SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);
 ////    SubmitPointLight(_radiance, _lightIntensity, _pos, _fallOffStart, _fallOffEnd);
 ////}
 ////
@@ -1737,7 +1737,7 @@
 //// void BasicRenderer::SubmitSpotLightWithShadow(const Vec3 _radiance, const float _lightIntensity, const Vec3 _pos, const Vec3 _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle, const TextureHandle _shadowMap)
 ////{
 ////    JAM_ASSERT(!_shadowMap, "Not implemented yet");
-////    JAM_GFX.SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);
+////    GetGraphics().SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);
 ////    SubmitSpotLight(_radiance, _lightIntensity, _pos, _dir, _fallOffStart, _fallOffEnd, _innerConeAngle, _outerConeAngle);
 ////}
 //
@@ -1871,7 +1871,7 @@
 ////    CreateShadowCasterPassResult result;
 ////
 ////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachmentType::DepthStencil);
-////    FrameBufferHandle fbh = JAM_GFX.CreateFrameBuffer(th, true);
+////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
@@ -1894,7 +1894,7 @@
 ////    CreateShadowCasterPassResult result;
 ////
 ////    TextureHandle     th  = CreateTextureCube(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachmentType::DepthStencil);
-////    FrameBufferHandle fbh = JAM_GFX.CreateFrameBuffer(th, true);
+////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
@@ -1917,7 +1917,7 @@
 ////    CreateShadowCasterPassResult result;
 ////
 ////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachmentType::DepthStencil);
-////    FrameBufferHandle fbh = JAM_GFX.CreateFrameBuffer(th, true);
+////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
@@ -1957,8 +1957,8 @@
 ////    Viewport vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
 ////
 ////    // ssao
-////    TextureHandle     ssaoTexh    = JAM_GFX.CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
-////    FrameBufferHandle ssaoPassFbh = JAM_GFX.CreateFrameBuffer(ssaoTexh, true);
+////    TextureHandle     ssaoTexh    = GetGraphics().CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
+////    FrameBufferHandle ssaoPassFbh = GetGraphics().CreateFrameBuffer(ssaoTexh, true);
 ////
 ////    RenderPass& ssaoPass = result.passes[0];
 ////    ssaoPass.SetProgram(g_basicRendererCtx->ssaoProgram)
@@ -1978,8 +1978,8 @@
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    // horizontal blur
-////    TextureHandle     hBlurTexh = JAM_GFX.CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
-////    FrameBufferHandle hBlurFbh  = JAM_GFX.CreateFrameBuffer(hBlurTexh, true);
+////    TextureHandle     hBlurTexh = GetGraphics().CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
+////    FrameBufferHandle hBlurFbh  = GetGraphics().CreateFrameBuffer(hBlurTexh, true);
 ////
 ////    RenderPass& hBlurPass = result.passes[1];
 ////    hBlurPass.SetProgram(g_basicRendererCtx->ssaoBlurXProgram)
@@ -1988,8 +1988,8 @@
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    // vertical blur
-////    TextureHandle     vBlurTexh = JAM_GFX.CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
-////    FrameBufferHandle vBlurFbh  = JAM_GFX.CreateFrameBuffer(vBlurTexh, true);
+////    TextureHandle     vBlurTexh = GetGraphics().CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
+////    FrameBufferHandle vBlurFbh  = GetGraphics().CreateFrameBuffer(vBlurTexh, true);
 ////
 ////    RenderPass& vBlurPass = result.passes[2];
 ////    vBlurPass.SetProgram(g_basicRendererCtx->ssaoBlurYProgram)
@@ -2006,7 +2006,7 @@
 ////    CreatePostProcessPassResult result;
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
-////    FrameBufferHandle outputFbh  = JAM_GFX.CreateFrameBuffer(outputTexh, true);
+////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
@@ -2030,7 +2030,7 @@
 ////    CreatePostProcessPassResult result;
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
-////    FrameBufferHandle outputFbh  = JAM_GFX.CreateFrameBuffer(outputTexh, true);
+////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
@@ -2076,7 +2076,7 @@
 ////    CreatePostProcessPassResult result;
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
-////    FrameBufferHandle outputFbh  = JAM_GFX.CreateFrameBuffer(outputTexh, true);
+////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
@@ -2102,7 +2102,7 @@
 ////    CreatePostProcessPassResult result;
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
-////    FrameBufferHandle outputFbh  = JAM_GFX.CreateFrameBuffer(outputTexh, true);
+////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
@@ -2133,7 +2133,7 @@
 ////        Int32 h              = Max(1, _desc.height >> downScaleLevel);
 ////
 ////        TextureHandle     downTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
-////        FrameBufferHandle downFbh  = JAM_GFX.CreateFrameBuffer(downTexh, true);
+////        FrameBufferHandle downFbh  = GetGraphics().CreateFrameBuffer(downTexh, true);
 ////        Viewport          vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
 ////
 ////        RenderPass pass;
@@ -2169,7 +2169,7 @@
 ////        Int32 h            = Max(1, _desc.height >> upScaleLevel);
 ////
 ////        TextureHandle     upTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
-////        FrameBufferHandle upFbh  = JAM_GFX.CreateFrameBuffer(upTexh, true);
+////        FrameBufferHandle upFbh  = GetGraphics().CreateFrameBuffer(upTexh, true);
 ////        Viewport          vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
 ////
 ////        RenderPass pass;
@@ -2184,7 +2184,7 @@
 ////
 ////    // combine
 ////    TextureHandle     combineTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
-////    FrameBufferHandle combineFbh  = JAM_GFX.CreateFrameBuffer(combineTexh, true);
+////    FrameBufferHandle combineFbh  = GetGraphics().CreateFrameBuffer(combineTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass pass;

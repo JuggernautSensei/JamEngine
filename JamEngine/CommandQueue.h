@@ -26,4 +26,4 @@ private:
 
 }   // namespace Jam
 
-// all arguments will be captured by value (copy)
+// all arguments will be captured by m_value (copy)

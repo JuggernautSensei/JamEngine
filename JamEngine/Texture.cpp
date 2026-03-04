@@ -53,7 +53,7 @@ Texture& Texture::operator=(Texture&& _other) noexcept
 }
 
 Expect<Ref<Texture>> Texture::Create(
-    const Path& _path)
+    StringView _path)
 {
     Ref<Texture> pTexture = new Texture;
     if (const Error err = pTexture->Load(_path))
@@ -72,13 +72,13 @@ Ref<Texture> Texture::Create(
 }
 
 Error Texture::Load(
-    const Path& _path)
+    StringView _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // import dds (native image format is dds.)
     ImageImporterInfo options = {};
-    options.bGenerateMips      = true;
+    options.bGenerateMips     = true;
 
     Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path, eImageFormat::DDS, options);
     if (!importer)
@@ -88,9 +88,9 @@ Error Texture::Load(
 
     // done.
     CleanUp_();
-    m_texh = JAM_GFX.CreateTexture(importer->GetImageContainer());
+    m_texh = GetGraphics().CreateTexture(importer->GetImageContainer());
 
-    const TextureInfo info = JAM_GFX.GetTextureInfo(m_texh);
+    const TextureInfo info = GetGraphics().GetTextureInfo(m_texh);
     m_res                  = { info.width, info.height };
     m_type                 = info.type;
     m_path                 = _path;
@@ -105,38 +105,38 @@ void Texture::Load(
     CleanUp_();
     m_texh = _texh;
 
-    const TextureInfo info = JAM_GFX.GetTextureInfo(m_texh);
+    const TextureInfo info = GetGraphics().GetTextureInfo(m_texh);
     m_res                  = { info.width, info.height };
     m_type                 = info.type;
 }
 
 Error Texture::Save(
-    const Path&                 _path,
-    const bool                  _bReplaceExtension,
-    const Flags<eSaveFileFlags> _flags) const
+    const StringView                 _path,
+    const bool                       _bReplaceExtension,
+    const eFileWriterCollisionPolicy _policy) const
 {
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path.native());
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid texture.");
 
-    if (_bReplaceExtension)
-    {
-        const Path path = ReplacedExtension(_path, k_extension);
-        return ImageExporter::ExportToFile(m_texh, path, eImageFormat::DDS, _flags);
-    }
-    else
-    {
-        return ImageExporter::ExportToFile(m_texh, _path, eImageFormat::DDS, _flags);
-    }
+    StringView dir = {}, base = {}, ext = {};
+    _path.Decompose(&dir, nullptr, &base, &ext);
+
+    String path = dir;
+    path.Set(dir);
+    path.Append(base);
+    path.Append(k_extension);
+
+    return ImageExporter::ExportToFile(m_texh, path, eImageFormat::DDS, false, _policy);
 }
 
 void Texture::SetName(
     const StringView _name)
 {
-    m_name = _name.ToString();
+    m_name = _name;
 }
 
 void Texture::SetVirtualPath(
-    const Path& _path)
+    const StringView _path)
 {
     JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of an asset loaded from file.");
     m_path = _path;
@@ -167,7 +167,7 @@ UInt32 Texture::GetTypeHash() const
     return k_typeHash;
 }
 
-const Path& Texture::GetPath() const
+StringView Texture::GetPath() const
 {
     return m_path;
 }
@@ -206,20 +206,20 @@ void Texture::Bind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    JAM_GFX.SetTexture(m_texh, _shader, _slot);
+    GetGraphics().SetTexture(m_texh, _shader, _slot);
 }
 
 void Texture::Unbind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    JAM_GFX.SetTexture(k_nullHandle, _shader, _slot);
+    GetGraphics().SetTexture(k_nullHandle, _shader, _slot);
 }
 
 void Texture::CleanUp_()
 {
     JAM_DESTROY_TEXTURE(m_texh);
-    m_path.clear();
+    m_path.Clear();
     m_name.Clear();
     m_bLoadedFromFile = false;
     m_res             = { 0, 0 };
@@ -246,7 +246,7 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Texture>> pTexture = JAM_ASSET_MGR.LoadTexture(PathFrom(path));
+    Expect<Ref<Texture>> pTexture = GetAssetManager().LoadTexture(path);
     if (!pTexture)
     {
         return pTexture.GetError();

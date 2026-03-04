@@ -87,7 +87,7 @@ void RenderPass::SetProgram(
 {
     if (m_ph && (m_flags & eFlags::DestroyProgram))
     {
-        JAM_GFX.DestroyProgram(m_ph);
+        GetGraphics().DestroyProgram(m_ph);
     }
 
     m_ph = _ph;
@@ -100,7 +100,7 @@ void RenderPass::SetFrameBuffer(
 {
     if (m_fbh && (m_flags & eFlags::DestroyFrameBuffer))
     {
-        JAM_GFX.DestroyFrameBuffer(m_fbh);
+        GetGraphics().DestroyFrameBuffer(m_fbh);
     }
 
     m_fbh = _fbh;
@@ -212,31 +212,31 @@ void RenderPass::Execute(
     const FrameBufferHandle _fbh,
     const Viewport          _vp) const
 {
-    JAM_GFX.SetProgram(m_ph);
-    JAM_GFX.SetRenderState(m_state);
-    JAM_GFX.SetStencil(m_fstencil, m_bstencil, m_stencilRef);
-    JAM_GFX.SetFrameBuffer(_fbh);
-    JAM_GFX.SetViewport(_vp);
+    GetGraphics().SetProgram(m_ph);
+    GetGraphics().SetRenderState(m_state);
+    GetGraphics().SetStencil(m_fstencil, m_bstencil, m_stencilRef);
+    GetGraphics().SetFrameBuffer(_fbh);
+    GetGraphics().SetViewport(_vp);
 
     for (const ConstantBufferBind& bind: m_cbufferBinds)
     {
-        JAM_GFX.SetConstantBuffer(bind.cbh, bind.stage, bind.slot);
+        GetGraphics().SetConstantBuffer(bind.cbh, bind.stage, bind.slot);
     }
 
     for (const TextureBind& bind: m_textureBinds)
     {
-        JAM_GFX.SetTexture(bind.texh, bind.stage, bind.slot);
+        GetGraphics().SetTexture(bind.texh, bind.stage, bind.slot);
     }
 
     for (const SamplerBind& bind: m_samplerBinds)
     {
-        JAM_GFX.SetSampler(bind.state, bind.stage, bind.slot);
+        GetGraphics().SetSampler(bind.state, bind.stage, bind.slot);
     }
 
     // clear render targets
     for (Int32 i = m_clearColorStart; i <= m_clearColorEnd; ++i)
     {
-        JAM_GFX.ClearColor(_fbh, m_rgba[i], i);
+        GetGraphics().ClearColor(_fbh, m_rgba[i], i);
     }
 
     // clear depth/stencil
@@ -244,15 +244,15 @@ void RenderPass::Execute(
     const bool bClearStencil = (m_flags & eFlags::ClearStencil);
     if (bClearDepth || bClearStencil)
     {
-        JAM_GFX.ClearDepth(_fbh, bClearDepth, bClearStencil, m_clearDepth, m_clearStencil);
+        GetGraphics().ClearDepth(_fbh, bClearDepth, bClearStencil, m_clearDepth, m_clearStencil);
     }
 
     // blend
     for (Int32 i = m_blendStart; i <= m_blendEnd; ++i)
     {
-        JAM_GFX.SetBlendState(m_blend[i], i);
+        GetGraphics().SetBlendState(m_blend[i], i);
     }
-    JAM_GFX.SetBlendFactor(m_blendFactor);
+    GetGraphics().SetBlendFactor(m_blendFactor);
 
     JAM_ASSERT(m_executor, "Render pass executor is not set.");
     m_executor.Call();
@@ -268,7 +268,7 @@ bool RenderPass::CheckValidation() const
 
     // 입력과 출력 리소스가 중복되면 conflict
     {
-        const FrameBufferInfo fbInfo = JAM_GFX.GetFrameBufferInfo(m_fbh);
+        const FrameBufferInfo fbInfo = GetGraphics().GetFrameBufferInfo(m_fbh);
 
         HashSet<UInt32> texhSet = {};   // key: handle value
         texhSet.reserve(fbInfo.numRenderTargets + 1);

@@ -11,74 +11,57 @@ namespace Jam
 {
 
 AssetCreationDialog::AssetCreationDialog(
-    const DialogInfo& _desc)
-    : Dialog(_desc)
+    const StringView _title,
+    const ImVec2     _size)
+    : Dialog(_title, _size)
 {
 }
 
 void AssetCreationDialog::PushEmptyNameErrorMessageDialog_() const
 {
-    MessageDialogInfo desc = {};
-    desc.baseInfo.title    = "error";
-    desc.msg               = "asset name cannot be empty.";
-    JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
+    GetEditor().PushMessageDialog("error", "name cannot be empty.");
 }
 
 void AssetCreationDialog::PushEmptySavePathErrorMessageDialog_() const
 {
-    MessageDialogInfo desc = {};
-    desc.baseInfo.title    = "error";
-    desc.msg               = "save path cannot be empty.";
-    JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
+    GetEditor().PushMessageDialog("error", "save path cannot be empty.");
 }
 
 void AssetCreationDialog::PushNullVertexLayoutEntryErrorMessageDialog_() const
 {
-    MessageDialogInfo desc = {};
-    desc.baseInfo.title    = "error";
-    desc.msg               = "vertex layout cannot be null.";
-    JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
+    GetEditor().PushMessageDialog("error", "vertex layout entry cannot be null.");
 }
 
 void AssetCreationDialog::PushOverwriteConfirmationDialog_(
-    const Path& _path)
+    StringView _path)
 {
-    auto onConfirm = [pSelf = Ref { this }, _path]
-    {
-        pSelf->CreateAndSaveAsset_(_path);
-    };
+    const Delegate<void()> OnConfirm = Bind(
+        [pSelf = Ref { this }, _path]
+        {
+            pSelf->CreateAndSaveAsset_(_path);
+        });
 
-    ScratchBuffer buf;
-    buf.Format("file already exists: {}. do you want to overwrite it?", _path);
-
-    ConfirmationDialogInfo desc = {};
-    desc.baseInfo.title         = "confirmation";
-    desc.msg                    = buf.ToStringView();
-    desc.OnConfirm              = Bind(std::move(onConfirm));
-    JAM_EDITOR.PushDialog(MakeRef<ConfirmationDialog>(std::move(desc)));
+    GetEditor().PushConfirmationDialog(
+        "overwrite confirmation",
+        String::Formatted("file already exists at path: {}. Do you want to overwrite it?", _path),
+        OnConfirm);
 }
 
 void AssetCreationDialog::PushEmptyImportPathErrorMessageDialog_() const
 {
-    MessageDialogInfo desc = {};
-    desc.baseInfo.title    = "error";
-    desc.msg               = "import path cannot be empty.";
-    JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
+    GetEditor().PushMessageDialog("error", "import path cannot be empty.");
 }
 
 bool AssetCreationDialog::SaveAsset_(
-    const Path&        _path,
+    const StringView   _path,
     const Ref<IAsset>& _pAsset) const
 {
-    if (const Error err = _pAsset->Save(_path, false))
+    if (const Error err = _pAsset->Save(_path))
     {
-        ScratchBuffer tmp;
-        tmp.Format("failed to save asset file: {}. {}.", _path, err.ToErrorMessage());
+        GetEditor().PushMessageDialog(
+            "error",
+            String::Formatted("failed to save asset at path: {}. error: {}", _path, err.ToErrorMessage()));
 
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = tmp.ToStringView();
-        JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
         return true;
     }
 

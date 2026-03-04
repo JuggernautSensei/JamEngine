@@ -4,12 +4,7 @@
 namespace Jam
 {
 
-template<typename TEnum>
-concept IsDirectIndexableEnum = std::is_enum_v<TEnum>
-                             && (UnderlyingMinOf<TEnum>() == 0)
-                             && (UnderlyingMaxOf<TEnum>() == CountOf<TEnum> - 1);
-
-// direct indexing enum: index by the underlying enum value, just cast to size type.
+// direct indexing enum: index by the underlying enum m_value, just cast to size type.
 
 // can not use like
 // enum class eColorNonContiguous
@@ -45,14 +40,14 @@ public:
     [[nodiscard]] constexpr TValue& operator[](TEnum _key)
     {
         const SizeT idx = NumericCast<SizeT>(_key);
-        JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. Enum value: '{}'", NameOf(_key));
+        JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. Enum m_value: '{}'", NameOf(_key));
         return m_arr[idx];
     }
 
     [[nodiscard]] constexpr const TValue& operator[](TEnum _key) const
     {
         const SizeT idx = NumericCast<SizeT>(_key);
-        JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. Enum value: '{}'", NameOf(_key));
+        JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. Enum m_value: '{}'", NameOf(_key));
         return m_arr[idx];
     }
 

@@ -23,7 +23,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
     }
 
     // scene check
-    if (!JAM_SCENE_MGR.HasActiveScene())
+    if (!GetSceneManager().HasActiveScene())
     {
         Widget_TextFrame("scene not loaded", ImGui::GetContentRegionAvail());
         ImGui::End();
@@ -31,7 +31,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
     }
 
     // entity check
-    const Entity entity = JAM_EDITOR.GetFocusingEntity();
+    const Entity entity = GetEditor().GetFocusingEntityOrNull();
     if (!entity)
     {
         Widget_TextFrame("entity not selected", ImGui::GetContentRegionAvail());
@@ -68,7 +68,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
     }
 
     // component editor panels
-    const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+    const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
     for (const ComponentReflectionData& data: JAM_COMPONENT_DB.GetComponentReflectionContainer() | std::views::values)
     {
         if (data.Has(entity) && data.DrawEditPanel)
@@ -135,7 +135,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
 
 void Editor_EntityInspectorWindow::Menu_RemoveComponent_() const
 {
-    const Entity entity = JAM_EDITOR.GetFocusingEntity();
+    const Entity entity = GetEditor().GetFocusingEntityOrNull();
     for (const ComponentReflectionData& data: JAM_COMPONENT_DB.GetComponentReflectionContainer() | std::views::values)
     {
         if (data.Has(entity) && !data.bNonRemoveable)
@@ -150,7 +150,7 @@ void Editor_EntityInspectorWindow::Menu_RemoveComponent_() const
 
 void Editor_EntityInspectorWindow::Menu_AddComponent_() const
 {
-    const Entity entity = JAM_EDITOR.GetFocusingEntity();
+    const Entity entity = GetEditor().GetFocusingEntityOrNull();
     for (const ComponentReflectionData& data: JAM_COMPONENT_DB.GetComponentReflectionContainer() | std::views::values)
     {
         if (!data.Has(entity) && !data.bNonCreatableByUser)

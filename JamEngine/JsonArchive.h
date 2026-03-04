@@ -36,7 +36,7 @@ public:
     JsonWriter& operator=(JsonWriter&& _other) noexcept;
 
     [[nodiscard]] Expect<String> Stringify(Flags<eJsonWriteFlags> _flags = {}) const;
-    Error                        SaveToFile(const Path& _path, Flags<eJsonWriteFlags> _writeFlags = {}, Flags<eSaveFileFlags> _saveFlags = {}) const;
+    Error                        SaveToFile(StringView _path, Flags<eJsonWriteFlags> _flags = eJsonWriteFlags::None, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const;
 
     void OpenField(StringView _key) override;
     void OpenAtBack() override;
@@ -95,7 +95,7 @@ public:
 
     explicit JsonReader(yyjson_doc* _pDoc);
     [[nodiscard]] static Expect<JsonReader> Parse(StringView _json, Flags<eJsonReadFlags> _flags = {});
-    [[nodiscard]] static Expect<JsonReader> ParseFromFile(const Path& _path, Flags<eJsonReadFlags> _flags = {});
+    [[nodiscard]] static Expect<JsonReader> ParseFromFile(StringView _path, Flags<eJsonReadFlags> _flags = {});
 
     Error EnterField(StringView _key) override;
     Error EnterAt(SizeT _idx) override;
@@ -109,7 +109,7 @@ public:
         yyjson_val* pCur = m_valueStack.Back();
         if (!yyjson_is_arr(pCur))
         {
-            JAM_LOG.Error("YYJson array iteration error: data type not matched (expected array type).");
+            JAM_LOG_ERROR("YYJson array iteration error: data type not matched (expected array type).");
             MarkError(Error::TypeMismatch);
             return Error::TypeMismatch;
         }
@@ -157,7 +157,7 @@ protected:
 private:
     yyjson_doc*        m_doc        = nullptr;
     JsonReadValueStack m_valueStack = {};
-    Error              m_lastError  = {};
+    Error              m_lastError  = Error::None;
 };
 
 }   // namespace Jam

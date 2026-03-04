@@ -73,12 +73,14 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -86,6 +88,7 @@
     <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -93,6 +96,7 @@
     <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -194,6 +198,9 @@
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -208,6 +215,9 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -224,6 +234,9 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -240,6 +253,9 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -247,11 +263,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="MainScene.cpp" />
+    <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="EmbededFont.cpp" />
+    <ClCompile Include="Events.cpp" />
+    <ClCompile Include="FileBrowserWindow.cpp" />
+    <ClCompile Include="GUIFileSystem.cpp" />
+    <ClCompile Include="Icons.cpp" />
+    <ClCompile Include="ShaderApp.cpp" />
+    <ClCompile Include="NewProjectDialog.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="WorkspaceWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\JamEngine\JamEngine.vcxproj">
@@ -265,8 +289,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MainScene.h" />
+    <ClInclude Include="ShaderApp.h" />
+    <ClInclude Include="Resources.h" />
+    <ClInclude Include="EmbededFont.h" />
+    <ClInclude Include="Events.h" />
+    <ClInclude Include="FileBrowserWindow.h" />
+    <ClInclude Include="GUIFileSystem.h" />
+    <ClInclude Include="Icons.h" />
+    <ClInclude Include="NewProjectDialog.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="WorkspaceWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,22 +13,28 @@ namespace Jam
 class MemoryBlock
 {
 public:
-    MemoryBlock() = default;
-    MemoryBlock(Byte* _pData, SizeT _byteWidth);
+    constexpr MemoryBlock() = default;
+
+    constexpr MemoryBlock(
+        Byte*       _pData,
+        const SizeT _byteWidth)
+        : m_pData(_pData)
+        , m_size(_byteWidth)
+    {
+    }
+
     MemoryBlock(void* _pData, SizeT _byteWidth);
 
     // 연속 컨테이너
     template<typename TContainer>
-        requires(std::ranges::contiguous_range<TContainer>
-                 && !std::is_const_v<std::remove_reference_t<decltype(*std::declval<TContainer>().data())>>
-                 && !std::is_const_v<TContainer>)
+        requires(std::ranges::contiguous_range<TContainer> && requires(const TContainer c) { c.data(); c.size(); })
     /* implicit */ MemoryBlock(TContainer& _container)
         : m_pData(reinterpret_cast<Byte*>(_container.data()))
         , m_size(NumericCast<SizeT>(_container.size() * sizeof(TContainer::value_type)))
     {
     }
 
-    // C-m_style 배열
+    // C-style 배열
     template<typename T, std::size_t N>
         requires(!std::is_const_v<T>)
     /* implicit */ MemoryBlock(T (&_array)[N])
@@ -63,21 +69,29 @@ private:
 class CMemoryBlock
 {
 public:
-    CMemoryBlock() = default;
-    CMemoryBlock(const Byte* _pData, SizeT _byteWidth);
+    constexpr CMemoryBlock() = default;
+
+    constexpr CMemoryBlock(
+        const Byte* _pData,
+        const SizeT _byteWidth)
+        : m_pData(_pData)
+        , m_size(_byteWidth)
+    {
+    }
+
     CMemoryBlock(const void* _pData, SizeT _byteWidth);
     /* implicit */ CMemoryBlock(MemoryBlock _mem);
 
     // 연속 컨테이너
     template<typename TContainer>
-        requires(std::ranges::contiguous_range<TContainer>)
+        requires(std::ranges::contiguous_range<TContainer> && requires(const TContainer c) { c.data(); c.size(); })
     /* implicit */ CMemoryBlock(const TContainer& _container)
         : m_pData(reinterpret_cast<const Byte*>(_container.data()))
         , m_size(NumericCast<SizeT>(_container.size() * sizeof(TContainer::value_type)))
     {
     }
 
-    // C-m_style 배열
+    // C-style 배열
     template<typename T, std::size_t N>
     /* implicit */ CMemoryBlock(const T (&_array)[N])
         : m_pData(reinterpret_cast<const Byte*>(_array))

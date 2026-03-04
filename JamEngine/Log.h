@@ -34,7 +34,7 @@ public:
     [[nodiscard]] const LoggerRef& GetLogger() const;
 
     template<typename... Args>
-    void Log(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Log(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args) const
     {
         const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
         m_pLogger->log(level, _format, std::forward<Args>(args)...);
@@ -43,7 +43,21 @@ public:
     void Log(const eLogLevel _level, const StringView _msg) const
     {
         const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-        m_pLogger->log(level, _msg.ToStdStringView());
+        m_pLogger->log(level, { _msg.GetPtr(), NumericCast<size_t>(_msg.GetLength()) });
+    }
+
+    template<typename... Args>
+    void Log(const eLogLevel _level, spdlog::wformat_string_t<Args...> _format, Args&&... args) const
+    {
+        const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
+        m_pLogger->log(level, _format, std::forward<Args>(args)...);
+    }
+
+    template<typename... Args>
+    void Log(const eLogLevel _level, const WStringView _msg) const
+    {
+        const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
+        m_pLogger->log(level, { _msg.GetPtr(), NumericCast<size_t>(_msg.GetLength()) });
     }
 
     void Flush() const
@@ -66,150 +80,62 @@ public:
 
     [[nodiscard]] static Log& GetInstance();
 
-    [[nodiscard]] const Ref<LogChannel>& GetCoreChannel();
+    [[nodiscard]] const Ref<LogChannel>& GetCoreChannel() const;
     void                                 SetCoreChannel(const Ref<LogChannel>& _pChannel);
 
     template<typename... Args>
-    void Trace(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Logging(const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        _pChannel->Log(eLogLevel::Trace, _format, std::forward<Args>(args)...);
-    }
-
-    void Trace(const Ref<LogChannel>& _pChannel, const StringView _msg) const
-    {
-        _pChannel->Log(eLogLevel::Trace, _msg);
+        GetCoreChannel()->Log(_level, _format, std::forward<Args>(args)...);
     }
 
     template<typename... Args>
-    void Trace(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Logging(const eLogLevel _level, spdlog::wformat_string_t<Args...> _format, Args&&... args)
     {
-        m_pCoreLogger->Log(eLogLevel::Trace, _format, std::forward<Args>(args)...);
-    }
-
-    void Trace(const StringView _msg) const
-    {
-        m_pCoreLogger->Log(eLogLevel::Trace, _msg);
+        GetCoreChannel()->Log(_level, _format, std::forward<Args>(args)...);
     }
 
     template<typename... Args>
-    void Debug(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Logging(const Ref<LogChannel>& _pChannel, const eLogLevel _level, spdlog::format_string_t<Args...> _format, Args&&... args)
     {
-        _pChannel->Log(eLogLevel::Debug, _format, std::forward<Args>(args)...);
-    }
-
-    void Debug(const Ref<LogChannel>& _pChannel, const StringView _msg) const
-    {
-        _pChannel->Log(eLogLevel::Debug, _msg);
+        _pChannel->Log(_level, _format, std::forward<Args>(args)...);
     }
 
     template<typename... Args>
-    void Debug(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Logging(const Ref<LogChannel>& _pChannel, const eLogLevel _level, spdlog::wformat_string_t<Args...> _format, Args&&... args)
     {
-        m_pCoreLogger->Log(eLogLevel::Debug, _format, std::forward<Args>(args)...);
+        _pChannel->Log(_level, _format, std::forward<Args>(args)...);
     }
 
-    void Debug(const StringView _msg) const
+    void Logging(const eLogLevel _level, const StringView _msg) const
     {
-        m_pCoreLogger->Log(eLogLevel::Debug, _msg);
+        GetCoreChannel()->Log(_level, _msg);
     }
 
-    template<typename... Args>
-    void Info(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Logging(const eLogLevel _level, const WStringView _msg) const
     {
-        _pChannel->Log(eLogLevel::Info, _format, std::forward<Args>(args)...);
+        GetCoreChannel()->Log(_level, _msg);
     }
 
-    void Info(const Ref<LogChannel>& _pChannel, const StringView _msg) const
+    void Logging(const Ref<LogChannel>& _pChannel, const eLogLevel _level, const StringView _msg) const
     {
-        _pChannel->Log(eLogLevel::Info, _msg);
+        _pChannel->Log(_level, _msg);
     }
 
-    template<typename... Args>
-    void Info(spdlog::format_string_t<Args...> _format, Args&&... args)
+    void Logging(const Ref<LogChannel>& _pChannel, const eLogLevel _level, const WStringView _msg) const
     {
-        m_pCoreLogger->Log(eLogLevel::Info, _format, std::forward<Args>(args)...);
-    }
-
-    void Info(const StringView _msg) const
-    {
-        m_pCoreLogger->Log(eLogLevel::Info, _msg);
-    }
-
-    template<typename... Args>
-    void Warn(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
-    {
-        _pChannel->Log(eLogLevel::Warn, _format, std::forward<Args>(args)...);
-    }
-
-    void Warn(const Ref<LogChannel>& _pChannel, const StringView _msg) const
-    {
-        _pChannel->Log(eLogLevel::Warn, _msg);
-    }
-
-    template<typename... Args>
-    void Warn(spdlog::format_string_t<Args...> _format, Args&&... args)
-    {
-        m_pCoreLogger->Log(eLogLevel::Warn, _format, std::forward<Args>(args)...);
-    }
-
-    void Warn(const StringView _msg) const
-    {
-        m_pCoreLogger->Log(eLogLevel::Warn, _msg);
-    }
-
-    template<typename... Args>
-    void Error(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
-    {
-        _pChannel->Log(eLogLevel::Error, _format, std::forward<Args>(args)...);
-    }
-
-    void Error(const Ref<LogChannel>& _pChannel, const StringView _msg) const
-    {
-        _pChannel->Log(eLogLevel::Error, _msg);
-    }
-
-    template<typename... Args>
-    void Error(spdlog::format_string_t<Args...> _format, Args&&... args)
-    {
-        m_pCoreLogger->Log(eLogLevel::Error, _format, std::forward<Args>(args)...);
-    }
-
-    void Error(const StringView _msg) const
-    {
-        m_pCoreLogger->Log(eLogLevel::Error, _msg);
-    }
-
-    template<typename... Args>
-    void Critical(const Ref<LogChannel>& _pChannel, spdlog::format_string_t<Args...> _format, Args&&... args)
-    {
-        _pChannel->Log(eLogLevel::Critical, _format, std::forward<Args>(args)...);
-    }
-
-    void Critical(const Ref<LogChannel>& _pChannel, const StringView _msg) const
-    {
-        _pChannel->Log(eLogLevel::Critical, _msg);
-    }
-
-    template<typename... Args>
-    void Critical(spdlog::format_string_t<Args...> _format, Args&&... args)
-    {
-        m_pCoreLogger->Log(eLogLevel::Critical, _format, std::forward<Args>(args)...);
-    }
-
-    void Critical(const StringView _msg) const
-    {
-        m_pCoreLogger->Log(eLogLevel::Critical, _msg);
+        _pChannel->Log(_level, _msg);
     }
 
     void Flush() const;
     void Flush(const Ref<LogChannel>& _pChannel) const;
 
+    static void CreateInstance();
+    static void DestroyInstance();
+
 private:
     Log();
     ~Log();
-
-    static void CreateInstance();
-    static void DestroyInstance();
 
     Ref<LogChannel> m_pCoreLogger = nullptr;
 
@@ -221,8 +147,22 @@ private:
 
 #define JAM_LOG Jam::Log::GetInstance()
 
+#define JAM_LOG_TRACE(...)    JAM_LOG.Logging(Jam::eLogLevel::Trace, __VA_ARGS__)
+#define JAM_LOG_INFO(...)     JAM_LOG.Logging(Jam::eLogLevel::Info, __VA_ARGS__)
+#define JAM_LOG_WARN(...)     JAM_LOG.Logging(Jam::eLogLevel::Warn, __VA_ARGS__)
+#define JAM_LOG_ERROR(...)    JAM_LOG.Logging(Jam::eLogLevel::Error, __VA_ARGS__)
+#define JAM_LOG_CRITICAL(...) JAM_LOG.Logging(Jam::eLogLevel::Critical, __VA_ARGS__)
+
+#define JAM_LOG_CHANNEL_TRACE(_channel, ...)    JAM_LOG.Logging(_channel, Jam::eLogLevel::Trace, __VA_ARGS__)
+#define JAM_LOG_CHANNEL_INFO(_channel, ...)     JAM_LOG.Logging(_channel, Jam::eLogLevel::Info, __VA_ARGS__)
+#define JAM_LOG_CHANNEL_WARN(_channel, ...)     JAM_LOG.Logging(_channel, Jam::eLogLevel::Warn, __VA_ARGS__)
+#define JAM_LOG_CHANNEL_ERROR(_channel, ...)    JAM_LOG.Logging(_channel, Jam::eLogLevel::Error, __VA_ARGS__)
+#define JAM_LOG_CHANNEL_CRITICAL(_channel, ...) JAM_LOG.Logging(_channel, Jam::eLogLevel::Critical, __VA_ARGS__)
+
 #ifdef JAM_DEBUG
-#    define JAM_DEBUG_LOG(...) JAM_LOG.Debug(__VA_ARGS__)
+#    define JAM_LOG_DEBUG(...)                   JAM_LOG.Logging(Jam::eLogLevel::Debug, __VA_ARGS__)
+#    define JAM_LOG_CHANNEL_DEBUG(_channel, ...) JAM_LOG.Logging(_channel, Jam::eLogLevel::Debug, __VA_ARGS__)
 #else
-#    define JAM_DEBUG_LOG(...) JAM_NOOP
+#    define JAM_LOG_DEBUG(...)                   JAM_NOOP
+#    define JAM_LOG_CHANNEL_DEBUG(_channel, ...) JAM_NOOP
 #endif

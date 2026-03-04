@@ -6,12 +6,14 @@
 #include "AssetManager.h"
 #include "ComponentDatabase.h"
 #include "Editor.h"
+#include "FileSystem.h"
 #include "Graphics.h"
-#include "ImGuiGlue.h"
+#include "ImGuiEngine.h"
 #include "Input.h"
 #include "SceneDatabase.h"
 
 #include "SceneManager.h"
+#include "Timer.h"
 #include "WindowsPlatform.h"
 
 namespace Jam
@@ -26,55 +28,36 @@ Int32 Application::Run(
     const Int32 _argc,
     char**      _argv)
 {
-    Init_(_argc, _argv);
+    CoreInit();
+    Init(_argc, _argv);
 
-    m_timer.Start();
+    TickTimer timer = {};
+    timer.Start();
     while (m_bRunning)
     {
-        if (!JAM_WIN.PollEvents())
+        if (!GetWindowsPlatform().PollEvents())
         {
             m_commandQueue.Execute();   // execute submitted commands
 
-            m_timer.Tick();
-            m_deltaTimeSec = m_timer.GetDeltaFloat(eSIPrefix::Sec);
+            timer.Tick();
+            m_deltaTimeSec = timer.GetDeltaFloat(eSIPrefix::Sec);
             m_framerate    = Div(1.f, m_deltaTimeSec);
 
-            // update loop
-            if (m_bEditorEnabled)
-            {
-                JAM_EDITOR.Update(m_deltaTimeSec);
-            }
-            else
-            {
-                JAM_SCENE_MGR.Update(m_deltaTimeSec);
-            }
+            Update(m_deltaTimeSec);
+            Render();
 
-            // rendering loop
-            if (m_bEditorEnabled)
-            {
-                JAM_EDITOR.Render();
-                JAM_IMGUI.BeginFrame();
-                JAM_EDITOR.ImGuiRender();
-                JAM_SCENE_MGR.ImGuiRender();
-                JAM_IMGUI.EndFrame();
-            }
-            else
-            {
-                // runtime
-                JAM_SCENE_MGR.RenderRuntime();
-                JAM_IMGUI.BeginFrame();
-                JAM_SCENE_MGR.ImGuiRender();
-                JAM_IMGUI.EndFrame();
-            }
+            GetImGuiEngine().BeginFrame();
+            ImGuiRender();
+            GetImGuiEngine().EndFrame();
 
-            JAM_GFX.Frame(m_bVsync);
-
-            // update input
-            JAM_INPUT.Update();
+            GetGraphics().Frame(m_bVsync);   // present
+            GetInput().Update();             // update input
         }
     }
 
-    Shutdown_();
+    m_bInited = false;   // prevent dispatching events during shutdown
+    Shutdown();
+    CoreShutdown();
     return 0;
 }
 
@@ -93,18 +76,26 @@ void Application::DispatchEvent(Event& _event)
         return;
     }
 
-    OnEvent_(_event);
-    JAM_WIN.OnEvent(_event);
-    JAM_GFX.OnEvent(_event);
-    JAM_ASSET_MGR.OnEvent(_event);
+    OnEvent(_event);
+    GetWindowsPlatform().OnEvent(_event);
+    GetGraphics().OnEvent(_event);
 
-    if (m_bEditorEnabled)
+    if (m_subSystems & eAppSubSystemFlags::AssetManager)
     {
-        JAM_EDITOR.OnEvent(_event);
+        GetAssetManager().OnEvent(_event);
     }
 
-    JAM_SCENE_MGR.OnEvent(_event);
-    JAM_INPUT.OnEvent(_event);
+    if (m_subSystems & eAppSubSystemFlags::Editor)
+    {
+        GetEditor().OnEvent(_event);
+    }
+
+    if (m_subSystems & eAppSubSystemFlags::SceneManager)
+    {
+        GetSceneManager().OnEvent(_event);
+    }
+
+    GetInput().OnEvent(_event);
 }
 
 void Application::SubmitCommandToMainThread(
@@ -139,36 +130,53 @@ float Application::GetFrameRate() const
     return m_framerate;
 }
 
-bool Application::IsEditorEnabled() const
+bool Application::IsSubSystemEnabled(
+    const eAppSubSystemFlags _subSystem) const
 {
-    return m_bEditorEnabled;
+    return m_subSystems & _subSystem;
 }
 
-const Path& Application::GetWorkingDirectory() const
+StringView Application::GetWorkingDirectory() const
 {
     return m_workingDir;
 }
 
-const Path& Application::GetContentsDirectory() const
+StringView Application::GetContentsDirectory() const
 {
     return m_contentsDir;
 }
 
-Application::Application(
-    const StringView _appName,
-    const bool       _bEnableEditor)
-    : m_appName(_appName.ToString())
-    , m_bEditorEnabled(_bEnableEditor)
-    , m_workingDir(fs::current_path())
-    , m_contentsDir(m_workingDir / "Contents")
-    , m_cacheDir(m_workingDir / "Caches")
+std::thread::id Application::GetMainThreadId() const
 {
-    s_pInstance = this;
+    return m_mainThreadId;
 }
 
-void Application::Init_(
-    const Int32 _argc,
-    char**      _argv)
+Application::Application(
+    const StringView                _appName,
+    const Flags<eAppSubSystemFlags> _subSystems)
+    : m_appName(_appName)
+    , m_subSystems(_subSystems)
+    , m_workingDir(FileSystem::Current())
+{
+    s_pInstance = this;
+
+    Expect<Scoped<FileLock>> pWorkingDirLock = FileLock::Create(m_workingDir, eFileLockMode::ReadWrite);
+    if (!pWorkingDirLock)
+    {
+        JAM_CRASH("Failed to lock working directory '{}': {}", m_workingDir, pWorkingDirLock.GetError().ToErrorMessage());
+    }
+    m_pWorkingDirLock = std::move(pWorkingDirLock.GetValue());
+
+    m_contentsDir = m_workingDir;
+    m_contentsDir.Join("Contents/");
+    m_contentsDir.Simplify();
+
+    m_cacheDir = m_workingDir;
+    m_cacheDir.Join("Caches/");
+    m_cacheDir.Simplify();
+}
+
+void Application::CoreInit()
 {
     JAM_ASSERT(!m_bInited, "Application is already initialized.");
 
@@ -187,45 +195,68 @@ void Application::Init_(
     Log::CreateInstance();
 
     // project file directory
-    fs::create_directories(m_contentsDir);
-    fs::create_directories(m_cacheDir);
+    if (m_subSystems & eAppSubSystemFlags::AssetManager)
+    {
+        FileSystem::MakeDirectory(m_contentsDir);
+        Expect<Scoped<FileLock>> pContentsDirLock = FileLock::Create(m_contentsDir, eFileLockMode::ReadWrite);
+        if (!pContentsDirLock)
+        {
+            JAM_CRASH("Failed to lock contents directory '{}': {}", m_contentsDir, pContentsDirLock.GetError().ToErrorMessage());
+        }
+        m_pContentsDirLock = pContentsDirLock.Take();
+
+        FileSystem::MakeDirectory(m_cacheDir);
+        Expect<Scoped<FileLock>> pCacheDirLock = FileLock::Create(m_cacheDir, eFileLockMode::ReadWrite);
+        if (!pCacheDirLock)
+        {
+            JAM_CRASH("Failed to lock cache directory '{}': {}", m_cacheDir, pCacheDirLock.GetError().ToErrorMessage());
+        }
+        m_pCacheDirLock = pCacheDirLock.Take();
+    }
 
     // init window
     WindowsPlatform::CreateInstance();
-    JAM_WIN.SetTitle(m_appName);
+    GetWindowsPlatform().SetTitle(m_appName);
 
     // init graphics
-    const auto [w, h] = JAM_WIN.GetClientResolution();
-    const HWND hWnd   = JAM_WIN.GetPlatformHandle();
+    const auto [w, h] = GetWindowsPlatform().GetClientResolution();
+    const HWND hWnd   = GetWindowsPlatform().GetPlatformHandle();
     Graphics::CreateInstance(hWnd, w, h);
 
     // init input
     Input::CreateInstance();
 
     // init asset manager
-    AssetManager::CreateInstance();
+    if (m_subSystems & eAppSubSystemFlags::AssetManager)
+    {
+        AssetManager::CreateInstance();
+    }
 
     // init scene manager
-    SceneManager::CreateInstance();
+    if (m_subSystems & eAppSubSystemFlags::SceneManager)
+    {
+        SceneManager::CreateInstance();
+    }
 
     // init imgui glue
-    ImGuiGlue::CreateInstance(hWnd);
+    if (m_subSystems & eAppSubSystemFlags::ImGuiEngine)
+    {
+        ImGuiEngine::CreateInstance(hWnd);
+    }
 
     // init editor if need
-    if (IsEditorEnabled())
+    if (m_subSystems & eAppSubSystemFlags::Editor)
     {
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "Editor subsystem requires AssetManager subsystem.");
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "Editor subsystem requires SceneManager subsystem.");
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::ImGuiEngine, "Editor subsystem requires ImGuiEngine subsystem.");
         Editor::CreateInstance();
     }
 
     // init done
-    m_bInited  = true;
-    m_bRunning = true;
-
-    // init deriven type
-    Init(_argc, _argv);
-
-    // done
-    JAM_LOG.Info("app '{}' initialization complete.", m_appName);
+    m_bInited      = true;
+    m_bRunning     = true;
+    m_mainThreadId = std::this_thread::get_id();
 }
 
 void Application::Init(
@@ -234,36 +265,38 @@ void Application::Init(
 {
 }
 
-void Application::Shutdown_()
+void Application::CoreShutdown()
 {
     JAM_ASSERT(m_bInited, "Application is not initialized.");
-
-    // shutdown start
-    JAM_LOG.Info("app '{}' is shutting down...", m_appName);
-    m_bInited = false;
-    Shutdown();   // shutdown derived type
+    JAM_ASSERT(!m_bRunning, "Application is still running.");
 
     // destroy db
     ComponentDatabase::DestroyInstance();
     SceneDatabase::DestroyInstance();
 
-    // shutdown window
-    WindowsPlatform::DestroyInstance();
-
     // shutdown editor
-    if (IsEditorEnabled())
+    if (m_subSystems & eAppSubSystemFlags::Editor)
     {
         Editor::DestroyInstance();
     }
 
     // shutdown imgui glue
-    ImGuiGlue::DestroyInstance();
+    if (m_subSystems & eAppSubSystemFlags::ImGuiEngine)
+    {
+        ImGuiEngine::DestroyInstance();
+    }
 
     // shutdown scene manager
-    SceneManager::DestroyInstance();
+    if (m_subSystems & eAppSubSystemFlags::SceneManager)
+    {
+        SceneManager::DestroyInstance();
+    }
 
     // shutdown asset manager
-    AssetManager::DestroyInstance();
+    if (m_subSystems & eAppSubSystemFlags::AssetManager)
+    {
+        AssetManager::DestroyInstance();
+    }
 
     // shutdown input
     Input::DestroyInstance();
@@ -271,8 +304,11 @@ void Application::Shutdown_()
     // shutdown graphics lib
     Graphics::DestroyInstance();
 
+    // shutdown window
+    WindowsPlatform::DestroyInstance();
+
     // shutdown
-    JAM_LOG.Trace("app '{}' shutdown complete.", m_appName);
+    JAM_LOG_TRACE("app '{}' shutdown complete.", m_appName);
     Log::DestroyInstance();
 }
 
@@ -280,7 +316,47 @@ void Application::Shutdown()
 {
 }
 
-void Application::OnEvent_(
+void Application::Update(float _dt)
+{
+    if (m_subSystems & eAppSubSystemFlags::Editor)
+    {
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        GetEditor().Update(m_deltaTimeSec);
+    }
+    else
+    {
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+        GetSceneManager().Update(m_deltaTimeSec);
+    }
+}
+
+void Application::Render()
+{
+    if (m_subSystems & eAppSubSystemFlags::Editor)
+    {
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        GetEditor().Render();
+    }
+    else
+    {
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+        GetSceneManager().RenderRuntime();
+    }
+}
+
+void Application::ImGuiRender()
+{
+    if (m_subSystems & eAppSubSystemFlags::Editor)
+    {
+        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        GetEditor().ImGuiRender();
+    }
+
+    JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+    GetSceneManager().ImGuiRender();
+}
+
+void Application::OnEvent(
     Event& _event)
 {
     EventDispatcher dispatcher { _event };
@@ -288,7 +364,7 @@ void Application::OnEvent_(
 }
 
 void Application::OnWindowCloseEvent_(
-    [[maybe_unused]] const WindowCloseEvent& _event)
+    const WindowCloseEvent&)
 {
     Quit();
 }

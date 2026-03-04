@@ -5,6 +5,8 @@
 #include <Shlobj.h>
 #include <atlstr.h>
 
+#include "DirIter.h"
+#include "FileSystem.h"
 #include "Graphics.h"
 #include "Texture.h"
 
@@ -21,7 +23,7 @@ ThumbnailCache::ThumbnailCache()
 }
 
 Ref<Texture> ThumbnailCache::GetOrPlaceholder(
-    const Path& _path)
+    const StringView _path)
 {
     // first search
     {
@@ -33,7 +35,7 @@ Ref<Texture> ThumbnailCache::GetOrPlaceholder(
     }
 
     // if not found.. gather from parent dir
-    GatherThumbnailsFrom_(_path.parent_path());
+    GatherThumbnailsFrom_(_path.GetDirectory());
 
     // second search
     {
@@ -58,35 +60,36 @@ void ThumbnailCache::OnEvent(Event& _event)
 }
 
 void ThumbnailCache::GatherThumbnailsFrom_(
-    const Path& _dir)
+    StringView _dir)
 {
-    JAM_ASSERT(fs::is_directory(_dir), "Path is not a directory: {}", _dir.native());
+    JAM_ASSERT(_dir.IsDirectory(), "String is not a directory: {}", _dir);
 
     // count files first
     // because.. if too many files, expand lru cache capacity
-    m_tmpEntries.clear();
-    for (const fs::directory_entry& entry: fs::directory_iterator(_dir))
+    m_pathes.clear();
+    const Expect<DirIter> dirIter = DirIter::Create(_dir);
+    JAM_ASSERT(dirIter, "Failed to create directory iterator for path: {}", _dir);
+    for (const StringView path: dirIter.GetValue())
     {
-        m_tmpEntries.emplace_back(entry);
+        m_pathes.emplace_back(path);
     }
 
     // expand cache if needed
-    const SizeT numEntries = m_tmpEntries.size();
-    if (numEntries > m_cache.GetCapacity())
+    const SizeT numPathes = m_pathes.size();
+    if (numPathes > m_cache.GetCapacity())
     {
-        m_cache.SetCapacity(numEntries + 16);   // add some margin
+        m_cache.SetCapacity(numPathes + 16);   // add some margin
     }
 
     // gather thumbnails
-    for (const fs::directory_entry& entry: m_tmpEntries)
+    for (const StringView path: m_pathes)
     {
-        const Path& path = entry.path();
         InsertThumbnail_(path);
     }
 }
 
 void ThumbnailCache::InsertThumbnail_(
-    const Path& _path)
+    const StringView _path)
 {
     // already cached
     const auto it = m_cache.Find(_path);
@@ -107,24 +110,22 @@ void ThumbnailCache::InsertThumbnail_(
 }
 
 Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
-    const Path& _path) const
+    const StringView _path) const
 {
     constexpr SIZE k_thumbnailSize = { 128, 128 };
 
-    ScratchWBuffer buf;
-    buf.SetUtf8(_path.native());
-
-    CComPtr<IShellItem> psi = nullptr;
-    if (FAILED(SHCreateItemFromParsingName(buf.GetPtr(), nullptr, IID_PPV_ARGS(&psi))))
+    const WString       path = WString::Encoded(_path);
+    CComPtr<IShellItem> psi  = nullptr;
+    if (FAILED(SHCreateItemFromParsingName(path.GetPtr(), nullptr, IID_PPV_ARGS(&psi))))
     {
-        JAM_LOG.Error("Failed to create IShellItem from path: {}", _path.native());
+        JAM_LOG_ERROR("Failed to create IShellItem from path: {}", _path);
         return k_nullopt;
     }
 
     CComPtr<IShellItemImageFactory> pImageFactory = nullptr;
     if (FAILED(psi->QueryInterface(IID_PPV_ARGS(&pImageFactory))))
     {
-        JAM_LOG.Error("Failed to get IShellItemImageFactory from IShellItem: {}", _path.native());
+        JAM_LOG_ERROR("Failed to get IShellItemImageFactory from IShellItem: {}", _path);
         return k_nullopt;
     }
 
@@ -133,7 +134,7 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
     {
         if (FAILED(pImageFactory->GetImage(k_thumbnailSize, SIIGBF_RESIZETOFIT, &hBmp)))
         {
-            JAM_LOG.Error("Failed to get thumbnail image for path: {}", _path.native());
+            JAM_LOG_ERROR("Failed to get thumbnail image for path: {}", _path);
             return k_nullopt;
         }
     }
@@ -141,7 +142,7 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
     BITMAP bmp = {};
     if (GetObject(hBmp, sizeof(BITMAP), &bmp) == 0)
     {
-        JAM_LOG.Error("GetObject failed for thumbnail bitmap: {}", _path.native());
+        JAM_LOG_ERROR("GetObject failed for thumbnail bitmap: {}", _path);
         DeleteObject(hBmp);
         return k_nullopt;
     }
@@ -152,7 +153,7 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
     Vector<UInt8> pixels(4 * width * height);
     if (GetBitmapBits(hBmp, NumericCast<LONG>(pixels.size()), pixels.data()) == 0)
     {
-        JAM_LOG.Error("GetBitmapBits failed for thumbnail bitmap: {}", _path.native());
+        JAM_LOG_ERROR("GetBitmapBits failed for thumbnail bitmap: {}", _path);
         DeleteObject(hBmp);
         return k_nullopt;
     }
@@ -167,15 +168,15 @@ Ref<Texture> ThumbnailCache::CreateTexture_(
     const CMemoryBlock _initData) const
 {
     const CMemoryBlock  mems[] = { _initData };
-    const TextureHandle texh   = JAM_GFX.CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
+    const TextureHandle texh   = GetGraphics().CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
     return Texture::Create(texh);
 }
 
 void ThumbnailCache::OnFileModifiedEvent_(
     const FileModifiedEvent& _event)
 {
-    const Path& path = _event.GetPath();
-    const auto  it   = m_cache.Find(path);
+    StringView path = _event.GetPath();
+    const auto it   = m_cache.Find(path);
     if (it != m_cache.End())
     {
         m_cache.Remove(path);

@@ -6,7 +6,8 @@ namespace Jam
 
 struct ConfirmationDialogInfo
 {
-    DialogInfo       baseInfo  = {};
+    StringView       title     = {};
+    ImVec2           size      = {};
     StringView       msg       = {};
     Delegate<void()> OnConfirm = nullptr;
     Delegate<void()> OnCancel  = nullptr;

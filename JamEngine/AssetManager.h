@@ -17,7 +17,7 @@ class Event;
 
 class AssetManager
 {
-    using AssetMap     = HashMap<Path, Ref<IAsset>>;
+    using AssetMap     = StringHashMap<Ref<IAsset>>;
     using AssetMapIter = AssetMap::iterator;
 
 public:
@@ -28,17 +28,17 @@ public:
 
     [[nodiscard]] static AssetManager& GetInstance();
 
-    Expect<Ref<IAsset>>   Load(eAssetType _type, const Path& _path, bool _bReloadIfExist = false);
-    Expect<Ref<Model>>    LoadModel(const Path& _path, bool _bForceReload = false);
-    Expect<Ref<Mesh>>     LoadMesh(const Path& _path, bool _bForceReload = false);
-    Expect<Ref<Material>> LoadMaterial(const Path& _path, bool _bForceReload = false);
-    Expect<Ref<Texture>>  LoadTexture(const Path& _path, bool _bForceReload = false);
+    Expect<Ref<IAsset>>   Load(eAssetType _type, StringView _path, bool _bReloadIfExist = false);
+    Expect<Ref<Model>>    LoadModel(StringView _path, bool _bForceReload = false);
+    Expect<Ref<Mesh>>     LoadMesh(StringView _path, bool _bForceReload = false);
+    Expect<Ref<Material>> LoadMaterial(StringView _path, bool _bForceReload = false);
+    Expect<Ref<Texture>>  LoadTexture(StringView _path, bool _bForceReload = false);
 
-    void Unload(eAssetType _type, const Path& _path);
-    void UnloadModel(const Path& _path);
-    void UnloadMesh(const Path& _path);
-    void UnloadMaterial(const Path& _path);
-    void UnloadTexture(const Path& _path);
+    void Unload(eAssetType _type, StringView _path);
+    void UnloadModel(StringView _path);
+    void UnloadMesh(StringView _path);
+    void UnloadMaterial(StringView _path);
+    void UnloadTexture(StringView _path);
 
     void CleanGarbage(eAssetType _type);
     void CleanGarbageAll();
@@ -66,6 +66,9 @@ private:
     friend class Application;
 };
 
-}   // namespace Jam
+[[nodiscard]] inline AssetManager& GetAssetManager()
+{
+    return AssetManager::GetInstance();
+}
 
-#define JAM_ASSET_MGR Jam::AssetManager::GetInstance()
+}   // namespace Jam

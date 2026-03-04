@@ -8,28 +8,27 @@ namespace Jam
 {
 Error DeserializeComponent_(
     const Ref<Scene>&                  _pScene,
-    const ComponentReflectionData&           _meta,
+    const ComponentReflectionData&     _meta,
     ArchiveReader&                     _reader,
     const Flags<eSceneDeserializeMode> _flags)
 {
     UID uid = {};
     if (const Error err = _reader.ReadField("uid", uid))
     {
-        JAM_LOG.Error("Scene deserialization failed: cannot read entity UID for component '{}'. {}", _meta.typeName, err.ToErrorMessage());
+        JAM_LOG_ERROR("Scene deserialization failed: cannot read entity UID for component '{}'. {}", _meta.typeName, err.ToErrorMessage());
         return err;
     }
 
-    Optional<Entity> optEntity = _pScene->FindEntity(uid);
-    if (!optEntity)
+    const Entity entity = _pScene->FindEntityOrNull(uid);
+    if (!entity)
     {
-        JAM_LOG.Error("Scene deserialization failed: entity with UID {} not found for component '{}'.", uid, _meta.typeName);
+        JAM_LOG_ERROR("Scene deserialization failed: entity with UID {} not found for component '{}'.", uid, _meta.typeName);
         return Error::RuntimeError;
     }
-    const Entity entity = optEntity.GetValue();
 
     if (const Error err = _reader.EnterField("data"))
     {
-        JAM_LOG.Error("Scene deserialization failed: cannot enter component data field for component '{}' of entity UID {}. {}", _meta.typeName, uid.GetValue(), err.ToErrorMessage());
+        JAM_LOG_ERROR("Scene deserialization failed: cannot enter component data field for component '{}' of entity UID {}. {}", _meta.typeName, uid.GetValue(), err.ToErrorMessage());
         if (_flags & eSceneDeserializeMode::RemoveComponentOnDeserializeFailure)
         {
             _reader.ClearLastError();   // handled
@@ -56,7 +55,7 @@ Error DeserializeComponent_(
 
         if (err)   // on error.
         {
-            JAM_LOG.Error("Scene deserialization failed: cannot deserialize component '{}' for entity UID {}. {}", _meta.typeName, uid.GetValue(), err.ToErrorMessage());
+            JAM_LOG_ERROR("Scene deserialization failed: cannot deserialize component '{}' for entity UID {}. {}", _meta.typeName, uid.GetValue(), err.ToErrorMessage());
             if (_flags & eSceneDeserializeMode::RemoveComponentOnDeserializeFailure)
             {
                 _meta.Remove(entity);
@@ -77,13 +76,13 @@ Error DeserilaizeComponents_(
     StringView typeName = {};
     if (const Error err = _reader.ReadField("typeName", typeName))
     {
-        JAM_LOG.Error("Scene deserialization failed: cannot read component type typeName. {}", err.ToErrorMessage());
+        JAM_LOG_ERROR("Scene deserialization failed: cannot read component type typeName. {}", err.ToErrorMessage());
         return err;
     }
 
     if (!JAM_COMPONENT_DB.IsComponentReflected(typeName))
     {
-        JAM_LOG.Error("Scene deserialization failed: component type '{}' is not registered in ReflectionDB", typeName);
+        JAM_LOG_ERROR("Scene deserialization failed: component type '{}' is not registered in ReflectionDB", typeName);
         if (_flags & eSceneDeserializeMode::RemoveComponentOnDeserializeFailure)
         {
             return Error::None;
@@ -94,7 +93,7 @@ Error DeserilaizeComponents_(
     const ComponentReflectionData& data = JAM_COMPONENT_DB.GetComponentReflection(typeName);
     if (const Error err = _reader.EnterField("values"))
     {
-        JAM_LOG.Error("Scene deserialization failed: cannot enter component values field. {}", err.ToErrorMessage());
+        JAM_LOG_ERROR("Scene deserialization failed: cannot enter component values field. {}", err.ToErrorMessage());
         return err;
     }
 
@@ -129,7 +128,7 @@ void SerializeScene(
 
     // components
     _writer.OpenField("components");   // components array
-    const SceneRegistry& reg = _pScene->GetRegistry();
+    const Registry& reg = _pScene->GetRegistry();
     for (const auto [enttTypeId, storage]: reg.storage())
     {
         const ComponentReflectionData& data = JAM_COMPONENT_DB.GetComponentReflectionByEnttHash(enttTypeId);
@@ -137,7 +136,7 @@ void SerializeScene(
         _writer.OpenAtBack();                            // component entry
         _writer.WriteField("typeName", data.typeName);   // type typeName
         _writer.OpenField("values");                     // open values array
-        for (const EntityHandle handle: storage)
+        for (const RegistryHandle handle: storage)
         {
             const Entity entity    = handleEntityMap.at(handle);
             const void*  pCmpValue = storage.value(handle);
@@ -170,13 +169,13 @@ Expect<Ref<Scene>> DeserializeScene(
     StringView sceneTypeName = {};
     if (const Error err = _reader.ReadField("sceneType", sceneTypeName))
     {
-        JAM_LOG.Error("Scene deserialization failed: cannot read scene type typeName. {}", err.ToErrorMessage());
+        JAM_LOG_ERROR("Scene deserialization failed: cannot read scene type typeName. {}", err.ToErrorMessage());
         return err;
     }
 
     if (!JAM_SCENE_DB.IsSceneReflected(sceneTypeName))
     {
-        JAM_LOG.Error("Scene deserialization failed: scene type '{}' is not registered in ReflectionDB", sceneTypeName);
+        JAM_LOG_ERROR("Scene deserialization failed: scene type '{}' is not registered in ReflectionDB", sceneTypeName);
         return Error::RuntimeError;
     }
 
@@ -185,7 +184,7 @@ Expect<Ref<Scene>> DeserializeScene(
     Vector<UID> entityUids = {};
     if (const Error err = _reader.ReadField("entities", entityUids))
     {
-        JAM_LOG.Error("Scene deserialization failed: cannot read entity UIDs. {}", err.ToErrorMessage());
+        JAM_LOG_ERROR("Scene deserialization failed: cannot read entity UIDs. {}", err.ToErrorMessage());
         return err;
     }
 
@@ -201,7 +200,7 @@ Expect<Ref<Scene>> DeserializeScene(
 
     if (const Error err = _reader.EnterField("components"))
     {
-        JAM_LOG.Error("Scene deserialization failed: cannot enter components field. {}", err.ToErrorMessage());
+        JAM_LOG_ERROR("Scene deserialization failed: cannot enter components field. {}", err.ToErrorMessage());
         return err;
     }
 

@@ -123,20 +123,20 @@ public:
 
     [[nodiscard]] bool operator==(const Scalar _other) const
     {
-        return CmpEquel(_other);
+        return CmpEqual(_other);
     }
 
     [[nodiscard]] bool operator!=(const Scalar _other) const
     {
-        return !CmpEquel(_other);
+        return !CmpEqual(_other);
     }
 
-    [[nodiscard]] bool CmpEquel(const Scalar& _other) const
+    [[nodiscard]] bool CmpEqual(const Scalar& _other) const
     {
         return m_type == _other.m_type && MemEqual(m_value, _other.m_value);
     }
 
-    [[nodiscard]] bool CmpEquelApprox(const Scalar& _other, const float _tolerance = k_epsilon) const
+    [[nodiscard]] bool CmpEqualApprox(const Scalar& _other, const float _tolerance = k_epsilon) const
     {
         if (m_type != _other.m_type)
         {

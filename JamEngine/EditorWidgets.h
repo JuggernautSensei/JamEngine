@@ -1,5 +1,6 @@
 #pragma once
 #include "WindowsUtilities.h"
+#include "ImGuiEngine.h"
 #include "Entity.h"
 #include "GraphicsBase.h"
 #include "Texture.h"
@@ -8,6 +9,7 @@
 
 namespace Jam
 {
+class FileDialog;
 
 class VertexLayoutEntry;
 
@@ -73,9 +75,16 @@ private:
     bool m_bIsEditing = false;
 };
 
+enum class eTextAlign
+{
+    Left,
+    Center,
+    Right
+};
+
 // base
 void Widget_Text(const char* _text, bool _bFrameAligned = false);
-void Widget_TextFrame(const char* _text, ImVec2 _frameSize = { 0.f, 0.f }, ImVec4 _bgCol = { 0.f, 0.f, 0.f, 0.f }, bool _bRenderBorder = false);
+void Widget_TextFrame(const char* _text, ImVec2 _frameSize = { 0.f, 0.f }, ImVec4 _bgCol = { 0.f, 0.f, 0.f, 0.f }, bool _bRenderBorder = false, eTextAlign _align = eTextAlign::Center);
 bool Widget_IconButton(const char* _text, ImTextureProxy _icon, ImVec2 _size = { 0.f, 0.f });
 void Widget_TextWrapped(const char* _text, float _wrapWidth);
 
@@ -102,6 +111,7 @@ void Widget_Image(ImTextureProxy _texture, ImVec2 _size, ImVec2 _uv0 = { 0.f, 0.
 void Widget_ItemDescriptionTooltip(const char* _summery, const char* _desc);
 
 bool Widget_VertexLayoutEntryCombo(const char* _label, Ref<VertexLayoutEntry>& _pVle);
+void Widget_Dummy(const char* _label, ImVec2 _size);
 
 // asset
 bool Widget_MeshPicker(const char* _label, Ref<Mesh>& _pMesh);
@@ -109,8 +119,9 @@ bool Widget_MaterialPicker(const char* _label, Ref<Material>& _pMaterial);
 bool Widget_TexturePicker(const char* _label, Ref<Texture>& _pTexture, const ImVec2& _size = ImVec2 { 128.f, 128.f });
 
 bool Widget_Acroball(const char* _label, Transform& _t, ImVec2 _pos, float _length);
-bool Widget_FileDialog(const char* _label, Path& _path, FileDialog& _fd);
+bool Widget_FileDialog(const char* _label, String& _path, FileDialog& _fd);
 bool Widget_InputText(const char* _label, String& _str, ImGuiInputTextFlags _flags = 0, ImGuiInputTextCallback _callback = nullptr, void* _pUserData = nullptr);
+void Widget_ReadOnlyInputText(const char* _label, StringView _str);
 
 struct EnumComboItem
 {

@@ -9,9 +9,9 @@ namespace Jam
 {
 
 MessageDialog::MessageDialog(
-    const MessageDialogInfo& _desc)
-    : Dialog(_desc.baseInfo)
-    , m_msg(_desc.msg.ToString())
+    const MessageDialogInfo& _info)
+    : Dialog(_info.title, _info.size)
+    , m_msg(_info.msg)
 {
 }
 

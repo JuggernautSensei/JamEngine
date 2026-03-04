@@ -1,4 +1,5 @@
 #pragma once
+#include "Archive.h"
 
 namespace Jam
 {
@@ -8,11 +9,15 @@ template<typename E>
           && std::is_unsigned_v<UnderlyingT<E>>
 class Flags
 {
-    using UnderlyingType = UnderlyingT<E>;
-    using UnsignedType   = std::make_unsigned_t<UnderlyingType>;
-
 public:
+    using UnderlyingT = UnderlyingT<E>;
+
     constexpr Flags() = default;
+
+    /* implicit */ constexpr Flags(const UnderlyingT _value) noexcept
+        : m_value(_value)
+    {
+    }
 
     /* implicit */ constexpr Flags(E _value) noexcept
         : m_value(UnderlyingFrom(_value))
@@ -128,24 +133,24 @@ public:
         return result;
     }
 
-    void LeftShift(Int32 _shift) noexcept
+    void LeftShift(SizeT _shift) noexcept
     {
         m_value <<= _shift;
     }
 
-    [[nodiscard]] constexpr Flags LeftShifted(const Int32 _shift) const noexcept
+    [[nodiscard]] constexpr Flags LeftShifted(const SizeT _shift) const noexcept
     {
         Flags result = *this;
         result.LeftShift(_shift);
         return result;
     }
 
-    void RightShift(Int32 _shift) noexcept
+    void RightShift(SizeT _shift) noexcept
     {
         m_value >>= _shift;
     }
 
-    [[nodiscard]] constexpr Flags RightShifted(const Int32 _shift) const noexcept
+    [[nodiscard]] constexpr Flags RightShifted(const SizeT _shift) const noexcept
     {
         Flags result = *this;
         result.RightShift(_shift);
@@ -204,23 +209,23 @@ public:
         return *this;
     }
 
-    [[nodiscard]] constexpr Flags operator<<(const Int32 _other) const noexcept
+    [[nodiscard]] constexpr Flags operator<<(const SizeT _other) const noexcept
     {
         return LeftShifted(_other);
     }
 
-    constexpr Flags& operator<<=(const Int32 _other) noexcept
+    constexpr Flags& operator<<=(const SizeT _other) noexcept
     {
         LeftShift(_other);
         return *this;
     }
 
-    [[nodiscard]] constexpr Flags operator>>(const Int32 _other) const noexcept
+    [[nodiscard]] constexpr Flags operator>>(const SizeT _other) const noexcept
     {
         return RightShifted(_other);
     }
 
-    constexpr Flags& operator>>=(const Int32 _other) noexcept
+    constexpr Flags& operator>>=(const SizeT _other) noexcept
     {
         RightShift(_other);
         return *this;
@@ -236,12 +241,17 @@ public:
         return m_value != _other.m_value;
     }
 
+    constexpr bool operator!() const noexcept
+    {
+        return m_value == 0;
+    }
+
     /* implicit */ constexpr operator bool() const noexcept
     {
         return m_value != 0;
     }
 
-    /* implicit */ constexpr operator UnsignedType() const noexcept
+    /* implicit */ constexpr operator UnderlyingT() const noexcept
     {
         return m_value;
     }
@@ -256,13 +266,13 @@ public:
         m_value = 0;
     }
 
-    [[nodiscard]] constexpr UnsignedType GetValue() const noexcept
+    [[nodiscard]] constexpr UnderlyingT GetValue() const noexcept
     {
         return m_value;
     }
 
 private:
-    UnsignedType m_value = UnsignedType { 0 };
+    UnderlyingT m_value = UnderlyingT { 0 };
 };
 
 template<typename E>
@@ -270,6 +280,27 @@ template<typename E>
 Flags<E> MakeFlags(std::initializer_list<E> _list) noexcept
 {
     return Flags<E> { _list };
+}
+
+template<typename E>
+    requires std::is_enum_v<E>
+void WriteToArchive(ArchiveWriter& _writer, const Flags<E> _flags)
+{
+    _writer.Write(_flags.GetValue());
+}
+
+template<typename E>
+    requires std::is_enum_v<E>
+Error ReadFromArchive(ArchiveReader& _reader, Flags<E>& _flags)
+{
+    typename Flags<E>::UnderlyingT value = 0;
+    if (const Error err = _reader.Read(value))
+    {
+        return err;
+    }
+
+    _flags = Flags<E>(value);
+    return Error::None;
 }
 
 }   // namespace Jam

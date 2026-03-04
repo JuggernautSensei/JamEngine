@@ -1,5 +1,4 @@
 #pragma once
-
 #include "EnumArray.h"
 #include "Material.h"
 #include "Model.h"
@@ -77,7 +76,7 @@ using ImportedModelNode = ModelNode;   // 동일한 구조이므로 별도 정�
 class AssimpImporter
 {
 public:
-    [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(const Path& _path, const AssimpImporterInfo& _info = {});
+    [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(StringView _path, const AssimpImporterInfo& _info = {});
 
     [[nodiscard]] const ImportedModelNode&        GetRootNode() const;
     [[nodiscard]] const Vector<ImportedMesh>&     GetMeshes() const;
@@ -88,7 +87,7 @@ public:
 
 private:
     AssimpImporter() = default;
-    Error ImportFromFile_(const Path& _path, const AssimpImporterInfo& _options);
+    Error ImportFromFile_(StringView _path, const AssimpImporterInfo& _options);
 
     // import steps
     void                            ImportMeshes_(const aiScene* _pScene, const AssimpImporterInfo& _options);

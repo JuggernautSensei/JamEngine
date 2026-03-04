@@ -36,7 +36,7 @@ namespace
             case WM_DESTROY:
             {
                 WindowCloseEvent closeEvent = {};
-                JAM_APP.DispatchEvent(closeEvent);
+                GetApp().DispatchEvent(closeEvent);
             }
             break;
 
@@ -56,7 +56,7 @@ namespace
                 const Int32 height = Max(rect.bottom - rect.top, 1);
 
                 WindowResizedEvent event { width, height };
-                JAM_APP.DispatchEvent(event);
+                GetApp().DispatchEvent(event);
             }
             break;
 
@@ -70,14 +70,14 @@ namespace
                     case SIZE_MINIMIZED:   // 윈도우가 최소화 되었을 때
                     {
                         WindowMinimizedEvent event;
-                        JAM_APP.DispatchEvent(event);
+                        GetApp().DispatchEvent(event);
                     }
                     break;
 
                     case SIZE_MAXIMIZED:   // 윈도우가 최대화 되었을 때
                     {
                         WindowMaximizedEvent event { width, height };
-                        JAM_APP.DispatchEvent(event);
+                        GetApp().DispatchEvent(event);
                     }
                     break;
 
@@ -86,7 +86,7 @@ namespace
                         if (!s_bUserGrabResizing)   // grab으로 리사이즈하는 경우는 처리하지 않음.
                         {
                             WindowResizedEvent event { width, height };
-                            JAM_APP.DispatchEvent(event);
+                            GetApp().DispatchEvent(event);
                         }
                     }
                     break;
@@ -104,7 +104,7 @@ namespace
                 const Int32 y = HIWORD(lParam);
 
                 WindowMoveEvent moveEvent { x, y };
-                JAM_APP.DispatchEvent(moveEvent);
+                GetApp().DispatchEvent(moveEvent);
             }
             break;
 
@@ -113,7 +113,7 @@ namespace
                 const Int32 delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
                 MouseWheelEvent wheelEvent { delta };
-                JAM_APP.DispatchEvent(wheelEvent);
+                GetApp().DispatchEvent(wheelEvent);
             }
             break;
 
@@ -121,7 +121,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_LBUTTON;
                 MouseDownEvent  event { vKey };
-                JAM_APP.DispatchEvent(event);
+                GetApp().DispatchEvent(event);
             }
             break;
 
@@ -129,7 +129,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_LBUTTON;
                 MouseUpEvent    mouseUpEvent { vKey };
-                JAM_APP.DispatchEvent(mouseUpEvent);
+                GetApp().DispatchEvent(mouseUpEvent);
             }
             break;
 
@@ -137,7 +137,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_RBUTTON;
                 MouseDownEvent  mouseDownEvent { vKey };
-                JAM_APP.DispatchEvent(mouseDownEvent);
+                GetApp().DispatchEvent(mouseDownEvent);
             }
             break;
 
@@ -145,7 +145,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_RBUTTON;
                 MouseUpEvent    mouseUpEvent { vKey };
-                JAM_APP.DispatchEvent(mouseUpEvent);
+                GetApp().DispatchEvent(mouseUpEvent);
             }
             break;
 
@@ -153,7 +153,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_MBUTTON;
                 MouseDownEvent  mouseDownEvent { vKey };
-                JAM_APP.DispatchEvent(mouseDownEvent);
+                GetApp().DispatchEvent(mouseDownEvent);
             }
             break;
 
@@ -161,7 +161,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_MBUTTON;
                 MouseUpEvent    mouseUpEvent { vKey };
-                JAM_APP.DispatchEvent(mouseUpEvent);
+                GetApp().DispatchEvent(mouseUpEvent);
             }
             break;
 
@@ -170,7 +170,7 @@ namespace
                 const Int32    x = LOWORD(lParam);
                 const Int32    y = HIWORD(lParam);
                 MouseMoveEvent mouseMoveEvent { x, y };
-                JAM_APP.DispatchEvent(mouseMoveEvent);
+                GetApp().DispatchEvent(mouseMoveEvent);
             }
             break;
 
@@ -178,7 +178,7 @@ namespace
             {
                 const Int32  vKey = static_cast<int>(wParam);
                 KeyDownEvent keyDownEvent { vKey };
-                JAM_APP.DispatchEvent(keyDownEvent);
+                GetApp().DispatchEvent(keyDownEvent);
             }
             break;
 
@@ -186,7 +186,7 @@ namespace
             {
                 const Int32 vKey = static_cast<int>(wParam);
                 KeyUpEvent  keyUpEvent { vKey };
-                JAM_APP.DispatchEvent(keyUpEvent);
+                GetApp().DispatchEvent(keyUpEvent);
             }
             break;
 
@@ -194,14 +194,14 @@ namespace
             case WM_SETFOCUS:
             {
                 WindowFocusedEvent focusEvent = {};
-                JAM_APP.DispatchEvent(focusEvent);
+                GetApp().DispatchEvent(focusEvent);
             }
             break;
 
             case WM_KILLFOCUS:
             {
                 WindowLostFocusEvent lostFocusEvent = {};
-                JAM_APP.DispatchEvent(lostFocusEvent);
+                GetApp().DispatchEvent(lostFocusEvent);
             }
             break;
 
@@ -261,9 +261,8 @@ void WindowsPlatform::SetTitle(
     JAM_ASSERT(m_hWnd, "WindowsPlatform handle is null");
     JAM_ASSERT(m_hInstance, "WindowsPlatform instance handle is null");
 
-    ScratchWBuffer buf;
-    buf.SetUtf8(_name);
-    JAM_CHECK_WIN32(::SetWindowText(m_hWnd, buf.GetPtr()));
+    const WString name = WString::Encoded(_name);
+    JAM_CHECK_WIN32(::SetWindowTextW(m_hWnd, name.GetPtr()));
 }
 
 void WindowsPlatform::SetWindowProperty(
@@ -391,7 +390,7 @@ WindowsPlatform::WindowsPlatform()
 
     // create window
     {
-        m_hInstance = GetModuleHandle(NULL);
+        m_hInstance = GetModuleHandleW(NULL);
 
         // win class initialize
         {
@@ -409,22 +408,17 @@ WindowsPlatform::WindowsPlatform()
             wClassEx.lpszClassName = k_winClassName;
             wClassEx.hIconSm       = nullptr;
 
-            if (RegisterClassEx(&wClassEx) == 0)
+            if (RegisterClassExW(&wClassEx) == 0)
             {
-                ScratchBuffer buf;
-                FormatErrnoMessage(buf, GetLastError());
-
-                JAM_CRASH("Failed to register window class: {}", buf.ToStringView());
+                JAM_CRASH("Failed to register window class: {}", CreateWindowsLastErrorMessage());
             }
         }
 
         // create window
-        m_hWnd = CreateWindowEx(0, k_winClassName, k_winTitleName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, NULL, NULL, m_hInstance, NULL);
+        m_hWnd = CreateWindowExW(0, k_winClassName, k_winTitleName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, NULL, NULL, m_hInstance, NULL);
         if (m_hWnd == NULL)
         {
-            ScratchBuffer buf;
-            FormatErrnoMessage(buf, GetLastError());
-            JAM_CRASH("Failed to create window: {}", buf.ToStringView());
+            JAM_CRASH("Failed to create window: {}", CreateWindowsLastErrorMessage());
         }
 
         ::ShowWindow(m_hWnd, SW_SHOW);
@@ -442,7 +436,7 @@ WindowsPlatform::~WindowsPlatform()
 {
     CoUninitialize();
     DestroyWindow(m_hWnd);
-    UnregisterClass(k_winClassName, m_hInstance);
+    UnregisterClassW(k_winClassName, m_hInstance);
 
     m_hWnd      = NULL;
     m_hInstance = NULL;
@@ -456,8 +450,8 @@ void WindowsPlatform::CreateInstance()
 
 void WindowsPlatform::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance, "WindowsPlatform instance is null");
     delete s_pInstance;
+    s_pInstance = nullptr;
 }
 
 void WindowsPlatform::OnEvent(Event& _event)

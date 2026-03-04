@@ -6,18 +6,25 @@
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "MessageDialog.h"
-#include "VertexLayoutEntry.h"
+#include "VertexLayoutEntryManager.h"
+#include "StackString.h"
 
 namespace Jam
 {
 
 VertexLayoutEditorDialog::VertexLayoutEditorDialog(
-    const VertexLayoutEditorDialogDesc& _desc)
-    : Dialog(_desc.baseInfo)
-    , m_pEditVle(_desc.pVle)
-    , m_vl(_desc.pVle->GetVertexLayout())
-    , m_name(_desc.pVle->GetName().ToString())
+    const VertexLayoutEditorDialogInfo& _info)
+    : Dialog(_info.title, _info.size)
+    , m_oldName(_info.pVle->GetName())
+    , m_newName(_info.pVle->GetName())
 {
+    for (const VertexLayoutElement& elem: _info.pVle->GetVertexLayout().GetElems())
+    {
+        if (m_elems.PushBack(elem.attrib, elem.format).bSucceeded == false)
+        {
+            JAM_ASSERT(false, "Duplicate vertex attribute in the vertex layout entry being edited.");
+        }
+    }
 }
 
 void VertexLayoutEditorDialog::OnShow()
@@ -27,10 +34,13 @@ void VertexLayoutEditorDialog::OnShow()
         Widget_Text("name", true);
         ImGui::SameLine();
         SetNextItemToAvailWidth();
-        Widget_InputText("##EntryName", m_name);
+        Widget_InputText("##EntryName", m_newName);
     }
 
     // vertexLayout editor
+    Int32 offset = 0;   // spec
+    Int32 stride = 0;   // spec
+
     ImGui::Spacing();
     if (ImGui::BeginTable("VertexLayoutEditorTable", 5, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders))
     {
@@ -46,28 +56,35 @@ void VertexLayoutEditorDialog::OnShow()
         ImGui::TableHeadersRow();
 
         // render elements
-        for (VertexLayoutElement vle: m_vl.GetElements())   // copy
+        for (const auto node: m_elems)
         {
-            ImGui::PushID(UnderlyingFrom(vle.attrib));
+            eVertexAttribute attrib = node.key;
+            eAttributeFormat format = node.value;
+
+            ImGui::PushID(UnderlyingFrom(attrib));
+
+            // calculate byte width and offset
+            offset = stride;
+            stride += NumericCast<Int32>(ByteWidthOf(format));
 
             // attribute column
             ImGui::TableNextColumn();
-            if (Widget_EnumCombo("##Attrib", vle.attrib))
+            if (Widget_VertexAttributeCombo_("##Attrib", attrib))
             {
-                m_vl.Modify(vle.attrib, vle.format);
+                PushNodeDefered_(attrib, format);
             }
 
             // format column
             ImGui::TableNextColumn();
-            if (Widget_EnumCombo("##Format", vle.format))
+            if (Widget_EnumCombo("##Format", format))
             {
-                m_vl.Modify(vle.attrib, vle.format);
+                ModifyNodeDefered_(attrib, format);
             }
 
             // byteWidth column
             {
-                ScratchBuffer buf;
-                buf.Format("{}", vle.byteWidth);
+                StackString<64> buf;
+                buf.Format("{}", ByteWidthOf(format));
 
                 ImGui::TableNextColumn();
                 Widget_Text(buf.GetPtr(), true);
@@ -75,17 +92,17 @@ void VertexLayoutEditorDialog::OnShow()
 
             // offset column
             {
-                ScratchBuffer buf;
-                buf.Format("{}", vle.offset);
+                StackString<64> buf;
+                buf.Format("{}", offset);
 
                 ImGui::TableNextColumn();
                 Widget_Text(buf.GetPtr(), true);
             }
 
             // action column
-            if (ImGui::Button("x", btnSize))
+            if (ImGui::Button("remove", btnSize))
             {
-                OnClickRemoveButton_(vle.attrib);
+                RemoveNodeDefered_(attrib);
             }
 
             ImGui::PopID();
@@ -93,9 +110,8 @@ void VertexLayoutEditorDialog::OnShow()
 
         // add button
         ImGui::Spacing();
-        if (ImGui::Button("add", CalcFitButtonSize()))
+        if (Widget_AddElementButton_("add element", btnSize))
         {
-            OnClickAddButton_();
         }
 
         ImGui::EndTable();
@@ -103,103 +119,178 @@ void VertexLayoutEditorDialog::OnShow()
 
     // info
     {
-        ScratchBuffer buf;
-        buf.Format("stride: {} bytes, {} elements", m_vl.GetStride(), m_vl.GetNumElements());
-
         ImGui::Spacing();
-        Widget_Text(buf.GetPtr(), true);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("stride: %d bytes, %d elements", stride, m_elems.GetSize());
     }
 
-    ImGui::Spacing();
-    const ImVec2 btnSize = CalcFitButtonSize(2);
-    if (ImGui::Button("save", btnSize))
+    // save / close buttons
     {
-        if (OnClickSaveButton_())
+        const ImVec2 btnSize = CalcFitButtonSize(2);
+
+        // save
+        ImGui::Spacing();
+        if (ImGui::Button("save", btnSize))
+        {
+            if (OnClickSaveButton_())
+            {
+                ImGui::CloseCurrentPopup();
+            }
+        }
+
+        // close
+        ImGui::SameLine();
+        if (ImGui::Button("close", btnSize))
         {
             ImGui::CloseCurrentPopup();
         }
     }
-
-    ImGui::SameLine();
-    if (ImGui::Button("close", btnSize))
-    {
-        ImGui::CloseCurrentPopup();
-    }
 }
 
-void VertexLayoutEditorDialog::OnClickRemoveButton_(
+bool VertexLayoutEditorDialog::OnClickSaveButton_() const
+{
+    if (m_newName.IsEmpty())
+    {
+        GetEditor().PushMessageDialog("error", "entry name cannot be empty.");
+        return false;
+    }
+
+    const bool bNameChanged = (m_newName != m_oldName);
+    if (bNameChanged && GetEditor().GetVertexLayoutManager().Contains(m_newName))
+    {
+        GetEditor().PushMessageDialog("error", "entry name already exists. please choose a different name.");
+        return false;
+    }
+
+    if (m_elems.IsEmpty())
+    {
+        GetEditor().PushMessageDialog("error", "vertex layout entry must contain at least one element.");
+        return false;
+    }
+
+    if (bNameChanged)
+    {
+        GetEditor().GetVertexLayoutManager().Rename(m_oldName, m_newName);
+    }
+
+    // build vertex layout
+    VertexLayout vl = {};
+    for (const auto node: m_elems)
+    {
+        vl.Push(node.key, node.value);
+    }
+
+    // update
+    Ref<VertexLayoutEntry> pEntry = GetEditor().GetVertexLayoutManager().Get(m_oldName);
+    pEntry->SetVertexLayout(vl);
+    return true;
+}
+
+void VertexLayoutEditorDialog::PushNodeDefered_(
+    const eVertexAttribute _attrib,
+    const eAttributeFormat _format)
+{
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _attrib, _format]
+        {
+            m_elems.PushBack(_attrib, _format);
+        }));
+}
+
+void VertexLayoutEditorDialog::RemoveNodeDefered_(
     const eVertexAttribute _attrib)
 {
-    // remove deferedly to avoid invalidating iterators
-    JAM_ASSERT(m_vl.Has(_attrib), "attribute does not exist in the vertex layout.");
+    JAM_ASSERT(m_elems.Contains(_attrib), "attribute does not exist in the vertex layout.");
 
-    auto remove = [this, _attrib]
-    {
-        m_vl.Remove(_attrib);
-    };
-
-    JAM_APP.SubmitCommandToMainThread(Bind(std::move(remove)));
-}
-
-void VertexLayoutEditorDialog::OnClickAddButton_()
-{
-    // find first unused attribute
-    for (const eVertexAttribute attrib: EnumRanges<eVertexAttribute>())
-    {
-        if (!m_vl.Has(attrib))
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _attrib]
         {
-            // add with default format
-            m_vl.Push(attrib, eAttributeFormat::Float);
-            return;
-        }
-    }
-
-    // all attributes are used
-    MessageDialogInfo desc = {};
-    desc.baseInfo.title    = "error";
-    desc.msg               = "all vertex attributes are already used in the vertex layout.";
-    JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
+            m_elems.Remove(_attrib);
+        }));
 }
 
-bool VertexLayoutEditorDialog::OnClickSaveButton_()
+void VertexLayoutEditorDialog::ModifyNodeDefered_(
+    const eVertexAttribute _attrib,
+    const eAttributeFormat _format)
 {
-    if (m_name.IsEmpty())
+    JAM_ASSERT(m_elems.Contains(_attrib), "attribute does not exist in the vertex layout.");
+
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _attrib, _format]
+        {
+            m_elems.Get(_attrib) = _format;
+        }));
+}
+
+bool VertexLayoutEditorDialog::IsElementAllUsed() const
+{
+    return m_elems.GetSize() == CountOf<eVertexAttribute>();
+}
+
+bool VertexLayoutEditorDialog::Widget_VertexAttributeCombo_(
+    const char*       _label,
+    eVertexAttribute& _attrib) const
+{
+    const char* preview = NameOf(_attrib).GetPtr();
+
+    bool bChanged = false;
+    if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = "vertex layout entry name cannot be empty.";
-        JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
-        return false;
+        for (const eVertexAttribute attrib: EnumRanges<eVertexAttribute>())
+        {
+            const bool bCannotSelect = !m_elems.Contains(attrib);
+
+            if (bCannotSelect)
+            {
+                ImGui::BeginDisabled(true);
+            }
+
+            const char* label     = NameOf(attrib).GetPtr();
+            const bool  bSelected = (attrib == _attrib);
+            if (ImGui::Selectable(label, bSelected))
+            {
+                bChanged = (attrib != _attrib);
+                _attrib  = attrib;
+            }
+
+            if (bCannotSelect)
+            {
+                ImGui::EndDisabled();
+            }
+        }
+        ImGui::EndCombo();
     }
 
-    const bool       bRepalce = (m_pEditVle->GetName() == m_name);
-    VertexLayoutMap& map      = JAM_EDITOR.GetVertexLayoutMap();
+    return bChanged;
+}
 
-    // replace existing entry
-    if (bRepalce)
+bool VertexLayoutEditorDialog::Widget_AddElementButton_(
+    const char*  _label,
+    const ImVec2 _size)
+{
+    const bool bFull = IsElementAllUsed();
+    ImGui::BeginDisabled(bFull);
+    if (ImGui::Button(_label, _size))
     {
-        const Ref<VertexLayoutEntry> pVle = MakeRef<VertexLayoutEntry>(m_name, m_vl);
-        map.InsertOrReplace(pVle);
-        return true;
+        for (const eVertexAttribute attrib: EnumRanges<eVertexAttribute>())
+        {
+            if (!m_elems.Contains(attrib))
+            {
+                PushNodeDefered_(attrib, eAttributeFormat::Float);
+                return true;
+            }
+        }
+
+        JAM_UNREACHABLE;
+    }
+    ImGui::EndDisabled();
+
+    if (bFull)
+    {
+        ImGui::SetItemTooltip("all vertex attributes have been added. remove existing attributes to add new ones.");
     }
 
-    // renamed
-    if (map.Has(m_name))
-    {
-        ScratchBuffer buf;
-        buf.Format("vertex layout entry named '{}' already exists.", m_name);
-
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = buf.ToStringView();
-        JAM_EDITOR.PushDialog(MakeRef<MessageDialog>(desc));
-        return false;
-    }
-
-    // erase old entry and insert new one
-    map.Remove(m_pEditVle->GetName());
-    map.Insert(MakeRef<VertexLayoutEntry>(m_name, m_vl));
-    return true;
+    return false;
 }
 
 }   // namespace Jam

@@ -1,5 +1,6 @@
 #pragma once
 #include "AssetCreationDialog.h"
+#include "FileDialog.h"
 #include "ImageBase.h"
 #include "ImageImporter.h"
 #include "WindowsUtilities.h"
@@ -9,8 +10,9 @@ namespace Jam
 
 struct ImageImportDialogInfo
 {
-    DialogInfo baseInfo          = {};
-    Path       importPathOrEmpty = {};
+    StringView title             = {};
+    ImVec2     size              = {};
+    String     importPathOrEmpty = {};
 };
 
 class ImageImportDialog : public AssetCreationDialog
@@ -23,18 +25,18 @@ public:
 private:
     Error LoadPreviewTexture_();
     bool  OnClickImportButton_();
-    bool  CreateAndSaveAsset_(const Path& _path) override;
+    bool  CreateAndSaveAsset_(StringView _path) override;
     void  Widget_PreviewTexture_() const;
     bool  Widget_TextureFormatCombo_(const char* _label, eTextureFormat& _format) const;
 
-    Path       m_importPath = {};
-    FileDialog m_importFd { eFileDialogMode::OpenFile };
-    FileDialog m_saveFd { eFileDialogMode::SaveFile };
+    String     m_importPath = {};
+    FileDialog m_importFd;
+    FileDialog m_saveFd;
 
     Ref<Texture>      m_pPreviewTex = nullptr;
     ImageImporterInfo m_options     = {};
 
-    Path   m_assetSaveDir  = {};
+    String m_assetSaveDir  = {};
     String m_assetBaseName = {};
 
     float                  m_previewLoadCounterSec  = 0.f;

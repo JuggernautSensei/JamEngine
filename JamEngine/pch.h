@@ -3,7 +3,7 @@
 // intercept memory allocators
 #include "MemoryAllocator.h"
 
-// predefine macros
+// predefine m_macros
 #ifndef NOMINMAX
 #    define NOMINMAX
 #endif
@@ -44,7 +44,7 @@
 #include <entt/entt.hpp>
 
 // fmt
-#define FMT_UNICODE 0
+#define SPDLOG_WCHAR_TO_UTF8_SUPPORT
 #include <fmt/format.h>
 #include <fmt/printf.h>
 #include <fmt/xchar.h>
@@ -70,7 +70,5 @@
 #include "Delegate.h"
 
 // utilities
-#include "FileSystemUtilities.h"
 #include "EnumUtilities.h"
 #include "Flags.h"
-#include "ScratchBuffer.h"

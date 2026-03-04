@@ -4,20 +4,21 @@
 namespace Jam
 {
 
-struct RenameFileDialogDesc
+struct RenameFileDialogInfo
 {
-    DialogInfo baseInfo = {};
-    Path       srcPath  = {};
+    StringView title   = {};
+    ImVec2     size    = {};
+    String     srcPath = {};
 };
 
 class RenameFileDialog : public Dialog
 {
 public:
-    explicit RenameFileDialog(const RenameFileDialogDesc& _desc);
+    explicit RenameFileDialog(const RenameFileDialogInfo& _info);
     void OnShow() override;
 
 private:
-    Path   m_oldPath  = {};
+    String m_oldPath  = {};
     String m_filename = {};
 };
 

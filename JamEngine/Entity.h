@@ -13,14 +13,14 @@ class Entity
 {
 public:
     constexpr Entity() = default;
-    Entity(SceneRegistry& _registry, EntityHandle _handle, UID _uid);
+    Entity(Registry& _registry, RegistryHandle _handle, UID _uid);
 
     [[nodiscard]] bool operator==(Entity _other) const;
     [[nodiscard]] bool operator!=(Entity _other) const;
 
     [[nodiscard]] bool             IsValid() const;
     [[nodiscard]] UID              GetUID() const;
-    [[nodiscard]] EntityHandle     GetHandle() const;
+    [[nodiscard]] RegistryHandle   GetHandle() const;
     [[nodiscard]] SceneNode&       GetSceneNode();
     [[nodiscard]] const SceneNode& GetSceneNode() const;
 
@@ -43,7 +43,7 @@ public:
         requires HasComponentMetadataEssentialMarker<T>
     void CreateComponentDefered(Args&&... _args)
     {
-        JAM_APP.SubmitCommandToMainThread(Bind(
+        GetApp().SubmitCommandToMainThread(Bind(
             [this, ... args = std::forward<Args>(_args)]
             {
                 CreateComponent<T>(std::move(args)...);
@@ -89,19 +89,19 @@ public:
         requires(HasComponentMetadataEssentialMarker<T> && ...)
     void RemoveComponentDefered()
     {
-        JAM_APP.SubmitCommandToMainThread(Bind(
+        GetApp().SubmitCommandToMainThread(Bind(
             [this]
             {
                 RemoveComponent<T...>();
             }));
     }
 
-    static Entity k_invalid;
+    static const Entity k_null;
 
 private:
-    SceneRegistry* m_pRegistry = nullptr;
-    EntityHandle   m_handle    = entt::null;
-    UID            m_uid       = UID::k_invalid;
+    Registry*      m_pRegistry = nullptr;
+    RegistryHandle m_handle    = entt::null;
+    UID            m_uid       = UID::k_null;
 };
 
 }   // namespace Jam

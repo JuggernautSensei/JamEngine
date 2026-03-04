@@ -33,8 +33,8 @@ concept HasIntrusiveReadFunc =
     && !requires(ArchiveReader& _archive, const T _value) { _value.ReadFromArchive(_archive); };
 
 // non-intrusive write to archive func
-// allowed:     void WriteToArchive(ArchiveWriter& _archive, T _value);
-// not allowed: void WriteToArchive(const ArchiveWriter& _archive, T _value);
+// allowed:     void WriteToArchive(ArchiveWriter& _archive, T m_value);
+// not allowed: void WriteToArchive(const ArchiveWriter& _archive, T m_value);
 
 template<typename T>
 concept HasNonIntrusiveWriteFunc =
@@ -42,9 +42,9 @@ concept HasNonIntrusiveWriteFunc =
     && !requires(const ArchiveWriter& _archive, T _value) { WriteToArchive(_archive, _value); };
 
 // non-intrusive read from archive func
-// allowed:     Error ReadFromArchive(ArchiveReader& _archive, T& _value);
-// not allowed: Error ReadFromArchive(const ArchiveReader& _archive, T& _value);
-// not allowed: Error ReadFromArchive(ArchiveReader& _archive, const T& _value);
+// allowed:     Error ReadFromArchive(ArchiveReader& _archive, T& m_value);
+// not allowed: Error ReadFromArchive(const ArchiveReader& _archive, T& m_value);
+// not allowed: Error ReadFromArchive(ArchiveReader& _archive, const T& m_value);
 
 template<typename T>
 concept HasNonIntrusiveReadFunc =
@@ -182,7 +182,7 @@ public:
             const Error err = _value.ReadFromArchive(*this);
             if (err)
             {
-                JAM_LOG.Error("Archive read error: failed to read '{}' data via intrusive ReadFromArchive().", NameOf<TDecayed>());
+                JAM_LOG_ERROR("Archive read error: failed to read '{}' data via intrusive ReadFromArchive().", NameOf<TDecayed>());
             }
 
             return err;
@@ -192,7 +192,7 @@ public:
             const Error err = ReadFromArchive(*this, _value);
             if (err)
             {
-                JAM_LOG.Error("Archive read error: failed to read '{}' data via non-intrusive ReadFromArchive().", NameOf<TDecayed>());
+                JAM_LOG_ERROR("Archive read error: failed to read '{}' data via non-intrusive ReadFromArchive().", NameOf<TDecayed>());
             }
 
             return err;
@@ -294,7 +294,7 @@ Error ReadFromArchive(ArchiveReader& _reader, TEnum& _value)
     Optional<TEnum> value = ParseAs<TEnum>(name);
     if (!value)
     {
-        JAM_LOG.Error("Archive read error: failed to parse '{}' as enum _value of type '{}'.", name, NameOf<TEnum>());
+        JAM_LOG_ERROR("Archive read error: failed to parse '{}' as enum m_value of type '{}'.", name, NameOf<TEnum>());
         _reader.MarkError(Error::ParseError);
         return Error::ParseError;
     }
@@ -345,7 +345,7 @@ Error ReadFromArchive(ArchiveReader& _reader, Array<T, N>& _arr)
     const SizeT size = _reader.GetSize();
     if (CmpNotEqual(size, N))
     {
-        JAM_LOG.Error("Archive read error: expected array size {} but got {}.", N, size);
+        JAM_LOG_ERROR("Archive read error: expected array size {} but got {}.", N, size);
         _reader.MarkError(Error::InvalidData);
         return Error::InvalidData;
     }
@@ -377,7 +377,7 @@ Error ReadFromArchive(ArchiveReader& _reader, EnumArray<TEnum, TValue>& _enumArr
     const SizeT size = _reader.GetSize();
     if (CmpNotEqual(size, _enumArray.size()))
     {
-        JAM_LOG.Error("Archive read error: expected EnumArray size {} but got {}.", _enumArray.size(), size);
+        JAM_LOG_ERROR("Archive read error: expected EnumArray size {} but got {}.", _enumArray.size(), size);
         _reader.MarkError(Error::InvalidData);
         return Error::InvalidData;
     }

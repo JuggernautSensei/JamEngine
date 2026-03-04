@@ -8,15 +8,15 @@ namespace Jam
 {
 
 Expect<SVGImporter> SVGImporter::ImportFromFile(
-    const Path&            _path,
+    StringView             _path,
     const SVGImporterInfo& _info)
 {
     JAM_FUNCTION_PROFILE();
 
-    std::unique_ptr<lunasvg::Document> doc = lunasvg::Document::loadFromFile(_path.native());
+    std::unique_ptr<lunasvg::Document> doc = lunasvg::Document::loadFromFile(_path.GetPtr());
     if (!doc)
     {
-        JAM_LOG.Error("SVGImporter::ImportFromFile: failed to load SVG file: {}", _path);
+        JAM_LOG_ERROR("SVGImporter::ImportFromFile: failed to load SVG file: {}", _path);
         return Error::ImportFailed;
     }
 
@@ -37,7 +37,7 @@ Expect<SVGImporter> SVGImporter::ImportFromSource(
     std::unique_ptr<lunasvg::Document> doc = lunasvg::Document::loadFromData(_source.GetPtr(), _source.GetLength());
     if (!doc)
     {
-        JAM_LOG.Error("SVGImporter::ImportFromSource: failed to load SVG source data.");
+        JAM_LOG_ERROR("SVGImporter::ImportFromSource: failed to load SVG source data.");
         return Error::ImportFailed;
     }
 
@@ -80,7 +80,7 @@ Error SVGImporter::Import_(
     m_bitmap        = _doc->renderToBitmap(w, h, bg);
     if (m_bitmap.isNull())
     {
-        JAM_LOG.Error("SVGImporter::Import_: failed to render SVG document to bitmap.");
+        JAM_LOG_ERROR("SVGImporter::Import_: failed to render SVG document to bitmap.");
         return Error::ImportFailed;
     }
 

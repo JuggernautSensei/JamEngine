@@ -252,7 +252,7 @@ void RenderGraph::AnalyzePassDependencies_()
                 }
 
                 // 다음 패스의 프레임버퍼와 충돌 확인
-                const FrameBufferInfo nextPassFbInfo = JAM_GFX.GetFrameBufferInfo(nextPass.m_fbh);
+                const FrameBufferInfo nextPassFbInfo = GetGraphics().GetFrameBufferInfo(nextPass.m_fbh);
                 for (Int32 k = 0; k < nextPassFbInfo.numRenderTargets; ++k)
                 {
                     const TextureHandle texh = nextPassFbInfo.renderTargetTexhs[k];
@@ -313,7 +313,7 @@ void RenderGraph::AnalyzePassDependencies_()
             }
 
             // 현재 패스의 출력 프레임버퍼 어태치먼트 수집
-            const FrameBufferInfo fbInfo = JAM_GFX.GetFrameBufferInfo(pass.m_fbh);
+            const FrameBufferInfo fbInfo = GetGraphics().GetFrameBufferInfo(pass.m_fbh);
             for (Int32 k = 0; k < fbInfo.numRenderTargets; ++k)
             {
                 attachmentSet.emplace(fbInfo.renderTargetTexhs[k].value);
@@ -351,15 +351,15 @@ void RenderGraph::UnbindPassResourcesIfNeed_(
 
     if (_node.bNeedUnbindFrameBuffer)
     {
-        JAM_GFX.SetFrameBuffer(k_nullHandle);
+        GetGraphics().SetFrameBuffer(k_nullHandle);
     }
 
     for (const BindInfo& info: _node.unbindTextures)
     {
-        JAM_GFX.SetTexture(k_nullHandle, info.stage, info.slot);
+        GetGraphics().SetTexture(k_nullHandle, info.stage, info.slot);
     }
 
-    JAM_GFX.Flush();
+    GetGraphics().Flush();
 }
 
 UInt64 RenderGraph::MakeStageSlotKey_(

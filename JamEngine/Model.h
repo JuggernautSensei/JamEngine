@@ -1,4 +1,5 @@
 #pragma once
+#include "Archive.h"
 #include "File.h"
 #include "IAsset.h"
 
@@ -20,24 +21,24 @@ struct ModelNode
 class Model : public IAsset
 {
 public:
-    [[nodiscard]] static Expect<Ref<Model>> Create(const Path& _path);
+    [[nodiscard]] static Expect<Ref<Model>> Create(StringView _path);
     [[nodiscard]] static Ref<Model>         Create(const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
 
-    Error Load(const Path& _path) override;
+    Error Load(StringView _path) override;
     void  Load(const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
-    Error Save(const Path& _path, bool _bReplaceExtension = true, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None) const override;
+    Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
-    void  SetVirtualPath(const Path& _path) override;
+    void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
-    [[nodiscard]] bool        IsValid() const override;
-    [[nodiscard]] eAssetType  GetAssetType() const override;
-    [[nodiscard]] StringView  GetTypeName() const override;
-    [[nodiscard]] UInt32      GetTypeHash() const override;
-    [[nodiscard]] const Path& GetPath() const override;
-    [[nodiscard]] StringView  GetName() const override;
-    [[nodiscard]] StringView  GetExtension() const override;
-    [[nodiscard]] StringView  GetFilter() const override;
+    [[nodiscard]] bool       IsValid() const override;
+    [[nodiscard]] eAssetType GetAssetType() const override;
+    [[nodiscard]] StringView GetTypeName() const override;
+    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] StringView GetPath() const override;
+    [[nodiscard]] StringView GetName() const override;
+    [[nodiscard]] StringView GetExtension() const override;
+    [[nodiscard]] StringView GetFilter() const override;
 
     [[nodiscard]] const ModelNode&             GetRoot() const;
     [[nodiscard]] const Vector<Ref<Mesh>>&     GetMeshes() const;
@@ -52,7 +53,7 @@ public:
 private:
     void CleanUp_();
 
-    Path                  m_path            = {};
+    String                m_path            = {};
     String                m_name            = {};
     ModelNode             m_root            = {};
     Vector<Ref<Mesh>>     m_meshes          = {};

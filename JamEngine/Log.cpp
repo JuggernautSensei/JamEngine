@@ -1,11 +1,13 @@
 #include "pch.h"
 
-#include "Log.h"
-#include "Timer.h"
-
 #include <spdlog/async.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+
+#include "Log.h"
+#include "Timer.h"
+#include "String.h"
+#include "FileSystem.h"
 
 // log channel
 namespace Jam
@@ -19,7 +21,7 @@ LogChannel::LogChannel(const LoggerRef& _pLogger)
 
 void LogChannel::AddSink(const StringView _name, const SinkRef& _pSink)
 {
-    const String name   = _name.ToString();
+    const String name   = _name;
     const auto [_, bOk] = m_sinkMap.emplace(name, _pSink);
     JAM_ASSERT(bOk, "Sink with name '{}' already exists.", name);
     m_pLogger->sinks().emplace_back(_pSink);
@@ -35,7 +37,7 @@ void LogChannel::RemoveSink(const StringView _name)
 
 void LogChannel::SetPattern(const StringView _pattern) const
 {
-    m_pLogger->set_pattern(_pattern.ToStdString());
+    m_pLogger->set_pattern({ _pattern.GetPtr(), NumericCast<size_t>(_pattern.GetLength()) });
 }
 
 void LogChannel::SetLevel(const eLogLevel _level) const
@@ -63,11 +65,11 @@ namespace Jam
 
 class Log& Log::GetInstance()
 {
-    JAM_ASSERT(s_pInstance, "Log instance is null.");
+    JAM_ASSERT(s_pInstance != nullptr, "Log is not initialized.");
     return *s_pInstance;
 }
 
-const Ref<LogChannel>& Log::GetCoreChannel()
+const Ref<LogChannel>& Log::GetCoreChannel() const
 {
     JAM_ASSERT(m_pCoreLogger != nullptr, "Log is not initialized.");
     return m_pCoreLogger;
@@ -91,6 +93,12 @@ void Log::Flush(const Ref<LogChannel>& _pChannel) const
     _pChannel->Flush();
 }
 
+void Log::CreateInstance()
+{
+    JAM_ASSERT(s_pInstance == nullptr, "Log instance already exists.");
+    s_pInstance = new Log;
+}
+
 Log::Log()
 {
     // init thread pool
@@ -100,10 +108,10 @@ Log::Log()
     const SinkRef pConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
     // file sink
-    const TimeStamp ts       = TimeStamp::Current();
-    const Path      filepath = fmt::format("Logs\\{:04}.{:02}.{:02}\\{:02}h {:02}m {:02}.{:03}s.log", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
-    fs::create_directories(filepath.parent_path());
-    const SinkRef pFileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filepath.native(), true);
+    const TimeStamp ts   = TimeStamp::Current();
+    String          path = {};
+    path.Format("Logs/{:04}.{:02}.{:02}/{:02}h {:02}m {:02}.{:03}s.log", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
+    const SinkRef pFileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path.GetPtr(), true);
 
     // core logger
     const LoggerRef pCoreLogger = std::make_shared<spdlog::async_logger>("CORE", spdlog::sinks_init_list { pConsoleSink, pFileSink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
@@ -118,15 +126,10 @@ Log::~Log()
     m_pCoreLogger.Reset();
 }
 
-void Log::CreateInstance()
-{
-    s_pInstance = new Log;
-}
-
 void Log::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance, "Log instance is null.");
     delete s_pInstance;
+    s_pInstance = nullptr;
 }
 
 }   // namespace Jam

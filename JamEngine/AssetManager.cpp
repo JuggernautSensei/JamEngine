@@ -9,6 +9,7 @@
 #include "Mesh.h"
 #include "Texture.h"
 #include "Model.h"
+#include "FileSystem.h"
 
 namespace Jam
 {
@@ -16,27 +17,36 @@ namespace Jam
 namespace
 {
 
-    [[nodiscard]] Path CreateProcessedPath(
-        const Path& _path)
+    [[nodiscard]] Expect<String> CreateAssetPath_(
+        const StringView _rawPath)
     {
-        const Path& workingDir = JAM_APP.GetWorkingDirectory();
-        return fs::relative(_path, workingDir);
+        const StringView base = GetApp().GetWorkingDirectory();
+        const String     path = FileSystem::Relative(base, _rawPath);
+
+        // check path is under working directory
+        if (!base.IsBasePathOf(path))
+        {
+            JAM_LOG_ERROR("IAsset path '{}' is not under working directory '{}'.", path, base);
+            return Error::NotIdealAssetPath;
+        }
+
+        return path;
     }
 
-    [[nodiscard]] Expect<Ref<IAsset>> CreateAsset(
-        const Path&      _processedPath,
+    [[nodiscard]] Expect<Ref<IAsset>> CreateAsset_(
+        const StringView _assetPath,
         const eAssetType _type)
     {
         switch (_type)
         {
             case eAssetType::Texture:
-                return Texture::Create(_processedPath);
+                return Texture::Create(_assetPath);
             case eAssetType::Material:
-                return Material::Create(_processedPath);
+                return Material::Create(_assetPath);
             case eAssetType::Mesh:
-                return Mesh::Create(_processedPath);
+                return Mesh::Create(_assetPath);
             case eAssetType::Model:
-                return Model::Create(_processedPath);
+                return Model::Create(_assetPath);
             default:
                 JAM_UNREACHABLE;
         }
@@ -53,12 +63,18 @@ AssetManager& AssetManager::GetInstance()
 
 Expect<Ref<IAsset>> AssetManager::Load(
     const eAssetType _type,
-    const Path&      _path,
+    const StringView _path,
     const bool       _bReloadIfExist)
 {
-    const Path   path = CreateProcessedPath(_path);
-    AssetMap&    map  = m_assetMaps[_type];
-    AssetMapIter it   = map.find(path);
+    const Expect<String> path = CreateAssetPath_(_path);
+    if (!path)
+    {
+        return path.GetError();
+    }
+
+    const StringView key = path.GetValue();
+    AssetMap&        map = m_assetMaps[_type];
+    AssetMapIter     it  = map.find(key);
 
     // 만약 존재할 경우
     if (it != map.end())
@@ -67,7 +83,7 @@ Expect<Ref<IAsset>> AssetManager::Load(
         if (_bReloadIfExist)
         {
             Ref<IAsset>& pAsset = it->second;
-            if (const Error err = pAsset->Load(path))
+            if (const Error err = pAsset->Load(key))
             {
                 // 실패해도 pAsset 자체가 invalid 상태가 아니므로
                 // 에러만 리턴하고, 맵에서는 제거하지 않음
@@ -82,18 +98,18 @@ Expect<Ref<IAsset>> AssetManager::Load(
     }
 
     // 없으면 새롭게 생성 후 로드
-    Expect<Ref<IAsset>> pAsset = CreateAsset(path, _type);
+    Expect<Ref<IAsset>> pAsset = CreateAsset_(key, _type);
     if (pAsset)
     {
-        map[path] = pAsset.GetValue();
+        map[key] = pAsset.GetValue();
     }
 
     return pAsset;
 }
 
 Expect<Ref<Model>> AssetManager::LoadModel(
-    const Path& _path,
-    const bool  _bForceReload)
+    const StringView _path,
+    const bool       _bForceReload)
 {
     if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Model, _path, _bForceReload))
     {
@@ -106,8 +122,8 @@ Expect<Ref<Model>> AssetManager::LoadModel(
 }
 
 Expect<Ref<Mesh>> AssetManager::LoadMesh(
-    const Path& _path,
-    const bool  _bForceReload)
+    const StringView _path,
+    const bool       _bForceReload)
 {
     if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Mesh, _path, _bForceReload))
     {
@@ -120,8 +136,8 @@ Expect<Ref<Mesh>> AssetManager::LoadMesh(
 }
 
 Expect<Ref<Material>> AssetManager::LoadMaterial(
-    const Path& _path,
-    const bool  _bForceReload)
+    const StringView _path,
+    const bool       _bForceReload)
 {
     if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Material, _path, _bForceReload))
     {
@@ -134,8 +150,8 @@ Expect<Ref<Material>> AssetManager::LoadMaterial(
 }
 
 Expect<Ref<Texture>> AssetManager::LoadTexture(
-    const Path& _path,
-    const bool  _bForceReload)
+    const StringView _path,
+    const bool       _bForceReload)
 {
     if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Texture, _path, _bForceReload))
     {
@@ -149,11 +165,17 @@ Expect<Ref<Texture>> AssetManager::LoadTexture(
 
 void AssetManager::Unload(
     const eAssetType _type,
-    const Path&      _path)
+    const StringView _path)
 {
-    const Path   path = CreateProcessedPath(_path);
-    AssetMap&    map  = m_assetMaps[_type];
-    AssetMapIter it   = map.find(path);
+    const Expect<String> path = CreateAssetPath_(_path);
+    if (!path)
+    {
+        return;
+    }
+
+    const StringView key = path.GetValue();
+    AssetMap&        map = m_assetMaps[_type];
+    AssetMapIter     it  = map.find(key);
     if (it != map.end())
     {
         Unload_(map, it);
@@ -161,25 +183,25 @@ void AssetManager::Unload(
 }
 
 void AssetManager::UnloadModel(
-    const Path& _path)
+    const StringView _path)
 {
     Unload(eAssetType::Model, _path);
 }
 
 void AssetManager::UnloadMesh(
-    const Path& _path)
+    const StringView _path)
 {
     Unload(eAssetType::Mesh, _path);
 }
 
 void AssetManager::UnloadMaterial(
-    const Path& _path)
+    const StringView _path)
 {
     Unload(eAssetType::Material, _path);
 }
 
 void AssetManager::UnloadTexture(
-    const Path& _path)
+    const StringView _path)
 {
     Unload(eAssetType::Texture, _path);
 }
@@ -239,8 +261,8 @@ void AssetManager::CreateInstance()
 
 void AssetManager::DestroyInstance()
 {
-    JAM_ASSERT(s_pInstance, "AssetManager instance is null on DestroyInstance_.");
     delete s_pInstance;
+    s_pInstance = nullptr;
 }
 
 void AssetManager::OnEvent(
@@ -256,15 +278,21 @@ void AssetManager::OnFileModifiedEvent_(
     const FileModifiedEvent& _event)
 {
     // 존재하면 forced reload
-    const Path path = CreateProcessedPath(_event.GetPath());
+    const Expect<String> path = CreateAssetPath_(_event.GetPath());
+    if (!path)
+    {
+        return;
+    }
+
+    const StringView key = path.GetValue();
     for (eAssetType type: EnumRanges<eAssetType>())
     {
         AssetMap&    map = m_assetMaps[type];
-        AssetMapIter it  = map.find(path);
+        AssetMapIter it  = map.find(key);
         if (it != map.end())
         {
             Ref<IAsset>& pAsset = it->second;
-            pAsset->Load(path);
+            pAsset->Load(key);
         }
     }
 }
@@ -272,24 +300,33 @@ void AssetManager::OnFileModifiedEvent_(
 void AssetManager::OnFileRenamedEvent_(
     const FileRenamedEvent& _event)
 {
-    // process path
-    const Path& oldPath = CreateProcessedPath(_event.GetOldPath());
-    const Path& newPath = CreateProcessedPath(_event.GetNewPath());
-    JAM_ASSERT(oldPath != newPath, "Old path and new path are the same in OnFileRenamedEvent_.");
+    Expect<String> oldPath = CreateAssetPath_(_event.GetOldPath());
+    Expect<String> newPath = CreateAssetPath_(_event.GetNewPath());
+    if (!oldPath || !newPath)   // unlikely...
+    {
+        return;
+    }
+
+    const StringView oldKey = oldPath.GetValue();
+    const StringView newKey = newPath.GetValue();
+    if (oldKey == newKey)   // unlikely...
+    {
+        return;
+    }
 
     // for each asset type
     for (eAssetType type: EnumRanges<eAssetType>())
     {
         // 없으면 스킵
         AssetMap&    map   = m_assetMaps[type];
-        AssetMapIter oldIt = map.find(oldPath);
+        AssetMapIter oldIt = map.find(oldKey);
         if (oldIt == map.end())
         {
             continue;
         }
 
         // 1. 새로운 경로에 존재하는 에셋을 unload (덮어쓰기 방식)
-        AssetMapIter newIt = map.find(newPath);
+        AssetMapIter newIt = map.find(newKey);
         if (newIt != map.end())
         {
             Unload_(map, newIt);
@@ -303,14 +340,14 @@ void AssetManager::OnFileRenamedEvent_(
 
         // 4. 에셋을 새로운 경로로 로드 및 맵에 삽입
         //    만약 실패했다면, 에셋은 무효화된 상태
-        const Error err = pAsset->Load(newPath);
+        const Error err = pAsset->Load(newKey);
         if (err)
         {
             continue;
         }
 
         // 5. 맵에 삽입
-        map[newPath] = pAsset;
+        map[newKey] = pAsset;
     }
 }
 
@@ -318,11 +355,17 @@ void AssetManager::OnFileDeletedEvent_(
     const FileDeletedEvent& _event)
 {
     // 존재하면 언로드
-    const Path path = CreateProcessedPath(_event.GetPath());
+    const Expect<String> path = CreateAssetPath_(_event.GetPath());
+    if (!path)
+    {
+        return;
+    }
+
+    const StringView key = path.GetValue();
     for (const eAssetType type: EnumRanges<eAssetType>())
     {
         AssetMap&    map = m_assetMaps[type];
-        AssetMapIter it  = map.find(path);
+        AssetMapIter it  = map.find(key);
         if (it != map.end())
         {
             Unload_(map, it);

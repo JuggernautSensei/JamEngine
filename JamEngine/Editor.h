@@ -3,8 +3,9 @@
 #include "EditorIcons.h"
 #include "EditorStyle.h"
 #include "Entity.h"
-#include "File.h"
-#include "VertexLayoutEntry.h"
+#include "FileEntry.h"
+#include "FileSystem.h"
+#include "VertexLayoutEntryManager.h"
 
 namespace Jam
 {
@@ -14,15 +15,15 @@ class Model;
 class Event;
 class Dialog;
 class Material;
-class VertexLayoutMap;
 class VertexLayoutEntry;
 class SceneChangedEvent;
 class EntityDestroyedEvent;
-class Editor_SceneViewWindow;
 class Editor_ProfilerWindow;
+class Editor_SceneViewWindow;
+class VertexLayoutEntryManager;
+class Editor_FileBrowserWindow;
 class Editor_SceneHierarchyWindow;
 class Editor_EntityInspectorWindow;
-class Editor_FileBrowserWindow;
 class Editor_VertexLayoutEditorWindow;
 
 enum class eEditorWindowType
@@ -41,6 +42,26 @@ enum class eEditorMode
     Play,
 };
 
+struct EditorSharedData
+{
+    // gui
+    EditorStyle                          style = {};
+    EnumArray<eEditorIcon, Ref<Texture>> icons = {};
+
+    // editor core state
+    eEditorMode mode = eEditorMode::Edit;
+
+    // game
+    Entity focusingEntity = Entity::k_null;
+
+    // vertex layout
+    VertexLayoutEntryManager vertexLayoutEntryManager = {};
+
+    // file
+    Ref<FileEntry> pFocusingFileEntry = nullptr;
+    Ref<DirEntry>  pFocusingDirEntry  = nullptr;
+};
+
 class Editor
 {
 public:
@@ -51,31 +72,42 @@ public:
 
     [[nodiscard]] static Editor& GetInstance();
 
-    // m_mode
+    // shared data
     void                      SetMode(eEditorMode _mode);
     [[nodiscard]] eEditorMode GetMode() const;
 
-    // focused entity
     void                 SetFocusingEntity(Entity _entity);
-    void                 ReleaseFocusingEntity();
+    [[nodiscard]] Entity GetFocusingEntityOrNull() const;
     [[nodiscard]] Entity GetFocusingEntity() const;
 
-    // style
-    [[nodiscard]] float         GetStyleVar(eEditorStyleVar _var) const;
-    [[nodiscard]] ImVec4        GetStyleColor(eEditorStyleColor _col) const;
-    [[nodiscard]] ImU32         GetStyleColorU32(eEditorStyleColor _col) const;
-    [[nodiscard]] ImGuiKeyChord GetStyleShortCut(eEditorShortCut _shortCut) const;
-    [[nodiscard]] Ref<Texture>  GetIcon(eEditorIcon _icon) const;
+    [[nodiscard]] const EditorStyle& GetStyle() const;
+    [[nodiscard]] float              GetStyleVar(eEditorStyleVar _var) const;
+    [[nodiscard]] ImVec4             GetStyleColor(eEditorStyleColor _col) const;
+    [[nodiscard]] ImU32              GetStyleColorU32(eEditorStyleColor _col) const;
+    [[nodiscard]] ImGuiKeyChord      GetStyleShortCut(eEditorShortCut _shortCut) const;
+
+    void                       SetIcon(eEditorIcon _icon, const Ref<Texture>& _pTexture);
+    [[nodiscard]] Ref<Texture> GetIcon(eEditorIcon _icon) const;
+
+    void                                SetFocusingFileEntry(const Ref<FileEntry>& _pEntry);
+    [[nodiscard]] const Ref<FileEntry>& GetFocusingFileEntryOrNull() const;
+    [[nodiscard]] const Ref<FileEntry>& GetFocusingFileEntry() const;
+
+    void                               SetFocusingDirEntry(const Ref<DirEntry>& _pEntry);
+    [[nodiscard]] const Ref<DirEntry>& GetFocusingDirEntryOrNull() const;
+    [[nodiscard]] const Ref<DirEntry>& GetFocusingDirEntry() const;
 
     // vertex layout
-    [[nodiscard]] VertexLayoutMap& GetVertexLayoutMap();
+    [[nodiscard]] VertexLayoutEntryManager& GetVertexLayoutManager();
 
-    // dialog
+    // dialog + short cut
     void PushDialog(const Ref<Dialog>& _pDialog);
+    void PushMessageDialog(StringView _title, StringView _msg);
+    void PushConfirmationDialog(StringView _title, StringView _msg, const Delegate<void()>& _onConfirm);
 
     // scene
     void LoadScenByFileDialog();
-    void SaveSceneByFileDialog(const Ref<Scene>& _pScene, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None);
+    void SaveSceneByFileDialog(const Ref<Scene>& _pScene);
 
     // entity operator
     void               CreateEntitiesFrom(const Ref<Scene>& _pScene, const Ref<Model>& _pModel);
@@ -86,18 +118,15 @@ public:
     [[nodiscard]] bool CanEntityDestroy(Entity _entity) const;
 
     // filesystem operator
-    bool RemoveFile(const Path& _path);
-    bool ReplaceFileDir(const Path& _srcPath, const Path& _newDir);
-    bool ReplaceFileName(const Path& _srcPath, StringView _newFilename);
-    bool RenameFile(const Path& _srcPath, const Path& _dstPath);
-    bool CreateDir(const Path& _dirPath);
-    bool CreateNewDir(const Path& _parentDir);
+    bool RemoveFile(StringView _path, bool _bForced = false);   // if _bForced is true, it will remove non-empty directory
+    bool RenameFile(StringView _srcPath, StringView _dstPath, FileSystem::eCollisionPolicy _policy = FileSystem::eCollisionPolicy::Fail);
+    bool CreateDir(StringView _dir, FileSystem::eMakeDirectoryCollisionPolicy _policy = FileSystem::eMakeDirectoryCollisionPolicy::Fail);
 
     // asset operator
-    [[nodiscard]] Optional<Ref<Mesh>>     LoadMesh(const Path& _path, bool _bForceReload = false);
-    [[nodiscard]] Optional<Ref<Texture>>  LoadTexture(const Path& _path, bool _bForceReload = false);
-    [[nodiscard]] Optional<Ref<Material>> LoadMaterial(const Path& _path, bool _bForceReload = false);
-    [[nodiscard]] Optional<Ref<Model>>    LoadModel(const Path& _path, bool _bForceReload = false);
+    [[nodiscard]] Expect<Ref<Mesh>>     LoadMesh(StringView _path, bool _bForceReload = false);
+    [[nodiscard]] Expect<Ref<Texture>>  LoadTexture(StringView _path, bool _bForceReload = false);
+    [[nodiscard]] Expect<Ref<Material>> LoadMaterial(StringView _path, bool _bForceReload = false);
+    [[nodiscard]] Expect<Ref<Model>>    LoadModel(StringView _path, bool _bForceReload = false);
 
 private:
     Editor();
@@ -105,6 +134,9 @@ private:
 
     static void CreateInstance();
     static void DestroyInstance();
+
+    void SetupDefaultTheme_() const;
+    void SetupIcons_();
 
     void Update(float _deltaSec);
     void Render() const;
@@ -114,18 +146,17 @@ private:
     void OnSceneChanged_(SceneChangedEvent& _event);
     void OnEntityDestroyed_(const EntityDestroyedEvent& _event);
 
+    void Panel_Dockspace_() const;
+    void Panel_MainMenuBar_();
+
     void Menu_File_() const;
     void Menu_Window_();
     void Menu_Options_() const;
 
-    void ShowWorkspace_();
-    void SetupDefaultTheme_() const;
-    void LoadIcons_();
-
     // config
-    void UpdateAutoSaveState_(float _deltaSec);
+    void UpdateAutoSaveConfig_(float _deltaSec);
     void SaveConfig_() const;
-    void LoadConfigIfExist_();
+    void TryLoadConfig_();
 
     [[nodiscard]] Ref<Texture> LoadIconFromSvgSource(StringView _svgSource) const;
     [[nodiscard]] bool&        GetWindowShow(eEditorWindowType _type);
@@ -138,26 +169,23 @@ private:
     Scoped<Editor_FileBrowserWindow>        m_pFileBrowserWindow        = nullptr;
     Scoped<Editor_VertexLayoutEditorWindow> m_pVertexLayoutEditorWindow = nullptr;
 
+    EditorSharedData                   m_sharedData  = {};
     EnumArray<eEditorWindowType, bool> m_windowShows = {};
+    DialogStack                        m_dialogStack = {};
 
-    Entity          m_focusedEntity = Entity::k_invalid;
-    eEditorMode     m_mode          = eEditorMode::Edit;
-    EditorStyle     m_style         = {};
-    VertexLayoutMap m_vlMap         = {};
-    DialogStack     m_dialogStack   = {};
-    EditorIcons     m_icons         = {};
-
-    Path  m_configPath           = {};
     float m_configSaveCounterSec = 0.f;
 
-    constexpr static float       k_configSaveIntervalSec = 10.f;   // save config every 10 seconds
-    constexpr static const char* k_configFileName        = "EditorConfig.json";
-    constexpr static Vec2i       k_iconSize              = { 64, 64 };
+    constexpr static float       k_configFileAutoSaveIntervalSec = 10.f;   // save config every 10 seconds
+    constexpr static const char* k_configFileName                = "EditorConfig.json";
+    constexpr static Vec2i       k_iconSize                      = { 64, 64 };
 
     inline static Editor* s_pInstance = nullptr;
     friend class Application;
 };
 
-}   // namespace Jam
+[[nodiscard]] inline Editor& GetEditor()
+{
+    return Editor::GetInstance();
+}
 
-#define JAM_EDITOR Jam::Editor::GetInstance()
+}   // namespace Jam

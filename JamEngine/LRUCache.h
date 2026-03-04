@@ -24,7 +24,7 @@ public:
 
     void Insert(const TKey& key, const TValue& value)
     {
-        JAM_ASSERT(m_capacity > 0, "LRUCache::Insert() - Capacity must be greater than zero.");
+        JAM_ASSERT(m_capacity > 0, "LRUCache::InsertEncode() - Capacity must be greater than zero.");
 
         // update existing key
         auto it = m_map.find(key);
@@ -45,7 +45,7 @@ public:
 
     void Insert(const TKey& key, TValue&& value)
     {
-        JAM_ASSERT(m_capacity > 0, "LRUCache::Insert() - Capacity must be greater than zero.");
+        JAM_ASSERT(m_capacity > 0, "LRUCache::InsertEncode() - Capacity must be greater than zero.");
 
         // update existing key
         auto it = m_map.find(key);

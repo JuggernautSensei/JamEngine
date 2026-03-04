@@ -12,27 +12,25 @@ namespace Jam
 namespace
 {
 
-    using D3DShaderMacroBuffer = Array<D3D_SHADER_MACRO, 128>;
-
-    void BuildD3D11ShaderMacroBuffer_(
-        D3DShaderMacroBuffer&         _outBuffer,
+    [[nodiscard]] Vector<D3D_SHADER_MACRO> CreateD3D11ShaderMacroBuffer_(
         const Span<const ShaderMacro> _macrosOrEmpty)   // return number of macros written
     {
-        JAM_ASSERT(_macrosOrEmpty.size() < 127, "Too many shader macros specified.");
+        const bool bIsTerminated = !_macrosOrEmpty.empty() && _macrosOrEmpty.back().IsNull();
 
-        // fill d3d macro
-        const SizeT numMacros = _macrosOrEmpty.size();
-        for (SizeT i = 0; i < numMacros; ++i)
+        Vector<D3D_SHADER_MACRO> macros = {};
+        macros.reserve(_macrosOrEmpty.size() + (bIsTerminated ? 0 : 1));   // reserve one extra slot for null-termination if not already terminated
+
+        for (const ShaderMacro& macro: _macrosOrEmpty)
         {
-            const ShaderMacro& srcMacro = _macrosOrEmpty[i];
-            _outBuffer[i]               = { srcMacro.name.GetPtr(), srcMacro.value.GetPtr() };
+            macros.emplace_back(macro.name.GetPtr(), macro.value.GetPtr());
         }
 
-        // Ensure null-termination
-        if (_macrosOrEmpty.empty() || _macrosOrEmpty.back().IsNull() == false)
+        if (!bIsTerminated)
         {
-            _outBuffer[numMacros] = { nullptr, nullptr };
+            macros.emplace_back(nullptr, nullptr);   // null-terminate the buffer
         }
+
+        return macros;
     }
 
     [[nodiscard]] UINT CompileFlagsFrom_(
@@ -104,7 +102,7 @@ namespace
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLFile(
-    const Path&               _path,
+    const StringView          _path,
     const ShaderCompilerInfo& _info)
 {
     ShaderCompiler compiler = {};
@@ -135,22 +133,24 @@ CMemoryBlock ShaderCompiler::GetBytecode() const
     return { m_pBlob->GetBufferPointer(), NumericCast<Int32>(m_pBlob->GetBufferSize()) };
 }
 
+StringView ShaderCompiler::GetErrorMessage() const
+{
+    return m_errorMsg;
+}
+
 Error ShaderCompiler::CompileFromHLSLFile_(
-    const Path&               _path,
+    const StringView          _path,
     const ShaderCompilerInfo& _desc)
 {
-    JAM_ASSERT(!_path.empty(), "File path must not be empty.");
+    JAM_ASSERT(!_path.IsEmpty(), "File path must not be empty.");
 
-    D3DShaderMacroBuffer macroBuf;
-    BuildD3D11ShaderMacroBuffer_(macroBuf, _desc.macros);
-
-    ScratchWBuffer pathBuf;
-    pathBuf.SetUtf8(_path.native());
+    const Vector<D3D_SHADER_MACRO> macros = CreateD3D11ShaderMacroBuffer_(_desc.macros);
+    const WString                  path   = WString::Encoded(_path);
 
     ComPtr<ID3DBlob> pErrorBlob = nullptr;
     const HRESULT    hr         = D3DCompileFromFile(
-        pathBuf.GetPtr(),
-        macroBuf.data(),
+        path.GetPtr(),
+        macros.data(),
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _desc.entryPoint.GetPtr(),
         ShaderModelNameFrom(_desc.stage).GetPtr(),
@@ -163,15 +163,14 @@ Error ShaderCompiler::CompileFromHLSLFile_(
     {
         if (pErrorBlob)
         {
-            JAM_LOG.Error("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
+            m_errorMsg.Format("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            ScratchBuffer buf;
-            FormatHRESULTMessage(buf, hr);
-            JAM_LOG.Error("shader compilation failed: {}", buf.ToStringView());
+            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
         }
 
+        JAM_LOG_ERROR(m_errorMsg);
         return Error::ShaderCompileFailed;
     }
 
@@ -184,15 +183,14 @@ Error ShaderCompiler::CompileHLSLSource_(
 {
     JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 
-    D3DShaderMacroBuffer macroBuf;
-    BuildD3D11ShaderMacroBuffer_(macroBuf, _desc.macros);
+    const Vector<D3D_SHADER_MACRO> macros = CreateD3D11ShaderMacroBuffer_(_desc.macros);
 
     ComPtr<ID3DBlob> pErrorBlob = nullptr;
     const HRESULT    hr         = D3DCompile(
         _source.GetPtr(),
         _source.GetLength(),
         nullptr,
-        macroBuf.data(),
+        macros.data(),
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _desc.entryPoint.GetPtr(),
         ShaderModelNameFrom(_desc.stage).GetPtr(),
@@ -205,15 +203,14 @@ Error ShaderCompiler::CompileHLSLSource_(
     {
         if (pErrorBlob)
         {
-            JAM_LOG.Error("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
+            m_errorMsg.Format("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            ScratchBuffer buf;
-            FormatHRESULTMessage(buf, hr);
-            JAM_LOG.Error("shader compilation failed: {}", buf.ToStringView());
+            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
         }
 
+        JAM_LOG_ERROR(m_errorMsg);
         return Error::ShaderCompileFailed;
     }
 

@@ -1,11 +1,11 @@
 #pragma once
 #include "Entity.h"
-#include "Scene.h"
+#include "ImGuiEngine.h"
 
 namespace Jam
 {
 
-class Editor_SceneHierarchyWindow
+class Editor_SceneHierarchyWindow 
 {
 public:
     void OnImGuiRender(bool& _pShow);

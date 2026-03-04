@@ -87,11 +87,10 @@ const char* EditorPayloadFrom(
 }
 
 bool SetFileDragDropPayload(
-    const Path& _path)
+    const StringView _path)
 {
-    const std::string& path = _path.native();
-    const char*        str  = path.c_str();
-    const USizeT       len  = path.size();
+    const char*  str = _path.GetPtr();
+    const USizeT len = _path.GetLength();
     return ImGui::SetDragDropPayload(EditorPayloadFrom(eEditorPayload::File), str, len);
 }
 
@@ -100,14 +99,14 @@ const ImGuiPayload* AcceptFileDragDropPayload()
     return ImGui::AcceptDragDropPayload(EditorPayloadFrom(eEditorPayload::File));
 }
 
-Path ResolvePathDragDropPayload(
+String ResolvePathDragDropPayload(
     const ImGuiPayload* _pPayload)
 {
     JAM_ASSERT(_pPayload, "payload is nullptr");
     JAM_ASSERT(_pPayload->IsDataType(EditorPayloadFrom(eEditorPayload::File)), "payload type mismatch");
     const char* path = static_cast<const char*>(_pPayload->Data);
     const Int32 len  = _pPayload->DataSize;
-    return std::string { path, NumericCast<USizeT>(len) };
+    return String(path, NumericCast<SizeT>(len));
 }
 
 bool SetEntityDragDropPayload(
@@ -127,10 +126,10 @@ Entity ResolveEntityDragDropPayload(
 {
     JAM_ASSERT(_pPayload, "payload is nullptr");
     JAM_ASSERT(_pPayload->IsDataType(EditorPayloadFrom(eEditorPayload::Entity)), "payload type mismatch");
-    JAM_ASSERT(JAM_SCENE_MGR.HasActiveScene(), "There is no active scene");
+    JAM_ASSERT(GetSceneManager().HasActiveScene(), "There is no active scene");
 
     const UID uid = *static_cast<const UID*>(_pPayload->Data);
-    return JAM_SCENE_MGR.GetActiveScene()->GetEntity(uid);
+    return GetSceneManager().GetActiveScene()->GetEntity(uid);
 }
 
 StringView EditorDisplayNameOf(

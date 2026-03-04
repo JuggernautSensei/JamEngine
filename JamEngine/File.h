@@ -3,17 +3,16 @@
 
 namespace Jam
 {
+
 enum class eSeekOp;
 
-enum class eSaveFileFlags : UInt32
+enum class eFileWriterCollisionPolicy
 {
-    None         = 0,
-    FailIfExists = 1 << 0,
-    CreateDirs   = 1 << 1,
-    Append       = 1 << 2,
+    Overwrite,
+    Rename,
+    Fail,
+    Append
 };
-
-[[nodiscard]] Error ResolveSaveFileFlags(const Path& _path, Flags<eSaveFileFlags> _flags);
 
 class FileRWBase
 {
@@ -45,9 +44,9 @@ protected:
 class FileWriter : public FileRWBase
 {
 public:
-    [[nodiscard]] static Expect<FileWriter> Open(const Path& _path, Flags<eSaveFileFlags> _flags = {});
-    static Error                            WriteFileFromMemory(CMemoryBlock _data, const Path& _path, Flags<eSaveFileFlags> _flags = {});
-    static Error                            WriteFileFromString(StringView _str, const Path& _path, Flags<eSaveFileFlags> _flags = {});
+    [[nodiscard]] static Expect<FileWriter> Open(StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
+    static Error                            WriteFileFromMemory(CMemoryBlock _data, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
+    static Error                            WriteFileFromString(StringView _str, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
 
     Expect<SizeT> Write(CMemoryBlock _data) const;
     Expect<SizeT> Write(StringView _str) const;
@@ -60,9 +59,9 @@ private:
 class FileReader : public FileRWBase
 {
 public:
-    [[nodiscard]] static Expect<FileReader> Open(const Path& _path);
-    static Expect<Vector<Byte>>             ReadFileAsMemory(const Path& _path);
-    static Expect<String>                   ReadFileAsString(const Path& _path);
+    [[nodiscard]] static Expect<FileReader> Open(StringView _path);
+    static Expect<Vector<Byte>>             ReadFileAsMemory(StringView _path);
+    static Expect<String>                   ReadFileAsString(StringView _path);
 
     Expect<SizeT>      Read(MemoryBlock _dst) const;
     [[nodiscard]] bool IsEof() const;

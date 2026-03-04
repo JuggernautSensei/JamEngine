@@ -3,7 +3,7 @@
 namespace Jam
 {
 
-class Editor_EntityInspectorWindow
+class Editor_EntityInspectorWindow 
 {
 public:
     void OnImGuiRender(bool& _pShow) const;

@@ -1,4 +1,5 @@
 #pragma once
+#include "Scoped.h"
 
 namespace Jam
 {
@@ -44,12 +45,13 @@ public:
     }
 
     /* implicit */ Ref(std::nullptr_t)
-        : m_ptr(nullptr)
+        : Ref()
     {
     }
 
     /* implicit */ Ref(T* _ptr)
         : m_ptr(_ptr)
+
     {
         if (m_ptr)
         {
@@ -73,9 +75,9 @@ public:
     }
 
     template<typename U>
-    /* implicit */ Ref(U* _ptr)
         requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
-        : m_ptr(static_cast<T*>(_ptr))
+    /* implicit */ Ref(Scoped<U>&& _other)
+        : m_ptr(static_cast<T*>(_other.Release()))
     {
         if (m_ptr)
         {
@@ -84,14 +86,22 @@ public:
     }
 
     template<typename U>
-    /* implicit */ Ref(const Ref<U>& _other)
         requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+    /* implicit */ Ref(const Ref<U>& _other)
         : m_ptr(static_cast<T*>(_other.m_ptr))
     {
         if (m_ptr)
         {
             m_ptr->Retain();
         }
+    }
+
+    template<typename U>
+        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+    /* implicit */ Ref(Ref<U>&& _other) noexcept
+        : m_ptr(static_cast<T*>(_other.m_ptr))
+    {
+        _other.m_ptr = nullptr;
     }
 
     ~Ref()
@@ -145,8 +155,24 @@ public:
     }
 
     template<typename U>
-    Ref& operator=(const Ref<U>& _other)
         requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+    Ref& operator=(Scoped<U>&& _other)
+    {
+        T* pOther = static_cast<T*>(_other.Release());
+        JAM_ASSERT((m_ptr == nullptr && pOther == nullptr) || (m_ptr != pOther), "Cannot assign a Ref to a ScopedConnection if they don't point to the same object");
+
+        if (pOther)
+        {
+            pOther->Retain();
+        }
+        Release_();
+        m_ptr = pOther;
+        return *this;
+    }
+
+    template<typename U>
+        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+    Ref& operator=(const Ref<U>& _other)
     {
         T* pOther = static_cast<T*>(_other.m_ptr);
         if (m_ptr != pOther)
@@ -157,6 +183,24 @@ public:
             }
             Release_();
             m_ptr = pOther;
+        }
+        return *this;
+    }
+
+    template<typename U>
+        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+    Ref& operator=(Ref<U>&& _other) noexcept
+    {
+        T* pOther = static_cast<T*>(_other.m_ptr);
+        if (m_ptr != pOther)
+        {
+            Release_();
+            m_ptr        = pOther;
+            _other.m_ptr = nullptr;
+        }
+        else
+        {
+            _other.Release_();
         }
         return *this;
     }
@@ -216,14 +260,22 @@ public:
         return m_ptr;
     }
 
-    void Reset()
+    void Reset(T* _ptr = nullptr)
     {
-        Release_();
+        if (m_ptr != _ptr)
+        {
+            if (_ptr)
+            {
+                _ptr->Retain();
+            }
+            Release_();
+            m_ptr = _ptr;
+        }
     }
 
     template<typename U>
-    [[nodiscard]] Ref<U> As() const
         requires(std::is_base_of_v<RefCounted, U> && std::is_convertible_v<U*, T*>)
+    [[nodiscard]] Ref<U> As() const
     {
         return Ref<U>(static_cast<U*>(m_ptr));
     }
@@ -260,8 +312,17 @@ template<typename T, typename... Args>
 template<typename T>
 struct ankerl::unordered_dense::hash<Jam::Ref<T>>
 {
-    [[nodiscard]] uint64_t operator()(const Jam::Ref<T>& value) const noexcept
+    [[nodiscard]] std::size_t operator()(const Jam::Ref<T>& _ptr) const noexcept
     {
-        return ankerl::unordered_dense::hash<T*> {}(value.GetPtr());
+        return ankerl::unordered_dense::hash<std::size_t> {}(reinterpret_cast<std::size_t>(_ptr.GetPtr()));
+    }
+};
+
+template<typename T>
+struct std::hash<Jam::Ref<T>>
+{
+    [[nodiscard]] std::size_t operator()(const Jam::Ref<T>& _ptr) const noexcept
+    {
+        return std::hash<std::size_t> {}(reinterpret_cast<std::size_t>(_ptr.GetPtr()));
     }
 };

@@ -22,12 +22,12 @@ template<
     typename TAlloc          = std::allocator<std::pair<String, TValue> >,
     typename Bucket          = ankerl::unordered_dense::bucket_type::standard,
     typename BucketContainer = ankerl::unordered_dense::detail::default_container_t>
-using StringHashMap = ankerl::unordered_dense::map<String, TValue, Details::StringHashMapHasher, std::equal_to<>, TAlloc, Bucket, BucketContainer>;
+using StringHashMap = ankerl::unordered_dense::map<String, TValue, Details::StringHashMapHasher, std::equal_to<String>, TAlloc, Bucket, BucketContainer>;
 
 template<
     typename TAlloc          = std::allocator<String>,
     typename Bucket          = ankerl::unordered_dense::bucket_type::standard,
     typename BucketContainer = ankerl::unordered_dense::detail::default_container_t>
-using StringHashSet = ankerl::unordered_dense::set<String, Details::StringHashMapHasher, std::equal_to<>, TAlloc, Bucket, BucketContainer>;
+using StringHashSet = ankerl::unordered_dense::set<String, Details::StringHashMapHasher, std::equal_to<String>, TAlloc, Bucket, BucketContainer>;
 
 }   // namespace Jam

@@ -1012,14 +1012,14 @@ private:
     ResourcePool<Program>            m_programs      = {};
 
     // resource caches
-    HashMap<UInt64, ShaderHandle>       m_shaderCache = {};
-    HashMap<UInt64, VertexLayoutHandle> m_vlCache     = {};
+    CASHashMap<UInt64, ShaderHandle>       m_shaderCache = {};
+    CASHashMap<UInt64, VertexLayoutHandle> m_vlCache     = {};
 
     // d3d11 state caches
-    HashMap<UInt32, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
-    HashMap<UInt64, ID3D11BlendState*>        m_d3d11BlendStateCache        = {};
-    HashMap<UInt64, ID3D11DepthStencilState*> m_d3d11DepthStencilStateCache = {};
-    HashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
+    CASHashMap<UInt32, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
+    CASHashMap<UInt64, ID3D11BlendState*>        m_d3d11BlendStateCache        = {};
+    CASHashMap<UInt64, ID3D11DepthStencilState*> m_d3d11DepthStencilStateCache = {};
+    CASHashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
 
     // pipeline bind state
     VertexLayoutHandle m_vlhBind      = k_nullHandle;
@@ -1062,9 +1062,12 @@ private:
     friend class Application;
 };
 
-}   // namespace Jam
+[[nodiscard]] inline Graphics& GetGraphics()
+{
+    return Graphics::GetInstance();
+}
 
-#define JAM_GFX Jam::Graphics::GetInstance()
+}   // namespace Jam
 
 /// 핸들 파괴 매크로
 #define JAM_DESTROY_GRAPHICS_HANDLE(_handle, _func) \
@@ -1076,10 +1079,10 @@ private:
     }                                               \
     JAM_END_MACRO_BLOCK
 
-#define JAM_DESTROY_VERTEX_BUFFER(_handle)   JAM_DESTROY_GRAPHICS_HANDLE(_handle, JAM_GFX.DestroyVertexBuffer)
-#define JAM_DESTROY_INDEX_BUFFER(_handle)    JAM_DESTROY_GRAPHICS_HANDLE(_handle, JAM_GFX.DestroyIndexBuffer)
-#define JAM_DESTROY_CONSTANT_BUFFER(_handle) JAM_DESTROY_GRAPHICS_HANDLE(_handle, JAM_GFX.DestroyConstantBuffer)
-#define JAM_DESTROY_PROGRAM(_handle)         JAM_DESTROY_GRAPHICS_HANDLE(_handle, JAM_GFX.DestroyProgram)
-#define JAM_DESTROY_TEXTURE(_handle)         JAM_DESTROY_GRAPHICS_HANDLE(_handle, JAM_GFX.DestroyTexture)
-#define JAM_DESTROY_FRAME_BUFFER(_handle)    JAM_DESTROY_GRAPHICS_HANDLE(_handle, JAM_GFX.DestroyFrameBuffer)
-#define JAM_DESTROY_SHADER(_handle)          JAM_DESTROY_GRAPHICS_HANDLE(_handle, JAM_GFX.DestroyShader)
+#define JAM_DESTROY_VERTEX_BUFFER(_handle)   JAM_DESTROY_GRAPHICS_HANDLE(_handle, GetGraphics().DestroyVertexBuffer)
+#define JAM_DESTROY_INDEX_BUFFER(_handle)    JAM_DESTROY_GRAPHICS_HANDLE(_handle, GetGraphics().DestroyIndexBuffer)
+#define JAM_DESTROY_CONSTANT_BUFFER(_handle) JAM_DESTROY_GRAPHICS_HANDLE(_handle, GetGraphics().DestroyConstantBuffer)
+#define JAM_DESTROY_PROGRAM(_handle)         JAM_DESTROY_GRAPHICS_HANDLE(_handle, GetGraphics().DestroyProgram)
+#define JAM_DESTROY_TEXTURE(_handle)         JAM_DESTROY_GRAPHICS_HANDLE(_handle, GetGraphics().DestroyTexture)
+#define JAM_DESTROY_FRAME_BUFFER(_handle)    JAM_DESTROY_GRAPHICS_HANDLE(_handle, GetGraphics().DestroyFrameBuffer)
+#define JAM_DESTROY_SHADER(_handle)          JAM_DESTROY_GRAPHICS_HANDLE(_handle, GetGraphics().DestroyShader)

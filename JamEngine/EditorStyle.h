@@ -1,5 +1,5 @@
 #pragma once
-#include "ImGuiGlue.h"
+#include "ImGuiEngine.h"
 
 namespace Jam
 {

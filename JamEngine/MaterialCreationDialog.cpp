@@ -11,9 +11,21 @@
 namespace Jam
 {
 
+namespace
+{
+    [[nodiscard]] FileDialog CreateSaveDirectoryDialog_()
+    {
+        SaveFileDialogInfo info = {};
+        info.title              = "select save directory";
+        return FileDialog { info };
+    }
+
+}   // namespace
+
 MaterialCreationDialog::MaterialCreationDialog(
-    const MaterialCreationDialogDesc& _desc)
-    : AssetCreationDialog(_desc.baseInfo)
+    const MaterialCreationDialogInfo& _desc)
+    : AssetCreationDialog(_desc.title, _desc.size)
+    , m_saveFd(CreateSaveDirectoryDialog_())
     , m_saveDir(_desc.dirOrEmpty)
 {
 }
@@ -28,11 +40,11 @@ void MaterialCreationDialog::OnShow()
         ImGui::TableNextColumn();
         Widget_FileDialog("##DirectorySelector", m_saveDir, m_saveFd);
 
-        // name
+        // title
         ImGui::TableNextColumn();
-        Widget_Text("asset name", true);
+        Widget_Text("asset title", true);
         ImGui::TableNextColumn();
-        Widget_InputText("##name", m_assetBaseName);
+        Widget_InputText("##title", m_assetBaseName);
 
         ImGui::EndTable();
     }
@@ -62,16 +74,16 @@ bool MaterialCreationDialog::OnClickCreateButton_()
         return false;
     }
 
-    if (m_saveDir.empty())
+    if (m_saveDir.IsEmpty())
     {
         PushEmptySavePathErrorMessageDialog_();
         return false;
     }
 
-    Path path = JoinedPath(m_saveDir, m_assetBaseName);
-    ReplaceExtension(path, Material::k_extension);
+    String path = String::Joined(m_saveDir, m_assetBaseName, eJoinType::File);
+    path += Material::k_extension;
 
-    if (fs::exists(path))
+    if (FileSystem::Exists(path))
     {
         PushOverwriteConfirmationDialog_(path);
         return false;
@@ -81,7 +93,7 @@ bool MaterialCreationDialog::OnClickCreateButton_()
 }
 
 bool MaterialCreationDialog::CreateAndSaveAsset_(
-    const Path& _path)
+    StringView _path)
 {
     Ref<Material> pMaterial = Material::Create({}, {}, {});
     return SaveAsset_(_path, pMaterial);

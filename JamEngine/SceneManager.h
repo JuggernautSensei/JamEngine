@@ -28,8 +28,8 @@ public:
 
     void ImGuiRender() const;
 
-    [[nodiscard]] Error LoadScene(const Path& _path);
-    void                LoadScene(const Ref<Scene>& _pScene);
+    [[nodiscard]] Error LoadScene(StringView _path, bool _bDefered = true);  
+    void                LoadScene(const Ref<Scene>& _pScene, bool _bDefered = true); 
 
     [[nodiscard]] bool              HasActiveScene() const;
     [[nodiscard]] const Ref<Scene>& GetActiveScene() const;
@@ -54,6 +54,9 @@ private:
     friend class Application;
 };
 
-}   // namespace Jam
+[[nodiscard]] inline SceneManager& GetSceneManager()
+{
+    return SceneManager::GetInstance();
+}
 
-#define JAM_SCENE_MGR Jam::SceneManager::GetInstance()
+}   // namespace Jam

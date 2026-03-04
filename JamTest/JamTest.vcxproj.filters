@@ -2,15 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="AdvString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="StringTest.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
-    <ClCompile Include="FileSystemUtilitiesTest.cpp">
       <Filter>Test</Filter>
     </ClCompile>
     <ClCompile Include="CheckOverflowTest.cpp">
@@ -25,7 +21,15 @@
     <ClCompile Include="EnumUtilitiesTest.cpp">
       <Filter>Test</Filter>
     </ClCompile>
-    <ClCompile Include="AdvString.cpp" />
+    <ClCompile Include="AdvStringTest.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystemTest.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="StackListTest.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />

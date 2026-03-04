@@ -1,10 +1,15 @@
 #include "pch.h"
-#include "../JamEngine/MockApplication.h"
-
-JAM_MOCK_APP();
+#include <entt/entt.hpp>
+#include <chrono>
+#include <iostream>
+#include <vector>
+#include <memory>
 
 int main(int argc, char** argv)
 {
+    Log::CreateInstance();
     ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    int ret = RUN_ALL_TESTS();
+    Log::DestroyInstance();
+    return ret;
 }

@@ -4,10 +4,12 @@
 
 #include "Editor.h"
 #include "EditorUtilities.h"
+#include "FileDialog.h"
 #include "Graphics.h"
 #include "Input.h"
+#include "StackString.h"
 #include "Transform.h"
-#include "VertexLayoutEntry.h"
+#include "VertexLayoutEntryManager.h"
 
 namespace Jam
 {
@@ -50,7 +52,7 @@ namespace
             String* pStr = pUserData->pStr;
             JAM_ASSERT(_pData->Buf == pStr->GetPtr(), "Invalid string buffer pointer in InputText callback.");
             pStr->Resize(_pData->BufTextLen);
-            _pData->Buf = static_cast<char*>(pStr->GetPtr());
+            _pData->Buf = pStr->GetPtr();
         }
         else if (pUserData->ChainCallback)
         {
@@ -61,11 +63,12 @@ namespace
         return 0;
     }
 
+    template<SizeT k_cap>
     void FormatTextureInfoText_(
-        ScratchBuffer&      _buf,
+        StackString<k_cap>& _buf,
         const Ref<Texture>& _pTexture)
     {
-        const TextureInfo texInfo = JAM_GFX.GetTextureInfo(_pTexture->GetHandle());
+        const TextureInfo texInfo = GetGraphics().GetTextureInfo(_pTexture->GetHandle());
         _buf.Format("path: {}\n"
                     "size: {} x {} x {}\n"
                     "type: {}\n"
@@ -84,23 +87,24 @@ namespace
                     texInfo.numMips);
     }
 
+    template<SizeT k_cap>
     void FormatShortcutDisplayText_Minimal_(
-        ScratchBuffer&      _buf,
+        StackString<k_cap>& _buf,
         const ImGuiKeyChord _shortcut)
     {
         if (_shortcut & ImGuiMod_Ctrl)
         {
-            _buf.Append("Ctrl + ");
+            _buf.Append("ctrl + ");
         }
 
         if (_shortcut & ImGuiMod_Shift)
         {
-            _buf.Append("Shift + ");
+            _buf.Append("shift + ");
         }
 
         if (_shortcut & ImGuiMod_Alt)
         {
-            _buf.Append("Alt + ");
+            _buf.Append("alt + ");
         }
 
         const ImGuiKey key = static_cast<ImGuiKey>(_shortcut & ~ImGuiMod_Mask_);
@@ -110,8 +114,9 @@ namespace
         }
     }
 
+    template<SizeT k_cap>
     void FormatShortcutDisplayText_(
-        ScratchBuffer&      _buf,
+        StackString<k_cap>& _buf,
         const ImGuiKeyChord _shortcut)
     {
         _buf.Set("shortcut: ");
@@ -416,7 +421,7 @@ void Widget_ItemDescriptionTooltip(
         // shortcut
         if (chord != ImGuiKey_None)
         {
-            ScratchBuffer buf;
+            StackString<64> buf;
             FormatShortcutDisplayText_(buf, chord);
             ImGui::SameLine();
             ImGui::TextDisabled("%s", buf.GetPtr());
@@ -452,7 +457,7 @@ void WidgetInfiniteDragger::OnAfterWidget()
     if (bActived)
     {
         m_capturedPos = ImGui::GetMousePos();
-        JAM_INPUT.SetMouseVisibility(false);
+        GetInput().SetMouseVisibility(false);
 
         // for debug
         if (JAM_DEBUG_ENABLED)
@@ -466,7 +471,7 @@ void WidgetInfiniteDragger::OnAfterWidget()
     if (!bActived && ImGui::IsItemActive())
     {
         // fix mouse pos to captured pos
-        JAM_INPUT.SetMousePos(NumericCast<Int32>(m_capturedPos.x), NumericCast<Int32>(m_capturedPos.y));
+        GetInput().SetMousePos(NumericCast<Int32>(m_capturedPos.x), NumericCast<Int32>(m_capturedPos.y));
 
         // for imgui use
         ImGuiIO& io     = ImGui::GetIO();
@@ -477,7 +482,7 @@ void WidgetInfiniteDragger::OnAfterWidget()
     // on end drag
     if (ImGui::IsItemDeactivated() || ImGui::TempInputIsActive(g.LastItemData.ID))
     {
-        JAM_INPUT.SetMouseVisibility(true);
+        GetInput().SetMouseVisibility(true);
     }
 }
 
@@ -569,10 +574,11 @@ void Widget_Text(
 }
 
 void Widget_TextFrame(
-    const char*  _text,
-    const ImVec2 _frameSize,
-    const ImVec4 _bgCol,
-    const bool   _bRenderBorder)
+    const char*      _text,
+    const ImVec2     _frameSize,
+    const ImVec4     _bgCol,
+    const bool       _bRenderBorder,
+    const eTextAlign _align)
 {
     const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
     if (pWin->SkipItems)
@@ -592,9 +598,50 @@ void Widget_TextFrame(
         return;
     }
 
+    if (!IsTransparent(_bgCol))
+    {
+        ImGui::RenderFrame(bb.Min, bb.Max, ImGui::ColorConvertFloat4ToU32(_bgCol), _bRenderBorder, style.FrameRounding);
+    }
+
     // calc center aligned text pos
-    ImGui::RenderFrame(bb.Min, bb.Max, ImGui::ColorConvertFloat4ToU32(_bgCol), _bRenderBorder, style.FrameRounding);
-    ImGui::RenderTextClipped(bb.Min, bb.Max, _text, NULL, &textSize, ImGui::GetStyle().ButtonTextAlign, &bb);
+    const float numLines    = textSize.y / ImGui::GetTextLineHeight();
+    const float lineYAlign  = ImGui::GetTextLineHeight() / textSize.y;
+    const float startYAlign = (1.f - lineYAlign * numLines) * 0.5f;
+    ImVec2      align       = _align == eTextAlign::Left   ? ImVec2 { 0.f, startYAlign }
+                            : _align == eTextAlign::Center ? ImVec2 { 0.5f, startYAlign }
+                                                           : ImVec2 { 1.f, startYAlign };
+
+    float y = pos.y + size.y * startYAlign;
+    for (const char* start = _text; start;)
+    {
+        const char* end = start;
+        while (*end != '\0' && *end != '\n')
+        {
+            end++;
+        }
+
+        // viewport clip & frame clip
+        float lineY = y + ImGui::GetTextLineHeight();
+        if ((pWin->ClipRect.Min.y > lineY) || (bb.Min.y > lineY))
+        {
+            goto lb_next_line;
+        }
+        else if ((pWin->ClipRect.Max.y < y) || (bb.Max.y < y))
+        {
+            break;
+        }
+
+        // render line
+        {
+            const ImVec2 singleLineTextSize = ImGui::CalcTextSize(start, end, true);
+            ImGui::RenderTextClipped(bb.Min, bb.Max, start, end, &singleLineTextSize, align, &bb);
+        }
+
+    lb_next_line:
+        start = (*end) ? end + 1 : nullptr;
+        y     = lineY;
+        align.y += lineYAlign;
+    }
 }
 
 bool Widget_IconButton(
@@ -877,8 +924,8 @@ bool Widget_MenuItem(
         return false;
     }
 
-    ScratchBuffer buf;   // for shortcut text
-    const char*   shortcutText = nullptr;
+    StackString<64> buf;
+    const char*     shortcutText = nullptr;
     if (_shortcut != 0)
     {
         ImGui::SetNextItemShortcut(_shortcut);
@@ -899,13 +946,13 @@ bool Widget_VertexLayoutEntryCombo(
         return false;
     }
 
-    const VertexLayoutMap& map      = JAM_EDITOR.GetVertexLayoutMap();
+    const VertexLayoutEntryManager& map      = GetEditor().GetVertexLayoutManager();
     const char*            preview  = _pVle ? _pVle->GetName().GetPtr() : "none";
     bool                   bChanged = false;
 
     if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const auto& [name, pVle]: map.GetContainer())
+        for (const auto& [name, pVle]: map.GetEntries())
         {
             const char* label     = name.GetPtr();
             const bool  bSelected = (_pVle == pVle);
@@ -927,6 +974,28 @@ bool Widget_VertexLayoutEntryCombo(
     return bChanged;
 }
 
+void Widget_Dummy(
+    const char*  _label,
+    const ImVec2 _size)
+{
+    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    if (pWin->SkipItems)
+    {
+        return;
+    }
+
+    const ImGuiID id = ImGui::GetID(_label);
+    const ImRect  bb { pWin->DC.CursorPos, pWin->DC.CursorPos + _size };
+    ImGui::ItemSize(_size);
+    if (!ImGui::ItemAdd(bb, id, NULL, ImGuiItemFlags_NoNav))
+    {
+        return;
+    }
+
+    // render debug
+    // ImGui::GetWindowDrawList()->AddRect(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_Border));
+}
+
 bool Widget_MeshPicker(
     const char* _label,
     Ref<Mesh>&  _pMesh)
@@ -937,7 +1006,7 @@ bool Widget_MeshPicker(
         return false;
     }
 
-    const char* text     = _pMesh ? _pMesh->GetPath().c_str() : "no mesh";
+    const char* text     = _pMesh ? _pMesh->GetPath().GetPtr() : "no mesh";
     bool        bChanged = false;
 
     // push id
@@ -955,8 +1024,8 @@ bool Widget_MeshPicker(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const Path path = ResolvePathDragDropPayload(pPayload);
-            if (Optional<Ref<Mesh>> pMesh = JAM_EDITOR.LoadMesh(path))
+            const String path = ResolvePathDragDropPayload(pPayload);
+            if (Expect<Ref<Mesh>> pMesh = GetEditor().LoadMesh(path))
             {
                 _pMesh = pMesh.Take();
             }
@@ -1004,7 +1073,7 @@ bool Widget_MaterialPicker(
     }
 
     bool        bChanged = false;
-    const char* text     = _pMaterial ? _pMaterial->GetPath().c_str() : "no material";
+    const char* text     = _pMaterial ? _pMaterial->GetPath().GetPtr() : "no material";
 
     // push id
     ImGui::PushID(_label);
@@ -1020,8 +1089,8 @@ bool Widget_MaterialPicker(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const Path path = ResolvePathDragDropPayload(pPayload);
-            if (Optional<Ref<Material>> pMaterial = JAM_EDITOR.LoadMaterial(path))
+            const String path = ResolvePathDragDropPayload(pPayload);
+            if (Expect<Ref<Material>> pMaterial = GetEditor().LoadMaterial(path))
             {
                 _pMaterial = pMaterial.Take();
             }
@@ -1091,8 +1160,8 @@ bool Widget_TexturePicker(
     {
         if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
         {
-            const Path path = ResolvePathDragDropPayload(pPayload);
-            if (Optional<Ref<Texture>> pTexture = JAM_EDITOR.LoadTexture(path))
+            const String path = ResolvePathDragDropPayload(pPayload);
+            if (Expect<Ref<Texture>> pTexture = GetEditor().LoadTexture(path))
             {
                 _pTexture = pTexture.Take();
             }
@@ -1106,7 +1175,7 @@ bool Widget_TexturePicker(
     {
         if (_pTexture)
         {
-            ScratchBuffer tmp;
+            StackString<1024> tmp;
             FormatTextureInfoText_(tmp, _pTexture);
             ImGui::TextUnformatted(tmp.GetPtr());
         }
@@ -1201,25 +1270,25 @@ bool Widget_Acroball(
                                 : bHovered ? eEditorStyleColor::AcroballBgHovered
                                            : eEditorStyleColor::AcroballBg;
 
-    const ImU32 bgCol     = JAM_EDITOR.GetStyleColorU32(col);
+    const ImU32 bgCol     = GetEditor().GetStyleColorU32(col);
     ImDrawList* pDrawList = ImGui::GetWindowDrawList();
     pDrawList->AddCircleFilled(center, radius, bgCol, 64);
 
     // value
-    const ImVec4 axisXCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisX);
-    const ImVec4 axisYCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisY);
-    const ImVec4 axisZCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisZ);
+    const ImVec4 axisXCol = GetEditor().GetStyleColor(eEditorStyleColor::AcroballAxisX);
+    const ImVec4 axisYCol = GetEditor().GetStyleColor(eEditorStyleColor::AcroballAxisY);
+    const ImVec4 axisZCol = GetEditor().GetStyleColor(eEditorStyleColor::AcroballAxisZ);
 
-    const ImVec4 axisXOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisXOutline);
-    const ImVec4 axisYOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisYOutline);
-    const ImVec4 axisZOutlineCol = JAM_EDITOR.GetStyleColor(eEditorStyleColor::AcroballAxisZOutline);
+    const ImVec4 axisXOutlineCol = GetEditor().GetStyleColor(eEditorStyleColor::AcroballAxisXOutline);
+    const ImVec4 axisYOutlineCol = GetEditor().GetStyleColor(eEditorStyleColor::AcroballAxisYOutline);
+    const ImVec4 axisZOutlineCol = GetEditor().GetStyleColor(eEditorStyleColor::AcroballAxisZOutline);
 
     // m_style value
-    const float axisLineThickness    = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisLineThickness);
-    const float axisLineRatio        = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisLineLengthRatio);
+    const float axisLineThickness    = GetEditor().GetStyleVar(eEditorStyleVar::AcroballAxisLineThickness);
+    const float axisLineRatio        = GetEditor().GetStyleVar(eEditorStyleVar::AcroballAxisLineLengthRatio);
     const float axisLineLen          = radius * axisLineRatio;
-    const float headRadius           = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisHeadRadius);
-    const float headOutlineThickness = JAM_EDITOR.GetStyleVar(eEditorStyleVar::AcroballAxisHeadOutlineThickness);
+    const float headRadius           = GetEditor().GetStyleVar(eEditorStyleVar::AcroballAxisHeadRadius);
+    const float headOutlineThickness = GetEditor().GetStyleVar(eEditorStyleVar::AcroballAxisHeadOutlineThickness);
 
     // acroball data
     const Vec3 axisX = _t.GetRight();
@@ -1274,7 +1343,7 @@ bool Widget_Acroball(
 
 bool Widget_FileDialog(
     const char* _label,
-    Path&       _path,
+    String&     _path,
     FileDialog& _fd)
 {
     ImGuiWindow* pWin = ImGui::GetCurrentWindow();
@@ -1291,7 +1360,7 @@ bool Widget_FileDialog(
 
     // inputW
     ImGui::SetNextItemWidth(inputW);
-    if (ImGui::InputText(_label, const_cast<std::string*>(&_path.native()), ImGuiInputTextFlags_ReadOnly))
+    if (Widget_InputText(_label, _path, ImGuiInputTextFlags_ReadOnly))
     {
         bChanged = true;
     }
@@ -1324,7 +1393,14 @@ bool Widget_InputText(
     userData.pStr                             = &_str;
     userData.ChainCallback                    = _callback;
     userData.pChainUserData                   = _pUserData;
-    return ImGui::InputText(_label, static_cast<char*>(_str.GetPtr()), _str.GetCapacity() + 1, _flags, Widget_InputTextCallback, &userData);
+    return ImGui::InputText(_label, _str.GetPtr(), _str.GetCapacity() + 1, _flags, Widget_InputTextCallback, &userData);
+}
+
+void Widget_ReadOnlyInputText(
+    const char*      _label,
+    const StringView _str)
+{
+    ImGui::InputText(_label, const_cast<char*>(_str.GetPtr()), _str.GetLength() + 1, ImGuiInputTextFlags_ReadOnly);
 }
 
 bool Widget_EnumCombo(

@@ -90,4 +90,10 @@ template<typename T, typename R>
     return !CmpEqual(_a, _b);
 }
 
+template<typename T, USizeT N>
+[[nodiscard]] constexpr SizeT CountOf(const T (&)[N]) noexcept
+{
+    return N;
+}
+
 }   // namespace Jam

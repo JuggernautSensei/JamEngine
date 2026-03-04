@@ -40,48 +40,11 @@ void DialogStack::Show()
 
 void DialogStack::ShrinkToFit_()
 {
-    const SizeT numDlgs = m_dialogs.size();
-
-    SizeT i = 0;
-    SizeT j = 0;
-    while (true)
-    {
-        // find nullptr
-        while (i < numDlgs && m_dialogs[i])
-        {
-            ++i;
-        }
-
-        // reached end
-        if (i == numDlgs)
-        {
-            break;
-        }
-
-        j = i + 1;
-
-        // find next non-nullptr
-        while (j < numDlgs && !m_dialogs[j])
-        {
-            ++j;
-        }
-
-        // reached end
-        if (j == numDlgs)
-        {
-            break;
-        }
-
-        // swap
-        JAM_ASSERT(m_dialogs[i] == nullptr, "Expected nullptr at position i");
-        JAM_ASSERT(m_dialogs[j], "Expected non-nullptr at position j");
-        std::swap(m_dialogs[i], m_dialogs[j]);
-
-        // next
-        ++i;
-    }
-
-    m_dialogs.erase(m_dialogs.begin() + i, m_dialogs.end());
+    eastl::erase_if(m_dialogs,
+                    [](const Ref<Dialog>& _pDlg)
+                    {
+                        return _pDlg == nullptr;
+                    });
 }
 
 }   // namespace Jam

@@ -18,7 +18,7 @@ JsonWriter::JsonWriter()
 JsonWriter::JsonWriter(
     yyjson_mut_doc* _pDoc)
     : m_pDoc(_pDoc)
-      , m_ownsDoc(false)
+    , m_ownsDoc(false)
 {
     yyjson_mut_val* root = yyjson_mut_doc_get_root(m_pDoc);
     m_valueStack.PushBack(root);
@@ -35,8 +35,8 @@ JsonWriter::~JsonWriter()
 JsonWriter::JsonWriter(
     JsonWriter&& _other) noexcept
     : m_pDoc(_other.m_pDoc)
-      , m_valueStack(std::move(_other.m_valueStack))
-      , m_ownsDoc(_other.m_ownsDoc)
+    , m_valueStack(std::move(_other.m_valueStack))
+    , m_ownsDoc(_other.m_ownsDoc)
 {
     _other.m_pDoc    = nullptr;
     _other.m_ownsDoc = false;
@@ -71,7 +71,7 @@ Expect<String> JsonWriter::Stringify(
     char*  json = yyjson_mut_write(m_pDoc, _flags.GetValue(), &len);
     if (!json)
     {
-        JAM_LOG.Error("YYJson serialization error: failed to write document.");
+        JAM_LOG_ERROR("YYJson serialization error: failed to write document.");
         return Error::RuntimeError;
     }
 
@@ -81,27 +81,32 @@ Expect<String> JsonWriter::Stringify(
 }
 
 Error JsonWriter::SaveToFile(
-    const Path&                  _path,
-    const Flags<eJsonWriteFlags> _writeFlags,
-    const Flags<eSaveFileFlags>  _saveFlags) const
+    const StringView                 _path,
+    const Flags<eJsonWriteFlags>     _flags,
+    const eFileWriterCollisionPolicy _policy) const
 {
-    Expect<FileWriter> writer = FileWriter::Open(_path, _saveFlags);
+    Expect<FileWriter> writer = FileWriter::Open(_path, _policy);
     if (!writer)
     {
         return writer.GetError();
     }
 
     size_t len  = {};
-    char*  json = yyjson_mut_write(m_pDoc, _writeFlags, &len);
+    char*  json = yyjson_mut_write(m_pDoc, _flags, &len);
     if (!json)
     {
-        JAM_LOG.Error("YYJson serialization error: failed to write document.");
+        JAM_LOG_ERROR("YYJson serialization error: failed to write document.");
         return Error::RuntimeError;
     }
 
-    const Error err = writer->Write(CMemoryBlock { json, NumericCast<SizeT>(len) });
+    const Expect<SizeT> ret = writer->Write(CMemoryBlock { json, NumericCast<SizeT>(len) });
     free(json);
-    return err;
+    if (!ret)
+    {
+        JAM_LOG_ERROR("Failed to write JSON data to file '{}': {}", _path, ret.GetError().ToErrorMessage());
+        return ret.GetError();
+    }
+    return Error::None;
 }
 
 void JsonWriter::OpenField(
@@ -110,7 +115,7 @@ void JsonWriter::OpenField(
     yyjson_mut_val* pCur = m_valueStack.Back();
     if (yyjson_mut_is_null(pCur))
     {
-        yyjson_mut_obj_clear(pCur);
+        yyjson_mut_set_obj(pCur);
     }
 
     yyjson_mut_val* newVal = yyjson_mut_null(m_pDoc);
@@ -126,7 +131,7 @@ void JsonWriter::OpenAtBack()
     yyjson_mut_val* pCur = m_valueStack.Back();
     if (yyjson_mut_is_null(pCur))
     {
-        yyjson_mut_arr_clear(pCur);
+        yyjson_mut_set_arr(pCur);
     }
 
     yyjson_mut_val* newVal = yyjson_mut_null(m_pDoc);
@@ -159,14 +164,14 @@ void JsonWriter::WritePrimitive_(
     const Int32 _value)
 {
     yyjson_mut_val* pCur = m_valueStack.Back();
-    yyjson_mut_set_sint(pCur, static_cast<int64_t>(_value));
+    yyjson_mut_set_sint(pCur, _value);
 }
 
 void JsonWriter::WritePrimitive_(
     const UInt32 _value)
 {
     yyjson_mut_val* pCur = m_valueStack.Back();
-    yyjson_mut_set_uint(pCur, static_cast<uint64_t>(_value));
+    yyjson_mut_set_uint(pCur, _value);
 }
 
 void JsonWriter::WritePrimitive_(
@@ -242,7 +247,7 @@ JsonReader::~JsonReader()
 JsonReader::JsonReader(
     JsonReader&& _other) noexcept
     : m_doc(_other.m_doc)
-      , m_valueStack(std::move(_other.m_valueStack))
+    , m_valueStack(std::move(_other.m_valueStack))
 {
     _other.m_doc = nullptr;
     _other.m_valueStack.Clear();
@@ -282,7 +287,7 @@ Expect<JsonReader> JsonReader::Parse(
     yyjson_doc*     pDoc = yyjson_read_opts(const_cast<char*>(_json.GetPtr()), _json.GetLength(), _flags, nullptr, &err);
     if (!pDoc)
     {
-        JAM_LOG.Error("YYJson parse error: {} at position {}", err.msg, err.pos);
+        JAM_LOG_ERROR("YYJson parse error: {} at position {}", err.msg, err.pos);
         return Error::ParseError;
     }
 
@@ -290,7 +295,7 @@ Expect<JsonReader> JsonReader::Parse(
 }
 
 Expect<JsonReader> JsonReader::ParseFromFile(
-    const Path&                 _path,
+    const StringView            _path,
     const Flags<eJsonReadFlags> _flags)
 {
     Expect<String> data = FileReader::ReadFileAsString(_path);
@@ -307,7 +312,7 @@ Error JsonReader::EnterField(StringView _key)
     yyjson_val* pValue = m_valueStack.Back();
     if (!yyjson_is_obj(pValue))
     {
-        JAM_LOG.Error("YYJson enter field error: data type not matched (expected object type).");
+        JAM_LOG_ERROR("YYJson enter field error: data type not matched (expected object type).");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -315,7 +320,7 @@ Error JsonReader::EnterField(StringView _key)
     yyjson_val* _pVal = yyjson_obj_getn(pValue, _key.GetPtr(), _key.GetLength());
     if (!_pVal)
     {
-        JAM_LOG.Error("YYJson enter field error: missing field \"{}\".", _key);
+        JAM_LOG_ERROR("YYJson enter field error: missing field \"{}\".", _key);
         MarkError(Error::MissingField);
         return Error::MissingField;
     }
@@ -329,7 +334,7 @@ Error JsonReader::EnterAt(const SizeT _idx)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_arr(pCur))
     {
-        JAM_LOG.Error("YYJson enter at error: data type not matched (expected array type).");
+        JAM_LOG_ERROR("YYJson enter at error: data type not matched (expected array type).");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -337,7 +342,7 @@ Error JsonReader::EnterAt(const SizeT _idx)
     yyjson_val* _pVal = yyjson_arr_get(pCur, NumericCast<USizeT>(_idx));
     if (!_pVal)
     {
-        JAM_LOG.Error("YYJson enter at error: index out of bounds.");
+        JAM_LOG_ERROR("YYJson enter at error: index out of bounds.");
         MarkError(Error::OutOfRange);
         return Error::OutOfRange;
     }
@@ -402,7 +407,7 @@ Error JsonReader::ReadPrimitive_(std::nullptr_t&)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_null(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected null type.");
+        JAM_LOG_ERROR("YYJson read error: expected null type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -414,7 +419,7 @@ Error JsonReader::ReadPrimitive_(bool& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_bool(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected bool type.");
+        JAM_LOG_ERROR("YYJson read error: expected bool type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -428,7 +433,7 @@ Error JsonReader::ReadPrimitive_(
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_int(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected int type.");
+        JAM_LOG_ERROR("YYJson read error: expected int type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -442,7 +447,7 @@ Error JsonReader::ReadPrimitive_(UInt32& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_uint(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected uint type.");
+        JAM_LOG_ERROR("YYJson read error: expected uint type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -455,7 +460,7 @@ Error JsonReader::ReadPrimitive_(Int64& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_int(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected int64 type.");
+        JAM_LOG_ERROR("YYJson read error: expected int64 type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -468,7 +473,7 @@ Error JsonReader::ReadPrimitive_(UInt64& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_uint(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected uint64 type.");
+        JAM_LOG_ERROR("YYJson read error: expected uint64 type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -481,7 +486,7 @@ Error JsonReader::ReadPrimitive_(float& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_num(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected number type.");
+        JAM_LOG_ERROR("YYJson read error: expected number type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -494,7 +499,7 @@ Error JsonReader::ReadPrimitive_(double& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_num(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected number type.");
+        JAM_LOG_ERROR("YYJson read error: expected number type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -507,7 +512,7 @@ Error JsonReader::ReadPrimitive_(const char*& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_str(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected string type.");
+        JAM_LOG_ERROR("YYJson read error: expected string type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -521,7 +526,7 @@ Error JsonReader::ReadPrimitive_(
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_str(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected string type.");
+        JAM_LOG_ERROR("YYJson read error: expected string type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -537,7 +542,7 @@ Error JsonReader::ReadPrimitive_(
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_str(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected string type.");
+        JAM_LOG_ERROR("YYJson read error: expected string type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
@@ -552,13 +557,13 @@ Error JsonReader::ReadPrimitive_(String& _value)
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_str(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected string type.");
+        JAM_LOG_ERROR("YYJson read error: expected string type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
-    const char* str = yyjson_get_str(pCur);
-    size_t      len = yyjson_get_len(pCur);
-    _value.Append(str, NumericCast<SizeT>(len));
+    const char*  str = yyjson_get_str(pCur);
+    const size_t len = yyjson_get_len(pCur);
+    _value.Append({ str, NumericCast<SizeT>(len) });
     return Error::None;
 }
 
@@ -568,7 +573,7 @@ Error JsonReader::ReadPrimitive_(
     yyjson_val* pCur = m_valueStack.Back();
     if (!yyjson_is_str(pCur))
     {
-        JAM_LOG.Error("YYJson read error: expected string type.");
+        JAM_LOG_ERROR("YYJson read error: expected string type.");
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }

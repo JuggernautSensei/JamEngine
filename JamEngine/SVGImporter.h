@@ -15,7 +15,7 @@ struct SVGImporterInfo
 class SVGImporter
 {
 public:
-    [[nodiscard]] static Expect<SVGImporter> ImportFromFile(const Path& _path, const SVGImporterInfo& _info = {});
+    [[nodiscard]] static Expect<SVGImporter> ImportFromFile(StringView _path, const SVGImporterInfo& _info = {});
     [[nodiscard]] static Expect<SVGImporter> ImportFromSource(StringView _source, const SVGImporterInfo& _info = {});
 
     [[nodiscard]] CMemoryBlock GetPixels() const;

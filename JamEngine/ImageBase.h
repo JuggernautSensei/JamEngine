@@ -29,7 +29,6 @@ enum class eImageFormat
     HEIC
 };
 
-[[nodiscard]] Optional<eImageFormat> ParseAsImageFormat(const Path& _path);
 [[nodiscard]] Optional<eImageFormat> ParseAsImageFormat(StringView _ext);
 [[nodiscard]] StringView             ExtensionOf(eImageFormat _format);   // include dot
 

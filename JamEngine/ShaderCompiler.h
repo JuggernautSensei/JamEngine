@@ -27,16 +27,18 @@ struct ShaderCompilerInfo
 class ShaderCompiler
 {
 public:
-    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLFile(const Path& _path, const ShaderCompilerInfo& _info = {});
+    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLFile(StringView _path, const ShaderCompilerInfo& _info = {});
     [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLSource(StringView _source, const ShaderCompilerInfo& _info = {});
     [[nodiscard]] CMemoryBlock                  GetBytecode() const;
+    [[nodiscard]] StringView                    GetErrorMessage() const;
 
 private:
     ShaderCompiler() = default;
-    Error CompileFromHLSLFile_(const Path& _path, const ShaderCompilerInfo& _desc = {});
+    Error CompileFromHLSLFile_(StringView _path, const ShaderCompilerInfo& _desc = {});
     Error CompileHLSLSource_(StringView _source, const ShaderCompilerInfo& _desc = {});
 
-    ComPtr<ID3DBlob> m_pBlob = nullptr;
+    ComPtr<ID3DBlob> m_pBlob    = nullptr;
+    String           m_errorMsg = {};
 };
 
 }   // namespace Jam

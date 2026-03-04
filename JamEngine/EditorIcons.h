@@ -17,6 +17,6 @@ enum class eEditorIcon
     Translation,
 };
 
-using EditorIcons = EnumArray<eEditorIcon, Ref<Texture>>;
+extern EnumArray<eEditorIcon, StringView> g_embededEditorIconSVGSources;
 
 }   // namespace Jam

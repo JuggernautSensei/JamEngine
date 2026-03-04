@@ -15,24 +15,24 @@ public:
     Texture(Texture&& _other) noexcept;
     Texture& operator=(Texture&& _other) noexcept;
 
-    [[nodiscard]] static Expect<Ref<Texture>> Create(const Path& _path);
+    [[nodiscard]] static Expect<Ref<Texture>> Create(StringView _path);
     [[nodiscard]] static Ref<Texture>         Create(TextureHandle _texh);
 
-    Error Load(const Path& _path) override;
+    Error Load(StringView _path) override;
     void  Load(TextureHandle _texh);
-    Error Save(const Path& _path, bool _bReplaceExtension = true, Flags<eSaveFileFlags> _flags = eSaveFileFlags::None) const override;
+    Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
-    void  SetVirtualPath(const Path& _path) override;
+    void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
-    [[nodiscard]] bool        IsValid() const override;
-    [[nodiscard]] eAssetType  GetAssetType() const override;
-    [[nodiscard]] StringView  GetTypeName() const override;
-    [[nodiscard]] UInt32      GetTypeHash() const override;
-    [[nodiscard]] const Path& GetPath() const override;
-    [[nodiscard]] StringView  GetName() const override;
-    [[nodiscard]] StringView  GetExtension() const override;
-    [[nodiscard]] StringView  GetFilter() const override;
+    [[nodiscard]] bool       IsValid() const override;
+    [[nodiscard]] eAssetType GetAssetType() const override;
+    [[nodiscard]] StringView GetTypeName() const override;
+    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] StringView GetPath() const override;
+    [[nodiscard]] StringView GetName() const override;
+    [[nodiscard]] StringView GetExtension() const override;
+    [[nodiscard]] StringView GetFilter() const override;
 
     [[nodiscard]] TextureHandle GetHandle() const;
     [[nodiscard]] Vec2i         GetResolution() const;
@@ -51,7 +51,7 @@ private:
     Texture() = default;
     void CleanUp_();
 
-    Path          m_path            = {};
+    String        m_path            = {};
     String        m_name            = {};
     TextureHandle m_texh            = k_nullHandle;
     Vec2i         m_res             = { 0, 0 };

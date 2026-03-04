@@ -78,12 +78,11 @@ void Scene::DestroyEntity(
 void Scene::DestroyEntityDefered(
     const Entity _entity)
 {
-    auto destroyEntity = [this, _entity]
-    {
-        DestroyEntity_Recursive_(_entity);
-    };
-
-    JAM_APP.SubmitCommandToMainThread(Bind(std::move(destroyEntity)));
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _entity]
+        {
+            DestroyEntity_Recursive_(_entity);
+        }));
 }
 
 Entity Scene::GetEntity(
@@ -95,18 +94,18 @@ Entity Scene::GetEntity(
     return it->second;
 }
 
-Optional<Entity> Scene::FindEntity(
+Entity Scene::FindEntityOrNull(
     const UID _uid) const
 {
     if (!_uid.IsValid())
     {
-        return k_nullopt;
+        return Entity::k_null;
     }
 
     const auto it = m_entities.find(_uid);
     if (it == m_entities.end())
     {
-        return k_nullopt;
+        return Entity::k_null;
     }
 
     return it->second;
@@ -135,12 +134,12 @@ UID Scene::CreateEntitiesDeferedFrom(
     return uid;
 }
 
-const SceneRegistry& Scene::GetRegistry() const
+const Registry& Scene::GetRegistry() const
 {
     return m_registry;
 }
 
-SceneRegistry& Scene::GetRegistry()
+Registry& Scene::GetRegistry()
 {
     return m_registry;
 }
@@ -177,24 +176,24 @@ Entity Scene::CreateRootEntity_()
     JAM_ASSERT(!m_uidGenerator.IsAllocated(k_rootEntityUid), "Root entity reserved UID is already allocated");
 
     // create entt handle
-    const UID          uid    = m_uidGenerator.Alloc(k_rootEntityUid);
-    const EntityHandle handle = m_registry.create();
-    Entity             root   = { m_registry, handle, uid };
+    const UID            uid    = m_uidGenerator.Alloc(k_rootEntityUid);
+    const RegistryHandle handle = m_registry.create();
+    Entity               entity = { m_registry, handle, uid };
 
     // entity map
     JAM_ASSERT(!m_entities.contains(uid), "Entity with same UID already exists");
-    m_entities.emplace(uid, root);
+    m_entities.emplace(uid, entity);
 
     // add transformHierarchy component (essential component)
-    root.CreateComponent<SceneComponent>(SceneNode { root });
+    entity.CreateComponent<SceneComponent>(SceneNode { entity });
 
     // create tag component
-    root.CreateComponent<TagComponent>("scene root");
+    entity.CreateComponent<TagComponent>("scene root");
 
     // dispatch event
-    EntityCreatedEvent event { uid };
-    JAM_APP.DispatchEvent(event);
-    return root;
+    EntityCreatedEvent event { entity };
+    GetApp().DispatchEvent(event);
+    return entity;
 }
 
 Entity Scene::CreateEntity_(
@@ -204,8 +203,8 @@ Entity Scene::CreateEntity_(
     JAM_ASSERT(m_uidGenerator.IsAllocated(_allocedUid), "UID {} is not allocated", _allocedUid);
 
     // create entt handle
-    const EntityHandle handle = m_registry.create();
-    Entity             entity = { m_registry, handle, _allocedUid };
+    const RegistryHandle handle = m_registry.create();
+    Entity               entity = { m_registry, handle, _allocedUid };
 
     // entity map
     JAM_ASSERT(!m_entities.contains(_allocedUid), "Entity with same UID already exists");
@@ -221,8 +220,8 @@ Entity Scene::CreateEntity_(
     }
 
     // dispatch event
-    EntityCreatedEvent event { _allocedUid };
-    JAM_APP.DispatchEvent(event);
+    EntityCreatedEvent event { entity };
+    GetApp().DispatchEvent(event);
     return entity;
 }
 
@@ -230,13 +229,12 @@ void Scene::CreateEntityDefered_(
     const UID        _allocedUid,
     const StringView _nameOrEmpty)
 {
-    const String name         = _nameOrEmpty.ToString();
-    auto         createEntity = [this, _allocedUid, name]
-    {
-        CreateEntity_(_allocedUid, name);
-    };
-
-    JAM_APP.SubmitCommandToMainThread(Bind(std::move(createEntity)));
+    const String name = _nameOrEmpty;
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _allocedUid, name]
+        {
+            CreateEntity_(_allocedUid, name);
+        }));
 }
 
 Entity Scene::CloneEntity_(
@@ -303,12 +301,11 @@ void Scene::CloneEntityDefered_(
     const UID    _allocedUid,
     const Entity _srcEntity)
 {
-    auto cloneEntity = [this, _allocedUid, _srcEntity]
-    {
-        CloneEntity_(_allocedUid, _srcEntity);
-    };
-
-    JAM_APP.SubmitCommandToMainThread(Bind(std::move(cloneEntity)));
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _allocedUid, _srcEntity]
+        {
+            CloneEntity_(_allocedUid, _srcEntity);
+        }));
 }
 
 Entity Scene::CreateEntitiesFrom_Recursive_(
@@ -326,13 +323,10 @@ Entity Scene::CreateEntitiesFrom_Recursive_(
     for (Int32 i = 0; i < numEntities; ++i)
     {
         // create leaf
-        ScratchBuffer buf;
-        buf.Format("{}_{}", _node.name, i);
-
-        const StringView name        = buf.ToStringView();
-        Entity           leaf        = CreateEntity(name);
-        const Int32      meshIdx     = _node.meshIdxes[i];
-        const Int32      materialIdx = _node.matIdxes[i];
+        const String str         = String::Formatted("{}_{}", _node.name, i);
+        Entity       leaf        = CreateEntity(str);
+        const Int32  meshIdx     = _node.meshIdxes[i];
+        const Int32  materialIdx = _node.matIdxes[i];
 
         // create renderable component
         RenderableComponent rc = {};
@@ -366,12 +360,11 @@ void Scene::CreateEntitiesFromDefered_(
     const UID         _allocedUid,
     const Ref<Model>& _pModel)
 {
-    auto createEntitiesFrom = [this, _allocedUid, _pModel]
-    {
-        CreateEntitiesFrom_(_allocedUid, _pModel);
-    };
-
-    JAM_APP.SubmitCommandToMainThread(Bind(std::move(createEntitiesFrom)));
+    GetApp().SubmitCommandToMainThread(Bind(
+        [this, _allocedUid, _pModel]
+        {
+            CreateEntitiesFrom_(_allocedUid, _pModel);
+        }));
 }
 
 void Scene::DestroyEntity_Recursive_(
@@ -402,15 +395,15 @@ void Scene::DestroyEntity_Recursive_(
     m_registry.destroy(_entity.GetHandle());   // destroy
 
     // 이벤트 디스패치
-    EntityDestroyedEvent event { uid };
-    JAM_APP.DispatchEvent(event);
+    EntityDestroyedEvent event { _entity };
+    GetApp().DispatchEvent(event);
 }
 
 void Scene::UpdateSceneGraph_()
 {
     JAM_ASSERT(m_root, "Root entity is null");
     SceneNode& node = m_root.GetSceneNode();
-    node.UpdateDirty_(m_transformModifiedEntities);   // collect modified nodes
+    node.UpdateSceneGraph(m_transformModifiedEntities);   // collect modified nodes
 }
 
 }   // namespace Jam

@@ -8,19 +8,20 @@ namespace Jam
 {
 
 Entity::Entity(
-    SceneRegistry&    _registry,
-    const EntityHandle _handle,
-    const UID          _uid)
+    Registry&            _registry,
+    const RegistryHandle _handle,
+    const UID            _uid)
     : m_pRegistry(&_registry)
-      , m_handle(_handle)
-      , m_uid(_uid)
+    , m_handle(_handle)
+    , m_uid(_uid)
 {
 }
 
 bool Entity::operator==(
     const Entity _other) const
 {
-    return m_handle == _other.m_handle && m_pRegistry == _other.m_pRegistry;
+    return m_pRegistry == _other.m_pRegistry
+        && m_handle == _other.m_handle;
 }
 
 bool Entity::operator!=(
@@ -39,7 +40,7 @@ UID Entity::GetUID() const
     return m_uid;
 }
 
-EntityHandle Entity::GetHandle() const
+RegistryHandle Entity::GetHandle() const
 {
     return m_handle;
 }
@@ -79,6 +80,6 @@ Transform& Entity::ModifyLocalTransform()
     return GetSceneNode().ModifyLocalTransform();
 }
 
-Entity Entity::k_invalid = Entity {};
+const Entity Entity::k_null = Entity {};
 
 }   // namespace Jam

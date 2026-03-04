@@ -1,17 +1,175 @@
 #pragma once
-
-#define RS_MALLOC  Jam::Malloc
-#define RS_REALLOC Jam::Realloc
-#define RS_FREE    Jam::Free
-#include "Vendor/rapidstring/rapidstring.h"
+#include "TypeTraits.h"
+#include <EASTL/fixed_string.h>
 
 namespace Jam
 {
 
-////////// char utilities //////////
+template<typename T>
+concept IsCharT = AnyOfV<T, char, wchar_t, char8_t, char16_t, char32_t>;
 
-using CharTraits  = std::char_traits<char>;
-using WCharTraits = std::char_traits<wchar_t>;
+///////// char traits //////////
+
+template<typename TChar>
+struct CharTraits
+{
+};
+
+template<>
+struct CharTraits<char>
+{
+    using CharT = char;
+
+    template<typename... TArgs>
+    using FormatStringT = fmt::format_string<TArgs...>;
+
+    constexpr static CharT        k_nullChar               = '\0';
+    constexpr static CharT        k_spaceChars[]           = { ' ', '\t', '\n', '\r', '\v', '\f' };
+    constexpr static CharT        k_slash                  = '/';
+    constexpr static CharT        k_dot                    = '.';
+    constexpr static CharT        k_colon                  = ':';
+    constexpr static CharT        k_pathPreferredSeparator = k_slash;
+    constexpr static CharT        k_pathSeparators[]       = { '/', '\\' };
+    constexpr static CharT        k_lowerA                 = 'a';
+    constexpr static CharT        k_upperA                 = 'A';
+    constexpr static CharT        k_lowerZ                 = 'z';
+    constexpr static CharT        k_upperZ                 = 'Z';
+    constexpr static CharT        k_caseDiff               = k_lowerA - k_upperA;
+    constexpr static const CharT* k_placeholder            = "";
+};
+
+template<>
+struct CharTraits<wchar_t>
+{
+    using CharT = wchar_t;
+
+    template<typename... TArgs>
+    using FormatStringT = fmt::wformat_string<TArgs...>;
+
+    constexpr static CharT        k_nullChar               = L'\0';
+    constexpr static CharT        k_spaceChars[]           = { L' ', L'\t', L'\n', L'\r', L'\v', L'\f' };
+    constexpr static CharT        k_slash                  = L'/';
+    constexpr static CharT        k_dot                    = L'.';
+    constexpr static CharT        k_colon                  = L':';
+    constexpr static CharT        k_pathPreferredSeparator = k_slash;
+    constexpr static CharT        k_pathSeparators[]       = { L'/', L'\\' };
+    constexpr static CharT        k_lowerA                 = L'a';
+    constexpr static CharT        k_upperA                 = L'A';
+    constexpr static CharT        k_lowerZ                 = L'z';
+    constexpr static CharT        k_upperZ                 = L'Z';
+    constexpr static CharT        k_caseDiff               = k_lowerA - k_upperA;
+    constexpr static const CharT* k_placeholder            = L"";
+};
+
+////////// numeric char converter //////////
+
+template<typename TChar>
+struct NumeircCharConverter
+{
+};
+
+template<>
+struct NumeircCharConverter<char>
+{
+    using CharTraits = CharTraits<char>;
+    using CharT      = CharTraits::CharT;
+
+    [[nodiscard]] static Int32 ParseAsInt32(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::strtol(_str, nullptr, _base);
+    }
+
+    [[nodiscard]] static UInt32 ParseAsUInt32(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::strtoul(_str, nullptr, _base);
+    }
+
+    [[nodiscard]] static Int64 ParseAsInt64(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::strtoll(_str, nullptr, _base);
+    }
+
+    [[nodiscard]] static UInt64 ParseAsUInt64(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::strtoull(_str, nullptr, _base);
+    }
+
+    [[nodiscard]] static float ParseAsFloat(const CharT* _str)
+    {
+        return std::strtof(_str, nullptr);
+    }
+
+    [[nodiscard]] static double ParseAsDouble(const CharT* _str)
+    {
+        return std::strtod(_str, nullptr);
+    }
+
+    [[nodiscard]] static long double ParseAsLongDouble(const CharT* _str)
+    {
+        return std::strtold(_str, nullptr);
+    }
+
+    template<typename T>
+        requires std::is_arithmetic_v<T>
+    static SizeT ConvertToChars(const T _value, CharT* _pOutBuf, const SizeT _bufCap)
+    {
+        const auto [it, _] = fmt::format_to_n(_pOutBuf, _bufCap - 1, "{}", +_value);
+        *it                = CharTraits::k_nullChar;
+        return NumericCast<SizeT>(it - _pOutBuf);
+    }
+};
+
+template<>
+struct NumeircCharConverter<wchar_t>
+{
+    using CharTraits = CharTraits<wchar_t>;
+    using CharT      = CharTraits::CharT;
+
+    [[nodiscard]] static Int32 ParseAsInt32(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::wcstol(_str, nullptr, _base);
+    }
+
+    [[nodiscard]] static UInt32 ParseAsUInt32(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::wcstoul(_str, nullptr, _base);
+    }
+
+    [[nodiscard]] static Int64 ParseAsInt64(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::wcstoll(_str, nullptr, _base);
+    }
+    [[nodiscard]] static UInt64 ParseAsUInt64(const CharT* _str, const Int32 _base = 10)
+    {
+        return std::wcstoull(_str, nullptr, _base);
+    }
+
+    [[nodiscard]] static float ParseAsFloat(const CharT* _str)
+    {
+        return std::wcstof(_str, nullptr);
+    }
+
+    [[nodiscard]] static double ParseAsDouble(const CharT* _str)
+    {
+        return std::wcstod(_str, nullptr);
+    }
+
+    [[nodiscard]] static long double ParseAsLongDouble(const CharT* _str)
+    {
+        return std::wcstold(_str, nullptr);
+    }
+
+    template<typename T>
+        requires std::is_arithmetic_v<T>
+    static SizeT ConvertToChars(const T _value, CharT* _pOutBuf, const SizeT _bufCap)
+    {
+        const auto [it, _] = fmt::format_to_n(_pOutBuf, _bufCap - 1, L"{}", +_value);
+        *it                = CharTraits::k_nullChar;
+        return NumericCast<SizeT>(it - _pOutBuf);
+    }
+};
+
+////////// general char functions //////////
 
 struct CharResult
 {
@@ -41,480 +199,583 @@ struct CharResult
     SizeT pos        = -1;
 };
 
-constexpr bool IsUpper(const char _c)
+struct TrimResult   // [begin, end)
 {
-    return (_c >= 'A') && (_c <= 'Z');
-}
+    SizeT pos = 0;
+    SizeT len = 0;
+};
 
-constexpr bool IsLower(const char _c)
+enum eJoinType
 {
-    return (_c >= 'a') && (_c <= 'z');
-}
+    File,        // ex) Join("C:/aaa/bbb", "ccc") -> "C:/aaa/bbb/ccc"
+    Directory,   // ex) Join("C:/aaa/bbb", "ccc", OpenedDirectory) -> "C:/aaa/bbb/ccc/"
+    Auto         // if the joined part ends with dir separator, treat as directory, otherwise treat as file. ex) Join("C:/aaa/bbb", "ccc/") -> "C:/aaa/bbb/ccc/"
+};
 
-constexpr bool IsAlphabet(const char _c)
+/// aaa/bbb/ccc.txt
+/// dir         aaa/bbb/
+/// basename    ccc
+/// ext         .txt
+struct PathDecomposeResult
 {
-    return IsUpper(_c) || IsLower(_c);
-}
+    bool bHasDir      = false;
+    bool bHasBaseName = false;
+    bool bHasExt      = false;
 
-constexpr char ToUpper(const char _c)
+    SizeT dirLen      = 0;
+    SizeT baseNamePos = 0;
+    SizeT baseNameLen = 0;
+    SizeT extPos      = 0;
+    SizeT extLen      = 0;
+};
+
+constexpr SizeT k_maxPathLength = 1024;
+
+////////// char functions //////////
+
+template<typename TChar>
+struct CharFuncs
 {
-    return IsLower(_c) ? static_cast<char>(_c - ('a' - 'A')) : _c;
-}
+    using CharTraits           = CharTraits<TChar>;
+    using CharT                = CharTraits::CharT;
+    using NumeircCharConverter = NumeircCharConverter<CharT>;
+    using StdCharTraits        = std::char_traits<TChar>;
+    using StdStringView        = std::basic_string_view<TChar>;
 
-constexpr char ToLower(const char _c)
-{
-    return IsUpper(_c) ? static_cast<char>(_c + ('a' - 'A')) : _c;
-}
-
-constexpr bool IsSpace(const char _c)
-{
-    return ' ' == _c
-        || '\t' == _c
-        || '\n' == _c
-        || '\r' == _c
-        || '\v' == _c
-        || '\f' == _c;
-}
-
-constexpr const char* FindTerminate(const char* _start)
-{
-    JAM_ASSERT(_start, "FindTerminate: _start cannot be null.");
-
-    if (std::is_constant_evaluated())
+    static constexpr bool IsUpper(const CharT _c)
     {
-        const char* ptr = _start;
-        for (; *ptr != '\0'; ++ptr)
+        return (_c >= CharTraits::k_upperA) && (_c <= CharTraits::k_upperZ);
+    }
+
+    static constexpr bool IsLower(const CharT _c)
+    {
+        return (_c >= CharTraits::k_lowerA) && (_c <= CharTraits::k_lowerZ);
+    }
+
+    static constexpr bool IsAlphabet(const CharT _c)
+    {
+        return IsUpper(_c) || IsLower(_c);
+    }
+
+    static constexpr CharT ToUpper(const CharT _c)
+    {
+        return IsLower(_c) ? static_cast<CharT>(_c - CharTraits::k_caseDiff) : _c;
+    }
+
+    static constexpr CharT ToLower(const CharT _c)
+    {
+        return IsUpper(_c) ? static_cast<CharT>(_c + CharTraits::k_caseDiff) : _c;
+    }
+
+    static constexpr bool IsSpace(const CharT _c)
+    {
+        for (const CharT spaceChar: CharTraits::k_spaceChars)
         {
-            JAM_NOOP;
+            if (_c == spaceChar)
+            {
+                return true;
+            }
         }
-        return ptr;
-    }
-    else
-    {
-        return _start + CharTraits::length(_start);
-    }
-}
-
-constexpr const wchar_t* FindTerminate(const wchar_t* _start)
-{
-    JAM_ASSERT(_start, "FindTerminate: _start cannot be null.");
-
-    if (std::is_constant_evaluated())
-    {
-        const wchar_t* ptr = _start;
-        for (; *ptr != L'\0'; ++ptr)
-        {
-            JAM_NOOP;
-        }
-        return ptr;
-    }
-    else
-    {
-        return _start + WCharTraits::length(_start);
-    }
-}
-
-constexpr SizeT StrLen(const char* _start, const char* _endOrNull = nullptr)
-{
-    JAM_ASSERT(_start, "StrLen: _start cannot be null.");
-
-    const char* end = _endOrNull ? _endOrNull : FindTerminate(_start);
-    return end - _start;
-}
-
-constexpr SizeT StrLen(const wchar_t* _start, const wchar_t* _endOrNull = nullptr)
-{
-    JAM_ASSERT(_start, "StrLen: _start cannot be null.");
-
-    const wchar_t* end = _endOrNull ? _endOrNull : FindTerminate(_start);
-    return end - _start;
-}
-
-constexpr bool StrEqual(const char* _start1, const char* _end1OrNull, const char* _start2, const char* _end2OrNull)
-{
-    JAM_ASSERT(_start1, "StrEqual: _start1 cannot be null.");
-    JAM_ASSERT(_start2, "StrEqual: _start2 cannot be null.");
-
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    const SizeT len2 = StrLen(_start2, _end2OrNull);
-
-    if (len1 != len2)
-    {
         return false;
     }
 
-    if (std::is_constant_evaluated())
+    static constexpr SizeT StrLen(const CharT* _str)
     {
-        for (SizeT i = 0; i < len1; ++i)
+        JAM_ASSERT(_str, "StrLen: _str cannot be null.");
+        return StdCharTraits::length(_str);
+    }
+
+    static constexpr const CharT* FindTerminate(const CharT* _str)
+    {
+        JAM_ASSERT(_str, "FindTerminate: _str cannot be null.");
+        return _str + StrLen(_str);
+    }
+
+    static constexpr SizeT StrCpy(CharT* _pOutBuf, const SizeT _bufCap, const CharT* _str, const SizeT _len)
+    {
+        JAM_ASSERT(_pOutBuf, "StrCpy: _pOutBuf cannot be null.");
+        JAM_ASSERT(_bufCap > 0, "StrCpy: _bufCap must be greater than zero.");
+        JAM_ASSERT(_str, "StrCpy: _str cannot be null.");
+        JAM_ASSERT(_len <= _bufCap - 1, "StrCpy: _len cannot be greater than _bufCap - 1.");
+
+        const StdStringView str = { _str, NumericCast<size_t>(_len) };
+        str.copy(_pOutBuf, _len);
+        _pOutBuf[_len] = CharTraits::k_nullChar;
+        return _len;
+    }
+
+    template<bool bEqual>
+    static constexpr bool CharCompareEqualIgnoreCase(const CharT _c0, const CharT _c1)
+    {
+        if constexpr (bEqual)
         {
-            if (_start1[i] != _start2[i])
+            return ToLower(_c0) == ToLower(_c1);
+        }
+        else
+        {
+            return ToLower(_c0) != ToLower(_c1);
+        }
+    }
+
+    template<bool bEqual, bool bIgnoreCase>
+    static constexpr bool StrEqual(const CharT* _str0, const SizeT _len0, const CharT* _str1, const SizeT _len1, const SizeT _n)
+    {
+        JAM_ASSERT(_str0, "StrEqual: _str0 cannot be null.");
+        JAM_ASSERT(_str1, "StrEqual: _str1 cannot be null.");
+        JAM_ASSERT(_len0 >= _n, "StrEqual: _len0 cannot be less than _n.");
+        JAM_ASSERT(_len1 >= _n, "StrEqual: _len1 cannot be less than _n.");
+
+        if constexpr (!bIgnoreCase)
+        {
+            if constexpr (bEqual)
             {
-                return false;
+                return StdCharTraits::compare(_str0, _str1, _n) == 0;
+            }
+            else
+            {
+                return StdCharTraits::compare(_str0, _str1, _n) != 0;
             }
         }
-        return true;
-    }
-    else
-    {
-        return CharTraits::compare(_start1, _start2, len1) == 0;
-    }
-}
-
-constexpr CharResult StrFind(const char* _start, const char* _endOrNull, const char _c)
-{
-    JAM_ASSERT(_start, "StrFind: _start cannot be null.");
-
-    const SizeT len = StrLen(_start, _endOrNull);
-    if (std::is_constant_evaluated())
-    {
-        for (SizeT i = 0; i < len; ++i)
+        else
         {
-            if (_start[i] == _c)
+            for (SizeT i = 0; i < _n; ++i)
             {
-                return CharResult { i };
-            }
-        }
-        return CharResult::Failed();
-    }
-    else
-    {
-        const char* ret = CharTraits::find(_start, len, _c);
-        return ret ? CharResult { ret - _start } : CharResult::Failed();
-    }
-}
-
-constexpr CharResult StrFind(const char* _start1, const char* _end1OrNull, const char* _start2, const char* _end2OrNull)
-{
-    JAM_ASSERT(_start1, "StrFind: _start1 cannot be null.");
-    JAM_ASSERT(_start2, "StrFind: _start2 cannot be null.");
-
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    const SizeT len2 = StrLen(_start2, _end2OrNull);
-
-    if (len2 > len1)
-    {
-        return CharResult::Failed();
-    }
-
-    const SizeT n = len1 - len2 + 1;
-    if (std::is_constant_evaluated())
-    {
-        for (SizeT i = 0; i < n; ++i)
-        {
-            bool bFound = true;
-            for (SizeT j = 0; j < len2; ++j)
-            {
-                if (_start1[i + j] != _start2[j])
+                if (!CharCompareEqualIgnoreCase<bEqual>(_str0[i], _str1[i]))
                 {
-                    bFound = false;
-                    break;
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    template<bool bEqual, bool bIgnoreCase>
+    static constexpr CharResult StrFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
+    {
+        JAM_ASSERT(_str, "StrFind: _str cannot be null.");
+        JAM_ASSERT(_findStr, "StrFind: _findStr cannot be null.");
+        JAM_ASSERT(_len >= _findStrLen, "StrFind: _len cannot be less than _findStrLen.");
+
+        if constexpr (!bIgnoreCase)
+        {
+            if constexpr (bEqual)
+            {
+                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const size_t        idx     = str.find(findStr);
+                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+            }
+            else
+            {
+                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const size_t        idx     = str.find_first_not_of(findStr);
+                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+            }
+        }
+        else
+        {
+            for (SizeT i = 0; i <= _len - _findStrLen; ++i)
+            {
+                if (StrEqual<bEqual, bIgnoreCase>(_str + i, _len - i, _findStr, _findStrLen, _findStrLen))
+                {
+                    return CharResult { i };
+                }
+            }
+            return CharResult::Failed();
+        }
+    }
+
+    template<bool bEqual, bool bIgnoreCase>
+    static constexpr CharResult StrRFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
+    {
+        JAM_ASSERT(_str, "StrRFind: _str cannot be null.");
+        JAM_ASSERT(_findStr, "StrRFind: _findStr cannot be null.");
+        JAM_ASSERT(_len >= _findStrLen, "StrRFind: _len cannot be less than _findStrLen.");
+
+        if constexpr (!bIgnoreCase)
+        {
+            if constexpr (bEqual)
+            {
+                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const size_t        idx     = str.rfind(findStr);
+                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+            }
+            else
+            {
+                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const size_t        idx     = str.find_last_not_of(findStr);
+                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+            }
+        }
+        else
+        {
+            for (SizeT i = _len - _findStrLen + 1; i > 0; --i)
+            {
+                if (StrEqual<bEqual, bIgnoreCase>(_str + i - 1, _len - (i - 1), _findStr, _findStrLen, _findStrLen))
+                {
+                    return CharResult { i - 1 };
+                }
+            }
+            return CharResult::Failed();
+        }
+    }
+
+    static constexpr SizeT StrLTrim(const CharT* _pStart, const SizeT _len)
+    {
+        for (SizeT i = 0; i < _len; ++i)
+        {
+            if (!IsSpace(_pStart[i]))
+            {
+                return i;
+            }
+        }
+        return _len;
+    }
+
+    static constexpr SizeT StrRTrim(const CharT* _pStart, const SizeT _len)
+    {
+        for (SizeT i = _len; i > 0; --i)
+        {
+            if (!IsSpace(_pStart[i - 1]))
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    static constexpr TrimResult StrTrim(const CharT* _pStart, const SizeT _len)
+    {
+        JAM_ASSERT(_pStart, "StrTrim: _pStart cannot be null.");
+        const SizeT lTrimmed = StrLTrim(_pStart, _len);
+        const SizeT rTrimmed = StrRTrim(_pStart + lTrimmed, _len - lTrimmed);
+        return { lTrimmed, rTrimmed };
+    }
+
+    [[nodiscard]] static constexpr bool IsPathSeparator(const CharT _c)
+    {
+        for (const CharT separator: CharTraits::k_pathSeparators)
+        {
+            if (_c == separator)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    [[nodiscard]] static constexpr PathDecomposeResult DecomposePath(const CharT* _str, const SizeT _len)
+    {
+        JAM_ASSERT(_str, "DecomposePath: _str cannot be null.");
+
+        if (_len == 0)
+        {
+            return {};
+        }
+
+        const bool          bIsDir = IsPathSeparator(_str[_len - 1]);
+        const SizeT         end    = bIsDir ? _len - 1 : _len;
+        PathDecomposeResult result = {};
+
+        for (SizeT i = end; i > 0; --i)
+        {
+            CharT c = _str[i - 1];
+            if (IsPathSeparator(c))
+            {
+                result.bHasDir      = true;
+                result.dirLen       = i;
+                result.bHasBaseName = true;
+                result.baseNamePos  = i;
+                result.baseNameLen  = result.bHasExt ? result.extPos - i : end - i;
+                break;
+            }
+            else if (c == CharTraits::k_dot && !result.bHasExt)
+            {
+                result.bHasExt = true;
+                result.extPos  = i - 1;
+                result.extLen  = end - result.extPos;
+            }
+        }
+
+        if (!result.bHasDir)
+        {
+            if (end > 0)
+            {
+                result.bHasBaseName = true;
+                result.baseNamePos  = 0;
+                result.baseNameLen  = result.bHasExt ? result.extPos : end;
+            }
+        }
+
+        return result;
+    }
+
+    [[nodiscard]] static constexpr SizeT Simplify(const CharT* _str, const SizeT _len, CharT* _pOutBuf, const SizeT _bufCap)
+    {
+        JAM_ASSERT(_str, "Simplify: _str cannot be null.");
+        JAM_ASSERT(_pOutBuf, "Simplify: _pOutBuf cannot be null.");
+        JAM_ASSERT(_bufCap > 0, "Simplify: _bufCap must be greater than zero.");
+        JAM_ASSERT(_len < _bufCap, "Simplify: _len must be less than _bufCap.");
+
+        if (_len == 0)
+        {
+            _pOutBuf[0] = CharTraits::k_nullChar;
+            return 0;
+        }
+
+        SizeT idx    = 0;
+        SizeT dotdot = 0;
+        SizeT outIdx = 0;
+
+        if (_len >= 2 && IsAlphabet(_str[0]) && _str[1] == CharTraits::k_colon)
+        {
+            _pOutBuf[outIdx++] = ToUpper(_str[0]);
+            _pOutBuf[outIdx++] = CharTraits::k_colon;
+            idx += 2;
+            dotdot = outIdx;
+        }
+
+        const bool bIsRoot = (idx < _len) && IsPathSeparator(_str[idx]);
+        if (bIsRoot)
+        {
+            _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
+            ++idx;
+            dotdot = outIdx;
+        }
+
+        bool bTrailingSlash = false;
+        while (idx < _len)
+        {
+            if (IsPathSeparator(_str[idx]))
+            {
+                ++idx;
+                bTrailingSlash = (idx == _len);
+                continue;
+            }
+
+            if (_str[idx] == CharTraits::k_dot)
+            {
+                if (idx + 1 == _len || IsPathSeparator(_str[idx + 1]))
+                {
+                    ++idx;
+                    continue;
+                }
+
+                if (CharTraits::k_dot == _str[idx + 1] && (idx + 2 == _len || IsPathSeparator(_str[idx + 2])))
+                {
+                    idx += 2;
+                    if (dotdot < outIdx)
+                    {
+                        SizeT i = outIdx - 1;
+                        for (; i > dotdot && !IsPathSeparator(_pOutBuf[i]); --i)
+                        {
+                        }
+                        outIdx = i;
+                    }
+                    else if (!bIsRoot)
+                    {
+                        if (outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
+                        {
+                            _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
+                        }
+                        _pOutBuf[outIdx++] = CharTraits::k_dot;
+                        _pOutBuf[outIdx++] = CharTraits::k_dot;
+                        dotdot             = outIdx;
+                    }
+                    continue;
                 }
             }
 
-            if (bFound)
+            if ((bIsRoot && outIdx > dotdot) || (!bIsRoot && outIdx > 0))
             {
-                return CharResult { i };
-            }
-        }
-    }
-    else
-    {
-        for (SizeT i = 0; i < n; ++i)
-        {
-            if (CharTraits::compare(_start1 + i, _start2, len2) == 0)
-            {
-                return CharResult { i };
-            }
-        }
-    }
-
-    return CharResult::Failed();
-}
-
-constexpr CharResult StrRFind(const char* _start, const char* _endOrNull, const char _c)
-{
-    JAM_ASSERT(_start, "StrRFind: _start cannot be null.");
-
-    const SizeT len = StrLen(_start, _endOrNull);
-    for (SizeT i = len; i > 0; --i)
-    {
-        if (_start[i - 1] == _c)
-        {
-            return CharResult { i - 1 };
-        }
-    }
-    return CharResult::Failed();
-}
-
-constexpr CharResult StrRFind(const char* _start0, const char* _end0OrNull, const char* _start1, const char* _end1OrNull)
-{
-    JAM_ASSERT(_start0, "StrRFind: _start0 cannot be null.");
-
-    const SizeT len0 = StrLen(_start0, _end0OrNull);
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-
-    if (len1 > len0)
-    {
-        return CharResult::Failed();
-    }
-
-    if (std::is_constant_evaluated())
-    {
-        for (SizeT i = len0 - len1; i >= 0; --i)
-        {
-            bool bFound = true;
-            for (SizeT j = 0; j < len1; ++j)
-            {
-                if (_start0[i + j] != _start1[j])
+                if (outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
                 {
-                    bFound = false;
-                    break;
+                    _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
                 }
             }
 
-            if (bFound)
+            for (; idx < _len && !IsPathSeparator(_str[idx]); ++idx)
             {
-                return CharResult { i };
+                _pOutBuf[outIdx++] = _str[idx];
             }
         }
-    }
-    else
-    {
-        for (SizeT i = len0 - len1; i >= 0; --i)
+
+        if (outIdx == 0)
         {
-            if (CharTraits::compare(_start0 + i, _start1, len1) == 0)
+            _pOutBuf[outIdx++] = CharTraits::k_dot;
+        }
+        else if (bTrailingSlash && outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
+        {
+            _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
+        }
+
+        _pOutBuf[outIdx] = CharTraits::k_nullChar;
+        return outIdx;
+    }
+
+    template<typename T>
+        requires std::is_integral_v<T>
+    [[nodiscard]] static Optional<T> ParseAs(const CharT* _str, const Int32 _base = 10)
+    {
+        JAM_ASSERT(_str, "ParseAs: _str cannot be null.");
+
+        if constexpr (std::is_same_v<T, Int32> || std::is_same_v<T, Int16> || std::is_same_v<T, Int8> || std::is_same_v<T, char> || std::is_same_v<T, wchar_t>)
+        {
+            const Int32 value = NumeircCharConverter::ParseAsInt32(_str, _base);
+            if (CheckOverflow<T>(value))
             {
-                return CharResult { i };
+                return k_nullopt;
             }
+            return static_cast<T>(value);
         }
-    }
-
-    return CharResult::Failed();
-}
-
-constexpr bool StrStartsWith(const char* _start0, const char* _end0OrNull, const char* _start1, const char* _end1OrNull)
-{
-    JAM_ASSERT(_start0, "StrStartsWith: _start0 cannot be null.");
-
-    const SizeT len0 = StrLen(_start0, _end0OrNull);
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    if (len0 < len1)
-    {
-        return false;
-    }
-
-    if (std::is_constant_evaluated())
-    {
-        for (SizeT i = 0; i < len1; ++i)
+        else if constexpr (std::is_same_v<T, UInt32> || std::is_same_v<T, UInt16> || std::is_same_v<T, UInt8> || std::is_same_v<T, unsigned char>)
         {
-            if (_start0[i] != _start1[i])
+            const UInt32 value = NumeircCharConverter::ParseAsUInt32(_str, _base);
+            if (CheckOverflow<T>(value))
             {
-                return false;
+                return k_nullopt;
             }
+            return static_cast<T>(value);
         }
-        return true;
-    }
-    else
-    {
-        return CharTraits::compare(_start0, _start1, len1) == 0;
-    }
-}
-
-constexpr bool StrEndsWith(const char* _start0, const char* _end0OrNull, const char* _start1, const char* _end1OrNull)
-{
-    JAM_ASSERT(_start0, "StrEndsWith: _start0 cannot be null.");
-
-    const SizeT len0 = StrLen(_start0, _end0OrNull);
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    if (len0 < len1)
-    {
-        return false;
-    }
-    if (std::is_constant_evaluated())
-    {
-        for (SizeT i = 0; i < len1; ++i)
+        else if constexpr (std::is_same_v<T, Int64>)
         {
-            if (_start0[len0 - len1 + i] != _start1[i])
+            const Int64 value = NumeircCharConverter::ParseAsInt64(_str, _base);
+            if (CheckOverflow<T>(value))
             {
-                return false;
+                return k_nullopt;
             }
+            return static_cast<T>(value);
         }
-        return true;
-    }
-    else
-    {
-        return CharTraits::compare(_start0 + (len0 - len1), _start1, len1) == 0;
-    }
-}
-
-constexpr bool StrCompare(const char* _start0, const char* _end0OrNull, const char* _start1, const char* _end1OrNull)
-{
-    JAM_ASSERT(_start0, "StrCompare: _start0 cannot be null.");
-    JAM_ASSERT(_start1, "StrCompare: _start1 cannot be null.");
-
-    const SizeT len0 = StrLen(_start0, _end0OrNull);
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    if (len0 != len1)
-    {
-        return false;
-    }
-
-    if (std::is_constant_evaluated())
-    {
-        for (SizeT i = 0; i < len0; ++i)
+        else if constexpr (std::is_same_v<T, UInt64>)
         {
-            if (_start0[i] != _start1[i])
+            const UInt64 value = NumeircCharConverter::ParseAsUInt64(_str, _base);
+            if (CheckOverflow<T>(value))
             {
-                return false;
+                return k_nullopt;
             }
+            return static_cast<T>(value);
         }
-        return true;
-    }
-    else
-    {
-        return CharTraits::compare(_start0, _start1, len0) == 0;
-    }
-}
 
-constexpr bool StrCompareN(const char* _start0, const char* _end0OrNull, const char* _start1, const char* _end1OrNull, const SizeT _n)
-{
-    JAM_ASSERT(_start0, "StrCompareN: _start0 cannot be null.");
-    JAM_ASSERT(_start1, "StrCompareN: _start1 cannot be null.");
-
-    const SizeT len0 = StrLen(_start0, _end0OrNull);
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    if (len0 < _n || len1 < _n)
-    {
-        return false;
+        JAM_UNREACHABLE;
     }
 
-    if (std::is_constant_evaluated())
+    template<typename T>
+        requires std::is_floating_point_v<T>
+    [[nodiscard]] static Optional<T> ParseAs(const CharT* _str)
     {
-        for (SizeT i = 0; i < _n; ++i)
+        JAM_ASSERT(_str, "ParseAs: _str cannot be null.");
+
+        if constexpr (std::is_same_v<T, float>)
         {
-            if (_start0[i] != _start1[i])
+            const float value = NumeircCharConverter::ParseAsFloat(_str);
+            if (value == HUGE_VALF || value == -HUGE_VALF)
             {
-                return false;
+                return k_nullopt;
             }
+            return static_cast<T>(value);
         }
-        return true;
-    }
-    else
-    {
-        return CharTraits::compare(_start0, _start1, _n) == 0;
-    }
-}
-
-constexpr bool StrCompareIgnoreCase(const char* _start0, const char* _end0OrNull, const char* _start1, const char* _end1OrNull)
-{
-    JAM_ASSERT(_start0, "StrCompareIgnoreCase: _start0 cannot be null.");
-    JAM_ASSERT(_start1, "StrCompareIgnoreCase: _start1 cannot be null.");
-
-    const SizeT len0 = StrLen(_start0, _end0OrNull);
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    if (len0 != len1)
-    {
-        return false;
-    }
-    for (SizeT i = 0; i < len0; ++i)
-    {
-        if (ToLower(_start0[i]) != ToLower(_start1[i]))
+        else if constexpr (std::is_same_v<T, double>)
         {
-            return false;
+            const double value = NumeircCharConverter::ParseAsDouble(_str);
+            if (value == HUGE_VAL || value == -HUGE_VAL)
+            {
+                return k_nullopt;
+            }
+            return static_cast<T>(value);
         }
-    }
-    return true;
-}
-
-constexpr bool StrCompareIgnoreCaseN(const char* _start0, const char* _end0OrNull, const char* _start1, const char* _end1OrNull, const SizeT _n)
-{
-    JAM_ASSERT(_start0, "StrCompareIgnoreCaseN: _start0 cannot be null.");
-    JAM_ASSERT(_start1, "StrCompareIgnoreCaseN: _start1 cannot be null.");
-
-    const SizeT len0 = StrLen(_start0, _end0OrNull);
-    const SizeT len1 = StrLen(_start1, _end1OrNull);
-    if (len0 < _n || len1 < _n)
-    {
-        return false;
-    }
-
-    for (SizeT i = 0; i < _n; ++i)
-    {
-        if (ToLower(_start0[i]) != ToLower(_start1[i]))
+        else if constexpr (std::is_same_v<T, long double>)
         {
-            return false;
+            const long double value = NumeircCharConverter::ParseAsLongDouble(_str);
+            if (value == HUGE_VALL || value == -HUGE_VALL)
+            {
+                return k_nullopt;
+            }
+            return static_cast<T>(value);
         }
+
+        JAM_UNREACHABLE;
     }
 
-    return true;
-}
-
-constexpr void StrLTrim(const char* _pStart, const char* _pEndOrNull, const char** _pOutStart)
-{
-    JAM_ASSERT(_pStart, "StrLTrim: _pStart cannot be null.");
-    JAM_ASSERT(_pOutStart, "StrLTrim: _pOutStart cannot be null.");
-
-    const char* ptr  = _pStart;
-    const char* pEnd = _pEndOrNull ? _pEndOrNull : FindTerminate(_pStart);
-    for (; ptr < pEnd; ++ptr)
+    template<typename T>
+        requires std::is_arithmetic_v<T>
+    constexpr static SizeT ConvertToChars(const T _value, CharT* _pOutBuf, const SizeT _bufCap)
     {
-        if (!IsSpace(*ptr))
-        {
-            break;
-        }
+        return NumeircCharConverter::ConvertToChars(_value, _pOutBuf, _bufCap);
     }
-    *_pOutStart = ptr;
-}
+};
 
-constexpr void StrRTrim(const char* _pStart, const char* _pEndOrNull, const char** _pOutEnd)
+/////////// utf8 / utf16 conversion ///////////
+
+template<typename TFromChar, typename TToChar>
+struct CharEncoder
 {
-    JAM_ASSERT(_pStart, "StrRTrim: _pStart cannot be null.");
-    JAM_ASSERT(_pOutEnd, "StrRTrim: _pOutEnd cannot be null.");
+    static_assert(AlwaysFalseV<TFromChar>, "CharEncoder: Unsupported character types.");
+    static_assert(AlwaysFalseV<TToChar>, "CharEncoder: Unsupported character types.");
+};
 
-    const char* pEnd = _pEndOrNull ? _pEndOrNull : FindTerminate(_pStart);
-    const char* ptr  = pEnd;
-    for (; ptr > _pStart; --ptr)
+template<>
+struct CharEncoder<char, wchar_t>
+{
+    [[nodiscard]] static SizeT CalcRequiredBufferSize(const char* _str, const SizeT _len)
     {
-        if (!IsSpace(*(ptr - 1)))
-        {
-            break;
-        }
+        return ::MultiByteToWideChar(CP_UTF8, 0, _str, NumericCast<Int32>(_len), nullptr, 0);
     }
-    *_pOutEnd = ptr;
-}
 
-constexpr void StrTrim(const char* _pStart, const char* _pEndOrNull, const char** _pOutStart, const char** _pOutEnd)
-{
-    JAM_ASSERT(_pStart, "StrTrim: _pStart cannot be null.");
-    JAM_ASSERT(_pOutStart, "StrTrim: _pOutStart cannot be null.");
-    JAM_ASSERT(_pOutEnd, "StrTrim: _pOutEnd cannot be null.");
-
-    const char* pEnd = _pEndOrNull ? _pEndOrNull : FindTerminate(_pStart);
-    StrLTrim(_pStart, pEnd, _pOutStart);
-    StrRTrim(*_pOutStart, pEnd, _pOutEnd);
-}
-
-// return: converted length, excluding null-terminator.
-SizeT CalcRequiredUtf16BufferSize(const char* _start, const char* _endOrNull = nullptr);
-SizeT CalcRequiredUtf8BufferSize(const wchar_t* _start, const wchar_t* _endOrNull = nullptr);
-SizeT ConvertToUtf16(const char* _start, const char* _endOrNull, wchar_t* _pOutBuf, SizeT _outBufCap);
-SizeT ConvertToUtf8(const wchar_t* _start, const wchar_t* _endOrNull, char* _pOutBuf, SizeT _outBufCap);
-
-template<typename T>
-    requires std::is_integral_v<T>
-constexpr Optional<T> ParseAs(const char* _start, const char* _endOrNull, Int32 _base = 10)
-{
-    T output = {};
-
-    const SizeT            len = StrLen(_start, _endOrNull);
-    std::from_chars_result ret = std::from_chars(_start, _start + len, output, _base);
-    if (ret.ec == std::errc {})
+    static SizeT Encode(const char* _str, const SizeT _len, wchar_t* _pOutBuf, const SizeT _bufCap)
     {
-        return output;
+        JAM_ASSERT(_str, "CharEncoder<char, wchar_t>::Encode: _str cannot be null.");
+        JAM_ASSERT(_pOutBuf, "CharEncoder<char, wchar_t>::Encode: _pOutBuf cannot be null.");
+        JAM_ASSERT(_bufCap > 0, "CharEncoder<char, wchar_t>::Encode: _bufCap must be greater than zero.");
+
+        const Int32 n = ::MultiByteToWideChar(CP_UTF8, 0, _str, NumericCast<Int32>(_len), _pOutBuf, NumericCast<Int32>(_bufCap));
+        _pOutBuf[n]   = L'\0';
+        return n;
+    }
+};
+
+template<>
+struct CharEncoder<wchar_t, char>
+{
+    [[nodiscard]] static SizeT CalcRequiredBufferSize(const wchar_t* _str, const SizeT _len)
+    {
+        return ::WideCharToMultiByte(CP_UTF8, 0, _str, NumericCast<Int32>(_len), nullptr, 0, nullptr, nullptr);
     }
 
-    return k_nullopt;
-}
+    static SizeT Encode(const wchar_t* _str, const SizeT _len, char* _pOutBuf, const SizeT _bufCap)
+    {
+        JAM_ASSERT(_str, "CharEncoder<wchar_t, char>::Encode: _str cannot be null.");
+        JAM_ASSERT(_pOutBuf, "CharEncoder<wchar_t, char>::Encode: _pOutBuf cannot be null.");
+        JAM_ASSERT(_bufCap > 0, "CharEncoder<wchar_t, char>::Encode: _bufCap must be greater than zero.");
+
+        const Int32 n = ::WideCharToMultiByte(CP_UTF8, 0, _str, NumericCast<Int32>(_len), _pOutBuf, NumericCast<Int32>(_bufCap), nullptr, nullptr);
+        _pOutBuf[n]   = '\0';
+        return n;
+    }
+};
+
+template<IsCharT TChar>
+struct CharEncoder<TChar, TChar>
+{
+    [[nodiscard]] static SizeT CalcRequiredBufferSize(const TChar* _str, const SizeT _len)
+    {
+        return _len;
+    }
+
+    static SizeT Encode(const TChar* _str, const SizeT _len, TChar* _pOutBuf, const SizeT _bufCap)
+    {
+        JAM_ASSERT(_str, "CharEncoder<TChar, TChar>::Encode: _str cannot be null.");
+        JAM_ASSERT(_pOutBuf, "CharEncoder<TChar, TChar>::Encode: _pOutBuf cannot be null.");
+        JAM_ASSERT(_bufCap > 0, "CharEncoder<TChar, TChar>::Encode: _bufCap must be greater than zero.");
+        JAM_ASSERT(_len < _bufCap, "CharEncoder<TChar, TChar>::Encode: _len must be less than _bufCap.");
+
+        std::memcpy(_pOutBuf, _str, _len * sizeof(TChar));
+        _pOutBuf[_len] = CharTraits<TChar>::k_nullChar;
+        return _len;
+    }
+};
 
 ////////// string hashers //////////
 
@@ -526,7 +787,8 @@ namespace Details
     constexpr UInt64 k_fnv1ah64Seed  = 14695981039346656037ULL;
 }   // namespace Details
 
-// constexpr hash for string
+// constexpr hash for stringt
+template<typename TChar>
 class Fnv1ahHasher32
 {
 public:
@@ -537,8 +799,8 @@ public:
     }
 
     constexpr void Mix(
-        const char* _str,
-        const SizeT _len)
+        const TChar* _str,
+        const SizeT  _len)
     {
         for (SizeT i = 0; i < _len; ++i)
         {
@@ -555,6 +817,7 @@ private:
     UInt32 m_hash = 0;
 };
 
+template<typename TChar>
 class Fnv1ahHasher64
 {
 public:
@@ -565,8 +828,8 @@ public:
     }
 
     constexpr void Mix(
-        const char* _str,
-        const SizeT _len)
+        const TChar* _str,
+        const SizeT  _len)
     {
         for (SizeT i = 0; i < _len; ++i)
         {
@@ -583,9 +846,12 @@ private:
     UInt64 m_hash = 0;
 };
 
+template<typename TChar>
 class IgnoreCaseFnv1ahHasher32
 {
 public:
+    using CharFuncs = CharFuncs<TChar>;
+
     explicit constexpr IgnoreCaseFnv1ahHasher32(
         const UInt32 _seed = Details::k_fnv1ah32Seed)
         : m_hash(_seed)
@@ -593,12 +859,12 @@ public:
     }
 
     constexpr void Mix(
-        const char* _str,
-        const SizeT _len)
+        const TChar* _str,
+        const SizeT  _len)
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NumericCast<UInt32>(ToLower(_str[i]))) * Details::k_fnv1ah32Prime;
+            m_hash = (m_hash ^ NumericCast<UInt32>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah32Prime;
         }
     }
 
@@ -611,9 +877,12 @@ private:
     UInt32 m_hash = 0;
 };
 
+template<typename TChar>
 class IgnoreCaseFnv1ahHasher64
 {
 public:
+    using CharFuncs = CharFuncs<TChar>;
+
     explicit constexpr IgnoreCaseFnv1ahHasher64(
         const UInt64 _seed = Details::k_fnv1ah64Seed)
         : m_hash(_seed)
@@ -621,12 +890,12 @@ public:
     }
 
     constexpr void Mix(
-        const char* _str,
-        const SizeT _len)
+        const TChar* _str,
+        const SizeT  _len)
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NumericCast<UInt64>(ToLower(_str[i]))) * Details::k_fnv1ah64Prime;
+            m_hash = (m_hash ^ NumericCast<UInt64>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah64Prime;
         }
     }
 
@@ -639,615 +908,43 @@ private:
     UInt64 m_hash = 0;
 };
 
-////////// fast String than std::string //////////
+////////// not guaranteed null-terminated string view //////////
 
-class String
+template<IsCharT TChar>
+class BasicStringView
 {
 public:
-    using Iter      = char*;
-    using ConstIter = const char*;
-
-    String()
-    {
-        rs_init(&m_str);
-    }
-
-    /* implicit */ String(const char* _str)
-    {
-        JAM_ASSERT(_str, "String constructor: _str cannot be null.");
-        rs_init_w(&m_str, _str);
-    }
-
-    /* implicit */ String(const char* _str, const SizeT _n)
-    {
-        JAM_ASSERT(_str, "String constructor: _str cannot be null.");
-        rs_init_w_n(&m_str, _str, _n);
-    }
-
-    template<size_t N>
-    /* implicit */ String(const char (&_str)[N])
-    {
-        rs_init_w_n(&m_str, _str, N - 1);
-    }
-
-    /* implicit */ String(const SizeT _n, const char _c)   // fill constructor
-    {
-        rs_init(&m_str);
-        rs_resize_w(&m_str, _n, _c);
-    }
-
-    String(const String& other)
-    {
-        rs_init_w_rs(&m_str, &other.m_str);
-    }
-
-    String(String&& other) noexcept
-    {
-        m_str = other.m_str;
-        rs_init(&other.m_str);
-    }
-
-    ~String()
-    {
-        rs_free(&m_str);
-    }
-
-    String& operator=(const String& other)
-    {
-        if (this != &other)
-        {
-            rs_cpy_rs(&m_str, &other.m_str);
-        }
-        return *this;
-    }
-
-    String& operator=(String&& other) noexcept
-    {
-        if (this != &other)
-        {
-            rs_free(&m_str);
-            m_str = other.m_str;
-            rs_init(&other.m_str);
-        }
-        return *this;
-    }
-
-    String& operator=(const char* _str)
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        rs_cpy(&m_str, _str);
-        return *this;
-    }
-
-    String& operator+=(const String& other)
-    {
-        rs_cat_rs(&m_str, &other.m_str);
-        return *this;
-    }
-
-    String& operator+=(const char* _str)
-    {
-        JAM_ASSERT(_str, "String concatenation: _str cannot be null.");
-        rs_cat(&m_str, _str);
-        return *this;
-    }
-
-    String operator+(const String& other) const
-    {
-        String result { *this };
-        result += other;
-        return result;
-    }
-
-    String operator+(const char* _str) const
-    {
-        String result { *this };
-        result += _str;
-        return result;
-    }
-
-    [[nodiscard]] char& operator[](const SizeT _index)
-    {
-        return rs_data(&m_str)[_index];
-    }
-
-    [[nodiscard]] const char& operator[](const SizeT _index) const
-    {
-        return rs_data_c(&m_str)[_index];
-    }
-
-    bool operator==(const String& other) const
-    {
-        return StrEqual(GetPtr(), GetTerminate(), other.GetPtr(), other.GetTerminate());
-    }
-
-    bool operator==(const char* _str) const
-    {
-        JAM_ASSERT(_str, "String comparison: _str cannot be null.");
-        return StrEqual(GetPtr(), GetTerminate(), _str, nullptr);
-    }
-
-    bool operator!=(const String& other) const
-    {
-        return !(*this == other);
-    }
-
-    bool operator!=(const char* _str) const
-    {
-        JAM_ASSERT(_str, "String comparison: _str cannot be null.");
-        return !(*this == _str);
-    }
-
-    template<typename T>
-        requires std::is_integral_v<T>
-    [[nodiscard]] Optional<T> ParseAs()
-    {
-        return Jam::ParseAs<T>(GetPtr(), GetTerminate());
-    }
-
-    template<typename T>
-        requires std::is_integral_v<T>
-    [[nodiscard]] static String FromIntegral(const T _value, const Int32 _base = 10)
-    {
-        char buffer[65];   // enough for binary representation of 64-bit integer plus null terminator
-
-        std::to_chars_result ret = std::to_chars(buffer, buffer + sizeof(buffer), _value, _base);
-        JAM_ASSERT(ret.ec == std::errc {}, "Failed to convert integral to string.");
-        return { buffer, ret.ptr - buffer };
-    }
-
-    void Assign(const char* _str)
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        rs_cpy(&m_str, _str);
-    }
-
-    void Assign(const char* _str, const SizeT _n)
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        rs_cpy_n(&m_str, _str, _n);
-    }
-
-    void Assign(const String& _other)
-    {
-        rs_cpy_rs(&m_str, &_other.m_str);
-    }
-
-    [[nodiscard]] const char* GetPtr() const
-    {
-        return rs_data_c(&m_str);
-    }
-
-    [[nodiscard]] const char* GetTerminate() const
-    {
-        return GetPtr() + GetLength();
-    }
-
-    [[nodiscard]] char* GetPtr()
-    {
-        return rs_data(&m_str);
-    }
-
-    [[nodiscard]] SizeT GetLength() const
-    {
-        return NumericCast<SizeT>(rs_len(&m_str));
-    }
-
-    [[nodiscard]] SizeT GetCapacity() const
-    {
-        return NumericCast<SizeT>(rs_cap(&m_str));
-    }
-
-    [[nodiscard]] bool IsEmpty() const
-    {
-        return rs_empty(&m_str) == 1;
-    }
-
-    void Clear()
-    {
-        rs_clear(&m_str);
-    }
-
-    [[nodiscard]] String SubStr(const SizeT _offset) const
-    {
-        JAM_ASSERT(_offset <= GetLength(), "SubView offset exceeds string length.");
-        return { GetPtr() + _offset, GetLength() - _offset };
-    }
-
-    [[nodiscard]] String SubStr(const SizeT _offset, const SizeT _count) const
-    {
-        JAM_ASSERT(_offset + _count <= GetLength(), "SubView range exceeds string length.");
-        return { GetPtr() + _offset, _count };
-    }
-
-    void Reserve(const SizeT _n)
-    {
-        rs_reserve(&m_str, _n);
-    }
-
-    void ShrinkToFit()
-    {
-        rs_shrink_to_fit(&m_str);
-    }
-
-    void Resize(const SizeT _n)
-    {
-        rs_resize(&m_str, _n);
-    }
-
-    void Resize(const SizeT _n, const char _c)
-    {
-        rs_resize_w(&m_str, _n, _c);
-    }
-
-    void Append(const char _c)
-    {
-        rs_cat_n(&m_str, &_c, 1);
-    }
-
-    void Append(const char* _str)
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        rs_cat(&m_str, _str);
-    }
-
-    void Append(const char* _str, const SizeT _n)
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        rs_cat_n(&m_str, _str, _n);
-    }
-
-    void Append(const String& _other)
-    {
-        rs_cat_rs(&m_str, &_other.m_str);
-    }
-
-    template<typename... TArgs>
-    void Format(const fmt::format_string<TArgs...> _format, TArgs&&... _args)
-    {
-        Clear();
-        fmt::format_to(std::back_inserter(*this), _format, std::forward<TArgs>(_args)...);
-    }
-
-    template<typename... Args>
-    void AppendFormat(const fmt::format_string<Args...> _format, Args&&... _args)
-    {
-        fmt::format_to(std::back_inserter(*this), _format, std::forward<Args>(_args)...);
-    }
-
-    void Erase(const SizeT _index, const SizeT _count)
-    {
-        rs_erase(&m_str, _index, _count);
-    }
-
-    [[nodiscard]] CharResult Find(const char _c, const SizeT _offset = 0) const
-    {
-        return StrFind(GetPtr() + _offset, GetTerminate(), _c);
-    }
-
-    [[nodiscard]] CharResult Find(const char* _str, const SizeT _offset = 0) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrFind(GetPtr() + _offset, GetTerminate(), _str, nullptr);
-    }
-
-    [[nodiscard]] CharResult Find(const String& _other, const SizeT _offset = 0) const
-    {
-        return StrFind(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate());
-    }
-
-    [[nodiscard]] CharResult RFind(const char _c) const
-    {
-        return StrRFind(GetPtr(), GetTerminate(), _c);
-    }
-
-    [[nodiscard]] CharResult RFind(const char* _str) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrRFind(GetPtr(), GetTerminate(), _str, nullptr);
-    }
-
-    [[nodiscard]] CharResult RFind(const String& _other) const
-    {
-        return StrRFind(GetPtr(), GetTerminate(), _other.GetPtr(), _other.GetTerminate());
-    }
-
-    [[nodiscard]] CharResult RFind(const char _c, const SizeT _count) const
-    {
-        return StrRFind(GetPtr(), GetPtr() + _count, _c);
-    }
-
-    [[nodiscard]] CharResult RFind(const char* _str, const SizeT _count) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrRFind(GetPtr(), GetPtr() + _count, _str, nullptr);
-    }
-
-    [[nodiscard]] CharResult RFind(const String& _other, const SizeT _count) const
-    {
-        return StrRFind(GetPtr(), GetPtr() + _count, _other.GetPtr(), _other.GetTerminate());
-    }
-
-    [[nodiscard]] bool StartsWith(const char _c, const SizeT _offset = 0) const
-    {
-        return !IsEmpty() && operator[](_offset) == _c;
-    }
-
-    [[nodiscard]] bool StartsWith(const char* _str, const SizeT _offset = 0) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrStartsWith(GetPtr() + _offset, GetTerminate(), _str, nullptr);
-    }
-
-    [[nodiscard]] bool StartsWith(const String& _other, const SizeT _offset = 0) const
-    {
-        return StrStartsWith(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate());
-    }
-
-    [[nodiscard]] bool EndsWith(const char _c) const
-    {
-        return !IsEmpty() && operator[](GetLength() - 1) == _c;
-    }
-
-    [[nodiscard]] bool EndsWith(const char* _str) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrEndsWith(GetPtr(), GetTerminate(), _str, nullptr);
-    }
-
-    [[nodiscard]] bool EndsWith(const String& _other) const
-    {
-        return StrEndsWith(GetPtr(), GetTerminate(), _other.GetPtr(), _other.GetTerminate());
-    }
-
-    [[nodiscard]] bool EndsWith(const char _c, const SizeT _count) const
-    {
-        return !IsEmpty() && operator[](_count - 1) == _c;
-    }
-
-    [[nodiscard]] bool EndsWith(const char* _str, const SizeT _count) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrEndsWith(GetPtr(), GetPtr() + _count, _str, nullptr);
-    }
-
-    [[nodiscard]] bool EndsWith(const String& _other, const SizeT _count) const
-    {
-        return StrEndsWith(GetPtr(), GetPtr() + _count, _other.GetPtr(), _other.GetTerminate());
-    }
-
-    [[nodiscard]] bool Compare(const char* _str, const SizeT _offset = 0) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrCompare(GetPtr() + _offset, GetTerminate(), _str, nullptr);
-    }
-
-    [[nodiscard]] bool Compare(const String& _str, const SizeT _offset = 0) const
-    {
-        return StrCompare(GetPtr() + _offset, GetTerminate(), _str.GetPtr(), _str.GetTerminate());
-    }
-
-    [[nodiscard]] bool Compare(const char* _str, const SizeT _offset, const SizeT _count) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrCompareN(GetPtr() + _offset, GetTerminate(), _str, nullptr, _count);
-    }
-
-    [[nodiscard]] bool Compare(const String& _str, const SizeT _offset, const SizeT _count) const
-    {
-        return StrCompareN(GetPtr() + _offset, GetTerminate(), _str.GetPtr(), _str.GetTerminate(), _count);
-    }
-
-    [[nodiscard]] bool CompareIgnoreCase(const char* _str, const SizeT _offset = 0) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrCompareIgnoreCase(GetPtr() + _offset, GetTerminate(), _str, nullptr);
-    }
-
-    [[nodiscard]] bool CompareIgnoreCase(const String& _str, const SizeT _offset = 0) const
-    {
-        return StrCompareIgnoreCase(GetPtr() + _offset, GetTerminate(), _str.GetPtr(), _str.GetTerminate());
-    }
-
-    [[nodiscard]] bool CompareIgnoreCase(const char* _str, const SizeT _offset, const SizeT _count) const
-    {
-        JAM_ASSERT(_str, "String assignment: _str cannot be null.");
-        return StrCompareIgnoreCaseN(GetPtr() + _offset, GetTerminate(), _str, nullptr, _count);
-    }
-
-    [[nodiscard]] bool CompareIgnoreCase(const String& _str, const SizeT _offset, const SizeT _count) const
-    {
-        return StrCompareIgnoreCaseN(GetPtr() + _offset, GetTerminate(), _str.GetPtr(), _str.GetTerminate(), _count);
-    }
-
-    [[nodiscard]] std::string ToStdString(const SizeT _offset = 0) const
-    {
-        JAM_ASSERT(_offset >= 0 && _offset <= GetLength(), "Offset out of bounds.");
-        return { GetPtr() + _offset, NumericCast<USizeT>(GetLength() - _offset) };
-    }
-
-    [[nodiscard]] std::string ToStdString(const SizeT _offset, const SizeT _count) const
-    {
-        JAM_ASSERT(_offset >= 0 && _offset + _count <= GetLength(), "Range out of bounds.");
-        return { GetPtr() + _offset, NumericCast<USizeT>(_count) };
-    }
-
-    [[nodiscard]] std::string_view ToStdStringView(const SizeT _offset = 0) const
-    {
-        JAM_ASSERT(_offset >= 0 && _offset <= GetLength(), "Offset out of bounds.");
-        return { GetPtr() + _offset, NumericCast<USizeT>(GetLength() - _offset) };
-    }
-
-    [[nodiscard]] std::string_view ToStdStringView(const SizeT _offset, const SizeT _count) const
-    {
-        JAM_ASSERT(_offset >= 0 && _offset + _count <= GetLength(), "Range out of bounds.");
-        return { GetPtr() + _offset, NumericCast<USizeT>(_count) };
-    }
-
-    [[nodiscard]] std::wstring ToStdWString(const SizeT _offset = 0) const
-    {
-        JAM_ASSERT(_offset >= 0 && _offset <= GetLength(), "Offset out of bounds.");
-        const SizeT  len = CalcRequiredUtf16BufferSize(GetPtr() + _offset, GetTerminate());
-        std::wstring wstr(len, L'\0');
-        ConvertToUtf16(GetPtr() + _offset, GetTerminate(), wstr.data(), len + 1);
-        return wstr;
-    }
-
-    [[nodiscard]] std::wstring ToStdWString(const SizeT _offset, const SizeT _count) const
-    {
-        JAM_ASSERT(_offset >= 0 && _offset + _count <= GetLength(), "Range out of bounds.");
-        const SizeT  len = CalcRequiredUtf16BufferSize(GetPtr() + _offset, GetPtr() + _offset + _count);
-        std::wstring wstr(len, L'\0');
-        ConvertToUtf16(GetPtr() + _offset, GetPtr() + _offset + _count, wstr.data(), len + 1);
-        return wstr;
-    }
-
-    [[nodiscard]] Iter begin()
-    {
-        return GetPtr();
-    }
-
-    [[nodiscard]] Iter end()
-    {
-        return GetPtr() + GetLength();
-    }
-
-    [[nodiscard]] ConstIter begin() const
-    {
-        return GetPtr();
-    }
-
-    [[nodiscard]] ConstIter end() const
-    {
-        return GetPtr() + GetLength();
-    }
-
-    [[nodiscard]] UInt32 Hash32() const
-    {
-        Fnv1ahHasher32 hasher {};
-        hasher.Mix(GetPtr(), GetLength());
-        return hasher.Finish();
-    }
-
-    [[nodiscard]] UInt64 Hash64() const
-    {
-        Fnv1ahHasher64 hasher {};
-        hasher.Mix(GetPtr(), GetLength());
-        return hasher.Finish();
-    }
-
-    [[nodiscard]] UInt32 Hash32IgnoreCase() const
-    {
-        IgnoreCaseFnv1ahHasher32 hasher {};
-        hasher.Mix(GetPtr(), GetLength());
-        return hasher.Finish();
-    }
-
-    [[nodiscard]] UInt64 Hash64IgnoreCase() const
-    {
-        IgnoreCaseFnv1ahHasher64 hasher {};
-        hasher.Mix(GetPtr(), GetLength());
-        return hasher.Finish();
-    }
-
-    [[nodiscard]] char Back()
-    {
-        JAM_ASSERT(!IsEmpty(), "String is empty.");
-        return operator[](GetLength() - 1);
-    }
-
-    [[nodiscard]] char Front()
-    {
-        JAM_ASSERT(!IsEmpty(), "String is empty.");
-        return operator[](0);
-    }
-
-    [[nodiscard]] String LTrimed() const
-    {
-        const char* pStart = nullptr;
-        StrLTrim(GetPtr(), GetTerminate(), &pStart);
-        return SubStr(pStart - GetPtr());
-    }
-
-    [[nodiscard]] String RTrimed() const
-    {
-        const char* pEnd = nullptr;
-        StrRTrim(GetPtr(), GetTerminate(), &pEnd);
-        return SubStr(0, pEnd - GetPtr());
-    }
-
-    [[nodiscard]] String Trimed() const
-    {
-        const char* pStart = nullptr;
-        const char* pEnd   = nullptr;
-        StrTrim(GetPtr(), GetTerminate(), &pStart, &pEnd);
-        return SubStr(pStart - GetPtr(), pEnd - pStart);
-    }
-
-    // std glue
-    using value_type = char;
-
-    void push_back(const value_type& _c)
-    {
-        Append(_c);
-    }
-
-    void push_back(value_type&& _c)
-    {
-        Append(_c);
-    }
-
-private:
-    rapidstring m_str = {};
-};
-
-// do not guarantee null-termination
-class StringView
-{
-public:
-    using Iter = const char*;
-
-    constexpr StringView() = default;
-
-    /* implicit */ constexpr StringView(const char* _str)
+    using CharTraits = CharTraits<TChar>;
+    using CharT      = CharTraits::CharT;
+    using CharFuncs  = CharFuncs<TChar>;
+    using Iter       = const CharT*;
+    using ConstIter  = const CharT*;
+
+    constexpr BasicStringView() = default;
+
+    /* implicit */ constexpr BasicStringView(
+        const CharT* _str)
         : m_ptr(_str)
-        , m_len(StrLen(_str))
+        , m_len(CharFuncs::StrLen(_str))
     {
         JAM_ASSERT(_str, "Null pointer exception.");
     }
 
-    /* implicit */ constexpr StringView(const char* _str, const SizeT _n)
+    /* implicit */ constexpr BasicStringView(
+        const CharT* _str,
+        const SizeT  _n)
         : m_ptr(_str)
         , m_len(_n)
     {
         JAM_ASSERT(_str, "Null pointer exception.");
     }
 
-    template<size_t N>
-    /* implicit */ constexpr StringView(const char (&_str)[N])
-        : m_ptr(_str)
-        , m_len(NumericCast<SizeT>(N - 1))
-    {
-    }
-
-    /* implicit */ StringView(const String& _str)
-        : m_ptr(_str.GetPtr())
-        , m_len(_str.GetLength())
-    {
-    }
-
-    /* implicit */ StringView(const std::string& _str)
-        : m_ptr(_str.c_str())
-        , m_len(NumericCast<SizeT>(_str.length()))
-    {
-    }
-
-    [[nodiscard]] constexpr const char* GetPtr() const
+    [[nodiscard]] constexpr const CharT* GetPtr() const
     {
         return m_ptr;
     }
 
-    [[nodiscard]] constexpr const char* GetTerminate() const
+    [[nodiscard]] constexpr const CharT* GetTerminate() const
     {
         return m_ptr + m_len;
     }
@@ -1262,312 +959,1775 @@ public:
         return m_len == 0;
     }
 
-    [[nodiscard]] constexpr const char& operator[](const SizeT _index) const
+    [[nodiscard]] constexpr const CharT& operator[](const SizeT _index) const
     {
         JAM_ASSERT(_index >= 0 && _index < m_len, "Index out of bounds.");
         return m_ptr[_index];
     }
 
-    constexpr bool operator==(const StringView _other) const
+    constexpr bool operator==(const BasicStringView _other) const
     {
-        return StrEqual(GetPtr(), GetTerminate(), _other.GetPtr(), _other.GetTerminate());
+        return CompareEqual(_other);
     }
 
-    constexpr bool operator==(const char* _str) const
-    {
-        JAM_ASSERT(_str, "String comparison: _str cannot be null.");
-        return StrEqual(GetPtr(), GetTerminate(), _str, nullptr);
-    }
-
-    constexpr bool operator!=(const StringView _other) const
+    constexpr bool operator!=(const BasicStringView _other) const
     {
         return !(*this == _other);
     }
 
-    constexpr bool operator!=(const char* _str) const
+    template<typename T>
+        requires std::is_integral_v<T>
+    [[nodiscard]] constexpr Optional<T> ParseAs(const Int32 _base = 10) const
     {
-        return !(*this == _str);
+        return CharFuncs::template ParseAs<T>(m_ptr, _base);
     }
 
     template<typename T>
-        requires std::is_integral_v<T>
+        requires std::is_floating_point_v<T>
     [[nodiscard]] constexpr Optional<T> ParseAs() const
     {
-        return Jam::ParseAs<T>(GetPtr(), GetTerminate());
+        return CharFuncs::template ParseAs<T>(m_ptr);
     }
 
-    [[nodiscard]] constexpr CharResult Find(const char _c, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr CharResult Find(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
     {
-        return StrFind(GetPtr() + _offset, GetTerminate(), _c);
+        JAM_ASSERT(_offset <= m_len, "Offset out of bounds.");
+        JAM_ASSERT(_count <= m_len - _offset, "Count exceeds string length from offset.");
+        CharResult result = CharFuncs::template StrFind<true, false>(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
+        if (result.IsSucceeded())
+        {
+            result.pos += _offset;
+        }
+        return result;
     }
 
-    [[nodiscard]] constexpr CharResult Find(const StringView _other, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr CharResult Find(const BasicStringView _other, const SizeT _offset = 0) const
     {
-        return StrFind(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate());
+        return Find(_other, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const char _c) const
+    [[nodiscard]] constexpr CharResult Find(const CharT _c, const SizeT _offset, const SizeT _count) const
     {
-        return StrRFind(GetPtr(), GetTerminate(), _c);
+        return Find({ &_c, 1 }, _offset, _count);
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const StringView _other) const
+    [[nodiscard]] constexpr CharResult Find(const CharT _c, const SizeT _offset = 0) const
     {
-        return StrRFind(GetPtr(), GetTerminate(), _other.GetPtr(), _other.GetTerminate());
+        return Find({ &_c, 1 }, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const char _c, const SizeT _count) const
+    [[nodiscard]] constexpr CharResult RFind(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
     {
-        return StrRFind(GetPtr(), GetPtr() + _count, _c);
+        JAM_ASSERT(_count <= m_len, "Count exceeds length.");
+        JAM_ASSERT(_offset <= m_len - _count, "Offset out of bounds for count.");
+        CharResult result = CharFuncs::template StrRFind<true, false>(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
+        if (result.IsSucceeded())
+        {
+            result.pos += _offset;
+        }
+        return result;
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const StringView _other, const SizeT _count) const
+    [[nodiscard]] constexpr CharResult RFind(const BasicStringView _other, const SizeT _offset = 0) const
     {
-        return StrRFind(GetPtr(), GetPtr() + _count, _other.GetPtr(), _other.GetTerminate());
+        return RFind(_other, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr bool StartsWith(const char _c, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr CharResult RFind(const CharT _c, const SizeT _offset, const SizeT _count) const
     {
-        return !IsEmpty() && m_ptr[_offset] == _c;
+        return RFind({ &_c, 1 }, _offset, _count);
     }
 
-    [[nodiscard]] constexpr bool StartsWith(const StringView _other, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr CharResult RFind(const CharT _c, const SizeT _offset = 0) const
     {
-        return StrStartsWith(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate());
+        return RFind({ &_c, 1 }, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr bool EndsWith(const char _c) const
+    [[nodiscard]] constexpr CharResult FindNotOf(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
     {
-        return !IsEmpty() && m_ptr[m_len - 1] == _c;
+        JAM_ASSERT(_count <= m_len, "Count exceeds length.");
+        JAM_ASSERT(_offset <= m_len - _count, "Offset out of bounds for count.");
+        CharResult result = CharFuncs::template StrFind<false, false>(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
+        if (result.IsSucceeded())
+        {
+            result.pos += _offset;
+        }
+        return result;
     }
 
-    [[nodiscard]] constexpr bool EndsWith(const StringView _other) const
+    [[nodiscard]] constexpr CharResult FindNotOf(const BasicStringView _other, const SizeT _offset = 0) const
     {
-        return StrEndsWith(GetPtr(), GetTerminate(), _other.GetPtr(), _other.GetTerminate());
+        return FindNotOf(_other, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr bool EndsWith(const char _c, const SizeT _count) const
+    [[nodiscard]] constexpr CharResult FindNotOf(const CharT _c, const SizeT _offset, const SizeT _count) const
     {
-        return !IsEmpty() && m_ptr[_count - 1] == _c;
+        return FindNotOf({ &_c, 1 }, _offset, _count);
     }
 
-    [[nodiscard]] constexpr bool EndsWith(const StringView _other, const SizeT _count) const
+    [[nodiscard]] constexpr CharResult FindNotOf(const CharT _c, const SizeT _offset = 0) const
     {
-        return StrEndsWith(GetPtr(), GetPtr() + _count, _other.GetPtr(), _other.GetTerminate());
+        return FindNotOf({ &_c, 1 }, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr bool Compare(const StringView _other, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr CharResult RFindNotOf(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
     {
-        return StrCompare(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate());
+        JAM_ASSERT(_count <= m_len, "Count exceeds length.");
+        JAM_ASSERT(_offset <= m_len - _count, "Offset out of bounds for count.");
+        CharResult result = CharFuncs::template StrRFind<false, false>(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
+        if (result.IsSucceeded())
+        {
+            result.pos += _offset;
+        }
+        return result;
     }
 
-    [[nodiscard]] constexpr bool Compare(const StringView _other, const SizeT _offset, const SizeT _count) const
+    [[nodiscard]] constexpr CharResult RFindNotOf(const BasicStringView _other, const SizeT _offset = 0) const
     {
-        return StrCompareN(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate(), _count);
+        return RFindNotOf(_other, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr bool CompareIgnoreCase(const StringView _other, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr CharResult RFindNotOf(const CharT _c, const SizeT _offset, const SizeT _count) const
     {
-        return StrCompareIgnoreCase(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate());
+        return RFindNotOf({ &_c, 1 }, _offset, _count);
     }
 
-    [[nodiscard]] constexpr bool CompareIgnoreCase(const StringView _other, const SizeT _offset, const SizeT _count) const
+    [[nodiscard]] constexpr CharResult RFindNotOf(const CharT _c, const SizeT _offset = 0) const
     {
-        return StrCompareIgnoreCaseN(GetPtr() + _offset, GetTerminate(), _other.GetPtr(), _other.GetTerminate(), _count);
+        return RFindNotOf({ &_c, 1 }, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr StringView SubView(const SizeT _pos) const
+    [[nodiscard]] constexpr bool CompareEqual(const BasicStringView _other, const SizeT _offset = 0) const
+    {
+        JAM_ASSERT(_offset <= m_len, "Offset out of bounds.");
+        if (m_len - _offset != _other.m_len)
+        {
+            return false;
+        }
+
+        return CharFuncs::template StrEqual<true, false>(m_ptr + _offset, m_len - _offset, _other.m_ptr, _other.m_len, _other.m_len);
+    }
+
+    [[nodiscard]] constexpr bool CompareEqual(const CharT _c, const SizeT _offset = 0) const
+    {
+        return CompareEqual({ &_c, 1 }, _offset);
+    }
+
+    [[nodiscard]] constexpr bool CompareEqualIgnoreCase(const BasicStringView _other, const SizeT _offset = 0) const
+    {
+        JAM_ASSERT(_offset <= m_len, "Offset out of bounds.");
+        if (m_len - _offset != _other.m_len)
+        {
+            return false;
+        }
+
+        return CharFuncs::template StrEqual<true, true>(m_ptr + _offset, m_len - _offset, _other.m_ptr, _other.m_len, _other.m_len);
+    }
+
+    [[nodiscard]] constexpr bool CompareEqualIgnoreCase(const CharT _c, const SizeT _offset = 0) const
+    {
+        return CompareEqualIgnoreCase({ &_c, 1 }, _offset);
+    }
+
+    [[nodiscard]] constexpr bool StartsWith(const CharT _c) const
+    {
+        return SubView(0, 1).CompareEqual(_c);
+    }
+
+    [[nodiscard]] constexpr bool StartsWith(const BasicStringView _other) const
+    {
+        return SubView(0, _other.m_len).CompareEqual(_other);
+    }
+
+    [[nodiscard]] constexpr bool EndsWith(const CharT _c) const
+    {
+        return SubView(m_len - 1, 1).CompareEqual(_c);
+    }
+
+    [[nodiscard]] constexpr bool EndsWith(const BasicStringView _other) const
+    {
+        return SubView(m_len - _other.m_len, _other.m_len).CompareEqual(_other);
+    }
+
+    [[nodiscard]] constexpr BasicStringView SubView(const SizeT _pos) const
     {
         JAM_ASSERT(_pos >= 0, "SubView position cannot be negative.");
         JAM_ASSERT(_pos <= m_len, "SubView position exceeds string length.");
         return { m_ptr + _pos, m_len - _pos };
     }
 
-    // this is not guaranteed to be null-terminated
-    [[nodiscard]] constexpr StringView SubView(const SizeT _pos, const SizeT _len) const
+    [[nodiscard]] constexpr BasicStringView SubView(const SizeT _pos, const SizeT _len) const
     {
         JAM_ASSERT(_pos >= 0, "SubView position cannot be negative.");
         JAM_ASSERT(_pos + _len <= m_len, "SubView range exceeds string length.");
         return { m_ptr + _pos, _len };
     }
 
-    [[nodiscard]] String ToString(const SizeT offset = 0) const
+    [[nodiscard]] BasicStringView LTrimed() const
     {
-        JAM_ASSERT(offset <= m_len, "SubView position exceeds string length.");
-        return { m_ptr + offset, m_len - offset };
+        const SizeT lTrimmed = CharFuncs::StrLTrim(m_ptr, m_len);
+        return SubView(lTrimmed);
     }
 
-    [[nodiscard]] String ToString(const SizeT offset, const SizeT _len) const
+    [[nodiscard]] BasicStringView RTrimed() const
     {
-        JAM_ASSERT(offset + _len <= m_len, "SubView range exceeds string length.");
-        return { m_ptr + offset, _len };
+        const SizeT rTrimmed = CharFuncs::StrRTrim(m_ptr, m_len);
+        return SubView(0, rTrimmed);
     }
 
-    [[nodiscard]] std::string ToStdString(const SizeT offset = 0) const
+    [[nodiscard]] BasicStringView Trimed() const
     {
-        JAM_ASSERT(offset <= m_len, "SubView position exceeds string length.");
-        return { m_ptr + offset, NumericCast<USizeT>(m_len - offset) };
-    }
-
-    [[nodiscard]] std::string ToStdString(const SizeT offset, const SizeT _len) const
-    {
-        JAM_ASSERT(offset + _len <= m_len, "SubView range exceeds string length.");
-        return { m_ptr + offset, NumericCast<USizeT>(_len) };
-    }
-
-    [[nodiscard]] std::wstring ToStdWString(const SizeT offset = 0) const
-    {
-        JAM_ASSERT(offset <= m_len, "SubView position exceeds string length.");
-        const SizeT  len = CalcRequiredUtf16BufferSize(m_ptr + offset, m_ptr + m_len);
-        std::wstring wstr(len, L'\0');
-        ConvertToUtf16(GetPtr() + offset, GetTerminate(), wstr.data(), len + 1);
-        return wstr;
-    }
-
-    [[nodiscard]] std::wstring ToStdWString(const SizeT offset, const SizeT _len) const
-    {
-        JAM_ASSERT(offset + _len <= m_len, "SubView range exceeds string length.");
-        const SizeT  len = CalcRequiredUtf16BufferSize(m_ptr + offset, m_ptr + offset + _len);
-        std::wstring wstr(len, L'\0');
-        ConvertToUtf16(GetPtr() + offset, GetPtr() + offset + _len, wstr.data(), len + 1);
-        return wstr;
-    }
-
-    [[nodiscard]] constexpr std::string_view ToStdStringView() const
-    {
-        return { m_ptr, NumericCast<USizeT>(m_len) };
-    }
-
-    [[nodiscard]] StringView LTrimed() const
-    {
-        const char* pStart = nullptr;
-        StrLTrim(m_ptr, m_ptr + m_len, &pStart);
-        return SubView(pStart - m_ptr);
-    }
-
-    [[nodiscard]] StringView RTrimed() const
-    {
-        const char* pEnd = nullptr;
-        StrRTrim(m_ptr, m_ptr + m_len, &pEnd);
-        return SubView(0, pEnd - m_ptr);
-    }
-
-    [[nodiscard]] StringView Trimed() const
-    {
-        const char* pStart = nullptr;
-        const char* pEnd   = nullptr;
-        StrTrim(m_ptr, m_ptr + m_len, &pStart, &pEnd);
-        return SubView(pStart - m_ptr, pEnd - pStart);
+        const auto [lTrimmed, trimedLen] = CharFuncs::StrTrim(m_ptr, m_len);
+        return SubView(lTrimmed, trimedLen);
     }
 
     [[nodiscard]] constexpr UInt32 Hash32() const
     {
-        Fnv1ahHasher32 hasher {};
-        hasher.Mix(m_ptr, m_len);
-        return hasher.Finish();
-    }
-
-    [[nodiscard]] constexpr UInt64 Hash64() const
-    {
-        Fnv1ahHasher64 hasher {};
+        Fnv1ahHasher32<CharT> hasher {};
         hasher.Mix(m_ptr, m_len);
         return hasher.Finish();
     }
 
     [[nodiscard]] constexpr UInt32 Hash32IgnoreCase() const
     {
-        IgnoreCaseFnv1ahHasher32 hasher {};
+        IgnoreCaseFnv1ahHasher32<CharT> hasher {};
+        hasher.Mix(m_ptr, m_len);
+        return hasher.Finish();
+    }
+
+    [[nodiscard]] constexpr UInt64 Hash64() const
+    {
+        Fnv1ahHasher64<CharT> hasher {};
         hasher.Mix(m_ptr, m_len);
         return hasher.Finish();
     }
 
     [[nodiscard]] constexpr UInt64 Hash64IgnoreCase() const
     {
-        IgnoreCaseFnv1ahHasher64 hasher {};
+        IgnoreCaseFnv1ahHasher64<CharT> hasher {};
         hasher.Mix(m_ptr, m_len);
         return hasher.Finish();
     }
 
-    [[nodiscard]] constexpr char Back() const
+    [[nodiscard]] constexpr static UInt32 Hashed32(
+        const BasicStringView _str)
     {
-        JAM_ASSERT(!IsEmpty(), "StringView is empty.");
-        return operator[](m_len - 1);
+        return _str.Hash32();
     }
 
-    [[nodiscard]] constexpr char Front() const
+    [[nodiscard]] constexpr static UInt32 Hashed32IgnoreCase(
+        const BasicStringView _str)
     {
-        JAM_ASSERT(!IsEmpty(), "StringView is empty.");
-        return operator[](0);
+        return _str.Hash32IgnoreCase();
     }
 
-    [[nodiscard]] constexpr Iter begin() const
+    [[nodiscard]] constexpr static UInt64 Hashed64(
+        const BasicStringView _str)
+    {
+        return _str.Hash64();
+    }
+
+    [[nodiscard]] constexpr static UInt64 Hashed64IgnoreCase(
+        const BasicStringView _str)
+    {
+        return _str.Hash64IgnoreCase();
+    }
+
+    [[nodiscard]] constexpr CharT Back() const
+    {
+        JAM_ASSERT(!IsEmpty(), "StringView is empty.");
+        return m_ptr[m_len - 1];
+    }
+
+    [[nodiscard]] constexpr CharT Front() const
+    {
+        JAM_ASSERT(!IsEmpty(), "StringView is empty.");
+        return m_ptr[0];
+    }
+
+    ////////// file system //////////
+
+    constexpr void Decompose(
+        BasicStringView* _pOutDirOrNull,
+        BasicStringView* _pOutFileNameOrNull,
+        BasicStringView* _pOutBaseNameOrNull,
+        BasicStringView* _pOutExtOrNull) const
+    {
+        const PathDecomposeResult ret = CharFuncs::DecomposePath(m_ptr, m_len);
+        if (_pOutDirOrNull)
+        {
+            *_pOutDirOrNull = ret.bHasDir ? SubView(0, ret.dirLen) : BasicStringView {};
+        }
+
+        if (_pOutFileNameOrNull)
+        {
+            *_pOutFileNameOrNull = ret.bHasBaseName ? SubView(ret.baseNamePos, ret.baseNameLen + (ret.bHasExt ? ret.extLen : 0)) : BasicStringView {};
+        }
+
+        if (_pOutBaseNameOrNull)
+        {
+            *_pOutBaseNameOrNull = ret.bHasBaseName ? SubView(ret.baseNamePos, ret.baseNameLen) : BasicStringView {};
+        }
+
+        if (_pOutExtOrNull)
+        {
+            *_pOutExtOrNull = ret.bHasExt ? SubView(ret.extPos, ret.extLen) : BasicStringView {};
+        }
+    }
+
+    [[nodiscard]] BasicStringView GetDirectory() const
+    {
+        BasicStringView dir = {};
+        Decompose(&dir, nullptr, nullptr, nullptr);
+        return dir;
+    }
+
+    [[nodiscard]] BasicStringView GetFileName() const
+    {
+        BasicStringView fileName = {};
+        Decompose(nullptr, &fileName, nullptr, nullptr);
+        return fileName;
+    }
+
+    [[nodiscard]] BasicStringView GetBaseName() const
+    {
+        BasicStringView baseName = {};
+        Decompose(nullptr, nullptr, &baseName, nullptr);
+        return baseName;
+    }
+
+    [[nodiscard]] BasicStringView GetExtension() const
+    {
+        BasicStringView ext = {};
+        Decompose(nullptr, nullptr, nullptr, &ext);
+        return ext;
+    }
+
+    [[nodiscard]] bool IsAbsolute() const
+    {
+        return m_len > 2 && CharFuncs::IsAlphabet(m_ptr[0]) && m_ptr[1] == CharTraits::k_colon
+            || m_len > 0 && CharFuncs::IsPathSeparator(m_ptr[0]);
+    }
+
+    [[nodiscard]] bool IsRelative() const
+    {
+        return !IsAbsolute();
+    }
+
+    [[nodiscard]] bool IsDirectory() const
+    {
+        return !IsEmpty() && CharFuncs::IsPathSeparator(Back());
+    }
+
+    [[nodiscard]] bool IsFile() const
+    {
+        return !IsEmpty() && !CharFuncs::IsPathSeparator(Back());
+    }
+
+    [[nodiscard]] bool MatchExtension(const BasicStringView _ext) const
+    {
+        BasicStringView ext = GetExtension();
+        ext                 = _ext.StartsWith(CharTraits::k_dot) ? ext : ext.SubView(1);   // If _ext starts with dot, then ext should also start with dot for comparison, otherwise both should not start with dot.
+        return ext.CompareEqualIgnoreCase(_ext, 0);
+    }
+
+    [[nodiscard]] bool IsBasePathOf(const BasicStringView _other) const
+    {
+        JAM_ASSERT(IsDirectory(), "IsBasePathOf can only be called on directory paths.");
+        return _other.StartsWith(*this);
+    }
+
+    ////////// std glue //////////
+
+    using value_type     = CharT;
+    using iterator       = Iter;
+    using const_iterator = ConstIter;
+
+    [[nodiscard]] constexpr iterator begin()
     {
         return m_ptr;
     }
 
-    [[nodiscard]] constexpr Iter end() const
+    [[nodiscard]] constexpr iterator end()
     {
         return m_ptr + m_len;
     }
 
+    [[nodiscard]] constexpr const_iterator begin() const
+    {
+        return m_ptr;
+    }
+    [[nodiscard]] constexpr const_iterator end() const
+    {
+        return m_ptr + m_len;
+    }
+
+    [[nodiscard]] constexpr std::basic_string<CharT> ToStdString() const
+    {
+        return { m_ptr, NumericCast<size_t>(m_len) };
+    }
+
+    [[nodiscard]] constexpr std::basic_string_view<CharT> ToStdStringView() const
+    {
+        return { m_ptr, NumericCast<size_t>(m_len) };
+    }
+
 private:
-    const char* m_ptr = "";
-    SizeT       m_len = 0;
+    const CharT* m_ptr = CharTraits::k_placeholder;   // Default empty
+    SizeT        m_len = 0;
 };
 
-////////// String with StringView glue //////////
+using StringView  = BasicStringView<char>;
+using WStringView = BasicStringView<wchar_t>;
 
-inline bool operator==(const String& _lhs, const StringView _rhs)
+////////// string-base //////////
+
+template<typename TString,
+         typename TChar,
+         typename TStringView = BasicStringView<TChar>,
+         typename CharFuncs   = CharFuncs<TChar>,
+         typename CharTraits  = CharTraits<TChar>>
+class StringUtilities
 {
-    return _rhs.operator==(_lhs);
-}
+public:
+    using Iter      = TChar*;
+    using ConstIter = const TChar*;
 
-inline bool operator!=(const String& _lhs, const StringView _rhs)
+    template<typename... Args>
+    using FormatStringT = CharTraits::template FormatStringT<Args...>;
+
+    ////////// basic //////////
+
+    void Set(
+        const TChar* _str)
+    {
+        Self_().Set(TStringView { _str });
+    }
+
+    void Set(
+        const TChar* _str,
+        const SizeT  _n)
+    {
+        Self_().Set({ _str, _n });
+    }
+
+    void Set(
+        const TChar _c)
+    {
+        Self_().Set({ &_c, 1 });
+    }
+
+    void Append(
+        const TChar _c)
+    {
+        Self_().Append({ &_c, 1 });
+    }
+
+    void Append(
+        const TChar* _str)
+    {
+        Self_().Append({ _str, CharFuncs::StrLen(_str) });
+    }
+
+    void Append(
+        const TChar* _str,
+        const SizeT  _n)
+    {
+        Self_().Append({ _str, _n });
+    }
+
+    void Insert(
+        const SizeT  _pos,
+        const TChar* _str)
+    {
+        Self_().Insert(_pos, { _str, CharFuncs::StrLen(_str) });
+    }
+
+    void Insert(
+        const SizeT _pos,
+        const TChar _c)
+    {
+        Self_().Insert(_pos, { &_c, 1 });
+    }
+
+    void Insert(
+        const SizeT  _pos,
+        const TChar* _str,
+        const SizeT  _n)
+    {
+        Self_().Insert(_pos, { _str, _n });
+    }
+
+    [[nodiscard]] bool IsEmpty() const
+    {
+        return Self_().GetLength() == 0;
+    }
+
+    [[nodiscard]] const TChar* GetTerminate() const
+    {
+        return Self_().GetPtr() + Self_().GetLength();
+    }
+
+    [[nodiscard]] TStringView ToStringView(
+        const SizeT _offset = 0) const
+    {
+        JAM_ASSERT(_offset <= Self_().GetLength(), "Offset out of bounds.");
+        return { Self_().GetPtr() + _offset, Self_().GetLength() - _offset };
+    }
+
+    [[nodiscard]] TStringView ToStringView(
+        const SizeT _offset,
+        const SizeT _count) const
+    {
+        JAM_ASSERT(_offset <= Self_().GetLength(), "Offset out of bounds.");
+        JAM_ASSERT(_count <= Self_().GetLength() - _offset, "Count exceeds string length from offset.");
+        return { Self_().GetPtr() + _offset, _count };
+    }
+
+    [[nodiscard]] TChar operator[](
+        const SizeT _index) const
+    {
+        JAM_ASSERT(_index >= 0 && _index < Self_().GetLength(), "Index out of bounds.");
+        return Self_().GetPtr()[_index];
+    }
+
+    [[nodiscard]] TChar& operator[](
+        const SizeT _index)
+    {
+        JAM_ASSERT(_index >= 0 && _index < Self_().GetLength(), "Index out of bounds.");
+        return Self_().GetPtr()[_index];
+    }
+
+    [[nodiscard]] TChar Front() const
+    {
+        JAM_ASSERT(!IsEmpty(), "String is empty.");
+        return Self_().GetPtr()[0];
+    }
+
+    [[nodiscard]] TChar& Front()
+    {
+        JAM_ASSERT(!IsEmpty(), "String is empty.");
+        return Self_().GetPtr()[0];
+    }
+
+    [[nodiscard]] TChar Back() const
+    {
+        JAM_ASSERT(!IsEmpty(), "String is empty.");
+        return Self_().GetPtr()[Self_().GetLength() - 1];
+    }
+
+    [[nodiscard]] TChar& Back()
+    {
+        JAM_ASSERT(!IsEmpty(), "String is empty.");
+        return Self_().GetPtr()[Self_().GetLength() - 1];
+    }
+
+    [[nodiscard]] bool operator==(const TStringView _other) const
+    {
+        return ToStringView() == _other;
+    }
+
+    [[nodiscard]] bool operator==(const TChar* _str) const
+    {
+        return ToStringView() == _str;
+    }
+
+    [[nodiscard]] bool operator!=(const TStringView _other) const
+    {
+        return ToStringView() != _other;
+    }
+
+    [[nodiscard]] bool operator!=(const TChar* _str) const
+    {
+        return ToStringView() != _str;
+    }
+
+    /* implicit */ operator TStringView() const
+    {
+        return ToStringView();
+    }
+
+    TString& operator+=(const TStringView _other)
+    {
+        Self_().Append(_other);
+        return Self_();
+    }
+
+    TString& operator+=(const TChar _c)
+    {
+        Append(_c);
+        return Self_();
+    }
+
+    TString operator+(const TStringView _other) const
+    {
+        TString result(*this);
+        result.Append(_other);
+        return result;
+    }
+
+    TString operator+(const TChar _c) const
+    {
+        TString result(*this);
+        result.Append(_c);
+        return result;
+    }
+
+    [[nodiscard]] CharResult Find(
+        const TStringView _other,
+        const SizeT       _offset = 0) const
+    {
+        return ToStringView().Find(_other, _offset);
+    }
+
+    [[nodiscard]] CharResult Find(
+        const TStringView _other,
+        const SizeT       _offset,
+        const SizeT       _count) const
+    {
+        return ToStringView().Find(_other, _offset, _count);
+    }
+
+    [[nodiscard]] CharResult Find(
+        const TChar _c,
+        const SizeT _offset = 0) const
+    {
+        return ToStringView().Find(_c, _offset);
+    }
+
+    [[nodiscard]] CharResult Find(
+        const TChar _c,
+        const SizeT _offset,
+        const SizeT _count) const
+    {
+        return ToStringView().Find(_c, _offset, _count);
+    }
+
+    [[nodiscard]] CharResult RFind(
+        const TStringView _other,
+        const SizeT       _offset = 0) const
+    {
+        return ToStringView().RFind(_other, _offset);
+    }
+
+    [[nodiscard]] CharResult RFind(
+        const TStringView _other,
+        const SizeT       _offset,
+        const SizeT       _count) const
+    {
+        return ToStringView().RFind(_other, _offset, _count);
+    }
+
+    [[nodiscard]] CharResult RFind(
+        const TChar _c,
+        const SizeT _offset = 0) const
+    {
+        return ToStringView().RFind(_c, _offset);
+    }
+
+    [[nodiscard]] CharResult RFind(
+        const TChar _c,
+        const SizeT _offset,
+        const SizeT _count) const
+    {
+        return ToStringView().RFind(_c, _offset, _count);
+    }
+
+    [[nodiscard]] CharResult FindNotOf(
+        const TStringView _other,
+        const SizeT       _offset = 0) const
+    {
+        return ToStringView().FindNotOf(_other, _offset);
+    }
+
+    [[nodiscard]] CharResult FindNotOf(
+        const TStringView _other,
+        const SizeT       _offset,
+        const SizeT       _count) const
+    {
+        return ToStringView().FindNotOf(_other, _offset, _count);
+    }
+
+    [[nodiscard]] CharResult FindNotOf(
+        const TChar _c,
+        const SizeT _offset = 0) const
+    {
+        return ToStringView().FindNotOf(_c, _offset);
+    }
+
+    [[nodiscard]] CharResult FindNotOf(
+        const TChar _c,
+        const SizeT _offset,
+        const SizeT _count) const
+    {
+        return ToStringView().FindNotOf(_c, _offset, _count);
+    }
+
+    [[nodiscard]] CharResult RFindNotOf(
+        const TStringView _other,
+        const SizeT       _offset = 0) const
+    {
+        return ToStringView().RFindNotOf(_other, _offset);
+    }
+
+    [[nodiscard]] CharResult RFindNotOf(
+        const TStringView _other,
+        const SizeT       _offset,
+        const SizeT       _count) const
+    {
+        return ToStringView().RFindNotOf(_other, _offset, _count);
+    }
+
+    [[nodiscard]] CharResult RFindNotOf(
+        const TChar _c,
+        const SizeT _offset = 0) const
+    {
+        return ToStringView().RFindNotOf(_c, _offset);
+    }
+
+    [[nodiscard]] CharResult RFindNotOf(
+        const TChar _c,
+        const SizeT _offset,
+        const SizeT _count) const
+    {
+        return ToStringView().RFindNotOf(_c, _offset, _count);
+    }
+
+    [[nodiscard]] bool StartsWith(
+        const TStringView _other) const
+    {
+        return ToStringView().StartsWith(_other);
+    }
+
+    [[nodiscard]] bool StartsWith(
+        const TChar _c) const
+    {
+        return ToStringView().StartsWith(_c);
+    }
+
+    [[nodiscard]] bool EndsWith(
+        const TStringView _other) const
+    {
+        return ToStringView().EndsWith(_other);
+    }
+
+    [[nodiscard]] bool EndsWith(
+        const TChar _c) const
+    {
+        return ToStringView().EndsWith(_c);
+    }
+
+    [[nodiscard]] bool CompareEqual(
+        const TStringView _other,
+        const SizeT       _offset = 0) const
+    {
+        return ToStringView().CompareEqual(_other, _offset);
+    }
+
+    [[nodiscard]] bool CompareEqual(
+        const TChar _c,
+        const SizeT _offset = 0) const
+    {
+        return ToStringView().CompareEqual(_c, _offset);
+    }
+
+    [[nodiscard]] bool CompareEqualIgnoreCase(
+        const TStringView _other,
+        const SizeT       _offset = 0) const
+    {
+        return ToStringView().CompareEqualIgnoreCase(_other, _offset);
+    }
+
+    [[nodiscard]] bool CompareEqualIgnoreCase(
+        const TChar _c,
+        const SizeT _offset = 0) const
+    {
+        return ToStringView().CompareEqualIgnoreCase(_c, _offset);
+    }
+
+    [[nodiscard]] TStringView SubView(
+        const SizeT _pos) const
+    {
+        return ToStringView().SubView(_pos);
+    }
+
+    [[nodiscard]] TStringView SubView(
+        const SizeT _pos,
+        const SizeT _len) const
+    {
+        return ToStringView().SubView(_pos, _len);
+    }
+
+    [[nodiscard]] TStringView LTrimed() const
+    {
+        return ToStringView().LTrimed();
+    }
+
+    [[nodiscard]] TStringView RTrimed() const
+    {
+        return ToStringView().RTrimed();
+    }
+
+    [[nodiscard]] TStringView Trimed() const
+    {
+        return ToStringView().Trimed();
+    }
+
+    ////////// conversion //////////
+
+    template<typename T>
+        requires std::is_arithmetic_v<T>
+    [[nodiscard]] static TString ConvertedFrom(const T _value)
+    {
+        TChar       buffer[64];
+        const SizeT len = CharFuncs::ConvertToChars(_value, buffer, sizeof(buffer));
+        return { buffer, len };
+    }
+
+    template<typename T>
+        requires std::is_integral_v<T>
+    [[nodiscard]] Optional<T> ParseAs(const Int32 _base = 10) const
+    {
+        return ToStringView().template ParseAs<T>(_base);
+    }
+
+    template<typename T>
+        requires std::is_floating_point_v<T>
+    [[nodiscard]] Optional<T> ParseAs() const
+    {
+        return ToStringView().template ParseAs<T>();
+    }
+
+    ////////// encode //////////
+
+    template<IsCharT UChar>
+    void Encode(
+        const BasicStringView<UChar> _str)
+    {
+        using CharEncoder = CharEncoder<UChar, TChar>;
+        const SizeT len   = CharEncoder::CalcRequiredBufferSize(_str.GetPtr(), _str.GetLength());
+        Self_().Resize(len);
+        CharEncoder::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr(), len + 1);
+    }
+
+    template<IsCharT UChar>
+    void Encode(
+        const UChar _c)
+    {
+        using UStringView = BasicStringView<UChar>;
+        Encode(UStringView { &_c, 1 });
+    }
+
+    template<IsCharT UChar>
+    void Encode(
+        const UChar* _str)
+    {
+        using UStringView = BasicStringView<UChar>;
+        using UCharFuncs  = Jam::CharFuncs<UChar>;
+        Encode(UStringView { _str, UCharFuncs::StrLen(_str) });
+    }
+
+    template<IsCharT UChar>
+    void Encode(
+        const UChar* _str,
+        const SizeT  _n)
+    {
+        using UStringView = BasicStringView<UChar>;
+        Encode(UStringView { _str, _n });
+    }
+
+    template<IsCharT UChar>
+    void AppendEncode(
+        const BasicStringView<UChar> _str)
+    {
+        using CharEncoder  = CharEncoder<UChar, TChar>;
+        const SizeT len    = CharEncoder::CalcRequiredBufferSize(_str.GetPtr(), _str.GetLength());
+        const SizeT oldLen = Self_().GetLength();
+        Self_().Resize(oldLen + len);
+        CharEncoder ::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr() + oldLen, len + 1);
+    }
+
+    template<IsCharT UChar>
+    void AppendEncode(const UChar _c)
+    {
+        using UStringView = BasicStringView<UChar>;
+        AppendEncode(UStringView { &_c, 1 });
+    }
+
+    template<IsCharT UChar>
+    void AppendEncode(
+        const UChar* _str)
+    {
+        using UStringView = BasicStringView<UChar>;
+        using UCharFuncs  = Jam::CharFuncs<UChar>;
+        AppendEncode(UStringView { _str, UCharFuncs::StrLen(_str) });
+    }
+
+    template<IsCharT UChar>
+    void AppendEncode(
+        const UChar* _str,
+        const SizeT  _n)
+    {
+        using UStringView = BasicStringView<UChar>;
+        AppendEncode(UStringView { _str, _n });
+    }
+
+    template<IsCharT UChar>
+    void InsertEncode(
+        const SizeT                  _pos,
+        const BasicStringView<UChar> _str)
+    {
+        using CharEncoder  = CharEncoder<UChar, TChar>;
+        const SizeT len    = CharEncoder::CalcRequiredBufferSize(_str.GetPtr(), _str.GetLength());
+        const SizeT oldLen = Self_().GetLength();
+        Self_().Resize(oldLen + len);
+        std::memmove(Self_().GetPtr() + _pos + len, Self_().GetPtr() + _pos, (oldLen - _pos) * sizeof(TChar));
+        CharEncoder ::Encode(_str.GetPtr(), _str.GetLength(), Self_().GetPtr() + _pos, len + 1);
+    }
+
+    template<IsCharT UChar>
+    void InsertEncode(
+        const SizeT _pos,
+        const UChar _c)
+    {
+        using UStringView = BasicStringView<UChar>;
+        InsertEncode(_pos, UStringView { &_c, 1 });
+    }
+
+    template<IsCharT UChar>
+    void InsertEncode(
+        const SizeT  _pos,
+        const UChar* _str)
+    {
+        using UCharFuncs  = Jam::CharFuncs<UChar>;
+        using UStringView = BasicStringView<UChar>;
+        InsertEncode(_pos, UStringView { _str, UCharFuncs::StrLen(_str) });
+    }
+
+    template<IsCharT UChar>
+    void InsertEncode(
+        const SizeT  _pos,
+        const UChar* _str,
+        const SizeT  _n)
+    {
+        using UStringView = BasicStringView<UChar>;
+        InsertEncode(_pos, UStringView { _str, _n });
+    }
+
+    template<IsCharT UChar>
+    [[nodiscard]] static TString Encoded(
+        const BasicStringView<UChar> _str)
+    {
+        TString result = {};
+        result.Encode(_str);
+        return result;
+    }
+
+    /////////// format ///////////
+
+    template<typename... Args>
+    void Format(const FormatStringT<Args...> _fmt, Args&&... _args)
+    {
+        Self_().Clear();
+        fmt::format_to(std::back_inserter(*this), _fmt, std::forward<Args>(_args)...);
+    }
+
+    template<typename... Args>
+    void AppendFormat(const FormatStringT<Args...> _fmt, Args&&... _args)
+    {
+        fmt::format_to(std::back_inserter(*this), _fmt, std::forward<Args>(_args)...);
+    }
+
+    template<typename... Args>
+    [[nodiscard]] static TString Formatted(
+        const FormatStringT<Args...> _fmt,
+        Args&&... _args)
+    {
+        TString result = {};
+        result.Format(_fmt, std::forward<Args>(_args)...);
+        return result;
+    }
+
+    /////////// hash //////////
+
+    [[nodiscard]] UInt32 Hash32() const
+    {
+        return ToStringView().Hash32();
+    }
+
+    [[nodiscard]] UInt64 Hash64() const
+    {
+        return ToStringView().Hash64();
+    }
+
+    [[nodiscard]] UInt32 Hash32IgnoreCase() const
+    {
+        return ToStringView().Hash32IgnoreCase();
+    }
+
+    [[nodiscard]] UInt64 Hash64IgnoreCase() const
+    {
+        return ToStringView().Hash64IgnoreCase();
+    }
+
+    [[nodiscard]] constexpr static UInt32 Hashed32(
+        const TStringView _str)
+    {
+        return TStringView::Hashed32(_str);
+    }
+
+    [[nodiscard]] constexpr static UInt64 Hashed64(
+        const TStringView _str)
+    {
+        return TStringView::Hashed64(_str);
+    }
+
+    [[nodiscard]] constexpr static UInt32 Hashed32IgnoreCase(
+        const TStringView _str)
+    {
+        return TStringView::Hashed32IgnoreCase(_str);
+    }
+
+    [[nodiscard]] constexpr static UInt64 Hashed64IgnoreCase(
+        const TStringView _str)
+    {
+        return TStringView::Hashed64IgnoreCase(_str);
+    }
+
+    /////////// file system //////////
+
+    void Decompose(
+        TStringView* _pOutDirOrNull,
+        TStringView* _pOutFileNameOrNull,
+        TStringView* _pOutBaseNameOrNull,
+        TStringView* _pOutExtOrNull) const
+    {
+        ToStringView().Decompose(_pOutDirOrNull, _pOutFileNameOrNull, _pOutBaseNameOrNull, _pOutExtOrNull);
+    }
+
+    [[nodiscard]] TStringView GetDirectory() const
+    {
+        return ToStringView().GetDirectory();
+    }
+
+    [[nodiscard]] TStringView GetFileName() const
+    {
+        return ToStringView().GetFileName();
+    }
+
+    [[nodiscard]] TStringView GetBaseName() const
+    {
+        return ToStringView().GetBaseName();
+    }
+
+    [[nodiscard]] TStringView GetExtension() const
+    {
+        return ToStringView().GetExtension();
+    }
+
+    [[nodiscard]] bool IsAbsolute() const
+    {
+        return ToStringView().IsAbsolute();
+    }
+
+    [[nodiscard]] bool IsRelative() const
+    {
+        return ToStringView().IsRelative();
+    }
+
+    [[nodiscard]] bool IsDirectory() const
+    {
+        return ToStringView().IsDirectory();
+    }
+
+    [[nodiscard]] bool IsFile() const
+    {
+        return ToStringView().IsFile();
+    }
+
+    [[nodiscard]] bool MatchExtension(
+        const TStringView _ext) const
+    {
+        return ToStringView().MatchExtension(_ext);
+    }
+
+    [[nodiscard]] bool IsBasePathOf(
+        const TStringView _other) const
+    {
+        return ToStringView().IsBasePathOf(_other);
+    }
+
+    void ReplaceExtension(
+        const TStringView _newExt)
+    {
+        JAM_ASSERT(IsFile(), "ReplaceExtension: only file dir can be replaced extension.");
+        const PathDecomposeResult result = CharFuncs::DecomposePath(Self_().GetPtr(), Self_().GetLength());
+        if (result.bHasExt)
+        {
+            Self_().Erase(result.extPos, result.extLen);
+        }
+
+        if (!_newExt.StartsWith(CharTraits::k_dot))
+        {
+            Append(CharTraits::k_dot);
+        }
+
+        Self_().Append(_newExt);
+    }
+
+    void ReplaceBaseName(
+        const TStringView _newBaseName)
+    {
+        const PathDecomposeResult result = CharFuncs::DecomposePath(Self_().GetPtr(), Self_().GetLength());
+        if (result.bHasBaseName)
+        {
+            Self_().Erase(result.baseNamePos, result.baseNameLen);
+            Self_().Insert(result.baseNamePos, _newBaseName);
+        }
+        else
+        {
+            Self_().Insert(0, _newBaseName);
+        }
+    }
+
+    void ReplaceFileName(
+        const TStringView _newFileName)
+    {
+        const PathDecomposeResult result = CharFuncs::DecomposePath(Self_().GetPtr(), Self_().GetLength());
+        if (result.bHasBaseName)
+        {
+            Self_().Erase(result.baseNamePos, result.baseNameLen + (result.bHasExt ? result.extLen : 0));
+            Self_().Insert(result.baseNamePos, _newFileName);
+        }
+        else
+        {
+            Self_().Insert(0, _newFileName);
+        }
+    }
+
+    void Simplify()
+    {
+        // simplified dir is shorter or equal to the original dir, so it won't cause heap to grow if it's already in heap mode.
+        TChar       simplified[k_maxPathLength];
+        const SizeT len = CharFuncs::Simplify(Self_().GetPtr(), Self_().GetLength(), simplified, CountOf(simplified));
+        Set(simplified, len);
+    }
+
+    void Join(
+        const TStringView _str,
+        eJoinType         _type = eJoinType::Auto)
+    {
+        _type = (_type == eJoinType::Auto) ? (_str.IsDirectory() ? eJoinType::Directory : eJoinType::File) : _type;
+
+        if (IsEmpty())
+        {
+            Self_().Set(_str);
+            return;
+        }
+
+        if (!CharFuncs::IsPathSeparator(Back()) && !_str.IsEmpty() && !CharFuncs::IsPathSeparator(_str.Front()))
+        {
+            Append(CharTraits::k_pathPreferredSeparator);
+        }
+
+        Self_().Append(_str);
+        if (_type == eJoinType::Directory && !CharFuncs::IsPathSeparator(Back()))
+        {
+            Append(CharTraits::k_pathPreferredSeparator);
+        }
+
+        if (_type == eJoinType::File)
+        {
+            SizeT end = Self_().GetLength();
+            while (end > 0 && CharFuncs::IsPathSeparator(operator[](end - 1)))
+            {
+                --end;
+            }
+
+            Self_().Resize(end);
+        }
+    }
+
+    [[nodiscard]] static TString Joined(
+        const TStringView _str1,
+        const TStringView _str2,
+        const eJoinType   _type = eJoinType::Auto)
+    {
+        TString result(_str1);
+        result.Join(_str2, _type);
+        return result;
+    }
+
+    ////////// std glue //////////
+
+    using value_type     = TChar;
+    using iterator       = Iter;
+    using const_iterator = ConstIter;
+
+    void push_back(const TChar _c)
+    {
+        Append(_c);
+    }
+
+    [[nodiscard]] Iter begin()
+    {
+        return Self_().GetPtr();
+    }
+
+    [[nodiscard]] Iter end()
+    {
+        return Self_().GetPtr() + Self_().GetLength();
+    }
+
+    [[nodiscard]] ConstIter begin() const
+    {
+        return Self_().GetPtr();
+    }
+
+    [[nodiscard]] ConstIter end() const
+    {
+        return Self_().GetPtr() + Self_().GetLength();
+    }
+
+    [[nodiscard]] ConstIter cbegin() const
+    {
+        return Self_().GetPtr();
+    }
+
+    [[nodiscard]] ConstIter cend() const
+    {
+        return Self_().GetPtr() + Self_().GetLength();
+    }
+
+    [[nodiscard]] std::basic_string<TChar> ToStdString() const
+    {
+        return { Self_().GetPtr(), NumericCast<size_t>(Self_().GetLength()) };
+    }
+
+    [[nodiscard]] std::basic_string_view<TChar> ToStdStringView() const
+    {
+        return { Self_().GetPtr(), NumericCast<size_t>(Self_().GetLength()) };
+    }
+
+private:
+    [[nodiscard]] TString& Self_()
+    {
+        return static_cast<TString&>(*this);
+    }
+
+    [[nodiscard]] const TString& Self_() const
+    {
+        return static_cast<const TString&>(*this);
+    }
+};
+
+////////// string //////////
+
+template<IsCharT TChar>
+class BasicString : public StringUtilities<BasicString<TChar>, TChar>
 {
-    return _rhs.operator!=(_lhs);
-}
+public:
+    using BaseT       = StringUtilities<BasicString, TChar>;
+    using CharTraits  = CharTraits<TChar>;
+    using CharT       = CharTraits::CharT;
+    using CharFuncs   = CharFuncs<CharT>;
+    using StringViewT = BasicStringView<CharT>;
+    using Iter        = CharT*;
+    using ConstIter   = const CharT*;
 
-inline String operator+(const String& _lhs, const StringView _rhs)
-{
-    String result { _lhs };
-    result.Append(_rhs.GetPtr(), _rhs.GetLength());
-    return result;
-}
+    template<typename... Args>
+    using FormatStringT = CharTraits::template FormatStringT<Args...>;
 
-inline String& operator+=(String& _lhs, const StringView _rhs)
-{
-    _lhs.Append(_rhs.GetPtr(), _rhs.GetLength());
-    return _lhs;
-}
+    using BaseT::Append;
+    using BaseT::Insert;
+    using BaseT::Set;
 
-////////// Hash functions shortcuts //////////
+private:
+    static constexpr Byte  k_heapEnabledBit = 0xFF;
+    static constexpr SizeT k_growthFactor   = 2;
+    static constexpr SizeT k_layoutSize     = 32;
+    static constexpr SizeT k_ssoBufSize     = (k_layoutSize - 1) / sizeof(TChar);
+    static constexpr SizeT k_ssoCap         = k_ssoBufSize - 1;
 
-[[nodiscard]] constexpr UInt32 HashString32(const StringView _str)
-{
-    return _str.Hash32();
-}
+    union RawData
+    {
+        struct
+        {
+            TChar sso[k_ssoBufSize];
+        };
 
-[[nodiscard]] constexpr UInt64 HashString64(const StringView _str)
-{
-    return _str.Hash64();
-}
+        struct
+        {
+            TChar* heap;
+            SizeT  heapLen;
+            SizeT  heapCap;
+        };
 
-[[nodiscard]] constexpr UInt32 HashString32IgnoreCase(const StringView _str)
-{
-    return _str.Hash32IgnoreCase();
-}
+        struct
+        {
+            Byte padding[k_layoutSize - 1];
+            Byte bit;
+        };
+    };
 
-[[nodiscard]] constexpr UInt64 HashString64IgnoreCase(const StringView _str)
-{
-    return _str.Hash64IgnoreCase();
-}
+    static_assert(sizeof(RawData) == 32);
+    static_assert(offsetof(RawData, RawData::bit) == 31);
+
+public:
+    BasicString()
+    {
+        ResizeSSO_(0);
+    }
+
+    ~BasicString()
+    {
+        Free_();
+    }
+
+    /* implicit */ BasicString(
+        const StringViewT _str)
+    {
+        ResizeSSO_(0);
+        Set(_str);
+    }
+
+    /* implicit */ BasicString(
+        const CharT* _str)
+    {
+        ResizeSSO_(0);
+        Set(_str);
+    }
+
+    /* implicit */ BasicString(
+        const CharT* _str,
+        const SizeT  _n)
+    {
+        ResizeSSO_(0);
+        Set({ _str, _n });
+    }
+
+    /* implicit */ BasicString(
+        const SizeT _count,
+        const CharT _c)
+    {
+        ResizeSSO_(0);
+        Resize(_count, _c);
+    }
+
+    BasicString(
+        const BasicString& _other)
+        : BasicString(_other.ToStringView())
+    {
+    }
+
+    BasicString(
+        BasicString&& _other) noexcept
+        : m_str(_other.m_str)
+    {
+        _other.ResizeSSO_(0);
+    }
+
+    BasicString& operator=(
+        const BasicString& _other)
+    {
+        if (this != &_other)
+        {
+            Set(_other.ToStringView());
+        }
+        return *this;
+    }
+
+    BasicString& operator=(
+        BasicString&& _other) noexcept
+    {
+        if (this != &_other)
+        {
+            Free_();
+            m_str = _other.m_str;
+            _other.ResizeSSO_(0);
+        }
+        return *this;
+    }
+
+    BasicString& operator=(
+        const StringViewT _other)
+    {
+        Set(_other);
+        return *this;
+    }
+
+    BasicString& operator=(
+        const TChar _c)
+    {
+        Set(_c);
+        return *this;
+    }
+
+    BasicString& operator=(
+        const CharT* _ptr)
+    {
+        Set(_ptr);
+        return *this;
+    }
+
+    void Set(
+        const StringViewT _str)
+    {
+        const SizeT len = _str.GetLength();
+
+        if (IsHeap_())
+        {
+            GrowHeapIfNeed_(len);
+            SetToHeap_(_str);
+        }
+        else if (len > k_ssoCap)   // change to heap
+        {
+            InitHeap_(len * k_growthFactor);
+            SetToHeap_(_str);
+        }
+        else
+        {
+            SetToSSO_(_str);
+        }
+    }
+
+    void Append(
+        const StringViewT _str)
+    {
+        const SizeT len = _str.GetLength();
+
+        if (IsHeap_())
+        {
+            GrowHeapIfNeed_(m_str.heapLen + len);
+            AppendToHeap_(_str);
+        }
+        else if (CmpLess(m_str.bit, len))   // change to heap
+        {
+            SSOToHeap_((GetLengthSSO_() + len) * k_growthFactor);
+            AppendToHeap_(_str);
+        }
+        else
+        {
+            AppendToSSO_(_str);
+        }
+    }
+
+    void Insert(
+        const SizeT       _pos,
+        const StringViewT _str)
+    {
+        const SizeT len = _str.GetLength();
+        if (IsHeap_())
+        {
+            GrowHeapIfNeed_(GetLength() + len);
+            InsertToHeap_(_pos, _str);
+        }
+        else if (CmpLess(m_str.bit, len))   // change to heap
+        {
+            SSOToHeap_((GetLengthSSO_() + len) * k_growthFactor);
+            InsertToHeap_(_pos, _str);
+        }
+        else
+        {
+            InsertToSSO_(_pos, _str);
+        }
+    }
+
+    void Erase(
+        const SizeT _pos,
+        const SizeT _count)
+    {
+        if (IsHeap_())
+        {
+            EraseAtHeap_(_pos, _count);
+        }
+        else
+        {
+            EraseAtSSO_(_pos, _count);
+        }
+    }
+
+    void Clear()
+    {
+        if (IsHeap_())
+        {
+            ResizeHeap_(0);
+        }
+        else
+        {
+            ResizeSSO_(0);
+        }
+    }
+
+    void Reserve(
+        const SizeT _newCap)
+    {
+        if (IsHeap_())
+        {
+            if (m_str.heapCap < _newCap)
+            {
+                ReallocHeap_(_newCap);
+            }
+        }
+        else
+        {
+            if (_newCap > k_ssoCap)
+            {
+                SSOToHeap_(_newCap);
+            }
+        }
+    }
+
+    void Resize(
+        const SizeT _newLen,
+        const CharT _c = CharTraits::k_nullChar)
+    {
+        const SizeT len = GetLength();
+
+        // resize
+        if (IsHeap_())
+        {
+            GrowHeapIfNeed_(_newLen);
+            ResizeHeap_(_newLen);
+        }
+        else
+        {
+            if (_newLen > k_ssoCap)
+            {
+                SSOToHeap_(_newLen * k_growthFactor);
+                ResizeHeap_(_newLen);
+            }
+            else
+            {
+                ResizeSSO_(_newLen);
+            }
+        }
+
+        // fill
+        if (len < _newLen)
+        {
+            CharT* ptr = GetPtr();
+            std::fill(ptr + len, ptr + _newLen, _c);
+        }
+    }
+
+    [[nodiscard]] bool IsEmpty() const
+    {
+        return GetLength() == 0;
+    }
+
+    [[nodiscard]] SizeT GetLength() const
+    {
+        return IsHeap_() ? m_str.heapLen : k_ssoCap - m_str.bit;
+    }
+
+    [[nodiscard]] SizeT GetCapacity() const
+    {
+        return IsHeap_() ? m_str.heapCap : k_ssoCap;
+    }
+
+    [[nodiscard]] const CharT* GetPtr() const
+    {
+        return IsHeap_() ? m_str.heap : m_str.sso;
+    }
+
+    [[nodiscard]] CharT* GetPtr()
+    {
+        return IsHeap_() ? m_str.heap : m_str.sso;
+    }
+
+private:
+    void Free_() const
+    {
+        if (IsHeap_())
+        {
+            Free(m_str.heap);
+        }
+    }
+
+    [[nodiscard]] bool IsHeap_() const
+    {
+        return m_str.bit == k_heapEnabledBit;
+    }
+
+    [[nodiscard]] bool IsSSO_() const
+    {
+        return !IsHeap_();
+    }
+
+    void InitHeap_(
+        const SizeT _cap)
+    {
+        m_str.heap    = static_cast<TChar*>(Malloc((_cap + 1) * sizeof(TChar)));
+        m_str.heapCap = _cap;
+        m_str.bit     = k_heapEnabledBit;
+    }
+
+    void GrowHeapIfNeed_(
+        const SizeT _newCap)
+    {
+        if (m_str.heapCap < _newCap)
+        {
+            ReallocHeap_(_newCap * k_growthFactor);
+        }
+    }
+
+    void ReallocHeap_(
+        const SizeT _newCap)
+    {
+        m_str.heap    = static_cast<TChar*>(Realloc(m_str.heap, (_newCap + 1) * sizeof(TChar)));
+        m_str.heapCap = _newCap;
+    }
+
+    void SetToHeap_(
+        const StringViewT _str)
+    {
+        JAM_ASSERT(IsHeap_(), "SetToHeap_: must be in heap mode to set heap data.");
+        JAM_ASSERT(_str.GetLength() <= m_str.heapCap, "SetToHeap_: _str length exceeds heap capacity.");
+
+        const SizeT len = _str.GetLength();
+        ::memcpy(m_str.heap, _str.GetPtr(), len * sizeof(TChar));
+        ResizeHeap_(len);   // for null terminator and length update
+    }
+
+    void ResizeHeap_(
+        const SizeT _newLen)
+    {
+        JAM_ASSERT(IsHeap_(), "ResizeHeap_: must be in heap mode to resize heap data.");
+        JAM_ASSERT(_newLen <= m_str.heapCap, "ResizeHeap_: _newLen exceeds heap capacity.");
+        m_str.heap[_newLen] = CharTraits::k_nullChar;
+        m_str.heapLen       = _newLen;
+    }
+
+    void AppendToHeap_(
+        const StringViewT _str)
+    {
+        JAM_ASSERT(IsHeap_(), "AppendToHeap_: must be in heap mode to append to heap.");
+        JAM_ASSERT(_str.GetLength() + m_str.heapLen <= m_str.heapCap, "AppendToHeap_: combined length exceeds heap capacity.");
+
+        ::memcpy(m_str.heap + m_str.heapLen, _str.GetPtr(), _str.GetLength() * sizeof(CharT));
+        ResizeHeap_(m_str.heapLen + _str.GetLength());
+    }
+
+    void InsertToHeap_(
+        const SizeT       _pos,
+        const StringViewT _str)
+    {
+        JAM_ASSERT(IsHeap_(), "InsertToHeap_: must be in heap mode to insert to heap.");
+        JAM_ASSERT(_pos <= m_str.heapLen, "InsertToHeap_: _pos exceeds string length.");
+
+        ::memmove(m_str.heap + _pos + _str.GetLength(), m_str.heap + _pos, (m_str.heapLen - _pos) * sizeof(CharT));
+        ::memcpy(m_str.heap + _pos, _str.GetPtr(), _str.GetLength() * sizeof(CharT));
+        ResizeHeap_(m_str.heapLen + _str.GetLength());
+    }
+
+    void EraseAtHeap_(
+        const SizeT _pos,
+        const SizeT _count)
+    {
+        JAM_ASSERT(IsHeap_(), "EraseAtHeap_: must be in heap mode to erase heap data.");
+
+        const SizeT total = _pos + _count;
+        const SizeT len   = m_str.heapLen;
+        JAM_ASSERT(_pos <= len, "EraseAtHeap_: _pos exceeds string length.");
+        JAM_ASSERT(total <= len, "EraseAtHeap_: _pos + _count exceeds string length.");
+
+        ::memmove(m_str.heap + _pos, m_str.heap + total, (len - total) * sizeof(CharT));
+        ResizeHeap_(len - _count);
+    }
+
+    [[nodiscard]] SizeT GetLengthSSO_() const
+    {
+        JAM_ASSERT(IsSSO_(), "LengthOfSSO_: must be in stack mode to get stack data length.");
+        return k_ssoCap - m_str.bit;
+    }
+
+    void SetToSSO_(
+        const StringViewT _str)
+    {
+        JAM_ASSERT(IsSSO_(), "SetToStack: must be in stack mode to set stack data.");
+        JAM_ASSERT(_str.GetLength() <= k_ssoCap, "SetToStack: _str length exceeds stack capacity.");
+
+        const SizeT len = _str.GetLength();
+        ::memcpy(m_str.sso, _str.GetPtr(), len * sizeof(TChar));
+        ResizeSSO_(len);   // for null terminator and left update
+    }
+
+    void ResizeSSO_(
+        const SizeT _len)
+    {
+        JAM_ASSERT(_len <= k_ssoCap, "ResizeSSO_: _len exceeds sso capacity.");
+        m_str.sso[_len] = CharTraits::k_nullChar;
+        m_str.bit       = NumericCast<Byte>(k_ssoCap - _len);
+    }
+
+    void AppendToSSO_(
+        const StringViewT _str)
+    {
+        const SizeT len = GetLengthSSO_();
+
+        JAM_ASSERT(IsSSO_(), "AppendToSSO_: must be in stack mode to append to stack.");
+        JAM_ASSERT(_str.GetLength() + len <= k_ssoCap, "AppendToSSO_: combined length exceeds stack capacity.");
+
+        ::memcpy(m_str.sso + len, _str.GetPtr(), _str.GetLength() * sizeof(TChar));
+        ResizeSSO_(len + _str.GetLength());
+    }
+
+    void InsertToSSO_(
+        const SizeT       _pos,
+        const StringViewT _str)
+    {
+        const SizeT len = GetLengthSSO_();
+        JAM_ASSERT(IsSSO_(), "InsertToSSO_: must be in stack mode to insert to stack.");
+        JAM_ASSERT(_pos <= len, "InsertToSSO_: _pos exceeds string length.");
+        JAM_ASSERT(_str.GetLength() + len <= k_ssoCap, "InsertToSSO_: combined length exceeds stack capacity.");
+
+        ::memmove(m_str.sso + _pos + _str.GetLength(), m_str.sso + _pos, (len - _pos) * sizeof(TChar));
+        ::memcpy(m_str.sso + _pos, _str.GetPtr(), _str.GetLength() * sizeof(TChar));
+        ResizeSSO_(len + _str.GetLength());
+    }
+
+    void SSOToHeap_(
+        const SizeT _newCap)
+    {
+        JAM_ASSERT(IsSSO_(), "SSOToHeap_: must be in stack mode to convert to heap.");
+        JAM_ASSERT(_newCap > k_ssoCap, "SSOToHeap_: _newCap must be greater than stack capacity.");
+
+        TChar*      pHeap  = static_cast<TChar*>(Malloc((_newCap + 1) * sizeof(TChar)));
+        const SizeT ssoLen = GetLengthSSO_();
+        ::memcpy(pHeap, m_str.sso, ssoLen * sizeof(CharT));
+
+        m_str.heap    = pHeap;
+        m_str.heapCap = _newCap;
+        m_str.bit     = k_heapEnabledBit;
+        ResizeHeap_(ssoLen);
+    }
+
+    void EraseAtSSO_(
+        const SizeT _pos,
+        const SizeT _count)
+    {
+        JAM_ASSERT(IsSSO_(), "EraseAtSSO_: must be in stack mode to erase stack data.");
+        const SizeT total = _pos + _count;
+        const SizeT len   = GetLengthSSO_();
+        JAM_ASSERT(_pos <= len, "EraseAtSSO_: _pos exceeds string length.");
+        JAM_ASSERT(total <= len, "EraseAtSSO_: _pos + _count exceeds string length.");
+        ::memmove(m_str.sso + _pos, m_str.sso + total, (len - total) * sizeof(TChar));
+        ResizeSSO_(len - _count);
+    }
+
+    RawData m_str;
+};
+
+using String  = BasicString<char>;
+using WString = BasicString<wchar_t>;
 
 }   // namespace Jam
 
 ////////// std + external glue //////////
 
-template<>
-struct std::hash<Jam::String>
+template<Jam::IsCharT CharT>
+struct std::hash<Jam::BasicString<CharT>>
 {
     std::size_t operator()(const Jam::String& _str) const noexcept
     {
@@ -1575,8 +2735,8 @@ struct std::hash<Jam::String>
     }
 };
 
-template<>
-struct std::hash<Jam::StringView>
+template<Jam::IsCharT CharT>
+struct std::hash<Jam::BasicStringView<CharT>>
 {
     std::size_t operator()(const Jam::StringView& _strView) const noexcept
     {
@@ -1584,8 +2744,8 @@ struct std::hash<Jam::StringView>
     }
 };
 
-template<>
-struct ankerl::unordered_dense::hash<Jam::String>
+template<Jam::IsCharT CharT>
+struct ankerl::unordered_dense::hash<Jam::BasicString<CharT>>
 {
     [[nodiscard]] std::size_t operator()(const Jam::String& _str) const noexcept
     {
@@ -1593,8 +2753,8 @@ struct ankerl::unordered_dense::hash<Jam::String>
     }
 };
 
-template<>
-struct ankerl::unordered_dense::hash<Jam::StringView>
+template<Jam::IsCharT CharT>
+struct ankerl::unordered_dense::hash<Jam::BasicStringView<CharT>>
 {
     [[nodiscard]] std::size_t operator()(const Jam::StringView& _strView) const noexcept
     {
@@ -1603,31 +2763,41 @@ struct ankerl::unordered_dense::hash<Jam::StringView>
 };
 
 template<>
-struct fmt::formatter<Jam::String>
+struct fmt::formatter<Jam::String> : fmt::formatter<std::string_view>
 {
-    constexpr auto parse(const format_parse_context& ctx) const
-    {
-        return ctx.begin();
-    }
-
     template<typename FormatContext>
-    auto format(const Jam::String& str, FormatContext& ctx) const
+    auto format(const Jam::String& _str, FormatContext& _ctx) const
     {
-        return fmt::format_to(ctx.out(), "{}", fmt::string_view { str.GetPtr(), Jam::NumericCast<Jam::USizeT>(str.GetLength()) });
+        return fmt::formatter<std::string_view>::format(_str.ToStdStringView(), _ctx);
     }
 };
 
 template<>
-struct fmt::formatter<Jam::StringView>
+struct fmt::formatter<Jam::StringView> : fmt::formatter<std::string_view>
 {
-    constexpr auto parse(const format_parse_context& ctx) const
-    {
-        return ctx.begin();
-    }
-
     template<typename FormatContext>
-    auto format(const Jam::StringView& strView, FormatContext& ctx) const
+    auto format(const Jam::StringView& _strView, FormatContext& _ctx) const
     {
-        return fmt::format_to(ctx.out(), "{}", fmt::string_view { strView.GetPtr(), Jam::NumericCast<Jam::USizeT>(strView.GetLength()) });
+        return fmt::formatter<std::string_view>::format(_strView.ToStdStringView(), _ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<Jam::WString, wchar_t> : fmt::formatter<std::wstring_view, wchar_t>
+{
+    template<typename FormatContext>
+    auto format(const Jam::WString& _str, FormatContext& _ctx) const
+    {
+        return fmt::formatter<std::wstring_view, wchar_t>::format(_str.ToStdStringView(), _ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<Jam::WStringView, wchar_t> : fmt::formatter<std::wstring_view, wchar_t>
+{
+    template<typename FormatContext>
+    auto format(const Jam::WStringView& _strView, FormatContext& _ctx) const
+    {
+        return fmt::formatter<std::wstring_view, wchar_t>::format(_strView.ToStdStringView(), _ctx);
     }
 };

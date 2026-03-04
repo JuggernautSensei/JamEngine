@@ -30,13 +30,13 @@ Editor_SceneViewWindow::Editor_SceneViewWindow()
 
     // load m_icons
     {
-        m_cursorIcon     = JAM_EDITOR.GetIcon(eEditorIcon::Cursor);
-        m_stopIcon       = JAM_EDITOR.GetIcon(eEditorIcon::Stop);
-        m_optionsIcon    = JAM_EDITOR.GetIcon(eEditorIcon::Menu);
-        m_playIcon       = JAM_EDITOR.GetIcon(eEditorIcon::Play);
-        m_rotatationIcon = JAM_EDITOR.GetIcon(eEditorIcon::Rotation);
-        m_scaleIcon      = JAM_EDITOR.GetIcon(eEditorIcon::Scale);
-        m_tranlationIcon = JAM_EDITOR.GetIcon(eEditorIcon::Translation);
+        m_cursorIcon     = GetEditor().GetIcon(eEditorIcon::Cursor);
+        m_stopIcon       = GetEditor().GetIcon(eEditorIcon::Stop);
+        m_optionsIcon    = GetEditor().GetIcon(eEditorIcon::Menu);
+        m_playIcon       = GetEditor().GetIcon(eEditorIcon::Play);
+        m_rotatationIcon = GetEditor().GetIcon(eEditorIcon::Rotation);
+        m_scaleIcon      = GetEditor().GetIcon(eEditorIcon::Scale);
+        m_tranlationIcon = GetEditor().GetIcon(eEditorIcon::Translation);
     }
 }
 
@@ -49,11 +49,11 @@ Editor_SceneViewWindow::~Editor_SceneViewWindow()
 
 void Editor_SceneViewWindow::OnUpdate(const float _deltaTime)
 {
-    if (JAM_EDITOR.GetMode() == eEditorMode::Play)
+    if (GetEditor().GetMode() == eEditorMode::Play)
     {
         OnUpdateRuntime_(_deltaTime);
     }
-    else if (JAM_EDITOR.GetMode() == eEditorMode::Edit)
+    else if (GetEditor().GetMode() == eEditorMode::Edit)
     {
         OnUpdateEdit_(_deltaTime);
     }
@@ -74,7 +74,7 @@ void Editor_SceneViewWindow::OnRender()
     }
 
     // 렌더링
-    const eEditorMode mode = JAM_EDITOR.GetMode();
+    const eEditorMode mode = GetEditor().GetMode();
     if (mode == eEditorMode::Play)
     {
         OnRenderRuntime();
@@ -90,7 +90,7 @@ void Editor_SceneViewWindow::OnImGuiRender(
 {
     // begin window
     ImGuiWindowFlags flags = ImGuiWindowFlags_None;
-    if (JAM_EDITOR.GetMode() == eEditorMode::Play)
+    if (GetEditor().GetMode() == eEditorMode::Play)
     {
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
     }
@@ -175,7 +175,7 @@ void Editor_SceneViewWindow::OnImGuiRender(
                 Widget_Image(m_renderTexh, avail);
 
                 // edit m_mode overlay
-                if (JAM_EDITOR.GetMode() == eEditorMode::Edit)
+                if (GetEditor().GetMode() == eEditorMode::Edit)
                 {
                     DrawGizmo_();
                     Widget_CameraAcroball_();   // on right top
@@ -190,42 +190,42 @@ void Editor_SceneViewWindow::OnImGuiRender(
     }
 
     // short cut in edit m_mode
-    if (JAM_EDITOR.GetMode() == eEditorMode::Edit)
+    if (GetEditor().GetMode() == eEditorMode::Edit)
     {
-        if (JAM_SCENE_MGR.HasActiveScene())
+        if (GetSceneManager().HasActiveScene())
         {
-            const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
-            const Entity      entity = JAM_EDITOR.GetFocusingEntity();
+            const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
+            const Entity      entity = GetEditor().GetFocusingEntityOrNull();
 
             // 생성
-            if (ImGui::Shortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::CreateEntity)))
+            if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::CreateEntity)))
             {
-                JAM_EDITOR.CreateEntity(pScene);
+                GetEditor().CreateEntity(pScene);
             }
 
             // 복제
-            if (ImGui::Shortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::CloneEntity)) && JAM_EDITOR.CanEntityClone(entity))
+            if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::CloneEntity)) && GetEditor().CanEntityClone(entity))
             {
-                JAM_EDITOR.CloneEntity(pScene, entity);
+                GetEditor().CloneEntity(pScene, entity);
             }
 
             // 삭제
-            if (ImGui::Shortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::DeleteEntity)) && JAM_EDITOR.CanEntityDestroy(entity))
+            if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::DeleteEntity)) && GetEditor().CanEntityDestroy(entity))
             {
-                JAM_EDITOR.DestroyEntity(pScene, entity);
+                GetEditor().DestroyEntity(pScene, entity);
             }
 
             // 씬 저장
-            if (ImGui::Shortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::SaveScene)))
+            if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::SaveScene)))
             {
-                JAM_EDITOR.SaveSceneByFileDialog(pScene);
+                GetEditor().SaveSceneByFileDialog(pScene);
             }
         }
 
         // 씬 열기
-        if (ImGui::Shortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::LoadScene)))
+        if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::LoadScene)))
         {
-            JAM_EDITOR.LoadScenByFileDialog();
+            GetEditor().LoadScenByFileDialog();
         }
     }
 
@@ -306,14 +306,14 @@ Error Editor_SceneViewWindow::ReadFromArchive(
 
 void Editor_SceneViewWindow::DrawGizmo_() const
 {
-    JAM_ASSERT(JAM_EDITOR.GetMode() == eEditorMode::Edit, "Gizmo can be drawn only in edit m_mode.");
+    JAM_ASSERT(GetEditor().GetMode() == eEditorMode::Edit, "Gizmo can be drawn only in edit m_mode.");
 
     if (m_gizmoOp == eGizmoOp::None)
     {
         return;
     }
 
-    Entity entity = JAM_EDITOR.GetFocusingEntity();
+    Entity entity = GetEditor().GetFocusingEntityOrNull();
     if (!entity)
     {
         return;
@@ -337,7 +337,7 @@ void Editor_SceneViewWindow::DrawGizmo_() const
                                                                           : ImGuizmo::LOCAL;
 
     const float* pSnap = nullptr;
-    if (m_bGizmoSnap || JAM_INPUT.IsKeyDown(eKey::Shift))
+    if (m_bGizmoSnap || GetInput().IsKeyDown(eKey::Shift))
     {
         pSnap = m_gizmoOp == eGizmoOp::Translation ? &k_translateSnap.x
               : m_gizmoOp == eGizmoOp::Rotation    ? &k_rotateSnapDeg.x
@@ -409,19 +409,19 @@ void Editor_SceneViewWindow::Menu_Options()
 
     ImGui::SeparatorText("gizmo");
     {
-        if (Widget_MenuItem("cursor", JAM_EDITOR.GetStyleShortCut(eEditorShortCut::GizmoCursorMode), m_gizmoOp == eGizmoOp::None))
+        if (Widget_MenuItem("cursor", GetEditor().GetStyleShortCut(eEditorShortCut::GizmoCursorMode), m_gizmoOp == eGizmoOp::None))
         {
             m_gizmoOp = eGizmoOp::None;
         }
-        else if (Widget_MenuItem("translation", JAM_EDITOR.GetStyleShortCut(eEditorShortCut::GizmoTranslationMode), m_gizmoOp == eGizmoOp::Translation))
+        else if (Widget_MenuItem("translation", GetEditor().GetStyleShortCut(eEditorShortCut::GizmoTranslationMode), m_gizmoOp == eGizmoOp::Translation))
         {
             m_gizmoOp = eGizmoOp::Translation;
         }
-        else if (Widget_MenuItem("rotation", JAM_EDITOR.GetStyleShortCut(eEditorShortCut::GizmoRotationMode), m_gizmoOp == eGizmoOp::Rotation))
+        else if (Widget_MenuItem("rotation", GetEditor().GetStyleShortCut(eEditorShortCut::GizmoRotationMode), m_gizmoOp == eGizmoOp::Rotation))
         {
             m_gizmoOp = eGizmoOp::Rotation;
         }
-        else if (Widget_MenuItem("scale", JAM_EDITOR.GetStyleShortCut(eEditorShortCut::GizmoScaleMode), m_gizmoOp == eGizmoOp::Scale))
+        else if (Widget_MenuItem("scale", GetEditor().GetStyleShortCut(eEditorShortCut::GizmoScaleMode), m_gizmoOp == eGizmoOp::Scale))
         {
             m_gizmoOp = eGizmoOp::Scale;
         }
@@ -430,7 +430,7 @@ void Editor_SceneViewWindow::Menu_Options()
         Widget_GizmoOriendToggle_();
 
         // snap
-        Widget_MenuItem("snap", JAM_EDITOR.GetStyleShortCut(eEditorShortCut::GizmoSnapToggle), &m_bGizmoSnap);
+        Widget_MenuItem("snap", GetEditor().GetStyleShortCut(eEditorShortCut::GizmoSnapToggle), &m_bGizmoSnap);
     }
 
     ImGui::SeparatorText("view options");
@@ -447,39 +447,39 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
     m_infiniteDragger.Update();
 
     // right button. camera move m_mode. WASDQE -> move like flight. mouse drag -> rotate
-    if (JAM_INPUT.IsMouseDown(eMouse::RightButton))
+    if (GetInput().IsMouseDown(eMouse::RightButton))
     {
         // translation
         {
-            const float accel = JAM_INPUT.IsKeyDown(eKey::Shift) ? k_cameraMoveDecelerationFactor : 1.f;
+            const float accel = GetInput().IsKeyDown(eKey::Shift) ? k_cameraMoveDecelerationFactor : 1.f;
             const float dMov  = m_cameraMoveSpeed * accel * _deltaSec;
 
-            if (JAM_INPUT.IsKeyDown(eKey::A))
+            if (GetInput().IsKeyDown(eKey::A))
             {
                 m_cameraTransform.AddTranslation(m_cameraTransform.GetLeft() * dMov);
             }
 
-            if (JAM_INPUT.IsKeyDown(eKey::D))
+            if (GetInput().IsKeyDown(eKey::D))
             {
                 m_cameraTransform.AddTranslation(m_cameraTransform.GetRight() * dMov);
             }
 
-            if (JAM_INPUT.IsKeyDown(eKey::W))
+            if (GetInput().IsKeyDown(eKey::W))
             {
                 m_cameraTransform.AddTranslation(m_cameraTransform.GetForward() * dMov);
             }
 
-            if (JAM_INPUT.IsKeyDown(eKey::S))
+            if (GetInput().IsKeyDown(eKey::S))
             {
                 m_cameraTransform.AddTranslation(m_cameraTransform.GetBackward() * dMov);
             }
 
-            if (JAM_INPUT.IsKeyDown(eKey::Q))
+            if (GetInput().IsKeyDown(eKey::Q))
             {
                 m_cameraTransform.AddTranslation(m_cameraTransform.GetDown() * dMov);
             }
 
-            if (JAM_INPUT.IsKeyDown(eKey::E))
+            if (GetInput().IsKeyDown(eKey::E))
             {
                 m_cameraTransform.AddTranslation(m_cameraTransform.GetUp() * dMov);
             }
@@ -499,7 +499,7 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
     }
 
     // middle button action. move camera parallel to view plane
-    if (JAM_INPUT.IsMouseDown(eMouse::MiddleButton))
+    if (GetInput().IsMouseDown(eMouse::MiddleButton))
     {
         const auto [dx, dy] = m_infiniteDragger.GetDragDelta();
         if (dx != 0 || dy != 0)
@@ -514,10 +514,10 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
     }
 
     // mouse wheel action. move forward/backward or adjust move speed
-    const float dWheel = JAM_INPUT.GetMouseDeltaWheel();
+    const float dWheel = GetInput().GetMouseDeltaWheel();
     if (!IsZeroApprox(dWheel))
     {
-        if (JAM_INPUT.IsMouseDown(eMouse::RightButton))
+        if (GetInput().IsMouseDown(eMouse::RightButton))
         {
             // adjust move speed
             const float dMov  = dWheel * k_wheelSensitivity * k_cameraMoveSpeedAdjustFactor;
@@ -532,20 +532,20 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
     }
 
     // esc to release focus
-    if (JAM_INPUT.IsKeyPressed(eKey::Escape))
+    if (GetInput().IsKeyPressed(eKey::Escape))
     {
-        JAM_EDITOR.ReleaseFocusingEntity();
+        GetEditor().SetFocusingEntity(Entity::k_null);
     }
 }
 
 void Editor_SceneViewWindow::OnUpdateRuntime_(const float _deltaSec) const
 {
-    JAM_SCENE_MGR.Update(_deltaSec);
+    GetSceneManager().Update(_deltaSec);
 }
 
 void Editor_SceneViewWindow::OnRenderEdit()
 {
-    if (JAM_SCENE_MGR.HasActiveScene())
+    if (GetSceneManager().HasActiveScene())
     {
         const UInt16   w  = NumericCast<UInt16>(m_width);
         const UInt16   h  = NumericCast<UInt16>(m_height);
@@ -560,19 +560,19 @@ void Editor_SceneViewWindow::OnRenderEdit()
         renderView.proj       = m_camera.ToProjMatrix();
 
         // render scene
-        JAM_SCENE_MGR.Render(renderView);
+        GetSceneManager().Render(renderView);
 
         // overlays
         {
             // lazy create (because scene depth texture may change on scene load)
             {
-                const Ref<Scene>&   pScene    = JAM_SCENE_MGR.GetActiveScene();
+                const Ref<Scene>&   pScene    = GetSceneManager().GetActiveScene();
                 const TextureHandle depthTexh = pScene->GetDepthTexture();
                 if (m_sceneDepthTexh != depthTexh)
                 {
                     JAM_DESTROY_FRAME_BUFFER(m_fbhWithDepth);
                     const TextureHandle attachment[] = { m_renderTexh, depthTexh };
-                    m_fbhWithDepth                   = JAM_GFX.CreateFrameBuffer(attachment);
+                    m_fbhWithDepth                   = GetGraphics().CreateFrameBuffer(attachment);
                 }
             }
 
@@ -603,7 +603,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
                 }
 
                 // draw focused entity
-                if (const Entity entity = JAM_EDITOR.GetFocusingEntity())
+                if (const Entity entity = GetEditor().GetFocusingEntityOrNull())
                 {
                     // bounding box
                     if (entity.HasComponent<RenderableComponent>())
@@ -640,7 +640,7 @@ void Editor_SceneViewWindow::OnRenderRuntime() const
     const UInt16   w  = NumericCast<UInt16>(m_width);
     const UInt16   h  = NumericCast<UInt16>(m_height);
     const Viewport vp = { w, h };
-    JAM_SCENE_MGR.RenderRuntime(m_fbh, vp);
+    GetSceneManager().RenderRuntime(m_fbh, vp);
 }
 
 void Editor_SceneViewWindow::Resize_(
@@ -655,32 +655,32 @@ void Editor_SceneViewWindow::Resize_(
     m_height = _height;
 
     // render target texture
-    m_renderTexh = JAM_GFX.CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTarget);
-    JAM_GFX.SetTextureName(m_renderTexh, "scene view texture");
+    m_renderTexh = GetGraphics().CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTarget);
+    GetGraphics().SetTextureName(m_renderTexh, "scene view texture");
 
     // frame buffer
-    m_fbh = JAM_GFX.CreateFrameBuffer(m_renderTexh);
-    JAM_GFX.SetFrameBufferName(m_fbh, "scene view frame buffer");
+    m_fbh = GetGraphics().CreateFrameBuffer(m_renderTexh);
+    GetGraphics().SetFrameBufferName(m_fbh, "scene view frame buffer");
 
     // camera
     m_camera.SetWidth(NumericCast<float>(_width));
     m_camera.SetHeight(NumericCast<float>(_height));
 
     // resize scene manager
-    JAM_SCENE_MGR.Resize(_width, _height);
+    GetSceneManager().Resize(_width, _height);
 }
 
 void Editor_SceneViewWindow::OnSceneChangedEvent_(
     const SceneChangedEvent& _event)
 {
-    if (m_bRecoverRequested && m_focusedEntityBackupUid != UID::k_invalid)
+    if (m_bRecoverRequested && m_focusedEntityBackupUid != UID::k_null)
     {
         // edit 모드에서 편집중이던 엔티티 복구
-        const Ref<Scene>& pScene = JAM_SCENE_MGR.GetActiveScene();
+        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
         const Entity      entity = pScene->GetEntity(m_focusedEntityBackupUid);
-        JAM_EDITOR.SetFocusingEntity(entity);
+        GetEditor().SetFocusingEntity(entity);
 
-        m_focusedEntityBackupUid = UID::k_invalid;
+        m_focusedEntityBackupUid = UID::k_null;
         m_bRecoverRequested      = false;
     }
 
@@ -756,7 +756,7 @@ void Editor_SceneViewWindow::Widget_GizmoSelector(
                                                         : "scale objects along x, y, z axis";
 
     const bool bSelected = (m_gizmoOp == _op);
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(shortcut));
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(shortcut));
 
     // button
     if (!bSelected)
@@ -785,12 +785,8 @@ void Editor_SceneViewWindow::Widget_GizmoOriendToggle_()
 
     const char*   descText = m_gizmoOrient == eGizmoOrient::World ? "gizmo aligned to world axes. can toggle with t"
                                                                   : "gizmo aligned to object local axes. can toggle with t";
-    EnumComboItem items[]  = {
-        { "world", NumericCast<Int32>(eGizmoOrient::World) },
-        { "local", NumericCast<Int32>(eGizmoOrient::Local) }
-    };
-
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::GizmoOrientToggle));
+   
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::GizmoOrientToggle));
     Widget_EnumToggle("##GizmoOrient", m_gizmoOrient);
     Widget_ItemDescriptionTooltip(summryText, descText);
 }
@@ -802,7 +798,7 @@ void Editor_SceneViewWindow::Widget_GizmoSnapToggle_()
         { "snap off", false }
     };
 
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::GizmoSnapToggle));
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::GizmoSnapToggle));
 
     EnumComboItem cur = m_bGizmoSnap ? k_items[0] : k_items[1];
     if (Widget_EnumToggle("##gizmo snap", cur, k_items))
@@ -877,27 +873,27 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
 void Editor_SceneViewWindow::Widget_RunButton_()
 {
     // hotkey
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::RunGameToggle));
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::RunGameToggle));
 
     // button
     {
-        ImGui::PushStyleColor(ImGuiCol_Button, JAM_EDITOR.GetStyleColorU32(eEditorStyleColor::RunButtonBg));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, JAM_EDITOR.GetStyleColorU32(eEditorStyleColor::RunButtonBgActive));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, JAM_EDITOR.GetStyleColorU32(eEditorStyleColor::RunButtonBgHovered));
+        ImGui::PushStyleColor(ImGuiCol_Button, GetEditor().GetStyleColorU32(eEditorStyleColor::RunButtonBg));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, GetEditor().GetStyleColorU32(eEditorStyleColor::RunButtonBgActive));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GetEditor().GetStyleColorU32(eEditorStyleColor::RunButtonBgHovered));
 
         if (Widget_IconButton("play", m_playIcon, k_modeBtnSize))
         {
-            JAM_EDITOR.SetMode(eEditorMode::Play);
+            GetEditor().SetMode(eEditorMode::Play);
 
             // 현재 씬을 직렬화하여 백업
             JsonWriter writer = {};
-            SerializeScene(writer, JAM_SCENE_MGR.GetActiveScene());
+            SerializeScene(writer, GetSceneManager().GetActiveScene());
             Expect<String> sceneData = writer.Stringify();
             JAM_ASSERT(sceneData, "failed to serialize scene on run!");
             m_backUpSceneData = sceneData.Take();
 
             // 현재 포커스된 엔티티 UID 백업
-            const Entity entity      = JAM_EDITOR.GetFocusingEntity();
+            const Entity entity      = GetEditor().GetFocusingEntityOrNull();
             m_focusedEntityBackupUid = entity.GetUID();
 
             // 씬이 변경되었을때 복구 처리 필요
@@ -916,18 +912,18 @@ void Editor_SceneViewWindow::Widget_RunButton_()
 void Editor_SceneViewWindow::Widget_StopButton_() const
 {
     // hotkey
-    ImGui::SetNextItemShortcut(JAM_EDITOR.GetStyleShortCut(eEditorShortCut::RunGameToggle));
+    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::RunGameToggle));
 
     // button
     {
-        ImGui::PushStyleColor(ImGuiCol_Button, JAM_EDITOR.GetStyleColorU32(eEditorStyleColor::EditButtonBg));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, JAM_EDITOR.GetStyleColorU32(eEditorStyleColor::EditButtonBgActive));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, JAM_EDITOR.GetStyleColorU32(eEditorStyleColor::EditButtonBgHovered));
+        ImGui::PushStyleColor(ImGuiCol_Button, GetEditor().GetStyleColorU32(eEditorStyleColor::EditButtonBg));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, GetEditor().GetStyleColorU32(eEditorStyleColor::EditButtonBgActive));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GetEditor().GetStyleColorU32(eEditorStyleColor::EditButtonBgHovered));
 
         if (ImGui::Button("stop", k_modeBtnSize))
         {
             JAM_ASSERT(!m_backUpSceneData.IsEmpty(), "backup scene data is not empty on stop!");
-            JAM_EDITOR.SetMode(eEditorMode::Edit);
+            GetEditor().SetMode(eEditorMode::Edit);
 
             // 씬 역직렬화
             Expect<JsonReader> reader = JsonReader::Parse(m_backUpSceneData);
@@ -935,7 +931,7 @@ void Editor_SceneViewWindow::Widget_StopButton_() const
 
             Expect<Ref<Scene>> pScene = DeserializeScene(reader.GetValue());
             JAM_ASSERT(pScene, "failed to deserialize scene on stop!");
-            JAM_SCENE_MGR.LoadScene(pScene.GetValue());
+            GetSceneManager().LoadScene(pScene.GetValue());
         }
 
         ImGui::PopStyleColor(3);
@@ -951,11 +947,11 @@ void Editor_SceneViewWindow::Widget_StopButton_() const
 
 void Editor_SceneViewWindow::Widget_EditorModeSwitchButton_()
 {
-    if (JAM_EDITOR.GetMode() == eEditorMode::Edit)
+    if (GetEditor().GetMode() == eEditorMode::Edit)
     {
         Widget_RunButton_();
     }
-    else if (JAM_EDITOR.GetMode() == eEditorMode::Play)
+    else if (GetEditor().GetMode() == eEditorMode::Play)
     {
         Widget_StopButton_();
     }

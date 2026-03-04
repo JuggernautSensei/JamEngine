@@ -76,6 +76,9 @@ private:
     friend class Application;
 };
 
-}   // namespace Jam
+[[nodiscard]] inline WindowsPlatform& GetWindowsPlatform()
+{
+    return WindowsPlatform::GetInstance();
+}
 
-#define JAM_WIN Jam::WindowsPlatform::GetInstance()
+}   // namespace Jam

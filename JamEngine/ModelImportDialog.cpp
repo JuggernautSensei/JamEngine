@@ -5,42 +5,52 @@
 #include "AssimpImporter.h"
 #include "Editor.h"
 #include "EditorUtilities.h"
-#include "WindowsUtilities.h"
 #include "EditorWidgets.h"
 
 #include "Material.h"
 #include "Mesh.h"
 #include "MessageDialog.h"
 #include "Model.h"
-#include "VertexLayoutEntry.h"
+#include "VertexLayoutEntryManager.h"
 
 namespace Jam
 {
 
-ModelImportDialog::ModelImportDialog(
-    const ModelImportDialogInfo& _info)
-    : AssetCreationDialog(_info.baseInfo)
-    , m_importPath(_info.importPathOrEmpty)
+namespace
 {
-    if (!_info.importPathOrEmpty.empty())
-    {
-        m_assetSaveDir  = _info.importPathOrEmpty.parent_path();
-        m_assetBaseName = BaseNameOf(_info.importPathOrEmpty);
-    }
 
-    // import file dialog
+    [[nodiscard]] FileDialog CreateImportFileDialog_()
     {
         FileDialogFilter k_filters[] = {
             { "3d models", "*.obj;*.fbx;*.3ds;*.dae;*.ply;*.stl;*.x;*.gltf;*.glb" },
         };
 
-        m_importFd.SetTitle("open model file");
-        m_importFd.SetFilters(k_filters);
+        OpenFileDialogInfo info = {};
+        info.title              = "select model file";
+        info.filtersOrEmpty     = k_filters;
+        return FileDialog { info };
     }
 
-    // select directory dialog
+    [[nodiscard]] FileDialog CreateSaveDirectoryDialog_()
     {
-        m_saveFd.SetTitle("select save directory");
+        SaveFileDialogInfo info = {};
+        info.title              = "select save directory";
+        return FileDialog { info };
+    }
+
+}   // namespace
+
+ModelImportDialog::ModelImportDialog(
+    const ModelImportDialogInfo& _info)
+    : AssetCreationDialog(_info.title, _info.size)
+    , m_importPath(_info.importPathOrEmpty)
+    , m_importFd(CreateImportFileDialog_())
+    , m_saveFd(CreateSaveDirectoryDialog_())
+{
+    if (!_info.importPathOrEmpty.IsEmpty())
+    {
+        m_assetSaveDir  = _info.importPathOrEmpty.GetDirectory();
+        m_assetBaseName = _info.importPathOrEmpty.GetBaseName();
     }
 }
 
@@ -152,7 +162,7 @@ bool ModelImportDialog::OnClickImportButton_()
     }
 
     // save dir
-    if (m_assetSaveDir.empty())
+    if (m_assetSaveDir.IsEmpty())
     {
         PushEmptySavePathErrorMessageDialog_();
         return false;
@@ -166,15 +176,15 @@ bool ModelImportDialog::OnClickImportButton_()
     }
 
     // import path
-    if (m_importPath.empty())
+    if (m_importPath.IsEmpty())
     {
         PushEmptyImportPathErrorMessageDialog_();
         return false;
     }
 
     // save path
-    const Path saveDir = JoinedPath(m_assetSaveDir, m_assetBaseName);
-    if (fs::exists(saveDir))
+    const String saveDir = String::Joined(m_assetSaveDir, m_assetBaseName, eJoinType::Directory);
+    if (FileSystem::Exists(saveDir))
     {
         PushOverwriteConfirmationDialog_(saveDir);
         return false;
@@ -185,13 +195,13 @@ bool ModelImportDialog::OnClickImportButton_()
 }
 
 bool ModelImportDialog::CreateAndSaveAsset_(
-    const Path& _path)   // _path is dir
+    StringView _path)
 {
     JAM_ASSERT(m_pVle, "vertex layout must be valid here");
-    JAM_ASSERT(fs::is_directory(_path), "_path must be directory here");
+    JAM_ASSERT(_path.IsDirectory(), "_path must be directory here");
 
     // create _path directory
-    if (!JAM_EDITOR.CreateDir(_path))
+    if (!GetEditor().CreateDir(_path))
     {
         return false;
     }
@@ -200,12 +210,10 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile(m_importPath, m_options);
     if (!importer)
     {
-        ScratchBuffer tmp;
-        tmp.Format("failed to import model file '{}': {}", m_importPath, importer.GetError().ToErrorMessage());
+        GetEditor().PushMessageDialog(
+            "model import failed",
+            String::Formatted("failed to import model from file '{}'", m_importPath));
 
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = tmp.ToStringView();
         return false;
     }
 
@@ -213,11 +221,10 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     const Expect<Ref<Model>> expect = importer->ConvertToModel(m_pVle->GetVertexLayout());
     if (!expect)
     {
-        ScratchBuffer tmp;
-        tmp.Format("failed to convert imported model data to model asset: {}", expect.GetError().ToErrorMessage());
-        MessageDialogInfo desc = {};
-        desc.baseInfo.title    = "error";
-        desc.msg               = tmp.ToStringView();
+        GetEditor().PushMessageDialog(
+            "model import failed",
+            String::Formatted("failed to convert imported model to engine's model asset format. error: '{}'", expect.GetError().ToErrorMessage()));
+
         return false;
     }
 
@@ -228,8 +235,8 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     // process mesh
     {
         // create meshes
-        const Path meshDir = _path / "Meshes";
-        if (!JAM_EDITOR.CreateDir(meshDir))
+        const String meshDir = String::Joined(_path, "Meshes", eJoinType::Directory);
+        if (!GetEditor().CreateDir(meshDir))
         {
             return false;
         }
@@ -239,9 +246,8 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         for (const Ref<Mesh>& pMesh: meshes)
         {
             // set virtual path
-            const StringView name     = pMesh->GetName();
-            Path             meshPath = meshDir / name.GetPtr();
-            meshPath.replace_extension(Mesh::k_extension.GetPtr());
+            String meshPath = String::Joined(meshDir, pMesh->GetName(), eJoinType::File);
+            meshPath.ReplaceExtension(Mesh::k_extension);
             pMesh->SetVirtualPath(meshPath);
 
             // save mesh asset
@@ -261,15 +267,15 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         HashSet<Ref<Texture>> textureSet = {};
 
         // create materials directory
-        const Path matDir = _path / "Materials";
-        if (!JAM_EDITOR.CreateDir(matDir))
+        const String matDir = String::Joined(_path, "Materials", eJoinType::Directory);
+        if (!GetEditor().CreateDir(matDir))
         {
             return false;
         }
 
         // create texes directory
-        const Path texDir = _path / "Textures";
-        if (!JAM_EDITOR.CreateDir(texDir))
+        const String texDir = String::Joined(_path, "Textures", eJoinType::Directory);
+        if (!GetEditor().CreateDir(texDir))
         {
             return false;
         }
@@ -292,9 +298,8 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         for (const Ref<Texture>& pTexture: textureSet)
         {
             // set virtual path
-            const StringView name    = pTexture->GetName();
-            Path             texPath = texDir / name.GetPtr();
-            texPath.replace_extension(Texture::k_extension.GetPtr());
+            String texPath = String::Joined(texDir, pTexture->GetName(), eJoinType::File);
+            texPath.ReplaceExtension(Texture::k_extension);
             pTexture->SetVirtualPath(texPath);
 
             // save texture asset
@@ -308,9 +313,8 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         for (const Ref<Material>& pMaterial: materials)
         {
             // set virtual path
-            const StringView name    = pMaterial->GetName();
-            Path             matPath = matDir / name.GetPtr();
-            matPath.replace_extension(Material::k_extension.GetPtr());
+            String matPath = String::Joined(matDir, pMaterial->GetName(), eJoinType::File);
+            matPath.ReplaceExtension(Material::k_extension);
             pMaterial->SetVirtualPath(matPath);
 
             // save material asset
@@ -322,9 +326,8 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     }
 
     // save model
-    // const Path path = ReplacedExtension(_path / m_assetBaseName, Model::k_extension);
-    Path path = JoinedPath(_path, m_assetBaseName);
-    ReplaceExtension(path, Model::k_extension);
+    String path = String::Joined(_path, m_assetBaseName, eJoinType::File);
+    path.ReplaceExtension(Model::k_extension);
     if (!SaveAsset_(path, pModel))
     {
         return false;

@@ -6,12 +6,6 @@
 namespace Jam
 {
 
-Path PathFrom(
-    const StringViewDto _str)
-{
-    return _str.view();
-}
-
 String StringFrom(
     const StringViewDto _str)
 {
@@ -28,11 +22,6 @@ StringViewDto StringViewDtoFrom(
     const StringView _str)
 {
     return { _str.GetPtr(), NumericCast<StringViewDto::msize_t>(_str.GetLength()) };
-}
-
-StringViewDto StringViewDtoFrom(const fs::path& _path)
-{
-    return _path.native();
 }
 
 Vec3Dto Vec3Dto::FromVec3(const Vec3& _v)
