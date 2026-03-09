@@ -19,37 +19,37 @@ void CameraScript::OnUpdate(const float _deltaSec)
     SceneNode& t = m_pTrans->node;
     if (Input::IsKeyDown(eKey::A))
     {
-        Vec3 deltaTrans = t.GetLocalLeft() * m_pData->moveSpeed * _deltaSec;
+        Vector3 deltaTrans = t.GetLocalLeft() * m_pData->moveSpeed * _deltaSec;
         t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::D))
     {
-        Vec3 deltaTrans = t.GetLocalRight() * m_pData->moveSpeed * _deltaSec;
+        Vector3 deltaTrans = t.GetLocalRight() * m_pData->moveSpeed * _deltaSec;
         t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::W))
     {
-        Vec3 deltaTrans = t.GetLocalForward() * m_pData->moveSpeed * _deltaSec;
+        Vector3 deltaTrans = t.GetLocalForward() * m_pData->moveSpeed * _deltaSec;
         t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::S))
     {
-        Vec3 deltaTrans = t.GetLocalBackward() * m_pData->moveSpeed * _deltaSec;
+        Vector3 deltaTrans = t.GetLocalBackward() * m_pData->moveSpeed * _deltaSec;
         t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::Q))
     {
-        Vec3 deltaTrans = t.GetLocalDown() * m_pData->moveSpeed * _deltaSec;
+        Vector3 deltaTrans = t.GetLocalDown() * m_pData->moveSpeed * _deltaSec;
         t.AddLocalTranslation(deltaTrans);
     }
 
     if (Input::IsKeyDown(eKey::E))
     {
-        Vec3 deltaTrans = t.GetLocalUp() * m_pData->moveSpeed * _deltaSec;
+        Vector3 deltaTrans = t.GetLocalUp() * m_pData->moveSpeed * _deltaSec;
         t.AddLocalTranslation(deltaTrans);
     }
 

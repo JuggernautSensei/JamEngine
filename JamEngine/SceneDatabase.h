@@ -43,14 +43,14 @@ public:
     [[nodiscard]] bool IsSceneReflected(UInt32 _typeHash) const;
     [[nodiscard]] bool IsSceneReflected(StringView _typeName) const;
 
-    [[nodiscard]] const SceneReflectionData&                  GetSceneReflectionData(UInt32 _typeHash) const;
-    [[nodiscard]] const SceneReflectionData&                  GetSceneReflectionData(StringView _typeName) const;
-    [[nodiscard]] const HashMap<UInt32, SceneReflectionData>& GetSceneReflectionDataContainer() const;
+    [[nodiscard]] const SceneReflectionData&                     GetSceneReflectionData(UInt32 _typeHash) const;
+    [[nodiscard]] const SceneReflectionData&                     GetSceneReflectionData(StringView _typeName) const;
+    [[nodiscard]] const CASHashMap<UInt32, SceneReflectionData>& GetSceneReflectionDataContainer() const;
 
 private:
     static void DestroyInstance();
 
-    HashMap<UInt32, SceneReflectionData> m_sceneMetadataContainer = {};
+    CASHashMap<UInt32, SceneReflectionData> m_sceneMetadataContainer = {};
 
     inline static SceneDatabase* s_pInstance = nullptr;
     friend class Application;

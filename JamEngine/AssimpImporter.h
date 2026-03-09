@@ -25,12 +25,12 @@ struct ImportedMesh
 {
     String name = {};
 
-    Vector<Vec3>           positions  = {};
-    Vector<Vec3>           normals    = {};
-    Vector<Vec3>           tangents   = {};
-    Vector<Vec3>           bitangents = {};
-    Array<Vector<Vec4>, 4> colors     = {};
-    Array<Vector<Vec2>, 4> texCoords  = {};
+    Vector<Vector3>           positions  = {};
+    Vector<Vector3>           normals    = {};
+    Vector<Vector3>           tangents   = {};
+    Vector<Vector3>           bitangents = {};
+    Array<Vector<Vector4>, 4> colors     = {};
+    Array<Vector<Vector2>, 4> texCoords  = {};
     Vector<Byte>           idxData    = {};
     bool                   bUseU32    = false;
 };

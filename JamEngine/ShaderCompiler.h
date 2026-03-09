@@ -9,11 +9,11 @@ struct ShaderMacro
 {
     [[nodiscard]] bool IsNull() const
     {
-        return name == nullptr && value == nullptr;
+        return name.IsEmpty() && value.IsEmpty();
     }
 
-    StringView name  = nullptr;
-    StringView value = nullptr;
+    StringView name  = {};
+    StringView value = {};
 };
 
 struct ShaderCompilerInfo
@@ -24,21 +24,32 @@ struct ShaderCompilerInfo
     Flags<eShaderCompileFlags> flags      = eShaderCompileFlags::None;
 };
 
+struct ShaderCompilerResult
+{
+    CMemoryBlock bytecode = {};
+    String       errorMsg = {};
+};
+
 class ShaderCompiler
 {
 public:
-    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLFile(StringView _path, const ShaderCompilerInfo& _info = {});
-    [[nodiscard]] static Expect<ShaderCompiler> CompileFromHLSLSource(StringView _source, const ShaderCompilerInfo& _info = {});
-    [[nodiscard]] CMemoryBlock                  GetBytecode() const;
-    [[nodiscard]] StringView                    GetErrorMessage() const;
+    [[nodiscard]] static ShaderCompiler CompileHLSLFile(StringView _path, const ShaderCompilerInfo& _desc = {});
+    [[nodiscard]] static ShaderCompiler CompileHLSLSource(StringView _source, const ShaderCompilerInfo& _desc = {});
+
+    [[nodiscard]] CMemoryBlock GetBytecode() const;
+    [[nodiscard]] StringView   GetErrorMessage() const;
+    [[nodiscard]] Error        GetError() const;
+    [[nodiscard]] bool         IsSucceeded() const;
+    [[nodiscard]] bool         IsFailed() const;
 
 private:
+    void CompileFromHLSLFile_(StringView _path, const ShaderCompilerInfo& _desc);
+    void CompileHLSLSource_(StringView _source, const ShaderCompilerInfo& _desc);
     ShaderCompiler() = default;
-    Error CompileFromHLSLFile_(StringView _path, const ShaderCompilerInfo& _desc = {});
-    Error CompileHLSLSource_(StringView _source, const ShaderCompilerInfo& _desc = {});
 
     ComPtr<ID3DBlob> m_pBlob    = nullptr;
     String           m_errorMsg = {};
+    Error            m_error    = {};
 };
 
 }   // namespace Jam

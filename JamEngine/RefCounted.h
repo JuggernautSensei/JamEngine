@@ -75,7 +75,7 @@ public:
     }
 
     template<typename U>
-        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, T*> && std::is_convertible_v<U*, T*>)
     /* implicit */ Ref(Scoped<U>&& _other)
         : m_ptr(static_cast<T*>(_other.Release()))
     {
@@ -86,7 +86,7 @@ public:
     }
 
     template<typename U>
-        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, T*> && std::is_convertible_v<U*, T*>)
     /* implicit */ Ref(const Ref<U>& _other)
         : m_ptr(static_cast<T*>(_other.m_ptr))
     {
@@ -155,7 +155,7 @@ public:
     }
 
     template<typename U>
-        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, T*> && std::is_convertible_v<U*, T*>)
     Ref& operator=(Scoped<U>&& _other)
     {
         T* pOther = static_cast<T*>(_other.Release());
@@ -171,7 +171,7 @@ public:
     }
 
     template<typename U>
-        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, T*> && std::is_convertible_v<U*, T*>)
     Ref& operator=(const Ref<U>& _other)
     {
         T* pOther = static_cast<T*>(_other.m_ptr);
@@ -188,7 +188,7 @@ public:
     }
 
     template<typename U>
-        requires(std::is_convertible_v<U*, RefCounted*> && std::is_convertible_v<U*, T*>)
+        requires(std::is_convertible_v<U*, T*> && std::is_convertible_v<U*, T*>)
     Ref& operator=(Ref<U>&& _other) noexcept
     {
         T* pOther = static_cast<T*>(_other.m_ptr);
@@ -248,6 +248,21 @@ public:
     [[nodiscard]] bool operator<(const Ref& _other) const
     {
         return m_ptr < _other.m_ptr;
+    }
+
+    [[nodiscard]] bool operator>(const Ref& _other) const
+    {
+        return m_ptr > _other.m_ptr;
+    }
+
+    [[nodiscard]] bool operator<=(const Ref& _other) const
+    {
+        return m_ptr <= _other.m_ptr;
+    }
+
+    [[nodiscard]] bool operator>=(const Ref& _other) const
+    {
+        return m_ptr >= _other.m_ptr;
     }
 
     /* implicit */ operator bool() const

@@ -18,8 +18,8 @@ struct NullHandleType
 
 constexpr NullHandleType k_nullHandle = NullHandleType { NullHandleType::Tag {} };
 
-/// @brief A m_stage-safe handle for a resource.
-/// @tparam T The resource m_stage this handle references.
+/// @brief A stage-safe handle for a resource.
+/// @tparam T The resource stage this handle references.
 template<typename T>
 struct Handle
 {

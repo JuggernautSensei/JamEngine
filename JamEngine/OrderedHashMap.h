@@ -3,12 +3,6 @@
 namespace Jam
 {
 
-// OrederdHashMap / Set
-// 특징
-// 1. 삽입 순서를 보장함.
-// 2. 키의 유일성을 보장함.
-// 3. 삽입 / 삭제 / 탐색 모두 O(1) (평균적으로)
-
 template<
     typename TKey,
     typename TValue,
@@ -16,176 +10,405 @@ template<
     typename TKeyEqual = std::equal_to<TKey>>
 class OrderedHashMap
 {
-public:
     struct Node
     {
-        Node(const TKey& _key, const TValue& _value)
-            : key(_key)
-            , value(_value)
-        {
-        }
-
-        const TKey key;   // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
-        TValue     value;
+        TKey   key;
+        TValue value;
     };
 
+public:
     using ListT             = List<Node>;
     using ListIterator      = typename ListT::iterator;
     using ListConstIterator = typename ListT::const_iterator;
-    using Iterator          = typename ListT::iterator;
-    using ConstIterator     = typename ListT::const_iterator;
-    using HashMapT          = HashMap<TKey, Iterator, THasher, TKeyEqual>;
+
+    template<bool k_bIsConst>
+    class IteratorBase
+    {
+    public:
+        using ListIterT = std::conditional_t<k_bIsConst, ListConstIterator, ListIterator>;
+
+        struct Proxy
+        {
+            using ValueT = std::conditional_t<k_bIsConst, const TValue, TValue>;
+
+            const Proxy* operator->() const
+            {
+                return this;
+            }
+
+            Proxy* operator->()
+            {
+                return this;
+            }
+
+            const TKey& key;
+            ValueT&     value;
+        };
+
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type        = Node;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = std::conditional_t<k_bIsConst, const Node*, Node*>;
+        using reference         = std::conditional_t<k_bIsConst, const Node&, Node&>;
+
+        IteratorBase()                               = default;
+        ~IteratorBase()                              = default;
+        IteratorBase(const IteratorBase&)            = default;
+        IteratorBase& operator=(const IteratorBase&) = default;
+        IteratorBase(IteratorBase&&)                 = default;
+        IteratorBase& operator=(IteratorBase&&)      = default;
+
+        explicit IteratorBase(ListIterT listIter)
+            : m_listIter(listIter)
+        {
+        }
+
+        template<bool k_bOtherIsConst>
+            requires(k_bIsConst || !k_bOtherIsConst)
+        /* implicit */ IteratorBase(const IteratorBase<k_bOtherIsConst>& other)
+            : m_listIter(other.m_listIter)
+        {
+        }
+
+        Proxy operator*() const
+        {
+            return { m_listIter->key, m_listIter->value };
+        }
+
+        Proxy operator->() const
+        {
+            return { m_listIter->key, m_listIter->value };
+        }
+
+        Proxy operator*()
+        {
+            return { m_listIter->key, m_listIter->value };
+        }
+
+        Proxy operator->()
+        {
+            return { m_listIter->key, m_listIter->value };
+        }
+
+        IteratorBase& operator++()
+        {
+            ++m_listIter;
+            return *this;
+        }
+
+        IteratorBase operator++(int)
+        {
+            IteratorBase tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        IteratorBase& operator--()
+        {
+            --m_listIter;
+            return *this;
+        }
+
+        IteratorBase operator--(int)
+        {
+            IteratorBase tmp = *this;
+            --(*this);
+            return tmp;
+        }
+
+        bool operator==(const IteratorBase& other) const
+        {
+            return m_listIter == other.m_listIter;
+        }
+
+        bool operator!=(const IteratorBase& other) const
+        {
+            return m_listIter != other.m_listIter;
+        }
+
+    private:
+        ListIterT m_listIter = {};
+        friend class OrderedHashMap;
+        friend class IteratorBase<!k_bIsConst>;
+    };
+
+    using Iterator      = IteratorBase<false>;
+    using ConstIterator = IteratorBase<true>;
+    using HashMapT      = HashMap<TKey, ListIterator, THasher, TKeyEqual>;
 
     struct InsertResult
     {
-        Iterator iter       = {};   // 삽입된 요소를 가리킴. 삽입이 실패한 경우 End()를 가리킴.
+        Iterator iter;
         bool     bSucceeded = false;
     };
 
     struct RemoveResult
     {
-        Iterator iter       = {};   // 유효한 경우 삭제된 요소의 다음 요소를 가리킴. 삭제된 요소가 마지막 요소인 경우 End()를 가리킴.
+        Iterator iter;
         bool     bSucceeded = false;
     };
 
-    InsertResult PushBack(
-        const TKey&   _key,
-        const TValue& _value)
+    OrderedHashMap()  = default;
+    ~OrderedHashMap() = default;
+
+    OrderedHashMap(const OrderedHashMap& other)
     {
-        return Insert(End(), _key, _value);
+        *this = other;
     }
 
-    InsertResult PushFront(
-        const TKey&   _key,
-        const TValue& _value)
+    OrderedHashMap& operator=(const OrderedHashMap& other)
     {
-        return Insert(Begin(), _key, _value);
+        if (this != &other)
+        {
+            Clear();
+            for (const auto& node: other.m_values)
+            {
+                PushBack(node.key, node.value);
+            }
+        }
+        return *this;
     }
 
-    InsertResult Insert(
-        const ConstIterator _position,
-        const TKey&         _key,
-        const TValue&       _value)
+    OrderedHashMap(OrderedHashMap&& other) noexcept
+        : m_values(std::move(other.m_values))
+        , m_keyToIter(std::move(other.m_keyToIter))
     {
-        auto [mapIter, bInserted] = m_keyToIter.emplace(_key, m_values.end());
+    }
+
+    OrderedHashMap& operator=(OrderedHashMap&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_values    = std::move(other.m_values);
+            m_keyToIter = std::move(other.m_keyToIter);
+        }
+        return *this;
+    }
+
+    // push back / front
+
+    InsertResult PushBack(const TKey& key, const TValue& value)
+    {
+        return Insert(End(), key, value);
+    }
+
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, UKey>
+    InsertResult PushBack(const UKey& key, const TValue& value)
+    {
+        return Insert(End(), key, value);
+    }
+
+    InsertResult PushFront(const TKey& key, const TValue& value)
+    {
+        return Insert(Begin(), key, value);
+    }
+
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, UKey>
+    InsertResult PushFront(const UKey& key, const TValue& value)
+    {
+        return Insert(Begin(), key, value);
+    }
+
+    // insert
+
+    InsertResult Insert(ConstIterator position, const TKey& key, const TValue& value)
+    {
+        auto [mapIter, bInserted] = m_keyToIter.emplace(key, m_values.end());
         if (bInserted)
         {
-            mapIter->second = m_values.emplace(_position, _key, _value);
+            mapIter->second = m_values.emplace(position.m_listIter, key, value);
+            return { Iterator(mapIter->second), true };
         }
-        return { mapIter->second, bInserted };
+        return { End(), false };
     }
 
-    RemoveResult Remove(
-        const TKey& key)
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, UKey>
+    InsertResult Insert(ConstIterator position, const UKey& key, const TValue& value)
+    {
+        auto [mapIter, bInserted] = m_keyToIter.emplace(key, m_values.end());
+        if (bInserted)
+        {
+            mapIter->second = m_values.emplace(position.m_listIter, key, value);
+            return { Iterator(mapIter->second), true };
+        }
+        return { End(), false };
+    }
+
+    // find
+
+    [[nodiscard]] Iterator Find(const TKey& key)
+    {
+        auto it = m_keyToIter.find(key);
+        return (it != m_keyToIter.end()) ? Iterator(it->second) : End();
+    }
+
+    [[nodiscard]] ConstIterator Find(const TKey& key) const
+    {
+        auto it = m_keyToIter.find(key);
+        return (it != m_keyToIter.end()) ? ConstIterator(it->second) : End();
+    }
+
+    template<typename K>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K>
+    [[nodiscard]] Iterator Find(const K& key)
+    {
+        auto it = m_keyToIter.find(key);
+        return (it != m_keyToIter.end()) ? Iterator(it->second) : End();
+    }
+
+    template<typename K>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K>
+    [[nodiscard]] ConstIterator Find(const K& key) const
+    {
+        auto it = m_keyToIter.find(key);
+        return (it != m_keyToIter.end()) ? ConstIterator(it->second) : End();
+    }
+
+    // contains
+
+    [[nodiscard]] bool Contains(const TKey& key) const
+    {
+        return m_keyToIter.contains(key);
+    }
+
+    template<typename K>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K>
+    [[nodiscard]] bool Contains(const K& key) const
+    {
+        return m_keyToIter.contains(key);
+    }
+
+    // get
+
+    TValue& Get(const TKey& key)
+    {
+        auto it = m_keyToIter.find(key);
+        JAM_ASSERT(it != m_keyToIter.end());
+        return it->second->value;
+    }
+
+    const TValue& Get(const TKey& key) const
+    {
+        auto it = m_keyToIter.find(key);
+        JAM_ASSERT(it != m_keyToIter.end());
+        return it->second->value;
+    }
+
+    template<typename K>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K>
+    TValue& Get(const K& key)
+    {
+        auto it = m_keyToIter.find(key);
+        JAM_ASSERT(it != m_keyToIter.end());
+        return it->second->value;
+    }
+
+    template<typename K>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K>
+    const TValue& Get(const K& key) const
+    {
+        auto it = m_keyToIter.find(key);
+        JAM_ASSERT(it != m_keyToIter.end());
+        return it->second->value;
+    }
+
+    // remove
+
+    RemoveResult Remove(const TKey& key)
     {
         auto mapIter = m_keyToIter.find(key);
         if (mapIter == m_keyToIter.end())
         {
-            return {};
+            return { End(), false };
         }
 
-        const ListIterator it = m_values.erase(mapIter->second);
+        auto nextListIter = m_values.erase(mapIter->second);
         m_keyToIter.erase(mapIter);
-        return { it, true };
+        return { Iterator(nextListIter), true };
     }
 
-    RemoveResult Remove(
-        const ConstIterator _position)
-    {
-        auto mapIter = m_keyToIter.find(_position->key);
-        if (mapIter == m_keyToIter.end())
-        {
-            return {};
-        }
-
-        const ListIterator it = m_values.erase(_position);
-        m_keyToIter.erase(mapIter);
-        return { it, true };
-    }
-
-    TValue& Get(
-        const TKey& key)
+    template<typename K>
+        requires ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K>
+    RemoveResult Remove(const K& key)
     {
         auto mapIter = m_keyToIter.find(key);
+        if (mapIter == m_keyToIter.end())
+        {
+            return { End(), false };
+        }
+
+        auto nextListIter = m_values.erase(mapIter->second);
+        m_keyToIter.erase(mapIter);
+        return { Iterator(nextListIter), true };
+    }
+
+    RemoveResult Remove(ConstIterator position)
+    {
+        if (position == End())
+        {
+            return { End(), false };
+        }
+
+        auto mapIter = m_keyToIter.find(position->key);
         JAM_ASSERT(mapIter != m_keyToIter.end());
+
+        auto nextListIter = m_values.erase(position.m_listIter);
+        m_keyToIter.erase(mapIter);
+        return { Iterator(nextListIter), true };
+    }
+
+    // []
+
+    TValue& operator[](const TKey& key)
+    {
+        auto mapIter = m_keyToIter.find(key);
+        if (mapIter == m_keyToIter.end())
+        {
+            auto res = PushBack(key, TValue {});
+            return res.iter->value;
+        }
         return mapIter->second->value;
     }
 
-    const TValue& Get(
-        const TKey& key) const
+    // front / back
+
+    Node& Front()
     {
-        auto mapIter = m_keyToIter.find(key);
-        JAM_ASSERT(mapIter != m_keyToIter.end());
-        return mapIter->second->value;
+        JAM_ASSERT(!IsEmpty());
+        return m_values.front();
     }
 
-    void Splice(
-        const TKey& _from,
-        const TKey& _to)
+    const Node& Front() const
     {
-        auto fromIter = m_keyToIter.find(_from);
-        if (fromIter == m_keyToIter.end())
+        JAM_ASSERT(!IsEmpty());
+        return m_values.front();
+    }
+
+    Node& Back()
+    {
+        JAM_ASSERT(!IsEmpty());
+        return m_values.back();
+    }
+
+    const Node& Back() const
+    {
+        JAM_ASSERT(!IsEmpty());
+        return m_values.back();
+    }
+
+    // misc
+
+    void Splice(ConstIterator targetPos, ConstIterator from)
+    {
+        if (targetPos == from)
         {
             return;
         }
 
-        auto toIter = m_keyToIter.find(_to);
-        if (toIter == m_keyToIter.end())
-        {
-            return;
-        }
-
-        Splice(fromIter->second, toIter->second);
-    }
-
-    void Splice(
-        const ConstIterator _from,
-        const ConstIterator _to)
-    {
-        if (_from == _to)
-        {
-            return;
-        }
-
-        m_values.splice(_to, m_values, _from);
-    }
-
-    [[nodiscard]] bool Contains(
-        const TKey& key) const
-    {
-        return m_keyToIter.find(key) != m_keyToIter.end();
-    }
-
-    [[nodiscard]] Iterator Find(
-        const TKey& key)
-    {
-        auto mapIter = m_keyToIter.find(key);
-        if (mapIter == m_keyToIter.end())
-        {
-            return m_values.end();
-        }
-        return mapIter->second;
-    }
-
-    [[nodiscard]] ConstIterator Find(
-        const TKey& key) const
-    {
-        auto mapIter = m_keyToIter.find(key);
-        if (mapIter == m_keyToIter.end())
-        {
-            return m_values.end();
-        }
-        return mapIter->second;
-    }
-
-    [[nodiscard]] bool IsEmpty() const
-    {
-        return m_values.empty();
-    }
-
-    [[nodiscard]] SizeT GetSize() const
-    {
-        return m_values.size();
+        m_values.splice(targetPos.m_listIter, m_values, from.m_listIter);
     }
 
     void Clear()
@@ -194,58 +417,66 @@ public:
         m_keyToIter.clear();
     }
 
-    template<typename TCompare>
-    void SortByKey(TCompare compare = eastl::greater<Node> {})
+    [[nodiscard]] SizeT GetSize() const
     {
-        m_values.sort(compare);
-        for (auto iter = m_values.begin(); iter != m_values.end(); ++iter)
-        {
-            auto mapIter = m_keyToIter.find(iter->key);
-            JAM_ASSERT(mapIter != m_keyToIter.end());
-            mapIter->second = iter;
-        }
+        return m_values.size();
     }
 
-    [[nodiscard]] Iterator Begin()
+    [[nodiscard]] bool IsEmpty() const
     {
-        return m_values.begin();
+        return m_values.empty();
     }
 
-    [[nodiscard]] Iterator End()
+    Iterator Begin()
     {
-        return m_values.end();
+        return Iterator(m_values.begin());
     }
 
-    [[nodiscard]] ConstIterator Begin() const
+    Iterator End()
     {
-        return m_values.begin();
+        return Iterator(m_values.end());
     }
 
-    [[nodiscard]] ConstIterator End() const
+    ConstIterator Begin() const
     {
-        return m_values.end();
+        return ConstIterator(m_values.begin());
     }
 
-    ///////// std //////////
-
-    [[nodiscard]] Iterator begin()
+    ConstIterator End() const
     {
-        return m_values.begin();
+        return ConstIterator(m_values.end());
     }
 
-    [[nodiscard]] Iterator end()
+    // stl compat
+
+    Iterator begin()
     {
-        return m_values.end();
+        return Begin();
     }
 
-    [[nodiscard]] ConstIterator begin() const
+    Iterator end()
     {
-        return m_values.begin();
+        return End();
     }
 
-    [[nodiscard]] ConstIterator end() const
+    ConstIterator begin() const
     {
-        return m_values.end();
+        return Begin();
+    }
+
+    ConstIterator end() const
+    {
+        return End();
+    }
+
+    SizeT size() const
+    {
+        return m_values.size();
+    }
+
+    bool empty() const
+    {
+        return m_values.empty();
     }
 
 private:

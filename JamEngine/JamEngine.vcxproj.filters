@@ -328,9 +328,6 @@
     <ClCompile Include="AssetSaveLoader.cpp">
       <Filter>5. Assets\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="StringHashMap.cpp">
-      <Filter>99. Utilities\Container\HashMap</Filter>
-    </ClCompile>
     <ClCompile Include="InfiniteDragger.cpp">
       <Filter>99. Utilities\Game</Filter>
     </ClCompile>
@@ -433,12 +430,6 @@
     <ClCompile Include="OrderedHashMap.cpp">
       <Filter>99. Utilities\Container\Misc</Filter>
     </ClCompile>
-    <ClCompile Include="OrderedHashSet.cpp">
-      <Filter>99. Utilities\Container\Misc</Filter>
-    </ClCompile>
-    <ClCompile Include="StackList.cpp">
-      <Filter>99. Utilities\Container\Misc</Filter>
-    </ClCompile>
     <ClCompile Include="FileEntry.cpp">
       <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
@@ -447,6 +438,15 @@
     </ClCompile>
     <ClCompile Include="FileLock.cpp">
       <Filter>99. Utilities\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Reference.cpp">
+      <Filter>99. Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="StringKeyContainers.cpp">
+      <Filter>99. Utilities\Container\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="STLAlgorithm.cpp">
+      <Filter>99. Utilities\Container\STL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1046,9 +1046,6 @@
     <ClInclude Include="AssetSaveLoader.h">
       <Filter>5. Assets\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="StringHashMap.h">
-      <Filter>99. Utilities\Container\HashMap</Filter>
-    </ClInclude>
     <ClInclude Include="InfiniteDragger.h">
       <Filter>99. Utilities\Game</Filter>
     </ClInclude>
@@ -1184,12 +1181,6 @@
     <ClInclude Include="OrderedHashMap.h">
       <Filter>99. Utilities\Container\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="OrderedHashSet.h">
-      <Filter>99. Utilities\Container\Misc</Filter>
-    </ClInclude>
-    <ClInclude Include="StackList.h">
-      <Filter>99. Utilities\Container\Misc</Filter>
-    </ClInclude>
     <ClInclude Include="FileEntry.h">
       <Filter>6. Editor\Utilities</Filter>
     </ClInclude>
@@ -1198,6 +1189,15 @@
     </ClInclude>
     <ClInclude Include="FileLock.h">
       <Filter>99. Utilities\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Reference.h">
+      <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="StringKeyContainers.h">
+      <Filter>99. Utilities\Container\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="STLAlgorithm.h">
+      <Filter>99. Utilities\Container\STL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

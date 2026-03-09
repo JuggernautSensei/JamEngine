@@ -5,7 +5,7 @@ namespace Jam
 
 struct AxisAngle
 {
-    Vec3  axis = vec3::k_zero;
+    Vector3  axis = Vec3::k_zero;
     float rad  = 0.f;
 };
 
@@ -13,17 +13,17 @@ class Transform
 {
 public:
     // axis
-    [[nodiscard]] Vec3 GetRight() const;
-    [[nodiscard]] Vec3 GetLeft() const;
-    [[nodiscard]] Vec3 GetUp() const;
-    [[nodiscard]] Vec3 GetDown() const;
-    [[nodiscard]] Vec3 GetForward() const;
-    [[nodiscard]] Vec3 GetBackward() const;
+    [[nodiscard]] Vector3 GetRight() const;
+    [[nodiscard]] Vector3 GetLeft() const;
+    [[nodiscard]] Vector3 GetUp() const;
+    [[nodiscard]] Vector3 GetDown() const;
+    [[nodiscard]] Vector3 GetForward() const;
+    [[nodiscard]] Vector3 GetBackward() const;
 
     // matrix
-    [[nodiscard]] const Mtx4& GetMatrix() const;
-    void                      SetMatrix(const Mtx4& _mtx);
-    [[nodiscard]] Mtx4        ToViewMatrix() const;
+    [[nodiscard]] const Matrix4x4& GetMatrix() const;
+    void                      SetMatrix(const Matrix4x4& _mtx);
+    [[nodiscard]] Matrix4x4        ToViewMatrix() const;
 
     // transform
     [[nodiscard]] Transform Inverted() const;
@@ -33,19 +33,19 @@ public:
     void                    Mult(const Transform& _trans);
 
     // scale
-    [[nodiscard]] Vec3  GetScale() const;
+    [[nodiscard]] Vector3  GetScale() const;
     [[nodiscard]] float GetScaleX() const;
     [[nodiscard]] float GetScaleY() const;
     [[nodiscard]] float GetScaleZ() const;
 
-    void SetScale(Vec3 _xyz);
+    void SetScale(Vector3 _xyz);
     void SetScale(float _x, float _y, float _z);
     void SetScale(float _uniform);
     void SetScaleX(float _x);
     void SetScaleY(float _y);
     void SetScaleZ(float _z);
 
-    void AddScale(Vec3 _xyz);
+    void AddScale(Vector3 _xyz);
     void AddScale(float _x, float _y, float _z);
     void AddScale(float _uniform);
     void AddScaleX(float _x);
@@ -53,50 +53,50 @@ public:
     void AddScaleZ(float _z);
 
     // rotation
-    [[nodiscard]] Quat      ToQuat() const;
+    [[nodiscard]] Quaternion      ToQuat() const;
     [[nodiscard]] AxisAngle ToAxisAngle() const;
-    [[nodiscard]] Vec3      ToEuler() const;   // pitch yaw roll
+    [[nodiscard]] Vector3      ToEuler() const;   // pitch yaw roll
 
-    void SetRotation(Quat _q);
-    void SetRotation(Vec3 _axis, float _rad);
-    void SetRotation(Vec3 _eulerRad);
+    void SetRotation(Quaternion _q);
+    void SetRotation(Vector3 _axis, float _rad);
+    void SetRotation(Vector3 _eulerRad);
     void SetRotation(float _pitchRad, float _yawRad, float _rollRad);
-    void SetLookAt(Vec3 _point);
-    void SetLookTo(Vec3 _forward);
+    void SetLookAt(Vector3 _point);
+    void SetLookTo(Vector3 _forward);
 
-    void AddRotation(Quat _q);
-    void AddRotation(Vec3 _axis, float _rad);
-    void AddRotation(Vec3 _eulerRad);
+    void AddRotation(Quaternion _q);
+    void AddRotation(Vector3 _axis, float _rad);
+    void AddRotation(Vector3 _eulerRad);
     void AddRotation(float _pitchRad, float _yawRad, float _rollRad);
     void AddRotationPitch(float _rad);
     void AddRotationYaw(float _rad);
     void AddRotationRoll(float _rad);
 
-    [[nodiscard]] Vec3  GetTranslation() const;
+    [[nodiscard]] Vector3  GetTranslation() const;
     [[nodiscard]] float GetTranslationX() const;
     [[nodiscard]] float GetTranslationY() const;
     [[nodiscard]] float GetTranslationZ() const;
 
-    void SetTranslation(Vec3 _xyz);
+    void SetTranslation(Vector3 _xyz);
     void SetTranslation(float _x, float _y, float _z);
     void SetTranslationX(float _x);
     void SetTranslationY(float _y);
     void SetTranslationZ(float _z);
 
-    void AddTranslation(Vec3 _xyz);
+    void AddTranslation(Vector3 _xyz);
     void AddTranslation(float _x, float _y, float _z);
     void AddTranslationX(float _x);
     void AddTranslationY(float _y);
     void AddTranslationZ(float _z);
 
 private:
-    Vec3 m_right   = vec3::k_unitX;
-    Vec3 m_up      = vec3::k_unitY;
-    Vec3 m_forward = vec3::k_unitZ;
-    Vec3 m_origin  = vec3::k_zero;
+    Vector3 m_right   = Vec3::k_unitX;
+    Vector3 m_up      = Vec3::k_unitY;
+    Vector3 m_forward = Vec3::k_unitZ;
+    Vector3 m_origin  = Vec3::k_zero;
 
     mutable bool m_bDirty   = false;
-    mutable Mtx4 m_mtxCache = mtx4::k_identity;
+    mutable Matrix4x4 m_mtxCache = Mtx4::k_identity;
 };
 
 }   // namespace Jam

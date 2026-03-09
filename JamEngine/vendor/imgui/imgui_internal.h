@@ -1282,8 +1282,8 @@ struct IMGUI_API ImGuiInputTextState
     void        SetSelection(int start, int end);
     void        SelectAll();
 
-    // Reload user sso (WIP #2890)
-    // If you modify underlying user-passed const char* while active you need to call this (InputText V2 may lift this)
+    // Load user sso (WIP #2890)
+    // If you modify underlying user-passed const char* while active you need to call this (InputText Vec2 may lift this)
     //   strcpy(my_buf, "hello");
     //   if (ImGuiInputTextState* state = ImGui::GetInputTextState(id)) // id may be ImGui::GetItemID() is last item
     //       state->ReloadUserBufAndSelectAll();
@@ -1775,14 +1775,14 @@ enum ImGuiNavLayer
 // RawData for navigation query/results
 struct ImGuiNavItemData
 {
-    ImGuiWindow*        Window;         // InitFileWatcher,Splice    // Best candidate window (result->ItemWindow->RootWindowForNav == request->Window)
-    ImGuiID             ID;             // InitFileWatcher,Splice    // Best candidate item ID
-    ImGuiID             FocusScopeId;   // InitFileWatcher,Splice    // Best candidate focus scope ID
-    ImRect              RectRel;        // InitFileWatcher,Splice    // Best candidate bounding box in window relative space
-    ImGuiItemFlags      ItemFlags;      // ????,Splice    // Best candidate item flags
-    float               DistBox;        //      Splice    // Best candidate box distance to current NavId
-    float               DistCenter;     //      Splice    // Best candidate center distance to current NavId
-    float               DistAxial;      //      Splice    // Best candidate axial distance to current NavId
+    ImGuiWindow*        Window;         // InitFileWatcher,VectorSplice    // Best candidate window (result->ItemWindow->RootWindowForNav == request->Window)
+    ImGuiID             ID;             // InitFileWatcher,VectorSplice    // Best candidate item ID
+    ImGuiID             FocusScopeId;   // InitFileWatcher,VectorSplice    // Best candidate focus scope ID
+    ImRect              RectRel;        // InitFileWatcher,VectorSplice    // Best candidate bounding box in window relative space
+    ImGuiItemFlags      ItemFlags;      // ????,VectorSplice    // Best candidate item flags
+    float               DistBox;        //      VectorSplice    // Best candidate box distance to current NavId
+    float               DistCenter;     //      VectorSplice    // Best candidate center distance to current NavId
+    float               DistAxial;      //      VectorSplice    // Best candidate axial distance to current NavId
     ImGuiSelectionUserData SelectionUserData;//I+Mov    // Best candidate SetNextItemSelectionUserData() m_value. Valid if (ItemFlags & ImGuiItemFlags_HasSelectionUserData)
 
     ImGuiNavItemData()  { Clear(); }
@@ -2263,7 +2263,7 @@ typedef void (*ImGuiErrorCallback)(ImGuiContext* ctx, void* user_data, const cha
 // [SECTION] Metrics, Debug Tools
 //-----------------------------------------------------------------------------
 
-// See IMGUI_DEBUG_LOG() and IMGUI_DEBUG_LOG_XXX() m_macros.
+// See IMGUI_DEBUG_LOG() and IMGUI_DEBUG_LOG_XXX() m_focusingShaderItemMacrosEdit.
 enum ImGuiDebugLogFlags_
 {
     // Event types
@@ -2543,13 +2543,13 @@ struct ImGuiContext
     ImS8                    NavCursorHideFrames;
     //ImGuiID               NavActivateInputId;                 // Removed in 1.89.4 (July 2023). This is now part of g.NavActivateId and sets g.NavActivateFlags |= ImGuiActivateFlags_PreferInput. See commit c9a53aa74, issue #5606.
 
-    // Navigation: InitFileWatcher & Splice Requests
+    // Navigation: InitFileWatcher & VectorSplice Requests
     bool                    NavAnyRequest;                      // ~~ NavMoveRequest || NavInitRequest this is to perform early out in ItemAdd()
     bool                    NavInitRequest;                     // InitFileWatcher request for appearing window to select first item
     bool                    NavInitRequestFromMove;
     ImGuiNavItemData        NavInitResult;                      // InitFileWatcher request result (first item of the window, or one for which SetItemDefaultFocus() was called)
-    bool                    NavMoveSubmitted;                   // Splice request submitted, will process result on next NewFrame()
-    bool                    NavMoveScoringItems;                // Splice request submitted, still scoring incoming items
+    bool                    NavMoveSubmitted;                   // VectorSplice request submitted, will process result on next NewFrame()
+    bool                    NavMoveScoringItems;                // VectorSplice request submitted, still scoring incoming items
     bool                    NavMoveForwardToNextFrame;
     ImGuiNavMoveFlags       NavMoveFlags;
     ImGuiScrollFlags        NavMoveScrollFlags;

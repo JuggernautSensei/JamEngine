@@ -3097,9 +3097,9 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
     desc.entryPoint         = "main";
     desc.flags              = eShaderCompileFlags::ReleaseDefault;
 
-    Expect<ShaderCompiler> compiler = ShaderCompiler::CompileFromHLSLSource(source, desc);
-    JAM_ASSERT(compiler, "Failed to compile dummy vertex shader for input layout creation.");
-    const CMemoryBlock pBytecode = compiler->GetBytecode();
+    ShaderCompiler compiler = ShaderCompiler::CompileHLSLSource(source, desc);
+    JAM_ASSERT(compiler.IsSucceeded(), "Failed to compile dummy vertex shader for input layout creation.");
+    const CMemoryBlock pBytecode = compiler.GetBytecode();
 
     // create d3d11 input layout
     ID3D11InputLayout* pd3d11InputLayout = nullptr;

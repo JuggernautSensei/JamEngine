@@ -6,6 +6,7 @@
 #include "Events.h"
 #include "ResourceManager.h"
 #include "../JamEngine/JsonArchive.h"
+#include "../JamEngine/STLAlgorithm.h"
 
 Expect<Ref<ShaderSource>> ShaderSource::Create(
     const StringView _path)
@@ -18,7 +19,7 @@ Expect<Ref<ShaderSource>> ShaderSource::Create(
     return shaderSource;
 }
 
-Error ShaderSource::Reload()
+Error ShaderSource::Load()
 {
     if (const Error err = Load_(m_path))
     {
@@ -27,40 +28,10 @@ Error ShaderSource::Reload()
     return Error::None;
 }
 
-Error ShaderSource::Save()
-{
-    if (!m_bDirty && FileSystem::Exists(m_path))
-    {
-        return Error::None;
-    }
-
-    if (const Error err = SaveAs(MakeFullPath()))
-    {
-        return err;
-    }
-
-    m_bDirty = false;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Saved);
-    return Error::None;
-}
-
-Error ShaderSource::SaveAs(
-    const StringView _path) const
-{
-    Expect<FileWriter> writer = FileWriter::Open(_path);
-    if (!writer)
-    {
-        return writer.GetError();
-    }
-
-    writer->Write(m_source);
-    return Error::None;
-}
-
 Error ShaderSource::Rename(
     const StringView _path)
 {
-    if (!m_bDirty && FileSystem::Exists(m_path))
+    if (FileSystem::Exists(m_path))
     {
         if (const Error err = FileSystem::Rename(m_path, _path))
         {
@@ -69,40 +40,21 @@ Error ShaderSource::Rename(
     }
     else
     {
-        if (const Error err = SaveAs(_path))
+        Expect<FileWriter> writer = FileWriter::Open(_path);
+        if (!writer)
         {
-            return err;
+            return writer.GetError();
         }
+        writer->Write(m_source);
     }
 
-    m_path     = _path;
-    m_baseName = _path.GetBaseName();
-    m_bDirty   = false;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Renamed);
+    m_path = _path;
     return Error::None;
-}
-
-void ShaderSource::SetSource(
-    const StringView _source)
-{
-    if (m_source == _source)
-    {
-        return;
-    }
-
-    m_source = _source;
-    m_bDirty = true;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Modified);
 }
 
 StringView ShaderSource::GetPath() const
 {
     return m_path;
-}
-
-StringView ShaderSource::GetBaseName() const
-{
-    return m_baseName;
 }
 
 StringView ShaderSource::GetSource() const
@@ -115,12 +67,8 @@ String ShaderSource::MakeFullPath() const
     return m_path;
 }
 
-bool ShaderSource::IsDirty() const
-{
-    return m_bDirty;
-}
-
-Error ShaderSource::Load_(const StringView _path)
+Error ShaderSource::Load_(
+    const StringView _path)
 {
     Expect<String> source = FileReader::ReadFileAsString(_path);
     if (!source)
@@ -128,12 +76,8 @@ Error ShaderSource::Load_(const StringView _path)
         return source.GetError();
     }
 
-    m_path     = _path;
-    m_baseName = _path.GetBaseName();
-    m_source   = source.Take();
-
-    m_bDirty = false;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Loaded);
+    m_path   = _path;
+    m_source = source.Take();
     return Error::None;
 }
 
@@ -141,6 +85,12 @@ void WriteToArchive(
     ArchiveWriter&           _archive,
     const Ref<ShaderSource>& _pShaderSource)
 {
+    if (!_pShaderSource)
+    {
+        _archive.Write(nullptr);
+        return;
+    }
+
     _archive.Write(_pShaderSource->GetPath());
 }
 
@@ -148,7 +98,13 @@ Error ReadFromArchive(
     ArchiveReader&     _archive,
     Ref<ShaderSource>& _pShaderSource)
 {
-    String path = {};
+    if (_archive.IsNull())
+    {
+        _pShaderSource = nullptr;
+        return Error::None;
+    }
+
+    StringView path = {};
     if (const Error err = _archive.Read(path))
     {
         return err;
@@ -164,14 +120,14 @@ Error ReadFromArchive(
     return Error::None;
 }
 
-void ShaderMacroItem::WriteToArchive(ArchiveWriter& _archive) const
+void ShaderItem::Macro::WriteToArchive(ArchiveWriter& _archive) const
 {
     _archive.WriteField("name", name);
     _archive.WriteField("value", value);
     _archive.WriteField("bEnabled", bEnabled);
 }
 
-Error ShaderMacroItem::ReadFromArchive(ArchiveReader& _archive)
+Error ShaderItem::Macro::ReadFromArchive(ArchiveReader& _archive)
 {
     if (const Error err = _archive.ReadField("name", name))
     {
@@ -191,186 +147,58 @@ Error ShaderMacroItem::ReadFromArchive(ArchiveReader& _archive)
     return Error::None;
 }
 
-Expect<ShaderCompiler> ShaderItem::Compile()
+ShaderCompiler ShaderItem::Compile() const
 {
-    // clean-up dirty
+    JAM_ASSERT(pShaderSource, "Shader source is null.");
 
-    Vector<ShaderMacro> macros = {};
-    macros.reserve(m_macros.size());
-    for (const ShaderMacroItem& macroItem: m_macros)
+    Vector<ShaderMacro> shaderMacros = {};
+    shaderMacros.reserve(shaderMacros.size());
+    for (const Macro& macro: macros)
     {
-        if (!macroItem.bEnabled)
+        if (!macro.bEnabled)
         {
             continue;
         }
 
-        macros.emplace_back(macroItem.name, macroItem.value);
+        shaderMacros.emplace_back(macro.name, macro.value);
     }
 
     ShaderCompilerInfo info = {};
-    info.entryPoint         = m_entryPoint;
-    info.stage              = m_stage;
-    info.flags              = m_compileFlags;
-    info.macros             = macros;
-    return ShaderCompiler::CompileFromHLSLSource(m_pShaderSource->GetSource(), info);
-}
-
-void ShaderItem::SetName(
-    const StringView _name)
-{
-    if (m_name == _name)
-    {
-        return;
-    }
-
-    m_name = _name;
-    m_dirtyFlags |= eDirtyFlags::Self;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Renamed);
-}
-
-void ShaderItem::SetShaderSource(
-    const Ref<ShaderSource>& _pShaderSource)
-{
-    if (m_pShaderSource == _pShaderSource)
-    {
-        return;
-    }
-
-    m_pShaderSource = _pShaderSource;
-    m_dirtyFlags |= eDirtyFlags::Self;
-
-    if (m_pShaderSource)
-    {
-        m_shaderSourceOnChangeConnection = GetResourceManager().ConnectResourceOnChangeScoped(m_pShaderSource, Bind<&ShaderItem::OnShaderSourceChanged_>(this));
-        if (m_pShaderSource->IsDirty())
-        {
-            m_dirtyFlags |= eDirtyFlags::ShaderSource;
-        }
-    }
-
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Modified);
-}
-
-void ShaderItem::SetMacros(
-    const List<ShaderMacroItem>& _macros)
-{
-    if (m_macros == _macros)
-    {
-        return;
-    }
-
-    m_macros = _macros;
-    m_dirtyFlags |= eDirtyFlags::Self;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Modified);
-}
-
-void ShaderItem::SetEntryPoint(
-    const StringView _entryPoint)
-{
-    if (m_entryPoint == _entryPoint)
-    {
-        return;
-    }
-
-    m_entryPoint = _entryPoint;
-    m_dirtyFlags |= eDirtyFlags::Self;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Modified);
-}
-
-void ShaderItem::SetStage(
-    const eShader _stage)
-{
-    if (m_stage == _stage)
-    {
-        return;
-    }
-
-    m_stage = _stage;
-    m_dirtyFlags |= eDirtyFlags::Self;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Modified);
-}
-
-void ShaderItem::SetCompileFlags(
-    const Flags<eShaderCompileFlags> _flags)
-{
-    if (m_compileFlags == _flags)
-    {
-        return;
-    }
-
-    m_compileFlags = _flags;
-    m_dirtyFlags   = eDirtyFlags::Self;
-    GetResourceManager().NotifyResourceChange(this, eResourceChangeType::Modified);
-}
-
-StringView ShaderItem::GetName() const
-{
-    return m_name;
-}
-
-const Ref<ShaderSource>& ShaderItem::GetShaderSource() const
-{
-    return m_pShaderSource;
-}
-
-const List<ShaderMacroItem>& ShaderItem::GetMacros() const
-{
-    return m_macros;
-}
-
-StringView ShaderItem::GetEntryPoint() const
-{
-    return m_entryPoint;
-}
-
-eShader ShaderItem::GetStage() const
-{
-    return m_stage;
-}
-
-Flags<eShaderCompileFlags> ShaderItem::GetCompileFlags() const
-{
-    return m_compileFlags;
-}
-
-bool ShaderItem::IsDirty() const
-{
-    return m_dirtyFlags != eDirtyFlags::None;
+    info.entryPoint         = entryPoint;
+    info.stage              = stage;
+    info.flags              = compileFlags;
+    info.macros             = shaderMacros;
+    return ShaderCompiler::CompileHLSLSource(pShaderSource->GetSource(), info);
 }
 
 void ShaderItem::WriteToArchive(
     ArchiveWriter& _archive) const
 {
-    _archive.WriteField("shaderSource", m_pShaderSource);
-    _archive.WriteField("m_macros", m_macros);
-    _archive.WriteField("m_entryPoint", m_entryPoint);
-    _archive.WriteField("m_stage", m_stage);
-    _archive.WriteField("m_compileFlags", m_compileFlags);
+    _archive.WriteField("shaderSource", pShaderSource);
+    _archive.WriteField("macros", macros);
+    _archive.WriteField("entryPoint", entryPoint);
+    _archive.WriteField("stage", stage);
+    _archive.WriteField("compileFlags", compileFlags);
 }
 
 Error ShaderItem::ReadFromArchive(ArchiveReader& _archive)
 {
-    if (const Error err = _archive.Read(m_pShaderSource))
+    if (const Error err = _archive.ReadField("shaderSource", pShaderSource))
     {
         return err;
     }
 
-    if (const Error err = _archive.Read(m_macros))
+    if (const Error err = _archive.ReadField("macros", macros))
     {
         return err;
     }
 
-    if (const Error err = _archive.Read(m_entryPoint))
+    if (const Error err = _archive.ReadField("entryPoint", entryPoint))
     {
         return err;
     }
 
-    if (const Error err = _archive.Read(m_stage))
-    {
-        return err;
-    }
-
-    if (const Error err = _archive.Read(m_compileFlags))
+    if (const Error err = _archive.ReadField("stage", stage))
     {
         return err;
     }
@@ -378,55 +206,32 @@ Error ShaderItem::ReadFromArchive(ArchiveReader& _archive)
     return Error::None;
 }
 
-void ShaderItem::OnShaderSourceChanged_(
-    const Ref<Resource>& _pResource,
-    const eResourceChangeType)
-{
-    JAM_ASSERT(_pResource == m_pShaderSource, "Unexpected resource change event received for a shader item");
-    JAM_ASSERT(_pResource, "Shader item has no shader source assigned");
-
-    if (m_pShaderSource->IsDirty())
-    {
-        m_dirtyFlags |= eDirtyFlags::ShaderSource;
-    }
-    else
-    {
-        m_dirtyFlags.Disable(eDirtyFlags::ShaderSource);
-    }
-}
-
-Expect<Ref<Project>> Project::LoadFromFile(
+Expect<Project> Project::LoadFromFile(
     const StringView _path)
 {
-    Ref<Project> pProject = new Project();
-    if (const Error err = pProject->LoadFromFile_(_path))
+    Project proj = {};
+    if (const Error err = proj.LoadFromFile_(_path))
     {
         return err;
     }
 
-    return pProject;
+    return proj;
 }
 
-Expect<Ref<Project>> Project::CreateNew(
+Expect<Project> Project::LoadNew(
     const StringView _path)
 {
-    Ref<Project> pProject = new Project();
-    if (const Error err = pProject->CreateNew_(_path))
+    Project proj = {};
+    if (const Error err = proj.LoadNew_(_path))
     {
         return err;
     }
 
-    return pProject;
+    return proj;
 }
 
 Error Project::Save()
 {
-    if (!m_bDirty && FileSystem::Exists(MakeFullPath()))
-    {
-        return Error::None;
-    }
-
-    m_bDirty = false;
     return SaveAs(MakeFullPath());
 }
 
@@ -450,23 +255,23 @@ Error Project::Rename(
     String       newPath = oldPath;
     newPath.ReplaceBaseName(_newName);
 
-    if (m_bDirty)   // overwrite
-    {
-        if (const Error err = SaveAs(newPath))
-        {
-            return err;
-        }
-    }
-    else
+    if (FileSystem::Exists(oldPath))
     {
         if (const Error err = FileSystem::Rename(oldPath, newPath))
         {
             return err;
         }
     }
+    else
+    {
+        if (const Error err = SaveAs(newPath))
+        {
+            return err;
+        }
+    }
 
     // done
-    m_name = newPath.GetBaseName();
+    m_basename = newPath.GetBaseName();
 
     // dispatch event
     ProjectRenamedEvent event { oldPath, newPath };
@@ -474,109 +279,274 @@ Error Project::Rename(
     return Error::None;
 }
 
-void Project::SetShaders(const OrderedHashMap<Ref<ShaderItem>>& _shaders)
+void Project::AddShaderItem(
+    const StringView  _name,
+    const ShaderItem& _item)
 {
-    if (m_shaders == _shaders)
+    JAM_ASSERT(!m_shaderItems.Contains(_name), "Shader item with the same name already exists.");
+    m_shaderItems.PushBack(_name, _item);
+    m_bDirty = true;
+}
+
+void Project::RemoveShaderItem(
+    const StringView _name)
+{
+    JAM_ASSERT(m_shaderItems.Contains(_name), "Shader item not found.");
+    m_shaderItems.Remove(_name);
+    m_bDirty = true;
+}
+
+void Project::RenameShaderItem(
+    const StringView _oldName,
+    const StringView _newName)
+{
+    if (_oldName == _newName)
     {
         return;
     }
 
-    m_shaders = _shaders;
+    JAM_ASSERT(m_shaderItems.Contains(_oldName), "Shader item not found.");
+    JAM_ASSERT(!m_shaderItems.Contains(_newName), "Shader item with the new name already exists.");
+
+    const auto it          = m_shaderItems.Find(_oldName);
+    ShaderItem item        = it->value;
+    auto [removedIt, bRet] = m_shaderItems.Remove(_oldName);
+    JAM_ASSERT(bRet, "Failed to remove shader item.");
+    auto [insertedIt, bInserted] = m_shaderItems.Insert(removedIt, _newName, item);
+    JAM_ASSERT(bInserted, "Failed to insert shader item with new name.");
+    m_bDirty = true;
+}
+
+const ShaderItem& Project::GetShaderItem(
+    const StringView _name) const
+{
+    const auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    return it->value;
+}
+
+bool Project::ContainsShaderItem(
+    const StringView _name) const
+{
+    return m_shaderItems.Contains(_name);
+}
+
+const OrderedStringHashMap<ShaderItem>& Project::GetShaderItems()
+{
+    return m_shaderItems;
+}
+
+void Project::SetShaderItem(
+    const StringView  _name,
+    const ShaderItem& _item)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    it->value = _item;
     m_bDirty  = true;
 }
 
-Ref<ShaderItem> Project::AddNewShader()
+void Project::SetShaderItemSource(
+    const StringView         _name,
+    const Ref<ShaderSource>& _pShaderSource)
 {
-    constexpr StringView k_basename = "new shader";
-
-    for (Int32 i = 0;; ++i)
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    if (it->value.pShaderSource == _pShaderSource)
     {
-        String name = k_basename;
-        if (i > 0)
-        {
-            name.AppendFormat(" {}", i);
-        }
-
-        if (!m_shaders.Contains(MakeRef<ShaderItem>(name)))
-        {
-            Ref<ShaderItem> pShader = MakeRef<ShaderItem>();
-            pShader->SetName(name);
-            m_shaders.PushBack(pShader);
-
-            m_bDirty = true;
-
-            return pShader;
-        }
+        return;
     }
+
+    it->value.pShaderSource = _pShaderSource;
+    m_bDirty                = true;
 }
 
-const OrderedHashMap<Ref<ShaderItem>>& Project::GetShaders() const
+void Project::SetShaderItemEntryPoint(
+    const StringView _name,
+    const StringView _entryPoint)
 {
-    return m_shaders;
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    if (it->value.entryPoint == _entryPoint)
+    {
+        return;
+    }
+
+    it->value.entryPoint = _entryPoint;
+    m_bDirty             = true;
 }
 
-StringView Project::GetWorkingDirectory()
+void Project::SetShaderItemStage(
+    const StringView _name,
+    const eShader    _stage)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    if (it->value.stage == _stage)
+    {
+        return;
+    }
+
+    it->value.stage = _stage;
+    m_bDirty        = true;
+}
+
+void Project::SetShaderItemCompileFlags(
+    const StringView                 _name,
+    const Flags<eShaderCompileFlags> _compileFlags)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    if (it->value.compileFlags == _compileFlags)
+    {
+        return;
+    }
+
+    it->value.compileFlags = _compileFlags;
+    m_bDirty               = true;
+}
+
+void Project::PushShaderItemMacro(
+    const StringView         _name,
+    const ShaderItem::Macro& _macro)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    it->value.macros.push_back(_macro);
+    m_bDirty = true;
+}
+
+void Project::InsertShaderItemMacro(
+    const StringView         _name,
+    const SizeT              _idx,
+    const ShaderItem::Macro& _macro)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    JAM_ASSERT(_idx <= it->value.macros.size(), "Index out of bounds.");
+    it->value.macros.insert(it->value.macros.begin() + _idx, _macro);
+    m_bDirty = true;
+}
+
+void Project::RemoveShaderItemMacro(
+    const StringView _name,
+    const SizeT      _idx)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    JAM_ASSERT(_idx < it->value.macros.size(), "Index out of bounds.");
+    it->value.macros.erase(it->value.macros.begin() + _idx);
+    m_bDirty = true;
+}
+
+void Project::SetShaderItemMacro(
+    const StringView         _name,
+    const SizeT              _idx,
+    const ShaderItem::Macro& _macro)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    JAM_ASSERT(_idx < it->value.macros.size(), "Index out of bounds.");
+    it->value.macros[_idx] = _macro;
+    m_bDirty               = true;
+}
+
+void Project::MoveShaderItemMacro(
+    const StringView _name,
+    const SizeT      _fromIdx,
+    const SizeT      _toIdx)
+{
+    auto it = m_shaderItems.Find(_name);
+    JAM_ASSERT(it != m_shaderItems.end(), "Shader item not found.");
+    JAM_ASSERT(_fromIdx < it->value.macros.size(), "From index out of bounds.");
+    JAM_ASSERT(_toIdx < it->value.macros.size(), "To index out of bounds.");
+    VectorSplice(it->value.macros, _toIdx, _fromIdx);
+}
+
+StringView Project::GetBaseName() const
+{
+    return m_basename;
+}
+
+StringView Project::GetWorkingDirectory() const
 {
     return m_workingDir;
 }
 
-StringView Project::GetName()
-{
-    return m_name;
-}
-
 String Project::MakeFullPath() const
 {
-    String path = String::Joined(m_workingDir, m_name, eJoinType::File);
+    String path = String::Joined(m_workingDir, m_basename, eJoinType::File);
     path.ReplaceExtension(k_extension);
     return path;
-}
-
-bool Project::IsDirty() const
-{
-    return m_bDirty;
 }
 
 void Project::WriteToArchive(
     ArchiveWriter& _archive) const
 {
     _archive.OpenField("shaders");
-    for (const Ref<ShaderItem>& pShader: m_shaders)
+    for (const auto& [name, shaderItem]: m_shaderItems)
     {
-        _archive.PushBack(*pShader);
+        _archive.OpenAtBack();
+        _archive.WriteField("name", name);
+        _archive.WriteField("item", shaderItem);
+        _archive.Close();
     }
     _archive.Close();
 }
 
-Error Project::ReadFromArchive(ArchiveReader& _archive)
+Error Project::ReadFromArchive(
+    ArchiveReader& _archive)
 {
-    m_shaders.Clear();
+    m_shaderItems.Clear();
 
+    // shaders
     if (const Error err = _archive.EnterField("shaders"))
     {
         return err;
     }
 
     _archive.ForEach(
-        [this](const SizeT, ArchiveReader& _reader) -> Error
-        {
-            Ref<ShaderItem> pShader = MakeRef<ShaderItem>();
-            if (const Error err = _reader.Read(*pShader))
+        [this](const SizeT, ArchiveReader& _reader) -> Error {
+            StringView name = {};
+            if (const Error err = _reader.ReadField("name", name))
             {
                 return err;
             }
 
-            if (!m_shaders.PushBack(pShader).bSucceeded)
+            if (m_shaderItems.Contains(name))
             {
-                JAM_LOG_ERROR("duplicated shader item found in project file");
-                return Error::InvalidData;
+                JAM_LOG_ERROR("Duplicate shader item name: {}", name);
+                return Error::InvalidData;   // duplicate shader item name
             }
 
+            ShaderItem shaderItem = {};
+            if (const Error err = _reader.ReadField("item", shaderItem))
+            {
+                return err;
+            }
+
+            m_shaderItems.PushBack(name, shaderItem);
             return Error::None;
         });
 
     _archive.Exit();
 
+    return Error::None;
+}
+
+Error Project::LoadNew_(
+    const StringView _path)
+{
+    JsonWriter writer = {};
+    writer.Write(*this);
+    if (const Error err = writer.SaveToFile(_path, eJsonWriteFlags::Pretty))
+    {
+        return err;
+    }
+
+    const String path = FileSystem::Absolute(_path);
+    m_workingDir      = path.GetDirectory();
+    m_basename        = path.GetBaseName();
     return Error::None;
 }
 
@@ -596,15 +566,6 @@ Error Project::LoadFromFile_(
 
     const String path = FileSystem::Absolute(_path);
     m_workingDir      = path.GetDirectory();
-    m_name            = path.GetBaseName();
+    m_basename        = path.GetBaseName();
     return Error::None;
-}
-
-Error Project::CreateNew_(
-    const StringView _path)
-{
-    const String path = FileSystem::Absolute(_path);
-    m_workingDir      = path.GetDirectory();
-    m_name            = path.GetBaseName();
-    return SaveAs(_path);
 }

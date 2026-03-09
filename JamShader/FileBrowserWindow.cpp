@@ -3,8 +3,10 @@
 
 #include "Events.h"
 #include "GUIFileSystem.h"
-#include "MainScene.h"
+#include "ShaderApp.h"
 #include "../JamEngine/DirIter.h"
+#include "../JamEngine/EditorEvents.h"
+#include "../JamEngine/EditorUtilities.h"
 #include "../JamEngine/EditorWidgets.h"
 
 void FileBrowserWindow::InitFileWatcher_(
@@ -23,7 +25,7 @@ void FileBrowserWindow::InitFileWatcher_(
 void FileBrowserWindow::OnProjectChangedEvent_(
     const ProjectChangedEvent& _event)
 {
-    const Ref<Project>& pProject = _event.GetProjectOrNull();
+    Project* pProject = _event.GetProjectOrNull();
     if (pProject)
     {
         InitFileWatcher_(pProject->GetWorkingDirectory());
@@ -32,6 +34,7 @@ void FileBrowserWindow::OnProjectChangedEvent_(
     {
         m_pFileWatcher.Reset();
     }
+    m_pProject = pProject;
 }
 
 void FileBrowserWindow::OnUpdate(
@@ -50,7 +53,7 @@ void FileBrowserWindow::OnImGuiRender()
 
     if (ImGui::BeginChild("FileEntriesPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Borders))
     {
-        Widget_FileEntry_Recursive_(m_rootEntry);
+        Widget_FileItem_Recursive_(m_rootItem.GetPtr());
     }
     ImGui::EndChild();
 
@@ -100,7 +103,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Added:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [path = _event.newPath]
+                [path = String(_event.path)]
                 {
                     FileAddedEvent event { path };
                     GetApp().DispatchEvent(event);
@@ -111,7 +114,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Deleted:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [path = _event.oldPath]
+                [path = String(_event.oldPath)]
                 {
                     FileDeletedEvent event { path };
                     GetApp().DispatchEvent(event);
@@ -122,7 +125,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Renamed:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [oldPath = _event.oldPath, newPath = _event.newPath]
+                [oldPath = String(_event.oldPath), newPath = String(_event.path)]
                 {
                     FileRenamedEvent event { oldPath, newPath };
                     GetApp().DispatchEvent(event);
@@ -133,7 +136,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Modified:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [path = _event.newPath]
+                [path = String(_event.path)]
                 {
                     FileModifiedEvent event { path };
                     GetApp().DispatchEvent(event);
@@ -151,10 +154,10 @@ void FileBrowserWindow::NewHLSLFile_(
 {
     const String path = String::Joined(_path, "new shader.hlsl");
 
-    Expect<FileWriter> writer = FileWriter::Open(_path);
+    Expect<FileWriter> writer = FileWriter::Open(path, eFileWriterCollisionPolicy::Rename);
     if (!writer)
     {
-        GetMainScene().PushMessageDialog(
+        GetShaderApp().PushMessageDialog(
             "Failed to create file",
             String::Formatted("Failed to create file '{}': {}", path, writer.GetError().ToErrorMessage()));
     }
@@ -167,59 +170,56 @@ void FileBrowserWindow::GatherFileEntriesIfNeed_()
         return;
     }
 
-    const Ref<Project>&   pProject         = GetMainScene().GetProject();
-    const StringView      workingDirectory = pProject->GetWorkingDirectory();
-    const Ref<FileEntry>& pFocusedEntry    = GetMainScene().GetFocusingFileEntryOrNull();
-    const StringView      focusingPath     = pFocusedEntry ? pFocusedEntry->path.ToStringView() : workingDirectory;
-
-    bool bFoundFocusingEntry = false;
-    m_rootEntry              = GatherFileEntries_Recursive_(workingDirectory, focusingPath, bFoundFocusingEntry);
-    m_bFileEntriesDirty      = false;
+    const StringView workingDir   = m_pProject->GetWorkingDirectory();
+    const StringView focusingPath = m_pFocusingItem ? m_pFocusingItem->path.ToStringView() : workingDir;
+    bool             bFound       = false;
+    m_rootItem                    = GatherFileEntries_Recursive_(workingDir, focusingPath, bFound);
+    m_bFileEntriesDirty           = false;
 }
 
-Ref<FileEntry> FileBrowserWindow::GatherFileEntries_Recursive_(
+Scoped<FileItem> FileBrowserWindow::GatherFileEntries_Recursive_(
     const StringView _path,
     const StringView _focusingPath,
-    bool&            _bFoundFocusingEntry)
+    bool&            _bFoundFocusingItem)
 {
-    Ref<FileEntry> entry = MakeRef<FileEntry>();
+    Scoped<FileItem> pItem = MakeScoped<FileItem>();
 
     if (_path.IsDirectory())
     {
-        entry->path = _path;
-        entry->name = entry->path.GetFileName();
+        pItem->path     = _path;
+        pItem->filename = pItem->path.GetFileName();
 
         const Expect<DirIter> iter = DirIter::Create(_path);
         JAM_ASSERT(iter, "Failed to create directory iterator for '{}': {}", _path, iter.GetError().ToErrorMessage());
         for (const StringView child: iter.GetValue())
         {
-            entry->children.emplace_back(GatherFileEntries_Recursive_(child, _focusingPath, _bFoundFocusingEntry));
+            pItem->children.emplace_back(GatherFileEntries_Recursive_(child, _focusingPath, _bFoundFocusingItem));
         }
     }
     else
     {
-        entry->path = _path;
-        entry->name = entry->path.GetFileName();
+        pItem->path     = _path;
+        pItem->filename = pItem->path.GetFileName();
     }
 
-    if (!_bFoundFocusingEntry && entry->path == _focusingPath)
+    if (!_bFoundFocusingItem && pItem->path == _focusingPath)
     {
-        GetMainScene().SetFocusingFileEntry(entry);
-        _bFoundFocusingEntry = true;
+        SetFocusingFileItem_(pItem.GetPtr());
+        _bFoundFocusingItem = true;
     }
 
-    return entry;
+    return pItem;
 }
 
-void FileBrowserWindow::Widget_FileEntry_Recursive_(
-    const Ref<FileEntry>& _pEntry)
+void FileBrowserWindow::Widget_FileItem_Recursive_(
+    FileItem* _pItem)
 {
-    const bool  bSelected = _pEntry == GetMainScene().GetFocusingFileEntryOrNull();
-    const bool  bIsRoot   = _pEntry == m_rootEntry;
-    const bool  bHasChild = !_pEntry->children.empty();
-    const char* label     = _pEntry->name.GetPtr();
+    const bool  bSelected = _pItem == m_pFocusingItem;
+    const bool  bIsRoot   = _pItem == m_rootItem.GetPtr();
+    const bool  bHasChild = !_pItem->children.empty();
+    const char* label     = _pItem->filename.GetPtr();
 
-    ImGui::PushID(_pEntry->path.GetPtr());
+    ImGui::PushID(_pItem->path.GetPtr());
 
     // tree node
     {
@@ -230,25 +230,33 @@ void FileBrowserWindow::Widget_FileEntry_Recursive_(
             flags |= ImGuiTreeNodeFlags_Selected;
         }
 
-        if (_pEntry->path.IsFile() || !bHasChild)
+        if (_pItem->path.IsFile() || !bHasChild)
         {
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
-        _pEntry->bOpened = ImGui::TreeNodeEx("", flags);
-        if (ImGui::IsItemClicked())
+        _pItem->bOpened = ImGui::TreeNodeEx("", flags);
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
-            GetMainScene().SetFocusingFileEntry(_pEntry);
+            SetFocusingFileItem_(_pItem);
         }
         ImGui::OpenPopupOnItemClick("Menu", 0);
+    }
+
+    // drag drop source
+    if (ImGui::BeginDragDropSource())
+    {
+        ImGui::TextUnformatted(label);
+        SetPathDragDropPayload(_pItem->path);
+        ImGui::EndDragDropSource();
     }
 
     // icon
     {
         const ImVec2        iconSize = { ImGui::GetFontSize(), ImGui::GetFontSize() };
-        const Ref<Texture>& pIcon    = _pEntry->path.IsFile() ? GetMainScene().GetIcon(eIcon::RegularFile)
-                                     : _pEntry->bOpened       ? GetMainScene().GetIcon(eIcon::OpenedDirectory)
-                                                              : GetMainScene().GetIcon(eIcon::ClosedDirectory);
+        const Ref<Texture>& pIcon    = _pItem->path.IsFile() ? GetShaderApp().GetIcon(eIcon::RegularFile)
+                                     : _pItem->bOpened       ? GetShaderApp().GetIcon(eIcon::OpenedDirectory)
+                                                             : GetShaderApp().GetIcon(eIcon::ClosedDirectory);
         ImGui::SameLine();
         Widget_Image(pIcon, iconSize);
     }
@@ -264,10 +272,10 @@ void FileBrowserWindow::Widget_FileEntry_Recursive_(
     {
         ImGui::Text(label);
 
-        if (_pEntry->path.IsDirectory())
+        if (_pItem->path.IsDirectory())
         {
             ImGui::Separator();
-            Menu_CreateFileEntry_(_pEntry->path);
+            Menu_CreateFileItem_(_pItem->path);
         }
 
         if (!bIsRoot)
@@ -275,12 +283,12 @@ void FileBrowserWindow::Widget_FileEntry_Recursive_(
             ImGui::Separator();
             if (ImGui::MenuItem("clone"))
             {
-                GUI::FS::Copy(_pEntry->path, _pEntry->path, FileSystem::eCollisionPolicy::Rename);
+                GUI::FS::Copy(_pItem->path, _pItem->path, FileSystem::eCollisionPolicy::Rename);
             }
 
             if (ImGui::MenuItem("delete"))
             {
-                GUI::FS::Remove(_pEntry->path);
+                GUI::FS::Remove(_pItem->path);
             }
         }
 
@@ -288,11 +296,11 @@ void FileBrowserWindow::Widget_FileEntry_Recursive_(
     }
 
     // render children
-    if (_pEntry->bOpened)
+    if (_pItem->bOpened)
     {
-        for (const Ref<FileEntry>& pChild: _pEntry->children)
+        for (Scoped<FileItem>& pChild: _pItem->children)
         {
-            Widget_FileEntry_Recursive_(pChild.GetPtr());
+            Widget_FileItem_Recursive_(pChild.GetPtr());
         }
         ImGui::TreePop();
     }
@@ -300,7 +308,20 @@ void FileBrowserWindow::Widget_FileEntry_Recursive_(
     ImGui::PopID();
 }
 
-void FileBrowserWindow::Menu_CreateFileEntry_(
+void FileBrowserWindow::SetFocusingFileItem_(
+    FileItem* _pItem)
+{
+    if (_pItem == m_pFocusingItem)
+    {
+        return;
+    }
+
+    m_pFocusingItem = _pItem;
+    FocusingFileItemChangedEvent event { m_pFocusingItem };
+    GetApp().DispatchEvent(event);
+}
+
+void FileBrowserWindow::Menu_CreateFileItem_(
     const StringView _dir) const
 {
     JAM_ASSERT(_dir.IsDirectory(), "String must be a directory");

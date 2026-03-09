@@ -39,7 +39,7 @@ const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
     return m_sceneMetadataContainer.at(typeHash);
 }
 
-const HashMap<UInt32, SceneReflectionData>& SceneDatabase::GetSceneReflectionDataContainer() const
+const CASHashMap<UInt32, SceneReflectionData>& SceneDatabase::GetSceneReflectionDataContainer() const
 {
     return m_sceneMetadataContainer;
 }

@@ -6,9 +6,9 @@
 
 struct HelloJamVertex
 {
-    Vec3 pos;
+    Vector3 pos;
     RGBA color;
-    Vec2 texCoord;
+    Vector2 texCoord;
 
     static VertexLayout s_layout;
     static void         InitLayout()
@@ -82,13 +82,13 @@ constexpr UInt16 k_helloJamCubeIndices[] = {
 
 struct CB_HELLO_JAM_TRANSFORM
 {
-    Mtx4 world;
+    Matrix4x4 world;
 };
 
 struct CB_HELLO_JAM_GLOBAL
 {
-    Mtx4   view;
-    Mtx4   proj;
+    Matrix4x4   view;
+    Matrix4x4   proj;
     UInt32 bTextureMapping;
     float  pad[3];
 };
@@ -239,7 +239,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
     {
         for (int x = 0; x < m_numCubePerRow; ++x)
         {
-            Vec3 pos {
+            Vector3 pos {
                 static_cast<float>(x) * k_internal,
                 static_cast<float>(y) * k_internal,
                 50.f
@@ -249,7 +249,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
             float pitch = ToRad(15.f);
 
             CB_HELLO_JAM_TRANSFORM transformData;
-            transformData.world = CreateTransform(pos, Quat::CreateFromYawPitchRoll(yaw, pitch, 0), Vec3::One).Transpose();
+            transformData.world = CreateTransform(pos, Quaternion::CreateFromYawPitchRoll(yaw, pitch, 0), Vector3::One).Transpose();
             Graphics::UploadBuffer(m_transformCbh, transformData);
 
             Graphics::SetTexture(m_cubeTh, eShader::PixelShader, 0);

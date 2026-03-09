@@ -455,6 +455,13 @@ struct CharFuncs
         return { lTrimmed, rTrimmed };
     }
 
+    static constexpr SizeT StrCompare(const CharT* _str0, const SizeT _len0, const CharT* _str1, const SizeT _len1)
+    {
+        JAM_ASSERT(_str0, "StrCompare: _str0 cannot be null.");
+        JAM_ASSERT(_str1, "StrCompare: _str1 cannot be null.");
+        return StdCharTraits::compare(_str0, _str1, Min(_len0, _len1));
+    }
+
     [[nodiscard]] static constexpr bool IsPathSeparator(const CharT _c)
     {
         for (const CharT separator: CharTraits::k_pathSeparators)
@@ -1129,6 +1136,22 @@ public:
         return CompareEqualIgnoreCase({ &_c, 1 }, _offset);
     }
 
+    [[nodiscard]] constexpr SizeT Compare(const BasicStringView _other, const SizeT _offset = 0) const
+    {
+        JAM_ASSERT(_offset <= m_len, "Offset out of bounds.");
+        return CharFuncs::template StrCompare(m_ptr + _offset, m_len - _offset, _other.m_ptr, _other.m_len);
+    }
+
+    [[nodiscard]] constexpr SizeT Compare(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
+    {
+        return SubView(_offset, _count).Compare(_other);
+    }
+
+    [[nodiscard]] constexpr SizeT Compare(const CharT _c, const SizeT _offset = 0) const
+    {
+        return Compare({ &_c, 1 }, _offset);
+    }
+
     [[nodiscard]] constexpr bool StartsWith(const CharT _c) const
     {
         return SubView(0, 1).CompareEqual(_c);
@@ -1243,6 +1266,26 @@ public:
     {
         JAM_ASSERT(!IsEmpty(), "StringView is empty.");
         return m_ptr[0];
+    }
+
+    [[nodiscard]] constexpr bool operator<(const BasicStringView _other) const
+    {
+        return Compare(_other) < 0;
+    }
+
+    [[nodiscard]] constexpr bool operator>(const BasicStringView _other) const
+    {
+        return Compare(_other) > 0;
+    }
+
+    [[nodiscard]] constexpr bool operator<=(const BasicStringView _other) const
+    {
+        return Compare(_other) <= 0;
+    }
+
+    [[nodiscard]] constexpr bool operator>=(const BasicStringView _other) const
+    {
+        return Compare(_other) >= 0;
     }
 
     ////////// file system //////////
@@ -1745,6 +1788,28 @@ public:
         return ToStringView().CompareEqualIgnoreCase(_c, _offset);
     }
 
+    [[nodiscard]] SizeT Compare(
+        const TStringView _other,
+        const SizeT       _offset = 0) const
+    {
+        return ToStringView().Compare(_other, _offset);
+    }
+
+    [[nodiscard]] SizeT Compare(
+        const TStringView _other,
+        const SizeT       _offset,
+        const SizeT       _count) const
+    {
+        return ToStringView().Compare(_other, _offset, _count);
+    }
+
+    [[nodiscard]] SizeT Compare(
+        const TChar _c,
+        const SizeT _offset = 0) const
+    {
+        return ToStringView().Compare(_c, _offset);
+    }
+
     [[nodiscard]] TStringView SubView(
         const SizeT _pos) const
     {
@@ -1771,6 +1836,53 @@ public:
     [[nodiscard]] TStringView Trimed() const
     {
         return ToStringView().Trimed();
+    }
+
+    void Replace(const SizeT _pos, const SizeT _len, const TStringView _replacement)
+    {
+        const SizeT replacementLen = _replacement.GetLength();
+        const SizeT numInplace     = (_len < replacementLen) ? _len : replacementLen;
+
+        if (numInplace > 0)
+        {
+            std::memcpy(Self_().GetPtr() + _pos, _replacement.GetPtr(), numInplace * sizeof(TChar));
+        }
+
+        if (_len != replacementLen)
+        {
+            if (_len > replacementLen)
+            {
+                Self_().Erase(_pos + numInplace, _len - numInplace);
+            }
+            else
+            {
+                Self_().Insert(_pos + numInplace, _replacement.GetPtr() + numInplace, replacementLen - numInplace);
+            }
+        }
+    }
+
+    [[nodiscard]] bool operator<(
+        const TStringView _other) const
+    {
+        return ToStringView().Compare(_other) < 0;
+    }
+
+    [[nodiscard]] bool operator>(
+        const TStringView _other) const
+    {
+        return ToStringView().Compare(_other) > 0;
+    }
+
+    [[nodiscard]] bool operator<=(
+        const TStringView _other) const
+    {
+        return ToStringView().Compare(_other) <= 0;
+    }
+
+    [[nodiscard]] bool operator>=(
+        const TStringView _other) const
+    {
+        return ToStringView().Compare(_other) >= 0;
     }
 
     ////////// conversion //////////

@@ -17,16 +17,16 @@ enum class eTextureChannel
 
 struct MaterialParams
 {
-    Vec3  ambient   = vec3::k_one;
-    Vec3  diffuse   = vec3::k_one;
-    Vec3  specular  = vec3::k_one;
+    Vector3  ambient   = Vec3::k_one;
+    Vector3  diffuse   = Vec3::k_one;
+    Vector3  specular  = Vec3::k_one;
     float shininess = 32.0f;
 
-    Vec3  albedo    = vec3::k_one;
+    Vector3  albedo    = Vec3::k_one;
     float roughness = 1.f;
     float metallic  = 1.f;
 
-    Vec3  emissive          = vec3::k_zero;
+    Vector3  emissive          = Vec3::k_zero;
     float emissiveIntensity = 1.f;
 
     bool bAlphaCutout = false;

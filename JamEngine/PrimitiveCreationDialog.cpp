@@ -417,7 +417,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
     {
         case ePrimitiveCreationType::Cube:
         {
-            const Vec3 size { m_fParam0, m_fParam1, m_fParam2 };
+            const Vector3 size { m_fParam0, m_fParam1, m_fParam2 };
             return CreateCubeMesh(size, vl);
         }
 
@@ -430,7 +430,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
 
         case ePrimitiveCreationType::Plane:
         {
-            const Vec2 size { m_fParam0, m_fParam1 };
+            const Vector2 size { m_fParam0, m_fParam1 };
             return CreatePlaneMesh(size, vl);
         }
 

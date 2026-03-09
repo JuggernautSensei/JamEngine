@@ -36,27 +36,27 @@ public:
     void DrawGrid(Flags<eDrawGridFlags> _flags);
 
     // line rendering
-    void DrawLine(Vec3 _from, Vec3 _to, RGBA _color);
-    void DrawBoundingBox(const Aabb& _aabbInL, const Mtx4& _mtx, RGBA _color);
-    void DrawFrustum(const Mtx4& _viewProjMtx, RGBA _rgba);
-    void DrawCircle(Vec3 _center, Vec3 _normal, float _radius, RGBA _color, Int32 _segments = 32);
+    void DrawLine(Vector3 _from, Vector3 _to, RGBA _color);
+    void DrawBoundingBox(const Aabb& _aabbInL, const Matrix4x4& _mtx, RGBA _color);
+    void DrawFrustum(const Matrix4x4& _viewProjMtx, RGBA _rgba);
+    void DrawCircle(Vector3 _center, Vector3 _normal, float _radius, RGBA _color, Int32 _segments = 32);
     void FlushLines();
 
     // filled primitive rendering
-    void DrawFilledSphere(Vec3 _center, float _radius, RGBA _color);
-    void DrawFilledCube(Vec3 _center, Vec3 _size, RGBA _color);
-    void DrawFilledCylinder(Vec3 _center, Vec3 _dir, float _height, float _radius, RGBA _color);
-    void DrawFilledCapsule(Vec3 _center, Vec3 _dir, float _height, float _radius, RGBA _color);
+    void DrawFilledSphere(Vector3 _center, float _radius, RGBA _color);
+    void DrawFilledCube(Vector3 _center, Vector3 _size, RGBA _color);
+    void DrawFilledCylinder(Vector3 _center, Vector3 _dir, float _height, float _radius, RGBA _color);
+    void DrawFilledCapsule(Vector3 _center, Vector3 _dir, float _height, float _radius, RGBA _color);
 
 private:
     void FlushLines_();
-    void UploadTransform_(const Mtx4& _world) const;
+    void UploadTransform_(const Matrix4x4& _world) const;
     void DrawGrid_() const;
 
     // 라인 배칭
     struct LineVertex
     {
-        Vec3 position = vec3::k_zero;
+        Vector3 position = Vec3::k_zero;
         RGBA rgba     = RGBA::k_white;
 
         inline static VertexLayout s_vl = {};
@@ -103,9 +103,9 @@ private:
     bool                  m_bBeginRender  = false;
 
     // 카메라
-    Vec3 m_eye  = vec3::k_zero;
-    Mtx4 m_view = mtx4::k_identity;
-    Mtx4 m_proj = mtx4::k_identity;
+    Vector3 m_eye  = Vec3::k_zero;
+    Matrix4x4 m_view = Mtx4::k_identity;
+    Matrix4x4 m_proj = Mtx4::k_identity;
 
     // 쉐이더 코드
     static const char* const k_gridShaderSource;

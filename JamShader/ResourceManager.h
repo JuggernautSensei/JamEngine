@@ -2,28 +2,19 @@
 
 class ResourceManager
 {
-    struct ResourceData
-    {
-        OnChangeSignal                   onChangeSignal             = {};   // my observers. emit when I change
-        Vector<OnChangeScopedConnection> onChangedScopedConnections = {};   // my connections to other resources. automatically disconnect when I die
-    };
-
 public:
     ResourceManager(const ResourceManager&)            = delete;
     ResourceManager& operator=(const ResourceManager&) = delete;
     ResourceManager(ResourceManager&&)                 = delete;
     ResourceManager& operator=(ResourceManager&&)      = delete;
 
-    // clear carbage
+    // for clear carbage
     void OnUpdate(float _dt);
+    void OnEvent(Event& _event);
 
-    // shader resourc
+    // resource cache
     Expect<Ref<ShaderSource>> LoadShaderSource(StringView _path, bool _bReload = false);
     [[nodiscard]] bool        HasShaderSource(StringView _path) const;
-
-    // resource change signal. disconnect is automatically handled by ResourceManager when either source or target is destroyed
-    void ConnectResourceOnChange(const Ref<Resource>& _pSource, const OnChangeDelegate& _delegate, const Ref<Resource>& _pTarget);
-    void NotifyResourceChange(const Ref<Resource>& _pResource, eResourceChangeType _type) const;
 
     // garbage collection
     void CleanUpGarbage();
@@ -37,8 +28,10 @@ private:
     ResourceManager()  = default;
     ~ResourceManager() = default;
 
-    StringHashMap<Ref<ShaderSource>>     m_shaderSources = {};
-    HashMap<Ref<Resource>, ResourceData> m_resourceData  = {};
+    void OnFileRenamedEvent_(const FileRenamedEvent& _event);
+    void OnFileDeletedEvent_(const FileDeletedEvent& _event);
+
+    StringHashMap<Ref<ShaderSource>> m_shaderSources = {};
 
     float                  m_garbageCollectCounterSec = 0.f;
     static constexpr float k_garbageCollectInterval   = 5.f;   // seconds

@@ -34,17 +34,12 @@ void DialogStack::Show()
     // compact closed dialogs
     if (bClosedAny)
     {
-        ShrinkToFit_();
+        eastl::erase_if(m_dialogs,
+                        [](const Ref<Dialog>& _pDlg)
+                        {
+                            return _pDlg == nullptr;
+                        });
     }
-}
-
-void DialogStack::ShrinkToFit_()
-{
-    eastl::erase_if(m_dialogs,
-                    [](const Ref<Dialog>& _pDlg)
-                    {
-                        return _pDlg == nullptr;
-                    });
 }
 
 }   // namespace Jam

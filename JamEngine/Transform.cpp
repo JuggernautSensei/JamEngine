@@ -6,42 +6,42 @@
 namespace Jam
 {
 
-Vec3 Transform::GetRight() const
+Vector3 Transform::GetRight() const
 {
     return Normalized(m_right);
 }
 
-Vec3 Transform::GetLeft() const
+Vector3 Transform::GetLeft() const
 {
     return -Normalized(m_right);
 }
 
-Vec3 Transform::GetUp() const
+Vector3 Transform::GetUp() const
 {
     return Normalized(m_up);
 }
 
-Vec3 Transform::GetDown() const
+Vector3 Transform::GetDown() const
 {
     return -Normalized(m_up);
 }
 
-Vec3 Transform::GetForward() const
+Vector3 Transform::GetForward() const
 {
     return Normalized(m_forward);
 }
 
-Vec3 Transform::GetBackward() const
+Vector3 Transform::GetBackward() const
 {
     return -Normalized(m_forward);
 }
 
-const Mtx4& Transform::GetMatrix() const
+const Matrix4x4& Transform::GetMatrix() const
 {
     // update dirty
     if (m_bDirty)
     {
-        m_mtxCache = Mtx4 {
+        m_mtxCache = Matrix4x4 {
             Vec4From(m_right, 0.0f),
             Vec4From(m_up, 0.0f),
             Vec4From(m_forward, 0.0f),
@@ -55,7 +55,7 @@ const Mtx4& Transform::GetMatrix() const
 }
 
 void Transform::SetMatrix(
-    const Mtx4& _mtx)
+    const Matrix4x4& _mtx)
 {
     m_right    = _mtx.Right();
     m_up       = _mtx.Up();
@@ -65,18 +65,18 @@ void Transform::SetMatrix(
     m_mtxCache = _mtx;
 }
 
-Mtx4 Transform::ToViewMatrix() const
+Matrix4x4 Transform::ToViewMatrix() const
 {
-    const Vec3 r = Normalized(m_right);
-    const Vec3 u = Normalized(m_up);
-    const Vec3 f = Normalized(m_forward);
+    const Vector3 r = Normalized(m_right);
+    const Vector3 u = Normalized(m_up);
+    const Vector3 f = Normalized(m_forward);
 
-    const Vec3  t  = m_origin;
+    const Vector3  t  = m_origin;
     const float tx = -Dot(r, t);
     const float ty = -Dot(u, t);
     const float tz = -Dot(f, t);
 
-    return Mtx4 {
+    return Matrix4x4 {
         { r.x, u.x, f.x, 0.0f },
         { r.y, u.y, f.y, 0.0f },
         { r.z, u.z, f.z, 0.0f },
@@ -97,18 +97,18 @@ void Transform::Invert()
     const float invSy = InvLength(m_up);
     const float invSz = InvLength(m_forward);
 
-    const Vec3 r = m_right * invSx;
-    const Vec3 u = m_up * invSy;
-    const Vec3 f = m_forward * invSz;
+    const Vector3 r = m_right * invSx;
+    const Vector3 u = m_up * invSy;
+    const Vector3 f = m_forward * invSz;
 
     const float tx = -Dot(r, m_origin);
     const float ty = -Dot(u, m_origin);
     const float tz = -Dot(f, m_origin);
 
-    m_right   = Vec3 { r.x * invSx, u.x * invSy, f.x * invSz };
-    m_up      = Vec3 { r.y * invSx, u.y * invSy, f.y * invSz };
-    m_forward = Vec3 { r.z * invSx, u.z * invSy, f.z * invSz };
-    m_origin  = Vec3 { tx, ty, tz };
+    m_right   = Vector3 { r.x * invSx, u.x * invSy, f.x * invSz };
+    m_up      = Vector3 { r.y * invSx, u.y * invSy, f.y * invSz };
+    m_forward = Vector3 { r.z * invSx, u.z * invSy, f.z * invSz };
+    m_origin  = Vector3 { tx, ty, tz };
     m_bDirty  = true;
 }
 
@@ -126,7 +126,7 @@ void Transform::Mult(
     SetMatrix(GetMatrix() * _trans.GetMatrix());
 }
 
-Vec3 Transform::GetScale() const
+Vector3 Transform::GetScale() const
 {
     return { Length(m_right), Length(m_up), Length(m_forward) };
 }
@@ -146,11 +146,11 @@ float Transform::GetScaleZ() const
     return Length(m_forward);
 }
 
-void Transform::SetScale(const Vec3 _xyz)
+void Transform::SetScale(const Vector3 _xyz)
 {
-    const Vec3 r = Normalized(m_right);
-    const Vec3 u = Normalized(m_up);
-    const Vec3 f = Normalized(m_forward);
+    const Vector3 r = Normalized(m_right);
+    const Vector3 u = Normalized(m_up);
+    const Vector3 f = Normalized(m_forward);
 
     m_right   = r * _xyz.x;
     m_up      = u * _xyz.y;
@@ -170,26 +170,26 @@ void Transform::SetScale(const float _uniform)
 
 void Transform::SetScaleX(const float _x)
 {
-    const Vec3 r = Normalized(m_right);
+    const Vector3 r = Normalized(m_right);
     m_right      = r * _x;
     m_bDirty     = true;
 }
 
 void Transform::SetScaleY(const float _y)
 {
-    const Vec3 u = Normalized(m_up);
+    const Vector3 u = Normalized(m_up);
     m_up         = u * _y;
     m_bDirty     = true;
 }
 
 void Transform::SetScaleZ(const float _z)
 {
-    const Vec3 f = Normalized(m_forward);
+    const Vector3 f = Normalized(m_forward);
     m_forward    = f * _z;
     m_bDirty     = true;
 }
 
-void Transform::AddScale(const Vec3 _xyz)
+void Transform::AddScale(const Vector3 _xyz)
 {
     SetScale(GetScale() + _xyz);
 }
@@ -219,38 +219,38 @@ void Transform::AddScaleZ(const float _z)
     SetScaleZ(GetScaleZ() + _z);
 }
 
-Quat Transform::ToQuat() const
+Quaternion Transform::ToQuat() const
 {
-    const Vec3 r   = Normalized(m_right);
-    const Vec3 u   = Normalized(m_up);
-    const Vec3 f   = Normalized(m_forward);
-    const Mtx4 mtx = Mtx4 { r, u, f };
-    return Quat::CreateFromRotationMatrix(mtx);
+    const Vector3 r   = Normalized(m_right);
+    const Vector3 u   = Normalized(m_up);
+    const Vector3 f   = Normalized(m_forward);
+    const Matrix4x4 mtx = Matrix4x4 { r, u, f };
+    return Quaternion::CreateFromRotationMatrix(mtx);
 }
 
 AxisAngle Transform::ToAxisAngle() const
 {
-    const Quat  q    = ToQuat();
+    const Quaternion  q    = ToQuat();
     const float rad  = 2.f * Acos(q.w);
     const float sqrt = Sqrt(1.f - q.w * q.w);
 
-    Vec3 axis = {};
+    Vector3 axis = {};
     if (IsZeroApprox(sqrt))
     {
-        axis = Vec3 { 1.0f, 0.0f, 0.0f };
+        axis = Vector3 { 1.0f, 0.0f, 0.0f };
     }
     else
     {
-        axis = Vec3 { q.x / sqrt, q.y / sqrt, q.z / sqrt };
+        axis = Vector3 { q.x / sqrt, q.y / sqrt, q.z / sqrt };
     }
     return { axis, rad };
 }
 
-Vec3 Transform::ToEuler() const
+Vector3 Transform::ToEuler() const
 {
-    const Vec3 r = Normalized(m_right);
-    const Vec3 u = Normalized(m_up);
-    const Vec3 f = Normalized(m_forward);
+    const Vector3 r = Normalized(m_right);
+    const Vector3 u = Normalized(m_up);
+    const Vector3 f = Normalized(m_forward);
 
     const float cy = Sqrt(f.z * f.z + f.x * f.x);
     const float cx = Atan2(-f.y, cy);
@@ -265,10 +265,10 @@ Vec3 Transform::ToEuler() const
     }
 }
 
-void Transform::SetRotation(const Quat _q)
+void Transform::SetRotation(const Quaternion _q)
 {
-    const Vec3 s   = GetScale();
-    const Mtx4 mtx = Mtx4::CreateFromQuaternion(_q);
+    const Vector3 s   = GetScale();
+    const Matrix4x4 mtx = Matrix4x4::CreateFromQuaternion(_q);
 
     m_right   = mtx.Right() * s.x;
     m_up      = mtx.Up() * s.y;
@@ -276,40 +276,40 @@ void Transform::SetRotation(const Quat _q)
     m_bDirty  = true;
 }
 
-void Transform::SetRotation(const Vec3 _axis, const float _rad)
+void Transform::SetRotation(const Vector3 _axis, const float _rad)
 {
-    SetRotation(Quat::CreateFromAxisAngle(_axis, _rad));
+    SetRotation(Quaternion::CreateFromAxisAngle(_axis, _rad));
 }
 
-void Transform::SetRotation(const Vec3 _eulerRad)
+void Transform::SetRotation(const Vector3 _eulerRad)
 {
-    SetRotation(Quat::CreateFromYawPitchRoll(_eulerRad.y, _eulerRad.x, _eulerRad.z));
+    SetRotation(Quaternion::CreateFromYawPitchRoll(_eulerRad.y, _eulerRad.x, _eulerRad.z));
 }
 
 void Transform::SetRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
 {
-    SetRotation(Quat::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
+    SetRotation(Quaternion::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
 }
 
-void Transform::SetLookAt(const Vec3 _point)
+void Transform::SetLookAt(const Vector3 _point)
 {
-    const Vec3 dir = Normalized(_point - m_origin);
+    const Vector3 dir = Normalized(_point - m_origin);
     SetLookTo(dir);
 }
 
-void Transform::SetLookTo(const Vec3 _forward)
+void Transform::SetLookTo(const Vector3 _forward)
 {
-    const Vec3 s = GetScale();
-    const Vec3 f = Normalized(_forward);
+    const Vector3 s = GetScale();
+    const Vector3 f = Normalized(_forward);
 
-    Vec3 base = vec3::k_up;
+    Vector3 base = Vec3::k_up;
     if (IsEqualApprox(Abs(Dot(base, f)), 1.f))
     {
-        base = vec3::k_right;
+        base = Vec3::k_right;
     }
 
-    const Vec3 r = Normalized(Cross(base, f));
-    const Vec3 u = Normalized(Cross(f, r));
+    const Vector3 r = Normalized(Cross(base, f));
+    const Vector3 u = Normalized(Cross(f, r));
 
     m_right   = r * s.x;
     m_up      = u * s.y;
@@ -317,25 +317,25 @@ void Transform::SetLookTo(const Vec3 _forward)
     m_bDirty  = true;
 }
 
-void Transform::AddRotation(const Quat _q)
+void Transform::AddRotation(const Quaternion _q)
 {
-    const Quat q = ToQuat();
+    const Quaternion q = ToQuat();
     SetRotation(q * _q);
 }
 
-void Transform::AddRotation(const Vec3 _axis, const float _rad)
+void Transform::AddRotation(const Vector3 _axis, const float _rad)
 {
-    AddRotation(Quat::CreateFromAxisAngle(_axis, _rad));
+    AddRotation(Quaternion::CreateFromAxisAngle(_axis, _rad));
 }
 
-void Transform::AddRotation(const Vec3 _eulerRad)
+void Transform::AddRotation(const Vector3 _eulerRad)
 {
-    AddRotation(Quat::CreateFromYawPitchRoll(_eulerRad.y, _eulerRad.x, _eulerRad.z));
+    AddRotation(Quaternion::CreateFromYawPitchRoll(_eulerRad.y, _eulerRad.x, _eulerRad.z));
 }
 
 void Transform::AddRotation(const float _pitchRad, const float _yawRad, const float _rollRad)
 {
-    AddRotation(Quat::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
+    AddRotation(Quaternion::CreateFromYawPitchRoll(_yawRad, _pitchRad, _rollRad));
 }
 
 void Transform::AddRotationPitch(const float _rad)
@@ -353,7 +353,7 @@ void Transform::AddRotationRoll(const float _rad)
     AddRotation(0.0f, 0.0f, _rad);
 }
 
-Vec3 Transform::GetTranslation() const
+Vector3 Transform::GetTranslation() const
 {
     return m_origin;
 }
@@ -373,7 +373,7 @@ float Transform::GetTranslationZ() const
     return m_origin.z;
 }
 
-void Transform::SetTranslation(const Vec3 _xyz)
+void Transform::SetTranslation(const Vector3 _xyz)
 {
     m_origin = _xyz;
     m_bDirty = true;
@@ -402,7 +402,7 @@ void Transform::SetTranslationZ(const float _z)
     m_bDirty   = true;
 }
 
-void Transform::AddTranslation(const Vec3 _xyz)
+void Transform::AddTranslation(const Vector3 _xyz)
 {
     m_origin += _xyz;
     m_bDirty = true;

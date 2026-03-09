@@ -3,7 +3,7 @@
 // intercept memory allocators
 #include "MemoryAllocator.h"
 
-// predefine m_macros
+// predefine m_focusingShaderItemMacrosEdit
 #ifndef NOMINMAX
 #    define NOMINMAX
 #endif
@@ -72,3 +72,4 @@
 // utilities
 #include "EnumUtilities.h"
 #include "Flags.h"
+#include "Reference.h"

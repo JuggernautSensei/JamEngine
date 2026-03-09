@@ -3,7 +3,11 @@
 namespace Jam
 {
 
-template<typename TKey, typename TValue>
+template<
+    typename TKey,
+    typename TValue,
+    typename Hasher   = ankerl::unordered_dense::hash<TKey>,
+    typename KeyEqual = std::equal_to<TKey>>
 class LRUCache   // Last Recently Used Cache
 {
     struct Node
@@ -13,8 +17,10 @@ class LRUCache   // Last Recently Used Cache
     };
 
 public:
-    using Iter      = List<Node>::iterator;
-    using ConstIter = List<Node>::const_iterator;
+    using ListT             = List<Node>;
+    using ListIterator      = ListT::iterator;
+    using ListConstIterator = ListT::const_iterator;
+    using HashMapT          = HashMap<TKey, ListIterator>;
 
     explicit LRUCache(const SizeT capacity)
         : m_capacity(capacity)
@@ -43,7 +49,9 @@ public:
         }
     }
 
-    void Insert(const TKey& key, TValue&& value)
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    void Insert(UKey&& key, const TValue& value)
     {
         JAM_ASSERT(m_capacity > 0, "LRUCache::InsertEncode() - Capacity must be greater than zero.");
 
@@ -51,13 +59,13 @@ public:
         auto it = m_map.find(key);
         if (it != m_map.end())
         {
-            it->second->value = std::move(value);
+            it->second->value = value;
             UpdateUsage_(it->second);
         }
         else
         {
-            m_items.push_front(Node { key, std::move(value) });
-            m_map.emplace(key, m_items.begin());
+            m_items.push_front(Node { std::forward<UKey>(key), value });
+            m_map.emplace(std::forward<UKey>(key), m_items.begin());
 
             // evict oldest if over capacity
             RemoveOldestUntilFit_();
@@ -65,6 +73,18 @@ public:
     }
 
     void Remove(const TKey& key)
+    {
+        auto mapIter = m_map.find(key);
+        if (mapIter != m_map.end())
+        {
+            m_items.erase(mapIter->second);
+            m_map.erase(mapIter);
+        }
+    }
+
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    void Remove(UKey&& key)
     {
         auto mapIter = m_map.find(key);
         if (mapIter != m_map.end())
@@ -82,7 +102,7 @@ public:
 
     void RemoveOldest()
     {
-        JAM_ASSERT(GetNumItems() > 0, "LRUCache::RemoveOldest() - No items to remove.");
+        JAM_ASSERT(GetSize() > 0, "LRUCache::RemoveOldest() - No items to remove.");
 
         const Node& oldest = m_items.back();
         m_map.erase(oldest.key);
@@ -118,6 +138,39 @@ public:
         }
     }
 
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    [[nodiscard]] const TValue& At(UKey&& key) const
+    {
+        auto it = m_map.find(key);
+        if (it != m_map.end())
+        {
+            UpdateUsage_(it->second);
+            return it->second->value;
+        }
+        else
+        {
+            JAM_UNREACHABLE;
+        }
+    }
+
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    [[nodiscard]] TValue& At(UKey&& key)
+    {
+        auto it = m_map.find(key);
+        if (it != m_map.end())
+        {
+            UpdateUsage_(it->second);
+            return it->second->value;
+        }
+        else
+        {
+            Insert(std::forward<UKey>(key), TValue {});
+            return At(std::forward<UKey>(key));
+        }
+    }
+
     [[nodiscard]] const TValue& operator[](const TKey& key) const
     {
         return At(key);
@@ -128,12 +181,33 @@ public:
         return At(key);
     }
 
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    [[nodiscard]] const TValue& operator[](UKey&& key) const
+    {
+        return At(std::forward<UKey>(key));
+    }
+
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    [[nodiscard]] TValue& operator[](UKey&& key)
+    {
+        return At(std::forward<UKey>(key));
+    }
+
     [[nodiscard]] bool Contains(const TKey& key) const
     {
         return m_map.contains(key);
     }
 
-    [[nodiscard]] SizeT GetNumItems() const
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    [[nodiscard]] bool Contains(UKey&& key) const
+    {
+        return m_map.contains(std::forward<UKey>(key));
+    }
+
+    [[nodiscard]] SizeT GetSize() const
     {
         return m_items.size();
     }
@@ -157,7 +231,7 @@ public:
         return m_capacity;
     }
 
-    [[nodiscard]] Iter Find(const TKey& key)
+    [[nodiscard]] ListIterator Find(const TKey& key)
     {
         auto it = m_map.find(key);
         if (it != m_map.end())
@@ -171,7 +245,7 @@ public:
         }
     }
 
-    [[nodiscard]] ConstIter Find(const TKey& key) const
+    [[nodiscard]] ListConstIterator Find(const TKey& key) const
     {
         auto it = m_map.find(key);
         if (it != m_map.end())
@@ -184,22 +258,53 @@ public:
         }
     }
 
-    Iter Begin()
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    [[nodiscard]] ListIterator Find(UKey&& key)
+    {
+        auto it = m_map.find(key);
+        if (it != m_map.end())
+        {
+            UpdateUsage_(it->second);
+            return it->second;
+        }
+        else
+        {
+            return m_items.end();
+        }
+    }
+
+    template<typename UKey>
+        requires ankerl::unordered_dense::detail::is_transparent_v<Hasher, KeyEqual>
+    [[nodiscard]] ListConstIterator Find(UKey&& key) const
+    {
+        auto it = m_map.find(key);
+        if (it != m_map.end())
+        {
+            return it->second;
+        }
+        else
+        {
+            return m_items.end();
+        }
+    }
+
+    ListIterator Begin()
     {
         return m_items.begin();
     }
 
-    Iter End()
+    ListIterator End()
     {
         return m_items.end();
     }
 
-    ConstIter Begin() const
+    ListConstIterator Begin() const
     {
         return m_items.begin();
     }
 
-    ConstIter End() const
+    ListConstIterator End() const
     {
         return m_items.end();
     }
@@ -207,20 +312,23 @@ public:
 private:
     void RemoveOldestUntilFit_()
     {
-        while (GetNumItems() > m_capacity)
+        while (GetSize() > m_capacity)
         {
             RemoveOldest();
         }
     }
 
-    void UpdateUsage_(const Iter _iter)
+    void UpdateUsage_(const ListIterator _iter)
     {
         m_items.splice(m_items.begin(), m_items, _iter);
     }
 
-    List<Node>          m_items    = {};   // front: newest, back: oldest
-    HashMap<TKey, Iter> m_map      = {};
-    SizeT               m_capacity = 0;
+    ListT    m_items    = {};   // front: newest, back: oldest
+    HashMapT m_map      = {};
+    SizeT    m_capacity = 0;
 };
+
+template<typename TValue, typename KeyEqual = std::equal_to<TValue>>
+using StringLRUCache = LRUCache<String, TValue, Details::StringHashMapHasher, KeyEqual>;
 
 }   // namespace Jam

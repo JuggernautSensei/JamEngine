@@ -395,16 +395,16 @@ Error ReadFromArchive(ArchiveReader& _reader, EnumArray<TEnum, TValue>& _enumArr
 }
 
 // math
-void  WriteToArchive(ArchiveWriter& _writer, Vec3 _value);
-Error ReadFromArchive(ArchiveReader& _reader, Vec3& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Vec3);
+void  WriteToArchive(ArchiveWriter& _writer, Vector3 _value);
+Error ReadFromArchive(ArchiveReader& _reader, Vector3& _value);
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Vector3);
 
-void  WriteToArchive(ArchiveWriter& _writer, Vec2 _value);
-Error ReadFromArchive(ArchiveReader& _reader, Vec2& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Vec2);
+void  WriteToArchive(ArchiveWriter& _writer, Vector2 _value);
+Error ReadFromArchive(ArchiveReader& _reader, Vector2& _value);
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Vector2);
 
-void  WriteToArchive(ArchiveWriter& _writer, const Mtx4& _value);
-Error ReadFromArchive(ArchiveReader& _reader, Mtx4& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Mtx4);
+void  WriteToArchive(ArchiveWriter& _writer, const Matrix4x4& _value);
+Error ReadFromArchive(ArchiveReader& _reader, Matrix4x4& _value);
+JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Matrix4x4);
 
 }   // namespace Jam

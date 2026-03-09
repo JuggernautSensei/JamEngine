@@ -105,7 +105,7 @@ private:
     // camera
     Camera    m_camera                 = {};
     Transform m_cameraTransform        = {};
-    Vec3      m_cameraEulerRad         = vec3::k_zero;
+    Vector3      m_cameraEulerRad         = Vec3::k_zero;
     float     m_cameraMoveSpeed        = 5.f;
     float     m_cameraRotSpeed         = 1.2f;
     bool      m_bShowCameraTranslation = true;
@@ -139,9 +139,9 @@ private:
     Ref<Texture> m_scaleIcon      = nullptr;
     Ref<Texture> m_tranlationIcon = nullptr;
 
-    static constexpr Vec3   k_translateSnap    = Vec3 { 0.5f };
-    static constexpr Vec3   k_rotateSnapDeg    = Vec3 { 15.f };
-    static constexpr Vec3   k_scaleSnap        = Vec3 { 0.5f };
+    static constexpr Vector3   k_translateSnap    = Vector3 { 0.5f };
+    static constexpr Vector3   k_rotateSnapDeg    = Vector3 { 15.f };
+    static constexpr Vector3   k_scaleSnap        = Vector3 { 0.5f };
     static constexpr ImVec2 k_modeBtnSize      = ImVec2 { 100.f, 0.f };
     static constexpr RGBA   k_boundingBoxCol   = RGBA { 0xFF9D23FF };
     static constexpr float  k_dragSensitivity  = 0.001f;

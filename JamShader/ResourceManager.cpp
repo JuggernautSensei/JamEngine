@@ -12,18 +12,23 @@ void ResourceManager::OnUpdate(
     }
 }
 
+void ResourceManager::OnEvent(Event& _event)
+{
+}
+
 Expect<Ref<ShaderSource>> ResourceManager::LoadShaderSource(
     const StringView _path,
     const bool       _bReload)
 {
-    const auto iter = m_shaderSources.find(_path);
+    const String absPath = FileSystem::Absolute(_path);
+    const auto   iter    = m_shaderSources.find(absPath);
     if (iter != m_shaderSources.end())
     {
         Ref<ShaderSource>& pSource = iter->second;
 
         if (_bReload)
         {
-            if (const Error err = pSource->Reload())
+            if (const Error err = pSource->Load())
             {
                 return err;
             }
@@ -52,35 +57,6 @@ bool ResourceManager::HasShaderSource(
     return m_shaderSources.contains(_path);
 }
 
-void ResourceManager::ConnectResourceOnChange(
-    const Ref<Resource>&    _pSource,
-    const OnChangeDelegate& _delegate,
-    const Ref<Resource>&    _pTarget)
-{
-    JAM_ASSERT(_pSource, "Cannot connect change for a null source resource.");
-    JAM_ASSERT(_delegate, "Cannot connect change for an empty delegate.");
-    JAM_ASSERT(_pTarget, "Cannot connect change for a null target resource.");
-    JAM_ASSERT(_delegate.GetCallerAddress() == reinterpret_cast<UInt64>(_pSource.GetPtr()), "Delegate caller does not match the source resource.");
-
-    ResourceData& targetData = m_resourceData[_pTarget];
-    ResourceData& callerData = m_resourceData[_pSource];
-    callerData.onChangedScopedConnections.emplace_back(targetData.onChangeSignal.ConnectScoped(_delegate));
-}
-
-void ResourceManager::NotifyResourceChange(
-    const Ref<Resource>&      _pResource,
-    const eResourceChangeType _type) const
-{
-    JAM_ASSERT(_pResource, "Cannot notify change for a null resource.");
-
-    auto iter = m_resourceData.find(_pResource);
-    if (iter != m_resourceData.end())
-    {
-        const ResourceData& resourceData = iter->second;
-        resourceData.onChangeSignal.Emit(_pResource, _type);
-    }
-}
-
 void ResourceManager::CreateInstance()
 {
     JAM_ASSERT(s_pInstance == nullptr, "ResourceManager instance already exists.");
@@ -100,6 +76,21 @@ ResourceManager& ResourceManager::GetInstance()
     return *s_pInstance;
 }
 
+void ResourceManager::OnFileRenamedEvent_(
+    const FileRenamedEvent& _event)
+{
+}
+
+void ResourceManager::OnFileDeletedEvent_(
+    const FileDeletedEvent& _event)
+{
+    auto it = m_shaderSources.find(_event.GetPath());
+    if (it != m_shaderSources.end())
+    {
+        m_shaderSources.erase(it);
+    }
+}
+
 void ResourceManager::CleanUpGarbage()
 {
     for (auto it = m_shaderSources.begin(); it != m_shaderSources.end();)
@@ -108,19 +99,6 @@ void ResourceManager::CleanUpGarbage()
         if (pSource->GetRefCount() == 1)   // only held by the map
         {
             it = m_shaderSources.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
-    for (auto it = m_resourceData.begin(); it != m_resourceData.end();)
-    {
-        const Ref<Resource>& pResource = it->first;
-        if (pResource->GetRefCount() == 1)   // only held by the map
-        {
-            it = m_resourceData.erase(it);
         }
         else
         {

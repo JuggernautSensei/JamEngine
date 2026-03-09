@@ -323,7 +323,7 @@ void Mesh::ComputeBoundingBox_(
     m_boundingBox = {};
     for (Int32 i = 0; i < numVerts; ++i)
     {
-        const Vec3 pos = reader.ReadAt<Vec3>(i, eVertexAttribute::Position);
+        const Vector3 pos = reader.ReadAt<Vector3>(i, eVertexAttribute::Position);
         m_boundingBox.Merge(pos);   // merge aabb
     }
 }

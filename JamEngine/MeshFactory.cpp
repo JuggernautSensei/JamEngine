@@ -15,8 +15,8 @@ namespace
 {
 
     [[nodiscard]] Ref<Mesh> CreateMesh_(
-        const Span<const Vec3> _positions,
-        const Span<const Vec2> _texCoords,
+        const Span<const Vector3> _positions,
+        const Span<const Vector2> _texCoords,
         const CMemoryBlock     _idxData,
         const bool             _bUseU32,
         const VertexLayout&    _vl)
@@ -32,7 +32,7 @@ namespace
         const bool bHasTexCoord  = _vl.Has(eVertexAttribute::TexCoord0);
 
         // 노멀 계산
-        Vector<Vec3> normals = {};
+        Vector<Vector3> normals = {};
         if (bHasNormal)
         {
             normals = ComputeNormals(_positions, _idxData, _bUseU32);
@@ -93,14 +93,14 @@ namespace
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ref<Mesh> CreateCubeMesh(
-    const Vec3          _size,
+    const Vector3          _size,
     const VertexLayout& _vl)
 {
     const float hWidth  = _size.x * 0.5f;
     const float hHeight = _size.y * 0.5f;
     const float hDepth  = _size.z * 0.5f;
 
-    const Vec3 positions[] = {
+    const Vector3 positions[] = {
         // front face
         { -hWidth, -hHeight, -hDepth },
         { -hWidth, +hHeight, -hDepth },
@@ -133,7 +133,7 @@ Ref<Mesh> CreateCubeMesh(
         { +hWidth, -hHeight, +hDepth },
     };
 
-    constexpr Vec2 k_texcoords[] = {
+    constexpr Vector2 k_texcoords[] = {
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
@@ -210,7 +210,7 @@ Ref<Mesh> CreateSphereMesh(
     // base icosahedron vertices
     constexpr float k_t = (1.0f + Sqrt(5.0f)) / 2.0f;
 
-    constexpr Vec3 k_positions[] = {
+    constexpr Vector3 k_positions[] = {
         { -1.f, +k_t,  0.f },
         { +1.f, +k_t,  0.f },
         { -1.f, -k_t,  0.f },
@@ -225,7 +225,7 @@ Ref<Mesh> CreateSphereMesh(
         { -k_t,  0.f, +1.f },
     };
 
-    constexpr Vec2 k_texCoords[] = {
+    constexpr Vector2 k_texCoords[] = {
         { 0.00f, 0.00f },
         { 1.00f, 0.00f },
         { 0.00f, 1.00f },
@@ -309,7 +309,7 @@ Ref<Mesh> CreateSphereMesh(
         LoopSubdivisionOutputWithTexcoords output = LoopSubdivide(k_positions, k_texCoords, k_indices, false, _divisionLevel);
 
         // normalize and scale to sphere radius
-        for (Vec3& pos: output.positions)
+        for (Vector3& pos: output.positions)
         {
             pos.Normalize();
             pos *= _radius;
@@ -325,20 +325,20 @@ Ref<Mesh> CreateSphereMesh(
 }
 
 Ref<Mesh> CreatePlaneMesh(
-    const Vec2&         _size,
+    const Vector2&         _size,
     const VertexLayout& _vl)
 {
     const float hWidth = _size.x * 0.5f;
     const float hDepth = _size.y * 0.5f;
 
-    const Vec3 positions[] = {
+    const Vector3 positions[] = {
         { -hWidth, 0.f, -hDepth },
         { -hWidth, 0.f, +hDepth },
         { +hWidth, 0.f, +hDepth },
         { +hWidth, 0.f, -hDepth },
     };
 
-    constexpr Vec2 k_texcoords[] = {
+    constexpr Vector2 k_texcoords[] = {
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
@@ -362,12 +362,12 @@ Ref<Mesh> CreateCircle(
     const Int32 numVerts = _numTri + 1;   // triangles + center vertex
     JAM_ASSERT(CmpLessEqual(numVerts, Limits<UInt16>::k_max), "Too many triangles for circle.");
 
-    Vector<Vec3> positions(numVerts);
-    Vector<Vec2> texcoords(numVerts);
+    Vector<Vector3> positions(numVerts);
+    Vector<Vector2> texcoords(numVerts);
 
     // center vertex
-    positions[0] = vec3::k_zero;
-    texcoords[0] = Vec2 { 0.5f, 0.5f };
+    positions[0] = Vec3::k_zero;
+    texcoords[0] = Vector2 { 0.5f, 0.5f };
 
     // circle vertices
     const float step = k_2pi / NumericCast<float>(_numTri);
@@ -378,8 +378,8 @@ Ref<Mesh> CreateCircle(
         const float x     = c * _radius;
         const float z     = s * _radius;
 
-        positions[i + 1] = Vec3 { x, 0.f, z };
-        texcoords[i + 1] = Vec2 { (x / _radius + 1.f) * 0.5f, (z / _radius + 1.f) * 0.5f };
+        positions[i + 1] = Vector3 { x, 0.f, z };
+        texcoords[i + 1] = Vector2 { (x / _radius + 1.f) * 0.5f, (z / _radius + 1.f) * 0.5f };
     }
 
     // generate indices
@@ -405,12 +405,12 @@ Ref<Mesh> CreateCone(
     const Int32 numVerts = _numTri + 2;   // base circle + apex + base center
     JAM_ASSERT(CmpLessEqual(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
 
-    Vector<Vec3> position(numVerts);
-    Vector<Vec2> texcoords(numVerts);
+    Vector<Vector3> position(numVerts);
+    Vector<Vector2> texcoords(numVerts);
 
     // apex vertex
-    position[0]  = Vec3 { 0.f, _height * 0.5f, 0.f };
-    texcoords[0] = Vec2 { 0.5f, 0.f };
+    position[0]  = Vector3 { 0.f, _height * 0.5f, 0.f };
+    texcoords[0] = Vector2 { 0.5f, 0.f };
 
     // base circle vertices
     const float step = k_2pi / NumericCast<float>(_numTri);
@@ -421,14 +421,14 @@ Ref<Mesh> CreateCone(
         const float x     = c * _radius;
         const float z     = s * _radius;
 
-        position[i + 1]  = Vec3 { x, -_height * 0.5f, z };
-        texcoords[i + 1] = Vec2 { (x / _radius + 1.f) * 0.5f, (z / _radius + 1.f) * 0.5f };
+        position[i + 1]  = Vector3 { x, -_height * 0.5f, z };
+        texcoords[i + 1] = Vector2 { (x / _radius + 1.f) * 0.5f, (z / _radius + 1.f) * 0.5f };
     }
 
     // base center vertex
     const Int32 bottomCenterIdx = numVerts - 1;
-    position[bottomCenterIdx]   = Vec3 { 0.f, -_height * 0.5f, 0.f };
-    texcoords[bottomCenterIdx]  = Vec2 { 0.5f, 0.5f };
+    position[bottomCenterIdx]   = Vector3 { 0.f, -_height * 0.5f, 0.f };
+    texcoords[bottomCenterIdx]  = Vector2 { 0.5f, 0.5f };
 
     // generate indices
     Vector<UInt16> idxes(_numTri * 6);
@@ -462,8 +462,8 @@ Ref<Mesh> CreateCylinder(
     const Int32 numVerts = _numTries * 2 + 2;   // top + bottom circles + 2 centers
     JAM_ASSERT(CmpLessEqual(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
 
-    Vector<Vec3> position(numVerts);
-    Vector<Vec2> texcoords(numVerts);
+    Vector<Vector3> position(numVerts);
+    Vector<Vector2> texcoords(numVerts);
 
     // top circle vertices
     const float step = k_2pi / NumericCast<float>(_numTries);
@@ -474,8 +474,8 @@ Ref<Mesh> CreateCylinder(
         const float x     = c * _radius;
         const float z     = s * _radius;
 
-        position[i]  = Vec3 { x, _height * 0.5f, z };
-        texcoords[i] = Vec2 { NumericCast<float>(i) / NumericCast<float>(_numTries), 1.f };
+        position[i]  = Vector3 { x, _height * 0.5f, z };
+        texcoords[i] = Vector2 { NumericCast<float>(i) / NumericCast<float>(_numTries), 1.f };
     }
 
     // bottom circle vertices
@@ -486,19 +486,19 @@ Ref<Mesh> CreateCylinder(
         const float x     = c * _radius;
         const float z     = s * _radius;
 
-        position[i + _numTries]  = Vec3 { x, -_height * 0.5f, z };
-        texcoords[i + _numTries] = Vec2 { NumericCast<float>(i) / NumericCast<float>(_numTries), 0.f };
+        position[i + _numTries]  = Vector3 { x, -_height * 0.5f, z };
+        texcoords[i + _numTries] = Vector2 { NumericCast<float>(i) / NumericCast<float>(_numTries), 0.f };
     }
 
     // center vertices
     const Int32 topCircleCenterIdx = _numTries * 2;
     const Int32 botCircleCenterIdx = _numTries * 2 + 1;
 
-    position[topCircleCenterIdx]  = Vec3 { 0.f, _height * 0.5f, 0.f };
-    texcoords[topCircleCenterIdx] = Vec2 { 0.5f, 0.5f };
+    position[topCircleCenterIdx]  = Vector3 { 0.f, _height * 0.5f, 0.f };
+    texcoords[topCircleCenterIdx] = Vector2 { 0.5f, 0.5f };
 
-    position[botCircleCenterIdx]  = Vec3 { 0.f, -_height * 0.5f, 0.f };
-    texcoords[botCircleCenterIdx] = Vec2 { 0.5f, 0.5f };
+    position[botCircleCenterIdx]  = Vector3 { 0.f, -_height * 0.5f, 0.f };
+    texcoords[botCircleCenterIdx] = Vector2 { 0.5f, 0.5f };
 
     // generate indices
     Vector<UInt16> idxes(_numTries * 12);
@@ -533,8 +533,8 @@ Ref<Mesh> CreateCylinder(
     return CreateMesh_(position, texcoords, idxes, false, _vl);
 }
 
-Vector<Vec3> ComputeNormals(
-    const Span<const Vec3> _positions,
+Vector<Vector3> ComputeNormals(
+    const Span<const Vector3> _positions,
     const CMemoryBlock     _idxData,
     const bool             _bUseU32)
 {
@@ -544,7 +544,7 @@ Vector<Vec3> ComputeNormals(
     const Int32 numFaces = numIdxes / 3;
 
     // accumulate weighted normals per vertex
-    Vector<Vec3> tmpNormals(numVerts);
+    Vector<Vector3> tmpNormals(numVerts);
     for (Int32 i = 0; i < numFaces; ++i)
     {
         // read triangle indices
@@ -554,24 +554,24 @@ Vector<Vec3> ComputeNormals(
         JAM_ASSERT(CmpLess(i0, numVerts) && CmpLess(i1, numVerts) && CmpLess(i2, numVerts), "Index out of range.");
 
         // get triangle positions
-        const Vec3 p0 = _positions[i0];
-        const Vec3 p1 = _positions[i1];
-        const Vec3 p2 = _positions[i2];
+        const Vector3 p0 = _positions[i0];
+        const Vector3 p1 = _positions[i1];
+        const Vector3 p2 = _positions[i2];
 
         // calculate face normal
-        const Vec3 edge1      = Normalized(p1 - p0);
-        const Vec3 edge2      = Normalized(p2 - p0);
-        const Vec3 faceNormal = Normalized(Cross(edge1, edge2));
+        const Vector3 edge1      = Normalized(p1 - p0);
+        const Vector3 edge2      = Normalized(p2 - p0);
+        const Vector3 faceNormal = Normalized(Cross(edge1, edge2));
 
         // calculate angle weights for each vertex
         const float angle0 = Acos(Clamp(Dot(edge1, edge2), -1.0f, 1.0f));
 
-        const Vec3  edge3  = Normalized(p2 - p1);
-        const Vec3  edge4  = Normalized(p0 - p1);
+        const Vector3  edge3  = Normalized(p2 - p1);
+        const Vector3  edge4  = Normalized(p0 - p1);
         const float angle1 = Acos(Clamp(Dot(edge3, edge4), -1.0f, 1.0f));
 
-        const Vec3  edge5  = Normalized(p0 - p2);
-        const Vec3  edge6  = Normalized(p1 - p2);
+        const Vector3  edge5  = Normalized(p0 - p2);
+        const Vector3  edge6  = Normalized(p1 - p2);
         const float angle2 = Acos(Clamp(Dot(edge5, edge6), -1.0f, 1.0f));
 
         // accumulate angle-weighted face normals
@@ -581,7 +581,7 @@ Vector<Vec3> ComputeNormals(
     }
 
     // normalize accumulated normals
-    Vector<Vec3> normals = {};
+    Vector<Vector3> normals = {};
     normals.reserve(numVerts);
     for (SizeT i = 0; i < numVerts; ++i)
     {
@@ -592,9 +592,9 @@ Vector<Vec3> ComputeNormals(
 }
 
 TangentFrame ComputeTangentFrame(
-    const Span<const Vec3> _positions,
-    const Span<const Vec3> _normals,
-    const Span<const Vec2> _texCoords,
+    const Span<const Vector3> _positions,
+    const Span<const Vector3> _normals,
+    const Span<const Vector2> _texCoords,
     const CMemoryBlock     _idxData,
     const bool             _bUseU32)
 {
@@ -606,8 +606,8 @@ TangentFrame ComputeTangentFrame(
     const Int32 numFaces = numIdxes / 3;
 
     // temporary accumulation vectors
-    Vector<Vec3> tan1(numVerts);
-    Vector<Vec3> tan2(numVerts);
+    Vector<Vector3> tan1(numVerts);
+    Vector<Vector3> tan2(numVerts);
     for (Int32 i = 0; i < numFaces; ++i)
     {
         // read triangle indices
@@ -618,13 +618,13 @@ TangentFrame ComputeTangentFrame(
         JAM_ASSERT(CmpLess(i0, numVerts) && CmpLess(i1, numVerts) && CmpLess(i2, numVerts), "Index out of range.");
 
         // get triangle data
-        const Vec3 v0 = _positions[i0];
-        const Vec3 v1 = _positions[i1];
-        const Vec3 v2 = _positions[i2];
+        const Vector3 v0 = _positions[i0];
+        const Vector3 v1 = _positions[i1];
+        const Vector3 v2 = _positions[i2];
 
-        const Vec2& w0 = _texCoords[i0];
-        const Vec2& w1 = _texCoords[i1];
-        const Vec2& w2 = _texCoords[i2];
+        const Vector2& w0 = _texCoords[i0];
+        const Vector2& w1 = _texCoords[i1];
+        const Vector2& w2 = _texCoords[i2];
 
         // calculate position deltas
         const float x1 = v1.x - v0.x;
@@ -645,13 +645,13 @@ TangentFrame ComputeTangentFrame(
         det       = IsZeroApprox(det) ? 1.0f : 1.0f / det;
 
         // calculate tangent and bitangent directions
-        const Vec3 sdir = {
+        const Vector3 sdir = {
             (t2 * x1 - t1 * x2) * det,
             (t2 * y1 - t1 * y2) * det,
             (t2 * z1 - t1 * z2) * det
         };
 
-        const Vec3 tdir = {
+        const Vector3 tdir = {
             (s1 * x2 - s2 * x1) * det,
             (s1 * y2 - s2 * y1) * det,
             (s1 * z2 - s2 * z1) * det
@@ -668,43 +668,43 @@ TangentFrame ComputeTangentFrame(
     }
 
     // orthogonalize and calculate final tangent frame
-    Vector<Vec3> tans = {};
+    Vector<Vector3> tans = {};
     tans.reserve(numVerts);
 
-    Vector<Vec3> bitans = {};
+    Vector<Vector3> bitans = {};
     bitans.reserve(numVerts);
 
     for (SizeT i = 0; i < numVerts; ++i)
     {
-        const Vec3 n = _normals[i];
-        const Vec3 t = tan1[i];
+        const Vector3 n = _normals[i];
+        const Vector3 t = tan1[i];
 
         // orthogonalize
-        Vec3 tan = Normalized(t - n * Dot(n, t));
+        Vector3 tan = Normalized(t - n * Dot(n, t));
 
         // handle degenerate case
         if (IsZeroApprox(tan))
         {
             // choose an arbitrary perpendicular axis
-            Vec3 axis;
+            Vector3 axis;
             if (n.x < n.y && n.x < n.z)
             {
-                axis = Vec3 { 1.f, 0.f, 0.f };   // x axis
+                axis = Vector3 { 1.f, 0.f, 0.f };   // x axis
             }
             else if (n.y < n.z)
             {
-                axis = Vec3 { 0.f, 1.f, 0.f };   // x axis
+                axis = Vector3 { 0.f, 1.f, 0.f };   // x axis
             }
             else
             {
-                axis = Vec3 { 0.f, 0.f, 1.f };   // x axis
+                axis = Vector3 { 0.f, 0.f, 1.f };   // x axis
             }
 
             tan = Normalized(Cross(n, axis));
         }
 
         // calculate bitangent and determine handedness
-        Vec3        bitan      = Normalized(Cross(n, tan));
+        Vector3        bitan      = Normalized(Cross(n, tan));
         const float handedness = Dot(Cross(n, tan), tan2[i]);
         if (handedness < 0.0f)
         {

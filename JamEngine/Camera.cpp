@@ -5,7 +5,7 @@
 namespace Jam
 {
 
-Mtx4 Camera::ToProjMatrix() const
+Matrix4x4 Camera::ToProjMatrix() const
 {
     if (m_projection == eProjection::Orthographic)
     {

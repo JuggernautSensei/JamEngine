@@ -46,7 +46,7 @@ void EnvironmentComponent::DrawEditPanel(
 
         // row: radiance
         {
-            Vec3 radiance = environment.GetDirectionalLightRadiance();
+            Vector3 radiance = environment.GetDirectionalLightRadiance();
 
             ImGui::TableNextColumn();
             Widget_Text("radiance", true);
@@ -76,9 +76,9 @@ void EnvironmentComponent::DrawEditPanel(
         {
             static EulerProxy s_proxy = {};
 
-            Vec3 direction = environment.GetDirectionalLightDirection();
+            Vector3 direction = environment.GetDirectionalLightDirection();
             s_proxy.OnBeforeWidget(direction);
-            Vec3& euler = s_proxy.GetEulerProxy();
+            Vector3& euler = s_proxy.GetEulerProxy();
 
             ImGui::TableNextColumn();
             Widget_Text("direction", true);
@@ -249,7 +249,7 @@ void EnvironmentComponent::DrawEditPanel(
         // row: solid value
         if (type == eSkyboxType::SolidColor)
         {
-            Vec3 color = environment.GetSkyboxSolidColor();
+            Vector3 color = environment.GetSkyboxSolidColor();
             ImGui::TableNextColumn();
             Widget_Text("solid value", true);
             ImGui::TableNextColumn();
@@ -325,7 +325,7 @@ void EnvironmentComponent::DrawEditPanel(
 
         // row: radiance
         {
-            Vec3 radiance = environment.GetFogRadiance();
+            Vector3 radiance = environment.GetFogRadiance();
             ImGui::TableNextColumn();
             Widget_Text("radiance", true);
             ImGui::TableNextColumn();

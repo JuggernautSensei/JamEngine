@@ -73,9 +73,19 @@ public:
         return (m_value & _flags.m_value) == _flags.m_value;
     }
 
+    [[nodiscard]] constexpr bool IsAnyEnabled(Flags _flags) const noexcept
+    {
+        return (m_value & _flags.m_value) != 0;
+    }
+
     [[nodiscard]] constexpr bool IsDisabled(Flags _flags) const noexcept
     {
         return (m_value & _flags.m_value) == 0;
+    }
+
+    [[nodiscard]] constexpr bool IsAnyDisabled(Flags _flags) const noexcept
+    {
+        return (m_value & _flags.m_value) != _flags.m_value;
     }
 
     void Enable(Flags _flags) noexcept
@@ -274,13 +284,6 @@ public:
 private:
     UnderlyingT m_value = UnderlyingT { 0 };
 };
-
-template<typename E>
-    requires std::is_enum_v<E>
-Flags<E> MakeFlags(std::initializer_list<E> _list) noexcept
-{
-    return Flags<E> { _list };
-}
 
 template<typename E>
     requires std::is_enum_v<E>

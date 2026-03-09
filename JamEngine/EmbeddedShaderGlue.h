@@ -14,10 +14,10 @@
         struct alignas(16) _name
 
 #    define JAM_FLOAT  float
-#    define JAM_FLOAT2 Vec2
-#    define JAM_FLOAT3 Vec3
-#    define JAM_FLOAT4 Vec4
-#    define JAM_MATRIX Mtx4
+#    define JAM_FLOAT2 Vector2
+#    define JAM_FLOAT3 Vector3
+#    define JAM_FLOAT4 Vector4
+#    define JAM_MATRIX Matrix4x4
 #    define JAM_INT32  __int32
 #    define JAM_UINT32 unsigned __int32
 #    define JAM_BOOL   __int32

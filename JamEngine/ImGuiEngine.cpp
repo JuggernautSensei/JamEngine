@@ -117,9 +117,9 @@ namespace
         ShaderCompilerInfo desc = {};
         desc.stage              = _stage;
 
-        Expect<ShaderCompiler> blob = ShaderCompiler::CompileFromHLSLSource(_source, desc);
-        JAM_ASSERT(blob, "Failed to compile ImGui shader: {}", blob.GetError().ToErrorMessage());
-        return GetGraphics().CreateShader(blob->GetBytecode());
+        ShaderCompiler complier = ShaderCompiler::CompileHLSLSource(_source, desc);
+        JAM_ASSERT(complier.IsSucceeded(), "Failed to compile ImGui shader: {}", complier.GetError().ToErrorMessage());
+        return GetGraphics().CreateShader(complier.GetBytecode());
     }
 
 }   // namespace

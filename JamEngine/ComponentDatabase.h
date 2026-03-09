@@ -180,13 +180,13 @@ public:
     [[nodiscard]] const ComponentReflectionData& GetComponentReflection(UInt32 _typeHash) const;
     [[nodiscard]] const ComponentReflectionData& GetComponentReflection(StringView _typeName) const;
 
-    [[nodiscard]] const HashMap<UInt32, ComponentReflectionData>& GetComponentReflectionContainer() const;
+    [[nodiscard]] const CASHashMap<UInt32, ComponentReflectionData>& GetComponentReflectionContainer() const;
 
 private:
     static void DestroyInstance();
 
-    HashMap<UInt32, ComponentReflectionData> m_componentMetadataContainer = {};
-    HashMap<UInt32, UInt32>                  m_enttHashToTypeHashMap      = {};   // only supported for components
+    CASHashMap<UInt32, ComponentReflectionData> m_componentMetadataContainer = {};
+    CASHashMap<UInt32, UInt32>                  m_enttHashToTypeHashMap      = {};   // only supported for components
 
     inline static ComponentDatabase* s_pInstance = nullptr;
     friend class Application;
@@ -217,4 +217,4 @@ private:                                                                        
     inline static Jam::Details::ComponentReflector<TCmp> JAM_COMPONENT_REFLECTED = {}; \
                                                                                        \
 public:                                                                                \
-    JAM_COMPONENT_METADATA_ESSENTIAL_MARKER()  
+    JAM_COMPONENT_METADATA_ESSENTIAL_MARKER()

@@ -44,19 +44,19 @@ namespace
         return idx ? idx.GetValue() : k_invalidImportedTextureIdx;
     }
 
-    [[nodiscard]] Vec2 Vec2From(
+    [[nodiscard]] Vector2 Vec2From(
         const aiVector3D _vec)
     {
         return { _vec.x, _vec.y };
     }
 
-    [[nodiscard]] Vec3 Vec3From(
+    [[nodiscard]] Vector3 Vec3From(
         const aiVector3D _vec)
     {
         return { _vec.x, _vec.y, _vec.z };
     }
 
-    [[nodiscard]] Vec4 Vec4From(
+    [[nodiscard]] Vector4 Vec4From(
         const aiColor4D _color)
     {
         return { _color.r, _color.g, _color.b, _color.a };
@@ -424,7 +424,7 @@ void AssimpImporter::ImportMeshes_(
             importedMesh.positions.reserve(numVerts);
             for (Int32 v = 0; v < numVerts; ++v)
             {
-                const Vec3 pos = Vec3From(pMesh->mVertices[v]);
+                const Vector3 pos = Vec3From(pMesh->mVertices[v]);
                 importedMesh.positions.emplace_back(pos);
             }
         }
@@ -434,11 +434,11 @@ void AssimpImporter::ImportMeshes_(
         {
             if (pMesh->HasTextureCoords(j))
             {
-                Vector<Vec2>& texCoord = importedMesh.texCoords[j];
+                Vector<Vector2>& texCoord = importedMesh.texCoords[j];
                 texCoord.reserve(numVerts);
                 for (Int32 k = 0; k < numVerts; ++k)
                 {
-                    const Vec2 uv = Vec2From(pMesh->mTextureCoords[j][k]);
+                    const Vector2 uv = Vec2From(pMesh->mTextureCoords[j][k]);
                     texCoord.emplace_back(uv);
                 }
             }
@@ -449,11 +449,11 @@ void AssimpImporter::ImportMeshes_(
         {
             if (pMesh->HasVertexColors(j))
             {
-                Vector<Vec4>& color = importedMesh.colors[j];
+                Vector<Vector4>& color = importedMesh.colors[j];
                 color.reserve(numVerts);
                 for (Int32 k = 0; k < numVerts; ++k)
                 {
-                    const Vec4 col = Vec4From(pMesh->mColors[j][k]);
+                    const Vector4 col = Vec4From(pMesh->mColors[j][k]);
                     color.emplace_back(col);
                 }
             }
@@ -466,7 +466,7 @@ void AssimpImporter::ImportMeshes_(
             importedMesh.normals.reserve(numVerts);
             for (Int32 v = 0; v < numVerts; ++v)
             {
-                const Vec3 normal = Vec3From(pMesh->mNormals[v]);
+                const Vector3 normal = Vec3From(pMesh->mNormals[v]);
                 importedMesh.normals.emplace_back(normal);
             }
         }
@@ -482,8 +482,8 @@ void AssimpImporter::ImportMeshes_(
             importedMesh.bitangents.reserve(numVerts);
             for (Int32 v = 0; v < numVerts; ++v)
             {
-                const Vec3 tangent   = Vec3From(pMesh->mTangents[v]);
-                const Vec3 bitangent = Vec3From(pMesh->mBitangents[v]);
+                const Vector3 tangent   = Vec3From(pMesh->mTangents[v]);
+                const Vector3 bitangent = Vec3From(pMesh->mBitangents[v]);
                 importedMesh.tangents.emplace_back(tangent);
                 importedMesh.bitangents.emplace_back(bitangent);
             }
@@ -589,19 +589,19 @@ void AssimpImporter::ImportMaterials_(
         // Ambient
         if (pMaterial->Get(AI_MATKEY_COLOR_AMBIENT, colParam) == AI_SUCCESS)
         {
-            importedMaterial.params.ambient = Vec3 { colParam.r, colParam.g, colParam.b };
+            importedMaterial.params.ambient = Vector3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Diffuse
         if (pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, colParam) == AI_SUCCESS)
         {
-            importedMaterial.params.diffuse = Vec3 { colParam.r, colParam.g, colParam.b };
+            importedMaterial.params.diffuse = Vector3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Specular
         if (pMaterial->Get(AI_MATKEY_COLOR_SPECULAR, colParam) == AI_SUCCESS)
         {
-            importedMaterial.params.specular = Vec3 { colParam.r, colParam.g, colParam.b };
+            importedMaterial.params.specular = Vector3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Shininess
@@ -613,7 +613,7 @@ void AssimpImporter::ImportMaterials_(
         // Base value / Albedo (PBR)
         if (pMaterial->Get(AI_MATKEY_BASE_COLOR, colParam) == AI_SUCCESS)
         {
-            importedMaterial.params.albedo = Vec3 { colParam.r, colParam.g, colParam.b };
+            importedMaterial.params.albedo = Vector3 { colParam.r, colParam.g, colParam.b };
         }
 
         // Roughness
@@ -637,7 +637,7 @@ void AssimpImporter::ImportMaterials_(
         // Emissive
         if (pMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, colParam) == AI_SUCCESS)
         {
-            importedMaterial.params.emissive = Vec3 { colParam.r, colParam.g, colParam.b };
+            importedMaterial.params.emissive = Vector3 { colParam.r, colParam.g, colParam.b };
         }
 
         // emissive intensity
@@ -686,7 +686,7 @@ ImportedModelNode AssimpImporter::ImportModelNode_Recursive_(
     {
         const aiMatrix4x4& aiMtx = _pNode->mTransformation;
 
-        Mtx4 mtx = {};
+        Matrix4x4 mtx = {};
         mtx._11 = aiMtx.a1, mtx._12 = aiMtx.a2, mtx._13 = aiMtx.a3, mtx._14 = aiMtx.a4;
         mtx._21 = aiMtx.b1, mtx._22 = aiMtx.b2, mtx._23 = aiMtx.b3, mtx._24 = aiMtx.b4;
         mtx._31 = aiMtx.c1, mtx._32 = aiMtx.c2, mtx._33 = aiMtx.c3, mtx._34 = aiMtx.c4;

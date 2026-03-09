@@ -41,12 +41,12 @@ public:
     // directional light
     void                SetDirectionalLightEnabled(bool _bEnabled);
     [[nodiscard]] bool  IsDirectionalLightEnabled() const;
-    void                SetDirectionalLightRadiance(Vec3 _radiance);
-    [[nodiscard]] Vec3  GetDirectionalLightRadiance() const;
+    void                SetDirectionalLightRadiance(Vector3 _radiance);
+    [[nodiscard]] Vector3  GetDirectionalLightRadiance() const;
     void                SetDirectionalLightIntensity(float _intensity);
     [[nodiscard]] float GetDirectionalLightIntensity() const;
-    void                SetDirectionalLightDirection(Vec3 _direction);
-    [[nodiscard]] Vec3  GetDirectionalLightDirection() const;
+    void                SetDirectionalLightDirection(Vector3 _direction);
+    [[nodiscard]] Vector3  GetDirectionalLightDirection() const;
 
     // directional light shadow (CSM)
     void                                       SetDirectionalLightShadowEnabled(bool _bEnabled);
@@ -73,8 +73,8 @@ public:
     [[nodiscard]] eSkyboxType         GetSkyboxType() const;
     void                              SetSkyboxTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetSkyboxTex() const;
-    void                              SetSkyboxSolidColor(Vec3 _color);
-    [[nodiscard]] Vec3                GetSkyboxSolidColor() const;
+    void                              SetSkyboxSolidColor(Vector3 _color);
+    [[nodiscard]] Vector3                GetSkyboxSolidColor() const;
 
     // ssao
     void                SetSsaoEnabled(bool _bEnabled);
@@ -87,8 +87,8 @@ public:
     // fog
     void                SetFogEnabled(bool _bEnabled);
     [[nodiscard]] bool  IsFogEnabled() const;
-    void                SetFogRadiance(Vec3 _radiance);
-    [[nodiscard]] Vec3  GetFogRadiance() const;
+    void                SetFogRadiance(Vector3 _radiance);
+    [[nodiscard]] Vector3  GetFogRadiance() const;
     void                SetFogDensity(float _density);
     [[nodiscard]] float GetFogDensity() const;
     void                SetFogFallOffStart(float _start);
@@ -136,9 +136,9 @@ public:
 private:
     // directional light
     bool  m_bDirLightEnabled  = false;
-    Vec3  m_dirLightRadiance  = { 1.f, 1.f, 1.f };
+    Vector3  m_dirLightRadiance  = { 1.f, 1.f, 1.f };
     float m_dirLightIntensity = 1.f;
-    Vec3  m_dirLightDirection = { 0.f, -1.f, 0.f };
+    Vector3  m_dirLightDirection = { 0.f, -1.f, 0.f };
 
     // directional light shadow (CSM)
     bool                  m_bDirLightShadowEnabled   = false;
@@ -155,7 +155,7 @@ private:
     // skybox
     eSkyboxType  m_skyboxType       = eSkyboxType::SolidColor;
     Ref<Texture> m_pSkyboxTex       = nullptr;                // cubemap
-    Vec3         m_skyboxSolidColor = { 0.2f, 0.2f, 0.2f };   // solid radiance
+    Vector3         m_skyboxSolidColor = { 0.2f, 0.2f, 0.2f };   // solid radiance
 
     // ssao
     bool  m_bSsaoEnabled = false;
@@ -164,7 +164,7 @@ private:
 
     // fog
     bool  m_bFogEnabled          = false;
-    Vec3  m_fogRadiance          = { 0.5f, 0.5f, 0.5f };
+    Vector3  m_fogRadiance          = { 0.5f, 0.5f, 0.5f };
     float m_fogDensity           = 0.01f;
     float m_fogFallOffStart      = 10.f;
     float m_fogFallOffEnd        = 100.f;

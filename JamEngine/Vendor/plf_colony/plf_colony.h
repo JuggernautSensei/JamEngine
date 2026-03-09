@@ -51,7 +51,7 @@
 		#define PLF_ALLOCATOR_TRAITS_SUPPORT
 	#endif
 	#if _MSC_VER >= 1800
-		#define PLF_VARIADICS_SUPPORT // Variadics, in this context, means both variadic templates and variadic m_macros are supported
+		#define PLF_VARIADICS_SUPPORT // Variadics, in this context, means both variadic templates and variadic m_focusingShaderItemMacrosEdit are supported
 		#define PLF_DEFAULT_TEMPLATE_ARGUMENT_SUPPORT
 		#define PLF_INITIALIZER_LIST_SUPPORT
 	#endif
@@ -839,7 +839,7 @@ public:
 
 
 	#ifdef PLF_MOVE_SEMANTICS_SUPPORT
-		// Splice constructors:
+		// VectorSplice constructors:
 
 		#ifdef PLF_CPP20_SUPPORT
 			colony(colony &&source, const std::type_identity_t<allocator_type> &alloc):
@@ -3609,7 +3609,7 @@ public:
 		}
 
 		if (begin_iterator.group_pointer != end_iterator.group_pointer)
-		{ // Splice all other groups onto the unused_groups list
+		{ // VectorSplice all other groups onto the unused_groups list
 			end_iterator.group_pointer->next_group = unused_groups_head;
 			unused_groups_head = begin_iterator.group_pointer->next_group;
 			end_iterator.group_pointer = begin_iterator.group_pointer; // other parts of iterator reset in the function below
@@ -3694,7 +3694,7 @@ public:
 
 	public:
 
-		// Splice assignment
+		// VectorSplice assignment
 		#ifdef PLF_IS_ALWAYS_EQUAL_SUPPORT
 			colony & operator = (colony &&source) PLF_NOEXCEPT(std::allocator_traits<allocator_type>::propagate_on_container_move_assignment::value || std::allocator_traits<allocator_type>::is_always_equal::value)
 		#else
@@ -4166,7 +4166,7 @@ public:
 			if ((to_aligned_pointer(end_iterator.group_pointer->skipfield) - end_iterator.element_pointer) > (to_aligned_pointer(source.end_iterator.group_pointer->skipfield) - source.end_iterator.element_pointer))
 			{
 				swap(source);
-				// Splice back unused groups list and block capacity limits so that source and *this retain their original ones:
+				// VectorSplice back unused groups list and block capacity limits so that source and *this retain their original ones:
 				std::swap(source.unused_groups_head, unused_groups_head);
 				std::swap(source.min_block_capacity, min_block_capacity);
 				std::swap(source.max_block_capacity, max_block_capacity);
@@ -4274,7 +4274,7 @@ public:
 			destroy_all_data();
 			unused_groups_head = original_unused_groups;
 
-			// Splice source data to *this:
+			// VectorSplice source data to *this:
 			end_iterator = source.end_iterator;
 			begin_iterator = source.begin_iterator;
 			erasure_groups_head = source.erasure_groups_head;

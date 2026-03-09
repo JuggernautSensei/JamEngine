@@ -24,6 +24,12 @@ using List = eastl::list<T, Allocator>;
 template<typename T, size_t Extent = eastl::dynamic_extent>
 using Span = eastl::span<T, Extent>;
 
+template<typename TKey, typename TValue, typename TCompare = std::less<TKey>, typename Allocator = std::allocator<std::pair<const TKey, TValue>>>
+using Map = std::map<TKey, TValue, TCompare, Allocator>;
+
+template<typename TKey, typename TCompare = std::less<TKey>, typename Allocator = std::allocator<TKey>>
+using Set = std::set<TKey, TCompare, Allocator>;
+
 }   // namespace Jam
 
 ////////// for eastl allocator //////////

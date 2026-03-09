@@ -336,7 +336,7 @@ struct RGBA
         };
     }
 
-    [[nodiscard]] constexpr Vec4 ToLinear() const
+    [[nodiscard]] constexpr Vector4 ToLinear() const
     {
         return {
             NumericCast<float>(r) / 255.0f,

@@ -5,18 +5,17 @@ class ProjectUnloadedEvent;
 class ProjectChangedEvent;
 class MainScene;
 
-struct FileEntry : public RefCounted
+struct FileItem
 {
-    String path    = {};
-    String name    = {};
-    bool   bOpened = false;   // use for directory only
+    String path     = {};
+    String filename = {};
+    bool   bOpened  = false;   // use for directory only
 
-    Vector<Ref<FileEntry>> children = {};
+    Vector<Scoped<FileItem>> children = {};
 };
 
 class FileBrowserWindow
 {
-
 public:
     void OnUpdate(float _dt);
     void OnImGuiRender();
@@ -34,13 +33,17 @@ private:
 
     void NewHLSLFile_(StringView _path) const;
 
-    void                         GatherFileEntriesIfNeed_();
-    [[nodiscard]] Ref<FileEntry> GatherFileEntries_Recursive_(StringView _path, StringView _focusingPath, bool& _bFoundFocusingEntry);
+    void                           GatherFileEntriesIfNeed_();
+    [[nodiscard]] Scoped<FileItem> GatherFileEntries_Recursive_(StringView _path, StringView _focusingPath, bool& _bFoundFocusingItem);
 
-    void Menu_CreateFileEntry_(StringView _dir) const;
-    void Widget_FileEntry_Recursive_(const Ref<FileEntry>& _pEntry);
+    void Menu_CreateFileItem_(StringView _dir) const;
+    void Widget_FileItem_Recursive_(FileItem* _pItem);
+
+    void SetFocusingFileItem_(FileItem* _pItem);
 
     Scoped<FileWatcher> m_pFileWatcher      = nullptr;
-    Ref<FileEntry>      m_rootEntry         = nullptr;
+    Scoped<FileItem>    m_rootItem          = nullptr;
+    FileItem*           m_pFocusingItem     = nullptr;
+    Project*            m_pProject          = nullptr;
     bool                m_bFileEntriesDirty = true;
 };

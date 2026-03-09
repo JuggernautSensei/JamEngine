@@ -1,4 +1,5 @@
 #pragma once
+#include "LRUCache.h"
 #include "WindowsUtilities.h"
 
 namespace Jam
@@ -15,7 +16,7 @@ enum class eFileEventType
 struct FileWatcherEvent
 {
     StringView     oldPath = {};
-    StringView     newPath = {};
+    StringView     path    = {};
     eFileEventType type    = {};
 };
 
@@ -41,7 +42,6 @@ public:
 
 private:
     FileWatcher() = default;
-
     void  Close_();
     Error Init_(const FileWatcherInfo& _info);
     void  Run_();
@@ -53,6 +53,9 @@ private:
     Delegate<void(const FileWatcherEvent&)> m_fileWatcherListener = nullptr;
     bool                                    m_bRunning            = false;
     HANDLE                                  m_dirHandle           = INVALID_HANDLE_VALUE;
+    String                                  m_watchPath           = {};
+
+    static constexpr UInt64 m_fileModifiedEventDebounceMs = 50;   // for debouncing file modified events
 };
 
 }   // namespace Jam

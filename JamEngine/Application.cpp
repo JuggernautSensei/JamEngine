@@ -160,13 +160,6 @@ Application::Application(
 {
     s_pInstance = this;
 
-    Expect<Scoped<FileLock>> pWorkingDirLock = FileLock::Create(m_workingDir, eFileLockMode::ReadWrite);
-    if (!pWorkingDirLock)
-    {
-        JAM_CRASH("Failed to lock working directory '{}': {}", m_workingDir, pWorkingDirLock.GetError().ToErrorMessage());
-    }
-    m_pWorkingDirLock = std::move(pWorkingDirLock.GetValue());
-
     m_contentsDir = m_workingDir;
     m_contentsDir.Join("Contents/");
     m_contentsDir.Simplify();
@@ -267,7 +260,7 @@ void Application::Init(
 
 void Application::CoreShutdown()
 {
-    JAM_ASSERT(m_bInited, "Application is not initialized.");
+    JAM_ASSERT(!m_bInited, "Application is not initialized.");
     JAM_ASSERT(!m_bRunning, "Application is still running.");
 
     // destroy db

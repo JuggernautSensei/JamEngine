@@ -22,9 +22,6 @@
     <ClCompile Include="ShaderApp.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="WorkspaceWindow.cpp">
-      <Filter>Windows</Filter>
-    </ClCompile>
     <ClCompile Include="EmbededFont.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -33,6 +30,15 @@
     </ClCompile>
     <ClCompile Include="Resources.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderItemEditorWindow.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIAssetManager.cpp">
+      <Filter>GUIUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectInspectorWindow.cpp">
+      <Filter>Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -54,9 +60,6 @@
     <ClInclude Include="Events.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="WorkspaceWindow.h">
-      <Filter>Windows</Filter>
-    </ClInclude>
     <ClInclude Include="EmbededFont.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -68,6 +71,15 @@
     </ClInclude>
     <ClInclude Include="ShaderApp.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderItemEditorWindow.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIAssetManager.h">
+      <Filter>GUIUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectInspectorWindow.h">
+      <Filter>Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

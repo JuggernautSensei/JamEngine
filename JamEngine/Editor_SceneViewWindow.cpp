@@ -24,7 +24,7 @@ Editor_SceneViewWindow::Editor_SceneViewWindow()
     // init editor camera
     {
         m_cameraTransform.SetTranslation(-5, 5, -5);
-        m_cameraTransform.SetLookAt(vec3::k_zero);
+        m_cameraTransform.SetLookAt(Vec3::k_zero);
         m_camera.SetFarZ(300.f);
     }
 
@@ -319,9 +319,9 @@ void Editor_SceneViewWindow::DrawGizmo_() const
         return;
     }
 
-    Mtx4       mtx  = entity.GetWorldTransform().GetMatrix();
-    const Mtx4 view = m_cameraTransform.ToViewMatrix();
-    const Mtx4 proj = m_camera.ToProjMatrix();
+    Matrix4x4       mtx  = entity.GetWorldTransform().GetMatrix();
+    const Matrix4x4 view = m_cameraTransform.ToViewMatrix();
+    const Matrix4x4 proj = m_camera.ToProjMatrix();
 
     const float x        = m_sceneViewLeftTop.x;
     const float y        = m_sceneViewLeftTop.y;
@@ -367,7 +367,7 @@ void Editor_SceneViewWindow::Menu_Options()
 
         if (Widget_MenuItem("reset rotation"))
         {
-            m_cameraEulerRad = vec3::k_zero;
+            m_cameraEulerRad = Vec3::k_zero;
             m_cameraTransform.SetRotation(0.f, 0.f, 0.f);
         }
 
@@ -505,10 +505,10 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
         if (dx != 0 || dy != 0)
         {
             const float dMov   = m_cameraMoveSpeed * k_dragSensitivity;
-            const Vec3  right  = m_cameraTransform.GetRight();
-            const Vec3  up     = m_cameraTransform.GetUp();
-            const Vec3  dRight = right * NumericCast<float>(dx) * dMov;
-            const Vec3  dUp    = up * NumericCast<float>(-dy) * dMov;
+            const Vector3  right  = m_cameraTransform.GetRight();
+            const Vector3  up     = m_cameraTransform.GetUp();
+            const Vector3  dRight = right * NumericCast<float>(dx) * dMov;
+            const Vector3  dUp    = up * NumericCast<float>(-dy) * dMov;
             m_cameraTransform.AddTranslation(dRight + dUp);
         }
     }
@@ -611,7 +611,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
                         const RenderableComponent& rc = entity.GetComponent<RenderableComponent>();
                         if (rc.pMesh)
                         {
-                            const Mtx4& mtx = entity.GetWorldTransform().GetMatrix();
+                            const Matrix4x4& mtx = entity.GetWorldTransform().GetMatrix();
                             m_renderer.DrawBoundingBox(rc.pMesh->GetBoundingBox(), mtx, k_boundingBoxCol);
                         }
                     }
@@ -619,11 +619,11 @@ void Editor_SceneViewWindow::OnRenderEdit()
                     // camera frustum
                     if (entity.HasComponent<CameraComponent>())
                     {
-                        const Mtx4 view = entity.GetWorldTransform().ToViewMatrix();
+                        const Matrix4x4 view = entity.GetWorldTransform().ToViewMatrix();
 
                         const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
                         const Camera&          cmr  = cc.camera;
-                        const Mtx4             proj = cmr.ToProjMatrix();
+                        const Matrix4x4             proj = cmr.ToProjMatrix();
 
                         m_renderer.DrawFrustum(view * proj, k_boundingBoxCol);
                     }
@@ -854,7 +854,7 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
         // translation vector
         if (m_bShowCameraTranslation)
         {
-            const Vec3 translation = m_cameraTransform.GetTranslation();
+            const Vector3 translation = m_cameraTransform.GetTranslation();
             ImGui::SetCursorScreenPos(textPos);
             ImGui::Text("translation\nx: %.2f\ny: %.2f\nz: %.2f", translation.x, translation.y, translation.z);
             textPos.y += textItemHeight;
@@ -863,7 +863,7 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
         // forward vector
         if (m_bShowCameraForward)
         {
-            const Vec3 forward = m_cameraTransform.GetForward();
+            const Vector3 forward = m_cameraTransform.GetForward();
             ImGui::SetCursorScreenPos(textPos);
             ImGui::Text("forward\nfx: %.2f\nfy: %.2f\nfz: %.2f", forward.x, forward.y, forward.z);
         }

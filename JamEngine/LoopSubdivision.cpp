@@ -44,8 +44,8 @@ namespace
             return *this;
         }
 
-        Vec3 position = vec3::k_zero;
-        Vec2 texcoord = vec2::k_zero;
+        Vector3 position = Vec3::k_zero;
+        Vector2 texcoord = Vec2::k_zero;
     };
 
     struct SDVertex
@@ -257,7 +257,7 @@ namespace
 ////////////////////////////////////////////////////////////////////////////////////////
 
 LoopSubdivisionOutput LoopSubdivide(
-    const Span<const Vec3> _positions,
+    const Span<const Vector3> _positions,
     const CMemoryBlock     _idxData,
     const bool             _bUseU32,
     const Int32            _level)
@@ -272,8 +272,8 @@ LoopSubdivisionOutput LoopSubdivide(
 }
 
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
-    Span<const Vec3> _positions,
-    Span<const Vec2> _texcoordsOrEmpty,   // or empty
+    Span<const Vector3> _positions,
+    Span<const Vector2> _texcoordsOrEmpty,   // or empty
     CMemoryBlock     _idxData,
     bool             _bUseU32,
     Int32            _level)
@@ -523,10 +523,10 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 포지션 + texCoord 배열 생성
-    Vector<Vec3> finalPositions = {};
+    Vector<Vector3> finalPositions = {};
     finalPositions.reserve(finalNumVerts);
 
-    Vector<Vec2> finalTexcoords = {};
+    Vector<Vector2> finalTexcoords = {};
     finalTexcoords.reserve(finalNumVerts);
 
     for (Int32 i = 0; i < finalNumVerts; ++i)

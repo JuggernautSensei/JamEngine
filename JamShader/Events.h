@@ -1,16 +1,18 @@
 #pragma once
 
+struct FileItem;
+
 class ProjectChangedEvent : public Event
 {
     JAM_EVENT_BODY(ProjectChangedEvent);
 
 public:
-    explicit ProjectChangedEvent(const Ref<Project>& _pProject);
-    [[nodiscard]] const Ref<Project>& GetProjectOrNull() const;
-    [[nodiscard]] String              ToString() const override;
+    explicit ProjectChangedEvent(Project* _pProject);
+    [[nodiscard]] Project* GetProjectOrNull() const;
+    [[nodiscard]] String   ToString() const override;
 
 private:
-    Ref<Project> m_pProject = nullptr;
+    Project* m_pProject = nullptr;
 };
 
 class ProjectRenamedEvent : public Event
@@ -28,15 +30,28 @@ private:
     String m_newPath = {};
 };
 
-class FocusingShaderItemChangedEvent : public Event
+class FocusingFileItemChangedEvent : public Event
 {
-    JAM_EVENT_BODY(FocusingShaderItemChangedEvent);
+    JAM_EVENT_BODY(FocusingFileItemChangedEvent);
 
 public:
-    explicit FocusingShaderItemChangedEvent(const Ref<ShaderItem>& _pShaderItem);
-    [[nodiscard]] const Ref<ShaderItem>& GetShaderItemOrNull() const;
-    [[nodiscard]] String                 ToString() const override;
+    explicit FocusingFileItemChangedEvent(FileItem* _pFocusingFileItem);
+    [[nodiscard]] FileItem* GetFocusingFileItemOrNull() const;
+    [[nodiscard]] String    ToString() const override;
 
 private:
-    Ref<ShaderItem> m_pShaderItem = nullptr;
+    FileItem* m_pFocusingFileItem = nullptr;
+};
+
+class FocusingShaderItemChagnedEvent : public Event
+{
+    JAM_EVENT_BODY(FocusingShaderItemChagnedEvent);
+
+public:
+    explicit FocusingShaderItemChagnedEvent(StringView _shaderItemName);
+    [[nodiscard]] StringView GetFocusingShaderItemNameOrEmpty() const;
+    [[nodiscard]] String     ToString() const override;
+
+private:
+    String m_shaderItemName = {};
 };

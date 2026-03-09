@@ -328,7 +328,7 @@ void Editor_SceneHierarchyWindow::Widget_CloneEntityButton_(
 
 void Editor_SceneHierarchyWindow::OnBeginDragDropTarget_EntityListPanel_() const
 {
-    if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+    if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
     {
         const String path = ResolvePathDragDropPayload(pPayload);
         if (path.MatchExtension(Model::k_extension))

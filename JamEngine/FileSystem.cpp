@@ -374,7 +374,9 @@ namespace Utf16
     {
         if (_path.IsAbsolute())
         {
-            return _path;   // if already absolute, return as is
+            WString path = _path;
+            path.Simplify();
+            return path;   // if already absolute, return as is
         }
 
         WStackString<k_maxPathLength> path;
@@ -607,7 +609,9 @@ namespace Utf8
     {
         if (_path.IsAbsolute())
         {
-            return _path;
+            String path = _path;
+            path.Simplify();
+            return path;
         }
 
         WStackString<k_maxPathLength> path;

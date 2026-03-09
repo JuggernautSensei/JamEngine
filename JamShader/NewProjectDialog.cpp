@@ -2,10 +2,9 @@
 #include "NewProjectDialog.h"
 
 #include "GUIFileSystem.h"
-#include "MainScene.h"
+#include "ShaderApp.h"
 #include "../JamEngine/EditorUtilities.h"
 #include "../JamEngine/EditorWidgets.h"
-#include "../JamEngine/JsonArchive.h"
 
 namespace
 {
@@ -59,7 +58,7 @@ bool NewProjectDialog::OnClickCreateButton_() const
 {
     if (m_dir.IsEmpty() || m_baseName.IsEmpty())
     {
-        GetMainScene().PushMessageDialog(
+        GetShaderApp().PushMessageDialog(
             "invalid input",
             "project directory and project name cannot be empty.");
 
@@ -79,16 +78,16 @@ bool NewProjectDialog::OnClickCreateButton_() const
     path.ReplaceExtension(Project::k_extension);
     path = FileSystem::Absolute(path);
 
-    const Expect<Ref<Project>> pProject = Project::CreateNew(path);
-    if (!pProject)
+    const Expect<Project> project = Project::LoadNew(path);
+    if (!project)
     {
-        GetMainScene().PushMessageDialog(
+        GetShaderApp().PushMessageDialog(
             "failed to create project",
             String::Formatted("failed to create project at path: {}", path));
 
         return false;
     }
 
-    GetMainScene().SetProject(pProject.GetValue());
+    GetShaderApp().SetProject(project.GetValue());
     return true;
 }

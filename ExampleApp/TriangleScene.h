@@ -16,5 +16,5 @@ private:
     ProgramHandle      m_program = k_nullHandle;
 
     ConstantBufferHandle m_cbh = k_nullHandle;
-    Vec3                 m_offset = Vec3::Zero;
+    Vector3                 m_offset = Vector3::Zero;
 };

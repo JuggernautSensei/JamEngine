@@ -86,7 +86,7 @@ const char* EditorPayloadFrom(
     }
 }
 
-bool SetFileDragDropPayload(
+bool SetPathDragDropPayload(
     const StringView _path)
 {
     const char*  str = _path.GetPtr();
@@ -94,7 +94,7 @@ bool SetFileDragDropPayload(
     return ImGui::SetDragDropPayload(EditorPayloadFrom(eEditorPayload::File), str, len);
 }
 
-const ImGuiPayload* AcceptFileDragDropPayload()
+const ImGuiPayload* AcceptPathDragDropPayload()
 {
     return ImGui::AcceptDragDropPayload(EditorPayloadFrom(eEditorPayload::File));
 }

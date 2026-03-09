@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "GUIFileSystem.h"
 
-#include "MainScene.h"
+#include "ShaderApp.h"
 
 namespace GUI
 {
@@ -14,7 +14,7 @@ namespace FS
     {
         if (const Error err = FileSystem::MakeDirectory(_path, _policy))
         {
-            GetMainScene().PushMessageDialog(
+            GetShaderApp().PushMessageDialog(
                 "create directory failed",
                 String::Formatted("failed to create directory \"{}\". {}.", _path, err.ToErrorMessage()));
 
@@ -31,7 +31,7 @@ namespace FS
     {
         if (const Error err = FileSystem::Copy(_src, _dst, _policy))
         {
-            GetMainScene().PushMessageDialog(
+            GetShaderApp().PushMessageDialog(
                 "copy failed",
                 String::Formatted("failed to copy from \"{}\" to \"{}\". {}.", _src, _dst, err.ToErrorMessage()));
 
@@ -47,7 +47,7 @@ namespace FS
     {
         if (const Error err = FileSystem::Rename(_src, _dst, _policy))
         {
-            GetMainScene().PushMessageDialog(
+            GetShaderApp().PushMessageDialog(
                 "rename failed",
                 String::Formatted("failed to rename from \"{}\" to \"{}\". {}.", _src, _dst, err.ToErrorMessage()));
 
@@ -68,7 +68,7 @@ namespace FS
                     RemoveAll(path);
                 });
 
-            GetMainScene().PushConfirmationDialog(
+            GetShaderApp().PushConfirmationDialog(
                 "delete directory",
                 String::Formatted("the directory \"{}\" is not empty. Do you want to delete it and all of its contents?", _src),
                 OnConfirm);
@@ -84,7 +84,7 @@ namespace FS
     {
         if (const Error err = FileSystem::Remove(_src))
         {
-            GetMainScene().PushMessageDialog(
+            GetShaderApp().PushMessageDialog(
                 "delete failed",
                 String::Formatted("failed to delete \"{}\" and all of its contents. {}.", _src, err.ToErrorMessage()));
 
@@ -99,7 +99,7 @@ namespace FS
     {
         if (!FileSystem::Exists(_path))
         {
-            GetMainScene().PushMessageDialog(
+            GetShaderApp().PushMessageDialog(
                 "file not found",
                 String::Formatted("the file or directory \"{}\" does not exist.", _path));
 
@@ -114,7 +114,7 @@ namespace FS
     {
         if (FileSystem::Exists(_path))
         {
-            GetMainScene().PushMessageDialog(
+            GetShaderApp().PushMessageDialog(
                 "file already exists",
                 String::Formatted("the file or directory \"{}\" already exists.", _path));
 

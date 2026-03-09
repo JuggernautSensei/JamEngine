@@ -51,7 +51,7 @@ const ComponentReflectionData& ComponentDatabase::GetComponentReflection(
     return m_componentMetadataContainer.at(typeHash);
 }
 
-const HashMap<UInt32, ComponentReflectionData>& ComponentDatabase::GetComponentReflectionContainer() const
+const CASHashMap<UInt32, ComponentReflectionData>& ComponentDatabase::GetComponentReflectionContainer() const
 {
     return m_componentMetadataContainer;
 }

@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "FileWatcher.h"
+
+#include "FileSystem.h"
 #include "StackString.h"
 
 namespace Jam
@@ -43,8 +45,8 @@ Error FileWatcher::Init_(
 {
     JAM_ASSERT(_info.FileWatcherListener, "FileWatcherListener cannot be null.");
 
-    WStackString<k_maxPathLength> path;
-    path.Encode(_info.path);
+    m_watchPath        = FileSystem::Absolute(_info.path);
+    const WString path = WString::Encoded(m_watchPath.ToStringView());
 
     m_dirHandle = ::CreateFileW(
         path.GetPtr(),
@@ -91,55 +93,69 @@ void FileWatcher::Run_()
             FILE_NOTIFY_INFORMATION* pInfo  = nullptr;
             DWORD                    offset = 0;
 
-            StackString<k_maxPathLength> path;
-            StackString<k_maxPathLength> oldPath;
+            FileWatcherEvent event   = {};
+            String           path    = {};
+            String           oldPath = {};
 
             do
             {
-                pInfo = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer + offset);
-
-                FileWatcherEvent event     = {};
-                bool             bDispatch = true;
+                pInfo          = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer + offset);
+                bool bDispatch = true;
 
                 switch (pInfo->Action)
                 {
                     case FILE_ACTION_ADDED:
                     {
-                        path.Encode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+                        path = m_watchPath;
+                        path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+
                         event.type    = eFileEventType::Added;
-                        event.newPath = path;
+                        event.path    = path;
+                        event.oldPath = {};
                     }
                     break;
 
                     case FILE_ACTION_REMOVED:
                     {
-                        path.Encode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+                        path = m_watchPath;
+                        path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+
                         event.type    = eFileEventType::Deleted;
-                        event.oldPath = path;
+                        event.path    = path;
+                        event.oldPath = {};
                     }
                     break;
 
                     case FILE_ACTION_MODIFIED:
                     {
-                        path.Encode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+                        // 다른 파일이 수정 중일 수 있으므로, 조금 지연
+                        std::this_thread::sleep_for(std::chrono::milliseconds { m_fileModifiedEventDebounceMs });
+
+                        path = m_watchPath;
+                        path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+
                         event.type    = eFileEventType::Modified;
-                        event.newPath = path;
+                        event.path    = path;
+                        event.oldPath = {};
                     }
                     break;
 
                     case FILE_ACTION_RENAMED_OLD_NAME:
                     {
-                        oldPath.Encode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+                        oldPath = m_watchPath;
+                        oldPath.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
                         bDispatch = false;   // dispatch in FILE_ACTION_RENAMED_NEW_NAME case
                     }
                     break;
 
                     case FILE_ACTION_RENAMED_NEW_NAME:
                     {
-                        path.Encode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+                        path = m_watchPath;
+                        path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+
                         event.type    = eFileEventType::Renamed;
+                        event.path    = path;
                         event.oldPath = oldPath;
-                        event.newPath = path;
                     }
                     break;
 

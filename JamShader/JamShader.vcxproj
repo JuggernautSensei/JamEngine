@@ -263,6 +263,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GUIAssetManager.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="EmbededFont.cpp" />
     <ClCompile Include="Events.cpp" />
@@ -275,7 +276,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="WorkspaceWindow.cpp" />
+    <ClCompile Include="ProjectInspectorWindow.cpp" />
+    <ClCompile Include="ShaderItemEditorWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\JamEngine\JamEngine.vcxproj">
@@ -289,6 +291,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GUIAssetManager.h" />
     <ClInclude Include="ShaderApp.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="EmbededFont.h" />
@@ -299,7 +302,8 @@
     <ClInclude Include="NewProjectDialog.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="WorkspaceWindow.h" />
+    <ClInclude Include="ProjectInspectorWindow.h" />
+    <ClInclude Include="ShaderItemEditorWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,7 +14,7 @@ struct SpotLightComponent
     void Deserialize(ArchiveReader& _reader, const Ref<Scene>& _pScene, Entity _owner);
     void DrawEditPanel(const Ref<Scene>& _pScene, Entity _entity);
 
-    Vec3  radiance         = vec3::k_zero;
+    Vector3  radiance         = Vec3::k_zero;
     float intensity        = 1.f;
     float fallOffStart     = 1.f;
     float fallOffEnd       = 10.f;

@@ -406,6 +406,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="STLAlgorithm.cpp" />
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="Archive.cpp" />
     <ClCompile Include="Assertion.cpp" />
@@ -430,8 +431,8 @@
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="MemoryReadWriter.cpp" />
     <ClCompile Include="OrderedHashMap.cpp" />
-    <ClCompile Include="OrderedHashSet.cpp" />
     <ClCompile Include="PathIter.cpp" />
+    <ClCompile Include="Reference.cpp" />
     <ClCompile Include="SceneDatabase.cpp" />
     <ClCompile Include="SceneMetadata.cpp" />
     <ClCompile Include="ConstexprStringHashMap.cpp" />
@@ -479,11 +480,10 @@
     <ClCompile Include="Scalar.cpp" />
     <ClCompile Include="Scoped.cpp" />
     <ClCompile Include="Signal.cpp" />
-    <ClCompile Include="StackList.cpp" />
     <ClCompile Include="StackString.cpp" />
     <ClCompile Include="STL.cpp" />
     <ClCompile Include="String.cpp" />
-    <ClCompile Include="StringHashMap.cpp" />
+    <ClCompile Include="StringKeyContainers.cpp" />
     <ClCompile Include="SVGImporter.cpp" />
     <ClCompile Include="TextureFormat.cpp" />
     <ClCompile Include="HistoryStack.cpp" />
@@ -604,6 +604,7 @@
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="STLAlgorithm.h" />
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="Archive.h" />
     <ClInclude Include="Assertion.h" />
@@ -646,7 +647,6 @@
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="MaterialCreationDialog.h" />
     <ClInclude Include="OrderedHashMap.h" />
-    <ClInclude Include="OrderedHashSet.h" />
     <ClInclude Include="PathIter.h" />
     <ClInclude Include="PrimitiveCreationDialog.h" />
     <ClInclude Include="Debug.h" />
@@ -667,6 +667,7 @@
     <ClInclude Include="EnvironmentComponent.h" />
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="GeometryUtilities.h" />
+    <ClInclude Include="Reference.h" />
     <ClInclude Include="RenameFileDialog.h" />
     <ClInclude Include="LRUCache.h" />
     <ClInclude Include="MessageDialog.h" />
@@ -677,11 +678,10 @@
     <ClInclude Include="SceneMetadata.h" />
     <ClInclude Include="Scoped.h" />
     <ClInclude Include="Signal.h" />
-    <ClInclude Include="StackList.h" />
     <ClInclude Include="StackString.h" />
     <ClInclude Include="STL.h" />
     <ClInclude Include="String.h" />
-    <ClInclude Include="StringHashMap.h" />
+    <ClInclude Include="StringKeyContainers.h" />
     <ClInclude Include="SVGImporter.h" />
     <ClInclude Include="TextureFormat.h" />
     <ClInclude Include="HistoryStack.h" />

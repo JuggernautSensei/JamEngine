@@ -29,9 +29,9 @@ namespace
         ImVec4      color;
         ImVec4      outlineColor;
 
-        Vec3  dir;
-        float depth;
-        bool  bPos;   // positive direction
+        Vector3 dir;
+        float   depth;
+        bool    bPos;   // positive direction
     };
 
     struct WidgetInputTextCallback_UserData
@@ -94,17 +94,17 @@ namespace
     {
         if (_shortcut & ImGuiMod_Ctrl)
         {
-            _buf.Append("ctrl + ");
+            _buf.Append("ctrl+");
         }
 
         if (_shortcut & ImGuiMod_Shift)
         {
-            _buf.Append("shift + ");
+            _buf.Append("shift+");
         }
 
         if (_shortcut & ImGuiMod_Alt)
         {
-            _buf.Append("alt + ");
+            _buf.Append("alt+");
         }
 
         const ImGuiKey key = static_cast<ImGuiKey>(_shortcut & ~ImGuiMod_Mask_);
@@ -129,7 +129,7 @@ namespace
 
 bool Widget_DragTranslation(
     const char*            _label,
-    Vec3&                  _translation,
+    Vector3&               _translation,
     const float            _speed,
     const float            _min,
     const float            _max,
@@ -191,7 +191,7 @@ bool Widget_DragTranslation(
 
 bool Widget_DragScale(
     const char*            _label,
-    Vec3&                  _scaleNorm,
+    Vector3&               _scaleNorm,
     const float            _speedPerc,
     const float            _minPerc,
     const float            _maxPerc,
@@ -292,7 +292,7 @@ bool Widget_DragAngle(
 
 bool Widget_DragEuler(
     const char*            _label,
-    Vec3&                  _eulerRad,
+    Vector3&               _eulerRad,
     const float            _speedDeg,
     const float            _minDeg,
     const float            _maxDeg,
@@ -397,6 +397,18 @@ void Widget_Image(
     ImGui::Image(_texture.texture, _size, _uv0, _uv1);
 }
 
+bool Widget_ImageButton(
+    const char*          _label,
+    const ImTextureProxy _texture,
+    const ImVec2         _size,
+    const ImVec2         _uv0,
+    const ImVec2         _uv1,
+    const ImVec4         _bgCol,
+    const ImVec4         _tintCol)
+{
+    return ImGui::ImageButton(_label, _texture.texture, _size, _uv0, _uv1, _bgCol, _tintCol);
+}
+
 void Widget_ItemDescriptionTooltip(
     const char* _summery,
     const char* _desc)
@@ -429,7 +441,7 @@ void Widget_ItemDescriptionTooltip(
 
         // description
         ImGui::Separator();
-        Widget_TextWrapped(_desc, 100.f);
+        Widget_TextWrapped(_desc, 400.f);
         ImGui::EndTooltip();
     }
 }
@@ -513,7 +525,7 @@ ImTextureProxy::ImTextureProxy(
 {
 }
 
-void EulerProxy::OnBeforeWidget(const Vec3& _forward)
+void EulerProxy::OnBeforeWidget(const Vector3& _forward)
 {
     if (!m_bIsEditing)
     {
@@ -521,7 +533,7 @@ void EulerProxy::OnBeforeWidget(const Vec3& _forward)
     }
 }
 
-void EulerProxy::OnBeforeWidget(const Mtx4& _mtx)
+void EulerProxy::OnBeforeWidget(const Matrix4x4& _mtx)
 {
     if (!m_bIsEditing)
     {
@@ -529,7 +541,7 @@ void EulerProxy::OnBeforeWidget(const Mtx4& _mtx)
     }
 }
 
-void EulerProxy::OnBeforeWidget(const Quat& _quat)
+void EulerProxy::OnBeforeWidget(const Quaternion& _quat)
 {
     if (!m_bIsEditing)
     {
@@ -550,7 +562,7 @@ void EulerProxy::OnAfterWidget()
     m_bIsEditing = ImGui::IsItemActive();
 }
 
-Vec3& EulerProxy::GetEulerProxy()
+Vector3& EulerProxy::GetEulerProxy()
 {
     return m_eulerRad;
 }
@@ -590,8 +602,8 @@ void Widget_TextFrame(
     const ImVec2      textSize = ImGui::CalcTextSize(_text, NULL, true);
     const ImVec2      pos      = pWin->DC.CursorPos;
     const ImVec2      size     = ImGui::CalcItemSize(_frameSize, textSize.x + style.FramePadding.x * 2.0f, textSize.y + style.FramePadding.y * 2.0f);
+    const ImRect      bb       = { pos, pos + size };
 
-    const ImRect bb { pos, pos + size };
     ImGui::ItemSize(size, style.FramePadding.y);
     if (!ImGui::ItemAdd(bb, 0))
     {
@@ -603,15 +615,13 @@ void Widget_TextFrame(
         ImGui::RenderFrame(bb.Min, bb.Max, ImGui::ColorConvertFloat4ToU32(_bgCol), _bRenderBorder, style.FrameRounding);
     }
 
-    // calc center aligned text pos
-    const float numLines    = textSize.y / ImGui::GetTextLineHeight();
-    const float lineYAlign  = ImGui::GetTextLineHeight() / textSize.y;
-    const float startYAlign = (1.f - lineYAlign * numLines) * 0.5f;
-    ImVec2      align       = _align == eTextAlign::Left   ? ImVec2 { 0.f, startYAlign }
-                            : _align == eTextAlign::Center ? ImVec2 { 0.5f, startYAlign }
-                                                           : ImVec2 { 1.f, startYAlign };
+    const float lineHeight = ImGui::GetTextLineHeight();
+    const float startY     = bb.Min.y + (size.y - textSize.y) * 0.5f;
+    const float alignX     = _align == eTextAlign::Left   ? 0.0f
+                           : _align == eTextAlign::Center ? 0.5f
+                                                          : 1.0f;
 
-    float y = pos.y + size.y * startYAlign;
+    float y = startY;
     for (const char* start = _text; start;)
     {
         const char* end = start;
@@ -620,27 +630,25 @@ void Widget_TextFrame(
             end++;
         }
 
-        // viewport clip & frame clip
-        float lineY = y + ImGui::GetTextLineHeight();
-        if ((pWin->ClipRect.Min.y > lineY) || (bb.Min.y > lineY))
-        {
-            goto lb_next_line;
-        }
-        else if ((pWin->ClipRect.Max.y < y) || (bb.Max.y < y))
+        float lineYBottom = y + lineHeight;
+        if (pWin->ClipRect.Max.y < y || bb.Max.y < y)
         {
             break;
         }
 
-        // render line
+        if (pWin->ClipRect.Min.y <= lineYBottom && bb.Min.y <= lineYBottom)
         {
-            const ImVec2 singleLineTextSize = ImGui::CalcTextSize(start, end, true);
-            ImGui::RenderTextClipped(bb.Min, bb.Max, start, end, &singleLineTextSize, align, &bb);
+            const ImVec2 lineTextSize = ImGui::CalcTextSize(start, end, true);
+            const ImRect lineBB       = {
+                { bb.Min.x,           y },
+                { bb.Max.x, lineYBottom }
+            };
+
+            ImGui::RenderTextClipped(lineBB.Min, lineBB.Max, start, end, &lineTextSize, ImVec2(alignX, 0.5f), &bb);
         }
 
-    lb_next_line:
         start = (*end) ? end + 1 : nullptr;
-        y     = lineY;
-        align.y += lineYAlign;
+        y     = lineYBottom;
     }
 }
 
@@ -929,6 +937,7 @@ bool Widget_MenuItem(
     if (_shortcut != 0)
     {
         ImGui::SetNextItemShortcut(_shortcut);
+        buf.Set("  ");   // pretty spacing
         FormatShortcutDisplayText_Minimal_(buf, _shortcut);
         shortcutText = buf.GetPtr();
     }
@@ -947,8 +956,8 @@ bool Widget_VertexLayoutEntryCombo(
     }
 
     const VertexLayoutEntryManager& map      = GetEditor().GetVertexLayoutManager();
-    const char*            preview  = _pVle ? _pVle->GetName().GetPtr() : "none";
-    bool                   bChanged = false;
+    const char*                     preview  = _pVle ? _pVle->GetName().GetPtr() : "none";
+    bool                            bChanged = false;
 
     if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
@@ -1022,7 +1031,7 @@ bool Widget_MeshPicker(
     // drag drop
     if (ImGui::BeginDragDropTarget())
     {
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
         {
             const String path = ResolvePathDragDropPayload(pPayload);
             if (Expect<Ref<Mesh>> pMesh = GetEditor().LoadMesh(path))
@@ -1087,7 +1096,7 @@ bool Widget_MaterialPicker(
     // drag drop
     if (ImGui::BeginDragDropTarget())
     {
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
         {
             const String path = ResolvePathDragDropPayload(pPayload);
             if (Expect<Ref<Material>> pMaterial = GetEditor().LoadMaterial(path))
@@ -1158,7 +1167,7 @@ bool Widget_TexturePicker(
     // drag drop
     if (ImGui::BeginDragDropTarget())
     {
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
         {
             const String path = ResolvePathDragDropPayload(pPayload);
             if (Expect<Ref<Texture>> pTexture = GetEditor().LoadTexture(path))
@@ -1254,10 +1263,10 @@ bool Widget_Acroball(
             constexpr float k_sensitivity = 0.005f;
 
             // apply rotation
-            Vec3& euler = s_proxy.GetEulerProxy();
-            euler.x     = Wrap(euler.x + delta.x * k_sensitivity, -k_2pi, k_2pi);
-            euler.y     = Clamp(euler.y + delta.y * k_sensitivity, ToRad(-89.f), ToRad(89.f));
-            euler.z     = 0.f;   // no roll
+            Vector3& euler = s_proxy.GetEulerProxy();
+            euler.x        = Wrap(euler.x + delta.x * k_sensitivity, -k_2pi, k_2pi);
+            euler.y        = Clamp(euler.y + delta.y * k_sensitivity, ToRad(-89.f), ToRad(89.f));
+            euler.z        = 0.f;   // no roll
             _t.SetRotation(euler);
 
             // dirty check
@@ -1291,9 +1300,9 @@ bool Widget_Acroball(
     const float headOutlineThickness = GetEditor().GetStyleVar(eEditorStyleVar::AcroballAxisHeadOutlineThickness);
 
     // acroball data
-    const Vec3 axisX = _t.GetRight();
-    const Vec3 axisY = _t.GetUp();
-    const Vec3 axisZ = _t.GetForward();
+    const Vector3 axisX = _t.GetRight();
+    const Vector3 axisY = _t.GetUp();
+    const Vector3 axisZ = _t.GetForward();
 
     // axis data
     AcroballAxisData axes[6] = {
@@ -1396,11 +1405,37 @@ bool Widget_InputText(
     return ImGui::InputText(_label, _str.GetPtr(), _str.GetCapacity() + 1, _flags, Widget_InputTextCallback, &userData);
 }
 
+bool Widget_InputTextMultiline(
+    const char*                  _label,
+    String&                      _str,
+    const ImVec2                 _size,
+    ImGuiInputTextFlags          _flags,
+    const ImGuiInputTextCallback _callback,
+    void*                        _pUserData)
+{
+    JAM_ASSERT((_flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    _flags |= ImGuiInputTextFlags_CallbackResize;
+
+    WidgetInputTextCallback_UserData userData = {};
+    userData.pStr                             = &_str;
+    userData.ChainCallback                    = _callback;
+    userData.pChainUserData                   = _pUserData;
+    return ImGui::InputTextMultiline(_label, _str.GetPtr(), _str.GetCapacity() + 1, _size, _flags, Widget_InputTextCallback, &userData);
+}
+
 void Widget_ReadOnlyInputText(
     const char*      _label,
     const StringView _str)
 {
     ImGui::InputText(_label, const_cast<char*>(_str.GetPtr()), _str.GetLength() + 1, ImGuiInputTextFlags_ReadOnly);
+}
+
+void Widget_ReadOnlyInputTextMultiline(
+    const char*      _label,
+    const StringView _str,
+    const ImVec2     _size)
+{
+    ImGui::InputTextMultiline(_label, const_cast<char*>(_str.GetPtr()), _str.GetLength() + 1, _size, ImGuiInputTextFlags_ReadOnly);
 }
 
 bool Widget_EnumCombo(

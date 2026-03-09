@@ -1,21 +1,22 @@
 #include "pch.h"
 #include "Events.h"
+#include "Resources.h"
+#include "FileBrowserWindow.h"
 
 ProjectChangedEvent::ProjectChangedEvent(
-    const Ref<Project>& _pProject)
-    : m_pProject(_pProject)
+    Project* _pProject)
 {
-    JAM_ASSERT(m_pProject, "ProjectChangedEvent: _pProject cannot be null.");
+    m_pProject = _pProject;
 }
 
-const Ref<Project>& ProjectChangedEvent::GetProjectOrNull() const
+Project* ProjectChangedEvent::GetProjectOrNull() const
 {
     return m_pProject;
 }
 
 String ProjectChangedEvent::ToString() const
 {
-    return String::Formatted("ProjectChangedEvent: project name = '{}'", m_pProject ? m_pProject->GetName() : "null");
+    return String::Formatted("ProjectChangedEvent: project filename = '{}'", m_pProject ? m_pProject->GetBaseName() : "null");
 }
 
 ProjectRenamedEvent::ProjectRenamedEvent(
@@ -38,21 +39,37 @@ StringView ProjectRenamedEvent::GetNewPath() const
 
 String ProjectRenamedEvent::ToString() const
 {
-    return String::Formatted("ProjectRenamedEvent: old name = '{}', new name = '{}'", m_oldPath, m_newPath);
+    return String::Formatted("ProjectRenamedEvent: old filename = '{}', new filename = '{}'", m_oldPath, m_newPath);
 }
 
-FocusingShaderItemChangedEvent::FocusingShaderItemChangedEvent(
-    const Ref<ShaderItem>& _pShaderItem)
-    : m_pShaderItem(_pShaderItem)
+FocusingFileItemChangedEvent::FocusingFileItemChangedEvent(
+    FileItem* _pFocusingFileItem)
+    : m_pFocusingFileItem(_pFocusingFileItem)
 {
 }
 
-const Ref<ShaderItem>& FocusingShaderItemChangedEvent::GetShaderItemOrNull() const
+FileItem* FocusingFileItemChangedEvent::GetFocusingFileItemOrNull() const
 {
-    return m_pShaderItem;
+    return m_pFocusingFileItem;
 }
 
-String FocusingShaderItemChangedEvent::ToString() const
+String FocusingFileItemChangedEvent::ToString() const
 {
-    return String::Formatted("FocusingShaderItemChangedEvent: shader item name = '{}'", m_pShaderItem ? m_pShaderItem->GetName() : "null");
+    return String::Formatted("FocusingFileItemChangedEvent: focusing file item filename = '{}'", m_pFocusingFileItem ? m_pFocusingFileItem->filename : "null");
+}
+
+FocusingShaderItemChagnedEvent::FocusingShaderItemChagnedEvent(
+    const StringView _shaderItemName)
+    : m_shaderItemName(_shaderItemName)
+{
+}
+
+StringView FocusingShaderItemChagnedEvent::GetFocusingShaderItemNameOrEmpty() const
+{
+    return m_shaderItemName;
+}
+
+String FocusingShaderItemChagnedEvent::ToString() const
+{
+    return String::Formatted("FocusingShaderItemChagnedEvent: focusing shader item name = '{}'", m_shaderItemName);
 }

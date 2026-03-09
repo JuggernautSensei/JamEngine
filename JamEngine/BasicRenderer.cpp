@@ -29,13 +29,13 @@
 //struct BasicRendererContext
 //{
 //    // cbuffer unload
-//    void UploadTransform(const Mtx4& _world) const;
-//    void UploadCamera(Vec3 _eye, const Mtx4& _view, const Mtx4& _proj) const;
+//    void UploadTransform(const Matrix4x4& _world) const;
+//    void UploadCamera(Vector3 _eye, const Matrix4x4& _view, const Matrix4x4& _proj) const;
 //    void UploadEnvironment(const Environment& _env) const;
 //    void UploadScreen(Int32 _width, Int32 _height) const;
 //    void UploadMaterial(const Ref<Material>& _material) const;
-//    void UploadPointLight(Vec3 _radiance, float _lightIntensity, Vec3 _pos, float _fallOffStart, float _fallOffEnd, bool _bShadow) const;
-//    void UploadSpotLight(Vec3 _radiance, float _lightIntensity, Vec3 _pos, Vec3 _dir, float _fallOffStart, float _fallOffEnd, float _innerConeAngle, float _outerConeAngle, bool _bShadow) const;
+//    void UploadPointLight(Vector3 _radiance, float _lightIntensity, Vector3 _pos, float _fallOffStart, float _fallOffEnd, bool _bShadow) const;
+//    void UploadSpotLight(Vector3 _radiance, float _lightIntensity, Vector3 _pos, Vector3 _dir, float _fallOffStart, float _fallOffEnd, float _innerConeAngle, float _outerConeAngle, bool _bShadow) const;
 //
 //    // factory
 //    [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
@@ -46,7 +46,7 @@
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, StringView _name) const;
 //
 //    // submit
-//    void Submit(const Ref<Mesh>& _mesh, const Ref<Material>& _material, const Mtx4& _world) const;
+//    void Submit(const Ref<Mesh>& _mesh, const Ref<Material>& _material, const Matrix4x4& _world) const;
 //    void SubmitFullScreenTri() const;
 //    void SubmitSkyboxCube() const;
 //
@@ -186,7 +186,7 @@
 //}* g_basicRendererCtx = nullptr;
 //
 //void BasicRendererContext::UploadTransform(
-//    const Mtx4& _world) const
+//    const Matrix4x4& _world) const
 //{
 //    CB_TRANSFORM cb;
 //    cb.cb_world         = _world.Transpose();
@@ -195,9 +195,9 @@
 //}
 //
 //void BasicRendererContext::UploadCamera(
-//    const Vec3  _eye,
-//    const Mtx4& _view,
-//    const Mtx4& _proj) const
+//    const Vector3  _eye,
+//    const Matrix4x4& _view,
+//    const Matrix4x4& _proj) const
 //{
 //    // camera buffer
 //    CB_CAMERA cb;
@@ -436,9 +436,9 @@
 //}
 //
 //void BasicRendererContext::UploadPointLight(
-//    const Vec3  _radiance,
+//    const Vector3  _radiance,
 //    const float _lightIntensity,
-//    const Vec3  _pos,
+//    const Vector3  _pos,
 //    const float _fallOffStart,
 //    const float _fallOffEnd,
 //    const bool  _bShadow) const
@@ -446,7 +446,7 @@
 //    CB_LIGHT cb                 = {};
 //    cb.cb_lightType             = JAM_LIGHT_TYPE_POINT;
 //    cb.cb_lightPos              = _pos;
-//    cb.cb_lightDir              = vec3::k_forward;
+//    cb.cb_lightDir              = Vec3::k_forward;
 //    cb.cb_lightRadiance         = _radiance;
 //    cb.cb_lightIntensity        = _lightIntensity;
 //    cb.cb_lightFallOffStart     = _fallOffStart;
@@ -458,10 +458,10 @@
 //}
 //
 //void BasicRendererContext::UploadSpotLight(
-//    const Vec3  _radiance,
+//    const Vector3  _radiance,
 //    const float _lightIntensity,
-//    const Vec3  _pos,
-//    const Vec3  _dir,
+//    const Vector3  _pos,
+//    const Vector3  _dir,
 //    const float _fallOffStart,
 //    const float _fallOffEnd,
 //    const float _innerConeAngle,
@@ -607,7 +607,7 @@
 //void BasicRendererContext::Submit(
 //    const Ref<Mesh>&     _mesh,
 //    const Ref<Material>& _material,
-//    const Mtx4&          _world) const
+//    const Matrix4x4&          _world) const
 //{
 //    UploadMaterial(_material);
 //    UploadTransform(_world);
@@ -626,11 +626,11 @@
 //
 //void BasicRendererContext::BakeSSAOKernel() const
 //{
-//    Vec4 kernel[JAM_SSAO_KERNEL_SIZE];
+//    Vector4 kernel[JAM_SSAO_KERNEL_SIZE];
 //    for (Int32 i = 0; i < JAM_SSAO_KERNEL_SIZE; ++i)
 //    {
 //        // 반구
-//        Vec4 sample = Normalized(Vec4 { MakeRandom(-1.f, 1.f), MakeRandom(-1.f, 1.f), MakeRandom(0.f, 1.f), 0.f });
+//        Vector4 sample = Normalized(Vector4 { MakeRandom(-1.f, 1.f), MakeRandom(-1.f, 1.f), MakeRandom(0.f, 1.f), 0.f });
 //        sample *= MakeRandom(0.f, 1.f);
 //
 //        // 가까운 샘플에 더 집중
@@ -1358,9 +1358,9 @@
 //    // full screen tri
 //    {
 //        constexpr VertexPosTex2D k_verts[] = {
-//            { Vec2(-1.f, -1.f), Vec2(0.f,  1.f) },
-//            { Vec2(-1.f,  3.f), Vec2(0.f, -1.f) },
-//            {  Vec2(3.f, -1.f), Vec2(2.f,  1.f) }
+//            { Vector2(-1.f, -1.f), Vector2(0.f,  1.f) },
+//            { Vector2(-1.f,  3.f), Vector2(0.f, -1.f) },
+//            {  Vector2(3.f, -1.f), Vector2(2.f,  1.f) }
 //        };
 //        constexpr UInt16 k_indices[] = { 0, 1, 2 };
 //        pCtx->fullScreenTri.Load(k_verts, VertexPosTex2D::s_layout, { k_indices });
@@ -1369,9 +1369,9 @@
 //    // light volume full tri
 //    {
 //        constexpr VertexPos3D k_verts[] = {
-//            { Vec3(-1.f, -1.f, 0.f) },
-//            { Vec3(-1.f, 3.f, 0.f) },
-//            { Vec3(3.f, -1.f, 0.f) }
+//            { Vector3(-1.f, -1.f, 0.f) },
+//            { Vector3(-1.f, 3.f, 0.f) },
+//            { Vector3(3.f, -1.f, 0.f) }
 //        };
 //        constexpr UInt16 k_indices[] = { 0, 1, 2 };
 //        pCtx->lightVolumeFullScreenTri.Load(k_verts, VertexPos3D::s_layout, { k_indices });
@@ -1379,7 +1379,7 @@
 //
 //    // skybox cube
 //    {
-//        constexpr Vec3 whd = { 1.f, 1.f, 1.f };
+//        constexpr Vector3 whd = { 1.f, 1.f, 1.f };
 //        pCtx->skyboxCube   = CreateCubeMesh(whd, VertexPos3D::s_layout);
 //    }
 //
@@ -1632,7 +1632,7 @@
 ////
 ////        // corners & center
 ////        const GetCorners corners = frustumInW.GetCorners();
-////        Vec3          center  = vec3::k_zero;
+////        Vector3          center  = Vec3::k_zero;
 ////        for (Int32 j = 0; j < 8; ++j)
 ////        {
 ////            center += corners.points[j];
@@ -1640,13 +1640,13 @@
 ////        center *= 1.f / 8.f;
 ////
 ////        // light view
-////        const Mtx4 lightV = CreateViewLookTo(center, dirLight.direction);
+////        const Matrix4x4 lightV = CreateViewLookTo(center, dirLight.direction);
 ////
 ////        // aabb in light space
 ////        AABB lightAabb = {};
 ////        for (Int32 j = 0; j < 8; ++j)
 ////        {
-////            const Vec3 p = Vec3::Transform(corners.points[j], lightV);
+////            const Vector3 p = Vector3::Transform(corners.points[j], lightV);
 ////            lightAabb.Merge(p);
 ////        }
 ////
@@ -1660,7 +1660,7 @@
 ////
 ////        // create ortho
 ////        {
-////            const Mtx4 lightP    = CreateOrthographic(lightAabb.Width(), lightAabb.Height(), lightAabb.min.z, lightAabb.max.z);
+////            const Matrix4x4 lightP    = CreateOrthographic(lightAabb.Width(), lightAabb.Height(), lightAabb.min.z, lightAabb.max.z);
 ////            cb.cb_csmViewProj[i] = (lightV * lightP).Transpose();
 ////        }
 ////    }
@@ -1668,17 +1668,17 @@
 ////    GetGraphics().UploadBuffer_(g_basicRendererCtx->csmCasterCbh, cb);
 ////}
 ////
-//// void BasicRenderer::UploadOmniDirectionalShadowCasterData(const Vec3 _pos, const float _range)
+//// void BasicRenderer::UploadOmniDirectionalShadowCasterData(const Vector3 _pos, const float _range)
 ////{
-////    Mtx4 lightP = CreatePerspectiveFov(ToRad(90.f), 1.f, 0.01f, _range);
+////    Matrix4x4 lightP = CreatePerspectiveFov(ToRad(90.f), 1.f, 0.01f, _range);
 ////
 ////    CB_OMNIDIRECTIONAL_SHADOW_CASTER cb;
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Right)]  = (CreateViewLookTo(_pos, vec3::right) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Left)]   = (CreateViewLookTo(_pos, vec3::left) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Top)]    = (CreateViewLookTo(_pos, vec3::k_up) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Bottom)] = (CreateViewLookTo(_pos, vec3::k_down) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Front)]  = (CreateViewLookTo(_pos, vec3::k_forward) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Back)]   = (CreateViewLookTo(_pos, vec3::k_backward) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Right)]  = (CreateViewLookTo(_pos, Vec3::right) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Left)]   = (CreateViewLookTo(_pos, Vec3::left) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Top)]    = (CreateViewLookTo(_pos, Vec3::k_up) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Bottom)] = (CreateViewLookTo(_pos, Vec3::k_down) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Front)]  = (CreateViewLookTo(_pos, Vec3::k_forward) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Back)]   = (CreateViewLookTo(_pos, Vec3::k_backward) * lightP).Transpose();
 ////    GetGraphics().UploadBuffer_(g_basicRendererCtx->osmCasterCbh, cb);
 ////}
 ////
@@ -1705,36 +1705,36 @@
 ////    _mesh.Submit();
 ////}
 ////
-//// void BasicRenderer::SubmitPointLight(const Vec3 _radiance, const float _lightIntensity, const Vec3 _pos, const float _fallOffStart, const float _fallOffEnd)
+//// void BasicRenderer::SubmitPointLight(const Vector3 _radiance, const float _lightIntensity, const Vector3 _pos, const float _fallOffStart, const float _fallOffEnd)
 ////{
-////    Mtx4 lightMat = Mtx4::CreateScale(_fallOffEnd) * Mtx4::CreateTranslation(_pos);
+////    Matrix4x4 lightMat = Matrix4x4::CreateScale(_fallOffEnd) * Matrix4x4::CreateTranslation(_pos);
 ////
 ////    g_basicRendererCtx->UploadPointLight(_radiance, _lightIntensity, _pos, _fallOffStart, _fallOffEnd, false);
 ////    g_basicRendererCtx->UploadTransform(lightMat);
 ////    g_basicRendererCtx->lightVolumeUnitSphere.Submit();
 ////}
 ////
-//// void BasicRenderer::SubmitPointLightWithShadow(const Vec3 _radiance, const float _lightIntensity, const Vec3 _pos, const float _fallOffStart, const float _fallOffEnd, const TextureHandle _shadowMap)
+//// void BasicRenderer::SubmitPointLightWithShadow(const Vector3 _radiance, const float _lightIntensity, const Vector3 _pos, const float _fallOffStart, const float _fallOffEnd, const TextureHandle _shadowMap)
 ////{
 ////    JAM_ASSERT(!_shadowMap, "Not implemented yet");
 ////    GetGraphics().SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);
 ////    SubmitPointLight(_radiance, _lightIntensity, _pos, _fallOffStart, _fallOffEnd);
 ////}
 ////
-//// void BasicRenderer::SubmitSpotLight(const Vec3 _radiance, const float _lightIntensity, const Vec3 _pos, const Vec3 _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle)
+//// void BasicRenderer::SubmitSpotLight(const Vector3 _radiance, const float _lightIntensity, const Vector3 _pos, const Vector3 _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle)
 ////{
 ////    float h        = _fallOffEnd;
 ////    float t        = std::tanf(_outerConeAngle);
 ////    float w        = t * h;
-////    Vec3  pos      = _pos + _dir * h * 0.5f;
-////    Quat  q        = Quat::FromToRotation(vec3::k_up, _dir);
-////    Mtx4  lightMat = Mtx4::CreateScale(Vec3(w, h, w)) * Mtx4::CreateFromQuaternion(q) * Mtx4::CreateTranslation(pos);
+////    Vector3  pos      = _pos + _dir * h * 0.5f;
+////    Quaternion  q        = Quaternion::FromToRotation(Vec3::k_up, _dir);
+////    Matrix4x4  lightMat = Matrix4x4::CreateScale(Vector3(w, h, w)) * Matrix4x4::CreateFromQuaternion(q) * Matrix4x4::CreateTranslation(pos);
 ////    g_basicRendererCtx->UploadTransform(lightMat);
 ////    g_basicRendererCtx->UploadSpotLight(_radiance, _lightIntensity, _pos, _dir, _fallOffStart, _fallOffEnd, _innerConeAngle, _outerConeAngle, false);
 ////    g_basicRendererCtx->lightVolumeUnitCone.Submit();
 ////}
 ////
-//// void BasicRenderer::SubmitSpotLightWithShadow(const Vec3 _radiance, const float _lightIntensity, const Vec3 _pos, const Vec3 _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle, const TextureHandle _shadowMap)
+//// void BasicRenderer::SubmitSpotLightWithShadow(const Vector3 _radiance, const float _lightIntensity, const Vector3 _pos, const Vector3 _dir, const float _fallOffStart, const float _fallOffEnd, const float _innerConeAngle, const float _outerConeAngle, const TextureHandle _shadowMap)
 ////{
 ////    JAM_ASSERT(!_shadowMap, "Not implemented yet");
 ////    GetGraphics().SetTexture(_shadowMap, eShader::PixelShader, t_shadowSlot);

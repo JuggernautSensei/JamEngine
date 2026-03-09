@@ -203,7 +203,7 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
         bIsDragDropping = true;
 
         // set payload
-        SetFileDragDropPayload(_pEntry->path);
+        SetPathDragDropPayload(_pEntry->path);
 
         // preview
         ImGui::TextUnformatted(_pEntry->name.GetPtr());
@@ -213,7 +213,7 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
     // drag drop target (디렉토리인 경우만. accept path의 parent dir을 자신으로 변경)
     if (_pEntry->path.IsDirectory() && ImGui::BeginDragDropTarget())
     {
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
         {
             const String srcPath = ResolvePathDragDropPayload(pPayload);
             String       dstPath = _pEntry->path;
@@ -386,7 +386,7 @@ void Editor_FileBrowserWindow::Widget_BackButton_()
     if (ImGui::BeginDragDropTarget())
     {
         // 만약 파일을 받으면, 이전 디렉토리로 파일을 이동시켜줌
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
         {
             const String srcPath = ResolvePathDragDropPayload(pPayload);
             String       dstPath = pFocusingDirEntry->path;
@@ -472,7 +472,7 @@ void Editor_FileBrowserWindow::Widget_DirEntries_Recursive_(
     // on drag drop target move to this directory
     if (ImGui::BeginDragDropTarget())
     {
-        if (const ImGuiPayload* pPayload = AcceptFileDragDropPayload())
+        if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
         {
             const String srcPath = ResolvePathDragDropPayload(pPayload);
             String       dstPath = _pEntry->path;
@@ -843,7 +843,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Added:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.newPath]
+                [this, path = _event.path]
                 {
                     FileAddedEvent event { path };
                     GetApp().DispatchEvent(event);
@@ -854,7 +854,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Deleted:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.oldPath]
+                [this, path = _event.path]
                 {
                     FileDeletedEvent event { path };
                     GetApp().DispatchEvent(event);
@@ -865,7 +865,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Renamed:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, oldPath = _event.oldPath, newPath = _event.newPath]
+                [this, oldPath = _event.oldPath, newPath = _event.path]
                 {
                     FileRenamedEvent event { oldPath, newPath };
                     GetApp().DispatchEvent(event);
@@ -876,7 +876,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Modified:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.newPath]
+                [this, path = _event.path]
                 {
                     FileModifiedEvent event { path };
                     GetApp().DispatchEvent(event);

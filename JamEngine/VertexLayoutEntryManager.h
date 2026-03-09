@@ -58,7 +58,7 @@ public:
         JAM_ASSERT(ret.bSucceeded, "Failed to add VertexLayoutEntry with name '{}'.", name);
     }
 
-    Ref<VertexLayoutEntry> Emplace(const StringView _name, const VertexLayout& _vl)   
+    Ref<VertexLayoutEntry> Emplace(const StringView _name, const VertexLayout& _vl)
     {
         JAM_ASSERT(!Contains(_name), "VertexLayoutEntry with name '{}' already exists.", _name);
 
@@ -122,7 +122,9 @@ public:
     {
         JAM_ASSERT(Contains(_from), "VertexLayoutEntry with name '{}' does not exist.", _from);
         JAM_ASSERT(Contains(_to), "VertexLayoutEntry with name '{}' does not exist.", _to);
-        m_entries.Splice(_from, _to);
+        const auto itFrom = m_entries.Find(_from);
+        const auto itTo   = m_entries.Find(_to);
+        m_entries.Splice(itFrom, itTo);
     }
 
     void Splice(const Ref<VertexLayoutEntry>& _pFrom, const Ref<VertexLayoutEntry>& _pTo)

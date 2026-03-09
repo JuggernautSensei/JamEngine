@@ -3,6 +3,8 @@
 #include "ShaderCompiler.h"
 
 #include <d3dcompiler.h>
+
+#include "FileSystem.h"
 #include "WindowsUtilities.h"
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -101,29 +103,21 @@ namespace
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLFile(
+ShaderCompiler ShaderCompiler::CompileHLSLFile(
     const StringView          _path,
-    const ShaderCompilerInfo& _info)
+    const ShaderCompilerInfo& _desc)
 {
     ShaderCompiler compiler = {};
-    if (const Error err = compiler.CompileFromHLSLFile_(_path, _info))
-    {
-        return err;
-    }
-
+    compiler.CompileFromHLSLFile_(_path, _desc);
     return compiler;
 }
 
-Expect<ShaderCompiler> ShaderCompiler::CompileFromHLSLSource(
+ShaderCompiler ShaderCompiler::CompileHLSLSource(
     const StringView          _source,
-    const ShaderCompilerInfo& _info)
+    const ShaderCompilerInfo& _desc)
 {
     ShaderCompiler compiler = {};
-    if (const Error err = compiler.CompileHLSLSource_(_source, _info))
-    {
-        return err;
-    }
-
+    compiler.CompileHLSLSource_(_source, _desc);
     return compiler;
 }
 
@@ -138,17 +132,40 @@ StringView ShaderCompiler::GetErrorMessage() const
     return m_errorMsg;
 }
 
-Error ShaderCompiler::CompileFromHLSLFile_(
+Error ShaderCompiler::GetError() const
+{
+    return m_error;
+}
+
+bool ShaderCompiler::IsSucceeded() const
+{
+    return m_pBlob != nullptr;
+}
+
+bool ShaderCompiler::IsFailed() const
+{
+    return !IsSucceeded();
+}
+
+void ShaderCompiler::CompileFromHLSLFile_(
     const StringView          _path,
     const ShaderCompilerInfo& _desc)
 {
     JAM_ASSERT(!_path.IsEmpty(), "File path must not be empty.");
+    JAM_ASSERT(m_pBlob == nullptr, "ShaderCompiler instance is already used for compilation.");
 
-    const Vector<D3D_SHADER_MACRO> macros = CreateD3D11ShaderMacroBuffer_(_desc.macros);
-    const WString                  path   = WString::Encoded(_path);
+    const WString path = WString::Encoded(_path);
+    if (!FileSystem::Utf16::Exists(path))
+    {
+        m_errorMsg.Format("shader file not found: {}", _path);
+        JAM_LOG_ERROR(m_errorMsg);
+        m_error = Error::NotFound;
+        return;
+    }
 
-    ComPtr<ID3DBlob> pErrorBlob = nullptr;
-    const HRESULT    hr         = D3DCompileFromFile(
+    const Vector<D3D_SHADER_MACRO> macros     = CreateD3D11ShaderMacroBuffer_(_desc.macros);
+    ComPtr<ID3DBlob>               pErrorBlob = nullptr;
+    const HRESULT                  hr         = D3DCompileFromFile(
         path.GetPtr(),
         macros.data(),
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
@@ -171,22 +188,21 @@ Error ShaderCompiler::CompileFromHLSLFile_(
         }
 
         JAM_LOG_ERROR(m_errorMsg);
-        return Error::ShaderCompileFailed;
+        m_error = Error::ShaderCompileFailed;
     }
 
-    return Error::None;
+    m_error = Error::None;
 }
 
-Error ShaderCompiler::CompileHLSLSource_(
+void ShaderCompiler::CompileHLSLSource_(
     const StringView          _source,
     const ShaderCompilerInfo& _desc)
 {
     JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 
-    const Vector<D3D_SHADER_MACRO> macros = CreateD3D11ShaderMacroBuffer_(_desc.macros);
-
-    ComPtr<ID3DBlob> pErrorBlob = nullptr;
-    const HRESULT    hr         = D3DCompile(
+    const Vector<D3D_SHADER_MACRO> macros     = CreateD3D11ShaderMacroBuffer_(_desc.macros);
+    ComPtr<ID3DBlob>               pErrorBlob = nullptr;
+    const HRESULT                  hr         = D3DCompile(
         _source.GetPtr(),
         _source.GetLength(),
         nullptr,
@@ -211,10 +227,10 @@ Error ShaderCompiler::CompileHLSLSource_(
         }
 
         JAM_LOG_ERROR(m_errorMsg);
-        return Error::ShaderCompileFailed;
+        m_error = Error::ShaderCompileFailed;
     }
 
-    return Error::None;
+    m_error = Error::None;
 }
 
 }   // namespace Jam

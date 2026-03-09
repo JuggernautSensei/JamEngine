@@ -12,7 +12,7 @@ class Mesh;
 struct ModelNode
 {
     String            name      = {};
-    Mtx4              mtx       = mtx4::k_identity;
+    Matrix4x4              mtx       = Mtx4::k_identity;
     Vector<Int32>     meshIdxes = {};
     Vector<Int32>     matIdxes  = {};
     Vector<ModelNode> children  = {};

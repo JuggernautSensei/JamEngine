@@ -26,61 +26,61 @@ constexpr UInt32 k_floatSignMask         = UINT32_C(0x80000000);
 constexpr UInt32 k_floatExponentBitShift = 23;
 constexpr float  k_inf                   = std::bit_cast<float>(k_floatExponentMask);
 
-// vec2 vec3 vec4 quat mtx4 magic numbers
+// Vec2 Vec3 Vec4 Quat Mtx4 magic numbers
 // use this instead of DirectX::SimpleMath's magic numbers
 // because not matching my application coordinate system
 
-namespace vec2
+namespace Vec2
 {
-    constexpr Vec2 k_left  = Vec2(-1.f, 0.f);
-    constexpr Vec2 k_right = Vec2(1.f, 0.f);
-    constexpr Vec2 k_up    = Vec2(0.f, 1.f);
-    constexpr Vec2 k_down  = Vec2(0.f, -1.f);
-    constexpr Vec2 k_unitX = Vec2(1.f, 0.f);
-    constexpr Vec2 k_unitY = Vec2(0.f, 1.f);
-    constexpr Vec2 k_zero  = Vec2(0.f, 0.f);
-    constexpr Vec2 k_one   = Vec2(1.f, 1.f);
-}   // namespace vec2
+    constexpr Vector2 k_left  = Vector2(-1.f, 0.f);
+    constexpr Vector2 k_right = Vector2(1.f, 0.f);
+    constexpr Vector2 k_up    = Vector2(0.f, 1.f);
+    constexpr Vector2 k_down  = Vector2(0.f, -1.f);
+    constexpr Vector2 k_unitX = Vector2(1.f, 0.f);
+    constexpr Vector2 k_unitY = Vector2(0.f, 1.f);
+    constexpr Vector2 k_zero  = Vector2(0.f, 0.f);
+    constexpr Vector2 k_one   = Vector2(1.f, 1.f);
+}   // namespace Vec2
 
-namespace vec3
+namespace Vec3
 {
-    constexpr Vec3 k_left     = Vec3(-1.f, 0.f, 0.f);
-    constexpr Vec3 k_right    = Vec3(1.f, 0.f, 0.f);
-    constexpr Vec3 k_up       = Vec3(0.f, 1.f, 0.f);
-    constexpr Vec3 k_down     = Vec3(0.f, -1.f, 0.f);
-    constexpr Vec3 k_forward  = Vec3(0.f, 0.f, 1.f);
-    constexpr Vec3 k_backward = Vec3(0.f, 0.f, -1.f);
-    constexpr Vec3 k_unitX    = Vec3(1.f, 0.f, 0.f);
-    constexpr Vec3 k_unitY    = Vec3(0.f, 1.f, 0.f);
-    constexpr Vec3 k_unitZ    = Vec3(0.f, 0.f, 1.f);
-    constexpr Vec3 k_zero     = Vec3(0.f, 0.f, 0.f);
-    constexpr Vec3 k_one      = Vec3(1.f, 1.f, 1.f);
-}   // namespace vec3
+    constexpr Vector3 k_left     = Vector3(-1.f, 0.f, 0.f);
+    constexpr Vector3 k_right    = Vector3(1.f, 0.f, 0.f);
+    constexpr Vector3 k_up       = Vector3(0.f, 1.f, 0.f);
+    constexpr Vector3 k_down     = Vector3(0.f, -1.f, 0.f);
+    constexpr Vector3 k_forward  = Vector3(0.f, 0.f, 1.f);
+    constexpr Vector3 k_backward = Vector3(0.f, 0.f, -1.f);
+    constexpr Vector3 k_unitX    = Vector3(1.f, 0.f, 0.f);
+    constexpr Vector3 k_unitY    = Vector3(0.f, 1.f, 0.f);
+    constexpr Vector3 k_unitZ    = Vector3(0.f, 0.f, 1.f);
+    constexpr Vector3 k_zero     = Vector3(0.f, 0.f, 0.f);
+    constexpr Vector3 k_one      = Vector3(1.f, 1.f, 1.f);
+}   // namespace Vec3
 
-namespace vec4
+namespace Vec4
 {
-    constexpr Vec4 k_left     = Vec4(-1.f, 0.f, 0.f, 0.f);
-    constexpr Vec4 k_right    = Vec4(1.f, 0.f, 0.f, 0.f);
-    constexpr Vec4 k_up       = Vec4(0.f, 1.f, 0.f, 0.f);
-    constexpr Vec4 k_down     = Vec4(0.f, -1.f, 0.f, 0.f);
-    constexpr Vec4 k_forward  = Vec4(0.f, 0.f, 1.f, 0.f);
-    constexpr Vec4 k_backward = Vec4(0.f, 0.f, -1.f, 0.f);
-    constexpr Vec4 k_unitX    = Vec4(1.f, 0.f, 0.f, 0.f);
-    constexpr Vec4 k_unitY    = Vec4(0.f, 1.f, 0.f, 0.f);
-    constexpr Vec4 k_unitZ    = Vec4(0.f, 0.f, 1.f, 0.f);
-    constexpr Vec4 k_unitW    = Vec4(0.f, 0.f, 0.f, 1.f);
-    constexpr Vec4 k_zero     = Vec4(0.f, 0.f, 0.f, 0.f);
-    constexpr Vec4 k_one      = Vec4(1.f, 1.f, 1.f, 1.f);
-}   // namespace vec4
+    constexpr Vector4 k_left     = Vector4(-1.f, 0.f, 0.f, 0.f);
+    constexpr Vector4 k_right    = Vector4(1.f, 0.f, 0.f, 0.f);
+    constexpr Vector4 k_up       = Vector4(0.f, 1.f, 0.f, 0.f);
+    constexpr Vector4 k_down     = Vector4(0.f, -1.f, 0.f, 0.f);
+    constexpr Vector4 k_forward  = Vector4(0.f, 0.f, 1.f, 0.f);
+    constexpr Vector4 k_backward = Vector4(0.f, 0.f, -1.f, 0.f);
+    constexpr Vector4 k_unitX    = Vector4(1.f, 0.f, 0.f, 0.f);
+    constexpr Vector4 k_unitY    = Vector4(0.f, 1.f, 0.f, 0.f);
+    constexpr Vector4 k_unitZ    = Vector4(0.f, 0.f, 1.f, 0.f);
+    constexpr Vector4 k_unitW    = Vector4(0.f, 0.f, 0.f, 1.f);
+    constexpr Vector4 k_zero     = Vector4(0.f, 0.f, 0.f, 0.f);
+    constexpr Vector4 k_one      = Vector4(1.f, 1.f, 1.f, 1.f);
+}   // namespace Vec4
 
-namespace quat
+namespace Quat
 {
-    constexpr Quat k_identity = Quat(0.f, 0.f, 0.f, 1.f);
+    constexpr Quaternion k_identity = Quaternion(0.f, 0.f, 0.f, 1.f);
 }
 
-namespace mtx4
+namespace Mtx4
 {
-    constexpr Mtx4 k_identity = Mtx4 { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f };
+    constexpr Matrix4x4 k_identity = Matrix4x4 { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f };
 }
 
 template<typename T>
@@ -858,37 +858,37 @@ template<typename T>
     return Atan2(_x, 1.0f);
 }
 
-[[nodiscard]] constexpr Vec2 ToDeg(const Vec2 _radians)
+[[nodiscard]] constexpr Vector2 ToDeg(const Vector2 _radians)
 {
     return { ToDeg(_radians.x), ToDeg(_radians.y) };
 }
 
-[[nodiscard]] constexpr Vec3 ToDeg(const Vec3 _radians)
+[[nodiscard]] constexpr Vector3 ToDeg(const Vector3 _radians)
 {
     return { ToDeg(_radians.x), ToDeg(_radians.y), ToDeg(_radians.z) };
 }
 
-[[nodiscard]] constexpr Vec4 ToDeg(const Vec4 _radians)
+[[nodiscard]] constexpr Vector4 ToDeg(const Vector4 _radians)
 {
     return { ToDeg(_radians.x), ToDeg(_radians.y), ToDeg(_radians.z), ToDeg(_radians.w) };
 }
 
-[[nodiscard]] constexpr Vec2 ToRad(const Vec2& _degrees)
+[[nodiscard]] constexpr Vector2 ToRad(const Vector2& _degrees)
 {
     return { ToRad(_degrees.x), ToRad(_degrees.y) };
 }
 
-[[nodiscard]] constexpr Vec3 ToRad(const Vec3 _degrees)
+[[nodiscard]] constexpr Vector3 ToRad(const Vector3 _degrees)
 {
     return { ToRad(_degrees.x), ToRad(_degrees.y), ToRad(_degrees.z) };
 }
 
-[[nodiscard]] constexpr Vec4 ToRad(const Vec4& _degrees)
+[[nodiscard]] constexpr Vector4 ToRad(const Vector4& _degrees)
 {
     return { ToRad(_degrees.x), ToRad(_degrees.y), ToRad(_degrees.z), ToRad(_degrees.w) };
 }
 
-[[nodiscard]] constexpr Vec2 Add(const Vec2 a, const Vec2 b)
+[[nodiscard]] constexpr Vector2 Add(const Vector2 a, const Vector2 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -900,7 +900,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr Vec2 Sub(const Vec2 a, const Vec2 b)
+[[nodiscard]] constexpr Vector2 Sub(const Vector2 a, const Vector2 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -912,7 +912,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr Vec3 Add(const Vec3 a, const Vec3 b)
+[[nodiscard]] constexpr Vector3 Add(const Vector3 a, const Vector3 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -924,7 +924,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr Vec3 Sub(const Vec3 a, const Vec3 b)
+[[nodiscard]] constexpr Vector3 Sub(const Vector3 a, const Vector3 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -936,7 +936,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr Vec4 Add(const Vec4 a, const Vec4 b)
+[[nodiscard]] constexpr Vector4 Add(const Vector4 a, const Vector4 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -948,7 +948,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr Vec4 Sub(const Vec4 a, const Vec4 b)
+[[nodiscard]] constexpr Vector4 Sub(const Vector4 a, const Vector4 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -960,7 +960,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float Dot(const Vec2 a, const Vec2 b)
+[[nodiscard]] constexpr float Dot(const Vector2 a, const Vector2 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -972,7 +972,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float Dot(const Vec3 a, const Vec3 b)
+[[nodiscard]] constexpr float Dot(const Vector3 a, const Vector3 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -984,7 +984,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float Dot(const Vec4 a, const Vec4 b)
+[[nodiscard]] constexpr float Dot(const Vector4 a, const Vector4 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -996,7 +996,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr Vec3 Cross(const Vec3 a, const Vec3 b)
+[[nodiscard]] constexpr Vector3 Cross(const Vector3 a, const Vector3 b)
 {
     if (std::is_constant_evaluated())
     {
@@ -1012,7 +1012,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float LengthSq(const Vec2 vec)
+[[nodiscard]] constexpr float LengthSq(const Vector2 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1024,7 +1024,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float LengthSq(const Vec3 vec)
+[[nodiscard]] constexpr float LengthSq(const Vector3 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1036,7 +1036,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float LengthSq(const Vec4 vec)
+[[nodiscard]] constexpr float LengthSq(const Vector4 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1048,7 +1048,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float Length(const Vec2 vec)
+[[nodiscard]] constexpr float Length(const Vector2 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1060,7 +1060,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float Length(const Vec3 vec)
+[[nodiscard]] constexpr float Length(const Vector3 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1072,7 +1072,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float Length(const Vec4 vec)
+[[nodiscard]] constexpr float Length(const Vector4 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1084,7 +1084,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float InvLength(const Vec2 vec)
+[[nodiscard]] constexpr float InvLength(const Vector2 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1096,7 +1096,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float InvLength(const Vec3 vec)
+[[nodiscard]] constexpr float InvLength(const Vector3 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1108,7 +1108,7 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float InvLength(const Vec4 vec)
+[[nodiscard]] constexpr float InvLength(const Vector4 vec)
 {
     if (std::is_constant_evaluated())
     {
@@ -1120,74 +1120,74 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr float DistanceSq(const Vec2 a, const Vec2 b)
+[[nodiscard]] constexpr float DistanceSq(const Vector2 a, const Vector2 b)
 {
     return LengthSq(Sub(b, a));
 }
 
-[[nodiscard]] constexpr float DistanceSq(const Vec3 a, const Vec3 b)
+[[nodiscard]] constexpr float DistanceSq(const Vector3 a, const Vector3 b)
 {
     return LengthSq(Sub(b, a));
 }
 
-[[nodiscard]] constexpr float DistanceSq(const Vec4 a, const Vec4 b)
+[[nodiscard]] constexpr float DistanceSq(const Vector4 a, const Vector4 b)
 {
     return LengthSq(Sub(b, a));
 }
 
-[[nodiscard]] constexpr float Distance(const Vec2 a, const Vec2 b)
+[[nodiscard]] constexpr float Distance(const Vector2 a, const Vector2 b)
 {
     return Length(Sub(b, a));
 }
 
-[[nodiscard]] constexpr float Distance(const Vec3 a, const Vec3 b)
+[[nodiscard]] constexpr float Distance(const Vector3 a, const Vector3 b)
 {
     return Length(Sub(b, a));
 }
 
-[[nodiscard]] constexpr float Distance(const Vec4 a, const Vec4 b)
+[[nodiscard]] constexpr float Distance(const Vector4 a, const Vector4 b)
 {
     return Length(Sub(b, a));
 }
 
-[[nodiscard]] constexpr Vec2 Vec2From(Vec3 a)
+[[nodiscard]] constexpr Vector2 Vec2From(Vector3 a)
 {
     return { a.x, a.y };
 }
 
-[[nodiscard]] constexpr Vec2 Vec2From(Vec4 a)
+[[nodiscard]] constexpr Vector2 Vec2From(Vector4 a)
 {
     return { a.x, a.y };
 }
 
-[[nodiscard]] constexpr Vec3 Vec3From(Vec2 a, float z = 0.f)
+[[nodiscard]] constexpr Vector3 Vec3From(Vector2 a, float z = 0.f)
 {
     return { a.x, a.y, z };
 }
 
-[[nodiscard]] constexpr Vec3 Vec3From(Vec4 a)
+[[nodiscard]] constexpr Vector3 Vec3From(Vector4 a)
 {
     return { a.x, a.y, a.z };
 }
 
-[[nodiscard]] constexpr Vec4 Vec4From(Vec2 a, float z = 0.f, float w = 0.f)
+[[nodiscard]] constexpr Vector4 Vec4From(Vector2 a, float z = 0.f, float w = 0.f)
 {
     return { a.x, a.y, z, w };
 }
 
-[[nodiscard]] constexpr Vec4 Vec4From(Vec3 a, float w = 0.f)
+[[nodiscard]] constexpr Vector4 Vec4From(Vector3 a, float w = 0.f)
 {
     return { a.x, a.y, a.z, w };
 }
 
-[[nodiscard]] constexpr Vec2 Normalized(const Vec2 vec)
+[[nodiscard]] constexpr Vector2 Normalized(const Vector2 vec)
 {
     if (std::is_constant_evaluated())
     {
         const float lenSq = LengthSq(vec);
         if (IsZeroApprox(lenSq))
         {
-            return vec2::k_zero;
+            return Vec2::k_zero;
         }
         return vec * InvSqrt(lenSq);
     }
@@ -1196,14 +1196,14 @@ template<typename T>
         return DirectX::XMVector2Normalize(vec);
     }
 }
-[[nodiscard]] constexpr Vec3 Normalized(const Vec3 vec)
+[[nodiscard]] constexpr Vector3 Normalized(const Vector3 vec)
 {
     if (std::is_constant_evaluated())
     {
         const float lenSq = LengthSq(vec);
         if (IsZeroApprox(lenSq))
         {
-            return vec3::k_zero;
+            return Vec3::k_zero;
         }
         return vec * InvSqrt(lenSq);
     }
@@ -1213,14 +1213,14 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr Vec4 Normalized(const Vec4 vec)
+[[nodiscard]] constexpr Vector4 Normalized(const Vector4 vec)
 {
     if (std::is_constant_evaluated())
     {
         const float lenSq = LengthSq(vec);
         if (IsZeroApprox(lenSq))
         {
-            return vec4::k_zero;
+            return Vec4::k_zero;
         }
         return vec * InvSqrt(lenSq);
     }
@@ -1230,32 +1230,32 @@ template<typename T>
     }
 }
 
-[[nodiscard]] constexpr bool IsZeroApprox(const Vec2 vec)
+[[nodiscard]] constexpr bool IsZeroApprox(const Vector2 vec)
 {
     return IsZeroApprox(vec.x) && IsZeroApprox(vec.y);
 }
 
-[[nodiscard]] constexpr bool IsZeroApprox(const Vec3 vec)
+[[nodiscard]] constexpr bool IsZeroApprox(const Vector3 vec)
 {
     return IsZeroApprox(vec.x) && IsZeroApprox(vec.y) && IsZeroApprox(vec.z);
 }
 
-[[nodiscard]] constexpr bool IsZeroApprox(const Vec4 vec)
+[[nodiscard]] constexpr bool IsZeroApprox(const Vector4 vec)
 {
     return IsZeroApprox(vec.x) && IsZeroApprox(vec.y) && IsZeroApprox(vec.z) && IsZeroApprox(vec.w);
 }
 
-[[nodiscard]] constexpr Vec2 Abs(const Vec2& vec)
+[[nodiscard]] constexpr Vector2 Abs(const Vector2& vec)
 {
     return { Abs(vec.x), Abs(vec.y) };
 }
 
-[[nodiscard]] constexpr Vec3 Abs(const Vec3 vec)
+[[nodiscard]] constexpr Vector3 Abs(const Vector3 vec)
 {
     return { Abs(vec.x), Abs(vec.y), Abs(vec.z) };
 }
 
-[[nodiscard]] constexpr Vec4 Abs(const Vec4& vec)
+[[nodiscard]] constexpr Vector4 Abs(const Vector4& vec)
 {
     return { Abs(vec.x), Abs(vec.y), Abs(vec.z), Abs(vec.w) };
 }
@@ -1263,12 +1263,12 @@ template<typename T>
 [[nodiscard]] Float16 ToFloat16(float value);
 [[nodiscard]] float   ToFloat32(Float16 value);
 
-[[nodiscard]] Vec3 EulerFrom(Vec3 _forward);      // euler: pitch, yaw, roll
-[[nodiscard]] Vec3 ForwardFrom(Vec3 _eulerRad);   // euler: pitch, yaw, roll
+[[nodiscard]] Vector3 EulerFrom(Vector3 _forward);      // euler: pitch, yaw, roll
+[[nodiscard]] Vector3 ForwardFrom(Vector3 _eulerRad);   // euler: pitch, yaw, roll
 
-[[nodiscard]] Mtx4 CreateOrthoMatrix(float width, float height, float nearZ, float farZ);
-[[nodiscard]] Mtx4 CreateOrthoMatrix(float left, float right, float bottom, float top, float nearZ, float farZ);
-[[nodiscard]] Mtx4 CreatePerspectiveMatrix(float fovYRad, float aspect, float zNear, float zFar);
+[[nodiscard]] Matrix4x4 CreateOrthoMatrix(float width, float height, float nearZ, float farZ);
+[[nodiscard]] Matrix4x4 CreateOrthoMatrix(float left, float right, float bottom, float top, float nearZ, float farZ);
+[[nodiscard]] Matrix4x4 CreatePerspectiveMatrix(float fovYRad, float aspect, float zNear, float zFar);
 
 namespace Details
 {

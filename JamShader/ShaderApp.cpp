@@ -5,12 +5,12 @@
 #include "FileBrowserWindow.h"
 #include "NewProjectDialog.h"
 #include "ResourceManager.h"
-#include "WorkspaceWindow.h"
 #include "Events.h"
 #include "../JamEngine/SVGImporter.h"
 #include "../JamEngine/CommandLineArgumentParser.h"
 #include "../JamEngine/MessageDialog.h"
 #include "../JamEngine/ConfirmationDialog.h"
+#include "../JamEngine/EditorWidgets.h"
 #include "../JamEngine/JsonArchive.h"
 
 ShaderApp::ShaderApp(
@@ -29,20 +29,19 @@ void ShaderApp::Init(const Int32 _argc, char** _argv)
         JAM_LOG_INFO("Command line argument {}: '{}'", i, arg);
     }
 
+    ResourceManager::CreateInstance();
+
     SetVsync(true);
     GetWindowsPlatform().AdjustClientRect(100, 100, 1600, 900);
-    ResourceManager::CreateInstance();
 
     // set up
     SetupTheme_();
     SetupIcons_();
     SetupFont_();
-    m_windowsOpen[eWindows::FileBrowser] = true;
-    m_windowsOpen[eWindows::Workspace]   = true;
-
-    // create windows
-    m_pFileBrowserWindow = MakeScoped<FileBrowserWindow>();
-    m_pWorkspaceWindow   = MakeScoped<WorkspaceWindow>();
+    SetupShortCuts_();
+    m_windowsOpen[eWindows::FileBrowser]      = true;
+    m_windowsOpen[eWindows::ProjectInspector] = true;
+    m_windowsOpen[eWindows::ShaderItemEditor] = true;
 
     // load config if exists
     LoadConfigIfExists_();
@@ -62,7 +61,14 @@ void ShaderApp::Init(const Int32 _argc, char** _argv)
 
 void ShaderApp::Shutdown()
 {
+    SaveConfig_();
+
+    m_icons.Fill(nullptr);
     ResourceManager::DestroyInstance();
+}
+
+void ShaderApp::Render()
+{
 }
 
 void ShaderApp::Update(
@@ -71,9 +77,9 @@ void ShaderApp::Update(
     GetResourceManager().OnUpdate(_dt);
     UpdateAutoSaveConfig_(_dt);
 
-    if (m_pProject)
+    if (m_project)
     {
-        m_pFileBrowserWindow->OnUpdate(_dt);
+        m_fileBrowserWindow.OnUpdate(_dt);
     }
 }
 
@@ -81,19 +87,25 @@ void ShaderApp::ImGuiRender()
 {
     GetGraphics().ClearColor(k_nullHandle, RGBA::k_black);
 
+    DetectGlobalShortCut_();
     Panel_Dockspace_();
     Panel_MainMenuBar_();
 
-    if (m_pProject)
+    if (m_project)
     {
         if (m_windowsOpen[eWindows::FileBrowser])
         {
-            m_pFileBrowserWindow->OnImGuiRender();
+            m_fileBrowserWindow.OnImGuiRender();
         }
 
-        if (m_windowsOpen[eWindows::Workspace])
+        if (m_windowsOpen[eWindows::ProjectInspector])
         {
-            m_pWorkspaceWindow->OnImGuiRender();
+            m_projectInspectorWindow.OnImGuiRender();
+        }
+
+        if (m_windowsOpen[eWindows::ShaderItemEditor])
+        {
+            m_shaderItemEditorWindow.OnImGuiRender();
         }
     }
     else
@@ -112,7 +124,10 @@ void ShaderApp::OnEvent(
     dispatcher.Dispatch<ProjectChangedEvent>(this, &ShaderApp::OnProjectChagnedEvent_);
     dispatcher.Dispatch<ProjectRenamedEvent>(this, &ShaderApp::OnProjectRenamedEvent_);
 
-    m_pFileBrowserWindow->OnEvent(_event);
+    GetResourceManager().OnEvent(_event);
+    m_fileBrowserWindow.OnEvent(_event);
+    m_projectInspectorWindow.OnEvent(_event);
+    m_shaderItemEditorWindow.OnEvent(_event);
 }
 
 void ShaderApp::WriteToArchive(
@@ -243,6 +258,16 @@ void ShaderApp::SetupFont_() const
     io.FontDefault = pFont;
 }
 
+void ShaderApp::SetupShortCuts_()
+{
+    m_shortcuts[eShortCut::NewProject]        = ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_N;
+    m_shortcuts[eShortCut::OpenProject]       = ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_O;
+    m_shortcuts[eShortCut::SaveProject]       = ImGuiMod_Ctrl | ImGuiKey_S;
+    m_shortcuts[eShortCut::SaveAsProject]     = ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S;
+    m_shortcuts[eShortCut::ExitApp]           = ImGuiMod_Alt | ImGuiKey_F4;
+    m_shortcuts[eShortCut::CompileShaderItem] = ImGuiKey_F5;
+}
+
 Ref<Texture> ShaderApp::LoadIconFromSVGSource_(
     const StringView _source) const
 {
@@ -277,9 +302,9 @@ void ShaderApp::OnWindowClosedEvent_(const WindowCloseEvent& _event)
 
 void ShaderApp::UpdateAppTitle_() const
 {
-    if (m_pProject)
+    if (m_project)
     {
-        GetWindowsPlatform().SetTitle(String::Formatted("{} - {}", k_appName, m_pProject->GetName()));
+        GetWindowsPlatform().SetTitle(String::Formatted("{} - {}", k_appName, m_project->GetBaseName()));
     }
     else
     {
@@ -309,6 +334,37 @@ void ShaderApp::OpenProject_()
     {
         const StringView path = dlg.GetFirstSelectedPath();
         LoadProject(path);
+    }
+}
+
+void ShaderApp::SaveProject_()
+{
+    JAM_ASSERT(m_project, "No project to save.");
+
+    if (const Error err = m_project->Save())
+    {
+        PushMessageDialog("failed to save project", String::Formatted("failed to save project. {}", err.ToErrorMessage()));
+    }
+}
+
+void ShaderApp::SaveAsProject_()
+{
+    constexpr FileDialogFilter filters[] = {
+        { "JamShader Project File", Project::k_filter },
+    };
+
+    SaveFileDialogInfo info = {};
+    info.title              = "open project";
+    info.filtersOrEmpty     = filters;
+
+    FileDialog dlg { info };
+    if (dlg.Open())
+    {
+        const StringView path = dlg.GetFirstSelectedPath();
+        if (const Error err = m_project->SaveAs(path))
+        {
+            PushMessageDialog("failed to save project", String::Formatted("failed to save project. {}", err.ToErrorMessage()));
+        }
     }
 }
 
@@ -352,20 +408,31 @@ void ShaderApp::Panel_MainMenuBar_()
 
     if (ImGui::BeginMenu("file"))
     {
-        if (ImGui::MenuItem("new project"))
+        if (Widget_MenuItem("new project", GetShortCut(eShortCut::NewProject)))
         {
             NewProject_();
         }
 
-        if (ImGui::MenuItem("open project"))
+        if (Widget_MenuItem("open project", GetShortCut(eShortCut::OpenProject)))
         {
             OpenProject_();
         }
 
         ImGui::Separator();
-        if (ImGui::MenuItem("exit"))
+        if (Widget_MenuItem("save project", GetShortCut(eShortCut::SaveProject)))
         {
-            GetApp().Quit();
+            SaveProject_();
+        }
+
+        if (Widget_MenuItem("save project as", GetShortCut(eShortCut::SaveAsProject)))
+        {
+            SaveAsProject_();
+        }
+
+        ImGui::Separator();
+        if (Widget_MenuItem("exit", GetShortCut(eShortCut::ExitApp)))
+        {
+            TryQuit_();
         }
 
         ImGui::EndMenu();
@@ -376,6 +443,16 @@ void ShaderApp::Panel_MainMenuBar_()
         if (ImGui::MenuItem("file browser window", nullptr, m_windowsOpen[eWindows::FileBrowser]))
         {
             m_windowsOpen[eWindows::FileBrowser] = !m_windowsOpen[eWindows::FileBrowser];
+        }
+
+        if (ImGui::MenuItem("project inspector", nullptr, m_windowsOpen[eWindows::ProjectInspector]))
+        {
+            m_windowsOpen[eWindows::ProjectInspector] = !m_windowsOpen[eWindows::ProjectInspector];
+        }
+
+        if (ImGui::MenuItem("shader item editor window", nullptr, m_windowsOpen[eWindows::ShaderItemEditor]))
+        {
+            m_windowsOpen[eWindows::ShaderItemEditor] = !m_windowsOpen[eWindows::ShaderItemEditor];
         }
 
         ImGui::EndMenu();
@@ -465,23 +542,73 @@ void ShaderApp::UpdateAutoSaveConfig_(
     }
 }
 
+void ShaderApp::DetectGlobalShortCut_()
+{
+    if (ImGui::Shortcut(GetShortCut(eShortCut::OpenProject), ImGuiInputFlags_RouteGlobal))
+    {
+        OpenProject_();
+    }
+
+    if (ImGui::Shortcut(GetShortCut(eShortCut::NewProject), ImGuiInputFlags_RouteGlobal))
+    {
+        NewProject_();
+    }
+
+    if (ImGui::Shortcut(GetShortCut(eShortCut::ExitApp), ImGuiInputFlags_RouteGlobal))
+    {
+        TryQuit_();
+    }
+
+    if (m_project)
+    {
+        if (ImGui::Shortcut(GetShortCut(eShortCut::SaveProject), ImGuiInputFlags_RouteGlobal))
+        {
+            SaveProject_();
+        }
+
+        if (ImGui::Shortcut(GetShortCut(eShortCut::SaveAsProject), ImGuiInputFlags_RouteGlobal))
+        {
+            SaveAsProject_();
+        }
+    }
+}
+
+void ShaderApp::TryQuit_()
+{
+    // todo..
+    Quit();
+}
+
 void ShaderApp::SetIcon(
     const eIcon         _icon,
     const Ref<Texture>& _pTexture)
 {
-    icons[_icon] = _pTexture;
+    m_icons[_icon] = _pTexture;
 }
 
 const Ref<Texture>& ShaderApp::GetIcon(
     const eIcon _icon) const
 {
-    return icons[_icon];
+    return m_icons[_icon];
+}
+
+void ShaderApp::SetShortCut(
+    const eShortCut     _shortCut,
+    const ImGuiKeyChord _key)
+{
+    m_shortcuts[_shortCut] = _key;
+}
+
+ImGuiKeyChord ShaderApp::GetShortCut(
+    const eShortCut _shortCut)
+{
+    return m_shortcuts[_shortCut];
 }
 
 Error ShaderApp::LoadProject(
     const StringView _path)
 {
-    Expect<Ref<Project>> pProject = Project::LoadFromFile(_path);
+    Expect<Project> pProject = Project::LoadFromFile(_path);
     if (!pProject)
     {
         return pProject.GetError();
@@ -491,28 +618,24 @@ Error ShaderApp::LoadProject(
     return Error::None;
 }
 
-void ShaderApp::SetProject(const Ref<Project>& _pProject)
+void ShaderApp::SetProject(
+    const Project& _pProject)
 {
-    if (m_pProject == _pProject)
-    {
-        return;
-    }
+    m_project = _pProject;
 
-    m_pProject = _pProject;
-
-    ProjectChangedEvent event { m_pProject };
+    ProjectChangedEvent event { &m_project.GetValue() };
     GetApp().DispatchEvent(event);
 }
 
-const Ref<Project>& ShaderApp::GetProject() const
+Project* ShaderApp::GetProject()
 {
-    JAM_ASSERT(m_pProject, "Project is not loaded.");
-    return m_pProject;
+    JAM_ASSERT(m_project, "No project loaded.");
+    return &m_project.GetValue();
 }
 
-const Ref<Project>& ShaderApp::GetProjectOrNull() const
+Project* ShaderApp::GetProjectOrNull()
 {
-    return m_pProject;
+    return m_project ? &m_project.GetValue() : nullptr;
 }
 
 void ShaderApp::PushDialog(
@@ -541,4 +664,9 @@ void ShaderApp::PushConfirmationDialog(
     info.msg                    = _message;
     info.OnConfirm              = _onConfirm;
     m_dialogStack.Push(MakeRef<ConfirmationDialog>(info));
+}
+
+DialogStack& ShaderApp::GetDialogStack()
+{
+    return m_dialogStack;
 }

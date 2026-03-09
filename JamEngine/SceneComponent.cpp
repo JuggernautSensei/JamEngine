@@ -24,7 +24,7 @@ void SceneComponent::Deserialize(
     const Entity      _owner)
 {
     // transform
-    Mtx4 localMtx = mtx4::k_identity;
+    Matrix4x4 localMtx = Mtx4::k_identity;
     if (_reader.ReadField("localTransform", localMtx))
     {
         return;
@@ -73,8 +73,8 @@ void SceneComponent::DrawEditPanel(
         const Transform& transform = bIsWorld ? node.GetWorldTransform() : node.GetLocalTransform();
 
         // get translation & scale
-        Vec3 translation = transform.GetTranslation();
-        Vec3 scale       = transform.GetScale();
+        Vector3 translation = transform.GetTranslation();
+        Vector3 scale       = transform.GetScale();
 
         // setup
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
@@ -102,7 +102,7 @@ void SceneComponent::DrawEditPanel(
         {
             static EulerProxy s_proxy = {};
             s_proxy.OnBeforeWidget(transform);
-            Vec3& eulerRad = s_proxy.GetEulerProxy();
+            Vector3& eulerRad = s_proxy.GetEulerProxy();
 
             ImGui::TableNextColumn();
             Widget_Text("rotation", true);

@@ -10,11 +10,11 @@ class Event;
 
 enum class eAppSubSystemFlags : UInt32
 {
-    None,
-    SceneManager,
-    AssetManager,
-    ImGuiEngine,
-    Editor
+    None         = 0,
+    SceneManager = 1 << 0,
+    AssetManager = 1 << 1,
+    ImGuiEngine  = 1 << 2,
+    Editor       = 1 << 3,
 };
 
 constexpr Flags<eAppSubSystemFlags> k_runtimeDefaultSubSystems = {
@@ -103,7 +103,6 @@ private:
     String           m_workingDir       = {};
     String           m_contentsDir      = {};
     String           m_cacheDir         = {};
-    Scoped<FileLock> m_pWorkingDirLock  = nullptr;
     Scoped<FileLock> m_pContentsDirLock = nullptr;
     Scoped<FileLock> m_pCacheDirLock    = nullptr;
 

@@ -15,7 +15,7 @@ class Camera
 public:
     Camera() = default;
 
-    [[nodiscard]] Mtx4 ToProjMatrix() const;
+    [[nodiscard]] Matrix4x4 ToProjMatrix() const;
 
     void SetProjection(eProjection _projection);
     void SetNearZ(float _nearZ);

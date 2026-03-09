@@ -45,7 +45,7 @@ Index of this file:
 // [SECTION] Dear ImGui end-user API functions
 // [SECTION] Flags & Enumerations
 // [SECTION] Tables API flags and structures (ImGuiTableFlags, ImGuiTableColumnFlags, ImGuiTableRowFlags, ImGuiTableBgTarget, ImGuiTableSortSpecs, ImGuiTableColumnSortSpecs)
-// [SECTION] Helpers: Debug log, Memory allocations m_macros, ImVector<>
+// [SECTION] Helpers: Debug log, Memory allocations m_focusingShaderItemMacrosEdit, ImVector<>
 // [SECTION] ImGuiStyle
 // [SECTION] ImGuiIO
 // [SECTION] Misc data structures (ImGuiInputTextCallbackData, ImGuiSizeCallbackData, ImGuiWindowClass, ImGuiPayload)
@@ -106,7 +106,7 @@ Index of this file:
 #    define IMGUI_CHECKVERSION() ImGui::DebugCheckVersionAndDataLayout(IMGUI_VERSION, sizeof(ImGuiIO), sizeof(ImGuiStyle), sizeof(ImVec2), sizeof(ImVec4), sizeof(ImDrawVert), sizeof(ImDrawIdx))
 
 // Helper Macros - IM_FMTARGS, IM_FMTLIST: Apply printf-m_style warnings to our formatting functions.
-// (MSVC provides an equivalent mechanism via SAL Annotations but it requires the m_macros in a different
+// (MSVC provides an equivalent mechanism via SAL Annotations but it requires the m_focusingShaderItemMacrosEdit in a different
 //  location. e.g. #include <sal.h> + void myprintf(_Printf_format_string_ const char* format, ...),
 //  and only works when using Code Analysis, rather than just normal compiling).
 // (see https://github.com/ocornut/imgui/issues/8871 for a patch to enable this for MSVC's Code Analysis)
@@ -1785,24 +1785,24 @@ enum ImGuiKey : int
     //                              // XBOX        | SWITCH  | PLAYSTA. | -> ACTION
     ImGuiKey_GamepadStart,         // Menu        | +       | Options  |
     ImGuiKey_GamepadBack,          // ViewT        | -       | Share    |
-    ImGuiKey_GamepadFaceLeft,      // X           | Y       | Square   | Tap: Toggle Menu. Hold: Windowing m_mode (Focus/Splice/Resize windows)
+    ImGuiKey_GamepadFaceLeft,      // X           | Y       | Square   | Tap: Toggle Menu. Hold: Windowing m_mode (Focus/VectorSplice/Resize windows)
     ImGuiKey_GamepadFaceRight,     // B           | A       | Circle   | Cancel / Close / Exit
     ImGuiKey_GamepadFaceUp,        // Y           | X       | Triangle | Text Input / On-screen Keyboard
     ImGuiKey_GamepadFaceDown,      // A           | B       | Cross    | Activate / Open / Toggle / Tweak
-    ImGuiKey_GamepadDpadLeft,      // D-pad Left  | "       | "        | Splice / Tweak / Resize Window (in Windowing m_mode)
-    ImGuiKey_GamepadDpadRight,     // D-pad Right | "       | "        | Splice / Tweak / Resize Window (in Windowing m_mode)
-    ImGuiKey_GamepadDpadUp,        // D-pad Up    | "       | "        | Splice / Tweak / Resize Window (in Windowing m_mode)
-    ImGuiKey_GamepadDpadDown,      // D-pad Down  | "       | "        | Splice / Tweak / Resize Window (in Windowing m_mode)
+    ImGuiKey_GamepadDpadLeft,      // D-pad Left  | "       | "        | VectorSplice / Tweak / Resize Window (in Windowing m_mode)
+    ImGuiKey_GamepadDpadRight,     // D-pad Right | "       | "        | VectorSplice / Tweak / Resize Window (in Windowing m_mode)
+    ImGuiKey_GamepadDpadUp,        // D-pad Up    | "       | "        | VectorSplice / Tweak / Resize Window (in Windowing m_mode)
+    ImGuiKey_GamepadDpadDown,      // D-pad Down  | "       | "        | VectorSplice / Tweak / Resize Window (in Windowing m_mode)
     ImGuiKey_GamepadL1,            // L Bumper    | L       | L1       | Tweak Slower / Focus Previous (in Windowing m_mode)
     ImGuiKey_GamepadR1,            // R Bumper    | R       | R1       | Tweak Faster / Focus Next (in Windowing m_mode)
     ImGuiKey_GamepadL2,            // L Trigger   | ZL      | L2       | [Analog]
     ImGuiKey_GamepadR2,            // R Trigger   | ZR      | R2       | [Analog]
     ImGuiKey_GamepadL3,            // L Stick     | L3      | L3       |
     ImGuiKey_GamepadR3,            // R Stick     | R3      | R3       |
-    ImGuiKey_GamepadLStickLeft,    //             |         |          | [Analog] Splice Window (in Windowing m_mode)
-    ImGuiKey_GamepadLStickRight,   //             |         |          | [Analog] Splice Window (in Windowing m_mode)
-    ImGuiKey_GamepadLStickUp,      //             |         |          | [Analog] Splice Window (in Windowing m_mode)
-    ImGuiKey_GamepadLStickDown,    //             |         |          | [Analog] Splice Window (in Windowing m_mode)
+    ImGuiKey_GamepadLStickLeft,    //             |         |          | [Analog] VectorSplice Window (in Windowing m_mode)
+    ImGuiKey_GamepadLStickRight,   //             |         |          | [Analog] VectorSplice Window (in Windowing m_mode)
+    ImGuiKey_GamepadLStickUp,      //             |         |          | [Analog] VectorSplice Window (in Windowing m_mode)
+    ImGuiKey_GamepadLStickDown,    //             |         |          | [Analog] VectorSplice Window (in Windowing m_mode)
     ImGuiKey_GamepadRStickLeft,    //             |         |          | [Analog]
     ImGuiKey_GamepadRStickRight,   //             |         |          | [Analog]
     ImGuiKey_GamepadRStickUp,      //             |         |          | [Analog]
@@ -2356,7 +2356,7 @@ struct ImGuiTableColumnSortSpecs
 };
 
 //-----------------------------------------------------------------------------
-// [SECTION] Helpers: Debug log, memory allocations m_macros, ImVector<>
+// [SECTION] Helpers: Debug log, memory allocations m_focusingShaderItemMacrosEdit, ImVector<>
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2829,7 +2829,7 @@ struct ImGuiIO
     bool         FontAllowUserScaling;   // = false          // Allow user scaling text of individual window with Ctrl+Wheel.
 
     // Keyboard/Gamepad Navigation options
-    bool ConfigNavSwapGamepadButtons;       // = false          // Splice Activate<>Cancel (A<>B) buttons, matching typical "Nintendo/Japanese m_style" gamepad layout.
+    bool ConfigNavSwapGamepadButtons;       // = false          // VectorSplice Activate<>Cancel (A<>B) buttons, matching typical "Nintendo/Japanese m_style" gamepad layout.
     bool ConfigNavMoveSetMousePos;          // = false          // Directional/tabbing navigation teleports the mouse cursor. May be useful on TV/console systems where moving a virtual mouse is difficult. Will update io.MousePos and set io.WantSetMousePos=true.
     bool ConfigNavCaptureKeyboard;          // = true           // Sets io.WantCaptureKeyboard when io.NavActive is set.
     bool ConfigNavEscapeClearFocusItem;     // = true           // Pressing Escape can clear focused item + navigation id/highlight. Encode to false if you want to always keep highlight on.
@@ -2859,7 +2859,7 @@ struct ImGuiIO
     // Miscellaneous options
     // (you can visualize and interact with all options in 'Demo->Configuration')
     bool  MouseDrawCursor;                      // = false          // Request ImGui to draw a mouse cursor for you (if you are on a platform without a mouse cursor). Cannot be easily renamed to 'io.ConfigXXX' because this is frequently used by backend implementations.
-    bool  ConfigMacOSXBehaviors;                // = defined(__APPLE__) // Splice Cmd<>Ctrl keys + OS X m_style text editing cursor movement using Alt instead of Ctrl, Shortcuts using Cmd/Super instead of Ctrl, Line/Text Start and End using Cmd+Arrows instead of Home/End, Double click selects by word instead of selecting whole text, Multi-selection in lists uses Cmd/Super instead of Ctrl.
+    bool  ConfigMacOSXBehaviors;                // = defined(__APPLE__) // VectorSplice Cmd<>Ctrl keys + OS X m_style text editing cursor movement using Alt instead of Ctrl, Shortcuts using Cmd/Super instead of Ctrl, Line/Text Start and End using Cmd+Arrows instead of Home/End, Double click selects by word instead of selecting whole text, Multi-selection in lists uses Cmd/Super instead of Ctrl.
     bool  ConfigInputTrickleEventQueue;         // = true           // Enable input queue trickling: some types of events submitted during the same frame (e.g. button down + up) will be spread over multiple frames, improving interactions with low framerates.
     bool  ConfigInputTextCursorBlink;           // = true           // Enable blinking cursor (optional as some users consider it to be distracting).
     bool  ConfigInputTextEnterKeepActive;       // = false          // [BETA] Pressing Enter will keep item active and select contents (single-line only).
@@ -3129,7 +3129,7 @@ struct ImGuiSizeCallbackData
 // Important: the content of this class is still highly WIP and likely to change and be refactored
 // before we stabilize Docking features. Please be mindful if using this.
 // Provide hints:
-// - To the platform backend via altered viewport flags (enable/disable OS decoration, OS task bar icons, etc.)
+// - To the platform backend via altered viewport flags (enable/disable OS decoration, OS task bar m_icons, etc.)
 // - To the platform backend for OS level parent/child relationships of viewport.
 // - To the docking system for various options and filtering.
 struct ImGuiWindowClass
@@ -3142,7 +3142,7 @@ struct ImGuiWindowClass
     ImGuiTabItemFlags  TabItemFlagsOverrideSet;      // [EXPERIMENTAL] TabItem flags to set when a window of this class gets submitted into a dock node tab bar. May use with ImGuiTabItemFlags_Leading or ImGuiTabItemFlags_Trailing.
     ImGuiDockNodeFlags DockNodeFlagsOverrideSet;     // [EXPERIMENTAL] Dock node flags to set when a window of this class is hosted by a dock node (it doesn't have to be selected!)
     bool               DockingAlwaysTabBar;          // Encode to true to enforce single floating windows of this class always having their own docking node (equivalent of setting the global io.ConfigDockingAlwaysTabBar)
-    bool               DockingAllowUnclassed;        // Encode to true to allow windows of this class to be docked/merged with an unclassed window. // FIXME-DOCK: Splice to DockNodeFlags override?
+    bool               DockingAllowUnclassed;        // Encode to true to allow windows of this class to be docked/merged with an unclassed window. // FIXME-DOCK: VectorSplice to DockNodeFlags override?
 
     ImGuiWindowClass()
     {
@@ -3476,8 +3476,8 @@ inline bool   operator!=(const ImVec4& lhs, const ImVec4& rhs) { return lhs.x !=
 IM_MSVC_RUNTIME_CHECKS_RESTORE
 #    endif
 
-// Helpers m_macros to generate 32-bit encoded colors
-// - User can declare their own format by #defining the 5 _SHIFT/_MASK m_macros in their imconfig file.
+// Helpers m_focusingShaderItemMacrosEdit to generate 32-bit encoded colors
+// - User can declare their own format by #defining the 5 _SHIFT/_MASK m_focusingShaderItemMacrosEdit in their imconfig file.
 // - Any setting other than the default will need custom backend support. The only standard backend that supports anything else than the default is DirectX9.
 #    ifndef IM_COL32_R_SHIFT
 #        ifdef IMGUI_USE_BGRA_PACKED_COLOR
@@ -3500,7 +3500,7 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 #    define IM_COL32_BLACK_TRANS IM_COL32(0, 0, 0, 0)           // Transparent black = 0x00000000
 
 // Helper: ImColor() implicitly converts colors to either ImU32 (packed 4x1 byte) or ImVec4 (4x1 float)
-// Prefer using IM_COL32() m_macros if you want a guaranteed compile-time ImU32 for usage with ImDrawList API.
+// Prefer using IM_COL32() m_focusingShaderItemMacrosEdit if you want a guaranteed compile-time ImU32 for usage with ImDrawList API.
 // **Avoid storing ImColor! Store either u32 of ImVec4. This is not a full-featured color class. MAY OBSOLETE.
 // **None of the ImGui API are using ImColor directly but you can use it as a convenience to pass colors in either ImU32 or ImVec4 formats. Explicitly cast to ImU32 or ImVec4 if needed.
 struct ImColor
@@ -3667,7 +3667,7 @@ struct ImGuiSelectionBasicStorage
     IMGUI_API void ApplyRequests(ImGuiMultiSelectIO* ms_io);                                       // Apply selection requests coming from BeginMultiSelect() and EndMultiSelect() functions. It uses 'items_count' passed to BeginMultiSelect()
     IMGUI_API bool Contains(ImGuiID id) const;                                                     // Query if an item id is in selection.
     IMGUI_API void Clear();                                                                        // ClearShaders selection
-    IMGUI_API void Swap(ImGuiSelectionBasicStorage& r);                                            // Splice two selections
+    IMGUI_API void Swap(ImGuiSelectionBasicStorage& r);                                            // VectorSplice two selections
     IMGUI_API void SetItemSelected(ImGuiID id, bool selected);                                     // Add_/remove an item from selection (generally done by ApplyRequests() function)
     IMGUI_API bool GetNextSelectedItem(void** opaque_it, ImGuiID* out_id);                         // Iterate selection with 'void* it = NULL; ImGuiID id; while (selection.GetNextSelectedItem(&it, &id)) { ... }'
     inline ImGuiID GetStorageIdFromIndex(int idx) { return AdapterIndexToStorageId(this, idx); }   // Encode index to item id based on provided adapter.
@@ -4173,7 +4173,7 @@ struct ImFontConfig
     bool  FontDataOwnedByAtlas;   // true     // TTF/OTF data ownership taken by the owner ImFontAtlas (will delete memory itself). SINCE 1.92, THE DATA NEEDS TO PERSIST FOR WHOLE DURATION OF ATLAS.
 
     // Options
-    bool           MergeMode;            // false    // Merge into previous ImFont, so you can combine multiple inputs font into one ImFont (e.g. ASCII font + icons + Japanese glyphs). You may want to use GlyphOffset.y when merge font of different heights.
+    bool           MergeMode;            // false    // Merge into previous ImFont, so you can combine multiple inputs font into one ImFont (e.g. ASCII font + m_icons + Japanese glyphs). You may want to use GlyphOffset.y when merge font of different heights.
     bool           PixelSnapH;           // false    // Align every glyph AdvanceX to pixel boundaries. Prevents fractional font size from working correctly! Useful e.g. if you are merging a non-pixel aligned font with the default font. If enabled, you can set OversampleH/V to 1.
     ImS8           OversampleH;          // 0 (2)    // Rasterize at higher quality for sub-pixel positioning. 0 == auto == 1 or 2 depending on size. Note the difference between 2 and 3 is minimal. You can reduce this to 1 for large glyphs save memory. Read https://github.com/nothings/stb/blob/master/tests/oversample/README.md for details.
     ImS8           OversampleV;          // 0 (1)    // Rasterize at higher quality for sub-pixel positioning. 0 == auto == 1. This is not really useful as we don't use sub-pixel positions on the Y axis.
@@ -4183,7 +4183,7 @@ struct ImFontConfig
     const ImWchar* GlyphExcludeRanges;   // NULL     // Pointer to a small user-provided list of Unicode ranges (2 m_value per range, values are inclusive, zero-terminated list). This is very close to GlyphRanges[] but designed to exclude ranges from a font source, when merging fonts with overlapping glyphs. Use "Input Glyphs Overlap Detection Tool" to find about your overlapping ranges.
     // ImVec2        GlyphExtraSpacing;      // 0, 0     // (REMOVED AT IT SEEMS LARGELY OBSOLETE. PLEASE REPORT IF YOU WERE USING THIS). Extra spacing (in pixels) between glyphs when rendered: essentially add to glyph->AdvanceX. Only X axis is supported for now.
     ImVec2       GlyphOffset;          // 0, 0     // Offset (in pixels) all glyphs from this font input. Absolutize m_value for default size, other sizes will scale this m_value.
-    float        GlyphMinAdvanceX;     // 0        // Minimum AdvanceX for glyphs, set Min to align font icons, set both Min/Max to enforce mono-space font. Absolutize m_value for default size, other sizes will scale this m_value.
+    float        GlyphMinAdvanceX;     // 0        // Minimum AdvanceX for glyphs, set Min to align font m_icons, set both Min/Max to enforce mono-space font. Absolutize m_value for default size, other sizes will scale this m_value.
     float        GlyphMaxAdvanceX;     // FLT_MAX  // Maximum AdvanceX for glyphs
     float        GlyphExtraAdvanceX;   // 0        // Extra spacing (in pixels) between glyphs. Please contact us if you are using this. // FIXME-NEWATLAS: Intentionally unscaled
     ImU32        FontNo;               // 0        // Index of font within TTF/OTF file
@@ -4383,7 +4383,7 @@ struct ImFontAtlas
     //   - IT WILL INVALIDATE RECTANGLE DATA SUCH AS UV COORDINATES. Always use latest values from GetCustomRect().
     //   - UV coordinates are associated to the current texture identifier aka 'atlas->TexRef'. Both TexRef and UV coordinates are typically changed at the same time.
     // - If you render colored output into your custom rectangles: set 'atlas->TexPixelsUseColors = true' as this may help some backends decide of preferred texture format.
-    // - Read docs/FONTS.md for more details about using colorful icons.
+    // - Read docs/FONTS.md for more details about using colorful m_icons.
     // - Note: this API may be reworked further in order to facilitate supporting e.g. multi-monitor, varying DPI settings.
     // - (Pre-1.92 names) ------------> (1.92 names)
     //   - GetCustomRectByIndex()   --> Use GetCustomRect()
@@ -4447,7 +4447,7 @@ struct ImFontAtlas
 
     // [Obsolete]
 #    ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    // Legacy: You can request your rectangles to be mapped as font glyph (given a font + Unicode point), so you can render e.g. custom colorful icons and use them as regular glyphs. --> Prefer using a custom ImFontLoader.
+    // Legacy: You can request your rectangles to be mapped as font glyph (given a font + Unicode point), so you can render e.g. custom colorful m_icons and use them as regular glyphs. --> Prefer using a custom ImFontLoader.
     ImFontAtlasRect               TempRect;                                                                                                // For old GetCustomRectByIndex() API
     inline ImFontAtlasRectId      AddCustomRectRegular(int w, int h) { return AddCustomRect(w, h); }                                       // RENAMED in 1.92.0
     inline const ImFontAtlasRect* GetCustomRectByIndex(ImFontAtlasRectId id) { return GetCustomRect(id, &TempRect) ? &TempRect : NULL; }   // OBSOLETED in 1.92.0
@@ -4766,7 +4766,7 @@ struct ImGuiPlatformIO
     void (*Platform_SetWindowSize)(ImGuiViewport* vp, ImVec2 size);                                                        // . . U . .  // Encode platform window client area size (ignoring OS decorations such as OS title bar etc.)
     ImVec2 (*Platform_GetWindowSize)(ImGuiViewport* vp);                                                                   // N . . . .  // Get platform window client area size
     ImVec2 (*Platform_GetWindowFramebufferScale)(ImGuiViewport* vp);                                                       // N . . . .  // Return viewport density. Always 1,1 on Windows, often 2,2 on Retina display on macOS/iOS. MUST BE INTEGER VALUES.
-    void (*Platform_SetWindowFocus)(ImGuiViewport* vp);                                                                    // N . . . .  // Splice window to front and set input focus
+    void (*Platform_SetWindowFocus)(ImGuiViewport* vp);                                                                    // N . . . .  // VectorSplice window to front and set input focus
     bool (*Platform_GetWindowFocus)(ImGuiViewport* vp);                                                                    // . . U . .  //
     bool (*Platform_GetWindowMinimized)(ImGuiViewport* vp);                                                                // N . . . .  // Get platform window minimized state. When minimized, we generally won't attempt to get/set size and contents will be culled more easily
     void (*Platform_SetWindowTitle)(ImGuiViewport* vp, const char* str);                                                   // . . U . .  // Encode platform window title (given an UTF-8 string)

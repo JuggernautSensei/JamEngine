@@ -14,8 +14,8 @@
 //
 //struct VertexPosTex2D
 //{
-//    Vec2 position = vec2::k_zero;
-//    Vec2 texCoord = vec2::k_zero;
+//    Vector2 position = Vec2::k_zero;
+//    Vector2 texCoord = Vec2::k_zero;
 //
 //    inline static VertexLayout s_layout = []
 //    {
@@ -28,11 +28,11 @@
 //
 //struct VertexStaticMesh
 //{
-//    Vec3 position  = vec3::k_zero;
-//    Vec3 normal    = vec3::k_zero;
-//    Vec3 tangent   = vec3::k_zero;
-//    Vec2 texCoord0 = vec2::k_zero;
-//    Vec2 texCoord1 = vec2::k_zero;
+//    Vector3 position  = Vec3::k_zero;
+//    Vector3 normal    = Vec3::k_zero;
+//    Vector3 tangent   = Vec3::k_zero;
+//    Vector2 texCoord0 = Vec2::k_zero;
+//    Vector2 texCoord1 = Vec2::k_zero;
 //
 //    inline static VertexLayout s_layout = []
 //    {
@@ -48,7 +48,7 @@
 //
 //struct VertexPos3D
 //{
-//    Vec3 position = vec3::k_zero;
+//    Vector3 position = Vec3::k_zero;
 //
 //    inline static VertexLayout s_layout = []
 //    {

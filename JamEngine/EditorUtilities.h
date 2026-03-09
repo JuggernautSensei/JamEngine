@@ -38,8 +38,8 @@ class Scene;
 void                 SetNextItemToAvailWidth();
 [[nodiscard]] ImVec2 GetContentRegionAvailScaled(float _sx, float _sy);
 
-bool                              SetFileDragDropPayload(StringView _path);
-[[nodiscard]] const ImGuiPayload* AcceptFileDragDropPayload();
+bool                              SetPathDragDropPayload(StringView _path);
+[[nodiscard]] const ImGuiPayload* AcceptPathDragDropPayload();
 [[nodiscard]] String              ResolvePathDragDropPayload(const ImGuiPayload* _pPayload);
 
 bool                              SetEntityDragDropPayload(Entity _entity);

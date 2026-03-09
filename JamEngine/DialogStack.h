@@ -12,8 +12,6 @@ public:
     void Show();
 
 private:
-    void ShrinkToFit_();
-
     Vector<Ref<Dialog>> m_dialogs = {};
 };
 

@@ -21,8 +21,8 @@ constexpr static eOctreeRegion k_invalidOctreeRegion = static_cast<eOctreeRegion
 
 struct OctreeDesc
 {
-    Vec3 minBaseExtents     = Vec3(4.f);      // 가장 작은 베이스 aabb extents. 이것보다 작게 분할하지 않음
-    Vec3 initialBaseExtents = Vec3(1024.f);   // 초기 베이스 aabb extents
+    Vector3 minBaseExtents     = Vector3(4.f);      // 가장 작은 베이스 aabb extents. 이것보다 작게 분할하지 않음
+    Vector3 initialBaseExtents = Vector3(1024.f);   // 초기 베이스 aabb extents
 
     Int32 maxDepth                  = 8;
     bool  bUseMaxDepthPolicy        = true;   // true: enforce max depth during subdivision; false: no max depth limit, split until minBaseExtents is reached
@@ -66,12 +66,12 @@ class Octree
 
     struct OcItem
     {
-        [[nodiscard]] Vec3 GetCenter() const
+        [[nodiscard]] Vector3 GetCenter() const
         {
             return aabb.GetCenter();
         }
 
-        [[nodiscard]] Vec3 GetExtents() const
+        [[nodiscard]] Vector3 GetExtents() const
         {
             return aabb.GetExtents();
         }
@@ -125,12 +125,12 @@ class Octree
             return aabb.Contain(_pItem->aabb);
         }
 
-        [[nodiscard]] Vec3 GetCenter() const
+        [[nodiscard]] Vector3 GetCenter() const
         {
             return aabb.GetCenter();
         }
 
-        [[nodiscard]] Vec3 GetExtents() const
+        [[nodiscard]] Vector3 GetExtents() const
         {
             return aabb.GetExtents();
         }
@@ -157,8 +157,8 @@ public:
         JAM_ASSERT(_desc.minBaseExtents.x > 1.f && _desc.minBaseExtents.y > 1.f && _desc.minBaseExtents.z > 1.f, "minBaseExtents must be > 1.f");
         JAM_ASSERT(_desc.initialBaseExtents.x >= _desc.minBaseExtents.x && _desc.initialBaseExtents.y >= _desc.minBaseExtents.y && _desc.initialBaseExtents.z >= _desc.minBaseExtents.z, "initialBaseExtents must be >= minBaseExtents");
 
-        const Vec3 ext  = m_desc.initialBaseExtents * m_desc.looseFactor;
-        const Aabb aabb = Aabb::FromCenterExtents(vec3::k_zero, ext);
+        const Vector3 ext  = m_desc.initialBaseExtents * m_desc.looseFactor;
+        const Aabb aabb = Aabb::FromCenterExtents(Vec3::k_zero, ext);
         m_pRoot         = MakeNode_(aabb);
         m_pRoot->depth  = 0;
     }
@@ -292,7 +292,7 @@ public:
             while (pTargetNode->HasChildren())
             {
                 // 너무 작아질 경우 스킵
-                const Vec3 baseExt = pTargetNode->GetExtents() / m_desc.looseFactor;
+                const Vector3 baseExt = pTargetNode->GetExtents() / m_desc.looseFactor;
                 if (baseExt.x <= m_desc.minBaseExtents.x
                     && baseExt.y <= m_desc.minBaseExtents.y
                     && baseExt.z <= m_desc.minBaseExtents.z)
@@ -396,16 +396,16 @@ private:
     {
         JAM_ASSERT(_pNode->IsLeaf(), "Node already has children");
 
-        const Vec3 center       = _pNode->GetCenter();
-        const Vec3 childExt     = _pNode->GetExtents() * 0.5f;     // loose box
-        const Vec3 childBaseExt = childExt / m_desc.looseFactor;   // tight box
+        const Vector3 center       = _pNode->GetCenter();
+        const Vector3 childExt     = _pNode->GetExtents() * 0.5f;     // loose box
+        const Vector3 childBaseExt = childExt / m_desc.looseFactor;   // tight box
 
         for (const eOctreeRegion region: EnumRanges<eOctreeRegion>())
         {
             const Int32 underlying = UnderlyingFrom(region);
 
             // 중심은 base box 기준으로 계산
-            Vec3 childCenter = center;
+            Vector3 childCenter = center;
             childCenter.x += (underlying & 0b0001) ? childBaseExt.x : -childBaseExt.x;
             childCenter.y += (underlying & 0b0010) ? -childBaseExt.y : childBaseExt.y;
             childCenter.z += (underlying & 0b0100) ? childBaseExt.z : -childBaseExt.z;
@@ -442,9 +442,9 @@ private:
         }
 
         // check if children would be too small
-        const Vec3 ext          = _pNode->GetExtents();
-        const Vec3 childExt     = ext * 0.5f;
-        const Vec3 childBaseExt = childExt / m_desc.looseFactor;
+        const Vector3 ext          = _pNode->GetExtents();
+        const Vector3 childExt     = ext * 0.5f;
+        const Vector3 childBaseExt = childExt / m_desc.looseFactor;
 
         // 너무 작아지면 분할하지 않음
         if (childBaseExt.x < m_desc.minBaseExtents.x
@@ -539,8 +539,8 @@ private:
 
     void Expand_()
     {
-        const Vec3 center = m_pRoot->GetCenter();
-        const Vec3 ext    = m_pRoot->GetExtents() * 2.f;
+        const Vector3 center = m_pRoot->GetCenter();
+        const Vector3 ext    = m_pRoot->GetExtents() * 2.f;
         const Aabb aabb   = Aabb::FromCenterExtents(center, ext);
 
         OcNodeScoped pNewRoot    = MakeNode_(aabb);
@@ -748,8 +748,8 @@ private:
         JAM_ASSERT(_pRoot->Contain(_aabb), "Aabb does not fit in node");
 
         // determine quadrant based on center point
-        const Vec3 center     = _pRoot->GetCenter();
-        const Vec3 aabbCenter = _aabb.GetCenter();
+        const Vector3 center     = _pRoot->GetCenter();
+        const Vector3 aabbCenter = _aabb.GetCenter();
 
         Int32 region = 0;
         if (aabbCenter.x > center.x) region |= 0b0001;   // Right

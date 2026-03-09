@@ -36,9 +36,9 @@ void CameraComponent::DrawEditPanel(
     if (BeginLabelTable("CameraComponent"))
     {
         eProjection proj     = camera.GetProjection();
-        Vec2        nearFarZ = { camera.GetNearZ(), camera.GetFarZ() };
+        Vector2        nearFarZ = { camera.GetNearZ(), camera.GetFarZ() };
         float       fovYRad  = camera.GetFovYRad();
-        Vec2        res      = { camera.GetWidth(), camera.GetHeight() };
+        Vector2        res      = { camera.GetWidth(), camera.GetHeight() };
 
         // projection
         ImGui::TableNextColumn();

@@ -6,7 +6,7 @@ namespace Jam
 
 void WriteToArchive(
     ArchiveWriter& _writer,
-    const Vec3     _value)
+    const Vector3     _value)
 {
     _writer.PushBack(_value.x);
     _writer.PushBack(_value.y);
@@ -15,7 +15,7 @@ void WriteToArchive(
 
 Error ReadFromArchive(
     ArchiveReader& _reader,
-    Vec3&          _value)
+    Vector3&          _value)
 {
     if (const Error err = _reader.ReadAt(0, _value.x))
     {
@@ -37,7 +37,7 @@ Error ReadFromArchive(
 
 void WriteToArchive(
     ArchiveWriter& _writer,
-    const Vec2     _value)
+    const Vector2     _value)
 {
     _writer.PushBack(_value.x);
     _writer.PushBack(_value.y);
@@ -45,7 +45,7 @@ void WriteToArchive(
 
 Error ReadFromArchive(
     ArchiveReader& _reader,
-    Vec2&          _value)
+    Vector2&          _value)
 {
     if (const Error err = _reader.ReadAt(0, _value.x))
     {
@@ -62,7 +62,7 @@ Error ReadFromArchive(
 
 void WriteToArchive(
     ArchiveWriter& _writer,
-    const Mtx4&    _value)
+    const Matrix4x4&    _value)
 {
     for (Int32 row = 0; row < 4; ++row)
     {
@@ -75,7 +75,7 @@ void WriteToArchive(
 
 Error ReadFromArchive(
     ArchiveReader& _reader,
-    Mtx4&          _value)
+    Matrix4x4&          _value)
 {
     for (Int32 row = 0; row < 4; ++row)
     {

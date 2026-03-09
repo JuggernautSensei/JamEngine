@@ -7,13 +7,13 @@
 
 struct MyVertex
 {
-    Vec2 pos;
+    Vector2 pos;
     RGBA color;
 };
 
 struct MyCAMERA
 {
-    Vec3  offset;
+    Vector3  offset;
     float dummy;
 };
 
