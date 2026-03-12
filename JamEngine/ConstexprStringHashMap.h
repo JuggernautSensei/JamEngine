@@ -7,7 +7,7 @@ namespace Jam
 constexpr float k_constexprStringHashMapLoadFactor    = 0.7f;
 constexpr float k_invConstexprStringHashMapLoadFactor = 1.f / k_constexprStringHashMapLoadFactor;
 
-template<SizeT k_size, typename TValue>
+template<typename TValue, SizeT k_size>
 class ConstexprStringHashMap
 {
     static_assert(k_size > 0, "ConstexprStringHashMap size must be greater than 0.");

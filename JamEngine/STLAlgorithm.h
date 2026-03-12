@@ -57,4 +57,37 @@ void VectorInsert(
     _vec.insert(_vec.begin() + _idx, _value);
 }
 
+template<typename T>
+    requires(std::equality_comparable<T>)
+bool VectorContains(
+    Vector<T>& _vec,
+    const T&   _value)
+{
+    for (const T& v: _vec)
+    {
+        if (v == _value)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template<typename T, typename Predicate>
+bool VectorContainsIf(
+    Vector<T>&  _vec,
+    Predicate&& _predicate)
+{
+    for (const T& v: _vec)
+    {
+        if (_predicate(v))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 }   // namespace Jam

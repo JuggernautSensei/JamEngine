@@ -9,12 +9,11 @@ class Dialog : public RefCounted
 public:
     explicit Dialog(StringView _title, ImVec2 _size = { 0.f, 0.f });
 
-    void               Open();
-    void               Show();
-    [[nodiscard]] bool IsOpen() const;
+    void Open();
+    bool BeginShow();
+    void EndShow() const;
 
-protected:
-    static constexpr float k_textWrapWidth = 400.f;
+    [[nodiscard]] StringView GetTitle() const;
 
 private:
     virtual void OnShow() = 0;
@@ -22,8 +21,7 @@ private:
 
     String m_title        = {};
     bool   m_bOpenRequest = true;
-    bool   m_bOpen        = false;
-    ImVec2 m_size         = {};
+    ImVec2 m_initSize     = {};
 };
 
 }   // namespace Jam

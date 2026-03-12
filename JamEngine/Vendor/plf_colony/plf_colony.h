@@ -417,8 +417,8 @@ public:
 
 	#ifdef PLF_ALIGNMENT_SUPPORT
 		// The element as allocated in memory needs to be at-least 2*skipfield_type width in order to support free list indexes in erased element memory space, so:
-		// make the size of this struct the larger of alignof(T), sizeof(T) or 2*skipfield_type (the latter is only relevant for type char/uchar), and
-		// make the alignment alignof(T).
+		// make the size of this struct the larger of alignof(ByteT), sizeof(ByteT) or 2*skipfield_type (the latter is only relevant for type char/uchar), and
+		// make the alignment alignof(ByteT).
 		// This type is used mainly for correct pointer arithmetic while iterating over elements in memory.
 		struct alignas(alignof(element_type)) aligned_element_struct
 		{
@@ -431,7 +431,7 @@ public:
 		};
 
 
-		// We combine the allocation of elements and skipfield into one allocation to save performance. This memory must be allocated as an aligned type with the same alignment as T in order for the elements to align with memory boundaries correctly (which won't happen if we allocate as char or uint_8). But the larger the sizeof in the type we use for allocation, the greater the chance of creating a lot of unused memory in the skipfield portion of the allocated block. So we create a type that is sizeof(alignof(T)), as in most cases alignof(T) < sizeof(T). If alignof(t) >= sizeof(t) this makes no difference.
+		// We combine the allocation of elements and skipfield into one allocation to save performance. This memory must be allocated as an aligned type with the same alignment as ByteT in order for the elements to align with memory boundaries correctly (which won't happen if we allocate as char or uint_8). But the larger the sizeof in the type we use for allocation, the greater the chance of creating a lot of unused memory in the skipfield portion of the allocated block. So we create a type that is sizeof(alignof(ByteT)), as in most cases alignof(ByteT) < sizeof(ByteT). If alignof(t) >= sizeof(t) this makes no difference.
 		struct alignas(alignof(element_type)) aligned_allocation_struct
 		{
 		  char data[alignof(element_type)];
@@ -702,7 +702,7 @@ public:
 	static PLF_CONSTFUNC skipfield_type block_capacity_default_min() PLF_NOEXCEPT
 	{
 		const skipfield_type adaptive_size = static_cast<skipfield_type>(((sizeof(colony) + sizeof(group)) * 2) / sizeof(aligned_element_struct));
-		const skipfield_type max_block_capacity = block_capacity_default_max(); // Necessary to check against in situations with > 64bit pointer sizes and small sizeof(T)
+		const skipfield_type max_block_capacity = block_capacity_default_max(); // Necessary to check against in situations with > 64bit pointer sizes and small sizeof(ByteT)
 		return std::max(static_cast<skipfield_type>(8), std::min(adaptive_size, max_block_capacity));
 	}
 
@@ -723,7 +723,7 @@ public:
 
 
 
-	// Default constructors:
+	// DefaultExport constructors:
 
 	PLF_CONSTFUNC explicit colony(const allocator_type &alloc) PLF_NOEXCEPT:
 		allocator_type(alloc),
@@ -937,7 +937,7 @@ public:
 
 
 
-	// Default-m_value fill constructors:
+	// DefaultExport-m_value fill constructors:
 
 	colony(const size_type fill_number, const plf::limits block_limits, const allocator_type &alloc = allocator_type()):
 		allocator_type(alloc),
@@ -1334,7 +1334,7 @@ private:
 
 
 
-	void edit_free_list_prev(const aligned_pointer_type location, const skipfield_type value) PLF_NOEXCEPT // Write to the 'previous erased element' index in the erased element memory location
+	void edit_free_list_prev(const aligned_pointer_type location, const skipfield_type value) PLF_NOEXCEPT // WriteString to the 'previous erased element' index in the erased element memory location
 	{
 		edit_free_list(pointer_cast<skipfield_pointer_type>(location), value);
 	}

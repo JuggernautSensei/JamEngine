@@ -263,7 +263,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ExportProjectDialog.cpp" />
     <ClCompile Include="GUIAssetManager.cpp" />
+    <ClCompile Include="ProjectExporter.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="EmbededFont.cpp" />
     <ClCompile Include="Events.cpp" />
@@ -291,7 +293,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ExportProjectDialog.h" />
     <ClInclude Include="GUIAssetManager.h" />
+    <ClInclude Include="ProjectExporter.h" />
     <ClInclude Include="ShaderApp.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="EmbededFont.h" />

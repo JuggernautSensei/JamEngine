@@ -7,7 +7,7 @@ namespace Jam
 struct RenameFileDialogInfo
 {
     StringView title   = {};
-    ImVec2     size    = {};
+    ImVec2     size    = { 400.f, 0.f };
     String     srcPath = {};
 };
 

@@ -406,6 +406,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MessageDilaog.cpp" />
     <ClCompile Include="STLAlgorithm.cpp" />
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="Archive.cpp" />
@@ -444,7 +445,6 @@
     <ClCompile Include="NameOf.cpp" />
     <ClCompile Include="Delegate.cpp" />
     <ClCompile Include="AssetSaveLoader.cpp" />
-    <ClCompile Include="ConfirmationDialog.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="AssimpImporter.cpp" />
@@ -474,7 +474,6 @@
     <ClCompile Include="GeometryUtilities.cpp" />
     <ClCompile Include="RenameFileDialog.cpp" />
     <ClCompile Include="LRUCache.cpp" />
-    <ClCompile Include="MessageDialog.cpp" />
     <ClCompile Include="Octree.cpp" />
     <ClCompile Include="Optional.cpp" />
     <ClCompile Include="Scalar.cpp" />
@@ -604,6 +603,7 @@
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="STLAlgorithm.h" />
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="Archive.h" />
@@ -637,7 +637,6 @@
     <ClInclude Include="NameOf.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="AssetSaveLoader.h" />
-    <ClInclude Include="ConfirmationDialog.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="AssimpImporter.h" />
@@ -670,7 +669,6 @@
     <ClInclude Include="Reference.h" />
     <ClInclude Include="RenameFileDialog.h" />
     <ClInclude Include="LRUCache.h" />
-    <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="Optional.h" />
     <ClInclude Include="Scalar.h" />

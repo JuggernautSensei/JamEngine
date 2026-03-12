@@ -5,6 +5,8 @@
 #include "ShaderItemEditorWindow.h"
 #include "../JamEngine/DialogStack.h"
 
+class ProjectDirtyChangedEvent;
+
 namespace Jam
 {
 
@@ -24,6 +26,7 @@ enum class eShortCut
     SaveAsProject,       // default: Ctrl + Shift + S
     ExitApp,             // default: Alt + F4
     CompileShaderItem,   // default: F5
+    ExportProject,       // default: Ctrl + Shift + E
 };
 
 enum class eWindows
@@ -47,16 +50,21 @@ public:
     // project
     Error                  LoadProject(StringView _path);
     void                   SetProject(const Project& _pProject);
-    [[nodiscard]] Project* GetProject();
+    void                   ReleaseProject();
     [[nodiscard]] Project* GetProjectOrNull();
 
+    // focusing shader item
+    void                            SetFocusingShaderItem(StringView _name);
+    void                            RelaseFocusingShaderItem();
+    [[nodiscard]] const ShaderItem* GetFocusingShaderItemOrNull() const;
+
     // short cut for dialog
-    void PushDialog(const Ref<Dialog>& _pDialog);
+    void PushDialog(Scoped<Dialog>&& _pDialog);
     void PushMessageDialog(StringView _title, StringView _message);
     void PushConfirmationDialog(StringView _title, StringView _message, const Delegate<void()>& _onConfirm);
 
     // core systems
-    [[nodiscard]] DialogStack&   GetDialogStack();
+    [[nodiscard]] DialogStack& GetDialogStack();
 
     // serialization
     void  WriteToArchive(ArchiveWriter& _archive) const;
@@ -78,9 +86,10 @@ private:
     void         SetupShortCuts_();
     Ref<Texture> LoadIconFromSVGSource_(StringView _source) const;
 
-    void OnProjectChagnedEvent_(const ProjectChangedEvent& _event) const;
+    void OnProjectChagnedEvent_(const ProjectChangedEvent& _event);
     void OnProjectRenamedEvent_(const ProjectRenamedEvent& _event) const;
-    void OnWindowClosedEvent_(const WindowCloseEvent& _event);
+    void OnProjectDirtyChangedEvent_(const ProjectDirtyChangedEvent& _event) const;
+    void OnWindowClosedEvent_(const WindowClosedEvent& _event);
 
     void UpdateAppTitle_() const;
     void NewProject_();
@@ -97,16 +106,19 @@ private:
     void LoadConfigIfExists_();
     void UpdateAutoSaveConfig_(float _dt);
 
-    void DetectGlobalShortCut_();
-
+    void GlobalShortCut_();
     void TryQuit_();
+    void SaveAndQuit_();
+    void ExportProject_();
 
     EnumArray<eIcon, Ref<Texture>>      m_icons                   = {};
     EnumArray<eShortCut, ImGuiKeyChord> m_shortcuts               = {};
     EnumArray<eWindows, bool>           m_windowsOpen             = {};
     DialogStack                         m_dialogStack             = {};
-    Optional<Project>                   m_project                 = {};
     float                               m_configFileAutoSaveTimer = 0.0f;
+
+    Optional<Project> m_project                = {};
+    String            m_focusingShaderItemName = {};
 
     FileBrowserWindow      m_fileBrowserWindow      = {};
     ProjectInspectorWindow m_projectInspectorWindow = {};

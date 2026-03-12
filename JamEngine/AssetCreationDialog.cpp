@@ -2,7 +2,6 @@
 
 #include "AssetCreationDialog.h"
 
-#include "ConfirmationDialog.h"
 #include "Editor.h"
 #include "IAsset.h"
 #include "MessageDialog.h"

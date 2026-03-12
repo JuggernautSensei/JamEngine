@@ -85,7 +85,7 @@ void Editor_SceneHierarchyWindow::OnImGuiRender(
             }
 
             // window drag drop target for accept model files
-            const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+            const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
             if (ImGui::BeginDragDropTargetCustom(pWin->Rect(), pWin->ID))
             {
                 OnBeginDragDropTarget_EntityListPanel_();
@@ -109,7 +109,8 @@ void Editor_SceneHierarchyWindow::Widget_SaveSceneButton_(
 {
     ImGui::BeginDisabled(!GetSceneManager().HasActiveScene());
 
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::SaveScene));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::SaveScene);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("save scene", _btnSize))
     {
         const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
@@ -118,7 +119,8 @@ void Editor_SceneHierarchyWindow::Widget_SaveSceneButton_(
 
     Widget_ItemDescriptionTooltip(
         "save scene",
-        "save the current active scene to a file.");
+        "save the current active scene to a file.",
+        shortcut);
 
     ImGui::EndDisabled();
 }
@@ -126,7 +128,8 @@ void Editor_SceneHierarchyWindow::Widget_SaveSceneButton_(
 void Editor_SceneHierarchyWindow::Widget_LoadSceneButton_(
     const ImVec2 _btnSize) const
 {
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::LoadScene));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::LoadScene);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("load scene", _btnSize))
     {
         GetEditor().LoadScenByFileDialog();
@@ -134,7 +137,8 @@ void Editor_SceneHierarchyWindow::Widget_LoadSceneButton_(
 
     Widget_ItemDescriptionTooltip(
         "load scene",
-        "load a scene from a file and set it as the active scene.");
+        "load a scene from a file and set it as the active scene.",
+        shortcut);
 }
 
 void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
@@ -282,7 +286,8 @@ void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
 void Editor_SceneHierarchyWindow::Widget_CreateEntityButton_(
     const ImVec2 _btnSize) const
 {
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::CreateEntity));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::CreateEntity);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("create", _btnSize))
     {
         const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
@@ -291,13 +296,15 @@ void Editor_SceneHierarchyWindow::Widget_CreateEntityButton_(
 
     Widget_ItemDescriptionTooltip(
         "create entity",
-        "create a new entity in the active scene.");
+        "create a new entity in the active scene.",
+        shortcut);
 }
 
 void Editor_SceneHierarchyWindow::Widget_DeleteEntityButton_(
     const ImVec2 _btnSize) const
 {
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::DeleteEntity));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::DeleteEntity);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("delete", _btnSize))
     {
         const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
@@ -307,13 +314,15 @@ void Editor_SceneHierarchyWindow::Widget_DeleteEntityButton_(
 
     Widget_ItemDescriptionTooltip(
         "delete entity",
-        "delete the focused entity from the active scene.");
+        "delete the focused entity from the active scene.",
+        shortcut);
 }
 
 void Editor_SceneHierarchyWindow::Widget_CloneEntityButton_(
     const ImVec2 _btnSize) const
 {
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::CloneEntity));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::CloneEntity);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("clone", _btnSize))
     {
         const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
@@ -323,7 +332,8 @@ void Editor_SceneHierarchyWindow::Widget_CloneEntityButton_(
 
     Widget_ItemDescriptionTooltip(
         "clone entity",
-        "create a copy of the focused entity in the active scene.");
+        "create a copy of the focused entity in the active scene.",
+        shortcut);
 }
 
 void Editor_SceneHierarchyWindow::OnBeginDragDropTarget_EntityListPanel_() const

@@ -14,14 +14,14 @@ enum class eFileWriterCollisionPolicy
     Append
 };
 
-class FileRWBase
+class FileIO
 {
 public:
-    ~FileRWBase();
-    FileRWBase(const FileRWBase&)            = delete;
-    FileRWBase& operator=(const FileRWBase&) = delete;
-    FileRWBase(FileRWBase&& _other) noexcept;
-    FileRWBase& operator=(FileRWBase&& _other) noexcept;
+    ~FileIO();
+    FileIO(const FileIO&)            = delete;
+    FileIO& operator=(const FileIO&) = delete;
+    FileIO(FileIO&& _other) noexcept;
+    FileIO& operator=(FileIO&& _other) noexcept;
 
     SizeT               Seek(SizeT _offset, eSeekOp _op) const;
     SizeT               Skip(SizeT _numBytes) const;
@@ -36,34 +36,35 @@ public:
     [[nodiscard]] FILE* GetFilePtr() const;
 
 protected:
-    explicit FileRWBase(FILE* _pFile);
+    explicit FileIO(FILE* _pFile);
 
     FILE* m_pFile = nullptr;
 };
 
-class FileWriter : public FileRWBase
+class FileWriter : public FileIO
 {
 public:
     [[nodiscard]] static Expect<FileWriter> Open(StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
-    static Error                            WriteFileFromMemory(CMemoryBlock _data, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
-    static Error                            WriteFileFromString(StringView _str, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
+    static Error                            WriteFileAsBinary(CMemoryBlock _data, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
+    static Error                            WriteFileAsString(StringView _str, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
 
-    Expect<SizeT> Write(CMemoryBlock _data) const;
-    Expect<SizeT> Write(StringView _str) const;
+    Expect<SizeT> WriteBinary(CMemoryBlock _data) const;
+    Expect<SizeT> WriteString(StringView _str) const;   // if you want to write text. use this. WriteBinary write raw bytes, so it can be included null terminators.
     void          Flush() const;
 
 private:
     explicit FileWriter(FILE* _pFile);
 };
 
-class FileReader : public FileRWBase
+class FileReader : public FileIO
 {
 public:
     [[nodiscard]] static Expect<FileReader> Open(StringView _path);
-    static Expect<Vector<Byte>>             ReadFileAsMemory(StringView _path);
+    static Expect<Vector<Byte>>             ReadFileAsBinary(StringView _path);
     static Expect<String>                   ReadFileAsString(StringView _path);
 
-    Expect<SizeT>      Read(MemoryBlock _dst) const;
+    Expect<SizeT>      ReadBinary(MemoryBlock _dst, SizeT _count = 0) const;   // zero is treated as "read as much as possible"
+    Expect<String>     ReadString(SizeT _count = 0) const;                     // zero is treated as "read as much as possible"
     [[nodiscard]] bool IsEof() const;
 
 private:

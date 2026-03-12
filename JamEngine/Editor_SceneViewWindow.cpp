@@ -504,11 +504,11 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
         const auto [dx, dy] = m_infiniteDragger.GetDragDelta();
         if (dx != 0 || dy != 0)
         {
-            const float dMov   = m_cameraMoveSpeed * k_dragSensitivity;
-            const Vector3  right  = m_cameraTransform.GetRight();
-            const Vector3  up     = m_cameraTransform.GetUp();
-            const Vector3  dRight = right * NumericCast<float>(dx) * dMov;
-            const Vector3  dUp    = up * NumericCast<float>(-dy) * dMov;
+            const float   dMov   = m_cameraMoveSpeed * k_dragSensitivity;
+            const Vector3 right  = m_cameraTransform.GetRight();
+            const Vector3 up     = m_cameraTransform.GetUp();
+            const Vector3 dRight = right * NumericCast<float>(dx) * dMov;
+            const Vector3 dUp    = up * NumericCast<float>(-dy) * dMov;
             m_cameraTransform.AddTranslation(dRight + dUp);
         }
     }
@@ -623,7 +623,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
 
                         const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
                         const Camera&          cmr  = cc.camera;
-                        const Matrix4x4             proj = cmr.ToProjMatrix();
+                        const Matrix4x4        proj = cmr.ToProjMatrix();
 
                         m_renderer.DrawFrustum(view * proj, k_boundingBoxCol);
                     }
@@ -735,10 +735,10 @@ void Editor_SceneViewWindow::OnMouseWheelEvent_(
 void Editor_SceneViewWindow::Widget_GizmoSelector(
     const eGizmoOp _op)
 {
-    const eEditorShortCut shortcut = _op == eGizmoOp::None        ? eEditorShortCut::GizmoCursorMode
-                                   : _op == eGizmoOp::Translation ? eEditorShortCut::GizmoTranslationMode
-                                   : _op == eGizmoOp::Rotation    ? eEditorShortCut::GizmoRotationMode
-                                                                  : eEditorShortCut::GizmoScaleMode;
+    const eEditorShortCut editorShortcut = _op == eGizmoOp::None        ? eEditorShortCut::GizmoCursorMode
+                                         : _op == eGizmoOp::Translation ? eEditorShortCut::GizmoTranslationMode
+                                         : _op == eGizmoOp::Rotation    ? eEditorShortCut::GizmoRotationMode
+                                                                        : eEditorShortCut::GizmoScaleMode;
 
     const Ref<Texture> pIcon = _op == eGizmoOp::None        ? m_cursorIcon
                              : _op == eGizmoOp::Translation ? m_tranlationIcon
@@ -755,8 +755,9 @@ void Editor_SceneViewWindow::Widget_GizmoSelector(
                          : _op == eGizmoOp::Rotation    ? "rotate objects around x, y, z axis"
                                                         : "scale objects along x, y, z axis";
 
-    const bool bSelected = (m_gizmoOp == _op);
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(shortcut));
+    const bool          bSelected = (m_gizmoOp == _op);
+    const ImGuiKeyChord shortcut  = GetEditor().GetStyleShortCut(editorShortcut);
+    ImGui::SetNextItemShortcut(shortcut);
 
     // button
     if (!bSelected)
@@ -775,7 +776,7 @@ void Editor_SceneViewWindow::Widget_GizmoSelector(
     }
 
     // desc tooltip
-    Widget_ItemDescriptionTooltip(summryText, descText);
+    Widget_ItemDescriptionTooltip(summryText, descText, shortcut);
 }
 
 void Editor_SceneViewWindow::Widget_GizmoOriendToggle_()
@@ -783,24 +784,27 @@ void Editor_SceneViewWindow::Widget_GizmoOriendToggle_()
     const char* summryText = m_gizmoOrient == eGizmoOrient::World ? "world orient"
                                                                   : "local orient";
 
-    const char*   descText = m_gizmoOrient == eGizmoOrient::World ? "gizmo aligned to world axes. can toggle with t"
-                                                                  : "gizmo aligned to object local axes. can toggle with t";
-   
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::GizmoOrientToggle));
+    const char* descText = m_gizmoOrient == eGizmoOrient::World ? "gizmo aligned to world axes. can toggle with t"
+                                                                : "gizmo aligned to object local axes. can toggle with t";
+
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::GizmoOrientToggle);
+
+    ImGui::SetNextItemShortcut(shortcut);
     Widget_EnumToggle("##GizmoOrient", m_gizmoOrient);
-    Widget_ItemDescriptionTooltip(summryText, descText);
+    Widget_ItemDescriptionTooltip(summryText, descText, shortcut);
 }
 
 void Editor_SceneViewWindow::Widget_GizmoSnapToggle_()
 {
-    constexpr EnumComboItem k_items[] = {
+    constexpr EnumWidgetItem k_items[] = {
         {  "snap on",  true },
         { "snap off", false }
     };
 
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::GizmoSnapToggle));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::GizmoSnapToggle);
+    ImGui::SetNextItemShortcut(shortcut);
 
-    EnumComboItem cur = m_bGizmoSnap ? k_items[0] : k_items[1];
+    EnumWidgetItem cur = m_bGizmoSnap ? k_items[0] : k_items[1];
     if (Widget_EnumToggle("##gizmo snap", cur, k_items))
     {
         m_bGizmoSnap = cur.value;
@@ -808,7 +812,8 @@ void Editor_SceneViewWindow::Widget_GizmoSnapToggle_()
 
     Widget_ItemDescriptionTooltip(
         "snap",
-        "enable/disable gizmo snapping. can toggle with y");
+        "enable/disable gizmo snapping. can toggle with y",
+        shortcut);
 }
 
 void Editor_SceneViewWindow::Widget_CameraAcroball_()
@@ -873,7 +878,8 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
 void Editor_SceneViewWindow::Widget_RunButton_()
 {
     // hotkey
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::RunGameToggle));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::RunGameToggle);
+    ImGui::SetNextItemShortcut(shortcut);
 
     // button
     {
@@ -906,13 +912,15 @@ void Editor_SceneViewWindow::Widget_RunButton_()
     // tooltip
     Widget_ItemDescriptionTooltip(
         "run scene",
-        "switch to play m_mode and run the scene");
+        "switch to play m_mode and run the scene",
+        shortcut);
 }
 
 void Editor_SceneViewWindow::Widget_StopButton_() const
 {
     // hotkey
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::RunGameToggle));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::RunGameToggle);
+    ImGui::SetNextItemShortcut(shortcut);
 
     // button
     {
@@ -942,7 +950,8 @@ void Editor_SceneViewWindow::Widget_StopButton_() const
     // tooltip
     Widget_ItemDescriptionTooltip(
         "stop scene",
-        "stop the scene and switch to edit m_mode");
+        "stop the scene and switch to edit m_mode",
+        shortcut);
 }
 
 void Editor_SceneViewWindow::Widget_EditorModeSwitchButton_()

@@ -308,7 +308,7 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
             info.title                = "rename file";
             info.srcPath              = _pEntry->path;
 
-            GetEditor().PushDialog(MakeRef<RenameFileDialog>(info));
+            GetEditor().PushDialog(MakeScoped<RenameFileDialog>(info));
         }
 
         if (Widget_MenuItem("delete"))
@@ -329,7 +329,8 @@ void Editor_FileBrowserWindow::Widget_UndoButton_()
     ImGui::BeginDisabled(!m_historyStack.CanUndo());
 
     // button
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavUndo));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavUndo);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::ArrowButton("undo", ImGuiDir_Left))
     {
         const Ref<DirEntry>& pEntry = m_historyStack.Undo();
@@ -339,7 +340,8 @@ void Editor_FileBrowserWindow::Widget_UndoButton_()
     // tooltip
     Widget_ItemDescriptionTooltip(
         "undo",
-        "go back to the previous directory in history.");
+        "go back to the previous directory in history.",
+        shortcut);
 
     ImGui::EndDisabled();
 }
@@ -349,7 +351,8 @@ void Editor_FileBrowserWindow::Widget_RedoButton_()
     ImGui::BeginDisabled(!m_historyStack.CanRedo());
 
     // button
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavRedo));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavRedo);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::ArrowButton("redo", ImGuiDir_Right))
     {
         const Ref<DirEntry>& pEntry = m_historyStack.Redo();
@@ -359,7 +362,8 @@ void Editor_FileBrowserWindow::Widget_RedoButton_()
     // tooltip
     Widget_ItemDescriptionTooltip(
         "redo",
-        "go forward to the next directory in history.");
+        "go forward to the next directory in history.",
+        shortcut);
 
     ImGui::EndDisabled();
 }
@@ -370,7 +374,8 @@ void Editor_FileBrowserWindow::Widget_BackButton_()
     ImGui::BeginDisabled(pFocusingDirEntry == m_pRootDirNode);
 
     // button
-    ImGui::SetNextItemShortcut(GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavBack));
+    const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::FileBrowserNavBack);
+    ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button(".."))
     {
         GoToParentDir_();
@@ -380,7 +385,8 @@ void Editor_FileBrowserWindow::Widget_BackButton_()
     Widget_ItemDescriptionTooltip(
         "back",
         "go to the parent directory.\n"
-        "if drag and drop a file here, the file will be moved to the parent directory.");
+        "if drag and drop a file here, the file will be moved to the parent directory.",
+        shortcut);
 
     // drag and drop target
     if (ImGui::BeginDragDropTarget())
@@ -550,7 +556,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
             info.type                        = ePrimitiveCreationType::Cube;
-            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
+            GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("sphere"))
@@ -559,7 +565,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
             info.type                        = ePrimitiveCreationType::Sphere;
-            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
+            GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("plane"))
@@ -568,7 +574,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
             info.type                        = ePrimitiveCreationType::Plane;
-            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
+            GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("circle"))
@@ -577,7 +583,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
             info.type                        = ePrimitiveCreationType::Circle;
-            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
+            GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("cone"))
@@ -586,7 +592,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
             info.type                        = ePrimitiveCreationType::Cone;
-            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
+            GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
         if (Widget_MenuItem("cylinder"))
@@ -595,7 +601,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
             info.type                        = ePrimitiveCreationType::Cylinder;
-            GetEditor().PushDialog(MakeRef<PrimitiveCreationDialog>(info));
+            GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
         ImGui::EndMenu();
@@ -606,7 +612,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
         MaterialCreationDialogInfo info = {};
         info.title                      = "create material";
         info.dirOrEmpty                 = pEntry->path;
-        GetEditor().PushDialog(MakeRef<MaterialCreationDialog>(info));
+        GetEditor().PushDialog(MakeScoped<MaterialCreationDialog>(info));
     }
 }
 
@@ -618,7 +624,7 @@ void Editor_FileBrowserWindow::Menu_ImportAsset(
         ModelImportDialogInfo info = {};
         info.title                 = "import model";
         info.importPathOrEmpty     = _path;
-        GetEditor().PushDialog(MakeRef<ModelImportDialog>(info));
+        GetEditor().PushDialog(MakeScoped<ModelImportDialog>(info));
     }
 
     if (Widget_MenuItem("import image"))
@@ -626,7 +632,7 @@ void Editor_FileBrowserWindow::Menu_ImportAsset(
         ImageImportDialogInfo info = {};
         info.title                 = "import image";
         info.importPathOrEmpty     = _path;
-        GetEditor().PushDialog(MakeRef<ImageImportDialog>(info));
+        GetEditor().PushDialog(MakeScoped<ImageImportDialog>(info));
     }
 }
 

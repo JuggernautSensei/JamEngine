@@ -229,7 +229,7 @@ namespace IMGUIZMO_NAMESPACE
    IMGUI_API void SetID(int id);
 
 	// ID sso/scopes
-	// Read the FAQ (docs/FAQ.md or http://dearimgui.org/faq) for more details about how ID are handled in dear imgui.
+	// ReadBinary the FAQ (docs/FAQ.md or http://dearimgui.org/faq) for more details about how ID are handled in dear imgui.
 	// - Those questions are answered and impacted by understanding of the ID sso system:
 	//   - "Q: Why is my widget not reacting when I click on it?"
 	//   - "Q: How can I have widgets with an empty label?"

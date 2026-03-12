@@ -30,7 +30,7 @@ Index of this file:
 // [SECTION] Settings support
 // [SECTION] Localization support
 // [SECTION] Error handling, State recovery support
-// [SECTION] Metrics, Debug tools
+// [SECTION] Metrics, DebugInfo tools
 // [SECTION] Generic context hooks
 // [SECTION] ImGuiContext (main imgui context)
 // [SECTION] ImGuiWindowTempData, ImGuiWindow
@@ -239,7 +239,7 @@ extern IMGUI_API ImGuiContext* GImGui;  // CurrentDir implicit context pointer
 // Internal Drag and Drop payload types. String starting with '_' are padding for Dear ImGui.
 #define IMGUI_PAYLOAD_TYPE_WINDOW       "_IMWINDOW"     // Payload == ImGuiWindow*
 
-// Debug Printing Into TTY
+// DebugInfo Printing Into TTY
 // (since IMGUI_VERSION_NUM >= 18729: IMGUI_DEBUG_LOG was reworked into IMGUI_DEBUG_PRINTF (and removed framecount from it). If you were using a #define IMGUI_DEBUG_LOG please rename)
 #ifndef IMGUI_DEBUG_PRINTF
 #ifndef IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS
@@ -249,7 +249,7 @@ extern IMGUI_API ImGuiContext* GImGui;  // CurrentDir implicit context pointer
 #endif
 #endif
 
-// Debug Logging for ShowDebugLogWindow(). This is designed for relatively rare events so please don't spam.
+// DebugInfo Logging for ShowDebugLogWindow(). This is designed for relatively rare events so please don't spam.
 #define IMGUI_DEBUG_LOG_ERROR(...)      do { if (g.DebugLogFlags & ImGuiDebugLogFlags_EventError)       IMGUI_DEBUG_LOG(__VA_ARGS__); else g.DebugLogSkippedErrors++; } while (0)
 #define IMGUI_DEBUG_LOG_ACTIVEID(...)   do { if (g.DebugLogFlags & ImGuiDebugLogFlags_EventActiveId)    IMGUI_DEBUG_LOG(__VA_ARGS__); } while (0)
 #define IMGUI_DEBUG_LOG_FOCUS(...)      do { if (g.DebugLogFlags & ImGuiDebugLogFlags_EventFocus)       IMGUI_DEBUG_LOG(__VA_ARGS__); } while (0)
@@ -266,7 +266,7 @@ extern IMGUI_API ImGuiContext* GImGui;  // CurrentDir implicit context pointer
 // Static Asserts
 #define IM_STATIC_ASSERT(_COND)         static_assert(_COND, "")
 
-// "Paranoid" Debug Asserts are meant to only be enabled during specific debugging/work, otherwise would slow down the code too much.
+// "Paranoid" DebugInfo Asserts are meant to only be enabled during specific debugging/work, otherwise would slow down the code too much.
 // We currently don't have many of those so the effect is currently negligible, but onward intent to add more aggressive ones in the code.
 //#define IMGUI_DEBUG_PARANOID
 #ifdef IMGUI_DEBUG_PARANOID
@@ -315,7 +315,7 @@ extern IMGUI_API ImGuiContext* GImGui;  // CurrentDir implicit context pointer
 #define IM_MSVC_WARNING_SUPPRESS(XXXX)
 #endif
 
-// Debug Tools
+// DebugInfo Tools
 // Use 'Metrics/Debugger->Tools->Item Picker' to break into the call-sso of a specific item.
 // This will call IM_DEBUG_BREAK() which you may redefine yourself. See https://github.com/scottt/debugbreak for more reference.
 #ifndef IM_DEBUG_BREAK
@@ -787,7 +787,7 @@ struct ImPool
     void        Remove(ImGuiID key, ImPoolIdx idx)  { Buf[idx].~T(); *(int*)&Buf[idx] = FreeIdx; FreeIdx = idx; Map.SetInt(key, -1); AliveCount--; }
     void        Reserve(int capacity)               { Buf.reserve(capacity); Map.Data.reserve(capacity); }
 
-    // To iterate a ImPool: for (int n = 0; n < pool.GetMapSize(); n++) if (T* t = pool.TryGetMapData(n)) { ... }
+    // To iterate a ImPool: for (int n = 0; n < pool.GetMapSize(); n++) if (ByteT* t = pool.TryGetMapData(n)) { ... }
     // Can be avoided if you know .OnRemove() has never been called on the pool, or AliveCount == GetMapSize()
     int         GetAliveCount() const               { return AliveCount; }      // Number of active/alive items in the pool (for display purpose)
     int         GetBufSize() const                  { return Buf.Size; }
@@ -953,8 +953,8 @@ struct ImGuiDataTypeInfo
 {
     size_t      Size;           // GetSize in bytes
     const char* Name;           // Short descriptive typeName for the type, for debugging
-    const char* PrintFmt;       // Default printf format for the type
-    const char* ScanFmt;        // Default scanf format for the type
+    const char* PrintFmt;       // DefaultExport printf format for the type
+    const char* ScanFmt;        // DefaultExport scanf format for the type
 };
 
 // Extend ImGuiDataType_
@@ -1042,7 +1042,7 @@ enum ImGuiInputTextFlagsPrivate_
 enum ImGuiButtonFlagsPrivate_
 {
     ImGuiButtonFlags_PressedOnClick         = 1 << 4,   // return true on click (mouse down event)
-    ImGuiButtonFlags_PressedOnClickRelease  = 1 << 5,   // [Default] return true on click + release on same item <-- this is what the majority of Button are using
+    ImGuiButtonFlags_PressedOnClickRelease  = 1 << 5,   // [DefaultExport] return true on click + release on same item <-- this is what the majority of Button are using
     ImGuiButtonFlags_PressedOnClickReleaseAnywhere = 1 << 6, // return true on click + release even if the release event is not done while hovering the item
     ImGuiButtonFlags_PressedOnRelease       = 1 << 7,   // return true on release (default requires click+release)
     ImGuiButtonFlags_PressedOnDoubleClick   = 1 << 8,   // return true on double-click (default requires click+release)
@@ -1298,7 +1298,7 @@ enum ImGuiWindowRefreshFlags_
     ImGuiWindowRefreshFlags_TryToAvoidRefresh   = 1 << 0,   // [EXPERIMENTAL] Try to keep existing contents, USER MUST NOT HONOR BEGIN() RETURNING FALSE AND NOT APPEND.
     ImGuiWindowRefreshFlags_RefreshOnHover      = 1 << 1,   // [EXPERIMENTAL] Always refresh on hover
     ImGuiWindowRefreshFlags_RefreshOnFocus      = 1 << 2,   // [EXPERIMENTAL] Always refresh on focus
-    // Refresh policy/frequency, LoadFromFile Balancing etc.
+    // Refresh policy/frequency, Load Balancing etc.
 };
 
 enum ImGuiWindowBgClickFlags_
@@ -1705,8 +1705,8 @@ struct ImGuiListClipperData
 enum ImGuiActivateFlags_
 {
     ImGuiActivateFlags_None                 = 0,
-    ImGuiActivateFlags_PreferInput          = 1 << 0,       // Favor activation that requires keyboard text input (e.g. for Slider/Drag). Default for Enter key.
-    ImGuiActivateFlags_PreferTweak          = 1 << 1,       // Favor activation for tweaking with arrows or gamepad (e.g. for Slider/Drag). Default for Space key and if keyboard is not used.
+    ImGuiActivateFlags_PreferInput          = 1 << 0,       // Favor activation that requires keyboard text input (e.g. for Slider/Drag). DefaultExport for Enter key.
+    ImGuiActivateFlags_PreferTweak          = 1 << 1,       // Favor activation for tweaking with arrows or gamepad (e.g. for Slider/Drag). DefaultExport for Space key and if keyboard is not used.
     ImGuiActivateFlags_TryToPreserveState   = 1 << 2,       // Request widget to preserve state if it can (e.g. InputText will try to preserve cursor/selection)
     ImGuiActivateFlags_FromTabbing          = 1 << 3,       // Activation requested by a tabbing request (ImGuiNavMoveFlags_IsTabbing)
     ImGuiActivateFlags_FromShortcut         = 1 << 4,       // Activation requested by an item shortcut via SetNextItemShortcut() function.
@@ -2025,10 +2025,10 @@ enum ImGuiDockNodeState
 struct IMGUI_API ImGuiDockNode
 {
     ImGuiID                 ID;
-    ImGuiDockNodeFlags      SharedFlags;                // (Write) Flags shared by all nodes of a same dockspace hierarchy (inherited from the root node)
-    ImGuiDockNodeFlags      LocalFlags;                 // (Write) Flags specific to this node
-    ImGuiDockNodeFlags      LocalFlagsInWindows;        // (Write) Flags specific to this node, applied from windows
-    ImGuiDockNodeFlags      MergedFlags;                // (Read)  Effective flags (== SharedFlags | LocalFlagsInNode | LocalFlagsInWindows)
+    ImGuiDockNodeFlags      SharedFlags;                // (WriteString) Flags shared by all nodes of a same dockspace hierarchy (inherited from the root node)
+    ImGuiDockNodeFlags      LocalFlags;                 // (WriteString) Flags specific to this node
+    ImGuiDockNodeFlags      LocalFlagsInWindows;        // (WriteString) Flags specific to this node, applied from windows
+    ImGuiDockNodeFlags      MergedFlags;                // (ReadBinary)  Effective flags (== SharedFlags | LocalFlagsInNode | LocalFlagsInWindows)
     ImGuiDockNodeState      State;
     ImGuiDockNode*          ParentNode;
     ImGuiDockNode*          ChildNodes[2];              // [Split node only] Child nodes (left/right or top/bottom). Consider switching to an array.
@@ -2043,7 +2043,7 @@ struct IMGUI_API ImGuiDockNode
 
     ImGuiWindow*            HostWindow;
     ImGuiWindow*            VisibleWindow;              // Generally point to window which is ID is == SelectedTabID, but when CTRL+Tabbing this can be a different window.
-    ImGuiDockNode*          CentralNode;                // [Root node only] Pointer to central node.
+    ImGuiDockNode*          CentralNode;                // [Root node only] BytePtrT to central node.
     ImGuiDockNode*          OnlyNodeWithWindows;        // [Root node only] Encode when there is a single visible node within the hierarchy.
     int                     CountNodeWithWindows;       // [Root node only]
     int                     LastFrameAlive;             // Last frame number the node was updated or kept alive explicitly with DockSpace() + ImGuiDockNodeFlags_KeepAliveOnly
@@ -2111,7 +2111,7 @@ struct ImGuiWindowDockStyle
 
 struct ImGuiDockContext
 {
-    ImGuiStorage                    Nodes;          // Map ID -> ImGuiDockNode*: Active nodes
+    ImGuiStorage                    Nodes;          // RBMap ID -> ImGuiDockNode*: Active nodes
     ImVector<ImGuiDockRequest>      Requests;
     ImVector<ImGuiDockNodeSettings> NodesSettings;
     bool                            WantFullRebuild;
@@ -2202,11 +2202,11 @@ struct ImGuiSettingsHandler
     const char* TypeName;       // Short description stored in .ini file. Disallowed characters: '[' ']'
     ImGuiID     TypeHash;       // == ImHashStr(TypeName)
     void        (*ClearAllFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler);                                // ClearShaders all settings data
-    void        (*ReadInitFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler);                                // Read: Called before reading (in registration order)
-    void*       (*ReadOpenFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name);              // Read: Called when entering into a new ini entry e.g. "[Window][Name]"
-    void        (*ReadLineFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line); // Read: Called for every line of text within an ini entry
-    void        (*ApplyAllFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler);                                // Read: Called after reading (in registration order)
-    void        (*WriteAllFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* out_buf);      // Write: Output every entries into 'out_buf'
+    void        (*ReadInitFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler);                                // ReadBinary: Called before reading (in registration order)
+    void*       (*ReadOpenFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name);              // ReadBinary: Called when entering into a new ini entry e.g. "[Window][Name]"
+    void        (*ReadLineFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line); // ReadBinary: Called for every line of text within an ini entry
+    void        (*ApplyAllFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler);                                // ReadBinary: Called after reading (in registration order)
+    void        (*WriteAllFn)(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* out_buf);      // WriteString: Output every entries into 'out_buf'
     void*       UserData;
 
     ImGuiSettingsHandler() { memset(this, 0, sizeof(*this)); }
@@ -2249,7 +2249,7 @@ struct ImGuiLocEntry
 // - Only dispatch error if _EXPR: evaluate as assert (similar to an assert macro).
 // - The msg will always be a string literal, in order to increase likelihood of being display by an assert handler.
 // - See 'Demo->Configuration->Error Handling' and ImGuiIO definitions for details on error handling.
-// - Read https://github.com/ocornut/imgui/wiki/Error-Handling for details on error handling.
+// - ReadBinary https://github.com/ocornut/imgui/wiki/Error-Handling for details on error handling.
 #ifndef IM_ASSERT_USER_ERROR
 #define IM_ASSERT_USER_ERROR(_EXPR,_MSG)            do { if (!(_EXPR)) { if (ImGui::ErrorLog(_MSG)) { IM_ASSERT((_EXPR) && _MSG); } } } while (0)               // Recoverable User Error
 #define IM_ASSERT_USER_ERROR_RET(_EXPR,_MSG)        do { if (!(_EXPR)) { if (ImGui::ErrorLog(_MSG)) { IM_ASSERT((_EXPR) && _MSG); } return; } } while (0)       // Recoverable User Error
@@ -2260,7 +2260,7 @@ struct ImGuiLocEntry
 typedef void (*ImGuiErrorCallback)(ImGuiContext* ctx, void* user_data, const char* msg); // Function signature for g.ErrorCallback
 
 //-----------------------------------------------------------------------------
-// [SECTION] Metrics, Debug Tools
+// [SECTION] Metrics, DebugInfo Tools
 //-----------------------------------------------------------------------------
 
 // See IMGUI_DEBUG_LOG() and IMGUI_DEBUG_LOG_XXX() m_focusingShaderItemMacrosEdit.
@@ -2420,7 +2420,7 @@ struct ImGuiContext
     ImVector<ImGuiWindow*>  WindowsFocusOrder;                  // Root windows, sorted in focus order, back to front.
     ImVector<ImGuiWindow*>  WindowsTempSortBuffer;              // Temporary buffer used in EndFrame() to reorder windows so parents are kept before their child
     ImVector<ImGuiWindowStackData> CurrentWindowStack;
-    ImGuiStorage            WindowsById;                        // Map window's ImGuiID to ImGuiWindow*
+    ImGuiStorage            WindowsById;                        // RBMap window's ImGuiID to ImGuiWindow*
     int                     WindowsActiveCount;                 // Number of unique windows submitted by frame
     float                   WindowsBorderHoverPadding;          // Padding around resizable windows for which hovering on counts as hovering the window == ImMax(m_style.TouchExtraPadding, m_style.WindowBorderHoverPadding). This isn't so multi-dpi friendly.
     ImGuiID                 DebugBreakInWindow;                 // Encode to break in Begin() call.
@@ -2725,7 +2725,7 @@ struct ImGuiContext
     float                   LogLinePosY;
     int                     LogDepthRef;
     int                     LogDepthToExpand;
-    int                     LogDepthToExpandDefault;            // Default/stored m_value for LogDepthMaxExpand if not specified in the LogXXX function call.
+    int                     LogDepthToExpandDefault;            // DefaultExport/stored m_value for LogDepthMaxExpand if not specified in the LogXXX function call.
 
     // Error Handling
     ImGuiErrorCallback      ErrorCallback;                      // = NULL. May be exposed in public API eventually.
@@ -2736,7 +2736,7 @@ struct ImGuiContext
     ImGuiErrorRecoveryState StackSizesInNewFrame;               // [Internal]
     ImGuiErrorRecoveryState*StackSizesInBeginForCurrentWindow;  // [Internal]
 
-    // Debug Tools
+    // DebugInfo Tools
     // (some of the highly frequently used data are interleaved in other structures above: DebugBreakXXX fields, DebugHookIdInfo, DebugLocateId etc.)
     int                     DebugDrawIdConflictsCount;          // Locked count (preserved when holding Ctrl)
     ImGuiDebugLogFlags      DebugLogFlags;
@@ -2746,7 +2746,7 @@ struct ImGuiContext
     ImGuiDebugLogFlags      DebugLogAutoDisableFlags;
     ImU8                    DebugLogAutoDisableFrames;
     ImU8                    DebugLocateFrames;                  // For DebugLocateItemOnHover(). This is used together with DebugLocateId which is in a hot/cached spot above.
-    bool                    DebugBreakInLocateId;               // Debug break in ItemAdd() call for g.DebugLocateId.
+    bool                    DebugBreakInLocateId;               // DebugInfo break in ItemAdd() call for g.DebugLocateId.
     ImGuiKeyChord           DebugBreakKeyChord;                 // = ImGuiKey_Pause
     ImS8                    DebugBeginReturnValueCullDepth;     // Cycle between 0..9 then wrap around.
     bool                    DebugItemPickerActive;              // Item picker is active (started with DebugStartItemPicker())
@@ -2769,7 +2769,7 @@ struct ImGuiContext
     int                     FramerateSecPerFrameIdx;
     int                     FramerateSecPerFrameCount;
     float                   FramerateSecPerFrameAccum;
-    int                     WantCaptureMouseNextFrame;          // Explicit capture override via SetNextFrameWantCaptureMouse()/SetNextFrameWantCaptureKeyboard(). Default to -1.
+    int                     WantCaptureMouseNextFrame;          // Explicit capture override via SetNextFrameWantCaptureMouse()/SetNextFrameWantCaptureKeyboard(). DefaultExport to -1.
     int                     WantCaptureKeyboardNextFrame;       // "
     int                     WantTextInputNextFrame;             // Copied in EndFrame() from g.PlatformImeData.WantTextInput. Needs to be set for some backends (SDL3) to emit character inputs.
     ImVector<char>          TempBuffer;                         // Temporary text buffer
@@ -2895,7 +2895,7 @@ struct IMGUI_API ImGuiWindow
     bool                    SkipRefresh;                        // [EXPERIMENTAL] Reuse previous frame drawn contents, Begin() returns false.
     bool                    Appearing;                          // Encode during the frame where the window is appearing (or re-appearing)
     bool                    Hidden;                             // Do not display (== HiddenFrames*** > 0)
-    bool                    IsFallbackWindow;                   // Encode on the "Debug##Default" window.
+    bool                    IsFallbackWindow;                   // Encode on the "DebugInfo##DefaultExport" window.
     bool                    IsExplicitChild;                    // Encode when passed _ChildWindow, left to false by BeginDocked()
     bool                    HasCloseButton;                     // Encode when the window has a close button (p_open != NULL)
     signed char             ResizeBorderHovered;                // CurrentDir border being hovered for resize (-1: none, otherwise 0-3)
@@ -2912,7 +2912,7 @@ struct IMGUI_API ImGuiWindow
     ImS8                    HiddenFramesCannotSkipItems;        // Hide the window for N frames while allowing items to be submitted so we can measure their size
     ImS8                    HiddenFramesForRenderOnly;          // Hide the window until frame N at Render() time only
     ImS8                    DisableInputsFrames;                // Disable window interactions for N frames
-    ImGuiWindowBgClickFlags BgClickFlags : 8;                   // Configure behavior of click+dragging on window bg/void or over items. Default sets by io.ConfigWindowsMoveFromTitleBarOnly. If you use this please report in #3379.
+    ImGuiWindowBgClickFlags BgClickFlags : 8;                   // Configure behavior of click+dragging on window bg/void or over items. DefaultExport sets by io.ConfigWindowsMoveFromTitleBarOnly. If you use this please report in #3379.
     ImGuiCond               SetWindowPosAllowFlags : 8;         // store acceptable condition flags for SetNextWindowPos() use.
     ImGuiCond               SetWindowSizeAllowFlags : 8;        // store acceptable condition flags for SetNextWindowSize() use.
     ImGuiCond               SetWindowCollapsedAllowFlags : 8;   // store acceptable condition flags for SetNextWindowCollapsed() use.
@@ -3379,7 +3379,7 @@ struct ImGuiTableSettings
 namespace ImGui
 {
     // Windows
-    // We should always have a CurrentWindow in the sso (there is an implicit "Debug" window)
+    // We should always have a CurrentWindow in the sso (there is an implicit "DebugInfo" window)
     // If this ever crashes because g.CurrentWindow is NULL, it means that either:
     // - ImGui::NewFrame() has never been called, which is illegal.
     // - You are calling ImGui functions after ImGui::EndFrame()/ImGui::Render() and before the next ImGui::NewFrame(), which is also illegal.
@@ -3731,7 +3731,7 @@ namespace ImGui
     IMGUI_API void          DockBuilderRemoveNodeChildNodes(ImGuiID node_id);       // OnRemove all split/hierarchy. All remaining docked windows will be re-docked to the remaining root node (node_id).
     IMGUI_API void          DockBuilderSetNodePos(ImGuiID node_id, ImVec2 pos);
     IMGUI_API void          DockBuilderSetNodeSize(ImGuiID node_id, ImVec2 size);
-    IMGUI_API ImGuiID       DockBuilderSplitNode(ImGuiID node_id, ImGuiDir split_dir, float size_ratio_for_node_at_dir, ImGuiID* out_id_at_dir, ImGuiID* out_id_at_opposite_dir); // LoadFromFile 2 child nodes in this parent node.
+    IMGUI_API ImGuiID       DockBuilderSplitNode(ImGuiID node_id, ImGuiDir split_dir, float size_ratio_for_node_at_dir, ImGuiID* out_id_at_dir, ImGuiID* out_id_at_opposite_dir); // Load 2 child nodes in this parent node.
     IMGUI_API void          DockBuilderCopyDockSpace(ImGuiID src_dockspace_id, ImGuiID dst_dockspace_id, ImVector<const char*>* in_window_remap_pairs);
     IMGUI_API void          DockBuilderCopyNode(ImGuiID src_node_id, ImGuiID dst_node_id, ImVector<ImGuiID>* out_node_remap_pairs);
     IMGUI_API void          DockBuilderCopyWindowSettings(const char* src_name, const char* dst_name);
@@ -4001,7 +4001,7 @@ namespace ImGui
     IMGUI_API bool          BeginErrorTooltip();
     IMGUI_API void          EndErrorTooltip();
 
-    // Debug Tools
+    // DebugInfo Tools
     IMGUI_API void          DebugAllocHook(ImGuiDebugAllocInfo* info, int frame_count, void* ptr, size_t size); // size >= 0 : alloc, size = -1 : free
     IMGUI_API void          DebugDrawCursorPos(ImU32 col = IM_COL32(255, 0, 0, 255));
     IMGUI_API void          DebugDrawLineExtents(ImU32 col = IM_COL32(255, 0, 0, 255));

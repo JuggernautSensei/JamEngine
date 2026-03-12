@@ -1,14 +1,22 @@
 #pragma once
 #include "Dialog.h"
 
+// this is short-cut
 namespace Jam
 {
 
+struct MessageDialogButtonInfo
+{
+    StringView       label   = {};
+    Delegate<void()> onClick = {};
+};
+
 struct MessageDialogInfo
 {
-    StringView title = {};
-    StringView msg   = {};
-    ImVec2     size  = { 0.f, 0.f };
+    StringView                          title   = {};
+    ImVec2                              size    = { 500.f, 0.f };
+    StringView                          message = {};
+    Span<const MessageDialogButtonInfo> buttons = {};
 };
 
 class MessageDialog : public Dialog
@@ -18,7 +26,8 @@ public:
     void OnShow() override;
 
 private:
-    String m_msg = {};
+    String                          m_message = {};
+    Vector<MessageDialogButtonInfo> m_buttons = {};
 };
 
 }   // namespace Jam

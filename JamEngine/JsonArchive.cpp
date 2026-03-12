@@ -99,7 +99,7 @@ Error JsonWriter::SaveToFile(
         return Error::RuntimeError;
     }
 
-    const Expect<SizeT> ret = writer->Write(CMemoryBlock { json, NumericCast<SizeT>(len) });
+    const Expect<SizeT> ret = writer->WriteBinary(CMemoryBlock { json, NumericCast<SizeT>(len) });
     free(json);
     if (!ret)
     {
@@ -563,7 +563,7 @@ Error JsonReader::ReadPrimitive_(String& _value)
     }
     const char*  str = yyjson_get_str(pCur);
     const size_t len = yyjson_get_len(pCur);
-    _value.Append({ str, NumericCast<SizeT>(len) });
+    _value.Set({ str, NumericCast<SizeT>(len) });
     return Error::None;
 }
 

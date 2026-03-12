@@ -31,7 +31,7 @@ String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCodeType 
             JAM_UNREACHABLE;
     }
 
-    WStackString<512> buf;
+    StackWString<512> buf;
     const DWORD       len = FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         pSource,
@@ -80,7 +80,7 @@ WString CreateWindowsErrorMessageW(
             JAM_UNREACHABLE;
     }
 
-    WStackString<512> buf;
+    StackWString<512> buf;
     const DWORD       len = FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         pSource,

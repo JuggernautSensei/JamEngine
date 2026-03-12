@@ -61,12 +61,12 @@ private:
     Int32 m_y = 0;
 };
 
-class WindowCloseEvent : public Event
+class WindowClosedEvent : public Event
 {
-    JAM_EVENT_BODY(WindowCloseEvent);
+    JAM_EVENT_BODY(WindowClosedEvent);
 
 public:
-    WindowCloseEvent();
+    WindowClosedEvent();
     [[nodiscard]] String ToString() const override;
 };
 

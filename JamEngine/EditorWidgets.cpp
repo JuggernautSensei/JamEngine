@@ -25,13 +25,12 @@ namespace
             return a.depth < b.depth;
         }
 
-        const char* name;
-        ImVec4      color;
-        ImVec4      outlineColor;
-
-        Vector3 dir;
-        float   depth;
-        bool    bPos;   // positive direction
+        const char* name         = nullptr;
+        ImVec4      color        = {};
+        ImVec4      outlineColor = {};
+        Vector3     dir          = {};
+        float       depth        = 0.f;
+        bool        bPos         = true;   // positive direction
     };
 
     struct WidgetInputTextCallback_UserData
@@ -63,66 +62,6 @@ namespace
         return 0;
     }
 
-    template<SizeT k_cap>
-    void FormatTextureInfoText_(
-        StackString<k_cap>& _buf,
-        const Ref<Texture>& _pTexture)
-    {
-        const TextureInfo texInfo = GetGraphics().GetTextureInfo(_pTexture->GetHandle());
-        _buf.Format("path: {}\n"
-                    "size: {} x {} x {}\n"
-                    "type: {}\n"
-                    "format: {}\n"
-                    "array size: {}\n"
-                    "samples: {}\n"
-                    "mip levels: {}",
-                    _pTexture->GetPath(),
-                    texInfo.width,
-                    texInfo.height,
-                    texInfo.depth,
-                    NameOf(texInfo.type),
-                    NameOf(texInfo.format),
-                    texInfo.arraySize,
-                    texInfo.samples,
-                    texInfo.numMips);
-    }
-
-    template<SizeT k_cap>
-    void FormatShortcutDisplayText_Minimal_(
-        StackString<k_cap>& _buf,
-        const ImGuiKeyChord _shortcut)
-    {
-        if (_shortcut & ImGuiMod_Ctrl)
-        {
-            _buf.Append("ctrl+");
-        }
-
-        if (_shortcut & ImGuiMod_Shift)
-        {
-            _buf.Append("shift+");
-        }
-
-        if (_shortcut & ImGuiMod_Alt)
-        {
-            _buf.Append("alt+");
-        }
-
-        const ImGuiKey key = static_cast<ImGuiKey>(_shortcut & ~ImGuiMod_Mask_);
-        if (key != ImGuiKey_None)
-        {
-            _buf.Append(EditorDisplayNameOf(key));
-        }
-    }
-
-    template<SizeT k_cap>
-    void FormatShortcutDisplayText_(
-        StackString<k_cap>& _buf,
-        const ImGuiKeyChord _shortcut)
-    {
-        _buf.Set("shortcut: ");
-        FormatShortcutDisplayText_Minimal_(_buf, _shortcut);
-    }
-
 }   // namespace
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +75,7 @@ bool Widget_DragTranslation(
     const char*            _fmt,
     const ImGuiSliderFlags _flag)
 {
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -198,7 +137,7 @@ bool Widget_DragScale(
     const char*            _fmt,
     const ImGuiSliderFlags _flag)
 {
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -299,7 +238,7 @@ bool Widget_DragEuler(
     const char*            _fmt,
     const ImGuiSliderFlags _flag)
 {
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -363,7 +302,7 @@ void Widget_ImageFrame(
     const ImVec4         _bgCol,
     const bool           _bBorder)
 {
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return;
@@ -410,15 +349,12 @@ bool Widget_ImageButton(
 }
 
 void Widget_ItemDescriptionTooltip(
-    const char* _summery,
-    const char* _desc)
+    const char*         _summery,
+    const char*         _desc,
+    const ImGuiKeyChord _shortcut)
 {
     if (ImGui::BeginItemTooltip())
     {
-        const ImGuiContext&      g     = *GImGui;
-        const ImGuiLastItemData& data  = g.LastItemData;
-        const ImGuiKeyChord      chord = data.Shortcut;
-
         /*
 
         [SUMMERY] [SHORTCUT (optional)]
@@ -431,10 +367,15 @@ void Widget_ItemDescriptionTooltip(
         ImGui::TextUnformatted(_summery);
 
         // shortcut
-        if (chord != ImGuiKey_None)
+        if (_shortcut != ImGuiKey_None)
         {
             StackString<64> buf;
-            FormatShortcutDisplayText_(buf, chord);
+            buf.Format("(shortcut: {}{}{}{})",
+                       _shortcut & ImGuiMod_Ctrl ? "ctrl+" : "",
+                       _shortcut & ImGuiMod_Shift ? "shift+" : "",
+                       _shortcut & ImGuiMod_Alt ? "alt+" : "",
+                       EditorDisplayNameOf(static_cast<ImGuiKey>(_shortcut & ~ImGuiMod_Mask_)));
+
             ImGui::SameLine();
             ImGui::TextDisabled("%s", buf.GetPtr());
         }
@@ -571,7 +512,7 @@ void Widget_Text(
     const char* _text,
     const bool  _bFrameAligned)
 {
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return;
@@ -592,7 +533,7 @@ void Widget_TextFrame(
     const bool       _bRenderBorder,
     const eTextAlign _align)
 {
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return;
@@ -657,7 +598,7 @@ bool Widget_IconButton(
     const ImTextureProxy _icon,
     const ImVec2         _size)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -746,7 +687,7 @@ bool Widget_DragScalarN(
     const char*            _format,
     const ImGuiSliderFlags _flags)
 {
-    const ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    const ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -926,30 +867,31 @@ bool Widget_MenuItem(
     const bool          _bSelected,
     const bool          _bEnabled)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
     }
 
     StackString<64> buf;
-    const char*     shortcutText = nullptr;
     if (_shortcut != 0)
     {
         ImGui::SetNextItemShortcut(_shortcut);
-        buf.Set("  ");   // pretty spacing
-        FormatShortcutDisplayText_Minimal_(buf, _shortcut);
-        shortcutText = buf.GetPtr();
+        buf.Format(" {}{}{}{}",
+                   _shortcut & ImGuiMod_Ctrl ? "ctrl+" : "",
+                   _shortcut & ImGuiMod_Shift ? "shift+" : "",
+                   _shortcut & ImGuiMod_Alt ? "alt+" : "",
+                   EditorDisplayNameOf(static_cast<ImGuiKey>(_shortcut & ~ImGuiMod_Mask_)));
     }
 
-    return ImGui::MenuItem(_label, shortcutText, _bSelected, _bEnabled);
+    return ImGui::MenuItem(_label, buf.GetPtr(), _bSelected, _bEnabled);
 }
 
 bool Widget_VertexLayoutEntryCombo(
     const char*             _label,
     Ref<VertexLayoutEntry>& _pVle)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -987,7 +929,7 @@ void Widget_Dummy(
     const char*  _label,
     const ImVec2 _size)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return;
@@ -1009,7 +951,7 @@ bool Widget_MeshPicker(
     const char* _label,
     Ref<Mesh>&  _pMesh)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -1075,7 +1017,7 @@ bool Widget_MaterialPicker(
     const char*    _label,
     Ref<Material>& _pMaterial)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -1141,7 +1083,7 @@ bool Widget_TexturePicker(
     Ref<Texture>& _pTexture,
     const ImVec2& _size)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -1184,8 +1126,24 @@ bool Widget_TexturePicker(
     {
         if (_pTexture)
         {
-            StackString<1024> tmp;
-            FormatTextureInfoText_(tmp, _pTexture);
+            StackString<1024>  tmp;
+            const TextureInfo& info = GetGraphics().GetTextureInfo(_pTexture->GetHandle());
+            tmp.Format("path: {}\n"
+                       "resolution: {} x {} x {}\n"
+                       "type: {}\n"
+                       "format: {}\n"
+                       "array size: {}\n"
+                       "samples: {}\n"
+                       "num mips: {}\n",
+                       _pTexture->GetPath(),
+                       info.width,
+                       info.height,
+                       info.depth,
+                       NameOf(info.type),
+                       NameOf(info.format),
+                       info.arraySize,
+                       info.samples,
+                       info.numMips);
             ImGui::TextUnformatted(tmp.GetPtr());
         }
         else
@@ -1217,7 +1175,7 @@ bool Widget_Acroball(
     const ImVec2 _pos,
     const float  _length)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -1355,7 +1313,7 @@ bool Widget_FileDialog(
     String&     _path,
     FileDialog& _fd)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -1372,6 +1330,12 @@ bool Widget_FileDialog(
     if (Widget_InputText(_label, _path, ImGuiInputTextFlags_ReadOnly))
     {
         bChanged = true;
+    }
+
+    if (ImGui::BeginItemTooltip())
+    {
+        ImGui::TextUnformatted(_path.GetPtr());
+        ImGui::EndTooltip();
     }
 
     // button
@@ -1439,14 +1403,14 @@ void Widget_ReadOnlyInputTextMultiline(
 }
 
 bool Widget_EnumCombo(
-    const char*                     _label,
-    EnumComboItem&                  _curItem,
-    const Span<const EnumComboItem> _items)
+    const char*                      _label,
+    EnumWidgetItem&                  _curItem,
+    const Span<const EnumWidgetItem> _items)
 {
     bool bChanged = false;
     if (ImGui::BeginCombo(_label, _curItem.name, ImGuiComboFlags_NoArrowButton))
     {
-        for (const EnumComboItem& item: _items)
+        for (const EnumWidgetItem& item: _items)
         {
             const bool bSelected = (_curItem.value == item.value);
             if (ImGui::Selectable(item.name, bSelected))
@@ -1468,11 +1432,11 @@ bool Widget_EnumCombo(
 }
 
 bool Widget_EnumToggle(
-    const char*                     _label,
-    EnumComboItem&                  _curItem,
-    const Span<const EnumComboItem> _items)
+    const char*                      _label,
+    EnumWidgetItem&                  _curItem,
+    const Span<const EnumWidgetItem> _items)
 {
-    ImGuiWindow* pWin = ImGui::GetCurrentWindow();
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
     if (pWin->SkipItems)
     {
         return false;
@@ -1501,7 +1465,7 @@ bool Widget_EnumToggle(
     bool         bChanged = false;
     Int32        idx      = 0;
     Int32        curIdx   = 0;
-    for (const EnumComboItem& item: _items)
+    for (const EnumWidgetItem& item: _items)
     {
         const ImVec2  btnP0 = { bb.Min.x + btnWidth * NumericCast<float>(idx), bb.Min.y };
         const ImVec2  btnP1 = btnP0 + btnSize;
@@ -1552,6 +1516,85 @@ bool Widget_EnumToggle(
         }
     }
 
+    return bChanged;
+}
+
+bool Widget_EnumFlags(
+    const char*                      _label,
+    Int32&                           _flags,
+    const Span<const EnumWidgetItem> _flagsItems,
+    const Span<const EnumWidgetItem> _setItems)
+{
+    ImGuiWindow* pWin = ImGui::GetCurrentWindowRead();
+    if (pWin->SkipItems)
+    {
+        return false;
+    }
+
+    ImGui::PushID(_label);
+
+    StackString<256> displayName;
+    for (const EnumWidgetItem& flagItem: _flagsItems)
+    {
+        if (_flags & flagItem.value)
+        {
+            if (!displayName.IsEmpty())
+            {
+                displayName.Append(", ");
+            }
+
+            displayName.Append(flagItem.name);
+        }
+    }
+
+    bool        bChanged = false;
+    const char* preview  = displayName.IsEmpty() ? "none" : displayName.GetPtr();
+    if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_HeightLargest))
+    {
+        for (const EnumWidgetItem& flagItem: _flagsItems)
+        {
+            const bool bSelected = (_flags & flagItem.value) != 0;
+            if (ImGui::MenuItem(flagItem.name, nullptr, bSelected))
+            {
+                bChanged = true;
+                if (bSelected)
+                {
+                    _flags &= ~flagItem.value;   // unset flag
+                }
+                else
+                {
+                    _flags |= flagItem.value;   // set flag
+                }
+            }
+        }
+
+        if (!_setItems.empty())
+        {
+            ImGui::Separator();
+            for (const EnumWidgetItem& setItem: _setItems)
+            {
+                if (ImGui::MenuItem(setItem.name, nullptr, nullptr))
+                {
+                    _flags   = setItem.value;   // set as value
+                    bChanged = true;
+                }
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+
+    if (ImGui::BeginItemTooltip())
+    {
+        for (const EnumWidgetItem& flagItem: _flagsItems)
+        {
+            const bool bSelected = (_flags & flagItem.value) != 0;
+            ImGui::Text("%s %s", bSelected ? "[x]" : "[ ]", flagItem.name);
+        }
+        ImGui::EndTooltip();
+    }
+
+    ImGui::PopID();
     return bChanged;
 }
 

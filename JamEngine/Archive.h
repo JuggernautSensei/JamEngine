@@ -33,8 +33,8 @@ concept HasIntrusiveReadFunc =
     && !requires(ArchiveReader& _archive, const T _value) { _value.ReadFromArchive(_archive); };
 
 // non-intrusive write to archive func
-// allowed:     void WriteToArchive(ArchiveWriter& _archive, T m_value);
-// not allowed: void WriteToArchive(const ArchiveWriter& _archive, T m_value);
+// allowed:     void WriteToArchive(ArchiveWriter& _archive, ByteT m_value);
+// not allowed: void WriteToArchive(const ArchiveWriter& _archive, ByteT m_value);
 
 template<typename T>
 concept HasNonIntrusiveWriteFunc =
@@ -42,9 +42,9 @@ concept HasNonIntrusiveWriteFunc =
     && !requires(const ArchiveWriter& _archive, T _value) { WriteToArchive(_archive, _value); };
 
 // non-intrusive read from archive func
-// allowed:     Error ReadFromArchive(ArchiveReader& _archive, T& m_value);
-// not allowed: Error ReadFromArchive(const ArchiveReader& _archive, T& m_value);
-// not allowed: Error ReadFromArchive(ArchiveReader& _archive, const T& m_value);
+// allowed:     Error ReadFromArchive(ArchiveReader& _archive, ByteT& m_value);
+// not allowed: Error ReadFromArchive(const ArchiveReader& _archive, ByteT& m_value);
+// not allowed: Error ReadFromArchive(ArchiveReader& _archive, const ByteT& m_value);
 
 template<typename T>
 concept HasNonIntrusiveReadFunc =
@@ -113,7 +113,7 @@ public:
         }
         else
         {
-            static_assert(AlwaysFalseV<T>, "T is not serializable to archive. Please implement either intrusive or non-intrusive WriteToArchive() functions, or make it a primitive type.");
+            static_assert(AlwaysFalseV<T>, "ByteT is not serializable to archive. Please implement either intrusive or non-intrusive WriteToArchive() functions, or make it a primitive type.");
         }
     }
 
@@ -203,7 +203,7 @@ public:
         }
         else
         {
-            static_assert(AlwaysFalseV<T>, "T is not deserializable from archive. Please implement either intrusive or non-intrusive ReadFromArchive() functions, or make it a primitive type.");
+            static_assert(AlwaysFalseV<T>, "ByteT is not deserializable from archive. Please implement either intrusive or non-intrusive ReadFromArchive() functions, or make it a primitive type.");
             return Error::NotImplemented;
         }
     }

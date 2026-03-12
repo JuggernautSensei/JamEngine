@@ -18,27 +18,28 @@ namespace
 
 }   // namespace
 
-NewProjectDialog::NewProjectDialog(
-    const NewProjectDialogInfo& _info)
-    : Dialog(_info.title, _info.size)
-    , m_dir(_info.dir)
+NewProjectDialog::NewProjectDialog()
+    : Dialog("new project", { 500.f, 0.f })
     , m_dlg(CreateFileDialog_())
 {
-    JAM_ASSERT(m_dir.IsDirectory() || m_dir.IsEmpty(), "dir must be a directory or empty");
 }
 
 void NewProjectDialog::OnShow()
 {
+    // directory
     ImGui::Text("project directory:");
     SetNextItemToAvailWidth();
     Widget_FileDialog("##directory", m_dir, m_dlg);
 
+    // project name
     ImGui::Text("project name:");
     SetNextItemToAvailWidth();
-    Widget_InputText("##projectName", m_baseName);
+    Widget_InputText("##projectName", m_name);
 
-    const ImVec2 btnSize = CalcFitButtonSize(2);
+    // final buttons
     ImGui::Spacing();
+    SetCursorScreenPosFromWindowBottom(ImGui::GetFrameHeight());
+    const ImVec2 btnSize = CalcFitButtonSize(2);
     if (ImGui::Button("create", btnSize))
     {
         if (OnClickCreateButton_())
@@ -56,7 +57,7 @@ void NewProjectDialog::OnShow()
 
 bool NewProjectDialog::OnClickCreateButton_() const
 {
-    if (m_dir.IsEmpty() || m_baseName.IsEmpty())
+    if (m_dir.IsEmpty() || m_name.IsEmpty())
     {
         GetShaderApp().PushMessageDialog(
             "invalid input",
@@ -65,25 +66,25 @@ bool NewProjectDialog::OnClickCreateButton_() const
         return false;
     }
 
-    String path = String::Joined(m_dir, m_baseName, eJoinType::Directory);
+    // directory / name / name.extension
 
-    // create directory
-    if (!GUI::FS::MakeDirectory(path, FileSystem::eMakeDirectoryCollisionPolicy::Fail))
+    // create working directory
+    String workingDir = String::Joined(m_dir, m_name, eJoinType::Directory);
+    if (!GUI::MakeDirectory(workingDir, FileSystem::eMakeDirectoryCollisionPolicy::Fail))
     {
         return false;
     }
 
     // create empty project
-    path.Join(m_baseName, eJoinType::File);
-    path.ReplaceExtension(Project::k_extension);
-    path = FileSystem::Absolute(path);
+    workingDir.Join(m_name, eJoinType::File);
+    workingDir.ReplaceExtension(Project::k_extension);
 
-    const Expect<Project> project = Project::LoadNew(path);
+    const Expect<Project> project = Project::LoadNew(workingDir);
     if (!project)
     {
         GetShaderApp().PushMessageDialog(
             "failed to create project",
-            String::Formatted("failed to create project at path: {}", path));
+            String::Formatted("failed to create project at path: {}", workingDir));
 
         return false;
     }

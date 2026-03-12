@@ -195,4 +195,208 @@ TEST_F(FileSystemTest, Path_AbsoluteAndRelative)
     EXPECT_FALSE(bIsEmpty);
 }
 
+TEST_F(FileSystemTest, IsDirectory_IsFile)
+{
+    String dirPath = testRoot;
+    dirPath.Join("TestDir/", eJoinType::Directory);
+    Utf8::MakeDirectory(dirPath, eMakeDirectoryCollisionPolicy::Fail);
+
+    String filePath = testRoot;
+    filePath.Join("TestFile.txt", eJoinType::File);
+    CreateDummyFile(filePath);
+
+    EXPECT_TRUE(Utf8::IsDirectory(dirPath));
+    EXPECT_FALSE(Utf8::IsFile(dirPath));
+
+    EXPECT_TRUE(Utf8::IsFile(filePath));
+    EXPECT_FALSE(Utf8::IsDirectory(filePath));
+}
+
+TEST_F(FileSystemTest, QueryFileSize_QueryLastWriteTime)
+{
+    String filePath = testRoot;
+    filePath.Join("SizeTest.txt", eJoinType::File);
+    String content = "Test Content 1234567890";
+    CreateDummyFile(filePath, content);
+
+    UInt64 fileSize = Utf8::QueryFileSize(filePath);
+    EXPECT_EQ(fileSize, content.GetLength());
+
+    UInt64 lastWriteTime = Utf8::QueryLastWriteTime(filePath);
+    EXPECT_GT(lastWriteTime, 0);
+}
+
+TEST_F(FileSystemTest, Copy_CollisionPolicy)
+{
+    String srcPath = testRoot;
+    srcPath.Join("Original.txt", eJoinType::File);
+    CreateDummyFile(srcPath, "Original Content");
+
+    String dstPath = testRoot;
+    dstPath.Join("Destination.txt", eJoinType::File);
+    CreateDummyFile(dstPath, "Old");
+
+    Error failErr = Utf8::Copy(srcPath, dstPath, eCollisionPolicy::Fail);
+    EXPECT_EQ(failErr, Error::AlreadyExists);
+
+    Error skipErr = Utf8::Copy(srcPath, dstPath, eCollisionPolicy::Skip);
+    EXPECT_EQ(skipErr, Error::None);
+
+    Error overwriteErr = Utf8::Copy(srcPath, dstPath, eCollisionPolicy::Overwrite);
+    EXPECT_EQ(overwriteErr, Error::None);
+
+    Error renameErr = Utf8::Copy(srcPath, dstPath, eCollisionPolicy::Rename);
+    EXPECT_EQ(renameErr, Error::None);
+
+    String renamedPath = testRoot;
+    renamedPath.Join("Destination (1).txt", eJoinType::File);
+    EXPECT_TRUE(Utf8::Exists(renamedPath));
+}
+
+TEST_F(FileSystemTest, Rename_CollisionPolicy)
+{
+    String srcPath1 = testRoot;
+    srcPath1.Join("ToRename1.txt", eJoinType::File);
+    CreateDummyFile(srcPath1, "Content1");
+
+    String srcPath2 = testRoot;
+    srcPath2.Join("ToRename2.txt", eJoinType::File);
+    CreateDummyFile(srcPath2, "Content2");
+
+    String dstPath = testRoot;
+    dstPath.Join("Target.txt", eJoinType::File);
+    CreateDummyFile(dstPath, "Existing");
+
+    Error failErr = Utf8::Rename(srcPath1, dstPath, eCollisionPolicy::Fail);
+    EXPECT_EQ(failErr, Error::AlreadyExists);
+    EXPECT_TRUE(Utf8::Exists(srcPath1));
+
+    Error overwriteErr = Utf8::Rename(srcPath1, dstPath, eCollisionPolicy::Overwrite);
+    EXPECT_EQ(overwriteErr, Error::None);
+    EXPECT_FALSE(Utf8::Exists(srcPath1));
+    EXPECT_TRUE(Utf8::Exists(dstPath));
+
+    Error renameErr = Utf8::Rename(srcPath2, dstPath, eCollisionPolicy::Rename);
+    EXPECT_EQ(renameErr, Error::None);
+
+    String renamedPath = testRoot;
+    renamedPath.Join("Target (1).txt", eJoinType::File);
+    EXPECT_TRUE(Utf8::Exists(renamedPath));
+    EXPECT_FALSE(Utf8::Exists(srcPath2));
+}
+
+TEST_F(FileSystemTest, GenerateUniquePath)
+{
+    String basePath = testRoot;
+    basePath.Join("UniqueFile.txt", eJoinType::File);
+
+    String uniquePath1 = Utf8::GenerateUniquePath(basePath);
+    EXPECT_STREQ(uniquePath1.GetPtr(), basePath.GetPtr());
+
+    CreateDummyFile(basePath);
+
+    String uniquePath2 = Utf8::GenerateUniquePath(basePath);
+    EXPECT_STRNE(uniquePath2.GetPtr(), basePath.GetPtr());
+
+    String expectedPath = testRoot;
+    expectedPath.Join("UniqueFile (1).txt", eJoinType::File);
+    EXPECT_STREQ(uniquePath2.GetPtr(), expectedPath.GetPtr());
+
+    CreateDummyFile(uniquePath2);
+
+    String uniquePath3 = Utf8::GenerateUniquePath(basePath);
+    String expectedPath2 = testRoot;
+    expectedPath2.Join("UniqueFile (2).txt", eJoinType::File);
+    EXPECT_STREQ(uniquePath3.GetPtr(), expectedPath2.GetPtr());
+}
+
+TEST_F(FileSystemTest, ComparePathEqual)
+{
+    String path1 = testRoot;
+    path1.Join("TestFile.txt", eJoinType::File);
+
+    String path2 = testRoot;
+    path2.Join("testfile.txt", eJoinType::File);
+
+    String path3 = testRoot;
+    path3.Join("TestFile.txt", eJoinType::File);
+
+    String path4 = testRoot;
+    path4.Join("Different.txt", eJoinType::File);
+
+    EXPECT_TRUE(Utf8::ComparePathEqual(path1, path2));
+    EXPECT_TRUE(Utf8::ComparePathEqual(path1, path3));
+    EXPECT_FALSE(Utf8::ComparePathEqual(path1, path4));
+}
+
+TEST_F(FileSystemTest, Executable_Path)
+{
+    String execPath = Utf8::Executable();
+    EXPECT_FALSE(execPath.IsEmpty());
+    EXPECT_TRUE(Utf8::Exists(execPath));
+    EXPECT_TRUE(Utf8::IsFile(execPath));
+}
+
+TEST_F(FileSystemTest, Copy_Directory)
+{
+    String srcDir = testRoot;
+    srcDir.Join("SourceDir/", eJoinType::Directory);
+    Utf8::MakeDirectory(srcDir, eMakeDirectoryCollisionPolicy::Fail);
+
+    String fileInSrc = srcDir;
+    fileInSrc.Join("FileInSource.txt", eJoinType::File);
+    CreateDummyFile(fileInSrc, "Source Data");
+
+    String dstDir = testRoot;
+    dstDir.Join("DestDir/", eJoinType::Directory);
+
+    Error err = Utf8::Copy(srcDir, dstDir, eCollisionPolicy::Fail);
+    EXPECT_EQ(err, Error::None);
+    EXPECT_TRUE(Utf8::Exists(dstDir));
+    EXPECT_TRUE(Utf8::IsDirectory(dstDir));
+
+    String fileInDst = dstDir;
+    fileInDst.Join("FileInSource.txt", eJoinType::File);
+    EXPECT_TRUE(Utf8::Exists(fileInDst));
+}
+
+TEST_F(FileSystemTest, Remove_NonExistent)
+{
+    String nonExistent = testRoot;
+    nonExistent.Join("DoesNotExist.txt", eJoinType::File);
+
+    Error err = Utf8::Remove(nonExistent);
+    EXPECT_NE(err, Error::None);
+}
+
+TEST_F(FileSystemTest, IsEmpty_File)
+{
+    String emptyFile = testRoot;
+    emptyFile.Join("Empty.txt", eJoinType::File);
+    CreateDummyFile(emptyFile, "");
+
+    String nonEmptyFile = testRoot;
+    nonEmptyFile.Join("NonEmpty.txt", eJoinType::File);
+    CreateDummyFile(nonEmptyFile, "Content");
+
+    bool bEmptyFileIsEmpty = Utf8::IsEmpty(emptyFile);
+    EXPECT_TRUE(bEmptyFileIsEmpty);
+
+    bool bNonEmptyFileIsEmpty = Utf8::IsEmpty(nonEmptyFile);
+    EXPECT_FALSE(bNonEmptyFileIsEmpty);
+}
+
+TEST_F(FileSystemTest, QueryFileAttribute_Directory)
+{
+    String dirPath = testRoot;
+    dirPath.Join("AttributeDir/", eJoinType::Directory);
+    Utf8::MakeDirectory(dirPath, eMakeDirectoryCollisionPolicy::Fail);
+
+    FileAttribute attr = Utf8::QueryFileAttribute(dirPath);
+
+    EXPECT_EQ(attr.type, eFileType::Directory);
+    EXPECT_GT(attr.creationTime, 0);
+    EXPECT_GT(attr.lastWriteTime, 0);
+}
+
 }   // namespace Jam::FileSystem::Test

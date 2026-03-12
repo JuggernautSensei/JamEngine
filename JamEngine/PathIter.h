@@ -105,6 +105,6 @@ template<IsCharT CharT>
 }
 
 using PathIter  = PathIterBase<char>;
-using WPathIter = PathIterBase<wchar_t>;
+using PathIterW = PathIterBase<wchar_t>;
 
 }   // namespace Jam

@@ -1,5 +1,6 @@
 #pragma once
 
+class FocusingShaderItemChagnedEvent;
 class ProjectChangedEvent;
 
 class ProjectInspectorWindow
@@ -10,22 +11,19 @@ public:
 
 private:
     void OnProjectChangedEvent_(const ProjectChangedEvent& _event);
+    void OnFocusingShaderItemChagnedEvent_(const FocusingShaderItemChagnedEvent& _event);
 
     void Widget_ProjectName_();
 
     // project operator
-    void NewShaderItem_();
-    void RemoveFocisingShaderItem_();
-    void CloneFocisingShaderItem_();
-    void ClearShaderItems_() const;
-
-    void SetFocusingShaderItem_(StringView _nameOrEmpty);
+    void NewShaderItem_() const;
+    void CloneShaderItem_(StringView _name) const;
+    void RemoveShaderItem_(StringView _name) const;
 
     // project
-    Project* m_pProject          = nullptr;
-    String   m_projectRenameEdit = {};
+    Project* m_pProjectCache   = nullptr;
+    String   m_projectNameEdit = {};
 
     // shader item
-    String            m_focusingShaderItemName = {};
-    const ShaderItem* m_pFocusingShaderItem    = nullptr;
+    const ShaderItem* m_pFocusingShaderItemCache = nullptr;
 };

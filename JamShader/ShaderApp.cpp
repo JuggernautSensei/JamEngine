@@ -6,10 +6,10 @@
 #include "NewProjectDialog.h"
 #include "ResourceManager.h"
 #include "Events.h"
+#include "ExportProjectDialog.h"
 #include "../JamEngine/SVGImporter.h"
 #include "../JamEngine/CommandLineArgumentParser.h"
 #include "../JamEngine/MessageDialog.h"
-#include "../JamEngine/ConfirmationDialog.h"
 #include "../JamEngine/EditorWidgets.h"
 #include "../JamEngine/JsonArchive.h"
 
@@ -18,6 +18,166 @@ ShaderApp::ShaderApp(
     const Flags<eAppSubSystemFlags> _subSystems)
     : Application(_appName, _subSystems)
 {
+}
+
+void ShaderApp::SetIcon(
+    const eIcon         _icon,
+    const Ref<Texture>& _pTexture)
+{
+    m_icons[_icon] = _pTexture;
+}
+
+const Ref<Texture>& ShaderApp::GetIcon(
+    const eIcon _icon) const
+{
+    return m_icons[_icon];
+}
+
+void ShaderApp::SetShortCut(
+    const eShortCut     _shortCut,
+    const ImGuiKeyChord _key)
+{
+    m_shortcuts[_shortCut] = _key;
+}
+
+ImGuiKeyChord ShaderApp::GetShortCut(
+    const eShortCut _shortCut)
+{
+    return m_shortcuts[_shortCut];
+}
+
+Error ShaderApp::LoadProject(
+    const StringView _path)
+{
+    Expect<Project> pProject = Project::Load(_path);
+    if (!pProject)
+    {
+        return pProject.GetError();
+    }
+
+    SetProject(pProject.GetValue());
+    return Error::None;
+}
+
+void ShaderApp::SetProject(
+    const Project& _pProject)
+{
+    m_project = _pProject;
+
+    ProjectChangedEvent event {};
+    GetApp().DispatchEvent(event);
+}
+
+void ShaderApp::ReleaseProject()
+{
+    if (m_project)
+    {
+        m_project.Reset();
+
+        ProjectChangedEvent event {};
+        GetApp().DispatchEvent(event);
+    }
+}
+
+void ShaderApp::SetFocusingShaderItem(
+    const StringView _name)
+{
+    JAM_ASSERT(m_project, "No project is loaded.");
+
+    if (m_focusingShaderItemName == _name)
+    {
+        return;
+    }
+
+    m_focusingShaderItemName = _name;
+    FocusingShaderItemChagnedEvent event {};
+    GetApp().DispatchEvent(event);
+}
+
+void ShaderApp::RelaseFocusingShaderItem()
+{
+    SetFocusingShaderItem({});
+}
+
+Project* ShaderApp::GetProjectOrNull()
+{
+    return m_project ? &m_project.GetValue() : nullptr;
+}
+
+const ShaderItem* ShaderApp::GetFocusingShaderItemOrNull() const
+{
+    if (!m_project)
+    {
+        return nullptr;
+    }
+
+    return m_focusingShaderItemName.IsEmpty() ? nullptr : &m_project.GetValue().GetShaderItem(m_focusingShaderItemName);
+}
+
+void ShaderApp::PushDialog(
+    Scoped<Dialog>&& _pDialog)
+{
+    m_dialogStack.Push(std::move(_pDialog));
+}
+
+void ShaderApp::PushMessageDialog(
+    const StringView _title,
+    const StringView _message)
+{
+    MessageDialogButtonInfo buttons[] = {
+        { "ok", nullptr }
+    };
+
+    MessageDialogInfo info = {};
+    info.title             = _title;
+    info.message           = _message;
+    info.buttons           = buttons;
+    m_dialogStack.Push(MakeScoped<MessageDialog>(info));
+}
+
+void ShaderApp::PushConfirmationDialog(
+    const StringView        _title,
+    const StringView        _message,
+    const Delegate<void()>& _onConfirm)
+{
+    const MessageDialogButtonInfo buttons[] = {
+        { "confirm", _onConfirm },
+        {  "cancel",    nullptr }
+    };
+
+    MessageDialogInfo info = {};
+    info.title             = _title;
+    info.message           = _message;
+    info.buttons           = buttons;
+    m_dialogStack.Push(MakeScoped<MessageDialog>(info));
+}
+
+DialogStack& ShaderApp::GetDialogStack()
+{
+    return m_dialogStack;
+}
+
+void ShaderApp::WriteToArchive(
+    ArchiveWriter& _archive) const
+{
+    _archive.WriteField("windowsOpen", m_windowsOpen);
+    _archive.WriteField("shaderItemEditorWindow", m_shaderItemEditorWindow);
+}
+
+Error ShaderApp::ReadFromArchive(
+    ArchiveReader& _archive)
+{
+    if (const Error err = _archive.ReadField("windowsOpen", m_windowsOpen))
+    {
+        return err;
+    }
+
+    if (const Error err = _archive.ReadField("shaderItemEditorWindow", m_shaderItemEditorWindow))
+    {
+        return err;
+    }
+
+    return Error::None;
 }
 
 void ShaderApp::Init(const Int32 _argc, char** _argv)
@@ -63,7 +223,8 @@ void ShaderApp::Shutdown()
 {
     SaveConfig_();
 
-    m_icons.Fill(nullptr);
+    m_dialogStack.Clear();   // release manually (because FileDialog and ComPtr)
+    m_icons.Fill(nullptr);   // release hardware textures
     ResourceManager::DestroyInstance();
 }
 
@@ -87,7 +248,7 @@ void ShaderApp::ImGuiRender()
 {
     GetGraphics().ClearColor(k_nullHandle, RGBA::k_black);
 
-    DetectGlobalShortCut_();
+    GlobalShortCut_();
     Panel_Dockspace_();
     Panel_MainMenuBar_();
 
@@ -120,31 +281,15 @@ void ShaderApp::OnEvent(
     Event& _event)
 {
     EventDispatcher dispatcher { _event };
-    dispatcher.Dispatch<WindowCloseEvent>(this, &ShaderApp::OnWindowClosedEvent_);
     dispatcher.Dispatch<ProjectChangedEvent>(this, &ShaderApp::OnProjectChagnedEvent_);
     dispatcher.Dispatch<ProjectRenamedEvent>(this, &ShaderApp::OnProjectRenamedEvent_);
+    dispatcher.Dispatch<ProjectDirtyChangedEvent>(this, &ShaderApp::OnProjectDirtyChangedEvent_);
+    dispatcher.Dispatch<WindowClosedEvent>(this, &ShaderApp::OnWindowClosedEvent_);
 
     GetResourceManager().OnEvent(_event);
     m_fileBrowserWindow.OnEvent(_event);
     m_projectInspectorWindow.OnEvent(_event);
     m_shaderItemEditorWindow.OnEvent(_event);
-}
-
-void ShaderApp::WriteToArchive(
-    ArchiveWriter& _archive) const
-{
-    _archive.WriteField("windowsOpen", m_windowsOpen);
-}
-
-Error ShaderApp::ReadFromArchive(
-    ArchiveReader& _archive)
-{
-    if (const Error err = _archive.ReadField("windowsOpen", m_windowsOpen))
-    {
-        return err;
-    }
-
-    return Error::None;
 }
 
 void ShaderApp::SetupTheme_() const
@@ -266,6 +411,7 @@ void ShaderApp::SetupShortCuts_()
     m_shortcuts[eShortCut::SaveAsProject]     = ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S;
     m_shortcuts[eShortCut::ExitApp]           = ImGuiMod_Alt | ImGuiKey_F4;
     m_shortcuts[eShortCut::CompileShaderItem] = ImGuiKey_F5;
+    m_shortcuts[eShortCut::ExportProject]     = ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_E;
 }
 
 Ref<Texture> ShaderApp::LoadIconFromSVGSource_(
@@ -284,9 +430,10 @@ Ref<Texture> ShaderApp::LoadIconFromSVGSource_(
 }
 
 void ShaderApp::OnProjectChagnedEvent_(
-    const ProjectChangedEvent&) const
+    const ProjectChangedEvent&)
 {
     UpdateAppTitle_();
+    RelaseFocusingShaderItem();
 }
 
 void ShaderApp::OnProjectRenamedEvent_(
@@ -295,16 +442,27 @@ void ShaderApp::OnProjectRenamedEvent_(
     UpdateAppTitle_();
 }
 
-void ShaderApp::OnWindowClosedEvent_(const WindowCloseEvent& _event)
+void ShaderApp::OnProjectDirtyChangedEvent_(
+    const ProjectDirtyChangedEvent&) const
 {
-    Quit();   // todo.. project dirty check
+    UpdateAppTitle_();
+}
+
+void ShaderApp::OnWindowClosedEvent_(
+    const WindowClosedEvent&)
+{
+    TryQuit_();
 }
 
 void ShaderApp::UpdateAppTitle_() const
 {
     if (m_project)
     {
-        GetWindowsPlatform().SetTitle(String::Formatted("{} - {}", k_appName, m_project->GetBaseName()));
+        GetWindowsPlatform().SetTitle(
+            String::Formatted("{} - {}{}",
+                              k_appName,
+                              m_project->GetName(),
+                              m_project->IsDirty() ? "*" : ""));
     }
     else
     {
@@ -314,9 +472,7 @@ void ShaderApp::UpdateAppTitle_() const
 
 void ShaderApp::NewProject_()
 {
-    NewProjectDialogInfo info = {};
-    info.title                = "new project";
-    PushDialog(MakeRef<NewProjectDialog>(info));
+    PushDialog(MakeScoped<NewProjectDialog>());
 }
 
 void ShaderApp::OpenProject_()
@@ -427,6 +583,11 @@ void ShaderApp::Panel_MainMenuBar_()
         if (Widget_MenuItem("save project as", GetShortCut(eShortCut::SaveAsProject)))
         {
             SaveAsProject_();
+        }
+
+        if (Widget_MenuItem("export project", GetShortCut(eShortCut::ExportProject)))
+        {
+            ExportProject_();
         }
 
         ImGui::Separator();
@@ -542,7 +703,7 @@ void ShaderApp::UpdateAutoSaveConfig_(
     }
 }
 
-void ShaderApp::DetectGlobalShortCut_()
+void ShaderApp::GlobalShortCut_()
 {
     if (ImGui::Shortcut(GetShortCut(eShortCut::OpenProject), ImGuiInputFlags_RouteGlobal))
     {
@@ -570,103 +731,49 @@ void ShaderApp::DetectGlobalShortCut_()
         {
             SaveAsProject_();
         }
+
+        if (ImGui::Shortcut(GetShortCut(eShortCut::ExportProject), ImGuiInputFlags_RouteGlobal))
+        {
+            ExportProject_();
+        }
     }
 }
 
 void ShaderApp::TryQuit_()
 {
-    // todo..
+    if (!m_project || !m_project->IsDirty())
+    {
+        Quit();
+        return;
+    }
+
+    const String                  message   = String::Formatted("There are unsaved changes in the current project '{}'. Are you sure you want to quit?", m_project->GetName());
+    const MessageDialogButtonInfo buttons[] = {
+        {       "save and quit", Bind<&ShaderApp::SaveAndQuit_>(this) },
+        { "quit without saving",         Bind<&ShaderApp::Quit>(this) },
+        {              "cancel",                              nullptr }
+    };
+
+    MessageDialogInfo info = {};
+    info.title             = "unsaved changes";
+    info.message           = message;
+    info.buttons           = buttons;
+    info.size              = { 700.f, 0.f };
+    PushDialog(MakeScoped<MessageDialog>(info));
+}
+
+void ShaderApp::SaveAndQuit_()
+{
+    if (m_project)
+    {
+        SaveProject_();
+    }
+
     Quit();
 }
 
-void ShaderApp::SetIcon(
-    const eIcon         _icon,
-    const Ref<Texture>& _pTexture)
+void ShaderApp::ExportProject_()
 {
-    m_icons[_icon] = _pTexture;
-}
-
-const Ref<Texture>& ShaderApp::GetIcon(
-    const eIcon _icon) const
-{
-    return m_icons[_icon];
-}
-
-void ShaderApp::SetShortCut(
-    const eShortCut     _shortCut,
-    const ImGuiKeyChord _key)
-{
-    m_shortcuts[_shortCut] = _key;
-}
-
-ImGuiKeyChord ShaderApp::GetShortCut(
-    const eShortCut _shortCut)
-{
-    return m_shortcuts[_shortCut];
-}
-
-Error ShaderApp::LoadProject(
-    const StringView _path)
-{
-    Expect<Project> pProject = Project::LoadFromFile(_path);
-    if (!pProject)
-    {
-        return pProject.GetError();
-    }
-
-    SetProject(pProject.GetValue());
-    return Error::None;
-}
-
-void ShaderApp::SetProject(
-    const Project& _pProject)
-{
-    m_project = _pProject;
-
-    ProjectChangedEvent event { &m_project.GetValue() };
-    GetApp().DispatchEvent(event);
-}
-
-Project* ShaderApp::GetProject()
-{
-    JAM_ASSERT(m_project, "No project loaded.");
-    return &m_project.GetValue();
-}
-
-Project* ShaderApp::GetProjectOrNull()
-{
-    return m_project ? &m_project.GetValue() : nullptr;
-}
-
-void ShaderApp::PushDialog(
-    const Ref<Dialog>& _pDialog)
-{
-    m_dialogStack.Push(_pDialog);
-}
-
-void ShaderApp::PushMessageDialog(
-    const StringView _title,
-    const StringView _message)
-{
-    MessageDialogInfo info = {};
-    info.title             = _title;
-    info.msg               = _message;
-    m_dialogStack.Push(MakeRef<MessageDialog>(info));
-}
-
-void ShaderApp::PushConfirmationDialog(
-    const StringView        _title,
-    const StringView        _message,
-    const Delegate<void()>& _onConfirm)
-{
-    ConfirmationDialogInfo info = {};
-    info.title                  = _title;
-    info.msg                    = _message;
-    info.OnConfirm              = _onConfirm;
-    m_dialogStack.Push(MakeRef<ConfirmationDialog>(info));
-}
-
-DialogStack& ShaderApp::GetDialogStack()
-{
-    return m_dialogStack;
+    JAM_ASSERT(m_project, "No project to export.");
+    PushDialog(MakeScoped<ExportProjectDialog>(&m_project.GetValue()));
 }

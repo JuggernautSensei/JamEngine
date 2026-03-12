@@ -2,12 +2,14 @@
 #include "ProjectInspectorWindow.h"
 
 #include "Events.h"
+#include "ExportProjectDialog.h"
+#include "ShaderApp.h"
 #include "../JamEngine/EditorUtilities.h"
 #include "../JamEngine/EditorWidgets.h"
 
 void ProjectInspectorWindow::OnImGuiRender()
 {
-    JAM_ASSERT(m_pProject, "No project is currently loaded.");
+    JAM_ASSERT(m_pProjectCache, "No project is currently loaded.");
 
     if (!ImGui::Begin("project inspector"))
     {
@@ -15,13 +17,15 @@ void ProjectInspectorWindow::OnImGuiRender()
         return;
     }
 
+#pragma region Project Inspector
+
     if (ImGui::BeginTable("ProjectInspector", 2))
     {
         ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
         ImGui::TableNextColumn();
-        Widget_Text("basename", true);
+        Widget_Text("project name", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
         Widget_ProjectName_();
@@ -30,64 +34,146 @@ void ProjectInspectorWindow::OnImGuiRender()
         Widget_Text("working directory", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_ReadOnlyInputText("##workingDir", m_pProject->GetWorkingDirectory());
+        Widget_ReadOnlyInputText("##workingDir", m_pProjectCache->GetWorkingDirectory());
 
         ImGui::EndTable();
     }
 
-    // shader items + 4 buttons
-    ImGui::NewLine();
-    Widget_Text("shader items", true);
+#pragma endregion
 
-    constexpr ImVec2 k_btnSize = { 100.f, 0.f };
-    constexpr Int32  k_numBtns = 3;
-    ImGuiStyle&      style     = ImGui::GetStyle();
-    const float      totalW    = k_btnSize.x * k_numBtns + style.ItemSpacing.x * (k_numBtns - 1);
+#pragma region Shader Item Operator
+
+    ImGui::NewLine();
+    Widget_Text("shader items  ", true);   // text and little spacing
+
+    // 5 button of management
     ImGui::SameLine();
-    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2 { ImGui::GetContentRegionAvail().x - totalW, 0.f });
-    if (ImGui::Button("add", k_btnSize))
+    const ImVec2 btnSize = CalcFitButtonSize(3);
+    if (ImGui::Button("add", btnSize))
     {
         NewShaderItem_();
     }
 
-    ImGui::BeginDisabled(m_pFocusingShaderItem == nullptr);
     ImGui::SameLine();
-    if (ImGui::Button("clone", k_btnSize))
+    if (ImGui::Button("clear", btnSize))
     {
-        CloneFocisingShaderItem_();
+        m_pProjectCache->ClearShaderItems();
+        GetShaderApp().RelaseFocusingShaderItem();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("remove", k_btnSize))
+    if (ImGui::Button("export", btnSize))
     {
-        RemoveFocisingShaderItem_();
-    }
-    ImGui::EndDisabled();
-
-    ImGui::SameLine();
-    if (ImGui::Button("clear", k_btnSize))
-    {
-        ClearShaderItems_();
+        ExportProjectDialog dialog { m_pProjectCache };
+        GetShaderApp().PushDialog(MakeScoped<ExportProjectDialog>(dialog));
     }
 
-    // shader item list
-    if (ImGui::BeginListBox("##ShaderItemList", ImGui::GetContentRegionAvail() - ImVec2 { 0.f, ImGui::GetTextLineHeightWithSpacing() }))
+#pragma endregion
+
+#pragma region Shader Item List
+
+    if (ImGui::BeginTable("##ShaderItemTable", 4, ImGuiTableFlags_BordersOuter, { 0.f, -ImGui::GetFrameHeightWithSpacing() }))
     {
-        for (const auto& [name, item]: m_pProject->GetShaderItems())
+        const ImGuiStyle& style = ImGui::GetStyle();
+        ImGui::TableSetupColumn("Grab", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
+        ImGui::TableSetupColumn("Enabled", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
+        ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed, (ImGui::GetTextLineHeight() + style.FramePadding.x * 2.f) * 2.f + style.ItemInnerSpacing.x);
+
+        const OrderedStringHashMap<ShaderItem>& shaderItems = m_pProjectCache->GetShaderItems();
+        for (const auto& [name, item]: shaderItems)
         {
-            bool bSelected = m_pFocusingShaderItem == &item;
-            if (ImGui::Selectable(name.GetPtr(), bSelected))
+            ImGui::PushID(name.GetPtr());
+
+            // grab
+            ImGui::TableNextColumn();
+            Widget_Image(GetShaderApp().GetIcon(eIcon::ReorderGrab), { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() });
+
+            // select + drag drop hitbox
+            ImGui::SameLine();
+            const bool bSelected = m_pFocusingShaderItemCache && m_pFocusingShaderItemCache->name == name;
+            const bool bClicked  = ImGui::Selectable("##Hitbox", bSelected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap, { 0.f, ImGui::GetFrameHeight() });
+            if (bClicked || ImGui::IsItemClicked(ImGuiMouseButton_Right))
             {
-                SetFocusingShaderItem_(name);
+                GetShaderApp().SetFocusingShaderItem(name);
             }
+
+            // open popup
+            ImGui::OpenPopupOnItemClick("Menu", ImGuiPopupFlags_MouseButtonRight);
+
+            // drag drop source
+            if (ImGui::BeginDragDropSource())
+            {
+                ImGui::TextUnformatted(name.GetPtr());
+                SetStringDragDropPayload("SHADER_ITEM_PAYLOAD", name);
+                ImGui::EndDragDropSource();
+            }
+
+            // darg drop target
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* pPayload = ImGui::AcceptDragDropPayload("SHADER_ITEM_PAYLOAD"))
+                {
+                    const String from = ResolveStringDragDropPayload(pPayload);
+                    const String to   = name;
+                    GetApp().SubmitCommandToMainThread(Bind([this, from, to] { m_pProjectCache->MoveShaderItemBefore(from, to); }));
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            // enable checkbox
+            ImGui::TableNextColumn();
+            bool bEnabled = item.bEnabled;
+            if (ImGui::Checkbox("##Enable", &bEnabled))
+            {
+                m_pProjectCache->SetShaderItemEnabled(name, bEnabled);
+            }
+
+            // item name
+            ImGui::TableNextColumn();
+            Widget_Text(name.GetPtr(), true);
+
+            // remove button
+            ImGui::TableNextColumn();
+            if (Widget_ImageButton("##Remove", GetShaderApp().GetIcon(eIcon::Remove), { ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() }))
+            {
+                RemoveShaderItem_(name);
+            }
+
+            // clone button
+            ImGui::SameLine(0.f, style.ItemInnerSpacing.x);
+            if (Widget_ImageButton("##Clone", GetShaderApp().GetIcon(eIcon::Clone), { ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() }))
+            {
+                CloneShaderItem_(name);
+            }
+
+            // Menu
+            if (ImGui::BeginPopup("Menu"))
+            {
+                if (ImGui::MenuItem("clone"))
+                {
+                    CloneShaderItem_(name);
+                }
+
+                if (ImGui::MenuItem("remove"))
+                {
+                    RemoveShaderItem_(name);
+                }
+
+                ImGui::EndPopup();
+            }
+
+            ImGui::PopID();
         }
 
-        ImGui::EndListBox();
+        ImGui::EndTable();
     }
 
     // num of shader items
     ImGui::AlignTextToFramePadding();
-    ImGui::Text("total: %d", m_pProject->GetShaderItems().GetSize());
+    ImGui::Text("total: %d", m_pProjectCache->GetShaderItems().GetSize());
+
+#pragma endregion
 
     ImGui::End();
 }
@@ -97,78 +183,72 @@ void ProjectInspectorWindow::OnEvent(
 {
     EventDispatcher dispatcher(_event);
     dispatcher.Dispatch<ProjectChangedEvent>(this, &ProjectInspectorWindow::OnProjectChangedEvent_);
+    dispatcher.Dispatch<FocusingShaderItemChagnedEvent>(this, &ProjectInspectorWindow::OnFocusingShaderItemChagnedEvent_);
 }
 
 void ProjectInspectorWindow::OnProjectChangedEvent_(
-    const ProjectChangedEvent& _event)
+    const ProjectChangedEvent&)
 {
-    m_pProject          = _event.GetProjectOrNull();
-    m_projectRenameEdit = m_pProject ? m_pProject->GetBaseName() : StringView {};
-    SetFocusingShaderItem_({});
+    m_pProjectCache   = GetShaderApp().GetProjectOrNull();
+    m_projectNameEdit = m_pProjectCache ? m_pProjectCache->GetName() : StringView {};
+}
+
+void ProjectInspectorWindow::OnFocusingShaderItemChagnedEvent_(
+    const FocusingShaderItemChagnedEvent&)
+{
+    m_pFocusingShaderItemCache = GetShaderApp().GetFocusingShaderItemOrNull();
 }
 
 void ProjectInspectorWindow::Widget_ProjectName_()
 {
-    Widget_InputText("##ProjectNameEdit", m_projectRenameEdit);
+    Widget_InputText("##ProjectNameEdit", m_projectNameEdit);
 
     if (ImGui::IsItemDeactivatedAfterEdit())
     {
-        m_pProject->Rename(m_projectRenameEdit);
+        m_pProjectCache->Rename(m_projectNameEdit);
     }
 }
 
-void ProjectInspectorWindow::NewShaderItem_()
+void ProjectInspectorWindow::NewShaderItem_() const
 {
-    JAM_ASSERT(m_pProject, "No project is currently loaded.");
+    JAM_ASSERT(m_pProjectCache, "No project is currently loaded.");
 
-    String name = "new shader item";
-    for (Int32 i = 0; m_pProject->ContainsShaderItem(name); ++i)
+    ShaderItem item = {};
+    item.name       = "new shader item";
+    for (Int32 i = 0; m_pProjectCache->ContainsShaderItem(item.name); ++i)
     {
-        name = String::Formatted("new shader item {}", i);
+        item.name.Format("new shader item {}", i);
     }
 
-    m_pProject->AddShaderItem(name, {});
-    SetFocusingShaderItem_(name);
+    m_pProjectCache->AddShaderItem(item);
+    GetShaderApp().SetFocusingShaderItem(item.name);
 }
 
-void ProjectInspectorWindow::CloneFocisingShaderItem_()
+void ProjectInspectorWindow::CloneShaderItem_(
+    const StringView _name) const
 {
-    JAM_ASSERT(m_pProject, "No project is currently loaded.");
+    JAM_ASSERT(m_pProjectCache, "No project is currently loaded.");
 
-    String name = m_focusingShaderItemName;
-    for (Int32 i = 0; m_pProject->ContainsShaderItem(name); ++i)
+    ShaderItem item = m_pProjectCache->GetShaderItem(_name);
+    for (Int32 i = 0; m_pProjectCache->ContainsShaderItem(item.name); ++i)
     {
-        name = String::Formatted("{} {}", m_focusingShaderItemName, i);
+        item.name.Format("{} {}", _name, i);
     }
 
-    const ShaderItem& focusingItem = m_pProject->GetShaderItem(m_focusingShaderItemName);
-    m_pProject->AddShaderItem(name, focusingItem);
-    SetFocusingShaderItem_(name);
+    m_pProjectCache->AddShaderItem(item);
+    GetShaderApp().SetFocusingShaderItem(item.name);
 }
 
-void ProjectInspectorWindow::RemoveFocisingShaderItem_()
+void ProjectInspectorWindow::RemoveShaderItem_(
+    const StringView _name) const
 {
-    m_pProject->RemoveShaderItem(m_focusingShaderItemName);
-    SetFocusingShaderItem_({});
-}
+    JAM_ASSERT(m_pProjectCache, "No project is currently loaded.");
 
-void ProjectInspectorWindow::ClearShaderItems_() const
-{
-    JAM_ASSERT(m_pProject, "No project is currently loaded.");
-}
-
-void ProjectInspectorWindow::SetFocusingShaderItem_(
-    const StringView _nameOrEmpty)
-{
-    JAM_ASSERT(m_pProject, "No project is currently loaded.");
-
-    if (m_focusingShaderItemName == _nameOrEmpty)
+    if (m_pFocusingShaderItemCache && m_pFocusingShaderItemCache->name == _name)
     {
-        return;
+        GetShaderApp().RelaseFocusingShaderItem();
     }
 
-    m_focusingShaderItemName = _nameOrEmpty;
-    m_pFocusingShaderItem    = _nameOrEmpty.IsEmpty() ? nullptr : &m_pProject->GetShaderItem(_nameOrEmpty);
-    FocusingShaderItemChagnedEvent event { _nameOrEmpty };
-    GetApp().DispatchEvent(event);
+    const String name = _name;
+    GetApp().SubmitCommandToMainThread(Bind([this, name] { m_pProjectCache->RemoveShaderItem(name); }));
 }

@@ -80,14 +80,13 @@ String WindowMoveEvent::ToString() const
     return String::Formatted("WindowMoveEvent: {}, {}", m_x, m_y);
 }
 
-// WindowCloseEvent
-WindowCloseEvent::WindowCloseEvent()
+WindowClosedEvent::WindowClosedEvent()
 {
 }
 
-String WindowCloseEvent::ToString() const
+String WindowClosedEvent::ToString() const
 {
-    return "WindowCloseEvent";
+    return "WindowClosedEvent";
 }
 
 // MouseWheelEvent

@@ -1300,7 +1300,7 @@ template<typename T>
     }
     else
     {
-        static_assert(AlwaysFalseV<T>, "MakeRandom: T must be an integral or floating-point type.");
+        static_assert(AlwaysFalseV<T>, "MakeRandom: ByteT must be an integral or floating-point type.");
         return T {};
     }
 }

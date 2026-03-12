@@ -11,7 +11,7 @@ Dialog::Dialog(
     const StringView _title,
     const ImVec2     _size)
     : m_title(_title)
-    , m_size(_size)
+    , m_initSize(_size)
 {
 }
 
@@ -20,31 +20,31 @@ void Dialog::Open()
     m_bOpenRequest = true;
 }
 
-void Dialog::Show()
+bool Dialog::BeginShow()
 {
     if (m_bOpenRequest)
     {
         ImGui::OpenPopup(m_title.GetPtr());
-        m_bOpen        = true;
         m_bOpenRequest = false;
     }
 
-    if (m_bOpen && BeginPopup_())
+    if (const bool bOpened = BeginPopup_())
     {
         OnShow();
-        ImGui::EndPopup();
+        return bOpened;
     }
-    else
-    {
-        // prevent m_bOpen == true && BeginPopup_() == false
-        // m_bOpen must track the actual open state of the dialog
-        m_bOpen = false;
-    }
+
+    return false;
 }
 
-bool Dialog::IsOpen() const
+void Dialog::EndShow() const
 {
-    return m_bOpen || m_bOpenRequest;   // consider dialog open if there is an open request, even if the popup hasn't actually opened yet (BeginPopup_() will return false until the popup is actually open)
+    ImGui::EndPopup();
+}
+
+StringView Dialog::GetTitle() const
+{
+    return m_title;
 }
 
 bool Dialog::BeginPopup_() const
@@ -53,13 +53,13 @@ bool Dialog::BeginPopup_() const
     bool bOpen = true;
 
     ImGuiPopupFlags flags = 0;
-    if (IsZeroApprox(m_size))
+    if (IsZeroApprox(m_initSize))
     {
         flags = ImGuiWindowFlags_AlwaysAutoResize;
     }
     else
     {
-        ImGui::SetNextWindowSize(m_size, ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(m_initSize, ImGuiCond_Once);
     }
 
     return ImGui::BeginPopupModal(m_title.GetPtr(), &bOpen, flags);

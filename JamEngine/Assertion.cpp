@@ -85,7 +85,7 @@ void ReportCrash(
     const String    path = String::Formatted("CrashDump/{:04}-{:02}-{:02} {:02}-{:02}-{:02}.{:03}.txt", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
     if (Expect<FileWriter> writer = FileWriter::Open(path))
     {
-        writer->Write(msg.ToStringView());
+        writer->WriteString(msg);
         writer->Flush();
     }
 

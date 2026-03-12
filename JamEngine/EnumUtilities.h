@@ -98,7 +98,7 @@ namespace Details
         Array<StringView, k_numValues>           names            = {};   // look up by seq
         Array<TEnum, k_numValues>                values           = {};   // look up by seq
         Array<SizeT, k_enumReflectionRange>      rangeIdxToSeqLut = {};   // look up by range index
-        ConstexprStringHashMap<k_lutSize, SizeT> nameToSeqLut     = {};   // look up by title
+        ConstexprStringHashMap<SizeT, k_lutSize> nameToSeqLut     = {};   // look up by title
         TEnum                                    minValue         = static_cast<TEnum>(k_enumReflectionRangeMax);
         TEnum                                    maxValue         = static_cast<TEnum>(k_enumReflectionRangeMin);
     };
@@ -253,7 +253,7 @@ template<typename TEnum>
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr StringView NameOf(
-    TEnum _value)
+    const TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
     JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");
@@ -276,7 +276,7 @@ template<typename TEnum>
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr StringView FullNameOf(
-    TEnum _value)
+    const TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
     JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");

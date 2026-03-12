@@ -109,7 +109,7 @@ bool Widget_DragEuler(const char* _label, Vector3& _eulerRad, float _speedDeg = 
 void Widget_ImageFrame(ImTextureProxy _texture, ImVec2 _texSize, ImVec2 _frameSize, ImVec2 _uv0 = { 0.f, 0.f }, ImVec2 _uv1 = { 1.f, 1.f }, ImVec4 _bgCol = { 0.f, 0.f, 0.f, 0.f }, bool _bBorder = false);
 void Widget_Image(ImTextureProxy _texture, ImVec2 _size, ImVec2 _uv0 = { 0.f, 0.f }, ImVec2 _uv1 = { 1.f, 1.f });
 bool Widget_ImageButton(const char* _label, ImTextureProxy _texture, ImVec2 _size, ImVec2 _uv0 = { 0.f, 0.f }, ImVec2 _uv1 = { 1.f, 1.f }, ImVec4 _bgCol = { 0.f, 0.f, 0.f, 0.f }, ImVec4 _tintCol = { 1.f, 1.f, 1.f, 1.f });
-void Widget_ItemDescriptionTooltip(const char* _summery, const char* _desc);
+void Widget_ItemDescriptionTooltip(const char* _summery, const char* _desc, ImGuiKeyChord _shortcut = 0);
 
 bool Widget_VertexLayoutEntryCombo(const char* _label, Ref<VertexLayoutEntry>& _pVle);
 void Widget_Dummy(const char* _label, ImVec2 _size);
@@ -126,19 +126,19 @@ bool Widget_InputTextMultiline(const char* _label, String& _str, ImVec2 _size = 
 void Widget_ReadOnlyInputText(const char* _label, StringView _str);
 void Widget_ReadOnlyInputTextMultiline(const char* _label, StringView _str, ImVec2 _size);
 
-struct EnumComboItem
+struct EnumWidgetItem
 {
-    const char* name;
-    Int32       value;
+    const char* name  = nullptr;
+    Int32       value = 0;
 };
 
 namespace Details   // enum combo helper
 {
     template<typename TEnum>
         requires std::is_enum_v<TEnum>
-    constexpr auto BuildEnumComboItems()
+    constexpr auto BuildEnumWidgetItem()
     {
-        EnumArray<TEnum, EnumComboItem> items = {};
+        EnumArray<TEnum, EnumWidgetItem> items = {};
         for (const TEnum& value: EnumRanges<TEnum>())
         {
             items[value] = { NameOf(value).GetPtr(), NumericCast<Int32>(value) };
@@ -148,19 +148,20 @@ namespace Details   // enum combo helper
 
     template<typename TEnum>
         requires std::is_enum_v<TEnum>
-    constexpr auto k_enumComboItems = BuildEnumComboItems<TEnum>();
+    constexpr auto k_enumWidgetItems = BuildEnumWidgetItem<TEnum>();
 
 }   // namespace Details
 
-bool Widget_EnumCombo(const char* _label, EnumComboItem& _curItem, Span<const EnumComboItem> _items);
-bool Widget_EnumToggle(const char* _label, EnumComboItem& _curItem, Span<const EnumComboItem> _items);
+bool Widget_EnumCombo(const char* _label, EnumWidgetItem& _curItem, Span<const EnumWidgetItem> _items);
+bool Widget_EnumToggle(const char* _label, EnumWidgetItem& _curItem, Span<const EnumWidgetItem> _items);
+bool Widget_EnumFlags(const char* _label, Int32& _flags, Span<const EnumWidgetItem> _flagsItems, Span<const EnumWidgetItem> _setItems);
 
 template<typename TEnum>
     requires(std::is_enum_v<TEnum> && !std::is_const_v<TEnum>)
 bool Widget_EnumCombo(const char* _label, TEnum& _curValue)
 {
-    EnumComboItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(UnderlyingFrom(_curValue)) };
-    if (Widget_EnumCombo(_label, curItem, Details::k_enumComboItems<TEnum>))
+    EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(UnderlyingFrom(_curValue)) };
+    if (Widget_EnumCombo(_label, curItem, Details::k_enumWidgetItems<TEnum>))
     {
         _curValue = EnumCast<TEnum>(curItem.value).GetValue();
         return true;
@@ -172,8 +173,8 @@ template<typename TEnum>
     requires(std::is_enum_v<TEnum> && !std::is_const_v<TEnum>)
 bool Widget_EnumToggle(const char* _label, TEnum& _curValue)
 {
-    EnumComboItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(_curValue) };
-    if (Widget_EnumToggle(_label, curItem, Details::k_enumComboItems<TEnum>))
+    EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(_curValue) };
+    if (Widget_EnumToggle(_label, curItem, Details::k_enumWidgetItems<TEnum>))
     {
         _curValue = EnumCast<TEnum>(curItem.value).GetValue();
         return true;

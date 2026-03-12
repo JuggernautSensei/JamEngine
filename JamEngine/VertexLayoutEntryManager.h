@@ -124,7 +124,7 @@ public:
         JAM_ASSERT(Contains(_to), "VertexLayoutEntry with name '{}' does not exist.", _to);
         const auto itFrom = m_entries.Find(_from);
         const auto itTo   = m_entries.Find(_to);
-        m_entries.Splice(itFrom, itTo);
+        m_entries.Move(itTo, itFrom);
     }
 
     void Splice(const Ref<VertexLayoutEntry>& _pFrom, const Ref<VertexLayoutEntry>& _pTo)

@@ -205,9 +205,6 @@
     <ClCompile Include="Optional.cpp">
       <Filter>99. Utilities\Optional</Filter>
     </ClCompile>
-    <ClCompile Include="DialogStack.cpp">
-      <Filter>6. Editor\Dialog</Filter>
-    </ClCompile>
     <ClCompile Include="Scoped.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
@@ -244,29 +241,20 @@
     <ClCompile Include="VertexLayoutEntryManager.cpp">
       <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="MessageDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfirmationDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
-    </ClCompile>
     <ClCompile Include="RenameFileDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Filesystem</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Filesystem</Filter>
     </ClCompile>
     <ClCompile Include="MaterialCreationDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClCompile>
     <ClCompile Include="PrimitiveCreationDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClCompile>
     <ClCompile Include="ImageImportDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClCompile>
     <ClCompile Include="ModelImportDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
-    </ClCompile>
-    <ClCompile Include="Dialog.cpp">
-      <Filter>6. Editor\Dialog</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClCompile>
     <ClCompile Include="GeometryUtilities.cpp">
       <Filter>2. Graphics\Utilities</Filter>
@@ -275,13 +263,13 @@
       <Filter>6. Editor\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="VertexLayoutEditorDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Misc</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Misc</Filter>
     </ClCompile>
     <ClCompile Include="Delegate.cpp">
       <Filter>99. Utilities\Delegate</Filter>
     </ClCompile>
     <ClCompile Include="AssetCreationDialog.cpp">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClCompile>
     <ClCompile Include="TypeTraits.cpp">
       <Filter>99. Utilities</Filter>
@@ -448,6 +436,15 @@
     <ClCompile Include="STLAlgorithm.cpp">
       <Filter>99. Utilities\Container\STL</Filter>
     </ClCompile>
+    <ClCompile Include="Dialog.cpp">
+      <Filter>6. Editor\RetainedGUI\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogStack.cpp">
+      <Filter>6. Editor\RetainedGUI\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageDilaog.cpp">
+      <Filter>6. Editor\RetainedGUI\Dialogs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="0. Include">
@@ -585,24 +582,6 @@
     <Filter Include="99. Utilities\Container\LRUCache">
       <UniqueIdentifier>{a6e8c344-4115-4f5b-8cf3-9d53979960d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="6. Editor\Dialog">
-      <UniqueIdentifier>{b8e2973b-00f2-4da4-8915-fb90c263d9aa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog\Dialogs">
-      <UniqueIdentifier>{31df0483-c3c2-4a67-b0fb-356a60340060}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog\Dialogs\Common">
-      <UniqueIdentifier>{68773a4d-b5bf-42b8-923f-056d3fedd625}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog\Dialogs\Filesystem">
-      <UniqueIdentifier>{b7c72ae4-caf1-4949-b122-c49fbb0636ff}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog\Dialogs\Asset">
-      <UniqueIdentifier>{09afdf49-57fb-49ba-8025-5b3bb647debb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="6. Editor\Dialog\Dialogs\Misc">
-      <UniqueIdentifier>{ca42f69b-2ac1-437b-8e0f-18b70bc3bbc1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="5. Assets\Utilities">
       <UniqueIdentifier>{5f0dfcfc-4c5e-4e5a-b294-2c245866ba7f}</UniqueIdentifier>
     </Filter>
@@ -704,6 +683,21 @@
     </Filter>
     <Filter Include="99. Utilities\Container\Misc">
       <UniqueIdentifier>{5df6a3e9-e82d-40bb-b7c6-b33e35bdd077}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\RetainedGUI">
+      <UniqueIdentifier>{b8e2973b-00f2-4da4-8915-fb90c263d9aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\RetainedGUI\Dialogs">
+      <UniqueIdentifier>{31df0483-c3c2-4a67-b0fb-356a60340060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\RetainedGUI\Dialogs\Filesystem">
+      <UniqueIdentifier>{b7c72ae4-caf1-4949-b122-c49fbb0636ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\RetainedGUI\Dialogs\Asset">
+      <UniqueIdentifier>{09afdf49-57fb-49ba-8025-5b3bb647debb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="6. Editor\RetainedGUI\Dialogs\Misc">
+      <UniqueIdentifier>{ca42f69b-2ac1-437b-8e0f-18b70bc3bbc1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -923,9 +917,6 @@
     <ClInclude Include="Optional.h">
       <Filter>99. Utilities\Optional</Filter>
     </ClInclude>
-    <ClInclude Include="DialogStack.h">
-      <Filter>6. Editor\Dialog</Filter>
-    </ClInclude>
     <ClInclude Include="Scoped.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
@@ -965,41 +956,32 @@
     <ClInclude Include="VertexLayoutEntryManager.h">
       <Filter>6. Editor\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="MessageDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfirmationDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Common</Filter>
-    </ClInclude>
     <ClInclude Include="RenameFileDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Dialog.h">
-      <Filter>6. Editor\Dialog\Dialogs</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Filesystem</Filter>
     </ClInclude>
     <ClInclude Include="MaterialCreationDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClInclude>
     <ClInclude Include="PrimitiveCreationDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClInclude>
     <ClInclude Include="ImageImportDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClInclude>
     <ClInclude Include="ModelImportDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClInclude>
     <ClInclude Include="GeometryUtilities.h">
       <Filter>2. Graphics\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="VertexLayoutEditorDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Misc</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Misc</Filter>
     </ClInclude>
     <ClInclude Include="Delegate.h">
       <Filter>99. Utilities\Delegate</Filter>
     </ClInclude>
     <ClInclude Include="AssetCreationDialog.h">
-      <Filter>6. Editor\Dialog\Dialogs\Asset</Filter>
+      <Filter>6. Editor\RetainedGUI\Dialogs\Asset</Filter>
     </ClInclude>
     <ClInclude Include="TypeTraits.h">
       <Filter>99. Utilities</Filter>
@@ -1198,6 +1180,15 @@
     </ClInclude>
     <ClInclude Include="STLAlgorithm.h">
       <Filter>99. Utilities\Container\STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialog.h">
+      <Filter>6. Editor\RetainedGUI\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogStack.h">
+      <Filter>6. Editor\RetainedGUI\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageDialog.h">
+      <Filter>6. Editor\RetainedGUI\Dialogs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

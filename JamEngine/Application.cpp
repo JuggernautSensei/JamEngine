@@ -15,6 +15,7 @@
 #include "SceneManager.h"
 #include "Timer.h"
 #include "WindowsPlatform.h"
+#include "Events.h"
 
 namespace Jam
 {
@@ -309,6 +310,18 @@ void Application::Shutdown()
 {
 }
 
+void Application::OnEvent(Event& _event)
+{
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<WindowClosedEvent>(this, &Application::OnWindowClose_);
+}
+
+void Application::OnWindowClose_(
+    WindowClosedEvent&)
+{
+    Quit();
+}
+
 void Application::Update(float _dt)
 {
     if (m_subSystems & eAppSubSystemFlags::Editor)
@@ -347,19 +360,6 @@ void Application::ImGuiRender()
 
     JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
     GetSceneManager().ImGuiRender();
-}
-
-void Application::OnEvent(
-    Event& _event)
-{
-    EventDispatcher dispatcher { _event };
-    dispatcher.Dispatch<WindowCloseEvent>(this, &Application::OnWindowCloseEvent_);
-}
-
-void Application::OnWindowCloseEvent_(
-    const WindowCloseEvent&)
-{
-    Quit();
 }
 
 }   // namespace Jam

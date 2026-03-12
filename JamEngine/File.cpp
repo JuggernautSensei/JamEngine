@@ -3,24 +3,25 @@
 
 #include "FileSystem.h"
 #include "MemoryReadWriter.h"
+#include "WindowsUtilities.h"
 
 namespace Jam
 {
 
-FileRWBase::~FileRWBase()
+FileIO::~FileIO()
 {
     Close();
 }
 
-FileRWBase::FileRWBase(
-    FileRWBase&& _other) noexcept
+FileIO::FileIO(
+    FileIO&& _other) noexcept
     : m_pFile(_other.m_pFile)
 {
     _other.m_pFile = nullptr;
 }
 
-FileRWBase& FileRWBase::operator=(
-    FileRWBase&& _other) noexcept
+FileIO& FileIO::operator=(
+    FileIO&& _other) noexcept
 {
     if (this != &_other)
     {
@@ -31,7 +32,7 @@ FileRWBase& FileRWBase::operator=(
     return *this;
 }
 
-SizeT FileRWBase::Seek(
+SizeT FileIO::Seek(
     const SizeT   _offset,
     const eSeekOp _op) const
 {
@@ -59,20 +60,20 @@ SizeT FileRWBase::Seek(
     return Tell();
 }
 
-SizeT FileRWBase::Skip(
+SizeT FileIO::Skip(
     const SizeT _numBytes) const
 {
     return Seek(_numBytes, eSeekOp::Current);
 }
 
-SizeT FileRWBase::Tell() const
+SizeT FileIO::Tell() const
 {
     const SizeT pos = ::_ftelli64(m_pFile);
     JAM_ASSERT(pos >= 0, "Failed to tell file position.");
     return pos;
 }
 
-SizeT FileRWBase::Remaining() const
+SizeT FileIO::Remaining() const
 {
     const SizeT cur = Tell();
     Seek(0, eSeekOp::End);
@@ -81,12 +82,12 @@ SizeT FileRWBase::Remaining() const
     return end - cur;
 }
 
-void FileRWBase::Rewind() const
+void FileIO::Rewind() const
 {
     Seek(0, eSeekOp::Set);
 }
 
-SizeT FileRWBase::CalcTotalSize() const
+SizeT FileIO::CalcTotalSize() const
 {
     const SizeT cur = Tell();
     Seek(0, eSeekOp::End);
@@ -95,7 +96,7 @@ SizeT FileRWBase::CalcTotalSize() const
     return end;
 }
 
-void FileRWBase::Close()
+void FileIO::Close()
 {
     if (m_pFile)
     {
@@ -104,22 +105,22 @@ void FileRWBase::Close()
     }
 }
 
-bool FileRWBase::IsClosed() const
+bool FileIO::IsClosed() const
 {
     return m_pFile == nullptr;
 }
 
-bool FileRWBase::IsError() const
+bool FileIO::IsError() const
 {
     return m_pFile ? (::ferror(m_pFile) != 0) : true;
 }
 
-FILE* FileRWBase::GetFilePtr() const
+FILE* FileIO::GetFilePtr() const
 {
     return m_pFile;
 }
 
-FileRWBase::FileRWBase(FILE* _pFile)
+FileIO::FileIO(FILE* _pFile)
     : m_pFile(_pFile)
 {
 }
@@ -166,10 +167,10 @@ Expect<FileWriter> FileWriter::Open(
     return FileWriter { pFile };
 }
 
-Error FileWriter::WriteFileFromMemory(
-    const CMemoryBlock         _data,
-    const StringView           _path,
-    eFileWriterCollisionPolicy _policy)
+Error FileWriter::WriteFileAsBinary(
+    const CMemoryBlock               _data,
+    const StringView                 _path,
+    const eFileWriterCollisionPolicy _policy)
 {
     Expect<FileWriter> writer = Open(_path, _policy);
     if (!writer)
@@ -177,7 +178,7 @@ Error FileWriter::WriteFileFromMemory(
         return writer.GetError();
     }
 
-    const Expect<SizeT> ret = writer->Write(_data);
+    const Expect<SizeT> ret = writer->WriteBinary(_data);
     if (!ret)
     {
         return ret.GetError();
@@ -186,15 +187,15 @@ Error FileWriter::WriteFileFromMemory(
     return Error::None;
 }
 
-Error FileWriter::WriteFileFromString(
-    const StringView           _str,
-    const StringView           _path,
-    eFileWriterCollisionPolicy _policy)
+Error FileWriter::WriteFileAsString(
+    const StringView                 _str,
+    const StringView                 _path,
+    const eFileWriterCollisionPolicy _policy)
 {
-    return WriteFileFromMemory(CMemoryBlock { _str.GetPtr(), _str.GetLength() }, _path, _policy);
+    return WriteFileAsBinary(CMemoryBlock { _str.GetPtr(), _str.GetLength() }, _path, _policy);
 }
 
-Expect<SizeT> FileWriter::Write(
+Expect<SizeT> FileWriter::WriteBinary(
     const CMemoryBlock _data) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
@@ -207,10 +208,10 @@ Expect<SizeT> FileWriter::Write(
     return NumericCast<SizeT>(written);
 }
 
-Expect<SizeT> FileWriter::Write(
+Expect<SizeT> FileWriter::WriteString(
     const StringView _str) const
 {
-    return Write(CMemoryBlock { _str.GetPtr(), _str.GetLength() });
+    return WriteBinary(CMemoryBlock { _str.GetPtr(), _str.GetLength() });   // exclude null terminator
 }
 
 void FileWriter::Flush() const
@@ -220,7 +221,7 @@ void FileWriter::Flush() const
 }
 
 FileWriter::FileWriter(FILE* _pFile)
-    : FileRWBase(_pFile)
+    : FileIO(_pFile)
 {
 }
 
@@ -237,7 +238,7 @@ Expect<FileReader> FileReader::Open(
     return FileReader { pFile };
 }
 
-Expect<Vector<Byte>> FileReader::ReadFileAsMemory(
+Expect<Vector<Byte>> FileReader::ReadFileAsBinary(
     const StringView _path)
 {
     Expect<FileReader> reader = Open(_path);
@@ -248,7 +249,7 @@ Expect<Vector<Byte>> FileReader::ReadFileAsMemory(
 
     const SizeT         totalSize = reader->CalcTotalSize();
     Vector<Byte>        data(totalSize);
-    const Expect<SizeT> ret = reader->Read(data);
+    const Expect<SizeT> ret = reader->ReadBinary(data);
     if (!ret)
     {
         return ret.GetError();
@@ -268,7 +269,7 @@ Expect<String> FileReader::ReadFileAsString(
 
     const SizeT         totalSize = reader->CalcTotalSize();
     String              str { totalSize, '\0' };
-    const Expect<SizeT> ret = reader->Read({ str.GetPtr(), totalSize });
+    const Expect<SizeT> ret = reader->ReadBinary({ str.GetPtr(), totalSize });
     if (!ret)
     {
         return ret.GetError();
@@ -277,26 +278,34 @@ Expect<String> FileReader::ReadFileAsString(
     return str;
 }
 
-Expect<SizeT> FileReader::Read(
-    const MemoryBlock _dst) const
+Expect<SizeT> FileReader::ReadBinary(
+    const MemoryBlock _dst,
+    const SizeT       _count) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
-    const size_t read = ::fread(_dst.GetPtr(), 1, _dst.GetByteWidth(), m_pFile);
-    if (CmpLess(read, _dst.GetByteWidth()))
+    JAM_ASSERT(_dst.GetPtr(), "Destination buffer pointer is null.");
+    JAM_ASSERT(_count <= _dst.GetByteWidth(), "Count exceeds destination buffer size.");
+    const SizeT toRead = (_count == 0) ? _dst.GetByteWidth() : _count;
+    const SizeT read   = NumericCast<SizeT>(::fread(_dst.GetPtr(), 1, toRead, m_pFile));
+    if (CmpLess(read, toRead) && !IsEof())
     {
-        if (IsEof())
-        {
-            JAM_LOG_ERROR("Reached end of file while reading {} bytes, only {} bytes were read.", _dst.GetByteWidth(), read);
-        }
-        else
-        {
-            JAM_LOG_ERROR("Failed to read {} bytes from file, only {} bytes were read.", _dst.GetByteWidth(), read);
-        }
-
+        JAM_LOG_ERROR("Failed to read {} bytes from file, only {} bytes were read. {}", toRead, read, CreateWindowsErrorMessage(::ferror(m_pFile), eWindowsErrorCodeType::Errno));
         return Error::ReadFailed;
     }
-
     return NumericCast<SizeT>(read);
+}
+
+Expect<String> FileReader::ReadString(
+    const SizeT _count) const
+{
+    const SizeT         toRead = (_count == 0) ? Remaining() : _count;
+    String              str { toRead, '\0' };
+    const Expect<SizeT> ret = ReadBinary({ str.GetPtr(), toRead });
+    if (!ret)
+    {
+        return ret.GetError();
+    }
+    return str;
 }
 
 bool FileReader::IsEof() const
@@ -305,7 +314,7 @@ bool FileReader::IsEof() const
 }
 
 FileReader::FileReader(FILE* _pFile)
-    : FileRWBase(_pFile)
+    : FileIO(_pFile)
 {
 }
 

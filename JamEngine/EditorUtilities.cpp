@@ -58,12 +58,17 @@ void SetNextItemToAvailWidth()
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 }
 
-ImVec2 GetContentRegionAvailScaled(
-    const float _sx,
-    const float _sy)
+void SetCursorScreenPosFromWindowBottom(
+    const float _offsetY)
 {
-    const ImVec2 avail = ImGui::GetContentRegionAvail();
-    return { avail.x * _sx, avail.y * _sy };
+    ImGui::Dummy(ImVec2 { 0.f, _offsetY });
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2 { 0.f, ImGui::GetContentRegionAvail().y - _offsetY });
+}
+
+void SetCursorScreenPosFromWindowRight(const float _offsetX)
+{
+    // need something ?
+    ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2 { ImGui::GetContentRegionAvail().x - _offsetX, 0.f });
 }
 
 enum class eEditorPayload
@@ -78,9 +83,9 @@ const char* EditorPayloadFrom(
     switch (_payload)
     {
         case eEditorPayload::File:
-            return "JAM_EDITOR_PAYLOAD_FILE";
+            return "JAM_FILE_PAYLOAD";
         case eEditorPayload::Entity:
-            return "JAM_EDITOR_PAYLOAD_ENTITY";
+            return "JAM_ENTITY_PAYLOAD";
         default:
             JAM_UNREACHABLE;
     }
@@ -89,9 +94,7 @@ const char* EditorPayloadFrom(
 bool SetPathDragDropPayload(
     const StringView _path)
 {
-    const char*  str = _path.GetPtr();
-    const USizeT len = _path.GetLength();
-    return ImGui::SetDragDropPayload(EditorPayloadFrom(eEditorPayload::File), str, len);
+    return SetStringDragDropPayload(EditorPayloadFrom(eEditorPayload::File), _path);
 }
 
 const ImGuiPayload* AcceptPathDragDropPayload()
@@ -99,14 +102,26 @@ const ImGuiPayload* AcceptPathDragDropPayload()
     return ImGui::AcceptDragDropPayload(EditorPayloadFrom(eEditorPayload::File));
 }
 
-String ResolvePathDragDropPayload(
+StringView ResolvePathDragDropPayload(
     const ImGuiPayload* _pPayload)
 {
     JAM_ASSERT(_pPayload, "payload is nullptr");
     JAM_ASSERT(_pPayload->IsDataType(EditorPayloadFrom(eEditorPayload::File)), "payload type mismatch");
-    const char* path = static_cast<const char*>(_pPayload->Data);
-    const Int32 len  = _pPayload->DataSize;
-    return String(path, NumericCast<SizeT>(len));
+    return { static_cast<const char*>(_pPayload->Data), _pPayload->DataSize - 1 };
+}
+
+bool SetStringDragDropPayload(
+    const StringView _payload,
+    const StringView _string)
+{
+    return ImGui::SetDragDropPayload(_payload.GetPtr(), _string.GetPtr(), _string.GetLengthWithTerminate());
+}
+
+StringView ResolveStringDragDropPayload(
+    const ImGuiPayload* _pPayload)
+{
+    JAM_ASSERT(_pPayload, "payload is nullptr");
+    return { static_cast<const char*>(_pPayload->Data), _pPayload->DataSize - 1 };
 }
 
 bool SetEntityDragDropPayload(

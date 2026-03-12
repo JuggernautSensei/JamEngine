@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "FileBrowserWindow.h"
 
+#include <filesystem>
+
 #include "Events.h"
 #include "GUIFileSystem.h"
 #include "ShaderApp.h"
@@ -19,28 +21,28 @@ void FileBrowserWindow::InitFileWatcher_(
     info.FileWatcherListener                 = Bind<&FileBrowserWindow::OnFileWatcher_>(this);
     Expect<Scoped<FileWatcher>> pFileWatcher = FileWatcher::Create(info);
     JAM_ASSERT(pFileWatcher, "Failed to create file watcher for '{}': {}", info.path, pFileWatcher.GetError().ToErrorMessage());
-    m_pFileWatcher = pFileWatcher.Take();
+    m_pFileWatcher      = pFileWatcher.Take();
+    m_bFileEntriesDirty = true;
 }
 
 void FileBrowserWindow::OnProjectChangedEvent_(
-    const ProjectChangedEvent& _event)
+    const ProjectChangedEvent&)
 {
-    Project* pProject = _event.GetProjectOrNull();
-    if (pProject)
+    m_pProjectCache = GetShaderApp().GetProjectOrNull();
+    if (m_pProjectCache)
     {
-        InitFileWatcher_(pProject->GetWorkingDirectory());
+        InitFileWatcher_(m_pProjectCache->GetWorkingDirectory());
     }
     else
     {
         m_pFileWatcher.Reset();
     }
-    m_pProject = pProject;
 }
 
 void FileBrowserWindow::OnUpdate(
-    const float)
+    const float _dt)
 {
-    GatherFileEntriesIfNeed_();
+    GatherFileEntriesIfNeed_(_dt);
 }
 
 void FileBrowserWindow::OnImGuiRender()
@@ -103,8 +105,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Added:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [path = String(_event.path)]
-                {
+                [path = String(_event.path)] {
                     FileAddedEvent event { path };
                     GetApp().DispatchEvent(event);
                 }));
@@ -114,8 +115,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Deleted:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [path = String(_event.oldPath)]
-                {
+                [path = String(_event.path)] {
                     FileDeletedEvent event { path };
                     GetApp().DispatchEvent(event);
                 }));
@@ -125,8 +125,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Renamed:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [oldPath = String(_event.oldPath), newPath = String(_event.path)]
-                {
+                [oldPath = String(_event.oldPath), newPath = String(_event.path)] {
                     FileRenamedEvent event { oldPath, newPath };
                     GetApp().DispatchEvent(event);
                 }));
@@ -136,8 +135,7 @@ void FileBrowserWindow::OnFileWatcher_(
         case eFileEventType::Modified:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [path = String(_event.path)]
-                {
+                [path = String(_event.path)] {
                     FileModifiedEvent event { path };
                     GetApp().DispatchEvent(event);
                 }));
@@ -163,18 +161,26 @@ void FileBrowserWindow::NewHLSLFile_(
     }
 }
 
-void FileBrowserWindow::GatherFileEntriesIfNeed_()
+void FileBrowserWindow::GatherFileEntriesIfNeed_(
+    const float _dt)
 {
-    if (!m_bFileEntriesDirty)
+    m_fileEntryGatheringIntervalCounterSec += _dt;
+    if (!m_bFileEntriesDirty || m_fileEntryGatheringIntervalCounterSec < k_fileEntryGatheringDebounceTimeSec)
     {
         return;
     }
 
-    const StringView workingDir   = m_pProject->GetWorkingDirectory();
-    const StringView focusingPath = m_pFocusingItem ? m_pFocusingItem->path.ToStringView() : workingDir;
+    const StringView workingDir   = m_pProjectCache->GetWorkingDirectory();
+    const String     focusingPath = m_pFocusingItem ? m_pFocusingItem->path : String { workingDir };
     bool             bFound       = false;
     m_rootItem                    = GatherFileEntries_Recursive_(workingDir, focusingPath, bFound);
-    m_bFileEntriesDirty           = false;
+    if (!bFound)
+    {
+        m_pFocusingItem = nullptr;
+    }
+
+    m_bFileEntriesDirty                    = false;
+    m_fileEntryGatheringIntervalCounterSec = 0.f;
 }
 
 Scoped<FileItem> FileBrowserWindow::GatherFileEntries_Recursive_(
@@ -218,6 +224,7 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
     const bool  bIsRoot   = _pItem == m_rootItem.GetPtr();
     const bool  bHasChild = !_pItem->children.empty();
     const char* label     = _pItem->filename.GetPtr();
+    const bool  bIsDir    = _pItem->path.IsDirectory();
 
     ImGui::PushID(_pItem->path.GetPtr());
 
@@ -230,9 +237,15 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
             flags |= ImGuiTreeNodeFlags_Selected;
         }
 
-        if (_pItem->path.IsFile() || !bHasChild)
+        if (!bIsDir || !bHasChild)
         {
             flags |= ImGuiTreeNodeFlags_Leaf;
+        }
+
+        if (bIsRoot || (bIsDir && _pItem->bOpenRequested))
+        {
+            flags |= ImGuiTreeNodeFlags_DefaultOpen;
+            _pItem->bOpenRequested = false;
         }
 
         _pItem->bOpened = ImGui::TreeNodeEx("", flags);
@@ -240,6 +253,12 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
         {
             SetFocusingFileItem_(_pItem);
         }
+
+        if (!bIsDir && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            OpenAsDefaulApplication_(_pItem->path);
+        }
+
         ImGui::OpenPopupOnItemClick("Menu", 0);
     }
 
@@ -249,6 +268,22 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
         ImGui::TextUnformatted(label);
         SetPathDragDropPayload(_pItem->path);
         ImGui::EndDragDropSource();
+    }
+
+    // drag drop target
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (bIsDir)
+        {
+            if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
+            {
+                const StringView srcPath = ResolvePathDragDropPayload(pPayload);
+                const String     dstPath = String::Joined(_pItem->path, srcPath.GetFileName(), bIsDir ? eJoinType::Directory : eJoinType::File);
+                GUI::Rename(srcPath, dstPath, FileSystem::eCollisionPolicy::Fail);
+            }
+        }
+
+        ImGui::EndDragDropTarget();
     }
 
     // icon
@@ -272,24 +307,44 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
     {
         ImGui::Text(label);
 
-        if (_pItem->path.IsDirectory())
-        {
-            ImGui::Separator();
-            Menu_CreateFileItem_(_pItem->path);
-        }
-
         if (!bIsRoot)
         {
             ImGui::Separator();
             if (ImGui::MenuItem("clone"))
             {
-                GUI::FS::Copy(_pItem->path, _pItem->path, FileSystem::eCollisionPolicy::Rename);
+                GUI::Copy(_pItem->path, _pItem->path, FileSystem::eCollisionPolicy::Rename);
             }
 
             if (ImGui::MenuItem("delete"))
             {
-                GUI::FS::Remove(_pItem->path);
+                GUI::Remove(_pItem->path);
             }
+        }
+
+        if (_pItem->path.IsDirectory())
+        {
+            ImGui::Separator();
+            if (ImGui::MenuItem("create new hlsl file"))
+            {
+                NewHLSLFile_(_pItem->path);
+            }
+
+            if (ImGui::MenuItem("create new directory"))
+            {
+                const String path = String::Joined(_pItem->path, "new directory/");
+                GUI::MakeDirectory(path, FileSystem::eMakeDirectoryCollisionPolicy::Rename);
+            }
+        }
+
+        ImGui::Separator();
+        if (ImGui::MenuItem("open in file explorer"))
+        {
+            OpenInFileExplorer_(_pItem->path);
+        }
+
+        if (ImGui::MenuItem("open as default application"))
+        {
+            OpenAsDefaulApplication_(_pItem->path);
         }
 
         ImGui::EndPopup();
@@ -317,23 +372,24 @@ void FileBrowserWindow::SetFocusingFileItem_(
     }
 
     m_pFocusingItem = _pItem;
-    FocusingFileItemChangedEvent event { m_pFocusingItem };
-    GetApp().DispatchEvent(event);
 }
 
-void FileBrowserWindow::Menu_CreateFileItem_(
-    const StringView _dir) const
+void FileBrowserWindow::OpenInFileExplorer_(const StringView _path) const
 {
-    JAM_ASSERT(_dir.IsDirectory(), "String must be a directory");
+    WString path = WString::Encoded(_path);
+    std::ranges::replace(path, L'/', L'\\');
 
-    if (ImGui::MenuItem("create new hlsl file"))
-    {
-        NewHLSLFile_(_dir);
-    }
+    WString cmd = L"explorer /select,\"";
+    cmd += path;
+    cmd += L"\"";
+    ::_wsystem(cmd.GetPtr());
+}
 
-    if (ImGui::MenuItem("create new directory"))
-    {
-        const String path = String::Joined(_dir, "new directory/");
-        GUI::FS::MakeDirectory(path, FileSystem::eMakeDirectoryCollisionPolicy::Rename);
-    }
+void FileBrowserWindow::OpenAsDefaulApplication_(
+    const StringView _path) const
+{
+    WString cmd = L"start \"\" \"";
+    cmd.AppendEncode(_path);
+    cmd += L"\"";
+    ::_wsystem(cmd.GetPtr());
 }

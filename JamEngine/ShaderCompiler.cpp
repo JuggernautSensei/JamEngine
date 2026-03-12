@@ -40,7 +40,7 @@ namespace
     {
         UINT flags = 0;
 
-        if (_flags & eShaderCompileFlags::Debug)
+        if (_flags & eShaderCompileFlags::DebugInfo)
         {
             flags |= D3DCOMPILE_DEBUG;
         }

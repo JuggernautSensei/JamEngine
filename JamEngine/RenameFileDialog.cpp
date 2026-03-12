@@ -23,7 +23,7 @@ void RenameFileDialog::OnShow()
     const ImVec2 btnSize = CalcFitButtonSize(2);
 
     // msg
-    Widget_TextWrapped("enter new name for file:", k_textWrapWidth);
+    ImGui::TextWrapped("enter new name for file:");
     ImGui::Spacing();
 
     // input

@@ -14,7 +14,7 @@ public:
 
     [[nodiscard]] operator T&() const
     {
-        JAM_ASSERT(m_pValue != nullptr, "Reference::operator T&() - Attempting to convert to value from an empty reference.");
+        JAM_ASSERT(m_pValue != nullptr, "Reference::operator ByteT&() - Attempting to convert to value from an empty reference.");
         return *m_pValue;
     }
 

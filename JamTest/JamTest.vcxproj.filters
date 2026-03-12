@@ -27,7 +27,7 @@
     <ClCompile Include="FileSystemTest.cpp">
       <Filter>Test</Filter>
     </ClCompile>
-    <ClCompile Include="StackListTest.cpp">
+    <ClCompile Include="FileWriterTest2.cpp">
       <Filter>Test</Filter>
     </ClCompile>
   </ItemGroup>

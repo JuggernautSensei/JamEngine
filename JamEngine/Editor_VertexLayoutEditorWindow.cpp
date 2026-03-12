@@ -103,7 +103,7 @@ void Editor_VertexLayoutEditorWindow::OnClickEditButton_(
     VertexLayoutEditorDialogInfo info = {};
     info.title                        = "vertex layout editor";
     info.pVle                         = _pEntry;
-    GetEditor().PushDialog(MakeRef<VertexLayoutEditorDialog>(info));
+    GetEditor().PushDialog(MakeScoped<VertexLayoutEditorDialog>(info));
 }
 
 void Editor_VertexLayoutEditorWindow::OnClickRemoveButton_(

@@ -45,7 +45,7 @@ EnumArray<eIcon, StringView> CreateEmbededIconSVGResources_()
             </svg>
             )";
 
-    sources[eIcon::CloneShaderItemMacro] = R"(
+    sources[eIcon::Clone] = R"(
             <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
             <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
             <svg fill="#ffffff" height="800px" width="800px" version="1.1" id="XMLID_158_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" xml:space="preserve" stroke="#ffffff">
@@ -55,7 +55,7 @@ EnumArray<eIcon, StringView> CreateEmbededIconSVGResources_()
             </svg>
             )";
 
-    sources[eIcon::RemoveShaderItemMacro] = R"(
+    sources[eIcon::Remove] = R"(
             <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
             <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
             <svg width="800px" height="800px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="#000000">
@@ -65,7 +65,7 @@ EnumArray<eIcon, StringView> CreateEmbededIconSVGResources_()
             </svg>
             )";
 
-    sources[eIcon::ReorderShaderItemMaco] = R"(
+    sources[eIcon::ReorderGrab] = R"(
             <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
             <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
             <svg width="800px" height="800px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="#000000">

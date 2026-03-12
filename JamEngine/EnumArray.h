@@ -25,30 +25,28 @@ namespace Jam
 // };
 // because the underlying values are contiguous and start from 0. This allows correct indexing and bounds checking.
 
+template<typename TEnum>
+concept IsDirectIndexableEnum = (std::is_enum_v<TEnum>
+                                 && (UnderlyingFrom(MinOf<TEnum>()) == 0)
+                                 && (CountOf<TEnum>() > 0)
+                                 && (UnderlyingFrom(MaxOf<TEnum>()) == CountOf<TEnum>() - 1));
+
 template<typename TEnum, typename TValue>
 class EnumArray
 {
 public:
     static constexpr SizeT k_cap = CountOf<TEnum>();
-    using ArrayT                 = TValue[k_cap];
     using IterT                  = TValue*;
     using ConstIterT             = const TValue*;
 
-    // keep static_assert than requires in this class
-    // static_assert(IsDirectIndexableEnum<TEnum>, "TEnum must be a direct indexing enum");
-
     [[nodiscard]] constexpr TValue& operator[](TEnum _key)
     {
-        const SizeT idx = NumericCast<SizeT>(_key);
-        JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. Enum m_value: '{}'", NameOf(_key));
-        return m_arr[idx];
+        return m_arr[GetIndex_(_key)];
     }
 
     [[nodiscard]] constexpr const TValue& operator[](TEnum _key) const
     {
-        const SizeT idx = NumericCast<SizeT>(_key);
-        JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. Enum m_value: '{}'", NameOf(_key));
-        return m_arr[idx];
+        return m_arr[GetIndex_(_key)];
     }
 
     [[nodiscard]] constexpr TValue& operator[](SizeT _idx)
@@ -122,6 +120,23 @@ public:
     }
 
     TValue m_arr[k_cap];   // for aggregate initialization and better cache locality. if use std::array, it will add an extra layer of indirection and may cause worse cache performance.
+
+private:
+    [[nodiscard]] constexpr SizeT GetIndex_(TEnum _key) const
+    {
+        if constexpr (IsDirectIndexableEnum<TEnum>)
+        {
+            const SizeT idx = UnderlyingFrom(_key);
+            JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
+            return idx;
+        }
+        else
+        {
+            const SizeT seq = GetSequence(_key);
+            JAM_ASSERT(seq < k_cap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
+            return seq;
+        }
+    }
 };
 
 }   // namespace Jam

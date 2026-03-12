@@ -167,6 +167,11 @@ public:
         return m_str;
     }
 
+    [[nodiscard]] BasicString<CharT> ToString() const
+    {
+        return { GetPtr(), GetLength() };
+    }
+
 private:
     CharT m_str[k_cap + 1];
     SizeT m_len;
@@ -176,7 +181,10 @@ template<SizeT k_cap>
 using StackString = BasicStackString<char, k_cap>;
 
 template<SizeT k_cap>
-using WStackString = BasicStackString<wchar_t, k_cap>;
+using StackWString = BasicStackString<wchar_t, k_cap>;
+
+using PathStackString  = StackString<k_maxPathLength>;
+using PathStackWString = StackWString<k_maxPathLength>;
 
 }   // namespace Jam
 

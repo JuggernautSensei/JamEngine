@@ -4,7 +4,6 @@
 
 #include "Application.h"
 #include "AssetManager.h"
-#include "ConfirmationDialog.h"
 #include "Editor_EntityInspectorWindow.h"
 #include "Editor_FileBrowserWindow.h"
 #include "Editor_ProfilerWindow.h"
@@ -483,19 +482,24 @@ VertexLayoutEntryManager& Editor::GetVertexLayoutManager()
 }
 
 void Editor::PushDialog(
-    const Ref<Dialog>& _pDialog)
+    Scoped<Dialog>&& _pDialog)
 {
-    m_dialogStack.Push(_pDialog);
+    m_dialogStack.Push(std::move(_pDialog));
 }
 
 void Editor::PushMessageDialog(
     const StringView _title,
     const StringView _msg)
 {
+    const MessageDialogButtonInfo buttons[] = {
+        { "ok", nullptr }
+    };
+
     MessageDialogInfo info = {};
     info.title             = _title;
-    info.msg               = _msg;
-    PushDialog(MakeRef<MessageDialog>(info));
+    info.message           = _msg;
+    info.buttons           = buttons;
+    PushDialog(MakeScoped<MessageDialog>(info));
 }
 
 void Editor::PushConfirmationDialog(
@@ -503,11 +507,16 @@ void Editor::PushConfirmationDialog(
     const StringView        _msg,
     const Delegate<void()>& _onConfirm)
 {
-    ConfirmationDialogInfo info = {};
-    info.title                  = _title;
-    info.msg                    = _msg;
-    info.OnConfirm              = _onConfirm;
-    PushDialog(MakeRef<ConfirmationDialog>(info));
+    const MessageDialogButtonInfo buttons[] = {
+        { "confirm", _onConfirm },
+        {  "cancel",    nullptr }
+    };
+
+    MessageDialogInfo info = {};
+    info.title             = _title;
+    info.message           = _msg;
+    info.buttons           = buttons;
+    PushDialog(MakeScoped<MessageDialog>(info));
 }
 
 void Editor::LoadScenByFileDialog()
@@ -599,15 +608,11 @@ void Editor::DestroyEntity(
     const SceneNode& node = _entity.GetSceneNode();
     if (node.HasChildren())   // if has children, show confirmation dialog
     {
-        ConfirmationDialogInfo info = {};
-        info.title                  = "confirmation";
-        info.msg                    = "the entity has child entities. are you sure you want to destroy it and all its children?";
-        info.OnConfirm              = Bind(
-            [_pScene, _entity]
-            {
-                _pScene->DestroyEntity(_entity);
-            });
-        PushDialog(MakeRef<ConfirmationDialog>(info));
+        PushConfirmationDialog(
+            "confirmation",
+            "the entity has child entities. are you sure you want to destroy it and all its children?",
+            Bind([_pScene, _entity] { _pScene->DestroyEntity(_entity); }));
+
         return;
     }
 
@@ -634,8 +639,7 @@ bool Editor::RemoveFile(
     if (_path.IsDirectory() && !FileSystem::IsEmpty(_path) && !_bForced)
     {
         const Delegate<void()> OnConfirm = Bind(
-            [_path]
-            {
+            [_path] {
                 GetEditor().RemoveFile(_path, true);
             });
 

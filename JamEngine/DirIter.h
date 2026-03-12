@@ -61,7 +61,7 @@ private:
 
         bool operator==(const Impl& _other) const
         {
-            return m_path == _other.m_path;
+            return m_handle == _other.m_handle && m_path == _other.m_path;
         }
 
         bool operator!=(const Impl& _other) const
@@ -87,7 +87,6 @@ private:
                     {
                         m_path += CharTraits::k_pathPreferredSeparator;
                     }
-                    m_path.Simplify();
                     return;
                 }
             }
@@ -113,7 +112,7 @@ private:
         {
             JAM_ASSERT(_dir.IsDirectory(), "DirIterBase can only be constructed with a directory m_workingDir.");
 
-            WStackString<k_maxPathLength> path;
+            PathStackWString path;
             path.Encode(_dir);
             path.AppendEncode("*");   // search pattern: all files in the directory
 
@@ -140,7 +139,6 @@ private:
             {
                 m_path += CharTraits::k_pathPreferredSeparator;
             }
-            m_path.Simplify();
             return Error::None;
         }
 
@@ -161,7 +159,7 @@ private:
         }
 
         HANDLE  m_handle = INVALID_HANDLE_VALUE;
-        StringT m_path   = {};   // full m_workingDir of the current entry
+        StringT m_path   = {};
     };
 
 public:
@@ -246,6 +244,6 @@ template<IsCharT CharT>
 }
 
 using DirIter  = DirIterBase<char>;
-using WDirIter = DirIterBase<wchar_t>;
+using DirIterW = DirIterBase<wchar_t>;
 
 }   // namespace Jam

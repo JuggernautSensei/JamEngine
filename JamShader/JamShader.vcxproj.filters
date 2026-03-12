@@ -11,10 +11,7 @@
       <Filter>Windows</Filter>
     </ClCompile>
     <ClCompile Include="GUIFileSystem.cpp">
-      <Filter>GUIUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="Icons.cpp">
-      <Filter>Resources</Filter>
+      <Filter>Utis</Filter>
     </ClCompile>
     <ClCompile Include="Events.cpp">
       <Filter>Resources</Filter>
@@ -35,10 +32,19 @@
       <Filter>Windows</Filter>
     </ClCompile>
     <ClCompile Include="GUIAssetManager.cpp">
-      <Filter>GUIUtils</Filter>
+      <Filter>Utis</Filter>
     </ClCompile>
     <ClCompile Include="ProjectInspectorWindow.cpp">
       <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Icons.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectExporter.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportProjectDialog.cpp">
+      <Filter>Dialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -52,10 +58,7 @@
       <Filter>Windows</Filter>
     </ClInclude>
     <ClInclude Include="GUIFileSystem.h">
-      <Filter>GUIUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Icons.h">
-      <Filter>Resources</Filter>
+      <Filter>Utis</Filter>
     </ClInclude>
     <ClInclude Include="Events.h">
       <Filter>Resources</Filter>
@@ -76,10 +79,19 @@
       <Filter>Windows</Filter>
     </ClInclude>
     <ClInclude Include="GUIAssetManager.h">
-      <Filter>GUIUtils</Filter>
+      <Filter>Utis</Filter>
     </ClInclude>
     <ClInclude Include="ProjectInspectorWindow.h">
       <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Icons.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectExporter.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportProjectDialog.h">
+      <Filter>Dialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -95,11 +107,11 @@
     <Filter Include="Core">
       <UniqueIdentifier>{e6d8b4a1-4c5a-4609-b094-9bd73e3dadae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GUIUtils">
-      <UniqueIdentifier>{a2a600be-c3b1-44c4-ae06-6eee10df0eb2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{7edfeb39-6de8-4526-aff7-ca6976fedb47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utis">
+      <UniqueIdentifier>{a2a600be-c3b1-44c4-ae06-6eee10df0eb2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

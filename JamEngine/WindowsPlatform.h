@@ -61,9 +61,9 @@ private:
     HWND      m_hWnd      = NULL;
     MSG       m_msg       = {};
 
-    Vec2i                       m_clientPos = { 0, 0 };
-    Vec2i                       m_clientRes = { 0, 0 };
-    Flags<eWindowPropertyFlags> m_flags     = eWindowPropertyFlags::None;
+    Vec2i                       m_clientPos        = { 0, 0 };
+    Vec2i                       m_clientRes        = { 0, 0 };
+    Flags<eWindowPropertyFlags> m_flags            = eWindowPropertyFlags::None;
 
     constexpr static const wchar_t* k_winClassName     = L"JAM_ENGINE_APP_WINDOW_CLASS";
     constexpr static const wchar_t* k_winTitleName     = L"Jam Engine Application";

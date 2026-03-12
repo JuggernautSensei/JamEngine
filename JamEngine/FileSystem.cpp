@@ -56,15 +56,15 @@ namespace Utf16
         }
 
         // create parent directories
-        WStackString<k_maxPathLength> path;
-        for (const WStringView subPath: WPathIter { _dir })
+        PathStackWString path;
+        for (const WStringView slice: PathIterW { _dir })
         {
-            path.Join(subPath);
+            path.Join(slice);
             if (!Exists(path))
             {
                 if (::CreateDirectoryW(path.GetPtr(), NULL) == FALSE)
                 {
-                    JAM_LOG_ERROR(L"Failed to create directory '{}': {}", subPath, CreateWindowsLastErrorMessageW());
+                    JAM_LOG_ERROR(L"Failed to create directory '{}': {}", slice, CreateWindowsLastErrorMessageW());
                     return ErrorFromPlatformErrorCode(::GetLastError());
                 }
             }
@@ -76,8 +76,7 @@ namespace Utf16
     bool Exists(
         const WStringView _path)
     {
-        WStackString<k_maxPathLength> path;
-        path.Join(_path);
+        const PathStackWString path = _path;
         return ::GetFileAttributesW(path.GetPtr()) != INVALID_FILE_ATTRIBUTES;
     }
 
@@ -105,23 +104,22 @@ namespace Utf16
         if (_path.IsDirectory())
         {
             // remove all entries in the directory
-            Expect<WDirIter> iter = WDirIter::Create(_path);
+            Expect<DirIterW> iter = DirIterW::Create(_path);
             if (!iter)
             {
                 return iter.GetError();   // failed to create directory iterator
             }
 
-            for (const WStringView childPath: iter.GetValue())
+            for (const WStringView child: iter.GetValue())
             {
-                if (const Error err = Remove(childPath))
+                if (const Error err = Remove(child))
                 {
                     return err;   // failed to remove an entry in the directory
                 }
             }
 
             // remove empty directory
-            WStackString<k_maxPathLength> path;
-            path.Join(_path);
+            const PathStackWString path = _path;
             if (::RemoveDirectoryW(path.GetPtr()) == FALSE)
             {
                 JAM_LOG_ERROR(L"Failed to remove directory '{}': {}", _path, CreateWindowsLastErrorMessageW());
@@ -130,8 +128,7 @@ namespace Utf16
         }
         else
         {
-            WStackString<k_maxPathLength> path;
-            path.Join(_path);
+            const PathStackWString path = _path;
             if (::DeleteFileW(path.GetPtr()) == FALSE)
             {
                 JAM_LOG_ERROR(L"Failed to delete file '{}': {}", _path, CreateWindowsLastErrorMessageW());
@@ -162,6 +159,8 @@ namespace Utf16
                     return Copy(_srcPath, GenerateUniquePath(_dstPath), _policy);
 
                 case eCollisionPolicy::Overwrite:
+                    break;
+
                 default:
                     JAM_UNREACHABLE;
             }
@@ -176,19 +175,17 @@ namespace Utf16
             }
 
             // copy all entries in the source directory
-            Expect<WDirIter> iter = WDirIter::Create(_srcPath);
+            Expect<DirIterW> iter = DirIterW::Create(_srcPath);
             if (!iter)
             {
                 return iter.GetError();   // failed to create directory iterator
             }
 
-            for (const WStringView childSrcPath: iter.GetValue())
+            for (const WStringView childSrc: iter.GetValue())
             {
-                WStackString<k_maxPathLength> childDstPath;
-                childDstPath.Join(_dstPath);
-                childDstPath.Join(childSrcPath);
-
-                if (const Error err = Copy(childSrcPath, childDstPath, _policy))
+                PathStackWString childDst = _dstPath;
+                childDst.Join(childSrc.GetFileName(), childSrc.IsDirectory() ? eJoinType::Directory : eJoinType::File);
+                if (const Error err = Copy(childSrc, childDst, _policy))
                 {
                     return err;   // failed to copy an entry in the directory
                 }
@@ -196,12 +193,8 @@ namespace Utf16
         }
         else
         {
-            WStackString<k_maxPathLength> srcPath;
-            srcPath.Join(_srcPath);
-
-            WStackString<k_maxPathLength> dstPath;
-            dstPath.Join(_dstPath);
-
+            const PathStackWString srcPath = _srcPath;
+            const PathStackWString dstPath = _dstPath;
             if (::CopyFileW(srcPath.GetPtr(), dstPath.GetPtr(), FALSE) == FALSE)
             {
                 JAM_LOG_ERROR(L"Failed to copy file from '{}' to '{}': {}", _srcPath, _dstPath, CreateWindowsLastErrorMessageW());
@@ -243,12 +236,8 @@ namespace Utf16
             flags |= MOVEFILE_REPLACE_EXISTING;
         }
 
-        WStackString<k_maxPathLength> srcPath;
-        srcPath.Join(_srcPath);
-
-        WStackString<k_maxPathLength> dstPath;
-        dstPath.Join(_dstPath);
-
+        const PathStackWString srcPath = _srcPath;
+        const PathStackWString dstPath = _dstPath;
         if (::MoveFileExW(srcPath.GetPtr(), dstPath.GetPtr(), flags) == FALSE)
         {
             JAM_LOG_ERROR(L"Failed to rename from '{}' to '{}': {}", _srcPath, _dstPath, CreateWindowsLastErrorMessageW());
@@ -273,9 +262,7 @@ namespace Utf16
     FileAttribute QueryFileAttribute(
         const WStringView _path)
     {
-        WStackString<k_maxPathLength> path;
-        path.Join(_path);
-
+        const PathStackWString    path = _path;
         WIN32_FILE_ATTRIBUTE_DATA data = {};
         if (::GetFileAttributesExW(path.GetPtr(), GetFileExInfoStandard, &data) == FALSE)
         {
@@ -299,14 +286,14 @@ namespace Utf16
     {
         if (_path.IsDirectory())
         {
-            Expect<WDirIter> iter = WDirIter::Create(_path);
+            Expect<DirIterW> iter = DirIterW::Create(_path);
             if (!iter)
             {
                 JAM_LOG_ERROR(L"Failed to create directory iterator for path '{}': {}", _path, iter.GetError().ToErrorMessageW());
                 return false;   // treat as not empty if failed to create directory iterator
             }
 
-            return iter.GetValue() == WDirIter {};
+            return iter.GetValue() == DirIterW {};
         }
 
         return QueryFileSize(_path) == 0;
@@ -316,35 +303,35 @@ namespace Utf16
         const WStringView _from,
         const WStringView _to)
     {
-        const WString from = Absolute(_from);
-        const WString to   = Absolute(_to);
+        const WString fromAbs = Absolute(_from);
+        const WString toAbs   = Absolute(_to);
 
-        WPathIter fromIt { from };
-        WPathIter toIt { to };
-        while (fromIt != WPathIter {} && toIt != WPathIter {} && *fromIt == *toIt)
+        PathIterW fromIt { fromAbs };
+        PathIterW toIt { toAbs };
+        while (fromIt != PathIterW {} && toIt != PathIterW {} && *fromIt == *toIt)
         {
             ++fromIt;
             ++toIt;
         }
 
-        if (fromIt == WPathIter {} && toIt == WPathIter {})
+        if (fromIt == PathIterW {} && toIt == PathIterW {})
         {
             return L".";   // both paths are the same
         }
 
         Int32 upLevels = 0;
-        for (const WStringView path: fromIt)
+        for (const WStringView slice: fromIt)
         {
-            if (path.IsFile())
+            if (slice.IsFile())
             {
                 break;
             }
 
-            if (!path.IsEmpty() && path != L"." && path != L"..")
+            if (!slice.IsEmpty() && slice != L"." && slice != L"..")
             {
                 ++upLevels;
             }
-            else if (path == L"..")
+            else if (slice == L"..")
             {
                 --upLevels;   // ".." cancels out a previous level
             }
@@ -356,16 +343,18 @@ namespace Utf16
         }
 
         WString result = {};
+        result.Reserve(upLevels * 2 + toAbs.GetLength());   // reserve enough capacity for the result
         for (Int32 i = 0; i < upLevels; ++i)
         {
             result.Join(L"..", eJoinType::Directory);
         }
 
-        for (const WStringView path: toIt)
+        for (const WStringView slice: toIt)
         {
-            result.Join(path);
+            result.Join(slice);
         }
 
+        result.Simplify();
         return result;
     }
 
@@ -376,32 +365,26 @@ namespace Utf16
         {
             WString path = _path;
             path.Simplify();
-            return path;   // if already absolute, return as is
+            return path;
         }
 
-        WStackString<k_maxPathLength> path;
-        path.Join(_path);
+        const bool             bIsDir = _path.IsDirectory();
+        const PathStackWString path   = _path;
 
         wchar_t     absolute[k_maxPathLength];
-        const DWORD len = ::GetFullPathNameW(_path.GetPtr(), k_maxPathLength, absolute, nullptr);
+        const DWORD len = ::GetFullPathNameW(path.GetPtr(), NumericCast<DWORD>(k_maxPathLength), absolute, nullptr);
         if (len == 0)
         {
-            JAM_LOG_ERROR(L"Failed to get absolute path for '{}': {}", _path, CreateWindowsLastErrorMessageW());
             return {};
         }
 
-        if (_path.IsDirectory())
+        absolute[len] = CharTraits<wchar_t>::k_nullChar;   // null-terminate the absolute path
+        if (bIsDir)
         {
-            absolute[len]     = CharTraits<wchar_t>::k_pathPreferredSeparator;
-            absolute[len + 1] = CharTraits<wchar_t>::k_nullChar;
-        }
-        else
-        {
-            absolute[len] = CharTraits<wchar_t>::k_nullChar;
+            absolute[len + 1] = CharTraits<wchar_t>::k_pathPreferredSeparator;   // append path separator for directory
         }
 
-        WString result = {};
-        result.Join(absolute);
+        WString result = absolute;
         result.Simplify();
         return result;
     }
@@ -409,18 +392,17 @@ namespace Utf16
     WString Current()
     {
         wchar_t     current[k_maxPathLength];
-        const DWORD len = ::GetCurrentDirectoryW(k_maxPathLength, current);
+        const DWORD len = ::GetCurrentDirectoryW(NumericCast<DWORD>(k_maxPathLength), current);
         if (len == 0)
         {
             JAM_LOG_ERROR("Failed to get current directory: {}", CreateWindowsLastErrorMessage());
             return {};
         }
 
-        current[len]     = CharTraits<wchar_t>::k_pathPreferredSeparator;
-        current[len + 1] = CharTraits<wchar_t>::k_nullChar;
+        current[len]     = CharTraits<wchar_t>::k_nullChar;                 // null-terminate the current directory path
+        current[len + 1] = CharTraits<wchar_t>::k_pathPreferredSeparator;   // append path separator for directory
 
-        WString result = {};
-        result.Join(current);
+        WString result = current;
         result.Simplify();
         return result;
     }
@@ -428,17 +410,16 @@ namespace Utf16
     WString Executable()
     {
         wchar_t     executable[k_maxPathLength];
-        const DWORD len = ::GetModuleFileNameW(NULL, executable, k_maxPathLength);
+        const DWORD len = ::GetModuleFileNameW(NULL, executable, NumericCast<DWORD>(k_maxPathLength));
         if (len == 0)
         {
             JAM_LOG_ERROR("Failed to get executable path: {}", CreateWindowsLastErrorMessage());
             return {};
         }
 
-        executable[len] = CharTraits<wchar_t>::k_nullChar;
+        executable[len] = CharTraits<wchar_t>::k_nullChar;   // null-terminate the executable path
 
-        WString result = {};
-        result.Join(executable);
+        WString result = executable;
         result.Simplify();
         return result;
     }
@@ -446,25 +427,31 @@ namespace Utf16
     WString GenerateUniquePath(
         const WStringView _basePath)
     {
+        if (!Utf16::Exists(_basePath))
+        {
+            return _basePath;   // base path does not exist, treat as unique
+        }
+
         const bool  bIsDir = _basePath.IsDirectory();
         WStringView dir = {}, base = {}, ext = {};
         _basePath.Decompose(&dir, nullptr, &base, &ext);
 
-        WString result  = {};
-        Int32   counter = 1;
-        do
+        WString result = {};
+        result.Reserve(_basePath.GetLength() + 10);   // reserve enough capacity for the result
+        for (Int32 counter = 1;; ++counter)
         {
-            result.Set(dir);
-            result.Append(base);
-            result.AppendFormat(L" ({})", counter);
-            result.Append(ext);
+            result = dir;
+            result.AppendFormat(L"{} ({}){}", base, counter, ext);
             if (bIsDir)
             {
-                result.Append(L"/");
+                result.Append(CharTraits<wchar_t>::k_pathPreferredSeparator);   // append path separator for directory
             }
-            ++counter;
-        } while (Utf16::Exists(result));
 
+            if (!Utf16::Exists(result))
+            {
+                break;   // found a unique path
+            }
+        }
         return result;
     }
 
@@ -472,7 +459,7 @@ namespace Utf16
         const WStringView _path0,
         const WStringView _path1)
     {
-        return Absolute(_path0) == Absolute(_path1);
+        return Absolute(_path0).CompareEqualIgnoreCase(Absolute(_path1));
     }
 
 }   // namespace Utf16
@@ -484,7 +471,7 @@ namespace Utf8
         const StringView                    _dir,
         const eMakeDirectoryCollisionPolicy _policy)
     {
-        WStackString<k_maxPathLength> path;
+        PathStackWString path;
         path.Encode(_dir);
         return Utf16::MakeDirectory(path, _policy);
     }
@@ -492,7 +479,7 @@ namespace Utf8
     bool Exists(
         const StringView _path)
     {
-        WStackString<k_maxPathLength> path;
+        PathStackWString path;
         path.Encode(_path);
         return Utf16::Exists(path);
     }
@@ -518,7 +505,7 @@ namespace Utf8
     Error Remove(
         const StringView _path)
     {
-        WStackString<k_maxPathLength> path;
+        PathStackWString path;
         path.Encode(_path);
         return Utf16::Remove(path);
     }
@@ -528,10 +515,10 @@ namespace Utf8
         const StringView       _dstPath,
         const eCollisionPolicy _policy)
     {
-        WStackString<k_maxPathLength> srcPath;
+        PathStackWString srcPath;
         srcPath.Encode(_srcPath);
 
-        WStackString<k_maxPathLength> dstPath;
+        PathStackWString dstPath;
         dstPath.Encode(_dstPath);
 
         return Utf16::Copy(srcPath, dstPath, _policy);
@@ -542,10 +529,10 @@ namespace Utf8
         const StringView       _dstPath,
         const eCollisionPolicy _policy)
     {
-        WStackString<k_maxPathLength> srcPath;
+        PathStackWString srcPath;
         srcPath.Encode(_srcPath);
 
-        WStackString<k_maxPathLength> dstPath;
+        PathStackWString dstPath;
         dstPath.Encode(_dstPath);
 
         return Utf16::Rename(srcPath, dstPath, _policy);
@@ -566,9 +553,8 @@ namespace Utf8
     FileAttribute QueryFileAttribute(
         const StringView _path)
     {
-        WStackString<k_maxPathLength> path;
+        PathStackWString path;
         path.Encode(_path);
-
         return Utf16::QueryFileAttribute(path);
     }
 
@@ -594,10 +580,10 @@ namespace Utf8
         const StringView _from,
         const StringView _to)
     {
-        WStackString<k_maxPathLength> from;
+        PathStackWString from;
         from.Encode(_from);
 
-        WStackString<k_maxPathLength> to;
+        PathStackWString to;
         to.Encode(_to);
 
         const WString rel = Utf16::Relative(from, to);
@@ -614,7 +600,7 @@ namespace Utf8
             return path;
         }
 
-        WStackString<k_maxPathLength> path;
+        PathStackWString path;
         path.Encode(_path);
 
         const WString abs = Utf16::Absolute(path);
@@ -636,7 +622,7 @@ namespace Utf8
     String GenerateUniquePath(
         const StringView _basePath)
     {
-        WStackString<k_maxPathLength> basePath;
+        PathStackWString basePath;
         basePath.Encode(_basePath);
         const WString uniquePath = Utf16::GenerateUniquePath(basePath);
         return String::Encoded(uniquePath.ToStringView());
@@ -646,10 +632,12 @@ namespace Utf8
         const StringView _path0,
         const StringView _path1)
     {
-        WStackString<k_maxPathLength> path0;
+        PathStackWString path0;
         path0.Encode(_path0);
-        WStackString<k_maxPathLength> path1;
+
+        PathStackWString path1;
         path1.Encode(_path1);
+
         return Utf16::ComparePathEqual(path0, path1);
     }
 

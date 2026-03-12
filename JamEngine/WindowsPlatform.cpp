@@ -28,15 +28,15 @@ namespace
         }
 
         static bool s_bUserGrabResizing = false;
-
-        LRESULT result = 0;
+        LRESULT     result              = 0;
 
         switch (uMsg)
         {
             case WM_DESTROY:
+            case WM_CLOSE:
             {
-                WindowCloseEvent closeEvent = {};
-                GetApp().DispatchEvent(closeEvent);
+                WindowClosedEvent event {};
+                GetApp().DispatchEvent(event);
             }
             break;
 
@@ -110,8 +110,7 @@ namespace
 
             case WM_MOUSEWHEEL:
             {
-                const Int32 delta = GET_WHEEL_DELTA_WPARAM(wParam);
-
+                const Int32     delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 MouseWheelEvent wheelEvent { delta };
                 GetApp().DispatchEvent(wheelEvent);
             }

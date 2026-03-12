@@ -7,12 +7,22 @@ class Dialog;
 
 class DialogStack
 {
+    struct DialogItem
+    {
+        Scoped<Dialog> pDialog = nullptr;
+        bool           bClosed = false;
+    };
+
 public:
-    void Push(const Ref<Dialog>& _pDialog);
+    void Push(Scoped<Dialog>&& _pDialog);
     void Show();
+    void Clear();
 
 private:
-    Vector<Ref<Dialog>> m_dialogs = {};
+    void ShowDialogs_Recursive_(SizeT _idx);
+
+    Vector<DialogItem> m_dialogs          = {};
+    bool               m_bAnyDialogClosed = false;
 };
 
 }   // namespace Jam

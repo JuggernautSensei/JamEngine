@@ -5,7 +5,7 @@
 namespace Jam
 {
 
-class WindowCloseEvent;
+class WindowClosedEvent;
 class Event;
 
 enum class eAppSubSystemFlags : UInt32
@@ -83,9 +83,9 @@ protected:
     virtual void OnEvent(Event& _event);
 
 private:
+    void OnWindowClose_(WindowClosedEvent& _event);
     void CoreInit();
     void CoreShutdown();
-    void OnWindowCloseEvent_(const WindowCloseEvent& _event);
 
     String                    m_appName      = {};
     bool                      m_bRunning     = false;

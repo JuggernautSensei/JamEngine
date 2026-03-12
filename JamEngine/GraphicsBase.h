@@ -174,7 +174,7 @@ enum class eCubeFace : Int8
 enum class eShaderCompileFlags : UInt32
 {
     None                  = 0,
-    Debug                 = 1 << 0,
+    DebugInfo                 = 1 << 0,
     Optimization          = 1 << 1,
     SkipOptimization      = 1 << 2,
     WarningsAsErrors      = 1 << 3,
@@ -182,7 +182,7 @@ enum class eShaderCompileFlags : UInt32
     PackMatrixRowMajor    = 1 << 5,
     PackMatrixColumnMajor = 1 << 6,
 
-    DebugDefault   = Debug | SkipOptimization,
+    DebugDefault   = DebugInfo | SkipOptimization | WarningsAsErrors,
     ReleaseDefault = Optimization,
 
 #ifdef JAM_DEBUG

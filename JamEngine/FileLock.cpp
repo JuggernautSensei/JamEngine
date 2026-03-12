@@ -38,7 +38,7 @@ Error FileLock::Init_(
     const StringView    _path,
     const eFileLockMode _mode)
 {
-    WStackString<k_maxPathLength> path;
+    PathStackWString path;
     path.Encode(_path);
 
     DWORD accessMode         = 0;

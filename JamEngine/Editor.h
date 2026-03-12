@@ -101,7 +101,7 @@ public:
     [[nodiscard]] VertexLayoutEntryManager& GetVertexLayoutManager();
 
     // dialog + short cut
-    void PushDialog(const Ref<Dialog>& _pDialog);
+    void PushDialog(Scoped<Dialog>&& _pDialog);
     void PushMessageDialog(StringView _title, StringView _msg);
     void PushConfirmationDialog(StringView _title, StringView _msg, const Delegate<void()>& _onConfirm);
 

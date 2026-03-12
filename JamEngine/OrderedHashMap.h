@@ -10,13 +10,13 @@ template<
     typename TKeyEqual = std::equal_to<TKey>>
 class OrderedHashMap
 {
+public:
     struct Node
     {
         TKey   key;
         TValue value;
     };
 
-public:
     using ListT             = List<Node>;
     using ListIterator      = typename ListT::iterator;
     using ListConstIterator = typename ListT::const_iterator;
@@ -58,7 +58,7 @@ public:
         IteratorBase(IteratorBase&&)                 = default;
         IteratorBase& operator=(IteratorBase&&)      = default;
 
-        explicit IteratorBase(ListIterT listIter)
+        /* implicit */ IteratorBase(ListIterT listIter)
             : m_listIter(listIter)
         {
         }
@@ -401,14 +401,39 @@ public:
 
     // misc
 
-    void Splice(ConstIterator targetPos, ConstIterator from)
+    void Move(const TKey& _from, const TKey& _to)
     {
-        if (targetPos == from)
+        auto fromIt = m_keyToIter.find(_from);
+        auto toIt   = m_keyToIter.find(_to);
+        if (fromIt == m_keyToIter.end() || toIt == m_keyToIter.end())
+        {
+            return;
+        }
+        Move(ConstIterator { fromIt->second }, ConstIterator { toIt->second });
+    }
+
+    template<typename K1, typename K2>
+        requires(ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K1>
+                 && ankerl::unordered_dense::detail::is_transparent_v<TKeyEqual, K2>)
+    void Move(const K1& _from, const K2& _to)
+    {
+        auto fromIt = m_keyToIter.find(_from);
+        auto toIt   = m_keyToIter.find(_to);
+        if (fromIt == m_keyToIter.end() || toIt == m_keyToIter.end())
         {
             return;
         }
 
-        m_values.splice(targetPos.m_listIter, m_values, from.m_listIter);
+        Move(ConstIterator { fromIt->second }, ConstIterator { toIt->second });
+    }
+
+    void Move(ConstIterator _fromIt, ConstIterator _toIt)
+    {
+        if (_toIt == _fromIt)
+        {
+            return;
+        }
+        m_values.splice(_toIt.m_listIter, m_values, _fromIt.m_listIter);
     }
 
     void Clear()

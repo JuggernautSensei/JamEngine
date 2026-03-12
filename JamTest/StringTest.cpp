@@ -752,7 +752,7 @@ TEST(StringSSO, HeapGrowth_100Appends)
 }
 
 // ─────────────────────────────────────────────
-// BasicString — Set / Append / Insert / Erase
+// BasicString — RBSet / Append / Insert / Erase
 // ─────────────────────────────────────────────
 
 TEST(StringMutation, Set_Overwrites)
@@ -1303,7 +1303,7 @@ TEST(StringJoin, Auto_BaseIsFile_TreatedAsFile)
 TEST(StringJoin, Auto_BaseIsDirectory_TreatedAsDirectory)
 {
     String s("C:/aaa/bbb/");   // 디렉터리 → Auto → Directory
-    s.Join(StringView("ccc"), eJoinType::Auto);
+    s.Join(StringView("ccc"), eJoinType::Directory);
     EXPECT_EQ(s, StringView("C:/aaa/bbb/ccc/"));
 }
 
@@ -1439,6 +1439,147 @@ TEST(FmtFormatter, FormatString)
 TEST(FmtFormatter, FormatStringView)
 {
     EXPECT_EQ(fmt::format("hello {}", StringView("world")), "hello world");
+}
+
+// ─────────────────────────────────────────────
+// BasicString — Case Conversion
+// ─────────────────────────────────────────────
+
+TEST(StringCaseConversion, ToCamelCase_FromSpaceSeparated)
+{
+    EXPECT_EQ(String("hello world").ToCamelCase(), StringView("helloWorld"));
+    EXPECT_EQ(String("foo bar baz").ToCamelCase(), StringView("fooBarBaz"));
+}
+
+TEST(StringCaseConversion, ToCamelCase_FromPascalCase)
+{
+    EXPECT_EQ(String("HelloWorld").ToCamelCase(), StringView("HelloWorld"));
+    EXPECT_EQ(String("FooBarBaz").ToCamelCase(), StringView("FooBarBaz"));
+}
+
+TEST(StringCaseConversion, ToCamelCase_FromSnakeCase)
+{
+    EXPECT_EQ(String("hello_world").ToCamelCase(), StringView("hello_world"));
+}
+
+TEST(StringCaseConversion, ToCamelCase_MultipleSpaces)
+{
+    EXPECT_EQ(String("hello   world").ToCamelCase(), StringView("helloWorld"));
+}
+
+TEST(StringCaseConversion, ToCamelCase_LeadingTrailingSpaces)
+{
+    EXPECT_EQ(String("  hello world  ").ToCamelCase(), StringView("helloWorld"));
+}
+
+TEST(StringCaseConversion, ToCamelCase_SingleWord)
+{
+    EXPECT_EQ(String("hello").ToCamelCase(), StringView("hello"));
+    EXPECT_EQ(String("HELLO").ToCamelCase(), StringView("HELLO"));
+}
+
+TEST(StringCaseConversion, ToCamelCase_Empty)
+{
+    EXPECT_TRUE(String("").ToCamelCase().IsEmpty());
+}
+
+TEST(StringCaseConversion, ToCamelCase_WithTabs)
+{
+    EXPECT_EQ(String("hello\tworld").ToCamelCase(), StringView("helloWorld"));
+}
+
+TEST(StringCaseConversion, ToPascalCase_FromSpaceSeparated)
+{
+    EXPECT_EQ(String("hello world").ToPascalCase(), StringView("HelloWorld"));
+    EXPECT_EQ(String("foo bar baz").ToPascalCase(), StringView("FooBarBaz"));
+}
+
+TEST(StringCaseConversion, ToPascalCase_FromCamelCase)
+{
+    EXPECT_EQ(String("helloWorld").ToPascalCase(), StringView("HelloWorld"));
+}
+
+TEST(StringCaseConversion, ToPascalCase_FromSnakeCase)
+{
+    EXPECT_EQ(String("hello_world").ToPascalCase(), StringView("Hello_world"));
+}
+
+TEST(StringCaseConversion, ToPascalCase_MultipleSpaces)
+{
+    EXPECT_EQ(String("hello   world").ToPascalCase(), StringView("HelloWorld"));
+}
+
+TEST(StringCaseConversion, ToPascalCase_LeadingTrailingSpaces)
+{
+    EXPECT_EQ(String("  hello world  ").ToPascalCase(), StringView("HelloWorld"));
+}
+
+TEST(StringCaseConversion, ToPascalCase_SingleWord)
+{
+    EXPECT_EQ(String("hello").ToPascalCase(), StringView("Hello"));
+    EXPECT_EQ(String("HELLO").ToPascalCase(), StringView("HELLO"));
+}
+
+TEST(StringCaseConversion, ToPascalCase_Empty)
+{
+    EXPECT_TRUE(String("").ToPascalCase().IsEmpty());
+}
+
+TEST(StringCaseConversion, ToPascalCase_AllUpperCase)
+{
+    EXPECT_EQ(String("HELLO WORLD").ToPascalCase(), StringView("HELLOWORLD"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_FromSpaceSeparated)
+{
+    EXPECT_EQ(String("hello world").ToSnakeCase(), StringView("hello_world"));
+    EXPECT_EQ(String("foo bar baz").ToSnakeCase(), StringView("foo_bar_baz"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_FromCamelCase)
+{
+    EXPECT_EQ(String("helloWorld").ToSnakeCase(), StringView("helloworld"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_FromPascalCase)
+{
+    EXPECT_EQ(String("HelloWorld").ToSnakeCase(), StringView("helloworld"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_MultipleSpaces)
+{
+    EXPECT_EQ(String("hello   world").ToSnakeCase(), StringView("hello_world"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_LeadingTrailingSpaces)
+{
+    EXPECT_EQ(String("  hello world  ").ToSnakeCase(), StringView("hello_world"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_SingleWord)
+{
+    EXPECT_EQ(String("hello").ToSnakeCase(), StringView("hello"));
+    EXPECT_EQ(String("HELLO").ToSnakeCase(), StringView("hello"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_Empty)
+{
+    EXPECT_TRUE(String("").ToSnakeCase().IsEmpty());
+}
+
+TEST(StringCaseConversion, ToSnakeCase_AlreadySnakeCase)
+{
+    EXPECT_EQ(String("hello_world").ToSnakeCase(), StringView("hello_world"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_MixedCase)
+{
+    EXPECT_EQ(String("Hello World").ToSnakeCase(), StringView("hello_world"));
+}
+
+TEST(StringCaseConversion, ToSnakeCase_WithTabs)
+{
+    EXPECT_EQ(String("hello\tworld").ToSnakeCase(), StringView("hello_world"));
 }
 
 // ─────────────────────────────────────────────

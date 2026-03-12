@@ -6,9 +6,9 @@ enum class eIcon
     ClosedDirectory,
     RegularFile,
 
-    CloneShaderItemMacro,
-    RemoveShaderItemMacro,
-    ReorderShaderItemMaco,
+    Clone,
+    Remove,
+    ReorderGrab,
 };
 
 extern EnumArray<eIcon, StringView> g_embededIconSVGResources;

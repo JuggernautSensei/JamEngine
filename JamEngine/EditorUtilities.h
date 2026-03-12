@@ -36,11 +36,15 @@ class Scene;
 // layout
 [[nodiscard]] ImVec2 CalcFitButtonSize(Int32 _numButtons = 1, ImVec2 _region = ImVec2 { 0.f, 0.f });
 void                 SetNextItemToAvailWidth();
-[[nodiscard]] ImVec2 GetContentRegionAvailScaled(float _sx, float _sy);
+void                 SetCursorScreenPosFromWindowBottom(float _offsetY = 0.f);   // distance from the bottom of window. maybe always positive
+void                 SetCursorScreenPosFromWindowRight(float _offsetX = 0.f);    // distance from the right of window. maybe always positive
 
 bool                              SetPathDragDropPayload(StringView _path);
 [[nodiscard]] const ImGuiPayload* AcceptPathDragDropPayload();
-[[nodiscard]] String              ResolvePathDragDropPayload(const ImGuiPayload* _pPayload);
+[[nodiscard]] StringView          ResolvePathDragDropPayload(const ImGuiPayload* _pPayload);
+
+bool                     SetStringDragDropPayload(StringView _payload, StringView _string);
+[[nodiscard]] StringView ResolveStringDragDropPayload(const ImGuiPayload* _pPayload);
 
 bool                              SetEntityDragDropPayload(Entity _entity);
 [[nodiscard]] const ImGuiPayload* AcceptEntityDragDropPayload();

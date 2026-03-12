@@ -1,4 +1,8 @@
+// ReSharper disable CppParameterMayBeConst
 #pragma once
+
+#include <ranges>
+#include <type_traits>
 
 // 고전적인 const void* _ptr, size_t _size 조합을 캡슐화한 클래스
 // 다양한 소스에서 메모리 블록을 쉽게 표현하고 전달할 수 있도록 도와줌
@@ -10,115 +14,130 @@
 namespace Jam
 {
 
-class MemoryBlock
+template<bool k_bIsConst>
+class BasicMemoryBlock
 {
 public:
-    constexpr MemoryBlock() = default;
+    using ByteT    = std::conditional_t<k_bIsConst, const Byte, Byte>;
+    using BytePtrT = ByteT*;
+    using VoidPtrT = std::conditional_t<k_bIsConst, const void*, void*>;
 
-    constexpr MemoryBlock(
-        Byte*       _pData,
+    constexpr BasicMemoryBlock() = default;
+
+    constexpr BasicMemoryBlock(
+        BytePtrT    _pData,
         const SizeT _byteWidth)
         : m_pData(_pData)
         , m_size(_byteWidth)
     {
     }
 
-    MemoryBlock(void* _pData, SizeT _byteWidth);
-
-    // 연속 컨테이너
-    template<typename TContainer>
-        requires(std::ranges::contiguous_range<TContainer> && requires(const TContainer c) { c.data(); c.size(); })
-    /* implicit */ MemoryBlock(TContainer& _container)
-        : m_pData(reinterpret_cast<Byte*>(_container.data()))
-        , m_size(NumericCast<SizeT>(_container.size() * sizeof(TContainer::value_type)))
-    {
-    }
-
-    // C-style 배열
-    template<typename T, std::size_t N>
-        requires(!std::is_const_v<T>)
-    /* implicit */ MemoryBlock(T (&_array)[N])
-        : m_pData(reinterpret_cast<Byte*>(_array))
-        , m_size(NumericCast<SizeT>(N * sizeof(T)))
-    {
-    }
-
-    template<typename T>
-        requires(!std::ranges::range<T>
-                 && !std::is_array_v<T>
-                 && std::is_standard_layout_v<T>
-                 && !std::is_pointer_v<T>
-                 && !std::is_const_v<T>)
-    /* implicit */ MemoryBlock(T& _data)
-        : m_pData(reinterpret_cast<Byte*>(&_data))
-        , m_size(NumericCast<SizeT>(sizeof(T)))
-    {
-    }
-
-    [[nodiscard]] Byte*       GetPtr() const;
-    [[nodiscard]] SizeT       GetByteWidth() const;
-    [[nodiscard]] MemoryBlock SubBlock(SizeT _offset) const;
-    [[nodiscard]] MemoryBlock SubBlock(SizeT _offset, SizeT _byteWidth) const;
-    [[nodiscard]] bool        IsEmpty() const;
-
-private:
-    Byte* m_pData = nullptr;
-    SizeT m_size  = 0;
-};
-
-class CMemoryBlock
-{
-public:
-    constexpr CMemoryBlock() = default;
-
-    constexpr CMemoryBlock(
-        const Byte* _pData,
+    // void* 기반 생성자
+    BasicMemoryBlock(
+        VoidPtrT    _pData,
         const SizeT _byteWidth)
-        : m_pData(_pData)
+        : m_pData(reinterpret_cast<BytePtrT>(_pData))
         , m_size(_byteWidth)
     {
     }
 
-    CMemoryBlock(const void* _pData, SizeT _byteWidth);
-    /* implicit */ CMemoryBlock(MemoryBlock _mem);
-
-    // 연속 컨테이너
-    template<typename TContainer>
-        requires(std::ranges::contiguous_range<TContainer> && requires(const TContainer c) { c.data(); c.size(); })
-    /* implicit */ CMemoryBlock(const TContainer& _container)
-        : m_pData(reinterpret_cast<const Byte*>(_container.data()))
-        , m_size(NumericCast<SizeT>(_container.size() * sizeof(TContainer::value_type)))
+    // Non-MemoryView -> CMemoryView 변환
+    /* implicit */ BasicMemoryBlock(
+        const BasicMemoryBlock<false>& _other)
+        : m_pData(_other.GetPtr())
+        , m_size(_other.GetByteWidth())
     {
     }
 
     // C-style 배열
-    template<typename T, std::size_t N>
-    /* implicit */ CMemoryBlock(const T (&_array)[N])
-        : m_pData(reinterpret_cast<const Byte*>(_array))
-        , m_size(NumericCast<SizeT>(N * sizeof(T)))
+    template<typename U, std::size_t N>
+    /* implicit */ BasicMemoryBlock(U (&_array)[N])
+        : m_pData(reinterpret_cast<BytePtrT>(_array))
+        , m_size(NumericCast<SizeT>(N * sizeof(U)))
     {
     }
 
-    template<typename T>
-        requires(!std::ranges::range<T>
-                 && !std::is_array_v<T>
-                 && std::is_standard_layout_v<T>
-                 && !std::is_pointer_v<T>)
-    /* implicit */ CMemoryBlock(const T& _data)
-        : m_pData(reinterpret_cast<const Byte*>(&_data))
-        , m_size(NumericCast<SizeT>(sizeof(T)))
+    // C-style 배열
+    template<typename U, std::size_t N>
+        requires(k_bIsConst)
+    /* implicit */ BasicMemoryBlock(const U (&_array)[N])
+        : m_pData(reinterpret_cast<BytePtrT>(_array))
+        , m_size(NumericCast<SizeT>(N * sizeof(U)))
     {
     }
 
-    [[nodiscard]] const Byte*  GetPtr() const;
-    [[nodiscard]] SizeT        GetByteWidth() const;
-    [[nodiscard]] CMemoryBlock SubBlock(SizeT _offset) const;
-    [[nodiscard]] CMemoryBlock SubBlock(SizeT _offset, SizeT _byteWidth) const;
-    [[nodiscard]] bool         IsEmpty() const;
+    // STL 컨테이너
+    template<typename TContainer>
+        requires(std::ranges::contiguous_range<TContainer>)
+    /* implicit */ BasicMemoryBlock(TContainer& _container)
+        : m_pData(reinterpret_cast<BytePtrT>(_container.data()))
+        , m_size(NumericCast<SizeT>(_container.size() * sizeof(typename TContainer::value_type)))
+    {
+    }
+
+    // STL 컨테이너
+    template<typename TContainer>
+        requires(k_bIsConst && std::ranges::contiguous_range<TContainer>)
+    /* implicit */ BasicMemoryBlock(const TContainer& _container)
+        : m_pData(reinterpret_cast<BytePtrT>(_container.data()))
+        , m_size(NumericCast<SizeT>(_container.size() * sizeof(typename TContainer::value_type)))
+    {
+    }
+
+    // 단일 객체
+    template<typename U>
+        requires(!std::ranges::contiguous_range<U>)
+    /* implicit */ BasicMemoryBlock(U& _data)
+        : m_pData(reinterpret_cast<BytePtrT>(&_data))
+        , m_size(NumericCast<SizeT>(sizeof(U)))
+    {
+    }
+
+    // 단일 객체
+    template<typename U>
+        requires(k_bIsConst && !std::ranges::contiguous_range<U>)
+    /* implicit */ BasicMemoryBlock(const U& _data)
+        : m_pData(reinterpret_cast<BytePtrT>(&_data))
+        , m_size(NumericCast<SizeT>(sizeof(U)))
+    {
+    }
+
+    [[nodiscard]] BytePtrT GetPtr() const
+    {
+        return m_pData;
+    }
+
+    [[nodiscard]] SizeT GetByteWidth() const
+    {
+        return m_size;
+    }
+
+    [[nodiscard]] bool IsEmpty() const
+    {
+        return m_pData == nullptr || m_size == 0;
+    }
+
+    [[nodiscard]] BasicMemoryBlock SubBlock(
+        const SizeT _offset) const
+    {
+        return SubBlock(_offset, m_size > _offset ? m_size - _offset : 0);
+    }
+
+    [[nodiscard]] BasicMemoryBlock SubBlock(
+        const SizeT _offset,
+        const SizeT _byteWidth) const
+    {
+        JAM_ASSERT(_offset <= m_size, "SubBlock offset out of bounds.");
+        JAM_ASSERT(_offset + _byteWidth <= m_size, "SubBlock byte width out of bounds.");
+        return { m_pData + _offset, _byteWidth };
+    }
 
 private:
-    const Byte* m_pData = nullptr;
-    SizeT       m_size  = 0;
+    BytePtrT m_pData = nullptr;
+    SizeT    m_size  = 0;
 };
+
+using MemoryBlock  = BasicMemoryBlock<false>;
+using CMemoryBlock = BasicMemoryBlock<true>;
 
 }   // namespace Jam

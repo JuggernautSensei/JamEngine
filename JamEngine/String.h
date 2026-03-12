@@ -28,6 +28,7 @@ struct CharTraits<char>
     constexpr static CharT        k_slash                  = '/';
     constexpr static CharT        k_dot                    = '.';
     constexpr static CharT        k_colon                  = ':';
+    constexpr static CharT        k_underscore             = '_';
     constexpr static CharT        k_pathPreferredSeparator = k_slash;
     constexpr static CharT        k_pathSeparators[]       = { '/', '\\' };
     constexpr static CharT        k_lowerA                 = 'a';
@@ -51,6 +52,7 @@ struct CharTraits<wchar_t>
     constexpr static CharT        k_slash                  = L'/';
     constexpr static CharT        k_dot                    = L'.';
     constexpr static CharT        k_colon                  = L':';
+    constexpr static CharT        k_underscore             = L'_';
     constexpr static CharT        k_pathPreferredSeparator = k_slash;
     constexpr static CharT        k_pathSeparators[]       = { L'/', L'\\' };
     constexpr static CharT        k_lowerA                 = L'a';
@@ -205,7 +207,7 @@ struct TrimResult   // [begin, end)
     SizeT len = 0;
 };
 
-enum eJoinType
+enum class eJoinType
 {
     File,        // ex) Join("C:/aaa/bbb", "ccc") -> "C:/aaa/bbb/ccc"
     Directory,   // ex) Join("C:/aaa/bbb", "ccc", OpenedDirectory) -> "C:/aaa/bbb/ccc/"
@@ -214,7 +216,7 @@ enum eJoinType
 
 /// aaa/bbb/ccc.txt
 /// dir         aaa/bbb/
-/// basename    ccc
+/// filename    ccc
 /// ext         .txt
 struct PathDecomposeResult
 {
@@ -961,9 +963,19 @@ public:
         return m_len;
     }
 
+    [[nodiscard]] constexpr SizeT GetLengthWithTerminate() const
+    {
+        return m_ptr ? m_len + 1 : 0;
+    }
+
     [[nodiscard]] constexpr bool IsEmpty() const
     {
         return m_len == 0;
+    }
+
+    [[nodiscard]] constexpr bool IsNullTerminated() const
+    {
+        return m_ptr ? m_ptr[m_len] == CharTraits::k_nullChar : false;
     }
 
     [[nodiscard]] constexpr const CharT& operator[](const SizeT _index) const
@@ -1386,6 +1398,26 @@ public:
     using iterator       = Iter;
     using const_iterator = ConstIter;
 
+    [[nodiscard]] constexpr size_t size() const
+    {
+        return NumericCast<size_t>(m_len);
+    }
+
+    [[nodiscard]] constexpr size_t length() const
+    {
+        return NumericCast<size_t>(m_len);
+    }
+
+    [[nodiscard]] constexpr TChar* data()
+    {
+        return const_cast<TChar*>(m_ptr);
+    }
+
+    [[nodiscard]] constexpr const TChar* data() const
+    {
+        return m_ptr;
+    }
+
     [[nodiscard]] constexpr iterator begin()
     {
         return m_ptr;
@@ -1400,6 +1432,7 @@ public:
     {
         return m_ptr;
     }
+
     [[nodiscard]] constexpr const_iterator end() const
     {
         return m_ptr + m_len;
@@ -1416,7 +1449,7 @@ public:
     }
 
 private:
-    const CharT* m_ptr = CharTraits::k_placeholder;   // Default empty
+    const CharT* m_ptr = CharTraits::k_placeholder;   // DefaultExport empty
     SizeT        m_len = 0;
 };
 
@@ -2220,9 +2253,9 @@ public:
     void Simplify()
     {
         // simplified dir is shorter or equal to the original dir, so it won't cause heap to grow if it's already in heap mode.
-        TChar       simplified[k_maxPathLength];
-        const SizeT len = CharFuncs::Simplify(Self_().GetPtr(), Self_().GetLength(), simplified, CountOf(simplified));
-        Set(simplified, len);
+        TChar       buf[k_maxPathLength];
+        const SizeT len = CharFuncs::Simplify(Self_().GetPtr(), Self_().GetLength(), buf, CountOf(buf));
+        Set(buf, len);
     }
 
     void Join(
@@ -2270,6 +2303,118 @@ public:
         return result;
     }
 
+    ////////// style converter //////////
+
+    [[nodiscard]] TString ToCamelCase() const
+    {
+        const SizeT len        = Self_().GetLength();
+        bool        bFirst     = true;
+        bool        bNextUpper = false;
+
+        TString result = {};
+        result.Reserve(len);
+        for (Int32 i = 0; i < len; ++i)
+        {
+            const TChar c = operator[](i);
+            if (CharFuncs::IsSpace(c))
+            {
+                bNextUpper = true;
+            }
+            else
+            {
+                if (bFirst)
+                {
+                    result += c;
+                    bFirst = false;
+                }
+                else
+                {
+                    result += bNextUpper ? CharFuncs::ToUpper(c) : c;
+                }
+                bNextUpper = false;
+            }
+        }
+
+        return result;
+    }
+
+    [[nodiscard]] static TString CamelCased(
+        const TStringView _str)
+    {
+        TString result = {};
+        result.Append(_str);
+        return result.ToCamelCase();
+    }
+
+    [[nodiscard]] TString ToPascalCase() const
+    {
+        const SizeT len        = Self_().GetLength();
+        bool        bNextUpper = true;
+
+        TString result = {};
+        result.Reserve(len);
+        for (Int32 i = 0; i < len; ++i)
+        {
+            const TChar c = operator[](i);
+            if (CharFuncs::IsSpace(c))
+            {
+                bNextUpper = true;
+            }
+            else
+            {
+                result += bNextUpper ? CharFuncs::ToUpper(c) : c;
+                bNextUpper = false;
+            }
+        }
+        return result;
+    }
+
+    [[nodiscard]] static TString PascalCased(
+        const TStringView _str)
+    {
+        TString result = {};
+        result.Append(_str);
+        return result.ToPascalCase();
+    }
+
+    [[nodiscard]] TString ToSnakeCase() const
+    {
+        const SizeT len = Self_().GetLength();
+
+        TString result = {};
+        result.Reserve(len);
+        for (Int32 i = 0; i < len; ++i)
+        {
+            const TChar c = operator[](i);
+            if (CharFuncs::IsSpace(c))
+            {
+                if (!result.IsEmpty() && result.Back() != CharTraits::k_underscore)
+                {
+                    result += CharTraits::k_underscore;
+                }
+            }
+            else
+            {
+                result += CharFuncs::ToLower(c);
+            }
+        }
+
+        if (!result.IsEmpty() && result.Back() == CharTraits::k_underscore)
+        {
+            result.Resize(result.GetLength() - 1);
+        }
+
+        return result;
+    }
+
+    [[nodiscard]] static TString SnakeCased(
+        const TStringView _str)
+    {
+        TString result = {};
+        result.Append(_str);
+        return result.ToSnakeCase();
+    }
+
     ////////// std glue //////////
 
     using value_type     = TChar;
@@ -2279,6 +2424,26 @@ public:
     void push_back(const TChar _c)
     {
         Append(_c);
+    }
+
+    [[nodiscard]] size_t size() const
+    {
+        return NumericCast<size_t>(Self_().GetLength());
+    }
+
+    [[nodiscard]] size_t length() const
+    {
+        return NumericCast<size_t>(Self_().GetLength());
+    }
+
+    [[nodiscard]] TChar* data()
+    {
+        return Self_().GetPtr();
+    }
+
+    [[nodiscard]] const TChar* data() const
+    {
+        return Self_().GetPtr();
     }
 
     [[nodiscard]] Iter begin()

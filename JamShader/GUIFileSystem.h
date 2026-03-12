@@ -4,8 +4,6 @@
 
 namespace GUI
 {
-namespace FS   // file system
-{
 
     bool MakeDirectory(StringView _path, FileSystem::eMakeDirectoryCollisionPolicy _policy);
     bool Copy(StringView _src, StringView _dst, FileSystem::eCollisionPolicy _policy);
@@ -16,5 +14,4 @@ namespace FS   // file system
     bool CheckExisting(StringView _path);
     bool CheckNotExisting(StringView _path);
 
-}   // namespace FS
 }   // namespace GUI

@@ -16,11 +16,12 @@ template<auto Func, typename TCaller>
     requires(FunctionTraits<decltype(Func)>::Value)   // 호출자의 주소를 해싱에 포함. 같은 함수라도 호출자가 다르면 다른 해시값이 나옴
 [[nodiscard]] UInt64 HashOf(TCaller* pInst)
 {
-    constexpr UInt64 funcHash = HashOf<Func>();
+    constexpr UInt64 funcHash   = HashOf<Func>();
+    const UInt64     callerAddr = reinterpret_cast<UInt64>(pInst);
 
     Murmur3Hasher64 hasher {};
     hasher.Mix(funcHash);
-    hasher.Mix(reinterpret_cast<UInt64>(pInst));
+    hasher.Mix(callerAddr);
     return hasher.Finish();
 }
 
