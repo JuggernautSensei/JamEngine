@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JamShader", "JamShader\JamS
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JamTest", "JamTest\JamTest.vcxproj", "{DB75DEFD-744D-4220-A3EE-68CBC0EF93EC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SandboxApp", "SandboxApp\SandboxApp.vcxproj", "{B128CE7F-E770-4661-919D-EB354D2AE235}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_Editor|x64 = Debug_Editor|x64
@@ -93,6 +95,22 @@ Global
 		{DB75DEFD-744D-4220-A3EE-68CBC0EF93EC}.Release|x64.Build.0 = Release|x64
 		{DB75DEFD-744D-4220-A3EE-68CBC0EF93EC}.Release|x86.ActiveCfg = Release|Win32
 		{DB75DEFD-744D-4220-A3EE-68CBC0EF93EC}.Release|x86.Build.0 = Release|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug_Editor|x64.ActiveCfg = Debug|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug_Editor|x64.Build.0 = Debug|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug_Editor|x86.ActiveCfg = Debug|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug_Editor|x86.Build.0 = Debug|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug|x64.ActiveCfg = Debug|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug|x64.Build.0 = Debug|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug|x86.ActiveCfg = Debug|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Debug|x86.Build.0 = Debug|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release_Editor|x64.ActiveCfg = Release|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release_Editor|x64.Build.0 = Release|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release_Editor|x86.ActiveCfg = Release|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release_Editor|x86.Build.0 = Release|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release|x64.ActiveCfg = Release|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release|x64.Build.0 = Release|x64
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release|x86.ActiveCfg = Release|Win32
+		{B128CE7F-E770-4661-919D-EB354D2AE235}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,6 +120,7 @@ Global
 		{E92FEB8B-B5E8-41A7-B853-E12B2E96A5B3} = {2EE70F64-2755-4EF4-9946-58084AFF26E2}
 		{7AFEF885-B1F6-4256-B99F-BE3D51195A98} = {C8D5274F-AC00-46C7-1F8D-E88E81087A52}
 		{DB75DEFD-744D-4220-A3EE-68CBC0EF93EC} = {758AB6E3-9006-42A7-BB1F-5A18B4D27A6C}
+		{B128CE7F-E770-4661-919D-EB354D2AE235} = {2EE70F64-2755-4EF4-9946-58084AFF26E2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6D1BDC6D-FDB4-40A1-8D86-D68457A74E80}

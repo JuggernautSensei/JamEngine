@@ -4,7 +4,7 @@
 namespace Jam
 {
 
-// direct indexing enum: index by the underlying enum m_value, just cast to size type.
+// direct indexing enum: index by the underlying enum m_value, just cast to GetSize type.
 
 // can not use like
 // enum class eColorNonContiguous

@@ -1,6 +1,6 @@
 #pragma once
 
-class FocusingShaderItemChagnedEvent;
+class FocusingShaderItemChangedEvent;
 class ProjectChangedEvent;
 
 class ProjectInspectorWindow
@@ -11,7 +11,7 @@ public:
 
 private:
     void OnProjectChangedEvent_(const ProjectChangedEvent& _event);
-    void OnFocusingShaderItemChagnedEvent_(const FocusingShaderItemChagnedEvent& _event);
+    void OnFocusingShaderItemChagnedEvent_(const FocusingShaderItemChangedEvent& _event);
 
     void Widget_ProjectName_();
 

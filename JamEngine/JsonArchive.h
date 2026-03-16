@@ -8,7 +8,7 @@
 namespace Jam
 {
 
-using JsonValueStack = TinyVector<yyjson_mut_val*>;
+using JsonValueStack = Tiny::Vector<yyjson_mut_val*>;
 
 enum class eJsonWriteFlags : UInt32
 {
@@ -82,7 +82,7 @@ enum class eJsonReadFlags : UInt32
     AllowUnquotedKey     = 1 << 13,   // 따옴표 없는 객체 키 허용
 };
 
-using JsonReadValueStack = TinyVector<yyjson_val*>;
+using JsonReadValueStack = Tiny::Vector<yyjson_val*>;
 
 class JsonReader : public ArchiveReader
 {

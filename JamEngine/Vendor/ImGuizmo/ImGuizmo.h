@@ -135,18 +135,18 @@ namespace IMGUIZMO_NAMESPACE
    // return true if mouse cursor is over any gizmo control (axis, plan or screen component)
    IMGUI_API bool IsOver();
 
-   // return true if mouse IsOver or if the gizmo is in moving state
+   // return true if mouse IsOver or if the gizmo is in moving renderState
    IMGUI_API bool IsUsing();
 
-   // return true if the view gizmo is in moving state
+   // return true if the view gizmo is in moving renderState
    IMGUI_API bool IsUsingViewManipulate();
    // only check if your mouse is over the view manipulator - no matter whether it's active or not
    IMGUI_API bool IsViewManipulateHovered();
 
-   // return true if any gizmo is in moving state
+   // return true if any gizmo is in moving renderState
    IMGUI_API bool IsUsingAny();
 
-   // enable/disable the gizmo. Stay in the state until next call to Enable.
+   // enable/disable the gizmo. Stay in the renderState until next call to Enable.
    // gizmo is rendered with gray half transparent color when disabled
    IMGUI_API void Enable(bool enable);
 

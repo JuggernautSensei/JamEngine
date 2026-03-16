@@ -10,6 +10,7 @@ namespace Jam
 {
 
 constexpr Int32 k_maxNumRenderTargetViewSlots   = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+constexpr Int32 k_maxNumAttachmentSlots         = k_maxNumRenderTargetViewSlots + 1;   // render target + depth stencil
 constexpr Int32 k_maxNumSamplerSlots            = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
 constexpr Int32 k_maxNumShaderResourceViewSlots = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
 constexpr Int32 k_maxNumConstantBufferSlots     = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
@@ -174,7 +175,7 @@ enum class eCubeFace : Int8
 enum class eShaderCompileFlags : UInt32
 {
     None                  = 0,
-    DebugInfo                 = 1 << 0,
+    DebugInfo             = 1 << 0,
     Optimization          = 1 << 1,
     SkipOptimization      = 1 << 2,
     WarningsAsErrors      = 1 << 3,
@@ -575,7 +576,7 @@ struct BlendState
     static BlendState k_screen;
     static BlendState k_overlay;
 
-    // final m_value = (src m_value * src blend) (blend op) (dst m_value * dst blend)
+    // final m_value = (src m_value * src blendBinds) (blendBinds op) (dst m_value * dst blendBinds)
     union
     {
         struct

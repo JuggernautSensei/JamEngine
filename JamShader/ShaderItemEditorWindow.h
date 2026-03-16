@@ -1,7 +1,7 @@
 #pragma once
 
 class ProjectChangedEvent;
-class FocusingShaderItemChagnedEvent;
+class FocusingShaderItemChangedEvent;
 
 class ShaderItemEditorWindow
 {
@@ -14,7 +14,7 @@ public:
 
 private:
     void OnProjectChangedEvent_(const ProjectChangedEvent& _event);
-    void OnFocusingShaderItemChangedEvent_(const FocusingShaderItemChagnedEvent& _event);
+    void OnFocusingShaderItemChangedEvent_(const FocusingShaderItemChangedEvent& _event);
 
     void OnFileModifiedEvent_(const FileModifiedEvent& _event) const;
     void OnFileDeletedEvent_(const FileDeletedEvent& _event) const;

@@ -345,7 +345,7 @@ Error ReadFromArchive(ArchiveReader& _reader, Array<T, N>& _arr)
     const SizeT size = _reader.GetSize();
     if (CmpNotEqual(size, N))
     {
-        JAM_LOG_ERROR("Archive read error: expected array size {} but got {}.", N, size);
+        JAM_LOG_ERROR("Archive read error: expected array GetSize {} but got {}.", N, size);
         _reader.MarkError(Error::InvalidData);
         return Error::InvalidData;
     }
@@ -377,7 +377,7 @@ Error ReadFromArchive(ArchiveReader& _reader, EnumArray<TEnum, TValue>& _enumArr
     const SizeT size = _reader.GetSize();
     if (CmpNotEqual(size, _enumArray.size()))
     {
-        JAM_LOG_ERROR("Archive read error: expected EnumArray size {} but got {}.", _enumArray.size(), size);
+        JAM_LOG_ERROR("Archive read error: expected EnumArray GetSize {} but got {}.", _enumArray.size(), size);
         _reader.MarkError(Error::InvalidData);
         return Error::InvalidData;
     }

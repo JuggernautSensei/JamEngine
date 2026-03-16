@@ -58,7 +58,7 @@ void ProjectInspectorWindow::OnImGuiRender()
     if (ImGui::Button("clear", btnSize))
     {
         m_pProjectCache->ClearShaderItems();
-        GetShaderApp().RelaseFocusingShaderItem();
+        GetShaderApp().ReleaseFocusingShaderItem();
     }
 
     ImGui::SameLine();
@@ -183,7 +183,7 @@ void ProjectInspectorWindow::OnEvent(
 {
     EventDispatcher dispatcher(_event);
     dispatcher.Dispatch<ProjectChangedEvent>(this, &ProjectInspectorWindow::OnProjectChangedEvent_);
-    dispatcher.Dispatch<FocusingShaderItemChagnedEvent>(this, &ProjectInspectorWindow::OnFocusingShaderItemChagnedEvent_);
+    dispatcher.Dispatch<FocusingShaderItemChangedEvent>(this, &ProjectInspectorWindow::OnFocusingShaderItemChagnedEvent_);
 }
 
 void ProjectInspectorWindow::OnProjectChangedEvent_(
@@ -194,7 +194,7 @@ void ProjectInspectorWindow::OnProjectChangedEvent_(
 }
 
 void ProjectInspectorWindow::OnFocusingShaderItemChagnedEvent_(
-    const FocusingShaderItemChagnedEvent&)
+    const FocusingShaderItemChangedEvent&)
 {
     m_pFocusingShaderItemCache = GetShaderApp().GetFocusingShaderItemOrNull();
 }
@@ -246,7 +246,7 @@ void ProjectInspectorWindow::RemoveShaderItem_(
 
     if (m_pFocusingShaderItemCache && m_pFocusingShaderItemCache->name == _name)
     {
-        GetShaderApp().RelaseFocusingShaderItem();
+        GetShaderApp().ReleaseFocusingShaderItem();
     }
 
     const String name = _name;

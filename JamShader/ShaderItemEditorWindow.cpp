@@ -276,7 +276,7 @@ void ShaderItemEditorWindow::OnEvent(
 {
     EventDispatcher dispatcher { event };
     dispatcher.Dispatch<ProjectChangedEvent>(this, &ShaderItemEditorWindow::OnProjectChangedEvent_);
-    dispatcher.Dispatch<FocusingShaderItemChagnedEvent>(this, &ShaderItemEditorWindow::OnFocusingShaderItemChangedEvent_);
+    dispatcher.Dispatch<FocusingShaderItemChangedEvent>(this, &ShaderItemEditorWindow::OnFocusingShaderItemChangedEvent_);
     dispatcher.Dispatch<FileModifiedEvent>(this, &ShaderItemEditorWindow::OnFileModifiedEvent_);
     dispatcher.Dispatch<FileDeletedEvent>(this, &ShaderItemEditorWindow::OnFileDeletedEvent_);
 }
@@ -300,7 +300,7 @@ void ShaderItemEditorWindow::OnProjectChangedEvent_(
 }
 
 void ShaderItemEditorWindow::OnFocusingShaderItemChangedEvent_(
-    const FocusingShaderItemChagnedEvent& )
+    const FocusingShaderItemChangedEvent& )
 {
     m_pFocusingShaderItemCache = GetShaderApp().GetFocusingShaderItemOrNull();
     if (m_pFocusingShaderItemCache)

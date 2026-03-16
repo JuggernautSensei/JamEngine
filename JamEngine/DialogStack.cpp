@@ -11,12 +11,15 @@ void DialogStack::Push(
     Scoped<Dialog>&& _pDialog)
 {
     const StringView title = _pDialog->GetTitle();
-    if (VectorContainsIf(m_dialogs, [title](const DialogItem& _pItem) { return _pItem.pDialog->GetTitle() == title; }))
+    auto             it    = std::ranges::find_if(m_dialogs, [title](const DialogItem& _pItem) { return _pItem.pDialog->GetTitle() == title; });
+    if (it != m_dialogs.end())
     {
-        return;   // not allow duplicate dialog title in stack.
+        *it = DialogItem { std::move(_pDialog), false };   // overwrite
     }
-
-    m_dialogs.emplace_back(std::move(_pDialog), false);
+    else
+    {
+        m_dialogs.emplace_back(std::move(_pDialog), false);
+    }
 }
 
 void DialogStack::Show()

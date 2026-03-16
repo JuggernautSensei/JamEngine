@@ -75,6 +75,7 @@ bool VectorContains(
 }
 
 template<typename T, typename Predicate>
+    requires(std::is_invocable_r_v<bool, Predicate, const T&> || std::is_invocable_r_v<bool, Predicate, T&> || std::is_invocable_r_v<bool, Predicate, T>)
 bool VectorContainsIf(
     Vector<T>&  _vec,
     Predicate&& _predicate)
@@ -88,6 +89,30 @@ bool VectorContainsIf(
     }
 
     return false;
+}
+
+template<typename T, SizeT N, typename Predicate>
+    requires(std::is_invocable_r_v<bool, Predicate, const T&> || std::is_invocable_r_v<bool, Predicate, T&> || std::is_invocable_r_v<bool, Predicate, T>)
+SizeT ArrayEraseIf(
+    Array<T, N>& _array,
+    Predicate&&  _predicate)
+{
+    Array<T, N> newArray;
+    Int32       newSize   = 0;
+    Int32       numErased = 0;
+    for (Int32 i = 0; i < N; ++i)
+    {
+        if (_predicate(_array[i]))
+        {
+            ++numErased;
+        }
+        else
+        {
+            newArray[newSize++] = _array[i];
+        }
+    }
+    std::swap(_array, newArray);
+    return numErased;
 }
 
 }   // namespace Jam

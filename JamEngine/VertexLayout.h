@@ -44,9 +44,6 @@ struct VertexLayoutElement
 class VertexLayout
 {
 public:
-    using ElemArray  = Array<VertexLayoutElement, CountOf<eVertexAttribute>()>;
-    using ElemLookup = EnumArray<eVertexAttribute, VertexLayoutElement*>;
-
     VertexLayout();
     void               Push(eVertexAttribute _attrib, eAttributeFormat _format);
     [[nodiscard]] bool Has(eVertexAttribute _attrib) const;
@@ -61,8 +58,8 @@ public:
     Error ReadFromArchive(ArchiveReader& _archive);
 
 private:
-    ElemArray  m_vles   = {};   // vertex layout elements.
-    ElemLookup m_vleLut = {};   // vertex layout element lookup table.
+    Array<VertexLayoutElement, CountOf<eVertexAttribute>()> m_vles   = {};   // vertex layout elements.
+    EnumArray<eVertexAttribute, VertexLayoutElement*>       m_vleLut = {};   // vertex layout element lookup table.
 
     Int32 m_numElems = 0;
     Int32 m_stride   = 0;

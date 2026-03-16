@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <fstream>
 
-#include "../JamEngine/MemoryReadWriter.h"
+#include "../JamEngine/MemoryIO.h"
 
 namespace Jam::File::Test
 {

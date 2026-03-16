@@ -2,7 +2,7 @@
 #include "File.h"
 
 #include "FileSystem.h"
-#include "MemoryReadWriter.h"
+#include "MemoryIO.h"
 #include "WindowsUtilities.h"
 
 namespace Jam

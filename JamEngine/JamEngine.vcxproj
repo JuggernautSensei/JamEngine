@@ -407,12 +407,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="MessageDilaog.cpp" />
+    <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="STLAlgorithm.cpp" />
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="Archive.cpp" />
     <ClCompile Include="Assertion.cpp" />
     <ClCompile Include="AssetCreationDialog.cpp" />
-    <ClCompile Include="Colony.cpp" />
     <ClCompile Include="CommandLineArgumentParser.cpp" />
     <ClCompile Include="ComponentDatabase.cpp" />
     <ClCompile Include="ComponentMetadata.cpp" />
@@ -430,7 +430,7 @@
     <ClCompile Include="ImageImporter.cpp" />
     <ClCompile Include="InfiniteDragger.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
-    <ClCompile Include="MemoryReadWriter.cpp" />
+    <ClCompile Include="MemoryIO.cpp" />
     <ClCompile Include="OrderedHashMap.cpp" />
     <ClCompile Include="PathIter.cpp" />
     <ClCompile Include="Reference.cpp" />
@@ -476,7 +476,6 @@
     <ClCompile Include="LRUCache.cpp" />
     <ClCompile Include="Octree.cpp" />
     <ClCompile Include="Optional.cpp" />
-    <ClCompile Include="Scalar.cpp" />
     <ClCompile Include="Scoped.cpp" />
     <ClCompile Include="Signal.cpp" />
     <ClCompile Include="StackString.cpp" />
@@ -508,8 +507,8 @@
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="Profile.cpp" />
     <ClCompile Include="RadixSort.cpp" />
-    <ClCompile Include="RenderGraph.cpp" />
-    <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="RenderGraph_Regacy.cpp" />
+    <ClCompile Include="RenderPass_Regacy.cpp" />
     <ClCompile Include="ResourcePool.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
@@ -526,6 +525,7 @@
     <ClCompile Include="TagComponent.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
     <ClCompile Include="ThumbnailCache.cpp" />
+    <ClCompile Include="TinyRingBuffer.cpp" />
     <ClCompile Include="TinyVector.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="DataType.cpp" />
@@ -589,10 +589,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Vendor\mimalloc\static.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="VertexLayout.cpp" />
     <ClCompile Include="RenderView.cpp" />
     <ClCompile Include="VertexLayoutEditorDialog.cpp" />
@@ -604,12 +600,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MessageDialog.h" />
+    <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="STLAlgorithm.h" />
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="Archive.h" />
     <ClInclude Include="Assertion.h" />
     <ClInclude Include="AssetCreationDialog.h" />
-    <ClInclude Include="Colony.h" />
     <ClInclude Include="CommandLineArgumentParser.h" />
     <ClInclude Include="ComponentDatabase.h" />
     <ClInclude Include="ComponentMetadata.h" />
@@ -633,7 +629,7 @@
     <ClInclude Include="JsonArchive.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="MemoryBlock.h" />
-    <ClInclude Include="MemoryReadWriter.h" />
+    <ClInclude Include="MemoryIO.h" />
     <ClInclude Include="NameOf.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="AssetSaveLoader.h" />
@@ -671,7 +667,6 @@
     <ClInclude Include="LRUCache.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="Optional.h" />
-    <ClInclude Include="Scalar.h" />
     <ClInclude Include="SceneDatabase.h" />
     <ClInclude Include="SceneMetadata.h" />
     <ClInclude Include="Scoped.h" />
@@ -708,11 +703,12 @@
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="Profile.h" />
     <ClInclude Include="RadixSort.h" />
-    <ClInclude Include="RenderGraph.h" />
+    <ClInclude Include="RenderGraph_Regacy.h" />
     <ClInclude Include="ThumbnailCache.h" />
+    <ClInclude Include="TinyRingBuffer.h" />
     <ClInclude Include="TinyVector.h" />
     <ClInclude Include="Transform.h" />
-    <ClInclude Include="RenderPass.h" />
+    <ClInclude Include="RenderPass_Regacy.h" />
     <ClInclude Include="ResourcePool.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SceneSerializer.h" />
@@ -757,17 +753,6 @@
     <ClInclude Include="Vendor\imgui\imstb_rectpack.h" />
     <ClInclude Include="Vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="Vendor\imgui\imstb_truetype.h" />
-    <ClInclude Include="Vendor\mimalloc\bitmap.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc-new-delete.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc-override.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc-stats.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc\atomic.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc\internal.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc\prim.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc\track.h" />
-    <ClInclude Include="Vendor\mimalloc\mimalloc\types.h" />
-    <ClInclude Include="Vendor\plf_colony\plf_colony.h" />
     <ClInclude Include="VertexLayout.h" />
     <ClInclude Include="RenderView.h" />
     <ClInclude Include="VertexLayoutEditorDialog.h" />

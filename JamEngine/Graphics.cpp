@@ -1184,7 +1184,7 @@ void Graphics::ClearColor(
     m_pd3d11DeviceContext->ClearRenderTargetView(fb.pRtvs[_renderTargetIndex], colors);
 }
 
-void Graphics::ClearDepth(
+void Graphics::ClearDepthStencil(
     const FrameBufferHandle _fbh,
     const bool              _bClearDepth,
     const bool              _bClearStencil,

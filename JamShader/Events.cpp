@@ -12,13 +12,13 @@ String ProjectChangedEvent::ToString() const
     return "ProjectChangedEvent";
 }
 
-FocusingShaderItemChagnedEvent::FocusingShaderItemChagnedEvent()
+FocusingShaderItemChangedEvent::FocusingShaderItemChangedEvent()
 {
 }
 
-String FocusingShaderItemChagnedEvent::ToString() const
+String FocusingShaderItemChangedEvent::ToString() const
 {
-    return "FocusingShaderItemChagnedEvent";
+    return "FocusingShaderItemChangedEvent";
 }
 
 ProjectRenamedEvent::ProjectRenamedEvent()

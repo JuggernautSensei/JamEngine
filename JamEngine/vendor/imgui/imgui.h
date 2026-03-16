@@ -193,7 +193,7 @@ struct ImColor;                    // Helper functions to create a color that ca
 // Forward declarations: ImGui layer
 struct ImGuiContext;                    // Dear ImGui context (opaque structure, unless including imgui_internal.h)
 struct ImGuiIO;                         // Main configuration and I/O between your application and ImGui (also see: ImGuiPlatformIO)
-struct ImGuiInputTextCallbackData;      // Shared state of InputText() when using custom ImGuiInputTextCallback (rare/advanced use)
+struct ImGuiInputTextCallbackData;      // Shared renderState of InputText() when using custom ImGuiInputTextCallback (rare/advanced use)
 struct ImGuiKeyData;                    // RawData for ImGuiIO and IsKeyDown(), IsKeyPressed() etc functions.
 struct ImGuiListClipper;                // Helper to manually clip large list of items
 struct ImGuiMultiSelectIO;              // Structure to interact with a BeginMultiSelect()/EndMultiSelect() block
@@ -202,7 +202,7 @@ struct ImGuiPayload;                    // User data payload for drag and drop o
 struct ImGuiPlatformIO;                 // Interface between platform/renderer backends and ImGui (e.g. Clipboard, IME, Multi-Viewport support). Extends ImGuiIO.
 struct ImGuiPlatformImeData;            // Platform IME data for io.PlatformSetImeDataFn() function.
 struct ImGuiPlatformMonitor;            // Multi-viewport support: user-provided bounds for each connected monitor/display. Used when positioning popups and tooltips to avoid them straddling monitors
-struct ImGuiSelectionBasicStorage;      // Optional helper to store multi-selection state + apply multi-selection requests.
+struct ImGuiSelectionBasicStorage;      // Optional helper to store multi-selection renderState + apply multi-selection requests.
 struct ImGuiSelectionExternalStorage;   // Optional helper to apply multi-selection requests to existing randomly accessible storage.
 struct ImGuiSelectionRequest;           // A selection request (stored in ImGuiMultiSelectIO)
 struct ImGuiSizeCallbackData;           // Callback data when using SetNextWindowSizeConstraints() (rare/advanced use)
@@ -354,12 +354,12 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 // - When a Rendered Backend creates a texture, it store its native identifier into a ImTextureID m_value.
 //   (e.g. Used by DX11 backend to a `ID3D11ShaderResourceView*`; Used by OpenGL backends to store `GLuint`;
 //         Used by SDLGPU backend to store a `SDL_GPUTextureSamplerBinding*`, etc.).
-// - User may submit their own textures to e.g. ImGui::Image() function by passing this m_value.
+// - User may submit their own textureBindInfos to e.g. ImGui::Image() function by passing this m_value.
 // - During the rendering loop, the Renderer Backend retrieve the ImTextureID, which stored inside a
 //   ImTextureRef, which is stored inside a ImDrawCmd.
 // - Compile-time type configuration:
 //   - To use something other than a 64-bit m_value: add '#define ImTextureID MyTextureType*' in your imconfig.h file.
-//   - This can be whatever to you want it to be! read the FAQ entry about textures for details.
+//   - This can be whatever to you want it to be! read the FAQ entry about textureBindInfos for details.
 //   - You may decide to store a higher-level structure containing texture, sampler, shader etc. with various
 //     constructors if you like. You will need to implement ==/!= operators.
 // History:
@@ -446,7 +446,7 @@ IMGUI_API ImDrawData*      GetDrawData();     // valid after Render() and until 
 
 // Demo, DebugInfo, Information
 IMGUI_API void        ShowDemoWindow(bool* p_open = NULL);          // create Demo window. demonstrate most ImGui features. call this to learn about the library! try to make it always available in your application!
-IMGUI_API void        ShowMetricsWindow(bool* p_open = NULL);       // create Metrics/Debugger window. display Dear ImGui internals: windows, draw commands, various internal state, etc.
+IMGUI_API void        ShowMetricsWindow(bool* p_open = NULL);       // create Metrics/Debugger window. display Dear ImGui internals: windows, draw commands, various internal renderState, etc.
 IMGUI_API void        ShowDebugLogWindow(bool* p_open = NULL);      // create DebugInfo Log window. display a simplified log of important dear imgui events.
 IMGUI_API void        ShowIDStackToolWindow(bool* p_open = NULL);   // create SSO Tool window. hover items with mouse to query information about the source of their unique ID.
 IMGUI_API void        ShowAboutWindow(bool* p_open = NULL);         // create About window. display Dear ImGui version, credits and build/system information.
@@ -518,18 +518,18 @@ IMGUI_API void SetNextWindowPos(const ImVec2& pos, ImGuiCond cond = 0, const ImV
 IMGUI_API void SetNextWindowSize(const ImVec2& size, ImGuiCond cond = 0);                                                                                                   // set next window size. set axis to 0.0f to force an auto-fit on this axis. call before Begin()
 IMGUI_API void SetNextWindowSizeConstraints(const ImVec2& size_min, const ImVec2& size_max, ImGuiSizeCallback custom_callback = NULL, void* custom_callback_data = NULL);   // set next window size limits. use 0.0f or FLT_MAX if you don't want limits. Use -1 for both min and max of same axis to preserve current size (which itself is a constraint). Use callback to apply non-trivial programmatic constraints.
 IMGUI_API void SetNextWindowContentSize(const ImVec2& size);                                                                                                                // set next window content size (~ scrollable client area, which enforce the range of scrollbars). Not including window decorations (title bar, menu bar, etc.) nor WindowPadding. set an axis to 0.0f to leave it automatic. call before Begin()
-IMGUI_API void SetNextWindowCollapsed(bool collapsed, ImGuiCond cond = 0);                                                                                                  // set next window collapsed state. call before Begin()
+IMGUI_API void SetNextWindowCollapsed(bool collapsed, ImGuiCond cond = 0);                                                                                                  // set next window collapsed renderState. call before Begin()
 IMGUI_API void SetNextWindowFocus();                                                                                                                                        // set next window to be focused / top-most. call before Begin()
 IMGUI_API void SetNextWindowScroll(const ImVec2& scroll);                                                                                                                   // set next window scrolling m_value (use < 0.0f to not affect a given axis).
 IMGUI_API void SetNextWindowBgAlpha(float alpha);                                                                                                                           // set next window background color alpha. helper to easily override the Alpha component of ImGuiCol_WindowBg/ChildBg/PopupBg. you may also use ImGuiWindowFlags_NoBackground.
 IMGUI_API void SetNextWindowViewport(ImGuiID viewport_id);                                                                                                                  // set next window viewport
 IMGUI_API void SetWindowPos(const ImVec2& pos, ImGuiCond cond = 0);                                                                                                         // (not recommended) set current window position - call within Begin()/End(). prefer using SetNextWindowPos(), as this may incur tearing and side-effects.
 IMGUI_API void SetWindowSize(const ImVec2& size, ImGuiCond cond = 0);                                                                                                       // (not recommended) set current window size - call within Begin()/End(). set to ImVec2(0, 0) to force an auto-fit. prefer using SetNextWindowSize(), as this may incur tearing and minor side-effects.
-IMGUI_API void SetWindowCollapsed(bool collapsed, ImGuiCond cond = 0);                                                                                                      // (not recommended) set current window collapsed state. prefer using SetNextWindowCollapsed().
+IMGUI_API void SetWindowCollapsed(bool collapsed, ImGuiCond cond = 0);                                                                                                      // (not recommended) set current window collapsed renderState. prefer using SetNextWindowCollapsed().
 IMGUI_API void SetWindowFocus();                                                                                                                                            // (not recommended) set current window to be focused / top-most. prefer using SetNextWindowFocus().
 IMGUI_API void SetWindowPos(const char* name, const ImVec2& pos, ImGuiCond cond = 0);                                                                                       // set named window position.
 IMGUI_API void SetWindowSize(const char* name, const ImVec2& size, ImGuiCond cond = 0);                                                                                     // set named window size. set axis to 0.0f to force an auto-fit on this axis.
-IMGUI_API void SetWindowCollapsed(const char* name, bool collapsed, ImGuiCond cond = 0);                                                                                    // set named window collapsed state
+IMGUI_API void SetWindowCollapsed(const char* name, bool collapsed, ImGuiCond cond = 0);                                                                                    // set named window collapsed renderState
 IMGUI_API void SetWindowFocus(const char* name);                                                                                                                            // set named window to be focused / top-most. use NULL to remove focus.
 
 // Windows Scrolling
@@ -672,7 +672,7 @@ IMGUI_API void SeparatorText(const char* label);   // currently: formatted text 
 
 // Widgets: Main
 // - Most widgets return true when the m_value has been changed or when pressed/selected
-// - You may also use one of the many IsItemXXX functions (e.g. IsItemActive, IsItemHovered, etc.) to query widget state.
+// - You may also use one of the many IsItemXXX functions (e.g. IsItemActive, IsItemHovered, etc.) to query widget renderState.
 IMGUI_API bool Button(const char* label, const ImVec2& size = ImVec2(0, 0));                          // button
 IMGUI_API bool SmallButton(const char* label);                                                        // button with (FramePadding.y == 0) to easily embed within text
 IMGUI_API bool InvisibleButton(const char* str_id, const ImVec2& size, ImGuiButtonFlags flags = 0);   // flexible button behavior without the visuals, frequently useful to build custom behaviors using the public api (along with IsItemActive, IsItemHovered, etc.)
@@ -698,7 +698,7 @@ IMGUI_API void ImageWithBg(ImTextureRef tex_ref, const ImVec2& image_size, const
 IMGUI_API bool ImageButton(const char* str_id, ImTextureRef tex_ref, const ImVec2& image_size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 
 // Widgets: Combo Box (Dropdown)
-// - The BeginCombo()/EndCombo() api allows you to manage your contents and selection state however you want it, by creating e.g. Selectable() items.
+// - The BeginCombo()/EndCombo() api allows you to manage your contents and selection renderState however you want it, by creating e.g. Selectable() items.
 // - The old Combo() api are helpers over BeginCombo()/EndCombo() which are kept available for convenience purpose. This is analogous to how ListBox are created.
 IMGUI_API bool BeginCombo(const char* label, const char* preview_value, ImGuiComboFlags flags = 0);
 IMGUI_API void EndCombo();   // only call EndCombo() if BeginCombo() returns true!
@@ -798,14 +798,14 @@ IMGUI_API void  TreePop();                                                      
 IMGUI_API float GetTreeNodeToLabelSpacing();                                                          // horizontal distance preceding label when using TreeNode*() or Bullet() == (g.FontSize + m_style.FramePadding.x*2) for a regular unframed TreeNode
 IMGUI_API bool  CollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0);                    // if returning 'true' the header is open. doesn't indent nor push on ID sso. user doesn't have to call TreePop().
 IMGUI_API bool  CollapsingHeader(const char* label, bool* p_visible, ImGuiTreeNodeFlags flags = 0);   // when 'p_visible != NULL': if '*p_visible==true' display an additional small close button on upper right of the header which will set the bool to false when clicked, if '*p_visible==false' don't display the header.
-IMGUI_API void  SetNextItemOpen(bool is_open, ImGuiCond cond = 0);                                    // set next TreeNode/CollapsingHeader open state.
+IMGUI_API void  SetNextItemOpen(bool is_open, ImGuiCond cond = 0);                                    // set next TreeNode/CollapsingHeader open renderState.
 IMGUI_API void  SetNextItemStorageID(ImGuiID storage_id);                                             // set id to use for open/close storage (default to same as item id).
 
 // Widgets: Selectables
 // - A selectable highlights when hovered, and can display another color when selected.
 // - Neighbors selectable extend their highlight bounds in order to leave no gap between them. This is so a series of selected Selectable appear contiguous.
-IMGUI_API bool Selectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));   // "bool selected" carry the selection state (read-only). Selectable() is clicked is returns true so you can modify your selection state. size.x==0.0: use remaining width, size.x>0.0: specify width. size.y==0.0: use label height, size.y>0.0: specify height
-IMGUI_API bool Selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));        // "bool* p_selected" point to the selection state (read-write), as a convenient helper.
+IMGUI_API bool Selectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));   // "bool selected" carry the selection renderState (read-only). Selectable() is clicked is returns true so you can modify your selection renderState. size.x==0.0: use remaining width, size.x>0.0: specify width. size.y==0.0: use label height, size.y>0.0: specify height
+IMGUI_API bool Selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));        // "bool* p_selected" point to the selection renderState (read-write), as a convenient helper.
 
 // Multi-selection system for Selectable(), Checkbox(), TreeNode() functions [BETA]
 // - This enables standard multi-selection/range-selection idioms (Ctrl+Mouse/Keyboard, Shift+Mouse/Keyboard, etc.) in a way that also allow a clipper to be used.
@@ -817,12 +817,12 @@ IMGUI_API bool Selectable(const char* label, bool* p_selected, ImGuiSelectableFl
 IMGUI_API ImGuiMultiSelectIO* BeginMultiSelect(ImGuiMultiSelectFlags flags, int selection_size = -1, int items_count = -1);
 IMGUI_API ImGuiMultiSelectIO* EndMultiSelect();
 IMGUI_API void                SetNextItemSelectionUserData(ImGuiSelectionUserData selection_user_data);
-IMGUI_API bool                IsItemToggledSelection();   // Was the last item selection state toggled? Useful if you need the per-item information _before_ reaching EndMultiSelect(). We only returns toggle _event_ in order to handle clipping correctly.
+IMGUI_API bool                IsItemToggledSelection();   // Was the last item selection renderState toggled? Useful if you need the per-item information _before_ reaching EndMultiSelect(). We only returns toggle _event_ in order to handle clipping correctly.
 
 // Widgets: List Boxes
 // - This is essentially a thin wrapper to using BeginChild/EndChild with the ImGuiChildFlags_FrameStyle flag for stylistic changes + displaying a label.
 // - If you don't need a label you can probably simply use BeginChild() with the ImGuiChildFlags_FrameStyle flag for the same result.
-// - You can submit contents and manage your selection state however you want it, by creating e.g. Selectable() or any other items.
+// - You can submit contents and manage your selection renderState however you want it, by creating e.g. Selectable() or any other items.
 // - The simplified/old ListBox() api are helpers over BeginListBox()/EndListBox() which are kept available for convenience purpose. This is analogous to how Combos are created.
 // - Choose frame width:   size.x > 0.0f: custom  /  size.x < 0.0f or -FLT_MIN: right-align   /  size.x = 0.0f (default): use current ItemWidth
 // - Choose frame height:  size.y > 0.0f: custom  /  size.y < 0.0f or -FLT_MIN: bottom-align  /  size.y = 0.0f (default): arbitrary default height which can fit ~7 items
@@ -879,19 +879,19 @@ IMGUI_API void SetItemTooltipV(const char* fmt, va_list args) IM_FMTLIST(1);
 // Popups, Modals
 //  - They block normal mouse hovering detection (and therefore most mouse interactions) behind them.
 //  - If not modal: they can be closed by clicking anywhere outside them, or by pressing ESCAPE.
-//  - Their visibility state (~bool) is held internally instead of being held by the programmer as we are used to with regular Begin*() calls.
-//  - The 3 properties above are related: we need to retain popup visibility state in the library because popups may be closed as any time.
+//  - Their visibility renderState (~bool) is held internally instead of being held by the programmer as we are used to with regular Begin*() calls.
+//  - The 3 properties above are related: we need to retain popup visibility renderState in the library because popups may be closed as any time.
 //  - You can bypass the hovering restriction by using ImGuiHoveredFlags_AllowWhenBlockedByPopup when calling IsItemHovered() or IsWindowHovered().
 //  - IMPORTANT: Popup identifiers are relative to the current ID sso, so OpenPopup and BeginPopup generally needs to be at the same level of the sso.
 //    This is sometimes leading to confusing mistakes. May rework this in the future.
-//  - BeginPopup(): query popup state, if open start appending into the window. Call EndPopup() afterwards if returned true. ImGuiWindowFlags are forwarded to the window.
+//  - BeginPopup(): query popup renderState, if open start appending into the window. Call EndPopup() afterwards if returned true. ImGuiWindowFlags are forwarded to the window.
 //  - BeginPopupModal(): block every interaction behind the window, cannot be closed by user, add a dimming background, has a title bar.
 IMGUI_API bool BeginPopup(const char* str_id, ImGuiWindowFlags flags = 0);                           // return true if the popup is open, and you can start outputting to it.
 IMGUI_API bool BeginPopupModal(const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0);   // return true if the modal is open, and you can start outputting to it.
 IMGUI_API void EndPopup();                                                                           // only call EndPopup() if BeginPopupXXX() returns true!
 
 // Popups: open/close functions
-//  - OpenPopup(): set popup state to open. ImGuiPopupFlags are available for opening options.
+//  - OpenPopup(): set popup renderState to open. ImGuiPopupFlags are available for opening options.
 //  - If not modal: they can be closed by clicking anywhere outside them, or by pressing ESCAPE.
 //  - CloseCurrentPopup(): use inside the BeginPopup()/EndPopup() scope to close manually.
 //  - CloseCurrentPopup() is called by default by Selectable()/MenuItem() when activated (FIXME: need some options).
@@ -974,7 +974,7 @@ IMGUI_API int                   TableGetColumnIndex();                          
 IMGUI_API int                   TableGetRowIndex();                                                           // return current row index (header rows are accounted for)
 IMGUI_API const char*           TableGetColumnName(int column_n = -1);                                        // return "" if column didn't have a typeName declared by TableSetupColumn(). Pass -1 to use current column.
 IMGUI_API ImGuiTableColumnFlags TableGetColumnFlags(int column_n = -1);                                       // return column flags so you can query their Enabled/Visible/Sorted/Hovered status flags. Pass -1 to use current column.
-IMGUI_API void                  TableSetColumnEnabled(int column_n, bool v);                                  // change user accessible enabled/disabled state of a column. Encode to false to hide the column. User can use the context menu to change this themselves (right-click in headers, or right-click in columns body with ImGuiTableFlags_ContextMenuInBody)
+IMGUI_API void                  TableSetColumnEnabled(int column_n, bool v);                                  // change user accessible enabled/disabled renderState of a column. Encode to false to hide the column. User can use the context menu to change this themselves (right-click in headers, or right-click in columns body with ImGuiTableFlags_ContextMenuInBody)
 IMGUI_API int                   TableGetHoveredColumn();                                                      // return hovered column. return -1 when table is not hovered. return columns_count if the unused space at the right of visible columns is hovered. Can also use (TableGetColumnFlags() & ImGuiTableColumnFlags_IsHovered) instead.
 IMGUI_API void                  TableSetBgColor(ImGuiTableBgTarget target, ImU32 color, int column_n = -1);   // change the color of a cell, row, or column. See ImGuiTableBgTarget_ flags for details.
 
@@ -1084,7 +1084,7 @@ IMGUI_API bool           IsItemEdited();                                     // 
 IMGUI_API bool           IsItemActivated();                                  // was the last item just made active (item was previously inactive).
 IMGUI_API bool           IsItemDeactivated();                                // was the last item just made inactive (item was previously active). Useful for Undo/Redo patterns with widgets that require continuous editing.
 IMGUI_API bool           IsItemDeactivatedAfterEdit();                       // was the last item just made inactive and made a m_value change when it was active? (e.g. Slider/Drag moved). Useful for Undo/Redo patterns with widgets that require continuous editing. Note that you may get false positives (some widgets such as Combo()/ListBox()/Selectable() will return true even when clicking an already selected item).
-IMGUI_API bool           IsItemToggledOpen();                                // was the last item open state toggled? set by TreeNode().
+IMGUI_API bool           IsItemToggledOpen();                                // was the last item open renderState toggled? set by TreeNode().
 IMGUI_API bool           IsAnyItemHovered();                                 // is any item hovered?
 IMGUI_API bool           IsAnyItemActive();                                  // is any item active?
 IMGUI_API bool           IsAnyItemFocused();                                 // is any item focused?
@@ -1256,7 +1256,7 @@ enum ImGuiWindowFlags_
     ImGuiWindowFlags_NoMouseInputs             = 1 << 9,    // Disable catching mouse, hovering test with pass through.
     ImGuiWindowFlags_MenuBar                   = 1 << 10,   // HasShaderSource a menu-bar
     ImGuiWindowFlags_HorizontalScrollbar       = 1 << 11,   // Allow horizontal scrollbar to appear (off by default). You may use SetNextWindowContentSize(ImVec2(width,0.0f)); prior to calling Begin() to specify width. ReadBinary code in imgui_demo in the "Horizontal Scrolling" section.
-    ImGuiWindowFlags_NoFocusOnAppearing        = 1 << 12,   // Disable taking focus when transitioning from hidden to visible state
+    ImGuiWindowFlags_NoFocusOnAppearing        = 1 << 12,   // Disable taking focus when transitioning from hidden to visible renderState
     ImGuiWindowFlags_NoBringToFrontOnFocus     = 1 << 13,   // Disable bringing window to front when taking focus (e.g. clicking on it or programmatically giving it focus)
     ImGuiWindowFlags_AlwaysVerticalScrollbar   = 1 << 14,   // Always show vertical scrollbar (even if ContentSize.y < GetSize.y)
     ImGuiWindowFlags_AlwaysHorizontalScrollbar = 1 << 15,   // Always show horizontal scrollbar (even if ContentSize.x < GetSize.x)
@@ -1536,7 +1536,7 @@ enum ImGuiHoveredFlags_
     ImGuiHoveredFlags_AllowWhenOverlappedByItem    = 1 << 8,    // IsItemHovered() only: Return true even if the item uses AllowOverlap m_mode and is overlapped by another hoverable item.
     ImGuiHoveredFlags_AllowWhenOverlappedByWindow  = 1 << 9,    // IsItemHovered() only: Return true even if the position is obstructed or overlapped by another window.
     ImGuiHoveredFlags_AllowWhenDisabled            = 1 << 10,   // IsItemHovered() only: Return true even if the item is disabled
-    ImGuiHoveredFlags_NoNavOverride                = 1 << 11,   // IsItemHovered() only: Disable using keyboard/gamepad navigation state when active, always query mouse
+    ImGuiHoveredFlags_NoNavOverride                = 1 << 11,   // IsItemHovered() only: Disable using keyboard/gamepad navigation renderState when active, always query mouse
     ImGuiHoveredFlags_AllowWhenOverlapped          = ImGuiHoveredFlags_AllowWhenOverlappedByItem | ImGuiHoveredFlags_AllowWhenOverlappedByWindow,
     ImGuiHoveredFlags_RectOnly                     = ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem | ImGuiHoveredFlags_AllowWhenOverlapped,
     ImGuiHoveredFlags_RootAndChildWindows          = ImGuiHoveredFlags_RootWindow | ImGuiHoveredFlags_ChildWindows,
@@ -1915,7 +1915,7 @@ enum ImGuiBackendFlags_
     ImGuiBackendFlags_HasMouseCursors      = 1 << 1,   // Backend Platform supports honoring GetMouseCursor() m_value to change the OS cursor shape.
     ImGuiBackendFlags_HasSetMousePos       = 1 << 2,   // Backend Platform supports io.WantSetMousePos requests to reposition the OS mouse position (only used if io.ConfigNavMoveSetMousePos is set).
     ImGuiBackendFlags_RendererHasVtxOffset = 1 << 3,   // Backend Renderer supports ImDrawCmd::VtxOffset. This enables output of large meshes (64K+ vertices) while still using 16-bit indices.
-    ImGuiBackendFlags_RendererHasTextures  = 1 << 4,   // Backend Renderer supports ImTextureData requests to create/update/destroy textures. This enables incremental texture updates and texture reloads. See https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md for instructions on how to upgrade your custom backend.
+    ImGuiBackendFlags_RendererHasTextures  = 1 << 4,   // Backend Renderer supports ImTextureData requests to create/update/destroy textureBindInfos. This enables incremental texture updates and texture reloads. See https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md for instructions on how to upgrade your custom backend.
 
     // [BETA] Multi-Viewports
     ImGuiBackendFlags_RendererHasViewports    = 1 << 10,   // Backend Renderer supports multiple viewports.
@@ -2274,7 +2274,7 @@ enum ImGuiTableColumnFlags_
 {
     // Input configuration flags
     ImGuiTableColumnFlags_None                 = 0,
-    ImGuiTableColumnFlags_Disabled             = 1 << 0,    // Overriding/master disable flag: hide column, won't show in context menu (unlike calling TableSetColumnEnabled() which manipulates the user accessible state)
+    ImGuiTableColumnFlags_Disabled             = 1 << 0,    // Overriding/master disable flag: hide column, won't show in context menu (unlike calling TableSetColumnEnabled() which manipulates the user accessible renderState)
     ImGuiTableColumnFlags_DefaultHide          = 1 << 1,    // DefaultExport as a hidden/disabled column.
     ImGuiTableColumnFlags_DefaultSort          = 1 << 2,    // DefaultExport as a sorting column.
     ImGuiTableColumnFlags_WidthStretch         = 1 << 3,    // Column will stretch. Preferable with horizontal scrolling disabled (default if table sizing policy is _SizingStretchSame or _SizingStretchProp).
@@ -2319,10 +2319,10 @@ enum ImGuiTableRowFlags_
 //  - Layer 0: draw with RowBg0 color if set, otherwise draw with ColumnBg0 if set.
 //  - Layer 1: draw with RowBg1 color if set, otherwise draw with ColumnBg1 if set.
 //  - Layer 2: draw with CellBg color if set.
-// The purpose of the two row/columns layers is to let you decide if a background color change should override or blend with the existing color.
+// The purpose of the two row/columns layers is to let you decide if a background color change should override or blendBinds with the existing color.
 // When using ImGuiTableFlags_RowBg on the table, each row has the RowBg0 color automatically set for odd/even rows.
 // If you set the color of RowBg0 target, your color will override the existing RowBg0 color.
-// If you set the color of RowBg1 or ColumnBg1 target, your color will blend over the RowBg0 color.
+// If you set the color of RowBg1 or ColumnBg1 target, your color will blendBinds over the RowBg0 color.
 enum ImGuiTableBgTarget_
 {
     ImGuiTableBgTarget_None   = 0,
@@ -2755,7 +2755,7 @@ struct ImGuiStyle
     float              DockingSeparatorSize;               // Thickness of resizing border between docked windows
     float              MouseCursorScale;                   // Scale software rendered mouse cursor (when io.MouseDrawCursor is enabled). We apply per-monitor DPI scaling over this scale. May be removed later.
     bool               AntiAliasedLines;                   // Enable anti-aliased lines/borders. Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList).
-    bool               AntiAliasedLinesUseTex;             // Enable anti-aliased lines/borders using textures where possible. Require backend to render with bilinear filtering (NOT point/nearest filtering). Latched at the beginning of the frame (copied to ImDrawList).
+    bool               AntiAliasedLinesUseTex;             // Enable anti-aliased lines/borders using textureBindInfos where possible. Require backend to render with bilinear filtering (NOT point/nearest filtering). Latched at the beginning of the frame (copied to ImDrawList).
     bool               AntiAliasedFill;                    // Enable anti-aliased edges around filled shapes (rounded rectangles, circles, etc.). Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList).
     float              CurveTessellationTol;               // Tessellation tolerance when using PathBezierCurveTo() without a specific number of segments. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
     float              CircleTessellationMaxError;         // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
@@ -2791,8 +2791,8 @@ struct ImGuiStyle
 // Communicate most settings and inputs/outputs to Dear ImGui using this structure.
 // Access via ImGui::GetIO(). ReadBinary 'Programmer guide' section in .cpp file for general usage.
 // It is generally expected that:
-// - initialization: backends and user code writes to ImGuiIO.
-// - main loop: backends writes to ImGuiIO, user code and imgui code reads from ImGuiIO.
+// - initialization: backends and user code writeTextures to ImGuiIO.
+// - main loop: backends writeTextures to ImGuiIO, user code and imgui code readTextures from ImGuiIO.
 //-----------------------------------------------------------------------------
 // Also see ImGui::GetPlatformIO() and ImGuiPlatformIO struct for OS/platform related functions: clipboard, IME etc.
 //-----------------------------------------------------------------------------
@@ -2962,13 +2962,13 @@ struct ImGuiIO
     IMGUI_API void SetKeyEventNativeData(ImGuiKey key, int native_keycode, int native_scancode, int native_legacy_index = -1);   // [Optional] Specify index for legacy <1.87 IsKeyXXX() functions with native indices + specify native keycode, scancode.
     IMGUI_API void SetAppAcceptingEvents(bool accepting_events);                                                                 // Encode master flag for accepting key/mouse/text events (default to true). Useful if you have native dialog boxes that are interrupting your application loop/refresh, and you want to disable events being queued while your app is frozen.
     IMGUI_API void ClearEventsQueue();                                                                                           // ClearShaders all incoming events.
-    IMGUI_API void ClearInputKeys();                                                                                             // ClearShaders current keyboard/gamepad state + current frame text input buffer. Equivalent to releasing all keys/buttons.
-    IMGUI_API void ClearInputMouse();                                                                                            // ClearShaders current mouse state.
+    IMGUI_API void ClearInputKeys();                                                                                             // ClearShaders current keyboard/gamepad renderState + current frame text input buffer. Equivalent to releasing all keys/buttons.
+    IMGUI_API void ClearInputMouse();                                                                                            // ClearShaders current mouse renderState.
 
     //------------------------------------------------------------------
     // Output - Updated by NewFrame() or EndFrame()/Render()
     // (when reading from the io.WantCaptureMouse, io.WantCaptureKeyboard flags to dispatch your inputs, it is
-    //  generally easier and more correct to use their state BEFORE calling NewFrame(). See FAQ for details!)
+    //  generally easier and more correct to use their renderState BEFORE calling NewFrame(). See FAQ for details!)
     //------------------------------------------------------------------
 
     bool   WantCaptureMouse;        // Encode when Dear ImGui will use mouse inputs, in this case do not dispatch them to your main game/application (either way, always pass on mouse inputs to imgui). (e.g. unclicked mouse is hovering over an imgui window, widget is active, mouse was clicked over an imgui window, etc.).
@@ -3005,9 +3005,9 @@ struct ImGuiIO
     bool             KeyAlt;                 // Keyboard modifier down: Alt
     bool             KeySuper;               // Keyboard modifier down: Windows/Super (non-macOS), Ctrl (macOS)
 
-    // Other state maintained from data above + IO function calls
+    // Other renderState maintained from data above + IO function calls
     ImGuiKeyChord     KeyMods;                             // Key mods flags (any of ImGuiMod_Ctrl/ImGuiMod_Shift/ImGuiMod_Alt/ImGuiMod_Super flags, same as io.KeyCtrl/KeyShift/KeyAlt/KeySuper but merged into flags). ReadBinary-only, updated by NewFrame()
-    ImGuiKeyData      KeysData[ImGuiKey_NamedKey_COUNT];   // Key state for all known keys. MUST use 'key - ImGuiKey_NamedKey_BEGIN' as index. Use IsKeyXXX() functions to access this.
+    ImGuiKeyData      KeysData[ImGuiKey_NamedKey_COUNT];   // Key renderState for all known keys. MUST use 'key - ImGuiKey_NamedKey_BEGIN' as index. Use IsKeyXXX() functions to access this.
     bool              WantCaptureMouseUnlessPopupClose;    // Alternative to WantCaptureMouse: (WantCaptureMouse == true && WantCaptureMouseUnlessPopupClose == false) when a click over void is expected to close a popup.
     ImVec2            MousePosPrev;                        // Previous mouse position (note that MouseDelta is not necessary == MousePos-MousePosPrev, in case either position is invalid)
     ImVec2            MouseClickedPos[5];                  // Position at time of clicking
@@ -3037,7 +3037,7 @@ struct ImGuiIO
     //   Old (<1.87):  ImGui::IsKeyPressed(ImGui::GetIO().KeyMap[ImGuiKey_Space]) --> New (1.87+) ImGui::IsKeyPressed(ImGuiKey_Space)
     //   Old (<1.87):  ImGui::IsKeyPressed(MYPLATFORM_KEY_SPACE)                  --> New (1.87+) ImGui::IsKeyPressed(ImGuiKey_Space)
     // ReadBinary https://github.com/ocornut/imgui/issues/4921 for details.
-    // int       KeyMap[ImGuiKey_COUNT];             // [LEGACY] Input: map of indices into the KeysDown[512] entries array which represent your "native" keyboard state. The first 512 are now unused and should be kept zero. Legacy backend will write into KeyMap[] using ImGuiKey_ indices which are always >512.
+    // int       KeyMap[ImGuiKey_COUNT];             // [LEGACY] Input: map of indices into the KeysDown[512] entries array which represent your "native" keyboard renderState. The first 512 are now unused and should be kept zero. Legacy backend will write into KeyMap[] using ImGuiKey_ indices which are always >512.
     // bool      KeysDown[ImGuiKey_COUNT];           // [LEGACY] Input: Keyboard keys that are pressed (ideally left in the "native" order your engine has access to keyboard keys, so you can use your own defines/enums for keys). This used to be [512] sized. It is now ImGuiKey_COUNT to allow legacy io.KeysDown[GetKeyIndex(...)] to work without an overflow.
     // float     NavInputs[ImGuiNavInput_COUNT];     // [LEGACY] Since 1.88, NavInputs[] was removed. Backends from 1.60 to 1.86 won't build. Feed gamepad inputs via io.AddKeyEvent() and ImGuiKey_GamepadXXX enums.
     // void*     ImeWindowHandle;                    // [Obsoleted in 1.87] Encode ImGuiViewport::PlatformHandleRaw instead. Encode this to your HWND to get automatic IME cursor positioning.
@@ -3061,7 +3061,7 @@ struct ImGuiIO
 // [SECTION] Misc data structures (ImGuiInputTextCallbackData, ImGuiSizeCallbackData, ImGuiPayload)
 //-----------------------------------------------------------------------------
 
-// Shared state of InputText(), passed as an argument to your callback when a ImGuiInputTextFlags_Callback* flag is used.
+// Shared renderState of InputText(), passed as an argument to your callback when a ImGuiInputTextFlags_Callback* flag is used.
 // The callback function should return 0 by default.
 // Callbacks (follow a flag typeName and see comments in ImGuiInputTextFlags_ declarations for more details)
 // - ImGuiInputTextFlags_CallbackEdit:        Callback on buffer edit. Note that InputText() already returns true on edit + you can always use IsItemEdited(). The callback is useful to manipulate the underlying buffer while focus is active.
@@ -3082,7 +3082,7 @@ struct ImGuiInputTextCallbackData
     // - During Resize callback, Buf will be same as your input buffer.
     // - However, during Completion/History/Always callback, Buf always points to our own internal data (it is not the same as your buffer)! Changes to it will be reflected into your own buffer shortly after the callback.
     // - To modify the text buffer in a callback, prefer using the InsertChars() / DeleteChars() function. InsertChars() will take care of calling the resize callback if necessary.
-    // - If you know your edits are not going to resize the underlying buffer allocation, you may modify the contents of 'Buf[]' directly. You need to update 'BufTextLen' accordingly (0 <= BufTextLen < BufSize) and set 'BufDirty'' to true so InputText can update its internal state.
+    // - If you know your edits are not going to resize the underlying buffer allocation, you may modify the contents of 'Buf[]' directly. You need to update 'BufTextLen' accordingly (0 <= BufTextLen < BufSize) and set 'BufDirty'' to true so InputText can update its internal renderState.
     ImGuiKey EventKey;         // Key pressed (Up/Down/TAB)            // ReadBinary-only    // [Completion,History]
     ImWchar  EventChar;        // Character input                      // ReadBinary-write   // [CharFilter] OnReplace character with another one, or set to zero to drop. return 1 is equivalent to setting EventChar=0;
     bool     EventActivated;   // Input field just got activated       // ReadBinary-only    // [Always]
@@ -3302,10 +3302,10 @@ struct ImGuiStoragePair
 
 // Helper: Key->Value storage
 // Typically you don't have to worry about this since a storage is held within each Window.
-// We use it to e.g. store collapse state for a tree (Int 0/1)
+// We use it to e.g. store collapse renderState for a tree (Int 0/1)
 // This is optimized for efficient lookup (dichotomy into a contiguous buffer) and rare insertion (typically tied to user interactions aka max once a frame)
 // You can use it as custom user storage for temporary values. Declare your own storage if, for example:
-// - You want to manipulate the open/close state of a particular sub-tree in your interface (tree node uses Int 0/1 to store their state).
+// - You want to manipulate the open/close renderState of a particular sub-tree in your interface (tree node uses Int 0/1 to store their renderState).
 // - You want to store custom debug data easily without adding or editing structures in your code (probably not efficient, but convenient)
 // Types are NOT stored, so it is up to you to make sure your Key don't collide with different types.
 struct ImGuiStorage
@@ -3552,7 +3552,7 @@ struct ImColor
 // - In the spirit of Dear ImGui design, your code owns actual selection data.
 //   This is designed to allow all kinds of selection storage you may use in your application e.g. set/map/hash.
 // About ImGuiSelectionBasicStorage:
-// - This is an optional helper to store a selection state and apply selection requests.
+// - This is an optional helper to store a selection renderState and apply selection requests.
 // - It is used by our demos and provided as a convenience to quickly implement multi-selection.
 // Usage:
 // - Identify submitted items with SetNextItemSelectionUserData(), most likely using an index into your current data-set.
@@ -3604,15 +3604,15 @@ enum ImGuiMultiSelectFlags_
 // Main IO structure returned by BeginMultiSelect()/EndMultiSelect().
 // This mainly contains a list of selection requests.
 // - Use 'Demo->Tools->DebugInfo Log->Selection' to see requests as they happen.
-// - Some fields are only useful if your list is dynamic and allows deletion (getting post-deletion focus/state right is shown in the demo)
-// - Below: who reads/writes each fields? 'r'=read, 'w'=write, 'ms'=multi-select code, 'app'=application/user code.
+// - Some fields are only useful if your list is dynamic and allows deletion (getting post-deletion focus/renderState right is shown in the demo)
+// - Below: who readTextures/writeTextures each fields? 'r'=read, 'w'=write, 'ms'=multi-select code, 'app'=application/user code.
 struct ImGuiMultiSelectIO
 {
     //------------------------------------------// BeginMultiSelect / EndMultiSelect
     ImVector<ImGuiSelectionRequest> Requests;        //  ms:w, app:r     /  ms:w  app:r   // Requests to apply to your selection data.
     ImGuiSelectionUserData          RangeSrcItem;    //  ms:w  app:r     /                // (If using clipper) Begin: Source item (often the first selected item) must never be clipped: use clipper.IncludeItemByIndex() to ensure it is submitted.
     ImGuiSelectionUserData          NavIdItem;       //  ms:w, app:r     /                // (If using deletion) Last known SetNextItemSelectionUserData() m_value for NavId (if part of submitted items).
-    bool                            NavIdSelected;   //  ms:w, app:r     /        app:r   // (If using deletion) Last known selection state for NavId (if part of submitted items).
+    bool                            NavIdSelected;   //  ms:w, app:r     /        app:r   // (If using deletion) Last known selection renderState for NavId (if part of submitted items).
     bool                            RangeSrcReset;   //        app:w     /  ms:r          // (If using deletion) Encode before EndMultiSelect() to reset ResetSrcItem (e.g. if deleted selection).
     int                             ItemsCount;      //  ms:w, app:r     /        app:r   // 'int items_count' parameter to BeginMultiSelect() is copied here for convenience, allowing simpler calls to your ApplyRequests handler. Not used internally.
 };
@@ -3636,7 +3636,7 @@ struct ImGuiSelectionRequest
     ImGuiSelectionUserData    RangeLastItem;    //                  /  ms:w, app:r   // Parameter for SetRange request (this is generally == RangeSrcItem when shift selecting from bottom to top). Inclusive!
 };
 
-// Optional helper to store multi-selection state + apply multi-selection requests.
+// Optional helper to store multi-selection renderState + apply multi-selection requests.
 // - Used by our demos and provided as a convenience to easily implement basic multi-selection.
 // - Iterate selection with 'void* it = NULL; ImGuiID id; while (selection.GetNextSelectedItem(&it, &id)) { ... }'
 //   Or you can check 'if (Contains(id)) { ... }' for each possible object if their number is not too high to iterate.
@@ -3674,7 +3674,7 @@ struct ImGuiSelectionBasicStorage
 };
 
 // Optional helper to apply multi-selection requests to existing randomly accessible storage.
-// Convenient if you want to quickly wire multi-select API on e.g. an array of bool or items storing their own selection state.
+// Convenient if you want to quickly wire multi-select API on e.g. an array of bool or items storing their own selection renderState.
 struct ImGuiSelectionExternalStorage
 {
     // Members
@@ -3691,7 +3691,7 @@ struct ImGuiSelectionExternalStorage
 // Hold a series of drawing commands. The user provides a renderer for ImDrawData which essentially contains an array of ImDrawList.
 //-----------------------------------------------------------------------------
 
-// The maximum line width to bake anti-aliased textures for. Build atlas with ImFontAtlasFlags_NoBakedLines to disable baking.
+// The maximum line width to bake anti-aliased textureBindInfos for. Build atlas with ImFontAtlasFlags_NoBakedLines to disable baking.
 #    ifndef IM_DRAWLIST_TEX_LINES_WIDTH_MAX
 #        define IM_DRAWLIST_TEX_LINES_WIDTH_MAX (32)
 #    endif
@@ -3706,7 +3706,7 @@ typedef unsigned short ImDrawIdx;   // DefaultExport: 16-bit (for maximum compat
 // ImDrawCallback: Draw callbacks for advanced uses [configurable type: override in imconfig.h]
 // NB: You most likely do NOT need to use draw callbacks just to create your own widget or customized UI rendering,
 // you can poke into the draw list for that! Draw callback may be useful for example to:
-//  A) Change your GPU render state,
+//  A) Change your GPU render renderState,
 //  B) render a complex 3D scene inside a UI element without an intermediate texture/render target, etc.
 // The expected behavior from your rendering function is 'if (cmd.UserCallback != NULL) { cmd.UserCallback(parent_list, cmd); } else { RenderTriangles() }'
 // If you want to override the signature of ImDrawCallback, you can simply use e.g. '#define ImDrawCallback MyDrawCallback' (in imconfig.h) + update rendering backend accordingly.
@@ -3714,10 +3714,10 @@ typedef unsigned short ImDrawIdx;   // DefaultExport: 16-bit (for maximum compat
 typedef void (*ImDrawCallback)(const ImDrawList* parent_list, const ImDrawCmd* cmd);
 #    endif
 
-// Special Draw callback m_value to request renderer backend to reset the graphics/render state.
+// Special Draw callback m_value to request renderer backend to reset the graphics/render renderState.
 // The renderer backend needs to handle this special m_value, otherwise it will crash trying to call a function at this address.
-// This is useful, for example, if you submitted callbacks which you know have altered the render state and you want it to be restored.
-// Render state is not reset by default because they are many perfectly useful way of altering render state (e.g. changing shader/blending settings before an Image call).
+// This is useful, for example, if you submitted callbacks which you know have altered the render renderState and you want it to be restored.
+// Render renderState is not reset by default because they are many perfectly useful way of altering render renderState (e.g. changing shader/blending settings before an Image call).
 #    define ImDrawCallback_ResetRenderState (ImDrawCallback)(-8)
 
 // Typically, 1 command = 1 GPU draw call (unless command is a callback)
@@ -3821,8 +3821,8 @@ enum ImDrawFlags_
 enum ImDrawListFlags_
 {
     ImDrawListFlags_None                   = 0,
-    ImDrawListFlags_AntiAliasedLines       = 1 << 0,   // Enable anti-aliased lines/borders (*2 the number of triangles for 1.0f wide line or lines thin enough to be drawn using textures, otherwise *3 the number of triangles)
-    ImDrawListFlags_AntiAliasedLinesUseTex = 1 << 1,   // Enable anti-aliased lines/borders using textures when possible. Require backend to render with bilinear filtering (NOT point/nearest filtering).
+    ImDrawListFlags_AntiAliasedLines       = 1 << 0,   // Enable anti-aliased lines/borders (*2 the number of triangles for 1.0f wide line or lines thin enough to be drawn using textureBindInfos, otherwise *3 the number of triangles)
+    ImDrawListFlags_AntiAliasedLinesUseTex = 1 << 1,   // Enable anti-aliased lines/borders using textureBindInfos when possible. Require backend to render with bilinear filtering (NOT point/nearest filtering).
     ImDrawListFlags_AntiAliasedFill        = 1 << 2,   // Enable anti-aliased edge around filled shapes (rounded rectangles, circles).
     ImDrawListFlags_AllowVtxOffset         = 1 << 3,   // Can emit 'VtxOffset > 0' to allow large meshes. Encode when 'ImGuiBackendFlags_RendererHasVtxOffset' is enabled.
 };
@@ -3884,7 +3884,7 @@ struct ImDrawList
     // - For rectangular primitives, "p_min" and "p_max" represent the upper-left and lower-right corners.
     // - For circle primitives, use "num_segments == 0" to automatically calculate tessellation (preferred).
     //   In older versions (until Dear ImGui 1.77) the AddCircle functions defaulted to num_segments == 12.
-    //   In future versions we will use textures to provide cheaper and higher-quality circles.
+    //   In future versions we will use textureBindInfos to provide cheaper and higher-quality circles.
     //   Use AddNgon() and AddNgonFilled() functions if you need to guarantee a specific number of sides.
     IMGUI_API void AddLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness = 1.0f);
     IMGUI_API void AddRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding = 0.0f, ImDrawFlags flags = 0, float thickness = 1.0f);   // a: upper-left, b: lower-right (== upper-left + size)
@@ -3952,8 +3952,8 @@ struct ImDrawList
     IMGUI_API void PathRect(const ImVec2& rect_min, const ImVec2& rect_max, float rounding = 0.0f, ImDrawFlags flags = 0);
 
     // Advanced: Draw Callbacks
-    // - May be used to alter render state (change sampler, blending, current shader). May be used to emit custom rendering commands (difficult to do correctly, but possible).
-    // - Use special ImDrawCallback_ResetRenderState callback to instruct backend to reset its render state to the default.
+    // - May be used to alter render renderState (change sampler, blending, current shader). May be used to emit custom rendering commands (difficult to do correctly, but possible).
+    // - Use special ImDrawCallback_ResetRenderState callback to instruct backend to reset its render renderState to the default.
     // - Your rendering loop must check for 'UserCallback' in ImDrawCmd and call the function instead of rendering triangles. All standard backends are honoring this.
     // - For some backends, the callback may access selected render-states exposed by the backend in a ImGui_ImplXXXX_RenderState structure pointed to by platform_io.Renderer_RenderState.
     // - IMPORTANT: please be mindful of the different level of indirection between using size==0 (copying argument) and using size>0 (copying pointed data into a buffer).
@@ -4043,7 +4043,7 @@ struct ImDrawData
     ImVec2                    DisplaySize;        // GetSize of the viewport to render (== GetMainViewport()->GetSize for the main viewport, == io.DisplaySize in most single-viewport applications)
     ImVec2                    FramebufferScale;   // Amount of pixels for each unit of DisplaySize. Copied from viewport->FramebufferScale (== io.DisplayFramebufferScale for main viewport). Generally (1,1) on normal display, (2,2) on OSX with Retina display.
     ImGuiViewport*            OwnerViewport;      // Viewport carrying the ImDrawData instance, might be of use to the renderer (generally not).
-    ImVector<ImTextureData*>* Textures;           // List of textures to update. Most of the times the list is shared by all ImDrawData, has only 1 texture and it doesn't need any update. This almost always points to ImGui::GetPlatformIO().Textures[]. May be overridden or set to NULL if you want to manually update textures.
+    ImVector<ImTextureData*>* Textures;           // List of textureBindInfos to update. Most of the times the list is shared by all ImDrawData, has only 1 texture and it doesn't need any update. This almost always points to ImGui::GetPlatformIO().Textures[]. May be overridden or set to NULL if you want to manually update textureBindInfos.
 
     // Functions
     ImDrawData() { Clear(); }
@@ -4082,7 +4082,7 @@ enum ImTextureStatus
 };
 
 // Coordinates of a rectangle within a texture.
-// When a texture is in ImTextureStatus_WantUpdates state, we provide a list of individual rectangles to copy to the graphics system.
+// When a texture is in ImTextureStatus_WantUpdates renderState, we provide a list of individual rectangles to copy to the graphics system.
 // You may use ImTextureData::Updates[] for the list, or ImTextureData::UpdateBox for a single bounding box.
 struct ImTextureRect
 {
@@ -4094,9 +4094,9 @@ struct ImTextureRect
 // This is only useful for (1) core library and (2) backends. End-user/applications do not need to care about this.
 // Renderer Backends will create a GPU-side version of this.
 // Why does we store two identifiers: TexID and BackendUserData?
-// - ImTextureID    TexID           = lower-level identifier stored in ImDrawCmd. ImDrawCmd can refer to textures not created by the backend, and for which there's no ImTextureData.
+// - ImTextureID    TexID           = lower-level identifier stored in ImDrawCmd. ImDrawCmd can refer to textureBindInfos not created by the backend, and for which there's no ImTextureData.
 // - void*          BackendUserData = higher-level opaque storage for backend own book-keeping. Some backends may have enough with TexID and not need both.
-// In columns below: who reads/writes each fields? 'r'=read, 'w'=write, 'core'=main library, 'backend'=renderer backend
+// In columns below: who readTextures/writeTextures each fields? 'r'=read, 'w'=write, 'core'=main library, 'backend'=renderer backend
 struct ImTextureData
 {
     //------------------------------------------ core / backend ---------------------------------------
@@ -4279,7 +4279,7 @@ enum ImFontAtlasFlags_
     ImFontAtlasFlags_None               = 0,
     ImFontAtlasFlags_NoPowerOfTwoHeight = 1 << 0,   // Don't round the height to next power of two
     ImFontAtlasFlags_NoMouseCursors     = 1 << 1,   // Don't build software mouse cursors into the atlas (save a little texture memory)
-    ImFontAtlasFlags_NoBakedLines       = 1 << 2,   // Don't build thick line textures into the atlas (save a little texture memory, allow support for point/nearest filtering). The AntiAliasedLinesUseTex features uses them, otherwise they will be rendered using polygons (more expensive for CPU/GPU).
+    ImFontAtlasFlags_NoBakedLines       = 1 << 2,   // Don't build thick line textureBindInfos into the atlas (save a little texture memory, allow support for point/nearest filtering). The AntiAliasedLinesUseTex features uses them, otherwise they will be rendered using polygons (more expensive for CPU/GPU).
 };
 
 // Load and rasterize multiple TTF/OTF fonts into a same texture. The font atlas will build a single texture holding:
@@ -4315,7 +4315,7 @@ struct ImFontAtlas
     IMGUI_API ImFont* AddFontFromMemoryCompressedBase85TTF(const char* compressed_font_data_base85, float size_pixels = 0.0f, const ImFontConfig* font_cfg = NULL, const ImWchar* glyph_ranges = NULL);                     // 'compressed_font_data_base85' still owned by caller. Compress with binary_to_compressed_c.cpp with -base85 parameter.
     IMGUI_API void    RemoveFont(ImFont* font);
 
-    IMGUI_API void Clear();                                          // ClearShaders everything (input fonts, output glyphs/textures).
+    IMGUI_API void Clear();                                          // ClearShaders everything (input fonts, output glyphs/textureBindInfos).
     IMGUI_API void CompactCache();                                   // Compact cached glyphs and texture.
     IMGUI_API void SetFontLoader(const ImFontLoader* font_loader);   // Change font loader at runtime.
 
@@ -4410,7 +4410,7 @@ struct ImFontAtlas
     void*            UserData;           // Store your own atlas related user-data (if e.g. you have multiple font atlas).
 
     // Output
-    // - Because textures are dynamically created/resized, the current texture identifier may changed at *ANY TIME* during the frame.
+    // - Because textureBindInfos are dynamically created/resized, the current texture identifier may changed at *ANY TIME* during the frame.
     // - This should not affect you as you can always use the latest m_value. But note that any precomputed UV coordinates are only valid for the current TexRef.
 #    ifdef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     ImTextureRef TexRef;   // Latest texture identifier == TexData->GetTexRef().
@@ -4522,7 +4522,7 @@ struct ImFont
     ImFontBaked* LastBaked;                  // 4-8   // Cache last bound baked. NEVER USE DIRECTLY. Use GetFontBaked().
     ImFontAtlas* OwnerAtlas;                 // 4-8   // What we have been loaded into.
     ImFontFlags  Flags;                      // 4     // Font flags.
-    float        CurrentRasterizerDensity;   // CurrentDir rasterizer density. This is a varying state of the font.
+    float        CurrentRasterizerDensity;   // CurrentDir rasterizer density. This is a varying renderState of the font.
 
     // [Internal] Members: Cold ~24-52 bytes
     // Conceptually SVGSources[] is the list of font sources merged to create this font.
@@ -4734,7 +4734,7 @@ struct ImGuiPlatformIO
     // Input - Interface with Renderer Backend
     //------------------------------------------------------------------
 
-    // Optional: Maximum texture size supported by renderer (used to adjust how we size textures). 0 if not known.
+    // Optional: Maximum texture size supported by renderer (used to adjust how we size textureBindInfos). 0 if not known.
     int Renderer_TextureMaxWidth;
     int Renderer_TextureMaxHeight;
 
@@ -4751,7 +4751,7 @@ struct ImGuiPlatformIO
     //   U = ImGui::UpdatePlatformWindows()           ~ after the dear imgui frame: create and update all platform/OS windows
     //   R = ImGui::RenderPlatformWindowsDefault()    ~ render
     //   D = ImGui::DestroyPlatformWindows()          ~ shutdown
-    // The general idea is that NewFrame() we will read the current Platform/OS state, and UpdatePlatformWindows() will write to it.
+    // The general idea is that NewFrame() we will read the current Platform/OS renderState, and UpdatePlatformWindows() will write to it.
 
     // The handlers are designed so we can mix and match two imgui_impl_xxxx files, one Platform backend and one Renderer backend.
     // Custom engine backends will often provide both Platform and Renderer interfaces together and so may not need to use all functions.
@@ -4768,7 +4768,7 @@ struct ImGuiPlatformIO
     ImVec2 (*Platform_GetWindowFramebufferScale)(ImGuiViewport* vp);                                                       // N . . . .  // Return viewport density. Always 1,1 on Windows, often 2,2 on Retina display on macOS/iOS. MUST BE INTEGER VALUES.
     void (*Platform_SetWindowFocus)(ImGuiViewport* vp);                                                                    // N . . . .  // VectorSplice window to front and set input focus
     bool (*Platform_GetWindowFocus)(ImGuiViewport* vp);                                                                    // . . U . .  //
-    bool (*Platform_GetWindowMinimized)(ImGuiViewport* vp);                                                                // N . . . .  // Get platform window minimized state. When minimized, we generally won't attempt to get/set size and contents will be culled more easily
+    bool (*Platform_GetWindowMinimized)(ImGuiViewport* vp);                                                                // N . . . .  // Get platform window minimized renderState. When minimized, we generally won't attempt to get/set size and contents will be culled more easily
     void (*Platform_SetWindowTitle)(ImGuiViewport* vp, const char* str);                                                   // . . U . .  // Encode platform window title (given an UTF-8 string)
     void (*Platform_SetWindowAlpha)(ImGuiViewport* vp, float alpha);                                                       // . . U . .  // (Optional) Setup global transparency (not per-pixel transparency)
     void (*Platform_UpdateWindow)(ImGuiViewport* vp);                                                                      // . . U . .  // (Optional) Called by UpdatePlatformWindows(). Optional hook to allow the platform backend from doing general book-keeping every frame.
@@ -4796,8 +4796,8 @@ struct ImGuiPlatformIO
     //------------------------------------------------------------------
 
     // Textures list (the list is updated by calling ImGui::EndFrame or ImGui::Render)
-    // The ImGui_ImplXXXX_RenderDrawData() function of each backend generally access this via ImDrawData::Textures which points to this. The array is available here mostly because backends will want to destroy textures on shutdown.
-    ImVector<ImTextureData*> Textures;   // List of textures used by Dear ImGui (most often 1) + contents of external texture list is automatically appended into this.
+    // The ImGui_ImplXXXX_RenderDrawData() function of each backend generally access this via ImDrawData::Textures which points to this. The array is available here mostly because backends will want to destroy textureBindInfos on shutdown.
+    ImVector<ImTextureData*> Textures;   // List of textureBindInfos used by Dear ImGui (most often 1) + contents of external texture list is automatically appended into this.
 
     // Viewports list (the list is updated by calling ImGui::EndFrame or ImGui::Render)
     // (in the future we will attempt to organize this feature to remove the need for a "main viewport")

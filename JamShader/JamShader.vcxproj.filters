@@ -10,17 +10,8 @@
     <ClCompile Include="FileBrowserWindow.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
-    <ClCompile Include="GUIFileSystem.cpp">
-      <Filter>Utis</Filter>
-    </ClCompile>
-    <ClCompile Include="Events.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderApp.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="EmbededFont.cpp">
-      <Filter>Resources</Filter>
+      <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
       <Filter>Resources</Filter>
@@ -31,20 +22,29 @@
     <ClCompile Include="ShaderItemEditorWindow.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
-    <ClCompile Include="GUIAssetManager.cpp">
-      <Filter>Utis</Filter>
-    </ClCompile>
     <ClCompile Include="ProjectInspectorWindow.cpp">
       <Filter>Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Icons.cpp">
-      <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="ProjectExporter.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="ExportProjectDialog.cpp">
       <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Events.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="EmbededFont.cpp">
+      <Filter>Resources\EmbededResources</Filter>
+    </ClCompile>
+    <ClCompile Include="Icons.cpp">
+      <Filter>Resources\EmbededResources</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIFileSystem.cpp">
+      <Filter>Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIAssetManager.cpp">
+      <Filter>Gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -57,15 +57,6 @@
     <ClInclude Include="FileBrowserWindow.h">
       <Filter>Windows</Filter>
     </ClInclude>
-    <ClInclude Include="GUIFileSystem.h">
-      <Filter>Utis</Filter>
-    </ClInclude>
-    <ClInclude Include="Events.h">
-      <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="EmbededFont.h">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="Resources.h">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -73,25 +64,34 @@
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="ShaderApp.h">
-      <Filter>Core</Filter>
+      <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="ShaderItemEditorWindow.h">
       <Filter>Windows</Filter>
     </ClInclude>
-    <ClInclude Include="GUIAssetManager.h">
-      <Filter>Utis</Filter>
-    </ClInclude>
     <ClInclude Include="ProjectInspectorWindow.h">
       <Filter>Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Icons.h">
-      <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="ProjectExporter.h">
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="ExportProjectDialog.h">
       <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="Events.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="EmbededFont.h">
+      <Filter>Resources\EmbededResources</Filter>
+    </ClInclude>
+    <ClInclude Include="Icons.h">
+      <Filter>Resources\EmbededResources</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIFileSystem.h">
+      <Filter>Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIAssetManager.h">
+      <Filter>Gui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -104,14 +104,17 @@
     <Filter Include="Windows">
       <UniqueIdentifier>{ee6a666c-c49f-4bb8-a7aa-c5da59861388}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{e6d8b4a1-4c5a-4609-b094-9bd73e3dadae}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{7edfeb39-6de8-4526-aff7-ca6976fedb47}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utis">
-      <UniqueIdentifier>{a2a600be-c3b1-44c4-ae06-6eee10df0eb2}</UniqueIdentifier>
+    <Filter Include="Main">
+      <UniqueIdentifier>{e6d8b4a1-4c5a-4609-b094-9bd73e3dadae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\EmbededResources">
+      <UniqueIdentifier>{5cb36a31-248f-43da-b949-94bcce2a7990}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gui">
+      <UniqueIdentifier>{df68150b-141d-489e-a1dc-7890cd85a419}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

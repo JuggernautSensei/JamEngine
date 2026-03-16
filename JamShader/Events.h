@@ -11,12 +11,12 @@ public:
     [[nodiscard]] String ToString() const override;
 };
 
-class FocusingShaderItemChagnedEvent : public Event
+class FocusingShaderItemChangedEvent : public Event
 {
-    JAM_EVENT_BODY(FocusingShaderItemChagnedEvent);
+    JAM_EVENT_BODY(FocusingShaderItemChangedEvent);
 
 public:
-    explicit FocusingShaderItemChagnedEvent();
+    explicit FocusingShaderItemChangedEvent();
     [[nodiscard]] String ToString() const override;
 };
 

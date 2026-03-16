@@ -18,8 +18,8 @@ struct NullHandleType
 
 constexpr NullHandleType k_nullHandle = NullHandleType { NullHandleType::Tag {} };
 
-/// @brief A stage-safe handle for a resource.
-/// @tparam ByteT The resource stage this handle references.
+/// @brief A stage-safe fbh for a resource.
+/// @tparam ByteT The resource stage this fbh references.
 template<typename T>
 struct Handle
 {
@@ -256,7 +256,7 @@ public:
 
     void Free(const HandleT handle) noexcept
     {
-        JAM_ASSERT(IsValid(handle), "Invalid handle");
+        JAM_ASSERT(IsValid(handle), "Invalid fbh");
         UInt32 index = handle.index;
         ++m_slots[index].token;   // 오버플로우는 오류가 아님
         m_slots[index].bAlloced      = false;

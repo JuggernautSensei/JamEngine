@@ -45,7 +45,7 @@ public:
     void                              SetIcon(eIcon _icon, const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetIcon(eIcon _icon) const;
     void                              SetShortCut(eShortCut _shortCut, ImGuiKeyChord _key);
-    [[nodiscard]] ImGuiKeyChord       GetShortCut(eShortCut _shortCut);
+    [[nodiscard]] ImGuiKeyChord       GetShortCut(eShortCut _shortCut) const;
 
     // project
     Error                  LoadProject(StringView _path);
@@ -55,7 +55,7 @@ public:
 
     // focusing shader item
     void                            SetFocusingShaderItem(StringView _name);
-    void                            RelaseFocusingShaderItem();
+    void                            ReleaseFocusingShaderItem();
     [[nodiscard]] const ShaderItem* GetFocusingShaderItemOrNull() const;
 
     // short cut for dialog

@@ -41,7 +41,7 @@ void ShaderApp::SetShortCut(
 }
 
 ImGuiKeyChord ShaderApp::GetShortCut(
-    const eShortCut _shortCut)
+    const eShortCut _shortCut) const
 {
     return m_shortcuts[_shortCut];
 }
@@ -90,11 +90,11 @@ void ShaderApp::SetFocusingShaderItem(
     }
 
     m_focusingShaderItemName = _name;
-    FocusingShaderItemChagnedEvent event {};
+    FocusingShaderItemChangedEvent event {};
     GetApp().DispatchEvent(event);
 }
 
-void ShaderApp::RelaseFocusingShaderItem()
+void ShaderApp::ReleaseFocusingShaderItem()
 {
     SetFocusingShaderItem({});
 }
@@ -433,7 +433,7 @@ void ShaderApp::OnProjectChagnedEvent_(
     const ProjectChangedEvent&)
 {
     UpdateAppTitle_();
-    RelaseFocusingShaderItem();
+    ReleaseFocusingShaderItem();
 }
 
 void ShaderApp::OnProjectRenamedEvent_(
@@ -541,6 +541,7 @@ void ShaderApp::Panel_Dockspace_()
     bool bOpen = true;
     if (!ImGui::Begin("DockspaceWindow", &bOpen, k_flags))
     {
+        ImGui::PopStyleVar(3);
         ImGui::End();
         return;
     }
@@ -555,7 +556,6 @@ void ShaderApp::Panel_Dockspace_()
 
 void ShaderApp::Panel_MainMenuBar_()
 {
-
     if (!ImGui::BeginMainMenuBar())
     {
         ImGui::EndMainMenuBar();

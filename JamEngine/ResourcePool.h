@@ -115,7 +115,7 @@ public:
 
     void Free(const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "Invalid handle");
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "Invalid fbh");
 
         T& resource = m_resources[handle.index];
         std::destroy_at(&resource);
@@ -126,25 +126,25 @@ public:
 
     [[nodiscard]] T& GetResource(const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
     [[nodiscard]] const T& GetResource(const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
     [[nodiscard]] const T& operator[](const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 
     [[nodiscard]] T& operator[](const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid handle. pos = {}, token = {}", handle.index, handle.token);
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
         return m_resources[handle.index];
     }
 

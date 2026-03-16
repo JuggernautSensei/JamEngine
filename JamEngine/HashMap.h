@@ -49,4 +49,11 @@ using CASHashMap = ankerl::unordered_dense::map<KeyT, ValueT, Details::CASHasher
 // 여기서 사용되는 CASHasher는 단순히 들어온 정수값이 해시값이라고 가정합니다. 그러므로 CASHashMap을 사용할 때는 키로 사용할 값이 이미 잘 분산된 값이여야 합니다.
 // 수학적으로 엄밀하게 데이터의 유일성을 보장하지 않지만, 잘 분산된 해시값을 사용한다면, 충돌가능성은 0에 수렴합니다.
 
+template<typename KeyT,
+         typename Alloc           = std::allocator<KeyT>,
+         typename Bucket          = ankerl::unordered_dense::bucket_type::standard,
+         typename BucketContainer = ankerl::unordered_dense::detail::default_container_t>
+    requires std::is_integral_v<KeyT>
+using CASHashSet = ankerl::unordered_dense::set<KeyT, Details::CASHasher<KeyT>, std::equal_to<KeyT>, Alloc, Bucket, BucketContainer>;
+
 }   // namespace Jam

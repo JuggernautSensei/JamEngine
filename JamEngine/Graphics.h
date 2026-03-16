@@ -614,7 +614,7 @@ public:
     /// @param _bClearStencil 스텐실 클리어 여부
     /// @param _depth 클리어할 깊이 값 (0.0 ~ 1.0)
     /// @param _stencil 클리어할 스텐실 값
-    void ClearDepth(
+    void ClearDepthStencil(
         FrameBufferHandle _fbh,
         bool              _bClearDepth,
         bool              _bClearStencil,
@@ -987,7 +987,7 @@ private:
     [[nodiscard]] Vector<Byte> DownloadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex) const;
     void                       Blit_(const HardwareTextureRef& _blitDstTexture, Int32 _blitDstMipIndex, Int32 _blitDstArrayIndex, Int32 _blitDstX, Int32 _blitDstY, Int32 _blitDstZ, const HardwareTextureRef& _blitSrcTexture, Int32 _blitSrcMipIndex, Int32 _blitSrcArrayIndex, Int32 _blitSrcX, Int32 _blitSrcY, Int32 _blitSrcZ, Int32 _blitSrcWidthOrZero, Int32 _blitSrcHeightOrZero, Int32 _blitSrcDepthOrZero) const;
 
-    // d3d11 state cache
+    // d3d11 renderState cache
     [[nodiscard]] ID3D11RasterizerState*   GetOrCreateD3D11RasterizerState_(RasterizerStateD3D11 _state);
     [[nodiscard]] ID3D11BlendState*        GetOrCreateD3D11BlendState_(const BlendStateD3D11& _state);
     [[nodiscard]] ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilState_(DepthStencilStateD3D11 _state);
@@ -1015,13 +1015,13 @@ private:
     CASHashMap<UInt64, ShaderHandle>       m_shaderCache = {};
     CASHashMap<UInt64, VertexLayoutHandle> m_vlCache     = {};
 
-    // d3d11 state caches
+    // d3d11 renderState caches
     CASHashMap<UInt32, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
     CASHashMap<UInt64, ID3D11BlendState*>        m_d3d11BlendStateCache        = {};
     CASHashMap<UInt64, ID3D11DepthStencilState*> m_d3d11DepthStencilStateCache = {};
     CASHashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
 
-    // pipeline bind state
+    // pipeline bind renderState
     VertexLayoutHandle m_vlhBind      = k_nullHandle;
     VertexBufferHandle m_vbhBind      = k_nullHandle;
     Int32              m_vbOffsetBind = 0;
