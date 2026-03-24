@@ -22,7 +22,7 @@ class VertexWriter
 
 public:
     explicit VertexWriter(
-        const MemoryBlock   _vertData,
+        const MutableMemoryView   _vertData,
         const VertexLayout& _vl)
         : m_mem(_vertData)
         , m_stride(_vl.GetStride())
@@ -50,7 +50,7 @@ public:
 
 private:
     // seek must be placed vertex start
-    MemoryBlock         m_mem    = {};
+    MutableMemoryView         m_mem    = {};
     Details::TinyLayout m_vles   = {};
     Int32               m_stride = 0;
 };
@@ -59,7 +59,7 @@ class VertexReader
 {
 public:
     VertexReader(
-        const CMemoryBlock  _vertData,
+        const MemoryView  _vertData,
         const VertexLayout& _vl)
         : m_mem(_vertData)
         , m_stride(_vl.GetStride())
@@ -87,7 +87,7 @@ public:
     }
 
 private:
-    CMemoryBlock        m_mem;
+    MemoryView        m_mem;
     Details::TinyLayout m_vles   = {};
     Int32               m_stride = 0;
 };
@@ -96,7 +96,7 @@ class IndexWriter
 {
 public:
     IndexWriter(
-        const MemoryBlock _idxData,
+        const MutableMemoryView _idxData,
         const bool        _bUseU32)
         : m_mem(_idxData)
         , m_bU32(_bUseU32)
@@ -124,7 +124,7 @@ public:
     }
 
 private:
-    MemoryBlock m_mem  = {};
+    MutableMemoryView m_mem  = {};
     bool        m_bU32 = false;
 };
 
@@ -132,7 +132,7 @@ class IndexReader
 {
 public:
     IndexReader(
-        const CMemoryBlock _idxData,
+        const MemoryView _idxData,
         const bool         _bUseU32)
         : m_mem(_idxData)
         , m_bU32(_bUseU32)
@@ -161,14 +161,14 @@ public:
     }
 
 private:
-    CMemoryBlock m_mem  = {};
+    MemoryView m_mem  = {};
     bool         m_bU32 = false;
 };
 
-[[nodiscard]] Int32 CalcNumIndices(CMemoryBlock _idxData, bool _bUseU32) noexcept;
-[[nodiscard]] Int32 CalcNumVertices(CMemoryBlock _vertData, const VertexLayout& _vl) noexcept;
+[[nodiscard]] Int32 CalcNumIndices(MemoryView _idxData, bool _bUseU32) noexcept;
+[[nodiscard]] Int32 CalcNumVertices(MemoryView _vertData, const VertexLayout& _vl) noexcept;
 [[nodiscard]] Int32 CalcIndicesByteWidth(Int32 _numIdxes, bool _bUseU32) noexcept;
-[[nodiscard]] bool  NeedU32Index(CMemoryBlock _vertData, const VertexLayout& _vl) noexcept;
+[[nodiscard]] bool  NeedU32Index(MemoryView _vertData, const VertexLayout& _vl) noexcept;
 [[nodiscard]] bool  NeedU32Index(Int32 _numVerts) noexcept;
 
 }   // namespace Jam

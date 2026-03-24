@@ -26,13 +26,13 @@ float ToFloat32(
     return DirectX::PackedVector::XMConvertHalfToFloat(value);
 }
 
-Vector3 EulerFrom(
-    const Vector3 _forward)
+Vec3 EulerFrom(
+    const Vec3 _forward)
 {
-    const Vector3  f  = Normalized(_forward);
+    const Vec3  f  = Normalized(_forward);
     const float cy = Sqrt(f.z * f.z + f.x * f.x);
     const float cx = Atan2(-f.y, cy);
-    if (cy > k_epsilon)
+    if (cy > Numbers<float>::k_epsilon)
     {
         return { cx, Atan2(f.x, f.z), 0.0f };
     }
@@ -40,15 +40,17 @@ Vector3 EulerFrom(
     return { cx, 0.0f, 0.0f };
 }
 
-Vector3 ForwardFrom(
-    const Vector3 _eulerRad)
+Vec3 ForwardFrom(
+    const Vec3 _eulerRad)
 {
-    const auto y = SinCosApprox(_eulerRad.y);
-    const auto x = SinCosApprox(_eulerRad.x);
-    return Normalized({ y.sin * x.cos, -x.sin, y.cos * x.cos });
+    const float sy = Sin(_eulerRad.y);
+    const float cy = Cos(_eulerRad.y);
+    const float sx = Sin(_eulerRad.x);
+    const float cx = Cos(_eulerRad.x);
+    return Normalized({ sy * cx, -sx, cy * cx });
 }
 
-Matrix4x4 CreateOrthoMatrix(
+Mtx4 CreateOrthoMatrix(
     const float width,
     const float height,
     const float nearZ,
@@ -57,7 +59,7 @@ Matrix4x4 CreateOrthoMatrix(
     return DirectX::XMMatrixOrthographicLH(width, height, nearZ, farZ);
 }
 
-Matrix4x4 CreateOrthoMatrix(
+Mtx4 CreateOrthoMatrix(
     const float left,
     const float right,
     const float bottom,
@@ -68,7 +70,7 @@ Matrix4x4 CreateOrthoMatrix(
     return DirectX::XMMatrixOrthographicOffCenterLH(left, right, bottom, top, nearZ, farZ);
 }
 
-Matrix4x4 CreatePerspectiveMatrix(
+Mtx4 CreatePerspectiveMatrix(
     const float fovYRad,
     const float aspect,
     const float zNear,

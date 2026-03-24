@@ -14,7 +14,7 @@ SceneNode::SceneNode(
     const Entity _root,
     const Entity _owner)
     : m_root(_root)
-      , m_owner(_owner)
+    , m_owner(_owner)
 {
     JAM_ASSERT(_root, "Root entity is invalid");
     JAM_ASSERT(_owner, "Owner entity is invalid");
@@ -24,7 +24,7 @@ SceneNode::SceneNode(
 SceneNode::SceneNode(
     const Entity _root)
     : m_root(_root)
-      , m_owner(_root)
+    , m_owner(_root)
 {
     JAM_ASSERT(_root, "Root entity is invalid");
 }

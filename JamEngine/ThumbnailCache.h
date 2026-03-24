@@ -19,7 +19,7 @@ private:
     void                                 GatherThumbnailsFrom_(StringView _dir);
     void                                 InsertThumbnail_(StringView _path);
     [[nodiscard]] Optional<Ref<Texture>> CreateThumbnail_(StringView _path) const;
-    [[nodiscard]] Ref<Texture>           CreateTexture_(Int32 _w, Int32 _h, CMemoryBlock _initData) const;
+    [[nodiscard]] Ref<Texture>           CreateTexture_(Int32 _w, Int32 _h, MemoryView _initData) const;
     void                                 OnFileModifiedEvent_(const FileModifiedEvent& _event);
 
     LRUCache<String, Ref<Texture>> m_cache;

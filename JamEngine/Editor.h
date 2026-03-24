@@ -107,13 +107,13 @@ public:
 
     // scene
     void LoadScenByFileDialog();
-    void SaveSceneByFileDialog(const Ref<Scene>& _pScene);
+    void SaveSceneByFileDialog(Scene* _pScene);
 
     // entity operator
-    void               CreateEntitiesFrom(const Ref<Scene>& _pScene, const Ref<Model>& _pModel);
-    void               CreateEntity(const Ref<Scene>& _pScene, Optional<Entity> _parent = k_nullopt);
-    void               CloneEntity(const Ref<Scene>& _pScene, Entity _srcEntity);
-    void               DestroyEntity(const Ref<Scene>& _pScene, Entity _entity);
+    void               CreateEntitiesFrom(Scene* _pScene, const Ref<Model>& _pModel);
+    void               CreateEntity(Scene* _pScene, Optional<Entity> _parent = k_nullopt);
+    void               CloneEntity(Scene* _pScene, Entity _srcEntity);
+    void               DestroyEntity(Scene* _pScene, Entity _entity);
     [[nodiscard]] bool CanEntityClone(Entity _entity) const;
     [[nodiscard]] bool CanEntityDestroy(Entity _entity) const;
 

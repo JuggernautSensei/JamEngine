@@ -32,7 +32,7 @@ MaterialCreationDialog::MaterialCreationDialog(
 
 void MaterialCreationDialog::OnShow()
 {
-    if (BeginLabelTable("MaterialCreationDialog"))
+    if (BeginLabelValueTable("MaterialCreationDialog"))
     {
         // dir
         ImGui::TableNextColumn();
@@ -93,9 +93,9 @@ bool MaterialCreationDialog::OnClickCreateButton_()
 }
 
 bool MaterialCreationDialog::CreateAndSaveAsset_(
-    StringView _path)
+    const StringView _path)
 {
-    Ref<Material> pMaterial = Material::Create({}, {}, {});
+    Ref<Material> pMaterial = Material::Load({});
     return SaveAsset_(_path, pMaterial);
 }
 

@@ -168,7 +168,7 @@ Expect<FileWriter> FileWriter::Open(
 }
 
 Error FileWriter::WriteFileAsBinary(
-    const CMemoryBlock               _data,
+    const MemoryView               _data,
     const StringView                 _path,
     const eFileWriterCollisionPolicy _policy)
 {
@@ -192,11 +192,11 @@ Error FileWriter::WriteFileAsString(
     const StringView                 _path,
     const eFileWriterCollisionPolicy _policy)
 {
-    return WriteFileAsBinary(CMemoryBlock { _str.GetPtr(), _str.GetLength() }, _path, _policy);
+    return WriteFileAsBinary(MemoryView { _str.GetPtr(), _str.GetLength() }, _path, _policy);
 }
 
 Expect<SizeT> FileWriter::WriteBinary(
-    const CMemoryBlock _data) const
+    const MemoryView _data) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
     const size_t written = ::fwrite(_data.GetPtr(), 1, _data.GetByteWidth(), m_pFile);
@@ -211,7 +211,7 @@ Expect<SizeT> FileWriter::WriteBinary(
 Expect<SizeT> FileWriter::WriteString(
     const StringView _str) const
 {
-    return WriteBinary(CMemoryBlock { _str.GetPtr(), _str.GetLength() });   // exclude null terminator
+    return WriteBinary(MemoryView { _str.GetPtr(), _str.GetLength() });   // exclude null terminator
 }
 
 void FileWriter::Flush() const
@@ -279,7 +279,7 @@ Expect<String> FileReader::ReadFileAsString(
 }
 
 Expect<SizeT> FileReader::ReadBinary(
-    const MemoryBlock _dst,
+    const MutableMemoryView _dst,
     const SizeT       _count) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");

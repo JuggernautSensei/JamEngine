@@ -53,6 +53,6 @@ bool                              SetEntityDragDropPayload(Entity _entity);
 [[nodiscard]] StringView EditorDisplayNameOf(ImGuiKey _key);
 
 // table
-bool BeginLabelTable(const char* _label);   // | Label | Value |  2 columns
+bool BeginLabelValueTable(const char* _label);   // | Label | Value |  2 columns
 
 }   // namespace Jam

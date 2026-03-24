@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="SandboxApp.h" />
+    <ClInclude Include="SimpleScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -149,6 +150,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SandboxApp.cpp" />
+    <ClCompile Include="SimpleScene.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

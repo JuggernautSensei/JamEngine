@@ -32,10 +32,9 @@
 #include <vector>
 
 // directX
-#include <DirectXTK/SimpleMath.h>
-#include <DirectXTK/SimpleMath.inl>
 #include <d3d11.h>
 #include <wrl.h>
+#include <Directxtk/SimpleMath.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "DirectXTK.lib")
@@ -64,7 +63,7 @@
 #include "String.h"
 #include "RefCounted.h"
 #include "Log.h"
-#include "MemoryBlock.h"
+#include "Memory.h"
 #include "Error.h"
 #include "Scoped.h"
 #include "Delegate.h"

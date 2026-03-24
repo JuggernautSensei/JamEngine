@@ -1,0 +1,23 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShaderd.obj",
+            "outputs": [
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShaderd.h_2224DFAA336B4698.ifc.dt.module.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShaderd.h_2224DFAA336B4698.ifc.dt.d.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShaderd.h.ifc",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\JamEngine.pch"
+            ],
+            "provides": [
+                {
+                    "logical-name": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\CppHlslShaderd.h",
+                    "source-path": "c:\\users\\ahnjiwoo\\desktop\\jamengine\\jamengine\\jamengine\\cpphlslshaderd.h",
+                    "lookup-method": "absolute"
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

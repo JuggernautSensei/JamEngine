@@ -1,0 +1,23 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslGlue.obj",
+            "outputs": [
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslGlue.h_D40169A9349C4B8.ifc.dt.module.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslGlue.h_D40169A9349C4B8.ifc.dt.d.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslGlue.h.ifc",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\JamEngine.pch"
+            ],
+            "provides": [
+                {
+                    "logical-name": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\CppHlslGlue.h",
+                    "source-path": "c:\\users\\ahnjiwoo\\desktop\\jamengine\\jamengine\\jamengine\\cpphlslglue.h",
+                    "lookup-method": "absolute"
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

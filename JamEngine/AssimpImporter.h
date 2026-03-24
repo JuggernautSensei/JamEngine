@@ -1,4 +1,6 @@
 #pragma once
+#include <assimp/Importer.hpp>
+
 #include "EnumArray.h"
 #include "Material.h"
 #include "Model.h"
@@ -25,12 +27,12 @@ struct ImportedMesh
 {
     String name = {};
 
-    Vector<Vector3>           positions  = {};
-    Vector<Vector3>           normals    = {};
-    Vector<Vector3>           tangents   = {};
-    Vector<Vector3>           bitangents = {};
-    Array<Vector<Vector4>, 4> colors     = {};
-    Array<Vector<Vector2>, 4> texCoords  = {};
+    Vector<Vec3>           positions  = {};
+    Vector<Vec3>           normals    = {};
+    Vector<Vec3>           tangents   = {};
+    Vector<Vec3>           bitangents = {};
+    Array<Vector<Vec4>, 4> colors     = {};
+    Array<Vector<Vec2>, 4> texCoords  = {};
     Vector<Byte>           idxData    = {};
     bool                   bUseU32    = false;
 };
@@ -53,7 +55,7 @@ struct ImportedMaterial
 struct ImportedTexture
 {
     String       name          = {};
-    CMemoryBlock pixels        = {};
+    MemoryView      pixels        = {};
     Int32        width         = 0;
     Int32        height        = 0;
     eImageFormat format        = {};
@@ -76,18 +78,22 @@ using ImportedModelNode = ModelNode;   // 동일한 구조이므로 별도 정�
 class AssimpImporter
 {
 public:
+    [[nodiscard]] static Expect<AssimpImporter> ImportFromMemory(MemoryView _data, const AssimpImporterInfo& _info = {});
     [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(StringView _path, const AssimpImporterInfo& _info = {});
 
     [[nodiscard]] const ImportedModelNode&        GetRootNode() const;
     [[nodiscard]] const Vector<ImportedMesh>&     GetMeshes() const;
     [[nodiscard]] const Vector<ImportedMaterial>& GetMaterials() const;
     [[nodiscard]] const Vector<ImportedTexture>&  GetTextures() const;
-
-    [[nodiscard]] Expect<Ref<Model>> ConvertToModel(const VertexLayout& _vl) const;
+    [[nodiscard]] Expect<Ref<Model>>              ExtractToModel(const VertexLayout& _vl);   // AssimpImporter is invalidate after successful extraction
 
 private:
     AssimpImporter() = default;
-    Error ImportFromFile_(StringView _path, const AssimpImporterInfo& _options);
+    Error  ImportFromMemory_(MemoryView _data, const AssimpImporterInfo& _options);
+    Error  ImportFromFile_(StringView _path, const AssimpImporterInfo& _options);
+    Error  Import_(const aiScene* _pScene, const AssimpImporterInfo& _options);
+    UInt32 MakeImportFlags_(const AssimpImporterInfo& _options) const;
+    void   PreImport_(Assimp::Importer& _importer, const AssimpImporterInfo& _options) const;
 
     // import steps
     void                            ImportMeshes_(const aiScene* _pScene, const AssimpImporterInfo& _options);
@@ -101,6 +107,7 @@ private:
     [[nodiscard]] Expect<Vector<Ref<Texture>>> ConvertToTextures_() const;
     [[nodiscard]] Vector<Ref<Material>>        ConvertToMaterials_(const Vector<Ref<Texture>>& _textures) const;
 
+    bool                     m_bExtracted        = false;
     ImportedModelNode        m_importedRoot      = {};
     Vector<ImportedMesh>     m_importedMeshes    = {};
     Vector<ImportedMaterial> m_importedMaterials = {};

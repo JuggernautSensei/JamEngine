@@ -141,22 +141,24 @@ public:
 
     void WriteToArchive(ArchiveWriter& _archive) const
     {
+        _archive.BeginArray();
         for (const auto& [name, pEntry]: m_entries)
         {
-            _archive.OpenAtBack();
+            _archive.AddElement();
+            _archive.BeginObject();
             _archive.WriteField("name", name);
             _archive.WriteField("vertexLayout", pEntry->GetVertexLayout());
-            _archive.Close();
+            _archive.EndObject();
         }
+        _archive.EndArray();
     }
 
     Error ReadFromArchive(ArchiveReader& _archive)
     {
         m_entries.Clear();
 
-        return _archive.ForEach(
-            [this](SizeT, ArchiveReader& _ar) -> Error
-            {
+        return _archive.ForEachArray(Bind(
+            [this](SizeT, ArchiveReader& _ar) -> Error {
                 String name = {};
                 if (const Error err = _ar.ReadField("name", name))
                 {
@@ -176,7 +178,7 @@ public:
 
                 Emplace(name, vertexLayout);
                 return Error::None;
-            });
+            }));
     }
 
 private:

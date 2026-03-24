@@ -8,7 +8,6 @@
 #include "FileDialog.h"
 #include "Graphics.h"
 #include "GraphicsBase.h"
-#include "MessageDialog.h"
 
 namespace Jam
 {
@@ -67,7 +66,7 @@ void ImageImportDialog::OnShow()
     }
 
     // render table
-    if (BeginLabelTable("ImportImageDialog"))
+    if (BeginLabelValueTable("ImportImageDialog"))
     {
         // path
         ImGui::TableNextColumn();
@@ -218,15 +217,7 @@ Error ImageImportDialog::LoadPreviewTexture_()
     const TextureHandle texh = GetGraphics().CreateTexture(importer->GetImageContainer());
 
     // set preview texture
-    if (m_pPreviewTex)
-    {
-        m_pPreviewTex->Load(texh);   // reload
-    }
-    else
-    {
-        m_pPreviewTex = Texture::Create(texh);   // alloc
-    }
-
+    m_pPreviewTex = Texture::Load(texh);
     return Error::None;
 }
 
@@ -306,7 +297,7 @@ bool ImageImportDialog::Widget_TextureFormatCombo_(
     bool        bChanged = false;
     if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const eTextureFormat type: EnumRanges<eTextureFormat>())
+        for (const eTextureFormat type: RangesOf<eTextureFormat>())
         {
             // exclude depth & unknown
             if (IsDepthFormat(type) || type == eTextureFormat::Unknown)

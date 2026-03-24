@@ -1,0 +1,25 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-03-24 20:43:47.427
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl Jam::Graphics::Frame(bool)
+line: 374
+column: 9
+------------------------------------
+user report: 
+HRESULT failure in m_pd3d11Device->GetDeviceRemovedReason()
+HRESULT: 0x-7785FFFA (GPU가 추가 명령에 응답하지 않는데, 호출 응용 프로그램이 잘못된 명령을 전달하기 때문일 가능성이 높습니다.
+)
+====================================

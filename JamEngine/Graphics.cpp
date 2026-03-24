@@ -251,7 +251,7 @@ namespace
         }
     }
 
-    String CreateName_(
+    [[nodiscard]] String CreateName_(
         const StringView _handleName,
         const AnyHandle  _handle,
         const StringView _userName)
@@ -363,17 +363,21 @@ void Graphics::OnEvent(Event& _event)
 {
     EventDispatcher dispatcher { _event };
     dispatcher.Dispatch<WindowResizedEvent>(this, &Graphics::OnWindowResizedEvent_);
-    dispatcher.Dispatch<WindowMaximizedEvent>(this, &Graphics::OnWindowMaxizeEvent_);
+    dispatcher.Dispatch<WindowMaximizedEvent>(this, &Graphics::OnWindowMaximizeEvent_);
 }
 
-void Graphics::Frame(const bool _bVSync)
+void Jam::Graphics::Frame(const bool _bVSync)
 {
-    JAM_CHECK_HRESULT(m_pdxgiSwapchain->Present(_bVSync ? 1 : 0, 0));
+    const HRESULT hr = m_pdxgiSwapchain->Present(_bVSync ? 1 : 0, m_bAllowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0);
+    if (FAILED(hr))
+    {
+        JAM_CHECK_HRESULT(m_pd3d11Device->GetDeviceRemovedReason());
+    }
+
     m_fbhBind = k_nullHandle;   // frame buffer must rebind after present (this is api demand)
 }
-
 VertexBufferHandle Graphics::CreateVertexBuffer(
-    const CMemoryBlock  _vertData,
+    const MemoryView    _vertData,
     const VertexLayout& _vl)
 {
     const Int32          byteWidth = NumericCast<Int32>(_vertData.GetByteWidth());
@@ -417,11 +421,11 @@ VertexBufferHandle Graphics::CreateDynamicVertexBuffer(
 }
 
 IndexBufferHandle Graphics::CreateIndexBuffer(
-    const CMemoryBlock _idxData,
-    const bool         _bUseU32)
+    const MemoryView _idxData,
+    const bool       _bUseU32)
 {
     const Int32          byteWidth = NumericCast<Int32>(_idxData.GetByteWidth());
-    const HardwareBuffer hwBuffer  = CreateHardwareBuffer_(byteWidth, eBufferType::IndexBuffer, {});
+    const HardwareBuffer hwBuffer  = CreateHardwareBuffer_(byteWidth, eBufferType::IndexBuffer, _idxData);
 
     IndexBuffer ib = {};
     ib.pBuffer     = hwBuffer.pBuffer;
@@ -484,10 +488,10 @@ TextureHandle Graphics::CreateTexture2D(
     const eTextureFormat             _format,
     const Int32                      _arraySize,
     const Flags<eTextureCreateFlags> _flags,
-    const Span<const CMemoryBlock>   _initDataOrEmpty)
+    const Span<const MemoryView>     _initDataOrEmpty)
 {
     const TextureHandle texh = m_textures.Alloc();
-    m_textures[texh]         = CreateHardwarTexture_(_width, _height, 1, _format, _arraySize, _flags, eTextureType::Texture2D, _initDataOrEmpty);
+    m_textures[texh]         = CreateHardwareTexture_(_width, _height, 1, _format, _arraySize, _flags, eTextureType::Texture2D, _initDataOrEmpty);
     SetTextureName(texh, "");
     return texh;
 }
@@ -498,10 +502,10 @@ TextureHandle Graphics::CreateTextureCube(
     const eTextureFormat             _format,
     const Int32                      _cubeCount,
     const Flags<eTextureCreateFlags> _flags,
-    const Span<const CMemoryBlock>   _initDataOrEmpty)
+    const Span<const MemoryView>     _initDataOrEmpty)
 {
     const TextureHandle texh = m_textures.Alloc();
-    m_textures[texh]         = CreateHardwarTexture_(_width, _height, 1, _format, _cubeCount * 6, _flags, eTextureType::TextureCube, _initDataOrEmpty);
+    m_textures[texh]         = CreateHardwareTexture_(_width, _height, 1, _format, _cubeCount * 6, _flags, eTextureType::TextureCube, _initDataOrEmpty);
     SetTextureName(texh, "");
     return texh;
 }
@@ -512,10 +516,10 @@ TextureHandle Graphics::CreateTexture3D(
     const Int32                      _depth,
     const eTextureFormat             _format,
     const Flags<eTextureCreateFlags> _texFlags,
-    const Span<const CMemoryBlock>   _initDataOrEmpty)
+    const Span<const MemoryView>     _initDataOrEmpty)
 {
     const TextureHandle texh = m_textures.Alloc();
-    m_textures[texh]         = CreateHardwarTexture_(_width, _height, _depth, _format, 1, _texFlags, eTextureType::Texture3D, _initDataOrEmpty);
+    m_textures[texh]         = CreateHardwareTexture_(_width, _height, _depth, _format, 1, _texFlags, eTextureType::Texture3D, _initDataOrEmpty);
     SetTextureName(texh, "");
     return texh;
 }
@@ -531,7 +535,7 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
 }
 
 ShaderHandle Graphics::CreateShader(
-    const CMemoryBlock _shaderByteCode)
+    const MemoryView _shaderByteCode)
 {
     return GetOrCreateShader_(_shaderByteCode);
 }
@@ -539,14 +543,14 @@ ShaderHandle Graphics::CreateShader(
 ProgramHandle Graphics::CreateProgram(
     const ShaderHandle _vsh,
     const ShaderHandle _psh,
-    const ShaderHandle _gsh,
-    const ShaderHandle _dsh,
     const ShaderHandle _hsh,
+    const ShaderHandle _dsh,
+    const ShaderHandle _gsh,
     const bool         _bDestroyShader)
 {
     JAM_ASSERT(_vsh || _psh, "At least one of VS or PS must be provided");
 
-    EnumArray<eShader, ShaderHandle> shs = { _vsh, _psh, _gsh, _dsh, _hsh, k_nullHandle /* compute shader */ };
+    EnumArray<eShader, ShaderHandle> shs = { _vsh, _psh, _hsh, _dsh, _gsh, k_nullHandle /* compute shader */ };
 
     Program program = {};
     for (eShader stage: k_gfxShaderStages)
@@ -624,7 +628,7 @@ void Graphics::DestroyIndexBuffer(const IndexBufferHandle _ibh)
     ID3D11Buffer* pd3d11Buffer = ib.pBuffer;
     if (pd3d11Buffer->Release() != 0)
     {
-        JAM_ASSERT(0, "Index pBuffer reference count is not zero. RefCount: {}", pd3d11Buffer->Release());
+        JAM_ASSERT(0, "Index pBuffer reference count is not zero.");
     }
 
     // free handle
@@ -820,8 +824,7 @@ void Graphics::SetTextureName(
     // SRV 이름 설정
     if (texture.pSrv)
     {
-        CreateName_(k_srvNames[texture.type], _texh, _name);
-        SetD3DDebugName_(texture.pSrv, texture.name);
+        SetD3DDebugName_(texture.pSrv, CreateName_(k_srvNames[texture.type], _texh, _name));
     }
 }
 
@@ -846,8 +849,7 @@ void Graphics::SetFrameBufferName(
     {
         if (fb.pRtvs[i])
         {
-            CreateName_(k_names[i], _fbh, _name);
-            SetD3DDebugName_(fb.pRtvs[i], CreateName_("FrameBuffer", _fbh, _name));
+            SetD3DDebugName_(fb.pRtvs[i], CreateName_(k_names[i], _fbh, _name));
         }
     }
 
@@ -950,7 +952,7 @@ void Graphics::UploadTexture2D(
     const Int32         _dstArrayIndex,
     const Int32         _dstX,
     const Int32         _dstY,
-    const CMemoryBlock  _uploadData,
+    const MemoryView    _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -973,7 +975,7 @@ void Graphics::UploadTexture2D(
 
 void Graphics::UploadTexture2D(
     const TextureHandle _texh,
-    const CMemoryBlock  _uploadData,
+    const MemoryView    _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -997,7 +999,7 @@ void Graphics::UploadTextureCube(
     const eCubeFace     _dstCubeFace,
     const Int32         _dstX,
     const Int32         _dstY,
-    const CMemoryBlock  _uploadData,
+    const MemoryView    _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -1021,7 +1023,7 @@ void Graphics::UploadTextureCube(
 void Graphics::UploadTextureCube(
     const TextureHandle _texh,
     const eCubeFace     _dstCubeFace,
-    const CMemoryBlock  _uploadData,
+    const MemoryView    _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDataRowPitch)
@@ -1046,12 +1048,12 @@ void Graphics::UploadTexture3D(
     const Int32         _dstX,
     const Int32         _dstY,
     const Int32         _dstZ,
-    const CMemoryBlock  _uploadData,
+    const MemoryView    _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDepth,
     const Int32         _uploadDataRowPitch,
-    const Int32         _uploadDataDepthPitch)
+    const Int32         _uploadDataSlicePitch)
 {
     const HardwareTextureRef& texture = m_textures[_texh];
     UploadTexture_(
@@ -1066,16 +1068,16 @@ void Graphics::UploadTexture3D(
         _uploadHeight,
         _uploadDepth,
         _uploadDataRowPitch,
-        _uploadDataDepthPitch);
+        _uploadDataSlicePitch);
 }
 void Graphics::UploadTexture3D(
     const TextureHandle _texh,
-    const CMemoryBlock  _uploadData,
+    const MemoryView    _uploadData,
     const Int32         _uploadWidth,
     const Int32         _uploadHeight,
     const Int32         _uploadDepth,
     const Int32         _uploadDataRowPitch,
-    const Int32         _uploadDataDepthPitch)
+    const Int32         _uploadDataSlicePitch)
 {
     UploadTexture3D(
         _texh,
@@ -1089,7 +1091,7 @@ void Graphics::UploadTexture3D(
         _uploadHeight,
         _uploadDepth,
         _uploadDataRowPitch,
-        _uploadDataDepthPitch);
+        _uploadDataSlicePitch);
 }
 
 Vector<Byte> Graphics::DownloadTexture2D(
@@ -1324,7 +1326,7 @@ ProgramInfo Graphics::GetProgramInfo(
 
 void Graphics::UploadBuffer(
     const VertexBufferHandle _vbh,
-    const CMemoryBlock       _writeData,
+    const MemoryView         _writeData,
     const Int32              _offset,
     const bool               _bDiscard)
 {
@@ -1334,7 +1336,7 @@ void Graphics::UploadBuffer(
 
 void Graphics::UploadBuffer(
     const IndexBufferHandle _ibh,
-    const CMemoryBlock      _writeData,
+    const MemoryView        _writeData,
     const Int32             _offset,
     const bool              _bDiscard)
 {
@@ -1344,20 +1346,20 @@ void Graphics::UploadBuffer(
 
 void Graphics::UploadBuffer(
     const ConstantBufferHandle _cbh,
-    const CMemoryBlock         _writeData)
+    const MemoryView           _writeData)
 {
     const ConstantBuffer& cb = m_cbuffers[_cbh];
     UploadBuffer_(cb, _writeData, 0, true);
 }
 
-MemoryBlock Graphics::BeginUploadBuffer(
+MutableMemoryView Graphics::BeginUploadBuffer(
     const VertexBufferHandle _vbh)
 {
     const VertexBuffer& vb = m_vertexBuffers[_vbh];
     return BeginUploadBuffer_(vb);
 }
 
-MemoryBlock Graphics::BeginUploadBuffer(
+MutableMemoryView Graphics::BeginUploadBuffer(
     const IndexBufferHandle _ibh)
 {
     const IndexBuffer& ib = m_indexBuffers[_ibh];
@@ -1422,15 +1424,15 @@ void Graphics::SetVertexBuffer(
 }
 
 void Graphics::SetVertexBuffer(
-    const VertexBufferHandle _vbh,
+    const VertexBufferHandle _vbhOrInvalid,
     const Int32              _numVerts,
     const Int32              _vertOffset)
 {
-    if (m_vbhBind != _vbh || m_vbOffsetBind != _vertOffset)
+    if (m_vbhBind != _vbhOrInvalid || m_vbOffsetBind != _vertOffset)
     {
-        if (_vbh)
+        if (_vbhOrInvalid)
         {
-            const VertexBuffer& vb = m_vertexBuffers[_vbh];
+            const VertexBuffer& vb = m_vertexBuffers[_vbhOrInvalid];
             if (m_vlhBind != vb.vlh)
             {
                 m_vlhBind = vb.vlh;
@@ -1438,27 +1440,35 @@ void Graphics::SetVertexBuffer(
             }
         }
 
-        m_vbhBind      = _vbh;
+        m_vbhBind      = _vbhOrInvalid;
         m_vbOffsetBind = _vertOffset;
         m_dirtyFlags |= ePipelineDirtyFlags::VertexBuffer;
     }
     m_numVertsBind = _numVerts;
 }
 
-void Graphics::SetIndexBuffer(const IndexBufferHandle _handleOrInvalid)
+void Graphics::SetIndexBuffer(
+    const IndexBufferHandle _ibhOrInvalid)
 {
-    const IndexBuffer& ib = m_indexBuffers[_handleOrInvalid];
-    SetIndexBuffer(_handleOrInvalid, ib.numIdxes, 0);
+    if (_ibhOrInvalid)
+    {
+        const IndexBuffer& ib = m_indexBuffers[_ibhOrInvalid];
+        SetIndexBuffer(_ibhOrInvalid, ib.numIdxes, 0);
+    }
+    else
+    {
+        SetIndexBuffer(_ibhOrInvalid, 0, 0);
+    }
 }
 
 void Graphics::SetIndexBuffer(
-    const IndexBufferHandle _ibh,
+    const IndexBufferHandle _ibhOrInvalid,
     const Int32             _numIdxes,
     const Int32             _idxOffset)
 {
-    if (m_ibhBind != _ibh || m_ibOffsetBind != _idxOffset)
+    if (m_ibhBind != _ibhOrInvalid || m_ibOffsetBind != _idxOffset)
     {
-        m_ibhBind      = _ibh;
+        m_ibhBind      = _ibhOrInvalid;
         m_ibOffsetBind = _idxOffset;
         m_dirtyFlags |= ePipelineDirtyFlags::IndexBuffer;
     }
@@ -1816,49 +1826,43 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
 }
 
 TextureHandle Graphics::CreateTexture(
-    const ImageContainer& _scratchImage)
+    const ImageContainer& _imageContainer,
+    const bool            _bMutable)
 {
-    ID3D11Resource* pResource = nullptr;
-    JAM_CHECK_HRESULT(DirectX::CreateTexture(
-        m_pd3d11Device,
-        _scratchImage.GetImages(),
-        _scratchImage.GetImageCount(),
-        _scratchImage.GetMetadata(),
-        &pResource));
+    const DirectX::TexMetadata& metadata = _imageContainer.GetMetadata();
 
-    const DirectX::TexMetadata& metadata = _scratchImage.GetMetadata();
-    JAM_ASSERT(metadata.IsCubemap()
-                   || metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE2D
-                   || metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D,
-               "Only 2D, Cube, and 3D m_textures are supported.");
+    Vector<MemoryView> initData = {};
+    initData.reserve(metadata.mipLevels * metadata.arraySize);
+    for (UInt32 arrayIndex = 0; arrayIndex < metadata.arraySize; ++arrayIndex)
+    {
+        for (UInt32 mipIndex = 0; mipIndex < metadata.mipLevels; ++mipIndex)
+        {
+            const DirectX::Image* img = _imageContainer.GetImage(mipIndex, arrayIndex, 0);
+            initData.emplace_back(img->pixels, img->rowPitch * img->height);
+        }
+    }
 
-    HardwareTextureRef texture = {};
-    texture.width              = NumericCast<Int32>(metadata.width);
-    texture.height             = NumericCast<Int32>(metadata.height);
-    texture.depth              = NumericCast<Int32>(metadata.depth);
-    texture.format             = TextureFormatFrom(metadata.format);
-    texture.arraySize          = NumericCast<Int32>(metadata.arraySize);
-    texture.samples            = 1;
-    texture.numMips            = NumericCast<Int32>(metadata.mipLevels);
-    texture.refCount           = 1;
-    texture.bManaged           = false;
-    texture.bMutable           = false;
-    texture.pResource          = pResource;
-    texture.type               = metadata.IsCubemap()                                   ? eTextureType::TextureCube
-                               : metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D ? eTextureType::Texture3D
-                                                                                        : eTextureType::Texture2D;
+    const Int32 w = NumericCast<Int32>(metadata.width);
+    const Int32 h = NumericCast<Int32>(metadata.height);
+    const Int32 d = NumericCast<Int32>(metadata.depth);
 
-    JAM_CHECK_HRESULT(DirectX::CreateShaderResourceView(
-        m_pd3d11Device,
-        _scratchImage.GetImages(),
-        _scratchImage.GetImageCount(),
-        _scratchImage.GetMetadata(),
-        &texture.pSrv));
-
-    const TextureHandle texh = m_textures.Alloc();
-    m_textures[texh]         = std::move(texture);
-    SetTextureName(texh, "");
-    return texh;
+    const Flags<eTextureCreateFlags> flags = _bMutable ? eTextureCreateFlags::Mutable : eTextureCreateFlags::None;
+    if (metadata.IsCubemap())
+    {
+        return CreateTextureCube(w, h, TextureFormatFrom(metadata.format), NumericCast<Int32>(metadata.arraySize / 6), flags, initData);
+    }
+    else if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE3D)
+    {
+        return CreateTexture3D(w, h, d, TextureFormatFrom(metadata.format), flags, initData);
+    }
+    else if (metadata.dimension == DirectX::TEX_DIMENSION_TEXTURE2D)
+    {
+        return CreateTexture2D(w, h, TextureFormatFrom(metadata.format), NumericCast<Int32>(metadata.arraySize), flags, initData);
+    }
+    else
+    {
+        JAM_UNREACHABLE;
+    }
 }
 
 void Graphics::Submit()
@@ -1883,7 +1887,9 @@ void Graphics::Submit()
 Graphics::Graphics(
     const HWND  _hWnd,
     const Int32 _width,
-    const Int32 _height)
+    const Int32 _height,
+    const bool  _bAllowTearing)
+    : m_bAllowTearing(_bAllowTearing)
 {
     // d3d11 device 초기화
     {
@@ -1935,9 +1941,13 @@ Graphics::Graphics(
         swapChainDesc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.BufferCount           = 2;
         swapChainDesc.Scaling               = DXGI_SCALING_STRETCH;
-        swapChainDesc.SwapEffect            = DXGI_SWAP_EFFECT_DISCARD;
-        swapChainDesc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        swapChainDesc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapChainDesc.AlphaMode             = DXGI_ALPHA_MODE_UNSPECIFIED;
+        swapChainDesc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        if (_bAllowTearing)
+        {
+            swapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        }
 
         JAM_CHECK_HRESULT(dxgiFactory->CreateSwapChainForHwnd(m_pd3d11Device, _hWnd, &swapChainDesc, nullptr, nullptr, &m_pdxgiSwapchain));
         OnResize_(_width, _height);
@@ -1971,6 +1981,31 @@ Graphics::~Graphics()
         pSamplerState->Release();
     }
 
+    // 내부 리소스 해제
+    if (m_pUploadBufferCache)
+    {
+        if (m_pUploadBufferCache->Release() != 0)
+        {
+            JAM_ASSERT(0, "Upload buffer cache is still in use. All buffers from the cache must be released before destroying the graphics instance.");
+        }
+    }
+
+    if (m_pReadbackBufferCache)
+    {
+        if (m_pReadbackBufferCache->Release() != 0)
+        {
+            JAM_ASSERT(0, "Readback buffer cache is still in use. All buffers from the cache must be released before destroying the graphics instance.");
+        }
+    }
+
+    for (const ReadbackTextureCacheEntry& entry: m_readbackTextureCache | std::views::values)
+    {
+        if (entry.pResource->Release() != 0)
+        {
+            JAM_ASSERT(0, "Readback staging texture is still in use. All textures from the cache must be released before destroying the graphics instance.");
+        }
+    }
+
     // d3d11 device 해제
     m_pdxgiSwapchain->Release();
     m_pd3d11DeviceContext->Release();
@@ -1986,10 +2021,11 @@ Graphics::~Graphics()
 void Graphics::CreateInstance(
     const HWND  _hwnd,
     const Int32 _width,
-    const Int32 _height)
+    const Int32 _height,
+    const bool  _bAllowTearing)
 {
     JAM_ASSERT(s_pInstance == nullptr, "Graphics instance already created");
-    s_pInstance = new Graphics(_hwnd, _width, _height);
+    s_pInstance = new Graphics(_hwnd, _width, _height, _bAllowTearing);
 }
 
 void Graphics::DestroyInstance()
@@ -2487,7 +2523,9 @@ void Graphics::OnResize_(
         }
 
         // resize
-        JAM_CHECK_HRESULT(m_pdxgiSwapchain->ResizeBuffers(0, _width, _height, DXGI_FORMAT_UNKNOWN, 0));
+        DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+        JAM_CHECK_HRESULT(m_pdxgiSwapchain->GetDesc1(&swapChainDesc));
+        JAM_CHECK_HRESULT(m_pdxgiSwapchain->ResizeBuffers(0, _width, _height, DXGI_FORMAT_UNKNOWN, swapChainDesc.Flags));
 
         // create dependencies
         {
@@ -2531,13 +2569,13 @@ void Graphics::OnWindowResizedEvent_(
     OnResize_(_event.GetWidth(), _event.GetHeight());
 }
 
-void Graphics::OnWindowMaxizeEvent_(
+void Graphics::OnWindowMaximizeEvent_(
     const WindowMaximizedEvent& _event)
 {
     OnResize_(_event.GetWidth(), _event.GetHeight());
 }
 
-HardwareTextureRef Graphics::CreateHardwarTexture_(
+HardwareTextureRef Graphics::CreateHardwareTexture_(
     const Int32                      _width,
     const Int32                      _height,
     const Int32                      _depth,
@@ -2545,7 +2583,7 @@ HardwareTextureRef Graphics::CreateHardwarTexture_(
     const Int32                      _arraySize,
     const Flags<eTextureCreateFlags> _flags,
     const eTextureType               _type,
-    Span<const CMemoryBlock>         _initDataOrEmpty) const
+    Span<const MemoryView>           _initDataOrEmpty) const
 {
     const bool  bGenMips       = (_flags & eTextureCreateFlags::GenerateMips);
     const bool  bIsMSAA        = (_flags & eTextureCreateFlags::MultiSampled_Internal);
@@ -2632,9 +2670,9 @@ HardwareTextureRef Graphics::CreateHardwarTexture_(
                 for (Int32 mipIdx = 0; mipIdx < numMips; mipIdx++)
                 {
                     const auto [width, height, _] = CalcTextureResolution(_width, _height, 1, mipIdx);
-                    const Int32        texIndex   = CalcTextureIndex(mipIdx, arrayIdx, numMips);
-                    const CMemoryBlock mem        = _initDataOrEmpty[texIndex];
-                    const UINT         rowPitch   = width * BytePerPixelOf(_format);
+                    const Int32      texIndex     = CalcTextureIndex(mipIdx, arrayIdx, numMips);
+                    const MemoryView mem          = _initDataOrEmpty[texIndex];
+                    const UINT       rowPitch     = width * BytePerPixelOf(_format);
                     JAM_ASSERT(mem.GetByteWidth() == rowPitch * height, "Texture data size mismatch");
                     initData.emplace_back(mem.GetPtr(), rowPitch, 0);
                 }
@@ -2645,7 +2683,7 @@ HardwareTextureRef Graphics::CreateHardwarTexture_(
     }
     else
     {
-        JAM_ASSERT(_flags & eTextureCreateFlags::MultiSampled_Internal, "3D texture cannot be multisampled");
+        JAM_ASSERT(!(_flags & eTextureCreateFlags::MultiSampled_Internal), "3D texture cannot be multisampled");
         JAM_ASSERT(_arraySize == 1, "3D texture array size must be 1");
         JAM_ASSERT(!bIsCubemap, "3D texture cannot be a cubemap");
         JAM_ASSERT(!bDsvAttachable, "3D texture cannot be a Depth/Stencil view.");
@@ -2686,9 +2724,9 @@ HardwareTextureRef Graphics::CreateHardwarTexture_(
             for (Int32 mipIdx = 0; mipIdx < numMips; mipIdx++)
             {
                 const auto [width, height, depth] = CalcTextureResolution(_width, _height, _depth, mipIdx);
-                const CMemoryBlock mem            = _initDataOrEmpty[mipIdx];
-                const UINT         rowPitch       = width * BytePerPixelOf(_format);
-                const UINT         slicePitch     = rowPitch * height;
+                const MemoryView mem              = _initDataOrEmpty[mipIdx];
+                const UINT       rowPitch         = width * BytePerPixelOf(_format);
+                const UINT       slicePitch       = rowPitch * height;
                 JAM_ASSERT(mem.GetByteWidth() == slicePitch * depth, "Texture data size mismatch");
                 initData.emplace_back(mem.GetPtr(), rowPitch, slicePitch);
             }
@@ -2771,9 +2809,9 @@ HardwareTextureRef Graphics::CreateHardwarTexture_(
 }
 
 HardwareBuffer Graphics::CreateHardwareBuffer_(
-    const Int32        _byteWidth,
-    const eBufferType  _type,
-    const CMemoryBlock _initDataOrEmpty) const
+    const Int32       _byteWidth,
+    const eBufferType _type,
+    const MemoryView  _initDataOrEmpty) const
 {
     JAM_ASSERT(_byteWidth > 0, "Buffer size must be greater than zero.");
 
@@ -2957,7 +2995,7 @@ FrameBuffer Graphics::CreateFrameBuffer_(
 }
 
 ShaderHandle Graphics::GetOrCreateShader_(
-    const CMemoryBlock _byteCode)
+    const MemoryView _byteCode)
 {
     Murmur3Hasher64 hasher {};
     hasher.Mix(_byteCode);
@@ -3049,8 +3087,8 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
     Murmur3Hasher64 hasher {};
     for (const VertexLayoutElement& vle: _vl.GetElems())
     {
-        hasher.Mix(vle.attrib);
-        hasher.Mix(vle.format);
+        hasher.Mix(AsMemoryView(vle.attrib));
+        hasher.Mix(AsMemoryView(vle.format));
     }
     const UInt64 hash = hasher.Finish();
 
@@ -3099,7 +3137,7 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
 
     ShaderCompiler compiler = ShaderCompiler::CompileHLSLSource(source, desc);
     JAM_ASSERT(compiler.IsSucceeded(), "Failed to compile dummy vertex shader for input layout creation.");
-    const CMemoryBlock pBytecode = compiler.GetBytecode();
+    const MemoryView pBytecode = compiler.GetBytecode();
 
     // create d3d11 input layout
     ID3D11InputLayout* pd3d11InputLayout = nullptr;
@@ -3129,7 +3167,7 @@ VertexLayoutHandle Graphics::GetOrCreateVertexLayout_(
     return vlh;
 }
 
-MemoryBlock Graphics::BeginUploadBuffer_(
+MutableMemoryView Graphics::BeginUploadBuffer_(
     const HardwareBuffer& _buffer) const
 {
     D3D11_MAPPED_SUBRESOURCE mapped;
@@ -3145,9 +3183,9 @@ void Graphics::EndUploadBuffer_(
 
 void Graphics::UploadBuffer_(
     const HardwareBuffer& _buffer,
-    const CMemoryBlock    _uploadData,
+    const MemoryView      _uploadData,
     const Int32           _offset,
-    const bool            _bDiscard) const
+    const bool            _bDiscard)
 {
     JAM_ASSERT(_buffer.bDynamic, "Only dynamic buffer can be updated");
 
@@ -3168,21 +3206,12 @@ void Graphics::UploadBuffer_(
         // ConstantBuffer는 CopySubresourceRegion로 복사가 안됨.
         // https://learn.microsoft.com/ko-kr/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-copysubresourceregion
 
-        D3D11_BUFFER_DESC desc   = {};
-        desc.Usage               = D3D11_USAGE_STAGING;
-        desc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
-        desc.BindFlags           = 0;
-        desc.MiscFlags           = 0;
-        desc.ByteWidth           = uploadDataWidth;
-        desc.StructureByteStride = 0;
+        ID3D11Buffer* pUploadBuffer = GetOrCreateUploadBuffer_(uploadDataWidth);
 
-        D3D11_SUBRESOURCE_DATA initData = {};
-        initData.pSysMem                = pUploadData;
-        initData.SysMemPitch            = 0;
-        initData.SysMemSlicePitch       = 0;
-
-        ComPtr<ID3D11Buffer> pStagingBuffer = nullptr;
-        JAM_CHECK_HRESULT(m_pd3d11Device->CreateBuffer(&desc, &initData, pStagingBuffer.ReleaseAndGetAddressOf()));
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        JAM_CHECK_HRESULT(m_pd3d11DeviceContext->Map(pUploadBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
+        std::memcpy(mapped.pData, pUploadData, uploadDataWidth);
+        m_pd3d11DeviceContext->Unmap(pUploadBuffer, 0);
 
         D3D11_BOX box = {};
         box.left      = 0;
@@ -3192,37 +3221,24 @@ void Graphics::UploadBuffer_(
         box.front     = 0;
         box.back      = 1;
 
-        m_pd3d11DeviceContext->CopySubresourceRegion(_buffer.pBuffer, 0, _offset, 0, 0, pStagingBuffer.Get(), 0, &box);
+        m_pd3d11DeviceContext->CopySubresourceRegion(_buffer.pBuffer, 0, _offset, 0, 0, pUploadBuffer, 0, &box);
     }
 }
 
 Vector<Byte> Graphics::DownloadBuffer_(
-    const HardwareBuffer& _buffer) const
+    const HardwareBuffer& _buffer)
 {
     Vector<Byte> readData(_buffer.byteWidth);
 
-    // create staging buffer
-    D3D11_BUFFER_DESC desc   = {};
-    desc.ByteWidth           = _buffer.byteWidth;
-    desc.Usage               = D3D11_USAGE_STAGING;
-    desc.CPUAccessFlags      = D3D11_CPU_ACCESS_READ;
-    desc.BindFlags           = 0;
-    desc.MiscFlags           = 0;
-    desc.StructureByteStride = 0;
-
-    ComPtr<ID3D11Buffer> pStagingBuffer = nullptr;
-    JAM_CHECK_HRESULT(m_pd3d11Device->CreateBuffer(&desc, nullptr, pStagingBuffer.ReleaseAndGetAddressOf()));
-
     // copy to staging buffer
-    m_pd3d11DeviceContext->CopyResource(pStagingBuffer.Get(), _buffer.pBuffer);
+    ID3D11Buffer* pBuffer = GetOrCreateReadbackBuffer_(_buffer.byteWidth);
+    m_pd3d11DeviceContext->CopyResource(pBuffer, _buffer.pBuffer);
 
     // map staging buffer
-    {
-        D3D11_MAPPED_SUBRESOURCE mappedResource;
-        JAM_CHECK_HRESULT(m_pd3d11DeviceContext->Map(pStagingBuffer.Get(), 0, D3D11_MAP_READ, 0, &mappedResource));
-        std::memcpy(readData.data(), mappedResource.pData, _buffer.byteWidth);
-        m_pd3d11DeviceContext->Unmap(pStagingBuffer.Get(), 0);
-    }
+    D3D11_MAPPED_SUBRESOURCE mapped;
+    JAM_CHECK_HRESULT(m_pd3d11DeviceContext->Map(pBuffer, 0, D3D11_MAP_READ, 0, &mapped));
+    std::memcpy(readData.data(), mapped.pData, _buffer.byteWidth);
+    m_pd3d11DeviceContext->Unmap(pBuffer, 0);
 
     return readData;
 }
@@ -3234,12 +3250,12 @@ void Graphics::UploadTexture_(
     const Int32               _dstX,
     const Int32               _dstY,
     const Int32               _dstZ,
-    const CMemoryBlock        _uploadData,
+    const MemoryView          _uploadData,
     const Int32               _uploadWidth,
     const Int32               _uploadHeight,
     const Int32               _uploadDepth,
     const Int32               _uploadDataRowPitch,
-    const Int32               _uploadDataDepthPitch) const
+    const Int32               _uploadDataSlicePitch) const
 {
     JAM_ASSERT(_dstTexture.pResource, "Destination texture resource is null!");
 
@@ -3260,13 +3276,13 @@ void Graphics::UploadTexture_(
         &dstBox,
         _uploadData.GetPtr(),
         _uploadDataRowPitch,
-        _uploadDataDepthPitch);
+        _uploadDataSlicePitch);
 }
 
 Vector<Byte> Graphics::DownloadTexture_(
     const HardwareTextureRef& _texture,
     const Int32               _mipIndex,
-    const Int32               _arrayIndex) const
+    const Int32               _arrayIndex)
 {
     JAM_ASSERT(_mipIndex >= 0 && _arrayIndex >= 0, "Mip and array pos must be non-negative");
     JAM_ASSERT(_mipIndex < _texture.numMips, "Mip handle out of range");
@@ -3279,93 +3295,47 @@ Vector<Byte> Graphics::DownloadTexture_(
     Vector<Byte> data(slicePitch * depth);
     if (_texture.type == eTextureType::TextureCube || _texture.type == eTextureType::Texture2D)
     {
-
-        // create staging texture
-        const TextureFormatInfo& formatInfo = TextureFormatInfoFrom(_texture.format);
-
-        D3D11_TEXTURE2D_DESC desc = {};
-        desc.Width                = width;
-        desc.Height               = height;
-        desc.MipLevels            = 1;
-        desc.ArraySize            = 1;
-        desc.Format               = formatInfo.texFormat;
-        desc.SampleDesc.Count     = 1;
-        desc.SampleDesc.Quality   = 0;
-        desc.Usage                = D3D11_USAGE_STAGING;
-        desc.BindFlags            = 0;
-        desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
-        desc.MiscFlags            = 0;
-
-        ComPtr<ID3D11Texture2D> pReadback = nullptr;
-        JAM_CHECK_HRESULT(m_pd3d11Device->CreateTexture2D(&desc, nullptr, pReadback.ReleaseAndGetAddressOf()));
-
         // copy to staging texture
-        {
-            const UINT index = D3D11CalcSubresource(_mipIndex, _arrayIndex, _texture.numMips);
-            m_pd3d11DeviceContext->CopySubresourceRegion(pReadback.Get(), 0, 0, 0, 0, _texture.pTexture2D, index, nullptr);
-        }
+        ID3D11Texture2D* pReadback = GetOrCreateReadbackTexture2D_(width, height, _texture.format);
+        const UINT       index     = D3D11CalcSubresource(_mipIndex, _arrayIndex, _texture.numMips);
+        m_pd3d11DeviceContext->CopySubresourceRegion(pReadback, 0, 0, 0, 0, _texture.pTexture2D, index, nullptr);
 
         // map staging texture
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        JAM_CHECK_HRESULT(m_pd3d11DeviceContext->Map(pReadback, 0, D3D11_MAP_READ, 0, &mapped));
+
+        Byte*       pDstHead = data.data();
+        const Byte* pSrcHead = static_cast<const Byte*>(mapped.pData);
+        for (Int32 row = 0; row < height; ++row)
         {
-            D3D11_MAPPED_SUBRESOURCE mapped;
-            JAM_CHECK_HRESULT(m_pd3d11DeviceContext->Map(pReadback.Get(), 0, D3D11_MAP_READ, 0, &mapped));
-
-            Byte*       pDstHead = data.data();
-            const Byte* pSrcHead = static_cast<const Byte*>(mapped.pData);
-            for (Int32 row = 0; row < height; ++row)
-            {
-                Byte*       pDst = pDstHead + row * rowPitch;
-                const Byte* pSrc = pSrcHead + row * mapped.RowPitch;
-                std::memcpy(pDst, pSrc, rowPitch);
-            }
-
-            m_pd3d11DeviceContext->Unmap(pReadback.Get(), 0);
+            Byte*       pDst = pDstHead + row * rowPitch;
+            const Byte* pSrc = pSrcHead + row * mapped.RowPitch;
+            std::memcpy(pDst, pSrc, rowPitch);
         }
+
+        m_pd3d11DeviceContext->Unmap(pReadback, 0);
     }
     else
     {
+        ID3D11Texture3D* pReadback = GetOrCreateReadbackTexture3D_(width, height, depth, _texture.format);
+        const UINT       index     = D3D11CalcSubresource(_mipIndex, 0, _texture.numMips);
+        m_pd3d11DeviceContext->CopySubresourceRegion(pReadback, 0, 0, 0, 0, _texture.pTexture3D, index, nullptr);
 
-        // create staging texture
-        const TextureFormatInfo& formatInfo = TextureFormatInfoFrom(_texture.format);
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        JAM_CHECK_HRESULT(m_pd3d11DeviceContext->Map(pReadback, 0, D3D11_MAP_READ, 0, &mapped));
 
-        D3D11_TEXTURE3D_DESC desc = {};
-        desc.Width                = width;
-        desc.Height               = height;
-        desc.Depth                = depth;
-        desc.MipLevels            = 1;
-        desc.Format               = formatInfo.texFormat;
-        desc.Usage                = D3D11_USAGE_STAGING;
-        desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
-        desc.BindFlags            = 0;
-        desc.MiscFlags            = 0;
-
-        ComPtr<ID3D11Texture3D> pStagingTexture3D = nullptr;
-        JAM_CHECK_HRESULT(m_pd3d11Device->CreateTexture3D(&desc, nullptr, pStagingTexture3D.ReleaseAndGetAddressOf()));
-
-        // copy to staging texture
+        Byte*       pDstHead = data.data();
+        const Byte* pSrcHead = static_cast<const Byte*>(mapped.pData);
+        for (Int32 slice = 0; slice < depth; ++slice)
         {
-            const UINT index = D3D11CalcSubresource(_mipIndex, 0, _texture.numMips);
-            m_pd3d11DeviceContext->CopySubresourceRegion(pStagingTexture3D.Get(), 0, 0, 0, 0, _texture.pTexture3D, index, nullptr);
-        }
-
-        // map staging texture
-        {
-            D3D11_MAPPED_SUBRESOURCE mapped;
-            JAM_CHECK_HRESULT(m_pd3d11DeviceContext->Map(pStagingTexture3D.Get(), 0, D3D11_MAP_READ, 0, &mapped));
-
-            Byte*       pDstHead = data.data();
-            const Byte* pSrcHead = static_cast<const Byte*>(mapped.pData);
-            for (Int32 slice = 0; slice < depth; ++slice)
+            for (Int32 row = 0; row < height; ++row)
             {
-                for (Int32 row = 0; row < height; ++row)
-                {
-                    Byte*       pDst = pDstHead + slice * slicePitch + row * rowPitch;
-                    const Byte* pSrc = pSrcHead + slice * mapped.DepthPitch + row * mapped.RowPitch;
-                    std::memcpy(pDst, pSrc, rowPitch);
-                }
+                Byte*       pDst = pDstHead + slice * slicePitch + row * rowPitch;
+                const Byte* pSrc = pSrcHead + slice * mapped.DepthPitch + row * mapped.RowPitch;
+                std::memcpy(pDst, pSrc, rowPitch);
             }
-            m_pd3d11DeviceContext->Unmap(pStagingTexture3D.Get(), 0);
         }
+        m_pd3d11DeviceContext->Unmap(pReadback, 0);
     }
 
     return data;
@@ -3424,7 +3394,7 @@ ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerState_(
     const RasterizerStateD3D11 _state)
 {
     Murmur3Hasher32 hasher {};
-    hasher.Mix(_state);
+    hasher.Mix(AsMemoryView(_state));
     const UInt32 key = hasher.Finish();
 
     const auto it = m_d3d11RasterizerStateCache.find(key);
@@ -3457,7 +3427,7 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendState_(
     const BlendStateD3D11& _state)
 {
     Murmur3Hasher64 hasher {};
-    hasher.Mix(_state);
+    hasher.Mix(AsMemoryView(_state));
     const UInt64 hash = hasher.Finish();
 
     const auto it = m_d3d11BlendStateCache.find(hash);
@@ -3515,7 +3485,7 @@ ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilState_(
     const DepthStencilStateD3D11 _state)
 {
     Murmur3Hasher64 hasher {};
-    hasher.Mix(_state);
+    hasher.Mix(AsMemoryView(_state));
     const UInt64 key = hasher.Finish();
 
     const auto it = m_d3d11DepthStencilStateCache.find(key);
@@ -3542,7 +3512,7 @@ ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilState_(
     desc.BackFace.StencilFailOp      = D3D11StencilOpFrom_(_state.bStencil.stencilFailOp);
     desc.BackFace.StencilDepthFailOp = D3D11StencilOpFrom_(_state.bStencil.depthFailOp);
     desc.BackFace.StencilPassOp      = D3D11StencilOpFrom_(_state.bStencil.passOp);
-    desc.BackFace.StencilFunc        = D3D11ComparisonFuncFrom_(_state.fStencil.compareFunc);
+    desc.BackFace.StencilFunc        = D3D11ComparisonFuncFrom_(_state.bStencil.compareFunc);
 
     ID3D11DepthStencilState* pDepthStencilState;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateDepthStencilState(&desc, &pDepthStencilState));
@@ -3555,8 +3525,8 @@ ID3D11SamplerState* Graphics::GetOrCreateD3D11SamplerState_(
     const RGBA         _color)
 {
     Murmur3Hasher64 hasher {};
-    hasher.Mix(_state);
-    hasher.Mix(_color);
+    hasher.Mix(AsMemoryView(_state));
+    hasher.Mix(AsMemoryView(_color));
     const UInt64 key = hasher.Finish();
 
     const auto it = m_d3d11SamplerStateCache.find(key);
@@ -3591,6 +3561,160 @@ ID3D11SamplerState* Graphics::GetOrCreateD3D11SamplerState_(
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateSamplerState(&desc, &pSamplerState));
     m_d3d11SamplerStateCache[key] = pSamplerState;
     return pSamplerState;
+}
+
+ID3D11Buffer* Graphics::GetOrCreateUploadBuffer_(
+    const Int32 _byteWidth)
+{
+    JAM_ASSERT(_byteWidth > 0, "Buffer byte width must be positive");
+    if (_byteWidth <= m_pUploadBufferCacheSize)
+    {
+        return m_pUploadBufferCache;
+    }
+
+    if (m_pUploadBufferCache)
+    {
+        if (m_pUploadBufferCache->Release() != 0)
+        {
+            JAM_ASSERT(0, "Upload buffer cache reference count is expected to be 1, but it's not. This indicates a potential resource leak or misuse of the upload buffer.");
+        }
+    }
+
+    D3D11_BUFFER_DESC desc   = {};
+    desc.Usage               = D3D11_USAGE_DYNAMIC;
+    desc.ByteWidth           = _byteWidth;
+    desc.BindFlags           = 0;
+    desc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
+    desc.MiscFlags           = 0;
+    desc.StructureByteStride = 0;
+    JAM_CHECK_HRESULT(m_pd3d11Device->CreateBuffer(&desc, nullptr, &m_pUploadBufferCache));
+    m_pUploadBufferCacheSize = _byteWidth;
+    return m_pUploadBufferCache;
+}
+
+ID3D11Buffer* Graphics::GetOrCreateReadbackBuffer_(
+    const Int32 _byteWidth)
+{
+    JAM_ASSERT(_byteWidth > 0, "Buffer byte width must be positive");
+
+    if (_byteWidth <= m_pReadbackBufferCacheSize)
+    {
+        return m_pReadbackBufferCache;
+    }
+
+    if (m_pReadbackBufferCache)
+    {
+        if (m_pReadbackBufferCache->Release() != 0)
+        {
+            JAM_ASSERT(0, "Readback buffer cache reference count is expected to be 1, but it's not. This indicates a potential resource leak or misuse of the readback buffer.");
+        }
+    }
+
+    D3D11_BUFFER_DESC desc   = {};
+    desc.Usage               = D3D11_USAGE_STAGING;
+    desc.ByteWidth           = _byteWidth;
+    desc.BindFlags           = 0;
+    desc.CPUAccessFlags      = D3D11_CPU_ACCESS_READ;
+    desc.MiscFlags           = 0;
+    desc.StructureByteStride = 0;
+    JAM_CHECK_HRESULT(m_pd3d11Device->CreateBuffer(&desc, nullptr, &m_pReadbackBufferCache));
+    m_pReadbackBufferCacheSize = _byteWidth;
+    return m_pReadbackBufferCache;
+}
+
+ID3D11Texture2D* Graphics::GetOrCreateReadbackTexture2D_(
+    const Int32          _width,
+    const Int32          _height,
+    const eTextureFormat _format)
+{
+    JAM_ASSERT(_width > 0 && _height > 0, "Texture width and height must be positive");
+
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(AsMemoryView(_format));
+    hasher.Mix(AsMemoryView(eTextureType::Texture2D));
+    const UInt64 key = hasher.Finish();
+    auto         it  = m_readbackTextureCache.find(key);
+    if (it != m_readbackTextureCache.end() && _width <= it->second.width && _height <= it->second.height)
+    {
+        return static_cast<ID3D11Texture2D*>(it->second.pResource);
+    }
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width                = _width;
+    desc.Height               = _height;
+    desc.MipLevels            = 1;
+    desc.ArraySize            = 1;
+    desc.Format               = TextureFormatInfoFrom(_format).texFormat;
+    desc.SampleDesc.Count     = 1;
+    desc.SampleDesc.Quality   = 0;
+    desc.Usage                = D3D11_USAGE_STAGING;
+    desc.BindFlags            = 0;
+    desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
+    desc.MiscFlags            = 0;
+
+    ID3D11Texture2D* pTexture = nullptr;
+    JAM_CHECK_HRESULT(m_pd3d11Device->CreateTexture2D(&desc, nullptr, &pTexture));
+    ReadbackTextureCacheEntry& entry = m_readbackTextureCache[key];
+    if (entry.pResource)
+    {
+        if (entry.pResource->Release() != 0)
+        {
+            JAM_ASSERT(0, "Readback staging texture is still in use. All textures from the cache must be released before destroying the graphics instance.");
+        }
+    }
+
+    entry.pResource = pTexture;
+    entry.width     = _width;
+    entry.height    = _height;
+    entry.depth     = 1;
+    return pTexture;
+}
+
+ID3D11Texture3D* Graphics::GetOrCreateReadbackTexture3D_(
+    const Int32          _width,
+    const Int32          _height,
+    const Int32          _depth,
+    const eTextureFormat _format)
+{
+    JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "Texture width, height and depth must be positive");
+
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(AsMemoryView(_format));
+    hasher.Mix(AsMemoryView(eTextureType::Texture3D));
+    const UInt64 key = hasher.Finish();
+    auto         it  = m_readbackTextureCache.find(key);
+    if (it != m_readbackTextureCache.end() && _width <= it->second.width && _height <= it->second.height && _depth <= it->second.depth)
+    {
+        return static_cast<ID3D11Texture3D*>(it->second.pResource);
+    }
+
+    D3D11_TEXTURE3D_DESC desc = {};
+    desc.Width                = _width;
+    desc.Height               = _height;
+    desc.Depth                = _depth;
+    desc.MipLevels            = 1;
+    desc.Format               = TextureFormatInfoFrom(_format).texFormat;
+    desc.Usage                = D3D11_USAGE_STAGING;
+    desc.BindFlags            = 0;
+    desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
+    desc.MiscFlags            = 0;
+
+    ID3D11Texture3D* pTexture = nullptr;
+    JAM_CHECK_HRESULT(m_pd3d11Device->CreateTexture3D(&desc, nullptr, &pTexture));
+    ReadbackTextureCacheEntry& entry = m_readbackTextureCache[key];
+    if (entry.pResource)
+    {
+        if (entry.pResource->Release() != 0)
+        {
+            JAM_ASSERT(0, "Readback staging texture is still in use. All textures from the cache must be released before destroying the graphics instance.");
+        }
+    }
+
+    entry.pResource = pTexture;
+    entry.width     = _width;
+    entry.height    = _height;
+    entry.depth     = _depth;
+    return pTexture;
 }
 
 UInt32 Graphics::QueryMaxMsaaQualityLevel_(

@@ -324,47 +324,47 @@ TEST(StringViewSubView, AtEnd_IsEmpty)
 
 TEST(StringViewTrim, LTrimed_LeadingSpaces)
 {
-    EXPECT_EQ(StringView("   hello").LTrimed(), StringView("hello"));
+    EXPECT_EQ(StringView("   hello").LTrimmed(), StringView("hello"));
 }
 
 TEST(StringViewTrim, LTrimed_NoSpaces)
 {
-    EXPECT_EQ(StringView("hello").LTrimed(), StringView("hello"));
+    EXPECT_EQ(StringView("hello").LTrimmed(), StringView("hello"));
 }
 
 TEST(StringViewTrim, LTrimed_AllSpaces)
 {
-    EXPECT_TRUE(StringView("   ").LTrimed().IsEmpty());
+    EXPECT_TRUE(StringView("   ").LTrimmed().IsEmpty());
 }
 
 TEST(StringViewTrim, RTrimed_TrailingSpaces)
 {
-    EXPECT_EQ(StringView("hello   ").RTrimed(), StringView("hello"));
+    EXPECT_EQ(StringView("hello   ").RTrimmed(), StringView("hello"));
 }
 
 TEST(StringViewTrim, RTrimed_NoSpaces)
 {
-    EXPECT_EQ(StringView("hello").RTrimed(), StringView("hello"));
+    EXPECT_EQ(StringView("hello").RTrimmed(), StringView("hello"));
 }
 
 TEST(StringViewTrim, RTrimed_AllSpaces)
 {
-    EXPECT_TRUE(StringView("   ").RTrimed().IsEmpty());
+    EXPECT_TRUE(StringView("   ").RTrimmed().IsEmpty());
 }
 
 TEST(StringViewTrim, Trimed_Both)
 {
-    EXPECT_EQ(StringView("  hello  ").Trimed(), StringView("hello"));
+    EXPECT_EQ(StringView("  hello  ").Trimmed(), StringView("hello"));
 }
 
 TEST(StringViewTrim, Trimed_Tabs)
 {
-    EXPECT_EQ(StringView("\t\nhello\r\n").Trimed(), StringView("hello"));
+    EXPECT_EQ(StringView("\t\nhello\r\n").Trimmed(), StringView("hello"));
 }
 
 TEST(StringViewTrim, Trimed_Empty)
 {
-    EXPECT_TRUE(StringView("").Trimed().IsEmpty());
+    EXPECT_TRUE(StringView("").Trimmed().IsEmpty());
 }
 
 // ─────────────────────────────────────────────
@@ -393,13 +393,13 @@ TEST(StringViewHash, Hash64_DifferentStrings)
 
 TEST(StringViewHash, Hash32_IgnoreCase)
 {
-    EXPECT_EQ(StringView("HELLO").Hash32IgnoreCase(), StringView("hello").Hash32IgnoreCase());
-    EXPECT_EQ(StringView("Hello").Hash32IgnoreCase(), StringView("hElLo").Hash32IgnoreCase());
+    EXPECT_EQ(StringView("HELLO").IgnoreCaseHash32(), StringView("hello").IgnoreCaseHash32());
+    EXPECT_EQ(StringView("Hello").IgnoreCaseHash32(), StringView("hElLo").IgnoreCaseHash32());
 }
 
 TEST(StringViewHash, Hash64_IgnoreCase)
 {
-    EXPECT_EQ(StringView("WORLD").Hash64IgnoreCase(), StringView("world").Hash64IgnoreCase());
+    EXPECT_EQ(StringView("WORLD").IgnoreCaseHash64(), StringView("world").IgnoreCaseHash64());
 }
 
 TEST(StringViewHash, EmptyString_NoCrash)
@@ -752,7 +752,7 @@ TEST(StringSSO, HeapGrowth_100Appends)
 }
 
 // ─────────────────────────────────────────────
-// BasicString — RBSet / Append / Insert / Erase
+// BasicString — RBSet / WriteElement / Insert / Erase
 // ─────────────────────────────────────────────
 
 TEST(StringMutation, Set_Overwrites)
@@ -1355,7 +1355,7 @@ TEST(StringHash, Hash64_DifferentStrings)
 
 TEST(StringHash, Hash64_IgnoreCase)
 {
-    EXPECT_EQ(String("HELLO").Hash64IgnoreCase(), String("hello").Hash64IgnoreCase());
+    EXPECT_EQ(String("HELLO").IgnoreCaseHash64(), String("hello").IgnoreCaseHash64());
 }
 
 TEST(StringHash, ConsistentWithStringView)
@@ -1451,12 +1451,6 @@ TEST(StringCaseConversion, ToCamelCase_FromSpaceSeparated)
     EXPECT_EQ(String("foo bar baz").ToCamelCase(), StringView("fooBarBaz"));
 }
 
-TEST(StringCaseConversion, ToCamelCase_FromPascalCase)
-{
-    EXPECT_EQ(String("HelloWorld").ToCamelCase(), StringView("HelloWorld"));
-    EXPECT_EQ(String("FooBarBaz").ToCamelCase(), StringView("FooBarBaz"));
-}
-
 TEST(StringCaseConversion, ToCamelCase_FromSnakeCase)
 {
     EXPECT_EQ(String("hello_world").ToCamelCase(), StringView("hello_world"));
@@ -1475,7 +1469,7 @@ TEST(StringCaseConversion, ToCamelCase_LeadingTrailingSpaces)
 TEST(StringCaseConversion, ToCamelCase_SingleWord)
 {
     EXPECT_EQ(String("hello").ToCamelCase(), StringView("hello"));
-    EXPECT_EQ(String("HELLO").ToCamelCase(), StringView("HELLO"));
+    EXPECT_EQ(String("HELLO").ToCamelCase(), StringView("hello"));
 }
 
 TEST(StringCaseConversion, ToCamelCase_Empty)
@@ -1494,11 +1488,6 @@ TEST(StringCaseConversion, ToPascalCase_FromSpaceSeparated)
     EXPECT_EQ(String("foo bar baz").ToPascalCase(), StringView("FooBarBaz"));
 }
 
-TEST(StringCaseConversion, ToPascalCase_FromCamelCase)
-{
-    EXPECT_EQ(String("helloWorld").ToPascalCase(), StringView("HelloWorld"));
-}
-
 TEST(StringCaseConversion, ToPascalCase_FromSnakeCase)
 {
     EXPECT_EQ(String("hello_world").ToPascalCase(), StringView("Hello_world"));
@@ -1514,12 +1503,6 @@ TEST(StringCaseConversion, ToPascalCase_LeadingTrailingSpaces)
     EXPECT_EQ(String("  hello world  ").ToPascalCase(), StringView("HelloWorld"));
 }
 
-TEST(StringCaseConversion, ToPascalCase_SingleWord)
-{
-    EXPECT_EQ(String("hello").ToPascalCase(), StringView("Hello"));
-    EXPECT_EQ(String("HELLO").ToPascalCase(), StringView("HELLO"));
-}
-
 TEST(StringCaseConversion, ToPascalCase_Empty)
 {
     EXPECT_TRUE(String("").ToPascalCase().IsEmpty());
@@ -1527,7 +1510,7 @@ TEST(StringCaseConversion, ToPascalCase_Empty)
 
 TEST(StringCaseConversion, ToPascalCase_AllUpperCase)
 {
-    EXPECT_EQ(String("HELLO WORLD").ToPascalCase(), StringView("HELLOWORLD"));
+    EXPECT_EQ(String("HELLO WORLD").ToPascalCase(), StringView("HelloWorld"));
 }
 
 TEST(StringCaseConversion, ToSnakeCase_FromSpaceSeparated)

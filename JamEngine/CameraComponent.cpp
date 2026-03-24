@@ -5,7 +5,6 @@
 #include "Archive.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
-#include "Scene.h"
 #include "ImGuiEngine.h"
 
 namespace Jam
@@ -13,7 +12,7 @@ namespace Jam
 
 void CameraComponent::Serialize(
     ArchiveWriter& _writer,
-    const Ref<Scene>&,
+    Scene*,
     Entity) const
 {
     _writer.WriteField("camera", camera);
@@ -22,7 +21,7 @@ void CameraComponent::Serialize(
 
 void CameraComponent::Deserialize(
     ArchiveReader& _reader,
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     _reader.ReadField("camera", camera);
@@ -30,15 +29,15 @@ void CameraComponent::Deserialize(
 }
 
 void CameraComponent::DrawEditPanel(
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
-    if (BeginLabelTable("CameraComponent"))
+    if (BeginLabelValueTable("CameraComponent"))
     {
         eProjection proj     = camera.GetProjection();
-        Vector2        nearFarZ = { camera.GetNearZ(), camera.GetFarZ() };
+        Vec2        nearFarZ = { camera.GetNearZ(), camera.GetFarZ() };
         float       fovYRad  = camera.GetFovYRad();
-        Vector2        res      = { camera.GetWidth(), camera.GetHeight() };
+        Vec2        res      = { camera.GetWidth(), camera.GetHeight() };
 
         // projection
         ImGui::TableNextColumn();

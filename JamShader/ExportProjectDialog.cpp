@@ -8,55 +8,30 @@
 
 void ExportProjectDialogSetting::WriteToArchive(ArchiveWriter& _archive) const
 {
+    _archive.BeginObject();
     _archive.WriteField("exportDir", exportDir);
     _archive.WriteField("baseName", baseName);
     _archive.WriteField("type", type);
-    _archive.WriteField("flags", flags);
+    _archive.WriteField("bIncludeDebugBuild", bIncludeDebugBuild);
+    _archive.WriteField("bIncludeReleaseBuild", bIncludeReleaseBuild);
     _archive.WriteField("debugMacro", debugMacro);
-    _archive.WriteField("releaseMacro", releaseMacro);
     _archive.WriteField("rootNamespace", rootNamespace);
     _archive.WriteField("nameFormat", nameFormat);
     _archive.WriteField("namePrefix", namePrefix);
+    _archive.EndObject();
 }
 
 Error ExportProjectDialogSetting::ReadFromArchive(ArchiveReader& _archive)
 {
-    if (const Error err = _archive.ReadField("exportDir", exportDir))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("baseName", baseName))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("type", type))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("flags", flags))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("debugMacro", debugMacro))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("releaseMacro", releaseMacro))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("rootNamespace", rootNamespace))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("nameFormat", nameFormat))
-    {
-        return err;
-    }
-    if (const Error err = _archive.ReadField("namePrefix", namePrefix))
-    {
-        return err;
-    }
+    if (const Error err = _archive.ReadField("exportDir", exportDir)) { return err; }
+    if (const Error err = _archive.ReadField("baseName", baseName)) { return err; }
+    if (const Error err = _archive.ReadField("type", type)) { return err; }
+    if (const Error err = _archive.ReadField("bIncludeDebugBuild", bIncludeDebugBuild)) { return err; }
+    if (const Error err = _archive.ReadField("bIncludeReleaseBuild", bIncludeReleaseBuild)) { return err; }
+    if (const Error err = _archive.ReadField("debugMacro", debugMacro)) { return err; }
+    if (const Error err = _archive.ReadField("rootNamespace", rootNamespace)) { return err; }
+    if (const Error err = _archive.ReadField("nameFormat", nameFormat)) { return err; }
+    if (const Error err = _archive.ReadField("namePrefix", namePrefix)) { return err; }
     return Error::None;
 }
 
@@ -64,9 +39,9 @@ Error ExportProjectDialogSetting::ReadFromArchive(ArchiveReader& _archive)
 
 ExportProjectDialog::ExportProjectDialog(
     const Project* _pProject)
-    : Dialog("Export Project", { 500.f, 0.f })
-    , m_pProject(_pProject)
-    , m_exportDirFd(CreateFileDialog_())
+    : Dialog("Export Project")
+      , m_pProject(_pProject)
+      , m_exportDirFd(CreateFileDialog_())
 {
     JAM_ASSERT(m_pProject, "ExportProjectDialog: _pProject cannot be null.");
 
@@ -109,6 +84,12 @@ void ExportProjectDialog::OnShow()
         Widget_EnumCombo("##ExportType", m_setting.type);
 
         ImGui::TableNextColumn();
+        Widget_Text("root namespace:", true);
+        ImGui::TableNextColumn();
+        SetNextItemToAvailWidth();
+        Widget_InputText("##RootNamespace", m_setting.rootNamespace);
+
+        ImGui::TableNextColumn();
         Widget_Text("name format:", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
@@ -120,37 +101,27 @@ void ExportProjectDialog::OnShow()
         SetNextItemToAvailWidth();
         Widget_InputText("##VariablePrefix", m_setting.namePrefix);
 
+        // compiled binary options
+        ImGui::BeginDisabled(m_setting.type != eProjectExportType::CompiledBinary);
+
         ImGui::TableNextColumn();
-        Widget_Text("export flags:", true);
+        Widget_Text("include debug build:", true);
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("##IncludeDebugBuild", &m_setting.bIncludeDebugBuild);
+
+        ImGui::BeginDisabled(!m_setting.bIncludeDebugBuild);
+        ImGui::TableNextColumn();
+        Widget_Text("debug macro:", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_EnumFlags_();
-
-        ImGui::BeginDisabled(m_setting.flags.Disabled(eProjectExportFlags::DebugExport));
-        {
-            ImGui::TableNextColumn();
-            Widget_Text("debug macro:", true);
-            ImGui::TableNextColumn();
-            SetNextItemToAvailWidth();
-            Widget_InputText("##DebugMacro", m_setting.debugMacro);
-        }
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(m_setting.flags.Disabled(eProjectExportFlags::ReleaseExport));
-        {
-            ImGui::TableNextColumn();
-            Widget_Text("release macro:", true);
-            ImGui::TableNextColumn();
-            SetNextItemToAvailWidth();
-            Widget_InputText("##ReleaseMacro", m_setting.releaseMacro);
-        }
+        Widget_InputText("##DebugMacro", m_setting.debugMacro);
         ImGui::EndDisabled();
 
         ImGui::TableNextColumn();
-        Widget_Text("root namespace:", true);
+        Widget_Text("include release build:", true);
         ImGui::TableNextColumn();
-        SetNextItemToAvailWidth();
-        Widget_InputText("##RootNamespace", m_setting.rootNamespace);
+        ImGui::Checkbox("##IncludeReleaseBuild", &m_setting.bIncludeReleaseBuild);
+        ImGui::EndDisabled();
 
         ImGui::EndTable();
     }
@@ -215,14 +186,14 @@ FileDialog ExportProjectDialog::CreateFileDialog_() const
 
 bool ExportProjectDialog::OnClickExportButton_() const
 {
-    ExportProjectInfo info = {};
-    info.type              = m_setting.type;
-    info.flags             = m_setting.flags;
-    info.debugMacro        = m_setting.debugMacro;
-    info.releaseMacro      = m_setting.releaseMacro;
-    info.rootNamespace     = m_setting.rootNamespace;
-    info.nameFormat        = m_setting.nameFormat;
-    info.namePrefix        = m_setting.namePrefix;
+    ExportProjectInfo info    = {};
+    info.type                 = m_setting.type;
+    info.bIncludeDebugBuild   = m_setting.bIncludeDebugBuild;
+    info.bIncludeReleaseBuild = m_setting.bIncludeReleaseBuild;
+    info.debugMacro           = m_setting.debugMacro;
+    info.rootNamespace        = m_setting.rootNamespace;
+    info.nameFormat           = m_setting.nameFormat;
+    info.namePrefix           = m_setting.namePrefix;
 
     ProjectExporter exporter = ProjectExporter::Export(m_pProject, m_setting.exportDir, m_setting.baseName, info);
     if (exporter.IsFailed())
@@ -235,19 +206,4 @@ bool ExportProjectDialog::OnClickExportButton_() const
     }
 
     return true;
-}
-
-void ExportProjectDialog::Widget_EnumFlags_()
-{
-    EnumWidgetItem k_flagItems[] = {
-        { "Default export", NumericCast<Int32>(eProjectExportFlags::DefaultExport) },
-        {   "Debug export",   NumericCast<Int32>(eProjectExportFlags::DebugExport) },
-        { "Release export", NumericCast<Int32>(eProjectExportFlags::ReleaseExport) },
-    };
-
-    Int32 flags = NumericCast<Int32>(m_setting.flags.GetValue());
-    if (Widget_EnumFlags("##WidgetEnumFlags", flags, k_flagItems, {}))
-    {
-        m_setting.flags = Flags<eProjectExportFlags> { NumericCast<UnderlyingT<eProjectExportFlags>>(flags) };
-    }
 }

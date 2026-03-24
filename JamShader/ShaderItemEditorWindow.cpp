@@ -33,7 +33,7 @@ void ShaderItemEditorWindow::OnImGuiRender()
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
         ImGui::TableNextColumn();
-        Widget_Text("name", true);
+        Widget_Text("typeName", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
         Widget_EditShaderItemName();
@@ -78,7 +78,7 @@ void ShaderItemEditorWindow::OnImGuiRender()
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn("##Reordering", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
             ImGui::TableSetupColumn("##Enabled", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
-            ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("typeName", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("##Actions", ImGuiTableColumnFlags_WidthFixed, (ImGui::GetTextLineHeight() + style.FramePadding.x * 2) * 2 + style.ItemInnerSpacing.x);
             ImGui::TableHeadersRow();
@@ -133,7 +133,7 @@ void ShaderItemEditorWindow::OnImGuiRender()
                     m_pProjectCache->SetShaderItemMacro(m_pFocusingShaderItemCache->name, idx, *it);
                 }
 
-                // Macro name
+                // Macro typeName
                 ImGui::TableNextColumn();
                 SetNextItemToAvailWidth();
                 Widget_InputText("##MacroNameEdit", name);
@@ -352,24 +352,24 @@ void ShaderItemEditorWindow::Widget_EditShaderItemName()
     Widget_InputText("##ShaderItemNameEdit", m_focusingShaderItemNameEdit);
     if (ImGui::IsItemDeactivatedAfterEdit())
     {
-        // not allow duplicate name
+        // not allow duplicate typeName
         if (m_pFocusingShaderItemCache->name != m_focusingShaderItemNameEdit
             && m_pProjectCache->ContainsShaderItem(m_focusingShaderItemNameEdit))
         {
             GetShaderApp().PushMessageDialog(
-                "invalid shader item name",
-                String::Formatted("a shader item with name \"{}\" already exists. please choose a different name.", m_focusingShaderItemNameEdit));
+                "invalid shader item typeName",
+                String::Formatted("a shader item with typeName \"{}\" already exists. please choose a different typeName.", m_focusingShaderItemNameEdit));
 
             m_focusingShaderItemNameEdit = m_pFocusingShaderItemCache->name;
             return;
         }
 
-        // not allow empty name
+        // not allow empty typeName
         if (m_focusingShaderItemNameEdit.IsEmpty())
         {
             GetShaderApp().PushMessageDialog(
-                "invalid shader item name",
-                "shader item name cannot be empty. please enter a valid name.");
+                "invalid shader item typeName",
+                "shader item typeName cannot be empty. please enter a valid typeName.");
 
             m_focusingShaderItemNameEdit = m_pFocusingShaderItemCache->name;
             return;

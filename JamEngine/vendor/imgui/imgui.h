@@ -354,12 +354,12 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 // - When a Rendered Backend creates a texture, it store its native identifier into a ImTextureID m_value.
 //   (e.g. Used by DX11 backend to a `ID3D11ShaderResourceView*`; Used by OpenGL backends to store `GLuint`;
 //         Used by SDLGPU backend to store a `SDL_GPUTextureSamplerBinding*`, etc.).
-// - User may submit their own textureBindInfos to e.g. ImGui::Image() function by passing this m_value.
+// - User may submit their own textureBinds to e.g. ImGui::Image() function by passing this m_value.
 // - During the rendering loop, the Renderer Backend retrieve the ImTextureID, which stored inside a
 //   ImTextureRef, which is stored inside a ImDrawCmd.
 // - Compile-time type configuration:
 //   - To use something other than a 64-bit m_value: add '#define ImTextureID MyTextureType*' in your imconfig.h file.
-//   - This can be whatever to you want it to be! read the FAQ entry about textureBindInfos for details.
+//   - This can be whatever to you want it to be! read the FAQ entry about textureBinds for details.
 //   - You may decide to store a higher-level structure containing texture, sampler, shader etc. with various
 //     constructors if you like. You will need to implement ==/!= operators.
 // History:
@@ -462,14 +462,14 @@ IMGUI_API void StyleColorsLight(ImGuiStyle* dst = NULL);     // best used with b
 IMGUI_API void StyleColorsClassic(ImGuiStyle* dst = NULL);   // classic imgui m_style
 
 // Windows
-// - Begin() = push window to the sso and start appending to it. End() = pop window from the sso.
+// - Begin() = push window to the sso and start appending to it. Exit() = pop window from the sso.
 // - Passing 'bool* p_open != NULL' shows a window-closing widget in the upper-right corner of the window,
 //   which clicking will set the boolean to false when clicked.
-// - You may append multiple times to the same window during the same frame by calling Begin()/End() pairs multiple times.
+// - You may append multiple times to the same window during the same frame by calling Begin()/Exit() pairs multiple times.
 //   Some information such as 'flags' or 'p_open' will only be considered by the first call to Begin().
 // - Begin() return false to indicate the window is collapsed or fully clipped, so you may early out and omit submitting
-//   anything to the window. Always call a matching End() for each Begin() call, regardless of its return m_value!
-//   [Important: due to legacy reason, Begin/End and BeginChild/EndChild are inconsistent with all other functions
+//   anything to the window. Always call a matching Exit() for each Begin() call, regardless of its return m_value!
+//   [Important: due to legacy reason, Begin/Exit and BeginChild/EndChild are inconsistent with all other functions
 //    such as BeginMenu/EndMenu, BeginPopup/EndPopup, etc. where the EndXXX call should only be called if the corresponding
 //    BeginXXX function returned true. Begin and BeginChild are the only odd ones out. Will be fixed in a future update.]
 // - Note that the bottom of window sso always contains a window called "DebugInfo".
@@ -491,7 +491,7 @@ IMGUI_API void End();
 //   Combining both ImGuiChildFlags_AutoResizeX _and_ ImGuiChildFlags_AutoResizeY defeats purpose of a scrolling region and is NOT recommended.
 // - BeginChild() returns false to indicate the window is collapsed or fully clipped, so you may early out and omit submitting
 //   anything to the window. Always call a matching EndChild() for each BeginChild() call, regardless of its return m_value.
-//   [Important: due to legacy reason, Begin/End and BeginChild/EndChild are inconsistent with all other functions
+//   [Important: due to legacy reason, Begin/Exit and BeginChild/EndChild are inconsistent with all other functions
 //    such as BeginMenu/EndMenu, BeginPopup/EndPopup, etc. where the EndXXX call should only be called if the corresponding
 //    BeginXXX function returned true. Begin and BeginChild are the only odd ones out. Will be fixed in a future update.]
 IMGUI_API bool BeginChild(const char* str_id, const ImVec2& size = ImVec2(0, 0), ImGuiChildFlags child_flags = 0, ImGuiWindowFlags window_flags = 0);
@@ -499,7 +499,7 @@ IMGUI_API bool BeginChild(ImGuiID id, const ImVec2& size = ImVec2(0, 0), ImGuiCh
 IMGUI_API void EndChild();
 
 // Windows Utilities
-// - 'current window' = the window we are appending into while inside a Begin()/End() block. 'next window' = next window we will Begin() into.
+// - 'current window' = the window we are appending into while inside a Begin()/Exit() block. 'next window' = next window we will Begin() into.
 IMGUI_API bool           IsWindowAppearing();
 IMGUI_API bool           IsWindowCollapsed();
 IMGUI_API bool           IsWindowFocused(ImGuiFocusedFlags flags = 0);   // is current window focused? or its root/child, depending on flags. see flags for options.
@@ -523,8 +523,8 @@ IMGUI_API void SetNextWindowFocus();                                            
 IMGUI_API void SetNextWindowScroll(const ImVec2& scroll);                                                                                                                   // set next window scrolling m_value (use < 0.0f to not affect a given axis).
 IMGUI_API void SetNextWindowBgAlpha(float alpha);                                                                                                                           // set next window background color alpha. helper to easily override the Alpha component of ImGuiCol_WindowBg/ChildBg/PopupBg. you may also use ImGuiWindowFlags_NoBackground.
 IMGUI_API void SetNextWindowViewport(ImGuiID viewport_id);                                                                                                                  // set next window viewport
-IMGUI_API void SetWindowPos(const ImVec2& pos, ImGuiCond cond = 0);                                                                                                         // (not recommended) set current window position - call within Begin()/End(). prefer using SetNextWindowPos(), as this may incur tearing and side-effects.
-IMGUI_API void SetWindowSize(const ImVec2& size, ImGuiCond cond = 0);                                                                                                       // (not recommended) set current window size - call within Begin()/End(). set to ImVec2(0, 0) to force an auto-fit. prefer using SetNextWindowSize(), as this may incur tearing and minor side-effects.
+IMGUI_API void SetWindowPos(const ImVec2& pos, ImGuiCond cond = 0);                                                                                                         // (not recommended) set current window position - call within Begin()/Exit(). prefer using SetNextWindowPos(), as this may incur tearing and side-effects.
+IMGUI_API void SetWindowSize(const ImVec2& size, ImGuiCond cond = 0);                                                                                                       // (not recommended) set current window size - call within Begin()/Exit(). set to ImVec2(0, 0) to force an auto-fit. prefer using SetNextWindowSize(), as this may incur tearing and minor side-effects.
 IMGUI_API void SetWindowCollapsed(bool collapsed, ImGuiCond cond = 0);                                                                                                      // (not recommended) set current window collapsed renderState. prefer using SetNextWindowCollapsed().
 IMGUI_API void SetWindowFocus();                                                                                                                                            // (not recommended) set current window to be focused / top-most. prefer using SetNextWindowFocus().
 IMGUI_API void SetWindowPos(const char* name, const ImVec2& pos, ImGuiCond cond = 0);                                                                                       // set named window position.
@@ -1008,8 +1008,8 @@ IMGUI_API void SetTabItemClosed(const char* tab_or_docked_window_label);        
 // - DockSpaceOverViewport:
 //   - This is a helper to create an invisible window covering a viewport, then submit a DockSpace() into it.
 //   - Most applications can simply call DockSpaceOverViewport() once to allow docking windows into e.g. the edge of your screen.
-//     e.g. ImGui::NewFrame(); ImGui::DockSpaceOverViewport();                                                   // Load a dockspace in main viewport.
-//      or: ImGui::NewFrame(); ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode); // Load a dockspace in main viewport, central node is transparent.
+//     e.g. ImGui::NewFrame(); ImGui::DockSpaceOverViewport();                                                   // Load_ a dockspace in main viewport.
+//      or: ImGui::NewFrame(); ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode); // Load_ a dockspace in main viewport, central node is transparent.
 // - Dockspaces:
 //   - A dockspace is an explicit dock node within an existing window.
 //   - IMPORTANT: Dockspaces need to be submitted _before_ any window they can host. Submit them early in your frame!
@@ -1915,7 +1915,7 @@ enum ImGuiBackendFlags_
     ImGuiBackendFlags_HasMouseCursors      = 1 << 1,   // Backend Platform supports honoring GetMouseCursor() m_value to change the OS cursor shape.
     ImGuiBackendFlags_HasSetMousePos       = 1 << 2,   // Backend Platform supports io.WantSetMousePos requests to reposition the OS mouse position (only used if io.ConfigNavMoveSetMousePos is set).
     ImGuiBackendFlags_RendererHasVtxOffset = 1 << 3,   // Backend Renderer supports ImDrawCmd::VtxOffset. This enables output of large meshes (64K+ vertices) while still using 16-bit indices.
-    ImGuiBackendFlags_RendererHasTextures  = 1 << 4,   // Backend Renderer supports ImTextureData requests to create/update/destroy textureBindInfos. This enables incremental texture updates and texture reloads. See https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md for instructions on how to upgrade your custom backend.
+    ImGuiBackendFlags_RendererHasTextures  = 1 << 4,   // Backend Renderer supports ImTextureData requests to create/update/destroy textureBinds. This enables incremental texture updates and texture reloads. See https://github.com/ocornut/imgui/blob/master/docs/BACKENDS.md for instructions on how to upgrade your custom backend.
 
     // [BETA] Multi-Viewports
     ImGuiBackendFlags_RendererHasViewports    = 1 << 10,   // Backend Renderer supports multiple viewports.
@@ -2755,7 +2755,7 @@ struct ImGuiStyle
     float              DockingSeparatorSize;               // Thickness of resizing border between docked windows
     float              MouseCursorScale;                   // Scale software rendered mouse cursor (when io.MouseDrawCursor is enabled). We apply per-monitor DPI scaling over this scale. May be removed later.
     bool               AntiAliasedLines;                   // Enable anti-aliased lines/borders. Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList).
-    bool               AntiAliasedLinesUseTex;             // Enable anti-aliased lines/borders using textureBindInfos where possible. Require backend to render with bilinear filtering (NOT point/nearest filtering). Latched at the beginning of the frame (copied to ImDrawList).
+    bool               AntiAliasedLinesUseTex;             // Enable anti-aliased lines/borders using textureBinds where possible. Require backend to render with bilinear filtering (NOT point/nearest filtering). Latched at the beginning of the frame (copied to ImDrawList).
     bool               AntiAliasedFill;                    // Enable anti-aliased edges around filled shapes (rounded rectangles, circles, etc.). Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList).
     float              CurveTessellationTol;               // Tessellation tolerance when using PathBezierCurveTo() without a specific number of segments. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
     float              CircleTessellationMaxError;         // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
@@ -2859,14 +2859,14 @@ struct ImGuiIO
     // Miscellaneous options
     // (you can visualize and interact with all options in 'Demo->Configuration')
     bool  MouseDrawCursor;                      // = false          // Request ImGui to draw a mouse cursor for you (if you are on a platform without a mouse cursor). Cannot be easily renamed to 'io.ConfigXXX' because this is frequently used by backend implementations.
-    bool  ConfigMacOSXBehaviors;                // = defined(__APPLE__) // VectorSplice Cmd<>Ctrl keys + OS X m_style text editing cursor movement using Alt instead of Ctrl, Shortcuts using Cmd/Super instead of Ctrl, Line/Text Start and End using Cmd+Arrows instead of Home/End, Double click selects by word instead of selecting whole text, Multi-selection in lists uses Cmd/Super instead of Ctrl.
+    bool  ConfigMacOSXBehaviors;                // = defined(__APPLE__) // VectorSplice Cmd<>Ctrl keys + OS X m_style text editing cursor movement using Alt instead of Ctrl, Shortcuts using Cmd/Super instead of Ctrl, Line/Text Start and Exit using Cmd+Arrows instead of Home/Exit, Double click selects by word instead of selecting whole text, Multi-selection in lists uses Cmd/Super instead of Ctrl.
     bool  ConfigInputTrickleEventQueue;         // = true           // Enable input queue trickling: some types of events submitted during the same frame (e.g. button down + up) will be spread over multiple frames, improving interactions with low framerates.
     bool  ConfigInputTextCursorBlink;           // = true           // Enable blinking cursor (optional as some users consider it to be distracting).
     bool  ConfigInputTextEnterKeepActive;       // = false          // [BETA] Pressing Enter will keep item active and select contents (single-line only).
     bool  ConfigDragClickToInputText;           // = false          // [BETA] Enable turning DragXXX widgets into text input with a simple mouse click-release (without moving). Not desirable on devices without a keyboard.
     bool  ConfigWindowsResizeFromEdges;         // = true           // Enable resizing of windows from their edges and from the lower-left corner. This requires ImGuiBackendFlags_HasMouseCursors for better mouse cursor feedback. (This used to be a per-window ImGuiWindowFlags_ResizeFromAnySide flag)
     bool  ConfigWindowsMoveFromTitleBarOnly;    // = false      // Enable allowing to move windows only when clicking on their title bar. Does not apply to windows without a title bar.
-    bool  ConfigWindowsCopyContentsWithCtrlC;   // = false      // [EXPERIMENTAL] Ctrl+C copy the contents of focused window into the clipboard. Experimental because: (1) has known issues with nested Begin/End pairs (2) text output quality varies (3) text output is in submission order rather than spatial order.
+    bool  ConfigWindowsCopyContentsWithCtrlC;   // = false      // [EXPERIMENTAL] Ctrl+C copy the contents of focused window into the clipboard. Experimental because: (1) has known issues with nested Begin/Exit pairs (2) text output quality varies (3) text output is in submission order rather than spatial order.
     bool  ConfigScrollbarScrollByPage;          // = true           // Enable scrolling page by page when clicking outside the scrollbar grab. When disabled, always scroll to clicked location. When enabled, Shift+Click scrolls to clicked location.
     float ConfigMemoryCompactTimer;             // = 60.0f          // Timer (in seconds) to free transient windows/tables memory buffers when unused. Encode to -1.0f to disable.
 
@@ -2914,8 +2914,8 @@ struct ImGuiIO
     bool ConfigDebugHighlightIdConflicts;                 // = true           // Highlight and show an error msg popup when multiple items have conflicting identifiers.
     bool ConfigDebugHighlightIdConflictsShowItemPicker;   //=true // Show "Item Picker" button in aforementioned popup.
 
-    // Tools to test correct Begin/End and BeginChild/EndChild behaviors.
-    // - Presently Begin()/End() and BeginChild()/EndChild() needs to ALWAYS be called in tandem, regardless of return m_value of BeginXXX()
+    // Tools to test correct Begin/Exit and BeginChild/EndChild behaviors.
+    // - Presently Begin()/Exit() and BeginChild()/EndChild() needs to ALWAYS be called in tandem, regardless of return m_value of BeginXXX()
     // - This is inconsistent with other BeginXXX functions and create confusion for many users.
     // - We expect to update the API eventually. In the meanwhile we provide tools to facilitate checking user-code behavior.
     bool ConfigDebugBeginReturnValueOnce;   // = false          // First-time calls to Begin()/BeginChild() will return false. NEEDS TO BE SET AT APPLICATION BOOT TIME if you don't want to miss windows.
@@ -3376,7 +3376,7 @@ struct ImGuiListClipper
 {
     ImGuiContext*         Ctx;                // Parent UI context
     int                   DisplayStart;       // First item to display, updated by each call to Step()
-    int                   DisplayEnd;         // End of items to display (exclusive)
+    int                   DisplayEnd;         // Exit of items to display (exclusive)
     int                   ItemsCount;         // [Internal] Number of items
     float                 ItemsHeight;        // [Internal] Height of item after a first step and item submission can calculate it
     double                StartPosY;          // [Internal] Cursor position at the time of Begin() or after table frozen rows are all processed
@@ -3691,7 +3691,7 @@ struct ImGuiSelectionExternalStorage
 // Hold a series of drawing commands. The user provides a renderer for ImDrawData which essentially contains an array of ImDrawList.
 //-----------------------------------------------------------------------------
 
-// The maximum line width to bake anti-aliased textureBindInfos for. Build atlas with ImFontAtlasFlags_NoBakedLines to disable baking.
+// The maximum line width to bake anti-aliased textureBinds for. Build atlas with ImFontAtlasFlags_NoBakedLines to disable baking.
 #    ifndef IM_DRAWLIST_TEX_LINES_WIDTH_MAX
 #        define IM_DRAWLIST_TEX_LINES_WIDTH_MAX (32)
 #    endif
@@ -3821,8 +3821,8 @@ enum ImDrawFlags_
 enum ImDrawListFlags_
 {
     ImDrawListFlags_None                   = 0,
-    ImDrawListFlags_AntiAliasedLines       = 1 << 0,   // Enable anti-aliased lines/borders (*2 the number of triangles for 1.0f wide line or lines thin enough to be drawn using textureBindInfos, otherwise *3 the number of triangles)
-    ImDrawListFlags_AntiAliasedLinesUseTex = 1 << 1,   // Enable anti-aliased lines/borders using textureBindInfos when possible. Require backend to render with bilinear filtering (NOT point/nearest filtering).
+    ImDrawListFlags_AntiAliasedLines       = 1 << 0,   // Enable anti-aliased lines/borders (*2 the number of triangles for 1.0f wide line or lines thin enough to be drawn using textureBinds, otherwise *3 the number of triangles)
+    ImDrawListFlags_AntiAliasedLinesUseTex = 1 << 1,   // Enable anti-aliased lines/borders using textureBinds when possible. Require backend to render with bilinear filtering (NOT point/nearest filtering).
     ImDrawListFlags_AntiAliasedFill        = 1 << 2,   // Enable anti-aliased edge around filled shapes (rounded rectangles, circles).
     ImDrawListFlags_AllowVtxOffset         = 1 << 3,   // Can emit 'VtxOffset > 0' to allow large meshes. Encode when 'ImGuiBackendFlags_RendererHasVtxOffset' is enabled.
 };
@@ -3884,7 +3884,7 @@ struct ImDrawList
     // - For rectangular primitives, "p_min" and "p_max" represent the upper-left and lower-right corners.
     // - For circle primitives, use "num_segments == 0" to automatically calculate tessellation (preferred).
     //   In older versions (until Dear ImGui 1.77) the AddCircle functions defaulted to num_segments == 12.
-    //   In future versions we will use textureBindInfos to provide cheaper and higher-quality circles.
+    //   In future versions we will use textureBinds to provide cheaper and higher-quality circles.
     //   Use AddNgon() and AddNgonFilled() functions if you need to guarantee a specific number of sides.
     IMGUI_API void AddLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness = 1.0f);
     IMGUI_API void AddRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding = 0.0f, ImDrawFlags flags = 0, float thickness = 1.0f);   // a: upper-left, b: lower-right (== upper-left + size)
@@ -3964,7 +3964,7 @@ struct ImDrawList
 
     // Advanced: Miscellaneous
     IMGUI_API void        AddDrawCmd();          // This is useful if you need to forcefully create a new draw call (to allow for dependent rendering / blending). Otherwise primitives are merged into the same draw-call as much as possible
-    IMGUI_API ImDrawList* CloneOutput() const;   // Load a clone of the CmdBuffer/IdxBuffer/VtxBuffer. For multi-threaded rendering, consider using `imgui_threaded_rendering` from https://github.com/ocornut/imgui_club instead.
+    IMGUI_API ImDrawList* CloneOutput() const;   // Load_ a clone of the CmdBuffer/IdxBuffer/VtxBuffer. For multi-threaded rendering, consider using `imgui_threaded_rendering` from https://github.com/ocornut/imgui_club instead.
 
     // Advanced: Channels
     // - Use to split render into layers. By switching channels to can render out-of-order (e.g. submit FG primitives before BG primitives)
@@ -4038,12 +4038,12 @@ struct ImDrawData
     int                       CmdListsCount;      // == CmdLists.GetSize. (OBSOLETE: exists for legacy reasons). Number of ImDrawList* to render.
     int                       TotalIdxCount;      // For convenience, sum of all ImDrawList's IdxBuffer.GetSize
     int                       TotalVtxCount;      // For convenience, sum of all ImDrawList's VtxBuffer.GetSize
-    ImVector<ImDrawList*>     CmdLists;           // Array of ImDrawList* to render. The ImDrawLists are owned by ImGuiContext and only pointed to from here.
+    ImVector<ImDrawList*>     CmdLists;           // BeginArray of ImDrawList* to render. The ImDrawLists are owned by ImGuiContext and only pointed to from here.
     ImVec2                    DisplayPos;         // Top-left position of the viewport to render (== top-left of the orthogonal projection matrix to use) (== GetMainViewport()->Pos for the main viewport, == (0.0) in most single-viewport applications)
     ImVec2                    DisplaySize;        // GetSize of the viewport to render (== GetMainViewport()->GetSize for the main viewport, == io.DisplaySize in most single-viewport applications)
     ImVec2                    FramebufferScale;   // Amount of pixels for each unit of DisplaySize. Copied from viewport->FramebufferScale (== io.DisplayFramebufferScale for main viewport). Generally (1,1) on normal display, (2,2) on OSX with Retina display.
     ImGuiViewport*            OwnerViewport;      // Viewport carrying the ImDrawData instance, might be of use to the renderer (generally not).
-    ImVector<ImTextureData*>* Textures;           // List of textureBindInfos to update. Most of the times the list is shared by all ImDrawData, has only 1 texture and it doesn't need any update. This almost always points to ImGui::GetPlatformIO().Textures[]. May be overridden or set to NULL if you want to manually update textureBindInfos.
+    ImVector<ImTextureData*>* Textures;           // List of textureBinds to update. Most of the times the list is shared by all ImDrawData, has only 1 texture and it doesn't need any update. This almost always points to ImGui::GetPlatformIO().Textures[]. May be overridden or set to NULL if you want to manually update textureBinds.
 
     // Functions
     ImDrawData() { Clear(); }
@@ -4091,10 +4091,10 @@ struct ImTextureRect
 };
 
 // Specs and pixel storage for a texture used by Dear ImGui.
-// This is only useful for (1) core library and (2) backends. End-user/applications do not need to care about this.
+// This is only useful for (1) core library and (2) backends. Exit-user/applications do not need to care about this.
 // Renderer Backends will create a GPU-side version of this.
 // Why does we store two identifiers: TexID and BackendUserData?
-// - ImTextureID    TexID           = lower-level identifier stored in ImDrawCmd. ImDrawCmd can refer to textureBindInfos not created by the backend, and for which there's no ImTextureData.
+// - ImTextureID    TexID           = lower-level identifier stored in ImDrawCmd. ImDrawCmd can refer to textureBinds not created by the backend, and for which there's no ImTextureData.
 // - void*          BackendUserData = higher-level opaque storage for backend own book-keeping. Some backends may have enough with TexID and not need both.
 // In columns below: who readTextures/writeTextures each fields? 'r'=read, 'w'=write, 'core'=main library, 'backend'=renderer backend
 struct ImTextureData
@@ -4111,7 +4111,7 @@ struct ImTextureData
     unsigned char*          Pixels;                 // w    r   // BytePtrT to buffer holding 'Width*Height' pixels and 'Width*Height*BytesPerPixels' bytes.
     ImTextureRect           UsedRect;               // w    r   // Bounding box encompassing all past and queued Updates[].
     ImTextureRect           UpdateRect;             // w    r   // Bounding box encompassing all queued Updates[].
-    ImVector<ImTextureRect> Updates;                // w    r   // Array of individual updates.
+    ImVector<ImTextureRect> Updates;                // w    r   // BeginArray of individual updates.
     int                     UnusedFrames;           // w    r   // In order to facilitate handling Status==WantDestroy in some backend: this is a count successive frames where the texture was not used. Always >0 when Status==WantDestroy.
     unsigned short          RefCount;               // w    r   // Number of contexts using this texture. Used during backend shutdown.
     bool                    UseColors;              // w    r   // Tell whether our texture data is known to use colors (rather than just white + alpha).
@@ -4279,10 +4279,10 @@ enum ImFontAtlasFlags_
     ImFontAtlasFlags_None               = 0,
     ImFontAtlasFlags_NoPowerOfTwoHeight = 1 << 0,   // Don't round the height to next power of two
     ImFontAtlasFlags_NoMouseCursors     = 1 << 1,   // Don't build software mouse cursors into the atlas (save a little texture memory)
-    ImFontAtlasFlags_NoBakedLines       = 1 << 2,   // Don't build thick line textureBindInfos into the atlas (save a little texture memory, allow support for point/nearest filtering). The AntiAliasedLinesUseTex features uses them, otherwise they will be rendered using polygons (more expensive for CPU/GPU).
+    ImFontAtlasFlags_NoBakedLines       = 1 << 2,   // Don't build thick line textureBinds into the atlas (save a little texture memory, allow support for point/nearest filtering). The AntiAliasedLinesUseTex features uses them, otherwise they will be rendered using polygons (more expensive for CPU/GPU).
 };
 
-// Load and rasterize multiple TTF/OTF fonts into a same texture. The font atlas will build a single texture holding:
+// Load_ and rasterize multiple TTF/OTF fonts into a same texture. The font atlas will build a single texture holding:
 //  - One or more fonts.
 //  - Custom graphics data needed to render the shapes needed by Dear ImGui.
 //  - Mouse cursor shapes for software cursor rendering (unless setting 'Flags |= ImFontAtlasFlags_NoMouseCursors' in the font atlas).
@@ -4315,7 +4315,7 @@ struct ImFontAtlas
     IMGUI_API ImFont* AddFontFromMemoryCompressedBase85TTF(const char* compressed_font_data_base85, float size_pixels = 0.0f, const ImFontConfig* font_cfg = NULL, const ImWchar* glyph_ranges = NULL);                     // 'compressed_font_data_base85' still owned by caller. Compress with binary_to_compressed_c.cpp with -base85 parameter.
     IMGUI_API void    RemoveFont(ImFont* font);
 
-    IMGUI_API void Clear();                                          // ClearShaders everything (input fonts, output glyphs/textureBindInfos).
+    IMGUI_API void Clear();                                          // ClearShaders everything (input fonts, output glyphs/textureBinds).
     IMGUI_API void CompactCache();                                   // Compact cached glyphs and texture.
     IMGUI_API void SetFontLoader(const ImFontLoader* font_loader);   // Change font loader at runtime.
 
@@ -4410,7 +4410,7 @@ struct ImFontAtlas
     void*            UserData;           // Store your own atlas related user-data (if e.g. you have multiple font atlas).
 
     // Output
-    // - Because textureBindInfos are dynamically created/resized, the current texture identifier may changed at *ANY TIME* during the frame.
+    // - Because textureBinds are dynamically created/resized, the current texture identifier may changed at *ANY TIME* during the frame.
     // - This should not affect you as you can always use the latest m_value. But note that any precomputed UV coordinates are only valid for the current TexRef.
 #    ifdef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     ImTextureRef TexRef;   // Latest texture identifier == TexData->GetTexRef().
@@ -4734,7 +4734,7 @@ struct ImGuiPlatformIO
     // Input - Interface with Renderer Backend
     //------------------------------------------------------------------
 
-    // Optional: Maximum texture size supported by renderer (used to adjust how we size textureBindInfos). 0 if not known.
+    // Optional: Maximum texture size supported by renderer (used to adjust how we size textureBinds). 0 if not known.
     int Renderer_TextureMaxWidth;
     int Renderer_TextureMaxHeight;
 
@@ -4758,7 +4758,7 @@ struct ImGuiPlatformIO
     // Platform functions are typically called _before_ their Renderer counterpart, apart from Destroy which are called the other way.
 
     // Platform Backend functions (e.g. Win32, GLFW, SDL) ------------------- Called by -----
-    void (*Platform_CreateWindow)(ImGuiViewport* vp);                                                                      // . . U . .  // Load a new platform window for the given viewport
+    void (*Platform_CreateWindow)(ImGuiViewport* vp);                                                                      // . . U . .  // Load_ a new platform window for the given viewport
     void (*Platform_DestroyWindow)(ImGuiViewport* vp);                                                                     // N . U . D  //
     void (*Platform_ShowWindow)(ImGuiViewport* vp);                                                                        // . . U . .  // Newly created windows are initially hidden so SetWindowPos/GetSize/Title can be called on them before showing the window
     void (*Platform_SetWindowPos)(ImGuiViewport* vp, ImVec2 pos);                                                          // . . U . .  // Encode platform window position (given the upper-left corner of client area)
@@ -4780,7 +4780,7 @@ struct ImGuiPlatformIO
     int (*Platform_CreateVkSurface)(ImGuiViewport* vp, ImU64 vk_inst, const void* vk_allocators, ImU64* out_vk_surface);   // (Optional) For a Vulkan Renderer to call into Platform code (since the surface creation needs to tie them both).
 
     // Renderer Backend functions (e.g. DirectX, OpenGL, Vulkan) ------------ Called by -----
-    void (*Renderer_CreateWindow)(ImGuiViewport* vp);                     // . . U . .  // Load swap chain, frame buffers etc. (called after Platform_CreateWindow)
+    void (*Renderer_CreateWindow)(ImGuiViewport* vp);                     // . . U . .  // Load_ swap chain, frame buffers etc. (called after Platform_CreateWindow)
     void (*Renderer_DestroyWindow)(ImGuiViewport* vp);                    // N . U . D  // Destroy swap chain, frame buffers etc. (called before Platform_DestroyWindow)
     void (*Renderer_SetWindowSize)(ImGuiViewport* vp, ImVec2 size);       // . . U . .  // Resize swap chain, frame buffers etc. (called after Platform_SetWindowSize)
     void (*Renderer_RenderWindow)(ImGuiViewport* vp, void* render_arg);   // . . . R .  // (Optional) ClearShaders framebuffer, setup render target, then render the viewport->DrawData. 'render_arg' is the m_value passed to RenderPlatformWindowsDefault().
@@ -4796,8 +4796,8 @@ struct ImGuiPlatformIO
     //------------------------------------------------------------------
 
     // Textures list (the list is updated by calling ImGui::EndFrame or ImGui::Render)
-    // The ImGui_ImplXXXX_RenderDrawData() function of each backend generally access this via ImDrawData::Textures which points to this. The array is available here mostly because backends will want to destroy textureBindInfos on shutdown.
-    ImVector<ImTextureData*> Textures;   // List of textureBindInfos used by Dear ImGui (most often 1) + contents of external texture list is automatically appended into this.
+    // The ImGui_ImplXXXX_RenderDrawData() function of each backend generally access this via ImDrawData::Textures which points to this. The array is available here mostly because backends will want to destroy textureBinds on shutdown.
+    ImVector<ImTextureData*> Textures;   // List of textureBinds used by Dear ImGui (most often 1) + contents of external texture list is automatically appended into this.
 
     // Viewports list (the list is updated by calling ImGui::EndFrame or ImGui::Render)
     // (in the future we will attempt to organize this feature to remove the need for a "main viewport")

@@ -229,8 +229,12 @@ void ProjectExporter::WriteLiteralDefinitions_(
 void ProjectExporter::WriteCompiledBinaryDefinitions_(
     const Project*           _pProject,
     const FileWriter&        _writer,
-    const ExportProjectInfo& _info)
+    const ExportProjectInfo& _info,
+    const bool               _bIncludeDebugFlags,
+    const bool               _bIncludeReleaseFlags)
 {
+    Vector<ShaderMacro> shaderMacros = {};
+
     for (const auto& [name, item]: _pProject->GetShaderItems())
     {
         if (!item.pShaderSource)
@@ -244,7 +248,34 @@ void ProjectExporter::WriteCompiledBinaryDefinitions_(
             continue;
         }
 
-        const ShaderCompiler compiler = item.Compile();
+        shaderMacros.clear();
+        for (const ShaderItem::Macro& macro: item.macros)
+        {
+            if (!macro.bEnabled)
+            {
+                continue;
+            }
+
+            shaderMacros.emplace_back(macro.name, macro.value);
+        }
+
+        ShaderCompilerInfo info = {};
+        info.entryPoint         = item.entryPoint;
+        info.stage              = item.stage;
+        info.flags              = item.compileFlags;
+        info.macros             = shaderMacros;
+
+        if (_bIncludeDebugFlags)
+        {
+            info.flags |= eShaderCompileFlags::DebugDefault;
+        }
+        if (_bIncludeReleaseFlags)
+        {
+            info.flags |= eShaderCompileFlags::ReleaseDefault;
+        }
+
+        JAM_ASSERT(item.pShaderSource, "Shader item '{}' does not have a valid shader source.", name);
+        ShaderCompiler compiler = ShaderCompiler::CompileHLSLSource(item.pShaderSource->GetSource(), info);
         if (compiler.IsFailed())
         {
             AppendErrorState_(compiler.GetError(), String::Formatted("Failed to compile shader '{}': {}", name, compiler.GetErrorMessage()));
@@ -252,7 +283,7 @@ void ProjectExporter::WriteCompiledBinaryDefinitions_(
         }
 
         const String       variable     = MakeVariableName_(name, _info.namePrefix, _info.nameFormat);
-        const CMemoryBlock compiledCode = compiler.GetBytecode();
+        const MemoryView compiledCode = compiler.GetBytecode();
         _writer.WriteString("const unsigned char ");
         _writer.WriteString(variable);
         _writer.WriteString("[] = {\n    ");
@@ -287,12 +318,7 @@ void ProjectExporter::WriteCompiledBinaryOutput_(
     const ExportProjectInfo&          _info,
     const eWriteCompiledBinarySection _section)
 {
-    const bool bOutputUser    = _info.flags == eProjectExportFlags::None || _info.flags & eProjectExportFlags::DefaultExport;
-    const bool bOutputDebug   = _info.flags & eProjectExportFlags::DebugExport;
-    const bool bOutputRelease = _info.flags & eProjectExportFlags::ReleaseExport;
-    bool       bHasIf         = false;
-
-    if (bOutputDebug)
+    if (_info.bIncludeDebugBuild)
     {
         _writer.WriteString("#ifdef ");
         _writer.WriteString(_info.debugMacro);
@@ -303,56 +329,22 @@ void ProjectExporter::WriteCompiledBinaryOutput_(
         }
         else
         {
-            WriteCompiledBinaryDefinitions_(_pProject, _writer, _info);
+            WriteCompiledBinaryDefinitions_(_pProject, _writer, _info, true, false);
         }
 
-        bHasIf = true;
+        _writer.WriteString("#else\n\n");
     }
 
-    if (bOutputRelease)
+    if (_section == eWriteCompiledBinarySection::Declaration)
     {
-        const StringView macro = bHasIf ? "#elif defined(" : "#ifdef ";
-        _writer.WriteString(macro);
-        _writer.WriteString(_info.releaseMacro);
-        if (bHasIf)
-        {
-            _writer.WriteString(")\n\n");
-        }
-        else
-        {
-            _writer.WriteString("\n\n");
-        }
-
-        if (_section == eWriteCompiledBinarySection::Declaration)
-        {
-            WriteDeclarations_(_pProject, _writer, _info);
-        }
-        else
-        {
-            WriteCompiledBinaryDefinitions_(_pProject, _writer, _info);
-        }
-
-        bHasIf = true;
+        WriteDeclarations_(_pProject, _writer, _info);
     }
-
-    if (bOutputUser)
+    else
     {
-        if (bHasIf)
-        {
-            _writer.WriteString("#else\n\n");
-        }
-
-        if (_section == eWriteCompiledBinarySection::Declaration)
-        {
-            WriteDeclarations_(_pProject, _writer, _info);
-        }
-        else
-        {
-            WriteCompiledBinaryDefinitions_(_pProject, _writer, _info);
-        }
+        WriteCompiledBinaryDefinitions_(_pProject, _writer, _info, false, _info.bIncludeReleaseBuild);
     }
 
-    if (bHasIf)
+    if (_info.bIncludeDebugBuild)
     {
         _writer.WriteString("#endif\n\n");
     }

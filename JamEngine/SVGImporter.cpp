@@ -50,7 +50,7 @@ Expect<SVGImporter> SVGImporter::ImportFromSource(
     return importer;
 }
 
-CMemoryBlock SVGImporter::GetPixels() const
+MemoryView SVGImporter::GetPixels() const
 {
     JAM_ASSERT(!m_bitmap.isNull(), "SVG image not imported yet");
     return { m_bitmap.data(), m_bitmap.stride() * m_bitmap.height() };

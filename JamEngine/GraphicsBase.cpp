@@ -10,7 +10,7 @@ RGBA RGBA::k_black       = RGBA(0, 0, 0, 255);
 RGBA RGBA::k_transparent = RGBA(0, 0, 0, 0);
 
 RenderState RenderState::k_default   = {};
-RenderState RenderState::k_depthTest = { ePrimitive::TriangleList, eCullMode::Back, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, true };   // namespace Jam
+RenderState RenderState::k_depthTest = { ePrimitive::TriangleList, eCullMode::Back, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, true };  
 
 BlendState BlendState::k_opaque             = {};
 BlendState BlendState::k_alphaBlend         = { true, eBlend::SrcAlpha, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags::All };
@@ -130,7 +130,7 @@ Int32 CalcNumMips(
     const Int32 _depth)
 {
     JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "텍스처 크기는 0보다 커야합니다.");
-    return 1 + Log2(Max(_width, _height, _depth));
+    return 1 + NumericCast<Int32>(Log2(NumericCast<float>(Max(_width, _height, _depth))));
 }
 
 TextureResolution CalcTextureResolution(

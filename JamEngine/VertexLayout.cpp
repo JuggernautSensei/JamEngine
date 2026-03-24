@@ -64,13 +64,16 @@ Int32 VertexLayout::GetNumElems() const
 void VertexLayout::WriteToArchive(
     ArchiveWriter& _archive) const
 {
+    _archive.BeginArray();
     for (const VertexLayoutElement& vle: GetElems())
     {
-        _archive.OpenAtBack();
+        _archive.AddElement();
+        _archive.BeginObject();
         _archive.WriteField("attrib", vle.attrib);
         _archive.WriteField("format", vle.format);
-        _archive.Close();
+        _archive.EndObject();
     }
+    _archive.EndArray();
 }
 
 Error VertexLayout::ReadFromArchive(
@@ -78,9 +81,8 @@ Error VertexLayout::ReadFromArchive(
 {
     Reset();
 
-    return _archive.ForEach(
-        [this](const SizeT, ArchiveReader& reader) -> Error
-        {
+    return _archive.ForEachArray(Bind(
+        [this](const SizeT, ArchiveReader& reader) -> Error {
             eVertexAttribute attrib = {};
             if (const Error err = reader.ReadField("attrib", attrib))
             {
@@ -95,7 +97,7 @@ Error VertexLayout::ReadFromArchive(
 
             Push(attrib, format);
             return Error::None;
-        });
+        }));
 }
 
 SizeT ByteWidthOf(

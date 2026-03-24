@@ -8,15 +8,15 @@ struct ExportProjectDialogSetting
     void  WriteToArchive(ArchiveWriter& _archive) const;
     Error ReadFromArchive(ArchiveReader& _archive);
 
-    String                     exportDir     = "";
-    String                     baseName      = "";
-    eProjectExportType         type          = eProjectExportType::CompiledBinary;
-    Flags<eProjectExportFlags> flags         = eProjectExportFlags::DefaultExport;
-    String                     debugMacro    = "DEBUG_OUPUT";
-    String                     releaseMacro  = "RELEASE_OUTPUT";
-    String                     rootNamespace = "";
-    eNameFormat                nameFormat    = eNameFormat::NoSpace;
-    String                     namePrefix    = "";
+    String             exportDir            = "";
+    String             baseName             = "";
+    eProjectExportType type                 = eProjectExportType::CompiledBinary;
+    bool               bIncludeDebugBuild   = false;
+    bool               bIncludeReleaseBuild = false;
+    String             debugMacro           = "DEBUG_OUTPUT";
+    String             rootNamespace        = "";
+    eNameFormat        nameFormat           = eNameFormat::NoSpace;
+    String             namePrefix           = "";
 };
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(ExportProjectDialogSetting);
 
@@ -39,7 +39,6 @@ private:
 
     [[nodiscard]] FileDialog CreateFileDialog_() const;
     bool                     OnClickExportButton_() const;
-    void                     Widget_EnumFlags_();
 
     const Project*             m_pProject = nullptr;
     ExportProjectDialogSetting m_setting  = {};

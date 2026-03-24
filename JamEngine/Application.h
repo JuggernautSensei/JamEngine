@@ -8,26 +8,31 @@ namespace Jam
 class WindowClosedEvent;
 class Event;
 
-enum class eAppSubSystemFlags : UInt32
+enum class eAppCoreFlags : UInt32
 {
-    None         = 0,
+    None = 0,
+
+    // subsystem
     SceneManager = 1 << 0,
     AssetManager = 1 << 1,
     ImGuiEngine  = 1 << 2,
     Editor       = 1 << 3,
+
+    // misc
+    AllowTearing = 1 << 4,
 };
 
-constexpr Flags<eAppSubSystemFlags> k_runtimeDefaultSubSystems = {
-    eAppSubSystemFlags::SceneManager,
-    eAppSubSystemFlags::AssetManager,
-    eAppSubSystemFlags::ImGuiEngine
+constexpr Flags<eAppCoreFlags> k_runtimeDefaltFlags = {
+    eAppCoreFlags::SceneManager,
+    eAppCoreFlags::AssetManager,
+    eAppCoreFlags::ImGuiEngine
 };
 
-constexpr Flags<eAppSubSystemFlags> k_editorDefaultSubSystems = {
-    eAppSubSystemFlags::SceneManager,
-    eAppSubSystemFlags::AssetManager,
-    eAppSubSystemFlags::ImGuiEngine,
-    eAppSubSystemFlags::Editor
+constexpr Flags<eAppCoreFlags> k_editorDefaultFlags = {
+    eAppCoreFlags::SceneManager,
+    eAppCoreFlags::AssetManager,
+    eAppCoreFlags::ImGuiEngine,
+    eAppCoreFlags::Editor
 };
 
 class Application
@@ -52,7 +57,7 @@ public:
     [[nodiscard]] StringView GetAppName() const;
     [[nodiscard]] float      GetDeltaTimeSec() const;
     [[nodiscard]] float      GetFrameRate() const;
-    [[nodiscard]] bool       IsSubSystemEnabled(eAppSubSystemFlags _subSystem) const;
+    [[nodiscard]] bool       IsCoreFlagsEnabled(eAppCoreFlags _flags) const;
 
     [[nodiscard]] StringView GetWorkingDirectory() const;
     [[nodiscard]] StringView GetContentsDirectory() const;
@@ -60,7 +65,7 @@ public:
     [[nodiscard]] std::thread::id GetMainThreadId() const;
 
 protected:
-    explicit Application(StringView _appName, Flags<eAppSubSystemFlags> _subSystems = k_runtimeDefaultSubSystems);
+    explicit Application(StringView _appName, Flags<eAppCoreFlags> _initFlags = k_runtimeDefaltFlags);
     virtual ~Application() = default;
 
     // can be overridden by derived type
@@ -87,13 +92,13 @@ private:
     void CoreInit();
     void CoreShutdown();
 
-    String                    m_appName      = {};
-    bool                      m_bRunning     = false;
-    bool                      m_bInited      = false;
-    bool                      m_bVsync       = false;
-    Flags<eAppSubSystemFlags> m_subSystems   = {};
-    CommandQueue              m_commandQueue = {};
-    std::thread::id           m_mainThreadId = {};
+    String               m_appName      = {};
+    bool                 m_bRunning     = false;
+    bool                 m_bInited      = false;
+    bool                 m_bVsync       = false;
+    Flags<eAppCoreFlags> m_coreFlags    = {};
+    CommandQueue         m_commandQueue = {};
+    std::thread::id      m_mainThreadId = {};
 
     // timer
     float m_deltaTimeSec = 0.f;
@@ -125,4 +130,5 @@ private:
     int main(int _argc, char** _argv)                       \
     {                                                       \
         JAM_MAIN_IMPL(TApp, _appName, _flags, _argc, _argv) \
-    }
+    }                                                       \
+    static_assert(true)

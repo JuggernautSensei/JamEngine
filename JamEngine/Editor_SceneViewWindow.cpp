@@ -12,7 +12,6 @@
 #include "JsonArchive.h"
 #include "RenderableComponent.h"
 #include "SceneManager.h"
-#include "SceneSerializer.h"
 #include "EditorUtilities.h"
 
 namespace Jam
@@ -24,19 +23,8 @@ Editor_SceneViewWindow::Editor_SceneViewWindow()
     // init editor camera
     {
         m_cameraTransform.SetTranslation(-5, 5, -5);
-        m_cameraTransform.SetLookAt(Vec3::k_zero);
+        m_cameraTransform.SetLookAt(Numbers<Vec3>::k_zero);
         m_camera.SetFarZ(300.f);
-    }
-
-    // load m_icons
-    {
-        m_cursorIcon     = GetEditor().GetIcon(eEditorIcon::Cursor);
-        m_stopIcon       = GetEditor().GetIcon(eEditorIcon::Stop);
-        m_optionsIcon    = GetEditor().GetIcon(eEditorIcon::Menu);
-        m_playIcon       = GetEditor().GetIcon(eEditorIcon::Play);
-        m_rotatationIcon = GetEditor().GetIcon(eEditorIcon::Rotation);
-        m_scaleIcon      = GetEditor().GetIcon(eEditorIcon::Scale);
-        m_tranlationIcon = GetEditor().GetIcon(eEditorIcon::Translation);
     }
 }
 
@@ -118,7 +106,7 @@ void Editor_SceneViewWindow::OnImGuiRender(
     // viewport toolbar
     {
         // Options button
-        Widget_IconButton("options", m_optionsIcon);
+        Widget_IconButton("options", GetEditor().GetIcon(eEditorIcon::Menu));
         if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonLeft))
         {
             Menu_Options();
@@ -194,31 +182,30 @@ void Editor_SceneViewWindow::OnImGuiRender(
     {
         if (GetSceneManager().HasActiveScene())
         {
-            const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-            const Entity      entity = GetEditor().GetFocusingEntityOrNull();
+            const Entity entity = GetEditor().GetFocusingEntityOrNull();
 
             // 생성
             if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::CreateEntity)))
             {
-                GetEditor().CreateEntity(pScene);
+                GetEditor().CreateEntity(m_pScene);
             }
 
             // 복제
             if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::CloneEntity)) && GetEditor().CanEntityClone(entity))
             {
-                GetEditor().CloneEntity(pScene, entity);
+                GetEditor().CloneEntity(m_pScene, entity);
             }
 
             // 삭제
             if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::DeleteEntity)) && GetEditor().CanEntityDestroy(entity))
             {
-                GetEditor().DestroyEntity(pScene, entity);
+                GetEditor().DestroyEntity(m_pScene, entity);
             }
 
             // 씬 저장
             if (ImGui::Shortcut(GetEditor().GetStyleShortCut(eEditorShortCut::SaveScene)))
             {
-                GetEditor().SaveSceneByFileDialog(pScene);
+                GetEditor().SaveSceneByFileDialog(m_pScene);
             }
         }
 
@@ -319,9 +306,9 @@ void Editor_SceneViewWindow::DrawGizmo_() const
         return;
     }
 
-    Matrix4x4       mtx  = entity.GetWorldTransform().GetMatrix();
-    const Matrix4x4 view = m_cameraTransform.ToViewMatrix();
-    const Matrix4x4 proj = m_camera.ToProjMatrix();
+    Mtx4       mtx  = entity.GetWorldTransform().GetMatrix();
+    const Mtx4 view = m_cameraTransform.CreateViewMatrix();
+    const Mtx4 proj = m_camera.GetProjMatrix();
 
     const float x        = m_sceneViewLeftTop.x;
     const float y        = m_sceneViewLeftTop.y;
@@ -367,7 +354,7 @@ void Editor_SceneViewWindow::Menu_Options()
 
         if (Widget_MenuItem("reset rotation"))
         {
-            m_cameraEulerRad = Vec3::k_zero;
+            m_cameraEulerRad = Numbers<Vec3>::k_zero;
             m_cameraTransform.SetRotation(0.f, 0.f, 0.f);
         }
 
@@ -492,7 +479,7 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
             {
                 const float dRot   = m_cameraRotSpeed * k_dragSensitivity;
                 m_cameraEulerRad.x = Clamp(m_cameraEulerRad.x - NumericCast<float>(dy) * dRot, ToRad(-89.f), ToRad(89.f));
-                m_cameraEulerRad.y = Wrap(m_cameraEulerRad.y - NumericCast<float>(dx) * dRot, -k_pi, k_pi);
+                m_cameraEulerRad.y = Wrap(m_cameraEulerRad.y - NumericCast<float>(dx) * dRot, -Numbers<float>::k_pi, Numbers<float>::k_pi);
                 m_cameraTransform.SetRotation(m_cameraEulerRad);
             }
         }
@@ -504,11 +491,11 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
         const auto [dx, dy] = m_infiniteDragger.GetDragDelta();
         if (dx != 0 || dy != 0)
         {
-            const float   dMov   = m_cameraMoveSpeed * k_dragSensitivity;
-            const Vector3 right  = m_cameraTransform.GetRight();
-            const Vector3 up     = m_cameraTransform.GetUp();
-            const Vector3 dRight = right * NumericCast<float>(dx) * dMov;
-            const Vector3 dUp    = up * NumericCast<float>(-dy) * dMov;
+            const float dMov   = m_cameraMoveSpeed * k_dragSensitivity;
+            const Vec3  right  = m_cameraTransform.GetRight();
+            const Vec3  up     = m_cameraTransform.GetUp();
+            const Vec3  dRight = right * NumericCast<float>(dx) * dMov;
+            const Vec3  dUp    = up * NumericCast<float>(-dy) * dMov;
             m_cameraTransform.AddTranslation(dRight + dUp);
         }
     }
@@ -553,11 +540,11 @@ void Editor_SceneViewWindow::OnRenderEdit()
 
         // setup render view
         RenderView renderView = {};
-        renderView.fbh        = m_fbh;
-        renderView.vp         = vp;
-        renderView.eye        = m_cameraTransform.GetTranslation();
-        renderView.view       = m_cameraTransform.ToViewMatrix();
-        renderView.proj       = m_camera.ToProjMatrix();
+        renderView.outputFbh        = m_fbh;
+        renderView.outputVp         = vp;
+        renderView.eyePos        = m_cameraTransform.GetTranslation();
+        renderView.view       = m_cameraTransform.CreateViewMatrix();
+        renderView.proj       = m_camera.GetProjMatrix();
 
         // render scene
         GetSceneManager().Render(renderView);
@@ -566,8 +553,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
         {
             // lazy create (because scene depth texture may change on scene load)
             {
-                const Ref<Scene>&   pScene    = GetSceneManager().GetActiveScene();
-                const TextureHandle depthTexh = pScene->GetDepthTexture();
+                const TextureHandle depthTexh = m_pScene->GetDepthTexture();
                 if (m_sceneDepthTexh != depthTexh)
                 {
                     JAM_DESTROY_FRAME_BUFFER(m_fbhWithDepth);
@@ -579,7 +565,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
             // render overlays (need depth)
             if (m_fbhWithDepth)
             {
-                renderView.fbh = m_fbhWithDepth;
+                renderView.outputFbh = m_fbhWithDepth;
                 m_renderer.Begin(renderView);
 
                 // draw grid and axis
@@ -611,7 +597,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
                         const RenderableComponent& rc = entity.GetComponent<RenderableComponent>();
                         if (rc.pMesh)
                         {
-                            const Matrix4x4& mtx = entity.GetWorldTransform().GetMatrix();
+                            const Mtx4& mtx = entity.GetWorldTransform().GetMatrix();
                             m_renderer.DrawBoundingBox(rc.pMesh->GetBoundingBox(), mtx, k_boundingBoxCol);
                         }
                     }
@@ -619,11 +605,11 @@ void Editor_SceneViewWindow::OnRenderEdit()
                     // camera frustum
                     if (entity.HasComponent<CameraComponent>())
                     {
-                        const Matrix4x4 view = entity.GetWorldTransform().ToViewMatrix();
+                        const Mtx4 view = entity.GetWorldTransform().CreateViewMatrix();
 
                         const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
                         const Camera&          cmr  = cc.camera;
-                        const Matrix4x4        proj = cmr.ToProjMatrix();
+                        const Mtx4             proj = cmr.GetProjMatrix();
 
                         m_renderer.DrawFrustum(view * proj, k_boundingBoxCol);
                     }
@@ -671,13 +657,20 @@ void Editor_SceneViewWindow::Resize_(
 }
 
 void Editor_SceneViewWindow::OnSceneChangedEvent_(
-    const SceneChangedEvent& _event)
+    const SceneChangedEvent&)
 {
-    if (m_bRecoverRequested && m_focusedEntityBackupUid != UID::k_null)
+    const SceneManager& mgr = GetSceneManager();
+    if (!mgr.HasActiveScene())
     {
-        // edit 모드에서 편집중이던 엔티티 복구
-        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-        const Entity      entity = pScene->GetEntity(m_focusedEntityBackupUid);
+        return;
+    }
+
+    m_pScene = mgr.GetActiveScene();
+
+    // edit <-> play 상태 전환 시, 편집중이던 씬과 엔티티 복구
+    if (m_bRecoverRequested && m_focusedEntityBackupUid)
+    {
+        const Entity entity = m_pScene->GetEntity(m_focusedEntityBackupUid);
         GetEditor().SetFocusingEntity(entity);
 
         m_focusedEntityBackupUid = UID::k_null;
@@ -740,10 +733,10 @@ void Editor_SceneViewWindow::Widget_GizmoSelector(
                                          : _op == eGizmoOp::Rotation    ? eEditorShortCut::GizmoRotationMode
                                                                         : eEditorShortCut::GizmoScaleMode;
 
-    const Ref<Texture> pIcon = _op == eGizmoOp::None        ? m_cursorIcon
-                             : _op == eGizmoOp::Translation ? m_tranlationIcon
-                             : _op == eGizmoOp::Rotation    ? m_rotatationIcon
-                                                            : m_scaleIcon;
+    const Ref<Texture> pIcon = _op == eGizmoOp::None        ? GetEditor().GetIcon(eEditorIcon::Cursor)
+                             : _op == eGizmoOp::Translation ? GetEditor().GetIcon(eEditorIcon::Translation)
+                             : _op == eGizmoOp::Rotation    ? GetEditor().GetIcon(eEditorIcon::Rotation)
+                                                            : GetEditor().GetIcon(eEditorIcon::Scale);
 
     const char* summryText = _op == eGizmoOp::None        ? "select tool"
                            : _op == eGizmoOp::Translation ? "tranlation tool"
@@ -859,7 +852,7 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
         // translation vector
         if (m_bShowCameraTranslation)
         {
-            const Vector3 translation = m_cameraTransform.GetTranslation();
+            const Vec3 translation = m_cameraTransform.GetTranslation();
             ImGui::SetCursorScreenPos(textPos);
             ImGui::Text("translation\nx: %.2f\ny: %.2f\nz: %.2f", translation.x, translation.y, translation.z);
             textPos.y += textItemHeight;
@@ -868,7 +861,7 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
         // forward vector
         if (m_bShowCameraForward)
         {
-            const Vector3 forward = m_cameraTransform.GetForward();
+            const Vec3 forward = m_cameraTransform.GetForward();
             ImGui::SetCursorScreenPos(textPos);
             ImGui::Text("forward\nfx: %.2f\nfy: %.2f\nfz: %.2f", forward.x, forward.y, forward.z);
         }
@@ -887,13 +880,13 @@ void Editor_SceneViewWindow::Widget_RunButton_()
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, GetEditor().GetStyleColorU32(eEditorStyleColor::RunButtonBgActive));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GetEditor().GetStyleColorU32(eEditorStyleColor::RunButtonBgHovered));
 
-        if (Widget_IconButton("play", m_playIcon, k_modeBtnSize))
+        if (Widget_IconButton("play", GetEditor().GetIcon(eEditorIcon::Play), k_modeBtnSize))
         {
             GetEditor().SetMode(eEditorMode::Play);
 
             // 현재 씬을 직렬화하여 백업
             JsonWriter writer = {};
-            SerializeScene(writer, GetSceneManager().GetActiveScene());
+            GetSceneManager().GetActiveScene()->Serialize(writer);
             Expect<String> sceneData = writer.Stringify();
             JAM_ASSERT(sceneData, "failed to serialize scene on run!");
             m_backUpSceneData = sceneData.Take();
@@ -937,9 +930,9 @@ void Editor_SceneViewWindow::Widget_StopButton_() const
             Expect<JsonReader> reader = JsonReader::Parse(m_backUpSceneData);
             JAM_ASSERT(reader, "failed to parse backup scene data on stop!");
 
-            Expect<Ref<Scene>> pScene = DeserializeScene(reader.GetValue());
-            JAM_ASSERT(pScene, "failed to deserialize scene on stop!");
-            GetSceneManager().LoadScene(pScene.GetValue());
+            /*Expect<Ref<Scene>> m_pScene = DeserializeScene(reader.GetValue());
+            JAM_ASSERT(m_pScene, "failed to deserialize scene on stop!");
+            GetSceneManager().LoadSceneFromFile(m_pScene.GetValue());*/
         }
 
         ImGui::PopStyleColor(3);

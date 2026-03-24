@@ -117,7 +117,7 @@ public:
     void Connect()   // for free function or static member function or non-capturing lambda
     {
         Disconnect();
-        m_hash = HashOf<TFunc>();
+        m_hash = FuncHashOf<TFunc>();
         m_func = [](const Delegate*, TArg... args) -> TRet
         {
             return TFunc(std::forward<TArg>(args)...);
@@ -129,7 +129,7 @@ public:
     void Connect(TCaller* _pInst)   // for non-const member function
     {
         Disconnect();
-        m_hash  = HashOf<TMethod>(_pInst);
+        m_hash  = FuncHashOf<TMethod>(_pInst);
         m_pInst = static_cast<void*>(_pInst);
         m_func  = [](const Delegate* _pDel, TArg... args) -> TRet
         {
@@ -143,7 +143,7 @@ public:
     void Connect(const TCaller* _pInst)   // for const member function
     {
         Disconnect();
-        m_hash       = HashOf<TMethod>(_pInst);
+        m_hash       = FuncHashOf<TMethod>(_pInst);
         m_pConstInst = static_cast<const void*>(_pInst);
         m_func       = [](const Delegate* _pDel, TArg... args) -> TRet
         {
@@ -159,7 +159,7 @@ public:
 
         Disconnect();
 
-        m_hash = HashOf(_func);
+        m_hash = FuncHashOf(_func);
 
         if constexpr (sizeof(TDecayed) <= k_storageSize && alignof(TDecayed) <= k_storageAlign)
         {
@@ -278,7 +278,7 @@ public:
             return 0;
         }
 
-        return reinterpret_cast<UInt64>(m_pInst);   // cosnt + non-const. 같은 메모리.
+        return reinterpret_cast<UInt64>(m_pInst);   // const + non-const. 같은 메모리.
     }
 
     [[nodiscard]] bool IsFunctionConnected() const   // check free function + non-capturing lambda

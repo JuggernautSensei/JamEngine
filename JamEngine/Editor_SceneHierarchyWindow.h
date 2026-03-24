@@ -4,13 +4,17 @@
 
 namespace Jam
 {
+class SceneChangedEvent;
 
-class Editor_SceneHierarchyWindow 
+class Editor_SceneHierarchyWindow
 {
 public:
     void OnImGuiRender(bool& _pShow);
+    void OnEvent(Event& _event);
 
 private:
+    void OnSceneChangedEvent_(SceneChangedEvent& _event);
+
     void Widget_SaveSceneButton_(ImVec2 _btnSize) const;
     void Widget_LoadSceneButton_(ImVec2 _btnSize) const;
     void Widget_EntityItem_Recursive_(Entity _entity);
@@ -21,6 +25,8 @@ private:
     // entity list window
     void OnBeginDragDropTarget_EntityListPanel_() const;
     void Menu_EntityListPanel_() const;
+
+    Scene* m_pScene = nullptr;   // cache;
 };
 
 }   // namespace Jam

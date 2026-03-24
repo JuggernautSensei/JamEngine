@@ -6,7 +6,7 @@ namespace Jam
 {
 
 Int32 CalcNumIndices(
-    const CMemoryBlock _idxData,
+    const MemoryView _idxData,
     const bool         _bUseU32) noexcept
 {
     const SizeT indexSize = NumericCast<SizeT>(_bUseU32 ? sizeof(UInt32) : sizeof(UInt16));
@@ -14,7 +14,7 @@ Int32 CalcNumIndices(
 }
 
 Int32 CalcNumVertices(
-    const CMemoryBlock  _vertData,
+    const MemoryView  _vertData,
     const VertexLayout& _vl) noexcept
 {
     const Int32 stride = _vl.GetStride();
@@ -30,7 +30,7 @@ Int32 CalcIndicesByteWidth(
 }
 
 bool NeedU32Index(
-    const CMemoryBlock  _vertData,
+    const MemoryView  _vertData,
     const VertexLayout& _vl) noexcept
 {
     const Int32 numVerts = CalcNumVertices(_vertData, _vl);

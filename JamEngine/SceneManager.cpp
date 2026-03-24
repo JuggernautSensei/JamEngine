@@ -13,7 +13,6 @@
 #include "SceneComponent.h"
 #include "SceneDatabase.h"
 #include "SceneNode.h"
-#include "SceneSerializer.h"
 
 namespace Jam
 {
@@ -27,9 +26,9 @@ void SceneManager::Resize(
     const Int32 _width,
     const Int32 _height) const
 {
-    if (m_pActiveScene)
+    if (m_pScene)
     {
-        m_pActiveScene->OnResize(_width, _height);
+        m_pScene->OnResize(_width, _height);
     }
 }
 
@@ -37,10 +36,10 @@ void SceneManager::Update(
     const float _deltaSec) const
 {
     // update active scene
-    if (m_pActiveScene)
+    if (m_pScene)
     {
         // update scene
-        m_pActiveScene->OnUpdate(_deltaSec);
+        m_pScene->OnUpdate(_deltaSec);
     }
 }
 
@@ -55,105 +54,94 @@ void SceneManager::RenderRuntime(
     const FrameBufferHandle _fbh,
     const Viewport          _vp) const
 {
-    if (m_pActiveScene)
+    if (m_pScene)
     {
         // update dirty transforms
-        m_pActiveScene->UpdateSceneGraph_();
+        m_pScene->UpdateSceneGraph();
 
         // create view
         RenderView view = { _fbh, _vp };
 
         // find first enabled camera
-        for (const auto& [_, sc, cc]: m_pActiveScene->Each<SceneComponent, CameraComponent>())
+        for (const auto& [_, sc, cc]: m_pScene->Each<SceneComponent, CameraComponent>())
         {
             if (cc.bEnabled)
             {
                 const Transform& transW = sc.node.GetWorldTransform();
                 const Camera&    cmr    = cc.camera;
 
-                view.eye  = transW.GetTranslation();
-                view.view = transW.ToViewMatrix();
-                view.proj = cmr.ToProjMatrix();
+                view.eyePos  = transW.GetTranslation();
+                view.view = transW.CreateViewMatrix();
+                view.proj = cmr.GetProjMatrix();
                 break;
             }
         }
 
         // render
-        m_pActiveScene->OnRender(view);
+        m_pScene->OnRender(view);
     }
 }
 
 void SceneManager::Render(
     const RenderView& _view) const
 {
-    if (m_pActiveScene)
+    if (!m_pScene)
     {
-        m_pActiveScene->UpdateSceneGraph_();
-        m_pActiveScene->OnRender(_view);
+        return;
     }
+
+    m_pScene->UpdateSceneGraph();
+    m_pScene->OnRender(_view);
 }
 
 void SceneManager::ImGuiRender() const
 {
-    if (const Ref<Scene>& pScene = m_pActiveScene)
+    if (!m_pScene)
     {
-        pScene->OnImGuiRender();
-    }
-}
-
-Error SceneManager::LoadScene(
-    const StringView _path,
-    const bool       _bDefered)
-{
-    Expect<JsonReader> reader = JsonReader::ParseFromFile(_path);
-    if (!reader)
-    {
-        return reader.GetError();
+        return;
     }
 
-    Expect<Ref<Scene>> pScene = DeserializeScene(reader.GetValue());
-    if (!pScene)
-    {
-        return pScene.GetError();
-    }
-
-    LoadScene(pScene.GetValue(), _bDefered);
-    return Error::None;
+    m_pScene->OnImGuiRender();
 }
 
 void SceneManager::LoadScene(
-    const Ref<Scene>& _pScene,
-    const bool        _bDefered)
+    Scoped<Scene>&& _pScene,
+    const bool      _bDefered)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
-    JAM_ASSERT(JAM_SCENE_DB.IsSceneReflected(_pScene->GetTypeHash()), "Scene type '{}' is not reflected. you must JAM_SCENE macro in the scene class definition.", _pScene->GetTypeName());
+    JAM_ASSERT(GetSceneDatabase().IsSceneReflected(_pScene->GetTypeHash()), "Scene type is not reflected in the database");
 
     if (_bDefered)
     {
-        ChangeSceneDefered_(_pScene);
+        ChangeSceneDefered_(std::move(_pScene));
     }
     else
     {
-        ChangeScene_(_pScene);
+        ChangeScene_(std::move(_pScene));
     }
 }
 
 bool SceneManager::HasActiveScene() const
 {
-    return m_pActiveScene != nullptr;
+    return m_pScene != nullptr;
 }
 
-const Ref<Scene>& SceneManager::GetActiveScene() const
+Scene* SceneManager::GetActiveScene() const
 {
-    JAM_ASSERT(m_pActiveScene, "No active scene");
-    return m_pActiveScene;
+    JAM_ASSERT(m_pScene, "No active scene");
+    return m_pScene.GetPtr();
+}
+
+Scene* SceneManager::GetActiveSceneOrNull() const
+{
+    return m_pScene ? m_pScene.GetPtr() : nullptr;
 }
 
 SceneManager::~SceneManager()
 {
-    if (const Ref<Scene>& pScene = m_pActiveScene)
+    if (m_pScene)
     {
-        pScene->OnExit();
+        m_pScene->OnExit();
     }
 }
 
@@ -172,7 +160,7 @@ void SceneManager::DestroyInstance()
 void SceneManager::OnEvent(
     Event& _event)
 {
-    if (!GetApp().IsSubSystemEnabled(eAppSubSystemFlags::Editor))   // runtime mode
+    if (!GetApp().IsCoreFlagsEnabled(eAppCoreFlags::Editor))   // runtime mode
     {
         // handle window events in runtime mode
         EventDispatcher dispatcher { _event };
@@ -180,9 +168,9 @@ void SceneManager::OnEvent(
         dispatcher.Dispatch<WindowMaximizedEvent>(this, &SceneManager::OnWindowMaximizeEvent_);
     }
 
-    if (m_pActiveScene)
+    if (m_pScene)
     {
-        m_pActiveScene->OnEvent(_event);
+        m_pScene->OnEvent(_event);
     }
 }
 
@@ -199,35 +187,32 @@ void SceneManager::OnWindowMaximizeEvent_(
 }
 
 void SceneManager::ChangeSceneDefered_(
-    const Ref<Scene>& _pScene)
+    Scoped<Scene>&& _pScene)
 {
-    GetApp().SubmitCommandToMainThread(Bind(
-        [this, _pScene]
-        {
-            ChangeScene_(_pScene);
-        }));
+    m_pNextScene = std::move(_pScene);
+    GetApp().SubmitCommandToMainThread(Bind<&SceneManager::ChangeToNextScene_>(this));
 }
 
 void SceneManager::ChangeScene_(
-    const Ref<Scene>& _pScene)
+    Scoped<Scene>&& _pScene)
 {
-    if (m_pActiveScene)
+    if (m_pScene)
     {
-        m_pActiveScene->OnExit();
+        m_pScene->OnExit();
     }
 
-    m_pActiveScene = _pScene;
-    m_pActiveScene->OnEnter();
+    m_pScene = std::move(_pScene);
+    m_pScene->OnEnter();
 
     // resize in runtime.
-    if (!GetApp().IsSubSystemEnabled(eAppSubSystemFlags::Editor))   // runtime mode
+    if (!GetApp().IsCoreFlagsEnabled(eAppCoreFlags::Editor))   // runtime mode
     {
         const auto [w, h] = GetGraphics().GetBackBufferResolution();
         Resize(w, h);
     }
 
     // resource garbage collection
-    if (GetApp().IsSubSystemEnabled(eAppSubSystemFlags::AssetManager))
+    if (GetApp().IsCoreFlagsEnabled(eAppCoreFlags::AssetManager))
     {
         GetAssetManager().CleanGarbageAll();
     }
@@ -235,6 +220,12 @@ void SceneManager::ChangeScene_(
     // dispatch scene changed event
     SceneChangedEvent event = {};
     GetApp().DispatchEvent(event);
+}
+
+void SceneManager::ChangeToNextScene_()
+{
+    JAM_ASSERT(m_pNextScene, "No next scene to change");
+    ChangeScene_(std::move(m_pNextScene));
 }
 
 }   // namespace Jam

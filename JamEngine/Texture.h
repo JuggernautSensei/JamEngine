@@ -8,6 +8,8 @@ namespace Jam
 class Texture : public IAsset
 {
 public:
+    [[nodiscard]] static Ref<Texture>         Load(TextureHandle _texh);
+    [[nodiscard]] static Expect<Ref<Texture>> LoadFromFile(StringView _path);
     ~Texture() override;
 
     Texture(const Texture& _other)            = delete;
@@ -15,11 +17,6 @@ public:
     Texture(Texture&& _other) noexcept;
     Texture& operator=(Texture&& _other) noexcept;
 
-    [[nodiscard]] static Expect<Ref<Texture>> Create(StringView _path);
-    [[nodiscard]] static Ref<Texture>         Create(TextureHandle _texh);
-
-    Error Load(StringView _path) override;
-    void  Load(TextureHandle _texh);
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
     void  SetVirtualPath(StringView _path) override;
@@ -49,7 +46,9 @@ public:
 
 private:
     Texture() = default;
-    void CleanUp_();
+    explicit Texture(TextureHandle _texh);
+    Error Load_(StringView _path) override;
+    void  CleanUp_();
 
     String        m_path            = {};
     String        m_name            = {};

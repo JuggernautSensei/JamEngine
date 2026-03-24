@@ -52,26 +52,35 @@ Texture& Texture::operator=(Texture&& _other) noexcept
     return *this;
 }
 
-Expect<Ref<Texture>> Texture::Create(
-    StringView _path)
+Texture::Texture(
+    const TextureHandle _texh)
+    : m_texh(_texh)
+{
+    JAM_ASSERT(m_texh, "Texture handle must be valid.");
+
+    const TextureInfo info = GetGraphics().GetTextureInfo(m_texh);
+    m_res                  = { info.width, info.height };
+    m_type                 = info.type;
+}
+
+Ref<Texture> Texture::Load(
+    const TextureHandle _texh)
+{
+    return new Texture(_texh);
+}
+
+Expect<Ref<Texture>> Texture::LoadFromFile(
+    const StringView _path)
 {
     Ref<Texture> pTexture = new Texture;
-    if (const Error err = pTexture->Load(_path))
+    if (const Error err = pTexture->Load_(_path))
     {
         return err;
     }
     return pTexture;
 }
 
-Ref<Texture> Texture::Create(
-    const TextureHandle _texh)
-{
-    Ref<Texture> pTexture = new Texture;
-    pTexture->Load(_texh);
-    return pTexture;
-}
-
-Error Texture::Load(
+Error Texture::Load_(
     StringView _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
@@ -96,18 +105,6 @@ Error Texture::Load(
     m_path                 = _path;
     m_bLoadedFromFile      = true;
     return Error::None;
-}
-
-void Texture::Load(
-    const TextureHandle _texh)
-{
-    JAM_ASSERT(_texh, "_texh is invalid.");
-    CleanUp_();
-    m_texh = _texh;
-
-    const TextureInfo info = GetGraphics().GetTextureInfo(m_texh);
-    m_res                  = { info.width, info.height };
-    m_type                 = info.type;
 }
 
 Error Texture::Save(

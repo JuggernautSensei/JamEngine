@@ -44,8 +44,8 @@ namespace
             return *this;
         }
 
-        Vector3 position = Vec3::k_zero;
-        Vector2 texcoord = Vec2::k_zero;
+        Vec3 position = Numbers<Vec3>::k_zero;
+        Vec2 texcoord = Numbers<Vec2>::k_zero;
     };
 
     struct SDVertex
@@ -130,16 +130,16 @@ namespace
         [[nodiscard]] size_t operator()(const SDEdge& _edge) const noexcept
         {
             Murmur3Hasher64 hasher {};
-            hasher.Mix(_edge);
+            hasher.Mix(_edge.pVerts);
             return hasher.Finish();
         }
     };
 
     struct SDEdgeEqual
     {
-        [[nodiscard]] bool operator()(const SDEdge& _lhs, const SDEdge& _rhs) const noexcept
+        [[nodiscard]] bool operator()(const SDEdge& _lhs, const SDEdge& _rhs) const
         {
-            return MemEqual(_lhs, _rhs);
+            return _lhs.pVerts[0] == _rhs.pVerts[0] && _lhs.pVerts[1] == _rhs.pVerts[1];
         }
     };
 
@@ -211,8 +211,7 @@ namespace
     float Beta(
         const Int32 _valence)
     {
-        return _valence == 3 ? 3.f / 16.f
-                             : 3.f / (8.f * NumericCast<float>(_valence));
+        return _valence == 3 ? 3.f / 16.f : 3.f / (8.f * NumericCast<float>(_valence));
     }
 
     float LoopGamma(
@@ -257,8 +256,8 @@ namespace
 ////////////////////////////////////////////////////////////////////////////////////////
 
 LoopSubdivisionOutput LoopSubdivide(
-    const Span<const Vector3> _positions,
-    const CMemoryBlock     _idxData,
+    const Span<const Vec3> _positions,
+    const MemoryView       _idxData,
     const bool             _bUseU32,
     const Int32            _level)
 {
@@ -272,13 +271,14 @@ LoopSubdivisionOutput LoopSubdivide(
 }
 
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
-    Span<const Vector3> _positions,
-    Span<const Vector2> _texcoordsOrEmpty,   // or empty
-    CMemoryBlock     _idxData,
+    Span<const Vec3> _positions,
+    Span<const Vec2> _texcoordsOrEmpty,   // or empty
+    MemoryView       _idxData,
     bool             _bUseU32,
     Int32            _level)
 {
     JAM_ASSERT(!_positions.empty(), "position data is empty.");
+    JAM_ASSERT(_level > 0, "Subdivision level must be greater than 0.");
 
     MemoryArena arena { 1024 };   // 메모리 아레나
 
@@ -399,7 +399,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
         {
             for (Int32 k = 0; k < 4; ++k)
             {
-                pFace->pChildFaces[k] = arena.Alloc<SDFace>();
+                pFace->pChildFaces[k] = arena.New<SDFace>();
                 newFaces.emplace_back(pFace->pChildFaces[k]);
             }
         }
@@ -432,7 +432,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
                 if (!pVert)
                 {
                     // odd 버텍스 생성
-                    pVert = arena.Alloc<SDVertex>();
+                    pVert = arena.New<SDVertex>();
                     newVerts.emplace_back(pVert);
                     pVert->bRegular   = true;
                     pVert->bBoundary  = (pFace->pFaces[k] == nullptr);
@@ -523,10 +523,10 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 포지션 + texCoord 배열 생성
-    Vector<Vector3> finalPositions = {};
+    Vector<Vec3> finalPositions = {};
     finalPositions.reserve(finalNumVerts);
 
-    Vector<Vector2> finalTexcoords = {};
+    Vector<Vec2> finalTexcoords = {};
     finalTexcoords.reserve(finalNumVerts);
 
     for (Int32 i = 0; i < finalNumVerts; ++i)
@@ -537,7 +537,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
 
     // 인덱스 배열 생성
     const Int32 finalNumFaces     = NumericCast<Int32>(faces.size());
-    const bool  bUseU32           = NeedU32Index(numVerts);
+    const bool  bUseU32           = NeedU32Index(finalNumVerts);
     const Int32 finalNumIdxes     = finalNumFaces * 3;
     const Int32 finalIdxByteWidth = CalcIndicesByteWidth(finalNumIdxes, bUseU32);
 

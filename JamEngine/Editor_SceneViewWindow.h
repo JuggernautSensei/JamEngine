@@ -18,7 +18,7 @@ class SceneChangedEvent;
 class Scene;
 class Event;
 
-class Editor_SceneViewWindow 
+class Editor_SceneViewWindow
 {
 
     enum class eGizmoOp
@@ -105,7 +105,7 @@ private:
     // camera
     Camera    m_camera                 = {};
     Transform m_cameraTransform        = {};
-    Vector3      m_cameraEulerRad         = Vec3::k_zero;
+    Vec3      m_cameraEulerRad         = Numbers<Vec3>::k_zero;
     float     m_cameraMoveSpeed        = 5.f;
     float     m_cameraRotSpeed         = 1.2f;
     bool      m_bShowCameraTranslation = true;
@@ -130,18 +130,12 @@ private:
     bool           m_bShowGrid = true;
     bool           m_bShowAxis = true;
 
-    // m_icons
-    Ref<Texture> m_cursorIcon     = nullptr;
-    Ref<Texture> m_stopIcon       = nullptr;
-    Ref<Texture> m_optionsIcon    = nullptr;
-    Ref<Texture> m_playIcon       = nullptr;
-    Ref<Texture> m_rotatationIcon = nullptr;
-    Ref<Texture> m_scaleIcon      = nullptr;
-    Ref<Texture> m_tranlationIcon = nullptr;
+    // scene cache
+    Scene* m_pScene = nullptr;
 
-    static constexpr Vector3   k_translateSnap    = Vector3 { 0.5f };
-    static constexpr Vector3   k_rotateSnapDeg    = Vector3 { 15.f };
-    static constexpr Vector3   k_scaleSnap        = Vector3 { 0.5f };
+    static constexpr Vec3   k_translateSnap    = Vec3 { 0.5f };
+    static constexpr Vec3   k_rotateSnapDeg    = Vec3 { 15.f };
+    static constexpr Vec3   k_scaleSnap        = Vec3 { 0.5f };
     static constexpr ImVec2 k_modeBtnSize      = ImVec2 { 100.f, 0.f };
     static constexpr RGBA   k_boundingBoxCol   = RGBA { 0xFF9D23FF };
     static constexpr float  k_dragSensitivity  = 0.001f;

@@ -11,7 +11,7 @@ namespace Jam
 
 void PointLightComponent::Serialize(
     ArchiveWriter& _writer,
-    const Ref<Scene>&,
+    Scene*,
     Entity) const
 {
     _writer.WriteField("radiance", radiance);
@@ -22,7 +22,7 @@ void PointLightComponent::Serialize(
 
 void PointLightComponent::Deserialize(
     ArchiveReader& _reader,
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     _reader.ReadField("radiance", radiance);
@@ -32,10 +32,10 @@ void PointLightComponent::Deserialize(
 }
 
 void PointLightComponent::DrawEditPanel(
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
-    if (BeginLabelTable("PointLightComponent"))
+    if (BeginLabelValueTable("PointLightComponent"))
     {
         ImGui::TableNextColumn();
         Widget_Text("radiance", true);

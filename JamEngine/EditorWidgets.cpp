@@ -28,7 +28,7 @@ namespace
         const char* name         = nullptr;
         ImVec4      color        = {};
         ImVec4      outlineColor = {};
-        Vector3     dir          = {};
+        Vec3        dir          = {};
         float       depth        = 0.f;
         bool        bPos         = true;   // positive direction
     };
@@ -68,7 +68,7 @@ namespace
 
 bool Widget_DragTranslation(
     const char*            _label,
-    Vector3&               _translation,
+    Vec3&                  _translation,
     const float            _speed,
     const float            _min,
     const float            _max,
@@ -130,7 +130,7 @@ bool Widget_DragTranslation(
 
 bool Widget_DragScale(
     const char*            _label,
-    Vector3&               _scaleNorm,
+    Vec3&                  _scaleNorm,
     const float            _speedPerc,
     const float            _minPerc,
     const float            _maxPerc,
@@ -231,7 +231,7 @@ bool Widget_DragAngle(
 
 bool Widget_DragEuler(
     const char*            _label,
-    Vector3&               _eulerRad,
+    Vec3&                  _eulerRad,
     const float            _speedDeg,
     const float            _minDeg,
     const float            _maxDeg,
@@ -310,7 +310,7 @@ void Widget_ImageFrame(
 
     const ImGuiStyle& style   = ImGui::GetStyle();
     const ImVec2      pos     = ImGui::GetCursorScreenPos();
-    const float       ar      = Div(_texSize.x, _texSize.y);
+    const float       ar      = _texSize.x / _texSize.y;
     const ImVec2      imgSize = (ar > 1.f) ? ImVec2 { _frameSize.x, _frameSize.x / ar } : ImVec2 { _frameSize.y * ar, _frameSize.y };
     const ImVec2      offset  = (_frameSize - imgSize) * 0.5f;
     const ImVec2      imgP0   = pos + offset;
@@ -466,7 +466,7 @@ ImTextureProxy::ImTextureProxy(
 {
 }
 
-void EulerProxy::OnBeforeWidget(const Vector3& _forward)
+void EulerProxy::OnBeforeWidget(const Vec3& _forward)
 {
     if (!m_bIsEditing)
     {
@@ -474,7 +474,7 @@ void EulerProxy::OnBeforeWidget(const Vector3& _forward)
     }
 }
 
-void EulerProxy::OnBeforeWidget(const Matrix4x4& _mtx)
+void EulerProxy::OnBeforeWidget(const Mtx4& _mtx)
 {
     if (!m_bIsEditing)
     {
@@ -482,7 +482,7 @@ void EulerProxy::OnBeforeWidget(const Matrix4x4& _mtx)
     }
 }
 
-void EulerProxy::OnBeforeWidget(const Quaternion& _quat)
+void EulerProxy::OnBeforeWidget(const Quat& _quat)
 {
     if (!m_bIsEditing)
     {
@@ -503,7 +503,7 @@ void EulerProxy::OnAfterWidget()
     m_bIsEditing = ImGui::IsItemActive();
 }
 
-Vector3& EulerProxy::GetEulerProxy()
+Vec3& EulerProxy::GetEulerProxy()
 {
     return m_eulerRad;
 }
@@ -1221,10 +1221,10 @@ bool Widget_Acroball(
             constexpr float k_sensitivity = 0.005f;
 
             // apply rotation
-            Vector3& euler = s_proxy.GetEulerProxy();
-            euler.x        = Wrap(euler.x + delta.x * k_sensitivity, -k_2pi, k_2pi);
-            euler.y        = Clamp(euler.y + delta.y * k_sensitivity, ToRad(-89.f), ToRad(89.f));
-            euler.z        = 0.f;   // no roll
+            Vec3& euler = s_proxy.GetEulerProxy();
+            euler.x     = Wrap(euler.x + delta.x * k_sensitivity, -Numbers<float>::k_2pi, Numbers<float>::k_2pi);
+            euler.y     = Clamp(euler.y + delta.y * k_sensitivity, ToRad(-89.f), ToRad(89.f));
+            euler.z     = 0.f;   // no roll
             _t.SetRotation(euler);
 
             // dirty check
@@ -1258,9 +1258,9 @@ bool Widget_Acroball(
     const float headOutlineThickness = GetEditor().GetStyleVar(eEditorStyleVar::AcroballAxisHeadOutlineThickness);
 
     // acroball data
-    const Vector3 axisX = _t.GetRight();
-    const Vector3 axisY = _t.GetUp();
-    const Vector3 axisZ = _t.GetForward();
+    const Vec3 axisX = _t.GetRight();
+    const Vec3 axisY = _t.GetUp();
+    const Vec3 axisZ = _t.GetForward();
 
     // axis data
     AcroballAxisData axes[6] = {
@@ -1460,7 +1460,7 @@ bool Widget_EnumToggle(
     ImGui::RenderFrame(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
     // buttons
-    const float  btnWidth = Div(bb.GetWidth(), NumericCast<float>(_items.size()));
+    const float  btnWidth = bb.GetWidth() / NumericCast<float>(_items.size());
     const ImVec2 btnSize  = { btnWidth, bb.GetHeight() };
     bool         bChanged = false;
     Int32        idx      = 0;

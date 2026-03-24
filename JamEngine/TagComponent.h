@@ -18,9 +18,9 @@ struct TagComponent
     [[nodiscard]] bool operator==(StringView _name) const;
     [[nodiscard]] bool operator!=(StringView _name) const;
 
-    void Serialize(ArchiveWriter& _writer, const Ref<Scene>& _pScene, Entity _owner) const;
-    void Deserialize(ArchiveReader& _reader, const Ref<Scene>& _pScene, Entity _owner);
-    void DrawEditPanel(const Ref<Scene>& _pScene, Entity _entity);
+    void Serialize(ArchiveWriter& _writer, Scene* _pScene, Entity _owner) const;
+    void Deserialize(ArchiveReader& _reader, Scene* _pScene, Entity _owner);
+    void DrawEditPanel(Scene* _pScene, Entity _entity);
 
     String name = "unknown";
 };

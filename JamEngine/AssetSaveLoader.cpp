@@ -24,7 +24,7 @@ StringViewDto StringViewDtoFrom(
     return { _str.GetPtr(), NumericCast<StringViewDto::msize_t>(_str.GetLength()) };
 }
 
-Vec3Dto Vec3Dto::FromVec3(const Vector3& _v)
+Vec3Dto Vec3Dto::FromVec3(const Vec3& _v)
 {
     Vec3Dto vec = {};
     vec.vec[0]  = _v.x;
@@ -33,13 +33,13 @@ Vec3Dto Vec3Dto::FromVec3(const Vector3& _v)
     return vec;
 }
 
-Vector3 Vec3Dto::ToVec3() const
+Vec3 Vec3Dto::ToVec3() const
 {
     return { vec[0], vec[1], vec[2] };
 }
 
 Mtx4Dto Mtx4Dto::FromMat4(
-    Matrix4x4 _mtx)
+    Mtx4 _mtx)
 {
     Mtx4Dto mtx = {};
     mtx.mtx[0]  = _mtx._11;
@@ -61,7 +61,7 @@ Mtx4Dto Mtx4Dto::FromMat4(
     return mtx;
 }
 
-Matrix4x4 Mtx4Dto::ToMtx4() const
+Mtx4 Mtx4Dto::ToMtx4() const
 {
     return { mtx[0],
              mtx[1],

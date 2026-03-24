@@ -19,7 +19,7 @@ namespace
 }   // namespace
 
 NewProjectDialog::NewProjectDialog()
-    : Dialog("new project", { 500.f, 0.f })
+    : Dialog("new project")
     , m_dlg(CreateFileDialog_())
 {
 }
@@ -31,8 +31,8 @@ void NewProjectDialog::OnShow()
     SetNextItemToAvailWidth();
     Widget_FileDialog("##directory", m_dir, m_dlg);
 
-    // project name
-    ImGui::Text("project name:");
+    // project typeName
+    ImGui::Text("project typeName:");
     SetNextItemToAvailWidth();
     Widget_InputText("##projectName", m_name);
 
@@ -59,14 +59,11 @@ bool NewProjectDialog::OnClickCreateButton_() const
 {
     if (m_dir.IsEmpty() || m_name.IsEmpty())
     {
-        GetShaderApp().PushMessageDialog(
-            "invalid input",
-            "project directory and project name cannot be empty.");
-
+        GetShaderApp().PushMessageDialog("invalid input", "project directory and project typeName cannot be empty.");
         return false;
     }
 
-    // directory / name / name.extension
+    // directory / typeName / typeName.extension
 
     // create working directory
     String workingDir = String::Joined(m_dir, m_name, eJoinType::Directory);
@@ -82,10 +79,7 @@ bool NewProjectDialog::OnClickCreateButton_() const
     const Expect<Project> project = Project::LoadNew(workingDir);
     if (!project)
     {
-        GetShaderApp().PushMessageDialog(
-            "failed to create project",
-            String::Formatted("failed to create project at path: {}", workingDir));
-
+        GetShaderApp().PushMessageDialog("failed to create project", String::Formatted("failed to create project at path: {}", workingDir));
         return false;
     }
 

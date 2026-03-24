@@ -16,13 +16,13 @@ bool Environment::IsDirectionalLightEnabled() const
     return m_bDirLightEnabled;
 }
 
-void Environment::SetDirectionalLightRadiance(const Vector3 _radiance)
+void Environment::SetDirectionalLightRadiance(const Vec3 _radiance)
 {
     m_dirLightRadiance = _radiance;
     m_bDirty           = true;
 }
 
-Vector3 Environment::GetDirectionalLightRadiance() const
+Vec3 Environment::GetDirectionalLightRadiance() const
 {
     return m_dirLightRadiance;
 }
@@ -38,13 +38,13 @@ float Environment::GetDirectionalLightIntensity() const
     return m_dirLightIntensity;
 }
 
-void Environment::SetDirectionalLightDirection(const Vector3 _direction)
+void Environment::SetDirectionalLightDirection(const Vec3 _direction)
 {
     m_dirLightDirection = _direction;
     m_bDirty            = true;
 }
 
-Vector3 Environment::GetDirectionalLightDirection() const
+Vec3 Environment::GetDirectionalLightDirection() const
 {
     return m_dirLightDirection;
 }
@@ -164,13 +164,13 @@ const Ref<Texture>& Environment::GetSkyboxTex() const
     return m_pSkyboxTex;
 }
 
-void Environment::SetSkyboxSolidColor(const Vector3 _color)
+void Environment::SetSkyboxSolidColor(const Vec3 _color)
 {
     m_skyboxSolidColor = _color;
     m_bDirty           = true;
 }
 
-Vector3 Environment::GetSkyboxSolidColor() const
+Vec3 Environment::GetSkyboxSolidColor() const
 {
     return m_skyboxSolidColor;
 }
@@ -219,13 +219,13 @@ bool Environment::IsFogEnabled() const
     return m_bFogEnabled;
 }
 
-void Environment::SetFogRadiance(const Vector3 _radiance)
+void Environment::SetFogRadiance(const Vec3 _radiance)
 {
     m_fogRadiance = _radiance;
     m_bDirty      = true;
 }
 
-Vector3 Environment::GetFogRadiance() const
+Vec3 Environment::GetFogRadiance() const
 {
     return m_fogRadiance;
 }

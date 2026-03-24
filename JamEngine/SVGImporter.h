@@ -18,7 +18,7 @@ public:
     [[nodiscard]] static Expect<SVGImporter> ImportFromFile(StringView _path, const SVGImporterInfo& _info = {});
     [[nodiscard]] static Expect<SVGImporter> ImportFromSource(StringView _source, const SVGImporterInfo& _info = {});
 
-    [[nodiscard]] CMemoryBlock GetPixels() const;
+    [[nodiscard]] MemoryView GetPixels() const;
     [[nodiscard]] Int32        GetWidth() const;
     [[nodiscard]] Int32        GetHeight() const;
 

@@ -62,7 +62,7 @@ Error ImageExporter::ExportToFile(
     const bool                       _bReplaceExtension,
     const eFileWriterCollisionPolicy _policy)
 {
-    JAM_ASSERT(_policy != eFileWriterCollisionPolicy::Append, "Append policy is not supported for image export.");
+    JAM_ASSERT(_policy != eFileWriterCollisionPolicy::Append, "WriteElement policy is not supported for image export.");
 
     StringView dir = {}, base = {}, ext = {};
     _path.Decompose(&dir, nullptr, &base, &ext);

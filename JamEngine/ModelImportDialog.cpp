@@ -9,7 +9,6 @@
 
 #include "Material.h"
 #include "Mesh.h"
-#include "MessageDialog.h"
 #include "Model.h"
 #include "VertexLayoutEntryManager.h"
 
@@ -57,7 +56,7 @@ ModelImportDialog::ModelImportDialog(
 void ModelImportDialog::OnShow()
 {
     // render table
-    if (BeginLabelTable("ImportImageDialog"))
+    if (BeginLabelValueTable("ImportImageDialog"))
     {
         // import path
         ImGui::TableNextColumn();
@@ -218,7 +217,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     }
 
     // instantiate model asset
-    const Expect<Ref<Model>> expect = importer->ConvertToModel(m_pVle->GetVertexLayout());
+    const Expect<Ref<Model>> expect = importer->ExtractToModel(m_pVle->GetVertexLayout());
     if (!expect)
     {
         GetEditor().PushMessageDialog(
@@ -284,9 +283,9 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         const Vector<Ref<Material>>& materials = pModel->GetMaterials();
         for (const Ref<Material>& pMaterial: materials)
         {
-            for (eMaterialTextureType type: EnumRanges<eMaterialTextureType>())
+            const MaterialTextures& textures = pMaterial->GetDesc().textures;
+            for (eMaterialTextureType type: RangesOf<eMaterialTextureType>())
             {
-                const MaterialTextures& textures = pMaterial->GetTextures();
                 if (const Ref<Texture>& pTexture = textures[type])
                 {
                     textureSet.emplace(pTexture);

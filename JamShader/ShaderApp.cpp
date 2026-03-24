@@ -14,8 +14,8 @@
 #include "../JamEngine/JsonArchive.h"
 
 ShaderApp::ShaderApp(
-    const StringView                _appName,
-    const Flags<eAppSubSystemFlags> _subSystems)
+    const StringView           _appName,
+    const Flags<eAppCoreFlags> _subSystems)
     : Application(_appName, _subSystems)
 {
 }
@@ -160,8 +160,10 @@ DialogStack& ShaderApp::GetDialogStack()
 void ShaderApp::WriteToArchive(
     ArchiveWriter& _archive) const
 {
+    _archive.BeginObject();
     _archive.WriteField("windowsOpen", m_windowsOpen);
     _archive.WriteField("shaderItemEditorWindow", m_shaderItemEditorWindow);
+    _archive.EndObject();
 }
 
 Error ShaderApp::ReadFromArchive(
@@ -207,15 +209,10 @@ void ShaderApp::Init(const Int32 _argc, char** _argv)
     LoadConfigIfExists_();
 
     // load project if specified in command line arguments
-    if (parser.GetNumArguments() == 3)
+    if (parser.GetNumArguments() == 2)
     {
-        const StringView cmd = parser.GetArgument(1);
-
-        if (cmd == "-proj")
-        {
-            const StringView path = parser.GetArgument(2);
-            LoadProject(path);
-        }
+        const StringView path = parser.GetArgument(1);
+        LoadProject(path);
     }
 }
 
@@ -384,7 +381,7 @@ void ShaderApp::SetupTheme_() const
 
 void ShaderApp::SetupIcons_()
 {
-    for (eIcon e: EnumRanges<eIcon>())
+    for (eIcon e: RangesOf<eIcon>())
     {
         SetIcon(e, LoadIconFromSVGSource_(g_embededIconSVGResources[e]));
     }
@@ -424,9 +421,9 @@ Ref<Texture> ShaderApp::LoadIconFromSVGSource_(
     Expect<SVGImporter> importer = SVGImporter::ImportFromSource(_source, info);
     JAM_ASSERT(importer, "Failed to load SVG icon from source: {}", importer.GetError().ToErrorMessage());
 
-    const CMemoryBlock  pixels[] = { importer->GetPixels() };
+    const MemoryView    pixels[] = { importer->GetPixels() };
     const TextureHandle texh     = GetGraphics().CreateTexture2D(importer->GetWidth(), importer->GetHeight(), eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, pixels);
-    return Texture::Create(texh);
+    return Texture::Load(texh);
 }
 
 void ShaderApp::OnProjectChagnedEvent_(

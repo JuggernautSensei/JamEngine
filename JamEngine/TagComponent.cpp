@@ -44,7 +44,7 @@ bool TagComponent::operator!=(
 
 void TagComponent::Serialize(
     ArchiveWriter& _writer,
-    const Ref<Scene>&,
+    Scene*,
     Entity) const
 {
     _writer.Write(name);
@@ -52,17 +52,17 @@ void TagComponent::Serialize(
 
 void TagComponent::Deserialize(
     ArchiveReader& _reader,
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     _reader.Read(name);
 }
 
 void TagComponent::DrawEditPanel(
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
-    if (BeginLabelTable("TagComponent"))
+    if (BeginLabelValueTable("TagComponent"))
     {
         ImGui::TableNextColumn();
         Widget_Text("typeName", true);

@@ -23,7 +23,6 @@ public:
     IAsset& operator=(const IAsset&) = default;
     IAsset& operator=(IAsset&&)      = default;
 
-    virtual Error Load(StringView _path)                                                                                                                   = 0;
     virtual Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const = 0;
     virtual void  Invalidate()                                                                                                                             = 0;
     virtual void  SetName(StringView _name)                                                                                                                = 0;
@@ -39,7 +38,9 @@ public:
     [[nodiscard]] virtual StringView GetFilter() const    = 0;
 
 protected:
-    IAsset() = default;
+    IAsset()                              = default;
+    virtual Error Load_(StringView _path) = 0;
+    friend class AssetManager;
 };
 
 // dir is the file dir of the asset & this will be used as the unique identifier of the asset

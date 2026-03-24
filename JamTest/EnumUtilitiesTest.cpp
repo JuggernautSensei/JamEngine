@@ -117,17 +117,17 @@ TEST(EnumUtilitiesTest, NameOfEnum)
     EXPECT_EQ(FullNameOf(NestedNamespace::eNestedEnum::Beta), "NestedNamespace::eNestedEnum::Beta");
 }
 
-// --- 5. EnumRanges: Get all enum values ---
-TEST(EnumUtilitiesTest, EnumRanges)
+// --- 5. RangesOf: Get all enum values ---
+TEST(EnumUtilitiesTest, RangesOf)
 {
-    const auto& colorRanges = EnumRanges<eColor>();
+    const auto& colorRanges = RangesOf<eColor>();
     EXPECT_EQ(colorRanges.size(), 4);
     EXPECT_EQ(colorRanges[0], eColor::Red);
     EXPECT_EQ(colorRanges[1], eColor::Green);
     EXPECT_EQ(colorRanges[2], eColor::Blue);
     EXPECT_EQ(colorRanges[3], eColor::Yellow);
 
-    const auto& statusRanges = EnumRanges<eStatus>();
+    const auto& statusRanges = RangesOf<eStatus>();
     EXPECT_EQ(statusRanges.size(), 5);
     EXPECT_EQ(statusRanges[0], eStatus::Idle);
     EXPECT_EQ(statusRanges[1], eStatus::Running);
@@ -181,31 +181,31 @@ TEST(EnumUtilitiesTest, ParseAsFullName)
     EXPECT_EQ(idle.GetValue(), eStatus::Idle);
 }
 
-// --- 8. EnumCast: Cast underlying value to enum ---
-TEST(EnumUtilitiesTest, EnumCast)
+// --- 8. CastAs: Cast underlying value to enum ---
+TEST(EnumUtilitiesTest, CastAs)
 {
     // Valid casts
-    auto red = EnumCast<eColor>(0);
+    auto red = CastAs<eColor>(0);
     EXPECT_TRUE(red.HasValue());
     EXPECT_EQ(red.GetValue(), eColor::Red);
 
-    auto green = EnumCast<eColor>(1);
+    auto green = CastAs<eColor>(1);
     EXPECT_TRUE(green.HasValue());
     EXPECT_EQ(green.GetValue(), eColor::Green);
 
-    auto idle = EnumCast<eStatus>(0);
+    auto idle = CastAs<eStatus>(0);
     EXPECT_TRUE(idle.HasValue());
     EXPECT_EQ(idle.GetValue(), eStatus::Idle);
 
-    auto error = EnumCast<eStatus>(4);
+    auto error = CastAs<eStatus>(4);
     EXPECT_TRUE(error.HasValue());
     EXPECT_EQ(error.GetValue(), eStatus::Error);
 
     // Invalid casts
-    auto invalid1 = EnumCast<eColor>(99);
+    auto invalid1 = CastAs<eColor>(99);
     EXPECT_FALSE(invalid1.HasValue());
 
-    auto invalid2 = EnumCast<eStatus>(99);
+    auto invalid2 = CastAs<eStatus>(99);
     EXPECT_FALSE(invalid2.HasValue());
 }
 
@@ -249,7 +249,7 @@ TEST(EnumUtilitiesTest, ConstexprOperations)
 // --- 11. Integration test: Enum iteration ---
 TEST(EnumUtilitiesTest, EnumIteration)
 {
-    const auto& colors = EnumRanges<eColor>();
+    const auto& colors = RangesOf<eColor>();
 
     String result;
     for (const auto& color: colors)
@@ -261,7 +261,7 @@ TEST(EnumUtilitiesTest, EnumIteration)
 
     EXPECT_EQ(result, "Red, Green, Blue, Yellow");
 
-    const auto& statuses = EnumRanges<eStatus>();
+    const auto& statuses = RangesOf<eStatus>();
     String      statusResult;
     for (const auto& status: statuses)
     {

@@ -36,7 +36,7 @@ Expect<ImageImporter> ImageImporter::ImportFromFile(
 }
 
 Expect<ImageImporter> ImageImporter::ImportFromMemory(
-    const CMemoryBlock       _mem,
+    const MemoryView       _mem,
     const eImageFormat       _format,
     const ImageImporterInfo& _info)
 {
@@ -127,7 +127,7 @@ Error ImageImporter::ImportFromFile_(
 }
 
 Error ImageImporter::ImportFromMemory_(
-    const CMemoryBlock       _mem,
+    const MemoryView       _mem,
     const eImageFormat       _format,
     const ImageImporterInfo& _info)
 {

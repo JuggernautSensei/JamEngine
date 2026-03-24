@@ -23,7 +23,6 @@
 #include "VertexLayoutEntryManager.h"
 #include "Model.h"
 #include "Profile.h"
-#include "SceneSerializer.h"
 #include "FileSystem.h"
 
 namespace Jam
@@ -250,7 +249,7 @@ void Editor::SetupDefaultTheme_() const
 
 void Editor::SetupIcons_()
 {
-    for (const eEditorIcon icon: EnumRanges<eEditorIcon>())
+    for (const eEditorIcon icon: RangesOf<eEditorIcon>())
     {
         const StringView svgSource = g_embededEditorIconSVGSources[icon];
         SetIcon(icon, LoadIconFromSvgSource(svgSource));
@@ -325,14 +324,11 @@ Ref<Texture> Editor::LoadIconFromSvgSource(
         JAM_UNREACHABLE;
     }
 
-    const CMemoryBlock  mems[] = { importer->GetPixels() };
+    const MemoryView  mems[] = { importer->GetPixels() };
     const Int32         w      = importer->GetWidth();
     const Int32         h      = importer->GetHeight();
     const TextureHandle texh   = GetGraphics().CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, mems);
-
-    Ref<Texture> pTexture = {};
-    pTexture->Load(texh);
-    return pTexture;
+    return Texture::Load(texh);
 }
 
 bool& Editor::GetWindowShow(
@@ -532,18 +528,18 @@ void Editor::LoadScenByFileDialog()
     FileDialog fd { info };
     if (fd.Open())
     {
-        StringView path = fd.GetFirstSelectedPath();
-        if (!GetSceneManager().LoadScene(path))
+        const StringView      path   = fd.GetFirstSelectedPath();
+        Expect<Scoped<Scene>> pScene = Scene::LoadFromFile(path);
+        if (!pScene)
         {
-            PushMessageDialog(
-                "error",
-                String::Formatted("failed to load scene file: {}.", path));
+            PushMessageDialog("error", String::Formatted("failed to load scene file: {}.", path));
         }
+        GetSceneManager().LoadScene(pScene.Take());
     }
 }
 
 void Editor::SaveSceneByFileDialog(
-    const Ref<Scene>& _pScene)
+    Scene* _pScene)
 {
     constexpr FileDialogFilter k_filters[] = {
         { "scene file", Scene::k_extension }
@@ -559,18 +555,16 @@ void Editor::SaveSceneByFileDialog(
         StringView path = fd.GetFirstSelectedPath();
 
         JsonWriter writer = {};
-        SerializeScene(writer, _pScene);
+        _pScene->Serialize(writer);
         if (const Error err = writer.SaveToFile(path, eJsonWriteFlags::Pretty))
         {
-            PushMessageDialog(
-                "error",
-                String::Formatted("failed to save scene file: {}.\n{}", path, err.ToErrorMessage()));
+            PushMessageDialog("error", String::Formatted("failed to save scene file: {}.\n{}", path, err.ToErrorMessage()));
         }
     }
 }
 
 void Editor::CreateEntitiesFrom(
-    const Ref<Scene>& _pScene,
+    Scene*            _pScene,
     const Ref<Model>& _pModel)
 {
     const Entity entity = _pScene->CreateEntitiesFrom(_pModel);
@@ -578,7 +572,7 @@ void Editor::CreateEntitiesFrom(
 }
 
 void Editor::CreateEntity(
-    const Ref<Scene>&      _pScene,
+    Scene*                 _pScene,
     const Optional<Entity> _parent)
 {
     Entity entity = _pScene->CreateEntity();
@@ -591,8 +585,8 @@ void Editor::CreateEntity(
 }
 
 void Editor::CloneEntity(
-    const Ref<Scene>& _pScene,
-    const Entity      _srcEntity)
+    Scene*       _pScene,
+    const Entity _srcEntity)
 {
     JAM_ASSERT(CanEntityClone(_srcEntity), "Editor::CloneEntity() - cannot clone the given entity.");
     const Entity entity = _pScene->CloneEntity(_srcEntity);
@@ -600,8 +594,8 @@ void Editor::CloneEntity(
 }
 
 void Editor::DestroyEntity(
-    const Ref<Scene>& _pScene,
-    const Entity      _entity)
+    Scene*       _pScene,
+    const Entity _entity)
 {
     JAM_ASSERT(CanEntityDestroy(_entity), "Editor::DestroyEntity() - cannot destroy the given entity.");
 

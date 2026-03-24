@@ -23,7 +23,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
     }
 
     // scene check
-    if (!GetSceneManager().HasActiveScene())
+    if (!m_pScene)
     {
         Widget_TextFrame("scene not loaded", ImGui::GetContentRegionAvail());
         ImGui::End();
@@ -68,8 +68,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
     }
 
     // component editor panels
-    const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-    for (const ComponentReflectionData& data: JAM_COMPONENT_DB.GetComponentReflectionContainer() | std::views::values)
+    for (const ComponentReflectionData& data: GetComponentDatabase().GetComponentReflectionContainer() | std::views::values)
     {
         if (data.Has(entity) && data.DrawEditPanel)
         {
@@ -108,7 +107,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
             if (bOpen)
             {
                 void* pCmp = data.Get(entity);
-                data.DrawEditPanel(pCmp, pScene, entity);
+                data.DrawEditPanel(pCmp, m_pScene, entity);
                 ImGui::Spacing();
             }
         }
@@ -133,10 +132,16 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
     ImGui::End();
 }
 
+void Editor_EntityInspectorWindow::OnEvent_(
+    const SceneChangedEvent&)
+{
+    m_pScene = GetSceneManager().GetActiveSceneOrNull();
+}
+
 void Editor_EntityInspectorWindow::Menu_RemoveComponent_() const
 {
     const Entity entity = GetEditor().GetFocusingEntityOrNull();
-    for (const ComponentReflectionData& data: JAM_COMPONENT_DB.GetComponentReflectionContainer() | std::views::values)
+    for (const ComponentReflectionData& data: GetComponentDatabase().GetComponentReflectionContainer() | std::views::values)
     {
         if (data.Has(entity) && !data.bNonRemoveable)
         {
@@ -151,7 +156,7 @@ void Editor_EntityInspectorWindow::Menu_RemoveComponent_() const
 void Editor_EntityInspectorWindow::Menu_AddComponent_() const
 {
     const Entity entity = GetEditor().GetFocusingEntityOrNull();
-    for (const ComponentReflectionData& data: JAM_COMPONENT_DB.GetComponentReflectionContainer() | std::views::values)
+    for (const ComponentReflectionData& data: GetComponentDatabase().GetComponentReflectionContainer() | std::views::values)
     {
         if (!data.Has(entity) && !data.bNonCreatableByUser)
         {

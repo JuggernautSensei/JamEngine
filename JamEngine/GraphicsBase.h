@@ -14,6 +14,7 @@ constexpr Int32 k_maxNumAttachmentSlots         = k_maxNumRenderTargetViewSlots 
 constexpr Int32 k_maxNumSamplerSlots            = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
 constexpr Int32 k_maxNumShaderResourceViewSlots = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
 constexpr Int32 k_maxNumConstantBufferSlots     = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+constexpr Int32 k_maxNumInstanceBufferSlots     = 5;
 
 enum class eTextureCreateFlags : UInt32
 {
@@ -21,15 +22,15 @@ enum class eTextureCreateFlags : UInt32
     GenerateMips = 1 << 0,
 
     // if multiple MSAA flags are set, the lowest one takes precedence
-    MSAAx4  = 1 << 2,   // 4x MSAA
-    MSAAx8  = 1 << 3,   // 8x MSAA
-    MSAAx16 = 1 << 4,   // 16x MSAA
+    MSAAx4  = 1 << 1,   // 4x MSAA
+    MSAAx8  = 1 << 2,   // 8x MSAA
+    MSAAx16 = 1 << 3,   // 16x MSAA
 
-    WriteOnly    = 1 << 5,   // do not create shader resource view. read only
-    RenderTarget = 1 << 6,   // for render target usage
-    DepthStencil = 1 << 7,   // for depth stencil usage
+    WriteOnly    = 1 << 4,   // do not create shader resource view. write only
+    RenderTarget = 1 << 5,   // for render target usage
+    DepthStencil = 1 << 6,   // for depth stencil usage
 
-    Mutable = 1 << 8,   // when creating with initial renderable, create immutable texture. this flag makes it mutable even though initial renderable is provided
+    Mutable = 1 << 7,   // when creating with initial renderable, create immutable texture. this flag makes it mutable even though initial renderable is provided
 
     MultiSampled_Internal = MSAAx4 | MSAAx8 | MSAAx16,
 };
@@ -38,9 +39,9 @@ enum class eShader
 {
     VertexShader = 0,
     PixelShader,
-    GeometryShader,
     HullShader,
     DomainShader,
+    GeometryShader,
     ComputeShader,
 };
 
@@ -337,7 +338,7 @@ struct RGBA
         };
     }
 
-    [[nodiscard]] constexpr Vector4 ToLinear() const
+    [[nodiscard]] constexpr Vec4 ToLinear() const
     {
         return {
             NumericCast<float>(r) / 255.0f,

@@ -147,7 +147,7 @@ namespace Details
     template<typename TEnum>
         requires std::is_enum_v<TEnum>
     [[nodiscard]] constexpr SizeT FindLookUpSequenceOrInvalid(   // or k_enumReflectionInvalidIdx
-        TEnum _value)
+        const TEnum _value)
     {
         const SizeT rangeIdx = UnderlyingFrom(_value) - k_enumReflectionRangeMin;
         return (rangeIdx < k_enumReflectionRange) ? k_enumReflection<TEnum>.rangeIdxToSeqLut[rangeIdx] : k_enumReflectionInvalidSeq;
@@ -184,13 +184,13 @@ template<typename TEnum>
 //     Blue = 15,
 //     Yellow = 20,
 // };
-// GetSequence(eColor::Red) -> 0
-// GetSequence(eColor::Green) -> 1
-// GetSequence(eColor::Blue) -> 2
-// GetSequence(eColor::Yellow) -> 3
+// ToSequence(eColor::Red) -> 0
+// ToSequence(eColor::Green) -> 1
+// ToSequence(eColor::Blue) -> 2
+// ToSequence(eColor::Yellow) -> 3
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
-[[nodiscard]] constexpr SizeT GetSequence(
+[[nodiscard]] constexpr SizeT ToSequence(
     TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
@@ -292,11 +292,11 @@ template<typename TEnum>
 //     Blue = 15,
 //     Yellow = 20,
 // };
-// EnumRanges<eColor>() -> { eColor::Red, eColor::Green, eColor::Blue, eColor::Yellow }
-// for (eColor color : EnumRanges<eColor>()) { ... }
+// RangesOf<eColor>() -> { eColor::Red, eColor::Green, eColor::Blue, eColor::Yellow }
+// for (eColor color : RangesOf<eColor>()) { ... }
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
-[[nodiscard]] constexpr const auto& EnumRanges()
+[[nodiscard]] constexpr const auto& RangesOf()
 {
     return Details::k_enumReflection<TEnum>.values;
 }
@@ -310,9 +310,9 @@ template<typename TEnum>
 //     Blue = 15,
 //     Yellow = 20,
 // };
-// ParseAsIntegral<eColor>("Red") -> eColor::Red
-// ParseAsIntegral<eColor>("eColor::Red") -> eColor::Red
-// ParseAsIntegral<eColor>("Invalid") -> k_nullopt
+// ParseAs<eColor>("Red") -> eColor::Red
+// ParseAs<eColor>("eColor::Red") -> eColor::Red
+// ParseAs<eColor>("Invalid") -> k_nullopt
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr Optional<TEnum> ParseAs(
@@ -336,12 +336,12 @@ template<typename TEnum>
 //     Blue = 15,
 //     Yellow = 20,
 // };
-// EnumCast<eColor>(5) -> eColor::Red
-// EnumCast<eColor>(20) -> eColor::Yellow
-// EnumCast<eColor>(0) -> k_nullopt
+// CastAs<eColor>(5) -> eColor::Red
+// CastAs<eColor>(20) -> eColor::Yellow
+// CastAs<eColor>(0) -> k_nullopt
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
-[[nodiscard]] constexpr Optional<TEnum> EnumCast(
+[[nodiscard]] constexpr Optional<TEnum> CastAs(
     const UnderlyingT<TEnum> _value)
 {
     const SizeT rangeIdx = _value - Details::k_enumReflectionRangeMin;

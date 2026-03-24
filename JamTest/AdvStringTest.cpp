@@ -20,14 +20,14 @@ TEST(AdvString, PathClassification)
 
     // Directory vs Regular File (마지막 슬래시 유무 기준)
     EXPECT_TRUE(StringView("C:/Temp/").IsDirectory());
-    EXPECT_FALSE(StringView("C:/Temp/").IsRegularFile());
+    EXPECT_FALSE(StringView("C:/Temp/").IsFile());
 
-    EXPECT_TRUE(StringView("C:/Temp/file.txt").IsRegularFile());
+    EXPECT_TRUE(StringView("C:/Temp/file.txt").IsFile());
     EXPECT_FALSE(StringView("C:/Temp/file.txt").IsDirectory());
 
     // Edge cases
     EXPECT_FALSE(StringView("").IsDirectory());
-    EXPECT_FALSE(StringView("").IsRegularFile());
+    EXPECT_FALSE(StringView("").IsFile());
     EXPECT_TRUE(StringView("/").IsDirectory());
 }
 
@@ -227,19 +227,18 @@ TEST(AdvString, PathComplexityStress)
 TEST(AdvString, WinApiDependent)
 {
     // Absolutize 테스트
-    String rel("test.txt");
-    rel.Absolutize();
+    String rel = FileSystem::Absolute("test.txt");
     EXPECT_TRUE(rel.IsAbsolute());
 
     // 현재 경로 획득
-    String cur = String::CurrentDir();
+    String cur = FileSystem::Current();
     EXPECT_FALSE(cur.IsEmpty());
     EXPECT_TRUE(cur.IsAbsolute());
 
     // 실행 파일 경로
-    String exe = String::ExecutablePath();
+    String exe = FileSystem::Executable();
     EXPECT_TRUE(exe.IsAbsolute());
-    EXPECT_TRUE(exe.EndsWith(".exe") || exe.IsRegularFile());
+    EXPECT_TRUE(exe.EndsWith(".exe") || exe.IsFile());
 }
 
 // 9. 정수 파싱 연동 테스트

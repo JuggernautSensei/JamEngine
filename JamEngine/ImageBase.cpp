@@ -14,41 +14,41 @@ Optional<eImageFormat> ParseAsImageFormat(
     }
 
     const StringView ext = _ext.StartsWith(".") ? _ext.SubView(1) : _ext;
-    switch (ext.Hash32IgnoreCase())
+    switch (ext.IgnoreCaseHash32())
     {
-        case String::Hashed32IgnoreCase("dds"):
+        case String::IgnoreCaseHashed32("dds"):
             return eImageFormat::DDS;
-        case String::Hashed32IgnoreCase("exr"):
+        case String::IgnoreCaseHashed32("exr"):
             return eImageFormat::EXR;
-        case String::Hashed32IgnoreCase("hdr"):
+        case String::IgnoreCaseHashed32("hdr"):
             return eImageFormat::HDR;
-        case String::Hashed32IgnoreCase("tga"):
+        case String::IgnoreCaseHashed32("tga"):
             return eImageFormat::TGA;
-        case String::Hashed32IgnoreCase("bmp"):
+        case String::IgnoreCaseHashed32("bmp"):
             return eImageFormat::BMP;
-        case String::Hashed32IgnoreCase("jpg"):
+        case String::IgnoreCaseHashed32("jpg"):
             return eImageFormat::JPG;
-        case String::Hashed32IgnoreCase("jpeg"):
+        case String::IgnoreCaseHashed32("jpeg"):
             return eImageFormat::JPEG;
-        case String::Hashed32IgnoreCase("png"):
+        case String::IgnoreCaseHashed32("png"):
             return eImageFormat::PNG;
-        case String::Hashed32IgnoreCase("tif"):
+        case String::IgnoreCaseHashed32("tif"):
             return eImageFormat::TIF;
-        case String::Hashed32IgnoreCase("tiff"):
+        case String::IgnoreCaseHashed32("tiff"):
             return eImageFormat::TIFF;
-        case String::Hashed32IgnoreCase("gif"):
+        case String::IgnoreCaseHashed32("gif"):
             return eImageFormat::GIF;
-        case String::Hashed32IgnoreCase("hdp"):
+        case String::IgnoreCaseHashed32("hdp"):
             return eImageFormat::HDP;
-        case String::Hashed32IgnoreCase("jxr"):
+        case String::IgnoreCaseHashed32("jxr"):
             return eImageFormat::JXR;
-        case String::Hashed32IgnoreCase("wdp"):
+        case String::IgnoreCaseHashed32("wdp"):
             return eImageFormat::WDP;
-        case String::Hashed32IgnoreCase("ico"):
+        case String::IgnoreCaseHashed32("ico"):
             return eImageFormat::ICO;
-        case String::Hashed32IgnoreCase("heif"):
+        case String::IgnoreCaseHashed32("heif"):
             return eImageFormat::HEIF;
-        case String::Hashed32IgnoreCase("heic"):
+        case String::IgnoreCaseHashed32("heic"):
             return eImageFormat::HEIC;
         default:
             return k_nullopt;

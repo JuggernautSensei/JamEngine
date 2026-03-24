@@ -1,19 +1,17 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7664d4cd_002D6c35_002D432e_002Daf64_002D958427092b40/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from StringTest.cpp" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Or&gt;&#xD;
-    &lt;And&gt;&#xD;
-      &lt;Or&gt;&#xD;
-        &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:FileSystemTest.cpp&lt;/ProjectFile&gt;&#xD;
-        &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:StringTest.cpp&lt;/ProjectFile&gt;&#xD;
-        &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:FileWriterTest.cpp&lt;/ProjectFile&gt;&#xD;
-        &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:FileWriterTest2.cpp&lt;/ProjectFile&gt;&#xD;
-      &lt;/Or&gt;&#xD;
-      &lt;Not&gt;&#xD;
-        &lt;TestAncestor&gt;&#xD;
-          &lt;TestId&gt;GTest::DB75DEFD-744D-4220-A3EE-68CBC0EF93EC::Windows,Version=v10.0.26100::FileSystemTest&lt;/TestId&gt;&#xD;
-        &lt;/TestAncestor&gt;&#xD;
-      &lt;/Not&gt;&#xD;
-    &lt;/And&gt;&#xD;
-    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:FileSystemTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;Project Location="C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamAppTest" Presentation="&amp;lt;Main Project&amp;gt;\&amp;lt;Test&amp;gt;\&amp;lt;JamAppTest&amp;gt;" /&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:MathTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:BoudingVolumeTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;TestAncestor&gt;&#xD;
+      &lt;TestId&gt;GTest::DB75DEFD-744D-4220-A3EE-68CBC0EF93EC::Windows,Version=v10.0.26100::BoundingVolumeBenchmark&lt;/TestId&gt;&#xD;
+    &lt;/TestAncestor&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:OctreeTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:SceneNodeTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:JsonArchiveTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:StringTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:MemoryTest.cpp&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;DB75DEFD-744D-4220-A3EE-68CBC0EF93EC/f:TransformTest.cpp&lt;/ProjectFile&gt;&#xD;
   &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

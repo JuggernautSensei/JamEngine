@@ -12,20 +12,26 @@ class Mesh;
 struct ModelNode
 {
     String            name      = {};
-    Matrix4x4              mtx       = Mtx4::k_identity;
+    Mtx4              mtx       = Numbers<Mtx4>::k_identity;
     Vector<Int32>     meshIdxes = {};
     Vector<Int32>     matIdxes  = {};
     Vector<ModelNode> children  = {};
 };
 
+struct ModelDesc
+{
+    ModelNode             root      = {};
+    Vector<Ref<Mesh>>     meshes    = {};
+    Vector<Ref<Material>> materials = {};
+};
+
 class Model : public IAsset
 {
 public:
-    [[nodiscard]] static Expect<Ref<Model>> Create(StringView _path);
-    [[nodiscard]] static Ref<Model>         Create(const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
+    [[nodiscard]] static Ref<Model>         Load(const ModelDesc& _desc);
+    [[nodiscard]] static Ref<Model>         Load(ModelDesc&& _desc);
+    [[nodiscard]] static Expect<Ref<Model>> LoadFromFile(StringView _path);
 
-    Error Load(StringView _path) override;
-    void  Load(const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
     void  SetVirtualPath(StringView _path) override;
@@ -40,7 +46,8 @@ public:
     [[nodiscard]] StringView GetExtension() const override;
     [[nodiscard]] StringView GetFilter() const override;
 
-    [[nodiscard]] const ModelNode&             GetRoot() const;
+    [[nodiscard]] const ModelDesc&             GetDesc() const;
+    [[nodiscard]] const ModelNode&             GetRootNode() const;
     [[nodiscard]] const Vector<Ref<Mesh>>&     GetMeshes() const;
     [[nodiscard]] const Vector<Ref<Material>>& GetMaterials() const;
 
@@ -51,15 +58,17 @@ public:
     static constexpr StringView k_filter    = "*.jmdl";
 
 private:
-    void CleanUp_();
+    Model() = default;
+    explicit Model(const ModelDesc& _desc);
+    explicit Model(ModelDesc&& _desc);
+    Error Load_(StringView _path) override;
+    void  CleanUp_();
 
-    String                m_path            = {};
-    String                m_name            = {};
-    ModelNode             m_root            = {};
-    Vector<Ref<Mesh>>     m_meshes          = {};
-    Vector<Ref<Material>> m_materials       = {};
-    bool                  m_bValid          = false;
-    bool                  m_bLoadedFromFile = false;
+    String    m_path            = {};
+    String    m_name            = {};
+    ModelDesc m_desc            = {};
+    bool      m_bValid          = false;
+    bool      m_bLoadedFromFile = false;
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Model>& _pModel);

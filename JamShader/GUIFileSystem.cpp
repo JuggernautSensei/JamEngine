@@ -60,15 +60,11 @@ bool Remove(
 {
     if (_src.IsDirectory() && !FileSystem::IsEmpty(_src))
     {
-        const auto OnConfirm = Bind(
-            [path = String { _src }] {
-                RemoveAll(path);
-            });
-
+        const String src = _src;
         GetShaderApp().PushConfirmationDialog(
             "delete directory",
             String::Formatted("the directory \"{}\" is not empty. Do you want to delete it and all of its contents?", _src),
-            OnConfirm);
+            Bind([src] { RemoveAll(src); }));
 
         return false;
     }
@@ -84,36 +80,6 @@ bool RemoveAll(
         GetShaderApp().PushMessageDialog(
             "delete failed",
             String::Formatted("failed to delete \"{}\" and all of its contents. {}.", _src, err.ToErrorMessage()));
-
-        return false;
-    }
-
-    return true;
-}
-
-bool CheckExisting(
-    const StringView _path)
-{
-    if (!FileSystem::Exists(_path))
-    {
-        GetShaderApp().PushMessageDialog(
-            "file not found",
-            String::Formatted("the file or directory \"{}\" does not exist.", _path));
-
-        return false;
-    }
-
-    return true;
-}
-
-bool CheckNotExisting(
-    const StringView _path)
-{
-    if (FileSystem::Exists(_path))
-    {
-        GetShaderApp().PushMessageDialog(
-            "file already exists",
-            String::Formatted("the file or directory \"{}\" already exists.", _path));
 
         return false;
     }

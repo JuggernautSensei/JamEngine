@@ -7,35 +7,33 @@ namespace Jam
 class Entity;
 class Scene;
 
-/////////// Essencial Marker //////////
+// 필수 메타데이터
 
 #define JAM_COMPONENT_METADATA_ESSENTIAL_MARKER() \
-    static constexpr bool JAM_COMPONENT_METADATA_ESSENTIAL_MARKER = true
+    static constexpr bool COMPONENT_METADATA_ESSENTIAL_MARKER = true
 
 template<typename TCmp>
-concept HasComponentMetadataEssentialMarker = requires {
-    TCmp::JAM_COMPONENT_METADATA_ESSENTIAL_MARKER;
-};
+concept HasComponentMetadataEssentialMarker =
+    requires { { TCmp::COMPONENT_METADATA_ESSENTIAL_MARKER } -> std::convertible_to<bool>; }
+    && TCmp::COMPONENT_METADATA_ESSENTIAL_MARKER;
 
-////////// Editor Display Name //////////
-// provide more readable display title for editor, if not provided, the component type title will be used as fallback
+// 메타데이터: 에디터에서 표시되는 이름
 
 #define JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME(_name) \
-    static constexpr StringView JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME { _name }
+    static constexpr StringView COMPONENT_METADATA_EDITOR_DISPLAY_NAME { _name }
 
 template<typename TCmp>
-concept HasComponentMetadataEditorDisplayName = requires {
-    TCmp::JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME;
-};
+concept HasComponentMetadataEditorDisplayName =
+    requires { TCmp::COMPONENT_METADATA_EDITOR_DISPLAY_NAME; };
 
 template<typename TCmp>
     requires HasComponentMetadataEditorDisplayName<TCmp>
 constexpr StringView GetComponentMetadataEditorDisplayName()
 {
-    return TCmp::JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME;
+    return TCmp::COMPONENT_METADATA_EDITOR_DISPLAY_NAME;
 }
 
-////////// Property //////////
+// 속성 플래그
 
 enum class eComponentPropertyFlags : UInt32
 {
@@ -43,46 +41,42 @@ enum class eComponentPropertyFlags : UInt32
     Serializable       = 1 << 0,
     Editable           = 1 << 1,
     NonRemoveable      = 1 << 2,
-    NonCreatableByUser = 1 << 3   // do not show this component in "add component" menu in editor, but it can still be created by code
+    NonCreatableByUser = 1 << 3,   // 에디터 "Add Component" 미노출, 코드에서는 생성 가능
 };
 
 #define JAM_COMPONENT_METADATA_PROPERTY_FLAGS(...) \
-    static constexpr Flags<eComponentPropertyFlags> JAM_COMPONENT_PROPERTY_FLAGS { __VA_ARGS__ }
+    static constexpr Flags<eComponentPropertyFlags> COMPONENT_METADATA_PROPERTY_FLAGS { __VA_ARGS__ }
 
 template<typename TCmp, eComponentPropertyFlags k_flags>
-constexpr bool HasComponentPropertyV = TCmp::JAM_COMPONENT_PROPERTY_FLAGS.IsEnabled(k_flags);
+concept HasComponentPropertyFlag =
+    requires { { TCmp::COMPONENT_METADATA_PROPERTY_FLAGS } -> std::convertible_to<Flags<eComponentPropertyFlags>>; }
+    && TCmp::COMPONENT_METADATA_PROPERTY_FLAGS.IsEnabled(k_flags);
+
+// 검증
 
 template<typename TCmp>
 concept CheckComponentSerializablePropertyValidation =
-    HasComponentPropertyV<TCmp, eComponentPropertyFlags::Serializable>
-    && requires(TCmp _cmp, const Ref<Scene>& pScene, const Entity& owner, ArchiveWriter& _writer, ArchiveReader& _reader) {
-           _cmp.Serialize(_writer, pScene, owner);
-           _cmp.Deserialize(_reader, pScene, owner);
-       } && !requires(TCmp _cmp, const Ref<Scene>& pScene, const Entity& owner, const ArchiveWriter& _writer) {
-           _cmp.Serialize(_writer, pScene, owner);
-       } && !requires(TCmp _cmp, const Ref<Scene>& pScene, const Entity& owner, const ArchiveReader& _reader) {
-           _cmp.Deserialize(_reader, pScene, owner);
-       } && !requires(const TCmp _cmp, const Ref<Scene>& pScene, const Entity& owner, ArchiveReader& _reader) {
-           _cmp.Deserialize(_reader, pScene, owner);
+    HasComponentPropertyFlag<TCmp, eComponentPropertyFlags::Serializable>
+    && requires(TCmp& cmp, Scene* scene, const Entity& owner, ArchiveWriter& writer, ArchiveReader& reader) {
+           cmp.Serialize(writer, scene, owner);
+           cmp.Deserialize(reader, scene, owner);
        };
 
 template<typename TCmp>
 concept CheckComponentEditablePropertyValidation =
-    HasComponentPropertyV<TCmp, eComponentPropertyFlags::Editable>
-    && requires(TCmp _cmp, const Ref<Scene>& pScene, const Entity& owner) {
-           _cmp.DrawEditPanel(pScene, owner);
-       } && !requires(const TCmp _cmp, const Ref<Scene>& pScene, const Entity& owner) {
-           _cmp.DrawEditPanel(pScene, owner);
-       };
+    HasComponentPropertyFlag<TCmp, eComponentPropertyFlags::Editable>
+    && requires(TCmp& cmp, Scene* scene, const Entity& owner) { cmp.DrawEditPanel(scene, owner); };
 
-#define JAM_STATIC_ASSERT_COMPONENT_PROPERTY_VALIDATION_CHECK(TCmp, _flags, _checkValidationConcept) \
-    static_assert(!HasComponentPropertyV<TCmp, _flags> || _checkValidationConcept<TCmp>, "Component '" #TCmp "' has invalid component traits for the specified flags: " #_flags)   // NOLINT(bugprone-macro-parentheses)
+// 검증
 
-#define JAM_STATIC_ASSERT_COMPONENT_PROPERTY_VALIDATION_CHECKS(TCmp)                                                                                  \
-    JAM_STATIC_ASSERT_COMPONENT_PROPERTY_VALIDATION_CHECK(TCmp, eComponentPropertyFlags::Serializable, CheckComponentSerializablePropertyValidation); \
-    JAM_STATIC_ASSERT_COMPONENT_PROPERTY_VALIDATION_CHECK(TCmp, eComponentPropertyFlags::Editable, CheckComponentEditablePropertyValidation)
+#define JAM_STATIC_ASSERT_COMPONENT_PROPERTY_VALIDATION_CHECKS(TCmp)              \
+    static_assert(                                                                \
+        !HasComponentPropertyFlag<TCmp, eComponentPropertyFlags::Serializable>    \
+            || CheckComponentSerializablePropertyValidation<TCmp>,                \
+        "Component '" #TCmp "': Serializable 플래그에 맞는 시그니처가 없습니다"); \
+    static_assert(                                                                \
+        !HasComponentPropertyFlag<TCmp, eComponentPropertyFlags::Editable>        \
+            || CheckComponentEditablePropertyValidation<TCmp>,                    \
+        "Component '" #TCmp "': Editable 플래그에 맞는 시그니처가 없습니다")
 
 }   // namespace Jam
-
-// ... is properties and data data
-

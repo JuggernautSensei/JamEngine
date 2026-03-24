@@ -10,44 +10,37 @@ SceneDatabase& SceneDatabase::GetInstance()
     {
         s_pInstance = new SceneDatabase();
     }
-
     return *s_pInstance;
-}
-
-bool SceneDatabase::IsSceneReflected(
-    const UInt32 _typeHash) const
-{
-    return m_sceneMetadataContainer.contains(_typeHash);
-}
-
-bool SceneDatabase::IsSceneReflected(
-    const StringView _typeName) const
-{
-    return m_sceneMetadataContainer.contains(_typeName.Hash32());
-}
-
-const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
-    const UInt32 _typeHash) const
-{
-    return m_sceneMetadataContainer.at(_typeHash);
-}
-
-const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
-    const StringView _typeName) const
-{
-    const UInt32 typeHash = _typeName.Hash32();
-    return m_sceneMetadataContainer.at(typeHash);
-}
-
-const CASHashMap<UInt32, SceneReflectionData>& SceneDatabase::GetSceneReflectionDataContainer() const
-{
-    return m_sceneMetadataContainer;
 }
 
 void SceneDatabase::DestroyInstance()
 {
     delete s_pInstance;
     s_pInstance = nullptr;
+}
+
+bool SceneDatabase::IsSceneReflected(
+    const UInt32 _typeHash) const
+{
+    return m_sceneRflData.contains(_typeHash);
+}
+
+bool SceneDatabase::IsSceneReflected(
+    const StringView _name) const
+{
+    return m_sceneRflData.contains(_name.Hash32());
+}
+
+const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
+    const UInt32 _typeHash) const
+{
+    return m_sceneRflData.at(_typeHash);
+}
+
+const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
+    const StringView _name) const
+{
+    return m_sceneRflData.at(_name.Hash32());
 }
 
 }   // namespace Jam

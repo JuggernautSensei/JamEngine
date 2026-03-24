@@ -18,4 +18,7 @@ template<typename TEnum>
     requires std::is_enum_v<TEnum>
 using UnderlyingT = __underlying_type(TEnum);
 
+template<typename T, typename U>
+concept IsMemCpyable = std::is_trivially_copyable_v<T> && std::is_trivially_copyable_v<U> && sizeof(T) == sizeof(U) && std::is_layout_compatible_v<T, U>;
+
 };   // namespace Jam

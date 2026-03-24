@@ -12,9 +12,6 @@
     <ClCompile Include="CheckOverflowTest.cpp">
       <Filter>Test</Filter>
     </ClCompile>
-    <ClCompile Include="MathTest.cpp">
-      <Filter>Test</Filter>
-    </ClCompile>
     <ClCompile Include="NameOfTest.cpp">
       <Filter>Test</Filter>
     </ClCompile>
@@ -30,6 +27,18 @@
     <ClCompile Include="FileWriterTest2.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="BoudingVolumeTest.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneNodeTest.cpp">
+      <Filter>GameTest</Filter>
+    </ClCompile>
+    <ClCompile Include="OctreeTest.cpp">
+      <Filter>GameTest</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonArchiveTest.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -37,6 +46,9 @@
   <ItemGroup>
     <Filter Include="Test">
       <UniqueIdentifier>{fb94dceb-1274-45cb-b1be-6508714ad630}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameTest">
+      <UniqueIdentifier>{2c3a0772-6a7c-41f8-a856-abebf6ffbad1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

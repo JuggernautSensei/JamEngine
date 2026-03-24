@@ -10,7 +10,7 @@ namespace Jam
 
 void EnvironmentComponent::Serialize(
     ArchiveWriter& _writer,
-    const Ref<Scene>&,
+    Scene*,
     Entity) const
 {
     _writer.Write(environment);
@@ -18,18 +18,18 @@ void EnvironmentComponent::Serialize(
 
 void EnvironmentComponent::Deserialize(
     ArchiveReader& _reader,
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     _reader.Read(environment);
 }
 
 void EnvironmentComponent::DrawEditPanel(
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     ImGui::SeparatorText("directional light");
-    if (BeginLabelTable("EnvironmentComponent_DirLight"))
+    if (BeginLabelValueTable("EnvironmentComponent_DirLight"))
     {
         // row: enabled
         {
@@ -46,7 +46,7 @@ void EnvironmentComponent::DrawEditPanel(
 
         // row: radiance
         {
-            Vector3 radiance = environment.GetDirectionalLightRadiance();
+            Vec3 radiance = environment.GetDirectionalLightRadiance();
 
             ImGui::TableNextColumn();
             Widget_Text("radiance", true);
@@ -76,9 +76,9 @@ void EnvironmentComponent::DrawEditPanel(
         {
             static EulerProxy s_proxy = {};
 
-            Vector3 direction = environment.GetDirectionalLightDirection();
+            Vec3 direction = environment.GetDirectionalLightDirection();
             s_proxy.OnBeforeWidget(direction);
-            Vector3& euler = s_proxy.GetEulerProxy();
+            Vec3& euler = s_proxy.GetEulerProxy();
 
             ImGui::TableNextColumn();
             Widget_Text("direction", true);
@@ -141,7 +141,7 @@ void EnvironmentComponent::DrawEditPanel(
     }
 
     ImGui::SeparatorText("image based lighting");
-    if (BeginLabelTable("EnvironmentComponent_IBL"))
+    if (BeginLabelValueTable("EnvironmentComponent_IBL"))
     {
         // row: irradiance texture
         {
@@ -216,7 +216,7 @@ void EnvironmentComponent::DrawEditPanel(
     }
 
     ImGui::SeparatorText("skybox");
-    if (BeginLabelTable("EnvironmentComponent_Skybox"))
+    if (BeginLabelValueTable("EnvironmentComponent_Skybox"))
     {
         eSkyboxType type = environment.GetSkyboxType();
 
@@ -249,7 +249,7 @@ void EnvironmentComponent::DrawEditPanel(
         // row: solid value
         if (type == eSkyboxType::SolidColor)
         {
-            Vector3 color = environment.GetSkyboxSolidColor();
+            Vec3 color = environment.GetSkyboxSolidColor();
             ImGui::TableNextColumn();
             Widget_Text("solid value", true);
             ImGui::TableNextColumn();
@@ -265,7 +265,7 @@ void EnvironmentComponent::DrawEditPanel(
 
     // ssao
     ImGui::SeparatorText("ssao");
-    if (BeginLabelTable("EnvironmentComponent_SSAO"))
+    if (BeginLabelValueTable("EnvironmentComponent_SSAO"))
     {
         // row: enabled
         {
@@ -309,7 +309,7 @@ void EnvironmentComponent::DrawEditPanel(
     }
 
     ImGui::SeparatorText("height fog");
-    if (BeginLabelTable("EnvironmentComponent_Fog"))
+    if (BeginLabelValueTable("EnvironmentComponent_Fog"))
     {
         // row: enabled
         {
@@ -325,7 +325,7 @@ void EnvironmentComponent::DrawEditPanel(
 
         // row: radiance
         {
-            Vector3 radiance = environment.GetFogRadiance();
+            Vec3 radiance = environment.GetFogRadiance();
             ImGui::TableNextColumn();
             Widget_Text("radiance", true);
             ImGui::TableNextColumn();
@@ -393,7 +393,7 @@ void EnvironmentComponent::DrawEditPanel(
 
     // tonemap
     ImGui::SeparatorText("tone mapping");
-    if (BeginLabelTable("EnvironmentComponent_ToneMap"))
+    if (BeginLabelValueTable("EnvironmentComponent_ToneMap"))
     {
         // row: enabled
         {
@@ -451,7 +451,7 @@ void EnvironmentComponent::DrawEditPanel(
 
     // bloom
     ImGui::SeparatorText("bloom");
-    if (BeginLabelTable("EnvironmentComponent_Bloom"))
+    if (BeginLabelValueTable("EnvironmentComponent_Bloom"))
     {
         // row: enabled
         {
@@ -509,7 +509,7 @@ void EnvironmentComponent::DrawEditPanel(
 
     // fxaa
     ImGui::SeparatorText("fxaa");
-    if (BeginLabelTable("EnvironmentComponent_FXAA"))
+    if (BeginLabelValueTable("EnvironmentComponent_FXAA"))
     {
         // row: enabled
         {

@@ -11,11 +11,11 @@ namespace Jam
 
 struct CB_EDITOR_RENDERER
 {
-    Matrix4x4   viewProj = Mtx4::k_identity;
-    Matrix4x4   mtx      = Mtx4::k_identity;
-    Vector3   eye      = Vec3::k_zero;
+    Mtx4   viewProj = Numbers<Mtx4>::k_identity;
+    Mtx4   mtx      = Numbers<Mtx4>::k_identity;
+    Vec3   eye      = Numbers<Vec3>::k_zero;
     UInt32 flags    = 0;
-    Vector4   color    = Vec4::k_one;
+    Vec4   color    = Numbers<Vec4>::k_one;
 };
 
 //////////////////////////////////
@@ -333,7 +333,7 @@ EditorRenderer::EditorRenderer()
 
         struct GridVertex
         {
-            Vector3 pos = Vec3::k_zero;
+            Vec3 pos = Numbers<Vec3>::k_zero;
         };
 
         VertexLayout vl = {};
@@ -360,7 +360,7 @@ EditorRenderer::EditorRenderer()
 
         m_sphereMesh   = CreateSphereMesh(1.0f, 4, vl);
         m_cylinderMesh = CreateCylinder(1.0f, 1.0f, 32, vl);
-        m_cubeMesh     = CreateCubeMesh(Vec3::k_one, vl);
+        m_cubeMesh     = CreateCubeMesh(Numbers<Vec3>::k_one, vl);
     }
 
     // gfx state
@@ -396,9 +396,9 @@ EditorRenderer::~EditorRenderer()
 
 void EditorRenderer::Begin(const RenderView& _view)
 {
-    JAM_ASSERT(!m_bBeginRender, "EditorRenderer::Begin called without End");
+    JAM_ASSERT(!m_bBeginRender, "EditorRenderer::Begin called without Exit");
 
-    m_eye  = _view.eye;
+    m_eye  = _view.eyePos;
     m_view = _view.view;
     m_proj = _view.proj;
 
@@ -408,8 +408,8 @@ void EditorRenderer::Begin(const RenderView& _view)
     m_drawGridFlags = eDrawGridFlags::None;
     m_bBeginRender  = true;
 
-    GetGraphics().SetFrameBuffer(_view.fbh);
-    GetGraphics().SetViewport(_view.vp);
+    GetGraphics().SetFrameBuffer(_view.outputFbh);
+    GetGraphics().SetViewport(_view.outputVp);
 
     GetGraphics().SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     GetGraphics().SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
@@ -418,7 +418,7 @@ void EditorRenderer::Begin(const RenderView& _view)
 
 void EditorRenderer::End()
 {
-    JAM_ASSERT(m_bBeginRender, "EditorRenderer::End called without Begin");
+    JAM_ASSERT(m_bBeginRender, "EditorRenderer::Exit called without Begin");
 
     FlushLines_();
 
@@ -441,7 +441,7 @@ void EditorRenderer::DrawGrid(
     m_drawGridFlags = _flags;
 }
 
-void EditorRenderer::DrawLine(const Vector3 _from, const Vector3 _to, const RGBA _color)
+void EditorRenderer::DrawLine(const Vec3 _from, const Vec3 _to, const RGBA _color)
 {
     if (m_numLineIndices + 2 >= k_lineLimit * 2)
     {
@@ -456,77 +456,77 @@ void EditorRenderer::DrawLine(const Vector3 _from, const Vector3 _to, const RGBA
     m_lineIndices[m_numLineIndices++] = baseIdx + 1;
 }
 
-void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Matrix4x4& _mtx, const RGBA _color)
+void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Mtx4& _mtx, const RGBA _color)
 {
     Obb obb = Obb::FromAabb(_aabbInL);
     obb.Transform(_mtx);
 
     const CornerPoints corners = obb.GetCornerPoints();
 
-    // near plane
-    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::NearRightTop], _color);
-    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::NearRightBottom], _color);
-    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::NearLeftBottom], _color);
-    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::NearLeftTop], _color);
+    DrawLine(corners[eRegion::LeftTopNear], corners[eRegion::RightTopNear], _color);
+    DrawLine(corners[eRegion::RightTopNear], corners[eRegion::RightBottomNear], _color);
+    DrawLine(corners[eRegion::RightBottomNear], corners[eRegion::LeftBottomNear], _color);
+    DrawLine(corners[eRegion::LeftBottomNear], corners[eRegion::LeftTopNear], _color);
 
     // far plane
-    DrawLine(corners[eRegion::FarLeftTop], corners[eRegion::FarRightTop], _color);
-    DrawLine(corners[eRegion::FarRightTop], corners[eRegion::FarRightBottom], _color);
-    DrawLine(corners[eRegion::FarRightBottom], corners[eRegion::FarLeftBottom], _color);
-    DrawLine(corners[eRegion::FarLeftBottom], corners[eRegion::FarLeftTop], _color);
+    DrawLine(corners[eRegion::LeftTopFar], corners[eRegion::RightTopFar], _color);
+    DrawLine(corners[eRegion::RightTopFar], corners[eRegion::RightBottomFar], _color);
+    DrawLine(corners[eRegion::RightBottomFar], corners[eRegion::LeftBottomFar], _color);
+    DrawLine(corners[eRegion::LeftBottomFar], corners[eRegion::LeftTopFar], _color);
 
     // sides
-    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::FarLeftTop], _color);
-    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::FarRightTop], _color);
-    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::FarRightBottom], _color);
-    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::FarLeftBottom], _color);
+    DrawLine(corners[eRegion::LeftTopNear], corners[eRegion::LeftTopFar], _color);
+    DrawLine(corners[eRegion::RightTopNear], corners[eRegion::RightTopFar], _color);
+    DrawLine(corners[eRegion::RightBottomNear], corners[eRegion::RightBottomFar], _color);
+    DrawLine(corners[eRegion::LeftBottomNear], corners[eRegion::LeftBottomFar], _color);
 }
 
-void EditorRenderer::DrawFrustum(const Matrix4x4& _viewProjMtx, const RGBA _rgba)
+void EditorRenderer::DrawFrustum(const Mtx4& _viewProjMtx, const RGBA _rgba)
 {
     const Frustum      frustum = Frustum { _viewProjMtx };
     const CornerPoints corners = frustum.GetCornerPoints();
 
     // near plane
-    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::NearRightTop], _rgba);
-    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::NearRightBottom], _rgba);
-    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::NearLeftBottom], _rgba);
-    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::NearLeftTop], _rgba);
+    DrawLine(corners[eRegion::LeftTopNear], corners[eRegion::RightTopNear], _rgba);
+    DrawLine(corners[eRegion::RightTopNear], corners[eRegion::RightBottomNear], _rgba);
+    DrawLine(corners[eRegion::RightBottomNear], corners[eRegion::LeftBottomNear], _rgba);
+    DrawLine(corners[eRegion::LeftBottomNear], corners[eRegion::LeftTopNear], _rgba);
 
     // far plane
-    DrawLine(corners[eRegion::FarLeftTop], corners[eRegion::FarRightTop], _rgba);
-    DrawLine(corners[eRegion::FarRightTop], corners[eRegion::FarRightBottom], _rgba);
-    DrawLine(corners[eRegion::FarRightBottom], corners[eRegion::FarLeftBottom], _rgba);
-    DrawLine(corners[eRegion::FarLeftBottom], corners[eRegion::FarLeftTop], _rgba);
+    DrawLine(corners[eRegion::LeftTopFar], corners[eRegion::RightTopFar], _rgba);
+    DrawLine(corners[eRegion::RightTopFar], corners[eRegion::RightBottomFar], _rgba);
+    DrawLine(corners[eRegion::RightBottomFar], corners[eRegion::LeftBottomFar], _rgba);
+    DrawLine(corners[eRegion::LeftBottomFar], corners[eRegion::LeftTopFar], _rgba);
 
     // sides
-    DrawLine(corners[eRegion::NearLeftTop], corners[eRegion::FarLeftTop], _rgba);
-    DrawLine(corners[eRegion::NearRightTop], corners[eRegion::FarRightTop], _rgba);
-    DrawLine(corners[eRegion::NearRightBottom], corners[eRegion::FarRightBottom], _rgba);
-    DrawLine(corners[eRegion::NearLeftBottom], corners[eRegion::FarLeftBottom], _rgba);
+    DrawLine(corners[eRegion::LeftTopNear], corners[eRegion::LeftTopFar], _rgba);
+    DrawLine(corners[eRegion::RightTopNear], corners[eRegion::RightTopFar], _rgba);
+    DrawLine(corners[eRegion::RightBottomNear], corners[eRegion::RightBottomFar], _rgba);
+    DrawLine(corners[eRegion::LeftBottomNear], corners[eRegion::LeftBottomFar], _rgba);
 }
 
-void EditorRenderer::DrawCircle(const Vector3 _center, const Vector3 _normal, const float _radius, const RGBA _color, const Int32 _segments)
+void EditorRenderer::DrawCircle(const Vec3 _center, const Vec3 _normal, const float _radius, const RGBA _color, const Int32 _segments)
 {
-    Vector3 u = Vec3::k_up;
+    Vec3 u = Numbers<Vec3>::k_up;
     if (IsEqualApprox(Dot(_normal, u), 1.f))
     {
-        u = Vec3::k_right;
+        u = Numbers<Vec3>::k_right;
     }
 
-    const Vector3 tan   = Normalized(Cross(_normal, u));
-    const Vector3 bitan = Normalized(Cross(_normal, tan));
+    const Vec3 tan   = Normalized(Cross(_normal, u));
+    const Vec3 bitan = Normalized(Cross(_normal, tan));
 
-    const float step = k_2pi / NumericCast<float>(_segments);
+    const float step = Numbers<float>::k_2pi / NumericCast<float>(_segments);
     for (Int32 i = 0; i < _segments; ++i)
     {
         const float a0 = step * NumericCast<float>(i);
         const float a1 = step * NumericCast<float>((i + 1) % _segments);
-
-        const auto [s0, c0] = SinCosApprox(a0);
-        const auto [s1, c1] = SinCosApprox(a1);
-        const Vector3 p0       = _center + (tan * c0 + bitan * s0) * _radius;
-        const Vector3 p1       = _center + (tan * c1 + bitan * s1) * _radius;
+        const float s0 = Sin(a0);
+        const float c0 = Cos(a0);
+        const float s1 = Sin(a1);
+        const float c1 = Cos(a1);
+        const Vec3  p0 = _center + (tan * c0 + bitan * s0) * _radius;
+        const Vec3  p1 = _center + (tan * c1 + bitan * s1) * _radius;
         DrawLine(p0, p1, _color);
     }
 }
@@ -536,13 +536,13 @@ void EditorRenderer::FlushLines()
     FlushLines_();
 }
 
-void EditorRenderer::DrawFilledSphere(const Vector3 _center, const float _radius, const RGBA _color)
+void EditorRenderer::DrawFilledSphere(const Vec3 _center, const float _radius, const RGBA _color)
 {
     FlushLines_();
 
     m_currentColor = _color;
 
-    const Matrix4x4 world = Matrix4x4::CreateScale(_radius) * Matrix4x4::CreateTranslation(_center);
+    const Mtx4 world = Mtx4::CreateScale(_radius) * Mtx4::CreateTranslation(_center);
     UploadTransform_(world);
 
     RenderState state = m_lineState;
@@ -554,13 +554,13 @@ void EditorRenderer::DrawFilledSphere(const Vector3 _center, const float _radius
     m_sphereMesh->Submit();
 }
 
-void EditorRenderer::DrawFilledCube(const Vector3 _center, const Vector3 _size, const RGBA _color)
+void EditorRenderer::DrawFilledCube(const Vec3 _center, const Vec3 _size, const RGBA _color)
 {
     FlushLines_();
 
     m_currentColor = _color;
 
-    const Matrix4x4 world = Matrix4x4::CreateScale(_size) * Matrix4x4::CreateTranslation(_center);
+    const Mtx4 world = Mtx4::CreateScale(_size) * Mtx4::CreateTranslation(_center);
     UploadTransform_(world);
 
     RenderState state = m_lineState;
@@ -572,13 +572,13 @@ void EditorRenderer::DrawFilledCube(const Vector3 _center, const Vector3 _size, 
     m_cubeMesh->Submit();
 }
 
-void EditorRenderer::DrawFilledCylinder(const Vector3 _center, const Vector3 _dir, const float _height, const float _radius, const RGBA _color)
+void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, const float _height, const float _radius, const RGBA _color)
 {
     FlushLines_();
 
     m_currentColor   = _color;
-    const Quaternion q     = Quaternion::FromToRotation(Vec3::k_up, _dir);
-    const Matrix4x4 world = Matrix4x4::CreateScale(Vector3(_radius, _height, _radius)) * Matrix4x4::CreateFromQuaternion(q) * Matrix4x4::CreateTranslation(_center);
+    const Quat q     = Quat::FromToRotation(Numbers<Vec3>::k_up, _dir);
+    const Mtx4 world = Mtx4::CreateScale(Vec3(_radius, _height, _radius)) * Mtx4::CreateFromQuaternion(q) * Mtx4::CreateTranslation(_center);
     UploadTransform_(world);
 
     RenderState state = m_lineState;
@@ -591,7 +591,7 @@ void EditorRenderer::DrawFilledCylinder(const Vector3 _center, const Vector3 _di
     m_cylinderMesh->Submit();
 }
 
-void EditorRenderer::DrawFilledCapsule(const Vector3 _center, const Vector3 _dir, const float _height, const float _radius, const RGBA _color)
+void EditorRenderer::DrawFilledCapsule(const Vec3 _center, const Vec3 _dir, const float _height, const float _radius, const RGBA _color)
 {
     const float cylinderHeight = Max(0.f, _height - 2.f * _radius);
 
@@ -599,11 +599,11 @@ void EditorRenderer::DrawFilledCapsule(const Vector3 _center, const Vector3 _dir
     DrawFilledCylinder(_center, _dir, cylinderHeight, _radius, _color);
 
     // 위쪽 반구
-    const Vector3 topCenter = _center + _dir * cylinderHeight * 0.5f;
+    const Vec3 topCenter = _center + _dir * cylinderHeight * 0.5f;
     DrawFilledSphere(topCenter, _radius, _color);
 
     // 아래쪽 반구
-    const Vector3 bottomCenter = _center - _dir * cylinderHeight * 0.5f;
+    const Vec3 bottomCenter = _center - _dir * cylinderHeight * 0.5f;
     DrawFilledSphere(bottomCenter, _radius, _color);
 }
 
@@ -616,9 +616,9 @@ void EditorRenderer::FlushLines_()
 
     CB_EDITOR_RENDERER cb = {};
     cb.viewProj           = (m_view * m_proj).Transpose();
-    cb.mtx                = Mtx4::k_identity.Transpose();
+    cb.mtx                = Numbers<Mtx4>::k_identity;
     cb.eye                = m_eye;
-    GetGraphics().UploadBuffer(m_cbh, cb);
+    GetGraphics().UploadBuffer(m_cbh, AsMemoryView(cb));
 
     GetGraphics().UploadBuffer(m_lineVbh, { m_lineVertices.data(), NumericCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
     GetGraphics().UploadBuffer(m_lineIbh, { m_lineIndices.data(), NumericCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
@@ -635,24 +635,24 @@ void EditorRenderer::FlushLines_()
     m_numLineIndices = 0;
 }
 
-void EditorRenderer::UploadTransform_(const Matrix4x4& _world) const
+void EditorRenderer::UploadTransform_(const Mtx4& _world) const
 {
     CB_EDITOR_RENDERER cb = {};
     cb.viewProj           = (m_view * m_proj).Transpose();
     cb.mtx                = _world.Transpose();
     cb.eye                = m_eye;
     cb.color              = m_currentColor.ToLinear();
-    GetGraphics().UploadBuffer(m_cbh, cb);
+    GetGraphics().UploadBuffer(m_cbh, AsMemoryView(cb));
 }
 
 void EditorRenderer::DrawGrid_() const
 {
     CB_EDITOR_RENDERER cb = {};
     cb.viewProj           = (m_view * m_proj).Transpose();
-    cb.mtx                = Mtx4::k_identity.Transpose();
+    cb.mtx                = Numbers<Mtx4>::k_identity.Transpose();
     cb.eye                = m_eye;
     cb.flags              = m_drawGridFlags;
-    GetGraphics().UploadBuffer(m_cbh, cb);
+    GetGraphics().UploadBuffer(m_cbh, AsMemoryView(cb));
 
     GetGraphics().SetRenderState(m_gridState);
     GetGraphics().SetBlendState(m_blendState, 0);

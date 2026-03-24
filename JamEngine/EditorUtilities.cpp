@@ -470,7 +470,7 @@ StringView EditorDisplayNameOf(
     }
 }
 
-bool BeginLabelTable(const char* _label)
+bool BeginLabelValueTable(const char* _label)
 {
     if (ImGui::BeginTable(_label, 2, ImGuiTableFlags_SizingFixedFit))
     {

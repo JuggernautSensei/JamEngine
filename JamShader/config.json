@@ -1,8 +1,8 @@
 {
-    "windowsOpen": [
-        true,
-        true,
-        true
-    ],
+    "windowsOpen": {
+        "FileBrowser": true,
+        "ProjectInspector": true,
+        "ShaderItemEditor": true
+    },
     "shaderItemEditorWindow": ""
 }

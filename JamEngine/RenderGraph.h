@@ -6,8 +6,23 @@ namespace Jam
 {
 
 // RenderGraph
-// Pass 등록 순서와는 무관하게, 의존성을 분석하여 자동으로 실행 순서를 결정하는 렌더 그래프 시스템
-// 내부적으로 위상 정렬을 사용
+// 렌더링 파이프라인 구성 요소들을 Pass 단위로 묶어서 표현하는 시스템
+// 내부적으로 Pass 간의 자원 의존성을 분석하여, 최적의 실행 순서를 결정하고, 불필요한 Pass를 제거하는 등의 최적화 작업을 수행함.
+//
+// 주요기능:
+// 1. 렌더링 파이프라인에서 사용되는 리소스를 관리.
+//    문자열 및 디스크립터 기반으로 리소스의 생성 + 수명관리를 RenderGraph에게 위임할 수 있고,
+//    참조형태로 리소스를 주입할 수 있음.
+//
+// 2. Pass 간의 의존성 분석.
+//    Pass간의 read - write 리소스 관계에 따라 의존성 그래프를 구성하고
+//    의존성이 안생기도록 Pass를 재구성함.
+//    사용자는 기존까다로웠던 Pass간의 순서 처리, 리소스 바인딩 & 언바인딩을 전혀 신경쓰지 않아도 됨.
+//    사용자는 오직 Pass를 작성하는데 집중하면 됨.
+//
+// 3. 그래프 최적화.
+//    Pass간의 의존성 분석 결과를 바탕으로, 불필요한 Pass를 제거함.
+//    더하여 Pass간의 리소스 바인딩을 최적화하여, 불필요한 바인딩과 언바인딩을 제거함.
 
 class RenderGraph
 {
@@ -27,8 +42,8 @@ class RenderGraph
         size_t operator()(const Slot& s) const noexcept
         {
             Murmur3Hasher64 h {};
-            h.Mix(s.stage);
-            h.Mix(s.index);
+            h.Mix(AsMemoryView(s.stage));
+            h.Mix(AsMemoryView(s.index));
             return h.Finish();
         }
     };
@@ -75,21 +90,21 @@ class RenderGraph
 
         // program
         String        programName = {};
-        ProgramHandle ph          = k_nullHandle;
+        ProgramHandle ph          = k_nullHandle;   // Compile() 함수에서 지연결정됨.
 
         // framebuffer
         String            frameBufferName = {};
-        FrameBufferHandle fbh             = k_nullHandle;
+        FrameBufferHandle fbh             = k_nullHandle;   // Compile() 함수에서 지연결정됨.
 
         // viewport
         Viewport viewport                            = {};
-        bool     bUseFrameBufferResolutionAsViewport = true;   // 뷰포트를 프레임버퍼의 해상도로 설정함. 기본 설정임
+        bool     bUseFrameBufferResolutionAsViewport = true;   // 뷰포트를 프레임버퍼의 해상도로 설정함. 기본 설정이며 99%의 경우 true를 사용하면 됨.
 
         // misc
         bool bUseExternalOutput = false;
         // RenderGraph::Execute(FrameBufferHandle _fbh, Viewport _vp) 형태로 기대하는 프레임버퍼와 뷰포트를 외부에서 전달받을 수 있음
         // true로 설정된 경우, 해당 패스는 외부에서 주입된 출력으로 렌더링함.
-        // 만약 RenderGraph::Execute() 호출 시 백버퍼에 렌더링함
+        // 만약 RenderGraph::Execute() 호출 시 백버퍼에 렌더링함.
 
         // state
         RenderState  renderState = {};
@@ -98,23 +113,23 @@ class RenderGraph
         UInt8        stencilRef  = 0;
 
         // blend
-        Array<BlendStateBind, k_maxNumRenderTargetViewSlots> blendBinds         = {};
-        Int32                                                numBlendStateBinds = 0;
-        RGBA                                                 blendFactor        = RGBA::k_transparent;
+        Array<BlendStateBind, k_maxNumRenderTargetViewSlots> blendBinds    = {};
+        Int32                                                numBlendBinds = 0;
+        RGBA                                                 blendFactor   = RGBA::k_transparent;
 
         // clear commands
-        Array<ClearColorBind, k_maxNumRenderTargetViewSlots> clearColorBinds            = {};
-        Int32                                                numRenderTargetClearColors = 0;
-        float                                                depthClearValue            = 1.f;
-        UInt8                                                stencilClearValue          = 0;
-        bool                                                 bClearDepth                = false;
-        bool                                                 bClearStencil              = false;
+        Array<ClearColorBind, k_maxNumRenderTargetViewSlots> clearColorBinds    = {};
+        Int32                                                numClearColorBinds = 0;
+        float                                                clearDepthValue    = 1.f;
+        UInt8                                                clearStencilValue  = 0;
+        bool                                                 bClearDepth        = false;
+        bool                                                 bClearStencil      = false;
 
-        // resource binding
-        HashMap<Slot, TextureBind, SlotHasher>        textureBindInfos = {};
-        HashMap<Slot, ConstantBufferBind, SlotHasher> cbufferBindInfos = {};
-        HashMap<Slot, SamplerBind, SlotHasher>        samplerBindInfos = {};
-        Array<String, k_maxNumAttachmentSlots>        writeTextures    = {};
+        // resource binding. 리소스 바인딩은 Slot 단위로 관리됨
+        HashMap<Slot, TextureBind, SlotHasher>        textureBinds     = {};
+        HashMap<Slot, ConstantBufferBind, SlotHasher> cbufferBinds     = {};
+        HashMap<Slot, SamplerBind, SlotHasher>        samplerBinds     = {};
+        Array<String, k_maxNumAttachmentSlots>        writeTextures    = {};   // 해당 패스의 framebuffer에서 사용되는 텍스처로, Compile() 함수에서 지연결정됨.
         Int32                                         numWriteTextures = 0;
 
         // 사이드 이펙트 여부
@@ -133,9 +148,9 @@ class RenderGraph
         const PassDesc* pDesc = nullptr;
 
         // 최적화된 바인딩
-        Vector<TextureBind>        textureBinds = {};
-        Vector<ConstantBufferBind> cbufferBinds = {};
-        Vector<SamplerBind>        samplerBinds = {};
+        Vector<TextureBind>        textures = {};
+        Vector<ConstantBufferBind> cbuffers = {};
+        Vector<SamplerBind>        samplers = {};
 
         // 언바인드 목록
         Vector<Slot> unbindTextures     = {};
@@ -236,9 +251,9 @@ public:
 
     // resource management
     void                        AddTexture(StringView _name, TextureHandle _texh, bool _bOwnership);
-    void                        AddTexture2D(StringView _name, Int32 _width, Int32 _height, eTextureFormat _format, Int32 _arraySize = 1, Flags<eTextureCreateFlags> _flags = eTextureCreateFlags::None, Span<const CMemoryBlock> _initData = {});
+    void                        AddTexture2D(StringView _name, Int32 _width, Int32 _height, eTextureFormat _format, Int32 _arraySize = 1, Flags<eTextureCreateFlags> _flags = eTextureCreateFlags::None, Span<const MemoryView> _initData = {});
     void                        AddTexture2D(StringView _name, float _resizeScale, eTextureFormat _format, Int32 _arraySize = 1, Flags<eTextureCreateFlags> _flags = eTextureCreateFlags::None);
-    void                        AddTexture3D(StringView _name, Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Flags<eTextureCreateFlags> _flags = eTextureCreateFlags::None, Span<const CMemoryBlock> _initData = {});
+    void                        AddTexture3D(StringView _name, Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Flags<eTextureCreateFlags> _flags = eTextureCreateFlags::None, Span<const MemoryView> _initData = {});
     void                        AddTextureCube(StringView _name, Int32 _width, Int32 _height, eTextureFormat _format, Int32 _numCubes = 1, Flags<eTextureCreateFlags> _flags = eTextureCreateFlags::None);
     [[nodiscard]] TextureHandle GetTexture(StringView _name) const;
     [[nodiscard]] TextureHandle FindTextureOrNull(StringView _name) const;
@@ -256,7 +271,7 @@ public:
     [[nodiscard]] FrameBufferHandle FindFrameBufferOrNull(StringView _name) const;
 
     void                       AddShader(StringView _name, ShaderHandle _sh, bool _bOwnership);
-    void                       AddShader(StringView _name, CMemoryBlock _bytecode);
+    void                       AddShader(StringView _name, MemoryView _bytecode);
     [[nodiscard]] ShaderHandle GetShader(StringView _name) const;
     [[nodiscard]] ShaderHandle FindShaderOrNull(StringView _name) const;
 
@@ -269,7 +284,7 @@ public:
 private:
     void Reset_();
 
-    [[nodiscard]] PassDesc* FindPassDesc_(StringView name);
+    [[nodiscard]] PassDesc* FindPassDesc_(StringView name);   // 포인터 무효화에 주의
     [[nodiscard]] bool      HasPass_(StringView name) const;
 
     Vector<PassDesc> m_passDescs      = {};   // 정렬전 Pass 원본 데이터

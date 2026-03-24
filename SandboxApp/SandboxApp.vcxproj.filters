@@ -7,6 +7,54 @@
     <Filter Include="Main">
       <UniqueIdentifier>{70053dcf-8f33-4ec7-b7be-c8c29b49a4b1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="01. SimpleScene">
+      <UniqueIdentifier>{30e5dd68-72b0-48e1-8c16-bcad5cd5c997}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Instancing">
+      <UniqueIdentifier>{990702e6-7a70-4db3-9fda-3efe49b5577c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. bump">
+      <UniqueIdentifier>{3d150547-b273-4740-a6e2-b6051322ebcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IBL">
+      <UniqueIdentifier>{45858421-24eb-47c9-ac00-b1ee8b818cf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Deferred">
+      <UniqueIdentifier>{bd3052bb-ccdb-4318-9b20-314d6dfa85ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. ShadowMapping">
+      <UniqueIdentifier>{19262fad-e94b-47e3-9fc9-a06356f5dcfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. Stencil Reflection">
+      <UniqueIdentifier>{98be7fbc-019f-4f89-8ab2-096dbb259a5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. Frustum Culling">
+      <UniqueIdentifier>{3d472299-b9ff-49f2-a162-a048a22cf4ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Terrain">
+      <UniqueIdentifier>{4d65b907-6818-4641-bc3e-8a8532cc5faa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="10. MousePicking">
+      <UniqueIdentifier>{d98c27a8-46ab-4e1f-aa78-3937f8e278cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="11. RSM">
+      <UniqueIdentifier>{86593565-55f9-4478-89c0-8dcfcc0c6112}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="12. Particle">
+      <UniqueIdentifier>{20e39091-0581-4ab2-a346-178fe6ff866d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="13. SSAO">
+      <UniqueIdentifier>{32cc3ff0-47e5-4dce-907d-7b3bfe54aa76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="14. PostProcessing">
+      <UniqueIdentifier>{79b057c1-f794-4a21-98f3-8e2f5168b05b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="15. SSR">
+      <UniqueIdentifier>{dcad46d1-4235-4eb5-9379-a3b625eac05c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="16. Skeleton Animation">
+      <UniqueIdentifier>{613987a4-1219-4b4c-b685-fe7839638b7d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandboxApp.cpp">
@@ -14,6 +62,9 @@
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleScene.cpp">
+      <Filter>01. SimpleScene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -23,5 +74,13 @@
     <ClInclude Include="pch.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleScene.h">
+      <Filter>01. SimpleScene</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format">
+      <Filter>Base</Filter>
+    </None>
   </ItemGroup>
 </Project>

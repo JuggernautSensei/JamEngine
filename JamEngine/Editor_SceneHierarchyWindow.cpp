@@ -10,8 +10,10 @@
 #include "TagComponent.h"
 #include "SceneNode.h"
 #include "EditorWidgets.h"
+#include "Event.h"
 #include "StackString.h"
 #include "Model.h"
+#include "Events.h"
 
 namespace Jam
 {
@@ -48,9 +50,9 @@ void Editor_SceneHierarchyWindow::OnImGuiRender(
 
     // scene info
     {
-        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-        ImGui::Text("scene type: %s", pScene->GetTypeName().GetPtr());
-        ImGui::Text("entity count: %d", pScene->GetNumEntities());
+        
+        ImGui::Text("scene type: %s", m_pScene->GetTypeName().GetPtr());
+        ImGui::Text("entity count: %d", m_pScene->GetNumEntities());
     }
 
     // entities
@@ -74,8 +76,8 @@ void Editor_SceneHierarchyWindow::OnImGuiRender(
         if (ImGui::BeginChild("EntityListPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Borders))
         {
             // draw entityItems
-            const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-            Widget_EntityItem_Recursive_(pScene->GetRootEntity());
+            
+            Widget_EntityItem_Recursive_(m_pScene->GetRootEntity());
 
             // window popup
             if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverExistingPopup | ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
@@ -104,6 +106,24 @@ void Editor_SceneHierarchyWindow::OnImGuiRender(
     ImGui::End();
 }
 
+void Editor_SceneHierarchyWindow::OnEvent(Event& _event)
+{
+    EventDispatcher dispatcher(_event);
+    dispatcher.Dispatch<SceneChangedEvent>(this, &Editor_SceneHierarchyWindow::OnSceneChangedEvent_);
+}
+
+void Editor_SceneHierarchyWindow::OnSceneChangedEvent_(SceneChangedEvent& _event)
+{
+    const SceneManager& mgr = GetSceneManager();
+    if (!mgr.HasActiveScene())
+    {
+        m_pScene = nullptr;
+        return;
+    }
+
+    m_pScene = mgr.GetActiveScene();
+}
+
 void Editor_SceneHierarchyWindow::Widget_SaveSceneButton_(
     const ImVec2 _btnSize) const
 {
@@ -113,8 +133,7 @@ void Editor_SceneHierarchyWindow::Widget_SaveSceneButton_(
     ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("save scene", _btnSize))
     {
-        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-        GetEditor().SaveSceneByFileDialog(pScene);
+        GetEditor().SaveSceneByFileDialog(m_pScene);
     }
 
     Widget_ItemDescriptionTooltip(
@@ -234,7 +253,6 @@ void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
     if (ImGui::BeginPopup("Menu"))
     {
         JAM_ASSERT(GetSceneManager().HasActiveScene(), "no active scene to create entity into.");
-        const Ref<Scene>& _pScene = GetSceneManager().GetActiveScene();
 
         // render label
         ImGui::TextUnformatted(label.GetPtr());
@@ -247,14 +265,14 @@ void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
         // create child
         if (Widget_MenuItem("create child"))
         {
-            GetEditor().CreateEntity(_pScene, _entity);
+            GetEditor().CreateEntity(m_pScene, _entity);
         }
 
         // clone entity
         ImGui::BeginDisabled(!GetEditor().CanEntityClone(_entity));
         if (Widget_MenuItem("clone"))
         {
-            GetEditor().CloneEntity(_pScene, _entity);
+            GetEditor().CloneEntity(m_pScene, _entity);
         }
         ImGui::EndDisabled();
 
@@ -262,7 +280,7 @@ void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
         ImGui::BeginDisabled(!GetEditor().CanEntityDestroy(_entity));
         if (Widget_MenuItem("destroy"))
         {
-            GetEditor().DestroyEntity(_pScene, _entity);
+            GetEditor().DestroyEntity(m_pScene, _entity);
         }
         ImGui::EndDisabled();
 
@@ -290,8 +308,8 @@ void Editor_SceneHierarchyWindow::Widget_CreateEntityButton_(
     ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("create", _btnSize))
     {
-        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-        GetEditor().CreateEntity(pScene, Entity::k_null);
+        
+        GetEditor().CreateEntity(m_pScene, Entity::k_null);
     }
 
     Widget_ItemDescriptionTooltip(
@@ -307,9 +325,9 @@ void Editor_SceneHierarchyWindow::Widget_DeleteEntityButton_(
     ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("delete", _btnSize))
     {
-        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
+        
         Entity            entity = GetEditor().GetFocusingEntityOrNull();
-        GetEditor().DestroyEntity(pScene, entity);
+        GetEditor().DestroyEntity(m_pScene, entity);
     }
 
     Widget_ItemDescriptionTooltip(
@@ -325,9 +343,9 @@ void Editor_SceneHierarchyWindow::Widget_CloneEntityButton_(
     ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("clone", _btnSize))
     {
-        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
+        
         Entity            entity = GetEditor().GetFocusingEntityOrNull();
-        GetEditor().CloneEntity(pScene, entity);
+        GetEditor().CloneEntity(m_pScene, entity);
     }
 
     Widget_ItemDescriptionTooltip(
@@ -345,8 +363,8 @@ void Editor_SceneHierarchyWindow::OnBeginDragDropTarget_EntityListPanel_() const
         {
             if (Expect<Ref<Model>> pModel = GetEditor().LoadModel(path))
             {
-                const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-                GetEditor().CreateEntitiesFrom(pScene, pModel.GetValue());
+                
+                GetEditor().CreateEntitiesFrom(m_pScene, pModel.GetValue());
             }
         }
     }
@@ -357,8 +375,7 @@ void Editor_SceneHierarchyWindow::Menu_EntityListPanel_() const
     if (Widget_MenuItem("create"))
     {
         JAM_ASSERT(GetSceneManager().HasActiveScene(), "no active scene to create entity into.");
-        const Ref<Scene>& pScene = GetSceneManager().GetActiveScene();
-        GetEditor().CreateEntity(pScene, Entity::k_null);
+        GetEditor().CreateEntity(m_pScene, Entity::k_null);
     }
 }
 

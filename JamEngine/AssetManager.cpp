@@ -40,13 +40,13 @@ namespace
         switch (_type)
         {
             case eAssetType::Texture:
-                return Texture::Create(_assetPath);
+                return Texture::LoadFromFile(_assetPath);
             case eAssetType::Material:
-                return Material::Create(_assetPath);
+                return Material::LoadFromFile(_assetPath);
             case eAssetType::Mesh:
-                return Mesh::Create(_assetPath);
+                return Mesh::LoadFromFile(_assetPath);
             case eAssetType::Model:
-                return Model::Create(_assetPath);
+                return Model::LoadFromFile(_assetPath);
             default:
                 JAM_UNREACHABLE;
         }
@@ -83,7 +83,7 @@ Expect<Ref<IAsset>> AssetManager::Load(
         if (_bReloadIfExist)
         {
             Ref<IAsset>& pAsset = it->second;
-            if (const Error err = pAsset->Load(key))
+            if (const Error err = pAsset->Load_(key))
             {
                 // 실패해도 pAsset 자체가 invalid 상태가 아니므로
                 // 에러만 리턴하고, 맵에서는 제거하지 않음
@@ -227,7 +227,7 @@ void AssetManager::CleanGarbage(
 
 void AssetManager::CleanGarbageAll()
 {
-    for (const eAssetType type: EnumRanges<eAssetType>())
+    for (const eAssetType type: RangesOf<eAssetType>())
     {
         CleanGarbage(type);
     }
@@ -247,7 +247,7 @@ void AssetManager::Clear(
 
 void AssetManager::ClearAll()
 {
-    for (const eAssetType type: EnumRanges<eAssetType>())
+    for (const eAssetType type: RangesOf<eAssetType>())
     {
         Clear(type);
     }
@@ -285,14 +285,14 @@ void AssetManager::OnFileModifiedEvent_(
     }
 
     const StringView key = path.GetValue();
-    for (eAssetType type: EnumRanges<eAssetType>())
+    for (eAssetType type: RangesOf<eAssetType>())
     {
         AssetMap&    map = m_assetMaps[type];
         AssetMapIter it  = map.find(key);
         if (it != map.end())
         {
             Ref<IAsset>& pAsset = it->second;
-            pAsset->Load(key);
+            pAsset->Load_(key);
         }
     }
 }
@@ -315,7 +315,7 @@ void AssetManager::OnFileRenamedEvent_(
     }
 
     // for each asset type
-    for (eAssetType type: EnumRanges<eAssetType>())
+    for (eAssetType type: RangesOf<eAssetType>())
     {
         // 없으면 스킵
         AssetMap&    map   = m_assetMaps[type];
@@ -340,7 +340,7 @@ void AssetManager::OnFileRenamedEvent_(
 
         // 4. 에셋을 새로운 경로로 로드 및 맵에 삽입
         //    만약 실패했다면, 에셋은 무효화된 상태
-        const Error err = pAsset->Load(newKey);
+        const Error err = pAsset->Load_(newKey);
         if (err)
         {
             continue;
@@ -362,7 +362,7 @@ void AssetManager::OnFileDeletedEvent_(
     }
 
     const StringView key = path.GetValue();
-    for (const eAssetType type: EnumRanges<eAssetType>())
+    for (const eAssetType type: RangesOf<eAssetType>())
     {
         AssetMap&    map = m_assetMaps[type];
         AssetMapIter it  = map.find(key);

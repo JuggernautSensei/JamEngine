@@ -21,7 +21,7 @@ public:
         const StringView                 _path,
         const eFileWriterCollisionPolicy _policy)
     {
-        JAM_ASSERT(_policy != eFileWriterCollisionPolicy::Append, "Append mode is not supported for AssetSaver.");
+        JAM_ASSERT(_policy != eFileWriterCollisionPolicy::Append, "WriteElement mode is not supported for AssetSaver.");
 
         if (_policy != eFileWriterCollisionPolicy::Overwrite && FileSystem::Exists(_path))
         {
@@ -177,16 +177,16 @@ using StringViewDto = cista::offset::string_view;
 
 struct Vec3Dto
 {
-    [[nodiscard]] static Vec3Dto FromVec3(const Vector3& _v);
-    [[nodiscard]] Vector3           ToVec3() const;
+    [[nodiscard]] static Vec3Dto FromVec3(const Vec3& _v);
+    [[nodiscard]] Vec3           ToVec3() const;
 
     ArrayDto<float, 3> vec = {};
 };
 
 struct Mtx4Dto
 {
-    [[nodiscard]] static Mtx4Dto FromMat4(Matrix4x4 _mtx);
-    [[nodiscard]] Matrix4x4           ToMtx4() const;
+    [[nodiscard]] static Mtx4Dto FromMat4(Mtx4 _mtx);
+    [[nodiscard]] Mtx4           ToMtx4() const;
 
     ArrayDto<float, 16> mtx = {};
 };

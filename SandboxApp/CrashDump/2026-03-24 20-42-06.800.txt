@@ -1,0 +1,25 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-03-24 20:42:06.734
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl Jam::Graphics::Frame(bool)
+line: 374
+column: 9
+------------------------------------
+user report: 
+HRESULT failure in m_pd3d11Device->GetDeviceRemovedReason()
+HRESULT: 0x-7785FFFA (The GPU will not respond to more commands, most likely because of an invalid command passed by the calling application.
+)
+====================================

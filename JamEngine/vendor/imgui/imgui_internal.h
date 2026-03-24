@@ -402,7 +402,7 @@ IMGUI_API char*         ImStrdup(const char* str);                              
 IMGUI_API void*         ImMemdup(const void* src, size_t size);                             // Duplicate a chunk of memory.
 IMGUI_API char*         ImStrdupcpy(char* dst, size_t* p_dst_size, const char* str);        // Copy in provided buffer, recreate buffer if needed.
 IMGUI_API const char*   ImStrchrRange(const char* str_begin, const char* str_end, char c);  // Find first occurrence of 'c' in string range.
-IMGUI_API const char*   ImStreolRange(const char* str, const char* str_end);                // End end-of-line
+IMGUI_API const char*   ImStreolRange(const char* str, const char* str_end);                // Exit end-of-line
 IMGUI_API const char*   ImStristr(const char* haystack, const char* haystack_end, const char* needle, const char* needle_end);  // Find a substring in a string range.
 IMGUI_API void          ImStrTrimBlanks(char* str);                                         // OnRemove leading and trailing blanks from a buffer.
 IMGUI_API const char*   ImStrSkipBlank(const char* str);                                    // Find first non-blank character.
@@ -1282,7 +1282,7 @@ struct IMGUI_API ImGuiInputTextState
     void        SetSelection(int start, int end);
     void        SelectAll();
 
-    // Load user sso (WIP #2890)
+    // Load_ user sso (WIP #2890)
     // If you modify underlying user-passed const char* while active you need to call this (InputText Vec2 may lift this)
     //   strcpy(my_buf, "hello");
     //   if (ImGuiInputTextState* renderState = ImGui::GetInputTextState(id)) // id may be ImGui::GetItemID() is last item
@@ -1298,7 +1298,7 @@ enum ImGuiWindowRefreshFlags_
     ImGuiWindowRefreshFlags_TryToAvoidRefresh   = 1 << 0,   // [EXPERIMENTAL] Try to keep existing contents, USER MUST NOT HONOR BEGIN() RETURNING FALSE AND NOT APPEND.
     ImGuiWindowRefreshFlags_RefreshOnHover      = 1 << 1,   // [EXPERIMENTAL] Always refresh on hover
     ImGuiWindowRefreshFlags_RefreshOnFocus      = 1 << 2,   // [EXPERIMENTAL] Always refresh on focus
-    // Refresh policy/frequency, Load Balancing etc.
+    // Refresh policy/frequency, Load_ Balancing etc.
 };
 
 enum ImGuiWindowBgClickFlags_
@@ -1672,12 +1672,12 @@ enum ImGuiInputFlagsPrivate_
 // [SECTION] Clipper support
 //-----------------------------------------------------------------------------
 
-// Note that Max is exclusive, so perhaps should be using a Begin/End convention.
+// Note that Max is exclusive, so perhaps should be using a Begin/Exit convention.
 struct ImGuiListClipperRange
 {
     int     Min;
     int     Max;
-    bool    PosToIndexConvert;      // Begin/End are absolute position (will be converted to indices later)
+    bool    PosToIndexConvert;      // Begin/Exit are absolute position (will be converted to indices later)
     ImS8    PosToIndexOffsetMin;    // Add_ to Min after converting to indices
     ImS8    PosToIndexOffsetMax;    // Add_ to Min after converting to indices
 
@@ -1753,7 +1753,7 @@ enum ImGuiNavMoveFlags_
     ImGuiNavMoveFlags_WrapMask_             = ImGuiNavMoveFlags_LoopX | ImGuiNavMoveFlags_LoopY | ImGuiNavMoveFlags_WrapX | ImGuiNavMoveFlags_WrapY,
     ImGuiNavMoveFlags_AllowCurrentNavId     = 1 << 4,   // Allow scoring and considering the current NavId as a move target candidate. This is used when the move source is offset (e.g. pressing PageDown actually needs to send a Up move request, if we are pressing PageDown from the bottom-most item we need to stay in place)
     ImGuiNavMoveFlags_AlsoScoreVisibleSet   = 1 << 5,   // Store alternate result in NavMoveResultLocalVisible that only comprise elements that are already fully visible (used by PageUp/PageDown)
-    ImGuiNavMoveFlags_ScrollToEdgeY         = 1 << 6,   // Force scrolling to min/max (used by Home/End) // FIXME-NAV: Aim to remove or reword as ImGuiScrollFlags
+    ImGuiNavMoveFlags_ScrollToEdgeY         = 1 << 6,   // Force scrolling to min/max (used by Home/Exit) // FIXME-NAV: Aim to remove or reword as ImGuiScrollFlags
     ImGuiNavMoveFlags_Forwarded             = 1 << 7,
     ImGuiNavMoveFlags_DebugNoResult         = 1 << 8,   // Dummy scoring for debug purpose, don't apply result
     ImGuiNavMoveFlags_FocusApi              = 1 << 9,   // Requests from focus API can land/focus/activate items even if they are marked with _NoTabStop (see NavProcessItemForTabbingRequest() for details)
@@ -1904,7 +1904,7 @@ struct ImGuiBoxSelectState
     bool                    RequestClear;
     ImGuiKeyChord           KeyMods : 16;       // Latched key-mods for box-select logic.
     ImVec2                  StartPosRel;        // Start position in window-contents relative space (to support scrolling)
-    ImVec2                  EndPosRel;          // End position in window-contents relative space
+    ImVec2                  EndPosRel;          // Exit position in window-contents relative space
     ImVec2                  ScrollAccum;        // Scrolling accumulator (to behave at high-frame spaces)
     ImGuiWindow*            Window;
 
@@ -2696,7 +2696,7 @@ struct ImGuiContext
 
     // Extensions
     // FIXME: We could provide an API to register one slot in an array held in ImGuiContext?
-    ImVector<ImTextureData*> UserTextures;                      // List of textureBindInfos created/managed by user or third-party extension. Automatically appended into platform_io.Textures[].
+    ImVector<ImTextureData*> UserTextures;                      // List of textureBinds created/managed by user or third-party extension. Automatically appended into platform_io.Textures[].
     ImGuiDockContext        DockContext;
     void                    (*DockNodeWindowMenuHandler)(ImGuiContext* ctx, ImGuiDockNode* node, ImGuiTabBar* tab_bar);
 
@@ -2900,7 +2900,7 @@ struct IMGUI_API ImGuiWindow
     bool                    HasCloseButton;                     // Encode when the window has a close button (p_open != NULL)
     signed char             ResizeBorderHovered;                // CurrentDir border being hovered for resize (-1: none, otherwise 0-3)
     signed char             ResizeBorderHeld;                   // CurrentDir border being held for resize (-1: none, otherwise 0-3)
-    short                   BeginCount;                         // Number of Begin() during the current frame (generally 0 or 1, 1+ if appending via multiple Begin/End pairs)
+    short                   BeginCount;                         // Number of Begin() during the current frame (generally 0 or 1, 1+ if appending via multiple Begin/Exit pairs)
     short                   BeginCountPreviousFrame;            // Number of Begin() during the previous frame
     short                   BeginOrderWithinParent;             // Begin() order within immediate parent window, if we are a child window. Otherwise 0.
     short                   BeginOrderWithinContext;            // Begin() order within entire imgui context. This is mostly used for debugging submission order related issues.
@@ -3731,7 +3731,7 @@ namespace ImGui
     IMGUI_API void          DockBuilderRemoveNodeChildNodes(ImGuiID node_id);       // OnRemove all split/hierarchy. All remaining docked windows will be re-docked to the remaining root node (node_id).
     IMGUI_API void          DockBuilderSetNodePos(ImGuiID node_id, ImVec2 pos);
     IMGUI_API void          DockBuilderSetNodeSize(ImGuiID node_id, ImVec2 size);
-    IMGUI_API ImGuiID       DockBuilderSplitNode(ImGuiID node_id, ImGuiDir split_dir, float size_ratio_for_node_at_dir, ImGuiID* out_id_at_dir, ImGuiID* out_id_at_opposite_dir); // Load 2 child nodes in this parent node.
+    IMGUI_API ImGuiID       DockBuilderSplitNode(ImGuiID node_id, ImGuiDir split_dir, float size_ratio_for_node_at_dir, ImGuiID* out_id_at_dir, ImGuiID* out_id_at_opposite_dir); // Load_ 2 child nodes in this parent node.
     IMGUI_API void          DockBuilderCopyDockSpace(ImGuiID src_dockspace_id, ImGuiID dst_dockspace_id, ImVector<const char*>* in_window_remap_pairs);
     IMGUI_API void          DockBuilderCopyNode(ImGuiID src_node_id, ImGuiID dst_node_id, ImVector<ImGuiID>* out_node_remap_pairs);
     IMGUI_API void          DockBuilderCopyWindowSettings(const char* src_name, const char* dst_name);

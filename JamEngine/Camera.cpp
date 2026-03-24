@@ -5,37 +5,47 @@
 namespace Jam
 {
 
-Matrix4x4 Camera::ToProjMatrix() const
+const Mtx4& Camera::GetProjMatrix() const
 {
-    if (m_projection == eProjection::Orthographic)
+    if (m_bDirty)
     {
-        return CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
+        if (m_projection == eProjection::Orthographic)
+        {
+            m_mtxCache = CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
+        }
+        else
+        {
+            const float ar = GetAspectRatio();
+            m_mtxCache     = CreatePerspectiveMatrix(m_fovYRad, ar, m_nearZ, m_farZ);
+        }
+
+        m_bDirty = false;
     }
-    else
-    {
-        const float ar = GetAspectRatio();
-        return CreatePerspectiveMatrix(m_fovYRad, ar, m_nearZ, m_farZ);
-    }
+
+    return m_mtxCache;
 }
 
 void Camera::SetProjection(
     const eProjection _projection)
 {
     m_projection = _projection;
+    m_bDirty     = true;
 }
 
 void Camera::SetNearZ(
     const float _nearZ)
 {
-    m_nearZ = _nearZ;
-    m_nearZ = Clamp(m_nearZ, k_minZ, m_farZ - 0.001f);
+    m_nearZ  = _nearZ;
+    m_nearZ  = Clamp(m_nearZ, k_minZ, m_farZ - 0.001f);
+    m_bDirty = true;
 }
 
 void Camera::SetFarZ(
     const float _farZ)
 {
-    m_farZ = _farZ;
-    m_farZ = Clamp(m_farZ, m_nearZ + 0.001f, k_maxZ);
+    m_farZ   = _farZ;
+    m_farZ   = Clamp(m_farZ, m_nearZ + 0.001f, k_maxZ);
+    m_bDirty = true;
 }
 
 void Camera::SetFovYRad(
@@ -43,13 +53,15 @@ void Camera::SetFovYRad(
 {
     m_fovYRad = _fovYRad;
     m_fovYRad = Clamp(m_fovYRad, k_minFovYRad, k_maxFovYRad);
+    m_bDirty  = true;
 }
 
 void Camera::SetWidth(
     const float _width)
 {
-    m_width = _width;
-    m_width = Clamp(m_width, k_minWidthHeight, k_maxWidthHeight);
+    m_width  = _width;
+    m_width  = Clamp(m_width, k_minWidthHeight, k_maxWidthHeight);
+    m_bDirty = true;
 }
 
 void Camera::SetHeight(
@@ -57,6 +69,14 @@ void Camera::SetHeight(
 {
     m_height = _height;
     m_height = Clamp(m_height, k_minWidthHeight, k_maxWidthHeight);
+    m_bDirty = true;
+}
+
+void Camera::SetAspectRatio(
+    const float _aspect)
+{
+    m_width  = 1.f;
+    m_height = _aspect;
 }
 
 eProjection Camera::GetProjection() const
@@ -66,7 +86,7 @@ eProjection Camera::GetProjection() const
 
 float Camera::GetAspectRatio() const
 {
-    return Div(m_width, m_height);
+    return m_height / m_width;
 }
 
 float Camera::GetNearZ() const
@@ -92,6 +112,11 @@ float Camera::GetWidth() const
 float Camera::GetHeight() const
 {
     return m_height;
+}
+
+bool Camera::IsDirty() const
+{
+    return m_bDirty;
 }
 
 void Camera::WriteToArchive(

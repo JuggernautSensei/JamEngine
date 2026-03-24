@@ -10,7 +10,7 @@ namespace Jam
 
 void RenderableComponent::Serialize(
     ArchiveWriter& _writer,
-    const Ref<Scene>&,
+    Scene*,
     Entity) const
 {
     _writer.WriteField("mesh", pMesh);
@@ -19,7 +19,7 @@ void RenderableComponent::Serialize(
 
 void RenderableComponent::Deserialize(
     ArchiveReader& _reader,
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     _reader.ReadField("mesh", pMesh);
@@ -27,11 +27,11 @@ void RenderableComponent::Deserialize(
 }
 
 void RenderableComponent::DrawEditPanel(
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     ImGui::SeparatorText("mesh");
-    if (BeginLabelTable("RenderableComponent"))
+    if (BeginLabelValueTable("RenderableComponent"))
     {
         // Mesh
         ImGui::TableNextColumn();
@@ -43,7 +43,7 @@ void RenderableComponent::DrawEditPanel(
     }
 
     ImGui::SeparatorText("material");
-    if (BeginLabelTable("RenderableComponent"))
+    if (BeginLabelValueTable("RenderableComponent"))
     {
         // Material
         ImGui::TableNextColumn();
@@ -56,9 +56,10 @@ void RenderableComponent::DrawEditPanel(
         // Material Properties
         if (pMaterial)
         {
-            MaterialParams          params   = pMaterial->GetParams();
-            MaterialTextures        textures = pMaterial->GetTextures();
-            MaterialTextureSettings settings = pMaterial->GetTextureSettings();
+            MaterialDesc             desc     = pMaterial->GetDesc();
+            MaterialParams&          params   = desc.params;
+            MaterialTextures&        textures = desc.textures;
+            MaterialTextureSettings& settings = desc.settings;
 
             bool bDirty = false;
 
@@ -71,7 +72,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererAmbient", &params.ambient.x))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -86,7 +87,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererDiffuse", &params.diffuse.x))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -101,7 +102,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererSpecular", &params.specular.x))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -116,7 +117,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_DragFloat("##MeshRendererShininess", params.shininess, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -134,7 +135,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererAlbedo", &params.albedo.x))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -149,7 +150,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_DragFloat("##MeshRendererRoughness", params.roughness, 0.01f, 0.f, 1.f))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -164,7 +165,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_DragFloat("##MeshRendererMetallic", params.metallic, 0.01f, 0.f, 1.f))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -182,7 +183,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (ImGui::ColorEdit3("##MeshRendererEmissive", &params.emissive.x))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -197,7 +198,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_DragFloat("##MeshRendererEmissiveIntensity", params.emissiveIntensity, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -215,7 +216,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (ImGui::Checkbox("##MeshRendererAlphaCutOff", &params.bAlphaCutout))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                     bDirty = true;
                 }
 
@@ -226,7 +227,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (ImGui::Checkbox("##MeshRendererDoubleSide", &params.bDoubleSided))
                 {
-                    pMaterial->SetParams(params);
+                    pMaterial->SetDesc(desc);
                     bDirty = true;
                 }
             }
@@ -241,7 +242,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::Albedo];
                     if (Widget_TexturePicker("##MeshRendererAlbedoMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::Albedo] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -254,7 +256,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::Normal];
                     if (Widget_TexturePicker("##MeshRendererNormalMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::Normal] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -265,7 +268,7 @@ void RenderableComponent::DrawEditPanel(
                 ImGui::TableNextColumn();
                 if (ImGui::Checkbox("##MeshRendererFlipYNormalMap", &settings.bNormalMapFlipedY))
                 {
-                    pMaterial->SetTextureSettings(settings);
+                    pMaterial->SetDesc(desc);
                     bDirty = true;
                 }
 
@@ -278,7 +281,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::Metallic];
                     if (Widget_TexturePicker("##MeshRendererMetallicMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::Metallic] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -291,7 +295,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_EnumCombo("##MeshRendererMetallicMapColorChannel", settings.metallicMapChannel))
                 {
-                    pMaterial->SetTextureSettings(settings);
+                    pMaterial->SetDesc(desc);
                     bDirty = true;
                 }
 
@@ -304,7 +308,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::Roughness];
                     if (Widget_TexturePicker("##MeshRendererRoughnessMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::Roughness] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -317,7 +322,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_EnumCombo("##MeshRendererRoughnessMapColorChannel", settings.roughnessMapChannel))
                 {
-                    pMaterial->SetTextureSettings(settings);
+                    pMaterial->SetDesc(desc);
                     bDirty = true;
                 }
 
@@ -329,7 +334,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::Ao];
                     if (Widget_TexturePicker("##MeshRendererAoMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::Ao] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -342,7 +348,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::Emissive];
                     if (Widget_TexturePicker("##MeshRendererEmissiveMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::Emissive] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -354,7 +361,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_DragFloat("##MeshRendererEmissiveTextureIntensity", settings.emissiveMapIntensity, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    pMaterial->SetTextureSettings(settings);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -373,7 +380,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::Light];
                     if (Widget_TexturePicker("##MeshRendererLightMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::Light] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -385,7 +393,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_DragFloat("##MeshRendererLightMapIntensity", settings.lightMapIntensity, 0.01f, 0.f, Limits<float>::k_max))
                 {
-                    pMaterial->SetTextureSettings(settings);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())
@@ -404,7 +412,8 @@ void RenderableComponent::DrawEditPanel(
                     Ref<Texture> pTexture = textures[eMaterialTextureType::VertexDisplacement];
                     if (Widget_TexturePicker("##MeshRendererDisplacementMap", pTexture))
                     {
-                        pMaterial->SetTextures(textures);
+                        textures[eMaterialTextureType::VertexDisplacement] = pTexture;
+                        pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
                 }
@@ -417,7 +426,7 @@ void RenderableComponent::DrawEditPanel(
                 SetNextItemToAvailWidth();
                 if (Widget_DragFloat("##MeshRendererDisplacementMapScale", settings.vertexDisplacementMapScale, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
                 {
-                    pMaterial->SetTextureSettings(settings);
+                    pMaterial->SetDesc(desc);
                 }
 
                 if (ImGui::IsItemDeactivated())

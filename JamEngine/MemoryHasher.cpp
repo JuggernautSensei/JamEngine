@@ -32,7 +32,7 @@ Murmur3Hasher32::Murmur3Hasher32(
 }
 
 void Murmur3Hasher32::Mix(
-    const CMemoryBlock _block)
+    const MemoryView _block)
 {
     constexpr UInt32 k_c1 = 0xcc9e2d51;
     constexpr UInt32 k_c2 = 0x1b873593;
@@ -95,7 +95,7 @@ Murmur3Hasher64::Murmur3Hasher64(
 }
 
 void Murmur3Hasher64::Mix(
-    const CMemoryBlock _block)
+    const MemoryView _block)
 {
     constexpr UInt64 k_c1 = 0x87c37b91114253d5;
     constexpr UInt64 k_c2 = 0x4cf5ad432745937f;

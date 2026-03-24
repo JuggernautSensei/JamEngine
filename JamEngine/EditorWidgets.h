@@ -52,7 +52,7 @@ struct ImTextureProxy
 // ...
 // static EulerProxy eulerProxy = {};
 // eulerProxy.OnBeforeWidget(transform);
-// Vector3& euler = eulerProxy.GetEulerProxy();
+// Vec3& euler = eulerProxy.GetEulerProxy();
 // if(Widget_DragEuler("Rotation", euler, ...))
 // {
 //      transform.SetRotation(euler);
@@ -62,16 +62,16 @@ struct ImTextureProxy
 class EulerProxy
 {
 public:
-    void OnBeforeWidget(const Vector3& _forward);
-    void OnBeforeWidget(const Matrix4x4& _mtx);
-    void OnBeforeWidget(const Quaternion& _quat);
+    void OnBeforeWidget(const Vec3& _forward);
+    void OnBeforeWidget(const Mtx4& _mtx);
+    void OnBeforeWidget(const Quat& _quat);
     void OnBeforeWidget(const Transform& _t);
     void OnAfterWidget();
 
-    [[nodiscard]] Vector3& GetEulerProxy();
+    [[nodiscard]] Vec3& GetEulerProxy();
 
 private:
-    Vector3 m_eulerRad   = Vec3::k_zero;
+    Vec3 m_eulerRad   = Numbers<Vec3>::k_zero;
     bool    m_bIsEditing = false;
 };
 
@@ -100,11 +100,11 @@ bool Widget_DragInt2(const char* label, int p_data[2], float v_speed = 0.05f, in
 void Widget_HelpMark(const char* _desc);
 bool Widget_MenuItem(const char* _label, ImGuiKeyChord _shortcut = 0, bool _bSelected = false, bool _bEnabled = true);
 
-bool Widget_DragTranslation(const char* _label, Vector3& _translation, float _speed = 0.01f, float _min = 0.f, float _max = 0.f, const char* _fmt = "%.3fm", ImGuiSliderFlags _flag = ImGuiSliderFlags_AlwaysClamp);
-bool Widget_DragScale(const char* _label, Vector3& _scaleNorm, float _speedPerc = 1.f, float _minPerc = 0.001f, float _maxPerc = Limits<float>::k_max, const char* _fmt = "%.1f%", ImGuiSliderFlags _flag = ImGuiSliderFlags_AlwaysClamp);
+bool Widget_DragTranslation(const char* _label, Vec3& _translation, float _speed = 0.01f, float _min = 0.f, float _max = 0.f, const char* _fmt = "%.3fm", ImGuiSliderFlags _flag = ImGuiSliderFlags_AlwaysClamp);
+bool Widget_DragScale(const char* _label, Vec3& _scaleNorm, float _speedPerc = 1.f, float _minPerc = 0.001f, float _maxPerc = Limits<float>::k_max, const char* _fmt = "%.1f%", ImGuiSliderFlags _flag = ImGuiSliderFlags_AlwaysClamp);
 bool Widget_DragPercent(const char* _label, float& _pNorm, float _speedPerc = 1.f, float _minPerc = 0.001f, float _maxPerc = Limits<float>::k_max, const char* _format = "%.1f%%", ImGuiSliderFlags _flag = ImGuiSliderFlags_AlwaysClamp);
 bool Widget_DragAngle(const char* _label, float& _pRad, float _speedDeg = 1.f, float _minDeg = -359.f, float _maxDeg = 359.f, const char* _fmt = "%.1fdeg", ImGuiSliderFlags _flag = ImGuiSliderFlags_WrapAround);
-bool Widget_DragEuler(const char* _label, Vector3& _eulerRad, float _speedDeg = 1.f, float _minDeg = -359.f, float _maxDeg = 359.f, const char* _fmt = "%.1fdeg", ImGuiSliderFlags _flag = ImGuiSliderFlags_WrapAround);
+bool Widget_DragEuler(const char* _label, Vec3& _eulerRad, float _speedDeg = 1.f, float _minDeg = -359.f, float _maxDeg = 359.f, const char* _fmt = "%.1fdeg", ImGuiSliderFlags _flag = ImGuiSliderFlags_WrapAround);
 
 void Widget_ImageFrame(ImTextureProxy _texture, ImVec2 _texSize, ImVec2 _frameSize, ImVec2 _uv0 = { 0.f, 0.f }, ImVec2 _uv1 = { 1.f, 1.f }, ImVec4 _bgCol = { 0.f, 0.f, 0.f, 0.f }, bool _bBorder = false);
 void Widget_Image(ImTextureProxy _texture, ImVec2 _size, ImVec2 _uv0 = { 0.f, 0.f }, ImVec2 _uv1 = { 1.f, 1.f });
@@ -139,7 +139,7 @@ namespace Details   // enum combo helper
     constexpr auto BuildEnumWidgetItem()
     {
         EnumArray<TEnum, EnumWidgetItem> items = {};
-        for (const TEnum& value: EnumRanges<TEnum>())
+        for (const TEnum& value: RangesOf<TEnum>())
         {
             items[value] = { NameOf(value).GetPtr(), NumericCast<Int32>(value) };
         }
@@ -163,7 +163,7 @@ bool Widget_EnumCombo(const char* _label, TEnum& _curValue)
     EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(UnderlyingFrom(_curValue)) };
     if (Widget_EnumCombo(_label, curItem, Details::k_enumWidgetItems<TEnum>))
     {
-        _curValue = EnumCast<TEnum>(curItem.value).GetValue();
+        _curValue = CastAs<TEnum>(curItem.value).GetValue();
         return true;
     }
     return false;
@@ -176,7 +176,7 @@ bool Widget_EnumToggle(const char* _label, TEnum& _curValue)
     EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(_curValue) };
     if (Widget_EnumToggle(_label, curItem, Details::k_enumWidgetItems<TEnum>))
     {
-        _curValue = EnumCast<TEnum>(curItem.value).GetValue();
+        _curValue = CastAs<TEnum>(curItem.value).GetValue();
         return true;
     }
     return false;

@@ -31,14 +31,14 @@ String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCodeType 
             JAM_UNREACHABLE;
     }
 
-    StackWString<512> buf;
-    const DWORD       len = FormatMessageW(
+    wchar_t     buf[512];
+    const DWORD len = FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         pSource,
         _errorCode,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        buf.GetPtr(),
-        NumericCast<DWORD>(buf.GetCapacity() + 1),
+        buf,
+        NumericCast<DWORD>(CountOf(buf)),
         NULL);
 
     if (len == 0)
@@ -47,7 +47,7 @@ String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCodeType 
     }
     else
     {
-        return String::Encoded(buf.ToStringView());
+        return String::Encoded(WStringView { buf });
     }
 }
 
@@ -80,14 +80,14 @@ WString CreateWindowsErrorMessageW(
             JAM_UNREACHABLE;
     }
 
-    StackWString<512> buf;
-    const DWORD       len = FormatMessageW(
+    wchar_t     buf[512];
+    const DWORD len = FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         pSource,
         _errorCode,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        buf.GetPtr(),
-        NumericCast<DWORD>(buf.GetCapacity() + 1),
+        buf,
+        NumericCast<DWORD>(CountOf(buf)),
         NULL);
 
     if (len == 0)
@@ -96,7 +96,7 @@ WString CreateWindowsErrorMessageW(
     }
     else
     {
-        return buf.ToStringView();
+        return buf;
     }
 }
 

@@ -1,15 +1,26 @@
 #include "pch.h"
-#include <entt/entt.hpp>
-#include <chrono>
-#include <iostream>
-#include <vector>
-#include <memory>
 
-int main(int argc, char** argv)
+class TestApp : public Application
 {
-    Log::CreateInstance();
-    ::testing::InitGoogleTest(&argc, argv);
-    int ret = RUN_ALL_TESTS();
-    Log::DestroyInstance();
-    return ret;
-}
+public:
+    TestApp(
+        const StringView                _appName,
+        const Flags<eAppCoreFlags> _subSystems)
+        : Application(_appName, _subSystems)
+    {
+    }
+
+    void Init(Int32 _argc, char** _argv) override
+    {
+        ::testing::InitGoogleTest(&_argc, _argv);
+    }
+
+    void Update(float _dt) override
+    {
+        int ret = RUN_ALL_TESTS();
+        JAM_ASSERT(ret == 0, "Some tests failed. Check the test results for details.");
+        Quit();
+    }
+};
+
+JAM_MAIN(TestApp, "JamAppTest", k_runtimeDefaltFlags);

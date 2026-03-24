@@ -13,7 +13,7 @@ class Murmur3Hasher32
 {
 public:
     explicit Murmur3Hasher32(UInt32 _seed = Details::k_murmur32Seed);
-    void                 Mix(CMemoryBlock _block);
+    void Mix(MemoryView _block);
     [[nodiscard]] UInt32 Finish() const;
 
 private:
@@ -25,7 +25,7 @@ class Murmur3Hasher64
 {
 public:
     explicit Murmur3Hasher64(UInt64 _seed = Details::k_murmur64Seed);
-    void                 Mix(CMemoryBlock _block);
+    void Mix(MemoryView _block);
     [[nodiscard]] UInt64 Finish() const;
 
 private:

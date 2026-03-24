@@ -61,14 +61,14 @@ MemoryIO::MemoryIO(
 }
 
 MemoryWriter::MemoryWriter(
-    const MemoryBlock _mem)
+    const MutableMemoryView _mem)
     : MemoryIO(_mem.GetByteWidth())
     , m_mem(_mem)
 {
 }
 
 SizeT MemoryWriter::Write(
-    const CMemoryBlock _src) const
+    const MemoryView _src) const
 {
     JAM_ASSERT(m_byteWidth >= m_offset + _src.GetByteWidth(), "Not enough space in memory block to write data.");
     const SizeT byteWidth = _src.GetByteWidth();
@@ -77,14 +77,14 @@ SizeT MemoryWriter::Write(
 }
 
 MemoryReader::MemoryReader(
-    const CMemoryBlock _mem)
+    const MemoryView _mem)
     : MemoryIO(_mem.GetByteWidth())
     , m_mem(_mem)
 {
 }
 
 SizeT MemoryReader::Read(
-    const MemoryBlock _dst) const
+    const MutableMemoryView _dst) const
 {
     JAM_ASSERT(m_byteWidth >= m_offset + _dst.GetByteWidth(), "Not enough space in memory block to read data.");
     const SizeT byteWidth = _dst.GetByteWidth();

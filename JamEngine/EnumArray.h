@@ -82,7 +82,7 @@ public:
     using const_reference = const TValue&;
     using iterator        = IterT;
     using const_iterator  = ConstIterT;
-    using difference_type = std::ptrdiff_t;
+    using difference_type = ptrdiff_t;
 
     [[nodiscard]] constexpr IterT begin()
     {
@@ -119,7 +119,7 @@ public:
         return k_cap;
     }
 
-    TValue m_arr[k_cap];   // for aggregate initialization and better cache locality. if use std::array, it will add an extra layer of indirection and may cause worse cache performance.
+    TValue m_arr[k_cap] = {};
 
 private:
     [[nodiscard]] constexpr SizeT GetIndex_(TEnum _key) const

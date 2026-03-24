@@ -1,6 +1,6 @@
 #pragma once
 #include "GraphicsBase.h"
-#include "MemoryBlock.h"
+#include "Memory.h"
 
 namespace Jam
 {
@@ -21,12 +21,12 @@ struct ShaderCompilerInfo
     eShader                    stage      = eShader::VertexShader;
     StringView                 entryPoint = "main";
     Span<const ShaderMacro>    macros     = {};
-    Flags<eShaderCompileFlags> flags      = eShaderCompileFlags::None;
+    Flags<eShaderCompileFlags> flags      = eShaderCompileFlags::Default;
 };
 
 struct ShaderCompilerResult
 {
-    CMemoryBlock bytecode = {};
+    MemoryView bytecode = {};
     String       errorMsg = {};
 };
 
@@ -36,7 +36,7 @@ public:
     [[nodiscard]] static ShaderCompiler CompileHLSLFile(StringView _path, const ShaderCompilerInfo& _desc = {});
     [[nodiscard]] static ShaderCompiler CompileHLSLSource(StringView _source, const ShaderCompilerInfo& _desc = {});
 
-    [[nodiscard]] CMemoryBlock GetBytecode() const;
+    [[nodiscard]] MemoryView GetBytecode() const;
     [[nodiscard]] StringView   GetErrorMessage() const;
     [[nodiscard]] Error        GetError() const;
     [[nodiscard]] bool         IsSucceeded() const;

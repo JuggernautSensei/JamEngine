@@ -46,6 +46,9 @@
     <ClCompile Include="GUIAssetManager.cpp">
       <Filter>Gui</Filter>
     </ClCompile>
+    <ClCompile Include="RenameDialog.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -92,6 +95,9 @@
     </ClInclude>
     <ClInclude Include="GUIAssetManager.h">
       <Filter>Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="RenameDialog.h">
+      <Filter>Dialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

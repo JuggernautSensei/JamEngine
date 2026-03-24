@@ -7,7 +7,7 @@ namespace Jam
 class Dialog : public RefCounted
 {
 public:
-    explicit Dialog(StringView _title, ImVec2 _size = { 0.f, 0.f });
+    explicit Dialog(StringView _title, ImVec2 _size = { 500.f, 0.f });
 
     void Open();
     bool BeginShow();

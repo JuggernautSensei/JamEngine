@@ -37,7 +37,7 @@ protected:
         return path;
     }
 
-    bool VerifyFileContent(const StringView _path, const CMemoryBlock _expected)
+    bool VerifyFileContent(const StringView _path, const MemoryView _expected)
     {
         std::ifstream ifs(_path.GetPtr(), std::ios::binary);
         if (!ifs.is_open())
@@ -58,7 +58,7 @@ protected:
 
     bool VerifyFileContentString(const StringView _path, const StringView _expected)
     {
-        return VerifyFileContent(_path, CMemoryBlock { _expected.GetPtr(), _expected.GetLength() });
+        return VerifyFileContent(_path, MemoryView { _expected.GetPtr(), _expected.GetLength() });
     }
 
     String testRoot;
@@ -168,7 +168,7 @@ TEST_F(FileRWTest, FileWriter_Write_Success)
 
     auto                writer = FileWriter::Open(path);
     const char          data[] = "Test Data";
-    const Expect<SizeT> ret    = writer->WriteBinary(CMemoryBlock { data, 9 });
+    const Expect<SizeT> ret    = writer->WriteBinary(MemoryView { data, 9 });
 
     EXPECT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), 9);
@@ -182,7 +182,7 @@ TEST_F(FileRWTest, FileWriter_Write_EmptyData)
     String path = GetTestFilePath("write_empty.txt");
 
     auto                writer = FileWriter::Open(path);
-    const Expect<SizeT> ret    = writer->WriteBinary(CMemoryBlock { "", 0 });
+    const Expect<SizeT> ret    = writer->WriteBinary(MemoryView { "", 0 });
 
     EXPECT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), 0);
@@ -206,14 +206,14 @@ TEST_F(FileRWTest, FileWriter_Write_IncludesNullTerminator)
 
     auto        writer = FileWriter::Open(path);
     const char* str    = "Test";
-    writer->WriteBinary(CMemoryBlock { str, 5 });
+    writer->WriteBinary(MemoryView { str, 5 });
     writer->Close();
 
     auto reader = FileReader::Open(path);
     EXPECT_EQ(reader->CalcTotalSize(), 5);
 
     char buffer[5] = {};
-    reader->ReadBinary(MemoryBlock { buffer, 5 });
+    reader->ReadBinary(MutableMemoryView { buffer, 5 });
     EXPECT_EQ(buffer[4], '\0');
 }
 
@@ -229,13 +229,13 @@ TEST_F(FileRWTest, FileWriter_Write_LargeData)
     }
 
     auto                writer = FileWriter::Open(path);
-    const Expect<SizeT> ret    = writer->WriteBinary(CMemoryBlock { data.data(), dataSize });
+    const Expect<SizeT> ret    = writer->WriteBinary(MemoryView { data.data(), dataSize });
 
     EXPECT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), dataSize);
     writer->Close();
 
-    EXPECT_TRUE(VerifyFileContent(path, CMemoryBlock { data.data(), dataSize }));
+    EXPECT_TRUE(VerifyFileContent(path, MemoryView { data.data(), dataSize }));
 }
 
 TEST_F(FileRWTest, FileWriter_Write_MultipleWrites)
@@ -260,10 +260,10 @@ TEST_F(FileRWTest, FileWriter_Write_BinaryData)
     Byte data[] = { 0x00, 0x01, 0x7F, 0x80, 0xFF, 0xDE, 0xAD, 0xBE, 0xEF };
 
     auto writer = FileWriter::Open(path);
-    writer->WriteBinary(CMemoryBlock { data, sizeof(data) });
+    writer->WriteBinary(MemoryView { data, sizeof(data) });
     writer->Close();
 
-    EXPECT_TRUE(VerifyFileContent(path, CMemoryBlock { data, sizeof(data) }));
+    EXPECT_TRUE(VerifyFileContent(path, MemoryView { data, sizeof(data) }));
 }
 
 TEST_F(FileRWTest, FileWriter_WriteFileAsMemory_Success)
@@ -271,7 +271,7 @@ TEST_F(FileRWTest, FileWriter_WriteFileAsMemory_Success)
     String path = GetTestFilePath("write_from_memory.txt");
 
     const char data[] = "Memory Data";
-    Error      err    = FileWriter::WriteFileAsBinary(CMemoryBlock { data, 11 }, path);
+    Error      err    = FileWriter::WriteFileAsBinary(MemoryView { data, 11 }, path);
 
     EXPECT_EQ(err, Error::None);
     EXPECT_TRUE(VerifyFileContentString(path, "Memory Data"));
@@ -384,7 +384,7 @@ TEST_F(FileRWTest, FileReader_Read_Success)
     ASSERT_TRUE(reader.HasValue());
 
     char                buffer[11] = {};
-    const Expect<SizeT> ret        = reader->ReadBinary(MemoryBlock { buffer, 11 });
+    const Expect<SizeT> ret        = reader->ReadBinary(MutableMemoryView { buffer, 11 });
 
     EXPECT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), 11);
@@ -400,11 +400,11 @@ TEST_F(FileRWTest, FileReader_Read_PartialReads)
     ASSERT_TRUE(reader.HasValue());
 
     char buffer1[5] = {};
-    reader->ReadBinary(MemoryBlock { buffer1, 5 });
+    reader->ReadBinary(MutableMemoryView { buffer1, 5 });
     EXPECT_TRUE(std::strncmp(buffer1, "ABCDE", 5) == 0);
 
     char buffer2[5] = {};
-    reader->ReadBinary(MemoryBlock { buffer2, 5 });
+    reader->ReadBinary(MutableMemoryView { buffer2, 5 });
     EXPECT_TRUE(std::strncmp(buffer2, "FGHIJ", 5) == 0);
 }
 
@@ -417,7 +417,7 @@ TEST_F(FileRWTest, FileReader_Read_EmptyFile)
     ASSERT_TRUE(reader.HasValue());
 
     char                buffer[10] = {};
-    const Expect<SizeT> ret        = reader->ReadBinary(MemoryBlock { buffer, 10 });
+    const Expect<SizeT> ret        = reader->ReadBinary(MutableMemoryView { buffer, 10 });
 
     EXPECT_TRUE(ret.GetValue() == 0 || !ret.HasValue());
 }
@@ -427,13 +427,13 @@ TEST_F(FileRWTest, FileReader_Read_BinaryData)
     String path = GetTestFilePath("read_binary.bin");
 
     Byte writeData[] = { 0x00, 0x01, 0x7F, 0x80, 0xFF, 0xDE, 0xAD, 0xBE, 0xEF };
-    FileWriter::WriteFileAsBinary(CMemoryBlock { writeData, sizeof(writeData) }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { writeData, sizeof(writeData) }, path);
 
     auto reader = FileReader::Open(path);
     ASSERT_TRUE(reader.HasValue());
 
     Byte readData[9] = {};
-    reader->ReadBinary(MemoryBlock { readData, sizeof(readData) });
+    reader->ReadBinary(MutableMemoryView { readData, sizeof(readData) });
 
     for (SizeT i = 0; i < sizeof(writeData); ++i)
     {
@@ -450,7 +450,7 @@ TEST_F(FileRWTest, FileReader_Read_WithCount)
     ASSERT_TRUE(reader.HasValue());
 
     char                buffer[10] = {};
-    const Expect<SizeT> ret        = reader->ReadBinary(MemoryBlock { buffer, 10 }, 5);
+    const Expect<SizeT> ret        = reader->ReadBinary(MutableMemoryView { buffer, 10 }, 5);
 
     ASSERT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), 5);
@@ -468,7 +468,7 @@ TEST_F(FileRWTest, FileReader_Read_ZeroCount_ReadRemaining)
     reader->Seek(3, eSeekOp::Set);
 
     char                buffer[20] = {};
-    const Expect<SizeT> ret        = reader->ReadBinary(MemoryBlock { buffer, 20 }, 0);
+    const Expect<SizeT> ret        = reader->ReadBinary(MutableMemoryView { buffer, 20 }, 0);
 
     ASSERT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), 7);
@@ -484,7 +484,7 @@ TEST_F(FileRWTest, FileReader_Read_CountLargerThanRemaining)
     ASSERT_TRUE(reader.HasValue());
 
     char                buffer[10] = {};
-    const Expect<SizeT> ret        = reader->ReadBinary(MemoryBlock { buffer, 10 }, 3);
+    const Expect<SizeT> ret        = reader->ReadBinary(MutableMemoryView { buffer, 10 }, 3);
 
     ASSERT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), 3);
@@ -527,7 +527,7 @@ TEST_F(FileRWTest, FileReader_ReadFileAsMemory_LargeFile)
     {
         writeData[i] = static_cast<Byte>(i % 256);
     }
-    FileWriter::WriteFileAsBinary(CMemoryBlock { writeData.data(), dataSize }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { writeData.data(), dataSize }, path);
 
     Expect<Vector<Byte>> readData = FileReader::ReadFileAsBinary(path);
 
@@ -541,7 +541,7 @@ TEST_F(FileRWTest, FileReader_ReadFileAsMemory_BinaryData)
     String path = GetTestFilePath("read_binary_mem.bin");
 
     Byte writeData[] = { 0x00, 0xFF, 0x7F, 0x80, 0x01, 0xFE };
-    FileWriter::WriteFileAsBinary(CMemoryBlock { writeData, sizeof(writeData) }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { writeData, sizeof(writeData) }, path);
 
     Expect<Vector<Byte>> readData = FileReader::ReadFileAsBinary(path);
 
@@ -687,12 +687,12 @@ TEST_F(FileRWTest, FileReader_IsEof)
     EXPECT_FALSE(reader->IsEof());
 
     char buffer[5];
-    reader->ReadBinary(MemoryBlock { buffer, 5 });
+    reader->ReadBinary(MutableMemoryView { buffer, 5 });
 
     EXPECT_FALSE(reader->IsEof());
 
     char extraBuffer[1];
-    reader->ReadBinary(MemoryBlock { extraBuffer, 1 });
+    reader->ReadBinary(MutableMemoryView { extraBuffer, 1 });
 
     EXPECT_TRUE(reader->IsEof());
 }
@@ -727,7 +727,7 @@ TEST_F(FileRWTest, FileReader_MoveConstructor)
     EXPECT_FALSE(reader2.IsClosed());
 
     char buffer[4];
-    reader2.ReadBinary(MemoryBlock { buffer, 4 });
+    reader2.ReadBinary(MutableMemoryView { buffer, 4 });
     EXPECT_EQ(memcmp(buffer, "Test", 4), 0);
 }
 
@@ -767,7 +767,7 @@ TEST_F(FileRWTest, Seek_Set)
     EXPECT_EQ(reader->Tell(), 5);
 
     char buffer[5];
-    reader->ReadBinary(MemoryBlock { buffer, 5 });
+    reader->ReadBinary(MutableMemoryView { buffer, 5 });
     EXPECT_EQ(memcmp(buffer, "56789", 5), 0);
 }
 
@@ -780,12 +780,12 @@ TEST_F(FileRWTest, Seek_Current)
     ASSERT_TRUE(reader.HasValue());
 
     char buffer[2];
-    reader->ReadBinary(MemoryBlock { buffer, 2 });
+    reader->ReadBinary(MutableMemoryView { buffer, 2 });
 
     reader->Seek(3, eSeekOp::Current);
     EXPECT_EQ(reader->Tell(), 5);
 
-    reader->ReadBinary(MemoryBlock { buffer, 2 });
+    reader->ReadBinary(MutableMemoryView { buffer, 2 });
     EXPECT_EQ(buffer[0], 'F');
     EXPECT_EQ(buffer[1], 'G');
 }
@@ -805,7 +805,7 @@ TEST_F(FileRWTest, Seek_End)
     EXPECT_EQ(reader->Tell(), 5);
 
     char buffer[5];
-    reader->ReadBinary(MemoryBlock { buffer, 5 });
+    reader->ReadBinary(MutableMemoryView { buffer, 5 });
     EXPECT_EQ(memcmp(buffer, "56789", 5), 0);
 }
 
@@ -860,7 +860,7 @@ TEST_F(FileRWTest, Skip)
     EXPECT_EQ(reader->Tell(), 3);
 
     char buffer[2];
-    reader->ReadBinary(MemoryBlock { buffer, 2 });
+    reader->ReadBinary(MutableMemoryView { buffer, 2 });
     EXPECT_EQ(buffer[0], 'D');
     EXPECT_EQ(buffer[1], 'E');
 }
@@ -893,10 +893,10 @@ TEST_F(FileRWTest, Tell)
     EXPECT_EQ(reader->Tell(), 0);
 
     char buffer[2];
-    reader->ReadBinary(MemoryBlock { buffer, 2 });
+    reader->ReadBinary(MutableMemoryView { buffer, 2 });
     EXPECT_EQ(reader->Tell(), 2);
 
-    reader->ReadBinary(MemoryBlock { buffer, 2 });
+    reader->ReadBinary(MutableMemoryView { buffer, 2 });
     EXPECT_EQ(reader->Tell(), 4);
 }
 
@@ -910,7 +910,7 @@ TEST_F(FileRWTest, Tell_AfterSeek)
     EXPECT_EQ(reader->Tell(), 0);
 
     char buffer[3];
-    reader->ReadBinary(MemoryBlock { buffer, 3 }, 3);
+    reader->ReadBinary(MutableMemoryView { buffer, 3 }, 3);
     EXPECT_EQ(reader->Tell(), 3);
 
     reader->Skip(2);
@@ -932,13 +932,13 @@ TEST_F(FileRWTest, Rewind)
     ASSERT_TRUE(reader.HasValue());
 
     char buffer[3];
-    reader->ReadBinary(MemoryBlock { buffer, 3 });
+    reader->ReadBinary(MutableMemoryView { buffer, 3 });
     EXPECT_EQ(reader->Tell(), 3);
 
     reader->Rewind();
     EXPECT_EQ(reader->Tell(), 0);
 
-    reader->ReadBinary(MemoryBlock { buffer, 3 });
+    reader->ReadBinary(MutableMemoryView { buffer, 3 });
     EXPECT_EQ(memcmp(buffer, "ABC", 3), 0);
 }
 
@@ -974,10 +974,10 @@ TEST_F(FileRWTest, Remaining)
     EXPECT_EQ(reader->Remaining(), 10);
 
     char buffer[3];
-    reader->ReadBinary(MemoryBlock { buffer, 3 });
+    reader->ReadBinary(MutableMemoryView { buffer, 3 });
     EXPECT_EQ(reader->Remaining(), 7);
 
-    reader->ReadBinary(MemoryBlock { buffer, 3 });
+    reader->ReadBinary(MutableMemoryView { buffer, 3 });
     EXPECT_EQ(reader->Remaining(), 4);
 }
 
@@ -1011,7 +1011,7 @@ TEST_F(FileRWTest, CalcTotalSize)
     EXPECT_EQ(reader->CalcTotalSize(), 8);
 
     char buffer[3];
-    reader->ReadBinary(MemoryBlock { buffer, 3 });
+    reader->ReadBinary(MutableMemoryView { buffer, 3 });
     EXPECT_EQ(reader->CalcTotalSize(), 8);
     EXPECT_EQ(reader->Tell(), 3);
 }
@@ -1033,7 +1033,7 @@ TEST_F(FileRWTest, CalcTotalSize_LargeFile)
 
     const SizeT  dataSize = 10 * 1024 * 1024;
     Vector<Byte> data(dataSize, Byte(0xAB));
-    FileWriter::WriteFileAsBinary(CMemoryBlock { data.data(), dataSize }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { data.data(), dataSize }, path);
 
     auto reader = FileReader::Open(path);
     ASSERT_TRUE(reader.HasValue());
@@ -1111,17 +1111,17 @@ TEST_F(FileRWTest, Integration_ReadWriteSeek)
 
     reader->Seek(5, eSeekOp::Set);
     char buffer1[5];
-    reader->ReadBinary(MemoryBlock { buffer1, 5 });
+    reader->ReadBinary(MutableMemoryView { buffer1, 5 });
     EXPECT_EQ(memcmp(buffer1, "56789", 5), 0);
 
     reader->Rewind();
     char buffer2[4];
-    reader->ReadBinary(MemoryBlock { buffer2, 4 });
+    reader->ReadBinary(MutableMemoryView { buffer2, 4 });
     EXPECT_EQ(memcmp(buffer2, "0123", 4), 0);
 
     reader->Seek(-4, eSeekOp::End);
     char buffer3[4];
-    reader->ReadBinary(MemoryBlock { buffer3, 4 });
+    reader->ReadBinary(MutableMemoryView { buffer3, 4 });
     EXPECT_EQ(memcmp(buffer3, "CDEF", 4), 0);
 }
 
@@ -1160,7 +1160,7 @@ TEST_F(FileRWTest, Integration_BinaryRoundTrip)
         writeData.byteArray[i] = static_cast<uint8_t>(i * 25);
     writeData.longVal = 9876543210ULL;
 
-    FileWriter::WriteFileAsBinary(CMemoryBlock { &writeData, sizeof(TestData) }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { &writeData, sizeof(TestData) }, path);
 
     auto readData = FileReader::ReadFileAsBinary(path);
     ASSERT_TRUE(readData.HasValue());
@@ -1184,13 +1184,13 @@ TEST_F(FileRWTest, Integration_MixedReadOperations)
     auto reader = FileReader::Open(path);
 
     char buffer[4];
-    reader->ReadBinary(MemoryBlock { buffer, 4 }, 4);
+    reader->ReadBinary(MutableMemoryView { buffer, 4 }, 4);
     EXPECT_EQ(memcmp(buffer, "0123", 4), 0);
 
     Expect<String> str = reader->ReadString(4);
     EXPECT_EQ(str.GetValue(), "4567");
 
-    reader->ReadBinary(MemoryBlock { buffer, 4 }, 2);
+    reader->ReadBinary(MutableMemoryView { buffer, 4 }, 2);
     EXPECT_EQ(memcmp(buffer, "89", 2), 0);
 }
 
@@ -1242,13 +1242,13 @@ TEST_F(FileRWTest, Stress_ManySmallReads)
     {
         writeData[i] = static_cast<Byte>(i % 256);
     }
-    FileWriter::WriteFileAsBinary(CMemoryBlock { writeData.data(), 1000 }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { writeData.data(), 1000 }, path);
 
     auto reader = FileReader::Open(path);
     for (int i = 0; i < 1000; ++i)
     {
         Byte b;
-        reader->ReadBinary(MemoryBlock { &b, 1 });
+        reader->ReadBinary(MutableMemoryView { &b, 1 });
         EXPECT_EQ(b, static_cast<Byte>(i % 256));
     }
 }
@@ -1270,7 +1270,7 @@ TEST_F(FileRWTest, Stress_LargeSequentialWrite)
 
     for (int i = 0; i < blockCount; ++i)
     {
-        writer->WriteBinary(CMemoryBlock { block.data(), blockSize });
+        writer->WriteBinary(MemoryView { block.data(), blockSize });
     }
 
     writer->Close();
@@ -1289,7 +1289,7 @@ TEST_F(FileRWTest, Stress_LargeSequentialRead)
     {
         writeData[i] = static_cast<Byte>(i % 256);
     }
-    FileWriter::WriteFileAsBinary(CMemoryBlock { writeData.data(), totalSize }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { writeData.data(), totalSize }, path);
 
     auto         reader    = FileReader::Open(path);
     const SizeT  chunkSize = 4096;
@@ -1299,7 +1299,7 @@ TEST_F(FileRWTest, Stress_LargeSequentialRead)
     while (totalRead < totalSize)
     {
         SizeT toRead = (totalSize - totalRead) < chunkSize ? (totalSize - totalRead) : chunkSize;
-        auto  ret    = reader->ReadBinary(MemoryBlock { readBuffer.data(), chunkSize }, toRead);
+        auto  ret    = reader->ReadBinary(MutableMemoryView { readBuffer.data(), chunkSize }, toRead);
         ASSERT_TRUE(ret.HasValue());
         totalRead += ret.GetValue();
     }
@@ -1317,7 +1317,7 @@ TEST_F(FileRWTest, Stress_RandomAccessPattern)
     {
         data[i] = static_cast<Byte>(i % 256);
     }
-    FileWriter::WriteFileAsBinary(CMemoryBlock { data.data(), size }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { data.data(), size }, path);
 
     auto reader = FileReader::Open(path);
 
@@ -1326,7 +1326,7 @@ TEST_F(FileRWTest, Stress_RandomAccessPattern)
     {
         reader->Seek(offset, eSeekOp::Set);
         Byte b;
-        reader->ReadBinary(MemoryBlock { &b, 1 });
+        reader->ReadBinary(MutableMemoryView { &b, 1 });
         EXPECT_EQ(b, static_cast<Byte>(offset % 256));
     }
 }
@@ -1344,7 +1344,7 @@ TEST_F(FileRWTest, EdgeCase_ReadBeyondEof)
     ASSERT_TRUE(reader.HasValue());
 
     char                buffer[10] = {};
-    const Expect<SizeT> ret        = reader->ReadBinary(MemoryBlock { buffer, 10 });
+    const Expect<SizeT> ret        = reader->ReadBinary(MutableMemoryView { buffer, 10 });
 
     EXPECT_TRUE(ret.HasValue());
 }
@@ -1386,7 +1386,7 @@ TEST_F(FileRWTest, EdgeCase_SingleByteFile)
     EXPECT_EQ(reader->Remaining(), 1);
 
     char buffer[1];
-    reader->ReadBinary(MemoryBlock { buffer, 1 });
+    reader->ReadBinary(MutableMemoryView { buffer, 1 });
     EXPECT_EQ(buffer[0], 'A');
     EXPECT_EQ(reader->Remaining(), 0);
 }
@@ -1416,7 +1416,7 @@ TEST_F(FileRWTest, Comprehensive_WriteAsString_vs_Write)
 
     {
         auto writer = FileWriter::Open(pathWrite);
-        writer->WriteBinary(CMemoryBlock { testStr, 5 });
+        writer->WriteBinary(MemoryView { testStr, 5 });
     }
 
     {
@@ -1480,14 +1480,14 @@ TEST_F(FileRWTest, Comprehensive_LargeFileOperations)
         data[i] = static_cast<Byte>((i * 7 + 13) % 256);
     }
 
-    FileWriter::WriteFileAsBinary(CMemoryBlock { data.data(), size }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { data.data(), size }, path);
 
     auto reader = FileReader::Open(path);
     EXPECT_EQ(reader->CalcTotalSize(), size);
 
     reader->Seek(1024 * 1024, eSeekOp::Set);
     Vector<Byte> readBuffer(1024);
-    reader->ReadBinary(MemoryBlock { readBuffer.data(), 1024 });
+    reader->ReadBinary(MutableMemoryView { readBuffer.data(), 1024 });
 
     for (SizeT i = 0; i < 1024; ++i)
     {
@@ -1522,7 +1522,7 @@ TEST_F(FileRWTest, Comprehensive_BinaryIntegrity)
         original[i] = static_cast<Byte>(i);
     }
 
-    FileWriter::WriteFileAsBinary(CMemoryBlock { original.data(), 256 }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { original.data(), 256 }, path);
 
     for (int j = 0; j < 10; ++j)
     {
@@ -1553,7 +1553,7 @@ TEST_F(FileRWTest, Comprehensive_NullByteHandling)
     String path = GetTestFilePath("null_bytes.bin");
 
     Byte data[] = { 0x41, 0x00, 0x42, 0x00, 0x43 };
-    FileWriter::WriteFileAsBinary(CMemoryBlock { data, 5 }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { data, 5 }, path);
 
     auto readBack = FileReader::ReadFileAsBinary(path);
     ASSERT_TRUE(readBack.HasValue());
@@ -1593,7 +1593,7 @@ TEST_F(FileRWTest, Comprehensive_IsError_NormalOperation)
     EXPECT_FALSE(reader->IsError());
 
     char buffer[4];
-    reader->ReadBinary(MemoryBlock { buffer, 4 });
+    reader->ReadBinary(MutableMemoryView { buffer, 4 });
 
     EXPECT_FALSE(reader->IsError());
 }
@@ -1719,7 +1719,7 @@ TEST_F(FileRWTest, Detailed_SkipLargeOffset)
     String path = GetTestFilePath("skip_large.txt");
 
     Vector<Byte> data(10000, Byte('X'));
-    FileWriter::WriteFileAsBinary(CMemoryBlock { data.data(), 10000 }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { data.data(), 10000 }, path);
 
     auto reader = FileReader::Open(path);
     reader->Skip(9995);
@@ -1737,7 +1737,7 @@ TEST_F(FileRWTest, Detailed_SeekNegativeFromEnd)
 
     reader->Seek(-1, eSeekOp::End);
     char buffer[1];
-    reader->ReadBinary(MemoryBlock { buffer, 1 });
+    reader->ReadBinary(MutableMemoryView { buffer, 1 });
     EXPECT_EQ(buffer[0], 'Z');
 
     reader->Seek(-10, eSeekOp::End);
@@ -1753,7 +1753,7 @@ TEST_F(FileRWTest, Detailed_ReadPartialThenReadAsString)
     auto reader = FileReader::Open(path);
 
     char buffer[5];
-    reader->ReadBinary(MemoryBlock { buffer, 5 }, 5);
+    reader->ReadBinary(MutableMemoryView { buffer, 5 }, 5);
     EXPECT_EQ(memcmp(buffer, "01234", 5), 0);
 
     Expect<String> remaining = reader->ReadString();
@@ -1786,7 +1786,7 @@ TEST_F(FileRWTest, Detailed_ReadBeyondBufferSize)
     auto reader = FileReader::Open(path);
 
     char                buffer[10] = {};
-    const Expect<SizeT> ret        = reader->ReadBinary(MemoryBlock { buffer, 10 }, 3);
+    const Expect<SizeT> ret        = reader->ReadBinary(MutableMemoryView { buffer, 10 }, 3);
 
     ASSERT_TRUE(ret.HasValue());
     EXPECT_EQ(ret.GetValue(), 3);
@@ -1827,7 +1827,7 @@ TEST_F(FileRWTest, Detailed_WriteAsStringVsWrite_NullTerminator)
 
     {
         auto writer = FileWriter::Open(pathWrite);
-        writer->WriteBinary(CMemoryBlock { text, 5 });
+        writer->WriteBinary(MemoryView { text, 5 });
         writer->Close();
     }
 
@@ -1840,8 +1840,8 @@ TEST_F(FileRWTest, Detailed_WriteAsStringVsWrite_NullTerminator)
     Vector<Byte> data1(4);
     Vector<Byte> data2(5);
 
-    reader1->ReadBinary(MemoryBlock { data1.data(), 4 });
-    reader2->ReadBinary(MemoryBlock { data2.data(), 5 });
+    reader1->ReadBinary(MutableMemoryView { data1.data(), 4 });
+    reader2->ReadBinary(MutableMemoryView { data2.data(), 5 });
 
     EXPECT_EQ(memcmp(data1.data(), "Test", 4), 0);
     EXPECT_EQ(memcmp(data2.data(), "Test\0", 5), 0);
@@ -1928,7 +1928,7 @@ TEST_F(FileRWTest, Advanced_LargeFileRandomAccess)
         data[i] = static_cast<Byte>((i ^ (i >> 8)) & 0xFF);
     }
 
-    FileWriter::WriteFileAsBinary(CMemoryBlock { data.data(), size }, path);
+    FileWriter::WriteFileAsBinary(MemoryView { data.data(), size }, path);
 
     auto reader = FileReader::Open(path);
 
@@ -1941,7 +1941,7 @@ TEST_F(FileRWTest, Advanced_LargeFileRandomAccess)
 
         reader->Seek(pos, eSeekOp::Set);
         Byte b;
-        reader->ReadBinary(MemoryBlock { &b, 1 });
+        reader->ReadBinary(MutableMemoryView { &b, 1 });
         EXPECT_EQ(b, static_cast<Byte>((pos ^ (pos >> 8)) & 0xFF));
     }
 }
@@ -1962,7 +1962,7 @@ TEST_F(FileRWTest, Advanced_ChunkedWriteAndVerify)
         {
             chunkData[i] = static_cast<Byte>((chunk + i) % 256);
         }
-        writer->WriteBinary(CMemoryBlock { chunkData.data(), chunkSize });
+        writer->WriteBinary(MemoryView { chunkData.data(), chunkSize });
     }
 
     writer->Close();
@@ -1974,7 +1974,7 @@ TEST_F(FileRWTest, Advanced_ChunkedWriteAndVerify)
     {
         reader->Seek(chunk * chunkSize, eSeekOp::Set);
         Byte firstByte;
-        reader->ReadBinary(MemoryBlock { &firstByte, 1 });
+        reader->ReadBinary(MutableMemoryView { &firstByte, 1 });
         EXPECT_EQ(firstByte, static_cast<Byte>(chunk % 256));
     }
 }

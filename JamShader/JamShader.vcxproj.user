@@ -2,7 +2,6 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-proj "C:/Users/Ahnjiwoo/Desktop/Shader/new project/new project.jshproj"</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>-proj C:\Users\Ahnjiwoo\Desktop\Shader\new project\|-proj C:\Users\Ahnjiwoo\Desktop\Shader\new project\new project.jshproj|-proj "C:\Users\Ahnjiwoo\Desktop\Shader\new project\new project.jshproj"|-proj "C:\Users\Ahnjiwoo\Desktop\Shader\new project/new project.jshproj"|-proj "C:/Users/Ahnjiwoo/Desktop/Shader/new project/new project.jshproj"|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArgumentsHistory>-proj C:\Users\Ahnjiwoo\Desktop\Shader\new project\new project.jshproj|-proj "C:\Users\Ahnjiwoo\Desktop\Shader\new project\new project.jshproj"|-proj "C:\Users\Ahnjiwoo\Desktop\Shader\new project/new project.jshproj"|-proj "C:/Users/Ahnjiwoo/Desktop/Shader/new project/new project.jshproj"|"C:/Users/Ahnjiwoo/Desktop/Shader/new project/new project.jshproj"|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
 </Project>

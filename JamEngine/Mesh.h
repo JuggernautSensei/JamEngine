@@ -17,11 +17,9 @@ public:
     Mesh(Mesh&& _other) noexcept;
     Mesh& operator=(Mesh&& _other) noexcept;
 
-    [[nodiscard]] static Expect<Ref<Mesh>> Create(StringView _path);
-    [[nodiscard]] static Ref<Mesh>         Create(CMemoryBlock _vertData, const VertexLayout& _vl, CMemoryBlock _idxData, bool _bUseU32 = false);
+    [[nodiscard]] static Ref<Mesh>         Load(MemoryView _vertData, const VertexLayout& _vl, MemoryView _idxData, bool _bUseU32 = false);
+    [[nodiscard]] static Expect<Ref<Mesh>> LoadFromFile(StringView _path);
 
-    Error Load(StringView _path) override;
-    void  Load(CMemoryBlock _vertData, const VertexLayout& _vl, CMemoryBlock _idxData, bool _bUseU32 = false);
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
     void  SetVirtualPath(StringView _path) override;
@@ -51,8 +49,10 @@ public:
 
 private:
     Mesh() = default;
-    void CleanUp_();
-    void ComputeBoundingBox_(CMemoryBlock _vertData, const VertexLayout& _vl);
+    Mesh(MemoryView _vertData, const VertexLayout& _vl, MemoryView _idxData, bool _bUseU32 = false);
+    Error Load_(StringView _path) override;
+    void  CleanUp_();
+    void  ComputeBoundingBox_(MemoryView _vertData, const VertexLayout& _vl);
 
     String             m_path            = {};
     String             m_name            = {};

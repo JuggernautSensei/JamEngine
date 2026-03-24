@@ -25,7 +25,7 @@ void ProjectInspectorWindow::OnImGuiRender()
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
         ImGui::TableNextColumn();
-        Widget_Text("project name", true);
+        Widget_Text("project typeName", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
         Widget_ProjectName_();
@@ -129,7 +129,7 @@ void ProjectInspectorWindow::OnImGuiRender()
                 m_pProjectCache->SetShaderItemEnabled(name, bEnabled);
             }
 
-            // item name
+            // item typeName
             ImGui::TableNextColumn();
             Widget_Text(name.GetPtr(), true);
 

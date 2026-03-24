@@ -64,7 +64,6 @@ private:
     Int32 m_numElems = 0;
     Int32 m_stride   = 0;
 };
-
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(VertexLayout);
 
 [[nodiscard]] SizeT ByteWidthOf(eAttributeFormat _format);

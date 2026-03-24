@@ -5,6 +5,7 @@
 
 #include "Events.h"
 #include "GUIFileSystem.h"
+#include "RenameDialog.h"
 #include "ShaderApp.h"
 #include "../JamEngine/DirIter.h"
 #include "../JamEngine/EditorEvents.h"
@@ -310,6 +311,11 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
         if (!bIsRoot)
         {
             ImGui::Separator();
+            if (ImGui::MenuItem("rename"))
+            {
+                GetShaderApp().PushDialog(MakeScoped<RenameDialog>(_pItem->path));
+            }
+
             if (ImGui::MenuItem("clone"))
             {
                 GUI::Copy(_pItem->path, _pItem->path, FileSystem::eCollisionPolicy::Rename);

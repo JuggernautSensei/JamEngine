@@ -236,7 +236,7 @@ bool VertexLayoutEditorDialog::Widget_VertexAttributeCombo_(
     bool bChanged = false;
     if (ImGui::BeginCombo(_label, preview, ImGuiComboFlags_NoArrowButton))
     {
-        for (const eVertexAttribute attrib: EnumRanges<eVertexAttribute>())
+        for (const eVertexAttribute attrib: RangesOf<eVertexAttribute>())
         {
             const bool bCannotSelect = !m_elems.Contains(attrib);
 
@@ -272,7 +272,7 @@ bool VertexLayoutEditorDialog::Widget_AddElementButton_(
     ImGui::BeginDisabled(bFull);
     if (ImGui::Button(_label, _size))
     {
-        for (const eVertexAttribute attrib: EnumRanges<eVertexAttribute>())
+        for (const eVertexAttribute attrib: RangesOf<eVertexAttribute>())
         {
             if (!m_elems.Contains(attrib))
             {

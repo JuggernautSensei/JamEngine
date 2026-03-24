@@ -15,7 +15,7 @@ class Camera
 public:
     Camera() = default;
 
-    [[nodiscard]] Matrix4x4 ToProjMatrix() const;
+    [[nodiscard]] const Mtx4& GetProjMatrix() const;
 
     void SetProjection(eProjection _projection);
     void SetNearZ(float _nearZ);
@@ -23,6 +23,7 @@ public:
     void SetFovYRad(float _fovYRad);
     void SetWidth(float _width);
     void SetHeight(float _height);
+    void SetAspectRatio(float _aspect);
 
     [[nodiscard]] eProjection GetProjection() const;
     [[nodiscard]] float       GetAspectRatio() const;
@@ -31,6 +32,7 @@ public:
     [[nodiscard]] float       GetFovYRad() const;
     [[nodiscard]] float       GetWidth() const;
     [[nodiscard]] float       GetHeight() const;
+    [[nodiscard]] bool        IsDirty() const;
 
     void  WriteToArchive(ArchiveWriter& _writer) const;
     Error ReadFromArchive(ArchiveReader& _reader);
@@ -49,6 +51,9 @@ private:
     float       m_fovYRad    = ToRad(45.f);
     float       m_width      = 1.f;
     float       m_height     = 1.f;
+
+    mutable bool m_bDirty   = true;
+    mutable Mtx4 m_mtxCache = Numbers<Mtx4>::k_identity;
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Camera);

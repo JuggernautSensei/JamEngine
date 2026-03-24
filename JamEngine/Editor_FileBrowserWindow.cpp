@@ -416,9 +416,9 @@ void Editor_FileBrowserWindow::Widget_FileEntries()
 
     const ImVec2 btnSize      = k_fileEntrySize * m_zoom;
     const float  pad          = k_fileEntrySpacingX * m_zoom;
-    const Int32  numBtnPerRow = Max<Int32>(1, NumericCast<Int32>(Div(visibleWidth + pad, btnSize.x + pad)));
+    const Int32  numBtnPerRow = Max<Int32>(1, NumericCast<Int32>((visibleWidth + pad) / (btnSize.x + pad)));
     const Int32  numItems     = NumericCast<Int32>(m_filteredFileEntries.size());
-    const Int32  numRows      = Div(numItems + numBtnPerRow - 1, numBtnPerRow);
+    const Int32  numRows      = (numItems + numBtnPerRow - 1) / numBtnPerRow;
     const float  itemHeight   = btnSize.y + ImGui::GetTextLineHeightWithSpacing();
 
     ImGuiListClipper clipper = {};
@@ -849,8 +849,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Added:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.path]
-                {
+                [this, path = _event.path] {
                     FileAddedEvent event { path };
                     GetApp().DispatchEvent(event);
                 }));
@@ -860,8 +859,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Deleted:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.path]
-                {
+                [this, path = _event.path] {
                     FileDeletedEvent event { path };
                     GetApp().DispatchEvent(event);
                 }));
@@ -871,8 +869,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Renamed:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, oldPath = _event.oldPath, newPath = _event.path]
-                {
+                [this, oldPath = _event.oldPath, newPath = _event.path] {
                     FileRenamedEvent event { oldPath, newPath };
                     GetApp().DispatchEvent(event);
                 }));
@@ -882,8 +879,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         case eFileEventType::Modified:
         {
             GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.path]
-                {
+                [this, path = _event.path] {
                     FileModifiedEvent event { path };
                     GetApp().DispatchEvent(event);
                 }));

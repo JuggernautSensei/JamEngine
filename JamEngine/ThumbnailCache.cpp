@@ -165,11 +165,11 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
 Ref<Texture> ThumbnailCache::CreateTexture_(
     const Int32        _w,
     const Int32        _h,
-    const CMemoryBlock _initData) const
+    const MemoryView _initData) const
 {
-    const CMemoryBlock  mems[] = { _initData };
+    const MemoryView  mems[] = { _initData };
     const TextureHandle texh   = GetGraphics().CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
-    return Texture::Create(texh);
+    return Texture::Load(texh);
 }
 
 void ThumbnailCache::OnFileModifiedEvent_(

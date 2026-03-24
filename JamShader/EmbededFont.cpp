@@ -214323,4 +214323,4 @@ unsigned int JetBrainsMono_SemiBold_Hangul_ttf_len = 2571740;
 }
 // clang-format on
 
-CMemoryBlock g_embeddedFontData = { JetBrainsMono_SemiBold_Hangul_ttf, JetBrainsMono_SemiBold_Hangul_ttf_len };
+MemoryView g_embeddedFontData = { JetBrainsMono_SemiBold_Hangul_ttf, JetBrainsMono_SemiBold_Hangul_ttf_len };

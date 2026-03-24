@@ -10,12 +10,11 @@
 #include "Graphics.h"
 #include "ImGuiEngine.h"
 #include "Input.h"
-#include "SceneDatabase.h"
-
 #include "SceneManager.h"
 #include "Timer.h"
 #include "WindowsPlatform.h"
 #include "Events.h"
+#include "SceneDatabase.h"
 
 namespace Jam
 {
@@ -42,7 +41,7 @@ Int32 Application::Run(
 
             timer.Tick();
             m_deltaTimeSec = timer.GetDeltaFloat(eSIPrefix::Sec);
-            m_framerate    = Div(1.f, m_deltaTimeSec);
+            m_framerate    = 1.f/ m_deltaTimeSec;
 
             Update(m_deltaTimeSec);
             Render();
@@ -81,17 +80,17 @@ void Application::DispatchEvent(Event& _event)
     GetWindowsPlatform().OnEvent(_event);
     GetGraphics().OnEvent(_event);
 
-    if (m_subSystems & eAppSubSystemFlags::AssetManager)
+    if (m_coreFlags & eAppCoreFlags::AssetManager)
     {
         GetAssetManager().OnEvent(_event);
     }
 
-    if (m_subSystems & eAppSubSystemFlags::Editor)
+    if (m_coreFlags & eAppCoreFlags::Editor)
     {
         GetEditor().OnEvent(_event);
     }
 
-    if (m_subSystems & eAppSubSystemFlags::SceneManager)
+    if (m_coreFlags & eAppCoreFlags::SceneManager)
     {
         GetSceneManager().OnEvent(_event);
     }
@@ -131,10 +130,10 @@ float Application::GetFrameRate() const
     return m_framerate;
 }
 
-bool Application::IsSubSystemEnabled(
-    const eAppSubSystemFlags _subSystem) const
+bool Application::IsCoreFlagsEnabled(
+    const eAppCoreFlags _flags) const
 {
-    return m_subSystems & _subSystem;
+    return m_coreFlags & _flags;
 }
 
 StringView Application::GetWorkingDirectory() const
@@ -154,9 +153,9 @@ std::thread::id Application::GetMainThreadId() const
 
 Application::Application(
     const StringView                _appName,
-    const Flags<eAppSubSystemFlags> _subSystems)
+    const Flags<eAppCoreFlags> _initFlags)
     : m_appName(_appName)
-    , m_subSystems(_subSystems)
+    , m_coreFlags(_initFlags)
     , m_workingDir(FileSystem::Current())
 {
     s_pInstance = this;
@@ -168,6 +167,68 @@ Application::Application(
     m_cacheDir = m_workingDir;
     m_cacheDir.Join("Caches/");
     m_cacheDir.Simplify();
+}
+
+void Application::Update(float _dt)
+{
+    if (m_coreFlags & eAppCoreFlags::Editor)
+    {
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        GetEditor().Update(m_deltaTimeSec);
+    }
+    else
+    {
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+        GetSceneManager().Update(m_deltaTimeSec);
+    }
+}
+
+void Application::Render()
+{
+    if (m_coreFlags & eAppCoreFlags::Editor)
+    {
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        GetEditor().Render();
+    }
+    else
+    {
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+        GetSceneManager().RenderRuntime();
+    }
+}
+
+void Application::ImGuiRender()
+{
+    if (m_coreFlags & eAppCoreFlags::Editor)
+    {
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        GetEditor().ImGuiRender();
+    }
+
+    JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+    GetSceneManager().ImGuiRender();
+}
+
+void Application::Init(
+    const Int32 _argc,
+    char**      _argv)
+{
+}
+
+void Application::Shutdown()
+{
+}
+
+void Application::OnEvent(Event& _event)
+{
+    EventDispatcher dispatcher { _event };
+    dispatcher.Dispatch<WindowClosedEvent>(this, &Application::OnWindowClose_);
+}
+
+void Application::OnWindowClose_(
+    WindowClosedEvent&)
+{
+    Quit();
 }
 
 void Application::CoreInit()
@@ -188,8 +249,20 @@ void Application::CoreInit()
     // init
     Log::CreateInstance();
 
-    // project file directory
-    if (m_subSystems & eAppSubSystemFlags::AssetManager)
+    // init window
+    WindowsPlatform::CreateInstance();
+    GetWindowsPlatform().SetTitle(m_appName);
+
+    // init graphics
+    const auto [w, h] = GetWindowsPlatform().GetClientResolution();
+    const HWND hWnd   = GetWindowsPlatform().GetPlatformHandle();
+    Graphics::CreateInstance(hWnd, w, h, m_coreFlags.IsEnabled(eAppCoreFlags::AllowTearing));
+
+    // init input
+    Input::CreateInstance();
+
+    // init asset manager
+    if (m_coreFlags & eAppCoreFlags::AssetManager)
     {
         FileSystem::MakeDirectory(m_contentsDir);
         Expect<Scoped<FileLock>> pContentsDirLock = FileLock::Create(m_contentsDir, eFileLockMode::ReadWrite);
@@ -206,57 +279,37 @@ void Application::CoreInit()
             JAM_CRASH("Failed to lock cache directory '{}': {}", m_cacheDir, pCacheDirLock.GetError().ToErrorMessage());
         }
         m_pCacheDirLock = pCacheDirLock.Take();
-    }
 
-    // init window
-    WindowsPlatform::CreateInstance();
-    GetWindowsPlatform().SetTitle(m_appName);
-
-    // init graphics
-    const auto [w, h] = GetWindowsPlatform().GetClientResolution();
-    const HWND hWnd   = GetWindowsPlatform().GetPlatformHandle();
-    Graphics::CreateInstance(hWnd, w, h);
-
-    // init input
-    Input::CreateInstance();
-
-    // init asset manager
-    if (m_subSystems & eAppSubSystemFlags::AssetManager)
-    {
         AssetManager::CreateInstance();
     }
 
     // init scene manager
-    if (m_subSystems & eAppSubSystemFlags::SceneManager)
+    if (m_coreFlags & eAppCoreFlags::SceneManager)
     {
         SceneManager::CreateInstance();
     }
 
     // init imgui glue
-    if (m_subSystems & eAppSubSystemFlags::ImGuiEngine)
+    if (m_coreFlags & eAppCoreFlags::ImGuiEngine)
     {
         ImGuiEngine::CreateInstance(hWnd);
     }
 
     // init editor if need
-    if (m_subSystems & eAppSubSystemFlags::Editor)
+    if (m_coreFlags & eAppCoreFlags::Editor)
     {
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "Editor subsystem requires AssetManager subsystem.");
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "Editor subsystem requires SceneManager subsystem.");
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::ImGuiEngine, "Editor subsystem requires ImGuiEngine subsystem.");
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to initialize editor system.");
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to initialize editor system.");
+        JAM_ASSERT(m_coreFlags & eAppCoreFlags::ImGuiEngine, "Editor subsystem requires ImGuiEngine subsystem.");
+
         Editor::CreateInstance();
+        m_coreFlags |= eAppCoreFlags::Editor;
     }
 
     // init done
     m_bInited      = true;
     m_bRunning     = true;
     m_mainThreadId = std::this_thread::get_id();
-}
-
-void Application::Init(
-    const Int32 _argc,
-    char**      _argv)
-{
 }
 
 void Application::CoreShutdown()
@@ -269,25 +322,25 @@ void Application::CoreShutdown()
     SceneDatabase::DestroyInstance();
 
     // shutdown editor
-    if (m_subSystems & eAppSubSystemFlags::Editor)
+    if (m_coreFlags & eAppCoreFlags::Editor)
     {
         Editor::DestroyInstance();
     }
 
     // shutdown imgui glue
-    if (m_subSystems & eAppSubSystemFlags::ImGuiEngine)
+    if (m_coreFlags & eAppCoreFlags::ImGuiEngine)
     {
         ImGuiEngine::DestroyInstance();
     }
 
     // shutdown scene manager
-    if (m_subSystems & eAppSubSystemFlags::SceneManager)
+    if (m_coreFlags & eAppCoreFlags::SceneManager)
     {
         SceneManager::DestroyInstance();
     }
 
     // shutdown asset manager
-    if (m_subSystems & eAppSubSystemFlags::AssetManager)
+    if (m_coreFlags & eAppCoreFlags::AssetManager)
     {
         AssetManager::DestroyInstance();
     }
@@ -304,62 +357,6 @@ void Application::CoreShutdown()
     // shutdown
     JAM_LOG_TRACE("app '{}' shutdown complete.", m_appName);
     Log::DestroyInstance();
-}
-
-void Application::Shutdown()
-{
-}
-
-void Application::OnEvent(Event& _event)
-{
-    EventDispatcher dispatcher { _event };
-    dispatcher.Dispatch<WindowClosedEvent>(this, &Application::OnWindowClose_);
-}
-
-void Application::OnWindowClose_(
-    WindowClosedEvent&)
-{
-    Quit();
-}
-
-void Application::Update(float _dt)
-{
-    if (m_subSystems & eAppSubSystemFlags::Editor)
-    {
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        GetEditor().Update(m_deltaTimeSec);
-    }
-    else
-    {
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        GetSceneManager().Update(m_deltaTimeSec);
-    }
-}
-
-void Application::Render()
-{
-    if (m_subSystems & eAppSubSystemFlags::Editor)
-    {
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        GetEditor().Render();
-    }
-    else
-    {
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        GetSceneManager().RenderRuntime();
-    }
-}
-
-void Application::ImGuiRender()
-{
-    if (m_subSystems & eAppSubSystemFlags::Editor)
-    {
-        JAM_ASSERT(m_subSystems & eAppSubSystemFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        GetEditor().ImGuiRender();
-    }
-
-    JAM_ASSERT(m_subSystems & eAppSubSystemFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-    GetSceneManager().ImGuiRender();
 }
 
 }   // namespace Jam

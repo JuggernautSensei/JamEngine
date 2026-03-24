@@ -213,7 +213,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
     Graphics::SetFrameBuffer(m_fbh);
     Graphics::ClearColor(m_fbh, k_background);
     Graphics::ClearDepth(m_fbh, true, false);
-    Graphics::SetViewport(_view.vp);
+    Graphics::SetViewport(_view.outputVp);
 
     Graphics::SetProgram(m_program);
     Graphics::SetConstantBuffer(m_transformCbh, eShader::VertexShader, 0);
@@ -261,7 +261,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
         }
     }
 
-    TextureHandle renderTh = Graphics::GetRenderTargetTexture(_view.fbh, 0);
+    TextureHandle renderTh = Graphics::GetRenderTargetTexture(_view.outputFbh, 0);
     Graphics::Blit(renderTh, m_renderTh);
 }
 

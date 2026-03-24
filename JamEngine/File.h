@@ -1,5 +1,5 @@
 #pragma once
-#include "MemoryBlock.h"
+#include "Memory.h"
 
 namespace Jam
 {
@@ -45,10 +45,10 @@ class FileWriter : public FileIO
 {
 public:
     [[nodiscard]] static Expect<FileWriter> Open(StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
-    static Error                            WriteFileAsBinary(CMemoryBlock _data, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
+    static Error                            WriteFileAsBinary(MemoryView _data, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
     static Error                            WriteFileAsString(StringView _str, StringView _path, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite);
 
-    Expect<SizeT> WriteBinary(CMemoryBlock _data) const;
+    Expect<SizeT> WriteBinary(MemoryView _data) const;
     Expect<SizeT> WriteString(StringView _str) const;   // if you want to write text. use this. WriteBinary write raw bytes, so it can be included null terminators.
     void          Flush() const;
 
@@ -63,7 +63,7 @@ public:
     static Expect<Vector<Byte>>             ReadFileAsBinary(StringView _path);
     static Expect<String>                   ReadFileAsString(StringView _path);
 
-    Expect<SizeT>      ReadBinary(MemoryBlock _dst, SizeT _count = 0) const;   // zero is treated as "read as much as possible"
+    Expect<SizeT>      ReadBinary(MutableMemoryView _dst, SizeT _count = 0) const;   // zero is treated as "read as much as possible"
     Expect<String>     ReadString(SizeT _count = 0) const;                     // zero is treated as "read as much as possible"
     [[nodiscard]] bool IsEof() const;
 

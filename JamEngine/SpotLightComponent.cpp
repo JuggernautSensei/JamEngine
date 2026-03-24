@@ -11,7 +11,7 @@ namespace Jam
 
 void SpotLightComponent::Serialize(
     ArchiveWriter& _writer,
-    const Ref<Scene>&,
+    Scene*,
     Entity) const
 {
     _writer.WriteField("radiance", radiance);
@@ -24,7 +24,7 @@ void SpotLightComponent::Serialize(
 
 void SpotLightComponent::Deserialize(
     ArchiveReader& _reader,
-    const Ref<Scene>&,
+    Scene*,
     Entity)
 {
     _reader.ReadField("radiance", radiance);
@@ -36,10 +36,10 @@ void SpotLightComponent::Deserialize(
 }
 
 void SpotLightComponent::DrawEditPanel(
-    const Ref<Scene>& _pScene,
+    Scene* _pScene,
     Entity            _entity)
 {
-    if (BeginLabelTable("SpotLightComponent"))
+    if (BeginLabelValueTable("SpotLightComponent"))
     {
         ImGui::TableNextColumn();
         Widget_Text("radiance", true);

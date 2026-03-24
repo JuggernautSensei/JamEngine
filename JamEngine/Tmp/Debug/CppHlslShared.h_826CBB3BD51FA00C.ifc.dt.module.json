@@ -1,0 +1,23 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShared.obj",
+            "outputs": [
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShared.h_826CBB3BD51FA00C.ifc.dt.module.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShared.h_826CBB3BD51FA00C.ifc.dt.d.json",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\CppHlslShared.h.ifc",
+                "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\Tmp\\Debug\\JamEngine.pch"
+            ],
+            "provides": [
+                {
+                    "logical-name": "C:\\Users\\Ahnjiwoo\\Desktop\\JamEngine\\JamEngine\\JamEngine\\CppHlslShared.h",
+                    "source-path": "c:\\users\\ahnjiwoo\\desktop\\jamengine\\jamengine\\jamengine\\cpphlslshared.h",
+                    "lookup-method": "absolute"
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

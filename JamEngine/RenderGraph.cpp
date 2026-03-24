@@ -25,10 +25,10 @@ RenderGraph::PassBuilder RenderGraph::AddPass(const StringView _name)
 
 RenderGraph::PassBuilder RenderGraph::ModifyPass(const StringView _name)
 {
-    PassDesc* desc = FindPassDesc_(_name);
-    JAM_ASSERT(desc, "Pass '{}' not found.", _name);
+    PassDesc* pDesc = FindPassDesc_(_name);
+    JAM_ASSERT(pDesc, "Pass '{}' not found.", _name);
     m_bNeedCompile = true;
-    return PassBuilder { *this, *desc };
+    return PassBuilder { *this, *pDesc };
 }
 
 void RenderGraph::RemovePass(const StringView _name)
@@ -73,7 +73,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             // 빈 이름 = 백버퍼.
             // JamEngine의 경우. 리사이즈 전에 백버퍼가 반드시 리사이즈 되며.
             // 백버퍼를 따로 입력으로 사용할 수 없도록 설계되어있음. (백엔드 설계상 막아놓음)
-            if (desc.frameBufferName.IsEmpty())
+            if (desc.frameBufferName.IsEmpty() || resizedFrameBuffers.contains(desc.frameBufferName))
             {
                 continue;
             }
@@ -110,8 +110,8 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
                 bAnyResized = true;
             }
 
-            // 텍스처가 하나라도 리사이즈 됐으면 프레임 버퍼도 재생성
-            if (!bAnyResized || resizedFrameBuffers.contains(desc.frameBufferName))
+            // 텍스처가 하나도 리사이즈되지 않았다면 스킵
+            if (!bAnyResized)
             {
                 continue;
             }
@@ -137,46 +137,56 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         JAM_ASSERT(desc.executor, "Pass '{}' has no executor.", desc.name);
 
         // 프로그램
-        if (!desc.programName.IsEmpty() && desc.ph == k_nullHandle)
+        if (!desc.programName.IsEmpty() && !desc.ph)
         {
             const auto it = m_programs.find(desc.programName);
             JAM_ASSERT(it != m_programs.end(), "Program '{}' not found.", desc.programName);
             desc.ph = it->second.handle;
         }
 
-        // 프레임 버퍼. 리사이즈 후라면 항상 갱신해야함
-        if (!desc.frameBufferName.IsEmpty() && (desc.fbh == k_nullHandle || bNeedResize))
+        // 외부에서 출력을 주입받는 형태라면, 출력 fallback으로 백버퍼 설정
+        if (desc.bUseExternalOutput)
         {
-            const auto it = m_frameBuffers.find(desc.frameBufferName);
-            JAM_ASSERT(it != m_frameBuffers.end(), "FrameBuffer '{}' not found.", desc.frameBufferName);
-            desc.fbh = it->second.handle;
-            JAM_ASSERT(desc.fbh != k_nullHandle, "FrameBuffer handle is null in pass '{}'.", desc.name);
+            const Vec2i res = gfx.GetBackBufferResolution();
+            desc.viewport   = { 0, 0, NumericCast<UInt16>(res.x), NumericCast<UInt16>(res.y) };
+            desc.fbh        = k_nullHandle;
         }
-
-        // 뷰포트 자동 설정
-        if (desc.bUseFrameBufferResolutionAsViewport)
+        else
         {
-            if (desc.fbh != k_nullHandle)
+            // 프레임 버퍼. 리사이즈 후라면 항상 갱신
+            if (!desc.frameBufferName.IsEmpty() && (!desc.fbh || bNeedResize))
             {
-                const FrameBufferInfo& fbInfo = gfx.GetFrameBufferInfo(desc.fbh);
-                const TextureHandle    texh   = fbInfo.bHasDepthStencil ? fbInfo.depthStencilTexh : fbInfo.renderTargetTexhs[0];
-
-                // framebuffer는 무조건 하나의 이상의 텍스처를 가지고 있음.
-                const TextureInfo& texInfo = gfx.GetTextureInfo(texh);
-                desc.viewport              = { 0, 0, NumericCast<UInt16>(texInfo.width), NumericCast<UInt16>(texInfo.height) };
+                const auto it = m_frameBuffers.find(desc.frameBufferName);
+                JAM_ASSERT(it != m_frameBuffers.end(), "FrameBuffer '{}' not found.", desc.frameBufferName);
+                desc.fbh = it->second.handle;
+                JAM_ASSERT(desc.fbh, "FrameBuffer handle is null in pass '{}'.", desc.name);
             }
-            else
+
+            // 뷰포트 자동 설정
+            if (desc.bUseFrameBufferResolutionAsViewport)
             {
-                const Vec2i res = gfx.GetBackBufferResolution();
-                desc.viewport   = { 0, 0, NumericCast<UInt16>(res.x), NumericCast<UInt16>(res.y) };
+                if (desc.fbh)
+                {
+                    const FrameBufferInfo& fbInfo = gfx.GetFrameBufferInfo(desc.fbh);
+                    const TextureHandle    texh   = fbInfo.bHasDepthStencil ? fbInfo.depthStencilTexh : fbInfo.renderTargetTexhs[0];
+
+                    // framebuffer는 무조건 하나의 이상의 텍스처를 가지고 있음.
+                    const TextureInfo& texInfo = gfx.GetTextureInfo(texh);
+                    desc.viewport              = { 0, 0, NumericCast<UInt16>(texInfo.width), NumericCast<UInt16>(texInfo.height) };
+                }
+                else   // 백버퍼를 사용
+                {
+                    const Vec2i res = gfx.GetBackBufferResolution();
+                    desc.viewport   = { 0, 0, NumericCast<UInt16>(res.x), NumericCast<UInt16>(res.y) };
+                }
             }
         }
 
         // 텍스처 바인드
-        for (TextureBind& bind: desc.textureBindInfos | std::views::values)
+        for (TextureBind& bind: desc.textureBinds | std::views::values)
         {
-            // 리사이즈가 된 경우, 특정 핸들이 바뀌었을 수도 있으므로, 그냥 갱신
-            if (bind.texh != k_nullHandle && !bNeedResize)
+            // 리사이즈가 된 경우, 특정 핸들이 바뀌었을 수도 있으므로 갱신
+            if (bind.texh && !bNeedResize)
             {
                 continue;
             }
@@ -187,9 +197,9 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         }
 
         // 상수 버퍼 바인드
-        for (ConstantBufferBind& bind: desc.cbufferBindInfos | std::views::values)
+        for (ConstantBufferBind& bind: desc.cbufferBinds | std::views::values)
         {
-            if (bind.cbh != k_nullHandle)
+            if (bind.cbh)
             {
                 continue;
             }
@@ -206,7 +216,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         return;
     }
 
-    // 이후. 컴파일 수행. 검증전, 각 패스의 writers 갱신
+    // 검증 전, 각 패스의 writers 갱신
     for (PassDesc& desc: m_passDescs)
     {
         desc.numWriteTextures = 0;
@@ -243,7 +253,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             }
 
             inputTextures.clear();
-            for (const TextureBind& bind: desc.textureBindInfos | std::views::values)
+            for (const TextureBind& bind: desc.textureBinds | std::views::values)
             {
                 inputTextures.insert(bind.name);
             }
@@ -298,7 +308,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             }
 
             // 이미 write된 적 있는 게 있으면 오류로 처리
-            for (const TextureBind& bind: desc.textureBindInfos | std::views::values)
+            for (const TextureBind& bind: desc.textureBinds | std::views::values)
             {
                 const String& texture = bind.name;
                 State&        state   = textureStates[texture];
@@ -348,8 +358,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             std::ranges::fill(dupEdgeChecker, false);   // 패스마다 초기화
 
             PassDesc& desc = m_passDescs[i];
-
-            for (const TextureBind& bind: desc.textureBindInfos | std::views::values)
+            for (const TextureBind& bind: desc.textureBinds | std::views::values)
             {
                 const String& readTexture = bind.name;
                 const auto    it          = textureWriter.find(readTexture);
@@ -411,7 +420,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
 
         // 역방향 간선 구성
         Vector<bool>          alive(numPasses, false);
-        Vector<Vector<Int32>> revEdges(numPasses, Vector<Int32> {});
+        Vector<Vector<Int32>> revEdges(numPasses);
         for (Int32 i = 0; i < numPasses; ++i)
         {
             for (const Int32 j: edges[i])
@@ -507,7 +516,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         for (SizeT i = 0; i < numPasses; ++i)
         {
             const PassDesc& desc = *m_compiledPasses[i].pDesc;
-            for (const TextureBind& bind: desc.textureBindInfos | std::views::values)
+            for (const TextureBind& bind: desc.textureBinds | std::views::values)
             {
                 if (!writeTextures.contains(bind.name))
                 {
@@ -542,7 +551,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
                 for (Int32 k = 0; k < desc.numWriteTextures; ++k)
                 {
                     const String& texture = desc.writeTextures[k];
-                    for (const TextureBind& bind: laterDesc.textureBindInfos | std::views::values)
+                    for (const TextureBind& bind: laterDesc.textureBinds | std::views::values)
                     {
                         if (bind.name == texture)
                         {
@@ -576,39 +585,39 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         {
             const PassDesc& desc = *cp.pDesc;
 
-            cp.textureBinds.clear();
-            cp.cbufferBinds.clear();
-            cp.samplerBinds.clear();
+            cp.textures.clear();
+            cp.cbuffers.clear();
+            cp.samplers.clear();
 
-            for (const TextureBind& bind: desc.textureBindInfos | std::views::values)
+            for (const TextureBind& bind: desc.textureBinds | std::views::values)
             {
                 const Slot slot = { bind.stage, bind.slot };
                 const auto it   = texInputs.find(slot);
                 if (it == texInputs.end() || it->second != bind.name)
                 {
-                    cp.textureBinds.push_back(bind);
+                    cp.textures.push_back(bind);
                     texInputs[slot] = bind.name;
                 }
             }
 
-            for (const ConstantBufferBind& bind: desc.cbufferBindInfos | std::views::values)
+            for (const ConstantBufferBind& bind: desc.cbufferBinds | std::views::values)
             {
                 const Slot slot = { bind.stage, bind.slot };
                 const auto it   = cbInputs.find(slot);
                 if (it == cbInputs.end() || it->second != bind.name)
                 {
-                    cp.cbufferBinds.push_back(bind);
+                    cp.cbuffers.push_back(bind);
                     cbInputs[slot] = bind.name;
                 }
             }
 
-            for (const SamplerBind& bind: desc.samplerBindInfos | std::views::values)
+            for (const SamplerBind& bind: desc.samplerBinds | std::views::values)
             {
                 const Slot slot = { bind.stage, bind.slot };
                 const auto it   = samInputs.find(slot);
                 if (it == samInputs.end() || !MemEqual(it->second, bind.state))
                 {
-                    cp.samplerBinds.push_back(bind);
+                    cp.samplers.push_back(bind);
                     samInputs[slot] = bind.state;
                 }
             }
@@ -655,7 +664,7 @@ void RenderGraph::Execute(
         gfx.SetRenderState(desc.renderState);
         gfx.SetStencil(desc.fstencil, desc.bstencil, desc.stencilRef);
 
-        for (Int32 j = 0; j < desc.numBlendStateBinds; ++j)
+        for (Int32 j = 0; j < desc.numBlendBinds; ++j)
         {
             const BlendStateBind& bind = desc.blendBinds[j];
             gfx.SetBlendState(bind.state, bind.slot);
@@ -663,7 +672,7 @@ void RenderGraph::Execute(
 
         gfx.SetBlendFactor(desc.blendFactor);
 
-        for (Int32 j = 0; j < desc.numRenderTargetClearColors; ++j)
+        for (Int32 j = 0; j < desc.numClearColorBinds; ++j)
         {
             const ClearColorBind& bind = desc.clearColorBinds[j];
             gfx.ClearColor(fbh, bind.color, bind.slot);
@@ -671,20 +680,20 @@ void RenderGraph::Execute(
 
         if (desc.bClearDepth || desc.bClearStencil)
         {
-            gfx.ClearDepthStencil(fbh, desc.bClearDepth, desc.bClearStencil, desc.depthClearValue, desc.stencilClearValue);
+            gfx.ClearDepthStencil(fbh, desc.bClearDepth, desc.bClearStencil, desc.clearDepthValue, desc.clearStencilValue);
         }
 
-        for (const ConstantBufferBind& bind: pass.cbufferBinds)
+        for (const ConstantBufferBind& bind: pass.cbuffers)
         {
             gfx.SetConstantBuffer(bind.cbh, bind.stage, bind.slot);
         }
 
-        for (const SamplerBind& bind: pass.samplerBinds)
+        for (const SamplerBind& bind: pass.samplers)
         {
             gfx.SetSampler(bind.state, bind.stage, bind.slot);
         }
 
-        for (const TextureBind& bind: pass.textureBinds)
+        for (const TextureBind& bind: pass.textures)
         {
             gfx.SetTexture(bind.texh, bind.stage, bind.slot);
         }
@@ -731,7 +740,7 @@ void RenderGraph::AddTexture2D(
     const eTextureFormat             _format,
     const Int32                      _arraySize,
     const Flags<eTextureCreateFlags> _flags,
-    const Span<const CMemoryBlock>   _initData)
+    const Span<const MemoryView>   _initData)
 {
     const TextureHandle texh = GetGraphics().CreateTexture2D(_width, _height, _format, _arraySize, _flags, _initData);
     AddTexture(_name, texh, true);
@@ -765,7 +774,7 @@ void RenderGraph::AddTexture3D(
     const Int32                      _depth,
     const eTextureFormat             _format,
     const Flags<eTextureCreateFlags> _flags,
-    const Span<const CMemoryBlock>   _initData)
+    const Span<const MemoryView>   _initData)
 {
     const TextureHandle texh = GetGraphics().CreateTexture3D(_width, _height, _depth, _format, _flags, _initData);
     AddTexture(_name, texh, true);
@@ -911,7 +920,7 @@ void RenderGraph::AddShader(
     m_bNeedCompile      = true;
 }
 
-void RenderGraph::AddShader(const StringView _name, const CMemoryBlock _bytecode)
+void RenderGraph::AddShader(const StringView _name, const MemoryView _bytecode)
 {
     AddShader(_name, GetGraphics().CreateShader(_bytecode), true);
 }
@@ -964,7 +973,7 @@ void RenderGraph::AddProgram(
     const ShaderHandle  gsh = _gsOrEmpty.IsEmpty() ? k_nullHandle : GetShader(_gsOrEmpty);
     const ShaderHandle  hsh = _hsOrEmpty.IsEmpty() ? k_nullHandle : GetShader(_hsOrEmpty);
     const ShaderHandle  dsh = _dsOrEmpty.IsEmpty() ? k_nullHandle : GetShader(_dsOrEmpty);
-    const ProgramHandle ph  = GetGraphics().CreateProgram(vsh, psh, gsh, hsh, dsh);
+    const ProgramHandle ph  = GetGraphics().CreateProgram(vsh, psh, dsh, hsh, gsh);
     AddProgram(_name, ph, true);
 }
 
@@ -1131,7 +1140,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendState(
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumRenderTargetViewSlots, "Blend slot {} out of range.", _slot);
 
-    for (Int32 i = 0; i < m_desc.numBlendStateBinds; ++i)
+    for (Int32 i = 0; i < m_desc.numBlendBinds; ++i)
     {
         if (m_desc.blendBinds[i].slot == _slot)
         {
@@ -1140,8 +1149,8 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendState(
         }
     }
 
-    JAM_ASSERT(m_desc.numBlendStateBinds < k_maxNumRenderTargetViewSlots, "Too many blend states.");
-    m_desc.blendBinds[m_desc.numBlendStateBinds++] = { _state, _slot };
+    JAM_ASSERT(m_desc.numBlendBinds < k_maxNumRenderTargetViewSlots, "Too many blend states.");
+    m_desc.blendBinds[m_desc.numBlendBinds++] = { _state, _slot };
     return *this;
 }
 
@@ -1157,7 +1166,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetClearColor(
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumRenderTargetViewSlots, "ClearColor slot {} out of range.", _slot);
 
-    for (Int32 i = 0; i < m_desc.numRenderTargetClearColors; ++i)
+    for (Int32 i = 0; i < m_desc.numClearColorBinds; ++i)
     {
         if (m_desc.clearColorBinds[i].slot == _slot)
         {
@@ -1166,21 +1175,21 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetClearColor(
         }
     }
 
-    JAM_ASSERT(m_desc.numRenderTargetClearColors < k_maxNumRenderTargetViewSlots, "Too many clear colors.");
-    m_desc.clearColorBinds[m_desc.numRenderTargetClearColors++] = { _color, _slot };
+    JAM_ASSERT(m_desc.numClearColorBinds < k_maxNumRenderTargetViewSlots, "Too many clear colors.");
+    m_desc.clearColorBinds[m_desc.numClearColorBinds++] = { _color, _slot };
     return *this;
 }
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseClearColor(const Int32 _slot)
 {
-    for (Int32 i = 0; i < m_desc.numRenderTargetClearColors; ++i)
+    for (Int32 i = 0; i < m_desc.numClearColorBinds; ++i)
     {
         if (m_desc.clearColorBinds[i].slot == _slot)
         {
-            const Int32 last             = m_desc.numRenderTargetClearColors - 1;
+            const Int32 last             = m_desc.numClearColorBinds - 1;
             m_desc.clearColorBinds[i]    = m_desc.clearColorBinds[last];
             m_desc.clearColorBinds[last] = {};
-            --m_desc.numRenderTargetClearColors;
+            --m_desc.numClearColorBinds;
             break;
         }
     }
@@ -1189,7 +1198,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseClearColor(const Int3
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetClearDepth(const float _value)
 {
-    m_desc.depthClearValue = _value;
+    m_desc.clearDepthValue = _value;
     m_desc.bClearDepth     = true;
     return *this;
 }
@@ -1202,7 +1211,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseClearDepth()
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetClearStencil(const UInt8 _value)
 {
-    m_desc.stencilClearValue = _value;
+    m_desc.clearStencilValue = _value;
     m_desc.bClearStencil     = true;
     return *this;
 }
@@ -1220,8 +1229,8 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetTexture(
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
     JAM_ASSERT(m_graph.m_textures.contains(_name), "Texture '{}' not registered.", _name);
-    const Slot slot               = { _stage, _slot };
-    m_desc.textureBindInfos[slot] = { _name, k_nullHandle, _stage, _slot };
+    const Slot slot           = { _stage, _slot };
+    m_desc.textureBinds[slot] = { _name, k_nullHandle, _stage, _slot };
     return *this;
 }
 
@@ -1233,8 +1242,8 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetConstantBuffer(
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
     JAM_ASSERT(m_graph.m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
 
-    const Slot slot               = { _stage, _slot };
-    m_desc.cbufferBindInfos[slot] = { _name, k_nullHandle, _stage, _slot };
+    const Slot slot           = { _stage, _slot };
+    m_desc.cbufferBinds[slot] = { _name, k_nullHandle, _stage, _slot };
     return *this;
 }
 
@@ -1245,8 +1254,8 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSamplerState(
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
 
-    const Slot slot               = { _stage, _slot };
-    m_desc.samplerBindInfos[slot] = { _state, _stage, _slot };
+    const Slot slot           = { _stage, _slot };
+    m_desc.samplerBinds[slot] = { _state, _stage, _slot };
     return *this;
 }
 

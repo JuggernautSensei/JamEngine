@@ -98,14 +98,14 @@ Error ReadFromArchive(
 
 void ShaderItem::Macro::WriteToArchive(ArchiveWriter& _archive) const
 {
-    _archive.WriteField("name", name);
+    _archive.WriteField("typeName", name);
     _archive.WriteField("value", value);
     _archive.WriteField("bEnabled", bEnabled);
 }
 
 Error ShaderItem::Macro::ReadFromArchive(ArchiveReader& _archive)
 {
-    if (const Error err = _archive.ReadField("name", name))
+    if (const Error err = _archive.ReadField("typeName", name))
     {
         return err;
     }
@@ -128,7 +128,7 @@ ShaderCompiler ShaderItem::Compile() const
     JAM_ASSERT(pShaderSource, "Shader source is null.");
 
     Vector<ShaderMacro> shaderMacros = {};
-    shaderMacros.reserve(shaderMacros.size());
+    shaderMacros.reserve(macros.size());
     for (const Macro& macro: macros)
     {
         if (!macro.bEnabled)
@@ -150,17 +150,19 @@ ShaderCompiler ShaderItem::Compile() const
 void ShaderItem::WriteToArchive(
     ArchiveWriter& _archive) const
 {
-    _archive.WriteField("name", name);
+    _archive.BeginObject();
+    _archive.WriteField("typeName", name);
     _archive.WriteField("shaderSource", pShaderSource);
     _archive.WriteField("macros", macros);
     _archive.WriteField("entryPoint", entryPoint);
     _archive.WriteField("stage", stage);
     _archive.WriteField("compileFlags", compileFlags);
+    _archive.EndObject();
 }
 
 Error ShaderItem::ReadFromArchive(ArchiveReader& _archive)
 {
-    if (const Error err = _archive.ReadField("name", name))
+    if (const Error err = _archive.ReadField("typeName", name))
     {
         return err;
     }
@@ -181,6 +183,11 @@ Error ShaderItem::ReadFromArchive(ArchiveReader& _archive)
     }
 
     if (const Error err = _archive.ReadField("stage", stage))
+    {
+        return err;
+    }
+
+    if (const Error err = _archive.ReadField("compileFlags", compileFlags))
     {
         return err;
     }
@@ -266,7 +273,7 @@ Error Project::Rename(
 void Project::AddShaderItem(
     const ShaderItem& _item)
 {
-    JAM_ASSERT(!m_shaderItems.Contains(_item.name), "Shader item with the same name already exists.");
+    JAM_ASSERT(!m_shaderItems.Contains(_item.name), "Shader item with the same typeName already exists.");
     m_shaderItems.PushBack(_item.name, _item);
     MarkDirty_(true);
 }
@@ -301,14 +308,14 @@ void Project::RenameShaderItem(
     }
 
     JAM_ASSERT(m_shaderItems.Contains(_name), "Shader item not found.");
-    JAM_ASSERT(!m_shaderItems.Contains(_newName), "Shader item with the same name already exists.");
+    JAM_ASSERT(!m_shaderItems.Contains(_newName), "Shader item with the same typeName already exists.");
 
     ShaderItem oldValue    = m_shaderItems.Get(_name);
     oldValue.name          = _newName;
     const auto [it, bRet0] = m_shaderItems.Remove(_name);
     JAM_ASSERT(bRet0, "Shader item not found after removal.");
     const auto [_, bRet1] = m_shaderItems.Insert(it, _newName, oldValue);
-    JAM_ASSERT(bRet1, "Failed to insert shader item with new name.");
+    JAM_ASSERT(bRet1, "Failed to insert shader item with new typeName.");
     MarkDirty_(true);
 }
 
@@ -503,15 +510,18 @@ bool Project::IsDirty() const
 void Project::WriteToArchive(
     ArchiveWriter& _archive) const
 {
-    _archive.OpenField("shaders");
+    _archive.BeginObject();
+    _archive.AddField("shaders");
+    _archive.BeginArray();
     for (const auto& [name, shaderItem]: m_shaderItems)
     {
-        _archive.OpenAtBack();
-        _archive.WriteField("name", name);
+        _archive.BeginObject();
+        _archive.WriteField("typeName", name);
         _archive.WriteField("item", shaderItem);
-        _archive.Close();
+        _archive.EndObject();
     }
-    _archive.Close();
+    _archive.EndArray();
+    _archive.EndObject();
 }
 
 Error Project::ReadFromArchive(
@@ -525,18 +535,18 @@ Error Project::ReadFromArchive(
         return err;
     }
 
-    _archive.ForEach(
+    _archive.ForEachArray(Bind(
         [this](const SizeT, ArchiveReader& _reader) -> Error {
             StringView name = {};
-            if (const Error err = _reader.ReadField("name", name))
+            if (const Error err = _reader.ReadField("typeName", name))
             {
                 return err;
             }
 
             if (m_shaderItems.Contains(name))
             {
-                JAM_LOG_ERROR("Duplicate shader item name: {}", name);
-                return Error::InvalidData;   // duplicate shader item name
+                JAM_LOG_ERROR("Duplicate shader item typeName: {}", name);
+                return Error::InvalidData;
             }
 
             ShaderItem shaderItem = {};
@@ -547,7 +557,7 @@ Error Project::ReadFromArchive(
 
             m_shaderItems.PushBack(name, shaderItem);
             return Error::None;
-        });
+        }));
 
     _archive.Exit();
 

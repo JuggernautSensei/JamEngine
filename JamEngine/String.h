@@ -66,12 +66,12 @@ struct CharTraits<wchar_t>
 ////////// numeric char converter //////////
 
 template<typename TChar>
-struct NumeircCharConverter
+struct NumericCharConverter
 {
 };
 
 template<>
-struct NumeircCharConverter<char>
+struct NumericCharConverter<char>
 {
     using CharTraits = CharTraits<char>;
     using CharT      = CharTraits::CharT;
@@ -122,7 +122,7 @@ struct NumeircCharConverter<char>
 };
 
 template<>
-struct NumeircCharConverter<wchar_t>
+struct NumericCharConverter<wchar_t>
 {
     using CharTraits = CharTraits<wchar_t>;
     using CharT      = CharTraits::CharT;
@@ -240,7 +240,7 @@ struct CharFuncs
 {
     using CharTraits           = CharTraits<TChar>;
     using CharT                = CharTraits::CharT;
-    using NumeircCharConverter = NumeircCharConverter<CharT>;
+    using NumericCharConverter = NumericCharConverter<CharT>;
     using StdCharTraits        = std::char_traits<TChar>;
     using StdStringView        = std::basic_string_view<TChar>;
 
@@ -633,7 +633,7 @@ struct CharFuncs
 
         if constexpr (std::is_same_v<T, Int32> || std::is_same_v<T, Int16> || std::is_same_v<T, Int8> || std::is_same_v<T, char> || std::is_same_v<T, wchar_t>)
         {
-            const Int32 value = NumeircCharConverter::ParseAsInt32(_str, _base);
+            const Int32 value = NumericCharConverter::ParseAsInt32(_str, _base);
             if (CheckOverflow<T>(value))
             {
                 return k_nullopt;
@@ -642,7 +642,7 @@ struct CharFuncs
         }
         else if constexpr (std::is_same_v<T, UInt32> || std::is_same_v<T, UInt16> || std::is_same_v<T, UInt8> || std::is_same_v<T, unsigned char>)
         {
-            const UInt32 value = NumeircCharConverter::ParseAsUInt32(_str, _base);
+            const UInt32 value = NumericCharConverter::ParseAsUInt32(_str, _base);
             if (CheckOverflow<T>(value))
             {
                 return k_nullopt;
@@ -651,7 +651,7 @@ struct CharFuncs
         }
         else if constexpr (std::is_same_v<T, Int64>)
         {
-            const Int64 value = NumeircCharConverter::ParseAsInt64(_str, _base);
+            const Int64 value = NumericCharConverter::ParseAsInt64(_str, _base);
             if (CheckOverflow<T>(value))
             {
                 return k_nullopt;
@@ -660,7 +660,7 @@ struct CharFuncs
         }
         else if constexpr (std::is_same_v<T, UInt64>)
         {
-            const UInt64 value = NumeircCharConverter::ParseAsUInt64(_str, _base);
+            const UInt64 value = NumericCharConverter::ParseAsUInt64(_str, _base);
             if (CheckOverflow<T>(value))
             {
                 return k_nullopt;
@@ -679,7 +679,7 @@ struct CharFuncs
 
         if constexpr (std::is_same_v<T, float>)
         {
-            const float value = NumeircCharConverter::ParseAsFloat(_str);
+            const float value = NumericCharConverter::ParseAsFloat(_str);
             if (value == HUGE_VALF || value == -HUGE_VALF)
             {
                 return k_nullopt;
@@ -688,7 +688,7 @@ struct CharFuncs
         }
         else if constexpr (std::is_same_v<T, double>)
         {
-            const double value = NumeircCharConverter::ParseAsDouble(_str);
+            const double value = NumericCharConverter::ParseAsDouble(_str);
             if (value == HUGE_VAL || value == -HUGE_VAL)
             {
                 return k_nullopt;
@@ -697,7 +697,7 @@ struct CharFuncs
         }
         else if constexpr (std::is_same_v<T, long double>)
         {
-            const long double value = NumeircCharConverter::ParseAsLongDouble(_str);
+            const long double value = NumericCharConverter::ParseAsLongDouble(_str);
             if (value == HUGE_VALL || value == -HUGE_VALL)
             {
                 return k_nullopt;
@@ -712,7 +712,7 @@ struct CharFuncs
         requires std::is_arithmetic_v<T>
     constexpr static SizeT ConvertToChars(const T _value, CharT* _pOutBuf, const SizeT _bufCap)
     {
-        return NumeircCharConverter::ConvertToChars(_value, _pOutBuf, _bufCap);
+        return NumericCharConverter::ConvertToChars(_value, _pOutBuf, _bufCap);
     }
 };
 
@@ -1198,22 +1198,22 @@ public:
         return { m_ptr + _pos, _len };
     }
 
-    [[nodiscard]] BasicStringView LTrimed() const
+    [[nodiscard]] BasicStringView LTrimmed() const
     {
         const SizeT lTrimmed = CharFuncs::StrLTrim(m_ptr, m_len);
         return SubView(lTrimmed);
     }
 
-    [[nodiscard]] BasicStringView RTrimed() const
+    [[nodiscard]] BasicStringView RTrimmed() const
     {
         const SizeT rTrimmed = CharFuncs::StrRTrim(m_ptr, m_len);
         return SubView(0, rTrimmed);
     }
 
-    [[nodiscard]] BasicStringView Trimed() const
+    [[nodiscard]] BasicStringView Trimmed() const
     {
-        const auto [lTrimmed, trimedLen] = CharFuncs::StrTrim(m_ptr, m_len);
-        return SubView(lTrimmed, trimedLen);
+        const auto [lTrimmed, trimmedLen] = CharFuncs::StrTrim(m_ptr, m_len);
+        return SubView(lTrimmed, trimmedLen);
     }
 
     [[nodiscard]] constexpr UInt32 Hash32() const
@@ -1223,7 +1223,7 @@ public:
         return hasher.Finish();
     }
 
-    [[nodiscard]] constexpr UInt32 Hash32IgnoreCase() const
+    [[nodiscard]] constexpr UInt32 IgnoreCaseHash32() const
     {
         IgnoreCaseFnv1ahHasher32<CharT> hasher {};
         hasher.Mix(m_ptr, m_len);
@@ -1237,7 +1237,7 @@ public:
         return hasher.Finish();
     }
 
-    [[nodiscard]] constexpr UInt64 Hash64IgnoreCase() const
+    [[nodiscard]] constexpr UInt64 IgnoreCaseHash64() const
     {
         IgnoreCaseFnv1ahHasher64<CharT> hasher {};
         hasher.Mix(m_ptr, m_len);
@@ -1250,10 +1250,10 @@ public:
         return _str.Hash32();
     }
 
-    [[nodiscard]] constexpr static UInt32 Hashed32IgnoreCase(
+    [[nodiscard]] constexpr static UInt32 IgnoreCaseHashed32(
         const BasicStringView _str)
     {
-        return _str.Hash32IgnoreCase();
+        return _str.IgnoreCaseHash32();
     }
 
     [[nodiscard]] constexpr static UInt64 Hashed64(
@@ -1262,10 +1262,10 @@ public:
         return _str.Hash64();
     }
 
-    [[nodiscard]] constexpr static UInt64 Hashed64IgnoreCase(
+    [[nodiscard]] constexpr static UInt64 IgnoreCaseHashed64(
         const BasicStringView _str)
     {
-        return _str.Hash64IgnoreCase();
+        return _str.IgnoreCaseHash64();
     }
 
     [[nodiscard]] constexpr CharT Back() const
@@ -1856,19 +1856,19 @@ public:
         return ToStringView().SubView(_pos, _len);
     }
 
-    [[nodiscard]] TStringView LTrimed() const
+    [[nodiscard]] TStringView LTrimmed() const
     {
-        return ToStringView().LTrimed();
+        return ToStringView().LTrimmed();
     }
 
-    [[nodiscard]] TStringView RTrimed() const
+    [[nodiscard]] TStringView RTrimmed() const
     {
-        return ToStringView().RTrimed();
+        return ToStringView().RTrimmed();
     }
 
-    [[nodiscard]] TStringView Trimed() const
+    [[nodiscard]] TStringView Trimmed() const
     {
-        return ToStringView().Trimed();
+        return ToStringView().Trimmed();
     }
 
     void Replace(const SizeT _pos, const SizeT _len, const TStringView _replacement)
@@ -2105,14 +2105,14 @@ public:
         return ToStringView().Hash64();
     }
 
-    [[nodiscard]] UInt32 Hash32IgnoreCase() const
+    [[nodiscard]] UInt32 IgnoreCaseHash32() const
     {
-        return ToStringView().Hash32IgnoreCase();
+        return ToStringView().IgnoreCaseHash32();
     }
 
-    [[nodiscard]] UInt64 Hash64IgnoreCase() const
+    [[nodiscard]] UInt64 IgnoreCaseHash64() const
     {
-        return ToStringView().Hash64IgnoreCase();
+        return ToStringView().IgnoreCaseHash64();
     }
 
     [[nodiscard]] constexpr static UInt32 Hashed32(
@@ -2127,16 +2127,16 @@ public:
         return TStringView::Hashed64(_str);
     }
 
-    [[nodiscard]] constexpr static UInt32 Hashed32IgnoreCase(
+    [[nodiscard]] constexpr static UInt32 IgnoreCaseHashed32(
         const TStringView _str)
     {
-        return TStringView::Hashed32IgnoreCase(_str);
+        return TStringView::IgnoreCaseHashed32(_str);
     }
 
-    [[nodiscard]] constexpr static UInt64 Hashed64IgnoreCase(
+    [[nodiscard]] constexpr static UInt64 IgnoreCaseHashed64(
         const TStringView _str)
     {
-        return TStringView::Hashed64IgnoreCase(_str);
+        return TStringView::IgnoreCaseHashed64(_str);
     }
 
     /////////// file system //////////
@@ -2308,7 +2308,6 @@ public:
     [[nodiscard]] TString ToCamelCase() const
     {
         const SizeT len        = Self_().GetLength();
-        bool        bFirst     = true;
         bool        bNextUpper = false;
 
         TString result = {};
@@ -2322,17 +2321,14 @@ public:
             }
             else
             {
-                if (bFirst)
-                {
-                    result += c;
-                    bFirst = false;
-                }
-                else
-                {
-                    result += bNextUpper ? CharFuncs::ToUpper(c) : c;
-                }
+                result += bNextUpper ? CharFuncs::ToUpper(c) : CharFuncs::ToLower(c);
                 bNextUpper = false;
             }
+        }
+
+        if (!result.IsEmpty())
+        {
+            result[0] = CharFuncs::ToLower(result[0]);
         }
 
         return result;
@@ -2362,7 +2358,7 @@ public:
             }
             else
             {
-                result += bNextUpper ? CharFuncs::ToUpper(c) : c;
+                result += bNextUpper ? CharFuncs::ToUpper(c) : CharFuncs::ToLower(c);
                 bNextUpper = false;
             }
         }

@@ -31,21 +31,21 @@ protected:
 class MemoryWriter : public MemoryIO
 {
 public:
-    explicit MemoryWriter(MemoryBlock _mem);
-    SizeT Write(CMemoryBlock _src) const;
+    explicit MemoryWriter(MutableMemoryView _mem);
+    SizeT Write(MemoryView _src) const;
 
 private:
-    MemoryBlock m_mem = {};
+    MutableMemoryView m_mem = {};
 };
 
 class MemoryReader : public MemoryIO
 {
 public:
-    explicit MemoryReader(CMemoryBlock _mem);
-    SizeT Read(MemoryBlock _dst) const;
+    explicit MemoryReader(MemoryView _mem);
+    SizeT Read(MutableMemoryView _dst) const;
 
 private:
-    CMemoryBlock m_mem = {};
+    MemoryView m_mem = {};
 };
 
 }   // namespace Jam

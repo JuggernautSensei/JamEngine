@@ -17,16 +17,16 @@ enum class eTextureChannel
 
 struct MaterialParams
 {
-    Vector3  ambient   = Vec3::k_one;
-    Vector3  diffuse   = Vec3::k_one;
-    Vector3  specular  = Vec3::k_one;
+    Vec3  ambient   = Numbers<Vec3>::k_one;
+    Vec3  diffuse   = Numbers<Vec3>::k_one;
+    Vec3  specular  = Numbers<Vec3>::k_one;
     float shininess = 32.0f;
 
-    Vector3  albedo    = Vec3::k_one;
+    Vec3  albedo    = Numbers<Vec3>::k_one;
     float roughness = 1.f;
     float metallic  = 1.f;
 
-    Vector3  emissive          = Vec3::k_zero;
+    Vec3  emissive          = Numbers<Vec3>::k_zero;
     float emissiveIntensity = 1.f;
 
     bool bAlphaCutout = false;
@@ -44,7 +44,6 @@ enum class eMaterialTextureType
     Ao,
     VertexDisplacement,
 };
-// ReSharper disable once CppStaticAssertFailure
 using MaterialTextures = EnumArray<eMaterialTextureType, Ref<Texture>>;
 
 struct MaterialTextureSettings
@@ -57,25 +56,26 @@ struct MaterialTextureSettings
     eTextureChannel roughnessMapChannel        = eTextureChannel::Red;
 };
 
+struct MaterialDesc
+{
+    MaterialParams          params   = {};
+    MaterialTextures        textures = {};
+    MaterialTextureSettings settings = {};
+};
+
 class Material : public IAsset
 {
 public:
-    [[nodiscard]] static Expect<Ref<Material>> Create(StringView _path);
-    [[nodiscard]] static Ref<Material>         Create(const MaterialParams& _params, const MaterialTextures& _textures, const MaterialTextureSettings& _settings);
+    [[nodiscard]] static Ref<Material>         Load(const MaterialDesc& _desc);
+    [[nodiscard]] static Expect<Ref<Material>> LoadFromFile(StringView _path);
 
-    Error Load(StringView _path) override;
-    void  Load(const MaterialParams& _params, const MaterialTextures& _textures, const MaterialTextureSettings& _settings);
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
     void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
-    void                                         SetParams(const MaterialParams& _params);
-    [[nodiscard]] const MaterialParams&          GetParams() const;
-    void                                         SetTextures(const MaterialTextures& _texes);
-    [[nodiscard]] const MaterialTextures&        GetTextures() const;
-    void                                         SetTextureSettings(const MaterialTextureSettings& _settings);
-    [[nodiscard]] const MaterialTextureSettings& GetTextureSettings() const;
+    void                              SetDesc(const MaterialDesc& _desc);
+    [[nodiscard]] const MaterialDesc& GetDesc() const;
 
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] StringView GetPath() const override;
@@ -95,7 +95,9 @@ public:
 
 private:
     Material() = default;
-    void CleanUp_();
+    explicit Material(const MaterialDesc& _desc);
+    Error Load_(StringView _path) override;
+    void  CleanUp_();
 
     String m_name            = {};
     String m_path            = {};
@@ -103,9 +105,7 @@ private:
     bool   m_bValid          = false;
     bool   m_bLoadedFromFile = false;
 
-    MaterialParams          m_params   = {};
-    MaterialTextureSettings m_settings = {};
-    MaterialTextures        m_textures = {};
+    MaterialDesc m_desc = {};
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Material>& _pMaterial);

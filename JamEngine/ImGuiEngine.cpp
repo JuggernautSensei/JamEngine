@@ -278,12 +278,14 @@ void ImGuiEngine::Render_(
         }
     }
 
+    Graphics& gfx = GetGraphics();
+
     // realloc
     if (m_vbCap < _pDrawData->TotalVtxCount)
     {
         JAM_DESTROY_VERTEX_BUFFER(m_vbh);
         m_vbCap = _pDrawData->TotalVtxCount + 5000;
-        m_vbh   = GetGraphics().CreateDynamicVertexBuffer(m_vbCap * sizeof(ImDrawVert), m_vl);
+        m_vbh   = gfx.CreateDynamicVertexBuffer(m_vbCap * sizeof(ImDrawVert), m_vl);
     }
 
     // realloc
@@ -292,14 +294,14 @@ void ImGuiEngine::Render_(
         JAM_DESTROY_INDEX_BUFFER(m_ibh);
         const bool bUseU32 = NeedU32Index(_pDrawData->TotalVtxCount);
         m_ibCap            = _pDrawData->TotalIdxCount + 10000;
-        m_ibh              = GetGraphics().CreateDynamicIndexBuffer(m_ibCap, bUseU32);
+        m_ibh              = gfx.CreateDynamicIndexBuffer(m_ibCap, bUseU32);
     }
 
     // copy data to cpu buffers
-    const MemoryBlock gpuVtxData  = GetGraphics().BeginUploadBuffer(m_vbh);
+    const MutableMemoryView gpuVtxData  = gfx.BeginUploadBuffer(m_vbh);
     Byte*             pGpuVtxData = gpuVtxData.GetPtr();
 
-    const MemoryBlock gpuIdxData  = GetGraphics().BeginUploadBuffer(m_ibh);
+    const MutableMemoryView gpuIdxData  = gfx.BeginUploadBuffer(m_ibh);
     Byte*             pGpuIdxData = gpuIdxData.GetPtr();
 
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
@@ -317,12 +319,12 @@ void ImGuiEngine::Render_(
     }
 
     // unmap
-    GetGraphics().EndUploadBuffer(m_vbh);
-    GetGraphics().EndUploadBuffer(m_ibh);
+    gfx.EndUploadBuffer(m_vbh);
+    gfx.EndUploadBuffer(m_ibh);
 
     // setup
     const Viewport vp = { NumericCast<UInt16>(_pDrawData->DisplaySize.x), NumericCast<UInt16>(_pDrawData->DisplaySize.y) };
-    GetGraphics().SetViewport(vp);
+    gfx.SetViewport(vp);
 
     const float L = _pDrawData->DisplayPos.x;
     const float R = _pDrawData->DisplayPos.x + _pDrawData->DisplaySize.x;
@@ -350,13 +352,13 @@ void ImGuiEngine::Render_(
     cb.mvp[3][2] = 0.5f;
     cb.mvp[3][3] = 1.0f;
 
-    GetGraphics().UploadBuffer(m_cbh, cb);
-    GetGraphics().SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    GetGraphics().SetBlendState(m_bs, 0);
-    GetGraphics().SetRenderState(m_rs);
-    GetGraphics().SetSampler(m_ss, eShader::PixelShader, 0);
-    GetGraphics().SetStencil(StencilState::k_disable, StencilState::k_disable);
-    GetGraphics().SetVertexBuffer(m_vbh);
+    gfx.UploadBuffer(m_cbh, AsMemoryView(cb));
+    gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
+    gfx.SetBlendState(m_bs, 0);
+    gfx.SetRenderState(m_rs);
+    gfx.SetSampler(m_ss, eShader::PixelShader, 0);
+    gfx.SetStencil(StencilState::k_disable, StencilState::k_disable);
+    gfx.SetVertexBuffer(m_vbh);
 
     // Render command lists
     Int32 startIdxLoc = 0;
@@ -380,23 +382,23 @@ void ImGuiEngine::Render_(
             }
 
             // Apply scissor/clipping rectangle
-            GetGraphics().SetScissorRect(clipMinX, clipMinY, clipMaxX, clipMaxY);
+            gfx.SetScissorRect(clipMinX, clipMinY, clipMaxX, clipMaxY);
 
             // Draw
-            GetGraphics().SetIndexBuffer(m_ibh, cmd.ElemCount, 0);
-            GetGraphics().SetSubmitParameter(eSubmitParameterType::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
-            GetGraphics().SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
+            gfx.SetIndexBuffer(m_ibh, cmd.ElemCount, 0);
+            gfx.SetSubmitParameter(eSubmitParameterType::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
+            gfx.SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
 
             // Bind texture
             const auto [texh, type] = TextureDataFrom_(cmd.GetTexID());
 
             // set program
             const ProgramHandle ph = (type == eTextureType::TextureCube) ? m_textureCubePh : m_basicPh;
-            GetGraphics().SetProgram(ph);
-            GetGraphics().SetTexture(texh, eShader::PixelShader, 0);
+            gfx.SetProgram(ph);
+            gfx.SetTexture(texh, eShader::PixelShader, 0);
 
             // submit
-            GetGraphics().Submit();
+            gfx.Submit();
         }
 
         startIdxLoc += pDrawList->IdxBuffer.Size;
@@ -404,9 +406,9 @@ void ImGuiEngine::Render_(
     }
 
     // reset state
-    GetGraphics().SetSubmitParameter(eSubmitParameterType::StartIndexLocation, 0);
-    GetGraphics().SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, 0);
-    GetGraphics().Flush();
+    gfx.SetSubmitParameter(eSubmitParameterType::StartIndexLocation, 0);
+    gfx.SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, 0);
+    gfx.Flush();
 }
 
 void ImGuiEngine::UpdateTexture_(
@@ -417,8 +419,8 @@ void ImGuiEngine::UpdateTexture_(
         JAM_ASSERT(_pTexture->TexID == ImTextureID_Invalid && _pTexture->BackendUserData == nullptr, "Trying to create a texture that is already created.");
         JAM_ASSERT(_pTexture->Format == ImTextureFormat_RGBA32, "ImGuiGlueContext::UpdateTexture - Unsupported texture format.");
 
-        const CMemoryBlock texData[] = {
-            CMemoryBlock { _pTexture->GetPixels(), _pTexture->GetSizeInBytes() }
+        const MemoryView texData[] = {
+            MemoryView { _pTexture->GetPixels(), _pTexture->GetSizeInBytes() }
         };
 
         // dynamic texture creation
@@ -433,7 +435,7 @@ void ImGuiEngine::UpdateTexture_(
         // upload dynamic
         for (const ImTextureRect& rect: _pTexture->Updates)
         {
-            const CMemoryBlock texData = { _pTexture->GetPixelsAt(rect.x, rect.y), _pTexture->GetSizeInBytes() };
+            const MemoryView texData = { _pTexture->GetPixelsAt(rect.x, rect.y), _pTexture->GetSizeInBytes() };
             GetGraphics().UploadTexture2D(texh, 0, 0, rect.x, rect.y, texData, rect.w, rect.h, _pTexture->GetPitch());
         }
         _pTexture->SetStatus(ImTextureStatus_OK);

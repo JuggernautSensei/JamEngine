@@ -84,7 +84,7 @@ void PrimitiveCreationDialog::Panel_CubeCreation_()
 {
     JAM_ASSERT(m_type == ePrimitiveCreationType::Cube, "mesh type must be cube.");
 
-    if (BeginLabelTable("ShowCreateCube"))
+    if (BeginLabelValueTable("ShowCreateCube"))
     {
         // dir
         ImGui::TableNextColumn();
@@ -133,7 +133,7 @@ void PrimitiveCreationDialog::Panel_SphereCreation_()
 {
     JAM_ASSERT(m_type == ePrimitiveCreationType::Sphere, "mesh type must be sphere.");
 
-    if (BeginLabelTable("ShowCreateSphere"))
+    if (BeginLabelValueTable("ShowCreateSphere"))
     {
         // dir
         ImGui::TableNextColumn();
@@ -180,7 +180,7 @@ void PrimitiveCreationDialog::Panel_PlaneCreation_()
 {
     JAM_ASSERT(m_type == ePrimitiveCreationType::Plane, "mesh type must be plane.");
 
-    if (BeginLabelTable("ShowCreatePlane"))
+    if (BeginLabelValueTable("ShowCreatePlane"))
     {
         // dir
         ImGui::TableNextColumn();
@@ -223,7 +223,7 @@ void PrimitiveCreationDialog::Panel_CircleCreation_()
 {
     JAM_ASSERT(m_type == ePrimitiveCreationType::Circle, "mesh type must be circle.");
 
-    if (BeginLabelTable("ShowCreateCircle"))
+    if (BeginLabelValueTable("ShowCreateCircle"))
     {
         // dir
         ImGui::TableNextColumn();
@@ -270,7 +270,7 @@ void PrimitiveCreationDialog::Panel_ConeCreation_()
 {
     JAM_ASSERT(m_type == ePrimitiveCreationType::Cone, "mesh type must be cone.");
 
-    if (BeginLabelTable("ShowCreateCone"))
+    if (BeginLabelValueTable("ShowCreateCone"))
     {
         // dir
         ImGui::TableNextColumn();
@@ -324,7 +324,7 @@ void PrimitiveCreationDialog::Panel_CylinderCreation_()
 {
     JAM_ASSERT(m_type == ePrimitiveCreationType::Cylinder, "mesh type must be cylinder.");
 
-    if (BeginLabelTable("ShowCreateCylinder"))
+    if (BeginLabelValueTable("ShowCreateCylinder"))
     {
         // dir
         ImGui::TableNextColumn();
@@ -417,7 +417,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
     {
         case ePrimitiveCreationType::Cube:
         {
-            const Vector3 size { m_fParam0, m_fParam1, m_fParam2 };
+            const Vec3 size { m_fParam0, m_fParam1, m_fParam2 };
             return CreateCubeMesh(size, vl);
         }
 
@@ -430,7 +430,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
 
         case ePrimitiveCreationType::Plane:
         {
-            const Vector2 size { m_fParam0, m_fParam1 };
+            const Vec2 size { m_fParam0, m_fParam1 };
             return CreatePlaneMesh(size, vl);
         }
 

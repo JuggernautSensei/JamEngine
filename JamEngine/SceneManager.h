@@ -25,14 +25,13 @@ public:
     void RenderRuntime() const;                                       // 백버퍼에 메인 카메라로 렌더링
     void RenderRuntime(FrameBufferHandle _fbh, Viewport _vp) const;   // 특정 버퍼에 메인 카메라로 렌더링
     void Render(const RenderView& _view) const;
-
     void ImGuiRender() const;
 
-    [[nodiscard]] Error LoadScene(StringView _path, bool _bDefered = true);  
-    void                LoadScene(const Ref<Scene>& _pScene, bool _bDefered = true); 
+    void LoadScene(Scoped<Scene>&& _pScene, bool _bDefered = true);
 
-    [[nodiscard]] bool              HasActiveScene() const;
-    [[nodiscard]] const Ref<Scene>& GetActiveScene() const;
+    [[nodiscard]] bool   HasActiveScene() const;
+    [[nodiscard]] Scene* GetActiveScene() const;
+    [[nodiscard]] Scene* GetActiveSceneOrNull() const;
 
 private:
     SceneManager() = default;
@@ -45,10 +44,12 @@ private:
     void OnWindowResizedEvent_(const WindowResizedEvent& _event) const;
     void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event) const;
 
-    void ChangeSceneDefered_(const Ref<Scene>& _pScene);
-    void ChangeScene_(const Ref<Scene>& _pScene);
+    void ChangeSceneDefered_(Scoped<Scene>&& _pScene);
+    void ChangeScene_(Scoped<Scene>&& _pScene);
+    void ChangeToNextScene_();
 
-    Ref<Scene> m_pActiveScene = nullptr;
+    Scoped<Scene> m_pScene     = nullptr;
+    Scoped<Scene> m_pNextScene = nullptr;   // defered scene
 
     inline static SceneManager* s_pInstance = nullptr;
     friend class Application;

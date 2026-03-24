@@ -16,44 +16,44 @@ ComponentDatabase& ComponentDatabase::GetInstance()
 bool ComponentDatabase::IsComponentReflected(
     const StringView _typeName) const
 {
-    return m_componentMetadataContainer.contains(_typeName.Hash32());
+    return m_componentRflData.contains(_typeName.Hash32());
 }
 
 bool ComponentDatabase::IsComponentReflected(
     const UInt32 _typeHash) const
 {
-    return m_componentMetadataContainer.contains(_typeHash);
+    return m_componentRflData.contains(_typeHash);
 }
 
 bool ComponentDatabase::IsComponentReflectedByEnttHash(
     const UInt32 _enttHash) const
 {
-    return m_enttHashToTypeHashMap.contains(_enttHash);
+    return m_enttHashToTypeHash.contains(_enttHash);
 }
 
 const ComponentReflectionData& ComponentDatabase::GetComponentReflectionByEnttHash(
     const UInt32 _enttHash) const
 {
-    const UInt32 typeHash = m_enttHashToTypeHashMap.at(_enttHash);
-    return m_componentMetadataContainer.at(typeHash);
+    const UInt32 typeHash = m_enttHashToTypeHash.at(_enttHash);
+    return m_componentRflData.at(typeHash);
 }
 
 const ComponentReflectionData& ComponentDatabase::GetComponentReflection(
     const UInt32 _typeHash) const
 {
-    return m_componentMetadataContainer.at(_typeHash);
+    return m_componentRflData.at(_typeHash);
 }
 
 const ComponentReflectionData& ComponentDatabase::GetComponentReflection(
     const StringView _typeName) const
 {
     const UInt32 typeHash = _typeName.Hash32();
-    return m_componentMetadataContainer.at(typeHash);
+    return m_componentRflData.at(typeHash);
 }
 
 const CASHashMap<UInt32, ComponentReflectionData>& ComponentDatabase::GetComponentReflectionContainer() const
 {
-    return m_componentMetadataContainer;
+    return m_componentRflData;
 }
 
 void ComponentDatabase::DestroyInstance()

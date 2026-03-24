@@ -1,97 +1,6 @@
-#ifndef JAM_SHADERBRIDGE_H
-#define JAM_SHADERBRIDGE_H
-
-#ifdef __cplusplus
-
-#    define JAM_NAMESPACE_BEGIN \
-        namespace Jam           \
-        {
-
-#    define JAM_NAMESPACE_END }
-
-#    define JAM_CBUFFER(_name, _slot)           \
-        constexpr __int32 _name##_SLOT = _slot; \
-        struct alignas(16) _name
-
-#    define JAM_FLOAT  float
-#    define JAM_FLOAT2 Vector2
-#    define JAM_FLOAT3 Vector3
-#    define JAM_FLOAT4 Vector4
-#    define JAM_MATRIX Matrix4x4
-#    define JAM_INT32  __int32
-#    define JAM_UINT32 unsigned __int32
-#    define JAM_BOOL   __int32
-
-#    define JAM_TRUE  1
-#    define JAM_FALSE 0
-
-#    define JAM_PAD_IMPL(a, b)    a##b
-#    define JAM_PAD(_type, _line) _type JAM_PAD_IMPL(cb_pad, _line)
-#    define JAM_PAD_FLOAT         JAM_PAD(JAM_FLOAT, __LINE__)
-#    define JAM_PAD_FLOAT2        JAM_PAD(JAM_FLOAT2, __LINE__)
-#    define JAM_PAD_FLOAT3        JAM_PAD(JAM_FLOAT3, __LINE__)
-
-#    define JAM_SEMANTIC(_sementic)
-
-#    define JAM_SHADER_RESOURCE_TEXTURE2D(_name, _slot) \
-        constexpr __int32 _name##Slot = _slot;
-
-#    define JAM_SHADER_RESOURCE_TEXTURE2D_ARRAY(_name, _slot) \
-        constexpr __int32 _name##Slot = _slot;
-
-#    define JAM_SHADER_RESOURCE_TEXTURECUBE(_name, _slot) \
-        constexpr __int32 _name##Slot = _slot;
-
-#    define JAM_SHADER_RESOURCE_SAMPLER(_name, _slot) \
-        constexpr __int32 _name##Slot = _slot;
-
-#    define JAM_SHADER_RESOURCE_SAMPLER_COMPARISON(_name, _slot) \
-        constexpr __int32 _name##Slot = _slot;
-
-#else
-
-#    define JAM_NAMESPACE_BEGIN
-#    define JAM_NAMESPACE_END
-
-#    define JAM_CBUFFER(_name, _slot) \
-        cbuffer _name : register(b##_slot)
-
-#    define JAM_FLOAT  float
-#    define JAM_FLOAT2 float2
-#    define JAM_FLOAT3 float3
-#    define JAM_FLOAT4 float4
-#    define JAM_MATRIX float4x4
-#    define JAM_INT32  int
-#    define JAM_UINT32 uint
-#    define JAM_BOOL   JAM_UINT32
-
-#    define JAM_TRUE  1
-#    define JAM_FALSE 0
-
-#    define JAM_PAD_IMPL(a, b)    a##b
-#    define JAM_PAD(_type, _line) _type JAM_PAD_IMPL(cb_pad, _line)
-#    define JAM_PAD_FLOAT         JAM_PAD(JAM_FLOAT, __LINE__)
-#    define JAM_PAD_FLOAT2        JAM_PAD(JAM_FLOAT2, __LINE__)
-#    define JAM_PAD_FLOAT3        JAM_PAD(JAM_FLOAT3, __LINE__)
-
-#    define JAM_SEMANTIC(_sementic) : _sementic
-
-#    define JAM_SHADER_RESOURCE_TEXTURE2D(_name, _slot) \
-        Texture2D _name : register(t##_slot)
-
-#    define JAM_SHADER_RESOURCE_TEXTURE2D_ARRAY(_name, _slot) \
-        Texture2DArray _name : register(t##_slot)
-
-#    define JAM_SHADER_RESOURCE_TEXTURECUBE(_name, _slot) \
-        TextureCube _name : register(t##_slot)
-
-#    define JAM_SHADER_RESOURCE_SAMPLER(_name, _slot) \
-        SamplerState _name : register(s##_slot)
-
-#    define JAM_SHADER_RESOURCE_SAMPLER_COMPARISON(_name, _slot) \
-        SamplerComparisonState _name : register(s##_slot)
-
-#endif   // __cplusplus
+#pragma once
+#include "CppHlslGlue.h"
+// ReSharper disable CppClangTidyModernizeMacroToEnum
 
 JAM_NAMESPACE_BEGIN
 
@@ -143,13 +52,13 @@ JAM_NAMESPACE_BEGIN
 // Constant Buffers
 //===================================================
 
-JAM_CBUFFER(CB_TRANSFORM, 0)
+JAM_CBUFFER(CBTransform, 0)
 {
     JAM_MATRIX cb_world;
     JAM_MATRIX cb_worldInvTrans;
 };
 
-JAM_CBUFFER(CB_CAMERA, 1)
+JAM_CBUFFER(CBCamera, 1)
 {
     JAM_MATRIX cb_view;          // 64
     JAM_MATRIX cb_proj;          // 64
@@ -159,7 +68,7 @@ JAM_CBUFFER(CB_CAMERA, 1)
     JAM_PAD_FLOAT;       // 4
 };
 
-JAM_CBUFFER(CB_LIGHT, 2)
+JAM_CBUFFER(CBLight, 2)
 {
     JAM_LIGHT_TYPE cb_lightType;   // 4
     JAM_FLOAT3     cb_lightPos;    // 12
@@ -179,7 +88,7 @@ JAM_CBUFFER(CB_LIGHT, 2)
     JAM_PAD_FLOAT3;               // 12
 };
 
-JAM_CBUFFER(CB_MATERIAL, 3)
+JAM_CBUFFER(CBMaterial, 3)
 {
     // phong
     JAM_FLOAT3 cb_ambient;                 // 12
@@ -204,7 +113,7 @@ JAM_CBUFFER(CB_MATERIAL, 3)
     JAM_PAD_FLOAT;                                  // 4
 };
 
-JAM_CBUFFER(CB_ENVIRONMENT, 4)
+JAM_CBUFFER(CBEnvironment, 4)
 {
     JAM_ENVIRONMENT_FLAGS cb_envFlags;            // 4
     JAM_FLOAT             cb_dirLightIntensity;   // 4
@@ -242,7 +151,7 @@ JAM_CBUFFER(CB_ENVIRONMENT, 4)
     JAM_FLOAT cb_bloomStrength;     // 4
 };
 
-JAM_CBUFFER(CB_SHADOW_RECEIVER, 5)
+JAM_CBUFFER(CBShadowReceiver, 5)
 {
     JAM_MATRIX cb_shadowReceiverViewProj;                   // 64 (shadow map)
     JAM_MATRIX cb_csmReceiverViewProj[JAM_CASCADE_LEVEL];   // 64 (cascade shadow map)
@@ -253,7 +162,7 @@ JAM_CBUFFER(CB_SHADOW_RECEIVER, 5)
     JAM_PAD_FLOAT3;               // 12
 };
 
-JAM_CBUFFER(CB_SCREEN, 6)
+JAM_CBUFFER(CBScreen, 6)
 {
     JAM_FLOAT cb_screenWidth;    // 4
     JAM_FLOAT cb_screenHeight;   // 4
@@ -261,23 +170,23 @@ JAM_CBUFFER(CB_SCREEN, 6)
     JAM_FLOAT cb_texelY;         // 4
 };
 
-JAM_CBUFFER(CB_SHADOW_CASTER, 7)
+JAM_CBUFFER(CBShadowCaster, 7)
 {
     JAM_MATRIX cb_shaderMappingViewProj;
 };
 
-JAM_CBUFFER(CB_CASCADE_SHADOW_CASTER, 8)
+JAM_CBUFFER(CBCascadeShadowCaster, 8)
 {
     JAM_MATRIX cb_csmViewProj[JAM_CASCADE_LEVEL];
 };
 
-JAM_CBUFFER(CB_OMNIDIRECTIONAL_SHADOW_CASTER, 9)
+JAM_CBUFFER(CBOmnidirectionalShadowCaster, 9)
 {
     JAM_MATRIX cb_odsViewProj[6];
 };
 
 // 최대 8x8 커널
-JAM_CBUFFER(CB_SSAO_KERNEL, 10)
+JAM_CBUFFER(CBSSAOKernel, 10)
 {
     JAM_FLOAT4 cb_ssaoKernel[JAM_SSAO_KERNEL_SIZE];
 };
@@ -286,13 +195,13 @@ JAM_CBUFFER(CB_SSAO_KERNEL, 10)
 // Vertex Structures
 //===================================================
 
-struct VS_INPUT_POS_TEX_2D
+struct VSInputPosTex2D
 {
     JAM_FLOAT2 posL     JAM_SEMANTIC(POSITION);
     JAM_FLOAT2 texCoord JAM_SEMANTIC(TEXCOORD0);
 };
 
-struct VS_INPUT_STATIC_MESH
+struct VSInputStaticMesh
 {
     JAM_FLOAT3 posL      JAM_SEMANTIC(POSITION);
     JAM_FLOAT3 normalL   JAM_SEMANTIC(NORMAL);
@@ -301,7 +210,7 @@ struct VS_INPUT_STATIC_MESH
     JAM_FLOAT2 texCoord1 JAM_SEMANTIC(TEXCOORD1);
 };
 
-struct VS_INPUT_POS_3D
+struct VSInputPos3D
 {
     JAM_FLOAT3 posL JAM_SEMANTIC(POSITION);
 };
@@ -363,5 +272,3 @@ JAM_SHADER_RESOURCE_SAMPLER(s_sampler0, 10);
 JAM_SHADER_RESOURCE_SAMPLER(s_sampler1, 11);
 
 JAM_NAMESPACE_END
-
-#endif   // JAM_SHADERBRIDGE_H

@@ -6,14 +6,6 @@ enum class eProjectExportType
     HLSLLiteral,
 };
 
-enum class eProjectExportFlags : UInt32
-{
-    None          = 0,        // user flags only
-    DefaultExport = 1 << 0,   // user flags only
-    DebugExport   = 1 << 1,   // user flags + debug defaults
-    ReleaseExport = 1 << 2,   // user flags + release defaults
-};
-
 enum class eNameFormat
 {
     NoSpace,     // Vertex Shader 0 -> VertexShader0
@@ -25,17 +17,15 @@ enum class eNameFormat
 struct ExportProjectInfo
 {
     // export settings
-    eProjectExportType         type  = eProjectExportType::CompiledBinary;
-    Flags<eProjectExportFlags> flags = eProjectExportFlags::DefaultExport;
+    eProjectExportType type                 = eProjectExportType::CompiledBinary;
+    bool               bIncludeDebugBuild   = false;            // true면 debug flags + user flags
+    bool               bIncludeReleaseBuild = false;            // true면 release flags + user flags
+    StringView         debugMacro           = "DEBUG_OUTPUT";   // 만약 bIncludeDebugBuild가 true라면 debugMacro로 구분자 역할을 하는 매크로가 정의됨.
+    StringView         rootNamespace        = "";
 
     // variable
     eNameFormat nameFormat = eNameFormat::NoSpace;
     String      namePrefix = "";
-
-    // preprocessor macros
-    StringView debugMacro    = "DEBUG_OUTPUT";
-    StringView releaseMacro  = "RELEASE_OUTPUT";
-    StringView rootNamespace = "";
 };
 
 class ProjectExporter
@@ -60,7 +50,8 @@ private:
     void                 Export_(const Project* _pProject, StringView _exportDir, StringView _baseName, const ExportProjectInfo& _exportProjectInfo);
     void                 WriteDeclarations_(const Project* _pProject, const FileWriter& _writer, const ExportProjectInfo& _info) const;
     void                 WriteLiteralDefinitions_(const Project* _pProject, const FileWriter& _writer, const ExportProjectInfo& _info);
-    void                 WriteCompiledBinaryDefinitions_(const Project* _pProject, const FileWriter& _writer, const ExportProjectInfo& _info);
+    void                 WriteCompiledBinaryDefinitions_(const Project* _pProject, const FileWriter& _writer, const ExportProjectInfo& _info, bool _bIncludeDebugFlags, bool
+                                                         _bIncludeReleaseFlags);
     void                 WriteCompiledBinaryOutput_(const Project* _pProject, const FileWriter& _writer, const ExportProjectInfo& _info, eWriteCompiledBinarySection _section);
     void                 AppendErrorState_(Error _error, StringView _msg);
     [[nodiscard]] String MakeVariableName_(StringView _name, StringView _prefix, eNameFormat _format) const;

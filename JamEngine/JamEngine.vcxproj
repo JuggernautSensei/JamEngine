@@ -406,8 +406,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CppHlslGlue.cpp" />
+    <ClInclude Include="CppHlslGlue.h" />
+    <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MessageDilaog.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
+    <ClCompile Include="SceneDatabase.cpp" />
+    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="STLAlgorithm.cpp" />
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="Archive.cpp" />
@@ -434,14 +439,12 @@
     <ClCompile Include="OrderedHashMap.cpp" />
     <ClCompile Include="PathIter.cpp" />
     <ClCompile Include="Reference.cpp" />
-    <ClCompile Include="SceneDatabase.cpp" />
     <ClCompile Include="SceneMetadata.cpp" />
     <ClCompile Include="ConstexprStringHashMap.cpp" />
     <ClCompile Include="EnumUtilities.cpp" />
     <ClCompile Include="CleanUp.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="JsonArchive.cpp" />
-    <ClCompile Include="MemoryBlock.cpp" />
     <ClCompile Include="NameOf.cpp" />
     <ClCompile Include="Delegate.cpp" />
     <ClCompile Include="AssetSaveLoader.cpp" />
@@ -507,11 +510,8 @@
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="Profile.cpp" />
     <ClCompile Include="RadixSort.cpp" />
-    <ClCompile Include="RenderGraph_Regacy.cpp" />
-    <ClCompile Include="RenderPass_Regacy.cpp" />
     <ClCompile Include="ResourcePool.cpp" />
     <ClCompile Include="SceneManager.cpp" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Flags.cpp" />
@@ -599,8 +599,10 @@
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Memory.h" />
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="RenderGraph.h" />
+    <ClInclude Include="SceneDatabase.h" />
     <ClInclude Include="STLAlgorithm.h" />
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="Archive.h" />
@@ -628,7 +630,6 @@
     <ClInclude Include="InfiniteDragger.h" />
     <ClInclude Include="JsonArchive.h" />
     <ClInclude Include="MemoryAllocator.h" />
-    <ClInclude Include="MemoryBlock.h" />
     <ClInclude Include="MemoryIO.h" />
     <ClInclude Include="NameOf.h" />
     <ClInclude Include="Delegate.h" />
@@ -667,7 +668,6 @@
     <ClInclude Include="LRUCache.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="Optional.h" />
-    <ClInclude Include="SceneDatabase.h" />
     <ClInclude Include="SceneMetadata.h" />
     <ClInclude Include="Scoped.h" />
     <ClInclude Include="Signal.h" />
@@ -703,15 +703,12 @@
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="Profile.h" />
     <ClInclude Include="RadixSort.h" />
-    <ClInclude Include="RenderGraph_Regacy.h" />
     <ClInclude Include="ThumbnailCache.h" />
     <ClInclude Include="TinyRingBuffer.h" />
     <ClInclude Include="TinyVector.h" />
     <ClInclude Include="Transform.h" />
-    <ClInclude Include="RenderPass_Regacy.h" />
     <ClInclude Include="ResourcePool.h" />
     <ClInclude Include="SceneManager.h" />
-    <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Flags.h" />

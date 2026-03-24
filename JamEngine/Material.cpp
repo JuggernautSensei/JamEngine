@@ -29,10 +29,14 @@ namespace   // data transfer objects
         bool bAlphaCutout = false;
         bool bDoubleSided = false;
     };
-    static_assert(sizeof(MaterialParamsDto) == sizeof(MaterialParams));
+    //};
+    //// static_assert(IsMemCpyable<MaterialParamsDto, MaterialParams>, "MaterialParamsDto must be trivially copyable for direct memory serialization.");
+    // static_assert(std::is_trivially_copyable_v<MaterialParamsDto>);
+    // static_assert(std::is_trivially_copyable_v<MaterialParams>);
+    // static_assert(sizeof(MaterialParamsDto) == sizeof(MaterialParams));
 
     using MaterialTexturesDto        = ArrayDto<StringViewDto, CountOf<eMaterialTextureType>()>;
-    using MaterialTextureSettingsDto = MaterialTextureSettings;   // same layout
+    using MaterialTextureSettingsDto = MaterialTextureSettings;
 
     struct MaterialDto
     {
@@ -47,105 +51,21 @@ namespace   // data transfer objects
 
 }   // namespace
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Ref<Material> Material::Load(
+    const MaterialDesc& _desc)
+{
+    return new Material(_desc);
+}
 
-Expect<Ref<Material>> Material::Create(
-    StringView _path)
+Expect<Ref<Material>> Material::LoadFromFile(
+    const StringView _path)
 {
     Ref<Material> pMaterial = new Material;
-    if (const Error err = pMaterial->Load(_path))
+    if (const Error err = pMaterial->Load_(_path))
     {
         return err;
     }
     return pMaterial;
-}
-
-Ref<Material> Material::Create(
-    const MaterialParams&          _params,
-    const MaterialTextures&        _textures,
-    const MaterialTextureSettings& _settings)
-{
-    Ref<Material> pMaterial = new Material;
-    pMaterial->Load(_params, _textures, _settings);
-    return pMaterial;
-}
-
-Error Material::Load(
-    StringView _path)
-{
-    JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
-
-    // io
-    Expect<MaterialLoader> loader = MaterialLoader::Open(_path);
-    if (!loader)
-    {
-        return loader.GetError();
-    }
-
-    // read
-    Expect<MaterialDto> pDto = loader->Read();
-    if (!pDto)
-    {
-        return pDto.GetError();
-    }
-
-    // read data
-    CleanUp_();
-    m_name                                = StringFrom(pDto->name);
-    m_params.ambient                      = pDto->params.ambient.ToVec3();
-    m_params.diffuse                      = pDto->params.diffuse.ToVec3();
-    m_params.specular                     = pDto->params.specular.ToVec3();
-    m_params.shininess                    = pDto->params.shininess;
-    m_params.albedo                       = pDto->params.albedo.ToVec3();
-    m_params.roughness                    = pDto->params.roughness;
-    m_params.metallic                     = pDto->params.metallic;
-    m_params.emissive                     = pDto->params.emissive.ToVec3();
-    m_params.emissiveIntensity            = pDto->params.emissiveIntensity;
-    m_params.bAlphaCutout                 = pDto->params.bAlphaCutout;
-    m_params.bDoubleSided                 = pDto->params.bDoubleSided;
-    m_settings.lightMapIntensity          = pDto->settings.lightMapIntensity;
-    m_settings.vertexDisplacementMapScale = pDto->settings.vertexDisplacementMapScale;
-    m_settings.bNormalMapFlipedY          = pDto->settings.bNormalMapFlipedY;
-    m_settings.emissiveMapIntensity       = pDto->settings.emissiveMapIntensity;
-
-    // load texture
-    for (eMaterialTextureType type: EnumRanges<eMaterialTextureType>())
-    {
-        const StringViewDto& path = pDto->textures[UnderlyingFrom(type)];
-        if (!path.empty())
-        {
-            Expect<Ref<Texture>> pTexture = GetAssetManager().LoadTexture(StringViewFrom(path));
-            if (!pTexture)
-            {
-                return pTexture.GetError();
-            }
-
-            m_textures[type] = pTexture.Take();
-        }
-    }
-
-    // finalize
-    const StringView path = _path;
-    const UInt32     hash = path.Hash32();
-    m_sortKey             = static_cast<UInt16>(hash);
-    m_path                = _path;
-    m_bValid              = true;
-    m_bLoadedFromFile     = true;
-    return Error::None;
-}
-
-void Material::Load(
-    const MaterialParams&          _params,
-    const MaterialTextures&        _textures,
-    const MaterialTextureSettings& _settings)
-{
-    CleanUp_();
-    m_params          = _params;
-    m_textures        = _textures;
-    m_settings        = _settings;
-    m_bValid          = true;
-    m_bLoadedFromFile = false;
-    m_sortKey         = MakeRandom<UInt16>(0);
 }
 
 Error Material::Save(
@@ -170,28 +90,15 @@ Error Material::Save(
     }
 
     // write data
-    MaterialDto dto                         = {};
-    dto.name                                = StringViewDtoFrom(m_name);
-    dto.params.ambient                      = Vec3Dto::FromVec3(m_params.ambient);
-    dto.params.diffuse                      = Vec3Dto::FromVec3(m_params.diffuse);
-    dto.params.specular                     = Vec3Dto::FromVec3(m_params.specular);
-    dto.params.shininess                    = m_params.shininess;
-    dto.params.albedo                       = Vec3Dto::FromVec3(m_params.albedo);
-    dto.params.roughness                    = m_params.roughness;
-    dto.params.metallic                     = m_params.metallic;
-    dto.params.emissive                     = Vec3Dto::FromVec3(m_params.emissive);
-    dto.params.emissiveIntensity            = m_params.emissiveIntensity;
-    dto.params.bAlphaCutout                 = m_params.bAlphaCutout;
-    dto.params.bDoubleSided                 = m_params.bDoubleSided;
-    dto.settings.lightMapIntensity          = m_settings.lightMapIntensity;
-    dto.settings.vertexDisplacementMapScale = m_settings.vertexDisplacementMapScale;
-    dto.settings.bNormalMapFlipedY          = m_settings.bNormalMapFlipedY;
-    dto.settings.emissiveMapIntensity       = m_settings.emissiveMapIntensity;
+    MaterialDto dto = {};
+    dto.name        = StringViewDtoFrom(m_name);
+    dto.params      = std::bit_cast<MaterialParamsDto>(m_desc.params);
+    dto.settings    = m_desc.settings;
 
     // write texture paths
-    for (eMaterialTextureType type: EnumRanges<eMaterialTextureType>())
+    for (eMaterialTextureType type: RangesOf<eMaterialTextureType>())
     {
-        const Ref<Texture>& pTexture = m_textures[type];
+        const Ref<Texture>& pTexture = m_desc.textures[type];
         if (pTexture && pTexture->IsValid())
         {
             dto.textures[UnderlyingFrom(type)] = StringViewDtoFrom(pTexture->GetPath());
@@ -208,7 +115,7 @@ void Material::SetName(
 }
 
 void Material::SetVirtualPath(
-    StringView _path)
+    const StringView _path)
 {
     JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of a material loaded from file");
     m_path = _path;
@@ -219,37 +126,14 @@ void Material::Invalidate()
     CleanUp_();
 }
 
-void Material::SetParams(
-    const MaterialParams& _params)
+void Material::SetDesc(const MaterialDesc& _desc)
 {
-    m_params = _params;
+    m_desc = _desc;
 }
 
-const MaterialParams& Material::GetParams() const
+const MaterialDesc& Material::GetDesc() const
 {
-    return m_params;
-}
-
-void Material::SetTextures(
-    const MaterialTextures& _texes)
-{
-    m_textures = _texes;
-}
-
-const MaterialTextures& Material::GetTextures() const
-{
-    return m_textures;
-}
-
-void Material::SetTextureSettings(
-    const MaterialTextureSettings& _settings)
-{
-    m_settings = _settings;
-}
-
-const MaterialTextureSettings& Material::GetTextureSettings() const
-{
-    return m_settings;
+    return m_desc;
 }
 
 bool Material::IsValid() const
@@ -297,6 +181,65 @@ StringView Material::GetFilter() const
     return k_filter;
 }
 
+Material::Material(const MaterialDesc& _desc)
+    : m_desc(_desc)
+{
+    m_bValid          = true;
+    m_bLoadedFromFile = false;
+    m_sortKey         = MakeRandom<UInt16>(0);
+}
+
+Error Material::Load_(
+    StringView _path)
+{
+    JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
+
+    // io
+    Expect<MaterialLoader> loader = MaterialLoader::Open(_path);
+    if (!loader)
+    {
+        return loader.GetError();
+    }
+
+    // read
+    Expect<MaterialDto> pDto = loader->Read();
+    if (!pDto)
+    {
+        return pDto.GetError();
+    }
+
+    // read data
+    CleanUp_();
+    m_name          = StringFrom(pDto->name);
+    m_desc.params   = std::bit_cast<MaterialParams>(pDto->params);
+    m_desc.settings = pDto->settings;
+
+    // load texture
+    for (eMaterialTextureType type: RangesOf<eMaterialTextureType>())
+    {
+        const StringViewDto& path = pDto->textures[UnderlyingFrom(type)];
+        if (!path.empty())
+        {
+            Expect<Ref<Texture>> pTexture = GetAssetManager().LoadTexture(StringViewFrom(path));
+            if (!pTexture)
+            {
+                return pTexture.GetError();
+            }
+
+            m_desc.textures[type] = pTexture.Take();
+        }
+    }
+
+    // finalize
+    const StringView path = _path;
+    const UInt32     hash = path.Hash32();
+    m_sortKey             = static_cast<UInt16>(hash);
+    m_path                = _path;
+    m_bValid              = true;
+    m_bLoadedFromFile     = true;
+    return Error::None;
+}
+
 void Material::CleanUp_()
 {
     m_path.Clear();
@@ -304,9 +247,7 @@ void Material::CleanUp_()
     m_sortKey         = 0;
     m_bValid          = false;
     m_bLoadedFromFile = false;
-    m_params          = {};
-    m_settings        = {};
-    m_textures        = {};
+    m_desc            = {};
 }
 
 void WriteToArchive(

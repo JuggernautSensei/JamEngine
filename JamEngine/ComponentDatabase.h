@@ -66,21 +66,21 @@ namespace Details
     }
 
     template<typename T>
-    void Serialize(const void* _pCmp, ArchiveWriter& _writer, const Ref<Scene>& _pScene, const Entity _entity)
+    void Serialize(const void* _pCmp, ArchiveWriter& _writer, Scene* _pScene, const Entity _entity)
     {
         const T& cmp = *static_cast<const T*>(_pCmp);
         cmp.Serialize(_writer, _pScene, _entity);
     }
 
     template<typename T>
-    void Deserialize(void* _pCmp, ArchiveReader& _reader, const Ref<Scene>& _pScene, const Entity _entity)
+    void Deserialize(void* _pCmp, ArchiveReader& _reader, Scene* _pScene, const Entity _entity)
     {
         T& cmp = *static_cast<T*>(_pCmp);
         cmp.Deserialize(_reader, _pScene, _entity);
     }
 
     template<typename T>
-    void DrawEditPanel(void* _pCmp, const Ref<Scene>& _pScene, Entity _entity)
+    void DrawEditPanel(void* _pCmp, Scene* _pScene, Entity _entity)
     {
         T& cmp = *static_cast<T*>(_pCmp);
         cmp.DrawEditPanel(_pScene, _entity);
@@ -101,17 +101,17 @@ struct ComponentReflectionData
     UInt32     typeHash          = 0;
     UInt32     enttHash          = 0;
 
-    Delegate<void(Entity)>                                                 Create              = nullptr;
-    Delegate<void(Entity)>                                                 CreateDefered       = nullptr;
-    Delegate<void(Entity, const void*)>                                    CreateByCopy        = nullptr;
-    Delegate<void(Entity, const void*)>                                    CreateByCopyDefered = nullptr;
-    Delegate<void(Entity)>                                                 Remove              = nullptr;
-    Delegate<void(Entity)>                                                 RemoveDefered       = nullptr;
-    Delegate<void*(Entity)>                                                Get                 = nullptr;
-    Delegate<bool(Entity)>                                                 Has                 = nullptr;
-    Delegate<void(const void*, ArchiveWriter&, const Ref<Scene>&, Entity)> Serialize           = nullptr;
-    Delegate<void(void*, ArchiveReader&, const Ref<Scene>&, Entity)>       Deserialize         = nullptr;
-    Delegate<void(void*, const Ref<Scene>&, Entity)>                       DrawEditPanel       = nullptr;
+    Delegate<void(Entity)>                                      Create              = nullptr;
+    Delegate<void(Entity)>                                      CreateDefered       = nullptr;
+    Delegate<void(Entity, const void*)>                         CreateByCopy        = nullptr;
+    Delegate<void(Entity, const void*)>                         CreateByCopyDefered = nullptr;
+    Delegate<void(Entity)>                                      Remove              = nullptr;
+    Delegate<void(Entity)>                                      RemoveDefered       = nullptr;
+    Delegate<void*(Entity)>                                     Get                 = nullptr;
+    Delegate<bool(Entity)>                                      Has                 = nullptr;
+    Delegate<void(const void*, ArchiveWriter&, Scene*, Entity)> Serialize           = nullptr;
+    Delegate<void(void*, ArchiveReader&, Scene*, Entity)>       Deserialize         = nullptr;
+    Delegate<void(void*, Scene*, Entity)>                       DrawEditPanel       = nullptr;
 
     bool bNonRemoveable      = false;
     bool bNonCreatableByUser = false;
@@ -137,21 +137,21 @@ public:
         data.CreateByCopyDefered     = Bind<Details::CreateComponentByCopyDefered<T>>();
         data.Get                     = Bind<Details::Get<T>>();
         data.Has                     = Bind<Details::Has<T>>();
-        data.bNonRemoveable          = HasComponentPropertyV<T, eComponentPropertyFlags::NonRemoveable>;
-        data.bNonCreatableByUser     = HasComponentPropertyV<T, eComponentPropertyFlags::NonCreatableByUser>;
+        data.bNonRemoveable          = HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>;
+        data.bNonCreatableByUser     = HasComponentPropertyFlag<T, eComponentPropertyFlags::NonCreatableByUser>;
 
-        if constexpr (!HasComponentPropertyV<T, eComponentPropertyFlags::NonRemoveable>)
+        if constexpr (!HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>)
         {
             data.Remove        = Bind<Details::RemoveComponent<T>>();
             data.RemoveDefered = Bind<Details::RemoveComponentDefered<T>>();
         }
 
-        if constexpr (HasComponentPropertyV<T, eComponentPropertyFlags::Editable>)
+        if constexpr (HasComponentPropertyFlag<T, eComponentPropertyFlags::Editable>)
         {
             data.DrawEditPanel = Bind<Details::DrawEditPanel<T>>();
         }
 
-        if constexpr (HasComponentPropertyV<T, eComponentPropertyFlags::Serializable>)
+        if constexpr (HasComponentPropertyFlag<T, eComponentPropertyFlags::Serializable>)
         {
             data.Serialize   = Bind<Details::Serialize<T>>();
             data.Deserialize = Bind<Details::Deserialize<T>>();
@@ -164,12 +164,12 @@ public:
 
         const UInt32 typeHash = data.typeHash;
         JAM_ASSERT(data.typeName.Hash32() == typeHash, "Type typeName hash does not match type hash for component '{}'", data.typeName);
-        JAM_ASSERT(!m_componentMetadataContainer.contains(typeHash), "Component with typeName '{}' is already registered", data.typeName);
-        m_componentMetadataContainer.emplace(typeHash, data);
+        JAM_ASSERT(!m_componentRflData.contains(typeHash), "Component with typeName '{}' is already registered", data.typeName);
+        m_componentRflData.emplace(typeHash, data);
 
         const UInt32 enttHash = Details::EnttHashOf<T>();
-        JAM_ASSERT(!m_enttHashToTypeHashMap.contains(enttHash), "Component with entt hash '{}' is already registered", enttHash);
-        m_enttHashToTypeHashMap.emplace(enttHash, typeHash);   // for fast lookup by entt hash
+        JAM_ASSERT(!m_enttHashToTypeHash.contains(enttHash), "Component with entt hash '{}' is already registered", enttHash);
+        m_enttHashToTypeHash.emplace(enttHash, typeHash);   // for fast lookup by entt hash
     }
 
     [[nodiscard]] bool IsComponentReflected(StringView _typeName) const;
@@ -185,8 +185,8 @@ public:
 private:
     static void DestroyInstance();
 
-    CASHashMap<UInt32, ComponentReflectionData> m_componentMetadataContainer = {};
-    CASHashMap<UInt32, UInt32>                  m_enttHashToTypeHashMap      = {};   // only supported for components
+    CASHashMap<UInt32, ComponentReflectionData> m_componentRflData   = {};
+    CASHashMap<UInt32, UInt32>                  m_enttHashToTypeHash = {};   // only supported for components
 
     inline static ComponentDatabase* s_pInstance = nullptr;
     friend class Application;
@@ -207,10 +207,12 @@ namespace Details
 
 }   // namespace Details
 
-}   // namespace Jam
+[[nodiscard]] inline ComponentDatabase& GetComponentDatabase()
+{
+    return ComponentDatabase::GetInstance();
+}
 
-#define JAM_COMPONENT_DB \
-    Jam::ComponentDatabase::GetInstance()
+}   // namespace Jam
 
 #define JAM_COMPONENT_BODY(TCmp, ...)                                                  \
 private:                                                                               \

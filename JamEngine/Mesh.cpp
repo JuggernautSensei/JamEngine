@@ -78,29 +78,51 @@ Mesh& Mesh::operator=(Mesh&& _other) noexcept
     return *this;
 }
 
-Expect<Ref<Mesh>> Mesh::Create(
+Ref<Mesh> Mesh::Load(
+    const MemoryView    _vertData,
+    const VertexLayout& _vl,
+    const MemoryView    _idxData,
+    const bool          _bUseU32)
+{
+    return new Mesh { _vertData, _vl, _idxData, _bUseU32 };
+}
+
+Mesh::Mesh(
+    const MemoryView    _vertData,
+    const VertexLayout& _vl,
+    const MemoryView    _idxData,
+    const bool          _bUseU32)
+{
+    // gpu resource creation
+    m_vbh = GetGraphics().CreateVertexBuffer(_vertData, _vl);
+    m_ibh = GetGraphics().CreateIndexBuffer(_idxData, _bUseU32);
+
+    // compute bounding box
+    ComputeBoundingBox_(_vertData, _vl);
+
+    // sort key
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(_vertData);
+    hasher.Mix(_idxData);
+    hasher.Mix(AsMemoryView(_vl));
+    hasher.Mix(AsMemoryView(_bUseU32));
+    const UInt64 hash = hasher.Finish();
+    m_sortKey         = static_cast<UInt16>(hash);
+    m_bLoadedFromFile = false;
+}
+
+Expect<Ref<Mesh>> Mesh::LoadFromFile(
     const StringView _path)
 {
     Ref<Mesh> pMesh = new Mesh;
-    if (const Error err = pMesh->Load(_path))
+    if (const Error err = pMesh->Load_(_path))
     {
         return err;
     }
     return pMesh;
 }
 
-Ref<Mesh> Mesh::Create(
-    const CMemoryBlock  _vertData,
-    const VertexLayout& _vl,
-    const CMemoryBlock  _idxData,
-    const bool          _bUseU32)
-{
-    Ref<Mesh> pMesh = new Mesh;
-    pMesh->Load(_vertData, _vl, _idxData, _bUseU32);
-    return pMesh;
-}
-
-Error Mesh::Load(
+Error Mesh::Load_(
     StringView _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
@@ -143,32 +165,6 @@ Error Mesh::Load(
     m_path                = _path;
     m_bLoadedFromFile     = true;
     return Error::None;
-}
-
-void Mesh::Load(
-    const CMemoryBlock  _vertData,
-    const VertexLayout& _vl,
-    const CMemoryBlock  _idxData,
-    const bool          _bUseU32)
-{
-    JAM_FUNCTION_PROFILE();
-
-    // gpu resource creation
-    m_vbh = GetGraphics().CreateVertexBuffer(_vertData, _vl);
-    m_ibh = GetGraphics().CreateIndexBuffer(_idxData, _bUseU32);
-
-    // compute bounding box
-    ComputeBoundingBox_(_vertData, _vl);
-
-    // sort key
-    Murmur3Hasher64 hasher {};
-    hasher.Mix(_vertData);
-    hasher.Mix(_idxData);
-    hasher.Mix(_vl);
-    hasher.Mix(_bUseU32);
-    const UInt64 hash = hasher.Finish();
-    m_sortKey         = static_cast<UInt16>(hash);
-    m_bLoadedFromFile = false;
 }
 
 Error Mesh::Save(
@@ -293,9 +289,11 @@ const Aabb& Mesh::GetBoundingBox() const
 
 void Mesh::Submit() const
 {
-    GetGraphics().SetVertexBuffer(m_vbh);
-    GetGraphics().SetIndexBuffer(m_ibh);
-    GetGraphics().Submit();
+    Graphics& gfx = GetGraphics();
+
+    gfx.SetVertexBuffer(m_vbh);
+    gfx.SetIndexBuffer(m_ibh);
+    gfx.Submit();
 }
 
 void Mesh::CleanUp_()
@@ -310,7 +308,7 @@ void Mesh::CleanUp_()
 }
 
 void Mesh::ComputeBoundingBox_(
-    const CMemoryBlock  _vertData,
+    const MemoryView    _vertData,
     const VertexLayout& _vl)
 {
     JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required to calculate bounding box");
@@ -323,7 +321,7 @@ void Mesh::ComputeBoundingBox_(
     m_boundingBox = {};
     for (Int32 i = 0; i < numVerts; ++i)
     {
-        const Vector3 pos = reader.ReadAt<Vector3>(i, eVertexAttribute::Position);
+        const Vec3 pos = reader.ReadAt<Vec3>(i, eVertexAttribute::Position);
         m_boundingBox.Merge(pos);   // merge aabb
     }
 }
@@ -348,7 +346,7 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Mesh>> pMesh = Mesh::Create(path);
+    Expect<Ref<Mesh>> pMesh = Mesh::LoadFromFile(path);
     if (!pMesh)
     {
         return pMesh.GetError();

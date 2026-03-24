@@ -11,7 +11,7 @@ namespace Jam
 
 void SceneComponent::Serialize(
     ArchiveWriter& _writer,
-    const Ref<Scene>&,
+    Scene*,
     Entity) const
 {
     _writer.WriteField("localMatrix", node.GetLocalTransform().GetMatrix());
@@ -20,11 +20,11 @@ void SceneComponent::Serialize(
 
 void SceneComponent::Deserialize(
     ArchiveReader&    _reader,
-    const Ref<Scene>& _pScene,
+    Scene* _pScene,
     const Entity      _owner)
 {
     // transform
-    Matrix4x4 localMtx = Mtx4::k_identity;
+    Mtx4 localMtx = Numbers<Mtx4>::k_identity;
     if (_reader.ReadField("localTransform", localMtx))
     {
         return;
@@ -54,10 +54,10 @@ void SceneComponent::Deserialize(
 }
 
 void SceneComponent::DrawEditPanel(
-    const Ref<Scene>& _pScene,
+    Scene* _pScene,
     Entity            _owner)
 {
-    if (BeginLabelTable("SceneComponent"))
+    if (BeginLabelValueTable("SceneComponent"))
     {
         // coordinate space
         enum class eCoordinate
@@ -73,8 +73,8 @@ void SceneComponent::DrawEditPanel(
         const Transform& transform = bIsWorld ? node.GetWorldTransform() : node.GetLocalTransform();
 
         // get translation & scale
-        Vector3 translation = transform.GetTranslation();
-        Vector3 scale       = transform.GetScale();
+        Vec3 translation = transform.GetTranslation();
+        Vec3 scale       = transform.GetScale();
 
         // setup
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
@@ -102,7 +102,7 @@ void SceneComponent::DrawEditPanel(
         {
             static EulerProxy s_proxy = {};
             s_proxy.OnBeforeWidget(transform);
-            Vector3& eulerRad = s_proxy.GetEulerProxy();
+            Vec3& eulerRad = s_proxy.GetEulerProxy();
 
             ImGui::TableNextColumn();
             Widget_Text("rotation", true);
