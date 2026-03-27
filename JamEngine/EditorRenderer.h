@@ -93,11 +93,11 @@ private:
     Ref<Mesh> m_cubeMesh     = nullptr;
 
     // 상태
-    RenderState m_lineState   = {};
-    RenderState m_gridState   = {};
-    RenderState m_filledState = {};
+    Flags<eRenderFlags> m_lineRenderFlags   = {};
+    Flags<eRenderFlags> m_gridRenderFlags   = {};
+    Flags<eRenderFlags> m_filledRenderFlags = {};
 
-    BlendState            m_blendState    = {};
+    Flags<eBlendFlags>    m_blendFlags    = {};
     RGBA                  m_currentColor  = RGBA::k_white;
     Flags<eDrawGridFlags> m_drawGridFlags = eDrawGridFlags::None;
     bool                  m_bBeginRender  = false;

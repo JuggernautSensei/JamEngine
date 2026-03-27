@@ -220,8 +220,8 @@ void HelloJamScene::OnRender(const RenderView& _view)
     Graphics::SetConstantBuffer(m_globalCbh, eShader::VertexShader, 1);
     Graphics::SetConstantBuffer(m_globalCbh, eShader::PixelShader, 1);
 
-    Graphics::SetRenderState(m_gfxState);
-    Graphics::SetBlendState(m_blendState, 0);
+    Graphics::SetRenderFlags(m_gfxState);
+    Graphics::SetBlendFlags(m_blendState, 0);
 
     CB_HELLO_JAM_GLOBAL global;
     global.view            = _view.view.Transpose();
@@ -253,7 +253,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
             Graphics::UploadBuffer(m_transformCbh, transformData);
 
             Graphics::SetTexture(m_cubeTh, eShader::PixelShader, 0);
-            Graphics::SetSampler(SamplerState::k_linearClamp, eShader::PixelShader, 0);
+            Graphics::SetSamplerState(SamplerState::k_linearClamp, eShader::PixelShader, 0);
 
             Graphics::SetVertexBuffer(m_vbh);
             Graphics::SetIndexBuffer(m_ibh);
@@ -262,7 +262,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
     }
 
     TextureHandle renderTh = Graphics::GetRenderTargetTexture(_view.outputFbh, 0);
-    Graphics::Blit(renderTh, m_renderTh);
+    Graphics::CopyTexture(renderTh, m_renderTh);
 }
 
 void HelloJamScene::OnImGuiRender()
@@ -300,7 +300,7 @@ void HelloJamScene::OnImGuiRender()
             "front",
         };
 
-        constexpr const char* const k_depthTestFuncLabels[NumEnums<eCompareFunc>()] = {
+        constexpr const char* const k_DepthFuncLabels[NumEnums<eCompareFunc>()] = {
             "none",
             "less",
             "less equal",
@@ -332,10 +332,10 @@ void HelloJamScene::OnImGuiRender()
         if (ImGui::Checkbox("depth clamp", &bDepthClamp))
             m_gfxState.bDepthClamp = bDepthClamp;
 
-        Int32 i32DepthFunc = static_cast<int>(m_gfxState.depthTestFunc);
+        Int32 i32DepthFunc = static_cast<int>(m_gfxState.DepthFunc);
         const Int32 numDepthFunc = NumericCast<Int32>(NumEnums<eCompareFunc>());
-        if (ImGui::Combo("depth test func", &i32DepthFunc, k_depthTestFuncLabels, numDepthFunc))
-            m_gfxState.depthTestFunc = static_cast<eCompareFunc>(i32DepthFunc);
+        if (ImGui::Combo("depth test func", &i32DepthFunc, k_DepthFuncLabels, numDepthFunc))
+            m_gfxState.DepthFunc = static_cast<eCompareFunc>(i32DepthFunc);
 
         bool bDepthWrite = m_gfxState.bDepthWrite;
         if (ImGui::Checkbox("depth write", &bDepthWrite))

@@ -5,28 +5,402 @@
 namespace Jam
 {
 
+namespace
+{
+    constexpr eTextureCreateFlags k_textureCreateFlagsMsaaMask = static_cast<eTextureCreateFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1000'0000));   // [7:9]
+
+    constexpr eRenderFlags k_renderFlagsPrimitiveMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
+    constexpr eRenderFlags k_renderFlagsCullModeMask   = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1000));   // [3:4]
+    constexpr eRenderFlags k_renderFlagsRasterizerMask = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'1111'1000));   // [3:10] (CullMode 포함)
+    constexpr eRenderFlags k_renderFlagsBlendMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1000'0000'0000));   // [11:12]
+    constexpr eRenderFlags k_renderFlagsDepthMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0011'1110'0000'0000'0000));   // [13:17] (DepthWrite 포함)
+    constexpr eRenderFlags k_renderFlagsDepthFuncMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0001'1110'0000'0000'0000));   // [13:16]
+    constexpr UInt32       k_renderFlagsDepthFuncShift = std::countr_zero(UnderlyingFrom(k_renderFlagsDepthFuncMask));
+
+    constexpr eBlendFlags k_blendFlagsSrcBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1110));   // [1:4]
+    constexpr eBlendFlags k_blendFlagsDstBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1110'0000));   // [5:8]
+    constexpr eBlendFlags k_blendFlagsBlendOpMask        = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'1110'0000'0000));   // [9:11]
+    constexpr eBlendFlags k_blendFlagsSrcBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'1111'0000'0000'0000));   // [12:15]
+    constexpr eBlendFlags k_blendFlagsDstBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'1111'0000'0000'0000'0000));   // [16:19]
+    constexpr eBlendFlags k_blendFlagsBlendOpAlphaMask   = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0111'0000'0000'0000'0000'0000));   // [20:22]
+    constexpr UInt32      k_blendFlagsSrcBlendShift      = std::countr_zero(UnderlyingFrom(k_blendFlagsSrcBlendMask));
+    constexpr UInt32      k_blendFlagsDstBlendShift      = std::countr_zero(UnderlyingFrom(k_blendFlagsDstBlendMask));
+    constexpr UInt32      k_blendFlagsBlendOpShift       = std::countr_zero(UnderlyingFrom(k_blendFlagsBlendOpMask));
+    constexpr UInt32      k_blendFlagsSrcBlendAlphaShift = std::countr_zero(UnderlyingFrom(k_blendFlagsSrcBlendAlphaMask));
+    constexpr UInt32      k_blendFlagsDstBlendAlphaShift = std::countr_zero(UnderlyingFrom(k_blendFlagsDstBlendAlphaMask));
+    constexpr UInt32      k_blendFlagsBlendOpAlphaShift  = std::countr_zero(UnderlyingFrom(k_blendFlagsBlendOpAlphaMask));
+
+    constexpr eStencilFlags k_stencilFlagsStencilFailOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
+    constexpr eStencilFlags k_stencilFlagsDepthFailOpMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0011'1000));   // [3:5]
+    constexpr eStencilFlags k_stencilFlagsStencilPassOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1100'0000));   // [6:8]
+    constexpr eStencilFlags k_stencilFlagsCompareFuncMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1110'0000'0000));   // [9:12]
+    constexpr UInt32        k_stencilFlagsDepthFailOpShift   = std::countr_zero(UnderlyingFrom(k_stencilFlagsDepthFailOpMask));
+    constexpr UInt32        k_stencilFlagsStencilPassOpShift = std::countr_zero(UnderlyingFrom(k_stencilFlagsStencilPassOpMask));
+    constexpr UInt32        k_stencilFlagsCompareFuncShift   = std::countr_zero(UnderlyingFrom(k_stencilFlagsCompareFuncMask));
+
+    constexpr eSamplerFlags k_sampleFlagsFilterMask       = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1111));   // [0:4]
+    constexpr eSamplerFlags k_sampleFlagsAddressUMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'1110'0000));   // [5:7]
+    constexpr eSamplerFlags k_sampleFlagsAddressVMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'0000'0000));   // [8:10]
+    constexpr eSamplerFlags k_sampleFlagsAddressWMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0011'1000'0000'0000));   // [11:13]
+    constexpr eSamplerFlags k_sampleFlagsCompareFuncMask  = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'1111'0000'0000'0000));   // [14:17]
+    constexpr UInt32        k_sampleFlagsAddressUShift    = std::countr_zero(UnderlyingFrom(k_sampleFlagsAddressUMask));
+    constexpr UInt32        k_sampleFlagsAddressVShift    = std::countr_zero(UnderlyingFrom(k_sampleFlagsAddressVMask));
+    constexpr UInt32        k_sampleFlagsAddressWShift    = std::countr_zero(UnderlyingFrom(k_sampleFlagsAddressWMask));
+    constexpr UInt32        k_sampleFlagsCompareFuncShift = std::countr_zero(UnderlyingFrom(k_sampleFlagsCompareFuncMask));
+
+}   // namespace
+
 RGBA RGBA::k_white       = RGBA(255, 255, 255, 255);
 RGBA RGBA::k_black       = RGBA(0, 0, 0, 255);
 RGBA RGBA::k_transparent = RGBA(0, 0, 0, 0);
 
-RenderState RenderState::k_default   = {};
-RenderState RenderState::k_depthTest = { ePrimitive::TriangleList, eCullMode::Back, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, true };  
+Flags<eTextureCreateFlags> FilterMsaaFlags(
+    const Flags<eTextureCreateFlags> _flags) noexcept
+{
+    return _flags & k_textureCreateFlagsMsaaMask;
+}
 
-BlendState BlendState::k_opaque             = {};
-BlendState BlendState::k_alphaBlend         = { true, eBlend::SrcAlpha, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags::All };
-BlendState BlendState::k_additive           = { true, eBlend::One, eBlend::One, eBlendOp::Add, eBlend::One, eBlend::One, eBlendOp::Add, eWriteFlags::All };
-BlendState BlendState::k_premultipliedAlpha = { true, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags::All };
-BlendState BlendState::k_subtractive        = { true, eBlend::InvDstColor, eBlend::Zero, eBlendOp::Add, eBlend::InvDstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags::All };
-BlendState BlendState::k_multiply           = { true, eBlend::DstColor, eBlend::Zero, eBlendOp::Add, eBlend::DstAlpha, eBlend::Zero, eBlendOp::Add, eWriteFlags::All };
-BlendState BlendState::k_screen             = { true, eBlend::One, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::InvSrcAlpha, eBlendOp::Add, eWriteFlags::All };
-BlendState BlendState::k_overlay            = { true, eBlend::DstColor, eBlend::InvSrcColor, eBlendOp::Add, eBlend::One, eBlend::Zero, eBlendOp::Add, eWriteFlags::All };
+Flags<eRenderFlags> FilterPrimitiveFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return _flags & k_renderFlagsPrimitiveMask;
+}
 
-StencilState StencilState::k_disable = {};
+Flags<eRenderFlags> FilterCullModeFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return _flags & k_renderFlagsCullModeMask;
+}
 
-SamplerState SamplerState::k_pointClamp  = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eCompareFunc::None };
-SamplerState SamplerState::k_linearClamp = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eTextureAddressMode::Clamp, eCompareFunc::None };
-SamplerState SamplerState::k_pointWrap   = { eTextureFilter::MinPoint_MagPoint_MipPoint, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eCompareFunc::None };
-SamplerState SamplerState::k_linearWrap  = { eTextureFilter::MinLinear_MagLinear_MipLinear, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eTextureAddressMode::Wrap, eCompareFunc::None };
+Flags<eRenderFlags> FilterRasterizerFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return _flags & k_renderFlagsRasterizerMask;
+}
+
+Flags<eRenderFlags> FilterBlendFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return _flags & k_renderFlagsBlendMask;
+}
+
+Flags<eRenderFlags> FilterDepthFuncFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return _flags & k_renderFlagsDepthFuncMask;
+}
+
+Flags<eRenderFlags> FilterDepthFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return _flags & k_renderFlagsDepthMask;
+}
+
+UInt32 ResolveDepthFuncFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return FilterDepthFuncFlags(_flags) >> k_renderFlagsDepthFuncShift;
+}
+
+Flags<eRenderFlags> SetPrimitiveFlags(
+    const Flags<eRenderFlags> _flags,
+    const Flags<eRenderFlags> _primitiveFlags)
+{
+    JAM_ASSERT(FilterPrimitiveFlags(_primitiveFlags) == _primitiveFlags, "Invalid primitive flags.");
+    return (_flags & ~k_renderFlagsPrimitiveMask) | _primitiveFlags;
+}
+
+Flags<eRenderFlags> SetCullModeFlags(
+    const Flags<eRenderFlags> _flags,
+    const Flags<eRenderFlags> _cullModeFlags)
+{
+    JAM_ASSERT(FilterCullModeFlags(_cullModeFlags) == _cullModeFlags, "Invalid cull mode flags.");
+    return (_flags & ~k_renderFlagsCullModeMask) | _cullModeFlags;
+}
+
+Flags<eRenderFlags> SetDepthFuncFlags(
+    const Flags<eRenderFlags> _flags,
+    const Flags<eRenderFlags> _depthFuncFlags)
+{
+    JAM_ASSERT(FilterDepthFuncFlags(_depthFuncFlags) == _depthFuncFlags, "Invalid depth func flags.");
+    return (_flags & ~k_renderFlagsDepthFuncMask) | _depthFuncFlags;
+}
+
+UInt32 ResolvePrimitiveFlags(
+    const Flags<eRenderFlags> _flags)
+{
+    return FilterPrimitiveFlags(_flags);
+}
+
+Flags<eBlendFlags> FilterSrcBlendFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return _flags & k_blendFlagsSrcBlendMask;
+}
+
+Flags<eBlendFlags> FilterDstBlendFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return _flags & k_blendFlagsDstBlendMask;
+}
+
+Flags<eBlendFlags> FilterBlendOpFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return _flags & k_blendFlagsBlendOpMask;
+}
+
+Flags<eBlendFlags> FilterSrcBlendAlphaFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return _flags & k_blendFlagsSrcBlendAlphaMask;
+}
+
+Flags<eBlendFlags> FilterDstBlendAlphaFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return _flags & k_blendFlagsDstBlendAlphaMask;
+}
+
+Flags<eBlendFlags> FilterBlendOpAlphaFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return _flags & k_blendFlagsBlendOpAlphaMask;
+}
+
+Flags<eBlendFlags> SetSrcBlendFlags(
+    const Flags<eBlendFlags> _flags,
+    const Flags<eBlendFlags> _srcBlendFlags)
+{
+    JAM_ASSERT(FilterSrcBlendFlags(_srcBlendFlags) == _srcBlendFlags, "Invalid src blend flags.");
+    return (_flags & ~k_blendFlagsSrcBlendMask) | _srcBlendFlags;
+}
+
+Flags<eBlendFlags> SetDstBlendFlags(
+    const Flags<eBlendFlags> _flags,
+    const Flags<eBlendFlags> _dstBlendFlags)
+{
+    JAM_ASSERT(FilterDstBlendFlags(_dstBlendFlags) == _dstBlendFlags, "Invalid dst blend flags.");
+    return (_flags & ~k_blendFlagsDstBlendMask) | _dstBlendFlags;
+}
+
+Flags<eBlendFlags> SetBlendOpFlags(
+    const Flags<eBlendFlags> _flags,
+    const Flags<eBlendFlags> _blendOpFlags)
+{
+    JAM_ASSERT(FilterBlendOpFlags(_blendOpFlags) == _blendOpFlags, "Invalid blend op flags.");
+    return (_flags & ~k_blendFlagsBlendOpMask) | _blendOpFlags;
+}
+
+Flags<eBlendFlags> SetSrcBlendAlphaFlags(
+    const Flags<eBlendFlags> _flags,
+    const Flags<eBlendFlags> _srcBlendAlphaFlags)
+{
+    JAM_ASSERT(FilterSrcBlendAlphaFlags(_srcBlendAlphaFlags) == _srcBlendAlphaFlags, "Invalid src blend alpha flags.");
+    return (_flags & ~k_blendFlagsSrcBlendAlphaMask) | _srcBlendAlphaFlags;
+}
+
+Flags<eBlendFlags> SetDstBlendAlphaFlags(
+    const Flags<eBlendFlags> _flags,
+    const Flags<eBlendFlags> _dstBlendAlphaFlags)
+{
+    JAM_ASSERT(FilterDstBlendAlphaFlags(_dstBlendAlphaFlags) == _dstBlendAlphaFlags, "Invalid dst blend alpha flags.");
+    return (_flags & ~k_blendFlagsDstBlendAlphaMask) | _dstBlendAlphaFlags;
+}
+
+Flags<eBlendFlags> SetBlendOpAlphaFlags(
+    const Flags<eBlendFlags> _flags,
+    const Flags<eBlendFlags> _blendOpAlphaFlags)
+{
+    JAM_ASSERT(FilterBlendOpAlphaFlags(_blendOpAlphaFlags) == _blendOpAlphaFlags, "Invalid blend op alpha flags.");
+    return (_flags & ~k_blendFlagsBlendOpAlphaMask) | _blendOpAlphaFlags;
+}
+
+UInt32 ResolveSrcBlendFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return FilterSrcBlendFlags(_flags) >> k_blendFlagsSrcBlendShift;
+}
+
+UInt32 ResolveDstBlendFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return FilterDstBlendFlags(_flags) >> k_blendFlagsDstBlendShift;
+}
+
+UInt32 ResolveBlendOpFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return FilterBlendOpFlags(_flags) >> k_blendFlagsBlendOpShift;
+}
+
+UInt32 ResolveSrcBlendAlphaFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return FilterSrcBlendAlphaFlags(_flags) >> k_blendFlagsSrcBlendAlphaShift;
+}
+
+UInt32 ResolveDstBlendAlphaFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return FilterDstBlendAlphaFlags(_flags) >> k_blendFlagsDstBlendAlphaShift;
+}
+
+UInt32 ResolveBlendOpAlphaFlags(
+    const Flags<eBlendFlags> _flags)
+{
+    return FilterBlendOpAlphaFlags(_flags) >> k_blendFlagsBlendOpAlphaShift;
+}
+
+Flags<eStencilFlags> FilterStencilFailOpFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return _flags & k_stencilFlagsStencilFailOpMask;
+}
+
+Flags<eStencilFlags> FilterDepthFailOpFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return _flags & k_stencilFlagsDepthFailOpMask;
+}
+
+Flags<eStencilFlags> FilterPassOpFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return _flags & k_stencilFlagsStencilPassOpMask;
+}
+
+Flags<eStencilFlags> FilterCompareFuncFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return _flags & k_stencilFlagsCompareFuncMask;
+}
+
+Flags<eStencilFlags> SetStencilFailOpFlags(
+    const Flags<eStencilFlags> _flags,
+    const Flags<eStencilFlags> _stencilFailOpFlags)
+{
+    JAM_ASSERT(FilterStencilFailOpFlags(_stencilFailOpFlags) == _stencilFailOpFlags, "Invalid stencil fail op flags.");
+    return (_flags & ~k_stencilFlagsStencilFailOpMask) | _stencilFailOpFlags;
+}
+
+Flags<eStencilFlags> SetDepthFailOpFlags(
+    const Flags<eStencilFlags> _flags,
+    const Flags<eStencilFlags> _depthFailOpFlags)
+{
+    JAM_ASSERT(FilterDepthFailOpFlags(_depthFailOpFlags) == _depthFailOpFlags, "Invalid depth fail op flags.");
+    return (_flags & ~k_stencilFlagsDepthFailOpMask) | _depthFailOpFlags;
+}
+
+Flags<eStencilFlags> SetPassOpFlags(
+    const Flags<eStencilFlags> _flags,
+    const Flags<eStencilFlags> _passOpFlags)
+{
+    JAM_ASSERT(FilterPassOpFlags(_passOpFlags) == _passOpFlags, "Invalid pass op flags.");
+    return (_flags & ~k_stencilFlagsStencilPassOpMask) | _passOpFlags;
+}
+
+Flags<eStencilFlags> SetCompareFuncFlags(
+    const Flags<eStencilFlags> _flags,
+    const Flags<eStencilFlags> _compareFuncFlags)
+{
+    JAM_ASSERT(FilterCompareFuncFlags(_compareFuncFlags) == _compareFuncFlags, "Invalid compare func flags.");
+    return (_flags & ~k_stencilFlagsCompareFuncMask) | _compareFuncFlags;
+}
+
+UInt32 ResolveStencilFailOpFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return (FilterStencilFailOpFlags(_flags));
+}
+
+UInt32 ResolveDepthFailOpFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return NumericCast<UInt16>(FilterDepthFailOpFlags(_flags) >> k_stencilFlagsDepthFailOpShift);
+}
+
+UInt32 ResolvePassOpFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return NumericCast<UInt16>(FilterPassOpFlags(_flags) >> k_stencilFlagsStencilPassOpShift);
+}
+
+UInt32 ResolveCompareFuncFlags(
+    const Flags<eStencilFlags> _flags)
+{
+    return FilterCompareFuncFlags(_flags) >> k_stencilFlagsCompareFuncShift;
+}
+
+Flags<eSamplerFlags> SetFilterFlags(
+    const Flags<eSamplerFlags> _flags,
+    const Flags<eSamplerFlags> _filterFlags)
+{
+    JAM_ASSERT(FilterFilterFlags(_filterFlags) == _filterFlags, "Invalid filter flags.");
+    return (_flags & ~k_sampleFlagsFilterMask) | _filterFlags;
+}
+
+Flags<eSamplerFlags> SetAddressUFlags(
+    const Flags<eSamplerFlags> _flags,
+    const Flags<eSamplerFlags> _addressUFlags)
+{
+    JAM_ASSERT(FilterAddressUFlags(_addressUFlags) == _addressUFlags, "Invalid address U flags.");
+    return (_flags & ~k_sampleFlagsAddressUMask) | _addressUFlags;
+}
+
+Flags<eSamplerFlags> SetAddressVFlags(
+    const Flags<eSamplerFlags> _flags,
+    const Flags<eSamplerFlags> _addressVFlags)
+{
+    JAM_ASSERT(FilterAddressVFlags(_addressVFlags) == _addressVFlags, "Invalid address V flags.");
+    return (_flags & ~k_sampleFlagsAddressVMask) | _addressVFlags;
+}
+
+Flags<eSamplerFlags> SetAddressWFlags(
+    const Flags<eSamplerFlags> _flags,
+    const Flags<eSamplerFlags> _addressWFlags)
+{
+    JAM_ASSERT(FilterAddressWFlags(_addressWFlags) == _addressWFlags, "Invalid address W flags.");
+    return (_flags & ~k_sampleFlagsAddressWMask) | _addressWFlags;
+}
+
+Flags<eSamplerFlags> SetCompareFuncFlags(
+    const Flags<eSamplerFlags> _flags,
+    const Flags<eSamplerFlags> _compareFuncFlags)
+{
+    JAM_ASSERT(FilterCompareFuncFlags(_compareFuncFlags) == _compareFuncFlags, "Invalid sampler compare func flags.");
+    return (_flags & ~k_sampleFlagsCompareFuncMask) | _compareFuncFlags;
+}
+
+UInt32 ResolveFilterFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return FilterFilterFlags(_flags);
+}
+
+UInt32 ResolveAddressUFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return FilterAddressUFlags(_flags) >> k_sampleFlagsAddressUShift;
+}
+
+UInt32 ResolveAddressVFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return FilterAddressVFlags(_flags) >> k_sampleFlagsAddressVShift;
+}
+
+UInt32 ResolveAddressWFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return FilterAddressWFlags(_flags) >> k_sampleFlagsAddressWShift;
+}
+
+UInt32 ResolveCompareFuncFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return FilterCompareFuncFlags(_flags) >> k_sampleFlagsCompareFuncShift;
+}
 
 bool IsDepthFormat(const eTextureFormat _format)
 {

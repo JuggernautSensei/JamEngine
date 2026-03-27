@@ -5,10 +5,10 @@ namespace Jam
 {
 
 template<typename TContainer>
-concept MemoryCompatibleContainer = requires(TContainer c) { c.data(); c.size(); } && std::ranges::contiguous_range<TContainer>;
+concept IsMemoryCompatibleContainer = requires(TContainer c) { c.data(); c.size(); } && std::ranges::contiguous_range<TContainer>;
 
 template<typename T, bool k_bIsConst>
-concept MemoryCompatibleValue = (k_bIsConst || !std::is_const_v<T>);
+concept IsMemoryCompatibleValue = (k_bIsConst || !std::is_const_v<T>);
 
 // Byte 단위의 메모리를 표현하는 경량 클래스
 // Byte*, SizeT 형태로 표현되는 메모리 블록을 래핑하여,
@@ -44,7 +44,7 @@ public:
 
     // C-style 배열
     template<typename T, SizeT N>
-        requires(MemoryCompatibleValue<T, k_bIsConst>)
+        requires(IsMemoryCompatibleValue<T, k_bIsConst>)
     /* implicit */ BasicMemoryView(T (&_arr)[N])
         : m_pData(reinterpret_cast<ByteT*>(_arr))
         , m_size(sizeof(T) * N)
@@ -52,7 +52,7 @@ public:
 
     // data()와 size()가 있는 연속된 컨테이너만 허용
     template<typename TContainer>
-        requires(MemoryCompatibleContainer<TContainer> && MemoryCompatibleValue<typename TContainer::value_type, k_bIsConst>)
+        requires(IsMemoryCompatibleContainer<TContainer> && IsMemoryCompatibleValue<typename TContainer::value_type, k_bIsConst>)
     /* implicit */ BasicMemoryView(TContainer& _container)
         : m_pData(reinterpret_cast<ByteT*>(_container.data()))
         , m_size(sizeof(typename TContainer::value_type) * _container.size())
@@ -93,14 +93,14 @@ using MemoryView        = BasicMemoryView<true>;
 // 암시적 생성자 사용시 greedy하게 매칭되는 것을 방지하기 위해 외부 함수로 분리
 
 template<typename T>
-    requires(MemoryCompatibleValue<T, true>)
+    requires(IsMemoryCompatibleValue<T, true>)
 [[nodiscard]] MemoryView AsMemoryView(const T& _value)
 {
     return { reinterpret_cast<const Byte*>(&_value), sizeof(T) };
 }
 
 template<typename T>
-    requires(MemoryCompatibleValue<T, false>)
+    requires(IsMemoryCompatibleValue<T, false>)
 [[nodiscard]] MutableMemoryView AsMutableMemoryView(T& _value)
 {
     return { reinterpret_cast<Byte*>(&_value), sizeof(T) };

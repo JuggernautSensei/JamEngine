@@ -573,9 +573,9 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
 
     // 바인딩 최적화. 중복된 바인딩 제거. 가상 바인딩 테이블을 만들어서 추적
     {
-        HashMap<Slot, String, SlotHasher>       texInputs = {};
-        HashMap<Slot, String, SlotHasher>       cbInputs  = {};
-        HashMap<Slot, SamplerState, SlotHasher> samInputs = {};
+        HashMap<Slot, String, SlotHasher>                    texInputs = {};
+        HashMap<Slot, String, SlotHasher>                    cbInputs  = {};
+        HashMap<Slot, Flags<eSamplerFlags>, SlotHasher> samInputs = {};
 
         texInputs.reserve(64);
         cbInputs.reserve(64);
@@ -661,13 +661,13 @@ void RenderGraph::Execute(
         gfx.SetProgram(desc.ph);
         gfx.SetFrameBuffer(fbh);
         gfx.SetViewport(vp);
-        gfx.SetRenderState(desc.renderState);
-        gfx.SetStencil(desc.fstencil, desc.bstencil, desc.stencilRef);
+        gfx.SetRenderFlags(desc.renderFlags);
+        gfx.SetStencilFlags(desc.fstencil, desc.bstencil, desc.stencilRef);
 
         for (Int32 j = 0; j < desc.numBlendBinds; ++j)
         {
-            const BlendStateBind& bind = desc.blendBinds[j];
-            gfx.SetBlendState(bind.state, bind.slot);
+            const BlendStateBind& bind = desc.blendFlagsBinds[j];
+            gfx.SetBlendFlags(bind.state, bind.slot);
         }
 
         gfx.SetBlendFactor(desc.blendFactor);
@@ -690,7 +690,7 @@ void RenderGraph::Execute(
 
         for (const SamplerBind& bind: pass.samplers)
         {
-            gfx.SetSampler(bind.state, bind.stage, bind.slot);
+            gfx.SetSamplerState(bind.state, bind.stage, bind.slot);
         }
 
         for (const TextureBind& bind: pass.textures)
@@ -740,7 +740,7 @@ void RenderGraph::AddTexture2D(
     const eTextureFormat             _format,
     const Int32                      _arraySize,
     const Flags<eTextureCreateFlags> _flags,
-    const Span<const MemoryView>   _initData)
+    const Span<const MemoryView>     _initData)
 {
     const TextureHandle texh = GetGraphics().CreateTexture2D(_width, _height, _format, _arraySize, _flags, _initData);
     AddTexture(_name, texh, true);
@@ -774,7 +774,7 @@ void RenderGraph::AddTexture3D(
     const Int32                      _depth,
     const eTextureFormat             _format,
     const Flags<eTextureCreateFlags> _flags,
-    const Span<const MemoryView>   _initData)
+    const Span<const MemoryView>     _initData)
 {
     const TextureHandle texh = GetGraphics().CreateTexture3D(_width, _height, _depth, _format, _flags, _initData);
     AddTexture(_name, texh, true);
@@ -1117,40 +1117,40 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetUseExternalOutput(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetRenderState(const RenderState _state)
+RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetRenderFlags(Flags<eRenderFlags> _flags)
 {
-    m_desc.renderState = _state;
+    m_desc.renderFlags = _flags;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetStencilState(
-    const StencilState _front,
-    const StencilState _back,
-    const UInt8        _ref)
+RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetStencilFlags(
+    Flags<eStencilFlags> _fstencil,
+    Flags<eStencilFlags> _bstencil,
+    const UInt8               _ref)
 {
-    m_desc.fstencil   = _front;
-    m_desc.bstencil   = _back;
+    m_desc.fstencil   = _fstencil;
+    m_desc.bstencil   = _bstencil;
     m_desc.stencilRef = _ref;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendState(
-    const BlendState _state,
-    const Int32      _slot)
+RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendFlags(
+    Flags<eBlendFlags> _flags,
+    const Int32             _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumRenderTargetViewSlots, "Blend slot {} out of range.", _slot);
 
     for (Int32 i = 0; i < m_desc.numBlendBinds; ++i)
     {
-        if (m_desc.blendBinds[i].slot == _slot)
+        if (m_desc.blendFlagsBinds[i].slot == _slot)
         {
-            m_desc.blendBinds[i].state = _state;
+            m_desc.blendFlagsBinds[i].state = _flags;
             return *this;
         }
     }
 
     JAM_ASSERT(m_desc.numBlendBinds < k_maxNumRenderTargetViewSlots, "Too many blend states.");
-    m_desc.blendBinds[m_desc.numBlendBinds++] = { _state, _slot };
+    m_desc.blendFlagsBinds[m_desc.numBlendBinds++] = { _flags, _slot };
     return *this;
 }
 
@@ -1248,9 +1248,9 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetConstantBuffer(
 }
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSamplerState(
-    const SamplerState _state,
-    const eShader      _stage,
-    const Int32        _slot)
+    Flags<eSamplerFlags> _state,
+    const eShader             _stage,
+    const Int32               _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
 

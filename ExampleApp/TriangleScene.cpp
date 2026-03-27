@@ -114,7 +114,7 @@ void TriangleScene::OnRender(const RenderView& _view)
     Graphics::SetFrameBuffer(_view.outputFbh);
     Graphics::ClearColor(_view.outputFbh, RGBA::k_black);
 
-    Graphics::SetRenderState(RenderState::k_default);
+    Graphics::SetRenderFlags(RenderState::k_default);
     Graphics::SetVertexBuffer(m_vbh);
     Graphics::SetIndexBuffer(m_ibh);
     Graphics::SetProgram(m_program);

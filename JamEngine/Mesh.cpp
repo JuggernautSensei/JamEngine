@@ -291,7 +291,7 @@ void Mesh::Submit() const
 {
     Graphics& gfx = GetGraphics();
 
-    gfx.SetVertexBuffer(m_vbh);
+    gfx.SetVertexBuffer(m_vbh, 0);
     gfx.SetIndexBuffer(m_ibh);
     gfx.Submit();
 }

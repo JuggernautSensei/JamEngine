@@ -45,9 +45,9 @@ private:
     VertexLayout         m_vl  = {};
     ConstantBufferHandle m_cbh = k_nullHandle;
 
-    BlendState   m_bs = {};
-    RenderState  m_rs = {};
-    SamplerState m_ss = {};
+    Flags<eBlendFlags>   m_bsFlags = {};
+    Flags<eRenderFlags>  m_rsFlags = {};
+    Flags<eSamplerFlags> m_ssFlags = {};
 
     VertexBufferHandle m_vbh   = k_nullHandle;
     Int32              m_vbCap = 0;

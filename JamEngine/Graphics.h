@@ -3,6 +3,8 @@
 #include "ImageBase.h"
 #include "ResourcePool.h"
 
+// TODO 바인딩 후 리소스 파괴 테스트. -> brute force한 해결법. 해제될떄 바인드 상태 전부 검사
+
 namespace Jam
 {
 
@@ -17,7 +19,6 @@ class Event;
 /// Dirty Flag 기반의 파이프라인 상태 관리와 드로우 콜 제출 기능을 제공합니다.
 class Graphics
 {
-
     enum class ePipelineDirtyFlags : UInt32
     {
         None = 0,
@@ -26,40 +27,41 @@ class Graphics
         VertexBuffer = 1 << 1,
         IndexBuffer  = 1 << 2,
 
-        VSConstantBuffer = 1 << 3,
-        PSConstantBuffer = 1 << 4,
-        GSConstantBuffer = 1 << 5,
-        HSConstantBuffer = 1 << 6,
-        DSConstantBuffer = 1 << 7,
-        CSConstantBuffer = 1 << 8,
+        VSConstantBuffer = 1 << 4,
+        PSConstantBuffer = 1 << 5,
+        GSConstantBuffer = 1 << 6,
+        HSConstantBuffer = 1 << 7,
+        DSConstantBuffer = 1 << 8,
+        CSConstantBuffer = 1 << 9,
 
-        VSShaderResourceView = 1 << 9,
-        PSShaderResourceView = 1 << 10,
-        GSShaderResourceView = 1 << 11,
-        HSShaderResourceView = 1 << 12,
-        DSShaderResourceView = 1 << 13,
-        CSShaderResourceView = 1 << 14,
+        VSShaderResourceView = 1 << 10,
+        PSShaderResourceView = 1 << 11,
+        GSShaderResourceView = 1 << 12,
+        HSShaderResourceView = 1 << 13,
+        DSShaderResourceView = 1 << 14,
+        CSShaderResourceView = 1 << 15,
 
-        VSSamplerState = 1 << 15,
-        PSSamplerState = 1 << 16,
-        GSSamplerState = 1 << 17,
-        HSSamplerState = 1 << 18,
-        DSSamplerState = 1 << 19,
-        CSSamplerState = 1 << 20,
+        VSSamplerState = 1 << 16,
+        PSSamplerState = 1 << 17,
+        GSSamplerState = 1 << 18,
+        HSSamplerState = 1 << 19,
+        DSSamplerState = 1 << 20,
+        CSSamplerState = 1 << 21,
 
-        RasterizerState   = 1 << 21,
-        BlendState        = 1 << 22,
-        DepthStencilState = 1 << 23,
-        Viewport          = 1 << 24,
-        FrameBuffer       = 1 << 25,
-        ScissorRect       = 1 << 26,
+        RasterizerState   = 1 << 22,
+        BlendState        = 1 << 23,
+        DepthStencilState = 1 << 24,
+        Viewport          = 1 << 25,
+        FrameBuffer       = 1 << 26,
+        ScissorRect       = 1 << 27,
 
-        Program = 1 << 27,
+        Program        = 1 << 28,
+        ComputeProgram = 1 << 29,
 
-        InputLayout = 1 << 28,
-
-        End = InputLayout,
-        All = (End << 1) - 1,
+        InstanceBuffer = 1 << 30,
+        InputLayout    = 1 << 31,
+        End            = InputLayout,
+        All            = (End << 1) - 1,
 
         ConstantBufferMask = VSConstantBuffer
                            | PSConstantBuffer
@@ -87,7 +89,7 @@ class Graphics
     {
         VertexBuffer = 0,
         IndexBuffer,
-        ConstantBuffer
+        ConstantBuffer,
     };
 
     struct ConstantBufferBinds
@@ -98,6 +100,7 @@ class Graphics
         }
 
         Array<ConstantBufferHandle, k_maxNumConstantBufferSlots> cbhs       = {};
+        Array<ID3D11Buffer*, k_maxNumConstantBufferSlots>        binder     = {};
         Int32                                                    dirtyStart = k_maxNumConstantBufferSlots;
         Int32                                                    dirtyEnd   = 0;
     };
@@ -109,43 +112,37 @@ class Graphics
             texhs.fill(k_nullHandle);
         }
 
-        Array<TextureHandle, k_maxNumShaderResourceViewSlots> texhs      = {};
-        Int32                                                 dirtyStart = k_maxNumShaderResourceViewSlots;
-        Int32                                                 dirtyEnd   = 0;
+        Array<TextureHandle, k_maxNumShaderResourceViewSlots>             texhs      = {};
+        Array<ID3D11ShaderResourceView*, k_maxNumShaderResourceViewSlots> binder     = {};
+        Int32                                                             dirtyStart = k_maxNumShaderResourceViewSlots;
+        Int32                                                             dirtyEnd   = 0;
     };
 
     struct SamplerBinds
     {
-        Array<SamplerState, k_maxNumSamplerSlots> samplers     = {};
-        Array<RGBA, k_maxNumSamplerSlots>         borderColors = {};
-        Int32                                     dirtyStart   = k_maxNumSamplerSlots;
-        Int32                                     dirtyEnd     = 0;
+        struct Sampler
+        {
+            Flags<eSamplerFlags> state = {};
+            RGBA                 rgba  = {};
+        };
+
+        Array<Sampler, k_maxNumSamplerSlots>             samplers   = {};
+        Array<ID3D11SamplerState*, k_maxNumSamplerSlots> binder     = {};
+        Int32                                            dirtyStart = k_maxNumSamplerSlots;
+        Int32                                            dirtyEnd   = 0;
     };
 
-    struct RasterizerStateD3D11
+    struct StreamBinds
     {
-        eCullMode cullMode         = eCullMode::None;
-        bool      bWireframe : 1   = false;
-        bool      bDepthClamp : 1  = false;
-        bool      bMultiSample : 1 = false;
-        bool      bLineAA : 1      = false;
-        bool      bScissor : 1     = false;
-        bool      bCCWFront : 1    = false;
-    };
+        struct Stream
+        {
+            VertexBufferHandle vbh    = k_nullHandle;
+            VertexLayoutHandle vlh    = k_nullHandle;
+            Int32              offset = 0;
+        };
 
-    struct BlendStateD3D11
-    {
-        Array<BlendState, k_maxNumRenderTargetViewSlots> blends                = {};
-        bool                                             bIndependentBlend : 1 = false;
-        bool                                             bAlphaToCoverage : 1  = false;
-    };
-
-    struct DepthStencilStateD3D11
-    {
-        bool         bDepthWrite : 1   = false;
-        eCompareFunc depthTestFunc : 4 = eCompareFunc::None;
-        StencilState fStencil          = StencilState::k_disable;
-        StencilState bStencil          = StencilState::k_disable;
+        Array<Stream, k_maxNumVertexStream> stream  = {};
+        UInt32                              useMask = 0;
     };
 
     struct ReadbackTextureCacheEntry
@@ -217,6 +214,14 @@ public:
         Int32               _numVerts,
         const VertexLayout& _vl);
 
+    /// @brief 인스턴스 버퍼를 생성합니다.
+    /// @param _numInstances 인스턴스 최대 개수
+    /// @param _instanceStride 각 인스턴스 데이터의 크기 (바이트 단위, 16의 배수여야 함)
+    /// @return 생성된 인스턴스 버퍼 핸들
+    [[nodiscard]] VertexBufferHandle CreateInstanceBuffer(
+        Int32 _numInstances,
+        Int32 _instanceStride);
+
     /// @brief 수정 불가능한(Immutable) 인덱스 버퍼를 생성합니다.
     /// @param _idxData 초기 인덱스 데이터 (비어 있으면 안 됩니다)
     /// @param _bUseU32 true: 32비트(UInt32) 인덱스 포맷, false: 16비트(UInt16) 인덱스 포맷
@@ -244,6 +249,35 @@ public:
     ///       크기는 반드시 16의 배수여야 합니다 (HLSL cbuffer 패킹 규칙).
     [[nodiscard]] ConstantBufferHandle CreateConstantBuffer(
         Int32 _byteWidth);
+
+    [[nodiscard]] StorageBufferHandle CreateRawBuffer(
+        Int32                            _byteWidth,
+        Flags<eStorageBufferCreateFlags> _flags    = eStorageBufferCreateFlags::None,
+        MemoryView                       _initData = {});
+
+    [[nodiscard]] StorageBufferHandle CreateStructuredBuffer(
+        Int32                            _numElements,
+        Int32                            _stride,
+        bool                             _bAppendConsume = false,
+        bool                             _bCounter       = false,
+        Flags<eStorageBufferCreateFlags> _flags          = eStorageBufferCreateFlags::None);
+
+    [[nodiscard]] StorageBufferHandle CreateTypedBuffer(
+        Int32                            _numElements,
+        eStorageBufferDataType           _dataType,
+        Flags<eStorageBufferCreateFlags> _flags = eStorageBufferCreateFlags::None);
+
+    [[nodiscard]] StorageBufferHandle CreateReadbackBuffer(
+        Int32 _byteWidth);
+
+    /// @brief 버텍스 레이아웃을 생성합니다.
+    /// @param _vl 버텍스 레이아웃 설명
+    /// @return 생성된 버텍스 레이아웃 핸들
+    /// @note 버텍스 버퍼를 GPU에 바인딩할 때 필요한 입력 레이아웃입니다. 동일한 레이아웃을 여러 버텍스 버퍼에서 공유할 수 있습니다.
+    ///       버텍스 버퍼를 생성할 때, 자동으로 생성되기 때문에, 수동으로 생성할 필요는 없습니다.
+    ///       그러나, 세밀한 조정이 필요한 경우, 수동으로 관리할 수 있습니다.
+    [[nodiscard]] VertexLayoutHandle CreateVertexLayout(
+        const VertexLayout& _vl);
 
     ////////// TEXTURE /////////
 
@@ -402,14 +436,21 @@ public:
         ShaderHandle _psh,
         bool         _bDestroyShader = false);
 
+    /// @brief Compute 셰이더로 프로그램을 생성합니다.
+    /// @param _csh 컴퓨트 셰이더 핸들
+    /// @param _bDestroyShader true: 프로그램 파괴 시 셰이더도 함께 파괴합니다.
+    /// @return 생성된 프로그램 핸들
+    [[nodiscard]] ProgramHandle CreateProgram(
+        ShaderHandle _csh,
+        bool         _bDestroyShader = false);
+
     ///////////////////////////////////////
     ///       RESOURCE DESTRUCTION      ///
     ///////////////////////////////////////
 
     /// @brief 버텍스 버퍼를 파괴합니다.
     /// @param _vbh 파괴할 버텍스 버퍼 핸들
-    /// @note 내부 D3D11 버퍼와 연결된 버텍스 레이아웃 참조도 함께 해제됩니다.
-    ///       편의 매크로 JAM_DESTROY_VERTEX_BUFFER 사용을 권장합니다.
+    /// @note 편의 매크로 JAM_DESTROY_VERTEX_BUFFER 사용을 권장합니다.
     void DestroyVertexBuffer(VertexBufferHandle _vbh);
 
     /// @brief 인덱스 버퍼를 파괴합니다.
@@ -417,10 +458,18 @@ public:
     /// @note 편의 매크로 JAM_DESTROY_INDEX_BUFFER 사용을 권장합니다.
     void DestroyIndexBuffer(IndexBufferHandle _ibh);
 
+    /// @brief 버텍스 레이아웃을 파괴합니다.
+    /// @param _vlh 파괴할 버텍스 레이아웃 핸들
+    /// @note  수동으로 관리할 때만 파괴할 필요가 있습니다.
+    ///        편의 매크로 JAM_DESTROY_VERTEX_LAYOUT 사용을 권장합니다.
+    void DestroyVertexLayout(VertexLayoutHandle _vlh);
+
     /// @brief 상수 버퍼를 파괴합니다.
     /// @param _cbh 파괴할 상수 버퍼 핸들
     /// @note 편의 매크로 JAM_DESTROY_CONSTANT_BUFFER 사용을 권장합니다.
     void DestroyConstantBuffer(ConstantBufferHandle _cbh);
+
+    void DestroyStorageBuffer(StorageBufferHandle _sbh);
 
     /// @brief 텍스처를 파괴합니다.
     /// @param _texh 파괴할 텍스처 핸들
@@ -466,6 +515,8 @@ public:
     /// @param _cbh 이름을 설정할 상수 버퍼 핸들
     /// @param _name 설정할 이름
     void SetConstantBufferName(ConstantBufferHandle _cbh, StringView _name);
+
+    void SetStorageBufferName(StorageBufferHandle _sbh, StringView _name);
 
     /// @brief 텍스처에 디버깅용 이름을 설정합니다.
     /// @param _texh 이름을 설정할 텍스처 핸들
@@ -546,22 +597,6 @@ public:
     /// @brief 인덱스 버퍼의 매핑을 해제하여 업로드를 완료합니다.
     /// @param _ibh BeginUploadBuffer에 전달한 것과 동일한 핸들
     void EndUploadBuffer(IndexBufferHandle _ibh);
-
-    /// @brief 버텍스 버퍼의 데이터를 CPU로 읽어 옵니다.
-    /// @param _vbh 읽을 버텍스 버퍼 핸들 (Dynamic 여부 무관)
-    /// @return 복사된 버퍼 데이터
-    /// @note 내부적으로 스테이징 버퍼를 통해 복사합니다. 성능에 주의하십시오.
-    [[nodiscard]] Vector<Byte> DownloadBuffer(VertexBufferHandle _vbh);
-
-    /// @brief 인덱스 버퍼의 데이터를 CPU로 읽어 옵니다.
-    /// @param _ibh 읽을 인덱스 버퍼 핸들
-    /// @return 복사된 버퍼 데이터
-    [[nodiscard]] Vector<Byte> DownloadBuffer(IndexBufferHandle _ibh);
-
-    /// @brief 상수 버퍼의 데이터를 CPU로 읽어 옵니다.
-    /// @param _cbh 읽을 상수 버퍼 핸들
-    /// @return 복사된 버퍼 데이터
-    [[nodiscard]] Vector<Byte> DownloadBuffer(ConstantBufferHandle _cbh);
 
     ///////////////////////////////////////
     ///      TEXTURE DATA TRANSFER      ///
@@ -677,85 +712,42 @@ public:
         Int32         _uploadDataRowPitch,
         Int32         _uploadDataSlicePitch);
 
-    /// @brief 2D 텍스처의 특정 MIP/슬라이스 데이터를 CPU로 읽어 옵니다.
-    /// @param _texh 읽을 텍스처 핸들
-    /// @param _mipIndex 읽을 MIP 레벨 인덱스 (기본: 0)
-    /// @param _arrayIndex 읽을 배열 슬라이스 인덱스 (기본: 0)
-    /// @return 복사된 픽셀 데이터
-    /// @note 내부적으로 스테이징 텍스처를 사용합니다. GPU-CPU 동기화가 발생하므로 성능에 주의하십시오.
-    [[nodiscard]] Vector<Byte> DownloadTexture2D(
-        TextureHandle _texh,
-        Int32         _mipIndex   = 0,
-        Int32         _arrayIndex = 0);
-
-    /// @brief 큐브맵 텍스처의 특정 면 데이터를 CPU로 읽어 옵니다.
-    /// @param _texh 읽을 큐브맵 텍스처 핸들
-    /// @param _mipIndex 읽을 MIP 레벨 인덱스 (기본: 0)
-    /// @param _cubeIndex 읽을 큐브맵 인덱스 (기본: 0)
-    /// @param _cubeFace 읽을 큐브 면 (기본: Right)
-    /// @return 복사된 픽셀 데이터
-    [[nodiscard]] Vector<Byte> DownloadTextureCube(
-        TextureHandle _texh,
-        Int32         _mipIndex  = 0,
-        Int32         _cubeIndex = 0,
-        eCubeFace     _cubeFace  = eCubeFace::Right);
-
-    /// @brief 3D 텍스처의 특정 MIP 레벨 데이터를 CPU로 읽어 옵니다.
-    /// @param _texh 읽을 3D 텍스처 핸들
-    /// @param _mipIndex 읽을 MIP 레벨 인덱스 (기본: 0)
-    /// @return 복사된 볼륨 데이터
-    [[nodiscard]] Vector<Byte> DownloadTexture3D(
-        TextureHandle _texh,
-        Int32         _mipIndex = 0);
-
     /// @brief 텍스처 데이터를 다른 텍스처로 GPU 복사합니다. (간략 버전)
-    /// @param _blitDstTexh 대상 텍스처 (MIP 0, 슬라이스 0, 원점에 복사됩니다)
-    /// @param _blitSrcTexh 원본 텍스처 (MIP 0, 슬라이스 0, 전체 크기가 복사됩니다)
+    /// @param _dstTexh 대상 텍스처 (MIP 0, 슬라이스 0, 원점에 복사됩니다)
+    /// @param _srcTexh 원본 텍스처 (MIP 0, 슬라이스 0, 전체 크기가 복사됩니다)
     /// @note 두 텍스처의 포맷이 호환되어야 합니다.
-    void Blit(
-        TextureHandle _blitDstTexh,
-        TextureHandle _blitSrcTexh);
+    void CopyTexture(
+        TextureHandle _dstTexh,
+        TextureHandle _srcTexh);
 
     /// @brief 텍스처의 지정된 영역을 다른 텍스처의 지정된 위치로 GPU 복사합니다.
-    /// @param _blitDstTexh 대상 텍스처 핸들
-    /// @param _blitDstMipIndex 대상 MIP 레벨
-    /// @param _blitDstArrayIndex 대상 배열/슬라이스 인덱스
-    /// @param _blitDstX, _blitDstY, _blitDstZ 대상 오프셋 (픽셀 단위)
-    /// @param _blitSrcTexh 원본 텍스처 핸들
-    /// @param _blitSrcMipIndex 원본 MIP 레벨
-    /// @param _blitSrcArrayIndex 원본 배열/슬라이스 인덱스
-    /// @param _blitSrcX, _blitSrcY, _blitSrcZ 원본 영역의 시작 오프셋 (픽셀 단위)
-    /// @param _blitSrcWidthOrZero 복사할 너비. 0이면 원본 텍스처 전체 너비를 사용합니다.
-    /// @param _blitSrcHeightOrZero 복사할 높이. 0이면 원본 텍스처 전체 높이를 사용합니다.
-    /// @param _blitSrcDepthOrZero 복사할 깊이. 0이면 원본 텍스처 전체 깊이를 사용합니다.
-    void Blit(
-        TextureHandle _blitDstTexh,
-        Int32         _blitDstMipIndex,
-        Int32         _blitDstArrayIndex,
-        Int32         _blitDstX,
-        Int32         _blitDstY,
-        Int32         _blitDstZ,
-        TextureHandle _blitSrcTexh,
-        Int32         _blitSrcMipIndex,
-        Int32         _blitSrcArrayIndex,
-        Int32         _blitSrcX,
-        Int32         _blitSrcY,
-        Int32         _blitSrcZ,
-        Int32         _blitSrcWidthOrZero,
-        Int32         _blitSrcHeightOrZero,
-        Int32         _blitSrcDepthOrZero);
-
-    /// @brief MSAA 텍스처를 비-MSAA 텍스처로 해상(Resolve)합니다.
-    /// @param _srcTexh MSAA 소스 텍스처 핸들
-    /// @param _srcArrayIndex 소스 배열 인덱스
-    /// @param _dstTexh 해상 결과를 저장할 텍스처 핸들 (samples == 1이어야 합니다)
-    /// @param _dstArrayIndex 대상 배열 인덱스
-    /// @note MIP 레벨은 0으로 고정됩니다. 두 텍스처의 포맷은 동일해야 합니다.
-    void Resolve(
-        TextureHandle _srcTexh,
-        Int32         _srcArrayIndex,
+    /// @param _dstTexh 대상 텍스처 핸들
+    /// @param _dstMipIndex 대상 MIP 레벨
+    /// @param _dstArrayIndex 대상 배열/슬라이스 인덱스
+    /// @param _dstX, _dstY, _dstZ 대상 오프셋 (픽셀 단위)
+    /// @param _srcTexh 원본 텍스처 핸들
+    /// @param _srcMipIndex 원본 MIP 레벨
+    /// @param _srcArrayIndex 원본 배열/슬라이스 인덱스
+    /// @param _srcX, _srcY, _srcZ 원본 영역의 시작 오프셋 (픽셀 단위)
+    /// @param _srcWidthOrZero 복사할 너비. 0이면 원본 텍스처 전체 너비를 사용합니다.
+    /// @param _srcHeightOrZero 복사할 높이. 0이면 원본 텍스처 전체 높이를 사용합니다.
+    /// @param _srcDepthOrZero 복사할 깊이. 0이면 원본 텍스처 전체 깊이를 사용합니다.
+    void CopyTexture(
         TextureHandle _dstTexh,
-        Int32         _dstArrayIndex);
+        Int32         _dstMipIndex,
+        Int32         _dstArrayIndex,
+        Int32         _dstX,
+        Int32         _dstY,
+        Int32         _dstZ,
+        TextureHandle _srcTexh,
+        Int32         _srcMipIndex,
+        Int32         _srcArrayIndex,
+        Int32         _srcX,
+        Int32         _srcY,
+        Int32         _srcZ,
+        Int32         _srcWidthOrZero,
+        Int32         _srcHeightOrZero,
+        Int32         _srcDepthOrZero);
 
     /// @brief 텍스처 전체를 DirectX::ScratchImage로 캡처합니다.
     /// @param _texh 캡처할 텍스처 핸들
@@ -863,18 +855,38 @@ public:
     ///////////////////////////////////////
 
     /// @brief 버텍스 버퍼를 파이프라인에 바인딩합니다.
-    /// @param _vbh 바인딩할 버텍스 버퍼 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
+    /// @param _vbhOrInvalid 바인딩할 버텍스 버퍼 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
+    /// @param _stream 버텍스 스트림 인덱스
     /// @note 버퍼 전체를 기본 오프셋(0)과 전체 버텍스 수로 바인딩합니다.
-    void SetVertexBuffer(VertexBufferHandle _vbh);
+    void SetVertexBuffer(
+        VertexBufferHandle _vbhOrInvalid,
+        Int32              _stream);
 
     /// @brief 버텍스 버퍼를 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _vbhOrInvalid 바인딩할 버텍스 버퍼 핸들
+    /// @param _stream
     /// @param _numVerts 드로우 콜에 사용할 버텍스 수
     /// @param _vertOffset 버퍼 시작으로부터의 오프셋 (버텍스 단위)
     void SetVertexBuffer(
         VertexBufferHandle _vbhOrInvalid,
+        Int32              _stream,
         Int32              _numVerts,
         Int32              _vertOffset);
+
+    void SetVertexBuffer(
+        VertexBufferHandle _vbhOrInvalid,
+        Int32              _stream,
+        Int32              _numVerts,
+        Int32              _vertOffset,
+        VertexLayoutHandle _vlh);
+
+    void SetInstanceBuffer(
+        VertexBufferHandle _vbhOrInvalid);
+
+    void SetInstanceBuffer(
+        VertexBufferHandle _vbhOrInvalid,
+        Int32              _numInstances,
+        Int32              _instanceOffset);
 
     /// @brief 인덱스 버퍼를 파이프라인에 바인딩합니다.
     /// @param _ibhOrInvalid 바인딩할 인덱스 버퍼 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
@@ -912,10 +924,10 @@ public:
     /// @param _state 적용할 샘플러 상태
     /// @param _shader 바인딩 대상 셰이더 스테이지
     /// @param _slot 샘플러 슬롯 인덱스 (0 ~ k_maxNumSamplerSlots - 1)
-    void SetSampler(
-        SamplerState _state,
-        eShader      _shader,
-        Int32        _slot);
+    void SetSamplerState(
+        Flags<eSamplerFlags> _state,
+        eShader              _shader,
+        Int32                _slot);
 
     /// @brief 특정 슬롯의 샘플러 Border 색상을 설정합니다.
     /// @param _shader 셰이더 스테이지
@@ -927,16 +939,17 @@ public:
         RGBA    _rgba);
 
     /// @brief 래스터라이저, 깊이 테스트, 블렌딩의 통합 렌더 상태를 설정합니다.
-    /// @param _state 적용할 렌더 상태. 미리 정의된 RenderState::k_default, k_depthTest 등을 활용할 수 있습니다.
+    /// @param _flags 적용할 렌더 상태. 미리 정의된 RenderState::k_default, k_depthTest 등을 활용할 수 있습니다.
     /// @note 변경된 필드만 Dirty로 표시되어 Submit 시 최소한의 D3D11 상태만 갱신됩니다.
-    void SetRenderState(RenderState _state);
+    void SetRenderFlags(
+        Flags<eRenderFlags> _flags);
 
     /// @brief 특정 렌더 타겟 슬롯의 블렌드 상태를 설정합니다.
-    /// @param _state 적용할 블렌드 상태. 미리 정의된 BlendState::k_alphaBlend 등을 활용할 수 있습니다.
+    /// @param _flags 적용할 블렌드 상태. 미리 정의된 BlendState::k_alphaBlend 등을 활용할 수 있습니다.
     /// @param _renderTargetIndex 대상 렌더 타겟 슬롯 인덱스 (0 ~ k_maxNumRenderTargetViewSlots - 1)
-    void SetBlendState(
-        BlendState _state,
-        Int32      _renderTargetIndex);
+    void SetBlendFlags(
+        Flags<eBlendFlags> _flags,
+        Int32              _renderTargetIndex);
 
     /// @brief 블렌드 팩터 색상을 설정합니다.
     /// @param _rgba eBlend::BlendFactor / InvBlendFactor 사용 시 곱해지는 색상 팩터
@@ -946,14 +959,18 @@ public:
     /// @param _fStencil 전면(Front-face) 스텐실 동작
     /// @param _bStencil 후면(Back-face) 스텐실 동작
     /// @param _stencilRef 스텐실 비교 참조 값 (기본: 0)
-    void SetStencil(
-        StencilState _fStencil,
-        StencilState _bStencil,
-        UInt8        _stencilRef = 0);
+    void SetStencilFlags(
+        Flags<eStencilFlags> _fStencil,
+        Flags<eStencilFlags> _bStencil,
+        UInt8                _stencilRef = 0);
 
-    /// @brief 셰이더 프로그램을 파이프라인에 바인딩합니다.
+    /// @brief 그래픽스 셰이더 프로그램을 파이프라인에 바인딩합니다.
     /// @param _ph 바인딩할 프로그램 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
     void SetProgram(ProgramHandle _ph);
+
+    /// @brief 컴퓨트 셰이더 프로그램을 파이프라인에 바인딩합니다.
+    /// @param _ph 바인딩할 프로그램 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
+    void SetComputeProgram(ProgramHandle _ph);
 
     /// @brief 렌더링 결과를 출력할 프레임 버퍼를 설정합니다.
     /// @param _fbh 대상 프레임 버퍼 핸들. k_nullHandle 전달 시 백 버퍼에 렌더링합니다.
@@ -1006,6 +1023,15 @@ public:
     ///       호출 전 SetVertexBuffer, SetProgram, SetFrameBuffer, SetViewport 등이 바인딩되어 있어야 합니다.
     void Submit();
 
+    /// @brief 현재 바인딩된 리소스와 상태로 컴퓨트 셰이더 디스패치를 제출합니다.
+    /// @param _numThreadGroupsX X 방향으로 디스패치할 스레드 그룹 수
+    /// @param _numThreadGroupsY Y 방향으로 디스패치할 스레드 그룹 수
+    /// @param _numThreadGroupsZ Z 방향으로 디스패치할 스레드 그룹 수
+    void Dispatch(
+        Int32 _numThreadGroupsX,
+        Int32 _numThreadGroupsY,
+        Int32 _numThreadGroupsZ);
+
 private:
     Graphics(HWND _hWnd, Int32 _width, Int32 _height, bool _bAllowTearing);
     ~Graphics();
@@ -1024,33 +1050,40 @@ private:
     void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event);
 
     // native resource factory
-    [[nodiscard]] HardwareTextureRef CreateHardwareTexture_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, Flags<eTextureCreateFlags> _flags, eTextureType _type, Span<const MemoryView> _initDataOrEmpty) const;
-    [[nodiscard]] HardwareBuffer     CreateHardwareBuffer_(Int32 _byteWidth, eBufferType _type, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] HardwareTextureRef CreateHardwareTexture_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, eTextureType _type, Flags<eTextureCreateFlags> _flags, Span<const MemoryView> _initDataOrEmpty) const;
     [[nodiscard]] FrameBuffer        CreateFrameBuffer_(Span<const TextureHandle> _attachments, bool _bDestroyTexture);
 
     [[nodiscard]] ShaderHandle       GetOrCreateShader_(MemoryView _byteCode);
     [[nodiscard]] VertexLayoutHandle GetOrCreateVertexLayout_(const VertexLayout& _vl);
 
-    // buffer upload/download
-    [[nodiscard]] MutableMemoryView BeginUploadBuffer_(const HardwareBuffer& _buffer) const;
-    void                            EndUploadBuffer_(const HardwareBuffer& _buffer) const;
-    void                            UploadBuffer_(const HardwareBuffer& _buffer, MemoryView _uploadData, Int32 _offset, bool _bDiscard);
-    [[nodiscard]] Vector<Byte>      DownloadBuffer_(const HardwareBuffer& _buffer);
-    void                            UploadTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, MemoryView _uploadData, Int32 _uploadWidth, Int32 _uploadHeight, Int32 _uploadDepth, Int32 _uploadDataRowPitch, Int32 _uploadDataSlicePitch) const;
-    [[nodiscard]] Vector<Byte>      DownloadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex);
-    void                            Blit_(const HardwareTextureRef& _blitDstTexture, Int32 _blitDstMipIndex, Int32 _blitDstArrayIndex, Int32 _blitDstX, Int32 _blitDstY, Int32 _blitDstZ, const HardwareTextureRef& _blitSrcTexture, Int32 _blitSrcMipIndex, Int32 _blitSrcArrayIndex, Int32 _blitSrcX, Int32 _blitSrcY, Int32 _blitSrcZ, Int32 _blitSrcWidthOrZero, Int32 _blitSrcHeightOrZero, Int32 _blitSrcDepthOrZero) const;
+    // buffer utils
+    [[nodiscard]] MutableMemoryView BeginUpdateBuffer_(const HardwareBuffer& _buffer) const;
+    void                            EndUpdateBuffer_(const HardwareBuffer& _buffer) const;
+    void                            UpdateBuffer_(const HardwareBuffer& _buffer, MemoryView _uploadData, Int32 _offset, bool _bDiscard);
+    [[nodiscard]] MemoryView        BeginReadBuffer_(const HardwareBuffer& _buffer) const;
+    void                            EndReadBuffer_(const HardwareBuffer& _buffer) const;
+    Int32                           ReadBuffer_(const HardwareBuffer& _buffer, MemoryView _dst) const;
+    void                            CopyBuffer_(const HardwareBuffer& _dstBuffer, Int32 _dstOffset, const HardwareBuffer& _srcBuffer, Int32 _srcOffset, Int32 _byteWidth) const;
 
-    // d3d11 state cache
-    [[nodiscard]] ID3D11RasterizerState*   GetOrCreateD3D11RasterizerState_(RasterizerStateD3D11 _state);
-    [[nodiscard]] ID3D11BlendState*        GetOrCreateD3D11BlendState_(const BlendStateD3D11& _state);
-    [[nodiscard]] ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilState_(DepthStencilStateD3D11 _state);
-    [[nodiscard]] ID3D11SamplerState*      GetOrCreateD3D11SamplerState_(SamplerState _state, RGBA _color);
+    // texture utils
+    void                     UpdateTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, MemoryView _uploadData, Int32 _uploadWidth, Int32 _uploadHeight, Int32 _uploadDepth, Int32 _uploadDataRowPitch, Int32 _uploadDataSlicePitch) const;
+    [[nodiscard]] MemoryView BeginReadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex) const;
+    void                     EndReadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex) const;
+    [[nodiscard]] Int32      ReadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex, MemoryView _dst, Int32 _dstRowPitch, Int32 _dstSlicePitch) const;
+    void                     CopyTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, const HardwareTextureRef& _srcTexture, Int32 _srcMipIndex, Int32 _srcArrayIndex, Int32 _srcX, Int32 _srcY, Int32 _srcZ, Int32 _srcWidthOrZero, Int32 _srcHeightOrZero, Int32 _srcDepthOrZero) const;
+
+    [[nodiscard]] HardwareBuffer CreateHardwareBuffer_(Int32 _byteWidth, eBufferType _type, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] StorageBuffer  CreateStorageBuffer_(Int32 _byteWidth, Int32 _stride, eStorageBufferType _type, eStorageBufferDataType _dataType, Flags<eStorageBufferCreateFlags> _flags, bool _bAppendConsumer, bool _bCounter, MemoryView _initDataOrEmpty) const;
+
+    // d3d11 cache
+    [[nodiscard]] ID3D11InputLayout*       GetOrCreateD3D11InputLayoutFromCurrentBind_();
+    [[nodiscard]] ID3D11RasterizerState*   GetOrCreateD3D11RasterizerStateFromCurrentBind_();
+    [[nodiscard]] ID3D11BlendState*        GetOrCreateD3D11BlendStateFromCurrentBind_();
+    [[nodiscard]] ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilStateFromCurrentBind_();
+    [[nodiscard]] ID3D11SamplerState*      GetOrCreateD3D11SamplerState_(Flags<eSamplerFlags> _state, RGBA _rgba);
 
     // upload/download resource cache
-    [[nodiscard]] ID3D11Buffer*    GetOrCreateUploadBuffer_(Int32 _byteWidth);
-    [[nodiscard]] ID3D11Buffer*    GetOrCreateReadbackBuffer_(Int32 _byteWidth);
-    [[nodiscard]] ID3D11Texture2D* GetOrCreateReadbackTexture2D_(Int32 _width, Int32 _height, eTextureFormat _format);
-    [[nodiscard]] ID3D11Texture3D* GetOrCreateReadbackTexture3D_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format);
+    [[nodiscard]] ID3D11Buffer* GetOrCreateUploadBuffer_(Int32 _byteWidth);
 
     // misc
     [[nodiscard]] UInt32 QueryMaxMsaaQualityLevel_(DXGI_FORMAT _format, Int32 _numSamples) const;
@@ -1062,68 +1095,81 @@ private:
     bool                 m_bAllowTearing       = false;
 
     // resource pools
-    ResourcePool<VertexBuffer>       m_vertexBuffers = {};
-    ResourcePool<IndexBuffer>        m_indexBuffers  = {};
-    ResourcePool<HardwareTextureRef> m_textures      = {};
-    ResourcePool<FrameBuffer>        m_frameBuffers  = {};
-    ResourcePool<ShaderRef>          m_shaders       = {};
-    ResourcePool<VertexLayoutRef>    m_vertexLayouts = {};
-    ResourcePool<ConstantBuffer>     m_cbuffers      = {};
-    ResourcePool<Program>            m_programs      = {};
+    ResourcePool<VertexBuffer>       m_vertexBuffers  = {};
+    ResourcePool<IndexBuffer>        m_indexBuffers   = {};
+    ResourcePool<HardwareTextureRef> m_textures       = {};
+    ResourcePool<FrameBuffer>        m_frameBuffers   = {};
+    ResourcePool<ShaderRef>          m_shaders        = {};
+    ResourcePool<VertexLayoutRef>    m_vertexLayouts  = {};
+    ResourcePool<ConstantBuffer>     m_cbuffers       = {};
+    ResourcePool<Program>            m_programs       = {};
+    ResourcePool<StorageBuffer>      m_storageBuffers = {};
 
     // resource caches
-    CASHashMap<UInt64, ShaderHandle>       m_shaderCache = {};
     CASHashMap<UInt64, VertexLayoutHandle> m_vlCache     = {};
+    CASHashMap<UInt64, ShaderHandle>       m_shaderCache = {};
 
-    // d3d11 render state caches
+    // d3d11 caches
+    CASHashMap<UInt64, ID3D11InputLayout*>       m_d3d11InputLayoutCache       = {};
     CASHashMap<UInt32, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
     CASHashMap<UInt64, ID3D11BlendState*>        m_d3d11BlendStateCache        = {};
     CASHashMap<UInt64, ID3D11DepthStencilState*> m_d3d11DepthStencilStateCache = {};
     CASHashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
 
-    // pipeline bind state
-    VertexLayoutHandle m_vlhBind      = k_nullHandle;
-    VertexBufferHandle m_vbhBind      = k_nullHandle;
-    Int32              m_vbOffsetBind = 0;
-    Int32              m_numVertsBind = 0;
+    // vertex stream
+    StreamBinds m_streamBinds = {};
+    Int32       m_numVerts    = 0;
 
+    // index buffer
     IndexBufferHandle m_ibhBind        = k_nullHandle;
-    Int32             m_ibOffsetBind   = 0;
     Int32             m_numIndicesBind = 0;
+    Int32             m_ibOffsetBind   = 0;
 
-    FrameBufferHandle m_fbhBind = k_nullHandle;
-    ProgramHandle     m_phBind  = k_nullHandle;
+    // instance buffer
+    VertexBufferHandle m_instanceBind       = k_nullHandle;
+    Int32              m_numInstancesBind   = 0;
+    Int32              m_instanceOffsetBind = 0;
 
+    // read resources
     EnumArray<eShader, ConstantBufferBinds> m_cbufferBinds = {};
     EnumArray<eShader, TextureBinds>        m_textureBinds = {};
     EnumArray<eShader, SamplerBinds>        m_samplerBinds = {};
 
-    Viewport m_vpBind          = {};
-    Rect     m_scissorRectBind = {};
+    // write resources
+    FrameBufferHandle                      m_fbhBind         = k_nullHandle;
+    ProgramHandle                          m_phBind          = k_nullHandle;
+    ProgramHandle                          m_computePhBind   = k_nullHandle;
+    Viewport                               m_vpBind          = {};
+    Rect                                   m_scissorRectBind = {};
+    EnumArray<eSubmitParameterType, Int32> m_submitParams    = {};
 
-    RenderState m_renderStateBind = {};
-    RGBA        m_blendFactorBind = {};
-    UInt8       m_stencilRefBind  = 0;
+    // render state
+    Flags<eRenderFlags> m_renderFlagsBind = {};
 
-    ePrimitive             m_primBind              = ePrimitive::TriangleList;   // 초기 무효 상태
-    DepthStencilStateD3D11 m_depthStencilStateBind = {};
-    RasterizerStateD3D11   m_rasterizerStateBind   = {};
-    BlendStateD3D11        m_blendStateBind        = {};
+    // blend state
+    Array<Flags<eBlendFlags>, k_maxNumRenderTargetViewSlots> m_blendFlagsBinds = {};
+    RGBA                                                     m_blendFactorBind = {};
 
-    EnumArray<eSubmitParameterType, Int32> m_submitParams = {};
-    Flags<ePipelineDirtyFlags>             m_dirtyFlags   = ePipelineDirtyFlags::All;
+    // stencil states
+    Flags<eStencilFlags> m_fstencilBind   = eStencilFlags::None;
+    Flags<eStencilFlags> m_bstencilBind   = eStencilFlags::None;
+    UInt8                m_stencilRefBind = 0;
+
+    // dirty flags
+    Flags<ePipelineDirtyFlags> m_dirtyFlags = ePipelineDirtyFlags::All;
+
+    // stream bound (TODO: fix me -> more efficient way to track vertex layout for each stream)
+    Array<VertexLayoutHandle, k_maxNumVertexStream> m_vlhStreamBound  = {};
+    Int32                                           m_numStreamsBound = 0;
 
     // back buffer
     Vec2i             m_backBufferRes  = {};
     TextureHandle     m_backBufferTexh = k_nullHandle;
     FrameBufferHandle m_backBufferFbh  = k_nullHandle;
 
-    // 업로드/다운로드 시 GPU-CPU 동기화 최소화를 위해 재사용
-    ID3D11Buffer*                                 m_pUploadBufferCache       = nullptr;
-    Int32                                         m_pUploadBufferCacheSize   = 0;
-    ID3D11Buffer*                                 m_pReadbackBufferCache     = nullptr;
-    Int32                                         m_pReadbackBufferCacheSize = 0;
-    CASHashMap<UInt64, ReadbackTextureCacheEntry> m_readbackTextureCache     = {};
+    // upload resource cache
+    ID3D11Buffer* m_pUploadBufferCache     = nullptr;
+    Int32         m_pUploadBufferCacheSize = 0;
 
     inline static Graphics* s_pInstance = nullptr;
     friend class Application;

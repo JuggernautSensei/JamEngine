@@ -164,13 +164,12 @@ ImGuiEngine::ImGuiEngine(
     m_cbh = GetGraphics().CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
 
     // state
-    m_bs               = BlendState::k_alphaBlend;
-    m_rs.bWireframe    = false;
-    m_rs.cullMode      = eCullMode::None;
-    m_rs.bScissor      = true;
-    m_rs.bDepthClamp   = false;
-    m_rs.depthTestFunc = eCompareFunc::None;
-    m_ss               = SamplerState::k_linearClamp;
+    m_bsFlags = eBlendFlags::Enable
+              | eBlendFlags::SrcBlend_SrcAlpha | eBlendFlags::DstBlend_InvSrcAlpha | eBlendFlags::BlendOp_Add
+              | eBlendFlags::SrcBlendAlpha_One | eBlendFlags::DstBlendAlpha_Zero | eBlendFlags::BlendOpAlpha_Add
+              | eBlendFlags::WriteMask_All;
+    m_rsFlags = eRenderFlags::CullMode_None | eRenderFlags::Scissor;
+    m_ssFlags = eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear | eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp;
 }
 
 ImGuiEngine::~ImGuiEngine()
@@ -299,10 +298,10 @@ void ImGuiEngine::Render_(
 
     // copy data to cpu buffers
     const MutableMemoryView gpuVtxData  = gfx.BeginUploadBuffer(m_vbh);
-    Byte*             pGpuVtxData = gpuVtxData.GetPtr();
+    Byte*                   pGpuVtxData = gpuVtxData.GetPtr();
 
     const MutableMemoryView gpuIdxData  = gfx.BeginUploadBuffer(m_ibh);
-    Byte*             pGpuIdxData = gpuIdxData.GetPtr();
+    Byte*                   pGpuIdxData = gpuIdxData.GetPtr();
 
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
     {
@@ -354,11 +353,11 @@ void ImGuiEngine::Render_(
 
     gfx.UploadBuffer(m_cbh, AsMemoryView(cb));
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    gfx.SetBlendState(m_bs, 0);
-    gfx.SetRenderState(m_rs);
-    gfx.SetSampler(m_ss, eShader::PixelShader, 0);
-    gfx.SetStencil(StencilState::k_disable, StencilState::k_disable);
-    gfx.SetVertexBuffer(m_vbh);
+    gfx.SetBlendFlags(m_bsFlags, 0);
+    gfx.SetRenderFlags(m_rsFlags);
+    gfx.SetSamplerState(m_ssFlags, eShader::PixelShader, 0);
+    gfx.SetStencilFlags(eStencilFlags::None, eStencilFlags::None);
+    gfx.SetVertexBuffer(m_vbh, 0);
 
     // Render command lists
     Int32 startIdxLoc = 0;

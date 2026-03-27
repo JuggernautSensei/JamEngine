@@ -14,25 +14,63 @@ constexpr Int32 k_maxNumAttachmentSlots         = k_maxNumRenderTargetViewSlots 
 constexpr Int32 k_maxNumSamplerSlots            = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
 constexpr Int32 k_maxNumShaderResourceViewSlots = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
 constexpr Int32 k_maxNumConstantBufferSlots     = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-constexpr Int32 k_maxNumInstanceBufferSlots     = 5;
+constexpr Int32 k_maxNumVertexAttributes        = D3D11_VS_INPUT_REGISTER_COUNT;
+constexpr Int32 k_maxNumVertexStream            = 4;
 
 enum class eTextureCreateFlags : UInt32
 {
-    None         = 0,
-    GenerateMips = 1 << 0,
+    None = 0,
 
-    // if multiple MSAA flags are set, the lowest one takes precedence
-    MSAAx4  = 1 << 1,   // 4x MSAA
-    MSAAx8  = 1 << 2,   // 8x MSAA
-    MSAAx16 = 1 << 3,   // 16x MSAA
+    GenerateMips           = 1 << 0,   // generate mips until 1x1x1
+    RenderTargetAttachment = 1 << 1,   // attachable as render target
+    DepthStencilAttachment = 1 << 2,   // attachable as depth stencil
+    Mutable                = 1 << 3,   // texture be mutable by gpu
+    WriteOnly              = 1 << 4,   // cannot readable on gpu
+    ComputeReadWrite       = 1 << 5,   // readable & writable on compute shader
+    Readback               = 1 << 6,   // readable on cpu
 
-    WriteOnly    = 1 << 4,   // do not create shader resource view. write only
-    RenderTarget = 1 << 5,   // for render target usage
-    DepthStencil = 1 << 6,   // for depth stencil usage
+    MSAAx4  = 1 << 7,   // 4x MSAA
+    MSAAx8  = 2 << 7,   // 8x MSAA
+    MSAAx16 = 3 << 7,   // 16x MSAA
+};
 
-    Mutable = 1 << 7,   // when creating with initial renderable, create immutable texture. this flag makes it mutable even though initial renderable is provided
+[[nodiscard]] Flags<eTextureCreateFlags> FilterMsaaFlags(Flags<eTextureCreateFlags> _flags) noexcept;
 
-    MultiSampled_Internal = MSAAx4 | MSAAx8 | MSAAx16,
+enum class eStorageBufferCreateFlags : UInt32
+{
+    None = 0,
+
+    Readable         = 1 << 0,   // readable on gpu
+    ComputeReadWrite = 1 << 1,   // readable & writable on compute shader
+    IndirectArgs     = 1 << 2,   // can be used as indirect argument buffer
+};
+
+enum class eStorageBufferDataType
+{
+    UInt8x1,
+    UInt8x2,
+    UInt8x4,
+    Int8x1,
+    Int8x2,
+    Int8x4,
+    UInt16x1,
+    UInt16x2,
+    UInt16x4,
+    Int16x1,
+    Int16x2,
+    Int16x4,
+    Float16x1,
+    Float16x2,
+    Float16x4,
+    UInt32x1,
+    UInt32x2,
+    UInt32x4,
+    Int32x1,
+    Int32x2,
+    Int32x4,
+    Float32x1,
+    Float32x2,
+    Float32x4,
 };
 
 enum class eShader
@@ -45,122 +83,19 @@ enum class eShader
     ComputeShader,
 };
 
-constexpr eShader k_gfxShaderStages[] = {
-    eShader::VertexShader,
-    eShader::PixelShader,
-    eShader::GeometryShader,
-    eShader::HullShader,
-    eShader::DomainShader
-    // exclude compute shader
-};
-
 enum class eTextureType
 {
     Texture2D = 0,
     Texture3D,
     TextureCube,
-
 };
 
-enum class eBlend : UInt8
+enum class eStorageBufferType
 {
-    Zero = 0,
-    One,
-    SrcColor,
-    InvSrcColor,
-    SrcAlpha,
-    InvSrcAlpha,
-    DstAlpha,
-    InvDstAlpha,
-    DstColor,
-    InvDstColor,
-    SrcAlphaSat,
-    BlendFactor,
-    InvBlendFactor
-};
-
-enum class eBlendOp : UInt8
-{
-    Add = 0,
-    Subtract,
-    RevSubtract,
-    Min,
-    Max
-};
-
-enum class eCullMode : UInt8
-{
-    None = 0,
-    Back,
-    Front,
-};
-
-enum class ePrimitive : UInt8
-{
-    TriangleList = 0,
-    TriangleStrip,
-    LineList,
-    LineStrip,
-    PointList,
-};
-
-enum class eCompareFunc : UInt8
-{
-    None,
-    Less,
-    LessEqual,
-    Greater,
-    GreaterEqual,
-    Equal,
-    NotEqual,
-    Always,
-    Never,
-};
-
-enum class eWriteFlags : UInt8
-{
-    None  = 0,
-    Red   = 1 << 0,
-    Green = 1 << 1,
-    Blue  = 1 << 2,
-    Alpha = 1 << 3,
-    All   = Red | Green | Blue | Alpha,
-};
-
-enum class eStencilOp : UInt8
-{
-    Keep = 0,
-    Zero,
-    Replace,
-    IncrSat,
-    DecrSat,
-    Invert,
-    Incr,
-    Decr,
-};
-
-enum class eTextureAddressMode : UInt8
-{
-    Wrap       = 0,
-    Mirror     = 1,
-    Clamp      = 2,
-    Border     = 3,
-    MirrorOnce = 4,
-};
-
-enum class eTextureFilter : UInt8
-{
-    MinPoint_MagPoint_MipPoint = 0,
-    MinPoint_MagPoint_MipLinear,
-    MinPoint_MagLinear_MipPoint,
-    MinPoint_MagLinear_MipLinear,
-    MinLinear_MagPoint_MipPoint,
-    MinLinear_MagPoint_MipLinear,
-    MinLinear_MagLinear_MipPoint,
-    MinLinear_MagLinear_MipLinear,
-    Anisotropic4,
-    Anisotropic8,
-    Anisotropic16,
+    Raw = 0,
+    Structured,
+    Typed,
+    Readback
 };
 
 enum class eCubeFace : Int8
@@ -198,28 +133,28 @@ enum class eSubmitParameterType
 {
     StartVertexLocation = 0,
     StartIndexLocation,
+    StartInstanceLocation,
     BaseVertexLocation,
 };
 
 struct VertexLayoutRef
 {
-    ID3D11InputLayout* pInputLayout = nullptr;
-    VertexLayout       vertexLayout = {};
-    Int32              refCount     = 0;
-    UInt64             hash         = 0;
+    VertexLayout vl   = {};
+    UInt64       hash = 0;
 };
 using VertexLayoutHandle = Handle<VertexLayoutRef>;
 
 struct HardwareBuffer
 {
-    ID3D11Buffer* pBuffer   = nullptr;
-    Int32         byteWidth = 0;
-    bool          bDynamic  = false;
+    String        name    = {};
+    ID3D11Buffer* pBuffer = nullptr;
+
+    Int32 byteWidth = 0;
+    bool  bDynamic  = false;
 };
 
 struct VertexBuffer : HardwareBuffer
 {
-    String             name     = {};
     Int32              numVerts = 0;
     Int32              stride   = 0;
     VertexLayoutHandle vlh      = k_nullHandle;
@@ -228,18 +163,31 @@ using VertexBufferHandle = Handle<VertexBuffer>;
 
 struct IndexBuffer : HardwareBuffer
 {
-    String name     = {};
-    Int32  numIdxes = 0;
-    Int32  stride   = 0;
-    bool   bUseU32  = false;
+    Int32 numIdxes = 0;
+    Int32 stride   = 0;
+    bool  bUseU32  = false;
 };
 using IndexBufferHandle = Handle<IndexBuffer>;
 
 struct ConstantBuffer : HardwareBuffer
 {
-    String name = {};
 };
 using ConstantBufferHandle = Handle<ConstantBuffer>;
+
+struct StorageBuffer : HardwareBuffer
+{
+    ID3D11ShaderResourceView*  pSrv = nullptr;
+    ID3D11UnorderedAccessView* pUav = nullptr;
+
+    eStorageBufferType type           = eStorageBufferType::Raw;
+    Int32              numElems       = 0;
+    Int32              stride         = 0;
+    bool               bReadback      = false;
+    bool               bIndirectArgs  = false;
+    bool               bAppendConsume = false;
+    bool               bCounter       = false;
+};
+using StorageBufferHandle = Handle<StorageBuffer>;
 
 struct HardwareTextureRef
 {
@@ -249,7 +197,9 @@ struct HardwareTextureRef
         ID3D11Texture2D* pTexture2D;
         ID3D11Texture3D* pTexture3D;
     };
-    ID3D11ShaderResourceView* pSrv = nullptr;
+
+    ID3D11ShaderResourceView*  pSrv = nullptr;
+    ID3D11UnorderedAccessView* pUav = nullptr;
 
     String         name           = {};
     Int32          width          = 0;
@@ -265,6 +215,7 @@ struct HardwareTextureRef
     bool           bManaged       = false;
     bool           bRtvAttachable = false;
     bool           bDsvAttachable = false;
+    bool           bReadback      = false;
 };
 using TextureHandle = Handle<HardwareTextureRef>;
 
@@ -296,13 +247,18 @@ struct ShaderRef
     String  name     = {};
     eShader stage    = eShader::VertexShader;
     Int32   refCount = 0;
-    UInt64  cache    = 0;
+    UInt64  hash     = 0;
 };
 using ShaderHandle = Handle<ShaderRef>;
 
 struct Program
 {
-    EnumArray<eShader, ShaderHandle> shs = {};
+    ShaderHandle vsh = k_nullHandle;
+    ShaderHandle psh = k_nullHandle;
+    ShaderHandle gsh = k_nullHandle;
+    ShaderHandle hsh = k_nullHandle;
+    ShaderHandle dsh = k_nullHandle;
+    ShaderHandle csh = k_nullHandle;
 };
 using ProgramHandle = Handle<Program>;
 
@@ -424,6 +380,16 @@ struct Viewport
     {
     }
 
+    [[nodiscard]] constexpr bool operator==(const Viewport& _other) const
+    {
+        return viewport == _other.viewport;
+    }
+
+    [[nodiscard]] constexpr bool operator!=(const Viewport& _other) const
+    {
+        return viewport != _other.viewport;
+    }
+
     union
     {
         struct
@@ -464,217 +430,303 @@ struct Rect
     };
 };
 
-struct RenderState
+enum class eRenderFlags : UInt32
 {
-    constexpr RenderState()
-        : primitive(ePrimitive::TriangleList)
-        , cullMode(eCullMode::Back)
-        , bWireframe(false)
-        , bDepthClamp(false)
-        , bMultiSample(false)
-        , bLineAA(false)
-        , bScissor(false)
-        , bCCWFront(false)
-        , bAlphaToCoverage(false)
-        , bIndependentBlend(false)
-        , depthTestFunc(eCompareFunc::None)
-        , bDepthWrite(false)
-    {
-    }
+    None = 0,
 
-    constexpr RenderState(
-        const ePrimitive   _primitive,
-        const eCullMode    _cullMode,
-        const bool         _bWireframe,
-        const bool         _bDepthClamp,
-        const bool         _bMultiSample,
-        const bool         _bLineAA,
-        const bool         _bScissor,
-        const bool         _bCCWFront,
-        const bool         _bAlphaToCoverage,
-        const bool         _bIndependentBlend,
-        const eCompareFunc _depthTestFunc,
-        const bool         _bDepthWrite)
-        : primitive(_primitive)
-        , cullMode(_cullMode)
-        , bWireframe(_bWireframe)
-        , bDepthClamp(_bDepthClamp)
-        , bMultiSample(_bMultiSample)
-        , bLineAA(_bLineAA)
-        , bScissor(_bScissor)
-        , bCCWFront(_bCCWFront)
-        , bAlphaToCoverage(_bAlphaToCoverage)
-        , bIndependentBlend(_bIndependentBlend)
-        , depthTestFunc(_depthTestFunc)
-        , bDepthWrite(_bDepthWrite)
-    {
-    }
+    // Primitive [0:2] : 3 bit
+    Primitive_TriangleList  = 0 << 0,
+    Primitive_TriangleStrip = 1 << 0,
+    Primitive_LineList      = 2 << 0,
+    Primitive_LineStrip     = 3 << 0,
+    Primitive_PointList     = 4 << 0,
 
-    static RenderState k_default;
-    static RenderState k_depthTest;
+    // CullMode [3:4] : 2 bit
+    CullMode_None  = 0 << 3,
+    CullMode_Back  = 1 << 3,
+    CullMode_Front = 2 << 3,
 
-    union
-    {
-        struct
-        {
-            ePrimitive   primitive : 3;           // 프리미티브 타입 (기본: 삼각형 리스트)
-            eCullMode    cullMode : 2;            // 컬링 모드 (기본: 백 페이스 컬링)
-            bool         bWireframe : 1;          // Fill 모드 (기본: 솔리드, true: 와이어프레임)
-            bool         bDepthClamp : 1;         // 깊이 클램프 활성화 여부 (기본: 깊이를 벗어나는 픽셀은 클리핑, true: 깊이를 벗어나는 픽셀 클립하지 않음)
-            bool         bMultiSample : 1;        // 멀티샘플링 활성화 여부 (기본: 비활성화, true: 활성화) 이는 MSAA 렌더 타겟에만 영향을 미침
-            bool         bLineAA : 1;             // 라인 안티앨리어싱 활성화 여부 (기본: 비활성화, true: 활성화) 이는 MSAA 렌더 타겟에만 영향을 미침
-            bool         bScissor : 1;            // 스크리소 활성화 여부 (기본: 비활성화, true: 활성화)
-            bool         bCCWFront : 1;           // 반시계방향을 앞면으로 설정 (기본: 시계방향이 앞면, true: 반시계방향이 앞면)
-            bool         bAlphaToCoverage : 1;    // 알파 투 커버리지 활성화 여부 (기본: 비활성화, true: 활성화) 이는 MSAA 렌더 타겟에만 영향을 미침
-            bool         bIndependentBlend : 1;   // 독립적 블렌딩 활성화 여부 (기본: 비활성화, true: 활성화) 이는 8개 렌더 타겟 각각에 대해 별도의 블렌드 상태를 설정할 수 있게 함
-            eCompareFunc depthTestFunc : 4;       // 깊이 테스트 비교 함수 (기본: None. 즉, 깊이 테스트 비활성화)
-            bool         bDepthWrite : 1;         // 깊이 쓰기 활성화 여부 (기본: 비활성화, true: 활성화)
-        };
-        UInt32 value = 0;
-    };
+    // Rasterizer Flags [5:10] : 6 bit
+    Wireframe   = 1 << 5,
+    DepthClamp  = 1 << 6,
+    MultiSample = 1 << 7,
+    LineAA      = 1 << 8,
+    Scissor     = 1 << 9,
+    CCWFront    = 1 << 10,
+
+    // Blend Flags [11:12] : 2 bit
+    AlphaToCoverage  = 1 << 11,
+    IndependentBlend = 1 << 12,
+
+    // DepthFunc [13:16] : 4 bit
+    DepthFunc_None         = 0 << 13,
+    DepthFunc_Less         = 1 << 13,
+    DepthFunc_LessEqual    = 2 << 13,
+    DepthFunc_Greater      = 3 << 13,
+    DepthFunc_GreaterEqual = 4 << 13,
+    DepthFunc_Equal        = 5 << 13,
+    DepthFunc_NotEqual     = 6 << 13,
+    DepthFunc_Always       = 7 << 13,
+    DepthFunc_Never        = 8 << 13,
+
+    // DepthWrite [17] : 1 bit
+    DepthWrite = 1 << 17,
 };
 
-struct BlendState
+// Filter helper
+[[nodiscard]] Flags<eRenderFlags> FilterPrimitiveFlags(Flags<eRenderFlags> _flags);
+[[nodiscard]] Flags<eRenderFlags> FilterCullModeFlags(Flags<eRenderFlags> _flags);
+[[nodiscard]] Flags<eRenderFlags> FilterRasterizerFlags(Flags<eRenderFlags> _flags);
+[[nodiscard]] Flags<eRenderFlags> FilterBlendFlags(Flags<eRenderFlags> _flags);
+[[nodiscard]] Flags<eRenderFlags> FilterDepthFuncFlags(Flags<eRenderFlags> _flags);
+[[nodiscard]] Flags<eRenderFlags> FilterDepthFlags(Flags<eRenderFlags> _flags);
+
+// set helper (not bit flags)
+[[nodiscard]] Flags<eRenderFlags> SetPrimitiveFlags(Flags<eRenderFlags> _flags, Flags<eRenderFlags> _primitiveFlags);
+[[nodiscard]] Flags<eRenderFlags> SetCullModeFlags(Flags<eRenderFlags> _flags, Flags<eRenderFlags> _cullModeFlags);
+[[nodiscard]] Flags<eRenderFlags> SetDepthFuncFlags(Flags<eRenderFlags> _flags, Flags<eRenderFlags> _depthFuncFlags);
+
+// resolve helper
+[[nodiscard]] UInt32 ResolvePrimitiveFlags(Flags<eRenderFlags> _flags);
+[[nodiscard]] UInt32 ResolveDepthFuncFlags(Flags<eRenderFlags> _flags);
+
+enum class eBlendFlags : UInt32
 {
-    constexpr BlendState()
-        : bEnable(false)
-        , srcBlend(eBlend::One)
-        , dstBlend(eBlend::Zero)
-        , blendOp(eBlendOp::Add)
-        , srcBlendAlpha(eBlend::One)
-        , dstBlendAlpha(eBlend::Zero)
-        , blendOpAlpha(eBlendOp::Add)
-        , writeMask(eWriteFlags::All)
-    {
-    }
+    None = 0,
 
-    constexpr BlendState(
-        const bool               _bEnable,
-        const eBlend             _srcBlend,
-        const eBlend             _dstBlend,
-        const eBlendOp           _blendOp,
-        const eBlend             _srcBlendAlpha,
-        const eBlend             _dstBlendAlpha,
-        const eBlendOp           _blendOpAlpha,
-        const Flags<eWriteFlags> _writeMask)
-        : bEnable(_bEnable)
-        , srcBlend(_srcBlend)
-        , dstBlend(_dstBlend)
-        , blendOp(_blendOp)
-        , srcBlendAlpha(_srcBlendAlpha)
-        , dstBlendAlpha(_dstBlendAlpha)
-        , blendOpAlpha(_blendOpAlpha)
-        , writeMask(_writeMask)
-    {
-    }
+    // Enable [0] : 1 bit
+    Enable = 1 << 0,
 
-    static BlendState k_opaque;
-    static BlendState k_alphaBlend;
-    static BlendState k_additive;
-    static BlendState k_premultipliedAlpha;
-    static BlendState k_subtractive;
-    static BlendState k_multiply;
-    static BlendState k_screen;
-    static BlendState k_overlay;
+    // SrcBlend [1:4] : 4 bit
+    SrcBlend_Zero           = 0 << 1,
+    SrcBlend_One            = 1 << 1,
+    SrcBlend_SrcColor       = 2 << 1,
+    SrcBlend_InvSrcColor    = 3 << 1,
+    SrcBlend_SrcAlpha       = 4 << 1,
+    SrcBlend_InvSrcAlpha    = 5 << 1,
+    SrcBlend_DstAlpha       = 6 << 1,
+    SrcBlend_InvDstAlpha    = 7 << 1,
+    SrcBlend_DstColor       = 8 << 1,
+    SrcBlend_InvDstColor    = 9 << 1,
+    SrcBlend_SrcAlphaSat    = 10 << 1,
+    SrcBlend_BlendFactor    = 11 << 1,
+    SrcBlend_InvBlendFactor = 12 << 1,
 
-    // final m_value = (src m_value * src blendBinds) (blendBinds op) (dst m_value * dst blendBinds)
-    union
-    {
-        struct
-        {
-            bool               bEnable : 1;         // 블렌딩 활성화 여부 (기본: 비활성화, true: 활성화)
-            eBlend             srcBlend : 4;        // 소스 블렌드 팩터 (기본: One)
-            eBlend             dstBlend : 4;        // 대상 블렌드 팩터 (기본: Zero)
-            eBlendOp           blendOp : 3;         // 블렌드 연산자 (기본: Add_)
-            eBlend             srcBlendAlpha : 4;   // 소스 알파 블렌드 팩터 (기본: One)
-            eBlend             dstBlendAlpha : 4;   // 대상 알파 블렌드 팩터 (기본: Zero)
-            eBlendOp           blendOpAlpha : 3;    // 알파 블렌드 연산자 (기본: Add_)
-            Flags<eWriteFlags> writeMask;           // 렌더 타겟에 쓰기 마스크 (기본: RGBA 모두 활성화)
-        };
-        UInt32 value = 0;
-    };
+    // DstBlend [5:8] : 4 bit
+    DstBlend_Zero           = 0 << 5,
+    DstBlend_One            = 1 << 5,
+    DstBlend_SrcColor       = 2 << 5,
+    DstBlend_InvSrcColor    = 3 << 5,
+    DstBlend_SrcAlpha       = 4 << 5,
+    DstBlend_InvSrcAlpha    = 5 << 5,
+    DstBlend_DstAlpha       = 6 << 5,
+    DstBlend_InvDstAlpha    = 7 << 5,
+    DstBlend_DstColor       = 8 << 5,
+    DstBlend_InvDstColor    = 9 << 5,
+    DstBlend_SrcAlphaSat    = 10 << 5,
+    DstBlend_BlendFactor    = 11 << 5,
+    DstBlend_InvBlendFactor = 12 << 5,
+
+    // BlendOp [9:11] : 3 bit
+    BlendOp_Add         = 0 << 9,
+    BlendOp_Subtract    = 1 << 9,
+    BlendOp_RevSubtract = 2 << 9,
+    BlendOp_Min         = 3 << 9,
+    BlendOp_Max         = 4 << 9,
+
+    // SrcBlendAlpha [12:15] : 4 bit
+    SrcBlendAlpha_Zero           = 0 << 12,
+    SrcBlendAlpha_One            = 1 << 12,
+    SrcBlendAlpha_SrcAlpha       = 4 << 12,
+    SrcBlendAlpha_InvSrcAlpha    = 5 << 12,
+    SrcBlendAlpha_DstAlpha       = 6 << 12,
+    SrcBlendAlpha_InvDstAlpha    = 7 << 12,
+    SrcBlendAlpha_BlendFactor    = 11 << 12,
+    SrcBlendAlpha_InvBlendFactor = 12 << 12,
+
+    // DstBlendAlpha [16:19] : 4 bit
+    DstBlendAlpha_Zero           = 0 << 16,
+    DstBlendAlpha_One            = 1 << 16,
+    DstBlendAlpha_SrcAlpha       = 4 << 16,
+    DstBlendAlpha_InvSrcAlpha    = 5 << 16,
+    DstBlendAlpha_DstAlpha       = 6 << 16,
+    DstBlendAlpha_InvDstAlpha    = 7 << 16,
+    DstBlendAlpha_BlendFactor    = 11 << 16,
+    DstBlendAlpha_InvBlendFactor = 12 << 16,
+
+    // BlendOpAlpha [20:22] : 3 bit
+    BlendOpAlpha_Add         = 0 << 20,
+    BlendOpAlpha_Subtract    = 1 << 20,
+    BlendOpAlpha_RevSubtract = 2 << 20,
+    BlendOpAlpha_Min         = 3 << 20,
+    BlendOpAlpha_Max         = 4 << 20,
+
+    // WriteMask [23:26] : 4 bit
+    WriteMask_R   = 1 << 23,
+    WriteMask_G   = 1 << 24,
+    WriteMask_B   = 1 << 25,
+    WriteMask_A   = 1 << 26,
+    WriteMask_All = WriteMask_R | WriteMask_G | WriteMask_B | WriteMask_A,
 };
 
-struct StencilState
+// Filter helper
+[[nodiscard]] Flags<eBlendFlags> FilterSrcBlendFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] Flags<eBlendFlags> FilterDstBlendFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] Flags<eBlendFlags> FilterBlendOpFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] Flags<eBlendFlags> FilterSrcBlendAlphaFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] Flags<eBlendFlags> FilterDstBlendAlphaFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] Flags<eBlendFlags> FilterBlendOpAlphaFlags(Flags<eBlendFlags> _flags);
+
+// set helper (not bit flags)
+[[nodiscard]] Flags<eBlendFlags> SetSrcBlendFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _srcBlendFlags);
+[[nodiscard]] Flags<eBlendFlags> SetDstBlendFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _dstBlendFlags);
+[[nodiscard]] Flags<eBlendFlags> SetBlendOpFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _blendOpFlags);
+[[nodiscard]] Flags<eBlendFlags> SetSrcBlendAlphaFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _srcBlendAlphaFlags);
+[[nodiscard]] Flags<eBlendFlags> SetDstBlendAlphaFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _dstBlendAlphaFlags);
+[[nodiscard]] Flags<eBlendFlags> SetBlendOpAlphaFlags(Flags<eBlendFlags> _flags, Flags<eBlendFlags> _blendOpAlphaFlags);
+
+// resolve helper
+[[nodiscard]] UInt32 ResolveSrcBlendFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] UInt32 ResolveDstBlendFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] UInt32 ResolveBlendOpFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] UInt32 ResolveSrcBlendAlphaFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] UInt32 ResolveDstBlendAlphaFlags(Flags<eBlendFlags> _flags);
+[[nodiscard]] UInt32 ResolveBlendOpAlphaFlags(Flags<eBlendFlags> _flags);
+
+enum class eStencilFlags : UInt16
 {
-    constexpr StencilState()
-        : stencilFailOp(eStencilOp::Keep)
-        , depthFailOp(eStencilOp::Keep)
-        , passOp(eStencilOp::Keep)
-        , compareFunc(eCompareFunc::None)
-    {
-    }
+    None = 0,
 
-    constexpr StencilState(
-        const eStencilOp   _stencilFailOp,
-        const eStencilOp   _depthFailOp,
-        const eStencilOp   _passOp,
-        const eCompareFunc _compareFunc)
-        : stencilFailOp(_stencilFailOp)
-        , depthFailOp(_depthFailOp)
-        , passOp(_passOp)
-        , compareFunc(_compareFunc)
-    {
-    }
+    // StencilFailOp [0:2] : 3 bit
+    StencilFailOp_Keep    = 0 << 0,
+    StencilFailOp_Zero    = 1 << 0,
+    StencilFailOp_Replace = 2 << 0,
+    StencilFailOp_IncrSat = 3 << 0,
+    StencilFailOp_DecrSat = 4 << 0,
+    StencilFailOp_Invert  = 5 << 0,
+    StencilFailOp_Incr    = 6 << 0,
+    StencilFailOp_Decr    = 7 << 0,
 
-    static StencilState k_disable;
+    // DepthFailOp [3:5] : 3 bit
+    DepthFailOp_Keep    = 0 << 3,
+    DepthFailOp_Zero    = 1 << 3,
+    DepthFailOp_Replace = 2 << 3,
+    DepthFailOp_IncrSat = 3 << 3,
+    DepthFailOp_DecrSat = 4 << 3,
+    DepthFailOp_Invert  = 5 << 3,
+    DepthFailOp_Incr    = 6 << 3,
+    DepthFailOp_Decr    = 7 << 3,
 
-    union
-    {
-        struct
-        {
-            eStencilOp   stencilFailOp : 3;   // 뎁스 통과 & 스텐실 실패 시 수행할 작업
-            eStencilOp   depthFailOp : 3;     // 뎁스 실패 & 스텐실 통과 시 수행할 작업
-            eStencilOp   passOp : 3;          // 뎁스 통과 & 스텐실 통과 시 수행할 작업
-            eCompareFunc compareFunc : 4;     // 스텐실 테스트 비교 함수 (기본: None, 즉, 스텐실 테스트 비활성화)
-        };
-        UInt16 value = 0;
-    };
+    // PassOp [6:8] : 3 bit
+    PassOp_Keep    = 0 << 6,
+    PassOp_Zero    = 1 << 6,
+    PassOp_Replace = 2 << 6,
+    PassOp_IncrSat = 3 << 6,
+    PassOp_DecrSat = 4 << 6,
+    PassOp_Invert  = 5 << 6,
+    PassOp_Incr    = 6 << 6,
+    PassOp_Decr    = 7 << 6,
+
+    // CompareFunc [9:12] : 4 bit
+    CompareFunc_None         = 0 << 9,
+    CompareFunc_Never        = 1 << 9,
+    CompareFunc_Less         = 2 << 9,
+    CompareFunc_Equal        = 3 << 9,
+    CompareFunc_LessEqual    = 4 << 9,
+    CompareFunc_Greater      = 5 << 9,
+    CompareFunc_NotEqual     = 6 << 9,
+    CompareFunc_GreaterEqual = 7 << 9,
+    CompareFunc_Always       = 8 << 9,
 };
 
-struct SamplerState
+// Filter helper
+[[nodiscard]] Flags<eStencilFlags> FilterStencilFailOpFlags(Flags<eStencilFlags> _flags);
+[[nodiscard]] Flags<eStencilFlags> FilterDepthFailOpFlags(Flags<eStencilFlags> _flags);
+[[nodiscard]] Flags<eStencilFlags> FilterPassOpFlags(Flags<eStencilFlags> _flags);
+[[nodiscard]] Flags<eStencilFlags> FilterCompareFuncFlags(Flags<eStencilFlags> _flags);
+
+// set helper (not bit flags)
+[[nodiscard]] Flags<eStencilFlags> SetStencilFailOpFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _stencilFailOpFlags);
+[[nodiscard]] Flags<eStencilFlags> SetDepthFailOpFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _depthFailOpFlags);
+[[nodiscard]] Flags<eStencilFlags> SetPassOpFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _passOpFlags);
+[[nodiscard]] Flags<eStencilFlags> SetCompareFuncFlags(Flags<eStencilFlags> _flags, Flags<eStencilFlags> _compareFuncFlags);
+
+// resolve helper
+[[nodiscard]] UInt32 ResolveStencilFailOpFlags(Flags<eStencilFlags> _flags);
+[[nodiscard]] UInt32 ResolveDepthFailOpFlags(Flags<eStencilFlags> _flags);
+[[nodiscard]] UInt32 ResolvePassOpFlags(Flags<eStencilFlags> _flags);
+[[nodiscard]] UInt32 ResolveCompareFuncFlags(Flags<eStencilFlags> _flags);
+
+enum class eSamplerFlags : UInt32
 {
-    constexpr SamplerState()
-        : filter(eTextureFilter::MinPoint_MagPoint_MipPoint)
-        , addressU(eTextureAddressMode::Wrap)
-        , addressV(eTextureAddressMode::Wrap)
-        , addressW(eTextureAddressMode::Wrap)
-        , compareFunc(eCompareFunc::None)
-    {
-    }
+    None = 0,
 
-    constexpr SamplerState(
-        const eTextureFilter      _filter,
-        const eTextureAddressMode _addressU,
-        const eTextureAddressMode _addressV,
-        const eTextureAddressMode _addressW,
-        const eCompareFunc        _compareFunc)
-        : filter(_filter)
-        , addressU(_addressU)
-        , addressV(_addressV)
-        , addressW(_addressW)
-        , compareFunc(_compareFunc)
-    {
-    }
+    // Filter [0:4] : 5 bit
+    Filter_MinPoint_MagPoint_MipPoint    = 0 << 0,
+    Filter_MinPoint_MagPoint_MipLinear   = 1 << 0,
+    Filter_MinPoint_MagLinear_MipPoint   = 2 << 0,
+    Filter_MinPoint_MagLinear_MipLinear  = 3 << 0,
+    Filter_MinLinear_MagPoint_MipPoint   = 4 << 0,
+    Filter_MinLinear_MagPoint_MipLinear  = 5 << 0,
+    Filter_MinLinear_MagLinear_MipPoint  = 6 << 0,
+    Filter_MinLinear_MagLinear_MipLinear = 7 << 0,
+    Filter_Anisotropic4                  = 8 << 0,
+    Filter_Anisotropic8                  = 9 << 0,
+    Filter_Anisotropic16                 = 10 << 0,
 
-    static SamplerState k_pointClamp;
-    static SamplerState k_linearClamp;
-    static SamplerState k_pointWrap;
-    static SamplerState k_linearWrap;
+    // AddressU [5:7] : 3 bit
+    AddressU_Wrap       = 0 << 5,
+    AddressU_Mirror     = 1 << 5,
+    AddressU_Clamp      = 2 << 5,
+    AddressU_Border     = 3 << 5,
+    AddressU_MirrorOnce = 4 << 5,
 
-    union
-    {
-        struct
-        {
-            eTextureFilter      filter : 5;        // 필터링 모드 (기본값은 MinMagMipPoint)
-            eTextureAddressMode addressU : 3;      // U 좌표 래핑 모드 (기본값은 Wrap)
-            eTextureAddressMode addressV : 3;      // V 좌표 래핑 모드 (기본값은 Wrap)
-            eTextureAddressMode addressW : 3;      // W 좌표 래핑 모드 (기본값은 Wrap)
-            eCompareFunc        compareFunc : 4;   // 비교 함수 (기본값은 None 비교 필터링 비활성화. 다른 값으로 선택시 비교 필터링 활성화)
-        };
-        UInt32 value = 0;
-    };
+    // AddressV [8:10] : 3 bit
+    AddressV_Wrap       = 0 << 8,
+    AddressV_Mirror     = 1 << 8,
+    AddressV_Clamp      = 2 << 8,
+    AddressV_Border     = 3 << 8,
+    AddressV_MirrorOnce = 4 << 8,
+
+    // AddressW [11:13] : 3 bit
+    AddressW_Wrap       = 0 << 11,
+    AddressW_Mirror     = 1 << 11,
+    AddressW_Clamp      = 2 << 11,
+    AddressW_Border     = 3 << 11,
+    AddressW_MirrorOnce = 4 << 11,
+
+    // CompareFunc [14:17] : 4 bit
+    CompareFunc_None         = 0 << 14,
+    CompareFunc_Never        = 1 << 14,
+    CompareFunc_Less         = 2 << 14,
+    CompareFunc_Equal        = 3 << 14,
+    CompareFunc_LessEqual    = 4 << 14,
+    CompareFunc_Greater      = 5 << 14,
+    CompareFunc_NotEqual     = 6 << 14,
+    CompareFunc_GreaterEqual = 7 << 14,
+    CompareFunc_Always       = 8 << 14,
 };
+
+// Filter helper
+[[nodiscard]] Flags<eSamplerFlags> FilterFilterFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] Flags<eSamplerFlags> FilterAddressUFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] Flags<eSamplerFlags> FilterAddressVFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] Flags<eSamplerFlags> FilterAddressWFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] Flags<eSamplerFlags> FilterCompareFuncFlags(Flags<eSamplerFlags> _flags);
+
+// set helper (not bit flags)
+[[nodiscard]] Flags<eSamplerFlags> SetFilterFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _filterFlags);
+[[nodiscard]] Flags<eSamplerFlags> SetAddressUFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _addressUFlags);
+[[nodiscard]] Flags<eSamplerFlags> SetAddressVFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _addressVFlags);
+[[nodiscard]] Flags<eSamplerFlags> SetAddressWFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _addressWFlags);
+[[nodiscard]] Flags<eSamplerFlags> SetCompareFuncFlags(Flags<eSamplerFlags> _flags, Flags<eSamplerFlags> _compareFuncFlags);
+
+// resolve helper
+[[nodiscard]] UInt32 ResolveFilterFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] UInt32 ResolveAddressUFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] UInt32 ResolveAddressVFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] UInt32 ResolveAddressWFlags(Flags<eSamplerFlags> _flags);
+[[nodiscard]] UInt32 ResolveCompareFuncFlags(Flags<eSamplerFlags> _flags);
 
 ///////////////////////////////////////
 ///          RESOURCE INFO          ///
@@ -740,7 +792,12 @@ struct ShaderInfo
 
 struct ProgramInfo
 {
-    EnumArray<eShader, ShaderHandle> shs = {};
+    ShaderHandle vsh = k_nullHandle;
+    ShaderHandle psh = k_nullHandle;
+    ShaderHandle hsh = k_nullHandle;
+    ShaderHandle dsh = k_nullHandle;
+    ShaderHandle gsh = k_nullHandle;
+    ShaderHandle csh = k_nullHandle;
 };
 
 [[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);

@@ -134,7 +134,7 @@ void SimpleScene::OnRender(
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
     gfx.SetViewport(m_vp);
     gfx.SetProgram(m_ph);
-    gfx.SetRenderState(RenderState::k_depthTest);
+    gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
 
     // camera
     const Mtx4          vpMtx    = m_cameraTransform.CreateViewMatrix() * m_camera.GetProjMatrix();
@@ -189,7 +189,7 @@ void SimpleScene::OnRender(
     // in real case. use    post-process pass to do this.
     const FrameBufferInfo fbInfo = gfx.GetFrameBufferInfo(_view.outputFbh);
     JAM_ASSERT(fbInfo.numRenderTargets > 0, "Back buffer must have at least one render target");
-    gfx.Blit(fbInfo.renderTargetTexhs[0], m_fbTexh);
+    gfx.CopyTexture(fbInfo.renderTargetTexhs[0], m_fbTexh);
 }
 
 void SimpleScene::OnImGuiRender()

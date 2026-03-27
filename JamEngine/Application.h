@@ -22,18 +22,8 @@ enum class eAppCoreFlags : UInt32
     AllowTearing = 1 << 4,
 };
 
-constexpr Flags<eAppCoreFlags> k_runtimeDefaltFlags = {
-    eAppCoreFlags::SceneManager,
-    eAppCoreFlags::AssetManager,
-    eAppCoreFlags::ImGuiEngine
-};
-
-constexpr Flags<eAppCoreFlags> k_editorDefaultFlags = {
-    eAppCoreFlags::SceneManager,
-    eAppCoreFlags::AssetManager,
-    eAppCoreFlags::ImGuiEngine,
-    eAppCoreFlags::Editor
-};
+constexpr Flags<eAppCoreFlags> k_runtimeDefaltFlags = eAppCoreFlags::SceneManager | eAppCoreFlags::AssetManager | eAppCoreFlags::ImGuiEngine;
+constexpr Flags<eAppCoreFlags> k_editorDefaultFlags = k_runtimeDefaltFlags | eAppCoreFlags::Editor;
 
 class Application
 {

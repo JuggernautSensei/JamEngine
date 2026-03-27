@@ -66,15 +66,15 @@ class RenderGraph
 
     struct SamplerBind
     {
-        SamplerState state = {};
-        eShader      stage = eShader::VertexShader;
-        Int32        slot  = 0;
+        Flags<eSamplerFlags> state = {};
+        eShader              stage = eShader::VertexShader;
+        Int32                slot  = 0;
     };
 
     struct BlendStateBind
     {
-        BlendState state = {};
-        Int32      slot  = 0;
+        Flags<eBlendFlags> state = {};
+        Int32              slot  = 0;
     };
 
     struct ClearColorBind
@@ -107,15 +107,15 @@ class RenderGraph
         // 만약 RenderGraph::Execute() 호출 시 백버퍼에 렌더링함.
 
         // state
-        RenderState  renderState = {};
-        StencilState fstencil    = {};
-        StencilState bstencil    = {};
-        UInt8        stencilRef  = 0;
+        Flags<eRenderFlags>  renderFlags = {};
+        Flags<eStencilFlags> fstencil    = {};
+        Flags<eStencilFlags> bstencil    = {};
+        UInt8                stencilRef  = 0;
 
         // blend
-        Array<BlendStateBind, k_maxNumRenderTargetViewSlots> blendBinds    = {};
-        Int32                                                numBlendBinds = 0;
-        RGBA                                                 blendFactor   = RGBA::k_transparent;
+        Array<BlendStateBind, k_maxNumRenderTargetViewSlots> blendFlagsBinds = {};
+        Int32                                                numBlendBinds   = 0;
+        RGBA                                                 blendFactor     = RGBA::k_transparent;
 
         // clear commands
         Array<ClearColorBind, k_maxNumRenderTargetViewSlots> clearColorBinds    = {};
@@ -207,10 +207,10 @@ public:
 
         PassBuilder& SetUseExternalOutput(bool _bUseExternalOutput = true);
 
-        PassBuilder& SetRenderState(RenderState _state);
-        PassBuilder& SetStencilState(StencilState _front, StencilState _back, UInt8 _ref);
+        PassBuilder& SetRenderFlags(Flags<eRenderFlags> _flags);
+        PassBuilder& SetStencilFlags(Flags<eStencilFlags> _fstencil, Flags<eStencilFlags> _bstencil, UInt8 _ref);
 
-        PassBuilder& SetBlendState(BlendState _state, Int32 _slot);
+        PassBuilder& SetBlendFlags(Flags<eBlendFlags> _flags, Int32 _slot);
         PassBuilder& SetBlendFactor(RGBA _factor);
 
         PassBuilder& SetClearColor(RGBA _color, Int32 _slot);
@@ -222,7 +222,7 @@ public:
 
         PassBuilder& SetTexture(StringView _name, eShader _stage, Int32 _slot);
         PassBuilder& SetConstantBuffer(StringView _name, eShader _stage, Int32 _slot);
-        PassBuilder& SetSamplerState(SamplerState _state, eShader _stage, Int32 _slot);
+        PassBuilder& SetSamplerState(Flags<eSamplerFlags> _state, eShader _stage, Int32 _slot);
 
         PassBuilder& SetExecutor(const Delegate<void()>& _executor);
 

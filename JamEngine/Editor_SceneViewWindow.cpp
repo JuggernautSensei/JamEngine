@@ -18,7 +18,7 @@ namespace Jam
 {
 
 Editor_SceneViewWindow::Editor_SceneViewWindow()
-    : m_infiniteDragger({ eInfiniteDraggerFlags::Right, eInfiniteDraggerFlags::Middle })
+    : m_infiniteDragger(eInfiniteDraggerFlags::Right | eInfiniteDraggerFlags::Middle)
 {
     // init editor camera
     {
@@ -540,9 +540,9 @@ void Editor_SceneViewWindow::OnRenderEdit()
 
         // setup render view
         RenderView renderView = {};
-        renderView.outputFbh        = m_fbh;
-        renderView.outputVp         = vp;
-        renderView.eyePos        = m_cameraTransform.GetTranslation();
+        renderView.outputFbh  = m_fbh;
+        renderView.outputVp   = vp;
+        renderView.eyePos     = m_cameraTransform.GetTranslation();
         renderView.view       = m_cameraTransform.CreateViewMatrix();
         renderView.proj       = m_camera.GetProjMatrix();
 
@@ -641,7 +641,7 @@ void Editor_SceneViewWindow::Resize_(
     m_height = _height;
 
     // render target texture
-    m_renderTexh = GetGraphics().CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTarget);
+    m_renderTexh = GetGraphics().CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
     GetGraphics().SetTextureName(m_renderTexh, "scene view texture");
 
     // frame buffer

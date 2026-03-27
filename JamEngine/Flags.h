@@ -1,3 +1,4 @@
+// ReSharper disable CppClangTidyBugproneMacroParentheses
 #pragma once
 #include "Archive.h"
 
@@ -5,14 +6,24 @@ namespace Jam
 {
 
 template<typename E>
-    requires std::is_enum_v<E>
-          && std::is_unsigned_v<UnderlyingT<E>>
+concept IsBitMaskableEnum = std::is_enum_v<E> && std::is_unsigned_v<UnderlyingT<E>>;
+
+template<IsBitMaskableEnum E>
 class Flags
 {
 public:
     using UnderlyingT = UnderlyingT<E>;
 
     constexpr Flags() = default;
+
+    /* implicit */ constexpr Flags(std::initializer_list<E> _flags) noexcept
+        : m_value(0)
+    {
+        for (const E flag: _flags)
+        {
+            m_value |= UnderlyingFrom(flag);
+        }
+    }
 
     /* implicit */ constexpr Flags(const UnderlyingT _value) noexcept
         : m_value(_value)
@@ -22,14 +33,6 @@ public:
     /* implicit */ constexpr Flags(E _value) noexcept
         : m_value(UnderlyingFrom(_value))
     {
-    }
-
-    /* implicit */ constexpr Flags(const std::initializer_list<E> _list) noexcept
-    {
-        for (E val: _list)
-        {
-            m_value |= UnderlyingFrom(val);
-        }
     }
 
     constexpr void And(Flags _other) noexcept
@@ -88,7 +91,7 @@ public:
         return (m_value & _flags.m_value) != _flags.m_value;
     }
 
-    void Enable(Flags _flags) noexcept
+    constexpr void Enable(Flags _flags) noexcept
     {
         m_value |= _flags.m_value;
     }
@@ -219,28 +222,6 @@ public:
         return *this;
     }
 
-    [[nodiscard]] constexpr Flags operator<<(const SizeT _other) const noexcept
-    {
-        return LeftShifted(_other);
-    }
-
-    constexpr Flags& operator<<=(const SizeT _other) noexcept
-    {
-        LeftShift(_other);
-        return *this;
-    }
-
-    [[nodiscard]] constexpr Flags operator>>(const SizeT _other) const noexcept
-    {
-        return RightShifted(_other);
-    }
-
-    constexpr Flags& operator>>=(const SizeT _other) noexcept
-    {
-        RightShift(_other);
-        return *this;
-    }
-
     constexpr bool operator==(const Flags _other) const noexcept
     {
         return m_value == _other.m_value;
@@ -259,11 +240,6 @@ public:
     /* implicit */ constexpr operator bool() const noexcept
     {
         return m_value != 0;
-    }
-
-    /* implicit */ constexpr operator UnderlyingT() const noexcept
-    {
-        return m_value;
     }
 
     [[nodiscard]] constexpr bool IsEmpty() const noexcept
@@ -285,15 +261,37 @@ private:
     UnderlyingT m_value = UnderlyingT { 0 };
 };
 
+template<IsBitMaskableEnum E>
+[[nodiscard]] constexpr Flags<E> operator|(E _lhs, E _rhs) noexcept
+{
+    return Flags<E> { _lhs } | _rhs;
+}
+
+template<IsBitMaskableEnum E>
+[[nodiscard]] constexpr Flags<E> operator&(E _lhs, E _rhs) noexcept
+{
+    return Flags<E> { _lhs } & _rhs;
+}
+
+template<IsBitMaskableEnum E>
+[[nodiscard]] constexpr Flags<E> operator^(E _lhs, E _rhs) noexcept
+{
+    return Flags<E> { _lhs } ^ _rhs;
+}
+
+template<IsBitMaskableEnum E>
+[[nodiscard]] constexpr Flags<E> operator~(E _value) noexcept
+{
+    return ~Flags<E> { _value };
+}
+
 template<typename E>
-    requires std::is_enum_v<E>
 void WriteToArchive(ArchiveWriter& _writer, const Flags<E> _flags)
 {
     _writer.Write(_flags.GetValue());
 }
 
 template<typename E>
-    requires std::is_enum_v<E>
 Error ReadFromArchive(ArchiveReader& _reader, Flags<E>& _flags)
 {
     typename Flags<E>::UnderlyingT value = 0;

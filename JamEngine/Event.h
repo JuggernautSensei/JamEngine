@@ -36,21 +36,20 @@ public:                                                                         
 private:                                                                            \
     static_assert(true)   // for semicolon after the macro
 
-
 template<typename TEvent>
-concept EventType = requires(TEvent _event) {
+concept IsEventType = requires(TEvent _event) {
     { TEvent::__JAM_EVENT_MARKER__ };
     std::derived_from<TEvent, Event>;
 };
 
 template<typename TEvent, typename TFunc>
 concept IsEventHandlerType =
-    EventType<TEvent>
+    IsEventType<TEvent>
     && requires(TFunc _func, TEvent& _event) {{ _func(_event) }; };
 
 template<typename TEvent, typename TCaller, typename TMethod>
 concept IsEventHandlerMethodType =
-    EventType<TEvent>
+    IsEventType<TEvent>
     && requires(TCaller* _caller, TMethod _method, TEvent& _event) {{ (_caller->*_method)(_event) }; };
 
 class EventDispatcher
@@ -62,7 +61,7 @@ public:
     {
     }
 
-    template<EventType TEvent, typename TFunc>
+    template<IsEventType TEvent, typename TFunc>
         requires IsEventHandlerType<TEvent, TFunc>
     void Dispatch(TFunc&& _func)
     {
@@ -78,7 +77,7 @@ public:
         }
     }
 
-    template<EventType TEvent, typename TCaller, typename TMethod>
+    template<IsEventType TEvent, typename TCaller, typename TMethod>
         requires IsEventHandlerMethodType<TEvent, TCaller, TMethod>
     void Dispatch(TCaller* _caller, TMethod&& _method)
     {

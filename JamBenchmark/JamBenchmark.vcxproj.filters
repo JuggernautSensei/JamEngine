@@ -15,6 +15,9 @@
     <ClCompile Include="MemoryViewZeroOverheadBench.cpp">
       <Filter>Benchmark</Filter>
     </ClCompile>
+    <ClCompile Include="s.cpp">
+      <Filter>Benchmark</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
