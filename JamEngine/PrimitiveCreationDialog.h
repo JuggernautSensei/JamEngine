@@ -10,7 +10,7 @@ namespace Jam
 
 class VertexLayoutEntry;
 
-enum class ePrimitiveCreationType
+enum class ePrimitiveCreation
 {
     Cube,
     Sphere,
@@ -24,7 +24,7 @@ struct PrimitiveCreationDialogInfo
 {
     StringView             title          = {};
     ImVec2                 size           = {};
-    ePrimitiveCreationType type           = ePrimitiveCreationType::Cube;
+    ePrimitiveCreation type           = ePrimitiveCreation::Cube;
     String                 saveDirOrEmpty = {};
 };
 
@@ -46,7 +46,7 @@ private:
     Ref<Mesh> CreatePrimitiveMesh_() const;
     bool      CreateAndSaveAsset_(StringView _path) override;
 
-    ePrimitiveCreationType m_type = ePrimitiveCreationType::Cube;
+    ePrimitiveCreation m_type = ePrimitiveCreation::Cube;
     Ref<VertexLayoutEntry> m_pVle = nullptr;
     FileDialog             m_saveFd;
 

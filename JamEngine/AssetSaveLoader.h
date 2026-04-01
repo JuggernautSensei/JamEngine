@@ -152,6 +152,9 @@ template<typename T>
 using VectorDto = cista::offset::vector<T>;
 
 template<typename T>
+using UniquePtrDto = cista::offset::unique_ptr<T>;
+
+template<typename T>
 [[nodiscard]] VectorDto<T> VectorDtoFrom(const Vector<T>& _vec)
 {
     return cista::offset::to_vec(_vec);

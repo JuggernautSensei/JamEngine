@@ -3,16 +3,16 @@
 namespace Jam
 {
 
-enum class eWindowsErrorCodeType
+enum class eWindowsErrorCode
 {
     Errno,
     HRESULT,
     Shell,
 };
 
-[[nodiscard]] String  CreateWindowsErrorMessage(UInt32 _errorCode, eWindowsErrorCodeType _errorType);
+[[nodiscard]] String  CreateWindowsErrorMessage(UInt32 _errorCode, eWindowsErrorCode _errorType);
 [[nodiscard]] String  CreateWindowsLastErrorMessage();
-[[nodiscard]] WString CreateWindowsErrorMessageW(UInt32 _errorCode, eWindowsErrorCodeType _errorType);
+[[nodiscard]] WString CreateWindowsErrorMessageW(UInt32 _errorCode, eWindowsErrorCode _errorType);
 [[nodiscard]] WString CreateWindowsLastErrorMessageW();
 [[nodiscard]] Error   ErrorFromPlatformErrorCode(UInt32 _err);
 

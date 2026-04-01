@@ -28,22 +28,22 @@ public:
 
     [[nodiscard]] static AssetManager& GetInstance();
 
-    Expect<Ref<IAsset>>   Load(eAssetType _type, StringView _path, bool _bReloadIfExist = false);
+    Expect<Ref<IAsset>>   Load(eAsset _type, StringView _path, bool _bReloadIfExist = false);
     Expect<Ref<Model>>    LoadModel(StringView _path, bool _bForceReload = false);
     Expect<Ref<Mesh>>     LoadMesh(StringView _path, bool _bForceReload = false);
     Expect<Ref<Material>> LoadMaterial(StringView _path, bool _bForceReload = false);
     Expect<Ref<Texture>>  LoadTexture(StringView _path, bool _bForceReload = false);
 
-    void Unload(eAssetType _type, StringView _path);
+    void Unload(eAsset _type, StringView _path);
     void UnloadModel(StringView _path);
     void UnloadMesh(StringView _path);
     void UnloadMaterial(StringView _path);
     void UnloadTexture(StringView _path);
 
-    void CleanGarbage(eAssetType _type);
+    void CleanGarbage(eAsset _type);
     void CleanGarbageAll();
 
-    void Clear(eAssetType _type);
+    void Clear(eAsset _type);
     void ClearAll();
 
 private:
@@ -60,7 +60,7 @@ private:
 
     void Unload_(AssetMap& _pAssetMap, AssetMapIter _iter) const;
 
-    EnumArray<eAssetType, AssetMap> m_assetMaps = {};
+    EnumArray<eAsset, AssetMap> m_assetMaps = {};
 
     inline static AssetManager* s_pInstance = nullptr;
     friend class Application;

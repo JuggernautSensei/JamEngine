@@ -511,11 +511,11 @@ void EditorRenderer::DrawCircle(const Vec3 _center, const Vec3 _normal, const fl
     const Vec3 tan   = Normalized(Cross(_normal, u));
     const Vec3 bitan = Normalized(Cross(_normal, tan));
 
-    const float step = Numbers<float>::k_2pi / NumericCast<float>(_segments);
+    const float step = Numbers<float>::k_2pi / static_cast<float>(_segments);
     for (Int32 i = 0; i < _segments; ++i)
     {
-        const float a0 = step * NumericCast<float>(i);
-        const float a1 = step * NumericCast<float>((i + 1) % _segments);
+        const float a0 = step * static_cast<float>(i);
+        const float a1 = step * static_cast<float>((i + 1) % _segments);
         const float s0 = Sin(a0);
         const float c0 = Cos(a0);
         const float s1 = Sin(a1);
@@ -614,10 +614,10 @@ void EditorRenderer::FlushLines_()
     cb.viewProj           = (m_view * m_proj).Transpose();
     cb.mtx                = Numbers<Mtx4>::k_identity;
     cb.eye                = m_eye;
-    gfx.UploadBuffer(m_cbh, AsMemoryView(cb));
+    gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
 
-    gfx.UploadBuffer(m_lineVbh, { m_lineVertices.data(), NumericCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
-    gfx.UploadBuffer(m_lineIbh, { m_lineIndices.data(), NumericCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
+    gfx.UpdateBuffer(m_lineVbh, { m_lineVertices.data(), NumericCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
+    gfx.UpdateBuffer(m_lineIbh, { m_lineIndices.data(), NumericCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
 
     const Flags<eRenderFlags> flags = SetPrimitiveFlags(m_lineRenderFlags, eRenderFlags::Primitive_LineList);
     gfx.SetRenderFlags(flags);
@@ -639,7 +639,7 @@ void EditorRenderer::UploadTransform_(const Mtx4& _world) const
     cb.mtx                = _world.Transpose();
     cb.eye                = m_eye;
     cb.color              = m_currentColor.ToLinear();
-    gfx.UploadBuffer(m_cbh, AsMemoryView(cb));
+    gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
 }
 
 void EditorRenderer::DrawGrid_() const
@@ -651,7 +651,7 @@ void EditorRenderer::DrawGrid_() const
     cb.mtx                = Numbers<Mtx4>::k_identity.Transpose();
     cb.eye                = m_eye;
     cb.flags              = m_drawGridFlags;
-    gfx.UploadBuffer(m_cbh, AsMemoryView(cb));
+    gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
 
     gfx.SetRenderFlags(m_gridRenderFlags);
     gfx.SetBlendFlags(m_blendFlags, 0);

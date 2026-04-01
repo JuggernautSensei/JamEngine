@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "MemoryArena.h"
 
-#include "MemoryAllocator.h"
+#include "Allocator.h"
 
 namespace Jam
 {
 
 MemoryArena::MemoryArena(
-    const USizeT _byteWidthPerArena)
+    const SizeT _byteWidthPerArena)
     : m_byteWidthPerArena(_byteWidthPerArena)
 {
     JAM_ASSERT(_byteWidthPerArena > 0, "아레나의 크기는 0보다 커야 합니다.");
@@ -18,9 +18,9 @@ MemoryArena::~MemoryArena()
     Reset();
 }
 
-void* MemoryArena::Alloc(const USizeT _byteWidth)
+void* MemoryArena::Alloc(const SizeT _byteWidth)
 {
-    const USizeT byteWidth = AlignUp(_byteWidth);
+    const SizeT byteWidth = AlignUp<SizeT>(_byteWidth, alignof(std::max_align_t));
     JAM_ASSERT(CmpLessEqual(byteWidth, m_byteWidthPerArena), "한 아레나에 할당할 수 있는 최대 크기를 초과했습니다.");
 
     if (m_pCur == nullptr)   // 아레나 초기화 필요

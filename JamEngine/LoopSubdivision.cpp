@@ -211,13 +211,13 @@ namespace
     float Beta(
         const Int32 _valence)
     {
-        return _valence == 3 ? 3.f / 16.f : 3.f / (8.f * NumericCast<float>(_valence));
+        return _valence == 3 ? 3.f / 16.f : 3.f / (8.f * static_cast<float>(_valence));
     }
 
     float LoopGamma(
         const Int32 _valence)
     {
-        return 1.f / (NumericCast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
+        return 1.f / (static_cast<float>(_valence) + 3.f / (8.f * Beta(_valence)));
     }
 
     SDPoint WeightOneRing(
@@ -226,7 +226,7 @@ namespace
     {
         const Int32 valence = _pVert->CalcValence();
         const auto  ring    = _pVert->OneRing();
-        const float scale   = 1.0f - NumericCast<float>(valence) * _beta;
+        const float scale   = 1.0f - static_cast<float>(valence) * _beta;
 
         SDPoint point = _pVert->point * scale;
         for (const SDPoint& p: ring)

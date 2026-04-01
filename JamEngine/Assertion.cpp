@@ -108,7 +108,7 @@ void ReportHRESULTFailure(
     const std::string_view      _msg,
     const HRESULT               _hr)
 {
-    const String hrMsg   = CreateWindowsErrorMessage(_hr, eWindowsErrorCodeType::HRESULT);
+    const String hrMsg   = CreateWindowsErrorMessage(_hr, eWindowsErrorCode::HRESULT);
     const String fullMsg = String::Formatted("{}\nHRESULT: 0x{:08X} ({})", _msg, _hr, hrMsg);
     ReportCrash(_loc, fullMsg.ToStdStringView());
 }

@@ -37,7 +37,7 @@ struct ImportedMesh
     bool                   bUseU32    = false;
 };
 
-using ImportedMaterialTexture = EnumArray<eMaterialTextureType, Int32>;
+using ImportedMaterialTexture = EnumArray<eMaterialTexture, Int32>;
 
 struct ImportedMaterial
 {

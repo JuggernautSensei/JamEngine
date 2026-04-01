@@ -9,21 +9,21 @@
 namespace Jam
 {
 
-String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCodeType _errorType)
+String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCode _errorType)
 {
     LPCVOID pSource = NULL;
     switch (_errorType)
     {
-        case eWindowsErrorCodeType::Errno:
+        case eWindowsErrorCode::Errno:
             _errorCode = HRESULT_FROM_WIN32(_errorCode);
             pSource    = NULL;
             break;
 
-        case eWindowsErrorCodeType::HRESULT:
+        case eWindowsErrorCode::HRESULT:
             pSource = NULL;
             break;
 
-        case eWindowsErrorCodeType::Shell:
+        case eWindowsErrorCode::Shell:
             pSource = ::GetModuleHandleW(L"shell32.dll");
             break;
 
@@ -53,26 +53,26 @@ String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCodeType 
 
 String CreateWindowsLastErrorMessage()
 {
-    return CreateWindowsErrorMessage(GetLastError(), eWindowsErrorCodeType::Errno);
+    return CreateWindowsErrorMessage(GetLastError(), eWindowsErrorCode::Errno);
 }
 
 WString CreateWindowsErrorMessageW(
     UInt32                      _errorCode,
-    const eWindowsErrorCodeType _errorType)
+    const eWindowsErrorCode _errorType)
 {
     LPCVOID pSource = NULL;
     switch (_errorType)
     {
-        case eWindowsErrorCodeType::Errno:
+        case eWindowsErrorCode::Errno:
             _errorCode = HRESULT_FROM_WIN32(_errorCode);
             pSource    = NULL;
             break;
 
-        case eWindowsErrorCodeType::HRESULT:
+        case eWindowsErrorCode::HRESULT:
             pSource = NULL;
             break;
 
-        case eWindowsErrorCodeType::Shell:
+        case eWindowsErrorCode::Shell:
             pSource = ::GetModuleHandleW(L"shell32.dll");
             break;
 
@@ -102,7 +102,7 @@ WString CreateWindowsErrorMessageW(
 
 WString CreateWindowsLastErrorMessageW()
 {
-    return CreateWindowsErrorMessageW(GetLastError(), eWindowsErrorCodeType::Errno);
+    return CreateWindowsErrorMessageW(GetLastError(), eWindowsErrorCode::Errno);
 }
 
 Error ErrorFromPlatformErrorCode(

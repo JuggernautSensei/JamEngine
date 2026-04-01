@@ -95,8 +95,8 @@ private:
             ERROR_MSG(InvalidData, "the data content is corrupted or invalid");
             ERROR_MSG(ParseError, "failed to parse the structured data (json/xml/etc)");
             ERROR_MSG(MissingField, "a required data field is missing from the source");
-            ERROR_MSG(TypeMismatch, "the data exportType does not match the expected exportType");
-            ERROR_MSG(ReflectionFailed, "failed to perform reflection on the specified exportType or object");
+            ERROR_MSG(TypeMismatch, "the data export does not match the expected export");
+            ERROR_MSG(ReflectionFailed, "failed to perform reflection on the specified export or object");
             ERROR_MSG(InvalidState, "the operation cannot be performed in the current state");
             ERROR_MSG(DirectoryNotEmpty, "the directory is not empty");
             ERROR_MSG(FileInUse, "the file is currently in use by another process");

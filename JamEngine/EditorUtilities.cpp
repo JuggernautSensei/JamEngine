@@ -19,17 +19,17 @@ ImVec4 ImVec4FromHex(
     const UInt32 _rgba)
 {
     return ImVec4 {
-        NumericCast<float>((_rgba >> 24) & 0xFF) / 255.f,
-        NumericCast<float>((_rgba >> 16) & 0xFF) / 255.f,
-        NumericCast<float>((_rgba >> 8) & 0xFF) / 255.f,
-        NumericCast<float>(_rgba & 0xFF) / 255.f
+        static_cast<float>((_rgba >> 24) & 0xFF) / 255.f,
+        static_cast<float>((_rgba >> 16) & 0xFF) / 255.f,
+        static_cast<float>((_rgba >> 8) & 0xFF) / 255.f,
+        static_cast<float>(_rgba & 0xFF) / 255.f
     };
 }
 
 ImVec2 ImVec2From(
     const Vec2i _vec)
 {
-    return ImVec2 { NumericCast<float>(_vec.x), NumericCast<float>(_vec.y) };
+    return ImVec2 { static_cast<float>(_vec.x), static_cast<float>(_vec.y) };
 }
 
 ImVec2 CalcFitButtonSize(
@@ -48,8 +48,8 @@ ImVec2 CalcFitButtonSize(
     }
 
     const float spacing = ImGui::GetStyle().ItemSpacing.x;
-    const float totalW  = _region.x - spacing * NumericCast<float>(_numButtons - 1);
-    const float buttonW = totalW / NumericCast<float>(_numButtons);
+    const float totalW  = _region.x - spacing * static_cast<float>(_numButtons - 1);
+    const float buttonW = totalW / static_cast<float>(_numButtons);
     return ImVec2 { buttonW, _region.y };
 }
 

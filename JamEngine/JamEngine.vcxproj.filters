@@ -286,7 +286,7 @@
     <ClCompile Include="MemoryIO.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
-    <ClCompile Include="MemoryAllocator.cpp">
+    <ClCompile Include="Allocator.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
     <ClCompile Include="MemoryHasher.cpp">
@@ -336,9 +336,6 @@
     </ClCompile>
     <ClCompile Include="FileWatcher.cpp">
       <Filter>99. Utilities\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Allocator.cpp">
-      <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="StackString.cpp">
       <Filter>99. Utilities\String</Filter>
@@ -436,8 +433,14 @@
     <ClCompile Include="CppHlslGlue.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Memory.cpp">
+    <ClCompile Include="MemoryView.cpp">
       <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Blob.cpp">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Bit.cpp">
+      <Filter>99. Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -971,7 +974,7 @@
     <ClInclude Include="MemoryIO.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="MemoryAllocator.h">
+    <ClInclude Include="Allocator.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
     <ClInclude Include="MemoryHasher.h">
@@ -1024,9 +1027,6 @@
     </ClInclude>
     <ClInclude Include="FileWatcher.h">
       <Filter>99. Utilities\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Allocator.h">
-      <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="StackString.h">
       <Filter>99. Utilities\String</Filter>
@@ -1121,8 +1121,14 @@
     <ClInclude Include="CppHlslGlue.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
+    <ClInclude Include="MemoryView.h">
       <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Blob.h">
+      <Filter>99. Utilities\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Bit.h">
+      <Filter>99. Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

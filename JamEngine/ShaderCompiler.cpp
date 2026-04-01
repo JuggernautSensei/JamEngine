@@ -184,7 +184,7 @@ void ShaderCompiler::CompileFromHLSLFile_(
         }
         else
         {
-            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         }
 
         JAM_LOG_ERROR(m_errorMsg);
@@ -223,7 +223,7 @@ void ShaderCompiler::CompileHLSLSource_(
         }
         else
         {
-            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         }
 
         JAM_LOG_ERROR(m_errorMsg);

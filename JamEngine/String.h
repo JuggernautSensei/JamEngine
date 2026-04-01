@@ -207,7 +207,7 @@ struct TrimResult   // [begin, end)
     SizeT len = 0;
 };
 
-enum class eJoinType
+enum class eJoin
 {
     File,        // ex) Join("C:/aaa/bbb", "ccc") -> "C:/aaa/bbb/ccc"
     Directory,   // ex) Join("C:/aaa/bbb", "ccc", OpenedDirectory) -> "C:/aaa/bbb/ccc/"
@@ -2260,9 +2260,9 @@ public:
 
     void Join(
         const TStringView _str,
-        eJoinType         _type = eJoinType::Auto)
+        eJoin         _type = eJoin::Auto)
     {
-        _type = (_type == eJoinType::Auto) ? (_str.IsDirectory() ? eJoinType::Directory : eJoinType::File) : _type;
+        _type = (_type == eJoin::Auto) ? (_str.IsDirectory() ? eJoin::Directory : eJoin::File) : _type;
 
         if (IsEmpty())
         {
@@ -2276,12 +2276,12 @@ public:
         }
 
         Self_().Append(_str);
-        if (_type == eJoinType::Directory && !CharFuncs::IsPathSeparator(Back()))
+        if (_type == eJoin::Directory && !CharFuncs::IsPathSeparator(Back()))
         {
             Append(CharTraits::k_pathPreferredSeparator);
         }
 
-        if (_type == eJoinType::File)
+        if (_type == eJoin::File)
         {
             SizeT end = Self_().GetLength();
             while (end > 0 && CharFuncs::IsPathSeparator(operator[](end - 1)))
@@ -2296,7 +2296,7 @@ public:
     [[nodiscard]] static TString Joined(
         const TStringView _str1,
         const TStringView _str2,
-        const eJoinType   _type = eJoinType::Auto)
+        const eJoin   _type = eJoin::Auto)
     {
         TString result(_str1);
         result.Join(_str2, _type);

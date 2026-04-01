@@ -3,58 +3,18 @@
 namespace Jam
 {
 
-struct Allocator
-{
-    [[nodiscard]] void* Alloc(
-        const USizeT _size) const
-    {
-        return ::operator new(_size);
-    }
+void* Malloc(size_t _size);
+void* AlignedMalloc(size_t _size, size_t _alignment);
+void* AlignedMallocAt(size_t _size, size_t _alignment, size_t _offset);
+void* Realloc(void* _pMem, size_t _newSize);
+void* AlignedRealloc(void* _pMem, size_t _newSize, size_t _alignment);
+void* AlignedReallocAt(void* _pMem, size_t _newSize, size_t _alignment, size_t _offset);
+void  Free(void* _pMem);
+void  AlignedFree(void* _pMem, size_t _alignment);
 
-    void Free(
-        void* const _ptr) const
-    {
-        ::operator delete(_ptr);
-    }
-
-    template<typename T, typename... TArgs>
-    [[nodiscard]] T* New(
-        TArgs&&... _args) const
-    {
-        void* mem = Alloc(sizeof(T));
-        return new (mem) T(std::forward<TArgs>(_args)...);
-    }
-
-    template<typename T>
-    void Delete(T* const _ptr) const
-    {
-        if (_ptr)
-        {
-            _ptr->~T();
-            Free(_ptr);
-        }
-    }
-};
-
-struct MemoryAllocator
-{
-    [[nodiscard]] void* Alloc(
-        const USizeT _size) const
-    {
-        return Malloc(_size);
-    }
-
-    [[nodiscard]] void* ReAlloc(
-        void* const  _ptr,
-        const USizeT _newSize) const
-    {
-        return Realloc(_ptr, _newSize);
-    }
-
-    void Free(void* const _ptr) const
-    {
-        Free(_ptr);
-    }
-};
+void* New(size_t _size);
+void* New(size_t _count, size_t _size);
+void* AlignedNew(size_t _size, size_t _alignment);
+void* AlignedNewAt(size_t _size, size_t _alignment, size_t _offset);
 
 }   // namespace Jam

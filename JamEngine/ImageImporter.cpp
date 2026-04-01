@@ -104,7 +104,7 @@ Error ImageImporter::ImportFromFile_(
 
     if (FAILED(hr))
     {
-        JAM_LOG_ERROR("Failed to load image file '{}': {}", _path, CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+        JAM_LOG_ERROR("Failed to load image file '{}': {}", _path, CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         return Error::ImportFailed;
     }
 
@@ -174,7 +174,7 @@ Error ImageImporter::ImportFromMemory_(
 
     if (FAILED(hr))
     {
-        JAM_LOG_ERROR("Failed to load image from memory: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+        JAM_LOG_ERROR("Failed to load image from memory: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         return Error::ImportFailed;
     }
 
@@ -207,7 +207,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            JAM_LOG_ERROR("Failed to convert image format: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+            JAM_LOG_ERROR("Failed to convert image format: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -239,7 +239,7 @@ Error ImageImporter::PostProcess_(
 
             if (FAILED(hr))
             {
-                JAM_LOG_ERROR("Failed to convert to sRGB: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+                JAM_LOG_ERROR("Failed to convert to sRGB: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
                 return Error::RuntimeError;
             }
 
@@ -260,7 +260,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            JAM_LOG_ERROR("Failed to premultiply alpha: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+            JAM_LOG_ERROR("Failed to premultiply alpha: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -285,7 +285,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            JAM_LOG_ERROR("Failed to resize image to {}x{}: {}", _info.newWidth, _info.newHeight, CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+            JAM_LOG_ERROR("Failed to resize image to {}x{}: {}", _info.newWidth, _info.newHeight, CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -328,7 +328,7 @@ Error ImageImporter::PostProcess_(
 
             if (FAILED(hr))
             {
-                JAM_LOG_ERROR("Failed to generate mipmaps: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+                JAM_LOG_ERROR("Failed to generate mipmaps: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
                 return Error::RuntimeError;
             }
 
@@ -349,7 +349,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            JAM_LOG_ERROR("Failed to flip image vertically: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+            JAM_LOG_ERROR("Failed to flip image vertically: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
             return Error::RuntimeError;
         }
 
@@ -369,7 +369,7 @@ Error ImageImporter::PostProcess_(
 
         if (FAILED(hr))
         {
-            JAM_LOG_ERROR("Failed to flip image horizontally: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+            JAM_LOG_ERROR("Failed to flip image horizontally: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
             return Error::RuntimeError;
         }
 

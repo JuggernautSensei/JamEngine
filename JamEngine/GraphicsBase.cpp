@@ -2,6 +2,8 @@
 
 #include "GraphicsBase.h"
 
+#include "Bit.h"
+
 namespace Jam
 {
 
@@ -15,7 +17,7 @@ namespace
     constexpr eRenderFlags k_renderFlagsBlendMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1000'0000'0000));   // [11:12]
     constexpr eRenderFlags k_renderFlagsDepthMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0011'1110'0000'0000'0000));   // [13:17] (DepthWrite 포함)
     constexpr eRenderFlags k_renderFlagsDepthFuncMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0001'1110'0000'0000'0000));   // [13:16]
-    constexpr UInt32       k_renderFlagsDepthFuncShift = std::countr_zero(UnderlyingFrom(k_renderFlagsDepthFuncMask));
+    constexpr UInt32       k_renderFlagsDepthFuncShift = CountRZero(UnderlyingFrom(k_renderFlagsDepthFuncMask));
 
     constexpr eBlendFlags k_blendFlagsSrcBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1110));   // [1:4]
     constexpr eBlendFlags k_blendFlagsDstBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1110'0000));   // [5:8]
@@ -23,30 +25,30 @@ namespace
     constexpr eBlendFlags k_blendFlagsSrcBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'1111'0000'0000'0000));   // [12:15]
     constexpr eBlendFlags k_blendFlagsDstBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'1111'0000'0000'0000'0000));   // [16:19]
     constexpr eBlendFlags k_blendFlagsBlendOpAlphaMask   = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0111'0000'0000'0000'0000'0000));   // [20:22]
-    constexpr UInt32      k_blendFlagsSrcBlendShift      = std::countr_zero(UnderlyingFrom(k_blendFlagsSrcBlendMask));
-    constexpr UInt32      k_blendFlagsDstBlendShift      = std::countr_zero(UnderlyingFrom(k_blendFlagsDstBlendMask));
-    constexpr UInt32      k_blendFlagsBlendOpShift       = std::countr_zero(UnderlyingFrom(k_blendFlagsBlendOpMask));
-    constexpr UInt32      k_blendFlagsSrcBlendAlphaShift = std::countr_zero(UnderlyingFrom(k_blendFlagsSrcBlendAlphaMask));
-    constexpr UInt32      k_blendFlagsDstBlendAlphaShift = std::countr_zero(UnderlyingFrom(k_blendFlagsDstBlendAlphaMask));
-    constexpr UInt32      k_blendFlagsBlendOpAlphaShift  = std::countr_zero(UnderlyingFrom(k_blendFlagsBlendOpAlphaMask));
+    constexpr UInt32      k_blendFlagsSrcBlendShift      = CountRZero(UnderlyingFrom(k_blendFlagsSrcBlendMask));
+    constexpr UInt32      k_blendFlagsDstBlendShift      = CountRZero(UnderlyingFrom(k_blendFlagsDstBlendMask));
+    constexpr UInt32      k_blendFlagsBlendOpShift       = CountRZero(UnderlyingFrom(k_blendFlagsBlendOpMask));
+    constexpr UInt32      k_blendFlagsSrcBlendAlphaShift = CountRZero(UnderlyingFrom(k_blendFlagsSrcBlendAlphaMask));
+    constexpr UInt32      k_blendFlagsDstBlendAlphaShift = CountRZero(UnderlyingFrom(k_blendFlagsDstBlendAlphaMask));
+    constexpr UInt32      k_blendFlagsBlendOpAlphaShift  = CountRZero(UnderlyingFrom(k_blendFlagsBlendOpAlphaMask));
 
     constexpr eStencilFlags k_stencilFlagsStencilFailOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
     constexpr eStencilFlags k_stencilFlagsDepthFailOpMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0011'1000));   // [3:5]
     constexpr eStencilFlags k_stencilFlagsStencilPassOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1100'0000));   // [6:8]
     constexpr eStencilFlags k_stencilFlagsCompareFuncMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1110'0000'0000));   // [9:12]
-    constexpr UInt32        k_stencilFlagsDepthFailOpShift   = std::countr_zero(UnderlyingFrom(k_stencilFlagsDepthFailOpMask));
-    constexpr UInt32        k_stencilFlagsStencilPassOpShift = std::countr_zero(UnderlyingFrom(k_stencilFlagsStencilPassOpMask));
-    constexpr UInt32        k_stencilFlagsCompareFuncShift   = std::countr_zero(UnderlyingFrom(k_stencilFlagsCompareFuncMask));
+    constexpr UInt32        k_stencilFlagsDepthFailOpShift   = CountRZero(UnderlyingFrom(k_stencilFlagsDepthFailOpMask));
+    constexpr UInt32        k_stencilFlagsStencilPassOpShift = CountRZero(UnderlyingFrom(k_stencilFlagsStencilPassOpMask));
+    constexpr UInt32        k_stencilFlagsCompareFuncShift   = CountRZero(UnderlyingFrom(k_stencilFlagsCompareFuncMask));
 
     constexpr eSamplerFlags k_sampleFlagsFilterMask       = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1111));   // [0:4]
     constexpr eSamplerFlags k_sampleFlagsAddressUMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'1110'0000));   // [5:7]
     constexpr eSamplerFlags k_sampleFlagsAddressVMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'0000'0000));   // [8:10]
     constexpr eSamplerFlags k_sampleFlagsAddressWMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0011'1000'0000'0000));   // [11:13]
-    constexpr eSamplerFlags k_sampleFlagsCompareFuncMask  = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'1111'0000'0000'0000));   // [14:17]
-    constexpr UInt32        k_sampleFlagsAddressUShift    = std::countr_zero(UnderlyingFrom(k_sampleFlagsAddressUMask));
-    constexpr UInt32        k_sampleFlagsAddressVShift    = std::countr_zero(UnderlyingFrom(k_sampleFlagsAddressVMask));
-    constexpr UInt32        k_sampleFlagsAddressWShift    = std::countr_zero(UnderlyingFrom(k_sampleFlagsAddressWMask));
-    constexpr UInt32        k_sampleFlagsCompareFuncShift = std::countr_zero(UnderlyingFrom(k_sampleFlagsCompareFuncMask));
+    constexpr eSamplerFlags k_sampleFlagsCompareFuncMask  = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0011'1100'0000'0000'0000));   // [14:17]
+    constexpr UInt32        k_sampleFlagsAddressUShift    = CountRZero(UnderlyingFrom(k_sampleFlagsAddressUMask));
+    constexpr UInt32        k_sampleFlagsAddressVShift    = CountRZero(UnderlyingFrom(k_sampleFlagsAddressVMask));
+    constexpr UInt32        k_sampleFlagsAddressWShift    = CountRZero(UnderlyingFrom(k_sampleFlagsAddressWMask));
+    constexpr UInt32        k_sampleFlagsCompareFuncShift = CountRZero(UnderlyingFrom(k_sampleFlagsCompareFuncMask));
 
 }   // namespace
 
@@ -311,7 +313,7 @@ Flags<eStencilFlags> SetCompareFuncFlags(
 UInt32 ResolveStencilFailOpFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return (FilterStencilFailOpFlags(_flags));
+    return FilterStencilFailOpFlags(_flags);
 }
 
 UInt32 ResolveDepthFailOpFlags(
@@ -330,6 +332,36 @@ UInt32 ResolveCompareFuncFlags(
     const Flags<eStencilFlags> _flags)
 {
     return FilterCompareFuncFlags(_flags) >> k_stencilFlagsCompareFuncShift;
+}
+
+Flags<eSamplerFlags> FilterFilterFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return _flags & k_sampleFlagsFilterMask;
+}
+
+Flags<eSamplerFlags> FilterAddressUFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return _flags & k_sampleFlagsAddressUMask;
+}
+
+Flags<eSamplerFlags> FilterAddressVFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return _flags & k_sampleFlagsAddressVMask;
+}
+
+Flags<eSamplerFlags> FilterAddressWFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return _flags & k_sampleFlagsAddressWMask;
+}
+
+Flags<eSamplerFlags> FilterCompareFuncFlags(
+    const Flags<eSamplerFlags> _flags)
+{
+    return _flags & k_sampleFlagsCompareFuncMask;
 }
 
 Flags<eSamplerFlags> SetFilterFlags(
@@ -417,7 +449,7 @@ bool IsDepthFormat(const eTextureFormat _format)
     }
 }
 
-Int32 BytePerPixelOf(const eTextureFormat _format)
+Int32 BitPerPixelOf(const eTextureFormat _format)
 {
     switch (_format)
     {
@@ -428,37 +460,37 @@ Int32 BytePerPixelOf(const eTextureFormat _format)
         case eTextureFormat::R8_SNorm:
         case eTextureFormat::R8_UInt:
         case eTextureFormat::R8_Int:
-            return 1;
+            return 8;
 
         case eTextureFormat::R16_UNorm:
         case eTextureFormat::R16_SNorm:
         case eTextureFormat::R16_UInt:
         case eTextureFormat::R16_Int:
         case eTextureFormat::R16_Float:
-            return 2;
+            return 16;
 
         case eTextureFormat::R32_UInt:
         case eTextureFormat::R32_Int:
         case eTextureFormat::R32_Float:
-            return 4;
+            return 32;
 
         case eTextureFormat::RG8_UNorm:
         case eTextureFormat::RG8_SNorm:
         case eTextureFormat::RG8_UInt:
         case eTextureFormat::RG8_Int:
-            return 2;
+            return 16;
 
         case eTextureFormat::RG16_UNorm:
         case eTextureFormat::RG16_SNorm:
         case eTextureFormat::RG16_UInt:
         case eTextureFormat::RG16_Int:
         case eTextureFormat::RG16_Float:
-            return 4;
+            return 32;
 
         case eTextureFormat::RG32_UInt:
         case eTextureFormat::RG32_Int:
         case eTextureFormat::RG32_Float:
-            return 8;
+            return 64;
 
         case eTextureFormat::RGBA8_UNorm:
         case eTextureFormat::RGBA8_SNorm:
@@ -467,31 +499,31 @@ Int32 BytePerPixelOf(const eTextureFormat _format)
         case eTextureFormat::RGBA8_UNorm_SRGB:
         case eTextureFormat::BGRA8_UNorm:
         case eTextureFormat::BGRA8_UNorm_SRGB:
-            return 4;
+            return 32;
 
         case eTextureFormat::RGBA16_UNorm:
         case eTextureFormat::RGBA16_SNorm:
         case eTextureFormat::RGBA16_UInt:
         case eTextureFormat::RGBA16_Int:
         case eTextureFormat::RGBA16_Float:
-            return 8;
+            return 64;
 
         case eTextureFormat::RGBA32_UInt:
         case eTextureFormat::RGBA32_Int:
         case eTextureFormat::RGBA32_Float:
-            return 16;
+            return 128;
 
         case eTextureFormat::D16_UNorm:
-            return 2;
+            return 16;
 
         case eTextureFormat::D24_UNorm_S8_UInt:
-            return 4;
+            return 32;
 
         case eTextureFormat::D32_Float:
-            return 4;
+            return 32;
 
         case eTextureFormat::D32_Float_S8_UInt:
-            return 8;
+            return 64;
 
         default:
             JAM_UNREACHABLE;
@@ -504,7 +536,7 @@ Int32 CalcNumMips(
     const Int32 _depth)
 {
     JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "텍스처 크기는 0보다 커야합니다.");
-    return 1 + NumericCast<Int32>(Log2(NumericCast<float>(Max(_width, _height, _depth))));
+    return 1 + NumericCast<Int32>(Log2(static_cast<float>(Max(_width, _height, _depth))));
 }
 
 TextureResolution CalcTextureResolution(

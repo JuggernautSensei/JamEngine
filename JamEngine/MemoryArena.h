@@ -6,7 +6,7 @@ namespace Jam
 class MemoryArena
 {
 public:
-    explicit MemoryArena(USizeT _byteWidthPerArena);
+    explicit MemoryArena(SizeT _byteWidthPerArena);
 
     ~MemoryArena();
 
@@ -15,7 +15,7 @@ public:
     MemoryArena& operator=(const MemoryArena&) = delete;
     MemoryArena& operator=(MemoryArena&&)      = delete;
 
-    void* Alloc(USizeT _byteWidth);
+    void* Alloc(SizeT _byteWidth);
 
     template<typename T>
     T* Alloc()
@@ -24,7 +24,7 @@ public:
     }
 
     template<typename T>
-    T* Alloc(const USizeT _count)
+    T* Alloc(const SizeT _count)
     {
         return static_cast<T*>(Alloc(_count * sizeof(T)));
     }
@@ -38,10 +38,10 @@ public:
     }
 
     template<typename T, typename... TArgs>
-    T* New(const USizeT _count, TArgs&&... _args)
+    T* New(const SizeT _count, TArgs&&... _args)
     {
         T* pRet = Alloc<T>(_count);
-        for (USizeT i = 0; i < _count; ++i)
+        for (SizeT i = 0; i < _count; ++i)
         {
             std::construct_at(&pRet[i], std::forward<TArgs>(_args)...);
         }
@@ -59,7 +59,7 @@ private:
     Head*  m_pCurHead          = {};
     Byte*  m_pCur              = nullptr;
     Byte*  m_pEnd              = nullptr;
-    USizeT m_byteWidthPerArena = 0;
+    SizeT m_byteWidthPerArena = 0;
 };
 
 }   // namespace Jam

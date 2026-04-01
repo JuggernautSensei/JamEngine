@@ -239,10 +239,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("albedo texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::Albedo];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::Albedo];
                     if (Widget_TexturePicker("##MeshRendererAlbedoMap", pTexture))
                     {
-                        textures[eMaterialTextureType::Albedo] = pTexture;
+                        textures[eMaterialTexture::Albedo] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
@@ -253,10 +253,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("normal texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::Normal];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::Normal];
                     if (Widget_TexturePicker("##MeshRendererNormalMap", pTexture))
                     {
-                        textures[eMaterialTextureType::Normal] = pTexture;
+                        textures[eMaterialTexture::Normal] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
@@ -278,10 +278,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("metallic texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::Metallic];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::Metallic];
                     if (Widget_TexturePicker("##MeshRendererMetallicMap", pTexture))
                     {
-                        textures[eMaterialTextureType::Metallic] = pTexture;
+                        textures[eMaterialTexture::Metallic] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
@@ -305,10 +305,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("roughness texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::Roughness];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::Roughness];
                     if (Widget_TexturePicker("##MeshRendererRoughnessMap", pTexture))
                     {
-                        textures[eMaterialTextureType::Roughness] = pTexture;
+                        textures[eMaterialTexture::Roughness] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
@@ -331,10 +331,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("ao texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::Ao];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::Ao];
                     if (Widget_TexturePicker("##MeshRendererAoMap", pTexture))
                     {
-                        textures[eMaterialTextureType::Ao] = pTexture;
+                        textures[eMaterialTexture::Ao] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
@@ -345,10 +345,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("emissive texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::Emissive];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::Emissive];
                     if (Widget_TexturePicker("##MeshRendererEmissiveMap", pTexture))
                     {
-                        textures[eMaterialTextureType::Emissive] = pTexture;
+                        textures[eMaterialTexture::Emissive] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
@@ -377,10 +377,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("light texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::Light];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::Light];
                     if (Widget_TexturePicker("##MeshRendererLightMap", pTexture))
                     {
-                        textures[eMaterialTextureType::Light] = pTexture;
+                        textures[eMaterialTexture::Light] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }
@@ -409,10 +409,10 @@ void RenderableComponent::DrawEditPanel(
                 Widget_Text("displacement texture", true);
                 ImGui::TableNextColumn();
                 {
-                    Ref<Texture> pTexture = textures[eMaterialTextureType::VertexDisplacement];
+                    Ref<Texture> pTexture = textures[eMaterialTexture::VertexDisplacement];
                     if (Widget_TexturePicker("##MeshRendererDisplacementMap", pTexture))
                     {
-                        textures[eMaterialTextureType::VertexDisplacement] = pTexture;
+                        textures[eMaterialTexture::VertexDisplacement] = pTexture;
                         pMaterial->SetDesc(desc);
                         bDirty = true;
                     }

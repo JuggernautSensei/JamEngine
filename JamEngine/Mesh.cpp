@@ -153,9 +153,10 @@ Error Mesh::Load_(
     }
 
     // gpu resource creation
+    Graphics&  gfx     = GetGraphics();
     const bool bUseU32 = NeedU32Index(pDto->vertData, vl);
-    m_vbh              = GetGraphics().CreateVertexBuffer(pDto->vertData, vl);
-    m_ibh              = GetGraphics().CreateIndexBuffer(pDto->idxData, bUseU32);
+    m_vbh              = gfx.CreateVertexBuffer(pDto->vertData, vl);
+    m_ibh              = gfx.CreateIndexBuffer(pDto->idxData, bUseU32);
     m_boundingBox      = pDto->aabb.ToAabb();
 
     // finalize
@@ -188,17 +189,30 @@ Error Mesh::Save(
         return saver.GetError();
     }
 
-    MeshDto dto  = {};
-    dto.name     = StringViewDtoFrom(m_name);
-    dto.vertData = VectorDtoFrom(GetGraphics().DownloadBuffer(m_vbh));
-    dto.idxData  = VectorDtoFrom(GetGraphics().DownloadBuffer(m_ibh));
-    dto.aabb     = AabbDto::FromAabb(m_boundingBox);
+    Graphics&                 gfx       = GetGraphics();
+    const VertexBufferInfo&   vbInfo    = gfx.GetVertexBufferInfo(m_vbh);
+    const IndexBufferInfo&    ibInfo    = gfx.GetIndexBufferInfo(m_ibh);
+    const Int32               byteWidth = Max(vbInfo.byteWidth, ibInfo.byteWidth);
+    const StorageBufferHandle readback  = gfx.CreateReadbackBuffer(byteWidth, TODO);
+
+    MeshDto dto = {};
+    dto.name    = StringViewDtoFrom(m_name);
+    dto.aabb    = AabbDto::FromAabb(m_boundingBox);
+
+    // vertex data
+    gfx.CopyBuffer(readback, 0, m_vbh, 0, vbInfo.byteWidth);
+    dto.vertData.resize(vbInfo.byteWidth);
+    gfx.ReadBuffer(readback, dto.vertData);
+
+    // index data
+    gfx.CopyBuffer(readback, 0, m_ibh, 0, ibInfo.byteWidth);
+    dto.idxData.resize(ibInfo.byteWidth);
+    gfx.ReadBuffer(readback, dto.idxData);
 
     // vertex layout
-    const VertexLayout vl = GetGraphics().GetVertexLayout(m_vbh);
+    const VertexLayout vl = gfx.GetVertexLayout(m_vbh);
     dto.vl.numElems       = vl.GetNumElems();
-
-    Int32 idx = 0;
+    Int32 idx             = 0;
     for (const VertexLayoutElement& elem: vl.GetElems())
     {
         VertexLayoutElementDto& elemDto = dto.vl.elems[idx++];
@@ -237,7 +251,7 @@ StringView Mesh::GetPath() const
     return m_path;
 }
 
-eAssetType Mesh::GetAssetType() const
+eAsset Mesh::GetAssetType() const
 {
     return k_assetType;
 }

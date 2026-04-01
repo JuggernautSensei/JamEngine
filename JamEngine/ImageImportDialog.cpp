@@ -241,7 +241,7 @@ bool ImageImportDialog::OnClickImportButton_()
         return false;
     }
 
-    String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoinType::File);
+    String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::File);
     path.ReplaceExtension(Texture::k_extension);
 
     if (FileSystem::Exists(path))
@@ -280,7 +280,7 @@ void ImageImportDialog::Widget_PreviewTexture_() const
     if (m_pPreviewTex)
     {
         const auto [w, h]    = m_pPreviewTex->GetResolution();
-        const ImVec2 texSize = { NumericCast<float>(w), NumericCast<float>(h) };
+        const ImVec2 texSize = { static_cast<float>(w), static_cast<float>(h) };
         Widget_ImageFrame(m_pPreviewTex, texSize, k_previewSize, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
     }
     else

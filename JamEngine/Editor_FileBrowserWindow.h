@@ -10,7 +10,7 @@ namespace Jam
 {
 class FocusingDirEntryChangedEvent;
 
-enum class ePrimitiveCreationType;
+enum class ePrimitiveCreation;
 class FileDeletedEvent;
 class FileRenamedEvent;
 class FileModifiedEvent;

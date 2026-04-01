@@ -23,7 +23,7 @@ public:
     void  Invalidate() override;
 
     [[nodiscard]] bool       IsValid() const override;
-    [[nodiscard]] eAssetType GetAssetType() const override;
+    [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt32     GetTypeHash() const override;
     [[nodiscard]] StringView GetPath() const override;
@@ -33,14 +33,14 @@ public:
 
     [[nodiscard]] TextureHandle GetHandle() const;
     [[nodiscard]] Vec2i         GetResolution() const;
-    [[nodiscard]] eTextureType  GetTextureType() const;
+    [[nodiscard]] eTexture      GetTextureType() const;
 
     void Bind(eShader _shader, Int32 _slot) const;
     void Unbind(eShader _shader, Int32 _slot) const;
 
     static constexpr StringView k_typeName  = NameOf<Texture>();
     static constexpr UInt32     k_typeHash  = HashOf<Texture>();
-    static constexpr eAssetType k_asestType = eAssetType::Texture;
+    static constexpr eAsset     k_asestType = eAsset::Texture;
     static constexpr StringView k_extension = ".jtex";
     static constexpr StringView k_filter    = "*.jtex";
 
@@ -54,7 +54,7 @@ private:
     String        m_name            = {};
     TextureHandle m_texh            = k_nullHandle;
     Vec2i         m_res             = { 0, 0 };
-    eTextureType  m_type            = eTextureType::Texture2D;
+    eTexture      m_type            = eTexture::Texture2D;
     bool          m_bLoadedFromFile = false;
 };
 

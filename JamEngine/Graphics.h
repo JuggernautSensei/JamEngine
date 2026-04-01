@@ -1,9 +1,8 @@
 #pragma once
+#include "Blob.h"
 #include "GraphicsBase.h"
 #include "ImageBase.h"
 #include "ResourcePool.h"
-
-// TODO 바인딩 후 리소스 파괴 테스트. -> brute force한 해결법. 해제될떄 바인드 상태 전부 검사
 
 namespace Jam
 {
@@ -19,49 +18,51 @@ class Event;
 /// Dirty Flag 기반의 파이프라인 상태 관리와 드로우 콜 제출 기능을 제공합니다.
 class Graphics
 {
-    enum class ePipelineDirtyFlags : UInt32
+    enum class ePipelineDirtyFlags : UInt64
     {
         None = 0,
 
-        Primitive    = 1 << 0,
-        VertexBuffer = 1 << 1,
-        IndexBuffer  = 1 << 2,
+        Primitive      = 1ull << 0,
+        InputLayout    = 1ull << 1,
+        VertexBuffer   = 1ull << 2,
+        IndexBuffer    = 1ull << 3,
+        InstanceBuffer = 1ull << 4,
 
-        VSConstantBuffer = 1 << 4,
-        PSConstantBuffer = 1 << 5,
-        GSConstantBuffer = 1 << 6,
-        HSConstantBuffer = 1 << 7,
-        DSConstantBuffer = 1 << 8,
-        CSConstantBuffer = 1 << 9,
+        Program        = 1ull << 5,
+        ComputeProgram = 1ull << 6,
 
-        VSShaderResourceView = 1 << 10,
-        PSShaderResourceView = 1 << 11,
-        GSShaderResourceView = 1 << 12,
-        HSShaderResourceView = 1 << 13,
-        DSShaderResourceView = 1 << 14,
-        CSShaderResourceView = 1 << 15,
+        VSConstantBuffer = 1ull << 7,
+        PSConstantBuffer = 1ull << 8,
+        GSConstantBuffer = 1ull << 9,
+        HSConstantBuffer = 1ull << 10,
+        DSConstantBuffer = 1ull << 11,
+        CSConstantBuffer = 1ull << 12,
 
-        VSSamplerState = 1 << 16,
-        PSSamplerState = 1 << 17,
-        GSSamplerState = 1 << 18,
-        HSSamplerState = 1 << 19,
-        DSSamplerState = 1 << 20,
-        CSSamplerState = 1 << 21,
+        VSShaderResourceView = 1ull << 13,
+        PSShaderResourceView = 1ull << 14,
+        GSShaderResourceView = 1ull << 15,
+        HSShaderResourceView = 1ull << 16,
+        DSShaderResourceView = 1ull << 17,
+        CSShaderResourceView = 1ull << 18,
 
-        RasterizerState   = 1 << 22,
-        BlendState        = 1 << 23,
-        DepthStencilState = 1 << 24,
-        Viewport          = 1 << 25,
-        FrameBuffer       = 1 << 26,
-        ScissorRect       = 1 << 27,
+        CSUnorderedAccessView = 1ull << 19,
 
-        Program        = 1 << 28,
-        ComputeProgram = 1 << 29,
+        VSSamplerState = 1ull << 20,
+        PSSamplerState = 1ull << 21,
+        GSSamplerState = 1ull << 22,
+        HSSamplerState = 1ull << 23,
+        DSSamplerState = 1ull << 24,
+        CSSamplerState = 1ull << 25,
 
-        InstanceBuffer = 1 << 30,
-        InputLayout    = 1 << 31,
-        End            = InputLayout,
-        All            = (End << 1) - 1,
+        RasterizerState   = 1ull << 26,
+        BlendState        = 1ull << 27,
+        DepthStencilState = 1ull << 28,
+        Viewport          = 1ull << 29,
+        ScissorRect       = 1ull << 30,
+        FrameBuffer       = 1ull << 31,
+
+        End = FrameBuffer,
+        All = 0xFFFFFFFFFFFFFFFF,
 
         ConstantBufferMask = VSConstantBuffer
                            | PSConstantBuffer
@@ -82,43 +83,77 @@ class Graphics
                          | GSSamplerState
                          | HSSamplerState
                          | DSSamplerState
-                         | CSSamplerState
+                         | CSSamplerState,
     };
 
-    enum class eBufferType
+    struct Binding
     {
-        VertexBuffer = 0,
-        IndexBuffer,
-        ConstantBuffer,
+        UInt32          handleValue = k_nullHandleValue;
+        eShaderResource type        = eShaderResource::Texture;
     };
 
-    struct ConstantBufferBinds
+    struct ReadBindings
     {
-        ConstantBufferBinds()
+        ReadBindings()
+        {
+            bindings.fill({});
+            binder.fill(nullptr);
+        }
+
+        Array<Binding, k_maxNumShaderResourceViewSlots>                   bindings = {};
+        Array<ID3D11ShaderResourceView*, k_maxNumShaderResourceViewSlots> binder   = {};
+
+        // dirty [begin, end)
+        Int32 dirtyBegin = k_maxNumShaderResourceViewSlots;
+        Int32 dirtyEnd   = 0;
+    };
+
+    struct ComputeReadWriteBindings
+    {
+        ComputeReadWriteBindings()
+        {
+            bindings.fill({});
+            binder.fill(nullptr);
+        }
+
+        Array<Binding, k_maxNumUnorderedAccessViewSlots>                    bindings = {};
+        Array<ID3D11UnorderedAccessView*, k_maxNumUnorderedAccessViewSlots> binder   = {};
+
+        // dirty [begin, end)
+        Int32 dirtyBegin = k_maxNumUnorderedAccessViewSlots;
+        Int32 dirtyEnd   = 0;
+    };
+
+    struct PixelReadWriteBindings
+    {
+        PixelReadWriteBindings()
+        {
+            bindings.fill({});
+            binder.fill(nullptr);
+        }
+
+        Array<Binding, k_maxNumUnorderedAccessViewSlots>                    bindings        = {};
+        Array<ID3D11UnorderedAccessView*, k_maxNumUnorderedAccessViewSlots> binder          = {};
+        UInt64                                                              useMask         = 0;
+        Int32                                                               highestOneIndex = -1;
+    };
+
+    struct ConstantBufferBindings
+    {
+        ConstantBufferBindings()
         {
             cbhs.fill(k_nullHandle);
         }
 
-        Array<ConstantBufferHandle, k_maxNumConstantBufferSlots> cbhs       = {};
-        Array<ID3D11Buffer*, k_maxNumConstantBufferSlots>        binder     = {};
-        Int32                                                    dirtyStart = k_maxNumConstantBufferSlots;
-        Int32                                                    dirtyEnd   = 0;
+        Array<ConstantBufferHandle, k_maxNumConstantBufferSlots> cbhs   = {};
+        Array<ID3D11Buffer*, k_maxNumConstantBufferSlots>        binder = {};
+
+        // dirty [begin, end)
+        Int32 dirtyBegin = k_maxNumConstantBufferSlots;
+        Int32 dirtyEnd   = 0;
     };
 
-    struct TextureBinds
-    {
-        TextureBinds()
-        {
-            texhs.fill(k_nullHandle);
-        }
-
-        Array<TextureHandle, k_maxNumShaderResourceViewSlots>             texhs      = {};
-        Array<ID3D11ShaderResourceView*, k_maxNumShaderResourceViewSlots> binder     = {};
-        Int32                                                             dirtyStart = k_maxNumShaderResourceViewSlots;
-        Int32                                                             dirtyEnd   = 0;
-    };
-
-    struct SamplerBinds
+    struct SamplerBindings
     {
         struct Sampler
         {
@@ -128,11 +163,11 @@ class Graphics
 
         Array<Sampler, k_maxNumSamplerSlots>             samplers   = {};
         Array<ID3D11SamplerState*, k_maxNumSamplerSlots> binder     = {};
-        Int32                                            dirtyStart = k_maxNumSamplerSlots;
+        Int32                                            dirtyBegin = k_maxNumSamplerSlots;
         Int32                                            dirtyEnd   = 0;
     };
 
-    struct StreamBinds
+    struct StreamBindings
     {
         struct Stream
         {
@@ -143,14 +178,6 @@ class Graphics
 
         Array<Stream, k_maxNumVertexStream> stream  = {};
         UInt32                              useMask = 0;
-    };
-
-    struct ReadbackTextureCacheEntry
-    {
-        ID3D11Resource* pResource = nullptr;
-        Int32           width     = 0;
-        Int32           height    = 0;
-        Int32           depth     = 0;
     };
 
 public:
@@ -180,7 +207,6 @@ public:
 
     /// @brief 시스템 이벤트를 처리합니다.
     /// @param _event 처리할 이벤트 객체
-    /// @note 현재 WindowResizedEvent와 WindowMaximizedEvent를 처리합니다.
     void OnEvent(Event& _event);
 
     /// @brief 현재 프레임을 화면에 출력하고 다음 프레임을 준비합니다.
@@ -195,7 +221,7 @@ public:
     ///////// BUFFER /////////
 
     /// @brief 수정 불가능한(Immutable) 버텍스 버퍼를 생성합니다.
-    /// @param _vertData 초기 버텍스 데이터 (비어 있으면 안 됩니다)
+    /// @param _vertData 초기 버텍스 데이터
     /// @param _vl 버텍스 레이아웃
     /// @return 생성된 버텍스 버퍼 핸들
     /// @note 생성 후에는 데이터를 수정할 수 없는 대신 GPU 접근 성능이 뛰어납니다.
@@ -250,25 +276,53 @@ public:
     [[nodiscard]] ConstantBufferHandle CreateConstantBuffer(
         Int32 _byteWidth);
 
+    /// @brief Raw Storage 버퍼를 생성합니다.
+    /// @param _byteWidth 버퍼 크기 (바이트 단위, 4의 배수여야 합니다)
+    /// @param _flags 생성 플래그.
+    /// @param _initDataOrEmpty 초기화 데이터. 비어 있으면 초기화되지 않은 버퍼가 생성됩니다.
+    /// @return 생성된 스토리지 버퍼 핸들
+    /// @note 생성된 버퍼는 이후 SetTexture가 아닌, 스토리지 버퍼 바인딩 API(해당 기능 제공 시)를 통해 사용합니다.
     [[nodiscard]] StorageBufferHandle CreateRawBuffer(
         Int32                            _byteWidth,
-        Flags<eStorageBufferCreateFlags> _flags    = eStorageBufferCreateFlags::None,
-        MemoryView                       _initData = {});
+        Flags<eStorageBufferCreateFlags> _flags           = eStorageBufferCreateFlags::None,
+        MemoryView                       _initDataOrEmpty = {});
 
+    /// @brief Structured Storage 버퍼를 생성합니다.
+    /// @param _numElements 요소 개수.
+    /// @param _stride 요소 하나의 크기 (바이트 단위).
+    /// @param _bAppendConsume true면 Append/Consume UAV로 생성합니다.
+    /// @param _bCounter true면 카운터를 포함하는 UAV로 생성합니다.
+    /// @param _flags 생성 플래그.
+    /// @param _initDataOrEmpty
+    /// @return 생성된 스토리지 버퍼 핸들
+    /// @note `_bAppendConsume`와 `_bCounter` 조합은 D3D11 UAV 생성 제약을 따릅니다.
     [[nodiscard]] StorageBufferHandle CreateStructuredBuffer(
         Int32                            _numElements,
         Int32                            _stride,
-        bool                             _bAppendConsume = false,
-        bool                             _bCounter       = false,
-        Flags<eStorageBufferCreateFlags> _flags          = eStorageBufferCreateFlags::None);
+        bool                             _bAppendConsume  = false,
+        bool                             _bCounter        = false,
+        Flags<eStorageBufferCreateFlags> _flags           = eStorageBufferCreateFlags::None,
+        MemoryView                       _initDataOrEmpty = {});
 
+    /// @brief Typed Storage 버퍼를 생성합니다.
+    /// @param _numElements 요소 개수.
+    /// @param _dataType 요소 데이터 타입(포맷).
+    /// @param _flags 생성 플래그.
+    /// @param _initDataOrEmpty
+    /// @return 생성된 스토리지 버퍼 핸들
     [[nodiscard]] StorageBufferHandle CreateTypedBuffer(
         Int32                            _numElements,
-        eStorageBufferDataType           _dataType,
-        Flags<eStorageBufferCreateFlags> _flags = eStorageBufferCreateFlags::None);
+        eStorageBufferData               _dataType,
+        Flags<eStorageBufferCreateFlags> _flags           = eStorageBufferCreateFlags::None,
+        MemoryView                       _initDataOrEmpty = {});
 
+    /// @brief Readback 버퍼를 생성합니다.
+    /// @param _byteWidth 버퍼 크기 (바이트 단위)
+    /// @param _initDataOrEmpty
+    /// @return 생성된 스토리지 버퍼 핸들
     [[nodiscard]] StorageBufferHandle CreateReadbackBuffer(
-        Int32 _byteWidth);
+        Int32      _byteWidth,
+        MemoryView _initDataOrEmpty = {});
 
     /// @brief 버텍스 레이아웃을 생성합니다.
     /// @param _vl 버텍스 레이아웃 설명
@@ -278,6 +332,55 @@ public:
     ///       그러나, 세밀한 조정이 필요한 경우, 수동으로 관리할 수 있습니다.
     [[nodiscard]] VertexLayoutHandle CreateVertexLayout(
         const VertexLayout& _vl);
+
+    /// @brief 다이나믹 버텍스 버퍼에 데이터를 업로드합니다.
+    /// @param _bh 대상 버텍스 버퍼 핸들 (Dynamic 버퍼여야 합니다)
+    /// @param _writeData 업로드할 데이터
+    /// @param _offset 버퍼 내 오프셋 (바이트 단위, 기본: 0)
+    /// @param _bDiscard true: 버퍼 전체를 무효화한 뒤 새 데이터를 씁니다.
+    ///                  false: 기존 데이터를 유지하면서 지정 범위만 부분 업데이트합니다.
+    /// @note 부분 업데이트가 더 빠를거라는 보장은 없습니다. 실제 성능은 드라이버 구현에 따라 달라질 수 있습니다.
+    void UpdateBuffer(
+        AnyBufferHandle _bh,
+        MemoryView      _writeData,
+        Int32           _offset   = 0,
+        bool            _bDiscard = true);
+
+    /// @brief 다이나믹 버텍스 버퍼에 데이터를 업로드하기 위한 메모리 뷰를 얻습니다.
+    /// @param _bh 대상 버텍스 버퍼 핸들 (Dynamic 버퍼여야 합니다)
+    /// @return 버퍼 데이터를 쓸 수 있는 MutableMemoryView
+    /// @note BeginUpdateBuffer로 얻은 메모리 뷰에 데이터를 쓴 후에는 반드시 EndUpdateBuffer를 호출하여 업데이트를 완료해야 합니다. 이 함수는 내부적으로 필요한 동기화 작업을 수행하여 GPU가 업데이트된 데이터를 안전하게 사용할 수 있도록 합니다.
+    ///       이 함수는 낮은 수준의 권한을 제공하므로, 사용 시 주의가 필요합니다. 이 함수보다는 UpdateBuffer를 사용하는 것을 권장합니다.
+    MutableMemoryView BeginUpdateBuffer(
+        AnyBufferHandle _bh) const;
+
+    /// @brief BeginUpdateBuffer로 시작한 버퍼 업데이트를 완료합니다.
+    /// @param _bh 대상 버퍼 핸들
+    /// @note BeginUpdateBuffer로 얻은 메모리 뷰에 대한 모든 쓰기가 완료된 후에 호출해야 합니다. 이 함수는 내부적으로 필요한 동기화 작업을 수행하여 GPU가 업데이트된 데이터를 안전하게 사용할 수 있도록 합니다.
+    ///       해당 함수는 낮은 수준의 권한을 제공하므로, 사용 시 주의가 필요합니다. 이 함수보다는 UpdateBuffer를 사용하는 것을 권장합니다.
+    void EndUpdateBuffer(
+        AnyBufferHandle _bh) const;
+
+    /// @brief 버퍼간 데이터 복사를 수행합니다.
+    /// @param _dst 대상 버퍼 핸들
+    /// @param _dstOffset 대상 버퍼 내 오프셋 (바이트 단위)
+    /// @param _src 원본 버퍼 핸들
+    /// @param _srcOffset 원본 버퍼 내 오프셋 (바이트 단위)
+    /// @param _byteWidthOrZero 복사할 바이트 수. 0이면, src 버퍼의 끝까지 복사합니다.
+    void CopyBuffer(
+        AnyBufferHandle _dst,
+        Int32           _dstOffset,
+        AnyBufferHandle _src,
+        Int32           _srcOffset,
+        Int32           _byteWidthOrZero = 0) const;
+
+    /// @brief 리드백 버퍼에서 데이터를 읽어옵니다.
+    /// @param _sbh 읽을 스토리지 버퍼 핸들 (Readback 버퍼여야 합니다)
+    /// @param _dst 데이터를 받을 메모리 블록. 읽을 크기가 버퍼 크기를 초과하면, 클립되어 읽힙니다.
+    /// @return 읽은 바이트 수를 반환합니다.
+    Int32 ReadBuffer(
+        StorageBufferHandle _sbh,
+        MutableMemoryView   _dst);
 
     ////////// TEXTURE /////////
 
@@ -343,6 +446,118 @@ public:
         eTextureFormat             _format,
         Flags<eTextureCreateFlags> _texFlags        = eTextureCreateFlags::None,
         Span<const MemoryView>     _initDataOrEmpty = {});
+
+    /// @brief 2D 텍스처의 특정 MIP/슬라이스 영역을 CPU 데이터로 업데이트합니다.
+    /// @param _dstTexh 대상 텍스처 핸들
+    /// @param _dstMipIndex 대상 MIP 레벨 인덱스
+    /// @param _dstArrayIndex 대상 배열/슬라이스 인덱스
+    /// @param _uploadData 업로드할 픽셀 데이터
+    /// @param _offsetX 대상 X 오프셋(픽셀 단위)
+    /// @param _offsetY 대상 Y 오프셋(픽셀 단위)
+    /// @param _width 업데이트할 너비(픽셀 단위)
+    /// @param _height 업데이트할 높이(픽셀 단위)
+    /// @note 텍스처는 Mutable로 생성되어야 합니다. 포맷별 row pitch 규칙을 만족해야 합니다.
+    void UpdateTexture2D(
+        TextureHandle _dstTexh,
+        Int32         _dstMipIndex,
+        Int32         _dstArrayIndex,
+        MemoryView    _uploadData,
+        Int32         _offsetX,
+        Int32         _offsetY,
+        Int32         _width,
+        Int32         _height);
+
+    /// @brief 큐브맵 텍스처의 특정 MIP/면 영역을 CPU 데이터로 업데이트합니다.
+    /// @param _dstTexh 대상 큐브맵 텍스처 핸들
+    /// @param _dstMipIndex 대상 MIP 레벨 인덱스
+    /// @param _dstCubeIndex 대상 큐브 인덱스(큐브 배열일 때 사용)
+    /// @param _dstCubeFace 대상 큐브 면
+    /// @param _uploadData 업로드할 픽셀 데이터
+    /// @param _offsetX 대상 X 오프셋(픽셀 단위)
+    /// @param _offsetY 대상 Y 오프셋(픽셀 단위)
+    /// @param _width 업데이트할 너비(픽셀 단위)
+    /// @param _height 업데이트할 높이(픽셀 단위)
+    /// @note 텍스처는 Mutable로 생성되어야 합니다.
+    void UpdateTextureCube(
+        TextureHandle _dstTexh,
+        Int32         _dstMipIndex,
+        Int32         _dstCubeIndex,
+        eCubeFace     _dstCubeFace,
+        MemoryView    _uploadData,
+        Int32         _offsetX,
+        Int32         _offsetY,
+        Int32         _width,
+        Int32         _height);
+
+    /// @brief 3D 텍스처의 특정 MIP 영역을 CPU 데이터로 업데이트합니다.
+    /// @param _dstTexh 대상 3D 텍스처 핸들
+    /// @param _dstMipIndex 대상 MIP 레벨 인덱스
+    /// @param _uploadData 업로드할 픽셀 데이터(볼륨 데이터)
+    /// @param _offsetX 대상 X 오프셋(픽셀 단위)
+    /// @param _offsetY 대상 Y 오프셋(픽셀 단위)
+    /// @param _offsetZ 대상 Z 오프셋(슬라이스 단위)
+    /// @param _width 업데이트할 너비(픽셀 단위)
+    /// @param _height 업데이트할 높이(픽셀 단위)
+    /// @param _depth 업데이트할 깊이(슬라이스 단위)
+    /// @note 텍스처는 Mutable로 생성되어야 합니다.
+    void UpdateTexture3D(
+        TextureHandle _dstTexh,
+        Int32         _dstMipIndex,
+        MemoryView    _uploadData,
+        Int32         _offsetX,
+        Int32         _offsetY,
+        Int32         _offsetZ,
+        Int32         _width,
+        Int32         _height,
+        Int32         _depth);
+
+    /// @brief 텍스처의 지정된 영역을 다른 텍스처의 지정된 위치로 GPU 복사합니다.
+    /// @param _dstTexh 대상 텍스처 핸들
+    /// @param _dstMipIndex 대상 MIP 레벨
+    /// @param _dstArrayIndex 대상 배열/슬라이스 인덱스
+    /// @param _dstX, _dstY, _dstZ 대상 오프셋 (픽셀 단위)
+    /// @param _srcTexh 원본 텍스처 핸들
+    /// @param _srcMipIndex 원본 MIP 레벨
+    /// @param _srcArrayIndex 원본 배열/슬라이스 인덱스
+    /// @param _srcX, _srcY, _srcZ 원본 영역의 시작 오프셋 (픽셀 단위)
+    /// @param _srcWidthOrZero 복사할 너비. 0이면 원본 텍스처 전체 너비를 사용합니다.
+    /// @param _srcHeightOrZero 복사할 높이. 0이면 원본 텍스처 전체 높이를 사용합니다.
+    /// @param _srcDepthOrZero 복사할 깊이. 0이면 원본 텍스처 전체 깊이를 사용합니다.
+    void CopyTexture(
+        TextureHandle _dstTexh,
+        Int32         _dstMipIndex,
+        Int32         _dstArrayIndex,
+        Int32         _dstX,
+        Int32         _dstY,
+        Int32         _dstZ,
+        TextureHandle _srcTexh,
+        Int32         _srcMipIndex,
+        Int32         _srcArrayIndex,
+        Int32         _srcX,
+        Int32         _srcY,
+        Int32         _srcZ,
+        Int32         _srcWidthOrZero  = 0,
+        Int32         _srcHeightOrZero = 0,
+        Int32         _srcDepthOrZero  = 0);
+
+    /// @brief 텍스처의 특정 MIP/슬라이스 데이터를 CPU 메모리로 읽어옵니다.
+    /// @param _texh 읽을 텍스처 핸들.
+    /// @param _srcMipIndex 원본 MIP 레벨.
+    /// @param _srcArrayIndex 원본 배열/슬라이스 인덱스.
+    /// @param _dst 픽셀 데이터를 받을 메모리. 크기는 포맷/해상도에 따라 충분해야 합니다.
+    /// @return 실제로 복사된 바이트 수
+    /// @note GPU-CPU 동기화가 발생할 수 있습니다.
+    Int32 ReadTexture(
+        TextureHandle     _texh,
+        Int32             _srcMipIndex,
+        Int32             _srcArrayIndex,
+        MutableMemoryView _dst);
+
+    /// @brief 텍스처 전체를 ImageContainer로 캡처합니다.
+    /// @param _texh 캡처할 텍스처 핸들
+    /// @return 캡처된 이미지 컨테이너 (파일 저장 등에 활용 가능)
+    /// @note GPU-CPU 동기화가 발생합니다. 성능이 중요한 경로에서는 사용하지 마십시오.
+    [[nodiscard]] ImageContainer Capture(TextureHandle _texh);
 
     ////////// FRAME BUFFER /////////
 
@@ -416,8 +631,7 @@ public:
     /// @param _bDestroyShader true: 프로그램 파괴 시 소유권을 가져가 셰이더도 함께 파괴합니다.
     ///                        false: 셰이더의 참조 카운트만 증가시킵니다. 셰이더를 별도로 파괴해야 합니다.
     /// @return 생성된 프로그램 핸들
-    /// @note VS와 PS는 반드시 제공해야 합니다.
-    ///       HS와 DS는 반드시 함께 제공하거나 둘 다 k_nullHandle이어야 합니다.
+    /// @note HS와 DS는 반드시 함께 제공하거나 둘 다 k_nullHandle이어야 합니다.
     [[nodiscard]] ProgramHandle CreateProgram(
         ShaderHandle _vsh,
         ShaderHandle _psh,
@@ -451,51 +665,62 @@ public:
     /// @brief 버텍스 버퍼를 파괴합니다.
     /// @param _vbh 파괴할 버텍스 버퍼 핸들
     /// @note 편의 매크로 JAM_DESTROY_VERTEX_BUFFER 사용을 권장합니다.
-    void DestroyVertexBuffer(VertexBufferHandle _vbh);
+    void DestroyVertexBuffer(
+        VertexBufferHandle _vbh);
 
     /// @brief 인덱스 버퍼를 파괴합니다.
     /// @param _ibh 파괴할 인덱스 버퍼 핸들
     /// @note 편의 매크로 JAM_DESTROY_INDEX_BUFFER 사용을 권장합니다.
-    void DestroyIndexBuffer(IndexBufferHandle _ibh);
+    void DestroyIndexBuffer(
+        IndexBufferHandle _ibh);
 
     /// @brief 버텍스 레이아웃을 파괴합니다.
     /// @param _vlh 파괴할 버텍스 레이아웃 핸들
     /// @note  수동으로 관리할 때만 파괴할 필요가 있습니다.
     ///        편의 매크로 JAM_DESTROY_VERTEX_LAYOUT 사용을 권장합니다.
-    void DestroyVertexLayout(VertexLayoutHandle _vlh);
+    void DestroyVertexLayout(
+        VertexLayoutHandle _vlh);
 
     /// @brief 상수 버퍼를 파괴합니다.
     /// @param _cbh 파괴할 상수 버퍼 핸들
     /// @note 편의 매크로 JAM_DESTROY_CONSTANT_BUFFER 사용을 권장합니다.
-    void DestroyConstantBuffer(ConstantBufferHandle _cbh);
+    void DestroyConstantBuffer(
+        ConstantBufferHandle _cbh);
 
-    void DestroyStorageBuffer(StorageBufferHandle _sbh);
+    /// @brief 스토리지 버퍼를 파괴합니다.
+    /// @param _sbh 파괴할 스토리지 버퍼 핸들
+    void DestroyStorageBuffer(
+        StorageBufferHandle _sbh);
 
     /// @brief 텍스처를 파괴합니다.
     /// @param _texh 파괴할 텍스처 핸들
     /// @note 내부 참조 카운트가 0이 될 때 실제 D3D11 리소스가 해제됩니다.
     ///       FrameBuffer에 의해 관리되는 텍스처는 직접 파괴하지 마십시오.
     ///       편의 매크로 JAM_DESTROY_TEXTURE 사용을 권장합니다.
-    void DestroyTexture(TextureHandle _texh);
+    void DestroyTexture(
+        TextureHandle _texh);
 
     /// @brief 프레임 버퍼를 파괴합니다.
     /// @param _fbh 파괴할 프레임 버퍼 핸들
     /// @note _bDestroyTexture = true로 생성된 경우 첨부된 텍스처도 함께 파괴됩니다.
     ///       편의 매크로 JAM_DESTROY_FRAME_BUFFER 사용을 권장합니다.
-    void DestroyFrameBuffer(FrameBufferHandle _fbh);
+    void DestroyFrameBuffer(
+        FrameBufferHandle _fbh);
 
     /// @brief 셰이더를 파괴합니다.
     /// @param _sh 파괴할 셰이더 핸들
     /// @note 내부 참조 카운트가 0이 될 때 실제 D3D11 셰이더가 해제됩니다.
     ///       GetShader로 얻은 핸들은 파괴하지 마십시오. Program이 소유권을 가집니다.
     ///       편의 매크로 JAM_DESTROY_SHADER 사용을 권장합니다.
-    void DestroyShader(ShaderHandle _sh);
+    void DestroyShader(
+        ShaderHandle _sh);
 
     /// @brief 프로그램을 파괴합니다.
     /// @param _ph 파괴할 프로그램 핸들
     /// @note 내부적으로 각 셰이더의 참조 카운트를 감소시킵니다.
     ///       편의 매크로 JAM_DESTROY_PROGRAM 사용을 권장합니다.
-    void DestroyProgram(ProgramHandle _ph);
+    void DestroyProgram(
+        ProgramHandle _ph);
 
     ///////////////////////////////////////
     ///          DEBUG NAMING           ///
@@ -504,287 +729,97 @@ public:
     /// @brief 버텍스 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _vbh 이름을 설정할 버텍스 버퍼 핸들
     /// @param _name 설정할 이름 (PIX, RenderDoc 등 GPU 디버거에서 표시됩니다)
-    void SetVertexBufferName(VertexBufferHandle _vbh, StringView _name);
+    void SetVertexBufferName(
+        VertexBufferHandle _vbh,
+        StringView         _name);
 
     /// @brief 인덱스 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _ibh 이름을 설정할 인덱스 버퍼 핸들
     /// @param _name 설정할 이름
-    void SetIndexBufferName(IndexBufferHandle _ibh, StringView _name);
+    void SetIndexBufferName(
+        IndexBufferHandle _ibh,
+        StringView        _name);
 
     /// @brief 상수 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _cbh 이름을 설정할 상수 버퍼 핸들
     /// @param _name 설정할 이름
-    void SetConstantBufferName(ConstantBufferHandle _cbh, StringView _name);
+    void SetConstantBufferName(
+        ConstantBufferHandle _cbh,
+        StringView           _name);
 
-    void SetStorageBufferName(StorageBufferHandle _sbh, StringView _name);
+    /// @brief 스토리지 버퍼에 디버깅용 이름을 설정합니다.
+    /// @param _sbh 이름을 설정할 스토리지 버퍼 핸들
+    /// @param _name 설정할 이름
+    void SetStorageBufferName(
+        StorageBufferHandle _sbh,
+        StringView          _name);
 
     /// @brief 텍스처에 디버깅용 이름을 설정합니다.
     /// @param _texh 이름을 설정할 텍스처 핸들
     /// @param _name 설정할 이름
     /// @note 텍스처 리소스와 SRV 모두에 이름이 설정됩니다.
-    void SetTextureName(TextureHandle _texh, StringView _name);
+    void SetTextureName(
+        TextureHandle _texh,
+        StringView    _name);
 
     /// @brief 프레임 버퍼에 디버깅용 이름을 설정합니다.
     /// @param _fbh 이름을 설정할 프레임 버퍼 핸들
     /// @param _name 설정할 이름
     /// @note RTV와 DSV 모두에 이름이 설정됩니다.
-    void SetFrameBufferName(FrameBufferHandle _fbh, StringView _name);
+    void SetFrameBufferName(
+        FrameBufferHandle _fbh,
+        StringView        _name);
 
     /// @brief 셰이더에 디버깅용 이름을 설정합니다.
     /// @param _sh 이름을 설정할 셰이더 핸들
     /// @param _name 설정할 이름
-    void SetShaderName(ShaderHandle _sh, StringView _name);
-
-    ///////////////////////////////////////
-    ///       BUFFER DATA TRANSFER      ///
-    ///////////////////////////////////////
-
-    /// @brief 다이나믹 버텍스 버퍼에 데이터를 업로드합니다.
-    /// @param _vbh 대상 버텍스 버퍼 핸들 (Dynamic 버퍼여야 합니다)
-    /// @param _writeData 업로드할 데이터
-    /// @param _offset 버퍼 내 오프셋 (바이트 단위, 기본: 0)
-    /// @param _bDiscard true: 버퍼 전체를 무효화한 뒤 새 데이터를 씁니다 (더 빠름).
-    ///                  false: 기존 데이터를 유지하면서 지정 범위만 부분 업데이트합니다 (더 느림).
-    /// @note 부분 업데이트는 성능이 떨어질 수 있으므로 가능하면 _bDiscard = true를 사용하십시오.
-    void UploadBuffer(
-        VertexBufferHandle _vbh,
-        MemoryView         _writeData,
-        Int32              _offset   = 0,
-        bool               _bDiscard = true);
-
-    /// @brief 다이나믹 인덱스 버퍼에 데이터를 업로드합니다.
-    /// @param _ibh 대상 인덱스 버퍼 핸들 (Dynamic 버퍼여야 합니다)
-    /// @param _writeData 업로드할 데이터
-    /// @param _offset 버퍼 내 오프셋 (바이트 단위, 기본: 0)
-    /// @param _bDiscard true: 버퍼 전체를 무효화한 뒤 새 데이터를 씁니다 (더 빠름).
-    ///                  false: 기존 데이터를 유지하면서 지정 범위만 부분 업데이트합니다 (더 느림).
-    void UploadBuffer(
-        IndexBufferHandle _ibh,
-        MemoryView        _writeData,
-        Int32             _offset   = 0,
-        bool              _bDiscard = true);
-
-    /// @brief 상수 버퍼에 데이터를 업로드합니다.
-    /// @param _cbh 대상 상수 버퍼 핸들
-    /// @param _writeData 업로드할 데이터. 크기는 버퍼의 byteWidth와 일치해야 합니다.
-    /// @note 상수 버퍼는 항상 버퍼 전체를 덮어씁니다 (부분 업로드 불가).
-    void UploadBuffer(
-        ConstantBufferHandle _cbh,
-        MemoryView           _writeData);
-
-    /// @brief 버텍스 버퍼에 대한 매핑된 쓰기 포인터를 반환합니다.
-    /// @param _vbh 매핑할 버텍스 버퍼 핸들 (Dynamic 버퍼여야 합니다)
-    /// @return 버퍼 전체를 가리키는 쓰기 가능한 메모리 블록
-    /// @note 이 함수를 호출하면 기존 버퍼 내용이 모두 초기화됩니다.
-    ///       데이터를 다 쓴 후에는 반드시 EndUploadBuffer를 호출해야 합니다.
-    ///       Begin ~ End 사이에 같은 버퍼에 UploadBuffer를 호출하면 안 됩니다.
-    ///       해당 함수는 호출자에게 많이 책임을 넘기기 때문에, 가능하면 UploadBuffer 함수를 사용하는 것을 권장합니다.
-    [[nodiscard]] MutableMemoryView BeginUploadBuffer(VertexBufferHandle _vbh);
-
-    /// @brief 인덱스 버퍼에 대한 매핑된 쓰기 포인터를 반환합니다.
-    /// @param _ibh 매핑할 인덱스 버퍼 핸들 (Dynamic 버퍼여야 합니다)
-    /// @return 버퍼 전체를 가리키는 쓰기 가능한 메모리 블록
-    /// @note 이 함수를 호출하면 기존 버퍼 내용이 모두 초기화됩니다.
-    ///       데이터를 다 쓴 후에는 반드시 EndUploadBuffer를 호출해야 합니다.
-    ///       해당 함수는 호출자에게 많이 책임을 넘기기 때문에, 가능하면 UploadBuffer 함수를 사용하는 것을 권장합니다.
-    [[nodiscard]] MutableMemoryView BeginUploadBuffer(IndexBufferHandle _ibh);
-
-    /// @brief 버텍스 버퍼의 매핑을 해제하여 업로드를 완료합니다.
-    /// @param _vbh BeginUploadBuffer에 전달한 것과 동일한 핸들
-    /// @note BeginUploadBuffer 호출 후 반드시 이 함수를 호출해야 합니다.
-    void EndUploadBuffer(VertexBufferHandle _vbh);
-
-    /// @brief 인덱스 버퍼의 매핑을 해제하여 업로드를 완료합니다.
-    /// @param _ibh BeginUploadBuffer에 전달한 것과 동일한 핸들
-    void EndUploadBuffer(IndexBufferHandle _ibh);
-
-    ///////////////////////////////////////
-    ///      TEXTURE DATA TRANSFER      ///
-    ///////////////////////////////////////
-
-    /// @brief 2D 텍스처의 특정 MIP/배열 슬라이스에 CPU 데이터를 업로드합니다.
-    /// @param _texh 대상 텍스처 핸들 (Mutable 텍스처여야 합니다)
-    /// @param _dstMipIndex 대상 MIP 레벨 인덱스 (0이 가장 큰 해상도)
-    /// @param _dstArrayIndex 대상 배열 슬라이스 인덱스
-    /// @param _dstX 대상 영역의 X 오프셋 (픽셀 단위)
-    /// @param _dstY 대상 영역의 Y 오프셋 (픽셀 단위)
-    /// @param _uploadData 업로드할 픽셀 데이터
-    /// @param _uploadWidth 업로드 영역의 너비 (픽셀 단위)
-    /// @param _uploadHeight 업로드 영역의 높이 (픽셀 단위)
-    /// @param _uploadDataRowPitch 소스 데이터의 행 간격 (바이트 단위)
-    void UploadTexture2D(
-        TextureHandle _texh,
-        Int32         _dstMipIndex,
-        Int32         _dstArrayIndex,
-        Int32         _dstX,
-        Int32         _dstY,
-        MemoryView    _uploadData,
-        Int32         _uploadWidth,
-        Int32         _uploadHeight,
-        Int32         _uploadDataRowPitch);
-
-    /// @brief 2D 텍스처의 MIP 0, 배열 슬라이스 0에 CPU 데이터를 업로드합니다.
-    /// @param _texh 대상 텍스처 핸들 (Mutable 텍스처여야 합니다)
-    /// @param _uploadData 업로드할 픽셀 데이터
-    /// @param _uploadWidth 업로드 영역의 너비 (픽셀 단위)
-    /// @param _uploadHeight 업로드 영역의 높이 (픽셀 단위)
-    /// @param _uploadDataRowPitch 소스 데이터의 행 간격 (바이트 단위)
-    void UploadTexture2D(
-        TextureHandle _texh,
-        MemoryView    _uploadData,
-        Int32         _uploadWidth,
-        Int32         _uploadHeight,
-        Int32         _uploadDataRowPitch);
-
-    /// @brief 큐브맵 텍스처의 특정 면에 CPU 데이터를 업로드합니다.
-    /// @param _texh 대상 큐브맵 텍스처 핸들 (Mutable 텍스처여야 합니다)
-    /// @param _dstMipIndex 대상 MIP 레벨 인덱스
-    /// @param _dstCubeIndex 대상 큐브맵 인덱스 (큐브맵 배열 사용 시)
-    /// @param _dstCubeFace 대상 큐브 면 (Right/Left/Top/Bottom/Front/Back)
-    /// @param _dstX 대상 면 내의 X 오프셋 (픽셀 단위)
-    /// @param _dstY 대상 면 내의 Y 오프셋 (픽셀 단위)
-    /// @param _uploadData 업로드할 픽셀 데이터
-    /// @param _uploadWidth 업로드 영역의 너비 (픽셀 단위)
-    /// @param _uploadHeight 업로드 영역의 높이 (픽셀 단위)
-    /// @param _uploadDataRowPitch 소스 데이터의 행 간격 (바이트 단위)
-    void UploadTextureCube(
-        TextureHandle _texh,
-        Int32         _dstMipIndex,
-        Int32         _dstCubeIndex,
-        eCubeFace     _dstCubeFace,
-        Int32         _dstX,
-        Int32         _dstY,
-        MemoryView    _uploadData,
-        Int32         _uploadWidth,
-        Int32         _uploadHeight,
-        Int32         _uploadDataRowPitch);
-
-    /// @brief 큐브맵의 MIP 0, 큐브 인덱스 0의 지정된 면에 CPU 데이터를 업로드합니다.
-    /// @param _texh 대상 큐브맵 텍스처 핸들 (Mutable 텍스처여야 합니다)
-    /// @param _dstCubeFace 대상 큐브 면
-    /// @param _uploadData 업로드할 픽셀 데이터
-    /// @param _uploadWidth 업로드 영역의 너비 (픽셀 단위)
-    /// @param _uploadHeight 업로드 영역의 높이 (픽셀 단위)
-    /// @param _uploadDataRowPitch 소스 데이터의 행 간격 (바이트 단위)
-    void UploadTextureCube(
-        TextureHandle _texh,
-        eCubeFace     _dstCubeFace,
-        MemoryView    _uploadData,
-        Int32         _uploadWidth,
-        Int32         _uploadHeight,
-        Int32         _uploadDataRowPitch);
-
-    /// @brief 3D 텍스처의 특정 영역에 CPU 데이터를 업로드합니다.
-    /// @param _texh 대상 3D 텍스처 핸들 (Mutable 텍스처여야 합니다)
-    /// @param _dstMipIndex 대상 MIP 레벨 인덱스
-    /// @param _dstArrayIndex 대상 배열 인덱스 (3D 텍스처는 항상 0)
-    /// @param _dstX, _dstY, _dstZ 대상 영역의 오프셋 (픽셀/슬라이스 단위)
-    /// @param _uploadData 업로드할 볼륨 데이터
-    /// @param _uploadWidth, _uploadHeight, _uploadDepth 업로드 영역의 크기
-    /// @param _uploadDataRowPitch 소스 데이터의 행 간격 (바이트 단위)
-    /// @param _uploadDataSlicePitch 소스 데이터의 슬라이스 간격 (바이트 단위)
-    void UploadTexture3D(
-        TextureHandle _texh,
-        Int32         _dstMipIndex,
-        Int32         _dstArrayIndex,
-        Int32         _dstX,
-        Int32         _dstY,
-        Int32         _dstZ,
-        MemoryView    _uploadData,
-        Int32         _uploadWidth,
-        Int32         _uploadHeight,
-        Int32         _uploadDepth,
-        Int32         _uploadDataRowPitch,
-        Int32         _uploadDataSlicePitch);
-
-    /// @brief 3D 텍스처의 MIP 0, 슬라이스 0 원점에 CPU 데이터를 업로드합니다.
-    /// @param _texh 대상 3D 텍스처 핸들 (Mutable 텍스처여야 합니다)
-    /// @param _uploadData 업로드할 볼륨 데이터
-    /// @param _uploadWidth, _uploadHeight, _uploadDepth 업로드 데이터의 크기
-    /// @param _uploadDataRowPitch 소스 데이터의 행 간격 (바이트 단위)
-    /// @param _uploadDataSlicePitch 소스 데이터의 슬라이스 간격 (바이트 단위)
-    void UploadTexture3D(
-        TextureHandle _texh,
-        MemoryView    _uploadData,
-        Int32         _uploadWidth,
-        Int32         _uploadHeight,
-        Int32         _uploadDepth,
-        Int32         _uploadDataRowPitch,
-        Int32         _uploadDataSlicePitch);
-
-    /// @brief 텍스처 데이터를 다른 텍스처로 GPU 복사합니다. (간략 버전)
-    /// @param _dstTexh 대상 텍스처 (MIP 0, 슬라이스 0, 원점에 복사됩니다)
-    /// @param _srcTexh 원본 텍스처 (MIP 0, 슬라이스 0, 전체 크기가 복사됩니다)
-    /// @note 두 텍스처의 포맷이 호환되어야 합니다.
-    void CopyTexture(
-        TextureHandle _dstTexh,
-        TextureHandle _srcTexh);
-
-    /// @brief 텍스처의 지정된 영역을 다른 텍스처의 지정된 위치로 GPU 복사합니다.
-    /// @param _dstTexh 대상 텍스처 핸들
-    /// @param _dstMipIndex 대상 MIP 레벨
-    /// @param _dstArrayIndex 대상 배열/슬라이스 인덱스
-    /// @param _dstX, _dstY, _dstZ 대상 오프셋 (픽셀 단위)
-    /// @param _srcTexh 원본 텍스처 핸들
-    /// @param _srcMipIndex 원본 MIP 레벨
-    /// @param _srcArrayIndex 원본 배열/슬라이스 인덱스
-    /// @param _srcX, _srcY, _srcZ 원본 영역의 시작 오프셋 (픽셀 단위)
-    /// @param _srcWidthOrZero 복사할 너비. 0이면 원본 텍스처 전체 너비를 사용합니다.
-    /// @param _srcHeightOrZero 복사할 높이. 0이면 원본 텍스처 전체 높이를 사용합니다.
-    /// @param _srcDepthOrZero 복사할 깊이. 0이면 원본 텍스처 전체 깊이를 사용합니다.
-    void CopyTexture(
-        TextureHandle _dstTexh,
-        Int32         _dstMipIndex,
-        Int32         _dstArrayIndex,
-        Int32         _dstX,
-        Int32         _dstY,
-        Int32         _dstZ,
-        TextureHandle _srcTexh,
-        Int32         _srcMipIndex,
-        Int32         _srcArrayIndex,
-        Int32         _srcX,
-        Int32         _srcY,
-        Int32         _srcZ,
-        Int32         _srcWidthOrZero,
-        Int32         _srcHeightOrZero,
-        Int32         _srcDepthOrZero);
-
-    /// @brief 텍스처 전체를 DirectX::ScratchImage로 캡처합니다.
-    /// @param _texh 캡처할 텍스처 핸들
-    /// @return 캡처된 이미지 컨테이너 (파일 저장 등에 활용 가능)
-    /// @note GPU-CPU 동기화가 발생합니다. 성능이 중요한 경로에서는 사용하지 마십시오.
-    [[nodiscard]] ImageContainer Capture(TextureHandle _texh);
+    void SetShaderName(
+        ShaderHandle _sh,
+        StringView   _name);
 
     ///////////////////////////////////////
     ///         RESOURCE QUERY          ///
     ///////////////////////////////////////
 
     /// @brief 버텍스 버퍼의 레이아웃 핸들로 버텍스 레이아웃을 반환합니다.
-    [[nodiscard]] const VertexLayout& GetVertexLayout(VertexLayoutHandle _vlh);
+    [[nodiscard]] const VertexLayout& GetVertexLayout(
+        VertexLayoutHandle _vlh);
 
     /// @brief 버텍스 버퍼의 레이아웃을 반환합니다.
-    [[nodiscard]] const VertexLayout& GetVertexLayout(VertexBufferHandle _vbh);
+    [[nodiscard]] const VertexLayout& GetVertexLayout(
+        VertexBufferHandle _vbh);
 
     /// @brief 버텍스 버퍼의 생성 정보를 반환합니다.
-    [[nodiscard]] VertexBufferInfo GetVertexBufferInfo(VertexBufferHandle _vbh);
+    [[nodiscard]] VertexBufferInfo GetVertexBufferInfo(
+        VertexBufferHandle _vbh);
 
     /// @brief 인덱스 버퍼의 생성 정보를 반환합니다.
-    [[nodiscard]] IndexBufferInfo GetIndexBufferInfo(IndexBufferHandle _ibh);
+    [[nodiscard]] IndexBufferInfo GetIndexBufferInfo(
+        IndexBufferHandle _ibh);
 
     /// @brief 상수 버퍼의 생성 정보를 반환합니다.
-    [[nodiscard]] ConstantBufferInfo GetConstantBufferInfo(ConstantBufferHandle _cbh);
+    [[nodiscard]] ConstantBufferInfo GetConstantBufferInfo(
+        ConstantBufferHandle _cbh);
+
+    /// @brief 스토리지 버퍼의 생성 정보를 반환합니다.
+    [[nodiscard]] StorageBufferInfo GetStorageBufferInfo(
+        StorageBufferHandle _sbh);
 
     /// @brief 텍스처의 생성 정보를 반환합니다.
-    [[nodiscard]] TextureInfo GetTextureInfo(TextureHandle _texh);
+    [[nodiscard]] TextureInfo GetTextureInfo(
+        TextureHandle _texh);
 
     /// @brief 프레임 버퍼의 생성 정보를 반환합니다.
-    [[nodiscard]] FrameBufferInfo GetFrameBufferInfo(FrameBufferHandle _fbh);
+    [[nodiscard]] FrameBufferInfo GetFrameBufferInfo(
+        FrameBufferHandle _fbh);
 
     /// @brief 셰이더의 생성 정보를 반환합니다.
-    [[nodiscard]] ShaderInfo GetShaderInfo(ShaderHandle _sh);
+    [[nodiscard]] ShaderInfo GetShaderInfo(
+        ShaderHandle _sh);
 
     /// @brief 프로그램의 생성 정보를 반환합니다.
-    [[nodiscard]] ProgramInfo GetProgramInfo(ProgramHandle _ph);
+    [[nodiscard]] ProgramInfo GetProgramInfo(
+        ProgramHandle _ph);
 
     /// @brief 텍스처의 특정 MIP 레벨 해상도를 반환합니다.
     /// @param _texh 텍스처 핸들
@@ -812,7 +847,8 @@ public:
     /// @return 깊이-스텐실 텍스처 핸들 참조
     /// @note 깊이-스텐실이 없으면 assertion이 발생합니다.
     ///       반환된 핸들은 프레임 버퍼가 소유합니다. DestroyTexture로 파괴하지 마십시오.
-    [[nodiscard]] const TextureHandle& GetDepthStencilTexture(FrameBufferHandle _fbh);
+    [[nodiscard]] const TextureHandle& GetDepthStencilTexture(
+        FrameBufferHandle _fbh);
 
     /// @brief 프로그램에서 특정 셰이더 스테이지의 셰이더 핸들을 반환합니다.
     /// @param _ph 프로그램 핸들
@@ -832,7 +868,7 @@ public:
     /// @param _fbh 대상 프레임 버퍼 핸들. k_nullHandle 전달 시 백 버퍼를 클리어합니다.
     /// @param _color 초기화할 RGBA 색상
     /// @param _renderTargetIndex 초기화할 렌더 타겟 슬롯 인덱스 (기본: 0)
-    void ClearColor(
+    void ClearRenderTarget(
         FrameBufferHandle _fbh,
         RGBA              _color,
         Int32             _renderTargetIndex = 0);
@@ -873,6 +909,13 @@ public:
         Int32              _numVerts,
         Int32              _vertOffset);
 
+    /// @brief 버텍스 버퍼를 사용자 지정 레이아웃으로 바인딩합니다.
+    /// @param _vbhOrInvalid 바인딩할 버텍스 버퍼 핸들. k_nullHandle이면 해제합니다.
+    /// @param _stream 버텍스 스트림 인덱스.
+    /// @param _numVerts 드로우 콜에 사용할 버텍스 수.
+    /// @param _vertOffset 버퍼 시작으로부터의 오프셋 (버텍스 단위).
+    /// @param _vlh 입력 레이아웃 핸들.
+    /// @note 버퍼 생성 시 자동 생성된 레이아웃 대신 별도의 레이아웃을 강제로 사용할 때 사용합니다.
     void SetVertexBuffer(
         VertexBufferHandle _vbhOrInvalid,
         Int32              _stream,
@@ -880,9 +923,15 @@ public:
         Int32              _vertOffset,
         VertexLayoutHandle _vlh);
 
+    /// @brief 인스턴스 버퍼를 파이프라인에 바인딩합니다.
+    /// @param _vbhOrInvalid 바인딩할 인스턴스 버퍼 핸들. k_nullHandle이면 해제합니다.
     void SetInstanceBuffer(
         VertexBufferHandle _vbhOrInvalid);
 
+    /// @brief 인스턴스 버퍼를 범위를 지정하여 바인딩합니다.
+    /// @param _vbhOrInvalid 바인딩할 인스턴스 버퍼 핸들.
+    /// @param _numInstances 드로우 콜에 사용할 인스턴스 수.
+    /// @param _instanceOffset 버퍼 시작으로부터의 오프셋 (인스턴스 단위).
     void SetInstanceBuffer(
         VertexBufferHandle _vbhOrInvalid,
         Int32              _numInstances,
@@ -890,7 +939,8 @@ public:
 
     /// @brief 인덱스 버퍼를 파이프라인에 바인딩합니다.
     /// @param _ibhOrInvalid 바인딩할 인덱스 버퍼 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
-    void SetIndexBuffer(IndexBufferHandle _ibhOrInvalid);
+    void SetIndexBuffer(
+        IndexBufferHandle _ibhOrInvalid);
 
     /// @brief 인덱스 버퍼를 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _ibhOrInvalid 바인딩할 인덱스 버퍼 핸들
@@ -910,15 +960,29 @@ public:
         eShader              _shader,
         Int32                _slot);
 
-    /// @brief 텍스처(SRV)를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
+    /// @brief 텍스처를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
     /// @param _texh 바인딩할 텍스처 핸들. k_nullHandle 전달 시 슬롯의 바인딩을 해제합니다.
-    ///             WriteOnly 텍스처는 SRV가 없어 바인딩되지 않습니다.
     /// @param _shader 바인딩 대상 셰이더 스테이지
-    /// @param _slot SRV 슬롯 인덱스 (0 ~ k_maxNumShaderResourceViewSlots - 1)
+    /// @param _slot 슬롯 인덱스
+    /// @param _access 셰이더가 텍스처에 접근하는 모드. 기본값은 Read입니다. .
+    /// @note ReadWrite로 바인딩하려면 텍스처는 반드시 ShaderReadWrite 플래그로 생성되어야 하며, ReadWrite 바인딩은 Pixel/Compute 셰이더에서만 허용됩니다.
     void SetTexture(
-        TextureHandle _texh,
-        eShader       _shader,
-        Int32         _slot);
+        TextureHandle         _texh,
+        eShader               _shader,
+        Int32                 _slot,
+        eShaderResourceAccess _access = eShaderResourceAccess::Read);
+
+    /// @brief 스토리지 버퍼를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
+    /// @param _sbh 바인딩할 스토리지 버퍼 핸들. k_nullHandle 전달 시 슬롯의 바인딩을 해제합니다.
+    /// @param _shader 바인딩 대상 셰이더 스테이지
+    /// @param _slot 슬롯 인덱스
+    /// @param _access 스토리지 버퍼에 대한 셰이더 접근 모드. 기본값은 Read입니다.
+    /// @note ReadWrite로 바인딩하려면 버퍼는 반드시 ShaderReadWrite 플래그로 생성되어야 하며, ReadWrite 바인딩은 Pixel/Compute 셰이더에서만 허용됩니다.
+    void SetBuffer(
+        StorageBufferHandle   _sbh,
+        eShader               _shader,
+        Int32                 _slot,
+        eShaderResourceAccess _access = eShaderResourceAccess::Read);
 
     /// @brief 샘플러 상태를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
     /// @param _state 적용할 샘플러 상태
@@ -953,7 +1017,8 @@ public:
 
     /// @brief 블렌드 팩터 색상을 설정합니다.
     /// @param _rgba eBlend::BlendFactor / InvBlendFactor 사용 시 곱해지는 색상 팩터
-    void SetBlendFactor(RGBA _rgba);
+    void SetBlendFactor(
+        RGBA _rgba);
 
     /// @brief 스텐실 테스트 상태를 설정합니다.
     /// @param _fStencil 전면(Front-face) 스텐실 동작
@@ -966,19 +1031,23 @@ public:
 
     /// @brief 그래픽스 셰이더 프로그램을 파이프라인에 바인딩합니다.
     /// @param _ph 바인딩할 프로그램 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
-    void SetProgram(ProgramHandle _ph);
+    void SetProgram(
+        ProgramHandle _ph);
 
     /// @brief 컴퓨트 셰이더 프로그램을 파이프라인에 바인딩합니다.
     /// @param _ph 바인딩할 프로그램 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
-    void SetComputeProgram(ProgramHandle _ph);
+    void SetComputeProgram(
+        ProgramHandle _ph);
 
     /// @brief 렌더링 결과를 출력할 프레임 버퍼를 설정합니다.
     /// @param _fbh 대상 프레임 버퍼 핸들. k_nullHandle 전달 시 백 버퍼에 렌더링합니다.
-    void SetFrameBuffer(FrameBufferHandle _fbh);
+    void SetFrameBuffer(
+        FrameBufferHandle _fbh);
 
     /// @brief 뷰포트를 설정합니다.
     /// @param _vp 뷰포트 구조체 (x, y, w, h)
-    void SetViewport(Viewport _vp);
+    void SetViewport(
+        Viewport _vp);
 
     /// @brief 뷰포트를 개별 인자로 설정합니다.
     /// @param _x, _y 뷰포트 좌상단 좌표
@@ -992,7 +1061,8 @@ public:
     /// @brief 시저 테스트 영역을 설정합니다.
     /// @param _rect 시저 영역 구조체 (left, top, right, bottom)
     /// @note RenderState에서 bScissor = true로 설정해야 적용됩니다.
-    void SetScissorRect(Rect _rect);
+    void SetScissorRect(
+        Rect _rect);
 
     /// @brief 시저 테스트 영역을 개별 인자로 설정합니다.
     /// @param _left, _top, _right, _bottom 시저 영역 좌표
@@ -1010,8 +1080,8 @@ public:
     /// @param _type 파라미터 타입 (StartVertexLocation, StartIndexLocation, BaseVertexLocation)
     /// @param _value 파라미터 값
     void SetSubmitParameter(
-        eSubmitParameterType _type,
-        Int32                _value);
+        eSubmitParameter _type,
+        Int32            _value);
 
     /// @brief 드로우 콜 없이 현재 Dirty 상태를 즉시 D3D11에 적용합니다.
     /// @note 일반적으로 Submit이 내부적으로 호출하므로 직접 호출할 필요가 없습니다.
@@ -1041,6 +1111,7 @@ private:
 
     void BindConstantBuffers_(eShader _stage);
     void BindShaderResourceViews_(eShader _shader);
+    void BindUnorderedAccessViewsOnCompute_();
     void BindSamplerStates_(eShader _shader);
     void BindPipeline_();
 
@@ -1049,38 +1120,35 @@ private:
     void OnWindowResizedEvent_(const WindowResizedEvent& _event);
     void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event);
 
-    // native resource factory
-    [[nodiscard]] HardwareTextureRef CreateHardwareTexture_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, eTextureType _type, Flags<eTextureCreateFlags> _flags, Span<const MemoryView> _initDataOrEmpty) const;
-    [[nodiscard]] FrameBuffer        CreateFrameBuffer_(Span<const TextureHandle> _attachments, bool _bDestroyTexture);
-
-    [[nodiscard]] ShaderHandle       GetOrCreateShader_(MemoryView _byteCode);
-    [[nodiscard]] VertexLayoutHandle GetOrCreateVertexLayout_(const VertexLayout& _vl);
-
     // buffer utils
-    [[nodiscard]] MutableMemoryView BeginUpdateBuffer_(const HardwareBuffer& _buffer) const;
-    void                            EndUpdateBuffer_(const HardwareBuffer& _buffer) const;
-    void                            UpdateBuffer_(const HardwareBuffer& _buffer, MemoryView _uploadData, Int32 _offset, bool _bDiscard);
-    [[nodiscard]] MemoryView        BeginReadBuffer_(const HardwareBuffer& _buffer) const;
-    void                            EndReadBuffer_(const HardwareBuffer& _buffer) const;
-    Int32                           ReadBuffer_(const HardwareBuffer& _buffer, MemoryView _dst) const;
-    void                            CopyBuffer_(const HardwareBuffer& _dstBuffer, Int32 _dstOffset, const HardwareBuffer& _srcBuffer, Int32 _srcOffset, Int32 _byteWidth) const;
+    [[nodiscard]] HardwareBuffer        CreateHardwareBuffer_(Int32 _byteWidth, eBuffer _type, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] StorageBuffer         CreateStorageBuffer_(Int32 _byteWidth, Int32 _stride, eStorageBuffer _type, eStorageBufferData _dataType, Flags<eStorageBufferCreateFlags> _flags, bool _bAppendConsumer, bool _bCounter, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] const HardwareBuffer& GetHardwareBufferFromAnyBufferHandle_(AnyBufferHandle _handle) const;
+    [[nodiscard]] MutableMemoryView     BeginUpdateBuffer_(const HardwareBuffer& _buffer) const;
+    void                                EndUpdateBuffer_(const HardwareBuffer& _buffer) const;
+    void                                UpdateBuffer_(const HardwareBuffer& _buffer, MemoryView _uploadData, Int32 _offset, bool _bDiscard);
+    Int32                               ReadBuffer_(const StorageBuffer& _buffer, MutableMemoryView _dst) const;
+    void                                CopyBuffer_(const HardwareBuffer& _dstBuffer, Int32 _dstOffset, const HardwareBuffer& _srcBuffer, Int32 _srcOffset, Int32 _byteWidthOrZero) const;
 
     // texture utils
-    void                     UpdateTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, MemoryView _uploadData, Int32 _uploadWidth, Int32 _uploadHeight, Int32 _uploadDepth, Int32 _uploadDataRowPitch, Int32 _uploadDataSlicePitch) const;
-    [[nodiscard]] MemoryView BeginReadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex) const;
-    void                     EndReadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex) const;
-    [[nodiscard]] Int32      ReadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex, MemoryView _dst, Int32 _dstRowPitch, Int32 _dstSlicePitch) const;
-    void                     CopyTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstX, Int32 _dstY, Int32 _dstZ, const HardwareTextureRef& _srcTexture, Int32 _srcMipIndex, Int32 _srcArrayIndex, Int32 _srcX, Int32 _srcY, Int32 _srcZ, Int32 _srcWidthOrZero, Int32 _srcHeightOrZero, Int32 _srcDepthOrZero) const;
+    [[nodiscard]] HardwareTextureRef CreateHardwareTexture_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, Int32 _arraySize, eTexture _type, Flags<eTextureCreateFlags> _flags, Span<const MemoryView> _initDataOrEmpty) const;
+    [[nodiscard]] FrameBuffer        CreateFrameBuffer_(Span<const TextureHandle> _attachments, bool _bDestroyTexture);
+    void                             UpdateTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, MemoryView _uploadData, Int32 _offsetX, Int32 _offsetY, Int32 _offsetZ, Int32 _width, Int32 _height, Int32 _depth) const;
+    [[nodiscard]] Int32              ReadTexture_(const HardwareTextureRef& _texture, Int32 _mipIndex, Int32 _arrayIndex, MutableMemoryView _dst) const;
+    void                             CopyTexture_(const HardwareTextureRef& _dstTexture, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstOffsetX, Int32 _dstOffsetY, Int32 _dstOffsetZ, const HardwareTextureRef& _srcTexture, Int32 _srcMipIndex, Int32 _srcArrayIndex, Int32 _srcOffsetX, Int32 _srcOffsetY, Int32 _srcOffsetZ, Int32 _srcWidthOrZero, Int32 _srcHeightOrZero, Int32 _srcDepthOrZero) const;
 
-    [[nodiscard]] HardwareBuffer CreateHardwareBuffer_(Int32 _byteWidth, eBufferType _type, MemoryView _initDataOrEmpty) const;
-    [[nodiscard]] StorageBuffer  CreateStorageBuffer_(Int32 _byteWidth, Int32 _stride, eStorageBufferType _type, eStorageBufferDataType _dataType, Flags<eStorageBufferCreateFlags> _flags, bool _bAppendConsumer, bool _bCounter, MemoryView _initDataOrEmpty) const;
+    // set utils
+    void SetShaderResource_(UInt32 _handleValueOrNull, eShaderResource _type, eShader _shader, Int32 _slot, eShaderResourceAccess _access);
 
-    // d3d11 cache
+    // resource cache
+    [[nodiscard]] ShaderHandle             GetOrCreateShader_(MemoryView _byteCode);
+    [[nodiscard]] VertexLayoutHandle       GetOrCreateVertexLayout_(const VertexLayout& _vl);
     [[nodiscard]] ID3D11InputLayout*       GetOrCreateD3D11InputLayoutFromCurrentBind_();
     [[nodiscard]] ID3D11RasterizerState*   GetOrCreateD3D11RasterizerStateFromCurrentBind_();
     [[nodiscard]] ID3D11BlendState*        GetOrCreateD3D11BlendStateFromCurrentBind_();
     [[nodiscard]] ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilStateFromCurrentBind_();
     [[nodiscard]] ID3D11SamplerState*      GetOrCreateD3D11SamplerState_(Flags<eSamplerFlags> _state, RGBA _rgba);
+    [[nodiscard]] const Blob&              GetOrCreateSignatureBlob_();
 
     // upload/download resource cache
     [[nodiscard]] ID3D11Buffer* GetOrCreateUploadBuffer_(Int32 _byteWidth);
@@ -1117,8 +1185,8 @@ private:
     CASHashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
 
     // vertex stream
-    StreamBinds m_streamBinds = {};
-    Int32       m_numVerts    = 0;
+    StreamBindings m_streamBinds = {};
+    Int32          m_numVerts    = 0;
 
     // index buffer
     IndexBufferHandle m_ibhBind        = k_nullHandle;
@@ -1130,18 +1198,22 @@ private:
     Int32              m_numInstancesBind   = 0;
     Int32              m_instanceOffsetBind = 0;
 
-    // read resources
-    EnumArray<eShader, ConstantBufferBinds> m_cbufferBinds = {};
-    EnumArray<eShader, TextureBinds>        m_textureBinds = {};
-    EnumArray<eShader, SamplerBinds>        m_samplerBinds = {};
+    // resources binding
+    EnumArray<eShader, ReadBindings>           m_readBinds    = {};
+    EnumArray<eShader, SamplerBindings>        m_samplerBinds = {};
+    EnumArray<eShader, ConstantBufferBindings> m_cbufferBinds = {};
 
-    // write resources
-    FrameBufferHandle                      m_fbhBind         = k_nullHandle;
-    ProgramHandle                          m_phBind          = k_nullHandle;
-    ProgramHandle                          m_computePhBind   = k_nullHandle;
-    Viewport                               m_vpBind          = {};
-    Rect                                   m_scissorRectBind = {};
-    EnumArray<eSubmitParameterType, Int32> m_submitParams    = {};
+    // output resources
+    FrameBufferHandle                  m_fbhBind             = k_nullHandle;
+    PixelReadWriteBindings             m_pixelReadWriteBinds = {};
+    Viewport                           m_vpBind              = {};
+    Rect                               m_scissorRectBind     = {};
+    ProgramHandle                      m_phBind              = k_nullHandle;
+    EnumArray<eSubmitParameter, Int32> m_submitParams        = {};
+
+    // compute pipeline
+    ProgramHandle            m_computePhBind         = k_nullHandle;
+    ComputeReadWriteBindings m_computeReadWriteBinds = {};
 
     // render state
     Flags<eRenderFlags> m_renderFlagsBind = {};
@@ -1158,18 +1230,21 @@ private:
     // dirty flags
     Flags<ePipelineDirtyFlags> m_dirtyFlags = ePipelineDirtyFlags::All;
 
-    // stream bound (TODO: fix me -> more efficient way to track vertex layout for each stream)
-    Array<VertexLayoutHandle, k_maxNumVertexStream> m_vlhStreamBound  = {};
-    Int32                                           m_numStreamsBound = 0;
+    // tracking stream binding
+    Array<VertexLayoutHandle, k_maxNumVertexStream> m_boundVlhs       = {};
+    Int32                                           m_numBoundStreams = 0;
 
     // back buffer
     Vec2i             m_backBufferRes  = {};
     TextureHandle     m_backBufferTexh = k_nullHandle;
     FrameBufferHandle m_backBufferFbh  = k_nullHandle;
 
-    // upload resource cache
+    // upload buffer cache
     ID3D11Buffer* m_pUploadBufferCache     = nullptr;
     Int32         m_pUploadBufferCacheSize = 0;
+
+    // input layout create shader
+    Blob m_signatureBlob = nullptr;
 
     inline static Graphics* s_pInstance = nullptr;
     friend class Application;

@@ -109,7 +109,7 @@ void FileWatcher::Run_()
                         path = m_watchPath;
                         path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
 
-                        event.type    = eFileEventType::Added;
+                        event.type    = eFileEvent::Added;
                         event.path    = path;
                         event.oldPath = {};
                     }
@@ -120,7 +120,7 @@ void FileWatcher::Run_()
                         path = m_watchPath;
                         path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
 
-                        event.type    = eFileEventType::Deleted;
+                        event.type    = eFileEvent::Deleted;
                         event.path    = path;
                         event.oldPath = {};
                     }
@@ -134,7 +134,7 @@ void FileWatcher::Run_()
                         path = m_watchPath;
                         path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
 
-                        event.type    = eFileEventType::Modified;
+                        event.type    = eFileEvent::Modified;
                         event.path    = path;
                         event.oldPath = {};
                     }
@@ -153,7 +153,7 @@ void FileWatcher::Run_()
                         path = m_watchPath;
                         path.AppendEncode(pInfo->FileName, NumericCast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
 
-                        event.type    = eFileEventType::Renamed;
+                        event.type    = eFileEvent::Renamed;
                         event.path    = path;
                         event.oldPath = oldPath;
                     }

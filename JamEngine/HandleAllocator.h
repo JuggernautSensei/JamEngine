@@ -3,7 +3,10 @@
 namespace Jam
 {
 
-constexpr UInt32 k_nullHandleIndex = 0x00FF'FFFF;
+static constexpr UInt32 k_nullHandleValue  = 0xFFFF'FFFF;
+static constexpr UInt32 k_handleIndexMask  = 0x00FF'FFFF;
+static constexpr UInt32 k_handleTokenMask  = 0xFF00'0000;
+static constexpr UInt32 k_handleTokenShift = 24;
 
 struct NullHandleType
 {
@@ -18,39 +21,38 @@ struct NullHandleType
 
 constexpr NullHandleType k_nullHandle = NullHandleType { NullHandleType::Tag {} };
 
-/// @brief A stage-safe fbh for a resource.
-/// @tparam ByteT The resource stage this fbh references.
 template<typename T>
-struct Handle
+class Handle
 {
+public:
     Handle()
-        : index(k_nullHandleIndex)
-        , token(0)
     {
     }
 
     /* implicit */ Handle(const NullHandleType) noexcept
-        : index(k_nullHandleIndex)
-        , token(0)
+        : m_value(k_nullHandleValue)
     {
     }
 
     Handle(const UInt32 _index, const UInt32 _token) noexcept
+        : m_value((_index & k_handleIndexMask) | ((_token << k_handleTokenShift) & k_handleTokenMask))
     {
-        index = _index;
-        token = _token;
+    }
+
+    /* implicit */ Handle(const UInt32 _value) noexcept
+        : m_value(_value)
+    {
     }
 
     Handle& operator=(const NullHandleType) noexcept
     {
-        index = k_nullHandleIndex;
-        token = 0;
+        m_value = k_nullHandleValue;
         return *this;
     }
 
     [[nodiscard]] bool operator==(const Handle& other) const noexcept
     {
-        return value == other.value;
+        return m_value == other.m_value;
     }
 
     [[nodiscard]] bool operator!=(const Handle& other) const noexcept
@@ -60,7 +62,7 @@ struct Handle
 
     [[nodiscard]] bool IsValid() const noexcept
     {
-        return index != k_nullHandleIndex;
+        return m_value != k_nullHandleValue;
     }
 
     /* implicit */ operator bool() const noexcept
@@ -68,69 +70,23 @@ struct Handle
         return IsValid();
     }
 
-    union
+    [[nodiscard]] UInt32 GetIndex() const noexcept
     {
-        UInt32 value;
-        struct
-        {
-            UInt32 index : 24;
-            UInt32 token : 8;
-        };
-    };
-};
-
-struct AnyHandle
-{
-    AnyHandle()
-        : index(k_nullHandleIndex)
-        , token(0)
-    {
+        return m_value & k_handleIndexMask;
     }
 
-    /* implicit */ AnyHandle(const NullHandleType) noexcept
-        : index(k_nullHandleIndex)
-        , token(0)
+    [[nodiscard]] UInt32 GetToken() const noexcept
     {
+        return (m_value & k_handleTokenMask) >> k_handleTokenShift;
     }
 
-    template<typename T>
-    /* implicit */ AnyHandle(const Handle<T> handle) noexcept
-        : AnyHandle(handle.index, handle.token)
+    [[nodiscard]] UInt32 GetValue() const noexcept
     {
+        return m_value;
     }
 
-    AnyHandle(const UInt32 _index, const UInt32 _token) noexcept
-        : index(_index)
-        , token(_token)
-    {
-    }
-
-    AnyHandle& operator=(const NullHandleType) noexcept
-    {
-        index = k_nullHandleIndex;
-        token = 0;
-        return *this;
-    }
-
-    [[nodiscard]] bool operator==(const AnyHandle& other) const noexcept
-    {
-        return value == other.value;
-    }
-
-    [[nodiscard]] bool operator!=(const AnyHandle& other) const noexcept
-    {
-        return !(*this == other);
-    }
-
-    union
-    {
-        UInt32 value;
-        struct
-        {
-            UInt32 index : 24;
-            UInt32 token : 8;
-        };
-    };
+private:
+    UInt32 m_value = k_nullHandleValue;
 };
 
 template<typename T>
@@ -138,7 +94,7 @@ class HandleAllocator
 {
     struct Slot
     {
-        UInt32 nextFreeIndex = k_nullHandleIndex;
+        UInt32 nextFreeIndex = k_nullHandleValue;
         UInt8  token         = 0;
         bool   bAlloced      = false;
     };
@@ -238,7 +194,7 @@ public:
     [[nodiscard]] HandleT Alloc()
     {
         UInt32 index = 0;
-        if (m_freeSlotIndex != k_nullHandleIndex)
+        if (m_freeSlotIndex != k_nullHandleValue)
         {
             index           = m_freeSlotIndex;
             m_freeSlotIndex = m_slots[index].nextFreeIndex;
@@ -257,7 +213,7 @@ public:
     void Free(const HandleT handle) noexcept
     {
         JAM_ASSERT(IsValid(handle), "Invalid fbh");
-        UInt32 index = handle.index;
+        UInt32 index = handle.GetIndex();
         ++m_slots[index].token;   // 오버플로우는 오류가 아님
         m_slots[index].bAlloced      = false;
         m_slots[index].nextFreeIndex = m_freeSlotIndex;
@@ -267,16 +223,17 @@ public:
 
     [[nodiscard]] bool IsValid(const HandleT handle) const noexcept
     {
-        const Slot& slot = m_slots[handle.index];
-        return CmpLess(handle.index, m_slots.size())
-            && slot.token == handle.token
+        const UInt32 index = handle.GetIndex();
+        const Slot&  slot  = m_slots[index];
+        return CmpLess(index, m_slots.size())
+            && slot.token == handle.GetToken()
             && slot.bAlloced;
     }
 
     void Clear() noexcept
     {
         m_slots.clear();
-        m_freeSlotIndex = k_nullHandleIndex;
+        m_freeSlotIndex = k_nullHandleValue;
         m_numAlloced    = 0;
     }
 
@@ -317,7 +274,7 @@ public:
 
 private:
     Vector<Slot> m_slots         = {};
-    UInt32       m_freeSlotIndex = k_nullHandleIndex;
+    UInt32       m_freeSlotIndex = k_nullHandleValue;
     Int32        m_numAlloced    = 0;
 };
 

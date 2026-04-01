@@ -367,10 +367,10 @@ Ref<Mesh> CreateCircle(
     texcoords[0] = Vec2 { 0.5f, 0.5f };
 
     // circle vertices
-    const float step = Numbers<float>::k_2pi / NumericCast<float>(_numTri);
+    const float step = Numbers<float>::k_2pi / static_cast<float>(_numTri);
     for (Int32 i = 0; i < _numTri; ++i)
     {
-        const float rad = NumericCast<float>(i) * step;
+        const float rad = static_cast<float>(i) * step;
         const float s   = Sin(rad);
         const float c   = Cos(rad);
         const float x   = c * _radius;
@@ -411,10 +411,10 @@ Ref<Mesh> CreateCone(
     texcoords[0] = Vec2 { 0.5f, 0.f };
 
     // base circle vertices
-    const float step = Numbers<float>::k_2pi / NumericCast<float>(_numTri);
+    const float step = Numbers<float>::k_2pi / static_cast<float>(_numTri);
     for (Int32 i = 0; i < _numTri; ++i)
     {
-        const float rad = NumericCast<float>(i) * step;
+        const float rad = static_cast<float>(i) * step;
         // const auto [s, c] = SinCosApprox(rad);
         const float s = Sin(rad);
         const float c = Cos(rad);
@@ -466,30 +466,30 @@ Ref<Mesh> CreateCylinder(
     Vector<Vec2> texcoords(numVerts);
 
     // top circle vertices
-    const float step = Numbers<float>::k_2pi / NumericCast<float>(_numTries);
+    const float step = Numbers<float>::k_2pi / static_cast<float>(_numTries);
     for (Int32 i = 0; i < _numTries; ++i)
     {
-        const float rad = NumericCast<float>(i) * step;
+        const float rad = static_cast<float>(i) * step;
         const float s   = Sin(rad);
         const float c   = Cos(rad);
         const float x   = c * _radius;
         const float z   = s * _radius;
 
         position[i]  = Vec3 { x, _height * 0.5f, z };
-        texcoords[i] = Vec2 { NumericCast<float>(i) / NumericCast<float>(_numTries), 1.f };
+        texcoords[i] = Vec2 { static_cast<float>(i) / static_cast<float>(_numTries), 1.f };
     }
 
     // bottom circle vertices
     for (Int32 i = 0; i < _numTries; ++i)
     {
-        const float rad = NumericCast<float>(i) * step;
+        const float rad = static_cast<float>(i) * step;
         const float s   = Sin(rad);
         const float c   = Cos(rad);
         const float x   = c * _radius;
         const float z   = s * _radius;
 
         position[i + _numTries]  = Vec3 { x, -_height * 0.5f, z };
-        texcoords[i + _numTries] = Vec2 { NumericCast<float>(i) / NumericCast<float>(_numTries), 0.f };
+        texcoords[i + _numTries] = Vec2 { static_cast<float>(i) / static_cast<float>(_numTries), 0.f };
     }
 
     // center vertices

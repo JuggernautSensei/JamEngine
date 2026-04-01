@@ -157,7 +157,7 @@ public:
             std::construct_at(&m_dummy, OptionalDummyT {});
         }
 
-        _other.Reset();
+        _other.Free();
     }
 
     template<typename U>

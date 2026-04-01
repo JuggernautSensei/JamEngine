@@ -1,6 +1,6 @@
 #pragma once
 #include "GraphicsBase.h"
-#include "Memory.h"
+#include "MemoryView.h"
 
 namespace Jam
 {

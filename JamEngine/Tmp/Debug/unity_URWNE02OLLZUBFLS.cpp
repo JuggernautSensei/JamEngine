@@ -15,7 +15,7 @@
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\InfiniteDragger.cpp"
 
 
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\MemoryAllocator.cpp"
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Allocator.cpp"
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\MemoryIO.cpp"

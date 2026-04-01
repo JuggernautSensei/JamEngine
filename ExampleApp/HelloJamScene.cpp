@@ -211,7 +211,7 @@ void HelloJamScene::OnExit()
 void HelloJamScene::OnRender(const RenderView& _view)
 {
     Graphics::SetFrameBuffer(m_fbh);
-    Graphics::ClearColor(m_fbh, k_background);
+    Graphics::ClearRenderTarget(m_fbh, k_background);
     Graphics::ClearDepth(m_fbh, true, false);
     Graphics::SetViewport(_view.outputVp);
 
@@ -252,7 +252,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
             transformData.world = CreateTransform(pos, Quaternion::CreateFromYawPitchRoll(yaw, pitch, 0), Vector3::One).Transpose();
             Graphics::UploadBuffer(m_transformCbh, transformData);
 
-            Graphics::SetTexture(m_cubeTh, eShader::PixelShader, 0);
+            Graphics::SetTexture(m_cubeTh, eShader::PixelShader, 0, TODO);
             Graphics::SetSamplerState(SamplerState::k_linearClamp, eShader::PixelShader, 0);
 
             Graphics::SetVertexBuffer(m_vbh);

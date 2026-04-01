@@ -33,7 +33,7 @@ struct MaterialParams
     bool bDoubleSided = false;
 };
 
-enum class eMaterialTextureType
+enum class eMaterialTexture
 {
     Albedo = 0,
     Normal,
@@ -44,7 +44,7 @@ enum class eMaterialTextureType
     Ao,
     VertexDisplacement,
 };
-using MaterialTextures = EnumArray<eMaterialTextureType, Ref<Texture>>;
+using MaterialTextures = EnumArray<eMaterialTexture, Ref<Texture>>;
 
 struct MaterialTextureSettings
 {
@@ -79,7 +79,7 @@ public:
 
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] StringView GetPath() const override;
-    [[nodiscard]] eAssetType GetAssetType() const override;
+    [[nodiscard]] eAsset GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt32     GetTypeHash() const override;
     [[nodiscard]] UInt16     GetSortKey() const;
@@ -89,7 +89,7 @@ public:
 
     static constexpr StringView k_typeName  = NameOf<Material>();
     static constexpr UInt32     k_typeHash  = HashOf<Material>();
-    static constexpr eAssetType k_assetType = eAssetType::Material;
+    static constexpr eAsset k_assetType = eAsset::Material;
     static constexpr StringView k_extension = ".jmat";
     static constexpr StringView k_filter    = "*.jmat";
 

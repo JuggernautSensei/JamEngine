@@ -259,61 +259,26 @@ struct SinCos
 };
 
 template<typename To, typename From>
-    requires std::is_arithmetic_v<To> && std::is_arithmetic_v<From>
-[[nodiscard]] constexpr bool CheckOverflow(From _value) noexcept   // do not check float precision loss, only check if m_value is out of range of target type
+    requires std::is_integral_v<To> && std::is_integral_v<From>
+[[nodiscard]] constexpr To NumericCast(From _value) noexcept
 {
-    if constexpr (std::is_same_v<To, From>)
-    {
-        return false;   // always no overflow
-    }
-
-    if constexpr (std::is_floating_point_v<From> && std::is_floating_point_v<To>)
-    {
-        return CmpLess(_value, Limits<To>::k_lowest) || CmpGreater(_value, Limits<To>::k_highest);
-    }
-    else if constexpr (std::is_integral_v<From> && std::is_integral_v<To>)
+    if (JAM_DEBUG_ENABLED)
     {
         if constexpr (std::is_signed_v<To> == std::is_signed_v<From>)
         {
-            return static_cast<From>(static_cast<To>(_value)) != _value;
+            JAM_ASSERT(static_cast<From>(static_cast<To>(_value)) == _value, "NumericCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
         }
-        else if constexpr (std::is_signed_v<From>)
+        else if constexpr (std::is_signed_v<From>)   // signed to unsigned
         {
-            // signed to unsigned
-            return _value < 0 || static_cast<From>(static_cast<To>(_value)) != _value;
+            JAM_ASSERT(_value >= 0 && static_cast<From>(static_cast<To>(_value)) == _value, "NumericCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
         }
-        else
+        else   // unsigned to signed
         {
-            // unsigned to signed
-            return CmpGreater(_value, Limits<To>::k_highest);
+            JAM_ASSERT(CmpGreater(_value, Limits<To>::k_highest) == false, "NumericCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
         }
     }
-    else if constexpr (std::is_floating_point_v<From>)
-    {
-        // float to integral
-        return CmpLess(_value, Limits<To>::k_lowest) || CmpGreater(_value, Limits<To>::k_highest);
-    }
-    else
-    {
-        // integral to float
-        return false;   // always no overflow. but may cause precision loss, which is not checked by this function
-    }
-}
 
-template<typename To, typename From>
-    requires std::is_arithmetic_v<To> && std::is_arithmetic_v<From>
-[[nodiscard]] constexpr To NumericCast(From _value) noexcept
-{
-    JAM_ASSERT(!CheckOverflow<To>(_value), "NumericCast overflow: cannot cast m_value {} to target type.", +_value);
     return static_cast<To>(_value);
-}
-
-template<typename To, typename From>
-    requires std::is_arithmetic_v<To> && std::is_enum_v<From>
-[[nodiscard]] constexpr To NumericCast(From _value) noexcept
-{
-    using UnderlyingT = std::underlying_type_t<From>;
-    return NumericCast<To>(static_cast<UnderlyingT>(_value));
 }
 
 template<typename T>

@@ -5,7 +5,7 @@
 namespace Jam
 {
 
-enum class eFileEventType
+enum class eFileEvent
 {
     Added,
     Deleted,
@@ -17,7 +17,7 @@ struct FileWatcherEvent
 {
     StringView     oldPath = {};
     StringView     path    = {};
-    eFileEventType type    = {};
+    eFileEvent type    = {};
 };
 
 struct FileWatcherInfo

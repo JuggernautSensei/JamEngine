@@ -182,7 +182,7 @@ bool ModelImportDialog::OnClickImportButton_()
     }
 
     // save path
-    const String saveDir = String::Joined(m_assetSaveDir, m_assetBaseName, eJoinType::Directory);
+    const String saveDir = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::Directory);
     if (FileSystem::Exists(saveDir))
     {
         PushOverwriteConfirmationDialog_(saveDir);
@@ -234,7 +234,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     // process mesh
     {
         // create meshes
-        const String meshDir = String::Joined(_path, "Meshes", eJoinType::Directory);
+        const String meshDir = String::Joined(_path, "Meshes", eJoin::Directory);
         if (!GetEditor().CreateDir(meshDir))
         {
             return false;
@@ -245,7 +245,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         for (const Ref<Mesh>& pMesh: meshes)
         {
             // set virtual path
-            String meshPath = String::Joined(meshDir, pMesh->GetName(), eJoinType::File);
+            String meshPath = String::Joined(meshDir, pMesh->GetName(), eJoin::File);
             meshPath.ReplaceExtension(Mesh::k_extension);
             pMesh->SetVirtualPath(meshPath);
 
@@ -266,14 +266,14 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         HashSet<Ref<Texture>> textureSet = {};
 
         // create materials directory
-        const String matDir = String::Joined(_path, "Materials", eJoinType::Directory);
+        const String matDir = String::Joined(_path, "Materials", eJoin::Directory);
         if (!GetEditor().CreateDir(matDir))
         {
             return false;
         }
 
         // create texes directory
-        const String texDir = String::Joined(_path, "Textures", eJoinType::Directory);
+        const String texDir = String::Joined(_path, "Textures", eJoin::Directory);
         if (!GetEditor().CreateDir(texDir))
         {
             return false;
@@ -284,7 +284,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         for (const Ref<Material>& pMaterial: materials)
         {
             const MaterialTextures& textures = pMaterial->GetDesc().textures;
-            for (eMaterialTextureType type: RangesOf<eMaterialTextureType>())
+            for (eMaterialTexture type: RangesOf<eMaterialTexture>())
             {
                 if (const Ref<Texture>& pTexture = textures[type])
                 {
@@ -297,7 +297,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         for (const Ref<Texture>& pTexture: textureSet)
         {
             // set virtual path
-            String texPath = String::Joined(texDir, pTexture->GetName(), eJoinType::File);
+            String texPath = String::Joined(texDir, pTexture->GetName(), eJoin::File);
             texPath.ReplaceExtension(Texture::k_extension);
             pTexture->SetVirtualPath(texPath);
 
@@ -312,7 +312,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
         for (const Ref<Material>& pMaterial: materials)
         {
             // set virtual path
-            String matPath = String::Joined(matDir, pMaterial->GetName(), eJoinType::File);
+            String matPath = String::Joined(matDir, pMaterial->GetName(), eJoin::File);
             matPath.ReplaceExtension(Material::k_extension);
             pMaterial->SetVirtualPath(matPath);
 
@@ -325,7 +325,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     }
 
     // save model
-    String path = String::Joined(_path, m_assetBaseName, eJoinType::File);
+    String path = String::Joined(_path, m_assetBaseName, eJoin::File);
     path.ReplaceExtension(Model::k_extension);
     if (!SaveAsset_(path, pModel))
     {

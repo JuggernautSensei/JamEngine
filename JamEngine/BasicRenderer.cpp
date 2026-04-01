@@ -20,7 +20,7 @@
 //namespace Jam
 //{
 //
-//enum class eAttachmentType
+//enum class eAttachment
 //{
 //    RenderTarget,
 //    DepthStencil
@@ -38,9 +38,9 @@
 //    void UploadSpotLight(Vec3 _radiance, float _lightIntensity, Vec3 _pos, Vec3 _dir, float _fallOffStart, float _fallOffEnd, float _innerConeAngle, float _outerConeAngle, bool _bShadow) const;
 //
 //    // factory
-//    [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
-//    [[nodiscard]] TextureHandle     CreateTextureCube(Int32 _width, Int32 _height, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
-//    [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eTextureFormat _format, eAttachmentType _type, StringView _name) const;
+//    [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachment _type, StringView _name) const;
+//    [[nodiscard]] TextureHandle     CreateTextureCube(Int32 _width, Int32 _height, eTextureFormat _format, eAttachment _type, StringView _name) const;
+//    [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eTextureFormat _format, eAttachment _type, StringView _name) const;
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Span<const TextureHandle> _attachment, bool _bDestroyTexture, StringView _name) const;
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(TextureHandle _texh, bool _bDestroyTexture, StringView _name) const;
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, StringView _name) const;
@@ -296,7 +296,7 @@
 //
 //    // tone mapping
 //    {
-//        cb.cb_toneMappingType = k_toneMappintTable[UnderlyingFrom<eToneMappingType>(toneMapping.type)];
+//        cb.cb_toneMappingType = k_toneMappintTable[UnderlyingFrom<eToneMapping>(toneMapping.type)];
 //        cb.cb_exposure        = toneMapping.exposure;
 //        cb.cb_gamma           = toneMapping.gamma;
 //    }
@@ -313,11 +313,11 @@
 //        cb.cb_envFlags |= JAM_ENVIRONMENT_FLAGS_SSAO;
 //    }
 //
-//    if (skybox.type == eSkyboxType::CubeMap)
+//    if (skybox.type == eSkybox::CubeMap)
 //    {
 //        cb.cb_envFlags |= JAM_ENVIRONMENT_FLAGS_SKYBOX_CUBEMAP;
 //    }
-//    else if (skybox.type == eSkyboxType::SolidColor)
+//    else if (skybox.type == eSkybox::SolidColor)
 //    {
 //        cb.cb_envFlags |= JAM_ENVIRONMENT_FLAGS_SKYBOX_SOLID_COLOR;
 //    }
@@ -330,10 +330,10 @@
 //    const Int32 _height) const
 //{
 //    CB_SCREEN cb;
-//    cb.cb_screenWidth  = NumericCast<float>(_width);
-//    cb.cb_screenHeight = NumericCast<float>(_height);
-//    cb.cb_texelX       = 1.f / NumericCast<float>(_width);
-//    cb.cb_texelY       = 1.f / NumericCast<float>(_height);
+//    cb.cb_screenWidth  = static_cast<float>(_width);
+//    cb.cb_screenHeight = static_cast<float>(_height);
+//    cb.cb_texelX       = 1.f / static_cast<float>(_width);
+//    cb.cb_texelY       = 1.f / static_cast<float>(_height);
 //    GetGraphics().UploadBuffer(screenCbh, cb);
 //}
 //
@@ -372,51 +372,51 @@
 //    cb.cb_displacementMapScaling = settings.vertexDisplacementMapScale;
 //    cb.cb_materialFlags          = 0;
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Albedo))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Albedo))
 //    {
 //        pTexture->Bind(eShader::PixelShader, t_albedoSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_ALBEDO;
 //    }
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Normal))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Normal))
 //    {
 //        pTexture->Bind(eShader::PixelShader, t_normalSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_NORMAL;
 //    }
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Metallic))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Metallic))
 //    {
 //        const eTextureChannel channel = settings.metallicMapChannel;
 //        pTexture->Bind(eShader::PixelShader, t_metallicSlot);
 //        cb.cb_materialFlags |= k_metaliicChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
 //    }
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Roughness))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Roughness))
 //    {
 //        const eTextureChannel channel = settings.roughnessMapChannel;
 //        pTexture->Bind(eShader::PixelShader, t_roughnessSlot);
 //        cb.cb_materialFlags |= k_roughnessChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
 //    }
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Ao))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Ao))
 //    {
 //        pTexture->Bind(eShader::PixelShader, t_aoSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_AO;
 //    }
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Emissive))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Emissive))
 //    {
 //        pTexture->Bind(eShader::PixelShader, t_emissiveSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_EMISSIVE;
 //    }
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::VertexDisplacement))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::VertexDisplacement))
 //    {
 //        pTexture->Bind(eShader::VertexShader, t_displacementMapSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_VERTEX_DISPLACEMENT_MAP;
 //    }
 //
-//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTextureType::Light))
+//    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Light))
 //    {
 //        pTexture->Bind(eShader::PixelShader, t_lightmapSlot);
 //        cb.cb_materialFlags |= JAM_MATERIAL_FLAGS_LIGHT_MAP;
@@ -486,17 +486,17 @@
 //    const Int32           _width,
 //    const Int32           _height,
 //    const eTextureFormat  _format,
-//    const eAttachmentType _type,
+//    const eAttachment _type,
 //    const StringView      _name) const
 //{
 //    Flags<eTextureCreateFlags> flags = eTextureCreateFlags::None;
 //
-//    if (_type == eAttachmentType::RenderTarget)
+//    if (_type == eAttachment::RenderTarget)
 //    {
 //        flags |= eTextureCreateFlags::RenderTarget;
 //    }
 //
-//    if (_type == eAttachmentType::DepthStencil)
+//    if (_type == eAttachment::DepthStencil)
 //    {
 //        flags |= eTextureCreateFlags::DepthStencil;
 //    }
@@ -513,17 +513,17 @@
 //    const Int32           _width,
 //    const Int32           _height,
 //    const eTextureFormat  _format,
-//    const eAttachmentType _type,
+//    const eAttachment _type,
 //    const StringView      _name) const
 //{
 //    Flags<eTextureCreateFlags> flags = eTextureCreateFlags::None;
 //
-//    if (_type == eAttachmentType::RenderTarget)
+//    if (_type == eAttachment::RenderTarget)
 //    {
 //        flags |= eTextureCreateFlags::RenderTarget;
 //    }
 //
-//    if (_type == eAttachmentType::DepthStencil)
+//    if (_type == eAttachment::DepthStencil)
 //    {
 //        flags |= eTextureCreateFlags::DepthStencil;
 //    }
@@ -541,17 +541,17 @@
 //    const Int32           _height,
 //    const Int32           _arraySize,
 //    const eTextureFormat  _format,
-//    const eAttachmentType _type,
+//    const eAttachment _type,
 //    const StringView      _name) const
 //{
 //    Flags<eTextureCreateFlags> flags = eTextureCreateFlags::None;
 //
-//    if (_type == eAttachmentType::RenderTarget)
+//    if (_type == eAttachment::RenderTarget)
 //    {
 //        flags |= eTextureCreateFlags::RenderTarget;
 //    }
 //
-//    if (_type == eAttachmentType::DepthStencil)
+//    if (_type == eAttachment::DepthStencil)
 //    {
 //        flags |= eTextureCreateFlags::DepthStencil;
 //    }
@@ -634,7 +634,7 @@
 //        sample *= MakeRandom(0.f, 1.f);
 //
 //        // 가까운 샘플에 더 집중
-//        const float t = Square(NumericCast<float>(i) / NumericCast<float>(JAM_SSAO_KERNEL_SIZE));
+//        const float t = Square(static_cast<float>(i) / static_cast<float>(JAM_SSAO_KERNEL_SIZE));
 //        sample *= Lerp(0.1f, 1.f, t);
 //
 //        kernel[i] = sample;
@@ -733,12 +733,12 @@
 //    bFXAAEnabled           = fxaa.bEnabled;
 //
 //    // scene resources
-//    hdrTexh             = CreateTexture2D(width, height, eTextureFormat::RGBA16_Float, eAttachmentType::RenderTarget, "HDR Texture");
-//    depthTexh           = CreateTexture2D(width, height, eTextureFormat::D24_UNorm_S8_UInt, eAttachmentType::DepthStencil, "Depth Texture");
-//    gbufferAlbedoTexh   = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget, "GBuffer Albedo Texture");
-//    gbufferMaterialTexh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget, "GBuffer Material Texture");
-//    gbufferNormalTexh   = CreateTexture2D(width, height, eTextureFormat::RGB10A2_UNorm, eAttachmentType::RenderTarget, "GBuffer Normal Texture");
-//    gbufferLightingTexh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, " GBuffer Lighting Texture");
+//    hdrTexh             = CreateTexture2D(width, height, eTextureFormat::RGBA16_Float, eAttachment::RenderTarget, "HDR Texture");
+//    depthTexh           = CreateTexture2D(width, height, eTextureFormat::D24_UNorm_S8_UInt, eAttachment::DepthStencil, "Depth Texture");
+//    gbufferAlbedoTexh   = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget, "GBuffer Albedo Texture");
+//    gbufferMaterialTexh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget, "GBuffer Material Texture");
+//    gbufferNormalTexh   = CreateTexture2D(width, height, eTextureFormat::RGB10A2_UNorm, eAttachment::RenderTarget, "GBuffer Normal Texture");
+//    gbufferLightingTexh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, " GBuffer Lighting Texture");
 //
 //    // will be created if ssao is enabled
 //    TextureHandle ssaoTexh = k_nullHandle;
@@ -784,7 +784,7 @@
 //    if (bSSAOEnabled)
 //    {
 //        // ssao
-//        const TextureHandle     ssaoTexh0 = CreateTexture2D(width, height, eTextureFormat::R8_UNorm, eAttachmentType::RenderTarget, "SSAO0 Texture");
+//        const TextureHandle     ssaoTexh0 = CreateTexture2D(width, height, eTextureFormat::R8_UNorm, eAttachment::RenderTarget, "SSAO0 Texture");
 //        const FrameBufferHandle ssaoFbh0  = CreateFrameBuffer(ssaoTexh0, true, "SSAO0 FrameBuffer");
 //
 //        RenderPass pass0 = {};
@@ -806,7 +806,7 @@
 //        pass0.SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //        // horizontal blur
-//        const TextureHandle     ssaoTexh1 = CreateTexture2D(width, height, eTextureFormat::R8_UNorm, eAttachmentType::RenderTarget, "SSAO H-Blur Texture");
+//        const TextureHandle     ssaoTexh1 = CreateTexture2D(width, height, eTextureFormat::R8_UNorm, eAttachment::RenderTarget, "SSAO H-Blur Texture");
 //        const FrameBufferHandle ssaoFbh1  = CreateFrameBuffer(ssaoTexh1, true, "SSAO H-Blur FrameBuffer");
 //
 //        RenderPass pass1 = {};
@@ -819,7 +819,7 @@
 //        pass1.SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //        // vertical blur
-//        const TextureHandle     ssaoTexh2 = CreateTexture2D(width, height, eTextureFormat::R8_UNorm, eAttachmentType::RenderTarget, "SSAO Texture");
+//        const TextureHandle     ssaoTexh2 = CreateTexture2D(width, height, eTextureFormat::R8_UNorm, eAttachment::RenderTarget, "SSAO Texture");
 //        const FrameBufferHandle ssaoFbh2  = CreateFrameBuffer(ssaoTexh2, true, "SSAO V-Blur FrameBuffer");
 //
 //        RenderPass pass2 = {};
@@ -903,7 +903,7 @@
 //
 //    // skybox
 //    {
-//        if (skybox.type == eSkyboxType::CubeMap && !pSkyboxTeX)
+//        if (skybox.type == eSkybox::CubeMap && !pSkyboxTeX)
 //        {
 //           JAM_LOG_WARN("Skybox type is set to CubeMap in environment but skybox texture is not set, the skybox will not be rendered.");
 //        }
@@ -920,7 +920,7 @@
 //        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
 //        pass.SetExecutor(Bind<&BasicRendererContext::SubmitSkyboxCube>(g_basicRendererCtx));
 //
-//        if (skybox.type == eSkyboxType::CubeMap && pSkyboxTeX)
+//        if (skybox.type == eSkybox::CubeMap && pSkyboxTeX)
 //        {
 //            pass.AddTexture(skybox.pSkyboxTeX->GetHandle(), eShader::PixelShader, t_skyboxSlot);
 //        }
@@ -938,7 +938,7 @@
 //        // if no post process is enabled.
 //        // add pass through pass
 //
-//        const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget, "Pass Through Texture");
+//        const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget, "Pass Through Texture");
 //        const FrameBufferHandle fbh  = CreateFrameBuffer(texh, true, "Pass Through FrameBuffer");
 //
 //        RenderPass pass = {};
@@ -958,7 +958,7 @@
 //    // fog
 //    if (fog.bEnabled)
 //    {
-//        const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, "Fog Texture");
+//        const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, "Fog Texture");
 //        const FrameBufferHandle fbh  = CreateFrameBuffer(texh, true, "Fog FrameBuffer");
 //
 //        RenderPass pass = {};
@@ -994,7 +994,7 @@
 //    //        const Int32             h             = Max(1, height >> (i + 1));
 //    //        const Viewport          vpDown        = { NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
 //    //        const StringView        name          = FormatToTmpBuffer("Bloom Down Texture %d", i);
-//    //        const TextureHandle     bloomDownTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, name);
+//    //        const TextureHandle     bloomDownTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, name);
 //    //        const StringView        fbhName       = FormatToTmpBuffer("Bloom Down FrameBuffer %d", i);
 //    //        const FrameBufferHandle bloomDownFbh  = CreateFrameBuffer(bloomDownTexh, true, fbhName);
 //
@@ -1022,7 +1022,7 @@
 //    //        const Int32             h           = Max(1, height >> (i + 1));
 //    //        const Viewport          vpUp        = { NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
 //    //        const StringView        name        = FormatToTmpBuffer("Bloom Up Texture %d", i);
-//    //        const TextureHandle     bloomUpTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, name);
+//    //        const TextureHandle     bloomUpTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, name);
 //    //        const StringView        fbhName     = FormatToTmpBuffer("Bloom Up FrameBuffer %d", i);
 //    //        const FrameBufferHandle bloomUpFbh  = CreateFrameBuffer(bloomUpTexh, true, fbhName);
 //
@@ -1043,7 +1043,7 @@
 //    //    }
 //
 //    //    // combine
-//    //    const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachmentType::RenderTarget, "Bloom Combine Texture");
+//    //    const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, "Bloom Combine Texture");
 //    //    const FrameBufferHandle fbh  = CreateFrameBuffer(texh, true, "Bloom Combine FrameBuffer");
 //
 //    //    RenderPass pass;
@@ -1066,7 +1066,7 @@
 //    //// tone mapping
 //    // if (toneMapping.bEnabled)
 //    //{
-//    //     const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget, "Tone Mapping Texture");
+//    //     const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget, "Tone Mapping Texture");
 //    //     const FrameBufferHandle fbh  = CreateFrameBuffer(texh, true, "Tone Mapping FrameBuffer");
 //
 //    //    RenderPass pass;
@@ -1088,7 +1088,7 @@
 //    //// fxaa
 //    // if (fxaa.bEnabled)
 //    //{
-//    //     const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget, "FXAA Texture");
+//    //     const TextureHandle     texh = CreateTexture2D(width, height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget, "FXAA Texture");
 //    //     const FrameBufferHandle fbh  = CreateFrameBuffer(texh, true, "FXAA FrameBuffer");
 //
 //    //    RenderPass pass;
@@ -1870,7 +1870,7 @@
 ////{
 ////    CreateShadowCasterPassResult result;
 ////
-////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachmentType::DepthStencil);
+////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
 ////
@@ -1893,7 +1893,7 @@
 ////{
 ////    CreateShadowCasterPassResult result;
 ////
-////    TextureHandle     th  = CreateTextureCube(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachmentType::DepthStencil);
+////    TextureHandle     th  = CreateTextureCube(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
 ////
@@ -1916,7 +1916,7 @@
 ////{
 ////    CreateShadowCasterPassResult result;
 ////
-////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachmentType::DepthStencil);
+////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
 ////
@@ -2005,7 +2005,7 @@
 ////{
 ////    CreatePostProcessPassResult result;
 ////
-////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
+////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
@@ -2029,7 +2029,7 @@
 ////{
 ////    CreatePostProcessPassResult result;
 ////
-////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
+////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
@@ -2075,7 +2075,7 @@
 ////{
 ////    CreatePostProcessPassResult result;
 ////
-////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
+////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
@@ -2101,7 +2101,7 @@
 ////{
 ////    CreatePostProcessPassResult result;
 ////
-////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
+////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////
@@ -2132,7 +2132,7 @@
 ////        Int32 w              = Max(1, _desc.width >> downScaleLevel);
 ////        Int32 h              = Max(1, _desc.height >> downScaleLevel);
 ////
-////        TextureHandle     downTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
+////        TextureHandle     downTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////        FrameBufferHandle downFbh  = GetGraphics().CreateFrameBuffer(downTexh, true);
 ////        Viewport          vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
 ////
@@ -2168,7 +2168,7 @@
 ////        Int32 w            = Max(1, _desc.width >> upScaleLevel);
 ////        Int32 h            = Max(1, _desc.height >> upScaleLevel);
 ////
-////        TextureHandle     upTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
+////        TextureHandle     upTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////        FrameBufferHandle upFbh  = GetGraphics().CreateFrameBuffer(upTexh, true);
 ////        Viewport          vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
 ////
@@ -2183,7 +2183,7 @@
 ////    }
 ////
 ////    // combine
-////    TextureHandle     combineTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachmentType::RenderTarget);
+////    TextureHandle     combineTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle combineFbh  = GetGraphics().CreateFrameBuffer(combineTexh, true);
 ////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
 ////

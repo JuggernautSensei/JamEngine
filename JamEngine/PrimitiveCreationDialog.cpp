@@ -36,27 +36,27 @@ void PrimitiveCreationDialog::OnShow()
 {
     switch (m_type)
     {
-        case ePrimitiveCreationType::Cube:
+        case ePrimitiveCreation::Cube:
             Panel_CubeCreation_();
             break;
 
-        case ePrimitiveCreationType::Sphere:
+        case ePrimitiveCreation::Sphere:
             Panel_SphereCreation_();
             break;
 
-        case ePrimitiveCreationType::Plane:
+        case ePrimitiveCreation::Plane:
             Panel_PlaneCreation_();
             break;
 
-        case ePrimitiveCreationType::Circle:
+        case ePrimitiveCreation::Circle:
             Panel_CircleCreation_();
             break;
 
-        case ePrimitiveCreationType::Cone:
+        case ePrimitiveCreation::Cone:
             Panel_ConeCreation_();
             break;
 
-        case ePrimitiveCreationType::Cylinder:
+        case ePrimitiveCreation::Cylinder:
             Panel_CylinderCreation_();
             break;
 
@@ -82,7 +82,7 @@ void PrimitiveCreationDialog::OnShow()
 
 void PrimitiveCreationDialog::Panel_CubeCreation_()
 {
-    JAM_ASSERT(m_type == ePrimitiveCreationType::Cube, "mesh type must be cube.");
+    JAM_ASSERT(m_type == ePrimitiveCreation::Cube, "mesh type must be cube.");
 
     if (BeginLabelValueTable("ShowCreateCube"))
     {
@@ -131,7 +131,7 @@ void PrimitiveCreationDialog::Panel_CubeCreation_()
 
 void PrimitiveCreationDialog::Panel_SphereCreation_()
 {
-    JAM_ASSERT(m_type == ePrimitiveCreationType::Sphere, "mesh type must be sphere.");
+    JAM_ASSERT(m_type == ePrimitiveCreation::Sphere, "mesh type must be sphere.");
 
     if (BeginLabelValueTable("ShowCreateSphere"))
     {
@@ -178,7 +178,7 @@ void PrimitiveCreationDialog::Panel_SphereCreation_()
 
 void PrimitiveCreationDialog::Panel_PlaneCreation_()
 {
-    JAM_ASSERT(m_type == ePrimitiveCreationType::Plane, "mesh type must be plane.");
+    JAM_ASSERT(m_type == ePrimitiveCreation::Plane, "mesh type must be plane.");
 
     if (BeginLabelValueTable("ShowCreatePlane"))
     {
@@ -221,7 +221,7 @@ void PrimitiveCreationDialog::Panel_PlaneCreation_()
 
 void PrimitiveCreationDialog::Panel_CircleCreation_()
 {
-    JAM_ASSERT(m_type == ePrimitiveCreationType::Circle, "mesh type must be circle.");
+    JAM_ASSERT(m_type == ePrimitiveCreation::Circle, "mesh type must be circle.");
 
     if (BeginLabelValueTable("ShowCreateCircle"))
     {
@@ -268,7 +268,7 @@ void PrimitiveCreationDialog::Panel_CircleCreation_()
 
 void PrimitiveCreationDialog::Panel_ConeCreation_()
 {
-    JAM_ASSERT(m_type == ePrimitiveCreationType::Cone, "mesh type must be cone.");
+    JAM_ASSERT(m_type == ePrimitiveCreation::Cone, "mesh type must be cone.");
 
     if (BeginLabelValueTable("ShowCreateCone"))
     {
@@ -322,7 +322,7 @@ void PrimitiveCreationDialog::Panel_ConeCreation_()
 
 void PrimitiveCreationDialog::Panel_CylinderCreation_()
 {
-    JAM_ASSERT(m_type == ePrimitiveCreationType::Cylinder, "mesh type must be cylinder.");
+    JAM_ASSERT(m_type == ePrimitiveCreation::Cylinder, "mesh type must be cylinder.");
 
     if (BeginLabelValueTable("ShowCreateCylinder"))
     {
@@ -395,7 +395,7 @@ bool PrimitiveCreationDialog::OnClickCreateButton_()
         return false;
     }
 
-    String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoinType::File);
+    String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::File);
     path.ReplaceExtension(Mesh::k_extension);
 
     if (FileSystem::Exists(path))
@@ -415,33 +415,33 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
 
     switch (m_type)
     {
-        case ePrimitiveCreationType::Cube:
+        case ePrimitiveCreation::Cube:
         {
             const Vec3 size { m_fParam0, m_fParam1, m_fParam2 };
             return CreateCubeMesh(size, vl);
         }
 
-        case ePrimitiveCreationType::Sphere:
+        case ePrimitiveCreation::Sphere:
         {
             const float radius      = m_fParam0;
             const Int32 subdivLevel = m_iParam;
             return CreateSphereMesh(radius, subdivLevel, vl);
         }
 
-        case ePrimitiveCreationType::Plane:
+        case ePrimitiveCreation::Plane:
         {
             const Vec2 size { m_fParam0, m_fParam1 };
             return CreatePlaneMesh(size, vl);
         }
 
-        case ePrimitiveCreationType::Circle:
+        case ePrimitiveCreation::Circle:
         {
             const float radius   = m_fParam0;
             const Int32 triCount = m_iParam;
             return CreateCircle(radius, triCount, vl);
         }
 
-        case ePrimitiveCreationType::Cone:
+        case ePrimitiveCreation::Cone:
         {
             const float height   = m_fParam0;
             const float radius   = m_fParam1;
@@ -449,7 +449,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
             return CreateCone(height, radius, triCount, vl);
         }
 
-        case ePrimitiveCreationType::Cylinder:
+        case ePrimitiveCreation::Cylinder:
         {
             const float height   = m_fParam0;
             const float radius   = m_fParam1;

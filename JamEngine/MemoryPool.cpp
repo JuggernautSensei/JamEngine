@@ -2,18 +2,18 @@
 
 #include "MemoryPool.h"
 
-#include "MemoryAllocator.h"
+#include "Allocator.h"
 
 namespace Jam
 {
 
 MemoryPool::MemoryPool(
-    const USizeT _bytePerBlock,
-    const USizeT _blocksPerPool)
+    const SizeT _bytePerBlock,
+    const SizeT _blocksPerPool)
     : m_bytePerBlock(_bytePerBlock >= sizeof(Node) ? _bytePerBlock : sizeof(Node))
-    , m_blocksPerPool(_blocksPerPool)
+    , m_numBlocksPerPool(_blocksPerPool)
 {
-    m_bytePerBlock = AlignUp(m_bytePerBlock);
+    m_bytePerBlock = AlignUp<SizeT>(m_bytePerBlock, alignof(std::max_align_t));
 }
 
 MemoryPool::~MemoryPool()
@@ -29,7 +29,7 @@ MemoryPool::MemoryPool(MemoryPool&& _pool) noexcept
     m_pPoolHead  = _pool.m_pPoolHead;
 
     m_bytePerBlock  = _pool.m_bytePerBlock;
-    m_blocksPerPool = _pool.m_blocksPerPool;
+    m_numBlocksPerPool = _pool.m_numBlocksPerPool;
 }
 
 MemoryPool& MemoryPool::operator=(MemoryPool&& _pool) noexcept
@@ -44,7 +44,7 @@ MemoryPool& MemoryPool::operator=(MemoryPool&& _pool) noexcept
         m_pPoolHead  = _pool.m_pPoolHead;
 
         m_bytePerBlock  = _pool.m_bytePerBlock;
-        m_blocksPerPool = _pool.m_blocksPerPool;
+        m_numBlocksPerPool = _pool.m_numBlocksPerPool;
     }
     return *this;
 }
@@ -53,9 +53,9 @@ void* MemoryPool::Alloc()
 {
     if (m_pCurBlock == nullptr)   // 풀 초기화 필요
     {
-        Byte* pMem         = static_cast<Byte*>(Malloc(sizeof(Node) + m_bytePerBlock * m_blocksPerPool));
+        Byte* pMem         = static_cast<Byte*>(Malloc(sizeof(Node) + m_bytePerBlock * m_numBlocksPerPool));
         m_pCurBlock        = reinterpret_cast<Node*>(pMem + sizeof(Node));
-        m_pEndBlock        = reinterpret_cast<Node*>(pMem + sizeof(Node) + m_blocksPerPool * m_bytePerBlock);
+        m_pEndBlock        = reinterpret_cast<Node*>(pMem + sizeof(Node) + m_numBlocksPerPool * m_bytePerBlock);
         m_pPoolHead        = reinterpret_cast<Node*>(pMem);
         m_pPoolHead->pNext = nullptr;
     }
@@ -71,9 +71,9 @@ void* MemoryPool::Alloc()
     {
         if (m_pCurBlock >= m_pEndBlock)   // 새로운 풀 할당 필요
         {
-            Byte* pMem  = static_cast<Byte*>(Malloc(sizeof(Node) + m_bytePerBlock * m_blocksPerPool));
+            Byte* pMem  = static_cast<Byte*>(Malloc(sizeof(Node) + m_bytePerBlock * m_numBlocksPerPool));
             m_pCurBlock = reinterpret_cast<Node*>(pMem + sizeof(Node));
-            m_pEndBlock = reinterpret_cast<Node*>(pMem + sizeof(Node) + m_blocksPerPool * m_bytePerBlock);
+            m_pEndBlock = reinterpret_cast<Node*>(pMem + sizeof(Node) + m_numBlocksPerPool * m_bytePerBlock);
 
             // 새 풀을 링크드 리스트에 추가
             Node* pNewPoolHead  = reinterpret_cast<Node*>(pMem);

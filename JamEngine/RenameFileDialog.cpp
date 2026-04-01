@@ -34,7 +34,7 @@ void RenameFileDialog::OnShow()
     // buttons
     if (ImGui::Button("ok", btnSize))
     {
-        const String dstPath = String::Joined(m_oldPath.GetDirectory(), m_filename, eJoinType::File);
+        const String dstPath = String::Joined(m_oldPath.GetDirectory(), m_filename, eJoin::File);
         if (GetEditor().RenameFile(m_oldPath, dstPath))
         {
             ImGui::CloseCurrentPopup();

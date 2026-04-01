@@ -130,7 +130,7 @@ Error ImageExporter::ExportToFile(
 
     if (FAILED(hr))
     {
-        JAM_LOG_ERROR("Failed to save image to file: '{}', {}", _path, CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+        JAM_LOG_ERROR("Failed to save image to file: '{}', {}", _path, CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         return Error::ExportFailed;
     }
 
@@ -189,7 +189,7 @@ Expect<ImageBlob> ImageExporter::ExportToMemory(
 
     if (FAILED(hr))
     {
-        JAM_LOG_ERROR("Failed to export image to memory: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCodeType::HRESULT));
+        JAM_LOG_ERROR("Failed to export image to memory: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         return Error::ExportFailed;
     }
 

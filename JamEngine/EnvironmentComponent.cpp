@@ -218,7 +218,7 @@ void EnvironmentComponent::DrawEditPanel(
     ImGui::SeparatorText("skybox");
     if (BeginLabelValueTable("EnvironmentComponent_Skybox"))
     {
-        eSkyboxType type = environment.GetSkyboxType();
+        eSkybox type = environment.GetSkyboxType();
 
         // row: type
         {
@@ -233,7 +233,7 @@ void EnvironmentComponent::DrawEditPanel(
         }
 
         // row: texture
-        if (type == eSkyboxType::CubeMap)
+        if (type == eSkybox::CubeMap)
         {
             Ref<Texture> pTexture = environment.GetSkyboxTex();
             ImGui::TableNextColumn();
@@ -247,7 +247,7 @@ void EnvironmentComponent::DrawEditPanel(
         }
 
         // row: solid value
-        if (type == eSkyboxType::SolidColor)
+        if (type == eSkybox::SolidColor)
         {
             Vec3 color = environment.GetSkyboxSolidColor();
             ImGui::TableNextColumn();
@@ -409,7 +409,7 @@ void EnvironmentComponent::DrawEditPanel(
 
         // row: type
         {
-            eToneMappingType type = environment.GetToneMappingType();
+            eToneMapping type = environment.GetToneMappingType();
             ImGui::TableNextColumn();
             Widget_Text("type", true);
             ImGui::TableNextColumn();

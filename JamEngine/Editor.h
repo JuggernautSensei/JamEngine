@@ -26,7 +26,7 @@ class Editor_SceneHierarchyWindow;
 class Editor_EntityInspectorWindow;
 class Editor_VertexLayoutEditorWindow;
 
-enum class eEditorWindowType
+enum class eEditorWindow
 {
     SceneView,
     SceneHierarchy,
@@ -159,7 +159,7 @@ private:
     void TryLoadConfig_();
 
     [[nodiscard]] Ref<Texture> LoadIconFromSvgSource(StringView _svgSource) const;
-    [[nodiscard]] bool&        GetWindowShow(eEditorWindowType _type);
+    [[nodiscard]] bool&        GetWindowShow(eEditorWindow _type);
 
     // windows
     Scoped<Editor_SceneViewWindow>          m_pSceneViewWindow          = nullptr;
@@ -170,7 +170,7 @@ private:
     Scoped<Editor_VertexLayoutEditorWindow> m_pVertexLayoutEditorWindow = nullptr;
 
     EditorSharedData                   m_sharedData  = {};
-    EnumArray<eEditorWindowType, bool> m_windowShows = {};
+    EnumArray<eEditorWindow, bool> m_windowShows = {};
     DialogStack                        m_dialogStack = {};
 
     float m_configSaveCounterSec = 0.f;

@@ -105,9 +105,9 @@ public:
     [[nodiscard]] HandleT Alloc()
     {
         HandleT handle = m_handleAlloc.Alloc();
-        if (CmpGreaterEqual(handle.index, m_resources.size()))
+        if (CmpGreaterEqual(handle.GetIndex(), m_resources.size()))
         {
-            m_resources.resize(handle.index + 1);
+            m_resources.resize(handle.GetIndex() + 1);
         }
         ++m_numItems;
         return handle;
@@ -117,7 +117,7 @@ public:
     {
         JAM_ASSERT(m_handleAlloc.IsValid(handle), "Invalid fbh");
 
-        T& resource = m_resources[handle.index];
+        T& resource = m_resources[handle.GetIndex()];
         std::destroy_at(&resource);
         std::construct_at(&resource);
         m_handleAlloc.Free(handle);
@@ -126,26 +126,26 @@ public:
 
     [[nodiscard]] T& GetResource(const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
-        return m_resources[handle.index];
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.GetIndex(), handle.GetToken());
+        return m_resources[handle.GetIndex()];
     }
 
     [[nodiscard]] const T& GetResource(const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
-        return m_resources[handle.index];
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.GetIndex(), handle.GetToken());
+        return m_resources[handle.GetIndex()];
     }
 
     [[nodiscard]] const T& operator[](const HandleT handle) const noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
-        return m_resources[handle.index];
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.GetIndex(), handle.GetToken());
+        return m_resources[handle.GetIndex()];
     }
 
     [[nodiscard]] T& operator[](const HandleT handle) noexcept
     {
-        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.index, handle.token);
-        return m_resources[handle.index];
+        JAM_ASSERT(m_handleAlloc.IsValid(handle), "invalid fbh. pos = {}, token = {}", handle.GetIndex(), handle.GetToken());
+        return m_resources[handle.GetIndex()];
     }
 
     [[nodiscard]] bool IsValid(const HandleT handle) const noexcept

@@ -41,13 +41,13 @@ float NsToFloat(
     switch (_unit)
     {
         case eSIPrefix::Nano:
-            return NumericCast<float>(_ns);
+            return static_cast<float>(_ns);
         case eSIPrefix::Micro:
-            return NumericCast<float>(_ns) * 1e-3f;
+            return static_cast<float>(_ns) * 1e-3f;
         case eSIPrefix::Milli:
-            return NumericCast<float>(_ns) * 1e-6f;
+            return static_cast<float>(_ns) * 1e-6f;
         case eSIPrefix::Sec:
-            return NumericCast<float>(_ns) * 1e-9f;
+            return static_cast<float>(_ns) * 1e-9f;
         default:
             JAM_UNREACHABLE;
     }

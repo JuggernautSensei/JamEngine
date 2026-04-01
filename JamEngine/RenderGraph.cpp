@@ -183,7 +183,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         }
 
         // 텍스처 바인드
-        for (TextureBind& bind: desc.textureBinds | std::views::values)
+        for (ReadBinding& bind: desc.textureBinds | std::views::values)
         {
             // 리사이즈가 된 경우, 특정 핸들이 바뀌었을 수도 있으므로 갱신
             if (bind.texh && !bNeedResize)
@@ -197,7 +197,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         }
 
         // 상수 버퍼 바인드
-        for (ConstantBufferBind& bind: desc.cbufferBinds | std::views::values)
+        for (ConstantBufferBinding& bind: desc.cbufferBinds | std::views::values)
         {
             if (bind.cbh)
             {
@@ -253,7 +253,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             }
 
             inputTextures.clear();
-            for (const TextureBind& bind: desc.textureBinds | std::views::values)
+            for (const ReadBinding& bind: desc.textureBinds | std::views::values)
             {
                 inputTextures.insert(bind.name);
             }
@@ -276,7 +276,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         // 현재 구현에서는 위상 정렬이 꼬여버림. 실제로 잘 쓰지않는 패턴이기도 하고, 지원하려면 구현 복잡도가 꽤 올라가기 때문에, 일단은 금지함.
         // 흔히 쓰이는 포스트 프로세스의 핑퐁 패턴도, 패스마다 텍스처를 따로 만들어서 해결할 수 있기 때문에, 큰 제약은 아님.
 
-        enum class eAccessType
+        enum class eAccess
         {
             Read,
             Write
@@ -286,7 +286,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         {
             bool        bWritten       = false;   // 지금까지의 패스들이 이 텍스처에 대해서 write한 적이 있는가?
             bool        bRead          = false;   // 지금까지의 패스들이 이 텍스처에 대해서 read한 적이 있는가?
-            eAccessType lastAccessType = {};      // 마지막으로 이 텍스처에 접근한 방식. 읽기인지 쓰기인지.
+            eAccess lastAccessType = {};      // 마지막으로 이 텍스처에 접근한 방식. 읽기인지 쓰기인지.
         };
 
         StringHashMap<State> textureStates = {};
@@ -298,27 +298,27 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             {
                 const String& texture = desc.writeTextures[j];
                 State&        state   = textureStates[texture];
-                if (state.bWritten && state.lastAccessType == eAccessType::Read)   // write -> reader -> write (error)
+                if (state.bWritten && state.lastAccessType == eAccess::Read)   // write -> reader -> write (error)
                 {
                     JAM_ASSERT(0, "Validation failed: Texture '{}' is written after being read in pass '{}'. Ping-ponging is not supported.", texture, desc.name);
                 }
 
                 state.bWritten       = true;
-                state.lastAccessType = eAccessType::Write;
+                state.lastAccessType = eAccess::Write;
             }
 
             // 이미 write된 적 있는 게 있으면 오류로 처리
-            for (const TextureBind& bind: desc.textureBinds | std::views::values)
+            for (const ReadBinding& bind: desc.textureBinds | std::views::values)
             {
                 const String& texture = bind.name;
                 State&        state   = textureStates[texture];
-                if (state.bRead && state.lastAccessType == eAccessType::Write)   // read -> writer -> read (error)
+                if (state.bRead && state.lastAccessType == eAccess::Write)   // read -> writer -> read (error)
                 {
                     JAM_ASSERT(0, "Validation failed: Texture '{}' is read after being written in pass '{}'. Ping-ponging is not supported.", texture, desc.name);
                 }
 
                 state.bRead          = true;
-                state.lastAccessType = eAccessType::Read;
+                state.lastAccessType = eAccess::Read;
             }
         }
     }
@@ -358,7 +358,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             std::ranges::fill(dupEdgeChecker, false);   // 패스마다 초기화
 
             PassDesc& desc = m_passDescs[i];
-            for (const TextureBind& bind: desc.textureBinds | std::views::values)
+            for (const ReadBinding& bind: desc.textureBinds | std::views::values)
             {
                 const String& readTexture = bind.name;
                 const auto    it          = textureWriter.find(readTexture);
@@ -516,7 +516,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
         for (SizeT i = 0; i < numPasses; ++i)
         {
             const PassDesc& desc = *m_compiledPasses[i].pDesc;
-            for (const TextureBind& bind: desc.textureBinds | std::views::values)
+            for (const ReadBinding& bind: desc.textureBinds | std::views::values)
             {
                 if (!writeTextures.contains(bind.name))
                 {
@@ -551,7 +551,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
                 for (Int32 k = 0; k < desc.numWriteTextures; ++k)
                 {
                     const String& texture = desc.writeTextures[k];
-                    for (const TextureBind& bind: laterDesc.textureBinds | std::views::values)
+                    for (const ReadBinding& bind: laterDesc.textureBinds | std::views::values)
                     {
                         if (bind.name == texture)
                         {
@@ -589,7 +589,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
             cp.cbuffers.clear();
             cp.samplers.clear();
 
-            for (const TextureBind& bind: desc.textureBinds | std::views::values)
+            for (const ReadBinding& bind: desc.textureBinds | std::views::values)
             {
                 const Slot slot = { bind.stage, bind.slot };
                 const auto it   = texInputs.find(slot);
@@ -600,7 +600,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
                 }
             }
 
-            for (const ConstantBufferBind& bind: desc.cbufferBinds | std::views::values)
+            for (const ConstantBufferBinding& bind: desc.cbufferBinds | std::views::values)
             {
                 const Slot slot = { bind.stage, bind.slot };
                 const auto it   = cbInputs.find(slot);
@@ -611,7 +611,7 @@ void RenderGraph::Compile(const Int32 _width, const Int32 _height)
                 }
             }
 
-            for (const SamplerBind& bind: desc.samplerBinds | std::views::values)
+            for (const SamplerBinding& bind: desc.samplerBinds | std::views::values)
             {
                 const Slot slot = { bind.stage, bind.slot };
                 const auto it   = samInputs.find(slot);
@@ -666,16 +666,16 @@ void RenderGraph::Execute(
 
         for (Int32 j = 0; j < desc.numBlendBinds; ++j)
         {
-            const BlendStateBind& bind = desc.blendFlagsBinds[j];
+            const BlendBinding& bind = desc.blendBinds[j];
             gfx.SetBlendFlags(bind.state, bind.slot);
         }
 
         gfx.SetBlendFactor(desc.blendFactor);
 
-        for (Int32 j = 0; j < desc.numClearColorBinds; ++j)
+        for (Int32 j = 0; j < desc.numClearRenderTarget; ++j)
         {
-            const ClearColorBind& bind = desc.clearColorBinds[j];
-            gfx.ClearColor(fbh, bind.color, bind.slot);
+            const ClearRenderTargetBinding& bind = desc.clearRenderTargetBinds[j];
+            gfx.ClearRenderTarget(fbh, bind.color, bind.slot);
         }
 
         if (desc.bClearDepth || desc.bClearStencil)
@@ -683,19 +683,19 @@ void RenderGraph::Execute(
             gfx.ClearDepthStencil(fbh, desc.bClearDepth, desc.bClearStencil, desc.clearDepthValue, desc.clearStencilValue);
         }
 
-        for (const ConstantBufferBind& bind: pass.cbuffers)
+        for (const ConstantBufferBinding& bind: pass.cbuffers)
         {
             gfx.SetConstantBuffer(bind.cbh, bind.stage, bind.slot);
         }
 
-        for (const SamplerBind& bind: pass.samplers)
+        for (const SamplerBinding& bind: pass.samplers)
         {
             gfx.SetSamplerState(bind.state, bind.stage, bind.slot);
         }
 
-        for (const TextureBind& bind: pass.textures)
+        for (const ReadBinding& bind: pass.textures)
         {
-            gfx.SetTexture(bind.texh, bind.stage, bind.slot);
+            gfx.SetTexture(bind.texh, bind.stage, bind.slot, TODO);
         }
 
         // 드로우 콜
@@ -704,7 +704,7 @@ void RenderGraph::Execute(
         // 자동 언바인드
         for (const Slot& slot: pass.unbindTextures)
         {
-            gfx.SetTexture(k_nullHandle, slot.stage, slot.index);
+            gfx.SetTexture(k_nullHandle, slot.stage, slot.index, TODO);
         }
 
         if (pass.bUnbindFrameBuffer)
@@ -1142,15 +1142,15 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendFlags(
 
     for (Int32 i = 0; i < m_desc.numBlendBinds; ++i)
     {
-        if (m_desc.blendFlagsBinds[i].slot == _slot)
+        if (m_desc.blendBinds[i].slot == _slot)
         {
-            m_desc.blendFlagsBinds[i].state = _flags;
+            m_desc.blendBinds[i].state = _flags;
             return *this;
         }
     }
 
     JAM_ASSERT(m_desc.numBlendBinds < k_maxNumRenderTargetViewSlots, "Too many blend states.");
-    m_desc.blendFlagsBinds[m_desc.numBlendBinds++] = { _flags, _slot };
+    m_desc.blendBinds[m_desc.numBlendBinds++] = { _flags, _slot };
     return *this;
 }
 
@@ -1166,30 +1166,30 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetClearColor(
 {
     JAM_ASSERT(_slot >= 0 && _slot < k_maxNumRenderTargetViewSlots, "ClearColor slot {} out of range.", _slot);
 
-    for (Int32 i = 0; i < m_desc.numClearColorBinds; ++i)
+    for (Int32 i = 0; i < m_desc.numClearRenderTarget; ++i)
     {
-        if (m_desc.clearColorBinds[i].slot == _slot)
+        if (m_desc.clearRenderTargetBinds[i].slot == _slot)
         {
-            m_desc.clearColorBinds[i].color = _color;
+            m_desc.clearRenderTargetBinds[i].color = _color;
             return *this;
         }
     }
 
-    JAM_ASSERT(m_desc.numClearColorBinds < k_maxNumRenderTargetViewSlots, "Too many clear colors.");
-    m_desc.clearColorBinds[m_desc.numClearColorBinds++] = { _color, _slot };
+    JAM_ASSERT(m_desc.numClearRenderTarget < k_maxNumRenderTargetViewSlots, "Too many clear colors.");
+    m_desc.clearRenderTargetBinds[m_desc.numClearRenderTarget++] = { _color, _slot };
     return *this;
 }
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseClearColor(const Int32 _slot)
 {
-    for (Int32 i = 0; i < m_desc.numClearColorBinds; ++i)
+    for (Int32 i = 0; i < m_desc.numClearRenderTarget; ++i)
     {
-        if (m_desc.clearColorBinds[i].slot == _slot)
+        if (m_desc.clearRenderTargetBinds[i].slot == _slot)
         {
-            const Int32 last             = m_desc.numClearColorBinds - 1;
-            m_desc.clearColorBinds[i]    = m_desc.clearColorBinds[last];
-            m_desc.clearColorBinds[last] = {};
-            --m_desc.numClearColorBinds;
+            const Int32 last             = m_desc.numClearRenderTarget - 1;
+            m_desc.clearRenderTargetBinds[i]    = m_desc.clearRenderTargetBinds[last];
+            m_desc.clearRenderTargetBinds[last] = {};
+            --m_desc.numClearRenderTarget;
             break;
         }
     }

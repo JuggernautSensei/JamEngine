@@ -53,12 +53,12 @@ void Editor::Menu_File_() const
 
 void Editor::Menu_Window_()
 {
-    Widget_MenuItem("scene view", 0, &GetWindowShow(eEditorWindowType::SceneView));
-    Widget_MenuItem("scene hierarchy", 0, &GetWindowShow(eEditorWindowType::SceneHierarchy));
-    Widget_MenuItem("entity inspector", 0, &GetWindowShow(eEditorWindowType::EntityInspector));
-    Widget_MenuItem("file browser", 0, &GetWindowShow(eEditorWindowType::FileBrowser));
-    Widget_MenuItem("profiler", 0, &GetWindowShow(eEditorWindowType::Profiler));
-    Widget_MenuItem("vertex layout editor", 0, &GetWindowShow(eEditorWindowType::VertexLayoutEditor));
+    Widget_MenuItem("scene view", 0, &GetWindowShow(eEditorWindow::SceneView));
+    Widget_MenuItem("scene hierarchy", 0, &GetWindowShow(eEditorWindow::SceneHierarchy));
+    Widget_MenuItem("entity inspector", 0, &GetWindowShow(eEditorWindow::EntityInspector));
+    Widget_MenuItem("file browser", 0, &GetWindowShow(eEditorWindow::FileBrowser));
+    Widget_MenuItem("profiler", 0, &GetWindowShow(eEditorWindow::Profiler));
+    Widget_MenuItem("vertex layout editor", 0, &GetWindowShow(eEditorWindow::VertexLayoutEditor));
 }
 
 void Editor::Menu_Options_() const
@@ -332,7 +332,7 @@ Ref<Texture> Editor::LoadIconFromSvgSource(
 }
 
 bool& Editor::GetWindowShow(
-    const eEditorWindowType _type)
+    const eEditorWindow _type)
 {
     return m_windowShows[UnderlyingFrom(_type)];
 }
@@ -804,7 +804,7 @@ void Editor::ImGuiRender()
     Panel_Dockspace_();
 
     // viewport
-    if (bool& bShow = GetWindowShow(eEditorWindowType::SceneView))
+    if (bool& bShow = GetWindowShow(eEditorWindow::SceneView))
     {
         m_pSceneViewWindow->OnImGuiRender(bShow);
     }
@@ -812,31 +812,31 @@ void Editor::ImGuiRender()
     ImGui::BeginDisabled(GetMode() == eEditorMode::Play);
 
     // profiler
-    if (bool& bShow = GetWindowShow(eEditorWindowType::Profiler))
+    if (bool& bShow = GetWindowShow(eEditorWindow::Profiler))
     {
         m_pProfilerWindow->OnImGuiRender(bShow);
     }
 
     // scene hierarchy
-    if (bool& bShow = GetWindowShow(eEditorWindowType::SceneHierarchy))
+    if (bool& bShow = GetWindowShow(eEditorWindow::SceneHierarchy))
     {
         m_pSceneHierarchyWindow->OnImGuiRender(bShow);
     }
 
     // entity inspector
-    if (bool& bShow = GetWindowShow(eEditorWindowType::EntityInspector))
+    if (bool& bShow = GetWindowShow(eEditorWindow::EntityInspector))
     {
         m_pEntityInspectorWindow->OnImGuiRender(bShow);
     }
 
     // file system browser
-    if (bool& bShow = GetWindowShow(eEditorWindowType::FileBrowser))
+    if (bool& bShow = GetWindowShow(eEditorWindow::FileBrowser))
     {
         m_pFileBrowserWindow->OnImGuiRender(bShow);
     }
 
     // vertex vertexLayout manager
-    if (bool& bShow = GetWindowShow(eEditorWindowType::VertexLayoutEditor))
+    if (bool& bShow = GetWindowShow(eEditorWindow::VertexLayoutEditor))
     {
         m_pVertexLayoutEditorWindow->OnImGuiRender(bShow);
     }

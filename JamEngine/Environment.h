@@ -6,13 +6,13 @@
 namespace Jam
 {
 
-enum class eSkyboxType
+enum class eSkybox
 {
     SolidColor = 0,
     CubeMap,
 };
 
-enum class eToneMappingType
+enum class eToneMapping
 {
     Linear = 0,
     Reinhard,
@@ -69,8 +69,8 @@ public:
     [[nodiscard]] float               GetIblSpecularIntensity() const;
 
     // skybox
-    void                              SetSkyboxType(eSkyboxType _type);
-    [[nodiscard]] eSkyboxType         GetSkyboxType() const;
+    void                              SetSkyboxType(eSkybox _type);
+    [[nodiscard]] eSkybox         GetSkyboxType() const;
     void                              SetSkyboxTex(const Ref<Texture>& _pTexture);
     [[nodiscard]] const Ref<Texture>& GetSkyboxTex() const;
     void                              SetSkyboxSolidColor(Vec3 _color);
@@ -101,8 +101,8 @@ public:
     // tone mapping
     void                           SetToneMappingEnabled(bool _bEnabled);
     [[nodiscard]] bool             IsToneMappingEnabled() const;
-    void                           SetToneMappingType(eToneMappingType _type);
-    [[nodiscard]] eToneMappingType GetToneMappingType() const;
+    void                           SetToneMappingType(eToneMapping _type);
+    [[nodiscard]] eToneMapping GetToneMappingType() const;
     void                           SetToneMappingExposure(float _exposure);
     [[nodiscard]] float            GetToneMappingExposure() const;
     void                           SetToneMappingGamma(float _gamma);
@@ -153,7 +153,7 @@ private:
     float        m_iblSpecularTexIntensity   = 1.f;
 
     // skybox
-    eSkyboxType  m_skyboxType       = eSkyboxType::SolidColor;
+    eSkybox  m_skyboxType       = eSkybox::SolidColor;
     Ref<Texture> m_pSkyboxTex       = nullptr;                // cubemap
     Vec3         m_skyboxSolidColor = { 0.2f, 0.2f, 0.2f };   // solid radiance
 
@@ -172,7 +172,7 @@ private:
 
     // tone mapping
     bool             m_bToneMappingEnabled = false;
-    eToneMappingType m_toneMappingType     = eToneMappingType::Linear;
+    eToneMapping m_toneMappingType     = eToneMapping::Linear;
     float            m_toneMappingExposure = 1.f;
     float            m_toneMappingGamma    = 2.2f;
 

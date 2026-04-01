@@ -91,22 +91,22 @@ namespace
     struct TextureData
     {
         TextureHandle texh = k_nullHandle;
-        eTextureType  type = eTextureType::Texture2D;
+        eTexture  type = eTexture::Texture2D;
     };
 
     ImTextureID ImTextureIDFrom_(
         const TextureHandle _texh,
-        const eTextureType  _type)
+        const eTexture  _type)
     {
-        return (NumericCast<UInt64>(_texh.value) << 32) | NumericCast<UInt64>(_type);
+        return (NumericCast<UInt64>(_texh.GetValue()) << 32) | NumericCast<UInt64>(_type);
     }
 
     TextureData TextureDataFrom_(
         const ImTextureID _texId)
     {
         TextureData texData = {};
-        texData.texh.value  = NumericCast<UInt32>(_texId >> 32);
-        texData.type        = static_cast<eTextureType>(_texId & 0xFFFFFFFF);
+        texData.texh        = TextureHandle { NumericCast<UInt32>(_texId >> 32) };
+        texData.type        = static_cast<eTexture>(_texId & 0xFFFFFFFF);
         return texData;
     }
 
@@ -152,8 +152,9 @@ ImGuiEngine::ImGuiEngine(
     m_textureCubePsh = CreateShader(k_imguiGlueTextureCubePs, eShader::PixelShader);
 
     // create program
-    m_basicPh       = GetGraphics().CreateProgram(m_vsh, m_basicPsh);
-    m_textureCubePh = GetGraphics().CreateProgram(m_vsh, m_textureCubePsh);
+    Graphics& gfx   = GetGraphics();
+    m_basicPh       = gfx.CreateProgram(m_vsh, m_basicPsh);
+    m_textureCubePh = gfx.CreateProgram(m_vsh, m_textureCubePsh);
 
     // create vertex vertexLayout
     m_vl.Push(eVertexAttribute::Position, eAttributeFormat::Float2);
@@ -161,7 +162,7 @@ ImGuiEngine::ImGuiEngine(
     m_vl.Push(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
 
     // create constant buffer
-    m_cbh = GetGraphics().CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
+    m_cbh = gfx.CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
 
     // state
     m_bsFlags = eBlendFlags::Enable
@@ -297,10 +298,10 @@ void ImGuiEngine::Render_(
     }
 
     // copy data to cpu buffers
-    const MutableMemoryView gpuVtxData  = gfx.BeginUploadBuffer(m_vbh);
+    const MutableMemoryView gpuVtxData  = gfx.BeginUpdateBuffer(m_vbh);
     Byte*                   pGpuVtxData = gpuVtxData.GetPtr();
 
-    const MutableMemoryView gpuIdxData  = gfx.BeginUploadBuffer(m_ibh);
+    const MutableMemoryView gpuIdxData  = gfx.BeginUpdateBuffer(m_ibh);
     Byte*                   pGpuIdxData = gpuIdxData.GetPtr();
 
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
@@ -318,8 +319,8 @@ void ImGuiEngine::Render_(
     }
 
     // unmap
-    gfx.EndUploadBuffer(m_vbh);
-    gfx.EndUploadBuffer(m_ibh);
+    gfx.EndUpdateBuffer(m_vbh);
+    gfx.EndUpdateBuffer(m_ibh);
 
     // setup
     const Viewport vp = { NumericCast<UInt16>(_pDrawData->DisplaySize.x), NumericCast<UInt16>(_pDrawData->DisplaySize.y) };
@@ -351,7 +352,7 @@ void ImGuiEngine::Render_(
     cb.mvp[3][2] = 0.5f;
     cb.mvp[3][3] = 1.0f;
 
-    gfx.UploadBuffer(m_cbh, AsMemoryView(cb));
+    gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     gfx.SetBlendFlags(m_bsFlags, 0);
     gfx.SetRenderFlags(m_rsFlags);
@@ -385,16 +386,16 @@ void ImGuiEngine::Render_(
 
             // Draw
             gfx.SetIndexBuffer(m_ibh, cmd.ElemCount, 0);
-            gfx.SetSubmitParameter(eSubmitParameterType::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
-            gfx.SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
+            gfx.SetSubmitParameter(eSubmitParameter::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
+            gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
 
             // Bind texture
             const auto [texh, type] = TextureDataFrom_(cmd.GetTexID());
 
             // set program
-            const ProgramHandle ph = (type == eTextureType::TextureCube) ? m_textureCubePh : m_basicPh;
+            const ProgramHandle ph = (type == eTexture::TextureCube) ? m_textureCubePh : m_basicPh;
             gfx.SetProgram(ph);
-            gfx.SetTexture(texh, eShader::PixelShader, 0);
+            gfx.SetTexture(texh, eShader::PixelShader, 0, TODO);
 
             // submit
             gfx.Submit();
@@ -405,14 +406,16 @@ void ImGuiEngine::Render_(
     }
 
     // reset state
-    gfx.SetSubmitParameter(eSubmitParameterType::StartIndexLocation, 0);
-    gfx.SetSubmitParameter(eSubmitParameterType::BaseVertexLocation, 0);
+    gfx.SetSubmitParameter(eSubmitParameter::StartIndexLocation, 0);
+    gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, 0);
     gfx.Flush();
 }
 
 void ImGuiEngine::UpdateTexture_(
     ImTextureData* _pTexture) const
 {
+    Graphics& gfx = GetGraphics();
+
     if (_pTexture->Status == ImTextureStatus_WantCreate)
     {
         JAM_ASSERT(_pTexture->TexID == ImTextureID_Invalid && _pTexture->BackendUserData == nullptr, "Trying to create a texture that is already created.");
@@ -423,8 +426,8 @@ void ImGuiEngine::UpdateTexture_(
         };
 
         // dynamic texture creation
-        const TextureHandle texh = GetGraphics().CreateTexture2D(_pTexture->Width, _pTexture->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::Mutable, texData);
-        _pTexture->SetTexID(ImTextureIDFrom_(texh, eTextureType::Texture2D));
+        const TextureHandle texh = gfx.CreateTexture2D(_pTexture->Width, _pTexture->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::Mutable, texData);
+        _pTexture->SetTexID(ImTextureIDFrom_(texh, eTexture::Texture2D));
         _pTexture->SetStatus(ImTextureStatus_OK);
     }
     else if (_pTexture->Status == ImTextureStatus_WantUpdates)
@@ -435,7 +438,7 @@ void ImGuiEngine::UpdateTexture_(
         for (const ImTextureRect& rect: _pTexture->Updates)
         {
             const MemoryView texData = { _pTexture->GetPixelsAt(rect.x, rect.y), _pTexture->GetSizeInBytes() };
-            GetGraphics().UploadTexture2D(texh, 0, 0, rect.x, rect.y, texData, rect.w, rect.h, _pTexture->GetPitch());
+            gfx.UpdateTexture2D(texh, 0, 0, texData, rect.x, rect.y, rect.w, rect.h);
         }
         _pTexture->SetStatus(ImTextureStatus_OK);
     }
@@ -461,7 +464,7 @@ void ImGuiEngine::DestroyTexture_(ImTextureData* _texture) const
 
 ImTextureRef ImTextureRefFrom(
     const TextureHandle _texh,
-    const eTextureType  _type)
+    const eTexture  _type)
 {
     return ImTextureIDFrom_(_texh, _type);
 }

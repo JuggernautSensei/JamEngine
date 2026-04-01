@@ -233,7 +233,7 @@ bool Model::IsValid() const
     return m_bValid;
 }
 
-eAssetType Model::GetAssetType() const
+eAsset Model::GetAssetType() const
 {
     return k_assetType;
 }

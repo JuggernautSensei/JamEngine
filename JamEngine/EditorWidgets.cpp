@@ -397,7 +397,7 @@ void Widget_ImageFrame(
 {
     JAM_ASSERT(_pTexture, "Texture is null");
     const Vec2i  texRes  = _pTexture->GetResolution();
-    const ImVec2 texSize = { NumericCast<float>(texRes.x), NumericCast<float>(texRes.y) };
+    const ImVec2 texSize = { static_cast<float>(texRes.x), static_cast<float>(texRes.y) };
     Widget_ImageFrame(ImTextureRefFrom(_pTexture), texSize, _frameSize, _uv0, _uv1, _bgCol, _bBorder);
 }
 
@@ -1460,14 +1460,14 @@ bool Widget_EnumToggle(
     ImGui::RenderFrame(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
     // buttons
-    const float  btnWidth = bb.GetWidth() / NumericCast<float>(_items.size());
+    const float  btnWidth = bb.GetWidth() / static_cast<float>(_items.size());
     const ImVec2 btnSize  = { btnWidth, bb.GetHeight() };
     bool         bChanged = false;
     Int32        idx      = 0;
     Int32        curIdx   = 0;
     for (const EnumWidgetItem& item: _items)
     {
-        const ImVec2  btnP0 = { bb.Min.x + btnWidth * NumericCast<float>(idx), bb.Min.y };
+        const ImVec2  btnP0 = { bb.Min.x + btnWidth * static_cast<float>(idx), bb.Min.y };
         const ImVec2  btnP1 = btnP0 + btnSize;
         const ImRect  btnBb = { btnP0, btnP1 };
         const ImGuiID btnId = pWin->GetID(idx);

@@ -1,7 +1,7 @@
 #pragma once
 
 // intercept memory allocators
-#include "MemoryAllocator.h"
+#include "Allocator.h"
 
 // predefine m_focusingShaderItemMacrosEdit
 #ifndef NOMINMAX
@@ -63,7 +63,7 @@
 #include "String.h"
 #include "RefCounted.h"
 #include "Log.h"
-#include "Memory.h"
+#include "MemoryView.h"
 #include "Error.h"
 #include "Scoped.h"
 #include "Delegate.h"

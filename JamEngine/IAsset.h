@@ -5,7 +5,7 @@
 namespace Jam
 {
 
-enum class eAssetType
+enum class eAsset
 {
     Texture = 0,
     Material,
@@ -29,7 +29,7 @@ public:
     virtual void  SetVirtualPath(StringView _path)                                                                                                         = 0;
 
     [[nodiscard]] virtual bool       IsValid() const      = 0;
-    [[nodiscard]] virtual eAssetType GetAssetType() const = 0;
+    [[nodiscard]] virtual eAsset GetAssetType() const = 0;
     [[nodiscard]] virtual StringView GetTypeName() const  = 0;
     [[nodiscard]] virtual UInt32     GetTypeHash() const  = 0;
     [[nodiscard]] virtual StringView GetPath() const      = 0;

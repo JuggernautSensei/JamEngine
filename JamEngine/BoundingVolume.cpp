@@ -8,7 +8,7 @@ namespace Jam
 namespace
 {
 
-    ePlaneIntersectType IntersectPlaneAabb_(
+    ePlaneIntersect IntersectPlaneAabb_(
         const Vec3  _center,
         const Vec3  _ext,
         const Vec3  _normal,
@@ -19,15 +19,15 @@ namespace
 
         if (dist > r)
         {
-            return ePlaneIntersectType::Outside;
+            return ePlaneIntersect::Outside;
         }
         else if (dist < -r)
         {
-            return ePlaneIntersectType::Inside;
+            return ePlaneIntersect::Inside;
         }
         else
         {
-            return ePlaneIntersectType::Intersects;
+            return ePlaneIntersect::Intersects;
         }
     }
 
@@ -501,7 +501,7 @@ RayCastResult Plane::Intersects(
     return result;
 }
 
-ePlaneIntersectType Plane::Intersects(const Aabb& _box) const
+ePlaneIntersect Plane::Intersects(const Aabb& _box) const
 {
     JAM_ASSERT(IsNormalized(), "Plane must be normalized to get correct intersection result.");
 
@@ -517,15 +517,15 @@ ePlaneIntersectType Plane::Intersects(const Aabb& _box) const
 
     // if (Dot(n, neg) + GetD() > 0.f)
     //{
-    //     return ePlaneIntersectType::Outside;
+    //     return ePlaneIntersect::Outside;
     // }
 
     // if (Dot(n, pos) + GetD() < 0.f)
     //{
-    //     return ePlaneIntersectType::Inside;
+    //     return ePlaneIntersect::Inside;
     // }
 
-    // return ePlaneIntersectType::Intersects;
+    // return ePlaneIntersect::Intersects;
 
     // 최적화된 방법
     // 1. aabb는 원점에서부터 모든 방향으로 일정하게 떨어져있다.
@@ -661,7 +661,7 @@ CornerPoints Frustum::GetCornerPoints() const
     return corners;
 }
 
-ePlaneIntersectType Frustum::Intersects(
+ePlaneIntersect Frustum::Intersects(
     const Aabb& _box) const
 {
     bool       bAnyIntersect = false;
@@ -670,17 +670,17 @@ ePlaneIntersectType Frustum::Intersects(
 
     for (const Plane& p: planes)
     {
-        const ePlaneIntersectType result = IntersectPlaneAabb_(c, e, p.GetNormal(), p.GetD());
-        if (result == ePlaneIntersectType::Outside)
+        const ePlaneIntersect result = IntersectPlaneAabb_(c, e, p.GetNormal(), p.GetD());
+        if (result == ePlaneIntersect::Outside)
         {
-            return ePlaneIntersectType::Outside;
+            return ePlaneIntersect::Outside;
         }
-        else if (result == ePlaneIntersectType::Intersects)
+        else if (result == ePlaneIntersect::Intersects)
         {
             bAnyIntersect = true;
         }
     }
-    return bAnyIntersect ? ePlaneIntersectType::Intersects : ePlaneIntersectType::Inside;
+    return bAnyIntersect ? ePlaneIntersect::Intersects : ePlaneIntersect::Inside;
 }
 
 RayCastResult Frustum::Intersects(const Ray& _ray) const

@@ -38,7 +38,7 @@ public:
     void  Invalidate() override;
 
     [[nodiscard]] bool       IsValid() const override;
-    [[nodiscard]] eAssetType GetAssetType() const override;
+    [[nodiscard]] eAsset GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt32     GetTypeHash() const override;
     [[nodiscard]] StringView GetPath() const override;
@@ -53,7 +53,7 @@ public:
 
     static constexpr StringView k_typeName  = NameOf<Model>();
     static constexpr UInt32     k_typeHash  = HashOf<Model>();
-    static constexpr eAssetType k_assetType = eAssetType::Model;
+    static constexpr eAsset k_assetType = eAsset::Model;
     static constexpr StringView k_extension = ".jmdl";
     static constexpr StringView k_filter    = "*.jmdl";
 

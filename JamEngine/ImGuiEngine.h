@@ -61,7 +61,7 @@ private:
     friend class Application;
 };
 
-[[nodiscard]] ImTextureRef ImTextureRefFrom(TextureHandle _texh, eTextureType _type = eTextureType::Texture2D);
+[[nodiscard]] ImTextureRef ImTextureRefFrom(TextureHandle _texh, eTexture _type = eTexture::Texture2D);
 [[nodiscard]] ImTextureRef ImTextureRefFrom(const Ref<Texture>& _pTexture);
 
 [[nodiscard]] inline ImGuiEngine& GetImGuiEngine()

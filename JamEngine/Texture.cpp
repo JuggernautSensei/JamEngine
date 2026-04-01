@@ -27,7 +27,7 @@ Texture::Texture(Texture&& _other) noexcept
 {
     _other.m_texh            = k_nullHandle;
     _other.m_res             = { 0, 0 };
-    _other.m_type            = eTextureType::Texture2D;
+    _other.m_type            = eTexture::Texture2D;
     _other.m_bLoadedFromFile = false;
 }
 
@@ -46,7 +46,7 @@ Texture& Texture::operator=(Texture&& _other) noexcept
 
         _other.m_texh            = k_nullHandle;
         _other.m_res             = { 0, 0 };
-        _other.m_type            = eTextureType::Texture2D;
+        _other.m_type            = eTexture::Texture2D;
         _other.m_bLoadedFromFile = false;
     }
     return *this;
@@ -149,7 +149,7 @@ bool Texture::IsValid() const
     return m_texh;
 }
 
-eAssetType Texture::GetAssetType() const
+eAsset Texture::GetAssetType() const
 {
     return k_asestType;
 }
@@ -194,7 +194,7 @@ Vec2i Texture::GetResolution() const
     return m_res;
 }
 
-eTextureType Texture::GetTextureType() const
+eTexture Texture::GetTextureType() const
 {
     return m_type;
 }
@@ -203,14 +203,14 @@ void Texture::Bind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    GetGraphics().SetTexture(m_texh, _shader, _slot);
+    GetGraphics().SetTexture(m_texh, _shader, _slot, TODO);
 }
 
 void Texture::Unbind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    GetGraphics().SetTexture(k_nullHandle, _shader, _slot);
+    GetGraphics().SetTexture(k_nullHandle, _shader, _slot, TODO);
 }
 
 void Texture::CleanUp_()
@@ -220,7 +220,7 @@ void Texture::CleanUp_()
     m_name.Clear();
     m_bLoadedFromFile = false;
     m_res             = { 0, 0 };
-    m_type            = eTextureType::Texture2D;
+    m_type            = eTexture::Texture2D;
 }
 
 void WriteToArchive(

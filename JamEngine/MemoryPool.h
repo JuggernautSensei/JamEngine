@@ -6,7 +6,7 @@ namespace Jam
 class MemoryPool
 {
 public:
-    explicit MemoryPool(USizeT _bytePerBlock, USizeT _blocksPerPool);
+    explicit MemoryPool(SizeT _bytePerBlock, SizeT _blocksPerPool);
     ~MemoryPool();
 
     MemoryPool(const MemoryPool&)            = delete;
@@ -15,9 +15,9 @@ public:
     MemoryPool(MemoryPool&& _pool) noexcept;
     MemoryPool& operator=(MemoryPool&& _pool) noexcept;
 
-    void* Alloc();
-    void  Free(void* p);
-    void  Reset();
+    [[nodiscard]] void* Alloc();
+    void                Free(void* p);
+    void                Reset();
 
 private:
     struct Node
@@ -30,16 +30,16 @@ private:
     Node* m_pFreeBlock = nullptr;
     Node* m_pPoolHead  = nullptr;
 
-    USizeT m_bytePerBlock  = 0;
-    USizeT m_blocksPerPool = 0;
+    SizeT m_bytePerBlock     = 0;
+    SizeT m_numBlocksPerPool = 0;
 };
 
 template<typename T>
 class ObjectPool
 {
 public:
-    explicit ObjectPool(const USizeT BlocksPerPool = 2048)
-        : m_pool(sizeof(T), BlocksPerPool)
+    explicit ObjectPool(const SizeT _numBlocksPerPool = 2048)
+        : m_pool(sizeof(T), _numBlocksPerPool)
     {
     }
 

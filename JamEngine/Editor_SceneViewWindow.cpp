@@ -478,8 +478,8 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
             if (dx != 0 || dy != 0)
             {
                 const float dRot   = m_cameraRotSpeed * k_dragSensitivity;
-                m_cameraEulerRad.x = Clamp(m_cameraEulerRad.x - NumericCast<float>(dy) * dRot, ToRad(-89.f), ToRad(89.f));
-                m_cameraEulerRad.y = Wrap(m_cameraEulerRad.y - NumericCast<float>(dx) * dRot, -Numbers<float>::k_pi, Numbers<float>::k_pi);
+                m_cameraEulerRad.x = Clamp(m_cameraEulerRad.x - static_cast<float>(dy) * dRot, ToRad(-89.f), ToRad(89.f));
+                m_cameraEulerRad.y = Wrap(m_cameraEulerRad.y - static_cast<float>(dx) * dRot, -Numbers<float>::k_pi, Numbers<float>::k_pi);
                 m_cameraTransform.SetRotation(m_cameraEulerRad);
             }
         }
@@ -494,8 +494,8 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
             const float dMov   = m_cameraMoveSpeed * k_dragSensitivity;
             const Vec3  right  = m_cameraTransform.GetRight();
             const Vec3  up     = m_cameraTransform.GetUp();
-            const Vec3  dRight = right * NumericCast<float>(dx) * dMov;
-            const Vec3  dUp    = up * NumericCast<float>(-dy) * dMov;
+            const Vec3  dRight = right * static_cast<float>(dx) * dMov;
+            const Vec3  dUp    = up * static_cast<float>(-dy) * dMov;
             m_cameraTransform.AddTranslation(dRight + dUp);
         }
     }
@@ -649,8 +649,8 @@ void Editor_SceneViewWindow::Resize_(
     GetGraphics().SetFrameBufferName(m_fbh, "scene view frame buffer");
 
     // camera
-    m_camera.SetWidth(NumericCast<float>(_width));
-    m_camera.SetHeight(NumericCast<float>(_height));
+    m_camera.SetWidth(static_cast<float>(_width));
+    m_camera.SetHeight(static_cast<float>(_height));
 
     // resize scene manager
     GetSceneManager().Resize(_width, _height);

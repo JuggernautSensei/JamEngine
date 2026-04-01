@@ -130,7 +130,7 @@ void SimpleScene::OnRender(
 {
     Graphics& gfx = GetGraphics();
     gfx.SetFrameBuffer(m_fbh);
-    gfx.ClearColor(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
+    gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
     gfx.SetViewport(m_vp);
     gfx.SetProgram(m_ph);
@@ -141,7 +141,7 @@ void SimpleScene::OnRender(
     CBSimpleSceneCamera cbCamera = {};
     cbCamera.cb_eyePos           = m_cameraTransform.GetTranslation();
     cbCamera.cb_viewProj         = vpMtx.Transpose();
-    gfx.UploadBuffer(m_cmrCbh, AsMemoryView(cbCamera));
+    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
     gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBSimpleSceneCamera::k_slot);
     gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBSimpleSceneCamera::k_slot);
 
@@ -150,14 +150,14 @@ void SimpleScene::OnRender(
     cbLight.cb_lightDir        = Normalized(m_lightLookAt - m_lightPos);
     cbLight.cb_lightColor      = m_lightColor;
     cbLight.cb_ambientColor    = m_ambientColor;
-    gfx.UploadBuffer(m_lightCbh, AsMemoryView(cbLight));
+    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
     gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBSimpleSceneLight::k_slot);
 
     // misc
     SimpleSceneMisc cbMisc = {};
     cbMisc.debugNormal     = 0;
     cbMisc.bEnableLight    = 1;
-    gfx.UploadBuffer(m_miscCbh, AsMemoryView(cbMisc));
+    gfx.UpdateBuffer(m_miscCbh, AsMemoryView(cbMisc));
     gfx.SetConstantBuffer(m_miscCbh, eShader::PixelShader, SimpleSceneMisc::k_slot);
 
     // entity
@@ -179,7 +179,7 @@ void SimpleScene::OnRender(
         cbEntity.cb_worldInvTrans = world.Invert();
         cbEntity.cb_shiness       = m_shiness;
         cbEntity.cb_baseColor     = m_baseColor;
-        gfx.UploadBuffer(m_entityCbh, AsMemoryView(cbEntity));
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
         pMesh->Submit();
     }
 

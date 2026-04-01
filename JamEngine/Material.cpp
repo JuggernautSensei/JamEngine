@@ -35,7 +35,7 @@ namespace   // data transfer objects
     // static_assert(std::is_trivially_copyable_v<MaterialParams>);
     // static_assert(sizeof(MaterialParamsDto) == sizeof(MaterialParams));
 
-    using MaterialTexturesDto        = ArrayDto<StringViewDto, CountOf<eMaterialTextureType>()>;
+    using MaterialTexturesDto        = ArrayDto<StringViewDto, CountOf<eMaterialTexture>()>;
     using MaterialTextureSettingsDto = MaterialTextureSettings;
 
     struct MaterialDto
@@ -96,7 +96,7 @@ Error Material::Save(
     dto.settings    = m_desc.settings;
 
     // write texture paths
-    for (eMaterialTextureType type: RangesOf<eMaterialTextureType>())
+    for (eMaterialTexture type: RangesOf<eMaterialTexture>())
     {
         const Ref<Texture>& pTexture = m_desc.textures[type];
         if (pTexture && pTexture->IsValid())
@@ -146,7 +146,7 @@ StringView Material::GetPath() const
     return m_path;
 }
 
-eAssetType Material::GetAssetType() const
+eAsset Material::GetAssetType() const
 {
     return k_assetType;
 }
@@ -215,7 +215,7 @@ Error Material::Load_(
     m_desc.settings = pDto->settings;
 
     // load texture
-    for (eMaterialTextureType type: RangesOf<eMaterialTextureType>())
+    for (eMaterialTexture type: RangesOf<eMaterialTexture>())
     {
         const StringViewDto& path = pDto->textures[UnderlyingFrom(type)];
         if (!path.empty())

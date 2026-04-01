@@ -217,7 +217,7 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
         {
             const String srcPath = ResolvePathDragDropPayload(pPayload);
             String       dstPath = _pEntry->path;
-            dstPath.Join(srcPath.GetFileName(), eJoinType::File);
+            dstPath.Join(srcPath.GetFileName(), eJoin::File);
             GetEditor().RenameFile(srcPath, dstPath);
         }
 
@@ -542,7 +542,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
 
     if (Widget_MenuItem("new folder"))
     {
-        const String path = String::Joined(pEntry->path, "new folder", eJoinType::File);
+        const String path = String::Joined(pEntry->path, "new folder", eJoin::File);
         GetEditor().CreateDir(path, FileSystem::eMakeDirectoryCollisionPolicy::Rename);
     }
 
@@ -555,7 +555,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             PrimitiveCreationDialogInfo info = {};
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
-            info.type                        = ePrimitiveCreationType::Cube;
+            info.type                        = ePrimitiveCreation::Cube;
             GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
@@ -564,7 +564,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             PrimitiveCreationDialogInfo info = {};
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
-            info.type                        = ePrimitiveCreationType::Sphere;
+            info.type                        = ePrimitiveCreation::Sphere;
             GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
@@ -573,7 +573,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             PrimitiveCreationDialogInfo info = {};
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
-            info.type                        = ePrimitiveCreationType::Plane;
+            info.type                        = ePrimitiveCreation::Plane;
             GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
@@ -582,7 +582,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             PrimitiveCreationDialogInfo info = {};
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
-            info.type                        = ePrimitiveCreationType::Circle;
+            info.type                        = ePrimitiveCreation::Circle;
             GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
@@ -591,7 +591,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             PrimitiveCreationDialogInfo info = {};
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
-            info.type                        = ePrimitiveCreationType::Cone;
+            info.type                        = ePrimitiveCreation::Cone;
             GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
@@ -600,7 +600,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
             PrimitiveCreationDialogInfo info = {};
             info.title                       = "create primitive";
             info.saveDirOrEmpty              = pEntry->path;
-            info.type                        = ePrimitiveCreationType::Cylinder;
+            info.type                        = ePrimitiveCreation::Cylinder;
             GetEditor().PushDialog(MakeScoped<PrimitiveCreationDialog>(info));
         }
 
@@ -846,7 +846,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
 
     switch (_event.type)
     {
-        case eFileEventType::Added:
+        case eFileEvent::Added:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [this, path = _event.path] {
@@ -856,7 +856,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         }
         break;
 
-        case eFileEventType::Deleted:
+        case eFileEvent::Deleted:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [this, path = _event.path] {
@@ -866,7 +866,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         }
         break;
 
-        case eFileEventType::Renamed:
+        case eFileEvent::Renamed:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [this, oldPath = _event.oldPath, newPath = _event.path] {
@@ -876,7 +876,7 @@ void Editor_FileBrowserWindow::OnFileWatcherEvent_(
         }
         break;
 
-        case eFileEventType::Modified:
+        case eFileEvent::Modified:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [this, path = _event.path] {

@@ -1,5 +1,5 @@
 #pragma once
-#include "MemoryAllocator.h"
+#include "Allocator.h"
 
 namespace Jam::Tiny
 {

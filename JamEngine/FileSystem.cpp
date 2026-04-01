@@ -83,19 +83,19 @@ namespace Utf16
     bool IsDirectory(
         const WStringView _path)
     {
-        return QueryFileAttribute(_path).type == eFileType::Directory;
+        return QueryFileAttribute(_path).type == eFile::Directory;
     }
 
     bool IsFile(
         const WStringView _path)
     {
-        return QueryFileAttribute(_path).type == eFileType::File;
+        return QueryFileAttribute(_path).type == eFile::File;
     }
 
     bool IsSymbolicLink(
         const WStringView _path)
     {
-        return QueryFileAttribute(_path).type == eFileType::SymbolicLink;
+        return QueryFileAttribute(_path).type == eFile::SymbolicLink;
     }
 
     Error Remove(
@@ -184,7 +184,7 @@ namespace Utf16
             for (const WStringView childSrc: iter.GetValue())
             {
                 PathStackWString childDst = _dstPath;
-                childDst.Join(childSrc.GetFileName(), childSrc.IsDirectory() ? eJoinType::Directory : eJoinType::File);
+                childDst.Join(childSrc.GetFileName(), childSrc.IsDirectory() ? eJoin::Directory : eJoin::File);
                 if (const Error err = Copy(childSrc, childDst, _policy))
                 {
                     return err;   // failed to copy an entry in the directory
@@ -270,9 +270,9 @@ namespace Utf16
         }
 
         FileAttribute attrib = {};
-        attrib.type          = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY     ? eFileType::Directory
-                             : data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT ? eFileType::SymbolicLink
-                                                                                    : eFileType::File;
+        attrib.type          = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY     ? eFile::Directory
+                             : data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT ? eFile::SymbolicLink
+                                                                                    : eFile::File;
 
         attrib.creationTime   = FileTimeToUInt64_(data.ftCreationTime);
         attrib.lastAccessTime = FileTimeToUInt64_(data.ftLastAccessTime);
@@ -346,7 +346,7 @@ namespace Utf16
         result.Reserve(upLevels * 2 + toAbs.GetLength());   // reserve enough capacity for the result
         for (Int32 i = 0; i < upLevels; ++i)
         {
-            result.Join(L"..", eJoinType::Directory);
+            result.Join(L"..", eJoin::Directory);
         }
 
         for (const WStringView slice: toIt)
@@ -487,19 +487,19 @@ namespace Utf8
     bool IsDirectory(
         const StringView _path)
     {
-        return QueryFileAttribute(_path).type == eFileType::Directory;
+        return QueryFileAttribute(_path).type == eFile::Directory;
     }
 
     bool IsFile(
         const StringView _path)
     {
-        return QueryFileAttribute(_path).type == eFileType::File;
+        return QueryFileAttribute(_path).type == eFile::File;
     }
 
     bool IsSymbolicLink(
         const StringView _path)
     {
-        return QueryFileAttribute(_path).type == eFileType::SymbolicLink;
+        return QueryFileAttribute(_path).type == eFile::SymbolicLink;
     }
 
     Error Remove(

@@ -1,6 +1,6 @@
 #pragma once
-// ReSharper disable once CppUnusedIncludeDirective
 #include <DirectXTex.h>
+
 #include "HandleAllocator.h"
 #include "Math.h"
 #include "TextureFormat.h"
@@ -9,25 +9,34 @@
 namespace Jam
 {
 
-constexpr Int32 k_maxNumRenderTargetViewSlots   = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
-constexpr Int32 k_maxNumAttachmentSlots         = k_maxNumRenderTargetViewSlots + 1;   // render target + depth stencil
-constexpr Int32 k_maxNumSamplerSlots            = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
-constexpr Int32 k_maxNumShaderResourceViewSlots = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-constexpr Int32 k_maxNumConstantBufferSlots     = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-constexpr Int32 k_maxNumVertexAttributes        = D3D11_VS_INPUT_REGISTER_COUNT;
-constexpr Int32 k_maxNumVertexStream            = 4;
+/////////// CONSTANTS ////////////////////////////////////////////////////////////////////////////////////////////////
+
+constexpr Int32 k_maxNumRenderTargetViewSlots    = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+constexpr Int32 k_maxNumAttachmentSlots          = k_maxNumRenderTargetViewSlots + 1;   // render target + depth stencil
+constexpr Int32 k_maxNumSamplerSlots             = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
+constexpr Int32 k_maxNumShaderResourceViewSlots  = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+constexpr Int32 k_maxNumUnorderedAccessViewSlots = D3D11_1_UAV_SLOT_COUNT;
+constexpr Int32 k_maxNumConstantBufferSlots      = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+constexpr Int32 k_maxNumVSInputSlots             = D3D11_VS_INPUT_REGISTER_COUNT;
+constexpr Int32 k_maxNumVertexStream             = 4;
+constexpr Int32 k_maxNumVertexAttribs            = NumericCast<Int32>(CountOf<eVertexAttribute>());
+constexpr Int32 k_maxNumInstanceAttribs          = k_maxNumVSInputSlots - k_maxNumVertexAttribs;
+
+////////// ENUMS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum class eTextureCreateFlags : UInt32
 {
     None = 0,
 
-    GenerateMips           = 1 << 0,   // generate mips until 1x1x1
-    RenderTargetAttachment = 1 << 1,   // attachable as render target
-    DepthStencilAttachment = 1 << 2,   // attachable as depth stencil
-    Mutable                = 1 << 3,   // texture be mutable by gpu
-    WriteOnly              = 1 << 4,   // cannot readable on gpu
-    ComputeReadWrite       = 1 << 5,   // readable & writable on compute shader
-    Readback               = 1 << 6,   // readable on cpu
+    GenerateMips           = 1 << 0,   // auto-generate full mip chain down to 1x1
+    RenderTargetAttachment = 1 << 1,   // usable as render target attachment
+    DepthStencilAttachment = 1 << 2,   // usable as depth stencil attachment
+
+    // access
+    Mutable           = 1 << 3,   // force mutable                  (if init data is provided, texture is immutable. this flag overrides it)
+    Readback          = 1 << 4,   // staging readback
+    DisableShaderRead = 1 << 5,   // disable shader read            (no SRV created)
+    ShaderReadWrite   = 1 << 6,   // shader read & write enabled    (create UAV)
 
     MSAAx4  = 1 << 7,   // 4x MSAA
     MSAAx8  = 2 << 7,   // 8x MSAA
@@ -40,12 +49,13 @@ enum class eStorageBufferCreateFlags : UInt32
 {
     None = 0,
 
-    Readable         = 1 << 0,   // readable on gpu
-    ComputeReadWrite = 1 << 1,   // readable & writable on compute shader
-    IndirectArgs     = 1 << 2,   // can be used as indirect argument buffer
+    Dynamic         = 1 << 0,   // dynamic buffer                      (CPU write access)
+    ShaderRead      = 1 << 1,   // shader read enabled                 (SRV)
+    ShaderReadWrite = 1 << 2,   // shader read & write enabled         (UAV)
+    IndirectArgs    = 1 << 3,   // usable as indirect argument buffer
 };
 
-enum class eStorageBufferDataType
+enum class eStorageBufferData
 {
     UInt8x1,
     UInt8x2,
@@ -77,20 +87,28 @@ enum class eShader
 {
     VertexShader = 0,
     PixelShader,
+    GeometryShader,
     HullShader,
     DomainShader,
-    GeometryShader,
     ComputeShader,
 };
 
-enum class eTextureType
+enum class eTexture
 {
     Texture2D = 0,
     Texture3D,
     TextureCube,
 };
 
-enum class eStorageBufferType
+enum class eBuffer
+{
+    VertexBuffer,
+    IndexBuffer,
+    ConstantBuffer,
+    StorageBuffer,
+};
+
+enum class eStorageBuffer
 {
     Raw = 0,
     Structured,
@@ -129,7 +147,7 @@ enum class eShaderCompileFlags : UInt32
 #endif
 };
 
-enum class eSubmitParameterType
+enum class eSubmitParameter
 {
     StartVertexLocation = 0,
     StartIndexLocation,
@@ -137,298 +155,25 @@ enum class eSubmitParameterType
     BaseVertexLocation,
 };
 
-struct VertexLayoutRef
+enum class eReadWriteStage
 {
-    VertexLayout vl   = {};
-    UInt64       hash = 0;
-};
-using VertexLayoutHandle = Handle<VertexLayoutRef>;
-
-struct HardwareBuffer
-{
-    String        name    = {};
-    ID3D11Buffer* pBuffer = nullptr;
-
-    Int32 byteWidth = 0;
-    bool  bDynamic  = false;
+    Pixel = 0,
+    Compute,
 };
 
-struct VertexBuffer : HardwareBuffer
+enum class eShaderResource
 {
-    Int32              numVerts = 0;
-    Int32              stride   = 0;
-    VertexLayoutHandle vlh      = k_nullHandle;
-};
-using VertexBufferHandle = Handle<VertexBuffer>;
-
-struct IndexBuffer : HardwareBuffer
-{
-    Int32 numIdxes = 0;
-    Int32 stride   = 0;
-    bool  bUseU32  = false;
-};
-using IndexBufferHandle = Handle<IndexBuffer>;
-
-struct ConstantBuffer : HardwareBuffer
-{
-};
-using ConstantBufferHandle = Handle<ConstantBuffer>;
-
-struct StorageBuffer : HardwareBuffer
-{
-    ID3D11ShaderResourceView*  pSrv = nullptr;
-    ID3D11UnorderedAccessView* pUav = nullptr;
-
-    eStorageBufferType type           = eStorageBufferType::Raw;
-    Int32              numElems       = 0;
-    Int32              stride         = 0;
-    bool               bReadback      = false;
-    bool               bIndirectArgs  = false;
-    bool               bAppendConsume = false;
-    bool               bCounter       = false;
-};
-using StorageBufferHandle = Handle<StorageBuffer>;
-
-struct HardwareTextureRef
-{
-    union
-    {
-        ID3D11Resource*  pResource = nullptr;
-        ID3D11Texture2D* pTexture2D;
-        ID3D11Texture3D* pTexture3D;
-    };
-
-    ID3D11ShaderResourceView*  pSrv = nullptr;
-    ID3D11UnorderedAccessView* pUav = nullptr;
-
-    String         name           = {};
-    Int32          width          = 0;
-    Int32          height         = 0;
-    Int32          depth          = 0;
-    eTextureType   type           = eTextureType::Texture2D;
-    eTextureFormat format         = eTextureFormat::Unknown;
-    Int32          arraySize      = 1;   // cubemap count = arraySize / 6
-    Int32          samples        = 1;
-    Int32          numMips        = 1;
-    bool           bMutable       = false;
-    Int32          refCount       = 0;
-    bool           bManaged       = false;
-    bool           bRtvAttachable = false;
-    bool           bDsvAttachable = false;
-    bool           bReadback      = false;
-};
-using TextureHandle = Handle<HardwareTextureRef>;
-
-struct FrameBuffer
-{
-    String name             = {};
-    Int32  numRenderTargets = 0;
-
-    Array<TextureHandle, k_maxNumRenderTargetViewSlots> renderTargetTexhs = { k_nullHandle };
-    TextureHandle                                       depthStencilTexh  = { k_nullHandle };
-
-    Array<ID3D11RenderTargetView*, k_maxNumRenderTargetViewSlots> pRtvs = { nullptr };
-    ID3D11DepthStencilView*                                       pDsv  = nullptr;
-};
-using FrameBufferHandle = Handle<FrameBuffer>;
-
-struct ShaderRef
-{
-    union
-    {
-        ID3D11VertexShader*   pVertexShader = nullptr;
-        ID3D11PixelShader*    pPixelShader;
-        ID3D11GeometryShader* pGeometryShader;
-        ID3D11HullShader*     pHullShader;
-        ID3D11DomainShader*   pDomainShader;
-        ID3D11ComputeShader*  pComputeShader;
-    };
-
-    String  name     = {};
-    eShader stage    = eShader::VertexShader;
-    Int32   refCount = 0;
-    UInt64  hash     = 0;
-};
-using ShaderHandle = Handle<ShaderRef>;
-
-struct Program
-{
-    ShaderHandle vsh = k_nullHandle;
-    ShaderHandle psh = k_nullHandle;
-    ShaderHandle gsh = k_nullHandle;
-    ShaderHandle hsh = k_nullHandle;
-    ShaderHandle dsh = k_nullHandle;
-    ShaderHandle csh = k_nullHandle;
-};
-using ProgramHandle = Handle<Program>;
-
-struct RGBA
-{
-    constexpr RGBA()
-    {
-    }
-
-    explicit constexpr RGBA(const UInt32 _rgba)
-        : r(NumericCast<UInt8>((_rgba >> 24) & 0xFF))
-        , g(NumericCast<UInt8>((_rgba >> 16) & 0xFF))
-        , b(NumericCast<UInt8>((_rgba >> 8) & 0xFF))
-        , a(NumericCast<UInt8>(_rgba & 0xFF))
-    {
-    }
-
-    constexpr RGBA(const UInt8 _r, const UInt8 _g, const UInt8 _b, const UInt8 _a = 255)
-        : r(_r)
-        , g(_g)
-        , b(_b)
-        , a(_a)
-    {
-    }
-
-    [[nodiscard]] constexpr static RGBA FromLinear(const float _r, const float _g, const float _b, const float _a = 1.0f)
-    {
-        return {
-            NumericCast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
-            NumericCast<UInt8>(Clamp(_g, 0.0f, 1.0f) * 255.0f),
-            NumericCast<UInt8>(Clamp(_b, 0.0f, 1.0f) * 255.0f),
-            NumericCast<UInt8>(Clamp(_a, 0.0f, 1.0f) * 255.0f)
-        };
-    }
-
-    [[nodiscard]] constexpr Vec4 ToLinear() const
-    {
-        return {
-            NumericCast<float>(r) / 255.0f,
-            NumericCast<float>(g) / 255.0f,
-            NumericCast<float>(b) / 255.0f,
-            NumericCast<float>(a) / 255.0f
-        };
-    }
-
-    // RRGGBBAA
-    [[nodiscard]] constexpr UInt32 ToRGBA() const
-    {
-        return (NumericCast<UInt32>(r) << 24)
-             | (NumericCast<UInt32>(g) << 16)
-             | (NumericCast<UInt32>(b) << 8)
-             | NumericCast<UInt32>(a);
-    }
-
-    // AABBGGRR
-    [[nodiscard]] constexpr UInt32 ToABGR() const
-    {
-        return (NumericCast<UInt32>(a) << 24)
-             | (NumericCast<UInt32>(b) << 16)
-             | (NumericCast<UInt32>(g) << 8)
-             | NumericCast<UInt32>(r);
-    }
-
-    // BBGGRRAA
-    [[nodiscard]] constexpr UInt32 ToBGRA() const
-    {
-        return (NumericCast<UInt32>(b) << 24)
-             | (NumericCast<UInt32>(g) << 16)
-             | (NumericCast<UInt32>(r) << 8)
-             | NumericCast<UInt32>(a);
-    }
-
-    [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
-    {
-        return value == _other.value;
-    }
-
-    [[nodiscard]] constexpr bool operator!=(const RGBA& _other) const
-    {
-        return value != _other.value;
-    }
-
-    static RGBA k_white;
-    static RGBA k_black;
-    static RGBA k_transparent;
-
-    union
-    {
-        struct
-        {
-            UInt8 r;
-            UInt8 g;
-            UInt8 b;
-            UInt8 a;
-        };
-        UInt32 value = 0;
-    };
+    Texture = 0,
+    Buffer,
 };
 
-struct Viewport
+enum class eShaderResourceAccess
 {
-    constexpr Viewport()
-    {
-    }
-
-    constexpr Viewport(const UInt16 _w, const UInt16 _h)
-        : x(0)
-        , y(0)
-        , w(_w)
-        , h(_h)
-    {
-    }
-
-    constexpr Viewport(const UInt16 _x, const UInt16 _y, const UInt16 _w, const UInt16 _h)
-        : x(_x)
-        , y(_y)
-        , w(_w)
-        , h(_h)
-    {
-    }
-
-    [[nodiscard]] constexpr bool operator==(const Viewport& _other) const
-    {
-        return viewport == _other.viewport;
-    }
-
-    [[nodiscard]] constexpr bool operator!=(const Viewport& _other) const
-    {
-        return viewport != _other.viewport;
-    }
-
-    union
-    {
-        struct
-        {
-            UInt16 x;   // 뷰포트의 왼쪽 상단 X 좌표
-            UInt16 y;   // 뷰포트의 왼쪽 상단 Y 좌표
-            UInt16 w;   // 뷰포트의 너비
-            UInt16 h;   // 뷰포트의 높이
-        };
-        UInt64 viewport = 0;
-    };
+    Read = 0,
+    ReadWrite,
 };
 
-struct Rect
-{
-    constexpr Rect()
-    {
-    }
-
-    constexpr Rect(const UInt16 _left, const UInt16 _top, const UInt16 _right, const UInt16 _bottom)
-        : left(_left)
-        , top(_top)
-        , right(_right)
-        , bottom(_bottom)
-    {
-    }
-
-    union
-    {
-        struct
-        {
-            UInt16 left;
-            UInt16 top;
-            UInt16 right;
-            UInt16 bottom;
-        };
-        UInt64 rect = 0;
-    };
-};
+////////// STATES ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum class eRenderFlags : UInt32
 {
@@ -629,14 +374,14 @@ enum class eStencilFlags : UInt16
 
     // CompareFunc [9:12] : 4 bit
     CompareFunc_None         = 0 << 9,
-    CompareFunc_Never        = 1 << 9,
-    CompareFunc_Less         = 2 << 9,
-    CompareFunc_Equal        = 3 << 9,
-    CompareFunc_LessEqual    = 4 << 9,
-    CompareFunc_Greater      = 5 << 9,
+    CompareFunc_Less         = 1 << 9,
+    CompareFunc_LessEqual    = 2 << 9,
+    CompareFunc_Greater      = 3 << 9,
+    CompareFunc_GreaterEqual = 4 << 9,
+    CompareFunc_Equal        = 5 << 9,
     CompareFunc_NotEqual     = 6 << 9,
-    CompareFunc_GreaterEqual = 7 << 9,
-    CompareFunc_Always       = 8 << 9,
+    CompareFunc_Always       = 7 << 9,
+    CompareFunc_Never        = 8 << 9,
 };
 
 // Filter helper
@@ -697,14 +442,14 @@ enum class eSamplerFlags : UInt32
 
     // CompareFunc [14:17] : 4 bit
     CompareFunc_None         = 0 << 14,
-    CompareFunc_Never        = 1 << 14,
-    CompareFunc_Less         = 2 << 14,
-    CompareFunc_Equal        = 3 << 14,
-    CompareFunc_LessEqual    = 4 << 14,
-    CompareFunc_Greater      = 5 << 14,
+    CompareFunc_Less         = 1 << 14,
+    CompareFunc_LessEqual    = 2 << 14,
+    CompareFunc_Greater      = 3 << 14,
+    CompareFunc_GreaterEqual = 4 << 14,
+    CompareFunc_Equal        = 5 << 14,
     CompareFunc_NotEqual     = 6 << 14,
-    CompareFunc_GreaterEqual = 7 << 14,
-    CompareFunc_Always       = 8 << 14,
+    CompareFunc_Always       = 7 << 14,
+    CompareFunc_Never        = 8 << 14,
 };
 
 // Filter helper
@@ -728,45 +473,376 @@ enum class eSamplerFlags : UInt32
 [[nodiscard]] UInt32 ResolveAddressWFlags(Flags<eSamplerFlags> _flags);
 [[nodiscard]] UInt32 ResolveCompareFuncFlags(Flags<eSamplerFlags> _flags);
 
-///////////////////////////////////////
-///          RESOURCE INFO          ///
-///////////////////////////////////////
+////////// RESOURCE //////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct VertexBufferInfo
+struct VertexLayoutRef
 {
-    Int32              byteWidth    = 0;
-    Int32              numVerts     = 0;
-    Int32              vertexStride = 0;
-    bool               bDynamic     = false;
-    VertexLayoutHandle layoutHandle = k_nullHandle;
+    VertexLayout vl   = {};
+    UInt64       hash = 0;
+};
+using VertexLayoutHandle = Handle<VertexLayoutRef>;
+
+struct HardwareBuffer
+{
+    ID3D11Buffer* pBuffer = nullptr;
+
+    String  name       = {};
+    eBuffer type       = eBuffer::VertexBuffer;
+    Int32   byteWidth  = 0;
+    bool    bImmutable = false;
+    bool    bDynamic   = false;
 };
 
-struct IndexBufferInfo
+struct VertexBuffer : HardwareBuffer
 {
-    Int32 byteWidth  = 0;
-    Int32 numIndices = 0;
-    bool  bUseU32    = false;
-    bool  bDynamic   = false;
+    Int32              stride = 0;
+    VertexLayoutHandle vlh    = k_nullHandle;
+};
+using VertexBufferHandle = Handle<VertexBuffer>;
+
+struct IndexBuffer : HardwareBuffer
+{
+    bool bUseU32 = false;
+};
+using IndexBufferHandle = Handle<IndexBuffer>;
+
+struct ConstantBuffer : HardwareBuffer
+{
+};
+using ConstantBufferHandle = Handle<ConstantBuffer>;
+
+struct StorageBuffer : HardwareBuffer
+{
+    ID3D11ShaderResourceView*  pSrv = nullptr;
+    ID3D11UnorderedAccessView* pUav = nullptr;
+
+    eStorageBuffer storageType    = eStorageBuffer::Raw;
+    Int32          stride         = 0;
+    Int32          numElems       = 0;
+    bool           bReadback      = false;
+    bool           bIndirectArgs  = false;
+    bool           bAppendConsume = false;   // option for structured buffer
+    bool           bCounter       = false;   // option for structured buffer
+};
+using StorageBufferHandle = Handle<StorageBuffer>;
+
+struct HardwareTextureRef
+{
+    union
+    {
+        ID3D11Resource*  pResource = nullptr;
+        ID3D11Texture2D* pTexture2D;
+        ID3D11Texture3D* pTexture3D;
+    };
+
+    ID3D11ShaderResourceView*  pSrv = nullptr;
+    ID3D11UnorderedAccessView* pUav = nullptr;
+
+    String         name           = {};
+    Int32          width          = 0;
+    Int32          height         = 0;
+    Int32          depth          = 0;
+    eTexture       type           = eTexture::Texture2D;
+    eTextureFormat format         = eTextureFormat::Unknown;
+    Int32          arraySize      = 1;   // cubemap count = arraySize / 6
+    Int32          samples        = 1;
+    Int32          numMips        = 1;
+    Int32          refCount       = 0;
+    bool           bRtvAttachable = false;
+    bool           bDsvAttachable = false;
+    bool           bImmutable     = false;
+    bool           bReadback      = false;
+};
+using TextureHandle = Handle<HardwareTextureRef>;
+
+struct FrameBuffer
+{
+    String name             = {};
+    Int32  numRenderTargets = 0;
+
+    Array<TextureHandle, k_maxNumRenderTargetViewSlots>           renderTargetTexhs = { k_nullHandle };
+    TextureHandle                                                 depthStencilTexh  = { k_nullHandle };
+    Array<ID3D11RenderTargetView*, k_maxNumRenderTargetViewSlots> pRtvs             = { nullptr };
+    ID3D11DepthStencilView*                                       pDsv              = nullptr;
+};
+using FrameBufferHandle = Handle<FrameBuffer>;
+
+struct ShaderRef
+{
+    union
+    {
+        ID3D11VertexShader*   pVertexShader = nullptr;
+        ID3D11PixelShader*    pPixelShader;
+        ID3D11GeometryShader* pGeometryShader;
+        ID3D11HullShader*     pHullShader;
+        ID3D11DomainShader*   pDomainShader;
+        ID3D11ComputeShader*  pComputeShader;
+    };
+
+    String  name     = {};
+    eShader stage    = eShader::VertexShader;
+    Int32   refCount = 0;
+    UInt64  hash     = 0;
+};
+using ShaderHandle = Handle<ShaderRef>;
+
+struct Program
+{
+    ShaderHandle vsh = k_nullHandle;
+    ShaderHandle psh = k_nullHandle;
+    ShaderHandle gsh = k_nullHandle;
+    ShaderHandle hsh = k_nullHandle;
+    ShaderHandle dsh = k_nullHandle;
+    ShaderHandle csh = k_nullHandle;
+};
+using ProgramHandle = Handle<Program>;
+
+////////// STRUCTS ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct RGBA
+{
+    constexpr RGBA()
+    {
+    }
+
+    explicit constexpr RGBA(const UInt32 _rgba)
+        : r(NumericCast<UInt8>((_rgba >> 24) & 0xFF))
+        , g(NumericCast<UInt8>((_rgba >> 16) & 0xFF))
+        , b(NumericCast<UInt8>((_rgba >> 8) & 0xFF))
+        , a(NumericCast<UInt8>(_rgba & 0xFF))
+    {
+    }
+
+    constexpr RGBA(const UInt8 _r, const UInt8 _g, const UInt8 _b, const UInt8 _a = 255)
+        : r(_r)
+        , g(_g)
+        , b(_b)
+        , a(_a)
+    {
+    }
+
+    [[nodiscard]] constexpr static RGBA FromLinear(const float _r, const float _g, const float _b, const float _a = 1.0f)
+    {
+        return {
+            NumericCast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
+            NumericCast<UInt8>(Clamp(_g, 0.0f, 1.0f) * 255.0f),
+            NumericCast<UInt8>(Clamp(_b, 0.0f, 1.0f) * 255.0f),
+            NumericCast<UInt8>(Clamp(_a, 0.0f, 1.0f) * 255.0f)
+        };
+    }
+
+    [[nodiscard]] constexpr Vec4 ToLinear() const
+    {
+        return {
+            static_cast<float>(r) / 255.0f,
+            static_cast<float>(g) / 255.0f,
+            static_cast<float>(b) / 255.0f,
+            static_cast<float>(a) / 255.0f
+        };
+    }
+
+    // RRGGBBAA
+    [[nodiscard]] constexpr UInt32 ToRGBA() const
+    {
+        return (NumericCast<UInt32>(r) << 24)
+             | (NumericCast<UInt32>(g) << 16)
+             | (NumericCast<UInt32>(b) << 8)
+             | NumericCast<UInt32>(a);
+    }
+
+    // AABBGGRR
+    [[nodiscard]] constexpr UInt32 ToABGR() const
+    {
+        return (NumericCast<UInt32>(a) << 24)
+             | (NumericCast<UInt32>(b) << 16)
+             | (NumericCast<UInt32>(g) << 8)
+             | NumericCast<UInt32>(r);
+    }
+
+    // BBGGRRAA
+    [[nodiscard]] constexpr UInt32 ToBGRA() const
+    {
+        return (NumericCast<UInt32>(b) << 24)
+             | (NumericCast<UInt32>(g) << 16)
+             | (NumericCast<UInt32>(r) << 8)
+             | NumericCast<UInt32>(a);
+    }
+
+    [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
+    {
+        return value == _other.value;
+    }
+
+    [[nodiscard]] constexpr bool operator!=(const RGBA& _other) const
+    {
+        return value != _other.value;
+    }
+
+    static RGBA k_white;
+    static RGBA k_black;
+    static RGBA k_transparent;
+
+    union
+    {
+        struct
+        {
+            UInt8 r;
+            UInt8 g;
+            UInt8 b;
+            UInt8 a;
+        };
+        UInt32 value = 0;
+    };
 };
 
-struct ConstantBufferInfo
+struct Viewport
 {
-    Int32 byteWidth = 0;
+    constexpr Viewport()
+    {
+    }
+
+    constexpr Viewport(const UInt16 _w, const UInt16 _h)
+        : x(0)
+        , y(0)
+        , w(_w)
+        , h(_h)
+    {
+    }
+
+    constexpr Viewport(const UInt16 _x, const UInt16 _y, const UInt16 _w, const UInt16 _h)
+        : x(_x)
+        , y(_y)
+        , w(_w)
+        , h(_h)
+    {
+    }
+
+    [[nodiscard]] constexpr bool operator==(const Viewport& _other) const
+    {
+        return viewport == _other.viewport;
+    }
+
+    [[nodiscard]] constexpr bool operator!=(const Viewport& _other) const
+    {
+        return viewport != _other.viewport;
+    }
+
+    union
+    {
+        struct
+        {
+            UInt16 x;   // 뷰포트의 왼쪽 상단 X 좌표
+            UInt16 y;   // 뷰포트의 왼쪽 상단 Y 좌표
+            UInt16 w;   // 뷰포트의 너비
+            UInt16 h;   // 뷰포트의 높이
+        };
+        UInt64 viewport = 0;
+    };
 };
 
-struct TextureInfo
+struct Rect
 {
-    Int32          width                   = 0;
-    Int32          height                  = 0;
-    Int32          depth                   = 0;
-    eTextureType   type                    = eTextureType::Texture2D;
-    eTextureFormat format                  = eTextureFormat::Unknown;
-    Int32          arraySize               = 1;
-    Int32          samples                 = 1;
-    Int32          numMips                 = 1;
-    bool           bMutable                = false;
-    bool           bRenderTargetAttachable = false;
-    bool           bDepthStencilAttachable = false;
+    constexpr Rect()
+    {
+    }
+
+    constexpr Rect(const UInt16 _left, const UInt16 _top, const UInt16 _right, const UInt16 _bottom)
+        : left(_left)
+        , top(_top)
+        , right(_right)
+        , bottom(_bottom)
+    {
+    }
+
+    [[nodiscard]] constexpr bool operator==(const Rect& _other) const
+    {
+        return rect == _other.rect;
+    }
+
+    [[nodiscard]] constexpr bool operator!=(const Rect& _other) const
+    {
+        return rect != _other.rect;
+    }
+
+    union
+    {
+        struct
+        {
+            UInt16 left;
+            UInt16 top;
+            UInt16 right;
+            UInt16 bottom;
+        };
+        UInt64 rect = 0;
+    };
+};
+
+class AnyBufferHandle
+{
+public:
+    AnyBufferHandle() = default;
+
+    /* implicit */ AnyBufferHandle(const VertexBufferHandle _vbh)
+        : m_handleValue(_vbh.GetValue())
+        , m_type(eBuffer::VertexBuffer)
+    {
+    }
+
+    /* implicit */ AnyBufferHandle(const IndexBufferHandle _ibh)
+        : m_handleValue(_ibh.GetValue())
+        , m_type(eBuffer::IndexBuffer)
+    {
+    }
+
+    /* implicit */ AnyBufferHandle(const ConstantBufferHandle _cbh)
+        : m_handleValue(_cbh.GetValue())
+        , m_type(eBuffer::ConstantBuffer)
+    {
+    }
+
+    /* implicit */ AnyBufferHandle(const StorageBufferHandle _sbh)
+        : m_handleValue(_sbh.GetValue())
+        , m_type(eBuffer::StorageBuffer)
+    {
+    }
+
+    [[nodiscard]] VertexBufferHandle AsVertexBufferHandle() const
+    {
+        JAM_ASSERT(m_type == eBuffer::VertexBuffer);
+        return m_handleValue;
+    }
+
+    [[nodiscard]] IndexBufferHandle AsIndexBufferHandle() const
+    {
+        JAM_ASSERT(m_type == eBuffer::IndexBuffer);
+        return m_handleValue;
+    }
+
+    [[nodiscard]] ConstantBufferHandle AsConstantBufferHandle() const
+    {
+        JAM_ASSERT(m_type == eBuffer::ConstantBuffer);
+        return m_handleValue;
+    }
+
+    [[nodiscard]] StorageBufferHandle AsStorageBufferHandle() const
+    {
+        JAM_ASSERT(m_type == eBuffer::StorageBuffer);
+        return m_handleValue;
+    }
+
+    [[nodiscard]] UInt32 GetValue() const
+    {
+        return m_handleValue;
+    }
+
+    [[nodiscard]] eBuffer GetType() const
+    {
+        return m_type;
+    }
+
+private:
+    UInt32  m_handleValue = k_nullHandleValue;
+    eBuffer m_type        = eBuffer::VertexBuffer;
 };
 
 struct TextureResolution
@@ -774,6 +850,60 @@ struct TextureResolution
     Int32 width  = 0;
     Int32 height = 0;
     Int32 depth  = 0;
+};
+
+////////// RESOURCE INFO STRUCTS ////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct VertexBufferInfo
+{
+    Int32              byteWidth    = 0;
+    Int32              stride       = 0;
+    bool               bImmutable   = false;
+    bool               bDynamic     = false;
+    VertexLayoutHandle layoutHandle = k_nullHandle;
+};
+
+struct IndexBufferInfo
+{
+    Int32 byteWidth  = 0;
+    bool  bImmutable = false;
+    bool  bDynamic   = false;
+    bool  bUseU32    = false;
+};
+
+struct ConstantBufferInfo
+{
+    Int32 byteWidth = 0;
+};
+
+struct StorageBufferInfo
+{
+    Int32          byteWidth      = 0;
+    Int32          numElems       = 0;
+    Int32          stride         = 0;
+    eStorageBuffer type           = eStorageBuffer::Raw;
+    bool           bImmutable     = false;
+    bool           bDynamic       = false;
+    bool           bReadback      = false;
+    bool           bIndirectArgs  = false;
+    bool           bAppendConsume = false;
+    bool           bCounter       = false;
+};
+
+struct TextureInfo
+{
+    Int32          width          = 0;
+    Int32          height         = 0;
+    Int32          depth          = 0;
+    eTexture       type           = eTexture::Texture2D;
+    eTextureFormat format         = eTextureFormat::Unknown;
+    Int32          arraySize      = 1;
+    Int32          samples        = 1;
+    Int32          numMips        = 1;
+    bool           bImmutable     = false;
+    bool           bReadback      = false;
+    bool           bRtvAttachable = false;
+    bool           bDsvAttachable = false;
 };
 
 struct FrameBufferInfo
@@ -800,8 +930,10 @@ struct ProgramInfo
     ShaderHandle csh = k_nullHandle;
 };
 
+////////// UTILS ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 [[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);
-[[nodiscard]] Int32             BytePerPixelOf(eTextureFormat _format);
+[[nodiscard]] Int32             BitPerPixelOf(eTextureFormat _format);
 [[nodiscard]] Int32             CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
 [[nodiscard]] TextureResolution CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
 [[nodiscard]] Int32             CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _numMips);

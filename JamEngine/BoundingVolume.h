@@ -93,7 +93,7 @@ struct Obb
     Mtx4 mtx = Numbers<Mtx4>::k_identity;
 };
 
-enum class ePlaneIntersectType
+enum class ePlaneIntersect
 {
     Outside,
     Intersects,
@@ -134,7 +134,7 @@ struct Plane
 
     [[nodiscard]] float               DistanceToPoint(Vec3 _point) const;
     [[nodiscard]] RayCastResult       Intersects(const Ray& _ray) const;
-    [[nodiscard]] ePlaneIntersectType Intersects(const Aabb& _box) const;
+    [[nodiscard]] ePlaneIntersect Intersects(const Aabb& _box) const;
 
     Vec3  normal = Numbers<Vec3>::k_zero;
     float d      = 0.f;
@@ -156,7 +156,7 @@ struct Frustum
     [[nodiscard]] Vec3         GetCenter() const;
     [[nodiscard]] CornerPoints GetCornerPoints() const;
 
-    [[nodiscard]] ePlaneIntersectType Intersects(const Aabb& _box) const;
+    [[nodiscard]] ePlaneIntersect Intersects(const Aabb& _box) const;
     [[nodiscard]] RayCastResult       Intersects(const Ray& _ray) const;
 
     EnumArray<eFrustumFace, Plane> planes = {};

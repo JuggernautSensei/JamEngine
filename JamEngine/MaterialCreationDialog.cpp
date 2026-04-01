@@ -80,7 +80,7 @@ bool MaterialCreationDialog::OnClickCreateButton_()
         return false;
     }
 
-    String path = String::Joined(m_saveDir, m_assetBaseName, eJoinType::File);
+    String path = String::Joined(m_saveDir, m_assetBaseName, eJoin::File);
     path += Material::k_extension;
 
     if (FileSystem::Exists(path))

@@ -35,17 +35,17 @@ namespace
 
     [[nodiscard]] Expect<Ref<IAsset>> CreateAsset_(
         const StringView _assetPath,
-        const eAssetType _type)
+        const eAsset _type)
     {
         switch (_type)
         {
-            case eAssetType::Texture:
+            case eAsset::Texture:
                 return Texture::LoadFromFile(_assetPath);
-            case eAssetType::Material:
+            case eAsset::Material:
                 return Material::LoadFromFile(_assetPath);
-            case eAssetType::Mesh:
+            case eAsset::Mesh:
                 return Mesh::LoadFromFile(_assetPath);
-            case eAssetType::Model:
+            case eAsset::Model:
                 return Model::LoadFromFile(_assetPath);
             default:
                 JAM_UNREACHABLE;
@@ -62,7 +62,7 @@ AssetManager& AssetManager::GetInstance()
 }
 
 Expect<Ref<IAsset>> AssetManager::Load(
-    const eAssetType _type,
+    const eAsset _type,
     const StringView _path,
     const bool       _bReloadIfExist)
 {
@@ -111,7 +111,7 @@ Expect<Ref<Model>> AssetManager::LoadModel(
     const StringView _path,
     const bool       _bForceReload)
 {
-    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Model, _path, _bForceReload))
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAsset::Model, _path, _bForceReload))
     {
         return pAsset->As<Model>();
     }
@@ -125,7 +125,7 @@ Expect<Ref<Mesh>> AssetManager::LoadMesh(
     const StringView _path,
     const bool       _bForceReload)
 {
-    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Mesh, _path, _bForceReload))
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAsset::Mesh, _path, _bForceReload))
     {
         return pAsset->As<Mesh>();
     }
@@ -139,7 +139,7 @@ Expect<Ref<Material>> AssetManager::LoadMaterial(
     const StringView _path,
     const bool       _bForceReload)
 {
-    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Material, _path, _bForceReload))
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAsset::Material, _path, _bForceReload))
     {
         return pAsset->As<Material>();
     }
@@ -153,7 +153,7 @@ Expect<Ref<Texture>> AssetManager::LoadTexture(
     const StringView _path,
     const bool       _bForceReload)
 {
-    if (const Expect<Ref<IAsset>> pAsset = Load(eAssetType::Texture, _path, _bForceReload))
+    if (const Expect<Ref<IAsset>> pAsset = Load(eAsset::Texture, _path, _bForceReload))
     {
         return pAsset->As<Texture>();
     }
@@ -164,7 +164,7 @@ Expect<Ref<Texture>> AssetManager::LoadTexture(
 }
 
 void AssetManager::Unload(
-    const eAssetType _type,
+    const eAsset _type,
     const StringView _path)
 {
     const Expect<String> path = CreateAssetPath_(_path);
@@ -185,29 +185,29 @@ void AssetManager::Unload(
 void AssetManager::UnloadModel(
     const StringView _path)
 {
-    Unload(eAssetType::Model, _path);
+    Unload(eAsset::Model, _path);
 }
 
 void AssetManager::UnloadMesh(
     const StringView _path)
 {
-    Unload(eAssetType::Mesh, _path);
+    Unload(eAsset::Mesh, _path);
 }
 
 void AssetManager::UnloadMaterial(
     const StringView _path)
 {
-    Unload(eAssetType::Material, _path);
+    Unload(eAsset::Material, _path);
 }
 
 void AssetManager::UnloadTexture(
     const StringView _path)
 {
-    Unload(eAssetType::Texture, _path);
+    Unload(eAsset::Texture, _path);
 }
 
 void AssetManager::CleanGarbage(
-    const eAssetType _type)
+    const eAsset _type)
 {
     AssetMap& map = m_assetMaps[_type];
     for (AssetMapIter it = map.begin(); it != map.end();)
@@ -227,14 +227,14 @@ void AssetManager::CleanGarbage(
 
 void AssetManager::CleanGarbageAll()
 {
-    for (const eAssetType type: RangesOf<eAssetType>())
+    for (const eAsset type: RangesOf<eAsset>())
     {
         CleanGarbage(type);
     }
 }
 
 void AssetManager::Clear(
-    const eAssetType _type)
+    const eAsset _type)
 {
     AssetMap& map = m_assetMaps[_type];
     for (AssetMapIter it = map.begin(); it != map.end(); ++it)
@@ -247,7 +247,7 @@ void AssetManager::Clear(
 
 void AssetManager::ClearAll()
 {
-    for (const eAssetType type: RangesOf<eAssetType>())
+    for (const eAsset type: RangesOf<eAsset>())
     {
         Clear(type);
     }
@@ -285,7 +285,7 @@ void AssetManager::OnFileModifiedEvent_(
     }
 
     const StringView key = path.GetValue();
-    for (eAssetType type: RangesOf<eAssetType>())
+    for (eAsset type: RangesOf<eAsset>())
     {
         AssetMap&    map = m_assetMaps[type];
         AssetMapIter it  = map.find(key);
@@ -315,7 +315,7 @@ void AssetManager::OnFileRenamedEvent_(
     }
 
     // for each asset type
-    for (eAssetType type: RangesOf<eAssetType>())
+    for (eAsset type: RangesOf<eAsset>())
     {
         // 없으면 스킵
         AssetMap&    map   = m_assetMaps[type];
@@ -362,7 +362,7 @@ void AssetManager::OnFileDeletedEvent_(
     }
 
     const StringView key = path.GetValue();
-    for (const eAssetType type: RangesOf<eAssetType>())
+    for (const eAsset type: RangesOf<eAsset>())
     {
         AssetMap&    map = m_assetMaps[type];
         AssetMapIter it  = map.find(key);

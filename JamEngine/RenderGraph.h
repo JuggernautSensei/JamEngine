@@ -48,15 +48,25 @@ class RenderGraph
         }
     };
 
-    struct TextureBind
+    struct ReadBinding
     {
-        String        name  = {};
-        TextureHandle texh  = k_nullHandle;
-        eShader       stage = eShader::VertexShader;
-        Int32         slot  = 0;
+        String          name        = {};
+        UInt32          handleValue = k_nullHandleValue;
+        eShaderResource type        = eShaderResource::Texture;
+        eShader         stage       = eShader::VertexShader;
+        Int32           slot        = 0;
     };
 
-    struct ConstantBufferBind
+    struct ReadWriteBinding
+    {
+        String          name        = {};
+        UInt32          handleValue = k_nullHandleValue;
+        eShaderResource type        = eShaderResource::Texture;
+        eReadWriteStage stage       = eReadWriteStage::Pixel;
+        Int32           slot        = 0;
+    };
+
+    struct ConstantBufferBinding
     {
         String               name  = {};
         ConstantBufferHandle cbh   = k_nullHandle;
@@ -64,20 +74,20 @@ class RenderGraph
         Int32                slot  = 0;
     };
 
-    struct SamplerBind
+    struct SamplerBinding
     {
         Flags<eSamplerFlags> state = {};
         eShader              stage = eShader::VertexShader;
         Int32                slot  = 0;
     };
 
-    struct BlendStateBind
+    struct BlendBinding
     {
         Flags<eBlendFlags> state = {};
         Int32              slot  = 0;
     };
 
-    struct ClearColorBind
+    struct ClearRenderTargetBinding
     {
         RGBA  color = RGBA::k_transparent;
         Int32 slot  = 0;
@@ -91,6 +101,9 @@ class RenderGraph
         // program
         String        programName = {};
         ProgramHandle ph          = k_nullHandle;   // Compile() 함수에서 지연결정됨.
+
+        // compute
+        ProgramHandle computePh = k_nullHandle;   // Compute Pass인 경우, 해당 Compute Shader를 실행함. Compile() 함수에서 지연결정됨
 
         // framebuffer
         String            frameBufferName = {};
@@ -113,24 +126,24 @@ class RenderGraph
         UInt8                stencilRef  = 0;
 
         // blend
-        Array<BlendStateBind, k_maxNumRenderTargetViewSlots> blendFlagsBinds = {};
-        Int32                                                numBlendBinds   = 0;
-        RGBA                                                 blendFactor     = RGBA::k_transparent;
+        Array<BlendBinding, k_maxNumRenderTargetViewSlots> blendBinds    = {};
+        Int32                                              numBlendBinds = 0;
+        RGBA                                               blendFactor   = RGBA::k_transparent;
 
         // clear commands
-        Array<ClearColorBind, k_maxNumRenderTargetViewSlots> clearColorBinds    = {};
-        Int32                                                numClearColorBinds = 0;
-        float                                                clearDepthValue    = 1.f;
-        UInt8                                                clearStencilValue  = 0;
-        bool                                                 bClearDepth        = false;
-        bool                                                 bClearStencil      = false;
+        Array<ClearRenderTargetBinding, k_maxNumRenderTargetViewSlots> clearRenderTargetBinds = {};
+        Int32                                                          numClearRenderTarget   = 0;
+        float                                                          clearDepthValue        = 1.f;
+        UInt8                                                          clearStencilValue      = 0;
+        bool                                                           bClearDepth            = false;
+        bool                                                           bClearStencil          = false;
 
         // resource binding. 리소스 바인딩은 Slot 단위로 관리됨
-        HashMap<Slot, TextureBind, SlotHasher>        textureBinds     = {};
-        HashMap<Slot, ConstantBufferBind, SlotHasher> cbufferBinds     = {};
-        HashMap<Slot, SamplerBind, SlotHasher>        samplerBinds     = {};
-        Array<String, k_maxNumAttachmentSlots>        writeTextures    = {};   // 해당 패스의 framebuffer에서 사용되는 텍스처로, Compile() 함수에서 지연결정됨.
-        Int32                                         numWriteTextures = 0;
+        HashMap<Slot, ReadBinding, SlotHasher>           textureBinds     = {};
+        HashMap<Slot, ConstantBufferBinding, SlotHasher> cbufferBinds     = {};
+        HashMap<Slot, SamplerBinding, SlotHasher>        samplerBinds     = {};
+        Array<String, k_maxNumAttachmentSlots>           writeTextures    = {};   // 해당 패스의 framebuffer에서 사용되는 텍스처로, Compile() 함수에서 지연결정됨.
+        Int32                                            numWriteTextures = 0;
 
         // 사이드 이펙트 여부
         // 위상정렬 특성상. 의존성이 아예없는 Pass가 존재할 수 있는데, 이런 Pass는 그래프 최적화 과정에서 제거됨.
@@ -148,9 +161,9 @@ class RenderGraph
         const PassDesc* pDesc = nullptr;
 
         // 최적화된 바인딩
-        Vector<TextureBind>        textures = {};
-        Vector<ConstantBufferBind> cbuffers = {};
-        Vector<SamplerBind>        samplers = {};
+        Vector<ReadBinding>           textures = {};
+        Vector<ConstantBufferBinding> cbuffers = {};
+        Vector<SamplerBinding>        samplers = {};
 
         // 언바인드 목록
         Vector<Slot> unbindTextures     = {};

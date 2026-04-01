@@ -142,13 +142,13 @@ float Environment::GetIblSpecularIntensity() const
     return m_iblSpecularTexIntensity;
 }
 
-void Environment::SetSkyboxType(const eSkyboxType _type)
+void Environment::SetSkyboxType(const eSkybox _type)
 {
     m_skyboxType = _type;
     m_bDirty     = true;
 }
 
-eSkyboxType Environment::GetSkyboxType() const
+eSkybox Environment::GetSkyboxType() const
 {
     return m_skyboxType;
 }
@@ -285,13 +285,13 @@ bool Environment::IsToneMappingEnabled() const
     return m_bToneMappingEnabled;
 }
 
-void Environment::SetToneMappingType(const eToneMappingType _type)
+void Environment::SetToneMappingType(const eToneMapping _type)
 {
     m_toneMappingType = _type;
     m_bDirty          = true;
 }
 
-eToneMappingType Environment::GetToneMappingType() const
+eToneMapping Environment::GetToneMappingType() const
 {
     return m_toneMappingType;
 }

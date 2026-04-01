@@ -243,7 +243,7 @@ void ShaderApp::Update(
 
 void ShaderApp::ImGuiRender()
 {
-    GetGraphics().ClearColor(k_nullHandle, RGBA::k_black);
+    GetGraphics().ClearRenderTarget(k_nullHandle, RGBA::k_black);
 
     GlobalShortCut_();
     Panel_Dockspace_();

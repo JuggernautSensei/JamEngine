@@ -3,7 +3,7 @@
 namespace Jam::FileSystem
 {
 
-enum eFileType
+enum eFile
 {
     Unknown,
     File,
@@ -13,7 +13,7 @@ enum eFileType
 
 struct FileAttribute
 {
-    eFileType type           = eFileType::Unknown;
+    eFile type           = eFile::Unknown;
     UInt64    creationTime   = 0;
     UInt64    lastAccessTime = 0;
     UInt64    lastWriteTime  = 0;

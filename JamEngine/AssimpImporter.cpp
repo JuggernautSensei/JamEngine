@@ -394,7 +394,7 @@ Vector<Ref<Material>> AssimpImporter::ConvertToMaterials_(
         desc.settings     = importedMaterial.settings;
 
         // importedMaterial은 전역 textures의 인덱스를 가지고 있고, 그것을 이용하여 실제 텍스처를 매핑함
-        for (eMaterialTextureType type: RangesOf<eMaterialTextureType>())
+        for (eMaterialTexture type: RangesOf<eMaterialTexture>())
         {
             const Int32 idx = importedMaterial.textures[type];
             if (idx != k_invalidImportedTextureIdx)
@@ -694,14 +694,14 @@ void AssimpImporter::ImportMaterials_(
 
         // Mapture parsing
 
-        importedMaterial.textures[eMaterialTextureType::Albedo]             = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_BASE_COLOR);
-        importedMaterial.textures[eMaterialTextureType::Ao]                 = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_AMBIENT_OCCLUSION);
-        importedMaterial.textures[eMaterialTextureType::Normal]             = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_NORMALS);
-        importedMaterial.textures[eMaterialTextureType::Metallic]           = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_METALNESS);
-        importedMaterial.textures[eMaterialTextureType::Roughness]          = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS);
-        importedMaterial.textures[eMaterialTextureType::Light]              = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_LIGHTMAP);
-        importedMaterial.textures[eMaterialTextureType::Emissive]           = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_EMISSIVE);
-        importedMaterial.textures[eMaterialTextureType::VertexDisplacement] = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_DISPLACEMENT);
+        importedMaterial.textures[eMaterialTexture::Albedo]             = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_BASE_COLOR);
+        importedMaterial.textures[eMaterialTexture::Ao]                 = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_AMBIENT_OCCLUSION);
+        importedMaterial.textures[eMaterialTexture::Normal]             = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_NORMALS);
+        importedMaterial.textures[eMaterialTexture::Metallic]           = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_METALNESS);
+        importedMaterial.textures[eMaterialTexture::Roughness]          = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_DIFFUSE_ROUGHNESS);
+        importedMaterial.textures[eMaterialTexture::Light]              = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_LIGHTMAP);
+        importedMaterial.textures[eMaterialTexture::Emissive]           = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_EMISSIVE);
+        importedMaterial.textures[eMaterialTexture::VertexDisplacement] = ParseAsTextureIndexOrInvalid_(pMaterial, aiTextureType_DISPLACEMENT);
 
         // additional channel mapping
         if (pMaterial->GetTexture(aiTextureType_GLTF_METALLIC_ROUGHNESS, 0, &strParam) == AI_SUCCESS)

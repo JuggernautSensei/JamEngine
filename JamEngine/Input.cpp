@@ -217,7 +217,7 @@ void Input::OnMouseWheel_(
     const MouseWheelEvent& _event)
 {
     static_assert(k_wheelSensitive != 0, "Wheel sensitivity cannot be zero.");
-    m_mouseDeltaWheel = NumericCast<float>(_event.GetDelta()) / NumericCast<float>(k_wheelSensitive);
+    m_mouseDeltaWheel = static_cast<float>(_event.GetDelta()) / static_cast<float>(k_wheelSensitive);
 }
 
 void Input::OnWindowLostFocusEvent_(

@@ -406,15 +406,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bit.cpp" />
     <ClCompile Include="CppHlslGlue.cpp" />
+    <ClInclude Include="Bit.h" />
     <ClInclude Include="CppHlslGlue.h" />
-    <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="MemoryView.cpp" />
     <ClCompile Include="MessageDilaog.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="SceneDatabase.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="Blob.cpp" />
     <ClCompile Include="STLAlgorithm.cpp" />
-    <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="Archive.cpp" />
     <ClCompile Include="Assertion.cpp" />
     <ClCompile Include="AssetCreationDialog.cpp" />
@@ -434,7 +436,7 @@
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ImageImporter.cpp" />
     <ClCompile Include="InfiniteDragger.cpp" />
-    <ClCompile Include="MemoryAllocator.cpp" />
+    <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="MemoryIO.cpp" />
     <ClCompile Include="OrderedHashMap.cpp" />
     <ClCompile Include="PathIter.cpp" />
@@ -599,12 +601,12 @@
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Memory.h" />
+    <ClInclude Include="MemoryView.h" />
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="SceneDatabase.h" />
+    <ClInclude Include="Blob.h" />
     <ClInclude Include="STLAlgorithm.h" />
-    <ClInclude Include="Allocator.h" />
     <ClInclude Include="Archive.h" />
     <ClInclude Include="Assertion.h" />
     <ClInclude Include="AssetCreationDialog.h" />
@@ -629,7 +631,7 @@
     <ClInclude Include="ImageImporter.h" />
     <ClInclude Include="InfiniteDragger.h" />
     <ClInclude Include="JsonArchive.h" />
-    <ClInclude Include="MemoryAllocator.h" />
+    <ClInclude Include="Allocator.h" />
     <ClInclude Include="MemoryIO.h" />
     <ClInclude Include="NameOf.h" />
     <ClInclude Include="Delegate.h" />
