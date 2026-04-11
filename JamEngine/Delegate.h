@@ -242,7 +242,7 @@ public:
         return m_func(this, std::forward<TArg>(args)...);
     }
 
-    /* implicit */ operator bool() const
+    explicit operator bool() const
     {
         return IsConnected();
     }

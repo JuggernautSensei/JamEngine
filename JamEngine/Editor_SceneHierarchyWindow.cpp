@@ -170,7 +170,7 @@ void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
     const bool bHasTag      = _entity.HasComponent<TagComponent>();
 
     // push id
-    ImGui::PushID(NumericCast<Int32>(uid.GetValue()));
+    ImGui::PushID(NarrowCast<Int32>(uid.GetValue()));
 
     // set label
     StackString<256> label;

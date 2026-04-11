@@ -394,7 +394,7 @@ void ShaderApp::SetupFont_() const
 
     ImGuiIO& io           = ImGui::GetIO();
     void*    fontData     = const_cast<void*>(static_cast<const void*>(g_embeddedFontData.GetPtr()));
-    Int32    fontDataSize = NumericCast<Int32>(g_embeddedFontData.GetByteWidth());
+    Int32    fontDataSize = NarrowCast<Int32>(g_embeddedFontData.GetByteWidth());
     ImFont*  pFont        = io.Fonts->AddFontFromMemoryTTF(fontData, fontDataSize, 18, &fontConfig, io.Fonts->GetGlyphRangesKorean());
     JAM_ASSERT(pFont, "failed to load embedded font");
     io.FontDefault = pFont;
@@ -422,7 +422,7 @@ Ref<Texture> ShaderApp::LoadIconFromSVGSource_(
     JAM_ASSERT(importer, "Failed to load SVG icon from source: {}", importer.GetError().ToErrorMessage());
 
     const MemoryView    pixels[] = { importer->GetPixels() };
-    const TextureHandle texh     = GetGraphics().CreateTexture2D(importer->GetWidth(), importer->GetHeight(), eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, pixels);
+    const TextureHandle texh     = GetGraphics().CreateTexture2D(importer->GetWidth(), importer->GetHeight(), eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::None, pixels);
     return Texture::Load(texh);
 }
 

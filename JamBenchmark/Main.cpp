@@ -1,5 +1,91 @@
 #include "pch.h"
+void FreeFunction(int& x)
+{
+    x++;
+}
 
+class Base
+{
+public:
+    virtual ~Base()                  = default;
+    virtual void VirtualCall(int& x) = 0;
+};
+
+class Derived : public Base
+{
+public:
+    void VirtualCall(int& x) override
+    {
+        x++;
+    }
+};
+
+// --- 벤치마크 케이스 ---
+
+// 1. 일반 함수 호출
+static void BM_DirectCall(benchmark::State& state)
+{
+    int x = 0;
+    for (auto _: state)
+    {
+        FreeFunction(x);
+        benchmark::DoNotOptimize(x);
+    }
+}
+BENCHMARK(BM_DirectCall);
+
+// 2. 가상 함수 호출
+static void BM_VirtualCall(benchmark::State& state)
+{
+    Base* obj = new Derived();
+    int   x   = 0;
+    for (auto _: state)
+    {
+        obj->VirtualCall(x);
+        benchmark::DoNotOptimize(x);
+    }
+    delete obj;
+}
+BENCHMARK(BM_VirtualCall);
+
+// 3. 함수 포인터 호출
+static void BM_FunctionPointerCall(benchmark::State& state)
+{
+    void (*funcPtr)(int&) = FreeFunction;
+    int x                 = 0;
+    for (auto _: state)
+    {
+        funcPtr(x);
+        benchmark::DoNotOptimize(x);
+    }
+}
+BENCHMARK(BM_FunctionPointerCall);
+
+// 4. std::function 호출
+static void BM_StdFunctionCall(benchmark::State& state)
+{
+    std::function<void(int&)> func = FreeFunction;
+    int                       x    = 0;
+    for (auto _: state)
+    {
+        func(x);
+        benchmark::DoNotOptimize(x);
+    }
+}
+BENCHMARK(BM_StdFunctionCall);
+
+// 5. Jam::Delegate 호출 (추가됨)
+static void BM_JamDelegateCall(benchmark::State& state)
+{
+    auto del = Jam::Bind<FreeFunction>();
+    int  x   = 0;
+    for (auto _: state)
+    {
+        del(x);
+        benchmark::DoNotOptimize(x);
+    }
+}
+BENCHMARK(BM_JamDelegateCall);
 class TestApp : public Application
 {
 public:

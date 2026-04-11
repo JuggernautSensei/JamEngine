@@ -150,7 +150,7 @@ public:
         return m_deleter;
     }
 
-    /* implicit */ operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
         return m_ptr != nullptr;
     }

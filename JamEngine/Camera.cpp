@@ -7,69 +7,74 @@ namespace Jam
 
 const Mtx4& Camera::GetProjMatrix() const
 {
-    if (m_bDirty)
+    if (m_bProjDirty)
     {
         if (m_projection == eProjection::Orthographic)
         {
-            m_mtxCache = CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
+            m_projCache = CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
         }
         else
         {
             const float ar = GetAspectRatio();
-            m_mtxCache     = CreatePerspectiveMatrix(m_fovYRad, ar, m_nearZ, m_farZ);
+            m_projCache    = CreatePerspectiveMatrix(m_fovYRad, ar, m_nearZ, m_farZ);
         }
 
-        m_bDirty = false;
+        m_bProjDirty = false;
     }
 
-    return m_mtxCache;
+    return m_projCache;
 }
 
 void Camera::SetProjection(
     const eProjection _projection)
 {
+    if (m_projection == _projection)
+    {
+        return;
+    }
+
     m_projection = _projection;
-    m_bDirty     = true;
+    m_bProjDirty = true;
 }
 
 void Camera::SetNearZ(
     const float _nearZ)
 {
-    m_nearZ  = _nearZ;
-    m_nearZ  = Clamp(m_nearZ, k_minZ, m_farZ - 0.001f);
-    m_bDirty = true;
+    m_nearZ      = _nearZ;
+    m_nearZ      = Clamp(m_nearZ, k_minZ, m_farZ - 0.001f);
+    m_bProjDirty = true;
 }
 
 void Camera::SetFarZ(
     const float _farZ)
 {
-    m_farZ   = _farZ;
-    m_farZ   = Clamp(m_farZ, m_nearZ + 0.001f, k_maxZ);
-    m_bDirty = true;
+    m_farZ       = _farZ;
+    m_farZ       = Clamp(m_farZ, m_nearZ + 0.001f, k_maxZ);
+    m_bProjDirty = true;
 }
 
 void Camera::SetFovYRad(
     const float _fovYRad)
 {
-    m_fovYRad = _fovYRad;
-    m_fovYRad = Clamp(m_fovYRad, k_minFovYRad, k_maxFovYRad);
-    m_bDirty  = true;
+    m_fovYRad    = _fovYRad;
+    m_fovYRad    = Clamp(m_fovYRad, k_minFovYRad, k_maxFovYRad);
+    m_bProjDirty = true;
 }
 
 void Camera::SetWidth(
     const float _width)
 {
-    m_width  = _width;
-    m_width  = Clamp(m_width, k_minWidthHeight, k_maxWidthHeight);
-    m_bDirty = true;
+    m_width      = _width;
+    m_width      = Clamp(m_width, k_minWidthHeight, k_maxWidthHeight);
+    m_bProjDirty = true;
 }
 
 void Camera::SetHeight(
     const float _height)
 {
-    m_height = _height;
-    m_height = Clamp(m_height, k_minWidthHeight, k_maxWidthHeight);
-    m_bDirty = true;
+    m_height     = _height;
+    m_height     = Clamp(m_height, k_minWidthHeight, k_maxWidthHeight);
+    m_bProjDirty = true;
 }
 
 void Camera::SetAspectRatio(
@@ -116,7 +121,7 @@ float Camera::GetHeight() const
 
 bool Camera::IsDirty() const
 {
-    return m_bDirty;
+    return m_bProjDirty;
 }
 
 void Camera::WriteToArchive(

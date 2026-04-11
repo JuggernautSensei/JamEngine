@@ -180,7 +180,7 @@ public:
         return m_bHasValue;
     }
 
-    /* implicit */ explicit operator bool() const
+    explicit operator bool() const
     {
         return m_bHasValue;
     }
@@ -296,7 +296,7 @@ public:
         return m_value != nullptr;
     }
 
-    /* implicit */ explicit operator bool() const
+    explicit operator bool() const
     {
         return m_value != nullptr;
     }

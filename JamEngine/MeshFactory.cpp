@@ -15,20 +15,22 @@ namespace
 
     [[nodiscard]] Ref<Mesh> CreateMesh_(
         const Span<const Vec3> _positions,
-        const Span<const Vec2> _texCoords,
+        const Span<const Vec2> _texCoordsOrEmpty,
+        const VertexLayout&    _attribLayoutOrEmpty,
         const MemoryView       _idxData,
-        const bool             _bUseU32,
-        const VertexLayout&    _vl)
+        const bool             _bUseU32)
     {
         // validation
-        JAM_ASSERT(_vl.Has(eVertexAttribute::Position), "Position attribute is required in the vertex layout.");
         JAM_ASSERT(!_positions.empty(), "Position data is empty.");
+        JAM_ASSERT(!_idxData.IsEmpty(), "Index data is empty.");
+        JAM_ASSERT(!_attribLayoutOrEmpty.Has(eVertexAttribute::Position), "Position attribute should not be included in the vertex layout, as it is provided separately.");
 
         // 레이아웃 요구 체크
-        const bool bHasNormal    = _vl.Has(eVertexAttribute::Normal);
-        const bool bHasTangent   = _vl.Has(eVertexAttribute::Tangent);
-        const bool bHasBitangent = _vl.Has(eVertexAttribute::Bitangent);
-        const bool bHasTexCoord  = _vl.Has(eVertexAttribute::TexCoord0);
+        const bool bPosOnly      = _attribLayoutOrEmpty.IsEmpty();
+        const bool bHasTexCoord  = _attribLayoutOrEmpty.Has(eVertexAttribute::TexCoord0);
+        const bool bHasNormal    = _attribLayoutOrEmpty.Has(eVertexAttribute::Normal);
+        const bool bHasTangent   = _attribLayoutOrEmpty.Has(eVertexAttribute::Tangent);
+        const bool bHasBitangent = _attribLayoutOrEmpty.Has(eVertexAttribute::Bitangent);
 
         // 노멀 계산
         Vector<Vec3> normals = {};
@@ -42,49 +44,51 @@ namespace
         if (bHasTangent || bHasBitangent)
         {
             JAM_ASSERT(bHasTexCoord, "TexCoord0 attribute is required to compute tangents and bitangents.");
-            JAM_ASSERT(!_texCoords.empty(), "TexCoord0 data is required to compute tangents and bitangents.");
+            JAM_ASSERT(!_texCoordsOrEmpty.empty(), "TexCoord0 data is required to compute tangents and bitangents.");
             JAM_ASSERT(!normals.empty(), "Normals must be computed before computing tangents and bitangents.");
-            tangentFrame = ComputeTangentFrame(_positions, normals, _texCoords, _idxData, _bUseU32);
+            tangentFrame = ComputeTangentFrame(_positions, normals, _texCoordsOrEmpty, _idxData, _bUseU32);
         }
 
-        // 버텍스 버퍼
-        const SizeT  numVerts = _positions.size();
-        Vector<Byte> vertData(_vl.GetStride() * numVerts);
-
-        // 버텍스 작성
-        VertexWriter vertWriter { vertData, _vl };
-        for (SizeT i = 0; i < numVerts; ++i)
+        if (bPosOnly)
         {
-            // write position
-            vertWriter.WriteAt(i, eVertexAttribute::Position, _positions[i]);
-
-            // write normal
-            if (bHasNormal)
-            {
-                vertWriter.WriteAt(i, eVertexAttribute::Normal, normals[i]);
-            }
-
-            // write tangent
-            if (bHasTangent)
-            {
-                vertWriter.WriteAt(i, eVertexAttribute::Tangent, tangentFrame.tangents[i]);
-            }
-
-            // write bitangent
-            if (bHasBitangent)
-            {
-                vertWriter.WriteAt(i, eVertexAttribute::Bitangent, tangentFrame.bitangents[i]);
-            }
-
-            // write texcoord
-            if (bHasTexCoord)
-            {
-                vertWriter.WriteAt(i, eVertexAttribute::TexCoord0, _texCoords[i]);
-            }
+            return Mesh::Load(_positions, _idxData, _bUseU32);
         }
+        else
+        {
+            const SizeT  numVerts = _positions.size();
+            Vector<Byte> attribData(_attribLayoutOrEmpty.GetStride() * numVerts);
 
-        // 메시 생성
-        return Mesh::Load(vertData, _vl, _idxData, _bUseU32);
+            // 버텍스 작성
+            VertexWriter vertWriter { attribData, _attribLayoutOrEmpty };
+            for (SizeT i = 0; i < numVerts; ++i)
+            {
+                // write normal
+                if (bHasNormal)
+                {
+                    vertWriter.WriteAt(i, eVertexAttribute::Normal, normals[i]);
+                }
+
+                // write tangent
+                if (bHasTangent)
+                {
+                    vertWriter.WriteAt(i, eVertexAttribute::Tangent, tangentFrame.tangents[i]);
+                }
+
+                // write bitangent
+                if (bHasBitangent)
+                {
+                    vertWriter.WriteAt(i, eVertexAttribute::Bitangent, tangentFrame.bitangents[i]);
+                }
+
+                // write texcoord
+                if (bHasTexCoord)
+                {
+                    vertWriter.WriteAt(i, eVertexAttribute::TexCoord0, _texCoordsOrEmpty[i]);
+                }
+            }
+
+            return Mesh::Load(_positions, attribData, _attribLayoutOrEmpty, _idxData, _bUseU32);
+        }
     }
 
 }   // namespace
@@ -93,7 +97,7 @@ namespace
 
 Ref<Mesh> CreateCubeMesh(
     const Vec3          _size,
-    const VertexLayout& _vl)
+    const VertexLayout& _attribLayoutOrEmpty)
 {
     const float hWidth  = _size.x * 0.5f;
     const float hHeight = _size.y * 0.5f;
@@ -198,13 +202,13 @@ Ref<Mesh> CreateCubeMesh(
         23,
     };
 
-    return CreateMesh_(positions, k_texcoords, k_indices, false, _vl);
+    return CreateMesh_(positions, k_texcoords, _attribLayoutOrEmpty, k_indices, false);
 }
 
 Ref<Mesh> CreateSphereMesh(
     const float         _radius,
     const Int32         _divisionLevel,
-    const VertexLayout& _vl)
+    const VertexLayout& _attribLayoutOrEmpty)
 {
     const float t           = (1.0f + Sqrt(5.0f)) / 2.0f;
     const Vec3  positions[] = {
@@ -312,18 +316,18 @@ Ref<Mesh> CreateSphereMesh(
             pos *= _radius;
         }
 
-        return CreateMesh_(output.positions, output.texcoords, output.indices, output.bUseU32, _vl);
+        return CreateMesh_(output.positions, output.texcoords, _attribLayoutOrEmpty, output.indices, output.bUseU32);
     }
     else
     {
         // return base icosahedron
-        return CreateMesh_(positions, k_texCoords, k_indices, false, _vl);
+        return CreateMesh_(positions, k_texCoords, _attribLayoutOrEmpty, k_indices, false);
     }
 }
 
 Ref<Mesh> CreatePlaneMesh(
     const Vec2&         _size,
-    const VertexLayout& _vl)
+    const VertexLayout& _attribLayoutOrEmpty)
 {
     const float hWidth = _size.x * 0.5f;
     const float hDepth = _size.y * 0.5f;
@@ -346,18 +350,18 @@ Ref<Mesh> CreatePlaneMesh(
         0, 1, 2, 0, 2, 3
     };
 
-    return CreateMesh_(positions, k_texcoords, k_indices, false, _vl);
+    return CreateMesh_(positions, k_texcoords, _attribLayoutOrEmpty, k_indices, false);
 }
 
 Ref<Mesh> CreateCircle(
     const float         _radius,
     const Int32         _numTri,
-    const VertexLayout& _vl)
+    const VertexLayout& _attribLayoutOrEmpty)
 {
     JAM_ASSERT(_numTri >= 6, "Circle must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 1;   // triangles + center vertex
-    JAM_ASSERT(CmpLessEqual(numVerts, Limits<UInt16>::k_max), "Too many triangles for circle.");
+    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::k_max), "Too many triangles for circle.");
 
     Vector<Vec3> positions(numVerts);
     Vector<Vec2> texcoords(numVerts);
@@ -389,19 +393,19 @@ Ref<Mesh> CreateCircle(
         idxes[i * 3 + 2] = i + 1;                   // current vertex
     }
 
-    return CreateMesh_(positions, texcoords, idxes, false, _vl);
+    return CreateMesh_(positions, texcoords, _attribLayoutOrEmpty, idxes, false);
 }
 
 Ref<Mesh> CreateCone(
     const float         _height,
     const float         _radius,
     const Int32         _numTri,
-    const VertexLayout& _vl)
+    const VertexLayout& _attribLayoutOrEmpty)
 {
     JAM_ASSERT(_numTri >= 6, "Cone base must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 2;   // base circle + apex + base center
-    JAM_ASSERT(CmpLessEqual(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
+    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
 
     Vector<Vec3> position(numVerts);
     Vector<Vec2> texcoords(numVerts);
@@ -448,19 +452,19 @@ Ref<Mesh> CreateCone(
         idxes[i * 6 + 5] = nextIdx;           // next base vertex
     }
 
-    return CreateMesh_(position, texcoords, idxes, false, _vl);
+    return CreateMesh_(position, texcoords, _attribLayoutOrEmpty, idxes, false);
 }
 
 Ref<Mesh> CreateCylinder(
     const float         _height,
     const float         _radius,
     const Int32         _numTries,
-    const VertexLayout& _vl)
+    const VertexLayout& _attribLayoutOrEmpty)
 {
     JAM_ASSERT(_numTries >= 6, "Cylinder must have at least 6 triangles.");
 
     const Int32 numVerts = _numTries * 2 + 2;   // top + bottom circles + 2 centers
-    JAM_ASSERT(CmpLessEqual(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
+    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
 
     Vector<Vec3> position(numVerts);
     Vector<Vec2> texcoords(numVerts);
@@ -532,7 +536,7 @@ Ref<Mesh> CreateCylinder(
         idxes[i * 12 + 11] = botNext;
     }
 
-    return CreateMesh_(position, texcoords, idxes, false, _vl);
+    return CreateMesh_(position, texcoords, _attribLayoutOrEmpty, idxes, false);
 }
 
 Vector<Vec3> ComputeNormals(
@@ -541,7 +545,7 @@ Vector<Vec3> ComputeNormals(
     const bool             _bUseU32)
 {
     IndexReader indexReader { _idxData, _bUseU32 };
-    const Int32 numVerts = NumericCast<Int32>(_positions.size());
+    const Int32 numVerts = NarrowCast<Int32>(_positions.size());
     const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
     const Int32 numFaces = numIdxes / 3;
 
@@ -553,7 +557,7 @@ Vector<Vec3> ComputeNormals(
         const UInt32 i0 = indexReader.ReadAt<UInt32>(i * 3 + 0);
         const UInt32 i1 = indexReader.ReadAt<UInt32>(i * 3 + 1);
         const UInt32 i2 = indexReader.ReadAt<UInt32>(i * 3 + 2);
-        JAM_ASSERT(CmpLess(i0, numVerts) && CmpLess(i1, numVerts) && CmpLess(i2, numVerts), "Index out of range.");
+        JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
 
         // get triangle positions
         const Vec3 p0 = _positions[i0];
@@ -603,7 +607,7 @@ TangentFrame ComputeTangentFrame(
     const bool             _bUseU32)
 {
     IndexReader indexReader { _idxData, _bUseU32 };
-    const Int32 numVerts = NumericCast<Int32>(_positions.size());
+    const Int32 numVerts = NarrowCast<Int32>(_positions.size());
     const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
     const Int32 numFaces = numIdxes / 3;
 
@@ -617,7 +621,7 @@ TangentFrame ComputeTangentFrame(
         const UInt32 i1 = indexReader.ReadAt<UInt32>(i * 3 + 1);
         const UInt32 i2 = indexReader.ReadAt<UInt32>(i * 3 + 2);
 
-        JAM_ASSERT(CmpLess(i0, numVerts) && CmpLess(i1, numVerts) && CmpLess(i2, numVerts), "Index out of range.");
+        JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
 
         // get triangle data
         const Vec3 v0 = _positions[i0];

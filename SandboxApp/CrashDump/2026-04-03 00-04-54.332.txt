@@ -1,0 +1,25 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-04-03 00:04:54.280
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: struct ID3D11InputLayout *__cdecl Jam::Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_(void)
+line: 4132
+column: 5
+------------------------------------
+user report: 
+HRESULT failure in m_pd3d11Device->CreateInputLayout( descs.data(), NumericCast<UINT>(descs.size()), blob.GetPtr(), blob.GetByteWidth(), &pd3d11InputLayout)
+HRESULT: 0x-7FF8FFA9 (매개 변수가 틀립니다.
+)
+====================================

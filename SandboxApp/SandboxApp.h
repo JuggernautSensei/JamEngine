@@ -17,4 +17,5 @@ public:
 JAM_MAIN(SandboxApp, "SandboxApp", k_editorDefaultFlags);
 #else
 JAM_MAIN(SandboxApp, "SandboxApp", k_runtimeDefaltFlags);
+// JAM_MAIN(SandboxApp, "SandboxApp", k_runtimeDefaltFlags | eAppCoreFlags::AllowTearing);
 #endif

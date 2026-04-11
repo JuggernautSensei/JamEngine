@@ -13,6 +13,7 @@
 #include "ImageImporter.h"
 #include "Mesh.h"
 #include "Model.h"
+#include "Profile.h"
 
 namespace Jam
 {
@@ -65,11 +66,11 @@ namespace
 }   // namespace
 
 Expect<AssimpImporter> AssimpImporter::ImportFromMemory(
-    const MemoryView          _data,
-    const AssimpImporterInfo& _info)
+    const MemoryView                   _data,
+    const Flags<eAssimpImporterFlags>& _flags)
 {
     AssimpImporter importer = {};
-    if (const Error err = importer.ImportFromMemory_(_data, _info))
+    if (const Error err = importer.ImportFromMemory_(_data, _flags))
     {
         return err;
     }
@@ -77,18 +78,18 @@ Expect<AssimpImporter> AssimpImporter::ImportFromMemory(
 }
 
 Expect<AssimpImporter> AssimpImporter::ImportFromFile(
-    const StringView          _path,
-    const AssimpImporterInfo& _info)
+    const StringView                   _path,
+    const Flags<eAssimpImporterFlags>& _flags)
 {
     AssimpImporter importer = {};
-    if (const Error err = importer.ImportFromFile_(_path, _info))
+    if (const Error err = importer.ImportFromFile_(_path, _flags))
     {
         return err;
     }
     return importer;
 }
 
-const ImportedModelNode& AssimpImporter::GetRootNode() const
+const ImportedModelNode& AssimpImporter::GetRoot() const
 {
     return m_importedRoot;
 }
@@ -108,64 +109,84 @@ const Vector<ImportedTexture>& AssimpImporter::GetTextures() const
     return m_importedTextures;
 }
 
-Expect<Ref<Model>> AssimpImporter::ExtractToModel(
-    const VertexLayout& _vl)
+Expect<Ref<Model>> AssimpImporter::ConvertToModel(
+    const VertexLayout&                     _attribLayoutOrEmpty,
+    const Flags<eAssimpConvertToModelFlags> _flags)
 {
     JAM_ASSERT(!m_bExtracted, "AssimpImporter::ExtractToModel() - Cannot extract more than once");
 
-    // texture
-    const Expect<Vector<Ref<Texture>>> textures = ConvertToTextures_();
-    if (!textures)
+    ModelDesc desc = {};
+
+    // mesh
+    if (_flags.IsEnabled(eAssimpConvertToModelFlags::Mesh))
     {
-        return textures.GetError();
+        desc.meshes = ConvertToMeshes_(_attribLayoutOrEmpty);
     }
 
-    ModelDesc desc = {};
-    desc.meshes    = ConvertToMeshes_(_vl);
-    desc.materials = ConvertToMaterials_(textures.GetValue());
-    desc.root      = std::move(m_importedRoot);
-    m_bExtracted   = true;
+    // texture
+    Vector<Ref<Texture>> textures = {};
+    if (_flags.IsEnabled(eAssimpConvertToModelFlags::Texture))
+    {
+        const Expect<Vector<Ref<Texture>>> expectTextures = ConvertToTextures_();
+        if (!expectTextures)
+        {
+            return expectTextures.GetError();
+        }
+        textures = std::move(textures);
+    }
+
+    // material
+    if (_flags.IsEnabled(eAssimpConvertToModelFlags::Material))
+    {
+        desc.materials = ConvertToMaterials_(textures);
+    }
+
+    desc.root    = std::move(m_importedRoot);
+    m_bExtracted = true;
     return Model::Load(std::move(desc));
 }
 
 Error AssimpImporter::ImportFromMemory_(
-    const MemoryView          _data,
-    const AssimpImporterInfo& _options)
+    const MemoryView                   _data,
+    const Flags<eAssimpImporterFlags>& _flags)
 {
     Assimp::Importer importer = {};
-    PreImport_(importer, _options);
-    const aiScene* pScene = importer.ReadFileFromMemory(_data.GetPtr(), _data.GetByteWidth(), MakeImportFlags_(_options));
+    PreImport_(importer, _flags);
+    const aiScene* pScene = importer.ReadFileFromMemory(_data.GetPtr(), _data.GetByteWidth(), MakeImportFlags_(_flags));
     if (!pScene)
     {
         JAM_LOG_ERROR("failed to load from memory: {}", importer.GetErrorString());
         return Error::ImportFailed;
     }
 
-    return Import_(pScene, _options);
+    return Import_(pScene, _flags);
 }
 
 Error AssimpImporter::ImportFromFile_(
-    const StringView          _path,
-    const AssimpImporterInfo& _options)
+    const StringView                   _path,
+    const Flags<eAssimpImporterFlags>& _flags)
 {
+    JAM_FUNCTION_PROFILE();
+
     Assimp::Importer importer = {};
-    PreImport_(importer, _options);
-    const aiScene* pScene = importer.ReadFile(_path.GetPtr(), MakeImportFlags_(_options));
+    PreImport_(importer, _flags);
+    const aiScene* pScene = importer.ReadFile(_path.GetPtr(), MakeImportFlags_(_flags));
     if (!pScene)
     {
         JAM_LOG_ERROR("failed to load file: {}", importer.GetErrorString());
         return Error::ImportFailed;
     }
 
-    return Import_(pScene, _options);
+    return Import_(pScene, _flags);
 }
 
 Error AssimpImporter::Import_(
-    const aiScene*            _pScene,
-    const AssimpImporterInfo& _options)
+    const aiScene*                     _pScene,
+    const Flags<eAssimpImporterFlags>& _flags)
 {
     JAM_ASSERT(_pScene, "AssimpImporter::Import_() - aiScene is null");
-    ImportMeshes_(_pScene, _options);
+    JAM_FUNCTION_PROFILE();
+    ImportMeshes_(_pScene);
     if (const Error err = ImportTextures_(_pScene))
     {
         return err;
@@ -176,7 +197,7 @@ Error AssimpImporter::Import_(
 }
 
 UInt32 AssimpImporter::MakeImportFlags_(
-    const AssimpImporterInfo& _options) const
+    const Flags<eAssimpImporterFlags>& _flags) const
 {
     UInt32 flags = aiProcess_JoinIdenticalVertices
                  | aiProcess_Triangulate
@@ -194,29 +215,44 @@ UInt32 AssimpImporter::MakeImportFlags_(
            | aiProcess_FlipUVs;
 #endif
 
-    if (_options.bLoadStaticMesh)
+    if (_flags.IsEnabled(eAssimpImporterFlags::LoadStaticMesh))
     {
         flags |= aiProcess_Debone;
     }
 
-    if (_options.bDropExistingNormals)
+    if (_flags.IsEnabled(eAssimpImporterFlags::DropExistingNormals))
     {
         flags |= aiProcess_DropNormals;
     }
 
-    if (_options.bLimitBondWeights)
+    if (_flags.IsEnabled(eAssimpImporterFlags::LimitBoneWeights))
     {
         flags |= aiProcess_LimitBoneWeights;
+    }
+
+    if (_flags.IsEnabled(eAssimpImporterFlags::DropExistingNormals))
+    {
+        flags |= aiProcess_DropNormals;
+    }
+
+    if (_flags.IsEnabled(eAssimpImporterFlags::GenerateNormals))
+    {
+        flags |= aiProcess_GenNormals;
+    }
+
+    if (_flags.IsEnabled(eAssimpImporterFlags::GenerateTangentFrame))
+    {
+        flags |= aiProcess_CalcTangentSpace;
     }
 
     return flags;
 }
 
 void AssimpImporter::PreImport_(
-    Assimp::Importer&         _importer,
-    const AssimpImporterInfo& _options) const
+    Assimp::Importer&                  _importer,
+    const Flags<eAssimpImporterFlags>& _flags) const
 {
-    if (_options.bLoadStaticMesh)
+    if (_flags.IsEnabled(eAssimpImporterFlags::LoadStaticMesh))
     {
         _importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_LIGHTS | aiComponent_CAMERAS);
     }
@@ -230,29 +266,28 @@ void AssimpImporter::PreImport_(
 }
 
 Vector<Ref<Mesh>> AssimpImporter::ConvertToMeshes_(
-    const VertexLayout& _vl) const
+    const VertexLayout& _attribLayoutOrEmpty) const
 {
     JAM_ASSERT(!m_importedMeshes.empty(), "AssimpImporter::ExtractToModel() - No meshes to create model");
+    JAM_ASSERT(!_attribLayoutOrEmpty.Has(eVertexAttribute::Position), "Position attribute should not be included in the vertex layout, as it is provided separately.");
 
     // vertex layout에 존재하는 속성 확인
-    const bool bHasPositions  = _vl.Has(eVertexAttribute::Position);
-    const bool bHasNormals    = _vl.Has(eVertexAttribute::Normal);
-    const bool bHasTangents   = _vl.Has(eVertexAttribute::Tangent);
-    const bool bHasBitangents = _vl.Has(eVertexAttribute::Bitangent);
-    const bool bHasColor0     = _vl.Has(eVertexAttribute::Color0);
-    const bool bHasTexCoord0  = _vl.Has(eVertexAttribute::TexCoord0);
-    const bool bHasColor1     = _vl.Has(eVertexAttribute::Color1);
-    const bool bHasTexCoord1  = _vl.Has(eVertexAttribute::TexCoord1);
-    const bool bHasColor2     = _vl.Has(eVertexAttribute::Color2);
-    const bool bHasTexCoord2  = _vl.Has(eVertexAttribute::TexCoord2);
-    const bool bHasColor3     = _vl.Has(eVertexAttribute::Color3);
-    const bool bHasTexCoord3  = _vl.Has(eVertexAttribute::TexCoord3);
+    const bool bHasNormals    = _attribLayoutOrEmpty.Has(eVertexAttribute::Normal);
+    const bool bHasTangents   = _attribLayoutOrEmpty.Has(eVertexAttribute::Tangent);
+    const bool bHasBitangents = _attribLayoutOrEmpty.Has(eVertexAttribute::Bitangent);
+    const bool bHasColor0     = _attribLayoutOrEmpty.Has(eVertexAttribute::Color0);
+    const bool bHasTexCoord0  = _attribLayoutOrEmpty.Has(eVertexAttribute::TexCoord0);
+    const bool bHasColor1     = _attribLayoutOrEmpty.Has(eVertexAttribute::Color1);
+    const bool bHasTexCoord1  = _attribLayoutOrEmpty.Has(eVertexAttribute::TexCoord1);
+    const bool bHasColor2     = _attribLayoutOrEmpty.Has(eVertexAttribute::Color2);
+    const bool bHasTexCoord2  = _attribLayoutOrEmpty.Has(eVertexAttribute::TexCoord2);
+    const bool bHasColor3     = _attribLayoutOrEmpty.Has(eVertexAttribute::Color3);
+    const bool bHasTexCoord3  = _attribLayoutOrEmpty.Has(eVertexAttribute::TexCoord3);
     // const bool bHasBlendIndex  = _vl.Has(eVertexAttribute::BlendIndex);
     // const bool bHasBlendWeight = _vl.Has(eVertexAttribute::BlendWeight);
 
     // 첫 번째 메쉬를 기준으로 어떤 속성들이 임포트 되었는지 확인
     const ImportedMesh& firstMesh            = m_importedMeshes[0];
-    const bool          bIsPositionImported  = !firstMesh.positions.empty();
     const bool          bIsNormalImported    = !firstMesh.normals.empty();
     const bool          bIsTangentImported   = !firstMesh.tangents.empty();
     const bool          bIsBitangentImported = !firstMesh.bitangents.empty();
@@ -267,86 +302,96 @@ Vector<Ref<Mesh>> AssimpImporter::ConvertToMeshes_(
     // const bool          bIsBlendIndexImported = !firstMesh.blendIndices.empty();
     // const bool          bIsBlendWeightImported = !firstMesh.blendWeights.empty();
 
-    // 메쉬별로 처리
-    Vector<Ref<Mesh>> meshes = {};
-    meshes.reserve(m_importedMeshes.size());
-
-    // 메쉬별로 버텍스 버퍼 작성
-    for (const ImportedMesh& importedMesh: m_importedMeshes)
+    if (_attribLayoutOrEmpty.IsEmpty())   // pos only mesh
     {
-        const Int32 stride    = _vl.GetStride();
-        const Int32 numVerts  = NumericCast<Int32>(importedMesh.positions.size());
-        const Int32 byteWidth = stride * numVerts;
-
-        // 버텍스 버퍼 할당
-        Vector<Byte> vertData = {};
-        vertData.resize(byteWidth, 0);   // resize
-
-        // vertex data 작성
-        VertexWriter writer { vertData, _vl };
-        for (Int32 i = 0; i < numVerts; ++i)
+        Vector<Ref<Mesh>> meshes = {};
+        meshes.reserve(m_importedMeshes.size());
+        for (const ImportedMesh& importedMesh: m_importedMeshes)
         {
-            if (bHasPositions && bIsPositionImported)
+            Ref<Mesh> pMesh = Mesh::Load(importedMesh.positions, importedMesh.idxData, importedMesh.bUseU32);
+            pMesh->SetName(importedMesh.name);
+            meshes.emplace_back(pMesh);
+        }
+        return meshes;
+    }
+    else
+    {
+        Vector<Ref<Mesh>> meshes = {};
+        meshes.reserve(m_importedMeshes.size());
+
+        for (const ImportedMesh& importedMesh: m_importedMeshes)
+        {
+            const Int32 stride    = _attribLayoutOrEmpty.GetStride();
+            const Int32 numVerts  = NarrowCast<Int32>(importedMesh.positions.size());
+            const Int32 byteWidth = stride * numVerts;
+
+            Vector<Byte> attribData = {};
+            attribData.resize(byteWidth, 0);   // resize
+
+            // vertex layout에 따라 속성 데이터 작성
+            VertexWriter writer { attribData, _attribLayoutOrEmpty };
+            for (Int32 i = 0; i < numVerts; ++i)
             {
-                writer.WriteAt(i, eVertexAttribute::Position, importedMesh.positions[i]);
+                if (bHasNormals && bIsNormalImported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::Normal, importedMesh.normals[i]);
+                }
+                if (bHasTangents && bIsTangentImported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::Tangent, importedMesh.tangents[i]);
+                }
+                if (bHasBitangents && bIsBitangentImported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::Bitangent, importedMesh.bitangents[i]);
+                }
+                if (bHasColor0 && bIsColor0Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::Color0, importedMesh.colors[0][i]);
+                }
+                if (bHasTexCoord0 && bIsTexCoord0Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::TexCoord0, importedMesh.texCoords[0][i]);
+                }
+                if (bHasColor1 && bIsColor1Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::Color1, importedMesh.colors[1][i]);
+                }
+                if (bHasTexCoord1 && bIsTexCoord1Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::TexCoord1, importedMesh.texCoords[1][i]);
+                }
+                if (bHasColor2 && bIsColor2Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::Color2, importedMesh.colors[2][i]);
+                }
+                if (bHasTexCoord2 && bIsTexCoord2Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::TexCoord2, importedMesh.texCoords[2][i]);
+                }
+                if (bHasColor3 && bIsColor3Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::Color3, importedMesh.colors[3][i]);
+                }
+                if (bHasTexCoord3 && bIsTexCoord3Imported)
+                {
+                    writer.WriteAt(i, eVertexAttribute::TexCoord3, importedMesh.texCoords[3][i]);
+                }
             }
-            if (bHasNormals && bIsNormalImported)
-            {
-                writer.WriteAt(i, eVertexAttribute::Normal, importedMesh.normals[i]);
-            }
-            if (bHasTangents && bIsTangentImported)
-            {
-                writer.WriteAt(i, eVertexAttribute::Tangent, importedMesh.tangents[i]);
-            }
-            if (bHasBitangents && bIsBitangentImported)
-            {
-                writer.WriteAt(i, eVertexAttribute::Bitangent, importedMesh.bitangents[i]);
-            }
-            if (bHasColor0 && bIsColor0Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::Color0, importedMesh.colors[0][i]);
-            }
-            if (bHasTexCoord0 && bIsTexCoord0Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::TexCoord0, importedMesh.texCoords[0][i]);
-            }
-            if (bHasColor1 && bIsColor1Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::Color1, importedMesh.colors[1][i]);
-            }
-            if (bHasTexCoord1 && bIsTexCoord1Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::TexCoord1, importedMesh.texCoords[1][i]);
-            }
-            if (bHasColor2 && bIsColor2Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::Color2, importedMesh.colors[2][i]);
-            }
-            if (bHasTexCoord2 && bIsTexCoord2Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::TexCoord2, importedMesh.texCoords[2][i]);
-            }
-            if (bHasColor3 && bIsColor3Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::Color3, importedMesh.colors[3][i]);
-            }
-            if (bHasTexCoord3 && bIsTexCoord3Imported)
-            {
-                writer.WriteAt(i, eVertexAttribute::TexCoord3, importedMesh.texCoords[3][i]);
-            }
+
+            // create mesh
+            Ref<Mesh> pMesh = Mesh::Load(importedMesh.positions, attribData, _attribLayoutOrEmpty, importedMesh.idxData, importedMesh.bUseU32);
+            pMesh->SetName(importedMesh.name);
+            meshes.emplace_back(pMesh);
         }
 
-        // 메쉬 생성
-        Ref<Mesh> pMesh = Mesh::Load(vertData, _vl, importedMesh.idxData, importedMesh.bUseU32);
-        pMesh->SetName(importedMesh.name);
-        meshes.emplace_back(pMesh);
+        return meshes;
     }
-
-    return meshes;
 }
 
 Expect<Vector<Ref<Texture>>> AssimpImporter::ConvertToTextures_() const
 {
+    JAM_ASSERT(!m_importedTextures.empty(), "AssimpImporter::ConvertToTextures_() - No textures to create model");
+
     Vector<Ref<Texture>> textures = {};
     textures.reserve(m_importedTextures.size());
 
@@ -369,7 +414,7 @@ Expect<Vector<Ref<Texture>>> AssimpImporter::ConvertToTextures_() const
         {
             // 비압축된 경우, 이미지 포맷은 BGRA8_UNorm 고정
             const MemoryView mems[] = { importedTexture.pixels };
-            texh                    = GetGraphics().CreateTexture2D(importedTexture.width, importedTexture.height, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
+            texh                    = GetGraphics().CreateTexture2D(importedTexture.width, importedTexture.height, eTextureFormat::BGRA8_UNorm, false, 1, eTextureCreateFlags::None, mems);
         }
 
         // texture 생성
@@ -382,8 +427,10 @@ Expect<Vector<Ref<Texture>>> AssimpImporter::ConvertToTextures_() const
 }
 
 Vector<Ref<Material>> AssimpImporter::ConvertToMaterials_(
-    const Vector<Ref<Texture>>& _textures) const
+    const Vector<Ref<Texture>>& _texturesOrEmpty) const
 {
+    JAM_ASSERT(!m_importedMaterials.empty(), "AssimpImporter::ConvertToMaterials_() - No materials to create model");
+
     Vector<Ref<Material>> materials = {};
     materials.reserve(m_importedMaterials.size());
 
@@ -393,13 +440,16 @@ Vector<Ref<Material>> AssimpImporter::ConvertToMaterials_(
         desc.params       = importedMaterial.params;
         desc.settings     = importedMaterial.settings;
 
-        // importedMaterial은 전역 textures의 인덱스를 가지고 있고, 그것을 이용하여 실제 텍스처를 매핑함
-        for (eMaterialTexture type: RangesOf<eMaterialTexture>())
+        // texture mapping
+        if (!_texturesOrEmpty.empty())
         {
-            const Int32 idx = importedMaterial.textures[type];
-            if (idx != k_invalidImportedTextureIdx)
+            for (eMaterialTexture type: RangesOf<eMaterialTexture>())
             {
-                desc.textures[type] = _textures[idx];
+                const Int32 idx = importedMaterial.textures[type];
+                if (idx != k_invalidImportedTextureIdx)
+                {
+                    desc.textures[type] = _texturesOrEmpty[idx];
+                }
             }
         }
 
@@ -413,8 +463,7 @@ Vector<Ref<Material>> AssimpImporter::ConvertToMaterials_(
 }
 
 void AssimpImporter::ImportMeshes_(
-    const aiScene*            _pScene,
-    const AssimpImporterInfo& _options)
+    const aiScene* _pScene)
 {
     JAM_ASSERT(_pScene != nullptr, "AssimpImporter::ImportMeshesFrom_() - _pScene is nullptr");
     JAM_ASSERT(m_importedMeshes.empty(), "AssimpImporter::ImportMeshesFrom_() - m_meshes is not empty");
@@ -424,7 +473,7 @@ void AssimpImporter::ImportMeshes_(
         return;
     }
 
-    const Int32 numMeshes = NumericCast<Int32>(_pScene->mNumMeshes);
+    const Int32 numMeshes = NarrowCast<Int32>(_pScene->mNumMeshes);
     m_importedMeshes.reserve(numMeshes);
 
     // import mesh
@@ -432,7 +481,7 @@ void AssimpImporter::ImportMeshes_(
     {
         ImportedMesh& importedMesh = m_importedMeshes.emplace_back();
         const aiMesh* pMesh        = _pScene->mMeshes[i];
-        const Int32   numVerts     = NumericCast<Int32>(pMesh->mNumVertices);
+        const Int32   numVerts     = NarrowCast<Int32>(pMesh->mNumVertices);
 
         // 이름
         {
@@ -443,10 +492,10 @@ void AssimpImporter::ImportMeshes_(
         // 인덱스
         {
             // 인텍스 포맷
-            importedMesh.bUseU32 = NeedU32Index(numVerts);
+            importedMesh.bUseU32 = std::cmp_greater(numVerts, Limits<UInt16>::k_highest);
 
-            // 인덱스 버퍼 할당
-            const Int32 numFaces  = NumericCast<Int32>(pMesh->mNumFaces);
+            // 인덱스 버퍼 할당q
+            const Int32 numFaces  = NarrowCast<Int32>(pMesh->mNumFaces);
             const Int32 numIdxes  = numFaces * 3;
             const Int32 byteWidth = CalcIndicesByteWidth(numIdxes, importedMesh.bUseU32);
             importedMesh.idxData.resize(byteWidth);
@@ -506,8 +555,7 @@ void AssimpImporter::ImportMeshes_(
         }
 
         // normals
-        // _options.bGenerateNormals 가 true 여도. mesh에 normal이 있으면 그것을 우선 사용한다.
-        if (pMesh->HasNormals() && !_options.bDropExistingNormals)
+        if (pMesh->HasNormals())
         {
             importedMesh.normals.reserve(numVerts);
             for (Int32 v = 0; v < numVerts; ++v)
@@ -516,13 +564,9 @@ void AssimpImporter::ImportMeshes_(
                 importedMesh.normals.emplace_back(normal);
             }
         }
-        else if (_options.bGenerateNormals)   // 내장 normals가 없거나, 드롭된 경우
-        {
-            importedMesh.normals = ComputeNormals(importedMesh.positions, importedMesh.idxData, importedMesh.bUseU32);
-        }
 
         // tangents & bitangents
-        if (pMesh->HasTangentsAndBitangents() && !_options.bDropExistingTangentFrame)
+        if (pMesh->HasTangentsAndBitangents())
         {
             importedMesh.tangents.reserve(numVerts);
             importedMesh.bitangents.reserve(numVerts);
@@ -533,12 +577,6 @@ void AssimpImporter::ImportMeshes_(
                 importedMesh.tangents.emplace_back(tangent);
                 importedMesh.bitangents.emplace_back(bitangent);
             }
-        }
-        else if (_options.bGenerateTangentFrame)   // 내장 tangent & bitangent가 없는 경우, 드롭된 경우
-        {
-            TangentFrame tangentFrame = ComputeTangentFrame(importedMesh.positions, importedMesh.normals, importedMesh.texCoords[0], importedMesh.idxData, importedMesh.bUseU32);
-            importedMesh.tangents     = std::move(tangentFrame.tangents);
-            importedMesh.bitangents   = std::move(tangentFrame.bitangents);
         }
     }
 }
@@ -554,7 +592,7 @@ Error AssimpImporter::ImportTextures_(
         return Error::None;
     }
 
-    const Int32 numTextures = NumericCast<Int32>(_pScene->mNumTextures);
+    const Int32 numTextures = NarrowCast<Int32>(_pScene->mNumTextures);
     m_importedTextures.reserve(numTextures);
 
     // 텍스처 순회
@@ -565,8 +603,8 @@ Error AssimpImporter::ImportTextures_(
         const bool       bIsCompressed   = (pTexture->mHeight == 0);   // 압축된 텍스처는 mHeight가 0
 
         // 기본 정보
-        importedTexture.width         = NumericCast<Int32>(pTexture->mWidth);
-        importedTexture.height        = NumericCast<Int32>(pTexture->mHeight);
+        importedTexture.width         = NarrowCast<Int32>(pTexture->mWidth);
+        importedTexture.height        = NarrowCast<Int32>(pTexture->mHeight);
         importedTexture.bIsCompressed = bIsCompressed;
 
         // 이름 생성
@@ -578,7 +616,7 @@ Error AssimpImporter::ImportTextures_(
         // 픽셀 데이터
         if (bIsCompressed)
         {
-            importedTexture.pixels = { pTexture->pcData, NumericCast<Int32>(pTexture->mWidth) };
+            importedTexture.pixels = { pTexture->pcData, NarrowCast<Int32>(pTexture->mWidth) };
 
             // 압축된 경우, format hint에 따라 포맷 결정
             const StringView             hint   = pTexture->achFormatHint;
@@ -594,7 +632,7 @@ Error AssimpImporter::ImportTextures_(
         else
         {
             // 비압축된 경우, RGBA8 포맷 고정
-            const Int32 size       = NumericCast<Int32>(importedTexture.width * importedTexture.height * sizeof(aiTexel));
+            const Int32 size       = NarrowCast<Int32>(importedTexture.width * importedTexture.height * sizeof(aiTexel));
             importedTexture.pixels = { pTexture->pcData, size };
         }
     }
@@ -613,7 +651,7 @@ void AssimpImporter::ImportMaterials_(
         return;
     }
 
-    const Int32 numMats = NumericCast<Int32>(_pScene->mNumMaterials);
+    const Int32 numMats = NarrowCast<Int32>(_pScene->mNumMaterials);
     m_importedMaterials.reserve(numMats);
 
     // 머테리얼 순회
@@ -741,7 +779,7 @@ ImportedModelNode AssimpImporter::ImportModelNode_Recursive_(
     }
 
     // 메쉬와 메쉬의 머테리얼 인덱스
-    const Int32 numMeshes = NumericCast<Int32>(_pNode->mNumMeshes);
+    const Int32 numMeshes = NarrowCast<Int32>(_pNode->mNumMeshes);
     if (numMeshes > 0)
     {
         importedNode.meshIdxes.reserve(numMeshes);
@@ -750,9 +788,9 @@ ImportedModelNode AssimpImporter::ImportModelNode_Recursive_(
         // 메쉬는 반드시 하나의 머테리얼과 연관되어있음
         for (Int32 i = 0; i < numMeshes; ++i)
         {
-            const Int32   meshIdx = NumericCast<Int32>(_pNode->mMeshes[i]);
+            const Int32   meshIdx = NarrowCast<Int32>(_pNode->mMeshes[i]);
             const aiMesh* pMesh   = _pScene->mMeshes[meshIdx];
-            const Int32   matIdx  = NumericCast<Int32>(pMesh->mMaterialIndex);
+            const Int32   matIdx  = NarrowCast<Int32>(pMesh->mMaterialIndex);
 
             importedNode.meshIdxes.emplace_back(meshIdx);
             importedNode.matIdxes.emplace_back(matIdx);
@@ -760,7 +798,7 @@ ImportedModelNode AssimpImporter::ImportModelNode_Recursive_(
     }
 
     // 하위 자식 노드들
-    const Int32 numChildren = NumericCast<Int32>(_pNode->mNumChildren);
+    const Int32 numChildren = NarrowCast<Int32>(_pNode->mNumChildren);
     importedNode.children.reserve(numChildren);
     for (Int32 i = 0; i < numChildren; ++i)
     {

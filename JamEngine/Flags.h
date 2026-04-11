@@ -237,9 +237,9 @@ public:
         return m_value == 0;
     }
 
-    /* implicit */ constexpr operator bool() const noexcept
+    /* implicit */ constexpr operator UnderlyingT() const noexcept
     {
-        return m_value != 0;
+        return m_value;
     }
 
     [[nodiscard]] constexpr bool IsEmpty() const noexcept

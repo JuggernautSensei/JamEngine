@@ -34,7 +34,7 @@ Error ReadFromArchive(ArchiveReader& _reader, StringView& _value)
         return err;
     }
 
-    _value = { str.data(), NumericCast<SizeT>(str.size()) };
+    _value = { str.data(), NarrowCast<SizeT>(str.size()) };
     return Error::None;
 }
 

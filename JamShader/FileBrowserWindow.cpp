@@ -103,7 +103,7 @@ void FileBrowserWindow::OnFileWatcher_(
 {
     switch (_event.type)
     {
-        case eFileEventType::Added:
+        case eFileEvent::Added:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [path = String(_event.path)] {
@@ -113,7 +113,7 @@ void FileBrowserWindow::OnFileWatcher_(
         }
         break;
 
-        case eFileEventType::Deleted:
+        case eFileEvent::Deleted:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [path = String(_event.path)] {
@@ -123,7 +123,7 @@ void FileBrowserWindow::OnFileWatcher_(
         }
         break;
 
-        case eFileEventType::Renamed:
+        case eFileEvent::Renamed:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [oldPath = String(_event.oldPath), newPath = String(_event.path)] {
@@ -133,7 +133,7 @@ void FileBrowserWindow::OnFileWatcher_(
         }
         break;
 
-        case eFileEventType::Modified:
+        case eFileEvent::Modified:
         {
             GetApp().SubmitCommandToMainThread(Bind(
                 [path = String(_event.path)] {
@@ -279,7 +279,7 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
             if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
             {
                 const StringView srcPath = ResolvePathDragDropPayload(pPayload);
-                const String     dstPath = String::Joined(_pItem->path, srcPath.GetFileName(), bIsDir ? eJoinType::Directory : eJoinType::File);
+                const String     dstPath = String::Joined(_pItem->path, srcPath.GetFileName(), bIsDir ? eJoin::Directory : eJoin::File);
                 GUI::Rename(srcPath, dstPath, FileSystem::eCollisionPolicy::Fail);
             }
         }

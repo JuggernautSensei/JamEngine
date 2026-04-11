@@ -156,7 +156,7 @@ public:
         return m_ptr;
     }
 
-    /* implicit */ operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
         return m_ptr != nullptr;
     }
@@ -324,7 +324,7 @@ public:
         return m_ptr[_idx];
     }
 
-    /* implicit */ operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
         return m_ptr != nullptr;
     }

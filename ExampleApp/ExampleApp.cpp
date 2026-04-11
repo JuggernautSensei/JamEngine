@@ -13,7 +13,7 @@ ExampleApp::ExampleApp(const ApplicationCreateInfo& _info)
 
 void ExampleApp::OnCreate()
 {
-    Log::Info("hello example app!");
+    LogSystem::Info("hello example app!");
 
     // 기본 렌더러 초기화
     BasicRenderer::Init();
@@ -35,5 +35,5 @@ void ExampleApp::OnDestroy()
 {
     // 기본 렌더러 종료
     BasicRenderer::Shutdown();
-    Log::Info("good-bye example app!");
+    LogSystem::Info("good-bye example app!");
 }

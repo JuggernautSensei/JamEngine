@@ -81,7 +81,7 @@ void TriangleScene::OnEnter()
         ShaderCodeBlob compiler;
         if (!compiler.CompileHLSLSource(k_source, eShader::VertexShader, "VSMain"))
         {
-            Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
+            LogSystem::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
             JAM_UNREACHABLE;
         }
         const ShaderHandle vsh = Graphics::CreateShader(compiler.GetBytecode());
@@ -89,7 +89,7 @@ void TriangleScene::OnEnter()
         // pixel shader
         if (!compiler.CompileHLSLSource(k_source, eShader::PixelShader, "PSMain"))
         {
-            Log::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
+            LogSystem::Error("shader compile failed. {}", GlobalBuffer::GetLastError());
             JAM_UNREACHABLE;
         }
         const ShaderHandle psh = Graphics::CreateShader(compiler.GetBytecode());
@@ -110,9 +110,9 @@ void TriangleScene::OnExit()
 
 void TriangleScene::OnRender(const RenderView& _view)
 {
-    Graphics::SetViewport(_view.outputVp);
-    Graphics::SetFrameBuffer(_view.outputFbh);
-    Graphics::ClearRenderTarget(_view.outputFbh, RGBA::k_black);
+    Graphics::SetViewport(_view.viewport);
+    Graphics::SetFrameBuffer(_view.fbh);
+    Graphics::ClearRenderTarget(_view.fbh, RGBA::k_black);
 
     Graphics::SetRenderFlags(RenderState::k_default);
     Graphics::SetVertexBuffer(m_vbh);

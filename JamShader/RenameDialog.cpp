@@ -37,7 +37,7 @@ void RenameDialog::OnShow()
         {
             bool bIsDir = m_oldPath.IsDirectory();
             m_path      = m_oldPath.GetDirectory();
-            m_path.Join(m_basename, bIsDir ? eJoinType::Directory : eJoinType::File);
+            m_path.Join(m_basename, bIsDir ? eJoin::Directory : eJoin::File);
             if (!bIsDir)
             {
                 m_path.ReplaceExtension(m_oldPath.GetExtension());

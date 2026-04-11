@@ -19,7 +19,7 @@ void MessageDialog::OnShow()
     ImGui::Spacing();
 
     SetCursorScreenPosFromWindowBottom(ImGui::GetFrameHeight());
-    const ImVec2 btnSize = CalcFitButtonSize(NumericCast<Int32>(m_buttons.size()));
+    const ImVec2 btnSize = CalcFitButtonSize(NarrowCast<Int32>(m_buttons.size()));
     bool         bFirst  = true;
     for (const MessageDialogButtonInfo& buttonInfo: m_buttons)
     {

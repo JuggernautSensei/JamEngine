@@ -7,56 +7,62 @@
     <Filter Include="Main">
       <UniqueIdentifier>{70053dcf-8f33-4ec7-b7be-c8c29b49a4b1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="01. SimpleScene">
-      <UniqueIdentifier>{30e5dd68-72b0-48e1-8c16-bcad5cd5c997}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="02. Instancing">
-      <UniqueIdentifier>{990702e6-7a70-4db3-9fda-3efe49b5577c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="03. Multi Vertex Buffer">
-      <UniqueIdentifier>{798fb466-5054-4334-bdf0-ab4ce1bd0670}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="04. bump">
-      <UniqueIdentifier>{3d150547-b273-4740-a6e2-b6051322ebcb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="06. Deferred">
       <UniqueIdentifier>{bd3052bb-ccdb-4318-9b20-314d6dfa85ca}</UniqueIdentifier>
     </Filter>
     <Filter Include="07. ShadowMapping">
       <UniqueIdentifier>{19262fad-e94b-47e3-9fc9-a06356f5dcfb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05. IBL + PBR">
-      <UniqueIdentifier>{45858421-24eb-47c9-ac00-b1ee8b818cf1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="08. Stencil Reflection">
       <UniqueIdentifier>{98be7fbc-019f-4f89-8ab2-096dbb259a5b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="09. Frustum Culling + Space Division">
+    <Filter Include="01. SimpleScene">
+      <UniqueIdentifier>{30e5dd68-72b0-48e1-8c16-bcad5cd5c997}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Instancing">
+      <UniqueIdentifier>{990702e6-7a70-4db3-9fda-3efe49b5577c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="10. Frustum Culling + Space Division">
       <UniqueIdentifier>{3d472299-b9ff-49f2-a162-a048a22cf4ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="10. Terrain">
+    <Filter Include="11. Terrain">
       <UniqueIdentifier>{4d65b907-6818-4641-bc3e-8a8532cc5faa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="11. MousePicking">
+    <Filter Include="12. MousePicking">
       <UniqueIdentifier>{d98c27a8-46ab-4e1f-aa78-3937f8e278cb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="12. RSM">
+    <Filter Include="13. RSM">
       <UniqueIdentifier>{86593565-55f9-4478-89c0-8dcfcc0c6112}</UniqueIdentifier>
     </Filter>
-    <Filter Include="13. Particle">
+    <Filter Include="14. Particle">
       <UniqueIdentifier>{20e39091-0581-4ab2-a346-178fe6ff866d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="14. SSAO">
+    <Filter Include="15. SSAO">
       <UniqueIdentifier>{32cc3ff0-47e5-4dce-907d-7b3bfe54aa76}</UniqueIdentifier>
     </Filter>
-    <Filter Include="15. PostProcessing">
+    <Filter Include="16. PostProcessing">
       <UniqueIdentifier>{79b057c1-f794-4a21-98f3-8e2f5168b05b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="16. SSR">
+    <Filter Include="17. SSR">
       <UniqueIdentifier>{dcad46d1-4235-4eb5-9379-a3b625eac05c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="17. Skeleton Animation">
+    <Filter Include="18. Skeleton Animation">
       <UniqueIdentifier>{613987a4-1219-4b4c-b685-fe7839638b7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. MultiVertexStream">
+      <UniqueIdentifier>{798fb466-5054-4334-bdf0-ab4ce1bd0670}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. TextureMapping">
+      <UniqueIdentifier>{3d150547-b273-4740-a6e2-b6051322ebcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. PBR">
+      <UniqueIdentifier>{45858421-24eb-47c9-ac00-b1ee8b818cf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Misc">
+      <UniqueIdentifier>{07b50bca-54da-4cdb-9ce8-a2597c8392a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Misc\DebugNormal">
+      <UniqueIdentifier>{aedf790a-45b8-4ebc-b6a6-2a555a2150b7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -69,6 +75,30 @@
     <ClCompile Include="SimpleScene.cpp">
       <Filter>01. SimpleScene</Filter>
     </ClCompile>
+    <ClCompile Include="InstancingScene.cpp">
+      <Filter>02. Instancing</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiVertexStreamScene.cpp">
+      <Filter>03. MultiVertexStream</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureMappingScene.cpp">
+      <Filter>04. TextureMapping</Filter>
+    </ClCompile>
+    <ClCompile Include="PBRScene.cpp">
+      <Filter>05. PBR</Filter>
+    </ClCompile>
+    <ClCompile Include="FlyingCamera.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferedScene.cpp">
+      <Filter>06. Deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowMappingScene.cpp">
+      <Filter>07. ShadowMapping</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugNormalScene.cpp">
+      <Filter>Misc\DebugNormal</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SandboxApp.h">
@@ -80,10 +110,105 @@
     <ClInclude Include="SimpleScene.h">
       <Filter>01. SimpleScene</Filter>
     </ClInclude>
+    <ClInclude Include="InstancingScene.h">
+      <Filter>02. Instancing</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiVertexStreamScene.h">
+      <Filter>03. MultiVertexStream</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureMappingScene.h">
+      <Filter>04. TextureMapping</Filter>
+    </ClInclude>
+    <ClInclude Include="PBRScene.h">
+      <Filter>05. PBR</Filter>
+    </ClInclude>
+    <ClInclude Include="FlyingCamera.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferedScene.h">
+      <Filter>06. Deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMappingScene.h">
+      <Filter>07. ShadowMapping</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugNormalScene.h">
+      <Filter>Misc\DebugNormal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format">
       <Filter>Base</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Resources\PBRScene\PBRSceneShader.hlsl">
+      <Filter>05. PBR</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\PBRScene\PBRSceneToneMappingShader.hlsl">
+      <Filter>05. PBR</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\PBRScene\PBRSceneCubeMapShader.hlsl">
+      <Filter>05. PBR</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\TextureMappingScene\TextureMappingSceneShader.hlsl">
+      <Filter>04. TextureMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\MultiVertexStreamScene\MultiVertexStreamSceneShader.hlsl">
+      <Filter>03. MultiVertexStream</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\InstancingScene\InstancingScene_Instancing.hlsl">
+      <Filter>02. Instancing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\InstancingScene\InstancingScene_NoInstancing.hlsl">
+      <Filter>02. Instancing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\SimpleScene\SimpleSceneShader.hlsl">
+      <Filter>01. SimpleScene</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\DeferedScene\DeferedSceneLightingShader.hlsl">
+      <Filter>06. Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\DeferedScene\DeferedSceneGBufferShader.hlsl">
+      <Filter>06. Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\DeferedScene\DeferedSceneCombineShader.hlsl">
+      <Filter>06. Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneGBufferShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalWithWITShader.hlsl">
+      <Filter>Misc\DebugNormal</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneNoWITShader.hlsl">
+      <Filter>Misc\DebugNormal</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalScenePassThroughShader.hlsl">
+      <Filter>Misc\DebugNormal</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneWithWITShader.hlsl">
+      <Filter>Misc\DebugNormal</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalNoWITShader.hlsl">
+      <Filter>Misc\DebugNormal</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneOmniShadowReceiveShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneSpotShadowCasterShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneSpotShadowReceiveShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneDirectionalShadowCastShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneDirectionalShadowReceiveShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneOmniShadowCastShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

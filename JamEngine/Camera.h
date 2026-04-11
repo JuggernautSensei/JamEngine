@@ -1,5 +1,6 @@
 #pragma once
 #include "Archive.h"
+#include "BoundingVolume.h"
 
 namespace Jam
 {
@@ -52,8 +53,8 @@ private:
     float       m_width      = 1.f;
     float       m_height     = 1.f;
 
-    mutable bool m_bDirty   = true;
-    mutable Mtx4 m_mtxCache = Numbers<Mtx4>::k_identity;
+    mutable bool m_bProjDirty = true;
+    mutable Mtx4 m_projCache  = Numbers<Mtx4>::k_identity;
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Camera);

@@ -92,7 +92,7 @@ namespace Details
     {
         using Underlying                   = UnderlyingT<TEnum>;
         static constexpr SizeT k_numValues = CountEnumValues<TEnum>();
-        static constexpr SizeT k_lutSize   = NumericCast<SizeT>(2 * k_numValues * k_invConstexprStringHashMapLoadFactor);
+        static constexpr SizeT k_lutSize   = static_cast<SizeT>(2 * k_numValues * k_invConstexprStringHashMapLoadFactor);
 
         Array<StringView, k_numValues>           fullNames        = {};   // look up by seq
         Array<StringView, k_numValues>           names            = {};   // look up by seq
@@ -136,7 +136,7 @@ namespace Details
     {
         EnumReflection<TEnum> refl = {};
         SizeT                 seq  = 0;
-        (BuildEnumReflectionImpl<TEnum, static_cast<TEnum>(I + k_enumReflectionRangeMin)>(refl, NumericCast<SizeT>(I), seq), ...);
+        (BuildEnumReflectionImpl<TEnum, static_cast<TEnum>(I + k_enumReflectionRangeMin)>(refl, NarrowCast<SizeT>(I), seq), ...);
         return refl;
     }
 

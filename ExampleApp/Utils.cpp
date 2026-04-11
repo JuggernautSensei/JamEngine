@@ -6,7 +6,7 @@ ShaderHandle CompileShader(const std::string_view _source, const eShader _stage,
     ShaderCodeBlob compiler;
     if (!compiler.CompileSource(_source, _stage, _entryPoint))
     {
-        Log::Error("Shader compilation failed. {}", GlobalBuffer::GetLastError());
+        LogSystem::Error("Shader compilation failed. {}", GlobalBuffer::GetLastError());
         JAM_UNREACHABLE;
     }
     return Graphics::CreateShader(compiler.GetBytecode());

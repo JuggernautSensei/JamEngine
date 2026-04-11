@@ -19,11 +19,12 @@ void VertexLayout::Push(
     VertexLayoutElement vlm = {};
     vlm.attrib              = _attrib;
     vlm.format              = _format;
-    vlm.byteWidth           = NumericCast<Int32>(ByteWidthOf(_format));
+    vlm.byteWidth           = NarrowCast<Int32>(ByteWidthOf(_format));
     vlm.offset              = m_stride;
     m_vles[m_numElems++]    = vlm;
     m_stride += vlm.byteWidth;
     m_vleLut[_attrib] = &m_vles[m_numElems - 1];
+    m_bDirty          = true;
 }
 bool VertexLayout::Has(
     const eVertexAttribute _attrib) const
@@ -37,6 +38,8 @@ void VertexLayout::Reset()
     m_vleLut.Fill(nullptr);
     m_stride   = 0;
     m_numElems = 0;
+    m_hash     = 0;
+    m_bDirty   = true;
 }
 
 Int32 VertexLayout::GetStride() const
@@ -59,6 +62,27 @@ Span<const VertexLayoutElement> VertexLayout::GetElems() const
 Int32 VertexLayout::GetNumElems() const
 {
     return m_numElems;
+}
+
+bool VertexLayout::IsEmpty() const
+{
+    return m_numElems == 0;
+}
+
+UInt64 VertexLayout::GetHash() const
+{
+    if (m_bDirty)
+    {
+        Murmur3Hasher64 hasher {};
+        for (const VertexLayoutElement& elem: GetElems())
+        {
+            hasher.Mix(AsMemoryView(elem.attrib));
+            hasher.Mix(AsMemoryView(elem.format));
+        }
+        m_hash   = hasher.Finish();
+        m_bDirty = false;
+    }
+    return m_hash;
 }
 
 void VertexLayout::WriteToArchive(

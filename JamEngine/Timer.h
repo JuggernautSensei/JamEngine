@@ -68,8 +68,8 @@ public:
     ScopedTimer& operator=(ScopedTimer&&) noexcept = delete;
 
 private:
-    StringView m_name = {};
-    eSIPrefix  m_unit = eSIPrefix::Milli;
+    String    m_name = {};
+    eSIPrefix m_unit = eSIPrefix::Milli;
 };
 
 // time utilities

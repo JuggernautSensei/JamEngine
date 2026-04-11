@@ -19,7 +19,7 @@ constexpr Int32 k_maxNumUnorderedAccessViewSlots = D3D11_1_UAV_SLOT_COUNT;
 constexpr Int32 k_maxNumConstantBufferSlots      = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
 constexpr Int32 k_maxNumVSInputSlots             = D3D11_VS_INPUT_REGISTER_COUNT;
 constexpr Int32 k_maxNumVertexStream             = 4;
-constexpr Int32 k_maxNumVertexAttribs            = NumericCast<Int32>(CountOf<eVertexAttribute>());
+constexpr Int32 k_maxNumVertexAttribs            = NarrowCast<Int32>(CountOf<eVertexAttribute>());
 constexpr Int32 k_maxNumInstanceAttribs          = k_maxNumVSInputSlots - k_maxNumVertexAttribs;
 
 ////////// ENUMS ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,19 +28,18 @@ enum class eTextureCreateFlags : UInt32
 {
     None = 0,
 
-    GenerateMips           = 1 << 0,   // auto-generate full mip chain down to 1x1
-    RenderTargetAttachment = 1 << 1,   // usable as render target attachment
-    DepthStencilAttachment = 1 << 2,   // usable as depth stencil attachment
+    RenderTargetAttachment = 1 << 0,   // usable as render target attachment
+    DepthStencilAttachment = 1 << 1,   // usable as depth stencil attachment
 
     // access
-    Mutable           = 1 << 3,   // force mutable                  (if init data is provided, texture is immutable. this flag overrides it)
-    Readback          = 1 << 4,   // staging readback
-    DisableShaderRead = 1 << 5,   // disable shader read            (no SRV created)
-    ShaderReadWrite   = 1 << 6,   // shader read & write enabled    (create UAV)
+    Mutable           = 1 << 2,   // force mutable                  (if init data is provided, texture is immutable. this flag overrides it)
+    Readback          = 1 << 3,   // staging readback
+    DisableShaderRead = 1 << 4,   // disable shader read            (no SRV created)
+    ShaderReadWrite   = 1 << 5,   // shader read & write enabled    (create UAV)
 
-    MSAAx4  = 1 << 7,   // 4x MSAA
-    MSAAx8  = 2 << 7,   // 8x MSAA
-    MSAAx16 = 3 << 7,   // 16x MSAA
+    MSAAx4  = 1 << 6,   // 4x MSAA
+    MSAAx8  = 2 << 6,   // 8x MSAA
+    MSAAx16 = 3 << 6,   // 16x MSAA
 };
 
 [[nodiscard]] Flags<eTextureCreateFlags> FilterMsaaFlags(Flags<eTextureCreateFlags> _flags) noexcept;
@@ -155,10 +154,12 @@ enum class eSubmitParameter
     BaseVertexLocation,
 };
 
-enum class eReadWriteStage
+enum class eStreamMaskFlags : UInt32
 {
-    Pixel = 0,
-    Compute,
+    Stream0,
+    Stream1,
+    Stream2,
+    Stream3,
 };
 
 enum class eShaderResource
@@ -167,7 +168,7 @@ enum class eShaderResource
     Buffer,
 };
 
-enum class eShaderResourceAccess
+enum class eResourceAccess
 {
     Read = 0,
     ReadWrite,
@@ -606,10 +607,10 @@ struct RGBA
     }
 
     explicit constexpr RGBA(const UInt32 _rgba)
-        : r(NumericCast<UInt8>((_rgba >> 24) & 0xFF))
-        , g(NumericCast<UInt8>((_rgba >> 16) & 0xFF))
-        , b(NumericCast<UInt8>((_rgba >> 8) & 0xFF))
-        , a(NumericCast<UInt8>(_rgba & 0xFF))
+        : r(NarrowCast<UInt8>((_rgba >> 24) & 0xFF))
+        , g(NarrowCast<UInt8>((_rgba >> 16) & 0xFF))
+        , b(NarrowCast<UInt8>((_rgba >> 8) & 0xFF))
+        , a(NarrowCast<UInt8>(_rgba & 0xFF))
     {
     }
 
@@ -624,10 +625,10 @@ struct RGBA
     [[nodiscard]] constexpr static RGBA FromLinear(const float _r, const float _g, const float _b, const float _a = 1.0f)
     {
         return {
-            NumericCast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
-            NumericCast<UInt8>(Clamp(_g, 0.0f, 1.0f) * 255.0f),
-            NumericCast<UInt8>(Clamp(_b, 0.0f, 1.0f) * 255.0f),
-            NumericCast<UInt8>(Clamp(_a, 0.0f, 1.0f) * 255.0f)
+            static_cast<UInt8>(Clamp(_r, 0.0f, 1.0f) * 255.0f),
+            static_cast<UInt8>(Clamp(_g, 0.0f, 1.0f) * 255.0f),
+            static_cast<UInt8>(Clamp(_b, 0.0f, 1.0f) * 255.0f),
+            static_cast<UInt8>(Clamp(_a, 0.0f, 1.0f) * 255.0f)
         };
     }
 
@@ -644,28 +645,28 @@ struct RGBA
     // RRGGBBAA
     [[nodiscard]] constexpr UInt32 ToRGBA() const
     {
-        return (NumericCast<UInt32>(r) << 24)
-             | (NumericCast<UInt32>(g) << 16)
-             | (NumericCast<UInt32>(b) << 8)
-             | NumericCast<UInt32>(a);
+        return (NarrowCast<UInt32>(r) << 24)
+             | (NarrowCast<UInt32>(g) << 16)
+             | (NarrowCast<UInt32>(b) << 8)
+             | NarrowCast<UInt32>(a);
     }
 
     // AABBGGRR
     [[nodiscard]] constexpr UInt32 ToABGR() const
     {
-        return (NumericCast<UInt32>(a) << 24)
-             | (NumericCast<UInt32>(b) << 16)
-             | (NumericCast<UInt32>(g) << 8)
-             | NumericCast<UInt32>(r);
+        return (NarrowCast<UInt32>(a) << 24)
+             | (NarrowCast<UInt32>(b) << 16)
+             | (NarrowCast<UInt32>(g) << 8)
+             | NarrowCast<UInt32>(r);
     }
 
     // BBGGRRAA
     [[nodiscard]] constexpr UInt32 ToBGRA() const
     {
-        return (NumericCast<UInt32>(b) << 24)
-             | (NumericCast<UInt32>(g) << 16)
-             | (NumericCast<UInt32>(r) << 8)
-             | NumericCast<UInt32>(a);
+        return (NarrowCast<UInt32>(b) << 24)
+             | (NarrowCast<UInt32>(g) << 16)
+             | (NarrowCast<UInt32>(r) << 8)
+             | NarrowCast<UInt32>(a);
     }
 
     [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
@@ -808,25 +809,25 @@ public:
 
     [[nodiscard]] VertexBufferHandle AsVertexBufferHandle() const
     {
-        JAM_ASSERT(m_type == eBuffer::VertexBuffer);
+        JAM_ASSERT(m_type == eBuffer::VertexBuffer, "Buffer type mismatch! Expected: VertexBuffer, Actual: {}", NameOf(m_type));
         return m_handleValue;
     }
 
     [[nodiscard]] IndexBufferHandle AsIndexBufferHandle() const
     {
-        JAM_ASSERT(m_type == eBuffer::IndexBuffer);
+        JAM_ASSERT(m_type == eBuffer::IndexBuffer, "Buffer type mismatch! Expected: IndexBuffer, Actual: {}", NameOf(m_type));
         return m_handleValue;
     }
 
     [[nodiscard]] ConstantBufferHandle AsConstantBufferHandle() const
     {
-        JAM_ASSERT(m_type == eBuffer::ConstantBuffer);
+        JAM_ASSERT(m_type == eBuffer::ConstantBuffer, "Buffer type mismatch! Expected: ConstantBuffer, Actual: {}", NameOf(m_type));
         return m_handleValue;
     }
 
     [[nodiscard]] StorageBufferHandle AsStorageBufferHandle() const
     {
-        JAM_ASSERT(m_type == eBuffer::StorageBuffer);
+        JAM_ASSERT(m_type == eBuffer::StorageBuffer, "Buffer type mismatch! Expected: StorageBuffer, Actual: {}", NameOf(m_type));
         return m_handleValue;
     }
 

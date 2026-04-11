@@ -410,6 +410,7 @@
     <ClCompile Include="CppHlslGlue.cpp" />
     <ClInclude Include="Bit.h" />
     <ClInclude Include="CppHlslGlue.h" />
+    <ClCompile Include="DebugRenderer.cpp" />
     <ClCompile Include="MemoryView.cpp" />
     <ClCompile Include="MessageDilaog.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
@@ -532,7 +533,7 @@
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="DataType.cpp" />
     <ClCompile Include="Event.cpp" />
-    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="LogSystem.cpp" />
     <ClCompile Include="Macros.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -601,6 +602,7 @@
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugRenderer.h" />
     <ClInclude Include="MemoryView.h" />
     <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="RenderGraph.h" />
@@ -726,7 +728,7 @@
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="DataType.h" />
     <ClInclude Include="Event.h" />
-    <ClInclude Include="Log.h" />
+    <ClInclude Include="LogSystem.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Timer.h" />

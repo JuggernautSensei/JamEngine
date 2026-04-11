@@ -300,7 +300,7 @@ void ShaderItemEditorWindow::OnProjectChangedEvent_(
 }
 
 void ShaderItemEditorWindow::OnFocusingShaderItemChangedEvent_(
-    const FocusingShaderItemChangedEvent& )
+    const FocusingShaderItemChangedEvent&)
 {
     m_pFocusingShaderItemCache = GetShaderApp().GetFocusingShaderItemOrNull();
     if (m_pFocusingShaderItemCache)
@@ -455,22 +455,22 @@ void ShaderItemEditorWindow::Widget_EditShaderItemCompileFlags() const
     JAM_ASSERT(m_pFocusingShaderItemCache, "No shader item is currently being edited.");
 
     constexpr EnumWidgetItem k_flagsItems[] = {
-        {               "Debug info",             NumericCast<Int32>(eShaderCompileFlags::DebugInfo) },
-        {             "Optimization",          NumericCast<Int32>(eShaderCompileFlags::Optimization) },
-        {        "Skip optimization",      NumericCast<Int32>(eShaderCompileFlags::SkipOptimization) },
-        {       "Warning as errors ",      NumericCast<Int32>(eShaderCompileFlags::WarningsAsErrors) },
-        {       "Avoid flow control",      NumericCast<Int32>(eShaderCompileFlags::AvoidFlowControl) },
-        {    "Pack matrix row major",    NumericCast<Int32>(eShaderCompileFlags::PackMatrixRowMajor) },
-        { "Pack matrix column major", NumericCast<Int32>(eShaderCompileFlags::PackMatrixColumnMajor) },
+        {               "Debug info",             UnderlyingFrom(eShaderCompileFlags::DebugInfo) },
+        {             "Optimization",          UnderlyingFrom(eShaderCompileFlags::Optimization) },
+        {        "Skip optimization",      UnderlyingFrom(eShaderCompileFlags::SkipOptimization) },
+        {       "Warning as errors ",      UnderlyingFrom(eShaderCompileFlags::WarningsAsErrors) },
+        {       "Avoid flow control",      UnderlyingFrom(eShaderCompileFlags::AvoidFlowControl) },
+        {    "Pack matrix row major",    UnderlyingFrom(eShaderCompileFlags::PackMatrixRowMajor) },
+        { "Pack matrix column major", UnderlyingFrom(eShaderCompileFlags::PackMatrixColumnMajor) },
     };
 
     constexpr EnumWidgetItem k_setItems[] = {
-        {            "None",           NumericCast<Int32>(eShaderCompileFlags::None) },
-        {   "Debug default",   NumericCast<Int32>(eShaderCompileFlags::DebugDefault) },
-        { "Release default", NumericCast<Int32>(eShaderCompileFlags::ReleaseDefault) },
+        {            "None",           UnderlyingFrom(eShaderCompileFlags::None) },
+        {   "Debug default",   UnderlyingFrom(eShaderCompileFlags::DebugDefault) },
+        { "Release default", UnderlyingFrom(eShaderCompileFlags::ReleaseDefault) },
     };
 
-    Int32 flags = NumericCast<Int32>(m_pFocusingShaderItemCache->compileFlags.GetValue());
+    Int32 flags = NarrowCast<Int32>(m_pFocusingShaderItemCache->compileFlags.GetValue());
     if (Widget_EnumFlags("##ShaderItemCompileFlags", flags, k_flagsItems, k_setItems))
     {
         m_pProjectCache->SetShaderItemCompileFlags(m_pFocusingShaderItemCache->name, flags);

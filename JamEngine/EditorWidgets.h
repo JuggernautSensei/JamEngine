@@ -141,7 +141,7 @@ namespace Details   // enum combo helper
         EnumArray<TEnum, EnumWidgetItem> items = {};
         for (const TEnum& value: RangesOf<TEnum>())
         {
-            items[value] = { NameOf(value).GetPtr(), NumericCast<Int32>(value) };
+            items[value] = { NameOf(value).GetPtr(), NarrowCast<Int32>(UnderlyingFrom(value)) };
         }
         return items;
     }
@@ -160,7 +160,7 @@ template<typename TEnum>
     requires(std::is_enum_v<TEnum> && !std::is_const_v<TEnum>)
 bool Widget_EnumCombo(const char* _label, TEnum& _curValue)
 {
-    EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(UnderlyingFrom(_curValue)) };
+    EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NarrowCast<Int32>(UnderlyingFrom(_curValue)) };
     if (Widget_EnumCombo(_label, curItem, Details::k_enumWidgetItems<TEnum>))
     {
         _curValue = CastAs<TEnum>(curItem.value).GetValue();
@@ -173,7 +173,7 @@ template<typename TEnum>
     requires(std::is_enum_v<TEnum> && !std::is_const_v<TEnum>)
 bool Widget_EnumToggle(const char* _label, TEnum& _curValue)
 {
-    EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NumericCast<Int32>(_curValue) };
+    EnumWidgetItem curItem = { NameOf(_curValue).GetPtr(), NarrowCast<Int32>(UnderlyingFrom(_curValue)) };
     if (Widget_EnumToggle(_label, curItem, Details::k_enumWidgetItems<TEnum>))
     {
         _curValue = CastAs<TEnum>(curItem.value).GetValue();

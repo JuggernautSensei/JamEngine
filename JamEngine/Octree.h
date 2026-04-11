@@ -440,7 +440,7 @@ private:
             return;
         }
 
-        if (NumericCast<Int32>(_pNode->items.size()) <= m_desc.subdivisionThreshold)
+        if (NarrowCast<Int32>(_pNode->items.size()) <= m_desc.subdivisionThreshold)
         {
             return;
         }
@@ -487,7 +487,7 @@ private:
 
     void PushItemToList_(Vector<OcItemScoped>& _items, OcItemScoped&& _pItem) const
     {
-        _pItem->index = NumericCast<Int32>(_items.size());
+        _pItem->index = NarrowCast<Int32>(_items.size());
         _items.emplace_back(std::move(_pItem));
     }
 
@@ -495,7 +495,7 @@ private:
     {
         Vector<OcItemScoped>& items   = _pItem->pOwner->items;
         const Int32           itemIdx = _pItem->index;
-        const Int32           lastIdx = NumericCast<Int32>(items.size() - 1);
+        const Int32           lastIdx = NarrowCast<Int32>(items.size() - 1);
         OcItemScoped          pPopped = std::move(items[itemIdx]);
 
         // swap and pop (삽입 순서 보장 불필요)
@@ -683,7 +683,7 @@ private:
             MergeEmptyChildren_Recursive_(pChild.GetPtr());
         }
 
-        const Int32 numItemsInChildren = _pNode->numItemsInTree - NumericCast<Int32>(_pNode->items.size());
+        const Int32 numItemsInChildren = _pNode->numItemsInTree - NarrowCast<Int32>(_pNode->items.size());
         if (numItemsInChildren == 0)
         {
             _pNode->ClearChildren();

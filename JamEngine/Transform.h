@@ -23,7 +23,6 @@ public:
     // matrix
     [[nodiscard]] const Mtx4& GetMatrix() const;
     void                      SetMatrix(const Mtx4& _mtx);
-    [[nodiscard]] Mtx4        CreateViewMatrix() const;
 
     // transform
     [[nodiscard]] Transform Inverted() const;

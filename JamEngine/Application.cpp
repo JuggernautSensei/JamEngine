@@ -41,7 +41,7 @@ Int32 Application::Run(
 
             timer.Tick();
             m_deltaTimeSec = timer.GetDeltaFloat(eSIPrefix::Sec);
-            m_framerate    = 1.f/ m_deltaTimeSec;
+            m_framerate    = 1.f / m_deltaTimeSec;
 
             Update(m_deltaTimeSec);
             Render();
@@ -133,7 +133,7 @@ float Application::GetFrameRate() const
 bool Application::IsCoreFlagsEnabled(
     const eAppCoreFlags _flags) const
 {
-    return m_coreFlags & _flags;
+    return m_coreFlags.IsEnabled(_flags);
 }
 
 StringView Application::GetWorkingDirectory() const
@@ -152,7 +152,7 @@ std::thread::id Application::GetMainThreadId() const
 }
 
 Application::Application(
-    const StringView                _appName,
+    const StringView           _appName,
     const Flags<eAppCoreFlags> _initFlags)
     : m_appName(_appName)
     , m_coreFlags(_initFlags)
@@ -247,7 +247,7 @@ void Application::CoreInit()
     std::locale::global(std::locale(""));
 
     // init
-    Log::CreateInstance();
+    LogSystem::CreateInstance();
 
     // init window
     WindowsPlatform::CreateInstance();
@@ -356,7 +356,7 @@ void Application::CoreShutdown()
 
     // shutdown
     JAM_LOG_TRACE("app '{}' shutdown complete.", m_appName);
-    Log::DestroyInstance();
+    LogSystem::DestroyInstance();
 }
 
 }   // namespace Jam

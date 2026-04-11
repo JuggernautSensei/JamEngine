@@ -24,7 +24,7 @@ public:
         return value != k_nullId;
     }
 
-    /*implicit*/ constexpr operator bool() const noexcept
+    explicit constexpr operator bool() const noexcept
     {
         return IsValid();
     }

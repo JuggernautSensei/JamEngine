@@ -227,7 +227,7 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
     // render filename
     {
         const SizeT len           = _pEntry->name.GetLength();
-        const SizeT clipThreshold = NumericCast<SizeT>(_size.x / ImGui::CalcTextSize("W").x);
+        const SizeT clipThreshold = static_cast<SizeT>(_size.x / ImGui::CalcTextSize("W").x);
 
         if (len <= clipThreshold)
         {
@@ -416,8 +416,8 @@ void Editor_FileBrowserWindow::Widget_FileEntries()
 
     const ImVec2 btnSize      = k_fileEntrySize * m_zoom;
     const float  pad          = k_fileEntrySpacingX * m_zoom;
-    const Int32  numBtnPerRow = Max<Int32>(1, NumericCast<Int32>((visibleWidth + pad) / (btnSize.x + pad)));
-    const Int32  numItems     = NumericCast<Int32>(m_filteredFileEntries.size());
+    const Int32  numBtnPerRow = Max<Int32>(1, static_cast<Int32>((visibleWidth + pad) / (btnSize.x + pad)));
+    const Int32  numItems     = NarrowCast<Int32>(m_filteredFileEntries.size());
     const Int32  numRows      = (numItems + numBtnPerRow - 1) / numBtnPerRow;
     const float  itemHeight   = btnSize.y + ImGui::GetTextLineHeightWithSpacing();
 
@@ -732,8 +732,8 @@ void Editor_FileBrowserWindow::SetFocusingDirEntry_(
     JAM_ASSERT(_pEntry, "Directory entry cannot be null.");
 
     // no change
-    const Ref<FileEntry>& pFocusingFileEntry = GetEditor().GetFocusingFileEntry();
-    if (pFocusingFileEntry == _pEntry)
+    const Ref<DirEntry>& pFucusingDirEntry = GetEditor().GetFocusingDirEntry();
+    if (pFucusingDirEntry == _pEntry)
     {
         return;
     }

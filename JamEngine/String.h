@@ -117,7 +117,7 @@ struct NumericCharConverter<char>
     {
         const auto [it, _] = fmt::format_to_n(_pOutBuf, _bufCap - 1, "{}", +_value);
         *it                = CharTraits::k_nullChar;
-        return NumericCast<SizeT>(it - _pOutBuf);
+        return NarrowCast<SizeT>(it - _pOutBuf);
     }
 };
 
@@ -167,7 +167,7 @@ struct NumericCharConverter<wchar_t>
     {
         const auto [it, _] = fmt::format_to_n(_pOutBuf, _bufCap - 1, L"{}", +_value);
         *it                = CharTraits::k_nullChar;
-        return NumericCast<SizeT>(it - _pOutBuf);
+        return NarrowCast<SizeT>(it - _pOutBuf);
     }
 };
 
@@ -300,7 +300,7 @@ struct CharFuncs
         JAM_ASSERT(_str, "StrCpy: _str cannot be null.");
         JAM_ASSERT(_len <= _bufCap - 1, "StrCpy: _len cannot be greater than _bufCap - 1.");
 
-        const StdStringView str = { _str, NumericCast<size_t>(_len) };
+        const StdStringView str = { _str, NarrowCast<size_t>(_len) };
         str.copy(_pOutBuf, _len);
         _pOutBuf[_len] = CharTraits::k_nullChar;
         return _len;
@@ -362,17 +362,17 @@ struct CharFuncs
         {
             if constexpr (bEqual)
             {
-                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
                 const size_t        idx     = str.find(findStr);
-                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
             }
             else
             {
-                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
                 const size_t        idx     = str.find_first_not_of(findStr);
-                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
             }
         }
         else
@@ -399,17 +399,17 @@ struct CharFuncs
         {
             if constexpr (bEqual)
             {
-                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
                 const size_t        idx     = str.rfind(findStr);
-                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
             }
             else
             {
-                const StdStringView str     = { _str, NumericCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NumericCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
                 const size_t        idx     = str.find_last_not_of(findStr);
-                return idx != StdStringView::npos ? CharResult { NumericCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
             }
         }
         else
@@ -634,37 +634,21 @@ struct CharFuncs
         if constexpr (std::is_same_v<T, Int32> || std::is_same_v<T, Int16> || std::is_same_v<T, Int8> || std::is_same_v<T, char> || std::is_same_v<T, wchar_t>)
         {
             const Int32 value = NumericCharConverter::ParseAsInt32(_str, _base);
-            if (CheckOverflow<T>(value))
-            {
-                return k_nullopt;
-            }
             return static_cast<T>(value);
         }
         else if constexpr (std::is_same_v<T, UInt32> || std::is_same_v<T, UInt16> || std::is_same_v<T, UInt8> || std::is_same_v<T, unsigned char>)
         {
             const UInt32 value = NumericCharConverter::ParseAsUInt32(_str, _base);
-            if (CheckOverflow<T>(value))
-            {
-                return k_nullopt;
-            }
             return static_cast<T>(value);
         }
         else if constexpr (std::is_same_v<T, Int64>)
         {
             const Int64 value = NumericCharConverter::ParseAsInt64(_str, _base);
-            if (CheckOverflow<T>(value))
-            {
-                return k_nullopt;
-            }
             return static_cast<T>(value);
         }
         else if constexpr (std::is_same_v<T, UInt64>)
         {
             const UInt64 value = NumericCharConverter::ParseAsUInt64(_str, _base);
-            if (CheckOverflow<T>(value))
-            {
-                return k_nullopt;
-            }
             return static_cast<T>(value);
         }
 
@@ -730,7 +714,7 @@ struct CharEncoder<char, wchar_t>
 {
     [[nodiscard]] static SizeT CalcRequiredBufferSize(const char* _str, const SizeT _len)
     {
-        return ::MultiByteToWideChar(CP_UTF8, 0, _str, NumericCast<Int32>(_len), nullptr, 0);
+        return ::MultiByteToWideChar(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), nullptr, 0);
     }
 
     static SizeT Encode(const char* _str, const SizeT _len, wchar_t* _pOutBuf, const SizeT _bufCap)
@@ -739,7 +723,7 @@ struct CharEncoder<char, wchar_t>
         JAM_ASSERT(_pOutBuf, "CharEncoder<char, wchar_t>::Encode: _pOutBuf cannot be null.");
         JAM_ASSERT(_bufCap > 0, "CharEncoder<char, wchar_t>::Encode: _bufCap must be greater than zero.");
 
-        const Int32 n = ::MultiByteToWideChar(CP_UTF8, 0, _str, NumericCast<Int32>(_len), _pOutBuf, NumericCast<Int32>(_bufCap));
+        const Int32 n = ::MultiByteToWideChar(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), _pOutBuf, NarrowCast<Int32>(_bufCap));
         _pOutBuf[n]   = L'\0';
         return n;
     }
@@ -750,7 +734,7 @@ struct CharEncoder<wchar_t, char>
 {
     [[nodiscard]] static SizeT CalcRequiredBufferSize(const wchar_t* _str, const SizeT _len)
     {
-        return ::WideCharToMultiByte(CP_UTF8, 0, _str, NumericCast<Int32>(_len), nullptr, 0, nullptr, nullptr);
+        return ::WideCharToMultiByte(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), nullptr, 0, nullptr, nullptr);
     }
 
     static SizeT Encode(const wchar_t* _str, const SizeT _len, char* _pOutBuf, const SizeT _bufCap)
@@ -759,7 +743,7 @@ struct CharEncoder<wchar_t, char>
         JAM_ASSERT(_pOutBuf, "CharEncoder<wchar_t, char>::Encode: _pOutBuf cannot be null.");
         JAM_ASSERT(_bufCap > 0, "CharEncoder<wchar_t, char>::Encode: _bufCap must be greater than zero.");
 
-        const Int32 n = ::WideCharToMultiByte(CP_UTF8, 0, _str, NumericCast<Int32>(_len), _pOutBuf, NumericCast<Int32>(_bufCap), nullptr, nullptr);
+        const Int32 n = ::WideCharToMultiByte(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), _pOutBuf, NarrowCast<Int32>(_bufCap), nullptr, nullptr);
         _pOutBuf[n]   = '\0';
         return n;
     }
@@ -813,7 +797,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NumericCast<UInt32>(_str[i])) * Details::k_fnv1ah32Prime;
+            m_hash = (m_hash ^ NarrowCast<UInt32>(_str[i])) * Details::k_fnv1ah32Prime;
         }
     }
 
@@ -842,7 +826,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NumericCast<UInt64>(_str[i])) * Details::k_fnv1ah64Prime;
+            m_hash = (m_hash ^ NarrowCast<UInt64>(_str[i])) * Details::k_fnv1ah64Prime;
         }
     }
 
@@ -873,7 +857,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NumericCast<UInt32>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah32Prime;
+            m_hash = (m_hash ^ NarrowCast<UInt32>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah32Prime;
         }
     }
 
@@ -904,7 +888,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NumericCast<UInt64>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah64Prime;
+            m_hash = (m_hash ^ NarrowCast<UInt64>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah64Prime;
         }
     }
 
@@ -1400,12 +1384,12 @@ public:
 
     [[nodiscard]] constexpr size_t size() const
     {
-        return NumericCast<size_t>(m_len);
+        return NarrowCast<size_t>(m_len);
     }
 
     [[nodiscard]] constexpr size_t length() const
     {
-        return NumericCast<size_t>(m_len);
+        return NarrowCast<size_t>(m_len);
     }
 
     [[nodiscard]] constexpr TChar* data()
@@ -1440,12 +1424,12 @@ public:
 
     [[nodiscard]] constexpr std::basic_string<CharT> ToStdString() const
     {
-        return { m_ptr, NumericCast<size_t>(m_len) };
+        return { m_ptr, NarrowCast<size_t>(m_len) };
     }
 
     [[nodiscard]] constexpr std::basic_string_view<CharT> ToStdStringView() const
     {
-        return { m_ptr, NumericCast<size_t>(m_len) };
+        return { m_ptr, NarrowCast<size_t>(m_len) };
     }
 
 private:
@@ -2260,7 +2244,7 @@ public:
 
     void Join(
         const TStringView _str,
-        eJoin         _type = eJoin::Auto)
+        eJoin             _type = eJoin::Auto)
     {
         _type = (_type == eJoin::Auto) ? (_str.IsDirectory() ? eJoin::Directory : eJoin::File) : _type;
 
@@ -2296,7 +2280,7 @@ public:
     [[nodiscard]] static TString Joined(
         const TStringView _str1,
         const TStringView _str2,
-        const eJoin   _type = eJoin::Auto)
+        const eJoin       _type = eJoin::Auto)
     {
         TString result(_str1);
         result.Join(_str2, _type);
@@ -2424,12 +2408,12 @@ public:
 
     [[nodiscard]] size_t size() const
     {
-        return NumericCast<size_t>(Self_().GetLength());
+        return NarrowCast<size_t>(Self_().GetLength());
     }
 
     [[nodiscard]] size_t length() const
     {
-        return NumericCast<size_t>(Self_().GetLength());
+        return NarrowCast<size_t>(Self_().GetLength());
     }
 
     [[nodiscard]] TChar* data()
@@ -2474,12 +2458,12 @@ public:
 
     [[nodiscard]] std::basic_string<TChar> ToStdString() const
     {
-        return { Self_().GetPtr(), NumericCast<size_t>(Self_().GetLength()) };
+        return { Self_().GetPtr(), NarrowCast<size_t>(Self_().GetLength()) };
     }
 
     [[nodiscard]] std::basic_string_view<TChar> ToStdStringView() const
     {
-        return { Self_().GetPtr(), NumericCast<size_t>(Self_().GetLength()) };
+        return { Self_().GetPtr(), NarrowCast<size_t>(Self_().GetLength()) };
     }
 
 private:
@@ -2674,7 +2658,7 @@ public:
             GrowHeapIfNeed_(m_str.heapLen + len);
             AppendToHeap_(_str);
         }
-        else if (CmpLess(m_str.bit, len))   // change to heap
+        else if (std::cmp_less(m_str.bit, len))   // change to heap
         {
             SSOToHeap_((GetLengthSSO_() + len) * k_growthFactor);
             AppendToHeap_(_str);
@@ -2695,7 +2679,7 @@ public:
             GrowHeapIfNeed_(GetLength() + len);
             InsertToHeap_(_pos, _str);
         }
-        else if (CmpLess(m_str.bit, len))   // change to heap
+        else if (std::cmp_less(m_str.bit, len))   // change to heap
         {
             SSOToHeap_((GetLengthSSO_() + len) * k_growthFactor);
             InsertToHeap_(_pos, _str);
@@ -2931,7 +2915,7 @@ private:
     {
         JAM_ASSERT(_len <= k_ssoCap, "ResizeSSO_: _len exceeds sso capacity.");
         m_str.sso[_len] = CharTraits::k_nullChar;
-        m_str.bit       = NumericCast<Byte>(k_ssoCap - _len);
+        m_str.bit       = NarrowCast<Byte>(k_ssoCap - _len);
     }
 
     void AppendToSSO_(

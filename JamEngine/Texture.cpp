@@ -81,15 +81,14 @@ Expect<Ref<Texture>> Texture::LoadFromFile(
 }
 
 Error Texture::Load_(
-    StringView _path)
+    const StringView _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // import dds (native image format is dds.)
-    ImageImporterInfo options = {};
-    options.bGenerateMips     = true;
-
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path, eImageFormat::DDS, options);
+    ImageImporterInfo options      = {};
+    options.bGenerateMips          = true;
+    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path, options);
     if (!importer)
     {
         return importer.GetError();
@@ -146,7 +145,7 @@ void Texture::Invalidate()
 
 bool Texture::IsValid() const
 {
-    return m_texh;
+    return !!m_texh;
 }
 
 eAsset Texture::GetAssetType() const
@@ -203,14 +202,14 @@ void Texture::Bind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    GetGraphics().SetTexture(m_texh, _shader, _slot, TODO);
+    GetGraphics().SetTexture(m_texh, _shader, _slot);
 }
 
 void Texture::Unbind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    GetGraphics().SetTexture(k_nullHandle, _shader, _slot, TODO);
+    GetGraphics().SetTexture(k_nullHandle, _shader, _slot);
 }
 
 void Texture::CleanUp_()

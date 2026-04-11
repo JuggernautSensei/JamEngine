@@ -41,7 +41,7 @@ namespace
         node.matIdxes     = VectorDtoFrom(_node.matIdxes);
 
         // children
-        node.children.reserve(NumericCast<Int32>(_node.children.size()));
+        node.children.reserve(NarrowCast<Int32>(_node.children.size()));
         for (const ModelNode& child: _node.children)
         {
             node.children.emplace_back(CreateModelNodeData_Recursive(child));
@@ -193,14 +193,14 @@ Error Model::Save(
     dto.root     = CreateModelNodeData_Recursive(m_desc.root);
 
     // meshes
-    dto.meshPaths.reserve(NumericCast<UInt32>(m_desc.meshes.size()));
+    dto.meshPaths.reserve(NarrowCast<UInt32>(m_desc.meshes.size()));
     for (const Ref<Mesh>& pMesh: m_desc.meshes)
     {
         dto.meshPaths.emplace_back(StringViewDtoFrom(pMesh->GetPath()));
     }
 
     // materials
-    dto.matPaths.reserve(NumericCast<UInt32>(m_desc.materials.size()));
+    dto.matPaths.reserve(NarrowCast<UInt32>(m_desc.materials.size()));
     for (const Ref<Material>& pMaterial: m_desc.materials)
     {
         dto.matPaths.emplace_back(StringViewDtoFrom(pMaterial->GetPath()));

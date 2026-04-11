@@ -2791,8 +2791,8 @@ struct ImGuiStyle
 // Communicate most settings and inputs/outputs to Dear ImGui using this structure.
 // Access via ImGui::GetIO(). ReadBinary 'Programmer guide' section in .cpp file for general usage.
 // It is generally expected that:
-// - initialization: backends and user code writeTextures to ImGuiIO.
-// - main loop: backends writeTextures to ImGuiIO, user code and imgui code readTextures from ImGuiIO.
+// - initialization: backends and user code outputBinds to ImGuiIO.
+// - main loop: backends outputBinds to ImGuiIO, user code and imgui code readTextures from ImGuiIO.
 //-----------------------------------------------------------------------------
 // Also see ImGui::GetPlatformIO() and ImGuiPlatformIO struct for OS/platform related functions: clipboard, IME etc.
 //-----------------------------------------------------------------------------
@@ -3605,7 +3605,7 @@ enum ImGuiMultiSelectFlags_
 // This mainly contains a list of selection requests.
 // - Use 'Demo->Tools->DebugInfo Log->Selection' to see requests as they happen.
 // - Some fields are only useful if your list is dynamic and allows deletion (getting post-deletion focus/renderState right is shown in the demo)
-// - Below: who readTextures/writeTextures each fields? 'r'=read, 'w'=write, 'ms'=multi-select code, 'app'=application/user code.
+// - Below: who readTextures/outputBinds each fields? 'r'=read, 'w'=write, 'ms'=multi-select code, 'app'=application/user code.
 struct ImGuiMultiSelectIO
 {
     //------------------------------------------// BeginMultiSelect / EndMultiSelect
@@ -4096,7 +4096,7 @@ struct ImTextureRect
 // Why does we store two identifiers: TexID and BackendUserData?
 // - ImTextureID    TexID           = lower-level identifier stored in ImDrawCmd. ImDrawCmd can refer to textureBinds not created by the backend, and for which there's no ImTextureData.
 // - void*          BackendUserData = higher-level opaque storage for backend own book-keeping. Some backends may have enough with TexID and not need both.
-// In columns below: who readTextures/writeTextures each fields? 'r'=read, 'w'=write, 'core'=main library, 'backend'=renderer backend
+// In columns below: who readTextures/outputBinds each fields? 'r'=read, 'w'=write, 'core'=main library, 'backend'=renderer backend
 struct ImTextureData
 {
     //------------------------------------------ core / backend ---------------------------------------

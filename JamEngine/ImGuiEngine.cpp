@@ -91,21 +91,21 @@ namespace
     struct TextureData
     {
         TextureHandle texh = k_nullHandle;
-        eTexture  type = eTexture::Texture2D;
+        eTexture      type = eTexture::Texture2D;
     };
 
     ImTextureID ImTextureIDFrom_(
         const TextureHandle _texh,
-        const eTexture  _type)
+        const eTexture      _type)
     {
-        return (NumericCast<UInt64>(_texh.GetValue()) << 32) | NumericCast<UInt64>(_type);
+        return (NarrowCast<UInt64>(_texh.GetValue()) << 32) | NarrowCast<UInt64>(UnderlyingFrom(_type));
     }
 
     TextureData TextureDataFrom_(
         const ImTextureID _texId)
     {
         TextureData texData = {};
-        texData.texh        = TextureHandle { NumericCast<UInt32>(_texId >> 32) };
+        texData.texh        = TextureHandle { NarrowCast<UInt32>(_texId >> 32) };
         texData.type        = static_cast<eTexture>(_texId & 0xFFFFFFFF);
         return texData;
     }
@@ -167,7 +167,7 @@ ImGuiEngine::ImGuiEngine(
     // state
     m_bsFlags = eBlendFlags::Enable
               | eBlendFlags::SrcBlend_SrcAlpha | eBlendFlags::DstBlend_InvSrcAlpha | eBlendFlags::BlendOp_Add
-              | eBlendFlags::SrcBlendAlpha_One | eBlendFlags::DstBlendAlpha_Zero | eBlendFlags::BlendOpAlpha_Add
+              | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add
               | eBlendFlags::WriteMask_All;
     m_rsFlags = eRenderFlags::CullMode_None | eRenderFlags::Scissor;
     m_ssFlags = eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear | eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp;
@@ -292,7 +292,7 @@ void ImGuiEngine::Render_(
     if (m_ibCap < _pDrawData->TotalIdxCount)
     {
         JAM_DESTROY_INDEX_BUFFER(m_ibh);
-        const bool bUseU32 = NeedU32Index(_pDrawData->TotalVtxCount);
+        const bool bUseU32 = std::cmp_greater(_pDrawData->TotalVtxCount, Limits<UInt16>::k_highest);
         m_ibCap            = _pDrawData->TotalIdxCount + 10000;
         m_ibh              = gfx.CreateDynamicIndexBuffer(m_ibCap, bUseU32);
     }
@@ -323,7 +323,7 @@ void ImGuiEngine::Render_(
     gfx.EndUpdateBuffer(m_ibh);
 
     // setup
-    const Viewport vp = { NumericCast<UInt16>(_pDrawData->DisplaySize.x), NumericCast<UInt16>(_pDrawData->DisplaySize.y) };
+    const Viewport vp = { static_cast<UInt16>(_pDrawData->DisplaySize.x), static_cast<UInt16>(_pDrawData->DisplaySize.y) };
     gfx.SetViewport(vp);
 
     const float L = _pDrawData->DisplayPos.x;
@@ -356,7 +356,7 @@ void ImGuiEngine::Render_(
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     gfx.SetBlendFlags(m_bsFlags, 0);
     gfx.SetRenderFlags(m_rsFlags);
-    gfx.SetSamplerState(m_ssFlags, eShader::PixelShader, 0);
+    gfx.SetSampler(m_ssFlags, eShader::PixelShader, 0);
     gfx.SetStencilFlags(eStencilFlags::None, eStencilFlags::None);
     gfx.SetVertexBuffer(m_vbh, 0);
 
@@ -371,10 +371,10 @@ void ImGuiEngine::Render_(
         for (const ImDrawCmd& cmd: pDrawList->CmdBuffer)
         {
             // Project scissor/clipping rectangles into framebuffer space
-            const UInt16 clipMinX = NumericCast<UInt16>(Max(0.f, (cmd.ClipRect.x - clipOff.x) * clipScale.x));
-            const UInt16 clipMinY = NumericCast<UInt16>(Max(0.f, (cmd.ClipRect.y - clipOff.y) * clipScale.y));
-            const UInt16 clipMaxX = NumericCast<UInt16>(Max(0.f, (cmd.ClipRect.z - clipOff.x) * clipScale.x));
-            const UInt16 clipMaxY = NumericCast<UInt16>(Max(0.f, (cmd.ClipRect.w - clipOff.y) * clipScale.y));
+            const UInt16 clipMinX = static_cast<UInt16>(Max(0.f, (cmd.ClipRect.x - clipOff.x) * clipScale.x));
+            const UInt16 clipMinY = static_cast<UInt16>(Max(0.f, (cmd.ClipRect.y - clipOff.y) * clipScale.y));
+            const UInt16 clipMaxX = static_cast<UInt16>(Max(0.f, (cmd.ClipRect.z - clipOff.x) * clipScale.x));
+            const UInt16 clipMaxY = static_cast<UInt16>(Max(0.f, (cmd.ClipRect.w - clipOff.y) * clipScale.y));
 
             if (clipMaxX <= clipMinX || clipMaxY <= clipMinY)
             {
@@ -395,7 +395,7 @@ void ImGuiEngine::Render_(
             // set program
             const ProgramHandle ph = (type == eTexture::TextureCube) ? m_textureCubePh : m_basicPh;
             gfx.SetProgram(ph);
-            gfx.SetTexture(texh, eShader::PixelShader, 0, TODO);
+            gfx.SetTexture(texh, eShader::PixelShader, 0);
 
             // submit
             gfx.Submit();
@@ -408,7 +408,10 @@ void ImGuiEngine::Render_(
     // reset state
     gfx.SetSubmitParameter(eSubmitParameter::StartIndexLocation, 0);
     gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, 0);
-    gfx.Flush();
+
+    // reset texture
+    gfx.SetTexture(k_nullHandle, eShader::PixelShader, 0);
+    gfx.Touch();
 }
 
 void ImGuiEngine::UpdateTexture_(
@@ -426,7 +429,8 @@ void ImGuiEngine::UpdateTexture_(
         };
 
         // dynamic texture creation
-        const TextureHandle texh = gfx.CreateTexture2D(_pTexture->Width, _pTexture->Height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::Mutable, texData);
+        const TextureHandle texh = gfx.CreateTexture2D(_pTexture->Width, _pTexture->Height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::Mutable, texData);
+        gfx.SetTextureName(texh, "ImGui Texture");
         _pTexture->SetTexID(ImTextureIDFrom_(texh, eTexture::Texture2D));
         _pTexture->SetStatus(ImTextureStatus_OK);
     }
@@ -437,8 +441,8 @@ void ImGuiEngine::UpdateTexture_(
         // upload dynamic
         for (const ImTextureRect& rect: _pTexture->Updates)
         {
-            const MemoryView texData = { _pTexture->GetPixelsAt(rect.x, rect.y), _pTexture->GetSizeInBytes() };
-            gfx.UpdateTexture2D(texh, 0, 0, texData, rect.x, rect.y, rect.w, rect.h);
+            const MemoryView texData = { _pTexture->GetPixelsAt(rect.x, rect.y), (_pTexture->GetPitch() * rect.h) };
+            gfx.UpdateTexture2D(texh, 0, 0, rect.x, rect.y, rect.w, rect.h, texData, _pTexture->GetPitch());
         }
         _pTexture->SetStatus(ImTextureStatus_OK);
     }
@@ -454,8 +458,9 @@ void ImGuiEngine::DestroyTexture_(ImTextureData* _texture) const
     JAM_ASSERT(_texture->Status != ImTextureStatus_Destroyed && _texture->Status != ImTextureStatus_WantCreate, "Trying to destroy a texture that is not created.");
 
     // destroy texture
+    Graphics& gfx        = GetGraphics();
     const auto [texh, _] = TextureDataFrom_(_texture->GetTexID());
-    GetGraphics().DestroyTexture(texh);
+    gfx.DestroyTexture(texh);
 
     // clear info
     _texture->SetTexID(ImTextureID_Invalid);
@@ -464,7 +469,7 @@ void ImGuiEngine::DestroyTexture_(ImTextureData* _texture) const
 
 ImTextureRef ImTextureRefFrom(
     const TextureHandle _texh,
-    const eTexture  _type)
+    const eTexture      _type)
 {
     return ImTextureIDFrom_(_texh, _type);
 }

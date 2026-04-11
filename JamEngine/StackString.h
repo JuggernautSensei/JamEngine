@@ -201,11 +201,11 @@ struct fmt::formatter<Jam::BasicStackString<TChar, k_cap>>
     {
         if constexpr (std::is_same_v<TChar, char>)
         {
-            return fmt::format_to(ctx.out(), "{}", fmt::string_view { str.GetPtr(), Jam::NumericCast<Jam::USizeT>(str.GetLength()) });
+            return fmt::format_to(ctx.out(), "{}", fmt::string_view { str.GetPtr(), Jam::NarrowCast<Jam::USizeT>(str.GetLength()) });
         }
         else
         {
-            return fmt::format_to(ctx.out(), "{}", fmt::wstring_view { str.GetPtr(), Jam::NumericCast<Jam::USizeT>(str.GetLength()) });
+            return fmt::format_to(ctx.out(), "{}", fmt::wstring_view { str.GetPtr(), Jam::NarrowCast<Jam::USizeT>(str.GetLength()) });
         }
     }
 };

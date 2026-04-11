@@ -31,7 +31,7 @@ void Sort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const UInt32
     UInt32 hist[Details::k_bucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
-    for (; pass < 3; ++pass, shift = NumericCast<UInt16>(shift + Details::k_bits))
+    for (; pass < 3; ++pass, shift = NarrowCast<UInt16>(shift + Details::k_bits))
     {
         std::memset(hist, 0, sizeof(hist));
 
@@ -109,7 +109,7 @@ void Sort(UInt64* keys, UInt64* tempKeys, T* values, T* tempValues, const UInt32
     UInt32 hist[Details::k_bucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
-    for (; pass < 6; ++pass, shift = NumericCast<UInt16>(shift + Details::k_bits))
+    for (; pass < 6; ++pass, shift = NarrowCast<UInt16>(shift + Details::k_bits))
     {
         std::memset(hist, 0, sizeof(hist));
 
@@ -119,7 +119,7 @@ void Sort(UInt64* keys, UInt64* tempKeys, T* values, T* tempValues, const UInt32
             for (UInt32 i = 0; i < n; ++i)
             {
                 const UInt64 k = inK[i];
-                ++hist[NumericCast<UInt32>((k >> shift) & Details::k_mask)];
+                ++hist[NarrowCast<UInt32>((k >> shift) & Details::k_mask)];
                 alreadySorted &= (prev <= k);
                 prev = k;
             }
@@ -138,7 +138,7 @@ void Sort(UInt64* keys, UInt64* tempKeys, T* values, T* tempValues, const UInt32
         for (UInt32 i = 0; i < n; ++i)
         {
             const UInt64 k   = inK[i];
-            const UInt32 b   = NumericCast<UInt32>((k >> shift) & Details::k_mask);
+            const UInt32 b   = NarrowCast<UInt32>((k >> shift) & Details::k_mask);
             UInt32       dst = hist[b]++;
             outK[dst]        = k;
             outV[dst]        = inV[i];

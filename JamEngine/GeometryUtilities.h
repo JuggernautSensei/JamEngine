@@ -111,14 +111,14 @@ public:
     {
         if (m_bU32)
         {
-            JAM_ASSERT(CmpGreaterEqual(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
-            const UInt32 idx = NumericCast<UInt32>(_value);
+            JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
+            const UInt32 idx = NarrowCast<UInt32>(_value);
             std::memcpy(m_mem.GetPtr() + _idxIdx * sizeof(UInt32), &idx, sizeof(UInt32));
         }
         else
         {
-            JAM_ASSERT(CmpGreaterEqual(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
-            const UInt16 idx = NumericCast<UInt16>(_value);
+            JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
+            const UInt16 idx = NarrowCast<UInt16>(_value);
             std::memcpy(m_mem.GetPtr() + _idxIdx * sizeof(UInt16), &idx, sizeof(UInt16));
         }
     }
@@ -146,17 +146,17 @@ public:
     {
         if (m_bU32)
         {
-            JAM_ASSERT(CmpGreaterEqual(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
+            JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
             UInt32 idx = 0;
             std::memcpy(&idx, m_mem.GetPtr() + _idxIdx * sizeof(UInt32), sizeof(UInt32));
-            return NumericCast<T>(idx);
+            return NarrowCast<T>(idx);
         }
         else
         {
-            JAM_ASSERT(CmpGreaterEqual(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
+            JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
             UInt16 idx = 0;
             std::memcpy(&idx, m_mem.GetPtr() + _idxIdx * sizeof(UInt16), sizeof(UInt16));
-            return NumericCast<T>(idx);
+            return NarrowCast<T>(idx);
         }
     }
 
@@ -168,7 +168,5 @@ private:
 [[nodiscard]] Int32 CalcNumIndices(MemoryView _idxData, bool _bUseU32) noexcept;
 [[nodiscard]] Int32 CalcNumVertices(MemoryView _vertData, const VertexLayout& _vl) noexcept;
 [[nodiscard]] Int32 CalcIndicesByteWidth(Int32 _numIdxes, bool _bUseU32) noexcept;
-[[nodiscard]] bool  NeedU32Index(MemoryView _vertData, const VertexLayout& _vl) noexcept;
-[[nodiscard]] bool  NeedU32Index(Int32 _numVerts) noexcept;
 
 }   // namespace Jam

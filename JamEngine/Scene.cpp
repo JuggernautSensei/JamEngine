@@ -165,7 +165,7 @@ Entity Scene::GetRootEntity() const
 
 Int32 Scene::GetNumEntities() const
 {
-    return NumericCast<Int32>(m_entities.size());
+    return NarrowCast<Int32>(m_entities.size());
 }
 
 const HashMap<UID, Entity>& Scene::GetEntities() const
@@ -335,7 +335,7 @@ Entity Scene::CreateEntitiesFrom_Recursive_(
     entity.ModifyLocalTransform().SetMatrix(_node.mtx);
 
     // create leaf
-    const Int32 numEntities = NumericCast<Int32>(_node.meshIdxes.size());
+    const Int32 numEntities = NarrowCast<Int32>(_node.meshIdxes.size());
     for (Int32 i = 0; i < numEntities; ++i)
     {
         // create leaf

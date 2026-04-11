@@ -2,7 +2,11 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>SimpleScene</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>SimpleScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>MultiVertexStreamScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>DebugNormalScene|ShadowMappingScene|InstancingScene|DeferedScene|MultiVertexStreamScene|</LocalDebuggerCommandArgumentsHistory>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>InstancingScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>PBRScene|DeferedScene|InstancingScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
 </Project>

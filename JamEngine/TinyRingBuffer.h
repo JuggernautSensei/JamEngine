@@ -34,7 +34,7 @@ public:
         }
 
         template<bool k_bOtherConst, typename = std::enable_if_t<k_bIsConst && !k_bOtherConst>>
-        /* inplicit */ IteratorBase(const IteratorBase<k_bOtherConst>& _other)
+        /* implicit */ IteratorBase(const IteratorBase<k_bOtherConst>& _other)
             : m_pBegin(_other.m_pBegin)
             , m_pEnd(_other.m_pEnd)
             , m_pTail(_other.m_pTail)

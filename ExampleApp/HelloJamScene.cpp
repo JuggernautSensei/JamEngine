@@ -169,7 +169,7 @@ void HelloJamScene::OnEnter()
     }
     else
     {
-        Log::Error("Graphics::LoadTextureFromMemory failed: {}", GlobalBuffer::GetLastError());
+        LogSystem::Error("Graphics::LoadTextureFromMemory failed: {}", GlobalBuffer::GetLastError());
         JAM_UNREACHABLE;);
     }
 
@@ -213,7 +213,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
     Graphics::SetFrameBuffer(m_fbh);
     Graphics::ClearRenderTarget(m_fbh, k_background);
     Graphics::ClearDepth(m_fbh, true, false);
-    Graphics::SetViewport(_view.outputVp);
+    Graphics::SetViewport(_view.viewport);
 
     Graphics::SetProgram(m_program);
     Graphics::SetConstantBuffer(m_transformCbh, eShader::VertexShader, 0);
@@ -261,7 +261,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
         }
     }
 
-    TextureHandle renderTh = Graphics::GetRenderTargetTexture(_view.outputFbh, 0);
+    TextureHandle renderTh = Graphics::GetRenderTargetTexture(_view.fbh, 0);
     Graphics::CopyTexture(renderTh, m_renderTh);
 }
 
@@ -315,12 +315,12 @@ void HelloJamScene::OnImGuiRender()
         ImGui::Text("gfx state");
 
         Int32 i32Prim = IntFrom(m_gfxState.primitive);
-        const Int32 numPrim = NumericCast<Int32>(NumEnums<ePrimitive>());
+        const Int32 numPrim = NarrowCast<Int32>(NumEnums<ePrimitive>());
         if (ImGui::Combo("primitive", &i32Prim, k_primitiveLabels, numPrim))
             m_gfxState.primitive = static_cast<ePrimitive>(i32Prim);
 
         Int32 i32CullMode = static_cast<Int32>(m_gfxState.cullMode);
-        const Int32 numCullMode = NumericCast<Int32>(NumEnums<eCullMode>());
+        const Int32 numCullMode = NarrowCast<Int32>(NumEnums<eCullMode>());
         if (ImGui::Combo("cull mode", &i32CullMode, k_cullModeLabels, numCullMode))
             m_gfxState.cullMode = static_cast<eCullMode>(i32CullMode);
 
@@ -333,7 +333,7 @@ void HelloJamScene::OnImGuiRender()
             m_gfxState.bDepthClamp = bDepthClamp;
 
         Int32 i32DepthFunc = static_cast<int>(m_gfxState.DepthFunc);
-        const Int32 numDepthFunc = NumericCast<Int32>(NumEnums<eCompareFunc>());
+        const Int32 numDepthFunc = NarrowCast<Int32>(NumEnums<eCompareFunc>());
         if (ImGui::Combo("depth test func", &i32DepthFunc, k_DepthFuncLabels, numDepthFunc))
             m_gfxState.DepthFunc = static_cast<eCompareFunc>(i32DepthFunc);
 
@@ -374,8 +374,8 @@ void HelloJamScene::OnResize(const Int32 _width, const Int32 _height)
     JAM_DESTROY_TEXTURE(m_renderTh);
     JAM_DESTROY_TEXTURE(m_depthTh);
 
-    m_renderTh = Graphics::CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags_RenderTarget | eTextureCreateFlags_WriteOnly);
-    m_depthTh  = Graphics::CreateTexture2D(_width, _height, eTextureFormat::D32_Float, 1, eTextureCreateFlags_DepthStencil | eTextureCreateFlags_WriteOnly);
+    m_renderTh = Graphics::CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, TODO, 1, eTextureCreateFlags_RenderTarget | eTextureCreateFlags_WriteOnly);
+    m_depthTh  = Graphics::CreateTexture2D(_width, _height, eTextureFormat::D32_Float, TODO, 1, eTextureCreateFlags_DepthStencil | eTextureCreateFlags_WriteOnly);
 
     const TextureHandle attachments[] = { m_renderTh, m_depthTh };
     m_fbh                       = Graphics::CreateFrameBuffer(attachments);

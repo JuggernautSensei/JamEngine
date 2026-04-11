@@ -265,7 +265,7 @@ public:
         return m_ptr >= _other.m_ptr;
     }
 
-    /* implicit */ operator bool() const
+    explicit operator bool() const
     {
         return m_ptr != nullptr;
     }

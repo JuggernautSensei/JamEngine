@@ -424,7 +424,7 @@ void WidgetInfiniteDragger::OnAfterWidget()
     if (!bActived && ImGui::IsItemActive())
     {
         // fix mouse pos to captured pos
-        GetInput().SetMousePos(NumericCast<Int32>(m_capturedPos.x), NumericCast<Int32>(m_capturedPos.y));
+        GetInput().SetMousePos(static_cast<Int32>(m_capturedPos.x), static_cast<Int32>(m_capturedPos.y));
 
         // for imgui use
         ImGuiIO& io     = ImGui::GetIO();
@@ -1359,7 +1359,7 @@ bool Widget_InputText(
     const ImGuiInputTextCallback _callback,
     void*                        _pUserData)
 {
-    JAM_ASSERT((_flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    JAM_ASSERT((_flags & ImGuiInputTextFlags_CallbackResize) == 0, "Widget_InputText doesn't allow user to use ImGuiInputTextFlags_CallbackResize flag.");
     _flags |= ImGuiInputTextFlags_CallbackResize;
 
     WidgetInputTextCallback_UserData userData = {};
@@ -1377,7 +1377,7 @@ bool Widget_InputTextMultiline(
     const ImGuiInputTextCallback _callback,
     void*                        _pUserData)
 {
-    JAM_ASSERT((_flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    JAM_ASSERT((_flags & ImGuiInputTextFlags_CallbackResize) == 0, "Widget_InputTextMultiline does not allow user to set ImGuiInputTextFlags_CallbackResize flag");
     _flags |= ImGuiInputTextFlags_CallbackResize;
 
     WidgetInputTextCallback_UserData userData = {};

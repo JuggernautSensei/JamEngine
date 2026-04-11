@@ -6,8 +6,8 @@ namespace Jam
 
 struct RenderView
 {
-    FrameBufferHandle outputFbh = k_nullHandle;   // output
-    Viewport          outputVp  = {};             // output vp
+    FrameBufferHandle fbh      = k_nullHandle;   // output
+    Viewport          viewport = {};             // output vp
 
     Vec3 eyePos = Numbers<Vec3>::k_zero;       // eye position
     Mtx4 view   = Numbers<Mtx4>::k_identity;   // view matrix

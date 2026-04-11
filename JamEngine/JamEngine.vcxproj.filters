@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Log.cpp">
+    <ClCompile Include="LogSystem.cpp">
       <Filter>1. Core\Log</Filter>
     </ClCompile>
     <ClCompile Include="Application.cpp">
@@ -442,6 +442,9 @@
     <ClCompile Include="Bit.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="DebugRenderer.cpp">
+      <Filter>4. Renderer\DebugRenderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="1. Core">
@@ -675,9 +678,12 @@
     <Filter Include="4. Renderer\JamRenderer\Shader\PostProcess">
       <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
     </Filter>
+    <Filter Include="4. Renderer\DebugRenderer">
+      <UniqueIdentifier>{f9fc1460-a591-426e-9184-c4ae3d11736c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Log.h">
+    <ClInclude Include="LogSystem.h">
       <Filter>1. Core\Log</Filter>
     </ClInclude>
     <ClInclude Include="JamEngine.h">
@@ -1129,6 +1135,9 @@
     </ClInclude>
     <ClInclude Include="Bit.h">
       <Filter>99. Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugRenderer.h">
+      <Filter>4. Renderer\DebugRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

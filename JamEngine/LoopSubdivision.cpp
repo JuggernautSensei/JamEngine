@@ -283,7 +283,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     MemoryArena arena { 1024 };   // 메모리 아레나
 
     const IndexReader indexReader { _idxData, _bUseU32 };
-    const Int32       numVerts     = NumericCast<Int32>(_positions.size());
+    const Int32       numVerts     = NarrowCast<Int32>(_positions.size());
     const Int32       numIdxes     = CalcNumIndices(_idxData, _bUseU32);
     const Int32       numFaces     = numIdxes / 3;
     const bool        bHasTexCoord = !_texcoordsOrEmpty.empty();
@@ -499,7 +499,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 최종 위치 보정
-    const Int32 finalNumVerts = NumericCast<Int32>(verts.size());
+    const Int32 finalNumVerts = NarrowCast<Int32>(verts.size());
 
     Vector<SDPoint> limits = {};
     limits.reserve(finalNumVerts);
@@ -536,11 +536,16 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     }
 
     // 인덱스 배열 생성
-    const Int32 finalNumFaces     = NumericCast<Int32>(faces.size());
-    const bool  bUseU32           = NeedU32Index(finalNumVerts);
+    const Int32 finalNumFaces     = NarrowCast<Int32>(faces.size());
+    const bool  bUseU32           = std::cmp_greater(finalNumVerts, Limits<UInt16>::k_highest);
     const Int32 finalNumIdxes     = finalNumFaces * 3;
     const Int32 finalIdxByteWidth = CalcIndicesByteWidth(finalNumIdxes, bUseU32);
 
+    struct TangentFrame
+    {
+        Vector<Vec3> tangents;
+        Vector<Vec3> bitangents;
+    };
     // 버텍스 맵 생성
     HashMap<SDVertex*, Int32> usedVertsMap = {};
     for (Int32 i = 0; i < finalNumVerts; ++i)

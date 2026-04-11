@@ -5,7 +5,7 @@
 Application* CreateApplication(const CommandLineArguments& _args)
 {
     for (Int32 i = 0; i < _args.numArgs; ++i)
-        Log::Info("arg[{}]: {}", i, _args.GetArgument(i));
+        LogSystem::Info("arg[{}]: {}", i, _args.GetArgument(i));
 
     ApplicationCreateInfo info;
     info.applicationName  = "Example Application";
@@ -18,7 +18,7 @@ Application* CreateApplication(const CommandLineArguments& _args)
         if (std::strcmp(arg, "-editor") == 0)
         {
             info.bEnableEditor = true;
-            Log::Info("Jam engine editor enabled");
+            LogSystem::Info("Jam engine editor enabled");
         }
     }
 

@@ -497,7 +497,7 @@ StringView Project::GetWorkingDirectory() const
 
 String Project::MakeFullPath() const
 {
-    String path = String::Joined(m_workingDir, m_name, eJoinType::File);
+    String path = String::Joined(m_workingDir, m_name, eJoin::File);
     path.ReplaceExtension(k_extension);
     return path;
 }

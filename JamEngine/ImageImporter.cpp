@@ -9,7 +9,7 @@ namespace Jam
 {
 
 Expect<ImageImporter> ImageImporter::ImportFromFile(
-    StringView               _path,
+    const StringView         _path,
     const eImageFormat       _format,
     const ImageImporterInfo& _info)
 {
@@ -23,7 +23,7 @@ Expect<ImageImporter> ImageImporter::ImportFromFile(
 }
 
 Expect<ImageImporter> ImageImporter::ImportFromFile(
-    StringView               _path,
+    const StringView         _path,
     const ImageImporterInfo& _info)
 {
     ImageImporter importer = {};
@@ -36,7 +36,7 @@ Expect<ImageImporter> ImageImporter::ImportFromFile(
 }
 
 Expect<ImageImporter> ImageImporter::ImportFromMemory(
-    const MemoryView       _mem,
+    const MemoryView         _mem,
     const eImageFormat       _format,
     const ImageImporterInfo& _info)
 {
@@ -62,24 +62,23 @@ Error ImageImporter::ImportFromFile_(
     // load from file
     const WString path = WString::Encoded(_path);
 
-    ImageContainer container = {};
-    HRESULT        hr        = S_OK;
+    HRESULT hr = S_OK;
     switch (_format)
     {
         case eImageFormat::EXR:
-            hr = DirectX::LoadFromEXRFile(path.GetPtr(), nullptr, container);
+            hr = DirectX::LoadFromEXRFile(path.GetPtr(), nullptr, m_container);
             break;
 
         case eImageFormat::DDS:
-            hr = DirectX::LoadFromDDSFile(path.GetPtr(), DirectX::DDS_FLAGS_NONE, nullptr, container);
+            hr = DirectX::LoadFromDDSFile(path.GetPtr(), DirectX::DDS_FLAGS_NONE, nullptr, m_container);
             break;
 
         case eImageFormat::HDR:
-            hr = DirectX::LoadFromHDRFile(path.GetPtr(), nullptr, container);
+            hr = DirectX::LoadFromHDRFile(path.GetPtr(), nullptr, m_container);
             break;
 
         case eImageFormat::TGA:
-            hr = DirectX::LoadFromTGAFile(path.GetPtr(), nullptr, container);
+            hr = DirectX::LoadFromTGAFile(path.GetPtr(), nullptr, m_container);
             break;
 
         case eImageFormat::BMP:
@@ -95,7 +94,7 @@ Error ImageImporter::ImportFromFile_(
         case eImageFormat::ICO:
         case eImageFormat::HEIF:
         case eImageFormat::HEIC:
-            hr = DirectX::LoadFromWICFile(path.GetPtr(), DirectX::WIC_FLAGS_NONE, nullptr, container);
+            hr = DirectX::LoadFromWICFile(path.GetPtr(), DirectX::WIC_FLAGS_NONE, nullptr, m_container);
             break;
 
         default:
@@ -116,7 +115,7 @@ Error ImageImporter::ImportFromFile_(
     const StringView         _path,
     const ImageImporterInfo& _info)
 {
-    Optional<eImageFormat> format = ParseAsImageFormat(_path);
+    Optional<eImageFormat> format = ParseAsImageFormat(_path.GetExtension());
     if (!format)
     {
         JAM_LOG_ERROR("Unsupported image format for file import: '{}'", _path.GetExtension());
@@ -127,7 +126,7 @@ Error ImageImporter::ImportFromFile_(
 }
 
 Error ImageImporter::ImportFromMemory_(
-    const MemoryView       _mem,
+    const MemoryView         _mem,
     const eImageFormat       _format,
     const ImageImporterInfo& _info)
 {

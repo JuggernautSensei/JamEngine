@@ -21,7 +21,7 @@ StringView StringViewFrom(
 StringViewDto StringViewDtoFrom(
     const StringView _str)
 {
-    return { _str.GetPtr(), NumericCast<StringViewDto::msize_t>(_str.GetLength()) };
+    return { _str.GetPtr(), NarrowCast<StringViewDto::msize_t>(_str.GetLength()) };
 }
 
 Vec3Dto Vec3Dto::FromVec3(const Vec3& _v)

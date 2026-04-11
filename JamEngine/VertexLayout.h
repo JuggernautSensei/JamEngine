@@ -45,6 +45,7 @@ class VertexLayout
 {
 public:
     VertexLayout();
+
     void               Push(eVertexAttribute _attrib, eAttributeFormat _format);
     [[nodiscard]] bool Has(eVertexAttribute _attrib) const;
     void               Reset();
@@ -53,6 +54,8 @@ public:
     [[nodiscard]] const VertexLayoutElement&      GetElem(eVertexAttribute _attrib) const;
     [[nodiscard]] Span<const VertexLayoutElement> GetElems() const;
     [[nodiscard]] Int32                           GetNumElems() const;
+    [[nodiscard]] bool                            IsEmpty() const;
+    [[nodiscard]] UInt64                          GetHash() const;
 
     void  WriteToArchive(ArchiveWriter& _archive) const;
     Error ReadFromArchive(ArchiveReader& _archive);
@@ -63,6 +66,9 @@ private:
 
     Int32 m_numElems = 0;
     Int32 m_stride   = 0;
+
+    mutable bool   m_bDirty = true;
+    mutable UInt64 m_hash   = 0;
 };
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(VertexLayout);
 

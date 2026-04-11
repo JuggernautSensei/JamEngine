@@ -71,24 +71,6 @@ void Transform::SetMatrix(const Mtx4& _mtx)
     m_bDirty      = false;
 }
 
-Mtx4 Transform::CreateViewMatrix() const
-{
-    const Vec3 r = GetRight();
-    const Vec3 u = GetUp();
-    const Vec3 f = GetForward();
-
-    const float tx = -Dot(r, m_translation);
-    const float ty = -Dot(u, m_translation);
-    const float tz = -Dot(f, m_translation);
-
-    return Mtx4 {
-        { r.x, u.x, f.x, 0.0f },
-        { r.y, u.y, f.y, 0.0f },
-        { r.z, u.z, f.z, 0.0f },
-        {  tx,  ty,  tz, 1.0f }
-    };
-}
-
 Transform Transform::Inverted() const
 {
     Transform result = *this;

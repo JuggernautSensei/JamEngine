@@ -38,7 +38,7 @@ String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCode _err
         _errorCode,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         buf,
-        NumericCast<DWORD>(CountOf(buf)),
+        NarrowCast<DWORD>(CountOf(buf)),
         NULL);
 
     if (len == 0)
@@ -87,7 +87,7 @@ WString CreateWindowsErrorMessageW(
         _errorCode,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         buf,
-        NumericCast<DWORD>(CountOf(buf)),
+        NarrowCast<DWORD>(CountOf(buf)),
         NULL);
 
     if (len == 0)

@@ -704,7 +704,7 @@
 //
 //    // var
 //    RenderGraph&   graph = renderGraph;
-//    const Viewport vp    = { NumericCast<UInt16>(_width), NumericCast<UInt16>(_height) };
+//    const Viewport vp    = { NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
 //
 //    const DirectionalLightData&   dirLight    = _env.GetDirectionalLight();
 //    const ImageBasedLightingData& ibl         = _env.GetIBL();
@@ -992,7 +992,7 @@
 //    //    {
 //    //        const Int32             w             = Max(1, width >> (i + 1));
 //    //        const Int32             h             = Max(1, height >> (i + 1));
-//    //        const Viewport          vpDown        = { NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
+//    //        const Viewport          vpDown        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
 //    //        const StringView        name          = FormatToTmpBuffer("Bloom Down Texture %d", i);
 //    //        const TextureHandle     bloomDownTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, name);
 //    //        const StringView        fbhName       = FormatToTmpBuffer("Bloom Down FrameBuffer %d", i);
@@ -1020,7 +1020,7 @@
 //    //    {
 //    //        const Int32             w           = Max(1, width >> (i + 1));
 //    //        const Int32             h           = Max(1, height >> (i + 1));
-//    //        const Viewport          vpUp        = { NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
+//    //        const Viewport          vpUp        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
 //    //        const StringView        name        = FormatToTmpBuffer("Bloom Up Texture %d", i);
 //    //        const TextureHandle     bloomUpTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, name);
 //    //        const StringView        fbhName     = FormatToTmpBuffer("Bloom Up FrameBuffer %d", i);
@@ -1872,7 +1872,7 @@
 ////
 ////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.lengthOfSide), NarrowCast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->shadowCasterProgram)
@@ -1895,7 +1895,7 @@
 ////
 ////    TextureHandle     th  = CreateTextureCube(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.lengthOfSide), NarrowCast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->osmCasterProgram)
@@ -1918,7 +1918,7 @@
 ////
 ////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.lengthOfSide), NumericCast<UInt16>(_desc.lengthOfSide) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.lengthOfSide), NarrowCast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.AddConstantBuffer(g_basicRendererCtx->transformCbh, eShader::VertexShader, CB_TRANSFORM_SLOT)
@@ -1954,7 +1954,7 @@
 ////
 ////    Int32    w = _desc.width;
 ////    Int32    h = _desc.height;
-////    Viewport vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
+////    Viewport vp { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
 ////
 ////    // ssao
 ////    TextureHandle     ssaoTexh    = GetGraphics().CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
@@ -2007,7 +2007,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->toneMappingProgram)
@@ -2031,7 +2031,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.AddSampler(g_basicRendererCtx->linearClampSampler, eShader::PixelShader, s_linearClampSlot)
@@ -2077,7 +2077,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->fogProgram)
@@ -2103,7 +2103,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->passTexhroughProgram)
@@ -2134,7 +2134,7 @@
 ////
 ////        TextureHandle     downTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////        FrameBufferHandle downFbh  = GetGraphics().CreateFrameBuffer(downTexh, true);
-////        Viewport          vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
+////        Viewport          vp { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
 ////
 ////        RenderPass pass;
 ////        if (i == 0)
@@ -2170,7 +2170,7 @@
 ////
 ////        TextureHandle     upTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////        FrameBufferHandle upFbh  = GetGraphics().CreateFrameBuffer(upTexh, true);
-////        Viewport          vp { 0, 0, NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
+////        Viewport          vp { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
 ////
 ////        RenderPass pass;
 ////        pass.SetProgram(g_basicRendererCtx->bloomUpProgram)
@@ -2185,7 +2185,7 @@
 ////    // combine
 ////    TextureHandle     combineTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle combineFbh  = GetGraphics().CreateFrameBuffer(combineTexh, true);
-////    Viewport          vp { 0, 0, NumericCast<UInt16>(_desc.width), NumericCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
 ////
 ////    RenderPass pass;
 ////    pass.SetProgram(g_basicRendererCtx->bloomCombineProgram)

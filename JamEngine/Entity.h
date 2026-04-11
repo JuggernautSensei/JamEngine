@@ -24,7 +24,7 @@ public:
     [[nodiscard]] SceneNode&       GetSceneNode();
     [[nodiscard]] const SceneNode& GetSceneNode() const;
 
-    /* implicit */ operator bool() const;
+    explicit operator bool() const;
 
     [[nodiscard]] const Transform& GetWorldTransform() const;
     [[nodiscard]] const Transform& GetLocalTransform() const;

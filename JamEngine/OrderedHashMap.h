@@ -286,14 +286,14 @@ public:
     TValue& Get(const TKey& key)
     {
         auto it = m_keyToIter.find(key);
-        JAM_ASSERT(it != m_keyToIter.end());
+        JAM_ASSERT(it != m_keyToIter.end(), "Key not found in map");
         return it->second->value;
     }
 
     const TValue& Get(const TKey& key) const
     {
         auto it = m_keyToIter.find(key);
-        JAM_ASSERT(it != m_keyToIter.end());
+        JAM_ASSERT(it != m_keyToIter.end(), "Key not found in map");
         return it->second->value;
     }
 
@@ -302,7 +302,7 @@ public:
     TValue& Get(const K& key)
     {
         auto it = m_keyToIter.find(key);
-        JAM_ASSERT(it != m_keyToIter.end());
+        JAM_ASSERT(it != m_keyToIter.end(), "Key not found in map");
         return it->second->value;
     }
 
@@ -311,7 +311,7 @@ public:
     const TValue& Get(const K& key) const
     {
         auto it = m_keyToIter.find(key);
-        JAM_ASSERT(it != m_keyToIter.end());
+        JAM_ASSERT(it != m_keyToIter.end(), "Key not found in map");
         return it->second->value;
     }
 
@@ -353,7 +353,7 @@ public:
         }
 
         auto mapIter = m_keyToIter.find(position->key);
-        JAM_ASSERT(mapIter != m_keyToIter.end());
+        JAM_ASSERT(mapIter != m_keyToIter.end(), "Position iterator's key not found in map");
 
         auto nextListIter = m_values.erase(position.m_listIter);
         m_keyToIter.erase(mapIter);
@@ -377,25 +377,25 @@ public:
 
     Node& Front()
     {
-        JAM_ASSERT(!IsEmpty());
+        JAM_ASSERT(!IsEmpty(), "Cannot call Front() on an empty map.");
         return m_values.front();
     }
 
     const Node& Front() const
     {
-        JAM_ASSERT(!IsEmpty());
+        JAM_ASSERT(!IsEmpty(), "Cannot call Front() on an empty map.");
         return m_values.front();
     }
 
     Node& Back()
     {
-        JAM_ASSERT(!IsEmpty());
+        JAM_ASSERT(!IsEmpty(), "Cannot call Back() on an empty map.");
         return m_values.back();
     }
 
     const Node& Back() const
     {
-        JAM_ASSERT(!IsEmpty());
+        JAM_ASSERT(!IsEmpty(), "Cannot call Front() on an empty map.");
         return m_values.back();
     }
 

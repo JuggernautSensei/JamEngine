@@ -6,7 +6,7 @@ namespace Jam
 // use like this:
 // ...
 // InfiniteDragger dragger(eInfiniteDraggerFlags::Left | eInfiniteDraggerFlags::Right);
-// dragger.Update_();
+// dragger.Update();
 // Vec2i delta = dragger.GetDragDelta();
 // ...
 

@@ -14,7 +14,7 @@ namespace
         const UInt32 _high,
         const UInt32 _low)
     {
-        return (NumericCast<UInt64>(_high) << 32) | _low;
+        return (NarrowCast<UInt64>(_high) << 32) | _low;
     }
 
     [[nodiscard]] UInt64 FileTimeToUInt64_(
@@ -372,7 +372,7 @@ namespace Utf16
         const PathStackWString path   = _path;
 
         wchar_t     absolute[k_maxPathLength];
-        const DWORD len = ::GetFullPathNameW(path.GetPtr(), NumericCast<DWORD>(k_maxPathLength), absolute, nullptr);
+        const DWORD len = ::GetFullPathNameW(path.GetPtr(), NarrowCast<DWORD>(k_maxPathLength), absolute, nullptr);
         if (len == 0)
         {
             return {};
@@ -392,7 +392,7 @@ namespace Utf16
     WString Current()
     {
         wchar_t     current[k_maxPathLength];
-        const DWORD len = ::GetCurrentDirectoryW(NumericCast<DWORD>(k_maxPathLength), current);
+        const DWORD len = ::GetCurrentDirectoryW(NarrowCast<DWORD>(k_maxPathLength), current);
         if (len == 0)
         {
             JAM_LOG_ERROR("Failed to get current directory: {}", CreateWindowsLastErrorMessage());
@@ -410,7 +410,7 @@ namespace Utf16
     WString Executable()
     {
         wchar_t     executable[k_maxPathLength];
-        const DWORD len = ::GetModuleFileNameW(NULL, executable, NumericCast<DWORD>(k_maxPathLength));
+        const DWORD len = ::GetModuleFileNameW(NULL, executable, NarrowCast<DWORD>(k_maxPathLength));
         if (len == 0)
         {
             JAM_LOG_ERROR("Failed to get executable path: {}", CreateWindowsLastErrorMessage());

@@ -16,9 +16,9 @@ namespace Jam
 
 #ifdef JAM_PROFILE_ENABLED
 
-#    define JAM_FUNCTION_PROFILE()        Jam::ScopedTimer JAM_CONCAT(timer, __LINE__) { JAM_PRETTY_FUNCTION, JAM_PROFILE_TIME_UNIT };
-#    define JAM_FUNCTION_MSG_PROFILE(...) Jam::ScopedTimer JAM_CONCAT(timer, __LINE__) { String::Formatted(JAM_PRETTY_FUNCTION##__VA_ARGS__), JAM_PROFILE_TIME_UNIT };
-#    define JAM_PROFILE(...)              Jam::ScopedTimer JAM_CONCAT(timer, __LINE__) { String::Formatted(__VA_ARGS__), JAM_PROFILE_TIME_UNIT };
+#    define JAM_FUNCTION_PROFILE()        Jam::ScopedTimer JAM_CONCAT(timer, __LINE__) { JAM_PRETTY_FUNCTION, JAM_PROFILE_TIME_UNIT }
+#    define JAM_FUNCTION_MSG_PROFILE(...) Jam::ScopedTimer JAM_CONCAT(timer, __LINE__) { String::Formatted(JAM_PRETTY_FUNCTION##__VA_ARGS__), JAM_PROFILE_TIME_UNIT }
+#    define JAM_PROFILE(...)              Jam::ScopedTimer JAM_CONCAT(timer, __LINE__) { String::Formatted(__VA_ARGS__), JAM_PROFILE_TIME_UNIT }
 
 #else
 

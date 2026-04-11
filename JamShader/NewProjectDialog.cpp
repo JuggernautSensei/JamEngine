@@ -66,14 +66,14 @@ bool NewProjectDialog::OnClickCreateButton_() const
     // directory / typeName / typeName.extension
 
     // create working directory
-    String workingDir = String::Joined(m_dir, m_name, eJoinType::Directory);
+    String workingDir = String::Joined(m_dir, m_name, eJoin::Directory);
     if (!GUI::MakeDirectory(workingDir, FileSystem::eMakeDirectoryCollisionPolicy::Fail))
     {
         return false;
     }
 
     // create empty project
-    workingDir.Join(m_name, eJoinType::File);
+    workingDir.Join(m_name, eJoin::File);
     workingDir.ReplaceExtension(Project::k_extension);
 
     const Expect<Project> project = Project::LoadNew(workingDir);

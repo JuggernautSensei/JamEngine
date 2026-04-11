@@ -52,7 +52,7 @@ SizeT FileIO::Seek(
             JAM_UNREACHABLE;
     }
 
-    if (::_fseeki64(m_pFile, _offset, NumericCast<int>(origin)) != 0)
+    if (::_fseeki64(m_pFile, _offset, NarrowCast<int>(origin)) != 0)
     {
         JAM_ASSERT(0, "Failed to seek file position.");
     }
@@ -200,12 +200,12 @@ Expect<SizeT> FileWriter::WriteBinary(
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
     const size_t written = ::fwrite(_data.GetPtr(), 1, _data.GetByteWidth(), m_pFile);
-    if (CmpLess(written, _data.GetByteWidth()))
+    if (std::cmp_less(written, _data.GetByteWidth()))
     {
         JAM_LOG_ERROR("Failed to write {} bytes to file, only {} bytes were written.", _data.GetByteWidth(), written);
         return Error::WriteFailed;
     }
-    return NumericCast<SizeT>(written);
+    return NarrowCast<SizeT>(written);
 }
 
 Expect<SizeT> FileWriter::WriteString(
@@ -286,13 +286,13 @@ Expect<SizeT> FileReader::ReadBinary(
     JAM_ASSERT(_dst.GetPtr(), "Destination buffer pointer is null.");
     JAM_ASSERT(_count <= _dst.GetByteWidth(), "Count exceeds destination buffer size.");
     const SizeT toRead = (_count == 0) ? _dst.GetByteWidth() : _count;
-    const SizeT read   = NumericCast<SizeT>(::fread(_dst.GetPtr(), 1, toRead, m_pFile));
-    if (CmpLess(read, toRead) && !IsEof())
+    const SizeT read   = NarrowCast<SizeT>(::fread(_dst.GetPtr(), 1, toRead, m_pFile));
+    if (std::cmp_less(read, toRead) && !IsEof())
     {
         JAM_LOG_ERROR("Failed to read {} bytes from file, only {} bytes were read. {}", toRead, read, CreateWindowsErrorMessage(::ferror(m_pFile), eWindowsErrorCode::Errno));
         return Error::ReadFailed;
     }
-    return NumericCast<SizeT>(read);
+    return NarrowCast<SizeT>(read);
 }
 
 Expect<String> FileReader::ReadString(

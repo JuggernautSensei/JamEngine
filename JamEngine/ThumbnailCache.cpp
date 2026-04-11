@@ -151,7 +151,7 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
     const Int32   width  = bmp.bmWidth;
     const Int32   height = bmp.bmHeight;
     Vector<UInt8> pixels(4 * width * height);
-    if (GetBitmapBits(hBmp, NumericCast<LONG>(pixels.size()), pixels.data()) == 0)
+    if (GetBitmapBits(hBmp, NarrowCast<LONG>(pixels.size()), pixels.data()) == 0)
     {
         JAM_LOG_ERROR("GetBitmapBits failed for thumbnail bitmap: {}", _path);
         DeleteObject(hBmp);
@@ -168,7 +168,7 @@ Ref<Texture> ThumbnailCache::CreateTexture_(
     const MemoryView _initData) const
 {
     const MemoryView  mems[] = { _initData };
-    const TextureHandle texh   = GetGraphics().CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, 1, eTextureCreateFlags::None, mems);
+    const TextureHandle texh   = GetGraphics().CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, false, 1, eTextureCreateFlags::None, mems);
     return Texture::Load(texh);
 }
 

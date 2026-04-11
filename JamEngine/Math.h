@@ -259,22 +259,24 @@ struct SinCos
 };
 
 template<typename To, typename From>
-    requires std::is_integral_v<To> && std::is_integral_v<From>
-[[nodiscard]] constexpr To NumericCast(From _value) noexcept
+    requires(std::is_arithmetic_v<To>
+             && std::is_arithmetic_v<From>
+             && std::is_floating_point_v<To> == std::is_floating_point_v<From>)   // prevent float to int conversion
+[[nodiscard]] constexpr To NarrowCast(From _value) noexcept
 {
     if (JAM_DEBUG_ENABLED)
     {
         if constexpr (std::is_signed_v<To> == std::is_signed_v<From>)
         {
-            JAM_ASSERT(static_cast<From>(static_cast<To>(_value)) == _value, "NumericCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
+            JAM_ASSERT(static_cast<From>(static_cast<To>(_value)) == _value, "NarrowCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
         }
         else if constexpr (std::is_signed_v<From>)   // signed to unsigned
         {
-            JAM_ASSERT(_value >= 0 && static_cast<From>(static_cast<To>(_value)) == _value, "NumericCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
+            JAM_ASSERT(_value >= 0 && static_cast<From>(static_cast<To>(_value)) == _value, "NarrowCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
         }
         else   // unsigned to signed
         {
-            JAM_ASSERT(CmpGreater(_value, Limits<To>::k_highest) == false, "NumericCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
+            JAM_ASSERT(std::cmp_greater(_value, Limits<To>::k_highest) == false, "NarrowCast overflow: cannot cast {} to {}.", _value, static_cast<To>(_value));
         }
     }
 
@@ -357,7 +359,6 @@ template<typename T>
 
 [[nodiscard]] constexpr float Trunc(const float _x)
 {
-    JAM_ASSERT(CheckOverflow<Int64>(_x) == false, "Trunc overflow: cannot truncate {} to Int64.", _x);
     return static_cast<float>(static_cast<Int64>(_x));
 }
 

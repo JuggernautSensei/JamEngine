@@ -62,7 +62,7 @@
 #include "Math.h"
 #include "String.h"
 #include "RefCounted.h"
-#include "Log.h"
+#include "LogSystem.h"
 #include "MemoryView.h"
 #include "Error.h"
 #include "Scoped.h"

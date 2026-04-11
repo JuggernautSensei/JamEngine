@@ -46,7 +46,7 @@ void SceneManager::Update(
 void SceneManager::RenderRuntime() const
 {
     const auto [w, h] = GetGraphics().GetBackBufferResolution();
-    const Viewport vp = { NumericCast<UInt16>(w), NumericCast<UInt16>(h) };
+    const Viewport vp = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
     RenderRuntime(k_nullHandle, vp);
 }
 
@@ -70,9 +70,9 @@ void SceneManager::RenderRuntime(
                 const Transform& transW = sc.node.GetWorldTransform();
                 const Camera&    cmr    = cc.camera;
 
-                view.eyePos  = transW.GetTranslation();
-                view.view = transW.CreateViewMatrix();
-                view.proj = cmr.GetProjMatrix();
+                view.eyePos = transW.GetTranslation();
+                view.view   = transW.GetMatrix().Invert();
+                view.proj   = cmr.GetProjMatrix();
                 break;
             }
         }

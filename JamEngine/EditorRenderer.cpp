@@ -144,7 +144,7 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
 )";
 
 //////////////////////////////////
-///      LINE SHADER          ///
+///      LINE SHADER           ///
 //////////////////////////////////
 
 const char* const EditorRenderer::k_lineShaderSource = R"(
@@ -403,8 +403,8 @@ void EditorRenderer::Begin(const RenderView& _view)
     m_bBeginRender  = true;
 
     Graphics& gfx = Graphics::GetInstance();
-    gfx.SetFrameBuffer(_view.outputFbh);
-    gfx.SetViewport(_view.outputVp);
+    gfx.SetFrameBuffer(_view.fbh);
+    gfx.SetViewport(_view.viewport);
 
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     gfx.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
@@ -443,7 +443,7 @@ void EditorRenderer::DrawLine(const Vec3 _from, const Vec3 _to, const RGBA _colo
         FlushLines_();
     }
 
-    const UInt16 baseIdx = NumericCast<UInt16>(m_numLineVerts);
+    const UInt16 baseIdx = NarrowCast<UInt16>(m_numLineVerts);
 
     m_lineVertices[m_numLineVerts++]  = LineVertex { _from, _color };
     m_lineVertices[m_numLineVerts++]  = LineVertex { _to, _color };
@@ -616,8 +616,8 @@ void EditorRenderer::FlushLines_()
     cb.eye                = m_eye;
     gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
 
-    gfx.UpdateBuffer(m_lineVbh, { m_lineVertices.data(), NumericCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
-    gfx.UpdateBuffer(m_lineIbh, { m_lineIndices.data(), NumericCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
+    gfx.UpdateBuffer(m_lineVbh, { m_lineVertices.data(), NarrowCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
+    gfx.UpdateBuffer(m_lineIbh, { m_lineIndices.data(), NarrowCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
 
     const Flags<eRenderFlags> flags = SetPrimitiveFlags(m_lineRenderFlags, eRenderFlags::Primitive_LineList);
     gfx.SetRenderFlags(flags);
@@ -650,7 +650,7 @@ void EditorRenderer::DrawGrid_() const
     cb.viewProj           = (m_view * m_proj).Transpose();
     cb.mtx                = Numbers<Mtx4>::k_identity.Transpose();
     cb.eye                = m_eye;
-    cb.flags              = m_drawGridFlags;
+    cb.flags              = m_drawGridFlags.GetValue();
     gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
 
     gfx.SetRenderFlags(m_gridRenderFlags);

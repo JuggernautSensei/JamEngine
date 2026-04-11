@@ -61,13 +61,13 @@ void Murmur3Hasher32::Mix(
     switch (byteWidth & 3)
     {
         case 3:
-            k1 ^= NumericCast<UInt32>(pTail[2]) << 16;
+            k1 ^= NarrowCast<UInt32>(pTail[2]) << 16;
             [[fallthrough]];
         case 2:
-            k1 ^= NumericCast<UInt32>(pTail[1]) << 8;
+            k1 ^= NarrowCast<UInt32>(pTail[1]) << 8;
             [[fallthrough]];
         case 1:
-            k1 ^= NumericCast<UInt32>(pTail[0]);
+            k1 ^= NarrowCast<UInt32>(pTail[0]);
             k1 *= k_c1;
             k1 = RotL32_(k1, 15);
             k1 *= k_c2;
@@ -124,25 +124,25 @@ void Murmur3Hasher64::Mix(
     switch (byteWidth & 7)
     {
         case 7:
-            k1 ^= NumericCast<UInt64>(pTail[6]) << 48;
+            k1 ^= NarrowCast<UInt64>(pTail[6]) << 48;
             [[fallthrough]];
         case 6:
-            k1 ^= NumericCast<UInt64>(pTail[5]) << 40;
+            k1 ^= NarrowCast<UInt64>(pTail[5]) << 40;
             [[fallthrough]];
         case 5:
-            k1 ^= NumericCast<UInt64>(pTail[4]) << 32;
+            k1 ^= NarrowCast<UInt64>(pTail[4]) << 32;
             [[fallthrough]];
         case 4:
-            k1 ^= NumericCast<UInt64>(pTail[3]) << 24;
+            k1 ^= NarrowCast<UInt64>(pTail[3]) << 24;
             [[fallthrough]];
         case 3:
-            k1 ^= NumericCast<UInt64>(pTail[2]) << 16;
+            k1 ^= NarrowCast<UInt64>(pTail[2]) << 16;
             [[fallthrough]];
         case 2:
-            k1 ^= NumericCast<UInt64>(pTail[1]) << 8;
+            k1 ^= NarrowCast<UInt64>(pTail[1]) << 8;
             [[fallthrough]];
         case 1:
-            k1 ^= NumericCast<UInt64>(pTail[0]);
+            k1 ^= NarrowCast<UInt64>(pTail[0]);
             k1 *= k_c1;
             k1 = RotL64_(k1, 31);
             k1 *= k_c2;

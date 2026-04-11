@@ -3,7 +3,7 @@
 
 #include <comdef.h>
 
-#include "Log.h"
+#include "LogSystem.h"
 #include "Timer.h"
 #include "Debug.h"
 #include "File.h"
@@ -77,7 +77,7 @@ void ReportCrash(
 {
     const String msg = CreateErrorMessage_(_loc, _msg);
     JAM_LOG_CRITICAL(msg);
-    std::this_thread::sleep_for(50ms);
+    GetLogSystem().Flush();
     PrintToDebugConsole(msg);   // print to debug console
 
     // crash dump
@@ -95,21 +95,22 @@ void ReportCrash(
 
 void ReportAssertion(
     const std::source_location& _loc,
+    const std::string_view      _condition,
     const std::string_view      _msg)
 {
     const String msg = CreateErrorMessage_(_loc, _msg);
-    JAM_LOG_ERROR(msg);
-    std::this_thread::sleep_for(50ms);
+    JAM_LOG_ERROR("Assertion failed! Condition: {}\n{}", _condition, msg);
+    GetLogSystem().Flush();
     PrintToDebugConsole(msg);   // print to debug console
 }
 
 void ReportHRESULTFailure(
     const std::source_location& _loc,
-    const std::string_view      _msg,
+    const std::string_view      _func,
     const HRESULT               _hr)
 {
     const String hrMsg   = CreateWindowsErrorMessage(_hr, eWindowsErrorCode::HRESULT);
-    const String fullMsg = String::Formatted("{}\nHRESULT: 0x{:08X} ({})", _msg, _hr, hrMsg);
+    const String fullMsg = String::Formatted("HRESULT Failed! {}\nHRESULT: 0x{:08X} ({})", _func, _hr, hrMsg);
     ReportCrash(_loc, fullMsg.ToStdStringView());
 }
 

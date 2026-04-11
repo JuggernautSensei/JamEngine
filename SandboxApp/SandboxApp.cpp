@@ -2,8 +2,17 @@
 
 #include "SandboxApp.h"
 
+#include "DebugNormalScene.h"
+#include "DeferedScene.h"
+#include "TextureMappingScene.h"
 #include "SimpleScene.h"
+#include "InstancingScene.h"
+#include "MultiVertexStreamScene.h"
+#include "PBRScene.h"
+#include "ShadowMappingScene.h"
 #include "../JamEngine/CommandLineArgumentParser.h"
+
+class InstancingScene;
 
 void SandboxApp::Init(
     const Int32 _argc,
@@ -19,27 +28,31 @@ void SandboxApp::Init(
     SetVsync(false);
     GetWindowsPlatform().AdjustClientRect(100, 100, 1600, 900);
 
-    SceneManager& sMgr         = GetSceneManager();
-    bool          bSceneLoaded = false;
+#define CASE(_m)                          \
+    case String::Hashed32(#_m):           \
+        sMgr.LoadScene(MakeScoped<_m>()); \
+        break;
+
+    SceneManager& sMgr = GetSceneManager();
     if (parser.GetNumArguments() == 2)
     {
         const StringView cmd = parser.GetArgument(1);
-        bSceneLoaded         = true;
         switch (cmd.Hash32())
         {
-            case String::Hashed32("SimpleScene"):
-                sMgr.LoadScene(MakeScoped<SimpleScene>());
-                break;
+            CASE(SimpleScene)
+            CASE(InstancingScene)
+            CASE(MultiVertexStreamScene)
+            CASE(TextureMappingScene)
+            CASE(PBRScene)
+            CASE(DeferedScene)
+            CASE(ShadowMappingScene)
+            CASE(DebugNormalScene)
 
             default:
-                JAM_LOG_WARN("Unknown scene specified in command line argument: '{}'", cmd);
-                bSceneLoaded = false;
+                JAM_ASSERT(0, "Unknown scene name '{}'.", cmd);
                 break;
         }
     }
 
-    if (!bSceneLoaded)
-    {
-        sMgr.LoadScene(MakeScoped<SimpleScene>());   // fallback
-    }
+#undef CASE
 }

@@ -142,8 +142,8 @@ void Editor_SceneViewWindow::OnImGuiRender(
         {
             // check resized
             const ImVec2 avail  = ImGui::GetContentRegionAvail();
-            const Int32  width  = NumericCast<Int32>(avail.x);
-            const Int32  height = NumericCast<Int32>(avail.y);
+            const Int32  width  = static_cast<Int32>(avail.x);
+            const Int32  height = static_cast<Int32>(avail.y);
 
             // not resize when dragging with mouse
             if ((m_width != width || m_height != height) && !ImGui::IsMouseDown(ImGuiMouseButton_Left))
@@ -307,7 +307,7 @@ void Editor_SceneViewWindow::DrawGizmo_() const
     }
 
     Mtx4       mtx  = entity.GetWorldTransform().GetMatrix();
-    const Mtx4 view = m_cameraTransform.CreateViewMatrix();
+    const Mtx4 view = mtx.Invert();
     const Mtx4 proj = m_camera.GetProjMatrix();
 
     const float x        = m_sceneViewLeftTop.x;
@@ -534,16 +534,16 @@ void Editor_SceneViewWindow::OnRenderEdit()
 {
     if (GetSceneManager().HasActiveScene())
     {
-        const UInt16   w  = NumericCast<UInt16>(m_width);
-        const UInt16   h  = NumericCast<UInt16>(m_height);
+        const UInt16   w  = NarrowCast<UInt16>(m_width);
+        const UInt16   h  = NarrowCast<UInt16>(m_height);
         const Viewport vp = { w, h };
 
         // setup render view
         RenderView renderView = {};
-        renderView.outputFbh  = m_fbh;
-        renderView.outputVp   = vp;
+        renderView.fbh  = m_fbh;
+        renderView.viewport   = vp;
         renderView.eyePos     = m_cameraTransform.GetTranslation();
-        renderView.view       = m_cameraTransform.CreateViewMatrix();
+        renderView.view       = m_cameraTransform.GetMatrix().Invert();
         renderView.proj       = m_camera.GetProjMatrix();
 
         // render scene
@@ -565,7 +565,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
             // render overlays (need depth)
             if (m_fbhWithDepth)
             {
-                renderView.outputFbh = m_fbhWithDepth;
+                renderView.fbh = m_fbhWithDepth;
                 m_renderer.Begin(renderView);
 
                 // draw grid and axis
@@ -605,10 +605,9 @@ void Editor_SceneViewWindow::OnRenderEdit()
                     // camera frustum
                     if (entity.HasComponent<CameraComponent>())
                     {
-                        const Mtx4 view = entity.GetWorldTransform().CreateViewMatrix();
-
                         const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
                         const Camera&          cmr  = cc.camera;
+                        const Mtx4             view = entity.GetWorldTransform().GetMatrix().Invert();
                         const Mtx4             proj = cmr.GetProjMatrix();
 
                         m_renderer.DrawFrustum(view * proj, k_boundingBoxCol);
@@ -623,8 +622,8 @@ void Editor_SceneViewWindow::OnRenderEdit()
 
 void Editor_SceneViewWindow::OnRenderRuntime() const
 {
-    const UInt16   w  = NumericCast<UInt16>(m_width);
-    const UInt16   h  = NumericCast<UInt16>(m_height);
+    const UInt16   w  = NarrowCast<UInt16>(m_width);
+    const UInt16   h  = NarrowCast<UInt16>(m_height);
     const Viewport vp = { w, h };
     GetSceneManager().RenderRuntime(m_fbh, vp);
 }
@@ -641,7 +640,7 @@ void Editor_SceneViewWindow::Resize_(
     m_height = _height;
 
     // render target texture
-    m_renderTexh = GetGraphics().CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_renderTexh = GetGraphics().CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::RenderTargetAttachment);
     GetGraphics().SetTextureName(m_renderTexh, "scene view texture");
 
     // frame buffer

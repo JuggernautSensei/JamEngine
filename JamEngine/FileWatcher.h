@@ -15,8 +15,8 @@ enum class eFileEvent
 
 struct FileWatcherEvent
 {
-    StringView     oldPath = {};
-    StringView     path    = {};
+    StringView oldPath = {};
+    StringView path    = {};
     eFileEvent type    = {};
 };
 

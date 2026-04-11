@@ -21,7 +21,7 @@ MemoryArena::~MemoryArena()
 void* MemoryArena::Alloc(const SizeT _byteWidth)
 {
     const SizeT byteWidth = AlignUp<SizeT>(_byteWidth, alignof(std::max_align_t));
-    JAM_ASSERT(CmpLessEqual(byteWidth, m_byteWidthPerArena), "한 아레나에 할당할 수 있는 최대 크기를 초과했습니다.");
+    JAM_ASSERT(std::cmp_less_equal(byteWidth, m_byteWidthPerArena), "한 아레나에 할당할 수 있는 최대 크기를 초과했습니다.");
 
     if (m_pCur == nullptr)   // 아레나 초기화 필요
     {

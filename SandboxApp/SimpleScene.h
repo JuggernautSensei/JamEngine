@@ -32,7 +32,6 @@ private:
     ConstantBufferHandle m_entityCbh = k_nullHandle;
     ConstantBufferHandle m_cmrCbh    = k_nullHandle;
     ConstantBufferHandle m_lightCbh  = k_nullHandle;
-    ConstantBufferHandle m_miscCbh   = k_nullHandle;
 
     FrameBufferHandle m_fbh    = {};
     TextureHandle     m_fbTexh = {};   // not owned

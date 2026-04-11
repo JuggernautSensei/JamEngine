@@ -77,7 +77,7 @@ Expect<String> JsonWriter::Stringify(const Flags<eJsonWriteFlags> _flags) const
         JAM_LOG_ERROR("YYJson write error: failed to stringify document.");
         return Error::RuntimeError;
     }
-    String result { json, NumericCast<SizeT>(len) };
+    String result { json, NarrowCast<SizeT>(len) };
     free(json);
     return result;
 }
@@ -101,7 +101,7 @@ Error JsonWriter::SaveToFile(
         return Error::RuntimeError;
     }
 
-    const Expect<SizeT> ret = writer->WriteString({ json, NumericCast<SizeT>(len) });
+    const Expect<SizeT> ret = writer->WriteString({ json, NarrowCast<SizeT>(len) });
     free(json);
     if (!ret)
     {
@@ -354,7 +354,7 @@ Error JsonReader::EnterAt(const SizeT _idx)
         return Error::TypeMismatch;
     }
 
-    yyjson_val* val = yyjson_arr_get(cur, NumericCast<USizeT>(_idx));
+    yyjson_val* val = yyjson_arr_get(cur, NarrowCast<USizeT>(_idx));
     if (!val)
     {
         JAM_LOG_ERROR("YYJson EnterAt: index {} out of bounds.", _idx);
@@ -376,12 +376,12 @@ SizeT JsonReader::GetSize() const
     yyjson_val* cur = Top_();
     if (yyjson_is_arr(cur))
     {
-        return NumericCast<SizeT>(yyjson_arr_size(cur));
+        return NarrowCast<SizeT>(yyjson_arr_size(cur));
     }
 
     if (yyjson_is_obj(cur))
     {
-        return NumericCast<SizeT>(yyjson_obj_size(cur));
+        return NarrowCast<SizeT>(yyjson_obj_size(cur));
     }
 
     return 0;
@@ -431,7 +431,7 @@ Error JsonReader::ForEachObject(const Delegate<Error(StringView, ArchiveReader&)
     yyjson_val *key = nullptr, *val = nullptr;
     yyjson_obj_foreach(cur, idx, max, key, val)
     {
-        const StringView kv { yyjson_get_str(key), NumericCast<SizeT>(yyjson_get_len(key)) };
+        const StringView kv { yyjson_get_str(key), NarrowCast<SizeT>(yyjson_get_len(key)) };
         Push_(val);
         const Error err = _func(kv, *this);
         Pop_();
@@ -497,7 +497,7 @@ Error JsonReader::ReadPrimitive_(Int32& _value)
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
-    _value = NumericCast<Int32>(yyjson_get_sint(cur));
+    _value = NarrowCast<Int32>(yyjson_get_sint(cur));
     return Error::None;
 }
 
@@ -510,7 +510,7 @@ Error JsonReader::ReadPrimitive_(UInt32& _value)
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
-    _value = NumericCast<UInt32>(yyjson_get_uint(cur));
+    _value = NarrowCast<UInt32>(yyjson_get_uint(cur));
     return Error::None;
 }
 

@@ -55,7 +55,7 @@ struct ImportedMaterial
 struct ImportedTexture
 {
     String       name          = {};
-    MemoryView      pixels        = {};
+    MemoryView   pixels        = {};
     Int32        width         = 0;
     Int32        height        = 0;
     eImageFormat format        = {};
@@ -63,14 +63,27 @@ struct ImportedTexture
     bool         bPlaceholder  = false;   // for import failed
 };
 
-struct AssimpImporterInfo
+enum class eAssimpImporterFlags : UInt32
 {
-    bool bGenerateNormals          = false;
-    bool bDropExistingNormals      = false;
-    bool bGenerateTangentFrame     = false;
-    bool bDropExistingTangentFrame = false;
-    bool bLimitBondWeights         = false;
-    bool bLoadStaticMesh           = false;
+    None                 = 0,
+    GenerateNormals      = 1 << 0,
+    GenerateTangentFrame = 1 << 1,
+    DropExistingNormals  = 1 << 2,
+    LimitBoneWeights     = 1 << 3,
+    LoadStaticMesh       = 1 << 4,
+
+    LoadMeshes    = 1 << 5,
+    LoadMaterials = 1 << 6,
+    LoadTextures  = 1 << 7,
+};
+
+enum class eAssimpConvertToModelFlags : UInt32
+{
+    None     = 0,
+    Mesh     = 1 << 0,
+    Material = 1 << 1,
+    Texture  = 1 << 2,
+    All      = Mesh | Material | Texture
 };
 
 using ImportedModelNode = ModelNode;   // 동일한 구조이므로 별도 정의 없이 재사용
@@ -78,34 +91,35 @@ using ImportedModelNode = ModelNode;   // 동일한 구조이므로 별도 정�
 class AssimpImporter
 {
 public:
-    [[nodiscard]] static Expect<AssimpImporter> ImportFromMemory(MemoryView _data, const AssimpImporterInfo& _info = {});
-    [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(StringView _path, const AssimpImporterInfo& _info = {});
+    [[nodiscard]] static Expect<AssimpImporter> ImportFromMemory(MemoryView _data, const Flags<eAssimpImporterFlags>& _flags);
+    [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(StringView _path, const Flags<eAssimpImporterFlags>& _flags);
 
-    [[nodiscard]] const ImportedModelNode&        GetRootNode() const;
+    [[nodiscard]] const ImportedModelNode&        GetRoot() const;
     [[nodiscard]] const Vector<ImportedMesh>&     GetMeshes() const;
     [[nodiscard]] const Vector<ImportedMaterial>& GetMaterials() const;
     [[nodiscard]] const Vector<ImportedTexture>&  GetTextures() const;
-    [[nodiscard]] Expect<Ref<Model>>              ExtractToModel(const VertexLayout& _vl);   // AssimpImporter is invalidate after successful extraction
+
+    [[nodiscard]] Expect<Ref<Model>> ConvertToModel(const VertexLayout& _attribLayoutOrEmpty, Flags<eAssimpConvertToModelFlags> _flags = eAssimpConvertToModelFlags::All);   // AssimpImporter is invalidate after successful
 
 private:
     AssimpImporter() = default;
-    Error  ImportFromMemory_(MemoryView _data, const AssimpImporterInfo& _options);
-    Error  ImportFromFile_(StringView _path, const AssimpImporterInfo& _options);
-    Error  Import_(const aiScene* _pScene, const AssimpImporterInfo& _options);
-    UInt32 MakeImportFlags_(const AssimpImporterInfo& _options) const;
-    void   PreImport_(Assimp::Importer& _importer, const AssimpImporterInfo& _options) const;
+    Error  ImportFromMemory_(MemoryView _data, const Flags<eAssimpImporterFlags>& _flags);
+    Error  ImportFromFile_(StringView _path, const Flags<eAssimpImporterFlags>& _flags);
+    Error  Import_(const aiScene* _pScene, const Flags<eAssimpImporterFlags>& _flags);
+    UInt32 MakeImportFlags_(const Flags<eAssimpImporterFlags>& _flags) const;
+    void   PreImport_(Assimp::Importer& _importer, const Flags<eAssimpImporterFlags>& _flags) const;
 
     // import steps
-    void                            ImportMeshes_(const aiScene* _pScene, const AssimpImporterInfo& _options);
+    void                            ImportMeshes_(const aiScene* _pScene);
     Error                           ImportTextures_(const aiScene* _pScene);
     void                            ImportMaterials_(const aiScene* _pScene);
     void                            ImportModelNode_(const aiScene* _pScene);
     [[nodiscard]] ImportedModelNode ImportModelNode_Recursive_(const aiScene* _pScene, const aiNode* _pNode);
 
     // convert
-    [[nodiscard]] Vector<Ref<Mesh>>            ConvertToMeshes_(const VertexLayout& _vl) const;
+    [[nodiscard]] Vector<Ref<Mesh>>            ConvertToMeshes_(const VertexLayout& _attribLayoutOrEmpty) const;
     [[nodiscard]] Expect<Vector<Ref<Texture>>> ConvertToTextures_() const;
-    [[nodiscard]] Vector<Ref<Material>>        ConvertToMaterials_(const Vector<Ref<Texture>>& _textures) const;
+    [[nodiscard]] Vector<Ref<Material>>        ConvertToMaterials_(const Vector<Ref<Texture>>& _texturesOrEmpty) const;
 
     bool                     m_bExtracted        = false;
     ImportedModelNode        m_importedRoot      = {};

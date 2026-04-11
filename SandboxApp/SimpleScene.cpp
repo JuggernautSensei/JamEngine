@@ -50,16 +50,6 @@ struct SimpleSceneVertex
     }();
 };
 
-struct SimpleSceneMisc
-{
-    static constexpr Int32 k_slot = 3;
-
-    Int32 debugNormal  = 0;
-    Int32 bEnableLight = 1;
-    Int32 padding1     = 0;
-    Int32 padding2     = 0;
-};
-
 }   // namespace
 
 SimpleScene::SimpleScene()
@@ -69,14 +59,14 @@ SimpleScene::SimpleScene()
     ShaderCompilerInfo vsInfo = {};
     vsInfo.entryPoint         = "VSMain";
     vsInfo.stage              = eShader::VertexShader;
-    const ShaderCompiler vsc  = ShaderCompiler::CompileHLSLFile("Shaders/SimpleSceneShader.hlsl", vsInfo);
+    const ShaderCompiler vsc  = ShaderCompiler::CompileHLSLFile("Resources/SimpleScene/SimpleSceneShader.hlsl", vsInfo);
     JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
     const ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());
 
     ShaderCompilerInfo psInfo = {};
     psInfo.entryPoint         = "PSMain";
     psInfo.stage              = eShader::PixelShader;
-    const ShaderCompiler psc  = ShaderCompiler::CompileHLSLFile("Shaders/SimpleSceneShader.hlsl", psInfo);
+    const ShaderCompiler psc  = ShaderCompiler::CompileHLSLFile("Resources/SimpleScene/SimpleSceneShader.hlsl", psInfo);
     JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
     const ShaderHandle psh = gfx.CreateShader(psc.GetBytecode());
 
@@ -85,17 +75,14 @@ SimpleScene::SimpleScene()
     m_entityCbh = gfx.CreateConstantBuffer(sizeof(CBSimpleSceneEntity));
     m_cmrCbh    = gfx.CreateConstantBuffer(sizeof(CBSimpleSceneCamera));
     m_lightCbh  = gfx.CreateConstantBuffer(sizeof(CBSimpleSceneLight));
-    m_miscCbh   = gfx.CreateConstantBuffer(sizeof(SimpleSceneMisc));
 
     m_pMesh[eMeshType::Cube]   = CreateCubeMesh(Vec3 { 0.5f }, SimpleSceneVertex::s_layout);
     m_pMesh[eMeshType::Sphere] = CreateSphereMesh(0.5f, 5, SimpleSceneVertex::s_layout);
 
     // load model
-    AssimpImporterInfo info         = {};
-    info.bGenerateNormals           = true;
-    Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("StanfordBunny.obj", info);
+    Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunny.obj", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals);
     JAM_ASSERT(importer, "Failed to load model: {}", importer.GetError().ToErrorMessage());
-    Expect<Ref<Model>> pModel = importer->ExtractToModel(SimpleSceneVertex::s_layout);
+    Expect<Ref<Model>> pModel = importer->ConvertToModel(SimpleSceneVertex::s_layout, eAssimpConvertToModelFlags::Mesh);
     JAM_ASSERT(pModel, "Failed to extract model: {}", pModel.GetError().ToErrorMessage());
     Ref<Model> pBunnyModel    = pModel.GetValue();
     m_pMesh[eMeshType::Bunny] = pBunnyModel->GetMeshes()[0];
@@ -111,7 +98,6 @@ SimpleScene::~SimpleScene()
     JAM_DESTROY_CONSTANT_BUFFER(m_entityCbh);
     JAM_DESTROY_CONSTANT_BUFFER(m_cmrCbh);
     JAM_DESTROY_CONSTANT_BUFFER(m_lightCbh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_miscCbh);
     JAM_DESTROY_FRAME_BUFFER(m_fbh);
 }
 
@@ -135,9 +121,10 @@ void SimpleScene::OnRender(
     gfx.SetViewport(m_vp);
     gfx.SetProgram(m_ph);
     gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
+    gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4          vpMtx    = m_cameraTransform.CreateViewMatrix() * m_camera.GetProjMatrix();
+    const Mtx4          vpMtx    = m_cameraTransform.GetMatrix().Invert() * m_camera.GetProjMatrix();
     CBSimpleSceneCamera cbCamera = {};
     cbCamera.cb_eyePos           = m_cameraTransform.GetTranslation();
     cbCamera.cb_viewProj         = vpMtx.Transpose();
@@ -153,13 +140,6 @@ void SimpleScene::OnRender(
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
     gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBSimpleSceneLight::k_slot);
 
-    // misc
-    SimpleSceneMisc cbMisc = {};
-    cbMisc.debugNormal     = 0;
-    cbMisc.bEnableLight    = 1;
-    gfx.UpdateBuffer(m_miscCbh, AsMemoryView(cbMisc));
-    gfx.SetConstantBuffer(m_miscCbh, eShader::PixelShader, SimpleSceneMisc::k_slot);
-
     // entity
     gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBSimpleSceneEntity::k_slot);
     gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBSimpleSceneEntity::k_slot);
@@ -168,9 +148,9 @@ void SimpleScene::OnRender(
     Ref<Mesh>&          pMesh    = m_pMesh[m_activeType];
     for (Int32 i = 0; i < m_numEntities; ++i)
     {
-        float t   = NumericCast<float>(i) * 15.f;
+        float t   = static_cast<float>(i) * 15.f;
         float yaw = m_entityYawRad + ToRad(t);
-        float x   = 1.f * NumericCast<float>(i - m_numEntities / 2);
+        float x   = 1.f * static_cast<float>(i - (m_numEntities / 2));
         float y   = 1.f * Sin(m_entityYRad + ToRad(t));
         float s   = m_activeType == eMeshType::Bunny ? 5.f : 1.f;   // bunny is too small..
 
@@ -187,9 +167,9 @@ void SimpleScene::OnRender(
     // output framebuffer maybe do not have depth texture.
     // so. draw on screen-off framebuffer and blit the color texture to output framebuffer.
     // in real case. use    post-process pass to do this.
-    const FrameBufferInfo fbInfo = gfx.GetFrameBufferInfo(_view.outputFbh);
+    const FrameBufferInfo fbInfo = gfx.GetFrameBufferInfo(_view.fbh);
     JAM_ASSERT(fbInfo.numRenderTargets > 0, "Back buffer must have at least one render target");
-    gfx.CopyTexture(fbInfo.renderTargetTexhs[0], m_fbTexh);
+    gfx.CopyTexture(fbInfo.renderTargetTexhs[0], 0, 0, 0, 0, 0, m_fbTexh, 0, 0, 0, 0, 0);
 }
 
 void SimpleScene::OnImGuiRender()
@@ -238,7 +218,6 @@ void SimpleScene::OnImGuiRender()
         ImGui::ColorEdit3("Ambient Color", &m_ambientColor.x);
     }
 
-    // 5. 카메라 정보 (Camera)
     if (ImGui::CollapsingHeader("Camera"))
     {
         Vec3 camPos = m_cameraTransform.GetTranslation();
@@ -262,7 +241,7 @@ void SimpleScene::OnResize(
 
     Graphics& gfx = GetGraphics();
     m_fbh         = gfx.CreateFrameBuffer(_width, _height, eTextureFormat::RGBA8_UNorm, eTextureFormat::D24_UNorm_S8_UInt);
-    m_vp          = Viewport { 0, 0, NumericCast<UInt16>(_width), NumericCast<UInt16>(_height) };
+    m_vp          = Viewport { 0, 0, NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
 
     const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
     JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");

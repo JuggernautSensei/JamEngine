@@ -141,7 +141,7 @@ void ImageImportDialog::OnShow()
         {
             ImGui::Indent();
 
-            Vec2i size = { NumericCast<Int32>(m_options.newWidth), NumericCast<Int32>(m_options.newHeight) };
+            Vec2i size = { NarrowCast<Int32>(m_options.newWidth), NarrowCast<Int32>(m_options.newHeight) };
 
             ImGui::TableNextColumn();
             Widget_Text("width x heigth", true);

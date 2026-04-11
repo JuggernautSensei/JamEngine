@@ -327,7 +327,7 @@ Ref<Texture> Editor::LoadIconFromSvgSource(
     const MemoryView  mems[] = { importer->GetPixels() };
     const Int32         w      = importer->GetWidth();
     const Int32         h      = importer->GetHeight();
-    const TextureHandle texh   = GetGraphics().CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::None, mems);
+    const TextureHandle texh   = GetGraphics().CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::None, mems);
     return Texture::Load(texh);
 }
 

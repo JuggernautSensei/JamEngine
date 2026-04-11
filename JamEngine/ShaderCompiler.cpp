@@ -124,7 +124,7 @@ ShaderCompiler ShaderCompiler::CompileHLSLSource(
 MemoryView ShaderCompiler::GetBytecode() const
 {
     JAM_ASSERT(m_pBlob, "Shader blob is null.");
-    return { m_pBlob->GetBufferPointer(), NumericCast<Int32>(m_pBlob->GetBufferSize()) };
+    return { m_pBlob->GetBufferPointer(), NarrowCast<Int32>(m_pBlob->GetBufferSize()) };
 }
 
 StringView ShaderCompiler::GetErrorMessage() const

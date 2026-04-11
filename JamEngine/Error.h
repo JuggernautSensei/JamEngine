@@ -166,7 +166,7 @@ public:
         return GetErrorMessage_().msgW;
     }
 
-    /* implicit */ constexpr operator bool() const
+    explicit constexpr operator bool() const
     {
         return IsError();
     }
@@ -320,7 +320,7 @@ public:
         return m_bHasValue;
     }
 
-    /* implicit */ operator bool() const
+    explicit operator bool() const
     {
         return m_bHasValue;
     }

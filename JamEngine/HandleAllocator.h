@@ -65,7 +65,7 @@ public:
         return m_value != k_nullHandleValue;
     }
 
-    /* implicit */ operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
         return IsValid();
     }
@@ -127,7 +127,7 @@ public:
         explicit IteratorBase(AllocatorT* _pAllocator, const UInt32 _startIndex) noexcept
             : m_pAllocator(_pAllocator)
             , m_index(_startIndex)
-            , m_endIndex(NumericCast<UInt32>(_pAllocator->m_slots.size()))
+            , m_endIndex(NarrowCast<UInt32>(_pAllocator->m_slots.size()))
         {
             Advance_();
         }
@@ -201,7 +201,7 @@ public:
         }
         else
         {
-            index = NumericCast<UInt32>(m_slots.size());
+            index = NarrowCast<UInt32>(m_slots.size());
             m_slots.emplace_back();
         }
 
@@ -225,7 +225,7 @@ public:
     {
         const UInt32 index = handle.GetIndex();
         const Slot&  slot  = m_slots[index];
-        return CmpLess(index, m_slots.size())
+        return std::cmp_less(index, m_slots.size())
             && slot.token == handle.GetToken()
             && slot.bAlloced;
     }
@@ -249,7 +249,7 @@ public:
 
     [[nodiscard]] Iterator end() noexcept
     {
-        return Iterator(this, NumericCast<UInt32>(m_slots.size()));
+        return Iterator(this, NarrowCast<UInt32>(m_slots.size()));
     }
 
     [[nodiscard]] ConstIterator begin() const noexcept
@@ -259,7 +259,7 @@ public:
 
     [[nodiscard]] ConstIterator end() const noexcept
     {
-        return ConstIterator(this, NumericCast<UInt32>(m_slots.size()));
+        return ConstIterator(this, NarrowCast<UInt32>(m_slots.size()));
     }
 
     [[nodiscard]] ConstIterator cbegin() const noexcept
@@ -269,7 +269,7 @@ public:
 
     [[nodiscard]] ConstIterator cend() const noexcept
     {
-        return ConstIterator(this, NumericCast<UInt32>(m_slots.size()));
+        return ConstIterator(this, NarrowCast<UInt32>(m_slots.size()));
     }
 
 private:

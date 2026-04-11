@@ -12,12 +12,13 @@ class Mesh : public IAsset
 public:
     ~Mesh() override;
 
-    Mesh(const Mesh& _other)            = delete;
-    Mesh& operator=(const Mesh& _other) = delete;
-    Mesh(Mesh&& _other) noexcept;
-    Mesh& operator=(Mesh&& _other) noexcept;
+    Mesh(const Mesh& _other)                = delete;
+    Mesh& operator=(const Mesh& _other)     = delete;
+    Mesh(Mesh&& _other) noexcept            = delete;
+    Mesh& operator=(Mesh&& _other) noexcept = delete;
 
-    [[nodiscard]] static Ref<Mesh>         Load(MemoryView _vertData, const VertexLayout& _vl, MemoryView _idxData, bool _bUseU32 = false);
+    [[nodiscard]] static Ref<Mesh>         Load(Span<const Vec3> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData, bool _bUse32 = false);
+    [[nodiscard]] static Ref<Mesh>         Load(Span<const Vec3> _position, MemoryView _idxData, bool _bUse32 = false);
     [[nodiscard]] static Expect<Ref<Mesh>> LoadFromFile(StringView _path);
 
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
@@ -27,7 +28,7 @@ public:
 
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] StringView GetPath() const override;
-    [[nodiscard]] eAsset GetAssetType() const override;
+    [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] UInt32     GetTypeHash() const override;
     [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt16     GetSortKey() const;
@@ -40,27 +41,34 @@ public:
     [[nodiscard]] const Aabb&        GetBoundingBox() const;
 
     void Submit() const;
+    void SubmitPositionOnly() const;
 
     static constexpr StringView k_typeName  = NameOf<Mesh>();
     static constexpr UInt32     k_typeHash  = HashOf<Mesh>();
-    static constexpr eAsset k_assetType = eAsset::Mesh;
+    static constexpr eAsset     k_assetType = eAsset::Mesh;
     static constexpr StringView k_extension = ".jmsh";
     static constexpr StringView k_filter    = "*.jmsh";
 
 private:
     Mesh() = default;
-    Mesh(MemoryView _vertData, const VertexLayout& _vl, MemoryView _idxData, bool _bUseU32 = false);
+    Mesh(Span<const Vec3> _positions, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData, bool _bUseU32);
+    Mesh(Span<const Vec3> _positios, MemoryView _idxData, bool _bUseU32);
+
     Error Load_(StringView _path) override;
     void  CleanUp_();
-    void  ComputeBoundingBox_(MemoryView _vertData, const VertexLayout& _vl);
+    void  ComputeBoundingBox_(Span<const Vec3> _positions);
 
-    String             m_path            = {};
-    String             m_name            = {};
-    VertexBufferHandle m_vbh             = k_nullHandle;
-    IndexBufferHandle  m_ibh             = k_nullHandle;
-    Aabb               m_boundingBox     = {};
-    UInt16             m_sortKey         = 0;
-    bool               m_bLoadedFromFile = false;
+    String m_path            = {};
+    String m_name            = {};
+    UInt16 m_sortKey         = 0;
+    bool   m_bLoadedFromFile = false;
+
+    VertexBufferHandle m_positionVbh = k_nullHandle;
+    VertexBufferHandle m_attribVbh   = k_nullHandle;
+    IndexBufferHandle  m_ibh         = k_nullHandle;
+    Aabb               m_boundingBox = {};
+
+    static VertexLayout s_positionOnlyVl;
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Mesh>& _pMesh);

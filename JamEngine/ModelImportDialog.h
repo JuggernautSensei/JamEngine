@@ -32,8 +32,8 @@ protected:
     String m_assetSaveDir  = {};
     String m_assetBaseName = {};
 
-    AssimpImporterInfo     m_options = {};
-    Ref<VertexLayoutEntry> m_pVle    = nullptr;
+    Flags<eAssimpImporterFlags> m_flags = eAssimpImporterFlags::None;
+    Ref<VertexLayoutEntry>      m_pVle  = nullptr;
 };
 
 }   // namespace Jam
