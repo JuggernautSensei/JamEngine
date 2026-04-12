@@ -330,14 +330,15 @@ const Aabb& Mesh::GetBoundingBox() const
     return m_boundingBox;
 }
 
-void Mesh::Submit() const
+void Mesh::Submit(
+    const bool _bSubmitPositionOnly) const
 {
     Graphics& gfx = GetGraphics();
 
-    if (m_attribVbh)
+    if (!_bSubmitPositionOnly && m_attribVbh)
     {
         gfx.SetVertexBuffer(m_positionVbh, 0);
-        gfx.SetVertexBuffer(m_attribVbh, 1);
+        gfx.SetVertexBuffer(m_attribVbh, 1, false);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
@@ -347,14 +348,6 @@ void Mesh::Submit() const
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
-}
-
-void Mesh::SubmitPositionOnly() const
-{
-    Graphics& gfx = GetGraphics();
-    gfx.SetVertexBuffer(m_positionVbh, 0);
-    gfx.SetIndexBuffer(m_ibh);
-    gfx.Submit();
 }
 
 void Mesh::CleanUp_()

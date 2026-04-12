@@ -54,7 +54,7 @@ private:
     Vec3 m_lightLookAt  = Vec3 { 0.f, 0.f, 0.f };
     Vec3 m_lightColor   = Vec3 { 1.f, 1.f, 1.f };
     Vec3 m_ambientColor = Vec3 { 0.1f, 0.1f, 0.1f };
-
+        
     Vec3  m_baseColor = Vec3 { 1.f, 1.f, 1.f };
     float m_shiness   = 32.f;
 };

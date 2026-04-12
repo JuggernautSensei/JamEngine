@@ -468,7 +468,7 @@ void Graphics::Frame(const bool _bVSync)
         JAM_CHECK_HRESULT(m_pd3d11Device->GetDeviceRemovedReason());
     }
 
-    m_fbhBind = k_nullHandle;   // frame buffer must rebind after present (this is api demand)
+    m_fbhBinding = k_nullHandle;   // frame buffer must rebind after present (this is api demand)
 }
 
 VertexBufferHandle Graphics::CreateVertexBuffer(
@@ -1744,34 +1744,18 @@ void Graphics::ClearDepthStencil(
 
 void Graphics::SetVertexBuffer(
     const VertexBufferHandle _vbhOrInvalid,
-    const Int32              _stream)
+    const Int32              _stream,
+    const bool               _bDiscard)
 {
     if (_vbhOrInvalid)
     {
         const VertexBuffer& vb       = m_vertexBuffers[_vbhOrInvalid];
         const Int32         numVerts = vb.byteWidth / vb.stride;
-        SetVertexBuffer(_vbhOrInvalid, _stream, numVerts, 0, vb.vlh);
+        SetVertexBuffer(_vbhOrInvalid, _stream, numVerts, 0, vb.vlh, _bDiscard);
     }
     else
     {
-        SetVertexBuffer(_vbhOrInvalid, _stream, 0, 0, k_nullHandle);
-    }
-}
-
-void Graphics::SetVertexBuffer(
-    const VertexBufferHandle _vbhOrInvalid,
-    const Int32              _stream,
-    const Int32              _numVerts,
-    const Int32              _vertOffset)
-{
-    if (_vbhOrInvalid)
-    {
-        VertexBuffer& vb = m_vertexBuffers[_vbhOrInvalid];
-        SetVertexBuffer(_vbhOrInvalid, _stream, _numVerts, _vertOffset, vb.vlh);
-    }
-    else
-    {
-        SetVertexBuffer(k_nullHandle, _stream, 0, 0, k_nullHandle);
+        SetVertexBuffer(_vbhOrInvalid, _stream, 0, 0, k_nullHandle, _bDiscard);
     }
 }
 
@@ -1780,52 +1764,71 @@ void Graphics::SetVertexBuffer(
     const Int32              _stream,
     const Int32              _numVerts,
     const Int32              _vertOffset,
-    const VertexLayoutHandle _vlh)
+    const bool               _bDiscard)
+{
+    if (_vbhOrInvalid)
+    {
+        VertexBuffer& vb = m_vertexBuffers[_vbhOrInvalid];
+        SetVertexBuffer(_vbhOrInvalid, _stream, _numVerts, _vertOffset, vb.vlh, _bDiscard);
+    }
+    else
+    {
+        SetVertexBuffer(k_nullHandle, _stream, 0, 0, k_nullHandle, _bDiscard);
+    }
+}
+
+void Graphics::SetVertexBuffer(
+    const VertexBufferHandle _vbhOrInvalid,
+    const Int32              _stream,
+    const Int32              _numVerts,
+    const Int32              _vertOffset,
+    const VertexLayoutHandle _vlh,
+    const bool               _bDiscard)
 {
     JAM_ASSERT(_stream < k_maxNumVertexStream, "Vertex stream index out of range.");
 
-    const VertexBufferHandle vbh    = m_streamBinds.vbhs[_stream];
-    const VertexLayoutHandle vlh    = m_streamBinds.vlhs[_stream];
-    const UInt32             offset = m_streamBinds.offsets[_stream];
+    const VertexBufferHandle vbh    = m_streamBindings.vbhs[_stream];
+    const VertexLayoutHandle vlh    = m_streamBindings.vlhs[_stream];
+    const UInt32             offset = m_streamBindings.offsets[_stream];
+    const bool               bValid = _vbhOrInvalid != k_nullHandle;
 
-    if (_vbhOrInvalid && (_vbhOrInvalid != vbh || std::cmp_not_equal(_vertOffset, offset)))
+    const UInt32 oldMask = m_streamBindings.useMask;
+    const UInt32 bit     = 1u << _stream;
+    const UInt32 newMask = bValid ? (_bDiscard ? bit : (oldMask | bit)) : (_bDiscard ? 0 : (oldMask & ~bit));
+
+    // 스트림 구성 변경시, vertex buffer와 입력 레이아웃 모두 갱신 필요
+    if (oldMask != newMask)
     {
-        JAM_ASSERT(_vlh, "Vertex layout must not be null when binding vertex buffer.");
-
-        m_streamBinds.vbhs[_stream]    = _vbhOrInvalid;
-        m_streamBinds.offsets[_stream] = _vertOffset;
-        m_streamBinds.useMask |= (1u << _stream);
-        m_streamBinds.dirtyMask |= (1u << _stream);
+        m_streamBindings.useMask = newMask;
         m_dirtyFlags |= ePipelineDirtyFlags::VertexBuffer;
+        m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
     }
-    else if (!_vbhOrInvalid && vbh)
-    {
-        JAM_ASSERT(!_vlh, "Vertex layout must be null when unbinding vertex buffer.");
 
-        m_streamBinds.vbhs[_stream]    = k_nullHandle;
-        m_streamBinds.offsets[_stream] = 0;
-        m_streamBinds.useMask &= ~(1u << _stream);
-        m_streamBinds.dirtyMask |= (1u << _stream);
+    if (bValid)
+    {
+        if (_vbhOrInvalid != vbh || std::cmp_not_equal(_vertOffset, offset))
+        {
+            JAM_ASSERT(_vlh, "Vertex layout must not be null when binding vertex buffer.");
+            m_streamBindings.vbhs[_stream]    = _vbhOrInvalid;
+            m_streamBindings.offsets[_stream] = _vertOffset;
+            m_dirtyFlags |= ePipelineDirtyFlags::VertexBuffer;
+        }
+    }
+    else if (vbh)
+    {
+        // unbind
+        m_streamBindings.vbhs[_stream]    = k_nullHandle;
+        m_streamBindings.offsets[_stream] = 0;
         m_dirtyFlags |= ePipelineDirtyFlags::VertexBuffer;
     }
 
     if (vlh != _vlh)
     {
-        m_streamBinds.vlhs[_stream] = _vlh;
+        m_streamBindings.vlhs[_stream] = _vlh;
         m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
     }
 
-    m_numVertsBind = _numVerts;
-}
-
-void Graphics::SetStreamMaskFlags(
-    const Flags<eStreamMaskFlags> _flags)
-{
-    if (m_streamMaskFlagsBind != _flags)
-    {
-        m_streamMaskFlagsBind = _flags;
-        m_dirtyFlags |= ePipelineDirtyFlags::VertexBuffer;
-    }
+    m_numVertsBinding = _numVerts;
 }
 
 void Graphics::SetInstanceBuffer(
@@ -1848,14 +1851,14 @@ void Graphics::SetInstanceBuffer(
     const Int32              _numInstances,
     const Int32              _instanceOffset)
 {
-    if (_vbhOrInvalid != m_instanceBind || _instanceOffset != m_instanceOffsetBind)
+    if (_vbhOrInvalid != m_instanceBindings || _instanceOffset != m_instanceOffsetBinding)
     {
-        m_instanceBind       = _vbhOrInvalid;
-        m_instanceOffsetBind = _instanceOffset;
+        m_instanceBindings      = _vbhOrInvalid;
+        m_instanceOffsetBinding = _instanceOffset;
         m_dirtyFlags |= ePipelineDirtyFlags::InstanceBuffer;
     }
 
-    m_numInstancesBind = _numInstances;
+    m_numInstancesBinding = _numInstances;
 }
 
 void Graphics::SetIndexBuffer(
@@ -1879,13 +1882,13 @@ void Graphics::SetIndexBuffer(
     const Int32             _numIdxes,
     const Int32             _idxOffset)
 {
-    if (m_ibhBind != _ibhOrInvalid || m_ibOffsetBind != _idxOffset)
+    if (m_ibhBinding != _ibhOrInvalid || m_indexOffsetBinding != _idxOffset)
     {
-        m_ibhBind      = _ibhOrInvalid;
-        m_ibOffsetBind = _idxOffset;
+        m_ibhBinding         = _ibhOrInvalid;
+        m_indexOffsetBinding = _idxOffset;
         m_dirtyFlags |= ePipelineDirtyFlags::IndexBuffer;
     }
-    m_numIndicesBind = _numIdxes;
+    m_numIndicesBinding = _numIdxes;
 }
 
 void Graphics::SetConstantBuffer(
@@ -1902,9 +1905,9 @@ void Graphics::SetConstantBuffer(
         ePipelineDirtyFlags::CSConstantBuffer
     };
 
-    ConstantBufferBindings& binds = m_cbufferBinds[_shader];
+    ConstantBufferBindings& binds = m_cbufferBindings[_shader];
 
-    if (binds.cbhs[_slot] != _cbh)
+    if (binds.bindings[_slot] != _cbh)
     {
         if (_cbh)
         {
@@ -1917,9 +1920,9 @@ void Graphics::SetConstantBuffer(
             binds.binder[_slot] = nullptr;
         }
 
-        binds.cbhs[_slot] = _cbh;
-        binds.dirtyBegin  = Min(binds.dirtyBegin, _slot);
-        binds.dirtyEnd    = Max(binds.dirtyEnd, _slot + 1);
+        binds.bindings[_slot] = _cbh;
+        binds.dirtyBegin      = Min(binds.dirtyBegin, _slot);
+        binds.dirtyEnd        = Max(binds.dirtyEnd, _slot + 1);
         m_dirtyFlags |= k_flags[_shader];   // set flags
     }
 }
@@ -1966,7 +1969,7 @@ void Graphics::SetSampler(
         ePipelineDirtyFlags::CSSamplerState
     };
 
-    SamplerBindings&          binds   = m_samplerBinds[_shader];
+    SamplerBindings&          binds   = m_samplerBindings[_shader];
     SamplerBindings::Sampler& sampler = binds.samplers[_slot];
 
     if (sampler.state != _flags || sampler.rgba != _rgba)
@@ -1983,33 +1986,33 @@ void Graphics::SetSampler(
 void Graphics::SetRenderFlags(
     const Flags<eRenderFlags> _flags)
 {
-    if (m_renderFlagsBind != _flags)
+    if (m_renderFlagsBinding != _flags)
     {
         // depth stencil state
-        if (FilterDepthFlags(m_renderFlagsBind) != FilterDepthFlags(_flags))
+        if (FilterDepthFlags(m_renderFlagsBinding) != FilterDepthFlags(_flags))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::DepthStencilState;
         }
 
         // rasterizer state
-        if (FilterRasterizerFlags(m_renderFlagsBind) != FilterRasterizerFlags(_flags))
+        if (FilterRasterizerFlags(m_renderFlagsBinding) != FilterRasterizerFlags(_flags))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::RasterizerState;
         }
 
         // blend state
-        if (FilterBlendFlags(m_renderFlagsBind) != FilterBlendFlags(_flags))
+        if (FilterBlendFlags(m_renderFlagsBinding) != FilterBlendFlags(_flags))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::BlendState;
         }
 
         // primitive
-        if (FilterPrimitiveFlags(m_renderFlagsBind) != FilterPrimitiveFlags(_flags))
+        if (FilterPrimitiveFlags(m_renderFlagsBinding) != FilterPrimitiveFlags(_flags))
         {
             m_dirtyFlags |= ePipelineDirtyFlags::Primitive;
         }
 
-        m_renderFlagsBind = _flags;
+        m_renderFlagsBinding = _flags;
     }
 }
 
@@ -2018,10 +2021,10 @@ void Graphics::SetBlendFlags(
     const Int32              _renderTargetIndex)
 {
     JAM_ASSERT(_renderTargetIndex >= 0 && _renderTargetIndex < k_maxNumRenderTargetViewSlots, "Render target pos out of range.");
-    const Flags<eBlendFlags> flags = m_blendFlagsBinds[_renderTargetIndex];
+    const Flags<eBlendFlags> flags = m_blendFlagsBindings[_renderTargetIndex];
     if (_flags != flags)
     {
-        m_blendFlagsBinds[_renderTargetIndex] = _flags;
+        m_blendFlagsBindings[_renderTargetIndex] = _flags;
         m_dirtyFlags |= ePipelineDirtyFlags::BlendState;
     }
 }
@@ -2029,9 +2032,9 @@ void Graphics::SetBlendFlags(
 void Graphics::SetBlendFactor(
     const RGBA _rgba)
 {
-    if (m_blendFactorBind.value != _rgba.value)
+    if (m_blendFactorBinding.value != _rgba.value)
     {
-        m_blendFactorBind = _rgba;
+        m_blendFactorBinding = _rgba;
         m_dirtyFlags |= ePipelineDirtyFlags::BlendState;
     }
 }
@@ -2041,21 +2044,21 @@ void Graphics::SetStencilFlags(
     const Flags<eStencilFlags> _bStencil,
     const UInt8                _stencilRef)
 {
-    if (_fStencil != m_fstencilBind)
+    if (_fStencil != m_fstencilBinding)
     {
-        m_fstencilBind = _fStencil;
+        m_fstencilBinding = _fStencil;
         m_dirtyFlags |= ePipelineDirtyFlags::DepthStencilState;
     }
 
-    if (_bStencil != m_bstencilBind)
+    if (_bStencil != m_bstencilBinding)
     {
-        m_bstencilBind = _bStencil;
+        m_bstencilBinding = _bStencil;
         m_dirtyFlags |= ePipelineDirtyFlags::DepthStencilState;
     }
 
-    if (m_stencilRefBind != _stencilRef)
+    if (m_stencilRefBinding != _stencilRef)
     {
-        m_stencilRefBind = _stencilRef;
+        m_stencilRefBinding = _stencilRef;
         m_dirtyFlags |= ePipelineDirtyFlags::DepthStencilState;
     }
 }
@@ -2063,9 +2066,9 @@ void Graphics::SetStencilFlags(
 void Graphics::SetProgram(
     const ProgramHandle _ph)
 {
-    if (m_phBind != _ph)
+    if (m_phBinding != _ph)
     {
-        m_phBind = _ph;
+        m_phBinding = _ph;
         m_dirtyFlags |= ePipelineDirtyFlags::Program;
     }
 }
@@ -2073,9 +2076,9 @@ void Graphics::SetProgram(
 void Graphics::SetComputeProgram(
     const ProgramHandle _ph)
 {
-    if (m_computePhBind != _ph)
+    if (m_computePhBinding != _ph)
     {
-        m_computePhBind = _ph;
+        m_computePhBinding = _ph;
         m_dirtyFlags |= ePipelineDirtyFlags::ComputeProgram;
     }
 }
@@ -2083,9 +2086,9 @@ void Graphics::SetComputeProgram(
 void Graphics::SetFrameBuffer(
     const FrameBufferHandle _fbh)
 {
-    if (m_fbhBind != _fbh)
+    if (m_fbhBinding != _fbh)
     {
-        m_fbhBind = _fbh;
+        m_fbhBinding = _fbh;
         m_dirtyFlags |= ePipelineDirtyFlags::FrameBuffer;
     }
 }
@@ -2093,9 +2096,9 @@ void Graphics::SetFrameBuffer(
 void Graphics::SetViewport(
     const Viewport _vp)
 {
-    if (m_vpBind != _vp)
+    if (m_vpBinding != _vp)
     {
-        m_vpBind = _vp;
+        m_vpBinding = _vp;
         m_dirtyFlags |= ePipelineDirtyFlags::Viewport;
     }
 }
@@ -2112,9 +2115,9 @@ void Graphics::SetViewport(
 void Graphics::SetScissorRect(
     const Rect _rect)
 {
-    if (m_scissorRectBind != _rect)
+    if (m_scissorRectBinding != _rect)
     {
-        m_scissorRectBind = _rect;
+        m_scissorRectBinding = _rect;
         m_dirtyFlags |= ePipelineDirtyFlags::ScissorRect;
     }
 }
@@ -2132,7 +2135,7 @@ void Graphics::SetSubmitParameter(
     const eSubmitParameter _type,
     const Int32            _value)
 {
-    m_submitParams[_type] = _value;
+    m_submitParamsBinding[_type] = _value;
 }
 
 void Graphics::Touch()
@@ -2144,34 +2147,34 @@ void Graphics::Submit()
 {
     BindPipeline_();
 
-    if (m_ibhBind)
+    if (m_ibhBinding)
     {
-        if (m_instanceBind)
+        if (m_instanceBindings)
         {
-            const Int32 startIdxLoc  = m_submitParams[eSubmitParameter::StartIndexLocation];
-            const Int32 baseVtxLoc   = m_submitParams[eSubmitParameter::BaseVertexLocation];
-            const Int32 startInstLoc = m_submitParams[eSubmitParameter::StartInstanceLocation];
-            m_pd3d11DeviceContext->DrawIndexedInstanced(m_numIndicesBind, m_numInstancesBind, startIdxLoc, baseVtxLoc, startInstLoc);
+            const Int32 startIdxLoc  = m_submitParamsBinding[eSubmitParameter::StartIndexLocation];
+            const Int32 baseVtxLoc   = m_submitParamsBinding[eSubmitParameter::BaseVertexLocation];
+            const Int32 startInstLoc = m_submitParamsBinding[eSubmitParameter::StartInstanceLocation];
+            m_pd3d11DeviceContext->DrawIndexedInstanced(m_numIndicesBinding, m_numInstancesBinding, startIdxLoc, baseVtxLoc, startInstLoc);
         }
         else
         {
-            const Int32 startIdxLoc = m_submitParams[eSubmitParameter::StartIndexLocation];
-            const Int32 baseVtxLoc  = m_submitParams[eSubmitParameter::BaseVertexLocation];
-            m_pd3d11DeviceContext->DrawIndexed(m_numIndicesBind, startIdxLoc, baseVtxLoc);
+            const Int32 startIdxLoc = m_submitParamsBinding[eSubmitParameter::StartIndexLocation];
+            const Int32 baseVtxLoc  = m_submitParamsBinding[eSubmitParameter::BaseVertexLocation];
+            m_pd3d11DeviceContext->DrawIndexed(m_numIndicesBinding, startIdxLoc, baseVtxLoc);
         }
     }
     else
     {
-        if (m_instanceBind)
+        if (m_instanceBindings)
         {
-            const Int32 startVertLoc = m_submitParams[eSubmitParameter::StartVertexLocation];
-            const Int32 startInstLoc = m_submitParams[eSubmitParameter::StartInstanceLocation];
-            m_pd3d11DeviceContext->DrawInstanced(m_numVertsBind, m_numInstancesBind, startVertLoc, startInstLoc);
+            const Int32 startVertLoc = m_submitParamsBinding[eSubmitParameter::StartVertexLocation];
+            const Int32 startInstLoc = m_submitParamsBinding[eSubmitParameter::StartInstanceLocation];
+            m_pd3d11DeviceContext->DrawInstanced(m_numVertsBinding, m_numInstancesBinding, startVertLoc, startInstLoc);
         }
         else
         {
-            const Int32 startVertLoc = m_submitParams[eSubmitParameter::StartVertexLocation];
-            m_pd3d11DeviceContext->Draw(m_numVertsBind, startVertLoc);
+            const Int32 startVertLoc = m_submitParamsBinding[eSubmitParameter::StartVertexLocation];
+            m_pd3d11DeviceContext->Draw(m_numVertsBinding, startVertLoc);
         }
     }
 }
@@ -2327,7 +2330,7 @@ void Graphics::DestroyInstance()
 void Graphics::BindConstantBuffers_(
     const eShader _stage)
 {
-    ConstantBufferBindings& binds = m_cbufferBinds[_stage];
+    ConstantBufferBindings& binds = m_cbufferBindings[_stage];
 
     // dirty range
     const Int32 numDirties = binds.dirtyEnd - binds.dirtyBegin;
@@ -2371,7 +2374,7 @@ void Graphics::BindConstantBuffers_(
 void Graphics::BindShaderResourceViews_(
     const eShader _shader)
 {
-    ReadBindings& binds = m_readBinds[_shader];
+    ReadBindings& binds = m_readBindings[_shader];
 
     const Int32 numDirtySlots = binds.dirtyEnd - binds.dirtyBegin;
     if (numDirtySlots <= 0)
@@ -2413,7 +2416,7 @@ void Graphics::BindShaderResourceViews_(
 
 void Graphics::BindUnorderedAccessViewsOnCompute_()
 {
-    ComputeReadWriteBindings& binds = m_computeReadWriteBinds;
+    ComputeReadWriteBindings& binds = m_computeReadWriteBingings;
 
     const Int32 numDirtySlots = binds.dirtyEnd - binds.dirtyBegin;
     if (numDirtySlots <= 0)
@@ -2432,7 +2435,7 @@ void Graphics::BindUnorderedAccessViewsOnCompute_()
 void Graphics::BindSamplerStates_(
     const eShader _shader)
 {
-    SamplerBindings& binds         = m_samplerBinds[_shader];
+    SamplerBindings& binds         = m_samplerBindings[_shader];
     const Int32      numDirtySlots = binds.dirtyEnd - binds.dirtyBegin;
     if (numDirtySlots <= 0)
     {
@@ -2479,47 +2482,85 @@ void Graphics::BindPipeline_()
         // vertex buffer
         if (m_dirtyFlags & ePipelineDirtyFlags::VertexBuffer)
         {
-            const UInt32 useMask  = m_streamBinds.dirtyMask & m_streamBinds.useMask & m_streamMaskFlagsBind.GetValue();
-            const Int32  useBegin = UInt32CountRZero(useMask);
-            const Int32  useEnd   = 32 - UInt32CountLZero(useMask);
-            const Int32  numDirty = useEnd - useBegin;
-            if (numDirty)
-            {
-                ID3D11Buffer** ppBuf   = m_streamBinds.binder.data() + useBegin;
-                UINT*          pStride = m_streamBinds.strides.data() + useBegin;
-                UINT*          pOffset = m_streamBinds.offsets.data() + useBegin;
-                m_pd3d11DeviceContext->IASetVertexBuffers(useBegin, numDirty, ppBuf, pStride, pOffset);
-                m_streamBinds.dirtyMask &= ~((1u << useEnd) - (1u << useBegin));
-            }
-        }
+            Array<ID3D11Buffer*, k_maxNumVertexStream> binder;
+            Array<UInt32, k_maxNumVertexStream>        strides;
+            Array<UInt32, k_maxNumVertexStream>        offsets;
 
-        // instance buffer
-        if (m_dirtyFlags & ePipelineDirtyFlags::InstanceBuffer)
-        {
-            if (m_instanceBind)
+            UInt32 useMask    = m_streamBindings.useMask;
+            m_numBoundStreams = 0;
+            for (Int32 i = 0; useMask != 0; ++i, useMask >>= 1, ++m_numBoundStreams)
             {
-                const VertexBuffer& vb     = m_vertexBuffers[m_instanceBind];
-                const UInt32        offset = m_instanceOffsetBind * vb.stride;
-                const UInt32        stride = vb.stride;
-                m_pd3d11DeviceContext->IASetVertexBuffers(k_maxNumVertexStream, 1, &vb.pBuffer, &stride, &offset);
+                Int32 cnt = UInt32CountRZero(useMask);
+                useMask >>= cnt;
+                i += cnt;
+
+                const VertexBufferHandle vbh = m_streamBindings.vbhs[i];
+                if (vbh)
+                {
+                    const VertexBuffer& vb         = m_vertexBuffers[vbh];
+                    binder[m_numBoundStreams]      = vb.pBuffer;
+                    strides[m_numBoundStreams]     = vb.stride;
+                    offsets[m_numBoundStreams]     = m_streamBindings.offsets[i] * vb.stride;
+                    m_boundVlhs[m_numBoundStreams] = m_streamBindings.vlhs[i];
+                }
+                else
+                {
+                    binder[m_numBoundStreams]      = nullptr;
+                    strides[m_numBoundStreams]     = 0;
+                    offsets[m_numBoundStreams]     = 0;
+                    m_boundVlhs[m_numBoundStreams] = k_nullHandle;
+                }
+            }
+
+            if (m_numBoundStreams > 0)
+            {
+                m_pd3d11DeviceContext->IASetVertexBuffers(0, m_numBoundStreams, binder.data(), strides.data(), offsets.data());
             }
             else
             {
                 ID3D11Buffer* pBuffer = nullptr;
                 UInt32        stride  = 0;
                 UInt32        offset  = 0;
-                m_pd3d11DeviceContext->IASetVertexBuffers(k_maxNumVertexStream, 1, &pBuffer, &stride, &offset);
+                m_pd3d11DeviceContext->IASetVertexBuffers(0, 1, &pBuffer, &stride, &offset);
+            }
+        }
+
+        // instance buffer
+        if (m_dirtyFlags & ePipelineDirtyFlags::InstanceBuffer)
+        {
+            const bool bValid = m_instanceBindings != k_nullHandle;
+
+            if (bValid)
+            {
+                const VertexBuffer& vb     = m_vertexBuffers[m_instanceBindings];
+                const UInt32        offset = m_instanceOffsetBinding * vb.stride;
+                const UInt32        stride = vb.stride;
+                m_pd3d11DeviceContext->IASetVertexBuffers(m_numBoundStreams, 1, &vb.pBuffer, &stride, &offset);
+            }
+            else
+            {
+                ID3D11Buffer* pBuffer = nullptr;
+                UInt32        stride  = 0;
+                UInt32        offset  = 0;
+                m_pd3d11DeviceContext->IASetVertexBuffers(m_numBoundStreams, 1, &pBuffer, &stride, &offset);
+            }
+
+            // instance buffer의 바인딩 상태가 변경되면 input layout도 다시 바인딩해야 함
+            if (m_bInstanceBufferBound != bValid)
+            {
+                m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
+                m_bInstanceBufferBound = bValid;
             }
         }
 
         // index buffer
         if (m_dirtyFlags & ePipelineDirtyFlags::IndexBuffer)
         {
-            if (m_ibhBind)
+            if (m_ibhBinding)
             {
-                const IndexBuffer& ib     = m_indexBuffers[m_ibhBind];
+                const IndexBuffer& ib     = m_indexBuffers[m_ibhBinding];
                 const DXGI_FORMAT  format = ib.bUseU32 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
-                const UInt32       offset = ib.bUseU32 ? m_ibOffsetBind * 4 : m_ibOffsetBind * 2;
+                const UInt32       offset = ib.bUseU32 ? m_indexOffsetBinding * 4 : m_indexOffsetBinding * 2;
                 m_pd3d11DeviceContext->IASetIndexBuffer(ib.pBuffer, format, offset);
             }
             else
@@ -2528,33 +2569,26 @@ void Graphics::BindPipeline_()
             }
         }
 
-        // topology
-        if (m_dirtyFlags & ePipelineDirtyFlags::Primitive)
-        {
-            const UInt32 prim = ResolvePrimitiveFlags(m_renderFlagsBind);
-            m_pd3d11DeviceContext->IASetPrimitiveTopology(D3D11PrimitiveTopologyFrom_(prim));
-        }
-
         // input layout
         if (m_dirtyFlags & ePipelineDirtyFlags::InputLayout)
         {
-            if (m_numBoundStreams > 0)
-            {
-                ID3D11InputLayout* pInputLayout = GetOrCreateD3D11InputLayoutFromCurrentBind_();
-                m_pd3d11DeviceContext->IASetInputLayout(pInputLayout);
-            }
-            else
-            {
-                m_pd3d11DeviceContext->IASetInputLayout(nullptr);
-            }
+            ID3D11InputLayout* pInputLayout = GetOrCreateD3D11InputLayoutFromCurrentBind_();
+            m_pd3d11DeviceContext->IASetInputLayout(pInputLayout);
+        }
+
+        // topology
+        if (m_dirtyFlags & ePipelineDirtyFlags::Primitive)
+        {
+            const UInt32 prim = ResolvePrimitiveFlags(m_renderFlagsBinding);
+            m_pd3d11DeviceContext->IASetPrimitiveTopology(D3D11PrimitiveTopologyFrom_(prim));
         }
 
         // shader program
         if (m_dirtyFlags & ePipelineDirtyFlags::Program)
         {
-            if (m_phBind)
+            if (m_phBinding)
             {
-                const Program& program = m_programs[m_phBind];
+                const Program& program = m_programs[m_phBinding];
                 if (program.vsh)
                 {
                     ShaderRef& shader = m_shaders[program.vsh];
@@ -2618,9 +2652,9 @@ void Graphics::BindPipeline_()
         // compute shader program
         if (m_dirtyFlags & ePipelineDirtyFlags::ComputeProgram)
         {
-            if (m_computePhBind)
+            if (m_computePhBinding)
             {
-                const Program&   program = m_programs[m_computePhBind];
+                const Program&   program = m_programs[m_computePhBinding];
                 const ShaderRef& shader  = m_shaders[program.csh];
                 m_pd3d11DeviceContext->CSSetShader(shader.pComputeShader, nullptr, 0);
             }
@@ -2701,18 +2735,18 @@ void Graphics::BindPipeline_()
         // frame buffer
         if (m_dirtyFlags & ePipelineDirtyFlags::FrameBuffer)
         {
-            const FrameBufferHandle fbh = m_fbhBind ? m_fbhBind : m_backBufferFbh;
+            const FrameBufferHandle fbh = m_fbhBinding ? m_fbhBinding : m_backBufferFbh;
             const FrameBuffer&      fb  = m_frameBuffers[fbh];
 
-            if (m_pixelReadWriteBinds.useMask == 0)
+            if (m_pixelReadWriteBindings.useMask == 0)
             {
                 m_pd3d11DeviceContext->OMSetRenderTargets(fb.numRenderTargets, fb.pRtvs.data(), fb.pDsv);
             }
             else
             {
-                const Int32 numUavs = m_pixelReadWriteBinds.highestSlot - fb.numRenderTargets + 1;
+                const Int32 numUavs = m_pixelReadWriteBindings.highestSlot - fb.numRenderTargets + 1;
                 JAM_ASSERT(numUavs > 0, "Number of UAVs bound to pixel shader cannot be negative. This indicates an error in the binding logic. Please check the code that manages UAV bindings to ensure it correctly updates bindEnd and does not allow it to be less than the number of render targets.");
-                ID3D11UnorderedAccessView** ppUavs = m_pixelReadWriteBinds.binder.data() + fb.numRenderTargets;
+                ID3D11UnorderedAccessView** ppUavs = m_pixelReadWriteBindings.binder.data() + fb.numRenderTargets;
                 m_pd3d11DeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
                     fb.numRenderTargets,
                     fb.pRtvs.data(),
@@ -2768,10 +2802,10 @@ void Graphics::BindPipeline_()
         if (m_dirtyFlags & ePipelineDirtyFlags::BlendState)
         {
             const FLOAT blendFactor[4] = {
-                static_cast<float>(m_blendFactorBind.r) / 255.f,
-                static_cast<float>(m_blendFactorBind.g) / 255.f,
-                static_cast<float>(m_blendFactorBind.b) / 255.f,
-                static_cast<float>(m_blendFactorBind.a) / 255.f
+                static_cast<float>(m_blendFactorBinding.r) / 255.f,
+                static_cast<float>(m_blendFactorBinding.g) / 255.f,
+                static_cast<float>(m_blendFactorBinding.b) / 255.f,
+                static_cast<float>(m_blendFactorBinding.a) / 255.f
             };
 
             ID3D11BlendState* pBs = GetOrCreateD3D11BlendStateFromCurrentBind_();
@@ -2782,7 +2816,7 @@ void Graphics::BindPipeline_()
         if (m_dirtyFlags & ePipelineDirtyFlags::DepthStencilState)
         {
             ID3D11DepthStencilState* pBss = GetOrCreateD3D11DepthStencilStateFromCurrentBind_();
-            m_pd3d11DeviceContext->OMSetDepthStencilState(pBss, m_stencilRefBind);
+            m_pd3d11DeviceContext->OMSetDepthStencilState(pBss, m_stencilRefBinding);
         }
 
         // rasterizer state
@@ -2796,10 +2830,10 @@ void Graphics::BindPipeline_()
         if (m_dirtyFlags & ePipelineDirtyFlags::Viewport)
         {
             const D3D11_VIEWPORT vp = {
-                static_cast<float>(m_vpBind.x),
-                static_cast<float>(m_vpBind.y),
-                static_cast<float>(m_vpBind.w),
-                static_cast<float>(m_vpBind.h),
+                static_cast<float>(m_vpBinding.x),
+                static_cast<float>(m_vpBinding.y),
+                static_cast<float>(m_vpBinding.w),
+                static_cast<float>(m_vpBinding.h),
                 0.f,
                 1.f
             };
@@ -2810,10 +2844,10 @@ void Graphics::BindPipeline_()
         if (m_dirtyFlags & ePipelineDirtyFlags::ScissorRect)
         {
             const D3D11_RECT rect = {
-                m_scissorRectBind.left,
-                m_scissorRectBind.top,
-                m_scissorRectBind.right,
-                m_scissorRectBind.bottom
+                m_scissorRectBinding.left,
+                m_scissorRectBinding.top,
+                m_scissorRectBinding.right,
+                m_scissorRectBinding.bottom
             };
             m_pd3d11DeviceContext->RSSetScissorRects(1, &rect);
         }
@@ -2835,7 +2869,7 @@ void Graphics::OnResize_(
     {
         // release framebuffer binding
         m_pd3d11DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-        m_fbhBind = k_nullHandle;
+        m_fbhBinding = k_nullHandle;
         m_dirtyFlags |= ePipelineDirtyFlags::FrameBuffer;
 
         // destroy back buffer dependencies
@@ -3878,8 +3912,8 @@ void Graphics::SetShaderResource_(
         JAM_ASSERT(_shader == eShader::ComputeShader || _shader == eShader::PixelShader, "Read-write texture can only be bound to compute shader or pixel shader.");
         if (_shader == eShader::ComputeShader)
         {
-            ComputeReadWriteBindings& binds = m_computeReadWriteBinds;
-            Binding&                  bind  = binds.bindings[_slot];
+            ComputeReadWriteBindings& binds = m_computeReadWriteBingings;
+            Resource&                 bind  = binds.bindings[_slot];
 
             if (bind.type != _type || bind.handleValue != _handleValueOrNull)
             {
@@ -3906,8 +3940,8 @@ void Graphics::SetShaderResource_(
         }
         else
         {
-            PixelReadWriteBindings& binds = m_pixelReadWriteBinds;
-            Binding&                bind  = binds.bindings[_slot];
+            PixelReadWriteBindings& binds = m_pixelReadWriteBindings;
+            Resource&               bind  = binds.bindings[_slot];
 
             if (bind.type != _type || bind.handleValue != _handleValueOrNull)
             {
@@ -3954,8 +3988,8 @@ void Graphics::SetShaderResource_(
             ePipelineDirtyFlags::CSShaderResourceView
         };
 
-        ReadBindings& binds = m_readBinds[_shader];
-        Binding&      bind  = binds.bindings[_slot];
+        ReadBindings& binds = m_readBindings[_shader];
+        Resource&     bind  = binds.bindings[_slot];
 
         if (bind.type != _type || bind.handleValue != _handleValueOrNull)
         {
@@ -4101,9 +4135,9 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
     hasher.Mix(AsMemoryView(m_numBoundStreams));
 
     Int32 numInstanceData = 0;
-    if (m_instanceBind)
+    if (m_instanceBindings)
     {
-        const VertexBuffer& vb = m_vertexBuffers[m_instanceBind];
+        const VertexBuffer& vb = m_vertexBuffers[m_instanceBindings];
         numInstanceData        = vb.stride / 16;
         hasher.Mix(AsMemoryView(numInstanceData));
     }
@@ -4148,7 +4182,7 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
         }
     }
 
-    if (m_instanceBind)
+    if (m_instanceBindings)
     {
         for (Int32 i = 0; i < numInstanceData; ++i)
         {
@@ -4185,7 +4219,7 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
 
     if (JAM_DEBUG_ENABLED)
     {
-        JAM_LOG_DEBUG("Created input layout: NumElements: {} InstanceData: {} Hash: {:016X}", descs.size(), m_instanceBind ? numInstanceData : 0, hash);
+        JAM_LOG_DEBUG("Created input layout: NumElements: {} InstanceData: {} Hash: {:016X}", descs.size(), m_instanceBindings ? numInstanceData : 0, hash);
         for (const D3D11_INPUT_ELEMENT_DESC& desc: descs)
         {
             JAM_LOG_DEBUG("  SemanticName: {}{} Format: {} InputSlot: {} AlignedByteOffset: {} InputSlotClass: {} InstanceDataStepRate: {}", desc.SemanticName, desc.SemanticIndex, NameOf(desc.Format), desc.InputSlot, desc.AlignedByteOffset, NameOf(desc.InputSlotClass), desc.InstanceDataStepRate);
@@ -4197,7 +4231,7 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
 
 ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerStateFromCurrentBind_()
 {
-    const Flags<eRenderFlags> flags = FilterRasterizerFlags(m_renderFlagsBind);
+    const Flags<eRenderFlags> flags = FilterRasterizerFlags(m_renderFlagsBinding);
 
     Murmur3Hasher32 hasher {};
     hasher.Mix(AsMemoryView(flags));
@@ -4211,7 +4245,7 @@ ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerStateFromCurrentBind_
     D3D11_RASTERIZER_DESC desc = {};
     desc.FillMode              = flags & eRenderFlags::Wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 
-    const Flags<eRenderFlags> cull = FilterCullModeFlags(m_renderFlagsBind);
+    const Flags<eRenderFlags> cull = FilterCullModeFlags(m_renderFlagsBinding);
     desc.CullMode                  = cull == eRenderFlags::CullMode_Front ? D3D11_CULL_FRONT
                                    : cull == eRenderFlags::CullMode_Back  ? D3D11_CULL_BACK
                                                                           : D3D11_CULL_NONE;
@@ -4234,11 +4268,11 @@ ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerStateFromCurrentBind_
 
 ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
 {
-    const Flags<eRenderFlags> flags = FilterBlendFlags(m_renderFlagsBind);
+    const Flags<eRenderFlags> flags = FilterBlendFlags(m_renderFlagsBinding);
 
     Murmur3Hasher64 hasher {};
     hasher.Mix(AsMemoryView(flags));
-    hasher.Mix(m_blendFlagsBinds);
+    hasher.Mix(m_blendFlagsBindings);
     const UInt64 hash = hasher.Finish();
     const auto   it   = m_d3d11BlendStateCache.find(hash);
     if (it != m_d3d11BlendStateCache.end())
@@ -4252,7 +4286,7 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
     const Int32 numRts          = desc.IndependentBlendEnable ? k_maxNumRenderTargetViewSlots : 1;
     for (Int32 i = 0; i < numRts; ++i)
     {
-        Flags<eBlendFlags>              rtBlend = m_blendFlagsBinds[i];
+        Flags<eBlendFlags>              rtBlend = m_blendFlagsBindings[i];
         D3D11_RENDER_TARGET_BLEND_DESC& rtDesc  = desc.RenderTarget[i];
 
         rtDesc.BlendEnable    = rtBlend.IsEnabled(eBlendFlags::Enable);
@@ -4322,12 +4356,12 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
 
 ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilStateFromCurrentBind_()
 {
-    const Flags<eRenderFlags> flags = FilterDepthFlags(m_renderFlagsBind);
+    const Flags<eRenderFlags> flags = FilterDepthFlags(m_renderFlagsBinding);
 
     Murmur3Hasher64 hasher {};
     hasher.Mix(AsMemoryView(flags));
-    hasher.Mix(AsMemoryView(m_fstencilBind));
-    hasher.Mix(AsMemoryView(m_bstencilBind));
+    hasher.Mix(AsMemoryView(m_fstencilBinding));
+    hasher.Mix(AsMemoryView(m_bstencilBinding));
     const UInt64 key = hasher.Finish();
     const auto   it  = m_d3d11DepthStencilStateCache.find(key);
     if (it != m_d3d11DepthStencilStateCache.end())
@@ -4336,25 +4370,25 @@ ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilStateFromCurrentB
     }
 
     D3D11_DEPTH_STENCIL_DESC  desc      = {};
-    const Flags<eRenderFlags> depthFunc = FilterDepthFuncFlags(m_renderFlagsBind);
+    const Flags<eRenderFlags> depthFunc = FilterDepthFuncFlags(m_renderFlagsBinding);
     desc.DepthEnable                    = (depthFunc != eRenderFlags::None);
     desc.DepthWriteMask                 = (flags & eRenderFlags::DepthWrite) ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
     desc.DepthFunc                      = D3D11ComparisonFuncFrom_(ResolveDepthFuncFlags(depthFunc));
-    desc.StencilEnable                  = (m_fstencilBind != eStencilFlags::None || m_bstencilBind != eStencilFlags::None);
+    desc.StencilEnable                  = (m_fstencilBinding != eStencilFlags::None || m_bstencilBinding != eStencilFlags::None);
     desc.StencilReadMask                = 0xFF;
     desc.StencilWriteMask               = 0xFF;
 
     // front
-    desc.FrontFace.StencilFailOp      = D3D11StencilOpFrom_(ResolveStencilFailOpFlags(m_fstencilBind));
-    desc.FrontFace.StencilDepthFailOp = D3D11StencilOpFrom_(ResolveDepthFailOpFlags(m_fstencilBind));
-    desc.FrontFace.StencilPassOp      = D3D11StencilOpFrom_(ResolvePassOpFlags(m_fstencilBind));
-    desc.FrontFace.StencilFunc        = D3D11ComparisonFuncFrom_(ResolveCompareFuncFlags(m_fstencilBind));
+    desc.FrontFace.StencilFailOp      = D3D11StencilOpFrom_(ResolveStencilFailOpFlags(m_fstencilBinding));
+    desc.FrontFace.StencilDepthFailOp = D3D11StencilOpFrom_(ResolveDepthFailOpFlags(m_fstencilBinding));
+    desc.FrontFace.StencilPassOp      = D3D11StencilOpFrom_(ResolvePassOpFlags(m_fstencilBinding));
+    desc.FrontFace.StencilFunc        = D3D11ComparisonFuncFrom_(ResolveCompareFuncFlags(m_fstencilBinding));
 
     // back
-    desc.BackFace.StencilFailOp      = D3D11StencilOpFrom_(ResolveStencilFailOpFlags(m_bstencilBind));
-    desc.BackFace.StencilDepthFailOp = D3D11StencilOpFrom_(ResolveDepthFailOpFlags(m_bstencilBind));
-    desc.BackFace.StencilPassOp      = D3D11StencilOpFrom_(ResolvePassOpFlags(m_bstencilBind));
-    desc.BackFace.StencilFunc        = D3D11ComparisonFuncFrom_(ResolveCompareFuncFlags(m_bstencilBind));
+    desc.BackFace.StencilFailOp      = D3D11StencilOpFrom_(ResolveStencilFailOpFlags(m_bstencilBinding));
+    desc.BackFace.StencilDepthFailOp = D3D11StencilOpFrom_(ResolveDepthFailOpFlags(m_bstencilBinding));
+    desc.BackFace.StencilPassOp      = D3D11StencilOpFrom_(ResolvePassOpFlags(m_bstencilBinding));
+    desc.BackFace.StencilFunc        = D3D11ComparisonFuncFrom_(ResolveCompareFuncFlags(m_bstencilBinding));
 
     ID3D11DepthStencilState* pDepthStencilState;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateDepthStencilState(&desc, &pDepthStencilState));

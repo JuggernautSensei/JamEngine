@@ -154,14 +154,6 @@ enum class eSubmitParameter
     BaseVertexLocation,
 };
 
-enum class eStreamMaskFlags : UInt32
-{
-    Stream0,
-    Stream1,
-    Stream2,
-    Stream3,
-};
-
 enum class eShaderResource
 {
     Texture = 0,

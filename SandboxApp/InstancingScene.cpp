@@ -255,8 +255,8 @@ void InstancingScene::OnImGuiRender()
         ImGui::Checkbox("Animate Rotation", &m_bAnimate);
 
         // 헤더에 정의된 m_numRows와 m_numEntitiesPerRow 사용
-        ImGui::SliderInt("Rows", &m_numRows, 1, 500);
-        ImGui::SliderInt("Entities Per Row", &m_numEntitiesPerRow, 1, 500);
+        ImGui::SliderInt("Rows", &m_numRows, 1, 200);
+        ImGui::SliderInt("Entities Per Row", &m_numEntitiesPerRow, 1, 200);
 
         if (ImGui::Button("Reset Grid"))
         {

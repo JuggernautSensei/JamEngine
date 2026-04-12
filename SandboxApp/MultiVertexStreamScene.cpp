@@ -263,7 +263,6 @@ void MultiVertexStreamScene::OnRender(
         gfx.SetVertexBuffer(m_colorVbh, 1);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
-        //gfx.SetVertexBuffer(k_nullHandle, 1);
     }
 
     // blit inner framebuffer texture to output texture

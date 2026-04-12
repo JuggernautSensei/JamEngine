@@ -134,10 +134,10 @@ class RenderGraph
         UInt8                                                          stencilClearValue        = 0;
 
         // resource binding in this pass
-        HashMap<Slot, ConstantBufferBindCommand, SlotHasher> cbufferBindCmds           = {};
-        HashMap<Slot, SamplerFlagsBindCommand, SlotHasher>   samplerBindCmds           = {};
-        HashMap<Slot, ResourceBindCommand, SlotHasher>       readResourceBindCmds      = {};
-        HashMap<Slot, ResourceBindCommand, SlotHasher>       readWriteResourceBindCmds = {};
+        HashMap<Slot, ConstantBufferBindCommand, SlotHasher> cbufferBindCmds   = {};
+        HashMap<Slot, SamplerFlagsBindCommand, SlotHasher>   samplerBindCmds   = {};
+        HashMap<Slot, ResourceBindCommand, SlotHasher>       readBindCmds      = {};
+        HashMap<Slot, ResourceBindCommand, SlotHasher>       readWriteBindCmds = {};
 
         // Pass 간의 의존성 분석과 최적화를 위해, 이 Pass가 읽거나 쓰는 리소스의 이름 목록을 별도로 유지함.
         // this will be filled in Compile()

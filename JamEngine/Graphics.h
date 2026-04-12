@@ -27,38 +27,38 @@ class Graphics
         IndexBuffer    = 1ull << 3,
         InstanceBuffer = 1ull << 4,
 
-        Program        = 1ull << 8,
-        ComputeProgram = 1ull << 9,
+        Program        = 1ull << 5,
+        ComputeProgram = 1ull << 6,
 
-        VSConstantBuffer = 1ull << 10,
-        PSConstantBuffer = 1ull << 11,
-        GSConstantBuffer = 1ull << 12,
-        HSConstantBuffer = 1ull << 13,
-        DSConstantBuffer = 1ull << 14,
-        CSConstantBuffer = 1ull << 15,
+        VSConstantBuffer = 1ull << 7,
+        PSConstantBuffer = 1ull << 8,
+        GSConstantBuffer = 1ull << 9,
+        HSConstantBuffer = 1ull << 10,
+        DSConstantBuffer = 1ull << 11,
+        CSConstantBuffer = 1ull << 12,
 
-        VSShaderResourceView = 1ull << 16,
-        PSShaderResourceView = 1ull << 17,
-        GSShaderResourceView = 1ull << 18,
-        HSShaderResourceView = 1ull << 19,
-        DSShaderResourceView = 1ull << 20,
-        CSShaderResourceView = 1ull << 21,
+        VSShaderResourceView = 1ull << 13,
+        PSShaderResourceView = 1ull << 14,
+        GSShaderResourceView = 1ull << 15,
+        HSShaderResourceView = 1ull << 16,
+        DSShaderResourceView = 1ull << 17,
+        CSShaderResourceView = 1ull << 18,
 
-        CSUnorderedAccessView = 1ull << 22,
+        CSUnorderedAccessView = 1ull << 19,
 
-        VSSamplerState = 1ull << 23,
-        PSSamplerState = 1ull << 24,
-        GSSamplerState = 1ull << 25,
-        HSSamplerState = 1ull << 26,
-        DSSamplerState = 1ull << 27,
-        CSSamplerState = 1ull << 28,
+        VSSamplerState = 1ull << 20,
+        PSSamplerState = 1ull << 21,
+        GSSamplerState = 1ull << 22,
+        HSSamplerState = 1ull << 23,
+        DSSamplerState = 1ull << 24,
+        CSSamplerState = 1ull << 25,
 
-        RasterizerState   = 1ull << 29,
-        BlendState        = 1ull << 30,
-        DepthStencilState = 1ull << 31,
-        Viewport          = 1ull << 32,
-        ScissorRect       = 1ull << 33,
-        FrameBuffer       = 1ull << 34,
+        RasterizerState   = 1ull << 26,
+        BlendState        = 1ull << 27,
+        DepthStencilState = 1ull << 28,
+        Viewport          = 1ull << 29,
+        ScissorRect       = 1ull << 30,
+        FrameBuffer       = 1ull << 31,
 
         End = FrameBuffer,
         All = 0xFFFFFFFFFFFFFFFF,
@@ -85,7 +85,7 @@ class Graphics
                          | CSSamplerState,
     };
 
-    struct Binding
+    struct Resource
     {
         UInt32          handleValue = k_nullHandleValue;
         eShaderResource type        = eShaderResource::Texture;
@@ -99,12 +99,11 @@ class Graphics
             binder.fill(nullptr);
         }
 
-        Array<Binding, k_maxNumShaderResourceViewSlots>                   bindings = {};
-        Array<ID3D11ShaderResourceView*, k_maxNumShaderResourceViewSlots> binder   = {};
+        Array<ID3D11ShaderResourceView*, k_maxNumShaderResourceViewSlots> binder = {};
 
-        // dirty [begin, end)
-        Int32 dirtyBegin = k_maxNumShaderResourceViewSlots;
-        Int32 dirtyEnd   = 0;
+        Array<Resource, k_maxNumShaderResourceViewSlots> bindings   = {};
+        Int32                                            dirtyBegin = k_maxNumShaderResourceViewSlots;
+        Int32                                            dirtyEnd   = 0;
     };
 
     struct ComputeReadWriteBindings
@@ -115,12 +114,11 @@ class Graphics
             binder.fill(nullptr);
         }
 
-        Array<Binding, k_maxNumUnorderedAccessViewSlots>                    bindings = {};
-        Array<ID3D11UnorderedAccessView*, k_maxNumUnorderedAccessViewSlots> binder   = {};
+        Array<ID3D11UnorderedAccessView*, k_maxNumUnorderedAccessViewSlots> binder = {};
 
-        // dirty [begin, end)
-        Int32 dirtyBegin = k_maxNumUnorderedAccessViewSlots;
-        Int32 dirtyEnd   = 0;
+        Array<Resource, k_maxNumUnorderedAccessViewSlots> bindings   = {};
+        Int32                                             dirtyBegin = k_maxNumUnorderedAccessViewSlots;
+        Int32                                             dirtyEnd   = 0;
     };
 
     struct PixelReadWriteBindings
@@ -131,25 +129,25 @@ class Graphics
             binder.fill(nullptr);
         }
 
-        Array<Binding, k_maxNumUnorderedAccessViewSlots>                    bindings    = {};
-        Array<ID3D11UnorderedAccessView*, k_maxNumUnorderedAccessViewSlots> binder      = {};
-        UInt64                                                              useMask     = 0;
-        Int32                                                               highestSlot = -1;
+        Array<ID3D11UnorderedAccessView*, k_maxNumUnorderedAccessViewSlots> binder = {};
+
+        Array<Resource, k_maxNumUnorderedAccessViewSlots> bindings    = {};
+        UInt64                                            useMask     = 0;
+        Int32                                             highestSlot = -1;
     };
 
     struct ConstantBufferBindings
     {
         ConstantBufferBindings()
         {
-            cbhs.fill(k_nullHandle);
+            bindings.fill(k_nullHandle);
         }
 
-        Array<ConstantBufferHandle, k_maxNumConstantBufferSlots> cbhs   = {};
-        Array<ID3D11Buffer*, k_maxNumConstantBufferSlots>        binder = {};
+        Array<ID3D11Buffer*, k_maxNumConstantBufferSlots> binder = {};
 
-        // dirty [begin, end)
-        Int32 dirtyBegin = k_maxNumConstantBufferSlots;
-        Int32 dirtyEnd   = 0;
+        Array<ConstantBufferHandle, k_maxNumConstantBufferSlots> bindings   = {};
+        Int32                                                    dirtyBegin = k_maxNumConstantBufferSlots;
+        Int32                                                    dirtyEnd   = 0;
     };
 
     struct SamplerBindings
@@ -160,21 +158,19 @@ class Graphics
             RGBA                 rgba  = {};
         };
 
-        Array<Sampler, k_maxNumSamplerSlots>             samplers   = {};
-        Array<ID3D11SamplerState*, k_maxNumSamplerSlots> binder     = {};
-        Int32                                            dirtyBegin = k_maxNumSamplerSlots;
-        Int32                                            dirtyEnd   = 0;
+        Array<ID3D11SamplerState*, k_maxNumSamplerSlots> binder = {};
+
+        Array<Sampler, k_maxNumSamplerSlots> samplers   = {};
+        Int32                                dirtyBegin = k_maxNumSamplerSlots;
+        Int32                                dirtyEnd   = 0;
     };
 
     struct StreamBindings
     {
-        Array<VertexBufferHandle, k_maxNumVertexStream> vbhs      = {};
-        Array<VertexLayoutHandle, k_maxNumVertexStream> vlhs      = {};
-        Array<ID3D11Buffer*, k_maxNumVertexStream>      binder    = {};
-        Array<UInt32, k_maxNumVertexStream>             strides   = {};
-        Array<UInt32, k_maxNumVertexStream>             offsets   = {};
-        UInt32                                          useMask   = 0b0001;
-        UInt32                                          dirtyMask = 0b0000;
+        Array<VertexBufferHandle, k_maxNumVertexStream> vbhs    = {};
+        Array<VertexLayoutHandle, k_maxNumVertexStream> vlhs    = {};
+        Array<UInt32, k_maxNumVertexStream>             offsets = {};
+        UInt32                                          useMask = 0;
     };
 
 public:
@@ -938,21 +934,27 @@ public:
     /// @brief 버텍스 버퍼를 파이프라인에 바인딩합니다.
     /// @param _vbhOrInvalid 바인딩할 버텍스 버퍼 핸들. k_nullHandle 전달 시 바인딩을 해제합니다.
     /// @param _stream 버텍스 스트림 인덱스
+    /// @param _bDiscard 기존 스트림 바인딩 상태를 버릴지 여부.
     /// @note 버퍼 전체를 기본 오프셋(0)과 전체 버텍스 수로 바인딩합니다.
+    /// @note 멀티 스트림 바인딩을 위해서는 _bDiscard를 false로 설정하여 기존 스트림 바인딩 상태를 유지해야 합니다.
     void SetVertexBuffer(
         VertexBufferHandle _vbhOrInvalid,
-        Int32              _stream);
+        Int32              _stream,
+        bool               _bDiscard = true);
 
     /// @brief 버텍스 버퍼를 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _vbhOrInvalid 바인딩할 버텍스 버퍼 핸들
     /// @param _stream 버텍스 스트림 인덱스
     /// @param _numVerts 드로우 콜에 사용할 버텍스 수
     /// @param _vertOffset 버퍼 시작으로부터의 오프셋 (버텍스 단위)
+    /// @param _bDiscard 기존 스트림 바인딩 상태를 버릴지 여부.
+    /// @note 멀티 스트림 바인딩을 위해서는 _bDiscard를 false로 설정하여 기존 스트림 바인딩 상태를 유지해야 합니다.
     void SetVertexBuffer(
         VertexBufferHandle _vbhOrInvalid,
         Int32              _stream,
         Int32              _numVerts,
-        Int32              _vertOffset);
+        Int32              _vertOffset,
+        bool               _bDiscard = true);
 
     /// @brief 버텍스 버퍼를 사용자 지정 레이아웃으로 바인딩합니다.
     /// @param _vbhOrInvalid 바인딩할 버텍스 버퍼 핸들. k_nullHandle이면 해제합니다.
@@ -960,19 +962,16 @@ public:
     /// @param _numVerts 드로우 콜에 사용할 버텍스 수.
     /// @param _vertOffset 버퍼 시작으로부터의 오프셋 (버텍스 단위).
     /// @param _vlh 입력 레이아웃 핸들.
+    /// @param _bDiscard 기존 스트림 바인딩 상태를 버릴지 여부.
     /// @note 버퍼 생성 시 자동 생성된 레이아웃 대신 별도의 레이아웃을 강제로 사용할 때 사용합니다.
+    /// @note 멀티 스트림 바인딩을 위해서는 _bDiscard를 false로 설정하여 기존 스트림 바인딩 상태를 유지해야 합니다.
     void SetVertexBuffer(
         VertexBufferHandle _vbhOrInvalid,
         Int32              _stream,
         Int32              _numVerts,
         Int32              _vertOffset,
-        VertexLayoutHandle _vlh);
-
-    /// @brief 사용할 버텍스 스트림을 설정합니다.
-    /// @param _flags 버텍스 스트림 플래그. eVertexStreamFlags 열거형의 플래그 조합입니다.
-    /// @note 버텍스 스트림 플래그는 드로우 콜에서 몇 번째 스트림을 사용할지 지정하는 역할을 합니다. 기본값은 Stream0 입니다.
-    void SetStreamMaskFlags(
-        Flags<eStreamMaskFlags> _flags);
+        VertexLayoutHandle _vlh,
+        bool               _bDiscard = true);
 
     /// @brief 인스턴스 버퍼를 파이프라인에 바인딩합니다.
     /// @param _vbhOrInvalid 바인딩할 인스턴스 버퍼 핸들. k_nullHandle이면 해제합니다.
@@ -1237,51 +1236,55 @@ private:
     CASHashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
 
     // vertex stream
-    StreamBindings          m_streamBinds         = {};
-    Int32                   m_numVertsBind        = 0;
-    Flags<eStreamMaskFlags> m_streamMaskFlagsBind = eStreamMaskFlags::Stream0;
+    StreamBindings m_streamBindings  = {};
+    Int32          m_numVertsBinding = 0;
 
     // index buffer
-    IndexBufferHandle m_ibhBind        = k_nullHandle;
-    Int32             m_numIndicesBind = 0;
-    Int32             m_ibOffsetBind   = 0;
+    IndexBufferHandle m_ibhBinding         = k_nullHandle;
+    Int32             m_numIndicesBinding  = 0;
+    Int32             m_indexOffsetBinding = 0;
 
     // instance buffer
-    VertexBufferHandle m_instanceBind       = k_nullHandle;
-    Int32              m_numInstancesBind   = 0;
-    Int32              m_instanceOffsetBind = 0;
+    VertexBufferHandle m_instanceBindings      = k_nullHandle;
+    Int32              m_numInstancesBinding   = 0;
+    Int32              m_instanceOffsetBinding = 0;
 
     // resources binding
-    EnumArray<eShader, ReadBindings>           m_readBinds    = {};
-    EnumArray<eShader, SamplerBindings>        m_samplerBinds = {};
-    EnumArray<eShader, ConstantBufferBindings> m_cbufferBinds = {};
+    EnumArray<eShader, ReadBindings>           m_readBindings    = {};
+    EnumArray<eShader, SamplerBindings>        m_samplerBindings = {};
+    EnumArray<eShader, ConstantBufferBindings> m_cbufferBindings = {};
 
     // output resources
-    FrameBufferHandle                  m_fbhBind             = k_nullHandle;
-    PixelReadWriteBindings             m_pixelReadWriteBinds = {};
-    Viewport                           m_vpBind              = {};
-    Rect                               m_scissorRectBind     = {};
-    ProgramHandle                      m_phBind              = k_nullHandle;
-    EnumArray<eSubmitParameter, Int32> m_submitParams        = {};
+    FrameBufferHandle                  m_fbhBinding             = k_nullHandle;
+    PixelReadWriteBindings             m_pixelReadWriteBindings = {};
+    Viewport                           m_vpBinding              = {};
+    Rect                               m_scissorRectBinding     = {};
+    ProgramHandle                      m_phBinding              = k_nullHandle;
+    EnumArray<eSubmitParameter, Int32> m_submitParamsBinding    = {};
 
     // compute pipeline
-    ProgramHandle            m_computePhBind         = k_nullHandle;
-    ComputeReadWriteBindings m_computeReadWriteBinds = {};
+    ProgramHandle            m_computePhBinding         = k_nullHandle;
+    ComputeReadWriteBindings m_computeReadWriteBingings = {};
 
     // render state
-    Flags<eRenderFlags> m_renderFlagsBind = eRenderFlags::None;
+    Flags<eRenderFlags> m_renderFlagsBinding = eRenderFlags::None;
 
     // blend state
-    Array<Flags<eBlendFlags>, k_maxNumRenderTargetViewSlots> m_blendFlagsBinds = {};
-    RGBA                                                     m_blendFactorBind = {};
+    Array<Flags<eBlendFlags>, k_maxNumRenderTargetViewSlots> m_blendFlagsBindings = {};
+    RGBA                                                     m_blendFactorBinding = {};
 
     // stencil states
-    Flags<eStencilFlags> m_fstencilBind   = eStencilFlags::None;
-    Flags<eStencilFlags> m_bstencilBind   = eStencilFlags::None;
-    UInt8                m_stencilRefBind = 0;
+    Flags<eStencilFlags> m_fstencilBinding   = eStencilFlags::None;
+    Flags<eStencilFlags> m_bstencilBinding   = eStencilFlags::None;
+    UInt8                m_stencilRefBinding = 0;
 
     // dirty flags
     Flags<ePipelineDirtyFlags> m_dirtyFlags = ePipelineDirtyFlags::All;
+
+    // submit state
+    Array<VertexLayoutHandle, k_maxNumVertexStream> m_boundVlhs            = {};
+    Int32                                           m_numBoundStreams      = 0;
+    bool                                            m_bInstanceBufferBound = false;
 
     // back buffer
     Vec2i             m_backBufferRes  = {};

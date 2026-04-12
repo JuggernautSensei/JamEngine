@@ -254,8 +254,8 @@ void RenderGraph::CompileIfNeed_()
 
         // 읽기 정보 갱신
         desc.readResources.clear();
-        desc.readResources.reserve(desc.readResourceBindCmds.size());
-        for (ResourceBindCommand& cmd: desc.readResourceBindCmds | std::views::values)
+        desc.readResources.reserve(desc.readBindCmds.size());
+        for (ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
         {
             // 바인드
             if (cmd.type == eShaderResource::Texture)
@@ -275,8 +275,8 @@ void RenderGraph::CompileIfNeed_()
 
         // 읽고쓰기 정보 갱신
         desc.readWriteResources.clear();
-        desc.readWriteResources.reserve(desc.readWriteResourceBindCmds.size());
-        for (ResourceBindCommand& cmd: desc.readWriteResourceBindCmds | std::views::values)
+        desc.readWriteResources.reserve(desc.readWriteBindCmds.size());
+        for (ResourceBindCommand& cmd: desc.readWriteBindCmds | std::views::values)
         {
             // 바인드
             if (cmd.type == eShaderResource::Texture)
@@ -317,16 +317,16 @@ void RenderGraph::CompileIfNeed_()
             }
 
             used.clear();
-            used.reserve(desc.readResourceBindCmds.size() + desc.readWriteResourceBindCmds.size() + desc.writeResources.size());
+            used.reserve(desc.readBindCmds.size() + desc.readWriteBindCmds.size() + desc.writeResources.size());
 
-            for (const ResourceBindCommand& cmd: desc.readResourceBindCmds | std::views::values)
+            for (const ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
             {
                 const auto it = used.find(cmd.name);
                 JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::Read, "Pass '{}' binds resource '{}' multiple times with different access types. A resource cannot be bound more than once in a pass, even if the bind types are different.", desc.name, cmd.name);
                 used[cmd.name] = eResourceAccessEx::Read;
             }
 
-            for (const ResourceBindCommand& bind: desc.readWriteResourceBindCmds | std::views::values)
+            for (const ResourceBindCommand& bind: desc.readWriteBindCmds | std::views::values)
             {
                 const auto it = used.find(bind.name);
                 JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::ReadWrite, "Pass '{}' binds resource '{}' multiple times with different access types. A resource cannot be bound more than once in a pass, even if the bind types are different.", desc.name, bind.name);
@@ -521,7 +521,7 @@ void RenderGraph::CompileIfNeed_()
         tmpReadWriteUnbindSlots.clear();
 
         // read resource
-        for (const ResourceBindCommand& cmd: desc.readResourceBindCmds | std::views::values)
+        for (const ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
         {
             const auto it      = resourceBindingStates.find(cmd.name);
             bool       bAddCmd = bIsFirstLoop;
@@ -550,7 +550,7 @@ void RenderGraph::CompileIfNeed_()
         }
 
         // readwrite resource
-        for (const ResourceBindCommand& cmd: desc.readWriteResourceBindCmds | std::views::values)
+        for (const ResourceBindCommand& cmd: desc.readWriteBindCmds | std::views::values)
         {
             const auto it      = resourceBindingStates.find(cmd.name);
             bool       bAddCmd = bIsFirstLoop;
@@ -655,14 +655,14 @@ void RenderGraph::CompileIfNeed_()
         }
 
         // 가상 bind
-        for (const ResourceBindCommand& cmd: desc.readResourceBindCmds | std::views::values)
+        for (const ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
         {
             readSlots[cmd.slot]                    = cmd.name;
             resourceBindingStates[cmd.name].access = eResourceAccessEx::Read;
             resourceBindingStates[cmd.name].slots.insert(cmd.slot);
         }
 
-        for (const ResourceBindCommand& cmd: desc.readWriteResourceBindCmds | std::views::values)
+        for (const ResourceBindCommand& cmd: desc.readWriteBindCmds | std::views::values)
         {
             readWriteSlots[cmd.slot]               = cmd.name;
             resourceBindingStates[cmd.name].access = eResourceAccessEx::ReadWrite;
@@ -1628,12 +1628,12 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetTexture(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, _stage, _slot };
+        m_desc.readBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, _stage, _slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readWriteResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, _stage, _slot };
+        m_desc.readWriteBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, _stage, _slot };
     }
     return *this;
 }
@@ -1650,12 +1650,12 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBuffer(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, _stage, _slot };
+        m_desc.readBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, _stage, _slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, _stage, _slot };
+        m_desc.readWriteBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, _stage, _slot };
     }
     return *this;
 }
@@ -1669,12 +1669,12 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseResource(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Resource slot {} out of range.", _slot);
-        m_desc.readResourceBindCmds.erase(slot);
+        m_desc.readBindCmds.erase(slot);
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Resource slot {} out of range.", _slot);
-        m_desc.readWriteResourceBindCmds.erase(slot);
+        m_desc.readWriteBindCmds.erase(slot);
     }
     return *this;
 }
@@ -1789,12 +1789,12 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetTexture(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, slot };
+        m_desc.readBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readWriteResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, slot };
+        m_desc.readWriteBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Texture, slot };
     }
     return *this;
 }
@@ -1808,12 +1808,12 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetBuffer(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, slot };
+        m_desc.readBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteResourceBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, slot };
+        m_desc.readWriteBindCmds[slot] = { _name, k_nullHandleValue, eShaderResource::Buffer, slot };
     }
     return *this;
 }
@@ -1826,12 +1826,12 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseResourc
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readResourceBindCmds.erase(slot);
+        m_desc.readBindCmds.erase(slot);
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteResourceBindCmds.erase(slot);
+        m_desc.readWriteBindCmds.erase(slot);
     }
     return *this;
 }

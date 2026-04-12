@@ -40,8 +40,7 @@ public:
     [[nodiscard]] IndexBufferHandle  GetIndexBuffer() const;
     [[nodiscard]] const Aabb&        GetBoundingBox() const;
 
-    void Submit() const;
-    void SubmitPositionOnly() const;
+    void Submit(bool _bSubmitPositionOnly = false) const;
 
     static constexpr StringView k_typeName  = NameOf<Mesh>();
     static constexpr UInt32     k_typeHash  = HashOf<Mesh>();

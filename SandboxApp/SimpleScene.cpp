@@ -42,9 +42,8 @@ struct SimpleSceneVertex
     Vec3 pos    = Numbers<Vec3>::k_zero;
     Vec3 normal = Numbers<Vec3>::k_zero;
 
-    inline static VertexLayout s_layout = [] {
+    inline static VertexLayout s_attribLayout = [] {
         VertexLayout layout = {};
-        layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
         layout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
         return layout;
     }();
@@ -76,13 +75,13 @@ SimpleScene::SimpleScene()
     m_cmrCbh    = gfx.CreateConstantBuffer(sizeof(CBSimpleSceneCamera));
     m_lightCbh  = gfx.CreateConstantBuffer(sizeof(CBSimpleSceneLight));
 
-    m_pMesh[eMeshType::Cube]   = CreateCubeMesh(Vec3 { 0.5f }, SimpleSceneVertex::s_layout);
-    m_pMesh[eMeshType::Sphere] = CreateSphereMesh(0.5f, 5, SimpleSceneVertex::s_layout);
+    m_pMesh[eMeshType::Cube]   = CreateCubeMesh(Vec3 { 0.5f }, SimpleSceneVertex::s_attribLayout);
+    m_pMesh[eMeshType::Sphere] = CreateSphereMesh(0.5f, 5, SimpleSceneVertex::s_attribLayout);
 
     // load model
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunny.obj", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals);
     JAM_ASSERT(importer, "Failed to load model: {}", importer.GetError().ToErrorMessage());
-    Expect<Ref<Model>> pModel = importer->ConvertToModel(SimpleSceneVertex::s_layout, eAssimpConvertToModelFlags::Mesh);
+    Expect<Ref<Model>> pModel = importer->ConvertToModel(SimpleSceneVertex::s_attribLayout, eAssimpConvertToModelFlags::Mesh);
     JAM_ASSERT(pModel, "Failed to extract model: {}", pModel.GetError().ToErrorMessage());
     Ref<Model> pBunnyModel    = pModel.GetValue();
     m_pMesh[eMeshType::Bunny] = pBunnyModel->GetMeshes()[0];
