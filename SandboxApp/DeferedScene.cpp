@@ -302,7 +302,7 @@ void DeferedScene::OnRender(
 
         gfx.ClearRenderTarget(m_lightFbh, { 0, 0, 0, 0 }, 0);
         gfx.SetFrameBuffer(m_lightFbh);
-        gfx.SetVertexBuffer(m_fullTriVbh, 0);
+        gfx.SetVertexBuffer(m_fullTriVbh);
         gfx.SetIndexBuffer(m_fullTriIbh);
         gfx.SetProgram(m_lightPh);
         gfx.SetTexture(m_colorTexh, eShader::PixelShader, k_deferedSceneColorSceneSlot);
@@ -321,24 +321,24 @@ void DeferedScene::OnRender(
             gfx.Submit();
         }
 
-        gfx.SetTexture(k_nullHandle, eShader::PixelShader, k_deferedSceneNormalSceneSlot);
-        gfx.SetTexture(k_nullHandle, eShader::PixelShader, k_deferedSceneDepthSceneSlot);
+        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneNormalSceneSlot);
+        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneDepthSceneSlot);
     }
 
     // combine
     {
         gfx.SetRenderFlags(eRenderFlags::Primitive_TriangleList);
         gfx.SetBlendFlags(eBlendFlags::WriteMask_All, 0);
-        gfx.SetFrameBuffer(k_nullHandle);
-        gfx.SetVertexBuffer(m_fullTriVbh, 0);
+        gfx.SetFrameBuffer(k_invalidHandle);
+        gfx.SetVertexBuffer(m_fullTriVbh);
         gfx.SetIndexBuffer(m_fullTriIbh);
         gfx.SetProgram(m_combinePh);
         gfx.SetTexture(m_colorTexh, eShader::PixelShader, k_deferedSceneColorSceneSlot);
         gfx.SetTexture(m_lightTexh, eShader::PixelShader, k_deferedSceneLightSceneSlot);
         gfx.Submit();
 
-        gfx.SetTexture(k_nullHandle, eShader::PixelShader, k_deferedSceneColorSceneSlot);
-        gfx.SetTexture(k_nullHandle, eShader::PixelShader, k_deferedSceneLightSceneSlot);
+        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneColorSceneSlot);
+        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneLightSceneSlot);
         gfx.Touch();
     }
 }

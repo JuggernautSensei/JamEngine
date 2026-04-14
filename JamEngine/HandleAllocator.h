@@ -3,23 +3,23 @@
 namespace Jam
 {
 
-static constexpr UInt32 k_nullHandleValue  = 0xFFFF'FFFF;
+static constexpr UInt32 k_invalidHandleValue  = 0xFFFF'FFFF;
 static constexpr UInt32 k_handleIndexMask  = 0x00FF'FFFF;
 static constexpr UInt32 k_handleTokenMask  = 0xFF00'0000;
 static constexpr UInt32 k_handleTokenShift = 24;
 
-struct NullHandleType
+struct InvalidHandleType
 {
     struct Tag
     {
     };
 
-    constexpr explicit NullHandleType(Tag) noexcept
+    constexpr explicit InvalidHandleType(Tag) noexcept
     {
     }
 };
 
-constexpr NullHandleType k_nullHandle = NullHandleType { NullHandleType::Tag {} };
+constexpr InvalidHandleType k_invalidHandle = InvalidHandleType { InvalidHandleType::Tag {} };
 
 template<typename T>
 class Handle
@@ -29,8 +29,8 @@ public:
     {
     }
 
-    /* implicit */ Handle(const NullHandleType) noexcept
-        : m_value(k_nullHandleValue)
+    /* implicit */ Handle(const InvalidHandleType) noexcept
+        : m_value(k_invalidHandleValue)
     {
     }
 
@@ -44,9 +44,9 @@ public:
     {
     }
 
-    Handle& operator=(const NullHandleType) noexcept
+    Handle& operator=(const InvalidHandleType) noexcept
     {
-        m_value = k_nullHandleValue;
+        m_value = k_invalidHandleValue;
         return *this;
     }
 
@@ -62,7 +62,7 @@ public:
 
     [[nodiscard]] bool IsValid() const noexcept
     {
-        return m_value != k_nullHandleValue;
+        return m_value != k_invalidHandleValue;
     }
 
     explicit operator bool() const noexcept
@@ -86,7 +86,7 @@ public:
     }
 
 private:
-    UInt32 m_value = k_nullHandleValue;
+    UInt32 m_value = k_invalidHandleValue;
 };
 
 template<typename T>
@@ -94,7 +94,7 @@ class HandleAllocator
 {
     struct Slot
     {
-        UInt32 nextFreeIndex = k_nullHandleValue;
+        UInt32 nextFreeIndex = k_invalidHandleValue;
         UInt8  token         = 0;
         bool   bAlloced      = false;
     };
@@ -194,7 +194,7 @@ public:
     [[nodiscard]] HandleT Alloc()
     {
         UInt32 index = 0;
-        if (m_freeSlotIndex != k_nullHandleValue)
+        if (m_freeSlotIndex != k_invalidHandleValue)
         {
             index           = m_freeSlotIndex;
             m_freeSlotIndex = m_slots[index].nextFreeIndex;
@@ -233,7 +233,7 @@ public:
     void Clear() noexcept
     {
         m_slots.clear();
-        m_freeSlotIndex = k_nullHandleValue;
+        m_freeSlotIndex = k_invalidHandleValue;
         m_numAlloced    = 0;
     }
 
@@ -274,7 +274,7 @@ public:
 
 private:
     Vector<Slot> m_slots         = {};
-    UInt32       m_freeSlotIndex = k_nullHandleValue;
+    UInt32       m_freeSlotIndex = k_invalidHandleValue;
     Int32        m_numAlloced    = 0;
 };
 

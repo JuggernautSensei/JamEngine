@@ -18,6 +18,7 @@ ShaderApp::ShaderApp(
     const Flags<eAppCoreFlags> _subSystems)
     : Application(_appName, _subSystems)
 {
+    ImTextStrToUtf8()
 }
 
 void ShaderApp::SetIcon(
@@ -243,7 +244,7 @@ void ShaderApp::Update(
 
 void ShaderApp::ImGuiRender()
 {
-    GetGraphics().ClearRenderTarget(k_nullHandle, RGBA::k_black);
+    GetGraphics().ClearRenderTarget(k_invalidHandle, RGBA::k_black);
 
     GlobalShortCut_();
     Panel_Dockspace_();

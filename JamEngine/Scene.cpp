@@ -24,7 +24,7 @@ namespace
 
 TextureHandle Scene::GetDepthTexture() const
 {
-    return k_nullHandle;   // override in derived class if needed
+    return k_invalidHandle;   // override in derived class if needed
 }
 
 Entity Scene::CreateEntity(

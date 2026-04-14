@@ -622,8 +622,8 @@ void EditorRenderer::FlushLines_()
     const Flags<eRenderFlags> flags = SetPrimitiveFlags(m_lineRenderFlags, eRenderFlags::Primitive_LineList);
     gfx.SetRenderFlags(flags);
     gfx.SetProgram(m_linePh);
-    gfx.SetVertexBuffer(m_lineVbh, 0, m_numLineVerts, 0);
-    gfx.SetIndexBuffer(m_lineIbh, m_numLineIndices, 0);
+    gfx.SetVertexBuffer(m_lineVbh, m_numLineVerts, 0);
+    gfx.SetIndexBuffer(m_lineIbh, 0, m_numLineIndices);
     gfx.Submit();
 
     m_numLineVerts   = 0;
@@ -658,8 +658,8 @@ void EditorRenderer::DrawGrid_() const
     gfx.SetProgram(m_gridPh);
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     gfx.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
-    gfx.SetVertexBuffer(m_gridVbh, 0);
-    gfx.SetIndexBuffer(m_gridIbh, 6, 0);
+    gfx.SetVertexBuffer(m_gridVbh);
+    gfx.SetIndexBuffer(m_gridIbh, 0, 6);
     gfx.Submit();
 }
 

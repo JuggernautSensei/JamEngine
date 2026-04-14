@@ -397,7 +397,7 @@ Expect<Vector<Ref<Texture>>> AssimpImporter::ConvertToTextures_() const
 
     for (const ImportedTexture& importedTexture: m_importedTextures)
     {
-        TextureHandle texh = k_nullHandle;
+        TextureHandle texh = k_invalidHandle;
         if (importedTexture.bIsCompressed)
         {
             // 타입에 맞게 import 필요

@@ -256,7 +256,7 @@ void PBRScene::OnRender(
     cbCubeMap.cb_type           = UnderlyingFrom(m_cubeMapType);
     gfx.UpdateBuffer(m_cubeMapCbh, AsMemoryView(cbCubeMap));
     gfx.SetConstantBuffer(m_cubeMapCbh, eShader::PixelShader, CBPBRSceneCubeMap::k_slot);
-    gfx.SetVertexBuffer(m_cubeVbh, 0);
+    gfx.SetVertexBuffer(m_cubeVbh);
     gfx.SetIndexBuffer(m_cubeIbh);
     gfx.SetProgram(m_cubeMapPh);
     gfx.SetRenderFlags(eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite | eRenderFlags::CCWFront);
@@ -313,13 +313,13 @@ void PBRScene::OnRender(
     gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
     m_pMesh->Submit();
 
-    gfx.SetFrameBuffer(k_nullHandle);
+    gfx.SetFrameBuffer(k_invalidHandle);
     gfx.SetProgram(m_toneMappingPh);
-    gfx.SetVertexBuffer(m_fullTriVbh, 0);
+    gfx.SetVertexBuffer(m_fullTriVbh);
     gfx.SetIndexBuffer(m_fullTriIbh);
     gfx.SetTexture(m_fbTexh, eShader::PixelShader, k_pbrSceneHdrSceneSlot);
     gfx.Submit();
-    gfx.SetTexture(k_nullHandle, eShader::PixelShader, k_pbrSceneHdrSceneSlot);
+    gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_pbrSceneHdrSceneSlot);
     gfx.Touch();
 }
 

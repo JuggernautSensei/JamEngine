@@ -57,13 +57,13 @@ public:
     void Flush();
 
 private:
-    ProgramHandle m_worldPh  = k_nullHandle;
-    ProgramHandle m_screenPh = k_nullHandle;
+    ProgramHandle m_worldPh  = k_invalidHandle;
+    ProgramHandle m_screenPh = k_invalidHandle;
 
-    ConstantBufferHandle m_cbh          = k_nullHandle;
-    VertexBufferHandle   m_vbh          = k_nullHandle;
+    ConstantBufferHandle m_cbh          = k_invalidHandle;
+    VertexBufferHandle   m_vbh          = k_invalidHandle;
     Int32                m_vbhByteWidth = 0;
-    IndexBufferHandle    m_ibh          = k_nullHandle;
+    IndexBufferHandle    m_ibh          = k_invalidHandle;
     Int32                m_ibhByteWidth = 0;
 
     constexpr static SizeT         k_maxNumVerts   = Limits<UInt16>::k_max + 1;

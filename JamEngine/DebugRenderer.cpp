@@ -212,8 +212,8 @@ void DebugRenderer::Flush()
     gfx.SetRenderFlags(eRenderFlags::LineAA | eRenderFlags::Primitive_LineList | m_userRenderFlags);
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
 
-    gfx.SetVertexBuffer(m_vbh, 0, m_numVerts, 0);
-    gfx.SetIndexBuffer(m_ibh, m_numIndices, 0);
+    gfx.SetVertexBuffer(m_vbh, m_numVerts, 0);
+    gfx.SetIndexBuffer(m_ibh, 0, m_numIndices);
     gfx.Submit();
 
     m_numVerts   = 0;

@@ -72,8 +72,8 @@ private:
     RenderGraph  m_graph  = {};
     FlyingCamera m_camera = {};
 
-    ConstantBufferHandle m_entityCbh = k_nullHandle;
-    ConstantBufferHandle m_cmrCbh    = k_nullHandle;
+    ConstantBufferHandle m_entityCbh = k_invalidHandle;
+    ConstantBufferHandle m_cmrCbh    = k_invalidHandle;
 
     bool m_bUseShadow = false;
 };

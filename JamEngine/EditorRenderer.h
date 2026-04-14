@@ -76,16 +76,16 @@ private:
     Int32                              m_numLineIndices = 0;
 
     // 버퍼
-    VertexBufferHandle   m_gridVbh = k_nullHandle;
-    IndexBufferHandle    m_gridIbh = k_nullHandle;
-    VertexBufferHandle   m_lineVbh = k_nullHandle;
-    IndexBufferHandle    m_lineIbh = k_nullHandle;
-    ConstantBufferHandle m_cbh     = k_nullHandle;
+    VertexBufferHandle   m_gridVbh = k_invalidHandle;
+    IndexBufferHandle    m_gridIbh = k_invalidHandle;
+    VertexBufferHandle   m_lineVbh = k_invalidHandle;
+    IndexBufferHandle    m_lineIbh = k_invalidHandle;
+    ConstantBufferHandle m_cbh     = k_invalidHandle;
 
     // 프로그램
-    ProgramHandle m_gridPh   = k_nullHandle;
-    ProgramHandle m_linePh   = k_nullHandle;
-    ProgramHandle m_filledPh = k_nullHandle;
+    ProgramHandle m_gridPh   = k_invalidHandle;
+    ProgramHandle m_linePh   = k_invalidHandle;
+    ProgramHandle m_filledPh = k_invalidHandle;
 
     // 프리미티브 메쉬
     Ref<Mesh> m_sphereMesh   = nullptr;

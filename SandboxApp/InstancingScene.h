@@ -20,15 +20,15 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph     = k_nullHandle;
-    ProgramHandle m_instPh = k_nullHandle;
+    ProgramHandle m_ph     = k_invalidHandle;
+    ProgramHandle m_instPh = k_invalidHandle;
 
-    ConstantBufferHandle m_entityNoInstancingCbh = k_nullHandle;
-    ConstantBufferHandle m_entityInstancingCbh   = k_nullHandle;
-    ConstantBufferHandle m_cmrCbh                = k_nullHandle;
-    ConstantBufferHandle m_lightCbh              = k_nullHandle;
+    ConstantBufferHandle m_entityNoInstancingCbh = k_invalidHandle;
+    ConstantBufferHandle m_entityInstancingCbh   = k_invalidHandle;
+    ConstantBufferHandle m_cmrCbh                = k_invalidHandle;
+    ConstantBufferHandle m_lightCbh              = k_invalidHandle;
 
-    VertexBufferHandle                  m_instbh                  = k_nullHandle;
+    VertexBufferHandle                  m_instbh                  = k_invalidHandle;
     bool                                m_bDoInstancing           = true;
     Int32                               m_numLastRenderedEntities = 0;
 

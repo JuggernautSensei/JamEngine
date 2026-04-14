@@ -20,11 +20,11 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph = k_nullHandle;
+    ProgramHandle m_ph = k_invalidHandle;
 
-    ConstantBufferHandle m_entityCbh = k_nullHandle;
-    ConstantBufferHandle m_cmrCbh    = k_nullHandle;
-    ConstantBufferHandle m_lightCbh  = k_nullHandle;
+    ConstantBufferHandle m_entityCbh = k_invalidHandle;
+    ConstantBufferHandle m_cmrCbh    = k_invalidHandle;
+    ConstantBufferHandle m_lightCbh  = k_invalidHandle;
 
     FrameBufferHandle m_fbh    = {};
     TextureHandle     m_fbTexh = {};   // not owned
@@ -37,9 +37,9 @@ private:
     float m_entityYawRad = 0.f;
     Int32 m_numEntities  = 1;
 
-    VertexBufferHandle m_posNormalVbh = k_nullHandle;
-    VertexBufferHandle m_colorVbh     = k_nullHandle;
-    IndexBufferHandle  m_ibh          = k_nullHandle;
+    VertexBufferHandle m_posNormalVbh = k_invalidHandle;
+    VertexBufferHandle m_colorVbh     = k_invalidHandle;
+    IndexBufferHandle  m_ibh          = k_invalidHandle;
 
     Camera    m_camera          = {};
     Transform m_cameraTransform = {};

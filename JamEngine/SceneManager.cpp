@@ -45,9 +45,10 @@ void SceneManager::Update(
 
 void SceneManager::RenderRuntime() const
 {
-    const auto [w, h] = GetGraphics().GetBackBufferResolution();
-    const Viewport vp = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
-    RenderRuntime(k_nullHandle, vp);
+    Graphics&            gfx   = GetGraphics();
+    const GraphicsStats& stats = gfx.GetStats();
+    const Viewport       vp    = { NarrowCast<UInt16>(stats.backBufferWidth), NarrowCast<UInt16>(stats.backBufferHeight) };
+    RenderRuntime(k_invalidHandle, vp);
 }
 
 void SceneManager::RenderRuntime(
@@ -205,14 +206,16 @@ void SceneManager::ChangeScene_(
     m_pScene->OnEnter();
 
     // resize in runtime.
-    if (!GetApp().IsCoreFlagsEnabled(eAppCoreFlags::Editor))   // runtime mode
+    Application& app = GetApp();
+    if (!app.IsCoreFlagsEnabled(eAppCoreFlags::Editor))   // runtime mode
     {
-        const auto [w, h] = GetGraphics().GetBackBufferResolution();
-        Resize(w, h);
+        Graphics&            gfx   = GetGraphics();
+        const GraphicsStats& stats = gfx.GetStats();
+        Resize(stats.backBufferWidth, stats.backBufferHeight);
     }
 
     // resource garbage collection
-    if (GetApp().IsCoreFlagsEnabled(eAppCoreFlags::AssetManager))
+    if (app.IsCoreFlagsEnabled(eAppCoreFlags::AssetManager))
     {
         GetAssetManager().CleanGarbageAll();
     }

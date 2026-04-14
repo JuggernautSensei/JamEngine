@@ -36,9 +36,9 @@ private:
     float m_deltaLightMove = 0.5f;
     bool  m_bAnimate       = true;
 
-    ProgramHandle m_gbufferPh = k_nullHandle;
-    ProgramHandle m_lightPh   = k_nullHandle;
-    ProgramHandle m_combinePh = k_nullHandle;
+    ProgramHandle m_gbufferPh = k_invalidHandle;
+    ProgramHandle m_lightPh   = k_invalidHandle;
+    ProgramHandle m_combinePh = k_invalidHandle;
 
     Ref<Mesh>    m_pDragon       = nullptr;
     Ref<Texture> m_pDragonAlbedo = nullptr;
@@ -50,21 +50,21 @@ private:
 
     Ref<Mesh> m_pPlane = nullptr;
 
-    VertexBufferHandle m_fullTriVbh = k_nullHandle;
-    IndexBufferHandle  m_fullTriIbh = k_nullHandle;
+    VertexBufferHandle m_fullTriVbh = k_invalidHandle;
+    IndexBufferHandle  m_fullTriIbh = k_invalidHandle;
 
-    TextureHandle     m_colorTexh  = k_nullHandle;
-    TextureHandle     m_normalTexh = k_nullHandle;
-    TextureHandle     m_depthTexh  = k_nullHandle;
-    FrameBufferHandle m_gbufferFbh = k_nullHandle;
+    TextureHandle     m_colorTexh  = k_invalidHandle;
+    TextureHandle     m_normalTexh = k_invalidHandle;
+    TextureHandle     m_depthTexh  = k_invalidHandle;
+    FrameBufferHandle m_gbufferFbh = k_invalidHandle;
 
-    TextureHandle     m_lightTexh = k_nullHandle;
-    FrameBufferHandle m_lightFbh  = k_nullHandle;
+    TextureHandle     m_lightTexh = k_invalidHandle;
+    FrameBufferHandle m_lightFbh  = k_invalidHandle;
     Viewport          m_vp        = {};
 
-    ConstantBufferHandle m_entityCbh = k_nullHandle;
-    ConstantBufferHandle m_cameraCbh = k_nullHandle;
-    ConstantBufferHandle m_lightCbh  = k_nullHandle;
+    ConstantBufferHandle m_entityCbh = k_invalidHandle;
+    ConstantBufferHandle m_cameraCbh = k_invalidHandle;
+    ConstantBufferHandle m_lightCbh  = k_invalidHandle;
 
     Array<Light, 1024> m_lights    = {};
     Int32              m_numLights = 100;

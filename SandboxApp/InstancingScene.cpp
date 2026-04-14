@@ -193,7 +193,6 @@ void InstancingScene::OnRender(
 
         gfx.SetInstanceBuffer(m_instbh);
         m_pMesh->Submit();
-        gfx.SetInstanceBuffer(k_nullHandle);
     }
     else
     {
@@ -242,6 +241,7 @@ void InstancingScene::OnImGuiRender()
     ImGui::Text("Performance");
     ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
     ImGui::Text("Total Entities: %d", m_numRows * m_numEntitiesPerRow);
+    ImGui::Text("Draw Calls: %d", GetGraphics().GetStats().numDrawCalls);
 
     ImGui::Separator();
 

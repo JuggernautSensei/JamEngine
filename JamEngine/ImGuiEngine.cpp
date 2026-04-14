@@ -90,7 +90,7 @@ namespace
 
     struct TextureData
     {
-        TextureHandle texh = k_nullHandle;
+        TextureHandle texh = k_invalidHandle;
         eTexture      type = eTexture::Texture2D;
     };
 
@@ -235,9 +235,10 @@ void ImGuiEngine::BeginFrame() const
 void ImGuiEngine::EndFrame()
 {
     // 백버퍼 바인딩
-    const auto [w, h] = GetGraphics().GetBackBufferResolution();
-    GetGraphics().SetFrameBuffer(k_nullHandle);
-    GetGraphics().SetViewport(0, 0, w, h);
+    Graphics&            gfx   = GetGraphics();
+    const GraphicsStats& stats = gfx.GetStats();
+    gfx.SetFrameBuffer(k_invalidHandle);
+    gfx.SetViewport(0, 0, stats.backBufferWidth, stats.backBufferHeight);
 
     // draw data 처리
     ImGui::Render();
@@ -358,7 +359,7 @@ void ImGuiEngine::Render_(
     gfx.SetRenderFlags(m_rsFlags);
     gfx.SetSampler(m_ssFlags, eShader::PixelShader, 0);
     gfx.SetStencilFlags(eStencilFlags::None, eStencilFlags::None);
-    gfx.SetVertexBuffer(m_vbh, 0);
+    gfx.SetVertexBuffer(m_vbh);
 
     // Render command lists
     Int32 startIdxLoc = 0;
@@ -385,7 +386,7 @@ void ImGuiEngine::Render_(
             gfx.SetScissorRect(clipMinX, clipMinY, clipMaxX, clipMaxY);
 
             // Draw
-            gfx.SetIndexBuffer(m_ibh, cmd.ElemCount, 0);
+            gfx.SetIndexBuffer(m_ibh, 0, cmd.ElemCount);
             gfx.SetSubmitParameter(eSubmitParameter::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
             gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
 
@@ -410,7 +411,7 @@ void ImGuiEngine::Render_(
     gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, 0);
 
     // reset texture
-    gfx.SetTexture(k_nullHandle, eShader::PixelShader, 0);
+    gfx.SetTexture(k_invalidHandle, eShader::PixelShader, 0);
     gfx.Touch();
 }
 

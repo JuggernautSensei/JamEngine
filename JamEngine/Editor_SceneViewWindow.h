@@ -84,11 +84,11 @@ private:
     void Widget_EditorModeSwitchButton_();
 
     // view
-    FrameBufferHandle m_fbh        = k_nullHandle;
-    TextureHandle     m_renderTexh = k_nullHandle;
+    FrameBufferHandle m_fbh        = k_invalidHandle;
+    TextureHandle     m_renderTexh = k_invalidHandle;
 
-    FrameBufferHandle m_fbhWithDepth   = k_nullHandle;
-    TextureHandle     m_sceneDepthTexh = k_nullHandle;
+    FrameBufferHandle m_fbhWithDepth   = k_invalidHandle;
+    TextureHandle     m_sceneDepthTexh = k_invalidHandle;
 
     // resize
     Int32 m_width            = 0;

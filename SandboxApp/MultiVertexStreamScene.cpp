@@ -259,8 +259,8 @@ void MultiVertexStreamScene::OnRender(
         cbEntity.cb_baseColor     = m_baseColor;
         gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
 
-        gfx.SetVertexBuffer(m_posNormalVbh, 0);
-        gfx.SetVertexBuffer(m_colorVbh, 1);
+        gfx.SetVertexBuffer(m_posNormalVbh);
+        gfx.SetVertexBuffer(m_colorVbh);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }

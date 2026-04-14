@@ -49,24 +49,24 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph            = k_nullHandle;
-    ProgramHandle m_cubeMapPh     = k_nullHandle;
-    ProgramHandle m_toneMappingPh = k_nullHandle;
+    ProgramHandle m_ph            = k_invalidHandle;
+    ProgramHandle m_cubeMapPh     = k_invalidHandle;
+    ProgramHandle m_toneMappingPh = k_invalidHandle;
 
-    ConstantBufferHandle m_entityCbh  = k_nullHandle;
-    ConstantBufferHandle m_cmrCbh     = k_nullHandle;
-    ConstantBufferHandle m_lightCbh   = k_nullHandle;
-    ConstantBufferHandle m_cubeMapCbh = k_nullHandle;
+    ConstantBufferHandle m_entityCbh  = k_invalidHandle;
+    ConstantBufferHandle m_cmrCbh     = k_invalidHandle;
+    ConstantBufferHandle m_lightCbh   = k_invalidHandle;
+    ConstantBufferHandle m_cubeMapCbh = k_invalidHandle;
 
-    FrameBufferHandle m_fbh    = k_nullHandle;
-    TextureHandle     m_fbTexh = k_nullHandle;   // not owned
+    FrameBufferHandle m_fbh    = k_invalidHandle;
+    TextureHandle     m_fbTexh = k_invalidHandle;   // not owned
     Viewport          m_vp     = {};
 
-    VertexBufferHandle m_fullTriVbh = k_nullHandle;
-    IndexBufferHandle  m_fullTriIbh = k_nullHandle;
+    VertexBufferHandle m_fullTriVbh = k_invalidHandle;
+    IndexBufferHandle  m_fullTriIbh = k_invalidHandle;
 
-    VertexBufferHandle m_cubeVbh = k_nullHandle;
-    IndexBufferHandle  m_cubeIbh = k_nullHandle;
+    VertexBufferHandle m_cubeVbh = k_invalidHandle;
+    IndexBufferHandle  m_cubeIbh = k_invalidHandle;
 
     bool  m_bAnimate     = true;
     float m_dYawRad      = ToRad(30.f);

@@ -121,7 +121,7 @@ Mesh::Mesh(
     // gpu resource
     Graphics& gfx = GetGraphics();
     m_positionVbh = gfx.CreateVertexBuffer(_positios, s_positionOnlyVl);
-    m_attribVbh   = k_nullHandle;
+    m_attribVbh   = k_invalidHandle;
     m_ibh         = gfx.CreateIndexBuffer(_idxData, _bUseU32);
 
     // compute bounding box
@@ -337,14 +337,14 @@ void Mesh::Submit(
 
     if (!_bSubmitPositionOnly && m_attribVbh)
     {
-        gfx.SetVertexBuffer(m_positionVbh, 0);
-        gfx.SetVertexBuffer(m_attribVbh, 1, false);
+        gfx.SetVertexBuffer(m_positionVbh);
+        gfx.SetVertexBuffer(m_attribVbh);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
     else
     {
-        gfx.SetVertexBuffer(m_positionVbh, 0);
+        gfx.SetVertexBuffer(m_positionVbh);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }

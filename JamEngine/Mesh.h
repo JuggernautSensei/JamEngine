@@ -62,9 +62,9 @@ private:
     UInt16 m_sortKey         = 0;
     bool   m_bLoadedFromFile = false;
 
-    VertexBufferHandle m_positionVbh = k_nullHandle;
-    VertexBufferHandle m_attribVbh   = k_nullHandle;
-    IndexBufferHandle  m_ibh         = k_nullHandle;
+    VertexBufferHandle m_positionVbh = k_invalidHandle;
+    VertexBufferHandle m_attribVbh   = k_invalidHandle;
+    IndexBufferHandle  m_ibh         = k_invalidHandle;
     Aabb               m_boundingBox = {};
 
     static VertexLayout s_positionOnlyVl;

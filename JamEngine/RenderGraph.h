@@ -40,7 +40,7 @@ class RenderGraph
     struct ResourceBindCommand
     {
         String          name        = {};
-        UInt32          handleValue = k_nullHandleValue;
+        UInt32          handleValue = k_invalidHandleValue;
         eShaderResource type        = eShaderResource::Texture;
         Slot            slot        = {};
     };
@@ -48,7 +48,7 @@ class RenderGraph
     struct ConstantBufferBindCommand
     {
         String               name = {};
-        ConstantBufferHandle cbh  = k_nullHandle;
+        ConstantBufferHandle cbh  = k_invalidHandle;
         Slot                 slot = {};
     };
 
@@ -93,11 +93,11 @@ class RenderGraph
 
         // graphics pass
         String        programName = {};
-        ProgramHandle ph          = k_nullHandle;   // lazy init in Compile()
+        ProgramHandle ph          = k_invalidHandle;   // lazy init in Compile()
 
         // compute pass
         String        computeProgramName = {};
-        ProgramHandle computePh          = k_nullHandle;   // lazy init in Compile()
+        ProgramHandle computePh          = k_invalidHandle;   // lazy init in Compile()
         Int32         numThreadGroupsX   = 0;
         Int32         numThreadGroupsY   = 0;
         Int32         numThreadGroupsZ   = 0;
@@ -105,7 +105,7 @@ class RenderGraph
 
         // framebuffer
         String            frameBufferName = {};
-        FrameBufferHandle fbh             = k_nullHandle;   // lazy init in Compile()
+        FrameBufferHandle fbh             = k_invalidHandle;   // lazy init in Compile()
 
         // viewport
         Viewport viewport                               = {};     // lazy init in Compile()
@@ -183,7 +183,7 @@ class RenderGraph
     struct ResourceBase
     {
         String  name          = {};
-        THandle handle        = k_nullHandle;
+        THandle handle        = k_invalidHandle;
         bool    bHasOwnership = false;   // true: RenderGraph가 gpu 리소스의 수명을 관리함.
     };
 

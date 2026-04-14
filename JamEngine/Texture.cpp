@@ -25,7 +25,7 @@ Texture::Texture(Texture&& _other) noexcept
     , m_type(_other.m_type)
     , m_bLoadedFromFile(_other.m_bLoadedFromFile)
 {
-    _other.m_texh            = k_nullHandle;
+    _other.m_texh            = k_invalidHandle;
     _other.m_res             = { 0, 0 };
     _other.m_type            = eTexture::Texture2D;
     _other.m_bLoadedFromFile = false;
@@ -44,7 +44,7 @@ Texture& Texture::operator=(Texture&& _other) noexcept
         m_type            = _other.m_type;
         m_bLoadedFromFile = _other.m_bLoadedFromFile;
 
-        _other.m_texh            = k_nullHandle;
+        _other.m_texh            = k_invalidHandle;
         _other.m_res             = { 0, 0 };
         _other.m_type            = eTexture::Texture2D;
         _other.m_bLoadedFromFile = false;
@@ -209,7 +209,7 @@ void Texture::Unbind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    GetGraphics().SetTexture(k_nullHandle, _shader, _slot);
+    GetGraphics().SetTexture(k_invalidHandle, _shader, _slot);
 }
 
 void Texture::CleanUp_()

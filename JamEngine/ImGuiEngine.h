@@ -35,24 +35,24 @@ private:
     void UpdateTexture_(ImTextureData* _pTexture) const;
     void DestroyTexture_(ImTextureData* _texture) const;
 
-    ProgramHandle m_basicPh       = k_nullHandle;
-    ProgramHandle m_textureCubePh = k_nullHandle;
+    ProgramHandle m_basicPh       = k_invalidHandle;
+    ProgramHandle m_textureCubePh = k_invalidHandle;
 
-    ShaderHandle m_vsh            = k_nullHandle;
-    ShaderHandle m_basicPsh       = k_nullHandle;
-    ShaderHandle m_textureCubePsh = k_nullHandle;
+    ShaderHandle m_vsh            = k_invalidHandle;
+    ShaderHandle m_basicPsh       = k_invalidHandle;
+    ShaderHandle m_textureCubePsh = k_invalidHandle;
 
     VertexLayout         m_vl  = {};
-    ConstantBufferHandle m_cbh = k_nullHandle;
+    ConstantBufferHandle m_cbh = k_invalidHandle;
 
     Flags<eBlendFlags>   m_bsFlags = {};
     Flags<eRenderFlags>  m_rsFlags = {};
     Flags<eSamplerFlags> m_ssFlags = {};
 
-    VertexBufferHandle m_vbh   = k_nullHandle;
+    VertexBufferHandle m_vbh   = k_invalidHandle;
     Int32              m_vbCap = 0;
 
-    IndexBufferHandle m_ibh   = k_nullHandle;
+    IndexBufferHandle m_ibh   = k_invalidHandle;
     Int32             m_ibCap = 0;
 
     bool m_bNeedCleanUpPlatformTextures = false;
