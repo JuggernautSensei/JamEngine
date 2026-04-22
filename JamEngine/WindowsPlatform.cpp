@@ -276,8 +276,8 @@ void WindowsPlatform::SetWindowProperty(
 
     m_flags = _flags;
 
-    DWORD wsFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-    DWORD exFlags = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+    DWORD wsFlags = static_cast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    DWORD exFlags = static_cast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
     // basic style
     wsFlags &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_POPUP | WS_OVERLAPPED);
@@ -404,7 +404,7 @@ WindowsPlatform::WindowsPlatform()
             wClassEx.hCursor       = LoadCursor(nullptr, IDC_ARROW);
             wClassEx.hbrBackground = NULL;
             wClassEx.lpszMenuName  = nullptr;
-            wClassEx.lpszClassName = k_winClassName;
+            wClassEx.lpszClassName = kWinClassName;
             wClassEx.hIconSm       = nullptr;
 
             if (RegisterClassExW(&wClassEx) == 0)
@@ -414,7 +414,7 @@ WindowsPlatform::WindowsPlatform()
         }
 
         // create window
-        m_hWnd = CreateWindowExW(0, k_winClassName, k_winTitleName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, NULL, NULL, m_hInstance, NULL);
+        m_hWnd = CreateWindowExW(0, kWinClassName, kWinTitleName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, NULL, NULL, m_hInstance, NULL);
         if (m_hWnd == NULL)
         {
             JAM_CRASH("Failed to create window: {}", CreateWindowsLastErrorMessage());
@@ -435,7 +435,7 @@ WindowsPlatform::~WindowsPlatform()
 {
     CoUninitialize();
     DestroyWindow(m_hWnd);
-    UnregisterClassW(k_winClassName, m_hInstance);
+    UnregisterClassW(kWinClassName, m_hInstance);
 
     m_hWnd      = NULL;
     m_hInstance = NULL;
@@ -480,8 +480,8 @@ void WindowsPlatform::AdjustClientRect_(
     const Int32 _height)
 {
     const bool  bHasMenu = (GetMenu(m_hWnd) != NULL);
-    const DWORD wsFlags  = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
-    const DWORD exFlags  = NarrowCast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+    const DWORD wsFlags  = static_cast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+    const DWORD exFlags  = static_cast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
     // cli -> win
     RECT adjRect = { _x, _y, _x + _width, _y + _height };

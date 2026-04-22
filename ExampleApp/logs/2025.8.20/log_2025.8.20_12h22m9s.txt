@@ -1,0 +1,18 @@
+[2025.08.20 12:22:09] [trace] CORE: log system initialized
+[2025.08.20 12:22:09] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.20 12:22:09] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544, resizeType: 0
+[2025.08.20 12:22:09] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.20 12:22:10] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.20 12:22:10] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720, resizeType: 0
+[2025.08.20 12:22:10] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.20 12:22:10] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 235
+[2025.08.20 12:22:10] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2560, height: 1334, resizeType: 0
+[2025.08.20 12:22:10] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.20 12:22:10] [debug] CORE: Scene::Load() - Scene file does not exist: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes\DemoScene.jscene
+[2025.08.20 12:22:11] [trace] CORE: Dispatching event: WindowMoveEvent: x: 0, y: 34
+[2025.08.20 12:22:11] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2560, height: 1334, resizeType: 2
+[2025.08.20 12:22:11] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.20 12:22:17] [trace] CORE: Dispatching event: AssetLoadEvent: asset type: Texture, asset asset: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures\1 (13).jpg
+[2025.08.20 12:22:24] [trace] CORE: Dispatching event: AssetLoadEvent: asset type: Texture, asset asset: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures\1 (7).jpg
+[2025.08.20 12:22:26] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.20 12:22:26] [trace] CORE: log system shutdown

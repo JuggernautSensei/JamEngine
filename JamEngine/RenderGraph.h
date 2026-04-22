@@ -40,7 +40,7 @@ class RenderGraph
     struct ResourceBindCommand
     {
         String          name        = {};
-        UInt32          handleValue = k_invalidHandleValue;
+        UInt32          handleValue = kInvalidHandleValue;
         eShaderResource type        = eShaderResource::Texture;
         Slot            slot        = {};
     };
@@ -48,7 +48,7 @@ class RenderGraph
     struct ConstantBufferBindCommand
     {
         String               name = {};
-        ConstantBufferHandle cbh  = k_invalidHandle;
+        ConstantBufferHandle cbh  = kInvalidHandle;
         Slot                 slot = {};
     };
 
@@ -65,7 +65,7 @@ class RenderGraph
         }
 
         Flags<eSamplerFlags> flags = {};
-        RGBA                 rgba  = RGBA::k_black;
+        RGBA                 rgba  = RGBA::kBlack;
     };
 
     struct SamplerFlagsBindCommand
@@ -82,7 +82,7 @@ class RenderGraph
 
     struct RenderTargetClearCommand
     {
-        RGBA  color = RGBA::k_black;
+        RGBA  color = RGBA::kBlack;
         Int32 slot  = 0;
     };
 
@@ -93,11 +93,11 @@ class RenderGraph
 
         // graphics pass
         String        programName = {};
-        ProgramHandle ph          = k_invalidHandle;   // lazy init in Compile()
+        ProgramHandle ph          = kInvalidHandle;   // lazy init in Compile()
 
         // compute pass
         String        computeProgramName = {};
-        ProgramHandle computePh          = k_invalidHandle;   // lazy init in Compile()
+        ProgramHandle computePh          = kInvalidHandle;   // lazy init in Compile()
         Int32         numThreadGroupsX   = 0;
         Int32         numThreadGroupsY   = 0;
         Int32         numThreadGroupsZ   = 0;
@@ -105,7 +105,7 @@ class RenderGraph
 
         // framebuffer
         String            frameBufferName = {};
-        FrameBufferHandle fbh             = k_invalidHandle;   // lazy init in Compile()
+        FrameBufferHandle fbh             = kInvalidHandle;   // lazy init in Compile()
 
         // viewport
         Viewport viewport                               = {};     // lazy init in Compile()
@@ -121,12 +121,12 @@ class RenderGraph
         UInt8                stencilRef  = 0;
 
         // blend
-        Array<BlendFlagsBindCommand, k_maxNumRenderTargetViewSlots> blendFlagsBindCmds    = {};
+        Array<BlendFlagsBindCommand, kMaxNumRenderTargetViewSlots> blendFlagsBindCmds    = {};
         Int32                                                       numBlendFlagsBindCmds = 0;
-        RGBA                                                        blendFactor           = RGBA::k_transparent;
+        RGBA                                                        blendFactor           = RGBA::kTransparent;
 
         // clear commands
-        Array<RenderTargetClearCommand, k_maxNumRenderTargetViewSlots> renderTargetClearCmds    = {};
+        Array<RenderTargetClearCommand, kMaxNumRenderTargetViewSlots> renderTargetClearCmds    = {};
         Int32                                                          numRenderTargetClearCmds = 0;
         bool                                                           bClearDepth              = false;
         float                                                          depthClearValue          = 1.f;
@@ -183,7 +183,7 @@ class RenderGraph
     struct ResourceBase
     {
         String  name          = {};
-        THandle handle        = k_invalidHandle;
+        THandle handle        = kInvalidHandle;
         bool    bHasOwnership = false;   // true: RenderGraph가 gpu 리소스의 수명을 관리함.
     };
 
@@ -198,7 +198,7 @@ class RenderGraph
 
     struct FrameBufferResource : ResourceBase<FrameBufferHandle>
     {
-        Array<String, k_maxNumAttachmentSlots> attachments    = {};
+        Array<String, kMaxNumAttachmentSlots> attachments    = {};
         Int32                                  numAttachments = 0;
         bool                                   bAutoResize    = false;   // true: Compile시 백버퍼에 맞춰 자동으로 크기가 조정됨
     };

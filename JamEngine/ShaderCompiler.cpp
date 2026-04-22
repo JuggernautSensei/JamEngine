@@ -13,28 +13,6 @@ namespace Jam
 
 namespace
 {
-
-    [[nodiscard]] Vector<D3D_SHADER_MACRO> CreateD3D11ShaderMacroBuffer_(
-        const Span<const ShaderMacro> _macrosOrEmpty)   // return number of macros written
-    {
-        const bool bIsTerminated = !_macrosOrEmpty.empty() && _macrosOrEmpty.back().IsNull();
-
-        Vector<D3D_SHADER_MACRO> macros = {};
-        macros.reserve(_macrosOrEmpty.size() + (bIsTerminated ? 0 : 1));   // reserve one extra slot for null-termination if not already terminated
-
-        for (const ShaderMacro& macro: _macrosOrEmpty)
-        {
-            macros.emplace_back(macro.name.GetPtr(), macro.value.GetPtr());
-        }
-
-        if (!bIsTerminated)
-        {
-            macros.emplace_back(nullptr, nullptr);   // null-terminate the buffer
-        }
-
-        return macros;
-    }
-
     [[nodiscard]] UINT CompileFlagsFrom_(
         const Flags<eShaderCompileFlags> _flags)
     {
@@ -124,7 +102,7 @@ ShaderCompiler ShaderCompiler::CompileHLSLSource(
 MemoryView ShaderCompiler::GetBytecode() const
 {
     JAM_ASSERT(m_pBlob, "Shader blob is null.");
-    return { m_pBlob->GetBufferPointer(), NarrowCast<Int32>(m_pBlob->GetBufferSize()) };
+    return { m_pBlob->GetBufferPointer(), static_cast<Int32>(m_pBlob->GetBufferSize()) };
 }
 
 StringView ShaderCompiler::GetErrorMessage() const
@@ -154,20 +132,38 @@ void ShaderCompiler::CompileFromHLSLFile_(
     JAM_ASSERT(!_path.IsEmpty(), "File path must not be empty.");
     JAM_ASSERT(m_pBlob == nullptr, "ShaderCompiler instance is already used for compilation.");
 
-    const WString path = WString::Encoded(_path);
-    if (!FileSystem::Utf16::Exists(path))
+    // macros
+    D3D_SHADER_MACRO* pMacro = nullptr;
+    if (!_desc.macros.empty())
     {
-        m_errorMsg.Format("shader file not found: {}", _path);
-        JAM_LOG_ERROR(m_errorMsg);
-        m_error = Error::NotFound;
-        return;
+        Int32      numMacros    = static_cast<Int32>(_desc.macros.size());
+        const bool bHasNullTerm = !_desc.macros.back().IsNull();
+
+        if (bHasNullTerm)
+        {
+            ++numMacros;   // add null terminator
+        }
+
+        pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(sizeof(D3D_SHADER_MACRO) * numMacros));
+        for (SizeT i = 0; i < _desc.macros.size(); ++i)
+        {
+            pMacro[i].Name       = _desc.macros[i].name.GetPtr();
+            pMacro[i].Definition = _desc.macros[i].value.GetPtr();
+        }
+
+        if (bHasNullTerm)
+        {
+            pMacro[numMacros - 1].Name       = nullptr;
+            pMacro[numMacros - 1].Definition = nullptr;
+        }
     }
 
-    const Vector<D3D_SHADER_MACRO> macros     = CreateD3D11ShaderMacroBuffer_(_desc.macros);
-    ComPtr<ID3DBlob>               pErrorBlob = nullptr;
-    const HRESULT                  hr         = D3DCompileFromFile(
+    // compile
+    const WString    path       = WString::Encoded(_path);
+    ComPtr<ID3DBlob> pErrorBlob = nullptr;
+    const HRESULT    hr         = D3DCompileFromFile(
         path.GetPtr(),
-        macros.data(),
+        pMacro,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _desc.entryPoint.GetPtr(),
         ShaderModelNameFrom(_desc.stage).GetPtr(),
@@ -176,6 +172,7 @@ void ShaderCompiler::CompileFromHLSLFile_(
         m_pBlob.ReleaseAndGetAddressOf(),
         pErrorBlob.ReleaseAndGetAddressOf());
 
+    // check error
     if (FAILED(hr) || !m_pBlob)
     {
         if (pErrorBlob)
@@ -200,13 +197,39 @@ void ShaderCompiler::CompileHLSLSource_(
 {
     JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 
-    const Vector<D3D_SHADER_MACRO> macros     = CreateD3D11ShaderMacroBuffer_(_desc.macros);
-    ComPtr<ID3DBlob>               pErrorBlob = nullptr;
-    const HRESULT                  hr         = D3DCompile(
+    // macros
+    D3D_SHADER_MACRO* pMacro = nullptr;
+    if (!_desc.macros.empty())
+    {
+        Int32      numMacros    = static_cast<Int32>(_desc.macros.size());
+        const bool bHasNullTerm = !_desc.macros.back().IsNull();
+
+        if (bHasNullTerm)
+        {
+            ++numMacros;   // add null terminator
+        }
+
+        pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(sizeof(D3D_SHADER_MACRO) * numMacros));
+        for (SizeT i = 0; i < _desc.macros.size(); ++i)
+        {
+            pMacro[i].Name       = _desc.macros[i].name.GetPtr();
+            pMacro[i].Definition = _desc.macros[i].value.GetPtr();
+        }
+
+        if (bHasNullTerm)
+        {
+            pMacro[numMacros - 1].Name       = nullptr;
+            pMacro[numMacros - 1].Definition = nullptr;
+        }
+    }
+
+    // compile
+    ComPtr<ID3DBlob> pErrorBlob = nullptr;
+    const HRESULT    hr         = D3DCompile(
         _source.GetPtr(),
         _source.GetLength(),
         nullptr,
-        macros.data(),
+        pMacro,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         _desc.entryPoint.GetPtr(),
         ShaderModelNameFrom(_desc.stage).GetPtr(),
@@ -215,6 +238,7 @@ void ShaderCompiler::CompileHLSLSource_(
         m_pBlob.ReleaseAndGetAddressOf(),
         pErrorBlob.ReleaseAndGetAddressOf());
 
+    // check error
     if (FAILED(hr) || !m_pBlob)
     {
         if (pErrorBlob)

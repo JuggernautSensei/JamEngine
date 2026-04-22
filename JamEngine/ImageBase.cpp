@@ -10,7 +10,7 @@ Optional<eImageFormat> ParseAsImageFormat(
 {
     if (_ext.IsEmpty())
     {
-        return k_nullopt;
+        return kNullopt;
     }
 
     const StringView ext = _ext.StartsWith(".") ? _ext.SubView(1) : _ext;
@@ -51,7 +51,7 @@ Optional<eImageFormat> ParseAsImageFormat(
         case String::IgnoreCaseHashed32("heic"):
             return eImageFormat::HEIC;
         default:
-            return k_nullopt;
+            return kNullopt;
     }
 }
 

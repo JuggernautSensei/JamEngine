@@ -6,14 +6,17 @@
     <ClCompile Include="OctreeBenchmark.cpp">
       <Filter>Benchmark\BoundingVolume</Filter>
     </ClCompile>
-    <ClCompile Include="BoundingVolumeBenchmark.cpp">
-      <Filter>Benchmark\BoundingVolume</Filter>
-    </ClCompile>
     <ClCompile Include="JsonArchiveBench.cpp">
       <Filter>Benchmark</Filter>
     </ClCompile>
     <ClCompile Include="MemoryViewZeroOverheadBench.cpp">
       <Filter>Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="MathBenchmark.cpp">
+      <Filter>Benchmark\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingVolumeBenchmark.cpp">
+      <Filter>Benchmark\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +31,9 @@
     </Filter>
     <Filter Include="Benchmark\BoundingVolume">
       <UniqueIdentifier>{8dd409d0-c6f9-4729-8faa-586ddd3f1c62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Benchmark\Math">
+      <UniqueIdentifier>{b717f66b-a85b-4ed6-85be-98ef3f9a330b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

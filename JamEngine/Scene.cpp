@@ -19,12 +19,12 @@ namespace Jam
 
 namespace
 {
-    constexpr UID k_rootEntityUid { 0 };
+    constexpr UID kRootEntityUid { 0 };
 }
 
 TextureHandle Scene::GetDepthTexture() const
 {
-    return k_invalidHandle;   // override in derived class if needed
+    return kInvalidHandle;   // override in derived class if needed
 }
 
 Entity Scene::CreateEntity(
@@ -112,13 +112,13 @@ Entity Scene::FindEntityOrNull(
 {
     if (!_uid.IsValid())
     {
-        return Entity::k_null;
+        return Entity::kNull;
     }
 
     const auto it = m_entities.find(_uid);
     if (it == m_entities.end())
     {
-        return Entity::k_null;
+        return Entity::kNull;
     }
 
     return it->second;
@@ -147,12 +147,12 @@ UID Scene::CreateEntitiesDeferedFrom(
     return uid;
 }
 
-const Registry& Scene::GetRegistry() const
+const entt::registry& Scene::GetRegistry() const
 {
     return m_registry;
 }
 
-Registry& Scene::GetRegistry()
+entt::registry& Scene::GetRegistry()
 {
     return m_registry;
 }
@@ -165,7 +165,7 @@ Entity Scene::GetRootEntity() const
 
 Int32 Scene::GetNumEntities() const
 {
-    return NarrowCast<Int32>(m_entities.size());
+    return static_cast<Int32>(m_entities.size());
 }
 
 const HashMap<UID, Entity>& Scene::GetEntities() const
@@ -191,11 +191,11 @@ void Scene::Reset_()
 Entity Scene::CreateRootEntity_()
 {
     JAM_ASSERT(!m_root, "Root entity already exists");
-    JAM_ASSERT(!m_uidAllocator.IsAllocated(k_rootEntityUid), "Root entity reserved UID is already allocated");
+    JAM_ASSERT(!m_uidAllocator.IsAllocated(kRootEntityUid), "Root entity reserved UID is already allocated");
 
     // create entt handle
-    const UID            uid    = m_uidAllocator.Alloc(k_rootEntityUid);
-    const RegistryHandle handle = m_registry.create();
+    const UID            uid    = m_uidAllocator.Alloc(kRootEntityUid);
+    const entt::entity handle = m_registry.create();
     Entity               entity = { m_registry, handle, uid };
 
     // entity map
@@ -221,7 +221,7 @@ Entity Scene::CreateEntity_(
     JAM_ASSERT(m_uidAllocator.IsAllocated(_allocedUid), "UID {} is not allocated", _allocedUid);
 
     // create entt handle
-    const RegistryHandle handle = m_registry.create();
+    const entt::entity handle = m_registry.create();
     Entity               entity = { m_registry, handle, _allocedUid };
 
     // entity map
@@ -332,10 +332,10 @@ Entity Scene::CreateEntitiesFrom_Recursive_(
 {
     // create root
     Entity entity = CreateEntity_(_allocedUid, _node.name);
-    entity.ModifyLocalTransform().SetMatrix(_node.mtx);
+    entity.ModifyLocalTransform().SetSRT(_node.localMtx);
 
     // create leaf
-    const Int32 numEntities = NarrowCast<Int32>(_node.meshIdxes.size());
+    const Int32 numEntities = static_cast<Int32>(_node.meshIdxes.size());
     for (Int32 i = 0; i < numEntities; ++i)
     {
         // create leaf

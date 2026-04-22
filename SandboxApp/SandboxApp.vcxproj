@@ -143,6 +143,7 @@
     <ClInclude Include="DebugNormalScene.h" />
     <ClInclude Include="DeferedScene.h" />
     <ClInclude Include="FlyingCamera.h" />
+    <ClInclude Include="Gui.h" />
     <ClInclude Include="PBRScene.h" />
     <ClInclude Include="ShadowMappingScene.h" />
     <ClInclude Include="TextureMappingScene.h" />
@@ -156,6 +157,7 @@
     <ClCompile Include="DebugNormalScene.cpp" />
     <ClCompile Include="DeferedScene.cpp" />
     <ClCompile Include="FlyingCamera.cpp" />
+    <ClCompile Include="Gui.cpp" />
     <ClCompile Include="PBRScene.cpp" />
     <ClCompile Include="ShadowMappingScene.cpp" />
     <ClCompile Include="TextureMappingScene.cpp" />

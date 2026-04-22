@@ -66,7 +66,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("intensity", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##DirLightIntensity",intensity, 0.01f, 0.f, Limits<float>::k_max))
+            if (Widget_DragFloat("##DirLightIntensity", intensity, 0.01f, 0.f, Limits<float>::kMax))
             {
                 environment.SetDirectionalLightIntensity(intensity);
             }
@@ -86,7 +86,8 @@ void EnvironmentComponent::DrawEditPanel(
             SetNextItemToAvailWidth();
             if (Widget_DragEuler("##DirLightDirectionEuler", euler))
             {
-                environment.SetDirectionalLightDirection(ForwardFrom(euler));
+                // todo.. change by Pos, LookTo
+                environment.SetDirectionalLightDirection(Vec3::kZero);
             }
 
             s_proxy.OnAfterWidget();
@@ -113,7 +114,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("shadow bias", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##DirLightShadowBias",bias, 0.0001f, 0.f, Limits<float>::k_max, "%.5f"))
+            if (Widget_DragFloat("##DirLightShadowBias", bias, 0.0001f, 0.f, Limits<float>::kMax, "%.5f"))
             {
                 environment.SetDirectionalLightShadowBias(bias);
             }
@@ -128,7 +129,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("cascade distances", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            bDirty = Widget_DragFloat3("##CascadeDistances", &distances[0], 0.01f, 0.f, Limits<float>::k_max, "%.3fm");
+            bDirty = Widget_DragFloat3("##CascadeDistances", &distances[0], 0.01f, 0.f, Limits<float>::kMax, "%.3fm");
 
             if (bDirty)
             {
@@ -164,7 +165,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("irradiance intensity", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##IBLIrradianceIntensity",intensity, 0.01f, 0.f, Limits<float>::k_max))
+            if (Widget_DragFloat("##IBLIrradianceIntensity", intensity, 0.01f, 0.f, Limits<float>::kMax))
             {
                 environment.SetIblIrradianceIntensity(intensity);
             }
@@ -192,7 +193,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("specular intensity", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##IBLSpecularIntensity",intensity, 0.01f, 0.f, Limits<float>::k_max))
+            if (Widget_DragFloat("##IBLSpecularIntensity", intensity, 0.01f, 0.f, Limits<float>::kMax))
             {
                 environment.SetIblSpecularIntensity(intensity);
             }
@@ -286,7 +287,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("radius", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##SSAORadius",radius, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
+            if (Widget_DragFloat("##SSAORadius", radius, 0.001f, 0.f, Limits<float>::kMax, "%.4f"))
             {
                 environment.SetSsaoRadius(radius);
             }
@@ -299,7 +300,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("bias", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##SSAOBias",bias, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
+            if (Widget_DragFloat("##SSAOBias", bias, 0.001f, 0.f, Limits<float>::kMax, "%.4f"))
             {
                 environment.SetSsaoBias(bias);
             }
@@ -343,7 +344,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("density", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##FogDensity",density, 0.0001f, 0.f, Limits<float>::k_max, "%.6f"))
+            if (Widget_DragFloat("##FogDensity", density, 0.0001f, 0.f, Limits<float>::kMax, "%.6f"))
             {
                 environment.SetFogDensity(density);
             }
@@ -356,7 +357,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("fall off start", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##FogFallOffStart",start, 0.01f, 0.f, environment.GetFogFallOffEnd(), "%.3fm"))
+            if (Widget_DragFloat("##FogFallOffStart", start, 0.01f, 0.f, environment.GetFogFallOffEnd(), "%.3fm"))
             {
                 environment.SetFogFallOffStart(start);
             }
@@ -369,7 +370,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("fall off end", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##FogFallOffEnd",end, 0.01f, environment.GetFogFallOffStart(), Limits<float>::k_max, "%.3fm"))
+            if (Widget_DragFloat("##FogFallOffEnd", end, 0.01f, environment.GetFogFallOffStart(), Limits<float>::kMax, "%.3fm"))
             {
                 environment.SetFogFallOffEnd(end);
             }
@@ -382,7 +383,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("height attenuation", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##FogHeightAttenuation",atten, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
+            if (Widget_DragFloat("##FogHeightAttenuation", atten, 0.001f, 0.f, Limits<float>::kMax, "%.4f"))
             {
                 environment.SetFogHeightAttenuation(atten);
             }
@@ -427,7 +428,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("exposure", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##ToneMappingExposure",exposure, 0.01f, 0.f, Limits<float>::k_max, "%.3f"))
+            if (Widget_DragFloat("##ToneMappingExposure", exposure, 0.01f, 0.f, Limits<float>::kMax, "%.3f"))
             {
                 environment.SetToneMappingExposure(exposure);
             }
@@ -440,7 +441,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("gamma", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##ToneMappingGamma",gamma, 0.01f, 0.f, Limits<float>::k_max, "%.3f"))
+            if (Widget_DragFloat("##ToneMappingGamma", gamma, 0.01f, 0.f, Limits<float>::kMax, "%.3f"))
             {
                 environment.SetToneMappingGamma(gamma);
             }
@@ -472,7 +473,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("blur radius", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##BloomBlurRadius",radius, 0.001f, 0.f, Limits<float>::k_max, "%.4f"))
+            if (Widget_DragFloat("##BloomBlurRadius", radius, 0.001f, 0.f, Limits<float>::kMax, "%.4f"))
             {
                 environment.SetBloomBlurRadius(Max(radius, 0.f));
             }
@@ -485,7 +486,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("combine factor", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragFloat("##BloomCombineFactor",strength, 0.01f, 0.f, Limits<float>::k_max))
+            if (Widget_DragFloat("##BloomCombineFactor", strength, 0.01f, 0.f, Limits<float>::kMax))
             {
                 environment.SetBloomStrength(strength);
             }
@@ -498,7 +499,7 @@ void EnvironmentComponent::DrawEditPanel(
             Widget_Text("number of blur passes", true);
             ImGui::TableNextColumn();
             SetNextItemToAvailWidth();
-            if (Widget_DragInt("##BloomNumBlurPasses",passes, 0.05f, 0, environment.k_maxNumbloomPasses))
+            if (Widget_DragInt("##BloomNumBlurPasses", passes, 0.05f, 0, environment.kMaxNumbloomPasses))
             {
                 environment.SetBloomNumBlurPasses(passes);
             }

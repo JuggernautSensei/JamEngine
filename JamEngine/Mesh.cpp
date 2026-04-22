@@ -17,32 +17,37 @@ VertexLayout Mesh::s_positionOnlyVl = [] {
     return layout;
 }();
 
-namespace
+namespace Dto
 {
-    struct VertexLayoutElementDto
+    struct VertexLayoutElement
     {
         eVertexAttribute attrib = eVertexAttribute::Position;
         eAttributeFormat format = eAttributeFormat::Float;
     };
 
-    struct VertexLayoutDto
+    struct VertexLayout
     {
-        ArrayDto<VertexLayoutElementDto, CountOf<eVertexAttribute>()> elems    = {};
-        Int32                                                         numElems = 0;
+        Array<VertexLayoutElement, CountOf<eVertexAttribute>()> elems    = {};
+        Int32                                                   numElems = 0;
     };
 
-    struct MeshDto
+    struct Mesh
     {
-        StringViewDto      name         = {};
-        VectorDto<Vec3Dto> position     = {};
-        VectorDto<Byte>    attribData   = {};
-        VertexLayoutDto    attribLayout = {};
-        AabbDto            aabb         = {};
-        VectorDto<Byte>    idxData      = {};
+        StringView   name         = {};
+        Vector<Vec3> positions    = {};
+        Vector<Byte> attribData   = {};
+        VertexLayout attribLayout = {};
+        Aabb         boundingBox  = {};
+        Vector<Byte> idxData      = {};
     };
 
-    using MeshLoader = AssetLoader<MeshDto>;
-    using MeshSaver  = AssetSaver<MeshDto>;
+}   // namespace Dto
+
+namespace
+{
+
+    using MeshLoader = AssetLoader<Dto::Mesh>;
+    using MeshSaver  = AssetSaver<Dto::Mesh>;
 
 }   // namespace
 
@@ -57,25 +62,23 @@ Ref<Mesh> Mesh::Load(
     const Span<const Vec3> _position,
     const MemoryView       _attribData,
     const VertexLayout&    _attribLayout,
-    const MemoryView       _idxData,
-    const bool             _bUse32)
+    const MemoryView       _idxData)
 {
-    return new Mesh(_position, _attribData, _attribLayout, _idxData, _bUse32);
+    return new Mesh(_position, _attribData, _attribLayout, _idxData);
 }
 
 Ref<Mesh> Mesh::Load(
     const Span<const Vec3> _position,
-    const MemoryView       _idxData,
-    const bool             _bUse32)
+    const MemoryView       _idxData)
 {
-    return new Mesh(_position, _idxData, _bUse32);
+    return new Mesh(_position, _idxData);
 }
 
 Expect<Ref<Mesh>> Mesh::LoadFromFile(
     const StringView _path)
 {
     Ref<Mesh> pMesh = new Mesh;
-    if (const Error err = pMesh->Load_(_path))
+    if (const Error err = pMesh->LoadFromFile_(_path))
     {
         return err;
     }
@@ -86,20 +89,26 @@ Mesh::Mesh(
     const Span<const Vec3> _positions,
     const MemoryView       _attribData,
     const VertexLayout&    _attribLayout,
-    const MemoryView       _idxData,
-    const bool             _bUseU32)
+    const MemoryView       _idxData)
 {
     JAM_ASSERT(!_positions.empty(), "Position data cannot be empty.");
     JAM_ASSERT(!_idxData.IsEmpty(), "Index data cannot be empty.");
 
-    // gpu resource
+    // vertex buffer
     Graphics& gfx = GetGraphics();
     m_positionVbh = gfx.CreateVertexBuffer(_positions, s_positionOnlyVl);
     m_attribVbh   = gfx.CreateVertexBuffer(_attribData, _attribLayout);
-    m_ibh         = gfx.CreateIndexBuffer(_idxData, _bUseU32);
+
+    // index buffer
+    const bool bUseU32 = std::cmp_greater(_positions.size(), Limits<UInt16>::kHighest);
+    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
 
     // compute bounding box
-    ComputeBoundingBox_(_positions);
+    m_boundingBox = {};
+    for (const Vec3& pos: _positions)
+    {
+        m_boundingBox.Merge(pos);
+    }
 
     // sort key
     Murmur3Hasher64 hasher {};
@@ -107,76 +116,82 @@ Mesh::Mesh(
     hasher.Mix(_attribData);
     hasher.Mix(_idxData);
     hasher.Mix(AsMemoryView(_attribLayout.GetHash()));
-    hasher.Mix(AsMemoryView(_bUseU32));
     const UInt64 hash = hasher.Finish();
     m_sortKey         = static_cast<UInt16>(hash);
-    m_bLoadedFromFile = false;
 }
 
 Mesh::Mesh(
     const Span<const Vec3> _positios,
-    const MemoryView       _idxData,
-    const bool             _bUseU32)
+    const MemoryView       _idxData)
 {
-    // gpu resource
+    // vertex buffer
     Graphics& gfx = GetGraphics();
     m_positionVbh = gfx.CreateVertexBuffer(_positios, s_positionOnlyVl);
-    m_attribVbh   = k_invalidHandle;
-    m_ibh         = gfx.CreateIndexBuffer(_idxData, _bUseU32);
+    m_attribVbh   = kInvalidHandle;
+
+    // index buffer
+    const bool bUseU32 = std::cmp_greater(_positios.size(), Limits<UInt16>::kHighest);
+    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
 
     // compute bounding box
-    ComputeBoundingBox_(_positios);
+    m_boundingBox = {};
+    for (const Vec3& pos: _positios)
+    {
+        m_boundingBox.Merge(pos);
+    }
 
     // sort key
     Murmur3Hasher64 hasher {};
     hasher.Mix(_positios);
     hasher.Mix(_idxData);
-    hasher.Mix(AsMemoryView(_bUseU32));
     const UInt64 hash = hasher.Finish();
     m_sortKey         = static_cast<UInt16>(hash);
-    m_bLoadedFromFile = false;
 }
 
-Error Mesh::Load_(
+Error Mesh::LoadFromFile_(
     const StringView _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // io
-    Expect<AssetLoader<MeshDto>> loader = MeshLoader::Open(_path);
+    Expect<AssetLoader<Dto::Mesh>> loader = MeshLoader::Open(_path);
     if (!loader)
     {
         return loader.GetError();
     }
 
     // deserialize
-    Expect<MeshDto> dto = loader->Read();
-    if (!dto)
+    Expect<Dto::Mesh> meshOrNot = loader->Read();
+    if (!meshOrNot)
     {
-        return dto.GetError();
+        return meshOrNot.GetError();
     }
 
     CleanUp_();
-    m_name = StringFrom(dto->name);
+
+    const Dto::Mesh& mesh = meshOrNot.GetValue();
+    m_name                = Dto::Unwrap(mesh.name);
 
     // gpu resource creation
     Graphics&  gfx     = GetGraphics();
-    const bool bUseU32 = dto->position.size() > Limits<UInt16>::k_highest;
-    m_positionVbh      = gfx.CreateVertexBuffer(dto->position, s_positionOnlyVl);
-    m_ibh              = gfx.CreateIndexBuffer(dto->idxData, bUseU32);
-    m_boundingBox      = dto->aabb.ToAabb();
+    const bool bUseU32 = mesh.positions.size() > Limits<UInt16>::kHighest;
+    m_positionVbh      = gfx.CreateVertexBuffer(mesh.positions, s_positionOnlyVl);
+    m_ibh              = gfx.CreateIndexBuffer(mesh.idxData, bUseU32);
+    m_boundingBox      = Unwrap(mesh.boundingBox);
 
     // attrib
-    if (!dto->attribData.empty())
+    if (!meshOrNot->attribData.empty())
     {
+        const Dto::VertexLayout& layout = mesh.attribLayout;
+
         VertexLayout vl = {};
-        for (Int32 i = 0; i < dto->attribLayout.numElems; ++i)
+        for (Int32 i = 0; i < layout.numElems; ++i)
         {
-            const VertexLayoutElementDto& elemDto = dto->attribLayout.elems[i];
-            vl.Push(elemDto.attrib, elemDto.format);
+            const Dto::VertexLayoutElement& elem = layout.elems[i];
+            vl.Push(elem.attrib, elem.format);
         }
 
-        m_attribVbh = gfx.CreateVertexBuffer(dto->attribData, vl);
+        m_attribVbh = gfx.CreateVertexBuffer(meshOrNot->attribData, vl);
     }
 
     // finalize
@@ -184,7 +199,6 @@ Error Mesh::Load_(
     const UInt32     hash = path.Hash32();
     m_sortKey             = static_cast<UInt16>(hash);
     m_path                = _path;
-    m_bLoadedFromFile     = true;
     return Error::None;
 }
 
@@ -199,7 +213,7 @@ Error Mesh::Save(
     String path = _path;
     if (_bReplaceExtension)
     {
-        path.ReplaceExtension(k_extension);
+        path.ReplaceExtension(kExtension);
     }
 
     Expect<MeshSaver> saver = MeshSaver::Open(path.ToStringView(), _policy);
@@ -214,55 +228,48 @@ Error Mesh::Save(
     const Int32               byteWidth = Max(vbInfo.byteWidth, ibInfo.byteWidth);
     const StorageBufferHandle readback  = gfx.CreateReadbackBuffer(byteWidth);
 
-    MeshDto dto = {};
-    dto.name    = StringViewDtoFrom(m_name);
-    dto.aabb    = AabbDto::FromAabb(m_boundingBox);
+    Dto::Mesh mesh   = {};
+    mesh.name        = Dto::Wrap(m_name);
+    mesh.boundingBox = Dto::Wrap(m_boundingBox);
 
     // vertex data
     gfx.CopyBuffer(readback, 0, m_positionVbh, 0, vbInfo.byteWidth);
-    dto.position.resize(vbInfo.byteWidth);
-    gfx.ReadBuffer(readback, dto.position);
+    mesh.positions.resize(vbInfo.byteWidth);
+    gfx.ReadBuffer(readback, mesh.positions);
 
     // index data
     gfx.CopyBuffer(readback, 0, m_ibh, 0, ibInfo.byteWidth);
-    dto.idxData.resize(ibInfo.byteWidth);
-    gfx.ReadBuffer(readback, dto.idxData);
+    mesh.idxData.resize(ibInfo.byteWidth);
+    gfx.ReadBuffer(readback, mesh.idxData);
 
     if (m_attribVbh)
     {
         // vertex layout
-        const VertexLayout vl     = gfx.GetVertexLayout(m_attribVbh);
-        dto.attribLayout.numElems = vl.GetNumElems();
+        const VertexLayout vl      = gfx.GetVertexLayout(m_attribVbh);
+        mesh.attribLayout.numElems = vl.GetNumElems();
 
         Int32 idx = 0;
-        for (const VertexLayoutElement& elem: vl.GetElems())
+        for (const VertexLayoutElement& e: vl.GetElems())
         {
-            VertexLayoutElementDto& elemDto = dto.attribLayout.elems[idx++];
-            elemDto.attrib                  = elem.attrib;
-            elemDto.format                  = elem.format;
+            Dto::VertexLayoutElement& elem = mesh.attribLayout.elems[idx++];
+            elem.format                    = e.format;
+            elem.attrib                    = e.attrib;
         }
 
         // attrib data
         const VertexBufferInfo& attribVbInfo = gfx.GetVertexBufferInfo(m_attribVbh);
         gfx.CopyBuffer(readback, 0, m_attribVbh, 0, attribVbInfo.byteWidth);
-        dto.attribData.resize(attribVbInfo.byteWidth);
-        gfx.ReadBuffer(readback, dto.attribData);
+        mesh.attribData.resize(attribVbInfo.byteWidth);
+        gfx.ReadBuffer(readback, mesh.attribData);
     }
 
-    return saver->Write(dto);
+    return saver->Write(mesh);
 }
 
 void Mesh::SetName(
     const StringView _name)
 {
     m_name = _name;
-}
-
-void Mesh::SetVirtualPath(
-    const StringView _path)
-{
-    JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of a file-loaded asset");
-    m_path = _path;
 }
 
 void Mesh::Invalidate()
@@ -282,17 +289,17 @@ StringView Mesh::GetPath() const
 
 eAsset Mesh::GetAssetType() const
 {
-    return k_assetType;
+    return kAssetType;
 }
 
 UInt32 Mesh::GetTypeHash() const
 {
-    return k_typeHash;
+    return kTypeHash;
 }
 
 StringView Mesh::GetTypeName() const
 {
-    return k_typeName;
+    return kTypeName;
 }
 
 UInt16 Mesh::GetSortKey() const
@@ -307,12 +314,12 @@ StringView Mesh::GetName() const
 
 StringView Mesh::GetExtension() const
 {
-    return k_extension;
+    return kExtension;
 }
 
 StringView Mesh::GetFilter() const
 {
-    return k_filter;
+    return kFilter;
 }
 
 VertexBufferHandle Mesh::GetVertexBuffer() const
@@ -334,17 +341,46 @@ void Mesh::Submit(
     const bool _bSubmitPositionOnly) const
 {
     Graphics& gfx = GetGraphics();
-
     if (!_bSubmitPositionOnly && m_attribVbh)
     {
-        gfx.SetVertexBuffer(m_positionVbh);
-        gfx.SetVertexBuffer(m_attribVbh);
+        VertexBufferBinding bindings[] = {
+            { m_positionVbh, 0 },
+            {   m_attribVbh, 0 }
+        };
+
+        gfx.SetVertexBuffers(bindings);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
     else
     {
         gfx.SetVertexBuffer(m_positionVbh);
+        gfx.SetIndexBuffer(m_ibh);
+        gfx.Submit();
+    }
+}
+
+void Mesh::Submit(
+    const VertexBufferHandle _instanceVbh,
+    const Int32              _instanceOffset,
+    const Int32              _numInstances,
+    const bool               _bSubmitPositionOnly) const
+{
+    Graphics& gfx = GetGraphics();
+    if (!_bSubmitPositionOnly && m_attribVbh)
+    {
+        VertexBufferBinding bindings[] = {
+            { m_positionVbh, 0 },
+            {   m_attribVbh, 0 }
+        };
+
+        gfx.SetVertexBuffers(bindings, kUseAll, _instanceVbh, _instanceOffset, _numInstances);
+        gfx.SetIndexBuffer(m_ibh);
+        gfx.Submit();
+    }
+    else
+    {
+        gfx.SetVertexBuffer(m_positionVbh, 0, kUseAll, _instanceVbh, _instanceOffset, _numInstances);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
@@ -360,19 +396,6 @@ void Mesh::CleanUp_()
     m_name.Clear();
     m_boundingBox = {};
     m_sortKey     = 0;
-}
-
-void Mesh::ComputeBoundingBox_(
-    const Span<const Vec3> _positions)
-{
-    JAM_ASSERT(m_positionVbh, "Position vertex buffer must be valid to compute bounding box.");
-
-    // compute aabb
-    m_boundingBox = {};
-    for (const Vec3& pos: _positions)
-    {
-        m_boundingBox.Merge(pos);
-    }
 }
 
 void WriteToArchive(

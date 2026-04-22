@@ -14,8 +14,8 @@ public:
 };
 
 #ifdef JAM_EDITOR_ENABLE
-JAM_MAIN(SandboxApp, "SandboxApp", k_editorDefaultFlags);
+JAM_MAIN(SandboxApp, "SandboxApp", kEditorDefaultFlags);
 #else
-JAM_MAIN(SandboxApp, "SandboxApp", k_runtimeDefaltFlags);
-// JAM_MAIN(SandboxApp, "SandboxApp", k_runtimeDefaltFlags | eAppCoreFlags::AllowTearing);
+JAM_MAIN(SandboxApp, "SandboxApp", kRuntimeDefaltFlags);
+// JAM_MAIN(SandboxApp, "SandboxApp", kRuntimeDefaltFlags | eAppCoreFlags::AllowTearing);
 #endif

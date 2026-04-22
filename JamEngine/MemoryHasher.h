@@ -5,14 +5,14 @@ namespace Jam
 
 namespace Details
 {
-    constexpr UInt32 k_murmur32Seed = 0x9747b28c;
-    constexpr UInt64 k_murmur64Seed = 0xc6a4a7935bd1e995;
+    constexpr UInt32 kMurmur32Seed = 0x9747b28c;
+    constexpr UInt64 kMurmur64Seed = 0xc6a4a7935bd1e995;
 }   // namespace Details
 
 class Murmur3Hasher32
 {
 public:
-    explicit Murmur3Hasher32(UInt32 _seed = Details::k_murmur32Seed);
+    explicit Murmur3Hasher32(UInt32 _seed = Details::kMurmur32Seed);
     void Mix(MemoryView _block);
     [[nodiscard]] UInt32 Finish() const;
 
@@ -24,7 +24,7 @@ private:
 class Murmur3Hasher64
 {
 public:
-    explicit Murmur3Hasher64(UInt64 _seed = Details::k_murmur64Seed);
+    explicit Murmur3Hasher64(UInt64 _seed = Details::kMurmur64Seed);
     void Mix(MemoryView _block);
     [[nodiscard]] UInt64 Finish() const;
 

@@ -59,7 +59,7 @@ static std::vector<Entity> SpawnEntities(BenchScene& _scene, int _count)
 
                 Entity         e    = _scene.CreateEntity();
                 AabbComponent& comp = e.CreateComponent<AabbComponent>();
-                comp.aabb           = Aabb::FromCenterExtents(Numbers<Vec3>::k_zero, Vec3(ext));
+                comp.aabb           = Aabb::FromCenterExtents(Vec3::k_zero, Vec3(ext));
                 e.ModifyWorldTransform().SetTranslation(center);
 
                 entities.push_back(e);
@@ -113,8 +113,8 @@ static auto FrustumIntersect()
 // near=0.5, far=500, fov=90°, aspect=16/9
 static Frustum MakeGameFrustum(const Vec3 _pos, const Vec3 _lookAt)
 {
-    const Mtx4 view = Mtx4::CreateLookAt(_pos, _lookAt, Vec3(0.f, 1.f, 0.f));
-    const Mtx4 proj = Mtx4::CreatePerspectiveFieldOfView(
+    const Matrix view = Matrix::CreateLookAt(_pos, _lookAt, Vec3(0.f, 1.f, 0.f));
+    const Matrix proj = Matrix::CreatePerspectiveFieldOfView(
         k_halfPi,     // fov 90°
         16.f / 9.f,   // aspect
         0.5f,         // near

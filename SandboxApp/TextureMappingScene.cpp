@@ -1,53 +1,54 @@
 #include "pch.h"
 #include "TextureMappingScene.h"
 
+#include "Gui.h"
 #include "../JamEngine/AssimpImporter.h"
 
 namespace
 {
 
-constexpr Int32 k_linearSamplerSlot = 0;
-constexpr Int32 k_albedoTextureSlot = 0;
-constexpr Int32 k_aoTextureSlot     = 1;
-constexpr Int32 k_normalTextureSlot = 2;
+constexpr Int32 kLinearSamplerSlot = 0;
+constexpr Int32 kAlbedoTextureSlot = 0;
+constexpr Int32 kAoTextureSlot     = 1;
+constexpr Int32 kNormalTextureSlot = 2;
 
 struct CBTextureMappingSceneEntity
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4   cb_world         = Numbers<Mtx4>::k_identity;
-    Mtx4   cb_worldInvTrans = Numbers<Mtx4>::k_identity;
+    Mtx4   cb_world         = Mtx4::kIdentity;
+    Mtx4   cb_worldInvTrans = Mtx4::kIdentity;
     UInt32 cb_flags         = 0;
     float  padding[3]       = {};
 };
 
 struct CBTextureMappingSceneCamera
 {
-    static constexpr Int32 k_slot = 1;
+    static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Numbers<Vec3>::k_zero;
+    Vec3  cb_eyePos   = Vec3::kZero;
     float padding1    = 0.f;
-    Mtx4  cb_viewProj = Numbers<Mtx4>::k_identity;
+    Mtx4  cb_viewProj = Mtx4::kIdentity;
 };
 
 struct CBTextureMappingSceneLight
 {
-    static constexpr Int32 k_slot = 2;
+    static constexpr Int32 kSlot = 2;
 
     Vec3  cb_lightDir     = { 0.f, -1.f, 0.f };
     float padding2        = 0.f;
-    Vec3  cb_lightColor   = Numbers<Vec3>::k_one;
+    Vec3  cb_lightColor   = Vec3::kOne;
     float padding3        = 0.f;
-    Vec3  cb_ambientColor = Numbers<Vec3>::k_one;
+    Vec3  cb_ambientColor = Vec3::kOne;
     float padding4        = 0.f;
 };
 
 struct TextureMappingSceneVertex
 {
-    Vec3 pos      = Numbers<Vec3>::k_zero;
-    Vec2 texcoord = Numbers<Vec2>::k_zero;
-    Vec3 normal   = Numbers<Vec3>::k_zero;
-    Vec3 tangent  = Numbers<Vec3>::k_zero;
+    Vec3 pos      = Vec3::kZero;
+    Vec2 texcoord = Vec2::kZero;
+    Vec3 normal   = Vec3::kZero;
+    Vec3 tangent  = Vec3::kZero;
 
     inline static VertexLayout s_layout = [] {
         VertexLayout layout = {};
@@ -134,13 +135,13 @@ void TextureMappingScene::OnRender(
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4                  vpMtx    = m_cameraTransform.GetMatrix().Invert() * m_camera.GetProjMatrix();
+    const Mtx4                  vpMtx    = m_cameraTransform.GetSRT().Invert() * m_camera.GetProj();
     CBTextureMappingSceneCamera cbCamera = {};
     cbCamera.cb_eyePos                   = m_cameraTransform.GetTranslation();
     cbCamera.cb_viewProj                 = vpMtx.Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBTextureMappingSceneCamera::k_slot);
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBTextureMappingSceneCamera::k_slot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBTextureMappingSceneCamera::kSlot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBTextureMappingSceneCamera::kSlot);
 
     // light
     CBTextureMappingSceneLight cbLight = {};
@@ -148,24 +149,24 @@ void TextureMappingScene::OnRender(
     cbLight.cb_lightColor              = m_lightColor;
     cbLight.cb_ambientColor            = m_ambientColor;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBTextureMappingSceneLight::k_slot);
+    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBTextureMappingSceneLight::kSlot);
 
     // textures & sampler
-    m_pAlbedo->Bind(eShader::PixelShader, k_albedoTextureSlot);
-    m_pAo->Bind(eShader::PixelShader, k_aoTextureSlot);
-    m_pNormal->Bind(eShader::PixelShader, k_normalTextureSlot);
+    m_pAlbedo->Bind(eShader::PixelShader, kAlbedoTextureSlot);
+    m_pAo->Bind(eShader::PixelShader, kAoTextureSlot);
+    m_pNormal->Bind(eShader::PixelShader, kNormalTextureSlot);
 
     // entity
-    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBTextureMappingSceneEntity::k_slot);
-    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBTextureMappingSceneEntity::k_slot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBTextureMappingSceneEntity::kSlot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBTextureMappingSceneEntity::kSlot);
 
     CBTextureMappingSceneEntity cbEntity      = {};
-    constexpr Int32             k_numEntities = 1;
-    for (Int32 i = 0; i < k_numEntities; ++i)
+    constexpr Int32             kNumEntities = 1;
+    for (Int32 i = 0; i < kNumEntities; ++i)
     {
         float t   = static_cast<float>(i) * 15.f;
         float yaw = m_entityYawRad + ToRad(t);
-        float x   = static_cast<float>(i - k_numEntities / 2);
+        float x   = static_cast<float>(i - kNumEntities / 2);
 
         const Mtx4 world          = Mtx4::CreateFromYawPitchRoll(yaw, 0.f, 0.f) * Mtx4::CreateTranslation(x, 0.f, 0.f);
         cbEntity.cb_world         = world.Transpose();
@@ -186,7 +187,11 @@ void TextureMappingScene::OnRender(
 
 void TextureMappingScene::OnImGuiRender()
 {
-    ImGui::Begin("TextureMappingScene Controller");
+    if (!BeginSceneInspectorWindows("TextureMappingScene"))
+    {
+        ImGui::End();
+        return;
+    }
 
     ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
     ImGui::Separator();

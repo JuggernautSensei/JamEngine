@@ -17,16 +17,16 @@ enum class eTextureChannel
 
 struct MaterialParams
 {
-    Vec3  ambient   = Numbers<Vec3>::k_one;
-    Vec3  diffuse   = Numbers<Vec3>::k_one;
-    Vec3  specular  = Numbers<Vec3>::k_one;
+    Vec3  ambient   = Vec3::kOne;
+    Vec3  diffuse   = Vec3::kOne;
+    Vec3  specular  = Vec3::kOne;
     float shininess = 32.0f;
 
-    Vec3  albedo    = Numbers<Vec3>::k_one;
+    Vec3  albedo    = Vec3::kOne;
     float roughness = 1.f;
     float metallic  = 1.f;
 
-    Vec3  emissive          = Numbers<Vec3>::k_zero;
+    Vec3  emissive          = Vec3::kZero;
     float emissiveIntensity = 1.f;
 
     bool bAlphaCutout = false;
@@ -44,7 +44,6 @@ enum class eMaterialTexture
     Ao,
     VertexDisplacement,
 };
-using MaterialTextures = EnumArray<eMaterialTexture, Ref<Texture>>;
 
 struct MaterialTextureSettings
 {
@@ -56,30 +55,29 @@ struct MaterialTextureSettings
     eTextureChannel roughnessMapChannel        = eTextureChannel::Red;
 };
 
-struct MaterialDesc
-{
-    MaterialParams          params   = {};
-    MaterialTextures        textures = {};
-    MaterialTextureSettings settings = {};
-};
-
 class Material : public IAsset
 {
 public:
-    [[nodiscard]] static Ref<Material>         Load(const MaterialDesc& _desc);
+    [[nodiscard]] static Ref<Material>         Load();
     [[nodiscard]] static Expect<Ref<Material>> LoadFromFile(StringView _path);
 
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
-    void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
-    void                              SetDesc(const MaterialDesc& _desc);
-    [[nodiscard]] const MaterialDesc& GetDesc() const;
+    void SetParams(const MaterialParams& _params);
+    void SetTextures(const EnumArray<eMaterialTexture, Ref<Texture>>& _textures);
+    void SetTexture(eMaterialTexture _type, const Ref<Texture>& _texture);
+    void SetSettings(const MaterialTextureSettings& _settings);
+
+    [[nodiscard]] const MaterialParams&                            GetParams() const;
+    [[nodiscard]] const EnumArray<eMaterialTexture, Ref<Texture>>& GetTextures() const;
+    [[nodiscard]] const Ref<Texture>&                              GetTexture(eMaterialTexture _type) const;
+    [[nodiscard]] const MaterialTextureSettings&                   GetSettings() const;
 
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] StringView GetPath() const override;
-    [[nodiscard]] eAsset GetAssetType() const override;
+    [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt32     GetTypeHash() const override;
     [[nodiscard]] UInt16     GetSortKey() const;
@@ -87,25 +85,25 @@ public:
     [[nodiscard]] StringView GetExtension() const override;
     [[nodiscard]] StringView GetFilter() const override;
 
-    static constexpr StringView k_typeName  = NameOf<Material>();
-    static constexpr UInt32     k_typeHash  = HashOf<Material>();
-    static constexpr eAsset k_assetType = eAsset::Material;
-    static constexpr StringView k_extension = ".jmat";
-    static constexpr StringView k_filter    = "*.jmat";
+    static constexpr StringView kTypeName  = NameOf<Material>();
+    static constexpr UInt32     kTypeHash  = HashOf<Material>();
+    static constexpr eAsset     kAssetType = eAsset::Material;
+    static constexpr StringView kExtension = ".jmat";
+    static constexpr StringView kFilter    = "*.jmat";
 
 private:
-    Material() = default;
-    explicit Material(const MaterialDesc& _desc);
-    Error Load_(StringView _path) override;
+    Material();
+    Error LoadFromFile_(StringView _path) override;
     void  CleanUp_();
 
-    String m_name            = {};
-    String m_path            = {};
-    UInt16 m_sortKey         = 0;
-    bool   m_bValid          = false;
-    bool   m_bLoadedFromFile = false;
+    String m_name    = {};
+    String m_path    = {};
+    UInt16 m_sortKey = 0;
+    bool   m_bValid  = false;
 
-    MaterialDesc m_desc = {};
+    MaterialParams                            m_params   = {};
+    EnumArray<eMaterialTexture, Ref<Texture>> m_textures = {};
+    MaterialTextureSettings                   m_settings = {};
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Material>& _pMaterial);

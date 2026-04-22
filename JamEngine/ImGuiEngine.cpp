@@ -14,7 +14,7 @@ namespace Jam
 namespace
 {
 
-    constexpr const char* k_imguiGlueVs =
+    constexpr const char* kImguiGlueVs =
         "cbuffer vertexBuffer : register(b0)\n"
         "{\n"
         "    float4x4 ProjectionMatrix;\n"
@@ -42,7 +42,7 @@ namespace
         "    return output;\n"
         "}\n";
 
-    constexpr const char* k_imguiGlueBasicPs =
+    constexpr const char* kImguiGlueBasicPs =
         "struct PS_INPUT\n"
         "{\n"
         "    float4 pos : SV_POSITION;\n"
@@ -59,7 +59,7 @@ namespace
         "    return out_col;\n"
         "}\n";
 
-    constexpr const char* k_imguiGlueTextureCubePs =
+    constexpr const char* kImguiGlueTextureCubePs =
         "struct PS_INPUT\n"
         "{\n"
         "    float4 pos : SV_POSITION;\n"
@@ -69,15 +69,15 @@ namespace
         "\n"
         "sampler sampler0;\n"
         "TextureCube texture0;\n"
-        "static const float2 k_center = float2(0.5f, 0.5f);\n"
-        "static const float k_padding = 0.01f;\n"
-        "static const float k_radius = 0.5f - k_padding;\n"
+        "static const float2 kCenter = float2(0.5f, 0.5f);\n"
+        "static const float kPadding = 0.01f;\n"
+        "static const float kRadius = 0.5f - kPadding;\n"
         "\n"
         "float4 main(PS_INPUT input) : SV_Target\n"
         "{\n"
-        "    float dist = length(input.uv - k_center);\n"
-        "    float weight = step(dist, k_radius); // dist <= k_radius : 1\n"
-        "    float3 dir = float3(input.uv - k_center, sqrt(1.f - dist * dist));\n"
+        "    float dist = length(input.uv - kCenter);\n"
+        "    float weight = step(dist, kRadius); // dist <= kRadius : 1\n"
+        "    float3 dir = float3(input.uv - kCenter, sqrt(1.f - dist * dist));\n"
         "    dir = normalize(dir);\n"
         "    float4 out_col = input.col * texture0.Sample(sampler0, dir) * weight;\n"
         "    return out_col;\n"
@@ -90,7 +90,7 @@ namespace
 
     struct TextureData
     {
-        TextureHandle texh = k_invalidHandle;
+        TextureHandle texh = kInvalidHandle;
         eTexture      type = eTexture::Texture2D;
     };
 
@@ -98,14 +98,14 @@ namespace
         const TextureHandle _texh,
         const eTexture      _type)
     {
-        return (NarrowCast<UInt64>(_texh.GetValue()) << 32) | NarrowCast<UInt64>(UnderlyingFrom(_type));
+        return (static_cast<UInt64>(_texh.GetValue()) << 32) | static_cast<UInt64>(UnderlyingFrom(_type));
     }
 
     TextureData TextureDataFrom_(
         const ImTextureID _texId)
     {
         TextureData texData = {};
-        texData.texh        = TextureHandle { NarrowCast<UInt32>(_texId >> 32) };
+        texData.texh        = TextureHandle { static_cast<UInt32>(_texId >> 32) };
         texData.type        = static_cast<eTexture>(_texId & 0xFFFFFFFF);
         return texData;
     }
@@ -147,9 +147,9 @@ ImGuiEngine::ImGuiEngine(
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures;
 
     // create shaders
-    m_vsh            = CreateShader(k_imguiGlueVs, eShader::VertexShader);
-    m_basicPsh       = CreateShader(k_imguiGlueBasicPs, eShader::PixelShader);
-    m_textureCubePsh = CreateShader(k_imguiGlueTextureCubePs, eShader::PixelShader);
+    m_vsh            = CreateShader(kImguiGlueVs, eShader::VertexShader);
+    m_basicPsh       = CreateShader(kImguiGlueBasicPs, eShader::PixelShader);
+    m_textureCubePsh = CreateShader(kImguiGlueTextureCubePs, eShader::PixelShader);
 
     // create program
     Graphics& gfx   = GetGraphics();
@@ -235,10 +235,10 @@ void ImGuiEngine::BeginFrame() const
 void ImGuiEngine::EndFrame()
 {
     // 백버퍼 바인딩
-    Graphics&            gfx   = GetGraphics();
-    const GraphicsStats& stats = gfx.GetStats();
-    gfx.SetFrameBuffer(k_invalidHandle);
-    gfx.SetViewport(0, 0, stats.backBufferWidth, stats.backBufferHeight);
+    Graphics&   gfx = GetGraphics();
+    const Vec2i res = gfx.GetBackBufferResolution();
+    gfx.SetFrameBuffer(kInvalidHandle);
+    gfx.SetViewport(0, 0, res.w, res.h);
 
     // draw data 처리
     ImGui::Render();
@@ -293,7 +293,7 @@ void ImGuiEngine::Render_(
     if (m_ibCap < _pDrawData->TotalIdxCount)
     {
         JAM_DESTROY_INDEX_BUFFER(m_ibh);
-        const bool bUseU32 = std::cmp_greater(_pDrawData->TotalVtxCount, Limits<UInt16>::k_highest);
+        const bool bUseU32 = std::cmp_greater(_pDrawData->TotalVtxCount, Limits<UInt16>::kHighest);
         m_ibCap            = _pDrawData->TotalIdxCount + 10000;
         m_ibh              = gfx.CreateDynamicIndexBuffer(m_ibCap, bUseU32);
     }
@@ -411,7 +411,7 @@ void ImGuiEngine::Render_(
     gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, 0);
 
     // reset texture
-    gfx.SetTexture(k_invalidHandle, eShader::PixelShader, 0);
+    gfx.SetTexture(kInvalidHandle, eShader::PixelShader, 0);
     gfx.Touch();
 }
 

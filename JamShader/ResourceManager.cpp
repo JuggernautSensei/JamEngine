@@ -5,7 +5,7 @@ void ResourceManager::OnUpdate(
     const float _dt)
 {
     m_garbageCollectCounterSec += _dt;
-    if (m_garbageCollectCounterSec >= k_garbageCollectInterval)
+    if (m_garbageCollectCounterSec >= kGarbageCollectInterval)
     {
         CleanUpGarbage();
         m_garbageCollectCounterSec = 0.f;

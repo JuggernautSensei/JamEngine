@@ -21,8 +21,6 @@ class Material;
 class Model;
 class Mesh;
 
-constexpr Int32 k_invalidImportedTextureIdx = -1;
-
 struct ImportedMesh
 {
     String name = {};
@@ -37,19 +35,12 @@ struct ImportedMesh
     bool                   bUseU32    = false;
 };
 
-using ImportedMaterialTexture = EnumArray<eMaterialTexture, Int32>;
-
 struct ImportedMaterial
 {
-    ImportedMaterial()
-    {
-        textures.Fill(k_invalidImportedTextureIdx);
-    }
-
-    String                  name     = {};
-    MaterialParams          params   = {};
-    MaterialTextureSettings settings = {};
-    ImportedMaterialTexture textures = {};
+    String                             name     = {};
+    MaterialParams                     params   = {};
+    EnumArray<eMaterialTexture, Int32> textures = {};
+    MaterialTextureSettings            settings = {};
 };
 
 struct ImportedTexture
@@ -60,7 +51,6 @@ struct ImportedTexture
     Int32        height        = 0;
     eImageFormat format        = {};
     bool         bIsCompressed = false;
-    bool         bPlaceholder  = false;   // for import failed
 };
 
 enum class eAssimpImporterFlags : UInt32
@@ -79,14 +69,15 @@ enum class eAssimpImporterFlags : UInt32
 
 enum class eAssimpConvertToModelFlags : UInt32
 {
-    None     = 0,
+    None = 0,
+
     Mesh     = 1 << 0,
     Material = 1 << 1,
     Texture  = 1 << 2,
-    All      = Mesh | Material | Texture
-};
+    All      = Mesh | Material | Texture,
 
-using ImportedModelNode = ModelNode;   // 동일한 구조이므로 별도 정의 없이 재사용
+    NoInvalidate = 1 << 3,   // 변환 후에도 모델 데이터를 무효화하지 않음. 기본 동작은 무효화이며, 이 경우가 성능적으로 더 빠름.
+};
 
 class AssimpImporter
 {
@@ -94,12 +85,12 @@ public:
     [[nodiscard]] static Expect<AssimpImporter> ImportFromMemory(MemoryView _data, const Flags<eAssimpImporterFlags>& _flags);
     [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(StringView _path, const Flags<eAssimpImporterFlags>& _flags);
 
-    [[nodiscard]] const ImportedModelNode&        GetRoot() const;
+    [[nodiscard]] const ModelNode&                GetRoot() const;
     [[nodiscard]] const Vector<ImportedMesh>&     GetMeshes() const;
     [[nodiscard]] const Vector<ImportedMaterial>& GetMaterials() const;
     [[nodiscard]] const Vector<ImportedTexture>&  GetTextures() const;
 
-    [[nodiscard]] Expect<Ref<Model>> ConvertToModel(const VertexLayout& _attribLayoutOrEmpty, Flags<eAssimpConvertToModelFlags> _flags = eAssimpConvertToModelFlags::All);   // AssimpImporter is invalidate after successful
+    [[nodiscard]] Expect<Ref<Model>> ConvertToModel(const VertexLayout& _attribLayoutOrEmpty, Flags<eAssimpConvertToModelFlags> _flags = eAssimpConvertToModelFlags::All);
 
 private:
     AssimpImporter() = default;
@@ -110,19 +101,18 @@ private:
     void   PreImport_(Assimp::Importer& _importer, const Flags<eAssimpImporterFlags>& _flags) const;
 
     // import steps
-    void                            ImportMeshes_(const aiScene* _pScene);
-    Error                           ImportTextures_(const aiScene* _pScene);
-    void                            ImportMaterials_(const aiScene* _pScene);
-    void                            ImportModelNode_(const aiScene* _pScene);
-    [[nodiscard]] ImportedModelNode ImportModelNode_Recursive_(const aiScene* _pScene, const aiNode* _pNode);
+    void                    ImportMeshes_(const aiScene* _pScene);
+    Error                   ImportTextures_(const aiScene* _pScene);
+    void                    ImportMaterials_(const aiScene* _pScene);
+    void                    ImportModelNode_(const aiScene* _pScene);
+    [[nodiscard]] ModelNode ImportModelNode_Recursive_(const aiScene* _pScene, const aiNode* _pNode);
 
     // convert
     [[nodiscard]] Vector<Ref<Mesh>>            ConvertToMeshes_(const VertexLayout& _attribLayoutOrEmpty) const;
     [[nodiscard]] Expect<Vector<Ref<Texture>>> ConvertToTextures_() const;
     [[nodiscard]] Vector<Ref<Material>>        ConvertToMaterials_(const Vector<Ref<Texture>>& _texturesOrEmpty) const;
 
-    bool                     m_bExtracted        = false;
-    ImportedModelNode        m_importedRoot      = {};
+    ModelNode                m_importedRoot      = {};
     Vector<ImportedMesh>     m_importedMeshes    = {};
     Vector<ImportedMaterial> m_importedMaterials = {};
     Vector<ImportedTexture>  m_importedTextures  = {};

@@ -125,9 +125,9 @@ private:
     ShaderItemEditorWindow m_shaderItemEditorWindow = {};
     ImGuiID                m_dockspaceID            = 0;
 
-    constexpr static StringView k_appName                    = "JamShader";
-    constexpr static StringView k_configFileName             = "Config.json";
-    constexpr static float      k_configFileAutoSaveInterval = 10.f;   // seconds
+    constexpr static StringView kAppName                    = "JamShader";
+    constexpr static StringView kConfigFileName             = "Config.json";
+    constexpr static float      kConfigFileAutoSaveInterval = 10.f;   // seconds
 };
 
 [[nodiscard]] inline ShaderApp& GetShaderApp()

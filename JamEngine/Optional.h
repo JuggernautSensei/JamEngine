@@ -11,7 +11,7 @@ struct NullOptionalT
 
     constexpr explicit NullOptionalT(Tag) {}
 };
-constexpr NullOptionalT k_nullopt { NullOptionalT::Tag() };
+constexpr NullOptionalT kNullopt { NullOptionalT::Tag() };
 
 struct OptionalDummyT
 {

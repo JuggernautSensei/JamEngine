@@ -466,19 +466,13 @@ ImTextureProxy::ImTextureProxy(
 {
 }
 
-void EulerProxy::OnBeforeWidget(const Vec3& _forward)
+void EulerProxy::OnBeforeWidget(
+    const Vec3 _forward)
 {
     if (!m_bIsEditing)
     {
-        m_eulerRad = EulerFrom(_forward);
-    }
-}
-
-void EulerProxy::OnBeforeWidget(const Mtx4& _mtx)
-{
-    if (!m_bIsEditing)
-    {
-        m_eulerRad = _mtx.ToEuler();
+        Quat q     = Quat::FromLookAt(_forward, Vec3::kUp);
+        m_eulerRad = q.ToEuler();
     }
 }
 
@@ -1218,12 +1212,12 @@ bool Widget_Acroball(
         const ImVec2 delta = s_dragHelper.GetDragDelta();
         if (!IsZeroApprox(delta))
         {
-            constexpr float k_sensitivity = 0.005f;
+            constexpr float kSensitivity = 0.005f;
 
             // apply rotation
             Vec3& euler = s_proxy.GetEulerProxy();
-            euler.x     = Wrap(euler.x + delta.x * k_sensitivity, -Numbers<float>::k_2pi, Numbers<float>::k_2pi);
-            euler.y     = Clamp(euler.y + delta.y * k_sensitivity, ToRad(-89.f), ToRad(89.f));
+            euler.x     = Wrap(euler.x + delta.x * kSensitivity, -k2Pi, k2Pi);
+            euler.y     = Clamp(euler.y + delta.y * kSensitivity, ToRad(-89.f), ToRad(89.f));
             euler.z     = 0.f;   // no roll
             _t.SetRotation(euler);
 

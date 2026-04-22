@@ -27,10 +27,10 @@ private:
 
 #define JAM_EVENT_BODY(_eventT)                                                     \
 public:                                                                             \
-    constexpr static StringView k_typeName = NameOf<_eventT>();                     \
-    constexpr static UInt32     k_typeHash = HashOf<_eventT>();                     \
-    [[nodiscard]] StringView    GetTypeName() const override { return k_typeName; } \
-    [[nodiscard]] UInt32        GetTypeHash() const override { return k_typeHash; } \
+    constexpr static StringView kTypeName = NameOf<_eventT>();                     \
+    constexpr static UInt32     kTypeHash = HashOf<_eventT>();                     \
+    [[nodiscard]] StringView    GetTypeName() const override { return kTypeName; } \
+    [[nodiscard]] UInt32        GetTypeHash() const override { return kTypeHash; } \
     constexpr static bool       __JAM_EVENT_MARKER__ = true;                        \
                                                                                     \
 private:                                                                            \
@@ -70,7 +70,7 @@ public:
             return;
         }
 
-        if (m_typeHash == TEvent::k_typeHash)
+        if (m_typeHash == TEvent::kTypeHash)
         {
             TEvent& event = *static_cast<TEvent*>(m_event);
             _func(event);
@@ -86,7 +86,7 @@ public:
             return;
         }
 
-        if (m_typeHash == TEvent::k_typeHash)
+        if (m_typeHash == TEvent::kTypeHash)
         {
             TEvent& event = *static_cast<TEvent*>(m_event);
             (_caller->*_method)(event);

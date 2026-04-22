@@ -411,8 +411,13 @@
     <ClInclude Include="Bit.h" />
     <ClInclude Include="CppHlslGlue.h" />
     <ClCompile Include="DebugRenderer.cpp" />
+    <ClCompile Include="Float16.cpp" />
+    <ClCompile Include="MathConstant.cpp" />
+    <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MemoryView.cpp" />
     <ClCompile Include="MessageDilaog.cpp" />
+    <ClCompile Include="Quaternion.cpp" />
+    <ClCompile Include="Random.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="SceneDatabase.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
@@ -549,6 +554,7 @@
     <ClCompile Include="TypeTraits.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UIDAllocator.cpp" />
+    <ClCompile Include="Vector.cpp" />
     <ClCompile Include="Vendor\ImGuizmo\ImGuizmo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
@@ -603,8 +609,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebugRenderer.h" />
+    <ClInclude Include="Float16.h" />
+    <ClInclude Include="MathConstant.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="MemoryView.h" />
     <ClInclude Include="MessageDialog.h" />
+    <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="Random.h" />
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="SceneDatabase.h" />
     <ClInclude Include="Blob.h" />
@@ -745,6 +756,7 @@
     <ClInclude Include="TypeTraits.h" />
     <ClInclude Include="UID.h" />
     <ClInclude Include="UIDAllocator.h" />
+    <ClInclude Include="Vector.h" />
     <ClInclude Include="Vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Vendor\imgui\imconfig.h" />
     <ClInclude Include="Vendor\imgui\imgui.h" />

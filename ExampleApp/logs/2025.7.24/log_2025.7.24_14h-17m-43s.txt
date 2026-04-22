@@ -1,0 +1,13 @@
+[2025-07-24 14:17:43.979] [trace] log system initialized
+[2025-07-24 14:17:43.980] [info] Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:49.106] [info] Selected file: C:\Users\Ahnjiwoo\Downloads\142966611\1 (1).jpg
+[2025-07-24 14:17:54.181] [trace] log system shutdown

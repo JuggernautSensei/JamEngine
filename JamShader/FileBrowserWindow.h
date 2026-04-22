@@ -49,5 +49,5 @@ private:
     Project*               m_pProjectCache                        = nullptr;
     bool                   m_bFileEntriesDirty                    = true;
     float                  m_fileEntryGatheringIntervalCounterSec = 0.1f;
-    constexpr static float k_fileEntryGatheringDebounceTimeSec    = 0.1f;
+    constexpr static float kFileEntryGatheringDebounceTimeSec    = 0.1f;
 };

@@ -146,7 +146,7 @@ void ExportProjectDialog::OnShow()
 
 bool ExportProjectDialog::TryLoadSetting_()
 {
-    const String path = String::Joined(m_pProject->GetWorkingDirectory(), k_exportProjectDialogSettingFileName);
+    const String path = String::Joined(m_pProject->GetWorkingDirectory(), kExportProjectDialogSettingFileName);
     if (!FileSystem::Exists(path))
     {
         return false;
@@ -168,7 +168,7 @@ bool ExportProjectDialog::TryLoadSetting_()
 
 void ExportProjectDialog::SaveSetting_() const
 {
-    const String path = String::Joined(m_pProject->GetWorkingDirectory(), k_exportProjectDialogSettingFileName);
+    const String path = String::Joined(m_pProject->GetWorkingDirectory(), kExportProjectDialogSettingFileName);
 
     JsonWriter writer = {};
     writer.Write(m_setting);

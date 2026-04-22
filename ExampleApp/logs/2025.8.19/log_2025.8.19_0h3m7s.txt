@@ -1,0 +1,18 @@
+[2025.08.19 00:03:07] [trace] CORE: log system initialized
+[2025.08.19 00:03:07] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544, resizeType: 0
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720, resizeType: 0
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 235
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2560, height: 1334, resizeType: 0
+[2025.08.19 00:03:07] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.19 00:03:08] [trace] CORE: Dispatching event: WindowMoveEvent: x: 0, y: 34
+[2025.08.19 00:03:08] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2560, height: 1334, resizeType: 2
+[2025.08.19 00:03:08] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.19 00:03:30] [trace] CORE: Dispatching event: AssetLoadEvent: asset type: Texture, asset asset: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures\1 (4).jpg
+[2025.08.19 00:03:43] [trace] CORE: Dispatching event: AssetModifiedEvent: asset type: Texture, asset asset: contents\assets\textures\1 (4).jpg
+[2025.08.19 00:03:45] [trace] CORE: Dispatching event: AssetUnloadEvent: asset type: Texture, asset asset: contents\assets\textures\1 (4).jpg
+[2025.08.19 00:03:47] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.19 00:03:47] [trace] CORE: log system shutdown

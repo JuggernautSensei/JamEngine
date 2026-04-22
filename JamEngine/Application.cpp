@@ -33,6 +33,11 @@ Int32 Application::Run(
 
     TickTimer timer = {};
     timer.Start();
+
+    ImGuiEngine& imgui = GetImGuiEngine();
+    Graphics&    gfx   = GetGraphics();
+    Input&       input = GetInput();
+
     while (m_bRunning)
     {
         if (!GetWindowsPlatform().PollEvents())
@@ -46,12 +51,12 @@ Int32 Application::Run(
             Update(m_deltaTimeSec);
             Render();
 
-            GetImGuiEngine().BeginFrame();
+            imgui.BeginFrame();
             ImGuiRender();
-            GetImGuiEngine().EndFrame();
+            imgui.EndFrame();
 
-            GetGraphics().Frame(m_bVsync);   // present
-            GetInput().Update();             // update input
+            gfx.Frame(m_bVsync);   // present
+            input.Update();        // update input
         }
     }
 
@@ -174,12 +179,14 @@ void Application::Update(float _dt)
     if (m_coreFlags & eAppCoreFlags::Editor)
     {
         JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        GetEditor().Update(m_deltaTimeSec);
+        Editor& editor = GetEditor();
+        editor.Update(m_deltaTimeSec);
     }
     else
     {
         JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        GetSceneManager().Update(m_deltaTimeSec);
+        SceneManager& sMgr = GetSceneManager();
+        sMgr.Update(m_deltaTimeSec);
     }
 }
 
@@ -188,12 +195,14 @@ void Application::Render()
     if (m_coreFlags & eAppCoreFlags::Editor)
     {
         JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        GetEditor().Render();
+        Editor& editor = GetEditor();
+        editor.Render();
     }
     else
     {
         JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        GetSceneManager().RenderRuntime();
+        SceneManager& sMgr = GetSceneManager();
+        sMgr.RenderRuntime();
     }
 }
 
@@ -254,9 +263,10 @@ void Application::CoreInit()
     GetWindowsPlatform().SetTitle(m_appName);
 
     // init graphics
-    const auto [w, h] = GetWindowsPlatform().GetClientResolution();
-    const HWND hWnd   = GetWindowsPlatform().GetPlatformHandle();
-    Graphics::CreateInstance(hWnd, w, h, m_coreFlags.IsEnabled(eAppCoreFlags::AllowTearing));
+    WindowsPlatform& win  = GetWindowsPlatform();
+    const Vec2i      res  = win.GetClientResolution();
+    const HWND       hWnd = win.GetPlatformHandle();
+    Graphics::CreateInstance(hWnd, res.w, res.h, m_coreFlags.IsEnabled(eAppCoreFlags::AllowTearing));
 
     // init input
     Input::CreateInstance();

@@ -18,7 +18,7 @@ static Entity CreateEntity(OctreeTestScene& _scene, const Vec3 _center, const Ve
 {
     Entity         e    = _scene.CreateEntity();
     AabbComponent& comp = e.CreateComponent<AabbComponent>();
-    comp.aabb           = Aabb::FromCenterExtents(Numbers<Vec3>::k_zero, _extents);
+    comp.aabb           = Aabb::FromCenterExtents(Vec3::k_zero, _extents);
     e.ModifyWorldTransform().SetTranslation(_center);
     return e;
 }
@@ -27,14 +27,14 @@ static Aabb MakeWorldAabb(OctreeTestScene& _scene, const Entity _entity)
 {
     const SceneNode&     node = _entity.GetComponent<SceneComponent>().node;
     const AabbComponent& comp = _entity.GetComponent<AabbComponent>();
-    return comp.aabb.Transformed(node.GetWorldTransform().GetMatrix());
+    return comp.aabb.Transform(node.GetWorldTransform().GetSRT());
 }
 
 static void InsertAll(OctreeTestScene& _scene, Octree<std::monostate>& _octree)
 {
     for (auto&& [_, sc, aabb]: _scene.Each<SceneComponent, AabbComponent>())
     {
-        const Aabb aabbW = aabb.aabb.Transformed(sc.node.GetWorldTransform().GetMatrix());
+        const Aabb aabbW = aabb.aabb.Transform(sc.node.GetWorldTransform().GetSRT());
         _octree.Insert(sc.node.GetOwner(), aabbW, {});
     }
 }
@@ -710,7 +710,7 @@ TEST(Octree, UserData_StoreAndRetrieve)
 
     Entity e    = scene.CreateEntity();
     auto&  comp = e.CreateComponent<AabbComponent>();
-    comp.aabb   = Aabb::FromCenterExtents(Numbers<Vec3>::k_zero, Vec3(1.f));
+    comp.aabb   = Aabb::FromCenterExtents(Vec3::k_zero, Vec3(1.f));
     e.ModifyWorldTransform().SetTranslation(Vec3(0.f));
 
     octree.Insert(e, MakeWorldAabb(scene, e), TagData { 42 });
@@ -739,7 +739,7 @@ TEST(Octree, UserData_MultipleDistinct)
     {
         Entity e = scene.CreateEntity();
         auto&  c = e.CreateComponent<AabbComponent>();
-        c.aabb   = Aabb::FromCenterExtents(Numbers<Vec3>::k_zero, Vec3(1.f));
+        c.aabb   = Aabb::FromCenterExtents(Vec3::k_zero, Vec3(1.f));
         e.ModifyWorldTransform().SetTranslation(Vec3(static_cast<float>(i) * 10.f, 0.f, 0.f));
         octree.Insert(e, MakeWorldAabb(scene, e), IdData { i });
     }
@@ -907,8 +907,8 @@ TEST(Octree, Scene_QueryConsistencyAfterManyUpdates)
 
 static Frustum MakeFrustum(const Vec3 _pos, const Vec3 _lookAt)
 {
-    const Mtx4 viewMatrix = Mtx4::CreateLookAt(_pos, _lookAt, { 0.f, 1.f, 0.f });
-    const Mtx4 projMatrix = Mtx4::CreatePerspectiveFieldOfView(Numbers<float>::k_halfPi, 16.f / 9.f, 0.1f, 1000.f);
+    const Matrix viewMatrix = Matrix::CreateLookAt(_pos, _lookAt, { 0.f, 1.f, 0.f });
+    const Matrix projMatrix = Matrix::CreatePerspectiveFieldOfView(k_halfPi, 16.f / 9.f, 0.1f, 1000.f);
     return Frustum { viewMatrix * projMatrix };
 }
 

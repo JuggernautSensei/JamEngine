@@ -166,7 +166,7 @@ void FileBrowserWindow::GatherFileEntriesIfNeed_(
     const float _dt)
 {
     m_fileEntryGatheringIntervalCounterSec += _dt;
-    if (!m_bFileEntriesDirty || m_fileEntryGatheringIntervalCounterSec < k_fileEntryGatheringDebounceTimeSec)
+    if (!m_bFileEntriesDirty || m_fileEntryGatheringIntervalCounterSec < kFileEntryGatheringDebounceTimeSec)
     {
         return;
     }

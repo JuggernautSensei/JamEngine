@@ -1,0 +1,169 @@
+[2025.08.17 01:07:29] [trace] CORE: log system initialized
+[2025.08.17 01:07:29] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.17 01:07:29] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544, resizeType: 0
+[2025.08.17 01:07:29] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.17 01:07:30] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.17 01:07:30] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720, resizeType: 0
+[2025.08.17 01:07:30] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:30] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 235
+[2025.08.17 01:07:30] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 860, resizeType: 0
+[2025.08.17 01:07:30] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 137, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 139, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 140, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 142, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 144, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 146, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 149, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 151, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 153, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 157, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 161, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 165, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 170, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 176, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 181, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 186, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 192, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 197, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 202, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 208, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 212, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 216, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 219, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 223, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 226, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 228, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 230, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 232, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 235, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 237, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 238, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 240, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 243, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 245, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 247, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 249, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 250, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 251, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 254, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 256, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 258, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 261, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 263, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 265, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 267, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 269, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 271, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 273, y: 237
+[2025.08.17 01:07:37] [trace] CORE: Dispatching event: WindowMoveEvent: x: 274, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 276, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 277, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 278, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 279, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 281, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 284, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 285, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 287, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 288, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 290, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 291, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 293, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 294, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 295, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 296, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 299, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 300, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 301, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 303, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 305, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 308, y: 237
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 310, y: 235
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 312, y: 235
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 315, y: 234
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 316, y: 233
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 317, y: 232
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 318, y: 232
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 320, y: 232
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 323, y: 231
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 325, y: 230
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 327, y: 228
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 330, y: 227
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 332, y: 226
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 335, y: 225
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 337, y: 225
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 339, y: 225
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 340, y: 224
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 341, y: 224
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 342, y: 224
+[2025.08.17 01:07:38] [trace] CORE: Dispatching event: WindowMoveEvent: x: 344, y: 223
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 861, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 863, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 867, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 871, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 876, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 882, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 889, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 896, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 906, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 916, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 923, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 931, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 938, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 943, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 949, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 954, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 958, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 962, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 966, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 968, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 970, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 973, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 975, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 977, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 979, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 982, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 984, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 986, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 989, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 991, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 993, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 996, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 997, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1751, height: 998, resizeType: 0
+[2025.08.17 01:07:40] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.17 01:07:42] [trace] CORE: Dispatching event: WindowMoveEvent: x: 0, y: 34
+[2025.08.17 01:

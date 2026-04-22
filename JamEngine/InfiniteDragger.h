@@ -32,8 +32,8 @@ public:
 private:
     Flags<eInfiniteDraggerFlags> m_buttonFlags = eInfiniteDraggerFlags::None;
 
-    Vec2i m_capturedPos = Vec2i::k_zero;
-    Vec2i m_deltaPos    = Vec2i::k_zero;
+    Vec2i m_capturedPos = Vec2i::kZero;
+    Vec2i m_deltaPos    = Vec2i::kZero;
     bool  m_bIsDragging = false;
 };
 

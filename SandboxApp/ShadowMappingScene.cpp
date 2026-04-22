@@ -8,19 +8,19 @@ namespace
 
 struct CBShadowMappingSceneEntity
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4 world         = Numbers<Mtx4>::k_identity;
-    Mtx4 worldInvTrans = Numbers<Mtx4>::k_identity;
+    Mtx4 world         = Mtx4::kIdentity;
+    Mtx4 worldInvTrans = Mtx4::kIdentity;
 };
 
 struct CBShadowMappingSceneCamera
 {
-    static constexpr Int32 k_slot = 1;
+    static constexpr Int32 kSlot = 1;
 
-    Mtx4  view    = Numbers<Mtx4>::k_identity;
-    Mtx4  proj    = Numbers<Mtx4>::k_identity;
-    Vec3  pos     = Numbers<Vec3>::k_zero;
+    Mtx4  view    = Mtx4::kIdentity;
+    Mtx4  proj    = Mtx4::kIdentity;
+    Vec3  pos     = Vec3::kZero;
     float padding = 0.f;
 };
 
@@ -42,7 +42,7 @@ void ShadowMappingScene::OnUpdate(float _dt)
 
 void ShadowMappingScene::OnRender(const RenderView& _view)
 {
-    m_graph.Execute(_view.fbh, _view.viewport);
+    m_graph.Execute(_view.fbh, _view.vp);
 }
 
 void ShadowMappingScene::OnImGuiRender()
@@ -83,7 +83,7 @@ void ShadowMappingScene::InitMeshes_()
         };
 
         Graphics& gfx = GetGraphics();
-        m_pFsTri      = Mesh::Load(positions, indices, false);
+        m_pFsTri      = Mesh::Load(positions, indices);
     }
 }
 
@@ -124,8 +124,8 @@ void ShadowMappingScene::InitRenderGraph_()
         .SetProgram("P_GBuffer")
         .SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
-        .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBShadowMappingSceneEntity::k_slot)
-        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBShadowMappingSceneCamera::k_slot)
+        .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBShadowMappingSceneEntity::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBShadowMappingSceneCamera::kSlot)
         .SetExecutor(Bind<&ShadowMappingScene::RenderMeshes_>(this));
 
     // lighting pass
@@ -145,7 +145,7 @@ void ShadowMappingScene::RenderMeshes_()
 
     for (const Entity& entity: m_entities)
     {
-        const Mtx4& world = entity.transform.GetMatrix();
+        const Mtx4& world = entity.transform.GetSRT();
 
         CBShadowMappingSceneEntity cb = {};
         cb.world                      = world.Transpose();
@@ -168,11 +168,11 @@ void ShadowMappingScene::AddProgram_VertexPixel_(
     const StringView _name,
     const StringView _path)
 {
-    constexpr ShaderCompilerInfo k_vsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo k_psInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
-    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, k_vsInfo);
-    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, k_psInfo);
+    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
+    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
     JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
     JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
 

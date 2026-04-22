@@ -219,7 +219,7 @@ void FileDialog::SetFilters_(
         comdlgFilters.emplace_back(filter.desc.GetPtr(), filter.ext.GetPtr());
     }
 
-    JAM_CHECK_HRESULT(m_pfd->SetFileTypes(NarrowCast<UINT>(_filters.size()), comdlgFilters.data()));
+    JAM_CHECK_HRESULT(m_pfd->SetFileTypes(static_cast<UINT>(_filters.size()), comdlgFilters.data()));
 }
 
 }   // namespace Jam

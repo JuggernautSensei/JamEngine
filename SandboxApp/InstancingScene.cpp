@@ -1,44 +1,46 @@
 #include "pch.h"
 #include "InstancingScene.h"
 
+#include "Gui.h"
+
 namespace
 {
 
 struct CBInstancingSceneEntity_NoInstancing
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4  cb_world         = Numbers<Mtx4>::k_identity;
-    Mtx4  cb_worldInvTrans = Numbers<Mtx4>::k_identity;
-    Vec3  cb_baseColor     = Numbers<Vec3>::k_one;
+    Mtx4  cb_world         = Mtx4::kIdentity;
+    Mtx4  cb_worldInvTrans = Mtx4::kIdentity;
+    Vec3  cb_baseColor     = Vec3::kOne;
     float cb_shiness       = 16.f;
 };
 
 struct CBInstancingSceneEntity_Instancing
 {
-    static constexpr Int32 k_slot       = 0;
-    Vec3                   cb_baseColor = Numbers<Vec3>::k_one;
+    static constexpr Int32 kSlot        = 0;
+    Vec3                   cb_baseColor = Vec3::kOne;
     float                  cb_shiness   = 16.f;
 };
 
 struct CBInstancingSceneCamera
 {
-    static constexpr Int32 k_slot = 1;
+    static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Numbers<Vec3>::k_zero;
+    Vec3  cb_eyePos   = Vec3::kZero;
     float padding1    = 0.f;
-    Mtx4  cb_viewProj = Numbers<Mtx4>::k_identity;
+    Mtx4  cb_viewProj = Mtx4::kIdentity;
 };
 
 struct CBInstancingSceneLight
 {
-    static constexpr Int32 k_slot = 2;
+    static constexpr Int32 kSlot = 2;
 
     Vec3  cb_lightDir     = { 0.f, -1.f, 0.f };
     float padding2        = 0.f;
-    Vec3  cb_lightColor   = Numbers<Vec3>::k_one;
+    Vec3  cb_lightColor   = Vec3::kOne;
     float padding3        = 0.f;
-    Vec3  cb_ambientColor = Numbers<Vec3>::k_one;
+    Vec3  cb_ambientColor = Vec3::kOne;
     float padding4        = 0.f;
 };
 
@@ -134,13 +136,13 @@ void InstancingScene::OnRender(
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4              vpMtx    = m_cameraTransform.GetMatrix().Invert() * m_camera.GetProjMatrix();
+    const Mtx4              vpMtx    = m_cameraTransform.GetSRT().Invert() * m_camera.GetProj();
     CBInstancingSceneCamera cbCamera = {};
     cbCamera.cb_eyePos               = m_cameraTransform.GetTranslation();
     cbCamera.cb_viewProj             = vpMtx.Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBInstancingSceneCamera::k_slot);
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBInstancingSceneCamera::k_slot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBInstancingSceneCamera::kSlot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBInstancingSceneCamera::kSlot);
 
     // light
     CBInstancingSceneLight cbLight = {};
@@ -148,7 +150,7 @@ void InstancingScene::OnRender(
     cbLight.cb_lightColor          = m_lightColor;
     cbLight.cb_ambientColor        = m_ambientColor;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBInstancingSceneLight::k_slot);
+    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBInstancingSceneLight::kSlot);
 
     // entity
     if (m_bDoInstancing)
@@ -189,17 +191,15 @@ void InstancingScene::OnRender(
         cbEntity.cb_shiness                         = m_shiness;
         cbEntity.cb_baseColor                       = m_baseColor;
         gfx.UpdateBuffer(m_entityInstancingCbh, AsMemoryView(cbEntity));
-        gfx.SetConstantBuffer(m_entityInstancingCbh, eShader::PixelShader, CBInstancingSceneEntity_Instancing::k_slot);
-
-        gfx.SetInstanceBuffer(m_instbh);
-        m_pMesh->Submit();
+        gfx.SetConstantBuffer(m_entityInstancingCbh, eShader::PixelShader, CBInstancingSceneEntity_Instancing::kSlot);
+        m_pMesh->Submit(m_instbh, 0, numRenderEntities);
     }
     else
     {
         gfx.SetProgram(m_ph);
 
-        gfx.SetConstantBuffer(m_entityNoInstancingCbh, eShader::VertexShader, CBInstancingSceneEntity_NoInstancing::k_slot);
-        gfx.SetConstantBuffer(m_entityNoInstancingCbh, eShader::PixelShader, CBInstancingSceneEntity_NoInstancing::k_slot);
+        gfx.SetConstantBuffer(m_entityNoInstancingCbh, eShader::VertexShader, CBInstancingSceneEntity_NoInstancing::kSlot);
+        gfx.SetConstantBuffer(m_entityNoInstancingCbh, eShader::PixelShader, CBInstancingSceneEntity_NoInstancing::kSlot);
 
         CBInstancingSceneEntity_NoInstancing cbEntity = {};
         for (Int32 i = 0; i < m_numRows; ++i)
@@ -235,13 +235,13 @@ void InstancingScene::OnRender(
 
 void InstancingScene::OnImGuiRender()
 {
-    ImGui::Begin("InstancingScene Controller");
+    if (!BeginSceneInspectorWindows("InstancingScene"))
+    {
+        ImGui::End();
+        return;
+    }
 
-    // 1. 성능 정보 및 모드 설정
-    ImGui::Text("Performance");
-    ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
     ImGui::Text("Total Entities: %d", m_numRows * m_numEntitiesPerRow);
-    ImGui::Text("Draw Calls: %d", GetGraphics().GetStats().numDrawCalls);
 
     ImGui::Separator();
 

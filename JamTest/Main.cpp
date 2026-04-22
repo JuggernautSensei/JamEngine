@@ -23,4 +23,4 @@ public:
     }
 };
 
-JAM_MAIN(TestApp, "JamAppTest", k_runtimeDefaltFlags);
+JAM_MAIN(TestApp, "JamAppTest", kRuntimeDefaltFlags);

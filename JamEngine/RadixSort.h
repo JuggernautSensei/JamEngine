@@ -5,9 +5,9 @@ namespace Jam::RadixSort
 
 namespace Details
 {
-    constexpr UInt32 k_bits        = 11;
-    constexpr UInt32 k_bucketCount = 1u << k_bits;
-    constexpr UInt32 k_mask        = k_bucketCount - 1u;
+    constexpr UInt32 kBits        = 11;
+    constexpr UInt32 kBucketCount = 1u << kBits;
+    constexpr UInt32 kMask        = kBucketCount - 1u;
 }   // namespace Details
 
 // 32 bit key
@@ -28,10 +28,10 @@ void Sort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const UInt32
     T*      inV  = values;
     T*      outV = tempValues;
 
-    UInt32 hist[Details::k_bucketCount];
+    UInt32 hist[Details::kBucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
-    for (; pass < 3; ++pass, shift = NarrowCast<UInt16>(shift + Details::k_bits))
+    for (; pass < 3; ++pass, shift = static_cast<UInt16>(shift + Details::kBits))
     {
         std::memset(hist, 0, sizeof(hist));
 
@@ -41,7 +41,7 @@ void Sort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const UInt32
             for (UInt32 i = 0; i < n; ++i)
             {
                 const UInt32 k = inK[i];
-                ++hist[(k >> shift) & Details::k_mask];
+                ++hist[(k >> shift) & Details::kMask];
                 alreadySorted &= (prev <= k);
                 prev = k;
             }
@@ -53,7 +53,7 @@ void Sort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const UInt32
 
         // prefix-sum
         UInt32 sum = 0;
-        for (UInt32 b = 0; b < Details::k_bucketCount; ++b)
+        for (UInt32 b = 0; b < Details::kBucketCount; ++b)
         {
             const UInt32 c = hist[b];
             hist[b]        = sum;
@@ -64,7 +64,7 @@ void Sort(UInt32* keys, UInt32* tempKeys, T* values, T* tempValues, const UInt32
         for (UInt32 i = 0; i < n; ++i)
         {
             const UInt32 k   = inK[i];
-            const UInt32 b   = (k >> shift) & Details::k_mask;
+            const UInt32 b   = (k >> shift) & Details::kMask;
             UInt32       dst = hist[b]++;
             outK[dst]        = k;
             outV[dst]        = inV[i];
@@ -106,10 +106,10 @@ void Sort(UInt64* keys, UInt64* tempKeys, T* values, T* tempValues, const UInt32
     T*      inV  = values;
     T*      outV = tempValues;
 
-    UInt32 hist[Details::k_bucketCount];
+    UInt32 hist[Details::kBucketCount];
     UInt16 shift = 0;
     UInt32 pass  = 0;
-    for (; pass < 6; ++pass, shift = NarrowCast<UInt16>(shift + Details::k_bits))
+    for (; pass < 6; ++pass, shift = static_cast<UInt16>(shift + Details::kBits))
     {
         std::memset(hist, 0, sizeof(hist));
 
@@ -119,7 +119,7 @@ void Sort(UInt64* keys, UInt64* tempKeys, T* values, T* tempValues, const UInt32
             for (UInt32 i = 0; i < n; ++i)
             {
                 const UInt64 k = inK[i];
-                ++hist[NarrowCast<UInt32>((k >> shift) & Details::k_mask)];
+                ++hist[static_cast<UInt32>((k >> shift) & Details::kMask)];
                 alreadySorted &= (prev <= k);
                 prev = k;
             }
@@ -128,7 +128,7 @@ void Sort(UInt64* keys, UInt64* tempKeys, T* values, T* tempValues, const UInt32
             break;
 
         UInt32 sum = 0;
-        for (UInt32 b = 0; b < Details::k_bucketCount; ++b)
+        for (UInt32 b = 0; b < Details::kBucketCount; ++b)
         {
             const UInt32 c = hist[b];
             hist[b]        = sum;
@@ -138,7 +138,7 @@ void Sort(UInt64* keys, UInt64* tempKeys, T* values, T* tempValues, const UInt32
         for (UInt32 i = 0; i < n; ++i)
         {
             const UInt64 k   = inK[i];
-            const UInt32 b   = NarrowCast<UInt32>((k >> shift) & Details::k_mask);
+            const UInt32 b   = static_cast<UInt32>((k >> shift) & Details::kMask);
             UInt32       dst = hist[b]++;
             outK[dst]        = k;
             outV[dst]        = inV[i];

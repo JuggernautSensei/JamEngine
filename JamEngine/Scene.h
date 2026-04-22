@@ -104,16 +104,16 @@ public:
         return m_registry.view<Args...>().each();
     }
 
-    [[nodiscard]] const Registry& GetRegistry() const;
-    [[nodiscard]] Registry&       GetRegistry();
+    [[nodiscard]] const entt::registry& GetRegistry() const;
+    [[nodiscard]] entt::registry&       GetRegistry();
 
     // item
     [[nodiscard]] Entity                      GetRootEntity() const;
     [[nodiscard]] Int32                       GetNumEntities() const;
     [[nodiscard]] const HashMap<UID, Entity>& GetEntities() const;
 
-    static constexpr StringView k_extension = ".jsc";
-    static constexpr StringView k_filter    = "*.jsc";
+    static constexpr StringView kExtension = ".jsc";
+    static constexpr StringView kFilter    = "*.jsc";
 
 protected:
     Scene();
@@ -139,10 +139,10 @@ private:
     // destroy entity
     void DestroyEntity_Recursive_(Entity _entity);
 
-    Registry             m_registry                  = {};
+    entt::registry       m_registry                  = {};
     HashMap<UID, Entity> m_entities                  = {};
     UIDAllocator         m_uidAllocator              = {};
-    Entity               m_root                      = Entity::k_null;
+    Entity               m_root                      = Entity::kNull;
     Vector<Entity>       m_transformModifiedEntities = {};
 };
 

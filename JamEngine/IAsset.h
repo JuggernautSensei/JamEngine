@@ -26,10 +26,9 @@ public:
     virtual Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const = 0;
     virtual void  Invalidate()                                                                                                                             = 0;
     virtual void  SetName(StringView _name)                                                                                                                = 0;
-    virtual void  SetVirtualPath(StringView _path)                                                                                                         = 0;
 
     [[nodiscard]] virtual bool       IsValid() const      = 0;
-    [[nodiscard]] virtual eAsset GetAssetType() const = 0;
+    [[nodiscard]] virtual eAsset     GetAssetType() const = 0;
     [[nodiscard]] virtual StringView GetTypeName() const  = 0;
     [[nodiscard]] virtual UInt32     GetTypeHash() const  = 0;
     [[nodiscard]] virtual StringView GetPath() const      = 0;
@@ -38,8 +37,8 @@ public:
     [[nodiscard]] virtual StringView GetFilter() const    = 0;
 
 protected:
-    IAsset()                              = default;
-    virtual Error Load_(StringView _path) = 0;
+    IAsset()                                      = default;
+    virtual Error LoadFromFile_(StringView _path) = 0;
     friend class AssetManager;
 };
 

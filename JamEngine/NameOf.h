@@ -40,23 +40,23 @@ namespace Details   // Base
         return ExtractResult { raw.GetPtr() + begin, end - begin };
     }
 
-    template<ExtractResult k_result>
+    template<ExtractResult kResult>
     constexpr auto BuildNameBuffer()
     {
-        Array<char, k_result.len + 1> buf = {};
-        for (SizeT i = 0; i < k_result.len; ++i)
+        Array<char, kResult.len + 1> buf = {};
+        for (SizeT i = 0; i < kResult.len; ++i)
         {
-            buf[i] = k_result.str[i];
+            buf[i] = kResult.str[i];
         }
-        buf[k_result.len] = '\0';
+        buf[kResult.len] = '\0';
         return buf;
     }
 
     template<typename T>
     struct TypeNameHolder
     {
-        static constexpr auto       k_nameBuf = BuildNameBuffer<ExtractFullName<T>()>();
-        static constexpr StringView k_name    = { k_nameBuf.data(), k_nameBuf.size() - 1 };
+        static constexpr auto       kNameBuf = BuildNameBuffer<ExtractFullName<T>()>();
+        static constexpr StringView kName    = { kNameBuf.data(), kNameBuf.size() - 1 };
     };
 
 }   // namespace Details
@@ -64,16 +64,16 @@ namespace Details   // Base
 template<typename T>
 [[nodiscard]] constexpr StringView NameOf()
 {
-    return Details::TypeNameHolder<T>::k_name;
+    return Details::TypeNameHolder<T>::kName;
 }
 
 // type hash
 template<typename T>
 [[nodiscard]] constexpr UInt32 HashOf()
 {
-    constexpr StringView k_name = NameOf<T>();
-    constexpr UInt32     k_hash = k_name.Hash32();
-    return k_hash;
+    constexpr StringView kName = NameOf<T>();
+    constexpr UInt32     kHash = kName.Hash32();
+    return kHash;
 }
 
 }   // namespace Jam

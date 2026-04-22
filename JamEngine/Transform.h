@@ -5,7 +5,7 @@ namespace Jam
 
 struct AxisAngle
 {
-    Vec3  axis = Numbers<Vec3>::k_zero;
+    Vec3  axis = Vec3::kZero;
     float rad  = 0.f;
 };
 
@@ -20,16 +20,14 @@ public:
     [[nodiscard]] Vec3 GetForward() const;
     [[nodiscard]] Vec3 GetBackward() const;
 
-    // matrix
-    [[nodiscard]] const Mtx4& GetMatrix() const;
-    void                      SetMatrix(const Mtx4& _mtx);
+    // srt
+    [[nodiscard]] const Mtx4& GetSRT() const;
+    void                      SetSRT(const Mtx4& _srtMtx);
+    [[nodiscard]] Mtx4        CalcInvSRT() const;
 
     // transform
-    [[nodiscard]] Transform Inverted() const;
-    void                    Invert();
-
-    [[nodiscard]] Transform Multed(const Transform& _trans) const;
-    void                    Mult(const Transform& _trans);
+    [[nodiscard]] Transform Inverse() const;
+    [[nodiscard]] Transform Mult(const Transform& _trans) const;
 
     // scale
     [[nodiscard]] Vec3  GetScale() const;
@@ -54,14 +52,14 @@ public:
     // rotation
     [[nodiscard]] Quat      GetRotation() const;
     [[nodiscard]] AxisAngle ToAxisAngle() const;
-    [[nodiscard]] Vec3      ToEuler() const;   // pitch yaw roll
+    [[nodiscard]] Vec3      ToEuler() const;
 
     void SetRotation(Quat _q);
     void SetRotation(Vec3 _axis, float _rad);
     void SetRotation(Vec3 _eulerRad);
     void SetRotation(float _pitchRad, float _yawRad, float _rollRad);
-    void SetLookAt(Vec3 _point);
-    void SetLookTo(Vec3 _forward);
+    void SetLookAt(Vec3 _point, Vec3 _u);
+    void SetLookTo(Vec3 _f, Vec3 _u);
 
     void AddRotation(Quat _q);
     void AddRotation(Vec3 _axis, float _rad);
@@ -91,12 +89,12 @@ public:
     [[nodiscard]] bool IsDirty() const;
 
 private:
-    Vec3 m_translation = Numbers<Vec3>::k_zero;
-    Quat m_rotation    = Numbers<Quat>::k_identity;
-    Vec3 m_scale       = Numbers<Vec3>::k_one;
+    Vec3 m_scale       = Vec3::kOne;
+    Quat m_rotation    = Quat::kIdentity;
+    Vec3 m_translation = Vec3::kZero;
 
     mutable bool m_bDirty   = true;
-    mutable Mtx4 m_mtxCache = Numbers<Mtx4>::k_identity;
+    mutable Mtx4 m_mtxCache = Mtx4::kIdentity;
 };
 
 }   // namespace Jam

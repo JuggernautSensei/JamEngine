@@ -5,63 +5,59 @@
 #include "AssetManager.h"
 #include "AssetSaveLoader.h"
 #include "Profile.h"
+#include "Random.h"
 
 namespace Jam
 {
 
-namespace   // data transfer objects
+namespace Dto
 {
 
-    struct MaterialParamsDto
+    struct MaterialParams
     {
-        Vec3Dto ambient   = {};
-        Vec3Dto diffuse   = {};
-        Vec3Dto specular  = {};
-        float   shininess = 32.0f;
+        Vec3  ambient   = {};
+        Vec3  diffuse   = {};
+        Vec3  specular  = {};
+        float shininess = 32.0f;
 
-        Vec3Dto albedo    = {};
-        float   roughness = 1.f;
-        float   metallic  = 1.f;
+        Vec3  albedo    = {};
+        float roughness = 1.f;
+        float metallic  = 1.f;
 
-        Vec3Dto emissive          = {};
-        float   emissiveIntensity = 1.f;
+        Vec3  emissive          = {};
+        float emissiveIntensity = 1.f;
 
         bool bAlphaCutout = false;
         bool bDoubleSided = false;
     };
-    //};
-    //// static_assert(IsMemCpyable<MaterialParamsDto, MaterialParams>, "MaterialParamsDto must be trivially copyable for direct memory serialization.");
-    // static_assert(std::is_trivially_copyable_v<MaterialParamsDto>);
-    // static_assert(std::is_trivially_copyable_v<MaterialParams>);
-    // static_assert(sizeof(MaterialParamsDto) == sizeof(MaterialParams));
 
-    using MaterialTexturesDto        = ArrayDto<StringViewDto, CountOf<eMaterialTexture>()>;
-    using MaterialTextureSettingsDto = MaterialTextureSettings;
-
-    struct MaterialDto
+    struct Material
     {
-        StringViewDto              name     = {};
-        MaterialParamsDto          params   = {};
-        MaterialTexturesDto        textures = {};
-        MaterialTextureSettingsDto settings = {};
+        StringView                                     name     = {};
+        MaterialParams                                 params   = {};
+        Array<StringView, CountOf<eMaterialTexture>()> textures = {};
+        MaterialTextureSettings                        settings = {};
     };
+}   // namespace Dto
 
-    using MaterialLoader = AssetLoader<MaterialDto>;
-    using MaterialSaver  = AssetSaver<MaterialDto>;
+namespace
+{
+
+    using MaterialLoader = AssetLoader<Dto::Material>;
+    using MaterialSaver  = AssetSaver<Dto::Material>;
 
 }   // namespace
 
-Ref<Material> Material::Load(
-    const MaterialDesc& _desc)
+Ref<Material> Material::Load()
 {
-    return new Material(_desc);
+    return new Material;
 }
 
 Expect<Ref<Material>> Material::LoadFromFile(
     const StringView _path)
 {
     Ref<Material> pMaterial = new Material;
-    if (const Error err = pMaterial->Load_(_path))
+    if (const Error err = pMaterial->LoadFromFile_(_path))
     {
         return err;
     }
@@ -76,12 +72,11 @@ Error Material::Save(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid material");
 
-    StringView dir = {}, base = {}, ext = {};
-    _path.Decompose(&dir, nullptr, &base, &ext);
-
-    String path = dir;
-    path.Append(base);
-    path.Append(_bReplaceExtension ? k_extension : ext);
+    String path = _path;
+    if (_bReplaceExtension)
+    {
+        path.ReplaceExtension(kExtension);
+    }
 
     Expect<MaterialSaver> saver = MaterialSaver::Open(path, _policy);
     if (!saver)
@@ -90,22 +85,21 @@ Error Material::Save(
     }
 
     // write data
-    MaterialDto dto = {};
-    dto.name        = StringViewDtoFrom(m_name);
-    dto.params      = std::bit_cast<MaterialParamsDto>(m_desc.params);
-    dto.settings    = m_desc.settings;
+    Dto::Material material = {};
+    material.name          = Dto::Wrap(m_name);
+    material.params        = std::bit_cast<Dto::MaterialParams>(m_params);
+    material.settings      = m_settings;
 
-    // write texture paths
     for (eMaterialTexture type: RangesOf<eMaterialTexture>())
     {
-        const Ref<Texture>& pTexture = m_desc.textures[type];
+        const Ref<Texture>& pTexture = m_textures[type];
         if (pTexture && pTexture->IsValid())
         {
-            dto.textures[UnderlyingFrom(type)] = StringViewDtoFrom(pTexture->GetPath());
+            material.textures[UnderlyingFrom(type)] = Dto::Wrap(pTexture->GetPath());
         }
     }
 
-    return saver->Write(dto);
+    return saver->Write(material);
 }
 
 void Material::SetName(
@@ -114,26 +108,54 @@ void Material::SetName(
     m_name = _name;
 }
 
-void Material::SetVirtualPath(
-    const StringView _path)
-{
-    JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of a material loaded from file");
-    m_path = _path;
-}
-
 void Material::Invalidate()
 {
     CleanUp_();
 }
-
-void Material::SetDesc(const MaterialDesc& _desc)
+void Material::SetParams(
+    const MaterialParams& _params)
 {
-    m_desc = _desc;
+    m_params = _params;
 }
 
-const MaterialDesc& Material::GetDesc() const
+void Material::SetTextures(
+    const EnumArray<eMaterialTexture, Ref<Texture>>& _textures)
 {
-    return m_desc;
+    m_textures = _textures;
+}
+
+void Material::SetTexture(
+    const eMaterialTexture _type,
+    const Ref<Texture>&    _texture)
+{
+    m_textures[_type] = _texture;
+}
+
+void Material::SetSettings(
+    const MaterialTextureSettings& _settings)
+{
+    m_settings = _settings;
+}
+
+const MaterialParams& Material::GetParams() const
+{
+    return m_params;
+}
+
+const EnumArray<eMaterialTexture, Ref<Texture>>& Material::GetTextures() const
+{
+    return m_textures;
+}
+
+const Ref<Texture>& Material::GetTexture(
+    const eMaterialTexture _type) const
+{
+    return m_textures[_type];
+}
+
+const MaterialTextureSettings& Material::GetSettings() const
+{
+    return m_settings;
 }
 
 bool Material::IsValid() const
@@ -148,17 +170,17 @@ StringView Material::GetPath() const
 
 eAsset Material::GetAssetType() const
 {
-    return k_assetType;
+    return kAssetType;
 }
 
 StringView Material::GetTypeName() const
 {
-    return k_typeName;
+    return kTypeName;
 }
 
 UInt32 Material::GetTypeHash() const
 {
-    return k_typeHash;
+    return kTypeHash;
 }
 
 UInt16 Material::GetSortKey() const
@@ -173,23 +195,21 @@ StringView Material::GetName() const
 
 StringView Material::GetExtension() const
 {
-    return k_extension;
+    return kExtension;
 }
 
 StringView Material::GetFilter() const
 {
-    return k_filter;
+    return kFilter;
 }
 
-Material::Material(const MaterialDesc& _desc)
-    : m_desc(_desc)
+Material::Material()
 {
-    m_bValid          = true;
-    m_bLoadedFromFile = false;
-    m_sortKey         = MakeRandom<UInt16>(0);
+    RngMWC rng {};
+    m_sortKey = static_cast<UInt16>(rng.Generate());
 }
 
-Error Material::Load_(
+Error Material::LoadFromFile_(
     StringView _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
@@ -202,31 +222,34 @@ Error Material::Load_(
     }
 
     // read
-    Expect<MaterialDto> pDto = loader->Read();
-    if (!pDto)
+    Expect<Dto::Material> materialOrNot = loader->Read();
+    if (!materialOrNot)
     {
-        return pDto.GetError();
+        return materialOrNot.GetError();
     }
 
-    // read data
+    // clean up before loading new data
     CleanUp_();
-    m_name          = StringFrom(pDto->name);
-    m_desc.params   = std::bit_cast<MaterialParams>(pDto->params);
-    m_desc.settings = pDto->settings;
+
+    const Dto::Material& material = materialOrNot.GetValue();
+    m_name                        = Dto::Unwrap(material.name);
+    m_params                      = std::bit_cast<MaterialParams>(materialOrNot->params);
+    m_settings                    = materialOrNot->settings;
 
     // load texture
     for (eMaterialTexture type: RangesOf<eMaterialTexture>())
     {
-        const StringViewDto& path = pDto->textures[UnderlyingFrom(type)];
-        if (!path.empty())
+        const StringView path = Dto::Unwrap(materialOrNot->textures[UnderlyingFrom(type)]);
+        if (!path.IsEmpty())
         {
-            Expect<Ref<Texture>> pTexture = GetAssetManager().LoadTexture(StringViewFrom(path));
+            AssetManager&        mgr      = GetAssetManager();
+            Expect<Ref<Texture>> pTexture = mgr.LoadTexture(path);
             if (!pTexture)
             {
                 return pTexture.GetError();
             }
 
-            m_desc.textures[type] = pTexture.Take();
+            m_textures[type] = pTexture.Take();
         }
     }
 
@@ -236,7 +259,6 @@ Error Material::Load_(
     m_sortKey             = static_cast<UInt16>(hash);
     m_path                = _path;
     m_bValid              = true;
-    m_bLoadedFromFile     = true;
     return Error::None;
 }
 
@@ -244,10 +266,11 @@ void Material::CleanUp_()
 {
     m_path.Clear();
     m_name.Clear();
-    m_sortKey         = 0;
-    m_bValid          = false;
-    m_bLoadedFromFile = false;
-    m_desc            = {};
+    m_sortKey  = 0;
+    m_bValid   = false;
+    m_params   = {};
+    m_textures = {};
+    m_settings = {};
 }
 
 void WriteToArchive(
@@ -270,13 +293,14 @@ Error ReadFromArchive(
         return err;
     }
 
-    Expect<Ref<Material>> pMaterial = GetAssetManager().LoadMaterial(path);
-    if (!pMaterial)
+    AssetManager&         mgr           = GetAssetManager();
+    Expect<Ref<Material>> materialOrNot = mgr.LoadMaterial(path);
+    if (!materialOrNot)
     {
-        return pMaterial.GetError();
+        return materialOrNot.GetError();
     }
 
-    _pMaterial = pMaterial.Take();
+    _pMaterial = materialOrNot.Take();
     return Error::None;
 }
 

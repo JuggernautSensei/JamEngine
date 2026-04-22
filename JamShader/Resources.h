@@ -2,7 +2,7 @@
 #include "../JamEngine/OrderedHashMap.h"
 
 // gui payload magics
-constexpr StringView k_pathDragDropPayload = "_PATH_";
+constexpr StringView kPathDragDropPayload = "_PATH_";
 
 class ShaderSource : public RefCounted
 {
@@ -95,8 +95,8 @@ public:
     void  WriteToArchive(ArchiveWriter& _archive) const;
     Error ReadFromArchive(ArchiveReader& _archive);
 
-    constexpr static StringView k_extension = ".jshproj";
-    constexpr static StringView k_filter    = "*.jshproj";
+    constexpr static StringView kExtension = ".jshproj";
+    constexpr static StringView kFilter    = "*.jshproj";
 
 private:
     Project() = default;

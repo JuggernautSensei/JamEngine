@@ -34,7 +34,7 @@ Error ReadFromArchive(ArchiveReader& _reader, StringView& _value)
         return err;
     }
 
-    _value = { str.data(), NarrowCast<SizeT>(str.size()) };
+    _value = { str.data(), static_cast<SizeT>(str.size()) };
     return Error::None;
 }
 
@@ -100,14 +100,14 @@ Error ReadFromArchive(
 
 void WriteToArchive(
     ArchiveWriter& _writer,
-    const Mtx4&    _value)
+    const Mtx4&  _value)
 {
     _writer.BeginArray();
     for (Int32 row = 0; row < 4; ++row)
     {
         for (Int32 col = 0; col < 4; ++col)
         {
-            _writer.WriteElement(_value(row, col));
+            _writer.WriteElement(_value.m[row][col]);
         }
     }
     _writer.EndArray();
@@ -115,13 +115,13 @@ void WriteToArchive(
 
 Error ReadFromArchive(
     ArchiveReader& _reader,
-    Mtx4&          _value)
+    Mtx4&        _value)
 {
     for (Int32 row = 0; row < 4; ++row)
     {
         for (Int32 col = 0; col < 4; ++col)
         {
-            if (const Error err = _reader.ReadAt(row * 4 + col, _value(row, col)))
+            if (const Error err = _reader.ReadAt(row * 4 + col, _value.m[row][col]))
             {
                 return err;
             }

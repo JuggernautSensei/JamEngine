@@ -84,11 +84,11 @@ private:
     void Widget_EditorModeSwitchButton_();
 
     // view
-    FrameBufferHandle m_fbh        = k_invalidHandle;
-    TextureHandle     m_renderTexh = k_invalidHandle;
+    FrameBufferHandle m_fbh        = kInvalidHandle;
+    TextureHandle     m_renderTexh = kInvalidHandle;
 
-    FrameBufferHandle m_fbhWithDepth   = k_invalidHandle;
-    TextureHandle     m_sceneDepthTexh = k_invalidHandle;
+    FrameBufferHandle m_fbhWithDepth   = kInvalidHandle;
+    TextureHandle     m_sceneDepthTexh = kInvalidHandle;
 
     // resize
     Int32 m_width            = 0;
@@ -105,7 +105,7 @@ private:
     // camera
     Camera    m_camera                 = {};
     Transform m_cameraTransform        = {};
-    Vec3      m_cameraEulerRad         = Numbers<Vec3>::k_zero;
+    Vec3      m_cameraEulerRad         = Vec3::kZero;
     float     m_cameraMoveSpeed        = 5.f;
     float     m_cameraRotSpeed         = 1.2f;
     bool      m_bShowCameraTranslation = true;
@@ -133,21 +133,21 @@ private:
     // scene cache
     Scene* m_pScene = nullptr;
 
-    static constexpr Vec3   k_translateSnap    = Vec3 { 0.5f };
-    static constexpr Vec3   k_rotateSnapDeg    = Vec3 { 15.f };
-    static constexpr Vec3   k_scaleSnap        = Vec3 { 0.5f };
-    static constexpr ImVec2 k_modeBtnSize      = ImVec2 { 100.f, 0.f };
-    static constexpr RGBA   k_boundingBoxCol   = RGBA { 0xFF9D23FF };
-    static constexpr float  k_dragSensitivity  = 0.001f;
-    static constexpr float  k_wheelSensitivity = 0.05f;
+    static constexpr Vec3   kTranslateSnap    = Vec3 { 0.5f };
+    static constexpr Vec3   kRotateSnapDeg    = Vec3 { 15.f };
+    static constexpr Vec3   kScaleSnap        = Vec3 { 0.5f };
+    static constexpr ImVec2 kModeBtnSize      = ImVec2 { 100.f, 0.f };
+    static constexpr RGBA   kBoundingBoxCol   = RGBA { 0xFF9D23FF };
+    static constexpr float  kDragSensitivity  = 0.001f;
+    static constexpr float  kWheelSensitivity = 0.05f;
 
-    static constexpr float k_cameraMoveDecelerationFactor = 0.5f;
-    static constexpr float k_cameraMoveSpeedAdjustFactor  = 5.f;
-    static constexpr float k_cameraMoveSpeedMin           = 0.1f;
-    static constexpr float k_cameraRotSpeedMin            = 0.01f;
+    static constexpr float kCameraMoveDecelerationFactor = 0.5f;
+    static constexpr float kCameraMoveSpeedAdjustFactor  = 5.f;
+    static constexpr float kCameraMoveSpeedMin           = 0.1f;
+    static constexpr float kCameraRotSpeedMin            = 0.01f;
 
-    static constexpr float    k_acroballLength = 120.f;
-    static constexpr ImGuiCol k_acroballBgCol  = IM_COL32(0, 0, 0, 120);
+    static constexpr float    kAcroballLength = 120.f;
+    static constexpr ImGuiCol kAcroballBgCol  = IM_COL32(0, 0, 0, 120);
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Editor_SceneViewWindow);

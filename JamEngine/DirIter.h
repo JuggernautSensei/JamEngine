@@ -85,7 +85,7 @@ private:
                     m_path.AppendEncode(data.cFileName);
                     if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                     {
-                        m_path += CharTraits::k_pathPreferredSeparator;
+                        m_path += CharTraits::kPathPreferredSeparator;
                     }
                     return;
                 }
@@ -137,7 +137,7 @@ private:
             m_path.AppendEncode(data.cFileName);
             if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
             {
-                m_path += CharTraits::k_pathPreferredSeparator;
+                m_path += CharTraits::kPathPreferredSeparator;
             }
             return Error::None;
         }

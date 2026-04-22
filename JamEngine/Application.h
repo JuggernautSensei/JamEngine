@@ -22,8 +22,8 @@ enum class eAppCoreFlags : UInt32
     AllowTearing = 1 << 4,
 };
 
-constexpr Flags<eAppCoreFlags> k_runtimeDefaltFlags = eAppCoreFlags::SceneManager | eAppCoreFlags::AssetManager | eAppCoreFlags::ImGuiEngine;
-constexpr Flags<eAppCoreFlags> k_editorDefaultFlags = k_runtimeDefaltFlags | eAppCoreFlags::Editor;
+constexpr Flags<eAppCoreFlags> kRuntimeDefaltFlags = eAppCoreFlags::SceneManager | eAppCoreFlags::AssetManager | eAppCoreFlags::ImGuiEngine;
+constexpr Flags<eAppCoreFlags> kEditorDefaultFlags = kRuntimeDefaltFlags | eAppCoreFlags::Editor;
 
 class Application
 {
@@ -55,7 +55,7 @@ public:
     [[nodiscard]] std::thread::id GetMainThreadId() const;
 
 protected:
-    explicit Application(StringView _appName, Flags<eAppCoreFlags> _initFlags = k_runtimeDefaltFlags);
+    explicit Application(StringView _appName, Flags<eAppCoreFlags> _initFlags = kRuntimeDefaltFlags);
     virtual ~Application() = default;
 
     // can be overridden by derived type

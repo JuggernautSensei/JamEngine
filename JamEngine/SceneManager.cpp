@@ -45,10 +45,10 @@ void SceneManager::Update(
 
 void SceneManager::RenderRuntime() const
 {
-    Graphics&            gfx   = GetGraphics();
-    const GraphicsStats& stats = gfx.GetStats();
-    const Viewport       vp    = { NarrowCast<UInt16>(stats.backBufferWidth), NarrowCast<UInt16>(stats.backBufferHeight) };
-    RenderRuntime(k_invalidHandle, vp);
+    Graphics&      gfx = GetGraphics();
+    const Vec2i    res = gfx.GetBackBufferResolution();
+    const Viewport vp  = { static_cast<UInt16>(res.x), static_cast<UInt16>(res.y) };
+    RenderRuntime(kInvalidHandle, vp);
 }
 
 void SceneManager::RenderRuntime(
@@ -71,9 +71,9 @@ void SceneManager::RenderRuntime(
                 const Transform& transW = sc.node.GetWorldTransform();
                 const Camera&    cmr    = cc.camera;
 
-                view.eyePos = transW.GetTranslation();
-                view.view   = transW.GetMatrix().Invert();
-                view.proj   = cmr.GetProjMatrix();
+                view.eye  = transW.GetTranslation();
+                view.view = transW.CalcInvSRT();
+                view.proj = cmr.GetProj();
                 break;
             }
         }
@@ -209,9 +209,9 @@ void SceneManager::ChangeScene_(
     Application& app = GetApp();
     if (!app.IsCoreFlagsEnabled(eAppCoreFlags::Editor))   // runtime mode
     {
-        Graphics&            gfx   = GetGraphics();
-        const GraphicsStats& stats = gfx.GetStats();
-        Resize(stats.backBufferWidth, stats.backBufferHeight);
+        Graphics&   gfx = GetGraphics();
+        const Vec2i res = gfx.GetBackBufferResolution();
+        Resize(res.x, res.y);
     }
 
     // resource garbage collection

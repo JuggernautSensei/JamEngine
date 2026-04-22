@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "SimpleScene.h"
 
+#include "Gui.h"
 #include "../JamEngine/AssimpImporter.h"
 
 namespace
@@ -8,39 +9,39 @@ namespace
 
 struct CBSimpleSceneEntity
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4  cb_world         = Numbers<Mtx4>::k_identity;
-    Mtx4  cb_worldInvTrans = Numbers<Mtx4>::k_identity;
-    Vec3  cb_baseColor     = Numbers<Vec3>::k_one;
-    float cb_shiness       = 16.f;
+    Mtx4 world         = Mtx4::kIdentity;
+    Mtx4 invTransWorld = Mtx4::kIdentity;
+    Vec3   baseColor     = Vec3::kOne;
+    float  shiness       = 16.f;
 };
 
 struct CBSimpleSceneCamera
 {
-    static constexpr Int32 k_slot = 1;
+    static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Numbers<Vec3>::k_zero;
-    float padding1    = 0.f;
-    Mtx4  cb_viewProj = Numbers<Mtx4>::k_identity;
+    Vec3   eye      = Vec3::kZero;
+    float  padding1 = 0.f;
+    Mtx4 viewProj = Mtx4::kIdentity;
 };
 
 struct CBSimpleSceneLight
 {
-    static constexpr Int32 k_slot = 2;
+    static constexpr Int32 kSlot = 2;
 
-    Vec3  cb_lightDir     = { 0.f, -1.f, 0.f };
-    float padding2        = 0.f;
-    Vec3  cb_lightColor   = Numbers<Vec3>::k_one;
-    float padding3        = 0.f;
-    Vec3  cb_ambientColor = Numbers<Vec3>::k_one;
-    float padding4        = 0.f;
+    Vec3  lightDir   = { 0.f, -1.f, 0.f };
+    float padding2   = 0.f;
+    Vec3  lightCol   = Vec3::kOne;
+    float padding3   = 0.f;
+    Vec3  ambientCol = Vec3::kOne;
+    float padding4   = 0.f;
 };
 
 struct SimpleSceneVertex
 {
-    Vec3 pos    = Numbers<Vec3>::k_zero;
-    Vec3 normal = Numbers<Vec3>::k_zero;
+    Vec3 pos    = Vec3::kZero;
+    Vec3 normal = Vec3::kZero;
 
     inline static VertexLayout s_attribLayout = [] {
         VertexLayout layout = {};
@@ -75,16 +76,16 @@ SimpleScene::SimpleScene()
     m_cmrCbh    = gfx.CreateConstantBuffer(sizeof(CBSimpleSceneCamera));
     m_lightCbh  = gfx.CreateConstantBuffer(sizeof(CBSimpleSceneLight));
 
-    m_pMesh[eMeshType::Cube]   = CreateCubeMesh(Vec3 { 0.5f }, SimpleSceneVertex::s_attribLayout);
-    m_pMesh[eMeshType::Sphere] = CreateSphereMesh(0.5f, 5, SimpleSceneVertex::s_attribLayout);
+    m_pMesh[eMesh::Cube]   = CreateCubeMesh(Vec3 { 0.5f }, SimpleSceneVertex::s_attribLayout);
+    m_pMesh[eMesh::Sphere] = CreateSphereMesh(0.5f, 5, SimpleSceneVertex::s_attribLayout);
 
     // load model
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunny.obj", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals);
     JAM_ASSERT(importer, "Failed to load model: {}", importer.GetError().ToErrorMessage());
     Expect<Ref<Model>> pModel = importer->ConvertToModel(SimpleSceneVertex::s_attribLayout, eAssimpConvertToModelFlags::Mesh);
     JAM_ASSERT(pModel, "Failed to extract model: {}", pModel.GetError().ToErrorMessage());
-    Ref<Model> pBunnyModel    = pModel.GetValue();
-    m_pMesh[eMeshType::Bunny] = pBunnyModel->GetMeshes()[0];
+    Ref<Model> pBunnyModel = pModel.GetValue();
+    m_pMesh[eMesh::Bunny]  = pBunnyModel->GetMeshes()[0];
 
     // camera setting
     m_camera.SetAspectRatio(16.f / 9.f);
@@ -123,41 +124,41 @@ void SimpleScene::OnRender(
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4          vpMtx    = m_cameraTransform.GetMatrix().Invert() * m_camera.GetProjMatrix();
+    const Mtx4        vpMtx    = m_cameraTransform.GetSRT().Invert() * m_camera.GetProj();
     CBSimpleSceneCamera cbCamera = {};
-    cbCamera.cb_eyePos           = m_cameraTransform.GetTranslation();
-    cbCamera.cb_viewProj         = vpMtx.Transpose();
+    cbCamera.eye                 = m_cameraTransform.GetTranslation();
+    cbCamera.viewProj            = vpMtx.Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBSimpleSceneCamera::k_slot);
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBSimpleSceneCamera::k_slot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBSimpleSceneCamera::kSlot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBSimpleSceneCamera::kSlot);
 
     // light
     CBSimpleSceneLight cbLight = {};
-    cbLight.cb_lightDir        = Normalized(m_lightLookAt - m_lightPos);
-    cbLight.cb_lightColor      = m_lightColor;
-    cbLight.cb_ambientColor    = m_ambientColor;
+    cbLight.lightDir           = Normalized(m_lightLookAt - m_lightPos);
+    cbLight.lightCol           = m_lightCol;
+    cbLight.ambientCol         = m_ambientCol;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBSimpleSceneLight::k_slot);
+    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBSimpleSceneLight::kSlot);
 
     // entity
-    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBSimpleSceneEntity::k_slot);
-    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBSimpleSceneEntity::k_slot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBSimpleSceneEntity::kSlot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBSimpleSceneEntity::kSlot);
 
     CBSimpleSceneEntity cbEntity = {};
-    Ref<Mesh>&          pMesh    = m_pMesh[m_activeType];
+    Ref<Mesh>&          pMesh    = m_pMesh[m_activeMesh];
     for (Int32 i = 0; i < m_numEntities; ++i)
     {
         float t   = static_cast<float>(i) * 15.f;
         float yaw = m_entityYawRad + ToRad(t);
         float x   = 1.f * static_cast<float>(i - (m_numEntities / 2));
         float y   = 1.f * Sin(m_entityYRad + ToRad(t));
-        float s   = m_activeType == eMeshType::Bunny ? 5.f : 1.f;   // bunny is too small..
+        float s   = m_activeMesh == eMesh::Bunny ? 5.f : 1.f;   // bunny is too small..
 
-        const Mtx4 world          = Mtx4::CreateScale(s, s, s) * Mtx4::CreateFromYawPitchRoll(yaw, 0.f, 0.f) * Mtx4::CreateTranslation(x, y, 0.f);
-        cbEntity.cb_world         = world.Transpose();
-        cbEntity.cb_worldInvTrans = world.Invert();
-        cbEntity.cb_shiness       = m_shiness;
-        cbEntity.cb_baseColor     = m_baseColor;
+        const Mtx4 world     = Mtx4::CreateScale(s, s, s) * Mtx4::CreateFromYawPitchRoll(yaw, 0.f, 0.f) * Mtx4::CreateTranslation(x, y, 0.f);
+        cbEntity.world         = world.Transpose();
+        cbEntity.invTransWorld = world.Invert();
+        cbEntity.shiness       = m_shiness;
+        cbEntity.baseColor     = m_baseCol;
         gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
         pMesh->Submit();
     }
@@ -173,27 +174,28 @@ void SimpleScene::OnRender(
 
 void SimpleScene::OnImGuiRender()
 {
-    ImGui::Begin("SimpleScene Controller");
-
-    ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-    ImGui::Separator();
+    if (!BeginSceneInspectorWindows("SimpleScene"))
+    {
+        ImGui::End();
+        return;
+    }
 
     ImGui::Text("Entity Selection");
-    if (ImGui::RadioButton("Cube", m_activeType == eMeshType::Cube))
+    if (ImGui::RadioButton("Cube", m_activeMesh == eMesh::Cube))
     {
-        m_activeType = eMeshType::Cube;
+        m_activeMesh = eMesh::Cube;
     }
 
     ImGui::SameLine();
-    if (ImGui::RadioButton("Sphere", m_activeType == eMeshType::Sphere))
+    if (ImGui::RadioButton("Sphere", m_activeMesh == eMesh::Sphere))
     {
-        m_activeType = eMeshType::Sphere;
+        m_activeMesh = eMesh::Sphere;
     }
 
     ImGui::SameLine();
-    if (ImGui::RadioButton("Bunny", m_activeType == eMeshType::Bunny))
+    if (ImGui::RadioButton("Bunny", m_activeMesh == eMesh::Bunny))
     {
-        m_activeType = eMeshType::Bunny;
+        m_activeMesh = eMesh::Bunny;
     }
 
     ImGui::Separator();
@@ -207,14 +209,14 @@ void SimpleScene::OnImGuiRender()
 
     if (ImGui::CollapsingHeader("Material & Light"))
     {
-        ImGui::ColorEdit3("Base Color", &m_baseColor.x);
+        ImGui::ColorEdit3("Base Color", &m_baseCol.x);
         ImGui::SliderFloat("Shininess", &m_shiness, 1.0f, 256.0f);
 
         ImGui::Separator();
         ImGui::DragFloat3("Light Pos", &m_lightPos.x, 0.1f);
         ImGui::DragFloat3("Light LookAt", &m_lightLookAt.x, 0.1f);
-        ImGui::ColorEdit3("Light Color", &m_lightColor.x);
-        ImGui::ColorEdit3("Ambient Color", &m_ambientColor.x);
+        ImGui::ColorEdit3("Light Color", &m_lightCol.x);
+        ImGui::ColorEdit3("Ambient Color", &m_ambientCol.x);
     }
 
     if (ImGui::CollapsingHeader("Camera"))

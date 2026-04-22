@@ -1,0 +1,22 @@
+[2025.08.15 03:19:12] [trace] CORE: log system initialized
+[2025.08.15 03:19:12] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 235
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2237, height: 1223
+[2025.08.15 03:19:12] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.15 03:19:17] [trace] CORE: Dispatching event: AssetLoadEvent: asset type: Texture, asset asset: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures\1 (12).jpg
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 230
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 135, y: 229
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 135, y: 228
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 136, y: 227
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 137, y: 226
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 138, y: 225
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 222
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 158, y: 218
+[2025.08.15 03:19:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 182, y: 212
+[2025.08.15 03:19:20] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.15 03:19:20] [trace] CORE: log system shutdown

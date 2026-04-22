@@ -97,7 +97,7 @@ void Editor_SceneHierarchyWindow::OnImGuiRender(
             // if click window empty space, clear focus entity
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
             {
-                GetEditor().SetFocusingEntity(Entity::k_null);
+                GetEditor().SetFocusingEntity(Entity::kNull);
             }
         }
         ImGui::EndChild();
@@ -170,7 +170,7 @@ void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
     const bool bHasTag      = _entity.HasComponent<TagComponent>();
 
     // push id
-    ImGui::PushID(NarrowCast<Int32>(uid.GetValue()));
+    ImGui::PushID(static_cast<Int32>(uid.GetValue()));
 
     // set label
     StackString<256> label;
@@ -309,7 +309,7 @@ void Editor_SceneHierarchyWindow::Widget_CreateEntityButton_(
     if (ImGui::Button("create", _btnSize))
     {
         
-        GetEditor().CreateEntity(m_pScene, Entity::k_null);
+        GetEditor().CreateEntity(m_pScene, Entity::kNull);
     }
 
     Widget_ItemDescriptionTooltip(
@@ -359,7 +359,7 @@ void Editor_SceneHierarchyWindow::OnBeginDragDropTarget_EntityListPanel_() const
     if (const ImGuiPayload* pPayload = AcceptPathDragDropPayload())
     {
         const String path = ResolvePathDragDropPayload(pPayload);
-        if (path.MatchExtension(Model::k_extension))
+        if (path.MatchExtension(Model::kExtension))
         {
             if (Expect<Ref<Model>> pModel = GetEditor().LoadModel(path))
             {
@@ -375,7 +375,7 @@ void Editor_SceneHierarchyWindow::Menu_EntityListPanel_() const
     if (Widget_MenuItem("create"))
     {
         JAM_ASSERT(GetSceneManager().HasActiveScene(), "no active scene to create entity into.");
-        GetEditor().CreateEntity(m_pScene, Entity::k_null);
+        GetEditor().CreateEntity(m_pScene, Entity::kNull);
     }
 }
 

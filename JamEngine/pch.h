@@ -32,12 +32,10 @@
 #include <vector>
 
 // directX
-#include <d3d11.h>
+#include <d3d11_4.h>
 #include <wrl.h>
-#include <Directxtk/SimpleMath.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "DirectXTK.lib")
 
 // entt
 #include <entt/entt.hpp>
@@ -60,6 +58,9 @@
 #include "BaseUtilities.h"
 #include "Optional.h"
 #include "Math.h"
+#include "Vector.h"
+#include "Matrix.h"
+#include "Quaternion.h"
 #include "String.h"
 #include "RefCounted.h"
 #include "LogSystem.h"

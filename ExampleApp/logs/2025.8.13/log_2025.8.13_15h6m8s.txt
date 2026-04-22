@@ -1,0 +1,35 @@
+[2025.08.13 15:06:08] [trace] CORE: log system initialized
+[2025.08.13 15:06:08] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.13 15:06:08] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.13 15:06:08] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.13 15:06:09] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.13 15:06:09] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.13 15:06:09] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.13 15:06:09] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)"
+[2025.08.13 15:06:14] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)" - duration: 5680.444 ms
+[2025.08.13 15:06:14] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)"
+[2025.08.13 15:06:20] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)" - duration: 5756.042 ms
+[2025.08.13 15:06:25] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\models (128x128)"
+[2025.08.13 15:06:25] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\models (128x128)" - duration: 39.156 ms
+[2025.08.13 15:06:25] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures (128x128)"
+[2025.08.13 15:06:25] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures (128x128)" - duration: 2.971 ms
+[2025.08.13 15:06:27] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)"
+[2025.08.13 15:06:27] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)" - duration: 2.592 ms
+[2025.08.13 15:06:27] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)"
+[2025.08.13 15:06:27] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)" - duration: 9.856 ms
+[2025.08.13 15:06:29] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)"
+[2025.08.13 15:06:29] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)" - duration: 2.492 ms
+[2025.08.13 15:06:29] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)"
+[2025.08.13 15:06:29] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)" - duration: 10.196 ms
+[2025.08.13 15:06:29] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\models (128x128)"
+[2025.08.13 15:06:29] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\models (128x128)" - duration: 10.210 ms
+[2025.08.13 15:06:29] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures (128x128)"
+[2025.08.13 15:06:29] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures (128x128)" - duration: 2.856 ms
+[2025.08.13 15:06:33] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\models (128x128)"
+[2025.08.13 15:06:33] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\models (128x128)" - duration: 10.334 ms
+[2025.08.13 15:06:33] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures (128x128)"
+[2025.08.13 15:06:33] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures (128x128)" - duration: 2.538 ms
+[2025.08.13 15:06:35] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures\nagisa.png (128x128)"
+[2025.08.13 15:06:35] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets\textures\nagisa.png (128x128)" - duration: 10.976 ms
+[2025.08.13 15:06:38] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.13 15:06:38] [trace] CORE: log system shutdown

@@ -7,11 +7,13 @@
 namespace Jam
 {
 
+const Entity Entity::kNull = Entity {};
+
 Entity::Entity(
-    Registry&            _registry,
-    const RegistryHandle _handle,
-    const UID            _uid)
-    : m_pRegistry(&_registry)
+    entt::registry&    _reg,
+    const entt::entity _handle,
+    const UID          _uid)
+    : m_pRegistry(&_reg)
     , m_handle(_handle)
     , m_uid(_uid)
 {
@@ -40,7 +42,7 @@ UID Entity::GetUID() const
     return m_uid;
 }
 
-RegistryHandle Entity::GetHandle() const
+entt::entity Entity::GetHandle() const
 {
     return m_handle;
 }
@@ -79,7 +81,5 @@ Transform& Entity::ModifyLocalTransform()
 {
     return GetSceneNode().ModifyLocalTransform();
 }
-
-const Entity Entity::k_null = Entity {};
 
 }   // namespace Jam

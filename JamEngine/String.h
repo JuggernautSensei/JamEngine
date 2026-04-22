@@ -23,20 +23,20 @@ struct CharTraits<char>
     template<typename... TArgs>
     using FormatStringT = fmt::format_string<TArgs...>;
 
-    constexpr static CharT        k_nullChar               = '\0';
-    constexpr static CharT        k_spaceChars[]           = { ' ', '\t', '\n', '\r', '\v', '\f' };
-    constexpr static CharT        k_slash                  = '/';
-    constexpr static CharT        k_dot                    = '.';
-    constexpr static CharT        k_colon                  = ':';
-    constexpr static CharT        k_underscore             = '_';
-    constexpr static CharT        k_pathPreferredSeparator = k_slash;
-    constexpr static CharT        k_pathSeparators[]       = { '/', '\\' };
-    constexpr static CharT        k_lowerA                 = 'a';
-    constexpr static CharT        k_upperA                 = 'A';
-    constexpr static CharT        k_lowerZ                 = 'z';
-    constexpr static CharT        k_upperZ                 = 'Z';
-    constexpr static CharT        k_caseDiff               = k_lowerA - k_upperA;
-    constexpr static const CharT* k_placeholder            = "";
+    constexpr static CharT        kNullChar               = '\0';
+    constexpr static CharT        kSpaceChars[]           = { ' ', '\t', '\n', '\r', '\v', '\f' };
+    constexpr static CharT        kSlash                  = '/';
+    constexpr static CharT        kDot                    = '.';
+    constexpr static CharT        kColon                  = ':';
+    constexpr static CharT        kUnderscore             = '_';
+    constexpr static CharT        kPathPreferredSeparator = kSlash;
+    constexpr static CharT        kPathSeparators[]       = { '/', '\\' };
+    constexpr static CharT        kLowerA                 = 'a';
+    constexpr static CharT        kUpperA                 = 'A';
+    constexpr static CharT        kLowerZ                 = 'z';
+    constexpr static CharT        kUpperZ                 = 'Z';
+    constexpr static CharT        kCaseDiff               = kLowerA - kUpperA;
+    constexpr static const CharT* kPlaceholder            = "";
 };
 
 template<>
@@ -47,20 +47,20 @@ struct CharTraits<wchar_t>
     template<typename... TArgs>
     using FormatStringT = fmt::wformat_string<TArgs...>;
 
-    constexpr static CharT        k_nullChar               = L'\0';
-    constexpr static CharT        k_spaceChars[]           = { L' ', L'\t', L'\n', L'\r', L'\v', L'\f' };
-    constexpr static CharT        k_slash                  = L'/';
-    constexpr static CharT        k_dot                    = L'.';
-    constexpr static CharT        k_colon                  = L':';
-    constexpr static CharT        k_underscore             = L'_';
-    constexpr static CharT        k_pathPreferredSeparator = k_slash;
-    constexpr static CharT        k_pathSeparators[]       = { L'/', L'\\' };
-    constexpr static CharT        k_lowerA                 = L'a';
-    constexpr static CharT        k_upperA                 = L'A';
-    constexpr static CharT        k_lowerZ                 = L'z';
-    constexpr static CharT        k_upperZ                 = L'Z';
-    constexpr static CharT        k_caseDiff               = k_lowerA - k_upperA;
-    constexpr static const CharT* k_placeholder            = L"";
+    constexpr static CharT        kNullChar               = L'\0';
+    constexpr static CharT        kSpaceChars[]           = { L' ', L'\t', L'\n', L'\r', L'\v', L'\f' };
+    constexpr static CharT        kSlash                  = L'/';
+    constexpr static CharT        kDot                    = L'.';
+    constexpr static CharT        kColon                  = L':';
+    constexpr static CharT        kUnderscore             = L'_';
+    constexpr static CharT        kPathPreferredSeparator = kSlash;
+    constexpr static CharT        kPathSeparators[]       = { L'/', L'\\' };
+    constexpr static CharT        kLowerA                 = L'a';
+    constexpr static CharT        kUpperA                 = L'A';
+    constexpr static CharT        kLowerZ                 = L'z';
+    constexpr static CharT        kUpperZ                 = L'Z';
+    constexpr static CharT        kCaseDiff               = kLowerA - kUpperA;
+    constexpr static const CharT* kPlaceholder            = L"";
 };
 
 ////////// numeric char converter //////////
@@ -116,8 +116,8 @@ struct NumericCharConverter<char>
     static SizeT ConvertToChars(const T _value, CharT* _pOutBuf, const SizeT _bufCap)
     {
         const auto [it, _] = fmt::format_to_n(_pOutBuf, _bufCap - 1, "{}", +_value);
-        *it                = CharTraits::k_nullChar;
-        return NarrowCast<SizeT>(it - _pOutBuf);
+        *it                = CharTraits::kNullChar;
+        return static_cast<SizeT>(it - _pOutBuf);
     }
 };
 
@@ -166,8 +166,8 @@ struct NumericCharConverter<wchar_t>
     static SizeT ConvertToChars(const T _value, CharT* _pOutBuf, const SizeT _bufCap)
     {
         const auto [it, _] = fmt::format_to_n(_pOutBuf, _bufCap - 1, L"{}", +_value);
-        *it                = CharTraits::k_nullChar;
-        return NarrowCast<SizeT>(it - _pOutBuf);
+        *it                = CharTraits::kNullChar;
+        return static_cast<SizeT>(it - _pOutBuf);
     }
 };
 
@@ -231,7 +231,7 @@ struct PathDecomposeResult
     SizeT extLen      = 0;
 };
 
-constexpr SizeT k_maxPathLength = 1024;
+constexpr SizeT kMaxPathLength = 1024;
 
 ////////// char functions //////////
 
@@ -246,12 +246,12 @@ struct CharFuncs
 
     static constexpr bool IsUpper(const CharT _c)
     {
-        return (_c >= CharTraits::k_upperA) && (_c <= CharTraits::k_upperZ);
+        return (_c >= CharTraits::kUpperA) && (_c <= CharTraits::kUpperZ);
     }
 
     static constexpr bool IsLower(const CharT _c)
     {
-        return (_c >= CharTraits::k_lowerA) && (_c <= CharTraits::k_lowerZ);
+        return (_c >= CharTraits::kLowerA) && (_c <= CharTraits::kLowerZ);
     }
 
     static constexpr bool IsAlphabet(const CharT _c)
@@ -261,17 +261,17 @@ struct CharFuncs
 
     static constexpr CharT ToUpper(const CharT _c)
     {
-        return IsLower(_c) ? static_cast<CharT>(_c - CharTraits::k_caseDiff) : _c;
+        return IsLower(_c) ? static_cast<CharT>(_c - CharTraits::kCaseDiff) : _c;
     }
 
     static constexpr CharT ToLower(const CharT _c)
     {
-        return IsUpper(_c) ? static_cast<CharT>(_c + CharTraits::k_caseDiff) : _c;
+        return IsUpper(_c) ? static_cast<CharT>(_c + CharTraits::kCaseDiff) : _c;
     }
 
     static constexpr bool IsSpace(const CharT _c)
     {
-        for (const CharT spaceChar: CharTraits::k_spaceChars)
+        for (const CharT spaceChar: CharTraits::kSpaceChars)
         {
             if (_c == spaceChar)
             {
@@ -300,9 +300,9 @@ struct CharFuncs
         JAM_ASSERT(_str, "StrCpy: _str cannot be null.");
         JAM_ASSERT(_len <= _bufCap - 1, "StrCpy: _len cannot be greater than _bufCap - 1.");
 
-        const StdStringView str = { _str, NarrowCast<size_t>(_len) };
+        const StdStringView str = { _str, static_cast<size_t>(_len) };
         str.copy(_pOutBuf, _len);
-        _pOutBuf[_len] = CharTraits::k_nullChar;
+        _pOutBuf[_len] = CharTraits::kNullChar;
         return _len;
     }
 
@@ -362,17 +362,17 @@ struct CharFuncs
         {
             if constexpr (bEqual)
             {
-                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, static_cast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
                 const size_t        idx     = str.find(findStr);
-                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
             }
             else
             {
-                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, static_cast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
                 const size_t        idx     = str.find_first_not_of(findStr);
-                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
             }
         }
         else
@@ -399,17 +399,17 @@ struct CharFuncs
         {
             if constexpr (bEqual)
             {
-                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, static_cast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
                 const size_t        idx     = str.rfind(findStr);
-                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
             }
             else
             {
-                const StdStringView str     = { _str, NarrowCast<size_t>(_len) };
-                const StdStringView findStr = { _findStr, NarrowCast<size_t>(_findStrLen) };
+                const StdStringView str     = { _str, static_cast<size_t>(_len) };
+                const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
                 const size_t        idx     = str.find_last_not_of(findStr);
-                return idx != StdStringView::npos ? CharResult { NarrowCast<SizeT>(idx) } : CharResult::Failed();
+                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
             }
         }
         else
@@ -466,7 +466,7 @@ struct CharFuncs
 
     [[nodiscard]] static constexpr bool IsPathSeparator(const CharT _c)
     {
-        for (const CharT separator: CharTraits::k_pathSeparators)
+        for (const CharT separator: CharTraits::kPathSeparators)
         {
             if (_c == separator)
             {
@@ -501,7 +501,7 @@ struct CharFuncs
                 result.baseNameLen  = result.bHasExt ? result.extPos - i : end - i;
                 break;
             }
-            else if (c == CharTraits::k_dot && !result.bHasExt)
+            else if (c == CharTraits::kDot && !result.bHasExt)
             {
                 result.bHasExt = true;
                 result.extPos  = i - 1;
@@ -531,7 +531,7 @@ struct CharFuncs
 
         if (_len == 0)
         {
-            _pOutBuf[0] = CharTraits::k_nullChar;
+            _pOutBuf[0] = CharTraits::kNullChar;
             return 0;
         }
 
@@ -539,10 +539,10 @@ struct CharFuncs
         SizeT dotdot = 0;
         SizeT outIdx = 0;
 
-        if (_len >= 2 && IsAlphabet(_str[0]) && _str[1] == CharTraits::k_colon)
+        if (_len >= 2 && IsAlphabet(_str[0]) && _str[1] == CharTraits::kColon)
         {
             _pOutBuf[outIdx++] = ToUpper(_str[0]);
-            _pOutBuf[outIdx++] = CharTraits::k_colon;
+            _pOutBuf[outIdx++] = CharTraits::kColon;
             idx += 2;
             dotdot = outIdx;
         }
@@ -550,7 +550,7 @@ struct CharFuncs
         const bool bIsRoot = (idx < _len) && IsPathSeparator(_str[idx]);
         if (bIsRoot)
         {
-            _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
+            _pOutBuf[outIdx++] = CharTraits::kPathPreferredSeparator;
             ++idx;
             dotdot = outIdx;
         }
@@ -565,7 +565,7 @@ struct CharFuncs
                 continue;
             }
 
-            if (_str[idx] == CharTraits::k_dot)
+            if (_str[idx] == CharTraits::kDot)
             {
                 if (idx + 1 == _len || IsPathSeparator(_str[idx + 1]))
                 {
@@ -573,7 +573,7 @@ struct CharFuncs
                     continue;
                 }
 
-                if (CharTraits::k_dot == _str[idx + 1] && (idx + 2 == _len || IsPathSeparator(_str[idx + 2])))
+                if (CharTraits::kDot == _str[idx + 1] && (idx + 2 == _len || IsPathSeparator(_str[idx + 2])))
                 {
                     idx += 2;
                     if (dotdot < outIdx)
@@ -588,10 +588,10 @@ struct CharFuncs
                     {
                         if (outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
                         {
-                            _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
+                            _pOutBuf[outIdx++] = CharTraits::kPathPreferredSeparator;
                         }
-                        _pOutBuf[outIdx++] = CharTraits::k_dot;
-                        _pOutBuf[outIdx++] = CharTraits::k_dot;
+                        _pOutBuf[outIdx++] = CharTraits::kDot;
+                        _pOutBuf[outIdx++] = CharTraits::kDot;
                         dotdot             = outIdx;
                     }
                     continue;
@@ -602,7 +602,7 @@ struct CharFuncs
             {
                 if (outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
                 {
-                    _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
+                    _pOutBuf[outIdx++] = CharTraits::kPathPreferredSeparator;
                 }
             }
 
@@ -614,14 +614,14 @@ struct CharFuncs
 
         if (outIdx == 0)
         {
-            _pOutBuf[outIdx++] = CharTraits::k_dot;
+            _pOutBuf[outIdx++] = CharTraits::kDot;
         }
         else if (bTrailingSlash && outIdx > 0 && !IsPathSeparator(_pOutBuf[outIdx - 1]))
         {
-            _pOutBuf[outIdx++] = CharTraits::k_pathPreferredSeparator;
+            _pOutBuf[outIdx++] = CharTraits::kPathPreferredSeparator;
         }
 
-        _pOutBuf[outIdx] = CharTraits::k_nullChar;
+        _pOutBuf[outIdx] = CharTraits::kNullChar;
         return outIdx;
     }
 
@@ -666,7 +666,7 @@ struct CharFuncs
             const float value = NumericCharConverter::ParseAsFloat(_str);
             if (value == HUGE_VALF || value == -HUGE_VALF)
             {
-                return k_nullopt;
+                return kNullopt;
             }
             return static_cast<T>(value);
         }
@@ -675,7 +675,7 @@ struct CharFuncs
             const double value = NumericCharConverter::ParseAsDouble(_str);
             if (value == HUGE_VAL || value == -HUGE_VAL)
             {
-                return k_nullopt;
+                return kNullopt;
             }
             return static_cast<T>(value);
         }
@@ -684,7 +684,7 @@ struct CharFuncs
             const long double value = NumericCharConverter::ParseAsLongDouble(_str);
             if (value == HUGE_VALL || value == -HUGE_VALL)
             {
-                return k_nullopt;
+                return kNullopt;
             }
             return static_cast<T>(value);
         }
@@ -714,7 +714,7 @@ struct CharEncoder<char, wchar_t>
 {
     [[nodiscard]] static SizeT CalcRequiredBufferSize(const char* _str, const SizeT _len)
     {
-        return ::MultiByteToWideChar(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), nullptr, 0);
+        return ::MultiByteToWideChar(CP_UTF8, 0, _str, static_cast<Int32>(_len), nullptr, 0);
     }
 
     static SizeT Encode(const char* _str, const SizeT _len, wchar_t* _pOutBuf, const SizeT _bufCap)
@@ -723,7 +723,7 @@ struct CharEncoder<char, wchar_t>
         JAM_ASSERT(_pOutBuf, "CharEncoder<char, wchar_t>::Encode: _pOutBuf cannot be null.");
         JAM_ASSERT(_bufCap > 0, "CharEncoder<char, wchar_t>::Encode: _bufCap must be greater than zero.");
 
-        const Int32 n = ::MultiByteToWideChar(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), _pOutBuf, NarrowCast<Int32>(_bufCap));
+        const Int32 n = ::MultiByteToWideChar(CP_UTF8, 0, _str, static_cast<Int32>(_len), _pOutBuf, static_cast<Int32>(_bufCap));
         _pOutBuf[n]   = L'\0';
         return n;
     }
@@ -734,7 +734,7 @@ struct CharEncoder<wchar_t, char>
 {
     [[nodiscard]] static SizeT CalcRequiredBufferSize(const wchar_t* _str, const SizeT _len)
     {
-        return ::WideCharToMultiByte(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), nullptr, 0, nullptr, nullptr);
+        return ::WideCharToMultiByte(CP_UTF8, 0, _str, static_cast<Int32>(_len), nullptr, 0, nullptr, nullptr);
     }
 
     static SizeT Encode(const wchar_t* _str, const SizeT _len, char* _pOutBuf, const SizeT _bufCap)
@@ -743,7 +743,7 @@ struct CharEncoder<wchar_t, char>
         JAM_ASSERT(_pOutBuf, "CharEncoder<wchar_t, char>::Encode: _pOutBuf cannot be null.");
         JAM_ASSERT(_bufCap > 0, "CharEncoder<wchar_t, char>::Encode: _bufCap must be greater than zero.");
 
-        const Int32 n = ::WideCharToMultiByte(CP_UTF8, 0, _str, NarrowCast<Int32>(_len), _pOutBuf, NarrowCast<Int32>(_bufCap), nullptr, nullptr);
+        const Int32 n = ::WideCharToMultiByte(CP_UTF8, 0, _str, static_cast<Int32>(_len), _pOutBuf, static_cast<Int32>(_bufCap), nullptr, nullptr);
         _pOutBuf[n]   = '\0';
         return n;
     }
@@ -765,7 +765,7 @@ struct CharEncoder<TChar, TChar>
         JAM_ASSERT(_len < _bufCap, "CharEncoder<TChar, TChar>::Encode: _len must be less than _bufCap.");
 
         std::memcpy(_pOutBuf, _str, _len * sizeof(TChar));
-        _pOutBuf[_len] = CharTraits<TChar>::k_nullChar;
+        _pOutBuf[_len] = CharTraits<TChar>::kNullChar;
         return _len;
     }
 };
@@ -774,10 +774,10 @@ struct CharEncoder<TChar, TChar>
 
 namespace Details
 {
-    constexpr UInt32 k_fnv1ah32Prime = 16777619U;
-    constexpr UInt32 k_fnv1ah32Seed  = 2166136261UL;
-    constexpr UInt64 k_fnv1ah64Prime = 1099511628211ULL;
-    constexpr UInt64 k_fnv1ah64Seed  = 14695981039346656037ULL;
+    constexpr UInt32 kFnv1ah32Prime = 16777619U;
+    constexpr UInt32 kFnv1ah32Seed  = 2166136261UL;
+    constexpr UInt64 kFnv1ah64Prime = 1099511628211ULL;
+    constexpr UInt64 kFnv1ah64Seed  = 14695981039346656037ULL;
 }   // namespace Details
 
 // constexpr hash for stringt
@@ -786,7 +786,7 @@ class Fnv1ahHasher32
 {
 public:
     explicit constexpr Fnv1ahHasher32(
-        const UInt32 _seed = Details::k_fnv1ah32Seed)
+        const UInt32 _seed = Details::kFnv1ah32Seed)
         : m_hash(_seed)
     {
     }
@@ -797,7 +797,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NarrowCast<UInt32>(_str[i])) * Details::k_fnv1ah32Prime;
+            m_hash = (m_hash ^ static_cast<UInt32>(_str[i])) * Details::kFnv1ah32Prime;
         }
     }
 
@@ -815,7 +815,7 @@ class Fnv1ahHasher64
 {
 public:
     explicit constexpr Fnv1ahHasher64(
-        const UInt64 _seed = Details::k_fnv1ah64Seed)
+        const UInt64 _seed = Details::kFnv1ah64Seed)
         : m_hash(_seed)
     {
     }
@@ -826,7 +826,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NarrowCast<UInt64>(_str[i])) * Details::k_fnv1ah64Prime;
+            m_hash = (m_hash ^ static_cast<UInt64>(_str[i])) * Details::kFnv1ah64Prime;
         }
     }
 
@@ -846,7 +846,7 @@ public:
     using CharFuncs = CharFuncs<TChar>;
 
     explicit constexpr IgnoreCaseFnv1ahHasher32(
-        const UInt32 _seed = Details::k_fnv1ah32Seed)
+        const UInt32 _seed = Details::kFnv1ah32Seed)
         : m_hash(_seed)
     {
     }
@@ -857,7 +857,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NarrowCast<UInt32>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah32Prime;
+            m_hash = (m_hash ^ static_cast<UInt32>(CharFuncs::ToLower(_str[i]))) * Details::kFnv1ah32Prime;
         }
     }
 
@@ -877,7 +877,7 @@ public:
     using CharFuncs = CharFuncs<TChar>;
 
     explicit constexpr IgnoreCaseFnv1ahHasher64(
-        const UInt64 _seed = Details::k_fnv1ah64Seed)
+        const UInt64 _seed = Details::kFnv1ah64Seed)
         : m_hash(_seed)
     {
     }
@@ -888,7 +888,7 @@ public:
     {
         for (SizeT i = 0; i < _len; ++i)
         {
-            m_hash = (m_hash ^ NarrowCast<UInt64>(CharFuncs::ToLower(_str[i]))) * Details::k_fnv1ah64Prime;
+            m_hash = (m_hash ^ static_cast<UInt64>(CharFuncs::ToLower(_str[i]))) * Details::kFnv1ah64Prime;
         }
     }
 
@@ -959,7 +959,7 @@ public:
 
     [[nodiscard]] constexpr bool IsNullTerminated() const
     {
-        return m_ptr ? m_ptr[m_len] == CharTraits::k_nullChar : false;
+        return m_ptr ? m_ptr[m_len] == CharTraits::kNullChar : false;
     }
 
     [[nodiscard]] constexpr const CharT& operator[](const SizeT _index) const
@@ -1344,7 +1344,7 @@ public:
 
     [[nodiscard]] bool IsAbsolute() const
     {
-        return m_len > 2 && CharFuncs::IsAlphabet(m_ptr[0]) && m_ptr[1] == CharTraits::k_colon
+        return m_len > 2 && CharFuncs::IsAlphabet(m_ptr[0]) && m_ptr[1] == CharTraits::kColon
             || m_len > 0 && CharFuncs::IsPathSeparator(m_ptr[0]);
     }
 
@@ -1366,7 +1366,7 @@ public:
     [[nodiscard]] bool MatchExtension(const BasicStringView _ext) const
     {
         BasicStringView ext = GetExtension();
-        ext                 = _ext.StartsWith(CharTraits::k_dot) ? ext : ext.SubView(1);   // If _ext starts with dot, then ext should also start with dot for comparison, otherwise both should not start with dot.
+        ext                 = _ext.StartsWith(CharTraits::kDot) ? ext : ext.SubView(1);   // If _ext starts with dot, then ext should also start with dot for comparison, otherwise both should not start with dot.
         return ext.CompareEqualIgnoreCase(_ext, 0);
     }
 
@@ -1384,12 +1384,12 @@ public:
 
     [[nodiscard]] constexpr size_t size() const
     {
-        return NarrowCast<size_t>(m_len);
+        return static_cast<size_t>(m_len);
     }
 
     [[nodiscard]] constexpr size_t length() const
     {
-        return NarrowCast<size_t>(m_len);
+        return static_cast<size_t>(m_len);
     }
 
     [[nodiscard]] constexpr TChar* data()
@@ -1424,16 +1424,16 @@ public:
 
     [[nodiscard]] constexpr std::basic_string<CharT> ToStdString() const
     {
-        return { m_ptr, NarrowCast<size_t>(m_len) };
+        return { m_ptr, static_cast<size_t>(m_len) };
     }
 
     [[nodiscard]] constexpr std::basic_string_view<CharT> ToStdStringView() const
     {
-        return { m_ptr, NarrowCast<size_t>(m_len) };
+        return { m_ptr, static_cast<size_t>(m_len) };
     }
 
 private:
-    const CharT* m_ptr = CharTraits::k_placeholder;   // DefaultExport empty
+    const CharT* m_ptr = CharTraits::kPlaceholder;   // DefaultExport empty
     SizeT        m_len = 0;
 };
 
@@ -2196,9 +2196,9 @@ public:
             Self_().Erase(result.extPos, result.extLen);
         }
 
-        if (!_newExt.StartsWith(CharTraits::k_dot))
+        if (!_newExt.StartsWith(CharTraits::kDot))
         {
-            Append(CharTraits::k_dot);
+            Append(CharTraits::kDot);
         }
 
         Self_().Append(_newExt);
@@ -2237,7 +2237,7 @@ public:
     void Simplify()
     {
         // simplified dir is shorter or equal to the original dir, so it won't cause heap to grow if it's already in heap mode.
-        TChar       buf[k_maxPathLength];
+        TChar       buf[kMaxPathLength];
         const SizeT len = CharFuncs::Simplify(Self_().GetPtr(), Self_().GetLength(), buf, CountOf(buf));
         Set(buf, len);
     }
@@ -2256,13 +2256,13 @@ public:
 
         if (!CharFuncs::IsPathSeparator(Back()) && !_str.IsEmpty() && !CharFuncs::IsPathSeparator(_str.Front()))
         {
-            Append(CharTraits::k_pathPreferredSeparator);
+            Append(CharTraits::kPathPreferredSeparator);
         }
 
         Self_().Append(_str);
         if (_type == eJoin::Directory && !CharFuncs::IsPathSeparator(Back()))
         {
-            Append(CharTraits::k_pathPreferredSeparator);
+            Append(CharTraits::kPathPreferredSeparator);
         }
 
         if (_type == eJoin::File)
@@ -2368,9 +2368,9 @@ public:
             const TChar c = operator[](i);
             if (CharFuncs::IsSpace(c))
             {
-                if (!result.IsEmpty() && result.Back() != CharTraits::k_underscore)
+                if (!result.IsEmpty() && result.Back() != CharTraits::kUnderscore)
                 {
-                    result += CharTraits::k_underscore;
+                    result += CharTraits::kUnderscore;
                 }
             }
             else
@@ -2379,7 +2379,7 @@ public:
             }
         }
 
-        if (!result.IsEmpty() && result.Back() == CharTraits::k_underscore)
+        if (!result.IsEmpty() && result.Back() == CharTraits::kUnderscore)
         {
             result.Resize(result.GetLength() - 1);
         }
@@ -2408,12 +2408,12 @@ public:
 
     [[nodiscard]] size_t size() const
     {
-        return NarrowCast<size_t>(Self_().GetLength());
+        return static_cast<size_t>(Self_().GetLength());
     }
 
     [[nodiscard]] size_t length() const
     {
-        return NarrowCast<size_t>(Self_().GetLength());
+        return static_cast<size_t>(Self_().GetLength());
     }
 
     [[nodiscard]] TChar* data()
@@ -2458,12 +2458,12 @@ public:
 
     [[nodiscard]] std::basic_string<TChar> ToStdString() const
     {
-        return { Self_().GetPtr(), NarrowCast<size_t>(Self_().GetLength()) };
+        return { Self_().GetPtr(), static_cast<size_t>(Self_().GetLength()) };
     }
 
     [[nodiscard]] std::basic_string_view<TChar> ToStdStringView() const
     {
-        return { Self_().GetPtr(), NarrowCast<size_t>(Self_().GetLength()) };
+        return { Self_().GetPtr(), static_cast<size_t>(Self_().GetLength()) };
     }
 
 private:
@@ -2500,17 +2500,17 @@ public:
     using BaseT::Set;
 
 private:
-    static constexpr Byte  k_heapEnabledBit = 0xFF;
-    static constexpr SizeT k_growthFactor   = 2;
-    static constexpr SizeT k_layoutSize     = 32;
-    static constexpr SizeT k_ssoBufSize     = (k_layoutSize - 1) / sizeof(TChar);
-    static constexpr SizeT k_ssoCap         = k_ssoBufSize - 1;
+    static constexpr Byte  kHeapEnabledBit = 0xFF;
+    static constexpr SizeT kGrowthFactor   = 2;
+    static constexpr SizeT kLayoutSize     = 32;
+    static constexpr SizeT kSsoBufSize     = (kLayoutSize - 1) / sizeof(TChar);
+    static constexpr SizeT kSsoCap         = kSsoBufSize - 1;
 
     union RawData
     {
         struct
         {
-            TChar sso[k_ssoBufSize];
+            TChar sso[kSsoBufSize];
         };
 
         struct
@@ -2522,7 +2522,7 @@ private:
 
         struct
         {
-            Byte padding[k_layoutSize - 1];
+            Byte padding[kLayoutSize - 1];
             Byte bit;
         };
     };
@@ -2637,9 +2637,9 @@ public:
             GrowHeapIfNeed_(len);
             SetToHeap_(_str);
         }
-        else if (len > k_ssoCap)   // change to heap
+        else if (len > kSsoCap)   // change to heap
         {
-            InitHeap_(len * k_growthFactor);
+            InitHeap_(len * kGrowthFactor);
             SetToHeap_(_str);
         }
         else
@@ -2660,7 +2660,7 @@ public:
         }
         else if (std::cmp_less(m_str.bit, len))   // change to heap
         {
-            SSOToHeap_((GetLengthSSO_() + len) * k_growthFactor);
+            SSOToHeap_((GetLengthSSO_() + len) * kGrowthFactor);
             AppendToHeap_(_str);
         }
         else
@@ -2681,7 +2681,7 @@ public:
         }
         else if (std::cmp_less(m_str.bit, len))   // change to heap
         {
-            SSOToHeap_((GetLengthSSO_() + len) * k_growthFactor);
+            SSOToHeap_((GetLengthSSO_() + len) * kGrowthFactor);
             InsertToHeap_(_pos, _str);
         }
         else
@@ -2728,7 +2728,7 @@ public:
         }
         else
         {
-            if (_newCap > k_ssoCap)
+            if (_newCap > kSsoCap)
             {
                 SSOToHeap_(_newCap);
             }
@@ -2737,7 +2737,7 @@ public:
 
     void Resize(
         const SizeT _newLen,
-        const CharT _c = CharTraits::k_nullChar)
+        const CharT _c = CharTraits::kNullChar)
     {
         const SizeT len = GetLength();
 
@@ -2749,9 +2749,9 @@ public:
         }
         else
         {
-            if (_newLen > k_ssoCap)
+            if (_newLen > kSsoCap)
             {
-                SSOToHeap_(_newLen * k_growthFactor);
+                SSOToHeap_(_newLen * kGrowthFactor);
                 ResizeHeap_(_newLen);
             }
             else
@@ -2775,12 +2775,12 @@ public:
 
     [[nodiscard]] SizeT GetLength() const
     {
-        return IsHeap_() ? m_str.heapLen : k_ssoCap - m_str.bit;
+        return IsHeap_() ? m_str.heapLen : kSsoCap - m_str.bit;
     }
 
     [[nodiscard]] SizeT GetCapacity() const
     {
-        return IsHeap_() ? m_str.heapCap : k_ssoCap;
+        return IsHeap_() ? m_str.heapCap : kSsoCap;
     }
 
     [[nodiscard]] const CharT* GetPtr() const
@@ -2804,7 +2804,7 @@ private:
 
     [[nodiscard]] bool IsHeap_() const
     {
-        return m_str.bit == k_heapEnabledBit;
+        return m_str.bit == kHeapEnabledBit;
     }
 
     [[nodiscard]] bool IsSSO_() const
@@ -2817,7 +2817,7 @@ private:
     {
         m_str.heap    = static_cast<TChar*>(Malloc((_cap + 1) * sizeof(TChar)));
         m_str.heapCap = _cap;
-        m_str.bit     = k_heapEnabledBit;
+        m_str.bit     = kHeapEnabledBit;
     }
 
     void GrowHeapIfNeed_(
@@ -2825,7 +2825,7 @@ private:
     {
         if (m_str.heapCap < _newCap)
         {
-            ReallocHeap_(_newCap * k_growthFactor);
+            ReallocHeap_(_newCap * kGrowthFactor);
         }
     }
 
@@ -2852,7 +2852,7 @@ private:
     {
         JAM_ASSERT(IsHeap_(), "ResizeHeap_: must be in heap mode to resize heap data.");
         JAM_ASSERT(_newLen <= m_str.heapCap, "ResizeHeap_: _newLen exceeds heap capacity.");
-        m_str.heap[_newLen] = CharTraits::k_nullChar;
+        m_str.heap[_newLen] = CharTraits::kNullChar;
         m_str.heapLen       = _newLen;
     }
 
@@ -2896,14 +2896,14 @@ private:
     [[nodiscard]] SizeT GetLengthSSO_() const
     {
         JAM_ASSERT(IsSSO_(), "LengthOfSSO_: must be in stack mode to get stack data length.");
-        return k_ssoCap - m_str.bit;
+        return kSsoCap - m_str.bit;
     }
 
     void SetToSSO_(
         const StringViewT _str)
     {
         JAM_ASSERT(IsSSO_(), "SetToStack: must be in stack mode to set stack data.");
-        JAM_ASSERT(_str.GetLength() <= k_ssoCap, "SetToStack: _str length exceeds stack capacity.");
+        JAM_ASSERT(_str.GetLength() <= kSsoCap, "SetToStack: _str length exceeds stack capacity.");
 
         const SizeT len = _str.GetLength();
         ::memcpy(m_str.sso, _str.GetPtr(), len * sizeof(TChar));
@@ -2913,9 +2913,9 @@ private:
     void ResizeSSO_(
         const SizeT _len)
     {
-        JAM_ASSERT(_len <= k_ssoCap, "ResizeSSO_: _len exceeds sso capacity.");
-        m_str.sso[_len] = CharTraits::k_nullChar;
-        m_str.bit       = NarrowCast<Byte>(k_ssoCap - _len);
+        JAM_ASSERT(_len <= kSsoCap, "ResizeSSO_: _len exceeds sso capacity.");
+        m_str.sso[_len] = CharTraits::kNullChar;
+        m_str.bit       = static_cast<Byte>(kSsoCap - _len);
     }
 
     void AppendToSSO_(
@@ -2924,7 +2924,7 @@ private:
         const SizeT len = GetLengthSSO_();
 
         JAM_ASSERT(IsSSO_(), "AppendToSSO_: must be in stack mode to append to stack.");
-        JAM_ASSERT(_str.GetLength() + len <= k_ssoCap, "AppendToSSO_: combined length exceeds stack capacity.");
+        JAM_ASSERT(_str.GetLength() + len <= kSsoCap, "AppendToSSO_: combined length exceeds stack capacity.");
 
         ::memcpy(m_str.sso + len, _str.GetPtr(), _str.GetLength() * sizeof(TChar));
         ResizeSSO_(len + _str.GetLength());
@@ -2937,7 +2937,7 @@ private:
         const SizeT len = GetLengthSSO_();
         JAM_ASSERT(IsSSO_(), "InsertToSSO_: must be in stack mode to insert to stack.");
         JAM_ASSERT(_pos <= len, "InsertToSSO_: _pos exceeds string length.");
-        JAM_ASSERT(_str.GetLength() + len <= k_ssoCap, "InsertToSSO_: combined length exceeds stack capacity.");
+        JAM_ASSERT(_str.GetLength() + len <= kSsoCap, "InsertToSSO_: combined length exceeds stack capacity.");
 
         ::memmove(m_str.sso + _pos + _str.GetLength(), m_str.sso + _pos, (len - _pos) * sizeof(TChar));
         ::memcpy(m_str.sso + _pos, _str.GetPtr(), _str.GetLength() * sizeof(TChar));
@@ -2948,7 +2948,7 @@ private:
         const SizeT _newCap)
     {
         JAM_ASSERT(IsSSO_(), "SSOToHeap_: must be in stack mode to convert to heap.");
-        JAM_ASSERT(_newCap > k_ssoCap, "SSOToHeap_: _newCap must be greater than stack capacity.");
+        JAM_ASSERT(_newCap > kSsoCap, "SSOToHeap_: _newCap must be greater than stack capacity.");
 
         TChar*      pHeap  = static_cast<TChar*>(Malloc((_newCap + 1) * sizeof(TChar)));
         const SizeT ssoLen = GetLengthSSO_();
@@ -2956,7 +2956,7 @@ private:
 
         m_str.heap    = pHeap;
         m_str.heapCap = _newCap;
-        m_str.bit     = k_heapEnabledBit;
+        m_str.bit     = kHeapEnabledBit;
         ResizeHeap_(ssoLen);
     }
 

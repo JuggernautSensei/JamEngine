@@ -74,7 +74,7 @@ bool NewProjectDialog::OnClickCreateButton_() const
 
     // create empty project
     workingDir.Join(m_name, eJoin::File);
-    workingDir.ReplaceExtension(Project::k_extension);
+    workingDir.ReplaceExtension(Project::kExtension);
 
     const Expect<Project> project = Project::LoadNew(workingDir);
     if (!project)

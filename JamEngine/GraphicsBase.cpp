@@ -9,99 +9,99 @@ namespace Jam
 
 namespace
 {
-    constexpr eTextureCreateFlags k_textureCreateFlagsMsaaMask = static_cast<eTextureCreateFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1000'0000));   // [7:9]
+    constexpr eTextureCreateFlags kTextureCreateFlagsMsaaMask = static_cast<eTextureCreateFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1000'0000));   // [7:9]
 
-    constexpr eRenderFlags k_renderFlagsPrimitiveMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
-    constexpr eRenderFlags k_renderFlagsCullModeMask   = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1000));   // [3:4]
-    constexpr eRenderFlags k_renderFlagsRasterizerMask = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'1111'1000));   // [3:10] (CullMode 포함)
-    constexpr eRenderFlags k_renderFlagsBlendMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1000'0000'0000));   // [11:12]
-    constexpr eRenderFlags k_renderFlagsDepthMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0011'1110'0000'0000'0000));   // [13:17] (DepthWrite 포함)
-    constexpr eRenderFlags k_renderFlagsDepthFuncMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0001'1110'0000'0000'0000));   // [13:16]
-    constexpr UInt32       k_renderFlagsDepthFuncShift = UInt32CountRZero(UnderlyingFrom(k_renderFlagsDepthFuncMask));
+    constexpr eRenderFlags kRenderFlagsPrimitiveMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
+    constexpr eRenderFlags kRenderFlagsCullModeMask   = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1000));   // [3:4]
+    constexpr eRenderFlags kRenderFlagsRasterizerMask = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'1111'1000));   // [3:10] (CullMode 포함)
+    constexpr eRenderFlags kRenderFlagsBlendMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1000'0000'0000));   // [11:12]
+    constexpr eRenderFlags kRenderFlagsDepthMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0011'1110'0000'0000'0000));   // [13:17] (DepthWrite 포함)
+    constexpr eRenderFlags kRenderFlagsDepthFuncMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0001'1110'0000'0000'0000));   // [13:16]
+    constexpr UInt32       kRenderFlagsDepthFuncShift = UInt32CountRZero(UnderlyingFrom(kRenderFlagsDepthFuncMask));
 
-    constexpr eBlendFlags k_blendFlagsSrcBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1110));   // [1:4]
-    constexpr eBlendFlags k_blendFlagsDstBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1110'0000));   // [5:8]
-    constexpr eBlendFlags k_blendFlagsBlendOpMask        = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'1110'0000'0000));   // [9:11]
-    constexpr eBlendFlags k_blendFlagsSrcBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'1111'0000'0000'0000));   // [12:15]
-    constexpr eBlendFlags k_blendFlagsDstBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'1111'0000'0000'0000'0000));   // [16:19]
-    constexpr eBlendFlags k_blendFlagsBlendOpAlphaMask   = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0111'0000'0000'0000'0000'0000));   // [20:22]
-    constexpr UInt32      k_blendFlagsSrcBlendShift      = UInt32CountRZero(UnderlyingFrom(k_blendFlagsSrcBlendMask));
-    constexpr UInt32      k_blendFlagsDstBlendShift      = UInt32CountRZero(UnderlyingFrom(k_blendFlagsDstBlendMask));
-    constexpr UInt32      k_blendFlagsBlendOpShift       = UInt32CountRZero(UnderlyingFrom(k_blendFlagsBlendOpMask));
-    constexpr UInt32      k_blendFlagsSrcBlendAlphaShift = UInt32CountRZero(UnderlyingFrom(k_blendFlagsSrcBlendAlphaMask));
-    constexpr UInt32      k_blendFlagsDstBlendAlphaShift = UInt32CountRZero(UnderlyingFrom(k_blendFlagsDstBlendAlphaMask));
-    constexpr UInt32      k_blendFlagsBlendOpAlphaShift  = UInt32CountRZero(UnderlyingFrom(k_blendFlagsBlendOpAlphaMask));
+    constexpr eBlendFlags kBlendFlagsSrcBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1110));   // [1:4]
+    constexpr eBlendFlags kBlendFlagsDstBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1110'0000));   // [5:8]
+    constexpr eBlendFlags kBlendFlagsBlendOpMask        = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'1110'0000'0000));   // [9:11]
+    constexpr eBlendFlags kBlendFlagsSrcBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'1111'0000'0000'0000));   // [12:15]
+    constexpr eBlendFlags kBlendFlagsDstBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'1111'0000'0000'0000'0000));   // [16:19]
+    constexpr eBlendFlags kBlendFlagsBlendOpAlphaMask   = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0111'0000'0000'0000'0000'0000));   // [20:22]
+    constexpr UInt32      kBlendFlagsSrcBlendShift      = UInt32CountRZero(UnderlyingFrom(kBlendFlagsSrcBlendMask));
+    constexpr UInt32      kBlendFlagsDstBlendShift      = UInt32CountRZero(UnderlyingFrom(kBlendFlagsDstBlendMask));
+    constexpr UInt32      kBlendFlagsBlendOpShift       = UInt32CountRZero(UnderlyingFrom(kBlendFlagsBlendOpMask));
+    constexpr UInt32      kBlendFlagsSrcBlendAlphaShift = UInt32CountRZero(UnderlyingFrom(kBlendFlagsSrcBlendAlphaMask));
+    constexpr UInt32      kBlendFlagsDstBlendAlphaShift = UInt32CountRZero(UnderlyingFrom(kBlendFlagsDstBlendAlphaMask));
+    constexpr UInt32      kBlendFlagsBlendOpAlphaShift  = UInt32CountRZero(UnderlyingFrom(kBlendFlagsBlendOpAlphaMask));
 
-    constexpr eStencilFlags k_stencilFlagsStencilFailOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
-    constexpr eStencilFlags k_stencilFlagsDepthFailOpMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0011'1000));   // [3:5]
-    constexpr eStencilFlags k_stencilFlagsStencilPassOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1100'0000));   // [6:8]
-    constexpr eStencilFlags k_stencilFlagsCompareFuncMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1110'0000'0000));   // [9:12]
-    constexpr UInt32        k_stencilFlagsDepthFailOpShift   = UInt32CountRZero(UnderlyingFrom(k_stencilFlagsDepthFailOpMask));
-    constexpr UInt32        k_stencilFlagsStencilPassOpShift = UInt32CountRZero(UnderlyingFrom(k_stencilFlagsStencilPassOpMask));
-    constexpr UInt32        k_stencilFlagsCompareFuncShift   = UInt32CountRZero(UnderlyingFrom(k_stencilFlagsCompareFuncMask));
+    constexpr eStencilFlags kStencilFlagsStencilFailOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
+    constexpr eStencilFlags kStencilFlagsDepthFailOpMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0011'1000));   // [3:5]
+    constexpr eStencilFlags kStencilFlagsStencilPassOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1100'0000));   // [6:8]
+    constexpr eStencilFlags kStencilFlagsCompareFuncMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1110'0000'0000));   // [9:12]
+    constexpr UInt32        kStencilFlagsDepthFailOpShift   = UInt32CountRZero(UnderlyingFrom(kStencilFlagsDepthFailOpMask));
+    constexpr UInt32        kStencilFlagsStencilPassOpShift = UInt32CountRZero(UnderlyingFrom(kStencilFlagsStencilPassOpMask));
+    constexpr UInt32        kStencilFlagsCompareFuncShift   = UInt32CountRZero(UnderlyingFrom(kStencilFlagsCompareFuncMask));
 
-    constexpr eSamplerFlags k_sampleFlagsFilterMask       = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1111));   // [0:4]
-    constexpr eSamplerFlags k_sampleFlagsAddressUMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'1110'0000));   // [5:7]
-    constexpr eSamplerFlags k_sampleFlagsAddressVMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'0000'0000));   // [8:10]
-    constexpr eSamplerFlags k_sampleFlagsAddressWMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0011'1000'0000'0000));   // [11:13]
-    constexpr eSamplerFlags k_sampleFlagsCompareFuncMask  = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0011'1100'0000'0000'0000));   // [14:17]
-    constexpr UInt32        k_sampleFlagsAddressUShift    = UInt32CountRZero(UnderlyingFrom(k_sampleFlagsAddressUMask));
-    constexpr UInt32        k_sampleFlagsAddressVShift    = UInt32CountRZero(UnderlyingFrom(k_sampleFlagsAddressVMask));
-    constexpr UInt32        k_sampleFlagsAddressWShift    = UInt32CountRZero(UnderlyingFrom(k_sampleFlagsAddressWMask));
-    constexpr UInt32        k_sampleFlagsCompareFuncShift = UInt32CountRZero(UnderlyingFrom(k_sampleFlagsCompareFuncMask));
+    constexpr eSamplerFlags kSampleFlagsFilterMask       = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1111));   // [0:4]
+    constexpr eSamplerFlags kSampleFlagsAddressUMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'1110'0000));   // [5:7]
+    constexpr eSamplerFlags kSampleFlagsAddressVMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'0000'0000));   // [8:10]
+    constexpr eSamplerFlags kSampleFlagsAddressWMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0011'1000'0000'0000));   // [11:13]
+    constexpr eSamplerFlags kSampleFlagsCompareFuncMask  = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0011'1100'0000'0000'0000));   // [14:17]
+    constexpr UInt32        kSampleFlagsAddressUShift    = UInt32CountRZero(UnderlyingFrom(kSampleFlagsAddressUMask));
+    constexpr UInt32        kSampleFlagsAddressVShift    = UInt32CountRZero(UnderlyingFrom(kSampleFlagsAddressVMask));
+    constexpr UInt32        kSampleFlagsAddressWShift    = UInt32CountRZero(UnderlyingFrom(kSampleFlagsAddressWMask));
+    constexpr UInt32        kSampleFlagsCompareFuncShift = UInt32CountRZero(UnderlyingFrom(kSampleFlagsCompareFuncMask));
 
 }   // namespace
 
-RGBA RGBA::k_white       = RGBA(255, 255, 255, 255);
-RGBA RGBA::k_black       = RGBA(0, 0, 0, 255);
-RGBA RGBA::k_transparent = RGBA(0, 0, 0, 0);
+RGBA RGBA::kWhite       = RGBA(255, 255, 255, 255);
+RGBA RGBA::kBlack       = RGBA(0, 0, 0, 255);
+RGBA RGBA::kTransparent = RGBA(0, 0, 0, 0);
 
 Flags<eTextureCreateFlags> FilterMsaaFlags(
     const Flags<eTextureCreateFlags> _flags) noexcept
 {
-    return _flags & k_textureCreateFlagsMsaaMask;
+    return _flags & kTextureCreateFlagsMsaaMask;
 }
 
 Flags<eRenderFlags> FilterPrimitiveFlags(
     const Flags<eRenderFlags> _flags)
 {
-    return _flags & k_renderFlagsPrimitiveMask;
+    return _flags & kRenderFlagsPrimitiveMask;
 }
 
 Flags<eRenderFlags> FilterCullModeFlags(
     const Flags<eRenderFlags> _flags)
 {
-    return _flags & k_renderFlagsCullModeMask;
+    return _flags & kRenderFlagsCullModeMask;
 }
 
 Flags<eRenderFlags> FilterRasterizerFlags(
     const Flags<eRenderFlags> _flags)
 {
-    return _flags & k_renderFlagsRasterizerMask;
+    return _flags & kRenderFlagsRasterizerMask;
 }
 
 Flags<eRenderFlags> FilterBlendFlags(
     const Flags<eRenderFlags> _flags)
 {
-    return _flags & k_renderFlagsBlendMask;
+    return _flags & kRenderFlagsBlendMask;
 }
 
 Flags<eRenderFlags> FilterDepthFuncFlags(
     const Flags<eRenderFlags> _flags)
 {
-    return _flags & k_renderFlagsDepthFuncMask;
+    return _flags & kRenderFlagsDepthFuncMask;
 }
 
 Flags<eRenderFlags> FilterDepthFlags(
     const Flags<eRenderFlags> _flags)
 {
-    return _flags & k_renderFlagsDepthMask;
+    return _flags & kRenderFlagsDepthMask;
 }
 
 UInt32 ResolveDepthFuncFlags(
     const Flags<eRenderFlags> _flags)
 {
-    return FilterDepthFuncFlags(_flags).GetValue() >> k_renderFlagsDepthFuncShift;
+    return FilterDepthFuncFlags(_flags).GetValue() >> kRenderFlagsDepthFuncShift;
 }
 
 Flags<eRenderFlags> SetPrimitiveFlags(
@@ -109,7 +109,7 @@ Flags<eRenderFlags> SetPrimitiveFlags(
     const Flags<eRenderFlags> _primitiveFlags)
 {
     JAM_ASSERT(FilterPrimitiveFlags(_primitiveFlags) == _primitiveFlags, "Invalid primitive flags.");
-    return (_flags & ~k_renderFlagsPrimitiveMask) | _primitiveFlags;
+    return (_flags & ~kRenderFlagsPrimitiveMask) | _primitiveFlags;
 }
 
 Flags<eRenderFlags> SetCullModeFlags(
@@ -117,7 +117,7 @@ Flags<eRenderFlags> SetCullModeFlags(
     const Flags<eRenderFlags> _cullModeFlags)
 {
     JAM_ASSERT(FilterCullModeFlags(_cullModeFlags) == _cullModeFlags, "Invalid cull mode flags.");
-    return (_flags & ~k_renderFlagsCullModeMask) | _cullModeFlags;
+    return (_flags & ~kRenderFlagsCullModeMask) | _cullModeFlags;
 }
 
 Flags<eRenderFlags> SetDepthFuncFlags(
@@ -125,7 +125,7 @@ Flags<eRenderFlags> SetDepthFuncFlags(
     const Flags<eRenderFlags> _depthFuncFlags)
 {
     JAM_ASSERT(FilterDepthFuncFlags(_depthFuncFlags) == _depthFuncFlags, "Invalid depth func flags.");
-    return (_flags & ~k_renderFlagsDepthFuncMask) | _depthFuncFlags;
+    return (_flags & ~kRenderFlagsDepthFuncMask) | _depthFuncFlags;
 }
 
 UInt32 ResolvePrimitiveFlags(
@@ -137,37 +137,37 @@ UInt32 ResolvePrimitiveFlags(
 Flags<eBlendFlags> FilterSrcBlendFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return _flags & k_blendFlagsSrcBlendMask;
+    return _flags & kBlendFlagsSrcBlendMask;
 }
 
 Flags<eBlendFlags> FilterDstBlendFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return _flags & k_blendFlagsDstBlendMask;
+    return _flags & kBlendFlagsDstBlendMask;
 }
 
 Flags<eBlendFlags> FilterBlendOpFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return _flags & k_blendFlagsBlendOpMask;
+    return _flags & kBlendFlagsBlendOpMask;
 }
 
 Flags<eBlendFlags> FilterSrcBlendAlphaFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return _flags & k_blendFlagsSrcBlendAlphaMask;
+    return _flags & kBlendFlagsSrcBlendAlphaMask;
 }
 
 Flags<eBlendFlags> FilterDstBlendAlphaFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return _flags & k_blendFlagsDstBlendAlphaMask;
+    return _flags & kBlendFlagsDstBlendAlphaMask;
 }
 
 Flags<eBlendFlags> FilterBlendOpAlphaFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return _flags & k_blendFlagsBlendOpAlphaMask;
+    return _flags & kBlendFlagsBlendOpAlphaMask;
 }
 
 Flags<eBlendFlags> SetSrcBlendFlags(
@@ -175,7 +175,7 @@ Flags<eBlendFlags> SetSrcBlendFlags(
     const Flags<eBlendFlags> _srcBlendFlags)
 {
     JAM_ASSERT(FilterSrcBlendFlags(_srcBlendFlags) == _srcBlendFlags, "Invalid src blend flags.");
-    return (_flags & ~k_blendFlagsSrcBlendMask) | _srcBlendFlags;
+    return (_flags & ~kBlendFlagsSrcBlendMask) | _srcBlendFlags;
 }
 
 Flags<eBlendFlags> SetDstBlendFlags(
@@ -183,7 +183,7 @@ Flags<eBlendFlags> SetDstBlendFlags(
     const Flags<eBlendFlags> _dstBlendFlags)
 {
     JAM_ASSERT(FilterDstBlendFlags(_dstBlendFlags) == _dstBlendFlags, "Invalid dst blend flags.");
-    return (_flags & ~k_blendFlagsDstBlendMask) | _dstBlendFlags;
+    return (_flags & ~kBlendFlagsDstBlendMask) | _dstBlendFlags;
 }
 
 Flags<eBlendFlags> SetBlendOpFlags(
@@ -191,7 +191,7 @@ Flags<eBlendFlags> SetBlendOpFlags(
     const Flags<eBlendFlags> _blendOpFlags)
 {
     JAM_ASSERT(FilterBlendOpFlags(_blendOpFlags) == _blendOpFlags, "Invalid blend op flags.");
-    return (_flags & ~k_blendFlagsBlendOpMask) | _blendOpFlags;
+    return (_flags & ~kBlendFlagsBlendOpMask) | _blendOpFlags;
 }
 
 Flags<eBlendFlags> SetSrcBlendAlphaFlags(
@@ -199,7 +199,7 @@ Flags<eBlendFlags> SetSrcBlendAlphaFlags(
     const Flags<eBlendFlags> _srcBlendAlphaFlags)
 {
     JAM_ASSERT(FilterSrcBlendAlphaFlags(_srcBlendAlphaFlags) == _srcBlendAlphaFlags, "Invalid src blend alpha flags.");
-    return (_flags & ~k_blendFlagsSrcBlendAlphaMask) | _srcBlendAlphaFlags;
+    return (_flags & ~kBlendFlagsSrcBlendAlphaMask) | _srcBlendAlphaFlags;
 }
 
 Flags<eBlendFlags> SetDstBlendAlphaFlags(
@@ -207,7 +207,7 @@ Flags<eBlendFlags> SetDstBlendAlphaFlags(
     const Flags<eBlendFlags> _dstBlendAlphaFlags)
 {
     JAM_ASSERT(FilterDstBlendAlphaFlags(_dstBlendAlphaFlags) == _dstBlendAlphaFlags, "Invalid dst blend alpha flags.");
-    return (_flags & ~k_blendFlagsDstBlendAlphaMask) | _dstBlendAlphaFlags;
+    return (_flags & ~kBlendFlagsDstBlendAlphaMask) | _dstBlendAlphaFlags;
 }
 
 Flags<eBlendFlags> SetBlendOpAlphaFlags(
@@ -215,67 +215,67 @@ Flags<eBlendFlags> SetBlendOpAlphaFlags(
     const Flags<eBlendFlags> _blendOpAlphaFlags)
 {
     JAM_ASSERT(FilterBlendOpAlphaFlags(_blendOpAlphaFlags) == _blendOpAlphaFlags, "Invalid blend op alpha flags.");
-    return (_flags & ~k_blendFlagsBlendOpAlphaMask) | _blendOpAlphaFlags;
+    return (_flags & ~kBlendFlagsBlendOpAlphaMask) | _blendOpAlphaFlags;
 }
 
 UInt32 ResolveSrcBlendFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return FilterSrcBlendFlags(_flags).GetValue() >> k_blendFlagsSrcBlendShift;
+    return FilterSrcBlendFlags(_flags).GetValue() >> kBlendFlagsSrcBlendShift;
 }
 
 UInt32 ResolveDstBlendFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return FilterDstBlendFlags(_flags).GetValue() >> k_blendFlagsDstBlendShift;
+    return FilterDstBlendFlags(_flags).GetValue() >> kBlendFlagsDstBlendShift;
 }
 
 UInt32 ResolveBlendOpFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return FilterBlendOpFlags(_flags).GetValue() >> k_blendFlagsBlendOpShift;
+    return FilterBlendOpFlags(_flags).GetValue() >> kBlendFlagsBlendOpShift;
 }
 
 UInt32 ResolveSrcBlendAlphaFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return FilterSrcBlendAlphaFlags(_flags).GetValue() >> k_blendFlagsSrcBlendAlphaShift;
+    return FilterSrcBlendAlphaFlags(_flags).GetValue() >> kBlendFlagsSrcBlendAlphaShift;
 }
 
 UInt32 ResolveDstBlendAlphaFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return FilterDstBlendAlphaFlags(_flags).GetValue() >> k_blendFlagsDstBlendAlphaShift;
+    return FilterDstBlendAlphaFlags(_flags).GetValue() >> kBlendFlagsDstBlendAlphaShift;
 }
 
 UInt32 ResolveBlendOpAlphaFlags(
     const Flags<eBlendFlags> _flags)
 {
-    return FilterBlendOpAlphaFlags(_flags).GetValue() >> k_blendFlagsBlendOpAlphaShift;
+    return FilterBlendOpAlphaFlags(_flags).GetValue() >> kBlendFlagsBlendOpAlphaShift;
 }
 
 Flags<eStencilFlags> FilterStencilFailOpFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return _flags & k_stencilFlagsStencilFailOpMask;
+    return _flags & kStencilFlagsStencilFailOpMask;
 }
 
 Flags<eStencilFlags> FilterDepthFailOpFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return _flags & k_stencilFlagsDepthFailOpMask;
+    return _flags & kStencilFlagsDepthFailOpMask;
 }
 
 Flags<eStencilFlags> FilterPassOpFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return _flags & k_stencilFlagsStencilPassOpMask;
+    return _flags & kStencilFlagsStencilPassOpMask;
 }
 
 Flags<eStencilFlags> FilterCompareFuncFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return _flags & k_stencilFlagsCompareFuncMask;
+    return _flags & kStencilFlagsCompareFuncMask;
 }
 
 Flags<eStencilFlags> SetStencilFailOpFlags(
@@ -283,7 +283,7 @@ Flags<eStencilFlags> SetStencilFailOpFlags(
     const Flags<eStencilFlags> _stencilFailOpFlags)
 {
     JAM_ASSERT(FilterStencilFailOpFlags(_stencilFailOpFlags) == _stencilFailOpFlags, "Invalid stencil fail op flags.");
-    return (_flags & ~k_stencilFlagsStencilFailOpMask) | _stencilFailOpFlags;
+    return (_flags & ~kStencilFlagsStencilFailOpMask) | _stencilFailOpFlags;
 }
 
 Flags<eStencilFlags> SetDepthFailOpFlags(
@@ -291,7 +291,7 @@ Flags<eStencilFlags> SetDepthFailOpFlags(
     const Flags<eStencilFlags> _depthFailOpFlags)
 {
     JAM_ASSERT(FilterDepthFailOpFlags(_depthFailOpFlags) == _depthFailOpFlags, "Invalid depth fail op flags.");
-    return (_flags & ~k_stencilFlagsDepthFailOpMask) | _depthFailOpFlags;
+    return (_flags & ~kStencilFlagsDepthFailOpMask) | _depthFailOpFlags;
 }
 
 Flags<eStencilFlags> SetPassOpFlags(
@@ -299,7 +299,7 @@ Flags<eStencilFlags> SetPassOpFlags(
     const Flags<eStencilFlags> _passOpFlags)
 {
     JAM_ASSERT(FilterPassOpFlags(_passOpFlags) == _passOpFlags, "Invalid pass op flags.");
-    return (_flags & ~k_stencilFlagsStencilPassOpMask) | _passOpFlags;
+    return (_flags & ~kStencilFlagsStencilPassOpMask) | _passOpFlags;
 }
 
 Flags<eStencilFlags> SetCompareFuncFlags(
@@ -307,7 +307,7 @@ Flags<eStencilFlags> SetCompareFuncFlags(
     const Flags<eStencilFlags> _compareFuncFlags)
 {
     JAM_ASSERT(FilterCompareFuncFlags(_compareFuncFlags) == _compareFuncFlags, "Invalid compare func flags.");
-    return (_flags & ~k_stencilFlagsCompareFuncMask) | _compareFuncFlags;
+    return (_flags & ~kStencilFlagsCompareFuncMask) | _compareFuncFlags;
 }
 
 UInt32 ResolveStencilFailOpFlags(
@@ -319,49 +319,49 @@ UInt32 ResolveStencilFailOpFlags(
 UInt32 ResolveDepthFailOpFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return FilterDepthFailOpFlags(_flags).GetValue() >> k_stencilFlagsDepthFailOpShift;
+    return FilterDepthFailOpFlags(_flags).GetValue() >> kStencilFlagsDepthFailOpShift;
 }
 
 UInt32 ResolvePassOpFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return FilterPassOpFlags(_flags).GetValue() >> k_stencilFlagsStencilPassOpShift;
+    return FilterPassOpFlags(_flags).GetValue() >> kStencilFlagsStencilPassOpShift;
 }
 
 UInt32 ResolveCompareFuncFlags(
     const Flags<eStencilFlags> _flags)
 {
-    return FilterCompareFuncFlags(_flags).GetValue() >> k_stencilFlagsCompareFuncShift;
+    return FilterCompareFuncFlags(_flags).GetValue() >> kStencilFlagsCompareFuncShift;
 }
 
 Flags<eSamplerFlags> FilterFilterFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return _flags & k_sampleFlagsFilterMask;
+    return _flags & kSampleFlagsFilterMask;
 }
 
 Flags<eSamplerFlags> FilterAddressUFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return _flags & k_sampleFlagsAddressUMask;
+    return _flags & kSampleFlagsAddressUMask;
 }
 
 Flags<eSamplerFlags> FilterAddressVFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return _flags & k_sampleFlagsAddressVMask;
+    return _flags & kSampleFlagsAddressVMask;
 }
 
 Flags<eSamplerFlags> FilterAddressWFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return _flags & k_sampleFlagsAddressWMask;
+    return _flags & kSampleFlagsAddressWMask;
 }
 
 Flags<eSamplerFlags> FilterCompareFuncFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return _flags & k_sampleFlagsCompareFuncMask;
+    return _flags & kSampleFlagsCompareFuncMask;
 }
 
 Flags<eSamplerFlags> SetFilterFlags(
@@ -369,7 +369,7 @@ Flags<eSamplerFlags> SetFilterFlags(
     const Flags<eSamplerFlags> _filterFlags)
 {
     JAM_ASSERT(FilterFilterFlags(_filterFlags) == _filterFlags, "Invalid filter flags.");
-    return (_flags & ~k_sampleFlagsFilterMask) | _filterFlags;
+    return (_flags & ~kSampleFlagsFilterMask) | _filterFlags;
 }
 
 Flags<eSamplerFlags> SetAddressUFlags(
@@ -377,7 +377,7 @@ Flags<eSamplerFlags> SetAddressUFlags(
     const Flags<eSamplerFlags> _addressUFlags)
 {
     JAM_ASSERT(FilterAddressUFlags(_addressUFlags) == _addressUFlags, "Invalid address U flags.");
-    return (_flags & ~k_sampleFlagsAddressUMask) | _addressUFlags;
+    return (_flags & ~kSampleFlagsAddressUMask) | _addressUFlags;
 }
 
 Flags<eSamplerFlags> SetAddressVFlags(
@@ -385,7 +385,7 @@ Flags<eSamplerFlags> SetAddressVFlags(
     const Flags<eSamplerFlags> _addressVFlags)
 {
     JAM_ASSERT(FilterAddressVFlags(_addressVFlags) == _addressVFlags, "Invalid address V flags.");
-    return (_flags & ~k_sampleFlagsAddressVMask) | _addressVFlags;
+    return (_flags & ~kSampleFlagsAddressVMask) | _addressVFlags;
 }
 
 Flags<eSamplerFlags> SetAddressWFlags(
@@ -393,7 +393,7 @@ Flags<eSamplerFlags> SetAddressWFlags(
     const Flags<eSamplerFlags> _addressWFlags)
 {
     JAM_ASSERT(FilterAddressWFlags(_addressWFlags) == _addressWFlags, "Invalid address W flags.");
-    return (_flags & ~k_sampleFlagsAddressWMask) | _addressWFlags;
+    return (_flags & ~kSampleFlagsAddressWMask) | _addressWFlags;
 }
 
 Flags<eSamplerFlags> SetCompareFuncFlags(
@@ -401,7 +401,7 @@ Flags<eSamplerFlags> SetCompareFuncFlags(
     const Flags<eSamplerFlags> _compareFuncFlags)
 {
     JAM_ASSERT(FilterCompareFuncFlags(_compareFuncFlags) == _compareFuncFlags, "Invalid sampler compare func flags.");
-    return (_flags & ~k_sampleFlagsCompareFuncMask) | _compareFuncFlags;
+    return (_flags & ~kSampleFlagsCompareFuncMask) | _compareFuncFlags;
 }
 
 UInt32 ResolveFilterFlags(
@@ -413,25 +413,25 @@ UInt32 ResolveFilterFlags(
 UInt32 ResolveAddressUFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return FilterAddressUFlags(_flags).GetValue() >> k_sampleFlagsAddressUShift;
+    return FilterAddressUFlags(_flags).GetValue() >> kSampleFlagsAddressUShift;
 }
 
 UInt32 ResolveAddressVFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return FilterAddressVFlags(_flags).GetValue() >> k_sampleFlagsAddressVShift;
+    return FilterAddressVFlags(_flags).GetValue() >> kSampleFlagsAddressVShift;
 }
 
 UInt32 ResolveAddressWFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return FilterAddressWFlags(_flags).GetValue() >> k_sampleFlagsAddressWShift;
+    return FilterAddressWFlags(_flags).GetValue() >> kSampleFlagsAddressWShift;
 }
 
 UInt32 ResolveCompareFuncFlags(
     const Flags<eSamplerFlags> _flags)
 {
-    return FilterCompareFuncFlags(_flags).GetValue() >> k_sampleFlagsCompareFuncShift;
+    return FilterCompareFuncFlags(_flags).GetValue() >> kSampleFlagsCompareFuncShift;
 }
 
 bool IsDepthFormat(const eTextureFormat _format)

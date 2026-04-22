@@ -17,17 +17,17 @@ namespace Details
 {
 
     // config
-    constexpr SizeT k_enumReflectionRangeMin   = 0;   // < if you need negative enum values, change this m_value accordingly
-    constexpr SizeT k_enumReflectionRangeMax   = 127;
-    constexpr SizeT k_enumReflectionRange      = k_enumReflectionRangeMax - k_enumReflectionRangeMin + 1;
-    constexpr SizeT k_enumReflectionInvalidSeq = -1;
+    constexpr SizeT kEnumReflectionRangeMin   = 0;   // < if you need negative enum values, change this m_value accordingly
+    constexpr SizeT kEnumReflectionRangeMax   = 127;
+    constexpr SizeT kEnumReflectionRange      = kEnumReflectionRangeMax - kEnumReflectionRangeMin + 1;
+    constexpr SizeT kEnumReflectionInvalidSeq = -1;
 
-    static_assert(k_enumReflectionRangeMin < k_enumReflectionRangeMax, "Invalid enum reflection range.");
-    static_assert(k_enumReflectionRangeMin >= Limits<SizeT>::k_min, "k_enumReflectionRangeMin is too small.");
-    static_assert(k_enumReflectionRangeMax <= Limits<SizeT>::k_max, "k_enumReflectionRangeMax is too large.");
+    static_assert(kEnumReflectionRangeMin < kEnumReflectionRangeMax, "Invalid enum reflection range.");
+    static_assert(kEnumReflectionRangeMin >= Limits<SizeT>::kMin, "kEnumReflectionRangeMin is too small.");
+    static_assert(kEnumReflectionRangeMax <= Limits<SizeT>::kMax, "kEnumReflectionRangeMax is too large.");
 
     // ReSharper disable once CppTemplateParameterNeverUsed
-    template<typename T, T k_enum>
+    template<typename T, T kEnum>
         requires std::is_enum_v<T>
     [[nodiscard]] constexpr ExtractResult ExtractEnumName()
     {
@@ -41,7 +41,7 @@ namespace Details
         return { raw.GetPtr() + start, end - start };
     }
 
-    template<typename T, T k_enum>
+    template<typename T, T kEnum>
     [[nodiscard]] constexpr ExtractResult ExtractEnumFullName()
     {
         constexpr StringView raw { JAM_PRETTY_FUNCTION };
@@ -54,17 +54,17 @@ namespace Details
         return { raw.GetPtr() + start, end - start };
     }
 
-    template<typename TEnum, TEnum k_enum>
+    template<typename TEnum, TEnum kEnum>
         requires std::is_enum_v<TEnum>
     struct EnumNameHolder
     {
-        static constexpr auto       k_fullNameBuf = BuildNameBuffer<ExtractEnumFullName<TEnum, k_enum>()>();
-        static constexpr auto       k_nameBuf     = BuildNameBuffer<ExtractEnumName<TEnum, k_enum>()>();
-        static constexpr StringView k_fullName    = { k_fullNameBuf.data(), k_fullNameBuf.size() - 1 };
-        static constexpr StringView k_name        = { k_nameBuf.data(), k_nameBuf.size() - 1 };
+        static constexpr auto       kFullNameBuf = BuildNameBuffer<ExtractEnumFullName<TEnum, kEnum>()>();
+        static constexpr auto       kNameBuf     = BuildNameBuffer<ExtractEnumName<TEnum, kEnum>()>();
+        static constexpr StringView kFullName    = { kFullNameBuf.data(), kFullNameBuf.size() - 1 };
+        static constexpr StringView kName        = { kNameBuf.data(), kNameBuf.size() - 1 };
     };
 
-    template<typename TEnum, TEnum k_enum>
+    template<typename TEnum, TEnum kEnum>
         requires std::is_enum_v<TEnum>
     [[nodiscard]] constexpr bool IsValidEnumValue()
     {
@@ -83,7 +83,7 @@ namespace Details
         requires std::is_enum_v<TEnum>
     constexpr SizeT CountEnumValues()
     {
-        return CountEnumValuesImpl<TEnum>(std::make_index_sequence<k_enumReflectionRange>());
+        return CountEnumValuesImpl<TEnum>(std::make_index_sequence<kEnumReflectionRange>());
     }
 
     template<typename TEnum>
@@ -91,19 +91,19 @@ namespace Details
     struct EnumReflection
     {
         using Underlying                   = UnderlyingT<TEnum>;
-        static constexpr SizeT k_numValues = CountEnumValues<TEnum>();
-        static constexpr SizeT k_lutSize   = static_cast<SizeT>(2 * k_numValues * k_invConstexprStringHashMapLoadFactor);
+        static constexpr SizeT kNumValues = CountEnumValues<TEnum>();
+        static constexpr SizeT kLutSize   = static_cast<SizeT>(2 * kNumValues * kInvConstexprStringHashMapLoadFactor);
 
-        Array<StringView, k_numValues>           fullNames        = {};   // look up by seq
-        Array<StringView, k_numValues>           names            = {};   // look up by seq
-        Array<TEnum, k_numValues>                values           = {};   // look up by seq
-        Array<SizeT, k_enumReflectionRange>      rangeIdxToSeqLut = {};   // look up by range index
-        ConstexprStringHashMap<SizeT, k_lutSize> nameToSeqLut     = {};   // look up by title
-        TEnum                                    minValue         = static_cast<TEnum>(k_enumReflectionRangeMax);
-        TEnum                                    maxValue         = static_cast<TEnum>(k_enumReflectionRangeMin);
+        Array<StringView, kNumValues>           fullNames        = {};   // look up by seq
+        Array<StringView, kNumValues>           names            = {};   // look up by seq
+        Array<TEnum, kNumValues>                values           = {};   // look up by seq
+        Array<SizeT, kEnumReflectionRange>      rangeIdxToSeqLut = {};   // look up by range index
+        ConstexprStringHashMap<SizeT, kLutSize> nameToSeqLut     = {};   // look up by title
+        TEnum                                    minValue         = static_cast<TEnum>(kEnumReflectionRangeMax);
+        TEnum                                    maxValue         = static_cast<TEnum>(kEnumReflectionRangeMin);
     };
 
-    template<typename TEnum, TEnum k_enum>
+    template<typename TEnum, TEnum kEnum>
         requires std::is_enum_v<TEnum>
     constexpr void BuildEnumReflectionImpl(
         EnumReflection<TEnum>& _refl,
@@ -111,22 +111,22 @@ namespace Details
         SizeT&                 _seq         // sequence index = valid enum index
     )
     {
-        if constexpr (IsValidEnumValue<TEnum, k_enum>())
+        if constexpr (IsValidEnumValue<TEnum, kEnum>())
         {
-            using NameHolderT                 = EnumNameHolder<TEnum, k_enum>;
-            _refl.fullNames[_seq]             = NameHolderT::k_fullName;
-            _refl.names[_seq]                 = NameHolderT::k_name;
-            _refl.values[_seq]                = k_enum;
+            using NameHolderT                 = EnumNameHolder<TEnum, kEnum>;
+            _refl.fullNames[_seq]             = NameHolderT::kFullName;
+            _refl.names[_seq]                 = NameHolderT::kName;
+            _refl.values[_seq]                = kEnum;
             _refl.rangeIdxToSeqLut[_rangeIdx] = _seq;
-            _refl.nameToSeqLut.Insert(NameHolderT::k_name, _seq);
-            _refl.nameToSeqLut.Insert(NameHolderT::k_fullName, _seq);
-            _refl.minValue = Min(_refl.minValue, k_enum);
-            _refl.maxValue = Max(_refl.maxValue, k_enum);
+            _refl.nameToSeqLut.Insert(NameHolderT::kName, _seq);
+            _refl.nameToSeqLut.Insert(NameHolderT::kFullName, _seq);
+            _refl.minValue = Min(_refl.minValue, kEnum);
+            _refl.maxValue = Max(_refl.maxValue, kEnum);
             ++_seq;
         }
         else
         {
-            _refl.rangeIdxToSeqLut[_rangeIdx] = k_enumReflectionInvalidSeq;
+            _refl.rangeIdxToSeqLut[_rangeIdx] = kEnumReflectionInvalidSeq;
         }
     }
 
@@ -136,21 +136,21 @@ namespace Details
     {
         EnumReflection<TEnum> refl = {};
         SizeT                 seq  = 0;
-        (BuildEnumReflectionImpl<TEnum, static_cast<TEnum>(I + k_enumReflectionRangeMin)>(refl, NarrowCast<SizeT>(I), seq), ...);
+        (BuildEnumReflectionImpl<TEnum, static_cast<TEnum>(I + kEnumReflectionRangeMin)>(refl, static_cast<SizeT>(I), seq), ...);
         return refl;
     }
 
     template<typename TEnum>
         requires std::is_enum_v<TEnum>
-    constexpr EnumReflection<TEnum> k_enumReflection = BuildEnumReflection<TEnum>(std::make_index_sequence<k_enumReflectionRange>());
+    constexpr EnumReflection<TEnum> kEnumReflection = BuildEnumReflection<TEnum>(std::make_index_sequence<kEnumReflectionRange>());
 
     template<typename TEnum>
         requires std::is_enum_v<TEnum>
-    [[nodiscard]] constexpr SizeT FindLookUpSequenceOrInvalid(   // or k_enumReflectionInvalidIdx
+    [[nodiscard]] constexpr SizeT FindLookUpSequenceOrInvalid(   // or kEnumReflectionInvalidIdx
         const TEnum _value)
     {
-        const SizeT rangeIdx = UnderlyingFrom(_value) - k_enumReflectionRangeMin;
-        return (rangeIdx < k_enumReflectionRange) ? k_enumReflection<TEnum>.rangeIdxToSeqLut[rangeIdx] : k_enumReflectionInvalidSeq;
+        const SizeT rangeIdx = UnderlyingFrom(_value) - kEnumReflectionRangeMin;
+        return (rangeIdx < kEnumReflectionRange) ? kEnumReflection<TEnum>.rangeIdxToSeqLut[rangeIdx] : kEnumReflectionInvalidSeq;
     }
 
 }   // namespace Details
@@ -172,7 +172,7 @@ template<typename TEnum>
     TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
-    return seq != Details::k_enumReflectionInvalidSeq;
+    return seq != Details::kEnumReflectionInvalidSeq;
 }
 
 // get the sequence index of the enum m_value.
@@ -194,7 +194,7 @@ template<typename TEnum>
     TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
-    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");
+    JAM_ASSERT(seq != Details::kEnumReflectionInvalidSeq, "Invalid enum m_value.");
     return seq;
 }
 
@@ -213,14 +213,14 @@ template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr TEnum MinOf()
 {
-    return Details::k_enumReflection<TEnum>.minValue;
+    return Details::kEnumReflection<TEnum>.minValue;
 }
 
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr TEnum MaxOf()
 {
-    return Details::k_enumReflection<TEnum>.maxValue;
+    return Details::kEnumReflection<TEnum>.maxValue;
 }
 
 // get the number of enum values defined in the enum type.
@@ -237,7 +237,7 @@ template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr SizeT CountOf()
 {
-    return Details::k_enumReflection<TEnum>.k_numValues;
+    return Details::kEnumReflection<TEnum>.kNumValues;
 }
 
 // get the title of the enum m_value.
@@ -256,8 +256,8 @@ template<typename TEnum>
     const TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
-    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");
-    return Details::k_enumReflection<TEnum>.names[seq];
+    JAM_ASSERT(seq != Details::kEnumReflectionInvalidSeq, "Invalid enum m_value.");
+    return Details::kEnumReflection<TEnum>.names[seq];
 }
 
 // get the full title of the enum m_value. full title includes the enum type title and the enum m_value title.
@@ -279,8 +279,8 @@ template<typename TEnum>
     const TEnum _value)
 {
     const SizeT seq = Details::FindLookUpSequenceOrInvalid<TEnum>(_value);
-    JAM_ASSERT(seq != Details::k_enumReflectionInvalidSeq, "Invalid enum m_value.");
-    return Details::k_enumReflection<TEnum>.fullNames[seq];
+    JAM_ASSERT(seq != Details::kEnumReflectionInvalidSeq, "Invalid enum m_value.");
+    return Details::kEnumReflection<TEnum>.fullNames[seq];
 }
 
 // get the enum m_value array. this is useful for iterating over all enum values defined in the enum type.
@@ -298,7 +298,7 @@ template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr const auto& RangesOf()
 {
-    return Details::k_enumReflection<TEnum>.values;
+    return Details::kEnumReflection<TEnum>.values;
 }
 
 // parse enum m_value from string. this is useful for parsing enum m_value from config file or user input.
@@ -312,19 +312,19 @@ template<typename TEnum>
 // };
 // ParseAs<eColor>("Red") -> eColor::Red
 // ParseAs<eColor>("eColor::Red") -> eColor::Red
-// ParseAs<eColor>("Invalid") -> k_nullopt
+// ParseAs<eColor>("Invalid") -> kNullopt
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr Optional<TEnum> ParseAs(
     const StringView _str)
 {
-    const auto& lut = Details::k_enumReflection<TEnum>.nameToSeqLut;
+    const auto& lut = Details::kEnumReflection<TEnum>.nameToSeqLut;
     if (lut.Has(_str))
     {
         const SizeT seq = lut.Get(_str);
-        return Details::k_enumReflection<TEnum>.values[seq];
+        return Details::kEnumReflection<TEnum>.values[seq];
     }
-    return k_nullopt;
+    return kNullopt;
 }
 
 // cast from underlying m_value to enum m_value. this is useful for parsing enum m_value from config file or user input when the enum m_value is represented as its underlying m_value.
@@ -338,25 +338,25 @@ template<typename TEnum>
 // };
 // CastAs<eColor>(5) -> eColor::Red
 // CastAs<eColor>(20) -> eColor::Yellow
-// CastAs<eColor>(0) -> k_nullopt
+// CastAs<eColor>(0) -> kNullopt
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
 [[nodiscard]] constexpr Optional<TEnum> CastAs(
     const UnderlyingT<TEnum> _value)
 {
-    const SizeT rangeIdx = _value - Details::k_enumReflectionRangeMin;
-    if (rangeIdx >= Details::k_enumReflectionRange)
+    const SizeT rangeIdx = _value - Details::kEnumReflectionRangeMin;
+    if (rangeIdx >= Details::kEnumReflectionRange)
     {
-        return k_nullopt;
+        return kNullopt;
     }
 
-    const SizeT seq = Details::k_enumReflection<TEnum>.rangeIdxToSeqLut[rangeIdx];
-    if (seq == Details::k_enumReflectionInvalidSeq)
+    const SizeT seq = Details::kEnumReflection<TEnum>.rangeIdxToSeqLut[rangeIdx];
+    if (seq == Details::kEnumReflectionInvalidSeq)
     {
-        return k_nullopt;
+        return kNullopt;
     }
 
-    return Details::k_enumReflection<TEnum>.values[seq];
+    return Details::kEnumReflection<TEnum>.values[seq];
 }
 
 }   // namespace Jam

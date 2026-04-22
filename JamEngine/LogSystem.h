@@ -43,7 +43,7 @@ public:
     void Log(const eLogLevel _level, const StringView _msg) const
     {
         const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-        m_pLogger->log(level, { _msg.GetPtr(), NarrowCast<size_t>(_msg.GetLength()) });
+        m_pLogger->log(level, { _msg.GetPtr(), static_cast<size_t>(_msg.GetLength()) });
     }
 
     template<typename... Args>
@@ -57,7 +57,7 @@ public:
     void Log(const eLogLevel _level, const WStringView _msg) const
     {
         const spdlog::level::level_enum level = static_cast<spdlog::level::level_enum>(_level);
-        m_pLogger->log(level, { _msg.GetPtr(), NarrowCast<size_t>(_msg.GetLength()) });
+        m_pLogger->log(level, { _msg.GetPtr(), static_cast<size_t>(_msg.GetLength()) });
     }
 
     void Flush() const

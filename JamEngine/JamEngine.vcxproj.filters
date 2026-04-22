@@ -100,9 +100,6 @@
     <ClCompile Include="RadixSort.cpp">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="BoundingVolume.cpp">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="RenderView.cpp">
       <Filter>3. Scene\Scene</Filter>
     </ClCompile>
@@ -444,6 +441,27 @@
     </ClCompile>
     <ClCompile Include="DebugRenderer.cpp">
       <Filter>4. Renderer\DebugRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Random.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathConstant.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Quaternion.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingVolume.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Float16.cpp">
+      <Filter>99. Utilities\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -797,9 +815,6 @@
     <ClInclude Include="RadixSort.h">
       <Filter>99. Utilities\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="BoundingVolume.h">
-      <Filter>2. Graphics\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="SceneNode.h">
       <Filter>3. Scene\Entitiy</Filter>
     </ClInclude>
@@ -1138,6 +1153,27 @@
     </ClInclude>
     <ClInclude Include="DebugRenderer.h">
       <Filter>4. Renderer\DebugRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Random.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="MathConstant.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingVolume.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Float16.h">
+      <Filter>99. Utilities\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

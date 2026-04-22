@@ -16,7 +16,7 @@ class Camera
 public:
     Camera() = default;
 
-    [[nodiscard]] const Mtx4& GetProjMatrix() const;
+    [[nodiscard]] const Mtx4& GetProj() const;
 
     void SetProjection(eProjection _projection);
     void SetNearZ(float _nearZ);
@@ -38,12 +38,12 @@ public:
     void  WriteToArchive(ArchiveWriter& _writer) const;
     Error ReadFromArchive(ArchiveReader& _reader);
 
-    constexpr static float k_minZ           = 0.01f;
-    constexpr static float k_maxZ           = 30000.f;
-    constexpr static float k_minFovYRad     = ToRad(1.f);
-    constexpr static float k_maxFovYRad     = ToRad(179.f);
-    constexpr static float k_minWidthHeight = 0.1f;
-    constexpr static float k_maxWidthHeight = 10000.f;
+    constexpr static float kMinZ           = 0.01f;
+    constexpr static float kMaxZ           = 30000.f;
+    constexpr static float kMinFovYRad     = ToRad(1.f);
+    constexpr static float kMaxFovYRad     = ToRad(179.f);
+    constexpr static float kMinWidthHeight = 0.1f;
+    constexpr static float kMaxWidthHeight = 10000.f;
 
 private:
     eProjection m_projection = eProjection::Perspective;
@@ -54,7 +54,7 @@ private:
     float       m_height     = 1.f;
 
     mutable bool m_bProjDirty = true;
-    mutable Mtx4 m_projCache  = Numbers<Mtx4>::k_identity;
+    mutable Mtx4 m_projCache  = Mtx4::kIdentity;
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Camera);

@@ -7,7 +7,7 @@ namespace Jam
 
 UID UIDAllocator::Alloc()
 {
-    UID uid = UID::k_null;
+    UID uid = UID::kNull;
     if (m_freeUids.empty())
     {
         do
@@ -28,7 +28,7 @@ UID UIDAllocator::Alloc()
 
 UID UIDAllocator::Alloc(UID _uid)
 {
-    JAM_ASSERT(_uid != UID::k_null, "Cannot allocate invalid UID");
+    JAM_ASSERT(_uid != UID::kNull, "Cannot allocate invalid UID");
     JAM_ASSERT(m_allocatedUids.contains(_uid) == false, "UID {} is already allocated", _uid);
     m_allocatedUids.insert(_uid);
     return _uid;

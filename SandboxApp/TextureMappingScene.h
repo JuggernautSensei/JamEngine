@@ -28,11 +28,11 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph = k_invalidHandle;
+    ProgramHandle m_ph = kInvalidHandle;
 
-    ConstantBufferHandle m_entityCbh = k_invalidHandle;
-    ConstantBufferHandle m_cmrCbh    = k_invalidHandle;
-    ConstantBufferHandle m_lightCbh  = k_invalidHandle;
+    ConstantBufferHandle m_entityCbh = kInvalidHandle;
+    ConstantBufferHandle m_cmrCbh    = kInvalidHandle;
+    ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
     FrameBufferHandle m_fbh    = {};
     TextureHandle     m_fbTexh = {};   // not owned

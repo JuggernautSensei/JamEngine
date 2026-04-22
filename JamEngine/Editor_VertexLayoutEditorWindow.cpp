@@ -33,7 +33,7 @@ namespace
 void Editor_VertexLayoutEditorWindow::OnImGuiRender(
     bool& _bShow)
 {
-    ImGui::SetNextWindowSizeConstraints({ 300.f, 0.f }, { Limits<float>::k_max, Limits<float>::k_max });
+    ImGui::SetNextWindowSizeConstraints({ 300.f, 0.f }, { Limits<float>::kMax, Limits<float>::kMax });
     if (!ImGui::Begin("vertex layout editor", &_bShow))
     {
         ImGui::End();

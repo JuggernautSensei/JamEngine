@@ -14,7 +14,7 @@ void SceneComponent::Serialize(
     Scene*,
     Entity) const
 {
-    _writer.WriteField("localMatrix", node.GetLocalTransform().GetMatrix());
+    _writer.WriteField("localMatrix", node.GetLocalTransform().GetSRT());
     _writer.WriteField("parent", node.GetParent().GetUID());   // if root parent entity is invalid UID.
 }
 
@@ -24,15 +24,15 @@ void SceneComponent::Deserialize(
     const Entity      _owner)
 {
     // transform
-    Mtx4 localMtx = Numbers<Mtx4>::k_identity;
+    Mtx4 localMtx = Mtx4::kIdentity;
     if (_reader.ReadField("localTransform", localMtx))
     {
         return;
     }
-    node.ModifyLocalTransform().SetMatrix(localMtx);
+    node.ModifyLocalTransform().SetSRT(localMtx);
 
     // parent
-    UID parentUid = UID::k_null;
+    UID parentUid = UID::kNull;
     if (_reader.ReadField("parent", parentUid))
     {
         return;

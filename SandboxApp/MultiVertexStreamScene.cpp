@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "MultiVertexStreamScene.h"
 
+#include "Gui.h"
 #include "../JamEngine/AssimpImporter.h"
 
 namespace
@@ -8,39 +9,39 @@ namespace
 
 struct CBMultiVertexStreamSceneEntity
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4  cb_world         = Numbers<Mtx4>::k_identity;
-    Mtx4  cb_worldInvTrans = Numbers<Mtx4>::k_identity;
-    Vec3  cb_baseColor     = Numbers<Vec3>::k_one;
+    Mtx4  cb_world         = Mtx4::kIdentity;
+    Mtx4  cb_worldInvTrans = Mtx4::kIdentity;
+    Vec3  cb_baseColor     = Vec3::kOne;
     float cb_shiness       = 16.f;
 };
 
 struct CBMultiVertexStreamSceneCamera
 {
-    static constexpr Int32 k_slot = 1;
+    static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Numbers<Vec3>::k_zero;
+    Vec3  cb_eyePos   = Vec3::kZero;
     float padding1    = 0.f;
-    Mtx4  cb_viewProj = Numbers<Mtx4>::k_identity;
+    Mtx4  cb_viewProj = Mtx4::kIdentity;
 };
 
 struct CBMultiVertexStreamSceneLight
 {
-    static constexpr Int32 k_slot = 2;
+    static constexpr Int32 kSlot = 2;
 
     Vec3  cb_lightDir     = { 0.f, -1.f, 0.f };
     float padding2        = 0.f;
-    Vec3  cb_lightColor   = Numbers<Vec3>::k_one;
+    Vec3  cb_lightColor   = Vec3::kOne;
     float padding3        = 0.f;
-    Vec3  cb_ambientColor = Numbers<Vec3>::k_one;
+    Vec3  cb_ambientColor = Vec3::kOne;
     float padding4        = 0.f;
 };
 
 struct MultiVertexStreamScenePosNormalVertex
 {
-    Vec3 pos    = Numbers<Vec3>::k_zero;
-    Vec3 normal = Numbers<Vec3>::k_zero;
+    Vec3 pos    = Vec3::kZero;
+    Vec3 normal = Vec3::kZero;
 
     inline static VertexLayout s_layout = [] {
         VertexLayout layout = {};
@@ -52,7 +53,7 @@ struct MultiVertexStreamScenePosNormalVertex
 
 struct MultiVertexStreamSceneColorVertex
 {
-    Vec3 color = Numbers<Vec3>::k_zero;
+    Vec3 color = Vec3::kZero;
 
     inline static VertexLayout s_layout = [] {
         VertexLayout layout = {};
@@ -224,13 +225,13 @@ void MultiVertexStreamScene::OnRender(
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4                     vpMtx    = m_cameraTransform.GetMatrix().Invert() * m_camera.GetProjMatrix();
+    const Mtx4                     vpMtx    = m_cameraTransform.GetSRT().Invert() * m_camera.GetProj();
     CBMultiVertexStreamSceneCamera cbCamera = {};
     cbCamera.cb_eyePos                      = m_cameraTransform.GetTranslation();
     cbCamera.cb_viewProj                    = vpMtx.Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBMultiVertexStreamSceneCamera::k_slot);
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBMultiVertexStreamSceneCamera::k_slot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBMultiVertexStreamSceneCamera::kSlot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBMultiVertexStreamSceneCamera::kSlot);
 
     // light
     CBMultiVertexStreamSceneLight cbLight = {};
@@ -238,11 +239,11 @@ void MultiVertexStreamScene::OnRender(
     cbLight.cb_lightColor                 = m_lightColor;
     cbLight.cb_ambientColor               = m_ambientColor;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBMultiVertexStreamSceneLight::k_slot);
+    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBMultiVertexStreamSceneLight::kSlot);
 
     // entity
-    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBMultiVertexStreamSceneEntity::k_slot);
-    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBMultiVertexStreamSceneEntity::k_slot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBMultiVertexStreamSceneEntity::kSlot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBMultiVertexStreamSceneEntity::kSlot);
 
     CBMultiVertexStreamSceneEntity cbEntity = {};
     for (Int32 i = 0; i < m_numEntities; ++i)
@@ -276,7 +277,11 @@ void MultiVertexStreamScene::OnRender(
 
 void MultiVertexStreamScene::OnImGuiRender()
 {
-    ImGui::Begin("MultiVertexStreamScene Controller");
+    if (!BeginSceneInspectorWindows("MultiVertexStreamScene"))
+    {
+        ImGui::End();
+        return;
+    }
 
     ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
     ImGui::Separator();

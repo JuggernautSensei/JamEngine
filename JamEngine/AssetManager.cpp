@@ -83,7 +83,7 @@ Expect<Ref<IAsset>> AssetManager::Load(
         if (_bReloadIfExist)
         {
             Ref<IAsset>& pAsset = it->second;
-            if (const Error err = pAsset->Load_(key))
+            if (const Error err = pAsset->LoadFromFile_(key))
             {
                 // 실패해도 pAsset 자체가 invalid 상태가 아니므로
                 // 에러만 리턴하고, 맵에서는 제거하지 않음
@@ -292,7 +292,7 @@ void AssetManager::OnFileModifiedEvent_(
         if (it != map.end())
         {
             Ref<IAsset>& pAsset = it->second;
-            pAsset->Load_(key);
+            pAsset->LoadFromFile_(key);
         }
     }
 }
@@ -340,7 +340,7 @@ void AssetManager::OnFileRenamedEvent_(
 
         // 4. 에셋을 새로운 경로로 로드 및 맵에 삽입
         //    만약 실패했다면, 에셋은 무효화된 상태
-        const Error err = pAsset->Load_(newKey);
+        const Error err = pAsset->LoadFromFile_(newKey);
         if (err)
         {
             continue;

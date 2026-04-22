@@ -353,7 +353,7 @@ float Environment::GetBloomStrength() const
 
 void Environment::SetBloomNumBlurPasses(const Int32 _numPasses)
 {
-    m_bloomNumBlurPasses = Clamp(_numPasses, 0, k_maxNumbloomPasses);
+    m_bloomNumBlurPasses = Clamp(_numPasses, 0, kMaxNumbloomPasses);
     m_bDirty             = true;
 }
 

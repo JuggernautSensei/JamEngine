@@ -51,7 +51,7 @@ namespace
 
         if (bPosOnly)
         {
-            return Mesh::Load(_positions, _idxData, _bUseU32);
+            return Mesh::Load(_positions, _idxData);
         }
         else
         {
@@ -87,7 +87,7 @@ namespace
                 }
             }
 
-            return Mesh::Load(_positions, attribData, _attribLayoutOrEmpty, _idxData, _bUseU32);
+            return Mesh::Load(_positions, attribData, _attribLayoutOrEmpty, _idxData);
         }
     }
 
@@ -136,7 +136,7 @@ Ref<Mesh> CreateCubeMesh(
         { +hWidth, -hHeight, +hDepth },
     };
 
-    constexpr Vec2 k_texcoords[] = {
+    constexpr Vec2 kTexcoords[] = {
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
@@ -163,7 +163,7 @@ Ref<Mesh> CreateCubeMesh(
         { 1.f, 1.f },
     };
 
-    constexpr UInt16 k_indices[] = {
+    constexpr UInt16 kIndices[] = {
         0,
         1,
         2,
@@ -202,7 +202,7 @@ Ref<Mesh> CreateCubeMesh(
         23,
     };
 
-    return CreateMesh_(positions, k_texcoords, _attribLayoutOrEmpty, k_indices, false);
+    return CreateMesh_(positions, kTexcoords, _attribLayoutOrEmpty, kIndices, false);
 }
 
 Ref<Mesh> CreateSphereMesh(
@@ -210,8 +210,9 @@ Ref<Mesh> CreateSphereMesh(
     const Int32         _divisionLevel,
     const VertexLayout& _attribLayoutOrEmpty)
 {
-    const float t           = (1.0f + Sqrt(5.0f)) / 2.0f;
-    const Vec3  positions[] = {
+    const float t = (1.0f + Sqrt(5.0f)) / 2.0f;
+
+    const Vec3 positions[] = {
         { -1.f,   +t,  0.f },
         { +1.f,   +t,  0.f },
         { -1.f,   -t,  0.f },
@@ -226,7 +227,7 @@ Ref<Mesh> CreateSphereMesh(
         {   -t,  0.f, +1.f },
     };
 
-    constexpr Vec2 k_texCoords[] = {
+    constexpr Vec2 kTexCoords[] = {
         { 0.00f, 0.00f },
         { 1.00f, 0.00f },
         { 0.00f, 1.00f },
@@ -241,7 +242,7 @@ Ref<Mesh> CreateSphereMesh(
         { 0.75f, 0.75f },
     };
 
-    constexpr UInt16 k_indices[] = {
+    constexpr UInt16 kIndices[] = {
         0,
         11,
         5,
@@ -307,7 +308,7 @@ Ref<Mesh> CreateSphereMesh(
     if (_divisionLevel > 0)
     {
         // subdivide mesh
-        LoopSubdivisionOutputWithTexcoords output = LoopSubdivide(positions, k_texCoords, k_indices, false, _divisionLevel);
+        LoopSubdivisionOutputWithTexcoords output = LoopSubdivide(positions, kTexCoords, kIndices, false, _divisionLevel);
 
         // normalize and scale to sphere radius
         for (Vec3& pos: output.positions)
@@ -321,7 +322,7 @@ Ref<Mesh> CreateSphereMesh(
     else
     {
         // return base icosahedron
-        return CreateMesh_(positions, k_texCoords, _attribLayoutOrEmpty, k_indices, false);
+        return CreateMesh_(positions, kTexCoords, _attribLayoutOrEmpty, kIndices, false);
     }
 }
 
@@ -339,18 +340,18 @@ Ref<Mesh> CreatePlaneMesh(
         { +hWidth, 0.f, -hDepth },
     };
 
-    constexpr Vec2 k_texcoords[] = {
+    constexpr Vec2 kTexcoords[] = {
         { 0.f, 1.f },
         { 0.f, 0.f },
         { 1.f, 0.f },
         { 1.f, 1.f },
     };
 
-    constexpr UInt16 k_indices[] = {
+    constexpr UInt16 kIndices[] = {
         0, 1, 2, 0, 2, 3
     };
 
-    return CreateMesh_(positions, k_texcoords, _attribLayoutOrEmpty, k_indices, false);
+    return CreateMesh_(positions, kTexcoords, _attribLayoutOrEmpty, kIndices, false);
 }
 
 Ref<Mesh> CreateCircle(
@@ -361,17 +362,17 @@ Ref<Mesh> CreateCircle(
     JAM_ASSERT(_numTri >= 6, "Circle must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 1;   // triangles + center vertex
-    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::k_max), "Too many triangles for circle.");
+    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::kMax), "Too many triangles for circle.");
 
     Vector<Vec3> positions(numVerts);
     Vector<Vec2> texcoords(numVerts);
 
     // center vertex
-    positions[0] = Numbers<Vec3>::k_zero;
+    positions[0] = Vec3::kZero;
     texcoords[0] = Vec2 { 0.5f, 0.5f };
 
     // circle vertices
-    const float step = Numbers<float>::k_2pi / static_cast<float>(_numTri);
+    const float step = k2Pi / static_cast<float>(_numTri);
     for (Int32 i = 0; i < _numTri; ++i)
     {
         const float rad = static_cast<float>(i) * step;
@@ -405,7 +406,7 @@ Ref<Mesh> CreateCone(
     JAM_ASSERT(_numTri >= 6, "Cone base must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 2;   // base circle + apex + base center
-    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
+    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::kMax), "Too many triangles for cone.");
 
     Vector<Vec3> position(numVerts);
     Vector<Vec2> texcoords(numVerts);
@@ -415,7 +416,7 @@ Ref<Mesh> CreateCone(
     texcoords[0] = Vec2 { 0.5f, 0.f };
 
     // base circle vertices
-    const float step = Numbers<float>::k_2pi / static_cast<float>(_numTri);
+    const float step = k2Pi / static_cast<float>(_numTri);
     for (Int32 i = 0; i < _numTri; ++i)
     {
         const float rad = static_cast<float>(i) * step;
@@ -464,13 +465,13 @@ Ref<Mesh> CreateCylinder(
     JAM_ASSERT(_numTries >= 6, "Cylinder must have at least 6 triangles.");
 
     const Int32 numVerts = _numTries * 2 + 2;   // top + bottom circles + 2 centers
-    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::k_max), "Too many triangles for cone.");
+    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::kMax), "Too many triangles for cone.");
 
     Vector<Vec3> position(numVerts);
     Vector<Vec2> texcoords(numVerts);
 
     // top circle vertices
-    const float step = Numbers<float>::k_2pi / static_cast<float>(_numTries);
+    const float step = k2Pi / static_cast<float>(_numTries);
     for (Int32 i = 0; i < _numTries; ++i)
     {
         const float rad = static_cast<float>(i) * step;
@@ -545,7 +546,7 @@ Vector<Vec3> ComputeNormals(
     const bool             _bUseU32)
 {
     IndexReader indexReader { _idxData, _bUseU32 };
-    const Int32 numVerts = NarrowCast<Int32>(_positions.size());
+    const Int32 numVerts = static_cast<Int32>(_positions.size());
     const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
     const Int32 numFaces = numIdxes / 3;
 
@@ -564,23 +565,23 @@ Vector<Vec3> ComputeNormals(
         const Vec3 p1 = _positions[i1];
         const Vec3 p2 = _positions[i2];
 
-        const Vec3 p01 = Normalized(p1 - p0);
-        const Vec3 p02 = Normalized(p2 - p0);
-        const Vec3 p12 = Normalized(p2 - p1);
+        const Vec3 p01 = (p1 - p0).Normalized();
+        const Vec3 p02 = (p2 - p0).Normalized();
+        const Vec3 p12 = (p2 - p1).Normalized();
 
         // degenerate triangle check
-        if (IsZeroApprox(p01) || IsZeroApprox(p02) || IsZeroApprox(p12))
+        if (p01.IsZeroApprox() || p02.IsZeroApprox() || p12.IsZeroApprox())
         {
             continue;
         }
 
         // calculate face normal
-        const Vec3 faceNormal = Normalized(Cross(p01, p02));
+        const Vec3 faceNormal = p01.Cross(p02).Normalized();
 
         // calculate angle weights for each vertexs
-        const float angle0 = Acos(Clamp(Dot(p01, p02), -1.0f, 1.0f));
-        const float angle1 = Acos(Clamp(Dot(p12, -p01), -1.0f, 1.0f));
-        const float angle2 = Acos(Clamp(Dot(-p02, -p12), -1.0f, 1.0f));
+        const float angle0 = Acos(Clamp(p01.Dot(p02), -1.0f, 1.0f));
+        const float angle1 = Acos(Clamp(p12.Dot(-p01), -1.0f, 1.0f));
+        const float angle2 = Acos(Clamp(-p02.Dot(-p12), -1.0f, 1.0f));
 
         // accumulate angle-weighted face normals
         tmpNormals[i0] += faceNormal * angle0;
@@ -593,7 +594,7 @@ Vector<Vec3> ComputeNormals(
     normals.reserve(numVerts);
     for (SizeT i = 0; i < numVerts; ++i)
     {
-        normals.emplace_back(Normalized(tmpNormals[i]));
+        normals.emplace_back(tmpNormals[i].Normalized());
     }
 
     return normals;
@@ -607,7 +608,7 @@ TangentFrame ComputeTangentFrame(
     const bool             _bUseU32)
 {
     IndexReader indexReader { _idxData, _bUseU32 };
-    const Int32 numVerts = NarrowCast<Int32>(_positions.size());
+    const Int32 numVerts = static_cast<Int32>(_positions.size());
     const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
     const Int32 numFaces = numIdxes / 3;
 
@@ -696,10 +697,10 @@ TangentFrame ComputeTangentFrame(
         const Vec3 t = tan1[i];
 
         // orthogonalize
-        Vec3 tan = Normalized(t - n * Dot(n, t));
+        Vec3 tan = (t - n * n.Dot(t)).Normalized();
 
         // handle degenerate case
-        if (IsZeroApprox(tan))
+        if (tan.IsZeroApprox())
         {
             // choose an arbitrary perpendicular axis
             Vec3 axis;
@@ -716,12 +717,12 @@ TangentFrame ComputeTangentFrame(
                 axis = Vec3 { 0.f, 0.f, 1.f };   // x axis
             }
 
-            tan = Normalized(Cross(n, axis));
+            tan = n.Cross(axis).Normalized();
         }
 
         // calculate bitangent and determine handedness
-        Vec3        bitan      = Normalized(Cross(n, tan));
-        const float handedness = Dot(Cross(n, tan), tan2[i]);
+        Vec3        bitan      = n.Cross(tan).Normalized();
+        const float handedness = n.Cross(tan).Dot(tan2[i]);
         if (handedness < 0.0f)
         {
             bitan = -bitan;

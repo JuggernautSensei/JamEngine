@@ -60,7 +60,7 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
         Button5,
     };
 
-    constexpr EnumArray<eMouseButton, eMouseButton> k_mouseButtonRanges = {
+    constexpr EnumArray<eMouseButton, eMouseButton> kMouseButtonRanges = {
         eMouseButton::Left,
         eMouseButton::Right,
         eMouseButton::Middle,
@@ -77,7 +77,7 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
 
     };
 
-    constexpr EnumArray<eMouseButton, const char*> k_mouseNames = {
+    constexpr EnumArray<eMouseButton, const char*> kMouseNames = {
         "left",
         "right",
         "middle",
@@ -85,7 +85,7 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
         "button 5",
     };
 
-    constexpr EnumArray<eMouseButton, eMouse> k_mouseButtons = {
+    constexpr EnumArray<eMouseButton, eMouse> kMouseButtons = {
         eMouse::LeftButton,
         eMouse::RightButton,
         eMouse::MiddleButton,
@@ -93,28 +93,29 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
         eMouse::XButton2,
     };
 
-    constexpr EnumArray<eMouseState, const char*> k_mouseStateNames = {
+    constexpr EnumArray<eMouseState, const char*> kMouseStateNames = {
         "pressed",
         "hold",
         "released",
         "away"
     };
 
-    const auto [x, y]      = GetInput().GetMousePos();
-    const auto [dx, dy]    = GetInput().GetMouseDeltaPos();
-    const float wheelDelta = GetInput().GetMouseDeltaWheel();
-    const bool  bVisible   = GetInput().IsMouseVisible();
+    Input&      input    = GetInput();
+    const Vec2i pos      = input.GetMousePos();
+    const Vec2i dPos     = input.GetMouseDeltaPos();
+    const float dWheel   = input.GetMouseDeltaWheel();
+    const bool  bVisible = input.IsMouseVisible();
 
     ImGui::BulletText("game mouse");
     ImGui::TreePush("game mouse");
     {
-        ImGui::Text("mouse position: (%d, %d)", x, y);
-        ImGui::Text("mouse delta position: (%d, %d)", dx, dy);
-        ImGui::Text("mouse delta wheel: %.1f", wheelDelta);
-        for (const eMouseButton e: k_mouseButtonRanges)
+        ImGui::Text("mouse position: (%d, %d)", pos.x, pos.y);
+        ImGui::Text("mouse delta position: (%d, %d)", dPos.x, dPos.y);
+        ImGui::Text("mouse delta wheel: %.1f", dWheel);
+        for (const eMouseButton e: kMouseButtonRanges)
         {
             const Int32  idx    = UnderlyingFrom(e);
-            const eMouse button = k_mouseButtons[idx];
+            const eMouse button = kMouseButtons[idx];
             eMouseState  state  = eMouseState::Away;
 
             if (GetInput().IsMousePressed(button))
@@ -130,7 +131,7 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
                 state = eMouseState::Released;
             }
 
-            ImGui::Text("mouse %s: %s", k_mouseNames[idx], k_mouseStateNames[UnderlyingFrom(state)]);
+            ImGui::Text("mouse %s: %s", kMouseNames[idx], kMouseStateNames[UnderlyingFrom(state)]);
         }
 
         ImGui::Text("mouse visible: %s", bVisible ? "true" : "false");

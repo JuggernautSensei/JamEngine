@@ -84,15 +84,15 @@ private:
     // file entries
     ImGuiTextFilter        m_fileEntryFilter                  = {};
     float                  m_fileEntryFilterCounterSec        = 0.f;
-    constexpr static float k_fileEntryFilterUpdateIntervalSec = 0.5f;
+    constexpr static float kFileEntryFilterUpdateIntervalSec = 0.5f;
     bool                   m_bGatherFilteredFileEntries       = true;
 
     float                  m_zoom        = 1.f;
-    constexpr static float k_minZoomPerc = 50.f;
-    constexpr static float k_maxZoomPerc = 300.f;
+    constexpr static float kMinZoomPerc = 50.f;
+    constexpr static float kMaxZoomPerc = 300.f;
 
-    constexpr static ImVec2 k_fileEntrySize     = { 100.f, 100.f };
-    constexpr static float  k_fileEntrySpacingX = 20.f;
+    constexpr static ImVec2 kFileEntrySize     = { 100.f, 100.f };
+    constexpr static float  kFileEntrySpacingX = 20.f;
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Editor_FileBrowserWindow);

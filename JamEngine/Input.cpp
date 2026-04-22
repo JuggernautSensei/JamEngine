@@ -39,12 +39,13 @@ void Input::Update()
     m_mouseDeltaWheel = 0;
 
     // get cursor pos
-    const auto [x, y] = GetWindowsPlatform().GetClientPos();
+    WindowsPlatform& win    = GetWindowsPlatform();
+    const Vec2i      cliPos = win.GetClientPos();
 
     POINT p = {};
     ::GetCursorPos(&p);
-    m_mouseX = p.x - x;
-    m_mouseY = p.y - y;
+    m_mouseX = p.x - cliPos.x;
+    m_mouseY = p.y - cliPos.y;
 }
 
 void Input::OnEvent(Event& _event)
@@ -151,9 +152,10 @@ void Input::SetMousePos(
     const Int32 _x,
     const Int32 _y) noexcept
 {
-    const auto [cliX, cliY] = GetWindowsPlatform().GetClientPos();
-    const Int32 screenX     = cliX + _x;
-    const Int32 screenY     = cliY + _y;
+    WindowsPlatform& win     = GetWindowsPlatform();
+    const Vec2i      cliPos  = win.GetClientPos();
+    const Int32      screenX = cliPos.x + _x;
+    const Int32      screenY = cliPos.y + _y;
 
     ::SetCursorPos(screenX, screenY);
     m_mouseX = _x;
@@ -216,8 +218,8 @@ void Input::OnMouseUp_(
 void Input::OnMouseWheel_(
     const MouseWheelEvent& _event)
 {
-    static_assert(k_wheelSensitive != 0, "Wheel sensitivity cannot be zero.");
-    m_mouseDeltaWheel = static_cast<float>(_event.GetDelta()) / static_cast<float>(k_wheelSensitive);
+    static_assert(kWheelSensitive != 0, "Wheel sensitivity cannot be zero.");
+    m_mouseDeltaWheel = static_cast<float>(_event.GetDelta()) / static_cast<float>(kWheelSensitive);
 }
 
 void Input::OnWindowLostFocusEvent_(

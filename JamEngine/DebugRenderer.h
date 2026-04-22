@@ -16,8 +16,8 @@ class DebugRenderer
 
     struct Vertex
     {
-        Vec3 pos = Numbers<Vec3>::k_zero;
-        RGBA col = RGBA::k_black;
+        Vec3 pos = Vec3::kZero;
+        RGBA col = RGBA::kBlack;
 
         inline static VertexLayout s_layout = [] {
             VertexLayout layout {};
@@ -29,7 +29,7 @@ class DebugRenderer
 
     struct Constants
     {
-        Mtx4  viewProj     = Numbers<Mtx4>::k_identity;
+        Mtx4  viewProj     = Mtx4::kIdentity;
         float screenWidth  = 0.f;
         float screenHeight = 0.f;
         float padding[2]   = {};
@@ -57,24 +57,24 @@ public:
     void Flush();
 
 private:
-    ProgramHandle m_worldPh  = k_invalidHandle;
-    ProgramHandle m_screenPh = k_invalidHandle;
+    ProgramHandle m_worldPh  = kInvalidHandle;
+    ProgramHandle m_screenPh = kInvalidHandle;
 
-    ConstantBufferHandle m_cbh          = k_invalidHandle;
-    VertexBufferHandle   m_vbh          = k_invalidHandle;
+    ConstantBufferHandle m_cbh          = kInvalidHandle;
+    VertexBufferHandle   m_vbh          = kInvalidHandle;
     Int32                m_vbhByteWidth = 0;
-    IndexBufferHandle    m_ibh          = k_invalidHandle;
+    IndexBufferHandle    m_ibh          = kInvalidHandle;
     Int32                m_ibhByteWidth = 0;
 
-    constexpr static SizeT         k_maxNumVerts   = Limits<UInt16>::k_max + 1;
-    constexpr static SizeT         k_maxNumIndices = k_maxNumVerts;
-    Array<Vertex, k_maxNumVerts>   m_cpuVerts      = {};
+    constexpr static SizeT         kMaxNumVerts   = Limits<UInt16>::kMax + 1;
+    constexpr static SizeT         kMaxNumIndices = kMaxNumVerts;
+    Array<Vertex, kMaxNumVerts>   m_cpuVerts      = {};
     Int32                          m_numVerts      = 0;
-    Array<UInt16, k_maxNumIndices> m_cpuIndices    = {};
+    Array<UInt16, kMaxNumIndices> m_cpuIndices    = {};
     Int32                          m_numIndices    = 0;
 
-    Vec3 m_cursorPos   = Numbers<Vec3>::k_zero;
-    RGBA m_cursorCol   = RGBA::k_black;
+    Vec3 m_cursorPos   = Vec3::kZero;
+    RGBA m_cursorCol   = RGBA::kBlack;
     bool m_bCursorDown = false;
 
     bool m_bBeginDraw = false;

@@ -20,13 +20,13 @@ namespace
 
     [[nodiscard]] FileDialog CreateImportFileDialog_()
     {
-        FileDialogFilter k_filters[] = {
+        FileDialogFilter kFilters[] = {
             { "3d models", "*.obj;*.fbx;*.3ds;*.dae;*.ply;*.stl;*.x;*.gltf;*.glb" },
         };
 
         OpenFileDialogInfo info = {};
         info.title              = "select model file";
-        info.filtersOrEmpty     = k_filters;
+        info.filtersOrEmpty     = kFilters;
         return FileDialog { info };
     }
 
@@ -247,7 +247,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     //    {
     //        // set virtual path
     //        String meshPath = String::Joined(meshDir, pMesh->GetName(), eJoin::File);
-    //        meshPath.ReplaceExtension(Mesh::k_extension);
+    //        meshPath.ReplaceExtension(Mesh::kExtension);
     //        pMesh->SetVirtualPath(meshPath);
 
     //        // save mesh asset
@@ -299,7 +299,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     //    {
     //        // set virtual path
     //        String texPath = String::Joined(texDir, pTexture->GetName(), eJoin::File);
-    //        texPath.ReplaceExtension(Texture::k_extension);
+    //        texPath.ReplaceExtension(Texture::kExtension);
     //        pTexture->SetVirtualPath(texPath);
 
     //        // save texture asset
@@ -314,7 +314,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
     //    {
     //        // set virtual path
     //        String matPath = String::Joined(matDir, pMaterial->GetName(), eJoin::File);
-    //        matPath.ReplaceExtension(Material::k_extension);
+    //        matPath.ReplaceExtension(Material::kExtension);
     //        pMaterial->SetVirtualPath(matPath);
 
     //        // save material asset
@@ -327,7 +327,7 @@ bool ModelImportDialog::CreateAndSaveAsset_(
 
     //// save model
     //String path = String::Joined(_path, m_assetBaseName, eJoin::File);
-    //path.ReplaceExtension(Model::k_extension);
+    //path.ReplaceExtension(Model::kExtension);
     //if (!SaveAsset_(path, pModel))
     //{
     //    return false;

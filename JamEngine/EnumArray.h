@@ -35,7 +35,7 @@ template<typename TEnum, typename TValue>
 class EnumArray
 {
 public:
-    static constexpr SizeT k_cap = CountOf<TEnum>();
+    static constexpr SizeT kCap = CountOf<TEnum>();
     using IterT                  = TValue*;
     using ConstIterT             = const TValue*;
 
@@ -51,24 +51,24 @@ public:
 
     [[nodiscard]] constexpr TValue& operator[](SizeT _idx)
     {
-        JAM_ASSERT(0 <= _idx && _idx < k_cap, "EnumArray index out of bounds. idx: '{}'", _idx);
+        JAM_ASSERT(0 <= _idx && _idx < kCap, "EnumArray index out of bounds. idx: '{}'", _idx);
         return m_arr[_idx];
     }
 
     [[nodiscard]] constexpr const TValue& operator[](SizeT _idx) const
     {
-        JAM_ASSERT(0 <= _idx && _idx < k_cap, "EnumArray index out of bounds. idx: '{}'", _idx);
+        JAM_ASSERT(0 <= _idx && _idx < kCap, "EnumArray index out of bounds. idx: '{}'", _idx);
         return m_arr[_idx];
     }
 
     [[nodiscard]] constexpr SizeT Size() const
     {
-        return k_cap;
+        return kCap;
     }
 
     constexpr void Fill(const TValue& _value)
     {
-        for (SizeT i = 0; i < k_cap; ++i)
+        for (SizeT i = 0; i < kCap; ++i)
         {
             m_arr[i] = _value;
         }
@@ -96,12 +96,12 @@ public:
 
     [[nodiscard]] constexpr IterT end()
     {
-        return m_arr + k_cap;
+        return m_arr + kCap;
     }
 
     [[nodiscard]] constexpr ConstIterT end() const
     {
-        return m_arr + k_cap;
+        return m_arr + kCap;
     }
 
     [[nodiscard]] constexpr TValue* data()
@@ -116,10 +116,10 @@ public:
 
     [[nodiscard]] constexpr SizeT size() const
     {
-        return k_cap;
+        return kCap;
     }
 
-    TValue m_arr[k_cap] = {};
+    TValue m_arr[kCap] = {};
 
 private:
     [[nodiscard]] constexpr SizeT GetIndex_(TEnum _key) const
@@ -127,13 +127,13 @@ private:
         if constexpr (IsDirectIndexableEnum<TEnum>)
         {
             const SizeT idx = UnderlyingFrom(_key);
-            JAM_ASSERT(0 <= idx && idx < k_cap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
+            JAM_ASSERT(0 <= idx && idx < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
             return idx;
         }
         else
         {
             const SizeT seq = GetSequence(_key);
-            JAM_ASSERT(seq < k_cap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
+            JAM_ASSERT(seq < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
             return seq;
         }
     }

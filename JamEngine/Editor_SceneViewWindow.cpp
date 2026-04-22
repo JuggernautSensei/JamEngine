@@ -23,7 +23,7 @@ Editor_SceneViewWindow::Editor_SceneViewWindow()
     // init editor camera
     {
         m_cameraTransform.SetTranslation(-5, 5, -5);
-        m_cameraTransform.SetLookAt(Numbers<Vec3>::k_zero);
+        m_cameraTransform.SetLookAt(Vec3::kZero, Vec3::kUp);
         m_camera.SetFarZ(300.f);
     }
 }
@@ -83,7 +83,7 @@ void Editor_SceneViewWindow::OnImGuiRender(
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
     }
 
-    ImGui::SetNextWindowSizeConstraints({ 200.f, 200.f }, { Limits<float>::k_max, Limits<float>::k_max });
+    ImGui::SetNextWindowSizeConstraints({ 200.f, 200.f }, { Limits<float>::kMax, Limits<float>::kMax });
     m_bVisible = ImGui::Begin("scene view", &_bShow, flags);
     if (!m_bVisible)
     {
@@ -306,9 +306,9 @@ void Editor_SceneViewWindow::DrawGizmo_() const
         return;
     }
 
-    Mtx4       mtx  = entity.GetWorldTransform().GetMatrix();
-    const Mtx4 view = mtx.Invert();
-    const Mtx4 proj = m_camera.GetProjMatrix();
+    Mtx4       mtx  = entity.GetWorldTransform().GetSRT();
+    const Mtx4 view = mtx.Inverse();
+    const Mtx4 proj = m_camera.GetProj();
 
     const float x        = m_sceneViewLeftTop.x;
     const float y        = m_sceneViewLeftTop.y;
@@ -326,17 +326,17 @@ void Editor_SceneViewWindow::DrawGizmo_() const
     const float* pSnap = nullptr;
     if (m_bGizmoSnap || GetInput().IsKeyDown(eKey::Shift))
     {
-        pSnap = m_gizmoOp == eGizmoOp::Translation ? &k_translateSnap.x
-              : m_gizmoOp == eGizmoOp::Rotation    ? &k_rotateSnapDeg.x
-                                                   : &k_scaleSnap.x;
+        pSnap = m_gizmoOp == eGizmoOp::Translation ? &kTranslateSnap.x
+              : m_gizmoOp == eGizmoOp::Rotation    ? &kRotateSnapDeg.x
+                                                   : &kScaleSnap.x;
     }
 
     ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
     ImGuizmo::SetOrthographic(bIsOrtho);
     ImGuizmo::SetRect(x, y, width, height);
-    if (ImGuizmo::Manipulate(&view._11, &proj._11, gizmoOp, gizmoMode, &mtx._11, nullptr, pSnap))
+    if (ImGuizmo::Manipulate(&view.m[0][0], &proj.m[0][0], gizmoOp, gizmoMode, &mtx.m[0][0], nullptr, pSnap))
     {
-        entity.ModifyWorldTransform().SetMatrix(mtx);
+        entity.ModifyWorldTransform().SetSRT(mtx);
     }
 }
 
@@ -354,7 +354,7 @@ void Editor_SceneViewWindow::Menu_Options()
 
         if (Widget_MenuItem("reset rotation"))
         {
-            m_cameraEulerRad = Numbers<Vec3>::k_zero;
+            m_cameraEulerRad = Vec3::kZero;
             m_cameraTransform.SetRotation(0.f, 0.f, 0.f);
         }
 
@@ -380,13 +380,13 @@ void Editor_SceneViewWindow::Menu_Options()
 
         if (ImGui::BeginMenu("move speed"))
         {
-            Widget_DragFloat("##CameraMoveSpeed", m_cameraMoveSpeed, 0.1f, k_cameraMoveSpeedMin);
+            Widget_DragFloat("##CameraMoveSpeed", m_cameraMoveSpeed, 0.1f, kCameraMoveSpeedMin);
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("rotation speed"))
         {
-            Widget_DragFloat("##CameraRotationSpeed", m_cameraRotSpeed, 0.01f, k_cameraRotSpeedMin);
+            Widget_DragFloat("##CameraRotationSpeed", m_cameraRotSpeed, 0.01f, kCameraRotSpeedMin);
             ImGui::EndMenu();
         }
 
@@ -438,7 +438,7 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
     {
         // translation
         {
-            const float accel = GetInput().IsKeyDown(eKey::Shift) ? k_cameraMoveDecelerationFactor : 1.f;
+            const float accel = GetInput().IsKeyDown(eKey::Shift) ? kCameraMoveDecelerationFactor : 1.f;
             const float dMov  = m_cameraMoveSpeed * accel * _deltaSec;
 
             if (GetInput().IsKeyDown(eKey::A))
@@ -474,12 +474,12 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
 
         // rotation
         {
-            const auto [dx, dy] = m_infiniteDragger.GetDragDelta();
-            if (dx != 0 || dy != 0)
+            const Vec2i dd = m_infiniteDragger.GetDragDelta();
+            if (dd.x != 0 || dd.y != 0)
             {
-                const float dRot   = m_cameraRotSpeed * k_dragSensitivity;
-                m_cameraEulerRad.x = Clamp(m_cameraEulerRad.x - static_cast<float>(dy) * dRot, ToRad(-89.f), ToRad(89.f));
-                m_cameraEulerRad.y = Wrap(m_cameraEulerRad.y - static_cast<float>(dx) * dRot, -Numbers<float>::k_pi, Numbers<float>::k_pi);
+                const float dRot   = m_cameraRotSpeed * kDragSensitivity;
+                m_cameraEulerRad.x = Clamp(m_cameraEulerRad.x - static_cast<float>(dd.y) * dRot, ToRad(-89.f), ToRad(89.f));
+                m_cameraEulerRad.y = Wrap(m_cameraEulerRad.y - static_cast<float>(dd.x) * dRot, -kPi, kPi);
                 m_cameraTransform.SetRotation(m_cameraEulerRad);
             }
         }
@@ -488,15 +488,15 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
     // middle button action. move camera parallel to view plane
     if (GetInput().IsMouseDown(eMouse::MiddleButton))
     {
-        const auto [dx, dy] = m_infiniteDragger.GetDragDelta();
-        if (dx != 0 || dy != 0)
+        const Vec2i dd = m_infiniteDragger.GetDragDelta();
+        if (dd.x != 0 || dd.y != 0)
         {
-            const float dMov   = m_cameraMoveSpeed * k_dragSensitivity;
-            const Vec3  right  = m_cameraTransform.GetRight();
-            const Vec3  up     = m_cameraTransform.GetUp();
-            const Vec3  dRight = right * static_cast<float>(dx) * dMov;
-            const Vec3  dUp    = up * static_cast<float>(-dy) * dMov;
-            m_cameraTransform.AddTranslation(dRight + dUp);
+            const float dMov = m_cameraMoveSpeed * kDragSensitivity;
+            const Vec3  r    = m_cameraTransform.GetRight();
+            const Vec3  u    = m_cameraTransform.GetUp();
+            const Vec3  dr   = r * static_cast<float>(dd.x) * dMov;
+            const Vec3  du   = u * static_cast<float>(-dd.y) * dMov;
+            m_cameraTransform.AddTranslation(dr + du);
         }
     }
 
@@ -507,13 +507,13 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
         if (GetInput().IsMouseDown(eMouse::RightButton))
         {
             // adjust move speed
-            const float dMov  = dWheel * k_wheelSensitivity * k_cameraMoveSpeedAdjustFactor;
-            m_cameraMoveSpeed = Max(m_cameraMoveSpeed + dMov, k_cameraMoveSpeedMin);
+            const float dMov  = dWheel * kWheelSensitivity * kCameraMoveSpeedAdjustFactor;
+            m_cameraMoveSpeed = Max(m_cameraMoveSpeed + dMov, kCameraMoveSpeedMin);
         }
         else
         {
             // move forward/backward (like zoom)
-            const float dMov = m_cameraMoveSpeed * dWheel * k_wheelSensitivity;
+            const float dMov = m_cameraMoveSpeed * dWheel * kWheelSensitivity;
             m_cameraTransform.AddTranslation(m_cameraTransform.GetForward() * dMov);
         }
     }
@@ -521,7 +521,7 @@ void Editor_SceneViewWindow::OnUpdateEdit_(
     // esc to release focus
     if (GetInput().IsKeyPressed(eKey::Escape))
     {
-        GetEditor().SetFocusingEntity(Entity::k_null);
+        GetEditor().SetFocusingEntity(Entity::kNull);
     }
 }
 
@@ -534,17 +534,17 @@ void Editor_SceneViewWindow::OnRenderEdit()
 {
     if (GetSceneManager().HasActiveScene())
     {
-        const UInt16   w  = NarrowCast<UInt16>(m_width);
-        const UInt16   h  = NarrowCast<UInt16>(m_height);
+        const UInt16   w  = static_cast<UInt16>(m_width);
+        const UInt16   h  = static_cast<UInt16>(m_height);
         const Viewport vp = { w, h };
 
         // setup render view
         RenderView renderView = {};
-        renderView.fbh  = m_fbh;
-        renderView.viewport   = vp;
-        renderView.eyePos     = m_cameraTransform.GetTranslation();
-        renderView.view       = m_cameraTransform.GetMatrix().Invert();
-        renderView.proj       = m_camera.GetProjMatrix();
+        renderView.fbh        = m_fbh;
+        renderView.vp         = vp;
+        renderView.eye        = m_cameraTransform.GetTranslation();
+        renderView.view       = m_cameraTransform.CalcInvSRT();
+        renderView.proj       = m_camera.GetProj();
 
         // render scene
         GetSceneManager().Render(renderView);
@@ -597,8 +597,8 @@ void Editor_SceneViewWindow::OnRenderEdit()
                         const RenderableComponent& rc = entity.GetComponent<RenderableComponent>();
                         if (rc.pMesh)
                         {
-                            const Mtx4& mtx = entity.GetWorldTransform().GetMatrix();
-                            m_renderer.DrawBoundingBox(rc.pMesh->GetBoundingBox(), mtx, k_boundingBoxCol);
+                            const Mtx4& mtx = entity.GetWorldTransform().GetSRT();
+                            m_renderer.DrawBoundingBox(rc.pMesh->GetBoundingBox(), mtx, kBoundingBoxCol);
                         }
                     }
 
@@ -607,10 +607,10 @@ void Editor_SceneViewWindow::OnRenderEdit()
                     {
                         const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
                         const Camera&          cmr  = cc.camera;
-                        const Mtx4             view = entity.GetWorldTransform().GetMatrix().Invert();
-                        const Mtx4             proj = cmr.GetProjMatrix();
+                        const Mtx4           view = entity.GetWorldTransform().CalcInvSRT();
+                        const Mtx4           proj = cmr.GetProj();
 
-                        m_renderer.DrawFrustum(view * proj, k_boundingBoxCol);
+                        m_renderer.DrawFrustum(view * proj, kBoundingBoxCol);
                     }
                 }
 
@@ -622,8 +622,8 @@ void Editor_SceneViewWindow::OnRenderEdit()
 
 void Editor_SceneViewWindow::OnRenderRuntime() const
 {
-    const UInt16   w  = NarrowCast<UInt16>(m_width);
-    const UInt16   h  = NarrowCast<UInt16>(m_height);
+    const UInt16   w  = static_cast<UInt16>(m_width);
+    const UInt16   h  = static_cast<UInt16>(m_height);
     const Viewport vp = { w, h };
     GetSceneManager().RenderRuntime(m_fbh, vp);
 }
@@ -672,7 +672,7 @@ void Editor_SceneViewWindow::OnSceneChangedEvent_(
         const Entity entity = m_pScene->GetEntity(m_focusedEntityBackupUid);
         GetEditor().SetFocusingEntity(entity);
 
-        m_focusedEntityBackupUid = UID::k_null;
+        m_focusedEntityBackupUid = UID::kNull;
         m_bRecoverRequested      = false;
     }
 
@@ -788,7 +788,7 @@ void Editor_SceneViewWindow::Widget_GizmoOriendToggle_()
 
 void Editor_SceneViewWindow::Widget_GizmoSnapToggle_()
 {
-    constexpr EnumWidgetItem k_items[] = {
+    constexpr EnumWidgetItem kItems[] = {
         {  "snap on",  true },
         { "snap off", false }
     };
@@ -796,8 +796,8 @@ void Editor_SceneViewWindow::Widget_GizmoSnapToggle_()
     const ImGuiKeyChord shortcut = GetEditor().GetStyleShortCut(eEditorShortCut::GizmoSnapToggle);
     ImGui::SetNextItemShortcut(shortcut);
 
-    EnumWidgetItem cur = m_bGizmoSnap ? k_items[0] : k_items[1];
-    if (Widget_EnumToggle("##gizmo snap", cur, k_items))
+    EnumWidgetItem cur = m_bGizmoSnap ? kItems[0] : kItems[1];
+    if (Widget_EnumToggle("##gizmo snap", cur, kItems))
     {
         m_bGizmoSnap = cur.value;
     }
@@ -819,7 +819,7 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
             m_sceneViewLeftTop.y + style.WindowPadding.y
         };
 
-        if (Widget_Acroball("Acroball", m_cameraTransform, pos, k_acroballLength))
+        if (Widget_Acroball("Acroball", m_cameraTransform, pos, kAcroballLength))
         {
             m_cameraEulerRad = m_cameraTransform.ToEuler();
         }
@@ -829,7 +829,7 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
     if (m_bShowCameraTranslation || m_bShowCameraForward)
     {
         const float  rectW          = ImGui::CalcTextSize("X").x * 10.f;
-        const ImVec2 p0             = { m_sceneViewLeftTop.x + m_sceneViewRes.x - style.WindowPadding.x - rectW, m_sceneViewLeftTop.y + style.WindowPadding.y * 2.f + k_acroballLength };
+        const ImVec2 p0             = { m_sceneViewLeftTop.x + m_sceneViewRes.x - style.WindowPadding.x - rectW, m_sceneViewLeftTop.y + style.WindowPadding.y * 2.f + kAcroballLength };
         ImVec2       p1             = { p0.x + rectW, p0.y + style.WindowPadding.y * 2.f };
         const float  textItemHeight = ImGui::GetTextLineHeight() * 4 + style.ItemSpacing.y;
         if (m_bShowCameraTranslation)
@@ -843,7 +843,7 @@ void Editor_SceneViewWindow::Widget_CameraAcroball_()
         }
 
         // background
-        ImGui::GetWindowDrawList()->AddRectFilled(p0, p1, k_acroballBgCol);
+        ImGui::GetWindowDrawList()->AddRectFilled(p0, p1, kAcroballBgCol);
 
         // render text
         ImVec2 textPos = p0 + style.WindowPadding;
@@ -879,7 +879,7 @@ void Editor_SceneViewWindow::Widget_RunButton_()
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, GetEditor().GetStyleColorU32(eEditorStyleColor::RunButtonBgActive));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GetEditor().GetStyleColorU32(eEditorStyleColor::RunButtonBgHovered));
 
-        if (Widget_IconButton("play", GetEditor().GetIcon(eEditorIcon::Play), k_modeBtnSize))
+        if (Widget_IconButton("play", GetEditor().GetIcon(eEditorIcon::Play), kModeBtnSize))
         {
             GetEditor().SetMode(eEditorMode::Play);
 
@@ -920,7 +920,7 @@ void Editor_SceneViewWindow::Widget_StopButton_() const
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, GetEditor().GetStyleColorU32(eEditorStyleColor::EditButtonBgActive));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GetEditor().GetStyleColorU32(eEditorStyleColor::EditButtonBgHovered));
 
-        if (ImGui::Button("stop", k_modeBtnSize))
+        if (ImGui::Button("stop", kModeBtnSize))
         {
             JAM_ASSERT(!m_backUpSceneData.IsEmpty(), "backup scene data is not empty on stop!");
             GetEditor().SetMode(eEditorMode::Edit);

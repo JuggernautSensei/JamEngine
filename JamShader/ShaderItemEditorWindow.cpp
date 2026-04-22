@@ -227,13 +227,13 @@ void ShaderItemEditorWindow::OnImGuiRender()
 
         if (ImGui::MenuItem("choose manually", 0, !m_sourceEditorPathOrEmpty.IsEmpty()))
         {
-            FileDialogFilter k_filters[] = {
+            FileDialogFilter kFilters[] = {
                 { "Executable Files", "*.exe" },
             };
 
             OpenFileDialogInfo info = {};
             info.title              = "select shader source editor";
-            info.filtersOrEmpty     = k_filters;
+            info.filtersOrEmpty     = kFilters;
             FileDialog fd { info };
             if (fd.Open())
             {
@@ -454,7 +454,7 @@ void ShaderItemEditorWindow::Widget_EditShaderItemCompileFlags() const
 {
     JAM_ASSERT(m_pFocusingShaderItemCache, "No shader item is currently being edited.");
 
-    constexpr EnumWidgetItem k_flagsItems[] = {
+    constexpr EnumWidgetItem kFlagsItems[] = {
         {               "Debug info",             UnderlyingFrom(eShaderCompileFlags::DebugInfo) },
         {             "Optimization",          UnderlyingFrom(eShaderCompileFlags::Optimization) },
         {        "Skip optimization",      UnderlyingFrom(eShaderCompileFlags::SkipOptimization) },
@@ -464,14 +464,14 @@ void ShaderItemEditorWindow::Widget_EditShaderItemCompileFlags() const
         { "Pack matrix column major", UnderlyingFrom(eShaderCompileFlags::PackMatrixColumnMajor) },
     };
 
-    constexpr EnumWidgetItem k_setItems[] = {
+    constexpr EnumWidgetItem kSetItems[] = {
         {            "None",           UnderlyingFrom(eShaderCompileFlags::None) },
         {   "Debug default",   UnderlyingFrom(eShaderCompileFlags::DebugDefault) },
         { "Release default", UnderlyingFrom(eShaderCompileFlags::ReleaseDefault) },
     };
 
     Int32 flags = NarrowCast<Int32>(m_pFocusingShaderItemCache->compileFlags.GetValue());
-    if (Widget_EnumFlags("##ShaderItemCompileFlags", flags, k_flagsItems, k_setItems))
+    if (Widget_EnumFlags("##ShaderItemCompileFlags", flags, kFlagsItems, kSetItems))
     {
         m_pProjectCache->SetShaderItemCompileFlags(m_pFocusingShaderItemCache->name, flags);
     }

@@ -396,7 +396,7 @@ bool PrimitiveCreationDialog::OnClickCreateButton_()
     }
 
     String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::File);
-    path.ReplaceExtension(Mesh::k_extension);
+    path.ReplaceExtension(Mesh::kExtension);
 
     if (FileSystem::Exists(path))
     {

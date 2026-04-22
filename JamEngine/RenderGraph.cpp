@@ -74,9 +74,9 @@ void RenderGraph::CompileIfNeed_()
 
     ////////// 불필요한 컴파일 방지 //////////
 
-    Graphics&            gfx         = GetGraphics();
-    const GraphicsStats& stats       = gfx.GetStats();
-    const bool           bNeedResize = (m_lastWidth != stats.backBufferWidth) || (m_lastHeight != stats.backBufferHeight);
+    Graphics&   gfx         = GetGraphics();
+    const Vec2i res         = gfx.GetBackBufferResolution();
+    const bool  bNeedResize = (m_lastWidth != res.x) || (m_lastHeight != res.y);
     if (!m_bNeedCompile && !bNeedResize)
     {
         return;
@@ -88,45 +88,45 @@ void RenderGraph::CompileIfNeed_()
     {
         JAM_FUNCTION_MSG_PROFILE("Resize Textures");
 
-        m_lastWidth  = stats.backBufferWidth;
-        m_lastHeight = stats.backBufferHeight;
+        m_lastWidth  = res.w;
+        m_lastHeight = res.h;
 
         // 텍스처 리사이즈
-        for (TextureResource& res: m_textures | std::views::values)
+        for (TextureResource& tex: m_textures | std::views::values)
         {
             // 소유권이 없거나 자동 리사이즈가 아닌 텍스처는 건너뜀
-            if (!res.bHasOwnership || !res.bAutoResize)
+            if (!tex.bHasOwnership || !tex.bAutoResize)
             {
                 continue;
             }
 
-            const Int32 w = static_cast<Int32>(Ceil(stats.backBufferWidth * res.resizeScale));
-            const Int32 h = static_cast<Int32>(Ceil(stats.backBufferHeight * res.resizeScale));
-            JAM_ASSERT(w > 0 && h > 0, "Auto-resize produced invalid size ({}, {}) for '{}'.", w, h, res.name);
-            JAM_DESTROY_TEXTURE(res.handle);
-            res.handle = gfx.CreateTexture2D(w, h, res.format, false, res.arraySize, res.flags);
+            const Int32 width  = static_cast<Int32>(Ceil(res.w * tex.resizeScale));
+            const Int32 height = static_cast<Int32>(Ceil(res.h * tex.resizeScale));
+            JAM_ASSERT(width > 0 && height > 0, "Auto-resize produced invalid size ({}, {}) for '{}'.", width, height, tex.name);
+            JAM_DESTROY_TEXTURE(tex.handle);
+            tex.handle = gfx.CreateTexture2D(width, height, tex.format, false, tex.arraySize, tex.flags);
         }
 
         // 프레임버퍼 재생성
 
-        for (FrameBufferResource& res: m_frameBuffers | std::views::values)
+        for (FrameBufferResource& fb: m_frameBuffers | std::views::values)
         {
             // 소유권이 없으면 재생성하지않음
-            if (!res.bHasOwnership || !res.bAutoResize)
+            if (!fb.bHasOwnership || !fb.bAutoResize)
             {
                 continue;
             }
 
             // 프레임버퍼 생성
-            Array<TextureHandle, k_maxNumAttachmentSlots> attachments;
-            for (Int32 i = 0; i < res.numAttachments; ++i)
+            Array<TextureHandle, kMaxNumAttachmentSlots> attachments;
+            for (Int32 i = 0; i < fb.numAttachments; ++i)
             {
-                const TextureResource& texRes = m_textures.at(res.attachments[i]);
+                const TextureResource& texRes = m_textures.at(fb.attachments[i]);
                 attachments[i]                = texRes.handle;
             }
 
-            JAM_DESTROY_FRAME_BUFFER(res.handle);
-            res.handle = gfx.CreateFrameBuffer({ attachments.data(), res.numAttachments }, false);
+            JAM_DESTROY_FRAME_BUFFER(fb.handle);
+            fb.handle = gfx.CreateFrameBuffer({ attachments.data(), fb.numAttachments }, false);
         }
     }
 
@@ -163,11 +163,11 @@ void RenderGraph::CompileIfNeed_()
             {
                 if (pDesc->frameBufferName.IsEmpty())
                 {
-                    pDesc->fbh = k_invalidHandle;
+                    pDesc->fbh = kInvalidHandle;
 
                     if (pDesc->bUseViewportFromFrameBufferResoulution)
                     {
-                        pDesc->viewport = Viewport { NarrowCast<UInt16>(stats.backBufferWidth), NarrowCast<UInt16>(stats.backBufferHeight) };
+                        pDesc->viewport = Viewport { static_cast<UInt16>(res.w), static_cast<UInt16>(res.h) };
                     }
                 }
                 else
@@ -180,7 +180,7 @@ void RenderGraph::CompileIfNeed_()
                         const FrameBufferInfo& fbInfo  = gfx.GetFrameBufferInfo(pDesc->fbh);
                         const TextureHandle    texh    = fbInfo.bHasDepthStencil ? fbInfo.depthStencilTexh : fbInfo.renderTargetTexhs[0];
                         const TextureInfo&     texInfo = gfx.GetTextureInfo(texh);
-                        pDesc->viewport                = Viewport { NarrowCast<UInt16>(texInfo.width), NarrowCast<UInt16>(texInfo.height) };
+                        pDesc->viewport                = Viewport { static_cast<UInt16>(texInfo.width), static_cast<UInt16>(texInfo.height) };
                     }
                 }
             }
@@ -203,15 +203,15 @@ void RenderGraph::CompileIfNeed_()
         // graphics pass
         if (!desc.programName.IsEmpty())
         {
-            const ProgramResource& res = m_programs.at(desc.programName);
-            desc.ph                    = res.handle;
+            const ProgramResource& program = m_programs.at(desc.programName);
+            desc.ph                        = program.handle;
         }
 
         // compute pass
         if (!desc.computeProgramName.IsEmpty())
         {
-            const ProgramResource& res = m_programs.at(desc.computeProgramName);
-            desc.computePh             = res.handle;
+            const ProgramResource& program = m_programs.at(desc.computeProgramName);
+            desc.computePh                 = program.handle;
         }
 
         // 쓰기 정보 갱신
@@ -220,11 +220,11 @@ void RenderGraph::CompileIfNeed_()
         {
             if (desc.frameBufferName.IsEmpty())
             {
-                desc.fbh = k_invalidHandle;
+                desc.fbh = kInvalidHandle;
 
                 if (desc.bUseViewportFromFrameBufferResoulution)
                 {
-                    desc.viewport = Viewport { NarrowCast<UInt16>(stats.backBufferWidth), NarrowCast<UInt16>(stats.backBufferHeight) };
+                    desc.viewport = Viewport { static_cast<UInt16>(res.w), static_cast<UInt16>(res.h) };
                 }
             }
             else   // 백버퍼를 사용
@@ -238,7 +238,7 @@ void RenderGraph::CompileIfNeed_()
                     const FrameBufferInfo& fbInfo  = gfx.GetFrameBufferInfo(desc.fbh);
                     const TextureHandle    texh    = fbInfo.bHasDepthStencil ? fbInfo.depthStencilTexh : fbInfo.renderTargetTexhs[0];
                     const TextureInfo&     texInfo = gfx.GetTextureInfo(texh);
-                    desc.viewport                  = Viewport { NarrowCast<UInt16>(texInfo.width), NarrowCast<UInt16>(texInfo.height) };
+                    desc.viewport                  = Viewport { static_cast<UInt16>(texInfo.width), static_cast<UInt16>(texInfo.height) };
                 }
 
                 // 룩업 갱신
@@ -688,7 +688,7 @@ void RenderGraph::CompileIfNeed_()
 
 void RenderGraph::Execute()
 {
-    Execute_(k_invalidHandle, Viewport { 0, 0 }, false);
+    Execute_(kInvalidHandle, Viewport { 0, 0 }, false);
 }
 
 void RenderGraph::Execute(
@@ -721,13 +721,13 @@ void RenderGraph::Execute_(
             bool bAnyUnbound = false;
             for (const Slot slot: pass.readUnbindSlots)
             {
-                gfx.SetTexture(k_invalidHandle, slot.stage, slot.slot);
+                gfx.SetTexture(kInvalidHandle, slot.stage, slot.slot);
                 bAnyUnbound = true;
             }
 
             for (const Slot slot: pass.readWriteUnbindSlots)
             {
-                gfx.SetTexture(k_invalidHandle, slot.stage, slot.slot, eResourceAccess::ReadWrite);
+                gfx.SetTexture(kInvalidHandle, slot.stage, slot.slot, eResourceAccess::ReadWrite);
                 bAnyUnbound = true;
             }
 
@@ -783,19 +783,19 @@ void RenderGraph::Execute_(
             bool bAnyUnbind = false;
             for (const Slot& slot: pass.readUnbindSlots)
             {
-                gfx.SetTexture(k_invalidHandle, slot.stage, slot.slot);
+                gfx.SetTexture(kInvalidHandle, slot.stage, slot.slot);
                 bAnyUnbind = true;
             }
 
             for (const Slot& slot: pass.readWriteUnbindSlots)
             {
-                gfx.SetTexture(k_invalidHandle, slot.stage, slot.slot, eResourceAccess::ReadWrite);
+                gfx.SetTexture(kInvalidHandle, slot.stage, slot.slot, eResourceAccess::ReadWrite);
                 bAnyUnbind = true;
             }
 
             if (pass.bUnbindFrameBuffer)
             {
-                gfx.SetFrameBuffer(k_invalidHandle);
+                gfx.SetFrameBuffer(kInvalidHandle);
                 bAnyUnbind = true;
             }
 
@@ -930,7 +930,7 @@ void RenderGraph::AddTexture2D(
         JAM_DESTROY_TEXTURE(res.handle);
     }
     res.name          = _name;
-    res.handle        = k_invalidHandle;
+    res.handle        = kInvalidHandle;
     res.bHasOwnership = true;
     res.bAutoResize   = true;
     res.resizeScale   = _resizeScale;
@@ -982,14 +982,14 @@ void RenderGraph::RemoveTexture(StringView _name)
 TextureHandle RenderGraph::GetTexture(const StringView _name) const
 {
     const TextureHandle h = FindTextureOrNull(_name);
-    JAM_ASSERT(h != k_invalidHandle, "Texture '{}' not found.", _name);
+    JAM_ASSERT(h != kInvalidHandle, "Texture '{}' not found.", _name);
     return h;
 }
 
 TextureHandle RenderGraph::FindTextureOrNull(const StringView _name) const
 {
     const auto it = m_textures.find(_name);
-    return (it != m_textures.end()) ? it->second.handle : k_invalidHandle;
+    return (it != m_textures.end()) ? it->second.handle : kInvalidHandle;
 }
 
 void RenderGraph::AddConstantBuffer(
@@ -1014,7 +1014,7 @@ void RenderGraph::AddConstantBuffer(
 {
     Graphics&                  gfx = GetGraphics();
     const ConstantBufferHandle cbh = gfx.CreateConstantBuffer(_byteWidth);
-    JAM_ASSERT(cbh != k_invalidHandle, "Failed to create constant buffer '{}'.", _name);
+    JAM_ASSERT(cbh != kInvalidHandle, "Failed to create constant buffer '{}'.", _name);
     AddConstantBuffer(_name, cbh, true);
 }
 
@@ -1035,7 +1035,7 @@ ConstantBufferHandle RenderGraph::GetConstantBuffer(
     const StringView _name) const
 {
     const ConstantBufferHandle h = FindConstantBufferOrNull(_name);
-    JAM_ASSERT(h != k_invalidHandle, "ConstantBuffer '{}' not found.", _name);
+    JAM_ASSERT(h != kInvalidHandle, "ConstantBuffer '{}' not found.", _name);
     return h;
 }
 
@@ -1043,7 +1043,7 @@ ConstantBufferHandle RenderGraph::FindConstantBufferOrNull(
     const StringView _name) const
 {
     const auto it = m_cbuffers.find(_name);
-    return (it != m_cbuffers.end()) ? it->second.handle : k_invalidHandle;
+    return (it != m_cbuffers.end()) ? it->second.handle : kInvalidHandle;
 }
 
 void RenderGraph::AddStorageBuffer(
@@ -1116,14 +1116,14 @@ void RenderGraph::RemoveStorageBuffer(StringView _name)
 StorageBufferHandle RenderGraph::GetStorageBuffer(const StringView _name) const
 {
     const StorageBufferHandle h = FindStorageBufferOrNull(_name);
-    JAM_ASSERT(h != k_invalidHandle, "StorageBuffer '{}' not found.", _name);
+    JAM_ASSERT(h != kInvalidHandle, "StorageBuffer '{}' not found.", _name);
     return h;
 }
 
 StorageBufferHandle RenderGraph::FindStorageBufferOrNull(const StringView _name) const
 {
     const auto it = m_storageBuffers.find(_name);
-    return (it != m_storageBuffers.end()) ? it->second.handle : k_invalidHandle;
+    return (it != m_storageBuffers.end()) ? it->second.handle : kInvalidHandle;
 }
 
 void RenderGraph::AddFrameBuffer(
@@ -1159,10 +1159,10 @@ void RenderGraph::AddFrameBuffer(
 
     res.name           = _name;
     res.bHasOwnership  = true;
-    res.numAttachments = NarrowCast<Int32>(_attachments.size());
+    res.numAttachments = static_cast<Int32>(_attachments.size());
     res.bAutoResize    = false;
 
-    Array<TextureHandle, k_maxNumAttachmentSlots> handles = {};
+    Array<TextureHandle, kMaxNumAttachmentSlots> handles = {};
     for (Int32 i = 0; i < res.numAttachments; ++i)
     {
         const StringView attachName = _attachments[i];
@@ -1205,7 +1205,7 @@ FrameBufferHandle RenderGraph::GetFrameBuffer(
     const StringView _name) const
 {
     const FrameBufferHandle h = FindFrameBufferOrNull(_name);
-    JAM_ASSERT(h != k_invalidHandle, "FrameBuffer '{}' not found.", _name);
+    JAM_ASSERT(h != kInvalidHandle, "FrameBuffer '{}' not found.", _name);
     return h;
 }
 
@@ -1213,7 +1213,7 @@ FrameBufferHandle RenderGraph::FindFrameBufferOrNull(
     const StringView _name) const
 {
     const auto it = m_frameBuffers.find(_name);
-    return (it != m_frameBuffers.end()) ? it->second.handle : k_invalidHandle;
+    return (it != m_frameBuffers.end()) ? it->second.handle : kInvalidHandle;
 }
 
 void RenderGraph::AddShader(
@@ -1253,7 +1253,7 @@ ShaderHandle RenderGraph::GetShader(
     const StringView _name) const
 {
     const ShaderHandle h = FindShaderOrNull(_name);
-    JAM_ASSERT(h != k_invalidHandle, "Shader '{}' not found.", _name);
+    JAM_ASSERT(h != kInvalidHandle, "Shader '{}' not found.", _name);
     return h;
 }
 
@@ -1261,7 +1261,7 @@ ShaderHandle RenderGraph::FindShaderOrNull(
     const StringView _name) const
 {
     const auto it = m_shaders.find(_name);
-    return (it != m_shaders.end()) ? it->second.handle : k_invalidHandle;
+    return (it != m_shaders.end()) ? it->second.handle : kInvalidHandle;
 }
 
 void RenderGraph::AddProgram(
@@ -1296,11 +1296,11 @@ void RenderGraph::AddProgram(
     const StringView _hsOrEmpty,
     const StringView _dsOrEmpty)
 {
-    const ShaderHandle  vsh = _vsOrEmpty.IsEmpty() ? k_invalidHandle : GetShader(_vsOrEmpty);
-    const ShaderHandle  psh = _psOrEmpty.IsEmpty() ? k_invalidHandle : GetShader(_psOrEmpty);
-    const ShaderHandle  gsh = _gsOrEmpty.IsEmpty() ? k_invalidHandle : GetShader(_gsOrEmpty);
-    const ShaderHandle  hsh = _hsOrEmpty.IsEmpty() ? k_invalidHandle : GetShader(_hsOrEmpty);
-    const ShaderHandle  dsh = _dsOrEmpty.IsEmpty() ? k_invalidHandle : GetShader(_dsOrEmpty);
+    const ShaderHandle  vsh = _vsOrEmpty.IsEmpty() ? kInvalidHandle : GetShader(_vsOrEmpty);
+    const ShaderHandle  psh = _psOrEmpty.IsEmpty() ? kInvalidHandle : GetShader(_psOrEmpty);
+    const ShaderHandle  gsh = _gsOrEmpty.IsEmpty() ? kInvalidHandle : GetShader(_gsOrEmpty);
+    const ShaderHandle  hsh = _hsOrEmpty.IsEmpty() ? kInvalidHandle : GetShader(_hsOrEmpty);
+    const ShaderHandle  dsh = _dsOrEmpty.IsEmpty() ? kInvalidHandle : GetShader(_dsOrEmpty);
     const ProgramHandle ph  = GetGraphics().CreateProgram(vsh, psh, gsh, hsh, dsh);
     AddProgram(_name, ph, true);
 }
@@ -1331,7 +1331,7 @@ ProgramHandle RenderGraph::GetProgram(
     const StringView _name) const
 {
     const ProgramHandle h = FindProgramOrNull(_name);
-    JAM_ASSERT(h != k_invalidHandle, "Program '{}' not found.", _name);
+    JAM_ASSERT(h != kInvalidHandle, "Program '{}' not found.", _name);
     return h;
 }
 
@@ -1339,7 +1339,7 @@ ProgramHandle RenderGraph::FindProgramOrNull(
     const StringView _name) const
 {
     const auto it = m_programs.find(_name);
-    return (it != m_programs.end()) ? it->second.handle : k_invalidHandle;
+    return (it != m_programs.end()) ? it->second.handle : kInvalidHandle;
 }
 
 void RenderGraph::Reset(
@@ -1438,14 +1438,14 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetProgram(const StringView 
     JAM_ASSERT(!_name.IsEmpty(), "Program name cannot be empty.");
 
     m_desc.programName = _name;
-    m_desc.ph          = k_invalidHandle;
+    m_desc.ph          = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseProgram()
 {
     m_desc.programName.Clear();
-    m_desc.ph = k_invalidHandle;
+    m_desc.ph = kInvalidHandle;
     return *this;
 }
 
@@ -1455,14 +1455,14 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetFrameBuffer(
     JAM_ASSERT(!_name.IsEmpty(), "FrameBuffer name cannot be empty.");
 
     m_desc.frameBufferName = _name;
-    m_desc.fbh             = k_invalidHandle;
+    m_desc.fbh             = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseFrameBuffer()
 {
     m_desc.frameBufferName.Clear();
-    m_desc.fbh = k_invalidHandle;
+    m_desc.fbh = kInvalidHandle;
     return *this;
 }
 
@@ -1529,7 +1529,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendFlags(
     const Flags<eBlendFlags> _flags,
     const Int32              _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumRenderTargetViewSlots, "Blend slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumRenderTargetViewSlots, "Blend slot {} out of range.", _slot);
 
     for (Int32 i = 0; i < m_desc.numBlendFlagsBindCmds; ++i)
     {
@@ -1540,7 +1540,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendFlags(
         }
     }
 
-    JAM_ASSERT(m_desc.numBlendFlagsBindCmds < k_maxNumRenderTargetViewSlots, "Too many blend states.");
+    JAM_ASSERT(m_desc.numBlendFlagsBindCmds < kMaxNumRenderTargetViewSlots, "Too many blend states.");
     m_desc.blendFlagsBindCmds[m_desc.numBlendFlagsBindCmds++] = { _flags, _slot };
     return *this;
 }
@@ -1556,7 +1556,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetRenderTargetClearCommand(
     const RGBA  _color,
     const Int32 _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumRenderTargetViewSlots, "ClearColor slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumRenderTargetViewSlots, "ClearColor slot {} out of range.", _slot);
 
     for (Int32 i = 0; i < m_desc.numRenderTargetClearCmds; ++i)
     {
@@ -1625,13 +1625,13 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetTexture(
     const Slot slot = { _stage, _slot };
     if (_access == eResourceAccess::Read)
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Texture, _stage, _slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
+        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, _stage, _slot };
     }
     else
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Texture, _stage, _slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
+        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, _stage, _slot };
     }
     return *this;
 }
@@ -1647,13 +1647,13 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBuffer(
     const Slot slot = { _stage, _slot };
     if (_access == eResourceAccess::Read)
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Buffer, _stage, _slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
+        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, _stage, _slot };
     }
     else
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Buffer, _stage, _slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
+        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, _stage, _slot };
     }
     return *this;
 }
@@ -1666,12 +1666,12 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseResource(
     const Slot slot = { _stage, _slot };
     if (_access == eResourceAccess::Read)
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Resource slot {} out of range.", _slot);
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Resource slot {} out of range.", _slot);
         m_desc.readBindCmds.erase(slot);
     }
     else
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Resource slot {} out of range.", _slot);
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Resource slot {} out of range.", _slot);
         m_desc.readWriteBindCmds.erase(slot);
     }
     return *this;
@@ -1682,11 +1682,11 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetConstantBuffer(
     const eShader    _stage,
     const Int32      _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
     JAM_ASSERT(m_graph.m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
 
     const Slot slot              = { _stage, _slot };
-    m_desc.cbufferBindCmds[slot] = { _name, k_invalidHandle, slot };
+    m_desc.cbufferBindCmds[slot] = { _name, kInvalidHandle, slot };
     return *this;
 }
 
@@ -1694,7 +1694,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseConstantBuffer(
     const eShader _stage,
     const Int32   _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
     m_desc.cbufferBindCmds.erase({ _stage, _slot });
     return *this;
 }
@@ -1704,7 +1704,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSampler(
     const eShader              _stage,
     const Int32                _slot)
 {
-    return SetSampler(_state, RGBA::k_black, _stage, _slot);
+    return SetSampler(_state, RGBA::kBlack, _stage, _slot);
 }
 
 RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSampler(
@@ -1713,7 +1713,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSampler(
     const eShader              _stage,
     const Int32                _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
     const Slot slot              = { _stage, _slot };
     m_desc.samplerBindCmds[slot] = { _state, _borderColor, _stage, _slot };
     return *this;
@@ -1723,7 +1723,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseSamplerFlags(
     const eShader _stage,
     const Int32   _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
     m_desc.samplerBindCmds.erase({ _stage, _slot });
     return *this;
 }
@@ -1767,14 +1767,14 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetComputeProg
     JAM_ASSERT(!_name.IsEmpty(), "Compute program name cannot be empty.");
 
     m_desc.computeProgramName = _name;
-    m_desc.computePh          = k_invalidHandle;
+    m_desc.computePh          = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseComputeProgram()
 {
     m_desc.computeProgramName.Clear();
-    m_desc.computePh = k_invalidHandle;
+    m_desc.computePh = kInvalidHandle;
     return *this;
 }
 
@@ -1786,13 +1786,13 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetTexture(
     const Slot slot = { eShader::ComputeShader, _slot };
     if (_access == eResourceAccess::Read)
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Texture, slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
+        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, slot };
     }
     else
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Texture, slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
+        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, slot };
     }
     return *this;
 }
@@ -1805,13 +1805,13 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetBuffer(
     const Slot slot = { eShader::ComputeShader, _slot };
     if (_access == eResourceAccess::Read)
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Buffer, slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
+        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, slot };
     }
     else
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, k_invalidHandleValue, eShaderResource::Buffer, slot };
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
+        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, slot };
     }
     return *this;
 }
@@ -1823,12 +1823,12 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseResourc
     const Slot slot = { eShader::ComputeShader, _slot };
     if (_access == eResourceAccess::Read)
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
         m_desc.readBindCmds.erase(slot);
     }
     else
     {
-        JAM_ASSERT(_slot >= 0 && _slot < k_maxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
+        JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
         m_desc.readWriteBindCmds.erase(slot);
     }
     return *this;
@@ -1838,17 +1838,17 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetConstantBuf
     const StringView _name,
     const Int32      _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
     JAM_ASSERT(m_graph.m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
     const Slot slot              = { eShader::ComputeShader, _slot };
-    m_desc.cbufferBindCmds[slot] = { _name, k_invalidHandle, eShader::ComputeShader, _slot };
+    m_desc.cbufferBindCmds[slot] = { _name, kInvalidHandle, eShader::ComputeShader, _slot };
     return *this;
 }
 
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseConstantBuffer(
     const Int32 _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
     m_desc.cbufferBindCmds.erase({ eShader::ComputeShader, _slot });
     return *this;
 }
@@ -1856,7 +1856,7 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseConstan
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseSamplerState(
     const Int32 _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
     m_desc.samplerBindCmds.erase({ eShader::ComputeShader, _slot });
     return *this;
 }
@@ -1865,7 +1865,7 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetSampler(
     const Flags<eSamplerFlags> _state,
     const Int32                _slot)
 {
-    return SetSampler(_state, RGBA::k_black, _slot);
+    return SetSampler(_state, RGBA::kBlack, _slot);
 }
 
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetSampler(
@@ -1873,7 +1873,7 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetSampler(
     const RGBA                 _borderColor,
     const Int32                _slot)
 {
-    JAM_ASSERT(_slot >= 0 && _slot < k_maxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
+    JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
     const Slot slot              = { eShader::ComputeShader, _slot };
     m_desc.samplerBindCmds[slot] = { _state, _borderColor, eShader::ComputeShader, _slot };
     return *this;

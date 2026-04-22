@@ -44,5 +44,5 @@ private:
     ExportProjectDialogSetting m_setting  = {};
     FileDialog                 m_exportDirFd;
 
-    static constexpr StringView k_exportProjectDialogSettingFileName = "ExportProjectDialogSetting.json";
+    static constexpr StringView kExportProjectDialogSettingFileName = "ExportProjectDialogSetting.json";
 };

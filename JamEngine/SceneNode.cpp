@@ -54,7 +54,7 @@ void SceneNode::SetParent(
     Entity oldFirstChild    = parentNode.m_firstChild;
     parentNode.m_firstChild = m_owner;
     m_nextSibling           = oldFirstChild;
-    m_prevSibling           = Entity::k_null;
+    m_prevSibling           = Entity::kNull;
     if (oldFirstChild)
     {
         // 기존 자식의 이전 형제를 나로 설정함
@@ -230,9 +230,9 @@ void SceneNode::ReleaseParent_()
     }
 
     // 링크 제거
-    m_parent      = Entity::k_null;
-    m_nextSibling = Entity::k_null;
-    m_prevSibling = Entity::k_null;
+    m_parent      = Entity::kNull;
+    m_nextSibling = Entity::kNull;
+    m_prevSibling = Entity::kNull;
 }
 
 void SceneNode::UpdateSceneGraph(Vector<Entity>& _updatedEntities)
@@ -255,8 +255,8 @@ void SceneNode::UpdateSceneGraph_Recursive_(Vector<Entity>& _updatedNodes)
             // update local based on world
             const SceneNode& parentNode  = m_parent.GetSceneNode();
             const Transform& parentWt    = parentNode.GetWorldTransform();
-            const Transform  parentWtInv = parentWt.Inverted();
-            m_local                      = m_world.Multed(parentWtInv);
+            const Transform  parentWtInv = parentWt.Inverse();
+            m_local                      = m_world.Mult(parentWtInv);
         }
         else
         {
@@ -273,7 +273,7 @@ void SceneNode::UpdateSceneGraph_Recursive_(Vector<Entity>& _updatedNodes)
             // update world based on local
             const SceneNode& parentNode = m_parent.GetSceneNode();
             const Transform& parentWt   = parentNode.GetWorldTransform();
-            m_world                     = m_local.Multed(parentWt);
+            m_world                     = m_local.Mult(parentWt);
         }
         else
         {

@@ -25,8 +25,8 @@ class ShadowMappingScene : public Scene
         bool bEnabled    = false;
         bool bCastShadow = false;
 
-        Vec3  pos          = Numbers<Vec3>::k_zero;
-        Vec3  lookAt       = Numbers<Vec3>::k_zero;
+        Vec3  pos          = Vec3::kZero;
+        Vec3  lookAt       = Vec3::kZero;
         float fallOffStart = 0.f;
         float fallOffEnd   = 0.f;
         float innerConeRad = ToRad(30.f);
@@ -72,8 +72,8 @@ private:
     RenderGraph  m_graph  = {};
     FlyingCamera m_camera = {};
 
-    ConstantBufferHandle m_entityCbh = k_invalidHandle;
-    ConstantBufferHandle m_cmrCbh    = k_invalidHandle;
+    ConstantBufferHandle m_entityCbh = kInvalidHandle;
+    ConstantBufferHandle m_cmrCbh    = kInvalidHandle;
 
     bool m_bUseShadow = false;
 };

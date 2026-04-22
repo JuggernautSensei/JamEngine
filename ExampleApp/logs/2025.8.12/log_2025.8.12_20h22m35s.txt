@@ -1,0 +1,46 @@
+[2025.08.12 20:22:35] [trace] CORE: log system initialized
+[2025.08.12 20:22:35] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.12 20:22:35] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.12 20:22:35] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.12 20:22:35] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.12 20:22:35] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.12 20:22:35] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 129, y: 189
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 134, y: 189
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 141, y: 189
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 154, y: 189
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 166, y: 189
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 182, y: 189
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 202, y: 190
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 223, y: 192
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 248, y: 196
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 275, y: 201
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 307, y: 205
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 345, y: 213
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 392, y: 221
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 444, y: 230
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 501, y: 239
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 563, y: 251
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 624, y: 260
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 686, y: 270
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 747, y: 279
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 804, y: 288
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 851, y: 296
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 894, y: 304
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 932, y: 312
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 960, y: 318
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 985, y: 324
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1007, y: 330
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1026, y: 336
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1044, y: 342
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1059, y: 350
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1072, y: 357
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1083, y: 364
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1094, y: 372
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1102, y: 379
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1107, y: 387
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1112, y: 393
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1117, y: 402
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1122, y: 408
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent: x: 1125, y: 414
+[2025.08.12 20:22:47] [trace] CORE: Dispatching event: WindowMoveEvent

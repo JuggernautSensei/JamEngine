@@ -1,0 +1,14 @@
+
+====================================
+error occured !
+------------------------------------
+fine name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Renderer.cpp
+function name: void __cdecl jam::Renderer::CreateSwapChain_(struct HWND__ *,unsigned int,unsigned int)
+line: 627
+columns: 9
+------------------------------------
+Failed to create swap chain. HRESULT: 응용 프로그램이 잘못된 호출을 했습니다. 호출의 매개 변수 또는 일부 개체의 상태가 올바르지 않습니다.
+디버그 메시지를 통해 세부 정보를 보려면 D3D 디버그 계층을 사용하도록 설정하세요.
+
+====================================
+

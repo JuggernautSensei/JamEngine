@@ -47,10 +47,10 @@ enum class eComponentPropertyFlags : UInt32
 #define JAM_COMPONENT_METADATA_PROPERTY_FLAGS(...) \
     static constexpr Flags<eComponentPropertyFlags> COMPONENT_METADATA_PROPERTY_FLAGS { __VA_ARGS__ }
 
-template<typename TCmp, eComponentPropertyFlags k_flags>
+template<typename TCmp, eComponentPropertyFlags kFlags>
 concept HasComponentPropertyFlag =
     requires { { TCmp::COMPONENT_METADATA_PROPERTY_FLAGS } -> std::convertible_to<Flags<eComponentPropertyFlags>>; }
-    && TCmp::COMPONENT_METADATA_PROPERTY_FLAGS.IsEnabled(k_flags);
+    && TCmp::COMPONENT_METADATA_PROPERTY_FLAGS.IsEnabled(kFlags);
 
 // 검증
 

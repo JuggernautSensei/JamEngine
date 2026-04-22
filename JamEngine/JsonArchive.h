@@ -27,7 +27,7 @@ class JsonWriter final : public ArchiveWriter
         yyjson_mut_val* node = nullptr;
         eMode           mode = eMode::None;
     };
-    static constexpr Int32 k_maxDepth = 64;
+    static constexpr Int32 kMaxDepth = 64;
 
 public:
     JsonWriter();
@@ -73,7 +73,7 @@ private:
     yyjson_mut_doc*          m_pDoc       = nullptr;
     bool                     m_ownsDoc    = true;
     StringView               m_pendingKey = {};
-    Array<Frame, k_maxDepth> m_stack      = {};
+    Array<Frame, kMaxDepth> m_stack      = {};
     Int32                    m_stackTop   = -1;
 };
 
@@ -140,14 +140,14 @@ protected:
     Error ReadPrimitive_(std::string_view& _value) override;
 
 private:
-    static constexpr Int32 k_maxDepth = 64;
+    static constexpr Int32 kMaxDepth = 64;
 
     [[nodiscard]] yyjson_val* Top_() const;
     void                      Push_(yyjson_val* _val);
     void                      Pop_();
 
     yyjson_doc*                    m_doc       = nullptr;
-    Array<yyjson_val*, k_maxDepth> m_stack     = {};
+    Array<yyjson_val*, kMaxDepth> m_stack     = {};
     Int32                          m_stackTop  = -1;
     Error                          m_lastError = Error::None;
 };

@@ -3,8 +3,8 @@
 namespace Jam
 {
 
-template<IsCharT TChar, SizeT k_cap>
-class BasicStackString : public StringUtilities<BasicStackString<TChar, k_cap>, TChar>
+template<IsCharT TChar, SizeT kCap>
+class BasicStackString : public StringUtilities<BasicStackString<TChar, kCap>, TChar>
 {
 public:
     using BaseT       = StringUtilities<BasicStackString, TChar>;
@@ -25,7 +25,7 @@ public:
     BasicStackString()
         : m_len(0)
     {
-        m_str[0] = CharTraits::k_nullChar;
+        m_str[0] = CharTraits::kNullChar;
     }
 
     ~BasicStackString() = default;
@@ -95,15 +95,15 @@ public:
     void Set(
         const StringViewT _str)
     {
-        JAM_ASSERT(_str.GetLength() <= k_cap, "String length exceeds stack string capacity.");
-        m_len = CharFuncs::StrCpy(m_str, k_cap + 1, _str.GetPtr(), _str.GetLength());
+        JAM_ASSERT(_str.GetLength() <= kCap, "String length exceeds stack string capacity.");
+        m_len = CharFuncs::StrCpy(m_str, kCap + 1, _str.GetPtr(), _str.GetLength());
     }
 
     void Append(
         const StringViewT _str)
     {
-        JAM_ASSERT(GetLength() + _str.GetLength() <= k_cap, "String length exceeds stack string capacity.");
-        m_len += CharFuncs::StrCpy(m_str + m_len, k_cap + 1 - m_len, _str.GetPtr(), _str.GetLength());
+        JAM_ASSERT(GetLength() + _str.GetLength() <= kCap, "String length exceeds stack string capacity.");
+        m_len += CharFuncs::StrCpy(m_str + m_len, kCap + 1 - m_len, _str.GetPtr(), _str.GetLength());
     }
 
     void Insert(
@@ -111,9 +111,9 @@ public:
         const StringViewT _str)
     {
         JAM_ASSERT(_pos <= GetLength(), "OnInsert position out of bounds.");
-        JAM_ASSERT(GetLength() + _str.GetLength() <= k_cap, "String length exceeds stack string capacity.");
+        JAM_ASSERT(GetLength() + _str.GetLength() <= kCap, "String length exceeds stack string capacity.");
         ::memmove(m_str + _pos + _str.GetLength(), m_str + _pos, (GetLength() - _pos) * sizeof(TChar));
-        m_len += CharFuncs::StrCpy(m_str + _pos, k_cap + 1 - _pos, _str.GetPtr(), _str.GetLength());
+        m_len += CharFuncs::StrCpy(m_str + _pos, kCap + 1 - _pos, _str.GetPtr(), _str.GetLength());
     }
 
     void Erase(
@@ -124,27 +124,27 @@ public:
         JAM_ASSERT(_pos + _count <= GetLength(), "Erase count exceeds string length from position.");
         ::memmove(m_str + _pos, m_str + _pos + _count, (GetLength() - (_pos + _count)) * sizeof(TChar));
         m_len -= _count;
-        m_str[m_len] = CharTraits::k_nullChar;   // null terminate after erase
+        m_str[m_len] = CharTraits::kNullChar;   // null terminate after erase
     }
 
     void Clear()
     {
         m_len    = 0;
-        m_str[0] = CharTraits::k_nullChar;
+        m_str[0] = CharTraits::kNullChar;
     }
 
     void Resize(
         const SizeT _newLen,
-        const CharT _c = CharTraits::k_nullChar)
+        const CharT _c = CharTraits::kNullChar)
     {
-        JAM_ASSERT(_newLen <= k_cap, "Resize length exceeds stack string capacity.");
+        JAM_ASSERT(_newLen <= kCap, "Resize length exceeds stack string capacity.");
         if (_newLen > GetLength())
         {
             std::fill(GetPtr() + GetLength(), GetPtr() + _newLen, _c);
         }
 
         m_len        = _newLen;
-        m_str[m_len] = CharTraits::k_nullChar;   // null terminate after resize
+        m_str[m_len] = CharTraits::kNullChar;   // null terminate after resize
     }
 
     [[nodiscard]] SizeT GetLength() const
@@ -154,7 +154,7 @@ public:
 
     [[nodiscard]] SizeT GetCapacity() const
     {
-        return k_cap;
+        return kCap;
     }
 
     [[nodiscard]] const CharT* GetPtr() const
@@ -173,23 +173,23 @@ public:
     }
 
 private:
-    CharT m_str[k_cap + 1];
+    CharT m_str[kCap + 1];
     SizeT m_len;
 };
 
-template<SizeT k_cap>
-using StackString = BasicStackString<char, k_cap>;
+template<SizeT kCap>
+using StackString = BasicStackString<char, kCap>;
 
-template<SizeT k_cap>
-using StackWString = BasicStackString<wchar_t, k_cap>;
+template<SizeT kCap>
+using StackWString = BasicStackString<wchar_t, kCap>;
 
-using PathStackString  = StackString<k_maxPathLength>;
-using PathStackWString = StackWString<k_maxPathLength>;
+using PathStackString  = StackString<kMaxPathLength>;
+using PathStackWString = StackWString<kMaxPathLength>;
 
 }   // namespace Jam
 
-template<Jam::IsCharT TChar, Jam::SizeT k_cap>
-struct fmt::formatter<Jam::BasicStackString<TChar, k_cap>>
+template<Jam::IsCharT TChar, Jam::SizeT kCap>
+struct fmt::formatter<Jam::BasicStackString<TChar, kCap>>
 {
     constexpr auto parse(const format_parse_context& ctx) const
     {
@@ -197,15 +197,15 @@ struct fmt::formatter<Jam::BasicStackString<TChar, k_cap>>
     }
 
     template<typename FormatContext>
-    auto format(const Jam::BasicStackString<TChar, k_cap>& str, FormatContext& ctx) const
+    auto format(const Jam::BasicStackString<TChar, kCap>& str, FormatContext& ctx) const
     {
         if constexpr (std::is_same_v<TChar, char>)
         {
-            return fmt::format_to(ctx.out(), "{}", fmt::string_view { str.GetPtr(), Jam::NarrowCast<Jam::USizeT>(str.GetLength()) });
+            return fmt::format_to(ctx.out(), "{}", fmt::string_view { str.GetPtr(), static_cast<Jam::USizeT>(str.GetLength()) });
         }
         else
         {
-            return fmt::format_to(ctx.out(), "{}", fmt::wstring_view { str.GetPtr(), Jam::NarrowCast<Jam::USizeT>(str.GetLength()) });
+            return fmt::format_to(ctx.out(), "{}", fmt::wstring_view { str.GetPtr(), static_cast<Jam::USizeT>(str.GetLength()) });
         }
     }
 };

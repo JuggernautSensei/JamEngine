@@ -17,7 +17,7 @@ namespace Jam
     const UInt32 tmp8   = tmp7 + (tmp7 >> 12);
     const UInt32 tmp9   = tmp8 + (tmp8 >> 24);
     const UInt32 result = tmp9 & 0x3f;
-    return NarrowCast<Int32>(result);
+    return static_cast<Int32>(result);
 }
 
 [[nodiscard]] constexpr Int32 UInt32CountLZero(

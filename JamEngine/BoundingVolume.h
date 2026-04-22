@@ -1,3 +1,4 @@
+// ReSharper disable CppClangTidyClangDiagnosticNestedAnonTypes
 #pragma once
 #include "EnumArray.h"
 
@@ -24,11 +25,11 @@ enum class eRegion
 [[nodiscard]] bool    IsTop(eRegion _region);
 [[nodiscard]] bool    IsFar(eRegion _region);
 
-using CornerPoints = EnumArray<eRegion, Vec3>;
+using Corners = EnumArray<eRegion, Vec3>;
 
 enum class eFrustumFace
 {
-    Near,   // frustum culling 시 near far에서 early out 위해 near far을 앞에 배치
+    Near,
     Far,
     Left,
     Right,
@@ -36,128 +37,119 @@ enum class eFrustumFace
     Top,
 };
 
-struct RayCastResult
+enum class eIntersect
 {
-    bool  bHit     = false;
-    float distance = 0.f;
+    Outside,
+    Overlab,
+    Inside
 };
+
+struct Hit;
 
 struct Aabb
 {
     Aabb() = default;
-    explicit Aabb(Vec3 _min, Vec3 _max);
-    [[nodiscard]] static Aabb FromCenterExtents(Vec3 _center, Vec3 _ext);
+    Aabb(Vec3 _center, Vec3 _extents);
+    [[nodiscard]] static Aabb FromMinMax(Vec3 _min, Vec3 _max);
 
-    void               Transform(const Mtx4& _mtx);
-    [[nodiscard]] Aabb Transformed(const Mtx4& _mtx) const;
+    [[nodiscard]] Aabb Transform(const Mtx4& _mtx) const;
 
     void Merge(const Aabb& _aabb);
     void Merge(Vec3 _p);
 
-    [[nodiscard]] Vec3         GetCenter() const;
-    [[nodiscard]] Vec3         GetExtents() const;
-    [[nodiscard]] float        GetWidth() const;
-    [[nodiscard]] float        GetHeight() const;
-    [[nodiscard]] float        GetDepth() const;
-    [[nodiscard]] CornerPoints GetCornerPoints() const;
+    [[nodiscard]] Vec3    GetMin() const;
+    [[nodiscard]] Vec3    GetMax() const;
+    [[nodiscard]] float   GetWidth() const;
+    [[nodiscard]] float   GetHeight() const;
+    [[nodiscard]] float   GetDepth() const;
+    [[nodiscard]] Corners CalcCorners() const;
 
-    [[nodiscard]] bool          Contains(Vec3 _point) const;
-    [[nodiscard]] bool          Contains(const Aabb& _other) const;
-    [[nodiscard]] bool          Intersects(const Aabb& _other) const;
-    [[nodiscard]] RayCastResult Intersects(const Ray& _ray) const;
+    [[nodiscard]] bool       Contains(Vec3 _point) const;
+    [[nodiscard]] bool       Contains(const Aabb& _other) const;
+    [[nodiscard]] bool       Overlap(const Aabb& _other) const;
+    [[nodiscard]] eIntersect Intersects(const Aabb& _other) const;
+    [[nodiscard]] bool       RayCast(const Ray& _ray, Hit* _pHitOrNull = nullptr) const;
 
-    Vec3 min = Numbers<Vec3>::k_max;
-    Vec3 max = Numbers<Vec3>::k_min;
+    Vec3 center  = Vec3::kZero;
+    Vec3 extents = Vec3::kOne;
 };
 
-struct Obb
+struct alignas(16) Obb
 {
     Obb() = default;
-    explicit Obb(const Mtx4& _mtx);
-    [[nodiscard]] static Obb FromAabb(const Aabb& _aabb);
+    explicit Obb(const Aabb& _aabb);
 
-    void              Transform(const Mtx4& _mtx);
-    [[nodiscard]] Obb Transformed(const Mtx4& _mtx) const;
+    [[nodiscard]] Obb Transform(const Mtx4& _mtx) const;
 
-    [[nodiscard]] Aabb         ToAabb() const;
-    [[nodiscard]] Vec3         GetCenter() const;
-    [[nodiscard]] Vec3         GetExtents() const;
-    [[nodiscard]] float        GetWidth() const;
-    [[nodiscard]] float        GetHeight() const;
-    [[nodiscard]] float        GetDepth() const;
-    [[nodiscard]] CornerPoints GetCornerPoints() const;
+    [[nodiscard]] float   GetWidth() const;
+    [[nodiscard]] float   GetHeight() const;
+    [[nodiscard]] float   GetDepth() const;
+    [[nodiscard]] Corners GetCorners() const;
 
-    [[nodiscard]] bool          Contains(Vec3 _point) const;
-    [[nodiscard]] RayCastResult Intersects(const Ray& _ray) const;
+    [[nodiscard]] bool Contains(Vec3 _point) const;
+    [[nodiscard]] bool Contains(const Obb& _other) const;
+    [[nodiscard]] bool Overlab(const Obb& _other) const;
+    [[nodiscard]] bool RayCast(const Ray& _ray, Hit* _pHitOrNull = nullptr) const;
 
-    Mtx4 mtx = Numbers<Mtx4>::k_identity;
+    Vec3 center   = Vec3::kZero;
+    Vec3 extents  = Vec3::kOne;
+    Quat rotation = Quat::kIdentity;
 };
 
-enum class ePlaneIntersect
-{
-    Outside,
-    Intersects,
-    Inside
-};
-
-// ax + by + cz + d = 0
-// d = -np
-//
-// normalized plane
-// ax + by + cz + d = 0
-// n = (a, b, c) is a unit vector
-// d = -np
-// -d의 의미 = 원점 ~ 평면까지의 최단거리.
-// d < 0 : 원점이 평면의 법선 방향(외부)에 있음.
-// d > 0 : 원점이 평면의 법선 반대 방향(내부)에 있음.
-// dot(n, p) < d : 점 p가 평면의 법선 방향(외부)에 있음.
-// dot(n, p) > d : 점 p가 평면의 법선 반대 방향(내부)에 있음.
 struct Plane
 {
-    Plane() = default;
-    explicit Plane(float _a, float _b, float _c, float _d, bool _bNormalize = true);
+    Plane() {}
+    Plane(float _a, float _b, float _c, float _d, bool _bNormalize = true);
     explicit Plane(Vec4 _vec, bool _bNormalize = true);
-    explicit Plane(Vec3 _normal, float _d, bool _bNormalize = true);
-    explicit Plane(Vec3 _p1, Vec3 _p2, Vec3 _p3, bool _bNormalize = true);
-    explicit Plane(Vec3 _point, Vec3 _normal, bool _bNormalize = true);
+    Plane(Vec3 _normal, float _d, bool _bNormalize = true);
+    Plane(Vec3 _p1, Vec3 _p2, Vec3 _p3, bool _bNormalize = true);
+    Plane(Vec3 _point, Vec3 _normal, bool _bNormalize = true);
 
-    [[nodiscard]] static Vec3 IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3);
-    [[nodiscard]] Vec3        GetNormal() const;
-    [[nodiscard]] float       GetD() const;
+    [[nodiscard]] Plane Transform(const Mtx4& _invTransMtx, bool _bNormalize = true) const;
 
     void                Normalize();
     [[nodiscard]] Plane Normalized() const;
-    [[nodiscard]] bool  IsNormalized() const;
 
-    void                Transform(const Mtx4& _mtx, bool _normalize = true);
-    [[nodiscard]] Plane Transformed(const Mtx4& _mtx, bool _normalize = true) const;
+    [[nodiscard]] static Vec3 IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3);
+    [[nodiscard]] float       DistanceToPoint(Vec3 _point) const;
 
-    [[nodiscard]] float               DistanceToPoint(Vec3 _point) const;
-    [[nodiscard]] RayCastResult       Intersects(const Ray& _ray) const;
-    [[nodiscard]] ePlaneIntersect Intersects(const Aabb& _box) const;
+    [[nodiscard]] bool       Overlap(const Aabb& _box) const;
+    [[nodiscard]] eIntersect Intersects(const Aabb& _box) const;
+    [[nodiscard]] bool       RayCast(const Ray& _ray, bool _bDoubleSided, Hit* _pHitOrNull = nullptr) const;
 
-    Vec3  normal = Numbers<Vec3>::k_zero;
-    float d      = 0.f;
+    union
+    {
+        struct
+        {
+            float x, y, z, w;
+        };
+        struct
+        {
+            Vec3  normal;
+            float d;
+        };
+        Vec4  vec;
+        float e[4] = {};
+    };
 };
 
 struct Frustum
 {
     Frustum() = default;
-    explicit Frustum(Plane _left, Plane _right, Plane _bottom, Plane _top, Plane _near, Plane _far, bool _bNormalized = true);
+    Frustum(Plane _left, Plane _right, Plane _bottom, Plane _top, Plane _near, Plane _far, bool _bNormalized = true);
     explicit Frustum(const Mtx4& _mtx, bool _bNormalized = true);
 
-    void                  Transform(const Mtx4& _mtx, bool _bNormalize = true);
-    [[nodiscard]] Frustum Transformed(const Mtx4& _mtx, bool _bNormalize = true) const;
+    [[nodiscard]] Frustum Transform(const Mtx4& _invTransMtx, bool _bNormalize = true) const;
 
     void                  Normalize();
     [[nodiscard]] Frustum Normalized() const;
-    [[nodiscard]] bool    IsNormalized() const;
 
-    [[nodiscard]] Vec3         GetCenter() const;
-    [[nodiscard]] CornerPoints GetCornerPoints() const;
+    [[nodiscard]] Vec3    CalcCenter() const;
+    [[nodiscard]] Corners CalcCorners() const;
 
-    [[nodiscard]] ePlaneIntersect Intersects(const Aabb& _box) const;
-    [[nodiscard]] RayCastResult       Intersects(const Ray& _ray) const;
+    [[nodiscard]] bool       Overlap(const Aabb& _box) const;
+    [[nodiscard]] eIntersect Intersects(const Aabb& _box) const;
+    [[nodiscard]] bool       RayCast(const Ray& _ray, bool _bDoubleSided, Hit* _pHitOrNull = nullptr) const;
 
     EnumArray<eFrustumFace, Plane> planes = {};
 };
@@ -167,12 +159,18 @@ struct Ray
     Ray() = default;
     Ray(Vec3 _origin, Vec3 _direction, bool _bNormalizeDir = true);
 
-    void               NormalizeDirection();
-    [[nodiscard]] Ray  NormalizedDirection() const;
-    [[nodiscard]] bool IsDirectionNormalized() const;
+    void              Normalize();
+    [[nodiscard]] Ray Normalized() const;
 
-    Vec3 origin    = Numbers<Vec3>::k_zero;
-    Vec3 direction = Numbers<Vec3>::k_zero;
+    Vec3 pos = Vec3::kZero;
+    Vec3 dir = Vec3::kZero;
+};
+
+struct Hit
+{
+    Vec3  normal = Vec3::kZero;
+    Vec3  point  = Vec3::kZero;
+    float dist   = 0;
 };
 
 }   // namespace Jam

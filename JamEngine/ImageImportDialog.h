@@ -41,7 +41,7 @@ private:
 
     float                  m_previewLoadCounterSec  = 0.f;
     bool                   m_bPreviewLoadRequested  = false;
-    constexpr static float k_previewLoadDebounceSec = 1.f;
+    constexpr static float kPreviewLoadDebounceSec = 1.f;
 };
 
 }   // namespace Jam

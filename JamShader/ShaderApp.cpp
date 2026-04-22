@@ -244,7 +244,7 @@ void ShaderApp::Update(
 
 void ShaderApp::ImGuiRender()
 {
-    GetGraphics().ClearRenderTarget(k_invalidHandle, RGBA::k_black);
+    GetGraphics().ClearRenderTarget(kInvalidHandle, RGBA::kBlack);
 
     GlobalShortCut_();
     Panel_Dockspace_();
@@ -458,13 +458,13 @@ void ShaderApp::UpdateAppTitle_() const
     {
         GetWindowsPlatform().SetTitle(
             String::Formatted("{} - {}{}",
-                              k_appName,
+                              kAppName,
                               m_project->GetName(),
                               m_project->IsDirty() ? "*" : ""));
     }
     else
     {
-        GetWindowsPlatform().SetTitle(k_appName);
+        GetWindowsPlatform().SetTitle(kAppName);
     }
 }
 
@@ -476,7 +476,7 @@ void ShaderApp::NewProject_()
 void ShaderApp::OpenProject_()
 {
     constexpr FileDialogFilter filters[] = {
-        { "JamShader Project File", Project::k_filter },
+        { "JamShader Project File", Project::kFilter },
     };
 
     OpenFileDialogInfo info = {};
@@ -504,7 +504,7 @@ void ShaderApp::SaveProject_()
 void ShaderApp::SaveAsProject_()
 {
     constexpr FileDialogFilter filters[] = {
-        { "JamShader Project File", Project::k_filter },
+        { "JamShader Project File", Project::kFilter },
     };
 
     SaveFileDialogInfo info = {};
@@ -529,7 +529,7 @@ void ShaderApp::Panel_Dockspace_()
     ImGui::SetNextWindowSize(pViewport->WorkSize);
     ImGui::SetNextWindowViewport(pViewport->ID);
 
-    constexpr ImGuiWindowFlags k_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
+    constexpr ImGuiWindowFlags kFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize
                                        | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -537,7 +537,7 @@ void ShaderApp::Panel_Dockspace_()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 
     bool bOpen = true;
-    if (!ImGui::Begin("DockspaceWindow", &bOpen, k_flags))
+    if (!ImGui::Begin("DockspaceWindow", &bOpen, kFlags))
     {
         ImGui::PopStyleVar(3);
         ImGui::End();
@@ -547,8 +547,8 @@ void ShaderApp::Panel_Dockspace_()
     ImGui::PopStyleVar(3);
 
     m_dockspaceID                                 = ImGui::GetID("Dockspace");
-    constexpr ImGuiDockNodeFlags k_dockspaceFlags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode;
-    ImGui::DockSpace(m_dockspaceID, { 0.f, 0.f }, k_dockspaceFlags);
+    constexpr ImGuiDockNodeFlags kDockspaceFlags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode;
+    ImGui::DockSpace(m_dockspaceID, { 0.f, 0.f }, kDockspaceFlags);
     ImGui::End();
 }
 
@@ -626,8 +626,8 @@ void ShaderApp::Panel_OpenProject_()
     ImGui::SetNextWindowPos(pViewport->WorkPos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(pViewport->WorkSize, ImGuiCond_Always);
 
-    constexpr ImGuiWindowFlags k_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration;
-    if (!ImGui::Begin("open project", nullptr, k_flags))
+    constexpr ImGuiWindowFlags kFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration;
+    if (!ImGui::Begin("open project", nullptr, kFlags))
     {
         ImGui::End();
         return;
@@ -659,7 +659,7 @@ void ShaderApp::SaveConfig_() const
 {
     JsonWriter writer = {};
     writer.Write(*this);
-    if (const Error err = writer.SaveToFile(k_configFileName, eJsonWriteFlags::Pretty))
+    if (const Error err = writer.SaveToFile(kConfigFileName, eJsonWriteFlags::Pretty))
     {
         JAM_LOG_ERROR("Failed to save config file. {}", err.ToErrorMessage());
     }
@@ -669,7 +669,7 @@ void ShaderApp::SaveConfig_() const
 
 void ShaderApp::LoadConfig_()
 {
-    Expect<JsonReader> reader = JsonReader::ParseFromFile(k_configFileName);
+    Expect<JsonReader> reader = JsonReader::ParseFromFile(kConfigFileName);
     if (!reader)
     {
         JAM_LOG_ERROR("Failed to load config file. {}", reader.GetError().ToErrorMessage());
@@ -684,7 +684,7 @@ void ShaderApp::LoadConfig_()
 
 void ShaderApp::LoadConfigIfExists_()
 {
-    if (FileSystem::Exists(k_configFileName))
+    if (FileSystem::Exists(kConfigFileName))
     {
         LoadConfig_();
     }
@@ -694,7 +694,7 @@ void ShaderApp::UpdateAutoSaveConfig_(
     const float _dt)
 {
     m_configFileAutoSaveTimer += _dt;
-    if (m_configFileAutoSaveTimer >= k_configFileAutoSaveInterval)
+    if (m_configFileAutoSaveTimer >= kConfigFileAutoSaveInterval)
     {
         SaveConfig_();
         m_configFileAutoSaveTimer = 0.0f;

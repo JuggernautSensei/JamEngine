@@ -112,13 +112,13 @@ public:
         if (m_bU32)
         {
             JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
-            const UInt32 idx = NarrowCast<UInt32>(_value);
+            const UInt32 idx = static_cast<UInt32>(_value);
             std::memcpy(m_mem.GetPtr() + _idxIdx * sizeof(UInt32), &idx, sizeof(UInt32));
         }
         else
         {
             JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
-            const UInt16 idx = NarrowCast<UInt16>(_value);
+            const UInt16 idx = static_cast<UInt16>(_value);
             std::memcpy(m_mem.GetPtr() + _idxIdx * sizeof(UInt16), &idx, sizeof(UInt16));
         }
     }
@@ -149,14 +149,14 @@ public:
             JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
             UInt32 idx = 0;
             std::memcpy(&idx, m_mem.GetPtr() + _idxIdx * sizeof(UInt32), sizeof(UInt32));
-            return NarrowCast<T>(idx);
+            return static_cast<T>(idx);
         }
         else
         {
             JAM_ASSERT(std::cmp_greater_equal(m_mem.GetByteWidth(), (_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
             UInt16 idx = 0;
             std::memcpy(&idx, m_mem.GetPtr() + _idxIdx * sizeof(UInt16), sizeof(UInt16));
-            return NarrowCast<T>(idx);
+            return static_cast<T>(idx);
         }
     }
 

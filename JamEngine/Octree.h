@@ -59,17 +59,7 @@ class Octree
 
     struct OcItem
     {
-        [[nodiscard]] Vec3 GetCenter() const
-        {
-            return aabb.GetCenter();
-        }
-
-        [[nodiscard]] Vec3 GetExtents() const
-        {
-            return aabb.GetExtents();
-        }
-
-        Entity  entity   = Entity::k_null;
+        Entity  entity   = Entity::kNull;
         Aabb    aabb     = {};
         OcNode* pOwner   = nullptr;
         Int32   index    = -1;
@@ -116,16 +106,6 @@ class Octree
             return aabb.Contains(_pItem->aabb);
         }
 
-        [[nodiscard]] Vec3 GetCenter() const
-        {
-            return aabb.GetCenter();
-        }
-
-        [[nodiscard]] Vec3 GetExtents() const
-        {
-            return aabb.GetExtents();
-        }
-
         EnumArray<eRegion, OcNodeScoped> children       = {};
         OcNode*                          pParent        = nullptr;
         Vector<OcItemScoped>             items          = {};
@@ -147,7 +127,7 @@ public:
         JAM_ASSERT(_desc.initBaseExtents.x >= _desc.minBaseExtents.x && _desc.initBaseExtents.y >= _desc.minBaseExtents.y && _desc.initBaseExtents.z >= _desc.minBaseExtents.z, "initBaseExtents must be >= minBaseExtents");
 
         const Vec3 ext  = m_desc.initBaseExtents * m_desc.looseFactor;
-        const Aabb aabb = Aabb::FromCenterExtents(Numbers<Vec3>::k_zero, ext);
+        const Aabb aabb = { Vec3::kZero, ext };
         m_pRoot         = MakeNode_(aabb);
         m_pRoot->depth  = 0;
     }
@@ -426,7 +406,8 @@ private:
             childCenter.y += IsTop(region) ? childBaseExt.y : -childBaseExt.y;
             childCenter.z += IsFar(region) ? childBaseExt.z : -childBaseExt.z;
 
-            OcNodeScoped pChild      = MakeNode_(Aabb::FromCenterExtents(childCenter, childLooseExt));
+            const Aabb   childAabb   = { childCenter, childLooseExt };
+            OcNodeScoped pChild      = MakeNode_(childAabb);
             pChild->pParent          = _pNode;
             pChild->depth            = _pNode->depth + 1;
             _pNode->children[region] = std::move(pChild);
@@ -440,7 +421,7 @@ private:
             return;
         }
 
-        if (NarrowCast<Int32>(_pNode->items.size()) <= m_desc.subdivisionThreshold)
+        if (static_cast<Int32>(_pNode->items.size()) <= m_desc.subdivisionThreshold)
         {
             return;
         }
@@ -487,7 +468,7 @@ private:
 
     void PushItemToList_(Vector<OcItemScoped>& _items, OcItemScoped&& _pItem) const
     {
-        _pItem->index = NarrowCast<Int32>(_items.size());
+        _pItem->index = static_cast<Int32>(_items.size());
         _items.emplace_back(std::move(_pItem));
     }
 
@@ -495,7 +476,7 @@ private:
     {
         Vector<OcItemScoped>& items   = _pItem->pOwner->items;
         const Int32           itemIdx = _pItem->index;
-        const Int32           lastIdx = NarrowCast<Int32>(items.size() - 1);
+        const Int32           lastIdx = static_cast<Int32>(items.size() - 1);
         OcItemScoped          pPopped = std::move(items[itemIdx]);
 
         // swap and pop (삽입 순서 보장 불필요)
@@ -540,7 +521,6 @@ private:
         const Vec3 center      = m_pRoot->GetCenter();
         const Vec3 oldBaseExt  = m_pRoot->GetExtents() / m_desc.looseFactor;
         const Vec3 newLooseExt = m_pRoot->GetExtents() * 2.f;
-        const Vec3 aabbCenter  = _aabb.GetCenter();
 
         // _aabb 의 반대 방향 슬롯에 기존 루트를 배치.
         // bFar, bBottom, bRight 는 _aabb 가 새 루트의 어느 슬롯에 위치하는지 계산하기 위함.
@@ -550,7 +530,7 @@ private:
 
         Vec3 newCenter = center;
 
-        if (center.x < aabbCenter.x)
+        if (center.x < _aabb.center.x)
         {
             newCenter.x += oldBaseExt.x;
         }
@@ -560,7 +540,7 @@ private:
             bRight = true;
         }
 
-        if (center.y < aabbCenter.y)
+        if (center.y < _aabb.center.y)
         {
             newCenter.y += oldBaseExt.y;
         }
@@ -570,7 +550,7 @@ private:
             bTop = true;
         }
 
-        if (center.z < aabbCenter.z)
+        if (center.z < _aabb.center.z)
         {
             newCenter.z += oldBaseExt.z;
         }
@@ -580,7 +560,8 @@ private:
             bFar = true;
         }
 
-        OcNodeScoped pNewRoot    = MakeNode_(Aabb::FromCenterExtents(newCenter, newLooseExt));
+        const Aabb   newAabb     = { newCenter, newLooseExt };
+        OcNodeScoped pNewRoot    = MakeNode_(newAabb);
         pNewRoot->depth          = 0;
         pNewRoot->numItemsInTree = m_pRoot->numItemsInTree;
 
@@ -683,7 +664,7 @@ private:
             MergeEmptyChildren_Recursive_(pChild.GetPtr());
         }
 
-        const Int32 numItemsInChildren = _pNode->numItemsInTree - NarrowCast<Int32>(_pNode->items.size());
+        const Int32 numItemsInChildren = _pNode->numItemsInTree - static_cast<Int32>(_pNode->items.size());
         if (numItemsInChildren == 0)
         {
             _pNode->ClearChildren();
@@ -697,9 +678,9 @@ private:
         JAM_ASSERT(_pRoot->HasChildren(), "Node has no children");
         JAM_ASSERT(_pRoot->Contains(_aabb), "Aabb does not fit in node");
 
-        const Vec3    center     = _pRoot->GetCenter();
-        const Vec3    aabbCenter = _aabb.GetCenter();
-        const eRegion region     = CalcRegion(aabbCenter.x > center.x, aabbCenter.y > center.y, aabbCenter.z > center.z);
+        const Vec3    rootCenter = _pRoot->aabb.center;
+        const Vec3    center     = _aabb.center;
+        const eRegion region     = CalcRegion(center.x > rootCenter.x, center.y > rootCenter.y, center.z > rootCenter.z);
         OcNode*       pNode      = _pRoot->children[region].GetPtr();
         return pNode->Contains(_aabb) ? pNode : nullptr;
     }

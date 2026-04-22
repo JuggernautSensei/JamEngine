@@ -4,13 +4,13 @@
 namespace Jam
 {
 
-constexpr float k_constexprStringHashMapLoadFactor    = 0.7f;
-constexpr float k_invConstexprStringHashMapLoadFactor = 1.f / k_constexprStringHashMapLoadFactor;
+constexpr float kConstexprStringHashMapLoadFactor    = 0.7f;
+constexpr float kInvConstexprStringHashMapLoadFactor = 1.f / kConstexprStringHashMapLoadFactor;
 
-template<typename TValue, SizeT k_size>
+template<typename TValue, SizeT kSize>
 class ConstexprStringHashMap
 {
-    static_assert(k_size > 0, "ConstexprStringHashMap size must be greater than 0.");
+    static_assert(kSize > 0, "ConstexprStringHashMap size must be greater than 0.");
 
     struct Node
     {
@@ -19,7 +19,7 @@ class ConstexprStringHashMap
         bool       bOccupied = false;
     };
 
-    static constexpr SizeT k_invalidIdx = -1;
+    static constexpr SizeT kInvalidIdx = -1;
 
 public:
     constexpr ConstexprStringHashMap() = default;
@@ -29,9 +29,9 @@ public:
         const TValue&    _value)
     {
         const SizeT hash  = _key.Hash32();
-        SizeT       index = hash % k_size;
+        SizeT       index = hash % kSize;
 
-        for (SizeT i = 0; i < k_size; ++i)
+        for (SizeT i = 0; i < kSize; ++i)
         {
             Node& node = m_nodes[index];
             if (!node.bOccupied)
@@ -48,7 +48,7 @@ public:
                 return;
             }
 
-            index = (index + 1) % k_size;
+            index = (index + 1) % kSize;
         }
     }
 
@@ -62,7 +62,7 @@ public:
     [[nodiscard]] constexpr bool Has(
         const StringView _key) const
     {
-        return FindIndexOrInvalid_(_key) != k_invalidIdx;
+        return FindIndexOrInvalid_(_key) != kInvalidIdx;
     }
 
 private:
@@ -71,18 +71,18 @@ private:
     {
         if (m_numNodes == 0)
         {
-            return k_invalidIdx;
+            return kInvalidIdx;
         }
 
         const SizeT hash  = _key.Hash32();
-        SizeT       index = hash % k_size;
+        SizeT       index = hash % kSize;
 
-        for (SizeT i = 0; i < k_size; ++i)
+        for (SizeT i = 0; i < kSize; ++i)
         {
             const Node& node = m_nodes[index];
             if (!node.bOccupied)
             {
-                return k_invalidIdx;
+                return kInvalidIdx;
             }
 
             if (node.key == _key)
@@ -90,13 +90,13 @@ private:
                 return index;
             }
 
-            index = (index + 1) % k_size;
+            index = (index + 1) % kSize;
         }
 
-        return k_invalidIdx;
+        return kInvalidIdx;
     }
 
-    Array<Node, k_size> m_nodes    = {};
+    Array<Node, kSize> m_nodes    = {};
     SizeT               m_numNodes = 0;
 };
 

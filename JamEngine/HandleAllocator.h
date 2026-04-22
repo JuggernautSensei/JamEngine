@@ -3,10 +3,10 @@
 namespace Jam
 {
 
-static constexpr UInt32 k_invalidHandleValue  = 0xFFFF'FFFF;
-static constexpr UInt32 k_handleIndexMask  = 0x00FF'FFFF;
-static constexpr UInt32 k_handleTokenMask  = 0xFF00'0000;
-static constexpr UInt32 k_handleTokenShift = 24;
+static constexpr UInt32 kInvalidHandleValue = 0xFFFF'FFFF;
+static constexpr UInt32 kHandleIndexMask    = 0x00FF'FFFF;
+static constexpr UInt32 kHandleTokenMask    = 0xFF00'0000;
+static constexpr UInt32 kHandleTokenShift   = 24;
 
 struct InvalidHandleType
 {
@@ -19,7 +19,7 @@ struct InvalidHandleType
     }
 };
 
-constexpr InvalidHandleType k_invalidHandle = InvalidHandleType { InvalidHandleType::Tag {} };
+constexpr InvalidHandleType kInvalidHandle = InvalidHandleType { InvalidHandleType::Tag {} };
 
 template<typename T>
 class Handle
@@ -30,12 +30,12 @@ public:
     }
 
     /* implicit */ Handle(const InvalidHandleType) noexcept
-        : m_value(k_invalidHandleValue)
+        : m_value(kInvalidHandleValue)
     {
     }
 
     Handle(const UInt32 _index, const UInt32 _token) noexcept
-        : m_value((_index & k_handleIndexMask) | ((_token << k_handleTokenShift) & k_handleTokenMask))
+        : m_value((_index & kHandleIndexMask) | ((_token << kHandleTokenShift) & kHandleTokenMask))
     {
     }
 
@@ -46,7 +46,7 @@ public:
 
     Handle& operator=(const InvalidHandleType) noexcept
     {
-        m_value = k_invalidHandleValue;
+        m_value = kInvalidHandleValue;
         return *this;
     }
 
@@ -62,7 +62,7 @@ public:
 
     [[nodiscard]] bool IsValid() const noexcept
     {
-        return m_value != k_invalidHandleValue;
+        return m_value != kInvalidHandleValue;
     }
 
     explicit operator bool() const noexcept
@@ -72,12 +72,12 @@ public:
 
     [[nodiscard]] UInt32 GetIndex() const noexcept
     {
-        return m_value & k_handleIndexMask;
+        return m_value & kHandleIndexMask;
     }
 
     [[nodiscard]] UInt32 GetToken() const noexcept
     {
-        return (m_value & k_handleTokenMask) >> k_handleTokenShift;
+        return (m_value & kHandleTokenMask) >> kHandleTokenShift;
     }
 
     [[nodiscard]] UInt32 GetValue() const noexcept
@@ -86,7 +86,7 @@ public:
     }
 
 private:
-    UInt32 m_value = k_invalidHandleValue;
+    UInt32 m_value = kInvalidHandleValue;
 };
 
 template<typename T>
@@ -94,7 +94,7 @@ class HandleAllocator
 {
     struct Slot
     {
-        UInt32 nextFreeIndex = k_invalidHandleValue;
+        UInt32 nextFreeIndex = kInvalidHandleValue;
         UInt8  token         = 0;
         bool   bAlloced      = false;
     };
@@ -127,7 +127,7 @@ public:
         explicit IteratorBase(AllocatorT* _pAllocator, const UInt32 _startIndex) noexcept
             : m_pAllocator(_pAllocator)
             , m_index(_startIndex)
-            , m_endIndex(NarrowCast<UInt32>(_pAllocator->m_slots.size()))
+            , m_endIndex(static_cast<UInt32>(_pAllocator->m_slots.size()))
         {
             Advance_();
         }
@@ -194,14 +194,14 @@ public:
     [[nodiscard]] HandleT Alloc()
     {
         UInt32 index = 0;
-        if (m_freeSlotIndex != k_invalidHandleValue)
+        if (m_freeSlotIndex != kInvalidHandleValue)
         {
             index           = m_freeSlotIndex;
             m_freeSlotIndex = m_slots[index].nextFreeIndex;
         }
         else
         {
-            index = NarrowCast<UInt32>(m_slots.size());
+            index = static_cast<UInt32>(m_slots.size());
             m_slots.emplace_back();
         }
 
@@ -223,17 +223,14 @@ public:
 
     [[nodiscard]] bool IsValid(const HandleT handle) const noexcept
     {
-        const UInt32 index = handle.GetIndex();
-        const Slot&  slot  = m_slots[index];
-        return std::cmp_less(index, m_slots.size())
-            && slot.token == handle.GetToken()
-            && slot.bAlloced;
+        const Slot slot = m_slots[handle.GetIndex()];
+        return slot.token == handle.GetToken() && slot.bAlloced;
     }
 
     void Clear() noexcept
     {
         m_slots.clear();
-        m_freeSlotIndex = k_invalidHandleValue;
+        m_freeSlotIndex = kInvalidHandleValue;
         m_numAlloced    = 0;
     }
 
@@ -249,7 +246,7 @@ public:
 
     [[nodiscard]] Iterator end() noexcept
     {
-        return Iterator(this, NarrowCast<UInt32>(m_slots.size()));
+        return Iterator(this, static_cast<UInt32>(m_slots.size()));
     }
 
     [[nodiscard]] ConstIterator begin() const noexcept
@@ -259,7 +256,7 @@ public:
 
     [[nodiscard]] ConstIterator end() const noexcept
     {
-        return ConstIterator(this, NarrowCast<UInt32>(m_slots.size()));
+        return ConstIterator(this, static_cast<UInt32>(m_slots.size()));
     }
 
     [[nodiscard]] ConstIterator cbegin() const noexcept
@@ -269,12 +266,12 @@ public:
 
     [[nodiscard]] ConstIterator cend() const noexcept
     {
-        return ConstIterator(this, NarrowCast<UInt32>(m_slots.size()));
+        return ConstIterator(this, static_cast<UInt32>(m_slots.size()));
     }
 
 private:
     Vector<Slot> m_slots         = {};
-    UInt32       m_freeSlotIndex = k_invalidHandleValue;
+    UInt32       m_freeSlotIndex = kInvalidHandleValue;
     Int32        m_numAlloced    = 0;
 };
 

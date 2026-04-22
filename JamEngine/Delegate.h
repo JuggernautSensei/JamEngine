@@ -16,12 +16,12 @@ class Delegate<TRet(TArg...)>
     using TDeleter = void (*)(Delegate*);
     using TCloner  = void (*)(Delegate*, const Delegate*);
 
-    static constexpr Int32 k_storageSize  = sizeof(void*) * 2;
-    static constexpr Int32 k_storageAlign = alignof(void*);
+    static constexpr Int32 kStorageSize  = sizeof(void*) * 2;
+    static constexpr Int32 kStorageAlign = alignof(void*);
 
-    struct alignas(k_storageAlign) Storage
+    struct alignas(kStorageAlign) Storage
     {
-        Byte data[k_storageSize] = {};
+        Byte data[kStorageSize] = {};
     };
 
 public:
@@ -161,7 +161,7 @@ public:
 
         m_hash = FuncHashOf(_func);
 
-        if constexpr (sizeof(TDecayed) <= k_storageSize && alignof(TDecayed) <= k_storageAlign)
+        if constexpr (sizeof(TDecayed) <= kStorageSize && alignof(TDecayed) <= kStorageAlign)
         {
             // Small buffer optimization
 

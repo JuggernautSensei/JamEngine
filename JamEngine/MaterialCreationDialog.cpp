@@ -81,7 +81,7 @@ bool MaterialCreationDialog::OnClickCreateButton_()
     }
 
     String path = String::Joined(m_saveDir, m_assetBaseName, eJoin::File);
-    path += Material::k_extension;
+    path += Material::kExtension;
 
     if (FileSystem::Exists(path))
     {
@@ -95,7 +95,7 @@ bool MaterialCreationDialog::OnClickCreateButton_()
 bool MaterialCreationDialog::CreateAndSaveAsset_(
     const StringView _path)
 {
-    Ref<Material> pMaterial = Material::Load({});
+    Ref<Material> pMaterial = Material::Load();
     return SaveAsset_(_path, pMaterial);
 }
 

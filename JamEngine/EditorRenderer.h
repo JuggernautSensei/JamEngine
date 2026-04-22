@@ -56,8 +56,8 @@ private:
     // 라인 배칭
     struct LineVertex
     {
-        Vec3 position = Numbers<Vec3>::k_zero;
-        RGBA rgba     = RGBA::k_white;
+        Vec3 position = Vec3::kZero;
+        RGBA rgba     = RGBA::kWhite;
 
         inline static VertexLayout s_vl = {};
 
@@ -69,23 +69,23 @@ private:
         }
     };
 
-    static constexpr Int32             k_lineLimit      = 512;
-    Array<LineVertex, k_lineLimit * 2> m_lineVertices   = {};
-    Array<UInt16, k_lineLimit * 2>     m_lineIndices    = {};
+    static constexpr Int32             kLineLimit      = 512;
+    Array<LineVertex, kLineLimit * 2> m_lineVertices   = {};
+    Array<UInt16, kLineLimit * 2>     m_lineIndices    = {};
     Int32                              m_numLineVerts   = 0;
     Int32                              m_numLineIndices = 0;
 
     // 버퍼
-    VertexBufferHandle   m_gridVbh = k_invalidHandle;
-    IndexBufferHandle    m_gridIbh = k_invalidHandle;
-    VertexBufferHandle   m_lineVbh = k_invalidHandle;
-    IndexBufferHandle    m_lineIbh = k_invalidHandle;
-    ConstantBufferHandle m_cbh     = k_invalidHandle;
+    VertexBufferHandle   m_gridVbh = kInvalidHandle;
+    IndexBufferHandle    m_gridIbh = kInvalidHandle;
+    VertexBufferHandle   m_lineVbh = kInvalidHandle;
+    IndexBufferHandle    m_lineIbh = kInvalidHandle;
+    ConstantBufferHandle m_cbh     = kInvalidHandle;
 
     // 프로그램
-    ProgramHandle m_gridPh   = k_invalidHandle;
-    ProgramHandle m_linePh   = k_invalidHandle;
-    ProgramHandle m_filledPh = k_invalidHandle;
+    ProgramHandle m_gridPh   = kInvalidHandle;
+    ProgramHandle m_linePh   = kInvalidHandle;
+    ProgramHandle m_filledPh = kInvalidHandle;
 
     // 프리미티브 메쉬
     Ref<Mesh> m_sphereMesh   = nullptr;
@@ -98,18 +98,18 @@ private:
     Flags<eRenderFlags> m_filledRenderFlags = {};
 
     Flags<eBlendFlags>    m_blendFlags    = {};
-    RGBA                  m_currentColor  = RGBA::k_white;
+    RGBA                  m_currentColor  = RGBA::kWhite;
     Flags<eDrawGridFlags> m_drawGridFlags = eDrawGridFlags::None;
     bool                  m_bBeginRender  = false;
 
     // 카메라
-    Vec3 m_eye  = Numbers<Vec3>::k_zero;
-    Mtx4 m_view = Numbers<Mtx4>::k_identity;
-    Mtx4 m_proj = Numbers<Mtx4>::k_identity;
+    Vec3 m_eye  = Vec3::kZero;
+    Mtx4 m_view = Mtx4::kIdentity;
+    Mtx4 m_proj = Mtx4::kIdentity;
 
     // 쉐이더 코드
-    static const char* const k_gridShaderSource;
-    static const char* const k_lineShaderSource;
+    static const char* const kGridShaderSource;
+    static const char* const kLineShaderSource;
 };
 
 }   // namespace Jam

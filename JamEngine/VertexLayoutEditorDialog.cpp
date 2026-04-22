@@ -65,7 +65,7 @@ void VertexLayoutEditorDialog::OnShow()
 
             // calculate byte width and offset
             offset = stride;
-            stride += NarrowCast<Int32>(ByteWidthOf(format));
+            stride += static_cast<Int32>(ByteWidthOf(format));
 
             // attribute column
             ImGui::TableNextColumn();

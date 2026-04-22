@@ -13,14 +13,14 @@ class Entity
 {
 public:
     constexpr Entity() = default;
-    Entity(Registry& _registry, RegistryHandle _handle, UID _uid);
+    Entity(entt::registry& _reg, entt::entity _handle, UID _uid);
 
     [[nodiscard]] bool operator==(Entity _other) const;
     [[nodiscard]] bool operator!=(Entity _other) const;
 
     [[nodiscard]] bool             IsValid() const;
     [[nodiscard]] UID              GetUID() const;
-    [[nodiscard]] RegistryHandle   GetHandle() const;
+    [[nodiscard]] entt::entity     GetHandle() const;
     [[nodiscard]] SceneNode&       GetSceneNode();
     [[nodiscard]] const SceneNode& GetSceneNode() const;
 
@@ -44,8 +44,7 @@ public:
     void CreateComponentDefered(Args&&... _args)
     {
         GetApp().SubmitCommandToMainThread(Bind(
-            [this, ... args = std::forward<Args>(_args)]
-            {
+            [this, ... args = std::forward<Args>(_args)] {
                 CreateComponent<T>(std::move(args)...);
             }));
     }
@@ -90,18 +89,17 @@ public:
     void RemoveComponentDefered()
     {
         GetApp().SubmitCommandToMainThread(Bind(
-            [this]
-            {
+            [this] {
                 RemoveComponent<T...>();
             }));
     }
 
-    static const Entity k_null;
+    static const Entity kNull;
 
 private:
-    Registry*      m_pRegistry = nullptr;
-    RegistryHandle m_handle    = entt::null;
-    UID            m_uid       = UID::k_null;
+    entt::registry* m_pRegistry = nullptr;
+    entt::entity    m_handle    = entt::null;
+    UID             m_uid       = UID::kNull;
 };
 
 }   // namespace Jam

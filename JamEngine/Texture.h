@@ -19,7 +19,6 @@ public:
 
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
-    void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
     [[nodiscard]] bool       IsValid() const override;
@@ -38,24 +37,23 @@ public:
     void Bind(eShader _shader, Int32 _slot) const;
     void Unbind(eShader _shader, Int32 _slot) const;
 
-    static constexpr StringView k_typeName  = NameOf<Texture>();
-    static constexpr UInt32     k_typeHash  = HashOf<Texture>();
-    static constexpr eAsset     k_asestType = eAsset::Texture;
-    static constexpr StringView k_extension = ".jtex";
-    static constexpr StringView k_filter    = "*.jtex";
+    static constexpr StringView kTypeName  = NameOf<Texture>();
+    static constexpr UInt32     kTypeHash  = HashOf<Texture>();
+    static constexpr eAsset     kAsestType = eAsset::Texture;
+    static constexpr StringView kExtension = ".jtex";
+    static constexpr StringView kFilter    = "*.jtex";
 
 private:
     Texture() = default;
     explicit Texture(TextureHandle _texh);
-    Error Load_(StringView _path) override;
+    Error LoadFromFile_(StringView _path) override;
     void  CleanUp_();
 
-    String        m_path            = {};
-    String        m_name            = {};
-    TextureHandle m_texh            = k_invalidHandle;
-    Vec2i         m_res             = { 0, 0 };
-    eTexture      m_type            = eTexture::Texture2D;
-    bool          m_bLoadedFromFile = false;
+    String        m_path = {};
+    String        m_name = {};
+    TextureHandle m_texh = kInvalidHandle;
+    Vec2i         m_res  = { 0, 0 };
+    eTexture      m_type = eTexture::Texture2D;
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Texture>& _pTexture);

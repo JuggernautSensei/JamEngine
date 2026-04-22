@@ -1,0 +1,42 @@
+namespace jam.jmat;
+
+struct Vec3
+{
+  x:float;
+  y:float;
+  z:float;
+}
+
+table Material
+{
+	version                : uint;
+	ambient_color          : Vec3 (required);
+	diffuse_color          : Vec3 (required);
+	specular_color         : Vec3 (required);
+	shininess              : float;
+						   
+	albedo_color           : Vec3 (required);
+	roughness              : float;
+	metallic               : float;
+						   
+	emissive_color         : Vec3 (required);
+	emissive_intensity     : float;
+						   
+	opacity                : float;
+	b_is_transparent       : bool;
+						   
+	b_double_side          : bool;
+	b_fliped_y_normal_map  : bool;
+	light_map_intensity    : float;
+	ao_map_intensity       : float;
+						   
+	albedo_map_path        : string;
+	normal_map_path        : string;
+	metallic_map_path      : string;
+	roughness_map_path     : string;
+	ao_map_path            : string;
+	emissive_map_path      : string;
+	light_map_path         : string;
+}
+
+root_type Material;

@@ -9,7 +9,7 @@ namespace Jam
 
 namespace
 {
-    constexpr StringView k_debugRendererShaderSource = R"(
+    constexpr StringView kDebugRendererShaderSource = R"(
     struct VSInput { float3 pos : POSITION; uint4 col : COLOR; };
     struct PSInput { float4 pos : SV_POSITION; float4 col : COLOR; };
     cbuffer Constants : register(b0) { float4x4 viewProj; float screenWidth; float screenHeight; float padding0; float padding1; };
@@ -50,11 +50,11 @@ DebugRenderer::DebugRenderer()
         };
 
         ShaderCompilerInfo vsi = { eShader::VertexShader, "VSMain", macro, eShaderCompileFlags::Default };
-        ShaderCompiler     vsc = ShaderCompiler::CompileHLSLSource(k_debugRendererShaderSource, vsi);
+        ShaderCompiler     vsc = ShaderCompiler::CompileHLSLSource(kDebugRendererShaderSource, vsi);
         JAM_ASSERT(vsc.IsSucceeded(), "Failed to compile debug renderer world vertex shader: {}", vsc.GetErrorMessage());
         ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());
 
-        ShaderCompiler psc = ShaderCompiler::CompileHLSLSource(k_debugRendererShaderSource, psi);
+        ShaderCompiler psc = ShaderCompiler::CompileHLSLSource(kDebugRendererShaderSource, psi);
         JAM_ASSERT(psc.IsSucceeded(), "Failed to compile debug renderer pixel shader: {}", psc.GetErrorMessage());
         ShaderHandle psh = gfx.CreateShader(psc.GetBytecode());
 
@@ -63,11 +63,11 @@ DebugRenderer::DebugRenderer()
 
     {
         ShaderCompilerInfo vsi = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-        ShaderCompiler     vsc = ShaderCompiler::CompileHLSLSource(k_debugRendererShaderSource, vsi);
+        ShaderCompiler     vsc = ShaderCompiler::CompileHLSLSource(kDebugRendererShaderSource, vsi);
         JAM_ASSERT(vsc.IsSucceeded(), "Failed to compile debug renderer screen vertex shader: {}", vsc.GetErrorMessage());
         ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());
 
-        ShaderCompiler psc = ShaderCompiler::CompileHLSLSource(k_debugRendererShaderSource, psi);
+        ShaderCompiler psc = ShaderCompiler::CompileHLSLSource(kDebugRendererShaderSource, psi);
         JAM_ASSERT(psc.IsSucceeded(), "Failed to compile debug renderer pixel shader: {}", psc.GetErrorMessage());
         ShaderHandle psh = gfx.CreateShader(psc.GetBytecode());
 
@@ -94,8 +94,8 @@ void DebugRenderer::Begin(
     Graphics& gfx   = GetGraphics();
     Constants cb    = {};
     cb.viewProj     = (_view.view * _view.proj).Transpose();
-    cb.screenWidth  = static_cast<float>(_view.viewport.w);
-    cb.screenHeight = static_cast<float>(_view.viewport.h);
+    cb.screenWidth  = static_cast<float>(_view.vp.w);
+    cb.screenHeight = static_cast<float>(_view.vp.h);
     gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
 }
 
@@ -107,8 +107,8 @@ void DebugRenderer::End()
 
     m_numIndices  = 0;
     m_numVerts    = 0;
-    m_cursorPos   = Numbers<Vec3>::k_zero;
-    m_cursorCol   = RGBA::k_black;
+    m_cursorPos   = Vec3::kZero;
+    m_cursorCol   = RGBA::kBlack;
     m_bCursorDown = false;
     m_bBeginDraw  = false;
     m_drawSpace   = eDebugRendererSpace::World;
@@ -154,7 +154,7 @@ void DebugRenderer::DrawTo(
         return;
     }
 
-    if (m_numVerts >= k_maxNumVerts - 2 || m_numIndices >= k_maxNumIndices - 2)
+    if (m_numVerts >= kMaxNumVerts - 2 || m_numIndices >= kMaxNumIndices - 2)
     {
         Flush();
     }
@@ -165,8 +165,8 @@ void DebugRenderer::DrawTo(
     m_cpuVerts[i0]               = { m_cursorPos, m_cursorCol };
     m_cursorPos                  = _pos;
     m_cpuVerts[i1]               = { m_cursorPos, m_cursorCol };
-    m_cpuIndices[m_numIndices++] = NarrowCast<UInt16>(i0);
-    m_cpuIndices[m_numIndices++] = NarrowCast<UInt16>(i1);
+    m_cpuIndices[m_numIndices++] = static_cast<UInt16>(i0);
+    m_cpuIndices[m_numIndices++] = static_cast<UInt16>(i1);
 }
 
 void DebugRenderer::DrawTo(float _x, float _y, float _z)
@@ -185,27 +185,27 @@ void DebugRenderer::Flush()
 
     Graphics& gfx = GetGraphics();
 
-    constexpr Int32 k_vStride = NarrowCast<Int32>(sizeof(Vertex));
-    constexpr Int32 k_iStride = NarrowCast<Int32>(sizeof(UInt16));
+    constexpr Int32 kVStride = static_cast<Int32>(sizeof(Vertex));
+    constexpr Int32 kIStride = static_cast<Int32>(sizeof(UInt16));
 
-    const Int32 needVbhByteWidth = m_numVerts * k_vStride;
+    const Int32 needVbhByteWidth = m_numVerts * kVStride;
     if (m_vbhByteWidth < needVbhByteWidth)
     {
         JAM_DESTROY_VERTEX_BUFFER(m_vbh);
-        m_vbhByteWidth = needVbhByteWidth + 256 * k_vStride;
+        m_vbhByteWidth = needVbhByteWidth + 256 * kVStride;
         m_vbh          = gfx.CreateDynamicVertexBuffer(m_vbhByteWidth, Vertex::s_layout);
     }
 
-    const Int32 needIbhByteWidth = m_numIndices * k_iStride;
+    const Int32 needIbhByteWidth = m_numIndices * kIStride;
     if (m_ibhByteWidth < needIbhByteWidth)
     {
         JAM_DESTROY_INDEX_BUFFER(m_ibh);
-        m_ibhByteWidth = needIbhByteWidth + 256 * k_iStride;
+        m_ibhByteWidth = needIbhByteWidth + 256 * kIStride;
         m_ibh          = gfx.CreateDynamicIndexBuffer(m_ibhByteWidth);
     }
 
-    gfx.UpdateBuffer(m_vbh, { m_cpuVerts.data(), m_numVerts * k_vStride });
-    gfx.UpdateBuffer(m_ibh, { m_cpuIndices.data(), m_numIndices * k_iStride });
+    gfx.UpdateBuffer(m_vbh, { m_cpuVerts.data(), m_numVerts * kVStride });
+    gfx.UpdateBuffer(m_ibh, { m_cpuIndices.data(), m_numIndices * kIStride });
 
     gfx.SetProgram(m_drawSpace == eDebugRendererSpace::Screen ? m_screenPh : m_worldPh);
     gfx.SetBlendFlags(eBlendFlags::WriteMask_All, 0);

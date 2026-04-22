@@ -185,7 +185,7 @@ Expect<Scoped<Scene>> Scene::Load(
 void Scene::Serialize(ArchiveWriter& _writer)
 {
     // resource
-    HashMap<RegistryHandle, Entity> handleToEntity = {};
+    HashMap<entt::entity, Entity> handleToEntity = {};
     handleToEntity.reserve(m_entities.size());
 
     _writer.BeginObject();
@@ -218,7 +218,7 @@ void Scene::Serialize(ArchiveWriter& _writer)
 
         _writer.AddField(rfl.typeName);
         _writer.BeginArray();
-        for (const RegistryHandle handle: container)
+        for (const entt::entity handle: container)
         {
             const auto it = handleToEntity.find(handle);
             JAM_ASSERT(it != handleToEntity.end(),

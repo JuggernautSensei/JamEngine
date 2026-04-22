@@ -5,24 +5,24 @@
 
 struct CBDebugNormalScene_NoWIT
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4 world = Numbers<Mtx4>::k_identity;
+    Mtx4 world = Mtx4::kIdentity;
 };
 
 struct CBDebugNormalScene_WithWIT
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4 world         = Numbers<Mtx4>::k_identity;
-    Mtx4 worldInvTrans = Numbers<Mtx4>::k_identity;
+    Mtx4 world         = Mtx4::kIdentity;
+    Mtx4 worldInvTrans = Mtx4::kIdentity;
 };
 
 struct CBDebugNormalSceneCamera
 {
-    static constexpr Int32 k_slot   = 1;
-    Mtx4                   viewProj = Numbers<Mtx4>::k_identity;
-    Vec3                   eyePos   = Numbers<Vec3>::k_zero;
+    static constexpr Int32 kSlot   = 1;
+    Mtx4                   viewProj = Mtx4::kIdentity;
+    Vec3                   eyePos   = Vec3::kZero;
     float                  padding  = 0.f;
 };
 
@@ -105,9 +105,9 @@ void DebugNormalScene::InitRenderGraph_()
         .SetProgram("P_NoWIT")
         .SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
-        .SetConstantBuffer("CB_NoWIT", eShader::VertexShader, CBDebugNormalScene_NoWIT::k_slot)
-        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBDebugNormalSceneCamera::k_slot)
-        .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBDebugNormalSceneCamera::k_slot)
+        .SetConstantBuffer("CB_NoWIT", eShader::VertexShader, CBDebugNormalScene_NoWIT::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBDebugNormalSceneCamera::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(!m_bUseWit);
 
@@ -119,9 +119,9 @@ void DebugNormalScene::InitRenderGraph_()
         .SetProgram("P_WithWIT")
         .SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
-        .SetConstantBuffer("CB_WithWIT", eShader::VertexShader, CBDebugNormalScene_WithWIT::k_slot)
-        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBDebugNormalSceneCamera::k_slot)
-        .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBDebugNormalSceneCamera::k_slot)
+        .SetConstantBuffer("CB_WithWIT", eShader::VertexShader, CBDebugNormalScene_WithWIT::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBDebugNormalSceneCamera::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(m_bUseWit);
 
@@ -131,8 +131,8 @@ void DebugNormalScene::InitRenderGraph_()
         .SetProgram("P_DrawNormalNoWIT")
         .SetRenderFlags(eRenderFlags::Primitive_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
-        .SetConstantBuffer("CB_NoWIT", eShader::GeometryShader, CBDebugNormalScene_NoWIT::k_slot)
-        .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBDebugNormalSceneCamera::k_slot)
+        .SetConstantBuffer("CB_NoWIT", eShader::GeometryShader, CBDebugNormalScene_NoWIT::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(!m_bUseWit && m_bDrawNormal);
 
@@ -142,8 +142,8 @@ void DebugNormalScene::InitRenderGraph_()
         .SetProgram("P_DrawNormalWithWIT")
         .SetRenderFlags(eRenderFlags::Primitive_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
-        .SetConstantBuffer("CB_WithWIT", eShader::GeometryShader, CBDebugNormalScene_WithWIT::k_slot)
-        .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBDebugNormalSceneCamera::k_slot)
+        .SetConstantBuffer("CB_WithWIT", eShader::GeometryShader, CBDebugNormalScene_WithWIT::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(m_bUseWit && m_bDrawNormal);
 
@@ -192,11 +192,11 @@ void DebugNormalScene::OnRender(
 
     // update camera
     CBDebugNormalSceneCamera cb = {};
-    cb.viewProj                 = (m_camera.trans.GetMatrix().Invert() * m_camera.cmr.GetProjMatrix()).Transpose();
+    cb.viewProj                 = (m_camera.trans.GetSRT().Invert() * m_camera.cmr.GetProj()).Transpose();
     cb.eyePos                   = m_camera.trans.GetTranslation();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cb));
 
-    m_graph.Execute(_view.fbh, _view.viewport);
+    m_graph.Execute(_view.fbh, _view.vp);
 }
 void DebugNormalScene::OnImGuiRender()
 {
@@ -282,11 +282,11 @@ void DebugNormalScene::AddProgram_VP_(
     const StringView _name,
     const StringView _path)
 {
-    constexpr ShaderCompilerInfo k_vsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo k_psInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
-    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, k_vsInfo);
-    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, k_psInfo);
+    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
+    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
     JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
     JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
 
@@ -302,13 +302,13 @@ void DebugNormalScene::AddProgram_VPG_(
     StringView _name,
     StringView _path)
 {
-    constexpr ShaderCompilerInfo k_vsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo k_psInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo k_gsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderCompilerInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
 
-    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, k_vsInfo);
-    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, k_psInfo);
-    const ShaderCompiler gsc = ShaderCompiler::CompileHLSLFile(_path, k_gsInfo);
+    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
+    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
+    const ShaderCompiler gsc = ShaderCompiler::CompileHLSLFile(_path, kGsInfo);
     JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
     JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
     JAM_ASSERT(gsc.IsSucceeded(), "Geometry shader compilation failed: {}", gsc.GetErrorMessage());
@@ -345,14 +345,14 @@ void DebugNormalScene::UpdateEntityConstants_(
     if (m_bUseWit)
     {
         CBDebugNormalScene_WithWIT cb = {};
-        cb.world                      = _trans.GetMatrix().Transpose();
-        cb.worldInvTrans              = _trans.GetMatrix().Invert();
+        cb.world                      = _trans.GetSRT().Transpose();
+        cb.worldInvTrans              = _trans.GetSRT().Invert();
         gfx.UpdateBuffer(m_withWitCbh, AsMemoryView(cb));
     }
     else
     {
         CBDebugNormalScene_NoWIT cb = {};
-        cb.world                    = _trans.GetMatrix().Transpose();
+        cb.world                    = _trans.GetSRT().Transpose();
         gfx.UpdateBuffer(m_noWitCbh, AsMemoryView(cb));
     }
 }

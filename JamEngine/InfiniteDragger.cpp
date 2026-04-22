@@ -25,7 +25,7 @@ void InfiniteDragger::Update()
         {
             m_bIsDragging = true;
             m_capturedPos = GetInput().GetMousePos();
-            m_deltaPos    = Vec2i::k_zero;
+            m_deltaPos    = Vec2i::kZero;
             GetInput().SetMouseVisibility(false);
         }
     }
@@ -49,8 +49,8 @@ void InfiniteDragger::Update()
         if (bLeft && bRight && bMiddle)
         {
             m_bIsDragging = false;
-            m_deltaPos    = Vec2i::k_zero;
-            m_capturedPos = Vec2i::k_zero;
+            m_deltaPos    = Vec2i::kZero;
+            m_capturedPos = Vec2i::kZero;
             GetInput().SetMouseVisibility(true);
         }
     }

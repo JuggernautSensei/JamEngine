@@ -19,7 +19,7 @@ void VertexLayout::Push(
     VertexLayoutElement vlm = {};
     vlm.attrib              = _attrib;
     vlm.format              = _format;
-    vlm.byteWidth           = NarrowCast<Int32>(ByteWidthOf(_format));
+    vlm.byteWidth           = static_cast<Int32>(ByteWidthOf(_format));
     vlm.offset              = m_stride;
     m_vles[m_numElems++]    = vlm;
     m_stride += vlm.byteWidth;

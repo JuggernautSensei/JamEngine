@@ -52,7 +52,7 @@ struct EditorSharedData
     eEditorMode mode = eEditorMode::Edit;
 
     // game
-    Entity focusingEntity = Entity::k_null;
+    Entity focusingEntity = Entity::kNull;
 
     // vertex layout
     VertexLayoutEntryManager vertexLayoutEntryManager = {};
@@ -111,7 +111,7 @@ public:
 
     // entity operator
     void               CreateEntitiesFrom(Scene* _pScene, const Ref<Model>& _pModel);
-    void               CreateEntity(Scene* _pScene, Optional<Entity> _parent = k_nullopt);
+    void               CreateEntity(Scene* _pScene, Optional<Entity> _parent = kNullopt);
     void               CloneEntity(Scene* _pScene, Entity _srcEntity);
     void               DestroyEntity(Scene* _pScene, Entity _entity);
     [[nodiscard]] bool CanEntityClone(Entity _entity) const;
@@ -169,15 +169,15 @@ private:
     Scoped<Editor_FileBrowserWindow>        m_pFileBrowserWindow        = nullptr;
     Scoped<Editor_VertexLayoutEditorWindow> m_pVertexLayoutEditorWindow = nullptr;
 
-    EditorSharedData                   m_sharedData  = {};
+    EditorSharedData               m_sharedData  = {};
     EnumArray<eEditorWindow, bool> m_windowShows = {};
-    DialogStack                        m_dialogStack = {};
+    DialogStack                    m_dialogStack = {};
 
     float m_configSaveCounterSec = 0.f;
 
-    constexpr static float       k_configFileAutoSaveIntervalSec = 10.f;   // save config every 10 seconds
-    constexpr static const char* k_configFileName                = "EditorConfig.json";
-    constexpr static Vec2i       k_iconSize                      = { 64, 64 };
+    constexpr static float       kConfigFileAutoSaveIntervalSec = 10.f;   // save config every 10 seconds
+    constexpr static const char* kConfigFileName                = "EditorConfig.json";
+    constexpr static Vec2i       kIconSize                      = { 64, 64 };
 
     inline static Editor* s_pInstance = nullptr;
     friend class Application;

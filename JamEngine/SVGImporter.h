@@ -9,7 +9,7 @@ struct SVGImporterInfo
 {
     Int32 width           = -1;                    // desired width, -1 for original size
     Int32 height          = -1;                    // desired height, -1 for original size
-    RGBA  backgroundColor = RGBA::k_transparent;   // background color
+    RGBA  backgroundColor = RGBA::kTransparent;   // background color
 };
 
 class SVGImporter

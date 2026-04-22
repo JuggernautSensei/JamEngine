@@ -56,12 +56,12 @@ private:
     Transform m_local = {};
     Transform m_world = {};
 
-    Entity m_root        = Entity::k_null;
-    Entity m_owner       = Entity::k_null;
-    Entity m_parent      = Entity::k_null;
-    Entity m_firstChild  = Entity::k_null;
-    Entity m_nextSibling = Entity::k_null;
-    Entity m_prevSibling = Entity::k_null;
+    Entity m_root        = Entity::kNull;
+    Entity m_owner       = Entity::kNull;
+    Entity m_parent      = Entity::kNull;
+    Entity m_firstChild  = Entity::kNull;
+    Entity m_nextSibling = Entity::kNull;
+    Entity m_prevSibling = Entity::kNull;
 };
 
 }   // namespace Jam

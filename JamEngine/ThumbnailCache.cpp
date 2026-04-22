@@ -112,30 +112,30 @@ void ThumbnailCache::InsertThumbnail_(
 Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
     const StringView _path) const
 {
-    constexpr SIZE k_thumbnailSize = { 128, 128 };
+    constexpr SIZE kThumbnailSize = { 128, 128 };
 
     const WString       path = WString::Encoded(_path);
     CComPtr<IShellItem> psi  = nullptr;
     if (FAILED(SHCreateItemFromParsingName(path.GetPtr(), nullptr, IID_PPV_ARGS(&psi))))
     {
         JAM_LOG_ERROR("Failed to create IShellItem from path: {}", _path);
-        return k_nullopt;
+        return kNullopt;
     }
 
     CComPtr<IShellItemImageFactory> pImageFactory = nullptr;
     if (FAILED(psi->QueryInterface(IID_PPV_ARGS(&pImageFactory))))
     {
         JAM_LOG_ERROR("Failed to get IShellItemImageFactory from IShellItem: {}", _path);
-        return k_nullopt;
+        return kNullopt;
     }
 
     HBITMAP hBmp = {};
-    if (FAILED(pImageFactory->GetImage(k_thumbnailSize, SIIGBF_THUMBNAILONLY, &hBmp)))
+    if (FAILED(pImageFactory->GetImage(kThumbnailSize, SIIGBF_THUMBNAILONLY, &hBmp)))
     {
-        if (FAILED(pImageFactory->GetImage(k_thumbnailSize, SIIGBF_RESIZETOFIT, &hBmp)))
+        if (FAILED(pImageFactory->GetImage(kThumbnailSize, SIIGBF_RESIZETOFIT, &hBmp)))
         {
             JAM_LOG_ERROR("Failed to get thumbnail image for path: {}", _path);
-            return k_nullopt;
+            return kNullopt;
         }
     }
 
@@ -144,18 +144,18 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
     {
         JAM_LOG_ERROR("GetObject failed for thumbnail bitmap: {}", _path);
         DeleteObject(hBmp);
-        return k_nullopt;
+        return kNullopt;
     }
 
     // read pixel
     const Int32   width  = bmp.bmWidth;
     const Int32   height = bmp.bmHeight;
     Vector<UInt8> pixels(4 * width * height);
-    if (GetBitmapBits(hBmp, NarrowCast<LONG>(pixels.size()), pixels.data()) == 0)
+    if (GetBitmapBits(hBmp, static_cast<LONG>(pixels.size()), pixels.data()) == 0)
     {
         JAM_LOG_ERROR("GetBitmapBits failed for thumbnail bitmap: {}", _path);
         DeleteObject(hBmp);
-        return k_nullopt;
+        return kNullopt;
     }
 
     DeleteObject(hBmp);

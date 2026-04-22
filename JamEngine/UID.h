@@ -6,11 +6,11 @@ namespace Jam
 
 class UID
 {
-    static constexpr UInt32 k_nullId = Limits<UInt32>::k_max;
+    static constexpr UInt32 kNullId = Limits<UInt32>::kMax;
 
 public:
     constexpr UID()
-        : value(k_nullId)
+        : value(kNullId)
     {
     }
 
@@ -21,7 +21,7 @@ public:
 
     [[nodiscard]] constexpr bool IsValid() const noexcept
     {
-        return value != k_nullId;
+        return value != kNullId;
     }
 
     explicit constexpr operator bool() const noexcept
@@ -44,10 +44,10 @@ public:
         return value != _uid.value;
     }
 
-    static UID k_null;
+    static UID kNull;
 
 private:
-    UInt32 value = k_nullId;
+    UInt32 value = kNullId;
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const UID& _uid);

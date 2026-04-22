@@ -213,7 +213,7 @@ void HelloJamScene::OnRender(const RenderView& _view)
     Graphics::SetFrameBuffer(m_fbh);
     Graphics::ClearRenderTarget(m_fbh, k_background);
     Graphics::ClearDepth(m_fbh, true, false);
-    Graphics::SetViewport(_view.viewport);
+    Graphics::SetViewport(_view.vp);
 
     Graphics::SetProgram(m_program);
     Graphics::SetConstantBuffer(m_transformCbh, eShader::VertexShader, 0);

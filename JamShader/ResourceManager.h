@@ -34,7 +34,7 @@ private:
     StringHashMap<Ref<ShaderSource>> m_shaderSources = {};
 
     float                  m_garbageCollectCounterSec = 0.f;
-    static constexpr float k_garbageCollectInterval   = 5.f;   // seconds
+    static constexpr float kGarbageCollectInterval   = 5.f;   // seconds
 
     inline static ResourceManager* s_pInstance = nullptr;
 };

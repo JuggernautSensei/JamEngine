@@ -4,9 +4,8 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>
-    </LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>--benchmark_repetitions=10|--benchmark_repetitions=50|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArgumentsHistory>--benchmark_min_time=10|--benchmark_min_time=&lt;seconds&gt;|--benchmark_repetitions=10 --benchmark_out=result.json --benchmark_out_format=json|--benchmark_repetitions=10 --benchmark_out=result.json --benchmark_out_format=xml|--benchmark_repetitions=10 --benchmark_out=result.json --benchmark_out_format=json --benchmark_display_aggregates_only=true|</LocalDebuggerCommandArgumentsHistory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>--benchmark_repetitions=10 --benchmark_out=result.json --benchmark_out_format=json --benchmark_display_aggregates_only=true</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

@@ -23,12 +23,10 @@ Texture::Texture(Texture&& _other) noexcept
     , m_texh(_other.m_texh)
     , m_res(_other.m_res)
     , m_type(_other.m_type)
-    , m_bLoadedFromFile(_other.m_bLoadedFromFile)
 {
-    _other.m_texh            = k_invalidHandle;
-    _other.m_res             = { 0, 0 };
-    _other.m_type            = eTexture::Texture2D;
-    _other.m_bLoadedFromFile = false;
+    _other.m_texh = kInvalidHandle;
+    _other.m_res  = { 0, 0 };
+    _other.m_type = eTexture::Texture2D;
 }
 
 Texture& Texture::operator=(Texture&& _other) noexcept
@@ -37,17 +35,15 @@ Texture& Texture::operator=(Texture&& _other) noexcept
     {
         CleanUp_();
 
-        m_path            = std::move(_other.m_path);
-        m_name            = std::move(_other.m_name);
-        m_texh            = _other.m_texh;
-        m_res             = _other.m_res;
-        m_type            = _other.m_type;
-        m_bLoadedFromFile = _other.m_bLoadedFromFile;
+        m_path = std::move(_other.m_path);
+        m_name = std::move(_other.m_name);
+        m_texh = _other.m_texh;
+        m_res  = _other.m_res;
+        m_type = _other.m_type;
 
-        _other.m_texh            = k_invalidHandle;
-        _other.m_res             = { 0, 0 };
-        _other.m_type            = eTexture::Texture2D;
-        _other.m_bLoadedFromFile = false;
+        _other.m_texh = kInvalidHandle;
+        _other.m_res  = { 0, 0 };
+        _other.m_type = eTexture::Texture2D;
     }
     return *this;
 }
@@ -73,14 +69,14 @@ Expect<Ref<Texture>> Texture::LoadFromFile(
     const StringView _path)
 {
     Ref<Texture> pTexture = new Texture;
-    if (const Error err = pTexture->Load_(_path))
+    if (const Error err = pTexture->LoadFromFile_(_path))
     {
         return err;
     }
     return pTexture;
 }
 
-Error Texture::Load_(
+Error Texture::LoadFromFile_(
     const StringView _path)
 {
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
@@ -102,7 +98,6 @@ Error Texture::Load_(
     m_res                  = { info.width, info.height };
     m_type                 = info.type;
     m_path                 = _path;
-    m_bLoadedFromFile      = true;
     return Error::None;
 }
 
@@ -114,13 +109,11 @@ Error Texture::Save(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
     JAM_ASSERT(IsValid(), "Cannot save an invalid texture.");
 
-    StringView dir = {}, base = {}, ext = {};
-    _path.Decompose(&dir, nullptr, &base, &ext);
-
-    String path = dir;
-    path.Set(dir);
-    path.Append(base);
-    path.Append(k_extension);
+    String path = _path;
+    if (_bReplaceExtension)
+    {
+        path.ReplaceExtension(kExtension);
+    }
 
     return ImageExporter::ExportToFile(m_texh, path, eImageFormat::DDS, false, _policy);
 }
@@ -129,13 +122,6 @@ void Texture::SetName(
     const StringView _name)
 {
     m_name = _name;
-}
-
-void Texture::SetVirtualPath(
-    const StringView _path)
-{
-    JAM_ASSERT(m_bLoadedFromFile == false, "Cannot change path of an asset loaded from file.");
-    m_path = _path;
 }
 
 void Texture::Invalidate()
@@ -150,17 +136,17 @@ bool Texture::IsValid() const
 
 eAsset Texture::GetAssetType() const
 {
-    return k_asestType;
+    return kAsestType;
 }
 
 StringView Texture::GetTypeName() const
 {
-    return k_typeName;
+    return kTypeName;
 }
 
 UInt32 Texture::GetTypeHash() const
 {
-    return k_typeHash;
+    return kTypeHash;
 }
 
 StringView Texture::GetPath() const
@@ -175,12 +161,12 @@ StringView Texture::GetName() const
 
 StringView Texture::GetExtension() const
 {
-    return k_extension;
+    return kExtension;
 }
 
 StringView Texture::GetFilter() const
 {
-    return k_filter;
+    return kFilter;
 }
 
 TextureHandle Texture::GetHandle() const
@@ -202,14 +188,16 @@ void Texture::Bind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    GetGraphics().SetTexture(m_texh, _shader, _slot);
+    Graphics& gfx = GetGraphics();
+    gfx.SetTexture(m_texh, _shader, _slot);
 }
 
 void Texture::Unbind(
     const eShader _shader,
     const Int32   _slot) const
 {
-    GetGraphics().SetTexture(k_invalidHandle, _shader, _slot);
+    Graphics& gfx = GetGraphics();
+    gfx.SetTexture(kInvalidHandle, _shader, _slot);
 }
 
 void Texture::CleanUp_()
@@ -217,9 +205,8 @@ void Texture::CleanUp_()
     JAM_DESTROY_TEXTURE(m_texh);
     m_path.Clear();
     m_name.Clear();
-    m_bLoadedFromFile = false;
-    m_res             = { 0, 0 };
-    m_type            = eTexture::Texture2D;
+    m_res  = { 0, 0 };
+    m_type = eTexture::Texture2D;
 }
 
 void WriteToArchive(

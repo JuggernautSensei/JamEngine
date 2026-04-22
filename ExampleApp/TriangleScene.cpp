@@ -110,7 +110,7 @@ void TriangleScene::OnExit()
 
 void TriangleScene::OnRender(const RenderView& _view)
 {
-    Graphics::SetViewport(_view.viewport);
+    Graphics::SetViewport(_view.vp);
     Graphics::SetFrameBuffer(_view.fbh);
     Graphics::ClearRenderTarget(_view.fbh, RGBA::k_black);
 

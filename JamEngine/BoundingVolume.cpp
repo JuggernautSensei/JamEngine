@@ -1,37 +1,8 @@
 #include "pch.h"
-
 #include "BoundingVolume.h"
 
 namespace Jam
 {
-
-namespace
-{
-
-    ePlaneIntersect IntersectPlaneAabb_(
-        const Vec3  _center,
-        const Vec3  _ext,
-        const Vec3  _normal,
-        const float _d)
-    {
-        const float dist = _normal.x * _center.x + _normal.y * _center.y + _normal.z * _center.z + _d;
-        const float r    = Abs(_normal.x) * _ext.x + Abs(_normal.y) * _ext.y + Abs(_normal.z) * _ext.z;
-
-        if (dist > r)
-        {
-            return ePlaneIntersect::Outside;
-        }
-        else if (dist < -r)
-        {
-            return ePlaneIntersect::Inside;
-        }
-        else
-        {
-            return ePlaneIntersect::Intersects;
-        }
-    }
-
-}   // namespace
 
 eRegion CalcRegion(const bool _bRight, const bool _bTop, const bool _bFar)
 {
@@ -53,122 +24,384 @@ bool IsFar(const eRegion _region)
     return (static_cast<int>(_region) & 0b001) != 0;
 }
 
-Aabb::Aabb(
-    const Vec3 _min,
-    const Vec3 _max)
-    : min(_min)
-    , max(_max)
+Aabb::Aabb(const Vec3 _center, const Vec3 _extents)
+    : center(_center)
+    , extents(_extents)
 {
 }
 
-Aabb Aabb::FromCenterExtents(
-    const Vec3 _center,
-    const Vec3 _ext)
+Aabb Aabb::FromMinMax(const Vec3 _min, const Vec3 _max)
 {
-    Aabb aabb = {};
-    aabb.min  = _center - _ext;
-    aabb.max  = _center + _ext;
-    return aabb;
+    const Vec3 c = (_min + _max) * 0.5f;
+    const Vec3 e = (_max - _min) * 0.5f;
+    return Aabb { c, e };
 }
 
-void Aabb::Transform(
-    const Mtx4& _mtx)
+Aabb Aabb::Transform(const Mtx4& _mtx) const
 {
-    const Vec3 c    = GetCenter();
-    const Vec3 e    = GetExtents();
-    const Vec3 newC = Vec3::Transform(c, _mtx);
-    const Vec3 r0   = Abs({ _mtx._11, _mtx._12, _mtx._13 });
-    const Vec3 r1   = Abs({ _mtx._21, _mtx._22, _mtx._23 });
-    const Vec3 r2   = Abs({ _mtx._31, _mtx._32, _mtx._33 });
-    const Vec3 newE = { Dot(r0, e), Dot(r1, e), Dot(r2, e) };
-    min             = newC - newE;
-    max             = newC + newE;
+    const Vec3 nC = _mtx.Mult(center);
+
+    const Vec3 ex = { Abs(_mtx.m[0][0]) * extents.x, Abs(_mtx.m[1][0]) * extents.x, Abs(_mtx.m[2][0]) * extents.x };
+    const Vec3 ey = { Abs(_mtx.m[0][1]) * extents.y, Abs(_mtx.m[1][1]) * extents.y, Abs(_mtx.m[2][1]) * extents.y };
+    const Vec3 ez = { Abs(_mtx.m[0][2]) * extents.z, Abs(_mtx.m[1][2]) * extents.z, Abs(_mtx.m[2][2]) * extents.z };
+    const Vec3 nE = (ex + ey + ez);
+    return { nC, nE };
 }
 
-Aabb Aabb::Transformed(
-    const Mtx4& _mtx) const
+void Aabb::Merge(const Aabb& _aabb)
 {
-    Aabb aabb = *this;
-    aabb.Transform(_mtx);
-    return aabb;
+    const Vec3 minA = center - extents;
+    const Vec3 maxA = center + extents;
+    const Vec3 minB = _aabb.center - _aabb.extents;
+    const Vec3 maxB = _aabb.center + _aabb.extents;
+
+    const Vec3 newMin = minA.Min(minB);
+    const Vec3 newMax = maxA.Max(maxB);
+
+    center  = (newMin + newMax) * 0.5f;
+    extents = (newMax - newMin) * 0.5f;
 }
 
-void Aabb::Merge(
-    const Aabb& _aabb)
+void Aabb::Merge(const Vec3 _p)
 {
-    min = Vec3 { Min(min.x, _aabb.min.x), Min(min.y, _aabb.min.y), Min(min.z, _aabb.min.z) };
-    max = Vec3 { Max(max.x, _aabb.max.x), Max(max.y, _aabb.max.y), Max(max.z, _aabb.max.z) };
+    const Vec3 min = center - extents;
+    const Vec3 max = center + extents;
+
+    const Vec3 newMin = min.Min(_p);
+    const Vec3 newMax = max.Max(_p);
+
+    center  = (newMin + newMax) * 0.5f;
+    extents = (newMax - newMin) * 0.5f;
 }
 
-void Aabb::Merge(
-    const Vec3 _p)
+Vec3 Aabb::GetMin() const
 {
-    min = Vec3 { Min(min.x, _p.x), Min(min.y, _p.y), Min(min.z, _p.z) };
-    max = Vec3 { Max(max.x, _p.x), Max(max.y, _p.y), Max(max.z, _p.z) };
+    return center - extents;
 }
 
-Vec3 Aabb::GetCenter() const
+Vec3 Aabb::GetMax() const
 {
-    return (min + max) * 0.5f;
-}
-
-Vec3 Aabb::GetExtents() const
-{
-    return (max - min) * 0.5f;
+    return center + extents;
 }
 
 float Aabb::GetWidth() const
 {
-    return max.x - min.x;
+    return extents.x * 2.f;
 }
 
 float Aabb::GetHeight() const
 {
-    return max.y - min.y;
+    return extents.y * 2.f;
 }
 
 float Aabb::GetDepth() const
 {
-    return max.z - min.z;
+    return extents.z * 2.f;
 }
 
-CornerPoints Aabb::GetCornerPoints() const
+Corners Aabb::CalcCorners() const
 {
-    CornerPoints corners              = {};
-    corners[eRegion::LeftTopNear]     = Vec3 { min.x, max.y, min.z };
-    corners[eRegion::RightTopNear]    = Vec3 { max.x, max.y, min.z };
-    corners[eRegion::LeftBottomNear]  = Vec3 { min.x, min.y, min.z };
-    corners[eRegion::RightBottomNear] = Vec3 { max.x, min.y, min.z };
-    corners[eRegion::LeftTopFar]      = Vec3 { min.x, max.y, max.z };
-    corners[eRegion::RightTopFar]     = Vec3 { max.x, max.y, max.z };
-    corners[eRegion::LeftBottomFar]   = Vec3 { min.x, min.y, max.z };
-    corners[eRegion::RightBottomFar]  = Vec3 { max.x, min.y, max.z };
+    const Vec3 min = center - extents;
+    const Vec3 max = center + extents;
+
+    Corners corners                   = {};
+    corners[eRegion::LeftTopNear]     = { min.x, max.y, min.z };
+    corners[eRegion::RightTopNear]    = { max.x, max.y, min.z };
+    corners[eRegion::LeftBottomNear]  = { min.x, min.y, min.z };
+    corners[eRegion::RightBottomNear] = { max.x, min.y, min.z };
+    corners[eRegion::LeftTopFar]      = { min.x, max.y, max.z };
+    corners[eRegion::RightTopFar]     = { max.x, max.y, max.z };
+    corners[eRegion::LeftBottomFar]   = { min.x, min.y, max.z };
+    corners[eRegion::RightBottomFar]  = { max.x, min.y, max.z };
     return corners;
 }
 
-bool Aabb::Contains(
-    const Vec3 _p) const
+bool Aabb::Contains(const Vec3 _p) const
 {
-    return _p.x >= min.x && _p.x <= max.x
-        && _p.y >= min.y && _p.y <= max.y
-        && _p.z >= min.z && _p.z <= max.z;
+    const Vec3 v = (_p - center).Abs();
+    return v.x <= extents.x && v.y <= extents.y && v.z <= extents.z;
 }
 
-bool Aabb::Contains(
-    const Aabb& _other) const
+bool Aabb::Contains(const Aabb& _other) const
 {
-    return _other.min.x >= min.x && _other.max.x <= max.x
-        && _other.min.y >= min.y && _other.max.y <= max.y
-        && _other.min.z >= min.z && _other.max.z <= max.z;
+    const Vec3 min0 = center - extents;
+    const Vec3 max0 = center + extents;
+    const Vec3 min1 = _other.center - _other.extents;
+    const Vec3 max2 = _other.center + _other.extents;
+
+    return min1.x >= min0.x && max2.x <= max0.x
+        && min1.y >= min0.y && max2.y <= max0.y
+        && min1.z >= min0.z && max2.z <= max0.z;
 }
 
-bool Aabb::Intersects(
-    const Aabb& _other) const
+bool Aabb::Overlap(const Aabb& _other) const
 {
-    // 접함도 교차로 간주
-    if (max.x < _other.min.x || min.x > _other.max.x
-        || max.y < _other.min.y || min.y > _other.max.y
-        || max.z < _other.min.z || min.z > _other.max.z)
+    const Vec3 d = (center - _other.center).Abs();
+    const Vec3 r = extents + _other.extents;
+    return d.x <= r.x && d.y <= r.y && d.z <= r.z;
+}
+
+eIntersect Aabb::Intersects(const Aabb& _other) const
+{
+    const Vec3 d    = (center - _other.center).Abs();
+    const Vec3 sumE = extents + _other.extents;
+
+    if (d.x > sumE.x || d.y > sumE.y || d.z > sumE.z)
+    {
+        return eIntersect::Outside;
+    }
+
+    const Vec3 contain = d + _other.extents;
+    if (contain.x <= extents.x && contain.y <= extents.y && contain.z <= extents.z)
+    {
+        return eIntersect::Inside;
+    }
+
+    return eIntersect::Overlab;
+}
+
+bool Aabb::RayCast(const Ray& _ray, Hit* _pHitOrNull) const
+{
+    const Vec3 min    = center - extents;
+    const Vec3 max    = center + extents;
+    const Vec3 invDir = _ray.dir.Rcp();
+
+    const Vec3  t0    = (min - _ray.pos) * invDir;
+    const Vec3  t1    = (max - _ray.pos) * invDir;
+    const Vec3  tmin  = t0.Min(t1);
+    const Vec3  tmax  = t0.Max(t1);
+    const float tNear = Max(tmin.x, tmin.y, tmin.z);
+    const float tFar  = Min(tmax.x, tmax.y, tmax.z);
+
+    if (tNear > tFar || tFar < 0.f)
+    {
+        return false;
+    }
+
+    if (!_pHitOrNull)
+    {
+        return true;
+    }
+
+    Vec3 normal = {};
+    if (tmin.x >= tmin.y && tmin.x >= tmin.z)
+    {
+        normal.x = (t0.x < t1.x) ? -1.f : 1.f;
+    }
+    else if (tmin.y >= tmin.z)
+    {
+        normal.y = (t0.y < t1.y) ? -1.f : 1.f;
+    }
+    else
+    {
+        normal.z = (t0.z < t1.z) ? -1.f : 1.f;
+    }
+
+    _pHitOrNull->point  = _ray.pos + _ray.dir * tNear;
+    _pHitOrNull->normal = normal;
+    _pHitOrNull->dist   = tNear;
+
+    return true;
+}
+
+Obb::Obb(
+    const Aabb& _aabb)
+    : center(_aabb.center)
+    , extents(_aabb.extents)
+    , rotation(Quat::kIdentity)
+{
+}
+
+Obb Obb::Transform(const Mtx4& _mtx) const
+{
+    Obb result    = {};
+    result.center = _mtx.Mult(center);
+
+    Vec3 s, t;
+    Quat r;
+    _mtx.DecomposeSRT(&s, &r, &t);
+
+    result.rotation = r * rotation;
+    result.extents  = extents * s;
+
+    return result;
+}
+
+float Obb::GetWidth() const
+{
+    return extents.x * 2.f;
+}
+
+float Obb::GetHeight() const
+{
+    return extents.y * 2.f;
+}
+
+float Obb::GetDepth() const
+{
+    return extents.z * 2.f;
+}
+
+Corners Obb::GetCorners() const
+{
+    const Vec3 axisX = rotation.Rotate(Vec3::kRight) * extents.x;
+    const Vec3 axisY = rotation.Rotate(Vec3::kUp) * extents.y;
+    const Vec3 axisZ = rotation.Rotate(Vec3::kForward) * extents.z;
+
+    Corners points                   = {};
+    points[eRegion::LeftBottomFar]   = center - axisX - axisY + axisZ;
+    points[eRegion::LeftBottomNear]  = center - axisX - axisY - axisZ;
+    points[eRegion::LeftTopFar]      = center - axisX + axisY + axisZ;
+    points[eRegion::LeftTopNear]     = center - axisX + axisY - axisZ;
+    points[eRegion::RightBottomFar]  = center + axisX - axisY + axisZ;
+    points[eRegion::RightBottomNear] = center + axisX - axisY - axisZ;
+    points[eRegion::RightTopFar]     = center + axisX + axisY + axisZ;
+    points[eRegion::RightTopNear]    = center + axisX + axisY - axisZ;
+
+    return points;
+}
+
+bool Obb::Contains(Vec3 _point) const
+{
+    const Quat invRot = rotation.Inverse();
+    const Vec3 pointL = invRot.Rotate(_point - center).Abs();
+    return pointL.x <= extents.x && pointL.y <= extents.y && pointL.z <= extents.z;
+}
+
+bool Obb::Contains(const Obb& _other) const
+{
+    const Corners corners = _other.GetCorners();
+    for (const Vec3& corner: corners)
+    {
+        if (!Contains(corner))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Obb::Overlab(const Obb& _other) const
+{
+    Quat invQ = rotation.Inverse();
+    Mtx4 rMtx = Mtx4::FromQuaternion(invQ * _other.rotation);
+    Vec3 t    = invQ.Rotate(_other.center - center);
+    Vec3 eA   = extents;
+    Vec3 eB   = _other.extents;
+    Vec3 ar0  = rMtx.r0.xyz;
+    Vec3 ar1  = rMtx.r1.xyz;
+    Vec3 ar2  = rMtx.r2.xyz;
+
+    float ra, rb;
+    ra = eA.x;
+    rb = ar0.Dot(eB);
+    if (Abs(t.x) > ra + rb)
+    {
+        return false;
+    }
+
+    ra = eA.y;
+    rb = ar1.Dot(eB);
+    if (Abs(t.y) > ra + rb)
+    {
+        return false;
+    }
+
+    ra = eA.z;
+    rb = ar2.Dot(eB);
+    if (Abs(t.z) > ra + rb)
+    {
+        return false;
+    }
+
+    Vec3 bu = { rMtx.m[0][0], rMtx.m[1][0], rMtx.m[2][0] };
+    Vec3 bv = { rMtx.m[0][1], rMtx.m[1][1], rMtx.m[2][1] };
+    Vec3 bw = { rMtx.m[0][2], rMtx.m[1][2], rMtx.m[2][2] };
+
+    Vec3 abu = bu.Abs();
+    Vec3 abv = bv.Abs();
+    Vec3 abw = bw.Abs();
+
+    ra = eA.Dot(abu);
+    rb = eB.x;
+    if (Abs(t.Dot(bu)) > ra + rb)
+    {
+        return false;
+    }
+
+    ra = eA.Dot(abv);
+    rb = eB.y;
+    if (Abs(t.Dot(bv)) > ra + rb)
+    {
+        return false;
+    }
+
+    ra = eA.Dot(abw);
+    rb = eB.z;
+    if (Abs(t.Dot(bw)) > ra + rb)
+    {
+        return false;
+    }
+
+    ra = eA.y * abu.z + eA.z * abu.y;
+    rb = eB.y * ar0.z + eB.z * ar0.y;
+    if (Abs(t.z * rMtx.m[1][0] - t.y * rMtx.m[2][0]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.y * abv.z + eA.z * abv.y;
+    rb = eB.x * ar0.z + eB.z * ar0.x;
+    if (Abs(t.z * rMtx.m[1][1] - t.y * rMtx.m[2][1]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.y * abw.z + eA.z * abw.y;
+    rb = eB.x * ar0.y + eB.y * ar0.x;
+    if (Abs(t.z * rMtx.m[1][2] - t.y * rMtx.m[2][2]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.x * abu.z + eA.z * abu.x;
+    rb = eB.y * ar1.z + eB.z * ar1.y;
+    if (Abs(t.x * rMtx.m[2][0] - t.z * rMtx.m[0][0]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.x * abv.z + eA.z * abv.x;
+    rb = eB.x * ar1.z + eB.z * ar1.x;
+    if (Abs(t.x * rMtx.m[2][1] - t.z * rMtx.m[0][1]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.x * abw.z + eA.z * abw.x;
+    rb = eB.x * ar1.y + eB.y * ar1.x;
+    if (Abs(t.x * rMtx.m[2][2] - t.z * rMtx.m[0][2]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.x * abu.y + eA.y * abu.x;
+    rb = eB.y * ar2.z + eB.z * ar2.y;
+    if (Abs(t.y * rMtx.m[0][0] - t.x * rMtx.m[1][0]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.x * abv.y + eA.y * abv.x;
+    rb = eB.x * ar2.z + eB.z * ar2.x;
+    if (Abs(t.y * rMtx.m[0][1] - t.x * rMtx.m[1][1]) > ra + rb + kEpsilon)
+    {
+        return false;
+    }
+
+    ra = eA.x * abw.y + eA.y * abw.x;
+    rb = eB.x * ar2.y + eB.y * ar2.x;
+    if (Abs(t.y * rMtx.m[0][2] - t.x * rMtx.m[1][2]) > ra + rb + kEpsilon)
     {
         return false;
     }
@@ -176,168 +409,30 @@ bool Aabb::Intersects(
     return true;
 }
 
-RayCastResult Aabb::Intersects(
-    const Ray& _ray) const
+bool Obb::RayCast(const Ray& _ray, Hit* _pHitOrNull) const
 {
-    JAM_ASSERT(_ray.IsDirectionNormalized(), "Ray direction must be normalized to get correct intersection result.");
+    const Quat invQ = rotation.Inverse();
 
-    // zero divide 여도 올바르게 계산됨.
-    const Vec3 invDir = { 1.f / _ray.direction.x, 1.f / _ray.direction.y, 1.f / _ray.direction.z };
+    Ray rayL = {};
+    rayL.pos = invQ.Rotate(_ray.pos - center);
+    rayL.dir = invQ.Rotate(_ray.dir);
 
-    const Vec3 t0 = (min - _ray.origin) * invDir;
-    const Vec3 t1 = (max - _ray.origin) * invDir;
-
-    const Vec3 tMin = { Min(t0.x, t1.x), Min(t0.y, t1.y), Min(t0.z, t1.z) };
-    const Vec3 tMax = { Max(t0.x, t1.x), Max(t0.y, t1.y), Max(t0.z, t1.z) };
-
-    const float tNear = Max(Max(tMin.x, tMin.y), tMin.z);
-    const float tFar  = Min(Min(tMax.x, tMax.y), tMax.z);
-    if (tNear > tFar || tFar < 0.f)
+    const Aabb aabbL = { Vec3::kZero, extents };
+    if (aabbL.RayCast(rayL, _pHitOrNull))
     {
-        return {};
+        if (_pHitOrNull)
+        {
+            _pHitOrNull->point  = rotation.Rotate(_pHitOrNull->point) + center;
+            _pHitOrNull->normal = rotation.Rotate(_pHitOrNull->normal);
+            _pHitOrNull->dist   = _ray.pos.Distance(_pHitOrNull->point);
+        }
+        return true;
     }
-
-    RayCastResult result = {};
-    result.bHit          = true;
-    result.distance      = tNear >= 0.f ? tNear : tFar;
-    return result;
+    return false;
 }
 
-Obb::Obb(const Mtx4& _mtx)
-    : mtx(_mtx)
-{
-}
-
-Obb Obb::FromAabb(
-    const Aabb& _aabb)
-{
-    const Vec3 center = _aabb.GetCenter();
-    const Vec3 ext    = _aabb.GetExtents();
-
-    Obb obb = {};
-    obb.mtx = Mtx4::CreateScale(ext * 2.f) * Mtx4::CreateTranslation(center);
-    return obb;
-}
-
-void Obb::Transform(
-    const Mtx4& _mtx)
-{
-    mtx *= _mtx;
-}
-
-Obb Obb::Transformed(
-    const Mtx4& _mtx) const
-{
-    Obb obb = *this;
-    obb.Transform(_mtx);
-    return obb;
-}
-
-Aabb Obb::ToAabb() const
-{
-    Aabb aabb = {};
-    aabb.min  = Vec3 { -0.5f, -0.5f, -0.5f };
-    aabb.max  = Vec3 { 0.5f, 0.5f, 0.5f };
-    aabb.Transform(mtx);
-    return aabb;
-}
-
-Vec3 Obb::GetCenter() const
-{
-    return mtx.Translation();
-}
-
-Vec3 Obb::GetExtents() const
-{
-    const Vec3  r   = mtx.Right();
-    const Vec3  u   = mtx.Up();
-    const Vec3  f   = mtx.Forward();
-    const float hsx = Length(r) * 0.5f;
-    const float hsy = Length(u) * 0.5f;
-    const float hsz = Length(f) * 0.5f;
-    return { hsx, hsy, hsz };
-}
-
-float Obb::GetWidth() const
-{
-    return Length(mtx.Right());
-}
-
-float Obb::GetHeight() const
-{
-    return Length(mtx.Up());
-}
-
-float Obb::GetDepth() const
-{
-    return Length(mtx.Forward());
-}
-
-CornerPoints Obb::GetCornerPoints() const
-{
-    const Aabb aabb = Aabb::FromCenterExtents(Numbers<Vec3>::k_zero, { 0.5f, 0.5f, 0.5f });
-
-    CornerPoints corners = aabb.GetCornerPoints();
-    for (Vec3& p: corners)
-    {
-        p = Vec3::Transform(p, mtx);
-    }
-
-    return corners;
-}
-
-bool Obb::Contains(const Vec3 _point) const
-{
-    const Mtx4 invMtx = mtx.Invert();
-    const Vec3 pointL = Vec3::Transform(_point, invMtx);
-
-    Aabb boxL = {};
-    boxL.min  = Vec3 { -0.5f, -0.5f, -0.5f };
-    boxL.max  = Vec3 { 0.5f, 0.5f, 0.5f };
-
-    return boxL.Contains(pointL);
-}
-
-RayCastResult Obb::Intersects(
-    const Ray& _ray) const
-{
-    JAM_ASSERT(_ray.IsDirectionNormalized(), "Ray direction must be normalized to get correct intersection result.");
-
-    const Mtx4 invMtx  = mtx.Invert();
-    const Vec3 originL = Vec3::Transform(_ray.origin, invMtx);
-    const Vec3 dirL    = Vec3::TransformNormal(_ray.direction, invMtx);
-
-    const float dirLLen = Length(dirL);
-    if (IsZeroApprox(dirLLen))
-    {
-        return {};
-    }
-
-    const Vec3 nDirL = dirL / dirLLen;
-    const Ray  rayL  = { originL, nDirL };
-
-    Aabb boxL = {};
-    boxL.min  = Vec3 { -0.5f, -0.5f, -0.5f };
-    boxL.max  = Vec3 { 0.5f, 0.5f, 0.5f };
-
-    RayCastResult ret = boxL.Intersects(rayL);
-    if (!ret.bHit)
-    {
-        return {};
-    }
-
-    ret.distance /= dirLLen;
-    return ret;
-}
-
-Plane::Plane(
-    const float _a,
-    const float _b,
-    const float _c,
-    const float _d,
-    const bool  _bNormalize)
-    : normal(_a, _b, _c)
-    , d(_d)
+Plane::Plane(const float _a, const float _b, const float _c, const float _d, const bool _bNormalize)
+    : vec(_a, _b, _c, _d)
 {
     if (_bNormalize)
     {
@@ -345,93 +440,59 @@ Plane::Plane(
     }
 }
 
-Plane::Plane(
-    const Vec4 _vec,
-    const bool _bNormalize)
+Plane::Plane(const Vec4 _vec, const bool _bNormalize)
     : Plane(_vec.x, _vec.y, _vec.z, _vec.w, _bNormalize)
-{
-}
+{}
 
-Plane::Plane(
-    const Vec3  _normal,
-    const float _d,
-    const bool  _bNormalize)
+Plane::Plane(const Vec3 _normal, const float _d, const bool _bNormalize)
     : Plane(_normal.x, _normal.y, _normal.z, _d, _bNormalize)
-{
-}
+{}
 
-Plane::Plane(
-    const Vec3 _p1,
-    const Vec3 _p2,
-    const Vec3 _p3,
-    const bool _bNormalize)
+Plane::Plane(const Vec3 _p1, const Vec3 _p2, const Vec3 _p3, const bool _bNormalize)
 {
     const Vec3 v0 = _p2 - _p1;
     const Vec3 v1 = _p3 - _p1;
-    normal        = Cross(v0, v1);
-    d             = -Dot(normal, _p1);
-
+    normal        = v0.Cross(v1);
+    d             = -normal.Dot(_p1);
     if (_bNormalize)
     {
         Normalize();
     }
 }
 
-Plane::Plane(
-    const Vec3 _point,
-    const Vec3 _normal,
-    const bool _bNormalize)
+Plane::Plane(const Vec3 _point, const Vec3 _normal, const bool _bNormalize)
 {
     normal = _normal;
-    d      = -Dot(_normal, _point);
-
+    d      = -normal.Dot(_point);
     if (_bNormalize)
     {
         Normalize();
     }
 }
 
-Vec3 Plane::IntersectOf3Planes(
-    const Plane& p1,
-    const Plane& p2,
-    const Plane& p3)
+Vec3 Plane::IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3)
 {
-    const Vec3 n1 = p1.GetNormal();
-    const Vec3 n2 = p2.GetNormal();
-    const Vec3 n3 = p3.GetNormal();
+    const Vec3 n1 = p1.normal;
+    const Vec3 n2 = p2.normal;
+    const Vec3 n3 = p3.normal;
 
-    const float d1 = p1.GetD();
-    const float d2 = p2.GetD();
-    const float d3 = p3.GetD();
-
-    const float crossDot = Dot(n1, Cross(n2, n3));
-    if (IsZeroApprox(crossDot))
+    const Vec3  cross23 = n2.Cross(n3);
+    const float denom   = n1.Dot(cross23);
+    if (IsZeroApprox(denom))
     {
-        return Numbers<Vec3>::k_zero;
+        return Vec3::kZero;
     }
 
-    const Vec3 term1 = Cross(n2, n3) * -d1;
-    const Vec3 term2 = Cross(n3, n1) * -d2;
-    const Vec3 term3 = Cross(n1, n2) * -d3;
-
-    return (term1 + term2 + term3) / crossDot;
-}
-
-Vec3 Plane::GetNormal() const
-{
-    return normal;   // AI
-}
-
-float Plane::GetD() const
-{
-    return d;   // AI
+    const Vec3 cross31 = n3.Cross(n1);
+    const Vec3 cross12 = n1.Cross(n2);
+    return (cross23 * -p1.d + cross31 * -p2.d + cross12 * -p3.d) / denom;
 }
 
 void Plane::Normalize()
 {
-    const float len = Length(normal);
-    normal /= len;
-    d /= len;
+    const float invLen = RSqrt(normal.LengthSq());
+    normal             = normal * invLen;
+    d *= invLen;
 }
 
 Plane Plane::Normalized() const
@@ -441,102 +502,56 @@ Plane Plane::Normalized() const
     return out;
 }
 
-bool Plane::IsNormalized() const
+Plane Plane::Transform(const Mtx4& _invTransMtx, const bool _bNormalize) const
 {
-    return Jam::IsNormalized(GetNormal());
-}
-
-void Plane::Transform(
-    const Mtx4& _mtx,
-    const bool  _normalize)
-{
-    const Vec4 plane = DirectX::XMPlaneTransform(Vec4From(normal, d), _mtx.Invert().Transpose());
-    normal           = Vec3From(plane);
-    d                = plane.w;
-
-    if (_normalize)
+    Plane p = *this;
+    p.vec   = _invTransMtx.Mult(vec);
+    if (_bNormalize)
     {
-        Normalize();
+        p.Normalize();
     }
+    return p;
 }
 
-Plane Plane::Transformed(
-    const Mtx4& _mtx,
-    const bool  _normalize) const
+float Plane::DistanceToPoint(const Vec3 _point) const
 {
-    Plane out = *this;
-    out.Transform(_mtx, _normalize);
-    return out;
+    return normal.Dot(_point) + d;
 }
 
-float Plane::DistanceToPoint(
-    const Vec3 _point) const
+bool Plane::RayCast(const Ray& _ray, const bool _bDoubleSided, Hit* _pHitOrNull) const
 {
-    JAM_ASSERT(IsNormalized(), "Plane must be normalized to get correct distance.");
-    return normal.x * _point.x + normal.y * _point.y + normal.z * _point.z + d;
-}
-
-RayCastResult Plane::Intersects(
-    const Ray& _ray) const
-{
-    JAM_ASSERT(_ray.IsDirectionNormalized(), "Ray direction must be normalized to get correct intersection result.");
-
-    const Vec3  n     = GetNormal();
-    const float d     = GetD();
-    const float denom = Dot(n, _ray.direction);
-    if (IsZeroApprox(denom))
+    const float dist  = DistanceToPoint(_ray.pos);
+    const float nDotd = normal.Dot(_ray.dir);
+    if (!_bDoubleSided && (dist < 0.f || nDotd > 0.f))
     {
-        return {};
+        return false;
     }
 
-    const float t = -(Dot(n, _ray.origin) + d) / denom;
-    if (t < 0.f)
+    if (_pHitOrNull)
     {
-        return {};
+        const float tt      = -dist / nDotd;
+        _pHitOrNull->normal = normal;
+        _pHitOrNull->point  = _ray.pos + _ray.dir * tt;
+        _pHitOrNull->dist   = tt;
     }
 
-    RayCastResult result = {};
-    result.bHit          = true;
-    result.distance      = t;
-    return result;
+    return true;
 }
 
-ePlaneIntersect Plane::Intersects(const Aabb& _box) const
+bool Plane::Overlap(const Aabb& _box) const
 {
-    JAM_ASSERT(IsNormalized(), "Plane must be normalized to get correct intersection result.");
+    const float d = DistanceToPoint(_box.center);
+    const float r = normal.Abs().Dot(_box.extents);
+    return Abs(d) <= r;
+}
 
-    // 정석적인 방법
-    // 1. 평면의 노말을 기준으로 하여, 평면 기준 가장 먼점과 가까운 점을 찾는다. 이를 각각 n, f 라고 한다.
-    // 2. n과 평면의 거리가 양수라면 Outside
-    // 3. f과 평면의 거리가 음수라면 Inside
-    // 4. 그 외에는 Intersects
-
-    // const Vec3 n   = GetNormal();
-    // const Vec3 pos = { n.x >= 0.f ? _box.max.x : _box.min.x, n.y >= 0.f ? _box.max.y : _box.min.y, n.z >= 0.f ? _box.max.z : _box.min.z };
-    // const Vec3 neg = { n.x >= 0.f ? _box.min.x : _box.max.x, n.y >= 0.f ? _box.min.y : _box.max.y, n.z >= 0.f ? _box.min.z : _box.max.z };
-
-    // if (Dot(n, neg) + GetD() > 0.f)
-    //{
-    //     return ePlaneIntersect::Outside;
-    // }
-
-    // if (Dot(n, pos) + GetD() < 0.f)
-    //{
-    //     return ePlaneIntersect::Inside;
-    // }
-
-    // return ePlaneIntersect::Intersects;
-
-    // 최적화된 방법
-    // 1. aabb는 원점에서부터 모든 방향으로 일정하게 떨어져있다.
-    //    그러므로 extents를 평면의 노멀에 투영하여 최대거리를 구할 수 있다.
-    //    여기서, e는 모두 양수이기 때문에, 평면의 노말도 양수로 바꿔서 계산한다.
-    // 2. 평면의 노멀과 aabb의 중심을 이용하여, 평면과 aabb의 중심 사이의 거리를 구한다.
-    // 3. 2에서 구한 거리와 1에서 구한 최대거리를 비교하여, 평면과 aabb의 관계를 구한다.
-
-    const Vec3 c = _box.GetCenter();
-    const Vec3 e = _box.GetExtents();
-    return IntersectPlaneAabb_(c, e, GetNormal(), GetD());
+eIntersect Plane::Intersects(const Aabb& _box) const
+{
+    const float dist = DistanceToPoint(_box.center);
+    const float r    = normal.Abs().Dot(_box.extents);
+    return dist < -r ? eIntersect::Outside
+         : dist > r  ? eIntersect::Inside
+                     : eIntersect::Overlab;
 }
 
 Frustum::Frustum(
@@ -548,12 +563,12 @@ Frustum::Frustum(
     const Plane _far,
     const bool  _bNormalized)
 {
+    planes[eFrustumFace::Near]   = _near;
+    planes[eFrustumFace::Far]    = _far;
     planes[eFrustumFace::Left]   = _left;
     planes[eFrustumFace::Right]  = _right;
     planes[eFrustumFace::Bottom] = _bottom;
     planes[eFrustumFace::Top]    = _top;
-    planes[eFrustumFace::Near]   = _near;
-    planes[eFrustumFace::Far]    = _far;
 
     if (_bNormalized)
     {
@@ -561,44 +576,25 @@ Frustum::Frustum(
     }
 }
 
-Frustum::Frustum(
-    const Mtx4& _mtx,
-    const bool  _bNormalized)
+Frustum::Frustum(const Mtx4& _mtx, const bool _bNormalized)
     : Frustum(
-          Plane { -(_mtx._14 + _mtx._11), -(_mtx._24 + _mtx._21), -(_mtx._34 + _mtx._31), -(_mtx._44 + _mtx._41), false },
-          Plane { -(_mtx._14 - _mtx._11), -(_mtx._24 - _mtx._21), -(_mtx._34 - _mtx._31), -(_mtx._44 - _mtx._41), false },
-          Plane { -(_mtx._14 + _mtx._12), -(_mtx._24 + _mtx._22), -(_mtx._34 + _mtx._32), -(_mtx._44 + _mtx._42), false },
-          Plane { -(_mtx._14 - _mtx._12), -(_mtx._24 - _mtx._22), -(_mtx._34 - _mtx._32), -(_mtx._44 - _mtx._42), false },
-          Plane { -_mtx._13, -_mtx._23, -_mtx._33, -_mtx._43, false },
-          Plane { -(_mtx._14 - _mtx._13), -(_mtx._24 - _mtx._23), -(_mtx._34 - _mtx._33), -(_mtx._44 - _mtx._43), false },
+          Plane { _mtx.m[0][3] + _mtx.m[0][0], _mtx.m[1][3] + _mtx.m[1][0], _mtx.m[2][3] + _mtx.m[2][0], _mtx.m[3][3] + _mtx.m[3][0], false },
+          Plane { _mtx.m[0][3] - _mtx.m[0][0], _mtx.m[1][3] - _mtx.m[1][0], _mtx.m[2][3] - _mtx.m[2][0], _mtx.m[3][3] - _mtx.m[3][0], false },
+          Plane { _mtx.m[0][3] + _mtx.m[0][1], _mtx.m[1][3] + _mtx.m[1][1], _mtx.m[2][3] + _mtx.m[2][1], _mtx.m[3][3] + _mtx.m[3][1], false },
+          Plane { _mtx.m[0][3] - _mtx.m[0][1], _mtx.m[1][3] - _mtx.m[1][1], _mtx.m[2][3] - _mtx.m[2][1], _mtx.m[3][3] - _mtx.m[3][1], false },
+          Plane { _mtx.m[0][2], _mtx.m[1][2], _mtx.m[2][2], _mtx.m[3][2], false },
+          Plane { _mtx.m[0][3] - _mtx.m[0][2], _mtx.m[1][3] - _mtx.m[1][2], _mtx.m[2][3] - _mtx.m[2][2], _mtx.m[3][3] - _mtx.m[3][2], false },
           _bNormalized)
 {
 }
 
-void Frustum::Transform(
-    const Mtx4& _mtx,
-    const bool  _bNormalize)
-{
-    const Mtx4 invTransMtx = _mtx.Invert().Transpose();
-    for (Plane& p: planes)
-    {
-        const Vec4 plane = DirectX::XMPlaneTransform(Vec4From(p.GetNormal(), p.GetD()), invTransMtx);
-        p.normal         = Vec3From(plane);
-        p.d              = plane.w;
-    }
-
-    if (_bNormalize)
-    {
-        Normalize();
-    }
-}
-
-Frustum Frustum::Transformed(
-    const Mtx4& _mtx,
-    const bool  _bNormalize) const
+Frustum Frustum::Transform(const Mtx4& _invTransMtx, const bool _bNormalize) const
 {
     Frustum out = *this;
-    out.Transform(_mtx, _bNormalize);
+    for (Plane& p: out.planes)
+    {
+        p = p.Transform(_invTransMtx, _bNormalize);
+    }
     return out;
 }
 
@@ -617,39 +613,27 @@ Frustum Frustum::Normalized() const
     return out;
 }
 
-bool Frustum::IsNormalized() const
+Vec3 Frustum::CalcCenter() const
 {
-    for (const Plane& p: planes)
-    {
-        if (!p.IsNormalized())
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-Vec3 Frustum::GetCenter() const
-{
-    const CornerPoints corners = GetCornerPoints();
-    Vec3               sum     = Numbers<Vec3>::k_zero;
-    for (const Vec3& p: corners)
+    const Corners corners = CalcCorners();
+    Vec3          sum     = Vec3::kZero;
+    for (const Vec3 p: corners)
     {
         sum = sum + p;
     }
-    return sum / static_cast<float>(corners.size());
+    return sum / static_cast<float>(corners.Size());
 }
 
-CornerPoints Frustum::GetCornerPoints() const
+Corners Frustum::CalcCorners() const
 {
-    const Plane n = planes[eFrustumFace::Near];
-    const Plane f = planes[eFrustumFace::Far];
-    const Plane l = planes[eFrustumFace::Left];
-    const Plane r = planes[eFrustumFace::Right];
-    const Plane t = planes[eFrustumFace::Top];
-    const Plane b = planes[eFrustumFace::Bottom];
+    const Plane& n = planes[eFrustumFace::Near];
+    const Plane& f = planes[eFrustumFace::Far];
+    const Plane& l = planes[eFrustumFace::Left];
+    const Plane& r = planes[eFrustumFace::Right];
+    const Plane& t = planes[eFrustumFace::Top];
+    const Plane& b = planes[eFrustumFace::Bottom];
 
-    CornerPoints corners              = {};
+    Corners corners                   = {};
     corners[eRegion::LeftTopNear]     = Plane::IntersectOf3Planes(n, l, t);
     corners[eRegion::RightTopNear]    = Plane::IntersectOf3Planes(n, r, t);
     corners[eRegion::LeftBottomNear]  = Plane::IntersectOf3Planes(n, l, b);
@@ -661,106 +645,66 @@ CornerPoints Frustum::GetCornerPoints() const
     return corners;
 }
 
-ePlaneIntersect Frustum::Intersects(
-    const Aabb& _box) const
+bool Frustum::Overlap(const Aabb& _box) const
 {
-    bool       bAnyIntersect = false;
-    const Vec3 c             = _box.GetCenter();
-    const Vec3 e             = _box.GetExtents();
-
     for (const Plane& p: planes)
     {
-        const ePlaneIntersect result = IntersectPlaneAabb_(c, e, p.GetNormal(), p.GetD());
-        if (result == ePlaneIntersect::Outside)
+        if (!p.Overlap(_box))
         {
-            return ePlaneIntersect::Outside;
+            return false;
         }
-        else if (result == ePlaneIntersect::Intersects)
+    }
+    return true;
+}
+
+eIntersect Frustum::Intersects(const Aabb& _box) const
+{
+    bool bAnyIntersect = false;
+    for (const Plane p: planes)
+    {
+        const eIntersect ret = p.Intersects(_box);
+        if (ret == eIntersect::Outside)
+        {
+            return eIntersect::Outside;
+        }
+
+        if (ret == eIntersect::Overlab)
         {
             bAnyIntersect = true;
         }
     }
-    return bAnyIntersect ? ePlaneIntersect::Intersects : ePlaneIntersect::Inside;
+    return bAnyIntersect ? eIntersect::Overlab : eIntersect::Inside;
 }
 
-RayCastResult Frustum::Intersects(const Ray& _ray) const
+bool Frustum::RayCast(const Ray& _ray, const bool _bDoubleSided, Hit* _pHitOrNull) const
 {
-    JAM_ASSERT(_ray.IsDirectionNormalized(), "Ray direction must be normalized to get correct intersection result.");
-
-    float tNear = -Limits<float>::k_max;
-    float tFar  = Limits<float>::k_max;
-
     for (const Plane& p: planes)
     {
-        const Vec3  n     = p.GetNormal();
-        const float d     = p.GetD();
-        const float denom = Dot(n, _ray.direction);
-        const float numer = -(Dot(n, _ray.origin) + d);
-
-        if (IsZeroApprox(denom))
+        if (p.RayCast(_ray, _bDoubleSided, _pHitOrNull))
         {
-            if (p.DistanceToPoint(_ray.origin) > 0.f)
-            {
-                return {};
-            }
-            continue;
-        }
-
-        const float t = numer / denom;
-        if (denom < 0.f)
-        {
-            tNear = Max(tNear, t);
-        }
-        else
-        {
-            tFar = Min(tFar, t);
-        }
-
-        if (tNear > tFar)
-        {
-            return {};
+            return true;
         }
     }
-
-    if (tFar < 0.f)
-    {
-        return {};
-    }
-
-    RayCastResult result = {};
-    result.bHit          = true;
-    result.distance      = tNear >= 0.f ? tNear : tFar;
-    return result;
+    return false;
 }
 
-Ray::Ray(
-    const Vec3 _origin,
-    const Vec3 _direction,
-    const bool _bNormalizeDir)
-    : origin(_origin)
-    , direction(_direction)
+Ray::Ray(const Vec3 _origin, const Vec3 _direction, const bool _bNormalizeDir)
+    : pos(_origin)
+    , dir(_direction)
 {
-    if (_bNormalizeDir)
-    {
-        NormalizeDirection();
-    }
+    if (_bNormalizeDir) Normalize();
 }
 
-void Ray::NormalizeDirection()
+void Ray::Normalize()
 {
-    direction = Normalized(direction);
+    dir.Normalize();
 }
 
-Ray Ray::NormalizedDirection() const
+Ray Ray::Normalized() const
 {
     Ray out = *this;
-    out.NormalizeDirection();
+    out.Normalize();
     return out;
-}
-
-bool Ray::IsDirectionNormalized() const
-{
-    return IsNormalized(direction);
 }
 
 }   // namespace Jam

@@ -12,33 +12,24 @@ class Mesh;
 struct ModelNode
 {
     String            name      = {};
-    Mtx4              mtx       = Numbers<Mtx4>::k_identity;
+    Mtx4            localMtx  = Mtx4::kIdentity;
     Vector<Int32>     meshIdxes = {};
     Vector<Int32>     matIdxes  = {};
     Vector<ModelNode> children  = {};
 };
 
-struct ModelDesc
-{
-    ModelNode             root      = {};
-    Vector<Ref<Mesh>>     meshes    = {};
-    Vector<Ref<Material>> materials = {};
-};
-
 class Model : public IAsset
 {
 public:
-    [[nodiscard]] static Ref<Model>         Load(const ModelDesc& _desc);
-    [[nodiscard]] static Ref<Model>         Load(ModelDesc&& _desc);
+    [[nodiscard]] static Ref<Model>         Load();
     [[nodiscard]] static Expect<Ref<Model>> LoadFromFile(StringView _path);
 
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
-    void  SetVirtualPath(StringView _path) override;
     void  Invalidate() override;
 
     [[nodiscard]] bool       IsValid() const override;
-    [[nodiscard]] eAsset GetAssetType() const override;
+    [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt32     GetTypeHash() const override;
     [[nodiscard]] StringView GetPath() const override;
@@ -46,29 +37,35 @@ public:
     [[nodiscard]] StringView GetExtension() const override;
     [[nodiscard]] StringView GetFilter() const override;
 
-    [[nodiscard]] const ModelDesc&             GetDesc() const;
+    void SetRootNode(const ModelNode& _root);
+    void SetRootNode(ModelNode&& _root);
+    void SetMeshes(const Vector<Ref<Mesh>>& _meshes);
+    void SetMeshes(Vector<Ref<Mesh>>&& _meshes);
+    void SetMaterials(const Vector<Ref<Material>>& _materials);
+    void SetMaterials(Vector<Ref<Material>>&& _materials);
+
     [[nodiscard]] const ModelNode&             GetRootNode() const;
     [[nodiscard]] const Vector<Ref<Mesh>>&     GetMeshes() const;
     [[nodiscard]] const Vector<Ref<Material>>& GetMaterials() const;
 
-    static constexpr StringView k_typeName  = NameOf<Model>();
-    static constexpr UInt32     k_typeHash  = HashOf<Model>();
-    static constexpr eAsset k_assetType = eAsset::Model;
-    static constexpr StringView k_extension = ".jmdl";
-    static constexpr StringView k_filter    = "*.jmdl";
+    static constexpr StringView kTypeName  = NameOf<Model>();
+    static constexpr UInt32     kTypeHash  = HashOf<Model>();
+    static constexpr eAsset     kAssetType = eAsset::Model;
+    static constexpr StringView kExtension = ".jmdl";
+    static constexpr StringView kFilter    = "*.jmdl";
 
 private:
     Model() = default;
-    explicit Model(const ModelDesc& _desc);
-    explicit Model(ModelDesc&& _desc);
-    Error Load_(StringView _path) override;
+    Error LoadFromFile_(StringView _path) override;
     void  CleanUp_();
 
-    String    m_path            = {};
-    String    m_name            = {};
-    ModelDesc m_desc            = {};
-    bool      m_bValid          = false;
-    bool      m_bLoadedFromFile = false;
+    String m_path   = {};
+    String m_name   = {};
+    bool   m_bValid = false;
+
+    ModelNode             m_root      = {};
+    Vector<Ref<Mesh>>     m_meshes    = {};
+    Vector<Ref<Material>> m_materials = {};
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Model>& _pModel);

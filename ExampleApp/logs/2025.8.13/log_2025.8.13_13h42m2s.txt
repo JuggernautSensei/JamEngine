@@ -1,0 +1,33 @@
+[2025.08.13 13:42:02] [trace] CORE: log system initialized
+[2025.08.13 13:42:02] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.13 13:42:02] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.13 13:42:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.13 13:42:03] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.13 13:42:03] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.13 13:42:03] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.13 13:42:03] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)"
+[2025.08.13 13:42:03] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\assets (128x128)" - duration: 51.414 ms
+[2025.08.13 13:42:03] [trace] CORE: scoped timer start - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)"
+[2025.08.13 13:42:03] [trace] CORE: scoped timer end - "CreateThumbnailTexture: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\contents\scenes (128x128)" - duration: 53.020 ms
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 126, y: 193
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 127, y: 194
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 129, y: 195
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 134, y: 197
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 140, y: 198
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 150, y: 200
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 177, y: 203
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 194, y: 205
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 213, y: 205
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 235, y: 207
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 254, y: 209
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 274, y: 211
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 291, y: 213
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 306, y: 217
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 318, y: 218
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 330, y: 220
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 341, y: 224
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 345, y: 225
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 347, y: 226
+[2025.08.13 13:42:05] [trace] CORE: Dispatching event: WindowMoveEvent: x: 350, y: 227
+[2025.08.13 13:42:25] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.13 13:42:25] [trace] CORE: log system shutdown

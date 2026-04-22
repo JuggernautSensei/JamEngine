@@ -87,9 +87,6 @@
     <ClCompile Include="PBRScene.cpp">
       <Filter>05. PBR</Filter>
     </ClCompile>
-    <ClCompile Include="FlyingCamera.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
     <ClCompile Include="DeferedScene.cpp">
       <Filter>06. Deferred</Filter>
     </ClCompile>
@@ -98,6 +95,12 @@
     </ClCompile>
     <ClCompile Include="DebugNormalScene.cpp">
       <Filter>Misc\DebugNormal</Filter>
+    </ClCompile>
+    <ClCompile Include="FlyingCamera.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui.cpp">
+      <Filter>Misc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -122,9 +125,6 @@
     <ClInclude Include="PBRScene.h">
       <Filter>05. PBR</Filter>
     </ClInclude>
-    <ClInclude Include="FlyingCamera.h">
-      <Filter>Base</Filter>
-    </ClInclude>
     <ClInclude Include="DeferedScene.h">
       <Filter>06. Deferred</Filter>
     </ClInclude>
@@ -133,6 +133,12 @@
     </ClInclude>
     <ClInclude Include="DebugNormalScene.h">
       <Filter>Misc\DebugNormal</Filter>
+    </ClInclude>
+    <ClInclude Include="FlyingCamera.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui.h">
+      <Filter>Misc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

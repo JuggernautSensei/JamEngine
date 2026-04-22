@@ -1,10 +1,11 @@
 #pragma once
+#include "FlyingCamera.h"
 
 class SimpleScene : public Scene
 {
     JAM_SCENE_BODY(SimpleScene);
 
-    enum class eMeshType
+    enum class eMesh
     {
         Cube,
         Sphere,
@@ -27,11 +28,11 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph = k_invalidHandle;
+    ProgramHandle m_ph = kInvalidHandle;
 
-    ConstantBufferHandle m_entityCbh = k_invalidHandle;
-    ConstantBufferHandle m_cmrCbh    = k_invalidHandle;
-    ConstantBufferHandle m_lightCbh  = k_invalidHandle;
+    ConstantBufferHandle m_entityCbh = kInvalidHandle;
+    ConstantBufferHandle m_cmrCbh    = kInvalidHandle;
+    ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
     FrameBufferHandle m_fbh    = {};
     TextureHandle     m_fbTexh = {};   // not owned
@@ -44,17 +45,19 @@ private:
     float m_entityYawRad = 0.f;
     Int32 m_numEntities  = 1;
 
-    EnumArray<eMeshType, Ref<Mesh>> m_pMesh      = {};
-    eMeshType                       m_activeType = eMeshType::Cube;
+    EnumArray<eMesh, Ref<Mesh>> m_pMesh      = {};
+    eMesh                       m_activeMesh = eMesh::Cube;
 
-    Camera    m_camera          = {};
-    Transform m_cameraTransform = {};
+    // camera
+    FlyingCamera m_camera;
 
-    Vec3 m_lightPos     = Vec3 { 0.f, 5.f, -5.f };
-    Vec3 m_lightLookAt  = Vec3 { 0.f, 0.f, 0.f };
-    Vec3 m_lightColor   = Vec3 { 1.f, 1.f, 1.f };
-    Vec3 m_ambientColor = Vec3 { 0.1f, 0.1f, 0.1f };
+    // light
+    Vec3 m_lightPos    = { 0.f, 5.f, -5.f };
+    Vec3 m_lightLookAt = { 0.f, 0.f, 0.f };
+    Vec3 m_lightCol    = { 1.f, 1.f, 1.f };
+    Vec3 m_ambientCol  = { 0.1f, 0.1f, 0.1f };
 
-    Vec3  m_baseColor = Vec3 { 1.f, 1.f, 1.f };
-    float m_shiness   = 32.f;
+    // material
+    Vec3  m_baseCol = { 1.f, 1.f, 1.f };
+    float m_shiness = 32.f;
 };

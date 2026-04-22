@@ -1,53 +1,55 @@
 #include "pch.h"
 #include "PBRScene.h"
+
+#include "Gui.h"
 #include "../JamEngine/AssimpImporter.h"
 
 namespace
 {
 
-constexpr Int32 k_pbrSceneLinearWrapSlot  = 0;
-constexpr Int32 k_pbrSceneLinearClampSlot = 1;
+constexpr Int32 kPbrSceneLinearWrapSlot  = 0;
+constexpr Int32 kPbrSceneLinearClampSlot = 1;
 
-constexpr Int32 k_pbrSceneHdrSceneSlot            = 0;
-constexpr Int32 k_pbrSceneIblIrradianceSlot       = 0;
-constexpr Int32 k_pbrSceneIblSpecularSlot         = 1;
-constexpr Int32 k_pbrSceneIblEnvironmentSlot      = 2;
-constexpr Int32 k_pbrSceneBrdfLUTSlot             = 2;
-constexpr Int32 k_pbrSceneAlbedoSlot              = 3;
-constexpr Int32 k_pbrSceneAoRoughnessMetallicSlot = 4;
-constexpr Int32 k_pbrSceneEmissiveSlot            = 5;
-constexpr Int32 k_pbrSceneNormalSlot              = 6;
+constexpr Int32 kPbrSceneHdrSceneSlot            = 0;
+constexpr Int32 kPbrSceneIblIrradianceSlot       = 0;
+constexpr Int32 kPbrSceneIblSpecularSlot         = 1;
+constexpr Int32 kPbrSceneIblEnvironmentSlot      = 2;
+constexpr Int32 kPbrSceneBrdfLUTSlot             = 2;
+constexpr Int32 kPbrSceneAlbedoSlot              = 3;
+constexpr Int32 kPbrSceneAoRoughnessMetallicSlot = 4;
+constexpr Int32 kPbrSceneEmissiveSlot            = 5;
+constexpr Int32 kPbrSceneNormalSlot              = 6;
 
 struct CBPBRSceneEntity
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4 cb_world         = Numbers<Mtx4>::k_identity;
-    Mtx4 cb_worldInvTrans = Numbers<Mtx4>::k_identity;
+    Mtx4 cb_world         = Mtx4::kIdentity;
+    Mtx4 cb_worldInvTrans = Mtx4::kIdentity;
 };
 
 struct CBPBRSceneCamera
 {
-    static constexpr Int32 k_slot = 1;
+    static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Numbers<Vec3>::k_zero;
+    Vec3  cb_eyePos   = Vec3::kZero;
     float padding1    = 0.f;
-    Mtx4  cb_viewProj = Numbers<Mtx4>::k_identity;
+    Mtx4  cb_viewProj = Mtx4::kIdentity;
 };
 
 struct CBPBRSceneLight
 {
-    static constexpr Int32 k_slot = 2;
+    static constexpr Int32 kSlot = 2;
 
     struct Light
     {
-        Vec3  lightPos = Numbers<Vec3>::k_zero;
+        Vec3  lightPos = Vec3::kZero;
         float padding  = 0.f;
 
-        Vec3  lightDir     = Numbers<Vec3>::k_zero;
+        Vec3  lightDir     = Vec3::kZero;
         float fallOffStart = 5.f;
 
-        Vec3  lightColor = Numbers<Vec3>::k_one;
+        Vec3  lightColor = Vec3::kOne;
         float fallOffEnd = 10.f;
 
         float innerConeCos = 0.f;
@@ -61,7 +63,7 @@ struct CBPBRSceneLight
 
 struct CBPBRSceneCubeMap
 {
-    constexpr static Int32 k_slot = 2;
+    constexpr static Int32 kSlot = 2;
 
     UInt32 cb_type    = 0;   // 0: none, 1: irradiance, 2: specular, 3: environment
     float  padding[3] = {};
@@ -69,10 +71,10 @@ struct CBPBRSceneCubeMap
 
 struct PBRSceneVertex
 {
-    Vec3 pos      = Numbers<Vec3>::k_zero;
-    Vec2 texcoord = Numbers<Vec2>::k_zero;
-    Vec3 normal   = Numbers<Vec3>::k_zero;
-    Vec3 tangent  = Numbers<Vec3>::k_zero;
+    Vec3 pos      = Vec3::kZero;
+    Vec2 texcoord = Vec2::kZero;
+    Vec3 normal   = Vec3::kZero;
+    Vec3 tangent  = Vec3::kZero;
 
     inline static VertexLayout s_layout = [] {
         VertexLayout layout = {};
@@ -243,27 +245,27 @@ void PBRScene::OnRender(
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4       vpMtx    = m_camera.trans.GetMatrix().Invert() * m_camera.cmr.GetProjMatrix();
+    const Mtx4       vpMtx    = m_camera.trans.GetSRT().Invert() * m_camera.cmr.GetProj();
     CBPBRSceneCamera cbCamera = {};
     cbCamera.cb_eyePos        = m_camera.trans.GetTranslation();
     cbCamera.cb_viewProj      = vpMtx.Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBPBRSceneCamera::k_slot);
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBPBRSceneCamera::k_slot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBPBRSceneCamera::kSlot);
+    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBPBRSceneCamera::kSlot);
 
     // cubemap
     CBPBRSceneCubeMap cbCubeMap = {};
     cbCubeMap.cb_type           = UnderlyingFrom(m_cubeMapType);
     gfx.UpdateBuffer(m_cubeMapCbh, AsMemoryView(cbCubeMap));
-    gfx.SetConstantBuffer(m_cubeMapCbh, eShader::PixelShader, CBPBRSceneCubeMap::k_slot);
+    gfx.SetConstantBuffer(m_cubeMapCbh, eShader::PixelShader, CBPBRSceneCubeMap::kSlot);
     gfx.SetVertexBuffer(m_cubeVbh);
     gfx.SetIndexBuffer(m_cubeIbh);
     gfx.SetProgram(m_cubeMapPh);
     gfx.SetRenderFlags(eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite | eRenderFlags::CCWFront);
-    m_pIBLIrradiance->Bind(eShader::PixelShader, k_pbrSceneIblIrradianceSlot);
-    m_pIBLSpecular->Bind(eShader::PixelShader, k_pbrSceneIblSpecularSlot);
-    m_pIBLEnvironment->Bind(eShader::PixelShader, k_pbrSceneIblEnvironmentSlot);
-    gfx.SetSampler(eSamplerFlags::AddressU_Wrap | eSamplerFlags::AddressV_Wrap | eSamplerFlags::AddressW_Wrap | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear, eShader::PixelShader, k_pbrSceneLinearWrapSlot);
+    m_pIBLIrradiance->Bind(eShader::PixelShader, kPbrSceneIblIrradianceSlot);
+    m_pIBLSpecular->Bind(eShader::PixelShader, kPbrSceneIblSpecularSlot);
+    m_pIBLEnvironment->Bind(eShader::PixelShader, kPbrSceneIblEnvironmentSlot);
+    gfx.SetSampler(eSamplerFlags::AddressU_Wrap | eSamplerFlags::AddressV_Wrap | eSamplerFlags::AddressW_Wrap | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear, eShader::PixelShader, kPbrSceneLinearWrapSlot);
     gfx.Submit();
 
     // light
@@ -289,22 +291,22 @@ void PBRScene::OnRender(
     }
 
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBPBRSceneLight::k_slot);
+    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBPBRSceneLight::kSlot);
 
     // textures & sampler
-    m_pAlbedo->Bind(eShader::PixelShader, k_pbrSceneAlbedoSlot);
-    m_pNormal->Bind(eShader::PixelShader, k_pbrSceneNormalSlot);
-    m_pAoRoughnessMetallic->Bind(eShader::PixelShader, k_pbrSceneAoRoughnessMetallicSlot);
-    m_pEmissive->Bind(eShader::PixelShader, k_pbrSceneEmissiveSlot);
-    m_pBRDFLUT->Bind(eShader::PixelShader, k_pbrSceneBrdfLUTSlot);
-    gfx.SetSampler(eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp | eSamplerFlags::AddressW_Clamp | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear, eShader::PixelShader, k_pbrSceneLinearClampSlot);
+    m_pAlbedo->Bind(eShader::PixelShader, kPbrSceneAlbedoSlot);
+    m_pNormal->Bind(eShader::PixelShader, kPbrSceneNormalSlot);
+    m_pAoRoughnessMetallic->Bind(eShader::PixelShader, kPbrSceneAoRoughnessMetallicSlot);
+    m_pEmissive->Bind(eShader::PixelShader, kPbrSceneEmissiveSlot);
+    m_pBRDFLUT->Bind(eShader::PixelShader, kPbrSceneBrdfLUTSlot);
+    gfx.SetSampler(eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp | eSamplerFlags::AddressW_Clamp | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear, eShader::PixelShader, kPbrSceneLinearClampSlot);
 
     // entity
     gfx.SetProgram(m_ph);
     gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
 
-    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBPBRSceneEntity::k_slot);
-    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBPBRSceneEntity::k_slot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBPBRSceneEntity::kSlot);
+    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBPBRSceneEntity::kSlot);
 
     CBPBRSceneEntity cbEntity = {};
     const Mtx4       world    = Mtx4::CreateFromYawPitchRoll(m_entityYawRad, ToRad(-90.f), 0.f);
@@ -313,19 +315,23 @@ void PBRScene::OnRender(
     gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
     m_pMesh->Submit();
 
-    gfx.SetFrameBuffer(k_invalidHandle);
+    gfx.SetFrameBuffer(kInvalidHandle);
     gfx.SetProgram(m_toneMappingPh);
     gfx.SetVertexBuffer(m_fullTriVbh);
     gfx.SetIndexBuffer(m_fullTriIbh);
-    gfx.SetTexture(m_fbTexh, eShader::PixelShader, k_pbrSceneHdrSceneSlot);
+    gfx.SetTexture(m_fbTexh, eShader::PixelShader, kPbrSceneHdrSceneSlot);
     gfx.Submit();
-    gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_pbrSceneHdrSceneSlot);
+    gfx.SetTexture(kInvalidHandle, eShader::PixelShader, kPbrSceneHdrSceneSlot);
     gfx.Touch();
 }
 
 void PBRScene::OnImGuiRender()
 {
-    ImGui::Begin("PBRScene Controller");
+    if (!BeginSceneInspectorWindows("PBRScene"))
+    {
+        ImGui::End();
+        return;
+    }
 
     // 1. Performance
     ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);

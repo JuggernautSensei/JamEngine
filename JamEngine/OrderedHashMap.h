@@ -21,15 +21,15 @@ public:
     using ListIterator      = typename ListT::iterator;
     using ListConstIterator = typename ListT::const_iterator;
 
-    template<bool k_bIsConst>
+    template<bool kBIsConst>
     class IteratorBase
     {
     public:
-        using ListIterT = std::conditional_t<k_bIsConst, ListConstIterator, ListIterator>;
+        using ListIterT = std::conditional_t<kBIsConst, ListConstIterator, ListIterator>;
 
         struct Proxy
         {
-            using ValueT = std::conditional_t<k_bIsConst, const TValue, TValue>;
+            using ValueT = std::conditional_t<kBIsConst, const TValue, TValue>;
 
             const Proxy* operator->() const
             {
@@ -48,8 +48,8 @@ public:
         using iterator_category = std::bidirectional_iterator_tag;
         using value_type        = Node;
         using difference_type   = std::ptrdiff_t;
-        using pointer           = std::conditional_t<k_bIsConst, const Node*, Node*>;
-        using reference         = std::conditional_t<k_bIsConst, const Node&, Node&>;
+        using pointer           = std::conditional_t<kBIsConst, const Node*, Node*>;
+        using reference         = std::conditional_t<kBIsConst, const Node&, Node&>;
 
         IteratorBase()                               = default;
         ~IteratorBase()                              = default;
@@ -63,9 +63,9 @@ public:
         {
         }
 
-        template<bool k_bOtherIsConst>
-            requires(k_bIsConst || !k_bOtherIsConst)
-        /* implicit */ IteratorBase(const IteratorBase<k_bOtherIsConst>& other)
+        template<bool kBOtherIsConst>
+            requires(kBIsConst || !kBOtherIsConst)
+        /* implicit */ IteratorBase(const IteratorBase<kBOtherIsConst>& other)
             : m_listIter(other.m_listIter)
         {
         }
@@ -129,7 +129,7 @@ public:
     private:
         ListIterT m_listIter = {};
         friend class OrderedHashMap;
-        friend class IteratorBase<!k_bIsConst>;
+        friend class IteratorBase<!kBIsConst>;
     };
 
     using Iterator      = IteratorBase<false>;

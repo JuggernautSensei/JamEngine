@@ -131,7 +131,7 @@ public:
     void  WriteToArchive(ArchiveWriter& _writer) const;
     Error ReadFromArchive(ArchiveReader& _reader);
 
-    static constexpr Int32 k_maxNumbloomPasses = 10;
+    static constexpr Int32 kMaxNumbloomPasses = 10;
 
 private:
     // directional light

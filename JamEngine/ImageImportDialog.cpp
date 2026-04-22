@@ -16,12 +16,12 @@ namespace
 {
     [[nodiscard]] FileDialog CreateImportFileDialog_()
     {
-        constexpr FileDialogFilter k_filters[] = {
+        constexpr FileDialogFilter kFilters[] = {
             { "image files", "*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.dds;*.hdr;*.psd;*.tiff" }
         };
         OpenFileDialogInfo info = {};
         info.title              = "select image file";
-        info.filtersOrEmpty     = k_filters;
+        info.filtersOrEmpty     = kFilters;
         return FileDialog { info };
     }
 
@@ -58,7 +58,7 @@ void ImageImportDialog::OnShow()
     // preview load if need
     ImGuiIO& io = ImGui::GetIO();
     m_previewLoadCounterSec += io.DeltaTime;
-    if (m_bPreviewLoadRequested && m_previewLoadCounterSec >= k_previewLoadDebounceSec)
+    if (m_bPreviewLoadRequested && m_previewLoadCounterSec >= kPreviewLoadDebounceSec)
     {
         LoadPreviewTexture_();
         m_bPreviewLoadRequested = false;
@@ -141,7 +141,7 @@ void ImageImportDialog::OnShow()
         {
             ImGui::Indent();
 
-            Vec2i size = { NarrowCast<Int32>(m_options.newWidth), NarrowCast<Int32>(m_options.newHeight) };
+            Vec2i size = { static_cast<Int32>(m_options.newWidth), static_cast<Int32>(m_options.newHeight) };
 
             ImGui::TableNextColumn();
             Widget_Text("width x heigth", true);
@@ -242,7 +242,7 @@ bool ImageImportDialog::OnClickImportButton_()
     }
 
     String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::File);
-    path.ReplaceExtension(Texture::k_extension);
+    path.ReplaceExtension(Texture::kExtension);
 
     if (FileSystem::Exists(path))
     {
@@ -276,16 +276,16 @@ bool ImageImportDialog::CreateAndSaveAsset_(
 
 void ImageImportDialog::Widget_PreviewTexture_() const
 {
-    constexpr ImVec2 k_previewSize = { 128.f, 128.f };
+    constexpr ImVec2 kPreviewSize = { 128.f, 128.f };
     if (m_pPreviewTex)
     {
-        const auto [w, h]    = m_pPreviewTex->GetResolution();
-        const ImVec2 texSize = { static_cast<float>(w), static_cast<float>(h) };
-        Widget_ImageFrame(m_pPreviewTex, texSize, k_previewSize, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
+        const Vec2i  res     = m_pPreviewTex->GetResolution();
+        const ImVec2 texSize = { static_cast<float>(res.w), static_cast<float>(res.h) };
+        Widget_ImageFrame(m_pPreviewTex, texSize, kPreviewSize, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
     }
     else
     {
-        Widget_TextFrame("no preview image", k_previewSize, {}, true);
+        Widget_TextFrame("no preview image", kPreviewSize, {}, true);
     }
 }
 

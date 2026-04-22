@@ -11,175 +11,162 @@
 namespace Jam
 {
 
+namespace Dto
+{
+
+    struct ModelNode
+    {
+        StringView        name      = {};
+        Matrix            localMtx  = {};
+        Vector<Int32>     meshIdxes = {};
+        Vector<Int32>     matIdxes  = {};
+        Vector<ModelNode> children  = {};
+    };
+
+    struct Model
+    {
+        StringView         name      = {};
+        ModelNode          root      = {};
+        Vector<StringView> meshPaths = {};
+        Vector<StringView> matPaths  = {};
+    };
+}   // namespace Dto
+
 namespace
 {
 
-    struct ModelNodeDto
-    {
-        StringViewDto           name      = {};
-        Mtx4Dto                 mtx       = {};
-        VectorDto<Int32>        meshIdxes = {};
-        VectorDto<Int32>        matIdxes  = {};
-        VectorDto<ModelNodeDto> children  = {};
-    };
-
-    struct ModelDto
-    {
-        StringViewDto            name      = {};
-        ModelNodeDto             root      = {};
-        VectorDto<StringViewDto> meshPaths = {};
-        VectorDto<StringViewDto> matPaths  = {};
-    };
-
-    [[nodiscard]] ModelNodeDto CreateModelNodeData_Recursive(
+    [[nodiscard]] Dto::ModelNode WrapModelNode_Recursive(
         const ModelNode& _node)
     {
-        ModelNodeDto node = {};
-        node.name         = StringViewDtoFrom(_node.name);
-        node.mtx          = Mtx4Dto::FromMat4(_node.mtx);
-        node.meshIdxes    = VectorDtoFrom(_node.meshIdxes);
-        node.matIdxes     = VectorDtoFrom(_node.matIdxes);
+        Dto::ModelNode node = {};
+        node.name           = Dto::Wrap(_node.name);
+        node.localMtx       = Dto::Wrap(_node.localMtx);
+        node.meshIdxes      = Dto::Wrap<Int32>(_node.meshIdxes);
+        node.matIdxes       = Dto::Wrap<Int32>(_node.matIdxes);
 
         // children
-        node.children.reserve(NarrowCast<Int32>(_node.children.size()));
+        node.children.reserve(static_cast<UInt32>(_node.children.size()));
         for (const ModelNode& child: _node.children)
         {
-            node.children.emplace_back(CreateModelNodeData_Recursive(child));
+            node.children.emplace_back(WrapModelNode_Recursive(child));
         }
         return node;
     }
 
-    [[nodiscard]] ModelNode CreateModelNode_Recursive(
-        const ModelNodeDto& _node)
+    [[nodiscard]] ModelNode UnwrapModelNode_Recursive(
+        const Dto::ModelNode& _node)
     {
         ModelNode node = {};
-        node.name      = StringFrom(_node.name);
-        node.mtx       = _node.mtx.ToMtx4();
-        node.meshIdxes = VectorFrom(_node.meshIdxes);
-        node.matIdxes  = VectorFrom(_node.matIdxes);
+        node.name      = Dto::Unwrap(_node.name);
+        node.localMtx  = Dto::Unwrap(_node.localMtx);
+        node.meshIdxes = Dto::Unwrap<Int32>(_node.meshIdxes);
+        node.matIdxes  = Dto::Unwrap<Int32>(_node.matIdxes);
 
         // children
         node.children.reserve(_node.children.size());
-        for (const ModelNodeDto& child: _node.children)
+        for (const Dto::ModelNode& child: _node.children)
         {
-            node.children.emplace_back(CreateModelNode_Recursive(child));
+            node.children.emplace_back(UnwrapModelNode_Recursive(child));
         }
 
         return node;
     }
 
-    using ModelLoader = AssetLoader<ModelDto>;
-    using ModelSaver  = AssetSaver<ModelDto>;
+    using ModelLoader = AssetLoader<Dto::Model>;
+    using ModelSaver  = AssetSaver<Dto::Model>;
 
 }   // namespace
 
-Ref<Model> Model::Load(
-    const ModelDesc& _desc)
+Ref<Model> Model::Load()
 {
-    return new Model(_desc);
-}
-
-Ref<Model> Model::Load(
-    ModelDesc&& _desc)
-{
-    return new Model(std::move(_desc));
+    return new Model;
 }
 
 Expect<Ref<Model>> Model::LoadFromFile(
     const StringView _path)
 {
     Ref<Model> pModel = new Model;
-    if (const Error err = pModel->Load_(_path))
+    if (const Error err = pModel->LoadFromFile_(_path))
     {
         return err;
     }
     return pModel;
 }
 
-Model::Model(
-    const ModelDesc& _desc)
-    : m_desc(_desc)
-{
-}
-
-Model::Model(
-    ModelDesc&& _desc)
-    : m_desc(std::move(_desc))
-{
-}
-
-Error Model::Load_(
+Error Model::LoadFromFile_(
     const StringView _path)
 {
     JAM_FUNCTION_PROFILE();
 
-    // read
+    // open
     Expect<ModelLoader> loader = ModelLoader::Open(_path);
     if (!loader)
     {
         return loader.GetError();
     }
 
-    // deserialize
-    Expect<ModelDto> pDto = loader->Read();
-    if (!pDto)
+    // read
+    Expect<Dto::Model> modelOrNot = loader->Read();
+    if (!modelOrNot)
     {
-        return pDto.GetError();
+        return modelOrNot.GetError();
     }
 
     CleanUp_();
-    m_name      = StringFrom(pDto->name);
-    m_desc.root = CreateModelNode_Recursive(pDto->root);
+
+    const Dto::Model& model = modelOrNot.GetValue();
+    m_name                  = Dto::Unwrap(model.name);
+    m_root                  = UnwrapModelNode_Recursive(model.root);
 
     // meshes
-    m_desc.meshes.reserve(pDto->meshPaths.size());
-    for (const StringViewDto path: pDto->meshPaths)
+    m_meshes.reserve(modelOrNot->meshPaths.size());
+    for (const Dto::StringView path: modelOrNot->meshPaths)
     {
-        Expect<Ref<Mesh>> pMesh = GetAssetManager().LoadMesh(StringViewFrom(path));
+        AssetManager&     mgr   = GetAssetManager();
+        Expect<Ref<Mesh>> pMesh = mgr.LoadMesh(Dto::Unwrap(path));
         if (!pMesh)
         {
             CleanUp_();
             return pMesh.GetError();
         }
 
-        m_desc.meshes.emplace_back(pMesh.Take());
+        m_meshes.emplace_back(pMesh.Take());
     }
 
     // materials
-    m_desc.materials.reserve(pDto->matPaths.size());
-    for (const StringViewDto path: pDto->matPaths)
+    m_materials.reserve(modelOrNot->matPaths.size());
+    for (const Dto::StringView path: modelOrNot->matPaths)
     {
-        Expect<Ref<Material>> pMaterial = GetAssetManager().LoadMaterial(StringViewFrom(path));
+        AssetManager&         mgr       = GetAssetManager();
+        Expect<Ref<Material>> pMaterial = mgr.LoadMaterial(Dto::Unwrap(path));
         if (!pMaterial)
         {
             CleanUp_();
             return pMaterial.GetError();
         }
 
-        m_desc.materials.emplace_back(pMaterial.Take());
+        m_materials.emplace_back(pMaterial.Take());
     }
 
     // finalize
-    m_path            = _path;
-    m_bValid          = true;
-    m_bLoadedFromFile = true;
+    m_path   = _path;
+    m_bValid = true;
     return Error::None;
 }
 
 Error Model::Save(
-    StringView                 _path,
-    const bool                 _bReplaceExtension,
-    eFileWriterCollisionPolicy _policy) const
+    const StringView                 _path,
+    const bool                       _bReplaceExtension,
+    const eFileWriterCollisionPolicy _policy) const
 {
     JAM_FUNCTION_PROFILE();
     JAM_ASSERT(IsValid(), "Cannot save invalid model");
 
-    StringView dir = {}, base = {}, ext = {};
-    _path.Decompose(&dir, nullptr, &base, &ext);
-
-    String path = dir;
-    path.Append(base);
-    path.Append(_bReplaceExtension ? k_extension : ext);
+    String path = _path;
+    if (_bReplaceExtension)
+    {
+        path.ReplaceExtension(kExtension);
+    }
 
     Expect<ModelSaver> saver = ModelSaver::Open(path.ToStringView(), _policy);
     if (!saver)
@@ -188,39 +175,32 @@ Error Model::Save(
     }
 
     // data
-    ModelDto dto = {};
-    dto.name     = StringViewDtoFrom(m_name);
-    dto.root     = CreateModelNodeData_Recursive(m_desc.root);
+    Dto::Model model = {};
+    model.name       = Dto::Wrap(m_name);
+    model.root       = WrapModelNode_Recursive(m_root);
 
     // meshes
-    dto.meshPaths.reserve(NarrowCast<UInt32>(m_desc.meshes.size()));
-    for (const Ref<Mesh>& pMesh: m_desc.meshes)
+    model.meshPaths.reserve(static_cast<UInt32>(m_meshes.size()));
+    for (const Ref<Mesh>& pMesh: m_meshes)
     {
-        dto.meshPaths.emplace_back(StringViewDtoFrom(pMesh->GetPath()));
+        model.meshPaths.emplace_back(Dto::Wrap(pMesh->GetPath()));
     }
 
     // materials
-    dto.matPaths.reserve(NarrowCast<UInt32>(m_desc.materials.size()));
-    for (const Ref<Material>& pMaterial: m_desc.materials)
+    model.matPaths.reserve(static_cast<UInt32>(m_materials.size()));
+    for (const Ref<Material>& pMaterial: m_materials)
     {
-        dto.matPaths.emplace_back(StringViewDtoFrom(pMaterial->GetPath()));
+        model.matPaths.emplace_back(Dto::Wrap(pMaterial->GetPath()));
     }
 
     // serialize
-    return saver->Write(dto);
+    return saver->Write(model);
 }
 
 void Model::SetName(
     const StringView _name)
 {
     m_name = _name;
-}
-
-void Model::SetVirtualPath(
-    StringView _path)
-{
-    JAM_ASSERT(!m_bLoadedFromFile, "Cannot change path of model loaded from file");
-    m_path = _path;
 }
 
 void Model::Invalidate()
@@ -235,17 +215,17 @@ bool Model::IsValid() const
 
 eAsset Model::GetAssetType() const
 {
-    return k_assetType;
+    return kAssetType;
 }
 
 StringView Model::GetTypeName() const
 {
-    return k_typeName;
+    return kTypeName;
 }
 
 UInt32 Model::GetTypeHash() const
 {
-    return k_typeHash;
+    return kTypeHash;
 }
 
 StringView Model::GetPath() const
@@ -260,41 +240,73 @@ StringView Model::GetName() const
 
 StringView Model::GetExtension() const
 {
-    return k_extension;
+    return kExtension;
 }
 
 StringView Model::GetFilter() const
 {
-    return k_filter;
+    return kFilter;
 }
 
-const ModelDesc& Model::GetDesc() const
+void Model::SetRootNode(
+    const ModelNode& _root)
 {
-    return m_desc;
+    m_root = _root;
+}
+
+void Model::SetRootNode(
+    ModelNode&& _root)
+{
+    m_root = std::move(_root);
+}
+
+void Model::SetMeshes(
+    const Vector<Ref<Mesh>>& _meshes)
+{
+    m_meshes = _meshes;
+}
+
+void Model::SetMeshes(
+    Vector<Ref<Mesh>>&& _meshes)
+{
+    m_meshes = std::move(_meshes);
+}
+
+void Model::SetMaterials(
+    const Vector<Ref<Material>>& _materials)
+{
+    m_materials = _materials;
+}
+
+void Model::SetMaterials(
+    Vector<Ref<Material>>&& _materials)
+{
+    m_materials = std::move(_materials);
 }
 
 const ModelNode& Model::GetRootNode() const
 {
-    return m_desc.root;
+    return m_root;
 }
 
 const Vector<Ref<Mesh>>& Model::GetMeshes() const
 {
-    return m_desc.meshes;
+    return m_meshes;
 }
 
 const Vector<Ref<Material>>& Model::GetMaterials() const
 {
-    return m_desc.materials;
+    return m_materials;
 }
 
 void Model::CleanUp_()
 {
     m_path.Clear();
     m_name.Clear();
-    m_desc            = {};
-    m_bValid          = false;
-    m_bLoadedFromFile = false;
+    m_bValid = false;
+    m_root   = {};
+    m_meshes.clear();
+    m_materials.clear();
 }
 
 void WriteToArchive(

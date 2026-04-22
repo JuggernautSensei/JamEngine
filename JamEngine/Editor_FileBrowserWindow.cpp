@@ -110,7 +110,7 @@ void Editor_FileBrowserWindow::OnImGuiRender(
     {
         ImGui::TextUnformatted("directories");
 
-        ImGui::SetNextWindowSizeConstraints({ 200.f, 0.f }, { 400.f, Limits<float>::k_max });
+        ImGui::SetNextWindowSizeConstraints({ 200.f, 0.f }, { 400.f, Limits<float>::kMax });
         if (ImGui::BeginChild("DirectoryTreePanel", ImVec2 { 0.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX))
         {
             Widget_DirEntries_Recursive_(m_pRootDirNode);
@@ -144,7 +144,7 @@ void Editor_FileBrowserWindow::OnImGuiRender(
         ImGui::SameLine();
         {
             ImGui::SetNextItemWidth(150.f);
-            Widget_DragPercent("##Zoom", m_zoom, 0.5f, k_minZoomPerc, k_maxZoomPerc, "zoom: %.0f%%");
+            Widget_DragPercent("##Zoom", m_zoom, 0.5f, kMinZoomPerc, kMaxZoomPerc, "zoom: %.0f%%");
         }
 
         // file entries panel
@@ -414,10 +414,10 @@ void Editor_FileBrowserWindow::Widget_FileEntries()
         return;
     }
 
-    const ImVec2 btnSize      = k_fileEntrySize * m_zoom;
-    const float  pad          = k_fileEntrySpacingX * m_zoom;
+    const ImVec2 btnSize      = kFileEntrySize * m_zoom;
+    const float  pad          = kFileEntrySpacingX * m_zoom;
     const Int32  numBtnPerRow = Max<Int32>(1, static_cast<Int32>((visibleWidth + pad) / (btnSize.x + pad)));
-    const Int32  numItems     = NarrowCast<Int32>(m_filteredFileEntries.size());
+    const Int32  numItems     = static_cast<Int32>(m_filteredFileEntries.size());
     const Int32  numRows      = (numItems + numBtnPerRow - 1) / numBtnPerRow;
     const float  itemHeight   = btnSize.y + ImGui::GetTextLineHeightWithSpacing();
 
@@ -650,7 +650,7 @@ void Editor_FileBrowserWindow::GatherFileEntries_()
 
     // filtered entry force update
     m_bGatherFilteredFileEntries = true;
-    m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
+    m_fileEntryFilterCounterSec  = kFileEntryFilterUpdateIntervalSec;
 }
 
 Ref<FileEntry> Editor_FileBrowserWindow::GatherFileEntry_(
@@ -666,7 +666,7 @@ Ref<FileEntry> Editor_FileBrowserWindow::GatherFileEntry_(
 
 void Editor_FileBrowserWindow::GatherFilteredFileEntriesIfNeed_()
 {
-    if (!m_bGatherFilteredFileEntries || m_fileEntryFilterCounterSec < k_fileEntryFilterUpdateIntervalSec)
+    if (!m_bGatherFilteredFileEntries || m_fileEntryFilterCounterSec < kFileEntryFilterUpdateIntervalSec)
     {
         return;
     }
@@ -770,7 +770,7 @@ void Editor_FileBrowserWindow::OnFileAddEvent_(
 
         // 필터 즉시 수집
         m_bGatherFilteredFileEntries = true;
-        m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
+        m_fileEntryFilterCounterSec  = kFileEntryFilterUpdateIntervalSec;
     }
 }
 
@@ -807,7 +807,7 @@ void Editor_FileBrowserWindow::OnFileDeleteEvent_(
 
         // 필터 즉시 수집
         m_bGatherFilteredFileEntries = true;
-        m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
+        m_fileEntryFilterCounterSec  = kFileEntryFilterUpdateIntervalSec;
     }
 }
 
@@ -835,7 +835,7 @@ void Editor_FileBrowserWindow::OnFileRenamedEvent_(
 
         // 필터 즉시 수집
         m_bGatherFilteredFileEntries = true;
-        m_fileEntryFilterCounterSec  = k_fileEntryFilterUpdateIntervalSec;
+        m_fileEntryFilterCounterSec  = kFileEntryFilterUpdateIntervalSec;
     }
 }
 

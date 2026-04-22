@@ -188,7 +188,7 @@ private:
     float m_mouseDeltaWheel  = 0;
     bool  m_bCursorVisiblity = true;
 
-    static constexpr Int32 k_wheelSensitive = 120;
+    static constexpr Int32 kWheelSensitive = 120;
     inline static Input*   s_pInstance      = nullptr;
     friend class Application;
 };

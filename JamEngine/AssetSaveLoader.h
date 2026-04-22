@@ -8,10 +8,10 @@
 
 namespace Jam
 {
+struct Aabb;
 
-using AssetMMIO       = cista::mmap;
-using AssetMMIOBuffer = cista::buf<cista::mmap>;
-using eAssetRWFlags   = cista::mode;
+using AssetMMAP    = cista::mmap;
+using AssetMMAPBuf = cista::buf<cista::mmap>;
 
 template<typename TDto>
 class AssetSaver
@@ -45,7 +45,7 @@ public:
 
         try
         {
-            return AssetSaver { AssetMMIOBuffer { AssetMMIO { _path.GetPtr(), cista::mmap::protection::WRITE } } };
+            return AssetSaver { AssetMMAPBuf { AssetMMAP { _path.GetPtr(), cista::mmap::protection::WRITE } } };
         }
         catch (const std::exception& e)
         {
@@ -70,12 +70,12 @@ public:
 
 private:
     explicit AssetSaver(
-        AssetMMIOBuffer&& _buf)
+        AssetMMAPBuf&& _buf)
         : m_mmioBuf(std::move(_buf))
     {
     }
 
-    AssetMMIOBuffer m_mmioBuf = {};
+    AssetMMAPBuf m_mmioBuf = {};
 };
 
 template<typename TDto>
@@ -87,7 +87,7 @@ public:
     {
         try
         {
-            return AssetLoader { AssetMMIOBuffer { AssetMMIO { _path.GetPtr(), cista::mmap::protection::READ } } };
+            return AssetLoader { AssetMMAPBuf { AssetMMAP { _path.GetPtr(), cista::mmap::protection::READ } } };
         }
         catch (const std::exception& e)
         {
@@ -111,96 +111,140 @@ public:
 
 private:
     explicit AssetLoader(
-        AssetMMIOBuffer&& _buf)
+        AssetMMAPBuf&& _buf)
         : m_mmioBuf(std::move(_buf))
     {
     }
 
-    AssetMMIOBuffer m_mmioBuf = {};
+    AssetMMAPBuf m_mmioBuf = {};
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct Aabb;
-
-template<typename T, size_t N>
-using ArrayDto = cista::offset::array<T, N>;
-
-template<typename T, size_t N>
-[[nodiscard]] ArrayDto<T, N> ArrayDtoFrom(const Array<T, N>& _arr)
+namespace Dto
 {
-    ArrayDto<T, N> dto = {};
-    for (size_t i = 0; i < N; ++i)
+    // types
+    using StringView = cista::offset::string_view;
+
+    template<typename T>
+    using Vector = cista::offset::vector<T>;
+
+    template<typename T, size_t N>
+    using Array = cista::offset::array<T, N>;
+
+    struct Vec3
     {
-        dto[i] = _arr[i];
-    }
-    return dto;
-}
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;
+    };
 
-template<typename T, size_t N>
-[[nodiscard]] Array<T, N> ArrayFrom(const ArrayDto<T, N>& _dto)
-{
-    Array<T, N> arr = {};
-    for (size_t i = 0; i < N; ++i)
+    struct Matrix
     {
-        arr[i] = _dto[i];
-    }
-    return arr;
-}
+        Array<float, 16> m = {};
+    };
 
-template<typename T>
-using VectorDto = cista::offset::vector<T>;
-
-template<typename T>
-using UniquePtrDto = cista::offset::unique_ptr<T>;
-
-template<typename T>
-[[nodiscard]] VectorDto<T> VectorDtoFrom(const Vector<T>& _vec)
-{
-    return cista::offset::to_vec(_vec);
-}
-
-template<typename T>
-[[nodiscard]] Vector<T> VectorFrom(const VectorDto<T>& _dto)
-{
-    Vector<T> vec = {};
-    vec.reserve(_dto.size());
-    for (const T& item: _dto)
+    struct Aabb
     {
-        vec.emplace_back(item);
+        Vec3 center  = {};
+        Vec3 extents = {};
+    };
+
+    // wrap/unwrap
+    [[nodiscard]] StringView      Wrap(Jam::StringView _str);
+    [[nodiscard]] Jam::StringView Unwrap(StringView _str);
+
+    [[nodiscard]] Vec3      Wrap(const Jam::Vec3& _vec);
+    [[nodiscard]] Jam::Vec3 Unwrap(const Vec3& _vec);
+
+    [[nodiscard]] Matrix    Wrap(const Jam::Mtx4& _mtx);
+    [[nodiscard]] Jam::Mtx4 Unwrap(const Matrix& _mtx);
+
+    [[nodiscard]] Aabb      Wrap(const Jam::Aabb& _aabb);
+    [[nodiscard]] Jam::Aabb Unwrap(const Aabb& _aabb);
+
+    // container wrap/unwrap helper
+
+    template<typename TDto, typename TPrimtive>
+    [[nodiscard]] Vector<TDto> Wrap(
+        const Jam::Vector<TPrimtive>& _vec)
+    {
+        Vector<TDto> result = {};
+        result.reserve(static_cast<UInt32>(_vec.size()));
+        for (const auto& item: _vec)
+        {
+            if constexpr (cista::to_tuple_works_v<TPrimtive>)
+            {
+                static_assert(std::is_same_v<TPrimtive, TDto>, "TPrimtive and TDto must be the same if TPrimtive is directly serializable by cista.");
+                result.emplace_back(Wrap(item));
+            }
+            else
+            {
+                result.emplace_back(item);
+            }
+        }
+        return result;
     }
-    return vec;
-}
 
-// string
-using StringViewDto = cista::offset::string_view;
-[[nodiscard]] String        StringFrom(StringViewDto _str);
-[[nodiscard]] StringView    StringViewFrom(StringViewDto _str);
-[[nodiscard]] StringViewDto StringViewDtoFrom(StringView _str);
+    template<typename TPrimtive, typename TDto>
+    [[nodiscard]] Jam::Vector<TPrimtive> Unwrap(
+        const Vector<TDto>& _vec)
+    {
+        Jam::Vector<TPrimtive> result = {};
+        result.reserve(_vec.size());
+        for (const TPrimtive& item: _vec)
+        {
+            if constexpr (cista::to_tuple_works_v<TPrimtive>)
+            {
+                static_assert(std::is_same_v<TPrimtive, TDto>, "TPrimtive and TDto must be the same if TPrimtive is directly serializable by cista.");
+                result.emplace_back(Unwrap(item));
+            }
+            else
+            {
+                result.emplace_back(item);
+            }
+        }
+        return result;
+    }
 
-struct Vec3Dto
-{
-    [[nodiscard]] static Vec3Dto FromVec3(const Vec3& _v);
-    [[nodiscard]] Vec3           ToVec3() const;
+    template<typename TDto, typename TPrimtive, size_t N>
+    [[nodiscard]] Array<TDto, N> Wrap(
+        const Jam::Array<TPrimtive, N>& _arr)
+    {
+        Array<TDto, N> result = {};
+        for (size_t i = 0; i < N; ++i)
+        {
+            if constexpr (cista::to_tuple_works_v<TPrimtive>)
+            {
+                static_assert(std::is_same_v<TPrimtive, TDto>, "TPrimtive and TDto must be the same if TPrimtive is directly serializable by cista.");
+                result[i] = Wrap(_arr[i]);
+            }
+            else
+            {
+                result[i] = _arr[i];
+            }
+        }
+        return result;
+    }
 
-    ArrayDto<float, 3> vec = {};
-};
+    template<typename TPrimtive, typename TDto, size_t N>
+    [[nodiscard]] Jam::Array<TPrimtive, N> Unwrap(
+        const Array<TDto, N>& _arr)
+    {
+        Jam::Array<TPrimtive, N> result;
+        for (size_t i = 0; i < N; ++i)
+        {
+            if constexpr (cista::to_tuple_works_v<TPrimtive>)
+            {
+                static_assert(std::is_same_v<TPrimtive, TDto>, "TPrimtive and TDto must be the same if TPrimtive is directly serializable by cista.");
+                result[i] = Unwrap(_arr[i]);
+            }
+            else
+            {
+                result[i] = _arr[i];
+            }
+        }
+        return result;
+    }
 
-struct Mtx4Dto
-{
-    [[nodiscard]] static Mtx4Dto FromMat4(Mtx4 _mtx);
-    [[nodiscard]] Mtx4           ToMtx4() const;
-
-    ArrayDto<float, 16> mtx = {};
-};
-
-struct AabbDto
-{
-    [[nodiscard]] static AabbDto FromAabb(const Aabb& _aabb);
-    [[nodiscard]] Aabb           ToAabb() const;
-
-    Vec3Dto min = {};
-    Vec3Dto max = {};
-};
+};   // namespace Dto
 
 }   // namespace Jam

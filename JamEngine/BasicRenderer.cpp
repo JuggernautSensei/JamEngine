@@ -29,8 +29,8 @@
 //struct BasicRendererContext
 //{
 //    // cbuffer unload
-//    void UploadTransform(const Mtx4& _world) const;
-//    void UploadCamera(Vec3 _eye, const Mtx4& _view, const Mtx4& _proj) const;
+//    void UploadTransform(const Matrix& _world) const;
+//    void UploadCamera(Vec3 _eye, const Matrix& _view, const Matrix& _proj) const;
 //    void UploadEnvironment(const Environment& _env) const;
 //    void UploadScreen(Int32 _width, Int32 _height) const;
 //    void UploadMaterial(const Ref<Material>& _material) const;
@@ -46,7 +46,7 @@
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, StringView _name) const;
 //
 //    // submit
-//    void Submit(const Ref<Mesh>& _mesh, const Ref<Material>& _material, const Mtx4& _world) const;
+//    void Submit(const Ref<Mesh>& _mesh, const Ref<Material>& _material, const Matrix& _world) const;
 //    void SubmitFullScreenTri() const;
 //    void SubmitSkyboxCube() const;
 //
@@ -59,76 +59,76 @@
 //    bool CheckEnvironmentDiff(const Environment& _env) const;
 //
 //    // shaders
-//    ShaderHandle pbrVsh                       = k_nullHandle;
-//    ShaderHandle fullscreenVsh                = k_nullHandle;
-//    ShaderHandle pbrLightVolumeVsh            = k_nullHandle;
-//    ShaderHandle pbrEnvironmentLIghtVolumeVsh = k_nullHandle;
-//    ShaderHandle csmVsh                       = k_nullHandle;
-//    ShaderHandle osmVsh                       = k_nullHandle;
-//    ShaderHandle shadowMappingVsh             = k_nullHandle;
-//    ShaderHandle skyboxVsh                    = k_nullHandle;
-//    ShaderHandle csmLevel3Gsh                 = k_nullHandle;
-//    ShaderHandle osmGsh                       = k_nullHandle;
-//    ShaderHandle pbrGBufferPsh                = k_nullHandle;
-//    ShaderHandle pbrLightingPsh               = k_nullHandle;
-//    ShaderHandle pbrLightVolumePsh            = k_nullHandle;
-//    ShaderHandle pbrEnvironmentLightVolumePsh = k_nullHandle;
-//    ShaderHandle csmPsh                       = k_nullHandle;
-//    ShaderHandle osmPsh                       = k_nullHandle;
-//    ShaderHandle shadowMappingPsh             = k_nullHandle;
-//    ShaderHandle skyboxPsh                    = k_nullHandle;
-//    ShaderHandle ssaoPsh                      = k_nullHandle;
-//    ShaderHandle ssaoBlurXPsh                 = k_nullHandle;
-//    ShaderHandle ssaoBlurYPsh                 = k_nullHandle;
-//    ShaderHandle bloomUpPsh                   = k_nullHandle;
-//    ShaderHandle bloomDownPsh                 = k_nullHandle;
-//    ShaderHandle bloomCombinePsh              = k_nullHandle;
-//    ShaderHandle toneMappingPsh               = k_nullHandle;
-//    ShaderHandle fxaaVeryLowPsh               = k_nullHandle;
-//    ShaderHandle fxaaLowPsh                   = k_nullHandle;
-//    ShaderHandle fxaaMediumPsh                = k_nullHandle;
-//    ShaderHandle fxaaHighPsh                  = k_nullHandle;
-//    ShaderHandle fxaaVeryHighPsh              = k_nullHandle;
-//    ShaderHandle fxaaUltraPsh                 = k_nullHandle;
-//    ShaderHandle fogPsh                       = k_nullHandle;
-//    ShaderHandle passTexhroughPsh             = k_nullHandle;
+//    ShaderHandle pbrVsh                       = kInvalidHandle;
+//    ShaderHandle fullscreenVsh                = kInvalidHandle;
+//    ShaderHandle pbrLightVolumeVsh            = kInvalidHandle;
+//    ShaderHandle pbrEnvironmentLIghtVolumeVsh = kInvalidHandle;
+//    ShaderHandle csmVsh                       = kInvalidHandle;
+//    ShaderHandle osmVsh                       = kInvalidHandle;
+//    ShaderHandle shadowMappingVsh             = kInvalidHandle;
+//    ShaderHandle skyboxVsh                    = kInvalidHandle;
+//    ShaderHandle csmLevel3Gsh                 = kInvalidHandle;
+//    ShaderHandle osmGsh                       = kInvalidHandle;
+//    ShaderHandle pbrGBufferPsh                = kInvalidHandle;
+//    ShaderHandle pbrLightingPsh               = kInvalidHandle;
+//    ShaderHandle pbrLightVolumePsh            = kInvalidHandle;
+//    ShaderHandle pbrEnvironmentLightVolumePsh = kInvalidHandle;
+//    ShaderHandle csmPsh                       = kInvalidHandle;
+//    ShaderHandle osmPsh                       = kInvalidHandle;
+//    ShaderHandle shadowMappingPsh             = kInvalidHandle;
+//    ShaderHandle skyboxPsh                    = kInvalidHandle;
+//    ShaderHandle ssaoPsh                      = kInvalidHandle;
+//    ShaderHandle ssaoBlurXPsh                 = kInvalidHandle;
+//    ShaderHandle ssaoBlurYPsh                 = kInvalidHandle;
+//    ShaderHandle bloomUpPsh                   = kInvalidHandle;
+//    ShaderHandle bloomDownPsh                 = kInvalidHandle;
+//    ShaderHandle bloomCombinePsh              = kInvalidHandle;
+//    ShaderHandle toneMappingPsh               = kInvalidHandle;
+//    ShaderHandle fxaaVeryLowPsh               = kInvalidHandle;
+//    ShaderHandle fxaaLowPsh                   = kInvalidHandle;
+//    ShaderHandle fxaaMediumPsh                = kInvalidHandle;
+//    ShaderHandle fxaaHighPsh                  = kInvalidHandle;
+//    ShaderHandle fxaaVeryHighPsh              = kInvalidHandle;
+//    ShaderHandle fxaaUltraPsh                 = kInvalidHandle;
+//    ShaderHandle fogPsh                       = kInvalidHandle;
+//    ShaderHandle passTexhroughPsh             = kInvalidHandle;
 //
 //    // programs
-//    ProgramHandle pbrGBufferProgram                = k_nullHandle;
-//    ProgramHandle pbrLightingProgram               = k_nullHandle;
-//    ProgramHandle pbrLightVolumeProgram            = k_nullHandle;
-//    ProgramHandle pbrEnvironmentLightVolumeProgram = k_nullHandle;
-//    ProgramHandle csmLevel3CasterProgram           = k_nullHandle;
-//    ProgramHandle osmCasterProgram                 = k_nullHandle;
-//    ProgramHandle shadowCasterProgram              = k_nullHandle;
-//    ProgramHandle skyboxProgram                    = k_nullHandle;
-//    ProgramHandle ssaoProgram                      = k_nullHandle;
-//    ProgramHandle ssaoBlurXProgram                 = k_nullHandle;
-//    ProgramHandle ssaoBlurYProgram                 = k_nullHandle;
-//    ProgramHandle bloomUpProgram                   = k_nullHandle;
-//    ProgramHandle bloomDownProgram                 = k_nullHandle;
-//    ProgramHandle bloomCombineProgram              = k_nullHandle;
-//    ProgramHandle toneMappingProgram               = k_nullHandle;
-//    ProgramHandle fxaaVeryLowProgram               = k_nullHandle;
-//    ProgramHandle fxaaLowProgram                   = k_nullHandle;
-//    ProgramHandle fxaaMediumProgram                = k_nullHandle;
-//    ProgramHandle fxaaHighProgram                  = k_nullHandle;
-//    ProgramHandle fxaaVeryHighProgram              = k_nullHandle;
-//    ProgramHandle fxaaUltraProgram                 = k_nullHandle;
-//    ProgramHandle fogProgram                       = k_nullHandle;
-//    ProgramHandle passTexhroughProgram             = k_nullHandle;
+//    ProgramHandle pbrGBufferProgram                = kInvalidHandle;
+//    ProgramHandle pbrLightingProgram               = kInvalidHandle;
+//    ProgramHandle pbrLightVolumeProgram            = kInvalidHandle;
+//    ProgramHandle pbrEnvironmentLightVolumeProgram = kInvalidHandle;
+//    ProgramHandle csmLevel3CasterProgram           = kInvalidHandle;
+//    ProgramHandle osmCasterProgram                 = kInvalidHandle;
+//    ProgramHandle shadowCasterProgram              = kInvalidHandle;
+//    ProgramHandle skyboxProgram                    = kInvalidHandle;
+//    ProgramHandle ssaoProgram                      = kInvalidHandle;
+//    ProgramHandle ssaoBlurXProgram                 = kInvalidHandle;
+//    ProgramHandle ssaoBlurYProgram                 = kInvalidHandle;
+//    ProgramHandle bloomUpProgram                   = kInvalidHandle;
+//    ProgramHandle bloomDownProgram                 = kInvalidHandle;
+//    ProgramHandle bloomCombineProgram              = kInvalidHandle;
+//    ProgramHandle toneMappingProgram               = kInvalidHandle;
+//    ProgramHandle fxaaVeryLowProgram               = kInvalidHandle;
+//    ProgramHandle fxaaLowProgram                   = kInvalidHandle;
+//    ProgramHandle fxaaMediumProgram                = kInvalidHandle;
+//    ProgramHandle fxaaHighProgram                  = kInvalidHandle;
+//    ProgramHandle fxaaVeryHighProgram              = kInvalidHandle;
+//    ProgramHandle fxaaUltraProgram                 = kInvalidHandle;
+//    ProgramHandle fogProgram                       = kInvalidHandle;
+//    ProgramHandle passTexhroughProgram             = kInvalidHandle;
 //
 //    // cbuffer
-//    ConstantBufferHandle transformCbh    = k_nullHandle;
-//    ConstantBufferHandle cameraCbh       = k_nullHandle;
-//    ConstantBufferHandle materialCbh     = k_nullHandle;
-//    ConstantBufferHandle lightCbh        = k_nullHandle;
-//    ConstantBufferHandle environmentCbh  = k_nullHandle;
-//    ConstantBufferHandle shadowCasterCbh = k_nullHandle;
-//    ConstantBufferHandle csmCasterCbh    = k_nullHandle;
-//    ConstantBufferHandle osmCasterCbh    = k_nullHandle;
-//    ConstantBufferHandle ssaoCbh         = k_nullHandle;
-//    ConstantBufferHandle screenCbh       = k_nullHandle;
+//    ConstantBufferHandle transformCbh    = kInvalidHandle;
+//    ConstantBufferHandle cameraCbh       = kInvalidHandle;
+//    ConstantBufferHandle materialCbh     = kInvalidHandle;
+//    ConstantBufferHandle lightCbh        = kInvalidHandle;
+//    ConstantBufferHandle environmentCbh  = kInvalidHandle;
+//    ConstantBufferHandle shadowCasterCbh = kInvalidHandle;
+//    ConstantBufferHandle csmCasterCbh    = kInvalidHandle;
+//    ConstantBufferHandle osmCasterCbh    = kInvalidHandle;
+//    ConstantBufferHandle ssaoCbh         = kInvalidHandle;
+//    ConstantBufferHandle screenCbh       = kInvalidHandle;
 //
 //    // meshes
 //    Mesh fullScreenTri            = {};
@@ -150,7 +150,7 @@
 //    RenderState skyboxState      = {};
 //
 //    // misc
-//    TextureHandle ssaoNoiseTexture = k_nullHandle;
+//    TextureHandle ssaoNoiseTexture = kInvalidHandle;
 //
 //    // render graph
 //    RenderGraph renderGraph = {};
@@ -173,20 +173,20 @@
 //    bool              bBloomEnabled          = false;
 //    bool              bFXAAEnabled           = false;
 //
-//    TextureHandle hdrTexh             = k_nullHandle;
-//    TextureHandle depthTexh           = k_nullHandle;
-//    TextureHandle gbufferAlbedoTexh   = k_nullHandle;
-//    TextureHandle gbufferMaterialTexh = k_nullHandle;
-//    TextureHandle gbufferNormalTexh   = k_nullHandle;
-//    TextureHandle gbufferLightingTexh = k_nullHandle;
+//    TextureHandle hdrTexh             = kInvalidHandle;
+//    TextureHandle depthTexh           = kInvalidHandle;
+//    TextureHandle gbufferAlbedoTexh   = kInvalidHandle;
+//    TextureHandle gbufferMaterialTexh = kInvalidHandle;
+//    TextureHandle gbufferNormalTexh   = kInvalidHandle;
+//    TextureHandle gbufferLightingTexh = kInvalidHandle;
 //
-//    FrameBufferHandle hdrNoDepthFbh = k_nullHandle;
-//    FrameBufferHandle hdrDepthFbh   = k_nullHandle;
+//    FrameBufferHandle hdrNoDepthFbh = kInvalidHandle;
+//    FrameBufferHandle hdrDepthFbh   = kInvalidHandle;
 //
 //}* g_basicRendererCtx = nullptr;
 //
 //void BasicRendererContext::UploadTransform(
-//    const Mtx4& _world) const
+//    const Matrix& _world) const
 //{
 //    CB_TRANSFORM cb;
 //    cb.cb_world         = _world.Transpose();
@@ -196,8 +196,8 @@
 //
 //void BasicRendererContext::UploadCamera(
 //    const Vec3  _eye,
-//    const Mtx4& _view,
-//    const Mtx4& _proj) const
+//    const Matrix& _view,
+//    const Matrix& _proj) const
 //{
 //    // camera buffer
 //    CB_CAMERA cb;
@@ -211,7 +211,7 @@
 //void BasicRendererContext::UploadEnvironment(
 //    const Environment& _env) const
 //{
-//    constexpr UInt32 k_toneMappintTable[] = {
+//    constexpr UInt32 kToneMappintTable[] = {
 //        JAM_ENVIRONMENT_TONE_MAPPING_TYPE_LINEAR,
 //        JAM_ENVIRONMENT_TONE_MAPPING_TYPE_REINHARD,
 //        JAM_ENVIRONMENT_TONE_MAPPING_TYPE_LUMA_BASED_REINHARD,
@@ -296,7 +296,7 @@
 //
 //    // tone mapping
 //    {
-//        cb.cb_toneMappingType = k_toneMappintTable[UnderlyingFrom<eToneMapping>(toneMapping.type)];
+//        cb.cb_toneMappingType = kToneMappintTable[UnderlyingFrom<eToneMapping>(toneMapping.type)];
 //        cb.cb_exposure        = toneMapping.exposure;
 //        cb.cb_gamma           = toneMapping.gamma;
 //    }
@@ -340,14 +340,14 @@
 //void BasicRendererContext::UploadMaterial(
 //    const Ref<Material>& _material) const
 //{
-//    constexpr UInt32 k_metaliicChannelTable[] = {
+//    constexpr UInt32 kMetaliicChannelTable[] = {
 //        JAM_MATERIAL_FLAGS_METALLIC_R,   // red
 //        JAM_MATERIAL_FLAGS_METALLIC_G,   // green
 //        JAM_MATERIAL_FLAGS_METALLIC_B,   // blue
 //        JAM_MATERIAL_FLAGS_METALLIC_R    // alpha
 //    };
 //
-//    constexpr UInt32 k_roughnessChannelTable[] = {
+//    constexpr UInt32 kRoughnessChannelTable[] = {
 //        JAM_MATERIAL_FLAGS_ROUGHNESS_R,   // red
 //        JAM_MATERIAL_FLAGS_ROUGHNESS_G,   // green
 //        JAM_MATERIAL_FLAGS_ROUGHNESS_B,   // blue
@@ -388,14 +388,14 @@
 //    {
 //        const eTextureChannel channel = settings.metallicMapChannel;
 //        pTexture->Bind(eShader::PixelShader, t_metallicSlot);
-//        cb.cb_materialFlags |= k_metaliicChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
+//        cb.cb_materialFlags |= kMetaliicChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
 //    }
 //
 //    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Roughness))
 //    {
 //        const eTextureChannel channel = settings.roughnessMapChannel;
 //        pTexture->Bind(eShader::PixelShader, t_roughnessSlot);
-//        cb.cb_materialFlags |= k_roughnessChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
+//        cb.cb_materialFlags |= kRoughnessChannelTable[UnderlyingFrom<eTextureChannel>(channel)];
 //    }
 //
 //    if (const Ref<Texture>& pTexture = texes.Get(eMaterialTexture::Ao))
@@ -446,7 +446,7 @@
 //    CB_LIGHT cb                 = {};
 //    cb.cb_lightType             = JAM_LIGHT_TYPE_POINT;
 //    cb.cb_lightPos              = _pos;
-//    cb.cb_lightDir              = Numbers<Vec3>::k_forward;
+//    cb.cb_lightDir              = Vec3::kForward;
 //    cb.cb_lightRadiance         = _radiance;
 //    cb.cb_lightIntensity        = _lightIntensity;
 //    cb.cb_lightFallOffStart     = _fallOffStart;
@@ -607,7 +607,7 @@
 //void BasicRendererContext::Submit(
 //    const Ref<Mesh>&     _mesh,
 //    const Ref<Material>& _material,
-//    const Mtx4&          _world) const
+//    const Matrix&          _world) const
 //{
 //    UploadMaterial(_material);
 //    UploadTransform(_world);
@@ -647,10 +647,10 @@
 //{
 //    JAM_DESTROY_TEXTURE(ssaoNoiseTexture);
 //
-//    constexpr Int32 k_length = 4;
+//    constexpr Int32 kLength = 4;
 //
-//    Float16 noiseData[4 * k_length * k_length];
-//    for (Int32 i = 0; i < k_length * k_length; ++i)
+//    Float16 noiseData[4 * kLength * kLength];
+//    for (Int32 i = 0; i < kLength * kLength; ++i)
 //    {
 //        const Int32 idx    = i * 4;
 //        noiseData[idx + 0] = ToFloat16(MakeRandom(-1.f, 1.f));
@@ -660,7 +660,7 @@
 //    }
 //
 //    const CMemoryBlock mem[] = { noiseData };
-//    ssaoNoiseTexture     = GetGraphics().CreateTexture2D(k_length, k_length, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags::None, mem);
+//    ssaoNoiseTexture     = GetGraphics().CreateTexture2D(kLength, kLength, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags::None, mem);
 //}
 //
 //void BasicRendererContext::BuildRenderGraph(
@@ -704,7 +704,7 @@
 //
 //    // var
 //    RenderGraph&   graph = renderGraph;
-//    const Viewport vp    = { NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
+//    const Viewport vp    = { static_cast<UInt16>(_width), static_cast<UInt16>(_height) };
 //
 //    const DirectionalLightData&   dirLight    = _env.GetDirectionalLight();
 //    const ImageBasedLightingData& ibl         = _env.GetIBL();
@@ -741,7 +741,7 @@
 //    gbufferLightingTexh = CreateTexture2D(width, height, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, " GBuffer Lighting Texture");
 //
 //    // will be created if ssao is enabled
-//    TextureHandle ssaoTexh = k_nullHandle;
+//    TextureHandle ssaoTexh = kInvalidHandle;
 //
 //    // hdr fbh
 //    {
@@ -765,14 +765,14 @@
 //        pass.AddConstantBuffer(materialCbh, eShader::PixelShader, CB_MATERIAL_SLOT);
 //        pass.AddConstantBuffer(environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT);
 //        pass.SetFrameBuffer(gbufferFbh, true);
-//        pass.SetClearRenderTargetCommand(RGBA::k_black, 0);
-//        pass.SetClearRenderTargetCommand(RGBA::k_black, 1);
-//        pass.SetClearRenderTargetCommand(RGBA::k_black, 2);
+//        pass.SetClearRenderTargetCommand(RGBA::kBlack, 0);
+//        pass.SetClearRenderTargetCommand(RGBA::kBlack, 1);
+//        pass.SetClearRenderTargetCommand(RGBA::kBlack, 2);
 //        pass.SetClearDepthStencilCommand(true, false, 1.f, 0);
 //        pass.SetViewport(vp);
 //        pass.SetRenderState(depthTestState);
-//        pass.SetBlendState(BlendState::k_opaque, 0);
-//        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//        pass.SetBlendState(BlendState::kOpaque, 0);
+//        pass.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //        // pass.SetExecutor(EmplacedDelegate<&GBufferExecutor::Summit, GBufferExecutor>(_pScene));
 //        // auto test = EmplacedDelegate<&GBufferExecutor::Summit, GBufferExecutor>(nullptr);
 //        // todo
@@ -800,9 +800,9 @@
 //        pass0.AddTexture(ssaoNoiseTexture, eShader::PixelShader, t_ssaoNoiseSlot);
 //        pass0.SetFrameBuffer(ssaoFbh0, true);
 //        pass0.SetViewport(vp);
-//        pass0.SetRenderState(RenderState::k_default);
-//        pass0.SetBlendState(BlendState::k_opaque, 0);
-//        pass0.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//        pass0.SetRenderState(RenderState::kDefault);
+//        pass0.SetBlendState(BlendState::kOpaque, 0);
+//        pass0.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //        pass0.SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //        // horizontal blur
@@ -876,9 +876,9 @@
 //        pass.AddTexture(depthTexh, eShader::PixelShader, t_depthSlot);
 //        pass.SetFrameBuffer(hdrNoDepthFbh);
 //        pass.SetViewport(vp);
-//        pass.SetRenderState(RenderState::k_default);
-//        pass.SetBlendState(BlendState::k_opaque, 0);
-//        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//        pass.SetRenderState(RenderState::kDefault);
+//        pass.SetBlendState(BlendState::kOpaque, 0);
+//        pass.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //        pass.SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //        if (pIrrdianceMap)
@@ -916,8 +916,8 @@
 //        pass.SetFrameBuffer(hdrDepthFbh);
 //        pass.SetViewport(vp);
 //        pass.SetRenderState(skyboxState);
-//        pass.SetBlendState(BlendState::k_opaque, 0);
-//        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//        pass.SetBlendState(BlendState::kOpaque, 0);
+//        pass.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //        pass.SetExecutor(Bind<&BasicRendererContext::SubmitSkyboxCube>(g_basicRendererCtx));
 //
 //        if (skybox.type == eSkybox::CubeMap && pSkyboxTeX)
@@ -947,9 +947,9 @@
 //        pass.AddTexture(hdrTexh, eShader::PixelShader, t_input0Slot);
 //        pass.SetFrameBuffer(fbh, true);
 //        pass.SetViewport(vp);
-//        pass.SetRenderState(RenderState::k_default);
-//        pass.SetBlendState(BlendState::k_opaque, 0);
-//        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//        pass.SetRenderState(RenderState::kDefault);
+//        pass.SetBlendState(BlendState::kOpaque, 0);
+//        pass.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //        pass.SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //        graph.AddPass(std::move(pass));
@@ -971,9 +971,9 @@
 //        pass.AddTexture(inputTexh, eShader::PixelShader, t_input0Slot);
 //        pass.SetFrameBuffer(fbh, true);
 //        pass.SetViewport(vp);
-//        pass.SetRenderState(RenderState::k_default);
-//        pass.SetBlendState(BlendState::k_opaque, 0);
-//        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//        pass.SetRenderState(RenderState::kDefault);
+//        pass.SetBlendState(BlendState::kOpaque, 0);
+//        pass.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //        pass.SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //        graph.AddPass(std::move(pass));
@@ -992,7 +992,7 @@
 //    //    {
 //    //        const Int32             w             = Max(1, width >> (i + 1));
 //    //        const Int32             h             = Max(1, height >> (i + 1));
-//    //        const Viewport          vpDown        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
+//    //        const Viewport          vpDown        = { static_cast<UInt16>(w), static_cast<UInt16>(h) };
 //    //        const StringView        name          = FormatToTmpBuffer("Bloom Down Texture %d", i);
 //    //        const TextureHandle     bloomDownTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, name);
 //    //        const StringView        fbhName       = FormatToTmpBuffer("Bloom Down FrameBuffer %d", i);
@@ -1005,9 +1005,9 @@
 //    //        pass.AddConstantBuffer(screenCbh, eShader::PixelShader, CB_SCREEN_SLOT);
 //    //        pass.SetFrameBuffer(bloomDownFbh, true);
 //    //        pass.SetViewport(vpDown);
-//    //        pass.SetRenderState(RenderState::k_default);
-//    //        pass.SetBlendState(BlendState::k_opaque, 0);
-//    //        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//    //        pass.SetRenderState(RenderState::kDefault);
+//    //        pass.SetBlendState(BlendState::kOpaque, 0);
+//    //        pass.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //    //        // pass.SetExecutor(EmplacedDelegate<&BloomFullScreenTriExecutor::Submit, BloomFullScreenTriExecutor>(w, h));
 //    //        // todo
 //
@@ -1020,7 +1020,7 @@
 //    //    {
 //    //        const Int32             w           = Max(1, width >> (i + 1));
 //    //        const Int32             h           = Max(1, height >> (i + 1));
-//    //        const Viewport          vpUp        = { NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
+//    //        const Viewport          vpUp        = { static_cast<UInt16>(w), static_cast<UInt16>(h) };
 //    //        const StringView        name        = FormatToTmpBuffer("Bloom Up Texture %d", i);
 //    //        const TextureHandle     bloomUpTexh = CreateTexture2D(w, h, eTextureFormat::RG11B10_Float, eAttachment::RenderTarget, name);
 //    //        const StringView        fbhName     = FormatToTmpBuffer("Bloom Up FrameBuffer %d", i);
@@ -1033,9 +1033,9 @@
 //    //        pass.AddConstantBuffer(screenCbh, eShader::PixelShader, CB_SCREEN_SLOT);
 //    //        pass.SetFrameBuffer(bloomUpFbh, true);
 //    //        pass.SetViewport(vpUp);
-//    //        pass.SetRenderState(RenderState::k_default);
-//    //        pass.SetBlendState(BlendState::k_opaque, 0);
-//    //        pass.SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+//    //        pass.SetRenderState(RenderState::kDefault);
+//    //        pass.SetBlendState(BlendState::kOpaque, 0);
+//    //        pass.SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 //    //        //            pass.SetExecutor(BloomFullScreenTriExecutor { w, h });
 //
 //    //        graph.AddPass(std::move(pass));
@@ -1054,9 +1054,9 @@
 //    //        .AddConstantBuffer(environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
 //    //        .SetFrameBuffer(fbh, true)
 //    //        .SetViewport(vp)
-//    //        .SetRenderState(RenderState::k_default)
-//    //        .SetBlendState(BlendState::k_opaque, 0)
-//    //        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+//    //        .SetRenderState(RenderState::kDefault)
+//    //        .SetBlendState(BlendState::kOpaque, 0)
+//    //        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 //    //        .SetExecutor(BloomFullScreenTriExecutor { width, height });   // restore full screen size
 //
 //    //    graph.AddPass(std::move(pass));
@@ -1076,9 +1076,9 @@
 //    //        .AddConstantBuffer(environmentCbh, eShader::PixelShader, CB_ENVIRONMENT_SLOT)
 //    //        .SetFrameBuffer(fbh, true)
 //    //        .SetViewport(vp)
-//    //        .SetRenderState(RenderState::k_default)
-//    //        .SetBlendState(BlendState::k_opaque, 0)
-//    //        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+//    //        .SetRenderState(RenderState::kDefault)
+//    //        .SetBlendState(BlendState::kOpaque, 0)
+//    //        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 //    //        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //    //    graph.AddPass(std::move(pass));
@@ -1099,9 +1099,9 @@
 //    //        .AddConstantBuffer(screenCbh, eShader::PixelShader, CB_SCREEN_SLOT)
 //    //        .SetFrameBuffer(fbh, true)
 //    //        .SetViewport(vp)
-//    //        .SetRenderState(RenderState::k_default)
-//    //        .SetBlendState(BlendState::k_opaque, 0)
-//    //        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+//    //        .SetRenderState(RenderState::kDefault)
+//    //        .SetBlendState(BlendState::kOpaque, 0)
+//    //        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 //    //        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 //
 //    //    switch (fxaa.quality)
@@ -1301,8 +1301,8 @@
 //        pCtx->pbrLightingProgram               = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->pbrLightingPsh);
 //        pCtx->pbrLightVolumeProgram            = GetGraphics().CreateProgram(pCtx->pbrLightVolumeVsh, pCtx->pbrLightVolumePsh);
 //        pCtx->pbrEnvironmentLightVolumeProgram = GetGraphics().CreateProgram(pCtx->pbrEnvironmentLIghtVolumeVsh, pCtx->pbrEnvironmentLightVolumePsh);
-//        pCtx->csmLevel3CasterProgram           = GetGraphics().CreateProgram(pCtx->csmVsh, pCtx->csmPsh, pCtx->csmLevel3Gsh, k_nullHandle, k_nullHandle);
-//        pCtx->osmCasterProgram                 = GetGraphics().CreateProgram(pCtx->osmVsh, pCtx->osmPsh, pCtx->osmGsh, k_nullHandle, k_nullHandle);
+//        pCtx->csmLevel3CasterProgram           = GetGraphics().CreateProgram(pCtx->csmVsh, pCtx->csmPsh, pCtx->csmLevel3Gsh, kInvalidHandle, kInvalidHandle);
+//        pCtx->osmCasterProgram                 = GetGraphics().CreateProgram(pCtx->osmVsh, pCtx->osmPsh, pCtx->osmGsh, kInvalidHandle, kInvalidHandle);
 //        pCtx->shadowCasterProgram              = GetGraphics().CreateProgram(pCtx->shadowMappingVsh, pCtx->shadowMappingPsh);
 //        pCtx->skyboxProgram                    = GetGraphics().CreateProgram(pCtx->skyboxVsh, pCtx->skyboxPsh);
 //        pCtx->ssaoProgram                      = GetGraphics().CreateProgram(pCtx->fullscreenVsh, pCtx->ssaoPsh);
@@ -1357,24 +1357,24 @@
 //
 //    // full screen tri
 //    {
-//        constexpr VertexPosTex2D k_verts[] = {
+//        constexpr VertexPosTex2D kVerts[] = {
 //            { Vec2(-1.f, -1.f), Vec2(0.f,  1.f) },
 //            { Vec2(-1.f,  3.f), Vec2(0.f, -1.f) },
 //            {  Vec2(3.f, -1.f), Vec2(2.f,  1.f) }
 //        };
-//        constexpr UInt16 k_indices[] = { 0, 1, 2 };
-//        pCtx->fullScreenTri.Load(k_verts, VertexPosTex2D::s_layout, { k_indices });
+//        constexpr UInt16 kIndices[] = { 0, 1, 2 };
+//        pCtx->fullScreenTri.Load(kVerts, VertexPosTex2D::s_layout, { kIndices });
 //    }
 //
 //    // light volume full tri
 //    {
-//        constexpr VertexPos3D k_verts[] = {
+//        constexpr VertexPos3D kVerts[] = {
 //            { Vec3(-1.f, -1.f, 0.f) },
 //            { Vec3(-1.f, 3.f, 0.f) },
 //            { Vec3(3.f, -1.f, 0.f) }
 //        };
-//        constexpr UInt16 k_indices[] = { 0, 1, 2 };
-//        pCtx->lightVolumeFullScreenTri.Load(k_verts, VertexPos3D::s_layout, { k_indices });
+//        constexpr UInt16 kIndices[] = { 0, 1, 2 };
+//        pCtx->lightVolumeFullScreenTri.Load(kVerts, VertexPos3D::s_layout, { kIndices });
 //    }
 //
 //    // skybox cube
@@ -1428,7 +1428,7 @@
 //        pCtx->anisotropicSampler.addressW = eTextureAddressMode::Wrap;
 //
 //        // 후면 컬링, 깊이 테스트 활성화, 깊이 쓰기 활성화
-//        pCtx->depthTestState = RenderState::k_depthTest;
+//        pCtx->depthTestState = RenderState::kDepthTest;
 //
 //        // 전면 컬링, 깊이 비활성화
 //        pCtx->lightVolumeState = RenderState { ePrimitive::TriangleList, eCullMode::Front, false, false, false, false, false, false, false, false, eCompareFunc::LessEqual, false };
@@ -1632,7 +1632,7 @@
 ////
 ////        // corners & center
 ////        const GetCorners corners = frustumInW.GetCorners();
-////        Vec3          center  = Numbers<Vec3>::k_zero;
+////        Vec3          center  = Vec3::kZero;
 ////        for (Int32 j = 0; j < 8; ++j)
 ////        {
 ////            center += corners.points[j];
@@ -1640,7 +1640,7 @@
 ////        center *= 1.f / 8.f;
 ////
 ////        // light view
-////        const Mtx4 lightV = CreateViewLookTo(center, dirLight.direction);
+////        const Matrix lightV = CreateViewLookTo(center, dirLight.direction);
 ////
 ////        // aabb in light space
 ////        AABB lightAabb = {};
@@ -1660,7 +1660,7 @@
 ////
 ////        // create ortho
 ////        {
-////            const Mtx4 lightP    = CreateOrthographic(lightAabb.Width(), lightAabb.Height(), lightAabb.min.z, lightAabb.max.z);
+////            const Matrix lightP    = CreateOrthographic(lightAabb.Width(), lightAabb.Height(), lightAabb.min.z, lightAabb.max.z);
 ////            cb.cb_csmViewProj[i] = (lightV * lightP).Transpose();
 ////        }
 ////    }
@@ -1670,15 +1670,15 @@
 ////
 //// void BasicRenderer::UploadOmniDirectionalShadowCasterData(const Vec3 _pos, const float _range)
 ////{
-////    Mtx4 lightP = CreatePerspectiveFov(ToRad(90.f), 1.f, 0.01f, _range);
+////    Matrix lightP = CreatePerspectiveFov(ToRad(90.f), 1.f, 0.01f, _range);
 ////
 ////    CB_OMNIDIRECTIONAL_SHADOW_CASTER cb;
 ////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Right)]  = (CreateViewLookTo(_pos, Vec3::right) * lightP).Transpose();
 ////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Left)]   = (CreateViewLookTo(_pos, Vec3::left) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Top)]    = (CreateViewLookTo(_pos, Numbers<Vec3>::k_up) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Bottom)] = (CreateViewLookTo(_pos, Numbers<Vec3>::k_down) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Front)]  = (CreateViewLookTo(_pos, Numbers<Vec3>::k_forward) * lightP).Transpose();
-////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Back)]   = (CreateViewLookTo(_pos, Numbers<Vec3>::k_backward) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Top)]    = (CreateViewLookTo(_pos, Vec3::kUp) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Bottom)] = (CreateViewLookTo(_pos, Vec3::kDown) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Front)]  = (CreateViewLookTo(_pos, Vec3::kForward) * lightP).Transpose();
+////    cb.cb_odsViewProj[EnumToInt(eCubeFace::Back)]   = (CreateViewLookTo(_pos, Vec3::kBackward) * lightP).Transpose();
 ////    GetGraphics().UploadBuffer_(g_basicRendererCtx->osmCasterCbh, cb);
 ////}
 ////
@@ -1707,7 +1707,7 @@
 ////
 //// void BasicRenderer::SubmitPointLight(const Vec3 _radiance, const float _lightIntensity, const Vec3 _pos, const float _fallOffStart, const float _fallOffEnd)
 ////{
-////    Mtx4 lightMat = Mtx4::CreateScale(_fallOffEnd) * Mtx4::CreateTranslation(_pos);
+////    Matrix lightMat = Matrix::CreateScale(_fallOffEnd) * Matrix::CreateTranslation(_pos);
 ////
 ////    g_basicRendererCtx->UploadPointLight(_radiance, _lightIntensity, _pos, _fallOffStart, _fallOffEnd, false);
 ////    g_basicRendererCtx->UploadTransform(lightMat);
@@ -1727,8 +1727,8 @@
 ////    float t        = std::tanf(_outerConeAngle);
 ////    float w        = t * h;
 ////    Vec3  pos      = _pos + _dir * h * 0.5f;
-////    Quat  q        = Quat::FromToRotation(Numbers<Vec3>::k_up, _dir);
-////    Mtx4  lightMat = Mtx4::CreateScale(Vec3(w, h, w)) * Mtx4::CreateFromQuaternion(q) * Mtx4::CreateTranslation(pos);
+////    Quat  q        = Quat::FromToRotation(Vec3::kUp, _dir);
+////    Matrix  lightMat = Matrix::CreateScale(Vec3(w, h, w)) * Matrix::CreateFromQuaternion(q) * Matrix::CreateTranslation(pos);
 ////    g_basicRendererCtx->UploadTransform(lightMat);
 ////    g_basicRendererCtx->UploadSpotLight(_radiance, _lightIntensity, _pos, _dir, _fallOffStart, _fallOffEnd, _innerConeAngle, _outerConeAngle, false);
 ////    g_basicRendererCtx->lightVolumeUnitCone.Submit();
@@ -1768,8 +1768,8 @@
 ////        .SetFrameBuffer(_Dedesc.frameBuffer)
 ////        .SetViewport(_desc.vp)
 ////        .SetGfxState(GfxState::Default())
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    if (_desc.ssaoTexture)
@@ -1797,8 +1797,8 @@
 ////        .SetFrameBuffer(_desc.frameBuffer)
 ////        .SetViewport(_desc.vp)
 ////        .SetGfxState(g_basicRendererCtx->lightVolumeState)
-////        .SetBlendState(BlendState::k_additive, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0);
+////        .SetBlendState(BlendState::kAdditive, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0);
 ////
 ////    return pass;
 ////}
@@ -1828,8 +1828,8 @@
 ////        .SetFrameBuffer(_desc.frameBuffer)
 ////        .SetViewport(_desc.vp)
 ////        .SetGfxState(g_basicRendererCtx->lightVolumeState)
-////        .SetBlendState(BlendState::k_additive, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kAdditive, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(Executor {});
 ////
 ////    if (_desc.shadowMap)
@@ -1856,8 +1856,8 @@
 ////        .SetFrameBuffer(_desc.frameBuffer)
 ////        .SetViewport(_desc.vp)
 ////        .SetGfxState(g_basicRendererCtx->skyboxState)
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(SkyboxExecutor {});
 ////
 ////    if (_desc.skyboxTexture)
@@ -1872,7 +1872,7 @@
 ////
 ////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.lengthOfSide), NarrowCast<UInt16>(_desc.lengthOfSide) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.lengthOfSide), static_cast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->shadowCasterProgram)
@@ -1881,8 +1881,8 @@
 ////        .SetFrameBuffer(fbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(g_basicRendererCtx->depthTestState)
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(_desc.executor);
 ////
 ////    result.shadowMap = th;
@@ -1895,7 +1895,7 @@
 ////
 ////    TextureHandle     th  = CreateTextureCube(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.lengthOfSide), NarrowCast<UInt16>(_desc.lengthOfSide) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.lengthOfSide), static_cast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->osmCasterProgram)
@@ -1904,8 +1904,8 @@
 ////        .SetFrameBuffer(fbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(g_basicRendererCtx->depthTestState)
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(_desc.executor);
 ////
 ////    result.shadowMap = th;
@@ -1918,7 +1918,7 @@
 ////
 ////    TextureHandle     th  = CreateTexture2D(_desc.lengthOfSide, _desc.lengthOfSide, eTextureFormat::D32_Float, eAttachment::DepthStencil);
 ////    FrameBufferHandle fbh = GetGraphics().CreateFrameBuffer(th, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.lengthOfSide), NarrowCast<UInt16>(_desc.lengthOfSide) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.lengthOfSide), static_cast<UInt16>(_desc.lengthOfSide) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.AddConstantBuffer(g_basicRendererCtx->transformCbh, eShader::VertexShader, CB_TRANSFORM_SLOT)
@@ -1926,8 +1926,8 @@
 ////        .SetFrameBuffer(fbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(g_basicRendererCtx->depthTestState)
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(_desc.executor);
 ////
 ////    if (_desc.cascadeLevel == eCascadeLevel::level2)
@@ -1954,7 +1954,7 @@
 ////
 ////    Int32    w = _desc.width;
 ////    Int32    h = _desc.height;
-////    Viewport vp { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
+////    Viewport vp { 0, 0, static_cast<UInt16>(w), static_cast<UInt16>(h) };
 ////
 ////    // ssao
 ////    TextureHandle     ssaoTexh    = GetGraphics().CreateTexture2D(w, h, eTextureFormat::R8_UNorm, 1, eTextureCreateFlags::RenderTarget);
@@ -1973,8 +1973,8 @@
 ////        .SetFrameBuffer(ssaoPassFbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(GfxState::Default())
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    // horizontal blur
@@ -2007,7 +2007,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.width), static_cast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->toneMappingProgram)
@@ -2017,8 +2017,8 @@
 ////        .SetFrameBuffer(outputFbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(GfxState::Default())
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    result.outputTexture = outputTexh;
@@ -2031,7 +2031,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.width), static_cast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.AddSampler(g_basicRendererCtx->linearClampSampler, eShader::PixelShader, s_linearClampSlot)
@@ -2039,8 +2039,8 @@
 ////        .SetFrameBuffer(outputFbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(GfxState::Default())
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    switch (_desc.quality)
@@ -2077,7 +2077,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.width), static_cast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->fogProgram)
@@ -2089,8 +2089,8 @@
 ////        .SetFrameBuffer(outputFbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(GfxState::Default())
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    result.outputTexture = outputTexh;
@@ -2103,7 +2103,7 @@
 ////
 ////    TextureHandle     outputTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle outputFbh  = GetGraphics().CreateFrameBuffer(outputTexh, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.width), static_cast<UInt16>(_desc.height) };
 ////
 ////    RenderPass& pass = result.pass;
 ////    pass.SetProgram(g_basicRendererCtx->passTexhroughProgram)
@@ -2112,8 +2112,8 @@
 ////        .SetFrameBuffer(outputFbh, true)
 ////        .SetViewport(vp)
 ////        .SetGfxState(GfxState::Default())
-////        .SetBlendState(BlendState::k_opaque, 0)
-////        .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////        .SetBlendState(BlendState::kOpaque, 0)
+////        .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////        .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////
 ////    result.outputTexture = outputTexh;
@@ -2134,7 +2134,7 @@
 ////
 ////        TextureHandle     downTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////        FrameBufferHandle downFbh  = GetGraphics().CreateFrameBuffer(downTexh, true);
-////        Viewport          vp { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
+////        Viewport          vp { 0, 0, static_cast<UInt16>(w), static_cast<UInt16>(h) };
 ////
 ////        RenderPass pass;
 ////        if (i == 0)
@@ -2145,8 +2145,8 @@
 ////                .SetFrameBuffer(downFbh, true)
 ////                .SetViewport(vp)
 ////                .SetGfxState(GfxState::Default())
-////                .SetBlendState(BlendState::k_opaque, 0)
-////                .SetStencil(StencilState::k_disable, StencilState::k_disable, 0)
+////                .SetBlendState(BlendState::kOpaque, 0)
+////                .SetStencil(StencilState::kDisable, StencilState::kDisable, 0)
 ////                .SetExecutor(Bind<&BasicRendererContext::SubmitFullScreenTri>(this));
 ////        }
 ////        else
@@ -2170,7 +2170,7 @@
 ////
 ////        TextureHandle     upTexh = CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////        FrameBufferHandle upFbh  = GetGraphics().CreateFrameBuffer(upTexh, true);
-////        Viewport          vp { 0, 0, NarrowCast<UInt16>(w), NarrowCast<UInt16>(h) };
+////        Viewport          vp { 0, 0, static_cast<UInt16>(w), static_cast<UInt16>(h) };
 ////
 ////        RenderPass pass;
 ////        pass.SetProgram(g_basicRendererCtx->bloomUpProgram)
@@ -2185,7 +2185,7 @@
 ////    // combine
 ////    TextureHandle     combineTexh = CreateTexture2D(_desc.width, _desc.height, eTextureFormat::RGBA8_UNorm, eAttachment::RenderTarget);
 ////    FrameBufferHandle combineFbh  = GetGraphics().CreateFrameBuffer(combineTexh, true);
-////    Viewport          vp { 0, 0, NarrowCast<UInt16>(_desc.width), NarrowCast<UInt16>(_desc.height) };
+////    Viewport          vp { 0, 0, static_cast<UInt16>(_desc.width), static_cast<UInt16>(_desc.height) };
 ////
 ////    RenderPass pass;
 ////    pass.SetProgram(g_basicRendererCtx->bloomCombineProgram)

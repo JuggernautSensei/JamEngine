@@ -37,7 +37,7 @@ void LogChannel::RemoveSink(const StringView _name)
 
 void LogChannel::SetPattern(const StringView _pattern) const
 {
-    m_pLogger->set_pattern({ _pattern.GetPtr(), NarrowCast<size_t>(_pattern.GetLength()) });
+    m_pLogger->set_pattern({ _pattern.GetPtr(), static_cast<size_t>(_pattern.GetLength()) });
 }
 
 void LogChannel::SetLevel(const eLogLevel _level) const

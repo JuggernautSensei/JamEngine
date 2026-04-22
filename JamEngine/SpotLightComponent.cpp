@@ -51,7 +51,7 @@ void SpotLightComponent::DrawEditPanel(
         Widget_Text("intensity", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##SpotlightIntensity",intensity, 0.01f, 0.f, Limits<float>::k_max);
+        Widget_DragFloat("##SpotlightIntensity",intensity, 0.01f, 0.f, Limits<float>::kMax);
 
         ImGui::TableNextColumn();
         Widget_Text("fall off start", true);
@@ -63,7 +63,7 @@ void SpotLightComponent::DrawEditPanel(
         Widget_Text("fall off end", true);
         ImGui::TableNextColumn();
         SetNextItemToAvailWidth();
-        Widget_DragFloat("##SpotlightFallOffEnd",fallOffEnd, 0.01f, fallOffStart, Camera::k_maxZ, "%.3fm");
+        Widget_DragFloat("##SpotlightFallOffEnd",fallOffEnd, 0.01f, fallOffStart, Camera::kMaxZ, "%.3fm");
 
         ImGui::TableNextColumn();
         Widget_Text("inner cone half rad (deg)", true);

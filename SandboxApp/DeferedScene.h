@@ -8,9 +8,9 @@ class DeferedScene : public Scene
 
     struct Light
     {
-        Vec3  color  = Numbers<Vec3>::k_one;
-        Vec3  pos    = Numbers<Vec3>::k_zero;
-        Vec3  offset = Numbers<Vec3>::k_zero;
+        Vec3  color  = Vec3::kOne;
+        Vec3  pos    = Vec3::kZero;
+        Vec3  offset = Vec3::kZero;
         float radius = 5.f;
     };
 
@@ -36,9 +36,9 @@ private:
     float m_deltaLightMove = 0.5f;
     bool  m_bAnimate       = true;
 
-    ProgramHandle m_gbufferPh = k_invalidHandle;
-    ProgramHandle m_lightPh   = k_invalidHandle;
-    ProgramHandle m_combinePh = k_invalidHandle;
+    ProgramHandle m_gbufferPh = kInvalidHandle;
+    ProgramHandle m_lightPh   = kInvalidHandle;
+    ProgramHandle m_combinePh = kInvalidHandle;
 
     Ref<Mesh>    m_pDragon       = nullptr;
     Ref<Texture> m_pDragonAlbedo = nullptr;
@@ -50,21 +50,21 @@ private:
 
     Ref<Mesh> m_pPlane = nullptr;
 
-    VertexBufferHandle m_fullTriVbh = k_invalidHandle;
-    IndexBufferHandle  m_fullTriIbh = k_invalidHandle;
+    VertexBufferHandle m_fullTriVbh = kInvalidHandle;
+    IndexBufferHandle  m_fullTriIbh = kInvalidHandle;
 
-    TextureHandle     m_colorTexh  = k_invalidHandle;
-    TextureHandle     m_normalTexh = k_invalidHandle;
-    TextureHandle     m_depthTexh  = k_invalidHandle;
-    FrameBufferHandle m_gbufferFbh = k_invalidHandle;
+    TextureHandle     m_colorTexh  = kInvalidHandle;
+    TextureHandle     m_normalTexh = kInvalidHandle;
+    TextureHandle     m_depthTexh  = kInvalidHandle;
+    FrameBufferHandle m_gbufferFbh = kInvalidHandle;
 
-    TextureHandle     m_lightTexh = k_invalidHandle;
-    FrameBufferHandle m_lightFbh  = k_invalidHandle;
+    TextureHandle     m_lightTexh = kInvalidHandle;
+    FrameBufferHandle m_lightFbh  = kInvalidHandle;
     Viewport          m_vp        = {};
 
-    ConstantBufferHandle m_entityCbh = k_invalidHandle;
-    ConstantBufferHandle m_cameraCbh = k_invalidHandle;
-    ConstantBufferHandle m_lightCbh  = k_invalidHandle;
+    ConstantBufferHandle m_entityCbh = kInvalidHandle;
+    ConstantBufferHandle m_cameraCbh = kInvalidHandle;
+    ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
     Array<Light, 1024> m_lights    = {};
     Int32              m_numLights = 100;

@@ -14,15 +14,15 @@ public:
     using reference       = T&;
     using const_reference = const T&;
 
-    template<bool k_bIsConst>
+    template<bool kBIsConst>
     class IteratorBase
     {
     public:
         using iterator_category = std::forward_iterator_tag;
         using value_type        = T;
         using difference_type   = std::ptrdiff_t;
-        using pointer           = std::conditional_t<k_bIsConst, const T*, T*>;
-        using reference         = std::conditional_t<k_bIsConst, const T&, T&>;
+        using pointer           = std::conditional_t<kBIsConst, const T*, T*>;
+        using reference         = std::conditional_t<kBIsConst, const T&, T&>;
 
         IteratorBase() = default;
         IteratorBase(T* _pBegin, T* _pEnd, T* _pTail, T* _pCur)
@@ -33,8 +33,8 @@ public:
         {
         }
 
-        template<bool k_bOtherConst, typename = std::enable_if_t<k_bIsConst && !k_bOtherConst>>
-        /* implicit */ IteratorBase(const IteratorBase<k_bOtherConst>& _other)
+        template<bool kBOtherConst, typename = std::enable_if_t<kBIsConst && !kBOtherConst>>
+        /* implicit */ IteratorBase(const IteratorBase<kBOtherConst>& _other)
             : m_pBegin(_other.m_pBegin)
             , m_pEnd(_other.m_pEnd)
             , m_pTail(_other.m_pTail)
@@ -66,7 +66,7 @@ public:
             return !(*this == _other);
         }
 
-        [[nodiscard]] std::conditional_t<k_bIsConst, const T&, T&> operator*() const
+        [[nodiscard]] std::conditional_t<kBIsConst, const T&, T&> operator*() const
         {
             JAM_ASSERT(m_pCur != m_pTail, "Iterator out of bound.");
             return *m_pCur;

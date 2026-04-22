@@ -1,0 +1,9 @@
+[2025.08.12 21:43:24] [trace] CORE: log system initialized
+[2025.08.12 21:43:24] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.12 21:43:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.12 21:43:24] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.12 21:43:24] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.12 21:43:24] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.12 21:43:24] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.12 21:43:55] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.12 21:43:55] [trace] CORE: log system shutdown

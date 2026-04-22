@@ -18,7 +18,7 @@ public:
     [[nodiscard]] String ToString() const override;
 
 private:
-    Entity m_entity = Entity::k_null;
+    Entity m_entity = Entity::kNull;
 };
 
 class FocusingFileEntryChangedEvent : public Event

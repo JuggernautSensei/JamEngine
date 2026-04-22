@@ -301,13 +301,13 @@ void WriteToArchive(ArchiveWriter& _writer, const Array<T, N>& _arr)
     _writer.EndArray();
 }
 
-template<typename T, SizeT k_size>
-Error ReadFromArchive(ArchiveReader& _reader, Array<T, k_size>& _arr)
+template<typename T, SizeT kSize>
+Error ReadFromArchive(ArchiveReader& _reader, Array<T, kSize>& _arr)
 {
     const SizeT n = _reader.GetSize();
-    if (n > k_size)
+    if (n > kSize)
     {
-        JAM_LOG_ERROR("Archive read error: array size {} exceeds fixed capacity {}.", n, k_size);
+        JAM_LOG_ERROR("Archive read error: array size {} exceeds fixed capacity {}.", n, kSize);
         _reader.MarkError(Error::InvalidData);
         return Error::InvalidData;
     }

@@ -22,9 +22,9 @@ class PBRScene : public Scene
 
     struct Light
     {
-        Vec3   pos          = Numbers<Vec3>::k_zero;
-        Vec3   color        = Numbers<Vec3>::k_one;
-        Vec3   lookAt       = Numbers<Vec3>::k_zero;
+        Vec3   pos          = Vec3::kZero;
+        Vec3   color        = Vec3::kOne;
+        Vec3   lookAt       = Vec3::kZero;
         float  fallOffStart = 5.f;
         float  fallOffEnd   = 10.f;
         float  innerConeRad = ToRad(15.f);
@@ -49,24 +49,24 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph            = k_invalidHandle;
-    ProgramHandle m_cubeMapPh     = k_invalidHandle;
-    ProgramHandle m_toneMappingPh = k_invalidHandle;
+    ProgramHandle m_ph            = kInvalidHandle;
+    ProgramHandle m_cubeMapPh     = kInvalidHandle;
+    ProgramHandle m_toneMappingPh = kInvalidHandle;
 
-    ConstantBufferHandle m_entityCbh  = k_invalidHandle;
-    ConstantBufferHandle m_cmrCbh     = k_invalidHandle;
-    ConstantBufferHandle m_lightCbh   = k_invalidHandle;
-    ConstantBufferHandle m_cubeMapCbh = k_invalidHandle;
+    ConstantBufferHandle m_entityCbh  = kInvalidHandle;
+    ConstantBufferHandle m_cmrCbh     = kInvalidHandle;
+    ConstantBufferHandle m_lightCbh   = kInvalidHandle;
+    ConstantBufferHandle m_cubeMapCbh = kInvalidHandle;
 
-    FrameBufferHandle m_fbh    = k_invalidHandle;
-    TextureHandle     m_fbTexh = k_invalidHandle;   // not owned
+    FrameBufferHandle m_fbh    = kInvalidHandle;
+    TextureHandle     m_fbTexh = kInvalidHandle;   // not owned
     Viewport          m_vp     = {};
 
-    VertexBufferHandle m_fullTriVbh = k_invalidHandle;
-    IndexBufferHandle  m_fullTriIbh = k_invalidHandle;
+    VertexBufferHandle m_fullTriVbh = kInvalidHandle;
+    IndexBufferHandle  m_fullTriIbh = kInvalidHandle;
 
-    VertexBufferHandle m_cubeVbh = k_invalidHandle;
-    IndexBufferHandle  m_cubeIbh = k_invalidHandle;
+    VertexBufferHandle m_cubeVbh = kInvalidHandle;
+    IndexBufferHandle  m_cubeIbh = kInvalidHandle;
 
     bool  m_bAnimate     = true;
     float m_dYawRad      = ToRad(30.f);

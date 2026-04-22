@@ -1,48 +1,49 @@
 #include "pch.h"
 #include "DeferedScene.h"
 
+#include "Gui.h"
 #include "../JamEngine/AssimpImporter.h"
 #include "../JamEngine/EditorWidgets.h"
 
 namespace
 {
 
-constexpr Int32 k_deferedSceneAlbedoSlot      = 0;
-constexpr Int32 k_deferedSceneNormalSlot      = 1;
-constexpr Int32 k_deferedSceneDepthSceneSlot  = 2;
-constexpr Int32 k_deferedSceneColorSceneSlot  = 3;
-constexpr Int32 k_deferedSceneNormalSceneSlot = 4;
-constexpr Int32 k_deferedSceneLightSceneSlot  = 5;
+constexpr Int32 kDeferedSceneAlbedoSlot      = 0;
+constexpr Int32 kDeferedSceneNormalSlot      = 1;
+constexpr Int32 kDeferedSceneDepthSceneSlot  = 2;
+constexpr Int32 kDeferedSceneColorSceneSlot  = 3;
+constexpr Int32 kDeferedSceneNormalSceneSlot = 4;
+constexpr Int32 kDeferedSceneLightSceneSlot  = 5;
 
-constexpr Int32 k_deferedSceneLinaerWrapSamplerSlot = 0;
+constexpr Int32 kDeferedSceneLinaerWrapSamplerSlot = 0;
 
 struct CBDeferedSceneEntity
 {
-    static constexpr Int32 k_slot = 0;
+    static constexpr Int32 kSlot = 0;
 
-    Mtx4   cb_world         = Numbers<Mtx4>::k_identity;
-    Mtx4   cb_worldInvTrans = Numbers<Mtx4>::k_identity;
-    Vec3   cb_baseColor     = Numbers<Vec3>::k_one;
+    Mtx4   cb_world         = Mtx4::kIdentity;
+    Mtx4   cb_worldInvTrans = Mtx4::kIdentity;
+    Vec3   cb_baseColor     = Vec3::kOne;
     UInt32 cb_bHasTextures  = 0;
 };
 
 struct CBDeferedSceneCamera
 {
-    static constexpr Int32 k_slot = 1;
+    static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos      = Numbers<Vec3>::k_zero;
+    Vec3  cb_eyePos      = Vec3::kZero;
     float padding1       = 0.f;
-    Mtx4  cb_viewProj    = Numbers<Mtx4>::k_identity;
-    Mtx4  cb_viewProjInv = Numbers<Mtx4>::k_identity;
+    Mtx4  cb_viewProj    = Mtx4::kIdentity;
+    Mtx4  cb_viewProjInv = Mtx4::kIdentity;
 };
 
 struct CBDeferedSceneLight
 {
-    static constexpr Int32 k_slot = 2;
+    static constexpr Int32 kSlot = 2;
 
-    Vec3  cb_lightPos    = Numbers<Vec3>::k_zero;
+    Vec3  cb_lightPos    = Vec3::kZero;
     float cb_lightRadius = 0.f;
-    Vec3  cb_lightCol    = Numbers<Vec3>::k_one;
+    Vec3  cb_lightCol    = Vec3::kOne;
     float padding1       = 0.f;
 };
 
@@ -197,10 +198,10 @@ void DeferedScene::OnRender(
     gfx.ClearDepthStencil(m_gbufferFbh, true, false);
 
     // camera
-    gfx.SetConstantBuffer(m_cameraCbh, eShader::VertexShader, CBDeferedSceneCamera::k_slot);
-    gfx.SetConstantBuffer(m_cameraCbh, eShader::PixelShader, CBDeferedSceneCamera::k_slot);
+    gfx.SetConstantBuffer(m_cameraCbh, eShader::VertexShader, CBDeferedSceneCamera::kSlot);
+    gfx.SetConstantBuffer(m_cameraCbh, eShader::PixelShader, CBDeferedSceneCamera::kSlot);
 
-    const Mtx4 viewProj = m_camera.trans.GetMatrix().Invert() * m_camera.cmr.GetProjMatrix();
+    const Mtx4 viewProj = m_camera.trans.GetSRT().Invert() * m_camera.cmr.GetProj();
 
     CBDeferedSceneCamera cbCamera = {};
     cbCamera.cb_eyePos            = m_camera.trans.GetTranslation();
@@ -225,7 +226,7 @@ void DeferedScene::OnRender(
                 | eSamplerFlags::AddressW_Wrap
                 | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear,
             eShader::PixelShader,
-            k_deferedSceneLinaerWrapSamplerSlot);
+            kDeferedSceneLinaerWrapSamplerSlot);
 
         gfx.SetProgram(m_gbufferPh);
         gfx.SetViewport(m_vp);
@@ -242,12 +243,12 @@ void DeferedScene::OnRender(
             cbEntity.cb_worldInvTrans     = world.Invert();
             cbEntity.cb_baseColor         = Vec3 { 1.f, 1.f, 1.f };
             cbEntity.cb_bHasTextures      = 1;
-            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::k_slot);
-            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::k_slot);
+            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::kSlot);
+            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::kSlot);
             gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
 
-            m_pDragonAlbedo->Bind(eShader::PixelShader, k_deferedSceneAlbedoSlot);
-            m_pDragonNormal->Bind(eShader::PixelShader, k_deferedSceneNormalSlot);
+            m_pDragonAlbedo->Bind(eShader::PixelShader, kDeferedSceneAlbedoSlot);
+            m_pDragonNormal->Bind(eShader::PixelShader, kDeferedSceneNormalSlot);
             m_pDragon->Submit();
         }
 
@@ -262,12 +263,12 @@ void DeferedScene::OnRender(
             cbEntity.cb_worldInvTrans     = world.Invert();
             cbEntity.cb_baseColor         = Vec3 { 1.f, 1.f, 1.f };
             cbEntity.cb_bHasTextures      = 1;
-            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::k_slot);
-            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::k_slot);
+            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::kSlot);
+            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::kSlot);
             gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
 
-            m_pBunnyAlbedo->Bind(eShader::PixelShader, k_deferedSceneAlbedoSlot);
-            m_pBunnyNormal->Bind(eShader::PixelShader, k_deferedSceneNormalSlot);
+            m_pBunnyAlbedo->Bind(eShader::PixelShader, kDeferedSceneAlbedoSlot);
+            m_pBunnyNormal->Bind(eShader::PixelShader, kDeferedSceneNormalSlot);
             m_pBunny->Submit();
         }
 
@@ -279,8 +280,8 @@ void DeferedScene::OnRender(
             cbEntity.cb_worldInvTrans     = world.Invert();
             cbEntity.cb_baseColor         = Vec3 { 1.f, 1.f, 1.f };
             cbEntity.cb_bHasTextures      = 0;
-            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::k_slot);
-            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::k_slot);
+            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::kSlot);
+            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::kSlot);
             gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
             m_pPlane->Submit();
         }
@@ -305,10 +306,10 @@ void DeferedScene::OnRender(
         gfx.SetVertexBuffer(m_fullTriVbh);
         gfx.SetIndexBuffer(m_fullTriIbh);
         gfx.SetProgram(m_lightPh);
-        gfx.SetTexture(m_colorTexh, eShader::PixelShader, k_deferedSceneColorSceneSlot);
-        gfx.SetTexture(m_normalTexh, eShader::PixelShader, k_deferedSceneNormalSceneSlot);
-        gfx.SetTexture(m_depthTexh, eShader::PixelShader, k_deferedSceneDepthSceneSlot);
-        gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBDeferedSceneLight::k_slot);
+        gfx.SetTexture(m_colorTexh, eShader::PixelShader, kDeferedSceneColorSceneSlot);
+        gfx.SetTexture(m_normalTexh, eShader::PixelShader, kDeferedSceneNormalSceneSlot);
+        gfx.SetTexture(m_depthTexh, eShader::PixelShader, kDeferedSceneDepthSceneSlot);
+        gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBDeferedSceneLight::kSlot);
 
         for (Int32 i = 0; i < m_numLights; ++i)
         {
@@ -321,31 +322,35 @@ void DeferedScene::OnRender(
             gfx.Submit();
         }
 
-        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneNormalSceneSlot);
-        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneDepthSceneSlot);
+        gfx.SetTexture(kInvalidHandle, eShader::PixelShader, kDeferedSceneNormalSceneSlot);
+        gfx.SetTexture(kInvalidHandle, eShader::PixelShader, kDeferedSceneDepthSceneSlot);
     }
 
     // combine
     {
         gfx.SetRenderFlags(eRenderFlags::Primitive_TriangleList);
         gfx.SetBlendFlags(eBlendFlags::WriteMask_All, 0);
-        gfx.SetFrameBuffer(k_invalidHandle);
+        gfx.SetFrameBuffer(kInvalidHandle);
         gfx.SetVertexBuffer(m_fullTriVbh);
         gfx.SetIndexBuffer(m_fullTriIbh);
         gfx.SetProgram(m_combinePh);
-        gfx.SetTexture(m_colorTexh, eShader::PixelShader, k_deferedSceneColorSceneSlot);
-        gfx.SetTexture(m_lightTexh, eShader::PixelShader, k_deferedSceneLightSceneSlot);
+        gfx.SetTexture(m_colorTexh, eShader::PixelShader, kDeferedSceneColorSceneSlot);
+        gfx.SetTexture(m_lightTexh, eShader::PixelShader, kDeferedSceneLightSceneSlot);
         gfx.Submit();
 
-        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneColorSceneSlot);
-        gfx.SetTexture(k_invalidHandle, eShader::PixelShader, k_deferedSceneLightSceneSlot);
+        gfx.SetTexture(kInvalidHandle, eShader::PixelShader, kDeferedSceneColorSceneSlot);
+        gfx.SetTexture(kInvalidHandle, eShader::PixelShader, kDeferedSceneLightSceneSlot);
         gfx.Touch();
     }
 }
 
 void DeferedScene::OnImGuiRender()
 {
-    ImGui::Begin("Deferred Scene Controller");
+    if (!BeginSceneInspectorWindows("DeferedScene"))
+    {
+        ImGui::End();
+        return;
+    }
 
     // 1. 성능 모니터링
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -371,7 +376,7 @@ void DeferedScene::OnImGuiRender()
                 m_lights[i].radius = globalRadius;
         }
 
-        static Vec3 globalColor = Numbers<Vec3>::k_one;
+        static Vec3 globalColor = Vec3::kOne;
         if (ImGui::ColorEdit3("Set All Color", &globalColor.x))
         {
             for (Int32 i = 0; i < m_numLights; ++i)
@@ -383,29 +388,29 @@ void DeferedScene::OnImGuiRender()
 
     ImGui::Begin("Deferred Debug");
 
-    constexpr ImVec2 k_imageSize = { 200, 200 };
+    constexpr ImVec2 kImageSize = { 200, 200 };
 
     ImGui::BeginGroup();
     ImGui::Text("Albedo (Color)");
-    Widget_Image(m_colorTexh, k_imageSize);
+    Widget_Image(m_colorTexh, kImageSize);
     ImGui::EndGroup();
 
     ImGui::SameLine();
     ImGui::BeginGroup();
     ImGui::Text("Normal (R11G11B10)");
-    Widget_Image(m_normalTexh, k_imageSize);
+    Widget_Image(m_normalTexh, kImageSize);
     ImGui::EndGroup();
 
     ImGui::SameLine();
     ImGui::BeginGroup();
     ImGui::Text("Depth");
-    Widget_Image(m_depthTexh, k_imageSize);
+    Widget_Image(m_depthTexh, kImageSize);
     ImGui::EndGroup();
 
     ImGui::SameLine();
     ImGui::BeginGroup();
     ImGui::Text("Light Buffer (Accumulated)");
-    Widget_Image(m_lightTexh, k_imageSize);
+    Widget_Image(m_lightTexh, kImageSize);
     ImGui::EndGroup();
 
     ImGui::End();

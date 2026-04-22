@@ -6,93 +6,95 @@
 namespace Jam
 {
 
-String StringFrom(
-    const StringViewDto _str)
+namespace Dto
 {
-    return { _str.data(), _str.size() };
-}
+    StringView Wrap(
+        const Jam::StringView _str)
+    {
+        return { _str.GetPtr(), static_cast<StringView::msize_t>(_str.GetLength()) };
+    }
 
-StringView StringViewFrom(
-    const StringViewDto _str)
-{
-    return { _str.data(), _str.size() };
-}
+    Jam::StringView Unwrap(
+        const StringView _str)
+    {
+        return { _str.data(), _str.size() };
+    }
 
-StringViewDto StringViewDtoFrom(
-    const StringView _str)
-{
-    return { _str.GetPtr(), NarrowCast<StringViewDto::msize_t>(_str.GetLength()) };
-}
+    Vec3 Wrap(
+        const Jam::Vec3& _vec)
+    {
+        return { _vec.x, _vec.y, _vec.z };
+    }
 
-Vec3Dto Vec3Dto::FromVec3(const Vec3& _v)
-{
-    Vec3Dto vec = {};
-    vec.vec[0]  = _v.x;
-    vec.vec[1]  = _v.y;
-    vec.vec[2]  = _v.z;
-    return vec;
-}
+    Jam::Vec3 Unwrap(
+        const Vec3& _vec)
+    {
+        return { _vec.x, _vec.y, _vec.z };
+    }
 
-Vec3 Vec3Dto::ToVec3() const
-{
-    return { vec[0], vec[1], vec[2] };
-}
+    Matrix Wrap(
+        const Jam::Mtx4& _mtx)
+    {
+        return {
+            _mtx.m[0][0],
+            _mtx.m[0][1],
+            _mtx.m[0][2],
+            _mtx.m[0][3],
 
-Mtx4Dto Mtx4Dto::FromMat4(
-    Mtx4 _mtx)
-{
-    Mtx4Dto mtx = {};
-    mtx.mtx[0]  = _mtx._11;
-    mtx.mtx[1]  = _mtx._12;
-    mtx.mtx[2]  = _mtx._13;
-    mtx.mtx[3]  = _mtx._14;
-    mtx.mtx[4]  = _mtx._21;
-    mtx.mtx[5]  = _mtx._22;
-    mtx.mtx[6]  = _mtx._23;
-    mtx.mtx[7]  = _mtx._24;
-    mtx.mtx[8]  = _mtx._31;
-    mtx.mtx[9]  = _mtx._32;
-    mtx.mtx[10] = _mtx._33;
-    mtx.mtx[11] = _mtx._34;
-    mtx.mtx[12] = _mtx._41;
-    mtx.mtx[13] = _mtx._42;
-    mtx.mtx[14] = _mtx._43;
-    mtx.mtx[15] = _mtx._44;
-    return mtx;
-}
+            _mtx.m[1][0],
+            _mtx.m[1][1],
+            _mtx.m[1][2],
+            _mtx.m[1][3],
 
-Mtx4 Mtx4Dto::ToMtx4() const
-{
-    return { mtx[0],
-             mtx[1],
-             mtx[2],
-             mtx[3],
-             mtx[4],
-             mtx[5],
-             mtx[6],
-             mtx[7],
-             mtx[8],
-             mtx[9],
-             mtx[10],
-             mtx[11],
-             mtx[12],
-             mtx[13],
-             mtx[14],
-             mtx[15] };
-}
+            _mtx.m[2][0],
+            _mtx.m[2][1],
+            _mtx.m[2][2],
+            _mtx.m[2][3],
 
-AabbDto AabbDto::FromAabb(
-    const Aabb& _aabb)
-{
-    AabbDto aabb = {};
-    aabb.min     = Vec3Dto::FromVec3(_aabb.min);
-    aabb.max     = Vec3Dto::FromVec3(_aabb.max);
-    return aabb;
-}
+            _mtx.m[3][0],
+            _mtx.m[3][1],
+            _mtx.m[3][2],
+            _mtx.m[3][3],
+        };
+    }
 
-Aabb AabbDto::ToAabb() const
-{
-    return Aabb { min.ToVec3(), max.ToVec3() };
-}
+    Jam::Mtx4 Unwrap(
+        const Matrix& _mtx)
+    {
+        return {
+            _mtx.m[0],
+            _mtx.m[1],
+            _mtx.m[2],
+            _mtx.m[3],
+
+            _mtx.m[4],
+            _mtx.m[5],
+            _mtx.m[6],
+            _mtx.m[7],
+
+            _mtx.m[8],
+            _mtx.m[9],
+            _mtx.m[10],
+            _mtx.m[11],
+
+            _mtx.m[12],
+            _mtx.m[13],
+            _mtx.m[14],
+            _mtx.m[15],
+        };
+    }
+
+    Aabb Wrap(
+        const Jam::Aabb& _aabb)
+    {
+        return { Wrap(_aabb.center), Wrap(_aabb.extents) };
+    }
+
+    Jam::Aabb Unwrap(
+        const Aabb& _aabb)
+    {
+        return { Unwrap(_aabb.center), Unwrap(_aabb.extents) };
+    }
+}   // namespace Dto
 
 }   // namespace Jam

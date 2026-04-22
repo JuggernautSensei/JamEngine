@@ -32,9 +32,9 @@ private:
 
     Ref<Mesh> m_pFsTri = nullptr;
 
-    ConstantBufferHandle m_noWitCbh   = k_invalidHandle;
-    ConstantBufferHandle m_withWitCbh = k_invalidHandle;
-    ConstantBufferHandle m_cmrCbh     = k_invalidHandle;
+    ConstantBufferHandle m_noWitCbh   = kInvalidHandle;
+    ConstantBufferHandle m_withWitCbh = kInvalidHandle;
+    ConstantBufferHandle m_cmrCbh     = kInvalidHandle;
 
     RenderGraph  m_graph  = {};
     FlyingCamera m_camera = {};

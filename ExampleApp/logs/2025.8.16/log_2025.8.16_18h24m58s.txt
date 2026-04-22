@@ -1,0 +1,46 @@
+[2025.08.16 18:24:58] [trace] CORE: log system initialized
+[2025.08.16 18:24:58] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Debug\ExampleApp.exe
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 235
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2237, height: 1223
+[2025.08.16 18:24:58] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.16 18:25:01] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 228
+[2025.08.16 18:25:01] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 226
+[2025.08.16 18:25:01] [trace] CORE: Dispatching event: WindowMoveEvent: x: 132, y: 223
+[2025.08.16 18:25:01] [trace] CORE: Dispatching event: WindowMoveEvent: x: 132, y: 221
+[2025.08.16 18:25:01] [trace] CORE: Dispatching event: WindowMoveEvent: x: 132, y: 219
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 130, y: 215
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 130, y: 213
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 129, y: 209
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 129, y: 205
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 128, y: 201
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 128, y: 197
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 126, y: 191
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 184
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 180
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 178
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 175
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 174
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 173
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 172
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 171
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 170
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 169
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 168
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 166
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 165
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 125, y: 164
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 124, y: 162
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 159
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 121, y: 157
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 120, y: 154
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 120, y: 152
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 120, y: 150
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 119, y: 147
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 117, y: 145
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event: WindowMoveEvent: x: 117, y: 142
+[2025.08.16 18:25:02] [trace] CORE: Dispatching event:

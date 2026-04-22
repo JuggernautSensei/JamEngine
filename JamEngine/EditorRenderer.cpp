@@ -11,30 +11,30 @@ namespace Jam
 
 struct CB_EDITOR_RENDERER
 {
-    Mtx4   viewProj = Numbers<Mtx4>::k_identity;
-    Mtx4   mtx      = Numbers<Mtx4>::k_identity;
-    Vec3   eye      = Numbers<Vec3>::k_zero;
+    Mtx4   viewProj = Mtx4::kIdentity;
+    Mtx4   mtx      = Mtx4::kIdentity;
+    Vec3   eye      = Vec3::kZero;
     UInt32 flags    = 0;
-    Vec4   color    = Numbers<Vec4>::k_one;
+    Vec4   color    = Vec4::kOne;
 };
 
 //////////////////////////////////
 ///       GRID SHADER          ///
 //////////////////////////////////
 
-const char* const EditorRenderer::k_gridShaderSource = R"(
-static const float4 k_axisXCol = float4(253 / 255.f, 54 / 255.f, 83 / 255.f, 1.f);
-static const float4 k_axisZCol = float4(48 / 255.f, 128 / 255.f, 219 / 255.f, 1.f);
-static const float4 k_minorGridCol = float4(140.f / 255.f, 140.f / 255.f, 140.f / 255.f, 1.f);
-static const float4 k_majorGridCol = k_minorGridCol * 0.9f;
-static const float k_gridCellSize = 1.f;
-static const float k_gridFadeStart = 80.f;
-static const float k_gridFadeEnd = 150.f;
-static const float k_minorGridLineThickness = 1.f;
-static const float k_majorGridLineThickness = 2.f;
-static const float k_axisLineThickness = 2.f;
-static const float k_viewAngleFadeStart = 0.0f;  
-static const float k_viewAngleFadeEnd = 0.20f;   
+const char* const EditorRenderer::kGridShaderSource = R"(
+static const float4 kAxisXCol = float4(253 / 255.f, 54 / 255.f, 83 / 255.f, 1.f);
+static const float4 kAxisZCol = float4(48 / 255.f, 128 / 255.f, 219 / 255.f, 1.f);
+static const float4 kMinorGridCol = float4(140.f / 255.f, 140.f / 255.f, 140.f / 255.f, 1.f);
+static const float4 kMajorGridCol = kMinorGridCol * 0.9f;
+static const float kGridCellSize = 1.f;
+static const float kGridFadeStart = 80.f;
+static const float kGridFadeEnd = 150.f;
+static const float kMinorGridLineThickness = 1.f;
+static const float kMajorGridLineThickness = 2.f;
+static const float kAxisLineThickness = 2.f;
+static const float kViewAngleFadeStart = 0.0f;  
+static const float kViewAngleFadeEnd = 0.20f;   
 
 #define DRAW_GRID_FLAG 1
 #define DRAW_AXIS_FLAG 2
@@ -72,7 +72,7 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     bool bDrawGrid = (flags & DRAW_GRID_FLAG) != 0;
     bool bDrawAxis = (flags & DRAW_AXIS_FLAG) != 0;
     
-    float2 gridCoord = input.posW.xz / k_gridCellSize;
+    float2 gridCoord = input.posW.xz / kGridCellSize;
     float2 fracCoord = frac(gridCoord);
     float2 distToLine = min(fracCoord, 1.0 - fracCoord);
     
@@ -81,35 +81,35 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     float2 derivatives = float2(length(float2(dx_grid.x, dy_grid.x)), length(float2(dx_grid.y, dy_grid.y)));
     
     float2 lineAA = distToLine / derivatives;
-    float2 grid = smoothstep(0.0, k_minorGridLineThickness, lineAA);
+    float2 grid = smoothstep(0.0, kMinorGridLineThickness, lineAA);
     float minGrid = min(grid.x, grid.y);
     
-    float2 majorGridCoord = input.posW.xz / (k_gridCellSize * 10.0);
+    float2 majorGridCoord = input.posW.xz / (kGridCellSize * 10.0);
     float2 majorFracCoord = frac(majorGridCoord);
     float2 majorDistToLine = min(majorFracCoord, 1.0 - majorFracCoord);
     float2 majorDx = ddx(majorGridCoord);
     float2 majorDy = ddy(majorGridCoord);
     float2 majorDerivatives = float2(length(float2(majorDx.x, majorDy.x)), length(float2(majorDx.y, majorDy.y)));
     float2 majorLineAA = majorDistToLine / majorDerivatives;
-    float2 majorGrid = smoothstep(0.0, k_majorGridLineThickness, majorLineAA);
+    float2 majorGrid = smoothstep(0.0, kMajorGridLineThickness, majorLineAA);
     float minMajorGrid = min(majorGrid.x, majorGrid.y);
     
     // 거리 기반 페이드
     float dist = distance(input.posW, eye);
-    float t = 1.0 - smoothstep(k_gridFadeStart, k_gridFadeEnd, dist);
+    float t = 1.0 - smoothstep(kGridFadeStart, kGridFadeEnd, dist);
     float distanceFade = t * t * t;
     
     // 시선 각도 기반 페이드
     float3 viewDir = normalize(eye - input.posW);
     float3 gridNormal = float3(0.0, 1.0, 0.0); 
     float viewDotNormal = abs(dot(viewDir, gridNormal));
-    float viewAngleFade = smoothstep(k_viewAngleFadeStart, k_viewAngleFadeEnd, viewDotNormal);
+    float viewAngleFade = smoothstep(kViewAngleFadeStart, kViewAngleFadeEnd, viewDotNormal);
     
     // 최종 페이드
     float fadeFactor = distanceFade * viewAngleFade;
 
-    float xAxis = smoothstep(0.0, k_axisLineThickness, abs(input.posW.z) / derivatives.y);
-    float zAxis = smoothstep(0.0, k_axisLineThickness, abs(input.posW.x) / derivatives.x);
+    float xAxis = smoothstep(0.0, kAxisLineThickness, abs(input.posW.z) / derivatives.y);
+    float zAxis = smoothstep(0.0, kAxisLineThickness, abs(input.posW.x) / derivatives.x);
     
     float xAxisAlpha = 1.0 - xAxis;
     float zAxisAlpha = 1.0 - zAxis;
@@ -119,22 +119,22 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     float4 outColor = float4(0.0, 0.0, 0.0, 0.0);
     if (bDrawAxis && xAxisAlpha > 0.01)
     {
-        outColor = k_axisXCol;
+        outColor = kAxisXCol;
         outColor.a = xAxisAlpha;
     }
     else if (bDrawAxis && zAxisAlpha > 0.01)
     {
-        outColor = k_axisZCol;
+        outColor = kAxisZCol;
         outColor.a = zAxisAlpha;
     }
     else if (bDrawGrid && majorGridAlpha > 0.01)
     {
-        outColor = k_majorGridCol;
+        outColor = kMajorGridCol;
         outColor.a = majorGridAlpha;
     }
     else if (bDrawGrid && minorGridAlpha > 0.01)
     {
-        outColor = k_minorGridCol;
+        outColor = kMinorGridCol;
         outColor.a = minorGridAlpha;
     }
     
@@ -147,8 +147,8 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
 ///      LINE SHADER           ///
 //////////////////////////////////
 
-const char* const EditorRenderer::k_lineShaderSource = R"(
-static const float k_depthBias = 0.0001f;
+const char* const EditorRenderer::kLineShaderSource = R"(
+static const float kDepthBias = 0.0001f;
 
 cbuffer CB_EDITOR_RENDERER : register(b0)
 {
@@ -176,7 +176,7 @@ PS_INPUT VSMain(VS_INPUT input)
     PS_INPUT output;
     float4 posW = mul(float4(input.posL, 1.0f), mtx);
     output.posH = mul(posW, viewProj);
-    output.posH.z -= k_depthBias * output.posH.w;
+    output.posH.z -= kDepthBias * output.posH.w;
     output.value = float4(
         input.value.r / 255.0f,
         input.value.g / 255.0f,
@@ -197,7 +197,7 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
 ///    FILLED SHADER          ///
 //////////////////////////////////
 
-constexpr const char* k_editorRendererFilledShaderSource = R"(
+constexpr const char* kEditorRendererFilledShaderSource = R"(
 cbuffer CB_EDITOR_RENDERER : register(b0)
 {
     float4x4 viewProj;
@@ -261,7 +261,7 @@ EditorRenderer::EditorRenderer()
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
 
-        ShaderCompiler vsCompiler = ShaderCompiler::CompileHLSLSource(k_gridShaderSource, vsDesc);
+        ShaderCompiler vsCompiler = ShaderCompiler::CompileHLSLSource(kGridShaderSource, vsDesc);
         JAM_ASSERT(vsCompiler.IsSucceeded(), "Editor grid vertex shader compilation failed");
         const ShaderHandle gridVsh = gfx.CreateShader(vsCompiler.GetBytecode());
 
@@ -270,7 +270,7 @@ EditorRenderer::EditorRenderer()
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
 
-        ShaderCompiler psCompiler = ShaderCompiler::CompileHLSLSource(k_gridShaderSource, psDesc);
+        ShaderCompiler psCompiler = ShaderCompiler::CompileHLSLSource(kGridShaderSource, psDesc);
         JAM_ASSERT(psCompiler.IsSucceeded(), "Editor grid pixel shader compilation failed");
         const ShaderHandle gridPsh = gfx.CreateShader(vsCompiler.GetBytecode());
 
@@ -284,7 +284,7 @@ EditorRenderer::EditorRenderer()
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
 
-        ShaderCompiler vsCompiler = ShaderCompiler::CompileHLSLSource(k_lineShaderSource, vsDesc);
+        ShaderCompiler vsCompiler = ShaderCompiler::CompileHLSLSource(kLineShaderSource, vsDesc);
         JAM_ASSERT(vsCompiler.IsSucceeded(), "Editor line vertex shader compilation failed");
         const ShaderHandle lineVsh = gfx.CreateShader(vsCompiler.GetBytecode());
 
@@ -293,7 +293,7 @@ EditorRenderer::EditorRenderer()
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
 
-        ShaderCompiler psCompiler = ShaderCompiler::CompileHLSLSource(k_lineShaderSource, psDesc);
+        ShaderCompiler psCompiler = ShaderCompiler::CompileHLSLSource(kLineShaderSource, psDesc);
         JAM_ASSERT(psCompiler.IsSucceeded(), "Editor line pixel shader compilation failed");
         const ShaderHandle linePsh = gfx.CreateShader(psCompiler.GetBytecode());
 
@@ -307,7 +307,7 @@ EditorRenderer::EditorRenderer()
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
 
-        ShaderCompiler vsCompiler = ShaderCompiler::CompileHLSLSource(k_editorRendererFilledShaderSource, vsDesc);
+        ShaderCompiler vsCompiler = ShaderCompiler::CompileHLSLSource(kEditorRendererFilledShaderSource, vsDesc);
         JAM_ASSERT(vsCompiler.IsSucceeded(), "Editor filled vertex shader compilation failed");
         const ShaderHandle filledVsh = gfx.CreateShader(vsCompiler.GetBytecode());
 
@@ -316,7 +316,7 @@ EditorRenderer::EditorRenderer()
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
 
-        ShaderCompiler psCompiler = ShaderCompiler::CompileHLSLSource(k_editorRendererFilledShaderSource, psDesc);
+        ShaderCompiler psCompiler = ShaderCompiler::CompileHLSLSource(kEditorRendererFilledShaderSource, psDesc);
         JAM_ASSERT(psCompiler.IsSucceeded(), "Editor filled pixel shader compilation failed");
         const ShaderHandle filledPsh = gfx.CreateShader(psCompiler.GetBytecode());
 
@@ -324,33 +324,30 @@ EditorRenderer::EditorRenderer()
     }
 
     // 라인 버퍼 생성
-    m_lineVbh = gfx.CreateDynamicVertexBuffer(k_lineLimit * 2, LineVertex::s_vl);
-    m_lineIbh = gfx.CreateDynamicIndexBuffer(k_lineLimit * 2);
+    m_lineVbh = gfx.CreateDynamicVertexBuffer(kLineLimit * 2, LineVertex::s_vl);
+    m_lineIbh = gfx.CreateDynamicIndexBuffer(kLineLimit * 2);
 
     // 그리드 쿼드 생성
     {
-        constexpr float k_gridSize = 10000.0f;
+        constexpr float kGridSize = 10000.0f;
         // todo: this is not infinite grid. grid cube need move with camera position
-
-        struct GridVertex
-        {
-            Vec3 pos = Numbers<Vec3>::k_zero;
-        };
 
         VertexLayout vl = {};
         vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
 
-        constexpr GridVertex k_verts[4] = {
-            { { -k_gridSize, 0.0f, -k_gridSize } },
-            { { -k_gridSize, 0.0f, k_gridSize } },
-            { { k_gridSize, 0.0f, k_gridSize } },
-            { { k_gridSize, 0.0f, -k_gridSize } }
+        constexpr Vec3 kVerts[4] = {
+            { -kGridSize, 0.0f, -kGridSize },
+            { -kGridSize, 0.0f,  kGridSize },
+            {  kGridSize, 0.0f,  kGridSize },
+            {  kGridSize, 0.0f, -kGridSize }
         };
 
-        constexpr UInt16 k_idxes[6] = { 0, 1, 2, 0, 2, 3 };
+        constexpr UInt16 kIdxes[6] = {
+            0, 1, 2, 0, 2, 3
+        };
 
-        m_gridVbh = gfx.CreateVertexBuffer(k_verts, vl);
-        m_gridIbh = gfx.CreateIndexBuffer(k_idxes);
+        m_gridVbh = gfx.CreateVertexBuffer(kVerts, vl);
+        m_gridIbh = gfx.CreateIndexBuffer(kIdxes);
     }
 
     // 프리미티브 생성
@@ -361,7 +358,7 @@ EditorRenderer::EditorRenderer()
 
         m_sphereMesh   = CreateSphereMesh(1.0f, 4, vl);
         m_cylinderMesh = CreateCylinder(1.0f, 1.0f, 32, vl);
-        m_cubeMesh     = CreateCubeMesh(Numbers<Vec3>::k_one, vl);
+        m_cubeMesh     = CreateCubeMesh(Vec3::kOne, vl);
     }
 
     // gfx state
@@ -392,7 +389,7 @@ void EditorRenderer::Begin(const RenderView& _view)
 {
     JAM_ASSERT(!m_bBeginRender, "EditorRenderer::Begin called without Exit");
 
-    m_eye  = _view.eyePos;
+    m_eye  = _view.eye;
     m_view = _view.view;
     m_proj = _view.proj;
 
@@ -404,7 +401,7 @@ void EditorRenderer::Begin(const RenderView& _view)
 
     Graphics& gfx = Graphics::GetInstance();
     gfx.SetFrameBuffer(_view.fbh);
-    gfx.SetViewport(_view.viewport);
+    gfx.SetViewport(_view.vp);
 
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     gfx.SetConstantBuffer(m_cbh, eShader::PixelShader, 0);
@@ -438,12 +435,12 @@ void EditorRenderer::DrawGrid(
 
 void EditorRenderer::DrawLine(const Vec3 _from, const Vec3 _to, const RGBA _color)
 {
-    if (m_numLineIndices + 2 >= k_lineLimit * 2)
+    if (m_numLineIndices + 2 >= kLineLimit * 2)
     {
         FlushLines_();
     }
 
-    const UInt16 baseIdx = NarrowCast<UInt16>(m_numLineVerts);
+    const UInt16 baseIdx = static_cast<UInt16>(m_numLineVerts);
 
     m_lineVertices[m_numLineVerts++]  = LineVertex { _from, _color };
     m_lineVertices[m_numLineVerts++]  = LineVertex { _to, _color };
@@ -453,10 +450,10 @@ void EditorRenderer::DrawLine(const Vec3 _from, const Vec3 _to, const RGBA _colo
 
 void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Mtx4& _mtx, const RGBA _color)
 {
-    Obb obb = Obb::FromAabb(_aabbInL);
-    obb.Transform(_mtx);
+    Obb obb = Obb { _aabbInL };
+    obb     = obb.Transform(_mtx);
 
-    const CornerPoints corners = obb.GetCornerPoints();
+    const Corners corners = obb.GetCorners();
 
     DrawLine(corners[eRegion::LeftTopNear], corners[eRegion::RightTopNear], _color);
     DrawLine(corners[eRegion::RightTopNear], corners[eRegion::RightBottomNear], _color);
@@ -478,8 +475,8 @@ void EditorRenderer::DrawBoundingBox(const Aabb& _aabbInL, const Mtx4& _mtx, con
 
 void EditorRenderer::DrawFrustum(const Mtx4& _viewProjMtx, const RGBA _rgba)
 {
-    const Frustum      frustum = Frustum { _viewProjMtx };
-    const CornerPoints corners = frustum.GetCornerPoints();
+    const Frustum frustum = Frustum { _viewProjMtx };
+    const Corners corners = frustum.CalcCorners();
 
     // near plane
     DrawLine(corners[eRegion::LeftTopNear], corners[eRegion::RightTopNear], _rgba);
@@ -502,16 +499,16 @@ void EditorRenderer::DrawFrustum(const Mtx4& _viewProjMtx, const RGBA _rgba)
 
 void EditorRenderer::DrawCircle(const Vec3 _center, const Vec3 _normal, const float _radius, const RGBA _color, const Int32 _segments)
 {
-    Vec3 u = Numbers<Vec3>::k_up;
-    if (IsEqualApprox(Dot(_normal, u), 1.f))
+    Vec3 u = Vec3::kUp;
+    if (IsEqualApprox(_normal.Dot(u), 1.f))
     {
-        u = Numbers<Vec3>::k_right;
+        u = Vec3::kRight;
     }
 
-    const Vec3 tan   = Normalized(Cross(_normal, u));
-    const Vec3 bitan = Normalized(Cross(_normal, tan));
+    const Vec3 tan   = _normal.Cross(u).Normalized();
+    const Vec3 bitan = _normal.Cross(tan).Normalized();
 
-    const float step = Numbers<float>::k_2pi / static_cast<float>(_segments);
+    const float step = k2Pi / static_cast<float>(_segments);
     for (Int32 i = 0; i < _segments; ++i)
     {
         const float a0 = step * static_cast<float>(i);
@@ -537,8 +534,8 @@ void EditorRenderer::DrawFilledSphere(const Vec3 _center, const float _radius, c
 
     m_currentColor = _color;
 
-    const Mtx4 world = Mtx4::CreateScale(_radius) * Mtx4::CreateTranslation(_center);
-    UploadTransform_(world);
+    const Mtx4 mtx = Mtx4::CreateSRT(Vec3 { _radius }, Quat::kIdentity, _center);
+    UploadTransform_(mtx);
 
     Graphics&                 gfx   = Graphics::GetInstance();
     const Flags<eRenderFlags> flags = SetPrimitiveFlags(m_lineRenderFlags, eRenderFlags::Primitive_TriangleList);
@@ -572,8 +569,8 @@ void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, con
     FlushLines_();
 
     m_currentColor   = _color;
-    const Quat q     = Quat::FromToRotation(Numbers<Vec3>::k_up, _dir);
-    const Mtx4 world = Mtx4::CreateScale(Vec3(_radius, _height, _radius)) * Mtx4::CreateFromQuaternion(q) * Mtx4::CreateTranslation(_center);
+    const Quat q     = Quat::FromLookAt(_dir, Vec3::kUp);
+    const Mtx4 world = Mtx4::CreateScale(Vec3(_radius, _height, _radius)) * Mtx4::FromQuaternion(q) * Mtx4::CreateTranslation(_center);
     UploadTransform_(world);
 
     Graphics&                 gfx   = Graphics::GetInstance();
@@ -612,12 +609,12 @@ void EditorRenderer::FlushLines_()
 
     CB_EDITOR_RENDERER cb = {};
     cb.viewProj           = (m_view * m_proj).Transpose();
-    cb.mtx                = Numbers<Mtx4>::k_identity;
+    cb.mtx                = Mtx4::kIdentity;
     cb.eye                = m_eye;
     gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
 
-    gfx.UpdateBuffer(m_lineVbh, { m_lineVertices.data(), NarrowCast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
-    gfx.UpdateBuffer(m_lineIbh, { m_lineIndices.data(), NarrowCast<Int32>(sizeof(UInt16)) * m_numLineIndices });
+    gfx.UpdateBuffer(m_lineVbh, { m_lineVertices.data(), static_cast<Int32>(sizeof(LineVertex)) * m_numLineVerts });
+    gfx.UpdateBuffer(m_lineIbh, { m_lineIndices.data(), static_cast<Int32>(sizeof(UInt16)) * m_numLineIndices });
 
     const Flags<eRenderFlags> flags = SetPrimitiveFlags(m_lineRenderFlags, eRenderFlags::Primitive_LineList);
     gfx.SetRenderFlags(flags);
@@ -648,7 +645,7 @@ void EditorRenderer::DrawGrid_() const
 
     CB_EDITOR_RENDERER cb = {};
     cb.viewProj           = (m_view * m_proj).Transpose();
-    cb.mtx                = Numbers<Mtx4>::k_identity.Transpose();
+    cb.mtx                = Mtx4::kIdentity;
     cb.eye                = m_eye;
     cb.flags              = m_drawGridFlags.GetValue();
     gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));

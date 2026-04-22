@@ -12,19 +12,19 @@ namespace Jam
 /////////// CONSTANTS ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // limits
-constexpr Int32 k_maxNumRenderTargetViewSlots    = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
-constexpr Int32 k_maxNumAttachmentSlots          = k_maxNumRenderTargetViewSlots + 1;   // render target + depth stencil
-constexpr Int32 k_maxNumSamplerSlots             = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
-constexpr Int32 k_maxNumShaderResourceViewSlots  = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-constexpr Int32 k_maxNumUnorderedAccessViewSlots = D3D11_1_UAV_SLOT_COUNT;
-constexpr Int32 k_maxNumConstantBufferSlots      = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
-constexpr Int32 k_maxNumVSInputSlots             = D3D11_VS_INPUT_REGISTER_COUNT;
-constexpr Int32 k_maxNumVertexStreams            = 4;
-constexpr Int32 k_maxNumVertexAttribs            = NarrowCast<Int32>(CountOf<eVertexAttribute>());
-constexpr Int32 k_maxNumInstanceAttribs          = k_maxNumVSInputSlots - k_maxNumVertexAttribs;
+constexpr Int32 kMaxNumRenderTargetViewSlots    = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+constexpr Int32 kMaxNumAttachmentSlots          = kMaxNumRenderTargetViewSlots + 1;   // render target + depth stencil
+constexpr Int32 kMaxNumSamplerSlots             = D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT;
+constexpr Int32 kMaxNumShaderResourceViewSlots  = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+constexpr Int32 kMaxNumUnorderedAccessViewSlots = D3D11_1_UAV_SLOT_COUNT;
+constexpr Int32 kMaxNumConstantBufferSlots      = D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
+constexpr Int32 kMaxNumVertexBufferSlots        = 4;
+constexpr Int32 kMaxNumVertexShaderInputSlots   = D3D11_VS_INPUT_REGISTER_COUNT;
+constexpr Int32 kMaxNumVertexAttribs            = static_cast<Int32>(CountOf<eVertexAttribute>());
+constexpr Int32 kMaxNumInstanceAttribs          = kMaxNumVertexShaderInputSlots - kMaxNumVertexAttribs;
 
 // utils
-constexpr Int32 k_useAll = Limits<Int32>::k_highest;
+constexpr Int32 kUseAll = Limits<Int32>::kHighest;
 
 ////////// ENUMS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -493,7 +493,7 @@ struct HardwareBuffer
 struct VertexBuffer : HardwareBuffer
 {
     Int32              stride = 0;
-    VertexLayoutHandle vlh    = k_invalidHandle;
+    VertexLayoutHandle vlh    = kInvalidHandle;
 };
 using VertexBufferHandle = Handle<VertexBuffer>;
 
@@ -557,10 +557,10 @@ struct FrameBuffer
     String name             = {};
     Int32  numRenderTargets = 0;
 
-    Array<TextureHandle, k_maxNumRenderTargetViewSlots>           renderTargetTexhs = { k_invalidHandle };
-    TextureHandle                                                 depthStencilTexh  = { k_invalidHandle };
-    Array<ID3D11RenderTargetView*, k_maxNumRenderTargetViewSlots> pRtvs             = { nullptr };
-    ID3D11DepthStencilView*                                       pDsv              = nullptr;
+    Array<TextureHandle, kMaxNumRenderTargetViewSlots>           renderTargetTexhs = { kInvalidHandle };
+    TextureHandle                                                depthStencilTexh  = { kInvalidHandle };
+    Array<ID3D11RenderTargetView*, kMaxNumRenderTargetViewSlots> pRtvs             = { nullptr };
+    ID3D11DepthStencilView*                                      pDsv              = nullptr;
 };
 using FrameBufferHandle = Handle<FrameBuffer>;
 
@@ -585,12 +585,12 @@ using ShaderHandle = Handle<ShaderRef>;
 
 struct Program
 {
-    ShaderHandle vsh = k_invalidHandle;
-    ShaderHandle psh = k_invalidHandle;
-    ShaderHandle gsh = k_invalidHandle;
-    ShaderHandle hsh = k_invalidHandle;
-    ShaderHandle dsh = k_invalidHandle;
-    ShaderHandle csh = k_invalidHandle;
+    ShaderHandle vsh = kInvalidHandle;
+    ShaderHandle psh = kInvalidHandle;
+    ShaderHandle gsh = kInvalidHandle;
+    ShaderHandle hsh = kInvalidHandle;
+    ShaderHandle dsh = kInvalidHandle;
+    ShaderHandle csh = kInvalidHandle;
 };
 using ProgramHandle = Handle<Program>;
 
@@ -603,10 +603,10 @@ struct RGBA
     }
 
     explicit constexpr RGBA(const UInt32 _rgba)
-        : r(NarrowCast<UInt8>((_rgba >> 24) & 0xFF))
-        , g(NarrowCast<UInt8>((_rgba >> 16) & 0xFF))
-        , b(NarrowCast<UInt8>((_rgba >> 8) & 0xFF))
-        , a(NarrowCast<UInt8>(_rgba & 0xFF))
+        : r(static_cast<UInt8>((_rgba >> 24) & 0xFF))
+        , g(static_cast<UInt8>((_rgba >> 16) & 0xFF))
+        , b(static_cast<UInt8>((_rgba >> 8) & 0xFF))
+        , a(static_cast<UInt8>(_rgba & 0xFF))
     {
     }
 
@@ -641,28 +641,28 @@ struct RGBA
     // RRGGBBAA
     [[nodiscard]] constexpr UInt32 ToRGBA() const
     {
-        return (NarrowCast<UInt32>(r) << 24)
-             | (NarrowCast<UInt32>(g) << 16)
-             | (NarrowCast<UInt32>(b) << 8)
-             | NarrowCast<UInt32>(a);
+        return (static_cast<UInt32>(r) << 24)
+             | (static_cast<UInt32>(g) << 16)
+             | (static_cast<UInt32>(b) << 8)
+             | static_cast<UInt32>(a);
     }
 
     // AABBGGRR
     [[nodiscard]] constexpr UInt32 ToABGR() const
     {
-        return (NarrowCast<UInt32>(a) << 24)
-             | (NarrowCast<UInt32>(b) << 16)
-             | (NarrowCast<UInt32>(g) << 8)
-             | NarrowCast<UInt32>(r);
+        return (static_cast<UInt32>(a) << 24)
+             | (static_cast<UInt32>(b) << 16)
+             | (static_cast<UInt32>(g) << 8)
+             | static_cast<UInt32>(r);
     }
 
     // BBGGRRAA
     [[nodiscard]] constexpr UInt32 ToBGRA() const
     {
-        return (NarrowCast<UInt32>(b) << 24)
-             | (NarrowCast<UInt32>(g) << 16)
-             | (NarrowCast<UInt32>(r) << 8)
-             | NarrowCast<UInt32>(a);
+        return (static_cast<UInt32>(b) << 24)
+             | (static_cast<UInt32>(g) << 16)
+             | (static_cast<UInt32>(r) << 8)
+             | static_cast<UInt32>(a);
     }
 
     [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
@@ -675,9 +675,9 @@ struct RGBA
         return value != _other.value;
     }
 
-    static RGBA k_white;
-    static RGBA k_black;
-    static RGBA k_transparent;
+    static RGBA kWhite;
+    static RGBA kBlack;
+    static RGBA kTransparent;
 
     union
     {
@@ -838,7 +838,7 @@ public:
     }
 
 private:
-    UInt32  m_handleValue = k_invalidHandleValue;
+    UInt32  m_handleValue = kInvalidHandleValue;
     eBuffer m_type        = eBuffer::VertexBuffer;
 };
 
@@ -851,7 +851,7 @@ struct TextureResolution
 
 struct VertexBufferBinding
 {
-    VertexBufferHandle vbh    = k_invalidHandle;
+    VertexBufferHandle vbh    = kInvalidHandle;
     Int32              offset = 0;
 };
 
@@ -863,7 +863,7 @@ struct VertexBufferInfo
     Int32              stride       = 0;
     bool               bImmutable   = false;
     bool               bDynamic     = false;
-    VertexLayoutHandle layoutHandle = k_invalidHandle;
+    VertexLayoutHandle layoutHandle = kInvalidHandle;
 };
 
 struct IndexBufferInfo
@@ -914,8 +914,8 @@ struct FrameBufferInfo
     Int32 numRenderTargets = 0;
     bool  bHasDepthStencil = false;
 
-    Array<TextureHandle, k_maxNumRenderTargetViewSlots> renderTargetTexhs = { k_invalidHandle };
-    TextureHandle                                       depthStencilTexh  = { k_invalidHandle };
+    Array<TextureHandle, kMaxNumRenderTargetViewSlots> renderTargetTexhs = { kInvalidHandle };
+    TextureHandle                                      depthStencilTexh  = { kInvalidHandle };
 };
 
 struct ShaderInfo
@@ -925,24 +925,105 @@ struct ShaderInfo
 
 struct ProgramInfo
 {
-    ShaderHandle vsh = k_invalidHandle;
-    ShaderHandle psh = k_invalidHandle;
-    ShaderHandle hsh = k_invalidHandle;
-    ShaderHandle dsh = k_invalidHandle;
-    ShaderHandle gsh = k_invalidHandle;
-    ShaderHandle csh = k_invalidHandle;
+    ShaderHandle vsh = kInvalidHandle;
+    ShaderHandle psh = kInvalidHandle;
+    ShaderHandle hsh = kInvalidHandle;
+    ShaderHandle dsh = kInvalidHandle;
+    ShaderHandle gsh = kInvalidHandle;
+    ShaderHandle csh = kInvalidHandle;
 };
 
 ////////// STATUS ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct GraphicsStats
 {
+    void Clear()
+    {
+        numDrawCalls     = 0;
+        numDispatchCalls = 0;
+
+        numPrimitiveTopologyChanges = 0;
+        numVertexBufferChanges      = 0;
+        numInstanceBufferChanges    = 0;
+        numInputLayoutChanges       = 0;
+        numIndexBufferChanges       = 0;
+
+        numProgramChanges        = 0;
+        numComputeProgramChanges = 0;
+
+        numVSConstantBufferChanges = 0;
+        numPSConstantBufferChanges = 0;
+        numGSConstantBufferChanges = 0;
+        numHSConstantBufferChanges = 0;
+        numDSConstantBufferChanges = 0;
+        numCSConstantBufferChanges = 0;
+
+        numVSReadResourceChanges = 0;
+        numPSReadResourceChanges = 0;
+        numGSReadResourceChanges = 0;
+        numHSReadResourceChanges = 0;
+        numDSReadResourceChanges = 0;
+        numCSReadResourceChanges = 0;
+
+        numVSSamplerStateChanges = 0;
+        numPSSamplerStateChanges = 0;
+        numGSSamplerStateChanges = 0;
+        numHSSamplerStateChanges = 0;
+        numDSSamplerStateChanges = 0;
+        numCSSamplerStateChanges = 0;
+
+        numCSReadWriteResourceChanges = 0;
+
+        numRasterizerStateChanges   = 0;
+        numBlendStateChanges        = 0;
+        numDepthStencilStateChanges = 0;
+        numViewportChanges          = 0;
+        numScissorRectChanges       = 0;
+        numFrameBufferChanges       = 0;
+    }
+
     Int32 numDrawCalls     = 0;
     Int32 numDispatchCalls = 0;
 
-    Int32          backBufferWidth  = 0;
-    Int32          backBufferHeight = 0;
-    eTextureFormat backBufferFormat = eTextureFormat::Unknown;
+    Int32 numPrimitiveTopologyChanges = 0;
+    Int32 numVertexBufferChanges      = 0;
+    Int32 numInstanceBufferChanges    = 0;
+    Int32 numInputLayoutChanges       = 0;
+    Int32 numIndexBufferChanges       = 0;
+
+    Int32 numProgramChanges        = 0;
+    Int32 numComputeProgramChanges = 0;
+
+    Int32 numVSConstantBufferChanges = 0;
+    Int32 numPSConstantBufferChanges = 0;
+    Int32 numGSConstantBufferChanges = 0;
+    Int32 numHSConstantBufferChanges = 0;
+    Int32 numDSConstantBufferChanges = 0;
+    Int32 numCSConstantBufferChanges = 0;
+
+    Int32 numVSReadResourceChanges = 0;
+    Int32 numPSReadResourceChanges = 0;
+    Int32 numGSReadResourceChanges = 0;
+    Int32 numHSReadResourceChanges = 0;
+    Int32 numDSReadResourceChanges = 0;
+    Int32 numCSReadResourceChanges = 0;
+
+    Int32 numVSSamplerStateChanges = 0;
+    Int32 numPSSamplerStateChanges = 0;
+    Int32 numGSSamplerStateChanges = 0;
+    Int32 numHSSamplerStateChanges = 0;
+    Int32 numDSSamplerStateChanges = 0;
+    Int32 numCSSamplerStateChanges = 0;
+
+    Int32 numPSReadWriteResourceChanges = 0;
+    Int32 numCSReadWriteResourceChanges = 0;
+
+    Int32 numRasterizerStateChanges   = 0;
+    Int32 numBlendStateChanges        = 0;
+    Int32 numDepthStencilStateChanges = 0;
+    Int32 numViewportChanges          = 0;
+    Int32 numScissorRectChanges       = 0;
+    Int32 numFrameBufferChanges       = 0;
 };
 
 ////////// UTILS ////////////////////////////////////////////////////////////////////////////////////////////////////

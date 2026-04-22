@@ -1,0 +1,41 @@
+[2025.08.14 15:17:16] [trace] CORE: log system initialized
+[2025.08.14 15:17:16] [info] CORE: Argument 0: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\ExampleApp\bin\Release\ExampleApp.exe
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: WindowResizeEvent: width: 778, height: 544
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: WindowMoveEvent: x: 111, y: 145
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: WindowMoveEvent: x: 122, y: 190
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: WindowResizeEvent: width: 1280, height: 720
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: WindowMoveEvent: x: 133, y: 235
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: WindowResizeEvent: width: 2237, height: 1223
+[2025.08.14 15:17:16] [trace] CORE: Dispatching event: BackBufferCleanupEvent: Cleaning up back buffer
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 135, y: 228
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 135, y: 225
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 135, y: 217
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 136, y: 210
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 136, y: 200
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 138, y: 187
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 138, y: 178
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 138, y: 168
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 140, y: 158
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 141, y: 148
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 141, y: 138
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 141, y: 128
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 141, y: 118
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 111
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 103
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 99
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 96
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 93
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 91
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 89
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 86
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 85
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 84
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 83
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 81
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 80
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 143, y: 79
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 142, y: 79
+[2025.08.14 15:17:18] [trace] CORE: Dispatching event: WindowMoveEvent: x: 141, y: 79
+[2025.08.14 15:17:55] [trace] CORE: Dispatching event: WindowCloseEvent: Window is closing
+[2025.08.14 15:17:55] [trace] CORE: log system shutdown

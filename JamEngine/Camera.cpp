@@ -5,18 +5,18 @@
 namespace Jam
 {
 
-const Mtx4& Camera::GetProjMatrix() const
+const Mtx4& Camera::GetProj() const
 {
     if (m_bProjDirty)
     {
         if (m_projection == eProjection::Orthographic)
         {
-            m_projCache = CreateOrthoMatrix(m_width, m_height, m_nearZ, m_farZ);
+            m_projCache = Mtx4::CreateOrtho(m_width, m_height, m_nearZ, m_farZ);
         }
         else
         {
             const float ar = GetAspectRatio();
-            m_projCache    = CreatePerspectiveMatrix(m_fovYRad, ar, m_nearZ, m_farZ);
+            m_projCache    = Mtx4::CreatePerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
         }
 
         m_bProjDirty = false;
@@ -41,7 +41,7 @@ void Camera::SetNearZ(
     const float _nearZ)
 {
     m_nearZ      = _nearZ;
-    m_nearZ      = Clamp(m_nearZ, k_minZ, m_farZ - 0.001f);
+    m_nearZ      = Clamp(m_nearZ, kMinZ, m_farZ - 0.001f);
     m_bProjDirty = true;
 }
 
@@ -49,7 +49,7 @@ void Camera::SetFarZ(
     const float _farZ)
 {
     m_farZ       = _farZ;
-    m_farZ       = Clamp(m_farZ, m_nearZ + 0.001f, k_maxZ);
+    m_farZ       = Clamp(m_farZ, m_nearZ + 0.001f, kMaxZ);
     m_bProjDirty = true;
 }
 
@@ -57,7 +57,7 @@ void Camera::SetFovYRad(
     const float _fovYRad)
 {
     m_fovYRad    = _fovYRad;
-    m_fovYRad    = Clamp(m_fovYRad, k_minFovYRad, k_maxFovYRad);
+    m_fovYRad    = Clamp(m_fovYRad, kMinFovYRad, kMaxFovYRad);
     m_bProjDirty = true;
 }
 
@@ -65,7 +65,7 @@ void Camera::SetWidth(
     const float _width)
 {
     m_width      = _width;
-    m_width      = Clamp(m_width, k_minWidthHeight, k_maxWidthHeight);
+    m_width      = Clamp(m_width, kMinWidthHeight, kMaxWidthHeight);
     m_bProjDirty = true;
 }
 
@@ -73,7 +73,7 @@ void Camera::SetHeight(
     const float _height)
 {
     m_height     = _height;
-    m_height     = Clamp(m_height, k_minWidthHeight, k_maxWidthHeight);
+    m_height     = Clamp(m_height, kMinWidthHeight, kMaxWidthHeight);
     m_bProjDirty = true;
 }
 

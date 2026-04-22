@@ -4,7 +4,7 @@
 namespace Jam
 {
 
-UID UID::k_null = {};
+UID UID::kNull = {};
 
 void WriteToArchive(ArchiveWriter& _archive, const UID& _uid)
 {

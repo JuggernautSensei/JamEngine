@@ -31,7 +31,7 @@ namespace Jam
 void Editor::OnSceneChanged_(
     SceneChangedEvent&)
 {
-    SetFocusingEntity(Entity::k_null);
+    SetFocusingEntity(Entity::kNull);
 }
 
 void Editor::OnEntityDestroyed_(
@@ -39,7 +39,7 @@ void Editor::OnEntityDestroyed_(
 {
     if (GetFocusingEntityOrNull() == _event.GetEntity())
     {
-        SetFocusingEntity(Entity::k_null);
+        SetFocusingEntity(Entity::kNull);
     }
 }
 
@@ -72,7 +72,7 @@ void Editor::Menu_Options_() const
 
 void Editor::Panel_Dockspace_() const
 {
-    constexpr ImGuiWindowFlags k_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar
+    constexpr ImGuiWindowFlags kFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar
                                        | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
                                        | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
@@ -83,7 +83,7 @@ void Editor::Panel_Dockspace_() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
-    const bool bOpen = ImGui::Begin("workspace", nullptr, k_flags);
+    const bool bOpen = ImGui::Begin("workspace", nullptr, kFlags);
     ImGui::PopStyleVar(3);
 
     if (!bOpen)
@@ -260,7 +260,7 @@ void Editor::UpdateAutoSaveConfig_(
     const float _deltaSec)
 {
     m_configSaveCounterSec += _deltaSec;
-    if (m_configSaveCounterSec >= Editor::k_configFileAutoSaveIntervalSec)
+    if (m_configSaveCounterSec >= Editor::kConfigFileAutoSaveIntervalSec)
     {
         // save config only in edit m_mode
         if (GetMode() == eEditorMode::Edit)
@@ -282,7 +282,7 @@ void Editor::SaveConfig_() const
     writer.WriteField("fileBrowser", *m_pFileBrowserWindow);
     writer.WriteField("vertexLayoutMap", m_sharedData.vertexLayoutEntryManager);
 
-    if (const Error err = writer.SaveToFile(k_configFileName, eJsonWriteFlags::Pretty))
+    if (const Error err = writer.SaveToFile(kConfigFileName, eJsonWriteFlags::Pretty))
     {
         JAM_LOG_WARN("Editor::SaveConfig_() - failed to save editor config file. {}.", err.ToErrorMessage());
     }
@@ -292,12 +292,12 @@ void Editor::SaveConfig_() const
 
 void Editor::TryLoadConfig_()
 {
-    if (!FileSystem::Exists(k_configFileName))
+    if (!FileSystem::Exists(kConfigFileName))
     {
         return;
     }
 
-    Expect<JsonReader> reader = JsonReader::ParseFromFile(k_configFileName);
+    Expect<JsonReader> reader = JsonReader::ParseFromFile(kConfigFileName);
     if (!reader)
     {
         return;
@@ -315,8 +315,8 @@ Ref<Texture> Editor::LoadIconFromSvgSource(
     const StringView _svgSource) const
 {
     SVGImporterInfo info = {};
-    info.width           = k_iconSize.x;
-    info.height          = k_iconSize.y;
+    info.width           = kIconSize.x;
+    info.height          = kIconSize.y;
 
     Expect<SVGImporter> importer = SVGImporter::ImportFromSource(_svgSource, info);
     if (!importer)
@@ -517,13 +517,13 @@ void Editor::PushConfirmationDialog(
 
 void Editor::LoadScenByFileDialog()
 {
-    constexpr FileDialogFilter k_filters[] = {
-        { "scene file", Scene::k_filter }
+    constexpr FileDialogFilter kFilters[] = {
+        { "scene file", Scene::kFilter }
     };
 
     OpenFileDialogInfo info = {};
     info.title              = "load scene";
-    info.filtersOrEmpty     = k_filters;
+    info.filtersOrEmpty     = kFilters;
 
     FileDialog fd { info };
     if (fd.Open())
@@ -541,13 +541,13 @@ void Editor::LoadScenByFileDialog()
 void Editor::SaveSceneByFileDialog(
     Scene* _pScene)
 {
-    constexpr FileDialogFilter k_filters[] = {
-        { "scene file", Scene::k_extension }
+    constexpr FileDialogFilter kFilters[] = {
+        { "scene file", Scene::kExtension }
     };
 
     SaveFileDialogInfo info = {};
     info.title              = "save scene";
-    info.filtersOrEmpty     = k_filters;
+    info.filtersOrEmpty     = kFilters;
 
     FileDialog fd { info };
     if (fd.Open())

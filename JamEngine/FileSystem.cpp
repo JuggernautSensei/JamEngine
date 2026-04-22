@@ -14,7 +14,7 @@ namespace
         const UInt32 _high,
         const UInt32 _low)
     {
-        return (NarrowCast<UInt64>(_high) << 32) | _low;
+        return (static_cast<UInt64>(_high) << 32) | _low;
     }
 
     [[nodiscard]] UInt64 FileTimeToUInt64_(
@@ -371,17 +371,17 @@ namespace Utf16
         const bool             bIsDir = _path.IsDirectory();
         const PathStackWString path   = _path;
 
-        wchar_t     absolute[k_maxPathLength];
-        const DWORD len = ::GetFullPathNameW(path.GetPtr(), NarrowCast<DWORD>(k_maxPathLength), absolute, nullptr);
+        wchar_t     absolute[kMaxPathLength];
+        const DWORD len = ::GetFullPathNameW(path.GetPtr(), static_cast<DWORD>(kMaxPathLength), absolute, nullptr);
         if (len == 0)
         {
             return {};
         }
 
-        absolute[len] = CharTraits<wchar_t>::k_nullChar;   // null-terminate the absolute path
+        absolute[len] = CharTraits<wchar_t>::kNullChar;   // null-terminate the absolute path
         if (bIsDir)
         {
-            absolute[len + 1] = CharTraits<wchar_t>::k_pathPreferredSeparator;   // append path separator for directory
+            absolute[len + 1] = CharTraits<wchar_t>::kPathPreferredSeparator;   // append path separator for directory
         }
 
         WString result = absolute;
@@ -391,16 +391,16 @@ namespace Utf16
 
     WString Current()
     {
-        wchar_t     current[k_maxPathLength];
-        const DWORD len = ::GetCurrentDirectoryW(NarrowCast<DWORD>(k_maxPathLength), current);
+        wchar_t     current[kMaxPathLength];
+        const DWORD len = ::GetCurrentDirectoryW(static_cast<DWORD>(kMaxPathLength), current);
         if (len == 0)
         {
             JAM_LOG_ERROR("Failed to get current directory: {}", CreateWindowsLastErrorMessage());
             return {};
         }
 
-        current[len]     = CharTraits<wchar_t>::k_nullChar;                 // null-terminate the current directory path
-        current[len + 1] = CharTraits<wchar_t>::k_pathPreferredSeparator;   // append path separator for directory
+        current[len]     = CharTraits<wchar_t>::kNullChar;                 // null-terminate the current directory path
+        current[len + 1] = CharTraits<wchar_t>::kPathPreferredSeparator;   // append path separator for directory
 
         WString result = current;
         result.Simplify();
@@ -409,15 +409,15 @@ namespace Utf16
 
     WString Executable()
     {
-        wchar_t     executable[k_maxPathLength];
-        const DWORD len = ::GetModuleFileNameW(NULL, executable, NarrowCast<DWORD>(k_maxPathLength));
+        wchar_t     executable[kMaxPathLength];
+        const DWORD len = ::GetModuleFileNameW(NULL, executable, static_cast<DWORD>(kMaxPathLength));
         if (len == 0)
         {
             JAM_LOG_ERROR("Failed to get executable path: {}", CreateWindowsLastErrorMessage());
             return {};
         }
 
-        executable[len] = CharTraits<wchar_t>::k_nullChar;   // null-terminate the executable path
+        executable[len] = CharTraits<wchar_t>::kNullChar;   // null-terminate the executable path
 
         WString result = executable;
         result.Simplify();
@@ -444,7 +444,7 @@ namespace Utf16
             result.AppendFormat(L"{} ({}){}", base, counter, ext);
             if (bIsDir)
             {
-                result.Append(CharTraits<wchar_t>::k_pathPreferredSeparator);   // append path separator for directory
+                result.Append(CharTraits<wchar_t>::kPathPreferredSeparator);   // append path separator for directory
             }
 
             if (!Utf16::Exists(result))
