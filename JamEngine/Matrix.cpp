@@ -216,6 +216,38 @@ Mtx4 Mtx4::CreateSRT(
     };
 }
 
+Mtx4 Mtx4::CreateInvSRT(
+    const Vec3 _scale,
+    const Quat _rotation,
+    const Vec3 _translation)
+{
+    const Quat  q  = _rotation.Normalized();
+    const float sx = _scale.x, sy = _scale.y, sz = _scale.z;
+    const float isx = 1.f / sx, isy = 1.f / sy, isz = 1.f / sz;
+    const float tx = _translation.x, ty = _translation.y, tz = _translation.z;
+
+    const float xx = q.x * q.x, yy = q.y * q.y, zz = q.z * q.z;
+    const float xy = q.x * q.y, xz = q.x * q.z, yz = q.y * q.z;
+    const float wx = q.w * q.x, wy = q.w * q.y, wz = q.w * q.z;
+
+    const float r00 = 1.f - 2.f * (yy + zz);
+    const float r01 = 2.f * (xy + wz);
+    const float r02 = 2.f * (xz - wy);
+    const float r10 = 2.f * (xy - wz);
+    const float r11 = 1.f - 2.f * (xx + zz);
+    const float r12 = 2.f * (yz + wx);
+    const float r20 = 2.f * (xz + wy);
+    const float r21 = 2.f * (yz - wx);
+    const float r22 = 1.f - 2.f * (xx + yy);
+
+    return {
+        {                               r00 * isx,                               r10 * isy,                               r20 * isz, 0.f },
+        {                               r01 * isx,                               r11 * isy,                               r21 * isz, 0.f },
+        {                               r02 * isx,                               r12 * isy,                               r22 * isz, 0.f },
+        { -(tx * r00 + ty * r01 + tz * r02) * isx, -(tx * r10 + ty * r11 + tz * r12) * isy, -(tx * r20 + ty * r21 + tz * r22) * isz, 1.f }
+    };
+}
+
 void Mtx4::DecomposeSRT(
     Vec3* _pScaleOrNull,
     Quat* _pRotationOrNull,
@@ -293,7 +325,6 @@ Mtx4 Mtx4::Transpose() const
 Mtx4 Mtx4::Inverse() const
 {
 #ifdef JAM_SIMD_SSE
-
     __m128 t1 = _mm_shuffle_ps(m128s[0], m128s[1], _MM_SHUFFLE(1, 0, 1, 0));
     __m128 t3 = _mm_shuffle_ps(m128s[0], m128s[1], _MM_SHUFFLE(3, 2, 3, 2));
     __m128 t2 = _mm_shuffle_ps(m128s[2], m128s[3], _MM_SHUFFLE(1, 0, 1, 0));

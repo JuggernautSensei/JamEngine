@@ -1,4 +1,3 @@
 #pragma once
 
-bool BeginSceneInspectorWindows(
-    const char* _title);
+bool BeginSceneInspectorWindows(const char* _title);

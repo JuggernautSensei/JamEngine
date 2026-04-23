@@ -1,26 +1,28 @@
+#include "../ShaderBase.hlsl"
+
 cbuffer CBSimpleSceneEntity : register(b0)
 {
     float4x4 cb_world;
-    float4x4 cb_worldInvTrans;
+    float4x4 cb_invTransWorld;
     float3 cb_baseColor;
-    float cb_shiness;
+    PADDING1;
 };
 
 cbuffer CBSimpleSceneCamera : register(b1)
 {
     float3 cb_eyePos;
-    float padding1;
+    PADDING1;
     float4x4 cb_viewProj;
 };
 
 cbuffer CBSimpleSceneLight : register(b2)
 {
     float3 cb_lightDir;
-    float padding2;
+    PADDING1;
     float3 cb_lightColor;
-    float padding3;
+    PADDING1;
     float3 cb_ambientColor;
-    float padding4;
+    PADDING1;
 };
 
 struct VSInput
@@ -42,7 +44,7 @@ PSInput VSMain(VSInput input)
     float4 posW = mul(float4(input.pos, 1.0f), cb_world);
     output.posH = mul(posW, cb_viewProj);
     output.posW = posW.xyz;
-    output.normalW = normalize(mul(float4(input.normal, 0.0f), cb_worldInvTrans).xyz);
+    output.normalW = normalize(mul(float4(input.normal, 0.0f), cb_invTransWorld).xyz);
     return output;
 }
 
@@ -55,7 +57,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     float NdotL = max(dot(N, L), 0.0f);
     float NdotH = max(dot(N, H), 0.0f);
     float3 diffuse = cb_lightColor * cb_baseColor * NdotL;
-    float3 specular = cb_lightColor * pow(NdotH, cb_shiness); // blinn-phong specular with shininess of 16
+    float3 specular = cb_lightColor * pow(NdotH, 16.f); // blinn-phong specular with shininess of 16
     float3 ambient = cb_ambientColor * cb_baseColor;
     return float4(diffuse + specular + ambient, 1.0f);
 }

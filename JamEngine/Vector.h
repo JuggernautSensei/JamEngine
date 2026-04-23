@@ -538,15 +538,13 @@ struct Vec3
     }
 
     [[nodiscard]] Vec3 Normalized() const
-
     {
         const float lenSq  = LengthSq();
-        const float invLen = 1.f / Sqrt(lenSq);
+        const float invLen = RSqrt(lenSq);
         return { x * invLen, y * invLen, z * invLen };
     }
 
     [[nodiscard]] constexpr Vec3 Cross(const Vec3 _other) const
-
     {
         return {
             y * _other.z - z * _other.y,
@@ -863,7 +861,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] Vec4 Lerp(const Vec4 _other, const float _t) const
-
     {
 #ifdef JAM_SIMD_SSE
         const __m128 t  = _mm_set1_ps(_t);
@@ -880,7 +877,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] Vec4 Abs() const
-
     {
 #ifdef JAM_SIMD_SSE
         static const __m128 kMask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
@@ -894,14 +890,13 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] float LengthSq() const
-
     {
 #ifdef JAM_SIMD_SSE
         __m128       sq    = _mm_mul_ps(m128, m128);
-        const __m128 shuf1 = _mm_shuffle_ps(sq, sq, _MM_SHUFFLE(2, 3, 0, 1));
-        sq                 = _mm_add_ps(sq, shuf1);
-        const __m128 shuf2 = _mm_movehl_ps(sq, sq);
-        sq                 = _mm_add_ss(sq, shuf2);
+        const __m128 perm1 = _mm_permute_ps(sq, _MM_SHUFFLE(2, 3, 0, 1));
+        sq                 = _mm_add_ps(sq, perm1);
+        const __m128 perm2 = _mm_movehl_ps(sq, sq);
+        sq                 = _mm_add_ss(sq, perm2);
         return _mm_cvtss_f32(sq);
 #else
         return x * x + y * y + z * z + w * w;
@@ -927,7 +922,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] float Dot(const Vec4 _other) const
-
     {
 #ifdef JAM_SIMD_SSE
         __m128       mul   = _mm_mul_ps(m128, _other.m128);
@@ -942,7 +936,6 @@ struct alignas(16) Vec4
     }
 
     void Normalize()
-
     {
 #ifdef JAM_SIMD_SSE
         __m128 sq = _mm_mul_ps(m128, m128);
@@ -958,7 +951,7 @@ struct alignas(16) Vec4
         const __m128 mask = _mm_cmpneq_ps(len, zero);
         m128              = _mm_and_ps(_mm_div_ps(m128, len), mask);
 #else
-        const float invLen = 1.f / Length();
+        const float invLen = RSqrt(LengthSq());
         x *= invLen;
         y *= invLen;
         z *= invLen;
@@ -976,10 +969,10 @@ struct alignas(16) Vec4
     [[nodiscard]] Vec4 Cross(const Vec4 _other) const
     {
 #ifdef JAM_SIMD_SSE
-        const __m128 v0_yzxw = _mm_shuffle_ps(m128, m128, _MM_SHUFFLE(3, 0, 2, 1));
-        const __m128 v1_zxyw = _mm_shuffle_ps(_other.m128, _other.m128, _MM_SHUFFLE(3, 1, 0, 2));
-        const __m128 v0_zxyw = _mm_shuffle_ps(m128, m128, _MM_SHUFFLE(3, 1, 0, 2));
-        const __m128 v1_yzxw = _mm_shuffle_ps(_other.m128, _other.m128, _MM_SHUFFLE(3, 0, 2, 1));
+        const __m128 v0_yzxw = _mm_permute_ps(m128, _MM_SHUFFLE(3, 0, 2, 1));
+        const __m128 v1_zxyw = _mm_permute_ps(_other.m128, _MM_SHUFFLE(3, 1, 0, 2));
+        const __m128 v0_zxyw = _mm_permute_ps(m128, _MM_SHUFFLE(3, 1, 0, 2));
+        const __m128 v1_yzxw = _mm_permute_ps(_other.m128, _MM_SHUFFLE(3, 0, 2, 1));
         __m128       result  = _mm_fmsub_ps(v0_yzxw, v1_zxyw, _mm_mul_ps(v0_zxyw, v1_yzxw));
 
         static const __m128 kMask = _mm_castsi128_ps(_mm_setr_epi32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000));

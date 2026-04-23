@@ -126,10 +126,8 @@ void Quat::SetAxisAngle(const Vec3 _axis, const float _angle)
     const float half    = _angle * 0.5f;
     const float sinHalf = Sin(half);
 
-    x = n.x * sinHalf;
-    y = n.y * sinHalf;
-    z = n.z * sinHalf;
-    w = Cos(half);
+    xyz = n * sinHalf;
+    w   = Cos(half);
 }
 
 void Quat::SetEuler(Vec3 _eulerRad)
@@ -164,6 +162,14 @@ Vec3 Quat::ToEuler() const
     euler.z        = Atan2(sz, cz);
 
     return euler;
+}
+
+AxisAngle Quat::ToAxisAngle() const
+{
+    AxisAngle aa = {};
+    aa.rad       = 2.f * Acos(w);
+    aa.axis      = xyz.Normalized();
+    return aa;
 }
 
 float Quat::Length() const
@@ -242,8 +248,8 @@ Quat Quat::Slerp(const Quat _other, const float _t) const
 #ifdef JAM_SIMD_SSE
     const __m128 w0v   = _mm_set1_ps(w0);
     const __m128 w1v   = _mm_set1_ps(w1);
-    __m128       batch = _mm_mul_ps(m128, w0v);              
-    batch              = _mm_fmadd_ps(q.m128, w1v, batch);   
+    __m128       batch = _mm_mul_ps(m128, w0v);
+    batch              = _mm_fmadd_ps(q.m128, w1v, batch);
 
     Quat ret = {};
     _mm_store_ps(&ret.x, batch);

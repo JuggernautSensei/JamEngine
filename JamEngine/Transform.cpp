@@ -48,26 +48,7 @@ const Mtx4& Transform::GetSRT() const
 
 Mtx4 Transform::CalcInvSRT() const
 {
-    const Vec3 invS = m_scale.RcpSafe();
-
-    const float x = m_rotation.x, y = m_rotation.y, z = m_rotation.z, w = m_rotation.w;
-    const float x2 = x + x, y2 = y + y, z2 = z + z;
-    const float xx = x * x2, xy = x * y2, xz = x * z2;
-    const float yy = y * y2, yz = y * z2, zz = z * z2;
-    const float wx = w * x2, wy = w * y2, wz = w * z2;
-
-    const float r00 = 1.f - (yy + zz), r01 = xy - wz, r02 = xz + wy;
-    const float r10 = xy + wz, r11 = 1.f - (xx + zz), r12 = yz - wx;
-    const float r20 = xz - wy, r21 = yz + wx, r22 = 1.f - (xx + yy);
-
-    const float tx = m_translation.x, ty = m_translation.y, tz = m_translation.z;
-
-    return {
-        {                               r00 * invS.x,                               r01 * invS.y,                               r02 * invS.z, 0.f },
-        {                               r10 * invS.x,                               r11 * invS.y,                               r12 * invS.z, 0.f },
-        {                               r20 * invS.x,                               r21 * invS.y,                               r22 * invS.z, 0.f },
-        { -(tx * r00 + ty * r10 + tz * r20) * invS.x, -(tx * r01 + ty * r11 + tz * r21) * invS.y, -(tx * r02 + ty * r12 + tz * r22) * invS.z, 1.f }
-    };
+    return Mtx4::CreateInvSRT(m_scale, m_rotation, m_translation);
 }
 
 void Transform::SetSRT(const Mtx4& _srtMtx)

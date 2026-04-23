@@ -5,11 +5,12 @@ struct FlyingCamera
 {
     void Update(float _dt);
 
-    float           rotSpeed  = 0.002f;
-    float           moveSpeed = 3.f;
-    Camera          cmr       = {};
-    Transform       trans     = {};
-    float           yawRad    = 0.f;
-    float           pitchRad  = 0.f;
+    Camera    cmr   = {};
+    Transform trans = {};
+
+    float dRot  = 0.002f;
+    float dMove = 3.f;
+    Vec3  euler = Vec3::kZero;
+
     InfiniteDragger dragger { eInfiniteDraggerFlags::Right };
 };

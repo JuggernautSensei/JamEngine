@@ -6,7 +6,7 @@
     <LocalDebuggerCommandArgumentsHistory>ShadowMappingScene|DeferedScene|MultiVertexStreamScene|SimpleScene|InstancingScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>InstancingScene</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>PBRScene|DeferedScene|InstancingScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>SimpleScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>PBRScene|DeferedScene|InstancingScene|SimpleScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
 </Project>

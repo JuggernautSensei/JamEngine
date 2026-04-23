@@ -3,12 +3,6 @@
 namespace Jam
 {
 
-struct AxisAngle
-{
-    Vec3  axis = Vec3::kZero;
-    float rad  = 0.f;
-};
-
 class Transform
 {
 public:

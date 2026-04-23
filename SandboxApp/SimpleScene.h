@@ -5,13 +5,6 @@ class SimpleScene : public Scene
 {
     JAM_SCENE_BODY(SimpleScene);
 
-    enum class eMesh
-    {
-        Cube,
-        Sphere,
-        Bunny,
-    };
-
 public:
     SimpleScene();
     ~SimpleScene() noexcept override;
@@ -26,6 +19,7 @@ public:
     void OnImGuiRender() override;
 
 private:
+    void InitMeshes_();
     void OnResize(Int32 _width, Int32 _height) override;
 
     ProgramHandle m_ph = kInvalidHandle;
@@ -35,18 +29,22 @@ private:
     ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
     FrameBufferHandle m_fbh    = {};
-    TextureHandle     m_fbTexh = {};   // not owned
-    Viewport          m_vp     = {};
+    TextureHandle     m_fbTexh = {};   // not owned for blit
 
-    bool  m_bAnimate     = true;
-    float m_dMoveRad     = ToRad(90.f);
-    float m_dYawRad      = ToRad(90.f);
-    float m_entityYRad   = 0.f;
-    float m_entityYawRad = 0.f;
-    Int32 m_numEntities  = 1;
+    // entity
+    Ref<Mesh> m_pCube     = nullptr;
+    Transform m_cubeTrans = {};
 
-    EnumArray<eMesh, Ref<Mesh>> m_pMesh      = {};
-    eMesh                       m_activeMesh = eMesh::Cube;
+    Ref<Mesh> m_pSphere     = nullptr;
+    Transform m_sphereTrans = {};
+
+    Ref<Mesh> m_pBunny     = nullptr;
+    Transform m_bunnyTrans = {};
+
+    bool  m_bAnimate    = true;
+    float m_dMove       = 2.f;
+    float m_dRot        = ToRad(45.f);
+    float m_counter     = 0.f;
 
     // camera
     FlyingCamera m_camera;
@@ -58,6 +56,5 @@ private:
     Vec3 m_ambientCol  = { 0.1f, 0.1f, 0.1f };
 
     // material
-    Vec3  m_baseCol = { 1.f, 1.f, 1.f };
-    float m_shiness = 32.f;
+    Vec3 m_baseCol = { 1.f, 1.f, 1.f };
 };

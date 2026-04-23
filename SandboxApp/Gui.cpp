@@ -305,6 +305,7 @@ bool BeginSceneInspectorWindows(const char* _title)
     }
 
     ImGui::Separator();
+
     // user gui..
     return true;
 }

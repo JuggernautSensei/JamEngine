@@ -10,6 +10,12 @@ namespace Jam
 
 struct Mtx4;
 
+struct AxisAngle
+{
+    Vec3  axis = Vec3::kZero;
+    float rad  = 0.f;
+};
+
 struct alignas(16) Quat
 {
     Quat();
@@ -22,9 +28,10 @@ struct alignas(16) Quat
     [[nodiscard]] static Quat FromRotationMatrix(const Mtx4& _mtx);
     [[nodiscard]] static Quat FromLookAt(Vec3 _f, Vec3 _u);
 
-    void               SetAxisAngle(Vec3 _axis, float _angle);
-    void               SetEuler(Vec3 _eulerRad);
-    [[nodiscard]] Vec3 ToEuler() const;
+    void                    SetEuler(Vec3 _eulerRad);
+    [[nodiscard]] Vec3      ToEuler() const;
+    void                    SetAxisAngle(Vec3 _axis, float _angle);
+    [[nodiscard]] AxisAngle ToAxisAngle() const;
 
     [[nodiscard]] float Length() const;
     [[nodiscard]] float LengthSq() const;

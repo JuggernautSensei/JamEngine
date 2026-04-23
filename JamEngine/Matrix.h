@@ -28,6 +28,7 @@ struct alignas(16) Mtx4
     [[nodiscard]] static Mtx4 FromQuaternion(Quat _quat);
     [[nodiscard]] static Mtx4 CreateLookAt(Vec3 _eye, Vec3 _point, Vec3 _up);
     [[nodiscard]] static Mtx4 CreateSRT(Vec3 _scale, Quat _rotation, Vec3 _translation);
+    [[nodiscard]] static Mtx4 CreateInvSRT(Vec3 _scale, Quat _rotation, Vec3 _translation);
 
     void               DecomposeSRT(Vec3* _pScaleOrNull, Quat* _pRotationOrNull, Vec3* _pTranslationOrNull) const;
     [[nodiscard]] Vec3 DecomposeScale() const;

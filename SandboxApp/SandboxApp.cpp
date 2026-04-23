@@ -1,16 +1,9 @@
 #include "pch.h"
 
 #include "SandboxApp.h"
-
-#include "DebugNormalScene.h"
-#include "DeferedScene.h"
-#include "TextureMappingScene.h"
-#include "SimpleScene.h"
-#include "InstancingScene.h"
-#include "MultiVertexStreamScene.h"
-#include "PBRScene.h"
-#include "ShadowMappingScene.h"
 #include "../JamEngine/CommandLineArgumentParser.h"
+
+#include "SimpleScene.h"
 
 class InstancingScene;
 
@@ -40,13 +33,13 @@ void SandboxApp::Init(
         switch (cmd.Hash32())
         {
             CASE(SimpleScene)
-            CASE(InstancingScene)
-            CASE(MultiVertexStreamScene)
-            CASE(TextureMappingScene)
-            CASE(PBRScene)
-            CASE(DeferedScene)
-            CASE(ShadowMappingScene)
-            CASE(DebugNormalScene)
+                // CASE(InstancingScene)
+                // CASE(MultiVertexStreamScene)
+                // CASE(TextureMappingScene)
+                // CASE(PBRScene)
+                // CASE(DeferedScene)
+                // CASE(ShadowMappingScene)
+                // CASE(DebugNormalScene)
 
             default:
                 JAM_ASSERT(0, "Unknown scene name '{}'.", cmd);

@@ -64,6 +64,9 @@
     <Filter Include="Misc\DebugNormal">
       <UniqueIdentifier>{aedf790a-45b8-4ebc-b6a6-2a555a2150b7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{b79028c1-37cc-41df-93b7-2cac09e9da49}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandboxApp.cpp">
@@ -97,10 +100,10 @@
       <Filter>Misc\DebugNormal</Filter>
     </ClCompile>
     <ClCompile Include="FlyingCamera.cpp">
-      <Filter>Misc</Filter>
+      <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Gui.cpp">
-      <Filter>Misc</Filter>
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -135,10 +138,10 @@
       <Filter>Misc\DebugNormal</Filter>
     </ClInclude>
     <ClInclude Include="FlyingCamera.h">
-      <Filter>Misc</Filter>
+      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Gui.h">
-      <Filter>Misc</Filter>
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
