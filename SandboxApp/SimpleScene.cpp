@@ -125,8 +125,8 @@ void SimpleScene::OnRender(
 
     // camera
     CBSimpleSceneCamera cbCamera = {};
-    cbCamera.eye                 = m_camera.trans.GetTranslation();
-    cbCamera.viewProj            = Mtx4 { m_camera.trans.CalcInvSRT() * m_camera.cmr.GetProj() }.Transpose();
+    cbCamera.eye                 = m_camera.GetEyePos();
+    cbCamera.viewProj            = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
     gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBSimpleSceneCamera::kSlot);
     gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBSimpleSceneCamera::kSlot);

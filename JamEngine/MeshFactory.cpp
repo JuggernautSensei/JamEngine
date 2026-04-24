@@ -362,7 +362,7 @@ Ref<Mesh> CreateCircle(
     JAM_ASSERT(_numTri >= 6, "Circle must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 1;   // triangles + center vertex
-    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::kMax), "Too many triangles for circle.");
+    JAM_ASSERT(LessEqual(numVerts, Limits<UInt16>::kMax), "Too many triangles for circle.");
 
     Vector<Vec3> positions(numVerts);
     Vector<Vec2> texcoords(numVerts);
@@ -406,7 +406,7 @@ Ref<Mesh> CreateCone(
     JAM_ASSERT(_numTri >= 6, "Cone base must have at least 6 triangles.");
 
     const Int32 numVerts = _numTri + 2;   // base circle + apex + base center
-    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::kMax), "Too many triangles for cone.");
+    JAM_ASSERT(LessEqual(numVerts, Limits<UInt16>::kMax), "Too many triangles for cone.");
 
     Vector<Vec3> position(numVerts);
     Vector<Vec2> texcoords(numVerts);
@@ -465,7 +465,7 @@ Ref<Mesh> CreateCylinder(
     JAM_ASSERT(_numTries >= 6, "Cylinder must have at least 6 triangles.");
 
     const Int32 numVerts = _numTries * 2 + 2;   // top + bottom circles + 2 centers
-    JAM_ASSERT(std::cmp_less_equal(numVerts, Limits<UInt16>::kMax), "Too many triangles for cone.");
+    JAM_ASSERT(LessEqual(numVerts, Limits<UInt16>::kMax), "Too many triangles for cylinder.");
 
     Vector<Vec3> position(numVerts);
     Vector<Vec2> texcoords(numVerts);
@@ -558,7 +558,7 @@ Vector<Vec3> ComputeNormals(
         const UInt32 i0 = indexReader.ReadAt<UInt32>(i * 3 + 0);
         const UInt32 i1 = indexReader.ReadAt<UInt32>(i * 3 + 1);
         const UInt32 i2 = indexReader.ReadAt<UInt32>(i * 3 + 2);
-        JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
+        JAM_ASSERT(Less(i0, numVerts) && Less(i1, numVerts) && Less(i2, numVerts), "Index out of range.");
 
         // get triangle positions
         const Vec3 p0 = _positions[i0];
@@ -622,7 +622,7 @@ TangentFrame ComputeTangentFrame(
         const UInt32 i1 = indexReader.ReadAt<UInt32>(i * 3 + 1);
         const UInt32 i2 = indexReader.ReadAt<UInt32>(i * 3 + 2);
 
-        JAM_ASSERT(std::cmp_less(i0, numVerts) && std::cmp_less(i1, numVerts) && std::cmp_less(i2, numVerts), "Index out of range.");
+        JAM_ASSERT(Less(i0, numVerts) && Less(i1, numVerts) && Less(i2, numVerts), "Index out of range.");
 
         // get triangle data
         const Vec3 v0 = _positions[i0];

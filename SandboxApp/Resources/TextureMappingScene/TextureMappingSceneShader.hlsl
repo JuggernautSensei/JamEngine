@@ -1,3 +1,5 @@
+#include "../ShaderBase.hlsl"
+
 #define TEXTURE_MAPPING_NONE        0
 #define TEXTURE_MAPPING_ALBEDO      1 << 0
 #define TEXTURE_MAPPING_AO          1 << 1
@@ -10,24 +12,24 @@ cbuffer CBSimpleSceneEntity : register(b0)
     float4x4 cb_world;
     float4x4 cb_worldInvTrans;
     uint cb_flags;
-    float3 padding0;
+    PADDING3;
 };
 
 cbuffer CBSimpleSceneCamera : register(b1)
 {
     float3 cb_eyePos;
-    float padding1;
+    PADDING1;
     float4x4 cb_viewProj;
 };
 
 cbuffer CBSimpleSceneLight : register(b2)
 {
     float3 cb_lightDir;
-    float padding2;
+    PADDING1;
     float3 cb_lightColor;
-    float padding3;
+    PADDING1;
     float3 cb_ambientColor;
-    float padding4;
+    PADDING1;
 };
 
 struct VSInput

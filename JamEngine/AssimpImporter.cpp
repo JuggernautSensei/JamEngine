@@ -492,7 +492,7 @@ void AssimpImporter::ImportMeshes_(
         // 인덱스
         {
             // 인텍스 포맷
-            importedMesh.bUseU32 = std::cmp_greater(numVerts, Limits<UInt16>::kHighest);
+            importedMesh.bUseU32 = numVerts > Limits<UInt16>::kHighest;
 
             // 인덱스 버퍼 할당
             const Int32 numFaces  = static_cast<Int32>(pMesh->mNumFaces);

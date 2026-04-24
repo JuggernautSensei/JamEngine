@@ -24,17 +24,17 @@ struct CBPBRSceneEntity
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4 cb_world         = Mtx4::kIdentity;
-    Mtx4 cb_worldInvTrans = Mtx4::kIdentity;
+    Mtx4 world;
+    Mtx4 invTransWorld;
 };
 
 struct CBPBRSceneCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Vec3::kZero;
-    float padding1    = 0.f;
-    Mtx4  cb_viewProj = Mtx4::kIdentity;
+    Vec3  eyePos;
+    float padding1;
+    Mtx4  viewProj;
 };
 
 struct CBPBRSceneLight
@@ -43,47 +43,30 @@ struct CBPBRSceneLight
 
     struct Light
     {
-        Vec3  lightPos = Vec3::kZero;
-        float padding  = 0.f;
+        Vec3  lightPos;
+        float padding;
 
-        Vec3  lightDir     = Vec3::kZero;
-        float fallOffStart = 5.f;
+        Vec3  lightDir;
+        float fallOffStart;
 
-        Vec3  lightColor = Vec3::kOne;
-        float fallOffEnd = 10.f;
+        Vec3  lightColor;
+        float fallOffEnd;
 
-        float innerConeCos = 0.f;
-        float outerConeCos = 0.f;
-        Int32 bEnabled     = 0;
-        Int32 type         = 0;   // 0: directional, 1: point, 2: spot
+        float innerConeCos;
+        float outerConeCos;
+        Int32 bEnabled;
+        Int32 type;   // 0: directional, 1: point, 2: spot
     };
 
-    Light cb_lights[4] = {};
+    Light lights[4];
 };
 
 struct CBPBRSceneCubeMap
 {
     constexpr static Int32 kSlot = 2;
 
-    UInt32 cb_type    = 0;   // 0: none, 1: irradiance, 2: specular, 3: environment
-    float  padding[3] = {};
-};
-
-struct PBRSceneVertex
-{
-    Vec3 pos      = Vec3::kZero;
-    Vec2 texcoord = Vec2::kZero;
-    Vec3 normal   = Vec3::kZero;
-    Vec3 tangent  = Vec3::kZero;
-
-    inline static VertexLayout s_layout = [] {
-        VertexLayout layout = {};
-        layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-        layout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-        layout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
-        layout.Push(eVertexAttribute::Tangent, eAttributeFormat::Float3);
-        return layout;
-    }();
+    UInt32 type;   // 0: none, 1: irradiance, 2: specular, 3: environment
+    float  padding[3];
 };
 
 }   // namespace
@@ -145,11 +128,16 @@ PBRScene::PBRScene()
     m_cubeMapCbh = gfx.CreateConstantBuffer(sizeof(CBPBRSceneCubeMap));
 
     // load model
+    VertexLayout attribLayout = {};
+    attribLayout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    attribLayout.Push(eVertexAttribute::Tangent, eAttributeFormat::Float3);
+
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/PBRScene/scene.gltf", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals | eAssimpImporterFlags::GenerateTangentFrame);
     JAM_ASSERT(importer, "Failed to load model: {}", importer.GetError().ToErrorMessage());
-    Expect<Ref<Model>> pModel = importer->ConvertToModel(PBRSceneVertex::s_layout, eAssimpConvertToModelFlags::Mesh);
-    JAM_ASSERT(pModel, "Failed to extract model: {}", pModel.GetError().ToErrorMessage());
-    m_pMesh = pModel.GetValue()->GetMeshes()[0];
+    Expect<Ref<Model>> pModelOrNot = importer->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh);
+    JAM_ASSERT(pModelOrNot, "Failed to extract model: {}", pModelOrNot.GetError().ToErrorMessage());
+    m_pMesh = pModelOrNot.GetValue()->GetMeshes()[0];
 
     // load texture
     m_pAlbedo              = Texture::LoadFromFile("Resources/PBRScene/Albedo.jpeg").GetValue();
@@ -226,12 +214,12 @@ PBRScene::~PBRScene()
 void PBRScene::OnUpdate(
     const float _deltaTime)
 {
+    m_camera.Update(_deltaTime);
+
     if (m_bAnimate)
     {
-        m_entityYawRad += m_dYawRad * _deltaTime;
+        m_rot += m_dRot * _deltaTime;
     }
-
-    m_camera.Update(_deltaTime);
 }
 
 void PBRScene::OnRender(
@@ -241,21 +229,20 @@ void PBRScene::OnRender(
     gfx.SetFrameBuffer(m_fbh);
     gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
-    gfx.SetViewport(m_vp);
+    gfx.SetViewport(_view.vp);
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4       vpMtx    = m_camera.trans.GetSRT().Invert() * m_camera.cmr.GetProj();
     CBPBRSceneCamera cbCamera = {};
-    cbCamera.cb_eyePos        = m_camera.trans.GetTranslation();
-    cbCamera.cb_viewProj      = vpMtx.Transpose();
+    cbCamera.eyePos           = m_camera.trans.GetTranslation();
+    cbCamera.viewProj         = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
     gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBPBRSceneCamera::kSlot);
     gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBPBRSceneCamera::kSlot);
 
     // cubemap
     CBPBRSceneCubeMap cbCubeMap = {};
-    cbCubeMap.cb_type           = UnderlyingFrom(m_cubeMapType);
+    cbCubeMap.type              = UnderlyingFrom(m_cubeMapType);
     gfx.UpdateBuffer(m_cubeMapCbh, AsMemoryView(cbCubeMap));
     gfx.SetConstantBuffer(m_cubeMapCbh, eShader::PixelShader, CBPBRSceneCubeMap::kSlot);
     gfx.SetVertexBuffer(m_cubeVbh);
@@ -278,9 +265,9 @@ void PBRScene::OnRender(
             continue;
         }
 
-        CBPBRSceneLight::Light& cb = cbLight.cb_lights[i];
+        CBPBRSceneLight::Light& cb = cbLight.lights[i];
         cb.lightPos                = l.pos;
-        cb.lightDir                = Normalized(l.lookAt - l.pos);
+        cb.lightDir                = Vec3 { l.lookAt - l.pos }.Normalized();
         cb.lightColor              = l.color;
         cb.fallOffStart            = l.fallOffStart;
         cb.fallOffEnd              = l.fallOffEnd;
@@ -309,9 +296,8 @@ void PBRScene::OnRender(
     gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBPBRSceneEntity::kSlot);
 
     CBPBRSceneEntity cbEntity = {};
-    const Mtx4       world    = Mtx4::CreateFromYawPitchRoll(m_entityYawRad, ToRad(-90.f), 0.f);
-    cbEntity.cb_world         = world.Transpose();
-    cbEntity.cb_worldInvTrans = world.Invert();
+    cbEntity.world            = Mtx4::FromEuler({ ToRad(-90.f), m_rot, 0.f }).Transpose();
+    cbEntity.invTransWorld    = cbEntity.world;
     gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
     m_pMesh->Submit();
 
@@ -333,83 +319,6 @@ void PBRScene::OnImGuiRender()
         return;
     }
 
-    // 1. Performance
-    ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-    ImGui::Separator();
-
-    // 2. Entity & Animation
-    if (ImGui::CollapsingHeader("Entity & Animation", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Checkbox("Animate Rotation", &m_bAnimate);
-
-        float yawDeg = ToDeg(m_dYawRad);
-        if (ImGui::SliderFloat("Yaw Speed (Deg/s)", &yawDeg, 0.f, 360.f))
-        {
-            m_dYawRad = ToRad(yawDeg);
-        }
-    }
-
-    // 4. Lights (Array<Light, 4> 제어)
-    if (ImGui::CollapsingHeader("Lights", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        for (Int32 i = 0; i < static_cast<Int32>(m_lights.size()); ++i)
-        {
-            ImGui::PushID(i);   // ID 충돌 방지
-
-            char label[32];
-            sprintf_s(label, "Light %d", i);
-
-            if (ImGui::TreeNode(label))
-            {
-                Light& l = m_lights[i];
-
-                ImGui::Checkbox("Enabled", &l.bEnabled);
-
-                // Light Type 선택
-                const char* lightTypes[] = { "Directional", "Point", "Spot" };
-                Int32       currentType  = UnderlyingFrom(l.type);
-                if (ImGui::Combo("Type", &currentType, lightTypes, IM_ARRAYSIZE(lightTypes)))
-                {
-                    l.type = static_cast<eLight>(currentType);
-                }
-
-                // 공통 속성: Color (HDR 고려하여 DragFloat3 또는 ColorEdit3)
-                ImGui::ColorEdit3("Color", &l.color.x, ImGuiColorEditFlags_Float);
-
-                if (l.type != eLight::Directional)
-                {
-                    ImGui::DragFloat3("Position", &l.pos.x, 0.1f);
-                    ImGui::DragFloat("Falloff Start", &l.fallOffStart, 0.1f, 0.f, l.fallOffEnd);
-                    ImGui::DragFloat("Falloff End", &l.fallOffEnd, 0.1f, l.fallOffStart, 100.f);
-                }
-
-                if (l.type != eLight::Point)
-                {
-                    ImGui::DragFloat3("Look At", &l.lookAt.x, 0.1f);
-                }
-
-                if (l.type == eLight::Spot)
-                {
-                    float innerDeg = ToDeg(l.innerConeRad);
-                    float outerDeg = ToDeg(l.outerConeRad);
-
-                    if (ImGui::SliderFloat("Inner Cone (Deg)", &innerDeg, 0.f, outerDeg))
-                    {
-                        l.innerConeRad = ToRad(innerDeg);
-                    }
-                    if (ImGui::SliderFloat("Outer Cone (Deg)", &outerDeg, innerDeg, 179.f))
-                    {
-                        l.outerConeRad = ToRad(outerDeg);
-                    }
-                }
-
-                ImGui::TreePop();
-            }
-            ImGui::PopID();
-            if (i < static_cast<Int32>(m_lights.size()) - 1) ImGui::Separator();
-        }
-    }
-
     ImGui::End();
 }
 
@@ -421,7 +330,7 @@ void PBRScene::OnResize(
 
     Graphics& gfx = GetGraphics();
     m_fbh         = gfx.CreateFrameBuffer(_width, _height, eTextureFormat::RGBA16_Float, eTextureFormat::D24_UNorm_S8_UInt);
-    m_vp          = Viewport { 0, 0, NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
+    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 
     const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
     JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");

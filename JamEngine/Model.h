@@ -12,7 +12,7 @@ class Mesh;
 struct ModelNode
 {
     String            name      = {};
-    Mtx4            localMtx  = Mtx4::kIdentity;
+    Mtx4              localMtx  = Mtx4::kIdentity;
     Vector<Int32>     meshIdxes = {};
     Vector<Int32>     matIdxes  = {};
     Vector<ModelNode> children  = {};
@@ -45,7 +45,7 @@ public:
     void SetMaterials(Vector<Ref<Material>>&& _materials);
 
     [[nodiscard]] const ModelNode&             GetRootNode() const;
-    [[nodiscard]] const Vector<Ref<Mesh>>&     GetMeshes() const;
+    [[nodiscard]] const Vector<Ref<Mesh>>&   GetMeshes() const;
     [[nodiscard]] const Vector<Ref<Material>>& GetMaterials() const;
 
     static constexpr StringView kTypeName  = NameOf<Model>();
@@ -64,7 +64,7 @@ private:
     bool   m_bValid = false;
 
     ModelNode             m_root      = {};
-    Vector<Ref<Mesh>>     m_meshes    = {};
+    Vector<Ref<Mesh>>   m_meshes    = {};
     Vector<Ref<Material>> m_materials = {};
 };
 

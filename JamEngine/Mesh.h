@@ -40,7 +40,7 @@ public:
     [[nodiscard]] const Aabb&        GetBoundingBox() const;
 
     void Submit(bool _bSubmitPositionOnly = false) const;
-    void Submit(VertexBufferHandle _instanceVbh, Int32 _instanceOffset = 0, Int32 _numInstances = kUseAll, bool _bSubmitPositionOnly = false) const;
+    void Submit(VertexBufferHandle _instanceVbh, Int32 _instanceOffset = 0, Int32 _numInstances = kAll, bool _bSubmitPositionOnly = false) const;
 
     static constexpr StringView kTypeName  = NameOf<Mesh>();
     static constexpr UInt32     kTypeHash  = HashOf<Mesh>();
@@ -60,12 +60,12 @@ private:
     String m_name    = {};
     UInt16 m_sortKey = 0;
 
-    VertexBufferHandle m_positionVbh = kInvalidHandle;
+    VertexBufferHandle m_posVbh      = kInvalidHandle;
     VertexBufferHandle m_attribVbh   = kInvalidHandle;
     IndexBufferHandle  m_ibh         = kInvalidHandle;
     Aabb               m_boundingBox = {};
 
-    static VertexLayout s_positionOnlyVl;
+    static VertexLayout s_posLayout;
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Mesh>& _pMesh);

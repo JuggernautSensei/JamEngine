@@ -60,7 +60,6 @@ private:
 
     FrameBufferHandle m_fbh    = kInvalidHandle;
     TextureHandle     m_fbTexh = kInvalidHandle;   // not owned
-    Viewport          m_vp     = {};
 
     VertexBufferHandle m_fullTriVbh = kInvalidHandle;
     IndexBufferHandle  m_fullTriIbh = kInvalidHandle;
@@ -68,10 +67,9 @@ private:
     VertexBufferHandle m_cubeVbh = kInvalidHandle;
     IndexBufferHandle  m_cubeIbh = kInvalidHandle;
 
-    bool  m_bAnimate     = true;
-    float m_dYawRad      = ToRad(30.f);
-    float m_entityYRad   = 0.f;
-    float m_entityYawRad = 0.f;
+    bool  m_bAnimate = true;
+    float m_dRot     = ToRad(45.f);
+    float m_rot      = 0.f;
 
     Ref<Mesh>    m_pMesh                = nullptr;
     Ref<Texture> m_pAlbedo              = nullptr;
@@ -84,9 +82,7 @@ private:
     Ref<Texture> m_pIBLEnvironment = nullptr;
     Ref<Texture> m_pBRDFLUT        = nullptr;
 
-    FlyingCamera m_camera = {};
-
-    Array<Light, 4> m_lights = {};
-
-    eCubeMap m_cubeMapType = eCubeMap::Irradiance;
+    Array<Light, 4> m_lights      = {};
+    eCubeMap        m_cubeMapType = eCubeMap::Irradiance;
+    FlyingCamera    m_camera      = {};
 };

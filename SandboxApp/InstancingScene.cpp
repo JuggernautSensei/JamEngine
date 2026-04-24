@@ -10,38 +10,16 @@ struct CBInstancingSceneEntity_NoInstancing
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4  cb_world         = Mtx4::kIdentity;
-    Mtx4  cb_worldInvTrans = Mtx4::kIdentity;
-    Vec3  cb_baseColor     = Vec3::kOne;
-    float cb_shiness       = 16.f;
-};
-
-struct CBInstancingSceneEntity_Instancing
-{
-    static constexpr Int32 kSlot        = 0;
-    Vec3                   cb_baseColor = Vec3::kOne;
-    float                  cb_shiness   = 16.f;
+    Mtx4 world;
 };
 
 struct CBInstancingSceneCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Vec3::kZero;
-    float padding1    = 0.f;
-    Mtx4  cb_viewProj = Mtx4::kIdentity;
-};
-
-struct CBInstancingSceneLight
-{
-    static constexpr Int32 kSlot = 2;
-
-    Vec3  cb_lightDir     = { 0.f, -1.f, 0.f };
-    float padding2        = 0.f;
-    Vec3  cb_lightColor   = Vec3::kOne;
-    float padding3        = 0.f;
-    Vec3  cb_ambientColor = Vec3::kOne;
-    float padding4        = 0.f;
+    Vec3  eyePos;
+    float padding1;
+    Mtx4  viewProj;
 };
 
 }   // namespace
@@ -89,38 +67,57 @@ InstancingScene::InstancingScene()
     }
 
     m_entityNoInstancingCbh = gfx.CreateConstantBuffer(sizeof(CBInstancingSceneEntity_NoInstancing));
-    m_entityInstancingCbh   = gfx.CreateConstantBuffer(sizeof(CBInstancingSceneEntity_Instancing));
     m_cmrCbh                = gfx.CreateConstantBuffer(sizeof(CBInstancingSceneCamera));
-    m_lightCbh              = gfx.CreateConstantBuffer(sizeof(CBInstancingSceneLight));
 
-    VertexLayout attribLayout = {};
-    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
-    m_pMesh = CreateCubeMesh(Vec3 { 0.5f }, attribLayout);
+    struct Vertex
+    {
+        Vec3 point;
+        RGBA rgba;
+    };
 
-    // camera setting
-    m_camera.SetAspectRatio(16.f / 9.f);
-    m_cameraTransform.SetTranslationZ(-50.f);
+    VertexLayout layout = {};
+    layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+    layout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+
+    Vertex verts[] = {
+        { { -0.5f, -0.5f, -0.5f }, RGBA::FromLinear(1.0f, 0.0f, 0.0f, 1.0f) },
+        {  { 0.5f, -0.5f, -0.5f }, RGBA::FromLinear(0.0f, 1.0f, 0.0f, 1.0f) },
+        {   { 0.5f, 0.5f, -0.5f }, RGBA::FromLinear(0.0f, 0.0f, 1.0f, 1.0f) },
+        {  { -0.5f, 0.5f, -0.5f }, RGBA::FromLinear(1.0f, 1.0f, 0.0f, 1.0f) },
+        {  { -0.5f, -0.5f, 0.5f }, RGBA::FromLinear(1.0f, 0.0f, 1.0f, 1.0f) },
+        {   { 0.5f, -0.5f, 0.5f }, RGBA::FromLinear(0.0f, 1.0f, 1.0f, 1.0f) },
+        {    { 0.5f, 0.5f, 0.5f }, RGBA::FromLinear(1.0f, 0.5f, 0.0f, 1.0f) },
+        {   { -0.5f, 0.5f, 0.5f }, RGBA::FromLinear(1.0f, 0.0f, 0.5f, 1.0f) }
+    };
+
+    UInt16 idxes[] = { 4, 5, 6, 4, 6, 7, 1, 0, 3, 1, 3, 2, 0, 4, 7, 0, 7, 3, 5, 1, 2, 5, 2, 6, 1, 5, 4, 1, 4, 0, 7, 6, 2, 7, 2, 3 };
+
+    m_vbh = gfx.CreateVertexBuffer(verts, layout);
+    m_ibh = gfx.CreateIndexBuffer(idxes);
+
+    m_camera.trans.SetTranslationZ(-25.f);
 }
 
 InstancingScene::~InstancingScene()
 {
     JAM_DESTROY_PROGRAM(m_ph);
     JAM_DESTROY_PROGRAM(m_instPh);
-    JAM_DESTROY_VERTEX_BUFFER(m_instbh);
+    JAM_DESTROY_VERTEX_BUFFER(m_vbh);
+    JAM_DESTROY_INDEX_BUFFER(m_ibh);
+    JAM_DESTROY_VERTEX_BUFFER(m_instanceVbh);
     JAM_DESTROY_CONSTANT_BUFFER(m_entityNoInstancingCbh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_entityInstancingCbh);
     JAM_DESTROY_CONSTANT_BUFFER(m_cmrCbh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_lightCbh);
     JAM_DESTROY_FRAME_BUFFER(m_fbh);
 }
 
 void InstancingScene::OnUpdate(
     const float _deltaTime)
 {
+    m_camera.Update(_deltaTime);
+
     if (m_bAnimate)
     {
-        m_entityYRad += m_dMoveRad * _deltaTime;
-        m_entityYawRad += m_dYawRad * _deltaTime;
+        m_rot += m_dRot * _deltaTime;
     }
 }
 
@@ -131,68 +128,57 @@ void InstancingScene::OnRender(
     gfx.SetFrameBuffer(m_fbh);
     gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
-    gfx.SetViewport(m_vp);
+    gfx.SetViewport(_view.vp);
     gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4              vpMtx    = m_cameraTransform.GetSRT().Invert() * m_camera.GetProj();
     CBInstancingSceneCamera cbCamera = {};
-    cbCamera.cb_eyePos               = m_cameraTransform.GetTranslation();
-    cbCamera.cb_viewProj             = vpMtx.Transpose();
+    cbCamera.eyePos                  = m_camera.GetEyePos();
+    cbCamera.viewProj                = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
     gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBInstancingSceneCamera::kSlot);
     gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBInstancingSceneCamera::kSlot);
-
-    // light
-    CBInstancingSceneLight cbLight = {};
-    cbLight.cb_lightDir            = Normalized(m_lightLookAt - m_lightPos);
-    cbLight.cb_lightColor          = m_lightColor;
-    cbLight.cb_ambientColor        = m_ambientColor;
-    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBInstancingSceneLight::kSlot);
 
     // entity
     if (m_bDoInstancing)
     {
         gfx.SetProgram(m_instPh);
 
-        const Int32 numRenderEntities = m_numRows * m_numEntitiesPerRow;
+        const Int32 numRenderEntities = m_numEntitiesPerRow * m_numEntitiesPerRow;
         if (m_numLastRenderedEntities != numRenderEntities)
         {
             // recreate instance buffer
-            JAM_DESTROY_VERTEX_BUFFER(m_instbh);
-            m_instbh = gfx.CreateInstanceBuffer(numRenderEntities, sizeof(Mtx4) * 2);
+            JAM_DESTROY_VERTEX_BUFFER(m_instanceVbh);
+            m_instanceVbh = gfx.CreateInstanceBuffer(numRenderEntities, sizeof(Mtx4));
         }
 
-        MutableMemoryView mem = gfx.BeginUpdateBuffer(m_instbh);
+        MutableMemoryView mem = gfx.BeginUpdateBuffer(m_instanceVbh);
         Byte*             ptr = mem.GetPtr();
-        for (Int32 i = 0; i < m_numRows; ++i)
+        for (Int32 i = 0; i < m_numEntitiesPerRow; ++i)
         {
             for (Int32 j = 0; j < m_numEntitiesPerRow; ++j)
             {
-                float      t             = static_cast<float>(i) * 15.f;
-                float      yaw           = m_entityYawRad + ToRad(t);
-                float      pitch         = ToRad(t);
-                float      x             = 1.f * static_cast<float>(j - m_numEntitiesPerRow / 2);
-                float      y             = 1.f * static_cast<float>(i - m_numRows / 2);
-                const Mtx4 world         = Mtx4::CreateFromYawPitchRoll(yaw, pitch, 0.f) * Mtx4::CreateTranslation(x, y, 0.f);
-                const Mtx4 worldTrans    = world.Transpose();
-                const Mtx4 worldInvTrans = world.Invert();
-                ::memcpy(ptr, &worldTrans, sizeof(Mtx4));
-                ptr = ptr + sizeof(Mtx4);
-                ::memcpy(ptr, &worldInvTrans, sizeof(Mtx4));
-                ptr = ptr + sizeof(Mtx4);
+                const float t = static_cast<float>(i) * 15.f;
+
+                Vec3 euler  = Vec3::kZero;
+                euler.pitch = ToRad(t);
+                euler.yaw   = m_rot + ToRad(t);
+
+                Vec3 trans = Vec3::kZero;
+                trans.x    = 1.5f * static_cast<float>(j - m_numEntitiesPerRow / 2);
+                trans.y    = 1.5f * static_cast<float>(i - m_numEntitiesPerRow / 2);
+
+                const Mtx4 world = Mtx4::CreateSRT(Vec3::kOne, euler, trans).Transpose();
+                std::memcpy(ptr, &world, sizeof(Mtx4));
+                ptr += sizeof(Mtx4);
             }
         }
-        gfx.EndUpdateBuffer(m_instbh);
+        gfx.EndUpdateBuffer(m_instanceVbh);
 
-        CBInstancingSceneEntity_Instancing cbEntity = {};
-        cbEntity.cb_shiness                         = m_shiness;
-        cbEntity.cb_baseColor                       = m_baseColor;
-        gfx.UpdateBuffer(m_entityInstancingCbh, AsMemoryView(cbEntity));
-        gfx.SetConstantBuffer(m_entityInstancingCbh, eShader::PixelShader, CBInstancingSceneEntity_Instancing::kSlot);
-        m_pMesh->Submit(m_instbh, 0, numRenderEntities);
+        gfx.SetVertexBuffer(m_vbh, 0, kAll, m_instanceVbh);
+        gfx.SetIndexBuffer(m_ibh);
+        gfx.Submit();
     }
     else
     {
@@ -201,28 +187,32 @@ void InstancingScene::OnRender(
         gfx.SetConstantBuffer(m_entityNoInstancingCbh, eShader::VertexShader, CBInstancingSceneEntity_NoInstancing::kSlot);
         gfx.SetConstantBuffer(m_entityNoInstancingCbh, eShader::PixelShader, CBInstancingSceneEntity_NoInstancing::kSlot);
 
+        gfx.SetVertexBuffer(m_vbh);
+        gfx.SetIndexBuffer(m_ibh);
+
         CBInstancingSceneEntity_NoInstancing cbEntity = {};
-        for (Int32 i = 0; i < m_numRows; ++i)
+        for (Int32 i = 0; i < m_numEntitiesPerRow; ++i)
         {
             for (Int32 j = 0; j < m_numEntitiesPerRow; ++j)
             {
-                float t     = static_cast<float>(i) * 15.f;
-                float yaw   = m_entityYawRad + ToRad(t);
-                float pitch = ToRad(t);
-                float x     = 1.f * static_cast<float>(j - m_numEntitiesPerRow / 2);
-                float y     = 1.f * static_cast<float>(i - m_numRows / 2);
+                const float t = static_cast<float>(i) * 15.f;
 
-                const Mtx4 world          = Mtx4::CreateFromYawPitchRoll(yaw, pitch, 0.f) * Mtx4::CreateTranslation(x, y, 0.f);
-                cbEntity.cb_world         = world.Transpose();
-                cbEntity.cb_worldInvTrans = world.Invert();
-                cbEntity.cb_shiness       = m_shiness;
-                cbEntity.cb_baseColor     = m_baseColor;
+                Vec3 euler  = Vec3::kZero;
+                euler.pitch = ToRad(t);
+                euler.yaw   = m_rot + ToRad(t);
+
+                Vec3 trans = Vec3::kZero;
+                trans.x    = 1.5f * static_cast<float>(j - m_numEntitiesPerRow / 2);
+                trans.y    = 1.5f * static_cast<float>(i - m_numEntitiesPerRow / 2);
+
+                cbEntity.world = Mtx4::CreateSRT(Vec3::kOne, euler, trans).Transpose();
                 gfx.UpdateBuffer(m_entityNoInstancingCbh, AsMemoryView(cbEntity));
-                m_pMesh->Submit();
+
+                gfx.Submit();
             }
         }
     }
-    m_numLastRenderedEntities = m_numRows * m_numEntitiesPerRow;
+    m_numLastRenderedEntities = m_numEntitiesPerRow * m_numEntitiesPerRow;
 
     // blit inner framebuffer texture to output texture
     // output framebuffer maybe do not have depth texture.
@@ -241,55 +231,31 @@ void InstancingScene::OnImGuiRender()
         return;
     }
 
-    ImGui::Text("Total Entities: %d", m_numRows * m_numEntitiesPerRow);
+    // Instancing
+    ImGui::SeparatorText("Rendering");
+    ImGui::Checkbox("Instancing", &m_bDoInstancing);
+    ImGui::SliderInt("Entities Per Row", &m_numEntitiesPerRow, 1, 256);
+    ImGui::Text("Total Entities: %d", m_numEntitiesPerRow * m_numEntitiesPerRow);
 
-    ImGui::Separator();
-
-    // 인스턴싱 사용 여부 토글
-    ImGui::Checkbox("Use GPU Instancing", &m_bDoInstancing);
-    ImGui::Separator();
-
-    // 2. 엔티티 배치 설정 (행/열 제어)
-    if (ImGui::CollapsingHeader("Entity Grid Setup", ImGuiTreeNodeFlags_DefaultOpen))
+    // Animation
+    ImGui::SeparatorText("Animation");
+    ImGui::Checkbox("Animate", &m_bAnimate);
+    ImGui::BeginDisabled(!m_bAnimate);
     {
-        ImGui::Checkbox("Animate Rotation", &m_bAnimate);
+        float dRotDeg = ToDeg(m_dRot);
+        if (ImGui::SliderFloat("Rotation Speed (deg/s)", &dRotDeg, -360.f, 360.f))
+            m_dRot = ToRad(dRotDeg);
 
-        // 헤더에 정의된 m_numRows와 m_numEntitiesPerRow 사용
-        ImGui::SliderInt("Rows", &m_numRows, 1, 200);
-        ImGui::SliderInt("Entities Per Row", &m_numEntitiesPerRow, 1, 200);
+        float rotDeg = ToDeg(m_rot);
+        if (ImGui::SliderFloat("Current Rotation", &rotDeg, -180.f, 180.f))
+            m_rot = ToRad(rotDeg);
 
-        if (ImGui::Button("Reset Grid"))
+        if (ImGui::Button("Reset"))
         {
-            m_numRows           = 10;
-            m_numEntitiesPerRow = 10;
+            m_rot     = 0.f;
         }
     }
-
-    // 3. 재질 및 조명 설정
-    if (ImGui::CollapsingHeader("Material & Light"))
-    {
-        ImGui::ColorEdit3("Base Color", &m_baseColor.x);
-        ImGui::SliderFloat("Shininess", &m_shiness, 1.0f, 256.0f);
-
-        ImGui::Separator();
-        ImGui::DragFloat3("Light Pos", &m_lightPos.x, 0.1f);
-        ImGui::DragFloat3("Light LookAt", &m_lightLookAt.x, 0.1f);
-        ImGui::ColorEdit3("Light Color", &m_lightColor.x);
-        ImGui::ColorEdit3("Ambient Color", &m_ambientColor.x);
-    }
-
-    // 4. 카메라 정보
-    if (ImGui::CollapsingHeader("Camera"))
-    {
-        Vec3 camPos = m_cameraTransform.GetTranslation();
-        ImGui::Text("Camera Pos: %.2f, %.2f, %.2f", camPos.x, camPos.y, camPos.z);
-
-        float fov = m_camera.GetFovYRad();
-        if (ImGui::SliderAngle("Field of View", &fov, 10.0f, 120.0f))
-        {
-            m_camera.SetFovYRad(fov);
-        }
-    }
+    ImGui::EndDisabled();
 
     ImGui::End();
 }
@@ -302,7 +268,7 @@ void InstancingScene::OnResize(
 
     Graphics& gfx = GetGraphics();
     m_fbh         = gfx.CreateFrameBuffer(_width, _height, eTextureFormat::RGBA8_UNorm, eTextureFormat::D24_UNorm_S8_UInt);
-    m_vp          = Viewport { 0, 0, NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
+    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 
     const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
     JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");

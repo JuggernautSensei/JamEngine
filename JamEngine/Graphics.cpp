@@ -1786,9 +1786,16 @@ void Graphics::SetVertexBuffer(
     const Int32              _instanceOffset,
     const Int32              _numInstances)
 {
+    const Int32 numBuffers = _vbhOrInvalid ? 1 : 0;
+    if (m_vbBindings.numVerts != numBuffers)
+    {
+        m_vbBindings.numVerts = numBuffers;
+        m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
+    }
+
     const VertexBufferHandle vbh    = m_vbBindings.vbhs[0];
     const UInt32             offset = m_vbBindings.offsets[0];
-    if (vbh != _vbhOrInvalid || std::cmp_not_equal(offset, _vertOffset))
+    if (vbh != _vbhOrInvalid || NotEqual(offset, _vertOffset))
     {
         const VertexLayoutHandle oldVlh = m_vbBindings.vlhs[0];
         if (_vbhOrInvalid)
@@ -1799,7 +1806,6 @@ void Graphics::SetVertexBuffer(
             m_vbBindings.binder[0]     = vb.pBuffer;
             m_vbBindings.strides[0]    = vb.stride;
             m_vbBindings.offsets[0]    = _vertOffset * vb.stride;
-            m_vbBindings.numBuffers    = 1;
             m_vbBindings.numAvailVerts = vb.byteWidth / vb.stride - _vertOffset;
         }
         else
@@ -1809,7 +1815,6 @@ void Graphics::SetVertexBuffer(
             m_vbBindings.binder[0]     = nullptr;
             m_vbBindings.strides[0]    = 0;
             m_vbBindings.offsets[0]    = 0;
-            m_vbBindings.numBuffers    = 0;
             m_vbBindings.numAvailVerts = 0;
         }
         m_dirtyFlags |= ePipelineDirtyFlags::VertexBuffer;
@@ -1822,7 +1827,7 @@ void Graphics::SetVertexBuffer(
     m_vbBindings.numVerts = Min(_numVerts, m_vbBindings.numAvailVerts);
 
     // instance buffer
-    if (_instanceVbhOrInvalid != m_instanceBinding.vbh || std::cmp_not_equal(_instanceOffset, m_instanceBinding.offset))
+    if (_instanceVbhOrInvalid != m_instanceBinding.vbh || _instanceOffset != m_instanceBinding.offset)
     {
         const Int32 oldStride = m_instanceBinding.stride;
         if (_instanceVbhOrInvalid)
@@ -1867,14 +1872,20 @@ void Graphics::SetVertexBuffers(
     const Int32                           _instanceOffset,
     const Int32                           _numInstances)
 {
-    m_vbBindings.numBuffers = static_cast<Int32>(_bindings.size());
+    const Int32 numBuffers = static_cast<Int32>(_bindings.size());
+    if (m_vbBindings.numBuffers != numBuffers)
+    {
+        m_vbBindings.numBuffers = numBuffers;
+        m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
+    }
+
     for (Int32 i = 0; i < _bindings.size(); ++i)
     {
         const VertexBufferHandle  vbh     = m_vbBindings.vbhs[i];
         const UInt32              offset  = m_vbBindings.offsets[i];
         const VertexBufferBinding binding = _bindings[i];
 
-        if (vbh != binding.vbh || std::cmp_not_equal(offset, binding.offset))
+        if (vbh != binding.vbh || NotEqual(offset, binding.offset))
         {
             JAM_ASSERT(binding.vbh, "Vertex buffer handle cannot be invalid when setting vertex buffers.");   // 항상 packed 된 스트림을 사용
             const VertexBuffer& vb  = m_vertexBuffers[binding.vbh];
@@ -1889,8 +1900,7 @@ void Graphics::SetVertexBuffers(
                 m_vbBindings.numAvailVerts = vb.byteWidth / vb.stride - _bindings[i].offset;
             }
 
-            const VertexLayoutHandle vlh = m_vbBindings.vlhs[i];
-            if (vlh != vb.vlh)
+            if (m_vbBindings.vlhs[i] != vb.vlh)
             {
                 m_vbBindings.vlhs[i] = vb.vlh;
                 m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
@@ -1900,7 +1910,7 @@ void Graphics::SetVertexBuffers(
     m_vbBindings.numVerts = Min(_numVerts, m_vbBindings.numAvailVerts);
 
     // instance buffer
-    if (_instanceVbhOrInvalid != m_instanceBinding.vbh || std::cmp_not_equal(_instanceOffset, m_instanceBinding.offset))
+    if (_instanceVbhOrInvalid != m_instanceBinding.vbh || _instanceOffset != m_instanceBinding.offset)
     {
         Int32 oldStride = m_instanceBinding.stride;
         if (_instanceVbhOrInvalid)
@@ -1936,7 +1946,7 @@ void Graphics::SetIndexBuffer(
     const Int32             _idxOffset,
     const Int32             _numIndices)
 {
-    if (_ibhOrInvalid != m_ibBinding.ibh || std::cmp_not_equal(_idxOffset, m_ibBinding.offset))
+    if (_ibhOrInvalid != m_ibBinding.ibh || _idxOffset != m_ibBinding.offset)
     {
         if (_ibhOrInvalid)
         {
@@ -2796,7 +2806,7 @@ void Graphics::BindPipeline_()
                 ppUavs          = m_psReadWriteBindings.binder.data();
                 ++m_stats.numPSReadWriteResourceChanges;
             }
-             
+
             m_pd3d11DeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
                 numRtvs,
                 pRtvs,

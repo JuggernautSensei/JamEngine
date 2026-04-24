@@ -11,7 +11,7 @@
 namespace Jam
 {
 
-VertexLayout Mesh::s_positionOnlyVl = [] {
+VertexLayout Mesh::s_posLayout = [] {
     VertexLayout layout = {};
     layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
     return layout;
@@ -96,11 +96,11 @@ Mesh::Mesh(
 
     // vertex buffer
     Graphics& gfx = GetGraphics();
-    m_positionVbh = gfx.CreateVertexBuffer(_positions, s_positionOnlyVl);
+    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posLayout);
     m_attribVbh   = gfx.CreateVertexBuffer(_attribData, _attribLayout);
 
     // index buffer
-    const bool bUseU32 = std::cmp_greater(_positions.size(), Limits<UInt16>::kHighest);
+    const bool bUseU32 = _positions.size() > Limits<UInt16>::kHighest;
     m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
 
     // compute bounding box
@@ -126,11 +126,11 @@ Mesh::Mesh(
 {
     // vertex buffer
     Graphics& gfx = GetGraphics();
-    m_positionVbh = gfx.CreateVertexBuffer(_positios, s_positionOnlyVl);
+    m_posVbh      = gfx.CreateVertexBuffer(_positios, s_posLayout);
     m_attribVbh   = kInvalidHandle;
 
     // index buffer
-    const bool bUseU32 = std::cmp_greater(_positios.size(), Limits<UInt16>::kHighest);
+    const bool bUseU32 = _positios.size() > Limits<UInt16>::kHighest;
     m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
 
     // compute bounding box
@@ -175,7 +175,7 @@ Error Mesh::LoadFromFile_(
     // gpu resource creation
     Graphics&  gfx     = GetGraphics();
     const bool bUseU32 = mesh.positions.size() > Limits<UInt16>::kHighest;
-    m_positionVbh      = gfx.CreateVertexBuffer(mesh.positions, s_positionOnlyVl);
+    m_posVbh           = gfx.CreateVertexBuffer(mesh.positions, s_posLayout);
     m_ibh              = gfx.CreateIndexBuffer(mesh.idxData, bUseU32);
     m_boundingBox      = Unwrap(mesh.boundingBox);
 
@@ -223,7 +223,7 @@ Error Mesh::Save(
     }
 
     Graphics&                 gfx       = GetGraphics();
-    const VertexBufferInfo&   vbInfo    = gfx.GetVertexBufferInfo(m_positionVbh);
+    const VertexBufferInfo&   vbInfo    = gfx.GetVertexBufferInfo(m_posVbh);
     const IndexBufferInfo&    ibInfo    = gfx.GetIndexBufferInfo(m_ibh);
     const Int32               byteWidth = Max(vbInfo.byteWidth, ibInfo.byteWidth);
     const StorageBufferHandle readback  = gfx.CreateReadbackBuffer(byteWidth);
@@ -233,7 +233,7 @@ Error Mesh::Save(
     mesh.boundingBox = Dto::Wrap(m_boundingBox);
 
     // vertex data
-    gfx.CopyBuffer(readback, 0, m_positionVbh, 0, vbInfo.byteWidth);
+    gfx.CopyBuffer(readback, 0, m_posVbh, 0, vbInfo.byteWidth);
     mesh.positions.resize(vbInfo.byteWidth);
     gfx.ReadBuffer(readback, mesh.positions);
 
@@ -279,7 +279,7 @@ void Mesh::Invalidate()
 
 bool Mesh::IsValid() const
 {
-    return m_positionVbh && m_ibh;
+    return m_posVbh && m_ibh;
 }
 
 StringView Mesh::GetPath() const
@@ -324,7 +324,7 @@ StringView Mesh::GetFilter() const
 
 VertexBufferHandle Mesh::GetVertexBuffer() const
 {
-    return m_positionVbh;
+    return m_posVbh;
 }
 
 IndexBufferHandle Mesh::GetIndexBuffer() const
@@ -344,8 +344,8 @@ void Mesh::Submit(
     if (!_bSubmitPositionOnly && m_attribVbh)
     {
         VertexBufferBinding bindings[] = {
-            { m_positionVbh, 0 },
-            {   m_attribVbh, 0 }
+            {    m_posVbh, 0 },
+            { m_attribVbh, 0 }
         };
 
         gfx.SetVertexBuffers(bindings);
@@ -354,7 +354,7 @@ void Mesh::Submit(
     }
     else
     {
-        gfx.SetVertexBuffer(m_positionVbh);
+        gfx.SetVertexBuffer(m_posVbh);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
@@ -370,17 +370,17 @@ void Mesh::Submit(
     if (!_bSubmitPositionOnly && m_attribVbh)
     {
         VertexBufferBinding bindings[] = {
-            { m_positionVbh, 0 },
-            {   m_attribVbh, 0 }
+            {    m_posVbh, 0 },
+            { m_attribVbh, 0 }
         };
 
-        gfx.SetVertexBuffers(bindings, kUseAll, _instanceVbh, _instanceOffset, _numInstances);
+        gfx.SetVertexBuffers(bindings, kAll, _instanceVbh, _instanceOffset, _numInstances);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
     else
     {
-        gfx.SetVertexBuffer(m_positionVbh, 0, kUseAll, _instanceVbh, _instanceOffset, _numInstances);
+        gfx.SetVertexBuffer(m_posVbh, 0, kAll, _instanceVbh, _instanceOffset, _numInstances);
         gfx.SetIndexBuffer(m_ibh);
         gfx.Submit();
     }
@@ -388,7 +388,7 @@ void Mesh::Submit(
 
 void Mesh::CleanUp_()
 {
-    JAM_DESTROY_VERTEX_BUFFER(m_positionVbh);
+    JAM_DESTROY_VERTEX_BUFFER(m_posVbh);
     JAM_DESTROY_VERTEX_BUFFER(m_attribVbh);
     JAM_DESTROY_INDEX_BUFFER(m_ibh);
 

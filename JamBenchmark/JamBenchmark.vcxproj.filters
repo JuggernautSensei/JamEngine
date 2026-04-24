@@ -18,6 +18,9 @@
     <ClCompile Include="BoundingVolumeBenchmark.cpp">
       <Filter>Benchmark\Math</Filter>
     </ClCompile>
+    <ClCompile Include="SRTMatrixBenchmark.cpp">
+      <Filter>Benchmark\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

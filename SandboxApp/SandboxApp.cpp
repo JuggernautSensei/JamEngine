@@ -4,6 +4,10 @@
 #include "../JamEngine/CommandLineArgumentParser.h"
 
 #include "SimpleScene.h"
+#include "InstancingScene.h"
+#include "MultiVertexStreamScene.h"
+#include "PBRScene.h"
+#include "TextureMappingScene.h"
 
 class InstancingScene;
 
@@ -33,10 +37,10 @@ void SandboxApp::Init(
         switch (cmd.Hash32())
         {
             CASE(SimpleScene)
-                // CASE(InstancingScene)
-                // CASE(MultiVertexStreamScene)
-                // CASE(TextureMappingScene)
-                // CASE(PBRScene)
+            CASE(InstancingScene)
+            CASE(MultiVertexStreamScene)
+            CASE(TextureMappingScene)
+            CASE(PBRScene)
                 // CASE(DeferedScene)
                 // CASE(ShadowMappingScene)
                 // CASE(DebugNormalScene)

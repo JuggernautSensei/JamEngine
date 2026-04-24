@@ -16,48 +16,31 @@ struct CBTextureMappingSceneEntity
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4   cb_world         = Mtx4::kIdentity;
-    Mtx4   cb_worldInvTrans = Mtx4::kIdentity;
-    UInt32 cb_flags         = 0;
-    float  padding[3]       = {};
+    Mtx4   world;
+    Mtx4   worldInvTrans;
+    UInt32 flags;
+    float  padding[3];
 };
 
 struct CBTextureMappingSceneCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Vec3::kZero;
-    float padding1    = 0.f;
-    Mtx4  cb_viewProj = Mtx4::kIdentity;
+    Vec3  eyePos;
+    float padding1;
+    Mtx4  viewProj;
 };
 
 struct CBTextureMappingSceneLight
 {
     static constexpr Int32 kSlot = 2;
 
-    Vec3  cb_lightDir     = { 0.f, -1.f, 0.f };
-    float padding2        = 0.f;
-    Vec3  cb_lightColor   = Vec3::kOne;
-    float padding3        = 0.f;
-    Vec3  cb_ambientColor = Vec3::kOne;
-    float padding4        = 0.f;
-};
-
-struct TextureMappingSceneVertex
-{
-    Vec3 pos      = Vec3::kZero;
-    Vec2 texcoord = Vec2::kZero;
-    Vec3 normal   = Vec3::kZero;
-    Vec3 tangent  = Vec3::kZero;
-
-    inline static VertexLayout s_layout = [] {
-        VertexLayout layout = {};
-        layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-        layout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-        layout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
-        layout.Push(eVertexAttribute::Tangent, eAttributeFormat::Float3);
-        return layout;
-    }();
+    Vec3  lightDir;
+    float padding2;
+    Vec3  lightColor;
+    float padding3;
+    Vec3  ambientColor;
+    float padding4;
 };
 
 }   // namespace
@@ -87,9 +70,14 @@ TextureMappingScene::TextureMappingScene()
     m_lightCbh  = gfx.CreateConstantBuffer(sizeof(CBTextureMappingSceneLight));
 
     // load model
+    VertexLayout attribLayout = {};
+    attribLayout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    attribLayout.Push(eVertexAttribute::Tangent, eAttributeFormat::Float3);
+
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/TextureMappingScene/Model.obj", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals | eAssimpImporterFlags::GenerateTangentFrame);
     JAM_ASSERT(importer, "Failed to load model: {}", importer.GetError().ToErrorMessage());
-    Expect<Ref<Model>> pModel = importer->ConvertToModel(TextureMappingSceneVertex::s_layout, eAssimpConvertToModelFlags::Mesh);
+    Expect<Ref<Model>> pModel = importer->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh);
     JAM_ASSERT(pModel, "Failed to extract model: {}", pModel.GetError().ToErrorMessage());
     m_pMesh = pModel.GetValue()->GetMeshes()[0];
 
@@ -99,8 +87,7 @@ TextureMappingScene::TextureMappingScene()
     m_pNormal = Texture::LoadFromFile("Resources/TextureMappingScene/Normal.png").GetValue();
 
     // camera setting
-    m_camera.SetAspectRatio(16.f / 9.f);
-    m_cameraTransform.SetTranslationZ(-8.f);
+    m_camera.trans.SetTranslationZ(-10.f);
 }
 
 TextureMappingScene::~TextureMappingScene()
@@ -115,10 +102,11 @@ TextureMappingScene::~TextureMappingScene()
 void TextureMappingScene::OnUpdate(
     const float _deltaTime)
 {
+    m_camera.Update(_deltaTime);
+
     if (m_bAnimate)
     {
-        m_entityYRad += m_dMoveRad * _deltaTime;
-        m_entityYawRad += m_dYawRad * _deltaTime;
+        m_rot += m_dRot * _deltaTime;
     }
 }
 
@@ -129,25 +117,24 @@ void TextureMappingScene::OnRender(
     gfx.SetFrameBuffer(m_fbh);
     gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
-    gfx.SetViewport(m_vp);
+    gfx.SetViewport(_view.vp);
     gfx.SetProgram(m_ph);
     gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4                  vpMtx    = m_cameraTransform.GetSRT().Invert() * m_camera.GetProj();
     CBTextureMappingSceneCamera cbCamera = {};
-    cbCamera.cb_eyePos                   = m_cameraTransform.GetTranslation();
-    cbCamera.cb_viewProj                 = vpMtx.Transpose();
+    cbCamera.eyePos                      = m_camera.GetEyePos();
+    cbCamera.viewProj                    = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
     gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBTextureMappingSceneCamera::kSlot);
     gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBTextureMappingSceneCamera::kSlot);
 
     // light
     CBTextureMappingSceneLight cbLight = {};
-    cbLight.cb_lightDir                = Normalized(m_lightLookAt - m_lightPos);
-    cbLight.cb_lightColor              = m_lightColor;
-    cbLight.cb_ambientColor            = m_ambientColor;
+    cbLight.lightDir                   = Vec3 { m_lightLookAt - m_lightPos }.Normalized();
+    cbLight.lightColor                 = m_lightColor;
+    cbLight.ambientColor               = m_ambientColor;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
     gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBTextureMappingSceneLight::kSlot);
 
@@ -155,26 +142,19 @@ void TextureMappingScene::OnRender(
     m_pAlbedo->Bind(eShader::PixelShader, kAlbedoTextureSlot);
     m_pAo->Bind(eShader::PixelShader, kAoTextureSlot);
     m_pNormal->Bind(eShader::PixelShader, kNormalTextureSlot);
+    gfx.SetSampler(eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear | eSamplerFlags::AddressU_Wrap | eSamplerFlags::AddressV_Wrap, eShader::PixelShader, kLinearSamplerSlot);
 
     // entity
     gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBTextureMappingSceneEntity::kSlot);
     gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBTextureMappingSceneEntity::kSlot);
 
-    CBTextureMappingSceneEntity cbEntity      = {};
-    constexpr Int32             kNumEntities = 1;
-    for (Int32 i = 0; i < kNumEntities; ++i)
-    {
-        float t   = static_cast<float>(i) * 15.f;
-        float yaw = m_entityYawRad + ToRad(t);
-        float x   = static_cast<float>(i - kNumEntities / 2);
-
-        const Mtx4 world          = Mtx4::CreateFromYawPitchRoll(yaw, 0.f, 0.f) * Mtx4::CreateTranslation(x, 0.f, 0.f);
-        cbEntity.cb_world         = world.Transpose();
-        cbEntity.cb_worldInvTrans = world.Invert();
-        cbEntity.cb_flags         = m_textureMappingFlags.GetValue();
-        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
-        m_pMesh->Submit();
-    }
+    CBTextureMappingSceneEntity cbEntity = {};
+    const Vec3                  euler    = { m_rot, m_rot, 0.f };
+    cbEntity.world                       = Mtx4::CreateSRT(Vec3::kOne, euler, Vec3::kZero).Transpose();
+    cbEntity.worldInvTrans               = Mtx4::CreateInvSRT(Vec3::kOne, euler, Vec3::kZero);
+    cbEntity.flags                       = m_textureMappingFlags.GetValue();
+    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+    m_pMesh->Submit();
 
     // blit inner framebuffer texture to output texture
     // output framebuffer maybe do not have depth texture.
@@ -221,26 +201,10 @@ void TextureMappingScene::OnImGuiRender()
 
     if (ImGui::CollapsingHeader("Material & Light"))
     {
-        ImGui::ColorEdit3("Base Color", &m_baseColor.x);
-        ImGui::SliderFloat("Shininess", &m_shiness, 1.0f, 256.0f);
-
-        ImGui::Separator();
         ImGui::DragFloat3("Light Pos", &m_lightPos.x, 0.1f);
         ImGui::DragFloat3("Light LookAt", &m_lightLookAt.x, 0.1f);
         ImGui::ColorEdit3("Light Color", &m_lightColor.x);
         ImGui::ColorEdit3("Ambient Color", &m_ambientColor.x);
-    }
-
-    if (ImGui::CollapsingHeader("Camera"))
-    {
-        Vec3 camPos = m_cameraTransform.GetTranslation();
-        ImGui::Text("Camera Pos: %.2f, %.2f, %.2f", camPos.x, camPos.y, camPos.z);
-
-        float fov = m_camera.GetFovYRad();
-        if (ImGui::SliderAngle("Field of View", &fov, 10.0f, 120.0f))
-        {
-            m_camera.SetFovYRad(fov);
-        }
     }
 
     ImGui::End();
@@ -254,7 +218,7 @@ void TextureMappingScene::OnResize(
 
     Graphics& gfx = GetGraphics();
     m_fbh         = gfx.CreateFrameBuffer(_width, _height, eTextureFormat::RGBA8_UNorm, eTextureFormat::D24_UNorm_S8_UInt);
-    m_vp          = Viewport { 0, 0, NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
+    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 
     const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
     JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");

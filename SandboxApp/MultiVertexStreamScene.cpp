@@ -11,55 +11,16 @@ struct CBMultiVertexStreamSceneEntity
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4  cb_world         = Mtx4::kIdentity;
-    Mtx4  cb_worldInvTrans = Mtx4::kIdentity;
-    Vec3  cb_baseColor     = Vec3::kOne;
-    float cb_shiness       = 16.f;
+    Mtx4 world = Mtx4::kIdentity;
 };
 
 struct CBMultiVertexStreamSceneCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos   = Vec3::kZero;
-    float padding1    = 0.f;
-    Mtx4  cb_viewProj = Mtx4::kIdentity;
-};
-
-struct CBMultiVertexStreamSceneLight
-{
-    static constexpr Int32 kSlot = 2;
-
-    Vec3  cb_lightDir     = { 0.f, -1.f, 0.f };
-    float padding2        = 0.f;
-    Vec3  cb_lightColor   = Vec3::kOne;
-    float padding3        = 0.f;
-    Vec3  cb_ambientColor = Vec3::kOne;
-    float padding4        = 0.f;
-};
-
-struct MultiVertexStreamScenePosNormalVertex
-{
-    Vec3 pos    = Vec3::kZero;
-    Vec3 normal = Vec3::kZero;
-
-    inline static VertexLayout s_layout = [] {
-        VertexLayout layout = {};
-        layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-        layout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
-        return layout;
-    }();
-};
-
-struct MultiVertexStreamSceneColorVertex
-{
-    Vec3 color = Vec3::kZero;
-
-    inline static VertexLayout s_layout = [] {
-        VertexLayout layout = {};
-        layout.Push(eVertexAttribute::Color0, eAttributeFormat::Float3);
-        return layout;
-    }();
+    Vec3  eyePos   = Vec3::kZero;
+    float padding  = 0.f;
+    Mtx4  viewProj = Mtx4::kIdentity;
 };
 
 }   // namespace
@@ -86,129 +47,70 @@ MultiVertexStreamScene::MultiVertexStreamScene()
 
     m_entityCbh = gfx.CreateConstantBuffer(sizeof(CBMultiVertexStreamSceneEntity));
     m_cmrCbh    = gfx.CreateConstantBuffer(sizeof(CBMultiVertexStreamSceneCamera));
-    m_lightCbh  = gfx.CreateConstantBuffer(sizeof(CBMultiVertexStreamSceneLight));
 
-    MultiVertexStreamScenePosNormalVertex posNormals[24] = {
-        {  { -0.5f, 0.5f, -0.5f }, { 0.f, 0.f, -1.f } },
-        {   { 0.5f, 0.5f, -0.5f }, { 0.f, 0.f, -1.f } },
-        {  { 0.5f, -0.5f, -0.5f }, { 0.f, 0.f, -1.f } },
-        { { -0.5f, -0.5f, -0.5f }, { 0.f, 0.f, -1.f } },
-
-        {   { 0.5f, 0.5f, -0.5f },  { 1.f, 0.f, 0.f } },
-        {    { 0.5f, 0.5f, 0.5f },  { 1.f, 0.f, 0.f } },
-        {   { 0.5f, -0.5f, 0.5f },  { 1.f, 0.f, 0.f } },
-        {  { 0.5f, -0.5f, -0.5f },  { 1.f, 0.f, 0.f } },
-
-        {    { 0.5f, 0.5f, 0.5f },  { 0.f, 0.f, 1.f } },
-        {   { -0.5f, 0.5f, 0.5f },  { 0.f, 0.f, 1.f } },
-        {  { -0.5f, -0.5f, 0.5f },  { 0.f, 0.f, 1.f } },
-        {   { 0.5f, -0.5f, 0.5f },  { 0.f, 0.f, 1.f } },
-
-        {   { -0.5f, 0.5f, 0.5f }, { -1.f, 0.f, 0.f } },
-        {  { -0.5f, 0.5f, -0.5f }, { -1.f, 0.f, 0.f } },
-        { { -0.5f, -0.5f, -0.5f }, { -1.f, 0.f, 0.f } },
-        {  { -0.5f, -0.5f, 0.5f }, { -1.f, 0.f, 0.f } },
-
-        {   { -0.5f, 0.5f, 0.5f },  { 0.f, 1.f, 0.f } },
-        {    { 0.5f, 0.5f, 0.5f },  { 0.f, 1.f, 0.f } },
-        {   { 0.5f, 0.5f, -0.5f },  { 0.f, 1.f, 0.f } },
-        {  { -0.5f, 0.5f, -0.5f },  { 0.f, 1.f, 0.f } },
-
-        { { -0.5f, -0.5f, -0.5f }, { 0.f, -1.f, 0.f } },
-        {  { 0.5f, -0.5f, -0.5f }, { 0.f, -1.f, 0.f } },
-        {   { 0.5f, -0.5f, 0.5f }, { 0.f, -1.f, 0.f } },
-        {  { -0.5f, -0.5f, 0.5f }, { 0.f, -1.f, 0.f } },
+    struct Vertex
+    {
+        Vec3 point;
+        RGBA rgba;
     };
 
-    MultiVertexStreamSceneColorVertex colors[24] = {
-        { { 1.f, 0.f, 0.f } },
-        { { 1.f, 0.f, 0.f } },
-        { { 1.f, 0.f, 0.f } },
-        { { 1.f, 0.f, 0.f } },
-        { { 0.f, 1.f, 0.f } },
-        { { 0.f, 1.f, 0.f } },
-        { { 0.f, 1.f, 0.f } },
-        { { 0.f, 1.f, 0.f } },
-        { { 0.f, 0.f, 1.f } },
-        { { 0.f, 0.f, 1.f } },
-        { { 0.f, 0.f, 1.f } },
-        { { 0.f, 0.f, 1.f } },
-        { { 1.f, 1.f, 0.f } },
-        { { 1.f, 1.f, 0.f } },
-        { { 1.f, 1.f, 0.f } },
-        { { 1.f, 1.f, 0.f } },
-        { { 1.f, 0.f, 1.f } },
-        { { 1.f, 0.f, 1.f } },
-        { { 1.f, 0.f, 1.f } },
-        { { 1.f, 0.f, 1.f } },
-        { { 0.f, 1.f, 1.f } },
-        { { 0.f, 1.f, 1.f } },
-        { { 0.f, 1.f, 1.f } },
-        { { 0.f, 1.f, 1.f } },
+    Vec3 positions[] = {
+        { -0.5f, -0.5f, -0.5f },
+        {  0.5f, -0.5f, -0.5f },
+        {  0.5f,  0.5f, -0.5f },
+        { -0.5f,  0.5f, -0.5f },
+        { -0.5f, -0.5f,  0.5f },
+        {  0.5f, -0.5f,  0.5f },
+        {  0.5f,  0.5f,  0.5f },
+        { -0.5f,  0.5f,  0.5f }
     };
 
-    UInt16 indices[36] = {
-        0, 1, 2, 0, 2, 3,   // Front
-        4,
-        5,
-        6,
-        4,
-        6,
-        7,   // Right
-        8,
-        9,
-        10,
-        8,
-        10,
-        11,   // Back
-        12,
-        13,
-        14,
-        12,
-        14,
-        15,   // Left
-        16,
-        17,
-        18,
-        16,
-        18,
-        19,   // Top
-        20,
-        21,
-        22,
-        20,
-        22,
-        23   // Bottom
+    VertexLayout posLayout = {};
+    posLayout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+
+    RGBA colors[] = {
+        RGBA::FromLinear(1.0f, 0.0f, 0.0f, 1.0f),
+        RGBA::FromLinear(0.0f, 1.0f, 0.0f, 1.0f),
+        RGBA::FromLinear(0.0f, 0.0f, 1.0f, 1.0f),
+        RGBA::FromLinear(1.0f, 1.0f, 0.0f, 1.0f),
+        RGBA::FromLinear(1.0f, 0.0f, 1.0f, 1.0f),
+        RGBA::FromLinear(0.0f, 1.0f, 1.0f, 1.0f),
+        RGBA::FromLinear(1.0f, 0.5f, 0.0f, 1.0f),
+        RGBA::FromLinear(1.0f, 0.0f, 0.5f, 1.0f)
     };
 
-    m_posNormalVbh = gfx.CreateVertexBuffer(posNormals, MultiVertexStreamScenePosNormalVertex::s_layout);
-    m_colorVbh     = gfx.CreateVertexBuffer(colors, MultiVertexStreamSceneColorVertex::s_layout);
-    m_ibh          = gfx.CreateIndexBuffer(indices);
+    VertexLayout colorLayout = {};
+    colorLayout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+
+    UInt16 idxes[] = { 4, 5, 6, 4, 6, 7, 1, 0, 3, 1, 3, 2, 0, 4, 7, 0, 7, 3, 5, 1, 2, 5, 2, 6, 1, 5, 4, 1, 4, 0, 7, 6, 2, 7, 2, 3 };
+
+    m_posVbh   = gfx.CreateVertexBuffer(positions, posLayout);
+    m_colorVbh = gfx.CreateVertexBuffer(colors, colorLayout);
+    m_ibh      = gfx.CreateIndexBuffer(idxes);
 
     // camera setting
-    m_camera.SetAspectRatio(16.f / 9.f);
-    m_cameraTransform.SetTranslationZ(-8.f);
+    m_camera.trans.SetTranslationZ(-25.f);
 }
 
 MultiVertexStreamScene::~MultiVertexStreamScene()
 {
     JAM_DESTROY_PROGRAM(m_ph);
-    JAM_DESTROY_VERTEX_BUFFER(m_posNormalVbh);
+    JAM_DESTROY_VERTEX_BUFFER(m_posVbh);
     JAM_DESTROY_VERTEX_BUFFER(m_colorVbh);
     JAM_DESTROY_INDEX_BUFFER(m_ibh);
     JAM_DESTROY_CONSTANT_BUFFER(m_entityCbh);
     JAM_DESTROY_CONSTANT_BUFFER(m_cmrCbh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_lightCbh);
     JAM_DESTROY_FRAME_BUFFER(m_fbh);
 }
 
 void MultiVertexStreamScene::OnUpdate(
     const float _deltaTime)
 {
+    m_camera.Update(_deltaTime);
+
     if (m_bAnimate)
     {
-        m_entityYRad += m_dMoveRad * _deltaTime;
-        m_entityYawRad += m_dYawRad * _deltaTime;
+        m_rot += m_dRot * _deltaTime;
     }
 }
 
@@ -219,51 +121,52 @@ void MultiVertexStreamScene::OnRender(
     gfx.SetFrameBuffer(m_fbh);
     gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
-    gfx.SetViewport(m_vp);
-    gfx.SetProgram(m_ph);
+    gfx.SetViewport(_view.vp);
     gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
     gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
     // camera
-    const Mtx4                     vpMtx    = m_cameraTransform.GetSRT().Invert() * m_camera.GetProj();
     CBMultiVertexStreamSceneCamera cbCamera = {};
-    cbCamera.cb_eyePos                      = m_cameraTransform.GetTranslation();
-    cbCamera.cb_viewProj                    = vpMtx.Transpose();
+    cbCamera.eyePos                         = m_camera.GetEyePos();
+    cbCamera.viewProj                       = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
     gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBMultiVertexStreamSceneCamera::kSlot);
     gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBMultiVertexStreamSceneCamera::kSlot);
 
-    // light
-    CBMultiVertexStreamSceneLight cbLight = {};
-    cbLight.cb_lightDir                   = Normalized(m_lightLookAt - m_lightPos);
-    cbLight.cb_lightColor                 = m_lightColor;
-    cbLight.cb_ambientColor               = m_ambientColor;
-    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBMultiVertexStreamSceneLight::kSlot);
-
     // entity
+    gfx.SetProgram(m_ph);
     gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBMultiVertexStreamSceneEntity::kSlot);
     gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBMultiVertexStreamSceneEntity::kSlot);
 
+    VertexBufferBinding binginds[] = {
+        {   m_posVbh, 0 },
+        { m_colorVbh, 0 }
+    };
+    gfx.SetVertexBuffers(binginds);
+    gfx.SetIndexBuffer(m_ibh);
+
+    constexpr Int32 kNumEntitiesPerRow = 11;
+
     CBMultiVertexStreamSceneEntity cbEntity = {};
-    for (Int32 i = 0; i < m_numEntities; ++i)
+    for (Int32 i = 0; i < 11; ++i)
     {
-        float t   = static_cast<float>(i) * 15.f;
-        float yaw = m_entityYawRad + ToRad(t);
-        float x   = 1.f * static_cast<float>(i - (m_numEntities / 2));
-        float y   = 1.f * Sin(m_entityYRad + ToRad(t));
+        for (Int32 j = 0; j < 11; ++j)
+        {
+            const float t = static_cast<float>(i) * 15.f;
 
-        const Mtx4 world          = Mtx4::CreateFromYawPitchRoll(yaw, 0.f, 0.f) * Mtx4::CreateTranslation(x, y, 0.f);
-        cbEntity.cb_world         = world.Transpose();
-        cbEntity.cb_worldInvTrans = world.Invert();
-        cbEntity.cb_shiness       = m_shiness;
-        cbEntity.cb_baseColor     = m_baseColor;
-        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+            Vec3 euler  = Vec3::kZero;
+            euler.pitch = ToRad(t);
+            euler.yaw   = m_rot + ToRad(t);
 
-        gfx.SetVertexBuffer(m_posNormalVbh);
-        gfx.SetVertexBuffer(m_colorVbh);
-        gfx.SetIndexBuffer(m_ibh);
-        gfx.Submit();
+            Vec3 trans = Vec3::kZero;
+            trans.x    = 1.5f * static_cast<float>(j - kNumEntitiesPerRow / 2);
+            trans.y    = 1.5f * static_cast<float>(i - kNumEntitiesPerRow / 2);
+
+            cbEntity.world = Mtx4::CreateSRT(Vec3::kOne, euler, trans).Transpose();
+            gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+
+            gfx.Submit();
+        }
     }
 
     // blit inner framebuffer texture to output texture
@@ -283,41 +186,6 @@ void MultiVertexStreamScene::OnImGuiRender()
         return;
     }
 
-    ImGui::Text("FPS: %.2f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-    ImGui::Separator();
-
-    if (ImGui::CollapsingHeader("Entity Transform", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Checkbox("Animate Rotation", &m_bAnimate);
-
-        ImGui::SliderInt("Entities", &m_numEntities, 1, 100);
-    }
-
-    if (ImGui::CollapsingHeader("Material & Light"))
-    {
-        ImGui::ColorEdit3("Base Color", &m_baseColor.x);
-        ImGui::SliderFloat("Shininess", &m_shiness, 1.0f, 256.0f);
-
-        ImGui::Separator();
-        ImGui::DragFloat3("Light Pos", &m_lightPos.x, 0.1f);
-        ImGui::DragFloat3("Light LookAt", &m_lightLookAt.x, 0.1f);
-        ImGui::ColorEdit3("Light Color", &m_lightColor.x);
-        ImGui::ColorEdit3("Ambient Color", &m_ambientColor.x);
-    }
-
-    // 5. 카메라 정보 (Camera)
-    if (ImGui::CollapsingHeader("Camera"))
-    {
-        Vec3 camPos = m_cameraTransform.GetTranslation();
-        ImGui::Text("Camera Pos: %.2f, %.2f, %.2f", camPos.x, camPos.y, camPos.z);
-
-        float fov = m_camera.GetFovYRad();
-        if (ImGui::SliderAngle("Field of View", &fov, 10.0f, 120.0f))
-        {
-            m_camera.SetFovYRad(fov);
-        }
-    }
-
     ImGui::End();
 }
 
@@ -329,7 +197,7 @@ void MultiVertexStreamScene::OnResize(
 
     Graphics& gfx = GetGraphics();
     m_fbh         = gfx.CreateFrameBuffer(_width, _height, eTextureFormat::RGBA8_UNorm, eTextureFormat::D24_UNorm_S8_UInt);
-    m_vp          = Viewport { 0, 0, NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
+    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 
     const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
     JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");

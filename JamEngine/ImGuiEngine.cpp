@@ -293,7 +293,7 @@ void ImGuiEngine::Render_(
     if (m_ibCap < _pDrawData->TotalIdxCount)
     {
         JAM_DESTROY_INDEX_BUFFER(m_ibh);
-        const bool bUseU32 = std::cmp_greater(_pDrawData->TotalVtxCount, Limits<UInt16>::kHighest);
+        const bool bUseU32 = _pDrawData->TotalVtxCount > Limits<UInt16>::kHighest;
         m_ibCap            = _pDrawData->TotalIdxCount + 10000;
         m_ibh              = gfx.CreateDynamicIndexBuffer(m_ibCap, bUseU32);
     }

@@ -537,7 +537,7 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
 
     // 인덱스 배열 생성
     const Int32 finalNumFaces     = static_cast<Int32>(faces.size());
-    const bool  bUseU32           = std::cmp_greater(finalNumVerts, Limits<UInt16>::kHighest);
+    const bool  bUseU32           = finalNumVerts > Limits<UInt16>::kHighest;
     const Int32 finalNumIdxes     = finalNumFaces * 3;
     const Int32 finalIdxByteWidth = CalcIndicesByteWidth(finalNumIdxes, bUseU32);
 

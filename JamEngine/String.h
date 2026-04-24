@@ -2658,7 +2658,7 @@ public:
             GrowHeapIfNeed_(m_str.heapLen + len);
             AppendToHeap_(_str);
         }
-        else if (std::cmp_less(m_str.bit, len))   // change to heap
+        else if (m_str.bit < len)   // change to heap
         {
             SSOToHeap_((GetLengthSSO_() + len) * kGrowthFactor);
             AppendToHeap_(_str);
@@ -2679,7 +2679,7 @@ public:
             GrowHeapIfNeed_(GetLength() + len);
             InsertToHeap_(_pos, _str);
         }
-        else if (std::cmp_less(m_str.bit, len))   // change to heap
+        else if (m_str.bit < len)   // change to heap
         {
             SSOToHeap_((GetLengthSSO_() + len) * kGrowthFactor);
             InsertToHeap_(_pos, _str);

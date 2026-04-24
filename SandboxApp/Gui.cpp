@@ -17,10 +17,13 @@ bool BeginSceneInspectorWindows(const char* _title)
     if (ImGui::TreeNode("Performance"))
     {
         Application& app = GetApp();
-        ImGui::Text("Frame rate: %.1f", app.GetFrameRate());
-        ImGui::Text("Delta time: %.3f ms", app.GetDeltaTimeSec() * 1000.f);
+
+        ImGui::Text("Frame rate: %6.1f fps", app.GetFrameRate());
+        ImGui::Text("Delta time: %6.3f ms", app.GetDeltaTimeSec() * 1000.f);
+
         ImGui::TreePop();
     }
+
     if (ImGui::TreeNode("Graphics Debug"))
     {
         Graphics&            gfx   = GetGraphics();

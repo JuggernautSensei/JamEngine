@@ -105,7 +105,7 @@ public:
     [[nodiscard]] HandleT Alloc()
     {
         HandleT handle = m_handleAlloc.Alloc();
-        if (std::cmp_greater_equal(handle.GetIndex(), m_resources.size()))
+        if (handle.GetIndex() >= m_resources.size())
         {
             m_resources.resize(handle.GetIndex() + 1);
         }

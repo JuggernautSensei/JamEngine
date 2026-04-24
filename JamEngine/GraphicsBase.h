@@ -24,7 +24,7 @@ constexpr Int32 kMaxNumVertexAttribs            = static_cast<Int32>(CountOf<eVe
 constexpr Int32 kMaxNumInstanceAttribs          = kMaxNumVertexShaderInputSlots - kMaxNumVertexAttribs;
 
 // utils
-constexpr Int32 kUseAll = Limits<Int32>::kHighest;
+constexpr Int32 kAll = Limits<Int32>::kHighest;
 
 ////////// ENUMS ////////////////////////////////////////////////////////////////////////////////////////////////////
 

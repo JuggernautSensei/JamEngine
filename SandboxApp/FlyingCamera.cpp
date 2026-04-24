@@ -51,3 +51,13 @@ void FlyingCamera::Update(
         trans.SetRotation(euler);
     }
 }
+
+Vec3 FlyingCamera::GetEyePos() const
+{
+    return trans.GetTranslation();
+}
+
+Mtx4 FlyingCamera::CalcViewProj() const
+{
+    return trans.CalcInvSRT() * cmr.GetProj();
+}

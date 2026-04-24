@@ -183,6 +183,21 @@ Mtx4 Mtx4::FromAxisAngle(
     };
 }
 
+Mtx4 Mtx4::FromEuler(Vec3 _euler)
+{
+    const float cx = Cos(_euler.x), sx = Sin(_euler.x);
+    const float cy = Cos(_euler.y), sy = Sin(_euler.y);
+    const float cz = Cos(_euler.z), sz = Sin(_euler.z);
+    const float sxsy = sx * sy, cxsy = cx * sy;
+
+    return {
+        {             cy * cz,             cy * sz,     -sy, 0.f },
+        { sxsy * cz - cx * sz, sxsy * sz + cx * cz, sx * cy, 0.f },
+        { cxsy * cz + sx * sz, cxsy * sz - sx * cz, cx * cy, 0.f },
+        {                 0.f,                 0.f,     0.f, 1.f }
+    };
+}
+
 Mtx4 Mtx4::FromQuaternion(
     const Quat _quat)
 {
@@ -216,6 +231,21 @@ Mtx4 Mtx4::CreateSRT(
     };
 }
 
+Mtx4 Mtx4::CreateSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
+{
+    const float cx = Cos(_euler.x), sx = Sin(_euler.x);
+    const float cy = Cos(_euler.y), sy = Sin(_euler.y);
+    const float cz = Cos(_euler.z), sz = Sin(_euler.z);
+    const float sxsy = sx * sy, cxsy = cx * sy;
+
+    return {
+        {             _scale.x * (cy * cz),             _scale.x * (cy * sz),     _scale.x * (-sy), 0.f },
+        { _scale.y * (sxsy * cz - cx * sz), _scale.y * (sxsy * sz + cx * cz), _scale.y * (sx * cy), 0.f },
+        { _scale.z * (cxsy * cz + sx * sz), _scale.z * (cxsy * sz - sx * cz), _scale.z * (cx * cy), 0.f },
+        {                   _translation.x,                   _translation.y,       _translation.z, 1.f }
+    };
+}
+
 Mtx4 Mtx4::CreateInvSRT(
     const Vec3 _scale,
     const Quat _rotation,
@@ -239,6 +269,28 @@ Mtx4 Mtx4::CreateInvSRT(
     const float r20 = 2.f * (xz + wy);
     const float r21 = 2.f * (yz - wx);
     const float r22 = 1.f - 2.f * (xx + yy);
+
+    return {
+        {                               r00 * isx,                               r10 * isy,                               r20 * isz, 0.f },
+        {                               r01 * isx,                               r11 * isy,                               r21 * isz, 0.f },
+        {                               r02 * isx,                               r12 * isy,                               r22 * isz, 0.f },
+        { -(tx * r00 + ty * r01 + tz * r02) * isx, -(tx * r10 + ty * r11 + tz * r12) * isy, -(tx * r20 + ty * r21 + tz * r22) * isz, 1.f }
+    };
+}
+
+Mtx4 Mtx4::CreateInvSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
+{
+    const float cx = Cos(_euler.x), sx = Sin(_euler.x);
+    const float cy = Cos(_euler.y), sy = Sin(_euler.y);
+    const float cz = Cos(_euler.z), sz = Sin(_euler.z);
+    const float sxsy = sx * sy, cxsy = cx * sy;
+
+    const float isx = 1.f / _scale.x, isy = 1.f / _scale.y, isz = 1.f / _scale.z;
+    const float tx = _translation.x, ty = _translation.y, tz = _translation.z;
+
+    const float r00 = cy * cz, r01 = cy * sz, r02 = -sy;
+    const float r10 = sxsy * cz - cx * sz, r11 = sxsy * sz + cx * cz, r12 = sx * cy;
+    const float r20 = cxsy * cz + sx * sz, r21 = cxsy * sz - sx * cz, r22 = cx * cy;
 
     return {
         {                               r00 * isx,                               r10 * isy,                               r20 * isz, 0.f },

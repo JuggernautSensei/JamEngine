@@ -168,7 +168,7 @@ Expect<FileWriter> FileWriter::Open(
 }
 
 Error FileWriter::WriteFileAsBinary(
-    const MemoryView               _data,
+    const MemoryView                 _data,
     const StringView                 _path,
     const eFileWriterCollisionPolicy _policy)
 {
@@ -199,8 +199,8 @@ Expect<SizeT> FileWriter::WriteBinary(
     const MemoryView _data) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
-    const size_t written = ::fwrite(_data.GetPtr(), 1, _data.GetByteWidth(), m_pFile);
-    if (std::cmp_less(written, _data.GetByteWidth()))
+    const SizeT written = static_cast<SizeT>(::fwrite(_data.GetPtr(), 1, _data.GetByteWidth(), m_pFile));
+    if (written < _data.GetByteWidth())
     {
         JAM_LOG_ERROR("Failed to write {} bytes to file, only {} bytes were written.", _data.GetByteWidth(), written);
         return Error::WriteFailed;
@@ -280,14 +280,14 @@ Expect<String> FileReader::ReadFileAsString(
 
 Expect<SizeT> FileReader::ReadBinary(
     const MutableMemoryView _dst,
-    const SizeT       _count) const
+    const SizeT             _count) const
 {
     JAM_ASSERT(m_pFile, "File handle is null.");
     JAM_ASSERT(_dst.GetPtr(), "Destination buffer pointer is null.");
     JAM_ASSERT(_count <= _dst.GetByteWidth(), "Count exceeds destination buffer size.");
     const SizeT toRead = (_count == 0) ? _dst.GetByteWidth() : _count;
     const SizeT read   = static_cast<SizeT>(::fread(_dst.GetPtr(), 1, toRead, m_pFile));
-    if (std::cmp_less(read, toRead) && !IsEof())
+    if (read < toRead && !IsEof())
     {
         JAM_LOG_ERROR("Failed to read {} bytes from file, only {} bytes were read. {}", toRead, read, CreateWindowsErrorMessage(::ferror(m_pFile), eWindowsErrorCode::Errno));
         return Error::ReadFailed;

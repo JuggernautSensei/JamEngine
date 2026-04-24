@@ -971,7 +971,7 @@ public:
     void SetVertexBuffer(
         VertexBufferHandle _vbhOrInvalid,
         Int32              _vertOffset = 0,
-        Int32              _numVerts   = kUseAll);
+        Int32              _numVerts   = kAll);
 
     /// @brief 버텍스 버퍼와 인스턴스 버퍼를 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _vbhOrInvalid 버텍스 버퍼 핸들 또는 kInvalidHandle (버텍스 버퍼 바인딩 해제)
@@ -986,14 +986,14 @@ public:
         Int32              _numVerts,
         VertexBufferHandle _instanceVbhOrInvalid,
         Int32              _instanceOffset = 0,
-        Int32              _numInstances   = kUseAll);
+        Int32              _numInstances   = kAll);
 
     /// @brief 여러 버텍스 스트림을 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _bindings 바인딩할 버텍스 스트림 배열. 각 스트림은 버텍스 버퍼 핸들과 버텍스 수, 오프셋을 포함합니다.
     /// @param _numVerts 드로우 콜에 사용할 버텍스 수. kUseAll 전달 시 버텍스 버퍼 전체를 사용합니다.
     void SetVertexBuffers(
         Span<const VertexBufferBinding> _bindings,
-        Int32                           _numVerts = kUseAll);
+        Int32                           _numVerts = kAll);
 
     /// @brief 여러 버텍스 스트림과 인스턴스 버퍼를 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _bindings 바인딩할 버텍스 스트림 배열. 각 스트림은 버텍스 버퍼 핸들과 버텍스 수, 오프셋을 포함합니다.
@@ -1006,7 +1006,7 @@ public:
         Int32                           _numVerts,
         VertexBufferHandle              _instanceVbhOrInvalid,
         Int32                           _instanceOffset = 0,
-        Int32                           _numInstances   = kUseAll);
+        Int32                           _numInstances   = kAll);
 
     /// @brief 인덱스 버퍼를 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _ibhOrInvalid 바인딩할 인덱스 버퍼 핸들
@@ -1015,7 +1015,7 @@ public:
     void SetIndexBuffer(
         IndexBufferHandle _ibhOrInvalid,
         Int32             _idxOffset  = 0,
-        Int32             _numIndices = kUseAll);
+        Int32             _numIndices = kAll);
 
     /// @brief 상수 버퍼를 특정 셰이더 스테이지의 슬롯에 바인딩합니다.
     /// @param _cbh 바인딩할 상수 버퍼 핸들. kInvalidHandle 전달 시 슬롯의 바인딩을 해제합니다.
