@@ -1,6 +1,9 @@
 #include "pch.h"
 
 #include "SandboxApp.h"
+
+#include "DebugNormalScene.h"
+#include "DeferedScene.h"
 #include "../JamEngine/CommandLineArgumentParser.h"
 
 #include "SimpleScene.h"
@@ -41,9 +44,9 @@ void SandboxApp::Init(
             CASE(MultiVertexStreamScene)
             CASE(TextureMappingScene)
             CASE(PBRScene)
-                // CASE(DeferedScene)
+            CASE(DeferedScene)
+            CASE(DebugNormalScene)
                 // CASE(ShadowMappingScene)
-                // CASE(DebugNormalScene)
 
             default:
                 JAM_ASSERT(0, "Unknown scene name '{}'.", cmd);

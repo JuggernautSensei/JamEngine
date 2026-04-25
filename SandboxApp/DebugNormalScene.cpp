@@ -15,12 +15,12 @@ struct CBDebugNormalScene_WithWIT
     static constexpr Int32 kSlot = 0;
 
     Mtx4 world         = Mtx4::kIdentity;
-    Mtx4 worldInvTrans = Mtx4::kIdentity;
+    Mtx4 invTransWorld = Mtx4::kIdentity;
 };
 
 struct CBDebugNormalSceneCamera
 {
-    static constexpr Int32 kSlot   = 1;
+    static constexpr Int32 kSlot    = 1;
     Mtx4                   viewProj = Mtx4::kIdentity;
     Vec3                   eyePos   = Vec3::kZero;
     float                  padding  = 0.f;
@@ -29,18 +29,17 @@ struct CBDebugNormalSceneCamera
 void DebugNormalScene::InitMeshes_()
 {
     // mesh
-    VertexLayout layout = {};
-    layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-    layout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    VertexLayout attribLayout = {};
+    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
     // sphere mesh
-    m_pSphere = CreateSphereMesh(0.5f, 5, layout);
+    m_pSphere = CreateSphereMesh(0.5f, 5, attribLayout);
     m_sphereTrans.SetTranslationX(-1.f);
 
     // bunny mesh
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunnyPBR/StanfordBunnyPBR.gltf", eAssimpImporterFlags::GenerateNormals);
     JAM_ASSERT(importer.HasValue(), "Failed to load bunny model: {}", importer.GetError().ToErrorMessage());
-    m_pBunny = importer->ConvertToModel(layout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
+    m_pBunny = importer->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
     m_bunnyTrans.SetTranslationX(1.f);
     m_bunnyTrans.SetScale(0.01f);
 
@@ -192,8 +191,8 @@ void DebugNormalScene::OnRender(
 
     // update camera
     CBDebugNormalSceneCamera cb = {};
-    cb.viewProj                 = (m_camera.trans.GetSRT().Invert() * m_camera.cmr.GetProj()).Transpose();
-    cb.eyePos                   = m_camera.trans.GetTranslation();
+    cb.viewProj                 = m_camera.CalcViewProj().Transpose();
+    cb.eyePos                   = m_camera.GetEyePos();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cb));
 
     m_graph.Execute(_view.fbh, _view.vp);
@@ -346,7 +345,7 @@ void DebugNormalScene::UpdateEntityConstants_(
     {
         CBDebugNormalScene_WithWIT cb = {};
         cb.world                      = _trans.GetSRT().Transpose();
-        cb.worldInvTrans              = _trans.GetSRT().Invert();
+        cb.invTransWorld              = _trans.CalcInvSRT();
         gfx.UpdateBuffer(m_withWitCbh, AsMemoryView(cb));
     }
     else

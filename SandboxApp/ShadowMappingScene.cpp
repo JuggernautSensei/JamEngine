@@ -1,27 +1,55 @@
 #include "pch.h"
 #include "ShadowMappingScene.h"
 
+#include "Gui.h"
 #include "../JamEngine/AssimpImporter.h"
+#include "../JamEngine/Random.h"
 
 namespace
 {
+
+constexpr Int32 kShadowCascadeLevels = 3;
+constexpr Int32 kNumLightMatricse    = (6 > kShadowCascadeLevels ? 6 : kShadowCascadeLevels);
+
+constexpr Int32 kTSceneNormalSlot = 0;
+constexpr Int32 kTSceneColorSlot  = 1;
+constexpr Int32 kTSceneDepthSlot  = 2;
 
 struct CBShadowMappingSceneEntity
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4 world         = Mtx4::kIdentity;
-    Mtx4 worldInvTrans = Mtx4::kIdentity;
+    Mtx4 world;
+    Mtx4 worldInvTrans;
 };
 
 struct CBShadowMappingSceneCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Mtx4  view    = Mtx4::kIdentity;
-    Mtx4  proj    = Mtx4::kIdentity;
-    Vec3  pos     = Vec3::kZero;
-    float padding = 0.f;
+    Mtx4  view;
+    Mtx4  proj;
+    Vec3  eyePos;
+    float padding;
+};
+
+struct CBShadowMappingSceneLight
+{
+    static constexpr Int32 kSlot = 2;
+
+    Vec3   cb_lightPos;
+    float  cb_lightFallOffStart;
+    Vec3   cb_lightDir;   // use dir light
+    float  cb_lightFallOffEnd;
+    float  cb_lightSpotInnerCos;
+    float  cb_lightSpotOuterCos;
+    UInt32 cb_makeShadow;
+    float  cb_shadowBias;
+};
+
+struct CBShadowCaster
+{
+    Mtx4 cb_light[kNumLightMatricse];
 };
 
 }   // namespace
@@ -36,39 +64,69 @@ ShadowMappingScene::~ShadowMappingScene() noexcept
 {
 }
 
-void ShadowMappingScene::OnUpdate(float _dt)
+void ShadowMappingScene::OnUpdate(const float _dt)
 {
+    m_camera.Update(_dt);
+
+    for (Entity& entity: m_entities)
+    {
+        entity.transform.AddRotationYaw(_dt * m_dRot);
+    }
 }
 
 void ShadowMappingScene::OnRender(const RenderView& _view)
 {
+    Graphics& gfx = GetGraphics();
+
+    CBShadowMappingSceneCamera cbCamera = {};
+    cbCamera.view                       = m_camera.CalcView();
+    cbCamera.proj                       = m_camera.GetProj();
+    cbCamera.eyePos                     = _view.eye;
+    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
+
     m_graph.Execute(_view.fbh, _view.vp);
 }
 
 void ShadowMappingScene::OnImGuiRender()
 {
+    if (!BeginSceneInspectorWindows("ShadowMappingScene"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::End();
 }
 
 void ShadowMappingScene::InitMeshes_()
 {
-    VertexLayout vl = {};
-    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-    vl.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
-
-    VertexLayout posOnlyVl = {};
-    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float2);
+    VertexLayout attribLayout = {};
+    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
     Flags<eAssimpImporterFlags> flags          = eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals | eAssimpImporterFlags::GenerateTangentFrame;
     Expect<AssimpImporter>      dragonImporter = AssimpImporter::ImportFromFile("Resources/Models/StanfordDragonPBR/StanfordDragonPBR.gltf", flags);
     Expect<AssimpImporter>      bunnyImporter  = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunnyPBR/StanfordBunnyPBR.gltf", flags);
 
-    m_entities.clear();
     m_entities.resize(4);
 
-    m_entities[0].pMesh = dragonImporter->ConvertToModel(vl, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
-    m_entities[1].pMesh = bunnyImporter->ConvertToModel(vl, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
-    m_entities[2].pMesh = CreatePlaneMesh({ 10.f, 10.f }, vl);
-    m_entities[3].pMesh = CreateCubeMesh({ 1.f, 1.f, 1.f }, vl);
+    RngMWC rng {};
+
+    m_entities[0].pMesh = dragonImporter->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
+    m_entities[0].transform.SetScale(Vec3 { 0.1f });
+    m_entities[0].transform.SetTranslationX(GenerateRandomFloat(rng, -10.f, 10.f));
+    m_entities[0].transform.SetTranslationZ(GenerateRandomFloat(rng, -10.f, 10.f));
+
+    m_entities[1].pMesh = bunnyImporter->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
+    m_entities[1].transform.SetScale(Vec3 { 0.1f });
+    m_entities[1].transform.SetTranslationX(GenerateRandomFloat(rng, -10.f, 10.f));
+    m_entities[1].transform.SetTranslationZ(GenerateRandomFloat(rng, -10.f, 10.f));
+
+    m_entities[2].pMesh = CreatePlaneMesh({ 10.f, 10.f }, attribLayout);
+    m_entities[2].transform.SetTranslationY(-1.5f);
+
+    m_entities[3].pMesh = CreateCubeMesh({ 1.f, 1.f, 1.f }, attribLayout);
+    m_entities[3].transform.SetTranslationX(GenerateRandomFloat(rng, -10.f, 10.f));
+    m_entities[3].transform.SetTranslationZ(GenerateRandomFloat(rng, -10.f, 10.f));
 
     // full screen triangle
     {
@@ -104,15 +162,17 @@ void ShadowMappingScene::InitRenderGraph_()
     StringView gbufferAttachments[] = { "T_SceneNormal", "T_SceneDepth" };
     m_graph.AddFrameBuffer("FB_GBuffer", gbufferAttachments);
 
-    // gbuffer program
     AddProgram_VertexPixel_(
         "P_GBuffer",
         "Resources/ShadowMappingScene/ShadowMappingSceneGBufferShader.hlsl");
 
-    // lighting program
     AddProgram_VertexPixel_(
-        "P_Lighting",
-        "Resources/ShadowMappingScene/ShadowMappingSceneLightDepthShader.hlsl");
+        "P_SpotShadowCast",
+        "Resources/ShadowMappingScene/ShadowMappingSceneSpotShadowCastShader.hlsl");
+
+    AddProgram_VertexPixel_(
+        "P_SpotShadowReceive",
+        "Resources/ShadowMappingScene/ShadowMappingSceneSpotShadowReceiveShader.hlsl");
 
     // gbuffer pass
     m_graph.AddPass("Pass_GBuffer")
@@ -127,29 +187,17 @@ void ShadowMappingScene::InitRenderGraph_()
         .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBShadowMappingSceneEntity::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBShadowMappingSceneCamera::kSlot)
         .SetExecutor(Bind<&ShadowMappingScene::RenderMeshes_>(this));
-
-    // lighting pass
-    m_graph.AddPass("Pass_Lighting")
-        .SetUseExternalOutput()
-        .SetAsFinalPass()
-        .SetViewportFromFrameBufferResolution()
-        .SetProgram("P_Lighting")
-        .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
-        .SetTexture("T_SceneNormal", eShader::PixelShader, 0)
-        .SetExecutor(Bind<&ShadowMappingScene::RenderFullScreenTri_>(this));
 }
 
 void ShadowMappingScene::RenderMeshes_()
 {
     Graphics& gfx = GetGraphics();
 
+    CBShadowMappingSceneEntity cb = {};
     for (const Entity& entity: m_entities)
     {
-        const Mtx4& world = entity.transform.GetSRT();
-
-        CBShadowMappingSceneEntity cb = {};
-        cb.world                      = world.Transpose();
-        cb.worldInvTrans              = world.Invert();
+        cb.world         = entity.transform.GetSRT().Transpose();
+        cb.worldInvTrans = entity.transform.CalcInvSRT();
         gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cb));
         entity.pMesh->Submit();
     }

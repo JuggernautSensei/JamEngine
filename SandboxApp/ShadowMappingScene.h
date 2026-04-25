@@ -55,15 +55,15 @@ private:
 
     void AddProgram_VertexPixel_(StringView _name, StringView _path);
 
-    float m_time           = 0.f;
-    float m_deltaAnimation = 1.f;
-    float m_deltaLightMove = 0.5f;
-    bool  m_bAnimate       = true;
+    float m_counter  = 0.f;
+    float m_dRot     = 1.f;
+    bool  m_bAnimate = true;
 
     Vector<Entity> m_entities = {};
-    Ref<Mesh>      m_pFsTri   = nullptr;
-    Ref<Mesh>      m_pSphere  = nullptr;
-    Ref<Mesh>      m_pCone    = nullptr;
+
+    Ref<Mesh> m_pFsTri  = nullptr;
+    Ref<Mesh> m_pSphere = nullptr;
+    Ref<Mesh> m_pCone   = nullptr;
 
     Light m_omniLight = {};
     Light m_spotLight = {};

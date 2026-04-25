@@ -8,11 +8,15 @@ class DeferedScene : public Scene
 
     struct Light
     {
-        Vec3  color  = Vec3::kOne;
-        Vec3  pos    = Vec3::kZero;
-        Vec3  offset = Vec3::kZero;
-        float radius = 5.f;
+        Vec3  pos;
+        Vec3  offset;
+        Vec3  color;
+        float radius;
+        float freqX, freqY, freqZ;
+        float phaseX, phaseY, phaseZ;
+        float ampX, ampY, ampZ;
     };
+    static constexpr Int32 kMaxLights = 2048;
 
 public:
     DeferedScene();
@@ -29,12 +33,13 @@ public:
 
 private:
     void OnResize(Int32 _width, Int32 _height) override;
-    void InitLights();
+    void InitLights_(Int32 _from = 0, Int32 _to = kMaxLights);
 
-    float m_time           = 0.f;
-    float m_deltaAnimation = 1.f;
-    float m_deltaLightMove = 0.5f;
-    bool  m_bAnimate       = true;
+    float m_dLightMove = 0.5f;
+    float m_dRot       = ToRad(45.f);
+    float m_counter    = 0.f;
+    float m_rot        = 0.f;
+    bool  m_bAnimate   = true;
 
     ProgramHandle m_gbufferPh = kInvalidHandle;
     ProgramHandle m_lightPh   = kInvalidHandle;
@@ -66,8 +71,8 @@ private:
     ConstantBufferHandle m_cameraCbh = kInvalidHandle;
     ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
-    Array<Light, 1024> m_lights    = {};
-    Int32              m_numLights = 100;
+    Array<Light, kMaxLights> m_lights    = {};
+    Int32                    m_numLights = 100;
 
     FlyingCamera m_camera = {};
 };

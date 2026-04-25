@@ -1,8 +1,4 @@
-#define CONCAT_(a, b) a##b
-#define CONCAT(a, b) CONCAT_(a, b)
-#define PADDING1 float CONCAT(padding, __LINE__)
-#define PADDING2 float2 CONCAT(padding, __LINE__)
-#define PADDING3 float3 CONCAT(padding, __LINE__)
+#include "../ShaderBase.hlsl"
 
 Texture2D t_albedo : register(t0);
 Texture2D t_normal : register(t1);
@@ -13,8 +9,8 @@ cbuffer CBDeferedSceneEntity : register(b0)
 {
     float4x4 cb_world;
     float4x4 cb_worldInvTrans;
-    float3 cb_baseColor;
     uint cb_bHasTextures;
+    PADDING3;
 };
 
 cbuffer CBDeferedSceneCamera : register(b1)
@@ -62,7 +58,7 @@ PSInput VSMain(VSInput input)
 
 PSOutput PSMain(PSInput input)
 {
-    float3 albedo = cb_baseColor;
+    float3 albedo = float3(1.0f, 1.0f, 1.0f);
     float3 N = normalize(input.normalW);
     if (cb_bHasTextures == 1)
     {

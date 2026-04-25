@@ -1,28 +1,47 @@
-#define CONCAT_(a, b) a##b
-#define CONCAT(a, b) CONCAT_(a, b)
-#define PADDING1 float CONCAT(padding1, __LINE__)
-
-Texture2D t_sceneNormal;
-Texture2D t_sceneLight; // 
-SamplerState s_linearWrap;
+#include "ShadowMappingSceneCommon.hlsl"
 
 struct VSInput
 {
-    float2 posL : POSITION;
+    float3 posL : POSITION;
+};
+
+struct GSInput
+{
+    float4 posW : SV_POSITION;
 };
 
 struct PSInput
 {
     float4 posH : SV_POSITION;
+    uint rtIndex : SV_RenderTargetArrayIndex;
 };
 
-PSInput VSMain(VSInput input)
+GSInput VSMain(VSInput input)
 {
-    PSInput output;
-    output.posH = float4(input.posL, 0.f, 1.f);
+    GSInput output;
+    output.posW = mul(float4(input.posL, 1.0f), cb_world);
     return output;
+}
+
+[maxvertexcount(3 * SHADOW_CASCADE_LEVELS)]
+void GSMain(triangle GSInput input[3], inout TriangleStream<PSInput> triStream)
+{
+    [unroll]
+    for (int i = 0; i < SHADOW_CASCADE_LEVELS; i++)
+    {
+        PSInput output;
+
+        [unroll]
+        for (int j = 0; j < 3; j++)
+        {
+            output.posH = mul(input[j].posW, cb_light[i]);
+            output.rtIndex = i;
+            triStream.Append(output);
+        }
+    }
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
+    return float4(0.f, 0.f, 0.f, 0.f);
 }

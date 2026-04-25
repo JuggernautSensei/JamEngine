@@ -4,6 +4,7 @@
 #include "Gui.h"
 #include "../JamEngine/AssimpImporter.h"
 #include "../JamEngine/EditorWidgets.h"
+#include "../JamEngine/Random.h"
 
 namespace
 {
@@ -21,47 +22,30 @@ struct CBDeferedSceneEntity
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4   cb_world         = Mtx4::kIdentity;
-    Mtx4   cb_worldInvTrans = Mtx4::kIdentity;
-    Vec3   cb_baseColor     = Vec3::kOne;
-    UInt32 cb_bHasTextures  = 0;
+    Mtx4   world;
+    Mtx4   invTransWorld;
+    UInt32 bHasTexture;
+    float  padding[3];
 };
 
 struct CBDeferedSceneCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Vec3  cb_eyePos      = Vec3::kZero;
-    float padding1       = 0.f;
-    Mtx4  cb_viewProj    = Mtx4::kIdentity;
-    Mtx4  cb_viewProjInv = Mtx4::kIdentity;
+    Vec3  eyePos;
+    float padding1;
+    Mtx4  viewProj;
+    Mtx4  invViewProj;
 };
 
 struct CBDeferedSceneLight
 {
     static constexpr Int32 kSlot = 2;
 
-    Vec3  cb_lightPos    = Vec3::kZero;
-    float cb_lightRadius = 0.f;
-    Vec3  cb_lightCol    = Vec3::kOne;
-    float padding1       = 0.f;
-};
-
-struct DeferedSceneVertex
-{
-    Vec3 pos      = {};
-    Vec2 texcoord = {};
-    Vec3 normal   = {};
-    Vec3 tangent  = {};
-
-    inline static VertexLayout s_layout = [] {
-        VertexLayout layout = {};
-        layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-        layout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-        layout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
-        layout.Push(eVertexAttribute::Tangent, eAttributeFormat::Float3);
-        return layout;
-    }();
+    Vec3  lightPos;
+    float lightRadius;
+    Vec3  lightCol;
+    float padding1;
 };
 
 }   // namespace
@@ -72,15 +56,24 @@ DeferedScene::DeferedScene()
     Expect<AssimpImporter>      dragonImporter = AssimpImporter::ImportFromFile("Resources/Models/StanfordDragonPBR/StanfordDragonPBR.gltf", flags);
     Expect<AssimpImporter>      bunnyImporter  = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunnyPBR/StanfordBunnyPBR.gltf", flags);
 
-    m_pDragon       = dragonImporter->ConvertToModel(DeferedSceneVertex::s_layout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
+    VertexLayout attribLayout = {};
+    attribLayout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    attribLayout.Push(eVertexAttribute::Tangent, eAttributeFormat::Float3);
+
+    m_pDragon       = dragonImporter->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
     m_pDragonAlbedo = Texture::LoadFromFile("Resources/Models/StanfordDragonPBR/Albedo.jpg").GetValue();
     m_pDragonNormal = Texture::LoadFromFile("Resources/Models/StanfordDragonPBR/NormalGL.png").GetValue();
 
-    m_pBunny       = bunnyImporter->ConvertToModel(DeferedSceneVertex::s_layout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
+    m_pBunny       = bunnyImporter->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
     m_pBunnyAlbedo = Texture::LoadFromFile("Resources/Models/StanfordBunnyPBR/Albedo.png").GetValue();
     m_pBunnyNormal = Texture::LoadFromFile("Resources/Models/StanfordBunnyPBR/NormalGL.png").GetValue();
 
-    m_pPlane = CreatePlaneMesh({ 10.f, 10.f }, DeferedSceneVertex::s_layout);
+    m_pPlane = CreatePlaneMesh({ 10.f, 10.f }, attribLayout);
+
+    // full screen tri
+
+    Graphics& gfx = GetGraphics();
 
     Vec3 triVertices[] = {
         { -1.f,  1.f, 0.f },
@@ -90,12 +83,10 @@ DeferedScene::DeferedScene()
 
     VertexLayout vl = {};
     vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-    Graphics& gfx = GetGraphics();
-    m_fullTriVbh  = gfx.CreateVertexBuffer(triVertices, vl);
 
-    UInt16 triIndices[] = {
-        0, 1, 2
-    };
+    UInt16 triIndices[] = { 0, 1, 2 };
+
+    m_fullTriVbh = gfx.CreateVertexBuffer(triVertices, vl);
     m_fullTriIbh = gfx.CreateIndexBuffer(triIndices);
 
     // cbuffer
@@ -152,7 +143,7 @@ DeferedScene::DeferedScene()
     }
 
     m_camera.trans.SetTranslationZ(-15.f);
-    InitLights();
+    InitLights_();
 }
 
 DeferedScene::~DeferedScene() noexcept
@@ -172,20 +163,21 @@ DeferedScene::~DeferedScene() noexcept
 void DeferedScene::OnUpdate(
     const float _deltaSec)
 {
+    m_counter += _deltaSec;
+    m_camera.Update(_deltaSec);
+
     if (m_bAnimate)
     {
-        m_time += _deltaSec;
+        m_rot += _deltaSec * m_dRot;
     }
 
     for (Int32 i = 0; i < m_numLights; ++i)
     {
         Light& l = m_lights[i];
-        l.pos    = l.offset;
-        l.pos.x += Cos(m_time * m_deltaLightMove + static_cast<float>(i)) * 5.f;
-        l.pos.y += Sin(m_time * m_deltaLightMove + static_cast<float>(i)) * 5.f;
+        l.pos.x  = l.offset.x + Cos(m_counter * l.freqX + l.phaseX) * l.ampX;
+        l.pos.y  = l.offset.y + Sin(m_counter * l.freqY + l.phaseY) * l.ampY;
+        l.pos.z  = l.offset.z + Sin(m_counter * l.freqZ + l.phaseZ) * l.ampZ;
     }
-
-    m_camera.Update(_deltaSec);
 }
 
 void DeferedScene::OnRender(
@@ -201,12 +193,10 @@ void DeferedScene::OnRender(
     gfx.SetConstantBuffer(m_cameraCbh, eShader::VertexShader, CBDeferedSceneCamera::kSlot);
     gfx.SetConstantBuffer(m_cameraCbh, eShader::PixelShader, CBDeferedSceneCamera::kSlot);
 
-    const Mtx4 viewProj = m_camera.trans.GetSRT().Invert() * m_camera.cmr.GetProj();
-
     CBDeferedSceneCamera cbCamera = {};
-    cbCamera.cb_eyePos            = m_camera.trans.GetTranslation();
-    cbCamera.cb_viewProj          = viewProj.Transpose();
-    cbCamera.cb_viewProjInv       = cbCamera.cb_viewProj.Invert();
+    cbCamera.eyePos               = m_camera.GetEyePos();
+    cbCamera.viewProj             = m_camera.CalcViewProj().Transpose();
+    cbCamera.invViewProj          = cbCamera.viewProj.Inverse();
     gfx.UpdateBuffer(m_cameraCbh, AsMemoryView(cbCamera));
 
     // render gbuffer
@@ -232,74 +222,58 @@ void DeferedScene::OnRender(
         gfx.SetViewport(m_vp);
         gfx.SetFrameBuffer(m_gbufferFbh);
 
-        // dragon
-        {
-            float                x        = -1.f;
-            float                y        = Sin(m_time * m_deltaAnimation);
-            float                yaw      = m_time * m_deltaAnimation;
-            const Mtx4           world    = Mtx4::CreateScale(0.005f, 0.005f, 0.005f) * Mtx4::CreateFromYawPitchRoll(yaw, 0.f, 0.f) * Mtx4::CreateTranslation(x, y, 0.f);
-            CBDeferedSceneEntity cbEntity = {};
-            cbEntity.cb_world             = world.Transpose();
-            cbEntity.cb_worldInvTrans     = world.Invert();
-            cbEntity.cb_baseColor         = Vec3 { 1.f, 1.f, 1.f };
-            cbEntity.cb_bHasTextures      = 1;
-            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::kSlot);
-            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::kSlot);
-            gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+        gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::kSlot);
+        gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::kSlot);
 
-            m_pDragonAlbedo->Bind(eShader::PixelShader, kDeferedSceneAlbedoSlot);
-            m_pDragonNormal->Bind(eShader::PixelShader, kDeferedSceneNormalSlot);
-            m_pDragon->Submit();
-        }
+        // dragon
+        const Vec3     euler    = { 0.f, m_rot, 0.f };
+        constexpr Vec3 kDragonS = Vec3 { 0.01f };
+        constexpr Vec3 kDragonT = { -3.f, 0.f, 0.f };
+
+        CBDeferedSceneEntity cbEntity = {};
+        cbEntity.world                = Mtx4::CreateSRT(kDragonS, euler, kDragonT).Transpose();
+        cbEntity.invTransWorld        = Mtx4::CreateInvSRT(kDragonS, euler, kDragonT);
+        cbEntity.bHasTexture          = 1;
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+
+        m_pDragonAlbedo->Bind(eShader::PixelShader, kDeferedSceneAlbedoSlot);
+        m_pDragonNormal->Bind(eShader::PixelShader, kDeferedSceneNormalSlot);
+        m_pDragon->Submit();
 
         // bunny
-        {
-            float                x        = 1.f;
-            float                y        = Sin(m_time * m_deltaAnimation + ToRad(45.f));
-            float                yaw      = m_time * m_deltaAnimation + ToRad(45.f);
-            const Mtx4           world    = Mtx4::CreateScale(0.005f, 0.005f, 0.005f) * Mtx4::CreateFromYawPitchRoll(yaw, 0.f, 0.f) * Mtx4::CreateTranslation(x, y, 0.f);
-            CBDeferedSceneEntity cbEntity = {};
-            cbEntity.cb_world             = world.Transpose();
-            cbEntity.cb_worldInvTrans     = world.Invert();
-            cbEntity.cb_baseColor         = Vec3 { 1.f, 1.f, 1.f };
-            cbEntity.cb_bHasTextures      = 1;
-            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::kSlot);
-            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::kSlot);
-            gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+        constexpr Vec3 kBunnyS = Vec3 { 0.01f };
+        constexpr Vec3 kBunnyT = { 3.f, 0.f, 0.f };
 
-            m_pBunnyAlbedo->Bind(eShader::PixelShader, kDeferedSceneAlbedoSlot);
-            m_pBunnyNormal->Bind(eShader::PixelShader, kDeferedSceneNormalSlot);
-            m_pBunny->Submit();
-        }
+        cbEntity.world         = Mtx4::CreateSRT(kBunnyS, euler, kBunnyT).Transpose();
+        cbEntity.invTransWorld = Mtx4::CreateInvSRT(kBunnyS, euler, kBunnyT);
+        cbEntity.bHasTexture   = 1;
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+
+        m_pBunnyAlbedo->Bind(eShader::PixelShader, kDeferedSceneAlbedoSlot);
+        m_pBunnyNormal->Bind(eShader::PixelShader, kDeferedSceneNormalSlot);
+        m_pBunny->Submit();
 
         // plane (wall)
-        {
-            const Mtx4           world    = Mtx4::CreateFromYawPitchRoll(0.f, ToRad(-90.f), 0.f) * Mtx4::CreateTranslation(0.f, 0.f, 0.3f);
-            CBDeferedSceneEntity cbEntity = {};
-            cbEntity.cb_world             = world.Transpose();
-            cbEntity.cb_worldInvTrans     = world.Invert();
-            cbEntity.cb_baseColor         = Vec3 { 1.f, 1.f, 1.f };
-            cbEntity.cb_bHasTextures      = 0;
-            gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBDeferedSceneEntity::kSlot);
-            gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBDeferedSceneEntity::kSlot);
-            gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
-            m_pPlane->Submit();
-        }
+        constexpr Vec3 kPlaneEuler = { ToRad(-90.f), 0.f, 0.f };
+        constexpr Vec3 kPlaneT     = { 0.f, 0.f, 0.3f };
+
+        cbEntity.world         = Mtx4::CreateSRT(Vec3::kOne, kPlaneEuler, kPlaneT).Transpose();
+        cbEntity.invTransWorld = Mtx4::CreateInvSRT(Vec3::kOne, kPlaneEuler, kPlaneT);
+        cbEntity.bHasTexture   = 0;
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+        m_pPlane->Submit();
     }
 
     // render light
     {
-        // additive blend
-        gfx.SetRenderFlags(
-            eRenderFlags::CullMode_Back
-            | eRenderFlags::Primitive_TriangleList);
+        gfx.SetRenderFlags(eRenderFlags::CullMode_Back
+                           | eRenderFlags::Primitive_TriangleList);
 
-        gfx.SetBlendFlags(
-            eBlendFlags::Enable
-                | eBlendFlags::WriteMask_All
-                | eBlendFlags::SrcBlend_One | eBlendFlags::DstBlend_One | eBlendFlags::BlendOp_Add
-                | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add,
-            0);
+        gfx.SetBlendFlags(eBlendFlags::Enable
+                              | eBlendFlags::WriteMask_All
+                              | eBlendFlags::SrcBlend_One | eBlendFlags::DstBlend_One | eBlendFlags::BlendOp_Add
+                              | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add,
+                          0);
 
         gfx.ClearRenderTarget(m_lightFbh, { 0, 0, 0, 0 }, 0);
         gfx.SetFrameBuffer(m_lightFbh);
@@ -315,9 +289,9 @@ void DeferedScene::OnRender(
         {
             const Light&        l       = m_lights[i];
             CBDeferedSceneLight cbLight = {};
-            cbLight.cb_lightPos         = l.pos;
-            cbLight.cb_lightRadius      = l.radius;
-            cbLight.cb_lightCol         = l.color;
+            cbLight.lightPos            = l.pos;
+            cbLight.lightRadius         = l.radius;
+            cbLight.lightCol            = l.color;
             gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
             gfx.Submit();
         }
@@ -352,66 +326,14 @@ void DeferedScene::OnImGuiRender()
         return;
     }
 
-    // 1. 성능 모니터링
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::Separator();
-
-    // 2. 씬 및 애니메이션 설정
-    if (ImGui::CollapsingHeader("Scene Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    Int32 numLights = m_numLights;
+    if (ImGui::SliderInt("Light Count", &numLights, 1, kMaxLights))
     {
-        ImGui::Checkbox("Animate Lights", &m_bAnimate);
-        ImGui::SliderFloat("Light Move Speed", &m_deltaLightMove, 0.0f, 2.0f);
-        ImGui::SliderFloat("Mesh Anim Speed", &m_deltaAnimation, 0.0f, 5.0f);
+        const Int32 prev = m_numLights;
+        m_numLights      = numLights;
+        if (m_numLights > prev)
+            InitLights_(prev, m_numLights);
     }
-
-    // 3. 라이트 시스템 제어
-    if (ImGui::CollapsingHeader("Global Light System", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::SliderInt("Number of Lights", &m_numLights, 1, 1024);
-
-        static float globalRadius = 2.0f;
-        if (ImGui::DragFloat("Set All Radius", &globalRadius, 0.1f, 0.1f, 20.0f))
-        {
-            for (Int32 i = 0; i < m_numLights; ++i)
-                m_lights[i].radius = globalRadius;
-        }
-
-        static Vec3 globalColor = Vec3::kOne;
-        if (ImGui::ColorEdit3("Set All Color", &globalColor.x))
-        {
-            for (Int32 i = 0; i < m_numLights; ++i)
-                m_lights[i].color = globalColor;
-        }
-    }
-
-    ImGui::End();
-
-    ImGui::Begin("Deferred Debug");
-
-    constexpr ImVec2 kImageSize = { 200, 200 };
-
-    ImGui::BeginGroup();
-    ImGui::Text("Albedo (Color)");
-    Widget_Image(m_colorTexh, kImageSize);
-    ImGui::EndGroup();
-
-    ImGui::SameLine();
-    ImGui::BeginGroup();
-    ImGui::Text("Normal (R11G11B10)");
-    Widget_Image(m_normalTexh, kImageSize);
-    ImGui::EndGroup();
-
-    ImGui::SameLine();
-    ImGui::BeginGroup();
-    ImGui::Text("Depth");
-    Widget_Image(m_depthTexh, kImageSize);
-    ImGui::EndGroup();
-
-    ImGui::SameLine();
-    ImGui::BeginGroup();
-    ImGui::Text("Light Buffer (Accumulated)");
-    Widget_Image(m_lightTexh, kImageSize);
-    ImGui::EndGroup();
 
     ImGui::End();
 }
@@ -431,22 +353,39 @@ void DeferedScene::OnResize(
 
     TextureHandle gbufferAttach[] = { m_colorTexh, m_normalTexh, m_depthTexh };
     m_gbufferFbh                  = gfx.CreateFrameBuffer(gbufferAttach, true);
-    m_vp                          = { NarrowCast<UInt16>(_width), NarrowCast<UInt16>(_height) };
+    m_vp                          = { static_cast<UInt16>(_width), static_cast<UInt16>(_height) };
 
     TextureHandle lightAttach[] = { m_lightTexh };
     m_lightFbh                  = gfx.CreateFrameBuffer(lightAttach, true);
 }
 
-void DeferedScene::InitLights()
+void DeferedScene::InitLights_(
+    const Int32 _from,
+    const Int32 _to)
 {
-    for (Int32 i = 0; i < m_numLights; ++i)
+    RngMWC rng {};
+
+    for (Int32 i = _from; i < _to; ++i)
     {
         Light& l   = m_lights[i];
-        l.radius   = 2.f;
-        l.offset.x = MakeRandom(-5.f, 5.f);
-        l.offset.y = MakeRandom(-5.f, 5.f);
-        l.offset.z = -0.5f;
+        l.radius   = GenerateRandomFloat(rng, 1.5f, 4.f);
+        l.offset.x = GenerateRandomFloat(rng, -5.f, 5.f);
+        l.offset.y = GenerateRandomFloat(rng, -5.f, 5.f);
+        l.offset.z = GenerateRandomFloat(rng, -1.f, 1.f);
         l.pos      = l.offset;
-        l.color    = Vec3 { 1.f, 1.f, 1.f };
+        l.color    = {
+            GenerateRandomFloat(rng, 0.3f, 1.f),
+            GenerateRandomFloat(rng, 0.3f, 1.f),
+            GenerateRandomFloat(rng, 0.3f, 1.f)
+        };
+        l.freqX  = GenerateRandomFloat(rng, 0.3f, 2.f);
+        l.freqY  = GenerateRandomFloat(rng, 0.3f, 2.f);
+        l.freqZ  = GenerateRandomFloat(rng, 0.1f, 0.8f);
+        l.phaseX = GenerateRandomFloat(rng, 0.f, k2Pi);
+        l.phaseY = GenerateRandomFloat(rng, 0.f, k2Pi);
+        l.phaseZ = GenerateRandomFloat(rng, 0.f, k2Pi);
+        l.ampX   = GenerateRandomFloat(rng, 2.f, 6.f);
+        l.ampY   = GenerateRandomFloat(rng, 2.f, 6.f);
+        l.ampZ   = GenerateRandomFloat(rng, 0.2f, 1.f);
     }
 }

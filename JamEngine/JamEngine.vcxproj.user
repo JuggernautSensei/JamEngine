@@ -3,4 +3,8 @@
   <PropertyGroup>
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>DeferedScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>DeferedScene|</LocalDebuggerCommandArgumentsHistory>
+  </PropertyGroup>
 </Project>

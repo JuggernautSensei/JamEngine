@@ -81,13 +81,13 @@ Mtx4 Mtx4::CreatePerspectiveFov(
     const float _nearZ,
     const float _farZ)
 {
-    const float f     = 1.f / Tan(_fovYRad * 0.5f);
-    const float depth = _farZ - _nearZ;
+    const float f = 1.f / Tan(_fovYRad * 0.5f);
+    const float d = _farZ - _nearZ;
     return {
-        { f / _aspect, 0.f,                     0.f, 0.f },
-        {         0.f,   f,                     0.f, 0.f },
-        {         0.f, 0.f,           _farZ / depth, 1.f },
-        {         0.f, 0.f, -_farZ * _nearZ / depth, 0.f }
+        { f / _aspect, 0.f,                 0.f, 0.f },
+        {         0.f,   f,                 0.f, 0.f },
+        {         0.f, 0.f,           _farZ / d, 1.f },
+        {         0.f, 0.f, -_farZ * _nearZ / d, 0.f }
     };
 }
 

@@ -4,8 +4,8 @@
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>PBRScene</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>InstancingScene|MultiVertexStreamScene|TextureMappingScene|SimpleScene|PBRScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>DebugNormalScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>SimpleScene|PBRScene|InstancingScene|DeferedScene|DebugNormalScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArguments>--benchmark_filter=Jam</LocalDebuggerCommandArguments>

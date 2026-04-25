@@ -204,7 +204,7 @@
     <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneOmniShadowReceiveShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneSpotShadowCasterShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneSpotShadowCastShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
     <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneSpotShadowReceiveShader.hlsl">
@@ -217,6 +217,9 @@
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
     <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneOmniShadowCastShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneCommon.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
   </ItemGroup>

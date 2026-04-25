@@ -9,7 +9,7 @@ cbuffer CBDeferedSceneCamera : register(b1)
     float3 cb_eyePos;
     PADDING1;
     float4x4 cb_viewProj;
-    float4x4 cb_viewProjInv;
+    float4x4 cb_invViewProj;
 };
 
 cbuffer CBDeferedSceneLight : register(b2)
@@ -56,7 +56,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     // world
     float D = t_depthScene.Sample(s_linearWrap, input.texcoord).r;
     float3 ndc = float3(input.texcoord.x * 2.0f - 1.0f, (1.0f - input.texcoord.y) * 2.0f - 1.0f, D);
-    float4 world = mul(float4(ndc, 1.0f), cb_viewProjInv);
+    float4 world = mul(float4(ndc, 1.0f), cb_invViewProj);
     world.xyz /= world.w;
 
     // light color

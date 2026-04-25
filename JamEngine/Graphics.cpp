@@ -1771,11 +1771,18 @@ void Graphics::SetVertexBuffer(
     const Int32              _vertOffset,
     const Int32              _numVerts)
 {
-    VertexBufferBinding bindings[] = {
-        { _vbhOrInvalid, _vertOffset }
-    };
+    if (_vbhOrInvalid)
+    {
+        const VertexBufferBinding bindings[] = {
+            { _vbhOrInvalid, _vertOffset }
+        };
 
-    SetVertexBuffers(bindings, _numVerts, kInvalidHandle, 0, 0);
+        SetVertexBuffers(bindings, _numVerts, kInvalidHandle, 0, 0);
+    }
+    else
+    {
+        SetVertexBuffers({}, 0, kInvalidHandle, 0, 0);
+    }
 }
 
 void Graphics::SetVertexBuffer(
@@ -1786,76 +1793,18 @@ void Graphics::SetVertexBuffer(
     const Int32              _instanceOffset,
     const Int32              _numInstances)
 {
-    const Int32 numBuffers = _vbhOrInvalid ? 1 : 0;
-    if (m_vbBindings.numVerts != numBuffers)
+    if (_vbhOrInvalid)
     {
-        m_vbBindings.numVerts = numBuffers;
-        m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
-    }
+        const VertexBufferBinding bindings[] = {
+            { _vbhOrInvalid, _vertOffset }
+        };
 
-    const VertexBufferHandle vbh    = m_vbBindings.vbhs[0];
-    const UInt32             offset = m_vbBindings.offsets[0];
-    if (vbh != _vbhOrInvalid || NotEqual(offset, _vertOffset))
+        SetVertexBuffers(bindings, _numVerts, _instanceVbhOrInvalid, _instanceOffset, _numInstances);
+    }
+    else
     {
-        const VertexLayoutHandle oldVlh = m_vbBindings.vlhs[0];
-        if (_vbhOrInvalid)
-        {
-            const VertexBuffer& vb     = m_vertexBuffers[_vbhOrInvalid];
-            m_vbBindings.vbhs[0]       = _vbhOrInvalid;
-            m_vbBindings.vlhs[0]       = vb.vlh;
-            m_vbBindings.binder[0]     = vb.pBuffer;
-            m_vbBindings.strides[0]    = vb.stride;
-            m_vbBindings.offsets[0]    = _vertOffset * vb.stride;
-            m_vbBindings.numAvailVerts = vb.byteWidth / vb.stride - _vertOffset;
-        }
-        else
-        {
-            m_vbBindings.vbhs[0]       = kInvalidHandle;
-            m_vbBindings.vlhs[0]       = kInvalidHandle;
-            m_vbBindings.binder[0]     = nullptr;
-            m_vbBindings.strides[0]    = 0;
-            m_vbBindings.offsets[0]    = 0;
-            m_vbBindings.numAvailVerts = 0;
-        }
-        m_dirtyFlags |= ePipelineDirtyFlags::VertexBuffer;
-
-        if (oldVlh != m_vbBindings.vlhs[0])
-        {
-            m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
-        }
+        SetVertexBuffers({}, 0, _instanceVbhOrInvalid, _instanceOffset, _numInstances);
     }
-    m_vbBindings.numVerts = Min(_numVerts, m_vbBindings.numAvailVerts);
-
-    // instance buffer
-    if (_instanceVbhOrInvalid != m_instanceBinding.vbh || _instanceOffset != m_instanceBinding.offset)
-    {
-        const Int32 oldStride = m_instanceBinding.stride;
-        if (_instanceVbhOrInvalid)
-        {
-            const VertexBuffer& vb              = m_vertexBuffers[_instanceVbhOrInvalid];
-            m_instanceBinding.binder            = vb.pBuffer;
-            m_instanceBinding.stride            = vb.stride;
-            m_instanceBinding.offset            = _instanceOffset;
-            m_instanceBinding.vbh               = _instanceVbhOrInvalid;
-            m_instanceBinding.numAvailInstances = vb.byteWidth / vb.stride - _instanceOffset;
-        }
-        else
-        {
-            m_instanceBinding.binder            = nullptr;
-            m_instanceBinding.stride            = 0;
-            m_instanceBinding.offset            = 0;
-            m_instanceBinding.vbh               = kInvalidHandle;
-            m_instanceBinding.numAvailInstances = 0;
-        }
-        m_dirtyFlags |= ePipelineDirtyFlags::InstanceBuffer;
-
-        // input layout은 numInstanceData 에 의존적임. numInstanceData = stride / 16. 그러므로 stride 만 비교
-        if (oldStride != m_instanceBinding.stride)
-        {
-            m_dirtyFlags |= ePipelineDirtyFlags::InputLayout;
-        }
-    }
-    m_instanceBinding.numInstances = Min(_numInstances, m_instanceBinding.numAvailInstances);
 }
 
 void Graphics::SetVertexBuffers(
@@ -1881,11 +1830,8 @@ void Graphics::SetVertexBuffers(
 
     for (Int32 i = 0; i < _bindings.size(); ++i)
     {
-        const VertexBufferHandle  vbh     = m_vbBindings.vbhs[i];
-        const UInt32              offset  = m_vbBindings.offsets[i];
         const VertexBufferBinding binding = _bindings[i];
-
-        if (vbh != binding.vbh || NotEqual(offset, binding.offset))
+        if (m_vbBindings.vbhs[i] != binding.vbh || NotEqual(m_vbBindings.offsets[i], binding.offset))
         {
             JAM_ASSERT(binding.vbh, "Vertex buffer handle cannot be invalid when setting vertex buffers.");   // 항상 packed 된 스트림을 사용
             const VertexBuffer& vb  = m_vertexBuffers[binding.vbh];
@@ -1912,13 +1858,13 @@ void Graphics::SetVertexBuffers(
     // instance buffer
     if (_instanceVbhOrInvalid != m_instanceBinding.vbh || _instanceOffset != m_instanceBinding.offset)
     {
-        Int32 oldStride = m_instanceBinding.stride;
+        const Int32 oldStride = m_instanceBinding.stride;
         if (_instanceVbhOrInvalid)
         {
             const VertexBuffer& vb              = m_vertexBuffers[_instanceVbhOrInvalid];
             m_instanceBinding.binder            = vb.pBuffer;
             m_instanceBinding.stride            = vb.stride;
-            m_instanceBinding.offset            = _instanceOffset;
+            m_instanceBinding.offset            = _instanceOffset * vb.stride;
             m_instanceBinding.vbh               = _instanceVbhOrInvalid;
             m_instanceBinding.numAvailInstances = vb.byteWidth / vb.stride - _instanceOffset;
         }
@@ -2346,27 +2292,42 @@ Graphics::~Graphics()
     // d3d11 cache 해체
     for (ID3D11BlendState* pBlendState: m_d3d11BlendStateCache | std::views::values)
     {
-        pBlendState->Release();
+        if (pBlendState)
+        {
+            pBlendState->Release();
+        }
     }
 
     for (ID3D11DepthStencilState* pDepthStencilState: m_d3d11DepthStencilStateCache | std::views::values)
     {
-        pDepthStencilState->Release();
+        if (pDepthStencilState)
+        {
+            pDepthStencilState->Release();
+        }
     }
 
     for (ID3D11RasterizerState* pRasterizerState: m_d3d11RasterizerStateCache | std::views::values)
     {
-        pRasterizerState->Release();
+        if (pRasterizerState)
+        {
+            pRasterizerState->Release();
+        }
     }
 
     for (ID3D11SamplerState* pSamplerState: m_d3d11SamplerStateCache | std::views::values)
     {
-        pSamplerState->Release();
+        if (pSamplerState)
+        {
+            pSamplerState->Release();
+        }
     }
 
     for (ID3D11InputLayout* pInputLayout: m_d3d11InputLayoutCache | std::views::values)
     {
-        pInputLayout->Release();
+        if (pInputLayout)
+        {
+            pInputLayout->Release();
+        }
     }
 
     // 내부 리소스 해제

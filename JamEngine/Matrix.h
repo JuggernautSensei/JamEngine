@@ -18,6 +18,7 @@ struct alignas(16) Mtx4
     [[nodiscard]] static Mtx4 CreateOrtho(float left, float right, float top, float bottom, float nearZ, float farZ);
     [[nodiscard]] static Mtx4 CreateOrtho(float _width, float _height, float _nearZ, float _farZ);
     [[nodiscard]] static Mtx4 CreatePerspectiveFov(float _fovYRad, float _aspect, float _nearZ, float _farZ);
+    
 
     [[nodiscard]] static Mtx4 CreateTranslation(Vec3 _translation);
     [[nodiscard]] static Mtx4 CreateScale(Vec3 _scale);
