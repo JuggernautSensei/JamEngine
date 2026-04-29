@@ -1,31 +1,40 @@
-#include "../ShaderBase.hlsl"
+#include "../Common/Common.hlsl"
 #define SHADOW_CASCADE_LEVELS 3
-#define NUM_LIGHT_MATRICES (6 > SHADOW_CASCADE_LEVELS ? 6 : SHADOW_CASCADE_LEVELS)
 
-//#define LIGHT_TYPE_DIRECTIONAL 0
-//#define LIGHT_TYPE_SPOT 1
-//#define LIGHT_TYPE_POINT 2
+#define SHADOW_SAMPLING_HARD 0
+#define SHADOW_SAMPLING_PCF3 1
+#define SHADOW_SAMPLING_PCF5 2
+#define SHADOW_SAMPLING_PCF7 3
+#define SHADOW_SAMPLING_VSM 4
+#define SHADOW_SAMPLING_ESM 5
 
 Texture2D t_sceneNormal : register(t0);
 Texture2D t_sceneColor : register(t1);
 Texture2D t_sceneDepth : register(t2);
+Texture2D t_sceneLight : register(t3);
+Texture2D t_baseColor : register(t4);
 
-Texture2D t_shadowMap : register(t0);
-Texture2DArray t_shadowMapArray : register(t1);
-TextureCube t_shadowMapCube : register(t2);
+Texture2D t_shadowMap : register(t5);
+Texture2DArray t_shadowMapArray : register(t6);
+TextureCube t_shadowMapCube : register(t7);
+Texture2D t_shadowMapAdv : register(t8);
 
-SamplerState s_linearWrap : register(s0);
+SamplerState s_linearClamp : register(s0);
+SamplerState s_linearWrap : register(s1);
+SamplerState s_shadowMapSampler : register(s2);
 
 cbuffer CBShadowMappingSceneEntity : register(b0)
 {
     float4x4 cb_world;
-    float4x4 cb_invTransWorld;
+    uint cb_rgba;
+    uint cb_bUseTexture;
+    PADDING2;
 };
 
 cbuffer CBShadowMappingSceneCamera : register(b1)
 {
-    float4x4 cb_view;
-    float4x4 cb_proj;
+    float4x4 cb_viewProj;
+    float4x4 cb_invViewProj;
     float3 cb_eyePos;
     PADDING1;
 };
@@ -38,14 +47,48 @@ cbuffer CBShadowMappingSceneLight : register(b2)
     float cb_lightFallOffEnd;
     float cb_lightSpotInnerCos;
     float cb_lightSpotOuterCos;
-    uint cb_makeShadow;
+    uint cb_bMakeShadow;
     float cb_shadowBias;
+    uint cb_shadowSampling;
+    PADDING3;
 };
 
-const static float4 kLightColor = SPLAT4(1.f);
-const static float4 kAmbientColor = float4(0.2f, 0.2f, 0.2f, 1.f);
+const static float3 kLightColor = 1.f;
+const static float3 kAmbientColor = 0.1f;
+const static float kESMConstant = 10.f;
 
-cbuffer CBShadowCaster : register(b3)
+cbuffer CBShadowMappingSceneShadowCast : register(b3)
 {
-    float4x4 cb_light[NUM_LIGHT_MATRICES];
+    float4x4 cb_light;
+};
+
+cbuffer CBShadowMappingSceneOmniShadowCast : register(b4)
+{
+    float4x4 cb_lightCube[6];
+};
+
+cbuffer CBShadowMappingSceneCascadeShadowCast : register(b5)
+{
+    float4x4 cb_lightCascade[SHADOW_CASCADE_LEVELS];
+    float cb_cascadeSplits[SHADOW_CASCADE_LEVELS];
+};
+
+float CalcDistanceAttenuation(float _dist, float _fallOffStart, float _fallOffEnd)
+{
+    return 1.f - smoothstep(_fallOffStart, _fallOffEnd, _dist);
 }
+
+float CalcSpotAttenuation(float3 _L, float3 _lightDir, float _spotInnerCos, float _spotOuterCos)
+{
+    float nDotLSpot = dot(-_L, _lightDir);
+    return smoothstep(_spotOuterCos, _spotInnerCos, nDotLSpot);
+}
+
+float CalcBlinePhong(float3 _L, float3 _V, float3 _N, float _shininess)
+{
+    float3 H = normalize(_L + _V);
+    float nDotL = max(dot(_N, _L), 0.f);
+    float nDotH = max(dot(_N, H), 0.f);
+    return nDotL + pow(nDotH, _shininess);
+}
+

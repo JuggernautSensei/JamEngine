@@ -5,7 +5,7 @@
 namespace Jam
 {
 
-enum class eRenderGraphResetFlags : UInt32
+enum class eRenderGraphClearFlags : UInt32
 {
     Resource = 1 << 0,   // 렌더그래프가 관리하는 모든 리소스들을 초기화
     Pass     = 1 << 1,   // 렌더그래프의 Pass들을 초기화
@@ -97,8 +97,8 @@ class RenderGraph
 
         // compute pass
         String        computeProgramName = {};
-        ProgramHandle computePh          = kInvalidHandle;   // lazy init in Compile()
         Int32         numThreadGroupsX   = 0;
+        ProgramHandle computePh          = kInvalidHandle;   // lazy init in Compile()
         Int32         numThreadGroupsY   = 0;
         Int32         numThreadGroupsZ   = 0;
         bool          bIsComputePass     = false;
@@ -122,16 +122,16 @@ class RenderGraph
 
         // blend
         Array<BlendFlagsBindCommand, kMaxNumRenderTargetViewSlots> blendFlagsBindCmds    = {};
-        Int32                                                       numBlendFlagsBindCmds = 0;
-        RGBA                                                        blendFactor           = RGBA::kTransparent;
+        Int32                                                      numBlendFlagsBindCmds = 0;
+        RGBA                                                       blendFactor           = RGBA::kTransparent;
 
         // clear commands
         Array<RenderTargetClearCommand, kMaxNumRenderTargetViewSlots> renderTargetClearCmds    = {};
-        Int32                                                          numRenderTargetClearCmds = 0;
-        bool                                                           bClearDepth              = false;
-        float                                                          depthClearValue          = 1.f;
-        bool                                                           bClearStencil            = false;
-        UInt8                                                          stencilClearValue        = 0;
+        Int32                                                         numRenderTargetClearCmds = 0;
+        bool                                                          bClearDepth              = false;
+        float                                                         depthClearValue          = 1.f;
+        bool                                                          bClearStencil            = false;
+        UInt8                                                         stencilClearValue        = 0;
 
         // resource binding in this pass
         HashMap<Slot, ConstantBufferBindCommand, SlotHasher> cbufferBindCmds   = {};
@@ -145,7 +145,7 @@ class RenderGraph
         StringHashSet<> readWriteResources = {};
         StringHashSet<> writeResources     = {};
 
-        Delegate<void()> executor = nullptr;
+        Delegate<void()> executor = nullptr;   // 드로우 콜 및 런타임 리소스 바인딩을 기대함.
 
         // 이 Pass가 최종 Pass인지를 나타냄.
         // 렌더 그래프 내에는 하나 이상의 최종 패스가 존재해야함.
@@ -157,7 +157,15 @@ class RenderGraph
         // Execute() 형태로 실행될 때는 기존에 설정된 FrameBuffer와 Viewport를 사용함.
         bool bUseExternalOutput = false;
 
-        bool bEnable = true;   // 이 Pass를 활성화할지 여부. false로 설정된 Pass는 컴파일과 실행 시 무시됨.
+        // 이 Pass를 활성화할지 여부.
+        // 컴파일 시 평가됨
+        // false로 설정된 Pass는 무시, 최종 런타임 패스 목록에 포함되지 않음.
+        bool bEnable = true;
+
+        // 이 Pass가 사이드 이펙트를 가지는지 여부.
+        // 사이드 이펙트를 가지는 경우, 최종 패스에 영향을 미치지 않아도 제거되지 않음
+        // 셋업, 유틸리티 패스 등에서 유용하게 사용될 수 있음.
+        bool bSideEffect = false;
     };
 
     // 최종 실행될 Pass 데이터
@@ -199,8 +207,8 @@ class RenderGraph
     struct FrameBufferResource : ResourceBase<FrameBufferHandle>
     {
         Array<String, kMaxNumAttachmentSlots> attachments    = {};
-        Int32                                  numAttachments = 0;
-        bool                                   bAutoResize    = false;   // true: Compile시 백버퍼에 맞춰 자동으로 크기가 조정됨
+        Int32                                 numAttachments = 0;
+        bool                                  bAutoResize    = false;   // true: Compile시 백버퍼에 맞춰 자동으로 크기가 조정됨
     };
 
     using ConstantBufferResource = ResourceBase<ConstantBufferHandle>;
@@ -303,7 +311,7 @@ public:
     [[nodiscard]] ComputePassBuilder ModifyComputePass(StringView _name);
     void                             RemovePass(StringView _name);
 
-    void Reset(Flags<eRenderGraphResetFlags> _flags = eRenderGraphResetFlags::All);
+    void Clear(Flags<eRenderGraphClearFlags> _flags = eRenderGraphClearFlags::All);
 
     // execute (compile if need)
     void Execute();
@@ -338,6 +346,7 @@ public:
     // frame buffer resource management
     void                            AddFrameBuffer(StringView _name, FrameBufferHandle _fbh, bool _bOwnership);
     void                            AddFrameBuffer(StringView _name, Span<const StringView> _attachments);
+    void                            AddFrameBuffer(StringView _name, StringView _attachment);
     void                            RemoveFrameBuffer(StringView _name);
     [[nodiscard]] FrameBufferHandle GetFrameBuffer(StringView _name) const;
     [[nodiscard]] FrameBufferHandle FindFrameBufferOrNull(StringView _name) const;
@@ -365,8 +374,8 @@ private:
     [[nodiscard]] PassDesc* FindPassDesc_(StringView name);   // 포인터 무효화에 주의
     [[nodiscard]] bool      HasPass_(StringView name) const;
 
-    Vector<PassDesc> m_descs          = {};   // Pass 원본 데이터    (정렬 전)
-    Vector<Pass>     m_compiledPasses = {};   // 위상 정렬 결과
+    Vector<PassDesc> m_descs         = {};   // Pass 설명자 목록
+    Vector<Pass>     m_runtimePasses = {};   // 최적화와 실행을 위해 컴파일된 Pass 목록
 
     StringHashMap<TextureResource>        m_textures       = {};
     StringHashMap<FrameBufferResource>    m_frameBuffers   = {};

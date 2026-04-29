@@ -3,7 +3,7 @@
 #define PADDING1 float CONCAT(padding1, __LINE__)
 
 Texture2D t_sceneNormal;
-Texture2D t_sceneLight; // 
+Texture2D t_sceneLight; 
 SamplerState s_linearWrap;
 
 struct VSInput

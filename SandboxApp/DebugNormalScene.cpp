@@ -191,7 +191,7 @@ void DebugNormalScene::OnRender(
 
     // update camera
     CBDebugNormalSceneCamera cb = {};
-    cb.viewProj                 = m_camera.CalcViewProj().Transpose();
+    cb.viewProj                 = (m_camera.CalcView() * m_camera.GetProj()).Transpose();
     cb.eyePos                   = m_camera.GetEyePos();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cb));
 

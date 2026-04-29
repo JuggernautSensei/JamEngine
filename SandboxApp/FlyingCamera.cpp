@@ -62,12 +62,12 @@ const Mtx4& FlyingCamera::GetProj() const
     return cmr.GetProj();
 }
 
-Mtx4 FlyingCamera::CalcViewProj() const
-{
-    return trans.CalcInvSRT() * cmr.GetProj();
-}
-
 Mtx4 FlyingCamera::CalcView() const
 {
     return trans.CalcInvSRT();
+}
+
+Mtx4 FlyingCamera::CalcViewProj() const
+{
+    return CalcView() * GetProj();
 }

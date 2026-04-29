@@ -2054,7 +2054,7 @@ void Graphics::SetBlendFlags(
 void Graphics::SetBlendFactor(
     const RGBA _rgba)
 {
-    if (m_blendFactorBinding.value != _rgba.value)
+    if (m_blendFactorBinding.rgba != _rgba.rgba)
     {
         m_blendFactorBinding = _rgba;
         m_dirtyFlags |= ePipelineDirtyFlags::BlendState;
@@ -2737,8 +2737,8 @@ void Graphics::BindPipeline_()
     }
 
     // frame buffer
-    const bool bFrameBufferDirty = m_dirtyFlags & ePipelineDirtyFlags::FrameBuffer;
-    const bool bPSUavDirty       = m_dirtyFlags & ePipelineDirtyFlags::PSUnorderedAccessView;
+    const bool bFrameBufferDirty = m_dirtyFlags.IsEnabled(ePipelineDirtyFlags::FrameBuffer);
+    const bool bPSUavDirty       = m_dirtyFlags.IsEnabled(ePipelineDirtyFlags::PSUnorderedAccessView);
     if (bFrameBufferDirty || bPSUavDirty)
     {
         const FrameBufferHandle fbh = m_fbhBinding ? m_fbhBinding : m_backBufferFbh;
@@ -3715,7 +3715,6 @@ FrameBuffer Graphics::CreateFrameBuffer_(
         {
             JAM_ASSERT(!bHasDepth, "Only one depth stencil texture can be attached to a framebuffer.");
             JAM_ASSERT(texture.bDsvAttachable, "Depth stencil texture must be created with Depth/Stencil flag.");
-            JAM_ASSERT(!bIsCubemap, "Cubemap depth stencil view is not supported.");
             JAM_ASSERT(texture.type != eTexture::Texture3D, "3D texture depth stencil view is not supported.");
 
             D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};

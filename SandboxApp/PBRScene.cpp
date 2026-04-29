@@ -2,6 +2,7 @@
 #include "PBRScene.h"
 
 #include "Gui.h"
+#include "RenderStates.h"
 #include "../JamEngine/AssimpImporter.h"
 
 namespace
@@ -230,11 +231,11 @@ void PBRScene::OnRender(
     gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
     gfx.SetViewport(_view.vp);
-    gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
+    gfx.SetBlendFlags(kOpaqueBlend, 0);
 
     // camera
     CBPBRSceneCamera cbCamera = {};
-    cbCamera.eyePos           = m_camera.trans.GetTranslation();
+    cbCamera.eyePos           = m_camera.GetEyePos();
     cbCamera.viewProj         = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
     gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBPBRSceneCamera::kSlot);
@@ -248,7 +249,7 @@ void PBRScene::OnRender(
     gfx.SetVertexBuffer(m_cubeVbh);
     gfx.SetIndexBuffer(m_cubeIbh);
     gfx.SetProgram(m_cubeMapPh);
-    gfx.SetRenderFlags(eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite | eRenderFlags::CCWFront);
+    gfx.SetRenderFlags(kSkyboxRenderFlags);
     m_pIBLIrradiance->Bind(eShader::PixelShader, kPbrSceneIblIrradianceSlot);
     m_pIBLSpecular->Bind(eShader::PixelShader, kPbrSceneIblSpecularSlot);
     m_pIBLEnvironment->Bind(eShader::PixelShader, kPbrSceneIblEnvironmentSlot);
@@ -286,12 +287,11 @@ void PBRScene::OnRender(
     m_pAoRoughnessMetallic->Bind(eShader::PixelShader, kPbrSceneAoRoughnessMetallicSlot);
     m_pEmissive->Bind(eShader::PixelShader, kPbrSceneEmissiveSlot);
     m_pBRDFLUT->Bind(eShader::PixelShader, kPbrSceneBrdfLUTSlot);
-    gfx.SetSampler(eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp | eSamplerFlags::AddressW_Clamp | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear, eShader::PixelShader, kPbrSceneLinearClampSlot);
+    gfx.SetSampler(kLinearClamp, eShader::PixelShader, kPbrSceneLinearClampSlot);
 
     // entity
     gfx.SetProgram(m_ph);
-    gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
-
+    gfx.SetRenderFlags(kBackCullDepthTest);
     gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBPBRSceneEntity::kSlot);
     gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBPBRSceneEntity::kSlot);
 

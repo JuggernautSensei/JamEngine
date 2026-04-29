@@ -628,6 +628,62 @@ struct RGBA
         };
     }
 
+    // hue 값은 0~k2Pi. 라디안
+    [[nodiscard]] constexpr static RGBA FromHSV(const float _h, const float _s, const float _v, const float _a = 1.0f)
+    {
+        float r = 0.f, g = 0.f, b = 0.f;
+        if (IsZeroApprox(_s))
+        {
+            r = g = b = _v;
+        }
+        else
+        {
+            float h = ToDeg(Wrap(_h, 0.f, k2Pi));
+            h /= 60.f;   // 0~6
+            int i = static_cast<int>(h);
+
+            const float f = Fract(h);
+            const float p = _v * (1.f - _s);
+            const float q = _v * (1.f - f * _s);
+            const float t = _v * (1.f - (1.f - f) * _s);
+
+            switch (i)
+            {
+                case 0:
+                    r = _v;
+                    g = t;
+                    b = p;
+                    break;
+                case 1:
+                    r = q;
+                    g = _v;
+                    b = p;
+                    break;
+                case 2:
+                    r = p;
+                    g = _v;
+                    b = t;
+                    break;
+                case 3:
+                    r = p;
+                    g = q;
+                    b = _v;
+                    break;
+                case 4:
+                    r = t;
+                    g = p;
+                    b = _v;
+                    break;
+                default:
+                    r = _v;
+                    g = p;
+                    b = q;
+                    break;
+            }
+        }
+        return FromLinear(r, g, b, _a);
+    }
+
     [[nodiscard]] constexpr Vec4 ToLinear() const
     {
         return {
@@ -636,6 +692,42 @@ struct RGBA
             static_cast<float>(b) / 255.0f,
             static_cast<float>(a) / 255.0f
         };
+    }
+
+    [[nodiscard]] constexpr Vec4 ToHSV() const
+    {
+        const float rf = static_cast<float>(r) / 255.0f;
+        const float gf = static_cast<float>(g) / 255.0f;
+        const float bf = static_cast<float>(b) / 255.0f;
+        const float af = static_cast<float>(a) / 255.0f;
+
+        const float cMax  = Max(rf, gf, bf);
+        const float cMin  = Min(rf, gf, bf);
+        const float delta = cMax - cMin;
+
+        const float v = cMax;
+        const float s = IsZeroApprox(cMax) ? 0.f : (delta / cMax);
+
+        float h = 0.f;
+        if (!IsZeroApprox(delta))
+        {
+            if (cMax == rf)
+            {
+                h = (gf - bf) / delta + (gf < bf ? 6.f : 0.f);
+            }
+            else if (cMax == gf)
+            {
+                h = (bf - rf) / delta + 2.f;
+            }
+            else
+            {
+                h = (rf - gf) / delta + 4.f;
+            }
+
+            h = ToRad(h * 60.f);
+        }
+
+        return { h, s, v, af };
     }
 
     // RRGGBBAA
@@ -667,12 +759,12 @@ struct RGBA
 
     [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
     {
-        return value == _other.value;
+        return rgba == _other.rgba;
     }
 
     [[nodiscard]] constexpr bool operator!=(const RGBA& _other) const
     {
-        return value != _other.value;
+        return rgba != _other.rgba;
     }
 
     static RGBA kWhite;
@@ -688,7 +780,7 @@ struct RGBA
             UInt8 b;
             UInt8 a;
         };
-        UInt32 value = 0;
+        UInt32 rgba = 0;
     };
 };
 
@@ -716,12 +808,12 @@ struct Viewport
 
     [[nodiscard]] constexpr bool operator==(const Viewport& _other) const
     {
-        return viewport == _other.viewport;
+        return xywh == _other.xywh;
     }
 
     [[nodiscard]] constexpr bool operator!=(const Viewport& _other) const
     {
-        return viewport != _other.viewport;
+        return xywh != _other.xywh;
     }
 
     union
@@ -733,7 +825,7 @@ struct Viewport
             UInt16 w;   // 뷰포트의 너비
             UInt16 h;   // 뷰포트의 높이
         };
-        UInt64 viewport = 0;
+        UInt64 xywh = 0;
     };
 };
 

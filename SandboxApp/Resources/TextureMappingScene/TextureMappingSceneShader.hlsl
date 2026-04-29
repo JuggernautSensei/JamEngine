@@ -1,4 +1,4 @@
-#include "../ShaderBase.hlsl"
+#include "../Common/Common.hlsl"
 
 #define TEXTURE_MAPPING_NONE        0
 #define TEXTURE_MAPPING_ALBEDO      1 << 0

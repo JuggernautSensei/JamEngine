@@ -471,7 +471,7 @@ void EulerProxy::OnBeforeWidget(
 {
     if (!m_bIsEditing)
     {
-        Quat q     = Quat::FromLookAt(_forward, Vec3::kUp);
+        Quat q     = Quat::FromLookTo(_forward, Vec3::kUp);
         m_eulerRad = q.ToEuler();
     }
 }

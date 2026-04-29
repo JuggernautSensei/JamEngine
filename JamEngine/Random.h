@@ -1,102 +1,168 @@
 #pragma once
+#include <array>
+#include <random>
 
 namespace Jam
 {
+
+struct RandomDeviceSeed
+{
+    struct Tag
+    {
+    };
+
+    explicit constexpr RandomDeviceSeed(Tag) {}
+};
+
+inline constexpr RandomDeviceSeed kRandomDeviceSeed { RandomDeviceSeed::Tag {} };
+
+namespace Detail
+{
+
+    [[nodiscard]] UInt64 MakeU64FromRd() noexcept;
+
+}   // namespace Detail
+
+// George Marsaglia's SHR3 (fastest)
+class RngSHR3
+{
+public:
+    explicit RngSHR3(const UInt64 _seed = 342211234567ULL) noexcept
+        : m_jsr(_seed)
+    {
+    }
+
+    explicit RngSHR3(RandomDeviceSeed) noexcept
+        : m_jsr(Detail::MakeU64FromRd())
+    {
+    }
+
+    void Reseed(const UInt64 _seed = 342211234567ULL) noexcept
+    {
+        m_jsr = _seed;
+    }
+
+    void Reseed(RandomDeviceSeed) noexcept
+    {
+        m_jsr = Detail::MakeU64FromRd();
+    }
+
+    [[nodiscard]] UInt64 Generate() noexcept
+    {
+        m_jsr ^= (m_jsr << 13);
+        m_jsr ^= (m_jsr >> 7);
+        m_jsr ^= (m_jsr << 17);
+        return m_jsr;
+    }
+
+private:
+    UInt64 m_jsr = 0;
+};
 
 // George Marsaglia's MWC (more random)
 class RngMWC
 {
 public:
     explicit RngMWC(
-        const UInt32 _seedZ = 12345,
-        const UInt32 _seedW = 65435)
+        const UInt64 _seedZ = 123456789123ULL,
+        const UInt64 _seedW = 654356789123ULL) noexcept
         : m_z(_seedZ)
         , m_w(_seedW)
     {
     }
 
+    explicit RngMWC(RandomDeviceSeed) noexcept
+        : m_z(Detail::MakeU64FromRd())
+        , m_w(Detail::MakeU64FromRd())
+    {
+    }
+
     void Reseed(
-        const UInt32 _seedZ = 12345,
-        const UInt32 _seedW = 65435)
+        const UInt64 _seedZ = 123456789123ULL,
+        const UInt64 _seedW = 654356789123ULL) noexcept
     {
         m_z = _seedZ;
         m_w = _seedW;
     }
 
-    [[nodiscard]] UInt32 Generate()
+    void Reseed(RandomDeviceSeed) noexcept
     {
-        m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-        m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-        return (m_z << 16) + m_w;
+        m_z = Detail::MakeU64FromRd();
+        m_w = Detail::MakeU64FromRd();
+    }
+
+    [[nodiscard]] UInt64 Generate() noexcept
+    {
+        m_z = 698769069ULL * (m_z & 0xFFFFFFFFULL) + (m_z >> 32);
+        m_w = 362436069ULL * (m_w & 0xFFFFFFFFULL) + (m_w >> 32);
+        return (m_z << 32) + m_w;
     }
 
 private:
-    UInt32 m_z = 0;
-    UInt32 m_w = 0;
+    UInt64 m_z = 0;
+    UInt64 m_w = 0;
 };
 
-// George Marsaglia's SHR3 (more fast)
-class RngSHR3
+// Mersenne Twister (highest quality)
+class RngMt19937
 {
 public:
-    explicit RngSHR3(
-        const UInt32 _seed = 34221)
-        : m_jsr(_seed)
+    explicit RngMt19937(const UInt64 _seed = 123456789ULL) noexcept
+        : m_mt(_seed)
     {
     }
 
-    void Reseed(
-        const UInt32 _seed = 34221)
+    explicit RngMt19937(RandomDeviceSeed) noexcept
+        : m_mt(Detail::MakeU64FromRd())
     {
-        m_jsr = _seed;
     }
 
-    [[nodiscard]] UInt32 Generate()
+    void Reseed(const UInt64 _seed = 123456789ULL) noexcept
     {
-        m_jsr ^= (m_jsr << 17);
-        m_jsr ^= (m_jsr >> 13);
-        m_jsr ^= (m_jsr << 5);
-        return m_jsr;
+        m_mt.seed(_seed);
+    }
+
+    void Reseed(RandomDeviceSeed) noexcept
+    {
+        m_mt = std::mt19937_64(Detail::MakeU64FromRd());
+    }
+
+    [[nodiscard]] UInt64 Generate() noexcept
+    {
+        return m_mt();
     }
 
 private:
-    UInt32 m_jsr = 0;
+    std::mt19937_64 m_mt;
 };
 
-template<typename Rng>
-concept IsRng = requires(Rng _rng) {
-    { _rng.Generate() } -> std::same_as<UInt32>;
+template<typename T>
+concept IsRng = requires(T t) {
+    { t.Generate() } -> std::same_as<UInt64>;
 };
 
-template<IsRng TRng>
-[[nodiscard]] float GenerateRandomFloat(
-    TRng&       _rng,
-    const float _min,
-    const float _max)
+template<typename T, typename TRng>
+    requires IsRng<TRng> && std::is_arithmetic_v<T>
+[[nodiscard]] T GenerateRandom(TRng& _rng, const T _min, const T _max) noexcept
 {
-    const UInt32 num    = _rng.Generate();
-    const float  rand01 = static_cast<float>(num) / static_cast<float>(Limits<UInt32>::kMax);
-    return Lerp(_min, _max, rand01);
-}
+    JAM_ASSERT(_min <= _max, "Invalid range! min: {}, max: {}", _min, _max);
 
-template<IsRng TRng>
-[[nodiscard]] Vec3 GenerateRandomUnitSphere(
-    TRng& _rng)
-{
-    const float rand0  = GenerateRandomFloat(_rng, -1.f, 1.f);
-    const float rand1  = GenerateRandomFloat(_rng, -1.f, 1.f) * k2Pi;
-    const float sqrtf1 = Sqrt(1.f - rand0 * rand0);
-    return { sqrtf1 * Cos(rand1), sqrtf1 * Sin(rand1), rand0 };
-}
+    if (_min == _max)
+    {
+        return _min;
+    }
 
-template<IsRng TRng>
-[[nodiscard]] Vec3 GenerateRandomUnitHemisphere(
-    TRng&      _rng,
-    const Vec3 _normal)
-{
-    const Vec3  dir   = GenerateRandomUnitSphere(_rng);
-    const float dDotn = dir.Dot(_normal);
-    return (dDotn < 0.f) ? -dir : dir;
+    if constexpr (std::is_integral_v<T>)
+    {
+        const UInt64 range = static_cast<UInt64>(_max - _min) + 1;
+        return static_cast<T>(_min + static_cast<T>(_rng.Generate() % range));
+    }
+    else
+    {
+        using FloatT     = std::conditional_t<std::is_same_v<T, float>, float, double>;
+        const FloatT f01 = static_cast<FloatT>(_rng.Generate()) / static_cast<FloatT>(Limits<UInt64>::kHighest);
+        return static_cast<T>(_min + f01 * (_max - _min));
+    }
 }
 
 }   // namespace Jam

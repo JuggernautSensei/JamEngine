@@ -26,19 +26,11 @@ Quat::Quat(const float _x, const float _y, const float _z, const float _w)
 {
 }
 
-Quat::Quat(const Vec3 _axis, const float _angle)
-{
-    SetAxisAngle(_axis, _angle);
-}
-
-Quat::Quat(const Vec3 _euler)
-{
-    SetEuler(_euler);
-}
-
 Quat Quat::FromAxisAngle(const Vec3 _axis, const float _angleRad)
 {
-    return { _axis, _angleRad };
+    Quat q = {};
+    q.SetAxisAngle(_axis, _angleRad);
+    return q;
 }
 
 Quat Quat::FromEuler(Vec3 _eulerRad)
@@ -100,24 +92,53 @@ Quat Quat::FromRotationMatrix(const Mtx4& _mtx)
     return ret;
 }
 
-Quat Quat::FromLookAt(Vec3 _forward, Vec3 _up)
+Quat Quat::FromLookAt(Vec3 _position, Vec3 _point, Vec3 _up)
+{
+    const Vec3 forward = _point - _position;
+    return FromLookTo(forward, _up);
+}
+
+Quat Quat::FromLookTo(Vec3 _forward, Vec3 _up)
 {
     const Vec3 f = _forward.Normalized();
     const Vec3 r = _up.Cross(f).Normalized();
     const Vec3 u = f.Cross(r);
 
-    Mtx4 mtx    = Mtx4::kIdentity;
-    mtx.m[0][0] = r.x;
-    mtx.m[0][1] = u.x;
-    mtx.m[0][2] = f.x;
-    mtx.m[1][0] = r.y;
-    mtx.m[1][1] = u.y;
-    mtx.m[1][2] = f.y;
-    mtx.m[2][0] = r.z;
-    mtx.m[2][1] = u.z;
-    mtx.m[2][2] = f.z;
+    // row major
+    const Mtx4 mtx = {
+        { r, 0.f },
+        { u, 0.f },
+        { f, 0.f },
+        Vec4::kUnitW
+    };
 
     return FromRotationMatrix(mtx);
+}
+
+Quat Quat::FromTo(const Vec3 _from, const Vec3 _to)
+{
+    const Vec3  v0  = _from.Normalized();
+    const Vec3  v1  = _to.Normalized();
+    const float dot = v0.Dot(v1);
+
+    if (dot > 1.f - kEpsilon)
+    {
+        return kIdentity;
+    }
+    else if (dot < -1.f + kEpsilon)
+    {
+        Vec3 axis = Vec3::kUnitX.Cross(v0);
+        if (axis.LengthSq() < kEpsilon)
+        {
+            axis = Vec3::kUnitY.Cross(v0);
+        }
+        return FromAxisAngle(axis.Normalized(), kPi);
+    }
+
+    const float s    = Sqrt((1.f + dot) * 2.f);
+    const float invS = 1.f / s;
+    const Vec3  axis = v0.Cross(v1) * invS;
+    return { axis.x, axis.y, axis.z, s * 0.5f };
 }
 
 void Quat::SetAxisAngle(const Vec3 _axis, const float _angle)

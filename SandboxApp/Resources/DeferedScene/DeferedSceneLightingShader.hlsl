@@ -1,15 +1,11 @@
-#define CONCAT_(a, b) a##b
-#define CONCAT(a, b) CONCAT_(a, b)
-#define PADDING1 float CONCAT(padding, __LINE__)
-#define PADDING2 float2 CONCAT(padding, __LINE__)
-#define PADDING3 float3 CONCAT(padding, __LINE__)
+#include "../Common/Common.hlsl"
 
 cbuffer CBDeferedSceneCamera : register(b1)
 {
-    float3 cb_eyePos;
-    PADDING1;
     float4x4 cb_viewProj;
     float4x4 cb_invViewProj;
+    float3 cb_eyePos;
+    PADDING1;
 };
 
 cbuffer CBDeferedSceneLight : register(b2)
@@ -54,20 +50,18 @@ float4 PSMain(PSInput input) : SV_TARGET
     N = normalize(N);
 
     // world
-    float D = t_depthScene.Sample(s_linearWrap, input.texcoord).r;
-    float3 ndc = float3(input.texcoord.x * 2.0f - 1.0f, (1.0f - input.texcoord.y) * 2.0f - 1.0f, D);
-    float4 world = mul(float4(ndc, 1.0f), cb_invViewProj);
-    world.xyz /= world.w;
+    float depthNdc = t_depthScene.Sample(s_linearWrap, input.texcoord).r;
+    float3 posW = CvtNdcToWorld(CvtTexToNdc(input.texcoord), depthNdc, cb_invViewProj);
 
     // light color
-    float dist = distance(cb_lightPos, world.xyz);
+    float dist = distance(cb_lightPos, posW.xyz);
     float att = saturate(1.0f - (dist / cb_lightRadius));
     float3 lightCol = cb_lightCol * att * att;
 
     // lighting
     float3 albedo = t_colorScene.Sample(s_linearWrap, input.texcoord).xyz;
-    float3 V = normalize(cb_eyePos - world.xyz);
-    float3 L = normalize(cb_lightPos - world.xyz);
+    float3 V = normalize(cb_eyePos - posW.xyz);
+    float3 L = normalize(cb_lightPos - posW.xyz);
     float3 H = normalize(L + V);
 
     float NdotL = max(dot(N, L), 0.f);

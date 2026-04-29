@@ -2,6 +2,8 @@
 #include "DeferedScene.h"
 
 #include "Gui.h"
+#include "RandomGenerator.h"
+#include "RenderStates.h"
 #include "../JamEngine/AssimpImporter.h"
 #include "../JamEngine/EditorWidgets.h"
 #include "../JamEngine/Random.h"
@@ -32,10 +34,10 @@ struct CBDeferedSceneCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Vec3  eyePos;
-    float padding1;
     Mtx4  viewProj;
     Mtx4  invViewProj;
+    Vec3  eyePos;
+    float padding1;
 };
 
 struct CBDeferedSceneLight
@@ -69,7 +71,7 @@ DeferedScene::DeferedScene()
     m_pBunnyAlbedo = Texture::LoadFromFile("Resources/Models/StanfordBunnyPBR/Albedo.png").GetValue();
     m_pBunnyNormal = Texture::LoadFromFile("Resources/Models/StanfordBunnyPBR/NormalGL.png").GetValue();
 
-    m_pPlane = CreatePlaneMesh({ 10.f, 10.f }, attribLayout);
+    m_pPlane = CreatePlaneMesh({ 10.f, 10.f }, -Vec3::kForward, attribLayout);
 
     // full screen tri
 
@@ -194,29 +196,19 @@ void DeferedScene::OnRender(
     gfx.SetConstantBuffer(m_cameraCbh, eShader::PixelShader, CBDeferedSceneCamera::kSlot);
 
     CBDeferedSceneCamera cbCamera = {};
-    cbCamera.eyePos               = m_camera.GetEyePos();
     cbCamera.viewProj             = m_camera.CalcViewProj().Transpose();
     cbCamera.invViewProj          = cbCamera.viewProj.Inverse();
+    cbCamera.eyePos               = m_camera.GetEyePos();
     gfx.UpdateBuffer(m_cameraCbh, AsMemoryView(cbCamera));
 
     // render gbuffer
     {
-        gfx.SetRenderFlags(
-            eRenderFlags::DepthFunc_Less
-            | eRenderFlags::DepthWrite
-            | eRenderFlags::CullMode_Back
-            | eRenderFlags::Primitive_TriangleList);
+        gfx.SetRenderFlags(kBackCullDepthTest);
 
         gfx.SetBlendFlags(eBlendFlags::WriteMask_All, 0);
         gfx.SetBlendFlags(eBlendFlags::WriteMask_All, 1);
 
-        gfx.SetSampler(
-            eSamplerFlags::AddressU_Wrap
-                | eSamplerFlags::AddressV_Wrap
-                | eSamplerFlags::AddressW_Wrap
-                | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear,
-            eShader::PixelShader,
-            kDeferedSceneLinaerWrapSamplerSlot);
+        gfx.SetSampler(kLinearWrap, eShader::PixelShader, kDeferedSceneLinaerWrapSamplerSlot);
 
         gfx.SetProgram(m_gbufferPh);
         gfx.SetViewport(m_vp);
@@ -254,11 +246,10 @@ void DeferedScene::OnRender(
         m_pBunny->Submit();
 
         // plane (wall)
-        constexpr Vec3 kPlaneEuler = { ToRad(-90.f), 0.f, 0.f };
-        constexpr Vec3 kPlaneT     = { 0.f, 0.f, 0.3f };
+        constexpr Vec3 kPlaneT = { 0.f, 0.f, 0.3f };
 
-        cbEntity.world         = Mtx4::CreateSRT(Vec3::kOne, kPlaneEuler, kPlaneT).Transpose();
-        cbEntity.invTransWorld = Mtx4::CreateInvSRT(Vec3::kOne, kPlaneEuler, kPlaneT);
+        cbEntity.world         = Mtx4::CreateSRT(Vec3::kOne, Vec3::kZero, kPlaneT).Transpose();
+        cbEntity.invTransWorld = Mtx4::CreateInvSRT(Vec3::kOne, Vec3::kZero, kPlaneT);
         cbEntity.bHasTexture   = 0;
         gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
         m_pPlane->Submit();
@@ -266,14 +257,8 @@ void DeferedScene::OnRender(
 
     // render light
     {
-        gfx.SetRenderFlags(eRenderFlags::CullMode_Back
-                           | eRenderFlags::Primitive_TriangleList);
-
-        gfx.SetBlendFlags(eBlendFlags::Enable
-                              | eBlendFlags::WriteMask_All
-                              | eBlendFlags::SrcBlend_One | eBlendFlags::DstBlend_One | eBlendFlags::BlendOp_Add
-                              | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add,
-                          0);
+        gfx.SetRenderFlags(kBackCull);
+        gfx.SetBlendFlags(kAdditiveBlend, 0);
 
         gfx.ClearRenderTarget(m_lightFbh, { 0, 0, 0, 0 }, 0);
         gfx.SetFrameBuffer(m_lightFbh);
@@ -302,8 +287,7 @@ void DeferedScene::OnRender(
 
     // combine
     {
-        gfx.SetRenderFlags(eRenderFlags::Primitive_TriangleList);
-        gfx.SetBlendFlags(eBlendFlags::WriteMask_All, 0);
+        gfx.SetBlendFlags(kOpaqueBlend, 0);
         gfx.SetFrameBuffer(kInvalidHandle);
         gfx.SetVertexBuffer(m_fullTriVbh);
         gfx.SetIndexBuffer(m_fullTriIbh);
@@ -363,29 +347,27 @@ void DeferedScene::InitLights_(
     const Int32 _from,
     const Int32 _to)
 {
-    RngMWC rng {};
-
     for (Int32 i = _from; i < _to; ++i)
     {
         Light& l   = m_lights[i];
-        l.radius   = GenerateRandomFloat(rng, 1.5f, 4.f);
-        l.offset.x = GenerateRandomFloat(rng, -5.f, 5.f);
-        l.offset.y = GenerateRandomFloat(rng, -5.f, 5.f);
-        l.offset.z = GenerateRandomFloat(rng, -1.f, 1.f);
+        l.radius   = MakeRandomFloat(1.5f, 4.f);
+        l.offset.x = MakeRandomFloat(-5.f, 5.f);
+        l.offset.y = MakeRandomFloat(-5.f, 5.f);
+        l.offset.z = MakeRandomFloat(-1.f, 1.f);
         l.pos      = l.offset;
         l.color    = {
-            GenerateRandomFloat(rng, 0.3f, 1.f),
-            GenerateRandomFloat(rng, 0.3f, 1.f),
-            GenerateRandomFloat(rng, 0.3f, 1.f)
+            MakeRandomFloat(0.3f, 1.f),
+            MakeRandomFloat(0.3f, 1.f),
+            MakeRandomFloat(0.3f, 1.f)
         };
-        l.freqX  = GenerateRandomFloat(rng, 0.3f, 2.f);
-        l.freqY  = GenerateRandomFloat(rng, 0.3f, 2.f);
-        l.freqZ  = GenerateRandomFloat(rng, 0.1f, 0.8f);
-        l.phaseX = GenerateRandomFloat(rng, 0.f, k2Pi);
-        l.phaseY = GenerateRandomFloat(rng, 0.f, k2Pi);
-        l.phaseZ = GenerateRandomFloat(rng, 0.f, k2Pi);
-        l.ampX   = GenerateRandomFloat(rng, 2.f, 6.f);
-        l.ampY   = GenerateRandomFloat(rng, 2.f, 6.f);
-        l.ampZ   = GenerateRandomFloat(rng, 0.2f, 1.f);
+        l.freqX  = MakeRandomFloat(0.3f, 2.f);
+        l.freqY  = MakeRandomFloat(0.3f, 2.f);
+        l.freqZ  = MakeRandomFloat(0.1f, 0.8f);
+        l.phaseX = MakeRandomFloat(0.f, k2Pi);
+        l.phaseY = MakeRandomFloat(0.f, k2Pi);
+        l.phaseZ = MakeRandomFloat(0.f, k2Pi);
+        l.ampX   = MakeRandomFloat(2.f, 6.f);
+        l.ampY   = MakeRandomFloat(2.f, 6.f);
+        l.ampZ   = MakeRandomFloat(0.2f, 1.f);
     }
 }

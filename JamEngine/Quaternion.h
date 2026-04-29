@@ -20,13 +20,13 @@ struct alignas(16) Quat
 {
     Quat();
     Quat(float _x, float _y, float _z, float _w);
-    Quat(Vec3 _axis, float _angle);
-    explicit Quat(Vec3 _euler);
 
     [[nodiscard]] static Quat FromAxisAngle(Vec3 _axis, float _angleRad);
     [[nodiscard]] static Quat FromEuler(Vec3 _eulerRad);
     [[nodiscard]] static Quat FromRotationMatrix(const Mtx4& _mtx);
-    [[nodiscard]] static Quat FromLookAt(Vec3 _f, Vec3 _u);
+    [[nodiscard]] static Quat FromLookAt(Vec3 _position, Vec3 _point, Vec3 _up);
+    [[nodiscard]] static Quat FromLookTo(Vec3 _forward, Vec3 _up);
+    [[nodiscard]] static Quat FromTo(Vec3 _from, Vec3 _to);
 
     void                    SetEuler(Vec3 _eulerRad);
     [[nodiscard]] Vec3      ToEuler() const;

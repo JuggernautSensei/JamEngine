@@ -11,9 +11,15 @@
 namespace Jam
 {
 
-VertexLayout Mesh::s_posLayout = [] {
+VertexLayout Mesh::s_posFloat3Layout = [] {
     VertexLayout layout = {};
     layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+    return layout;
+}();
+
+VertexLayout Mesh::s_posFloat2Layout = [] {
+    VertexLayout layout = {};
+    layout.Push(eVertexAttribute::Position, eAttributeFormat::Float2);
     return layout;
 }();
 
@@ -74,6 +80,22 @@ Ref<Mesh> Mesh::Load(
     return new Mesh(_position, _idxData);
 }
 
+Ref<Mesh> Mesh::Load(
+    const Span<const Vec2> _position,
+    const MemoryView       _attribData,
+    const VertexLayout&    _attribLayout,
+    const MemoryView       _idxData)
+{
+    return new Mesh(_position, _attribData, _attribLayout, _idxData);
+}
+
+Ref<Mesh> Mesh::Load(
+    const Span<const Vec2> _position,
+    const MemoryView       _idxData)
+{
+    return new Mesh(_position, _idxData);
+}
+
 Expect<Ref<Mesh>> Mesh::LoadFromFile(
     const StringView _path)
 {
@@ -96,7 +118,7 @@ Mesh::Mesh(
 
     // vertex buffer
     Graphics& gfx = GetGraphics();
-    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posLayout);
+    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posFloat3Layout);
     m_attribVbh   = gfx.CreateVertexBuffer(_attribData, _attribLayout);
 
     // index buffer
@@ -126,7 +148,7 @@ Mesh::Mesh(
 {
     // vertex buffer
     Graphics& gfx = GetGraphics();
-    m_posVbh      = gfx.CreateVertexBuffer(_positios, s_posLayout);
+    m_posVbh      = gfx.CreateVertexBuffer(_positios, s_posFloat3Layout);
     m_attribVbh   = kInvalidHandle;
 
     // index buffer
@@ -144,6 +166,70 @@ Mesh::Mesh(
     Murmur3Hasher64 hasher {};
     hasher.Mix(_positios);
     hasher.Mix(_idxData);
+    const UInt64 hash = hasher.Finish();
+    m_sortKey         = static_cast<UInt16>(hash);
+}
+
+Mesh::Mesh(
+    Span<const Vec2>    _positions,
+    MemoryView          _attribData,
+    const VertexLayout& _attribLayout,
+    MemoryView          _idxData)
+{
+    // vertex buffer
+    Graphics& gfx = GetGraphics();
+    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posFloat2Layout);
+    m_attribVbh   = gfx.CreateVertexBuffer(_attribData, _attribLayout);
+
+    // index buffer
+    const bool bUseU32 = _positions.size() > Limits<UInt16>::kHighest;
+    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
+
+    // compute bounding box
+    m_boundingBox = {};
+    for (const Vec2& pos: _positions)
+    {
+        m_boundingBox.Merge(Vec3 { pos.x, pos.y, 0.f });
+    }
+
+    // 2d 메쉬의 경우 z축으로 약간의 여유를 줌
+    m_boundingBox.Merge({ 0.f, 0.f, 0.05f });
+    m_boundingBox.Merge({ 0.f, 0.f, -0.05f });
+
+    // sort key
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(_positions);
+    hasher.Mix(_attribData);
+    const UInt64 hash = hasher.Finish();
+    m_sortKey         = static_cast<UInt16>(hash);
+}
+
+Mesh::Mesh(
+    Span<const Vec2> _positions,
+    MemoryView       _idxData)
+{
+    // vertex buffer
+    Graphics& gfx = GetGraphics();
+    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posFloat2Layout);
+
+    // index buffer
+    const bool bUseU32 = _positions.size() > Limits<UInt16>::kHighest;
+    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
+
+    // compute bounding box
+    m_boundingBox = {};
+    for (const Vec2& pos: _positions)
+    {
+        m_boundingBox.Merge(Vec3 { pos.x, pos.y, 0.f });
+    }
+
+    // 2d 메쉬의 경우 z축으로 약간의 여유를 줌
+    m_boundingBox.Merge({ 0.f, 0.f, 0.05f });
+    m_boundingBox.Merge({ 0.f, 0.f, -0.05f });
+
+    // sort key
+    Murmur3Hasher64 hasher {};
+    hasher.Mix(_positions);
     const UInt64 hash = hasher.Finish();
     m_sortKey         = static_cast<UInt16>(hash);
 }
@@ -175,7 +261,7 @@ Error Mesh::LoadFromFile_(
     // gpu resource creation
     Graphics&  gfx     = GetGraphics();
     const bool bUseU32 = mesh.positions.size() > Limits<UInt16>::kHighest;
-    m_posVbh           = gfx.CreateVertexBuffer(mesh.positions, s_posLayout);
+    m_posVbh           = gfx.CreateVertexBuffer(mesh.positions, s_posFloat3Layout);
     m_ibh              = gfx.CreateIndexBuffer(mesh.idxData, bUseU32);
     m_boundingBox      = Unwrap(mesh.boundingBox);
 

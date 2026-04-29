@@ -10,6 +10,7 @@
 #include "InstancingScene.h"
 #include "MultiVertexStreamScene.h"
 #include "PBRScene.h"
+#include "ShadowMappingScene.h"
 #include "TextureMappingScene.h"
 
 class InstancingScene;
@@ -46,7 +47,7 @@ void SandboxApp::Init(
             CASE(PBRScene)
             CASE(DeferedScene)
             CASE(DebugNormalScene)
-                // CASE(ShadowMappingScene)
+            CASE(ShadowMappingScene)
 
             default:
                 JAM_ASSERT(0, "Unknown scene name '{}'.", cmd);

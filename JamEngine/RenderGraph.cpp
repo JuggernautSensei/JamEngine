@@ -19,7 +19,7 @@ namespace
 
 RenderGraph::~RenderGraph()
 {
-    Reset(eRenderGraphResetFlags::All);
+    Clear(eRenderGraphClearFlags::All);
 }
 
 RenderGraph::PassBuilder RenderGraph::AddPass(const StringView _name)
@@ -140,7 +140,7 @@ void RenderGraph::CompileIfNeed_()
         // 컴파일된 패스의 텍스처와 프레임버퍼 핸들만 갱신해주면 됨
 
         // Pass 갱신
-        for (Pass& pass: m_compiledPasses)
+        for (Pass& pass: m_runtimePasses)
         {
             for (ResourceBindCommand& cmd: pass.readBindCmds)
             {
@@ -406,12 +406,12 @@ void RenderGraph::CompileIfNeed_()
             }
         }
 
-        // 최종 출력 패스 수집
+        // 최종 출력 패스 수집. 부작용 패스도 최종 패스로 간주하여 제거되지 않도록 함.
         Vector<Int32> stack = {};
         for (Int32 i = 0; i < m_descs.size(); ++i)
         {
             const PassDesc& desc = m_descs[i];
-            if (desc.bEnable && desc.bFinalPass)
+            if (desc.bEnable && (desc.bFinalPass || desc.bSideEffect))
             {
                 stack.push_back(i);
             }
@@ -442,12 +442,12 @@ void RenderGraph::CompileIfNeed_()
         }
 
         // 최종 패스
-        m_compiledPasses.clear();
+        m_runtimePasses.clear();
         for (Int32 i = 0; i < m_descs.size(); ++i)
         {
             if (survived[i])
             {
-                m_compiledPasses.push_back({ &m_descs[i] });
+                m_runtimePasses.push_back({ &m_descs[i] });
             }
         }
     }
@@ -478,13 +478,13 @@ void RenderGraph::CompileIfNeed_()
     // 주의, 언바인드 리스트는 위와 같은 이유로 루프를 2회 돌면서 채우지만
     // 바인드 커맨드는 첫 번째 루프에서만 채워야함.
     // 바인드 커맨드는 중복된 명령을 허용하지 않는데, 루프를 2회 돌면서 채우게 되면, 마땅히 채워야할 명령어가 최적화되어 사라지는 문제가 발생함.
-    const SizeT numPasses = m_compiledPasses.size();
+    const SizeT numPasses = m_runtimePasses.size();
     for (SizeT i = 0; i < numPasses * 2; ++i)
     {
         const bool      bIsFirstLoop  = i < numPasses;
         const bool      bIsSecondLoop = !bIsFirstLoop;
         const SizeT     idx           = i % numPasses;
-        Pass&           pass          = m_compiledPasses[idx];
+        Pass&           pass          = m_runtimePasses[idx];
         const PassDesc& desc          = *pass.pDesc;
 
         if (bIsFirstLoop)
@@ -706,13 +706,12 @@ void RenderGraph::Execute_(
     CompileIfNeed_();
 
     Graphics&   gfx       = GetGraphics();
-    const SizeT numPasses = m_compiledPasses.size();
+    const SizeT numPasses = m_runtimePasses.size();
 
     for (SizeT i = 0; i < numPasses; ++i)
     {
-        const Pass&     pass = m_compiledPasses[i];
+        const Pass&     pass = m_runtimePasses[i];
         const PassDesc& desc = *pass.pDesc;
-        JAM_ASSERT(desc.executor, "Pass '{}' has no executor.", desc.name);
 
         if (desc.computePh)
         {
@@ -875,7 +874,10 @@ void RenderGraph::Execute_(
             }
 
             // 드로우 콜
-            desc.executor();
+            if (desc.executor)
+            {
+                desc.executor();
+            }
         }
     }
 }
@@ -1188,6 +1190,14 @@ void RenderGraph::AddFrameBuffer(
     m_bNeedCompile = true;
 }
 
+void RenderGraph::AddFrameBuffer(
+    const StringView _name,
+    const StringView _attachment)
+{
+    StringView attachments[] = { _attachment };
+    AddFrameBuffer(_name, attachments);
+}
+
 void RenderGraph::RemoveFrameBuffer(
     const StringView _name)
 {
@@ -1342,18 +1352,18 @@ ProgramHandle RenderGraph::FindProgramOrNull(
     return (it != m_programs.end()) ? it->second.handle : kInvalidHandle;
 }
 
-void RenderGraph::Reset(
-    const Flags<eRenderGraphResetFlags> _flags)
+void RenderGraph::Clear(
+    const Flags<eRenderGraphClearFlags> _flags)
 {
     m_bNeedCompile = true;
 
-    if (_flags.IsEnabled(eRenderGraphResetFlags::Pass))
+    if (_flags.IsEnabled(eRenderGraphClearFlags::Pass))
     {
         m_descs.clear();
-        m_compiledPasses.clear();
+        m_runtimePasses.clear();
     }
 
-    if (_flags.IsEnabled(eRenderGraphResetFlags::Resource))
+    if (_flags.IsEnabled(eRenderGraphClearFlags::Resource))
     {
         for (TextureResource& res: m_textures | std::views::values)
         {

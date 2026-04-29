@@ -1,4 +1,4 @@
-#include "../ShaderBase.hlsl"
+#include "../Common/Common.hlsl"
 
 Texture2D t_albedo : register(t0);
 Texture2D t_normal : register(t1);
@@ -15,10 +15,10 @@ cbuffer CBDeferedSceneEntity : register(b0)
 
 cbuffer CBDeferedSceneCamera : register(b1)
 {
+    float4x4 cb_viewProj;
+    float4x4 cb_invViewProj;
     float3 cb_eyePos;
     PADDING1;
-    float4x4 cb_viewProj;
-    float4x4 cb_viewProjInv;
 };
 
 struct VSInput

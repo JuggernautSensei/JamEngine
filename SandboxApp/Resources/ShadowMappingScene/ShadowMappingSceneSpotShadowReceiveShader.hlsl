@@ -8,73 +8,152 @@ struct VSInput
 struct PSInput
 {
     float4 posH : SV_POSITION;
-    float3 posW : POSITION0;
     float4 posClip : TEXCOORD0; // for gbuffer sampling
-    float4 posLightClip : TEXCOORD1; // for shadow map sampling
-
-    //float2 gbufferTexcoord : TEXCOORD0; // for gbuffer sampling
-    //float2 shadowTexcoord : TEXCOORD1; // for shadow map sampling
-    
 };
+
+float CalcHardShadow(float2 _posLightTex, float _currentDepth, float _bias)
+{
+    float closestDepth = t_shadowMap.Sample(s_linearClamp, _posLightTex).r;
+    return step(_currentDepth - _bias, closestDepth);
+}
+
+float CalcPCF3(float2 _posLightTex, float _currentDepth, float _bias)
+{
+    uint w, h;
+    t_shadowMap.GetDimensions(w, h);
+    float2 texel = float2(1.f / w, 1.f / h);
+    float shadow = 0.f;
+    [unroll]
+    for (int i = -1; i <= 1; ++i)
+    {
+        [unroll]
+        for (int j = -1; j <= 1; ++j)
+        {
+            float2 texcoord = _posLightTex + float2(i, j) * texel;
+            shadow += CalcHardShadow(texcoord, _currentDepth, _bias);
+        }
+    }
+    return shadow / 9.f;
+}
+
+float CalcPCF5(float2 _posLightTex, float currentDepth, float bias)
+{
+    uint w, h;
+    t_shadowMap.GetDimensions(w, h);
+    float2 texel = float2(1.f / w, 1.f / h);
+    float shadow = 0.f;
+    [unroll]
+    for (int i = -2; i <= 2; ++i)
+    {
+        [unroll]
+        for (int j = -2; j <= 2; ++j)
+        {
+            float2 texcoord = _posLightTex + float2(i, j) * texel;
+            shadow += CalcHardShadow(texcoord, currentDepth, bias);
+        }
+    }
+    return shadow / 25.f;
+}
+
+float CalcPCF7(float2 _posLightTex, float _currentDepth, float _bias)
+{
+    uint w, h;
+    t_shadowMap.GetDimensions(w, h);
+    float2 texel = float2(1.f / w, 1.f / h);
+    float shadow = 0.f;
+    [unroll]
+    for (int i = -3; i <= 3; ++i)
+    {
+        [unroll]
+        for (int j = -3; j <= 3; ++j)
+        {
+            float2 texcoord = _posLightTex + float2(i, j) * texel;
+            shadow += CalcHardShadow(texcoord, _currentDepth, _bias);
+        }
+    }
+    return shadow / 49.f;
+}
+
+float CalcESM(float2 _posLightTex, float currentDepth)
+{
+    float occluder = t_shadowMapAdv.Sample(s_linearClamp, _posLightTex).r;
+    float receiver = exp(-kESMConstant * currentDepth);
+    return saturate(occluder * receiver);
+}
+
+float CalcVSM(float2 _posLightTex, float currentDepth)
+{
+    float2 moments = t_shadowMapAdv.Sample(s_linearClamp, _posLightTex).rg;
+    float variance = moments.g - moments.r * moments.r;
+    float d = currentDepth - moments.r;
+    float pMax = variance / (variance + d * d);
+    return saturate(pMax);
+}
 
 PSInput VSMain(VSInput input)
 {
     PSInput output;
-    output.posW = mul(float4(input.posL, 1.f), cb_world).xyz;
-    output.posH = mul(float4(output.posW, 1.f), mul(cb_view, cb_proj));
+    float4 posW = mul(float4(input.posL, 1.f), cb_world);
+    output.posH = mul(posW, cb_viewProj);
 
     // gbuffer texture coord
     output.posClip = output.posH;
-    output.posLightClip = SPLAT4(0.f);
-    if (cb_makeShadow)
-    {
-        output.posLightClip = mul(float4(output.posW, 1.f), cb_light[0]);
-    }
-
-    //output.gbufferTexcoordC = (output.posH.xy / output.posH.w) * 0.5f + 0.5f;
-    //output.gbufferTexcoordC.y = 1.f - output.gbufferTexcoordC.y;
-
-    // shadow map texture coord
-    //float4 shadowPosH = mul(float4(output.posW, 1.f), cb_light[0]);
-    //output.shadowTexcoordC = shadowPosH.xy / shadowPosH.w;
-    //output.shadowTexcoordC = output.shadowTexcoordC * 0.5f + 0.5f;
-    //output.shadowTexcoordC.y = 1.f - output.shadowTexcoordC.y;
-
     return output;
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
     float2 posTex = CvtClipToTex(input.posClip);
-    float3 baseColor = t_sceneColor.Sample(s_linearWrap, posTex).rgb;
-    float3 N = t_sceneNormal.Sample(s_linearWrap, posTex).rgb;
-    N = N * 2.f - 1.f; // [0, 1] -> [-1, 1]
-    N = normalize(N);
+    float3 baseColor = t_sceneColor.Sample(s_linearClamp, posTex).rgb;
+    float3 N = t_sceneNormal.Sample(s_linearClamp, posTex).rgb;
+    float depth = t_sceneDepth.Sample(s_linearClamp, posTex).r;
+    float3 posW = CvtNdcToWorld(input.posClip.xy / input.posClip.w, depth, cb_invViewProj);
 
-    float dist = distance(cb_lightPos, input.posW);
-    float3 L = (cb_lightPos - input.posW) / dist;
-    float3 V = normalize(cb_eyePos - input.posW);
-    float3 H = normalize(L + V);
-
+    float dist = distance(cb_lightPos, posW);
+    float3 L = (cb_lightPos - posW) / dist;
+    float3 V = normalize(cb_eyePos - posW);
     float nDotL = max(dot(N, L), 0.f);
-    float nDotH = max(dot(N, H), 0.f);
-    float att = 1.f - smoothstep(cb_lightFallOffStart, cb_lightFallOffEnd, dist);
 
-    float3 localIL = kLightColor * (nDotL + pow(nDotH, 16.f)) * att;
-    if (cb_makeShadow)
+    // distance attenuation
+    float blinePhong = CalcBlinePhong(L, V, N, 16);
+    float distAtt = CalcDistanceAttenuation(dist, cb_lightFallOffStart, cb_lightFallOffEnd);
+    float spotAtt = CalcSpotAttenuation(L, cb_lightDir, cb_lightSpotInnerCos, cb_lightSpotOuterCos);
+
+    float3 color = baseColor * kLightColor * blinePhong * distAtt * spotAtt;
+    if (cb_bMakeShadow)
     {
-        float3 posLightNdc = input.posLightClip.xyz / input.posLightClip.w;
-
-        // get closest depth from light space
-        float2 posLightTex = posLightNdc.xy * 0.5f + 0.5f;
-        posLightTex.y = 1.f - posLightTex.y;
-        float closestDepth = t_shadowMap.Sample(s_linearWrap, posLightTex).r;
-        float currentDepth = posLightNdc.z;
+        float4 posLightClip = mul(float4(posW, 1.f), cb_light);
+        float2 posLightTex = CvtClipToTex(posLightClip);
         float bias = max(cb_shadowBias * (1.f - nDotL), cb_shadowBias * 0.1f);
-        float shadow = currentDepth + bias > closestDepth ? 0.f : 1.f;
-        localIL *= shadow;
-    }
+        float currentDepth = posLightClip.z / posLightClip.w;
+        float shadow = 0.f;
 
-    float3 finalColor = baseColor * (kAmbientColor.rgb + localIL);
-    return float4(finalColor, 1.f);
+        if (cb_shadowSampling == SHADOW_SAMPLING_HARD)
+        {
+            shadow = CalcHardShadow(posLightTex, currentDepth, bias);
+        }
+        else if (cb_shadowSampling == SHADOW_SAMPLING_PCF3)
+        {
+            shadow = CalcPCF3(posLightTex, currentDepth, bias);
+        }
+        else if (cb_shadowSampling == SHADOW_SAMPLING_PCF5)
+        {
+            shadow = CalcPCF5(posLightTex, currentDepth, bias);
+        }
+        else if (cb_shadowSampling == SHADOW_SAMPLING_PCF7)
+        {
+            shadow = CalcPCF7(posLightTex, currentDepth, bias);
+        }
+        else if (cb_shadowSampling == SHADOW_SAMPLING_VSM)
+        {
+            shadow = CalcVSM(posLightTex, currentDepth);
+        }
+        else if (cb_shadowSampling == SHADOW_SAMPLING_ESM)
+        {
+            shadow = CalcESM(posLightTex, currentDepth);
+        }
+
+        color *= shadow;
+    }
+    return float4(color, 1.f);
 }

@@ -17,8 +17,11 @@ public:
     Mesh(Mesh&& _other) noexcept            = delete;
     Mesh& operator=(Mesh&& _other) noexcept = delete;
 
-    [[nodiscard]] static Ref<Mesh>         Load(Span<const Vec3> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
-    [[nodiscard]] static Ref<Mesh>         Load(Span<const Vec3> _position, MemoryView _idxData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec3> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec3> _position, MemoryView _idxData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec2> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec2> _position, MemoryView _idxData);
+
     [[nodiscard]] static Expect<Ref<Mesh>> LoadFromFile(StringView _path);
 
     Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
@@ -52,6 +55,8 @@ private:
     Mesh() = default;
     Mesh(Span<const Vec3> _positions, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
     Mesh(Span<const Vec3> _positios, MemoryView _idxData);
+    Mesh(Span<const Vec2> _positions, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
+    Mesh(Span<const Vec2> _positions, MemoryView _idxData);
 
     Error LoadFromFile_(StringView _path) override;
     void  CleanUp_();
@@ -65,7 +70,8 @@ private:
     IndexBufferHandle  m_ibh         = kInvalidHandle;
     Aabb               m_boundingBox = {};
 
-    static VertexLayout s_posLayout;
+    static VertexLayout s_posFloat3Layout;
+    static VertexLayout s_posFloat2Layout;
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Mesh>& _pMesh);

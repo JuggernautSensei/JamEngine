@@ -7,6 +7,20 @@ namespace Jam
 
 class Mesh;
 
+enum class eCreateConeMesh
+{
+    OriginAtCenter,
+    OriginAtBase,
+    OriginAtApex,
+};
+
+enum class eCreateCylinderMesh
+{
+    OriginAtCenter,
+    OriginAtBase,
+    OriginAtTop,
+};
+
 [[nodiscard]] Ref<Mesh> CreateCubeMesh(
     Vec3                _size,
     const VertexLayout& _attribLayoutOrEmpty = {});
@@ -16,25 +30,42 @@ class Mesh;
     Int32               _divisionLevel,
     const VertexLayout& _attribLayoutOrEmpty = {});
 
+// _normal은 평면의 법선
+// _uv0, _uv1은 평면의 왼쪽 위, 오른쪽 아래에 대응하는 텍스처 좌표
 [[nodiscard]] Ref<Mesh> CreatePlaneMesh(
-    const Vec2&         _size,
+    Vec2                _size,
+    Vec2                _uv0,
+    Vec2                _uv1,
+    Vec3                _normal,
     const VertexLayout& _attribLayoutOrEmpty = {});
 
-[[nodiscard]] Ref<Mesh> CreateCircle(
+[[nodiscard]] Ref<Mesh> CreatePlaneMesh(
+    Vec2                _size,
+    Vec3                _normal,
+    const VertexLayout& _attribLayoutOrEmpty = {});
+
+[[nodiscard]] Ref<Mesh> CreateCircleMesh(
     float               _radius,
+    Vec3                _normal,
     Int32               _numTri,
     const VertexLayout& _attribLayoutOrEmpty = {});
 
-[[nodiscard]] Ref<Mesh> CreateCone(
+// _normal은 밑 원의 법선
+[[nodiscard]] Ref<Mesh> CreateConeMesh(
     float               _height,
     float               _radius,
+    Vec3                _normal,
     Int32               _numTri,
+    eCreateConeMesh     _option,
     const VertexLayout& _attribLayoutOrEmpty = {});
 
-[[nodiscard]] Ref<Mesh> CreateCylinder(
+// _normal은 밑 원의 법선
+[[nodiscard]] Ref<Mesh> CreateCylinderMesh(
     float               _height,
     float               _radius,
+    Vec3                _normal,
     Int32               _numTries,
+    eCreateCylinderMesh _option,
     const VertexLayout& _attribLayoutOrEmpty = {});
 
 [[nodiscard]] Vector<Vec3> ComputeNormals(

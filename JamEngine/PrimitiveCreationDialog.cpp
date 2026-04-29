@@ -21,7 +21,7 @@ namespace
         info.title                   = "select save directory";
         return FileDialog(info);
     }
-}
+}   // namespace
 
 PrimitiveCreationDialog::PrimitiveCreationDialog(
     const PrimitiveCreationDialogInfo& _desc)
@@ -431,14 +431,14 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
         case ePrimitiveCreation::Plane:
         {
             const Vec2 size { m_fParam0, m_fParam1 };
-            return CreatePlaneMesh(size, vl);
+            return CreatePlaneMesh(size, Vec3::kUp, vl);
         }
 
         case ePrimitiveCreation::Circle:
         {
             const float radius   = m_fParam0;
             const Int32 triCount = m_iParam;
-            return CreateCircle(radius, triCount, vl);
+            return CreateCircleMesh(radius, Vec3::kUp, triCount, vl);
         }
 
         case ePrimitiveCreation::Cone:
@@ -446,7 +446,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
             const float height   = m_fParam0;
             const float radius   = m_fParam1;
             const Int32 triCount = m_iParam;
-            return CreateCone(height, radius, triCount, vl);
+            return CreateConeMesh(height, radius, Vec3::kUp, triCount, eCreateConeMesh::OriginAtCenter, vl);
         }
 
         case ePrimitiveCreation::Cylinder:
@@ -454,7 +454,7 @@ Ref<Mesh> PrimitiveCreationDialog::CreatePrimitiveMesh_() const
             const float height   = m_fParam0;
             const float radius   = m_fParam1;
             const Int32 numTries = m_iParam;
-            return CreateCylinder(height, radius, numTries, vl);
+            return CreateCylinderMesh(height, radius, Vec3::kUp, numTries, eCreateCylinderMesh::OriginAtCenter, vl);
         }
 
         default:

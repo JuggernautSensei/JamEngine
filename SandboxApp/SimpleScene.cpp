@@ -2,6 +2,7 @@
 #include "SimpleScene.h"
 
 #include "Gui.h"
+#include "RenderStates.h"
 #include "../JamEngine/AssimpImporter.h"
 
 namespace
@@ -120,8 +121,8 @@ void SimpleScene::OnRender(
     gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
     gfx.SetViewport(_view.vp);
     gfx.SetProgram(m_ph);
-    gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
-    gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
+    gfx.SetRenderFlags(kBackCullDepthTest);
+    gfx.SetBlendFlags(kOpaqueBlend, 0);
 
     // camera
     CBSimpleSceneCamera cbCamera = {};

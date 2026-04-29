@@ -1,8 +1,4 @@
-#define CONCAT_(a, b) a##b
-#define CONCAT(a, b) CONCAT_(a, b)
-#define PADDING1 float CONCAT(padding, __LINE__)
-#define PADDING2 float2 CONCAT(padding, __LINE__)
-#define PADDING3 float3 CONCAT(padding, __LINE__)
+#include "../Common/Common.hlsl"
 
 #define CUBEMAP_NONE 0
 #define CUBEMAP_IRRADIANCE 1

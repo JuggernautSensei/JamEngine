@@ -1,4 +1,4 @@
-#include "../ShaderBase.hlsl"   
+#include "../Common/Common.hlsl"   
 
 cbuffer CBSimpleSceneEntity : register(b0)
 {

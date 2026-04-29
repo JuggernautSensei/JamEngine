@@ -67,6 +67,9 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{b79028c1-37cc-41df-93b7-2cac09e9da49}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImageFilter">
+      <UniqueIdentifier>{e47fb6ff-89e0-4cce-a1c8-c61bcf307482}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandboxApp.cpp">
@@ -105,6 +108,12 @@
     <ClCompile Include="Gui.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="RenderStates.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="RandomGenerator.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SandboxApp.h">
@@ -141,6 +150,12 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Gui.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderStates.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomGenerator.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
@@ -221,6 +236,18 @@
     </FxCompile>
     <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneCommon.hlsl">
       <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneCombineShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Common\ImageFilter\ImageFilterCommon.hlsl">
+      <Filter>ImageFilter</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Common\ImageFilter\GaussianBlurShader.hlsl">
+      <Filter>ImageFilter</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Common\ImageFilter\MixShader.hlsl">
+      <Filter>ImageFilter</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

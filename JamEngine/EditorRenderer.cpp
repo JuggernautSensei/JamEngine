@@ -352,13 +352,12 @@ EditorRenderer::EditorRenderer()
 
     // 프리미티브 생성
     {
-        VertexLayout vl = {};
-        vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-        vl.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+        VertexLayout attribLayout = {};
+        attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
-        m_sphereMesh   = CreateSphereMesh(1.0f, 4, vl);
-        m_cylinderMesh = CreateCylinder(1.0f, 1.0f, 32, vl);
-        m_cubeMesh     = CreateCubeMesh(Vec3::kOne, vl);
+        m_sphereMesh   = CreateSphereMesh(1.0f, 4, attribLayout);
+        m_cylinderMesh = CreateCylinderMesh(1.0f, 1.0f, Vec3::kUp, 32, eCreateCylinderMesh::OriginAtCenter, attribLayout);
+        m_cubeMesh     = CreateCubeMesh(Vec3::kOne, attribLayout);
     }
 
     // gfx state
@@ -569,7 +568,7 @@ void EditorRenderer::DrawFilledCylinder(const Vec3 _center, const Vec3 _dir, con
     FlushLines_();
 
     m_currentColor   = _color;
-    const Quat q     = Quat::FromLookAt(_dir, Vec3::kUp);
+    const Quat q     = Quat::FromLookTo(_dir, Vec3::kUp);
     const Mtx4 world = Mtx4::CreateScale(Vec3(_radius, _height, _radius)) * Mtx4::FromQuaternion(q) * Mtx4::CreateTranslation(_center);
     UploadTransform_(world);
 

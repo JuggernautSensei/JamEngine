@@ -3,28 +3,47 @@
 struct VSInput
 {
     float3 posL : POSITION;
+    float2 texcoord : TEXCOORD0;
     float3 normalL : NORMAL;
 };
 
 struct PSInput
 {
     float4 posH : SV_POSITION;
-    float3 posW : POSITION;
+    float2 texcoord : TEXCOORD0;
     float3 normalW : NORMAL;
+};
+
+struct PSOutput
+{
+    float4 normalW : SV_TARGET0;
+    float4 color : SV_TARGET1;
 };
 
 PSInput VSMain(VSInput input)
 {
     PSInput output;
-    output.posW = mul(float4(input.posL, 1.0f), cb_world).xyz;
-    output.posH = mul(float4(output.posW, 1.f), mul(cb_view, cb_proj));
-    output.normalW = normalize(mul(float4(input.normalL, 0.0f), cb_invTransWorld).xyz);
+    float4 posW = mul(float4(input.posL, 1.0f), cb_world);
+    output.posH = mul(posW, cb_viewProj);
+    output.texcoord = input.texcoord;
+    output.normalW = normalize(mul(float4(input.normalL, 0.0f), cb_world).xyz);
     return output;
 }
 
-float4 PSMain(PSInput input) : SV_TARGET
+PSOutput PSMain(PSInput input)
 {
-    float3 N = normalize(input.normalW);
-    N = N * 0.5f + 0.5f; // [-1, 1] -> [0, 1]
-    return float4(N, 1.f);
+    PSOutput output;
+    output.normalW = float4(input.normalW, 0.f);
+
+    // color
+    output.color;
+    if (cb_bUseTexture)
+    {
+        output.color = t_baseColor.Sample(s_linearWrap, input.texcoord);
+    }
+    else
+    {
+        output.color = CvtRGBAToLinear(cb_rgba);
+    }
+    return output;
 }

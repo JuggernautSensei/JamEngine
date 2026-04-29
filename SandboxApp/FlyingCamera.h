@@ -6,8 +6,8 @@ struct FlyingCamera
     void                      Update(float _dt);
     [[nodiscard]] Vec3        GetEyePos() const;
     [[nodiscard]] const Mtx4& GetProj() const;
-    [[nodiscard]] Mtx4        CalcViewProj() const;
     [[nodiscard]] Mtx4        CalcView() const;
+    [[nodiscard]] Mtx4        CalcViewProj() const;
 
     Camera    cmr   = {};
     Transform trans = {};

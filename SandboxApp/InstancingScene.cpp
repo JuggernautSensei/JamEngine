@@ -252,7 +252,7 @@ void InstancingScene::OnImGuiRender()
 
         if (ImGui::Button("Reset"))
         {
-            m_rot     = 0.f;
+            m_rot = 0.f;
         }
     }
     ImGui::EndDisabled();

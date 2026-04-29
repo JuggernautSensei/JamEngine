@@ -708,7 +708,6 @@ struct Vec3
     }
 
     [[nodiscard]] constexpr Vec3 operator*(const float _scalar) const
-
     {
         return { x * _scalar, y * _scalar, z * _scalar };
     }
