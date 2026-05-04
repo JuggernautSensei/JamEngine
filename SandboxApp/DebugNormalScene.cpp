@@ -96,11 +96,11 @@ void DebugNormalScene::InitRenderGraph_()
         "Resources/Misc/DebugNormalScene/DebugNormalScenePassThroughShader.hlsl");
 
     // pass
-    m_graph.AddPass("Pass_NoWIT")
+    m_graph.AddGraphicsPass("Pass_NoWIT")
         .SetFrameBuffer("FB_Scene")
         .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
         .SetDepthClearCommand(1.f)
-        .SetViewportFromFrameBufferResolution()
+        .SetFrameBufferResolutionForViewport()
         .SetProgram("P_NoWIT")
         .SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
@@ -110,11 +110,11 @@ void DebugNormalScene::InitRenderGraph_()
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(!m_bUseWit);
 
-    m_graph.AddPass("Pass_WithWIT")
+    m_graph.AddGraphicsPass("Pass_WithWIT")
         .SetFrameBuffer("FB_Scene")
         .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
         .SetDepthClearCommand(1.f)
-        .SetViewportFromFrameBufferResolution()
+        .SetFrameBufferResolutionForViewport()
         .SetProgram("P_WithWIT")
         .SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
@@ -124,9 +124,9 @@ void DebugNormalScene::InitRenderGraph_()
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(m_bUseWit);
 
-    m_graph.AddPass("Pass_DrawNormalNoWIT")
+    m_graph.AddGraphicsPass("Pass_DrawNormalNoWIT")
         .SetFrameBuffer("FB_Scene")
-        .SetViewportFromFrameBufferResolution()
+        .SetFrameBufferResolutionForViewport()
         .SetProgram("P_DrawNormalNoWIT")
         .SetRenderFlags(eRenderFlags::Primitive_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
@@ -135,9 +135,9 @@ void DebugNormalScene::InitRenderGraph_()
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(!m_bUseWit && m_bDrawNormal);
 
-    m_graph.AddPass("Pass_DrawNormalWithWIT")
+    m_graph.AddGraphicsPass("Pass_DrawNormalWithWIT")
         .SetFrameBuffer("FB_Scene")
-        .SetViewportFromFrameBufferResolution()
+        .SetFrameBufferResolutionForViewport()
         .SetProgram("P_DrawNormalWithWIT")
         .SetRenderFlags(eRenderFlags::Primitive_PointList | eRenderFlags::DepthFunc_LessEqual | eRenderFlags::DepthWrite)
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
@@ -146,7 +146,7 @@ void DebugNormalScene::InitRenderGraph_()
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
         .SetEnabled(m_bUseWit && m_bDrawNormal);
 
-    m_graph.AddPass("Pass_PassThrough")
+    m_graph.AddGraphicsPass("Pass_PassThrough")
         .SetAsFinalPass()
         .SetUseExternalOutput()
         .SetProgram("P_PassThrough")
@@ -216,16 +216,16 @@ void DebugNormalScene::OnImGuiRender()
 
         if (bWitChanged || bNormalChanged)
         {
-            m_graph.ModifyPass("Pass_NoWIT")
+            m_graph.ModifyGrphicsPass("Pass_NoWIT")
                 .SetEnabled(!m_bUseWit);
 
-            m_graph.ModifyPass("Pass_WithWIT")
+            m_graph.ModifyGrphicsPass("Pass_WithWIT")
                 .SetEnabled(m_bUseWit);
 
-            m_graph.ModifyPass("Pass_DrawNormalNoWIT")
+            m_graph.ModifyGrphicsPass("Pass_DrawNormalNoWIT")
                 .SetEnabled(!m_bUseWit && m_bDrawNormal);
 
-            m_graph.ModifyPass("Pass_DrawNormalWithWIT")
+            m_graph.ModifyGrphicsPass("Pass_DrawNormalWithWIT")
                 .SetEnabled(m_bUseWit && m_bDrawNormal);
         }
 

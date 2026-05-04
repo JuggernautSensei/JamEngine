@@ -17,6 +17,11 @@ float CalcHardShadow(float2 _posLightTex, float _currentDepth, float _bias)
     return step(_currentDepth - _bias, closestDepth);
 }
 
+float ClacSoftShadow(float2 _posLightTex, float _currentDepth, float _bias)
+{
+    return t_shadowMap.SampleCmpLevelZero(s_shadowComparison, _posLightTex, _currentDepth - _bias);
+}
+
 float CalcPCF3(float2 _posLightTex, float _currentDepth, float _bias)
 {
     uint w, h;
@@ -30,7 +35,14 @@ float CalcPCF3(float2 _posLightTex, float _currentDepth, float _bias)
         for (int j = -1; j <= 1; ++j)
         {
             float2 texcoord = _posLightTex + float2(i, j) * texel;
-            shadow += CalcHardShadow(texcoord, _currentDepth, _bias);
+            if (cb_bUseComparisonSampler)
+            {
+                shadow += ClacSoftShadow(texcoord, _currentDepth, _bias);
+            }
+            else
+            {
+                shadow += CalcHardShadow(texcoord, _currentDepth, _bias);
+            }
         }
     }
     return shadow / 9.f;
@@ -49,7 +61,14 @@ float CalcPCF5(float2 _posLightTex, float currentDepth, float bias)
         for (int j = -2; j <= 2; ++j)
         {
             float2 texcoord = _posLightTex + float2(i, j) * texel;
-            shadow += CalcHardShadow(texcoord, currentDepth, bias);
+            if (cb_bUseComparisonSampler)
+            {
+                shadow += ClacSoftShadow(texcoord, currentDepth, bias);
+            }
+            else
+            {
+                shadow += CalcHardShadow(texcoord, currentDepth, bias);
+            }
         }
     }
     return shadow / 25.f;
@@ -68,7 +87,14 @@ float CalcPCF7(float2 _posLightTex, float _currentDepth, float _bias)
         for (int j = -3; j <= 3; ++j)
         {
             float2 texcoord = _posLightTex + float2(i, j) * texel;
-            shadow += CalcHardShadow(texcoord, _currentDepth, _bias);
+            if (cb_bUseComparisonSampler)
+            {
+                shadow += ClacSoftShadow(texcoord, _currentDepth, _bias);
+            }
+            else
+            {
+                shadow += CalcHardShadow(texcoord, _currentDepth, _bias);
+            }
         }
     }
     return shadow / 49.f;
@@ -77,17 +103,20 @@ float CalcPCF7(float2 _posLightTex, float _currentDepth, float _bias)
 float CalcESM(float2 _posLightTex, float currentDepth)
 {
     float occluder = t_shadowMapAdv.Sample(s_linearClamp, _posLightTex).r;
-    float receiver = exp(-kESMConstant * currentDepth);
+    float receiver = exp(-cb_esmExponent * (currentDepth - 1.f));
     return saturate(occluder * receiver);
 }
 
 float CalcVSM(float2 _posLightTex, float currentDepth)
 {
     float2 moments = t_shadowMapAdv.Sample(s_linearClamp, _posLightTex).rg;
-    float variance = moments.g - moments.r * moments.r;
-    float d = currentDepth - moments.r;
+    float p = step(currentDepth, moments.x);
+    float variance = max(moments.y - moments.x * moments.x, kVSMMinVariance);
+    float d = currentDepth - moments.x;
     float pMax = variance / (variance + d * d);
-    return saturate(pMax);
+
+    // light-bleeding reduction
+    return smoothstep(kVSMBleedingReduction, 1.f, max(p, pMax));
 }
 
 PSInput VSMain(VSInput input)
@@ -122,35 +151,46 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 color = baseColor * kLightColor * blinePhong * distAtt * spotAtt;
     if (cb_bMakeShadow)
     {
-        float4 posLightClip = mul(float4(posW, 1.f), cb_light);
-        float2 posLightTex = CvtClipToTex(posLightClip);
-        float bias = max(cb_shadowBias * (1.f - nDotL), cb_shadowBias * 0.1f);
-        float currentDepth = posLightClip.z / posLightClip.w;
-        float shadow = 0.f;
+        float3 shadowPosW = posW;
+        if (cb_shadowType == SHADOW_TYPE_HARD
+            || cb_shadowType == SHADOW_TYPE_PCF3
+            || cb_shadowType == SHADOW_TYPE_PCF5
+            || cb_shadowType == SHADOW_TYPE_PCF7)
+        {
+            shadowPosW += L * cb_shadowNormalOffset;
 
-        if (cb_shadowSampling == SHADOW_SAMPLING_HARD)
-        {
-            shadow = CalcHardShadow(posLightTex, currentDepth, bias);
         }
-        else if (cb_shadowSampling == SHADOW_SAMPLING_PCF3)
+
+        float4 posLightNdc = mul(float4(shadowPosW, 1.f), mul(cb_lightView, cb_lightProj));
+        posLightNdc.xyz /= posLightNdc.w;
+        float2 posLightTex = CvtNdcToTex(posLightNdc.xy);
+        float curDepth = posLightNdc.z;
+
+        float shadow = 0.f;
+        if (cb_shadowType == SHADOW_TYPE_HARD)
         {
-            shadow = CalcPCF3(posLightTex, currentDepth, bias);
+            shadow = CalcHardShadow(posLightTex, curDepth, cb_shadowBias);
         }
-        else if (cb_shadowSampling == SHADOW_SAMPLING_PCF5)
+        else if (cb_shadowType == SHADOW_TYPE_PCF3)
         {
-            shadow = CalcPCF5(posLightTex, currentDepth, bias);
+            shadow = CalcPCF3(posLightTex, curDepth, cb_shadowBias);
         }
-        else if (cb_shadowSampling == SHADOW_SAMPLING_PCF7)
+        else if (cb_shadowType == SHADOW_TYPE_PCF5)
         {
-            shadow = CalcPCF7(posLightTex, currentDepth, bias);
+            shadow = CalcPCF5(posLightTex, curDepth, cb_shadowBias);
         }
-        else if (cb_shadowSampling == SHADOW_SAMPLING_VSM)
+        else if (cb_shadowType == SHADOW_TYPE_PCF7)
         {
-            shadow = CalcVSM(posLightTex, currentDepth);
+            shadow = CalcPCF7(posLightTex, curDepth, cb_shadowBias);
         }
-        else if (cb_shadowSampling == SHADOW_SAMPLING_ESM)
+        else if (cb_shadowType == SHADOW_TYPE_VSM)
         {
-            shadow = CalcESM(posLightTex, currentDepth);
+            curDepth = dist;
+            shadow = CalcVSM(posLightTex, curDepth);
+        }
+        else if (cb_shadowType == SHADOW_TYPE_ESM)
+        {
+            shadow = CalcESM(posLightTex, curDepth);
         }
 
         color *= shadow;

@@ -157,24 +157,20 @@ struct Vec2i
     const static Vec2i kUnitY;
 
     union
-
     {
         struct
-
         {
             Int32 x, y;
         };
 
         struct
-
         {
             Int32 u, v;
         };
 
         struct
-
         {
-            Int32 w, h;
+            Int32 width, height;
         };
 
         Int32 e[2] = {};
@@ -438,24 +434,221 @@ struct Vec2
 
     {
         struct
-
         {
             float x, y;
         };
 
         struct
-
         {
             float u, v;
         };
 
         struct
-
         {
             float width, height;
         };
 
         float e[2] = {};
+    };
+};
+
+struct Vec3i
+{
+    constexpr Vec3i() = default;
+    constexpr Vec3i(const Int32 _x, const Int32 _y, const Int32 _z)
+        : x(_x)
+        , y(_y)
+        , z(_z)
+    {
+    }
+
+    constexpr explicit Vec3i(const Int32 _xyz)
+        : x(_xyz)
+        , y(_xyz)
+        , z(_xyz)
+    {
+    }
+
+    constexpr Vec3i(const Vec2i _xy, const Int32 _z)
+        : x(_xy.x)
+        , y(_xy.y)
+        , z(_z)
+    {
+    }
+
+    [[nodiscard]] constexpr Vec3i Abs() const
+    {
+        return { x > 0 ? x : -x, y > 0 ? y : -y, z > 0 ? z : -z };
+    }
+
+    [[nodiscard]] constexpr Vec3i Min(const Vec3i _other) const
+    {
+        return { Jam::Min(x, _other.x), Jam::Min(y, _other.y), Jam::Min(z, _other.z) };
+    }
+
+    [[nodiscard]] constexpr Vec3i Max(const Vec3i _other) const
+    {
+        return { Jam::Max(x, _other.x), Jam::Max(y, _other.y), Jam::Max(z, _other.z) };
+    }
+
+    [[nodiscard]] constexpr Vec3i Clamp(const Vec3i _min, const Vec3i _max) const
+    {
+        return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y), Jam::Clamp(z, _min.z, _max.z) };
+    }
+
+    constexpr Vec3i& operator+=(const Vec3i _other)
+    {
+        x += _other.x;
+        y += _other.y;
+        z += _other.z;
+        return *this;
+    }
+
+    constexpr Vec3i& operator-=(const Vec3i _other)
+    {
+        x -= _other.x;
+        y -= _other.y;
+        z -= _other.z;
+        return *this;
+    }
+
+    constexpr Vec3i& operator*=(const Vec3i _other)
+    {
+        x *= _other.x;
+        y *= _other.y;
+        z *= _other.z;
+        return *this;
+    }
+
+    constexpr Vec3i& operator/=(const Vec3i _other)
+    {
+        x /= _other.x;
+        y /= _other.y;
+        z /= _other.z;
+        return *this;
+    }
+
+    constexpr Vec3i& operator*=(const Int32 _scalar)
+    {
+        x *= _scalar;
+        y *= _scalar;
+        z *= _scalar;
+        return *this;
+    }
+
+    constexpr Vec3i& operator/=(const Int32 _scalar)
+    {
+        x /= _scalar;
+        y /= _scalar;
+        z /= _scalar;
+        return *this;
+    }
+
+    [[nodiscard]] constexpr Vec3i operator+(const Vec3i _other) const
+    {
+        return { x + _other.x, y + _other.y, z + _other.z };
+    }
+
+    [[nodiscard]] constexpr Vec3i operator-(const Vec3i _other) const
+    {
+        return { x - _other.x, y - _other.y, z - _other.z };
+    }
+
+    [[nodiscard]] constexpr Vec3i operator*(const Vec3i _other) const
+    {
+        return { x * _other.x, y * _other.y, z * _other.z };
+    }
+
+    [[nodiscard]] constexpr Vec3i operator/(const Vec3i _other) const
+    {
+        return { x / _other.x, y / _other.y, z / _other.z };
+    }
+
+    [[nodiscard]] constexpr Vec3i operator*(const Int32 _scalar) const
+    {
+        return { x * _scalar, y * _scalar, z * _scalar };
+    }
+
+    [[nodiscard]] constexpr Vec3i operator/(const Int32 _scalar) const
+    {
+        return { x / _scalar, y / _scalar, z / _scalar };
+    }
+
+    [[nodiscard]] constexpr Vec3i operator-() const
+    {
+        return { -x, -y, -z };
+    }
+
+    [[nodiscard]] constexpr bool operator==(const Vec3i _other) const
+    {
+        return x == _other.x && y == _other.y && z == _other.z;
+    }
+
+    [[nodiscard]] constexpr bool operator!=(const Vec3i _other) const
+    {
+        return !(*this == _other);
+    }
+
+    const static Vec3i kZero;
+    const static Vec3i kOne;
+    const static Vec3i kUnitX;
+    const static Vec3i kUnitY;
+    const static Vec3i kUnitZ;
+
+    union
+    {
+        struct
+        {
+            Int32 x, y, z;
+        };
+
+        struct
+        {
+            Int32 r, g, b;
+        };
+
+        struct
+        {
+            Int32 width, height, depth;
+        };
+
+        struct
+        {
+            Vec2i xy;
+            Int32 z_;
+        };
+
+        struct
+        {
+            Int32 x_;
+            Vec2i yz;
+        };
+
+        struct
+        {
+            Vec2i rg;
+            Int32 b_;
+        };
+
+        struct
+        {
+            Int32 r_;
+            Vec2i gb;
+        };
+
+        struct
+        {
+            Vec2i widthHeight;
+            Int32 depth_;
+        };
+
+        struct
+        {
+            Int32 width_;
+            Vec2i heightDepth;
+        };
+
+        Int32 e[3] = {};
     };
 };
 
@@ -817,6 +1010,220 @@ struct Vec3
         };
 
         float e[3] = {};
+    };
+};
+
+struct Vec4i
+{
+    constexpr Vec4i() = default;
+    constexpr Vec4i(const Int32 _x, const Int32 _y, const Int32 _z, const Int32 _w)
+        : x(_x)
+        , y(_y)
+        , z(_z)
+        , w(_w)
+    {
+    }
+
+    constexpr explicit Vec4i(const Int32 _xyzw)
+        : x(_xyzw)
+        , y(_xyzw)
+        , z(_xyzw)
+        , w(_xyzw)
+    {
+    }
+
+    constexpr Vec4i(const Vec2i _xy, const Int32 _z, const Int32 _w)
+        : x(_xy.x)
+        , y(_xy.y)
+        , z(_z)
+        , w(_w)
+    {
+    }
+
+    constexpr Vec4i(const Vec3i _xyz, const Int32 _w)
+        : x(_xyz.x)
+        , y(_xyz.y)
+        , z(_xyz.z)
+        , w(_w)
+    {
+    }
+
+    [[nodiscard]] constexpr Vec4i Abs() const
+    {
+        return { x > 0 ? x : -x, y > 0 ? y : -y, z > 0 ? z : -z, w > 0 ? w : -w };
+    }
+
+    [[nodiscard]] constexpr Vec4i Min(const Vec4i _other) const
+    {
+        return { Jam::Min(x, _other.x), Jam::Min(y, _other.y), Jam::Min(z, _other.z), Jam::Min(w, _other.w) };
+    }
+
+    [[nodiscard]] constexpr Vec4i Max(const Vec4i _other) const
+    {
+        return { Jam::Max(x, _other.x), Jam::Max(y, _other.y), Jam::Max(z, _other.z), Jam::Max(w, _other.w) };
+    }
+
+    [[nodiscard]] constexpr Vec4i Clamp(const Vec4i _min, const Vec4i _max) const
+    {
+        return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y), Jam::Clamp(z, _min.z, _max.z), Jam::Clamp(w, _min.w, _max.w) };
+    }
+
+    constexpr Vec4i& operator+=(const Vec4i _other)
+    {
+        x += _other.x;
+        y += _other.y;
+        z += _other.z;
+        w += _other.w;
+        return *this;
+    }
+
+    constexpr Vec4i& operator-=(const Vec4i _other)
+    {
+        x -= _other.x;
+        y -= _other.y;
+        z -= _other.z;
+        w -= _other.w;
+        return *this;
+    }
+
+    constexpr Vec4i& operator*=(const Vec4i _other)
+    {
+        x *= _other.x;
+        y *= _other.y;
+        z *= _other.z;
+        w *= _other.w;
+        return *this;
+    }
+
+    constexpr Vec4i& operator/=(const Vec4i _other)
+    {
+        x /= _other.x;
+        y /= _other.y;
+        z /= _other.z;
+        w /= _other.w;
+        return *this;
+    }
+
+    constexpr Vec4i& operator*=(const Int32 _scalar)
+    {
+        x *= _scalar;
+        y *= _scalar;
+        z *= _scalar;
+        w *= _scalar;
+        return *this;
+    }
+
+    constexpr Vec4i& operator/=(const Int32 _scalar)
+    {
+        x /= _scalar;
+        y /= _scalar;
+        z /= _scalar;
+        w /= _scalar;
+        return *this;
+    }
+
+    [[nodiscard]] constexpr Vec4i operator+(const Vec4i _other) const
+    {
+        return { x + _other.x, y + _other.y, z + _other.z, w + _other.w };
+    }
+
+    [[nodiscard]] constexpr Vec4i operator-(const Vec4i _other) const
+    {
+        return { x - _other.x, y - _other.y, z - _other.z, w - _other.w };
+    }
+
+    [[nodiscard]] constexpr Vec4i operator*(const Vec4i _other) const
+    {
+        return { x * _other.x, y * _other.y, z * _other.z, w * _other.w };
+    }
+
+    [[nodiscard]] constexpr Vec4i operator/(const Vec4i _other) const
+    {
+        return { x / _other.x, y / _other.y, z / _other.z, w / _other.w };
+    }
+
+    [[nodiscard]] constexpr Vec4i operator*(const Int32 _scalar) const
+    {
+        return { x * _scalar, y * _scalar, z * _scalar, w * _scalar };
+    }
+
+    [[nodiscard]] constexpr Vec4i operator/(const Int32 _scalar) const
+    {
+        return { x / _scalar, y / _scalar, z / _scalar, w / _scalar };
+    }
+
+    [[nodiscard]] constexpr Vec4i operator-() const
+    {
+        return { -x, -y, -z, -w };
+    }
+
+    [[nodiscard]] constexpr bool operator==(const Vec4i _other) const
+    {
+        return x == _other.x && y == _other.y && z == _other.z && w == _other.w;
+    }
+
+    [[nodiscard]] constexpr bool operator!=(const Vec4i _other) const
+    {
+        return !(*this == _other);
+    }
+
+    const static Vec4i kZero;
+    const static Vec4i kOne;
+    const static Vec4i kUnitX;
+    const static Vec4i kUnitY;
+    const static Vec4i kUnitZ;
+    const static Vec4i kUnitW;
+
+    union
+    {
+        struct
+        {
+            Int32 x, y, z, w;
+        };
+
+        struct
+        {
+            Int32 r, g, b, a;
+        };
+
+        struct
+        {
+            Vec2i xy;
+            Vec2i zw;
+        };
+
+        struct
+        {
+            Int32 x_;
+            Vec2i yz;
+            Int32 w_;
+        };
+
+        struct
+        {
+            Vec3i xyz;
+            Int32 w__;
+        };
+
+        struct
+        {
+            Int32 x__;
+            Vec3i yzw;
+        };
+
+        struct
+        {
+            Vec2i rg;
+            Vec2i ba;
+        };
+
+        struct
+        {
+            Vec3i rgb;
+            Int32 a_;
+        };
+
+        Int32 e[4] = {};
     };
 };
 
@@ -1356,6 +1763,16 @@ struct alignas(16) Vec4
     return { _scalar / _vec.x, _scalar / _vec.y };
 }
 
+[[nodiscard]] constexpr Vec3i operator*(const Int32 _scalar, const Vec3i _vec)
+{
+    return _vec * _scalar;
+}
+
+[[nodiscard]] constexpr Vec3i operator/(const Int32 _scalar, const Vec3i _vec)
+{
+    return { _scalar / _vec.x, _scalar / _vec.y, _scalar / _vec.z };
+}
+
 [[nodiscard]] constexpr Vec3 operator*(const float _scalar, const Vec3 _vec)
 {
     return _vec * _scalar;
@@ -1366,6 +1783,15 @@ struct alignas(16) Vec4
     return { _scalar / _vec.x, _scalar / _vec.y, _scalar / _vec.z };
 }
 
+[[nodiscard]] constexpr Vec4i operator*(const Int32 _scalar, const Vec4i _vec)
+{
+    return _vec * _scalar;
+}
+
+[[nodiscard]] constexpr Vec4i operator/(const Int32 _scalar, const Vec4i _vec)
+{
+    return { _scalar / _vec.x, _scalar / _vec.y, _scalar / _vec.z, _scalar / _vec.w };
+}
 [[nodiscard]] inline Vec4 operator*(const float _scalar, const Vec4 _vec)
 {
     return _vec * _scalar;
@@ -1373,7 +1799,15 @@ struct alignas(16) Vec4
 
 [[nodiscard]] inline Vec4 operator/(const float _scalar, const Vec4 _vec)
 {
+#ifdef JAM_SIMD_SSE
+    const __m128 numer = _mm_set1_ps(_scalar);
+
+    Vec4 result = Vec4::kZero;
+    result.m128 = _mm_div_ps(numer, _vec.m128);
+    return result;
+#else
     return { _scalar / _vec.x, _scalar / _vec.y, _scalar / _vec.z, _scalar / _vec.w };
+#endif
 }
 
 }   // namespace Jam

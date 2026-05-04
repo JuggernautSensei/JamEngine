@@ -80,6 +80,55 @@ env.bloom.*         // 블룸
 - **에러코드**: public 함수의 입력값 검증에 사용
 - 그 외는 현재 코드 흐름에 맞게 코딩 표준을 엄격하게 따름.
 
+## 네이밍 컨벤션
+
+| 대상 | 규칙 | 예시 |
+|------|------|------|
+| 클래스/구조체 | PascalCase | `AssetManager`, `BasicBlob` |
+| 인터페이스 | `I` 접두사 + PascalCase | `IAsset` |
+| 함수 (public/protected) | PascalCase | `GetInstance()`, `LoadMesh()` |
+| 함수 (private) | PascalCase + 후행 `_` | `OnWindowClose_()`, `CoreInit_()` |
+| 지역변수 | PascalCase | `MeshCount`, `VertexBuffer` |
+| 매개변수 | `_` 접두사 + camelCase | `_size`, `_pData`, `_byteWidth` |
+| 멤버변수 | `m_` 접두사 + camelCase | `m_appName`, `m_bRunning` |
+| 정적 멤버변수 | `s_` 접두사 + camelCase | `s_pInstance` |
+| constexpr 상수 | `k` 접두사 + PascalCase | `kZero`, `kIdentity` |
+| enum 타입 | `e` 접두사 + PascalCase | `eAppCoreFlags`, `eLogLevel` |
+| enum 값 | PascalCase | `SceneManager`, `LeftBottomNear` |
+| 매크로 | UPPER_SNAKE_CASE | `JAM_ASSERT`, `JAM_UNUSED` |
+| 파일명 | PascalCase | `AssetManager.h`, `GraphicsBase.h` |
+
+### 클래스 멤버 선언 순서
+
+```cpp
+class Foo
+{
+public:
+    // 1. 복사/이동 삭제 (= delete)
+    // 2. 정적 팩토리/싱글톤 메서드
+    // 3. 공개 메서드
+
+protected:
+    // 4. 가상 메서드
+
+private:
+    // 5. 비공개 메서드 (후행 _)
+    // 6. 멤버변수 (메서드보다 뒤)
+};
+```
+
+### 기타 규칙
+
+- **헤더 가드**: `#pragma once` 전용 (`#ifndef` 사용 안 함)
+- **포인터/참조 선언**: 타입에 붙임 — `Type*`, `Type&`
+- **타입 별칭**: `typedef` 사용 안 함, `using` 전용
+- **매크로 vs constexpr**: 상수/인라인 계산은 `constexpr` 우선, 매크로는 디버그/진입점/컴포넌트 등록용만
+- **[[nodiscard]]**: 거의 모든 getter에 필수
+- **bool getter**: `Is` 접두사 — `IsRunning()`, `IsValid()`
+- **템플릿**: C++20 Concept(`requires`) 적극 활용, `if constexpr` 사용
+- **네임스페이스**: 주 네임스페이스 `Jam`, 내부 구현은 `Jam::Details`
+- **초기화 리스트**: `:` 후 줄바꿈 + `, ` 들여쓰기 형식
+
 ## 코드 포맷
 
 `.clang-format` 파일 사용. 주요 설정:

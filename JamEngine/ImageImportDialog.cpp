@@ -279,9 +279,9 @@ void ImageImportDialog::Widget_PreviewTexture_() const
     constexpr ImVec2 kPreviewSize = { 128.f, 128.f };
     if (m_pPreviewTex)
     {
-        const Vec2i  res     = m_pPreviewTex->GetResolution();
-        const ImVec2 texSize = { static_cast<float>(res.w), static_cast<float>(res.h) };
-        Widget_ImageFrame(m_pPreviewTex, texSize, kPreviewSize, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
+        const TextureInfo& info = m_pPreviewTex->GetInfo();
+        const ImVec2       size = { static_cast<float>(info.width), static_cast<float>(info.height) };
+        Widget_ImageFrame(m_pPreviewTex, size, kPreviewSize, { 0.f, 0.f }, { 1.f, 1.f }, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg), true);
     }
     else
     {

@@ -14,6 +14,9 @@
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Vendor\imgui\imgui_impl_win32.cpp"
 
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Vendor\imgui\imgui_stdlib.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Vendor\imgui\imgui_tables.cpp"
 
 

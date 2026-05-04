@@ -17,10 +17,10 @@ public:
     Mesh(Mesh&& _other) noexcept            = delete;
     Mesh& operator=(Mesh&& _other) noexcept = delete;
 
-    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec3> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
-    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec3> _position, MemoryView _idxData);
-    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec2> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
-    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec2> _position, MemoryView _idxData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec3> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _indexData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec3> _position, MemoryView _indexData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec2> _position, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _indexData);
+    [[nodiscard]] static Ref<Mesh> Load(Span<const Vec2> _position, MemoryView _indexData);
 
     [[nodiscard]] static Expect<Ref<Mesh>> LoadFromFile(StringView _path);
 
@@ -53,22 +53,27 @@ public:
 
 private:
     Mesh() = default;
-    Mesh(Span<const Vec3> _positions, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
-    Mesh(Span<const Vec3> _positios, MemoryView _idxData);
-    Mesh(Span<const Vec2> _positions, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _idxData);
-    Mesh(Span<const Vec2> _positions, MemoryView _idxData);
+    Mesh(Span<const Vec3> _positions, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _indexData);
+    Mesh(Span<const Vec3> _positios, MemoryView _indexData);
+    Mesh(Span<const Vec2> _positions, MemoryView _attribData, const VertexLayout& _attribLayout, MemoryView _indexData);
+    Mesh(Span<const Vec2> _positions, MemoryView _indexData);
 
     Error LoadFromFile_(StringView _path) override;
     void  CleanUp_();
 
-    String m_path    = {};
-    String m_name    = {};
-    UInt16 m_sortKey = 0;
+    String m_path        = {};
+    String m_name        = {};
+    UInt16 m_sortKey     = 0;
+    Aabb   m_boundingBox = {};
 
-    VertexBufferHandle m_posVbh      = kInvalidHandle;
-    VertexBufferHandle m_attribVbh   = kInvalidHandle;
-    IndexBufferHandle  m_ibh         = kInvalidHandle;
-    Aabb               m_boundingBox = {};
+    VertexBufferHandle m_posVbh         = kInvalidHandle;
+    Int32              m_posVbByteWidth = 0;
+
+    VertexBufferHandle m_attribVbh         = kInvalidHandle;
+    Int32              m_attribVbByteWidth = 0;
+
+    IndexBufferHandle m_ibh         = kInvalidHandle;
+    Int32             m_ibByteWidth = 0;
 
     static VertexLayout s_posFloat3Layout;
     static VertexLayout s_posFloat2Layout;

@@ -344,20 +344,20 @@ Error JsonReader::EnterField(const StringView _key)
     return Error::None;
 }
 
-Error JsonReader::EnterAt(const SizeT _idx)
+Error JsonReader::EnterAt(const SizeT _index)
 {
     yyjson_val* cur = Top_();
     if (!yyjson_is_arr(cur))
     {
-        JAM_LOG_ERROR("YYJson EnterAt {}: current node is not an array.", _idx);
+        JAM_LOG_ERROR("YYJson EnterAt {}: current node is not an array.", _index);
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
 
-    yyjson_val* val = yyjson_arr_get(cur, static_cast<USizeT>(_idx));
+    yyjson_val* val = yyjson_arr_get(cur, static_cast<USizeT>(_index));
     if (!val)
     {
-        JAM_LOG_ERROR("YYJson EnterAt: index {} out of bounds.", _idx);
+        JAM_LOG_ERROR("YYJson EnterAt: index {} out of bounds.", _index);
         MarkError(Error::OutOfRange);
         return Error::OutOfRange;
     }
@@ -402,12 +402,12 @@ Error JsonReader::ForEachArray(const Delegate<Error(SizeT, ArchiveReader&)>& _fu
         return Error::TypeMismatch;
     }
 
-    SizeT       idx = 0, max = 0;
+    SizeT       index = 0, max = 0;
     yyjson_val* val = nullptr;
-    yyjson_arr_foreach(cur, idx, max, val)
+    yyjson_arr_foreach(cur, index, max, val)
     {
         Push_(val);
-        const Error err = _func(idx, *this);
+        const Error err = _func(index, *this);
         Pop_();
         if (err)
         {
@@ -427,9 +427,9 @@ Error JsonReader::ForEachObject(const Delegate<Error(StringView, ArchiveReader&)
         return Error::TypeMismatch;
     }
 
-    SizeT       idx = 0, max = 0;
+    SizeT       index = 0, max = 0;
     yyjson_val *key = nullptr, *val = nullptr;
-    yyjson_obj_foreach(cur, idx, max, key, val)
+    yyjson_obj_foreach(cur, index, max, key, val)
     {
         const StringView kv { yyjson_get_str(key), static_cast<SizeT>(yyjson_get_len(key)) };
         Push_(val);

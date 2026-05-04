@@ -9,7 +9,7 @@ namespace Jam
 
 namespace
 {
-    constexpr eTextureCreateFlags kTextureCreateFlagsMsaaMask = static_cast<eTextureCreateFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1000'0000));   // [7:9]
+    constexpr eTextureCreateFlags kTextureCreateFlagsMsaaMask = static_cast<eTextureCreateFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'1100'0000));   // [7:9]
 
     constexpr eRenderFlags kRenderFlagsPrimitiveMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
     constexpr eRenderFlags kRenderFlagsCullModeMask   = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1000));   // [3:4]
@@ -539,7 +539,7 @@ Int32 CalcNumMips(
     return 1 + static_cast<Int32>(Log2(static_cast<float>(Max(_width, _height, _depth))));
 }
 
-TextureResolution CalcTextureResolution(
+Vec3i CalcTextureResolution(
     const Int32 _width,
     const Int32 _height,
     const Int32 _depth,
@@ -556,10 +556,10 @@ TextureResolution CalcTextureResolution(
 
 Int32 CalcTextureIndex(
     const Int32 _mipIndex,
-    const Int32 _arrayIndex,
+    const Int32 _layerIndex,
     const Int32 _numMips)
 {
-    return _mipIndex + _arrayIndex * _numMips;
+    return _mipIndex + _layerIndex * _numMips;
 }
 
 }   // namespace Jam

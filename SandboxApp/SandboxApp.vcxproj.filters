@@ -67,7 +67,10 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{b79028c1-37cc-41df-93b7-2cac09e9da49}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImageFilter">
+    <Filter Include="PostProcess">
+      <UniqueIdentifier>{f178d307-caa4-4139-a502-029cd6adebc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PostProcess\ImageFilter">
       <UniqueIdentifier>{e47fb6ff-89e0-4cce-a1c8-c61bcf307482}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -114,6 +117,12 @@
     <ClCompile Include="RandomGenerator.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="SampleCollector.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessManager.cpp">
+      <Filter>PostProcess</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SandboxApp.h">
@@ -157,6 +166,12 @@
     </ClInclude>
     <ClInclude Include="RandomGenerator.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="SampleCollector.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessManager.h">
+      <Filter>PostProcess</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -240,14 +255,17 @@
     <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneCombineShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Common\ImageFilter\ImageFilterCommon.hlsl">
-      <Filter>ImageFilter</Filter>
+    <FxCompile Include="Resources\ImageFilter\BlitShader.hlsl">
+      <Filter>PostProcess\ImageFilter</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Common\ImageFilter\GaussianBlurShader.hlsl">
-      <Filter>ImageFilter</Filter>
+    <FxCompile Include="Resources\ImageFilter\ConvolutionShader.hlsl">
+      <Filter>PostProcess\ImageFilter</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Common\ImageFilter\MixShader.hlsl">
-      <Filter>ImageFilter</Filter>
+    <FxCompile Include="Resources\ImageFilter\ImageFilterCommon.hlsl">
+      <Filter>PostProcess\ImageFilter</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ImageFilter\MixShader.hlsl">
+      <Filter>PostProcess\ImageFilter</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -114,8 +114,8 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
         ImGui::Text("mouse delta wheel: %.1f", dWheel);
         for (const eMouseButton e: kMouseButtonRanges)
         {
-            const Int32  idx    = UnderlyingFrom(e);
-            const eMouse button = kMouseButtons[idx];
+            const Int32  index    = UnderlyingFrom(e);
+            const eMouse button = kMouseButtons[index];
             eMouseState  state  = eMouseState::Away;
 
             if (GetInput().IsMousePressed(button))
@@ -131,7 +131,7 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
                 state = eMouseState::Released;
             }
 
-            ImGui::Text("mouse %s: %s", kMouseNames[idx], kMouseStateNames[UnderlyingFrom(state)]);
+            ImGui::Text("mouse %s: %s", kMouseNames[index], kMouseStateNames[UnderlyingFrom(state)]);
         }
 
         ImGui::Text("mouse visible: %s", bVisible ? "true" : "false");

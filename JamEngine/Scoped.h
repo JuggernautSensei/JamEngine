@@ -319,9 +319,9 @@ public:
         swap(m_deleter, _other.m_deleter);
     }
 
-    [[nodiscard]] T& operator[](std::size_t _idx) const
+    [[nodiscard]] T& operator[](std::size_t _index) const
     {
-        return m_ptr[_idx];
+        return m_ptr[_index];
     }
 
     explicit operator bool() const noexcept

@@ -1,5 +1,7 @@
 #pragma once
 
+////////// SAMPLER FLAGS /////////////////////////////////////////////////////////////////////////
+
 constexpr Flags<eSamplerFlags> kLinearWrap =
     eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear
     | eSamplerFlags::AddressU_Wrap
@@ -11,6 +13,13 @@ constexpr Flags<eSamplerFlags> kLinearClamp =
     | eSamplerFlags::AddressU_Clamp
     | eSamplerFlags::AddressV_Clamp
     | eSamplerFlags::AddressW_Clamp;
+
+constexpr Flags<eSamplerFlags> kShadowComparison =
+    eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear
+    | eSamplerFlags::AddressU_Clamp
+    | eSamplerFlags::AddressV_Clamp
+    | eSamplerFlags::AddressW_Clamp
+    | eSamplerFlags::CompareFunc_LessEqual;
 
 ////////// RENDER FLAGS /////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +42,10 @@ constexpr Flags<eRenderFlags> kBackCull =
 constexpr Flags<eRenderFlags> kSkyboxRenderFlags =
     eRenderFlags::DepthFunc_LessEqual
     | eRenderFlags::DepthWrite
+    | eRenderFlags::CullMode_Front;
+
+constexpr Flags<eRenderFlags> kShadowCast =
+    eRenderFlags::DepthFunc_Less
     | eRenderFlags::CullMode_Front;
 
 ////////// BLEND STATE /////////////////////////////////////////////////////////////////////////

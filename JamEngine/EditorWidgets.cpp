@@ -396,9 +396,9 @@ void Widget_ImageFrame(
     const bool          _bBorder)
 {
     JAM_ASSERT(_pTexture, "Texture is null");
-    const Vec2i  texRes  = _pTexture->GetResolution();
-    const ImVec2 texSize = { static_cast<float>(texRes.x), static_cast<float>(texRes.y) };
-    Widget_ImageFrame(ImTextureRefFrom(_pTexture), texSize, _frameSize, _uv0, _uv1, _bgCol, _bBorder);
+    const TextureInfo& info = _pTexture->GetInfo();
+    const ImVec2       size = { static_cast<float>(info.width), static_cast<float>(info.height) };
+    Widget_ImageFrame(PackToImTextureRef(_pTexture), size, _frameSize, _uv0, _uv1, _bgCol, _bBorder);
 }
 
 void WidgetInfiniteDragger::OnAfterWidget()
@@ -448,7 +448,7 @@ ImTextureProxy::ImTextureProxy() = default;
 
 ImTextureProxy::ImTextureProxy(
     const Ref<Texture>& _pTexture)
-    : texture(ImTextureRefFrom(_pTexture))
+    : texture(PackToImTextureRef(_pTexture))
 {
     JAM_ASSERT(_pTexture, "Invalid texture passed to ImTextureProxy");
     JAM_ASSERT(_pTexture->IsValid(), "Invalid texture passed to ImTextureProxy");
@@ -462,7 +462,7 @@ ImTextureProxy::ImTextureProxy(
 
 ImTextureProxy::ImTextureProxy(
     const TextureHandle _texh)
-    : texture(ImTextureRefFrom(_texh))
+    : texture(PackToImTextureRef(_texh))
 {
 }
 
@@ -1120,24 +1120,25 @@ bool Widget_TexturePicker(
     {
         if (_pTexture)
         {
-            StackString<1024>  tmp;
-            const TextureInfo& info = GetGraphics().GetTextureInfo(_pTexture->GetHandle());
+            StackString<1024> tmp;
+
+            const TextureInfo& info = _pTexture->GetInfo();
+
             tmp.Format("path: {}\n"
                        "resolution: {} x {} x {}\n"
                        "type: {}\n"
                        "format: {}\n"
-                       "array size: {}\n"
-                       "samples: {}\n"
-                       "num mips: {}\n",
+                       "number of mips: {}\n",
+                       "number of layers: {}",
                        _pTexture->GetPath(),
                        info.width,
                        info.height,
                        info.depth,
                        NameOf(info.type),
                        NameOf(info.format),
-                       info.arraySize,
-                       info.samples,
-                       info.numMips);
+                       info.numMips,
+                       info.numLayers);
+
             ImGui::TextUnformatted(tmp.GetPtr());
         }
         else
@@ -1457,20 +1458,20 @@ bool Widget_EnumToggle(
     const float  btnWidth = bb.GetWidth() / static_cast<float>(_items.size());
     const ImVec2 btnSize  = { btnWidth, bb.GetHeight() };
     bool         bChanged = false;
-    Int32        idx      = 0;
+    Int32        index    = 0;
     Int32        curIdx   = 0;
     for (const EnumWidgetItem& item: _items)
     {
-        const ImVec2  btnP0 = { bb.Min.x + btnWidth * static_cast<float>(idx), bb.Min.y };
+        const ImVec2  btnP0 = { bb.Min.x + btnWidth * static_cast<float>(index), bb.Min.y };
         const ImVec2  btnP1 = btnP0 + btnSize;
         const ImRect  btnBb = { btnP0, btnP1 };
-        const ImGuiID btnId = pWin->GetID(idx);
+        const ImGuiID btnId = pWin->GetID(index);
 
         bool bSelected = false;
         if (_curItem.value == item.value)
         {
             bSelected = true;
-            curIdx    = idx;
+            curIdx    = index;
         }
 
         bool       bHovered = false;
@@ -1491,7 +1492,7 @@ bool Widget_EnumToggle(
         ImGui::RenderNavCursor(btnBb, btnId);
         ImGui::RenderFrame(btnBb.Min, btnBb.Max, col, true, style.FrameRounding);
         ImGui::RenderTextClipped(btnBb.Min + style.FramePadding, btnBb.Max - style.FramePadding, item.name, nullptr, nullptr, style.ButtonTextAlign, &btnBb);
-        ++idx;
+        ++index;
     }
 
     ImGui::PopID();

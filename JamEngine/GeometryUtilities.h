@@ -96,9 +96,9 @@ class IndexWriter
 {
 public:
     IndexWriter(
-        const MutableMemoryView _idxData,
+        const MutableMemoryView _indexData,
         const bool              _bUseU32)
-        : m_mem(_idxData)
+        : m_mem(_indexData)
         , m_bU32(_bUseU32)
     {
     }
@@ -106,20 +106,20 @@ public:
     template<typename T>
         requires(std::is_integral_v<T>)
     void WriteAt(
-        const SizeT _idxIdx,
+        const SizeT _indexIdx,
         const T     _value) const
     {
         if (m_bU32)
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
-            const UInt32 idx = static_cast<UInt32>(_value);
-            std::memcpy(m_mem.GetPtr() + _idxIdx * sizeof(UInt32), &idx, sizeof(UInt32));
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
+            const UInt32 index = static_cast<UInt32>(_value);
+            std::memcpy(m_mem.GetPtr() + _indexIdx * sizeof(UInt32), &index, sizeof(UInt32));
         }
         else
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
-            const UInt16 idx = static_cast<UInt16>(_value);
-            std::memcpy(m_mem.GetPtr() + _idxIdx * sizeof(UInt16), &idx, sizeof(UInt16));
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
+            const UInt16 index = static_cast<UInt16>(_value);
+            std::memcpy(m_mem.GetPtr() + _indexIdx * sizeof(UInt16), &index, sizeof(UInt16));
         }
     }
 
@@ -132,9 +132,9 @@ class IndexReader
 {
 public:
     IndexReader(
-        const MemoryView _idxData,
+        const MemoryView _indexData,
         const bool       _bUseU32)
-        : m_mem(_idxData)
+        : m_mem(_indexData)
         , m_bU32(_bUseU32)
     {
     }
@@ -142,21 +142,21 @@ public:
     template<typename T>
         requires(std::is_integral_v<T>)
     T ReadAt(
-        const SizeT _idxIdx) const
+        const SizeT _indexIdx) const
     {
         if (m_bU32)
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_idxIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
-            UInt32 idx = 0;
-            std::memcpy(&idx, m_mem.GetPtr() + _idxIdx * sizeof(UInt32), sizeof(UInt32));
-            return static_cast<T>(idx);
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt32)), "Index out of bounds in index buffer.");
+            UInt32 index = 0;
+            std::memcpy(&index, m_mem.GetPtr() + _indexIdx * sizeof(UInt32), sizeof(UInt32));
+            return static_cast<T>(index);
         }
         else
         {
-            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_idxIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
-            UInt16 idx = 0;
-            std::memcpy(&idx, m_mem.GetPtr() + _idxIdx * sizeof(UInt16), sizeof(UInt16));
-            return static_cast<T>(idx);
+            JAM_ASSERT(m_mem.GetByteWidth() >= static_cast<SizeT>((_indexIdx + 1) * sizeof(UInt16)), "Index out of bounds in index buffer.");
+            UInt16 index = 0;
+            std::memcpy(&index, m_mem.GetPtr() + _indexIdx * sizeof(UInt16), sizeof(UInt16));
+            return static_cast<T>(index);
         }
     }
 
@@ -165,7 +165,7 @@ private:
     bool       m_bU32 = false;
 };
 
-[[nodiscard]] Int32 CalcNumIndices(MemoryView _idxData, bool _bUseU32) noexcept;
+[[nodiscard]] Int32 CalcNumIndices(MemoryView _indexData, bool _bUseU32) noexcept;
 [[nodiscard]] Int32 CalcNumVertices(MemoryView _vertData, const VertexLayout& _vl) noexcept;
 [[nodiscard]] Int32 CalcIndicesByteWidth(Int32 _numIdxes, bool _bUseU32) noexcept;
 

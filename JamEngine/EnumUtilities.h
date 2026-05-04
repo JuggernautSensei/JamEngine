@@ -18,7 +18,7 @@ namespace Details
 
     // config
     constexpr SizeT kEnumReflectionRangeMin   = 0;   // < if you need negative enum values, change this m_value accordingly
-    constexpr SizeT kEnumReflectionRangeMax   = 127;
+    constexpr SizeT kEnumReflectionRangeMax   = 255;
     constexpr SizeT kEnumReflectionRange      = kEnumReflectionRangeMax - kEnumReflectionRangeMin + 1;
     constexpr SizeT kEnumReflectionInvalidSeq = -1;
 

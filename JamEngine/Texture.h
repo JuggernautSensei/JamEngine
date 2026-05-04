@@ -30,9 +30,8 @@ public:
     [[nodiscard]] StringView GetExtension() const override;
     [[nodiscard]] StringView GetFilter() const override;
 
-    [[nodiscard]] TextureHandle GetHandle() const;
-    [[nodiscard]] Vec2i         GetResolution() const;
-    [[nodiscard]] eTexture      GetTextureType() const;
+    [[nodiscard]] TextureHandle      GetHandle() const;
+    [[nodiscard]] const TextureInfo& GetInfo() const;
 
     void Bind(eShader _shader, Int32 _slot) const;
     void Unbind(eShader _shader, Int32 _slot) const;
@@ -52,8 +51,7 @@ private:
     String        m_path = {};
     String        m_name = {};
     TextureHandle m_texh = kInvalidHandle;
-    Vec2i         m_res  = { 0, 0 };
-    eTexture      m_type = eTexture::Texture2D;
+    TextureInfo   m_info = {};
 };
 
 void  WriteToArchive(ArchiveWriter& _archive, const Ref<Texture>& _pTexture);

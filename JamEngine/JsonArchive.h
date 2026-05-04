@@ -111,7 +111,7 @@ public:
     [[nodiscard]] static Expect<JsonReader> ParseFromFile(StringView _path, Flags<eJsonReadFlags> _flags = {});
 
     Error EnterField(StringView _key) override;
-    Error EnterAt(SizeT _idx) override;
+    Error EnterAt(SizeT _index) override;
     void  Exit() override;
 
     SizeT GetSize() const override;

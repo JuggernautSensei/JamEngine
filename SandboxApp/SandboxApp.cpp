@@ -10,6 +10,7 @@
 #include "InstancingScene.h"
 #include "MultiVertexStreamScene.h"
 #include "PBRScene.h"
+#include "PostProcessManager.h"
 #include "ShadowMappingScene.h"
 #include "TextureMappingScene.h"
 
@@ -26,8 +27,11 @@ void SandboxApp::Init(
         JAM_LOG_INFO("Command line argument {}: '{}'", i, arg);
     }
 
-    SetVsync(false);
-    GetWindowsPlatform().AdjustClientRect(100, 100, 1600, 900);
+    PostProcessManager::CreateInstance();
+
+    SetVsync(true);
+    WindowsPlatform& win = GetWindowsPlatform();
+    win.AdjustClientRect(100, 100, 1600, 900);
 
 #define CASE(_m)                          \
     case String::Hashed32(#_m):           \
@@ -56,4 +60,9 @@ void SandboxApp::Init(
     }
 
 #undef CASE
+}
+
+void SandboxApp::Shutdown()
+{
+    PostProcessManager::DestroyInstance();
 }

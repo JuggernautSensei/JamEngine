@@ -17,11 +17,11 @@ namespace
         const Span<const Vec3> _positions,
         const Span<const Vec2> _texCoordsOrEmpty,
         const VertexLayout&    _attribLayoutOrEmpty,
-        const MemoryView       _idxData,
+        const MemoryView       _indexData,
         const bool             _bUseU32)
     {
         JAM_ASSERT(!_positions.empty(), "Position data is empty.");
-        JAM_ASSERT(!_idxData.IsEmpty(), "Index data is empty.");
+        JAM_ASSERT(!_indexData.IsEmpty(), "Index data is empty.");
         JAM_ASSERT(!_attribLayoutOrEmpty.Has(eVertexAttribute::Position), "Position attribute should not be included in the vertex layout, as it is provided separately.");
 
         const bool bPosOnly      = _attribLayoutOrEmpty.IsEmpty();
@@ -33,7 +33,7 @@ namespace
         Vector<Vec3> normals = {};
         if (bHasNormal)
         {
-            normals = ComputeNormals(_positions, _idxData, _bUseU32);
+            normals = ComputeNormals(_positions, _indexData, _bUseU32);
         }
 
         TangentFrame tangentFrame = {};
@@ -42,12 +42,12 @@ namespace
             JAM_ASSERT(bHasTexCoord, "TexCoord0 attribute is required to compute tangents and bitangents.");
             JAM_ASSERT(!_texCoordsOrEmpty.empty(), "TexCoord0 data is required to compute tangents and bitangents.");
             JAM_ASSERT(!normals.empty(), "Normals must be computed before computing tangents and bitangents.");
-            tangentFrame = ComputeTangentFrame(_positions, normals, _texCoordsOrEmpty, _idxData, _bUseU32);
+            tangentFrame = ComputeTangentFrame(_positions, normals, _texCoordsOrEmpty, _indexData, _bUseU32);
         }
 
         if (bPosOnly)
         {
-            return Mesh::Load(_positions, _idxData);
+            return Mesh::Load(_positions, _indexData);
         }
         else
         {
@@ -70,7 +70,7 @@ namespace
                     vertWriter.WriteAt(i, eVertexAttribute::TexCoord0, _texCoordsOrEmpty[i]);
             }
 
-            return Mesh::Load(_positions, attribData, _attribLayoutOrEmpty, _idxData);
+            return Mesh::Load(_positions, attribData, _attribLayoutOrEmpty, _indexData);
         }
     }
 
@@ -409,12 +409,12 @@ Ref<Mesh> CreateCircleMesh(
         texcoords[i + 1] = Vec2 { (x / _radius + 1.f) * 0.5f, (z / _radius + 1.f) * 0.5f };
     }
 
-    Vector<UInt16> idxes(_numTri * 3);
+    Vector<UInt16> indices(_numTri * 3);
     for (Int32 i = 0; i < _numTri; ++i)
     {
-        idxes[i * 3 + 0] = 0;
-        idxes[i * 3 + 1] = (i + 1) % _numTri + 1;
-        idxes[i * 3 + 2] = i + 1;
+        indices[i * 3 + 0] = 0;
+        indices[i * 3 + 1] = (i + 1) % _numTri + 1;
+        indices[i * 3 + 2] = i + 1;
     }
 
     if (!_normal.IsEqualApprox(Vec3::kUp))
@@ -426,7 +426,7 @@ Ref<Mesh> CreateCircleMesh(
         }
     }
 
-    return CreateMesh_(positions, texcoords, _attribLayoutOrEmpty, idxes, false);
+    return CreateMesh_(positions, texcoords, _attribLayoutOrEmpty, indices, false);
 }
 Ref<Mesh> CreateConeMesh(
     const float           _height,
@@ -475,16 +475,16 @@ Ref<Mesh> CreateConeMesh(
         const float c   = Cos(rad);
         const float s   = Sin(rad);
 
-        const Int32 idx = i + _numTri + 1;
-        position[idx]   = Vec3 { c * _radius, baseY, s * _radius };
-        texcoords[idx]  = Vec2 { (c + 1.f) * 0.5f, (s + 1.f) * 0.5f };
+        const Int32 index = i + _numTri + 1;
+        position[index]   = Vec3 { c * _radius, baseY, s * _radius };
+        texcoords[index]  = Vec2 { (c + 1.f) * 0.5f, (s + 1.f) * 0.5f };
     }
 
     const Int32 baseCenterIdx = _numTri * 2 + 1;
     position[baseCenterIdx]   = Vec3 { 0.f, baseY, 0.f };
     texcoords[baseCenterIdx]  = Vec2 { 0.5f, 0.5f };
 
-    Vector<UInt16> idxes(_numTri * 6);
+    Vector<UInt16> indices(_numTri * 6);
     for (Int32 i = 0; i < _numTri; ++i)
     {
         const Int32 sideNext = (i + 1) % _numTri + 1;
@@ -492,13 +492,13 @@ Ref<Mesh> CreateConeMesh(
         const Int32 baseNext = (i + 1) % _numTri + _numTri + 1;
         const Int32 baseCurr = i + _numTri + 1;
 
-        idxes[i * 6 + 0] = 0;
-        idxes[i * 6 + 1] = sideNext;
-        idxes[i * 6 + 2] = sideCurr;
+        indices[i * 6 + 0] = 0;
+        indices[i * 6 + 1] = sideNext;
+        indices[i * 6 + 2] = sideCurr;
 
-        idxes[i * 6 + 3] = baseCenterIdx;
-        idxes[i * 6 + 4] = baseCurr;
-        idxes[i * 6 + 5] = baseNext;
+        indices[i * 6 + 3] = baseCenterIdx;
+        indices[i * 6 + 4] = baseCurr;
+        indices[i * 6 + 5] = baseNext;
     }
 
     if (!_normal.IsEqualApprox(Vec3::kUp))
@@ -510,7 +510,7 @@ Ref<Mesh> CreateConeMesh(
         }
     }
 
-    return CreateMesh_(position, texcoords, _attribLayoutOrEmpty, idxes, false);
+    return CreateMesh_(position, texcoords, _attribLayoutOrEmpty, indices, false);
 }
 
 Ref<Mesh> CreateCylinderMesh(
@@ -558,9 +558,9 @@ Ref<Mesh> CreateCylinderMesh(
         const float c   = Cos(rad);
         const float s   = Sin(rad);
 
-        const Int32 idx = i + _numTries;
-        position[idx]   = Vec3 { c * _radius, botY, s * _radius };
-        texcoords[idx]  = Vec2 { (c + 1.f) * 0.5f, (s + 1.f) * 0.5f };
+        const Int32 index = i + _numTries;
+        position[index]   = Vec3 { c * _radius, botY, s * _radius };
+        texcoords[index]  = Vec2 { (c + 1.f) * 0.5f, (s + 1.f) * 0.5f };
     }
 
     for (Int32 i = 0; i < _numTries; ++i)
@@ -569,9 +569,9 @@ Ref<Mesh> CreateCylinderMesh(
         const float c   = Cos(rad);
         const float s   = Sin(rad);
 
-        const Int32 idx = i + _numTries * 2;
-        position[idx]   = Vec3 { c * _radius, topY, s * _radius };
-        texcoords[idx]  = Vec2 { static_cast<float>(i) / static_cast<float>(_numTries), 1.f };
+        const Int32 index = i + _numTries * 2;
+        position[index]   = Vec3 { c * _radius, topY, s * _radius };
+        texcoords[index]  = Vec2 { static_cast<float>(i) / static_cast<float>(_numTries), 1.f };
     }
 
     for (Int32 i = 0; i < _numTries; ++i)
@@ -580,9 +580,9 @@ Ref<Mesh> CreateCylinderMesh(
         const float c   = Cos(rad);
         const float s   = Sin(rad);
 
-        const Int32 idx = i + _numTries * 3;
-        position[idx]   = Vec3 { c * _radius, botY, s * _radius };
-        texcoords[idx]  = Vec2 { static_cast<float>(i) / static_cast<float>(_numTries), 0.f };
+        const Int32 index = i + _numTries * 3;
+        position[index]   = Vec3 { c * _radius, botY, s * _radius };
+        texcoords[index]  = Vec2 { static_cast<float>(i) / static_cast<float>(_numTries), 0.f };
     }
 
     // top cap center
@@ -595,7 +595,7 @@ Ref<Mesh> CreateCylinderMesh(
     position[botCenterIdx]   = Vec3 { 0.f, botY, 0.f };
     texcoords[botCenterIdx]  = Vec2 { 0.5f, 0.5f };
 
-    Vector<UInt16> idxes(_numTries * 12);
+    Vector<UInt16> indices(_numTries * 12);
 
     const Int32 sideTopBase = _numTries * 2;
     const Int32 sideBotBase = _numTries * 3;
@@ -614,21 +614,21 @@ Ref<Mesh> CreateCylinderMesh(
         const Int32 bcCurr = i + _numTries;
         const Int32 bcNext = next + _numTries;
 
-        idxes[i * 12 + 0] = stCurr;
-        idxes[i * 12 + 1] = stNext;
-        idxes[i * 12 + 2] = sbCurr;
+        indices[i * 12 + 0] = stCurr;
+        indices[i * 12 + 1] = stNext;
+        indices[i * 12 + 2] = sbCurr;
 
-        idxes[i * 12 + 3] = stNext;
-        idxes[i * 12 + 4] = sbNext;
-        idxes[i * 12 + 5] = sbCurr;
+        indices[i * 12 + 3] = stNext;
+        indices[i * 12 + 4] = sbNext;
+        indices[i * 12 + 5] = sbCurr;
 
-        idxes[i * 12 + 6] = topCenterIdx;
-        idxes[i * 12 + 7] = tcNext;
-        idxes[i * 12 + 8] = tcCurr;
+        indices[i * 12 + 6] = topCenterIdx;
+        indices[i * 12 + 7] = tcNext;
+        indices[i * 12 + 8] = tcCurr;
 
-        idxes[i * 12 + 9]  = botCenterIdx;
-        idxes[i * 12 + 10] = bcCurr;
-        idxes[i * 12 + 11] = bcNext;
+        indices[i * 12 + 9]  = botCenterIdx;
+        indices[i * 12 + 10] = bcCurr;
+        indices[i * 12 + 11] = bcNext;
     }
 
     if (!_normal.IsEqualApprox(Vec3::kUp))
@@ -640,18 +640,18 @@ Ref<Mesh> CreateCylinderMesh(
         }
     }
 
-    return CreateMesh_(position, texcoords, _attribLayoutOrEmpty, idxes, false);
+    return CreateMesh_(position, texcoords, _attribLayoutOrEmpty, indices, false);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Vector<Vec3> ComputeNormals(
     const Span<const Vec3> _positions,
-    const MemoryView       _idxData,
+    const MemoryView       _indexData,
     const bool             _bUseU32)
 {
-    IndexReader indexReader { _idxData, _bUseU32 };
+    IndexReader indexReader { _indexData, _bUseU32 };
     const Int32 numVerts = static_cast<Int32>(_positions.size());
-    const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
+    const Int32 numIdxes = CalcNumIndices(_indexData, _bUseU32);
     const Int32 numFaces = numIdxes / 3;
 
     Vector<Vec3> tmpNormals(numVerts);
@@ -698,12 +698,12 @@ TangentFrame ComputeTangentFrame(
     const Span<const Vec3> _positions,
     const Span<const Vec3> _normals,
     const Span<const Vec2> _texCoords,
-    const MemoryView       _idxData,
+    const MemoryView       _indexData,
     const bool             _bUseU32)
 {
-    IndexReader indexReader { _idxData, _bUseU32 };
+    IndexReader indexReader { _indexData, _bUseU32 };
     const Int32 numVerts = static_cast<Int32>(_positions.size());
-    const Int32 numIdxes = CalcNumIndices(_idxData, _bUseU32);
+    const Int32 numIdxes = CalcNumIndices(_indexData, _bUseU32);
     const Int32 numFaces = numIdxes / 3;
 
     Vector<Vec3> tan1(numVerts);

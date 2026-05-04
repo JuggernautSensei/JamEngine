@@ -22,28 +22,43 @@ RenderGraph::~RenderGraph()
     Clear(eRenderGraphClearFlags::All);
 }
 
-RenderGraph::PassBuilder RenderGraph::AddPass(const StringView _name)
+RenderGraph::UtilityPassBuilder RenderGraph::AddUtilityPass(const StringView _name)
 {
     JAM_ASSERT(!HasPass_(_name), "Pass '{}' already exists.", _name);
-
     PassDesc& desc = m_descs.emplace_back();
     desc.name      = _name;
     m_bNeedCompile = true;
-    return PassBuilder { *this, desc };
+    return UtilityPassBuilder { *this, desc };
 }
 
-RenderGraph::PassBuilder RenderGraph::ModifyPass(const StringView _name)
+RenderGraph::UtilityPassBuilder RenderGraph::ModifyUtilityPass(const StringView _name)
 {
     PassDesc* pDesc = FindPassDesc_(_name);
     JAM_ASSERT(pDesc, "Pass '{}' not found.", _name);
     m_bNeedCompile = true;
-    return PassBuilder { *this, *pDesc };
+    return UtilityPassBuilder { *this, *pDesc };
+}
+
+RenderGraph::RenderPassBuilder RenderGraph::AddGraphicsPass(const StringView _name)
+{
+    JAM_ASSERT(!HasPass_(_name), "Pass '{}' already exists.", _name);
+    PassDesc& desc = m_descs.emplace_back();
+    desc.name      = _name;
+    m_bNeedCompile = true;
+    return RenderPassBuilder { *this, desc };
+}
+
+RenderGraph::RenderPassBuilder RenderGraph::ModifyGrphicsPass(const StringView _name)
+{
+    PassDesc* pDesc = FindPassDesc_(_name);
+    JAM_ASSERT(pDesc, "Pass '{}' not found.", _name);
+    m_bNeedCompile = true;
+    return RenderPassBuilder { *this, *pDesc };
 }
 
 RenderGraph::ComputePassBuilder RenderGraph::AddComputePass(const StringView _name)
 {
     JAM_ASSERT(!HasPass_(_name), "Pass '{}' already exists.", _name);
-
     PassDesc& desc = m_descs.emplace_back();
     desc.name      = _name;
     m_bNeedCompile = true;
@@ -64,82 +79,80 @@ void RenderGraph::RemovePass(const StringView _name)
     {
         JAM_ASSERT(0, "Pass '{}' not found.", _name);
     }
-
     m_bNeedCompile = true;
 }
 
-void RenderGraph::CompileIfNeed_()
+////////// 컴파일 //////////
+
+void RenderGraph::CompileIfNeed_(const Int32 _width, const Int32 _height)
 {
     JAM_ASSERT(!m_descs.empty(), "RenderGraph must have at least one pass.");
 
-    ////////// 불필요한 컴파일 방지 //////////
+    Graphics&  gfx         = GetGraphics();
+    const bool bNeedResize = (m_lastWidth != _width) || (m_lastHeight != _height);
 
-    Graphics&   gfx         = GetGraphics();
-    const Vec2i res         = gfx.GetBackBufferResolution();
-    const bool  bNeedResize = (m_lastWidth != res.x) || (m_lastHeight != res.y);
     if (!m_bNeedCompile && !bNeedResize)
     {
         return;
     }
 
-    ////////// 필요시 텍스처 리사이즈 //////////
+    ////////// 텍스처/프레임버퍼 리사이즈 //////////
 
     if (bNeedResize)
     {
         JAM_FUNCTION_MSG_PROFILE("Resize Textures");
 
-        m_lastWidth  = res.w;
-        m_lastHeight = res.h;
+        m_lastWidth  = _width;
+        m_lastHeight = _height;
 
-        // 텍스처 리사이즈
         for (TextureResource& tex: m_textures | std::views::values)
         {
-            // 소유권이 없거나 자동 리사이즈가 아닌 텍스처는 건너뜀
             if (!tex.bHasOwnership || !tex.bAutoResize)
             {
                 continue;
             }
 
-            const Int32 width  = static_cast<Int32>(Ceil(res.w * tex.resizeScale));
-            const Int32 height = static_cast<Int32>(Ceil(res.h * tex.resizeScale));
+            const Int32 width  = static_cast<Int32>(Ceil(_width * tex.resizeScale));
+            const Int32 height = static_cast<Int32>(Ceil(_height * tex.resizeScale));
             JAM_ASSERT(width > 0 && height > 0, "Auto-resize produced invalid size ({}, {}) for '{}'.", width, height, tex.name);
             JAM_DESTROY_TEXTURE(tex.handle);
             tex.handle = gfx.CreateTexture2D(width, height, tex.format, false, tex.arraySize, tex.flags);
         }
 
-        // 프레임버퍼 재생성
-
-        for (FrameBufferResource& fb: m_frameBuffers | std::views::values)
+        for (FrameBufferResource& fbRes: m_frameBuffers | std::views::values)
         {
-            // 소유권이 없으면 재생성하지않음
-            if (!fb.bHasOwnership || !fb.bAutoResize)
+            if (!fbRes.bHasOwnership || !fbRes.bAutoResize)
             {
                 continue;
             }
 
-            // 프레임버퍼 생성
-            Array<TextureHandle, kMaxNumAttachmentSlots> attachments;
-            for (Int32 i = 0; i < fb.numAttachments; ++i)
+            Array<Attachment, kMaxNumAttachmentSlots> attachments;
+            Int32                                     numAttachment = 0;
+
+            for (Int32 i = 0; i < fbRes.numRenderTargets; ++i)
             {
-                const TextureResource& texRes = m_textures.at(fb.attachments[i]);
-                attachments[i]                = texRes.handle;
+                const StringView name           = fbRes.attachments[i];
+                attachments[numAttachment].texh = m_textures.at(name).handle;
+                ++numAttachment;
             }
 
-            JAM_DESTROY_FRAME_BUFFER(fb.handle);
-            fb.handle = gfx.CreateFrameBuffer({ attachments.data(), fb.numAttachments }, false);
+            if (fbRes.bHasDepthStencil)
+            {
+                const String name               = fbRes.attachments[kMaxNumRenderTargetViewSlots];
+                attachments[numAttachment].texh = m_textures.at(name).handle;
+                ++numAttachment;
+            }
+
+            JAM_DESTROY_FRAME_BUFFER(fbRes.handle);
+            fbRes.handle = gfx.CreateFrameBuffer({ attachments.data(), numAttachment }, false);
         }
     }
 
-    ////////// 만약 리사이즈만 했다면 재컴파일은 불필요 //////////
-
+    // 리사이즈만 발생한 경우, 패스 구조는 그대로이므로 핸들 값만 갱신
     if (bNeedResize && !m_bNeedCompile)
     {
         JAM_FUNCTION_MSG_PROFILE("Not Compile Resize Only");
 
-        // 이미 컴파일된 패스 리스트를 수정할 필요가 없기에
-        // 컴파일된 패스의 텍스처와 프레임버퍼 핸들만 갱신해주면 됨
-
-        // Pass 갱신
         for (Pass& pass: m_runtimePasses)
         {
             for (ResourceBindCommand& cmd: pass.readBindCmds)
@@ -159,15 +172,15 @@ void RenderGraph::CompileIfNeed_()
             }
 
             PassDesc* pDesc = pass.pDesc;
-            if (!pDesc->bIsComputePass)
+            if (pDesc->type == ePass::Render)
             {
                 if (pDesc->frameBufferName.IsEmpty())
                 {
                     pDesc->fbh = kInvalidHandle;
-
-                    if (pDesc->bUseViewportFromFrameBufferResoulution)
+                    if (pDesc->bUseFrameBufferResolutionForViewport)
                     {
-                        pDesc->viewport = Viewport { static_cast<UInt16>(res.w), static_cast<UInt16>(res.h) };
+                        pDesc->viewport.w = static_cast<UInt16>(_width);
+                        pDesc->viewport.h = static_cast<UInt16>(_height);
                     }
                 }
                 else
@@ -175,12 +188,11 @@ void RenderGraph::CompileIfNeed_()
                     const FrameBufferResource& fbRes = m_frameBuffers.at(pDesc->frameBufferName);
                     pDesc->fbh                       = fbRes.handle;
 
-                    if (pDesc->bUseViewportFromFrameBufferResoulution)
+                    if (pDesc->bUseFrameBufferResolutionForViewport)
                     {
-                        const FrameBufferInfo& fbInfo  = gfx.GetFrameBufferInfo(pDesc->fbh);
-                        const TextureHandle    texh    = fbInfo.bHasDepthStencil ? fbInfo.depthStencilTexh : fbInfo.renderTargetTexhs[0];
-                        const TextureInfo&     texInfo = gfx.GetTextureInfo(texh);
-                        pDesc->viewport                = Viewport { static_cast<UInt16>(texInfo.width), static_cast<UInt16>(texInfo.height) };
+                        const Vec3i resolution = gfx.GetFrameBufferResolution(pDesc->fbh);
+                        pDesc->viewport.w      = static_cast<UInt16>(resolution.width);
+                        pDesc->viewport.h      = static_cast<UInt16>(resolution.height);
                     }
                 }
             }
@@ -191,125 +203,106 @@ void RenderGraph::CompileIfNeed_()
 
     JAM_FUNCTION_MSG_PROFILE("Compile RenderGraph");
 
-    ////////// PassDesc에 실제 리소스 매핑 //////////
+    ////////// 실제 리소스 핸들 매핑 //////////
 
     for (PassDesc& desc: m_descs)
     {
-        if (!desc.bEnable)   // 비활성화 패스는 패스
+        if (!desc.bEnable)
         {
             continue;
         }
 
-        // graphics pass
         if (!desc.programName.IsEmpty())
         {
-            const ProgramResource& program = m_programs.at(desc.programName);
-            desc.ph                        = program.handle;
+            desc.ph = m_programs.at(desc.programName).handle;
         }
 
-        // compute pass
         if (!desc.computeProgramName.IsEmpty())
         {
-            const ProgramResource& program = m_programs.at(desc.computeProgramName);
-            desc.computePh                 = program.handle;
+            desc.computePh = m_programs.at(desc.computeProgramName).handle;
         }
 
-        // 쓰기 정보 갱신
         desc.writeResources.clear();
-        if (!desc.bIsComputePass)
+        if (desc.type == ePass::Render)
         {
             if (desc.frameBufferName.IsEmpty())
             {
                 desc.fbh = kInvalidHandle;
-
-                if (desc.bUseViewportFromFrameBufferResoulution)
+                if (desc.bUseFrameBufferResolutionForViewport)
                 {
-                    desc.viewport = Viewport { static_cast<UInt16>(res.w), static_cast<UInt16>(res.h) };
+                    desc.viewport.w = static_cast<UInt16>(_width);
+                    desc.viewport.h = static_cast<UInt16>(_height);
                 }
             }
-            else   // 백버퍼를 사용
+            else
             {
                 const FrameBufferResource& fbRes = m_frameBuffers.at(desc.frameBufferName);
                 desc.fbh                         = fbRes.handle;
 
-                // 뷰포트 갱신
-                if (desc.bUseViewportFromFrameBufferResoulution)
+                if (desc.bUseFrameBufferResolutionForViewport)
                 {
-                    const FrameBufferInfo& fbInfo  = gfx.GetFrameBufferInfo(desc.fbh);
-                    const TextureHandle    texh    = fbInfo.bHasDepthStencil ? fbInfo.depthStencilTexh : fbInfo.renderTargetTexhs[0];
-                    const TextureInfo&     texInfo = gfx.GetTextureInfo(texh);
-                    desc.viewport                  = Viewport { static_cast<UInt16>(texInfo.width), static_cast<UInt16>(texInfo.height) };
+                    const Vec3i resolution = gfx.GetFrameBufferResolution(desc.fbh);
+                    desc.viewport.w        = static_cast<UInt16>(resolution.width);
+                    desc.viewport.h        = static_cast<UInt16>(resolution.height);
                 }
 
-                // 룩업 갱신
-                desc.writeResources.reserve(fbRes.numAttachments);
-                for (Int32 i = 0; i < fbRes.numAttachments; ++i)
+                desc.writeResources.reserve(fbRes.numRenderTargets);
+                for (Int32 i = 0; i < fbRes.numRenderTargets; ++i)
                 {
                     desc.writeResources.insert(fbRes.attachments[i]);
+                }
+
+                if (fbRes.bHasDepthStencil)
+                {
+                    desc.writeResources.insert(fbRes.attachments[kMaxNumRenderTargetViewSlots]);
                 }
             }
         }
 
-        // 읽기 정보 갱신
         desc.readResources.clear();
         desc.readResources.reserve(desc.readBindCmds.size());
         for (ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
         {
-            // 바인드
             if (cmd.type == eShaderResource::Texture)
             {
-                const TextureResource& texRes = m_textures.at(cmd.name);
-                cmd.handleValue               = texRes.handle.GetValue();
+                cmd.handleValue = m_textures.at(cmd.name).handle.GetValue();
             }
             else
             {
-                const StorageBufferResource& sbRes = m_storageBuffers.at(cmd.name);
-                cmd.handleValue                    = sbRes.handle.GetValue();
+                cmd.handleValue = m_storageBuffers.at(cmd.name).handle.GetValue();
             }
-
-            // 룩업
             desc.readResources.insert(cmd.name);
         }
 
-        // 읽고쓰기 정보 갱신
         desc.readWriteResources.clear();
         desc.readWriteResources.reserve(desc.readWriteBindCmds.size());
         for (ResourceBindCommand& cmd: desc.readWriteBindCmds | std::views::values)
         {
-            // 바인드
             if (cmd.type == eShaderResource::Texture)
             {
-                const TextureResource& texRes = m_textures.at(cmd.name);
-                cmd.handleValue               = texRes.handle.GetValue();
+                cmd.handleValue = m_textures.at(cmd.name).handle.GetValue();
             }
             else
             {
-                const StorageBufferResource& sbRes = m_storageBuffers.at(cmd.name);
-                cmd.handleValue                    = sbRes.handle.GetValue();
+                cmd.handleValue = m_storageBuffers.at(cmd.name).handle.GetValue();
             }
-
-            // 룩업
             desc.readWriteResources.insert(cmd.name);
         }
 
-        // 상수 버퍼 바인드
         for (ConstantBufferBindCommand& cmd: desc.cbufferBindCmds | std::views::values)
         {
-            const ConstantBufferResource& cbRes = m_cbuffers.at(cmd.name);
-            cmd.cbh                             = cbRes.handle;
+            cmd.cbh = m_cbuffers.at(cmd.name).handle;
         }
     }
 
-    ////////// 검증 ///////////
+    ////////// 디버그 검증 //////////
 
-    // 디버그 검증
-    // 한 패스에서 어떤 리소스가 읽기/쓰기/읽고쓰기 접근중 2개 이상으로 바인딩 하는중인가? -> 오류
     if (JAM_DEBUG_ENABLED)
     {
         StringHashMap<eResourceAccessEx> used = {};
         for (const PassDesc& desc: m_descs)
         {
-            if (!desc.bEnable)   // 비활성화 패스는 패스
+            if (!desc.bEnable)
             {
                 continue;
             }
@@ -320,34 +313,35 @@ void RenderGraph::CompileIfNeed_()
             for (const ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
             {
                 const auto it = used.find(cmd.name);
-                JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::Read, "Pass '{}' binds resource '{}' multiple times with different access types. A resource cannot be bound more than once in a pass, even if the bind types are different.", desc.name, cmd.name);
+                JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::Read, "Pass '{}' binds resource '{}' multiple times with different access types.", desc.name, cmd.name);
                 used[cmd.name] = eResourceAccessEx::Read;
             }
 
             for (const ResourceBindCommand& bind: desc.readWriteBindCmds | std::views::values)
             {
                 const auto it = used.find(bind.name);
-                JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::ReadWrite, "Pass '{}' binds resource '{}' multiple times with different access types. A resource cannot be bound more than once in a pass, even if the bind types are different.", desc.name, bind.name);
+                JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::ReadWrite, "Pass '{}' binds resource '{}' multiple times with different access types.", desc.name, bind.name);
                 used[bind.name] = eResourceAccessEx::ReadWrite;
             }
 
             for (const String& resource: desc.writeResources)
             {
                 const auto it = used.find(resource);
-                JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::Write, "Pass '{}' binds resource '{}' multiple times with different access types. A resource cannot be bound more than once in a pass, even if the bind types are different.", desc.name, resource);
+                JAM_ASSERT(it == used.end() || it->second == eResourceAccessEx::Write, "Pass '{}' binds resource '{}' multiple times with different access types.", desc.name, resource);
                 used[resource] = eResourceAccessEx::Write;
             }
         }
     }
 
-    // 의존성 그래프를 구성하고 죽은 Pass 제거 Culling
+    ////////// 의존성 그래프 구성 + 데드 패스 컬링 //////////
+
     {
-        // 어떤 리소스를 생성하는 모든 패스들을 수집
+        // 리소스를 생성(쓰기)하는 패스 집합
         StringHashMap<HashSet<Int32>> productors = {};
         for (Int32 i = 0; i < m_descs.size(); ++i)
         {
             const PassDesc& desc = m_descs[i];
-            if (!desc.bEnable)   // 비활성화 패스는 패스
+            if (!desc.bEnable)
             {
                 continue;
             }
@@ -363,17 +357,16 @@ void RenderGraph::CompileIfNeed_()
             }
         }
 
-        // 의존성 역방향 간선
+        // 역방향 의존성 간선 (i가 j의 출력을 읽으면, revGraph[i]에 j 추가)
         Vector<HashSet<Int32>> revGraph(m_descs.size());
         for (Int32 i = 0; i < m_descs.size(); ++i)
         {
             const PassDesc& desc = m_descs[i];
-            if (!desc.bEnable)   // 비활성화 패스는 패스
+            if (!desc.bEnable)
             {
                 continue;
             }
 
-            // Read Resources 의존성 검사
             for (const String& read: desc.readResources)
             {
                 const auto it = productors.find(read);
@@ -381,7 +374,7 @@ void RenderGraph::CompileIfNeed_()
                 {
                     for (const Int32 j: it->second)
                     {
-                        if (j != i)   // 자기 자신 제외 및 중복 간선 체크
+                        if (j != i)
                         {
                             revGraph[i].insert(j);
                         }
@@ -389,7 +382,6 @@ void RenderGraph::CompileIfNeed_()
                 }
             }
 
-            // ReadWrite Resources 의존성 검사
             for (const String& readWrite: desc.readWriteResources)
             {
                 const auto it = productors.find(readWrite);
@@ -397,7 +389,7 @@ void RenderGraph::CompileIfNeed_()
                 {
                     for (const Int32 j: it->second)
                     {
-                        if (j != i)   // 자기 자신 제외 및 중복 간선 체크
+                        if (j != i)
                         {
                             revGraph[i].insert(j);
                         }
@@ -406,7 +398,7 @@ void RenderGraph::CompileIfNeed_()
             }
         }
 
-        // 최종 출력 패스 수집. 부작용 패스도 최종 패스로 간주하여 제거되지 않도록 함.
+        // 최종 패스와 사이드이펙트 패스에서 역방향 BFS -> 살아남을 패스 마킹
         Vector<Int32> stack = {};
         for (Int32 i = 0; i < m_descs.size(); ++i)
         {
@@ -418,7 +410,6 @@ void RenderGraph::CompileIfNeed_()
         }
         JAM_ASSERT(!stack.empty(), "RenderGraph must have at least one final pass.");
 
-        // 역방향 탐색 후 컬링
         Vector<bool> survived(m_descs.size(), false);
         while (!stack.empty())
         {
@@ -441,7 +432,6 @@ void RenderGraph::CompileIfNeed_()
             }
         }
 
-        // 최종 패스
         m_runtimePasses.clear();
         for (Int32 i = 0; i < m_descs.size(); ++i)
         {
@@ -452,14 +442,11 @@ void RenderGraph::CompileIfNeed_()
         }
     }
 
-    // 패스와 패스 사이 리소스 해저드 해결 및 바인딩 최적화
-    // 가상 바인딩으로 직접 해저드 검출
-    // 현재 compiledPasses에는 PassDesc의 포인터만 존재하는 상태 -> 이를 채워줘야 함
+    ////////// 패스 간 리소스 헤저드 해결 + 바인딩 최적화 //////////
 
-    HashMap<Slot, String, SlotHasher>  readSlots      = {};
-    HashMap<Slot, String, SlotHasher>  readWriteSlots = {};
-    HashMap<Slot, String, SlotHasher>  cbufferSlots   = {};
-    HashMap<Slot, Sampler, SlotHasher> samplerSlots   = {};
+    // 두 번 순회하는 이유:
+    // 마지막 패스 종료 상태가 다음 프레임 첫 패스 시작 상태가 되어 충돌할 수 있음.
+    // 두 번째 순회의 unbind 리스트만 최종 결과로 사용. bind 커맨드는 첫 번째 순회에서만 수집.
 
     struct ResourceBindingState
     {
@@ -467,77 +454,75 @@ void RenderGraph::CompileIfNeed_()
         HashSet<Slot, SlotHasher> slots  = {};
     };
 
-    // 리소스별로 어떤 슬롯에 어떻게 바인딩 되어있는지 추적하는 맵
-    StringHashMap<ResourceBindingState> resourceBindingStates   = {};
-    HashSet<Slot, SlotHasher>           tmpReadUnbindSlots      = {};
-    HashSet<Slot, SlotHasher>           tmpReadWriteUnbindSlots = {};
+    HashMap<Slot, String, SlotHasher>  readSlots      = {};
+    HashMap<Slot, String, SlotHasher>  readWriteSlots = {};
+    HashMap<Slot, String, SlotHasher>  cbufferSlots   = {};
+    HashMap<Slot, Sampler, SlotHasher> samplerSlots   = {};
 
-    // 루프를 2회 도는 이유
-    // 첫 번째 프레임 Pass[i]와 두 번째 프레임 Pass[i-1]는 충돌할 수 있음
-    // 이걸 감지하기 위해선 2회 루프가 필요함
-    // 주의, 언바인드 리스트는 위와 같은 이유로 루프를 2회 돌면서 채우지만
-    // 바인드 커맨드는 첫 번째 루프에서만 채워야함.
-    // 바인드 커맨드는 중복된 명령을 허용하지 않는데, 루프를 2회 돌면서 채우게 되면, 마땅히 채워야할 명령어가 최적화되어 사라지는 문제가 발생함.
+    StringHashMap<ResourceBindingState> resourceBindingStates = {};
+
+    HashSet<Slot, SlotHasher> tmpReadUnbindSlots      = {};
+    HashSet<Slot, SlotHasher> tmpReadWriteUnbindSlots = {};
+
     const SizeT numPasses = m_runtimePasses.size();
     for (SizeT i = 0; i < numPasses * 2; ++i)
     {
         const bool      bIsFirstLoop  = i < numPasses;
         const bool      bIsSecondLoop = !bIsFirstLoop;
-        const SizeT     idx           = i % numPasses;
-        Pass&           pass          = m_runtimePasses[idx];
+        Pass&           pass          = m_runtimePasses[i % numPasses];
         const PassDesc& desc          = *pass.pDesc;
+
+        ////////// CB/Sampler 바인드 커맨드 수집 (첫 번째 순회에서만) //////////
 
         if (bIsFirstLoop)
         {
-            // constant buffer
             for (const ConstantBufferBindCommand& cmd: desc.cbufferBindCmds | std::views::values)
             {
                 const auto it = cbufferSlots.find(cmd.slot);
-                // 빈 슬롯이거나, 슬롯은 같지만 다른 상수 버퍼를 바인딩 하는 경우에만 바인드 커맨드를 추가함.
                 if (it == cbufferSlots.end() || it->second != cmd.name)
                 {
-                    cbufferSlots[cmd.slot] = cmd.name;
                     pass.cbufferBindCmds.push_back(cmd);
                 }
             }
 
-            // sampler state
             for (const SamplerFlagsBindCommand& cmd: desc.samplerBindCmds | std::views::values)
             {
                 const auto it = samplerSlots.find(cmd.slot);
-                // 빈 슬롯이거나, 슬롯은 같지만 다른 샘플러 상태를 바인딩 하는 경우에만 바인드 커맨드를 추가함.
                 if (it == samplerSlots.end() || it->second != cmd.state)
                 {
-                    samplerSlots[cmd.slot] = cmd.state;
                     pass.samplerBindCmds.push_back(cmd);
                 }
             }
         }
 
-        // init resource unbind helper
+        ////////// 충돌 검출 + unbind 슬롯 수집 //////////
+
         tmpReadUnbindSlots.clear();
         tmpReadWriteUnbindSlots.clear();
 
-        // read resource
         for (const ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
         {
-            const auto it      = resourceBindingStates.find(cmd.name);
             bool       bAddCmd = bIsFirstLoop;
-            if (it != resourceBindingStates.end())   // 해당 리소스가 이미 바인드 되어있는 경우
+            const auto it      = resourceBindingStates.find(cmd.name);
+            if (it != resourceBindingStates.end())
             {
                 const ResourceBindingState& state = it->second;
-                if (state.access == eResourceAccessEx::ReadWrite)
+                switch (state.access)
                 {
-                    // 기존 리소스가 rw로 바인딩 되어있었다면. 모든 rw 바인드 해제
-                    tmpReadWriteUnbindSlots.insert(state.slots.begin(), state.slots.end());
-                }
-                else if (state.access == eResourceAccessEx::Write)
-                {
-                    pass.bUnbindFrameBuffer = true;   // 프레임버퍼 언바인드
-                }
-                else if (state.access == eResourceAccessEx::Read && state.slots.contains(cmd.slot))   // 이미 같은 슬롯에 read로 바인딩 되어있다면, 굳이 바인드 커맨드를 추가할 필요 없음
-                {
-                    bAddCmd = false;
+                    case eResourceAccessEx::ReadWrite:
+                        tmpReadWriteUnbindSlots.insert(state.slots.begin(), state.slots.end());
+                        break;
+                    case eResourceAccessEx::Write:
+                        pass.bUnbindFrameBuffer = true;
+                        break;
+                    case eResourceAccessEx::Read:
+                        if (state.slots.contains(cmd.slot))
+                        {
+                            bAddCmd = false;
+                        }
+                        break;
+                    default:
+                        JAM_UNREACHABLE;
                 }
             }
 
@@ -547,26 +532,29 @@ void RenderGraph::CompileIfNeed_()
             }
         }
 
-        // readwrite resource
         for (const ResourceBindCommand& cmd: desc.readWriteBindCmds | std::views::values)
         {
-            const auto it      = resourceBindingStates.find(cmd.name);
             bool       bAddCmd = bIsFirstLoop;
-            if (it != resourceBindingStates.end())   // 해당 리소스가 이미 바인드 되어있는 경우
+            const auto it      = resourceBindingStates.find(cmd.name);
+            if (it != resourceBindingStates.end())
             {
                 const ResourceBindingState& state = it->second;
-                if (state.access == eResourceAccessEx::ReadWrite)
+                switch (state.access)
                 {
-                    // 기존 리소스가 rw로 바인딩 되어있었다면. 모든 rw 바인드 해제
-                    tmpReadWriteUnbindSlots.insert(state.slots.begin(), state.slots.end());
-                }
-                else if (state.access == eResourceAccessEx::Write)
-                {
-                    pass.bUnbindFrameBuffer = true;   // 프레임버퍼 언바인드
-                }
-                else if (state.access == eResourceAccessEx::Read && state.slots.contains(cmd.slot))   // 이미 같은 슬롯에 read로 바인딩 되어있다면, 굳이 바인드 커맨드를 추가할 필요 없음
-                {
-                    bAddCmd = false;
+                    case eResourceAccessEx::ReadWrite:
+                        tmpReadWriteUnbindSlots.insert(state.slots.begin(), state.slots.end());
+                        break;
+                    case eResourceAccessEx::Write:
+                        pass.bUnbindFrameBuffer = true;
+                        break;
+                    case eResourceAccessEx::Read:
+                        if (state.slots.contains(cmd.slot))
+                        {
+                            bAddCmd = false;
+                        }
+                        break;
+                    default:
+                        JAM_UNREACHABLE;
                 }
             }
 
@@ -576,100 +564,139 @@ void RenderGraph::CompileIfNeed_()
             }
         }
 
-        // write resource
         for (const String& write: desc.writeResources)
         {
             const auto it = resourceBindingStates.find(write);
-            if (it != resourceBindingStates.end())   // 해당 리소스가 이미 바인드 되어있는 경우
+            if (it == resourceBindingStates.end())
             {
-                const ResourceBindingState& state = it->second;
-                if (state.access == eResourceAccessEx::ReadWrite)
-                {
-                    // 기존 리소스가 rw로 바인딩 되어있었다면. 모든 rw 바인드 해제
+                continue;
+            }
+
+            const ResourceBindingState& state = it->second;
+            switch (state.access)
+            {
+                case eResourceAccessEx::ReadWrite:
                     tmpReadWriteUnbindSlots.insert(state.slots.begin(), state.slots.end());
-                }
-                else if (state.access == eResourceAccessEx::Read)
-                {
-                    // 기존에 read로 바인딩 되어있었다면, 모든 바인드 해제
+                    break;
+                case eResourceAccessEx::Read:
                     tmpReadUnbindSlots.insert(state.slots.begin(), state.slots.end());
-                }
+                    break;
+                case eResourceAccessEx::Write:
+                    JAM_ASSERT(state.slots.empty(), "write state must hold no tracked slots.");
+                    break;
+                default:
+                    JAM_UNREACHABLE;
             }
         }
 
-        // unbind 슬롯 갱신. 두 번째 루프의 unbind list가 최종
+        ////////// 두 번째 순회의 unbind 리스트만 패스에 기록 //////////
+
         if (bIsSecondLoop)
         {
+            pass.readUnbindSlots.reserve(tmpReadUnbindSlots.size());
             for (const Slot slot: tmpReadUnbindSlots)
             {
                 pass.readUnbindSlots.push_back(slot);
             }
 
+            pass.readWriteUnbindSlots.reserve(tmpReadWriteUnbindSlots.size());
             for (const Slot slot: tmpReadWriteUnbindSlots)
             {
                 pass.readWriteUnbindSlots.push_back(slot);
             }
         }
 
-        // 가상 unbind
+        ////////// 가상 unbind — 슬롯 추적 상태 갱신 //////////
 
-        // read resource unbind
-        for (const Slot slot: tmpReadUnbindSlots)
+        for (const Slot& slot: tmpReadUnbindSlots)
         {
-            // resource bind state 갱신
+            JAM_ASSERT(readSlots.contains(slot), "read slot must be tracked.");
             const String&         name  = readSlots.at(slot);
             ResourceBindingState& state = resourceBindingStates.at(name);
+            JAM_ASSERT(state.access == eResourceAccessEx::Read, "access kind must be Read for read-slot unbind.");
+            JAM_ASSERT(state.slots.contains(slot), "state slots must contain the unbinding slot.");
             state.slots.erase(slot);
             if (state.slots.empty())
             {
                 resourceBindingStates.erase(name);
             }
-
             readSlots.erase(slot);
         }
 
-        // readwrite resource unbind
-        for (const Slot slot: tmpReadWriteUnbindSlots)
+        for (const Slot& slot: tmpReadWriteUnbindSlots)
         {
-            // resource bind state 갱신
+            JAM_ASSERT(readWriteSlots.contains(slot), "readWrite slot must be tracked.");
             const String&         name  = readWriteSlots.at(slot);
             ResourceBindingState& state = resourceBindingStates.at(name);
+            JAM_ASSERT(state.access == eResourceAccessEx::ReadWrite, "access kind must be ReadWrite for rw-slot unbind.");
+            JAM_ASSERT(state.slots.contains(slot), "state slots must contain the unbinding slot.");
             state.slots.erase(slot);
             if (state.slots.empty())
             {
                 resourceBindingStates.erase(name);
             }
-
             readWriteSlots.erase(slot);
         }
 
-        // write resource unbind
         for (const String& write: desc.writeResources)
         {
             const auto it = resourceBindingStates.find(write);
             if (it != resourceBindingStates.end())
             {
+                JAM_ASSERT(it->second.slots.empty() || it->second.access == eResourceAccessEx::Write, "write resource '{}' still owns tracked slots before re-bind as write.", write);
                 resourceBindingStates.erase(it);
             }
         }
 
-        // 가상 bind
+        ////////// 가상 bind — 슬롯 추적 상태 갱신 //////////
+
         for (const ResourceBindCommand& cmd: desc.readBindCmds | std::views::values)
         {
-            readSlots[cmd.slot]                    = cmd.name;
-            resourceBindingStates[cmd.name].access = eResourceAccessEx::Read;
-            resourceBindingStates[cmd.name].slots.insert(cmd.slot);
+            const auto prevIt = readSlots.find(cmd.slot);
+            if (prevIt != readSlots.end() && prevIt->second != cmd.name)
+            {
+                ResourceBindingState& prevState = resourceBindingStates.at(prevIt->second);
+                JAM_ASSERT(prevState.access == eResourceAccessEx::Read, "previous occupant of read slot must be Read.");
+                JAM_ASSERT(prevState.slots.contains(cmd.slot), "previous occupant must own this slot.");
+                prevState.slots.erase(cmd.slot);
+                if (prevState.slots.empty())
+                {
+                    resourceBindingStates.erase(prevIt->second);
+                }
+            }
+
+            readSlots[cmd.slot]         = cmd.name;
+            ResourceBindingState& state = resourceBindingStates[cmd.name];
+            state.access                = eResourceAccessEx::Read;
+            state.slots.insert(cmd.slot);
         }
 
         for (const ResourceBindCommand& cmd: desc.readWriteBindCmds | std::views::values)
         {
-            readWriteSlots[cmd.slot]               = cmd.name;
-            resourceBindingStates[cmd.name].access = eResourceAccessEx::ReadWrite;
-            resourceBindingStates[cmd.name].slots.insert(cmd.slot);
+            const auto prevIt = readWriteSlots.find(cmd.slot);
+            if (prevIt != readWriteSlots.end() && prevIt->second != cmd.name)
+            {
+                ResourceBindingState& prevState = resourceBindingStates.at(prevIt->second);
+                JAM_ASSERT(prevState.access == eResourceAccessEx::ReadWrite, "previous occupant of rw slot must be ReadWrite.");
+                JAM_ASSERT(prevState.slots.contains(cmd.slot), "previous occupant must own this slot.");
+                prevState.slots.erase(cmd.slot);
+                if (prevState.slots.empty())
+                {
+                    resourceBindingStates.erase(prevIt->second);
+                }
+            }
+
+            readWriteSlots[cmd.slot]    = cmd.name;
+            ResourceBindingState& state = resourceBindingStates[cmd.name];
+            state.access                = eResourceAccessEx::ReadWrite;
+            state.slots.insert(cmd.slot);
         }
 
         for (const String& write: desc.writeResources)
         {
-            resourceBindingStates[write].access = eResourceAccessEx::Write;
+            ResourceBindingState& state = resourceBindingStates[write];
+            JAM_ASSERT(state.slots.empty(), "write resource '{}' must not own any read/rw slots when bound as write.", write);
+            state.access = eResourceAccessEx::Write;
         }
 
         for (const ConstantBufferBindCommand& cmd: desc.cbufferBindCmds | std::views::values)
@@ -684,7 +711,10 @@ void RenderGraph::CompileIfNeed_()
     }
 
     m_bNeedCompile = false;
+    gfx.Reset();
 }
+
+////////// 실행 //////////
 
 void RenderGraph::Execute()
 {
@@ -703,7 +733,7 @@ void RenderGraph::Execute_(
     const Viewport          _vp,
     const bool              _bUseExternalOutput)
 {
-    CompileIfNeed_();
+    CompileIfNeed_(_vp.w, _vp.h);
 
     Graphics&   gfx       = GetGraphics();
     const SizeT numPasses = m_runtimePasses.size();
@@ -713,9 +743,16 @@ void RenderGraph::Execute_(
         const Pass&     pass = m_runtimePasses[i];
         const PassDesc& desc = *pass.pDesc;
 
-        if (desc.computePh)
+        if (desc.type == ePass::Utility)
         {
-            ////////// 언바인드 //////////
+            if (desc.executor)
+            {
+                desc.executor();
+            }
+        }
+        else if (desc.type == ePass::Compute)
+        {
+            ////////// Compute Pass //////////
 
             bool bAnyUnbound = false;
             for (const Slot slot: pass.readUnbindSlots)
@@ -734,8 +771,6 @@ void RenderGraph::Execute_(
             {
                 gfx.Touch();
             }
-
-            ////////// 바인드 ///////////
 
             gfx.SetComputeProgram(desc.computePh);
 
@@ -777,7 +812,7 @@ void RenderGraph::Execute_(
         }
         else
         {
-            ////////// 언바인드 //////////
+            ////////// Render Pass //////////
 
             bool bAnyUnbind = false;
             for (const Slot& slot: pass.readUnbindSlots)
@@ -802,8 +837,6 @@ void RenderGraph::Execute_(
             {
                 gfx.Touch();
             }
-
-            ////////// 바인드 ///////////
 
             FrameBufferHandle fbh = desc.fbh;
             Viewport          vp  = desc.viewport;
@@ -873,7 +906,6 @@ void RenderGraph::Execute_(
                 }
             }
 
-            // 드로우 콜
             if (desc.executor)
             {
                 desc.executor();
@@ -881,6 +913,8 @@ void RenderGraph::Execute_(
         }
     }
 }
+
+////////// 리소스 관리 //////////
 
 void RenderGraph::AddTexture(
     const StringView    _name,
@@ -908,12 +942,12 @@ void RenderGraph::AddTexture2D(
     const Int32                      _width,
     const Int32                      _height,
     const eTextureFormat             _format,
-    const Int32                      _arraySize,
+    const Int32                      _numLayers,
     const Flags<eTextureCreateFlags> _flags,
     const Span<const MemoryView>     _initData)
 {
     Graphics&           gfx  = GetGraphics();
-    const TextureHandle texh = gfx.CreateTexture2D(_width, _height, _format, false, _arraySize, _flags, _initData);
+    const TextureHandle texh = gfx.CreateTexture2D(_width, _height, _format, false, _numLayers, _flags, _initData);
     AddTexture(_name, texh, true);
 }
 
@@ -921,7 +955,7 @@ void RenderGraph::AddTexture2D(
     const StringView                 _name,
     const float                      _resizeScale,
     const eTextureFormat             _format,
-    const Int32                      _arraySize,
+    const Int32                      _numLayers,
     const Flags<eTextureCreateFlags> _flags)
 {
     JAM_ASSERT(_resizeScale > 0.f, "resizeScale must be > 0 for '{}'.", _name);
@@ -931,13 +965,14 @@ void RenderGraph::AddTexture2D(
     {
         JAM_DESTROY_TEXTURE(res.handle);
     }
+
     res.name          = _name;
     res.handle        = kInvalidHandle;
     res.bHasOwnership = true;
     res.bAutoResize   = true;
     res.resizeScale   = _resizeScale;
     res.format        = _format;
-    res.arraySize     = _arraySize;
+    res.arraySize     = _numLayers;
     res.flags         = _flags;
     m_bNeedCompile    = true;
 }
@@ -994,6 +1029,8 @@ TextureHandle RenderGraph::FindTextureOrNull(const StringView _name) const
     return (it != m_textures.end()) ? it->second.handle : kInvalidHandle;
 }
 
+////////// 리소스 관리 — 상수 버퍼 //////////
+
 void RenderGraph::AddConstantBuffer(
     const StringView           _name,
     const ConstantBufferHandle _cbh,
@@ -1020,8 +1057,7 @@ void RenderGraph::AddConstantBuffer(
     AddConstantBuffer(_name, cbh, true);
 }
 
-void RenderGraph::RemoveConstantBuffer(
-    const StringView _name)
+void RenderGraph::RemoveConstantBuffer(const StringView _name)
 {
     const auto it = m_cbuffers.find(_name);
     JAM_ASSERT(it != m_cbuffers.end(), "ConstantBuffer '{}' not found.", _name);
@@ -1033,20 +1069,20 @@ void RenderGraph::RemoveConstantBuffer(
     m_bNeedCompile = true;
 }
 
-ConstantBufferHandle RenderGraph::GetConstantBuffer(
-    const StringView _name) const
+ConstantBufferHandle RenderGraph::GetConstantBuffer(const StringView _name) const
 {
     const ConstantBufferHandle h = FindConstantBufferOrNull(_name);
     JAM_ASSERT(h != kInvalidHandle, "ConstantBuffer '{}' not found.", _name);
     return h;
 }
 
-ConstantBufferHandle RenderGraph::FindConstantBufferOrNull(
-    const StringView _name) const
+ConstantBufferHandle RenderGraph::FindConstantBufferOrNull(const StringView _name) const
 {
     const auto it = m_cbuffers.find(_name);
     return (it != m_cbuffers.end()) ? it->second.handle : kInvalidHandle;
 }
+
+////////// 리소스 관리 — 스토리지 버퍼 //////////
 
 void RenderGraph::AddStorageBuffer(
     const StringView          _name,
@@ -1128,64 +1164,81 @@ StorageBufferHandle RenderGraph::FindStorageBufferOrNull(const StringView _name)
     return (it != m_storageBuffers.end()) ? it->second.handle : kInvalidHandle;
 }
 
+////////// 리소스 관리 — 프레임버퍼 //////////
+
 void RenderGraph::AddFrameBuffer(
     const StringView        _name,
     const FrameBufferHandle _fbh,
     const bool              _bOwnership)
 {
-    FrameBufferResource& res = m_frameBuffers[_name];
-    if (res.bHasOwnership)
+    FrameBufferResource& fbRes = m_frameBuffers[_name];
+    if (fbRes.bHasOwnership)
     {
-        JAM_DESTROY_FRAME_BUFFER(res.handle);
+        JAM_DESTROY_FRAME_BUFFER(fbRes.handle);
     }
-    res.name          = _name;
-    res.handle        = _fbh;
-    res.bHasOwnership = _bOwnership;
-    res.attachments.fill({});
-    res.numAttachments = 0;
-    res.bAutoResize    = false;
-    m_bNeedCompile     = true;
+    fbRes.name          = _name;
+    fbRes.handle        = _fbh;
+    fbRes.bHasOwnership = _bOwnership;
+    fbRes.attachments.fill({});
+    fbRes.numRenderTargets = 0;
+    fbRes.bHasDepthStencil = false;
+    fbRes.bAutoResize      = false;
+    m_bNeedCompile         = true;
 }
 
 void RenderGraph::AddFrameBuffer(
-    const StringView             _name,
-    const Span<const StringView> _attachments)
+    const StringView                       _name,
+    const Span<const RenderGraphAttahment> _attachments)
 {
     JAM_ASSERT(!_attachments.empty(), "FrameBuffer '{}' must have at least one attachment.", _name);
 
-    FrameBufferResource& res = m_frameBuffers[_name];
-    if (res.bHasOwnership)
+    FrameBufferResource& fbRes = m_frameBuffers[_name];
+    if (fbRes.bHasOwnership)
     {
-        JAM_DESTROY_FRAME_BUFFER(res.handle);
+        JAM_DESTROY_FRAME_BUFFER(fbRes.handle);
     }
 
-    res.name           = _name;
-    res.bHasOwnership  = true;
-    res.numAttachments = static_cast<Int32>(_attachments.size());
-    res.bAutoResize    = false;
+    fbRes.name          = _name;
+    fbRes.bHasOwnership = true;
+    fbRes.bAutoResize   = false;
 
-    Array<TextureHandle, kMaxNumAttachmentSlots> handles = {};
-    for (Int32 i = 0; i < res.numAttachments; ++i)
+    bool bHasDepthStecil = false;
+    for (const RenderGraphAttahment& attachment: _attachments)
     {
-        const StringView attachName = _attachments[i];
-        res.attachments[i]          = attachName;
-
-        const TextureResource& texRes = m_textures.at(attachName);
-        if (!texRes.bAutoResize)
+        const TextureResource& texRes = m_textures.at(attachment.name);
+        if (IsDepthFormat(texRes.format))
         {
-            JAM_ASSERT(texRes.handle, "Texture '{}' not found for attachment '{}' of FrameBuffer '{}'.", attachName, attachName, _name);
-            handles[i] = texRes.handle;
+            JAM_ASSERT(bHasDepthStecil == false, "FrameBuffer '{}' cannot have multiple depth/stencil attachments. Attachment '{}' is a duplicate.", _name, attachment.name);
+            bHasDepthStecil                                 = true;
+            fbRes.attachments[kDepthStencilAttachmentIndex] = attachment.name;
+        }
+        else
+        {
+            fbRes.attachments[fbRes.numRenderTargets++] = attachment.name;
         }
 
-        res.bAutoResize |= texRes.bAutoResize;
-        JAM_ASSERT(res.bAutoResize == texRes.bAutoResize, "All attachments of FrameBuffer '{}' must have the same auto-resize setting. Attachment '{}' has a different setting.", _name, attachName);
+        fbRes.bAutoResize |= texRes.bAutoResize;
+        JAM_ASSERT(fbRes.bAutoResize == texRes.bAutoResize, "All attachments of FrameBuffer '{}' must have the same auto-resize setting. Attachment '{}' differs.", _name, attachment.name);
     }
 
-    // auto resize인 경우 CompileIfNeed_ 함수에서 지연 생성
-    if (!res.bAutoResize)
+    // auto-resize인 경우 CompileIfNeed_ 에서 지연 생성. 아닐경우 즉시 생성
+    if (!fbRes.bAutoResize)
     {
+        Array<Attachment, kMaxNumAttachmentSlots> attachments    = {};
+        Int32                                     numAttachments = 0;
+        for (const RenderGraphAttahment& attachment: _attachments)
+        {
+            const TextureResource& texRes = m_textures.at(attachment.name);
+            JAM_ASSERT(texRes.handle != kInvalidHandle, "Texture '{}' for FrameBuffer '{}' is not created.", attachment.name, _name);
+            attachments[numAttachments].texh        = texRes.handle;
+            attachments[numAttachments].mipIndex    = attachment.mipIndex;
+            attachments[numAttachments].layerOffset = attachment.layerOffset;
+            attachments[numAttachments].numLayers   = attachment.numLayers;
+            ++numAttachments;
+        }
+
         Graphics& gfx = GetGraphics();
-        res.handle    = gfx.CreateFrameBuffer({ handles.data(), res.numAttachments }, false);
+        fbRes.handle  = gfx.CreateFrameBuffer({ attachments.data(), numAttachments }, false);
     }
     m_bNeedCompile = true;
 }
@@ -1194,12 +1247,12 @@ void RenderGraph::AddFrameBuffer(
     const StringView _name,
     const StringView _attachment)
 {
-    StringView attachments[] = { _attachment };
-    AddFrameBuffer(_name, attachments);
+    RenderGraphAttahment attahment[1] = {};
+    attahment[0].name                 = _attachment;
+    AddFrameBuffer(_name, attahment);
 }
 
-void RenderGraph::RemoveFrameBuffer(
-    const StringView _name)
+void RenderGraph::RemoveFrameBuffer(const StringView _name)
 {
     const auto it = m_frameBuffers.find(_name);
     JAM_ASSERT(it != m_frameBuffers.end(), "FrameBuffer '{}' not found.", _name);
@@ -1211,20 +1264,20 @@ void RenderGraph::RemoveFrameBuffer(
     m_bNeedCompile = true;
 }
 
-FrameBufferHandle RenderGraph::GetFrameBuffer(
-    const StringView _name) const
+FrameBufferHandle RenderGraph::GetFrameBuffer(const StringView _name) const
 {
     const FrameBufferHandle h = FindFrameBufferOrNull(_name);
     JAM_ASSERT(h != kInvalidHandle, "FrameBuffer '{}' not found.", _name);
     return h;
 }
 
-FrameBufferHandle RenderGraph::FindFrameBufferOrNull(
-    const StringView _name) const
+FrameBufferHandle RenderGraph::FindFrameBufferOrNull(const StringView _name) const
 {
     const auto it = m_frameBuffers.find(_name);
     return (it != m_frameBuffers.end()) ? it->second.handle : kInvalidHandle;
 }
+
+////////// 리소스 관리 — 셰이더 //////////
 
 void RenderGraph::AddShader(
     const StringView   _name,
@@ -1246,8 +1299,7 @@ void RenderGraph::AddShader(
     AddShader(_name, gfx.CreateShader(_bytecode), true);
 }
 
-void RenderGraph::RemoveShader(
-    const StringView _name)
+void RenderGraph::RemoveShader(const StringView _name)
 {
     const auto it = m_shaders.find(_name);
     JAM_ASSERT(it != m_shaders.end(), "Shader '{}' not found.", _name);
@@ -1259,20 +1311,20 @@ void RenderGraph::RemoveShader(
     m_bNeedCompile = true;
 }
 
-ShaderHandle RenderGraph::GetShader(
-    const StringView _name) const
+ShaderHandle RenderGraph::GetShader(const StringView _name) const
 {
     const ShaderHandle h = FindShaderOrNull(_name);
     JAM_ASSERT(h != kInvalidHandle, "Shader '{}' not found.", _name);
     return h;
 }
 
-ShaderHandle RenderGraph::FindShaderOrNull(
-    const StringView _name) const
+ShaderHandle RenderGraph::FindShaderOrNull(const StringView _name) const
 {
     const auto it = m_shaders.find(_name);
     return (it != m_shaders.end()) ? it->second.handle : kInvalidHandle;
 }
+
+////////// 리소스 관리 — 프로그램 //////////
 
 void RenderGraph::AddProgram(
     const StringView    _name,
@@ -1320,8 +1372,7 @@ void RenderGraph::AddComputeProgram(
     const StringView _csName)
 {
     const ShaderHandle  csh = GetShader(_csName);
-    Graphics&           gfx = GetGraphics();
-    const ProgramHandle ph  = gfx.CreateProgram(csh);
+    const ProgramHandle ph  = GetGraphics().CreateProgram(csh);
     AddProgram(_name, ph, true);
 }
 
@@ -1337,23 +1388,22 @@ void RenderGraph::RemoveProgram(StringView _name)
     m_bNeedCompile = true;
 }
 
-ProgramHandle RenderGraph::GetProgram(
-    const StringView _name) const
+ProgramHandle RenderGraph::GetProgram(const StringView _name) const
 {
     const ProgramHandle h = FindProgramOrNull(_name);
     JAM_ASSERT(h != kInvalidHandle, "Program '{}' not found.", _name);
     return h;
 }
 
-ProgramHandle RenderGraph::FindProgramOrNull(
-    const StringView _name) const
+ProgramHandle RenderGraph::FindProgramOrNull(const StringView _name) const
 {
     const auto it = m_programs.find(_name);
     return (it != m_programs.end()) ? it->second.handle : kInvalidHandle;
 }
 
-void RenderGraph::Clear(
-    const Flags<eRenderGraphClearFlags> _flags)
+////////// 전체 초기화 //////////
+
+void RenderGraph::Clear(const Flags<eRenderGraphClearFlags> _flags)
 {
     m_bNeedCompile = true;
 
@@ -1421,8 +1471,7 @@ void RenderGraph::Clear(
     }
 }
 
-RenderGraph::PassDesc* RenderGraph::FindPassDesc_(
-    const StringView name)
+RenderGraph::PassDesc* RenderGraph::FindPassDesc_(const StringView name)
 {
     const auto it = std::ranges::find_if(m_descs, [name](const PassDesc& _desc) { return _desc.name == name; });
     return (it != m_descs.end()) ? &(*it) : nullptr;
@@ -1433,98 +1482,114 @@ bool RenderGraph::HasPass_(StringView name) const
     return std::ranges::any_of(m_descs, [name](const PassDesc& pd) { return pd.name == name; });
 }
 
-////////// PASS BUILDER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////// UTILITY PASS BUILDER //////////
 
-RenderGraph::PassBuilder::PassBuilder(
+RenderGraph::UtilityPassBuilder::UtilityPassBuilder(RenderGraph& _graph, PassDesc& _desc)
+    : m_graph(_graph)
+    , m_desc(_desc)
+{
+    _desc.type        = ePass::Utility;
+    _desc.bSideEffect = true;
+}
+
+RenderGraph::UtilityPassBuilder& RenderGraph::UtilityPassBuilder::SetEnabled(const bool _bEnable)
+{
+    m_desc.bEnable = _bEnable;
+    return *this;
+}
+
+RenderGraph::UtilityPassBuilder& RenderGraph::UtilityPassBuilder::SetExecutor(const Delegate<void()>& _executor)
+{
+    JAM_ASSERT(_executor, "Executor cannot be null.");
+    m_desc.executor = _executor;
+    return *this;
+}
+
+////////// GRAPHICS PASS BUILDER //////////
+
+RenderGraph::RenderPassBuilder::RenderPassBuilder(
     RenderGraph& _graph,
     PassDesc&    _desc)
     : m_graph(_graph)
     , m_desc(_desc)
 {
+    m_desc.type = ePass::Render;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetProgram(const StringView _name)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetProgram(const StringView _name)
 {
     JAM_ASSERT(!_name.IsEmpty(), "Program name cannot be empty.");
-
     m_desc.programName = _name;
     m_desc.ph          = kInvalidHandle;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseProgram()
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseProgram()
 {
     m_desc.programName.Clear();
     m_desc.ph = kInvalidHandle;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetFrameBuffer(
-    const StringView _name)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetFrameBuffer(const StringView _name)
 {
     JAM_ASSERT(!_name.IsEmpty(), "FrameBuffer name cannot be empty.");
-
     m_desc.frameBufferName = _name;
     m_desc.fbh             = kInvalidHandle;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseFrameBuffer()
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseFrameBuffer()
 {
     m_desc.frameBufferName.Clear();
     m_desc.fbh = kInvalidHandle;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetViewport(
-    const Viewport _vp)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetViewport(const Viewport _vp)
 {
-    m_desc.viewport                               = _vp;
-    m_desc.bUseViewportFromFrameBufferResoulution = false;
+    m_desc.viewport                             = _vp;
+    m_desc.bUseFrameBufferResolutionForViewport = false;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetViewportFromFrameBufferResolution()
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetFrameBufferResolutionForViewport()
 {
-    m_desc.bUseViewportFromFrameBufferResoulution = true;
+    m_desc.bUseFrameBufferResolutionForViewport = true;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetScissorRect(const Rect _rect)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetScissorRect(const Rect _rect)
 {
     m_desc.scissorRect = _rect;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetAsFinalPass(
-    const bool _bEnable)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetAsFinalPass(const bool _bEnable)
 {
     m_desc.bFinalPass = _bEnable;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetUseExternalOutput(
-    const bool _bEnable)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetUseExternalOutput(const bool _bEnable)
 {
     m_desc.bUseExternalOutput = _bEnable;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetEnabled(
-    const bool _bEnable)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetEnabled(const bool _bEnable)
 {
     m_desc.bEnable = _bEnable;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetRenderFlags(
-    const Flags<eRenderFlags> _flags)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetRenderFlags(const Flags<eRenderFlags> _flags)
 {
     m_desc.renderFlags = _flags;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetStencilFlags(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetStencilFlags(
     const Flags<eStencilFlags> _fstencil,
     const Flags<eStencilFlags> _bstencil,
     const UInt8                _ref)
@@ -1535,7 +1600,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetStencilFlags(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendFlags(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetBlendFlags(
     const Flags<eBlendFlags> _flags,
     const Int32              _slot)
 {
@@ -1555,14 +1620,13 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendFlags(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBlendFactor(
-    const RGBA _factor)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetBlendFactor(const RGBA _factor)
 {
     m_desc.blendFactor = _factor;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetRenderTargetClearCommand(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetRenderTargetClearCommand(
     const RGBA  _color,
     const Int32 _slot)
 {
@@ -1581,8 +1645,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetRenderTargetClearCommand(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseRenderTargetCommand(
-    const Int32 _slot)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseRenderTargetCommand(const Int32 _slot)
 {
     for (Int32 i = 0; i < m_desc.numRenderTargetClearCmds; ++i)
     {
@@ -1598,33 +1661,48 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseRenderTargetCommand(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetDepthClearCommand(const float _value)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetDepthClearCommand(const float _value)
 {
     m_desc.depthClearValue = _value;
     m_desc.bClearDepth     = true;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseDepthClearCommand()
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseDepthClearCommand()
 {
     m_desc.bClearDepth = false;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetStencilClearCommand(const UInt8 _value)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetStencilClearCommand(const UInt8 _value)
 {
     m_desc.stencilClearValue = _value;
     m_desc.bClearStencil     = true;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseStencilClearCommand()
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseStencilClearCommand()
 {
     m_desc.bClearStencil = false;
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetTexture(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetPrevPassOutputAsResource(
+    const StringView      _passName,
+    const Int32           _attachIndex,
+    const eShader         _stage,
+    const Int32           _slot,
+    const eResourceAccess _access)
+{
+    JAM_ASSERT(m_graph.HasPass_(_passName), "Pass '{}' not found.", _passName);
+    PassDesc* pDesc = m_graph.FindPassDesc_(_passName);
+    JAM_ASSERT(!pDesc->frameBufferName.IsEmpty() && !pDesc->bUseExternalOutput, "Pass '{}' does not have an internal framebuffer output.", _passName);
+    const FrameBufferResource& fbRes = m_graph.m_frameBuffers.at(_passName);
+    JAM_ASSERT((_attachIndex >= 0 && _attachIndex < fbRes.numRenderTargets) || (_attachIndex == kDepthStencilAttachmentIndex && fbRes.bHasDepthStencil), "Attachment index {} out of range for pass '{}'.", _attachIndex, _passName);
+    return SetTexture(fbRes.attachments[_attachIndex], _stage, _slot, _access);
+}
+
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetTexture(
     const StringView      _name,
     const eShader         _stage,
     const Int32           _slot,
@@ -1646,7 +1724,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetTexture(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBuffer(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetBuffer(
     const StringView      _name,
     const eShader         _stage,
     const Int32           _slot,
@@ -1668,7 +1746,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetBuffer(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseResource(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseResource(
     const eShader         _stage,
     const Int32           _slot,
     const eResourceAccess _access)
@@ -1687,20 +1765,19 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseResource(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetConstantBuffer(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetConstantBuffer(
     const StringView _name,
     const eShader    _stage,
     const Int32      _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
     JAM_ASSERT(m_graph.m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
-
     const Slot slot              = { _stage, _slot };
     m_desc.cbufferBindCmds[slot] = { _name, kInvalidHandle, slot };
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseConstantBuffer(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseConstantBuffer(
     const eShader _stage,
     const Int32   _slot)
 {
@@ -1709,7 +1786,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseConstantBuffer(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSampler(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetSampler(
     const Flags<eSamplerFlags> _state,
     const eShader              _stage,
     const Int32                _slot)
@@ -1717,7 +1794,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSampler(
     return SetSampler(_state, RGBA::kBlack, _stage, _slot);
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSampler(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetSampler(
     const Flags<eSamplerFlags> _state,
     const RGBA                 _borderColor,
     const eShader              _stage,
@@ -1729,7 +1806,7 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetSampler(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseSamplerFlags(
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseSamplerFlags(
     const eShader _stage,
     const Int32   _slot)
 {
@@ -1738,44 +1815,37 @@ RenderGraph::PassBuilder& RenderGraph::PassBuilder::ReleaseSamplerFlags(
     return *this;
 }
 
-RenderGraph::PassBuilder& RenderGraph::PassBuilder::SetExecutor(
-    const Delegate<void()>& _executor)
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetExecutor(const Delegate<void()>& _executor)
 {
     JAM_ASSERT(_executor, "Executor cannot be null.");
     m_desc.executor = _executor;
     return *this;
 }
 
-////////// COMPUTE PASS BUILDER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////// COMPUTE PASS BUILDER //////////
 
-RenderGraph::ComputePassBuilder::ComputePassBuilder(
-    RenderGraph& _graph,
-    PassDesc&    _desc)
+RenderGraph::ComputePassBuilder::ComputePassBuilder(RenderGraph& _graph, PassDesc& _desc)
     : m_graph(_graph)
     , m_desc(_desc)
 {
-    _desc.bIsComputePass = true;
+    _desc.type = ePass::Compute;
 }
 
-RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetAsFinalPass(
-    const bool _bEnable)
+RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetAsFinalPass(const bool _bEnable)
 {
     m_desc.bFinalPass = _bEnable;
     return *this;
 }
 
-RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetEnable(
-    const bool _bEnable)
+RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetEnable(const bool _bEnable)
 {
     m_desc.bEnable = _bEnable;
     return *this;
 }
 
-RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetComputeProgram(
-    const StringView _name)
+RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetComputeProgram(const StringView _name)
 {
     JAM_ASSERT(!_name.IsEmpty(), "Compute program name cannot be empty.");
-
     m_desc.computeProgramName = _name;
     m_desc.computePh          = kInvalidHandle;
     return *this;
@@ -1855,16 +1925,14 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetConstantBuf
     return *this;
 }
 
-RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseConstantBuffer(
-    const Int32 _slot)
+RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseConstantBuffer(const Int32 _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
     m_desc.cbufferBindCmds.erase({ eShader::ComputeShader, _slot });
     return *this;
 }
 
-RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseSamplerState(
-    const Int32 _slot)
+RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseSamplerState(const Int32 _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
     m_desc.samplerBindCmds.erase({ eShader::ComputeShader, _slot });

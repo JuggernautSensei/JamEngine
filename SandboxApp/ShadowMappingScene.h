@@ -68,15 +68,20 @@ private:
     // utils
     void AddProgram_VertexPixel_(StringView _name, StringView _path);
     void AddProgram_VertexPixelGeometry_(StringView _name, StringView _path);
-    void AddProgram_VertexPixel_ShadowAdv_(StringView _name, StringView _path, StringView _define);
+    void AddProgram_VertexPixel_Macro_(StringView _name, StringView _path, StringView _macroDef, StringView _macroValue);
 
-    // callback
-    void RenderMeshes_();
-    void RenderShadowCast_();
+    // render scene
+    void RenderScene_();
+    void RenderSceneSpotShadowCast_();
+
+    // light volume
     void RenderSpotLightVolumes_() const;
     void RenderPointLightVolumes_() const;
     void RenderDirectionalLightVolumes_() const;
+
+    // ect
     void RenderFullScreenTri_() const;
+    void PrepareShadowPass_() const;
 
     float m_counter  = 0.f;
     float m_dRot     = ToRad(45.f);
@@ -93,8 +98,11 @@ private:
     Light m_spotLight = {};
     Light m_dirLight  = {};
 
-    eShadowSampling m_shadowSampling   = eShadowSampling::Hard;
-    float           m_shadowBias = 0.001f;
+    eShadowSampling m_shadowSampling        = eShadowSampling::Hard;
+    float           m_shadowBias            = 0.0002f;
+    float           m_shadowNormalOffset    = 0.01f;
+    bool            m_bUseComparisonSampler = true;
+    float           m_esmExponent           = 80.f;
 
     RenderGraph  m_graph  = {};
     FlyingCamera m_camera = {};
@@ -102,6 +110,7 @@ private:
     ConstantBufferHandle m_entityCbh            = kInvalidHandle;
     ConstantBufferHandle m_cmrCbh               = kInvalidHandle;
     ConstantBufferHandle m_lightCbh             = kInvalidHandle;
+    ConstantBufferHandle m_shadowCbh            = kInvalidHandle;
     ConstantBufferHandle m_shadowCastCbh        = kInvalidHandle;
     ConstantBufferHandle m_omniShadowCastCbh    = kInvalidHandle;
     ConstantBufferHandle m_cascadeShadowCastCbh = kInvalidHandle;

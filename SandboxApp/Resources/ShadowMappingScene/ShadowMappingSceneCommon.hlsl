@@ -1,12 +1,12 @@
 #include "../Common/Common.hlsl"
 #define SHADOW_CASCADE_LEVELS 3
 
-#define SHADOW_SAMPLING_HARD 0
-#define SHADOW_SAMPLING_PCF3 1
-#define SHADOW_SAMPLING_PCF5 2
-#define SHADOW_SAMPLING_PCF7 3
-#define SHADOW_SAMPLING_VSM 4
-#define SHADOW_SAMPLING_ESM 5
+#define SHADOW_TYPE_HARD 0
+#define SHADOW_TYPE_PCF3 1
+#define SHADOW_TYPE_PCF5 2
+#define SHADOW_TYPE_PCF7 3
+#define SHADOW_TYPE_VSM 4
+#define SHADOW_TYPE_ESM 5
 
 Texture2D t_sceneNormal : register(t0);
 Texture2D t_sceneColor : register(t1);
@@ -18,10 +18,6 @@ Texture2D t_shadowMap : register(t5);
 Texture2DArray t_shadowMapArray : register(t6);
 TextureCube t_shadowMapCube : register(t7);
 Texture2D t_shadowMapAdv : register(t8);
-
-SamplerState s_linearClamp : register(s0);
-SamplerState s_linearWrap : register(s1);
-SamplerState s_shadowMapSampler : register(s2);
 
 cbuffer CBShadowMappingSceneEntity : register(b0)
 {
@@ -48,26 +44,37 @@ cbuffer CBShadowMappingSceneLight : register(b2)
     float cb_lightSpotInnerCos;
     float cb_lightSpotOuterCos;
     uint cb_bMakeShadow;
+    PADDING1;
+};
+
+cbuffer CBShadowMappingSceneShadow : register(b3)
+{
+    uint cb_shadowType;
+    uint cb_bUseComparisonSampler;
     float cb_shadowBias;
-    uint cb_shadowSampling;
+    float cb_shadowNormalOffset;
+    float cb_esmExponent;
     PADDING3;
 };
 
 const static float3 kLightColor = 1.f;
 const static float3 kAmbientColor = 0.1f;
-const static float kESMConstant = 10.f;
+const static float kEpsilon = 1e-6f;
+const static float kVSMMinVariance = 1e-4f;
+const static float kVSMBleedingReduction = 0.1f;
 
-cbuffer CBShadowMappingSceneShadowCast : register(b3)
+cbuffer CBShadowMappingSceneShadowCast : register(b4)
 {
-    float4x4 cb_light;
+    float4x4 cb_lightView;
+    float4x4 cb_lightProj;
 };
 
-cbuffer CBShadowMappingSceneOmniShadowCast : register(b4)
+cbuffer CBShadowMappingSceneOmniShadowCast : register(b5)
 {
     float4x4 cb_lightCube[6];
 };
 
-cbuffer CBShadowMappingSceneCascadeShadowCast : register(b5)
+cbuffer CBShadowMappingSceneCascadeShadowCast : register(b6)
 {
     float4x4 cb_lightCascade[SHADOW_CASCADE_LEVELS];
     float cb_cascadeSplits[SHADOW_CASCADE_LEVELS];

@@ -364,15 +364,15 @@ struct CharFuncs
             {
                 const StdStringView str     = { _str, static_cast<size_t>(_len) };
                 const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
-                const size_t        idx     = str.find(findStr);
-                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
+                const size_t        index     = str.find(findStr);
+                return index != StdStringView::npos ? CharResult { static_cast<SizeT>(index) } : CharResult::Failed();
             }
             else
             {
                 const StdStringView str     = { _str, static_cast<size_t>(_len) };
                 const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
-                const size_t        idx     = str.find_first_not_of(findStr);
-                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
+                const size_t        index     = str.find_first_not_of(findStr);
+                return index != StdStringView::npos ? CharResult { static_cast<SizeT>(index) } : CharResult::Failed();
             }
         }
         else
@@ -401,15 +401,15 @@ struct CharFuncs
             {
                 const StdStringView str     = { _str, static_cast<size_t>(_len) };
                 const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
-                const size_t        idx     = str.rfind(findStr);
-                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
+                const size_t        index     = str.rfind(findStr);
+                return index != StdStringView::npos ? CharResult { static_cast<SizeT>(index) } : CharResult::Failed();
             }
             else
             {
                 const StdStringView str     = { _str, static_cast<size_t>(_len) };
                 const StdStringView findStr = { _findStr, static_cast<size_t>(_findStrLen) };
-                const size_t        idx     = str.find_last_not_of(findStr);
-                return idx != StdStringView::npos ? CharResult { static_cast<SizeT>(idx) } : CharResult::Failed();
+                const size_t        index     = str.find_last_not_of(findStr);
+                return index != StdStringView::npos ? CharResult { static_cast<SizeT>(index) } : CharResult::Failed();
             }
         }
         else
@@ -535,7 +535,7 @@ struct CharFuncs
             return 0;
         }
 
-        SizeT idx    = 0;
+        SizeT index    = 0;
         SizeT dotdot = 0;
         SizeT outIdx = 0;
 
@@ -543,39 +543,39 @@ struct CharFuncs
         {
             _pOutBuf[outIdx++] = ToUpper(_str[0]);
             _pOutBuf[outIdx++] = CharTraits::kColon;
-            idx += 2;
+            index += 2;
             dotdot = outIdx;
         }
 
-        const bool bIsRoot = (idx < _len) && IsPathSeparator(_str[idx]);
+        const bool bIsRoot = (index < _len) && IsPathSeparator(_str[index]);
         if (bIsRoot)
         {
             _pOutBuf[outIdx++] = CharTraits::kPathPreferredSeparator;
-            ++idx;
+            ++index;
             dotdot = outIdx;
         }
 
         bool bTrailingSlash = false;
-        while (idx < _len)
+        while (index < _len)
         {
-            if (IsPathSeparator(_str[idx]))
+            if (IsPathSeparator(_str[index]))
             {
-                ++idx;
-                bTrailingSlash = (idx == _len);
+                ++index;
+                bTrailingSlash = (index == _len);
                 continue;
             }
 
-            if (_str[idx] == CharTraits::kDot)
+            if (_str[index] == CharTraits::kDot)
             {
-                if (idx + 1 == _len || IsPathSeparator(_str[idx + 1]))
+                if (index + 1 == _len || IsPathSeparator(_str[index + 1]))
                 {
-                    ++idx;
+                    ++index;
                     continue;
                 }
 
-                if (CharTraits::kDot == _str[idx + 1] && (idx + 2 == _len || IsPathSeparator(_str[idx + 2])))
+                if (CharTraits::kDot == _str[index + 1] && (index + 2 == _len || IsPathSeparator(_str[index + 2])))
                 {
-                    idx += 2;
+                    index += 2;
                     if (dotdot < outIdx)
                     {
                         SizeT i = outIdx - 1;
@@ -606,9 +606,9 @@ struct CharFuncs
                 }
             }
 
-            for (; idx < _len && !IsPathSeparator(_str[idx]); ++idx)
+            for (; index < _len && !IsPathSeparator(_str[index]); ++index)
             {
-                _pOutBuf[outIdx++] = _str[idx];
+                _pOutBuf[outIdx++] = _str[index];
             }
         }
 

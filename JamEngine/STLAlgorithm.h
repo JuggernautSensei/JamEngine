@@ -31,18 +31,18 @@ void VectorSplice(
 template<typename T>
 void VectorErase(
     Vector<T>&  _vec,
-    const SizeT _idx,
+    const SizeT _index,
     const SizeT _count = 1)
 {
-    JAM_ASSERT(_idx < _vec.size(), "Index out of bounds");
-    JAM_ASSERT(_idx + _count <= _vec.size(), "Count exceeds vector size");
+    JAM_ASSERT(_index < _vec.size(), "Index out of bounds");
+    JAM_ASSERT(_index + _count <= _vec.size(), "Count exceeds vector size");
 
     if (_count == 0)
     {
         return;
     }
 
-    auto begin = _vec.begin() + _idx;
+    auto begin = _vec.begin() + _index;
     auto end   = begin + _count;
     _vec.erase(begin, end);
 }
@@ -50,11 +50,11 @@ void VectorErase(
 template<typename T>
 void VectorInsert(
     Vector<T>&  _vec,
-    const SizeT _idx,
+    const SizeT _index,
     const T&    _value)
 {
-    JAM_ASSERT(_idx <= _vec.size(), "Index out of bounds");
-    _vec.insert(_vec.begin() + _idx, _value);
+    JAM_ASSERT(_index <= _vec.size(), "Index out of bounds");
+    _vec.insert(_vec.begin() + _index, _value);
 }
 
 template<typename T>

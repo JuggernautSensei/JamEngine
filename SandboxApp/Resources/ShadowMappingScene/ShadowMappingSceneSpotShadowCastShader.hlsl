@@ -7,33 +7,46 @@ struct VSInput
 
 struct PSInput
 {
-    float4 posLight : SV_POSITION;
+    float4 posH : SV_POSITION;
+
+#if defined(SHADOW_CAST_VSM) || defined(SHADOW_CAST_ESM)
+    float3 posV : POSITION;
+#endif
 };
 
 PSInput VSMain(VSInput input)
 {
     PSInput output;
+
     float4 posW = mul(float4(input.posL, 1.f), cb_world);
-    output.posLight = mul(posW, cb_light);
+#if defined(SHADOW_CAST_VSM) || defined(SHADOW_CAST_ESM)
+    output.posV = mul(posW, cb_lightView).xyz;
+    output.posH = mul(float4(output.posV, 1.f), cb_lightProj);
+#else
+    output.posH = mul(posW, mul(cb_lightView, cb_lightProj));
+#endif 
     return output;
 }
 
-#if defined(SHADOW_SAMPLE_VSM)
+#if defined(SHADOW_CAST_VSM)
 
-half2 PSMain(PSInput _input) : SV_TARGET
+float2 PSMain(PSInput _input) : SV_TARGET
 {
-    half2 output;
-    output.x = _input.posLight.z;
-    output.y = _input.posLight.z * _input.posLight.z;
-    return output;
+    float depthV = length(_input.posV.xyz);
+    float2 moments = 0;
+    moments.x = depthV ;
+    float dx = ddx(depthV);
+    float dy = ddy(depthV);
+    moments.y = moments.x * moments.x + 0.25f * (dx * dx + dy * dy);
+    return moments;
 }
 
-#elif defined(SHADOW_SAMPLE_ESM)
+#elif defined(SHADOW_CAST_ESM)
 
 float PSMain(PSInput _input) : SV_TARGET
 {
-    float depth = _input.posLight.z;
-    return exp(kESMConstant * depth);
+    float depth = _input.posV.z;
+    return exp(cb_esmExponent * (depth - 1.f));
 }
 
 #else

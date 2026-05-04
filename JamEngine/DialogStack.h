@@ -19,7 +19,7 @@ public:
     void Clear();
 
 private:
-    void ShowDialogs_Recursive_(SizeT _idx);
+    void ShowDialogs_Recursive_(SizeT _index);
 
     Vector<DialogItem> m_dialogs          = {};
     bool               m_bAnyDialogClosed = false;

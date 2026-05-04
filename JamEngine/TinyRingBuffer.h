@@ -245,16 +245,16 @@ public:
         --m_size;
     }
 
-    [[nodiscard]] const T& operator[](const SizeT _idx) const
+    [[nodiscard]] const T& operator[](const SizeT _index) const
     {
-        JAM_ASSERT(_idx >= 0 && _idx < m_size, "Index out of bound.");
-        return m_ptr[GetIndex_(_idx)];
+        JAM_ASSERT(_index >= 0 && _index < m_size, "Index out of bound.");
+        return m_ptr[GetIndex_(_index)];
     }
 
-    [[nodiscard]] T& operator[](const SizeT _idx)
+    [[nodiscard]] T& operator[](const SizeT _index)
     {
-        JAM_ASSERT(_idx >= 0 && _idx < m_size, "Index out of bound.");
-        return m_ptr[GetIndex_(_idx)];
+        JAM_ASSERT(_index >= 0 && _index < m_size, "Index out of bound.");
+        return m_ptr[GetIndex_(_index)];
     }
 
     [[nodiscard]] T& Back()
@@ -340,9 +340,9 @@ private:
         {
             for (SizeT i = 0; i < m_size; ++i)
             {
-                const SizeT idx = GetIndex_(i);
-                std::construct_at(&pNew[i], std::move(m_ptr[idx]));
-                std::destroy_at(&m_ptr[idx]);
+                const SizeT index = GetIndex_(i);
+                std::construct_at(&pNew[i], std::move(m_ptr[index]));
+                std::destroy_at(&m_ptr[index]);
             }
 
             Free(m_ptr);
@@ -353,11 +353,11 @@ private:
         m_logicalCap = _newCap;
     }
 
-    // _idx is logical index, return physical index
-    [[nodiscard]] SizeT GetIndex_(const SizeT _idx) const
+    // _index is logical index, return physical index
+    [[nodiscard]] SizeT GetIndex_(const SizeT _index) const
     {
-        JAM_ASSERT(_idx >= -1 && _idx <= m_size, "Index out of bound."); 
-        return (m_begin + _idx + (m_logicalCap + 1)) % (m_logicalCap + 1);
+        JAM_ASSERT(_index >= -1 && _index <= m_size, "Index out of bound."); 
+        return (m_begin + _index + (m_logicalCap + 1)) % (m_logicalCap + 1);
     }
 
     [[nodiscard]] bool IsFull_() const

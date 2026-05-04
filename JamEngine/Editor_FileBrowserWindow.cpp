@@ -247,9 +247,9 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
         ImGui::SetCursorScreenPos(itemLeftTop);
 
         const Ref<Texture>& pThumbnail = _pEntry->pThumbnail;
-        const Vec2i         res        = pThumbnail->GetResolution();
-        const ImVec2        imageSize  = ImVec2From(res);
-        Widget_ImageFrame(pThumbnail, imageSize, _size);
+        const TextureInfo&  info       = pThumbnail->GetInfo();
+        const ImVec2        size       = { static_cast<float>(info.width), static_cast<float>(info.height) };
+        Widget_ImageFrame(pThumbnail, size, _size);
     }
 
     // draw tooltip
@@ -429,16 +429,16 @@ void Editor_FileBrowserWindow::Widget_FileEntries()
         {
             for (Int32 i = 0; i < numBtnPerRow; ++i)
             {
-                const Int32 idx = row * numBtnPerRow + i;
+                const Int32 index = row * numBtnPerRow + i;
 
                 // skip if out of range
-                if (idx >= numItems)
+                if (index >= numItems)
                 {
                     return;
                 }
 
                 // render file entry
-                Widget_FileEntry_(m_filteredFileEntries[idx], btnSize);
+                Widget_FileEntry_(m_filteredFileEntries[index], btnSize);
 
                 // sameline except last
                 if (i < numBtnPerRow - 1)

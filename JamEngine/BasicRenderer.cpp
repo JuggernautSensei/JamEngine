@@ -40,7 +40,7 @@
 //    // factory
 //    [[nodiscard]] TextureHandle     CreateTexture2D(Int32 _width, Int32 _height, eTextureFormat _format, eAttachment _type, StringView _name) const;
 //    [[nodiscard]] TextureHandle     CreateTextureCube(Int32 _width, Int32 _height, eTextureFormat _format, eAttachment _type, StringView _name) const;
-//    [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _arraySize, eTextureFormat _format, eAttachment _type, StringView _name) const;
+//    [[nodiscard]] TextureHandle     CreateTextureArray(Int32 _width, Int32 _height, Int32 _numLayers, eTextureFormat _format, eAttachment _type, StringView _name) const;
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Span<const TextureHandle> _attachment, bool _bDestroyTexture, StringView _name) const;
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(TextureHandle _texh, bool _bDestroyTexture, StringView _name) const;
 //    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(Int32 _width, Int32 _height, eTextureFormat _format, StringView _name) const;
@@ -539,7 +539,7 @@
 //TextureHandle BasicRendererContext::CreateTextureArray(
 //    const Int32           _width,
 //    const Int32           _height,
-//    const Int32           _arraySize,
+//    const Int32           _numLayers,
 //    const eTextureFormat  _format,
 //    const eAttachment _type,
 //    const StringView      _name) const
@@ -556,7 +556,7 @@
 //        flags |= eTextureCreateFlags::DepthStencil;
 //    }
 //
-//    const TextureHandle texh = GetGraphics().CreateTexture2D(_width, _height, _format, _arraySize, flags);
+//    const TextureHandle texh = GetGraphics().CreateTexture2D(_width, _height, _format, _numLayers, flags);
 //    if (!_name.IsEmpty())
 //    {
 //        GetGraphics().SetTextureName(texh, _name);
@@ -652,11 +652,11 @@
 //    Float16 noiseData[4 * kLength * kLength];
 //    for (Int32 i = 0; i < kLength * kLength; ++i)
 //    {
-//        const Int32 idx    = i * 4;
-//        noiseData[idx + 0] = ToFloat16(MakeRandom(-1.f, 1.f));
-//        noiseData[idx + 1] = ToFloat16(MakeRandom(-1.f, 1.f));
-//        noiseData[idx + 2] = ToFloat16(0.f);
-//        noiseData[idx + 3] = ToFloat16(0.f);
+//        const Int32 index    = i * 4;
+//        noiseData[index + 0] = ToFloat16(MakeRandom(-1.f, 1.f));
+//        noiseData[index + 1] = ToFloat16(MakeRandom(-1.f, 1.f));
+//        noiseData[index + 2] = ToFloat16(0.f);
+//        noiseData[index + 3] = ToFloat16(0.f);
 //    }
 //
 //    const CMemoryBlock mem[] = { noiseData };

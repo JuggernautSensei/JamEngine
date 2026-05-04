@@ -257,11 +257,11 @@ namespace
 
 LoopSubdivisionOutput LoopSubdivide(
     const Span<const Vec3> _positions,
-    const MemoryView       _idxData,
+    const MemoryView       _indexData,
     const bool             _bUseU32,
     const Int32            _level)
 {
-    LoopSubdivisionOutputWithTexcoords result = LoopSubdivide(_positions, {}, _idxData, _bUseU32, _level);
+    LoopSubdivisionOutputWithTexcoords result = LoopSubdivide(_positions, {}, _indexData, _bUseU32, _level);
 
     LoopSubdivisionOutput output = {};
     output.positions             = std::move(result.positions);
@@ -273,7 +273,7 @@ LoopSubdivisionOutput LoopSubdivide(
 LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     Span<const Vec3> _positions,
     Span<const Vec2> _texcoordsOrEmpty,   // or empty
-    MemoryView       _idxData,
+    MemoryView       _indexData,
     bool             _bUseU32,
     Int32            _level)
 {
@@ -282,9 +282,9 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
 
     MemoryArena arena { 1024 };   // 메모리 아레나
 
-    const IndexReader indexReader { _idxData, _bUseU32 };
+    const IndexReader indexReader { _indexData, _bUseU32 };
     const Int32       numVerts     = static_cast<Int32>(_positions.size());
-    const Int32       numIdxes     = CalcNumIndices(_idxData, _bUseU32);
+    const Int32       numIdxes     = CalcNumIndices(_indexData, _bUseU32);
     const Int32       numFaces     = numIdxes / 3;
     const bool        bHasTexCoord = !_texcoordsOrEmpty.empty();
 
@@ -321,8 +321,8 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
         SDFace* pFace = faces[i];
         for (Int32 j = 0; j < 3; ++j)
         {
-            const UInt32 idx   = indexReader.ReadAt<UInt32>(i * 3 + j);
-            SDVertex*    pVert = verts[idx];
+            const UInt32 index   = indexReader.ReadAt<UInt32>(i * 3 + j);
+            SDVertex*    pVert = verts[index];
             pFace->pVerts[j]   = pVert;
             pVert->pStartFace  = pFace;   // 임의의 면 설정
         }
@@ -459,8 +459,8 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
 
         for (SDVertex* pVert: verts)
         {
-            const Int32 idx               = pVert->pStartFace->CalcVertexIndex(pVert);
-            pVert->pChildVert->pStartFace = pVert->pStartFace->pChildFaces[idx];
+            const Int32 index               = pVert->pStartFace->CalcVertexIndex(pVert);
+            pVert->pChildVert->pStartFace = pVert->pStartFace->pChildFaces[index];
         }
 
         for (SDFace* pFace: faces)
@@ -560,8 +560,8 @@ LoopSubdivisionOutputWithTexcoords LoopSubdivide(
     {
         for (Int32 j = 0; j < 3; ++j)
         {
-            const Int32 idx = usedVertsMap[faces[i]->pVerts[j]];
-            indexWriter.WriteAt(i * 3 + j, idx);
+            const Int32 index = usedVertsMap[faces[i]->pVerts[j]];
+            indexWriter.WriteAt(i * 3 + j, index);
         }
     }
 

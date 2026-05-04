@@ -70,8 +70,8 @@ TEST(Vec2i, UnionAliases)
     Vec2i v { 640, 480 };
     EXPECT_EQ(v.u, 640);
     EXPECT_EQ(v.v, 480);
-    EXPECT_EQ(v.w, 640);
-    EXPECT_EQ(v.h, 480);
+    EXPECT_EQ(v.width, 640);
+    EXPECT_EQ(v.height, 480);
     EXPECT_EQ(v.e[0], 640);
     EXPECT_EQ(v.e[1], 480);
 }

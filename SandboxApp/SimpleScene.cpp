@@ -168,13 +168,11 @@ void SimpleScene::OnRender(
     gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
     m_pBunny->Submit();
 
-    // blit inner framebuffer texture to output texture
-    // output framebuffer maybe do not have depth texture.
-    // so. draw on screen-off framebuffer and blit the color texture to output framebuffer.
-    // in real case. use    post-process pass to do this.
-    const FrameBufferInfo fbInfo = gfx.GetFrameBufferInfo(_view.fbh);
-    JAM_ASSERT(fbInfo.numRenderTargets > 0, "Back buffer must have at least one render target");
-    gfx.CopyTexture(fbInfo.renderTargetTexhs[0], 0, 0, 0, 0, 0, m_fbTexh, 0, 0, 0, 0, 0);
+    //// blit inner framebuffer texture to output texture
+    //// output framebuffer maybe do not have depth texture.
+    //// so. draw on screen-off framebuffer and blit the color texture to output framebuffer.
+    //// in real case. use post-process pass to do this.
+    //gfx.CopyTexture(fbInfo.renderTargetTexhs[0], 0, 0, 0, 0, 0, m_fbTexh, 0, 0, 0, 0, 0);
 }
 
 void SimpleScene::OnImGuiRender()
@@ -223,5 +221,5 @@ void SimpleScene::OnResize(
     // for blit
     const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
     JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");
-    m_fbTexh = info.renderTargetTexhs[0];
+    m_fbTexh = info.attachments[0].texh;
 }

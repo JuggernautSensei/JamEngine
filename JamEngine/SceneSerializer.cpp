@@ -14,13 +14,13 @@ namespace
     Error DeserializeEntity_(
         Scene&         _scene,
         const UID      _rootUid,
-        SizeT          _idx,
+        SizeT          _index,
         ArchiveReader& _reader)
     {
         UID uid = {};
         if (const Error err = _reader.Read(uid))
         {
-            JAM_LOG_ERROR("Scene deserialize error: failed to read entity UID at index {}. Error: {}", _idx, err.ToErrorMessage());
+            JAM_LOG_ERROR("Scene deserialize error: failed to read entity UID at index {}. Error: {}", _index, err.ToErrorMessage());
             return err;
         }
 
@@ -36,20 +36,20 @@ namespace
         Scene&                              _scene,
         const ComponentReflectionData&      _rfl,
         const Flags<eSceneDeserializeFlags> _flags,
-        SizeT                               _idx,
+        SizeT                               _index,
         ArchiveReader&                      _reader)
     {
         UID uid = {};
         if (const Error err = _reader.ReadField("uid", uid))
         {
-            JAM_LOG_ERROR("Scene deserialize error: failed to read entity UID for component at index {}. Error: {}", _idx, err.ToErrorMessage());
+            JAM_LOG_ERROR("Scene deserialize error: failed to read entity UID for component at index {}. Error: {}", _index, err.ToErrorMessage());
             return err;
         }
 
         Entity entity = _scene.FindEntityOrNull(uid);
         if (!entity)
         {
-            JAM_LOG_ERROR("Scene deserialize error: entity with UID {} not found for component at index {}.", uid, _idx);
+            JAM_LOG_ERROR("Scene deserialize error: entity with UID {} not found for component at index {}.", uid, _index);
             return Error::InvalidData;
         }
 
@@ -63,12 +63,12 @@ namespace
         {
             if (!_rfl.Deserialize)
             {
-                JAM_LOG_ERROR("Scene deserialize error: component type '{}' does not have a Deserialize function, but the data is not null at index {}.", _rfl.typeName, _idx);
+                JAM_LOG_ERROR("Scene deserialize error: component type '{}' does not have a Deserialize function, but the data is not null at index {}.", _rfl.typeName, _index);
                 return Error::InvalidData;
             }
 
             void* pCmp = _rfl.Get(entity);
-            JAM_ASSERT(pCmp, "Scene deserialize assertion failed: component data pointer is null for component type '{}' at index {}.", _rfl.typeName, _idx);
+            JAM_ASSERT(pCmp, "Scene deserialize assertion failed: component data pointer is null for component type '{}' at index {}.", _rfl.typeName, _index);
 
             _reader.ClearLastError();
             _rfl.Deserialize(pCmp, _reader, &_scene, entity);
@@ -78,13 +78,13 @@ namespace
                 if (_flags & eSceneDeserializeFlags::SkipComponentDeserializeFail)
                 {
                     _rfl.Remove(entity);
-                    JAM_LOG_WARN("Scene deserialize warning: failed to deserialize component type '{}' data at index {}. The component will be removed from the entity to continue deserialization. Error: {}", _rfl.typeName, _idx, err.ToErrorMessage());
+                    JAM_LOG_WARN("Scene deserialize warning: failed to deserialize component type '{}' data at index {}. The component will be removed from the entity to continue deserialization. Error: {}", _rfl.typeName, _index, err.ToErrorMessage());
                     _reader.ClearLastError();
                     _reader.Exit();
                     return Error::None;
                 }
 
-                JAM_LOG_ERROR("Scene deserialize error: failed to deserialize component type '{}' data at index {}. Error: {}", _rfl.typeName, _idx, err.ToErrorMessage());
+                JAM_LOG_ERROR("Scene deserialize error: failed to deserialize component type '{}' data at index {}. Error: {}", _rfl.typeName, _index, err.ToErrorMessage());
                 return err;
             }
         }
@@ -113,8 +113,8 @@ namespace
         }
 
         const ComponentReflectionData& rfl = db.GetComponentReflection(_key);
-        if (const Error err = _reader.ForEachArray(Bind([&_scene, &rfl, _flags](const SizeT _idx, ArchiveReader& _reader) {
-                return DeserializeComponentEntry_(_scene, rfl, _flags, _idx, _reader);
+        if (const Error err = _reader.ForEachArray(Bind([&_scene, &rfl, _flags](const SizeT _index, ArchiveReader& _reader) {
+                return DeserializeComponentEntry_(_scene, rfl, _flags, _index, _reader);
             })))
         {
             JAM_LOG_ERROR("Scene deserialize error: failed to read components array for component type '{}'. Error: {}", rfl.typeName, err.ToErrorMessage());
@@ -297,8 +297,8 @@ Error Scene::Deserialize(
     }
 
     const UID rootUid = GetRootEntity().GetUID();
-    if (const Error err = _reader.ForEachArray(Bind([this, rootUid](const SizeT _idx, ArchiveReader& _reader) -> Error {
-            return DeserializeEntity_(*this, rootUid, _idx, _reader);
+    if (const Error err = _reader.ForEachArray(Bind([this, rootUid](const SizeT _index, ArchiveReader& _reader) -> Error {
+            return DeserializeEntity_(*this, rootUid, _index, _reader);
         })))
     {
         JAM_LOG_ERROR("Scene deserialize error: failed to read entities array. Error: {}", err.ToErrorMessage());

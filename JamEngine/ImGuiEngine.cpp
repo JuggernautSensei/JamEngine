@@ -238,7 +238,7 @@ void ImGuiEngine::EndFrame()
     Graphics&   gfx = GetGraphics();
     const Vec2i res = gfx.GetBackBufferResolution();
     gfx.SetFrameBuffer(kInvalidHandle);
-    gfx.SetViewport(0, 0, res.w, res.h);
+    gfx.SetViewport(0, 0, res.width, res.height);
 
     // draw data 처리
     ImGui::Render();
@@ -293,7 +293,7 @@ void ImGuiEngine::Render_(
     if (m_ibCap < _pDrawData->TotalIdxCount)
     {
         JAM_DESTROY_INDEX_BUFFER(m_ibh);
-        const bool bUseU32 = _pDrawData->TotalVtxCount > Limits<UInt16>::kHighest;
+        const bool bUseU32 = Greater(_pDrawData->TotalVtxCount, Limits<UInt16>::kHighest);
         m_ibCap            = _pDrawData->TotalIdxCount + 10000;
         m_ibh              = gfx.CreateDynamicIndexBuffer(m_ibCap, bUseU32);
     }
@@ -308,15 +308,15 @@ void ImGuiEngine::Render_(
     for (const ImDrawList* pDrawList: _pDrawData->CmdLists)
     {
         // copy vertex data
-        const Int32 vtxCpySize = pDrawList->VtxBuffer.Size * sizeof(ImDrawVert);
+        const Int32 vtxCpySize = static_cast<Int32>(pDrawList->VtxBuffer.Size * sizeof(ImDrawVert));
         std::memcpy(pGpuVtxData, pDrawList->VtxBuffer.Data, vtxCpySize);
 
         // copy pos data
-        const Int32 idxCpySize = pDrawList->IdxBuffer.Size * sizeof(ImDrawIdx);
-        std::memcpy(pGpuIdxData, pDrawList->IdxBuffer.Data, idxCpySize);
+        const Int32 indexCpySize = static_cast<Int32>(pDrawList->IdxBuffer.Size * sizeof(ImDrawIdx));
+        std::memcpy(pGpuIdxData, pDrawList->IdxBuffer.Data, indexCpySize);
 
         pGpuVtxData += vtxCpySize;
-        pGpuIdxData += idxCpySize;
+        pGpuIdxData += indexCpySize;
     }
 
     // unmap
@@ -387,8 +387,8 @@ void ImGuiEngine::Render_(
 
             // Draw
             gfx.SetIndexBuffer(m_ibh, 0, cmd.ElemCount);
-            gfx.SetSubmitParameter(eSubmitParameter::StartIndexLocation, cmd.IdxOffset + startIdxLoc);
-            gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, cmd.VtxOffset + baseVtxLoc);
+            gfx.SetSubmitParameter(eSubmitParameter::StartIndexLocation, static_cast<Int32>(cmd.IdxOffset) + startIdxLoc);
+            gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, static_cast<Int32>(cmd.VtxOffset) + baseVtxLoc);
 
             // Bind texture
             const auto [texh, type] = TextureDataFrom_(cmd.GetTexID());
@@ -468,17 +468,19 @@ void ImGuiEngine::DestroyTexture_(ImTextureData* _texture) const
     _texture->SetStatus(ImTextureStatus_Destroyed);
 }
 
-ImTextureRef ImTextureRefFrom(
+ImTextureRef PackToImTextureRef(
     const TextureHandle _texh,
     const eTexture      _type)
 {
     return ImTextureIDFrom_(_texh, _type);
 }
 
-ImTextureRef ImTextureRefFrom(
+ImTextureRef PackToImTextureRef(
     const Ref<Texture>& _pTexture)
 {
-    return ImTextureIDFrom_(_pTexture->GetHandle(), _pTexture->GetTextureType());
+    const TextureHandle texh = _pTexture->GetHandle();
+    const TextureInfo&  info = _pTexture->GetInfo();
+    return ImTextureIDFrom_(texh, info.type);
 }
 
 }   // namespace Jam

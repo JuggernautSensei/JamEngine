@@ -557,8 +557,13 @@ void Editor_SceneViewWindow::OnRenderEdit()
                 if (m_sceneDepthTexh != depthTexh)
                 {
                     JAM_DESTROY_FRAME_BUFFER(m_fbhWithDepth);
-                    const TextureHandle attachment[] = { m_renderTexh, depthTexh };
-                    m_fbhWithDepth                   = GetGraphics().CreateFrameBuffer(attachment);
+
+                    Graphics& gfx = GetGraphics();
+
+                    Attachment attachment[2] = {};
+                    attachment[0].texh       = m_renderTexh;
+                    attachment[1].texh       = depthTexh;
+                    m_fbhWithDepth           = gfx.CreateFrameBuffer(attachment);
                 }
             }
 
@@ -607,8 +612,8 @@ void Editor_SceneViewWindow::OnRenderEdit()
                     {
                         const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
                         const Camera&          cmr  = cc.camera;
-                        const Mtx4           view = entity.GetWorldTransform().CalcInvSRT();
-                        const Mtx4           proj = cmr.GetProj();
+                        const Mtx4             view = entity.GetWorldTransform().CalcInvSRT();
+                        const Mtx4             proj = cmr.GetProj();
 
                         m_renderer.DrawFrustum(view * proj, kBoundingBoxCol);
                     }

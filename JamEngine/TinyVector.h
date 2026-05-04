@@ -112,16 +112,16 @@ public:
         }
     }
 
-    T& operator[](const SizeT _idx)
+    T& operator[](const SizeT _index)
     {
-        JAM_ASSERT(_idx >= 0 && _idx < m_size, "Index out of bound.");
-        return m_data[_idx];
+        JAM_ASSERT(_index >= 0 && _index < m_size, "Index out of bound.");
+        return m_data[_index];
     }
 
-    const T& operator[](const SizeT _idx) const
+    const T& operator[](const SizeT _index) const
     {
-        JAM_ASSERT(_idx >= 0 && _idx < m_size, "Index out of bound.");
-        return m_data[_idx];
+        JAM_ASSERT(_index >= 0 && _index < m_size, "Index out of bound.");
+        return m_data[_index];
     }
 
     T& Back()

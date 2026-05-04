@@ -140,7 +140,7 @@ public:
     ArchiveReader& operator=(ArchiveReader&&)      = default;
 
     virtual Error EnterField(StringView _key) = 0;
-    virtual Error EnterAt(SizeT _idx)         = 0;
+    virtual Error EnterAt(SizeT _index)         = 0;
     virtual void  Exit()                      = 0;
 
     virtual SizeT GetSize() const = 0;
@@ -207,9 +207,9 @@ public:
     }
 
     template<typename T>
-    Error ReadAt(const SizeT _idx, T& _value)
+    Error ReadAt(const SizeT _index, T& _value)
     {
-        if (const Error err = EnterAt(_idx))
+        if (const Error err = EnterAt(_index))
         {
             return err;
         }
@@ -313,8 +313,8 @@ Error ReadFromArchive(ArchiveReader& _reader, Array<T, kSize>& _arr)
     }
 
     return _reader.ForEachArray(Bind(
-        [&](SizeT idx, ArchiveReader& ar) -> Error {
-            return ar.Read(_arr[idx]);
+        [&](SizeT index, ArchiveReader& ar) -> Error {
+            return ar.Read(_arr[index]);
         }));
 }
 

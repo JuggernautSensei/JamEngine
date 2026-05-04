@@ -6,11 +6,11 @@ namespace Jam
 {
 
 Int32 CalcNumIndices(
-    const MemoryView _idxData,
+    const MemoryView _indexData,
     const bool         _bUseU32) noexcept
 {
     const SizeT indexSize = static_cast<SizeT>(_bUseU32 ? sizeof(UInt32) : sizeof(UInt16));
-    return static_cast<Int32>(_idxData.GetByteWidth() / indexSize);
+    return static_cast<Int32>(_indexData.GetByteWidth() / indexSize);
 }
 
 Int32 CalcNumVertices(

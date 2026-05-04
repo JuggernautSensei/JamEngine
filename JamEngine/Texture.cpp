@@ -21,12 +21,10 @@ Texture::Texture(Texture&& _other) noexcept
     : m_path(std::move(_other.m_path))
     , m_name(std::move(_other.m_name))
     , m_texh(_other.m_texh)
-    , m_res(_other.m_res)
-    , m_type(_other.m_type)
+    , m_info(_other.m_info)
 {
     _other.m_texh = kInvalidHandle;
-    _other.m_res  = { 0, 0 };
-    _other.m_type = eTexture::Texture2D;
+    _other.m_info = {};
 }
 
 Texture& Texture::operator=(Texture&& _other) noexcept
@@ -38,12 +36,10 @@ Texture& Texture::operator=(Texture&& _other) noexcept
         m_path = std::move(_other.m_path);
         m_name = std::move(_other.m_name);
         m_texh = _other.m_texh;
-        m_res  = _other.m_res;
-        m_type = _other.m_type;
+        m_info = _other.m_info;
 
         _other.m_texh = kInvalidHandle;
-        _other.m_res  = { 0, 0 };
-        _other.m_type = eTexture::Texture2D;
+        _other.m_info = {};
     }
     return *this;
 }
@@ -54,9 +50,8 @@ Texture::Texture(
 {
     JAM_ASSERT(m_texh, "Texture handle must be valid.");
 
-    const TextureInfo info = GetGraphics().GetTextureInfo(m_texh);
-    m_res                  = { info.width, info.height };
-    m_type                 = info.type;
+    Graphics& gfx = GetGraphics();
+    m_info        = gfx.GetTextureInfo(m_texh);
 }
 
 Ref<Texture> Texture::Load(
@@ -82,9 +77,9 @@ Error Texture::LoadFromFile_(
     JAM_FUNCTION_MSG_PROFILE("path: {}", _path);
 
     // import dds (native image format is dds.)
-    ImageImporterInfo options      = {};
-    options.bGenerateMips          = true;
-    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path, options);
+    ImageImporterInfo info         = {};
+    info.bGenerateMips             = true;
+    Expect<ImageImporter> importer = ImageImporter::ImportFromFile(_path, info);
     if (!importer)
     {
         return importer.GetError();
@@ -92,12 +87,11 @@ Error Texture::LoadFromFile_(
 
     // done.
     CleanUp_();
-    m_texh = GetGraphics().CreateTexture(importer->GetImageContainer());
 
-    const TextureInfo info = GetGraphics().GetTextureInfo(m_texh);
-    m_res                  = { info.width, info.height };
-    m_type                 = info.type;
-    m_path                 = _path;
+    Graphics& gfx = GetGraphics();
+    m_texh        = gfx.CreateTexture(importer->GetImageContainer());
+    m_info        = gfx.GetTextureInfo(m_texh);
+    m_path        = _path;
     return Error::None;
 }
 
@@ -174,14 +168,9 @@ TextureHandle Texture::GetHandle() const
     return m_texh;
 }
 
-Vec2i Texture::GetResolution() const
+const TextureInfo& Texture::GetInfo() const
 {
-    return m_res;
-}
-
-eTexture Texture::GetTextureType() const
-{
-    return m_type;
+    return m_info;
 }
 
 void Texture::Bind(
@@ -205,8 +194,7 @@ void Texture::CleanUp_()
     JAM_DESTROY_TEXTURE(m_texh);
     m_path.Clear();
     m_name.Clear();
-    m_res  = { 0, 0 };
-    m_type = eTexture::Texture2D;
+    m_info = {};
 }
 
 void WriteToArchive(

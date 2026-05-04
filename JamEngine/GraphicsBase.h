@@ -24,7 +24,8 @@ constexpr Int32 kMaxNumVertexAttribs            = static_cast<Int32>(CountOf<eVe
 constexpr Int32 kMaxNumInstanceAttribs          = kMaxNumVertexShaderInputSlots - kMaxNumVertexAttribs;
 
 // utils
-constexpr Int32 kAll = Limits<Int32>::kHighest;
+constexpr Int32 kAll                         = Limits<Int32>::kHighest;
+constexpr Int32 kDepthStencilAttachmentIndex = kMaxNumRenderTargetViewSlots;
 
 ////////// ENUMS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -525,7 +526,7 @@ using StorageBufferHandle = Handle<StorageBuffer>;
 
 struct HardwareTextureRef
 {
-    union
+    union   // non-MSAA
     {
         ID3D11Resource*  pResource = nullptr;
         ID3D11Texture2D* pTexture2D;
@@ -535,13 +536,19 @@ struct HardwareTextureRef
     ID3D11ShaderResourceView*  pSrv = nullptr;
     ID3D11UnorderedAccessView* pUav = nullptr;
 
+    union   // MSAA
+    {
+        ID3D11Resource*  pMsaaResource = nullptr;
+        ID3D11Texture2D* pMsaaTexture2D;
+    };
+
     String         name           = {};
     Int32          width          = 0;
     Int32          height         = 0;
     Int32          depth          = 0;
     eTexture       type           = eTexture::Texture2D;
     eTextureFormat format         = eTextureFormat::Unknown;
-    Int32          arraySize      = 1;   // cubemap count = arraySize / 6
+    Int32          numLayers      = 1;   // num cubemaps = numLayers / 6
     Int32          samples        = 1;
     Int32          numMips        = 1;
     Int32          refCount       = 0;
@@ -552,15 +559,25 @@ struct HardwareTextureRef
 };
 using TextureHandle = Handle<HardwareTextureRef>;
 
+struct Attachment
+{
+    TextureHandle texh        = kInvalidHandle;
+    Int32         mipIndex    = 0;
+    Int32         layerOffset = 0;
+    Int32         numLayers   = 1;   // [layerOffset, layerOffset + numLayers) will be bound
+};
+
 struct FrameBuffer
 {
-    String name             = {};
-    Int32  numRenderTargets = 0;
+    String name  = {};
+    bool   bMsaa = false;
 
-    Array<TextureHandle, kMaxNumRenderTargetViewSlots>           renderTargetTexhs = { kInvalidHandle };
-    TextureHandle                                                depthStencilTexh  = { kInvalidHandle };
-    Array<ID3D11RenderTargetView*, kMaxNumRenderTargetViewSlots> pRtvs             = { nullptr };
-    ID3D11DepthStencilView*                                      pDsv              = nullptr;
+    Array<Attachment, kMaxNumAttachmentSlots> attachments      = {};
+    Int32                                     numRenderTargets = 0;
+    bool                                      bHasDepthStencil = false;
+
+    Array<ID3D11RenderTargetView*, kMaxNumRenderTargetViewSlots> pRtvs = { nullptr };
+    ID3D11DepthStencilView*                                      pDsv  = nullptr;
 };
 using FrameBufferHandle = Handle<FrameBuffer>;
 
@@ -934,28 +951,21 @@ private:
     eBuffer m_type        = eBuffer::VertexBuffer;
 };
 
-struct TextureResolution
-{
-    Int32 width  = 0;
-    Int32 height = 0;
-    Int32 depth  = 0;
-};
-
-struct VertexBufferBinding
+struct VertexStream
 {
     VertexBufferHandle vbh    = kInvalidHandle;
     Int32              offset = 0;
 };
 
-////////// RESOURCE INFO STRUCTS ////////////////////////////////////////////////////////////////////////////////////////////////
+// metadata query structs
 
 struct VertexBufferInfo
 {
-    Int32              byteWidth    = 0;
-    Int32              stride       = 0;
-    bool               bImmutable   = false;
-    bool               bDynamic     = false;
-    VertexLayoutHandle layoutHandle = kInvalidHandle;
+    Int32              byteWidth  = 0;
+    Int32              stride     = 0;
+    VertexLayoutHandle vlh        = kInvalidHandle;
+    bool               bImmutable = false;
+    bool               bDynamic   = false;
 };
 
 struct IndexBufferInfo
@@ -968,15 +978,17 @@ struct IndexBufferInfo
 
 struct ConstantBufferInfo
 {
-    Int32 byteWidth = 0;
+    Int32 byteWidth  = 0;
+    bool  bImmutable = false;
+    bool  bDynamic   = false;
 };
 
 struct StorageBufferInfo
 {
     Int32          byteWidth      = 0;
-    Int32          numElems       = 0;
     Int32          stride         = 0;
-    eStorageBuffer type           = eStorageBuffer::Raw;
+    Int32          numElems       = 0;
+    eStorageBuffer storageType    = eStorageBuffer::Raw;
     bool           bImmutable     = false;
     bool           bDynamic       = false;
     bool           bReadback      = false;
@@ -992,7 +1004,7 @@ struct TextureInfo
     Int32          depth          = 0;
     eTexture       type           = eTexture::Texture2D;
     eTextureFormat format         = eTextureFormat::Unknown;
-    Int32          arraySize      = 1;
+    Int32          numLayers      = 1;
     Int32          samples        = 1;
     Int32          numMips        = 1;
     bool           bImmutable     = false;
@@ -1003,11 +1015,10 @@ struct TextureInfo
 
 struct FrameBufferInfo
 {
-    Int32 numRenderTargets = 0;
-    bool  bHasDepthStencil = false;
-
-    Array<TextureHandle, kMaxNumRenderTargetViewSlots> renderTargetTexhs = { kInvalidHandle };
-    TextureHandle                                      depthStencilTexh  = { kInvalidHandle };
+    Int32                                     numRenderTargets = 0;
+    bool                                      bHasDepthStencil = false;
+    bool                                      bMsaa            = false;
+    Array<Attachment, kMaxNumAttachmentSlots> attachments      = {};
 };
 
 struct ShaderInfo
@@ -1019,13 +1030,13 @@ struct ProgramInfo
 {
     ShaderHandle vsh = kInvalidHandle;
     ShaderHandle psh = kInvalidHandle;
+    ShaderHandle gsh = kInvalidHandle;
     ShaderHandle hsh = kInvalidHandle;
     ShaderHandle dsh = kInvalidHandle;
-    ShaderHandle gsh = kInvalidHandle;
     ShaderHandle csh = kInvalidHandle;
 };
 
-////////// STATUS ///////////////////////////////////////////////////////////////////////////////////////////////////
+// stats struct
 
 struct GraphicsStats
 {
@@ -1072,6 +1083,8 @@ struct GraphicsStats
         numViewportChanges          = 0;
         numScissorRectChanges       = 0;
         numFrameBufferChanges       = 0;
+
+        numResolve = 0;
     }
 
     Int32 numDrawCalls     = 0;
@@ -1116,14 +1129,16 @@ struct GraphicsStats
     Int32 numViewportChanges          = 0;
     Int32 numScissorRectChanges       = 0;
     Int32 numFrameBufferChanges       = 0;
+
+    Int32 numResolve = 0;
 };
 
 ////////// UTILS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-[[nodiscard]] bool              IsDepthFormat(eTextureFormat _format);
-[[nodiscard]] Int32             BitPerPixelOf(eTextureFormat _format);
-[[nodiscard]] Int32             CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
-[[nodiscard]] TextureResolution CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
-[[nodiscard]] Int32             CalcTextureIndex(Int32 _mipIndex, Int32 _arrayIndex, Int32 _numMips);
+[[nodiscard]] bool  IsDepthFormat(eTextureFormat _format);
+[[nodiscard]] Int32 BitPerPixelOf(eTextureFormat _format);
+[[nodiscard]] Int32 CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
+[[nodiscard]] Vec3i CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
+[[nodiscard]] Int32 CalcTextureIndex(Int32 _mipIndex, Int32 _layerIndex, Int32 _numMips);
 
 }   // namespace Jam

@@ -1,7 +1,10 @@
 #include "pch.h"
 #include "Gui.h"
+
+#include "SampleCollector.h"
 #include "../JamEngine/Application.h"
 #include "../JamEngine/EditorWidgets.h"
+#include "../JamEngine/StackString.h"
 
 bool BeginSceneInspectorWindows(const char* _title)
 {
@@ -16,10 +19,42 @@ bool BeginSceneInspectorWindows(const char* _title)
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNode("Performance"))
     {
-        Application& app = GetApp();
+        static SampleCollector s_collector;
+        static bool            s_bShowHistogram = true;
 
-        ImGui::Text("Frame rate: %6.1f fps", app.GetFrameRate());
-        ImGui::Text("Delta time: %6.3f ms", app.GetDeltaTimeSec() * 1000.f);
+        Application& app  = GetApp();
+        const float  dtMs = app.GetDeltaTimeSec() * 1000.f;
+        s_collector.PushSample(dtMs);
+
+        const float frameRate = app.GetFrameRate();
+        const float avgDtMs   = s_collector.GetAverage();
+        const float avgFps    = 1000.f / avgDtMs;
+
+        StackString<256> buf;
+        buf.Format("Delta time: {:.3f}\tms\n"
+                   "Frame Rate: {:.3f}\tfps\n"
+                   "Avg. Delta time: {:.3f}\tms\n"
+                   "Avg. Frame Rate: {:.3f}\tfps",
+                   dtMs,
+                   frameRate,
+                   avgDtMs,
+                   avgFps);
+
+        ImGui::Spacing();
+        if (s_bShowHistogram)
+        {
+            ImGui::PlotLines("##FrameTimeHistogram", s_collector.GetCpuTimeSamples(), s_collector.GetSampleCount(), s_collector.GetOffset(), buf.GetPtr(), 0.f, 60.f, { 0, 80 });
+        }
+        else
+        {
+            ImGui::TextUnformatted(buf.GetPtr(), buf.GetTerminate());
+        }
+
+        ImGui::Spacing();
+        if (ImGui::Checkbox("Show Frame Time Histogram", &s_bShowHistogram))
+        {
+            s_collector = SampleCollector();
+        }
 
         ImGui::TreePop();
     }

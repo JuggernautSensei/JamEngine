@@ -11,6 +11,7 @@ public:
     }
 
     void Init(Int32 _argc, char** _argv) override;
+    void Shutdown() override;
 };
 
 #ifdef JAM_EDITOR_ENABLE

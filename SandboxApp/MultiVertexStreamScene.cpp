@@ -138,7 +138,7 @@ void MultiVertexStreamScene::OnRender(
     gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBMultiVertexStreamSceneEntity::kSlot);
     gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBMultiVertexStreamSceneEntity::kSlot);
 
-    VertexBufferBinding binginds[] = {
+    VertexStream binginds[] = {
         {   m_posVbh, 0 },
         { m_colorVbh, 0 }
     };

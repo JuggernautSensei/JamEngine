@@ -44,7 +44,7 @@ namespace Dto
         Vector<Byte> attribData   = {};
         VertexLayout attribLayout = {};
         Aabb         boundingBox  = {};
-        Vector<Byte> idxData      = {};
+        Vector<Byte> indexData      = {};
     };
 
 }   // namespace Dto
@@ -68,32 +68,32 @@ Ref<Mesh> Mesh::Load(
     const Span<const Vec3> _position,
     const MemoryView       _attribData,
     const VertexLayout&    _attribLayout,
-    const MemoryView       _idxData)
+    const MemoryView       _indexData)
 {
-    return new Mesh(_position, _attribData, _attribLayout, _idxData);
+    return new Mesh(_position, _attribData, _attribLayout, _indexData);
 }
 
 Ref<Mesh> Mesh::Load(
     const Span<const Vec3> _position,
-    const MemoryView       _idxData)
+    const MemoryView       _indexData)
 {
-    return new Mesh(_position, _idxData);
+    return new Mesh(_position, _indexData);
 }
 
 Ref<Mesh> Mesh::Load(
     const Span<const Vec2> _position,
     const MemoryView       _attribData,
     const VertexLayout&    _attribLayout,
-    const MemoryView       _idxData)
+    const MemoryView       _indexData)
 {
-    return new Mesh(_position, _attribData, _attribLayout, _idxData);
+    return new Mesh(_position, _attribData, _attribLayout, _indexData);
 }
 
 Ref<Mesh> Mesh::Load(
     const Span<const Vec2> _position,
-    const MemoryView       _idxData)
+    const MemoryView       _indexData)
 {
-    return new Mesh(_position, _idxData);
+    return new Mesh(_position, _indexData);
 }
 
 Expect<Ref<Mesh>> Mesh::LoadFromFile(
@@ -111,23 +111,27 @@ Mesh::Mesh(
     const Span<const Vec3> _positions,
     const MemoryView       _attribData,
     const VertexLayout&    _attribLayout,
-    const MemoryView       _idxData)
+    const MemoryView       _indexData)
 {
     JAM_ASSERT(!_positions.empty(), "Position data cannot be empty.");
-    JAM_ASSERT(!_idxData.IsEmpty(), "Index data cannot be empty.");
+    JAM_ASSERT(!_indexData.IsEmpty(), "Index data cannot be empty.");
+
+    Graphics& gfx = GetGraphics();
 
     // vertex buffer
-    Graphics& gfx = GetGraphics();
-    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posFloat3Layout);
-    m_attribVbh   = gfx.CreateVertexBuffer(_attribData, _attribLayout);
+    m_posVbh            = gfx.CreateVertexBuffer(_positions, s_posFloat3Layout);
+    m_posVbByteWidth    = static_cast<Int32>(_positions.size_bytes());
+    m_attribVbh         = gfx.CreateVertexBuffer(_attribData, _attribLayout);
+    m_attribVbByteWidth = static_cast<Int32>(_attribData.GetByteWidth());
 
     // index buffer
     const bool bUseU32 = _positions.size() > Limits<UInt16>::kHighest;
-    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
+    m_ibh              = gfx.CreateIndexBuffer(_indexData, bUseU32);
+    m_ibByteWidth      = static_cast<Int32>(_indexData.GetByteWidth());
 
     // compute bounding box
     m_boundingBox = {};
-    for (const Vec3& pos: _positions)
+    for (const Vec3 pos: _positions)
     {
         m_boundingBox.Merge(pos);
     }
@@ -136,7 +140,7 @@ Mesh::Mesh(
     Murmur3Hasher64 hasher {};
     hasher.Mix(_positions);
     hasher.Mix(_attribData);
-    hasher.Mix(_idxData);
+    hasher.Mix(_indexData);
     hasher.Mix(AsMemoryView(_attribLayout.GetHash()));
     const UInt64 hash = hasher.Finish();
     m_sortKey         = static_cast<UInt16>(hash);
@@ -144,20 +148,24 @@ Mesh::Mesh(
 
 Mesh::Mesh(
     const Span<const Vec3> _positios,
-    const MemoryView       _idxData)
+    const MemoryView       _indexData)
 {
-    // vertex buffer
     Graphics& gfx = GetGraphics();
-    m_posVbh      = gfx.CreateVertexBuffer(_positios, s_posFloat3Layout);
-    m_attribVbh   = kInvalidHandle;
+
+    // vertex buffer
+    m_posVbh            = gfx.CreateVertexBuffer(_positios, s_posFloat3Layout);
+    m_posVbByteWidth    = static_cast<Int32>(_positios.size_bytes());
+    m_attribVbh         = kInvalidHandle;
+    m_attribVbByteWidth = 0;
 
     // index buffer
     const bool bUseU32 = _positios.size() > Limits<UInt16>::kHighest;
-    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
+    m_ibh              = gfx.CreateIndexBuffer(_indexData, bUseU32);
+    m_ibByteWidth      = static_cast<Int32>(_indexData.GetByteWidth());
 
     // compute bounding box
     m_boundingBox = {};
-    for (const Vec3& pos: _positios)
+    for (const Vec3 pos: _positios)
     {
         m_boundingBox.Merge(pos);
     }
@@ -165,25 +173,29 @@ Mesh::Mesh(
     // sort key
     Murmur3Hasher64 hasher {};
     hasher.Mix(_positios);
-    hasher.Mix(_idxData);
+    hasher.Mix(_indexData);
     const UInt64 hash = hasher.Finish();
     m_sortKey         = static_cast<UInt16>(hash);
 }
 
 Mesh::Mesh(
-    Span<const Vec2>    _positions,
-    MemoryView          _attribData,
-    const VertexLayout& _attribLayout,
-    MemoryView          _idxData)
+    const Span<const Vec2> _positions,
+    const MemoryView       _attribData,
+    const VertexLayout&    _attribLayout,
+    const MemoryView       _indexData)
 {
-    // vertex buffer
     Graphics& gfx = GetGraphics();
-    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posFloat2Layout);
-    m_attribVbh   = gfx.CreateVertexBuffer(_attribData, _attribLayout);
+
+    // vertex buffer
+    m_posVbh            = gfx.CreateVertexBuffer(_positions, s_posFloat2Layout);
+    m_posVbByteWidth    = static_cast<Int32>(_positions.size_bytes());
+    m_attribVbh         = gfx.CreateVertexBuffer(_attribData, _attribLayout);
+    m_attribVbByteWidth = static_cast<Int32>(_attribData.GetByteWidth());
 
     // index buffer
     const bool bUseU32 = _positions.size() > Limits<UInt16>::kHighest;
-    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
+    m_ibh              = gfx.CreateIndexBuffer(_indexData, bUseU32);
+    m_ibByteWidth      = static_cast<Int32>(_indexData.GetByteWidth());
 
     // compute bounding box
     m_boundingBox = {};
@@ -205,16 +217,18 @@ Mesh::Mesh(
 }
 
 Mesh::Mesh(
-    Span<const Vec2> _positions,
-    MemoryView       _idxData)
+    const Span<const Vec2> _positions,
+    const MemoryView       _indexData)
 {
-    // vertex buffer
     Graphics& gfx = GetGraphics();
-    m_posVbh      = gfx.CreateVertexBuffer(_positions, s_posFloat2Layout);
+
+    // vertex buffer
+    m_posVbh         = gfx.CreateVertexBuffer(_positions, s_posFloat2Layout);
+    m_posVbByteWidth = static_cast<Int32>(_positions.size_bytes());
 
     // index buffer
     const bool bUseU32 = _positions.size() > Limits<UInt16>::kHighest;
-    m_ibh              = gfx.CreateIndexBuffer(_idxData, bUseU32);
+    m_ibh              = gfx.CreateIndexBuffer(_indexData, bUseU32);
 
     // compute bounding box
     m_boundingBox = {};
@@ -262,7 +276,7 @@ Error Mesh::LoadFromFile_(
     Graphics&  gfx     = GetGraphics();
     const bool bUseU32 = mesh.positions.size() > Limits<UInt16>::kHighest;
     m_posVbh           = gfx.CreateVertexBuffer(mesh.positions, s_posFloat3Layout);
-    m_ibh              = gfx.CreateIndexBuffer(mesh.idxData, bUseU32);
+    m_ibh              = gfx.CreateIndexBuffer(mesh.indexData, bUseU32);
     m_boundingBox      = Unwrap(mesh.boundingBox);
 
     // attrib
@@ -309,9 +323,7 @@ Error Mesh::Save(
     }
 
     Graphics&                 gfx       = GetGraphics();
-    const VertexBufferInfo&   vbInfo    = gfx.GetVertexBufferInfo(m_posVbh);
-    const IndexBufferInfo&    ibInfo    = gfx.GetIndexBufferInfo(m_ibh);
-    const Int32               byteWidth = Max(vbInfo.byteWidth, ibInfo.byteWidth);
+    const Int32               byteWidth = Max(m_posVbByteWidth, m_attribVbByteWidth, m_ibByteWidth);
     const StorageBufferHandle readback  = gfx.CreateReadbackBuffer(byteWidth);
 
     Dto::Mesh mesh   = {};
@@ -319,14 +331,14 @@ Error Mesh::Save(
     mesh.boundingBox = Dto::Wrap(m_boundingBox);
 
     // vertex data
-    gfx.CopyBuffer(readback, 0, m_posVbh, 0, vbInfo.byteWidth);
-    mesh.positions.resize(vbInfo.byteWidth);
+    mesh.positions.resize(m_posVbByteWidth);
+    gfx.CopyBuffer(readback, 0, m_posVbh, 0, m_posVbByteWidth);
     gfx.ReadBuffer(readback, mesh.positions);
 
     // index data
-    gfx.CopyBuffer(readback, 0, m_ibh, 0, ibInfo.byteWidth);
-    mesh.idxData.resize(ibInfo.byteWidth);
-    gfx.ReadBuffer(readback, mesh.idxData);
+    mesh.indexData.resize(m_ibByteWidth);
+    gfx.CopyBuffer(readback, 0, m_ibh, 0, m_ibByteWidth);
+    gfx.ReadBuffer(readback, mesh.indexData);
 
     if (m_attribVbh)
     {
@@ -334,18 +346,17 @@ Error Mesh::Save(
         const VertexLayout vl      = gfx.GetVertexLayout(m_attribVbh);
         mesh.attribLayout.numElems = vl.GetNumElems();
 
-        Int32 idx = 0;
+        Int32 index = 0;
         for (const VertexLayoutElement& e: vl.GetElems())
         {
-            Dto::VertexLayoutElement& elem = mesh.attribLayout.elems[idx++];
+            Dto::VertexLayoutElement& elem = mesh.attribLayout.elems[index++];
             elem.format                    = e.format;
             elem.attrib                    = e.attrib;
         }
 
         // attrib data
-        const VertexBufferInfo& attribVbInfo = gfx.GetVertexBufferInfo(m_attribVbh);
-        gfx.CopyBuffer(readback, 0, m_attribVbh, 0, attribVbInfo.byteWidth);
-        mesh.attribData.resize(attribVbInfo.byteWidth);
+        mesh.attribData.resize(m_attribVbByteWidth);
+        gfx.CopyBuffer(readback, 0, m_attribVbh, 0, m_attribVbByteWidth);
         gfx.ReadBuffer(readback, mesh.attribData);
     }
 
@@ -429,7 +440,7 @@ void Mesh::Submit(
     Graphics& gfx = GetGraphics();
     if (!_bSubmitPositionOnly && m_attribVbh)
     {
-        VertexBufferBinding bindings[] = {
+        VertexStream bindings[] = {
             {    m_posVbh, 0 },
             { m_attribVbh, 0 }
         };
@@ -455,7 +466,7 @@ void Mesh::Submit(
     Graphics& gfx = GetGraphics();
     if (!_bSubmitPositionOnly && m_attribVbh)
     {
-        VertexBufferBinding bindings[] = {
+        VertexStream bindings[] = {
             {    m_posVbh, 0 },
             { m_attribVbh, 0 }
         };

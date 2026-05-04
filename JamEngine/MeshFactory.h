@@ -70,7 +70,7 @@ enum class eCreateCylinderMesh
 
 [[nodiscard]] Vector<Vec3> ComputeNormals(
     Span<const Vec3> _positions,
-    MemoryView       _idxData,
+    MemoryView       _indexData,
     bool             _bUseU32);
 
 struct TangentFrame
@@ -83,7 +83,7 @@ struct TangentFrame
     Span<const Vec3> _positions,
     Span<const Vec3> _normals,
     Span<const Vec2> _texCoords,
-    MemoryView       _idxData,
+    MemoryView       _indexData,
     bool             _bUseU32);
 
 }   // namespace Jam

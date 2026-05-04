@@ -29,7 +29,7 @@ private:
     ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
     FrameBufferHandle m_fbh    = {};
-    TextureHandle     m_fbTexh = {};   // not owned for blit
+    TextureHandle     m_fbTexh = {};
 
     // entity
     Ref<Mesh> m_pCube     = nullptr;
@@ -41,10 +41,10 @@ private:
     Ref<Mesh> m_pBunny     = nullptr;
     Transform m_bunnyTrans = {};
 
-    bool  m_bAnimate    = true;
-    float m_dMove       = 2.f;
-    float m_dRot        = ToRad(45.f);
-    float m_counter     = 0.f;
+    bool  m_bAnimate = true;
+    float m_dMove    = 2.f;
+    float m_dRot     = ToRad(45.f);
+    float m_counter  = 0.f;
 
     // camera
     FlyingCamera m_camera;

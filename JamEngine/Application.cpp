@@ -266,7 +266,7 @@ void Application::CoreInit()
     WindowsPlatform& win  = GetWindowsPlatform();
     const Vec2i      res  = win.GetClientResolution();
     const HWND       hWnd = win.GetPlatformHandle();
-    Graphics::CreateInstance(hWnd, res.w, res.h, m_coreFlags.IsEnabled(eAppCoreFlags::AllowTearing));
+    Graphics::CreateInstance(hWnd, res.width, res.height, m_coreFlags.IsEnabled(eAppCoreFlags::AllowTearing));
 
     // init input
     Input::CreateInstance();

@@ -46,22 +46,22 @@ void DialogStack::Clear()
 }
 
 void DialogStack::ShowDialogs_Recursive_(
-    const SizeT _idx)   // rendering modal stack
+    const SizeT _index)   // rendering modal stack
 {
-    Scoped<Dialog>& pDialog = m_dialogs[_idx].pDialog;
+    Scoped<Dialog>& pDialog = m_dialogs[_index].pDialog;
     if (pDialog->BeginShow())
     {
         // modal popup stack
-        if (_idx + 1 < m_dialogs.size())
+        if (_index + 1 < m_dialogs.size())
         {
-            ShowDialogs_Recursive_(_idx + 1);
+            ShowDialogs_Recursive_(_index + 1);
         }
 
         pDialog->EndShow();
     }
     else
     {
-        m_dialogs[_idx].bClosed = true;
+        m_dialogs[_index].bClosed = true;
         m_bAnyDialogClosed      = true;
     }
 }

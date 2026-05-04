@@ -5,6 +5,10 @@
 #define PADDING2 float2 CONCAT(padding2, __LINE__)
 #define PADDING3 float3 CONCAT(padding3, __LINE__)
 
+SamplerState s_linearClamp : register(s0);
+SamplerState s_linearWrap : register(s1);
+SamplerComparisonState s_shadowComparison : register(s2);
+
 float2 CvtNdcToTex(float2 _posNdcXy)
 {
     float2 texcoord = _posNdcXy * 0.5f + 0.5f;

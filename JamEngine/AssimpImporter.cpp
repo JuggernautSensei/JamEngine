@@ -311,7 +311,7 @@ Vector<Ref<Mesh>> AssimpImporter::ConvertToMeshes_(
         meshes.reserve(m_importedMeshes.size());
         for (const ImportedMesh& importedMesh: m_importedMeshes)
         {
-            Ref<Mesh> pMesh = Mesh::Load(importedMesh.positions, importedMesh.idxData);
+            Ref<Mesh> pMesh = Mesh::Load(importedMesh.positions, importedMesh.indexData);
             pMesh->SetName(importedMesh.name);
             meshes.emplace_back(pMesh);
         }
@@ -382,7 +382,7 @@ Vector<Ref<Mesh>> AssimpImporter::ConvertToMeshes_(
             }
 
             // create mesh
-            Ref<Mesh> pMesh = Mesh::Load(importedMesh.positions, attribData, _attribLayoutOrEmpty, importedMesh.idxData);
+            Ref<Mesh> pMesh = Mesh::Load(importedMesh.positions, attribData, _attribLayoutOrEmpty, importedMesh.indexData);
             pMesh->SetName(importedMesh.name);
             meshes.emplace_back(pMesh);
         }
@@ -453,8 +453,8 @@ Vector<Ref<Material>> AssimpImporter::ConvertToMaterials_(
         {
             for (eMaterialTexture type: RangesOf<eMaterialTexture>())
             {
-                const Int32 idx = importedMaterial.textures[type];
-                pMaterial->SetTexture(type, _texturesOrEmpty[idx]);
+                const Int32 index = importedMaterial.textures[type];
+                pMaterial->SetTexture(type, _texturesOrEmpty[index]);
             }
         }
     }
@@ -498,10 +498,10 @@ void AssimpImporter::ImportMeshes_(
             const Int32 numFaces  = static_cast<Int32>(pMesh->mNumFaces);
             const Int32 numIdxes  = numFaces * 3;
             const Int32 byteWidth = CalcIndicesByteWidth(numIdxes, importedMesh.bUseU32);
-            importedMesh.idxData.resize(byteWidth);
+            importedMesh.indexData.resize(byteWidth);
 
             // 인덱스 작성
-            IndexWriter writer { importedMesh.idxData, importedMesh.bUseU32 };
+            IndexWriter writer { importedMesh.indexData, importedMesh.bUseU32 };
             for (Int32 f = 0; f < numFaces; ++f)
             {
                 const aiFace& aiFace = pMesh->mFaces[f];

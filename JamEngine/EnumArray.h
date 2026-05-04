@@ -49,16 +49,16 @@ public:
         return m_arr[GetIndex_(_key)];
     }
 
-    [[nodiscard]] constexpr TValue& operator[](SizeT _idx)
+    [[nodiscard]] constexpr TValue& operator[](SizeT _index)
     {
-        JAM_ASSERT(0 <= _idx && _idx < kCap, "EnumArray index out of bounds. idx: '{}'", _idx);
-        return m_arr[_idx];
+        JAM_ASSERT(0 <= _index && _index < kCap, "EnumArray index out of bounds. index: '{}'", _index);
+        return m_arr[_index];
     }
 
-    [[nodiscard]] constexpr const TValue& operator[](SizeT _idx) const
+    [[nodiscard]] constexpr const TValue& operator[](SizeT _index) const
     {
-        JAM_ASSERT(0 <= _idx && _idx < kCap, "EnumArray index out of bounds. idx: '{}'", _idx);
-        return m_arr[_idx];
+        JAM_ASSERT(0 <= _index && _index < kCap, "EnumArray index out of bounds. index: '{}'", _index);
+        return m_arr[_index];
     }
 
     [[nodiscard]] constexpr SizeT Size() const
@@ -126,9 +126,9 @@ private:
     {
         if constexpr (IsDirectIndexableEnum<TEnum>)
         {
-            const SizeT idx = UnderlyingFrom(_key);
-            JAM_ASSERT(0 <= idx && idx < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
-            return idx;
+            const SizeT index = UnderlyingFrom(_key);
+            JAM_ASSERT(0 <= index && index < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
+            return index;
         }
         else
         {
