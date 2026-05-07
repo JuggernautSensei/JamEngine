@@ -1,6 +1,5 @@
 #pragma once
 
-// use int for avoid issues of unsigned type -> need to change std::ptrdiff_t
 #define EASTL_SIZE_T  std::ptrdiff_t
 #define EASTL_SSIZE_T std::ptrdiff_t
 
@@ -19,7 +18,7 @@ using Vector = eastl::vector<T, Allocator>;
 template<typename T, size_t N>
 using Array = eastl::array<T, N>;
 
-template<typename T, typename Allocator = eastl::allocator>
+template<typename T, typename Allocator = eastl::allocator> 
 using List = eastl::list<T, Allocator>;
 
 template<typename T, typename Allocator = eastl::allocator>

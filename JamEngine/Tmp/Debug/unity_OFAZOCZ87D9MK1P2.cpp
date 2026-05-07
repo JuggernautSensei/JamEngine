@@ -1,5 +1,8 @@
 #include "pch.h"
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Editor_FileBrowserWindow.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Editor_ProfilerWindow.cpp"
 
 
@@ -28,7 +31,4 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenameFileDialog.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\LRUCache.cpp"
 

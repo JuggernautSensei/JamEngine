@@ -61,8 +61,9 @@ public:
 
 private:
     void OnResize(Int32 _width, Int32 _height) override;
+
     void InitMeshes_();
-    void InitRenderGraphResource_();
+    void InitRenderGraph_();
     void BuildRenderGraph_();
 
     // utils

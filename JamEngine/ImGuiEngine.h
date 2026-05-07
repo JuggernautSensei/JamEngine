@@ -42,12 +42,12 @@ private:
     ShaderHandle m_basicPsh       = kInvalidHandle;
     ShaderHandle m_textureCubePsh = kInvalidHandle;
 
-    VertexLayout         m_vl  = {};
-    ConstantBufferHandle m_cbh = kInvalidHandle;
+    VertexLayout         m_layout = {};
+    ConstantBufferHandle m_cbh    = kInvalidHandle;
 
-    Flags<eBlendFlags>   m_bsFlags = {};
-    Flags<eRenderFlags>  m_rsFlags = {};
-    Flags<eSamplerFlags> m_ssFlags = {};
+    Flags<eBlendFlags>   m_blendFlags   = {};
+    Flags<eRenderFlags>  m_renderFlags  = {};
+    Flags<eSamplerFlags> m_samplerFlags = {};
 
     VertexBufferHandle m_vbh   = kInvalidHandle;
     Int32              m_vbCap = 0;

@@ -29,14 +29,14 @@ MultiVertexStreamScene::MultiVertexStreamScene()
 {
     Graphics& gfx = GetGraphics();
 
-    ShaderCompilerInfo vsInfo = {};
+    ShaderLoadInfo vsInfo = {};
     vsInfo.entryPoint         = "VSMain";
     vsInfo.stage              = eShader::VertexShader;
     const ShaderCompiler vsc  = ShaderCompiler::CompileHLSLFile("Resources/MultiVertexStreamScene/MultiVertexStreamSceneShader.hlsl", vsInfo);
     JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
     const ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());
 
-    ShaderCompilerInfo psInfo = {};
+    ShaderLoadInfo psInfo = {};
     psInfo.entryPoint         = "PSMain";
     psInfo.stage              = eShader::PixelShader;
     const ShaderCompiler psc  = ShaderCompiler::CompileHLSLFile("Resources/MultiVertexStreamScene/MultiVertexStreamSceneShader.hlsl", psInfo);
@@ -66,7 +66,7 @@ MultiVertexStreamScene::MultiVertexStreamScene()
     };
 
     VertexLayout posLayout = {};
-    posLayout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+    posLayout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
 
     RGBA colors[] = {
         RGBA::FromLinear(1.0f, 0.0f, 0.0f, 1.0f),
@@ -80,7 +80,7 @@ MultiVertexStreamScene::MultiVertexStreamScene()
     };
 
     VertexLayout colorLayout = {};
-    colorLayout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+    colorLayout.Add(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
 
     UInt16 idxes[] = { 4, 5, 6, 4, 6, 7, 1, 0, 3, 1, 3, 2, 0, 4, 7, 0, 7, 3, 5, 1, 2, 5, 2, 6, 1, 5, 4, 1, 4, 0, 7, 6, 2, 7, 2, 3 };
 
@@ -169,13 +169,12 @@ void MultiVertexStreamScene::OnRender(
         }
     }
 
-    // blit inner framebuffer texture to output texture
+    // blit scene framebuffer texture to output framebuffer texture
     // output framebuffer maybe do not have depth texture.
     // so. draw on screen-off framebuffer and blit the color texture to output framebuffer.
-    // in real case. use    post-process pass to do this.
-    const FrameBufferInfo fbInfo = gfx.GetFrameBufferInfo(_view.fbh);
-    JAM_ASSERT(fbInfo.numRenderTargets > 0, "Back buffer must have at least one render target");
-    gfx.CopyTexture(fbInfo.renderTargetTexhs[0], 0, 0, 0, 0, 0, m_fbTexh, 0, 0, 0, 0, 0);
+    // in real case. use post-process pass to do this.
+    const Attachment attachment = gfx.GetFrameBufferAttachment(_view.fbh, 0);
+    gfx.CopyTexture(attachment.texh, 0, 0, 0, 0, 0, m_colorTexh, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 void MultiVertexStreamScene::OnImGuiRender()
@@ -196,10 +195,16 @@ void MultiVertexStreamScene::OnResize(
     JAM_DESTROY_FRAME_BUFFER(m_fbh);
 
     Graphics& gfx = GetGraphics();
-    m_fbh         = gfx.CreateFrameBuffer(_width, _height, eTextureFormat::RGBA8_UNorm, eTextureFormat::D24_UNorm_S8_UInt);
-    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 
-    const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
-    JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");
-    m_fbTexh = info.renderTargetTexhs[0];
+    const TextureHandle depthTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::D32_Float, false, 1, eTextureCreateFlags::DepthStencilAttachment);
+    const TextureHandle colorTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::RenderTargetAttachment);
+
+    Attachment attachment[2];
+    attachment[0].texh = colorTexh;
+    attachment[1].texh = depthTexh;
+
+    m_fbh       = gfx.CreateFrameBuffer(attachment, true);
+    m_colorTexh = colorTexh;
+
+    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 }

@@ -114,8 +114,8 @@ namespace
         const StringView _source,
         const eShader    _stage)
     {
-        ShaderCompilerInfo desc = {};
-        desc.stage              = _stage;
+        ShaderLoadInfo desc = {};
+        desc.stage          = _stage;
 
         ShaderCompiler complier = ShaderCompiler::CompileHLSLSource(_source, desc);
         JAM_ASSERT(complier.IsSucceeded(), "Failed to compile ImGui shader: {}", complier.GetError().ToErrorMessage());
@@ -142,7 +142,7 @@ ImGuiEngine::ImGuiEngine(
     // init
     ImGui_ImplWin32_Init(_hWnd);
 
-    IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
+    JAM_ASSERT(!io.BackendRendererUserData, "Already initialized a renderer backend!");
     io.BackendRendererName = "jam_engine_ImGui_glue_impl";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures;
 
@@ -157,20 +157,20 @@ ImGuiEngine::ImGuiEngine(
     m_textureCubePh = gfx.CreateProgram(m_vsh, m_textureCubePsh);
 
     // create vertex vertexLayout
-    m_vl.Push(eVertexAttribute::Position, eAttributeFormat::Float2);
-    m_vl.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-    m_vl.Push(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
+    m_layout.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
+        .Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2)
+        .Add(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
 
     // create constant buffer
     m_cbh = gfx.CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
 
     // state
-    m_bsFlags = eBlendFlags::Enable
-              | eBlendFlags::SrcBlend_SrcAlpha | eBlendFlags::DstBlend_InvSrcAlpha | eBlendFlags::BlendOp_Add
-              | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add
-              | eBlendFlags::WriteMask_All;
-    m_rsFlags = eRenderFlags::CullMode_None | eRenderFlags::Scissor;
-    m_ssFlags = eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear | eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp;
+    m_blendFlags = eBlendFlags::Enable
+                 | eBlendFlags::SrcBlend_SrcAlpha | eBlendFlags::DstBlend_InvSrcAlpha | eBlendFlags::BlendOp_Add
+                 | eBlendFlags::SrcBlendAlpha_SrcAlpha | eBlendFlags::DstBlendAlpha_InvSrcAlpha | eBlendFlags::BlendOpAlpha_Add
+                 | eBlendFlags::WriteMask_All;
+    m_renderFlags  = eRenderFlags::CullMode_None | eRenderFlags::Scissor;
+    m_samplerFlags = eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear | eSamplerFlags::AddressU_Clamp | eSamplerFlags::AddressV_Clamp;
 }
 
 ImGuiEngine::~ImGuiEngine()
@@ -286,7 +286,7 @@ void ImGuiEngine::Render_(
     {
         JAM_DESTROY_VERTEX_BUFFER(m_vbh);
         m_vbCap = _pDrawData->TotalVtxCount + 5000;
-        m_vbh   = gfx.CreateDynamicVertexBuffer(m_vbCap * sizeof(ImDrawVert), m_vl);
+        m_vbh   = gfx.CreateDynamicVertexBuffer(m_vbCap * sizeof(ImDrawVert), m_layout);
     }
 
     // realloc
@@ -355,9 +355,9 @@ void ImGuiEngine::Render_(
 
     gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
-    gfx.SetBlendFlags(m_bsFlags, 0);
-    gfx.SetRenderFlags(m_rsFlags);
-    gfx.SetSampler(m_ssFlags, eShader::PixelShader, 0);
+    gfx.SetBlendFlags(m_blendFlags, 0);
+    gfx.SetRenderFlags(m_renderFlags);
+    gfx.SetSampler(m_samplerFlags, eShader::PixelShader, 0);
     gfx.SetStencilFlags(eStencilFlags::None, eStencilFlags::None);
     gfx.SetVertexBuffer(m_vbh);
 

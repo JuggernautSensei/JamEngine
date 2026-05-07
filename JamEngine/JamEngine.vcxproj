@@ -411,6 +411,7 @@
     <ClInclude Include="Bit.h" />
     <ClInclude Include="CppHlslGlue.h" />
     <ClCompile Include="DebugRenderer.cpp" />
+    <ClCompile Include="Filter.cpp" />
     <ClCompile Include="Float16.cpp" />
     <ClCompile Include="MathConstant.cpp" />
     <ClCompile Include="Matrix.cpp" />
@@ -614,6 +615,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebugRenderer.h" />
+    <ClInclude Include="Filter.h" />
     <ClInclude Include="Float16.h" />
     <ClInclude Include="MathConstant.h" />
     <ClInclude Include="Matrix.h" />

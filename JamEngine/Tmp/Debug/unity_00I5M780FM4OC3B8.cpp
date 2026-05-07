@@ -1,5 +1,8 @@
 #include "pch.h"
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\LRUCache.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Octree.cpp"
 
 
@@ -28,7 +31,4 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\TextureFormat.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\HistoryStack.cpp"
 

@@ -3,8 +3,6 @@
 Texture2D t_albedo : register(t0);
 Texture2D t_normal : register(t1);
 
-SamplerState s_linearWrap : register(s0);
-
 cbuffer CBDeferedSceneEntity : register(b0)
 {
     float4x4 cb_world;

@@ -79,6 +79,10 @@ bool BeginSceneInspectorWindows(const char* _title)
             ImGui::Text("Dispatch calls");
             ImGui::TableNextColumn();
             ImGui::Text("%d", stats.numDispatchCalls);
+            ImGui::TableNextColumn();
+            ImGui::Text("Resolve");
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", stats.numResolve);
 
             ImGui::EndTable();
         }

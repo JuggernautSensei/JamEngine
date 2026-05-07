@@ -36,7 +36,7 @@ private:
     ConstantBufferHandle m_lightCbh  = kInvalidHandle;
 
     FrameBufferHandle m_fbh    = {};
-    TextureHandle     m_fbTexh = {};   // not owned
+    TextureHandle     m_colorTexh = {};   // not owned
 
     bool  m_bAnimate = true;
     float m_dRot     = ToRad(45.f);

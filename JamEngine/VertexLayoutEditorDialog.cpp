@@ -177,7 +177,7 @@ bool VertexLayoutEditorDialog::OnClickSaveButton_() const
     VertexLayout vl = {};
     for (const auto node: m_elems)
     {
-        vl.Push(node.key, node.value);
+        vl.Add(node.key, node.value);
     }
 
     // update

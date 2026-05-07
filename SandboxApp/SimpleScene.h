@@ -1,5 +1,6 @@
 #pragma once
 #include "FlyingCamera.h"
+#include "../JamEngine/RenderGraph.h"
 
 class SimpleScene : public Scene
 {
@@ -19,17 +20,16 @@ public:
     void OnImGuiRender() override;
 
 private:
-    void InitMeshes_();
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph = kInvalidHandle;
+    void InitMeshes_();
+    void InitRenderGraph_();
+    void Submit_() const;
 
+    RenderGraph          m_graph     = {};
     ConstantBufferHandle m_entityCbh = kInvalidHandle;
     ConstantBufferHandle m_cmrCbh    = kInvalidHandle;
     ConstantBufferHandle m_lightCbh  = kInvalidHandle;
-
-    FrameBufferHandle m_fbh    = {};
-    TextureHandle     m_fbTexh = {};
 
     // entity
     Ref<Mesh> m_pCube     = nullptr;

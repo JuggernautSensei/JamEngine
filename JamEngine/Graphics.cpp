@@ -807,59 +807,59 @@ TextureHandle Graphics::CreateTexture3D(
 
 void Graphics::UpdateTexture2D(
     const TextureHandle _texh,
-    const Int32         _mipIndex,
-    const Int32         _layerIndex,
+    const Int32         _mip,
+    const Int32         _layer,
     const Int32         _x,
     const Int32         _y,
-    const Int32         _width,
-    const Int32         _height,
+    const Int32         _widthOrZero,
+    const Int32         _heightOrZero,
     const MemoryView    _data,
     const Int32         _rowPitch) const
 {
-    UpdateTexture_(_texh, _mipIndex, _layerIndex, _x, _y, 0, _width, _height, 1, _data, _rowPitch, 0);
+    UpdateTexture_(_texh, _mip, _layer, _x, _y, 0, _widthOrZero, _heightOrZero, 1, _data, _rowPitch, 0);
 }
 
 void Graphics::UpdateTextureCube(
     const TextureHandle _texh,
-    const Int32         _mipIndex,
+    const Int32         _mip,
     const eCubeFace     _face,
-    const Int32         _layerIndex,
+    const Int32         _layer,
     const Int32         _x,
     const Int32         _y,
-    const Int32         _width,
-    const Int32         _height,
+    const Int32         _widthOrZero,
+    const Int32         _heightOrZero,
     const MemoryView    _data,
     const Int32         _rowPitch) const
 {
-    UpdateTexture_(_texh, _mipIndex, UnderlyingFrom(_face) * _layerIndex, _x, _y, 0, _width, _height, 1, _data, _rowPitch, 0);
+    UpdateTexture_(_texh, _mip, UnderlyingFrom(_face) * _layer, _x, _y, 0, _widthOrZero, _heightOrZero, 1, _data, _rowPitch, 0);
 }
 
 void Graphics::UpdateTexture3D(
     const TextureHandle _texh,
-    const Int32         _mipIndex,
+    const Int32         _mip,
     const Int32         _x,
     const Int32         _y,
     const Int32         _z,
-    const Int32         _width,
-    const Int32         _height,
-    const Int32         _depth,
+    const Int32         _widthOrZero,
+    const Int32         _heightOrZero,
+    const Int32         _depthOrZero,
     const MemoryView    _data,
     const Int32         _rowPitch,
     const Int32         _depthPitch) const
 {
-    UpdateTexture_(_texh, _mipIndex, 0, _x, _y, _z, _width, _height, _depth, _data, _rowPitch, _depthPitch);
+    UpdateTexture_(_texh, _mip, 0, _x, _y, _z, _widthOrZero, _heightOrZero, _depthOrZero, _data, _rowPitch, _depthPitch);
 }
 
 void Graphics::CopyTexture(
     const TextureHandle _dstTexh,
-    const Int32         _dstMipIndex,
-    const Int32         _dstArrayIndex,
+    const Int32         _dstMip,
+    const Int32         _dstLayer,
     const Int32         _dstX,
     const Int32         _dstY,
     const Int32         _dstZ,
     const TextureHandle _srcTexh,
-    const Int32         _srcMipIndex,
-    const Int32         _srcArrayIndex,
+    const Int32         _srcMip,
+    const Int32         _srcLayer,
     const Int32         _srcX,
     const Int32         _srcY,
     const Int32         _srcZ,
@@ -869,14 +869,14 @@ void Graphics::CopyTexture(
 {
     CopyTexture_(
         _dstTexh,
-        _dstMipIndex,
-        _dstArrayIndex,
+        _dstMip,
+        _dstLayer,
         _dstX,
         _dstY,
         _dstZ,
         _srcTexh,
-        _srcMipIndex,
-        _srcArrayIndex,
+        _srcMip,
+        _srcLayer,
         _srcX,
         _srcY,
         _srcZ,
@@ -887,11 +887,11 @@ void Graphics::CopyTexture(
 
 Int32 Graphics::ReadTexture(
     const TextureHandle     _texh,
-    const Int32             _srcMipIndex,
-    const Int32             _srcArrayIndex,
+    const Int32             _srcMip,
+    const Int32             _srcLayer,
     const MutableMemoryView _dst) const
 {
-    return ReadTexture_(_texh, _srcMipIndex, _srcArrayIndex, _dst);
+    return ReadTexture_(_texh, _srcMip, _srcLayer, _dst);
 }
 
 ImageContainer Graphics::Capture(
@@ -920,64 +920,6 @@ FrameBufferHandle Graphics::CreateFrameBuffer(
     Attachment attachment[1] = {};
     attachment[0].texh       = _texh;
     return CreateFrameBuffer(attachment, _bDestroyTexture);
-}
-
-FrameBufferHandle Graphics::CreateFrameBuffer(
-    const Int32          _width,
-    const Int32          _height,
-    const eTextureFormat _renderTargetFormat,
-    const eTextureFormat _depthFormat,
-    const bool           _writeOnlyRenderTarget,
-    const bool           _writeOnlyDepthStencil)
-{
-    JAM_ASSERT(_width > 0 && _height > 0, "Frame buffer width and height must be greater than 0");
-    JAM_ASSERT(_renderTargetFormat != eTextureFormat::Unknown, "Render target format must be specified");
-    JAM_ASSERT(_depthFormat != eTextureFormat::Unknown, "Depth stencil format must be specified");
-    JAM_ASSERT(!IsDepthFormat(_renderTargetFormat), "Render target format must not be a depth format");
-    JAM_ASSERT(IsDepthFormat(_depthFormat), "Depth format must be a depth format");
-
-    Flags<eTextureCreateFlags> rtvFlags = eTextureCreateFlags::RenderTargetAttachment;
-    if (_writeOnlyRenderTarget)
-    {
-        rtvFlags |= eTextureCreateFlags::DisableShaderRead;
-    }
-
-    Flags<eTextureCreateFlags> dsvFlags = eTextureCreateFlags::DepthStencilAttachment;
-    if (_writeOnlyDepthStencil)
-    {
-        dsvFlags |= eTextureCreateFlags::DisableShaderRead;
-    }
-
-    Attachment attachments[2] = {};
-    attachments[0].texh       = CreateTexture2D(_width, _height, _renderTargetFormat, false, 1, rtvFlags);
-    attachments[1].texh       = CreateTexture2D(_width, _height, _depthFormat, false, 1, dsvFlags);
-    return CreateFrameBuffer(attachments, true);
-}
-
-FrameBufferHandle Graphics::CreateFrameBuffer(
-    const Int32          _width,
-    const Int32          _height,
-    const eTextureFormat _format,
-    const bool           _bWriteOnly)
-{
-    Flags<eTextureCreateFlags> flags = {};
-    if (_bWriteOnly)
-    {
-        flags |= eTextureCreateFlags::DisableShaderRead;
-    }
-
-    if (IsDepthFormat(_format))
-    {
-        flags |= eTextureCreateFlags::DepthStencilAttachment;
-    }
-    else
-    {
-        flags |= eTextureCreateFlags::RenderTargetAttachment;
-    }
-
-    Attachment attachment[1] = {};
-    attachment[0].texh       = CreateTexture2D(_width, _height, _format, false, 1, flags);
-    return CreateFrameBuffer(attachment, true);
 }
 
 ShaderHandle Graphics::CreateShader(
@@ -1253,7 +1195,7 @@ void Graphics::DestroyFrameBuffer(
             JAM_ASSERT(0, "Depth stencil view reference count is not zero");
         }
 
-        DestroyTexture(fb.attachments[kDepthStencilAttachmentIndex].texh);   // TextureHandle 해제
+        DestroyTexture(fb.attachments[kDepthStencilAttachmentSlot].texh);   // TextureHandle 해제
     }
 
     m_frameBuffers.Free(_fbh);   // FrameBuffer 핸들 해제
@@ -1506,12 +1448,11 @@ const VertexLayout& Graphics::GetVertexLayout(
     return vl.vl;
 }
 
-const VertexLayout& Graphics::GetVertexLayout(
+VertexLayoutHandle Graphics::GetVertexLayout(
     const VertexBufferHandle _vbh)
 {
-    const VertexBuffer&    vb = m_vertexBuffers[_vbh];
-    const VertexLayoutRef& vl = m_vertexLayouts[vb.vlh];
-    return vl.vl;
+    const VertexBuffer& vb = m_vertexBuffers[_vbh];
+    return vb.vlh;
 }
 
 VertexBufferInfo Graphics::GetVertexBufferInfo(const VertexBufferHandle _vbh)
@@ -1601,12 +1542,22 @@ FrameBufferInfo Graphics::GetFrameBufferInfo(const FrameBufferHandle _fbh)
     return info;
 }
 
+Attachment Graphics::GetFrameBufferAttachment(
+    const FrameBufferHandle _fbh,
+    const Int32             _slot)
+{
+    const FrameBufferHandle fbh = _fbh ? _fbh : m_backBufferFbh;
+    const FrameBuffer&      fb  = m_frameBuffers[fbh];
+    JAM_ASSERT((0 <= _slot && _slot < fb.numRenderTargets) || (fb.bHasDepthStencil && _slot == kDepthStencilAttachmentSlot), "Attachment slot out of range.");
+    return fb.attachments[_slot];
+}
+
 Vec3i Graphics::GetFrameBufferResolution(
     const FrameBufferHandle _fbh)
 {
     const FrameBufferHandle   fbh     = _fbh ? _fbh : m_backBufferFbh;
     const FrameBuffer&        fb      = m_frameBuffers[fbh];
-    const TextureHandle       texh    = fb.bHasDepthStencil ? fb.attachments[kDepthStencilAttachmentIndex].texh : fb.attachments[0].texh;
+    const TextureHandle       texh    = fb.bHasDepthStencil ? fb.attachments[kDepthStencilAttachmentSlot].texh : fb.attachments[0].texh;
     const HardwareTextureRef& texture = m_textures[texh];
     return { texture.width, texture.height, texture.depth };
 }
@@ -3696,16 +3647,16 @@ HardwareTextureRef Graphics::CreateHardwareTexture_(
                 if (_numLayers > 6)
                 {
                     srvDesc.ViewDimension                     = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-                    srvDesc.TextureCubeArray.MostDetailedMip  = static_cast<UINT>(numMips);
-                    srvDesc.TextureCubeArray.MipLevels        = 1;
+                    srvDesc.TextureCubeArray.MostDetailedMip  = 0;
+                    srvDesc.TextureCubeArray.MipLevels        = static_cast<UINT>(numMips);
                     srvDesc.TextureCubeArray.First2DArrayFace = 0;
                     srvDesc.TextureCubeArray.NumCubes         = static_cast<UINT>(_numLayers / 6);
                 }
                 else
                 {
                     srvDesc.ViewDimension               = D3D11_SRV_DIMENSION_TEXTURECUBE;
-                    srvDesc.TextureCube.MostDetailedMip = static_cast<UINT>(numMips);
-                    srvDesc.TextureCube.MipLevels       = 1;
+                    srvDesc.TextureCube.MostDetailedMip = 0;
+                    srvDesc.TextureCube.MipLevels       = static_cast<UINT>(numMips);
                 }
             }
             else
@@ -3713,24 +3664,24 @@ HardwareTextureRef Graphics::CreateHardwareTexture_(
                 if (bIsArray)
                 {
                     srvDesc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-                    srvDesc.Texture2DArray.MostDetailedMip = static_cast<UINT>(numMips);
-                    srvDesc.Texture2DArray.MipLevels       = 1;
+                    srvDesc.Texture2DArray.MostDetailedMip = 0;
+                    srvDesc.Texture2DArray.MipLevels       = static_cast<UINT>(numMips);
                     srvDesc.Texture2DArray.FirstArraySlice = 0;
                     srvDesc.Texture2DArray.ArraySize       = static_cast<UINT>(_numLayers);
                 }
                 else
                 {
                     srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-                    srvDesc.Texture2D.MostDetailedMip = static_cast<UINT>(numMips);
-                    srvDesc.Texture2D.MipLevels       = 1;
+                    srvDesc.Texture2D.MostDetailedMip = 0;
+                    srvDesc.Texture2D.MipLevels       = static_cast<UINT>(numMips);
                 }
             }
         }
         else
         {
             srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE3D;
-            srvDesc.Texture3D.MostDetailedMip = static_cast<UINT>(numMips);
-            srvDesc.Texture3D.MipLevels       = 1;
+            srvDesc.Texture3D.MostDetailedMip = 0;
+            srvDesc.Texture3D.MipLevels       = static_cast<UINT>(numMips);
         }
 
         JAM_CHECK_HRESULT(m_pd3d11Device->CreateShaderResourceView(texture.pResource, &srvDesc, &texture.pSrv));
@@ -3746,14 +3697,14 @@ HardwareTextureRef Graphics::CreateHardwareTexture_(
 
 void Graphics::UpdateTexture_(
     const TextureHandle _dstTexh,
-    const Int32         _dstMipIndex,
-    const Int32         _dstArrayIndex,
+    const Int32         _dstMip,
+    const Int32         _dstLayer,
     const Int32         _offsetX,
     const Int32         _offsetY,
     const Int32         _offsetZ,
-    const Int32         _width,
-    const Int32         _height,
-    const Int32         _depth,
+    const Int32         _widthOrZero,
+    const Int32         _heightOrZero,
+    const Int32         _depthOrZero,
     const MemoryView    _uploadData,
     const Int32         _rowPitch,
     const Int32         _slicePitch) const
@@ -3761,29 +3712,23 @@ void Graphics::UpdateTexture_(
     const HardwareTextureRef& dstTexture = m_textures[_dstTexh];
     JAM_ASSERT(dstTexture.pResource, "Destination texture resource is null!");
     JAM_ASSERT(!dstTexture.bImmutable, "Destination texture must be mutable for UpdateTexture.");
-    JAM_ASSERT(_dstMipIndex >= 0 && _dstMipIndex < dstTexture.numMips, "Destination mip index is out of range.");
-    JAM_ASSERT(_dstArrayIndex >= 0 && _dstArrayIndex < dstTexture.numLayers, "Destination array index is out of range.");
+    JAM_ASSERT(_dstMip >= 0 && _dstMip < dstTexture.numMips, "Destination mip index is out of range.");
+    JAM_ASSERT(_dstLayer >= 0 && _dstLayer < dstTexture.numLayers, "Destination array index is out of range.");
 
-    if (JAM_DEBUG_ENABLED)
-    {
-        const Vec3i resolution = CalcTextureResolution(dstTexture.width, dstTexture.height, dstTexture.depth, _dstMipIndex);
-        JAM_ASSERT(_offsetX >= 0 && _offsetX + _width <= resolution.width, "Update region exceeds destination mip width.");
-        JAM_ASSERT(_offsetY >= 0 && _offsetY + _height <= resolution.height, "Update region exceeds destination mip height.");
-        JAM_ASSERT(_offsetZ >= 0 && _offsetZ + _depth <= resolution.depth, "Update region exceeds destination mip depth.");
-        JAM_ASSERT(_width > 0, "Update region width must be positive.");
-        JAM_ASSERT(_height > 0, "Update region height must be positive.");
-        JAM_ASSERT(_depth > 0, "Update region depth must be positive.");
-    }
+    const Vec3i resolution = CalcTextureResolution(dstTexture.width, dstTexture.height, dstTexture.depth, _dstMip);
+    const Int32 w          = _widthOrZero > 0 ? _widthOrZero : resolution.width - _offsetX;
+    const Int32 h          = _heightOrZero > 0 ? _heightOrZero : resolution.height - _offsetY;
+    const Int32 d          = _depthOrZero > 0 ? _depthOrZero : resolution.depth - _offsetZ;
 
     D3D11_BOX box;
     box.left   = _offsetX;
     box.top    = _offsetY;
     box.front  = _offsetZ;
-    box.right  = _offsetX + _width;
-    box.bottom = _offsetY + _height;
-    box.back   = _offsetZ + _depth;
+    box.right  = _offsetX + w;
+    box.bottom = _offsetY + h;
+    box.back   = _offsetZ + d;
 
-    const UINT index = CalcTextureIndex(_dstMipIndex, _dstArrayIndex, dstTexture.numMips);
+    const UINT index = CalcTextureIndex(_dstMip, _dstLayer, dstTexture.numMips);
     m_pd3d11DeviceContext->UpdateSubresource(
         dstTexture.pResource,
         index,
@@ -3792,20 +3737,21 @@ void Graphics::UpdateTexture_(
         _rowPitch,
         _slicePitch);
 }
+
 Int32 Graphics::ReadTexture_(
     const TextureHandle     _texh,
-    const Int32             _mipIndex,
-    const Int32             _layerIndex,
+    const Int32             _mip,
+    const Int32             _layer,
     const MutableMemoryView _dst) const
 {
     const HardwareTextureRef& texture = m_textures[_texh];
     JAM_ASSERT(texture.bReadback, "Texture must be created with CpuRead flag to read with ReadTexture.");
 
-    JAM_ASSERT(_mipIndex >= 0 && _mipIndex < texture.numMips, "Mip index is out of range.");
-    JAM_ASSERT(_layerIndex >= 0 && _layerIndex < texture.numLayers, "Layer index is out of range.");
+    JAM_ASSERT(_mip >= 0 && _mip < texture.numMips, "Mip index is out of range.");
+    JAM_ASSERT(_layer >= 0 && _layer < texture.numLayers, "Layer index is out of range.");
 
-    const Vec3i resolution = CalcTextureResolution(texture.width, texture.height, texture.depth, _mipIndex);
-    const Int32 index      = CalcTextureIndex(_mipIndex, _layerIndex, texture.numMips);
+    const Vec3i resolution = CalcTextureResolution(texture.width, texture.height, texture.depth, _mip);
+    const Int32 index      = CalcTextureIndex(_mip, _layer, texture.numMips);
     const Int32 rowPitch   = resolution.width * BitPerPixelOf(texture.format) / 8;
 
     D3D11_MAPPED_SUBRESOURCE mapped;
@@ -3844,54 +3790,47 @@ lb_exit:
 
 void Graphics::CopyTexture_(
     const TextureHandle _dstTexh,
-    const Int32         _dstMipIndex,
-    const Int32         _dstArrayIndex,
+    const Int32         _dstMip,
+    const Int32         _dstLayer,
     const Int32         _dstOffsetX,
     const Int32         _dstOffsetY,
     const Int32         _dstOffsetZ,
     const TextureHandle _srcTexh,
-    const Int32         _srcMipIndex,
-    const Int32         _srcArrayIndex,
+    const Int32         _srcMip,
+    const Int32         _srcLayer,
     const Int32         _srcOffsetX,
     const Int32         _srcOffsetY,
     const Int32         _srcOffsetZ,
-    const Int32         _srcWidth,
-    const Int32         _srcHeight,
-    const Int32         _srcDepth) const
+    const Int32         _srcWidthOrZero,
+    const Int32         _srcHeightOrZero,
+    const Int32         _srcDepthOrZero) const
 {
     const HardwareTextureRef& srcTexture = m_textures[_srcTexh];
     const HardwareTextureRef& dstTexture = m_textures[_dstTexh];
     JAM_ASSERT(!dstTexture.bImmutable, "Destination texture must be mutable for CopyTexture.");
     JAM_ASSERT(srcTexture.pResource, "Source texture resource is null.");
     JAM_ASSERT(dstTexture.pResource, "Destination texture resource is null.");
-    JAM_ASSERT(_srcMipIndex >= 0 && _srcMipIndex < srcTexture.numMips, "Source mip index is out of range.");
-    JAM_ASSERT(_srcArrayIndex >= 0 && _srcArrayIndex < srcTexture.numLayers, "Source array index is out of range.");
-    JAM_ASSERT(_dstMipIndex >= 0 && _dstMipIndex < dstTexture.numMips, "Destination mip index is out of range.");
-    JAM_ASSERT(_dstArrayIndex >= 0 && _dstArrayIndex < dstTexture.numLayers, "Destination array index is out of range.");
+    JAM_ASSERT(_srcMip >= 0 && _srcMip < srcTexture.numMips, "Source mip index is out of range.");
+    JAM_ASSERT(_srcLayer >= 0 && _srcLayer < srcTexture.numLayers, "Source array index is out of range.");
+    JAM_ASSERT(_dstMip >= 0 && _dstMip < dstTexture.numMips, "Destination mip index is out of range.");
+    JAM_ASSERT(_dstLayer >= 0 && _dstLayer < dstTexture.numLayers, "Destination array index is out of range.");
+
+    const Vec3i srcResolution = CalcTextureResolution(srcTexture.width, srcTexture.height, srcTexture.depth, _srcMip);
+    const Vec3i dstResolution = CalcTextureResolution(dstTexture.width, dstTexture.height, dstTexture.depth, _dstMip);
+    const Int32 srcW          = _srcWidthOrZero > 0 ? _srcWidthOrZero : srcResolution.width - _srcOffsetX;
+    const Int32 srcH          = _srcHeightOrZero > 0 ? _srcHeightOrZero : srcResolution.height - _srcOffsetY;
+    const Int32 srcD          = _srcDepthOrZero > 0 ? _srcDepthOrZero : srcResolution.depth - _srcOffsetZ;
 
     D3D11_BOX box;
     box.left   = _srcOffsetX;
     box.top    = _srcOffsetY;
     box.front  = _srcOffsetZ;
-    box.right  = _srcOffsetX + _srcWidth;
-    box.bottom = _srcOffsetY + _srcHeight;
-    box.back   = _srcOffsetZ + _srcDepth;
+    box.right  = _srcOffsetX + srcW;
+    box.bottom = _srcOffsetY + srcH;
+    box.back   = _srcOffsetZ + srcD;
 
-    if (JAM_DEBUG_ENABLED)
-    {
-        const Vec3i srcResolution = CalcTextureResolution(srcTexture.width, srcTexture.height, srcTexture.depth, _srcMipIndex);
-        const Vec3i dstResolution = CalcTextureResolution(dstTexture.width, dstTexture.height, dstTexture.depth, _dstMipIndex);
-        JAM_ASSERT(_srcOffsetX >= 0 && _srcOffsetX + _srcWidth <= srcResolution.width, "Source copy region exceeds source mip level dimensions.");
-        JAM_ASSERT(_srcOffsetY >= 0 && _srcOffsetY + _srcHeight <= srcResolution.height, "Source copy region exceeds source mip level dimensions.");
-        JAM_ASSERT(_srcOffsetZ >= 0 && _srcOffsetZ + _srcDepth <= srcResolution.depth, "Source copy region exceeds source mip level dimensions.");
-        JAM_ASSERT(_dstOffsetX >= 0 && _dstOffsetX + _srcWidth <= dstResolution.width, "Destination copy region exceeds destination mip level dimensions.");
-        JAM_ASSERT(_dstOffsetY >= 0 && _dstOffsetY + _srcHeight <= dstResolution.height, "Destination copy region exceeds destination mip level dimensions.");
-        JAM_ASSERT(_dstOffsetZ >= 0 && _dstOffsetZ + _srcDepth <= dstResolution.depth, "Destination copy region exceeds destination mip level dimensions.");
-        JAM_ASSERT(srcTexture.format == dstTexture.format, "Source and destination texture formats must match for CopyTexture.");
-    }
-
-    const UINT srcIndex = CalcTextureIndex(_srcMipIndex, _srcArrayIndex, srcTexture.numMips);
-    const UINT dstIndex = CalcTextureIndex(_dstMipIndex, _dstArrayIndex, dstTexture.numMips);
+    const UINT srcIndex = CalcTextureIndex(_srcMip, _srcLayer, srcTexture.numMips);
+    const UINT dstIndex = CalcTextureIndex(_dstMip, _dstLayer, dstTexture.numMips);
 
     m_pd3d11DeviceContext->CopySubresourceRegion(
         dstTexture.pResource,
@@ -4003,7 +3942,7 @@ FrameBuffer Graphics::CreateFrameBuffer_(
                 JAM_CHECK_HRESULT(m_pd3d11Device->CreateDepthStencilView(texture.pResource, &desc, &fb.pDsv));
             }
 
-            fb.attachments[kDepthStencilAttachmentIndex] = attachment;
+            fb.attachments[kDepthStencilAttachmentSlot] = attachment;
             bHasDepthStencil                            = true;
         }
         else   // 렌더 타겟
@@ -4265,7 +4204,7 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
     }
 
     // compilte dummy shader
-    constexpr ShaderCompilerInfo info     = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::ReleaseDefault };
+    constexpr ShaderLoadInfo info     = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::ReleaseDefault };
     const ShaderCompiler         compiler = ShaderCompiler::CompileHLSLSource(hlsl, info);
     JAM_ASSERT(compiler.IsSucceeded(), "Failed to compile shader for input layout creation. Error: {}", compiler.GetErrorMessage());
     const MemoryView bytecode = compiler.GetBytecode();

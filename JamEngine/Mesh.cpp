@@ -13,13 +13,13 @@ namespace Jam
 
 VertexLayout Mesh::s_posFloat3Layout = [] {
     VertexLayout layout = {};
-    layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+    layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
     return layout;
 }();
 
 VertexLayout Mesh::s_posFloat2Layout = [] {
     VertexLayout layout = {};
-    layout.Push(eVertexAttribute::Position, eAttributeFormat::Float2);
+    layout.Add(eVertexAttribute::Position, eAttributeFormat::Float2);
     return layout;
 }();
 
@@ -44,7 +44,7 @@ namespace Dto
         Vector<Byte> attribData   = {};
         VertexLayout attribLayout = {};
         Aabb         boundingBox  = {};
-        Vector<Byte> indexData      = {};
+        Vector<Byte> indexData    = {};
     };
 
 }   // namespace Dto
@@ -282,16 +282,14 @@ Error Mesh::LoadFromFile_(
     // attrib
     if (!meshOrNot->attribData.empty())
     {
-        const Dto::VertexLayout& layout = mesh.attribLayout;
-
-        VertexLayout vl = {};
-        for (Int32 i = 0; i < layout.numElems; ++i)
+        VertexLayout layout = {};
+        for (Int32 i = 0; i < mesh.attribLayout.numElems; ++i)
         {
-            const Dto::VertexLayoutElement& elem = layout.elems[i];
-            vl.Push(elem.attrib, elem.format);
+            const Dto::VertexLayoutElement& elem = mesh.attribLayout.elems[i];
+            layout.Add(elem.attrib, elem.format);
         }
 
-        m_attribVbh = gfx.CreateVertexBuffer(meshOrNot->attribData, vl);
+        m_attribVbh = gfx.CreateVertexBuffer(meshOrNot->attribData, layout);
     }
 
     // finalize
@@ -343,8 +341,9 @@ Error Mesh::Save(
     if (m_attribVbh)
     {
         // vertex layout
-        const VertexLayout vl      = gfx.GetVertexLayout(m_attribVbh);
-        mesh.attribLayout.numElems = vl.GetNumElems();
+        const VertexLayoutHandle vlh = gfx.GetVertexLayout(m_attribVbh);
+        const VertexLayout       vl  = gfx.GetVertexLayout(vlh);
+        mesh.attribLayout.numElems   = vl.GetNumElems();
 
         Int32 index = 0;
         for (const VertexLayoutElement& e: vl.GetElems())

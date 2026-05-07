@@ -473,113 +473,113 @@ public:
 
     /// @brief 2D 텍스처의 특정 부분 영역(Sub-region)을 업데이트합니다.
     /// @param _texh 업데이트할 텍스처 핸들
-    /// @param _mipIndex 업데이트할 MIP 레벨 인덱스
-    /// @param _layerIndex 업데이트할 배열 인덱스
+    /// @param _mip 업데이트할 MIP 레벨 인덱스
+    /// @param _layer 업데이트할 배열 인덱스
     /// @param _x 업데이트 영역의 시작 X 좌표
     /// @param _y 업데이트 영역의 시작 Y 좌표
-    /// @param _width 업데이트할 영역의 너비
-    /// @param _height 업데이트할 영역의 높이
+    /// @param _widthOrZero 업데이트할 영역의 너비 (0이면 텍스처 너비 전체를 사용)
+    /// @param _heightOrZero 업데이트할 영역의 높이 (0이면 텍스처 높이 전체를 사용)
     /// @param _data 업데이트에 사용할 소스 데이터 메모리 뷰
     /// @param _rowPitch 소스 데이터의 한 행(Row) 바이트 크기
     void UpdateTexture2D(
         TextureHandle _texh,
-        Int32         _mipIndex,
-        Int32         _layerIndex,
+        Int32         _mip,
+        Int32         _layer,
         Int32         _x,
         Int32         _y,
-        Int32         _width,
-        Int32         _height,
+        Int32         _widthOrZero,
+        Int32         _heightOrZero,
         MemoryView    _data,
         Int32         _rowPitch) const;
 
     /// @brief 큐브맵 텍스처의 특정 면(Face) 내 부분 영역을 업데이트합니다.
     /// @param _texh 업데이트할 큐브맵 텍스처 핸들
-    /// @param _mipIndex 업데이트할 MIP 레벨 인덱스
+    /// @param _mip 업데이트할 MIP 레벨 인덱스
     /// @param _face 업데이트할 면 인덱스 (eCubeFace 열거형)
-    /// @param _layerIndex
+    /// @param _layer 업데이트할 배열 인덱스
     /// @param _x 업데이트 영역의 시작 X 좌표
     /// @param _y 업데이트 영역의 시작 Y 좌표
-    /// @param _width 업데이트할 영역의 너비
-    /// @param _height 업데이트할 영역의 높이
+    /// @param _widthOrZero 업데이트할 영역의 너비
+    /// @param _heightOrZero 업데이트할 영역의 높이
     /// @param _data 업데이트에 사용할 소스 데이터 메모리 뷰
     /// @param _rowPitch 소스 데이터의 한 행(Row) 바이트 크기
     void UpdateTextureCube(
         TextureHandle _texh,
-        Int32         _mipIndex,
+        Int32         _mip,
         eCubeFace     _face,
-        Int32         _layerIndex,
+        Int32         _layer,
         Int32         _x,
         Int32         _y,
-        Int32         _width,
-        Int32         _height,
+        Int32         _widthOrZero,
+        Int32         _heightOrZero,
         MemoryView    _data,
         Int32         _rowPitch) const;
 
     /// @brief 3D 볼륨 텍스처의 특정 부분 박스(Sub-box) 영역을 업데이트합니다.
     /// @param _texh 업데이트할 3D 텍스처 핸들
-    /// @param _mipIndex 업데이트할 MIP 레벨 인덱스
+    /// @param _mip 업데이트할 MIP 레벨 인덱스
     /// @param _x 업데이트 영역의 시작 X 좌표
     /// @param _y 업데이트 영역의 시작 Y 좌표
     /// @param _z 업데이트 영역의 시작 Z 좌표
-    /// @param _width 업데이트할 영역의 너비
-    /// @param _height 업데이트할 영역의 높이
-    /// @param _depth 업데이트할 영역의 깊이
+    /// @param _widthOrZero 업데이트할 영역의 너비
+    /// @param _heightOrZero 업데이트할 영역의 높이
+    /// @param _depthOrZero 업데이트할 영역의 깊이
     /// @param _data 업데이트에 사용할 소스 데이터 메모리 뷰
     /// @param _rowPitch 소스 데이터 한 행(Row)의 바이트 크기
     /// @param _depthPitch 소스 데이터 한 슬라이스(Slice)의 바이트 크기
     void UpdateTexture3D(
         TextureHandle _texh,
-        Int32         _mipIndex,
+        Int32         _mip,
         Int32         _x,
         Int32         _y,
         Int32         _z,
-        Int32         _width,
-        Int32         _height,
-        Int32         _depth,
+        Int32         _widthOrZero,
+        Int32         _heightOrZero,
+        Int32         _depthOrZero,
         MemoryView    _data,
         Int32         _rowPitch,
         Int32         _depthPitch) const;
 
     /// @brief 텍스처의 지정된 영역을 다른 텍스처의 지정된 위치로 GPU 복사합니다.
     /// @param _dstTexh 대상 텍스처 핸들
-    /// @param _dstMipIndex 대상 MIP 레벨
-    /// @param _dstArrayIndex 대상 배열/슬라이스 인덱스
+    /// @param _dstMip 대상 MIP 레벨
+    /// @param _dstLayer 대상 배열/슬라이스 인덱스
     /// @param _dstX, _dstY, _dstZ 대상 오프셋 (픽셀 단위)
     /// @param _srcTexh 원본 텍스처 핸들
-    /// @param _srcMipIndex 원본 MIP 레벨
-    /// @param _srcArrayIndex 원본 배열/슬라이스 인덱스
+    /// @param _srcMip 원본 MIP 레벨
+    /// @param _srcLayer 원본 배열/슬라이스 인덱스
     /// @param _srcX, _srcY, _srcZ 원본 영역의 시작 오프셋 (픽셀 단위)
     /// @param _srcWidthOrZero 복사할 너비. 0이면 원본 텍스처 전체 너비를 사용합니다.
     /// @param _srcHeightOrZero 복사할 높이. 0이면 원본 텍스처 전체 높이를 사용합니다.
     /// @param _srcDepthOrZero 복사할 깊이. 0이면 원본 텍스처 전체 깊이를 사용합니다.
     void CopyTexture(
         TextureHandle _dstTexh,
-        Int32         _dstMipIndex,
-        Int32         _dstArrayIndex,
+        Int32         _dstMip,
+        Int32         _dstLayer,
         Int32         _dstX,
         Int32         _dstY,
         Int32         _dstZ,
         TextureHandle _srcTexh,
-        Int32         _srcMipIndex,
-        Int32         _srcArrayIndex,
+        Int32         _srcMip,
+        Int32         _srcLayer,
         Int32         _srcX,
         Int32         _srcY,
         Int32         _srcZ,
-        Int32         _srcWidthOrZero  = 0,
-        Int32         _srcHeightOrZero = 0,
-        Int32         _srcDepthOrZero  = 0) const;
+        Int32         _srcWidthOrZero,
+        Int32         _srcHeightOrZero,
+        Int32         _srcDepthOrZero) const;
 
     /// @brief 텍스처의 특정 MIP/슬라이스 데이터를 CPU 메모리로 읽어옵니다.
     /// @param _texh 읽을 텍스처 핸들.
-    /// @param _srcMipIndex 원본 MIP 레벨.
-    /// @param _srcArrayIndex 원본 배열/슬라이스 인덱스.
+    /// @param _srcMip 원본 MIP 레벨.
+    /// @param _srcLayer 원본 배열/슬라이스 인덱스.
     /// @param _dst 픽셀 데이터를 받을 메모리. 크기는 포맷/해상도에 따라 충분해야 합니다.
     /// @return 실제로 복사된 바이트 수
     /// @note GPU-CPU 동기화가 발생할 수 있습니다.
     Int32 ReadTexture(
         TextureHandle     _texh,
-        Int32             _srcMipIndex,
-        Int32             _srcArrayIndex,
+        Int32             _srcMip,
+        Int32             _srcLayer,
         MutableMemoryView _dst) const;
 
     /// @brief 텍스처 전체를 ImageContainer로 캡처합니다.
@@ -609,36 +609,6 @@ public:
     [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
         TextureHandle _texh,
         bool          _bDestroyTexture = false);
-
-    /// @brief 렌더 타겟과 깊이-스텐실 텍스처를 내부적으로 생성하여 프레임 버퍼를 만듭니다.
-    /// @param _width 프레임 버퍼 너비 (픽셀 단위, 1 이상)
-    /// @param _height 프레임 버퍼 높이 (픽셀 단위, 1 이상)
-    /// @param _renderTargetFormat 렌더 타겟 텍스처 포맷 (깊이 포맷이면 안 됩니다)
-    /// @param _depthFormat 깊이-스텐실 텍스처 포맷 (깊이 포맷이어야 합니다)
-    /// @param _writeOnlyRenderTarget true: 렌더 타겟을 쓰기 전용으로 생성합니다 (SRV 없음, 샘플링 불가).
-    /// @param _writeOnlyDepthStencil true: 깊이-스텐실을 쓰기 전용으로 생성합니다 (SRV 없음, 샘플링 불가).
-    /// @return 생성된 프레임 버퍼 핸들
-    /// @note 내부적으로 생성된 텍스처는 프레임 버퍼 파괴 시 자동으로 함께 파괴됩니다.
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
-        Int32          _width,
-        Int32          _height,
-        eTextureFormat _renderTargetFormat,
-        eTextureFormat _depthFormat,
-        bool           _writeOnlyRenderTarget = false,
-        bool           _writeOnlyDepthStencil = false);
-
-    /// @brief 렌더 타겟 또는 깊이-스텐실 텍스처 하나만으로 프레임 버퍼를 만듭니다.
-    /// @param _width 프레임 버퍼 너비 (픽셀 단위, 1 이상)
-    /// @param _height 프레임 버퍼 높이 (픽셀 단위, 1 이상)
-    /// @param _format 텍스처 포맷. 깊이 포맷이면 깊이-스텐실로, 그 외는 렌더 타겟으로 자동 설정됩니다.
-    /// @param _bWriteOnly true: 쓰기 전용으로 생성합니다 (SRV 없음, 샘플링 불가).
-    /// @return 생성된 프레임 버퍼 핸들
-    /// @note 내부적으로 생성된 텍스처는 프레임 버퍼 파괴 시 자동으로 함께 파괴됩니다.
-    [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
-        Int32          _width,
-        Int32          _height,
-        eTextureFormat _format,
-        bool           _bWriteOnly = false);
 
     ////////// / SHADER & PROGRAM /////////
 
@@ -810,13 +780,13 @@ public:
     ///         RESOURCE Info          ///
     //////////////////////////////////////
 
-    /// @brief 버텍스 버퍼의 레이아웃 핸들로 버텍스 레이아웃을 반환합니다.
+    /// @brief 버텍스 버퍼의 레이아웃 핸들을 반환합니다.
+    [[nodiscard]] VertexLayoutHandle GetVertexLayout(
+        VertexBufferHandle _vbh);
+
+    /// @brief 버텍스 레이아웃을 반환합니다.
     [[nodiscard]] const VertexLayout& GetVertexLayout(
         VertexLayoutHandle _vlh);
-
-    /// @brief 버텍스 버퍼의 레이아웃을 반환합니다.
-    [[nodiscard]] const VertexLayout& GetVertexLayout(
-        VertexBufferHandle _vbh);
 
     /// @brief 버텍스 버퍼 정보를 함께 반환합니다.
     [[nodiscard]] VertexBufferInfo GetVertexBufferInfo(
@@ -843,8 +813,17 @@ public:
     [[nodiscard]] FrameBufferInfo GetFrameBufferInfo(
         FrameBufferHandle _fbh);
 
+    /// @brief 프레임 버퍼에 첨부된 텍스처 핸들을 반환합니다.
+    /// @param _fbh 프레임 버퍼 핸들. kInvalidHandle 전달 시 백 버퍼 정보를 반환합니다.
+    /// @param _slot 반환할 첨부 인덱스. 깊이 버퍼를 얻어내고 싶다면 kDepthStencilAttachmentIndex를 전달하십시오.
+    [[nodiscard]] Attachment GetFrameBufferAttachment(
+        FrameBufferHandle _fbh,
+        Int32             _slot);
+
     /// @brief 프레임 버퍼의 해상도를 반환합니다.
     /// @param _fbh 프레임 버퍼 핸들. kInvalidHandle 전달 시 백 버퍼 해상도를 반환합니다.
+    /// @note 일반적으로 프레임 버퍼를 이루는 텍스처들의 해상도는 동일합니다.
+    ///       깊이버퍼가 있으면 깊이버퍼의 해상도를 리턴하고, 없으면 0번 렌더 타겟 텍스처의 해상도를 리턴합니다.
     [[nodiscard]] Vec3i GetFrameBufferResolution(
         FrameBufferHandle _fbh);
 
@@ -1132,9 +1111,9 @@ private:
 
     // texture utils
     [[nodiscard]] HardwareTextureRef CreateHardwareTexture_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, bool _bHasMips, Int32 _numLayers, eTexture _type, Flags<eTextureCreateFlags> _flags, Span<const MemoryView> _initDataOrEmpty) const;
-    void                             UpdateTexture_(TextureHandle _dstTexh, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _offsetX, Int32 _offsetY, Int32 _offsetZ, Int32 _width, Int32 _height, Int32 _depth, MemoryView _uploadData, Int32 _rowPitch, Int32 _slicePitch) const;
-    [[nodiscard]] Int32              ReadTexture_(TextureHandle _texh, Int32 _mipIndex, Int32 _layerIndex, MutableMemoryView _dst) const;
-    void                             CopyTexture_(TextureHandle _dstTexh, Int32 _dstMipIndex, Int32 _dstArrayIndex, Int32 _dstOffsetX, Int32 _dstOffsetY, Int32 _dstOffsetZ, TextureHandle _srcTexh, Int32 _srcMipIndex, Int32 _srcArrayIndex, Int32 _srcOffsetX, Int32 _srcOffsetY, Int32 _srcOffsetZ, Int32 _srcWidth, Int32 _srcHeight, Int32 _srcDepth) const;
+    void                             UpdateTexture_(TextureHandle _dstTexh, Int32 _dstMip, Int32 _dstLayer, Int32 _offsetX, Int32 _offsetY, Int32 _offsetZ, Int32 _widthOrZero, Int32 _heightOrZero, Int32 _depthOrZero, MemoryView _uploadData, Int32 _rowPitch, Int32 _slicePitch) const;
+    [[nodiscard]] Int32              ReadTexture_(TextureHandle _texh, Int32 _mip, Int32 _layer, MutableMemoryView _dst) const;
+    void                             CopyTexture_(TextureHandle _dstTexh, Int32 _dstMip, Int32 _dstLayer, Int32 _dstOffsetX, Int32 _dstOffsetY, Int32 _dstOffsetZ, TextureHandle _srcTexh, Int32 _srcMip, Int32 _srcLayer, Int32 _srcOffsetX, Int32 _srcOffsetY, Int32 _srcOffsetZ, Int32 _srcWidthOrZero, Int32 _srcHeightOrZero, Int32 _srcDepthOrZero) const;
 
     // frame buffer utils
     [[nodiscard]] FrameBuffer CreateFrameBuffer_(Span<const Attachment> _attachments, bool _bDestroyTexture);

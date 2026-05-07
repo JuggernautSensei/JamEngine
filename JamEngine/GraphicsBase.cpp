@@ -543,23 +543,23 @@ Vec3i CalcTextureResolution(
     const Int32 _width,
     const Int32 _height,
     const Int32 _depth,
-    const Int32 _mipIndex)
+    const Int32 _mip)
 {
     JAM_ASSERT(_width > 0 && _height > 0 && _depth > 0, "texture width, height, depth must be greater than 0");
-    JAM_ASSERT(_mipIndex >= 0, "mip index must be non-negative");
+    JAM_ASSERT(_mip >= 0, "mip index must be non-negative");
 
-    const Int32 mipWidth  = Max(1, _width >> _mipIndex);
-    const Int32 mipHeight = Max(1, _height >> _mipIndex);
-    const Int32 mipDepth  = Max(1, _depth >> _mipIndex);
+    const Int32 mipWidth  = Max(1, _width >> _mip);
+    const Int32 mipHeight = Max(1, _height >> _mip);
+    const Int32 mipDepth  = Max(1, _depth >> _mip);
     return { mipWidth, mipHeight, mipDepth };
 }
 
 Int32 CalcTextureIndex(
-    const Int32 _mipIndex,
-    const Int32 _layerIndex,
+    const Int32 _mip,
+    const Int32 _layer,
     const Int32 _numMips)
 {
-    return _mipIndex + _layerIndex * _numMips;
+    return _mip + _layer * _numMips;
 }
 
 }   // namespace Jam

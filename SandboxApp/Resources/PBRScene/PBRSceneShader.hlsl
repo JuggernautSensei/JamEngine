@@ -1,6 +1,4 @@
-#define CONCAT_(a, b) a##b
-#define CONCAT(a, b) CONCAT_(a, b)
-#define PADDING1 float CONCAT(padding1, __LINE__)
+#include "../Common/Common.hlsl"
 
 #define LIGHT_TYPE_DIRECTIONAL 0
 #define LIGHT_TYPE_POINT 1
@@ -54,9 +52,6 @@ struct PSInput
     float3 normalW : NORMAL;
     float3 tangentW : TANGENT;
 };
-
-SamplerState s_linearWrap : register(s0);
-SamplerState s_linearClamp : register(s1);
 
 TextureCube t_iblIrradiance : register(t0);
 TextureCube t_iblSpecular : register(t1);

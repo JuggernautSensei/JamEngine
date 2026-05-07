@@ -21,8 +21,8 @@ class DebugRenderer
 
         inline static VertexLayout s_layout = [] {
             VertexLayout layout {};
-            layout.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-            layout.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+            layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3)
+                .Add(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
             return layout;
         }();
     };
@@ -66,12 +66,12 @@ private:
     IndexBufferHandle    m_ibh          = kInvalidHandle;
     Int32                m_ibhByteWidth = 0;
 
-    constexpr static SizeT         kMaxNumVerts   = Limits<UInt16>::kMax + 1;
-    constexpr static SizeT         kMaxNumIndices = kMaxNumVerts;
-    Array<Vertex, kMaxNumVerts>   m_cpuVerts      = {};
-    Int32                          m_numVerts      = 0;
-    Array<UInt16, kMaxNumIndices> m_cpuIndices    = {};
-    Int32                          m_numIndices    = 0;
+    constexpr static SizeT        kMaxNumVerts   = Limits<UInt16>::kMax + 1;
+    constexpr static SizeT        kMaxNumIndices = kMaxNumVerts;
+    Array<Vertex, kMaxNumVerts>   m_cpuVerts     = {};
+    Int32                         m_numVerts     = 0;
+    Array<UInt16, kMaxNumIndices> m_cpuIndices   = {};
+    Int32                         m_numIndices   = 0;
 
     Vec3 m_cursorPos   = Vec3::kZero;
     RGBA m_cursorCol   = RGBA::kBlack;

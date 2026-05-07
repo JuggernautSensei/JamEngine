@@ -59,21 +59,20 @@ private:
         Vec3 position = Vec3::kZero;
         RGBA rgba     = RGBA::kWhite;
 
-        inline static VertexLayout s_vl = {};
+        inline static VertexLayout s_layout = {};
 
         static void Init()
         {
-            s_vl.Reset();
-            s_vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
-            s_vl.Push(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
+            s_layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3)
+                .Add(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
         }
     };
 
-    static constexpr Int32             kLineLimit      = 512;
+    static constexpr Int32            kLineLimit       = 512;
     Array<LineVertex, kLineLimit * 2> m_lineVertices   = {};
     Array<UInt16, kLineLimit * 2>     m_lineIndices    = {};
-    Int32                              m_numLineVerts   = 0;
-    Int32                              m_numLineIndices = 0;
+    Int32                             m_numLineVerts   = 0;
+    Int32                             m_numLineIndices = 0;
 
     // 버퍼
     VertexBufferHandle   m_gridVbh = kInvalidHandle;

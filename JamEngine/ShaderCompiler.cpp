@@ -4,7 +4,6 @@
 
 #include <d3dcompiler.h>
 
-#include "FileSystem.h"
 #include "WindowsUtilities.h"
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -77,13 +76,48 @@ namespace
                 JAM_UNREACHABLE;
         }
     }
+
+    [[nodiscard]] Int32 CalcMacroArrayAllocSize_(
+        const Span<const ShaderMacro> _macros)
+    {
+        Int32 numMacros = static_cast<Int32>(_macros.size());
+        if (!_macros.empty() && !_macros.back().IsNull())
+        {
+            ++numMacros;   // add null terminator
+        }
+        return static_cast<Int32>(sizeof(D3D_SHADER_MACRO)) * numMacros;
+    }
+
+    void BuildMacroArray_(
+        const ShaderLoadInfo& _desc,
+        D3D_SHADER_MACRO*         _pBuffer)
+    {
+        if (_desc.macros.empty())
+        {
+            return;
+        }
+
+        SizeT numMacros = 0;
+        for (; numMacros < _desc.macros.size(); ++numMacros)
+        {
+            _pBuffer[numMacros].Name       = _desc.macros[numMacros].name.GetPtr();
+            _pBuffer[numMacros].Definition = _desc.macros[numMacros].value.GetPtr();
+        }
+
+        if (!_desc.macros.back().IsNull())
+        {
+            _pBuffer[numMacros].Name       = nullptr;
+            _pBuffer[numMacros].Definition = nullptr;
+        }
+    }
+
 }   // namespace
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ShaderCompiler ShaderCompiler::CompileHLSLFile(
     const StringView          _path,
-    const ShaderCompilerInfo& _desc)
+    const ShaderLoadInfo& _desc)
 {
     ShaderCompiler compiler = {};
     compiler.CompileFromHLSLFile_(_path, _desc);
@@ -92,7 +126,7 @@ ShaderCompiler ShaderCompiler::CompileHLSLFile(
 
 ShaderCompiler ShaderCompiler::CompileHLSLSource(
     const StringView          _source,
-    const ShaderCompilerInfo& _desc)
+    const ShaderLoadInfo& _desc)
 {
     ShaderCompiler compiler = {};
     compiler.CompileHLSLSource_(_source, _desc);
@@ -127,7 +161,7 @@ bool ShaderCompiler::IsFailed() const
 
 void ShaderCompiler::CompileFromHLSLFile_(
     const StringView          _path,
-    const ShaderCompilerInfo& _desc)
+    const ShaderLoadInfo& _desc)
 {
     JAM_ASSERT(!_path.IsEmpty(), "File path must not be empty.");
     JAM_ASSERT(m_pBlob == nullptr, "ShaderCompiler instance is already used for compilation.");
@@ -136,26 +170,10 @@ void ShaderCompiler::CompileFromHLSLFile_(
     D3D_SHADER_MACRO* pMacro = nullptr;
     if (!_desc.macros.empty())
     {
-        Int32      numMacros    = static_cast<Int32>(_desc.macros.size());
-        const bool bHasNullTerm = !_desc.macros.back().IsNull();
-
-        if (bHasNullTerm)
-        {
-            ++numMacros;   // add null terminator
-        }
-
-        pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(sizeof(D3D_SHADER_MACRO) * numMacros));
-        for (SizeT i = 0; i < _desc.macros.size(); ++i)
-        {
-            pMacro[i].Name       = _desc.macros[i].name.GetPtr();
-            pMacro[i].Definition = _desc.macros[i].value.GetPtr();
-        }
-
-        if (bHasNullTerm)
-        {
-            pMacro[numMacros - 1].Name       = nullptr;
-            pMacro[numMacros - 1].Definition = nullptr;
-        }
+        const Int32 byteWidth = CalcMacroArrayAllocSize_(_desc.macros);
+        JAM_ASSERT(byteWidth > 0, "Number of macros must be greater than zero.");
+        pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(byteWidth));
+        BuildMacroArray_(_desc, pMacro);
     }
 
     // compile
@@ -186,6 +204,7 @@ void ShaderCompiler::CompileFromHLSLFile_(
 
         JAM_LOG_ERROR(m_errorMsg);
         m_error = Error::ShaderCompileFailed;
+        return;
     }
 
     m_error = Error::None;
@@ -193,7 +212,7 @@ void ShaderCompiler::CompileFromHLSLFile_(
 
 void ShaderCompiler::CompileHLSLSource_(
     const StringView          _source,
-    const ShaderCompilerInfo& _desc)
+    const ShaderLoadInfo& _desc)
 {
     JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 
@@ -201,26 +220,10 @@ void ShaderCompiler::CompileHLSLSource_(
     D3D_SHADER_MACRO* pMacro = nullptr;
     if (!_desc.macros.empty())
     {
-        Int32      numMacros    = static_cast<Int32>(_desc.macros.size());
-        const bool bHasNullTerm = !_desc.macros.back().IsNull();
-
-        if (bHasNullTerm)
-        {
-            ++numMacros;   // add null terminator
-        }
-
-        pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(sizeof(D3D_SHADER_MACRO) * numMacros));
-        for (SizeT i = 0; i < _desc.macros.size(); ++i)
-        {
-            pMacro[i].Name       = _desc.macros[i].name.GetPtr();
-            pMacro[i].Definition = _desc.macros[i].value.GetPtr();
-        }
-
-        if (bHasNullTerm)
-        {
-            pMacro[numMacros - 1].Name       = nullptr;
-            pMacro[numMacros - 1].Definition = nullptr;
-        }
+        const Int32 byteWidth = CalcMacroArrayAllocSize_(_desc.macros);
+        JAM_ASSERT(byteWidth > 0, "Number of macros must be greater than zero.");
+        pMacro = static_cast<D3D_SHADER_MACRO*>(JAM_STACK_ALLOC(byteWidth));
+        BuildMacroArray_(_desc, pMacro);
     }
 
     // compile
@@ -252,6 +255,7 @@ void ShaderCompiler::CompileHLSLSource_(
 
         JAM_LOG_ERROR(m_errorMsg);
         m_error = Error::ShaderCompileFailed;
+        return;
     }
 
     m_error = Error::None;

@@ -123,6 +123,9 @@
     <ClCompile Include="PostProcessManager.cpp">
       <Filter>PostProcess</Filter>
     </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SandboxApp.h">
@@ -172,6 +175,9 @@
     </ClInclude>
     <ClInclude Include="PostProcessManager.h">
       <Filter>PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

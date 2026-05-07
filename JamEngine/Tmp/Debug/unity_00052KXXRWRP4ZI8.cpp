@@ -1,5 +1,8 @@
 #include "pch.h"
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\CameraComponent.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\EditorIcons.cpp"
 
 
@@ -28,7 +31,4 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Editor_EntityInspectorWindow.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Editor_FileBrowserWindow.cpp"
 

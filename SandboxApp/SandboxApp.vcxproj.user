@@ -4,8 +4,8 @@
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>ShadowMappingScene</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>PBRScene|InstancingScene|DebugNormalScene|DeferedScene|ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>SimpleScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>TextureMappingScene|PBRScene|DeferedScene|ShadowMappingScene|SimpleScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArgumentsHistory>DeferedScene|InstancingScene|SimpleScene|--benchmark_filter=Jam|ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>

@@ -9,6 +9,9 @@
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\DebugRenderer.cpp"
 
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Filter.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Float16.cpp"
 
 
@@ -28,7 +31,4 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Random.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderGraph.cpp"
 

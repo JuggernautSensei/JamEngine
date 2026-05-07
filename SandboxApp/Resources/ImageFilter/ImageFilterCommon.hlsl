@@ -13,18 +13,19 @@ struct PSInput
 
 cbuffer CBImageFilterParam : register(b0)
 {
-    float4 cb_fParams;
-    int4 cb_iParams;
+    float4 cb_params;
 };
 
 cbuffer CBImageFilterKernel : register(b1)
 {
-    float4 kFilter[4];
+    float4 cb_weights[4];
+    int cb_kernelLen;
+    PADDING3;
 };
 
 float GetWeight(int _index)
 {
-    return kFilter[_index / 4][_index % 4];
+    return cb_weights[_index / 4][_index % 4];
 }
 
 PSInput VSMain(VSInput input)

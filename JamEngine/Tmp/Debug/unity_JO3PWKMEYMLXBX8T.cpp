@@ -1,5 +1,8 @@
 #include "pch.h"
 
+#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RadixSort.cpp"
+
+
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ResourcePool.cpp"
 
 
@@ -28,7 +31,4 @@
 
 
 #include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\GraphicsBase.cpp"
-
-
-#include "C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Scene.cpp"
 

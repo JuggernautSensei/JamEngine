@@ -1,48 +1,82 @@
 #pragma once
+#include "../JamEngine/RenderGraph.h"
 
-enum class ePostProcess : UInt32
+struct ImageFilterDesc
 {
-    Blit,
-    Mix,
-    Convolution,
+    eTextureFormat format     = eTextureFormat::Unknown;
+    float          scale      = 1.f;
+    bool           bFinalPass = false;
+
+    String input0TextureName = {};
+    String input1TextureName = {};
 };
 
 class PostProcessManager
 {
-    struct Param
+    enum class eImageFilter : UInt32
     {
-        Vec4  fparams;
-        Vec4i iparams;
+        Blit,
+        Mix,
+        Convolution1D_V,
+        Convolution1D_H,
     };
 
-    struct Kernel
+    struct CBParam
     {
-        Vec4 weights[4];
+        Vec4 param = Vec4::kZero;
     };
 
+    struct CBKernel
+    {
+        float weights[16] = {};
+        Int32 kernelLen   = 0;
+        float padding[3]  = {};
+    };
+
+    constexpr static Int32 kTInput0Slot      = 0;
+    constexpr static Int32 kTInput1Slot      = 1;
+    constexpr static Int32 kSLinearClampSlot = 0;
+    constexpr static Int32 kSLinearWrapSlot  = 1;
+
+    struct ProgramCompileInfo
+    {
+        String              path   = {};
+        Vector<ShaderMacro> macros = {};
+    };
 
 public:
+    using RenderPassBuilder = RenderGraph::RenderPassBuilder;
+
     PostProcessManager(const PostProcessManager&)                = delete;
     PostProcessManager& operator=(const PostProcessManager&)     = delete;
-    PostProcessManager(const PostProcessManager&&) noexcept      = delete;
+    PostProcessManager(PostProcessManager&&) noexcept            = delete;
     PostProcessManager& operator=(PostProcessManager&&) noexcept = delete;
 
     [[nodiscard]] static PostProcessManager& GetInstance();
     static void                              CreateInstance();
     static void                              DestroyInstance();
 
-    [[nodiscard]] ProgramHandle GetProgram(ePostProcess _type);
-    void                        SubmitScreenTriangle() const;
+    RenderPassBuilder AddBlitFilter(RenderGraph& _graph, StringView _name, const ImageFilterDesc& _desc);
+    RenderPassBuilder AddMixFilter(RenderGraph& _graph, StringView _name, const ImageFilterDesc& _desc);
+    RenderPassBuilder AddConvolutionFilter(RenderGraph& _graph, StringView _name, const ImageFilterDesc& _desc);
+
+    void UpdateParam(const RenderGraph& _graph, StringView _name, Vec4 _param) const;
+    void UpdateKernel(const RenderGraph& _graph, StringView _name, Span<const float> _weights) const;
+
+    void SubmitScreenTriangle() const;
 
 private:
     PostProcessManager();
     ~PostProcessManager();
 
-    Ref<Mesh>                              m_pScreenTriangle = nullptr;
-    EnumArray<ePostProcess, ProgramHandle> m_programs        = {};
-    EnumArray<ePostProcess, String>        m_programPaths    = {};
+    void                        PostProcess_(RenderGraph& _graph, RenderPassBuilder& _builder, StringView _name, const ImageFilterDesc& _desc) const;
+    [[nodiscard]] ProgramHandle GetOrLoadProgram_(eImageFilter _filter);
 
-    inline static PostProcessManager* s_instance = nullptr;
+    Ref<Mesh>                                   m_pScreenTriangle     = nullptr;
+    EnumArray<eImageFilter, ProgramHandle>      m_programs            = {};
+    EnumArray<eImageFilter, ProgramCompileInfo> m_programCompileInfos = {};
+
+    inline static PostProcessManager* s_pInstance = nullptr;
 };
 
 [[nodiscard]] inline PostProcessManager& GetPostProcessManager()

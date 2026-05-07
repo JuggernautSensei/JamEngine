@@ -46,7 +46,7 @@ class VertexLayout
 public:
     VertexLayout();
 
-    void               Push(eVertexAttribute _attrib, eAttributeFormat _format);
+    VertexLayout&      Add(eVertexAttribute _attrib, eAttributeFormat _format);
     [[nodiscard]] bool Has(eVertexAttribute _attrib) const;
     void               Reset();
 

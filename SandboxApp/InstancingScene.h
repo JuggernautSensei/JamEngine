@@ -28,7 +28,7 @@ private:
     ConstantBufferHandle m_cmrCbh                = kInvalidHandle;
 
     FrameBufferHandle m_fbh    = {};
-    TextureHandle     m_fbTexh = {};   // not owned
+    TextureHandle     m_colorTexh = {};   // not owned
 
     VertexBufferHandle m_vbh = kInvalidHandle;
     IndexBufferHandle  m_ibh = kInvalidHandle;

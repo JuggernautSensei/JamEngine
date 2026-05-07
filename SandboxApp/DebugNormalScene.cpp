@@ -30,7 +30,7 @@ void DebugNormalScene::InitMeshes_()
 {
     // mesh
     VertexLayout attribLayout = {};
-    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
     // sphere mesh
     m_pSphere = CreateSphereMesh(0.5f, 5, attribLayout);
@@ -60,16 +60,18 @@ void DebugNormalScene::InitMeshes_()
 void DebugNormalScene::InitRenderGraph_()
 {
     // frame buffer
-    m_graph.AddTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
-    m_graph.AddTexture2D("T_SceneDepth", 1.f, eTextureFormat::D24_UNorm_S8_UInt, 1, eTextureCreateFlags::DepthStencilAttachment);
+    m_graph.EmplaceTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_graph.EmplaceTexture2D("T_SceneDepth", 1.f, eTextureFormat::D24_UNorm_S8_UInt, 1, eTextureCreateFlags::DepthStencilAttachment);
 
-    StringView attachments[] = { "T_SceneColor", "T_SceneDepth" };
-    m_graph.AddFrameBuffer("FB_Scene", attachments);
+    AttachmentRG attachments[2];
+    attachments[0].name = "T_SceneColor";
+    attachments[1].name = "T_SceneDepth";
+    m_graph.EmplaceFrameBuffer("FB_Scene", attachments);
 
     // cbuffer
-    m_graph.AddConstantBuffer("CB_NoWIT", sizeof(CBDebugNormalScene_NoWIT));
-    m_graph.AddConstantBuffer("CB_WithWIT", sizeof(CBDebugNormalScene_WithWIT));
-    m_graph.AddConstantBuffer("CB_Camera", sizeof(CBDebugNormalSceneCamera));
+    m_graph.EmplaceConstantBuffer("CB_NoWIT", sizeof(CBDebugNormalScene_NoWIT));
+    m_graph.EmplaceConstantBuffer("CB_WithWIT", sizeof(CBDebugNormalScene_WithWIT));
+    m_graph.EmplaceConstantBuffer("CB_Camera", sizeof(CBDebugNormalSceneCamera));
     m_noWitCbh   = m_graph.GetConstantBuffer("CB_NoWIT");
     m_withWitCbh = m_graph.GetConstantBuffer("CB_WithWIT");
     m_cmrCbh     = m_graph.GetConstantBuffer("CB_Camera");
@@ -96,7 +98,7 @@ void DebugNormalScene::InitRenderGraph_()
         "Resources/Misc/DebugNormalScene/DebugNormalScenePassThroughShader.hlsl");
 
     // pass
-    m_graph.AddGraphicsPass("Pass_NoWIT")
+    m_graph.AddRenderPass("Pass_NoWIT")
         .SetFrameBuffer("FB_Scene")
         .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
         .SetDepthClearCommand(1.f)
@@ -108,9 +110,9 @@ void DebugNormalScene::InitRenderGraph_()
         .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBDebugNormalSceneCamera::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
-        .SetEnabled(!m_bUseWit);
+        .Enable(!m_bUseWit);
 
-    m_graph.AddGraphicsPass("Pass_WithWIT")
+    m_graph.AddRenderPass("Pass_WithWIT")
         .SetFrameBuffer("FB_Scene")
         .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
         .SetDepthClearCommand(1.f)
@@ -122,9 +124,9 @@ void DebugNormalScene::InitRenderGraph_()
         .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBDebugNormalSceneCamera::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
-        .SetEnabled(m_bUseWit);
+        .Enable(m_bUseWit);
 
-    m_graph.AddGraphicsPass("Pass_DrawNormalNoWIT")
+    m_graph.AddRenderPass("Pass_DrawNormalNoWIT")
         .SetFrameBuffer("FB_Scene")
         .SetFrameBufferResolutionForViewport()
         .SetProgram("P_DrawNormalNoWIT")
@@ -133,9 +135,9 @@ void DebugNormalScene::InitRenderGraph_()
         .SetConstantBuffer("CB_NoWIT", eShader::GeometryShader, CBDebugNormalScene_NoWIT::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
-        .SetEnabled(!m_bUseWit && m_bDrawNormal);
+        .Enable(!m_bUseWit && m_bDrawNormal);
 
-    m_graph.AddGraphicsPass("Pass_DrawNormalWithWIT")
+    m_graph.AddRenderPass("Pass_DrawNormalWithWIT")
         .SetFrameBuffer("FB_Scene")
         .SetFrameBufferResolutionForViewport()
         .SetProgram("P_DrawNormalWithWIT")
@@ -144,11 +146,10 @@ void DebugNormalScene::InitRenderGraph_()
         .SetConstantBuffer("CB_WithWIT", eShader::GeometryShader, CBDebugNormalScene_WithWIT::kSlot)
         .SetConstantBuffer("CB_Camera", eShader::GeometryShader, CBDebugNormalSceneCamera::kSlot)
         .SetExecutor(Bind<&DebugNormalScene::RenderMeshes_>(this))
-        .SetEnabled(m_bUseWit && m_bDrawNormal);
+        .Enable(m_bUseWit && m_bDrawNormal);
 
-    m_graph.AddGraphicsPass("Pass_PassThrough")
-        .SetAsFinalPass()
-        .SetUseExternalOutput()
+    m_graph.AddRenderPass("Pass_PassThrough")
+        .AsFinalPass()
         .SetProgram("P_PassThrough")
         .SetBlendFlags(eBlendFlags::WriteMask_All, 0)
         .SetTexture("T_SceneColor", eShader::PixelShader, 0)
@@ -217,16 +218,16 @@ void DebugNormalScene::OnImGuiRender()
         if (bWitChanged || bNormalChanged)
         {
             m_graph.ModifyGrphicsPass("Pass_NoWIT")
-                .SetEnabled(!m_bUseWit);
+                .Enable(!m_bUseWit);
 
             m_graph.ModifyGrphicsPass("Pass_WithWIT")
-                .SetEnabled(m_bUseWit);
+                .Enable(m_bUseWit);
 
             m_graph.ModifyGrphicsPass("Pass_DrawNormalNoWIT")
-                .SetEnabled(!m_bUseWit && m_bDrawNormal);
+                .Enable(!m_bUseWit && m_bDrawNormal);
 
             m_graph.ModifyGrphicsPass("Pass_DrawNormalWithWIT")
-                .SetEnabled(m_bUseWit && m_bDrawNormal);
+                .Enable(m_bUseWit && m_bDrawNormal);
         }
 
         ImGui::Separator();
@@ -281,8 +282,8 @@ void DebugNormalScene::AddProgram_VP_(
     const StringView _name,
     const StringView _path)
 {
-    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
     const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
     const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
@@ -292,18 +293,18 @@ void DebugNormalScene::AddProgram_VP_(
     const String vsName = String::Formatted("VS_{}", _name);
     const String psName = String::Formatted("PS_{}", _name);
 
-    m_graph.AddShader(vsName, vsc.GetBytecode());
-    m_graph.AddShader(psName, psc.GetBytecode());
-    m_graph.AddProgram(_name, vsName, psName);
+    m_graph.EmplaceShader(vsName, vsc.GetBytecode());
+    m_graph.EmplaceShader(psName, psc.GetBytecode());
+    m_graph.EmplaceProgram(_name, vsName, psName);
 }
 
 void DebugNormalScene::AddProgram_VPG_(
     StringView _name,
     StringView _path)
 {
-    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
 
     const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
     const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
@@ -316,10 +317,10 @@ void DebugNormalScene::AddProgram_VPG_(
     const String psName = String::Formatted("PS_{}", _name);
     const String gsName = String::Formatted("GS_{}", _name);
 
-    m_graph.AddShader(vsName, vsc.GetBytecode());
-    m_graph.AddShader(psName, psc.GetBytecode());
-    m_graph.AddShader(gsName, gsc.GetBytecode());
-    m_graph.AddProgram(_name, vsName, psName, gsName, {}, {});
+    m_graph.EmplaceShader(vsName, vsc.GetBytecode());
+    m_graph.EmplaceShader(psName, psc.GetBytecode());
+    m_graph.EmplaceShader(gsName, gsc.GetBytecode());
+    m_graph.EmplaceProgram(_name, vsName, psName, gsName, {}, {});
 }
 
 void DebugNormalScene::RenderMeshes_() const

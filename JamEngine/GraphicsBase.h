@@ -25,7 +25,7 @@ constexpr Int32 kMaxNumInstanceAttribs          = kMaxNumVertexShaderInputSlots 
 
 // utils
 constexpr Int32 kAll                         = Limits<Int32>::kHighest;
-constexpr Int32 kDepthStencilAttachmentIndex = kMaxNumRenderTargetViewSlots;
+constexpr Int32 kDepthStencilAttachmentSlot = kMaxNumRenderTargetViewSlots;
 
 ////////// ENUMS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1138,7 +1138,7 @@ struct GraphicsStats
 [[nodiscard]] bool  IsDepthFormat(eTextureFormat _format);
 [[nodiscard]] Int32 BitPerPixelOf(eTextureFormat _format);
 [[nodiscard]] Int32 CalcNumMips(Int32 _width, Int32 _height, Int32 _depth);
-[[nodiscard]] Vec3i CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mipIndex);
-[[nodiscard]] Int32 CalcTextureIndex(Int32 _mipIndex, Int32 _layerIndex, Int32 _numMips);
+[[nodiscard]] Vec3i CalcTextureResolution(Int32 _width, Int32 _height, Int32 _depth, Int32 _mip);
+[[nodiscard]] Int32 CalcTextureIndex(Int32 _mip, Int32 _layer, Int32 _numMips);
 
 }   // namespace Jam

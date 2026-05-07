@@ -139,7 +139,7 @@ ShaderCompiler ShaderItem::Compile() const
         shaderMacros.emplace_back(macro.name, macro.value);
     }
 
-    ShaderCompilerInfo info = {};
+    ShaderLoadInfo info = {};
     info.entryPoint         = entryPoint;
     info.stage              = stage;
     info.flags              = compileFlags;

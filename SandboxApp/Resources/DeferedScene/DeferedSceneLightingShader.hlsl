@@ -18,7 +18,7 @@ cbuffer CBDeferedSceneLight : register(b2)
 
 struct VSInput
 {
-    float3 pos : POSITION;
+    float2 pos : POSITION;
 };
 
 struct PSInput
@@ -31,14 +31,12 @@ Texture2D t_depthScene : register(t2);
 Texture2D t_colorScene : register(t3);
 Texture2D t_normalScene : register(t4);
 
-SamplerState s_linearWrap : register(s0);
-
 // full screen tri
 // [-1, 1, 0] [3, 1, 0] [-1, -3, 0]
 PSInput VSMain(VSInput input)
 {
     PSInput output;
-    output.posH = float4(input.pos, 1.0f);
+    output.posH = float4(input.pos, 0.0f, 1.0f);
     output.texcoord = float2(output.posH.x, -output.posH.y) * 0.5f + 0.5f;
     return output;
 }

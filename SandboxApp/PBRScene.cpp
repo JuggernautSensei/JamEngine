@@ -8,8 +8,8 @@
 namespace
 {
 
-constexpr Int32 kPbrSceneLinearWrapSlot  = 0;
-constexpr Int32 kPbrSceneLinearClampSlot = 1;
+constexpr Int32 kPbrSceneLinearClampSlot = 0;
+constexpr Int32 kPbrSceneLinearWrapSlot  = 1;
 
 constexpr Int32 kPbrSceneHdrSceneSlot            = 0;
 constexpr Int32 kPbrSceneIblIrradianceSlot       = 0;
@@ -76,8 +76,8 @@ PBRScene::PBRScene()
 {
     Graphics& gfx = GetGraphics();
 
-    ShaderCompilerInfo vsInfo = {};
-    ShaderCompilerInfo psInfo = {};
+    ShaderLoadInfo vsInfo = {};
+    ShaderLoadInfo psInfo = {};
 
     // main shader
     {
@@ -130,9 +130,9 @@ PBRScene::PBRScene()
 
     // load model
     VertexLayout attribLayout = {};
-    attribLayout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
-    attribLayout.Push(eVertexAttribute::Tangent, eAttributeFormat::Float3);
+    attribLayout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    attribLayout.Add(eVertexAttribute::Tangent, eAttributeFormat::Float3);
 
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/PBRScene/scene.gltf", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals | eAssimpImporterFlags::GenerateTangentFrame);
     JAM_ASSERT(importer, "Failed to load model: {}", importer.GetError().ToErrorMessage());
@@ -162,7 +162,7 @@ PBRScene::PBRScene()
     };
 
     VertexLayout vl = {};
-    vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+    vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
 
     m_fullTriVbh = gfx.CreateVertexBuffer(AsMemoryView(triVertices), vl);
     m_fullTriIbh = gfx.CreateIndexBuffer(AsMemoryView(triIndices));
@@ -253,7 +253,7 @@ void PBRScene::OnRender(
     m_pIBLIrradiance->Bind(eShader::PixelShader, kPbrSceneIblIrradianceSlot);
     m_pIBLSpecular->Bind(eShader::PixelShader, kPbrSceneIblSpecularSlot);
     m_pIBLEnvironment->Bind(eShader::PixelShader, kPbrSceneIblEnvironmentSlot);
-    gfx.SetSampler(eSamplerFlags::AddressU_Wrap | eSamplerFlags::AddressV_Wrap | eSamplerFlags::AddressW_Wrap | eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear, eShader::PixelShader, kPbrSceneLinearWrapSlot);
+    gfx.SetSampler(kLinearWrap, eShader::PixelShader, kPbrSceneLinearWrapSlot);
     gfx.Submit();
 
     // light
@@ -305,7 +305,7 @@ void PBRScene::OnRender(
     gfx.SetProgram(m_toneMappingPh);
     gfx.SetVertexBuffer(m_fullTriVbh);
     gfx.SetIndexBuffer(m_fullTriIbh);
-    gfx.SetTexture(m_fbTexh, eShader::PixelShader, kPbrSceneHdrSceneSlot);
+    gfx.SetTexture(m_colorTexh, eShader::PixelShader, kPbrSceneHdrSceneSlot);
     gfx.Submit();
     gfx.SetTexture(kInvalidHandle, eShader::PixelShader, kPbrSceneHdrSceneSlot);
     gfx.Touch();
@@ -329,10 +329,16 @@ void PBRScene::OnResize(
     JAM_DESTROY_FRAME_BUFFER(m_fbh);
 
     Graphics& gfx = GetGraphics();
-    m_fbh         = gfx.CreateFrameBuffer(_width, _height, eTextureFormat::RGBA16_Float, eTextureFormat::D24_UNorm_S8_UInt);
-    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 
-    const FrameBufferInfo info = gfx.GetFrameBufferInfo(m_fbh);
-    JAM_ASSERT(info.numRenderTargets > 0, "Frame buffer must have at least one render target");
-    m_fbTexh = info.renderTargetTexhs[0];
+    const TextureHandle depthTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::D32_Float, false, 1, eTextureCreateFlags::DepthStencilAttachment);
+    const TextureHandle colorTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::RGBA16_Float, false, 1, eTextureCreateFlags::RenderTargetAttachment);
+
+    Attachment attachment[2];
+    attachment[0].texh = colorTexh;
+    attachment[1].texh = depthTexh;
+
+    m_fbh       = gfx.CreateFrameBuffer(attachment, true);
+    m_colorTexh = colorTexh;
+
+    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 }

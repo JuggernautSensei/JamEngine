@@ -28,49 +28,49 @@ RenderGraph::UtilityPassBuilder RenderGraph::AddUtilityPass(const StringView _na
     PassDesc& desc = m_descs.emplace_back();
     desc.name      = _name;
     m_bNeedCompile = true;
-    return UtilityPassBuilder { *this, desc };
+    return UtilityPassBuilder { this, &desc };
 }
 
 RenderGraph::UtilityPassBuilder RenderGraph::ModifyUtilityPass(const StringView _name)
 {
-    PassDesc* pDesc = FindPassDesc_(_name);
-    JAM_ASSERT(pDesc, "Pass '{}' not found.", _name);
+    PassDesc& desc = GetPassDesc_(_name);
+    JAM_ASSERT(desc.type == ePass::Utility, "Pass '{}' is not a utility pass.", _name);
     m_bNeedCompile = true;
-    return UtilityPassBuilder { *this, *pDesc };
+    return UtilityPassBuilder { this, &desc };
 }
 
-RenderGraph::RenderPassBuilder RenderGraph::AddGraphicsPass(const StringView _name)
+RenderGraph::RenderPassBuilder RenderGraph::AddRenderPass(const StringView _name)
 {
     JAM_ASSERT(!HasPass_(_name), "Pass '{}' already exists.", _name);
     PassDesc& desc = m_descs.emplace_back();
     desc.name      = _name;
     m_bNeedCompile = true;
-    return RenderPassBuilder { *this, desc };
+    return RenderPassBuilder { this, &desc };
 }
 
 RenderGraph::RenderPassBuilder RenderGraph::ModifyGrphicsPass(const StringView _name)
 {
-    PassDesc* pDesc = FindPassDesc_(_name);
-    JAM_ASSERT(pDesc, "Pass '{}' not found.", _name);
+    PassDesc& desc = GetPassDesc_(_name);
+    JAM_ASSERT(desc.type == ePass::Render, "Pass '{}' is not a render pass.", _name);
     m_bNeedCompile = true;
-    return RenderPassBuilder { *this, *pDesc };
+    return RenderPassBuilder { this, &desc };
 }
 
 RenderGraph::ComputePassBuilder RenderGraph::AddComputePass(const StringView _name)
 {
     JAM_ASSERT(!HasPass_(_name), "Pass '{}' already exists.", _name);
     PassDesc& desc = m_descs.emplace_back();
+    JAM_ASSERT(desc.type == ePass::Compute, "Newly added pass '{}' must be a compute pass.", _name);
     desc.name      = _name;
     m_bNeedCompile = true;
-    return ComputePassBuilder { *this, desc };
+    return ComputePassBuilder { this, &desc };
 }
 
 RenderGraph::ComputePassBuilder RenderGraph::ModifyComputePass(const StringView _name)
 {
-    PassDesc* pDesc = FindPassDesc_(_name);
-    JAM_ASSERT(pDesc, "Pass '{}' not found.", _name);
+    PassDesc& desc = GetPassDesc_(_name);
     m_bNeedCompile = true;
-    return ComputePassBuilder { *this, *pDesc };
+    return ComputePassBuilder { this, &desc };
 }
 
 void RenderGraph::RemovePass(const StringView _name)
@@ -80,6 +80,18 @@ void RenderGraph::RemovePass(const StringView _name)
         JAM_ASSERT(0, "Pass '{}' not found.", _name);
     }
     m_bNeedCompile = true;
+}
+
+String RenderGraph::GetPassNameAt(Int32 _index) const
+{
+    JAM_ASSERT(_index >= 0 && _index < static_cast<Int32>(m_descs.size()), "Pass index {} is out of range.", _index);
+    return m_descs[_index].name;
+}
+
+StringView RenderGraph::GetPrevPassName(Int32 _step) const
+{
+    JAM_ASSERT(_step > 0 && _step <= static_cast<Int32>(m_descs.size()), "Invalid step {} for previous pass.", _step);
+    return m_descs[m_descs.size() - _step].name;
 }
 
 ////////// 컴파일 //////////
@@ -716,22 +728,9 @@ void RenderGraph::CompileIfNeed_(const Int32 _width, const Int32 _height)
 
 ////////// 실행 //////////
 
-void RenderGraph::Execute()
-{
-    Execute_(kInvalidHandle, Viewport { 0, 0 }, false);
-}
-
 void RenderGraph::Execute(
     const FrameBufferHandle _fbh,
     const Viewport          _vp)
-{
-    Execute_(_fbh, _vp, true);
-}
-
-void RenderGraph::Execute_(
-    const FrameBufferHandle _fbh,
-    const Viewport          _vp,
-    const bool              _bUseExternalOutput)
 {
     CompileIfNeed_(_vp.w, _vp.h);
 
@@ -840,7 +839,7 @@ void RenderGraph::Execute_(
 
             FrameBufferHandle fbh = desc.fbh;
             Viewport          vp  = desc.viewport;
-            if (_bUseExternalOutput && desc.bUseExternalOutput)
+            if (desc.bFinalPass)   // 최종 패스의 경우 Execute()에 전달된 프레임버퍼와 뷰포트를 사용
             {
                 fbh = _fbh;
                 vp  = _vp;
@@ -916,7 +915,7 @@ void RenderGraph::Execute_(
 
 ////////// 리소스 관리 //////////
 
-void RenderGraph::AddTexture(
+void RenderGraph::InsertTexture(
     const StringView    _name,
     const TextureHandle _texh,
     const bool          _bOwnership)
@@ -937,7 +936,7 @@ void RenderGraph::AddTexture(
     m_bNeedCompile    = true;
 }
 
-void RenderGraph::AddTexture2D(
+void RenderGraph::EmplaceTexture2D(
     const StringView                 _name,
     const Int32                      _width,
     const Int32                      _height,
@@ -948,10 +947,10 @@ void RenderGraph::AddTexture2D(
 {
     Graphics&           gfx  = GetGraphics();
     const TextureHandle texh = gfx.CreateTexture2D(_width, _height, _format, false, _numLayers, _flags, _initData);
-    AddTexture(_name, texh, true);
+    InsertTexture(_name, texh, true);
 }
 
-void RenderGraph::AddTexture2D(
+void RenderGraph::EmplaceTexture2D(
     const StringView                 _name,
     const float                      _resizeScale,
     const eTextureFormat             _format,
@@ -977,7 +976,7 @@ void RenderGraph::AddTexture2D(
     m_bNeedCompile    = true;
 }
 
-void RenderGraph::AddTexture3D(
+void RenderGraph::EmplaceTexture3D(
     const StringView                 _name,
     const Int32                      _width,
     const Int32                      _height,
@@ -988,10 +987,10 @@ void RenderGraph::AddTexture3D(
 {
     Graphics&           gfx  = GetGraphics();
     const TextureHandle texh = gfx.CreateTexture3D(_width, _height, _depth, _format, false, _flags, _initData);
-    AddTexture(_name, texh, true);
+    InsertTexture(_name, texh, true);
 }
 
-void RenderGraph::AddTextureCube(
+void RenderGraph::EmplaceTextureCube(
     const StringView                 _name,
     const Int32                      _width,
     const Int32                      _height,
@@ -1001,7 +1000,7 @@ void RenderGraph::AddTextureCube(
 {
     Graphics&           gfx  = GetGraphics();
     const TextureHandle texh = gfx.CreateTextureCube(_width, _height, _format, false, _numCubes, _flags);
-    AddTexture(_name, texh, true);
+    InsertTexture(_name, texh, true);
 }
 
 void RenderGraph::RemoveTexture(StringView _name)
@@ -1018,20 +1017,19 @@ void RenderGraph::RemoveTexture(StringView _name)
 
 TextureHandle RenderGraph::GetTexture(const StringView _name) const
 {
-    const TextureHandle h = FindTextureOrNull(_name);
-    JAM_ASSERT(h != kInvalidHandle, "Texture '{}' not found.", _name);
-    return h;
+    const TextureResource& texRes = m_textures.at(_name);
+    return texRes.handle;
 }
 
-TextureHandle RenderGraph::FindTextureOrNull(const StringView _name) const
+bool RenderGraph::HasTexture(
+    const StringView _name) const
 {
-    const auto it = m_textures.find(_name);
-    return (it != m_textures.end()) ? it->second.handle : kInvalidHandle;
+    return m_textures.contains(_name);
 }
 
 ////////// 리소스 관리 — 상수 버퍼 //////////
 
-void RenderGraph::AddConstantBuffer(
+void RenderGraph::InsertConstantBuffer(
     const StringView           _name,
     const ConstantBufferHandle _cbh,
     const bool                 _bOwnership)
@@ -1047,14 +1045,14 @@ void RenderGraph::AddConstantBuffer(
     m_bNeedCompile    = true;
 }
 
-void RenderGraph::AddConstantBuffer(
+void RenderGraph::EmplaceConstantBuffer(
     const StringView _name,
     const UInt32     _byteWidth)
 {
     Graphics&                  gfx = GetGraphics();
     const ConstantBufferHandle cbh = gfx.CreateConstantBuffer(_byteWidth);
     JAM_ASSERT(cbh != kInvalidHandle, "Failed to create constant buffer '{}'.", _name);
-    AddConstantBuffer(_name, cbh, true);
+    InsertConstantBuffer(_name, cbh, true);
 }
 
 void RenderGraph::RemoveConstantBuffer(const StringView _name)
@@ -1071,20 +1069,18 @@ void RenderGraph::RemoveConstantBuffer(const StringView _name)
 
 ConstantBufferHandle RenderGraph::GetConstantBuffer(const StringView _name) const
 {
-    const ConstantBufferHandle h = FindConstantBufferOrNull(_name);
-    JAM_ASSERT(h != kInvalidHandle, "ConstantBuffer '{}' not found.", _name);
-    return h;
+    const ConstantBufferResource& cbRes = m_cbuffers.at(_name);
+    return cbRes.handle;
 }
 
-ConstantBufferHandle RenderGraph::FindConstantBufferOrNull(const StringView _name) const
+bool RenderGraph::HasConstantBuffer(const StringView _name) const
 {
-    const auto it = m_cbuffers.find(_name);
-    return (it != m_cbuffers.end()) ? it->second.handle : kInvalidHandle;
+    return m_cbuffers.contains(_name);
 }
 
 ////////// 리소스 관리 — 스토리지 버퍼 //////////
 
-void RenderGraph::AddStorageBuffer(
+void RenderGraph::InsertStorageBuffer(
     const StringView          _name,
     const StorageBufferHandle _sbh,
     const bool                _bOwnership)
@@ -1102,7 +1098,7 @@ void RenderGraph::AddStorageBuffer(
     m_bNeedCompile    = true;
 }
 
-void RenderGraph::AddRawBuffer(
+void RenderGraph::EmplaceRawBuffer(
     const StringView                       _name,
     const Int32                            _byteWidth,
     const Flags<eStorageBufferCreateFlags> _flags,
@@ -1110,10 +1106,10 @@ void RenderGraph::AddRawBuffer(
 {
     Graphics&                 gfx = GetGraphics();
     const StorageBufferHandle sbh = gfx.CreateRawBuffer(_byteWidth, _flags, _initDataOrEmpty);
-    AddStorageBuffer(_name, sbh, true);
+    InsertStorageBuffer(_name, sbh, true);
 }
 
-void RenderGraph::AddStructuredBuffer(
+void RenderGraph::EmplaceStructuredBuffer(
     const StringView                       _name,
     const Int32                            _numElements,
     const Int32                            _stride,
@@ -1124,10 +1120,10 @@ void RenderGraph::AddStructuredBuffer(
 {
     Graphics&                 gfx = GetGraphics();
     const StorageBufferHandle sbh = gfx.CreateStructuredBuffer(_numElements, _stride, _bAppendConsume, _bCounter, _flags, _initDataOrEmpty);
-    AddStorageBuffer(_name, sbh, true);
+    InsertStorageBuffer(_name, sbh, true);
 }
 
-void RenderGraph::AddTypedBuffer(
+void RenderGraph::EmplaceTypedBuffer(
     const StringView                       _name,
     const Int32                            _numElements,
     const eStorageBufferData               _dataType,
@@ -1136,7 +1132,7 @@ void RenderGraph::AddTypedBuffer(
 {
     Graphics&                 gfx = GetGraphics();
     const StorageBufferHandle sbh = gfx.CreateTypedBuffer(_numElements, _dataType, _flags, _initDataOrEmpty);
-    AddStorageBuffer(_name, sbh, true);
+    InsertStorageBuffer(_name, sbh, true);
 }
 
 void RenderGraph::RemoveStorageBuffer(StringView _name)
@@ -1153,20 +1149,19 @@ void RenderGraph::RemoveStorageBuffer(StringView _name)
 
 StorageBufferHandle RenderGraph::GetStorageBuffer(const StringView _name) const
 {
-    const StorageBufferHandle h = FindStorageBufferOrNull(_name);
-    JAM_ASSERT(h != kInvalidHandle, "StorageBuffer '{}' not found.", _name);
-    return h;
+    const StorageBufferResource& sbRes = m_storageBuffers.at(_name);
+    JAM_ASSERT(sbRes.handle != kInvalidHandle, "StorageBuffer '{}' not created.", _name);
+    return sbRes.handle;
 }
 
-StorageBufferHandle RenderGraph::FindStorageBufferOrNull(const StringView _name) const
+bool RenderGraph::HasStorageBuffer(const StringView _name) const
 {
-    const auto it = m_storageBuffers.find(_name);
-    return (it != m_storageBuffers.end()) ? it->second.handle : kInvalidHandle;
+    return m_storageBuffers.contains(_name);
 }
 
 ////////// 리소스 관리 — 프레임버퍼 //////////
 
-void RenderGraph::AddFrameBuffer(
+void RenderGraph::InsertFrameBuffer(
     const StringView        _name,
     const FrameBufferHandle _fbh,
     const bool              _bOwnership)
@@ -1186,9 +1181,9 @@ void RenderGraph::AddFrameBuffer(
     m_bNeedCompile         = true;
 }
 
-void RenderGraph::AddFrameBuffer(
-    const StringView                       _name,
-    const Span<const RenderGraphAttahment> _attachments)
+void RenderGraph::EmplaceFrameBuffer(
+    const StringView               _name,
+    const Span<const AttachmentRG> _attachments)
 {
     JAM_ASSERT(!_attachments.empty(), "FrameBuffer '{}' must have at least one attachment.", _name);
 
@@ -1202,15 +1197,14 @@ void RenderGraph::AddFrameBuffer(
     fbRes.bHasOwnership = true;
     fbRes.bAutoResize   = false;
 
-    bool bHasDepthStecil = false;
-    for (const RenderGraphAttahment& attachment: _attachments)
+    for (const AttachmentRG& attachment: _attachments)
     {
         const TextureResource& texRes = m_textures.at(attachment.name);
         if (IsDepthFormat(texRes.format))
         {
-            JAM_ASSERT(bHasDepthStecil == false, "FrameBuffer '{}' cannot have multiple depth/stencil attachments. Attachment '{}' is a duplicate.", _name, attachment.name);
-            bHasDepthStecil                                 = true;
-            fbRes.attachments[kDepthStencilAttachmentIndex] = attachment.name;
+            JAM_ASSERT(!fbRes.bHasDepthStencil, "FrameBuffer '{}' cannot have multiple depth/stencil attachments. Attachment '{}' is a duplicate.", _name, attachment.name);
+            fbRes.attachments[kDepthStencilAttachmentSlot] = attachment.name;
+            fbRes.bHasDepthStencil                         = true;
         }
         else
         {
@@ -1226,12 +1220,12 @@ void RenderGraph::AddFrameBuffer(
     {
         Array<Attachment, kMaxNumAttachmentSlots> attachments    = {};
         Int32                                     numAttachments = 0;
-        for (const RenderGraphAttahment& attachment: _attachments)
+        for (const AttachmentRG& attachment: _attachments)
         {
             const TextureResource& texRes = m_textures.at(attachment.name);
             JAM_ASSERT(texRes.handle != kInvalidHandle, "Texture '{}' for FrameBuffer '{}' is not created.", attachment.name, _name);
             attachments[numAttachments].texh        = texRes.handle;
-            attachments[numAttachments].mipIndex    = attachment.mipIndex;
+            attachments[numAttachments].mipIndex    = attachment.mip;
             attachments[numAttachments].layerOffset = attachment.layerOffset;
             attachments[numAttachments].numLayers   = attachment.numLayers;
             ++numAttachments;
@@ -1243,13 +1237,13 @@ void RenderGraph::AddFrameBuffer(
     m_bNeedCompile = true;
 }
 
-void RenderGraph::AddFrameBuffer(
+void RenderGraph::EmplaceFrameBuffer(
     const StringView _name,
     const StringView _attachment)
 {
-    RenderGraphAttahment attahment[1] = {};
-    attahment[0].name                 = _attachment;
-    AddFrameBuffer(_name, attahment);
+    AttachmentRG attahment[1] = {};
+    attahment[0].name         = _attachment;
+    EmplaceFrameBuffer(_name, attahment);
 }
 
 void RenderGraph::RemoveFrameBuffer(const StringView _name)
@@ -1266,20 +1260,18 @@ void RenderGraph::RemoveFrameBuffer(const StringView _name)
 
 FrameBufferHandle RenderGraph::GetFrameBuffer(const StringView _name) const
 {
-    const FrameBufferHandle h = FindFrameBufferOrNull(_name);
-    JAM_ASSERT(h != kInvalidHandle, "FrameBuffer '{}' not found.", _name);
-    return h;
+    const FrameBufferResource& fbRes = m_frameBuffers.at(_name);
+    return fbRes.handle;
 }
 
-FrameBufferHandle RenderGraph::FindFrameBufferOrNull(const StringView _name) const
+bool RenderGraph::HasFrameBuffer(const StringView _name) const
 {
-    const auto it = m_frameBuffers.find(_name);
-    return (it != m_frameBuffers.end()) ? it->second.handle : kInvalidHandle;
+    return m_frameBuffers.contains(_name);
 }
 
 ////////// 리소스 관리 — 셰이더 //////////
 
-void RenderGraph::AddShader(
+void RenderGraph::InsertShader(
     const StringView   _name,
     const ShaderHandle _sh,
     const bool         _bOwnership)
@@ -1291,12 +1283,12 @@ void RenderGraph::AddShader(
     m_bNeedCompile      = true;
 }
 
-void RenderGraph::AddShader(
+void RenderGraph::EmplaceShader(
     const StringView _name,
     const MemoryView _bytecode)
 {
     Graphics& gfx = GetGraphics();
-    AddShader(_name, gfx.CreateShader(_bytecode), true);
+    InsertShader(_name, gfx.CreateShader(_bytecode), true);
 }
 
 void RenderGraph::RemoveShader(const StringView _name)
@@ -1313,20 +1305,23 @@ void RenderGraph::RemoveShader(const StringView _name)
 
 ShaderHandle RenderGraph::GetShader(const StringView _name) const
 {
-    const ShaderHandle h = FindShaderOrNull(_name);
-    JAM_ASSERT(h != kInvalidHandle, "Shader '{}' not found.", _name);
-    return h;
+    const ShaderResource& shRes = m_shaders.at(_name);
+    return shRes.handle;
 }
 
-ShaderHandle RenderGraph::FindShaderOrNull(const StringView _name) const
+bool RenderGraph::HasShader(const StringView _name) const
 {
-    const auto it = m_shaders.find(_name);
-    return (it != m_shaders.end()) ? it->second.handle : kInvalidHandle;
+    return m_shaders.contains(_name);
+}
+
+bool RenderGraph::HasProgram(const StringView _name) const
+{
+    return m_programs.contains(_name);
 }
 
 ////////// 리소스 관리 — 프로그램 //////////
 
-void RenderGraph::AddProgram(
+void RenderGraph::InsertProgram(
     const StringView    _name,
     const ProgramHandle _ph,
     const bool          _bOwnership)
@@ -1342,15 +1337,15 @@ void RenderGraph::AddProgram(
     m_bNeedCompile    = true;
 }
 
-void RenderGraph::AddProgram(
+void RenderGraph::EmplaceProgram(
     const StringView _name,
     const StringView _vsOrEmpty,
     const StringView _psOrEmpty)
 {
-    AddProgram(_name, _vsOrEmpty, _psOrEmpty, {}, {}, {});
+    EmplaceProgram(_name, _vsOrEmpty, _psOrEmpty, {}, {}, {});
 }
 
-void RenderGraph::AddProgram(
+void RenderGraph::EmplaceProgram(
     const StringView _name,
     const StringView _vsOrEmpty,
     const StringView _psOrEmpty,
@@ -1364,16 +1359,16 @@ void RenderGraph::AddProgram(
     const ShaderHandle  hsh = _hsOrEmpty.IsEmpty() ? kInvalidHandle : GetShader(_hsOrEmpty);
     const ShaderHandle  dsh = _dsOrEmpty.IsEmpty() ? kInvalidHandle : GetShader(_dsOrEmpty);
     const ProgramHandle ph  = GetGraphics().CreateProgram(vsh, psh, gsh, hsh, dsh);
-    AddProgram(_name, ph, true);
+    InsertProgram(_name, ph, true);
 }
 
-void RenderGraph::AddComputeProgram(
+void RenderGraph::EmplaceComputeProgram(
     const StringView _name,
     const StringView _csName)
 {
     const ShaderHandle  csh = GetShader(_csName);
     const ProgramHandle ph  = GetGraphics().CreateProgram(csh);
-    AddProgram(_name, ph, true);
+    InsertProgram(_name, ph, true);
 }
 
 void RenderGraph::RemoveProgram(StringView _name)
@@ -1390,15 +1385,8 @@ void RenderGraph::RemoveProgram(StringView _name)
 
 ProgramHandle RenderGraph::GetProgram(const StringView _name) const
 {
-    const ProgramHandle h = FindProgramOrNull(_name);
-    JAM_ASSERT(h != kInvalidHandle, "Program '{}' not found.", _name);
-    return h;
-}
-
-ProgramHandle RenderGraph::FindProgramOrNull(const StringView _name) const
-{
-    const auto it = m_programs.find(_name);
-    return (it != m_programs.end()) ? it->second.handle : kInvalidHandle;
+    const ProgramResource& progRes = m_programs.at(_name);
+    return progRes.handle;
 }
 
 ////////// 전체 초기화 //////////
@@ -1471,10 +1459,11 @@ void RenderGraph::Clear(const Flags<eRenderGraphClearFlags> _flags)
     }
 }
 
-RenderGraph::PassDesc* RenderGraph::FindPassDesc_(const StringView name)
+RenderGraph::PassDesc& RenderGraph::GetPassDesc_(const StringView name)
 {
     const auto it = std::ranges::find_if(m_descs, [name](const PassDesc& _desc) { return _desc.name == name; });
-    return (it != m_descs.end()) ? &(*it) : nullptr;
+    JAM_ASSERT(it != m_descs.end(), "Pass '{}' not found.", name);
+    return *it;
 }
 
 bool RenderGraph::HasPass_(StringView name) const
@@ -1484,108 +1473,104 @@ bool RenderGraph::HasPass_(StringView name) const
 
 ////////// UTILITY PASS BUILDER //////////
 
-RenderGraph::UtilityPassBuilder::UtilityPassBuilder(RenderGraph& _graph, PassDesc& _desc)
-    : m_graph(_graph)
-    , m_desc(_desc)
+RenderGraph::UtilityPassBuilder::UtilityPassBuilder(
+    RenderGraph* _pGraph,
+    PassDesc*    _pDesc)
+    : m_pGraph(_pGraph)
+    , m_pDesc(_pDesc)
 {
-    _desc.type        = ePass::Utility;
-    _desc.bSideEffect = true;
+    m_pDesc->type        = ePass::Utility;
+    m_pDesc->bSideEffect = true;
 }
 
-RenderGraph::UtilityPassBuilder& RenderGraph::UtilityPassBuilder::SetEnabled(const bool _bEnable)
+RenderGraph::UtilityPassBuilder& RenderGraph::UtilityPassBuilder::Enable(const bool _bEnable)
 {
-    m_desc.bEnable = _bEnable;
+    m_pDesc->bEnable = _bEnable;
     return *this;
 }
 
 RenderGraph::UtilityPassBuilder& RenderGraph::UtilityPassBuilder::SetExecutor(const Delegate<void()>& _executor)
 {
     JAM_ASSERT(_executor, "Executor cannot be null.");
-    m_desc.executor = _executor;
+    m_pDesc->executor = _executor;
     return *this;
 }
 
 ////////// GRAPHICS PASS BUILDER //////////
 
 RenderGraph::RenderPassBuilder::RenderPassBuilder(
-    RenderGraph& _graph,
-    PassDesc&    _desc)
-    : m_graph(_graph)
-    , m_desc(_desc)
+    RenderGraph* _pGraph,
+    PassDesc*    _pDesc)
+    : m_pGraph(_pGraph)
+    , m_pDesc(_pDesc)
 {
-    m_desc.type = ePass::Render;
+    m_pDesc->type = ePass::Render;
+}
+
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::AsFinalPass(const bool _bEnable)
+{
+    m_pDesc->bFinalPass = _bEnable;
+    return *this;
+}
+
+RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::Enable(const bool _bEnable)
+{
+    m_pDesc->bEnable = _bEnable;
+    return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetProgram(const StringView _name)
 {
     JAM_ASSERT(!_name.IsEmpty(), "Program name cannot be empty.");
-    m_desc.programName = _name;
-    m_desc.ph          = kInvalidHandle;
+    m_pDesc->programName = _name;
+    m_pDesc->ph          = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseProgram()
 {
-    m_desc.programName.Clear();
-    m_desc.ph = kInvalidHandle;
+    m_pDesc->programName.Clear();
+    m_pDesc->ph = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetFrameBuffer(const StringView _name)
 {
     JAM_ASSERT(!_name.IsEmpty(), "FrameBuffer name cannot be empty.");
-    m_desc.frameBufferName = _name;
-    m_desc.fbh             = kInvalidHandle;
+    m_pDesc->frameBufferName = _name;
+    m_pDesc->fbh             = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseFrameBuffer()
 {
-    m_desc.frameBufferName.Clear();
-    m_desc.fbh = kInvalidHandle;
+    m_pDesc->frameBufferName.Clear();
+    m_pDesc->fbh = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetViewport(const Viewport _vp)
 {
-    m_desc.viewport                             = _vp;
-    m_desc.bUseFrameBufferResolutionForViewport = false;
+    m_pDesc->viewport                             = _vp;
+    m_pDesc->bUseFrameBufferResolutionForViewport = false;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetFrameBufferResolutionForViewport()
 {
-    m_desc.bUseFrameBufferResolutionForViewport = true;
+    m_pDesc->bUseFrameBufferResolutionForViewport = true;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetScissorRect(const Rect _rect)
 {
-    m_desc.scissorRect = _rect;
-    return *this;
-}
-
-RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetAsFinalPass(const bool _bEnable)
-{
-    m_desc.bFinalPass = _bEnable;
-    return *this;
-}
-
-RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetUseExternalOutput(const bool _bEnable)
-{
-    m_desc.bUseExternalOutput = _bEnable;
-    return *this;
-}
-
-RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetEnabled(const bool _bEnable)
-{
-    m_desc.bEnable = _bEnable;
+    m_pDesc->scissorRect = _rect;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetRenderFlags(const Flags<eRenderFlags> _flags)
 {
-    m_desc.renderFlags = _flags;
+    m_pDesc->renderFlags = _flags;
     return *this;
 }
 
@@ -1594,9 +1579,9 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetStencilFlags(
     const Flags<eStencilFlags> _bstencil,
     const UInt8                _ref)
 {
-    m_desc.fstencil   = _fstencil;
-    m_desc.bstencil   = _bstencil;
-    m_desc.stencilRef = _ref;
+    m_pDesc->fstencil   = _fstencil;
+    m_pDesc->bstencil   = _bstencil;
+    m_pDesc->stencilRef = _ref;
     return *this;
 }
 
@@ -1606,23 +1591,23 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetBlendFlags(
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumRenderTargetViewSlots, "Blend slot {} out of range.", _slot);
 
-    for (Int32 i = 0; i < m_desc.numBlendFlagsBindCmds; ++i)
+    for (Int32 i = 0; i < m_pDesc->numBlendFlagsBindCmds; ++i)
     {
-        if (m_desc.blendFlagsBindCmds[i].slot == _slot)
+        if (m_pDesc->blendFlagsBindCmds[i].slot == _slot)
         {
-            m_desc.blendFlagsBindCmds[i].state = _flags;
+            m_pDesc->blendFlagsBindCmds[i].state = _flags;
             return *this;
         }
     }
 
-    JAM_ASSERT(m_desc.numBlendFlagsBindCmds < kMaxNumRenderTargetViewSlots, "Too many blend states.");
-    m_desc.blendFlagsBindCmds[m_desc.numBlendFlagsBindCmds++] = { _flags, _slot };
+    JAM_ASSERT(m_pDesc->numBlendFlagsBindCmds < kMaxNumRenderTargetViewSlots, "Too many blend states.");
+    m_pDesc->blendFlagsBindCmds[m_pDesc->numBlendFlagsBindCmds++] = { _flags, _slot };
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetBlendFactor(const RGBA _factor)
 {
-    m_desc.blendFactor = _factor;
+    m_pDesc->blendFactor = _factor;
     return *this;
 }
 
@@ -1632,29 +1617,29 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetRenderTargetC
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumRenderTargetViewSlots, "ClearColor slot {} out of range.", _slot);
 
-    for (Int32 i = 0; i < m_desc.numRenderTargetClearCmds; ++i)
+    for (Int32 i = 0; i < m_pDesc->numRenderTargetClearCmds; ++i)
     {
-        if (m_desc.renderTargetClearCmds[i].slot == _slot)
+        if (m_pDesc->renderTargetClearCmds[i].slot == _slot)
         {
-            m_desc.renderTargetClearCmds[i].color = _color;
+            m_pDesc->renderTargetClearCmds[i].color = _color;
             return *this;
         }
     }
 
-    m_desc.renderTargetClearCmds[m_desc.numRenderTargetClearCmds++] = { _color, _slot };
+    m_pDesc->renderTargetClearCmds[m_pDesc->numRenderTargetClearCmds++] = { _color, _slot };
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseRenderTargetCommand(const Int32 _slot)
 {
-    for (Int32 i = 0; i < m_desc.numRenderTargetClearCmds; ++i)
+    for (Int32 i = 0; i < m_pDesc->numRenderTargetClearCmds; ++i)
     {
-        if (m_desc.renderTargetClearCmds[i].slot == _slot)
+        if (m_pDesc->renderTargetClearCmds[i].slot == _slot)
         {
-            const Int32 last                   = m_desc.numRenderTargetClearCmds - 1;
-            m_desc.renderTargetClearCmds[i]    = m_desc.renderTargetClearCmds[last];
-            m_desc.renderTargetClearCmds[last] = {};
-            --m_desc.numRenderTargetClearCmds;
+            const Int32 last                     = m_pDesc->numRenderTargetClearCmds - 1;
+            m_pDesc->renderTargetClearCmds[i]    = m_pDesc->renderTargetClearCmds[last];
+            m_pDesc->renderTargetClearCmds[last] = {};
+            --m_pDesc->numRenderTargetClearCmds;
             break;
         }
     }
@@ -1663,43 +1648,28 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseRenderTar
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetDepthClearCommand(const float _value)
 {
-    m_desc.depthClearValue = _value;
-    m_desc.bClearDepth     = true;
+    m_pDesc->depthClearValue = _value;
+    m_pDesc->bClearDepth     = true;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseDepthClearCommand()
 {
-    m_desc.bClearDepth = false;
+    m_pDesc->bClearDepth = false;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetStencilClearCommand(const UInt8 _value)
 {
-    m_desc.stencilClearValue = _value;
-    m_desc.bClearStencil     = true;
+    m_pDesc->stencilClearValue = _value;
+    m_pDesc->bClearStencil     = true;
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseStencilClearCommand()
 {
-    m_desc.bClearStencil = false;
+    m_pDesc->bClearStencil = false;
     return *this;
-}
-
-RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetPrevPassOutputAsResource(
-    const StringView      _passName,
-    const Int32           _attachIndex,
-    const eShader         _stage,
-    const Int32           _slot,
-    const eResourceAccess _access)
-{
-    JAM_ASSERT(m_graph.HasPass_(_passName), "Pass '{}' not found.", _passName);
-    PassDesc* pDesc = m_graph.FindPassDesc_(_passName);
-    JAM_ASSERT(!pDesc->frameBufferName.IsEmpty() && !pDesc->bUseExternalOutput, "Pass '{}' does not have an internal framebuffer output.", _passName);
-    const FrameBufferResource& fbRes = m_graph.m_frameBuffers.at(_passName);
-    JAM_ASSERT((_attachIndex >= 0 && _attachIndex < fbRes.numRenderTargets) || (_attachIndex == kDepthStencilAttachmentIndex && fbRes.bHasDepthStencil), "Attachment index {} out of range for pass '{}'.", _attachIndex, _passName);
-    return SetTexture(fbRes.attachments[_attachIndex], _stage, _slot, _access);
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetTexture(
@@ -1708,18 +1678,18 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetTexture(
     const Int32           _slot,
     const eResourceAccess _access)
 {
-    JAM_ASSERT(m_graph.m_textures.contains(_name), "Texture '{}' not registered.", _name);
+    JAM_ASSERT(m_pGraph->m_textures.contains(_name), "Texture '{}' not registered.", _name);
 
     const Slot slot = { _stage, _slot };
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, _stage, _slot };
+        m_pDesc->readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, _stage, _slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, _stage, _slot };
+        m_pDesc->readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, _stage, _slot };
     }
     return *this;
 }
@@ -1730,18 +1700,18 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetBuffer(
     const Int32           _slot,
     const eResourceAccess _access)
 {
-    JAM_ASSERT(m_graph.m_storageBuffers.contains(_name), "StorageBuffer '{}' not registered.", _name);
+    JAM_ASSERT(m_pGraph->m_storageBuffers.contains(_name), "StorageBuffer '{}' not registered.", _name);
 
     const Slot slot = { _stage, _slot };
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, _stage, _slot };
+        m_pDesc->readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, _stage, _slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, _stage, _slot };
+        m_pDesc->readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, _stage, _slot };
     }
     return *this;
 }
@@ -1755,12 +1725,12 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseResource(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Resource slot {} out of range.", _slot);
-        m_desc.readBindCmds.erase(slot);
+        m_pDesc->readBindCmds.erase(slot);
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Resource slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds.erase(slot);
+        m_pDesc->readWriteBindCmds.erase(slot);
     }
     return *this;
 }
@@ -1771,9 +1741,9 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetConstantBuffe
     const Int32      _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
-    JAM_ASSERT(m_graph.m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
-    const Slot slot              = { _stage, _slot };
-    m_desc.cbufferBindCmds[slot] = { _name, kInvalidHandle, slot };
+    JAM_ASSERT(m_pGraph->m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
+    const Slot slot                = { _stage, _slot };
+    m_pDesc->cbufferBindCmds[slot] = { _name, kInvalidHandle, slot };
     return *this;
 }
 
@@ -1782,7 +1752,7 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseConstantB
     const Int32   _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
-    m_desc.cbufferBindCmds.erase({ _stage, _slot });
+    m_pDesc->cbufferBindCmds.erase({ _stage, _slot });
     return *this;
 }
 
@@ -1801,8 +1771,8 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetSampler(
     const Int32                _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
-    const Slot slot              = { _stage, _slot };
-    m_desc.samplerBindCmds[slot] = { _state, _borderColor, _stage, _slot };
+    const Slot slot                = { _stage, _slot };
+    m_pDesc->samplerBindCmds[slot] = { _state, _borderColor, _stage, _slot };
     return *this;
 }
 
@@ -1811,50 +1781,52 @@ RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::ReleaseSamplerFl
     const Int32   _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
-    m_desc.samplerBindCmds.erase({ _stage, _slot });
+    m_pDesc->samplerBindCmds.erase({ _stage, _slot });
     return *this;
 }
 
 RenderGraph::RenderPassBuilder& RenderGraph::RenderPassBuilder::SetExecutor(const Delegate<void()>& _executor)
 {
     JAM_ASSERT(_executor, "Executor cannot be null.");
-    m_desc.executor = _executor;
+    m_pDesc->executor = _executor;
     return *this;
 }
 
 ////////// COMPUTE PASS BUILDER //////////
 
-RenderGraph::ComputePassBuilder::ComputePassBuilder(RenderGraph& _graph, PassDesc& _desc)
-    : m_graph(_graph)
-    , m_desc(_desc)
+RenderGraph::ComputePassBuilder::ComputePassBuilder(
+    RenderGraph* _pGraph,
+    PassDesc*    _pDesc)
+    : m_pGraph(_pGraph)
+    , m_pDesc(_pDesc)
 {
-    _desc.type = ePass::Compute;
+    _pDesc->type = ePass::Compute;
 }
 
-RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetAsFinalPass(const bool _bEnable)
+RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::AsFinalPass(const bool _bEnable)
 {
-    m_desc.bFinalPass = _bEnable;
+    m_pDesc->bFinalPass = _bEnable;
     return *this;
 }
 
-RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetEnable(const bool _bEnable)
+RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::Enable(const bool _bEnable)
 {
-    m_desc.bEnable = _bEnable;
+    m_pDesc->bEnable = _bEnable;
     return *this;
 }
 
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetComputeProgram(const StringView _name)
 {
     JAM_ASSERT(!_name.IsEmpty(), "Compute program name cannot be empty.");
-    m_desc.computeProgramName = _name;
-    m_desc.computePh          = kInvalidHandle;
+    m_pDesc->computeProgramName = _name;
+    m_pDesc->computePh          = kInvalidHandle;
     return *this;
 }
 
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseComputeProgram()
 {
-    m_desc.computeProgramName.Clear();
-    m_desc.computePh = kInvalidHandle;
+    m_pDesc->computeProgramName.Clear();
+    m_pDesc->computePh = kInvalidHandle;
     return *this;
 }
 
@@ -1867,12 +1839,12 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetTexture(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, slot };
+        m_pDesc->readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Texture slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, slot };
+        m_pDesc->readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Texture, slot };
     }
     return *this;
 }
@@ -1886,12 +1858,12 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetBuffer(
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, slot };
+        m_pDesc->readBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, slot };
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, slot };
+        m_pDesc->readWriteBindCmds[slot] = { _name, kInvalidHandleValue, eShaderResource::Buffer, slot };
     }
     return *this;
 }
@@ -1904,12 +1876,12 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseResourc
     if (_access == eResourceAccess::Read)
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumShaderResourceViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readBindCmds.erase(slot);
+        m_pDesc->readBindCmds.erase(slot);
     }
     else
     {
         JAM_ASSERT(_slot >= 0 && _slot < kMaxNumUnorderedAccessViewSlots, "Buffer slot {} out of range.", _slot);
-        m_desc.readWriteBindCmds.erase(slot);
+        m_pDesc->readWriteBindCmds.erase(slot);
     }
     return *this;
 }
@@ -1919,23 +1891,23 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetConstantBuf
     const Int32      _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
-    JAM_ASSERT(m_graph.m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
-    const Slot slot              = { eShader::ComputeShader, _slot };
-    m_desc.cbufferBindCmds[slot] = { _name, kInvalidHandle, eShader::ComputeShader, _slot };
+    JAM_ASSERT(m_pGraph->m_cbuffers.contains(_name), "ConstantBuffer '{}' not registered.", _name);
+    const Slot slot                = { eShader::ComputeShader, _slot };
+    m_pDesc->cbufferBindCmds[slot] = { _name, kInvalidHandle, eShader::ComputeShader, _slot };
     return *this;
 }
 
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseConstantBuffer(const Int32 _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumConstantBufferSlots, "CBuffer slot {} out of range.", _slot);
-    m_desc.cbufferBindCmds.erase({ eShader::ComputeShader, _slot });
+    m_pDesc->cbufferBindCmds.erase({ eShader::ComputeShader, _slot });
     return *this;
 }
 
 RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::ReleaseSamplerState(const Int32 _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
-    m_desc.samplerBindCmds.erase({ eShader::ComputeShader, _slot });
+    m_pDesc->samplerBindCmds.erase({ eShader::ComputeShader, _slot });
     return *this;
 }
 
@@ -1952,8 +1924,8 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetSampler(
     const Int32                _slot)
 {
     JAM_ASSERT(_slot >= 0 && _slot < kMaxNumSamplerSlots, "Sampler slot {} out of range.", _slot);
-    const Slot slot              = { eShader::ComputeShader, _slot };
-    m_desc.samplerBindCmds[slot] = { _state, _borderColor, eShader::ComputeShader, _slot };
+    const Slot slot                = { eShader::ComputeShader, _slot };
+    m_pDesc->samplerBindCmds[slot] = { _state, _borderColor, eShader::ComputeShader, _slot };
     return *this;
 }
 
@@ -1963,9 +1935,9 @@ RenderGraph::ComputePassBuilder& RenderGraph::ComputePassBuilder::SetNumThreadGr
     const Int32 _numThreadGroupsZ)
 {
     JAM_ASSERT(_numThreadGroupsX > 0 && _numThreadGroupsY > 0 && _numThreadGroupsZ > 0, "Number of thread groups must be greater than zero.");
-    m_desc.numThreadGroupsX = _numThreadGroupsX;
-    m_desc.numThreadGroupsY = _numThreadGroupsY;
-    m_desc.numThreadGroupsZ = _numThreadGroupsZ;
+    m_pDesc->numThreadGroupsX = _numThreadGroupsX;
+    m_pDesc->numThreadGroupsY = _numThreadGroupsY;
+    m_pDesc->numThreadGroupsZ = _numThreadGroupsZ;
     return *this;
 }
 

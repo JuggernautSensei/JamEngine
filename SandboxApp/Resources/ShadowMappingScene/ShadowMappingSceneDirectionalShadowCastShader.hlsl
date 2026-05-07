@@ -13,7 +13,7 @@ struct GSInput
 struct PSInput
 {
     float4 posH : SV_POSITION;
-    uint rtIndex : SV_RenderTargetArrayIndex;
+    uint rtIndex : SV_RenderTargetLayer;
 };
 
 GSInput VSMain(VSInput input)

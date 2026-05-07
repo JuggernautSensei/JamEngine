@@ -82,8 +82,8 @@ enum class eAssimpConvertToModelFlags : UInt32
 class AssimpImporter
 {
 public:
-    [[nodiscard]] static Expect<AssimpImporter> ImportFromMemory(MemoryView _data, const Flags<eAssimpImporterFlags>& _flags);
-    [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(StringView _path, const Flags<eAssimpImporterFlags>& _flags);
+    [[nodiscard]] static Expect<AssimpImporter> ImportFromMemory(MemoryView _data, Flags<eAssimpImporterFlags> _flags);
+    [[nodiscard]] static Expect<AssimpImporter> ImportFromFile(StringView _path, Flags<eAssimpImporterFlags> _flags);
 
     [[nodiscard]] const ModelNode&                GetRoot() const;
     [[nodiscard]] const Vector<ImportedMesh>&     GetMeshes() const;
@@ -96,7 +96,7 @@ private:
     AssimpImporter() = default;
     Error  ImportFromMemory_(MemoryView _data, const Flags<eAssimpImporterFlags>& _flags);
     Error  ImportFromFile_(StringView _path, const Flags<eAssimpImporterFlags>& _flags);
-    Error  Import_(const aiScene* _pScene, const Flags<eAssimpImporterFlags>& _flags);
+    Error  Import_(const aiScene* _pScene, Flags<eAssimpImporterFlags> _flags);
     UInt32 MakeImportFlags_(const Flags<eAssimpImporterFlags>& _flags) const;
     void   PreImport_(Assimp::Importer& _importer, const Flags<eAssimpImporterFlags>& _flags) const;
 

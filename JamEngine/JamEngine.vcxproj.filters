@@ -463,6 +463,9 @@
     <ClCompile Include="Float16.cpp">
       <Filter>99. Utilities\Math</Filter>
     </ClCompile>
+    <ClCompile Include="Filter.cpp">
+      <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="1. Core">
@@ -1173,6 +1176,9 @@
       <Filter>99. Utilities\Math</Filter>
     </ClInclude>
     <ClInclude Include="Float16.h">
+      <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Filter.h">
       <Filter>99. Utilities\Math</Filter>
     </ClInclude>
   </ItemGroup>

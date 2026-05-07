@@ -65,8 +65,8 @@ namespace
 }   // namespace
 
 Expect<AssimpImporter> AssimpImporter::ImportFromMemory(
-    const MemoryView                   _data,
-    const Flags<eAssimpImporterFlags>& _flags)
+    const MemoryView                  _data,
+    const Flags<eAssimpImporterFlags> _flags)
 {
     AssimpImporter importer = {};
     if (const Error err = importer.ImportFromMemory_(_data, _flags))
@@ -77,8 +77,8 @@ Expect<AssimpImporter> AssimpImporter::ImportFromMemory(
 }
 
 Expect<AssimpImporter> AssimpImporter::ImportFromFile(
-    const StringView                   _path,
-    const Flags<eAssimpImporterFlags>& _flags)
+    const StringView                  _path,
+    const Flags<eAssimpImporterFlags> _flags)
 {
     AssimpImporter importer = {};
     if (const Error err = importer.ImportFromFile_(_path, _flags))
@@ -184,18 +184,39 @@ Error AssimpImporter::ImportFromFile_(
 }
 
 Error AssimpImporter::Import_(
-    const aiScene*                     _pScene,
-    const Flags<eAssimpImporterFlags>& _flags)
+    const aiScene*                    _pScene,
+    const Flags<eAssimpImporterFlags> _flags)
 {
     JAM_ASSERT(_pScene, "AssimpImporter::Import_() - aiScene is null");
     JAM_FUNCTION_PROFILE();
-    ImportMeshes_(_pScene);
-    if (const Error err = ImportTextures_(_pScene))
+
+    bool bAnyLoaded = false;
+    if (_flags & eAssimpImporterFlags::LoadMeshes)
     {
-        return err;
+        ImportMeshes_(_pScene);
+        bAnyLoaded = true;
     }
-    ImportMaterials_(_pScene);
-    ImportModelNode_(_pScene);
+
+    if (_flags & eAssimpImporterFlags::LoadTextures)
+    {
+        if (const Error err = ImportTextures_(_pScene))
+        {
+            return err;
+        }
+        bAnyLoaded = true;
+    }
+
+    if (_flags & eAssimpImporterFlags::LoadMaterials)
+    {
+        ImportMaterials_(_pScene);
+        bAnyLoaded = true;
+    }
+
+    if (bAnyLoaded)
+    {
+        ImportModelNode_(_pScene);
+    }
+
     return Error::None;
 }
 
@@ -492,7 +513,7 @@ void AssimpImporter::ImportMeshes_(
         // 인덱스
         {
             // 인텍스 포맷
-            importedMesh.bUseU32 = numVerts > Limits<UInt16>::kHighest;
+            importedMesh.bUseU32 = Greater(numVerts, Limits<UInt16>::kHighest);
 
             // 인덱스 버퍼 할당
             const Int32 numFaces  = static_cast<Int32>(pMesh->mNumFaces);

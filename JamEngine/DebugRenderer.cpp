@@ -42,14 +42,14 @@ DebugRenderer::DebugRenderer()
 {
     Graphics& gfx = GetGraphics();
 
-    ShaderCompilerInfo psi = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    ShaderLoadInfo psi = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
     {
         ShaderMacro macro[] = {
             { "USE_VIEW_PROJ", "" }
         };
 
-        ShaderCompilerInfo vsi = { eShader::VertexShader, "VSMain", macro, eShaderCompileFlags::Default };
+        ShaderLoadInfo vsi = { eShader::VertexShader, "VSMain", macro, eShaderCompileFlags::Default };
         ShaderCompiler     vsc = ShaderCompiler::CompileHLSLSource(kDebugRendererShaderSource, vsi);
         JAM_ASSERT(vsc.IsSucceeded(), "Failed to compile debug renderer world vertex shader: {}", vsc.GetErrorMessage());
         ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());
@@ -62,7 +62,7 @@ DebugRenderer::DebugRenderer()
     }
 
     {
-        ShaderCompilerInfo vsi = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+        ShaderLoadInfo vsi = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
         ShaderCompiler     vsc = ShaderCompiler::CompileHLSLSource(kDebugRendererShaderSource, vsi);
         JAM_ASSERT(vsc.IsSucceeded(), "Failed to compile debug renderer screen vertex shader: {}", vsc.GetErrorMessage());
         ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());

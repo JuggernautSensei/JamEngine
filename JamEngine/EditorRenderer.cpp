@@ -256,7 +256,7 @@ EditorRenderer::EditorRenderer()
 
     // Grid shaders
     {
-        ShaderCompilerInfo vsDesc = {};
+        ShaderLoadInfo vsDesc = {};
         vsDesc.stage              = eShader::VertexShader;
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -265,7 +265,7 @@ EditorRenderer::EditorRenderer()
         JAM_ASSERT(vsCompiler.IsSucceeded(), "Editor grid vertex shader compilation failed");
         const ShaderHandle gridVsh = gfx.CreateShader(vsCompiler.GetBytecode());
 
-        ShaderCompilerInfo psDesc = {};
+        ShaderLoadInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -279,7 +279,7 @@ EditorRenderer::EditorRenderer()
 
     // Line shaders
     {
-        ShaderCompilerInfo vsDesc = {};
+        ShaderLoadInfo vsDesc = {};
         vsDesc.stage              = eShader::VertexShader;
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -288,7 +288,7 @@ EditorRenderer::EditorRenderer()
         JAM_ASSERT(vsCompiler.IsSucceeded(), "Editor line vertex shader compilation failed");
         const ShaderHandle lineVsh = gfx.CreateShader(vsCompiler.GetBytecode());
 
-        ShaderCompilerInfo psDesc = {};
+        ShaderLoadInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -302,7 +302,7 @@ EditorRenderer::EditorRenderer()
 
     // Filled shaders
     {
-        ShaderCompilerInfo vsDesc = {};
+        ShaderLoadInfo vsDesc = {};
         vsDesc.stage              = eShader::VertexShader;
         vsDesc.entryPoint         = "VSMain";
         vsDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -311,7 +311,7 @@ EditorRenderer::EditorRenderer()
         JAM_ASSERT(vsCompiler.IsSucceeded(), "Editor filled vertex shader compilation failed");
         const ShaderHandle filledVsh = gfx.CreateShader(vsCompiler.GetBytecode());
 
-        ShaderCompilerInfo psDesc = {};
+        ShaderLoadInfo psDesc = {};
         psDesc.stage              = eShader::PixelShader;
         psDesc.entryPoint         = "PSMain";
         psDesc.flags              = eShaderCompileFlags::ReleaseDefault;
@@ -324,7 +324,7 @@ EditorRenderer::EditorRenderer()
     }
 
     // 라인 버퍼 생성
-    m_lineVbh = gfx.CreateDynamicVertexBuffer(kLineLimit * 2, LineVertex::s_vl);
+    m_lineVbh = gfx.CreateDynamicVertexBuffer(kLineLimit * 2, LineVertex::s_layout);
     m_lineIbh = gfx.CreateDynamicIndexBuffer(kLineLimit * 2);
 
     // 그리드 쿼드 생성
@@ -333,7 +333,7 @@ EditorRenderer::EditorRenderer()
         // todo: this is not infinite grid. grid cube need move with camera position
 
         VertexLayout vl = {};
-        vl.Push(eVertexAttribute::Position, eAttributeFormat::Float3);
+        vl.Add(eVertexAttribute::Position, eAttributeFormat::Float3);
 
         constexpr Vec3 kVerts[4] = {
             { -kGridSize, 0.0f, -kGridSize },
@@ -353,7 +353,7 @@ EditorRenderer::EditorRenderer()
     // 프리미티브 생성
     {
         VertexLayout attribLayout = {};
-        attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+        attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
         m_sphereMesh   = CreateSphereMesh(1.0f, 4, attribLayout);
         m_cylinderMesh = CreateCylinderMesh(1.0f, 1.0f, Vec3::kUp, 32, eCreateCylinderMesh::OriginAtCenter, attribLayout);

@@ -259,7 +259,7 @@ void ProjectExporter::WriteCompiledBinaryDefinitions_(
             shaderMacros.emplace_back(macro.name, macro.value);
         }
 
-        ShaderCompilerInfo info = {};
+        ShaderLoadInfo info = {};
         info.entryPoint         = item.entryPoint;
         info.stage              = item.stage;
         info.flags              = item.compileFlags;

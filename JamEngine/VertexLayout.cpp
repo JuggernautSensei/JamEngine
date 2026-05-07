@@ -10,7 +10,7 @@ VertexLayout::VertexLayout()
     Reset();
 }
 
-void VertexLayout::Push(
+VertexLayout& VertexLayout::Add(
     const eVertexAttribute _attrib,
     const eAttributeFormat _format)
 {
@@ -25,7 +25,9 @@ void VertexLayout::Push(
     m_stride += vlm.byteWidth;
     m_vleLut[_attrib] = &m_vles[m_numElems - 1];
     m_bDirty          = true;
+    return *this;
 }
+
 bool VertexLayout::Has(
     const eVertexAttribute _attrib) const
 {
@@ -119,7 +121,7 @@ Error VertexLayout::ReadFromArchive(
                 return err;
             }
 
-            Push(attrib, format);
+            Add(attrib, format);
             return Error::None;
         }));
 }

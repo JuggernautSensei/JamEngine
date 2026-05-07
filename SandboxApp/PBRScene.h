@@ -59,7 +59,7 @@ private:
     ConstantBufferHandle m_cubeMapCbh = kInvalidHandle;
 
     FrameBufferHandle m_fbh    = kInvalidHandle;
-    TextureHandle     m_fbTexh = kInvalidHandle;   // not owned
+    TextureHandle     m_colorTexh = kInvalidHandle;   // not owned
 
     VertexBufferHandle m_fullTriVbh = kInvalidHandle;
     IndexBufferHandle  m_fullTriIbh = kInvalidHandle;

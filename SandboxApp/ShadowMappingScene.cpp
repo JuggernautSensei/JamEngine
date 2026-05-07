@@ -103,7 +103,7 @@ ShadowMappingScene::ShadowMappingScene()
     m_spotLight.bEnabled = true;
 
     InitMeshes_();
-    InitRenderGraphResource_();
+    InitRenderGraph_();
     BuildRenderGraph_();
 
     m_spotLight.pos.y      = 3.f;
@@ -291,8 +291,8 @@ void ShadowMappingScene::OnResize(
 void ShadowMappingScene::InitMeshes_()
 {
     VertexLayout attribLayout = {};
-    attribLayout.Push(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-    attribLayout.Push(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    attribLayout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
     Flags<eAssimpImporterFlags> flags = eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals | eAssimpImporterFlags::GenerateTangentFrame;
 
@@ -350,25 +350,25 @@ void ShadowMappingScene::InitMeshes_()
     m_pSphere = CreateSphereMesh(1.f, 5, attribLayout);
 }
 
-void ShadowMappingScene::InitRenderGraphResource_()
+void ShadowMappingScene::InitRenderGraph_()
 {
-    m_graph.AddTexture2D("T_SceneNormal", 1.f, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags::RenderTargetAttachment);
-    m_graph.AddTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
-    m_graph.AddTexture2D("T_SceneDepth", 1.f, eTextureFormat::D32_Float, 1, eTextureCreateFlags::DepthStencilAttachment);
-    m_graph.AddTexture2D("T_SceneLight", 1.f, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
-    m_graph.AddTexture2D("T_ShadowMap", 1024, 1024, eTextureFormat::D32_Float, 1, eTextureCreateFlags::DepthStencilAttachment);
-    m_graph.AddTexture2D("T_ShadowMapArray", 1024, 1024, eTextureFormat::D32_Float, kShadowCascadeLevels, eTextureCreateFlags::DepthStencilAttachment);
-    m_graph.AddTextureCube("T_ShadowMapCube", 1024, 1024, eTextureFormat::D32_Float, 1, eTextureCreateFlags::DepthStencilAttachment);
-    m_graph.AddTexture2D("T_ShadowMapAdv", 1024, 1024, eTextureFormat::RG32_Float, 1, eTextureCreateFlags::RenderTargetAttachment);
-    m_graph.AddTexture2D("T_ShadowMapAdvTmp", 1024, 1024, eTextureFormat::RG32_Float, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_graph.EmplaceTexture2D("T_SceneNormal", 1.f, eTextureFormat::RGBA16_Float, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_graph.EmplaceTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_graph.EmplaceTexture2D("T_SceneDepth", 1.f, eTextureFormat::D32_Float, 1, eTextureCreateFlags::DepthStencilAttachment);
+    m_graph.EmplaceTexture2D("T_SceneLight", 1.f, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_graph.EmplaceTexture2D("T_ShadowMap", 1024, 1024, eTextureFormat::D32_Float, 1, eTextureCreateFlags::DepthStencilAttachment);
+    m_graph.EmplaceTexture2D("T_ShadowMapArray", 1024, 1024, eTextureFormat::D32_Float, kShadowCascadeLevels, eTextureCreateFlags::DepthStencilAttachment);
+    m_graph.EmplaceTextureCube("T_ShadowMapCube", 1024, 1024, eTextureFormat::D32_Float, 1, eTextureCreateFlags::DepthStencilAttachment);
+    m_graph.EmplaceTexture2D("T_ShadowMapAdv", 1024, 1024, eTextureFormat::RG32_Float, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_graph.EmplaceTexture2D("T_ShadowMapAdvTmp", 1024, 1024, eTextureFormat::RG32_Float, 1, eTextureCreateFlags::RenderTargetAttachment);
 
-    m_graph.AddConstantBuffer("CB_Entity", sizeof(CBShadowMappingSceneEntity));
-    m_graph.AddConstantBuffer("CB_Camera", sizeof(CBShadowMappingSceneCamera));
-    m_graph.AddConstantBuffer("CB_Light", sizeof(CBShadowMappingSceneLight));
-    m_graph.AddConstantBuffer("CB_Shadow", sizeof(CBShadowMappingSceneShadow));
-    m_graph.AddConstantBuffer("CB_ShadowCast", sizeof(CBShadowMappingSceneShadowCast));
-    m_graph.AddConstantBuffer("CB_OmniShadowCast", sizeof(CBShadowMappingSceneOmniShadowCast));
-    m_graph.AddConstantBuffer("CB_CascadeShadowCast", sizeof(CBShadowMappingSceneCascadeShadowCast));
+    m_graph.EmplaceConstantBuffer("CB_Entity", sizeof(CBShadowMappingSceneEntity));
+    m_graph.EmplaceConstantBuffer("CB_Camera", sizeof(CBShadowMappingSceneCamera));
+    m_graph.EmplaceConstantBuffer("CB_Light", sizeof(CBShadowMappingSceneLight));
+    m_graph.EmplaceConstantBuffer("CB_Shadow", sizeof(CBShadowMappingSceneShadow));
+    m_graph.EmplaceConstantBuffer("CB_ShadowCast", sizeof(CBShadowMappingSceneShadowCast));
+    m_graph.EmplaceConstantBuffer("CB_OmniShadowCast", sizeof(CBShadowMappingSceneOmniShadowCast));
+    m_graph.EmplaceConstantBuffer("CB_CascadeShadowCast", sizeof(CBShadowMappingSceneCascadeShadowCast));
 
     m_entityCbh            = m_graph.GetConstantBuffer("CB_Entity");
     m_cmrCbh               = m_graph.GetConstantBuffer("CB_Camera");
@@ -378,16 +378,22 @@ void ShadowMappingScene::InitRenderGraphResource_()
     m_omniShadowCastCbh    = m_graph.GetConstantBuffer("CB_OmniShadowCast");
     m_cascadeShadowCastCbh = m_graph.GetConstantBuffer("CB_CascadeShadowCast");
 
-    StringView gbufferAttachments[] = { "T_SceneNormal", "T_SceneColor", "T_SceneDepth" };
-    m_graph.AddFrameBuffer("FB_GBuffer", gbufferAttachments);
-    m_graph.AddFrameBuffer("FB_Light", "T_SceneLight");
-    m_graph.AddFrameBuffer("FB_ShadowMap", "T_ShadowMap");
-    m_graph.AddFrameBuffer("FB_ShadowMapArray", "T_ShadowMapArray");
-    m_graph.AddFrameBuffer("FB_ShadowMapCube", "T_ShadowMapCube");
+    AttachmentRG gbufferAttachments[3];
+    gbufferAttachments[0].name = "T_SceneNormal";
+    gbufferAttachments[1].name = "T_SceneColor";
+    gbufferAttachments[2].name = "T_SceneDepth";
+    m_graph.EmplaceFrameBuffer("FB_GBuffer", gbufferAttachments);
 
-    StringView shadowMapAdvAttachments[] = { "T_ShadowMapAdv", "T_ShadowMap" };
-    m_graph.AddFrameBuffer("FB_ShadowMapAdv", shadowMapAdvAttachments);
-    m_graph.AddFrameBuffer("FB_ShadowMapAdvTmp", "T_ShadowMapAdvTmp");
+    m_graph.EmplaceFrameBuffer("FB_Light", "T_SceneLight");
+    m_graph.EmplaceFrameBuffer("FB_ShadowMap", "T_ShadowMap");
+    m_graph.EmplaceFrameBuffer("FB_ShadowMapArray", "T_ShadowMapArray");
+    m_graph.EmplaceFrameBuffer("FB_ShadowMapCube", "T_ShadowMapCube");
+
+    AttachmentRG shadowMapAdvAttachments[2];
+    shadowMapAdvAttachments[0].name = "T_ShadowMapAdv";
+    shadowMapAdvAttachments[1].name = "T_ShadowMap";
+    m_graph.EmplaceFrameBuffer("FB_ShadowMapAdv", shadowMapAdvAttachments);
+    m_graph.EmplaceFrameBuffer("FB_ShadowMapAdvTmp", "T_ShadowMapAdvTmp");
 
     AddProgram_VertexPixel_("P_GBuffer", "Resources/ShadowMappingScene/ShadowMappingSceneGBufferShader.hlsl");
     AddProgram_VertexPixel_("P_Combine", "Resources/ShadowMappingScene/ShadowMappingSceneCombineShader.hlsl");
@@ -409,7 +415,7 @@ void ShadowMappingScene::BuildRenderGraph_()
 {
     m_graph.Clear(eRenderGraphClearFlags::Pass);
 
-    m_graph.AddGraphicsPass("Pass_GBuffer")
+    m_graph.AddRenderPass("Pass_GBuffer")
         .SetFrameBuffer("FB_GBuffer")
         .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
         .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 1)
@@ -423,7 +429,7 @@ void ShadowMappingScene::BuildRenderGraph_()
         .SetBlendFlags(kOpaqueBlend, 0)
         .SetExecutor(Bind<&ShadowMappingScene::RenderScene_>(this));
 
-    m_graph.AddGraphicsPass("Pass_PrepareLightBuffer")
+    m_graph.AddRenderPass("Pass_PrepareLightBuffer")
         .SetFrameBuffer("FB_Light")
         .SetRenderTargetClearCommand(RGBA::kBlack, 0);
 
@@ -444,7 +450,7 @@ void ShadowMappingScene::BuildRenderGraph_()
             const bool       bIsAdvSampling  = m_shadowSampling == eShadowSampling::VSM || m_shadowSampling == eShadowSampling::ESM;
             const StringView castFramebuffer = bIsAdvSampling ? "FB_ShadowMapAdv" : "FB_ShadowMap";
 
-            m_graph.AddGraphicsPass("Pass_SpotShadowCast")
+            m_graph.AddRenderPass("Pass_SpotShadowCast")
                 .SetFrameBuffer(castFramebuffer)
                 .SetDepthClearCommand(1.f)
                 .SetProgram(castProgram)
@@ -460,7 +466,7 @@ void ShadowMappingScene::BuildRenderGraph_()
                 m_graph.ModifyGrphicsPass("Pass_SpotShadowCast")
                     .SetRenderTargetClearCommand(RGBA::kWhite, 0);
 
-                m_graph.AddGraphicsPass("Pass_SpotShadowBlurHorizontal")
+                m_graph.AddRenderPass("Pass_SpotShadowBlurHorizontal")
                     .SetFrameBuffer("FB_ShadowMapAdvTmp")
                     .SetProgram("P_GaussianBlurHorizontal")
                     .SetTexture("T_ShadowMapAdv", eShader::PixelShader, kTImageFilterInput0)
@@ -468,7 +474,7 @@ void ShadowMappingScene::BuildRenderGraph_()
                     .SetRenderFlags(eRenderFlags::None)
                     .SetExecutor(Bind<&ShadowMappingScene::RenderFullScreenTri_>(this));
 
-                m_graph.AddGraphicsPass("Pass_SpotShadowBlurVertical")
+                m_graph.AddRenderPass("Pass_SpotShadowBlurVertical")
                     .SetFrameBuffer("FB_ShadowMapAdv")
                     .SetProgram("P_GaussianBlurVertical")
                     .SetTexture("T_ShadowMapAdvTmp", eShader::PixelShader, kTImageFilterInput0)
@@ -478,7 +484,7 @@ void ShadowMappingScene::BuildRenderGraph_()
             }
         }
 
-        m_graph.AddGraphicsPass("Pass_SpotShadowReceive")
+        m_graph.AddRenderPass("Pass_SpotShadowReceive")
             .SetFrameBuffer("FB_Light")
             .SetProgram("P_SpotShadowReceive")
             .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBShadowMappingSceneEntity::kSlot)
@@ -499,9 +505,8 @@ void ShadowMappingScene::BuildRenderGraph_()
             .SetExecutor(Bind<&ShadowMappingScene::RenderSpotLightVolumes_>(this));
     }
 
-    m_graph.AddGraphicsPass("Pass_Combine")
-        .SetAsFinalPass()
-        .SetUseExternalOutput()
+    m_graph.AddRenderPass("Pass_Combine")
+        .AsFinalPass()
         .SetProgram("P_Combine")
         .SetTexture("T_SceneColor", eShader::PixelShader, kTSceneColorSlot)
         .SetTexture("T_SceneLight", eShader::PixelShader, kTSceneLightSlot)
@@ -628,26 +633,26 @@ void ShadowMappingScene::AddProgram_VertexPixel_(
     const StringView _name,
     const StringView _path)
 {
-    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
     const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
     const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
     JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
     JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
 
-    m_graph.AddShader(String::Formatted("VS_{}", _name), vsc.GetBytecode());
-    m_graph.AddShader(String::Formatted("PS_{}", _name), psc.GetBytecode());
-    m_graph.AddProgram(_name, String::Formatted("VS_{}", _name), String::Formatted("PS_{}", _name));
+    m_graph.EmplaceShader(String::Formatted("VS_{}", _name), vsc.GetBytecode());
+    m_graph.EmplaceShader(String::Formatted("PS_{}", _name), psc.GetBytecode());
+    m_graph.EmplaceProgram(_name, String::Formatted("VS_{}", _name), String::Formatted("PS_{}", _name));
 }
 
 void ShadowMappingScene::AddProgram_VertexPixelGeometry_(
     const StringView _name,
     const StringView _path)
 {
-    constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
-    constexpr ShaderCompilerInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
+    constexpr ShaderLoadInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
 
     const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
     const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
@@ -656,10 +661,10 @@ void ShadowMappingScene::AddProgram_VertexPixelGeometry_(
     JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
     JAM_ASSERT(gsc.IsSucceeded(), "Geometry shader compilation failed: {}", gsc.GetErrorMessage());
 
-    m_graph.AddShader(String::Formatted("VS_{}", _name), vsc.GetBytecode());
-    m_graph.AddShader(String::Formatted("PS_{}", _name), psc.GetBytecode());
-    m_graph.AddShader(String::Formatted("GS_{}", _name), gsc.GetBytecode());
-    m_graph.AddProgram(_name, String::Formatted("VS_{}", _name), String::Formatted("PS_{}", _name), String::Formatted("GS_{}", _name), {}, {});
+    m_graph.EmplaceShader(String::Formatted("VS_{}", _name), vsc.GetBytecode());
+    m_graph.EmplaceShader(String::Formatted("PS_{}", _name), psc.GetBytecode());
+    m_graph.EmplaceShader(String::Formatted("GS_{}", _name), gsc.GetBytecode());
+    m_graph.EmplaceProgram(_name, String::Formatted("VS_{}", _name), String::Formatted("PS_{}", _name), String::Formatted("GS_{}", _name), {}, {});
 }
 
 void ShadowMappingScene::AddProgram_VertexPixel_Macro_(
@@ -672,15 +677,15 @@ void ShadowMappingScene::AddProgram_VertexPixel_Macro_(
         { _macroDef, _macroValue }
     };
 
-    const ShaderCompilerInfo vsInfo = { eShader::VertexShader, "VSMain", macros, eShaderCompileFlags::Default };
-    const ShaderCompilerInfo psInfo = { eShader::PixelShader, "PSMain", macros, eShaderCompileFlags::Default };
+    const ShaderLoadInfo vsInfo = { eShader::VertexShader, "VSMain", macros, eShaderCompileFlags::Default };
+    const ShaderLoadInfo psInfo = { eShader::PixelShader, "PSMain", macros, eShaderCompileFlags::Default };
 
-    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, vsInfo);
+    const ShaderCompiler    vsc = ShaderCompiler::CompileHLSLFile(_path, vsInfo);
     const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, psInfo);
     JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
     JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
 
-    m_graph.AddShader(String::Formatted("VS_{}", _name), vsc.GetBytecode());
-    m_graph.AddShader(String::Formatted("PS_{}", _name), psc.GetBytecode());
-    m_graph.AddProgram(_name, String::Formatted("VS_{}", _name), String::Formatted("PS_{}", _name));
+    m_graph.EmplaceShader(String::Formatted("VS_{}", _name), vsc.GetBytecode());
+    m_graph.EmplaceShader(String::Formatted("PS_{}", _name), psc.GetBytecode());
+    m_graph.EmplaceProgram(_name, String::Formatted("VS_{}", _name), String::Formatted("PS_{}", _name));
 }
