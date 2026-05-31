@@ -149,7 +149,7 @@ void ProjectExporter::Export_(
     {
         String headerPath = String::Joined(_exportDir, _baseName);
         headerPath.ReplaceExtension(".h");
-        if (const Error err = FileSystem::Rename(headerTmpPath, headerPath, FileSystem::eCollisionPolicy::Overwrite))
+        if (const Error err = FileSystem::Rename(headerTmpPath, headerPath, FileSystem::eFileCollisionPolicy::Overwrite))
         {
             AppendErrorState_(err, String::Formatted("Failed to move exported header file from temporary path to destination: {} -> {}.", headerTmpPath, headerPath));
             return;
@@ -157,7 +157,7 @@ void ProjectExporter::Export_(
 
         String sourcePath = String::Joined(_exportDir, _baseName);
         sourcePath.ReplaceExtension(".cpp");
-        if (const Error err = FileSystem::Rename(sourcecTmpPath, sourcePath, FileSystem::eCollisionPolicy::Overwrite))
+        if (const Error err = FileSystem::Rename(sourcecTmpPath, sourcePath, FileSystem::eFileCollisionPolicy::Overwrite))
         {
             AppendErrorState_(err, String::Formatted("Failed to move exported source file from temporary path to destination: {} -> {}.", sourcecTmpPath, sourcePath));
             return;
@@ -259,7 +259,7 @@ void ProjectExporter::WriteCompiledBinaryDefinitions_(
             shaderMacros.emplace_back(macro.name, macro.value);
         }
 
-        ShaderLoadInfo info = {};
+        ShaderCompilerInfo info = {};
         info.entryPoint         = item.entryPoint;
         info.stage              = item.stage;
         info.flags              = item.compileFlags;
@@ -372,7 +372,7 @@ String ProjectExporter::MakeVariableName_(
             result = _prefix;
             for (const char c: _name)
             {
-                if (!CharFuncs<char>::IsSpace(c))
+                if (!CharTraits<char>::IsSpace(c))
                 {
                     result.Append(c);
                 }

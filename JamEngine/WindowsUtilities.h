@@ -10,7 +10,7 @@ enum class eWindowsErrorCode
     Shell,
 };
 
-[[nodiscard]] String  CreateWindowsErrorMessage(UInt32 _errorCode, eWindowsErrorCode _errorType);
+[[nodiscard]] String  MakeWindowsErrorMessage(UInt32 _errorCode, eWindowsErrorCode _errorType);
 [[nodiscard]] String  CreateWindowsLastErrorMessage();
 [[nodiscard]] WString CreateWindowsErrorMessageW(UInt32 _errorCode, eWindowsErrorCode _errorType);
 [[nodiscard]] WString CreateWindowsLastErrorMessageW();

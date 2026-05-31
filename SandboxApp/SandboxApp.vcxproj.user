@@ -4,11 +4,11 @@
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>SimpleScene</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>TextureMappingScene|PBRScene|DeferedScene|ShadowMappingScene|SimpleScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>--scene ShadowMappingScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>DeferredScene|ShadowMappingScene|ComputeScene|--scene ComputeScene|--scene ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArgumentsHistory>DeferedScene|InstancingScene|SimpleScene|--benchmark_filter=Jam|ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>
-    <LocalDebuggerCommandArguments>ShadowMappingScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>SimpleScene|--benchmark_filter=Jam|ShadowMappingScene|DeferedScene|--scene ComputeScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>--scene ComputeScene</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

@@ -17,10 +17,9 @@ class SceneNode
 
 public:
     SceneNode();
-    explicit SceneNode(Entity _root, Entity _owner);   // create regular pNode
-    explicit SceneNode(Entity _root);                  // create root pNode
+    SceneNode(Entity _root, Entity _owner);   // create regular pNode
+    explicit SceneNode(Entity _root);         // create root pNode
 
-    // hierarchy operations
     void SetParent(Entity _parent, bool _bKeepLocal = false);
     void SetParentAsRoot(bool _bKeepLocal = false);
     void Orphanize();
@@ -39,17 +38,21 @@ public:
     [[nodiscard]] Entity GetNextSibling() const;
     [[nodiscard]] Entity GetPrevSibling() const;
 
-    [[nodiscard]] const Transform& GetLocalTransform() const;
-    [[nodiscard]] const Transform& GetWorldTransform() const;
-    [[nodiscard]] Transform&       ModifyLocalTransform();
-    [[nodiscard]] Transform&       ModifyWorldTransform();
+    [[nodiscard]] const Transform& GetLocal() const;
+    void                           SetLocal(const Transform& _local);
+    [[nodiscard]] Transform&       ModifyLocal();
 
-    void UpdateSceneGraph(Vector<Entity>& _updatedEntities);
+    [[nodiscard]] const Transform& GetWorld() const;
+    void                           SetWorld(const Transform& _world);
+    [[nodiscard]] Transform&       ModifyWorld();
+
+    void UpdateGraph();
+    void UpdateGraph(Vector<Entity>& _updatedEntities);
 
 private:
     void NotifyDirty_();
     void ReleaseParent_();
-    void UpdateSceneGraph_Recursive_(Vector<Entity>& _updatedNodes);
+    void UpdateTree_Recursive_(Vector<Entity>* _pUpdatedEntitiesOrNull);
 
     eDirty m_dirty = eDirty::None;
 

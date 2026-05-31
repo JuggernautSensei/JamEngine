@@ -129,7 +129,7 @@ namespace
     {
         [[nodiscard]] size_t operator()(const SDEdge& _edge) const noexcept
         {
-            Murmur3Hasher64 hasher {};
+            Murmur3Hasher hasher {};
             hasher.Mix(_edge.pVerts);
             return hasher.Finish();
         }

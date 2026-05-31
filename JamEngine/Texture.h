@@ -17,14 +17,14 @@ public:
     Texture(Texture&& _other) noexcept;
     Texture& operator=(Texture&& _other) noexcept;
 
-    Error Save(StringView _path, bool _bReplaceExtension = true, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
+    Error Save(StringView _path, bool _bReplaceExtension, eFileWriterCollisionPolicy _policy = eFileWriterCollisionPolicy::Overwrite) const override;
     void  SetName(StringView _name) override;
     void  Invalidate() override;
 
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
-    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] UInt64 GetTypeHash() const override;
     [[nodiscard]] StringView GetPath() const override;
     [[nodiscard]] StringView GetName() const override;
     [[nodiscard]] StringView GetExtension() const override;
@@ -37,7 +37,7 @@ public:
     void Unbind(eShader _shader, Int32 _slot) const;
 
     static constexpr StringView kTypeName  = NameOf<Texture>();
-    static constexpr UInt32     kTypeHash  = HashOf<Texture>();
+    static constexpr UInt64     kTypeHash  = HashOf<Texture>();
     static constexpr eAsset     kAsestType = eAsset::Texture;
     static constexpr StringView kExtension = ".jtex";
     static constexpr StringView kFilter    = "*.jtex";

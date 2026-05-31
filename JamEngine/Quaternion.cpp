@@ -42,9 +42,9 @@ Quat Quat::FromEuler(Vec3 _eulerRad)
 
 Quat Quat::FromRotationMatrix(const Mtx4& _mtx)
 {
-    const float m00   = _mtx.m[0][0];
-    const float m11   = _mtx.m[1][1];
-    const float m22   = _mtx.m[2][2];
+    const float m00   = _mtx.m00;
+    const float m11   = _mtx.m11;
+    const float m22   = _mtx.m22;
     const float trace = m00 + m11 + m22;
 
     Quat ret = {};
@@ -53,9 +53,9 @@ Quat Quat::FromRotationMatrix(const Mtx4& _mtx)
         const float s    = Sqrt(trace + 1.f) * 2.f;
         const float invS = 1.f / s;
 
-        ret.x = (_mtx.m[1][2] - _mtx.m[2][1]) * invS;
-        ret.y = (_mtx.m[2][0] - _mtx.m[0][2]) * invS;
-        ret.z = (_mtx.m[0][1] - _mtx.m[1][0]) * invS;
+        ret.x = (_mtx.m12 - _mtx.m21) * invS;
+        ret.y = (_mtx.m20 - _mtx.m02) * invS;
+        ret.z = (_mtx.m01 - _mtx.m10) * invS;
         ret.w = s * 0.25f;
     }
     else if (m00 > m11 && m00 > m22)
@@ -64,29 +64,29 @@ Quat Quat::FromRotationMatrix(const Mtx4& _mtx)
         const float invS = 1.f / s;
 
         ret.x = s * 0.25f;
-        ret.y = (_mtx.m[0][1] + _mtx.m[1][0]) * invS;
-        ret.z = (_mtx.m[2][0] + _mtx.m[0][2]) * invS;
-        ret.w = (_mtx.m[1][2] - _mtx.m[2][1]) * invS;
+        ret.y = (_mtx.m01 + _mtx.m10) * invS;
+        ret.z = (_mtx.m20 + _mtx.m02) * invS;
+        ret.w = (_mtx.m12 - _mtx.m21) * invS;
     }
     else if (m11 > m22)
     {
         const float s    = Sqrt(1.f + m11 - m00 - m22) * 2.f;
         const float invS = 1.f / s;
 
-        ret.x = (_mtx.m[0][1] + _mtx.m[1][0]) * invS;
+        ret.x = (_mtx.m01 + _mtx.m10) * invS;
         ret.y = s * 0.25f;
-        ret.z = (_mtx.m[1][2] + _mtx.m[2][1]) * invS;
-        ret.w = (_mtx.m[2][0] - _mtx.m[0][2]) * invS;
+        ret.z = (_mtx.m12 + _mtx.m21) * invS;
+        ret.w = (_mtx.m20 - _mtx.m02) * invS;
     }
     else
     {
         const float s    = Sqrt(1.f + m22 - m00 - m11) * 2.f;
         const float invS = 1.f / s;
 
-        ret.x = (_mtx.m[2][0] + _mtx.m[0][2]) * invS;
-        ret.y = (_mtx.m[1][2] + _mtx.m[2][1]) * invS;
+        ret.x = (_mtx.m20 + _mtx.m02) * invS;
+        ret.y = (_mtx.m12 + _mtx.m21) * invS;
         ret.z = s * 0.25f;
-        ret.w = (_mtx.m[0][1] - _mtx.m[1][0]) * invS;
+        ret.w = (_mtx.m01 - _mtx.m10) * invS;
     }
 
     return ret;
@@ -301,6 +301,17 @@ bool Quat::IsEqualApprox(const Quat _other, const float _epsilon) const
 {
     return vec.IsEqualApprox(_other.vec, _epsilon);
 }
+
+float* Quat::GetPtr()
+{
+    return &x;
+}
+
+const float* Quat::GetPtr() const
+{
+    return &x;
+}
+
 Quat Quat::operator*(const Quat _other) const
 {
 #ifdef JAM_SIMD_SSE
@@ -404,6 +415,16 @@ Quat& Quat::operator-=(const Quat _other)
 {
     vec -= _other.vec;
     return *this;
+}
+
+float& Quat::operator[](const SizeT _index)
+{
+    return e[_index];
+}
+
+float Quat::operator[](const SizeT _index) const
+{
+    return e[_index];
 }
 
 }   // namespace Jam

@@ -75,7 +75,7 @@ UInt64 VertexLayout::GetHash() const
 {
     if (m_bDirty)
     {
-        Murmur3Hasher64 hasher {};
+        Murmur3Hasher hasher {};
         for (const VertexLayoutElement& elem: GetElems())
         {
             hasher.Mix(AsMemoryView(elem.attrib));

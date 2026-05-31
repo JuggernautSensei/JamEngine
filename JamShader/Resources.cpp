@@ -139,7 +139,7 @@ ShaderCompiler ShaderItem::Compile() const
         shaderMacros.emplace_back(macro.name, macro.value);
     }
 
-    ShaderLoadInfo info = {};
+    ShaderCompilerInfo info = {};
     info.entryPoint         = entryPoint;
     info.stage              = stage;
     info.flags              = compileFlags;
@@ -254,7 +254,7 @@ Error Project::Rename(
 
         // dispatch event
         ProjectRenamedEvent event {};
-        GetApp().DispatchEvent(event);
+        app.DispatchEvent(event);
     }
     else
     {
@@ -613,5 +613,5 @@ void Project::MarkDirty_(
 
     m_bDirty = _bDirty;
     ProjectDirtyChangedEvent event {};
-    GetApp().DispatchEvent(event);
+    app.DispatchEvent(event);
 }

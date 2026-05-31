@@ -27,8 +27,9 @@ namespace
             return true;
         }
 
-        static bool s_bUserGrabResizing = false;
-        LRESULT     result              = 0;
+        static bool  s_bUserGrabResizing = false;
+        Application& app                 = GetApp();
+        LRESULT      result              = 0;
 
         switch (uMsg)
         {
@@ -36,7 +37,7 @@ namespace
             case WM_CLOSE:
             {
                 WindowClosedEvent event {};
-                GetApp().DispatchEvent(event);
+                app.DispatchEvent(event);
             }
             break;
 
@@ -56,7 +57,7 @@ namespace
                 const Int32 height = Max(rect.bottom - rect.top, 1);
 
                 WindowResizedEvent event { width, height };
-                GetApp().DispatchEvent(event);
+                app.DispatchEvent(event);
             }
             break;
 
@@ -70,14 +71,14 @@ namespace
                     case SIZE_MINIMIZED:   // 윈도우가 최소화 되었을 때
                     {
                         WindowMinimizedEvent event;
-                        GetApp().DispatchEvent(event);
+                        app.DispatchEvent(event);
                     }
                     break;
 
                     case SIZE_MAXIMIZED:   // 윈도우가 최대화 되었을 때
                     {
                         WindowMaximizedEvent event { width, height };
-                        GetApp().DispatchEvent(event);
+                        app.DispatchEvent(event);
                     }
                     break;
 
@@ -86,7 +87,7 @@ namespace
                         if (!s_bUserGrabResizing)   // grab으로 리사이즈하는 경우는 처리하지 않음.
                         {
                             WindowResizedEvent event { width, height };
-                            GetApp().DispatchEvent(event);
+                            app.DispatchEvent(event);
                         }
                     }
                     break;
@@ -104,7 +105,7 @@ namespace
                 const Int32 y = HIWORD(lParam);
 
                 WindowMoveEvent moveEvent { x, y };
-                GetApp().DispatchEvent(moveEvent);
+                app.DispatchEvent(moveEvent);
             }
             break;
 
@@ -112,7 +113,7 @@ namespace
             {
                 const Int32     delta = GET_WHEEL_DELTA_WPARAM(wParam);
                 MouseWheelEvent wheelEvent { delta };
-                GetApp().DispatchEvent(wheelEvent);
+                app.DispatchEvent(wheelEvent);
             }
             break;
 
@@ -120,7 +121,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_LBUTTON;
                 MouseDownEvent  event { vKey };
-                GetApp().DispatchEvent(event);
+                app.DispatchEvent(event);
             }
             break;
 
@@ -128,7 +129,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_LBUTTON;
                 MouseUpEvent    mouseUpEvent { vKey };
-                GetApp().DispatchEvent(mouseUpEvent);
+                app.DispatchEvent(mouseUpEvent);
             }
             break;
 
@@ -136,7 +137,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_RBUTTON;
                 MouseDownEvent  mouseDownEvent { vKey };
-                GetApp().DispatchEvent(mouseDownEvent);
+                app.DispatchEvent(mouseDownEvent);
             }
             break;
 
@@ -144,7 +145,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_RBUTTON;
                 MouseUpEvent    mouseUpEvent { vKey };
-                GetApp().DispatchEvent(mouseUpEvent);
+                app.DispatchEvent(mouseUpEvent);
             }
             break;
 
@@ -152,7 +153,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_MBUTTON;
                 MouseDownEvent  mouseDownEvent { vKey };
-                GetApp().DispatchEvent(mouseDownEvent);
+                app.DispatchEvent(mouseDownEvent);
             }
             break;
 
@@ -160,7 +161,7 @@ namespace
             {
                 constexpr Int32 vKey = VK_MBUTTON;
                 MouseUpEvent    mouseUpEvent { vKey };
-                GetApp().DispatchEvent(mouseUpEvent);
+                app.DispatchEvent(mouseUpEvent);
             }
             break;
 
@@ -169,7 +170,7 @@ namespace
                 const Int32    x = LOWORD(lParam);
                 const Int32    y = HIWORD(lParam);
                 MouseMoveEvent mouseMoveEvent { x, y };
-                GetApp().DispatchEvent(mouseMoveEvent);
+                app.DispatchEvent(mouseMoveEvent);
             }
             break;
 
@@ -177,7 +178,7 @@ namespace
             {
                 const Int32  vKey = static_cast<int>(wParam);
                 KeyDownEvent keyDownEvent { vKey };
-                GetApp().DispatchEvent(keyDownEvent);
+                app.DispatchEvent(keyDownEvent);
             }
             break;
 
@@ -185,7 +186,7 @@ namespace
             {
                 const Int32 vKey = static_cast<int>(wParam);
                 KeyUpEvent  keyUpEvent { vKey };
-                GetApp().DispatchEvent(keyUpEvent);
+                app.DispatchEvent(keyUpEvent);
             }
             break;
 
@@ -193,14 +194,14 @@ namespace
             case WM_SETFOCUS:
             {
                 WindowFocusedEvent focusEvent = {};
-                GetApp().DispatchEvent(focusEvent);
+                app.DispatchEvent(focusEvent);
             }
             break;
 
             case WM_KILLFOCUS:
             {
                 WindowLostFocusEvent lostFocusEvent = {};
-                GetApp().DispatchEvent(lostFocusEvent);
+                app.DispatchEvent(lostFocusEvent);
             }
             break;
 
@@ -360,13 +361,6 @@ Vec2i WindowsPlatform::GetClientPos() const
 Vec2i WindowsPlatform::GetClientResolution() const
 {
     return m_clientRes;
-}
-
-Vec2i WindowsPlatform::GetFullScreenResolution() const
-{
-    const Int32 w = GetSystemMetrics(SM_CXSCREEN);
-    const Int32 h = GetSystemMetrics(SM_CYSCREEN);
-    return { w, h };
 }
 
 HWND WindowsPlatform::GetPlatformHandle() const

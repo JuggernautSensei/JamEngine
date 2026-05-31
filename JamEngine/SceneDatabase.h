@@ -19,7 +19,7 @@ namespace Details
 struct SceneReflectionData
 {
     StringView                typeName = {};
-    UInt32                    typeHash = 0;
+    UInt64                    typeHash = 0;
     Delegate<Scoped<Scene>()> Create   = nullptr;
 };
 
@@ -41,13 +41,13 @@ public:
         data.typeHash            = HashOf<T>();
         data.Create              = Bind<Details::CreateScene<T>>();
         JAM_ASSERT(!IsSceneReflected(data.typeHash), "Scene type '{}' is already reflected.", data.typeName);
-        JAM_ASSERT(data.typeName.Hash32() == data.typeHash, "Scene type typeName '{}' hash does not match type hash {}. Please check the JAM_SCENE macro usage in the scene class definition.", data.typeName, data.typeHash);
+        JAM_ASSERT(data.typeName.Hash() == data.typeHash, "Scene type typeName '{}' hash does not match type hash {}. Please check the JAM_SCENE macro usage in the scene class definition.", data.typeName, data.typeHash);
         m_sceneRflData[data.typeHash] = data;
     }
 
-    [[nodiscard]] bool                       IsSceneReflected(UInt32 _typeHash) const;
+    [[nodiscard]] bool                       IsSceneReflected(UInt64 _typeHash) const;
     [[nodiscard]] bool                       IsSceneReflected(StringView _name) const;
-    [[nodiscard]] const SceneReflectionData& GetSceneReflectionData(UInt32 _typeHash) const;
+    [[nodiscard]] const SceneReflectionData& GetSceneReflectionData(UInt64 _typeHash) const;
     [[nodiscard]] const SceneReflectionData& GetSceneReflectionData(StringView _name) const;
 
 private:
@@ -56,7 +56,7 @@ private:
 
     static void DestroyInstance();
 
-    CASHashMap<UInt32, SceneReflectionData> m_sceneRflData = {};
+    CASHashMap<UInt64, SceneReflectionData> m_sceneRflData = {};
     inline static SceneDatabase*            s_pInstance    = nullptr;
     friend class Application;
 };
@@ -74,7 +74,8 @@ namespace Details
     public:
         SceneReflector()
         {
-            SceneDatabase::GetInstance().Reflect<T>();
+            SceneDatabase& sd = SceneDatabase::GetInstance();
+            sd.Reflect<T>();
         }
     };
 
@@ -88,7 +89,7 @@ private:                                                                        
                                                                                        \
 public:                                                                                \
     [[nodiscard]] StringView GetTypeName() const override { return NameOf<TScene>(); } \
-    [[nodiscard]] UInt32     GetTypeHash() const override { return HashOf<TScene>(); } \
+    [[nodiscard]] UInt64     GetTypeHash() const override { return HashOf<TScene>(); } \
                                                                                        \
 private:                                                                               \
     static_assert(true)

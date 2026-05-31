@@ -7,7 +7,8 @@
 #include "FileDialog.h"
 #include "Graphics.h"
 #include "Input.h"
-#include "StackString.h"
+#include "StaticString.h"
+
 #include "Transform.h"
 #include "VertexLayoutEntryManager.h"
 
@@ -369,7 +370,7 @@ void Widget_ItemDescriptionTooltip(
         // shortcut
         if (_shortcut != ImGuiKey_None)
         {
-            StackString<64> buf;
+            StaticString<64> buf;
             buf.Format("(shortcut: {}{}{}{})",
                        _shortcut & ImGuiMod_Ctrl ? "ctrl+" : "",
                        _shortcut & ImGuiMod_Shift ? "shift+" : "",
@@ -398,7 +399,7 @@ void Widget_ImageFrame(
     JAM_ASSERT(_pTexture, "Texture is null");
     const TextureInfo& info = _pTexture->GetInfo();
     const ImVec2       size = { static_cast<float>(info.width), static_cast<float>(info.height) };
-    Widget_ImageFrame(PackToImTextureRef(_pTexture), size, _frameSize, _uv0, _uv1, _bgCol, _bBorder);
+    Widget_ImageFrame(AsImTextureRef(_pTexture), size, _frameSize, _uv0, _uv1, _bgCol, _bBorder);
 }
 
 void WidgetInfiniteDragger::OnAfterWidget()
@@ -448,7 +449,7 @@ ImTextureProxy::ImTextureProxy() = default;
 
 ImTextureProxy::ImTextureProxy(
     const Ref<Texture>& _pTexture)
-    : texture(PackToImTextureRef(_pTexture))
+    : texture(AsImTextureRef(_pTexture))
 {
     JAM_ASSERT(_pTexture, "Invalid texture passed to ImTextureProxy");
     JAM_ASSERT(_pTexture->IsValid(), "Invalid texture passed to ImTextureProxy");
@@ -462,7 +463,7 @@ ImTextureProxy::ImTextureProxy(
 
 ImTextureProxy::ImTextureProxy(
     const TextureHandle _texh)
-    : texture(PackToImTextureRef(_texh))
+    : texture(AsImTextureRef(_texh))
 {
 }
 
@@ -867,7 +868,7 @@ bool Widget_MenuItem(
         return false;
     }
 
-    StackString<64> buf;
+    StaticString<64> buf;
     if (_shortcut != 0)
     {
         ImGui::SetNextItemShortcut(_shortcut);
@@ -1120,7 +1121,7 @@ bool Widget_TexturePicker(
     {
         if (_pTexture)
         {
-            StackString<1024> tmp;
+            StaticString<1024> tmp;
 
             const TextureInfo& info = _pTexture->GetInfo();
 
@@ -1528,7 +1529,7 @@ bool Widget_EnumFlags(
 
     ImGui::PushID(_label);
 
-    StackString<256> displayName;
+    StaticString<256> displayName;
     for (const EnumWidgetItem& flagItem: _flagsItems)
     {
         if (_flags & flagItem.value)

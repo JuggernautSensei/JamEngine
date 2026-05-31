@@ -119,8 +119,8 @@ public:
 
     // filesystem operator
     bool RemoveFile(StringView _path, bool _bForced = false);   // if _bForced is true, it will remove non-empty directory
-    bool RenameFile(StringView _srcPath, StringView _dstPath, FileSystem::eCollisionPolicy _policy = FileSystem::eCollisionPolicy::Fail);
-    bool CreateDir(StringView _dir, FileSystem::eMakeDirectoryCollisionPolicy _policy = FileSystem::eMakeDirectoryCollisionPolicy::Fail);
+    bool RenameFile(StringView _srcPath, StringView _dstPath, FileSystem::eFileCollisionPolicy _policy = FileSystem::eFileCollisionPolicy::Fail);
+    bool CreateDir(StringView _dir, FileSystem::eMkdirCollisionPolicy _policy = FileSystem::eMkdirCollisionPolicy::Fail);
 
     // asset operator
     [[nodiscard]] Expect<Ref<Mesh>>     LoadMesh(StringView _path, bool _bForceReload = false);

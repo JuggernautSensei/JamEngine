@@ -31,7 +31,7 @@ public:
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] StringView GetPath() const override;
     [[nodiscard]] eAsset     GetAssetType() const override;
-    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] UInt64     GetTypeHash() const override;
     [[nodiscard]] StringView GetTypeName() const override;
     [[nodiscard]] UInt16     GetSortKey() const;
     [[nodiscard]] StringView GetName() const override;
@@ -46,7 +46,7 @@ public:
     void Submit(VertexBufferHandle _instanceVbh, Int32 _instanceOffset = 0, Int32 _numInstances = kAll, bool _bSubmitPositionOnly = false) const;
 
     static constexpr StringView kTypeName  = NameOf<Mesh>();
-    static constexpr UInt32     kTypeHash  = HashOf<Mesh>();
+    static constexpr UInt64     kTypeHash  = HashOf<Mesh>();
     static constexpr eAsset     kAssetType = eAsset::Mesh;
     static constexpr StringView kExtension = ".jmsh";
     static constexpr StringView kFilter    = "*.jmsh";

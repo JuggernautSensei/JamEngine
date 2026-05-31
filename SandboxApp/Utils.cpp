@@ -2,14 +2,15 @@
 #include "Utils.h"
 
 #include "../JamEngine/AssimpImporter.h"
+#include "../JamEngine/RenderGraph.h"
 
 ProgramHandle LoadProgram(
     const StringView              _path,
-    const Span<const ShaderMacro> _macros,
-    const Flags<eShaderFlags>     _flags)
+    const Flags<eShaderFlags>     _flags,
+    const Span<const ShaderMacro> _macrosOrEmpty)
 {
     JAM_ASSERT(_flags != eShaderFlags::None, "No shader flags specified.");
-    JAM_ASSERT(_flags.IsDisabled(eShaderFlags::Compute), "Use LoadComputeProgram for compute shaders.");
+    JAM_ASSERT(_flags == eShaderFlags::Compute || _flags.IsDisabled(eShaderFlags::Compute), "compute shader must be the only shader stage when specified.");
 
     Graphics& gfx = GetGraphics();
 
@@ -18,10 +19,11 @@ ProgramHandle LoadProgram(
     ShaderHandle gsh = kInvalidHandle;
     ShaderHandle hsh = kInvalidHandle;
     ShaderHandle dsh = kInvalidHandle;
+    ShaderHandle csh = kInvalidHandle;
 
-    ShaderLoadInfo sci = {};
-    sci.macros         = _macros;
-    sci.flags          = eShaderCompileFlags::Default;
+    ShaderCompilerInfo sci = {};
+    sci.macros             = _macrosOrEmpty;
+    sci.flags              = eShaderCompileFlags::Default;
 
     if (_flags & eShaderFlags::Vertex)
     {
@@ -68,7 +70,34 @@ ProgramHandle LoadProgram(
         dsh = gfx.CreateShader(dsc.GetBytecode());
     }
 
-    return gfx.CreateProgram(vsh, psh, gsh, hsh, dsh, true);
+    if (_flags & eShaderFlags::Compute)
+    {
+        sci.stage          = eShader::ComputeShader;
+        sci.entryPoint     = "CSMain";
+        ShaderCompiler csc = ShaderCompiler::CompileHLSLFile(_path, sci);
+        JAM_ASSERT(csc.IsSucceeded(), "Compute shader compilation failed: {}", csc.GetErrorMessage());
+        csh = gfx.CreateShader(csc.GetBytecode());
+    }
+
+    if (_flags == eShaderFlags::Compute)
+    {
+        return gfx.CreateProgram(csh, true);
+    }
+    else
+    {
+        return gfx.CreateProgram(vsh, psh, gsh, hsh, dsh, true);
+    }
+}
+
+void LoadProgram(
+    RenderGraph&                  _graph,
+    const StringView              _name,
+    const StringView              _path,
+    const Flags<eShaderFlags>     _flags,
+    const Span<const ShaderMacro> _macrosOrEmpty)
+{
+    const ProgramHandle ph = LoadProgram(_path, _flags, _macrosOrEmpty);
+    _graph.InsertProgram(_name, ph, true);
 }
 
 Ref<Mesh> LoadMesh(
@@ -91,4 +120,12 @@ Ref<Mesh> LoadMesh(
     JAM_ASSERT(pModelOrNot, "Failed to convert imported data to model for file '{}': {}", _path, pModelOrNot.GetError().ToErrorMessage());
     Ref<Model> pModel = pModelOrNot.GetValue();
     return pModel->GetMeshes()[0];
+}
+
+Ref<Texture> LoadTexture(
+    const StringView _path)
+{
+    Expect<Ref<Texture>> pTexture = Texture::LoadFromFile(_path);
+    JAM_ASSERT(pTexture, "Failed to load texture from file '{}': {}", _path, pTexture.GetError().ToErrorMessage());
+    return pTexture.GetValue();
 }

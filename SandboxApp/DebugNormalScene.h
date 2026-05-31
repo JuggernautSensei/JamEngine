@@ -6,6 +6,30 @@ class DebugNormalScene : public Scene
 {
     JAM_SCENE_BODY(DebugNormalScene);
 
+    struct CBNoWIT
+    {
+        static constexpr Int32 kSlot = 0;
+
+        Mtx4 world;
+    };
+
+    struct CBWithWIT
+    {
+        static constexpr Int32 kSlot = 0;
+
+        Mtx4 world;
+        Mtx4 invTransWorld;
+    };
+
+    struct CBCamera
+    {
+        static constexpr Int32 kSlot = 1;
+
+        Mtx4  viewProj;
+        Vec3  eyePos;
+        float padding;
+    };
+
 public:
     DebugNormalScene();
 

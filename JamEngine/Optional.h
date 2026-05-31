@@ -13,17 +13,17 @@ struct NullOptionalT
 };
 constexpr NullOptionalT kNullopt { NullOptionalT::Tag() };
 
-struct OptionalDummyT
-{
-    constexpr explicit OptionalDummyT() {}
-};
-
 template<typename T>
 class Optional;
 
 template<typename T>
 class Optional
 {
+    struct DummyT
+    {
+        constexpr explicit DummyT() {}
+    };
+
 public:
     constexpr Optional()
         : m_dummy()
@@ -56,15 +56,15 @@ public:
     }
 
     /* implicit */ constexpr Optional(const NullOptionalT&)
-        : m_dummy()
-        , m_bHasValue(false)
+        : m_bHasValue(false)
     {
+        std::construct_at(&m_dummy, DummyT {});
     }
 
     /* implicit */ constexpr Optional(NullOptionalT&&)
-        : m_dummy()
-        , m_bHasValue(false)
+        : m_bHasValue(false)
     {
+        std::construct_at(&m_dummy, DummyT {});
     }
 
     constexpr Optional(Optional&& _other) noexcept
@@ -76,7 +76,7 @@ public:
         }
         else
         {
-            std::construct_at(&m_dummy, OptionalDummyT {});
+            std::construct_at(&m_dummy, DummyT {});
         }
         _other.Reset();
     }
@@ -93,7 +93,7 @@ public:
             }
             else
             {
-                std::construct_at(&m_dummy, OptionalDummyT {});
+                std::construct_at(&m_dummy, DummyT {});
             }
             _other.Reset();
         }
@@ -109,7 +109,7 @@ public:
         }
         else
         {
-            std::construct_at(&m_dummy, OptionalDummyT {});
+            std::construct_at(&m_dummy, DummyT {});
         }
     }
 
@@ -125,7 +125,7 @@ public:
             }
             else
             {
-                std::construct_at(&m_dummy, OptionalDummyT {});
+                std::construct_at(&m_dummy, DummyT {});
             }
         }
         return *this;
@@ -154,7 +154,7 @@ public:
         }
         else
         {
-            std::construct_at(&m_dummy, OptionalDummyT {});
+            std::construct_at(&m_dummy, DummyT {});
         }
 
         _other.Free();
@@ -171,7 +171,7 @@ public:
         }
         else
         {
-            std::construct_at(&m_dummy, OptionalDummyT {});
+            std::construct_at(&m_dummy, DummyT {});
         }
     }
 
@@ -232,7 +232,7 @@ public:
             std::destroy_at(&m_value);
         }
 
-        std::construct_at(&m_dummy, OptionalDummyT {});
+        std::construct_at(&m_dummy, DummyT {});
         m_bHasValue = false;
     }
 
@@ -242,8 +242,8 @@ private:
 
     union
     {
-        OptionalDummyT m_dummy;
-        T              m_value;
+        DummyT m_dummy;
+        T      m_value;
     };
     bool m_bHasValue = false;
 };

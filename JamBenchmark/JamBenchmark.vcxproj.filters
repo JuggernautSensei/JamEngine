@@ -24,6 +24,9 @@
     <ClCompile Include="DelegateBenchmark.cpp">
       <Filter>Benchmark</Filter>
     </ClCompile>
+    <ClCompile Include="StringBenchmark.cpp">
+      <Filter>Benchmark</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

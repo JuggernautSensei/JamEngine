@@ -115,7 +115,7 @@ public:
     void Log(const eLogLevel _level, const WStringView _msg) const
     {
         GetCoreChannel()->Log(_level, _msg);
-    }   
+    }
 
     void Log(const Ref<LogChannel>& _pChannel, const eLogLevel _level, const StringView _msg) const
     {

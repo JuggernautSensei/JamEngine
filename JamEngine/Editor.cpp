@@ -47,7 +47,8 @@ void Editor::Menu_File_() const
 {
     if (Widget_MenuItem("exit"))
     {
-        GetApp().Quit();
+        Application& app = GetApp();
+        app.Quit();
     }
 }
 
@@ -73,8 +74,8 @@ void Editor::Menu_Options_() const
 void Editor::Panel_Dockspace_() const
 {
     constexpr ImGuiWindowFlags kFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar
-                                       | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
-                                       | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+                                      | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+                                      | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
     const ImGuiViewport* pViewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(pViewport->WorkPos);
@@ -324,17 +325,18 @@ Ref<Texture> Editor::LoadIconFromSvgSource(
         JAM_UNREACHABLE;
     }
 
-    const MemoryView  mems[] = { importer->GetPixels() };
+    Graphics&           gfx    = GetGraphics();
+    const MemoryView    mems[] = { importer->GetPixels() };
     const Int32         w      = importer->GetWidth();
     const Int32         h      = importer->GetHeight();
-    const TextureHandle texh   = GetGraphics().CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::None, mems);
+    const TextureHandle texh   = gfx.CreateTexture2D(w, h, eTextureFormat::RGBA8_UNorm, false, 1, eTextureFlags::None, mems);
     return Texture::Load(texh);
 }
 
 bool& Editor::GetWindowShow(
     const eEditorWindow _type)
 {
-    return m_windowShows[UnderlyingFrom(_type)];
+    return m_windowShows[AsUnderlying(_type)];
 }
 
 }   // namespace Jam
@@ -369,8 +371,9 @@ void Editor::SetFocusingEntity(
 
     m_sharedData.focusingEntity = _entity;
 
+    Application&               app = GetApp();
     FocusingEntityChangedEvent event { _entity };
-    GetApp().DispatchEvent(event);
+    app.DispatchEvent(event);
 }
 
 Entity Editor::GetFocusingEntityOrNull() const
@@ -434,8 +437,10 @@ void Editor::SetFocusingFileEntry(const Ref<FileEntry>& _pEntry)
     }
 
     m_sharedData.pFocusingFileEntry = _pEntry;
+
+    Application&                  app = GetApp();
     FocusingFileEntryChangedEvent event { _pEntry };
-    GetApp().DispatchEvent(event);
+    app.DispatchEvent(event);
 }
 
 const Ref<FileEntry>& Editor::GetFocusingFileEntryOrNull() const
@@ -457,8 +462,10 @@ void Editor::SetFocusingDirEntry(const Ref<DirEntry>& _pEntry)
     }
 
     m_sharedData.pFocusingDirEntry = _pEntry;
+
+    Application&                 app = GetApp();
     FocusingDirEntryChangedEvent event { _pEntry };
-    GetApp().DispatchEvent(event);
+    app.DispatchEvent(event);
 }
 
 const Ref<DirEntry>& Editor::GetFocusingDirEntryOrNull() const
@@ -567,7 +574,7 @@ void Editor::CreateEntitiesFrom(
     Scene*            _pScene,
     const Ref<Model>& _pModel)
 {
-    const Entity entity = _pScene->CreateEntitiesFrom(_pModel);
+    const Entity entity = _pScene->CreateEntitiesByModel(_pModel);
     SetFocusingEntity(entity);
 }
 
@@ -659,9 +666,9 @@ bool Editor::RemoveFile(
 }
 
 bool Editor::RenameFile(
-    const StringView                   _srcPath,
-    const StringView                   _dstPath,
-    const FileSystem::eCollisionPolicy _policy)
+    const StringView                       _srcPath,
+    const StringView                       _dstPath,
+    const FileSystem::eFileCollisionPolicy _policy)
 {
     // same path
     if (_srcPath == _dstPath)
@@ -683,8 +690,8 @@ bool Editor::RenameFile(
 }
 
 bool Editor::CreateDir(
-    const StringView                                _dir,
-    const FileSystem::eMakeDirectoryCollisionPolicy _policy)
+    const StringView                        _dir,
+    const FileSystem::eMkdirCollisionPolicy _policy)
 {
     JAM_ASSERT(_dir.IsDirectory(), "Editor::MakeDirectory() - the given path is not a directory.");
 

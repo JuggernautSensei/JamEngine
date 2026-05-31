@@ -83,5 +83,5 @@ bool RenameDialog::OnClickRenameButton_() const
         return false;
     }
 
-    return GUI::Rename(m_oldPath, m_path, FileSystem::eCollisionPolicy::Fail);
+    return GUI::Rename(m_oldPath, m_path, FileSystem::eFileCollisionPolicy::Fail);
 }

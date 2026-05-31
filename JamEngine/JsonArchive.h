@@ -60,9 +60,7 @@ private:
     void WritePrimitive_(UInt64 _value) override;
     void WritePrimitive_(float _value) override;
     void WritePrimitive_(double _value) override;
-    void WritePrimitive_(const char* _value) override;
-    void WritePrimitive_(const std::string& _value) override;
-    void WritePrimitive_(std::string_view _value) override;
+    void WritePrimitive_(StringView _value) override;
 
     void                 Attach_(yyjson_mut_val* _val);
     [[nodiscard]] Frame& Top_();
@@ -135,9 +133,8 @@ protected:
     Error ReadPrimitive_(UInt64& _value) override;
     Error ReadPrimitive_(float& _value) override;
     Error ReadPrimitive_(double& _value) override;
-    Error ReadPrimitive_(const char*& _value) override;
-    Error ReadPrimitive_(std::string& _value) override;
-    Error ReadPrimitive_(std::string_view& _value) override;
+    Error ReadPrimitive_(String& _value) override;
+    Error ReadPrimitive_(StringView& _value) override;
 
 private:
     static constexpr Int32 kMaxDepth = 64;

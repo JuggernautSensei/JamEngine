@@ -16,12 +16,12 @@ class Delegate<TRet(TArg...)>
     using TDeleter = void (*)(Delegate*);
     using TCloner  = void (*)(Delegate*, const Delegate*);
 
-    static constexpr Int32 kStorageSize  = sizeof(void*) * 2;
-    static constexpr Int32 kStorageAlign = alignof(void*);
+    static constexpr Int32 kSBOSize  = sizeof(void*) * 2;
+    static constexpr Int32 kSBOAlign = alignof(void*);
 
-    struct alignas(kStorageAlign) Storage
+    struct alignas(kSBOAlign) SBO
     {
-        Byte data[kStorageSize] = {};
+        Array<Byte, kSBOSize> data = {};
     };
 
 public:
@@ -118,8 +118,7 @@ public:
     {
         Disconnect();
         m_hash = FuncHashOf<TFunc>();
-        m_func = [](const Delegate*, TArg... args) -> TRet
-        {
+        m_func = [](const Delegate*, TArg... args) -> TRet {
             return TFunc(std::forward<TArg>(args)...);
         };
     }
@@ -131,8 +130,7 @@ public:
         Disconnect();
         m_hash  = FuncHashOf<TMethod>(_pInst);
         m_pInst = static_cast<void*>(_pInst);
-        m_func  = [](const Delegate* _pDel, TArg... args) -> TRet
-        {
+        m_func  = [](const Delegate* _pDel, TArg... args) -> TRet {
             TCaller* pCaller = static_cast<TCaller*>(_pDel->m_pInst);
             return (pCaller->*TMethod)(std::forward<TArg>(args)...);
         };
@@ -145,8 +143,7 @@ public:
         Disconnect();
         m_hash       = FuncHashOf<TMethod>(_pInst);
         m_pConstInst = static_cast<const void*>(_pInst);
-        m_func       = [](const Delegate* _pDel, TArg... args) -> TRet
-        {
+        m_func       = [](const Delegate* _pDel, TArg... args) -> TRet {
             const TCaller* pCaller = static_cast<const TCaller*>(_pDel->m_pConstInst);
             return (pCaller->*TMethod)(std::forward<TArg>(args)...);
         };
@@ -158,29 +155,25 @@ public:
         using TDecayed = std::decay_t<TCallable>;
 
         Disconnect();
-
         m_hash = FuncHashOf(_func);
 
-        if constexpr (sizeof(TDecayed) <= kStorageSize && alignof(TDecayed) <= kStorageAlign)
+        if constexpr (sizeof(TDecayed) <= kSBOSize && alignof(TDecayed) <= kSBOAlign)
         {
             // Small buffer optimization
 
-            new (&m_storage) TDecayed(std::forward<TDecayed>(_func));
+            new (&m_storage) TDecayed(std::forward<TCallable>(_func));
 
-            m_func = [](const Delegate* _pDel, TArg... args) -> TRet
-            {
+            m_func = [](const Delegate* _pDel, TArg... args) -> TRet {
                 const TDecayed& func = *reinterpret_cast<const TDecayed*>(&_pDel->m_storage);
                 return func(std::forward<TArg>(args)...);
             };
 
-            m_deleter = [](Delegate* _pDel)
-            {
+            m_deleter = [](Delegate* _pDel) {
                 TDecayed& func = *reinterpret_cast<TDecayed*>(&_pDel->m_storage);
                 func.~TDecayed();
             };
 
-            m_copier = [](Delegate* _pDst, const Delegate* _pSrc)
-            {
+            m_copier = [](Delegate* _pDst, const Delegate* _pSrc) {
                 const TDecayed& srcFunc = *reinterpret_cast<const TDecayed*>(&_pSrc->m_storage);
                 new (&_pDst->m_storage) TDecayed(srcFunc);
             };
@@ -197,22 +190,19 @@ public:
                 TDecayed func;
             };
 
-            new (&m_pRef) AnyRef(new FuncHolder(std::forward<TDecayed>(_func)));
+            new (&m_pRef) AnyRef(new FuncHolder(std::forward<TCallable>(_func)));
 
             // ReSharper disable once CppParameterMayBeConstPtrOrRef
-            m_func = [](const Delegate* _pDel, TArg... args) -> TRet
-            {
+            m_func = [](const Delegate* _pDel, TArg... args) -> TRet {
                 const FuncHolder* pHolder = static_cast<const FuncHolder*>(_pDel->m_pRef.GetPtr());
                 return pHolder->func(std::forward<TArg>(args)...);
             };
 
-            m_deleter = [](Delegate* _pDel)
-            {
+            m_deleter = [](Delegate* _pDel) {
                 _pDel->m_pRef.~AnyRef();
             };
 
-            m_copier = [](Delegate* _pDst, const Delegate* _pSrc)
-            {
+            m_copier = [](Delegate* _pDst, const Delegate* _pSrc) {
                 new (&_pDst->m_pRef) AnyRef(_pSrc->m_pRef);
             };
         }
@@ -302,7 +292,7 @@ private:
         std::monostate m_empty = {};
         void*          m_pInst;
         const void*    m_pConstInst;
-        Storage        m_storage;
+        SBO            m_storage;
         AnyRef         m_pRef;
     };
 

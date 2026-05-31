@@ -231,63 +231,6 @@ TEST(StringViewRFind, RFind_WithOffsetAndCount)
     // "abcabc" offset=0, count=4 → "abca" 범위에서 "abc" 마지막 → pos 0
     EXPECT_FOUND(StringView("abcabc").RFind(StringView("abc"), 0, 4), 0u);
 }
-
-// ─────────────────────────────────────────────
-// BasicStringView — FindNotOf / RFindNotOf (신규)
-// ─────────────────────────────────────────────
-
-TEST(StringViewFindNotOf, FindNotOf_Char_First)
-{
-    // "aaabcd" 에서 'a'가 아닌 첫 위치 = 3
-    EXPECT_FOUND(StringView("aaabcd").FindNotOf('a'), 3u);
-}
-
-TEST(StringViewFindNotOf, FindNotOf_Char_AllSame)
-{
-    EXPECT_NOT_FOUND(StringView("aaaa").FindNotOf('a'));
-}
-
-TEST(StringViewFindNotOf, FindNotOf_Char_WithOffset)
-{
-    // "aabaa" offset=2부터 → 'b' pos=2
-    EXPECT_FOUND(StringView("aabaa").FindNotOf('a', 2), 2u);
-}
-
-TEST(StringViewFindNotOf, FindNotOf_Substring_Found)
-{
-    // "aabc" 에서 "a"가 아닌 첫 위치 = 2
-    EXPECT_FOUND(StringView("aabc").FindNotOf(StringView("a")), 2u);
-}
-
-TEST(StringViewFindNotOf, FindNotOf_WithOffsetAndCount)
-{
-    // "aabba" offset=1, count=3 → "abb" 에서 'a'가 아닌 첫 위치 → pos 2
-    EXPECT_FOUND(StringView("aabba").FindNotOf('a', 1, 3), 2u);
-}
-
-TEST(StringViewFindNotOf, RFindNotOf_Char_Last)
-{
-    // "bcdaaa" 에서 'a'가 아닌 마지막 위치 = 2 ('d')
-    EXPECT_FOUND(StringView("bcdaaa").RFindNotOf('a'), 2u);
-}
-
-TEST(StringViewFindNotOf, RFindNotOf_Char_AllSame)
-{
-    EXPECT_NOT_FOUND(StringView("aaaa").RFindNotOf('a'));
-}
-
-TEST(StringViewFindNotOf, RFindNotOf_Substring_Found)
-{
-    // "bcaa" 에서 "a"가 아닌 마지막 → pos 1 ('c')
-    EXPECT_FOUND(StringView("bcaa").RFindNotOf(StringView("a")), 1u);
-}
-
-TEST(StringViewFindNotOf, RFindNotOf_WithOffsetAndCount)
-{
-    // "aabba" offset=0, count=4 → "aabb" 에서 'a'가 아닌 마지막 → pos 3 ('b')
-    EXPECT_FOUND(StringView("aabba").RFindNotOf('a', 0, 4), 3u);
-}
-
 // ─────────────────────────────────────────────
 // BasicStringView — SubView
 // ─────────────────────────────────────────────
@@ -373,22 +316,22 @@ TEST(StringViewTrim, Trimed_Empty)
 
 TEST(StringViewHash, Hash32_Deterministic)
 {
-    EXPECT_EQ(StringView("hello").Hash32(), StringView("hello").Hash32());
+    EXPECT_EQ(StringView("hello").Hash(), StringView("hello").Hash());
 }
 
 TEST(StringViewHash, Hash64_Deterministic)
 {
-    EXPECT_EQ(StringView("hello").Hash64(), StringView("hello").Hash64());
+    EXPECT_EQ(StringView("hello").Hash(), StringView("hello").Hash());
 }
 
 TEST(StringViewHash, Hash32_DifferentStrings)
 {
-    EXPECT_NE(StringView("hello").Hash32(), StringView("world").Hash32());
+    EXPECT_NE(StringView("hello").Hash(), StringView("world").Hash());
 }
 
 TEST(StringViewHash, Hash64_DifferentStrings)
 {
-    EXPECT_NE(StringView("hello").Hash64(), StringView("world").Hash64());
+    EXPECT_NE(StringView("hello").Hash(), StringView("world").Hash());
 }
 
 TEST(StringViewHash, Hash32_IgnoreCase)
@@ -404,8 +347,8 @@ TEST(StringViewHash, Hash64_IgnoreCase)
 
 TEST(StringViewHash, EmptyString_NoCrash)
 {
-    EXPECT_NO_FATAL_FAILURE(StringView("").Hash32());
-    EXPECT_NO_FATAL_FAILURE(StringView("").Hash64());
+    EXPECT_NO_FATAL_FAILURE(StringView("").Hash());
+    EXPECT_NO_FATAL_FAILURE(StringView("").Hash());
 }
 
 // ─────────────────────────────────────────────
@@ -1120,21 +1063,6 @@ TEST(StringFindDelegate, RFind_Char)
     EXPECT_FOUND(String("hello").RFind('l'), 3u);
 }
 
-TEST(StringFindDelegate, FindNotOf_Char)
-{
-    EXPECT_FOUND(String("aaabcd").FindNotOf('a'), 3u);
-}
-
-TEST(StringFindDelegate, FindNotOf_AllSame)
-{
-    EXPECT_NOT_FOUND(String("aaaa").FindNotOf('a'));
-}
-
-TEST(StringFindDelegate, RFindNotOf_Char)
-{
-    EXPECT_FOUND(String("bcdaaa").RFindNotOf('a'), 2u);
-}
-
 TEST(StringFindDelegate, StartsWith_Substring)
 {
     String s("hello world");
@@ -1282,55 +1210,55 @@ TEST(StringFS, Simplify_DriveLetterUppercase)
 TEST(StringJoin, File_NoTrailingSlash)
 {
     String s("C:/aaa/bbb");
-    s.Join(StringView("ccc"), eJoinType::File);
+    s.Join(StringView("ccc"), eJoin::File);
     EXPECT_EQ(s, StringView("C:/aaa/bbb/ccc"));
 }
 
 TEST(StringJoin, Directory_AddsTrailingSlash)
 {
     String s("C:/aaa/bbb");
-    s.Join(StringView("ccc"), eJoinType::Directory);
+    s.Join(StringView("ccc"), eJoin::Directory);
     EXPECT_EQ(s, StringView("C:/aaa/bbb/ccc/"));
 }
 
 TEST(StringJoin, Auto_BaseIsFile_TreatedAsFile)
 {
     String s("C:/aaa/bbb");   // 파일 → Auto → File
-    s.Join(StringView("ccc"), eJoinType::Auto);
+    s.Join(StringView("ccc"), eJoin::Auto);
     EXPECT_EQ(s, StringView("C:/aaa/bbb/ccc"));
 }
 
 TEST(StringJoin, Auto_BaseIsDirectory_TreatedAsDirectory)
 {
     String s("C:/aaa/bbb/");   // 디렉터리 → Auto → Directory
-    s.Join(StringView("ccc"), eJoinType::Directory);
+    s.Join(StringView("ccc"), eJoin::Directory);
     EXPECT_EQ(s, StringView("C:/aaa/bbb/ccc/"));
 }
 
 TEST(StringJoin, AlreadyHasSeparator_NoDouble)
 {
     String s("C:/aaa/");
-    s.Join(StringView("bbb"), eJoinType::File);
+    s.Join(StringView("bbb"), eJoin::File);
     EXPECT_EQ(s, StringView("C:/aaa/bbb"));
 }
 
 TEST(StringJoin, Part_StartsWithSeparator_NoDouble)
 {
     String s("C:/aaa");
-    s.Join(StringView("/bbb"), eJoinType::File);
+    s.Join(StringView("/bbb"), eJoin::File);
     EXPECT_EQ(s, StringView("C:/aaa/bbb"));
 }
 
 TEST(StringJoin, EmptyBase_SetsToStr)
 {
     String s;
-    s.Join(StringView("ccc"), eJoinType::File);
+    s.Join(StringView("ccc"), eJoin::File);
     EXPECT_EQ(s, StringView("ccc"));
 }
 
 TEST(StringJoin, Joined_Static)
 {
-    String r = String::Joined(StringView("C:/aaa"), StringView("bbb"), eJoinType::File);
+    String r = String::Joined(StringView("C:/aaa"), StringView("bbb"), eJoin::File);
     EXPECT_EQ(r, StringView("C:/aaa/bbb"));
 }
 
@@ -1340,17 +1268,17 @@ TEST(StringJoin, Joined_Static)
 
 TEST(StringHash, Hash32_Deterministic)
 {
-    EXPECT_EQ(String("hello").Hash32(), String("hello").Hash32());
+    EXPECT_EQ(String("hello").Hash(), String("hello").Hash());
 }
 
 TEST(StringHash, Hash64_Deterministic)
 {
-    EXPECT_EQ(String("hello").Hash64(), String("hello").Hash64());
+    EXPECT_EQ(String("hello").Hash(), String("hello").Hash());
 }
 
 TEST(StringHash, Hash64_DifferentStrings)
 {
-    EXPECT_NE(String("hello").Hash64(), String("world").Hash64());
+    EXPECT_NE(String("hello").Hash(), String("world").Hash());
 }
 
 TEST(StringHash, Hash64_IgnoreCase)
@@ -1360,7 +1288,7 @@ TEST(StringHash, Hash64_IgnoreCase)
 
 TEST(StringHash, ConsistentWithStringView)
 {
-    EXPECT_EQ(String("hello").Hash64(), StringView("hello").Hash64());
+    EXPECT_EQ(String("hello").Hash(), StringView("hello").Hash());
 }
 
 // ─────────────────────────────────────────────

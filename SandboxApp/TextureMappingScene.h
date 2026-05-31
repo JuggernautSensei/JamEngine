@@ -1,5 +1,6 @@
 #pragma once
 #include "FlyingCamera.h"
+#include "../JamEngine/RenderGraph.h"
 
 class TextureMappingScene : public Scene
 {
@@ -29,14 +30,15 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph = kInvalidHandle;
+    void InitMeshes_();
+    void InitRenderGraph_();
+    void Submit_() const;
+
+    RenderGraph m_graph = {};
 
     ConstantBufferHandle m_entityCbh = kInvalidHandle;
     ConstantBufferHandle m_cmrCbh    = kInvalidHandle;
     ConstantBufferHandle m_lightCbh  = kInvalidHandle;
-
-    FrameBufferHandle m_fbh    = {};
-    TextureHandle     m_colorTexh = {};   // not owned
 
     bool  m_bAnimate = true;
     float m_dRot     = ToRad(45.f);

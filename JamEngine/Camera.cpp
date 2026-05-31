@@ -7,74 +7,79 @@ namespace Jam
 
 const Mtx4& Camera::GetProj() const
 {
-    if (m_bProjDirty)
+    if (m_dirtyFlags & eDirtyFlags::Proj)
     {
         if (m_projection == eProjection::Orthographic)
         {
-            m_projCache = Mtx4::CreateOrtho(m_width, m_height, m_nearZ, m_farZ);
+            m_projMtx = Mtx4::MakeOrtho(m_width, m_height, m_nearZ, m_farZ);
         }
         else
         {
             const float ar = GetAspectRatio();
-            m_projCache    = Mtx4::CreatePerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
+            m_projMtx      = Mtx4::MakePerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
         }
-
-        m_bProjDirty = false;
+        m_dirtyFlags.Disable(eDirtyFlags::Proj);
     }
 
-    return m_projCache;
+    return m_projMtx;
+}
+
+const Frustum& Camera::GetFrustum() const
+{
+    if (m_dirtyFlags & eDirtyFlags::Frustum)
+    {
+        m_frustum = Frustum { GetProj() };
+        m_dirtyFlags.Disable(eDirtyFlags::Frustum);
+    }
+
+    return m_frustum;
 }
 
 void Camera::SetProjection(
     const eProjection _projection)
 {
-    if (m_projection == _projection)
-    {
-        return;
-    }
-
     m_projection = _projection;
-    m_bProjDirty = true;
+    m_dirtyFlags &= eDirtyFlags::All;
 }
 
 void Camera::SetNearZ(
     const float _nearZ)
 {
-    m_nearZ      = _nearZ;
-    m_nearZ      = Clamp(m_nearZ, kMinZ, m_farZ - 0.001f);
-    m_bProjDirty = true;
+    m_nearZ = _nearZ;
+    m_nearZ = Clamp(m_nearZ, kMinZ, m_farZ - 0.001f);
+    m_dirtyFlags &= eDirtyFlags::All;
 }
 
 void Camera::SetFarZ(
     const float _farZ)
 {
-    m_farZ       = _farZ;
-    m_farZ       = Clamp(m_farZ, m_nearZ + 0.001f, kMaxZ);
-    m_bProjDirty = true;
+    m_farZ = _farZ;
+    m_farZ = Clamp(m_farZ, m_nearZ + 0.001f, kMaxZ);
+    m_dirtyFlags &= eDirtyFlags::All;
 }
 
 void Camera::SetFovYRad(
     const float _fovYRad)
 {
-    m_fovYRad    = _fovYRad;
-    m_fovYRad    = Clamp(m_fovYRad, kMinFovYRad, kMaxFovYRad);
-    m_bProjDirty = true;
+    m_fovYRad = _fovYRad;
+    m_fovYRad = Clamp(m_fovYRad, kMinFovYRad, kMaxFovYRad);
+    m_dirtyFlags &= eDirtyFlags::All;
 }
 
 void Camera::SetWidth(
     const float _width)
 {
-    m_width      = _width;
-    m_width      = Clamp(m_width, kMinWidthHeight, kMaxWidthHeight);
-    m_bProjDirty = true;
+    m_width = _width;
+    m_width = Clamp(m_width, kMinWidthHeight, kMaxWidthHeight);
+    m_dirtyFlags &= eDirtyFlags::All;
 }
 
 void Camera::SetHeight(
     const float _height)
 {
-    m_height     = _height;
-    m_height     = Clamp(m_height, kMinWidthHeight, kMaxWidthHeight);
-    m_bProjDirty = true;
+    m_height = _height;
+    m_height = Clamp(m_height, kMinWidthHeight, kMaxWidthHeight);
+    m_dirtyFlags &= eDirtyFlags::All;
 }
 
 void Camera::SetAspectRatio(
@@ -82,6 +87,7 @@ void Camera::SetAspectRatio(
 {
     m_width  = 1.f;
     m_height = _aspect;
+    m_dirtyFlags &= eDirtyFlags::All;
 }
 
 eProjection Camera::GetProjection() const
@@ -117,11 +123,6 @@ float Camera::GetWidth() const
 float Camera::GetHeight() const
 {
     return m_height;
-}
-
-bool Camera::IsDirty() const
-{
-    return m_bProjDirty;
 }
 
 void Camera::WriteToArchive(

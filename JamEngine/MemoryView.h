@@ -87,13 +87,15 @@ private:
 using MutableMemoryView = BasicMemoryView<false>;
 using MemoryView        = BasicMemoryView<true>;
 
-// 일반타입 전용
-// 암시적 생성자 사용시 greedy하게 매칭되는 것을 방지하기 위해 외부 함수로 분리
-
 template<typename T>
     requires(IsMemoryViewCompatibleValue<T, true>)
 [[nodiscard]] MemoryView AsMemoryView(const T& _value)
 {
+    if constexpr (IsMemoryViewCompatibleContainer<T>)
+    {
+        return _value;
+    }
+
     return { reinterpret_cast<const Byte*>(&_value), sizeof(T) };
 }
 
@@ -101,7 +103,13 @@ template<typename T>
     requires(IsMemoryViewCompatibleValue<T, false>)
 [[nodiscard]] MutableMemoryView AsMutableMemoryView(T& _value)
 {
+    if constexpr (IsMemoryViewCompatibleContainer<T>)
+    {
+        return _value;
+    }
+
     return { reinterpret_cast<Byte*>(&_value), sizeof(T) };
 }
 
 }   // namespace Jam
+

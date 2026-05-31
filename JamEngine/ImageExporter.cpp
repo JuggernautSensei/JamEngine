@@ -130,7 +130,7 @@ Error ImageExporter::ExportToFile(
 
     if (FAILED(hr))
     {
-        JAM_LOG_ERROR("Failed to save image to file: '{}', {}", _path, CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
+        JAM_LOG_ERROR("Failed to save image to file: '{}', {}", _path, MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         return Error::ExportFailed;
     }
 
@@ -144,7 +144,8 @@ Error ImageExporter::ExportToFile(
     const bool                       _bReplaceExtension,
     const eFileWriterCollisionPolicy _policy)
 {
-    return ExportToFile(GetGraphics().Capture(_texh), _path, _format, _bReplaceExtension, _policy);
+    Graphics& gfx = GetGraphics();
+    return ExportToFile(gfx.Capture(_texh), _path, _format, _bReplaceExtension, _policy);
 }
 
 Expect<ImageBlob> ImageExporter::ExportToMemory(
@@ -189,7 +190,7 @@ Expect<ImageBlob> ImageExporter::ExportToMemory(
 
     if (FAILED(hr))
     {
-        JAM_LOG_ERROR("Failed to export image to memory: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
+        JAM_LOG_ERROR("Failed to export image to memory: {}", MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         return Error::ExportFailed;
     }
 
@@ -200,7 +201,8 @@ Expect<ImageBlob> ImageExporter::ExportToMemory(
     const TextureHandle _texh,
     const eImageFormat  _format)
 {
-    return ExportToMemory(GetGraphics().Capture(_texh), _format);
+    Graphics& gfx = GetGraphics();
+    return ExportToMemory(gfx.Capture(_texh), _format);
 }
 
 }   // namespace Jam

@@ -1,5 +1,6 @@
 #pragma once
 #include "FlyingCamera.h"
+#include "../JamEngine/RenderGraph.h"
 
 class PBRScene : public Scene
 {
@@ -18,6 +19,22 @@ class PBRScene : public Scene
         Irradiance,
         Specular,
         Environment
+    };
+
+    enum class eToneMapping : Int32
+    {
+        None        = 0,
+        Linear      = 1,
+        Exponential = 2,
+        Reinhard    = 3,
+        Uncharted2  = 4,
+        Mgsv        = 5,
+        Uchimura    = 6,
+        Filmic      = 7,
+        Aces        = 8,
+        PbrNeutral  = 9,
+        Flim        = 10,
+        Agx         = 11,
     };
 
     struct Light
@@ -48,21 +65,17 @@ public:
 
 private:
     void OnResize(Int32 _width, Int32 _height) override;
+    void InitRenderGraph_();
+    void SubmitCubeMap_() const;
+    void SubmitPBR_();
+    void UpdateToneMappingParams_() const;
 
-    ProgramHandle m_ph            = kInvalidHandle;
-    ProgramHandle m_cubeMapPh     = kInvalidHandle;
-    ProgramHandle m_toneMappingPh = kInvalidHandle;
+    RenderGraph m_graph = {};
 
     ConstantBufferHandle m_entityCbh  = kInvalidHandle;
     ConstantBufferHandle m_cmrCbh     = kInvalidHandle;
     ConstantBufferHandle m_lightCbh   = kInvalidHandle;
     ConstantBufferHandle m_cubeMapCbh = kInvalidHandle;
-
-    FrameBufferHandle m_fbh    = kInvalidHandle;
-    TextureHandle     m_colorTexh = kInvalidHandle;   // not owned
-
-    VertexBufferHandle m_fullTriVbh = kInvalidHandle;
-    IndexBufferHandle  m_fullTriIbh = kInvalidHandle;
 
     VertexBufferHandle m_cubeVbh = kInvalidHandle;
     IndexBufferHandle  m_cubeIbh = kInvalidHandle;
@@ -81,6 +94,10 @@ private:
     Ref<Texture> m_pIBLSpecular    = nullptr;
     Ref<Texture> m_pIBLEnvironment = nullptr;
     Ref<Texture> m_pBRDFLUT        = nullptr;
+
+    eToneMapping m_tmType   = eToneMapping::Linear;
+    float        m_exposure = 0.f;
+    float        m_gamma    = 2.2f;
 
     Array<Light, 4> m_lights      = {};
     eCubeMap        m_cubeMapType = eCubeMap::Irradiance;

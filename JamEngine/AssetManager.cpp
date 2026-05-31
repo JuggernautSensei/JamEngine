@@ -20,7 +20,8 @@ namespace
     [[nodiscard]] Expect<String> CreateAssetPath_(
         const StringView _rawPath)
     {
-        const StringView base = GetApp().GetWorkingDirectory();
+        Application&     app  = GetApp();
+        const StringView base = app.GetWorkingDirectory();
         const String     path = FileSystem::Relative(base, _rawPath);
 
         // check path is under working directory

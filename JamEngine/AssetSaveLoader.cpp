@@ -36,25 +36,25 @@ namespace Dto
         const Jam::Mtx4& _mtx)
     {
         return {
-            _mtx.m[0][0],
-            _mtx.m[0][1],
-            _mtx.m[0][2],
-            _mtx.m[0][3],
+            _mtx[0][0],
+            _mtx[0][1],
+            _mtx[0][2],
+            _mtx[0][3],
 
-            _mtx.m[1][0],
-            _mtx.m[1][1],
-            _mtx.m[1][2],
-            _mtx.m[1][3],
+            _mtx[1][0],
+            _mtx[1][1],
+            _mtx[1][2],
+            _mtx[1][3],
 
-            _mtx.m[2][0],
-            _mtx.m[2][1],
-            _mtx.m[2][2],
-            _mtx.m[2][3],
+            _mtx[2][0],
+            _mtx[2][1],
+            _mtx[2][2],
+            _mtx[2][3],
 
-            _mtx.m[3][0],
-            _mtx.m[3][1],
-            _mtx.m[3][2],
-            _mtx.m[3][3],
+            _mtx[3][0],
+            _mtx[3][1],
+            _mtx[3][2],
+            _mtx[3][3],
         };
     }
 

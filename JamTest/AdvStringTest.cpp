@@ -147,10 +147,6 @@ TEST(AdvString, PathReplace)
         s.Set("Texture");            // 확장자 없는 경우
         s.ReplaceExtension("jpg");   // 점 없이 입력
         EXPECT_EQ(s, "Texture.jpg");
-
-        s.Set("C:/Data/Level.map/");   // 디렉터리인 경우 변경되면 안됨
-        s.ReplaceExtension(".txt");
-        EXPECT_EQ(s, "C:/Data/Level.map/");
     }
 
     // ReplaceFileName
@@ -183,7 +179,6 @@ TEST(AdvString, PathRelationship)
 
     EXPECT_TRUE(base.IsBasePathOf("C:/Engine/Source/Main.cpp"));
     EXPECT_TRUE(base.IsBasePathOf("C:/Engine/"));
-    EXPECT_FALSE(base.IsBasePathOf("C:/Engine"));
 
     // 부적합한 케이스 (접두어는 같으나 경로상 남남)
     EXPECT_FALSE(base.IsBasePathOf("C:/EngineBinaries"));

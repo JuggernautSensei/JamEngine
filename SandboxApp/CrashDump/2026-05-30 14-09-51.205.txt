@@ -1,0 +1,25 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-30 14:09:51.203
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\ImageFilterManager.cpp
+function name: class Jam::Handle<struct Jam::Program> __cdecl ImageFilterManager::GetOrLoadProgram_(enum eImageFilter,bool,bool)
+line: 254
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: psc.IsSucceeded()
+Pixel shader compilation failed: shader "Resources/ImageFilter/FXAAShader.hlsl" compilation failed: error X3501: 'PSMain': entrypoint not found
+
+====================================

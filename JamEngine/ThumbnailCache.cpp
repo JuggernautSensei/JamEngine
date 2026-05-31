@@ -163,12 +163,13 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
 }
 
 Ref<Texture> ThumbnailCache::CreateTexture_(
-    const Int32        _w,
-    const Int32        _h,
+    const Int32      _w,
+    const Int32      _h,
     const MemoryView _initData) const
 {
-    const MemoryView  mems[] = { _initData };
-    const TextureHandle texh   = GetGraphics().CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, false, 1, eTextureCreateFlags::None, mems);
+    Graphics&           gfx    = GetGraphics();
+    const MemoryView    mems[] = { _initData };
+    const TextureHandle texh   = gfx.CreateTexture2D(_w, _h, eTextureFormat::BGRA8_UNorm, false, 1, eTextureFlags::None, mems);
     return Texture::Load(texh);
 }
 

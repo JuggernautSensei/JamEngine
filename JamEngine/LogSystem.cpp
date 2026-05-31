@@ -7,7 +7,6 @@
 #include "LogSystem.h"
 #include "Timer.h"
 #include "String.h"
-#include "FileSystem.h"
 
 // log channel
 namespace Jam
@@ -108,10 +107,11 @@ LogSystem::LogSystem()
     const TimeStamp ts   = TimeStamp::Current();
     String          path = {};
     path.Format("Logs/{:04}.{:02}.{:02}/{:02}h {:02}m {:02}.{:03}s.log", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.millisecond);
-    const SinkRef pFileSink = std::make_shared<spdlog::sinks::basic_file_sink_st>(path.GetPtr(), true);
+    const SinkRef pFileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path.GetPtr(), true);
 
     // core logger
-    const LoggerRef pCoreLogger = std::make_shared<spdlog::logger>("CORE", spdlog::sinks_init_list { pConsoleSink, pFileSink });
+    spdlog::init_thread_pool(8192, 1);
+    const LoggerRef pCoreLogger = std::make_shared<spdlog::async_logger>("CORE", spdlog::sinks_init_list { pConsoleSink, pFileSink }, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
     pCoreLogger->set_level(spdlog::level::trace);
     SetCoreChannel(MakeRef<LogChannel>(pCoreLogger));
 }

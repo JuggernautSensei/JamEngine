@@ -2,8 +2,12 @@
 #include "TextureMappingScene.h"
 
 #include "Gui.h"
+#include "ImageFilterManager.h"
 #include "RenderStates.h"
+#include "Utils.h"
 #include "../JamEngine/AssimpImporter.h"
+
+#define SCENE_PATH(_filepath) "Resources/TextureMappingScene/" _filepath
 
 namespace
 {
@@ -13,7 +17,7 @@ constexpr Int32 kAlbedoTextureSlot = 0;
 constexpr Int32 kAoTextureSlot     = 1;
 constexpr Int32 kNormalTextureSlot = 2;
 
-struct CBTextureMappingSceneEntity
+struct CBEntity
 {
     static constexpr Int32 kSlot = 0;
 
@@ -23,7 +27,7 @@ struct CBTextureMappingSceneEntity
     float  padding[3];
 };
 
-struct CBTextureMappingSceneCamera
+struct CBCamera
 {
     static constexpr Int32 kSlot = 1;
 
@@ -32,7 +36,7 @@ struct CBTextureMappingSceneCamera
     Mtx4  viewProj;
 };
 
-struct CBTextureMappingSceneLight
+struct CBLight
 {
     static constexpr Int32 kSlot = 2;
 
@@ -48,56 +52,14 @@ struct CBTextureMappingSceneLight
 
 TextureMappingScene::TextureMappingScene()
 {
-    Graphics& gfx = GetGraphics();
+    InitMeshes_();
+    InitRenderGraph_();
 
-    ShaderLoadInfo vsInfo = {};
-    vsInfo.entryPoint         = "VSMain";
-    vsInfo.stage              = eShader::VertexShader;
-    const ShaderCompiler vsc  = ShaderCompiler::CompileHLSLFile("Resources/TextureMappingScene/TextureMappingSceneShader.hlsl", vsInfo);
-    JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
-    const ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());
-
-    ShaderLoadInfo psInfo = {};
-    psInfo.entryPoint         = "PSMain";
-    psInfo.stage              = eShader::PixelShader;
-    const ShaderCompiler psc  = ShaderCompiler::CompileHLSLFile("Resources/TextureMappingScene/TextureMappingSceneShader.hlsl", psInfo);
-    JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
-    const ShaderHandle psh = gfx.CreateShader(psc.GetBytecode());
-
-    m_ph = gfx.CreateProgram(vsh, psh, true);
-
-    m_entityCbh = gfx.CreateConstantBuffer(sizeof(CBTextureMappingSceneEntity));
-    m_cmrCbh    = gfx.CreateConstantBuffer(sizeof(CBTextureMappingSceneCamera));
-    m_lightCbh  = gfx.CreateConstantBuffer(sizeof(CBTextureMappingSceneLight));
-
-    // load model
-    VertexLayout attribLayout = {};
-    attribLayout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
-    attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
-    attribLayout.Add(eVertexAttribute::Tangent, eAttributeFormat::Float3);
-
-    Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/TextureMappingScene/Model.obj", eAssimpImporterFlags::LoadMeshes | eAssimpImporterFlags::GenerateNormals | eAssimpImporterFlags::GenerateTangentFrame);
-    JAM_ASSERT(importer, "Failed to load model: {}", importer.GetError().ToErrorMessage());
-    Expect<Ref<Model>> pModel = importer->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh);
-    JAM_ASSERT(pModel, "Failed to extract model: {}", pModel.GetError().ToErrorMessage());
-    m_pMesh = pModel.GetValue()->GetMeshes()[0];
-
-    // load texture
-    m_pAlbedo = Texture::LoadFromFile("Resources/TextureMappingScene/Albedo.png").GetValue();
-    m_pAo     = Texture::LoadFromFile("Resources/TextureMappingScene/Ao.png").GetValue();
-    m_pNormal = Texture::LoadFromFile("Resources/TextureMappingScene/Normal.png").GetValue();
-
-    // camera setting
-    m_camera.trans.SetTranslationZ(-10.f);
+    m_camera.transform.SetTranslationZ(-10.f);
 }
 
 TextureMappingScene::~TextureMappingScene()
 {
-    JAM_DESTROY_PROGRAM(m_ph);
-    JAM_DESTROY_CONSTANT_BUFFER(m_entityCbh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_cmrCbh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_lightCbh);
-    JAM_DESTROY_FRAME_BUFFER(m_fbh);
 }
 
 void TextureMappingScene::OnUpdate(
@@ -115,59 +77,24 @@ void TextureMappingScene::OnRender(
     const RenderView& _view)
 {
     Graphics& gfx = GetGraphics();
-    gfx.SetFrameBuffer(m_fbh);
-    gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
-    gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
-    gfx.SetViewport(_view.vp);
-    gfx.SetProgram(m_ph);
-    gfx.SetRenderFlags(kBackCullDepthTest);
-    gfx.SetBlendFlags(kOpaqueBlend, 0);
 
-    // camera
-    CBTextureMappingSceneCamera cbCamera = {};
-    cbCamera.eyePos                      = m_camera.GetEyePos();
-    cbCamera.viewProj                    = m_camera.CalcViewProj().Transpose();
-    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBTextureMappingSceneCamera::kSlot);
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBTextureMappingSceneCamera::kSlot);
+    CBCamera camera;
+    camera.eyePos   = m_camera.GetEyePos();
+    camera.viewProj = m_camera.CalcViewProj().Transpose();
+    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(camera));
 
-    // light
-    CBTextureMappingSceneLight cbLight = {};
-    cbLight.lightDir                   = (m_lightLookAt - m_lightPos).Normalized();
-    cbLight.lightColor                 = m_lightColor;
-    cbLight.ambientColor               = m_ambientColor;
-    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
-    gfx.SetConstantBuffer(m_lightCbh, eShader::PixelShader, CBTextureMappingSceneLight::kSlot);
+    CBLight light;
+    light.lightDir     = (m_lightLookAt - m_lightPos).Normalized();
+    light.lightColor   = m_lightColor;
+    light.ambientColor = m_ambientColor;
+    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(light));
 
-    // textures & sampler
-    m_pAlbedo->Bind(eShader::PixelShader, kAlbedoTextureSlot);
-    m_pAo->Bind(eShader::PixelShader, kAoTextureSlot);
-    m_pNormal->Bind(eShader::PixelShader, kNormalTextureSlot);
-    gfx.SetSampler(eSamplerFlags::Filter_MinLinear_MagLinear_MipLinear | eSamplerFlags::AddressU_Wrap | eSamplerFlags::AddressV_Wrap, eShader::PixelShader, kLinearSamplerSlot);
-
-    // entity
-    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBTextureMappingSceneEntity::kSlot);
-    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBTextureMappingSceneEntity::kSlot);
-
-    CBTextureMappingSceneEntity cbEntity = {};
-    const Vec3                  euler    = { m_rot, m_rot, 0.f };
-    cbEntity.world                       = Mtx4::CreateSRT(Vec3::kOne, euler, Vec3::kZero).Transpose();
-    cbEntity.worldInvTrans               = Mtx4::CreateInvSRT(Vec3::kOne, euler, Vec3::kZero);
-    cbEntity.flags                       = m_textureMappingFlags.GetValue();
-    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
-    m_pMesh->Submit();
-
-    // blit scene framebuffer texture to output framebuffer texture
-    // output framebuffer maybe do not have depth texture.
-    // so. draw on screen-off framebuffer and blit the color texture to output framebuffer.
-    // in real case. use post-process pass to do this.
-    const Attachment attachment = gfx.GetFrameBufferAttachment(_view.fbh, 0);
-    gfx.CopyTexture(attachment.texh, 0, 0, 0, 0, 0, m_colorTexh, 0, 0, 0, 0, 0, 0, 0, 0);
+    m_graph.Execute(_view.fbh, _view.vp);
 }
 
 void TextureMappingScene::OnImGuiRender()
 {
-    if (!BeginSceneInspectorWindows("TextureMappingScene"))
+    if (!BeginSceneDemoWindow("TextureMappingScene"))
     {
         ImGui::End();
         return;
@@ -214,19 +141,80 @@ void TextureMappingScene::OnResize(
     const Int32 _width,
     const Int32 _height)
 {
-    JAM_DESTROY_FRAME_BUFFER(m_fbh);
+    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+}
 
+void TextureMappingScene::InitMeshes_()
+{
+    // load mesh
+    VertexLayout attribLayout = {};
+    attribLayout.Add(eVertexAttribute::TexCoord0, eAttributeFormat::Float2);
+    attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
+    attribLayout.Add(eVertexAttribute::Tangent, eAttributeFormat::Float3);
+    m_pMesh = LoadMesh(SCENE_PATH("Model.obj"), attribLayout);
+
+    // load textures
+    m_pAlbedo = LoadTexture(SCENE_PATH("Albedo.png"));
+    m_pAo     = LoadTexture(SCENE_PATH("Ao.png"));
+    m_pNormal = LoadTexture(SCENE_PATH("Normal.png"));
+}
+
+void TextureMappingScene::InitRenderGraph_()
+{
+    m_graph.EmplaceTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, false, 1, eTextureFlags::RenderTarget);
+    m_graph.EmplaceTexture2D("T_SceneDepth", 1.f, eTextureFormat::D32_Float, false, 1, eTextureFlags::DepthStencil);
+
+    AttachmentRG attachments[2] = {};
+    attachments[0].name         = "T_SceneColor";
+    attachments[1].name         = "T_SceneDepth";
+    m_graph.EmplaceFrameBuffer("FB_Scene", attachments);
+
+    m_graph.EmplaceConstantBuffer("CB_Entity", sizeof(CBEntity));
+    m_graph.EmplaceConstantBuffer("CB_Camera", sizeof(CBCamera));
+    m_graph.EmplaceConstantBuffer("CB_Light", sizeof(CBLight));
+
+    m_entityCbh = m_graph.GetConstantBuffer("CB_Entity");
+    m_cmrCbh    = m_graph.GetConstantBuffer("CB_Camera");
+    m_lightCbh  = m_graph.GetConstantBuffer("CB_Light");
+
+    LoadProgram(m_graph, "P_Main", SCENE_PATH("TextureMappingShader.hlsl"));
+
+    m_graph.AddRenderPass("Pass_Main")
+        .SetFrameBuffer("FB_Scene")
+        .SetProgram("P_Main")
+        .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
+        .SetDepthClearCommand(1.f)
+        .SetRenderFlags(kBackCullDepthTest)
+        .SetBlendFlags(kOpaqueBlend, 0)
+        .SetSampler(kLinearWrap, eShader::PixelShader, kLinearSamplerSlot)
+        .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBCamera::kSlot)
+        .SetConstantBuffer("CB_Entity", eShader::PixelShader, CBEntity::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBCamera::kSlot)
+        .SetConstantBuffer("CB_Light", eShader::PixelShader, CBLight::kSlot)
+        .SetExecutor(Bind<&TextureMappingScene::Submit_>(this));
+
+    ImageFilterManager& ifm      = GetImageFilterManager();
+    ImageFilterDesc     blitDesc = {};
+    blitDesc.filter              = eImageFilter::Blit;
+    blitDesc.output              = eImageFilterOutput::Final;
+    blitDesc.input0Texture   = "T_SceneColor";
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+}
+
+void TextureMappingScene::Submit_() const
+{
     Graphics& gfx = GetGraphics();
 
-    const TextureHandle depthTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::D32_Float, false, 1, eTextureCreateFlags::DepthStencilAttachment);
-    const TextureHandle colorTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::RenderTargetAttachment);
+    m_pAlbedo->Bind(eShader::PixelShader, kAlbedoTextureSlot);
+    m_pAo->Bind(eShader::PixelShader, kAoTextureSlot);
+    m_pNormal->Bind(eShader::PixelShader, kNormalTextureSlot);
 
-    Attachment attachment[2];
-    attachment[0].texh = colorTexh;
-    attachment[1].texh = depthTexh;
+    CBEntity entity;
+    entity.world         = Mtx4::MakeRotationY(m_rot).Transpose();
+    entity.worldInvTrans = Mtx4::MakeRotationY(m_rot).Inverse();
+    entity.flags         = m_textureMappingFlags.GetValue();
+    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
 
-    m_fbh       = gfx.CreateFrameBuffer(attachment, true);
-    m_colorTexh = colorTexh;
-
-    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_pMesh->Submit();
 }

@@ -10,7 +10,6 @@ public:
     using StringT     = BasicString<CharT>;
     using StringViewT = BasicStringView<CharT>;
     using CharTraits  = CharTraits<CharT>;
-    using CharFuncs   = CharFuncs<CharT>;
 
     PathIterBase() = default;
 
@@ -79,7 +78,7 @@ private:
     {
         for (SizeT i = 0; i < _path.GetLength(); ++i)
         {
-            if (CharFuncs::IsPathSeparator(_path[i]))
+            if (CharTraits::IsPathSeparator(_path[i]))
             {
                 return CharResult { i };
             }

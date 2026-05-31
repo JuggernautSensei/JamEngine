@@ -870,7 +870,7 @@ TEST(Mtx4, Translation_RowMajor)
     EXPECT_TRUE(Approx(m.m[3][3], 1.f));
 
     const Vec3 v { 1.f, 1.f, 1.f };
-    const Vec3 r = m.Mult(v);
+    const Vec3 r = m.MultPoint(v);
     EXPECT_TRUE(r.IsEqualApprox({ 4.f, 5.f, 6.f }, kEps));
 }
 
@@ -878,7 +878,7 @@ TEST(Mtx4, Scale)
 {
     const Mtx4 m = Mtx4::CreateScale({ 2.f, 3.f, 4.f });
     const Vec3 v { 1.f, 1.f, 1.f };
-    const Vec3 r = m.Mult(v);
+    const Vec3 r = m.MultPoint(v);
     EXPECT_TRUE(r.IsEqualApprox({ 2.f, 3.f, 4.f }, kEps));
 }
 
@@ -933,7 +933,7 @@ TEST(Mtx4, RotationX_Transform)
 {
     // X축 +90도: +Y -> +Z
     const Mtx4 m = Mtx4::CreateRotationX(kHalfPiF);
-    const Vec3 r = m.Mult(Vec3::kUnitY);
+    const Vec3 r = m.MultPoint(Vec3::kUnitY);
     EXPECT_TRUE(Approx(r.x, 0.f, kEps));
     EXPECT_TRUE(Approx(r.y, 0.f, kEps));
     EXPECT_TRUE(Approx(r.z, 1.f, kEps));
@@ -943,7 +943,7 @@ TEST(Mtx4, RotationY_Transform)
 {
     // Y축 +90도: +Z -> +X
     const Mtx4 m = Mtx4::CreateRotationY(kHalfPiF);
-    const Vec3 r = m.Mult(Vec3::kUnitZ);
+    const Vec3 r = m.MultPoint(Vec3::kUnitZ);
     EXPECT_TRUE(Approx(r.x, 1.f, kEps));
     EXPECT_TRUE(Approx(r.y, 0.f, kEps));
     EXPECT_TRUE(Approx(r.z, 0.f, kEps));
@@ -953,7 +953,7 @@ TEST(Mtx4, RotationZ_Transform)
 {
     // Z축 +90도: +X -> +Y
     const Mtx4 m = Mtx4::CreateRotationZ(kHalfPiF);
-    const Vec3 r = m.Mult(Vec3::kUnitX);
+    const Vec3 r = m.MultPoint(Vec3::kUnitX);
     EXPECT_TRUE(Approx(r.x, 0.f, kEps));
     EXPECT_TRUE(Approx(r.y, 1.f, kEps));
     EXPECT_TRUE(Approx(r.z, 0.f, kEps));
@@ -962,9 +962,9 @@ TEST(Mtx4, RotationZ_Transform)
 TEST(Mtx4, Rotation_AxisInvariant)
 {
     // 회전축 위의 벡터는 어떤 각도로 회전해도 불변
-    EXPECT_TRUE(Mtx4::CreateRotationX(0.9f).Mult(Vec3::kUnitX).IsEqualApprox(Vec3::kUnitX, kEps));
-    EXPECT_TRUE(Mtx4::CreateRotationY(0.9f).Mult(Vec3::kUnitY).IsEqualApprox(Vec3::kUnitY, kEps));
-    EXPECT_TRUE(Mtx4::CreateRotationZ(0.9f).Mult(Vec3::kUnitZ).IsEqualApprox(Vec3::kUnitZ, kEps));
+    EXPECT_TRUE(Mtx4::CreateRotationX(0.9f).MultPoint(Vec3::kUnitX).IsEqualApprox(Vec3::kUnitX, kEps));
+    EXPECT_TRUE(Mtx4::CreateRotationY(0.9f).MultPoint(Vec3::kUnitY).IsEqualApprox(Vec3::kUnitY, kEps));
+    EXPECT_TRUE(Mtx4::CreateRotationZ(0.9f).MultPoint(Vec3::kUnitZ).IsEqualApprox(Vec3::kUnitZ, kEps));
 }
 
 TEST(Mtx4, FromAxisAngle_MatchesRotationY)
@@ -1086,8 +1086,8 @@ TEST(Mtx4, Multiply_Order_RowMajor)
     const Mtx4 B = Mtx4::CreateTranslation({ 10.f, 0.f, 0.f });
     const Vec3 v { 1.f, 0.f, 0.f };
 
-    const Vec3 r1 = (A * B).Mult(v);
-    const Vec3 r2 = B.Mult(A.Mult(v));
+    const Vec3 r1 = (A * B).MultPoint(v);
+    const Vec3 r2 = B.MultPoint(A.MultPoint(v));
     EXPECT_TRUE(r1.IsEqualApprox(r2, kEps));
 
     // A(회전)가 먼저: (1,0,0) -> (0,1,0), 그 다음 B(평행이동): (10,1,0)
@@ -1144,7 +1144,7 @@ TEST(Mtx4, CreateSRT_TranslationRow)
     EXPECT_TRUE(Approx(m.m[3][3], 1.f));
 
     // 원점 (0,0,0,1) 변환 시 translation이 그대로 나와야 함
-    const Vec3 t = m.Mult(Vec3::kZero);
+    const Vec3 t = m.MultPoint(Vec3::kZero);
     EXPECT_TRUE(t.IsEqualApprox(trans, kEps));
 }
 
@@ -1230,7 +1230,7 @@ TEST(Mtx4, PerspectiveFov_FarPlaneMapsToOne)
 TEST(Mtx4, Ortho_Center)
 {
     constexpr float w = 800.f, h = 600.f, n = 0.f, f = 1000.f;
-    const Mtx4      p = Mtx4::CreateOrtho(w, h, n, f);
+    const Mtx4      p = Mtx4::MakeOrtho(w, h, n, f);
 
     // 화면 중심(x=0, y=0) -> NDC (0, 0)
     const Vec4 center { 0.f, 0.f, 0.f, 1.f };
@@ -1242,7 +1242,7 @@ TEST(Mtx4, Ortho_Center)
 TEST(Mtx4, Ortho_NearFarMapping)
 {
     constexpr float w = 800.f, h = 600.f, n = 0.f, f = 100.f;
-    const Mtx4      p = Mtx4::CreateOrtho(w, h, n, f);
+    const Mtx4      p = Mtx4::MakeOrtho(w, h, n, f);
 
     // near -> 0, far -> 1
     const Vec4 pn { 0.f, 0.f, n, 1.f };
@@ -1260,7 +1260,7 @@ TEST(Mtx4, LookAt_ForwardTowardsTarget)
     const Mtx4 view = Mtx4::CreateLookAt(eye, target, up);
 
     // eye 자체를 변환하면 원점이 되어야 함
-    const Vec3 transformedEye = view.Mult(eye);
+    const Vec3 transformedEye = view.MultPoint(eye);
     EXPECT_TRUE(transformedEye.IsEqualApprox(Vec3::kZero, kLooseEps));
 }
 
@@ -1271,7 +1271,7 @@ TEST(Mtx4, LookAt_TargetOnForwardAxis)
     const Vec3 target { 0.f, 0.f, 0.f };
     const Mtx4 view = Mtx4::CreateLookAt(eye, target, Vec3::kUnitY);
 
-    const Vec3 viewTarget = view.Mult(target);
+    const Vec3 viewTarget = view.MultPoint(target);
     EXPECT_TRUE(Approx(viewTarget.x, 0.f, kLooseEps));
     EXPECT_TRUE(Approx(viewTarget.y, 0.f, kLooseEps));
     EXPECT_GT(viewTarget.z, 0.f);   // +Z (왼손)
@@ -1287,7 +1287,7 @@ TEST(Mtx4, Vec3Transform_PerspectiveDivide)
     const Mtx4 m = s * t;
 
     const Vec3 v { 1.f, 0.f, 0.f };
-    const Vec3 r = m.Mult(v);
+    const Vec3 r = m.MultPoint(v);
     // 스케일 먼저(2), 그 다음 이동(+10) → 12
     EXPECT_TRUE(Approx(r.x, 12.f, kEps));
     EXPECT_TRUE(Approx(r.y, 0.f, kEps));
@@ -1309,7 +1309,7 @@ TEST(Mtx4, Vec4Transform_NoPerspectiveDivide)
 TEST(Mtx4, Vec3TransformAssign)
 {
     Vec3 v { 1.f, 2.f, 3.f };
-    v = Mtx4::CreateTranslation({ 10.f, 20.f, 30.f }).Mult(v);
+    v = Mtx4::CreateTranslation({ 10.f, 20.f, 30.f }).MultPoint(v);
     EXPECT_TRUE(v.IsEqualApprox({ 11.f, 22.f, 33.f }, kEps));
 }
 
@@ -1327,7 +1327,7 @@ TEST(Cross, QuatRotate_MatchesMatrix)
 
     const Vec3 v { 1.f, 2.f, 3.f };
     const Vec3 rq = q.Rotate(v);
-    const Vec3 rm = m.Mult(v);
+    const Vec3 rm = m.MultPoint(v);
 
     EXPECT_TRUE(rq.IsEqualApprox(rm, kLooseEps));
 }
@@ -1348,7 +1348,7 @@ TEST(Cross, QuatComposition_MatchesMatrixMultiply)
 
     const Vec3 v { 1.f, 2.f, 3.f };
     const Vec3 rq = qComposed.Rotate(v);
-    const Vec3 rm = mComposed.Mult(v);
+    const Vec3 rm = mComposed.MultPoint(v);
     EXPECT_TRUE(rq.IsEqualApprox(rm, kLooseEps));
 }
 

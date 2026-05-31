@@ -76,7 +76,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableUnitySupport>false</EnableUnitySupport>
     <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'" Label="Configuration">
@@ -84,7 +84,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableUnitySupport>false</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -92,7 +92,7 @@
     <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableUnitySupport>false</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -100,7 +100,7 @@
     <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableUnitySupport>false</EnableUnitySupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -406,11 +406,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Algorithm.cpp" />
     <ClCompile Include="Bit.cpp" />
+    <ClCompile Include="CharEncoder.cpp" />
+    <ClCompile Include="CharTraits.cpp" />
     <ClCompile Include="CppHlslGlue.cpp" />
+    <ClInclude Include="Algorithm.h" />
     <ClInclude Include="Bit.h" />
+    <ClInclude Include="CharEncoder.h" />
+    <ClInclude Include="CharTraits.h" />
     <ClInclude Include="CppHlslGlue.h" />
-    <ClCompile Include="DebugRenderer.cpp" />
     <ClCompile Include="Filter.cpp" />
     <ClCompile Include="Float16.cpp" />
     <ClCompile Include="MathConstant.cpp" />
@@ -420,14 +425,14 @@
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
+    <ClCompile Include="RingBufferIndex.cpp" />
     <ClCompile Include="SceneDatabase.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="Blob.cpp" />
-    <ClCompile Include="STLAlgorithm.cpp" />
     <ClCompile Include="Archive.cpp" />
     <ClCompile Include="Assertion.cpp" />
     <ClCompile Include="AssetCreationDialog.cpp" />
-    <ClCompile Include="CommandLineArgumentParser.cpp" />
+    <ClCompile Include="CommandLineParser.cpp" />
     <ClCompile Include="ComponentDatabase.cpp" />
     <ClCompile Include="ComponentMetadata.cpp" />
     <ClCompile Include="DirIter.cpp" />
@@ -447,9 +452,8 @@
     <ClCompile Include="MemoryIO.cpp" />
     <ClCompile Include="OrderedHashMap.cpp" />
     <ClCompile Include="PathIter.cpp" />
-    <ClCompile Include="Reference.cpp" />
     <ClCompile Include="SceneMetadata.cpp" />
-    <ClCompile Include="ConstexprStringHashMap.cpp" />
+    <ClCompile Include="CTCStringHashMap.cpp" />
     <ClCompile Include="EnumUtilities.cpp" />
     <ClCompile Include="CleanUp.cpp" />
     <ClCompile Include="File.cpp" />
@@ -467,7 +471,6 @@
     <ClCompile Include="EditorIcons.cpp" />
     <ClCompile Include="MaterialCreationDialog.cpp" />
     <ClCompile Include="PrimitiveCreationDialog.cpp" />
-    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="DialogStack.cpp" />
     <ClCompile Include="EditorStyle.cpp" />
     <ClCompile Include="EditorUtilities.cpp" />
@@ -490,10 +493,14 @@
     <ClCompile Include="Optional.cpp" />
     <ClCompile Include="Scoped.cpp" />
     <ClCompile Include="Signal.cpp" />
-    <ClCompile Include="StackString.cpp" />
+    <ClCompile Include="StaticRingBuffer.cpp" />
+    <ClCompile Include="StaticString.cpp" />
     <ClCompile Include="STL.cpp" />
     <ClCompile Include="String.cpp" />
+    <ClCompile Include="StringBase.cpp" />
+    <ClCompile Include="StringHasher.cpp" />
     <ClCompile Include="StringKeyContainers.cpp" />
+    <ClCompile Include="StringView.cpp" />
     <ClCompile Include="SVGImporter.cpp" />
     <ClCompile Include="TextureFormat.cpp" />
     <ClCompile Include="HistoryStack.cpp" />
@@ -534,8 +541,6 @@
     <ClCompile Include="TagComponent.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
     <ClCompile Include="ThumbnailCache.cpp" />
-    <ClCompile Include="TinyRingBuffer.cpp" />
-    <ClCompile Include="TinyVector.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="DataType.cpp" />
     <ClCompile Include="Event.cpp" />
@@ -614,7 +619,6 @@
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DebugRenderer.h" />
     <ClInclude Include="Filter.h" />
     <ClInclude Include="Float16.h" />
     <ClInclude Include="MathConstant.h" />
@@ -624,16 +628,16 @@
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="RenderGraph.h" />
+    <ClInclude Include="RingBufferIndex.h" />
     <ClInclude Include="SceneDatabase.h" />
     <ClInclude Include="Blob.h" />
-    <ClInclude Include="STLAlgorithm.h" />
     <ClInclude Include="Archive.h" />
     <ClInclude Include="Assertion.h" />
     <ClInclude Include="AssetCreationDialog.h" />
-    <ClInclude Include="CommandLineArgumentParser.h" />
+    <ClInclude Include="CommandLineParser.h" />
     <ClInclude Include="ComponentDatabase.h" />
     <ClInclude Include="ComponentMetadata.h" />
-    <ClInclude Include="ConstexprStringHashMap.h" />
+    <ClInclude Include="CTCStringHashMap.h" />
     <ClInclude Include="DirIter.h" />
     <ClInclude Include="EditorEvents.h" />
     <ClInclude Include="EnumArray.h" />
@@ -667,7 +671,6 @@
     <ClInclude Include="OrderedHashMap.h" />
     <ClInclude Include="PathIter.h" />
     <ClInclude Include="PrimitiveCreationDialog.h" />
-    <ClInclude Include="Debug.h" />
     <ClInclude Include="DialogStack.h" />
     <ClInclude Include="EditorIcons.h" />
     <ClInclude Include="EditorStyle.h" />
@@ -685,7 +688,6 @@
     <ClInclude Include="EnvironmentComponent.h" />
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="GeometryUtilities.h" />
-    <ClInclude Include="Reference.h" />
     <ClInclude Include="RenameFileDialog.h" />
     <ClInclude Include="LRUCache.h" />
     <ClInclude Include="Octree.h" />
@@ -693,10 +695,14 @@
     <ClInclude Include="SceneMetadata.h" />
     <ClInclude Include="Scoped.h" />
     <ClInclude Include="Signal.h" />
-    <ClInclude Include="StackString.h" />
+    <ClInclude Include="StaticRingBuffer.h" />
+    <ClInclude Include="StaticString.h" />
     <ClInclude Include="STL.h" />
     <ClInclude Include="String.h" />
+    <ClInclude Include="StringBase.h" />
+    <ClInclude Include="StringHasher.h" />
     <ClInclude Include="StringKeyContainers.h" />
+    <ClInclude Include="StringView.h" />
     <ClInclude Include="SVGImporter.h" />
     <ClInclude Include="TextureFormat.h" />
     <ClInclude Include="HistoryStack.h" />
@@ -726,8 +732,6 @@
     <ClInclude Include="Profile.h" />
     <ClInclude Include="RadixSort.h" />
     <ClInclude Include="ThumbnailCache.h" />
-    <ClInclude Include="TinyRingBuffer.h" />
-    <ClInclude Include="TinyVector.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="ResourcePool.h" />
     <ClInclude Include="SceneManager.h" />

@@ -9,7 +9,7 @@ template<auto Func>
 [[nodiscard]] constexpr UInt64 FuncHashOf()
 {
     constexpr StringView name { JAM_PRETTY_FUNCTION };
-    return name.Hash64();
+    return name.Hash();
 }
 
 template<auto Func, typename TCaller>
@@ -19,7 +19,7 @@ template<auto Func, typename TCaller>
     constexpr UInt64 funcHash   = FuncHashOf<Func>();
     const UInt64     callerAddr = reinterpret_cast<UInt64>(pInst);
 
-    Murmur3Hasher64 hasher {};
+    Murmur3Hasher hasher {};
     hasher.Mix(AsMemoryView(funcHash));
     hasher.Mix(AsMemoryView(callerAddr));
     return hasher.Finish();
@@ -30,7 +30,7 @@ template<typename TCallable>
 [[nodiscard]] UInt64 FuncHashOf(const TCallable&)   // 추론 기반
 {
     constexpr StringView name { JAM_PRETTY_FUNCTION };
-    return name.Hash64();
+    return name.Hash();
 }
 
 }   // namespace Jam

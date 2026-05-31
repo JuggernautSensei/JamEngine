@@ -1,7 +1,4 @@
 #pragma once
-#include <ghc/filesystem.hpp>
-
-#include "StackString.h"
 
 namespace Jam
 {
@@ -15,7 +12,6 @@ public:
     using StringT     = BasicString<CharT>;
     using StringViewT = BasicStringView<CharT>;
     using CharTraits  = CharTraits<CharT>;
-    using CharFuncs   = CharFuncs<CharT>;
 
 private:
     class Impl : public RefCounted
@@ -112,8 +108,7 @@ private:
         {
             JAM_ASSERT(_dir.IsDirectory(), "DirIterBase can only be constructed with a directory m_workingDir.");
 
-            PathStackWString path;
-            path.Encode(_dir);
+            WString path = WString::Encoded(_dir);
             path.AppendEncode("*");   // search pattern: all files in the directory
 
             WIN32_FIND_DATAW data = {};

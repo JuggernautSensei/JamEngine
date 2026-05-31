@@ -50,7 +50,7 @@ void SceneNode::SetParent(
     m_parent              = _parent;
     SceneNode& parentNode = m_parent.GetSceneNode();
 
-    // 본 노드가 부모의 새로운 첫 번째 노드가 됨
+    // 현 노드가 부모의 새로운 첫 번째 노드가 됨
     Entity oldFirstChild    = parentNode.m_firstChild;
     parentNode.m_firstChild = m_owner;
     m_nextSibling           = oldFirstChild;
@@ -158,42 +158,69 @@ Entity SceneNode::GetPrevSibling() const
     return m_prevSibling;
 }
 
-const Transform& SceneNode::GetLocalTransform() const
+const Transform& SceneNode::GetLocal() const
 {
     return m_local;
 }
 
-const Transform& SceneNode::GetWorldTransform() const
+const Transform& SceneNode::GetWorld() const
 {
     return m_world;
 }
 
-Transform& SceneNode::ModifyLocalTransform()
+void SceneNode::SetLocal(const Transform& _local)
+{
+    m_local = _local;
+    m_dirty = eDirty::WorldNeedUpdate;
+    NotifyDirty_();
+}
+
+void SceneNode::SetWorld(const Transform& _world)
+{
+    m_world = _world;
+    m_dirty = eDirty::LocalNeedUpdate;
+    NotifyDirty_();
+}
+
+Transform& SceneNode::ModifyLocal()
 {
     m_dirty = eDirty::WorldNeedUpdate;
     NotifyDirty_();
     return m_local;
 }
 
-Transform& SceneNode::ModifyWorldTransform()
+Transform& SceneNode::ModifyWorld()
 {
     m_dirty = eDirty::LocalNeedUpdate;
     NotifyDirty_();
     return m_world;
 }
 
+void SceneNode::UpdateGraph()
+{
+    JAM_ASSERT(IsRoot(), "UpdateSceneGraph with _updatedEntities parameter should be called on root node only, to avoid duplicates in _updatedEntities");
+
+    UpdateTree_Recursive_(nullptr);
+}
+
+void SceneNode::UpdateGraph(Vector<Entity>& _updatedEntities)
+{
+    JAM_ASSERT(IsRoot(), "UpdateSceneGraph with _updatedEntities parameter should be called on root node only, to avoid duplicates in _updatedEntities");
+
+    _updatedEntities.clear();
+    UpdateTree_Recursive_(&_updatedEntities);
+}
+
 void SceneNode::NotifyDirty_()
 {
-    // bottom-up 방식으로 부모에게 알림
-    if (m_parent)   // else: root node
+    if (m_parent)
     {
-        SceneNode& parentNode = m_parent.GetSceneNode();
-        if (parentNode.m_dirty == eDirty::None)   // 부모의 더티를 덮어쓰면 안됨
+        SceneNode& parent = m_parent.GetSceneNode();
+        if (parent.m_dirty == eDirty::None)
         {
-            parentNode.m_dirty = eDirty::ChildDirty;
-            parentNode.NotifyDirty_();
+            parent.m_dirty = eDirty::ChildDirty;
+            parent.NotifyDirty_();
         }
-        // else: already dirty
     }
 }
 
@@ -235,61 +262,59 @@ void SceneNode::ReleaseParent_()
     m_prevSibling = Entity::kNull;
 }
 
-void SceneNode::UpdateSceneGraph(Vector<Entity>& _updatedEntities)
-{
-    _updatedEntities.clear();
-    UpdateSceneGraph_Recursive_(_updatedEntities);
-}
-
-void SceneNode::UpdateSceneGraph_Recursive_(Vector<Entity>& _updatedNodes)
+void SceneNode::UpdateTree_Recursive_(Vector<Entity>* _pUpdatedEntitiesOrNull)
 {
     if (m_dirty == eDirty::None)
     {
         return;
     }
 
+    bool bChanged = false;
     if (m_dirty == eDirty::LocalNeedUpdate)
     {
         if (HasParent())
         {
             // update local based on world
-            const SceneNode& parentNode  = m_parent.GetSceneNode();
-            const Transform& parentWt    = parentNode.GetWorldTransform();
-            const Transform  parentWtInv = parentWt.Inverse();
-            m_local                      = m_world.Mult(parentWtInv);
+            const SceneNode& parentNode     = m_parent.GetSceneNode();
+            const Transform& parentWorld    = parentNode.GetWorld();
+            const Transform  parentWorldInv = parentWorld.Inverse();
+            m_local                         = m_world.Mult(parentWorldInv);
         }
         else
         {
             // root
             m_local = m_world;
         }
-
-        _updatedNodes.emplace_back(m_owner);
+        bChanged = true;
     }
     else if (m_dirty == eDirty::WorldNeedUpdate)
     {
         if (HasParent())
         {
             // update world based on local
-            const SceneNode& parentNode = m_parent.GetSceneNode();
-            const Transform& parentWt   = parentNode.GetWorldTransform();
-            m_world                     = m_local.Mult(parentWt);
+            const SceneNode& parentNode  = m_parent.GetSceneNode();
+            const Transform& parentWorld = parentNode.GetWorld();
+            m_world                      = m_local.Mult(parentWorld);
         }
         else
         {
             // root
             m_world = m_local;
         }
-
-        _updatedNodes.emplace_back(m_owner);
+        bChanged = true;
     }
     // else: ChildDirty -> do nothing for self
+
+    if (bChanged && _pUpdatedEntitiesOrNull)
+    {
+        _pUpdatedEntitiesOrNull->emplace_back(m_owner);
+    }
 
     Entity child = m_firstChild;
     while (child)
     {
-        // 부모가 직접적으로 변경되었을경우 (= ChildDirty가 아닌 경우). 자식의 월드 갱신이 필요함
-        // 단, 자식이 월드를 변경했을 경우 (= LocalNeedUpdate) 는 제외. 자식의 변경을 존중
+        // 부모가 직접적으로 변경되었을 경우 자식의 월드 갱신이 필요함
+        // 단, 자식이 월드를 변경했을 경우는 제외. 자식의 변경을 존중
         SceneNode& childNode = child.GetSceneNode();
         if (m_dirty != eDirty::ChildDirty && childNode.m_dirty != eDirty::LocalNeedUpdate)
         {
@@ -297,7 +322,7 @@ void SceneNode::UpdateSceneGraph_Recursive_(Vector<Entity>& _updatedNodes)
         }
 
         // recursive update
-        childNode.UpdateSceneGraph_Recursive_(_updatedNodes);
+        childNode.UpdateTree_Recursive_(_pUpdatedEntitiesOrNull);
         child = childNode.m_nextSibling;
     }
 

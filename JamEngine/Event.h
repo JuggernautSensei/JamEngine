@@ -16,7 +16,7 @@ public:
 
     [[nodiscard]] virtual String     ToString() const    = 0;
     [[nodiscard]] virtual StringView GetTypeName() const = 0;
-    [[nodiscard]] virtual UInt32     GetTypeHash() const = 0;
+    [[nodiscard]] virtual UInt64     GetTypeHash() const = 0;
 
     [[nodiscard]] bool IsHandled() const;
     void               SetHandled(bool _bHandled);
@@ -25,15 +25,15 @@ private:
     bool m_bHandled = false;
 };
 
-#define JAM_EVENT_BODY(_eventT)                                                     \
-public:                                                                             \
+#define JAM_EVENT_BODY(_eventT)                                                    \
+public:                                                                            \
     constexpr static StringView kTypeName = NameOf<_eventT>();                     \
-    constexpr static UInt32     kTypeHash = HashOf<_eventT>();                     \
+    constexpr static UInt64     kTypeHash = HashOf<_eventT>();                     \
     [[nodiscard]] StringView    GetTypeName() const override { return kTypeName; } \
-    [[nodiscard]] UInt32        GetTypeHash() const override { return kTypeHash; } \
-    constexpr static bool       __JAM_EVENT_MARKER__ = true;                        \
-                                                                                    \
-private:                                                                            \
+    [[nodiscard]] UInt64        GetTypeHash() const override { return kTypeHash; } \
+    constexpr static bool       __JAM_EVENT_MARKER__ = true;                       \
+                                                                                   \
+private:                                                                           \
     static_assert(true)   // for semicolon after the macro
 
 template<typename TEvent>
@@ -95,7 +95,7 @@ public:
 
 private:
     Event* m_event    = nullptr;
-    UInt32 m_typeHash = 0;
+    UInt64 m_typeHash = 0;
 };
 
 }   // namespace Jam

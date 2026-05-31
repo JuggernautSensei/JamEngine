@@ -42,3 +42,13 @@ Int32 SampleCollector::GetOffset() const
 {
     return m_offset;
 }
+
+void SampleCollector::Reset()
+{
+
+    m_samples.fill(0);
+    m_offset = 0;
+    m_num    = 0;
+    m_sum    = 0.f;
+    m_avg    = 0.f;
+}

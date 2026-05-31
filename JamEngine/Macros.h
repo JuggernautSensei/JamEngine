@@ -32,4 +32,6 @@
 #define JAM_STRINGIFY_MACRO(x) #x
 #define JAM_EXPAND_MACRO(x)    x
 
+#define JAM_FASTFAIL() __fastfail(7)
+
 // #define JAM_DEBUG_BREAK_ALLOC xxx // set a breakpoint when a specific allocation number is allocated, only works in debug mode with Visual Studio

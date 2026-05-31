@@ -13,6 +13,7 @@
 #include "SceneComponent.h"
 #include "SceneDatabase.h"
 #include "SceneNode.h"
+#include "WindowsPlatform.h"
 
 namespace Jam
 {
@@ -45,9 +46,9 @@ void SceneManager::Update(
 
 void SceneManager::RenderRuntime() const
 {
-    Graphics&      gfx = GetGraphics();
-    const Vec2i    res = gfx.GetBackBufferResolution();
-    const Viewport vp  = { static_cast<UInt16>(res.x), static_cast<UInt16>(res.y) };
+    Graphics&         gfx = GetGraphics();
+    const BackBuffer& bb  = gfx.GetBackBuffer();
+    const Viewport    vp  = { static_cast<UInt16>(bb.width), static_cast<UInt16>(bb.height) };
     RenderRuntime(kInvalidHandle, vp);
 }
 
@@ -68,11 +69,11 @@ void SceneManager::RenderRuntime(
         {
             if (cc.bEnabled)
             {
-                const Transform& transW = sc.node.GetWorldTransform();
+                const Transform& transW = sc.node.GetWorld();
                 const Camera&    cmr    = cc.camera;
 
                 view.eye  = transW.GetTranslation();
-                view.view = transW.CalcInvSRT();
+                view.view = transW.GetInvSRT();
                 view.proj = cmr.GetProj();
                 break;
             }
@@ -107,14 +108,14 @@ void SceneManager::ImGuiRender() const
 
 void SceneManager::LoadScene(
     Scoped<Scene>&& _pScene,
-    const bool      _bDefered)
+    const bool      _bDeferred)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
     JAM_ASSERT(GetSceneDatabase().IsSceneReflected(_pScene->GetTypeHash()), "Scene type is not reflected in the database");
 
-    if (_bDefered)
+    if (_bDeferred)
     {
-        ChangeSceneDefered_(std::move(_pScene));
+        ChangeSceneDeferred_(std::move(_pScene));
     }
     else
     {
@@ -136,6 +137,15 @@ Scene* SceneManager::GetActiveScene() const
 Scene* SceneManager::GetActiveSceneOrNull() const
 {
     return m_pScene ? m_pScene.GetPtr() : nullptr;
+}
+
+SceneManager::SceneManager()
+{
+    Application& app = GetApp();
+    if (app.IsAppInitFlagsEnabled(eAppInitFlags::Subsystem_Editor))
+    {
+        m_bManageSceneResize = false;   // 에디터에서는 씬 메니저가 아닌, 에디터가 창 크기 변경 이벤트를 받아서 씬의 Resize 함수를 호출하도록 함
+    }
 }
 
 SceneManager::~SceneManager()
@@ -161,7 +171,8 @@ void SceneManager::DestroyInstance()
 void SceneManager::OnEvent(
     Event& _event)
 {
-    if (!GetApp().IsCoreFlagsEnabled(eAppCoreFlags::Editor))   // runtime mode
+    const Application& app = GetApp();
+    if (!app.IsAppInitFlagsEnabled(eAppInitFlags::Subsystem_Editor))   // runtime mode
     {
         // handle window events in runtime mode
         EventDispatcher dispatcher { _event };
@@ -178,20 +189,27 @@ void SceneManager::OnEvent(
 void SceneManager::OnWindowResizedEvent_(
     const WindowResizedEvent& _event) const
 {
-    Resize(_event.GetWidth(), _event.GetHeight());
+    if (m_bManageSceneResize)
+    {
+        Resize(_event.GetWidth(), _event.GetHeight());
+    }
 }
 
 void SceneManager::OnWindowMaximizeEvent_(
     const WindowMaximizedEvent& _event) const
 {
-    Resize(_event.GetWidth(), _event.GetHeight());
+    if (m_bManageSceneResize)
+    {
+        Resize(_event.GetWidth(), _event.GetHeight());
+    }
 }
 
-void SceneManager::ChangeSceneDefered_(
+void SceneManager::ChangeSceneDeferred_(
     Scoped<Scene>&& _pScene)
 {
-    m_pNextScene = std::move(_pScene);
-    GetApp().SubmitCommandToMainThread(Bind<&SceneManager::ChangeToNextScene_>(this));
+    m_pNextScene     = std::move(_pScene);
+    Application& app = GetApp();
+    app.SubmitCommandToMainThread(Bind<&SceneManager::ChangeToNextScene_>(this));
 }
 
 void SceneManager::ChangeScene_(
@@ -206,23 +224,24 @@ void SceneManager::ChangeScene_(
     m_pScene->OnEnter();
 
     // resize in runtime.
-    Application& app = GetApp();
-    if (!app.IsCoreFlagsEnabled(eAppCoreFlags::Editor))   // runtime mode
+    if (m_bManageSceneResize)
     {
-        Graphics&   gfx = GetGraphics();
-        const Vec2i res = gfx.GetBackBufferResolution();
-        Resize(res.x, res.y);
+        WindowsPlatform& win        = GetWindowsPlatform();
+        const Vec2i      resolution = win.GetClientResolution();
+        Resize(resolution.width, resolution.height);
     }
 
     // resource garbage collection
-    if (app.IsCoreFlagsEnabled(eAppCoreFlags::AssetManager))
+    Application& app = GetApp();
+    if (app.IsAppInitFlagsEnabled(eAppInitFlags::Subsystem_AssetManager))
     {
-        GetAssetManager().CleanGarbageAll();
+        AssetManager& am = GetAssetManager();
+        am.CleanGarbageAll();
     }
 
     // dispatch scene changed event
     SceneChangedEvent event = {};
-    GetApp().DispatchEvent(event);
+    app.DispatchEvent(event);
 }
 
 void SceneManager::ChangeToNextScene_()

@@ -76,7 +76,7 @@ static void BM_CreateSRT_Separate(benchmark::State& state)
     {
         const Jam::Mtx4 S      = Jam::Mtx4::CreateScale(kScale);
         const Jam::Mtx4 R      = Jam::Mtx4::FromQuaternion(kQuat);
-        const Jam::Mtx4 T      = Jam::Mtx4::CreateTranslation(kTranslation);
+        const Jam::Mtx4 T      = Jam::Mtx4::MakeTranslation(kTranslation);
         const Jam::Mtx4 result = S * R * T;
         benchmark::DoNotOptimize(result);
     }

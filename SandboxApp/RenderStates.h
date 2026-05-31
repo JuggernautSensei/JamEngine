@@ -44,10 +44,6 @@ constexpr Flags<eRenderFlags> kSkyboxRenderFlags =
     | eRenderFlags::DepthWrite
     | eRenderFlags::CullMode_Front;
 
-constexpr Flags<eRenderFlags> kShadowCast =
-    eRenderFlags::DepthFunc_Less
-    | eRenderFlags::CullMode_Front;
-
 ////////// BLEND STATE /////////////////////////////////////////////////////////////////////////
 
 constexpr Flags<eBlendFlags> kOpaqueBlend =

@@ -2,14 +2,14 @@
 
 #include "WindowsUtilities.h"
 #include "WindowsPlatform.h"
-#include "StackString.h"
+
 
 #include <comdef.h>
 
 namespace Jam
 {
 
-String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCode _errorType)
+String MakeWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCode _errorType)
 {
     LPCVOID pSource = NULL;
     switch (_errorType)
@@ -53,7 +53,7 @@ String CreateWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCode _err
 
 String CreateWindowsLastErrorMessage()
 {
-    return CreateWindowsErrorMessage(GetLastError(), eWindowsErrorCode::Errno);
+    return MakeWindowsErrorMessage(GetLastError(), eWindowsErrorCode::Errno);
 }
 
 WString CreateWindowsErrorMessageW(

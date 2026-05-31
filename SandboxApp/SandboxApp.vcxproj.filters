@@ -40,9 +40,6 @@
     <Filter Include="15. SSAO">
       <UniqueIdentifier>{32cc3ff0-47e5-4dce-907d-7b3bfe54aa76}</UniqueIdentifier>
     </Filter>
-    <Filter Include="16. PostProcessing">
-      <UniqueIdentifier>{79b057c1-f794-4a21-98f3-8e2f5168b05b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="17. SSR">
       <UniqueIdentifier>{dcad46d1-4235-4eb5-9379-a3b625eac05c}</UniqueIdentifier>
     </Filter>
@@ -73,6 +70,15 @@
     <Filter Include="PostProcess\ImageFilter">
       <UniqueIdentifier>{e47fb6ff-89e0-4cce-a1c8-c61bcf307482}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Misc\ComputeShader">
+      <UniqueIdentifier>{72da2ff3-7c6e-4b45-930d-2a64e513f1cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="18. Skeleton Animation\16. PostProcessing">
+      <UniqueIdentifier>{79b057c1-f794-4a21-98f3-8e2f5168b05b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Misc\FXAA">
+      <UniqueIdentifier>{6ec9c269-4bd3-4a5f-82d5-4b2812e19875}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandboxApp.cpp">
@@ -96,7 +102,7 @@
     <ClCompile Include="PBRScene.cpp">
       <Filter>05. PBR</Filter>
     </ClCompile>
-    <ClCompile Include="DeferedScene.cpp">
+    <ClCompile Include="DeferredScene.cpp">
       <Filter>06. Deferred</Filter>
     </ClCompile>
     <ClCompile Include="ShadowMappingScene.cpp">
@@ -120,11 +126,14 @@
     <ClCompile Include="SampleCollector.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="PostProcessManager.cpp">
+    <ClCompile Include="ImageFilterManager.cpp">
       <Filter>PostProcess</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeScene.cpp">
+      <Filter>Misc\ComputeShader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -149,7 +158,7 @@
     <ClInclude Include="PBRScene.h">
       <Filter>05. PBR</Filter>
     </ClInclude>
-    <ClInclude Include="DeferedScene.h">
+    <ClInclude Include="DeferredScene.h">
       <Filter>06. Deferred</Filter>
     </ClInclude>
     <ClInclude Include="ShadowMappingScene.h">
@@ -173,11 +182,14 @@
     <ClInclude Include="SampleCollector.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="PostProcessManager.h">
+    <ClInclude Include="ImageFilterManager.h">
       <Filter>PostProcess</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeScene.h">
+      <Filter>Misc\ComputeShader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -186,40 +198,34 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\PBRScene\PBRSceneShader.hlsl">
+    <FxCompile Include="Resources\PBRScene\PBRShader.hlsl">
       <Filter>05. PBR</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\PBRScene\PBRSceneToneMappingShader.hlsl">
+    <FxCompile Include="Resources\PBRScene\CubeMapShader.hlsl">
       <Filter>05. PBR</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\PBRScene\PBRSceneCubeMapShader.hlsl">
-      <Filter>05. PBR</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\TextureMappingScene\TextureMappingSceneShader.hlsl">
+    <FxCompile Include="Resources\TextureMappingScene\TextureMappingShader.hlsl">
       <Filter>04. TextureMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\MultiVertexStreamScene\MultiVertexStreamSceneShader.hlsl">
+    <FxCompile Include="Resources\MultiVertexStreamScene\MultiVertexStreamShader.hlsl">
       <Filter>03. MultiVertexStream</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\InstancingScene\InstancingScene_Instancing.hlsl">
+    <FxCompile Include="Resources\InstancingScene\InstancingShader.hlsl">
       <Filter>02. Instancing</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\InstancingScene\InstancingScene_NoInstancing.hlsl">
+    <FxCompile Include="Resources\InstancingScene\NoInstancingShader.hlsl">
       <Filter>02. Instancing</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\SimpleScene\SimpleSceneShader.hlsl">
+    <FxCompile Include="Resources\SimpleScene\SimpleShader.hlsl">
       <Filter>01. SimpleScene</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\DeferedScene\DeferedSceneLightingShader.hlsl">
+    <FxCompile Include="Resources\DeferedScene\LightingShader.hlsl">
       <Filter>06. Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\DeferedScene\DeferedSceneGBufferShader.hlsl">
+    <FxCompile Include="Resources\DeferedScene\GbufferShader.hlsl">
       <Filter>06. Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\DeferedScene\DeferedSceneCombineShader.hlsl">
-      <Filter>06. Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneGBufferShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\GBufferShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalWithWITShader.hlsl">
@@ -237,28 +243,19 @@
     <FxCompile Include="Resources\Misc\DebugNormalScene\DebugNormalSceneDrawNormalNoWITShader.hlsl">
       <Filter>Misc\DebugNormal</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneOmniShadowReceiveShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\OmniShadowReceiverShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneSpotShadowCastShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\ShadowCasterShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneSpotShadowReceiveShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\SpotShadowReceiverShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneDirectionalShadowCastShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\DirectionalShadowReceiverShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneDirectionalShadowReceiveShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneOmniShadowCastShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneCommon.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\ShadowMappingSceneCombineShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\Common.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
     <FxCompile Include="Resources\ImageFilter\BlitShader.hlsl">
@@ -271,6 +268,75 @@
       <Filter>PostProcess\ImageFilter</Filter>
     </FxCompile>
     <FxCompile Include="Resources\ImageFilter\MixShader.hlsl">
+      <Filter>PostProcess\ImageFilter</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ImageFilter\ToneMappingShader.hlsl">
+      <Filter>PostProcess\ImageFilter</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ImageFilter\MultiplyShader.hlsl">
+      <Filter>PostProcess\ImageFilter</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\HelloComputeShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\AddConstantShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\AddTwoBuffersShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\FlattenShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\GradiateShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\GrayScaleShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\ThreadGroupVisualizeShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\BoundsCheckShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\BlockSumShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\InterlockedAddShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\NagativeShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\ThresholdingShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\1DBoxBlurShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\FindMaxShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\ParalleReductionShader1.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\ParalleReductionShader2.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\GaussianBlurShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ComputeScene\GrayScaleHistogramShader.hlsl">
+      <Filter>Misc\ComputeShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\DebugLightCubeShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ShadowMappingScene\OmniShadowCasterShader.hlsl">
+      <Filter>07. ShadowMapping</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\ImageFilter\FXAAShader.hlsl">
       <Filter>PostProcess\ImageFilter</Filter>
     </FxCompile>
   </ItemGroup>

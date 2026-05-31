@@ -13,10 +13,19 @@ enum class eProjection
 
 class Camera
 {
+    enum class eDirtyFlags : UInt32
+    {
+        None    = 0,
+        Proj    = 1 << 0,
+        Frustum = 1 << 1,
+        All     = Proj | Frustum
+    };
+
 public:
     Camera() = default;
 
-    [[nodiscard]] const Mtx4& GetProj() const;
+    [[nodiscard]] const Mtx4&    GetProj() const;
+    [[nodiscard]] const Frustum& GetFrustum() const;
 
     void SetProjection(eProjection _projection);
     void SetNearZ(float _nearZ);
@@ -33,7 +42,6 @@ public:
     [[nodiscard]] float       GetFovYRad() const;
     [[nodiscard]] float       GetWidth() const;
     [[nodiscard]] float       GetHeight() const;
-    [[nodiscard]] bool        IsDirty() const;
 
     void  WriteToArchive(ArchiveWriter& _writer) const;
     Error ReadFromArchive(ArchiveReader& _reader);
@@ -53,8 +61,9 @@ private:
     float       m_width      = 1.f;
     float       m_height     = 1.f;
 
-    mutable bool m_bProjDirty = true;
-    mutable Mtx4 m_projCache  = Mtx4::kIdentity;
+    mutable Flags<eDirtyFlags> m_dirtyFlags = eDirtyFlags::All;
+    mutable Mtx4               m_projMtx    = Mtx4::kIdentity;
+    mutable Frustum            m_frustum    = {};
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Camera);

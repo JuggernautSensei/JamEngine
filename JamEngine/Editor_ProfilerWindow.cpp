@@ -39,8 +39,10 @@ void Editor_ProfilerWindow::OnImGuiRender(bool& _pShow) const
 void Editor_ProfilerWindow::DrawFrameTabItem_() const
 {
 
-    const float deltaTimeMs = GetApp().GetDeltaTimeSec() / 0.001f;
-    const float frameRate   = GetApp().GetFrameRate();
+    Application&     app         = GetApp();
+    const TickTimer& timer       = app.GetTimer();
+    const float      deltaTimeMs = timer.GetDeltaFloat(eSIPrefix::Milli);
+    const float      frameRate   = timer.GetFrequencyFloat();
 
     ImGui::Text("delta time: %.3f ms", deltaTimeMs);
     ImGui::Text("frame rate: %.1f fps", frameRate);
@@ -114,7 +116,7 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
         ImGui::Text("mouse delta wheel: %.1f", dWheel);
         for (const eMouseButton e: kMouseButtonRanges)
         {
-            const Int32  index    = UnderlyingFrom(e);
+            const Int32  index  = AsUnderlying(e);
             const eMouse button = kMouseButtons[index];
             eMouseState  state  = eMouseState::Away;
 
@@ -131,7 +133,7 @@ void Editor_ProfilerWindow::DrawInputTabItem_() const
                 state = eMouseState::Released;
             }
 
-            ImGui::Text("mouse %s: %s", kMouseNames[index], kMouseStateNames[UnderlyingFrom(state)]);
+            ImGui::Text("mouse %s: %s", kMouseNames[index], kMouseStateNames[AsUnderlying(state)]);
         }
 
         ImGui::Text("mouse visible: %s", bVisible ? "true" : "false");

@@ -138,7 +138,7 @@ StringView Texture::GetTypeName() const
     return kTypeName;
 }
 
-UInt32 Texture::GetTypeHash() const
+UInt64 Texture::GetTypeHash() const
 {
     return kTypeHash;
 }

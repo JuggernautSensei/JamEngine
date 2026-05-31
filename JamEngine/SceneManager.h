@@ -27,14 +27,14 @@ public:
     void Render(const RenderView& _view) const;
     void ImGuiRender() const;
 
-    void LoadScene(Scoped<Scene>&& _pScene, bool _bDefered = true);
+    void LoadScene(Scoped<Scene>&& _pScene, bool _bDeferred = true);
 
     [[nodiscard]] bool   HasActiveScene() const;
     [[nodiscard]] Scene* GetActiveScene() const;
     [[nodiscard]] Scene* GetActiveSceneOrNull() const;
 
 private:
-    SceneManager() = default;
+    SceneManager();
     ~SceneManager();
 
     static void CreateInstance();
@@ -44,12 +44,13 @@ private:
     void OnWindowResizedEvent_(const WindowResizedEvent& _event) const;
     void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event) const;
 
-    void ChangeSceneDefered_(Scoped<Scene>&& _pScene);
+    void ChangeSceneDeferred_(Scoped<Scene>&& _pScene);
     void ChangeScene_(Scoped<Scene>&& _pScene);
     void ChangeToNextScene_();
 
-    Scoped<Scene> m_pScene     = nullptr;
-    Scoped<Scene> m_pNextScene = nullptr;   // defered scene
+    Scoped<Scene> m_pScene             = nullptr;
+    Scoped<Scene> m_pNextScene         = nullptr;
+    bool          m_bManageSceneResize = true;
 
     inline static SceneManager* s_pInstance = nullptr;
     friend class Application;

@@ -13,7 +13,7 @@ public:
 
 void UpdateEntity(Entity e, Vector<Entity>& updated)
 {
-    e.GetSceneNode().UpdateSceneGraph(updated);
+    e.GetSceneNode().UpdateTree(updated);
 }
 
 }   // namespace

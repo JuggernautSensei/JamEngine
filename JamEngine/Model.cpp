@@ -223,7 +223,7 @@ StringView Model::GetTypeName() const
     return kTypeName;
 }
 
-UInt32 Model::GetTypeHash() const
+UInt64 Model::GetTypeHash() const
 {
     return kTypeHash;
 }

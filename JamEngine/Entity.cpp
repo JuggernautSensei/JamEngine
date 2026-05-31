@@ -7,8 +7,6 @@
 namespace Jam
 {
 
-const Entity Entity::kNull = Entity {};
-
 Entity::Entity(
     entt::registry&    _reg,
     const entt::entity _handle,
@@ -30,6 +28,11 @@ bool Entity::operator!=(
     const Entity _other) const
 {
     return !(*this == _other);
+}
+
+Entity::operator bool() const
+{
+    return IsValid();
 }
 
 bool Entity::IsValid() const
@@ -57,29 +60,36 @@ const SceneNode& Entity::GetSceneNode() const
     return m_pRegistry->get<SceneComponent>(m_handle).node;
 }
 
-Entity::operator bool() const
+const Transform& Entity::GetLocal() const
 {
-    return IsValid();
+    return GetSceneNode().GetLocal();
 }
 
-const Transform& Entity::GetWorldTransform() const
+void Entity::SetLocal(const Transform& _local)
 {
-    return GetSceneNode().GetWorldTransform();
+    GetSceneNode().SetLocal(_local);
 }
 
-Transform& Entity::ModifyWorldTransform()
+Transform& Entity::ModifyLocal()
 {
-    return GetSceneNode().ModifyWorldTransform();
+    return GetSceneNode().ModifyLocal();
 }
 
-const Transform& Entity::GetLocalTransform() const
+const Transform& Entity::GetWorld() const
 {
-    return GetSceneNode().GetLocalTransform();
+    return GetSceneNode().GetWorld();
 }
 
-Transform& Entity::ModifyLocalTransform()
+void Entity::SetWorld(const Transform& _world)
 {
-    return GetSceneNode().ModifyLocalTransform();
+    GetSceneNode().SetWorld(_world);
 }
+
+Transform& Entity::ModifyWorld()
+{
+    return GetSceneNode().ModifyWorld();
+}
+
+const Entity Entity::kNull = Entity {};
 
 }   // namespace Jam

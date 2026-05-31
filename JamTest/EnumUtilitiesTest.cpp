@@ -38,19 +38,19 @@ namespace NestedNamespace
 }   // namespace NestedNamespace
 
 // --- 1. UnderlyingFrom: Convert enum to underlying type ---
-TEST(EnumUtilitiesTest, UnderlyingFrom)
+TEST(EnumUtilitiesTest, AsUnderlying)
 {
-    EXPECT_EQ(UnderlyingFrom(eColor::Red), 0);
-    EXPECT_EQ(UnderlyingFrom(eColor::Green), 1);
-    EXPECT_EQ(UnderlyingFrom(eColor::Blue), 2);
+    EXPECT_EQ(AsUnderlying(eColor::Red), 0);
+    EXPECT_EQ(AsUnderlying(eColor::Green), 1);
+    EXPECT_EQ(AsUnderlying(eColor::Blue), 2);
 
-    EXPECT_EQ(UnderlyingFrom(eStatus::Idle), 0);
-    EXPECT_EQ(UnderlyingFrom(eStatus::Running), 1);
-    EXPECT_EQ(UnderlyingFrom(eStatus::Error), 4);
+    EXPECT_EQ(AsUnderlying(eStatus::Idle), 0);
+    EXPECT_EQ(AsUnderlying(eStatus::Running), 1);
+    EXPECT_EQ(AsUnderlying(eStatus::Error), 4);
 
     // Constexpr test
-    static_assert(UnderlyingFrom(eColor::Red) == 0);
-    static_assert(UnderlyingFrom(eStatus::Running) == 1);
+    static_assert(AsUnderlying(eColor::Red) == 0);
+    static_assert(AsUnderlying(eStatus::Running) == 1);
 }
 
 // --- 2. IsValid: Check if enum value is valid ---

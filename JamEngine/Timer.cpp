@@ -19,7 +19,7 @@ StringView StringFrom(
     }
 }
 
-double NsTo(
+double NsToDouble(
     const Int64     _ns,
     const eSIPrefix _unit)
 {
@@ -97,7 +97,7 @@ bool Timer::IsRunning() const
 
 double Timer::GetTotal(const eSIPrefix _unit) const
 {
-    return NsTo(m_totalNs, _unit);
+    return NsToDouble(m_totalNs, _unit);
 }
 
 float Timer::GetTotalFloat(
@@ -108,7 +108,7 @@ float Timer::GetTotalFloat(
 
 double Timer::GetInterval(const eSIPrefix _unit) const
 {
-    return NsTo(m_intervalNs, _unit);
+    return NsToDouble(m_intervalNs, _unit);
 }
 
 float Timer::GetIntervalFloat(
@@ -153,13 +153,23 @@ Int64 TickTimer::GetDeltaNs() const
 double TickTimer::GetDelta(
     const eSIPrefix _unit) const
 {
-    return NsTo(m_deltaNs, _unit);
+    return NsToDouble(m_deltaNs, _unit);
 }
 
 float TickTimer::GetDeltaFloat(
     const eSIPrefix _unit) const
 {
     return NsToFloat(m_deltaNs, _unit);
+}
+
+double TickTimer::GetFrequency() const
+{
+    return 1.f / GetDelta(eSIPrefix::Sec);
+}
+
+float TickTimer::GetFrequencyFloat() const
+{
+    return 1.f / GetDeltaFloat(eSIPrefix::Sec);
 }
 
 ScopedTimer::ScopedTimer(

@@ -30,7 +30,7 @@ public:
     [[nodiscard]] virtual bool       IsValid() const      = 0;
     [[nodiscard]] virtual eAsset     GetAssetType() const = 0;
     [[nodiscard]] virtual StringView GetTypeName() const  = 0;
-    [[nodiscard]] virtual UInt32     GetTypeHash() const  = 0;
+    [[nodiscard]] virtual UInt64 GetTypeHash() const = 0;
     [[nodiscard]] virtual StringView GetPath() const      = 0;
     [[nodiscard]] virtual StringView GetName() const      = 0;
     [[nodiscard]] virtual StringView GetExtension() const = 0;

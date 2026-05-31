@@ -11,9 +11,9 @@
 #include "SceneNode.h"
 #include "EditorWidgets.h"
 #include "Event.h"
-#include "StackString.h"
 #include "Model.h"
 #include "Events.h"
+#include "StaticString.h"
 
 namespace Jam
 {
@@ -50,7 +50,7 @@ void Editor_SceneHierarchyWindow::OnImGuiRender(
 
     // scene info
     {
-        
+
         ImGui::Text("scene type: %s", m_pScene->GetTypeName().GetPtr());
         ImGui::Text("entity count: %d", m_pScene->GetNumEntities());
     }
@@ -76,7 +76,7 @@ void Editor_SceneHierarchyWindow::OnImGuiRender(
         if (ImGui::BeginChild("EntityListPanel", ImGui::GetContentRegionAvail(), ImGuiChildFlags_Borders))
         {
             // draw entityItems
-            
+
             Widget_EntityItem_Recursive_(m_pScene->GetRootEntity());
 
             // window popup
@@ -167,16 +167,16 @@ void Editor_SceneHierarchyWindow::Widget_EntityItem_Recursive_(
     const bool bHasChildren = node.HasChildren();
     const bool bIsFocused   = _entity == GetEditor().GetFocusingEntityOrNull();
     const UID  uid          = _entity.GetUID();
-    const bool bHasTag      = _entity.HasComponent<TagComponent>();
+    const bool bHasTag      = _entity.HaveComponents<TagComponent>();
 
     // push id
     ImGui::PushID(static_cast<Int32>(uid.GetValue()));
 
     // set label
-    StackString<256> label;
+    StaticString<256> label;
     if (bHasTag)
     {
-        const TagComponent& tag = _entity.GetComponent<TagComponent>();
+        const TagComponent& tag = _entity.GetComponents<TagComponent>();
         label.Set(tag.name);
     }
     else
@@ -308,7 +308,7 @@ void Editor_SceneHierarchyWindow::Widget_CreateEntityButton_(
     ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("create", _btnSize))
     {
-        
+
         GetEditor().CreateEntity(m_pScene, Entity::kNull);
     }
 
@@ -325,8 +325,8 @@ void Editor_SceneHierarchyWindow::Widget_DeleteEntityButton_(
     ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("delete", _btnSize))
     {
-        
-        Entity            entity = GetEditor().GetFocusingEntityOrNull();
+
+        Entity entity = GetEditor().GetFocusingEntityOrNull();
         GetEditor().DestroyEntity(m_pScene, entity);
     }
 
@@ -343,8 +343,8 @@ void Editor_SceneHierarchyWindow::Widget_CloneEntityButton_(
     ImGui::SetNextItemShortcut(shortcut);
     if (ImGui::Button("clone", _btnSize))
     {
-        
-        Entity            entity = GetEditor().GetFocusingEntityOrNull();
+
+        Entity entity = GetEditor().GetFocusingEntityOrNull();
         GetEditor().CloneEntity(m_pScene, entity);
     }
 
@@ -363,7 +363,7 @@ void Editor_SceneHierarchyWindow::OnBeginDragDropTarget_EntityListPanel_() const
         {
             if (Expect<Ref<Model>> pModel = GetEditor().LoadModel(path))
             {
-                
+
                 GetEditor().CreateEntitiesFrom(m_pScene, pModel.GetValue());
             }
         }

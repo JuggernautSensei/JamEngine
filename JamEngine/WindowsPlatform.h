@@ -37,7 +37,6 @@ public:
 
     [[nodiscard]] Vec2i GetClientPos() const;
     [[nodiscard]] Vec2i GetClientResolution() const;
-    [[nodiscard]] Vec2i GetFullScreenResolution() const;
 
     [[nodiscard]] HWND      GetPlatformHandle() const;
     [[nodiscard]] HINSTANCE GetPlatformInstance() const;
@@ -61,9 +60,9 @@ private:
     HWND      m_hWnd      = NULL;
     MSG       m_msg       = {};
 
-    Vec2i                       m_clientPos        = { 0, 0 };
-    Vec2i                       m_clientRes        = { 0, 0 };
-    Flags<eWindowPropertyFlags> m_flags            = eWindowPropertyFlags::None;
+    Vec2i                       m_clientPos = { 0, 0 };
+    Vec2i                       m_clientRes = { 0, 0 };
+    Flags<eWindowPropertyFlags> m_flags     = eWindowPropertyFlags::None;
 
     constexpr static const wchar_t* kWinClassName     = L"JAM_ENGINE_APP_WINDOW_CLASS";
     constexpr static const wchar_t* kWinTitleName     = L"Jam Engine Application";

@@ -36,26 +36,30 @@ Vec3 Transform::GetBackward() const
     return m_rotation.Rotate(-Vec3::kUnitZ);
 }
 
-const Mtx4& Transform::GetSRT() const
+Mtx4 Transform::GetSRT() const
 {
-    if (m_bDirty)
+    if (m_dirtyFlags & eMatrixDirtyFlags::SRT)
     {
-        m_mtxCache = Mtx4::CreateSRT(m_scale, m_rotation, m_translation);
-        m_bDirty   = false;
+        m_cachedSRT = Mtx4::MakeSRT(m_scale, m_rotation, m_translation);
+        m_dirtyFlags.Disable(eMatrixDirtyFlags::SRT);
     }
-    return m_mtxCache;
+    return m_cachedSRT;
 }
 
-Mtx4 Transform::CalcInvSRT() const
+Mtx4 Transform::GetInvSRT() const
 {
-    return Mtx4::CreateInvSRT(m_scale, m_rotation, m_translation);
+    if (m_dirtyFlags & eMatrixDirtyFlags::InvSRT)
+    {
+        m_cachedInvSRT = Mtx4::MakeInvSRT(m_scale, m_rotation, m_translation);
+        m_dirtyFlags.Disable(eMatrixDirtyFlags::InvSRT);
+    }
+    return m_cachedInvSRT;
 }
 
 void Transform::SetSRT(const Mtx4& _srtMtx)
 {
     _srtMtx.DecomposeSRT(&m_scale, &m_rotation, &m_translation);
-    m_mtxCache = _srtMtx;
-    m_bDirty   = false;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 Transform Transform::Inverse() const
@@ -64,7 +68,7 @@ Transform Transform::Inverse() const
     ret.m_scale       = m_scale.RcpSafe();
     ret.m_rotation    = m_rotation.Conjugate();
     ret.m_translation = ret.m_rotation.Rotate(-m_translation) * ret.m_scale;
-    ret.m_bDirty      = true;
+
     return ret;
 }
 
@@ -74,7 +78,7 @@ Transform Transform::Mult(const Transform& _trans) const
     ret.m_translation = _trans.m_rotation.Rotate(m_translation * _trans.m_scale) + _trans.m_translation;
     ret.m_rotation    = m_rotation * _trans.m_rotation;
     ret.m_scale       = m_scale * _trans.m_scale;
-    ret.m_bDirty      = true;
+
     return ret;
 }
 
@@ -100,8 +104,8 @@ float Transform::GetScaleZ() const
 
 void Transform::SetScale(const Vec3 _xyz)
 {
-    m_scale  = _xyz;
-    m_bDirty = true;
+    m_scale = _xyz;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::SetScale(float _x, float _y, float _z)
@@ -117,19 +121,19 @@ void Transform::SetScale(const float _uniform)
 void Transform::SetScaleX(const float _x)
 {
     m_scale.x = _x;
-    m_bDirty  = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::SetScaleY(const float _y)
 {
     m_scale.y = _y;
-    m_bDirty  = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::SetScaleZ(const float _z)
 {
     m_scale.z = _z;
-    m_bDirty  = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::AddScale(const Vec3 _xyz)
@@ -188,7 +192,7 @@ Vec3 Transform::ToEuler() const
 void Transform::SetRotation(const Quat _q)
 {
     m_rotation = _q.Normalized();
-    m_bDirty   = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::SetRotation(const Vec3 _axis, const float _rad)
@@ -224,13 +228,13 @@ void Transform::SetLookTo(const Vec3 _f, const Vec3 _u)
         Vec4::kUnitW
     });
 
-    m_bDirty = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::AddRotation(const Quat _q)
 {
     m_rotation = (m_rotation * _q).Normalized();
-    m_bDirty   = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::AddRotation(const Vec3 _axis, const float _rad)
@@ -286,7 +290,7 @@ float Transform::GetTranslationZ() const
 void Transform::SetTranslation(const Vec3 _xyz)
 {
     m_translation = _xyz;
-    m_bDirty      = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::SetTranslation(float _x, float _y, float _z)
@@ -297,25 +301,25 @@ void Transform::SetTranslation(float _x, float _y, float _z)
 void Transform::SetTranslationX(const float _x)
 {
     m_translation.x = _x;
-    m_bDirty        = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::SetTranslationY(const float _y)
 {
     m_translation.y = _y;
-    m_bDirty        = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::SetTranslationZ(const float _z)
 {
     m_translation.z = _z;
-    m_bDirty        = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::AddTranslation(const Vec3 _xyz)
 {
     m_translation += _xyz;
-    m_bDirty = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::AddTranslation(float _x, float _y, float _z)
@@ -326,24 +330,19 @@ void Transform::AddTranslation(float _x, float _y, float _z)
 void Transform::AddTranslationX(const float _x)
 {
     m_translation.x += _x;
-    m_bDirty = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::AddTranslationY(const float _y)
 {
     m_translation.y += _y;
-    m_bDirty = true;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 void Transform::AddTranslationZ(const float _z)
 {
     m_translation.z += _z;
-    m_bDirty = true;
-}
-
-bool Transform::IsDirty() const
-{
-    return m_bDirty;
+    m_dirtyFlags |= eMatrixDirtyFlags::All;
 }
 
 }   // namespace Jam

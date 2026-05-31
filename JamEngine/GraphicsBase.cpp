@@ -9,7 +9,7 @@ namespace Jam
 
 namespace
 {
-    constexpr eTextureCreateFlags kTextureCreateFlagsMsaaMask = static_cast<eTextureCreateFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'1100'0000));   // [7:9]
+    constexpr eTextureFlags kTextureCreateFlagsMsaaMask = static_cast<eTextureFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1100'0000));   // [7:9]
 
     constexpr eRenderFlags kRenderFlagsPrimitiveMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
     constexpr eRenderFlags kRenderFlagsCullModeMask   = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1000));   // [3:4]
@@ -17,7 +17,7 @@ namespace
     constexpr eRenderFlags kRenderFlagsBlendMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1000'0000'0000));   // [11:12]
     constexpr eRenderFlags kRenderFlagsDepthMask      = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0011'1110'0000'0000'0000));   // [13:17] (DepthWrite 포함)
     constexpr eRenderFlags kRenderFlagsDepthFuncMask  = static_cast<eRenderFlags>(UINT32_C(0b0000'0000'0000'0001'1110'0000'0000'0000));   // [13:16]
-    constexpr UInt32       kRenderFlagsDepthFuncShift = UInt32CountRZero(UnderlyingFrom(kRenderFlagsDepthFuncMask));
+    constexpr UInt32       kRenderFlagsDepthFuncShift = UInt32CountRZero(AsUnderlying(kRenderFlagsDepthFuncMask));
 
     constexpr eBlendFlags kBlendFlagsSrcBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1110));   // [1:4]
     constexpr eBlendFlags kBlendFlagsDstBlendMask       = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1110'0000));   // [5:8]
@@ -25,30 +25,30 @@ namespace
     constexpr eBlendFlags kBlendFlagsSrcBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'0000'1111'0000'0000'0000));   // [12:15]
     constexpr eBlendFlags kBlendFlagsDstBlendAlphaMask  = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0000'1111'0000'0000'0000'0000));   // [16:19]
     constexpr eBlendFlags kBlendFlagsBlendOpAlphaMask   = static_cast<eBlendFlags>(UINT32_C(0b0000'0000'0111'0000'0000'0000'0000'0000));   // [20:22]
-    constexpr UInt32      kBlendFlagsSrcBlendShift      = UInt32CountRZero(UnderlyingFrom(kBlendFlagsSrcBlendMask));
-    constexpr UInt32      kBlendFlagsDstBlendShift      = UInt32CountRZero(UnderlyingFrom(kBlendFlagsDstBlendMask));
-    constexpr UInt32      kBlendFlagsBlendOpShift       = UInt32CountRZero(UnderlyingFrom(kBlendFlagsBlendOpMask));
-    constexpr UInt32      kBlendFlagsSrcBlendAlphaShift = UInt32CountRZero(UnderlyingFrom(kBlendFlagsSrcBlendAlphaMask));
-    constexpr UInt32      kBlendFlagsDstBlendAlphaShift = UInt32CountRZero(UnderlyingFrom(kBlendFlagsDstBlendAlphaMask));
-    constexpr UInt32      kBlendFlagsBlendOpAlphaShift  = UInt32CountRZero(UnderlyingFrom(kBlendFlagsBlendOpAlphaMask));
+    constexpr UInt32      kBlendFlagsSrcBlendShift      = UInt32CountRZero(AsUnderlying(kBlendFlagsSrcBlendMask));
+    constexpr UInt32      kBlendFlagsDstBlendShift      = UInt32CountRZero(AsUnderlying(kBlendFlagsDstBlendMask));
+    constexpr UInt32      kBlendFlagsBlendOpShift       = UInt32CountRZero(AsUnderlying(kBlendFlagsBlendOpMask));
+    constexpr UInt32      kBlendFlagsSrcBlendAlphaShift = UInt32CountRZero(AsUnderlying(kBlendFlagsSrcBlendAlphaMask));
+    constexpr UInt32      kBlendFlagsDstBlendAlphaShift = UInt32CountRZero(AsUnderlying(kBlendFlagsDstBlendAlphaMask));
+    constexpr UInt32      kBlendFlagsBlendOpAlphaShift  = UInt32CountRZero(AsUnderlying(kBlendFlagsBlendOpAlphaMask));
 
     constexpr eStencilFlags kStencilFlagsStencilFailOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0000'0111));   // [0:2]
     constexpr eStencilFlags kStencilFlagsDepthFailOpMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0011'1000));   // [3:5]
     constexpr eStencilFlags kStencilFlagsStencilPassOpMask  = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0001'1100'0000));   // [6:8]
     constexpr eStencilFlags kStencilFlagsCompareFuncMask    = static_cast<eStencilFlags>(UINT32_C(0b0000'0000'0000'0000'0001'1110'0000'0000));   // [9:12]
-    constexpr UInt32        kStencilFlagsDepthFailOpShift   = UInt32CountRZero(UnderlyingFrom(kStencilFlagsDepthFailOpMask));
-    constexpr UInt32        kStencilFlagsStencilPassOpShift = UInt32CountRZero(UnderlyingFrom(kStencilFlagsStencilPassOpMask));
-    constexpr UInt32        kStencilFlagsCompareFuncShift   = UInt32CountRZero(UnderlyingFrom(kStencilFlagsCompareFuncMask));
+    constexpr UInt32        kStencilFlagsDepthFailOpShift   = UInt32CountRZero(AsUnderlying(kStencilFlagsDepthFailOpMask));
+    constexpr UInt32        kStencilFlagsStencilPassOpShift = UInt32CountRZero(AsUnderlying(kStencilFlagsStencilPassOpMask));
+    constexpr UInt32        kStencilFlagsCompareFuncShift   = UInt32CountRZero(AsUnderlying(kStencilFlagsCompareFuncMask));
 
     constexpr eSamplerFlags kSampleFlagsFilterMask       = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'0001'1111));   // [0:4]
     constexpr eSamplerFlags kSampleFlagsAddressUMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0000'1110'0000));   // [5:7]
     constexpr eSamplerFlags kSampleFlagsAddressVMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0000'0111'0000'0000));   // [8:10]
     constexpr eSamplerFlags kSampleFlagsAddressWMask     = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0000'0011'1000'0000'0000));   // [11:13]
     constexpr eSamplerFlags kSampleFlagsCompareFuncMask  = static_cast<eSamplerFlags>(UINT32_C(0b0000'0000'0000'0011'1100'0000'0000'0000));   // [14:17]
-    constexpr UInt32        kSampleFlagsAddressUShift    = UInt32CountRZero(UnderlyingFrom(kSampleFlagsAddressUMask));
-    constexpr UInt32        kSampleFlagsAddressVShift    = UInt32CountRZero(UnderlyingFrom(kSampleFlagsAddressVMask));
-    constexpr UInt32        kSampleFlagsAddressWShift    = UInt32CountRZero(UnderlyingFrom(kSampleFlagsAddressWMask));
-    constexpr UInt32        kSampleFlagsCompareFuncShift = UInt32CountRZero(UnderlyingFrom(kSampleFlagsCompareFuncMask));
+    constexpr UInt32        kSampleFlagsAddressUShift    = UInt32CountRZero(AsUnderlying(kSampleFlagsAddressUMask));
+    constexpr UInt32        kSampleFlagsAddressVShift    = UInt32CountRZero(AsUnderlying(kSampleFlagsAddressVMask));
+    constexpr UInt32        kSampleFlagsAddressWShift    = UInt32CountRZero(AsUnderlying(kSampleFlagsAddressWMask));
+    constexpr UInt32        kSampleFlagsCompareFuncShift = UInt32CountRZero(AsUnderlying(kSampleFlagsCompareFuncMask));
 
 }   // namespace
 
@@ -56,8 +56,8 @@ RGBA RGBA::kWhite       = RGBA(255, 255, 255, 255);
 RGBA RGBA::kBlack       = RGBA(0, 0, 0, 255);
 RGBA RGBA::kTransparent = RGBA(0, 0, 0, 0);
 
-Flags<eTextureCreateFlags> FilterMsaaFlags(
-    const Flags<eTextureCreateFlags> _flags) noexcept
+Flags<eTextureFlags> FilterMsaaFlags(
+    const Flags<eTextureFlags> _flags) noexcept
 {
     return _flags & kTextureCreateFlagsMsaaMask;
 }

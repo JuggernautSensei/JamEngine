@@ -127,9 +127,6 @@
     <ClCompile Include="RefCounted.cpp">
       <Filter>99. Utilities\Memory</Filter>
     </ClCompile>
-    <ClCompile Include="Debug.cpp">
-      <Filter>99. Utilities\Debug</Filter>
-    </ClCompile>
     <ClCompile Include="HistoryStack.cpp">
       <Filter>99. Utilities\Container\HisotryStack</Filter>
     </ClCompile>
@@ -247,17 +244,14 @@
     <ClCompile Include="UIDAllocator.cpp">
       <Filter>3. Scene\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="TinyVector.cpp">
-      <Filter>99. Utilities\Container\Tiny</Filter>
-    </ClCompile>
     <ClCompile Include="NameOf.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="EnumUtilities.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="ConstexprStringHashMap.cpp">
-      <Filter>99. Utilities\Container\Constexpr</Filter>
+    <ClCompile Include="CTCStringHashMap.cpp">
+      <Filter>99. Utilities\Container\Comptile Time Container</Filter>
     </ClCompile>
     <ClCompile Include="CleanUp.cpp">
       <Filter>99. Utilities</Filter>
@@ -322,7 +316,7 @@
     <ClCompile Include="ImageImporter.cpp">
       <Filter>2. Graphics\Utilities\Image</Filter>
     </ClCompile>
-    <ClCompile Include="CommandLineArgumentParser.cpp">
+    <ClCompile Include="CommandLineParser.cpp">
       <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="EnumArray.cpp">
@@ -333,9 +327,6 @@
     </ClCompile>
     <ClCompile Include="FileWatcher.cpp">
       <Filter>99. Utilities\File</Filter>
-    </ClCompile>
-    <ClCompile Include="StackString.cpp">
-      <Filter>99. Utilities\String</Filter>
     </ClCompile>
     <ClCompile Include="DirIter.cpp">
       <Filter>99. Utilities\File</Filter>
@@ -366,9 +357,6 @@
     </ClCompile>
     <ClCompile Include="FileLock.cpp">
       <Filter>99. Utilities\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Reference.cpp">
-      <Filter>99. Utilities</Filter>
     </ClCompile>
     <ClCompile Include="StringKeyContainers.cpp">
       <Filter>99. Utilities\Container\Misc</Filter>
@@ -412,12 +400,6 @@
     <ClCompile Include="TagComponent.cpp">
       <Filter>3. Scene\Component\Impl</Filter>
     </ClCompile>
-    <ClCompile Include="STLAlgorithm.cpp">
-      <Filter>99. Utilities\Algorithm</Filter>
-    </ClCompile>
-    <ClCompile Include="TinyRingBuffer.cpp">
-      <Filter>99. Utilities\Container\Tiny</Filter>
-    </ClCompile>
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>3. Scene\Scene</Filter>
     </ClCompile>
@@ -438,9 +420,6 @@
     </ClCompile>
     <ClCompile Include="Bit.cpp">
       <Filter>99. Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugRenderer.cpp">
-      <Filter>4. Renderer\DebugRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Random.cpp">
       <Filter>99. Utilities\Math</Filter>
@@ -465,6 +444,33 @@
     </ClCompile>
     <ClCompile Include="Filter.cpp">
       <Filter>99. Utilities\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="CharTraits.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="CharEncoder.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="StringHasher.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="Algorithm.cpp">
+      <Filter>99. Utilities\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="StringView.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="StringBase.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticString.cpp">
+      <Filter>99. Utilities\String</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBufferIndex.cpp">
+      <Filter>99. Utilities\Container\RingBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticRingBuffer.cpp">
+      <Filter>99. Utilities\Container\RingBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -606,14 +612,8 @@
     <Filter Include="99. Utilities\Container\LRUCache">
       <UniqueIdentifier>{a6e8c344-4115-4f5b-8cf3-9d53979960d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="99. Utilities\Container\Tiny">
-      <UniqueIdentifier>{9419f6e7-3e2c-4d62-946f-beed0325a08b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="99. Utilities\Container\EnumArray">
       <UniqueIdentifier>{f2b9b6b7-4462-4aa2-a07a-d80148a38fdf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\Container\Constexpr">
-      <UniqueIdentifier>{54024868-ecac-4d61-94e0-cda34dda2933}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Container\Misc">
       <UniqueIdentifier>{5df6a3e9-e82d-40bb-b7c6-b33e35bdd077}</UniqueIdentifier>
@@ -644,9 +644,6 @@
     </Filter>
     <Filter Include="99. Utilities\Math">
       <UniqueIdentifier>{983c628d-c07e-4f45-a151-6e9c01e67075}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="99. Utilities\Debug">
-      <UniqueIdentifier>{09ddcd14-5fd3-4bff-96db-c8ae8ce63260}</UniqueIdentifier>
     </Filter>
     <Filter Include="99. Utilities\Base">
       <UniqueIdentifier>{b3ec96ff-d86c-4b8c-9f78-6f7699184564}</UniqueIdentifier>
@@ -699,8 +696,11 @@
     <Filter Include="4. Renderer\JamRenderer\Shader\PostProcess">
       <UniqueIdentifier>{085f207e-b46f-4a0d-ae0d-6b457d10f983}</UniqueIdentifier>
     </Filter>
-    <Filter Include="4. Renderer\DebugRenderer">
-      <UniqueIdentifier>{f9fc1460-a591-426e-9184-c4ae3d11736c}</UniqueIdentifier>
+    <Filter Include="99. Utilities\Container\RingBuffer">
+      <UniqueIdentifier>{9419f6e7-3e2c-4d62-946f-beed0325a08b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Utilities\Container\Comptile Time Container">
+      <UniqueIdentifier>{54024868-ecac-4d61-94e0-cda34dda2933}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -845,9 +845,6 @@
     <ClInclude Include="RefCounted.h">
       <Filter>99. Utilities\Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Debug.h">
-      <Filter>99. Utilities\Debug</Filter>
-    </ClInclude>
     <ClInclude Include="HistoryStack.h">
       <Filter>99. Utilities\Container\HisotryStack</Filter>
     </ClInclude>
@@ -962,17 +959,14 @@
     <ClInclude Include="UIDAllocator.h">
       <Filter>3. Scene\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="TinyVector.h">
-      <Filter>99. Utilities\Container\Tiny</Filter>
-    </ClInclude>
     <ClInclude Include="NameOf.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="EnumUtilities.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="ConstexprStringHashMap.h">
-      <Filter>99. Utilities\Container\Constexpr</Filter>
+    <ClInclude Include="CTCStringHashMap.h">
+      <Filter>99. Utilities\Container\Comptile Time Container</Filter>
     </ClInclude>
     <ClInclude Include="CleanUp.h">
       <Filter>99. Utilities</Filter>
@@ -1040,7 +1034,7 @@
     <ClInclude Include="ImageExporter.h">
       <Filter>2. Graphics\Utilities\Image</Filter>
     </ClInclude>
-    <ClInclude Include="CommandLineArgumentParser.h">
+    <ClInclude Include="CommandLineParser.h">
       <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="EnumArray.h">
@@ -1051,9 +1045,6 @@
     </ClInclude>
     <ClInclude Include="FileWatcher.h">
       <Filter>99. Utilities\File</Filter>
-    </ClInclude>
-    <ClInclude Include="StackString.h">
-      <Filter>99. Utilities\String</Filter>
     </ClInclude>
     <ClInclude Include="DirIter.h">
       <Filter>99. Utilities\File</Filter>
@@ -1084,9 +1075,6 @@
     </ClInclude>
     <ClInclude Include="FileLock.h">
       <Filter>99. Utilities\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Reference.h">
-      <Filter>99. Utilities</Filter>
     </ClInclude>
     <ClInclude Include="StringKeyContainers.h">
       <Filter>99. Utilities\Container\Misc</Filter>
@@ -1130,12 +1118,6 @@
     <ClInclude Include="TagComponent.h">
       <Filter>3. Scene\Component\Impl</Filter>
     </ClInclude>
-    <ClInclude Include="STLAlgorithm.h">
-      <Filter>99. Utilities\Algorithm</Filter>
-    </ClInclude>
-    <ClInclude Include="TinyRingBuffer.h">
-      <Filter>99. Utilities\Container\Tiny</Filter>
-    </ClInclude>
     <ClInclude Include="SceneDatabase.h">
       <Filter>3. Scene\Scene</Filter>
     </ClInclude>
@@ -1153,9 +1135,6 @@
     </ClInclude>
     <ClInclude Include="Bit.h">
       <Filter>99. Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugRenderer.h">
-      <Filter>4. Renderer\DebugRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Random.h">
       <Filter>99. Utilities\Math</Filter>
@@ -1180,6 +1159,33 @@
     </ClInclude>
     <ClInclude Include="Filter.h">
       <Filter>99. Utilities\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="CharTraits.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="CharEncoder.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="StringHasher.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm.h">
+      <Filter>99. Utilities\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="StringView.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="StringBase.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticString.h">
+      <Filter>99. Utilities\String</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBufferIndex.h">
+      <Filter>99. Utilities\Container\RingBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticRingBuffer.h">
+      <Filter>99. Utilities\Container\RingBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

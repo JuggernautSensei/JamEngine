@@ -11,10 +11,11 @@
 
 namespace Jam
 {
+
 namespace
 {
 
-    constexpr const char* kImguiGlueVs =
+    constexpr const char* kVSSource =
         "cbuffer vertexBuffer : register(b0)\n"
         "{\n"
         "    float4x4 ProjectionMatrix;\n"
@@ -33,7 +34,7 @@ namespace
         "    float4 col : COLOR0;\n"
         "};\n"
         "\n"
-        "PS_INPUT main(VS_INPUT input)\n"
+        "PS_INPUT VSMain(VS_INPUT input)\n"
         "{\n"
         "    PS_INPUT output;\n"
         "    output.pos = mul(ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));\n"
@@ -42,7 +43,7 @@ namespace
         "    return output;\n"
         "}\n";
 
-    constexpr const char* kImguiGlueBasicPs =
+    constexpr const char* kPSSource =
         "struct PS_INPUT\n"
         "{\n"
         "    float4 pos : SV_POSITION;\n"
@@ -53,7 +54,7 @@ namespace
         "sampler sampler0;\n"
         "Texture2D texture0;\n"
         "\n"
-        "float4 main(PS_INPUT input) : SV_Target\n"
+        "float4 PSMain(PS_INPUT input) : SV_Target\n"
         "{\n"
         "    float4 out_col = input.col * texture0.Sample(sampler0, input.uv);\n"
         "    return out_col;\n"
@@ -69,21 +70,24 @@ namespace
         "\n"
         "sampler sampler0;\n"
         "TextureCube texture0;\n"
-        "static const float2 kCenter = float2(0.5f, 0.5f);\n"
-        "static const float kPadding = 0.01f;\n"
-        "static const float kRadius = 0.5f - kPadding;\n"
         "\n"
-        "float4 main(PS_INPUT input) : SV_Target\n"
+        "static const float kPi  = 3.14159265358979f;\n"
+        "static const float kTau = 6.28318530717959f;\n"
+        "\n"
+        "float4 PSMain(PS_INPUT input) : SV_Target\n"
         "{\n"
-        "    float dist = length(input.uv - kCenter);\n"
-        "    float weight = step(dist, kRadius); // dist <= kRadius : 1\n"
-        "    float3 dir = float3(input.uv - kCenter, sqrt(1.f - dist * dist));\n"
-        "    dir = normalize(dir);\n"
-        "    float4 out_col = input.col * texture0.Sample(sampler0, dir) * weight;\n"
-        "    return out_col;\n"
+        "    float theta = (1.0f - input.uv.x) * kTau;\n"
+        "    float phi   = input.uv.y * kPi;\n"
+        "    float sinPhi = sin(phi);\n"
+        "    float3 dir = float3(\n"
+        "        sinPhi * cos(theta),\n"
+        "        cos(phi),\n"
+        "        sinPhi * sin(theta)\n"
+        "    );\n"
+        "    return input.col * texture0.Sample(sampler0, dir);\n"
         "}\n";
 
-    struct IMGUI_CONSTANT_BUFFER
+    struct CBImgui
     {
         float mvp[4][4];
     };
@@ -94,14 +98,14 @@ namespace
         eTexture      type = eTexture::Texture2D;
     };
 
-    ImTextureID ImTextureIDFrom_(
+    ImTextureID AsImTextureID_(
         const TextureHandle _texh,
         const eTexture      _type)
     {
-        return (static_cast<UInt64>(_texh.GetValue()) << 32) | static_cast<UInt64>(UnderlyingFrom(_type));
+        return (static_cast<UInt64>(_texh.GetValue()) << 32) | static_cast<UInt64>(AsUnderlying(_type));
     }
 
-    TextureData TextureDataFrom_(
+    TextureData AsTextureData_(
         const ImTextureID _texId)
     {
         TextureData texData = {};
@@ -110,16 +114,20 @@ namespace
         return texData;
     }
 
-    ShaderHandle CreateShader(
+    ShaderHandle CreateShader_(
         const StringView _source,
-        const eShader    _stage)
+        const eShader    _stage,
+        const StringView _entryPoint)
     {
-        ShaderLoadInfo desc = {};
-        desc.stage          = _stage;
+        ShaderCompilerInfo desc = {};
+        desc.entryPoint         = _entryPoint;
+        desc.stage              = _stage;
 
         ShaderCompiler complier = ShaderCompiler::CompileHLSLSource(_source, desc);
         JAM_ASSERT(complier.IsSucceeded(), "Failed to compile ImGui shader: {}", complier.GetError().ToErrorMessage());
-        return GetGraphics().CreateShader(complier.GetBytecode());
+
+        Graphics& gfx = GetGraphics();
+        return gfx.CreateShader(complier.GetBytecode());
     }
 
 }   // namespace
@@ -147,14 +155,15 @@ ImGuiEngine::ImGuiEngine(
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures;
 
     // create shaders
-    m_vsh            = CreateShader(kImguiGlueVs, eShader::VertexShader);
-    m_basicPsh       = CreateShader(kImguiGlueBasicPs, eShader::PixelShader);
-    m_textureCubePsh = CreateShader(kImguiGlueTextureCubePs, eShader::PixelShader);
+    m_vsh            = CreateShader_(kVSSource, eShader::VertexShader, "VSMain");
+    m_psh            = CreateShader_(kPSSource, eShader::PixelShader, "PSMain");
+    m_textureCubePsh = CreateShader_(kImguiGlueTextureCubePs, eShader::PixelShader, "PSMain");
 
     // create program
-    Graphics& gfx   = GetGraphics();
-    m_basicPh       = gfx.CreateProgram(m_vsh, m_basicPsh);
-    m_textureCubePh = gfx.CreateProgram(m_vsh, m_textureCubePsh);
+    Graphics& gfx = GetGraphics();
+
+    m_basicPh       = gfx.CreateProgram(m_vsh, m_psh, false);
+    m_textureCubePh = gfx.CreateProgram(m_vsh, m_textureCubePsh, false);
 
     // create vertex vertexLayout
     m_layout.Add(eVertexAttribute::Position, eAttributeFormat::Float2)
@@ -162,7 +171,7 @@ ImGuiEngine::ImGuiEngine(
         .Add(eVertexAttribute::Color0, eAttributeFormat::UNorm8x4);
 
     // create constant buffer
-    m_cbh = gfx.CreateConstantBuffer(sizeof(IMGUI_CONSTANT_BUFFER));
+    m_cbh = gfx.CreateConstantBuffer(sizeof(CBImgui));
 
     // state
     m_blendFlags = eBlendFlags::Enable
@@ -200,7 +209,7 @@ ImGuiEngine::~ImGuiEngine()
 
     // 리소스 파괴
     JAM_DESTROY_SHADER(m_vsh);
-    JAM_DESTROY_SHADER(m_basicPsh);
+    JAM_DESTROY_SHADER(m_psh);
     JAM_DESTROY_SHADER(m_textureCubePsh);
     JAM_DESTROY_PROGRAM(m_basicPh);
     JAM_DESTROY_PROGRAM(m_textureCubePh);
@@ -235,10 +244,10 @@ void ImGuiEngine::BeginFrame() const
 void ImGuiEngine::EndFrame()
 {
     // 백버퍼 바인딩
-    Graphics&   gfx = GetGraphics();
-    const Vec2i res = gfx.GetBackBufferResolution();
+    Graphics& gfx = GetGraphics();
+
     gfx.SetFrameBuffer(kInvalidHandle);
-    gfx.SetViewport(0, 0, res.width, res.height);
+    const BackBuffer& bb = gfx.GetBackBuffer();
 
     // draw data 처리
     ImGui::Render();
@@ -324,36 +333,35 @@ void ImGuiEngine::Render_(
     gfx.EndUpdateBuffer(m_ibh);
 
     // setup
-    const Viewport vp = { static_cast<UInt16>(_pDrawData->DisplaySize.x), static_cast<UInt16>(_pDrawData->DisplaySize.y) };
-    gfx.SetViewport(vp);
+    gfx.SetViewport(0, 0, static_cast<UInt16>(_pDrawData->DisplaySize.x), static_cast<UInt16>(_pDrawData->DisplaySize.y));
 
     const float L = _pDrawData->DisplayPos.x;
     const float R = _pDrawData->DisplayPos.x + _pDrawData->DisplaySize.x;
     const float T = _pDrawData->DisplayPos.y;
     const float B = _pDrawData->DisplayPos.y + _pDrawData->DisplaySize.y;
 
-    IMGUI_CONSTANT_BUFFER cb;
-    cb.mvp[0][0] = 2.0f / (R - L);
-    cb.mvp[0][1] = 0.0f;
-    cb.mvp[0][2] = 0.0f;
-    cb.mvp[0][3] = 0.0f;
+    CBImgui imgui;
+    imgui.mvp[0][0] = 2.0f / (R - L);
+    imgui.mvp[0][1] = 0.0f;
+    imgui.mvp[0][2] = 0.0f;
+    imgui.mvp[0][3] = 0.0f;
 
-    cb.mvp[1][0] = 0.0f;
-    cb.mvp[1][1] = 2.0f / (T - B);
-    cb.mvp[1][2] = 0.0f;
-    cb.mvp[1][3] = 0.0f;
+    imgui.mvp[1][0] = 0.0f;
+    imgui.mvp[1][1] = 2.0f / (T - B);
+    imgui.mvp[1][2] = 0.0f;
+    imgui.mvp[1][3] = 0.0f;
 
-    cb.mvp[2][0] = 0.0f;
-    cb.mvp[2][1] = 0.0f;
-    cb.mvp[2][2] = 0.5f;
-    cb.mvp[2][3] = 0.0f;
+    imgui.mvp[2][0] = 0.0f;
+    imgui.mvp[2][1] = 0.0f;
+    imgui.mvp[2][2] = 0.5f;
+    imgui.mvp[2][3] = 0.0f;
 
-    cb.mvp[3][0] = (R + L) / (L - R);
-    cb.mvp[3][1] = (T + B) / (B - T);
-    cb.mvp[3][2] = 0.5f;
-    cb.mvp[3][3] = 1.0f;
+    imgui.mvp[3][0] = (R + L) / (L - R);
+    imgui.mvp[3][1] = (T + B) / (B - T);
+    imgui.mvp[3][2] = 0.5f;
+    imgui.mvp[3][3] = 1.0f;
 
-    gfx.UpdateBuffer(m_cbh, AsMemoryView(cb));
+    gfx.UpdateBuffer(m_cbh, AsMemoryView(imgui));
     gfx.SetConstantBuffer(m_cbh, eShader::VertexShader, 0);
     gfx.SetBlendFlags(m_blendFlags, 0);
     gfx.SetRenderFlags(m_renderFlags);
@@ -383,7 +391,7 @@ void ImGuiEngine::Render_(
             }
 
             // Apply scissor/clipping rectangle
-            gfx.SetScissorRect(clipMinX, clipMinY, clipMaxX, clipMaxY);
+            gfx.SetScissor(clipMinX, clipMinY, clipMaxX, clipMaxY);
 
             // Draw
             gfx.SetIndexBuffer(m_ibh, 0, cmd.ElemCount);
@@ -391,7 +399,7 @@ void ImGuiEngine::Render_(
             gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, static_cast<Int32>(cmd.VtxOffset) + baseVtxLoc);
 
             // Bind texture
-            const auto [texh, type] = TextureDataFrom_(cmd.GetTexID());
+            const auto [texh, type] = AsTextureData_(cmd.GetTexID());
 
             // set program
             const ProgramHandle ph = (type == eTexture::TextureCube) ? m_textureCubePh : m_basicPh;
@@ -411,8 +419,8 @@ void ImGuiEngine::Render_(
     gfx.SetSubmitParameter(eSubmitParameter::BaseVertexLocation, 0);
 
     // reset texture
-    gfx.SetTexture(kInvalidHandle, eShader::PixelShader, 0);
-    gfx.Touch();
+    // gfx.SetTexture(kInvalidHandle, eShader::PixelShader, 0);
+    // gfx.Touch();
 }
 
 void ImGuiEngine::UpdateTexture_(
@@ -430,14 +438,14 @@ void ImGuiEngine::UpdateTexture_(
         };
 
         // dynamic texture creation
-        const TextureHandle texh = gfx.CreateTexture2D(_pTexture->Width, _pTexture->Height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::Mutable, texData);
+        const TextureHandle texh = gfx.CreateTexture2D(_pTexture->Width, _pTexture->Height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureFlags::Mutable, texData);
         gfx.SetTextureName(texh, "ImGui Texture");
-        _pTexture->SetTexID(ImTextureIDFrom_(texh, eTexture::Texture2D));
+        _pTexture->SetTexID(AsImTextureID_(texh, eTexture::Texture2D));
         _pTexture->SetStatus(ImTextureStatus_OK);
     }
     else if (_pTexture->Status == ImTextureStatus_WantUpdates)
     {
-        const auto [texh, _] = TextureDataFrom_(_pTexture->GetTexID());
+        const auto [texh, _] = AsTextureData_(_pTexture->GetTexID());
 
         // upload dynamic
         for (const ImTextureRect& rect: _pTexture->Updates)
@@ -460,7 +468,7 @@ void ImGuiEngine::DestroyTexture_(ImTextureData* _texture) const
 
     // destroy texture
     Graphics& gfx        = GetGraphics();
-    const auto [texh, _] = TextureDataFrom_(_texture->GetTexID());
+    const auto [texh, _] = AsTextureData_(_texture->GetTexID());
     gfx.DestroyTexture(texh);
 
     // clear info
@@ -468,19 +476,19 @@ void ImGuiEngine::DestroyTexture_(ImTextureData* _texture) const
     _texture->SetStatus(ImTextureStatus_Destroyed);
 }
 
-ImTextureRef PackToImTextureRef(
+ImTextureRef AsImTextureRef(
     const TextureHandle _texh,
     const eTexture      _type)
 {
-    return ImTextureIDFrom_(_texh, _type);
+    return AsImTextureID_(_texh, _type);
 }
 
-ImTextureRef PackToImTextureRef(
+ImTextureRef AsImTextureRef(
     const Ref<Texture>& _pTexture)
 {
     const TextureHandle texh = _pTexture->GetHandle();
     const TextureInfo&  info = _pTexture->GetInfo();
-    return ImTextureIDFrom_(texh, info.type);
+    return AsImTextureID_(texh, info.type);
 }
 
 }   // namespace Jam

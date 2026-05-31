@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-26 17:39:41.851
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl Jam::`anonymous-namespace'::SetD3DDebugName_(struct ID3D11DeviceChild *,const class Jam::BasicStringView<char>)
+line: 369
+column: 9
+------------------------------------
+user report: 
+Assertion failed! Condition: _pDeviceChild
+Resource is null
+====================================

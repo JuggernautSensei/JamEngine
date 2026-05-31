@@ -306,7 +306,7 @@ void Editor_SceneViewWindow::DrawGizmo_() const
         return;
     }
 
-    Mtx4       mtx  = entity.GetWorldTransform().GetSRT();
+    Mtx4       mtx  = entity.GetWorld().GetSRT();
     const Mtx4 view = mtx.Inverse();
     const Mtx4 proj = m_camera.GetProj();
 
@@ -334,9 +334,9 @@ void Editor_SceneViewWindow::DrawGizmo_() const
     ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
     ImGuizmo::SetOrthographic(bIsOrtho);
     ImGuizmo::SetRect(x, y, width, height);
-    if (ImGuizmo::Manipulate(&view.m[0][0], &proj.m[0][0], gizmoOp, gizmoMode, &mtx.m[0][0], nullptr, pSnap))
+    if (ImGuizmo::Manipulate(view.GetPtr(), proj.GetPtr(), gizmoOp, gizmoMode, mtx.GetPtr(), nullptr, pSnap))
     {
-        entity.ModifyWorldTransform().SetSRT(mtx);
+        entity.ModifyWorld().SetSRT(mtx);
     }
 }
 
@@ -543,7 +543,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
         renderView.fbh        = m_fbh;
         renderView.vp         = vp;
         renderView.eye        = m_cameraTransform.GetTranslation();
-        renderView.view       = m_cameraTransform.CalcInvSRT();
+        renderView.view       = m_cameraTransform.GetInvSRT();
         renderView.proj       = m_camera.GetProj();
 
         // render scene
@@ -563,7 +563,7 @@ void Editor_SceneViewWindow::OnRenderEdit()
                     Attachment attachment[2] = {};
                     attachment[0].texh       = m_renderTexh;
                     attachment[1].texh       = depthTexh;
-                    m_fbhWithDepth           = gfx.CreateFrameBuffer(attachment);
+                    m_fbhWithDepth           = gfx.CreateFrameBuffer(attachment, false);
                 }
             }
 
@@ -594,25 +594,27 @@ void Editor_SceneViewWindow::OnRenderEdit()
                 }
 
                 // draw focused entity
-                if (const Entity entity = GetEditor().GetFocusingEntityOrNull())
+                Editor&      edt    = GetEditor();
+                const Entity entity = edt.GetFocusingEntityOrNull();
+                if (entity)
                 {
                     // bounding box
-                    if (entity.HasComponent<RenderableComponent>())
+                    if (entity.HaveComponents<RenderableComponent>())
                     {
-                        const RenderableComponent& rc = entity.GetComponent<RenderableComponent>();
+                        const RenderableComponent& rc = entity.GetComponents<RenderableComponent>();
                         if (rc.pMesh)
                         {
-                            const Mtx4& mtx = entity.GetWorldTransform().GetSRT();
+                            const Mtx4& mtx = entity.GetWorld().GetSRT();
                             m_renderer.DrawBoundingBox(rc.pMesh->GetBoundingBox(), mtx, kBoundingBoxCol);
                         }
                     }
 
                     // camera frustum
-                    if (entity.HasComponent<CameraComponent>())
+                    if (entity.HaveComponents<CameraComponent>())
                     {
-                        const CameraComponent& cc   = entity.GetComponent<CameraComponent>();
+                        const CameraComponent& cc   = entity.GetComponents<CameraComponent>();
                         const Camera&          cmr  = cc.camera;
-                        const Mtx4             view = entity.GetWorldTransform().CalcInvSRT();
+                        const Mtx4             view = entity.GetWorld().GetInvSRT();
                         const Mtx4             proj = cmr.GetProj();
 
                         m_renderer.DrawFrustum(view * proj, kBoundingBoxCol);
@@ -645,19 +647,21 @@ void Editor_SceneViewWindow::Resize_(
     m_height = _height;
 
     // render target texture
-    m_renderTexh = GetGraphics().CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::RenderTargetAttachment);
-    GetGraphics().SetTextureName(m_renderTexh, "scene view texture");
+    Graphics& gfx = GetGraphics();
+    m_renderTexh  = gfx.CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureFlags::RenderTarget);
+    gfx.SetTextureName(m_renderTexh, "scene view texture");
 
     // frame buffer
-    m_fbh = GetGraphics().CreateFrameBuffer(m_renderTexh);
-    GetGraphics().SetFrameBufferName(m_fbh, "scene view frame buffer");
+    m_fbh = gfx.CreateFrameBuffer(m_renderTexh, false);
+    gfx.SetFrameBufferName(m_fbh, "scene view frame buffer");
 
     // camera
     m_camera.SetWidth(static_cast<float>(_width));
     m_camera.SetHeight(static_cast<float>(_height));
 
     // resize scene manager
-    GetSceneManager().Resize(_width, _height);
+    SceneManager& sm = GetSceneManager();
+    sm.Resize(_width, _height);
 }
 
 void Editor_SceneViewWindow::OnSceneChangedEvent_(

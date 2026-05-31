@@ -50,6 +50,9 @@ struct alignas(16) Quat
     [[nodiscard]] bool IsZeroApprox(float _epsilon = kEpsilon) const;
     [[nodiscard]] bool IsEqualApprox(Quat _other, float _epsilon = kEpsilon) const;
 
+    [[nodiscard]] float*       GetPtr();
+    [[nodiscard]] const float* GetPtr() const;
+
     [[nodiscard]] Quat operator*(Quat _other) const;   // q1 * q2 means applying q2 then q1. this is correct mathmatically
     [[nodiscard]] Quat operator*(float _scalar) const;
     [[nodiscard]] Quat operator/(float _scalar) const;
@@ -62,6 +65,9 @@ struct alignas(16) Quat
     [[nodiscard]] Quat& operator/=(float _scalar);
     [[nodiscard]] Quat& operator+=(Quat _other);
     [[nodiscard]] Quat& operator-=(Quat _other);
+
+    [[nodiscard]] float& operator[](SizeT _index);
+    [[nodiscard]] float  operator[](SizeT _index) const;
 
     const static Quat kIdentity;
 
@@ -90,8 +96,8 @@ struct alignas(16) Quat
             Vec3  yzw;
         };
 
-        Vec4  vec;
-        float e[4] = {};
+        Vec4            vec;
+        Array<float, 4> e = {};
 
 #ifdef JAM_SIMD_SSE
         __m128 m128;

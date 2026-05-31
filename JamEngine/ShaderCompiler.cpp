@@ -89,7 +89,7 @@ namespace
     }
 
     void BuildMacroArray_(
-        const ShaderLoadInfo& _desc,
+        const ShaderCompilerInfo& _desc,
         D3D_SHADER_MACRO*         _pBuffer)
     {
         if (_desc.macros.empty())
@@ -117,7 +117,7 @@ namespace
 
 ShaderCompiler ShaderCompiler::CompileHLSLFile(
     const StringView          _path,
-    const ShaderLoadInfo& _desc)
+    const ShaderCompilerInfo& _desc)
 {
     ShaderCompiler compiler = {};
     compiler.CompileFromHLSLFile_(_path, _desc);
@@ -126,7 +126,7 @@ ShaderCompiler ShaderCompiler::CompileHLSLFile(
 
 ShaderCompiler ShaderCompiler::CompileHLSLSource(
     const StringView          _source,
-    const ShaderLoadInfo& _desc)
+    const ShaderCompilerInfo& _desc)
 {
     ShaderCompiler compiler = {};
     compiler.CompileHLSLSource_(_source, _desc);
@@ -161,7 +161,7 @@ bool ShaderCompiler::IsFailed() const
 
 void ShaderCompiler::CompileFromHLSLFile_(
     const StringView          _path,
-    const ShaderLoadInfo& _desc)
+    const ShaderCompilerInfo& _desc)
 {
     JAM_ASSERT(!_path.IsEmpty(), "File path must not be empty.");
     JAM_ASSERT(m_pBlob == nullptr, "ShaderCompiler instance is already used for compilation.");
@@ -193,13 +193,15 @@ void ShaderCompiler::CompileFromHLSLFile_(
     // check error
     if (FAILED(hr) || !m_pBlob)
     {
+        m_errorMsg.Format("shader \"{}\" compilation failed: ", _path);
+
         if (pErrorBlob)
         {
-            m_errorMsg.Format("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
+            m_errorMsg.Append(static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
+            m_errorMsg.Append(MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         }
 
         JAM_LOG_ERROR(m_errorMsg);
@@ -212,7 +214,7 @@ void ShaderCompiler::CompileFromHLSLFile_(
 
 void ShaderCompiler::CompileHLSLSource_(
     const StringView          _source,
-    const ShaderLoadInfo& _desc)
+    const ShaderCompilerInfo& _desc)
 {
     JAM_ASSERT(!_source.IsEmpty(), "Shader source must not be empty.");
 
@@ -244,13 +246,14 @@ void ShaderCompiler::CompileHLSLSource_(
     // check error
     if (FAILED(hr) || !m_pBlob)
     {
+        m_errorMsg.Set("shader source compilation failed: ");
         if (pErrorBlob)
         {
-            m_errorMsg.Format("shader compilation failed: {}", static_cast<const char*>(pErrorBlob->GetBufferPointer()));
+            m_errorMsg.Append(static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            m_errorMsg.Format("shader compilation failed: {}", CreateWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
+            m_errorMsg.Append(MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         }
 
         JAM_LOG_ERROR(m_errorMsg);

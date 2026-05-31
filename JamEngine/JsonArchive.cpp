@@ -216,19 +216,9 @@ void JsonWriter::WritePrimitive_(const double _value)
     Attach_(yyjson_mut_real(m_pDoc, _value));
 }
 
-void JsonWriter::WritePrimitive_(const char* _value)
+void JsonWriter::WritePrimitive_(const StringView _value)
 {
-    Attach_(yyjson_mut_str(m_pDoc, _value));
-}
-
-void JsonWriter::WritePrimitive_(const std::string& _value)
-{
-    Attach_(yyjson_mut_strn(m_pDoc, _value.c_str(), _value.size()));
-}
-
-void JsonWriter::WritePrimitive_(const std::string_view _value)
-{
-    Attach_(yyjson_mut_strn(m_pDoc, _value.data(), _value.size()));
+    Attach_(yyjson_mut_strn(m_pDoc, _value.GetPtr(), static_cast<size_t>(_value.GetLength())));
 }
 
 JsonWriter::Frame& JsonWriter::Top_()
@@ -588,20 +578,7 @@ Error JsonReader::ReadPrimitive_(double& _value)
     return Error::None;
 }
 
-Error JsonReader::ReadPrimitive_(const char*& _value)
-{
-    yyjson_val* cur = Top_();
-    if (!yyjson_is_str(cur))
-    {
-        JAM_LOG_ERROR("YYJson read error: expected string (const char*).");
-        MarkError(Error::TypeMismatch);
-        return Error::TypeMismatch;
-    }
-    _value = yyjson_get_str(cur);
-    return Error::None;
-}
-
-Error JsonReader::ReadPrimitive_(std::string& _value)
+Error JsonReader::ReadPrimitive_(String& _value)
 {
     yyjson_val* cur = Top_();
     if (!yyjson_is_str(cur))
@@ -610,11 +587,11 @@ Error JsonReader::ReadPrimitive_(std::string& _value)
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
-    _value.assign(yyjson_get_str(cur), yyjson_get_len(cur));
+    _value.Set(yyjson_get_str(cur), yyjson_get_len(cur));
     return Error::None;
 }
 
-Error JsonReader::ReadPrimitive_(std::string_view& _value)
+Error JsonReader::ReadPrimitive_(StringView& _value)
 {
     yyjson_val* cur = Top_();
     if (!yyjson_is_str(cur))
@@ -623,7 +600,7 @@ Error JsonReader::ReadPrimitive_(std::string_view& _value)
         MarkError(Error::TypeMismatch);
         return Error::TypeMismatch;
     }
-    _value = { yyjson_get_str(cur), yyjson_get_len(cur) };
+    _value = { yyjson_get_str(cur), static_cast<SizeT>(yyjson_get_len(cur)) };
     return Error::None;
 }
 

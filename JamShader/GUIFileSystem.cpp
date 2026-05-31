@@ -8,7 +8,7 @@ namespace GUI
 
 bool MakeDirectory(
     const StringView                                _path,
-    const FileSystem::eMakeDirectoryCollisionPolicy _policy)
+    const FileSystem::eMkdirCollisionPolicy _policy)
 {
     if (const Error err = FileSystem::MakeDirectory(_path, _policy))
     {
@@ -25,7 +25,7 @@ bool MakeDirectory(
 bool Copy(
     const StringView                   _src,
     const StringView                   _dst,
-    const FileSystem::eCollisionPolicy _policy)
+    const FileSystem::eFileCollisionPolicy _policy)
 {
     if (const Error err = FileSystem::Copy(_src, _dst, _policy))
     {
@@ -41,7 +41,7 @@ bool Copy(
 bool Rename(
     const StringView                   _src,
     const StringView                   _dst,
-    const FileSystem::eCollisionPolicy _policy)
+    const FileSystem::eFileCollisionPolicy _policy)
 {
     if (const Error err = FileSystem::Rename(_src, _dst, _policy))
     {

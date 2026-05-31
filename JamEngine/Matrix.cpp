@@ -40,7 +40,7 @@ Mtx4::Mtx4(
 {
 }
 
-Mtx4 Mtx4::CreateOrtho(
+Mtx4 Mtx4::MakeOrtho(
     const float left,
     const float right,
     const float top,
@@ -61,16 +61,16 @@ Mtx4 Mtx4::CreateOrtho(
     };
 }
 
-Mtx4 Mtx4::CreateOrtho(
+Mtx4 Mtx4::MakeOrtho(
     const float _width,
     const float _height,
     const float _nearZ,
     const float _farZ)
 {
-    return CreateOrtho(-_width * 0.5f, _width * 0.5f, _height * 0.5f, -_height * 0.5f, _nearZ, _farZ);
+    return MakeOrtho(-_width * 0.5f, _width * 0.5f, _height * 0.5f, -_height * 0.5f, _nearZ, _farZ);
 }
 
-Mtx4 Mtx4::CreatePerspectiveFov(
+Mtx4 Mtx4::MakePerspectiveFov(
     const float _fovYRad,
     const float _aspect,
     const float _nearZ,
@@ -82,7 +82,6 @@ Mtx4 Mtx4::CreatePerspectiveFov(
 
     const float f = 1.f / Tan(_fovYRad * 0.5f);
     const float d = _farZ - _nearZ;
-
     return {
         { f / _aspect, 0.f,                 0.f, 0.f },
         {         0.f,   f,                 0.f, 0.f },
@@ -91,7 +90,7 @@ Mtx4 Mtx4::CreatePerspectiveFov(
     };
 }
 
-Mtx4 Mtx4::CreateTranslation(
+Mtx4 Mtx4::MakeTranslation(
     const Vec3 _translation)
 {
     return {
@@ -102,7 +101,7 @@ Mtx4 Mtx4::CreateTranslation(
     };
 }
 
-Mtx4 Mtx4::CreateScale(
+Mtx4 Mtx4::MakeScale(
     const Vec3 _scale)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale components cannot be zero.");
@@ -115,7 +114,7 @@ Mtx4 Mtx4::CreateScale(
     };
 }
 
-Mtx4 Mtx4::CreateRotationX(
+Mtx4 Mtx4::MakeRotationX(
     const float _angleRad)
 {
     const float c = Cos(_angleRad), s = Sin(_angleRad);
@@ -127,7 +126,7 @@ Mtx4 Mtx4::CreateRotationX(
     };
 }
 
-Mtx4 Mtx4::CreateRotationY(
+Mtx4 Mtx4::MakeRotationY(
     const float _angleRad)
 {
     const float c = Cos(_angleRad), s = Sin(_angleRad);
@@ -139,7 +138,7 @@ Mtx4 Mtx4::CreateRotationY(
     };
 }
 
-Mtx4 Mtx4::CreateRotationZ(
+Mtx4 Mtx4::MakeRotationZ(
     const float _angleRad)
 {
     const float c = Cos(_angleRad), s = Sin(_angleRad);
@@ -201,7 +200,7 @@ Mtx4 Mtx4::FromQuaternion(
     };
 }
 
-Mtx4 Mtx4::CreateLookAt(
+Mtx4 Mtx4::MakeLookAt(
     const Vec3 _eyePos,
     const Vec3 _focusPoint,
     const Vec3 _up)
@@ -223,7 +222,7 @@ Mtx4 Mtx4::CreateLookAt(
     };
 }
 
-Mtx4 Mtx4::CreateSRT(
+Mtx4 Mtx4::MakeSRT(
     const Vec3 _scale,
     const Quat _rotation,
     const Vec3 _translation)
@@ -244,7 +243,7 @@ Mtx4 Mtx4::CreateSRT(
     };
 }
 
-Mtx4 Mtx4::CreateSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
+Mtx4 Mtx4::MakeSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
 
@@ -261,7 +260,7 @@ Mtx4 Mtx4::CreateSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
     };
 }
 
-Mtx4 Mtx4::CreateSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
+Mtx4 Mtx4::MakeSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
     JAM_ASSERT(!_forward.IsZeroApprox(), "Forward direction cannot be zero vector.");
@@ -279,7 +278,7 @@ Mtx4 Mtx4::CreateSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
     };
 }
 
-Mtx4 Mtx4::CreateInvSRT(
+Mtx4 Mtx4::MakeInvSRT(
     const Vec3 _scale,
     const Quat _rotation,
     const Vec3 _translation)
@@ -314,7 +313,7 @@ Mtx4 Mtx4::CreateInvSRT(
     };
 }
 
-Mtx4 Mtx4::CreateInvSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
+Mtx4 Mtx4::MakeInvSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
 
@@ -338,7 +337,7 @@ Mtx4 Mtx4::CreateInvSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation)
     };
 }
 
-Mtx4 Mtx4::CreateInvSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
+Mtx4 Mtx4::MakeInvSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation)
 {
     JAM_ASSERT(!_scale.IsZeroApprox(), "Scale cannot be zero vector.");
     JAM_ASSERT(!_forward.IsZeroApprox(), "Forward direction cannot be zero vector.");
@@ -378,8 +377,8 @@ void Mtx4::DecomposeSRT(
             *_pRotationOrNull = Quat::kIdentity;
             return;
         }
-        const Mtx4 rMtx   = { r0 / sx, r1 / sy, r2 / sz, Vec4::kUnitW };
-        *_pRotationOrNull = Quat::FromRotationMatrix(rMtx).Normalized();
+        const Mtx4 rmtx   = { r0 / sx, r1 / sy, r2 / sz, Vec4::kUnitW };
+        *_pRotationOrNull = Quat::FromRotationMatrix(rmtx).Normalized();
     }
 
     if (_pTranslationOrNull)
@@ -410,23 +409,23 @@ Vec3 Mtx4::DecomposeTranslation() const
 Mtx4 Mtx4::Transpose() const
 {
 #ifdef JAM_SIMD_SSE
-    const __m128 t0 = _mm_unpacklo_ps(m128s[0], m128s[2]);
-    const __m128 t1 = _mm_unpackhi_ps(m128s[0], m128s[2]);
-    const __m128 t2 = _mm_unpacklo_ps(m128s[1], m128s[3]);
-    const __m128 t3 = _mm_unpackhi_ps(m128s[1], m128s[3]);
+    const __m128 t0 = _mm_unpacklo_ps(m128r0, m128r2);
+    const __m128 t1 = _mm_unpackhi_ps(m128r0, m128r2);
+    const __m128 t2 = _mm_unpacklo_ps(m128r1, m128r3);
+    const __m128 t3 = _mm_unpackhi_ps(m128r1, m128r3);
 
-    Mtx4 ret     = {};
-    ret.m128s[0] = _mm_unpacklo_ps(t0, t2);
-    ret.m128s[1] = _mm_unpackhi_ps(t0, t2);
-    ret.m128s[2] = _mm_unpacklo_ps(t1, t3);
-    ret.m128s[3] = _mm_unpackhi_ps(t1, t3);
+    Mtx4 ret   = {};
+    ret.m128r0 = _mm_unpacklo_ps(t0, t2);
+    ret.m128r1 = _mm_unpackhi_ps(t0, t2);
+    ret.m128r2 = _mm_unpacklo_ps(t1, t3);
+    ret.m128r3 = _mm_unpackhi_ps(t1, t3);
     return ret;
 #else
     return {
-        { m[0][0], m[1][0], m[2][0], m[3][0] },
-        { m[0][1], m[1][1], m[2][1], m[3][1] },
-        { m[0][2], m[1][2], m[2][2], m[3][2] },
-        { m[0][3], m[1][3], m[2][3], m[3][3] }
+        { m00, m10, m20, m30 },
+        { m01, m11, m21, m31 },
+        { m02, m12, m22, m32 },
+        { m03, m13, m23, m33 }
     };
 #endif
 }
@@ -434,10 +433,10 @@ Mtx4 Mtx4::Transpose() const
 Mtx4 Mtx4::Inverse() const
 {
 #ifdef JAM_SIMD_SSE
-    __m128 t1 = _mm_shuffle_ps(m128s[0], m128s[1], _MM_SHUFFLE(1, 0, 1, 0));
-    __m128 t3 = _mm_shuffle_ps(m128s[0], m128s[1], _MM_SHUFFLE(3, 2, 3, 2));
-    __m128 t2 = _mm_shuffle_ps(m128s[2], m128s[3], _MM_SHUFFLE(1, 0, 1, 0));
-    __m128 t4 = _mm_shuffle_ps(m128s[2], m128s[3], _MM_SHUFFLE(3, 2, 3, 2));
+    __m128 t1 = _mm_shuffle_ps(m128r0, m128r1, _MM_SHUFFLE(1, 0, 1, 0));
+    __m128 t3 = _mm_shuffle_ps(m128r0, m128r1, _MM_SHUFFLE(3, 2, 3, 2));
+    __m128 t2 = _mm_shuffle_ps(m128r2, m128r3, _MM_SHUFFLE(1, 0, 1, 0));
+    __m128 t4 = _mm_shuffle_ps(m128r2, m128r3, _MM_SHUFFLE(3, 2, 3, 2));
 
     __m128 mt0 = _mm_shuffle_ps(t1, t2, _MM_SHUFFLE(2, 0, 2, 0));
     __m128 mt1 = _mm_shuffle_ps(t1, t2, _MM_SHUFFLE(3, 1, 3, 1));
@@ -547,60 +546,60 @@ Mtx4 Mtx4::Inverse() const
 
     const __m128 invDet = _mm_div_ps(_mm_set1_ps(1.f), det);
 
-    Mtx4 ret     = Mtx4::kIdentity;
-    ret.m128s[0] = _mm_mul_ps(C0, invDet);
-    ret.m128s[1] = _mm_mul_ps(C2, invDet);
-    ret.m128s[2] = _mm_mul_ps(C4, invDet);
-    ret.m128s[3] = _mm_mul_ps(C6, invDet);
+    Mtx4 ret   = Mtx4::kIdentity;
+    ret.m128r0 = _mm_mul_ps(C0, invDet);
+    ret.m128r1 = _mm_mul_ps(C2, invDet);
+    ret.m128r2 = _mm_mul_ps(C4, invDet);
+    ret.m128r3 = _mm_mul_ps(C6, invDet);
     return ret;
 #else
-    const float m22m33_m23m32 = m[2][2] * m[3][3] - m[2][3] * m[3][2];
-    const float m21m33_m23m31 = m[2][1] * m[3][3] - m[2][3] * m[3][1];
-    const float m21m32_m22m31 = m[2][1] * m[3][2] - m[2][2] * m[3][1];
-    const float m20m33_m23m30 = m[2][0] * m[3][3] - m[2][3] * m[3][0];
-    const float m20m32_m22m30 = m[2][0] * m[3][2] - m[2][2] * m[3][0];
-    const float m20m31_m21m30 = m[2][0] * m[3][1] - m[2][1] * m[3][0];
+    const float m22m33_m23m32 = m22 * m33 - m23 * m32;
+    const float m21m33_m23m31 = m21 * m33 - m23 * m31;
+    const float m21m32_m22m31 = m21 * m32 - m22 * m31;
+    const float m20m33_m23m30 = m20 * m33 - m23 * m30;
+    const float m20m32_m22m30 = m20 * m32 - m22 * m30;
+    const float m20m31_m21m30 = m20 * m31 - m21 * m30;
 
-    const float m12m33_m13m32 = m[1][2] * m[3][3] - m[1][3] * m[3][2];
-    const float m11m33_m13m31 = m[1][1] * m[3][3] - m[1][3] * m[3][1];
-    const float m11m32_m12m31 = m[1][1] * m[3][2] - m[1][2] * m[3][1];
-    const float m10m33_m13m30 = m[1][0] * m[3][3] - m[1][3] * m[3][0];
-    const float m10m32_m12m30 = m[1][0] * m[3][2] - m[1][2] * m[3][0];
-    const float m10m31_m11m30 = m[1][0] * m[3][1] - m[1][1] * m[3][0];
+    const float m12m33_m13m32 = m12 * m33 - m13 * m32;
+    const float m11m33_m13m31 = m11 * m33 - m13 * m31;
+    const float m11m32_m12m31 = m11 * m32 - m12 * m31;
+    const float m10m33_m13m30 = m10 * m33 - m13 * m30;
+    const float m10m32_m12m30 = m10 * m32 - m12 * m30;
+    const float m10m31_m11m30 = m10 * m31 - m11 * m30;
 
-    const float m12m23_m13m22 = m[1][2] * m[2][3] - m[1][3] * m[2][2];
-    const float m11m23_m13m21 = m[1][1] * m[2][3] - m[1][3] * m[2][1];
-    const float m11m22_m12m21 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
-    const float m10m23_m13m20 = m[1][0] * m[2][3] - m[1][3] * m[2][0];
-    const float m10m22_m12m20 = m[1][0] * m[2][2] - m[1][2] * m[2][0];
-    const float m10m21_m11m20 = m[1][0] * m[2][1] - m[1][1] * m[2][0];
+    const float m12m23_m13m22 = m12 * m23 - m13 * m22;
+    const float m11m23_m13m21 = m11 * m23 - m13 * m21;
+    const float m11m22_m12m21 = m11 * m22 - m12 * m21;
+    const float m10m23_m13m20 = m10 * m23 - m13 * m20;
+    const float m10m22_m12m20 = m10 * m22 - m12 * m20;
+    const float m10m21_m11m20 = m10 * m21 - m11 * m20;
 
-    const float inv00 = (m[1][1] * m22m33_m23m32 - m[1][2] * m21m33_m23m31 + m[1][3] * m21m32_m22m31);
-    const float inv10 = -(m[1][0] * m22m33_m23m32 - m[1][2] * m20m33_m23m30 + m[1][3] * m20m32_m22m30);
-    const float inv20 = (m[1][0] * m21m33_m23m31 - m[1][1] * m20m33_m23m30 + m[1][3] * m20m31_m21m30);
-    const float inv30 = -(m[1][0] * m21m32_m22m31 - m[1][1] * m20m32_m22m30 + m[1][2] * m20m31_m21m30);
+    const float inv00 = (m11 * m22m33_m23m32 - m12 * m21m33_m23m31 + m13 * m21m32_m22m31);
+    const float inv10 = -(m10 * m22m33_m23m32 - m12 * m20m33_m23m30 + m13 * m20m32_m22m30);
+    const float inv20 = (m10 * m21m33_m23m31 - m11 * m20m33_m23m30 + m13 * m20m31_m21m30);
+    const float inv30 = -(m10 * m21m32_m22m31 - m11 * m20m32_m22m30 + m12 * m20m31_m21m30);
 
-    const float det = m[0][0] * inv00 + m[0][1] * inv10 + m[0][2] * inv20 + m[0][3] * inv30;
+    const float det = m00 * inv00 + m01 * inv10 + m02 * inv20 + m03 * inv30;
 
     if (IsZeroApprox(det))
     {
         return kIdentity;
     }
 
-    const float inv01 = -(m[0][1] * m22m33_m23m32 - m[0][2] * m21m33_m23m31 + m[0][3] * m21m32_m22m31);
-    const float inv11 = (m[0][0] * m22m33_m23m32 - m[0][2] * m20m33_m23m30 + m[0][3] * m20m32_m22m30);
-    const float inv21 = -(m[0][0] * m21m33_m23m31 - m[0][1] * m20m33_m23m30 + m[0][3] * m20m31_m21m30);
-    const float inv31 = (m[0][0] * m21m32_m22m31 - m[0][1] * m20m32_m22m30 + m[0][2] * m20m31_m21m30);
+    const float inv01 = -(m01 * m22m33_m23m32 - m02 * m21m33_m23m31 + m03 * m21m32_m22m31);
+    const float inv11 = (m00 * m22m33_m23m32 - m02 * m20m33_m23m30 + m03 * m20m32_m22m30);
+    const float inv21 = -(m00 * m21m33_m23m31 - m01 * m20m33_m23m30 + m03 * m20m31_m21m30);
+    const float inv31 = (m00 * m21m32_m22m31 - m01 * m20m32_m22m30 + m02 * m20m31_m21m30);
 
-    const float inv02 = (m[0][1] * m12m33_m13m32 - m[0][2] * m11m33_m13m31 + m[0][3] * m11m32_m12m31);
-    const float inv12 = -(m[0][0] * m12m33_m13m32 - m[0][2] * m10m33_m13m30 + m[0][3] * m10m32_m12m30);
-    const float inv22 = (m[0][0] * m11m33_m13m31 - m[0][1] * m10m33_m13m30 + m[0][3] * m10m31_m11m30);
-    const float inv32 = -(m[0][0] * m11m32_m12m31 - m[0][1] * m10m32_m12m30 + m[0][2] * m10m31_m11m30);
+    const float inv02 = (m01 * m12m33_m13m32 - m02 * m11m33_m13m31 + m03 * m11m32_m12m31);
+    const float inv12 = -(m00 * m12m33_m13m32 - m02 * m10m33_m13m30 + m03 * m10m32_m12m30);
+    const float inv22 = (m00 * m11m33_m13m31 - m01 * m10m33_m13m30 + m03 * m10m31_m11m30);
+    const float inv32 = -(m00 * m11m32_m12m31 - m01 * m10m32_m12m30 + m02 * m10m31_m11m30);
 
-    const float inv03 = -(m[0][1] * m12m23_m13m22 - m[0][2] * m11m23_m13m21 + m[0][3] * m11m22_m12m21);
-    const float inv13 = (m[0][0] * m12m23_m13m22 - m[0][2] * m10m23_m13m20 + m[0][3] * m10m22_m12m20);
-    const float inv23 = -(m[0][0] * m11m23_m13m21 - m[0][1] * m10m23_m13m20 + m[0][3] * m10m21_m11m20);
-    const float inv33 = (m[0][0] * m11m22_m12m21 - m[0][1] * m10m22_m12m20 + m[0][2] * m10m21_m11m20);
+    const float inv03 = -(m01 * m12m23_m13m22 - m02 * m11m23_m13m21 + m03 * m11m22_m12m21);
+    const float inv13 = (m00 * m12m23_m13m22 - m02 * m10m23_m13m20 + m03 * m10m22_m12m20);
+    const float inv23 = -(m00 * m11m23_m13m21 - m01 * m10m23_m13m20 + m03 * m10m21_m11m20);
+    const float inv33 = (m00 * m11m22_m12m21 - m01 * m10m22_m12m20 + m02 * m10m21_m11m20);
 
     const float invDet = 1.f / det;
     return {
@@ -609,37 +608,34 @@ Mtx4 Mtx4::Inverse() const
         { inv20 * invDet, inv21 * invDet, inv22 * invDet, inv23 * invDet },
         { inv30 * invDet, inv31 * invDet, inv32 * invDet, inv33 * invDet }
     };
-
 #endif
 }
 
 Vec4 Mtx4::Mult(Vec4 _vec) const
 {
 #ifdef JAM_SIMD_SSE
-
     const __m128 vx = _mm_permute_ps(_vec.m128, _MM_SHUFFLE(0, 0, 0, 0));
     const __m128 vy = _mm_permute_ps(_vec.m128, _MM_SHUFFLE(1, 1, 1, 1));
     const __m128 vz = _mm_permute_ps(_vec.m128, _MM_SHUFFLE(2, 2, 2, 2));
     const __m128 vw = _mm_permute_ps(_vec.m128, _MM_SHUFFLE(3, 3, 3, 3));
 
     Vec4 ret;
-    ret.m128 = _mm_mul_ps(vx, m128s[0]);
-    ret.m128 = _mm_fmadd_ps(vy, m128s[1], ret.m128);
-    ret.m128 = _mm_fmadd_ps(vz, m128s[2], ret.m128);
-    ret.m128 = _mm_fmadd_ps(vw, m128s[3], ret.m128);
+    ret.m128 = _mm_mul_ps(vx, m128r0);
+    ret.m128 = _mm_fmadd_ps(vy, m128r1, ret.m128);
+    ret.m128 = _mm_fmadd_ps(vz, m128r2, ret.m128);
+    ret.m128 = _mm_fmadd_ps(vw, m128r3, ret.m128);
     return ret;
-
 #else
     return {
-        m[0][0] * _vec.x + m[0][1] * _vec.y + m[0][2] * _vec.z + m[0][3] * _vec.w,
-        m[1][0] * _vec.x + m[1][1] * _vec.y + m[1][2] * _vec.z + m[1][3] * _vec.w,
-        m[2][0] * _vec.x + m[2][1] * _vec.y + m[2][2] * _vec.z + m[2][3] * _vec.w,
-        m[3][0] * _vec.x + m[3][1] * _vec.y + m[3][2] * _vec.z + m[3][3] * _vec.w
+        m00 * _vec.x + m01 * _vec.y + m02 * _vec.z + m03 * _vec.w,
+        m10 * _vec.x + m11 * _vec.y + m12 * _vec.z + m13 * _vec.w,
+        m20 * _vec.x + m21 * _vec.y + m22 * _vec.z + m23 * _vec.w,
+        m30 * _vec.x + m31 * _vec.y + m32 * _vec.z + m33 * _vec.w
     };
 #endif
 }
 
-Vec3 Mtx4::Mult(
+Vec3 Mtx4::MultPoint(
     const Vec3 _point) const
 {
 #ifdef JAM_SIMD_SSE
@@ -648,15 +644,14 @@ Vec3 Mtx4::Mult(
     const __m128 vz = _mm_set1_ps(_point.z);
 
     Vec4 ret;
-    ret.m128 = _mm_mul_ps(vx, m128s[0]);
-    ret.m128 = _mm_fmadd_ps(vy, m128s[1], ret.m128);
-    ret.m128 = _mm_fmadd_ps(vz, m128s[2], ret.m128);
-    ret.m128 = _mm_add_ps(ret.m128, m128s[3]);
+    ret.m128 = _mm_mul_ps(vx, m128r0);
+    ret.m128 = _mm_fmadd_ps(vy, m128r1, ret.m128);
+    ret.m128 = _mm_fmadd_ps(vz, m128r2, ret.m128);
+    ret.m128 = _mm_add_ps(ret.m128, m128r3);
 
     const __m128 w = _mm_permute_ps(ret.m128, _MM_SHUFFLE(3, 3, 3, 3));
     ret.m128       = _mm_div_ps(ret.m128, w);
     return ret.xyz;
-
 #else
     const Vec4 r = Mult({ _point, 1.f });
     if (IsZeroApprox(r.w))
@@ -677,136 +672,164 @@ Vec3 Mtx4::MultVector(
     const __m128 vz = _mm_set1_ps(_vector.z);
 
     Vec4 ret;
-    ret.m128 = _mm_mul_ps(vx, m128s[0]);
-    ret.m128 = _mm_fmadd_ps(vy, m128s[1], ret.m128);
-    ret.m128 = _mm_fmadd_ps(vz, m128s[2], ret.m128);
+    ret.m128 = _mm_mul_ps(vx, m128r0);
+    ret.m128 = _mm_fmadd_ps(vy, m128r1, ret.m128);
+    ret.m128 = _mm_fmadd_ps(vz, m128r2, ret.m128);
     return ret.xyz;
 #else
     return Mult(Vec4 { _vector, 0.f }).xyz;
 #endif
 }
 
+float* Mtx4::GetPtr()
+{
+    return &m00;
+}
+
+const float* Mtx4::GetPtr() const
+{
+    return &m00;
+}
+
 Mtx4 Mtx4::operator+(const Mtx4& _other) const
 {
 #ifdef JAM_SIMD_SSE
-
-    Mtx4 ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        ret.m128s[i] = _mm_add_ps(m128s[i], _other.m128s[i]);
-    }
+    Mtx4 ret   = {};
+    ret.m128r0 = _mm_add_ps(m128r0, _other.m128r0);
+    ret.m128r1 = _mm_add_ps(m128r1, _other.m128r1);
+    ret.m128r2 = _mm_add_ps(m128r2, _other.m128r2);
+    ret.m128r3 = _mm_add_ps(m128r3, _other.m128r3);
     return ret;
-
 #else
-    Mtx4 ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            ret.m[i][j] = m[i][j] + _other.m[i][j];
-        }
-    }
-    return ret;
+    return {
+        { m00 + _other.m00, m01 + _other.m01, m02 + _other.m02, m03 + _other.m03 },
+        { m10 + _other.m10, m11 + _other.m11, m12 + _other.m12, m13 + _other.m13 },
+        { m20 + _other.m20, m21 + _other.m21, m22 + _other.m22, m23 + _other.m23 },
+        { m30 + _other.m30, m31 + _other.m31, m32 + _other.m32, m33 + _other.m33 }
+    };
 #endif
 }
 
 Mtx4 Mtx4::operator-(const Mtx4& _other) const
 {
 #ifdef JAM_SIMD_SSE
-    Mtx4 ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        ret.m128s[i] = _mm_sub_ps(m128s[i], _other.m128s[i]);
-    }
+    Mtx4 ret   = {};
+    ret.m128r0 = _mm_sub_ps(m128r0, _other.m128r0);
+    ret.m128r1 = _mm_sub_ps(m128r1, _other.m128r1);
+    ret.m128r2 = _mm_sub_ps(m128r2, _other.m128r2);
+    ret.m128r3 = _mm_sub_ps(m128r3, _other.m128r3);
     return ret;
 #else
-    Mtx4 ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            ret.m[i][j] = m[i][j] - _other.m[i][j];
-        }
-    }
-    return ret;
+    return {
+        { m00 - _other.m00, m01 - _other.m01, m02 - _other.m02, m03 - _other.m03 },
+        { m10 - _other.m10, m11 - _other.m11, m12 - _other.m12, m13 - _other.m13 },
+        { m20 - _other.m20, m21 - _other.m21, m22 - _other.m22, m23 - _other.m23 },
+        { m30 - _other.m30, m31 - _other.m31, m32 - _other.m32, m33 - _other.m33 }
+    };
 #endif
 }
 
 Mtx4 Mtx4::operator*(const Mtx4& _other) const
 {
 #ifdef JAM_SIMD_SSE
-
     Mtx4 ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        __m128 m  = m128s[i];
-        __m128 r0 = _mm_permute_ps(m, _MM_SHUFFLE(0, 0, 0, 0));
-        __m128 r1 = _mm_permute_ps(m, _MM_SHUFFLE(1, 1, 1, 1));
-        __m128 r2 = _mm_permute_ps(m, _MM_SHUFFLE(2, 2, 2, 2));
-        __m128 r3 = _mm_permute_ps(m, _MM_SHUFFLE(3, 3, 3, 3));
 
-        ret.m128s[i] = _mm_mul_ps(r0, _other.m128s[0]);
-        ret.m128s[i] = _mm_fmadd_ps(r1, _other.m128s[1], ret.m128s[i]);
-        ret.m128s[i] = _mm_fmadd_ps(r2, _other.m128s[2], ret.m128s[i]);
-        ret.m128s[i] = _mm_fmadd_ps(r3, _other.m128s[3], ret.m128s[i]);
+    {
+        const __m128 r0 = _mm_permute_ps(m128r0, _MM_SHUFFLE(0, 0, 0, 0));
+        const __m128 r1 = _mm_permute_ps(m128r0, _MM_SHUFFLE(1, 1, 1, 1));
+        const __m128 r2 = _mm_permute_ps(m128r0, _MM_SHUFFLE(2, 2, 2, 2));
+        const __m128 r3 = _mm_permute_ps(m128r0, _MM_SHUFFLE(3, 3, 3, 3));
+        ret.m128r0      = _mm_fmadd_ps(r3, _other.m128r3, _mm_fmadd_ps(r2, _other.m128r2, _mm_fmadd_ps(r1, _other.m128r1, _mm_mul_ps(r0, _other.m128r0))));
+    }
+    {
+        const __m128 r0 = _mm_permute_ps(m128r1, _MM_SHUFFLE(0, 0, 0, 0));
+        const __m128 r1 = _mm_permute_ps(m128r1, _MM_SHUFFLE(1, 1, 1, 1));
+        const __m128 r2 = _mm_permute_ps(m128r1, _MM_SHUFFLE(2, 2, 2, 2));
+        const __m128 r3 = _mm_permute_ps(m128r1, _MM_SHUFFLE(3, 3, 3, 3));
+        ret.m128r1      = _mm_fmadd_ps(r3, _other.m128r3, _mm_fmadd_ps(r2, _other.m128r2, _mm_fmadd_ps(r1, _other.m128r1, _mm_mul_ps(r0, _other.m128r0))));
+    }
+    {
+        const __m128 r0 = _mm_permute_ps(m128r2, _MM_SHUFFLE(0, 0, 0, 0));
+        const __m128 r1 = _mm_permute_ps(m128r2, _MM_SHUFFLE(1, 1, 1, 1));
+        const __m128 r2 = _mm_permute_ps(m128r2, _MM_SHUFFLE(2, 2, 2, 2));
+        const __m128 r3 = _mm_permute_ps(m128r2, _MM_SHUFFLE(3, 3, 3, 3));
+        ret.m128r2      = _mm_fmadd_ps(r3, _other.m128r3, _mm_fmadd_ps(r2, _other.m128r2, _mm_fmadd_ps(r1, _other.m128r1, _mm_mul_ps(r0, _other.m128r0))));
+    }
+    {
+        const __m128 r0 = _mm_permute_ps(m128r3, _MM_SHUFFLE(0, 0, 0, 0));
+        const __m128 r1 = _mm_permute_ps(m128r3, _MM_SHUFFLE(1, 1, 1, 1));
+        const __m128 r2 = _mm_permute_ps(m128r3, _MM_SHUFFLE(2, 2, 2, 2));
+        const __m128 r3 = _mm_permute_ps(m128r3, _MM_SHUFFLE(3, 3, 3, 3));
+        ret.m128r3      = _mm_fmadd_ps(r3, _other.m128r3, _mm_fmadd_ps(r2, _other.m128r2, _mm_fmadd_ps(r1, _other.m128r1, _mm_mul_ps(r0, _other.m128r0))));
     }
     return ret;
-
 #else
-    Mtx4 ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            ret.m[i][j] = m[i][0] * _other.m[0][j]
-                        + m[i][1] * _other.m[1][j]
-                        + m[i][2] * _other.m[2][j]
-                        + m[i][3] * _other.m[3][j];
-        }
-    }
-
-    return ret;
+    return {
+        { r0.x * _other.m00 + r0.y * _other.m10 + r0.z * _other.m20 + r0.w * _other.m30,
+         r0.x * _other.m01 + r0.y * _other.m11 + r0.z * _other.m21 + r0.w * _other.m31,
+         r0.x * _other.m02 + r0.y * _other.m12 + r0.z * _other.m22 + r0.w * _other.m32,
+         r0.x * _other.m03 + r0.y * _other.m13 + r0.z * _other.m23 + r0.w * _other.m33 },
+        { r1.x * _other.m00 + r1.y * _other.m10 + r1.z * _other.m20 + r1.w * _other.m30,
+         r1.x * _other.m01 + r1.y * _other.m11 + r1.z * _other.m21 + r1.w * _other.m31,
+         r1.x * _other.m02 + r1.y * _other.m12 + r1.z * _other.m22 + r1.w * _other.m32,
+         r1.x * _other.m03 + r1.y * _other.m13 + r1.z * _other.m23 + r1.w * _other.m33 },
+        { r2.x * _other.m00 + r2.y * _other.m10 + r2.z * _other.m20 + r2.w * _other.m30,
+         r2.x * _other.m01 + r2.y * _other.m11 + r2.z * _other.m21 + r2.w * _other.m31,
+         r2.x * _other.m02 + r2.y * _other.m12 + r2.z * _other.m22 + r2.w * _other.m32,
+         r2.x * _other.m03 + r2.y * _other.m13 + r2.z * _other.m23 + r2.w * _other.m33 },
+        { r3.x * _other.m00 + r3.y * _other.m10 + r3.z * _other.m20 + r3.w * _other.m30,
+         r3.x * _other.m01 + r3.y * _other.m11 + r3.z * _other.m21 + r3.w * _other.m31,
+         r3.x * _other.m02 + r3.y * _other.m12 + r3.z * _other.m22 + r3.w * _other.m32,
+         r3.x * _other.m03 + r3.y * _other.m13 + r3.z * _other.m23 + r3.w * _other.m33 }
+    };
 #endif
 }
 
 Mtx4 Mtx4::operator*(const float _scalar) const
 {
 #ifdef JAM_SIMD_SSE
-    const __m128 s   = _mm_set1_ps(_scalar);
-    Mtx4         ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        ret.m128s[i] = _mm_mul_ps(m128s[i], s);
-    }
+    const __m128 s = _mm_set1_ps(_scalar);
+
+    Mtx4 ret   = {};
+    ret.m128r0 = _mm_mul_ps(m128r0, s);
+    ret.m128r1 = _mm_mul_ps(m128r1, s);
+    ret.m128r2 = _mm_mul_ps(m128r2, s);
+    ret.m128r3 = _mm_mul_ps(m128r3, s);
     return ret;
 #else
-    Mtx4 ret = {};
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            ret.m[i][j] = m[i][j] * _scalar;
-        }
-    }
-    return ret;
+    return {
+        { m00 * _scalar, m01 * _scalar, m02 * _scalar, m03 * _scalar },
+        { m10 * _scalar, m11 * _scalar, m12 * _scalar, m13 * _scalar },
+        { m20 * _scalar, m21 * _scalar, m22 * _scalar, m23 * _scalar },
+        { m30 * _scalar, m31 * _scalar, m32 * _scalar, m33 * _scalar }
+    };
 #endif
 }
 
 Mtx4& Mtx4::operator+=(const Mtx4& _other)
 {
 #ifdef JAM_SIMD_SSE
-    for (int i = 0; i < 4; ++i)
-    {
-        m128s[i] = _mm_add_ps(m128s[i], _other.m128s[i]);
-    }
+    m128r0 = _mm_add_ps(m128r0, _other.m128r0);
+    m128r1 = _mm_add_ps(m128r1, _other.m128r1);
+    m128r2 = _mm_add_ps(m128r2, _other.m128r2);
+    m128r3 = _mm_add_ps(m128r3, _other.m128r3);
 #else
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            m[i][j] += _other.m[i][j];
-        }
-    }
+    m00 += _other.m00;
+    m01 += _other.m01;
+    m02 += _other.m02;
+    m03 += _other.m03;
+    m10 += _other.m10;
+    m11 += _other.m11;
+    m12 += _other.m12;
+    m13 += _other.m13;
+    m20 += _other.m20;
+    m21 += _other.m21;
+    m22 += _other.m22;
+    m23 += _other.m23;
+    m30 += _other.m30;
+    m31 += _other.m31;
+    m32 += _other.m32;
+    m33 += _other.m33;
 #endif
     return *this;
 }
@@ -814,18 +837,27 @@ Mtx4& Mtx4::operator+=(const Mtx4& _other)
 Mtx4& Mtx4::operator-=(const Mtx4& _other)
 {
 #ifdef JAM_SIMD_SSE
-    for (int i = 0; i < 4; ++i)
-    {
-        m128s[i] = _mm_sub_ps(m128s[i], _other.m128s[i]);
-    }
+    m128r0 = _mm_sub_ps(m128r0, _other.m128r0);
+    m128r1 = _mm_sub_ps(m128r1, _other.m128r1);
+    m128r2 = _mm_sub_ps(m128r2, _other.m128r2);
+    m128r3 = _mm_sub_ps(m128r3, _other.m128r3);
 #else
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            m[i][j] -= _other.m[i][j];
-        }
-    }
+    m00 -= _other.m00;
+    m01 -= _other.m01;
+    m02 -= _other.m02;
+    m03 -= _other.m03;
+    m10 -= _other.m10;
+    m11 -= _other.m11;
+    m12 -= _other.m12;
+    m13 -= _other.m13;
+    m20 -= _other.m20;
+    m21 -= _other.m21;
+    m22 -= _other.m22;
+    m23 -= _other.m23;
+    m30 -= _other.m30;
+    m31 -= _other.m31;
+    m32 -= _other.m32;
+    m33 -= _other.m33;
 #endif
     return *this;
 }
@@ -840,20 +872,41 @@ Mtx4& Mtx4::operator*=(const float _scalar)
 {
 #ifdef JAM_SIMD_SSE
     const __m128 s = _mm_set1_ps(_scalar);
-    for (int i = 0; i < 4; ++i)
-    {
-        m128s[i] = _mm_mul_ps(m128s[i], s);
-    }
+    m128r0         = _mm_mul_ps(m128r0, s);
+    m128r1         = _mm_mul_ps(m128r1, s);
+    m128r2         = _mm_mul_ps(m128r2, s);
+    m128r3         = _mm_mul_ps(m128r3, s);
 #else
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            m[i][j] *= _scalar;
-        }
-    }
+    m00 *= _scalar;
+    m01 *= _scalar;
+    m02 *= _scalar;
+    m03 *= _scalar;
+    m10 *= _scalar;
+    m11 *= _scalar;
+    m12 *= _scalar;
+    m13 *= _scalar;
+    m20 *= _scalar;
+    m21 *= _scalar;
+    m22 *= _scalar;
+    m23 *= _scalar;
+    m30 *= _scalar;
+    m31 *= _scalar;
+    m32 *= _scalar;
+    m33 *= _scalar;
 #endif
     return *this;
+}
+
+Vec4& Mtx4::operator[](const SizeT _index)
+{
+    JAM_ASSERT(_index < 4, "Mtx4 row index out of range.");
+    return (&r0)[_index];
+}
+
+Vec4 Mtx4::operator[](const SizeT _index) const
+{
+    JAM_ASSERT(_index < 4, "Mtx4 row index out of range.");
+    return (&r0)[_index];
 }
 
 const Mtx4 Mtx4::kIdentity = {

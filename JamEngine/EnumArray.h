@@ -27,9 +27,9 @@ namespace Jam
 
 template<typename TEnum>
 concept IsDirectIndexableEnum = (std::is_enum_v<TEnum>
-                                 && (UnderlyingFrom(MinOf<TEnum>()) == 0)
+                                 && (AsUnderlying(MinOf<TEnum>()) == 0)
                                  && (CountOf<TEnum>() > 0)
-                                 && (UnderlyingFrom(MaxOf<TEnum>()) == CountOf<TEnum>() - 1));
+                                 && (AsUnderlying(MaxOf<TEnum>()) == CountOf<TEnum>() - 1));
 
 template<typename TEnum, typename TValue>
 class EnumArray
@@ -119,14 +119,14 @@ public:
         return kCap;
     }
 
-    TValue m_arr[kCap] = {};
+    TValue m_arr[kCap];
 
 private:
     [[nodiscard]] constexpr SizeT GetIndex_(TEnum _key) const
     {
         if constexpr (IsDirectIndexableEnum<TEnum>)
         {
-            const SizeT index = UnderlyingFrom(_key);
+            const SizeT index = AsUnderlying(_key);
             JAM_ASSERT(0 <= index && index < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
             return index;
         }

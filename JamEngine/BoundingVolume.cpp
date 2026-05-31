@@ -39,24 +39,23 @@ Aabb Aabb::FromMinMax(const Vec3 _min, const Vec3 _max)
 
 Aabb Aabb::Transform(const Mtx4& _mtx) const
 {
-    const Vec3 nC = _mtx.Mult(center);
-
-    const Vec3 ex = { Abs(_mtx.m[0][0]) * extents.x, Abs(_mtx.m[1][0]) * extents.x, Abs(_mtx.m[2][0]) * extents.x };
-    const Vec3 ey = { Abs(_mtx.m[0][1]) * extents.y, Abs(_mtx.m[1][1]) * extents.y, Abs(_mtx.m[2][1]) * extents.y };
-    const Vec3 ez = { Abs(_mtx.m[0][2]) * extents.z, Abs(_mtx.m[1][2]) * extents.z, Abs(_mtx.m[2][2]) * extents.z };
-    const Vec3 nE = (ex + ey + ez);
-    return { nC, nE };
+    const Vec3 nc = _mtx.MultPoint(center);
+    const Vec3 ex = { Abs(_mtx.m00) * extents.x, Abs(_mtx.m10) * extents.x, Abs(_mtx.m20) * extents.x };
+    const Vec3 ey = { Abs(_mtx.m01) * extents.y, Abs(_mtx.m11) * extents.y, Abs(_mtx.m21) * extents.y };
+    const Vec3 ez = { Abs(_mtx.m02) * extents.z, Abs(_mtx.m12) * extents.z, Abs(_mtx.m22) * extents.z };
+    const Vec3 ne = (ex + ey + ez);
+    return { nc, ne };
 }
 
 void Aabb::Merge(const Aabb& _aabb)
 {
-    const Vec3 minA = center - extents;
-    const Vec3 maxA = center + extents;
-    const Vec3 minB = _aabb.center - _aabb.extents;
-    const Vec3 maxB = _aabb.center + _aabb.extents;
+    const Vec3 mina = center - extents;
+    const Vec3 maxa = center + extents;
+    const Vec3 minb = _aabb.center - _aabb.extents;
+    const Vec3 maxb = _aabb.center + _aabb.extents;
 
-    const Vec3 newMin = minA.Min(minB);
-    const Vec3 newMax = maxA.Max(maxB);
+    const Vec3 newMin = mina.Min(minb);
+    const Vec3 newMax = maxa.Max(maxb);
 
     center  = (newMin + newMax) * 0.5f;
     extents = (newMax - newMin) * 0.5f;
@@ -141,25 +140,6 @@ bool Aabb::Overlap(const Aabb& _other) const
     return d.x <= r.x && d.y <= r.y && d.z <= r.z;
 }
 
-eIntersect Aabb::Intersects(const Aabb& _other) const
-{
-    const Vec3 d    = (center - _other.center).Abs();
-    const Vec3 sumE = extents + _other.extents;
-
-    if (d.x > sumE.x || d.y > sumE.y || d.z > sumE.z)
-    {
-        return eIntersect::Outside;
-    }
-
-    const Vec3 contain = d + _other.extents;
-    if (contain.x <= extents.x && contain.y <= extents.y && contain.z <= extents.z)
-    {
-        return eIntersect::Inside;
-    }
-
-    return eIntersect::Overlab;
-}
-
 bool Aabb::RayCast(const Ray& _ray, Hit* _pHitOrNull) const
 {
     const Vec3 min    = center - extents;
@@ -215,7 +195,7 @@ Obb::Obb(
 Obb Obb::Transform(const Mtx4& _mtx) const
 {
     Obb result    = {};
-    result.center = _mtx.Mult(center);
+    result.center = _mtx.MultPoint(center);
 
     Vec3 s, t;
     Quat r;
@@ -281,7 +261,7 @@ bool Obb::Contains(const Obb& _other) const
     return true;
 }
 
-bool Obb::Overlab(const Obb& _other) const
+bool Obb::Overlap(const Obb& _other) const
 {
     Quat invQ = rotation.Inverse();
     Mtx4 rMtx = Mtx4::FromQuaternion(invQ * _other.rotation);
@@ -314,9 +294,9 @@ bool Obb::Overlab(const Obb& _other) const
         return false;
     }
 
-    Vec3 bu = { rMtx.m[0][0], rMtx.m[1][0], rMtx.m[2][0] };
-    Vec3 bv = { rMtx.m[0][1], rMtx.m[1][1], rMtx.m[2][1] };
-    Vec3 bw = { rMtx.m[0][2], rMtx.m[1][2], rMtx.m[2][2] };
+    Vec3 bu = { rMtx.m00, rMtx.m10, rMtx.m20 };
+    Vec3 bv = { rMtx.m01, rMtx.m11, rMtx.m21 };
+    Vec3 bw = { rMtx.m02, rMtx.m12, rMtx.m22 };
 
     Vec3 abu = bu.Abs();
     Vec3 abv = bv.Abs();
@@ -345,63 +325,63 @@ bool Obb::Overlab(const Obb& _other) const
 
     ra = eA.y * abu.z + eA.z * abu.y;
     rb = eB.y * ar0.z + eB.z * ar0.y;
-    if (Abs(t.z * rMtx.m[1][0] - t.y * rMtx.m[2][0]) > ra + rb + kEpsilon)
+    if (Abs(t.z * rMtx.m10 - t.y * rMtx.m20) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.y * abv.z + eA.z * abv.y;
     rb = eB.x * ar0.z + eB.z * ar0.x;
-    if (Abs(t.z * rMtx.m[1][1] - t.y * rMtx.m[2][1]) > ra + rb + kEpsilon)
+    if (Abs(t.z * rMtx.m11 - t.y * rMtx.m21) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.y * abw.z + eA.z * abw.y;
     rb = eB.x * ar0.y + eB.y * ar0.x;
-    if (Abs(t.z * rMtx.m[1][2] - t.y * rMtx.m[2][2]) > ra + rb + kEpsilon)
+    if (Abs(t.z * rMtx.m12 - t.y * rMtx.m22) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.x * abu.z + eA.z * abu.x;
     rb = eB.y * ar1.z + eB.z * ar1.y;
-    if (Abs(t.x * rMtx.m[2][0] - t.z * rMtx.m[0][0]) > ra + rb + kEpsilon)
+    if (Abs(t.x * rMtx.m20 - t.z * rMtx.m00) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.x * abv.z + eA.z * abv.x;
     rb = eB.x * ar1.z + eB.z * ar1.x;
-    if (Abs(t.x * rMtx.m[2][1] - t.z * rMtx.m[0][1]) > ra + rb + kEpsilon)
+    if (Abs(t.x * rMtx.m21 - t.z * rMtx.m01) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.x * abw.z + eA.z * abw.x;
     rb = eB.x * ar1.y + eB.y * ar1.x;
-    if (Abs(t.x * rMtx.m[2][2] - t.z * rMtx.m[0][2]) > ra + rb + kEpsilon)
+    if (Abs(t.x * rMtx.m22 - t.z * rMtx.m02) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.x * abu.y + eA.y * abu.x;
     rb = eB.y * ar2.z + eB.z * ar2.y;
-    if (Abs(t.y * rMtx.m[0][0] - t.x * rMtx.m[1][0]) > ra + rb + kEpsilon)
+    if (Abs(t.y * rMtx.m00 - t.x * rMtx.m10) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.x * abv.y + eA.y * abv.x;
     rb = eB.x * ar2.z + eB.z * ar2.x;
-    if (Abs(t.y * rMtx.m[0][1] - t.x * rMtx.m[1][1]) > ra + rb + kEpsilon)
+    if (Abs(t.y * rMtx.m01 - t.x * rMtx.m11) > ra + rb + kEpsilon)
     {
         return false;
     }
 
     ra = eA.x * abw.y + eA.y * abw.x;
     rb = eB.x * ar2.y + eB.y * ar2.x;
-    if (Abs(t.y * rMtx.m[0][2] - t.x * rMtx.m[1][2]) > ra + rb + kEpsilon)
+    if (Abs(t.y * rMtx.m02 - t.x * rMtx.m12) > ra + rb + kEpsilon)
     {
         return false;
     }
@@ -431,50 +411,38 @@ bool Obb::RayCast(const Ray& _ray, Hit* _pHitOrNull) const
     return false;
 }
 
-Plane::Plane(const float _a, const float _b, const float _c, const float _d, const bool _bNormalize)
+Plane::Plane(const float _a, const float _b, const float _c, const float _d)
     : vec(_a, _b, _c, _d)
 {
-    if (_bNormalize)
-    {
-        Normalize();
-    }
 }
 
-Plane::Plane(const Vec4 _vec, const bool _bNormalize)
-    : Plane(_vec.x, _vec.y, _vec.z, _vec.w, _bNormalize)
+Plane::Plane(const Vec4 _vec)
+    : Plane(_vec.x, _vec.y, _vec.z, _vec.w)
 {}
 
-Plane::Plane(const Vec3 _normal, const float _d, const bool _bNormalize)
-    : Plane(_normal.x, _normal.y, _normal.z, _d, _bNormalize)
+Plane::Plane(const Vec3 _normal, const float _d)
+    : Plane(_normal.x, _normal.y, _normal.z, _d)
 {}
 
-Plane::Plane(const Vec3 _p1, const Vec3 _p2, const Vec3 _p3, const bool _bNormalize)
+Plane::Plane(const Vec3 _p1, const Vec3 _p2, const Vec3 _p3)
 {
     const Vec3 v0 = _p2 - _p1;
     const Vec3 v1 = _p3 - _p1;
     normal        = v0.Cross(v1);
     d             = -normal.Dot(_p1);
-    if (_bNormalize)
-    {
-        Normalize();
-    }
 }
 
-Plane::Plane(const Vec3 _point, const Vec3 _normal, const bool _bNormalize)
+Plane::Plane(const Vec3 _point, const Vec3 _normal)
 {
     normal = _normal;
     d      = -normal.Dot(_point);
-    if (_bNormalize)
-    {
-        Normalize();
-    }
 }
 
-Vec3 Plane::IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3)
+Vec3 Plane::IntersectOf3Planes(const Plane _p0, const Plane _p1, const Plane _p2)
 {
-    const Vec3 n1 = p1.normal;
-    const Vec3 n2 = p2.normal;
-    const Vec3 n3 = p3.normal;
+    const Vec3 n1 = _p0.normal;
+    const Vec3 n2 = _p1.normal;
+    const Vec3 n3 = _p2.normal;
 
     const Vec3  cross23 = n2.Cross(n3);
     const float denom   = n1.Dot(cross23);
@@ -485,7 +453,7 @@ Vec3 Plane::IntersectOf3Planes(const Plane& p1, const Plane& p2, const Plane& p3
 
     const Vec3 cross31 = n3.Cross(n1);
     const Vec3 cross12 = n1.Cross(n2);
-    return (cross23 * -p1.d + cross31 * -p2.d + cross12 * -p3.d) / denom;
+    return (cross23 * -_p0.d + cross31 * -_p1.d + cross12 * -_p2.d) / denom;
 }
 
 void Plane::Normalize()
@@ -502,25 +470,52 @@ Plane Plane::Normalized() const
     return out;
 }
 
-Plane Plane::Transform(const Mtx4& _invTransMtx, const bool _bNormalize) const
+Plane Plane::Transform(const Mtx4& _invTransMtx) const
 {
     Plane p = *this;
     p.vec   = _invTransMtx.Mult(vec);
-    if (_bNormalize)
-    {
-        p.Normalize();
-    }
     return p;
 }
 
-float Plane::DistanceToPoint(const Vec3 _point) const
+float Plane::DistanceTo(const Vec3 _point) const
 {
     return normal.Dot(_point) + d;
 }
 
+bool Plane::IsFront(Vec3 _point) const
+{
+    return DistanceTo(_point) > 0.f;
+}
+
+bool Plane::IsBehind(Vec3 _point) const
+{
+    return DistanceTo(_point) < 0.f;
+}
+
+bool Plane::Overlap(const Aabb& _aabb) const
+{
+    const float d = DistanceTo(_aabb.center);          // aabb의 중심과 평면 사이의 거리
+    const float r = normal.Abs().Dot(_aabb.extents);   // aabb가 평면에 걸치는 최대 거리
+    return Abs(d) <= r;
+}
+
+bool Plane::IsFront(const Aabb& _aabb) const
+{
+    const float d = DistanceTo(_aabb.center);
+    const float r = normal.Abs().Dot(_aabb.extents);
+    return d > r;
+}
+
+bool Plane::IsBehind(const Aabb& _aabb) const
+{
+    const float d = DistanceTo(_aabb.center);
+    const float r = normal.Abs().Dot(_aabb.extents);
+    return d < -r;
+}
+
 bool Plane::RayCast(const Ray& _ray, const bool _bDoubleSided, Hit* _pHitOrNull) const
 {
-    const float dist  = DistanceToPoint(_ray.pos);
+    const float dist  = DistanceTo(_ray.pos);
     const float nDotd = normal.Dot(_ray.dir);
     if (!_bDoubleSided && (dist < 0.f || nDotd > 0.f))
     {
@@ -538,62 +533,39 @@ bool Plane::RayCast(const Ray& _ray, const bool _bDoubleSided, Hit* _pHitOrNull)
     return true;
 }
 
-bool Plane::Overlap(const Aabb& _box) const
-{
-    const float d = DistanceToPoint(_box.center);
-    const float r = normal.Abs().Dot(_box.extents);
-    return Abs(d) <= r;
-}
-
-eIntersect Plane::Intersects(const Aabb& _box) const
-{
-    const float dist = DistanceToPoint(_box.center);
-    const float r    = normal.Abs().Dot(_box.extents);
-    return dist < -r ? eIntersect::Outside
-         : dist > r  ? eIntersect::Inside
-                     : eIntersect::Overlab;
-}
-
 Frustum::Frustum(
     const Plane _left,
     const Plane _right,
     const Plane _bottom,
     const Plane _top,
     const Plane _near,
-    const Plane _far,
-    const bool  _bNormalized)
+    const Plane _far)
 {
-    planes[eFrustumFace::Near]   = _near;
-    planes[eFrustumFace::Far]    = _far;
-    planes[eFrustumFace::Left]   = _left;
-    planes[eFrustumFace::Right]  = _right;
-    planes[eFrustumFace::Bottom] = _bottom;
-    planes[eFrustumFace::Top]    = _top;
-
-    if (_bNormalized)
-    {
-        Normalize();
-    }
+    nearp   = _near;
+    farp    = _far;
+    leftp   = _left;
+    rightp  = _right;
+    bottomp = _bottom;
+    topp    = _top;
 }
 
-Frustum::Frustum(const Mtx4& _mtx, const bool _bNormalized)
+Frustum::Frustum(const Mtx4& _mtx)
     : Frustum(
-          Plane { _mtx.m[0][3] + _mtx.m[0][0], _mtx.m[1][3] + _mtx.m[1][0], _mtx.m[2][3] + _mtx.m[2][0], _mtx.m[3][3] + _mtx.m[3][0], false },
-          Plane { _mtx.m[0][3] - _mtx.m[0][0], _mtx.m[1][3] - _mtx.m[1][0], _mtx.m[2][3] - _mtx.m[2][0], _mtx.m[3][3] - _mtx.m[3][0], false },
-          Plane { _mtx.m[0][3] + _mtx.m[0][1], _mtx.m[1][3] + _mtx.m[1][1], _mtx.m[2][3] + _mtx.m[2][1], _mtx.m[3][3] + _mtx.m[3][1], false },
-          Plane { _mtx.m[0][3] - _mtx.m[0][1], _mtx.m[1][3] - _mtx.m[1][1], _mtx.m[2][3] - _mtx.m[2][1], _mtx.m[3][3] - _mtx.m[3][1], false },
-          Plane { _mtx.m[0][2], _mtx.m[1][2], _mtx.m[2][2], _mtx.m[3][2], false },
-          Plane { _mtx.m[0][3] - _mtx.m[0][2], _mtx.m[1][3] - _mtx.m[1][2], _mtx.m[2][3] - _mtx.m[2][2], _mtx.m[3][3] - _mtx.m[3][2], false },
-          _bNormalized)
+          Plane { _mtx.r3 + _mtx.r0 },   // left
+          Plane { _mtx.r3 - _mtx.r0 },   // right
+          Plane { _mtx.r3 + _mtx.r1 },   // bottom
+          Plane { _mtx.r3 - _mtx.r1 },   // top
+          Plane { _mtx.r2 },             // near [0, 1]
+          Plane { _mtx.r3 - _mtx.r2 })   // far
 {
 }
 
-Frustum Frustum::Transform(const Mtx4& _invTransMtx, const bool _bNormalize) const
+Frustum Frustum::Transform(const Mtx4& _invTransMtx) const
 {
     Frustum out = *this;
     for (Plane& p: out.planes)
     {
-        p = p.Transform(_invTransMtx, _bNormalize);
+        p = p.Transform(_invTransMtx);
     }
     return out;
 }
@@ -616,64 +588,38 @@ Frustum Frustum::Normalized() const
 Vec3 Frustum::CalcCenter() const
 {
     const Corners corners = CalcCorners();
-    Vec3          sum     = Vec3::kZero;
-    for (const Vec3 p: corners)
+    Vec3          center  = {};
+    for (const Vec3& corner: corners)
     {
-        sum = sum + p;
+        center += corner;
     }
-    return sum / static_cast<float>(corners.Size());
+    return center / static_cast<float>(corners.size());
 }
 
 Corners Frustum::CalcCorners() const
 {
-    const Plane& n = planes[eFrustumFace::Near];
-    const Plane& f = planes[eFrustumFace::Far];
-    const Plane& l = planes[eFrustumFace::Left];
-    const Plane& r = planes[eFrustumFace::Right];
-    const Plane& t = planes[eFrustumFace::Top];
-    const Plane& b = planes[eFrustumFace::Bottom];
-
     Corners corners                   = {};
-    corners[eRegion::LeftTopNear]     = Plane::IntersectOf3Planes(n, l, t);
-    corners[eRegion::RightTopNear]    = Plane::IntersectOf3Planes(n, r, t);
-    corners[eRegion::LeftBottomNear]  = Plane::IntersectOf3Planes(n, l, b);
-    corners[eRegion::RightBottomNear] = Plane::IntersectOf3Planes(n, r, b);
-    corners[eRegion::LeftTopFar]      = Plane::IntersectOf3Planes(f, l, t);
-    corners[eRegion::RightTopFar]     = Plane::IntersectOf3Planes(f, r, t);
-    corners[eRegion::LeftBottomFar]   = Plane::IntersectOf3Planes(f, l, b);
-    corners[eRegion::RightBottomFar]  = Plane::IntersectOf3Planes(f, r, b);
+    corners[eRegion::LeftTopNear]     = Plane::IntersectOf3Planes(nearp, leftp, topp);
+    corners[eRegion::RightTopNear]    = Plane::IntersectOf3Planes(nearp, rightp, topp);
+    corners[eRegion::LeftBottomNear]  = Plane::IntersectOf3Planes(nearp, leftp, bottomp);
+    corners[eRegion::RightBottomNear] = Plane::IntersectOf3Planes(nearp, rightp, bottomp);
+    corners[eRegion::LeftTopFar]      = Plane::IntersectOf3Planes(farp, leftp, topp);
+    corners[eRegion::RightTopFar]     = Plane::IntersectOf3Planes(farp, rightp, topp);
+    corners[eRegion::LeftBottomFar]   = Plane::IntersectOf3Planes(farp, leftp, bottomp);
+    corners[eRegion::RightBottomFar]  = Plane::IntersectOf3Planes(farp, rightp, bottomp);
     return corners;
 }
 
 bool Frustum::Overlap(const Aabb& _box) const
 {
-    for (const Plane& p: planes)
+    for (const Plane p: planes)
     {
-        if (!p.Overlap(_box))
+        if (p.IsBehind(_box))
         {
             return false;
         }
     }
     return true;
-}
-
-eIntersect Frustum::Intersects(const Aabb& _box) const
-{
-    bool bAnyIntersect = false;
-    for (const Plane p: planes)
-    {
-        const eIntersect ret = p.Intersects(_box);
-        if (ret == eIntersect::Outside)
-        {
-            return eIntersect::Outside;
-        }
-
-        if (ret == eIntersect::Overlab)
-        {
-            bAnyIntersect = true;
-        }
-    }
-    return bAnyIntersect ? eIntersect::Overlab : eIntersect::Inside;
 }
 
 bool Frustum::RayCast(const Ray& _ray, const bool _bDoubleSided, Hit* _pHitOrNull) const
@@ -688,11 +634,65 @@ bool Frustum::RayCast(const Ray& _ray, const bool _bDoubleSided, Hit* _pHitOrNul
     return false;
 }
 
-Ray::Ray(const Vec3 _origin, const Vec3 _direction, const bool _bNormalizeDir)
+void Frustum::Split(const Span<Frustum> _outFrustums, const float _weight) const
+{
+    // practical split scheme
+    // https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-10-parallel-split-shadow-maps-programmable-gpus
+
+    JAM_ASSERT(_weight >= 0.f && _weight <= 1.f, "weight must be in [0, 1]");
+
+    const Int32 numSplits = static_cast<Int32>(_outFrustums.size());
+    const Int32 numPlanes = numSplits + 1;
+    const float l         = _weight;
+    const float n         = nearp.d;
+    const float f         = farp.d;
+    const float ratio     = f / n;
+
+    for (Int32 i = 0; i < numSplits; ++i)
+    {
+        const float logn = n * Power(ratio, static_cast<float>(i) / static_cast<float>(numPlanes));
+        const float unin = n + (f - n) * (static_cast<float>(i) / static_cast<float>(numPlanes));
+        const float nn   = l * logn + (1.f - l) * unin;
+
+        const float logf = n * Power(ratio, static_cast<float>(i + 1) / static_cast<float>(numPlanes));
+        const float unif = n + (f - n) * (static_cast<float>(i + 1) / static_cast<float>(numPlanes));
+        float       ff   = l * logf + (1.f - l) * unif;
+
+        if (i < numSplits - 1)
+        {
+            ff *= 1.005f;
+        }
+
+        _outFrustums[i].leftp   = leftp;
+        _outFrustums[i].rightp  = rightp;
+        _outFrustums[i].bottomp = bottomp;
+        _outFrustums[i].topp    = topp;
+        _outFrustums[i].nearp.d = nn;
+        _outFrustums[i].farp.d  = ff;
+    }
+}
+
+Ray::Ray(const Vec3 _origin, const Vec3 _direction)
     : pos(_origin)
     , dir(_direction)
 {
-    if (_bNormalizeDir) Normalize();
+}
+
+Ray::Ray(float _x, float _y, const Mtx4& _invVP)
+{
+    const Vec3 n  = { _x, _y, 0.f };
+    const Vec3 p0 = _invVP.MultPoint(n);
+
+    const Vec3 f  = { _x, _y, 1.f };
+    const Vec3 p1 = _invVP.MultPoint(f);
+
+    pos = p0;
+    dir = (p1 - p0).Normalized();
+}
+
+Vec3 Ray::GetPoint(const float _t) const
+{
+    return pos + dir * _t;
 }
 
 void Ray::Normalize()

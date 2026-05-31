@@ -141,8 +141,8 @@ static void BM_Jam_AabbIntersectsAabbExt(benchmark::State& state)
     // ✅ eIntersect 반환형 벤치마크 (최적화된 버전)
     for (auto _: state)
     {
-        benchmark::DoNotOptimize(g_jam.aabbA.Intersects(g_jam.aabbB));
-        benchmark::DoNotOptimize(g_jam.aabbA.Intersects(g_jam.aabbC));
+        benchmark::DoNotOptimize(g_jam.aabbA.Overlap(g_jam.aabbB));
+        benchmark::DoNotOptimize(g_jam.aabbA.Overlap(g_jam.aabbC));
     }
 }
 BENCHMARK(BM_Jam_AabbIntersectsAabbExt)->Name("Jam_AabbIntersectsAabbExt");
@@ -258,7 +258,7 @@ BENCHMARK(BM_Dx_AabbRayIntersectWithDist)->Name("Dx_AabbRayIntersectWithDist");
 static void BM_Jam_AabbTransform(benchmark::State& state)
 {
     // ✅ center/extents 기반 Transform
-    const Jam::Mtx4 m = Jam::Mtx4::CreateSRT(
+    const Jam::Mtx4 m = Jam::Mtx4::MakeSRT(
         { 2.f, 2.f, 2.f }, Jam::Quat::kIdentity, { 5.f, 0.f, 0.f });
     for (auto _: state)
     {
@@ -289,7 +289,7 @@ static void BM_Jam_ObbIntersectsObb(benchmark::State& state)
     // ✅ OBB SAT 벤치마크
     for (auto _: state)
     {
-        benchmark::DoNotOptimize(g_jam.obbA.Overlab(g_jam.obbB));
+        benchmark::DoNotOptimize(g_jam.obbA.Overlap(g_jam.obbB));
     }
 }
 BENCHMARK(BM_Jam_ObbIntersectsObb)->Name("Jam_ObbIntersectsObb");
@@ -363,8 +363,8 @@ static void BM_Jam_PlaneIntersectsAabb(benchmark::State& state)
     };
     for (auto _: state)
     {
-        benchmark::DoNotOptimize(plane.Intersects(g_jam.aabbA));
-        benchmark::DoNotOptimize(plane.Intersects(g_jam.aabbC));
+        benchmark::DoNotOptimize(plane.IsFront(g_jam.aabbA));
+        benchmark::DoNotOptimize(plane.IsFront(g_jam.aabbC));
     }
 }
 BENCHMARK(BM_Jam_PlaneIntersectsAabb)->Name("Jam_PlaneIntersectsAabb");
@@ -390,8 +390,8 @@ static void BM_Jam_FrustumIntersectsAabb(benchmark::State& state)
     // ✅ eIntersect 반환형
     for (auto _: state)
     {
-        benchmark::DoNotOptimize(g_jam.frustum.Intersects(g_jam.aabbA));
-        benchmark::DoNotOptimize(g_jam.frustum.Intersects(g_jam.aabbC));
+        benchmark::DoNotOptimize(g_jam.frustum.Overlap(g_jam.aabbA));
+        benchmark::DoNotOptimize(g_jam.frustum.Overlap(g_jam.aabbC));
     }
 }
 BENCHMARK(BM_Jam_FrustumIntersectsAabb)->Name("Jam_FrustumIntersectsAabb");
@@ -410,7 +410,7 @@ static void BM_Jam_FrustumContainsAabb(benchmark::State& state)
 {
     for (auto _: state)
     {
-        const auto r = g_jam.frustum.Intersects(g_jam.aabbA);
+        const auto r = g_jam.frustum.Overlap(g_jam.aabbA);
         benchmark::DoNotOptimize(r);
     }
 }
@@ -480,7 +480,7 @@ static void BM_Jam_FrustumCull1000(benchmark::State& state)
         visible = 0;
         for (const auto& box: g_jamAabbs)
         {
-            if (g_jam.frustum.Intersects(box) != Jam::eIntersect::Outside)
+            if (g_jam.frustum.Overlap(box))
                 ++visible;
         }
         benchmark::DoNotOptimize(visible);
@@ -534,4 +534,3 @@ static void BM_Dx_PlaneOverlapAabb(benchmark::State& state)
     }
 }
 BENCHMARK(BM_Dx_PlaneOverlapAabb)->Name("Dx_PlaneOverlapAabb");
-

@@ -137,7 +137,7 @@ Mesh::Mesh(
     }
 
     // sort key
-    Murmur3Hasher64 hasher {};
+    Murmur3Hasher hasher {};
     hasher.Mix(_positions);
     hasher.Mix(_attribData);
     hasher.Mix(_indexData);
@@ -171,7 +171,7 @@ Mesh::Mesh(
     }
 
     // sort key
-    Murmur3Hasher64 hasher {};
+    Murmur3Hasher hasher {};
     hasher.Mix(_positios);
     hasher.Mix(_indexData);
     const UInt64 hash = hasher.Finish();
@@ -209,7 +209,7 @@ Mesh::Mesh(
     m_boundingBox.Merge({ 0.f, 0.f, -0.05f });
 
     // sort key
-    Murmur3Hasher64 hasher {};
+    Murmur3Hasher hasher {};
     hasher.Mix(_positions);
     hasher.Mix(_attribData);
     const UInt64 hash = hasher.Finish();
@@ -242,7 +242,7 @@ Mesh::Mesh(
     m_boundingBox.Merge({ 0.f, 0.f, -0.05f });
 
     // sort key
-    Murmur3Hasher64 hasher {};
+    Murmur3Hasher hasher {};
     hasher.Mix(_positions);
     const UInt64 hash = hasher.Finish();
     m_sortKey         = static_cast<UInt16>(hash);
@@ -294,7 +294,7 @@ Error Mesh::LoadFromFile_(
 
     // finalize
     const StringView path = _path;
-    const UInt32     hash = path.Hash32();
+    const UInt64     hash = path.Hash();
     m_sortKey             = static_cast<UInt16>(hash);
     m_path                = _path;
     return Error::None;
@@ -388,7 +388,7 @@ eAsset Mesh::GetAssetType() const
     return kAssetType;
 }
 
-UInt32 Mesh::GetTypeHash() const
+UInt64 Mesh::GetTypeHash() const
 {
     return kTypeHash;
 }

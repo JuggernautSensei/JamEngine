@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-26 15:14:45.747
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: struct Jam::FrameBuffer __cdecl Jam::Graphics::CreateFrameBuffer_(class eastl::span<struct Jam::Attachment const ,-1>,bool)
+line: 4009
+column: 9
+------------------------------------
+user report: 
+Assertion failed! Condition: i == 0 || numLayers == texture.numLayers
+All attachments in a framebuffer must have the same number of layers.
+====================================

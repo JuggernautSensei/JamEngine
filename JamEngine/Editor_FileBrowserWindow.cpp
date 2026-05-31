@@ -15,13 +15,15 @@
 #include "ModelImportDialog.h"
 #include "RenameFileDialog.h"
 #include "EditorEvents.h"
+#include "StaticString.h"
 
 namespace Jam
 {
 
 Editor_FileBrowserWindow::Editor_FileBrowserWindow()
 {
-    const StringView contentsDir = GetApp().GetContentsDirectory();
+    Application&     app         = GetApp();
+    const StringView contentsDir = app.GetContentsDirectory();
 
     // file watcher
     FileWatcherInfo info     = {};
@@ -236,7 +238,7 @@ void Editor_FileBrowserWindow::Widget_FileEntry_(
         }
         else
         {
-            StackString<256> buf;
+            StaticString<256> buf;
             buf.Format("{:.{}s}..", _pEntry->name.GetPtr(), clipThreshold - 1);
             ImGui::TextUnformatted(buf.GetPtr());
         }
@@ -543,7 +545,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
     if (Widget_MenuItem("new folder"))
     {
         const String path = String::Joined(pEntry->path, "new folder", eJoin::File);
-        GetEditor().CreateDir(path, FileSystem::eMakeDirectoryCollisionPolicy::Rename);
+        GetEditor().CreateDir(path, FileSystem::eMkdirCollisionPolicy::Rename);
     }
 
     ImGui::Separator();
@@ -689,7 +691,8 @@ void Editor_FileBrowserWindow::GatherDirEntries_()
 {
     m_dirEntryLookUp.clear();
 
-    const StringView contentDir = GetApp().GetContentsDirectory();
+    Application&     app        = GetApp();
+    const StringView contentDir = app.GetContentsDirectory();
     m_pRootDirNode              = GatherDirEntries_Recursive_(contentDir);
     if (const Ref<DirEntry>& pFocusingEntry = GetEditor().GetFocusingDirEntryOrNull())
     {
@@ -842,46 +845,47 @@ void Editor_FileBrowserWindow::OnFileRenamedEvent_(
 void Editor_FileBrowserWindow::OnFileWatcherEvent_(
     const FileWatcherEvent& _event) const
 {
-    JAM_ASSERT(std::this_thread::get_id() != GetApp().GetMainThreadId(), "File watcher event should not be called in main thread.");
+    Application& app = GetApp();
+    JAM_ASSERT(std::this_thread::get_id() != app.GetMainThreadId(), "File watcher event should not be called in main thread.");
 
     switch (_event.type)
     {
         case eFileEvent::Added:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.path] {
+            app.SubmitCommandToMainThread(Bind(
+                [this, &app, path = _event.path] {
                     FileAddedEvent event { path };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;
 
         case eFileEvent::Deleted:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.path] {
+            app.SubmitCommandToMainThread(Bind(
+                [this, &app, path = _event.path] {
                     FileDeletedEvent event { path };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;
 
         case eFileEvent::Renamed:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
-                [this, oldPath = _event.oldPath, newPath = _event.path] {
+            app.SubmitCommandToMainThread(Bind(
+                [this, &app, oldPath = _event.oldPath, newPath = _event.path] {
                     FileRenamedEvent event { oldPath, newPath };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;
 
         case eFileEvent::Modified:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
-                [this, path = _event.path] {
+            app.SubmitCommandToMainThread(Bind(
+                [this, &app, path = _event.path] {
                     FileModifiedEvent event { path };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;

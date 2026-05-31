@@ -14,41 +14,41 @@ Optional<eImageFormat> ParseAsImageFormat(
     }
 
     const StringView ext = _ext.StartsWith(".") ? _ext.SubView(1) : _ext;
-    switch (ext.IgnoreCaseHash32())
+    switch (ext.IgnoreCaseHash())
     {
-        case String::IgnoreCaseHashed32("dds"):
+        case IgnoreCaseHashOf("dds"):
             return eImageFormat::DDS;
-        case String::IgnoreCaseHashed32("exr"):
+        case IgnoreCaseHashOf("exr"):
             return eImageFormat::EXR;
-        case String::IgnoreCaseHashed32("hdr"):
+        case IgnoreCaseHashOf("hdr"):
             return eImageFormat::HDR;
-        case String::IgnoreCaseHashed32("tga"):
+        case IgnoreCaseHashOf("tga"):
             return eImageFormat::TGA;
-        case String::IgnoreCaseHashed32("bmp"):
+        case IgnoreCaseHashOf("bmp"):
             return eImageFormat::BMP;
-        case String::IgnoreCaseHashed32("jpg"):
+        case IgnoreCaseHashOf("jpg"):
             return eImageFormat::JPG;
-        case String::IgnoreCaseHashed32("jpeg"):
+        case IgnoreCaseHashOf("jpeg"):
             return eImageFormat::JPEG;
-        case String::IgnoreCaseHashed32("png"):
+        case IgnoreCaseHashOf("png"):
             return eImageFormat::PNG;
-        case String::IgnoreCaseHashed32("tif"):
+        case IgnoreCaseHashOf("tif"):
             return eImageFormat::TIF;
-        case String::IgnoreCaseHashed32("tiff"):
+        case IgnoreCaseHashOf("tiff"):
             return eImageFormat::TIFF;
-        case String::IgnoreCaseHashed32("gif"):
+        case IgnoreCaseHashOf("gif"):
             return eImageFormat::GIF;
-        case String::IgnoreCaseHashed32("hdp"):
+        case IgnoreCaseHashOf("hdp"):
             return eImageFormat::HDP;
-        case String::IgnoreCaseHashed32("jxr"):
+        case IgnoreCaseHashOf("jxr"):
             return eImageFormat::JXR;
-        case String::IgnoreCaseHashed32("wdp"):
+        case IgnoreCaseHashOf("wdp"):
             return eImageFormat::WDP;
-        case String::IgnoreCaseHashed32("ico"):
+        case IgnoreCaseHashOf("ico"):
             return eImageFormat::ICO;
-        case String::IgnoreCaseHashed32("heif"):
+        case IgnoreCaseHashOf("heif"):
             return eImageFormat::HEIF;
-        case String::IgnoreCaseHashed32("heic"):
+        case IgnoreCaseHashOf("heic"):
             return eImageFormat::HEIC;
         default:
             return kNullopt;

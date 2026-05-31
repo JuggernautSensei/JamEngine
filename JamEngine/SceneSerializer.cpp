@@ -154,20 +154,6 @@ namespace
 
 }   // namespace
 
-Expect<Scoped<Scene>> Scene::LoadFromFile(
-    const StringView                    _path,
-    const Flags<eSceneDeserializeFlags> _flags)
-{
-    Expect<JsonReader> reader = JsonReader::ParseFromFile(_path);
-    if (!reader)
-    {
-        JAM_LOG_ERROR("Failed to parse JSON file '{}' for scene deserialization. Error: {}", _path, reader.GetError().ToErrorMessage());
-        return reader.GetError();
-    }
-
-    return LoadFromJson_(reader.GetValue(), _flags);
-}
-
 Expect<Scoped<Scene>> Scene::Load(
     const StringView                    _json,
     const Flags<eSceneDeserializeFlags> _flags)
@@ -176,6 +162,20 @@ Expect<Scoped<Scene>> Scene::Load(
     if (!reader)
     {
         JAM_LOG_ERROR("Failed to parse JSON data for scene deserialization. Error: {}", reader.GetError().ToErrorMessage());
+        return reader.GetError();
+    }
+
+    return LoadFromJson_(reader.GetValue(), _flags);
+}
+
+Expect<Scoped<Scene>> Scene::LoadFromFile(
+    const StringView                    _path,
+    const Flags<eSceneDeserializeFlags> _flags)
+{
+    Expect<JsonReader> reader = JsonReader::ParseFromFile(_path);
+    if (!reader)
+    {
+        JAM_LOG_ERROR("Failed to parse JSON file '{}' for scene deserialization. Error: {}", _path, reader.GetError().ToErrorMessage());
         return reader.GetError();
     }
 
@@ -247,8 +247,8 @@ void Scene::Serialize(ArchiveWriter& _writer)
         _writer.EndArray();   // typeName []
     }
 
-    _writer.EndObject();   // components {}
-    _writer.EndObject();   // root {}
+    _writer.EndObject(); // components {}
+    _writer.EndObject(); // root {}
 }
 
 Error Scene::Deserialize(
@@ -298,8 +298,8 @@ Error Scene::Deserialize(
 
     const UID rootUid = GetRootEntity().GetUID();
     if (const Error err = _reader.ForEachArray(Bind([this, rootUid](const SizeT _index, ArchiveReader& _reader) -> Error {
-            return DeserializeEntity_(*this, rootUid, _index, _reader);
-        })))
+        return DeserializeEntity_(*this, rootUid, _index, _reader);
+    })))
     {
         JAM_LOG_ERROR("Scene deserialize error: failed to read entities array. Error: {}", err.ToErrorMessage());
         return err;
@@ -314,8 +314,8 @@ Error Scene::Deserialize(
     }
 
     if (const Error err = _reader.ForEachObject(Bind([this, _flags](const StringView _key, ArchiveReader& _reader) {
-            return DeserializeComponent_(*this, _flags, _key, _reader);
-        })))
+        return DeserializeComponent_(*this, _flags, _key, _reader);
+    })))
     {
         JAM_LOG_ERROR("Scene deserialize error: failed to read components. Error: {}", err.ToErrorMessage());
         _reader.Exit();

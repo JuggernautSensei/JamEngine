@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-21 00:08:17.491
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\ResourcePool.h
+function name: struct Jam::Program &__cdecl Jam::ResourcePool<struct Jam::Program>::operator [](const class Jam::Handle<struct Jam::Program>) noexcept
+line: 147
+column: 9
+------------------------------------
+user report: 
+Assertion failed! Condition: m_handleAlloc.IsValid(handle)
+invalid handle. pos = 3, token = 0
+====================================

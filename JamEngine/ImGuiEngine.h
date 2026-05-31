@@ -13,6 +13,7 @@ class Texture;
 
 class ImGuiEngine
 {
+
 public:
     ImGuiEngine(const ImGuiEngine&)            = delete;
     ImGuiEngine& operator=(const ImGuiEngine&) = delete;
@@ -39,7 +40,7 @@ private:
     ProgramHandle m_textureCubePh = kInvalidHandle;
 
     ShaderHandle m_vsh            = kInvalidHandle;
-    ShaderHandle m_basicPsh       = kInvalidHandle;
+    ShaderHandle m_psh            = kInvalidHandle;
     ShaderHandle m_textureCubePsh = kInvalidHandle;
 
     VertexLayout         m_layout = {};
@@ -55,14 +56,12 @@ private:
     IndexBufferHandle m_ibh   = kInvalidHandle;
     Int32             m_ibCap = 0;
 
-    bool m_bNeedCleanUpPlatformTextures = false;
-
     inline static ImGuiEngine* s_pInstance = nullptr;
     friend class Application;
 };
 
-[[nodiscard]] ImTextureRef PackToImTextureRef(TextureHandle _texh, eTexture _type = eTexture::Texture2D);
-[[nodiscard]] ImTextureRef PackToImTextureRef(const Ref<Texture>& _pTexture);
+[[nodiscard]] ImTextureRef AsImTextureRef(TextureHandle _texh, eTexture _type = eTexture::Texture2D);
+[[nodiscard]] ImTextureRef AsImTextureRef(const Ref<Texture>& _pTexture);
 
 [[nodiscard]] inline ImGuiEngine& GetImGuiEngine()
 {

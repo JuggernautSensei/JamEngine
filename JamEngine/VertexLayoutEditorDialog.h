@@ -23,9 +23,9 @@ public:
 private:
     bool OnClickSaveButton_() const;
 
-    void PushNodeDefered_(eVertexAttribute _attrib, eAttributeFormat _format);
-    void RemoveNodeDefered_(eVertexAttribute _attrib);
-    void ModifyNodeDefered_(eVertexAttribute _attrib, eAttributeFormat _format);
+    void PushNodeDeferred_(eVertexAttribute _attrib, eAttributeFormat _format);
+    void RemoveNodeDeferred_(eVertexAttribute _attrib);
+    void ModifyNodeDeferred_(eVertexAttribute _attrib, eAttributeFormat _format);
     bool IsElementAllUsed() const;
 
     bool Widget_VertexAttributeCombo_(const char* _label, eVertexAttribute& _attrib) const;

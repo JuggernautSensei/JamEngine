@@ -116,17 +116,15 @@ protected:
         Array,
     };
 
-    virtual void WritePrimitive_(std::nullptr_t)            = 0;
-    virtual void WritePrimitive_(bool _value)               = 0;
-    virtual void WritePrimitive_(Int32 _value)              = 0;
-    virtual void WritePrimitive_(UInt32 _value)             = 0;
-    virtual void WritePrimitive_(Int64 _value)              = 0;
-    virtual void WritePrimitive_(UInt64 _value)             = 0;
-    virtual void WritePrimitive_(float _value)              = 0;
-    virtual void WritePrimitive_(double _value)             = 0;
-    virtual void WritePrimitive_(const char* _value)        = 0;
-    virtual void WritePrimitive_(const std::string& _value) = 0;
-    virtual void WritePrimitive_(std::string_view _value)   = 0;
+    virtual void WritePrimitive_(std::nullptr_t)  = 0;
+    virtual void WritePrimitive_(bool _value)     = 0;
+    virtual void WritePrimitive_(Int32 _value)    = 0;
+    virtual void WritePrimitive_(UInt32 _value)   = 0;
+    virtual void WritePrimitive_(Int64 _value)    = 0;
+    virtual void WritePrimitive_(UInt64 _value)   = 0;
+    virtual void WritePrimitive_(float _value)    = 0;
+    virtual void WritePrimitive_(double _value)   = 0;
+    virtual void WritePrimitive_(StringView _str) = 0;
 };
 
 class ArchiveReader
@@ -140,7 +138,7 @@ public:
     ArchiveReader& operator=(ArchiveReader&&)      = default;
 
     virtual Error EnterField(StringView _key) = 0;
-    virtual Error EnterAt(SizeT _index)         = 0;
+    virtual Error EnterAt(SizeT _index)       = 0;
     virtual void  Exit()                      = 0;
 
     virtual SizeT GetSize() const = 0;
@@ -220,18 +218,19 @@ public:
     }
 
 protected:
-    virtual Error ReadPrimitive_(std::nullptr_t&)          = 0;
-    virtual Error ReadPrimitive_(bool& _value)             = 0;
-    virtual Error ReadPrimitive_(Int32& _value)            = 0;
-    virtual Error ReadPrimitive_(UInt32& _value)           = 0;
-    virtual Error ReadPrimitive_(Int64& _value)            = 0;
-    virtual Error ReadPrimitive_(UInt64& _value)           = 0;
-    virtual Error ReadPrimitive_(float& _value)            = 0;
-    virtual Error ReadPrimitive_(double& _value)           = 0;
-    virtual Error ReadPrimitive_(const char*& _value)      = 0;
-    virtual Error ReadPrimitive_(std::string& _value)      = 0;
-    virtual Error ReadPrimitive_(std::string_view& _value) = 0;
+    virtual Error ReadPrimitive_(std::nullptr_t&)    = 0;
+    virtual Error ReadPrimitive_(bool& _value)       = 0;
+    virtual Error ReadPrimitive_(Int32& _value)      = 0;
+    virtual Error ReadPrimitive_(UInt32& _value)     = 0;
+    virtual Error ReadPrimitive_(Int64& _value)      = 0;
+    virtual Error ReadPrimitive_(UInt64& _value)     = 0;
+    virtual Error ReadPrimitive_(float& _value)      = 0;
+    virtual Error ReadPrimitive_(double& _value)     = 0;
+    virtual Error ReadPrimitive_(String& _value)     = 0;
+    virtual Error ReadPrimitive_(StringView& _value) = 0;
 };
+
+////////// BUILT-IN SPECIALIZATIONS //////////
 
 ////////// ENUM //////////
 
@@ -345,15 +344,7 @@ Error ReadFromArchive(ArchiveReader& _reader, EnumArray<TEnum, TValue>& _enumArr
         }));
 }
 
-////////// misc ////////
-
-void  WriteToArchive(ArchiveWriter& _writer, const String& _value);
-Error ReadFromArchive(ArchiveReader& _reader, String& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(String);
-
-void  WriteToArchive(ArchiveWriter& _writer, StringView _value);
-Error ReadFromArchive(ArchiveReader& _reader, StringView& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(StringView);
+////////// Math //////////
 
 void  WriteToArchive(ArchiveWriter& _writer, Vec3 _value);
 Error ReadFromArchive(ArchiveReader& _reader, Vec3& _value);

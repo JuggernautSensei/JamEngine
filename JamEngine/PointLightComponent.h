@@ -7,8 +7,8 @@ namespace Jam
 struct PointLightComponent
 {
     JAM_COMPONENT_BODY(PointLightComponent);
-    JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME("point light component");
-    JAM_COMPONENT_METADATA_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable);
+    JAM_COMPONENT_EDITOR_DISPLAY_NAME("point light component");
+    JAM_COMPONENT_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable);
 
     void Serialize(ArchiveWriter& _writer, Scene* _pScene, Entity _owner) const;
     void Deserialize(ArchiveReader& _reader, Scene* _pScene, Entity _owner);

@@ -5,6 +5,14 @@ namespace Jam
 
 class Transform
 {
+    enum class eMatrixDirtyFlags : UInt32
+    {
+        None   = 0,
+        SRT    = 1 << 0,
+        InvSRT = 1 << 1,
+        All    = SRT | InvSRT
+    };
+
 public:
     // axis
     [[nodiscard]] Vec3 GetRight() const;
@@ -15,9 +23,9 @@ public:
     [[nodiscard]] Vec3 GetBackward() const;
 
     // srt
-    [[nodiscard]] const Mtx4& GetSRT() const;
-    void                      SetSRT(const Mtx4& _srtMtx);
-    [[nodiscard]] Mtx4        CalcInvSRT() const;
+    void               SetSRT(const Mtx4& _srtMtx);
+    [[nodiscard]] Mtx4 GetSRT() const;
+    [[nodiscard]] Mtx4 GetInvSRT() const;
 
     // transform
     [[nodiscard]] Transform Inverse() const;
@@ -80,15 +88,14 @@ public:
     void AddTranslationY(float _y);
     void AddTranslationZ(float _z);
 
-    [[nodiscard]] bool IsDirty() const;
-
 private:
     Vec3 m_scale       = Vec3::kOne;
     Quat m_rotation    = Quat::kIdentity;
     Vec3 m_translation = Vec3::kZero;
 
-    mutable bool m_bDirty   = true;
-    mutable Mtx4 m_mtxCache = Mtx4::kIdentity;
+    mutable Mtx4                     m_cachedSRT    = Mtx4::kIdentity;
+    mutable Mtx4                     m_cachedInvSRT = Mtx4::kIdentity;
+    mutable Flags<eMatrixDirtyFlags> m_dirtyFlags   = eMatrixDirtyFlags::None;
 };
 
 }   // namespace Jam

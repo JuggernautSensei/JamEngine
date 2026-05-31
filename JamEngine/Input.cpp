@@ -61,73 +61,73 @@ void Input::OnEvent(Event& _event)
 
 bool Input::IsKeyDown(const eKey _key) noexcept
 {
-    const Int32 index = UnderlyingFrom(_key);
+    const Int32 index = AsUnderlying(_key);
     return m_bKeyDown[index];
 }
 
 bool Input::IsKeyPressed(const eKey _key) noexcept
 {
-    const Int32 index = UnderlyingFrom(_key);
+    const Int32 index = AsUnderlying(_key);
     return m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 
 bool Input::IsKeyHold(const eKey _key) noexcept
 {
-    const Int32 index = UnderlyingFrom(_key);
+    const Int32 index = AsUnderlying(_key);
     return m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsKeyUp(const eKey _key) noexcept
 {
-    const Int32 index = UnderlyingFrom(_key);
+    const Int32 index = AsUnderlying(_key);
     return !m_bKeyDown[index];
 }
 
 bool Input::IsKeyReleased(const eKey _key) noexcept
 {
-    const Int32 index = UnderlyingFrom(_key);
+    const Int32 index = AsUnderlying(_key);
     return !m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsKeyAway(const eKey _key) noexcept
 {
-    const Int32 index = UnderlyingFrom(_key);
+    const Int32 index = AsUnderlying(_key);
     return !m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseDown(const eMouse _mouse) noexcept
 {
-    const Int32 index = UnderlyingFrom(_mouse);
+    const Int32 index = AsUnderlying(_mouse);
     return m_bKeyDown[index];
 }
 
 bool Input::IsMousePressed(const eMouse _mouse) noexcept
 {
-    const Int32 index = UnderlyingFrom(_mouse);
+    const Int32 index = AsUnderlying(_mouse);
     return m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseHold(const eMouse _mouse) noexcept
 {
-    const Int32 index = UnderlyingFrom(_mouse);
+    const Int32 index = AsUnderlying(_mouse);
     return m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseUp(const eMouse _mouse) noexcept
 {
-    const Int32 index = UnderlyingFrom(_mouse);
+    const Int32 index = AsUnderlying(_mouse);
     return !m_bKeyDown[index];
 }
 
 bool Input::IsMouseReleased(const eMouse _mouse) noexcept
 {
-    const Int32 index = UnderlyingFrom(_mouse);
+    const Int32 index = AsUnderlying(_mouse);
     return !m_bKeyDown[index] && m_bPrevKeyDown[index];
 }
 
 bool Input::IsMouseAway(const eMouse _mouse) noexcept
 {
-    const Int32 index = UnderlyingFrom(_mouse);
+    const Int32 index = AsUnderlying(_mouse);
     return !m_bKeyDown[index] && !m_bPrevKeyDown[index];
 }
 

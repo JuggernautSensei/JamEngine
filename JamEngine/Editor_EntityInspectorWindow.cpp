@@ -91,7 +91,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
                 {
                     if (Widget_MenuItem("remove"))
                     {
-                        data.RemoveDefered(entity);
+                        data.RemoveDeferred(entity);
                     }
                     ImGui::EndPopup();
                 }
@@ -99,7 +99,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
                 // if click 'x' button, remove component
                 if (!bX)
                 {
-                    data.RemoveDefered(entity);
+                    data.RemoveDeferred(entity);
                 }
             }
 
@@ -147,7 +147,7 @@ void Editor_EntityInspectorWindow::Menu_RemoveComponent_() const
         {
             if (Widget_MenuItem(data.editorDisplayName.GetPtr()))
             {
-                data.RemoveDefered(entity);
+                data.RemoveDeferred(entity);
             }
         }
     }
@@ -162,7 +162,7 @@ void Editor_EntityInspectorWindow::Menu_AddComponent_() const
         {
             if (Widget_MenuItem(data.editorDisplayName.GetPtr()))
             {
-                data.CreateDefered(entity);
+                data.CreateDeferred(entity);
             }
         }
     }

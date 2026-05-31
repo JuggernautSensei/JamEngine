@@ -22,19 +22,21 @@ constexpr Int32 kMaxNumVertexBufferSlots        = 4;
 constexpr Int32 kMaxNumVertexShaderInputSlots   = D3D11_VS_INPUT_REGISTER_COUNT;
 constexpr Int32 kMaxNumVertexAttribs            = static_cast<Int32>(CountOf<eVertexAttribute>());
 constexpr Int32 kMaxNumInstanceAttribs          = kMaxNumVertexShaderInputSlots - kMaxNumVertexAttribs;
+constexpr Int32 kDrawIndirectStride             = 32;
 
 // utils
-constexpr Int32 kAll                         = Limits<Int32>::kHighest;
-constexpr Int32 kDepthStencilAttachmentSlot = kMaxNumRenderTargetViewSlots;
+constexpr Int32 kAll              = Limits<Int32>::kHighest;
+constexpr Int32 kDepthStencilSlot = kMaxNumRenderTargetViewSlots;
 
 ////////// ENUMS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class eTextureCreateFlags : UInt32
+enum class eTextureFlags : UInt32
 {
     None = 0,
 
-    RenderTargetAttachment = 1 << 0,   // usable as render target attachment
-    DepthStencilAttachment = 1 << 1,   // usable as depth stencil attachment
+    // attachment
+    RenderTarget = 1 << 0,   // usable as render target attachment
+    DepthStencil = 1 << 1,   // usable as depth stencil attachment
 
     // access
     Mutable           = 1 << 2,   // force mutable                  (if init data is provided, texture is immutable. this flag overrides it)
@@ -42,24 +44,24 @@ enum class eTextureCreateFlags : UInt32
     DisableShaderRead = 1 << 4,   // disable shader read            (no SRV created)
     ShaderReadWrite   = 1 << 5,   // shader read & write enabled    (create UAV)
 
-    MSAAx4  = 1 << 6,   // 4x MSAA
-    MSAAx8  = 2 << 6,   // 8x MSAA
-    MSAAx16 = 3 << 6,   // 16x MSAA
+    // MSAA
+    MSAAx2 = 1 << 6,   // 2x MSAA
+    MSAAx4 = 2 << 6,   // 4x MSAA
+    MSAAx8 = 3 << 6,   // 8x MSAA
 };
 
-[[nodiscard]] Flags<eTextureCreateFlags> FilterMsaaFlags(Flags<eTextureCreateFlags> _flags) noexcept;
+[[nodiscard]] Flags<eTextureFlags> FilterMsaaFlags(Flags<eTextureFlags> _flags) noexcept;
 
-enum class eStorageBufferCreateFlags : UInt32
+enum class eStorageBufferFlags : UInt32
 {
     None = 0,
 
     Dynamic         = 1 << 0,   // dynamic buffer                      (CPU write access)
     ShaderRead      = 1 << 1,   // shader read enabled                 (SRV)
     ShaderReadWrite = 1 << 2,   // shader read & write enabled         (UAV)
-    IndirectArgs    = 1 << 3,   // usable as indirect argument buffer
 };
 
-enum class eStorageBufferData
+enum class eTypedBufferFormat
 {
     UInt8x1,
     UInt8x2,
@@ -100,8 +102,8 @@ enum class eShader
 enum class eTexture
 {
     Texture2D = 0,
-    Texture3D,
     TextureCube,
+    Texture3D,
 };
 
 enum class eBuffer
@@ -117,17 +119,25 @@ enum class eStorageBuffer
     Raw = 0,
     Structured,
     Typed,
-    Readback
+    IndirectArgs,
+    Readback,
+};
+
+enum class eStructureBuffer
+{
+    Default = 0,
+    AppendConsume,
+    Counter
 };
 
 enum class eCubeFace : Int8
 {
-    Right = 0,   // positive X
-    Left,        // negative X
-    Top,         // positive Y
-    Bottom,      // negative Y
-    Front,       // positive Z
-    Back,        // negative Z
+    PosX = 0,   // positive X
+    NegX,       // negative X
+    PosY,       // positive Y
+    NegY,       // negative Y
+    PosZ,       // positive Z
+    NegZ,       // negative Z
 };
 
 enum class eShaderCompileFlags : UInt32
@@ -514,13 +524,12 @@ struct StorageBuffer : HardwareBuffer
     ID3D11ShaderResourceView*  pSrv = nullptr;
     ID3D11UnorderedAccessView* pUav = nullptr;
 
-    eStorageBuffer storageType    = eStorageBuffer::Raw;
-    Int32          stride         = 0;
-    Int32          numElems       = 0;
-    bool           bReadback      = false;
-    bool           bIndirectArgs  = false;
-    bool           bAppendConsume = false;   // option for structured buffer
-    bool           bCounter       = false;   // option for structured buffer
+    eStorageBuffer             storageType   = eStorageBuffer::Raw;
+    eStructureBuffer           structureType = eStructureBuffer::Default;
+    Int32                      stride        = 0;
+    bool                       bReadback     = false;
+    bool                       bIndirectArgs = false;
+    Flags<eStorageBufferFlags> flags         = eStorageBufferFlags::None;
 };
 using StorageBufferHandle = Handle<StorageBuffer>;
 
@@ -538,39 +547,38 @@ struct HardwareTextureRef
 
     union   // MSAA
     {
-        ID3D11Resource*  pMsaaResource = nullptr;
-        ID3D11Texture2D* pMsaaTexture2D;
+        ID3D11Resource*  pMsaaRtResource = nullptr;
+        ID3D11Texture2D* pMsaaRtTexture2D;
     };
 
-    String         name           = {};
-    Int32          width          = 0;
-    Int32          height         = 0;
-    Int32          depth          = 0;
-    eTexture       type           = eTexture::Texture2D;
-    eTextureFormat format         = eTextureFormat::Unknown;
-    Int32          numLayers      = 1;   // num cubemaps = numLayers / 6
-    Int32          samples        = 1;
-    Int32          numMips        = 1;
-    Int32          refCount       = 0;
-    bool           bRtvAttachable = false;
-    bool           bDsvAttachable = false;
-    bool           bImmutable     = false;
-    bool           bReadback      = false;
+    String               name       = {};
+    Int32                width      = 0;
+    Int32                height     = 0;
+    Int32                depth      = 0;
+    eTexture             type       = eTexture::Texture2D;
+    eTextureFormat       format     = eTextureFormat::Unknown;
+    Int32                numLayers  = 1;   // num cubemaps = numLayers / 6
+    Int32                samples    = 1;
+    Int32                numMips    = 1;
+    Int32                refCount   = 0;
+    bool                 bImmutable = false;
+    bool                 bReadback  = false;
+    Flags<eTextureFlags> flags      = eTextureFlags::None;
 };
 using TextureHandle = Handle<HardwareTextureRef>;
 
 struct Attachment
 {
     TextureHandle texh        = kInvalidHandle;
-    Int32         mipIndex    = 0;
+    Int32         mip         = 0;
     Int32         layerOffset = 0;
-    Int32         numLayers   = 1;   // [layerOffset, layerOffset + numLayers) will be bound
+    Int32         numLayers   = 1;   // [layerOffset, layerOffset + numLayers) will be bound.
 };
 
 struct FrameBuffer
 {
-    String name  = {};
-    bool   bMsaa = false;
+    String name    = {};
+    bool   bIsMsaa = false;
 
     Array<Attachment, kMaxNumAttachmentSlots> attachments      = {};
     Int32                                     numRenderTargets = 0;
@@ -612,6 +620,30 @@ struct Program
 using ProgramHandle = Handle<Program>;
 
 ////////// STRUCTS ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct GraphicsInit
+{
+    HWND platformHandle  = 0;
+    bool bAllowTearing   = false;
+    bool bAttachDebugger = false;
+
+    // back buffer
+    Int32          backBufferWidth   = 0;
+    Int32          backBufferHeight  = 0;
+    eTextureFormat backBufferFormat  = eTextureFormat::Unknown;
+    Int32          backBufferSamples = 1;
+};
+
+struct BackBuffer
+{
+    Int32          width   = 0;
+    Int32          height  = 0;
+    eTextureFormat format  = eTextureFormat::Unknown;
+    Int32          samples = 1;
+
+    TextureHandle     texh = kInvalidHandle;
+    FrameBufferHandle fbh  = kInvalidHandle;
+};
 
 struct RGBA
 {
@@ -748,7 +780,7 @@ struct RGBA
     }
 
     // RRGGBBAA
-    [[nodiscard]] constexpr UInt32 ToRGBA() const
+    [[nodiscard]] constexpr UInt32 ToPackedRGBA() const
     {
         return (static_cast<UInt32>(r) << 24)
              | (static_cast<UInt32>(g) << 16)
@@ -757,21 +789,12 @@ struct RGBA
     }
 
     // AABBGGRR
-    [[nodiscard]] constexpr UInt32 ToABGR() const
+    [[nodiscard]] constexpr UInt32 ToPackedABGR() const
     {
         return (static_cast<UInt32>(a) << 24)
              | (static_cast<UInt32>(b) << 16)
              | (static_cast<UInt32>(g) << 8)
              | static_cast<UInt32>(r);
-    }
-
-    // BBGGRRAA
-    [[nodiscard]] constexpr UInt32 ToBGRA() const
-    {
-        return (static_cast<UInt32>(b) << 24)
-             | (static_cast<UInt32>(g) << 16)
-             | (static_cast<UInt32>(r) << 8)
-             | static_cast<UInt32>(a);
     }
 
     [[nodiscard]] constexpr bool operator==(const RGBA& _other) const
@@ -810,16 +833,16 @@ struct Viewport
     constexpr Viewport(const UInt16 _w, const UInt16 _h)
         : x(0)
         , y(0)
-        , w(_w)
-        , h(_h)
+        , width(_w)
+        , height(_h)
     {
     }
 
     constexpr Viewport(const UInt16 _x, const UInt16 _y, const UInt16 _w, const UInt16 _h)
         : x(_x)
         , y(_y)
-        , w(_w)
-        , h(_h)
+        , width(_w)
+        , height(_h)
     {
     }
 
@@ -837,10 +860,10 @@ struct Viewport
     {
         struct
         {
-            UInt16 x;   // 뷰포트의 왼쪽 상단 X 좌표
-            UInt16 y;   // 뷰포트의 왼쪽 상단 Y 좌표
-            UInt16 w;   // 뷰포트의 너비
-            UInt16 h;   // 뷰포트의 높이
+            UInt16 x;        // 뷰포트의 왼쪽 상단 X 좌표
+            UInt16 y;        // 뷰포트의 왼쪽 상단 Y 좌표
+            UInt16 width;    // 뷰포트의 너비
+            UInt16 height;   // 뷰포트의 높이
         };
         UInt64 xywh = 0;
     };
@@ -985,32 +1008,31 @@ struct ConstantBufferInfo
 
 struct StorageBufferInfo
 {
-    Int32          byteWidth      = 0;
-    Int32          stride         = 0;
-    Int32          numElems       = 0;
-    eStorageBuffer storageType    = eStorageBuffer::Raw;
-    bool           bImmutable     = false;
-    bool           bDynamic       = false;
-    bool           bReadback      = false;
-    bool           bIndirectArgs  = false;
-    bool           bAppendConsume = false;
-    bool           bCounter       = false;
+    Int32                      byteWidth     = 0;
+    Int32                      stride        = 0;
+    Int32                      numElems      = 0;
+    eStorageBuffer             storageType   = eStorageBuffer::Raw;
+    eStructureBuffer           structureType = eStructureBuffer::Default;
+    bool                       bImmutable    = false;
+    bool                       bDynamic      = false;
+    bool                       bReadback     = false;
+    bool                       bIndirectArgs = false;
+    Flags<eStorageBufferFlags> flags         = eStorageBufferFlags::None;
 };
 
 struct TextureInfo
 {
-    Int32          width          = 0;
-    Int32          height         = 0;
-    Int32          depth          = 0;
-    eTexture       type           = eTexture::Texture2D;
-    eTextureFormat format         = eTextureFormat::Unknown;
-    Int32          numLayers      = 1;
-    Int32          samples        = 1;
-    Int32          numMips        = 1;
-    bool           bImmutable     = false;
-    bool           bReadback      = false;
-    bool           bRtvAttachable = false;
-    bool           bDsvAttachable = false;
+    Int32                width      = 0;
+    Int32                height     = 0;
+    Int32                depth      = 0;
+    eTexture             type       = eTexture::Texture2D;
+    eTextureFormat       format     = eTextureFormat::Unknown;
+    Int32                numLayers  = 1;
+    Int32                samples    = 1;
+    Int32                numMips    = 1;
+    bool                 bImmutable = false;
+    bool                 bReadback  = false;
+    Flags<eTextureFlags> flags      = eTextureFlags::None;
 };
 
 struct FrameBufferInfo
@@ -1085,6 +1107,13 @@ struct GraphicsStats
         numFrameBufferChanges       = 0;
 
         numResolve = 0;
+
+        gpuTimeBegin = 0;
+        gpuTimeEnd   = 0;
+        gpuTimerFreq = 0;
+
+        gpuMemoryMaxByte   = 0;
+        gpuMemoryUsageByte = 0;
     }
 
     Int32 numDrawCalls     = 0;
@@ -1131,6 +1160,13 @@ struct GraphicsStats
     Int32 numFrameBufferChanges       = 0;
 
     Int32 numResolve = 0;
+
+    Int64 gpuTimeBegin = 0;   // unit. ticks.
+    Int64 gpuTimeEnd   = 0;   // unit. ticks.
+    Int64 gpuTimerFreq = 0;
+
+    Int64 gpuMemoryUsageByte = 0;   // unit. byte
+    Int64 gpuMemoryMaxByte   = 0;   // unit. byte
 };
 
 ////////// UTILS ////////////////////////////////////////////////////////////////////////////////////////////////////

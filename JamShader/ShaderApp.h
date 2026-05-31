@@ -39,7 +39,7 @@ enum class eWindows
 class ShaderApp : public Application
 {
 public:
-    explicit ShaderApp(StringView _appName, Flags<eAppCoreFlags> _subSystems);
+    explicit ShaderApp(StringView _appName, Flags<eAppInitFlags> _subSystems);
 
     // app resource
     void                              SetIcon(eIcon _icon, const Ref<Texture>& _pTexture);
@@ -135,4 +135,4 @@ private:
     return static_cast<ShaderApp&>(Application::GetInstance());
 }
 
-JAM_MAIN(ShaderApp, "JamShader", eAppCoreFlags::ImGuiEngine);
+JAM_MAIN(ShaderApp, "JamShader", eAppInitFlags::ImGuiEngine);

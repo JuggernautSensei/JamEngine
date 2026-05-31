@@ -49,6 +49,16 @@ struct Vec2i
         return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y) };
     }
 
+    [[nodiscard]] Int32* GetPtr()
+    {
+        return &x;
+    }
+
+    [[nodiscard]] const Int32* GetPtr() const
+    {
+        return &x;
+    }
+
     constexpr Vec2i& operator+=(const Vec2i _other)
 
     {
@@ -151,6 +161,16 @@ struct Vec2i
         return !(*this == _other);
     }
 
+    [[nodiscard]] Int32& operator[](const SizeT index)
+    {
+        return e[index];
+    }
+
+    [[nodiscard]] constexpr Int32 operator[](const SizeT index) const
+    {
+        return e[index];
+    }
+
     const static Vec2i kZero;
     const static Vec2i kOne;
     const static Vec2i kUnitX;
@@ -173,7 +193,7 @@ struct Vec2i
             Int32 width, height;
         };
 
-        Int32 e[2] = {};
+        Array<Int32, 2> e = {};
     };
 };
 
@@ -237,13 +257,11 @@ struct Vec2
     }
 
     [[nodiscard]] constexpr float Cross(const Vec2 _other) const
-
     {
         return x * _other.y - y * _other.x;
     }
 
     void Normalize()
-
     {
         const float invLen = 1.f / Sqrt(LengthSq());
         x *= invLen;
@@ -251,7 +269,6 @@ struct Vec2
     }
 
     [[nodiscard]] Vec2 Normalized() const
-
     {
         Vec2 v = *this;
         v.Normalize();
@@ -259,31 +276,26 @@ struct Vec2
     }
 
     [[nodiscard]] constexpr Vec2 Min(const Vec2 _other) const
-
     {
         return { Jam::Min(x, _other.x), Jam::Min(y, _other.y) };
     }
 
     [[nodiscard]] constexpr Vec2 Max(const Vec2 _other) const
-
     {
         return { Jam::Max(x, _other.x), Jam::Max(y, _other.y) };
     }
 
     [[nodiscard]] constexpr Vec2 Clamp(const Vec2 _min, const Vec2 _max) const
-
     {
         return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y) };
     }
 
     [[nodiscard]] constexpr Vec2 Rcp() const
-
     {
         return { 1.f / x, 1.f / y };
     }
 
     [[nodiscard]] constexpr Vec2 RcpSafe() const
-
     {
         float xx = IsZeroApprox(x) ? 0.f : 1.f / x;
         float yy = IsZeroApprox(y) ? 0.f : 1.f / y;
@@ -291,18 +303,15 @@ struct Vec2
     }
 
     [[nodiscard]] constexpr Vec2 Reflect(const Vec2 _normal) const
-
     {
         return *this - _normal * (2.f * Dot(_normal));
     }
 
     [[nodiscard]] Vec2 Refract(const Vec2 _normal, const float _eta) const
-
     {
         const float nDotV = Dot(_normal);
         const float k     = 1.f - _eta * _eta * (1.f - nDotV * nDotV);
         if (k < 0.f)
-
         {
             return Vec2::kZero;
         }
@@ -310,31 +319,36 @@ struct Vec2
     }
 
     [[nodiscard]] constexpr Vec2 Project(const Vec2 _onto) const
-
     {
         return _onto * (Dot(_onto) / _onto.LengthSq());
     }
 
     [[nodiscard]] float Angle(const Vec2 _other) const
-
     {
         return Acos(Jam::Clamp(Dot(_other) / (Length() * _other.Length()), -1.f, 1.f));
     }
 
     [[nodiscard]] constexpr bool IsZeroApprox(const float _epsilon = kEpsilon) const
-
     {
         return Jam::IsZeroApprox(x, _epsilon) && Jam::IsZeroApprox(y, _epsilon);
     }
 
     [[nodiscard]] constexpr bool IsEqualApprox(const Vec2 _other, const float _epsilon = kEpsilon) const
-
     {
         return Jam::IsEqualApprox(x, _other.x, _epsilon) && Jam::IsEqualApprox(y, _other.y, _epsilon);
     }
 
-    constexpr Vec2& operator+=(const Vec2 _other)
+    [[nodiscard]] float* GetPtr()
+    {
+        return &x;
+    }
 
+    [[nodiscard]] const float* GetPtr() const
+    {
+        return &x;
+    }
+
+    constexpr Vec2& operator+=(const Vec2 _other)
     {
         x += _other.x;
         y += _other.y;
@@ -342,7 +356,6 @@ struct Vec2
     }
 
     constexpr Vec2& operator-=(const Vec2 _other)
-
     {
         x -= _other.x;
         y -= _other.y;
@@ -350,7 +363,6 @@ struct Vec2
     }
 
     constexpr Vec2& operator*=(const Vec2 _other)
-
     {
         x *= _other.x;
         y *= _other.y;
@@ -358,7 +370,6 @@ struct Vec2
     }
 
     constexpr Vec2& operator/=(const Vec2 _other)
-
     {
         x /= _other.x;
         y /= _other.y;
@@ -366,7 +377,6 @@ struct Vec2
     }
 
     constexpr Vec2& operator*=(const float _scalar)
-
     {
         x *= _scalar;
         y *= _scalar;
@@ -374,7 +384,6 @@ struct Vec2
     }
 
     constexpr Vec2& operator/=(const float _scalar)
-
     {
         x /= _scalar;
         y /= _scalar;
@@ -382,45 +391,48 @@ struct Vec2
     }
 
     [[nodiscard]] constexpr Vec2 operator+(const Vec2 _other) const
-
     {
         return { x + _other.x, y + _other.y };
     }
 
     [[nodiscard]] constexpr Vec2 operator-(const Vec2 _other) const
-
     {
         return { x - _other.x, y - _other.y };
     }
 
     [[nodiscard]] constexpr Vec2 operator*(const Vec2 _other) const
-
     {
         return { x * _other.x, y * _other.y };
     }
 
     [[nodiscard]] constexpr Vec2 operator/(const Vec2 _other) const
-
     {
         return { x / _other.x, y / _other.y };
     }
 
     [[nodiscard]] constexpr Vec2 operator*(const float _scalar) const
-
     {
         return { x * _scalar, y * _scalar };
     }
 
     [[nodiscard]] constexpr Vec2 operator/(const float _scalar) const
-
     {
         return { x / _scalar, y / _scalar };
     }
 
     [[nodiscard]] constexpr Vec2 operator-() const
-
     {
         return { -x, -y };
+    }
+
+    [[nodiscard]] constexpr float& operator[](const SizeT index)
+    {
+        return e[index];
+    }
+
+    [[nodiscard]] constexpr float operator[](const SizeT index) const
+    {
+        return e[index];
     }
 
     const static Vec2 kZero;
@@ -429,9 +441,10 @@ struct Vec2
     const static Vec2 kUnitY;
     const static Vec2 kRight;
     const static Vec2 kUp;
+    const static Vec2 kHighest;
+    const static Vec2 kLowest;
 
     union
-
     {
         struct
         {
@@ -448,7 +461,7 @@ struct Vec2
             float width, height;
         };
 
-        float e[2] = {};
+        Array<float, 2> e = {};
     };
 };
 
@@ -494,6 +507,16 @@ struct Vec3i
     [[nodiscard]] constexpr Vec3i Clamp(const Vec3i _min, const Vec3i _max) const
     {
         return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y), Jam::Clamp(z, _min.z, _max.z) };
+    }
+
+    [[nodiscard]] Int32* GetPtr()
+    {
+        return &x;
+    }
+
+    [[nodiscard]] const Int32* GetPtr() const
+    {
+        return &x;
     }
 
     constexpr Vec3i& operator+=(const Vec3i _other)
@@ -589,6 +612,16 @@ struct Vec3i
         return !(*this == _other);
     }
 
+    [[nodiscard]] Int32& operator[](const SizeT index)
+    {
+        return e[index];
+    }
+
+    [[nodiscard]] constexpr Int32 operator[](const SizeT index) const
+    {
+        return e[index];
+    }
+
     const static Vec3i kZero;
     const static Vec3i kOne;
     const static Vec3i kUnitX;
@@ -648,7 +681,7 @@ struct Vec3i
             Vec2i heightDepth;
         };
 
-        Int32 e[3] = {};
+        Array<Int32, 3> e = {};
     };
 };
 
@@ -822,6 +855,16 @@ struct Vec3
         return Jam::IsEqualApprox(x, _other.x, _epsilon) && Jam::IsEqualApprox(y, _other.y, _epsilon) && Jam::IsEqualApprox(z, _other.z, _epsilon);
     }
 
+    [[nodiscard]] float* GetPtr()
+    {
+        return &x;
+    }
+
+    [[nodiscard]] const float* GetPtr() const
+    {
+        return &x;
+    }
+
     constexpr Vec3& operator+=(const Vec3 _other)
 
     {
@@ -917,6 +960,16 @@ struct Vec3
         return { -x, -y, -z };
     }
 
+    [[nodiscard]] float& operator[](const SizeT index)
+    {
+        return e[index];
+    }
+
+    [[nodiscard]] constexpr float operator[](const SizeT index) const
+    {
+        return e[index];
+    }
+
     const static Vec3 kZero;
     const static Vec3 kOne;
     const static Vec3 kUnitX;
@@ -925,6 +978,8 @@ struct Vec3
     const static Vec3 kRight;
     const static Vec3 kUp;
     const static Vec3 kForward;
+    const static Vec3 kLowest;
+    const static Vec3 kHighest;
 
     union
 
@@ -1009,7 +1064,7 @@ struct Vec3
             Vec2  yawRoll;
         };
 
-        float e[3] = {};
+        Array<float, 3> e = {};
     };
 };
 
@@ -1066,6 +1121,16 @@ struct Vec4i
     [[nodiscard]] constexpr Vec4i Clamp(const Vec4i _min, const Vec4i _max) const
     {
         return { Jam::Clamp(x, _min.x, _max.x), Jam::Clamp(y, _min.y, _max.y), Jam::Clamp(z, _min.z, _max.z), Jam::Clamp(w, _min.w, _max.w) };
+    }
+
+    [[nodiscard]] Int32* GetPtr()
+    {
+        return &x;
+    }
+
+    [[nodiscard]] const Int32* GetPtr() const
+    {
+        return &x;
     }
 
     constexpr Vec4i& operator+=(const Vec4i _other)
@@ -1167,6 +1232,16 @@ struct Vec4i
         return !(*this == _other);
     }
 
+    [[nodiscard]] Int32& operator[](const SizeT _index)
+    {
+        return e[_index];
+    }
+
+    [[nodiscard]] Int32 operator[](const SizeT _index) const
+    {
+        return e[_index];
+    }
+
     const static Vec4i kZero;
     const static Vec4i kOne;
     const static Vec4i kUnitX;
@@ -1223,7 +1298,7 @@ struct Vec4i
             Int32 a_;
         };
 
-        Int32 e[4] = {};
+        Array<Int32, 4> e = {};
     };
 };
 
@@ -1310,19 +1385,16 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] float Length() const
-
     {
         return Sqrt(LengthSq());
     }
 
     [[nodiscard]] float Distance(const Vec4 _other) const
-
     {
         return (*this - _other).Length();
     }
 
     [[nodiscard]] float DistanceSq(const Vec4 _other) const
-
     {
         return (*this - _other).LengthSq();
     }
@@ -1392,7 +1464,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] Vec4 Min(const Vec4 _other) const
-
     {
 #ifdef JAM_SIMD_SSE
         Vec4 ret = kZero;
@@ -1404,7 +1475,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] Vec4 Max(const Vec4 _other) const
-
     {
 #ifdef JAM_SIMD_SSE
         Vec4 ret = kZero;
@@ -1416,7 +1486,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] Vec4 Clamp(const Vec4 _min, const Vec4 _max) const
-
     {
 #ifdef JAM_SIMD_SSE
         Vec4 ret = kZero;
@@ -1428,7 +1497,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] Vec4 Rcp() const
-
     {
 #ifdef JAM_SIMD_SSE
         Vec4 ret = kZero;
@@ -1479,7 +1547,6 @@ struct alignas(16) Vec4
     }
 
     [[nodiscard]] Vec4 Reflect(const Vec4 _normal) const
-
     {
 #ifdef JAM_SIMD_SSE
         const __m128 dot2 = _mm_set1_ps(2.f * Dot(_normal));
@@ -1513,6 +1580,16 @@ struct alignas(16) Vec4
         const float etaDotK = _eta * dotNV - Sqrt(k);
         return *this * _eta + _normal * etaDotK;
 #endif
+    }
+
+    [[nodiscard]] float* GetPtr()
+    {
+        return &x;
+    }
+
+    [[nodiscard]] const float* GetPtr() const
+    {
+        return &x;
     }
 
     Vec4& operator+=(const Vec4 _other)
@@ -1676,6 +1753,16 @@ struct alignas(16) Vec4
 #endif
     }
 
+    [[nodiscard]] float& operator[](const SizeT _index)
+    {
+        return e[_index];
+    }
+
+    [[nodiscard]] float operator[](const SizeT _index) const
+    {
+        return e[_index];
+    }
+
     const static Vec4 kZero;
     const static Vec4 kOne;
     const static Vec4 kUnitX;
@@ -1735,7 +1822,7 @@ struct alignas(16) Vec4
             float a_;
         };
 
-        float e[4] = {};
+        Array<float, 4> e = {};
 
 #ifdef JAM_SIMD_SSE
         __m128 m128;

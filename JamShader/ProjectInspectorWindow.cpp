@@ -116,7 +116,7 @@ void ProjectInspectorWindow::OnImGuiRender()
                 {
                     const String from = ResolveStringDragDropPayload(pPayload);
                     const String to   = name;
-                    GetApp().SubmitCommandToMainThread(Bind([this, from, to] { m_pProjectCache->MoveShaderItemBefore(from, to); }));
+                    app.SubmitCommandToMainThread(Bind([this, from, to] { m_pProjectCache->MoveShaderItemBefore(from, to); }));
                 }
                 ImGui::EndDragDropTarget();
             }
@@ -250,5 +250,5 @@ void ProjectInspectorWindow::RemoveShaderItem_(
     }
 
     const String name = _name;
-    GetApp().SubmitCommandToMainThread(Bind([this, name] { m_pProjectCache->RemoveShaderItem(name); }));
+    app.SubmitCommandToMainThread(Bind([this, name] { m_pProjectCache->RemoveShaderItem(name); }));
 }

@@ -1,3 +1,4 @@
+// ReSharper disable CppMemberFunctionMayBeConst
 #pragma once
 #include "Application.h"
 #include "ComponentMetadata.h"
@@ -17,22 +18,29 @@ public:
 
     [[nodiscard]] bool operator==(Entity _other) const;
     [[nodiscard]] bool operator!=(Entity _other) const;
+    explicit           operator bool() const;
 
-    [[nodiscard]] bool             IsValid() const;
-    [[nodiscard]] UID              GetUID() const;
-    [[nodiscard]] entt::entity     GetHandle() const;
+    [[nodiscard]] bool         IsValid() const;
+    [[nodiscard]] UID          GetUID() const;
+    [[nodiscard]] entt::entity GetHandle() const;
+
+    /////////// SCENE COMPONENT SHORT CUT //////////
+
     [[nodiscard]] SceneNode&       GetSceneNode();
     [[nodiscard]] const SceneNode& GetSceneNode() const;
 
-    explicit operator bool() const;
+    [[nodiscard]] const Transform& GetLocal() const;
+    void                           SetLocal(const Transform& _local);
+    [[nodiscard]] Transform&       ModifyLocal();
 
-    [[nodiscard]] const Transform& GetWorldTransform() const;
-    [[nodiscard]] const Transform& GetLocalTransform() const;
-    [[nodiscard]] Transform&       ModifyWorldTransform();
-    [[nodiscard]] Transform&       ModifyLocalTransform();
+    [[nodiscard]] const Transform& GetWorld() const;
+    void                           SetWorld(const Transform& _world);
+    [[nodiscard]] Transform&       ModifyWorld();
+
+    ////////// COMPONENT MANAGEMENT //////////
 
     template<typename T, typename... Args>
-        requires HasComponentMetadataEssentialMarker<T>
+        requires HasComponentEssentialMarker<T>
     decltype(auto) CreateComponent(Args&&... _args)
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
@@ -40,18 +48,19 @@ public:
     }
 
     template<typename T, typename... Args>
-        requires HasComponentMetadataEssentialMarker<T>
-    void CreateComponentDefered(Args&&... _args)
+        requires HasComponentEssentialMarker<T>
+    void CreateComponentDeferred(Args&&... _args)
     {
-        GetApp().SubmitCommandToMainThread(Bind(
+        Application& app = GetApp();
+        app.SubmitCommandToMainThread(Bind(
             [this, ... args = std::forward<Args>(_args)] {
                 CreateComponent<T>(std::move(args)...);
             }));
     }
 
     template<typename... T>
-        requires(HasComponentMetadataEssentialMarker<T> && ...)
-    decltype(auto) GetComponent() const
+        requires(HasComponentEssentialMarker<T> && ...)
+    decltype(auto) GetComponents() const
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->get<T...>(m_handle);
@@ -59,39 +68,36 @@ public:
 
     // ReSharper disable once CppMemberFunctionMayBeConst
     template<typename... T>
-        requires(HasComponentMetadataEssentialMarker<T> && ...)
-    decltype(auto) GetComponent()
+        requires(HasComponentEssentialMarker<T> && ...)
+    decltype(auto) GetComponents()
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->get<T...>(m_handle);
     }
 
     template<typename... T>
-        requires(HasComponentMetadataEssentialMarker<T> && ...)
-    bool HasComponent() const
+        requires(HasComponentEssentialMarker<T> && ...)
+    bool HaveComponents() const
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
         return m_pRegistry->all_of<T...>(m_handle);
     }
 
-    // ReSharper disable once CppMemberFunctionMayBeConst
     template<typename... T>
-        requires(HasComponentMetadataEssentialMarker<T> && ...)
-    void RemoveComponent()
+        requires((HasComponentEssentialMarker<T> && !HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>) && ...)
+    void RemoveComponents()
     {
         JAM_ASSERT(IsValid(), "Entity is not valid");
-        JAM_ASSERT(HasComponent<T...>(), "Entity does not have the specified component(s)");
+        JAM_ASSERT(HaveComponents<T...>(), "Entity does not have the specified component(s)");
         m_pRegistry->remove<T...>(m_handle);
     }
 
     template<typename... T>
-        requires(HasComponentMetadataEssentialMarker<T> && ...)
-    void RemoveComponentDefered()
+        requires((HasComponentEssentialMarker<T> && !HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>) && ...)
+    void RemoveComponentsDeferred()
     {
-        GetApp().SubmitCommandToMainThread(Bind(
-            [this] {
-                RemoveComponent<T...>();
-            }));
+        Application& app = GetApp();
+        app.SubmitCommandToMainThread(Bind<&Entity::RemoveComponents<T...>>(this));
     }
 
     static const Entity kNull;

@@ -237,76 +237,76 @@ const Matrix Matrix::Identity = Matrix {
 //    }
 //}
 //BENCHMARK(BM_DirectXVec3Distance)->Unit(benchmark::kNanosecond);
-
-// ============================================================================
-// Vector4 Benchmarks
-// ============================================================================
-
-static void BM_JamVec4Add(benchmark::State& state)
-{
-    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
-    Vec4 b(5.0f, 6.0f, 7.0f, 8.0f);
-    for (auto _: state)
-    {
-        benchmark::DoNotOptimize(a + b);
-    }
-}
-BENCHMARK(BM_JamVec4Add)->Unit(benchmark::kNanosecond);
-
-static void BM_DirectXVec4Add(benchmark::State& state)
-{
-    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
-    DirectX::SimpleMath::Vector4 b(5.0f, 6.0f, 7.0f, 8.0f);
-    for (auto _: state)
-    {
-        benchmark::DoNotOptimize(a + b);
-    }
-}
-BENCHMARK(BM_DirectXVec4Add)->Unit(benchmark::kNanosecond);
-
-static void BM_JamVec4Dot(benchmark::State& state)
-{
-    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
-    Vec4 b(5.0f, 6.0f, 7.0f, 8.0f);
-    for (auto _: state)
-    {
-        benchmark::DoNotOptimize(a.Dot(b));
-    }
-}
-BENCHMARK(BM_JamVec4Dot)->Unit(benchmark::kNanosecond);
-
-static void BM_DirectXVec4Dot(benchmark::State& state)
-{
-    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
-    DirectX::SimpleMath::Vector4 b(5.0f, 6.0f, 7.0f, 8.0f);
-    for (auto _: state)
-    {
-        benchmark::DoNotOptimize(a.Dot(b));
-    }
-}
-BENCHMARK(BM_DirectXVec4Dot)->Unit(benchmark::kNanosecond);
-
-static void BM_JamVec4Normalize(benchmark::State& state)
-{
-    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
-    for (auto _: state)
-    {
-        a.Normalize();
-        benchmark::DoNotOptimize(a);
-    }
-}
-BENCHMARK(BM_JamVec4Normalize)->Unit(benchmark::kNanosecond);
-
-static void BM_DirectXVec4Normalize(benchmark::State& state)
-{
-    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
-    for (auto _: state)
-    {
-        a.Normalize();
-        benchmark::DoNotOptimize(a);
-    }
-}
-BENCHMARK(BM_DirectXVec4Normalize)->Unit(benchmark::kNanosecond);
+//
+//// ============================================================================
+//// Vector4 Benchmarks
+//// ============================================================================
+//
+//static void BM_JamVec4Add(benchmark::State& state)
+//{
+//    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
+//    Vec4 b(5.0f, 6.0f, 7.0f, 8.0f);
+//    for (auto _: state)
+//    {
+//        benchmark::DoNotOptimize(a + b);
+//    }
+//}
+//BENCHMARK(BM_JamVec4Add)->Unit(benchmark::kNanosecond);
+//
+//static void BM_DirectXVec4Add(benchmark::State& state)
+//{
+//    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
+//    DirectX::SimpleMath::Vector4 b(5.0f, 6.0f, 7.0f, 8.0f);
+//    for (auto _: state)
+//    {
+//        benchmark::DoNotOptimize(a + b);
+//    }
+//}
+//BENCHMARK(BM_DirectXVec4Add)->Unit(benchmark::kNanosecond);
+//
+//static void BM_JamVec4Dot(benchmark::State& state)
+//{
+//    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
+//    Vec4 b(5.0f, 6.0f, 7.0f, 8.0f);
+//    for (auto _: state)
+//    {
+//        benchmark::DoNotOptimize(a.Dot(b));
+//    }
+//}
+//BENCHMARK(BM_JamVec4Dot)->Unit(benchmark::kNanosecond);
+//
+//static void BM_DirectXVec4Dot(benchmark::State& state)
+//{
+//    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
+//    DirectX::SimpleMath::Vector4 b(5.0f, 6.0f, 7.0f, 8.0f);
+//    for (auto _: state)
+//    {
+//        benchmark::DoNotOptimize(a.Dot(b));
+//    }
+//}
+//BENCHMARK(BM_DirectXVec4Dot)->Unit(benchmark::kNanosecond);
+//
+//static void BM_JamVec4Normalize(benchmark::State& state)
+//{
+//    Vec4 a(1.0f, 2.0f, 3.0f, 4.0f);
+//    for (auto _: state)
+//    {
+//        a.Normalize();
+//        benchmark::DoNotOptimize(a);
+//    }
+//}
+//BENCHMARK(BM_JamVec4Normalize)->Unit(benchmark::kNanosecond);
+//
+//static void BM_DirectXVec4Normalize(benchmark::State& state)
+//{
+//    DirectX::SimpleMath::Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
+//    for (auto _: state)
+//    {
+//        a.Normalize();
+//        benchmark::DoNotOptimize(a);
+//    }
+//}
+//BENCHMARK(BM_DirectXVec4Normalize)->Unit(benchmark::kNanosecond);
 
 // ============================================================================
 // Matrix4x4 Benchmarks
@@ -336,8 +336,8 @@ BENCHMARK(BM_DirectXMatrixAdd)->Unit(benchmark::kNanosecond);
 
 static void BM_JamMtx4Mul(benchmark::State& state)
 {
-    Mtx4 a = Mtx4::CreateRotationZ(0.5f);
-    Mtx4 b = Mtx4::CreateTranslation(Vec3(1.0f, 2.0f, 3.0f));
+    Mtx4 a = Mtx4::MakeSRT(Vec3::kOne, { 0.f, 0.f, 5.f }, Vec3::kZero);
+    Mtx4 b = Mtx4::MakeSRT(Vec3::kOne, Vec3::kZero, Vec3(1.0f, 2.0f, 3.0f));
     for (auto _: state)
     {
         benchmark::DoNotOptimize(a * b);
@@ -358,7 +358,7 @@ BENCHMARK(BM_DirectXMatrixMul)->Unit(benchmark::kNanosecond);
 
 static void BM_JamMtx4Transpose(benchmark::State& state)
 {
-    Mtx4 a = Mtx4::CreateRotationZ(0.5f);
+    Mtx4 a = Mtx4::MakeSRT(Vec3::kOne, { 0.f, 0.f, 5.f }, Vec3::kZero);
     for (auto _: state)
     {
         benchmark::DoNotOptimize(a.Transpose());
@@ -378,10 +378,10 @@ BENCHMARK(BM_DirectXMatrixTranspose)->Unit(benchmark::kNanosecond);
 
 static void BM_JamMtx4Inverse(benchmark::State& state)
 {
-    Mtx4 a = Mtx4::CreateRotationZ(0.5f) * Mtx4::CreateTranslation(Vec3(1.0f, 2.0f, 3.0f));
+    Mtx4 m = Mtx4::MakeSRT(Vec3::kOne, { 0.f, 0.f, 5.f }, Vec3(1.0f, 2.0f, 3.0f));
     for (auto _: state)
     {
-        benchmark::DoNotOptimize(a.Inverse());
+        benchmark::DoNotOptimize(m.Inverse());
     }
 }
 BENCHMARK(BM_JamMtx4Inverse)->Unit(benchmark::kNanosecond);
@@ -398,11 +398,11 @@ BENCHMARK(BM_DirectXMatrixInverse)->Unit(benchmark::kNanosecond);
 
 static void BM_JamMtx4VecTransform(benchmark::State& state)
 {
-    Mtx4 m = Mtx4::CreateRotationZ(0.5f) * Mtx4::CreateTranslation(Vec3(1.0f, 2.0f, 3.0f));
+    Mtx4 m = Mtx4::MakeSRT(Vec3::kOne, { 0.f, 0.f, 5.f }, Vec3(1.0f, 2.0f, 3.0f));
     Vec3 v(1.0f, 2.0f, 3.0f);
     for (auto _: state)
     {
-        benchmark::DoNotOptimize(m.Mult(v));
+        benchmark::DoNotOptimize(m.MultVector(v));
     }
 }
 BENCHMARK(BM_JamMtx4VecTransform)->Unit(benchmark::kNanosecond);

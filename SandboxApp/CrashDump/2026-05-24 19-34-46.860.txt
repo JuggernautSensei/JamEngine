@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-24 19:34:46.858
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: struct Jam::HardwareTextureRef __cdecl Jam::Graphics::CreateHardwareTexture_(int,int,int,enum Jam::eTextureFormat,bool,int,enum Jam::eTexture,class Jam::Flags<enum Jam::eTextureFlags>,class eastl::span<class Jam::BasicMemoryView<1> const ,-1>) const
+line: 3752
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: !(bIsCubemap && bIsMsaa)
+Cubemap texture cannot be multisampled.
+====================================

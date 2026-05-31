@@ -319,7 +319,7 @@ namespace
     TEST(BoundingVolumeTest, Aabb_Transform_Translation)
     {
         const Aabb aabb     = Aabb(Vec3 { 0.f, 0.f, 0.f }, Vec3 { 1.f, 1.f, 1.f });
-        const Mtx4 transMtx = Mtx4::CreateSRT(Vec3 { 1.f, 1.f, 1.f }, Quat::kIdentity, Vec3 { 5.f, 0.f, 0.f });
+        const Mtx4 transMtx = Mtx4::MakeSRT(Vec3 { 1.f, 1.f, 1.f }, Quat::kIdentity, Vec3 { 5.f, 0.f, 0.f });
         const Aabb moved    = aabb.Transform(transMtx);
 
         EXPECT_NEAR(moved.center.x, 5.f, 1e-4f);
@@ -328,7 +328,7 @@ namespace
     TEST(BoundingVolumeTest, Aabb_Transform_Scale)
     {
         const Aabb aabb     = Aabb(Vec3 { 0.f, 0.f, 0.f }, Vec3 { 1.f, 1.f, 1.f });
-        const Mtx4 scaleMtx = Mtx4::CreateSRT(Vec3 { 2.f, 2.f, 2.f }, Quat::kIdentity, Vec3::kZero);
+        const Mtx4 scaleMtx = Mtx4::MakeSRT(Vec3 { 2.f, 2.f, 2.f }, Quat::kIdentity, Vec3::kZero);
         const Aabb scaled   = aabb.Transform(scaleMtx);
 
         EXPECT_NEAR(scaled.extents.x, 2.f, 1e-4f);

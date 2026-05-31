@@ -4,40 +4,6 @@
 namespace Jam
 {
 
-void WriteToArchive(ArchiveWriter& _writer, const String& _value)
-{
-    _writer.Write(_value.ToStdStringView());
-}
-
-Error ReadFromArchive(ArchiveReader& _reader, String& _value)
-{
-    std::string_view str = {};
-    if (const Error err = _reader.Read(str))
-    {
-        return err;
-    }
-
-    _value.Set(str.data(), str.size());
-    return Error::None;
-}
-
-void WriteToArchive(ArchiveWriter& _writer, const StringView _value)
-{
-    _writer.Write(_value.ToStdStringView());
-}
-
-Error ReadFromArchive(ArchiveReader& _reader, StringView& _value)
-{
-    std::string_view str = {};
-    if (const Error err = _reader.Read(str))
-    {
-        return err;
-    }
-
-    _value = { str.data(), static_cast<SizeT>(str.size()) };
-    return Error::None;
-}
-
 void WriteToArchive(
     ArchiveWriter& _writer,
     const Vec3     _value)
@@ -100,31 +66,25 @@ Error ReadFromArchive(
 
 void WriteToArchive(
     ArchiveWriter& _writer,
-    const Mtx4&  _value)
+    const Mtx4&    _value)
 {
     _writer.BeginArray();
-    for (Int32 row = 0; row < 4; ++row)
+    for (Int32 i = 0; i < 16; ++i)
     {
-        for (Int32 col = 0; col < 4; ++col)
-        {
-            _writer.WriteElement(_value.m[row][col]);
-        }
+        _writer.WriteElement(_value.m[i]);
     }
     _writer.EndArray();
 }
 
 Error ReadFromArchive(
     ArchiveReader& _reader,
-    Mtx4&        _value)
+    Mtx4&          _value)
 {
-    for (Int32 row = 0; row < 4; ++row)
+    for (Int32 i = 0; i < 16; ++i)
     {
-        for (Int32 col = 0; col < 4; ++col)
+        if (const Error err = _reader.ReadAt(i, _value.m[i]))
         {
-            if (const Error err = _reader.ReadAt(row * 4 + col, _value.m[row][col]))
-            {
-                return err;
-            }
+            return err;
         }
     }
     return Error::None;

@@ -1,0 +1,1723 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "MSVC Code Analysis",
+          "version": "14.50.35730.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/orderedhashmap.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "5463c2242dd599c7fd70604077205847323296c865d21e24e02eec05098daf38"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/pch.h"
+          },
+          "hashes": {
+            "sha-256": "6631750b6fd908b930ae40a6e7908a08fc5a52960a9ee8b1dd1f383941fbccfd"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/allocator.h"
+          },
+          "hashes": {
+            "sha-256": "eb4088fc4d814fe25f18b1e23842ace7034cc204001f58e52b0fb99b77521324"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entt.hpp"
+          },
+          "hashes": {
+            "sha-256": "63d3a8aec5d8bfc9298b2003e0ecb84a0a1b687d7de42ac535ce627930b5732e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/config/config.h"
+          },
+          "hashes": {
+            "sha-256": "196896d91d8558915e7e7f597be8da1a2e7ee01688ec52995b118625385616c0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/config/version.h"
+          },
+          "hashes": {
+            "sha-256": "94b067d6a16c1d635a110c6aaacacaa7b662183b3405ed630df773bf6a6b5178"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/config/macro.h"
+          },
+          "hashes": {
+            "sha-256": "20e3c4368034f1be2afc95de574551089aba48e1380049671d572feb42fc5d28"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/container/dense_map.hpp"
+          },
+          "hashes": {
+            "sha-256": "5ffb174daa69deb6700e0487db2a63420cbd1324d2e12e7fa681ce339a0930a5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/bit.hpp"
+          },
+          "hashes": {
+            "sha-256": "0652740d1630432fae715e882cb50b0e2885f1165e8cc0c33946852434188223"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/compressed_pair.hpp"
+          },
+          "hashes": {
+            "sha-256": "89c6e72ddaf3587fb0b7391a1628cd4e1303e57528cd4a78db8b6c427a4bc92b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "5767f6fe724ff0a8831ae6b75bf6360eb828503b42b55de178b60f1c7fc5fa14"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/type_traits.hpp"
+          },
+          "hashes": {
+            "sha-256": "f58510e89f0c9b6cd245762532372441232ba4bf78f1976ccb034edf276448d4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/iterator.hpp"
+          },
+          "hashes": {
+            "sha-256": "a33dc64faee6921179cedf90a86307946e152d9978796eb33c2e04240f04689c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/memory.hpp"
+          },
+          "hashes": {
+            "sha-256": "3480cb19b4ba6251393275df95c11671cea172dca45d3a4b6da5771c7a51c102"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/container/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "c0d6a69e0c26a666ea92ab7ee09f54f6c485520bd1d4d2b9963a0712e9fba560"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/container/dense_set.hpp"
+          },
+          "hashes": {
+            "sha-256": "fcc96c4752da592d47cee8edcd07f1e68499ac6df0a87a00934ded5569f8d88d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/container/table.hpp"
+          },
+          "hashes": {
+            "sha-256": "71dbb5de7ad54311efed13e042cd93a2d6f97c964e083f4484a879f6bc171461"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/algorithm.hpp"
+          },
+          "hashes": {
+            "sha-256": "07930439cbb23ffecb79e6a640ef5f5e71f123cb842a885998bbca930227ba10"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/utility.hpp"
+          },
+          "hashes": {
+            "sha-256": "2493f5dc0a0e9feb057614ebdffeefbdde9908ec7c2e370844bd5f46f0b1fde6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/any.hpp"
+          },
+          "hashes": {
+            "sha-256": "29bafbd76f1c49d6d41739c177274f57a94730da711cf1e061f44c0a6df29abc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/type_info.hpp"
+          },
+          "hashes": {
+            "sha-256": "57263fc6d72fd23d96554617f5b84113bac2fb00ba3edda46d82a34e9727829b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/attribute.h"
+          },
+          "hashes": {
+            "sha-256": "1491e04d77c28281187493f64fd69c5e9112cfbc15dbe69b26725954a226f7de"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/hashed_string.hpp"
+          },
+          "hashes": {
+            "sha-256": "80aeb4a99995e5fdffae22e1a25b01833169bd841ea628165154a927d0204d19"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/enum.hpp"
+          },
+          "hashes": {
+            "sha-256": "0945e1b775c1d13b4caa93d7f50c0eb3ed8168ddf199785976a6075027f2a508"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/family.hpp"
+          },
+          "hashes": {
+            "sha-256": "0a6a0d62b9f9f40054d20ea675cff29e7b6104ecd00dbb6cc76b2070e3c4fad4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/ident.hpp"
+          },
+          "hashes": {
+            "sha-256": "aeb39c3ff57652251f15cefc44254a1a39c479549264a35e8c53d04fc897619a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/monostate.hpp"
+          },
+          "hashes": {
+            "sha-256": "d5998a64b7192b026c77782216e613a4e0eb79d8e1a36c425ae1f2e08d0e99fd"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/ranges.hpp"
+          },
+          "hashes": {
+            "sha-256": "c436acb5ad466f3a273db9ffb9a62587a29f342bc7758b17cc1a9e618d86ca6d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/core/tuple.hpp"
+          },
+          "hashes": {
+            "sha-256": "e021bcffb95aec6b4eaaf7ee2e7f4aa1160416b679a22e9eab2c04278bb5d38e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/component.hpp"
+          },
+          "hashes": {
+            "sha-256": "b6485adbbb640c3e42187cf4aa57cd8ffbc9e972bbf4eb1948c12804148401e5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "46cebff0749a9ad472dcf2d34e90a6badef72eee1bba3d3b1f7b8dc5f94818fd"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/entity.hpp"
+          },
+          "hashes": {
+            "sha-256": "db69cb90b8e30394078df6f5596cd32d038c3842d571e923cda79894973a2f01"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/group.hpp"
+          },
+          "hashes": {
+            "sha-256": "3d7c763ce05ad7f9d4c4689909245e99697cd45bf6f14b5db34892c03eff64b6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/handle.hpp"
+          },
+          "hashes": {
+            "sha-256": "e4b013c94f702e3531709e8544ec8184aec1e98547677185559a3d0a47db6386"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/helper.hpp"
+          },
+          "hashes": {
+            "sha-256": "f09a786d010db5e18beeb3d00cd1cafaacc771ba6485a4a0122409dc910b6566"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/storage.hpp"
+          },
+          "hashes": {
+            "sha-256": "4b46d79e53790bad2d527a66390621b72ed9ce4392b88df68d0499da6007b7f4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/sparse_set.hpp"
+          },
+          "hashes": {
+            "sha-256": "8e5fdcf32144bf4dd20ff79d85ffb104c2f7cd114f8b1f5a05e293e513aa862d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/view.hpp"
+          },
+          "hashes": {
+            "sha-256": "b70879747e2f1e87ab664e71c140343f7f64d809301d715e14a3c2c12cff79d7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/mixin.hpp"
+          },
+          "hashes": {
+            "sha-256": "d311702fbd1e1da249aef24a53627fc1a1dc02fb03e522f04a59486677bd4c87"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/signal/sigh.hpp"
+          },
+          "hashes": {
+            "sha-256": "52b123f1e29f70e66c3c2a2af9483fd8dde67c12c0df6fec1be1ef388b56be18"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/signal/delegate.hpp"
+          },
+          "hashes": {
+            "sha-256": "c5807548a3f798a6011e150520e8fb420a5e443d7644623259154e15f0b1c57e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/signal/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "1774ddde69be95b383ca14ec2ec70ed7d9470a096e671fdefa9748137c03d549"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/organizer.hpp"
+          },
+          "hashes": {
+            "sha-256": "b40c79c043ad8ba9664b3b21853e4138798f3396e0f13d16ade0fb56e23af396"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/graph/adjacency_matrix.hpp"
+          },
+          "hashes": {
+            "sha-256": "025e3b4bdb0b59c6dcd95b73b7b8e1149fed5688678167a0318468f03c9b9862"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/graph/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "0a30baa79539a3382acb118f5ae8b15114ab7bc1943c8e3be8e948e640852918"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/graph/flow.hpp"
+          },
+          "hashes": {
+            "sha-256": "8f8ff590b59180b074582237f66d67b69557883ecebe2c1997e88e03b644215e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/ranges.hpp"
+          },
+          "hashes": {
+            "sha-256": "c0dbb6999745db580f01c0b31c56e4b21fdef07862a4ff703d5b64904c820eb6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/registry.hpp"
+          },
+          "hashes": {
+            "sha-256": "abb0b150b2d1fa48111035f05d97806047e4d5b38bc8d7ab21cfc84d5e7a7e0e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/runtime_view.hpp"
+          },
+          "hashes": {
+            "sha-256": "959b582901ad5c6220ba55f8b07561661d1de8a1a7ef774e7d72cfdaad5dbbcc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/entity/snapshot.hpp"
+          },
+          "hashes": {
+            "sha-256": "f48c79e1e77e0f50b2783f355eff47deb3645841eb64d9853a951f2993af2741"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/graph/dot.hpp"
+          },
+          "hashes": {
+            "sha-256": "c0846d0cb7c3d52c7d9ef958250e214565dd86da7f90fca18fdb7446d9e0235d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/locator/locator.hpp"
+          },
+          "hashes": {
+            "sha-256": "4e8ee5cb2e2be8b95014bdb14d885562e2cf8169c71001d99835f7a07b8f9680"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/adl_pointer.hpp"
+          },
+          "hashes": {
+            "sha-256": "cea9e4d2079ab6fe0e77bd64d73b75c7c965ec097d91b5ff658744aa5b0ca2ce"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/container.hpp"
+          },
+          "hashes": {
+            "sha-256": "1e2434b294f628c122fb352556ddffd5038a63b0898e6e7f7351d6d27e94dbee"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/context.hpp"
+          },
+          "hashes": {
+            "sha-256": "87c625a5803a846d3c39a3d1071f0bad03781395916f7fb4fad313e03a37ce55"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/meta.hpp"
+          },
+          "hashes": {
+            "sha-256": "8ef4da227c07a3139c35a9f2914201155248082b2c8cc3808ea9e06e230d476e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "0fb3ed435f9bcf41729377f74b5e3f37d428b9a240906bd3653532fb0d1146e2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/node.hpp"
+          },
+          "hashes": {
+            "sha-256": "debd22329a53d967fca9a33b0011bbd072dc17cbe0d6e2caaed67cca43c50685"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/type_traits.hpp"
+          },
+          "hashes": {
+            "sha-256": "9c4fde96de3e8f402e6bb9ca8ec977692b4dd3a04f8c6a61369ed7cbedb2826f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/range.hpp"
+          },
+          "hashes": {
+            "sha-256": "b9ef5117735c849c7768edf827fb6b7fb26560c5d5e756adb39eb16f851d17ef"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/factory.hpp"
+          },
+          "hashes": {
+            "sha-256": "26e6d93b4048f8d4db889a3f55a8050180a9c3e87fae3e0a4396a7e1d412429d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/policy.hpp"
+          },
+          "hashes": {
+            "sha-256": "82b00b2892bc417ccdb528b19745229103d3671c32e126812351fbe974e7cc71"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/resolve.hpp"
+          },
+          "hashes": {
+            "sha-256": "daa962bf2f4fa91ae239cc9a989dbe05766af8d9c4bc75a632a8f8208663dd77"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/utility.hpp"
+          },
+          "hashes": {
+            "sha-256": "a4dd2f10b08aa32677cceeec102bb103b7f02501f7c282e98ab8f649fc4d307e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/pointer.hpp"
+          },
+          "hashes": {
+            "sha-256": "0b04022fded2297a55c864620114a57e8d6e4ddef45ea66c5c17176feb54bace"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/meta/template.hpp"
+          },
+          "hashes": {
+            "sha-256": "f8bc38d444d227e9f6b60937e75ba3c60190bb121fea74bf54574b87d4cf1f93"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/poly/poly.hpp"
+          },
+          "hashes": {
+            "sha-256": "d1e181553fdd809dbfa355a0dd537573b16c8de6590924bb34a20653d987526c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/poly/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "683479f258bdca46d1447a11deddf419935b8dbbd89116250c78a0021faeabf6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/process/process.hpp"
+          },
+          "hashes": {
+            "sha-256": "58c16d8d3eadc5cb9633479b9936cdbdcb20b7665843e469d957eac9ee481895"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/process/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "8eeb68608fc8ecb9d3a47b125022a68b3dc5ad6d4dda09026409402ffa887119"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/process/scheduler.hpp"
+          },
+          "hashes": {
+            "sha-256": "4791c118902052967f4e67f2653215845e023f2466d50e219cb293e9ae1788c0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/resource/cache.hpp"
+          },
+          "hashes": {
+            "sha-256": "8b71e6b5e10791292e7c23029eb93ae9b8055988f31e20cb503e552617a7bbf2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/resource/fwd.hpp"
+          },
+          "hashes": {
+            "sha-256": "84873358353469a9e85e66a14f0db5f74ef7664f6d7263f7c270f04a01f229e0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/resource/loader.hpp"
+          },
+          "hashes": {
+            "sha-256": "66b64038f5fb6481513ac60c172270b42e430091eb7074b06ce215839d639f28"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/resource/resource.hpp"
+          },
+          "hashes": {
+            "sha-256": "0d5f26793ae2c965cf37546ee38650f3a4560d1f386c17906339fd86d6bea611"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/signal/dispatcher.hpp"
+          },
+          "hashes": {
+            "sha-256": "428a8d95b7a19bb4c62e24e1fa1c3349ba77ceda5170f2cf1ea4642625fbd54b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/entt/signal/emitter.hpp"
+          },
+          "hashes": {
+            "sha-256": "35169ce173331d956929336734296566c4cdd0aa492f00559df603975d737ee8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/format.h"
+          },
+          "hashes": {
+            "sha-256": "b4c65350362bf40e76a8e6b450587d912c7081b6eafeafaf3d7bcf53153e17fc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/base.h"
+          },
+          "hashes": {
+            "sha-256": "37efc28b5a4fa8c0a429eb3933a2bad5593e4642e40ed8ceffa66b1a4842ed62"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/printf.h"
+          },
+          "hashes": {
+            "sha-256": "47e53515ad2a88273e2375261a628c2cc378031311773641b8bf03bff54c5560"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/xchar.h"
+          },
+          "hashes": {
+            "sha-256": "f0903d522c64faaee2c374a0b2063ac3e43d0b5006dfd3411f0e5dccd8ff6062"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/color.h"
+          },
+          "hashes": {
+            "sha-256": "f88bf0c4833caed3a7f01b6d633c7b259741a26119e84c651ac1e31cfc980b72"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/ostream.h"
+          },
+          "hashes": {
+            "sha-256": "742416a6a88286609887fa512c4423820764aafbb723a42a825f3193cb52b4f0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/chrono.h"
+          },
+          "hashes": {
+            "sha-256": "f8e2a69bd97bc5b90c9af7fb87e010775b695d487a77e8d8cbe624e57bd2f9bf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/fmt/ranges.h"
+          },
+          "hashes": {
+            "sha-256": "ccaf61c9b5937e0fa97737fb047121c5fca9db34de516b8edfc1d913583e3c8e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/configs.h"
+          },
+          "hashes": {
+            "sha-256": "5da9aebf80abd37da6c459952d40e68c1f729f1bcf1aa078811cb868e3213018"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/stl.h"
+          },
+          "hashes": {
+            "sha-256": "d413b6b1099d83d738cb50de077735b06a24a12f2eb45c9c4003b131d42b23df"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/array.h"
+          },
+          "hashes": {
+            "sha-256": "b0d5c31eb55f1ce18695fd2fb4597e5d3eda84a84fe1e671fead7ba29d0106a8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/config.h"
+          },
+          "hashes": {
+            "sha-256": "2ee119ef4570fba8fe6d20a24b6765ed6a3ca01ef4ed2c11ac610c000ab8b4ec"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/eabase.h"
+          },
+          "hashes": {
+            "sha-256": "bb19b905b4cd905b5d195566dcc8dfe0a1eb32e112b9814fccd2af89223b43af"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/config/eacompiler.h"
+          },
+          "hashes": {
+            "sha-256": "b0a2e9d515826d25f68e31d497e27c377ae22b0a326ec6222a5befee37afd590"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/config/eaplatform.h"
+          },
+          "hashes": {
+            "sha-256": "bb227b90425f706fe7a0d9ed2a091a77392462be6a769159ee0e360871e43084"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/config/eacompilertraits.h"
+          },
+          "hashes": {
+            "sha-256": "605646d299df771dc7b4ef955ee0cb6529f1db67fa9e269ec6eccb37db4a6810"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/version.h"
+          },
+          "hashes": {
+            "sha-256": "748d394243d11cd56f7d170cf1eff2ad6da8bcfc3c96a8ef5cc59fcaffc3a110"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/eaunits.h"
+          },
+          "hashes": {
+            "sha-256": "5e1050509486ae366746c8d0302dea69ac18408c1ed8749d68c32a872b5f6a72"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/int128.h"
+          },
+          "hashes": {
+            "sha-256": "3449cad8506944f3f9c738125ab44b2a84b300dc7c453be3eaadcc93db1c55ed"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/eadeprecated.h"
+          },
+          "hashes": {
+            "sha-256": "36dd7bccf44331d1140652322344f23959fd1800dacf5f5be60373da344fce2a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/eahave.h"
+          },
+          "hashes": {
+            "sha-256": "502fffda2caf5d560c9316eee95245b030bbffb73bddf8244a0945a161c51110"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/tuple_fwd_decls.h"
+          },
+          "hashes": {
+            "sha-256": "b651f55e6eb2f8012011dba22ef74b1295b8609d9ce178b28b9586c3007f5eaf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/iterator.h"
+          },
+          "hashes": {
+            "sha-256": "ec30e7416930a03b3bb346a522542f846b05232064f0cee29a3c03d18d126f47"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/move_help.h"
+          },
+          "hashes": {
+            "sha-256": "1e88b1aeab3edd657c20c01cd3acabc75b7dcaa408cb89316818cb24b09c90d4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/type_traits.h"
+          },
+          "hashes": {
+            "sha-256": "7f3f1e8131134cadb3f886725d60baa4b8587c37a22e9a22ed16a0eb8835bd0c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/type_fundamental.h"
+          },
+          "hashes": {
+            "sha-256": "f01e4540d4b59611e7d03c4ff9f0b038fdc19b88321fb2187096dcae91d8b8d7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eabase/nullptr.h"
+          },
+          "hashes": {
+            "sha-256": "f488c59cc5e5f0eac501252a4679850ae529350902aec4a2bc5637519cd6294b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/type_transformations.h"
+          },
+          "hashes": {
+            "sha-256": "e9b0e19313be1c0035b93fe6cc582d1a5081bd11c1873c3e403dd21530c4bac3"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/type_void_t.h"
+          },
+          "hashes": {
+            "sha-256": "03354c48d9057c4b5b96aca7d0f727b3e9b2fb8628de8543402cf4e830c4aed4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/type_properties.h"
+          },
+          "hashes": {
+            "sha-256": "4b2df92bd287c85290be0ed86ccde335bfa28a5d5e948fc28c4cf30277526878"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/type_compound.h"
+          },
+          "hashes": {
+            "sha-256": "c197c57e29da14ea6a106c99c5a2508a8cb05d627ba6ac649643b98b37bfd6e0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/type_pod.h"
+          },
+          "hashes": {
+            "sha-256": "a3ec5a1ecde6f0106f8d27b66e0fe8150ddfaaccacca318239f6771a27310edb"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/type_detected.h"
+          },
+          "hashes": {
+            "sha-256": "00229cd2b5a9a19bb4aead2664028904db4b94f79ab5f76f9da5654edab4930d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/memory_base.h"
+          },
+          "hashes": {
+            "sha-256": "e2c6e8d9591334012109ba676d6a63d2904871a29c59da7226f8f06c61ab9d80"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/initializer_list.h"
+          },
+          "hashes": {
+            "sha-256": "fb31bb15a9baedbb2991628892afe935ebbeae1693b91c4c63f111c04c0dec75"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/algorithm.h"
+          },
+          "hashes": {
+            "sha-256": "2033da7b3c22a1e5909392495890fae7ca04de248ac56208099a0972245cd219"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/copy_help.h"
+          },
+          "hashes": {
+            "sha-256": "9b36348d515e0a08464650c2bdbc8389f11a7fc7a7453627c0dd9f9f0db7a828"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/fill_help.h"
+          },
+          "hashes": {
+            "sha-256": "231da8c9abf7c7e6c2b022a35c4ecb57f21b07c3ef624a2ea90133af95b6e355"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/functional.h"
+          },
+          "hashes": {
+            "sha-256": "4ddf5820587ed016824270af81b58ae33a3554246a429e31f2b531a2a1ba67bf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/functional_base.h"
+          },
+          "hashes": {
+            "sha-256": "86346bc629e271549d3b10c02262259562019092b5457bd2b7710899476fcc1c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/mem_fn.h"
+          },
+          "hashes": {
+            "sha-256": "52ce4ca77f2c535f5b3d8fe0cdbd1803432ab39be09ca858ba555573d3f0c359"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/function.h"
+          },
+          "hashes": {
+            "sha-256": "34075ec93d5ab1c68a12285ebb142f2a0cfefa5a8999c096e1d55b5155561819"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/function_detail.h"
+          },
+          "hashes": {
+            "sha-256": "bf42c1590b531afbfe14ef69a70f385d0f935b961316128fa7f8390ecc4d1a74"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/function_help.h"
+          },
+          "hashes": {
+            "sha-256": "351d82d0994df6d7dbc6fcd6a94eb5f5e390a409fcc5b69eaa686cf7dfd50e5e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/utility.h"
+          },
+          "hashes": {
+            "sha-256": "158c115975b0f5015c36a1345b8cbc2485b38c33c32b438b3c83058c6be6fc80"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/numeric_limits.h"
+          },
+          "hashes": {
+            "sha-256": "682b9249d9a3c1fc645c6eb8ebfcd4d581c3ee69cfa6a7e33130e8424569db10"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/compare.h"
+          },
+          "hashes": {
+            "sha-256": "062d6cda1bf0ec2f84f502bf84c9ac17286b4f9d7d0668ff7cb4bdeaa385903a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/meta.h"
+          },
+          "hashes": {
+            "sha-256": "50e97daba5b95622344d6edd9a339c235729ed91a4174718035adf6678c434c7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/integer_sequence.h"
+          },
+          "hashes": {
+            "sha-256": "8b05850694864603836249a2911380593a2d81c67c8d8d582c36b32a1593866d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/in_place_t.h"
+          },
+          "hashes": {
+            "sha-256": "24bfec0808e8cd752fcac7c39cad004760b4551fa8514d3dc7de0c350c3eabfa"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/piecewise_construct_t.h"
+          },
+          "hashes": {
+            "sha-256": "9609dc789588c161c039f28ba2940848180c736bbd10305e800774ba27f0323e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/allocator.h"
+          },
+          "hashes": {
+            "sha-256": "0fbb375809e677bba6412ed43415479df4700ecfcff0c3fdc3c13cf1cf12fe30"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/random.h"
+          },
+          "hashes": {
+            "sha-256": "645b826a907b93d2e782c2a852ab25996cc0973e31fd378825c3a49555f8ba74"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/vector.h"
+          },
+          "hashes": {
+            "sha-256": "44437034cc6689ef2bf837d39cd9d823b788d36d9942d7708157a0f328f837be"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/memory.h"
+          },
+          "hashes": {
+            "sha-256": "fd6376f2abd16aee53bd53abae91b31c0c3b24eee96277ac96c04e161f7de2d6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/pair_fwd_decls.h"
+          },
+          "hashes": {
+            "sha-256": "378bb2bd9bba4f453e14275036975bdf021a2a92b87cd77042a821dbf6bb9832"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/bonus/compressed_pair.h"
+          },
+          "hashes": {
+            "sha-256": "1f189874ed277c74d216aa6b5d23796d57ff14e692dda5bd11bb372095e77034"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/bonus/call_traits.h"
+          },
+          "hashes": {
+            "sha-256": "1bfe77a1be31c2d2a928b13e7e7fcba6e59c08d8249b2fd148d4e8a5e03916f0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/list.h"
+          },
+          "hashes": {
+            "sha-256": "136b084a663e3ea74adc5f40a4db478151f72cb55d96e6d1e875bf042448f7a0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/span.h"
+          },
+          "hashes": {
+            "sha-256": "248a21fbaf54c6bfa9c0c29f1086e1821a81d7cc2fe837b6f68a2b11f4958397"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/deque.h"
+          },
+          "hashes": {
+            "sha-256": "c8283c0234ad61c21e722a28111c5d9ca29ee57afe8af10595ce2dbcfc2882f7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/macros.h"
+          },
+          "hashes": {
+            "sha-256": "499cf002039071e375e168b7c321d31ed56c594bfe4a54ef4804dd2db98a048a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/datatype.h"
+          },
+          "hashes": {
+            "sha-256": "13aa2e33dda325e8dec2b148e76b5f265db87d64cb5ef4f33132cfb85b48b5d2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/assertion.h"
+          },
+          "hashes": {
+            "sha-256": "f127def102b9c337c946fb32beeff49ab47fbed103e8104460313716ce5f31ec"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/hashmap.h"
+          },
+          "hashes": {
+            "sha-256": "dfc83f7b810b7ae8d1cc1468d0cdf016dde590e5da786c19371140aaee65e92b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/ankerl/unordered_dense.h"
+          },
+          "hashes": {
+            "sha-256": "7ade9f2bf85ddc8a2106098db5a43b27d9cf982724d319142fc8d4f1f4fc22c7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/ankerl/stl.h"
+          },
+          "hashes": {
+            "sha-256": "299045bb73be3dabcbc92a92d92c1ce15a9973fae10f90ecba556e8f27075637"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/baseutilities.h"
+          },
+          "hashes": {
+            "sha-256": "08892465c1792e34f5bb6826e5d7d953b0589a626ee8e7ed0a62fb7459acc94f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/optional.h"
+          },
+          "hashes": {
+            "sha-256": "c1a593d04439fa21b4cee57cafede9fdb9241fdc86c81d152e65eb009d942328"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/math.h"
+          },
+          "hashes": {
+            "sha-256": "137804505d2148c39067941459a384c201fa41cb9f02b5093123c9929b7e932b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/mathconstant.h"
+          },
+          "hashes": {
+            "sha-256": "5c6e4e6b18a778221979a3805b26ed509a18600199f593e8772f3c188c4925f3"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vector.h"
+          },
+          "hashes": {
+            "sha-256": "a73688a167711812303e783fe412b850cd2110fa3dc876e0e8d5809ba1c34b1f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/matrix.h"
+          },
+          "hashes": {
+            "sha-256": "da99cce42f771a978828b43cd82c3696c48329c6be5645fa463a21119e6ff00f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/quaternion.h"
+          },
+          "hashes": {
+            "sha-256": "e9550375d5ca61008dff38b3f0806be53bc94aea3a79827e8b438b53cc87043a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/string.h"
+          },
+          "hashes": {
+            "sha-256": "c147d9cbe8a0dc0dfed1b5fa355092531d53b73831c470e17bcc3fbaa20e7f9e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/typetraits.h"
+          },
+          "hashes": {
+            "sha-256": "b0dea4fa18c27c6a8eb8deda3248d2072052f695d51591c04e674c918a4bde66"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/fixed_string.h"
+          },
+          "hashes": {
+            "sha-256": "6231f53fed008bf3da23240ffe7a1b7f5526984409711811e2915636d6c404c2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/string.h"
+          },
+          "hashes": {
+            "sha-256": "73a33e51f124374ee26982a2f66a98a01a5928c0959f71bd970b3d9754a3aec8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/char_traits.h"
+          },
+          "hashes": {
+            "sha-256": "49da5cc45e0e9cb5083076f954236b906fdbdd5907778e0a70000b3c8cc6109f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/string_view.h"
+          },
+          "hashes": {
+            "sha-256": "8dcfcd74f94ee60f59d1a3a0e431c6517e5335efe2fa76709943f1c012654b26"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/eastl/internal/fixed_pool.h"
+          },
+          "hashes": {
+            "sha-256": "770fb17aa9beaee5859037cfeb2355e8aef9d0c9e2d490320dc411235b62626f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/refcounted.h"
+          },
+          "hashes": {
+            "sha-256": "7f1659c4f0ddeb573cd6496423482b59fe2ad413153ef5fbba18545e933ff245"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/scoped.h"
+          },
+          "hashes": {
+            "sha-256": "fdc8a0405fbd0549c84b6f44b436dd036c9d8f550c0f1961c194db90506d8c1d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/logsystem.h"
+          },
+          "hashes": {
+            "sha-256": "e56f662c4c85aec0b0b20e798bfd8e78bb3d70b98facbed61f932ff0c4b8a89d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/spdlog.h"
+          },
+          "hashes": {
+            "sha-256": "ced45d7625328739a33563d372bc897f7ec0b040a315e3bba8403aac97edf90d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/common.h"
+          },
+          "hashes": {
+            "sha-256": "62bdfbe7c9d66836590f89fb116baaf87513c20e028e0f62dbaa714791d29e26"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/null_mutex.h"
+          },
+          "hashes": {
+            "sha-256": "1377fde4b54417dca1b3d162d0f18c35f9418e1db91a333949952f1c877127b1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/tweakme.h"
+          },
+          "hashes": {
+            "sha-256": "71ac6a551713dda0969af873ca8169ebcf080d19173fb8f58b943508a873acc7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/fmt/fmt.h"
+          },
+          "hashes": {
+            "sha-256": "bfe74fa10b03fffc6075eb62aff12409c58de5cd143157cf77d06973a1442eb7"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/fmt/xchar.h"
+          },
+          "hashes": {
+            "sha-256": "f29873210b20733d85c59cd43e18563f9b48aec6bd453b4d53c2dd5ee558438d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/common-inl.h"
+          },
+          "hashes": {
+            "sha-256": "c8c7db736c3fb61ccd84b1f5d5f9c748a1e3dbfe77a986bb820fcfe20da32751"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/registry.h"
+          },
+          "hashes": {
+            "sha-256": "dd323eb0c7bf08c15899db8db4210255051462246351e1c1214e5b126f66c95b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/periodic_worker.h"
+          },
+          "hashes": {
+            "sha-256": "5e514551070364a20f35b076b83820a7e577b3b23f66aa254d8bd9ea0b8c7b17"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/periodic_worker-inl.h"
+          },
+          "hashes": {
+            "sha-256": "298c84f55ac417e43974d044f5055364b4aa59fec9d2c8d24a001b73f79ae113"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/registry-inl.h"
+          },
+          "hashes": {
+            "sha-256": "1cd7ed37dc0820843543750eec5e707f093a03b982007e6186efbc092545c727"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/logger.h"
+          },
+          "hashes": {
+            "sha-256": "6b3b5f5cd2127f8f041d2520d4077a0c94877acc458767c4eba786e0a19603be"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/backtracer.h"
+          },
+          "hashes": {
+            "sha-256": "e0d6f5f72d5936f0fddf681b590e87ee880a2ea40ed44551b8fdf59e0868a1e5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/circular_q.h"
+          },
+          "hashes": {
+            "sha-256": "0bc4025c81425023f4d58711d6aa6231a55ee606bb1fc88f4fb3e655e807e265"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/log_msg_buffer.h"
+          },
+          "hashes": {
+            "sha-256": "0d4b89aa2d47490f3d89d04fbba49cab751e696657f2857899f432a5919b9d26"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/log_msg.h"
+          },
+          "hashes": {
+            "sha-256": "13a78b8cc0a8b71fd6a49633792f98453aeb8844d525d10bc55b22089a120281"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/log_msg-inl.h"
+          },
+          "hashes": {
+            "sha-256": "83e6c837a4f3094671d6745a835c718c5c0b922288be371a19429093ab856272"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/os.h"
+          },
+          "hashes": {
+            "sha-256": "e563c3726d234e89d6944c55f84e521205a8460f795820778c2a9b9be17f755c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/os-inl.h"
+          },
+          "hashes": {
+            "sha-256": "7807a0437e9ba7fb40abfc5ec798463a53026c1fdcd4fa9c7e799cfcca2fbd24"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/windows_include.h"
+          },
+          "hashes": {
+            "sha-256": "aaedb3b90bd662563d82887fedaf338167c951254f45f9ebfef27adade2bd186"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/log_msg_buffer-inl.h"
+          },
+          "hashes": {
+            "sha-256": "c4ca45a0401b17de9f57ea65462b44ea159d152d83bdd086ff675ef9e035456f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/backtracer-inl.h"
+          },
+          "hashes": {
+            "sha-256": "30891d3c75154cf278ac30dbce584bfa28dae17c0f93418c363483c7e9dc9431"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/logger-inl.h"
+          },
+          "hashes": {
+            "sha-256": "e2b6977cfc5c5db62f0d9289d564d206197b6d52f472cd9550b9a1d082cd52cc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/pattern_formatter.h"
+          },
+          "hashes": {
+            "sha-256": "33c08b3918f7182df15d6f1bab3f9f93fc271c178c2cb2baba69a30e0ad6ea23"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/formatter.h"
+          },
+          "hashes": {
+            "sha-256": "213631628274dc6c26fcc9a3bed36a3a9a83edea5e6b9f027baea58ca9c5eff3"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/pattern_formatter-inl.h"
+          },
+          "hashes": {
+            "sha-256": "1752698ce34d6d8dfc6b57d8c6181e3eb285d967ec495d341f7c8a09fa8dc2b6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/fmt_helper.h"
+          },
+          "hashes": {
+            "sha-256": "d66b3ec0617a439ca7a4fd661046d5be54beed89c6fae2849d4d46c3f28ef8a9"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/mdc.h"
+          },
+          "hashes": {
+            "sha-256": "86776b3367bd72e26a630e58d820b6f065e3b337668822139fcc173646ad43c0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/sinks/sink.h"
+          },
+          "hashes": {
+            "sha-256": "7fa4a5c69c42f9eee9d6cd5cc4d525be4beb77299cc88b09b4a01f155f3cc215"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/sinks/sink-inl.h"
+          },
+          "hashes": {
+            "sha-256": "e3efbe6fc7b15fccc046b740b061f0ab5867f8bd7d6cf30ed2180a3cdb04aefb"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/sinks/wincolor_sink.h"
+          },
+          "hashes": {
+            "sha-256": "f7cb63c2c3aeb54f8ea0d9ad230eca2991bdac35755d43a508f57bbba6fe9c72"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/console_globals.h"
+          },
+          "hashes": {
+            "sha-256": "3dced73dc2bc5eacc678eec34af6458f910740c8949fd1bc8449808d1345467a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/sinks/wincolor_sink-inl.h"
+          },
+          "hashes": {
+            "sha-256": "8d9dac4bb1a163d6eb0913ff48ab7f59db54fbb60b7668a0a997530dded57139"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/details/synchronous_factory.h"
+          },
+          "hashes": {
+            "sha-256": "3fcfcc28aa4edc2998e9e00d218362600605b89e0c58ebf2c7267950412e1cdc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/version.h"
+          },
+          "hashes": {
+            "sha-256": "c42673543e21bd0ef04671d76c5f593864d4422ec81282c340a94b5a2aa1e4af"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/vcpkg/installed/x64-windows/include/spdlog/spdlog-inl.h"
+          },
+          "hashes": {
+            "sha-256": "036ab0ed3ec1226973bc9cf52801ec269fc95f63dcf8a074093dbf582a74ae94"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/stringkeycontainers.h"
+          },
+          "hashes": {
+            "sha-256": "d2eaa1afc3b0001ea88e668bb60fc3cfddfb42b3e3e6d3eddfd4784401fbffdc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/memoryview.h"
+          },
+          "hashes": {
+            "sha-256": "de358025ad0be797fa1592155f26cdc9e1f067654144cbafc763eb4769e8813c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/error.h"
+          },
+          "hashes": {
+            "sha-256": "002a4a3c14298334b22bd3c5962b92ffd501ac7a22b2efb2001f211f3cd3339d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/delegate.h"
+          },
+          "hashes": {
+            "sha-256": "745c200219a069cc33a18442df72fcfada4cd081bd573d675d839d82685984f1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/functiontraits.h"
+          },
+          "hashes": {
+            "sha-256": "587df66f9b8b5eacf96db8e3155db56ee46967360d17007e0242db96669a3314"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/functionhasher.h"
+          },
+          "hashes": {
+            "sha-256": "236a1d9797dbbb2df7769838a0e9adb08ac8e9816cc36e6f0d81c70e62376693"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/memoryhasher.h"
+          },
+          "hashes": {
+            "sha-256": "6f93946eb10809b5729e6efde15b70e6635a44bd36e9b188511a36797aa93cb5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/enumutilities.h"
+          },
+          "hashes": {
+            "sha-256": "df3dc2e38ef2045ce7b3f3562f5c97b4cd4252ae39f8a32c816517838eff1b9d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/constexprstringhashmap.h"
+          },
+          "hashes": {
+            "sha-256": "222fa6edd2670ce30ecf90e5c9b01f33463472ad3cbbbbe9671865a6b23ede3e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/nameof.h"
+          },
+          "hashes": {
+            "sha-256": "b09079a6d1f85c5cbafd6888c2042eb746ec6c82cfdb2aeba8c1f1daacee2450"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/flags.h"
+          },
+          "hashes": {
+            "sha-256": "504a1140bcc3b0304c9b5808d76e7550f2ec8b9643d660743d1d577a66abf224"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/archive.h"
+          },
+          "hashes": {
+            "sha-256": "6e981157bd0bed64a6e70ac80d9bb79a3697dc7192d49cda6a953e0c209259e5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/enumarray.h"
+          },
+          "hashes": {
+            "sha-256": "846834441f9b4aa6725f51025e87bc131a29ac68f053f259f1d2f35bda6a938f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/reference.h"
+          },
+          "hashes": {
+            "sha-256": "2300b4c901103748fc141d6675fdee28fa516d00ad0ae71c4925cd4e13babb47"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/orderedhashmap.h"
+          },
+          "hashes": {
+            "sha-256": "05308fa914a4298dce47e340fd59be03c078f772db5134952c4e9f780007de1c"
+          }
+        }
+      ]
+    }
+  ]
+}

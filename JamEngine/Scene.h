@@ -44,14 +44,14 @@ public:
 
     // rtti
     virtual StringView GetTypeName() const = 0;
-    virtual UInt32     GetTypeHash() const = 0;
+    virtual UInt64     GetTypeHash() const = 0;
 
-    // scene buffer
+    // scene buffer... todo remove
     [[nodiscard]] virtual TextureHandle GetDepthTexture() const;
 
     // serialize
-    [[nodiscard]] static Expect<Scoped<Scene>> LoadFromFile(StringView _path, Flags<eSceneDeserializeFlags> _flags = eSceneDeserializeFlags::None);
     [[nodiscard]] static Expect<Scoped<Scene>> Load(StringView _json, Flags<eSceneDeserializeFlags> _flags = eSceneDeserializeFlags::None);
+    [[nodiscard]] static Expect<Scoped<Scene>> LoadFromFile(StringView _path, Flags<eSceneDeserializeFlags> _flags = eSceneDeserializeFlags::None);
     virtual void                               Serialize(ArchiveWriter& _writer);
     virtual Error                              Deserialize(ArchiveReader& _reader, Flags<eSceneDeserializeFlags> _flags = eSceneDeserializeFlags::None);
 
@@ -59,25 +59,25 @@ public:
     void                                UpdateSceneGraph();
     [[nodiscard]] const Vector<Entity>& GetTransformModifiedEntities() const;   // 해당 배열은 Render 함수 호출 직전에 초기화됨
 
-    // item management
+    // entity management
     Entity CreateEntity(StringView _nameOrEmpty = {});
     Entity CreateEntity(UID _uid, StringView _nameOrEmpty = {});
-    UID    CreateEntityDefered(StringView _nameOrEmpty = {});             // returns the UID of the created entity. UID is invalid this frame, valid next frame
-    UID    CreateEntityDefered(UID _uid, StringView _nameOrEmpty = {});   // returns the UID of the created entity. UID is invalid this frame, valid next frame
+    UID    CreateEntityDeferred(StringView _nameOrEmpty = {});             // returns the UID of the created entity. UID is invalid this frame, valid next frame
+    UID    CreateEntityDeferred(UID _uid, StringView _nameOrEmpty = {});   // returns the UID of the created entity. UID is invalid this frame, valid next frame
 
     Entity CloneEntity(Entity _entity);
-    UID    CloneEntityDefered(Entity _entity);   // returns the UID of the cloned entity. UID is invalid this frame, valid next frame
+    UID    CloneEntityDeferred(Entity _entity);   // returns the UID of the cloned entity. UID is invalid this frame, valid next frame
 
     void DestroyEntity(Entity _entity);
-    void DestroyEntityDefered(Entity _entity);
+    void DestroyEntityDeferred(Entity _entity);
     void ClearEntities();
 
     [[nodiscard]] Entity GetEntity(UID _uid) const;
     [[nodiscard]] Entity FindEntityOrNull(UID _uid) const;
     [[nodiscard]] bool   IsEntityValid(Entity _entity) const;
 
-    Entity CreateEntitiesFrom(const Ref<Model>& _pModel);
-    UID    CreateEntitiesDeferedFrom(const Ref<Model>& _pModel);   // returns the UID of the root entity. UID is invalid this frame, valid next frame
+    Entity CreateEntitiesByModel(const Ref<Model>& _pModel);
+    UID    CreateEntitiesDeferredByModel(const Ref<Model>& _pModel);   // returns the UID of the root entity. UID is invalid this frame, valid next frame
 
     // item iteration
     template<typename... Args>
@@ -109,7 +109,7 @@ public:
 
     // item
     [[nodiscard]] Entity                      GetRootEntity() const;
-    [[nodiscard]] Int32                       GetNumEntities() const;
+    [[nodiscard]] SizeT                       GetNumEntities() const;
     [[nodiscard]] const HashMap<UID, Entity>& GetEntities() const;
 
     static constexpr StringView kExtension = ".jsc";
@@ -124,17 +124,17 @@ private:
     // create entity. create entity must support create with uid. so param _allocedUid is required.
     Entity CreateRootEntity_();
     Entity CreateEntity_(UID _allocedUid, StringView _nameOrEmpty);
-    void   CreateEntityDefered_(UID _allocedUid, StringView _nameOrEmpty);
+    void   CreateEntityDeferred_(UID _allocedUid, StringView _nameOrEmpty);
 
     // clone entity
     Entity CloneEntity_(UID _allocedUid, Entity _srcEntity);
     Entity CloneEntity_Recursive_(UID _allocedUid, Entity _srcEntity);
-    void   CloneEntityDefered_(UID _allocedUid, Entity _srcEntity);
+    void   CloneEntityDeferred_(UID _allocedUid, Entity _srcEntity);
 
     // create from model
-    Entity CreateEntitiesFrom_Recursive_(UID _allocedUid, const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
-    Entity CreateEntitiesFrom_(UID _allocedUid, const Ref<Model>& _pModel);
-    void   CreateEntitiesFromDefered_(UID _allocedUid, const Ref<Model>& _pModel);
+    Entity CreateEntitiesByModel_Recursive_(UID _allocedUid, const ModelNode& _node, const Vector<Ref<Mesh>>& _meshes, const Vector<Ref<Material>>& _mats);
+    Entity CreateEntitiesByModel_(UID _allocedUid, const Ref<Model>& _pModel);
+    void   CreateEntitieDeferredByModel_(UID _allocedUid, const Ref<Model>& _pModel);
 
     // destroy entity
     void DestroyEntity_Recursive_(Entity _entity);
@@ -144,6 +144,8 @@ private:
     UIDAllocator         m_uidAllocator              = {};
     Entity               m_root                      = Entity::kNull;
     Vector<Entity>       m_transformModifiedEntities = {};
+
+    friend class SceneManager;
 };
 
 }   // namespace Jam

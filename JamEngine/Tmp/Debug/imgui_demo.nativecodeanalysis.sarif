@@ -1,0 +1,51 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "MSVC Code Analysis",
+          "version": "14.50.35730.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imgui/imgui_demo.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "a5854954e2176451d56f7752f99f9b3a59c9f828bd251099f29f0970eaafa17c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imgui/imgui.h"
+          },
+          "hashes": {
+            "sha-256": "521cbff078114dcf94c2d7268e0db4de647e1ebf02f79726d866a646a8140e28"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imgui/imconfig.h"
+          },
+          "hashes": {
+            "sha-256": "d0709b1a2417b0076f21f4ece502c1c32e81a948ae301a5c6c78e2482f519b40"
+          }
+        }
+      ]
+    }
+  ]
+}

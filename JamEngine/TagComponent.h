@@ -7,8 +7,8 @@ namespace Jam
 struct TagComponent
 {
     JAM_COMPONENT_BODY(TagComponent);
-    JAM_COMPONENT_METADATA_EDITOR_DISPLAY_NAME("tag component");
-    JAM_COMPONENT_METADATA_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable);
+    JAM_COMPONENT_EDITOR_DISPLAY_NAME("tag component");
+    JAM_COMPONENT_PROPERTY_FLAGS(eComponentPropertyFlags::Serializable, eComponentPropertyFlags::Editable);
 
     TagComponent();
     explicit TagComponent(StringView _name);

@@ -115,7 +115,7 @@ void ShaderItemEditorWindow::OnImGuiRender()
                         const Int32 srcIdx = *static_cast<const Int32*>(pPayload->Data);
                         if (srcIdx != idx)
                         {
-                            GetApp().SubmitCommandToMainThread(Bind(
+                            app.SubmitCommandToMainThread(Bind(
                                 [this, srcIdx, idx] {
                                     VectorSplice(m_focusingShaderItemMacrosEdit, idx, srcIdx);
                                     m_pProjectCache->MoveShaderItemMacroBefore(m_pFocusingShaderItemCache->name, srcIdx, idx);
@@ -155,7 +155,7 @@ void ShaderItemEditorWindow::OnImGuiRender()
                 ImGui::TableNextColumn();
                 if (Widget_ImageButton("Clone", GetShaderApp().GetIcon(eIcon::Clone), { ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() }))
                 {
-                    GetApp().SubmitCommandToMainThread(Bind(
+                    app.SubmitCommandToMainThread(Bind(
                         [this, idx] {
                             const ShaderItem::Macro newMacro = m_focusingShaderItemMacrosEdit[idx];
                             m_focusingShaderItemMacrosEdit.emplace_back(newMacro);
@@ -167,7 +167,7 @@ void ShaderItemEditorWindow::OnImGuiRender()
                 ImGui::SameLine(0.f, style.ItemInnerSpacing.x);
                 if (Widget_ImageButton("Remove", GetShaderApp().GetIcon(eIcon::Remove), { ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() }))
                 {
-                    GetApp().SubmitCommandToMainThread(Bind([this, idx] {
+                    app.SubmitCommandToMainThread(Bind([this, idx] {
                         VectorErase(m_focusingShaderItemMacrosEdit, idx);
                         m_pProjectCache->RemoveShaderItemMacro(m_pFocusingShaderItemCache->name, idx);
                     }));
@@ -455,19 +455,19 @@ void ShaderItemEditorWindow::Widget_EditShaderItemCompileFlags() const
     JAM_ASSERT(m_pFocusingShaderItemCache, "No shader item is currently being edited.");
 
     constexpr EnumWidgetItem kFlagsItems[] = {
-        {               "Debug info",             UnderlyingFrom(eShaderCompileFlags::DebugInfo) },
-        {             "Optimization",          UnderlyingFrom(eShaderCompileFlags::Optimization) },
-        {        "Skip optimization",      UnderlyingFrom(eShaderCompileFlags::SkipOptimization) },
-        {       "Warning as errors ",      UnderlyingFrom(eShaderCompileFlags::WarningsAsErrors) },
-        {       "Avoid flow control",      UnderlyingFrom(eShaderCompileFlags::AvoidFlowControl) },
-        {    "Pack matrix row major",    UnderlyingFrom(eShaderCompileFlags::PackMatrixRowMajor) },
-        { "Pack matrix column major", UnderlyingFrom(eShaderCompileFlags::PackMatrixColumnMajor) },
+        {               "Debug info",             AsUnderlying(eShaderCompileFlags::DebugInfo) },
+        {             "Optimization",          AsUnderlying(eShaderCompileFlags::Optimization) },
+        {        "Skip optimization",      AsUnderlying(eShaderCompileFlags::SkipOptimization) },
+        {       "Warning as errors ",      AsUnderlying(eShaderCompileFlags::WarningsAsErrors) },
+        {       "Avoid flow control",      AsUnderlying(eShaderCompileFlags::AvoidFlowControl) },
+        {    "Pack matrix row major",    AsUnderlying(eShaderCompileFlags::PackMatrixRowMajor) },
+        { "Pack matrix column major", AsUnderlying(eShaderCompileFlags::PackMatrixColumnMajor) },
     };
 
     constexpr EnumWidgetItem kSetItems[] = {
-        {            "None",           UnderlyingFrom(eShaderCompileFlags::None) },
-        {   "Debug default",   UnderlyingFrom(eShaderCompileFlags::DebugDefault) },
-        { "Release default", UnderlyingFrom(eShaderCompileFlags::ReleaseDefault) },
+        {            "None",           AsUnderlying(eShaderCompileFlags::None) },
+        {   "Debug default",   AsUnderlying(eShaderCompileFlags::DebugDefault) },
+        { "Release default", AsUnderlying(eShaderCompileFlags::ReleaseDefault) },
     };
 
     Int32 flags = NarrowCast<Int32>(m_pFocusingShaderItemCache->compileFlags.GetValue());

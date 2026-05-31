@@ -20,7 +20,7 @@ void SceneDatabase::DestroyInstance()
 }
 
 bool SceneDatabase::IsSceneReflected(
-    const UInt32 _typeHash) const
+    const UInt64 _typeHash) const
 {
     return m_sceneRflData.contains(_typeHash);
 }
@@ -28,11 +28,11 @@ bool SceneDatabase::IsSceneReflected(
 bool SceneDatabase::IsSceneReflected(
     const StringView _name) const
 {
-    return m_sceneRflData.contains(_name.Hash32());
+    return m_sceneRflData.contains(_name.Hash());
 }
 
 const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
-    const UInt32 _typeHash) const
+    const UInt64 _typeHash) const
 {
     return m_sceneRflData.at(_typeHash);
 }
@@ -40,7 +40,7 @@ const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
 const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
     const StringView _name) const
 {
-    return m_sceneRflData.at(_name.Hash32());
+    return m_sceneRflData.at(_name.Hash());
 }
 
 }   // namespace Jam

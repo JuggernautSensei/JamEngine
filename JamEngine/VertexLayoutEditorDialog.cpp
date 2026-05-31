@@ -7,7 +7,8 @@
 #include "EditorWidgets.h"
 #include "MessageDialog.h"
 #include "VertexLayoutEntryManager.h"
-#include "StackString.h"
+#include "StaticString.h"
+
 
 namespace Jam
 {
@@ -61,7 +62,7 @@ void VertexLayoutEditorDialog::OnShow()
             eVertexAttribute attrib = node.key;
             eAttributeFormat format = node.value;
 
-            ImGui::PushID(UnderlyingFrom(attrib));
+            ImGui::PushID(AsUnderlying(attrib));
 
             // calculate byte width and offset
             offset = stride;
@@ -71,19 +72,19 @@ void VertexLayoutEditorDialog::OnShow()
             ImGui::TableNextColumn();
             if (Widget_VertexAttributeCombo_("##Attrib", attrib))
             {
-                PushNodeDefered_(attrib, format);
+                PushNodeDeferred_(attrib, format);
             }
 
             // format column
             ImGui::TableNextColumn();
             if (Widget_EnumCombo("##Format", format))
             {
-                ModifyNodeDefered_(attrib, format);
+                ModifyNodeDeferred_(attrib, format);
             }
 
             // byteWidth column
             {
-                StackString<64> buf;
+                StaticString<64> buf;
                 buf.Format("{}", ByteWidthOf(format));
 
                 ImGui::TableNextColumn();
@@ -92,7 +93,7 @@ void VertexLayoutEditorDialog::OnShow()
 
             // offset column
             {
-                StackString<64> buf;
+                StaticString<64> buf;
                 buf.Format("{}", offset);
 
                 ImGui::TableNextColumn();
@@ -102,7 +103,7 @@ void VertexLayoutEditorDialog::OnShow()
             // action column
             if (ImGui::Button("remove", btnSize))
             {
-                RemoveNodeDefered_(attrib);
+                RemoveNodeDeferred_(attrib);
             }
 
             ImGui::PopID();
@@ -186,36 +187,39 @@ bool VertexLayoutEditorDialog::OnClickSaveButton_() const
     return true;
 }
 
-void VertexLayoutEditorDialog::PushNodeDefered_(
+void VertexLayoutEditorDialog::PushNodeDeferred_(
     const eVertexAttribute _attrib,
     const eAttributeFormat _format)
 {
-    GetApp().SubmitCommandToMainThread(Bind(
+    Application& app = GetApp();
+    app.SubmitCommandToMainThread(Bind(
         [this, _attrib, _format]
         {
             m_elems.PushBack(_attrib, _format);
         }));
 }
 
-void VertexLayoutEditorDialog::RemoveNodeDefered_(
+void VertexLayoutEditorDialog::RemoveNodeDeferred_(
     const eVertexAttribute _attrib)
 {
     JAM_ASSERT(m_elems.Contains(_attrib), "attribute does not exist in the vertex layout.");
 
-    GetApp().SubmitCommandToMainThread(Bind(
+    Application& app = GetApp();
+    app.SubmitCommandToMainThread(Bind(
         [this, _attrib]
         {
             m_elems.Remove(_attrib);
         }));
 }
 
-void VertexLayoutEditorDialog::ModifyNodeDefered_(
+void VertexLayoutEditorDialog::ModifyNodeDeferred_(
     const eVertexAttribute _attrib,
     const eAttributeFormat _format)
 {
     JAM_ASSERT(m_elems.Contains(_attrib), "attribute does not exist in the vertex layout.");
 
-    GetApp().SubmitCommandToMainThread(Bind(
+    Application& app = GetApp();
+    app.SubmitCommandToMainThread(Bind(
         [this, _attrib, _format]
         {
             m_elems.Get(_attrib) = _format;
@@ -276,7 +280,7 @@ bool VertexLayoutEditorDialog::Widget_AddElementButton_(
         {
             if (!m_elems.Contains(attrib))
             {
-                PushNodeDefered_(attrib, eAttributeFormat::Float);
+                PushNodeDeferred_(attrib, eAttributeFormat::Float);
                 return true;
             }
         }

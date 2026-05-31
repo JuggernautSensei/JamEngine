@@ -214,7 +214,8 @@ Error ImageImportDialog::LoadPreviewTexture_()
     }
 
     // create texture
-    const TextureHandle texh = GetGraphics().CreateTexture(importer->GetImageContainer());
+    Graphics&           gfx    = GetGraphics();
+    const TextureHandle texh = gfx.CreateTexture(importer->GetImageContainer());
 
     // set preview texture
     m_pPreviewTex = Texture::Load(texh);

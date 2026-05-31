@@ -2,15 +2,17 @@
 #include "SimpleScene.h"
 
 #include "Gui.h"
-#include "PostProcessManager.h"
+#include "ImageFilterManager.h"
 #include "Utils.h"
 #include "RenderStates.h"
 #include "../JamEngine/AssimpImporter.h"
 
+#define SCENE_PATH(_filepath) "Resources/SimpleScene/" _filepath
+
 namespace
 {
 
-struct CBSimpleSceneEntity
+struct CBEntity
 {
     static constexpr Int32 kSlot = 0;
 
@@ -20,7 +22,7 @@ struct CBSimpleSceneEntity
     float padding1;
 };
 
-struct CBSimpleSceneCamera
+struct CBCamera
 {
     static constexpr Int32 kSlot = 1;
 
@@ -29,15 +31,15 @@ struct CBSimpleSceneCamera
     Mtx4  viewProj;
 };
 
-struct CBSimpleSceneLight
+struct CBLight
 {
     static constexpr Int32 kSlot = 2;
 
     Vec3  lightDir;
     float padding2;
-    Vec3  lightCol;
+    Vec3  lightColor;
     float padding3;
-    Vec3  ambientCol;
+    Vec3  ambientColor;
     float padding4;
 };
 
@@ -47,7 +49,7 @@ SimpleScene::SimpleScene()
 {
     InitMeshes_();
     InitRenderGraph_();
-    m_camera.trans.SetTranslationZ(-8.f);
+    m_camera.transform.SetTranslationZ(-8.f);
 }
 
 SimpleScene::~SimpleScene()
@@ -92,23 +94,23 @@ void SimpleScene::OnRender(
 {
     Graphics& gfx = GetGraphics();
 
-    CBSimpleSceneCamera cbCamera = {};
-    cbCamera.eye                 = m_camera.GetEyePos();
-    cbCamera.viewProj            = m_camera.CalcViewProj().Transpose();
-    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
+    CBCamera camera;
+    camera.eye      = m_camera.GetEyePos();
+    camera.viewProj = m_camera.CalcViewProj().Transpose();
+    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(camera));
 
-    CBSimpleSceneLight cbLight = {};
-    cbLight.lightDir           = (m_lightLookAt - m_lightPos).Normalized();
-    cbLight.lightCol           = m_lightCol;
-    cbLight.ambientCol         = m_ambientCol;
-    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(cbLight));
+    CBLight light;
+    light.lightDir     = (m_lightLookAt - m_lightPos).Normalized();
+    light.lightColor   = m_lightCol;
+    light.ambientColor = m_ambientCol;
+    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(light));
 
     m_graph.Execute(_view.fbh, _view.vp);
 }
 
 void SimpleScene::OnImGuiRender()
 {
-    if (!BeginSceneInspectorWindows("SimpleScene"))
+    if (!BeginSceneDemoWindow("SimpleScene"))
     {
         ImGui::End();
         return;
@@ -122,29 +124,30 @@ void SimpleScene::InitMeshes_()
     VertexLayout attribLayout = {};
     attribLayout.Add(eVertexAttribute::Normal, eAttributeFormat::Float3);
 
+    // cube
     m_pCube = CreateCubeMesh(Vec3 { 0.5f }, attribLayout);
     m_cubeTrans.SetTranslationX(-4.f);
 
+    // sphere
     m_pSphere = CreateSphereMesh(0.5f, 5, attribLayout);
 
-    // load bunny
+    // bunny
     m_pBunny = LoadMesh("Resources/Models/StanfordBunny.obj", attribLayout);
     m_bunnyTrans.SetScale(10.f);
 }
 
 void SimpleScene::InitRenderGraph_()
 {
-    ProgramHandle ph = LoadProgram("Resources/SimpleScene/SimpleSceneShader.hlsl");
-    m_graph.InsertProgram("P_Simple", ph, true);
-    m_graph.EmplaceConstantBuffer("CB_Entity", sizeof(CBSimpleSceneEntity));
-    m_graph.EmplaceConstantBuffer("CB_Camera", sizeof(CBSimpleSceneCamera));
-    m_graph.EmplaceConstantBuffer("CB_Light", sizeof(CBSimpleSceneLight));
-    m_graph.EmplaceTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, 1, eTextureCreateFlags::RenderTargetAttachment);
-    m_graph.EmplaceTexture2D("T_SceneDepth", 1.f, eTextureFormat::D32_Float, 1, eTextureCreateFlags::DepthStencilAttachment);
+    LoadProgram(m_graph, "P_Simple", SCENE_PATH("SimpleShader.hlsl"));
+    m_graph.EmplaceConstantBuffer("CB_Entity", sizeof(CBEntity));
+    m_graph.EmplaceConstantBuffer("CB_Camera", sizeof(CBCamera));
+    m_graph.EmplaceConstantBuffer("CB_Light", sizeof(CBLight));
+    m_graph.EmplaceTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, false, 1, eTextureFlags::RenderTarget);
+    m_graph.EmplaceTexture2D("T_SceneDepth", 1.f, eTextureFormat::D32_Float, false, 1, eTextureFlags::DepthStencil);
 
-    AttachmentRG attchments[2];
-    attchments[0].name = "T_SceneColor";
-    attchments[1].name = "T_SceneDepth";
+    AttachmentRG attchments[2] = {};
+    attchments[0].name         = "T_SceneColor";
+    attchments[1].name         = "T_SceneDepth";
     m_graph.EmplaceFrameBuffer("FB_Scene", attchments);
 
     m_entityCbh = m_graph.GetConstantBuffer("CB_Entity");
@@ -165,34 +168,39 @@ void SimpleScene::InitRenderGraph_()
         .SetBlendFlags(kOpaqueBlend, 0)
         .SetExecutor(Bind<&SimpleScene::Submit_>(this));
 
-    m_graph.AddUtilityPass("Pass_Blit")
-        .SetExecutor(Bind<&SimpleScene::Submit_>(this));
+    ImageFilterManager& ifm = GetImageFilterManager();
+
+    ImageFilterDesc blitDesc   = {};
+    blitDesc.filter            = eImageFilter::Blit;
+    blitDesc.output            = eImageFilterOutput::Final;
+    blitDesc.input0Texture = "T_SceneColor";
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
 }
 
 void SimpleScene::Submit_() const
 {
-    Graphics&           gfx      = GetGraphics();
-    CBSimpleSceneEntity cbEntity = {};
+    Graphics& gfx = GetGraphics();
 
     // cube
-    cbEntity.world         = m_cubeTrans.GetSRT().Transpose();
-    cbEntity.invTransWorld = m_cubeTrans.GetSRT().Inverse();
-    cbEntity.baseColor     = m_baseCol;
-    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+    CBEntity entity;
+    entity.world         = m_cubeTrans.GetSRT().Transpose();
+    entity.invTransWorld = m_cubeTrans.GetSRT().Inverse();
+    entity.baseColor     = m_baseCol;
+    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
     m_pCube->Submit();
 
     // sphere
-    cbEntity.world         = m_sphereTrans.GetSRT().Transpose();
-    cbEntity.invTransWorld = m_sphereTrans.GetSRT().Inverse();
-    cbEntity.baseColor     = m_baseCol;
-    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+    entity.world         = m_sphereTrans.GetSRT().Transpose();
+    entity.invTransWorld = m_sphereTrans.GetSRT().Inverse();
+    entity.baseColor     = m_baseCol;
+    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
     m_pSphere->Submit();
 
     // bunny
-    cbEntity.world         = m_bunnyTrans.GetSRT().Transpose();
-    cbEntity.invTransWorld = m_bunnyTrans.GetSRT().Inverse();
-    cbEntity.baseColor     = m_baseCol;
-    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+    entity.world         = m_bunnyTrans.GetSRT().Transpose();
+    entity.invTransWorld = m_bunnyTrans.GetSRT().Inverse();
+    entity.baseColor     = m_baseCol;
+    gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
     m_pBunny->Submit();
 }
 
@@ -200,5 +208,5 @@ void SimpleScene::OnResize(
     const Int32 _width,
     const Int32 _height)
 {
-    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 }

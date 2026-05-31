@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "FileLock.h"
-#include "StackString.h"
+
+#include "StaticString.h"
 #include "WindowsUtilities.h"
 
 namespace Jam
@@ -38,8 +39,7 @@ Error FileLock::Init_(
     const StringView    _path,
     const eFileLockMode _mode)
 {
-    PathStackWString path;
-    path.Encode(_path);
+    const WString path = WString::Encoded(_path);
 
     DWORD accessMode         = 0;
     DWORD shareMode          = 0;
@@ -87,7 +87,7 @@ Error FileLock::Init_(
         return err;
     }
 
-    return Error::None; 
+    return Error::None;
 }
 
 }   // namespace Jam

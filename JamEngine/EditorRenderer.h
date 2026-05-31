@@ -58,14 +58,6 @@ private:
     {
         Vec3 position = Vec3::kZero;
         RGBA rgba     = RGBA::kWhite;
-
-        inline static VertexLayout s_layout = {};
-
-        static void Init()
-        {
-            s_layout.Add(eVertexAttribute::Position, eAttributeFormat::Float3)
-                .Add(eVertexAttribute::Color0, eAttributeFormat::UInt8x4);
-        }
     };
 
     static constexpr Int32            kLineLimit       = 512;
@@ -75,8 +67,8 @@ private:
     Int32                             m_numLineIndices = 0;
 
     // 버퍼
-    VertexBufferHandle   m_gridVbh = kInvalidHandle;
-    IndexBufferHandle    m_gridIbh = kInvalidHandle;
+    VertexBufferHandle   m_screenTriVbh = kInvalidHandle;
+    IndexBufferHandle    m_screenTriIbh = kInvalidHandle;
     VertexBufferHandle   m_lineVbh = kInvalidHandle;
     IndexBufferHandle    m_lineIbh = kInvalidHandle;
     ConstantBufferHandle m_cbh     = kInvalidHandle;
@@ -92,12 +84,12 @@ private:
     Ref<Mesh> m_cubeMesh     = nullptr;
 
     // 상태
-    Flags<eRenderFlags> m_lineRenderFlags   = {};
-    Flags<eRenderFlags> m_gridRenderFlags   = {};
-    Flags<eRenderFlags> m_filledRenderFlags = {};
+    Flags<eRenderFlags> m_lineFlags   = {};
+    Flags<eRenderFlags> m_gridFlags   = {};
+    Flags<eRenderFlags> m_filledFlags = {};
 
     Flags<eBlendFlags>    m_blendFlags    = {};
-    RGBA                  m_currentColor  = RGBA::kWhite;
+    RGBA                  m_curColor      = RGBA::kWhite;
     Flags<eDrawGridFlags> m_drawGridFlags = eDrawGridFlags::None;
     bool                  m_bBeginRender  = false;
 
@@ -105,10 +97,6 @@ private:
     Vec3 m_eye  = Vec3::kZero;
     Mtx4 m_view = Mtx4::kIdentity;
     Mtx4 m_proj = Mtx4::kIdentity;
-
-    // 쉐이더 코드
-    static const char* const kGridShaderSource;
-    static const char* const kLineShaderSource;
 };
 
 }   // namespace Jam

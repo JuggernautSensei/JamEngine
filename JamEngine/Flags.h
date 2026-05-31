@@ -1,6 +1,5 @@
 // ReSharper disable CppClangTidyBugproneMacroParentheses
 #pragma once
-#include "Archive.h"
 
 namespace Jam
 {
@@ -20,7 +19,9 @@ public:
         : m_value(0)
     {
         for (const E flag: _flags)
-            m_value |= UnderlyingFrom(flag);
+        {
+            m_value |= AsUnderlying(flag);
+        }
     }
 
     /* implicit */ constexpr Flags(const UnderlyingT _value) noexcept
@@ -29,7 +30,7 @@ public:
     }
 
     /* implicit */ constexpr Flags(const E _value) noexcept
-        : m_value(UnderlyingFrom(_value))
+        : m_value(AsUnderlying(_value))
     {
     }
 
@@ -80,7 +81,9 @@ public:
 
     constexpr void Set(const Flags _flags, const bool _bEnable) noexcept
     {
-        _bEnable ? Enable(_flags) : Disable(_flags);
+        const UnderlyingT mask    = _flags.m_value;
+        const UnderlyingT enabler = static_cast<UnderlyingT>(0) - static_cast<UnderlyingT>(_bEnable);
+        m_value                   = (m_value & ~mask) | (mask & enabler);
     }
 
     constexpr void Toggle(const Flags _flags) noexcept
@@ -118,74 +121,76 @@ public:
         m_value >>= _shift;
     }
 
+    constexpr void Filter(const UnderlyingT _mask) noexcept
+    {
+        m_value &= _mask;
+    }
+
+    constexpr void Filter(const E _low, const E _high) noexcept
+    {
+        m_value &= MakeMask_(_low, _high);
+    }
+
     [[nodiscard]] constexpr Flags WithEnabled(const Flags _flags) const noexcept
     {
-        Flags result = *this;
-        result.Enable(_flags);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value | _flags.m_value) };
     }
 
     [[nodiscard]] constexpr Flags WithDisabled(const Flags _flags) const noexcept
     {
-        Flags result = *this;
-        result.Disable(_flags);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value & ~_flags.m_value) };
     }
 
     [[nodiscard]] constexpr Flags WithSet(const Flags _flags, const bool _bEnable) const noexcept
     {
-        Flags result = *this;
-        result.Set(_flags, _bEnable);
-        return result;
+        const UnderlyingT mask    = _flags.m_value;
+        const UnderlyingT enabler = static_cast<UnderlyingT>(0) - static_cast<UnderlyingT>(_bEnable);
+        return Flags { static_cast<UnderlyingT>((m_value & ~mask) | (mask & enabler)) };
     }
 
     [[nodiscard]] constexpr Flags WithToggled(const Flags _flags) const noexcept
     {
-        Flags result = *this;
-        result.Toggle(_flags);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value ^ _flags.m_value) };
     }
 
     [[nodiscard]] constexpr Flags WithNot() const noexcept
     {
-        Flags result = *this;
-        result.Not();
-        return result;
+        return Flags { static_cast<UnderlyingT>(~m_value) };
     }
 
     [[nodiscard]] constexpr Flags WithAnd(const Flags _other) const noexcept
     {
-        Flags result = *this;
-        result.And(_other);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value & _other.m_value) };
     }
 
     [[nodiscard]] constexpr Flags WithOr(const Flags _other) const noexcept
     {
-        Flags result = *this;
-        result.Or(_other);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value | _other.m_value) };
     }
 
     [[nodiscard]] constexpr Flags WithXor(const Flags _other) const noexcept
     {
-        Flags result = *this;
-        result.Xor(_other);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value ^ _other.m_value) };
     }
 
     [[nodiscard]] constexpr Flags WithLeftShift(const SizeT _shift) const noexcept
     {
-        Flags result = *this;
-        result.LeftShift(_shift);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value << _shift) };
     }
 
     [[nodiscard]] constexpr Flags WithRightShift(const SizeT _shift) const noexcept
     {
-        Flags result = *this;
-        result.RightShift(_shift);
-        return result;
+        return Flags { static_cast<UnderlyingT>(m_value >> _shift) };
+    }
+
+    [[nodiscard]] constexpr Flags WithFilter(const UnderlyingT _mask) const noexcept
+    {
+        return Flags { static_cast<UnderlyingT>(m_value & _mask) };
+    }
+
+    [[nodiscard]] constexpr Flags WithFilter(const E _low, const E _high) const noexcept
+    {
+        return Flags { static_cast<UnderlyingT>(m_value & MakeMask_(_low, _high)) };
     }
 
     [[nodiscard]] constexpr Flags operator|(const Flags _other) const noexcept
@@ -247,6 +252,14 @@ public:
     }
 
 private:
+    [[nodiscard]] static constexpr UnderlyingT MakeMask_(const E _low, const E _high) noexcept
+    {
+        const UnderlyingT low  = AsUnderlying(_low);
+        const UnderlyingT high = AsUnderlying(_high);
+        JAM_ASSERT(low <= high, "Low value must be less than or equal to high value");
+        return ((UnderlyingT { 1 } << (high - low + 1)) - 1) << low;
+    }
+
     UnderlyingT m_value = UnderlyingT { 0 };
 };
 
@@ -274,21 +287,22 @@ template<IsBitMaskableEnum E>
     return ~Flags<E> { _value };
 }
 
-template<typename E>
-void WriteToArchive(ArchiveWriter& _writer, const Flags<E> _flags)
+template<IsBitMaskableEnum E>
+[[nodiscard]] constexpr Flags<E> operator|(const E _lhs, const Flags<E> _rhs) noexcept
 {
-    _writer.Write(_flags.GetValue());
+    return Flags<E> { _lhs } | _rhs;
 }
 
-template<typename E>
-Error ReadFromArchive(ArchiveReader& _reader, Flags<E>& _flags)
+template<IsBitMaskableEnum E>
+[[nodiscard]] constexpr Flags<E> operator&(const E _lhs, const Flags<E> _rhs) noexcept
 {
-    typename Flags<E>::UnderlyingT value = 0;
-    if (const Error err = _reader.Read(value))
-        return err;
+    return Flags<E> { _lhs } & _rhs;
+}
 
-    _flags = Flags<E>(value);
-    return Error::None;
+template<IsBitMaskableEnum E>
+[[nodiscard]] constexpr Flags<E> operator^(const E _lhs, const Flags<E> _rhs) noexcept
+{
+    return Flags<E> { _lhs } ^ _rhs;
 }
 
 }   // namespace Jam

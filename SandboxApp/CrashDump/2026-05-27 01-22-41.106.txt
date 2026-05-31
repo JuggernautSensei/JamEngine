@@ -1,0 +1,26 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-27 01:22:41.105
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\PostProcessManager.cpp
+function name: class Jam::Handle<struct Jam::Program> __cdecl PostProcessManager::GetOrLoadProgram_(enum PostProcessManager::eImageFilter)
+line: 311
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: psc.IsSucceeded()
+Pixel shader compilation failed: shader "Resources/ImageFilter/ConvolutionShader.hlsl" compilation failed: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ImageFilter\ConvolutionShader.hlsl(11,16-31): error X3129: warning treated as error
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ImageFilter\ConvolutionShader.hlsl(11,16-31): error X3556: integer divides may be much slower, try using uints if possible.
+
+====================================

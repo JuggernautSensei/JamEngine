@@ -1,0 +1,25 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-26 17:34:50.333
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: struct Jam::HardwareTextureRef __cdecl Jam::Graphics::CreateHardwareTexture_(int,int,int,enum Jam::eTextureFormat,bool,int,enum Jam::eTexture,class Jam::Flags<enum Jam::eTextureFlags>,class eastl::span<class Jam::BasicMemoryView<1> const ,-1>) const
+line: 3837
+column: 13
+------------------------------------
+user report: 
+HRESULT Failed! m_pd3d11Device->CreateTexture2D(&desc, nullptr, &texture.pTexture2D)
+HRESULT: 0x-7FF8FFA9 (매개 변수가 틀립니다.
+)
+====================================

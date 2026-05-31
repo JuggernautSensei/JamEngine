@@ -3,66 +3,115 @@
 #include "SandboxApp.h"
 
 #include "DebugNormalScene.h"
-#include "DeferedScene.h"
-#include "../JamEngine/CommandLineArgumentParser.h"
+#include "DeferredScene.h"
+#include "../JamEngine/CommandLineParser.h"
 
 #include "SimpleScene.h"
 #include "InstancingScene.h"
 #include "MultiVertexStreamScene.h"
 #include "PBRScene.h"
-#include "PostProcessManager.h"
+#include "ImageFilterManager.h"
 #include "ShadowMappingScene.h"
 #include "TextureMappingScene.h"
+#include "ComputeScene.h"
 
-class InstancingScene;
+#define SWITCH_CASE(_m)                 \
+    case HashOf(#_m):                   \
+        sm.LoadScene(MakeScoped<_m>()); \
+        bLoadSucceeded = true;          \
+        break;
 
 void SandboxApp::Init(
     const Int32 _argc,
     char**      _argv)
 {
-    CommandLineArgumentParser parser { _argc, _argv };
-    for (Int32 i = 0; i < parser.GetNumArguments(); ++i)
-    {
-        const StringView arg = parser.GetArgument(i);
-        JAM_LOG_INFO("Command line argument {}: '{}'", i, arg);
-    }
-
-    PostProcessManager::CreateInstance();
+    ImageFilterManager::CreateInstance();
 
     SetVsync(true);
     WindowsPlatform& win = GetWindowsPlatform();
     win.AdjustClientRect(100, 100, 1600, 900);
+    SceneManager& sm = GetSceneManager();
 
-#define CASE(_m)                          \
-    case String::Hashed32(#_m):           \
-        sMgr.LoadScene(MakeScoped<_m>()); \
-        break;
+    CommandLineParser    parser { _argc, _argv };
+    Optional<StringView> scene          = parser.GetString("--scene");
+    bool                 bLoadSucceeded = false;
 
-    SceneManager& sMgr = GetSceneManager();
-    if (parser.GetNumArguments() == 2)
+    if (scene)
     {
-        const StringView cmd = parser.GetArgument(1);
-        switch (cmd.Hash32())
+        switch (scene->Hash())
         {
-            CASE(SimpleScene)
-            CASE(InstancingScene)
-            CASE(MultiVertexStreamScene)
-            CASE(TextureMappingScene)
-            CASE(PBRScene)
-            CASE(DeferedScene)
-            CASE(DebugNormalScene)
-            CASE(ShadowMappingScene)
-
+            SWITCH_CASE(SimpleScene)
+            SWITCH_CASE(InstancingScene)
+            SWITCH_CASE(MultiVertexStreamScene)
+            SWITCH_CASE(TextureMappingScene)
+            SWITCH_CASE(PBRScene)
+            SWITCH_CASE(DeferredScene)
+            SWITCH_CASE(DebugNormalScene)
+            SWITCH_CASE(ShadowMappingScene)
+            SWITCH_CASE(ComputeScene)
             default:
-                JAM_ASSERT(0, "Unknown scene name '{}'.", cmd);
                 break;
         }
     }
 
-#undef CASE
+    if (!bLoadSucceeded)
+    {
+        JAM_LOG_ERROR("Failed to load scene. Command line argument '--scene' is either not provided or invalid");
+
+        Application& app = GetApp();
+        app.Quit();
+    }
 }
 
 void SandboxApp::Shutdown()
 {
-    PostProcessManager::DestroyInstance();
+    ImageFilterManager::DestroyInstance();
+}
+
+int main(
+    const int _argc,
+    char**    _argv)
+{
+    CommandLineParser    parser { _argc, _argv };
+    Flags<eAppInitFlags> flags = kDefaultAppInitFlags;
+
+    if (parser.HasFlag("--editor"))
+    {
+        flags |= eAppInitFlags::Subsystem_Editor;
+    }
+
+    if (parser.HasFlag("--allow-tearing"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_AllowTearing);
+    }
+
+    if (parser.HasFlag("--hdr10"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_BackBufferHDR10);
+    }
+    else if (parser.HasFlag("--hdr16"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_BackBufferHDR16);
+    }
+
+    if (parser.HasFlag("--msaa4"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_BackBufferMSAAx4);
+    }
+    else if (parser.HasFlag("--msaa8"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_BackBufferMSAAx8);
+    }
+    else if (parser.HasFlag("--msaa16"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_BackBufferMSAAx16);
+    }
+
+    if (parser.HasFlag("--graphics-debugger"))
+    {
+        flags.Enable(eAppInitFlags::Graphics_GraphicsDebugger);
+    }
+
+    SandboxApp app { "SandboxApp", flags };
+    return app.Run(_argc, _argv);
 }

@@ -2,7 +2,6 @@
 #include "DialogStack.h"
 
 #include "Dialog.h"
-#include "STLAlgorithm.h"
 
 namespace Jam
 {

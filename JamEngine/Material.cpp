@@ -95,7 +95,7 @@ Error Material::Save(
         const Ref<Texture>& pTexture = m_textures[type];
         if (pTexture && pTexture->IsValid())
         {
-            material.textures[UnderlyingFrom(type)] = Dto::Wrap(pTexture->GetPath());
+            material.textures[AsUnderlying(type)] = Dto::Wrap(pTexture->GetPath());
         }
     }
 
@@ -178,7 +178,7 @@ StringView Material::GetTypeName() const
     return kTypeName;
 }
 
-UInt32 Material::GetTypeHash() const
+UInt64 Material::GetTypeHash() const
 {
     return kTypeHash;
 }
@@ -239,7 +239,7 @@ Error Material::LoadFromFile_(
     // load texture
     for (eMaterialTexture type: RangesOf<eMaterialTexture>())
     {
-        const StringView path = Dto::Unwrap(materialOrNot->textures[UnderlyingFrom(type)]);
+        const StringView path = Dto::Unwrap(materialOrNot->textures[AsUnderlying(type)]);
         if (!path.IsEmpty())
         {
             AssetManager&        mgr      = GetAssetManager();
@@ -255,7 +255,7 @@ Error Material::LoadFromFile_(
 
     // finalize
     const StringView path = _path;
-    const UInt32     hash = path.Hash32();
+    const UInt64     hash = path.Hash();
     m_sortKey             = static_cast<UInt16>(hash);
     m_path                = _path;
     m_bValid              = true;

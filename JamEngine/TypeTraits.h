@@ -16,6 +16,6 @@ constexpr bool AnyOfV = (std::is_same_v<T, TArgs> || ...);
 
 template<typename TEnum>
     requires std::is_enum_v<TEnum>
-using UnderlyingT = __underlying_type(TEnum);
+using UnderlyingT = std::underlying_type_t<TEnum>;
 
 };   // namespace Jam

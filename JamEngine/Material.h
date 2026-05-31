@@ -79,14 +79,14 @@ public:
     [[nodiscard]] StringView GetPath() const override;
     [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
-    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] UInt64 GetTypeHash() const override;
     [[nodiscard]] UInt16     GetSortKey() const;
     [[nodiscard]] StringView GetName() const override;
     [[nodiscard]] StringView GetExtension() const override;
     [[nodiscard]] StringView GetFilter() const override;
 
     static constexpr StringView kTypeName  = NameOf<Material>();
-    static constexpr UInt32     kTypeHash  = HashOf<Material>();
+    static constexpr UInt64     kTypeHash  = HashOf<Material>();
     static constexpr eAsset     kAssetType = eAsset::Material;
     static constexpr StringView kExtension = ".jmat";
     static constexpr StringView kFilter    = "*.jmat";

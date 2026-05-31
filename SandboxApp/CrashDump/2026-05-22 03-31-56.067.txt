@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-22 03:31:56.065
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Graphics.cpp
+function name: void __cdecl Jam::Graphics::ClearRenderTarget(class Jam::Handle<struct Jam::FrameBuffer>,struct Jam::RGBA,int)
+line: 1625
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: _renderTargetIndex >= 0 && _renderTargetIndex < fb.numRenderTargets
+Render target m_index out of range.
+====================================

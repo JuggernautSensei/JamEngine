@@ -1,0 +1,23 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-16 01:05:04.781
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Error.h
+function name: struct Jam::Error::ErrorMessage __cdecl Jam::Error::GetErrorMessage_(void) const
+line: 112
+column: 17
+------------------------------------
+user report: 
+Unreachable code reached.
+====================================

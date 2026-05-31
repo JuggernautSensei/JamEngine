@@ -76,7 +76,7 @@ Error SVGImporter::Import_(
 
     const Int32  w  = _desc.width > 0 ? _desc.width : -1;
     const Int32  h  = _desc.height > 0 ? _desc.height : -1;
-    const UInt32 bg = _desc.backgroundColor.ToRGBA();
+    const UInt32 bg = _desc.backgroundColor.ToPackedRGBA();
     m_bitmap        = _doc->renderToBitmap(w, h, bg);
     if (m_bitmap.isNull())
     {

@@ -289,7 +289,7 @@ Expect<SizeT> FileReader::ReadBinary(
     const SizeT read   = static_cast<SizeT>(::fread(_dst.GetPtr(), 1, toRead, m_pFile));
     if (read < toRead && !IsEof())
     {
-        JAM_LOG_ERROR("Failed to read {} bytes from file, only {} bytes were read. {}", toRead, read, CreateWindowsErrorMessage(::ferror(m_pFile), eWindowsErrorCode::Errno));
+        JAM_LOG_ERROR("Failed to read {} bytes from file, only {} bytes were read. {}", toRead, read, MakeWindowsErrorMessage(::ferror(m_pFile), eWindowsErrorCode::Errno));
         return Error::ReadFailed;
     }
     return static_cast<SizeT>(read);

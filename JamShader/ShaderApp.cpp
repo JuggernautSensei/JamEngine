@@ -8,17 +8,16 @@
 #include "Events.h"
 #include "ExportProjectDialog.h"
 #include "../JamEngine/SVGImporter.h"
-#include "../JamEngine/CommandLineArgumentParser.h"
+#include "../JamEngine/CommandLineParser.h"
 #include "../JamEngine/MessageDialog.h"
 #include "../JamEngine/EditorWidgets.h"
 #include "../JamEngine/JsonArchive.h"
 
 ShaderApp::ShaderApp(
     const StringView           _appName,
-    const Flags<eAppCoreFlags> _subSystems)
+    const Flags<eAppInitFlags> _subSystems)
     : Application(_appName, _subSystems)
 {
-    ImTextStrToUtf8()
 }
 
 void ShaderApp::SetIcon(
@@ -66,7 +65,7 @@ void ShaderApp::SetProject(
     m_project = _pProject;
 
     ProjectChangedEvent event {};
-    GetApp().DispatchEvent(event);
+    app.DispatchEvent(event);
 }
 
 void ShaderApp::ReleaseProject()
@@ -76,7 +75,7 @@ void ShaderApp::ReleaseProject()
         m_project.Reset();
 
         ProjectChangedEvent event {};
-        GetApp().DispatchEvent(event);
+        app.DispatchEvent(event);
     }
 }
 
@@ -92,7 +91,7 @@ void ShaderApp::SetFocusingShaderItem(
 
     m_focusingShaderItemName = _name;
     FocusingShaderItemChangedEvent event {};
-    GetApp().DispatchEvent(event);
+    app.DispatchEvent(event);
 }
 
 void ShaderApp::ReleaseFocusingShaderItem()
@@ -185,7 +184,7 @@ Error ShaderApp::ReadFromArchive(
 
 void ShaderApp::Init(const Int32 _argc, char** _argv)
 {
-    CommandLineArgumentParser parser { _argc, _argv };
+    CommandLineParser parser { _argc, _argv };
     for (Int32 i = 0; i < parser.GetNumArguments(); ++i)
     {
         const StringView arg = parser.GetArgument(i);
@@ -244,7 +243,7 @@ void ShaderApp::Update(
 
 void ShaderApp::ImGuiRender()
 {
-    GetGraphics().ClearRenderTarget(kInvalidHandle, RGBA::kBlack);
+    gfx.ClearRenderTarget(kInvalidHandle, RGBA::kBlack);
 
     GlobalShortCut_();
     Panel_Dockspace_();
@@ -423,7 +422,7 @@ Ref<Texture> ShaderApp::LoadIconFromSVGSource_(
     JAM_ASSERT(importer, "Failed to load SVG icon from source: {}", importer.GetError().ToErrorMessage());
 
     const MemoryView    pixels[] = { importer->GetPixels() };
-    const TextureHandle texh     = GetGraphics().CreateTexture2D(importer->GetWidth(), importer->GetHeight(), eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::None, pixels);
+    const TextureHandle texh     = gfx.CreateTexture2D(importer->GetWidth(), importer->GetHeight(), eTextureFormat::RGBA8_UNorm, false, 1, eTextureFlags::None, pixels);
     return Texture::Load(texh);
 }
 

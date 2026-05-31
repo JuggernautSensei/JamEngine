@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-22 17:40:38.329
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderGraph.cpp
+function name: void __cdecl Jam::RenderGraph::InsertStorageBuffer(class Jam::BasicStringView<char>,class Jam::Handle<struct Jam::StorageBuffer>,bool)
+line: 1189
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: !m_storageBuffers.contains(_name)
+StorageBuffer 'T_ShadowMapAdvSATColCarry' already registered.
+====================================

@@ -12,7 +12,7 @@ enum class eSIPrefix
 };
 
 [[nodiscard]] StringView StringFrom(eSIPrefix _unit);
-[[nodiscard]] double     NsTo(Int64 _ns, eSIPrefix _unit);
+[[nodiscard]] double     NsToDouble(Int64 _ns, eSIPrefix _unit);
 [[nodiscard]] float      NsToFloat(Int64 _ns, eSIPrefix _unit);
 
 class Timer
@@ -50,6 +50,8 @@ public:
     [[nodiscard]] Int64  GetDeltaNs() const;
     [[nodiscard]] double GetDelta(eSIPrefix _unit) const;
     [[nodiscard]] float  GetDeltaFloat(eSIPrefix _unit) const;
+    [[nodiscard]] double GetFrequency() const;
+    [[nodiscard]] float  GetFrequencyFloat() const;
 
 private:
     Timer m_timer   = {};

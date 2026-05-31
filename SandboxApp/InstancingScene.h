@@ -1,5 +1,6 @@
 #pragma once
 #include "FlyingCamera.h"
+#include "../JamEngine/RenderGraph.h"
 
 class InstancingScene : public Scene
 {
@@ -21,14 +22,14 @@ public:
 private:
     void OnResize(Int32 _width, Int32 _height) override;
 
-    ProgramHandle m_ph     = kInvalidHandle;
-    ProgramHandle m_instPh = kInvalidHandle;
+    void InitMeshes_();
+    void InitRenderGraph_();
+    void Submit_();
+
+    RenderGraph m_graph = {};
 
     ConstantBufferHandle m_entityNoInstancingCbh = kInvalidHandle;
     ConstantBufferHandle m_cmrCbh                = kInvalidHandle;
-
-    FrameBufferHandle m_fbh    = {};
-    TextureHandle     m_colorTexh = {};   // not owned
 
     VertexBufferHandle m_vbh = kInvalidHandle;
     IndexBufferHandle  m_ibh = kInvalidHandle;

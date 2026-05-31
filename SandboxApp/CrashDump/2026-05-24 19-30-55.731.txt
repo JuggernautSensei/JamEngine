@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-05-24 19:30:55.729
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderGraph.cpp
+function name: void __cdecl Jam::RenderGraph::CompileIfNeed_(int,int)
+line: 349
+column: 17
+------------------------------------
+user report: 
+Assertion failed! Condition: it == used.end() || it->second == eResourceAccessEx::Write
+Pass 'Pass_OmniShadowCaster' binds resource 'T_ShadowMapCubeAdv_Color' multiple times with different access types.
+====================================

@@ -9,6 +9,7 @@ public:
     [[nodiscard]] float GetAverage() const;
     [[nodiscard]] Int32 GetSampleCount() const;
     [[nodiscard]] Int32 GetOffset() const;
+    void                Reset();
 
     constexpr static Int32 kMaxSampleCount = 100;
 

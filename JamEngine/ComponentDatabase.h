@@ -14,9 +14,9 @@ namespace Details
     }
 
     template<typename T>
-    void CreateComponentDefered(Entity _entity)
+    void CreateComponentDeferred(Entity _entity)
     {
-        _entity.CreateComponentDefered<T>();
+        _entity.CreateComponentDeferred<T>();
     }
 
     template<typename T>
@@ -27,42 +27,42 @@ namespace Details
     }
 
     template<typename T>
-    void CreateComponentByCopyDefered(Entity _entity, const void* _pCmp)
+    void CreateComponentByCopyDeferred(Entity _entity, const void* _pCmp)
     {
         const T& cmp = *static_cast<const T*>(_pCmp);
-        _entity.CreateComponentDefered<T>(cmp);
+        _entity.CreateComponentDeferred<T>(cmp);
     }
 
     template<typename T>
     void RemoveComponent(Entity _entity)
     {
-        _entity.RemoveComponent<T>();
+        _entity.RemoveComponents<T>();
     }
 
     template<typename T>
-    void RemoveComponentDefered(Entity _entity)
+    void RemoveComponentDeferred(Entity _entity)
     {
-        _entity.RemoveComponentDefered<T>();
+        _entity.RemoveComponentsDeferred<T>();
     }
 
     template<typename T>
     void* Get(Entity _entity)
     {
 
-        if constexpr (std::is_void_v<decltype(std::declval<Entity>().GetComponent<T>())>)
+        if constexpr (std::is_void_v<decltype(std::declval<Entity>().GetComponents<T>())>)
         {
             return nullptr;
         }
         else
         {
-            return static_cast<void*>(&_entity.GetComponent<T>());
+            return static_cast<void*>(&_entity.GetComponents<T>());
         }
     }
 
     template<typename T>
     bool Has(const Entity _entity)
     {
-        return _entity.HasComponent<T>();
+        return _entity.HaveComponents<T>();
     }
 
     template<typename T>
@@ -98,20 +98,20 @@ struct ComponentReflectionData
 {
     StringView typeName          = {};
     StringView editorDisplayName = {};
-    UInt32     typeHash          = 0;
+    UInt64     typeHash          = 0;
     UInt32     enttHash          = 0;
 
-    Delegate<void(Entity)>                                      Create              = nullptr;
-    Delegate<void(Entity)>                                      CreateDefered       = nullptr;
-    Delegate<void(Entity, const void*)>                         CreateByCopy        = nullptr;
-    Delegate<void(Entity, const void*)>                         CreateByCopyDefered = nullptr;
-    Delegate<void(Entity)>                                      Remove              = nullptr;
-    Delegate<void(Entity)>                                      RemoveDefered       = nullptr;
-    Delegate<void*(Entity)>                                     Get                 = nullptr;
-    Delegate<bool(Entity)>                                      Has                 = nullptr;
-    Delegate<void(const void*, ArchiveWriter&, Scene*, Entity)> Serialize           = nullptr;
-    Delegate<void(void*, ArchiveReader&, Scene*, Entity)>       Deserialize         = nullptr;
-    Delegate<void(void*, Scene*, Entity)>                       DrawEditPanel       = nullptr;
+    Delegate<void(Entity)>                                      Create               = nullptr;
+    Delegate<void(Entity)>                                      CreateDeferred       = nullptr;
+    Delegate<void(Entity, const void*)>                         CreateByCopy         = nullptr;
+    Delegate<void(Entity, const void*)>                         CreateByCopyDeferred = nullptr;
+    Delegate<void(Entity)>                                      Remove               = nullptr;
+    Delegate<void(Entity)>                                      RemoveDeferred       = nullptr;
+    Delegate<void*(Entity)>                                     Get                  = nullptr;
+    Delegate<bool(Entity)>                                      Has                  = nullptr;
+    Delegate<void(const void*, ArchiveWriter&, Scene*, Entity)> Serialize            = nullptr;
+    Delegate<void(void*, ArchiveReader&, Scene*, Entity)>       Deserialize          = nullptr;
+    Delegate<void(void*, Scene*, Entity)>                       DrawEditPanel        = nullptr;
 
     bool bNonRemoveable      = false;
     bool bNonCreatableByUser = false;
@@ -125,16 +125,16 @@ public:
     template<typename T>
     void Reflect()
     {
-        JAM_STATIC_ASSERT_COMPONENT_PROPERTY_VALIDATION_CHECKS(T);
+        JAM_STATIC_ASSERT_CHECK_COMPONENT_PROPERTY_VALIDATIONS(T);
 
         ComponentReflectionData data = {};
         data.typeName                = NameOf<T>();
         data.typeHash                = HashOf<T>();
         data.editorDisplayName       = NameOf<T>();
         data.Create                  = Bind<Details::CreateComponent<T>>();
-        data.CreateDefered           = Bind<Details::CreateComponentDefered<T>>();
+        data.CreateDeferred          = Bind<Details::CreateComponentDeferred<T>>();
         data.CreateByCopy            = Bind<Details::CreateComponentByCopy<T>>();
-        data.CreateByCopyDefered     = Bind<Details::CreateComponentByCopyDefered<T>>();
+        data.CreateByCopyDeferred    = Bind<Details::CreateComponentByCopyDeferred<T>>();
         data.Get                     = Bind<Details::Get<T>>();
         data.Has                     = Bind<Details::Has<T>>();
         data.bNonRemoveable          = HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>;
@@ -142,8 +142,8 @@ public:
 
         if constexpr (!HasComponentPropertyFlag<T, eComponentPropertyFlags::NonRemoveable>)
         {
-            data.Remove        = Bind<Details::RemoveComponent<T>>();
-            data.RemoveDefered = Bind<Details::RemoveComponentDefered<T>>();
+            data.Remove         = Bind<Details::RemoveComponent<T>>();
+            data.RemoveDeferred = Bind<Details::RemoveComponentDeferred<T>>();
         }
 
         if constexpr (HasComponentPropertyFlag<T, eComponentPropertyFlags::Editable>)
@@ -157,13 +157,17 @@ public:
             data.Deserialize = Bind<Details::Deserialize<T>>();
         }
 
-        if constexpr (HasComponentMetadataEditorDisplayName<T>)
+        if constexpr (HasComponentEditorDisplayName<T>)
         {
-            data.editorDisplayName = GetComponentMetadataEditorDisplayName<T>();
+            data.editorDisplayName = GetComponentEditorDisplayName<T>();
+        }
+        else
+        {
+            data.editorDisplayName = NameOf<T>();   // fallback
         }
 
-        const UInt32 typeHash = data.typeHash;
-        JAM_ASSERT(data.typeName.Hash32() == typeHash, "Type typeName hash does not match type hash for component '{}'", data.typeName);
+        const UInt64 typeHash = data.typeHash;
+        JAM_ASSERT(data.typeName.Hash() == typeHash, "Type typeName hash does not match type hash for component '{}'", data.typeName);
         JAM_ASSERT(!m_componentRflData.contains(typeHash), "Component with typeName '{}' is already registered", data.typeName);
         m_componentRflData.emplace(typeHash, data);
 
@@ -173,20 +177,20 @@ public:
     }
 
     [[nodiscard]] bool IsComponentReflected(StringView _typeName) const;
-    [[nodiscard]] bool IsComponentReflected(UInt32 _typeHash) const;
+    [[nodiscard]] bool IsComponentReflected(UInt64 _typeHash) const;
     [[nodiscard]] bool IsComponentReflectedByEnttHash(UInt32 _enttHash) const;
 
     [[nodiscard]] const ComponentReflectionData& GetComponentReflectionByEnttHash(UInt32 _enttHash) const;
-    [[nodiscard]] const ComponentReflectionData& GetComponentReflection(UInt32 _typeHash) const;
+    [[nodiscard]] const ComponentReflectionData& GetComponentReflection(UInt64 _typeHash) const;
     [[nodiscard]] const ComponentReflectionData& GetComponentReflection(StringView _typeName) const;
 
-    [[nodiscard]] const CASHashMap<UInt32, ComponentReflectionData>& GetComponentReflectionContainer() const;
+    [[nodiscard]] const CASHashMap<UInt64, ComponentReflectionData>& GetComponentReflectionContainer() const;
 
 private:
     static void DestroyInstance();
 
-    CASHashMap<UInt32, ComponentReflectionData> m_componentRflData   = {};
-    CASHashMap<UInt32, UInt32>                  m_enttHashToTypeHash = {};   // only supported for components
+    CASHashMap<UInt64, ComponentReflectionData> m_componentRflData   = {};
+    CASHashMap<UInt32, UInt64>                  m_enttHashToTypeHash = {};   // only supported for components
 
     inline static ComponentDatabase* s_pInstance = nullptr;
     friend class Application;
@@ -219,4 +223,4 @@ private:                                                                        
     inline static Jam::Details::ComponentReflector<TCmp> JAM_COMPONENT_REFLECTED = {}; \
                                                                                        \
 public:                                                                                \
-    JAM_COMPONENT_METADATA_ESSENTIAL_MARKER()
+    JAM_COMPONENT_ESSENTIAL_MARKER()

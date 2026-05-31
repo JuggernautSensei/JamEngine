@@ -2,7 +2,6 @@
 
 #include "Dialog.h"
 #include "EditorUtilities.h"
-#include "StackString.h"
 
 namespace Jam
 {

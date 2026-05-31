@@ -2,57 +2,93 @@
 #include "MultiVertexStreamScene.h"
 
 #include "Gui.h"
-#include "../JamEngine/AssimpImporter.h"
+#include "ImageFilterManager.h"
+#include "RenderStates.h"
+#include "Utils.h"
+
+#define SCENE_PATH(_filepath) "Resources/MultiVertexStreamScene/" _filepath
 
 namespace
 {
 
-struct CBMultiVertexStreamSceneEntity
+struct CBEntity
 {
     static constexpr Int32 kSlot = 0;
 
-    Mtx4 world = Mtx4::kIdentity;
+    Mtx4 world;
 };
 
-struct CBMultiVertexStreamSceneCamera
+struct CBCamera
 {
     static constexpr Int32 kSlot = 1;
 
-    Vec3  eyePos   = Vec3::kZero;
-    float padding  = 0.f;
-    Mtx4  viewProj = Mtx4::kIdentity;
+    Vec3  eyePos;
+    float padding;
+    Mtx4  viewProj;
 };
 
 }   // namespace
 
 MultiVertexStreamScene::MultiVertexStreamScene()
 {
+    InitMeshes_();
+    InitRenderGraph_();
+
+    m_camera.transform.SetTranslationZ(-25.f);
+}
+
+MultiVertexStreamScene::~MultiVertexStreamScene()
+{
+    JAM_DESTROY_VERTEX_BUFFER(m_posVbh);
+    JAM_DESTROY_VERTEX_BUFFER(m_colorVbh);
+    JAM_DESTROY_INDEX_BUFFER(m_ibh);
+}
+
+void MultiVertexStreamScene::OnUpdate(
+    const float _deltaTime)
+{
+    m_camera.Update(_deltaTime);
+
+    if (m_bAnimate)
+    {
+        m_rot += m_dRot * _deltaTime;
+    }
+}
+
+void MultiVertexStreamScene::OnRender(
+    const RenderView& _view)
+{
     Graphics& gfx = GetGraphics();
 
-    ShaderLoadInfo vsInfo = {};
-    vsInfo.entryPoint         = "VSMain";
-    vsInfo.stage              = eShader::VertexShader;
-    const ShaderCompiler vsc  = ShaderCompiler::CompileHLSLFile("Resources/MultiVertexStreamScene/MultiVertexStreamSceneShader.hlsl", vsInfo);
-    JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
-    const ShaderHandle vsh = gfx.CreateShader(vsc.GetBytecode());
+    CBCamera camera;
+    camera.eyePos   = m_camera.GetEyePos();
+    camera.viewProj = m_camera.CalcViewProj().Transpose();
+    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(camera));
 
-    ShaderLoadInfo psInfo = {};
-    psInfo.entryPoint         = "PSMain";
-    psInfo.stage              = eShader::PixelShader;
-    const ShaderCompiler psc  = ShaderCompiler::CompileHLSLFile("Resources/MultiVertexStreamScene/MultiVertexStreamSceneShader.hlsl", psInfo);
-    JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
-    const ShaderHandle psh = gfx.CreateShader(psc.GetBytecode());
+    m_graph.Execute(_view.fbh, _view.vp);
+}
 
-    m_ph = gfx.CreateProgram(vsh, psh, true);
-
-    m_entityCbh = gfx.CreateConstantBuffer(sizeof(CBMultiVertexStreamSceneEntity));
-    m_cmrCbh    = gfx.CreateConstantBuffer(sizeof(CBMultiVertexStreamSceneCamera));
-
-    struct Vertex
+void MultiVertexStreamScene::OnImGuiRender()
+{
+    if (!BeginSceneDemoWindow("MultiVertexStreamScene"))
     {
-        Vec3 point;
-        RGBA rgba;
-    };
+        ImGui::End();
+        return;
+    }
+
+    ImGui::End();
+}
+
+void MultiVertexStreamScene::OnResize(
+    const Int32 _width,
+    const Int32 _height)
+{
+    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+}
+
+void MultiVertexStreamScene::InitMeshes_()
+{
+    Graphics& gfx = GetGraphics();
 
     Vec3 positions[] = {
         { -0.5f, -0.5f, -0.5f },
@@ -87,70 +123,65 @@ MultiVertexStreamScene::MultiVertexStreamScene()
     m_posVbh   = gfx.CreateVertexBuffer(positions, posLayout);
     m_colorVbh = gfx.CreateVertexBuffer(colors, colorLayout);
     m_ibh      = gfx.CreateIndexBuffer(idxes);
-
-    // camera setting
-    m_camera.trans.SetTranslationZ(-25.f);
 }
 
-MultiVertexStreamScene::~MultiVertexStreamScene()
+void MultiVertexStreamScene::InitRenderGraph_()
 {
-    JAM_DESTROY_PROGRAM(m_ph);
-    JAM_DESTROY_VERTEX_BUFFER(m_posVbh);
-    JAM_DESTROY_VERTEX_BUFFER(m_colorVbh);
-    JAM_DESTROY_INDEX_BUFFER(m_ibh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_entityCbh);
-    JAM_DESTROY_CONSTANT_BUFFER(m_cmrCbh);
-    JAM_DESTROY_FRAME_BUFFER(m_fbh);
+    m_graph.EmplaceTexture2D("T_SceneColor", 1.f, eTextureFormat::RGBA8_UNorm, false, 1, eTextureFlags::RenderTarget);
+    m_graph.EmplaceTexture2D("T_SceneDepth", 1.f, eTextureFormat::D32_Float, false, 1, eTextureFlags::DepthStencil);
+
+    AttachmentRG attachments[2] = {};
+    attachments[0].name         = "T_SceneColor";
+    attachments[1].name         = "T_SceneDepth";
+    m_graph.EmplaceFrameBuffer("FB_Scene", attachments);
+
+    m_graph.EmplaceConstantBuffer("CB_Entity", sizeof(CBEntity));
+    m_graph.EmplaceConstantBuffer("CB_Camera", sizeof(CBCamera));
+
+    m_entityCbh = m_graph.GetConstantBuffer("CB_Entity");
+    m_cmrCbh    = m_graph.GetConstantBuffer("CB_Camera");
+
+    LoadProgram(m_graph, "P_Main", SCENE_PATH("MultiVertexStreamShader.hlsl"));
+
+    m_graph.AddRenderPass("Pass_Main")
+        .SetFrameBuffer("FB_Scene")
+        .SetProgram("P_Main")
+        .SetRenderTargetClearCommand(RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f), 0)
+        .SetDepthClearCommand(1.f)
+        .SetRenderFlags(kBackCullDepthTest)
+        .SetBlendFlags(kOpaqueBlend, 0)
+        .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBCamera::kSlot)
+        .SetConstantBuffer("CB_Entity", eShader::PixelShader, CBEntity::kSlot)
+        .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBCamera::kSlot)
+        .SetExecutor(Bind<&MultiVertexStreamScene::Submit_>(this));
+
+    ImageFilterManager& ifm      = GetImageFilterManager();
+    ImageFilterDesc     blitDesc = {};
+    blitDesc.filter              = eImageFilter::Blit;
+    blitDesc.output              = eImageFilterOutput::Final;
+    blitDesc.input0Texture   = "T_SceneColor";
+    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
 }
 
-void MultiVertexStreamScene::OnUpdate(
-    const float _deltaTime)
+void MultiVertexStreamScene::Submit_() const
 {
-    m_camera.Update(_deltaTime);
+    constexpr Int32 kNumEntitiesPerRow = 11;
 
-    if (m_bAnimate)
-    {
-        m_rot += m_dRot * _deltaTime;
-    }
-}
-
-void MultiVertexStreamScene::OnRender(
-    const RenderView& _view)
-{
     Graphics& gfx = GetGraphics();
-    gfx.SetFrameBuffer(m_fbh);
-    gfx.ClearRenderTarget(m_fbh, RGBA::FromLinear(0.2f, 0.2f, 0.2f, 1.f));
-    gfx.ClearDepthStencil(m_fbh, true, false, 1, 0);
-    gfx.SetViewport(_view.vp);
-    gfx.SetRenderFlags(eRenderFlags::DepthFunc_Less | eRenderFlags::DepthWrite | eRenderFlags::CullMode_Back);
-    gfx.SetBlendFlags(eBlendFlags::None | eBlendFlags::WriteMask_All, 0);
 
-    // camera
-    CBMultiVertexStreamSceneCamera cbCamera = {};
-    cbCamera.eyePos                         = m_camera.GetEyePos();
-    cbCamera.viewProj                       = m_camera.CalcViewProj().Transpose();
-    gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::VertexShader, CBMultiVertexStreamSceneCamera::kSlot);
-    gfx.SetConstantBuffer(m_cmrCbh, eShader::PixelShader, CBMultiVertexStreamSceneCamera::kSlot);
-
-    // entity
-    gfx.SetProgram(m_ph);
-    gfx.SetConstantBuffer(m_entityCbh, eShader::VertexShader, CBMultiVertexStreamSceneEntity::kSlot);
-    gfx.SetConstantBuffer(m_entityCbh, eShader::PixelShader, CBMultiVertexStreamSceneEntity::kSlot);
-
-    VertexStream binginds[] = {
+    VertexStream bindings[] = {
         {   m_posVbh, 0 },
         { m_colorVbh, 0 }
     };
-    gfx.SetVertexBuffers(binginds);
+
+    gfx.SetVertexBuffers(bindings);
     gfx.SetIndexBuffer(m_ibh);
 
-    constexpr Int32 kNumEntitiesPerRow = 11;
-
-    CBMultiVertexStreamSceneEntity cbEntity = {};
-    for (Int32 i = 0; i < 11; ++i)
+    CBEntity entity;
+    for (Int32 i = 0; i < kNumEntitiesPerRow; ++i)
     {
-        for (Int32 j = 0; j < 11; ++j)
+        for (Int32 j = 0; j < kNumEntitiesPerRow; ++j)
         {
             const float t = static_cast<float>(i) * 15.f;
 
@@ -162,49 +193,10 @@ void MultiVertexStreamScene::OnRender(
             trans.x    = 1.5f * static_cast<float>(j - kNumEntitiesPerRow / 2);
             trans.y    = 1.5f * static_cast<float>(i - kNumEntitiesPerRow / 2);
 
-            cbEntity.world = Mtx4::CreateSRT(Vec3::kOne, euler, trans).Transpose();
-            gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cbEntity));
+            entity.world = Mtx4::MakeSRT(Vec3::kOne, euler, trans).Transpose();
+            gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
 
             gfx.Submit();
         }
     }
-
-    // blit scene framebuffer texture to output framebuffer texture
-    // output framebuffer maybe do not have depth texture.
-    // so. draw on screen-off framebuffer and blit the color texture to output framebuffer.
-    // in real case. use post-process pass to do this.
-    const Attachment attachment = gfx.GetFrameBufferAttachment(_view.fbh, 0);
-    gfx.CopyTexture(attachment.texh, 0, 0, 0, 0, 0, m_colorTexh, 0, 0, 0, 0, 0, 0, 0, 0);
-}
-
-void MultiVertexStreamScene::OnImGuiRender()
-{
-    if (!BeginSceneInspectorWindows("MultiVertexStreamScene"))
-    {
-        ImGui::End();
-        return;
-    }
-
-    ImGui::End();
-}
-
-void MultiVertexStreamScene::OnResize(
-    const Int32 _width,
-    const Int32 _height)
-{
-    JAM_DESTROY_FRAME_BUFFER(m_fbh);
-
-    Graphics& gfx = GetGraphics();
-
-    const TextureHandle depthTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::D32_Float, false, 1, eTextureCreateFlags::DepthStencilAttachment);
-    const TextureHandle colorTexh = gfx.CreateTexture2D(_width, _height, eTextureFormat::RGBA8_UNorm, false, 1, eTextureCreateFlags::RenderTargetAttachment);
-
-    Attachment attachment[2];
-    attachment[0].texh = colorTexh;
-    attachment[1].texh = depthTexh;
-
-    m_fbh       = gfx.CreateFrameBuffer(attachment, true);
-    m_colorTexh = colorTexh;
-
-    m_camera.cmr.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 }

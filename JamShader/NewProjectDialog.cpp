@@ -67,7 +67,7 @@ bool NewProjectDialog::OnClickCreateButton_() const
 
     // create working directory
     String workingDir = String::Joined(m_dir, m_name, eJoin::Directory);
-    if (!GUI::MakeDirectory(workingDir, FileSystem::eMakeDirectoryCollisionPolicy::Fail))
+    if (!GUI::MakeDirectory(workingDir, FileSystem::eMkdirCollisionPolicy::Fail))
     {
         return false;
     }

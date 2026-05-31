@@ -31,7 +31,7 @@ public:
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
-    [[nodiscard]] UInt32     GetTypeHash() const override;
+    [[nodiscard]] UInt64 GetTypeHash() const override;
     [[nodiscard]] StringView GetPath() const override;
     [[nodiscard]] StringView GetName() const override;
     [[nodiscard]] StringView GetExtension() const override;
@@ -49,7 +49,7 @@ public:
     [[nodiscard]] const Vector<Ref<Material>>& GetMaterials() const;
 
     static constexpr StringView kTypeName  = NameOf<Model>();
-    static constexpr UInt32     kTypeHash  = HashOf<Model>();
+    static constexpr UInt64     kTypeHash  = HashOf<Model>();
     static constexpr eAsset     kAssetType = eAsset::Model;
     static constexpr StringView kExtension = ".jmdl";
     static constexpr StringView kFilter    = "*.jmdl";

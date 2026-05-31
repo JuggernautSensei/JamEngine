@@ -105,40 +105,40 @@ void FileBrowserWindow::OnFileWatcher_(
     {
         case eFileEvent::Added:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
+            app.SubmitCommandToMainThread(Bind(
                 [path = String(_event.path)] {
                     FileAddedEvent event { path };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;
 
         case eFileEvent::Deleted:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
+            app.SubmitCommandToMainThread(Bind(
                 [path = String(_event.path)] {
                     FileDeletedEvent event { path };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;
 
         case eFileEvent::Renamed:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
+            app.SubmitCommandToMainThread(Bind(
                 [oldPath = String(_event.oldPath), newPath = String(_event.path)] {
                     FileRenamedEvent event { oldPath, newPath };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;
 
         case eFileEvent::Modified:
         {
-            GetApp().SubmitCommandToMainThread(Bind(
+            app.SubmitCommandToMainThread(Bind(
                 [path = String(_event.path)] {
                     FileModifiedEvent event { path };
-                    GetApp().DispatchEvent(event);
+                    app.DispatchEvent(event);
                 }));
         }
         break;
@@ -280,7 +280,7 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
             {
                 const StringView srcPath = ResolvePathDragDropPayload(pPayload);
                 const String     dstPath = String::Joined(_pItem->path, srcPath.GetFileName(), bIsDir ? eJoin::Directory : eJoin::File);
-                GUI::Rename(srcPath, dstPath, FileSystem::eCollisionPolicy::Fail);
+                GUI::Rename(srcPath, dstPath, FileSystem::eFileCollisionPolicy::Fail);
             }
         }
 
@@ -318,7 +318,7 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
 
             if (ImGui::MenuItem("clone"))
             {
-                GUI::Copy(_pItem->path, _pItem->path, FileSystem::eCollisionPolicy::Rename);
+                GUI::Copy(_pItem->path, _pItem->path, FileSystem::eFileCollisionPolicy::Rename);
             }
 
             if (ImGui::MenuItem("delete"))
@@ -338,7 +338,7 @@ void FileBrowserWindow::Widget_FileItem_Recursive_(
             if (ImGui::MenuItem("create new directory"))
             {
                 const String path = String::Joined(_pItem->path, "new directory/");
-                GUI::MakeDirectory(path, FileSystem::eMakeDirectoryCollisionPolicy::Rename);
+                GUI::MakeDirectory(path, FileSystem::eMkdirCollisionPolicy::Rename);
             }
         }
 

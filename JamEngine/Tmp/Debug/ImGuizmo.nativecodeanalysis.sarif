@@ -1,0 +1,2136 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBoundsBestAxis' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBoundsBestAxis"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mViewProjection' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mViewProjection"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mModelSourceInverse' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mModelSourceInverse"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mScreenFactor' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mScreenFactor"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mAxisFactor' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mAxisFactor"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mMVPLocal' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mMVPLocal"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mRadiusSquareCenter' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mRadiusSquareCenter"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBoundsLocalPivot' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBoundsLocalPivot"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mMode' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mMode"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mTranslationPlanOrigin' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mTranslationPlanOrigin"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mModelSource' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mModelSource"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mScaleValueOrigin' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mScaleValueOrigin"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mRayOrigin' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mRayOrigin"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mProjectionMat' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mProjectionMat"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mRelativeOrigin' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mRelativeOrigin"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mTranslationLastDelta' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mTranslationLastDelta"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mSaveMousePosx' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mSaveMousePosx"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mModelInverse' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mModelInverse"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBoundsAxis' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBoundsAxis"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mbMouseOver' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mbMouseOver"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mRotationVectorSource' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mRotationVectorSource"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mCameraUp' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mCameraUp"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mRayVector' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mRayVector"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBelowAxisLimit' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBelowAxisLimit"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mScale' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mScale"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mRotationAngleOrigin' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mRotationAngleOrigin"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mCurrentOperation' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mCurrentOperation"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mScaleLast' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mScaleLast"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mCameraRight' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mCameraRight"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBelowPlaneLimit' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBelowPlaneLimit"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBoundsPivot' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBoundsPivot"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mViewMat' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mViewMat"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mModel' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mModel"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBoundsMatrix' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBoundsMatrix"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mMVP' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mMVP"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mMatrixOrigin' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mMatrixOrigin"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBoundsAnchor' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBoundsAnchor"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mModelLocal' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mModelLocal"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mReversed' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mReversed"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mTranslationPlan' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mTranslationPlan"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mBoundsPlan' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mBoundsPlan"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mCameraEye' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mCameraEye"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mRotationAngle' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mRotationAngle"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mModelScaleOrigin' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mModelScaleOrigin"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mCameraDir' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mCameraDir"
+          }
+        },
+        {
+          "ruleId": "C26495",
+          "message": {
+            "text": "'ImGuizmo::Context::mDrawList' 변수가 초기화되지 않았습니다. 항상 멤버 변수를 초기화하세요(type.6)."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 756,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::Context::{ctor}",
+                  "decoratedName": "??0Context@ImGuizmo@@QEAA@XZ",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "targetSymbol": "ImGuizmo::Context::mDrawList"
+          }
+        },
+        {
+          "ruleId": "C6255",
+          "message": {
+            "text": "‘_alloca’는 스택 오버플로 예외를 발생시켜 실패를 나타냅니다."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 1402,
+                  "startColumn": 38,
+                  "endLine": 1402,
+                  "endColumn": 100
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::DrawRotationGizmo",
+                  "decoratedName": "?DrawRotationGizmo@ImGuizmo@@YAXW4OPERATION@1@H@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C6263",
+          "message": {
+            "text": "루프에서 ‘_alloca’를 사용 중입니다."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 1402,
+                  "startColumn": 38,
+                  "endLine": 1402,
+                  "endColumn": 100
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::DrawRotationGizmo",
+                  "decoratedName": "?DrawRotationGizmo@ImGuizmo@@YAXW4OPERATION@1@H@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1386,
+                            "startColumn": 5
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C6001",
+          "message": {
+            "text": "초기화되지 않은 메모리 'axesWorldDirections'을(를) 사용하고 있습니다."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 1816,
+                  "startColumn": 34
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::HandleAndDrawLocalBounds",
+                  "decoratedName": "?HandleAndDrawLocalBounds@ImGuizmo@@YA_NPEBMPEAUmatrix_t@1@0W4OPERATION@1@@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1748,
+                            "startColumn": 17
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1749,
+                            "startColumn": 17
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1751,
+                            "startColumn": 10
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1754,
+                            "startColumn": 18
+                          }
+                        },
+                        "message": {
+                          "text": "'axesWorldDirections'이(가) 초기화되지 않았습니다."
+                        }
+                      },
+                      "kinds": [
+                        "declaration"
+                      ],
+                      "importance": "essential"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1755,
+                            "startColumn": 18
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1756,
+                            "startColumn": 18
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1757,
+                            "startColumn": 18
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1758,
+                            "startColumn": 26
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1759,
+                            "startColumn": 9
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1760,
+                            "startColumn": 9
+                          }
+                        },
+                        "message": {
+                          "text": "이 분기 건너뛰기, ('!gContext.mbUsingBounds'이(가) false라고 가정)"
+                        }
+                      },
+                      "kinds": [
+                        "branch"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1787,
+                            "startColumn": 17
+                          }
+                        },
+                        "message": {
+                          "text": "이 분기 건너뛰기, ('numAxes==0'이(가) false라고 가정)"
+                        }
+                      },
+                      "kinds": [
+                        "branch"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1794,
+                            "startColumn": 23
+                          }
+                        },
+                        "message": {
+                          "text": "이 분기 건너뛰기, ('bestAxis!=axes[0]'이(가) false라고 가정)"
+                        }
+                      },
+                      "kinds": [
+                        "branch"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1813,
+                            "startColumn": 23
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1813,
+                            "startColumn": 48
+                          }
+                        },
+                        "message": {
+                          "text": "이 루프 시작, ('axisIndex<numAxes' 가정)"
+                        }
+                      },
+                      "kinds": [
+                        "branch"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1815,
+                            "startColumn": 32
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1816,
+                            "startColumn": 32
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1819,
+                            "startColumn": 15
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1821,
+                            "startColumn": 13
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1822,
+                            "startColumn": 13
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1824,
+                            "startColumn": 18
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 1816,
+                            "startColumn": 34
+                          }
+                        },
+                        "message": {
+                          "text": "'axesWorldDirections'이(가) 사용되는데 초기화되지 않았을 수 있습니다."
+                        }
+                      },
+                      "kinds": [
+                        "usage"
+                      ],
+                      "importance": "essential"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ruleId": "C6001",
+          "message": {
+            "text": "초기화되지 않은 메모리 'rot'을(를) 사용하고 있습니다."
+          },
+          "analysisTarget": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                },
+                "region": {
+                  "startLine": 2613,
+                  "startColumn": 9
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "ImGuizmo::RecomposeMatrixFromComponents",
+                  "decoratedName": "?RecomposeMatrixFromComponents@ImGuizmo@@YAXPEBM00PEAM@Z",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 2608,
+                            "startColumn": 15
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 2610,
+                            "startColumn": 14
+                          }
+                        },
+                        "message": {
+                          "text": "'rot'이(가) 초기화되지 않았습니다."
+                        }
+                      },
+                      "kinds": [
+                        "declaration"
+                      ],
+                      "importance": "essential"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 2611,
+                            "startColumn": 14
+                          }
+                        }
+                      },
+                      "importance": "unimportant"
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 2611,
+                            "startColumn": 23
+                          }
+                        },
+                        "message": {
+                          "text": "이 루프 시작, ('i<3' 가정)"
+                        }
+                      },
+                      "kinds": [
+                        "branch"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 2613,
+                            "startColumn": 28
+                          }
+                        },
+                        "message": {
+                          "text": "'rot'은(는) 'ImGuizmo::matrix_t::RotationAxis'(줄 484에서 선언됨)의 출력입니다."
+                        }
+                      },
+                      "kinds": [
+                        "declaration"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "file:///C:/Users/Ahnjiwoo/Desktop/JamEngine/JamEngine/JamEngine/Vendor/ImGuizmo/ImGuizmo.cpp"
+                          },
+                          "region": {
+                            "startLine": 2613,
+                            "startColumn": 9
+                          }
+                        },
+                        "message": {
+                          "text": "'rot'이(가) 사용되는데 초기화되지 않았을 수 있습니다."
+                        }
+                      },
+                      "kinds": [
+                        "usage"
+                      ],
+                      "importance": "essential"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "MSVC Code Analysis",
+          "version": "14.50.35730.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.cpp"
+          },
+          "roles": [
+            "analysisTarget",
+            "resultFile"
+          ],
+          "hashes": {
+            "sha-256": "55e32afc1e8bf8cc682d777d5f05165d13b86c4e4fb81c176e928608e5afe0cf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imgui/imgui.h"
+          },
+          "hashes": {
+            "sha-256": "521cbff078114dcf94c2d7268e0db4de647e1ebf02f79726d866a646a8140e28"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imgui/imconfig.h"
+          },
+          "hashes": {
+            "sha-256": "d0709b1a2417b0076f21f4ece502c1c32e81a948ae301a5c6c78e2482f519b40"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imgui/imgui_internal.h"
+          },
+          "hashes": {
+            "sha-256": "f03cfbadd406864671b89f24f3311ce323b5fe66f647b75b122e7db488289551"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/ahnjiwoo/desktop/jamengine/jamengine/jamengine/vendor/imguizmo/imguizmo.h"
+          },
+          "hashes": {
+            "sha-256": "a07cb9171fe9da0fd2ebbf4b48b0624ff1bb4c7652a379c9974cb71e1ca665fe"
+          }
+        }
+      ]
+    }
+  ]
+}

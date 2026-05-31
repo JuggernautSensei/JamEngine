@@ -5,7 +5,7 @@ class SandboxApp : public Application
 public:
     explicit SandboxApp(
         const StringView           _appName,
-        const Flags<eAppCoreFlags> _subSystems)
+        const Flags<eAppInitFlags> _subSystems)
         : Application(_appName, _subSystems)
     {
     }
@@ -13,10 +13,3 @@ public:
     void Init(Int32 _argc, char** _argv) override;
     void Shutdown() override;
 };
-
-#ifdef JAM_EDITOR_ENABLE
-JAM_MAIN(SandboxApp, "SandboxApp", kEditorDefaultFlags);
-#else
-JAM_MAIN(SandboxApp, "SandboxApp", kRuntimeDefaltFlags);
-// JAM_MAIN(SandboxApp, "SandboxApp", kRuntimeDefaltFlags | eAppCoreFlags::AllowTearing);
-#endif

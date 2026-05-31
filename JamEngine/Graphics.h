@@ -2,6 +2,7 @@
 #include "GraphicsBase.h"
 #include "ImageBase.h"
 #include "ResourcePool.h"
+#include "RingBufferIndex.h"
 
 namespace Jam
 {
@@ -12,9 +13,6 @@ class WindowMaximizedEvent;
 class Event;
 
 /// @brief D3D11 기반 그래픽스 백엔드.
-///
-/// 버퍼, 텍스처, 셰이더 등 GPU 리소스의 생성/파괴를 담당하며,
-/// Dirty Flag 기반의 파이프라인 상태 관리와 드로우 콜 제출 기능을 제공합니다.
 class Graphics
 {
     enum class ePipelineDirtyFlags : UInt64
@@ -62,7 +60,7 @@ class Graphics
         FrameBuffer       = 1ull << 32,
 
         End = FrameBuffer,
-        All = 0xFFFFFFFFFFFFFFFF,
+        All = 0xFFFF'FFFF'FFFF'FFFF,
 
         ConstantBufferMask = VSConstantBuffer
                            | PSConstantBuffer
@@ -96,11 +94,11 @@ class Graphics
     {
         ReadBindings()
         {
-            binder.fill(nullptr);
+            pBinders.fill(nullptr);
             resources.fill({});
         }
 
-        Array<ID3D11ShaderResourceView*, kMaxNumShaderResourceViewSlots> binder     = {};
+        Array<ID3D11ShaderResourceView*, kMaxNumShaderResourceViewSlots> pBinders   = {};
         Array<Resource, kMaxNumShaderResourceViewSlots>                  resources  = {};
         Int32                                                            dirtyBegin = kMaxNumShaderResourceViewSlots;
         Int32                                                            dirtyEnd   = 0;
@@ -110,11 +108,11 @@ class Graphics
     {
         ReadWriteBindings()
         {
-            binder.fill(nullptr);
+            pBinders.fill(nullptr);
             resources.fill({});
         }
 
-        Array<ID3D11UnorderedAccessView*, kMaxNumUnorderedAccessViewSlots> binder     = {};
+        Array<ID3D11UnorderedAccessView*, kMaxNumUnorderedAccessViewSlots> pBinders   = {};
         Array<Resource, kMaxNumUnorderedAccessViewSlots>                   resources  = {};
         Int32                                                              dirtyBegin = kMaxNumUnorderedAccessViewSlots;
         Int32                                                              dirtyEnd   = 0;
@@ -125,11 +123,11 @@ class Graphics
     {
         ConstantBufferBindings()
         {
-            binder.fill(nullptr);
+            pBinders.fill(nullptr);
             cbhs.fill(kInvalidHandle);
         }
 
-        Array<ID3D11Buffer*, kMaxNumConstantBufferSlots>        binder     = {};
+        Array<ID3D11Buffer*, kMaxNumConstantBufferSlots>        pBinders   = {};
         Array<ConstantBufferHandle, kMaxNumConstantBufferSlots> cbhs       = {};
         Int32                                                   dirtyBegin = kMaxNumConstantBufferSlots;
         Int32                                                   dirtyEnd   = 0;
@@ -145,11 +143,11 @@ class Graphics
 
         SamplerBindings()
         {
-            binder.fill(nullptr);
+            pBinders.fill(nullptr);
             samplers.fill({});
         }
 
-        Array<ID3D11SamplerState*, kMaxNumSamplerSlots> binder     = {};
+        Array<ID3D11SamplerState*, kMaxNumSamplerSlots> pBinders   = {};
         Array<Sampler, kMaxNumSamplerSlots>             samplers   = {};
         Int32                                           dirtyBegin = kMaxNumSamplerSlots;
         Int32                                           dirtyEnd   = 0;
@@ -159,15 +157,15 @@ class Graphics
     {
         VertexBufferBindings()
         {
-            binder.fill(nullptr);
+            pBinders.fill(nullptr);
             strides.fill(0);
             offsets.fill(0);
             vbhs.fill(kInvalidHandle);
         }
 
-        Array<ID3D11Buffer*, kMaxNumVertexBufferSlots> binder  = {};
-        Array<UInt32, kMaxNumVertexBufferSlots>        strides = {};
-        Array<UInt32, kMaxNumVertexBufferSlots>        offsets = {};
+        Array<ID3D11Buffer*, kMaxNumVertexBufferSlots> pBinders = {};
+        Array<UInt32, kMaxNumVertexBufferSlots>        strides  = {};
+        Array<UInt32, kMaxNumVertexBufferSlots>        offsets  = {};
 
         Array<VertexBufferHandle, kMaxNumVertexBufferSlots> vbhs          = {};
         Array<VertexLayoutHandle, kMaxNumVertexBufferSlots> vlhs          = {};
@@ -178,9 +176,9 @@ class Graphics
 
     struct InstanceBufferBinding
     {
-        ID3D11Buffer* binder = nullptr;
-        UInt32        stride = 0;
-        UInt32        offset = 0;
+        ID3D11Buffer* pBinder = nullptr;
+        UInt32        stride  = 0;
+        UInt32        offset  = 0;
 
         VertexBufferHandle vbh               = kInvalidHandle;
         Int32              numInstances      = 0;
@@ -189,14 +187,23 @@ class Graphics
 
     struct IndexBufferBinding
     {
-        ID3D11Buffer* binder = nullptr;
-        DXGI_FORMAT   format = DXGI_FORMAT_R16_UINT;
-        UInt32        offset = 0;
+        ID3D11Buffer* pBinder = nullptr;
+        DXGI_FORMAT   format  = DXGI_FORMAT_R16_UINT;
+        UInt32        offset  = 0;
 
         IndexBufferHandle ibh             = kInvalidHandle;
         Int32             numIndices      = 0;
         Int32             numAvailIndices = 0;
     };
+
+    struct TimerQuery
+    {
+        ID3D11Query* pBegin    = nullptr;
+        ID3D11Query* pEnd      = nullptr;
+        ID3D11Query* pDisjoint = nullptr;
+    };
+
+    constexpr static Int32 kMaxTimerQuery = 16;
 
 public:
     Graphics(const Graphics&)                = delete;
@@ -301,38 +308,36 @@ public:
     /// @return 생성된 스토리지 버퍼 핸들
     /// @note 생성된 버퍼는 이후 SetTexture가 아닌, 스토리지 버퍼 바인딩 API(해당 기능 제공 시)를 통해 사용합니다.
     [[nodiscard]] StorageBufferHandle CreateRawBuffer(
-        Int32                            _byteWidth,
-        Flags<eStorageBufferCreateFlags> _flags           = eStorageBufferCreateFlags::None,
-        MemoryView                       _initDataOrEmpty = {});
+        Int32                      _byteWidth,
+        Flags<eStorageBufferFlags> _flags           = eStorageBufferFlags::None,
+        MemoryView                 _initDataOrEmpty = {});
 
     /// @brief Structured Storage 버퍼를 생성합니다.
-    /// @param _numElements 요소 개수.
+    /// @param _numElems 요소 개수.
     /// @param _stride 요소 하나의 크기 (바이트 단위).
-    /// @param _bAppendConsume true면 Append/Consume UAV로 생성합니다.
-    /// @param _bCounter true면 카운터를 포함하는 UAV로 생성합니다.
+    /// @param _type true면 카운터를 포함하는 UAV로 생성합니다.
     /// @param _flags 생성 플래그.
     /// @param _initDataOrEmpty
     /// @return 생성된 스토리지 버퍼 핸들
     /// @note `_bAppendConsume`와 `_bCounter` 조합은 D3D11 UAV 생성 제약을 따릅니다.
     [[nodiscard]] StorageBufferHandle CreateStructuredBuffer(
-        Int32                            _numElements,
-        Int32                            _stride,
-        bool                             _bAppendConsume  = false,
-        bool                             _bCounter        = false,
-        Flags<eStorageBufferCreateFlags> _flags           = eStorageBufferCreateFlags::None,
-        MemoryView                       _initDataOrEmpty = {});
+        Int32                      _numElems,
+        Int32                      _stride,
+        eStructureBuffer           _type            = eStructureBuffer::Default,
+        Flags<eStorageBufferFlags> _flags           = eStorageBufferFlags::None,
+        MemoryView                 _initDataOrEmpty = {});
 
     /// @brief Typed Storage 버퍼를 생성합니다.
-    /// @param _numElements 요소 개수.
+    /// @param _numElems 요소 개수.
     /// @param _dataType 요소 데이터 타입(포맷).
     /// @param _flags 생성 플래그.
     /// @param _initDataOrEmpty
     /// @return 생성된 스토리지 버퍼 핸들
     [[nodiscard]] StorageBufferHandle CreateTypedBuffer(
-        Int32                            _numElements,
-        eStorageBufferData               _dataType,
-        Flags<eStorageBufferCreateFlags> _flags           = eStorageBufferCreateFlags::None,
-        MemoryView                       _initDataOrEmpty = {});
+        Int32                      _numElems,
+        eTypedBufferFormat         _dataType,
+        Flags<eStorageBufferFlags> _flags           = eStorageBufferFlags::None,
+        MemoryView                 _initDataOrEmpty = {});
 
     /// @brief Readback 버퍼를 생성합니다.
     /// @param _byteWidth 버퍼 크기 (바이트 단위)
@@ -341,6 +346,12 @@ public:
     [[nodiscard]] StorageBufferHandle CreateReadbackBuffer(
         Int32      _byteWidth,
         MemoryView _initDataOrEmpty = {});
+
+    /// @brief 간접 드로우 호출에 사용할 인자 버퍼를 생성합니다.
+    /// @param _numDraws 드로우 호출 최대 개수
+    /// @return 생성된 스토리지 버퍼 핸들
+    [[nodiscard]] StorageBufferHandle CreateIndirectBuffer(
+        Int32 _numDraws);
 
     /// @brief 버텍스 레이아웃을 생성합니다.
     /// @param _vl 버텍스 레이아웃 설명
@@ -404,13 +415,13 @@ public:
 
     /// @brief ImageContainer로부터 텍스처를 생성합니다.
     /// @param _container 원본 이미지 컨테이너 (2D, 3D, Cubemap 모두 지원)
-    /// @param _bMutable true로 설정하면 생성 후에도 CPU에서 데이터를 수정할 수 있습니다. 기본적으로는 Immutable 텍스처로 생성됩니다.
+    /// @param _flags 텍스처 생성 플래그 (기본: None)
     /// @return 생성된 텍스처 핸들
     /// @note 파일에서 읽어온 텍스처를 GPU에 올릴 때 사용합니다.
     ///       미리 생성된 MIP 체인이 있으면 그대로 업로드합니다.
     [[nodiscard]] TextureHandle CreateTexture(
         const ImageContainer& _container,
-        bool                  _bMutable = false);
+        Flags<eTextureFlags>  _flags = eTextureFlags::None);
 
     /// @brief 2D 텍스처를 생성합니다.
     /// @param _width 텍스처 너비 (픽셀 단위, 1 이상)
@@ -426,13 +437,13 @@ public:
     ///       렌더 타겟으로 사용할 경우 _flags에 eTextureCreateFlags::RenderTarget을 포함해야 합니다.
     ///       깊이 스텐실로 사용할 경우 _flags에 eTextureCreateFlags::DepthStencil을 포함해야 합니다.
     [[nodiscard]] TextureHandle CreateTexture2D(
-        Int32                      _width,
-        Int32                      _height,
-        eTextureFormat             _format,
-        bool                       _bHasMips        = false,
-        Int32                      _numLayers       = 1,
-        Flags<eTextureCreateFlags> _flags           = eTextureCreateFlags::None,
-        Span<const MemoryView>     _initDataOrEmpty = {});
+        Int32                  _width,
+        Int32                  _height,
+        eTextureFormat         _format,
+        bool                   _bHasMips        = false,
+        Int32                  _numLayers       = 1,
+        Flags<eTextureFlags>   _flags           = eTextureFlags::None,
+        Span<const MemoryView> _initDataOrEmpty = {});
 
     /// @brief 큐브맵 텍스처를 생성합니다.
     /// @param _width 각 큐브 면의 너비 (픽셀 단위, 1 이상)
@@ -445,13 +456,13 @@ public:
     ///                         제공 시 배열 크기는 cubeCount * 6 * numMips여야 합니다.
     /// @return 생성된 큐브맵 텍스처 핸들
     [[nodiscard]] TextureHandle CreateTextureCube(
-        Int32                      _width,
-        Int32                      _height,
-        eTextureFormat             _format,
-        bool                       _bHasMips        = false,
-        Int32                      _cubeCount       = 1,
-        Flags<eTextureCreateFlags> _flags           = eTextureCreateFlags::None,
-        Span<const MemoryView>     _initDataOrEmpty = {});
+        Int32                  _width,
+        Int32                  _height,
+        eTextureFormat         _format,
+        bool                   _bHasMips        = false,
+        Int32                  _cubeCount       = 1,
+        Flags<eTextureFlags>   _flags           = eTextureFlags::None,
+        Span<const MemoryView> _initDataOrEmpty = {});
 
     /// @brief 3D 볼륨 텍스처를 생성합니다.
     /// @param _width 텍스처 너비 (픽셀 단위, 1 이상)
@@ -463,13 +474,13 @@ public:
     /// @param _initDataOrEmpty MIP 레벨별 초기화 데이터 배열. 비어 있으면 초기화되지 않은 텍스처가 생성됩니다.
     /// @return 생성된 3D 텍스처 핸들
     [[nodiscard]] TextureHandle CreateTexture3D(
-        Int32                      _width,
-        Int32                      _height,
-        Int32                      _depth,
-        eTextureFormat             _format,
-        bool                       _bHasMips        = false,
-        Flags<eTextureCreateFlags> _texFlags        = eTextureCreateFlags::None,
-        Span<const MemoryView>     _initDataOrEmpty = {});
+        Int32                  _width,
+        Int32                  _height,
+        Int32                  _depth,
+        eTextureFormat         _format,
+        bool                   _bHasMips        = false,
+        Flags<eTextureFlags>   _texFlags        = eTextureFlags::None,
+        Span<const MemoryView> _initDataOrEmpty = {});
 
     /// @brief 2D 텍스처의 특정 부분 영역(Sub-region)을 업데이트합니다.
     /// @param _texh 업데이트할 텍스처 핸들
@@ -594,21 +605,19 @@ public:
     /// @param _attachments 프레임 버퍼에 첨부할 텍스처 핸들 배열.
     ///                     깊이 포맷 텍스처는 자동으로 깊이-스텐실 어태치먼트로 인식됩니다.
     ///                     렌더 타겟은 최대 kMaxNumRenderTargetViewSlots개, 깊이-스텐실은 최대 1개까지 가능합니다.
-    /// @param _bDestroyTexture true: 프레임 버퍼 파괴 시 첨부된 텍스처도 함께 파괴됩니다.
-    ///                         false: 텍스처를 외부에서 독립적으로 관리합니다.
-    ///                         텍스처를 다른 용도로도 사용한다면 반드시 false로 설정하십시오.
+    /// @param _bOwnership 프레임버퍼가 텍스처에대한 소유권을 가집니다. 프레임버퍼가 파괴될때 텍스처는 자동으로 파괴됩니다.
     /// @return 생성된 프레임 버퍼 핸들
     [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
         Span<const Attachment> _attachments,
-        bool                   _bDestroyTexture = false);
+        bool                   _bOwnership = false);
 
     /// @brief 단일 텍스처로 프레임 버퍼를 생성합니다.
     /// @param _texh 첨부할 텍스처 핸들 (렌더 타겟 또는 깊이-스텐실)
-    /// @param _bDestroyTexture true: 프레임 버퍼 파괴 시 텍스처도 함께 파괴됩니다.
+    /// @param _bOwnership 프레임버퍼가 텍스처에대한 소유권을 가집니다. 프레임버퍼가 파괴될때 텍스처는 자동으로 파괴됩니다.
     /// @return 생성된 프레임 버퍼 핸들
     [[nodiscard]] FrameBufferHandle CreateFrameBuffer(
         TextureHandle _texh,
-        bool          _bDestroyTexture = false);
+        bool          _bOwnership = false);
 
     ////////// / SHADER & PROGRAM /////////
 
@@ -627,8 +636,7 @@ public:
     /// @param _gsh 지오메트리 셰이더 핸들. 지오메트리 셰이더를 사용하지 않으면 kInvalidHandle을 전달하십시오.
     /// @param _hsh 헐 셰이더 핸들. 테셀레이션을 사용하지 않으면 kInvalidHandle을 전달하십시오.
     /// @param _dsh 도메인 셰이더 핸들. 테셀레이션을 사용하지 않으면 kInvalidHandle을 전달하십시오.
-    /// @param _bDestroyShader true: 프로그램 파괴 시 소유권을 가져가 셰이더도 함께 파괴합니다.
-    ///                        false: 셰이더의 참조 카운트만 증가시킵니다. 셰이더를 별도로 파괴해야 합니다.
+    /// @param _bOwnership 프로그램이 셰이더에 대한 소유권을 가집니다. 프로그램이 파괴될 때 소유한 쉐이더도 함께 파괴됩니다.
     /// @return 생성된 프로그램 핸들
     /// @note HS와 DS는 반드시 함께 제공하거나 둘 다 kInvalidHandle이어야 합니다.
     [[nodiscard]] ProgramHandle CreateProgram(
@@ -637,25 +645,25 @@ public:
         ShaderHandle _gsh,
         ShaderHandle _hsh,
         ShaderHandle _dsh,
-        bool         _bDestroyShader = false);
+        bool         _bOwnership = false);
 
     /// @brief VS와 PS만으로 프로그램을 생성합니다.
     /// @param _vsh 버텍스 셰이더 핸들
     /// @param _psh 픽셀 셰이더 핸들
-    /// @param _bDestroyShader true: 프로그램 파괴 시 셰이더도 함께 파괴합니다.
+    /// @param _bOwnership 프로그램이 셰이더에 대한 소유권을 가집니다. 프로그램이 파괴될 때 소유한 쉐이더도 함께 파괴됩니다.
     /// @return 생성된 프로그램 핸들
     [[nodiscard]] ProgramHandle CreateProgram(
         ShaderHandle _vsh,
         ShaderHandle _psh,
-        bool         _bDestroyShader = false);
+        bool         _bOwnership = false);
 
     /// @brief Compute 셰이더로 프로그램을 생성합니다.
     /// @param _csh 컴퓨트 셰이더 핸들
-    /// @param _bDestroyShader true: 프로그램 파괴 시 셰이더도 함께 파괴합니다.
+    /// @param _bOwnership 프로그램이 셰이더에 대한 소유권을 가집니다. 프로그램이 파괴될 때 소유한 쉐이더도 함께 파괴됩니다.
     /// @return 생성된 프로그램 핸들
     [[nodiscard]] ProgramHandle CreateProgram(
         ShaderHandle _csh,
-        bool         _bDestroyShader = false);
+        bool         _bOwnership = false);
 
     ///////////////////////////////////////
     ///       RESOURCE DESTRUCTION      ///
@@ -828,7 +836,7 @@ public:
         FrameBufferHandle _fbh);
 
     /// @brief 백 버퍼의 해상도를 반환합니다.
-    [[nodiscard]] Vec2i GetBackBufferResolution() const;
+    [[nodiscard]] const BackBuffer& GetBackBuffer() const;
 
     /// @brief 셰이더 정보를 반환합니다.
     [[nodiscard]] ShaderInfo GetShaderInfo(
@@ -867,9 +875,9 @@ public:
         float             _depth   = 1.f,
         UInt8             _stencil = 0);
 
-    ///////////////////////////////////////
-    ///       PIPELINE STATE BINDING    ///
-    ///////////////////////////////////////
+    //////////////////////////////////////////
+    ///       PIPELINE STATE BINDING       ///
+    //////////////////////////////////////////
 
     /// @brief 버텍스 버퍼를 범위를 지정하여 파이프라인에 바인딩합니다.
     /// @param _vbhOrInvalid 바인딩할 버텍스 버퍼 핸들 또는 kInvalidHandle (바인딩 해제)
@@ -1036,12 +1044,12 @@ public:
     /// @brief 시저 테스트 영역을 설정합니다.
     /// @param _rect 시저 영역 구조체 (left, top, right, bottom)
     /// @note RenderState에서 bScissor = true로 설정해야 적용됩니다.
-    void SetScissorRect(
+    void SetScissor(
         Rect _rect);
 
     /// @brief 시저 테스트 영역을 개별 인자로 설정합니다.
     /// @param _left, _top, _right, _bottom 시저 영역 좌표
-    void SetScissorRect(
+    void SetScissor(
         UInt16 _left,
         UInt16 _top,
         UInt16 _right,
@@ -1069,9 +1077,18 @@ public:
     void Reset();
 
     /// @brief 현재 바인딩된 리소스와 상태로 드로우 콜을 제출합니다.
-    /// @note 인덱스 버퍼가 바인딩된 경우 DrawIndexed, 아닌 경우 Draw를 호출합니다.
-    ///       호출 전 SetVertexBuffer, SetProgram, SetFrameBuffer, SetViewport 등이 바인딩되어 있어야 합니다.
+    /// @note 호출전 유효한 렌더링 파이프라인이 바인딩된 상태여야 합니다.
     void Submit();
+
+    /// @brief 현재 바인딩된 리소스와 상태로 인다이렉트 드로우 콜을 제출합니다.
+    /// @param _sbh 드로우 인수를 담고 있으며 eStorageBufferFlags::IndirectArgs 플래그로 생성된 스토리지 버퍼 핸들.
+    /// @param _offset 스토리지 버퍼 내에서 드로우 인수가 시작되는 오프셋 (Stride 단위, 기본값: 0)
+    /// @param _numDraws 제출할 드로우 콜 수. kUseAll 전달 시 스토리지 버퍼 전체를 사용합니다.
+    /// @note 호출전 유효한 렌더링 파이프라인이 바인딩된 상태여야 합니다.
+    void Submit(
+        StorageBufferHandle _sbh,
+        Int32               _offset   = 0,
+        Int32               _numDraws = kAll);
 
     /// @brief 현재 바인딩된 리소스와 상태로 컴퓨트 셰이더 디스패치를 제출합니다.
     /// @param _numThreadGroupsX X 방향으로 디스패치할 스레드 그룹 수
@@ -1082,12 +1099,32 @@ public:
         Int32 _numThreadGroupsY,
         Int32 _numThreadGroupsZ);
 
+    ///////////////////////////////////////////
+    ///          Graphics Debugger          ///
+    ///////////////////////////////////////////
+
+    /// @brief 다음 프레임의 렌더링 정보를 캡처하도록 요청합니다.
+    /// @note  함수를 호출한 시점의 프레임은 캡처하지 않습니다.
+    ///        관련 기능이 필요하다면 Begin-End를 사용해야합니다.
+    void TriggerDebuggerCapture() const;
+
+    /// @brief GPU 디버거가 렌더링 정보를 캡처하기 시작하도록 지시합니다.
+    /// @note  해당 함수 호출부터 EndDebuggerCapture() 까지의 이벤트를 수집합니다.
+    ///        여러 프레임을 호출할 수도 있습니다.
+    void BeginDebuggerCapture() const;
+
+    /// @brief GPU 디버거가 현재 프레임의 렌더링 정보 캡처를 종료하도록 지시합니다.
+    void EndDebuggerCapture() const;
+
 private:
-    Graphics(HWND _hWnd, Int32 _width, Int32 _height, bool _bAllowTearing);
+    explicit Graphics(const GraphicsInit& _init);
     ~Graphics();
 
-    static void CreateInstance(HWND _hwnd, Int32 _width, Int32 _height, bool _bAllowTearing);
+    static void CreateInstance(const GraphicsInit& _init);
     static void DestroyInstance();
+
+    void InitDebugger_() const;
+    void CleanUpDebugger_() const;
 
     void BindConstantBuffers_(eShader _stage);
     void BindShaderResourceViews_(eShader _shader);
@@ -1099,33 +1136,41 @@ private:
     void OnWindowResizedEvent_(const WindowResizedEvent& _event);
     void OnWindowMaximizeEvent_(const WindowMaximizedEvent& _event);
 
-    // buffer utils
+    // buffer
     [[nodiscard]] HardwareBuffer        CreateHardwareBuffer_(Int32 _byteWidth, eBuffer _type, MemoryView _initDataOrEmpty) const;
-    [[nodiscard]] StorageBuffer         CreateStorageBuffer_(Int32 _byteWidth, Int32 _stride, eStorageBuffer _type, eStorageBufferData _dataType, Flags<eStorageBufferCreateFlags> _flags, bool _bAppendConsumer, bool _bCounter, MemoryView _initDataOrEmpty) const;
-    [[nodiscard]] const HardwareBuffer& GetHardwareBufferFromAnyBufferHandle_(AnyBufferHandle _handle) const;
+    [[nodiscard]] StorageBuffer         CreateReadbackBuffer_(Int32 _byteWidth, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] StorageBuffer         CreateStructuredBuffer_(Int32 _numElems, Int32 _stride, eStructureBuffer _type, Flags<eStorageBufferFlags> _flags, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] StorageBuffer         CreateTypedBuffer_(Int32 _numElems, eTypedBufferFormat _format, Flags<eStorageBufferFlags> _flags, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] StorageBuffer         CreateRawBuffer_(Int32 _byteWidth, Flags<eStorageBufferFlags> _flags, MemoryView _initDataOrEmpty) const;
+    [[nodiscard]] StorageBuffer         CreateIndirectBuffer_(Int32 _numDraws) const;
+    [[nodiscard]] const HardwareBuffer& GetHardwareBufferFrom_(AnyBufferHandle _handle) const;
     [[nodiscard]] ID3D11Buffer*         GetOrCreateUploadBuffer_(Int32 _byteWidth);
     [[nodiscard]] MutableMemoryView     BeginUpdateBuffer_(AnyBufferHandle _bh) const;
     void                                EndUpdateBuffer_(AnyBufferHandle _bh) const;
     void                                UpdateBuffer_(AnyBufferHandle _bh, MemoryView _uploadData, Int32 _offset, bool _bDiscard);
     void                                CopyBuffer_(AnyBufferHandle _dstBh, Int32 _dstOffset, AnyBufferHandle _srcBh, Int32 _srcOffset, Int32 _byteWidthOrZero) const;
 
-    // texture utils
-    [[nodiscard]] HardwareTextureRef CreateHardwareTexture_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, bool _bHasMips, Int32 _numLayers, eTexture _type, Flags<eTextureCreateFlags> _flags, Span<const MemoryView> _initDataOrEmpty) const;
+    // texture & framebuffer
+    [[nodiscard]] HardwareTextureRef CreateHardwareTexture_(Int32 _width, Int32 _height, Int32 _depth, eTextureFormat _format, bool _bHasMips, Int32 _numLayers, eTexture _type, Flags<eTextureFlags> _flags, Span<const MemoryView> _initDataOrEmpty) const;
+    [[nodiscard]] FrameBuffer        CreateFrameBuffer_(Span<const Attachment> _attachments, bool _bDestroyTexture);
     void                             UpdateTexture_(TextureHandle _dstTexh, Int32 _dstMip, Int32 _dstLayer, Int32 _offsetX, Int32 _offsetY, Int32 _offsetZ, Int32 _widthOrZero, Int32 _heightOrZero, Int32 _depthOrZero, MemoryView _uploadData, Int32 _rowPitch, Int32 _slicePitch) const;
     [[nodiscard]] Int32              ReadTexture_(TextureHandle _texh, Int32 _mip, Int32 _layer, MutableMemoryView _dst) const;
     void                             CopyTexture_(TextureHandle _dstTexh, Int32 _dstMip, Int32 _dstLayer, Int32 _dstOffsetX, Int32 _dstOffsetY, Int32 _dstOffsetZ, TextureHandle _srcTexh, Int32 _srcMip, Int32 _srcLayer, Int32 _srcOffsetX, Int32 _srcOffsetY, Int32 _srcOffsetZ, Int32 _srcWidthOrZero, Int32 _srcHeightOrZero, Int32 _srcDepthOrZero) const;
 
-    // frame buffer utils
-    [[nodiscard]] FrameBuffer CreateFrameBuffer_(Span<const Attachment> _attachments, bool _bDestroyTexture);
-
     // resource cache
     [[nodiscard]] ShaderHandle             GetOrCreateShader_(MemoryView _byteCode);
     [[nodiscard]] VertexLayoutHandle       GetOrCreateVertexLayout_(const VertexLayout& _vl);
+    [[nodiscard]] ID3D11SamplerState*      GetOrCreateD3D11SamplerState_(Flags<eSamplerFlags> _state, RGBA _rgba);
     [[nodiscard]] ID3D11InputLayout*       GetOrCreateD3D11InputLayoutFromCurrentBind_();
     [[nodiscard]] ID3D11RasterizerState*   GetOrCreateD3D11RasterizerStateFromCurrentBind_();
     [[nodiscard]] ID3D11BlendState*        GetOrCreateD3D11BlendStateFromCurrentBind_();
     [[nodiscard]] ID3D11DepthStencilState* GetOrCreateD3D11DepthStencilStateFromCurrentBind_();
-    [[nodiscard]] ID3D11SamplerState*      GetOrCreateD3D11SamplerState_(Flags<eSamplerFlags> _state, RGBA _rgba);
+
+    // profile
+    void InitTimerQueries_();
+    void CleanUpTimerQueries_();
+    void BeginTimerQueries_();
+    void EndTimerQueries_();
 
     // misc
     void                 SetShaderResource_(UInt32 _handleValueOrNull, eShaderResource _type, eShader _shader, Int32 _slot, eResourceAccess _access);
@@ -1134,6 +1179,7 @@ private:
     // d3d11 core objects
     ID3D11Device*        m_pd3d11Device        = nullptr;
     ID3D11DeviceContext* m_pd3d11DeviceContext = nullptr;
+    IDXGIAdapter3*       m_pDxgiAdapter3           = nullptr;
     IDXGISwapChain1*     m_pdxgiSwapchain      = nullptr;
     bool                 m_bAllowTearing       = false;
 
@@ -1154,12 +1200,10 @@ private:
 
     // d3d11 caches
     CASHashMap<UInt64, ID3D11InputLayout*>       m_d3d11InputLayoutCache       = {};
-    CASHashMap<UInt32, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
+    CASHashMap<UInt64, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
     CASHashMap<UInt64, ID3D11BlendState*>        m_d3d11BlendStateCache        = {};
     CASHashMap<UInt64, ID3D11DepthStencilState*> m_d3d11DepthStencilStateCache = {};
     CASHashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
-
-    /////////// binding & binder ///////////
 
     // buffers
     VertexBufferBindings  m_vbBindings      = {};
@@ -1176,8 +1220,9 @@ private:
 
     // output resources
     FrameBufferHandle                  m_fbhBinding          = kInvalidHandle;
+    FrameBufferHandle                  m_lastFbhBinding      = kInvalidHandle;   // for resolve
     Viewport                           m_vpBinding           = {};
-    Rect                               m_scissorRectBinding  = {};
+    Rect                               m_scissorBinding      = {};
     ProgramHandle                      m_phBinding           = kInvalidHandle;
     EnumArray<eSubmitParameter, Int32> m_submitParamsBinding = {};
     ProgramHandle                      m_computePhBinding    = kInvalidHandle;
@@ -1193,14 +1238,17 @@ private:
     // dirty flags
     Flags<ePipelineDirtyFlags> m_dirtyFlags = ePipelineDirtyFlags::All;
 
-    // misc
+    // stats
     GraphicsStats m_lastStats = {};
     GraphicsStats m_stats     = {};
 
+    Array<TimerQuery, kMaxTimerQuery> m_timerQueries = {};
+    RingBufferIndex                   m_timerQueriesRbi { kMaxTimerQuery };
+    Int64                             m_timerQueryIndex  = 0;
+    bool                              m_bBeginTimerQuery = false;
+
     // back buffer
-    TextureHandle     m_backBufferTexh       = kInvalidHandle;
-    FrameBufferHandle m_backBufferFbh        = kInvalidHandle;
-    Vec2i             m_backBufferResolution = {};
+    BackBuffer m_backbuffer = {};
 
     // upload buffer cache
     ID3D11Buffer* m_pUploadBufferCache     = nullptr;

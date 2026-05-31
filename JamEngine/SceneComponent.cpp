@@ -14,7 +14,7 @@ void SceneComponent::Serialize(
     Scene*,
     Entity) const
 {
-    _writer.WriteField("localMatrix", node.GetLocalTransform().GetSRT());
+    _writer.WriteField("localMatrix", node.GetLocal().GetSRT());
     _writer.WriteField("parent", node.GetParent().GetUID());   // if root parent entity is invalid UID.
 }
 
@@ -29,7 +29,7 @@ void SceneComponent::Deserialize(
     {
         return;
     }
-    node.ModifyLocalTransform().SetSRT(localMtx);
+    node.ModifyLocal().SetSRT(localMtx);
 
     // parent
     UID parentUid = UID::kNull;
@@ -70,7 +70,7 @@ void SceneComponent::DrawEditPanel(
         static eCoordinate s_coord = eCoordinate::World;
 
         const bool       bIsWorld  = s_coord == eCoordinate::World;
-        const Transform& transform = bIsWorld ? node.GetWorldTransform() : node.GetLocalTransform();
+        const Transform& transform = bIsWorld ? node.GetWorld() : node.GetLocal();
 
         // get translation & scale
         Vec3 translation = transform.GetTranslation();
@@ -89,11 +89,11 @@ void SceneComponent::DrawEditPanel(
             {
                 if (bIsWorld)
                 {
-                    node.ModifyWorldTransform().SetTranslation(translation);
+                    node.ModifyWorld().SetTranslation(translation);
                 }
                 else
                 {
-                    node.ModifyLocalTransform().SetTranslation(translation);
+                    node.ModifyLocal().SetTranslation(translation);
                 }
             }
         }
@@ -111,11 +111,11 @@ void SceneComponent::DrawEditPanel(
             {
                 if (bIsWorld)
                 {
-                    node.ModifyWorldTransform().SetRotation(eulerRad);
+                    node.ModifyWorld().SetRotation(eulerRad);
                 }
                 else
                 {
-                    node.ModifyLocalTransform().SetRotation(eulerRad);
+                    node.ModifyLocal().SetRotation(eulerRad);
                 }
             }
 
@@ -131,11 +131,11 @@ void SceneComponent::DrawEditPanel(
             {
                 if (bIsWorld)
                 {
-                    node.ModifyWorldTransform().SetScale(scale);
+                    node.ModifyWorld().SetScale(scale);
                 }
                 else
                 {
-                    node.ModifyLocalTransform().SetScale(scale);
+                    node.ModifyLocal().SetScale(scale);
                 }
             }
         }

@@ -440,7 +440,7 @@ Expect<Vector<Ref<Texture>>> AssimpImporter::ConvertToTextures_() const
             // 비압축된 경우, 이미지 포맷은 BGRA8_UNorm 고정
             Graphics&        gfx    = GetGraphics();
             const MemoryView mems[] = { importedTexture.pixels };
-            texh                    = gfx.CreateTexture2D(importedTexture.width, importedTexture.height, eTextureFormat::BGRA8_UNorm, false, 1, eTextureCreateFlags::None, mems);
+            texh                    = gfx.CreateTexture2D(importedTexture.width, importedTexture.height, eTextureFormat::BGRA8_UNorm, false, 1, eTextureFlags::None, mems);
         }
 
         // texture 생성

@@ -1,6 +1,7 @@
 #pragma once
 #include "CommandQueue.h"
 #include "FileLock.h"
+#include "Timer.h"
 
 namespace Jam
 {
@@ -8,22 +9,31 @@ namespace Jam
 class WindowClosedEvent;
 class Event;
 
-enum class eAppCoreFlags : UInt32
+enum class eAppInitFlags : UInt32
 {
     None = 0,
 
     // subsystem
-    SceneManager = 1 << 0,
-    AssetManager = 1 << 1,
-    ImGuiEngine  = 1 << 2,
-    Editor       = 1 << 3,
+    Subsystem_SceneManager = 1 << 0,
+    Subsystem_AssetManager = 1 << 1,
+    Subsystem_ImGuiEngine  = 1 << 2,
+    Subsystem_Editor       = 1 << 3,
 
-    // misc
-    AllowTearing = 1 << 4,
+    // graphics
+    Graphics_AllowTearing = 1 << 4,
+
+    Graphics_BackBufferHDR10 = 1 << 5,
+    Graphics_BackBufferHDR16 = 2 << 5,
+
+    Graphics_BackBufferMSAAx4  = 1 << 7,
+    Graphics_BackBufferMSAAx8  = 2 << 7,
+    Graphics_BackBufferMSAAx16 = 3 << 7,
+
+    Graphics_GraphicsDebugger = 1 << 9,
 };
 
-constexpr Flags<eAppCoreFlags> kRuntimeDefaltFlags = eAppCoreFlags::SceneManager | eAppCoreFlags::AssetManager | eAppCoreFlags::ImGuiEngine;
-constexpr Flags<eAppCoreFlags> kEditorDefaultFlags = kRuntimeDefaltFlags | eAppCoreFlags::Editor;
+constexpr Flags<eAppInitFlags> kDefaultAppInitFlags = eAppInitFlags::Subsystem_SceneManager | eAppInitFlags::Subsystem_AssetManager | eAppInitFlags::Subsystem_ImGuiEngine;
+constexpr Flags<eAppInitFlags> kEditorAppInitFlags  = kDefaultAppInitFlags | eAppInitFlags::Subsystem_Editor;
 
 class Application
 {
@@ -44,10 +54,9 @@ public:
     void               SetVsync(bool _bVsync);
     [[nodiscard]] bool IsVsyncEnabled() const;
 
-    [[nodiscard]] StringView GetAppName() const;
-    [[nodiscard]] float      GetDeltaTimeSec() const;
-    [[nodiscard]] float      GetFrameRate() const;
-    [[nodiscard]] bool       IsCoreFlagsEnabled(eAppCoreFlags _flags) const;
+    [[nodiscard]] StringView       GetAppName() const;
+    [[nodiscard]] const TickTimer& GetTimer() const;
+    [[nodiscard]] bool             IsAppInitFlagsEnabled(eAppInitFlags _flags) const;
 
     [[nodiscard]] StringView GetWorkingDirectory() const;
     [[nodiscard]] StringView GetContentsDirectory() const;
@@ -55,18 +64,8 @@ public:
     [[nodiscard]] std::thread::id GetMainThreadId() const;
 
 protected:
-    explicit Application(StringView _appName, Flags<eAppCoreFlags> _initFlags = kRuntimeDefaltFlags);
+    explicit Application(StringView _appName, Flags<eAppInitFlags> _flags);
     virtual ~Application() = default;
-
-    // can be overridden by derived type
-    // if you want to override the main loop, you can override this method and call Update(), Render() and ImGuiRender() in your own way.
-    // like this:
-    // void MyApp::Update(float _dt)
-    // {
-    //    // do something before update
-    //    Application::Update(_dt);   // call base class update to update subsystems and dispatch events. if you don't want to update subsystems and dispatch events, you can skip this call.
-    //    // do something after update
-    // }
 
     virtual void Update(float _dt);
     virtual void Render();
@@ -86,13 +85,12 @@ private:
     bool                 m_bRunning     = false;
     bool                 m_bInited      = false;
     bool                 m_bVsync       = false;
-    Flags<eAppCoreFlags> m_coreFlags    = {};
     CommandQueue         m_commandQueue = {};
     std::thread::id      m_mainThreadId = {};
+    Flags<eAppInitFlags> m_flags        = {};
 
     // timer
-    float m_deltaTimeSec = 0.f;
-    float m_framerate    = 0.f;
+    TickTimer m_timer = {};
 
     // project
     String           m_workingDir       = {};
@@ -111,14 +109,3 @@ private:
 }
 
 }   // namespace Jam
-
-#define JAM_MAIN_IMPL(TApp, _appName, _flags, _argc, _argv) \
-    TApp app { _appName, _flags };                          \
-    return app.Run(_argc, _argv);
-
-#define JAM_MAIN(TApp, _appName, _flags)                    \
-    int main(int _argc, char** _argv)                       \
-    {                                                       \
-        JAM_MAIN_IMPL(TApp, _appName, _flags, _argc, _argv) \
-    }                                                       \
-    static_assert(true)

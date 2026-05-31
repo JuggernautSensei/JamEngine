@@ -1,10 +1,23 @@
-# Copilot Instructions
+## 코딩 원칙
+코드를 작성하기 전 반드시 아래 순서를 따른다.
+1. 가정을 명시하고, 해석이 여럿이면 전부 제시한다.
+2. 불명확하면 멈추고 질문한다.
+3. 요청받은 것만 최소한의 코드로 구현한다.
+4. 요청받지 않은 기능, 추상화, 유연성을 추가하지 않는다.
+5. 변경해야 하는 것만 건드리고, 인접 코드/주석/포맷을 개선하지 않는다.
+6. 다단계 작업은 계획을 먼저 제시하고, 각 단계마다 검증 방법을 명시한다.
 
-## General Guidelines
-- When modifying code in this repo, add a trailing `// AI` comment to the exact lines changed, and do not run builds unless explicitly asked.
-- Confirm that SRV/RTV conflicts within the same pass of RenderGraph are properly prevented by the current code (e.g., Validate_).
-- Prefer building a single project (project build) by default instead of building the whole solution.
-- 사용자는 RenderGraph/Compile의 상태 불일치 시 방어적으로 복구하기보다 `at()` 등으로 즉시 크래시(죽는 동작)가 더 안전하다고 선호함.
+## 코딩 스타일 (C++ 기준, 항상 준수)
+- 지역변수: 카멜케이스 (예: myValue)
+- 매개변수: 카멜케이스 + _ 접두 (예: _myParam)
+- bool 변수: b 접두 (예: bIsValid)
+- 클래스/구조체/네임스페이스: 파스칼케이스 (예: MyClass)
+- enum: 항상 enum class 사용, e 접두 (예: eMyEnum)
+- 멤버변수: m_카멜 / 스태틱: s_카멜 / 전역: g_카멜 / 상수: k파스칼
+- 모든 if/for는 반드시 {} 블록으로 감싼다.
+- 모든 중괄호 블록은 앞뒤로 줄바꿈을 넣는다.
+- goto 사용을 허용한다.
+- 생성자는 괄호 () 초기화가 아니라 {} 초기화를 사용한다. 단, std::vector는 목적에 맞다면 () 초기화도 허용한다.
 
 ## Language
 - Always respond in Korean.

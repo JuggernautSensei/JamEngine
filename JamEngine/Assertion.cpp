@@ -5,7 +5,6 @@
 
 #include "LogSystem.h"
 #include "Timer.h"
-#include "Debug.h"
 #include "File.h"
 #include "WindowsUtilities.h"
 #include "String.h"
@@ -15,9 +14,9 @@ namespace Jam::Details
 
 namespace
 {
-    String CreateErrorMessage_(
+    [[nodiscard]] String MakeErrorMessage_(
         const std::source_location& _loc,
-        const std::string_view      _msg)
+        const char*                 _msg)
     {
         const TimeStamp ts = TimeStamp::Current();
         return String::Formatted(
@@ -71,14 +70,14 @@ namespace
 
 }   // namespace
 
-void ReportCrash(
+void ReportCrash__(
     const std::source_location& _loc,
-    const std::string_view      _msg)
+    const char*                 _msg)
 {
-    const String msg = CreateErrorMessage_(_loc, _msg);
+    const String msg = MakeErrorMessage_(_loc, _msg);
     JAM_LOG_CRITICAL(msg);
-    GetLogSystem().Flush();
-    PrintToDebugConsole(msg);   // print to debug console
+    spdlog::apply_all([](auto _logger) { _logger->flush(); });
+    spdlog::shutdown();   // immediately flush and close all loggers to release file handles, etc.
 
     // crash dump
     const TimeStamp ts   = TimeStamp::Current();
@@ -89,29 +88,19 @@ void ReportCrash(
         writer->Flush();
     }
 
-    // show msg box
-    PrintToMessageBox("Jam engine crash", msg);
+    // alert
+    const WString mbMsg = WString::Encoded(msg.ToStringView());
+    ::MessageBoxW(nullptr, mbMsg.GetPtr(), L"Fatal Error", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 }
 
-void ReportAssertion(
-    const std::source_location& _loc,
-    const std::string_view      _condition,
-    const std::string_view      _msg)
-{
-    const String msg = CreateErrorMessage_(_loc, _msg);
-    JAM_LOG_ERROR("Assertion failed! Condition: {}\n{}", _condition, msg);
-    GetLogSystem().Flush();
-    PrintToDebugConsole(msg);   // print to debug console
-}
-
-void ReportHRESULTFailure(
+void ReportHRESULTFailure_(
     const std::source_location& _loc,
     const std::string_view      _func,
     const HRESULT               _hr)
 {
-    const String hrMsg   = CreateWindowsErrorMessage(_hr, eWindowsErrorCode::HRESULT);
+    const String hrMsg   = MakeWindowsErrorMessage(_hr, eWindowsErrorCode::HRESULT);
     const String fullMsg = String::Formatted("HRESULT Failed! {}\nHRESULT: 0x{:08X} ({})", _func, _hr, hrMsg);
-    ReportCrash(_loc, fullMsg.ToStdStringView());
+    ReportCrash__(_loc, fullMsg.GetPtr());
 }
 
 }   // namespace Jam::Details

@@ -2,5 +2,5 @@
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return t_input0.Sample(s_linearClamp, input.texcoord);
+    return SAMPLE_TEXTURE2D_INPUT0(s_linearClamp, input.texcoord);
 }

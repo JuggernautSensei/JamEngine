@@ -69,10 +69,10 @@ template<typename T>
 
 // type hash
 template<typename T>
-[[nodiscard]] constexpr UInt32 HashOf()
+[[nodiscard]] constexpr UInt64 HashOf()
 {
     constexpr StringView kName = NameOf<T>();
-    constexpr UInt32     kHash = kName.Hash32();
+    constexpr UInt64     kHash = kName.Hash();
     return kHash;
 }
 

@@ -4,9 +4,9 @@
 #include "SampleCollector.h"
 #include "../JamEngine/Application.h"
 #include "../JamEngine/EditorWidgets.h"
-#include "../JamEngine/StackString.h"
+#include "../JamEngine/StaticString.h"
 
-bool BeginSceneInspectorWindows(const char* _title)
+bool BeginSceneDemoWindow(const char* _title)
 {
     if (!ImGui::Begin(_title))
     {
@@ -15,45 +15,63 @@ bool BeginSceneInspectorWindows(const char* _title)
 
     // scene info
     ImGui::Text("Scene: %s", _title);
+    ImGui::Separator();
 
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNode("Performance"))
     {
-        static SampleCollector s_collector;
-        static bool            s_bShowHistogram = true;
+        static SampleCollector s_collector = {};
 
-        Application& app  = GetApp();
-        const float  dtMs = app.GetDeltaTimeSec() * 1000.f;
-        s_collector.PushSample(dtMs);
+        Application&     app         = GetApp();
+        const TickTimer& tick        = app.GetTimer();
+        const float      deltaTimeMs = tick.GetDeltaFloat(eSIPrefix::Milli);
 
-        const float frameRate = app.GetFrameRate();
-        const float avgDtMs   = s_collector.GetAverage();
-        const float avgFps    = 1000.f / avgDtMs;
+        Graphics&            gfx   = GetGraphics();
+        const GraphicsStats& stats = gfx.GetStats();
 
-        StackString<256> buf;
-        buf.Format("Delta time: {:.3f}\tms\n"
-                   "Frame Rate: {:.3f}\tfps\n"
-                   "Avg. Delta time: {:.3f}\tms\n"
-                   "Avg. Frame Rate: {:.3f}\tfps",
-                   dtMs,
-                   frameRate,
-                   avgDtMs,
-                   avgFps);
-
-        ImGui::Spacing();
-        if (s_bShowHistogram)
+        // CPU time histogram
         {
+            s_collector.PushSample(deltaTimeMs);
+
+            const float framerate = tick.GetFrequencyFloat();
+            const float avgDtMs   = s_collector.GetAverage();
+            const float avgFps    = 1000.f / avgDtMs;
+
+            StaticString<256> buf;
+            buf.Format("Delta time:      {:>6.2f} ms\n"
+                       "Frame Rate:      {:>6.2f} fps\n"
+                       "Avg. Delta time: {:>6.2f} ms\n"
+                       "Avg. Frame Rate: {:>6.2f} fps",
+                       deltaTimeMs,
+                       framerate,
+                       avgDtMs,
+                       avgFps);
+
+            ImGui::Spacing();
             ImGui::PlotLines("##FrameTimeHistogram", s_collector.GetCpuTimeSamples(), s_collector.GetSampleCount(), s_collector.GetOffset(), buf.GetPtr(), 0.f, 60.f, { 0, 80 });
         }
-        else
-        {
-            ImGui::TextUnformatted(buf.GetPtr(), buf.GetTerminate());
-        }
 
+        // CPU time, GPU time, GPU Memory Usage
         ImGui::Spacing();
-        if (ImGui::Checkbox("Show Frame Time Histogram", &s_bShowHistogram))
         {
-            s_collector = SampleCollector();
+            float gpuTimeMs = 0.f;
+            if (stats.gpuTimerFreq > 0)
+            {
+                gpuTimeMs = static_cast<float>(stats.gpuTimeEnd - stats.gpuTimeBegin) / static_cast<float>(stats.gpuTimerFreq) * 1000;
+            }
+
+            constexpr float kByteToGb        = 1.f / (1024.f * 1024.f * 1024.f);
+            const float     gpuMemoryUsageGb = static_cast<float>(stats.gpuMemoryUsageByte) * kByteToGb;
+            const float     gpuMemoryMaxGb   = static_cast<float>(stats.gpuMemoryMaxByte) * kByteToGb;
+
+            ImGui::Text(
+                "CPU Time:         %6.3f ms\n"
+                "GPU Time:         %6.3f ms\n"
+                "GPU Memory Usage: %6.3f GB / %6.3f GB",
+                deltaTimeMs,
+                gpuTimeMs,
+                gpuMemoryUsageGb,
+                gpuMemoryMaxGb);
         }
 
         ImGui::TreePop();
@@ -350,4 +368,26 @@ bool BeginSceneInspectorWindows(const char* _title)
 
     // user gui..
     return true;
+}
+
+bool RGBAEdit3(const char* _label, RGBA& _color)
+{
+    Vec4 linear = _color.ToLinear();
+    if (ImGui::ColorEdit4(_label, &linear.x))
+    {
+        _color = RGBA::FromLinear(linear.x, linear.y, linear.z, _color.a);
+        return true;
+    }
+    return false;
+}
+
+bool RGBAEdit4(const char* _label, RGBA& _color)
+{
+    Vec4 linear = _color.ToLinear();
+    if (ImGui::ColorEdit4(_label, &linear.x))
+    {
+        _color = RGBA::FromLinear(linear.x, linear.y, linear.z, linear.w);
+        return true;
+    }
+    return false;
 }

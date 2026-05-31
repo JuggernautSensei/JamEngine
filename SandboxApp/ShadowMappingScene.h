@@ -1,7 +1,8 @@
 #pragma once
 #include "FlyingCamera.h"
-#include "../JamEngine/DebugRenderer.h"
 #include "../JamEngine/RenderGraph.h"
+
+enum class eImageFilter;
 
 class ShadowMappingScene : public Scene
 {
@@ -16,14 +17,15 @@ class ShadowMappingScene : public Scene
         bool         bNotAnimated   = false;
     };
 
-    enum class eLight : UInt32
+    enum class eLight
     {
+        None,
         Directional,
-        Point,
+        Omni,
         Spot,
     };
 
-    enum class eShadowSampling : UInt32
+    enum class eShadowFiltering
     {
         Hard,
         PCF3,
@@ -33,9 +35,17 @@ class ShadowMappingScene : public Scene
         ESM,
     };
 
+    enum class eShadowMapSize
+    {
+        x256,
+        x512,
+        x1024,
+        x2048,
+        x4096,
+    };
+
     struct Light
     {
-        bool bEnabled    = false;
         bool bCastShadow = false;
 
         Vec3  pos          = Vec3::kZero;
@@ -63,26 +73,25 @@ private:
     void OnResize(Int32 _width, Int32 _height) override;
 
     void InitMeshes_();
-    void InitRenderGraph_();
-    void BuildRenderGraph_();
-
-    // utils
-    void AddProgram_VertexPixel_(StringView _name, StringView _path);
-    void AddProgram_VertexPixelGeometry_(StringView _name, StringView _path);
-    void AddProgram_VertexPixel_Macro_(StringView _name, StringView _path, StringView _macroDef, StringView _macroValue);
+    void InitRenderGraphResources_();
+    void InitRenderGraphShadowTextures_();
+    void InitRenderGraphPasses_();
 
     // render scene
     void RenderScene_();
     void RenderSceneSpotShadowCast_();
+    void RenderSceneOmniShadowCast_(eCubeFace _omitFace);
+    void RenderScreenTriWithCubeMapIndexing_(Int32 _index) const;
 
     // light volume
     void RenderSpotLightVolumes_() const;
-    void RenderPointLightVolumes_() const;
+    void RenderOmniLightVolumes_() const;
     void RenderDirectionalLightVolumes_() const;
+    void RenderDebugLightCube_() const;
 
     // ect
-    void RenderFullScreenTri_() const;
-    void PrepareShadowPass_() const;
+    void                PrepareShadowPass_() const;
+    [[nodiscard]] Int32 GetShadowMapLength_() const;
 
     float m_counter  = 0.f;
     float m_dRot     = ToRad(45.f);
@@ -91,28 +100,33 @@ private:
     constexpr static Int32        kTotalEntities = 20;
     Array<Entity, kTotalEntities> m_entities     = {};
 
-    Ref<Mesh> m_pFsTri  = nullptr;
     Ref<Mesh> m_pCone   = nullptr;
     Ref<Mesh> m_pSphere = nullptr;
+    Ref<Mesh> m_pCube   = nullptr;
 
-    Light m_omniLight = {};
-    Light m_spotLight = {};
-    Light m_dirLight  = {};
+    Light  m_omniLight   = {};
+    Light  m_spotLight   = {};
+    Light  m_dirLight    = {};
+    eLight m_activeLight = eLight::Spot;
 
-    eShadowSampling m_shadowSampling        = eShadowSampling::Hard;
-    float           m_shadowBias            = 0.0002f;
-    float           m_shadowNormalOffset    = 0.01f;
-    bool            m_bUseComparisonSampler = true;
-    float           m_esmExponent           = 80.f;
+    eShadowFiltering m_shadowFilter          = eShadowFiltering::Hard;
+    float            m_shadowBias            = 0.0002f;
+    float            m_shadowNormalOffset    = 0.01f;
+    float            m_esmExponent           = 80.f;
+    bool             m_bUseComparisonSampler = true;
+    bool             m_bApplyBlur            = true;
+    bool             m_bApplyAA              = true;
 
-    RenderGraph  m_graph  = {};
-    FlyingCamera m_camera = {};
+    eShadowMapSize m_shadowMapSize = eShadowMapSize::x1024;
 
-    ConstantBufferHandle m_entityCbh            = kInvalidHandle;
-    ConstantBufferHandle m_cmrCbh               = kInvalidHandle;
-    ConstantBufferHandle m_lightCbh             = kInvalidHandle;
-    ConstantBufferHandle m_shadowCbh            = kInvalidHandle;
-    ConstantBufferHandle m_shadowCastCbh        = kInvalidHandle;
-    ConstantBufferHandle m_omniShadowCastCbh    = kInvalidHandle;
-    ConstantBufferHandle m_cascadeShadowCastCbh = kInvalidHandle;
+    RenderGraph  m_graph   = {};
+    FlyingCamera m_camera  = {};
+    Frustum      m_frustum = {};
+
+    ConstantBufferHandle m_entityCbh          = kInvalidHandle;
+    ConstantBufferHandle m_cmrCbh             = kInvalidHandle;
+    ConstantBufferHandle m_lightCbh           = kInvalidHandle;
+    ConstantBufferHandle m_shadowCbh          = kInvalidHandle;
+    ConstantBufferHandle m_shadowCasterCbh    = kInvalidHandle;
+    ConstantBufferHandle m_cubeMapIndexingCbh = kInvalidHandle;
 };

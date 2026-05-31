@@ -31,24 +31,22 @@ Int32 Application::Run(
     CoreInit();
     Init(_argc, _argv);
 
-    TickTimer timer = {};
-    timer.Start();
+    m_timer.Start();
 
-    ImGuiEngine& imgui = GetImGuiEngine();
-    Graphics&    gfx   = GetGraphics();
-    Input&       input = GetInput();
+    WindowsPlatform& win   = GetWindowsPlatform();
+    ImGuiEngine&     imgui = GetImGuiEngine();
+    Graphics&        gfx   = GetGraphics();
+    Input&           input = GetInput();
 
     while (m_bRunning)
     {
-        if (!GetWindowsPlatform().PollEvents())
+        if (!win.PollEvents())
         {
             m_commandQueue.Execute();   // execute submitted commands
 
-            timer.Tick();
-            m_deltaTimeSec = timer.GetDeltaFloat(eSIPrefix::Sec);
-            m_framerate    = 1.f / m_deltaTimeSec;
-
-            Update(m_deltaTimeSec);
+            m_timer.Tick();
+            const float deltaTimeSec = m_timer.GetDeltaFloat(eSIPrefix::Sec);
+            Update(deltaTimeSec);
             Render();
 
             imgui.BeginFrame();
@@ -81,26 +79,33 @@ void Application::DispatchEvent(Event& _event)
         return;
     }
 
+    WindowsPlatform& win   = GetWindowsPlatform();
+    SceneManager&    sm    = GetSceneManager();
+    AssetManager&    am    = GetAssetManager();
+    Graphics&        gfx   = GetGraphics();
+    Input&           input = GetInput();
+
     OnEvent(_event);
-    GetWindowsPlatform().OnEvent(_event);
-    GetGraphics().OnEvent(_event);
+    win.OnEvent(_event);
+    gfx.OnEvent(_event);
 
-    if (m_coreFlags & eAppCoreFlags::AssetManager)
+    if (m_flags & eAppInitFlags::Subsystem_AssetManager)
     {
-        GetAssetManager().OnEvent(_event);
+        am.OnEvent(_event);
     }
 
-    if (m_coreFlags & eAppCoreFlags::Editor)
+    if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
-        GetEditor().OnEvent(_event);
+        Editor& editor = GetEditor();
+        editor.OnEvent(_event);
     }
 
-    if (m_coreFlags & eAppCoreFlags::SceneManager)
+    if (m_flags & eAppInitFlags::Subsystem_SceneManager)
     {
-        GetSceneManager().OnEvent(_event);
+        sm.OnEvent(_event);
     }
 
-    GetInput().OnEvent(_event);
+    input.OnEvent(_event);
 }
 
 void Application::SubmitCommandToMainThread(
@@ -125,20 +130,15 @@ StringView Application::GetAppName() const
     return m_appName;
 }
 
-float Application::GetDeltaTimeSec() const
+const TickTimer& Application::GetTimer() const
 {
-    return m_deltaTimeSec;
+    return m_timer;
 }
 
-float Application::GetFrameRate() const
+bool Application::IsAppInitFlagsEnabled(
+    const eAppInitFlags _flags) const
 {
-    return m_framerate;
-}
-
-bool Application::IsCoreFlagsEnabled(
-    const eAppCoreFlags _flags) const
-{
-    return m_coreFlags.IsEnabled(_flags);
+    return m_flags.IsEnabled(_flags);
 }
 
 StringView Application::GetWorkingDirectory() const
@@ -158,9 +158,9 @@ std::thread::id Application::GetMainThreadId() const
 
 Application::Application(
     const StringView           _appName,
-    const Flags<eAppCoreFlags> _initFlags)
+    const Flags<eAppInitFlags> _flags)
     : m_appName(_appName)
-    , m_coreFlags(_initFlags)
+    , m_flags(_flags)
     , m_workingDir(FileSystem::Current())
 {
     s_pInstance = this;
@@ -174,48 +174,50 @@ Application::Application(
     m_cacheDir.Simplify();
 }
 
-void Application::Update(float _dt)
+void Application::Update(const float _dt)
 {
-    if (m_coreFlags & eAppCoreFlags::Editor)
+    if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
         Editor& editor = GetEditor();
-        editor.Update(m_deltaTimeSec);
+        editor.Update(_dt);
     }
     else
     {
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        SceneManager& sMgr = GetSceneManager();
-        sMgr.Update(m_deltaTimeSec);
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+        SceneManager& sm = GetSceneManager();
+        sm.Update(_dt);
     }
 }
 
 void Application::Render()
 {
-    if (m_coreFlags & eAppCoreFlags::Editor)
+    if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
         Editor& editor = GetEditor();
         editor.Render();
     }
     else
     {
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-        SceneManager& sMgr = GetSceneManager();
-        sMgr.RenderRuntime();
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+        SceneManager& sm = GetSceneManager();
+        sm.RenderRuntime();
     }
 }
 
 void Application::ImGuiRender()
 {
-    if (m_coreFlags & eAppCoreFlags::Editor)
+    if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        GetEditor().ImGuiRender();
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
+        Editor& editor = GetEditor();
+        editor.ImGuiRender();
     }
 
-    JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
-    GetSceneManager().ImGuiRender();
+    JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
+    SceneManager& sm = GetSceneManager();
+    sm.ImGuiRender();
 }
 
 void Application::Init(
@@ -263,16 +265,36 @@ void Application::CoreInit()
     GetWindowsPlatform().SetTitle(m_appName);
 
     // init graphics
-    WindowsPlatform& win  = GetWindowsPlatform();
-    const Vec2i      res  = win.GetClientResolution();
-    const HWND       hWnd = win.GetPlatformHandle();
-    Graphics::CreateInstance(hWnd, res.width, res.height, m_coreFlags.IsEnabled(eAppCoreFlags::AllowTearing));
+    {
+        WindowsPlatform& win = GetWindowsPlatform();
+        const Vec2i      res = win.GetClientResolution();
+
+        GraphicsInit init     = {};
+        init.platformHandle   = win.GetPlatformHandle();
+        init.bAllowTearing    = m_flags.IsEnabled(eAppInitFlags::Graphics_AllowTearing);
+        init.bAttachDebugger  = m_flags.IsEnabled(eAppInitFlags::Graphics_GraphicsDebugger);
+        init.backBufferWidth  = res.x;
+        init.backBufferHeight = res.y;
+
+        Flags<eAppInitFlags> hdrFlags = m_flags.WithFilter(eAppInitFlags::Graphics_BackBufferHDR10, eAppInitFlags::Graphics_BackBufferHDR16);
+        init.backBufferFormat         = hdrFlags == eAppInitFlags::Graphics_BackBufferHDR10 ? eTextureFormat::RGB10A2_UNorm
+                                      : hdrFlags == eAppInitFlags::Graphics_BackBufferHDR16 ? eTextureFormat::RGBA16_Float
+                                                                                            : eTextureFormat::RGBA8_UNorm;
+
+        Flags<eAppInitFlags> msaaFlags = m_flags.WithFilter(eAppInitFlags::Graphics_BackBufferMSAAx4, eAppInitFlags::Graphics_BackBufferMSAAx16);
+        init.backBufferSamples         = msaaFlags == eAppInitFlags::Graphics_BackBufferMSAAx4  ? 4
+                                       : msaaFlags == eAppInitFlags::Graphics_BackBufferMSAAx8  ? 8
+                                       : msaaFlags == eAppInitFlags::Graphics_BackBufferMSAAx16 ? 16
+                                                                                                : 1;
+
+        Graphics::CreateInstance(init);
+    }
 
     // init input
     Input::CreateInstance();
 
     // init asset manager
-    if (m_coreFlags & eAppCoreFlags::AssetManager)
+    if (m_flags & eAppInitFlags::Subsystem_AssetManager)
     {
         FileSystem::MakeDirectory(m_contentsDir);
         Expect<Scoped<FileLock>> pContentsDirLock = FileLock::Create(m_contentsDir, eFileLockMode::ReadWrite);
@@ -294,26 +316,27 @@ void Application::CoreInit()
     }
 
     // init scene manager
-    if (m_coreFlags & eAppCoreFlags::SceneManager)
+    if (m_flags & eAppInitFlags::Subsystem_SceneManager)
     {
         SceneManager::CreateInstance();
     }
 
     // init imgui glue
-    if (m_coreFlags & eAppCoreFlags::ImGuiEngine)
+    if (m_flags & eAppInitFlags::Subsystem_ImGuiEngine)
     {
-        ImGuiEngine::CreateInstance(hWnd);
+        WindowsPlatform& win = GetWindowsPlatform();
+        ImGuiEngine::CreateInstance(win.GetPlatformHandle());
     }
 
     // init editor if need
-    if (m_coreFlags & eAppCoreFlags::Editor)
+    if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::AssetManager, "AssetManager subsystem is required to initialize editor system.");
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::SceneManager, "SceneManager subsystem is required to initialize editor system.");
-        JAM_ASSERT(m_coreFlags & eAppCoreFlags::ImGuiEngine, "Editor subsystem requires ImGuiEngine subsystem.");
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to initialize editor system.");
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to initialize editor system.");
+        JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_ImGuiEngine, "Editor subsystem requires ImGuiEngine subsystem.");
 
         Editor::CreateInstance();
-        m_coreFlags |= eAppCoreFlags::Editor;
+        m_flags |= eAppInitFlags::Subsystem_Editor;
     }
 
     // init done
@@ -332,25 +355,25 @@ void Application::CoreShutdown()
     SceneDatabase::DestroyInstance();
 
     // shutdown editor
-    if (m_coreFlags & eAppCoreFlags::Editor)
+    if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
         Editor::DestroyInstance();
     }
 
     // shutdown imgui glue
-    if (m_coreFlags & eAppCoreFlags::ImGuiEngine)
+    if (m_flags & eAppInitFlags::Subsystem_ImGuiEngine)
     {
         ImGuiEngine::DestroyInstance();
     }
 
     // shutdown scene manager
-    if (m_coreFlags & eAppCoreFlags::SceneManager)
+    if (m_flags & eAppInitFlags::Subsystem_SceneManager)
     {
         SceneManager::DestroyInstance();
     }
 
     // shutdown asset manager
-    if (m_coreFlags & eAppCoreFlags::AssetManager)
+    if (m_flags & eAppInitFlags::Subsystem_AssetManager)
     {
         AssetManager::DestroyInstance();
     }

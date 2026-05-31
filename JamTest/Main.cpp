@@ -4,8 +4,8 @@ class TestApp : public Application
 {
 public:
     TestApp(
-        const StringView                _appName,
-        const Flags<eAppCoreFlags> _subSystems)
+        const StringView           _appName,
+        const Flags<eAppInitFlags> _subSystems)
         : Application(_appName, _subSystems)
     {
     }
@@ -23,4 +23,8 @@ public:
     }
 };
 
-JAM_MAIN(TestApp, "JamAppTest", kRuntimeDefaltFlags);
+int main(const Int32 _argc, char** _argv)
+{
+    TestApp app { "JamAppTest", kDefaultAppInitFlags };
+    return app.Run(_argc, _argv);
+}

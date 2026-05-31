@@ -4,22 +4,26 @@
 namespace Jam
 {
 
-void MeanFilter1D(
+void CalcMeanFilter1D(
     const Span<float> _outKernel)
 {
     const SizeT len = _outKernel.size();
-    const float v   = 1.f / static_cast<float>(len);
+    JAM_ASSERT(len % 2 == 1, "Mean filter kernel size should be odd.");
+
+    const float v = 1.f / static_cast<float>(len);
     for (SizeT i = 0; i < len; ++i)
     {
         _outKernel[i] = v;
     }
 }
 
-void GaussianFilter1D(
+void CalcGaussianFilter1D(
     const Span<float> _outKernel,
     const float       _sigma)
 {
-    const SizeT len     = _outKernel.size();
+    const SizeT len = _outKernel.size();
+    JAM_ASSERT(len % 2 == 1, "Gaussian filter kernel size should be odd.");
+
     const SizeT halfLen = len / 2;
     for (SizeT i = 0; i < len; ++i)
     {
