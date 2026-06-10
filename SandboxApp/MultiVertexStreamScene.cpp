@@ -4,7 +4,7 @@
 #include "Gui.h"
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
-#include "Utils.h"
+#include "Utilities.h"
 
 #define SCENE_PATH(_filepath) "Resources/MultiVertexStreamScene/" _filepath
 
@@ -65,7 +65,7 @@ void MultiVertexStreamScene::OnRender(
     camera.viewProj = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(camera));
 
-    m_graph.Execute(_view.fbh, _view.vp);
+    m_graph.Execute(_view.fbh, _view.viewport);
 }
 
 void MultiVertexStreamScene::OnImGuiRender()
@@ -83,7 +83,7 @@ void MultiVertexStreamScene::OnResize(
     const Int32 _width,
     const Int32 _height)
 {
-    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_camera.SetAspectRatioFromBackBuffer();
 }
 
 void MultiVertexStreamScene::InitMeshes_()
@@ -160,7 +160,7 @@ void MultiVertexStreamScene::InitRenderGraph_()
     ImageFilterDesc     blitDesc = {};
     blitDesc.filter              = eImageFilter::Blit;
     blitDesc.output              = eImageFilterOutput::Final;
-    blitDesc.input0Texture   = "T_SceneColor";
+    blitDesc.input0Texture       = "T_SceneColor";
     ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
 }
 

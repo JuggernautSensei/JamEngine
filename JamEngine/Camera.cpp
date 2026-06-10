@@ -7,87 +7,93 @@ namespace Jam
 
 const Mtx4& Camera::GetProj() const
 {
-    if (m_dirtyFlags & eDirtyFlags::Proj)
+    if (m_dirtyFlags & eMatrixDirtyFlags::Proj)
     {
         if (m_projection == eProjection::Orthographic)
         {
-            m_projMtx = Mtx4::MakeOrtho(m_width, m_height, m_nearZ, m_farZ);
+            m_cachedProj = Mtx4::MakeOrtho(m_width, m_height, m_nearZ, m_farZ);
         }
         else
         {
             const float ar = GetAspectRatio();
-            m_projMtx      = Mtx4::MakePerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
+            m_cachedProj   = Mtx4::MakePerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
         }
-        m_dirtyFlags.Disable(eDirtyFlags::Proj);
+        m_dirtyFlags.Disable(eMatrixDirtyFlags::Proj);
     }
-
-    return m_projMtx;
+    return m_cachedProj;
 }
 
-const Frustum& Camera::GetFrustum() const
+const Mtx4& Camera::GetInvProj() const
 {
-    if (m_dirtyFlags & eDirtyFlags::Frustum)
+    if (m_dirtyFlags & eMatrixDirtyFlags::InvProj)
     {
-        m_frustum = Frustum { GetProj() };
-        m_dirtyFlags.Disable(eDirtyFlags::Frustum);
+        if (m_projection == eProjection::Orthographic)
+        {
+            m_cachedInvProj = Mtx4::MakeInvOrtho(m_width, m_height, m_nearZ, m_farZ);
+        }
+        else
+        {
+            const float ar  = GetAspectRatio();
+            m_cachedInvProj = Mtx4::MakeInvPerspectiveFov(m_fovYRad, ar, m_nearZ, m_farZ);
+        }
+        m_dirtyFlags.Disable(eMatrixDirtyFlags::InvProj);
     }
-
-    return m_frustum;
+    return m_cachedInvProj;
 }
 
 void Camera::SetProjection(
     const eProjection _projection)
 {
     m_projection = _projection;
-    m_dirtyFlags &= eDirtyFlags::All;
+    m_dirtyFlags = eMatrixDirtyFlags::All;
 }
 
 void Camera::SetNearZ(
     const float _nearZ)
 {
-    m_nearZ = _nearZ;
-    m_nearZ = Clamp(m_nearZ, kMinZ, m_farZ - 0.001f);
-    m_dirtyFlags &= eDirtyFlags::All;
+    m_nearZ      = _nearZ;
+    m_nearZ      = Clamp(m_nearZ, kMinZ, m_farZ - 0.001f);
+    m_dirtyFlags = eMatrixDirtyFlags::All;
 }
 
 void Camera::SetFarZ(
     const float _farZ)
 {
-    m_farZ = _farZ;
-    m_farZ = Clamp(m_farZ, m_nearZ + 0.001f, kMaxZ);
-    m_dirtyFlags &= eDirtyFlags::All;
+    m_farZ       = _farZ;
+    m_farZ       = Clamp(m_farZ, m_nearZ + 0.001f, kMaxZ);
+    m_dirtyFlags = eMatrixDirtyFlags::All;
 }
 
 void Camera::SetFovYRad(
     const float _fovYRad)
 {
-    m_fovYRad = _fovYRad;
-    m_fovYRad = Clamp(m_fovYRad, kMinFovYRad, kMaxFovYRad);
-    m_dirtyFlags &= eDirtyFlags::All;
+    m_fovYRad    = _fovYRad;
+    m_fovYRad    = Clamp(m_fovYRad, kMinFovYRad, kMaxFovYRad);
+    m_dirtyFlags = eMatrixDirtyFlags::All;
 }
 
 void Camera::SetWidth(
     const float _width)
 {
-    m_width = _width;
-    m_width = Clamp(m_width, kMinWidthHeight, kMaxWidthHeight);
-    m_dirtyFlags &= eDirtyFlags::All;
+    m_width      = _width;
+    m_width      = Clamp(m_width, kMinWidthHeight, kMaxWidthHeight);
+    m_dirtyFlags = eMatrixDirtyFlags::All;
 }
 
 void Camera::SetHeight(
     const float _height)
 {
-    m_height = _height;
-    m_height = Clamp(m_height, kMinWidthHeight, kMaxWidthHeight);
-    m_dirtyFlags &= eDirtyFlags::All;
+    m_height     = _height;
+    m_height     = Clamp(m_height, kMinWidthHeight, kMaxWidthHeight);
+    m_dirtyFlags = eMatrixDirtyFlags::All;
 }
 
 void Camera::SetAspectRatio(
     const float _aspect)
 {
-    m_width  = 1.f;
-    m_height = _aspect;
-    m_dirtyFlags &= eDirtyFlags::All;
+    m_width      = 1.f;
+    m_height     = _aspect;
+    m_dirtyFlags = eMatrixDirtyFlags::All;
 }
 
 eProjection Camera::GetProjection() const

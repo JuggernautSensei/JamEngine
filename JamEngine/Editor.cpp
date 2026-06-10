@@ -20,7 +20,6 @@
 #include "JsonArchive.h"
 #include "SceneManager.h"
 #include "SceneNode.h"
-#include "VertexLayoutEntryManager.h"
 #include "Model.h"
 #include "Profile.h"
 #include "FileSystem.h"
@@ -695,7 +694,7 @@ bool Editor::CreateDir(
 {
     JAM_ASSERT(_dir.IsDirectory(), "Editor::MakeDirectory() - the given path is not a directory.");
 
-    if (const Error err = FileSystem::MakeDirectory(_dir, _policy))
+    if (const Error err = MakeDirectory(_dir, _policy))
     {
         PushMessageDialog(
             "error",

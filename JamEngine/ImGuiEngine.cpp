@@ -4,7 +4,7 @@
 
 #include "ImGuiEngine.h"
 
-#include "GeometryUtilities.h"
+#include "GeometryReadWriter.h"
 #include "Graphics.h"
 #include "Texture.h"
 #include "ShaderCompiler.h"
@@ -123,11 +123,11 @@ namespace
         desc.entryPoint         = _entryPoint;
         desc.stage              = _stage;
 
-        ShaderCompiler complier = ShaderCompiler::CompileHLSLSource(_source, desc);
-        JAM_ASSERT(complier.IsSucceeded(), "Failed to compile ImGui shader: {}", complier.GetError().ToErrorMessage());
+        Expect<ShaderCompiler> complier = ShaderCompiler::CompileHLSLSource(_source, desc);
+        JAM_ASSERT(complier, "Failed to compile ImGui shader. {}", complier.GetError());
 
         Graphics& gfx = GetGraphics();
-        return gfx.CreateShader(complier.GetBytecode());
+        return gfx.CreateShader(complier->GetBytecode());
     }
 
 }   // namespace

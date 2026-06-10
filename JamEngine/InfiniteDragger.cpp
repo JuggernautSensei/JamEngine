@@ -14,36 +14,38 @@ InfiniteDragger::InfiniteDragger(
 
 void InfiniteDragger::Update()
 {
+    Input& input = GetInput();
+
     // check drag start
     if (!m_bIsDragging)
     {
-        const bool bLeft   = (m_buttonFlags & eInfiniteDraggerFlags::Left) && GetInput().IsMousePressed(eMouse::LeftButton);
-        const bool bRight  = (m_buttonFlags & eInfiniteDraggerFlags::Right) && GetInput().IsMousePressed(eMouse::RightButton);
-        const bool bMiddle = (m_buttonFlags & eInfiniteDraggerFlags::Middle) && GetInput().IsMousePressed(eMouse::MiddleButton);
+        const bool bLeft   = (m_buttonFlags & eInfiniteDraggerFlags::Left) && input.IsMousePressed(eMouse::LeftButton);
+        const bool bRight  = (m_buttonFlags & eInfiniteDraggerFlags::Right) && input.IsMousePressed(eMouse::RightButton);
+        const bool bMiddle = (m_buttonFlags & eInfiniteDraggerFlags::Middle) && input.IsMousePressed(eMouse::MiddleButton);
 
         if (bLeft || bRight || bMiddle)
         {
             m_bIsDragging = true;
-            m_capturedPos = GetInput().GetMousePos();
+            m_capturedPos = input.GetMousePos();
             m_deltaPos    = Vec2i::kZero;
-            GetInput().SetMouseVisibility(false);
+            input.SetMouseVisibility(false);
         }
     }
     else
     {
         // during dragging
-        m_deltaPos = GetInput().GetMousePos() - m_capturedPos;
+        m_deltaPos = input.GetMousePos() - m_capturedPos;
 
         // fix mouse pos to captured pos
         if (m_deltaPos.x != 0 || m_deltaPos.y != 0)
         {
-            GetInput().SetMousePos(m_capturedPos.x, m_capturedPos.y);
+            input.SetMousePos(m_capturedPos.x, m_capturedPos.y);
         }
 
         // check drag end
-        const bool bLeft   = !(m_buttonFlags & eInfiniteDraggerFlags::Left) || GetInput().IsMouseUp(eMouse::LeftButton);
-        const bool bRight  = !(m_buttonFlags & eInfiniteDraggerFlags::Right) || GetInput().IsMouseUp(eMouse::RightButton);
-        const bool bMiddle = !(m_buttonFlags & eInfiniteDraggerFlags::Middle) || GetInput().IsMouseUp(eMouse::MiddleButton);
+        const bool bLeft   = !(m_buttonFlags & eInfiniteDraggerFlags::Left) || input.IsMouseUp(eMouse::LeftButton);
+        const bool bRight  = !(m_buttonFlags & eInfiniteDraggerFlags::Right) || input.IsMouseUp(eMouse::RightButton);
+        const bool bMiddle = !(m_buttonFlags & eInfiniteDraggerFlags::Middle) || input.IsMouseUp(eMouse::MiddleButton);
 
         // all flagged buttons are up -> end drag
         if (bLeft && bRight && bMiddle)
@@ -51,7 +53,7 @@ void InfiniteDragger::Update()
             m_bIsDragging = false;
             m_deltaPos    = Vec2i::kZero;
             m_capturedPos = Vec2i::kZero;
-            GetInput().SetMouseVisibility(true);
+            input.SetMouseVisibility(true);
         }
     }
 }

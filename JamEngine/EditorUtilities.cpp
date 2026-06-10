@@ -3,7 +3,6 @@
 #include "EditorUtilities.h"
 
 #include "Editor.h"
-#include "Graphics.h"
 #include "SceneManager.h"
 
 namespace Jam

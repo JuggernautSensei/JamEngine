@@ -2,6 +2,8 @@
 #include "FileWatcher.h"
 
 #include "FileSystem.h"
+#include "LogSystem.h"
+#include "WindowsUtilities.h"
 
 namespace Jam
 {
@@ -58,12 +60,12 @@ Error FileWatcher::Init_(
 
     if (m_dirHandle == INVALID_HANDLE_VALUE)
     {
-        JAM_LOG_ERROR("Failed to create file watcher for '{}': {}", _info.path, CreateWindowsLastErrorMessage());
+        JAM_LOG_ERROR("Failed to create file watcher for '{}': {}", _info.path, MakeWindowsLastErrorMessage());
         return ErrorFromPlatformErrorCode(::GetLastError());
     }
 
     m_bRecursive          = _info.bRecursive;
-    m_pollingDelayMs      = _info.pollingDelayMs;
+    m_pollingDelay        = _info.pollingDelay;
     m_fileWatcherListener = _info.FileWatcherListener;
     m_bRunning            = true;
     m_watcherThread       = std::thread { &FileWatcher::Run_, this };
@@ -92,22 +94,23 @@ void FileWatcher::Run_()
             FILE_NOTIFY_INFORMATION* pInfo  = nullptr;
             DWORD                    offset = 0;
 
-            FileWatcherEvent event   = {};
-            String           path    = {};
-            String           oldPath = {};
+            FileWatcherEvent event = {};
+            event.path             = m_watchPath;
+
+            String path    = {};
+            String oldPath = {};
 
             do
             {
-                pInfo          = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer + offset);
-                bool bDispatch = true;
+                pInfo                 = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer + offset);
+                const SizeT len       = static_cast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR));
+                bool        bDispatch = true;
 
                 switch (pInfo->Action)
                 {
                     case FILE_ACTION_ADDED:
                     {
-                        path = m_watchPath;
-                        path.AppendEncode(pInfo->FileName, static_cast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
-
+                        path.Encode(pInfo->FileName, len);
                         event.type    = eFileEvent::Added;
                         event.path    = path;
                         event.oldPath = {};
@@ -116,9 +119,7 @@ void FileWatcher::Run_()
 
                     case FILE_ACTION_REMOVED:
                     {
-                        path = m_watchPath;
-                        path.AppendEncode(pInfo->FileName, static_cast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
-
+                        path.Encode(pInfo->FileName, len);
                         event.type    = eFileEvent::Deleted;
                         event.path    = path;
                         event.oldPath = {};
@@ -128,11 +129,9 @@ void FileWatcher::Run_()
                     case FILE_ACTION_MODIFIED:
                     {
                         // 다른 파일이 수정 중일 수 있으므로, 조금 지연
-                        std::this_thread::sleep_for(std::chrono::milliseconds { m_fileModifiedEventDebounceMs });
+                        std::this_thread::sleep_for(std::chrono::milliseconds { m_fileModifiedEventDebounce });
 
-                        path = m_watchPath;
-                        path.AppendEncode(pInfo->FileName, static_cast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
-
+                        path.Encode(pInfo->FileName, len);
                         event.type    = eFileEvent::Modified;
                         event.path    = path;
                         event.oldPath = {};
@@ -141,17 +140,14 @@ void FileWatcher::Run_()
 
                     case FILE_ACTION_RENAMED_OLD_NAME:
                     {
-                        oldPath = m_watchPath;
-                        oldPath.AppendEncode(pInfo->FileName, static_cast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
+                        oldPath.Encode(pInfo->FileName, len);
                         bDispatch = false;   // dispatch in FILE_ACTION_RENAMED_NEW_NAME case
                     }
                     break;
 
                     case FILE_ACTION_RENAMED_NEW_NAME:
                     {
-                        path = m_watchPath;
-                        path.AppendEncode(pInfo->FileName, static_cast<SizeT>(pInfo->FileNameLength / sizeof(WCHAR)));
-
+                        path.Encode(pInfo->FileName, len);
                         event.type    = eFileEvent::Renamed;
                         event.path    = path;
                         event.oldPath = oldPath;
@@ -171,9 +167,9 @@ void FileWatcher::Run_()
             } while (pInfo->NextEntryOffset != 0);
         }
 
-        if (m_pollingDelayMs > 0)
+        if (m_pollingDelay > 0ms)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds { m_pollingDelayMs });
+            std::this_thread::sleep_for(m_pollingDelay);
         }
     }
 }

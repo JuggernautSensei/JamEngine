@@ -157,7 +157,7 @@ public:
             std::construct_at(&m_dummy, DummyT {});
         }
 
-        _other.Free();
+        _other.Reset();
     }
 
     template<typename U>
@@ -180,7 +180,7 @@ public:
         return m_bHasValue;
     }
 
-    explicit operator bool() const
+    explicit constexpr operator bool() const
     {
         return m_bHasValue;
     }
@@ -296,7 +296,7 @@ public:
         return m_value != nullptr;
     }
 
-    explicit operator bool() const
+    explicit constexpr operator bool() const
     {
         return m_value != nullptr;
     }

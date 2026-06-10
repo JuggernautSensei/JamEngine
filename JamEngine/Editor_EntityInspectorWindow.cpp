@@ -68,7 +68,7 @@ void Editor_EntityInspectorWindow::OnImGuiRender(
     }
 
     // component editor panels
-    for (const ComponentReflectionData& data: GetComponentDatabase().GetComponentReflectionContainer() | std::views::values)
+    for (const ComponentDatabase::Data& data: GetComponentDatabase().GetComponentDataContainer() | std::views::values)
     {
         if (data.Has(entity) && data.DrawEditPanel)
         {
@@ -141,7 +141,7 @@ void Editor_EntityInspectorWindow::OnEvent_(
 void Editor_EntityInspectorWindow::Menu_RemoveComponent_() const
 {
     const Entity entity = GetEditor().GetFocusingEntityOrNull();
-    for (const ComponentReflectionData& data: GetComponentDatabase().GetComponentReflectionContainer() | std::views::values)
+    for (const ComponentDatabase::Data& data: GetComponentDatabase().GetComponentDataContainer() | std::views::values)
     {
         if (data.Has(entity) && !data.bNonRemoveable)
         {
@@ -156,7 +156,7 @@ void Editor_EntityInspectorWindow::Menu_RemoveComponent_() const
 void Editor_EntityInspectorWindow::Menu_AddComponent_() const
 {
     const Entity entity = GetEditor().GetFocusingEntityOrNull();
-    for (const ComponentReflectionData& data: GetComponentDatabase().GetComponentReflectionContainer() | std::views::values)
+    for (const ComponentDatabase::Data& data: GetComponentDatabase().GetComponentDataContainer() | std::views::values)
     {
         if (!data.Has(entity) && !data.bNonCreatableByUser)
         {

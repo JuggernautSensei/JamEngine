@@ -12,7 +12,6 @@
 #include "JsonArchive.h"
 #include "RenderableComponent.h"
 #include "SceneManager.h"
-#include "EditorUtilities.h"
 
 namespace Jam
 {

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <fstream>
 
-namespace Jam::FileSystem::Test
+namespace Jam::Test
 {
 
 class FileSystemTest : public ::testing::Test
@@ -399,4 +399,4 @@ TEST_F(FileSystemTest, QueryFileAttribute_Directory)
     EXPECT_GT(attr.lastWriteTime, 0);
 }
 
-}   // namespace Jam::FileSystem::Test
+}   // namespace Jam::Test

@@ -245,7 +245,7 @@ bool ImageImportDialog::OnClickImportButton_()
     String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::File);
     path.ReplaceExtension(Texture::kExtension);
 
-    if (FileSystem::Exists(path))
+    if (Exists(path))
     {
         PushOverwriteConfirmationDialog_(path);
         return false;

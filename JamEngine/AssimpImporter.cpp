@@ -2,18 +2,18 @@
 
 #include "AssimpImporter.h"
 
-#include "MeshFactory.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include "GeometryUtilities.h"
+#include "Mesh.h"
+#include "Model.h"
+#include "Texture.h"
+#include "Profile.h"
 #include "Graphics.h"
 #include "ImageBase.h"
 #include "ImageImporter.h"
-#include "Mesh.h"
-#include "Model.h"
-#include "Profile.h"
+#include "GeometryReadWriter.h"
 
 namespace Jam
 {

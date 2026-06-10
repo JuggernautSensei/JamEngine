@@ -37,11 +37,11 @@ constexpr StringView GetComponentEditorDisplayName()
 // component property flags
 enum class eComponentPropertyFlags : UInt32
 {
-    None               = 0,
-    Serializable       = 1 << 0,
-    Editable           = 1 << 1,
-    NonRemoveable      = 1 << 2,
-    NonCreatableByUser = 1 << 3,   // 에디터 "Add Component" 미노출, 코드에서는 생성 가능
+    None                 = 0,
+    Serializable         = 1 << 0,
+    Editable             = 1 << 1,
+    NonRemoveable        = 1 << 2,
+    NonCreatableOnEditor = 1 << 3,   // 에디터 "Add Component" 미노출, 코드에서는 생성 가능
 };
 
 // component property flags declaration

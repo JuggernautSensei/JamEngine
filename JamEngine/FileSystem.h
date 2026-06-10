@@ -1,7 +1,11 @@
 #pragma once
+#include "Error.h"
+#include "String.h"
 
 namespace Jam::FileSystem
 {
+
+constexpr Int32 kMaxPath = 512;
 
 enum eFile
 {
@@ -19,8 +23,6 @@ struct FileAttribute
     UInt64 lastWriteTime  = 0;
     UInt64 fileSize       = 0;
 };
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum class eFileCollisionPolicy
 {

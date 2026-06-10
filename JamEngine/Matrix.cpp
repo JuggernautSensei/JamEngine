@@ -51,7 +51,6 @@ Mtx4 Mtx4::MakeOrtho(
     const float w = right - left;
     const float h = top - bottom;
     const float d = farZ - nearZ;
-    JAM_ASSERT(w > 0 && h > 0 && d > 0, "Invalid orthographic projection parameters.");
 
     return {
         {             2.f / w,                 0.f,        0.f, 0.f },
@@ -68,6 +67,56 @@ Mtx4 Mtx4::MakeOrtho(
     const float _farZ)
 {
     return MakeOrtho(-_width * 0.5f, _width * 0.5f, _height * 0.5f, -_height * 0.5f, _nearZ, _farZ);
+}
+
+Mtx4 Mtx4::MakeInvOrtho(
+    const float left,
+    const float right,
+    const float top,
+    const float bottom,
+    const float nearZ,
+    const float farZ)
+{
+    const float w = right - left;
+    const float h = top - bottom;
+    const float d = farZ - nearZ;
+
+    return {
+        {              w * 0.5f,                   0.f,   0.f, 0.f },
+        {                   0.f,              h * 0.5f,   0.f, 0.f },
+        {                   0.f,                   0.f,     d, 0.f },
+        { (right + left) * 0.5f, (top + bottom) * 0.5f, nearZ, 1.f }
+    };
+}
+
+Mtx4 Mtx4::MakeInvOrtho(
+    const float _width,
+    const float _height,
+    const float _nearZ,
+    const float _farZ)
+{
+    return MakeInvOrtho(-_width * 0.5f, _width * 0.5f, _height * 0.5f, -_height * 0.5f, _nearZ, _farZ);
+}
+
+Mtx4 Mtx4::MakeInvPerspectiveFov(
+    const float _fovYRad,
+    const float _aspect,
+    const float _nearZ,
+    const float _farZ)
+{
+    JAM_ASSERT(_fovYRad > 0.f && _fovYRad < kPi, "Invalid field of view.");
+    JAM_ASSERT(_aspect > 0.f, "Invalid aspect ratio.");
+    JAM_ASSERT(_nearZ > 0.f && _farZ > _nearZ, "Invalid near and far planes.");
+
+    const float d    = _farZ - _nearZ;
+    const float invF = Tan(_fovYRad * 0.5f);
+
+    return {
+        { _aspect * invF,  0.f, 0.f,                   0.f },
+        {            0.f, invF, 0.f,                   0.f },
+        {            0.f,  0.f, 0.f, -d / (_farZ * _nearZ) },
+        {            0.f,  0.f, 1.f,          1.f / _nearZ }
+    };
 }
 
 Mtx4 Mtx4::MakePerspectiveFov(
@@ -205,10 +254,18 @@ Mtx4 Mtx4::MakeLookAt(
     const Vec3 _focusPoint,
     const Vec3 _up)
 {
-    JAM_ASSERT(!(_focusPoint - _eyePos).IsZeroApprox(), "Eye and focus point cannot be the same.");
+    return MakeLookTo(_eyePos, _focusPoint - _eyePos, _up);
+}
+
+Mtx4 Mtx4::MakeLookTo(
+    const Vec3 _eyePos,
+    const Vec3 _forward,
+    const Vec3 _up)
+{
+    JAM_ASSERT(!_forward.IsZeroApprox(), "Forward direction cannot be zero vector.");
     JAM_ASSERT(!_up.IsZeroApprox(), "Up direction cannot be zero vector.");
 
-    const Vec3  f  = (_focusPoint - _eyePos).Normalized();
+    const Vec3  f  = _forward.Normalized();
     const Vec3  r  = _up.Cross(f).Normalized();
     const Vec3  u  = f.Cross(r);
     const float tx = -r.Dot(_eyePos);

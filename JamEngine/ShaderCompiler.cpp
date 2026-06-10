@@ -115,51 +115,37 @@ namespace
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ShaderCompiler ShaderCompiler::CompileHLSLFile(
+Expect<ShaderCompiler> ShaderCompiler::CompileHLSLFile(
     const StringView          _path,
     const ShaderCompilerInfo& _desc)
 {
     ShaderCompiler compiler = {};
-    compiler.CompileFromHLSLFile_(_path, _desc);
+    if (const Error err = compiler.CompileFromHLSLFile_(_path, _desc))
+    {
+        return err;
+    }
     return compiler;
 }
 
-ShaderCompiler ShaderCompiler::CompileHLSLSource(
+Expect<ShaderCompiler> ShaderCompiler::CompileHLSLSource(
     const StringView          _source,
     const ShaderCompilerInfo& _desc)
 {
     ShaderCompiler compiler = {};
-    compiler.CompileHLSLSource_(_source, _desc);
+    if (const Error err = compiler.CompileHLSLSource_(_source, _desc))
+    {
+        return err;
+    }
     return compiler;
 }
 
 MemoryView ShaderCompiler::GetBytecode() const
 {
     JAM_ASSERT(m_pBlob, "Shader blob is null.");
-    return { m_pBlob->GetBufferPointer(), static_cast<Int32>(m_pBlob->GetBufferSize()) };
+    return { m_pBlob->GetBufferPointer(), static_cast<SizeT>(m_pBlob->GetBufferSize()) };
 }
 
-StringView ShaderCompiler::GetErrorMessage() const
-{
-    return m_errorMsg;
-}
-
-Error ShaderCompiler::GetError() const
-{
-    return m_error;
-}
-
-bool ShaderCompiler::IsSucceeded() const
-{
-    return m_pBlob != nullptr;
-}
-
-bool ShaderCompiler::IsFailed() const
-{
-    return !IsSucceeded();
-}
-
-void ShaderCompiler::CompileFromHLSLFile_(
+Error ShaderCompiler::CompileFromHLSLFile_(
     const StringView          _path,
     const ShaderCompilerInfo& _desc)
 {
@@ -178,7 +164,7 @@ void ShaderCompiler::CompileFromHLSLFile_(
 
     // compile
     const WString    path       = WString::Encoded(_path);
-    ComPtr<ID3DBlob> pErrorBlob = nullptr;
+    Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
     const HRESULT    hr         = D3DCompileFromFile(
         path.GetPtr(),
         pMacro,
@@ -193,26 +179,25 @@ void ShaderCompiler::CompileFromHLSLFile_(
     // check error
     if (FAILED(hr) || !m_pBlob)
     {
-        m_errorMsg.Format("shader \"{}\" compilation failed: ", _path);
+        String msg = String::Formatted("shader \"{}\" compilation failed: ", _path);
 
         if (pErrorBlob)
         {
-            m_errorMsg.Append(static_cast<const char*>(pErrorBlob->GetBufferPointer()));
+            msg.Append(static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            m_errorMsg.Append(MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
+            msg.Append(MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         }
 
-        JAM_LOG_ERROR(m_errorMsg);
-        m_error = Error::ShaderCompileFailed;
-        return;
+        JAM_LOG_ERROR(msg);
+        return Error::ShaderCompileFailed;
     }
 
-    m_error = Error::None;
+    return Error::None;
 }
 
-void ShaderCompiler::CompileHLSLSource_(
+Error ShaderCompiler::CompileHLSLSource_(
     const StringView          _source,
     const ShaderCompilerInfo& _desc)
 {
@@ -229,7 +214,7 @@ void ShaderCompiler::CompileHLSLSource_(
     }
 
     // compile
-    ComPtr<ID3DBlob> pErrorBlob = nullptr;
+    Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
     const HRESULT    hr         = D3DCompile(
         _source.GetPtr(),
         _source.GetLength(),
@@ -246,22 +231,21 @@ void ShaderCompiler::CompileHLSLSource_(
     // check error
     if (FAILED(hr) || !m_pBlob)
     {
-        m_errorMsg.Set("shader source compilation failed: ");
+        String str = "shader source compilation failed: ";
         if (pErrorBlob)
         {
-            m_errorMsg.Append(static_cast<const char*>(pErrorBlob->GetBufferPointer()));
+            str.Append(static_cast<const char*>(pErrorBlob->GetBufferPointer()));
         }
         else
         {
-            m_errorMsg.Append(MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
+            str.Append(MakeWindowsErrorMessage(hr, eWindowsErrorCode::HRESULT));
         }
 
-        JAM_LOG_ERROR(m_errorMsg);
-        m_error = Error::ShaderCompileFailed;
-        return;
+        JAM_LOG_ERROR(str);
+        return Error::ShaderCompileFailed;
     }
 
-    m_error = Error::None;
+    return Error::None;
 }
 
 }   // namespace Jam

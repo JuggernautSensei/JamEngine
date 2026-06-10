@@ -403,7 +403,7 @@ WindowsPlatform::WindowsPlatform()
 
             if (RegisterClassExW(&wClassEx) == 0)
             {
-                JAM_CRASH("Failed to register window class: {}", CreateWindowsLastErrorMessage());
+                JAM_CRASH("Failed to register window class: {}", MakeWindowsLastErrorMessage());
             }
         }
 
@@ -411,7 +411,7 @@ WindowsPlatform::WindowsPlatform()
         m_hWnd = CreateWindowExW(0, kWinClassName, kWinTitleName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, NULL, NULL, m_hInstance, NULL);
         if (m_hWnd == NULL)
         {
-            JAM_CRASH("Failed to create window: {}", CreateWindowsLastErrorMessage());
+            JAM_CRASH("Failed to create window: {}", MakeWindowsLastErrorMessage());
         }
 
         ::ShowWindow(m_hWnd, SW_SHOW);

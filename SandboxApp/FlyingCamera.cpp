@@ -62,17 +62,32 @@ const Mtx4& FlyingCamera::GetProj() const
     return camera.GetProj();
 }
 
-Mtx4 FlyingCamera::CalcView() const
+const Mtx4& FlyingCamera::GetInvProj() const
+{
+    return camera.GetInvProj();
+}
+
+const Mtx4& FlyingCamera::GetView() const
 {
     return transform.GetInvSRT();
 }
 
-Mtx4 FlyingCamera::CalcViewProj() const
+const Mtx4& FlyingCamera::GetInvView() const
 {
-    return CalcView() * GetProj();
+    return transform.GetSRT();
 }
 
-void FlyingCamera::FitAspectRatioAsBackBufferResolution()
+Mtx4 FlyingCamera::CalcViewProj() const
+{
+    return GetView() * GetProj();
+}
+
+Mtx4 FlyingCamera::CalcInvViewProj() const
+{
+    return GetInvProj() * GetInvView();
+}
+
+void FlyingCamera::SetAspectRatioFromBackBuffer()
 {
     Graphics&         gfx = GetGraphics();
     const BackBuffer& bb  = gfx.GetBackBuffer();

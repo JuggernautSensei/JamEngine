@@ -5,7 +5,6 @@
 #include "Editor.h"
 
 #include "EditorUtilities.h"
-#include "EditorWidgets.h"
 #include "VertexLayoutEditorDialog.h"
 #include "VertexLayoutEntryManager.h"
 

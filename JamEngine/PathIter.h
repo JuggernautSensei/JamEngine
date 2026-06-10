@@ -22,8 +22,8 @@ public:
             return;
         }
 
-        const CharResult ret = FindPathSeparator(_path);
-        m_length             = ret.IsSucceeded() ? ret.pos + 1 : _path.GetLength();   // include the path separator if found
+        const Optional<SizeT> ret = FindPathSeparator(_path);
+        m_length                  = ret ? ret.GetValue() + 1 : _path.GetLength();   // include the path separator if found
     }
 
     [[nodiscard]] StringViewT operator*() const
@@ -63,10 +63,10 @@ private:
             return;
         }
 
-        const CharResult ret = FindPathSeparator(m_path.ToStringView(m_offset, m_path.GetLength() - m_offset));
-        if (ret.IsSucceeded())
+        const Optional<SizeT> ret = FindPathSeparator(m_path.ToStringView(m_offset, m_path.GetLength() - m_offset));
+        if (ret)
         {
-            m_length = ret.pos + 1;   // include the path separator
+            m_length = ret.GetValue() + 1;   // include the path separator
         }
         else
         {
@@ -74,16 +74,16 @@ private:
         }
     }
 
-    [[nodiscard]] CharResult FindPathSeparator(StringViewT _path) const
+    [[nodiscard]] Optional<SizeT> FindPathSeparator(StringViewT _path) const
     {
         for (SizeT i = 0; i < _path.GetLength(); ++i)
         {
             if (CharTraits::IsPathSeparator(_path[i]))
             {
-                return CharResult { i };
+                return i;
             }
         }
-        return CharResult::Failed();
+        return kNullopt;
     }
 
     StringT m_path   = {};

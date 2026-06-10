@@ -1,5 +1,4 @@
 #pragma once
-#include "Configs.h"
 
 #ifdef JAM_COMPILER_MSVC
 #    define JAM_PRETTY_FUNCTION __FUNCSIG__

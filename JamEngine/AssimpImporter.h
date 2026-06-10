@@ -1,9 +1,13 @@
 #pragma once
-#include <assimp/Importer.hpp>
 
 #include "EnumArray.h"
 #include "Material.h"
 #include "Model.h"
+
+namespace Assimp
+{
+class Importer;
+}
 
 struct aiNode;
 struct aiTexture;
@@ -31,7 +35,7 @@ struct ImportedMesh
     Vector<Vec3>           bitangents = {};
     Array<Vector<Vec4>, 4> colors     = {};
     Array<Vector<Vec2>, 4> texCoords  = {};
-    Vector<Byte>           indexData    = {};
+    Vector<Byte>           indexData  = {};
     bool                   bUseU32    = false;
 };
 

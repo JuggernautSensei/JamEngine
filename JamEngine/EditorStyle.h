@@ -1,5 +1,5 @@
 #pragma once
-#include "ImGuiEngine.h"
+#include "EnumArray.h"
 
 namespace Jam
 {
@@ -63,9 +63,9 @@ struct EditorStyle
 {
     EditorStyle();
 
-    EnumArray<eEditorStyleVar, float>         vars      = {};
-    EnumArray<eEditorStyleColor, ImVec4>      colors    = {};
-    EnumArray<eEditorShortCut, ImGuiKeyChord> shortCuts = {};
+    EnumMap<eEditorStyleVar, float>         vars      = {};
+    EnumMap<eEditorStyleColor, ImVec4>      colors    = {};
+    EnumMap<eEditorShortCut, ImGuiKeyChord> shortCuts = {};
 };
 
 }   // namespace Jam

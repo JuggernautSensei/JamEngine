@@ -6,6 +6,7 @@
 #include "AssetSaveLoader.h"
 #include "Profile.h"
 #include "Random.h"
+#include "Texture.h"
 
 namespace Jam
 {

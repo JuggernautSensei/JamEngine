@@ -13,9 +13,6 @@
     <Filter Include="07. ShadowMapping">
       <UniqueIdentifier>{19262fad-e94b-47e3-9fc9-a06356f5dcfb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="08. Stencil Reflection">
-      <UniqueIdentifier>{98be7fbc-019f-4f89-8ab2-096dbb259a5b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="01. SimpleScene">
       <UniqueIdentifier>{30e5dd68-72b0-48e1-8c16-bcad5cd5c997}</UniqueIdentifier>
     </Filter>
@@ -79,6 +76,9 @@
     <Filter Include="Misc\FXAA">
       <UniqueIdentifier>{6ec9c269-4bd3-4a5f-82d5-4b2812e19875}</UniqueIdentifier>
     </Filter>
+    <Filter Include="08. Stencil">
+      <UniqueIdentifier>{98be7fbc-019f-4f89-8ab2-096dbb259a5b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SandboxApp.cpp">
@@ -129,7 +129,7 @@
     <ClCompile Include="ImageFilterManager.cpp">
       <Filter>PostProcess</Filter>
     </ClCompile>
-    <ClCompile Include="Utils.cpp">
+    <ClCompile Include="Utilities.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="ComputeScene.cpp">
@@ -185,7 +185,7 @@
     <ClInclude Include="ImageFilterManager.h">
       <Filter>PostProcess</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
+    <ClInclude Include="Utilities.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="ComputeScene.h">
@@ -219,12 +219,6 @@
     <FxCompile Include="Resources\SimpleScene\SimpleShader.hlsl">
       <Filter>01. SimpleScene</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\DeferedScene\LightingShader.hlsl">
-      <Filter>06. Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\DeferedScene\GbufferShader.hlsl">
-      <Filter>06. Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\ShadowMappingScene\GBufferShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
@@ -252,7 +246,7 @@
     <FxCompile Include="Resources\ShadowMappingScene\SpotShadowReceiverShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\DirectionalShadowReceiverShader.hlsl">
+    <FxCompile Include="Resources\ShadowMappingScene\CascadeShadowReceiverShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
     <FxCompile Include="Resources\ShadowMappingScene\Common.hlsl">
@@ -333,11 +327,14 @@
     <FxCompile Include="Resources\ShadowMappingScene\DebugLightCubeShader.hlsl">
       <Filter>07. ShadowMapping</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\ShadowMappingScene\OmniShadowCasterShader.hlsl">
-      <Filter>07. ShadowMapping</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\ImageFilter\FXAAShader.hlsl">
       <Filter>PostProcess\ImageFilter</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\DeferredScene\GbufferShader.hlsl">
+      <Filter>06. Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\DeferredScene\LightingShader.hlsl">
+      <Filter>06. Deferred</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

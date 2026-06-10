@@ -17,9 +17,11 @@ namespace Details   // Base
     constexpr ExtractResult ExtractFullName()
     {
         // ExtractFullName<...>();
-        constexpr StringView raw { JAM_PRETTY_FUNCTION };
-        constexpr SizeT      open  = raw.Find("<").pos + 1;
-        constexpr SizeT      close = raw.RFind(">").pos;
+        constexpr StringView      raw { JAM_PRETTY_FUNCTION };
+        constexpr Optional<SizeT> prefix = raw.Find("<");
+        constexpr Optional<SizeT> suffix = raw.Find(">");
+        constexpr SizeT           open   = prefix.GetValue() + 1;
+        constexpr SizeT           close  = suffix.GetValue();
 
         SizeT begin = open;
         SizeT end   = close;

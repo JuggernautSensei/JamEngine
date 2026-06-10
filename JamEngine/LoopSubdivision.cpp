@@ -2,7 +2,7 @@
 
 #include "LoopSubdivision.h"
 
-#include "GeometryUtilities.h"
+#include "GeometryReadWriter.h"
 #include "MemoryArena.h"
 #include "MemoryHasher.h"
 

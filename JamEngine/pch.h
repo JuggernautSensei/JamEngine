@@ -1,9 +1,5 @@
 #pragma once
 
-// intercept memory allocators
-#include "Allocator.h"
-
-// predefine m_focusingShaderItemMacrosEdit
 #ifndef NOMINMAX
 #    define NOMINMAX
 #endif
@@ -11,9 +7,6 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
 #endif
-
-// imgui
-#define IMGUI_DEFINE_MATH_OPERATORS
 
 // windows
 #include <windows.h>
@@ -25,14 +18,12 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
-#include <string>
-#include <string_view>
+#include <source_location>
 #include <type_traits>
-#include <unordered_map>
-#include <vector>
 
-// directX
+// directx
 #include <d3d11_4.h>
+#include <DirectXTex.h>
 #include <wrl.h>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -46,29 +37,44 @@
 #include <fmt/printf.h>
 #include <fmt/xchar.h>
 
-// non-dependent core
+// imgui
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "Vendor/imgui/imgui.h"
+#include "Vendor/imgui/imgui_internal.h"
+#include "Vendor/imgui/imgui_stdlib.h"
+#include "Vendor/ImGuizmo/ImGuizmo.h"
+
+// containers
+#include <ankerl/unordered_dense.h>
+
+// core base
 #include "Configs.h"
-#include "STL.h"
 #include "Macros.h"
 #include "DataType.h"
 #include "Assertion.h"
-#include "HashMap.h"
 
-// dependent core
-#include "BaseUtilities.h"
-#include "Optional.h"
+// core math base
 #include "Math.h"
-#include "Vector.h"
-#include "Matrix.h"
-#include "Quaternion.h"
-#include "String.h"
-#include "RefCounted.h"
-#include "LogSystem.h"
-#include "MemoryView.h"
-#include "Error.h"
-#include "Scoped.h"
-#include "Delegate.h"
 
-// utilities
-#include "EnumUtilities.h"
+// core utilities
+#include "Utilities.h"
+#include "Scoped.h"
+#include "RefCounted.h"
+#include "Containers.h"
+#include "String.h"
+#include "LogSystem.h"
+#include "Delegate.h"
+#include "Optional.h"
+#include "Error.h"
+#include "MemoryView.h"
+#include "NameOf.h"
+#include "EnumTraits.h"
 #include "Flags.h"
+
+// core math
+#include "Vector.h"
+#include "Quaternion.h"
+#include "Matrix.h"
+
+// core graphics
+#include "Graphics.h"

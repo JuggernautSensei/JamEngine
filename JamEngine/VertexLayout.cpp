@@ -87,45 +87,6 @@ UInt64 VertexLayout::GetHash() const
     return m_hash;
 }
 
-void VertexLayout::WriteToArchive(
-    ArchiveWriter& _archive) const
-{
-    _archive.BeginArray();
-    for (const VertexLayoutElement& vle: GetElems())
-    {
-        _archive.AddElement();
-        _archive.BeginObject();
-        _archive.WriteField("attrib", vle.attrib);
-        _archive.WriteField("format", vle.format);
-        _archive.EndObject();
-    }
-    _archive.EndArray();
-}
-
-Error VertexLayout::ReadFromArchive(
-    ArchiveReader& _archive)
-{
-    Reset();
-
-    return _archive.ForEachArray(Bind(
-        [this](const SizeT, ArchiveReader& reader) -> Error {
-            eVertexAttribute attrib = {};
-            if (const Error err = reader.ReadField("attrib", attrib))
-            {
-                return err;
-            }
-
-            eAttributeFormat format = {};
-            if (const Error err = reader.ReadField("format", format))
-            {
-                return err;
-            }
-
-            Add(attrib, format);
-            return Error::None;
-        }));
-}
-
 SizeT ByteWidthOf(
     const eAttributeFormat _format)
 {

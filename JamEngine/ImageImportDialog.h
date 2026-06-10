@@ -3,7 +3,6 @@
 #include "FileDialog.h"
 #include "ImageBase.h"
 #include "ImageImporter.h"
-#include "WindowsUtilities.h"
 
 namespace Jam
 {

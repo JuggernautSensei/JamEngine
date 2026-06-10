@@ -39,7 +39,7 @@ void SpotLightComponent::DrawEditPanel(
     Scene* _pScene,
     Entity            _entity)
 {
-    if (BeginLabelValueTable("SpotLightComponent"))
+    /*if (BeginLabelValueTable("SpotLightComponent"))
     {
         ImGui::TableNextColumn();
         Widget_Text("radiance", true);
@@ -78,7 +78,7 @@ void SpotLightComponent::DrawEditPanel(
         Widget_DragAngle("##SpotlightOuterConeHalfRad", outerConeHalfRad, 0.5f, ToDeg(innerConeHalfRad), 179.f);
 
         ImGui::EndTable();
-    }
+    }*/
 }
 
 }   // namespace Jam

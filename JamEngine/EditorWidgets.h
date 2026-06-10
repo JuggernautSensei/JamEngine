@@ -1,16 +1,12 @@
 #pragma once
-#include "WindowsUtilities.h"
-#include "ImGuiEngine.h"
-#include "Entity.h"
-#include "GraphicsBase.h"
-#include "Texture.h"
-#include "Material.h"
-#include "Mesh.h"
 
 namespace Jam
 {
-class FileDialog;
 
+class Mesh;
+class Texture;
+class Material;
+class FileDialog;
 class VertexLayoutEntry;
 
 // helper for infinite drag behavior

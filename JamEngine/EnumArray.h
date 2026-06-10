@@ -1,10 +1,9 @@
 #pragma once
-#include "EnumUtilities.h"
 
 namespace Jam
 {
 
-// direct indexing enum: index by the underlying enum m_value, just cast to GetSize type.
+// enum indexable c-style array
 
 // can not use like
 // enum class eColorNonContiguous
@@ -25,6 +24,7 @@ namespace Jam
 // };
 // because the underlying values are contiguous and start from 0. This allows correct indexing and bounds checking.
 
+// direct indexing enum: index by the underlying enum m_value, just cast to GetSize type.
 template<typename TEnum>
 concept IsDirectIndexableEnum = (std::is_enum_v<TEnum>
                                  && (AsUnderlying(MinOf<TEnum>()) == 0)
@@ -36,8 +36,8 @@ class EnumArray
 {
 public:
     static constexpr SizeT kCap = CountOf<TEnum>();
-    using IterT                  = TValue*;
-    using ConstIterT             = const TValue*;
+    using IterT                 = TValue*;
+    using ConstIterT            = const TValue*;
 
     [[nodiscard]] constexpr TValue& operator[](TEnum _key)
     {
@@ -130,12 +130,10 @@ private:
             JAM_ASSERT(0 <= index && index < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
             return index;
         }
-        else
-        {
-            const SizeT seq = GetSequence(_key);
-            JAM_ASSERT(seq < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
-            return seq;
-        }
+
+        const SizeT seq = AsSequence(_key);
+        JAM_ASSERT(seq < kCap, "EnumArray index out of bounds. key: '{}'", NameOf(_key));
+        return seq;
     }
 };
 

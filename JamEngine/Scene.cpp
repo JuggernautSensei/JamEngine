@@ -283,7 +283,8 @@ Entity Scene::CloneEntity_Recursive_(
     Entity entity = CreateEntity_(_allocedUid, {});
 
     // 컴포넌트 카피
-    for (const ComponentReflectionData& data: GetComponentDatabase().GetComponentReflectionContainer() | std::views::values)
+    const ComponentDatabase& db = GetComponentDatabase();
+    for (const ComponentDatabase::Data& data: db.GetComponentDataContainer() | std::views::values)
     {
         if (data.Has(_srcEntity))
         {

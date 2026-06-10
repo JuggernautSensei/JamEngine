@@ -222,16 +222,16 @@ TEST(AdvString, PathComplexityStress)
 TEST(AdvString, WinApiDependent)
 {
     // Absolutize 테스트
-    String rel = FileSystem::Absolute("test.txt");
+    String rel = Absolute("test.txt");
     EXPECT_TRUE(rel.IsAbsolute());
 
     // 현재 경로 획득
-    String cur = FileSystem::Current();
+    String cur = Current();
     EXPECT_FALSE(cur.IsEmpty());
     EXPECT_TRUE(cur.IsAbsolute());
 
     // 실행 파일 경로
-    String exe = FileSystem::Executable();
+    String exe = Executable();
     EXPECT_TRUE(exe.IsAbsolute());
     EXPECT_TRUE(exe.EndsWith(".exe") || exe.IsFile());
 }
@@ -245,10 +245,10 @@ TEST(AdvString, PathParsingIntegration)
     auto lastUnderscore = fileName.RFind('_');
     auto dot            = fileName.RFind('.');
 
-    ASSERT_TRUE(lastUnderscore.IsSucceeded());
-    ASSERT_TRUE(dot.IsSucceeded());
+    ASSERT_TRUE(lastUnderscore);
+    ASSERT_TRUE(dot);
 
-    StringView idStr = fileName.SubView(lastUnderscore.pos + 1, dot.pos - lastUnderscore.pos - 1);
+    StringView idStr = fileName.SubView(lastUnderscore.GetValue() + 1, dot.GetValue() - lastUnderscore.GetValue() - 1);
     EXPECT_EQ(idStr, "1024");
 
     auto id = idStr.ParseAs<Int32>();

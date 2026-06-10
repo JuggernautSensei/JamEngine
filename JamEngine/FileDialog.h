@@ -51,7 +51,7 @@ private:
     void SetDefaultPath_(StringView _dir) const;
     void SetFilters_(Span<const FileDialogFilter> _filters) const;
 
-    ComPtr<IFileDialog> m_pfd            = nullptr;
+    Microsoft::WRL::ComPtr<IFileDialog> m_pfd            = nullptr;
     Vector<String>      m_selectedPaths  = {};
     bool                m_bIsMultiSelect = false;
 };

@@ -1,10 +1,10 @@
 #pragma once
-
-#include "EmbeddedShaderGlue.h"
-#include "Texture.h"
+#include "Archive.h"
 
 namespace Jam
 {
+
+class Texture;
 
 enum class eSkybox
 {
@@ -33,7 +33,7 @@ enum class eFxaaQuality
     Ultra,
 };
 
-using CascadeDistancesArray = Array<float, JAM_CASCADE_LEVEL>;
+using CascadeDistancesArray = Array<float, 4>;
 
 class Environment
 {

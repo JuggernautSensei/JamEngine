@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "FileLock.h"
-
-#include "StaticString.h"
 #include "WindowsUtilities.h"
 
 namespace Jam
@@ -83,7 +81,7 @@ Error FileLock::Init_(
     if (m_fileHandle == INVALID_HANDLE_VALUE)
     {
         const Error err = GetLastError() == ERROR_SHARING_VIOLATION ? Error::FileInUse : Error::OpenFailed;
-        JAM_LOG_ERROR("Failed to acquire file lock for '{}': {}", _path, CreateWindowsLastErrorMessage());
+        JAM_LOG_ERROR("Failed to acquire file lock for '{}': {}", _path, MakeWindowsLastErrorMessage());
         return err;
     }
 

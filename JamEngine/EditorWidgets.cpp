@@ -10,7 +10,6 @@
 #include "StaticString.h"
 
 #include "Transform.h"
-#include "VertexLayoutEntryManager.h"
 
 namespace Jam
 {

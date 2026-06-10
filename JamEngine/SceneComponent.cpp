@@ -57,101 +57,101 @@ void SceneComponent::DrawEditPanel(
     Scene* _pScene,
     Entity            _owner)
 {
-    if (BeginLabelValueTable("SceneComponent"))
-    {
-        // coordinate space
-        enum class eCoordinate
-        {
-            World,
-            Local
-        };
+    //if (BeginLabelValueTable("SceneComponent"))
+    //{
+    //    // coordinate space
+    //    enum class eCoordinate
+    //    {
+    //        World,
+    //        Local
+    //    };
 
-        // static variables
-        static eCoordinate s_coord = eCoordinate::World;
+    //    // static variables
+    //    static eCoordinate s_coord = eCoordinate::World;
 
-        const bool       bIsWorld  = s_coord == eCoordinate::World;
-        const Transform& transform = bIsWorld ? node.GetWorld() : node.GetLocal();
+    //    const bool       bIsWorld  = s_coord == eCoordinate::World;
+    //    const Transform& transform = bIsWorld ? node.GetWorld() : node.GetLocal();
 
-        // get translation & scale
-        Vec3 translation = transform.GetTranslation();
-        Vec3 scale       = transform.GetScale();
+    //    // get translation & scale
+    //    Vec3 translation = transform.GetTranslation();
+    //    Vec3 scale       = transform.GetScale();
 
-        // setup
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+    //    // setup
+    //    ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+    //    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-        // translation
-        {
-            ImGui::TableNextColumn();
-            Widget_Text("translation", true);
-            ImGui::TableNextColumn();
-            if (Widget_DragTranslation("##TransformTranslation", translation))
-            {
-                if (bIsWorld)
-                {
-                    node.ModifyWorld().SetTranslation(translation);
-                }
-                else
-                {
-                    node.ModifyLocal().SetTranslation(translation);
-                }
-            }
-        }
+    //    // translation
+    //    {
+    //        ImGui::TableNextColumn();
+    //        Widget_Text("translation", true);
+    //        ImGui::TableNextColumn();
+    //        if (Widget_DragTranslation("##TransformTranslation", translation))
+    //        {
+    //            if (bIsWorld)
+    //            {
+    //                node.ModifyWorld().SetTranslation(translation);
+    //            }
+    //            else
+    //            {
+    //                node.ModifyLocal().SetTranslation(translation);
+    //            }
+    //        }
+    //    }
 
-        // rotation
-        {
-            static EulerProxy s_proxy = {};
-            s_proxy.OnBeforeWidget(transform);
-            Vec3& eulerRad = s_proxy.GetEulerProxy();
+    //    // rotation
+    //    {
+    //        static EulerProxy s_proxy = {};
+    //        s_proxy.OnBeforeWidget(transform);
+    //        Vec3& eulerRad = s_proxy.GetEulerProxy();
 
-            ImGui::TableNextColumn();
-            Widget_Text("rotation", true);
-            ImGui::TableNextColumn();
-            if (Widget_DragEuler("##TransformRotation", eulerRad))
-            {
-                if (bIsWorld)
-                {
-                    node.ModifyWorld().SetRotation(eulerRad);
-                }
-                else
-                {
-                    node.ModifyLocal().SetRotation(eulerRad);
-                }
-            }
+    //        ImGui::TableNextColumn();
+    //        Widget_Text("rotation", true);
+    //        ImGui::TableNextColumn();
+    //        if (Widget_DragEuler("##TransformRotation", eulerRad))
+    //        {
+    //            if (bIsWorld)
+    //            {
+    //                node.ModifyWorld().SetRotation(eulerRad);
+    //            }
+    //            else
+    //            {
+    //                node.ModifyLocal().SetRotation(eulerRad);
+    //            }
+    //        }
 
-            s_proxy.OnAfterWidget();
-        }
+    //        s_proxy.OnAfterWidget();
+    //    }
 
-        // scale
-        {
-            ImGui::TableNextColumn();
-            Widget_Text("scale", true);
-            ImGui::TableNextColumn();
-            if (Widget_DragScale("##TransformScale", scale))
-            {
-                if (bIsWorld)
-                {
-                    node.ModifyWorld().SetScale(scale);
-                }
-                else
-                {
-                    node.ModifyLocal().SetScale(scale);
-                }
-            }
-        }
+    //    // scale
+    //    {
+    //        ImGui::TableNextColumn();
+    //        Widget_Text("scale", true);
+    //        ImGui::TableNextColumn();
+    //        if (Widget_DragScale("##TransformScale", scale))
+    //        {
+    //            if (bIsWorld)
+    //            {
+    //                node.ModifyWorld().SetScale(scale);
+    //            }
+    //            else
+    //            {
+    //                node.ModifyLocal().SetScale(scale);
+    //            }
+    //        }
+    //    }
 
-        // space radio buttons
-        {
-            ImGui::TableNextColumn();
-            Widget_Text("mode", true);
-            ImGui::TableNextColumn();
-            ImGui::RadioButton("world", reinterpret_cast<int*>(&s_coord), static_cast<int>(eCoordinate::World));
-            ImGui::SameLine();
-            ImGui::RadioButton("local", reinterpret_cast<int*>(&s_coord), static_cast<int>(eCoordinate::Local));
-        }
+    //    // space radio buttons
+    //    {
+    //        ImGui::TableNextColumn();
+    //        Widget_Text("mode", true);
+    //        ImGui::TableNextColumn();
+    //        ImGui::RadioButton("world", reinterpret_cast<int*>(&s_coord), static_cast<int>(eCoordinate::World));
+    //        ImGui::SameLine();
+    //        ImGui::RadioButton("local", reinterpret_cast<int*>(&s_coord), static_cast<int>(eCoordinate::Local));
+    //    }
 
-        ImGui::EndTable();
-    }
+    //    ImGui::EndTable();
+    //}
 }
 
 }   // namespace Jam

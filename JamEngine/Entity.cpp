@@ -2,6 +2,7 @@
 
 #include "Entity.h"
 
+#include "Application.h"
 #include "SceneComponent.h"
 
 namespace Jam

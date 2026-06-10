@@ -15,9 +15,6 @@ using Byte   = UInt8;
 using SizeT  = std::ptrdiff_t;
 using USizeT = std::make_unsigned_t<SizeT>;
 
-template<typename T>
-using ComPtr = Microsoft::WRL::ComPtr<T>;
-
 using namespace std::chrono_literals;
 
 }   // namespace Jam

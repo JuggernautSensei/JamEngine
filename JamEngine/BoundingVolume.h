@@ -1,11 +1,13 @@
 // ReSharper disable CppClangTidyClangDiagnosticNestedAnonTypes
 #pragma once
 #include "EnumArray.h"
+#include "Vector.h"
+#include "Optional.h"
+#include "Quaternion.h"
+#include "Containers.h"
 
 namespace Jam
 {
-
-struct Ray;
 
 enum class eRegion
 {
@@ -25,9 +27,15 @@ enum class eRegion
 [[nodiscard]] bool    IsTop(eRegion _region);
 [[nodiscard]] bool    IsFar(eRegion _region);
 
-using Corners = EnumArray<eRegion, Vec3>;
+struct Ray;
+struct Hit
+{
+    Vec3  normal = Vec3::kZero;
+    Vec3  point  = Vec3::kZero;
+    float dist   = 0;
+};
 
-struct Hit;
+using Corners = EnumArray<eRegion, Vec3>;
 
 struct Aabb
 {
@@ -47,10 +55,10 @@ struct Aabb
     [[nodiscard]] float   GetDepth() const;
     [[nodiscard]] Corners CalcCorners() const;
 
-    [[nodiscard]] bool Contains(Vec3 _point) const;
-    [[nodiscard]] bool Contains(const Aabb& _other) const;
-    [[nodiscard]] bool Overlap(const Aabb& _other) const;
-    [[nodiscard]] bool RayCast(const Ray& _ray, Hit* _pHitOrNull = nullptr) const;
+    [[nodiscard]] bool          Contains(Vec3 _point) const;
+    [[nodiscard]] bool          Contains(const Aabb& _other) const;
+    [[nodiscard]] bool          Overlap(const Aabb& _other) const;
+    [[nodiscard]] Optional<Hit> RayCast(const Ray& _ray) const;
 
     Vec3 center  = Vec3::kZero;
     Vec3 extents = Vec3::kOne;
@@ -68,10 +76,10 @@ struct Obb
 
     [[nodiscard]] Obb Transform(const Mtx4& _mtx) const;
 
-    [[nodiscard]] bool Contains(Vec3 _point) const;
-    [[nodiscard]] bool Contains(const Obb& _other) const;
-    [[nodiscard]] bool Overlap(const Obb& _other) const;
-    [[nodiscard]] bool RayCast(const Ray& _ray, Hit* _pHitOrNull = nullptr) const;
+    [[nodiscard]] bool          Contains(Vec3 _point) const;
+    [[nodiscard]] bool          Contains(const Obb& _other) const;
+    [[nodiscard]] bool          Overlap(const Obb& _other) const;
+    [[nodiscard]] Optional<Hit> RayCast(const Ray& _ray) const;
 
     Vec3 center   = Vec3::kZero;
     Vec3 extents  = Vec3::kOne;
@@ -104,7 +112,7 @@ struct Plane
     [[nodiscard]] bool IsBehind(const Aabb& _aabb) const;
 
     // 충돌검사
-    [[nodiscard]] bool RayCast(const Ray& _ray, bool _bDoubleSided, Hit* _pHitOrNull = nullptr) const;
+    [[nodiscard]] Optional<Hit> RayCast(const Ray& _ray, bool _bDoubleSided) const;
 
     union
     {
@@ -122,6 +130,12 @@ struct Plane
     };
 };
 
+struct CascadeSplit   // view space
+{
+    float nearZ = 0;
+    float farZ  = 0;
+};
+
 // 평면의 normal은 프러스텀의 안쪽을 향한다.
 struct Frustum
 {
@@ -134,14 +148,14 @@ struct Frustum
     void                  Normalize();
     [[nodiscard]] Frustum Normalized() const;
 
-    [[nodiscard]] Vec3    CalcCenter() const;
-    [[nodiscard]] Corners CalcCorners() const;
+    [[nodiscard]] Corners        CalcCorners() const;
+    [[nodiscard]] static Corners CalcCorners(const Mtx4& _invMtx);
+    [[nodiscard]] static Corners CalcCornersInViewSpace(float _fovRad, float _aspectRatio, float _nearZ, float _farZ);
 
-    [[nodiscard]] bool Overlap(const Aabb& _box) const;
-    [[nodiscard]] bool RayCast(const Ray& _ray, bool _bDoubleSided, Hit* _pHitOrNull = nullptr) const;
+    [[nodiscard]] bool          Overlap(const Aabb& _box) const;
+    [[nodiscard]] Optional<Hit> RayCast(const Ray& _ray, bool _bDoubleSided) const;
 
-    // 분할. 뷰 공간 프러스텀에서만 올바르게 동작함.
-    void Split(Span<Frustum> _outFrustums, float _weight = 0.5f) const;
+    void CalcCascadeSplitsInViewSpace(Span<CascadeSplit> _outDs, float _weight = 0.75f) const;
 
     union
     {
@@ -165,19 +179,11 @@ struct Ray
     Ray(float _x, float _y, const Mtx4& _invVP);   // NDC space -> world space
 
     [[nodiscard]] Vec3 GetPoint(float _t) const;
-
-    void              Normalize();
-    [[nodiscard]] Ray Normalized() const;
+    void               Normalize();
+    [[nodiscard]] Ray  Normalized() const;
 
     Vec3 pos = Vec3::kZero;
     Vec3 dir = Vec3::kZero;
-};
-
-struct Hit
-{
-    Vec3  normal = Vec3::kZero;
-    Vec3  point  = Vec3::kZero;
-    float dist   = 0;
 };
 
 }   // namespace Jam

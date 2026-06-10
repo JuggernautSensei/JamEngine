@@ -27,23 +27,17 @@ struct ShaderCompilerInfo
 class ShaderCompiler
 {
 public:
-    [[nodiscard]] static ShaderCompiler CompileHLSLFile(StringView _path, const ShaderCompilerInfo& _desc = {});
-    [[nodiscard]] static ShaderCompiler CompileHLSLSource(StringView _source, const ShaderCompilerInfo& _desc = {});
+    [[nodiscard]] static Expect<ShaderCompiler> CompileHLSLFile(StringView _path, const ShaderCompilerInfo& _desc = {});
+    [[nodiscard]] static Expect<ShaderCompiler> CompileHLSLSource(StringView _source, const ShaderCompilerInfo& _desc = {});
 
     [[nodiscard]] MemoryView GetBytecode() const;
-    [[nodiscard]] StringView GetErrorMessage() const;
-    [[nodiscard]] Error      GetError() const;
-    [[nodiscard]] bool       IsSucceeded() const;
-    [[nodiscard]] bool       IsFailed() const;
 
 private:
-    void CompileFromHLSLFile_(StringView _path, const ShaderCompilerInfo& _desc);
-    void CompileHLSLSource_(StringView _source, const ShaderCompilerInfo& _desc);
+    Error CompileFromHLSLFile_(StringView _path, const ShaderCompilerInfo& _desc);
+    Error CompileHLSLSource_(StringView _source, const ShaderCompilerInfo& _desc);
     ShaderCompiler() = default;
 
-    ComPtr<ID3DBlob> m_pBlob    = nullptr;
-    String           m_errorMsg = {};
-    Error            m_error    = {};
+    Microsoft::WRL::ComPtr<ID3DBlob> m_pBlob = nullptr;
 };
 
 }   // namespace Jam

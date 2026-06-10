@@ -1,7 +1,7 @@
 #pragma once
-#include <type_traits>
 #include "FunctionTraits.h"
 #include "FunctionHasher.h"
+#include "RefCounted.h"
 
 namespace Jam
 {

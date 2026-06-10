@@ -2,7 +2,6 @@
 
 #include "MaterialCreationDialog.h"
 
-#include "Editor.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
 
@@ -83,7 +82,7 @@ bool MaterialCreationDialog::OnClickCreateButton_()
     String path = String::Joined(m_saveDir, m_assetBaseName, eJoin::File);
     path += Material::kExtension;
 
-    if (FileSystem::Exists(path))
+    if (Exists(path))
     {
         PushOverwriteConfirmationDialog_(path);
         return false;

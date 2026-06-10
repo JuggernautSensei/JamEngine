@@ -8,7 +8,7 @@
     <LocalDebuggerCommandArgumentsHistory>DeferredScene|ShadowMappingScene|ComputeScene|--scene ComputeScene|--scene ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArgumentsHistory>SimpleScene|--benchmark_filter=Jam|ShadowMappingScene|DeferedScene|--scene ComputeScene|</LocalDebuggerCommandArgumentsHistory>
-    <LocalDebuggerCommandArguments>--scene ComputeScene</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>--benchmark_filter=Jam|ShadowMappingScene|DeferedScene|--scene ComputeScene|--scene ShadowMappingScene|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>--scene ShadowMappingScene</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

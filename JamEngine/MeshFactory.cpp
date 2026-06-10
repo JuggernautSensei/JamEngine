@@ -2,8 +2,7 @@
 
 #include "MeshFactory.h"
 
-#include "GeometryUtilities.h"
-#include "GraphicsBase.h"
+#include "GeometryReadWriter.h"
 #include "LoopSubdivision.h"
 #include "Mesh.h"
 
@@ -361,7 +360,7 @@ Ref<Mesh> CreatePlaneMesh(
 
     if (!_normal.IsEqualApprox(Vec3::kUp))
     {
-        const Quat q = Quat::FromTo(Vec3::kUp, _normal.Normalized());
+        const Quat q = Quat::FromToRotation(Vec3::kUp, _normal.Normalized());
         for (Vec3& pos: positions)
         {
             pos = q.Rotate(pos);
@@ -419,7 +418,7 @@ Ref<Mesh> CreateCircleMesh(
 
     if (!_normal.IsEqualApprox(Vec3::kUp))
     {
-        const Quat q = Quat::FromTo(Vec3::kUp, _normal.Normalized());
+        const Quat q = Quat::FromToRotation(Vec3::kUp, _normal.Normalized());
         for (Vec3& pos: positions)
         {
             pos = q.Rotate(pos);
@@ -503,7 +502,7 @@ Ref<Mesh> CreateConeMesh(
 
     if (!_normal.IsEqualApprox(Vec3::kUp))
     {
-        const Quat q = Quat::FromTo(Vec3::kUp, _normal.Normalized());
+        const Quat q = Quat::FromToRotation(Vec3::kUp, _normal.Normalized());
         for (Vec3& pos: position)
         {
             pos = q.Rotate(pos);
@@ -633,7 +632,7 @@ Ref<Mesh> CreateCylinderMesh(
 
     if (!_normal.IsEqualApprox(Vec3::kUp))
     {
-        const Quat q = Quat::FromTo(Vec3::kUp, _normal.Normalized());
+        const Quat q = Quat::FromToRotation(Vec3::kUp, _normal.Normalized());
         for (Vec3& pos: position)
         {
             pos = q.Rotate(pos);

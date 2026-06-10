@@ -10,7 +10,6 @@ static const float3 g_baseColor = float3(1.0f, 1.0f, 1.0f);
 cbuffer CBEntity : register(b0)
 {
     float4x4 cb_world;
-    float4x4 cb_worldInvTrans;
     uint cb_flags;
     PADDING3;
 };
@@ -61,8 +60,8 @@ PSInput VSMain(VSInput input)
     output.posH = mul(posW, cb_viewProj);
     output.posW = posW.xyz;
     output.texcoord = input.texcoord;
-    output.normalW = normalize(mul(float4(input.normal, 0.0f), cb_worldInvTrans).xyz);
-    output.tangentW = normalize(mul(float4(input.tangent, 0.0f), cb_worldInvTrans).xyz);
+    output.normalW = normalize(mul(float4(input.normal, 0.0f), cb_world).xyz);
+    output.tangentW = normalize(mul(float4(input.tangent, 0.0f), cb_world).xyz);
     return output;
 }
 

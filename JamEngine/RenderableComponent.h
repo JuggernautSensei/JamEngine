@@ -1,10 +1,11 @@
 #pragma once
 #include "ComponentDatabase.h"
-#include "Mesh.h"
-#include "Material.h"
 
 namespace Jam
 {
+
+class Mesh;
+class Material;
 
 struct RenderableComponent
 {

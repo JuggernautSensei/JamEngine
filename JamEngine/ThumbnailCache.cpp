@@ -6,7 +6,6 @@
 #include <atlstr.h>
 
 #include "DirIter.h"
-#include "FileSystem.h"
 #include "Graphics.h"
 #include "Texture.h"
 
@@ -114,15 +113,15 @@ Optional<Ref<Texture>> ThumbnailCache::CreateThumbnail_(
 {
     constexpr SIZE kThumbnailSize = { 128, 128 };
 
-    const WString       path = WString::Encoded(_path);
-    CComPtr<IShellItem> psi  = nullptr;
+    const WString                      path = WString::Encoded(_path);
+    Microsoft::WRL::ComPtr<IShellItem> psi  = nullptr;
     if (FAILED(SHCreateItemFromParsingName(path.GetPtr(), nullptr, IID_PPV_ARGS(&psi))))
     {
         JAM_LOG_ERROR("Failed to create IShellItem from path: {}", _path);
         return kNullopt;
     }
 
-    CComPtr<IShellItemImageFactory> pImageFactory = nullptr;
+    Microsoft::WRL::ComPtr<IShellItemImageFactory> pImageFactory = nullptr;
     if (FAILED(psi->QueryInterface(IID_PPV_ARGS(&pImageFactory))))
     {
         JAM_LOG_ERROR("Failed to get IShellItemImageFactory from IShellItem: {}", _path);

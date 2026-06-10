@@ -19,28 +19,28 @@ void SceneDatabase::DestroyInstance()
     s_pInstance = nullptr;
 }
 
-bool SceneDatabase::IsSceneReflected(
+bool SceneDatabase::IsSceneRegistered(
     const UInt64 _typeHash) const
 {
-    return m_sceneRflData.contains(_typeHash);
+    return m_sceneDataMap.contains(_typeHash);
 }
 
-bool SceneDatabase::IsSceneReflected(
+bool SceneDatabase::IsSceneRegistered(
     const StringView _name) const
 {
-    return m_sceneRflData.contains(_name.Hash());
+    return m_sceneDataMap.contains(_name.Hash());
 }
 
-const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
+const SceneDatabase::Data& SceneDatabase::GetSceneData(
     const UInt64 _typeHash) const
 {
-    return m_sceneRflData.at(_typeHash);
+    return m_sceneDataMap.at(_typeHash);
 }
 
-const SceneReflectionData& SceneDatabase::GetSceneReflectionData(
+const SceneDatabase::Data& SceneDatabase::GetSceneData(
     const StringView _name) const
 {
-    return m_sceneRflData.at(_name.Hash());
+    return m_sceneDataMap.at(_name.Hash());
 }
 
 }   // namespace Jam

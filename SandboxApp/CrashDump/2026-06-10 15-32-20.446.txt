@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-06-10 15:32:20.444
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\RenderGraph.cpp
+function name: class Jam::RenderGraph::RenderPassBuilder __cdecl Jam::RenderGraph::AddRenderPass(class Jam::BasicStringView<char>)
+line: 43
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: !HasPass_(_name)
+Pass 'Pass_SpotShadowReceiver' already exists.
+====================================

@@ -4,7 +4,7 @@
 #include "Gui.h"
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
-#include "Utils.h"
+#include "Utilities.h"
 #include "../JamEngine/AssimpImporter.h"
 #include "../JamEngine/EditorWidgets.h"
 
@@ -102,13 +102,13 @@ void DeferredScene::OnRender(const RenderView& _view)
 {
     Graphics& gfx = GetGraphics();
 
-    CBCamera cb;
-    cb.viewProj    = m_camera.CalcViewProj().Transpose();
-    cb.invViewProj = cb.viewProj.Inverse();
-    cb.eyePos      = m_camera.GetEyePos();
-    gfx.UpdateBuffer(m_cameraCbh, AsMemoryView(cb));
+    CBCamera camera;
+    camera.viewProj    = m_camera.CalcViewProj().Transpose();
+    camera.invViewProj = m_camera.CalcInvViewProj().Transpose();
+    camera.eyePos      = m_camera.GetEyePos();
+    gfx.UpdateBuffer(m_cameraCbh, AsMemoryView(camera));
 
-    m_graph.Execute(_view.fbh, _view.vp);
+    m_graph.Execute(_view.fbh, _view.viewport);
 }
 
 void DeferredScene::OnImGuiRender()
@@ -127,7 +127,7 @@ void DeferredScene::OnImGuiRender()
 
 void DeferredScene::OnResize(const Int32 _width, const Int32 _height)
 {
-    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_camera.SetAspectRatioFromBackBuffer();
 }
 
 void DeferredScene::InitRenderGraph_()
@@ -189,11 +189,11 @@ void DeferredScene::InitRenderGraph_()
 
     ImageFilterManager& ifm = GetImageFilterManager();
 
-    ImageFilterDesc multDesc   = {};
-    multDesc.filter            = eImageFilter::Mult;
-    multDesc.output            = eImageFilterOutput::Final;
-    multDesc.input0Texture = "T_GColor";
-    multDesc.input1Texture = "T_Light";
+    ImageFilterDesc multDesc = {};
+    multDesc.filter          = eImageFilter::Mult;
+    multDesc.output          = eImageFilterOutput::Final;
+    multDesc.input0Texture   = "T_GColor";
+    multDesc.input1Texture   = "T_Light";
     ifm.AddImageFilter(m_graph, "Pass_Mult", multDesc);
 }
 
@@ -291,8 +291,8 @@ void DeferredScene::SubmitLights_() const
                 { light.lightPos.x + light.lightRadius, light.lightPos.y + light.lightRadius, light.lightPos.z + light.lightRadius },
             };
 
-            Vec3 ndcMin = Vec3::kHighest;
-            Vec3 ndcMax = Vec3::kLowest;
+            Vec3 ndcMin = Vec3::kMax;
+            Vec3 ndcMax = Vec3::kMin;
             for (Int32 j = 0; j < 8; ++j)
             {
                 corners[j] = vp.MultPoint(corners[j]);

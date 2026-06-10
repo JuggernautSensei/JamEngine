@@ -1,7 +1,6 @@
 // ReSharper disable CppClangTidyClangDiagnosticReservedIdentifier
 // ReSharper disable CppClangTidyBugproneReservedIdentifier
 #pragma once
-#include <source_location>
 
 namespace Jam::Details
 {

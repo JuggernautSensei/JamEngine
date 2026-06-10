@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-06-05 03:07:57.816
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamTest\Main.cpp
+function name: void __cdecl TestApp::Update(float)
+line: 21
+column: 9
+------------------------------------
+user report: 
+Assertion failed! Condition: ret == 0
+Some tests failed. Check the test results for details.
+====================================

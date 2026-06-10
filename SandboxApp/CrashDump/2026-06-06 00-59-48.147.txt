@@ -1,0 +1,31 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-06-06 00:59:48.145
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Utils.cpp
+function name: class Jam::Handle<struct Jam::Program> __cdecl LoadProgram(class Jam::BasicStringView<char>,class Jam::Flags<enum eShaderFlags>,class eastl::span<struct Jam::ShaderMacro const ,-1>)
+line: 33
+column: 9
+------------------------------------
+user report: 
+Assertion failed! Condition: vsc.IsSucceeded()
+Vertex shader compilation failed: shader "Resources/ShadowMappingScene/ShadowCasterShader.hlsl" compilation failed: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,29-38): error X3004: undeclared identifier 'LIGHT_VIEW'
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,19-39): error X3013: 'mul': no matching 2 parameter intrinsic function
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,19-39): error X3013: Possible intrinsic functions are:
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,19-39): error X3013:     mul(float|half|double|min10float|min16float|int|uint|min12int|min16int|min16uint, float|half|double|min10float|min16float|int|uint|min12int|min16int|min16uint)
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,19-39): error X3013:     mul(float|half|double|min10float|min16float|int|uint|min12int|min16int|min16uint, floatK|halfK|doubleK|min10floatK|min16floatK|intK|uintK|min12intK|min16intK|min16uintK)
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,19-39): error X3013:     mul(float|half|double|min10float|min16float|int|uint|min12int|min16int|min16uint, floatLxK|halfLxK|doubleLxK|min10floatLxK|min16floatLxK|intLxK|uintLxK|min12intLxK|min16intLxK|min16uintLxK)
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,19-39): error X3013:     mul(floatM|halfM|doubleM|min10floatM|min16floatM|intM|uintM|min12intM|min16intM|min16uintM, float|half|double|min10float|min16float|int|uint|min12int|min16int|min16uint)
+C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\SandboxApp\Resources\ShadowMappingScene\ShadowCasterShader.hlsl(24,19-39): 
+====================================

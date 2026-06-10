@@ -2,6 +2,9 @@
 
 #include "Environment.h"
 
+#include "Archive.h"
+#include "Texture.h"
+
 namespace Jam
 {
 
@@ -448,7 +451,7 @@ Error Environment::ReadFromArchive(
     {
         return err;
     }
-    if (const Error err = _reader.ReadField("directionalLightDirection", m_dirLightDirection))   
+    if (const Error err = _reader.ReadField("directionalLightDirection", m_dirLightDirection))
     {
         return err;
     }
@@ -573,7 +576,7 @@ Error Environment::ReadFromArchive(
         return err;
     }
 
-    m_bDirty = true;   
+    m_bDirty = true;
 
     return Error::None;
 }

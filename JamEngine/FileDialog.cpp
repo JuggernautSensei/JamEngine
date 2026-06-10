@@ -22,10 +22,10 @@ bool FileDialog::Open()
     if (m_bIsMultiSelect)
     {
         // 다중 선택 케이스
-        ComPtr<IFileOpenDialog> pOpenDlg = nullptr;
+        Microsoft::WRL::ComPtr<IFileOpenDialog> pOpenDlg = nullptr;
         JAM_CHECK_HRESULT(m_pfd.As(&pOpenDlg));
 
-        ComPtr<IShellItemArray> items = nullptr;
+        Microsoft::WRL::ComPtr<IShellItemArray> items = nullptr;
         JAM_CHECK_HRESULT(pOpenDlg->GetResults(&items));
 
         DWORD count = 0;
@@ -35,7 +35,7 @@ bool FileDialog::Open()
 
         for (DWORD i = 0; i < count; ++i)
         {
-            ComPtr<IShellItem> item = nullptr;
+            Microsoft::WRL::ComPtr<IShellItem> item = nullptr;
             JAM_CHECK_HRESULT(items->GetItemAt(i, &item));
 
             PWSTR pszPath = nullptr;
@@ -53,7 +53,7 @@ bool FileDialog::Open()
     else
     {
         // 단일 선택 케이스
-        ComPtr<IShellItem> item = nullptr;
+        Microsoft::WRL::ComPtr<IShellItem> item = nullptr;
         JAM_CHECK_HRESULT(m_pfd->GetResult(&item));
 
         PWSTR pszPath = nullptr;
@@ -185,8 +185,8 @@ void FileDialog::SetDefaultPath_(
     JAM_ASSERT(!_dir.IsEmpty(), "Default path cannot be empty.");
     JAM_ASSERT(_dir.IsDirectory(), "Default path must be a directory.");
 
-    const WString      dir        = WString::Encoded(_dir);
-    ComPtr<IShellItem> folderItem = nullptr;
+    const WString                      dir        = WString::Encoded(_dir);
+    Microsoft::WRL::ComPtr<IShellItem> folderItem = nullptr;
     JAM_CHECK_HRESULT(SHCreateItemFromParsingName(dir.GetPtr(), nullptr, IID_PPV_ARGS(folderItem.ReleaseAndGetAddressOf())));
     JAM_CHECK_HRESULT(m_pfd->SetDefaultFolder(folderItem.Get()));
 }

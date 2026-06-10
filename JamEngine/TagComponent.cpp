@@ -62,7 +62,7 @@ void TagComponent::DrawEditPanel(
     Scene*,
     Entity)
 {
-    if (BeginLabelValueTable("TagComponent"))
+   /* if (BeginLabelValueTable("TagComponent"))
     {
         ImGui::TableNextColumn();
         Widget_Text("typeName", true);
@@ -71,7 +71,7 @@ void TagComponent::DrawEditPanel(
         Widget_InputText("##TagName", name);
 
         ImGui::EndTable();
-    }
+    }*/
 }
 
 }   // namespace Jam

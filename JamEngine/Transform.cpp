@@ -36,7 +36,7 @@ Vec3 Transform::GetBackward() const
     return m_rotation.Rotate(-Vec3::kUnitZ);
 }
 
-Mtx4 Transform::GetSRT() const
+const Mtx4& Transform::GetSRT() const
 {
     if (m_dirtyFlags & eMatrixDirtyFlags::SRT)
     {
@@ -46,7 +46,7 @@ Mtx4 Transform::GetSRT() const
     return m_cachedSRT;
 }
 
-Mtx4 Transform::GetInvSRT() const
+const Mtx4& Transform::GetInvSRT() const
 {
     if (m_dirtyFlags & eMatrixDirtyFlags::InvSRT)
     {
@@ -68,7 +68,6 @@ Transform Transform::Inverse() const
     ret.m_scale       = m_scale.RcpSafe();
     ret.m_rotation    = m_rotation.Conjugate();
     ret.m_translation = ret.m_rotation.Rotate(-m_translation) * ret.m_scale;
-
     return ret;
 }
 
@@ -78,7 +77,6 @@ Transform Transform::Mult(const Transform& _trans) const
     ret.m_translation = _trans.m_rotation.Rotate(m_translation * _trans.m_scale) + _trans.m_translation;
     ret.m_rotation    = m_rotation * _trans.m_rotation;
     ret.m_scale       = m_scale * _trans.m_scale;
-
     return ret;
 }
 

@@ -105,7 +105,7 @@ Error JsonWriter::SaveToFile(
     free(json);
     if (!ret)
     {
-        JAM_LOG_ERROR("Failed to write JSON to file '{}': {}", _path, ret.GetError().ToErrorMessage());
+        JAM_LOG_ERROR("Failed to write JSON to file '{}'\n{}", _path, ret.GetError());
         return ret.GetError();
     }
     return Error::None;

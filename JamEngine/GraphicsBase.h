@@ -1,8 +1,5 @@
 #pragma once
-#include <DirectXTex.h>
-
 #include "HandleAllocator.h"
-#include "Math.h"
 #include "TextureFormat.h"
 #include "VertexLayout.h"
 
@@ -130,7 +127,7 @@ enum class eStructureBuffer
     Counter
 };
 
-enum class eCubeFace : Int8
+enum class eCubeFace
 {
     PosX = 0,   // positive X
     NegX,       // negative X

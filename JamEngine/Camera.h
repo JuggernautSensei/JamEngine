@@ -1,6 +1,7 @@
 #pragma once
+#include "Matrix.h"
 #include "Archive.h"
-#include "BoundingVolume.h"
+#include "Flags.h"
 
 namespace Jam
 {
@@ -13,19 +14,19 @@ enum class eProjection
 
 class Camera
 {
-    enum class eDirtyFlags : UInt32
+    enum class eMatrixDirtyFlags : UInt32
     {
         None    = 0,
         Proj    = 1 << 0,
-        Frustum = 1 << 1,
-        All     = Proj | Frustum
+        InvProj = 1 << 1,
+        All     = Proj | InvProj
     };
 
 public:
     Camera() = default;
 
-    [[nodiscard]] const Mtx4&    GetProj() const;
-    [[nodiscard]] const Frustum& GetFrustum() const;
+    [[nodiscard]] const Mtx4& GetProj() const;
+    [[nodiscard]] const Mtx4& GetInvProj() const;
 
     void SetProjection(eProjection _projection);
     void SetNearZ(float _nearZ);
@@ -61,9 +62,9 @@ private:
     float       m_width      = 1.f;
     float       m_height     = 1.f;
 
-    mutable Flags<eDirtyFlags> m_dirtyFlags = eDirtyFlags::All;
-    mutable Mtx4               m_projMtx    = Mtx4::kIdentity;
-    mutable Frustum            m_frustum    = {};
+    mutable Flags<eMatrixDirtyFlags> m_dirtyFlags    = eMatrixDirtyFlags::All;
+    mutable Mtx4                     m_cachedProj    = Mtx4::kIdentity;
+    mutable Mtx4                     m_cachedInvProj = Mtx4::kIdentity;
 };
 
 JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Camera);

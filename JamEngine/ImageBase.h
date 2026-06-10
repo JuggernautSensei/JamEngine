@@ -1,5 +1,4 @@
 #pragma once
-#include "GraphicsBase.h"
 
 namespace Jam
 {

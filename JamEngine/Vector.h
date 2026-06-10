@@ -4,6 +4,7 @@
 // ReSharper disable CppClangTidyClangDiagnosticReservedIdentifier
 // ReSharper disable CppClangTidyBugproneNarrowingConversions
 #pragma once
+#include "Math.h"
 
 namespace Jam
 {
@@ -175,6 +176,8 @@ struct Vec2i
     const static Vec2i kOne;
     const static Vec2i kUnitX;
     const static Vec2i kUnitY;
+    const static Vec2i kMin;
+    const static Vec2i kMax;
 
     union
     {
@@ -441,8 +444,8 @@ struct Vec2
     const static Vec2 kUnitY;
     const static Vec2 kRight;
     const static Vec2 kUp;
-    const static Vec2 kHighest;
-    const static Vec2 kLowest;
+    const static Vec2 kMin;
+    const static Vec2 kMax;
 
     union
     {
@@ -627,6 +630,8 @@ struct Vec3i
     const static Vec3i kUnitX;
     const static Vec3i kUnitY;
     const static Vec3i kUnitZ;
+    const static Vec3i kMin;
+    const static Vec3i kMax;
 
     union
     {
@@ -949,13 +954,11 @@ struct Vec3
     }
 
     [[nodiscard]] constexpr Vec3 operator/(const float _scalar) const
-
     {
         return { x / _scalar, y / _scalar, z / _scalar };
     }
 
     [[nodiscard]] constexpr Vec3 operator-() const
-
     {
         return { -x, -y, -z };
     }
@@ -978,8 +981,8 @@ struct Vec3
     const static Vec3 kRight;
     const static Vec3 kUp;
     const static Vec3 kForward;
-    const static Vec3 kLowest;
-    const static Vec3 kHighest;
+    const static Vec3 kMin;
+    const static Vec3 kMax;
 
     union
 
@@ -1248,6 +1251,8 @@ struct Vec4i
     const static Vec4i kUnitY;
     const static Vec4i kUnitZ;
     const static Vec4i kUnitW;
+    const static Vec4i kMin;
+    const static Vec4i kMax;
 
     union
     {
@@ -1772,6 +1777,8 @@ struct alignas(16) Vec4
     const static Vec4 kRight;
     const static Vec4 kUp;
     const static Vec4 kForward;
+    const static Vec4 kMin;
+    const static Vec4 kMax;
 
     union
     {

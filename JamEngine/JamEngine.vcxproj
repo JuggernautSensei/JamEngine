@@ -418,10 +418,8 @@
     <ClInclude Include="CppHlslGlue.h" />
     <ClCompile Include="Filter.cpp" />
     <ClCompile Include="Float16.cpp" />
-    <ClCompile Include="MathConstant.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MemoryView.cpp" />
-    <ClCompile Include="MessageDilaog.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
@@ -431,15 +429,12 @@
     <ClCompile Include="Blob.cpp" />
     <ClCompile Include="Archive.cpp" />
     <ClCompile Include="Assertion.cpp" />
-    <ClCompile Include="AssetCreationDialog.cpp" />
     <ClCompile Include="CommandLineParser.cpp" />
     <ClCompile Include="ComponentDatabase.cpp" />
     <ClCompile Include="ComponentMetadata.cpp" />
     <ClCompile Include="DirIter.cpp" />
-    <ClCompile Include="EditorEvents.cpp" />
     <ClCompile Include="EnumArray.cpp" />
     <ClCompile Include="FileDialog.cpp" />
-    <ClCompile Include="FileEntry.cpp" />
     <ClCompile Include="FileLock.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="FileWatcher.cpp" />
@@ -450,11 +445,9 @@
     <ClCompile Include="InfiniteDragger.cpp" />
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="MemoryIO.cpp" />
-    <ClCompile Include="OrderedHashMap.cpp" />
     <ClCompile Include="PathIter.cpp" />
     <ClCompile Include="SceneMetadata.cpp" />
-    <ClCompile Include="CTCStringHashMap.cpp" />
-    <ClCompile Include="EnumUtilities.cpp" />
+    <ClCompile Include="EnumTraits.cpp" />
     <ClCompile Include="CleanUp.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="JsonArchive.cpp" />
@@ -468,26 +461,9 @@
     <ClCompile Include="BoundingVolume.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
-    <ClCompile Include="EditorIcons.cpp" />
-    <ClCompile Include="MaterialCreationDialog.cpp" />
-    <ClCompile Include="PrimitiveCreationDialog.cpp" />
-    <ClCompile Include="DialogStack.cpp" />
-    <ClCompile Include="EditorStyle.cpp" />
-    <ClCompile Include="EditorUtilities.cpp" />
-    <ClCompile Include="EditorWidgets.cpp" />
-    <ClCompile Include="Editor.cpp" />
-    <ClCompile Include="Editor_EntityInspectorWindow.cpp" />
-    <ClCompile Include="Editor_FileBrowserWindow.cpp" />
-    <ClCompile Include="Editor_ProfilerWindow.cpp" />
-    <ClCompile Include="EditorRenderer.cpp" />
-    <ClCompile Include="Editor_SceneHierarchyWindow.cpp" />
-    <ClCompile Include="Editor_VertexLayoutEditorWindow.cpp" />
-    <ClCompile Include="Editor_SceneViewWindow.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="EnvironmentComponent.cpp" />
-    <ClCompile Include="Dialog.cpp" />
-    <ClCompile Include="GeometryUtilities.cpp" />
-    <ClCompile Include="RenameFileDialog.cpp" />
+    <ClCompile Include="GeometryReadWriter.cpp" />
     <ClCompile Include="LRUCache.cpp" />
     <ClCompile Include="Octree.cpp" />
     <ClCompile Include="Optional.cpp" />
@@ -495,22 +471,20 @@
     <ClCompile Include="Signal.cpp" />
     <ClCompile Include="StaticRingBuffer.cpp" />
     <ClCompile Include="StaticString.cpp" />
-    <ClCompile Include="STL.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="StringBase.cpp" />
     <ClCompile Include="StringHasher.cpp" />
-    <ClCompile Include="StringKeyContainers.cpp" />
+    <ClCompile Include="StringKeyedContainers.cpp" />
     <ClCompile Include="StringView.cpp" />
     <ClCompile Include="SVGImporter.cpp" />
     <ClCompile Include="TextureFormat.cpp" />
     <ClCompile Include="HistoryStack.cpp" />
     <ClCompile Include="ImGuiEngine.cpp" />
-    <ClCompile Include="ImageImportDialog.cpp" />
     <ClCompile Include="RefCounted.cpp" />
     <ClCompile Include="RenderableComponent.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="IAsset.cpp" />
-    <ClCompile Include="BaseUtilities.cpp" />
+    <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="Error.cpp" />
     <ClCompile Include="ImageBase.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -540,7 +514,6 @@
     <ClCompile Include="SpotLightComponent.cpp" />
     <ClCompile Include="TagComponent.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
-    <ClCompile Include="ThumbnailCache.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="DataType.cpp" />
     <ClCompile Include="Event.cpp" />
@@ -566,65 +539,67 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_demo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_draw.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_impl_win32.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_stdlib.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_tables.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui_widgets.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_Editor|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_Editor|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="VertexLayout.cpp" />
-    <ClCompile Include="RenderView.cpp" />
-    <ClCompile Include="VertexLayoutEditorDialog.cpp" />
-    <ClCompile Include="VertexLayoutEntryManager.cpp" />
     <ClCompile Include="WindowsPlatform.cpp" />
     <ClCompile Include="WindowsUtilities.cpp" />
-    <ClCompile Include="ModelImportDialog.cpp" />
     <ClCompile Include="SceneNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Filter.h" />
     <ClInclude Include="Float16.h" />
-    <ClInclude Include="MathConstant.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="MemoryView.h" />
-    <ClInclude Include="MessageDialog.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="RenderGraph.h" />
@@ -633,19 +608,15 @@
     <ClInclude Include="Blob.h" />
     <ClInclude Include="Archive.h" />
     <ClInclude Include="Assertion.h" />
-    <ClInclude Include="AssetCreationDialog.h" />
     <ClInclude Include="CommandLineParser.h" />
     <ClInclude Include="ComponentDatabase.h" />
     <ClInclude Include="ComponentMetadata.h" />
-    <ClInclude Include="CTCStringHashMap.h" />
     <ClInclude Include="DirIter.h" />
-    <ClInclude Include="EditorEvents.h" />
     <ClInclude Include="EnumArray.h" />
-    <ClInclude Include="EnumUtilities.h" />
+    <ClInclude Include="EnumTraits.h" />
     <ClInclude Include="CleanUp.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="FileDialog.h" />
-    <ClInclude Include="FileEntry.h" />
     <ClInclude Include="FileLock.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="FileWatcher.h" />
@@ -667,28 +638,10 @@
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="MaterialCreationDialog.h" />
-    <ClInclude Include="OrderedHashMap.h" />
     <ClInclude Include="PathIter.h" />
-    <ClInclude Include="PrimitiveCreationDialog.h" />
-    <ClInclude Include="DialogStack.h" />
-    <ClInclude Include="EditorIcons.h" />
-    <ClInclude Include="EditorStyle.h" />
-    <ClInclude Include="EditorUtilities.h" />
-    <ClInclude Include="EditorWidgets.h" />
-    <ClInclude Include="Editor.h" />
-    <ClInclude Include="Editor_EntityInspectorWindow.h" />
-    <ClInclude Include="Editor_FileBrowserWindow.h" />
-    <ClInclude Include="Editor_ProfilerWindow.h" />
-    <ClInclude Include="EditorRenderer.h" />
-    <ClInclude Include="Editor_SceneHierarchyWindow.h" />
-    <ClInclude Include="Editor_VertexLayoutEditorWindow.h" />
-    <ClInclude Include="Editor_SceneViewWindow.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="EnvironmentComponent.h" />
-    <ClInclude Include="Dialog.h" />
-    <ClInclude Include="GeometryUtilities.h" />
-    <ClInclude Include="RenameFileDialog.h" />
+    <ClInclude Include="GeometryReadWriter.h" />
     <ClInclude Include="LRUCache.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="Optional.h" />
@@ -697,23 +650,20 @@
     <ClInclude Include="Signal.h" />
     <ClInclude Include="StaticRingBuffer.h" />
     <ClInclude Include="StaticString.h" />
-    <ClInclude Include="STL.h" />
+    <ClInclude Include="Containers.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="StringBase.h" />
     <ClInclude Include="StringHasher.h" />
-    <ClInclude Include="StringKeyContainers.h" />
+    <ClInclude Include="StringKeyedContainers.h" />
     <ClInclude Include="StringView.h" />
     <ClInclude Include="SVGImporter.h" />
     <ClInclude Include="TextureFormat.h" />
     <ClInclude Include="HistoryStack.h" />
-    <ClInclude Include="ImageImportDialog.h" />
-    <ClInclude Include="ModelImportDialog.h" />
     <ClInclude Include="RefCounted.h" />
     <ClInclude Include="RenderableComponent.h" />
     <ClInclude Include="Model.h" />
-    <ClInclude Include="HashMap.h" />
     <ClInclude Include="IAsset.h" />
-    <ClInclude Include="BaseUtilities.h" />
+    <ClInclude Include="Utilities.h" />
     <ClInclude Include="Configs.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="ImageBase.h" />
@@ -731,7 +681,6 @@
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="Profile.h" />
     <ClInclude Include="RadixSort.h" />
-    <ClInclude Include="ThumbnailCache.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="ResourcePool.h" />
     <ClInclude Include="SceneManager.h" />
@@ -768,19 +717,34 @@
     <ClInclude Include="UID.h" />
     <ClInclude Include="UIDAllocator.h" />
     <ClInclude Include="Vector.h" />
-    <ClInclude Include="Vendor\ImGuizmo\ImGuizmo.h" />
-    <ClInclude Include="Vendor\imgui\imconfig.h" />
-    <ClInclude Include="Vendor\imgui\imgui.h" />
-    <ClInclude Include="Vendor\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="Vendor\imgui\imgui_internal.h" />
-    <ClInclude Include="Vendor\imgui\imgui_stdlib.h" />
-    <ClInclude Include="Vendor\imgui\imstb_rectpack.h" />
-    <ClInclude Include="Vendor\imgui\imstb_textedit.h" />
-    <ClInclude Include="Vendor\imgui\imstb_truetype.h" />
+    <ClInclude Include="Vendor\ImGuizmo\ImGuizmo.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imconfig.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_impl_win32.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_internal.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imgui_stdlib.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_rectpack.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_textedit.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="Vendor\imgui\imstb_truetype.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="VertexLayout.h" />
-    <ClInclude Include="RenderView.h" />
-    <ClInclude Include="VertexLayoutEditorDialog.h" />
-    <ClInclude Include="VertexLayoutEntryManager.h" />
     <ClInclude Include="WindowsPlatform.h" />
     <ClInclude Include="WindowsUtilities.h" />
     <ClInclude Include="EmbeddedShaderGlue.h" />

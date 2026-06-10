@@ -1,7 +1,6 @@
 #pragma once
 #include "AssetCreationDialog.h"
 #include "FileDialog.h"
-#include "WindowsUtilities.h"
 
 namespace Jam
 {

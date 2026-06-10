@@ -2,30 +2,28 @@
 
 #include "pch.h"
 
-#include "FileSystem.h"
+// system
+#include "WindowsPlatform.h"
+#include "Input.h"
 
-#include "Application.h"
-
-#include "Graphics.h"
-#include "ImGuiEngine.h"
+// rendering
+#include "RenderGraph.h"
 #include "ShaderCompiler.h"
+#include "Camera.h"
 
+// scene
 #include "Scene.h"
 #include "SceneManager.h"
 #include "SceneDatabase.h"
+#include "Transform.h"
 
-#include "Input.h"
-#include "WindowsUtilities.h"
-#include "WindowsPlatform.h"
-
-#include "BasicRenderer.h"
-#include "MeshFactory.h"
-#include "Profile.h"
+// assets
 #include "AssetManager.h"
+#include "Mesh.h"
+#include "MeshFactory.h"
+#include "Material.h"
+#include "Texture.h"
+#include "Model.h"
 
-#include "CameraComponent.h"
-#include "SceneComponent.h"
-#include "TagComponent.h"
-#include "RenderableComponent.h"
-#include "SpotLightComponent.h"
-#include "PointLightComponent.h"
+// entity, components
+#include "Entity.h"

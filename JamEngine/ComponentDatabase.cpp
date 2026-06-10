@@ -13,47 +13,47 @@ ComponentDatabase& ComponentDatabase::GetInstance()
     return *s_pInstance;
 }
 
-bool ComponentDatabase::IsComponentReflected(
+bool ComponentDatabase::IsComponentRegistered(
     const StringView _typeName) const
 {
-    return m_componentRflData.contains(_typeName.Hash());
+    return m_componentDataMap.contains(_typeName.Hash());
 }
 
-bool ComponentDatabase::IsComponentReflected(
+bool ComponentDatabase::IsComponentRegistered(
     const UInt64 _typeHash) const
 {
-    return m_componentRflData.contains(_typeHash);
+    return m_componentDataMap.contains(_typeHash);
 }
 
-bool ComponentDatabase::IsComponentReflectedByEnttHash(
+bool ComponentDatabase::IsComponentRegisteredByENTTHash(
     const UInt32 _enttHash) const
 {
     return m_enttHashToTypeHash.contains(_enttHash);
 }
 
-const ComponentReflectionData& ComponentDatabase::GetComponentReflectionByEnttHash(
+const ComponentDatabase::Data& ComponentDatabase::GetComponentDataByENTTHash(
     const UInt32 _enttHash) const
 {
     const UInt64 typeHash = m_enttHashToTypeHash.at(_enttHash);
-    return m_componentRflData.at(typeHash);
+    return m_componentDataMap.at(typeHash);
 }
 
-const ComponentReflectionData& ComponentDatabase::GetComponentReflection(
+const ComponentDatabase::Data& ComponentDatabase::GetComponentData(
     const UInt64 _typeHash) const
 {
-    return m_componentRflData.at(_typeHash);
+    return m_componentDataMap.at(_typeHash);
 }
 
-const ComponentReflectionData& ComponentDatabase::GetComponentReflection(
+const ComponentDatabase::Data& ComponentDatabase::GetComponentData(
     const StringView _typeName) const
 {
     const UInt64 typeHash = _typeName.Hash();
-    return m_componentRflData.at(typeHash);
+    return m_componentDataMap.at(typeHash);
 }
 
-const CASHashMap<UInt64, ComponentReflectionData>& ComponentDatabase::GetComponentReflectionContainer() const
+const PreHashedMap<UInt64, ComponentDatabase::Data>& ComponentDatabase::GetComponentDataContainer() const
 {
-    return m_componentRflData;
+    return m_componentDataMap;
 }
 
 void ComponentDatabase::DestroyInstance()

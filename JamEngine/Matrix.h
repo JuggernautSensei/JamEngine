@@ -3,8 +3,6 @@
 // ReSharper disable CppClangTidyClangDiagnosticNestedAnonTypes
 // ReSharper disable CppClangTidyClangDiagnosticReservedIdentifier
 #pragma once
-#include "Quaternion.h"
-#include "Vector.h"
 
 namespace Jam
 {
@@ -17,7 +15,10 @@ struct alignas(16) Mtx4
 
     [[nodiscard]] static Mtx4 MakeOrtho(float left, float right, float top, float bottom, float nearZ, float farZ);
     [[nodiscard]] static Mtx4 MakeOrtho(float _width, float _height, float _nearZ, float _farZ);
+    [[nodiscard]] static Mtx4 MakeInvOrtho(float left, float right, float top, float bottom, float nearZ, float farZ);
+    [[nodiscard]] static Mtx4 MakeInvOrtho(float _width, float _height, float _nearZ, float _farZ);
     [[nodiscard]] static Mtx4 MakePerspectiveFov(float _fovYRad, float _aspect, float _nearZ, float _farZ);
+    [[nodiscard]] static Mtx4 MakeInvPerspectiveFov(float _fovYRad, float _aspect, float _nearZ, float _farZ);
 
     [[nodiscard]] static Mtx4 MakeTranslation(Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeScale(Vec3 _scale);
@@ -28,6 +29,7 @@ struct alignas(16) Mtx4
     [[nodiscard]] static Mtx4 FromEuler(Vec3 _euler);
     [[nodiscard]] static Mtx4 FromQuaternion(Quat _quat);
     [[nodiscard]] static Mtx4 MakeLookAt(Vec3 _eyePos, Vec3 _focusPoint, Vec3 _up);
+    [[nodiscard]] static Mtx4 MakeLookTo(Vec3 _eyePos, Vec3 _forward, Vec3 _up);
     [[nodiscard]] static Mtx4 MakeSRT(Vec3 _scale, Quat _rotation, Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeSRT(Vec3 _scale, Vec3 _euler, Vec3 _translation);
     [[nodiscard]] static Mtx4 MakeSRT(Vec3 _scale, Vec3 _forward, Vec3 _up, Vec3 _translation);

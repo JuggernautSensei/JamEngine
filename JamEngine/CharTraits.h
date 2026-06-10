@@ -1,44 +1,14 @@
 // ReSharper disable CppClangTidyClangDiagnosticFloatEqual
 #pragma once
-#include "TypeTraits.h"
 #include <cwchar>
+#include "TypeTraits.h"
+#include "Optional.h"
 
 namespace Jam
 {
 
 template<typename T>
 concept IsCharT = AnyOfV<T, char, wchar_t, char8_t, char16_t, char32_t>;
-
-////////// result types //////////
-
-struct CharResult
-{
-    constexpr CharResult() = default;
-
-    explicit constexpr CharResult(const SizeT _index)
-        : bSucceeded(true)
-        , pos(_index)
-    {
-    }
-
-    constexpr static CharResult Failed()
-    {
-        return CharResult {};
-    }
-
-    [[nodiscard]] constexpr bool IsSucceeded() const
-    {
-        return bSucceeded && pos != -1;
-    }
-
-    [[nodiscard]] constexpr bool IsFailed() const
-    {
-        return !IsSucceeded();
-    }
-
-    bool  bSucceeded = false;
-    SizeT pos        = -1;
-};
 
 struct TrimResult   // [begin, end)
 {
@@ -66,11 +36,7 @@ struct PathDecomposeResult
     SizeT extLen      = 0;
 };
 
-constexpr SizeT kMaxPathLength = 1024;
-
-////////// CharRuntime : C runtime hook //////////
-
-template<typename TChar>
+template<IsCharT TChar>
 struct CharRuntime
 {
 };
@@ -434,36 +400,36 @@ struct CharTraits
         return ToLower(_str0[0]) == ToLower(_c) && _str0[1] == kNullChar;
     }
 
-    static constexpr CharResult StrFind(const CharT* _str, const SizeT _len, const CharT _c)
+    static constexpr Optional<SizeT> StrFind(const CharT* _str, const SizeT _len, const CharT _c)
     {
         using StdStringView = std::basic_string_view<CharT>;
         const StdStringView sv { _str, static_cast<USizeT>(_len) };
         const USizeT        pos = sv.find(_c);
-        return pos != StdStringView::npos ? CharResult { static_cast<SizeT>(pos) } : CharResult::Failed();
+        return pos != StdStringView::npos ? static_cast<SizeT>(pos) : kNullopt;
     }
 
-    static constexpr CharResult StrFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
+    static constexpr Optional<SizeT> StrFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
     {
         using StdStringView = std::basic_string_view<CharT>;
         const StdStringView sv { _str, static_cast<USizeT>(_len) };
         const USizeT        pos = sv.find(_findStr, 0, _findStrLen);
-        return pos != StdStringView::npos ? CharResult { static_cast<SizeT>(pos) } : CharResult::Failed();
+        return pos != StdStringView::npos ? Optional<SizeT> { static_cast<SizeT>(pos) } : kNullopt;
     }
 
-    static constexpr CharResult StrRFind(const CharT* _str, const SizeT _len, const CharT _c)
+    static constexpr Optional<SizeT> StrRFind(const CharT* _str, const SizeT _len, const CharT _c)
     {
         using StdStringView = std::basic_string_view<CharT>;
         const StdStringView sv { _str, static_cast<USizeT>(_len) };
         const USizeT        pos = sv.rfind(_c);
-        return pos != StdStringView::npos ? CharResult { static_cast<SizeT>(pos) } : CharResult::Failed();
+        return pos != StdStringView::npos ? Optional<SizeT> { static_cast<SizeT>(pos) } : kNullopt;
     }
 
-    static constexpr CharResult StrRFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
+    static constexpr Optional<SizeT> StrRFind(const CharT* _str, const SizeT _len, const CharT* _findStr, const SizeT _findStrLen)
     {
         using StdStringView = std::basic_string_view<CharT>;
         const StdStringView sv { _str, static_cast<USizeT>(_len) };
         const USizeT        pos = sv.rfind(_findStr, sv.size() - _findStrLen, _findStrLen);
-        return pos != StdStringView::npos ? CharResult { static_cast<SizeT>(pos) } : CharResult::Failed();
+        return pos != StdStringView::npos ? Optional<SizeT> { static_cast<SizeT>(pos) } : kNullopt;
     }
 
     static constexpr SizeT StrLTrim(const CharT* _pStart, const SizeT _len)

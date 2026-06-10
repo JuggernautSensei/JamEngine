@@ -1,6 +1,5 @@
 #pragma once
 #include "FlyingCamera.h"
-#include "../JamEngine/RenderGraph.h"
 
 class SimpleScene : public Scene
 {

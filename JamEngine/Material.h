@@ -1,11 +1,12 @@
 #pragma once
+#include "Archive.h"
 #include "EnumArray.h"
-#include "File.h"
 #include "IAsset.h"
-#include "Texture.h"
 
 namespace Jam
 {
+
+class Texture;
 
 enum class eTextureChannel
 {
@@ -79,7 +80,7 @@ public:
     [[nodiscard]] StringView GetPath() const override;
     [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
-    [[nodiscard]] UInt64 GetTypeHash() const override;
+    [[nodiscard]] UInt64     GetTypeHash() const override;
     [[nodiscard]] UInt16     GetSortKey() const;
     [[nodiscard]] StringView GetName() const override;
     [[nodiscard]] StringView GetExtension() const override;

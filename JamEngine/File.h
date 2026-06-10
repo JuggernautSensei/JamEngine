@@ -1,4 +1,6 @@
 #pragma once
+#include "String.h"
+#include "Error.h"
 #include "MemoryView.h"
 
 namespace Jam
@@ -64,7 +66,7 @@ public:
     static Expect<String>                   ReadFileAsString(StringView _path);
 
     Expect<SizeT>      ReadBinary(MutableMemoryView _dst, SizeT _count = 0) const;   // zero is treated as "read as much as possible"
-    Expect<String>     ReadString(SizeT _count = 0) const;                     // zero is treated as "read as much as possible"
+    Expect<String>     ReadString(SizeT _count = 0) const;                           // zero is treated as "read as much as possible"
     [[nodiscard]] bool IsEof() const;
 
 private:

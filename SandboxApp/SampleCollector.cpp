@@ -45,7 +45,6 @@ Int32 SampleCollector::GetOffset() const
 
 void SampleCollector::Reset()
 {
-
     m_samples.fill(0);
     m_offset = 0;
     m_num    = 0;

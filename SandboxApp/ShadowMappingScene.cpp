@@ -5,7 +5,7 @@
 #include "ImageFilterManager.h"
 #include "RandomGenerator.h"
 #include "RenderStates.h"
-#include "Utils.h"
+#include "Utilities.h"
 #include "../JamEngine/AssimpImporter.h"
 #include "../JamEngine/Filter.h"
 #include "../JamEngine/Random.h"
@@ -15,22 +15,16 @@
 namespace
 {
 
-constexpr Int32 kShadowCascadeLevels = 3;
-
 constexpr Int32 kTSceneNormalSlot = 0;
 constexpr Int32 kTSceneColorSlot  = 1;
 constexpr Int32 kTSceneDepthSlot  = 2;
 constexpr Int32 kTSceneLightSlot  = 3;
 constexpr Int32 kTAlbedoSlot      = 4;
 
-constexpr Int32 kTShadowMapSlot        = 5;
-constexpr Int32 kTShadowMapAdvSlot     = 6;
-constexpr Int32 kTOmniShadowMapSlot    = 7;
-constexpr Int32 kTOmniShadowMapAdvSlot = 8;
-
-constexpr Int32 kTShadowMapAdvSATRWSlot       = 0;
-constexpr Int32 kTShadowMapAdvSATColCarrySlot = 1;
-constexpr Int32 kTShadowMapAdvSATRowCarrySlot = 2;
+constexpr Int32 kTShadowMapSlot           = 5;
+constexpr Int32 kTShadowMapColorSlot      = 6;
+constexpr Int32 kTShadowMapArraySlot      = 7;
+constexpr Int32 kTShadowMapColorArraySlot = 8;
 
 constexpr Int32 kTImageFilterInput0 = 0;
 
@@ -38,71 +32,83 @@ constexpr Int32 kSLinearClampSlot      = 0;
 constexpr Int32 kSLinearWrapSlot       = 1;
 constexpr Int32 kSShadowComparisonSlot = 2;
 
-constexpr StringView kOmniShadowMapFBNames[]           = { "FB_OmniShadowMap_PosX", "FB_OmniShadowMap_NegX", "FB_OmniShadowMap_PosY", "FB_OmniShadowMap_NegY", "FB_OmniShadowMap_PosZ", "FB_OmniShadowMap_NegZ" };
-constexpr StringView kOmniShadowMapAdvFBNames[]        = { "FB_OmniShadowMapAdv_PosX", "FB_OmniShadowMapAdv_NegX", "FB_OmniShadowMapAdv_PosY", "FB_OmniShadowMapAdv_NegY", "FB_OmniShadowMapAdv_PosZ", "FB_OmniShadowMapAdv_NegZ" };
-constexpr StringView kOmniShadowCasterPassNames[]      = { "Pass_OmniShadowCaster_PosX", "Pass_OmniShadowCaster_NegX", "Pass_OmniShadowCaster_PosY", "Pass_OmniShadowCaster_NegY", "Pass_OmniShadowCaster_PosZ", "Pass_OmniShadowCaster_NegZ" };
-constexpr StringView kOmniShadowMapAdvBlurXPassNames[] = { "Pass_OmniShadowMapAdvBlurX_PosX", "Pass_OmniShadowMapAdvBlurX_NegX", "Pass_OmniShadowMapAdvBlurX_PosY", "Pass_OmniShadowMapAdvBlurX_NegY", "Pass_OmniShadowMapAdvBlurX_PosZ", "Pass_OmniShadowMapAdvBlurX_NegZ" };
-constexpr StringView kOmniShadowMapAdvBlurYPassNames[] = { "Pass_OmniShadowMapAdvBlurY_PosX", "Pass_OmniShadowMapAdvBlurY_NegX", "Pass_OmniShadowMapAdvBlurY_PosY", "Pass_OmniShadowMapAdvBlurY_NegY", "Pass_OmniShadowMapAdvBlurY_PosZ", "Pass_OmniShadowMapAdvBlurY_NegZ" };
-constexpr StringView kOmniShadowMapAdvAAPassNames[]    = { "Pass_OmniShadowMapAdvAA_PosX", "Pass_OmniShadowMapAdvAA_NegX", "Pass_OmniShadowMapAdvAA_PosY", "Pass_OmniShadowMapAdvAA_NegY", "Pass_OmniShadowMapAdvAA_PosZ", "Pass_OmniShadowMapAdvAA_NegZ" };
-
-struct CBEntity
-{
-    static constexpr Int32 kSlot = 0;
-
-    Mtx4   world;
-    UInt32 rgba;
-    UInt32 bUseTexture;
-    float  padding[2];
-};
-
-struct CBCamera
-{
-    static constexpr Int32 kSlot = 1;
-
-    Mtx4  viewProj;
-    Mtx4  invViewProj;
-    Vec3  eyePos;
-    float padding;
-};
-
-struct CBLight
-{
-    static constexpr Int32 kSlot = 2;
-
-    Vec3   lightPos;
-    float  lightFallOffStart;
-    Vec3   lightDir;
-    float  lightFallOffEnd;
-    float  lightSpotInnerCos;
-    float  lightSpotOuterCos;
-    UInt32 bMakeShadow;
-    float  padding;
-};
-
-struct CBShadow
-{
-    static constexpr Int32 kSlot = 3;
-
-    UInt32 shadowType;
-    UInt32 bUseComparisonSampler;
-    float  shadowBias;
-    float  shadowNormalOffset;
-    float  esmExponential;
-    Vec4   casecadeSplits;
-};
-
-struct CBShadowCaster
-{
-    static constexpr Int32 kSlot = 4;
-
-    Mtx4 lightView;
-    Mtx4 lightProj;
-};
-
 }   // namespace
 
 ShadowMappingScene::ShadowMappingScene()
 {
+    // spot
+    {
+        ImageFilterManager& ifm = GetImageFilterManager();
+
+        ShadowSpec& spec                  = m_shadowSpecs[eLight::Spot];
+        spec.depthBuffer                  = "T_SpotShadowMapDepth";
+        spec.colorBuffer                  = "T_SpotShadowMapColor";
+        spec.casterProgram                = "P_ShadowCaster";
+        spec.vsmCasterProgram             = "P_ShadowCasterVSM";
+        spec.receiverProgram              = "P_SpotShadowReceiver";
+        spec.frameBuffers[0]              = "FB_SpotShadowMap";
+        spec.casterPasses[0]              = "Pass_SpotShadowCaster";
+        spec.advFrameBuffers[0]           = "FB_SpotShadowMapAdv";
+        spec.advBlurXPasses[0]            = "Pass_SpotShadowMapAdvBlurX";
+        spec.advBlurYPasses[0]            = "Pass_SpotShadowMapAdvBlurY";
+        spec.advAAPasses[0]               = "Pass_SpotShadowMapAdvAA";
+        spec.casterExecutor[0]            = Bind<&ShadowMappingScene::RenderSpotShadowCasters_>(this);
+        spec.screenTriIndexingExecutor[0] = Bind<&ImageFilterManager::SubmitScreenTriangle>(&ifm);
+        spec.lightVolumeExecutor          = Bind<&ShadowMappingScene::RenderSpotLightVolume_>(this);
+    }
+
+    // omni
+    {
+        constexpr StringView kPrefixes[] = { "PosX", "NegX", "PosY", "NegY", "PosZ", "NegZ" };
+
+        ShadowSpec& spec      = m_shadowSpecs[eLight::Omni];
+        spec.depthBuffer      = "T_OmniShadowMapDepth";
+        spec.colorBuffer      = "T_OmniShadowMapColor";
+        spec.casterProgram    = "P_OmniShadowCaster";
+        spec.vsmCasterProgram = "P_ShadowCasterVSM";
+        spec.receiverProgram  = "P_OmniShadowReceiver";
+        spec.bIsArray         = true;
+
+        for (Int32 i = 0; i < 6; ++i)
+        {
+            spec.frameBuffers[i]              = String::Formatted("FB_OmniShadowMap_{}", kPrefixes[i]);
+            spec.casterPasses[i]              = String::Formatted("Pass_OmniShadowCaster_{}", kPrefixes[i]);
+            spec.advFrameBuffers[i]           = String::Formatted("FB_OmniShadowMapAdv_{}", kPrefixes[i]);
+            spec.advBlurXPasses[i]            = String::Formatted("Pass_OmniShadowMapAdvBlurX_{}", kPrefixes[i]);
+            spec.advBlurYPasses[i]            = String::Formatted("Pass_OmniShadowMapAdvBlurY_{}", kPrefixes[i]);
+            spec.advAAPasses[i]               = String::Formatted("Pass_OmniShadowMapAdvAA_{}", kPrefixes[i]);
+            spec.casterExecutor[i]            = Bind([i, this] { RenderOmniShadowCasters_(RangesOf<eCubeFace>()[i]); });
+            spec.screenTriIndexingExecutor[i] = Bind([i, this] { RenderScreenTriIndexing_(i); });
+            spec.lightVolumeExecutor          = Bind<&ShadowMappingScene::RenderOmniLightVolume_>(this);
+        }
+    }
+
+    // dir
+    {
+        constexpr StringView kPrefixes[] = { "0", "1", "2", "3" };
+
+        ShadowSpec& spec      = m_shadowSpecs[eLight::Directional];
+        spec.depthBuffer      = "T_CascadeShadowMapDepth";
+        spec.colorBuffer      = "T_CascadeShadowMapColor";
+        spec.casterProgram    = "P_CascadeShadowCaster";
+        spec.vsmCasterProgram = "P_CascadeShadowCasterVSM";
+        spec.receiverProgram  = "P_CascadeShadowReceiver";
+        spec.bIsArray         = true;
+
+        for (Int32 i = 0; i < 4; ++i)
+        {
+            spec.frameBuffers[i]              = String::Formatted("FB_CascadeShadowMap_{}", kPrefixes[i]);
+            spec.casterPasses[i]              = String::Formatted("Pass_CascadeShadowCaster_{}", kPrefixes[i]);
+            spec.advFrameBuffers[i]           = String::Formatted("FB_CascadeShadowMapAdv_{}", kPrefixes[i]);
+            spec.advBlurXPasses[i]            = String::Formatted("Pass_CascadeShadowMapAdvBlurX_{}", kPrefixes[i]);
+            spec.advBlurYPasses[i]            = String::Formatted("Pass_CascadeShadowMapAdvBlurY_{}", kPrefixes[i]);
+            spec.advAAPasses[i]               = String::Formatted("Pass_CascadeShadowMapAdvAA_{}", kPrefixes[i]);
+            spec.casterExecutor[i]            = Bind([i, this] { RenderCascadeShadowCasters_(i); });
+            spec.screenTriIndexingExecutor[i] = Bind([i, this] { RenderScreenTriIndexing_(i); });
+            spec.lightVolumeExecutor          = Bind<&ShadowMappingScene::RenderDirectionalLightVolume_>(this);
+        }
+    }
+
     InitMeshes_();
     InitRenderGraphResources_();
     InitRenderGraphShadowTextures_();
@@ -116,6 +122,8 @@ ShadowMappingScene::ShadowMappingScene()
     m_omniLight.pos.y        = 3.f;
     m_omniLight.fallOffStart = 10.f;
     m_omniLight.fallOffEnd   = 30.f;
+
+    m_dirLight.dir = Vec3 { -1.f, -1.f, 1.f }.Normalized();
 
     m_camera.transform.SetTranslation(Vec3 { -5.f, 5.f, -5.f });
     m_camera.transform.SetLookAt(kFocus, Vec3::kUp);
@@ -145,13 +153,54 @@ void ShadowMappingScene::OnRender(const RenderView& _view)
 {
     Graphics& gfx = GetGraphics();
 
+    // prepare camera
+    const Mtx4 viewProj = m_camera.CalcViewProj();
+
     CBCamera camera;
-    camera.viewProj    = m_camera.CalcViewProj().Transpose();
-    camera.invViewProj = camera.viewProj.Inverse();
+    camera.viewProj    = viewProj.Transpose();
+    camera.invViewProj = m_camera.CalcInvViewProj().Transpose();
     camera.eyePos      = m_camera.GetEyePos();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(camera));
 
-    m_graph.Execute(_view.fbh, _view.vp);
+    if (m_activeLight == eLight::Directional)
+    {
+        // calc distances
+        Frustum frustumInV { m_camera.GetProj() };
+        frustumInV.Normalize();
+
+        Array<CascadeSplit, 4> dists = {};
+        frustumInV.CalcCascadeSplitsInViewSpace(Span { dists.data(), m_cascadeLevel }, m_cascadeSplitWeight);
+
+        // calc matrix
+        for (Int32 i = 0; i < m_cascadeLevel; ++i)
+        {
+            const auto [view, proj]                         = CalcCascadeLightViewProj_(dists[i].nearZ, dists[i].farZ);
+            m_directionalShadowReceiver.cascadeDists[i]     = dists[i].farZ;
+            m_directionalShadowReceiver.cascadeLightView[i] = view.Transpose();
+            m_directionalShadowReceiver.cascadeLightProj[i] = proj.Transpose();
+        }
+        gfx.UpdateBuffer(m_csmCasterCbh, AsMemoryView(m_directionalShadowReceiver));
+    }
+
+    if (m_activeLight != eLight::None)
+    {
+        CBShadow shadow;
+        shadow.shadowType            = AsUnderlying(m_shadowMode);
+        shadow.bUseComparisonSampler = m_bUseComparisonSampler;
+        shadow.bRenderLightRegion    = m_bRenderLightRegion;
+        shadow.shadowBias            = m_shadowBias;
+        shadow.shadowNormalOffset    = m_shadowNormalOffset;
+        shadow.cascadeLevel          = m_cascadeLevel;
+        gfx.UpdateBuffer(m_shadowCbh, AsMemoryView(shadow));
+    }
+
+    // clear light fb. (you can move this code at utility pass)
+    {
+        const FrameBufferHandle fbh = m_graph.GetFrameBuffer("FB_Light");
+        gfx.ClearRenderTarget(fbh, RGBA::FromLinear(0.1f, 0.1f, 0.1f));
+    }
+
+    m_graph.Execute(_view.fbh, _view.viewport);
 }
 
 void ShadowMappingScene::OnImGuiRender()
@@ -165,16 +214,22 @@ void ShadowMappingScene::OnImGuiRender()
     bool bNeedRebuildGraph           = false;
     bool bNeedRecreateShadowTextures = false;
 
+    const bool bIsHard = m_shadowMode == eShadowMode::Hard;
+    const bool bIsPCF  = m_shadowMode == eShadowMode::PCF3 || m_shadowMode == eShadowMode::PCF5 || m_shadowMode == eShadowMode::PCF7;
+
     ////////// Animation //////////
 
     ImGui::Checkbox("animate", &m_bAnimate);
     ImGui::SameLine();
     ImGui::SliderFloat("rot speed", &m_dRot, 0.f, ToRad(360.f), "%.2f rad/s");
 
+    ImGui::Spacing();
+
     ////////// Active Light //////////
 
     {
         int activeLight = static_cast<int>(m_activeLight);
+
         bNeedRebuildGraph |= ImGui::RadioButton("None", &activeLight, static_cast<int>(eLight::None));
         ImGui::SameLine();
         bNeedRebuildGraph |= ImGui::RadioButton("Spot", &activeLight, static_cast<int>(eLight::Spot));
@@ -182,120 +237,149 @@ void ShadowMappingScene::OnImGuiRender()
         bNeedRebuildGraph |= ImGui::RadioButton("Omni", &activeLight, static_cast<int>(eLight::Omni));
         ImGui::SameLine();
         bNeedRebuildGraph |= ImGui::RadioButton("Directional", &activeLight, static_cast<int>(eLight::Directional));
+
         m_activeLight = static_cast<eLight>(activeLight);
     }
 
-    ////////// Light Settings //////////
+    ImGui::Spacing();
+
+    ////////// Light Properties //////////
 
     if (m_activeLight == eLight::Spot)
     {
         if (ImGui::CollapsingHeader("Spot Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            bNeedRebuildGraph |= ImGui::Checkbox("cast shadow##spot", &m_spotLight.bCastShadow);
+            ImGui::Indent();
 
+            bNeedRebuildGraph |= ImGui::Checkbox("render light region##spot", &m_bRenderLightRegion);
+
+            ImGui::SeparatorText("Transform");
             ImGui::DragFloat3("position##spot", &m_spotLight.pos.x, 0.1f);
             ImGui::DragFloat3("direction##spot", &m_spotLight.dir.x, 0.01f, -1.f, 1.f);
+
+            ImGui::SeparatorText("Range");
             ImGui::DragFloat("fall off start##spot", &m_spotLight.fallOffStart, 0.1f, 0.f, m_spotLight.fallOffEnd);
             ImGui::DragFloat("fall off end##spot", &m_spotLight.fallOffEnd, 0.1f, m_spotLight.fallOffStart, FLT_MAX);
 
+            ImGui::SeparatorText("Cone");
             if (ImGui::SliderAngle("inner cone##spot", &m_spotLight.innerConeRad, 1.f, 89.f))
             {
                 m_spotLight.innerConeRad = Min(m_spotLight.innerConeRad, m_spotLight.outerConeRad - ToRad(1.f));
             }
-
             if (ImGui::SliderAngle("outer cone##spot", &m_spotLight.outerConeRad, 1.f, 89.f))
             {
                 m_spotLight.outerConeRad = Max(m_spotLight.outerConeRad, m_spotLight.innerConeRad + ToRad(1.f));
             }
+
+            ImGui::Unindent();
         }
     }
     else if (m_activeLight == eLight::Omni)
     {
         if (ImGui::CollapsingHeader("Omni Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            bNeedRebuildGraph |= ImGui::Checkbox("cast shadow##spot", &m_omniLight.bCastShadow);
+            ImGui::Indent();
 
+            bNeedRebuildGraph |= ImGui::Checkbox("render light region##omni", &m_bRenderLightRegion);
+
+            ImGui::SeparatorText("Transform");
             ImGui::DragFloat3("position##omni", &m_omniLight.pos.x, 0.1f);
+
+            ImGui::SeparatorText("Range");
             ImGui::DragFloat("fall off start##omni", &m_omniLight.fallOffStart, 0.1f, 0.f, m_omniLight.fallOffEnd);
             ImGui::DragFloat("fall off end##omni", &m_omniLight.fallOffEnd, 0.1f, m_omniLight.fallOffStart, FLT_MAX);
+
+            ImGui::Unindent();
         }
     }
     else if (m_activeLight == eLight::Directional)
     {
         if (ImGui::CollapsingHeader("Directional Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            ImGui::Indent();
+
+            bNeedRebuildGraph |= ImGui::Checkbox("render light region##dir", &m_bRenderLightRegion);
+
+            ImGui::SeparatorText("Transform");
             ImGui::DragFloat3("direction##dir", &m_dirLight.dir.x, 0.01f, -1.f, 1.f);
-            ImGui::TextDisabled("cast shadow (미구현)");
+
+            ImGui::SeparatorText("Cascade");
+            bNeedRecreateShadowTextures |= ImGui::DragInt("cascade level", &m_cascadeLevel, 0.1f, 1, 4);
+            ImGui::DragFloat("cascade z offset", &m_cascadeZOffset, 0.1f, 0.f, 100.f);
+            ImGui::DragFloat("cascade split weight", &m_cascadeSplitWeight, 0.01f, 0.f, 1.f);
+
+            ImGui::Unindent();
         }
     }
+
+    ImGui::Spacing();
 
     ////////// Shadow //////////
 
     if (ImGui::CollapsingHeader("Shadow", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        // shadow map texture settings
+        ImGui::Indent();
+
+        // Resolution
+        ImGui::SeparatorText("Resolution");
         {
-            constexpr const char* kResolutions[] = { "256 x 256", "512 x 512", "1024 x 1024", "2048 x 2048", "4096 x 4096" };
-            const int             min            = static_cast<int>(eShadowMapSize::x256);
-            const int             max            = static_cast<int>(eShadowMapSize::x4096);
-            const char*           display        = kResolutions[static_cast<int>(m_shadowMapSize)];
-            if (ImGui::SliderInt("resolution", reinterpret_cast<int*>(&m_shadowMapSize), min, max, display))
+            constexpr const char* kResolutions[] = {
+                "256 x 256", "512 x 512", "1024 x 1024", "2048 x 2048", "4096 x 4096"
+            };
+            const char* display = kResolutions[static_cast<int>(m_shadowMapSize)];
+
+            if (ImGui::SliderInt("##resolution", reinterpret_cast<int*>(&m_shadowMapSize), static_cast<int>(eShadowMapSize::x256), static_cast<int>(eShadowMapSize::x4096), display))
             {
                 bNeedRecreateShadowTextures = true;
             }
         }
 
-        ImGui::Separator();
-
-        // shadow filtering
+        // Filtering
+        ImGui::SeparatorText("Filtering");
         {
-            int sampling = static_cast<int>(m_shadowFilter);
-            bNeedRebuildGraph |= ImGui::RadioButton("Hard", &sampling, static_cast<int>(eShadowFiltering::Hard));
+            int filter = static_cast<int>(m_shadowMode);
+
+            bNeedRebuildGraph |= ImGui::RadioButton("Hard", &filter, static_cast<int>(eShadowMode::Hard));
             ImGui::SameLine();
-            bNeedRebuildGraph |= ImGui::RadioButton("PCF3", &sampling, static_cast<int>(eShadowFiltering::PCF3));
+            bNeedRebuildGraph |= ImGui::RadioButton("PCF 3", &filter, static_cast<int>(eShadowMode::PCF3));
             ImGui::SameLine();
-            bNeedRebuildGraph |= ImGui::RadioButton("PCF5", &sampling, static_cast<int>(eShadowFiltering::PCF5));
+            bNeedRebuildGraph |= ImGui::RadioButton("PCF 5", &filter, static_cast<int>(eShadowMode::PCF5));
             ImGui::SameLine();
-            bNeedRebuildGraph |= ImGui::RadioButton("PCF7", &sampling, static_cast<int>(eShadowFiltering::PCF7));
+            bNeedRebuildGraph |= ImGui::RadioButton("PCF 7", &filter, static_cast<int>(eShadowMode::PCF7));
             ImGui::SameLine();
-            bNeedRebuildGraph |= ImGui::RadioButton("VSM", &sampling, static_cast<int>(eShadowFiltering::VSM));
-            ImGui::SameLine();
-            bNeedRebuildGraph |= ImGui::RadioButton("ESM", &sampling, static_cast<int>(eShadowFiltering::ESM));
-            m_shadowFilter = static_cast<eShadowFiltering>(sampling);
+            bNeedRebuildGraph |= ImGui::RadioButton("VSM", &filter, static_cast<int>(eShadowMode::VSM));
+
+            m_shadowMode = static_cast<eShadowMode>(filter);
         }
 
-        const bool bIsHard         = m_shadowFilter == eShadowFiltering::Hard;
-        const bool bIsVSM          = m_shadowFilter == eShadowFiltering::VSM;
-        const bool bIsESM          = m_shadowFilter == eShadowFiltering::ESM;
-        const bool bIsAdvFiltering = bIsVSM || bIsESM;
+        ImGui::Spacing();
 
-        // comparison sampler
-        ImGui::BeginDisabled(bIsHard || bIsAdvFiltering);
-        ImGui::Checkbox("use comparison sampler", &m_bUseComparisonSampler);
+        // comparison sampler: PCF 계열에서만 유효
+        ImGui::BeginDisabled(!bIsPCF);
+        ImGui::Checkbox("comparison sampler", &m_bUseComparisonSampler);
         ImGui::EndDisabled();
 
-        // post-process
-        ImGui::BeginDisabled(!bIsAdvFiltering);
-        bNeedRebuildGraph |= ImGui::Checkbox("apply anti-aliasing", &m_bApplyAA);
+        // blur / AA: VSM 전용
+        ImGui::BeginDisabled(m_shadowMode != eShadowMode::VSM);
         bNeedRebuildGraph |= ImGui::Checkbox("apply blur", &m_bApplyBlur);
-        ImGui::EndDisabled();
-        ImGui::Separator();
-
-        // bias / normal offset
-        ImGui::BeginDisabled(bIsHard);
-        ImGui::DragFloat("bias", &m_shadowBias, 0.0001f, 0.f, 0.1f, "%.4f");
-        ImGui::DragFloat("normal offset", &m_shadowNormalOffset, 0.0001f, 0.f, 1.f, "%.4f");
+        ImGui::SameLine();
+        bNeedRebuildGraph |= ImGui::Checkbox("apply anti-aliasing", &m_bApplyAA);
         ImGui::EndDisabled();
 
-        // ESM exponent
-        ImGui::BeginDisabled(!bIsESM);
-        ImGui::DragFloat("ESM exponent", &m_esmExponent, 1.f, 1.f, 500.f, "%.1f");
+        // Parameters
+        ImGui::SeparatorText("Parameters");
+
+        // bias, normal offset
+        ImGui::BeginDisabled(m_shadowMode != eShadowMode::VSM);
+        ImGui::DragFloat("bias##shadow", &m_shadowBias, 0.0001f, 0.f, 0.1f, "%.4f");
+        ImGui::DragFloat("normal offset##shadow", &m_shadowNormalOffset, 0.0001f, 0.f, 1.f, "%.4f");
         ImGui::EndDisabled();
+
+        ImGui::Unindent();
     }
 
     ////////// 그래프 재빌드 / 텍스처 재생성 //////////
 
-    // 텍스처 재생성이 필요하면 패스도 함께 재빌드
     if (bNeedRecreateShadowTextures)
     {
         InitRenderGraphShadowTextures_();
@@ -313,7 +397,7 @@ void ShadowMappingScene::OnResize(
     const Int32 _width,
     const Int32 _height)
 {
-    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_camera.SetAspectRatioFromBackBuffer();
 }
 
 void ShadowMappingScene::InitMeshes_()
@@ -379,14 +463,16 @@ void ShadowMappingScene::InitRenderGraphResources_()
     m_graph.EmplaceConstantBuffer("CB_Shadow", sizeof(CBShadow));
     m_graph.EmplaceConstantBuffer("CB_ShadowCaster", sizeof(CBShadowCaster));
     m_graph.EmplaceConstantBuffer("CB_GaussianFilterKernel", sizeof(CBImageFilterKernel));
-    m_graph.EmplaceConstantBuffer("CB_CubeMapIndexing", sizeof(CBImageFilterParam));
+    m_graph.EmplaceConstantBuffer("CB_Indexing", sizeof(CBImageFilterParam));
+    m_graph.EmplaceConstantBuffer("CB_CascadeShadowReceiver", sizeof(CBCascadeShadowReceiver));
 
-    m_entityCbh          = m_graph.GetConstantBuffer("CB_Entity");
-    m_cmrCbh             = m_graph.GetConstantBuffer("CB_Camera");
-    m_lightCbh           = m_graph.GetConstantBuffer("CB_Light");
-    m_shadowCbh          = m_graph.GetConstantBuffer("CB_Shadow");
-    m_shadowCasterCbh    = m_graph.GetConstantBuffer("CB_ShadowCaster");
-    m_cubeMapIndexingCbh = m_graph.GetConstantBuffer("CB_CubeMapIndexing");
+    m_entityCbh       = m_graph.GetConstantBuffer("CB_Entity");
+    m_cmrCbh          = m_graph.GetConstantBuffer("CB_Camera");
+    m_lightCbh        = m_graph.GetConstantBuffer("CB_Light");
+    m_shadowCbh       = m_graph.GetConstantBuffer("CB_Shadow");
+    m_shadowCasterCbh = m_graph.GetConstantBuffer("CB_ShadowCaster");
+    m_indexingCbh     = m_graph.GetConstantBuffer("CB_Indexing");
+    m_csmCasterCbh    = m_graph.GetConstantBuffer("CB_CascadeShadowReceiver");
 
     // upload filter
     CBImageFilterKernel kernel;
@@ -416,40 +502,57 @@ void ShadowMappingScene::InitRenderGraphResources_()
         m_graph.EmplaceFrameBuffer("FB_SceneFinal", attachments);
     }
 
+    // gbuffer pass
     LoadProgram(m_graph, "P_GBuffer", SCENE_PATH("GBufferShader.hlsl"));
 
     // spot light
-    LoadProgram(m_graph, "P_SpotShadowCaster", SCENE_PATH("ShadowCasterShader.hlsl"));
     {
-        ShaderMacro macro[1] = {};
-        macro[0].name        = "SHADOW_CAST_VSM";
-        LoadProgram(m_graph, "P_SpotShadowCasterVSM", SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        const ShadowSpec& spec = m_shadowSpecs[eLight::Spot];
+        LoadProgram(m_graph, spec.casterProgram, SCENE_PATH("ShadowCasterShader.hlsl"));
+        LoadProgram(m_graph, spec.receiverProgram, SCENE_PATH("SpotShadowReceiverShader.hlsl"));
     }
-
-    {
-        ShaderMacro macro[1] = {};
-        macro[0].name        = "SHADOW_CAST_ESM";
-        LoadProgram(m_graph, "P_SpotShadowCasterESM", SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
-    }
-    LoadProgram(m_graph, "P_SpotShadowReceiver", SCENE_PATH("SpotShadowReceiverShader.hlsl"));
 
     // omni light
     {
-        ShaderMacro macro[1] = {};
-        macro[0].name        = "OMNI_SHADOW_CAST";
-        LoadProgram(m_graph, "P_OmniShadowCaster", SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        const ShadowSpec& spec = m_shadowSpecs[eLight::Omni];
+
+        {
+            ShaderMacro macro[1] = {};
+            macro[0].name        = "LIGHT_OMNI";
+            LoadProgram(m_graph, spec.casterProgram, SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        }
+
+        LoadProgram(m_graph, spec.receiverProgram, SCENE_PATH("OmniShadowReceiverShader.hlsl"));
     }
+
+    // dir light
     {
-        ShaderMacro macro[1] = {};
-        macro[0].name        = "SHADOW_CAST_VSM";
-        LoadProgram(m_graph, "P_OmniShadowCasterVSM", SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        const ShadowSpec& spec = m_shadowSpecs[eLight::Directional];
+
+        {
+            ShaderMacro macro[1] = {};
+            macro[0].name        = "LIGHT_DIRECTIONAL";
+            LoadProgram(m_graph, spec.casterProgram, SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        }
+
+        LoadProgram(m_graph, spec.receiverProgram, SCENE_PATH("CascadeShadowReceiverShader.hlsl"));
     }
+
+    // adv mode
     {
-        ShaderMacro macro[1] = {};
-        macro[0].name        = "SHADOW_CAST_ESM";
-        LoadProgram(m_graph, "P_OmniShadowCasterESM", SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        {
+            ShaderMacro macro[1] = {};
+            macro[0].name        = "SHADOW_MODE_VSM";
+            LoadProgram(m_graph, "P_ShadowCasterVSM", SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        }
+
+        {
+            ShaderMacro macro[2] = {};
+            macro[0].name        = "LIGHT_DIRECTIONAL";
+            macro[1].name        = "SHADOW_MODE_VSM";
+            LoadProgram(m_graph, "P_CascadeShadowCasterVSM", SCENE_PATH("ShadowCasterShader.hlsl"), eShaderFlags::Vertex | eShaderFlags::Pixel, macro);
+        }
     }
-    LoadProgram(m_graph, "P_OmniShadowReceiver", SCENE_PATH("OmniShadowReceiverShader.hlsl"));
 
     // misc
     LoadProgram(m_graph, "P_DebugLightCube", SCENE_PATH("DebugLightCubeShader.hlsl"));
@@ -459,50 +562,43 @@ void ShadowMappingScene::InitRenderGraphShadowTextures_()
 {
     const Int32 shadowMapLength = GetShadowMapLength_();
 
-    ////////// SPOT LIGHT //////////
-
-    // shadow map
-    m_graph.EmplaceTexture2D("T_ShadowMap", shadowMapLength, shadowMapLength, eTextureFormat::D32_Float, false, 1, eTextureFlags::DepthStencil);
-    m_graph.EmplaceFrameBuffer("FB_ShadowMap", "T_ShadowMap");
-
-    // advanced filtering
-    m_graph.EmplaceTexture2D("T_ShadowMapAdv", shadowMapLength, shadowMapLength, eTextureFormat::RG32_Float, false, 1, eTextureFlags::RenderTarget);
+    for (const eLight light: { eLight::Spot, eLight::Omni, eLight::Directional })
     {
-        AttachmentRG attahments[2] = {};
-        attahments[0].name         = "T_ShadowMapAdv";
-        attahments[1].name         = "T_ShadowMap";
-        m_graph.EmplaceFrameBuffer("FB_ShadowMapAdv", attahments);
-    }
+        const ShadowSpec& spec      = m_shadowSpecs[light];
+        const Int32       numLayers = light == eLight::Spot ? 1
+                                    : light == eLight::Omni ? 6
+                                                            : m_cascadeLevel;
 
-    ////////// POINT LIGHT //////////
-    // why do not use texture cube? -> for post-process blur and MSAA (for vsm)
+        // shadow map
+        m_graph.EmplaceTexture2D(spec.depthBuffer, shadowMapLength, shadowMapLength, eTextureFormat::D32_Float, false, numLayers, eTextureFlags::DepthStencil);
+        m_graph.EmplaceTexture2D(spec.colorBuffer, shadowMapLength, shadowMapLength, eTextureFormat::RG32_Float, false, numLayers, eTextureFlags::RenderTarget);
 
-    // shadow map
-    m_graph.EmplaceTexture2D("T_OmniShadowMap", shadowMapLength, shadowMapLength, eTextureFormat::D32_Float, false, 6, eTextureFlags::DepthStencil);
+        // shadow map frame buffer
+        for (Int32 i = 0; i < numLayers; ++i)
+        {
+            AttachmentRG attachments[1] = {};
+            attachments[0].name         = spec.depthBuffer;
+            attachments[0].layerOffset  = i;
+            m_graph.EmplaceFrameBuffer(spec.frameBuffers[i], attachments);
+        }
 
-    for (int i = 0; i < 6; ++i)
-    {
-        AttachmentRG attachments[1] = {};
-        attachments[0].name         = "T_OmniShadowMap";
-        attachments[0].layerOffset  = i;
-        m_graph.EmplaceFrameBuffer(kOmniShadowMapFBNames[i], attachments);
-    }
-
-    // advanced filtering
-    m_graph.EmplaceTexture2D("T_OmniShadowMapAdv", shadowMapLength, shadowMapLength, eTextureFormat::RG32_Float, false, 6, eTextureFlags::RenderTarget);
-    for (int i = 0; i < 6; ++i)
-    {
-        AttachmentRG attachments[2] = {};
-        attachments[0].name         = "T_OmniShadowMapAdv";
-        attachments[0].layerOffset  = i;
-        attachments[1].name         = "T_OmniShadowMap";
-        attachments[1].layerOffset  = i;
-        m_graph.EmplaceFrameBuffer(kOmniShadowMapAdvFBNames[i], attachments);
+        // advanced filtering frame buffer
+        for (Int32 i = 0; i < numLayers; ++i)
+        {
+            AttachmentRG attachments[2] = {};
+            attachments[0].name         = spec.colorBuffer;
+            attachments[0].layerOffset  = i;
+            attachments[1].name         = spec.depthBuffer;
+            attachments[1].layerOffset  = i;
+            m_graph.EmplaceFrameBuffer(spec.advFrameBuffers[i], attachments);
+        }
     }
 }
 
 void ShadowMappingScene::InitRenderGraphPasses_()
 {
+    ImageFilterManager& ifm = GetImageFilterManager();
+
     m_graph.Clear(eRenderGraphClearFlags::Pass);
 
     // gbuffer pass
@@ -520,62 +616,48 @@ void ShadowMappingScene::InitRenderGraphPasses_()
         .SetBlendFlags(kOpaqueBlend, 0)
         .SetExecutor(Bind<&ShadowMappingScene::RenderScene_>(this));
 
-    // light prepare pass
-    m_graph.AddRenderPass("Pass_PrepareLight")
-        .SetFrameBuffer("FB_Light")
-        .SetRenderTargetClearCommand(RGBA::FromLinear(0.1f, 0.1f, 0.1f), 0);
-
-    // shadow prepare pass
-    if (m_spotLight.bCastShadow || m_dirLight.bCastShadow || m_omniLight.bCastShadow)
+    // shadow pass
+    if (m_activeLight != eLight::None)
     {
-        m_graph.AddUtilityPass("Pass_PrepareShadow")
-            .SetExecutor(Bind<&ShadowMappingScene::PrepareShadowPass_>(this));
-    }
+        const ShadowSpec& spec          = m_shadowSpecs[m_activeLight];
+        const StringView  casterProgram = m_shadowMode == eShadowMode::VSM ? spec.vsmCasterProgram
+                                                                           : spec.casterProgram;
+        const Int32       numLayers     = m_activeLight == eLight::Spot ? 1
+                                        : m_activeLight == eLight::Omni ? 6
+                                                                        : m_cascadeLevel;
+        StringView        shadowMap     = {};
 
-    const bool bAdvFiltering = m_shadowFilter == eShadowFiltering::VSM || m_shadowFilter == eShadowFiltering::ESM;
-
-    // spot light pass
-    if (m_activeLight == eLight::Spot)
-    {
-        String shadowMap = {};
-
-        // shadow cast
-        if (m_spotLight.bCastShadow)
+        // shadow caster
+        for (Int32 i = 0; i < numLayers; ++i)
         {
-            const StringView program = m_shadowFilter == eShadowFiltering::VSM ? "P_SpotShadowCasterVSM"
-                                     : m_shadowFilter == eShadowFiltering::ESM ? "P_SpotShadowCasterESM"
-                                                                               : "P_SpotShadowCaster";
-
             RenderGraph::RenderPassBuilder builder =
-                m_graph.AddRenderPass("Pass_SpotShadowCaster")
-                    .SetProgram(program)
+                m_graph.AddRenderPass(spec.casterPasses[i])
+                    .SetProgram(casterProgram)
                     .SetDepthClearCommand(1.f)
                     .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
                     .SetConstantBuffer("CB_ShadowCaster", eShader::VertexShader, CBShadowCaster::kSlot)
                     .SetConstantBuffer("CB_Shadow", eShader::PixelShader, CBShadow::kSlot)
-                    .SetRenderFlags(kBackCullDepthTest)
+                    .SetRenderFlags(m_activeLight == eLight::Directional ? kFrontCullDepthTest : kBackCullDepthTest)
                     .SetBlendFlags(kOpaqueBlend, 0)
-                    .SetExecutor(Bind<&ShadowMappingScene::RenderSceneSpotShadowCast_>(this));
+                    .SetExecutor(spec.casterExecutor[i]);
 
-            if (bAdvFiltering)
+            if (m_shadowMode == eShadowMode::VSM)
             {
-                builder.SetFrameBuffer("FB_ShadowMapAdv")
+                builder.SetFrameBuffer(spec.advFrameBuffers[i])
                     .SetRenderTargetClearCommand(RGBA::kWhite, 0);
                 shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
             }
             else
             {
-                builder.SetFrameBuffer("FB_ShadowMap");
+                builder.SetFrameBuffer(spec.frameBuffers[i]);
                 shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), kDepthStencilSlot);
             }
 
-            if (bAdvFiltering)
+            if (m_shadowMode == eShadowMode::VSM)
             {
                 // anti aliasing
                 if (m_bApplyAA)
                 {
-                    ImageFilterManager& ifm = GetImageFilterManager();
-
                     ImageFilterDesc aaDesc = {};
                     aaDesc.filter          = eImageFilter::FXAA;
                     aaDesc.output          = eImageFilterOutput::Create;
@@ -583,16 +665,21 @@ void ShadowMappingScene::InitRenderGraphPasses_()
                     aaDesc.width           = GetShadowMapLength_();
                     aaDesc.height          = GetShadowMapLength_();
                     aaDesc.input0Texture   = shadowMap;
-                    ifm.AddImageFilter(m_graph, "Pass_SpotShadowAdvAA", aaDesc);
 
+                    if (spec.bIsArray)
+                    {
+                        aaDesc.bUseTexture2DArrayInput0 = true;
+                        aaDesc.paramCBufferOrEmpty      = "CB_Indexing";
+                        aaDesc.executorOrNull           = spec.screenTriIndexingExecutor[i];
+                    }
+
+                    ifm.AddImageFilter(m_graph, spec.advAAPasses[i], aaDesc);
                     shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
                 }
 
                 // blur
                 if (m_bApplyBlur)
                 {
-                    ImageFilterManager& ifm = GetImageFilterManager();
-
                     ImageFilterDesc blurX      = {};
                     blurX.filter               = eImageFilter::Convolution1DX;
                     blurX.output               = eImageFilterOutput::Create;
@@ -601,26 +688,33 @@ void ShadowMappingScene::InitRenderGraphPasses_()
                     blurX.height               = GetShadowMapLength_();
                     blurX.input0Texture        = shadowMap;
                     blurX.kernelCBufferOrEmpty = "CB_GaussianFilterKernel";
-                    ifm.AddImageFilter(m_graph, "Pass_SpotShadowAdvBlurX", blurX);
+
+                    if (!m_bApplyAA)
+                    {
+                        blurX.bUseTexture2DArrayInput0 = true;
+                        blurX.paramCBufferOrEmpty      = "CB_Indexing";
+                        blurX.executorOrNull           = spec.screenTriIndexingExecutor[i];
+                    }
+
+                    ifm.AddImageFilter(m_graph, spec.advBlurXPasses[i], blurX);
 
                     ImageFilterDesc blurY      = {};
                     blurY.filter               = eImageFilter::Convolution1DY;
                     blurY.output               = eImageFilterOutput::Inject;
-                    blurY.frameBuffer          = "FB_ShadowMapAdv";
+                    blurY.frameBuffer          = spec.advFrameBuffers[i];
                     blurY.input0Texture        = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
                     blurY.kernelCBufferOrEmpty = "CB_GaussianFilterKernel";
-                    ifm.AddImageFilter(m_graph, "Pass_SpotShadowAdvBlurY", blurY);
+                    ifm.AddImageFilter(m_graph, spec.advBlurYPasses[i], blurY);
 
                     shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
                 }
             }
         }
 
-        // lighting
         RenderGraph::RenderPassBuilder builder =
-            m_graph.AddRenderPass("Pass_SpotShadowReceiver")
+            m_graph.AddRenderPass("Pass_ShadowReceiver")
                 .SetFrameBuffer("FB_Light")
-                .SetProgram("P_SpotShadowReceiver")
+                .SetProgram(spec.receiverProgram)
                 .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
                 .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBCamera::kSlot)
                 .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBCamera::kSlot)
@@ -634,141 +728,34 @@ void ShadowMappingScene::InitRenderGraphPasses_()
                 .SetSampler(kShadowComparison, eShader::PixelShader, kSShadowComparisonSlot)
                 .SetRenderFlags(kFrontCull)
                 .SetBlendFlags(kAdditiveBlend, 0)
-                .SetExecutor(Bind<&ShadowMappingScene::RenderSpotLightVolumes_>(this));
+                .SetExecutor(spec.lightVolumeExecutor);
 
-        if (m_spotLight.bCastShadow)
+        if (m_shadowMode == eShadowMode::VSM)
         {
-            JAM_ASSERT(!shadowMap.IsEmpty(), "shadow map should have been set if shadow casting is enabled");
-            builder.SetTexture(shadowMap, eShader::PixelShader, bAdvFiltering ? kTShadowMapAdvSlot : kTShadowMapSlot);
+            builder.SetTexture(shadowMap, eShader::PixelShader, spec.bIsArray ? kTShadowMapColorArraySlot : kTShadowMapColorSlot);
         }
-    }
-    else if (m_activeLight == eLight::Omni)
-    {
-        String shadowMap = {};
-
-        // shadow cast
-        if (m_omniLight.bCastShadow)
+        else
         {
-            const StringView program = m_shadowFilter == eShadowFiltering::VSM ? "P_OmniShadowCasterVSM"
-                                     : m_shadowFilter == eShadowFiltering::ESM ? "P_OmniShadowCasterESM"
-                                                                               : "P_OmniShadowCaster";
-            for (int i = 0; i < 6; ++i)
-            {
-                RenderGraph::RenderPassBuilder builder =
-                    m_graph.AddRenderPass(kOmniShadowCasterPassNames[i])
-                        .SetProgram(program)
-                        .SetDepthClearCommand(1.f)
-                        .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
-                        .SetConstantBuffer("CB_ShadowCaster", eShader::VertexShader, CBShadowCaster::kSlot)
-                        .SetConstantBuffer("CB_Shadow", eShader::PixelShader, CBShadow::kSlot)
-                        .SetRenderFlags(kBackCullDepthTest)
-                        .SetBlendFlags(kOpaqueBlend, 0)
-                        .SetExecutor(Bind([this, i] { RenderSceneOmniShadowCast_(RangesOf<eCubeFace>()[i]); }));
-
-                if (bAdvFiltering)
-                {
-                    builder.SetFrameBuffer(kOmniShadowMapAdvFBNames[i])
-                        .SetRenderTargetClearCommand(RGBA::kWhite, 0);
-                    shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
-                }
-                else
-                {
-                    builder.SetFrameBuffer(kOmniShadowMapFBNames[i]);
-                    shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), kDepthStencilSlot);
-                }
-
-                if (bAdvFiltering)
-                {
-                    ImageFilterManager& ifm = GetImageFilterManager();
-                    Graphics&           gfx = GetGraphics();
-
-                    // anti aliasing
-                    if (m_bApplyAA)
-                    {
-                        ImageFilterDesc aaDesc          = {};
-                        aaDesc.filter                   = eImageFilter::FXAA;
-                        aaDesc.output                   = eImageFilterOutput::Create;
-                        aaDesc.format                   = eTextureFormat::RG32_Float;
-                        aaDesc.width                    = GetShadowMapLength_();
-                        aaDesc.height                   = GetShadowMapLength_();
-                        aaDesc.input0Texture            = shadowMap;
-                        aaDesc.bUseTexture2DArrayInput0 = true;
-                        aaDesc.paramCBufferOrEmpty      = "CB_CubeMapIndexing";
-                        aaDesc.executorOrNull           = Bind([this, i] { RenderScreenTriWithCubeMapIndexing_(i); });
-                        ifm.AddImageFilter(m_graph, kOmniShadowMapAdvAAPassNames[i], aaDesc);
-
-                        shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
-                    }
-
-                    // blur
-                    if (m_bApplyBlur)
-                    {
-                        ImageFilterDesc blurX      = {};
-                        blurX.filter               = eImageFilter::Convolution1DX;
-                        blurX.output               = eImageFilterOutput::Create;
-                        blurX.format               = eTextureFormat::RG32_Float;
-                        blurX.width                = GetShadowMapLength_();
-                        blurX.height               = GetShadowMapLength_();
-                        blurX.input0Texture        = shadowMap;
-                        blurX.kernelCBufferOrEmpty = "CB_GaussianFilterKernel";
-                        if (!m_bApplyAA)
-                        {
-                            blurX.paramCBufferOrEmpty      = "CB_CubeMapIndexing";
-                            blurX.bUseTexture2DArrayInput0 = true;
-                            blurX.executorOrNull           = Bind([this, i] { RenderScreenTriWithCubeMapIndexing_(i); });
-                        }
-                        ifm.AddImageFilter(m_graph, kOmniShadowMapAdvBlurXPassNames[i], blurX);
-
-                        ImageFilterDesc blurY      = {};
-                        blurY.filter               = eImageFilter::Convolution1DY;
-                        blurY.output               = eImageFilterOutput::Inject;
-                        blurY.frameBuffer          = kOmniShadowMapAdvFBNames[i];
-                        blurY.input0Texture        = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
-                        blurY.kernelCBufferOrEmpty = "CB_GaussianFilterKernel";
-                        ifm.AddImageFilter(m_graph, kOmniShadowMapAdvBlurYPassNames[i], blurY);
-
-                        shadowMap = m_graph.GetPassAttachment(m_graph.GetLastPass(), 0);
-                    }
-                }
-            }
+            builder.SetTexture(shadowMap, eShader::PixelShader, spec.bIsArray ? kTShadowMapArraySlot : kTShadowMapSlot);
         }
 
-        // lighting
-        m_graph.AddRenderPass("Pass_OmniShadowReceiver")
-            .SetFrameBuffer("FB_Light")
-            .SetProgram("P_OmniShadowReceiver")
-            .SetConstantBuffer("CB_Entity", eShader::VertexShader, CBEntity::kSlot)
-            .SetConstantBuffer("CB_Camera", eShader::VertexShader, CBCamera::kSlot)
-            .SetConstantBuffer("CB_Camera", eShader::PixelShader, CBCamera::kSlot)
-            .SetConstantBuffer("CB_Light", eShader::PixelShader, CBLight::kSlot)
-            .SetConstantBuffer("CB_Shadow", eShader::PixelShader, CBShadow::kSlot)
-            .SetTexture("T_SceneNormal", eShader::PixelShader, kTSceneNormalSlot)
-            .SetTexture("T_SceneColor", eShader::PixelShader, kTSceneColorSlot)
-            .SetTexture("T_SceneDepth", eShader::PixelShader, kTSceneDepthSlot)
-            .SetTexture("T_OmniShadowMap", eShader::PixelShader, kTOmniShadowMapSlot)
-            .SetSampler(kLinearClamp, eShader::PixelShader, kSLinearClampSlot)
-            .SetSampler(kShadowComparison, eShader::PixelShader, kSShadowComparisonSlot)
-            .SetRenderFlags(kFrontCull)
-            .SetBlendFlags(kAdditiveBlend, 0)
-            .SetExecutor(Bind<&ShadowMappingScene::RenderOmniLightVolumes_>(this));
-
-        if (bAdvFiltering)
+        if (m_activeLight == eLight::Directional)
         {
-            m_graph.ModifyRenderPass("Pass_OmniShadowReceiver")
-                .SetTexture("T_OmniShadowMapAdv", eShader::PixelShader, kTOmniShadowMapAdvSlot);
+            builder.SetConstantBuffer("CB_CascadeShadowReceiver", eShader::PixelShader, CBCascadeShadowReceiver::kSlot)
+                .SetRenderFlags(eRenderFlags::None);
         }
     }
 
     // light + color 합성
-    ImageFilterManager& ifm = GetImageFilterManager();
-
-    ImageFilterDesc multDesc = {};
-    multDesc.filter          = eImageFilter::Mult;
-    multDesc.input0Texture   = "T_SceneColor";
-    multDesc.input1Texture   = "T_SceneLight";
-    multDesc.output          = eImageFilterOutput::Inject;
-    multDesc.frameBuffer     = "FB_SceneFinal";
-    ifm.AddImageFilter(m_graph, "Pass_Mult", multDesc);
+    {
+        ImageFilterDesc multDesc = {};
+        multDesc.filter          = eImageFilter::Mult;
+        multDesc.input0Texture   = "T_SceneColor";
+        multDesc.input1Texture   = "T_SceneLight";
+        multDesc.output          = eImageFilterOutput::Inject;
+        multDesc.frameBuffer     = "FB_SceneFinal";
+        ifm.AddImageFilter(m_graph, "Pass_Mult", multDesc);
+    }
 
     // debug light cube
     if (m_activeLight == eLight::Spot || m_activeLight == eLight::Omni)
@@ -784,35 +771,37 @@ void ShadowMappingScene::InitRenderGraphPasses_()
     }
 
     // blit
-    ImageFilterDesc blitDesc = {};
-    blitDesc.filter          = eImageFilter::Blit;
-    blitDesc.input0Texture   = "T_SceneFinal";
-    blitDesc.output          = eImageFilterOutput::Final;
-    ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    {
+        ImageFilterDesc blitDesc = {};
+        blitDesc.filter          = eImageFilter::Blit;
+        blitDesc.input0Texture   = "T_SceneFinal";
+        blitDesc.output          = eImageFilterOutput::Final;
+        ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
+    }
 }
 
 void ShadowMappingScene::RenderScene_()
 {
     Graphics& gfx = GetGraphics();
 
-    CBEntity cb = {};
-    for (const Entity& entity: m_entities)
+    CBEntity entity = {};
+    for (const Entity& e: m_entities)
     {
-        cb.world       = entity.transform.GetSRT().Transpose();
-        cb.rgba        = entity.rgba.rgba;
-        cb.bUseTexture = !!entity.pTextureOrNull;
+        entity.world       = e.transform.GetSRT().Transpose();
+        entity.rgba        = e.rgba.rgba;
+        entity.bUseTexture = !!e.pTextureOrNull;
 
-        if (entity.pTextureOrNull)
+        if (e.pTextureOrNull)
         {
-            entity.pTextureOrNull->Bind(eShader::PixelShader, kTAlbedoSlot);
+            e.pTextureOrNull->Bind(eShader::PixelShader, kTAlbedoSlot);
         }
 
-        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(cb));
-        entity.pMesh->Submit();
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
+        e.pMesh->Submit();
     }
 }
 
-void ShadowMappingScene::RenderSceneSpotShadowCast_()
+void ShadowMappingScene::RenderSpotShadowCasters_()
 {
     Graphics& gfx = GetGraphics();
 
@@ -831,7 +820,46 @@ void ShadowMappingScene::RenderSceneSpotShadowCast_()
     }
 }
 
-void ShadowMappingScene::RenderSceneOmniShadowCast_(
+ShadowMappingScene::ViewProj ShadowMappingScene::CalcCascadeLightViewProj_(
+    const float _nearZ,
+    const float _farZ) const
+{
+    const Camera& cmr        = m_camera.camera;
+    Corners       cornersInV = Frustum::CalcCornersInViewSpace(cmr.GetFovYRad(), cmr.GetAspectRatio(), _nearZ, _farZ);
+
+    // world space corner
+    const Mtx4& invV   = m_camera.GetInvView();
+    Vec3        center = Vec3::kZero;
+    for (Vec3& v: cornersInV)
+    {
+        v = invV.MultPoint(v);
+        center += v;
+    }
+
+    // world center
+    center /= 8.f;
+
+    // light view
+    const Mtx4 lightView = Mtx4::MakeLookTo(center, m_dirLight.dir, Vec3::kUp);
+
+    // light corner
+    Aabb lightAabb = {};
+    for (Vec3& v: cornersInV)
+    {
+        v = lightView.MultPoint(v);
+        lightAabb.Merge(v);
+    }
+
+    Vec3 min = lightAabb.GetMin();
+    Vec3 max = lightAabb.GetMax();
+    min.z -= m_cascadeZOffset;
+    max.z += m_cascadeZOffset;
+
+    const Mtx4 lightProj = Mtx4::MakeOrtho(min.x, max.x, min.y, max.y, min.z, max.z);
+    return { lightView, lightProj };
+}
+
+void ShadowMappingScene::RenderOmniShadowCasters_(
     const eCubeFace _omitFace)
 {
     Graphics& gfx = GetGraphics();
@@ -860,7 +888,7 @@ void ShadowMappingScene::RenderSceneOmniShadowCast_(
         default:
             JAM_UNREACHABLE;
     }
-    caster.lightProj = Mtx4::MakePerspectiveFov(m_spotLight.outerConeRad * 2.f, 1.f, 0.1f, m_spotLight.fallOffEnd).Transpose();
+    caster.lightProj = Mtx4::MakePerspectiveFov(ToRad(90.f), 1.f, 0.1f, m_omniLight.fallOffEnd).Transpose();
     gfx.UpdateBuffer(m_shadowCasterCbh, AsMemoryView(caster));
 
     CBEntity entity;
@@ -872,7 +900,26 @@ void ShadowMappingScene::RenderSceneOmniShadowCast_(
     }
 }
 
-void ShadowMappingScene::RenderScreenTriWithCubeMapIndexing_(
+void ShadowMappingScene::RenderCascadeShadowCasters_(
+    const Int32 _index)
+{
+    Graphics& gfx = GetGraphics();
+
+    CBShadowCaster caster;
+    caster.lightView = m_directionalShadowReceiver.cascadeLightView[_index];
+    caster.lightProj = m_directionalShadowReceiver.cascadeLightProj[_index];
+    gfx.UpdateBuffer(m_shadowCasterCbh, AsMemoryView(caster));
+
+    CBEntity entity;
+    for (const Entity& e: m_entities)
+    {
+        entity.world = e.transform.GetSRT().Transpose();
+        gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
+        e.pMesh->Submit(true);
+    }
+}
+
+void ShadowMappingScene::RenderScreenTriIndexing_(
     const Int32 _index) const
 {
     Graphics&           gfx = GetGraphics();
@@ -880,11 +927,11 @@ void ShadowMappingScene::RenderScreenTriWithCubeMapIndexing_(
 
     CBImageFilterParam param;
     param.iparam.x = _index;
-    gfx.UpdateBuffer(m_cubeMapIndexingCbh, AsMemoryView(param));
+    gfx.UpdateBuffer(m_indexingCbh, AsMemoryView(param));
     ifm.SubmitScreenTriangle();
 }
 
-void ShadowMappingScene::RenderSpotLightVolumes_() const
+void ShadowMappingScene::RenderSpotLightVolume_() const
 {
     Graphics&   gfx = GetGraphics();
     const float h   = m_spotLight.fallOffEnd;
@@ -902,13 +949,12 @@ void ShadowMappingScene::RenderSpotLightVolumes_() const
     light.lightFallOffEnd   = m_spotLight.fallOffEnd;
     light.lightSpotInnerCos = Cos(m_spotLight.innerConeRad);
     light.lightSpotOuterCos = Cos(m_spotLight.outerConeRad);
-    light.bMakeShadow       = m_spotLight.bCastShadow;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(light));
 
     m_pCone->Submit();
 }
 
-void ShadowMappingScene::RenderOmniLightVolumes_() const
+void ShadowMappingScene::RenderOmniLightVolume_() const
 {
     Graphics& gfx = GetGraphics();
 
@@ -920,14 +966,19 @@ void ShadowMappingScene::RenderOmniLightVolumes_() const
     light.lightPos          = m_omniLight.pos;
     light.lightFallOffStart = m_omniLight.fallOffStart;
     light.lightFallOffEnd   = m_omniLight.fallOffEnd;
-    light.bMakeShadow       = m_omniLight.bCastShadow;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(light));
 
     m_pSphere->Submit();
 }
 
-void ShadowMappingScene::RenderDirectionalLightVolumes_() const
+void ShadowMappingScene::RenderDirectionalLightVolume_() const
 {
+    Graphics& gfx = GetGraphics();
+
+    CBLight light;
+    light.lightDir = m_dirLight.dir.Normalized();
+    gfx.UpdateBuffer(m_lightCbh, AsMemoryView(light));
+
     ImageFilterManager& ifm = GetImageFilterManager();
     ifm.SubmitScreenTriangle();
 }
@@ -956,11 +1007,10 @@ void ShadowMappingScene::RenderDebugLightCube_() const
 void ShadowMappingScene::PrepareShadowPass_() const
 {
     CBShadow shadow;
-    shadow.shadowType            = AsUnderlying(m_shadowFilter);
+    shadow.shadowType            = AsUnderlying(m_shadowMode);
     shadow.bUseComparisonSampler = m_bUseComparisonSampler;
     shadow.shadowBias            = m_shadowBias;
     shadow.shadowNormalOffset    = m_shadowNormalOffset;
-    shadow.esmExponential        = m_esmExponent;
 
     Graphics& gfx = GetGraphics();
     gfx.UpdateBuffer(m_shadowCbh, AsMemoryView(shadow));

@@ -1,7 +1,6 @@
 #pragma once
-#include "Entity.h"
-#include "RenderView.h"
 #include "UID.h"
+#include "Entity.h"
 #include "UIDAllocator.h"
 
 namespace Jam
@@ -10,9 +9,18 @@ namespace Jam
 class Model;
 class Mesh;
 class Event;
+class Camera;
 class Material;
 class Transform;
 struct ModelNode;
+
+struct RenderView
+{
+    FrameBufferHandle fbh              = kInvalidHandle;   // output
+    Viewport          viewport         = {};               // output vp
+    const Transform*  pTransformOrNull = nullptr;          // camera transform
+    const Camera*     pCameraOrNull    = nullptr;          // camera spec
+};
 
 enum class eSceneDeserializeFlags : UInt32
 {

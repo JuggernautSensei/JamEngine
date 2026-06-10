@@ -10,7 +10,6 @@
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
 #include "Events.h"
-#include "FileSystem.h"
 #include "ImageImportDialog.h"
 #include "ModelImportDialog.h"
 #include "RenameFileDialog.h"
@@ -545,7 +544,7 @@ void Editor_FileBrowserWindow::Menu_CreateFileEntry() const
     if (Widget_MenuItem("new folder"))
     {
         const String path = String::Joined(pEntry->path, "new folder", eJoin::File);
-        GetEditor().CreateDir(path, FileSystem::eMkdirCollisionPolicy::Rename);
+        GetEditor().CreateDir(path, eMkdirCollisionPolicy::Rename);
     }
 
     ImGui::Separator();

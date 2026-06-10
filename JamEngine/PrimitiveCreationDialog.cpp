@@ -2,7 +2,6 @@
 
 #include "PrimitiveCreationDialog.h"
 
-#include "Editor.h"
 #include "EditorUtilities.h"
 #include "EditorWidgets.h"
 
@@ -398,7 +397,7 @@ bool PrimitiveCreationDialog::OnClickCreateButton_()
     String path = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::File);
     path.ReplaceExtension(Mesh::kExtension);
 
-    if (FileSystem::Exists(path))
+    if (Exists(path))
     {
         PushOverwriteConfirmationDialog_(path);
         return false;

@@ -4,7 +4,7 @@
 #include "Gui.h"
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
-#include "Utils.h"
+#include "Utilities.h"
 #include "../JamEngine/AssimpImporter.h"
 
 #define SCENE_PATH(_filepath) "Resources/PBRScene/" _filepath
@@ -177,7 +177,7 @@ void PBRScene::OnRender(
     }
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(lights));
 
-    m_graph.Execute(_view.fbh, _view.vp);
+    m_graph.Execute(_view.fbh, _view.viewport);
 }
 
 void PBRScene::OnImGuiRender()
@@ -226,7 +226,7 @@ void PBRScene::OnResize(
     const Int32 _width,
     const Int32 _height)
 {
-    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_camera.SetAspectRatioFromBackBuffer();
 }
 
 void PBRScene::InitRenderGraph_()

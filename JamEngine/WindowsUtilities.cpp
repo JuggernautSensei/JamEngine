@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "WindowsUtilities.h"
-#include "WindowsPlatform.h"
 
 
 #include <comdef.h>
@@ -51,12 +50,12 @@ String MakeWindowsErrorMessage(UInt32 _errorCode, const eWindowsErrorCode _error
     }
 }
 
-String CreateWindowsLastErrorMessage()
+String MakeWindowsLastErrorMessage()
 {
     return MakeWindowsErrorMessage(GetLastError(), eWindowsErrorCode::Errno);
 }
 
-WString CreateWindowsErrorMessageW(
+WString MakeWindowsErrorMessageW(
     UInt32                      _errorCode,
     const eWindowsErrorCode _errorType)
 {
@@ -100,9 +99,9 @@ WString CreateWindowsErrorMessageW(
     }
 }
 
-WString CreateWindowsLastErrorMessageW()
+WString MakeWindowsLastErrorMessageW()
 {
-    return CreateWindowsErrorMessageW(GetLastError(), eWindowsErrorCode::Errno);
+    return MakeWindowsErrorMessageW(GetLastError(), eWindowsErrorCode::Errno);
 }
 
 Error ErrorFromPlatformErrorCode(

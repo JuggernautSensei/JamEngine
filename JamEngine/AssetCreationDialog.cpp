@@ -35,8 +35,7 @@ void AssetCreationDialog::PushOverwriteConfirmationDialog_(
     StringView _path)
 {
     const Delegate<void()> OnConfirm = Bind(
-        [pSelf = Ref { this }, _path]
-        {
+        [pSelf = Ref { this }, _path] {
             pSelf->CreateAndSaveAsset_(_path);
         });
 
@@ -59,7 +58,7 @@ bool AssetCreationDialog::SaveAsset_(
     {
         GetEditor().PushMessageDialog(
             "error",
-            String::Formatted("failed to save asset at path: {}. error: {}", _path, err.ToErrorMessage()));
+            String::Formatted("failed to save asset at path: {}.\n{}", _path, err));
 
         return true;
     }

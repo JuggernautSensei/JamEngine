@@ -1,14 +1,15 @@
 #pragma once
+#include "Containers.h"
 
 namespace Jam
 {
+
 class KeyDownEvent;
 class KeyUpEvent;
 class MouseUpEvent;
 class MouseWheelEvent;
 class WindowLostFocusEvent;
 class MouseDownEvent;
-
 class Event;
 
 enum class eKey : int
@@ -189,7 +190,7 @@ private:
     bool  m_bCursorVisiblity = true;
 
     static constexpr Int32 kWheelSensitive = 120;
-    inline static Input*   s_pInstance      = nullptr;
+    inline static Input*   s_pInstance     = nullptr;
     friend class Application;
 };
 
@@ -199,4 +200,3 @@ private:
 }
 
 }   // namespace Jam
-

@@ -1,5 +1,7 @@
 #pragma once
 #include "StringHasher.h"
+#include "CharTraits.h"
+#include "Optional.h"
 
 namespace Jam
 {
@@ -92,70 +94,70 @@ public:
         return CharTraits::template ParseAs<T>(m_ptr);
     }
 
-    [[nodiscard]] constexpr CharResult Find(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
+    [[nodiscard]] constexpr Optional<SizeT> Find(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
     {
         JAM_ASSERT(_offset <= m_len, "Offset out of bounds.");
         JAM_ASSERT(_count <= m_len - _offset, "Count exceeds string length from offset.");
-        CharResult result = CharTraits::StrFind(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
-        if (result.IsSucceeded())
+        Optional<SizeT> result = CharTraits::StrFind(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
+        if (result)
         {
-            result.pos += _offset;
+            result.GetValue() += _offset;
         }
         return result;
     }
 
-    [[nodiscard]] constexpr CharResult Find(const BasicStringView _other, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr Optional<SizeT> Find(const BasicStringView _other, const SizeT _offset = 0) const
     {
         return Find(_other, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr CharResult Find(const CharT _c, const SizeT _offset, const SizeT _count) const
+    [[nodiscard]] constexpr Optional<SizeT> Find(const CharT _c, const SizeT _offset, const SizeT _count) const
     {
         JAM_ASSERT(_offset <= m_len, "Offset out of bounds.");
         JAM_ASSERT(_count <= m_len - _offset, "Count exceeds string length from offset.");
-        CharResult result = CharTraits::StrFind(m_ptr + _offset, _count, _c);
-        if (result.IsSucceeded())
+        Optional<SizeT> result = CharTraits::StrFind(m_ptr + _offset, _count, _c);
+        if (result)
         {
-            result.pos += _offset;
+            result.GetValue() += _offset;
         }
         return result;
     }
 
-    [[nodiscard]] constexpr CharResult Find(const CharT _c, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr Optional<SizeT> Find(const CharT _c, const SizeT _offset = 0) const
     {
         return Find(_c, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
+    [[nodiscard]] constexpr Optional<SizeT> RFind(const BasicStringView _other, const SizeT _offset, const SizeT _count) const
     {
         JAM_ASSERT(_count <= m_len, "Count exceeds length.");
         JAM_ASSERT(_offset <= m_len - _count, "Offset out of bounds for count.");
-        CharResult result = CharTraits::StrRFind(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
-        if (result.IsSucceeded())
+        Optional<SizeT> result = CharTraits::StrRFind(m_ptr + _offset, _count, _other.m_ptr, _other.m_len);
+        if (result)
         {
-            result.pos += _offset;
+            result.GetValue() += _offset;
         }
         return result;
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const BasicStringView _other, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr Optional<SizeT> RFind(const BasicStringView _other, const SizeT _offset = 0) const
     {
         return RFind(_other, _offset, m_len - _offset);
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const CharT _c, const SizeT _offset, const SizeT _count) const
+    [[nodiscard]] constexpr Optional<SizeT> RFind(const CharT _c, const SizeT _offset, const SizeT _count) const
     {
         JAM_ASSERT(_count <= m_len, "Count exceeds length.");
         JAM_ASSERT(_offset <= m_len - _count, "Offset out of bounds for count.");
-        CharResult result = CharTraits::StrRFind(m_ptr + _offset, _count, _c);
-        if (result.IsSucceeded())
+        Optional<SizeT> result = CharTraits::StrRFind(m_ptr + _offset, _count, _c);
+        if (result)
         {
-            result.pos += _offset;
+            result.GetValue() += _offset;
         }
         return result;
     }
 
-    [[nodiscard]] constexpr CharResult RFind(const CharT _c, const SizeT _offset = 0) const
+    [[nodiscard]] constexpr Optional<SizeT> RFind(const CharT _c, const SizeT _offset = 0) const
     {
         return RFind(_c, _offset, m_len - _offset);
     }

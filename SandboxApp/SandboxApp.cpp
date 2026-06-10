@@ -57,7 +57,6 @@ void SandboxApp::Init(
     if (!bLoadSucceeded)
     {
         JAM_LOG_ERROR("Failed to load scene. Command line argument '--scene' is either not provided or invalid");
-
         Application& app = GetApp();
         app.Quit();
     }

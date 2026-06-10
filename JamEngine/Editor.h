@@ -3,18 +3,23 @@
 #include "EditorIcons.h"
 #include "EditorStyle.h"
 #include "Entity.h"
-#include "FileEntry.h"
-#include "FileSystem.h"
-#include "VertexLayoutEntryManager.h"
 
 namespace Jam
 {
+
+namespace FileSystem
+{
+    enum class eMkdirCollisionPolicy;
+    enum class eFileCollisionPolicy;
+}   // namespace FileSystem
 
 class Mesh;
 class Model;
 class Event;
 class Dialog;
+class DirEntry;
 class Material;
+class FileEntry;
 class VertexLayoutEntry;
 class SceneChangedEvent;
 class EntityDestroyedEvent;
@@ -46,7 +51,7 @@ struct EditorSharedData
 {
     // gui
     EditorStyle                          style = {};
-    EnumArray<eEditorIcon, Ref<Texture>> icons = {};
+    EnumMap<eEditorIcon, Ref<Texture>> icons = {};
 
     // editor core state
     eEditorMode mode = eEditorMode::Edit;
@@ -119,8 +124,8 @@ public:
 
     // filesystem operator
     bool RemoveFile(StringView _path, bool _bForced = false);   // if _bForced is true, it will remove non-empty directory
-    bool RenameFile(StringView _srcPath, StringView _dstPath, FileSystem::eFileCollisionPolicy _policy = FileSystem::eFileCollisionPolicy::Fail);
-    bool CreateDir(StringView _dir, FileSystem::eMkdirCollisionPolicy _policy = FileSystem::eMkdirCollisionPolicy::Fail);
+    bool RenameFile(StringView _srcPath, StringView _dstPath, FileSystem::eFileCollisionPolicy _policy);
+    bool CreateDir(StringView _dir, FileSystem::eMkdirCollisionPolicy _policy);
 
     // asset operator
     [[nodiscard]] Expect<Ref<Mesh>>     LoadMesh(StringView _path, bool _bForceReload = false);
@@ -170,7 +175,7 @@ private:
     Scoped<Editor_VertexLayoutEditorWindow> m_pVertexLayoutEditorWindow = nullptr;
 
     EditorSharedData               m_sharedData  = {};
-    EnumArray<eEditorWindow, bool> m_windowShows = {};
+    EnumMap<eEditorWindow, bool> m_windowShows = {};
     DialogStack                    m_dialogStack = {};
 
     float m_configSaveCounterSec = 0.f;

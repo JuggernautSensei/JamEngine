@@ -61,26 +61,22 @@ void SceneManager::RenderRuntime(
         // update dirty transforms
         m_pScene->UpdateSceneGraph();
 
-        // create view
-        RenderView view = { _fbh, _vp };
-
         // find first enabled camera
+        RenderView renderView = { _fbh, _vp };
         for (const auto& [_, sc, cc]: m_pScene->Each<SceneComponent, CameraComponent>())
         {
             if (cc.bEnabled)
             {
-                const Transform& transW = sc.node.GetWorld();
-                const Camera&    cmr    = cc.camera;
-
-                view.eye  = transW.GetTranslation();
-                view.view = transW.GetInvSRT();
-                view.proj = cmr.GetProj();
+                const Transform& transW     = sc.node.GetWorld();
+                const Camera&    cmr        = cc.camera;
+                renderView.pTransformOrNull = &transW;
+                renderView.pCameraOrNull    = &cmr;
                 break;
             }
         }
 
         // render
-        m_pScene->OnRender(view);
+        m_pScene->OnRender(renderView);
     }
 }
 
@@ -111,7 +107,7 @@ void SceneManager::LoadScene(
     const bool      _bDeferred)
 {
     JAM_ASSERT(_pScene, "Null scene pointer");
-    JAM_ASSERT(GetSceneDatabase().IsSceneReflected(_pScene->GetTypeHash()), "Scene type is not reflected in the database");
+    JAM_ASSERT(GetSceneDatabase().IsSceneRegistered(_pScene->GetTypeHash()), "Scene type is not reflected in the database");
 
     if (_bDeferred)
     {

@@ -5,8 +5,6 @@
 
 #include "AssetManager.h"
 #include "ComponentDatabase.h"
-#include "Editor.h"
-#include "FileSystem.h"
 #include "Graphics.h"
 #include "ImGuiEngine.h"
 #include "Input.h"
@@ -14,7 +12,9 @@
 #include "Timer.h"
 #include "WindowsPlatform.h"
 #include "Events.h"
+#include "FileSystem.h"
 #include "SceneDatabase.h"
+// #include "Editor.h"
 
 namespace Jam
 {
@@ -80,8 +80,6 @@ void Application::DispatchEvent(Event& _event)
     }
 
     WindowsPlatform& win   = GetWindowsPlatform();
-    SceneManager&    sm    = GetSceneManager();
-    AssetManager&    am    = GetAssetManager();
     Graphics&        gfx   = GetGraphics();
     Input&           input = GetInput();
 
@@ -91,17 +89,19 @@ void Application::DispatchEvent(Event& _event)
 
     if (m_flags & eAppInitFlags::Subsystem_AssetManager)
     {
+        AssetManager& am = GetAssetManager();
         am.OnEvent(_event);
     }
 
     if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
-        Editor& editor = GetEditor();
-        editor.OnEvent(_event);
+        // Editor& editor = GetEditor();
+        // editor.OnEvent(_event);
     }
 
     if (m_flags & eAppInitFlags::Subsystem_SceneManager)
     {
+        SceneManager& sm = GetSceneManager();
         sm.OnEvent(_event);
     }
 
@@ -179,8 +179,8 @@ void Application::Update(const float _dt)
     if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
         JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        Editor& editor = GetEditor();
-        editor.Update(_dt);
+        //  Editor& editor = GetEditor();
+        //  editor.Update(_dt);
     }
     else
     {
@@ -195,8 +195,8 @@ void Application::Render()
     if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
         JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        Editor& editor = GetEditor();
-        editor.Render();
+        // Editor& editor = GetEditor();
+        // editor.Render();
     }
     else
     {
@@ -211,8 +211,8 @@ void Application::ImGuiRender()
     if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
         JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_AssetManager, "AssetManager subsystem is required to update application when Editor subsystem is enabled.");
-        Editor& editor = GetEditor();
-        editor.ImGuiRender();
+        // Editor& editor = GetEditor();
+        // editor.ImGuiRender();
     }
 
     JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to update application when Editor subsystem is not enabled.");
@@ -300,7 +300,7 @@ void Application::CoreInit()
         Expect<Scoped<FileLock>> pContentsDirLock = FileLock::Create(m_contentsDir, eFileLockMode::ReadWrite);
         if (!pContentsDirLock)
         {
-            JAM_CRASH("Failed to lock contents directory '{}': {}", m_contentsDir, pContentsDirLock.GetError().ToErrorMessage());
+            JAM_CRASH("Failed to lock contents directory '{}'. {}", m_contentsDir, pContentsDirLock.GetError());
         }
         m_pContentsDirLock = pContentsDirLock.Take();
 
@@ -308,7 +308,7 @@ void Application::CoreInit()
         Expect<Scoped<FileLock>> pCacheDirLock = FileLock::Create(m_cacheDir, eFileLockMode::ReadWrite);
         if (!pCacheDirLock)
         {
-            JAM_CRASH("Failed to lock cache directory '{}': {}", m_cacheDir, pCacheDirLock.GetError().ToErrorMessage());
+            JAM_CRASH("Failed to lock cache directory '{}'. {}", m_cacheDir, pCacheDirLock.GetError());
         }
         m_pCacheDirLock = pCacheDirLock.Take();
 
@@ -335,7 +335,7 @@ void Application::CoreInit()
         JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_SceneManager, "SceneManager subsystem is required to initialize editor system.");
         JAM_ASSERT(m_flags & eAppInitFlags::Subsystem_ImGuiEngine, "Editor subsystem requires ImGuiEngine subsystem.");
 
-        Editor::CreateInstance();
+        //     Editor::CreateInstance();
         m_flags |= eAppInitFlags::Subsystem_Editor;
     }
 
@@ -357,7 +357,7 @@ void Application::CoreShutdown()
     // shutdown editor
     if (m_flags & eAppInitFlags::Subsystem_Editor)
     {
-        Editor::DestroyInstance();
+        //  Editor::DestroyInstance();
     }
 
     // shutdown imgui glue

@@ -1,19 +1,21 @@
 #pragma once
-#include "EnumArray.h"
 #include "IAsset.h"
+#include "EnumArray.h"
+#include "StringKeyedContainers.h"
 
 namespace Jam
 {
+
 class FileDeletedEvent;
 class FileRenamedEvent;
 class FileModifiedEvent;
 
-class Texture;
-class Material;
 class Mesh;
 class Model;
-class IAsset;
 class Event;
+class IAsset;
+class Texture;
+class Material;
 
 class AssetManager
 {

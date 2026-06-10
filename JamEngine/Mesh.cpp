@@ -6,7 +6,7 @@
 #include "Graphics.h"
 #include "MemoryHasher.h"
 #include "Profile.h"
-#include "GeometryUtilities.h"
+#include "GeometryReadWriter.h"
 
 namespace Jam
 {

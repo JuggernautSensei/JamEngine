@@ -196,14 +196,14 @@ public:
         return result;
     }
 
-    [[nodiscard]] CharResult Find(
+    [[nodiscard]] Optional<SizeT> Find(
         const TStringView _other,
         const SizeT       _offset = 0) const
     {
         return ToStringView().Find(_other, _offset);
     }
 
-    [[nodiscard]] CharResult Find(
+    [[nodiscard]] Optional<SizeT> Find(
         const TStringView _other,
         const SizeT       _offset,
         const SizeT       _count) const
@@ -211,14 +211,14 @@ public:
         return ToStringView().Find(_other, _offset, _count);
     }
 
-    [[nodiscard]] CharResult Find(
+    [[nodiscard]] Optional<SizeT> Find(
         const TChar _c,
         const SizeT _offset = 0) const
     {
         return ToStringView().Find(_c, _offset);
     }
 
-    [[nodiscard]] CharResult Find(
+    [[nodiscard]] Optional<SizeT> Find(
         const TChar _c,
         const SizeT _offset,
         const SizeT _count) const
@@ -226,14 +226,14 @@ public:
         return ToStringView().Find(_c, _offset, _count);
     }
 
-    [[nodiscard]] CharResult RFind(
+    [[nodiscard]] Optional<SizeT> RFind(
         const TStringView _other,
         const SizeT       _offset = 0) const
     {
         return ToStringView().RFind(_other, _offset);
     }
 
-    [[nodiscard]] CharResult RFind(
+    [[nodiscard]] Optional<SizeT> RFind(
         const TStringView _other,
         const SizeT       _offset,
         const SizeT       _count) const
@@ -241,14 +241,14 @@ public:
         return ToStringView().RFind(_other, _offset, _count);
     }
 
-    [[nodiscard]] CharResult RFind(
+    [[nodiscard]] Optional<SizeT> RFind(
         const TChar _c,
         const SizeT _offset = 0) const
     {
         return ToStringView().RFind(_c, _offset);
     }
 
-    [[nodiscard]] CharResult RFind(
+    [[nodiscard]] Optional<SizeT> RFind(
         const TChar _c,
         const SizeT _offset,
         const SizeT _count) const
@@ -706,7 +706,7 @@ public:
     void Simplify()
     {
         // simplified dir is shorter or equal to the original dir, so it won't cause heap to grow if it's already in heap mode.
-        TChar       buf[kMaxPathLength];
+        TChar       buf[512];
         const SizeT len = CharTraits::Simplify(Self_().GetPtr(), Self_().GetLength(), buf, CountOf(buf));
         Set(buf, len);
     }
@@ -917,4 +917,4 @@ private:
     friend TString;
 };
 
-}
+}   // namespace Jam

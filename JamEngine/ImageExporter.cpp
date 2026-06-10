@@ -53,8 +53,6 @@ namespace
     }
 }   // namespace
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 Error ImageExporter::ExportToFile(
     const ImageContainer&            _container,
     const StringView                 _path,
@@ -183,6 +181,7 @@ Expect<ImageBlob> ImageExporter::ExportToMemory(
         case eImageFormat::HEIC:
             hr = DirectX::SaveToWICMemory(_container.GetImages(), _container.GetImageCount(), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(WICCodecsFrom_(_format)), blob);
             break;
+
         default:
             JAM_LOG_ERROR("Unsupported image format for memory export: '{}'", NameOf(_format));
             return Error::UnsupportedFormat;

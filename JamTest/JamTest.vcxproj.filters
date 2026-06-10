@@ -42,6 +42,9 @@
     <ClCompile Include="BoundingVolumeTest.cpp">
       <Filter>Test\Math</Filter>
     </ClCompile>
+    <ClCompile Include="QuaternionTest.cpp">
+      <Filter>Test\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />

@@ -1,5 +1,4 @@
 #pragma once
-#include "Archive.h"
 #include "EnumArray.h"
 
 namespace Jam
@@ -57,9 +56,6 @@ public:
     [[nodiscard]] bool                            IsEmpty() const;
     [[nodiscard]] UInt64                          GetHash() const;
 
-    void  WriteToArchive(ArchiveWriter& _archive) const;
-    Error ReadFromArchive(ArchiveReader& _archive);
-
 private:
     Array<VertexLayoutElement, CountOf<eVertexAttribute>()> m_vles   = {};   // vertex layout elements.
     EnumArray<eVertexAttribute, VertexLayoutElement*>       m_vleLut = {};   // vertex layout element lookup table.
@@ -70,7 +66,6 @@ private:
     mutable bool   m_bDirty = true;
     mutable UInt64 m_hash   = 0;
 };
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(VertexLayout);
 
 [[nodiscard]] SizeT ByteWidthOf(eAttributeFormat _format);
 

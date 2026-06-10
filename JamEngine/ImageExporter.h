@@ -1,5 +1,6 @@
 #pragma once
 #include "File.h"
+#include "GraphicsBase.h"
 #include "ImageBase.h"
 
 namespace Jam

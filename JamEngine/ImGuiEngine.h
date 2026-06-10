@@ -1,10 +1,6 @@
 #pragma once
 // ReSharper disable CppUnusedIncludeDirective
 #include "GraphicsBase.h"
-#include "Vendor/imgui/imgui.h"
-#include "Vendor/imgui/imgui_internal.h"
-#include "Vendor/imgui/imgui_stdlib.h"
-#include "Vendor/ImGuizmo/ImGuizmo.h"
 
 namespace Jam
 {

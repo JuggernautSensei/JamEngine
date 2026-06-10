@@ -31,11 +31,11 @@ void DebugNormalScene::OnRender(
 
     // update camera
     CBCamera cb;
-    cb.viewProj = (m_camera.CalcView() * m_camera.GetProj()).Transpose();
+    cb.viewProj = (m_camera.GetView() * m_camera.GetProj()).Transpose();
     cb.eyePos   = m_camera.GetEyePos();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cb));
 
-    m_graph.Execute(_view.fbh, _view.vp);
+    m_graph.Execute(_view.fbh, _view.viewport);
 }
 
 void DebugNormalScene::OnImGuiRender()
@@ -130,7 +130,7 @@ void DebugNormalScene::InitMeshes_()
 
     // bunny mesh
     Expect<AssimpImporter> importer = AssimpImporter::ImportFromFile("Resources/Models/StanfordBunnyPBR/StanfordBunnyPBR.gltf", eAssimpImporterFlags::GenerateNormals);
-    JAM_ASSERT(importer.HasValue(), "Failed to load bunny model: {}", importer.GetError().ToErrorMessage());
+    JAM_ASSERT(importer.HasValue(), "Failed to load bunny model. {}", importer.GetError());
     m_pBunny = importer->ConvertToModel(attribLayout, eAssimpConvertToModelFlags::Mesh).GetValue()->GetMeshes()[0];
     m_bunnyTrans.SetTranslationX(1.f);
     m_bunnyTrans.SetScale(0.01f);
@@ -249,7 +249,8 @@ void DebugNormalScene::InitRenderGraph_()
         .SetExecutor(Bind<&DebugNormalScene::RenderFullScreenTri_>(this));
 }
 void DebugNormalScene::OnResize(
-    const Int32 _width, const Int32 _height)
+    const Int32 _width,
+    const Int32 _height)
 {
     m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
 }
@@ -261,16 +262,16 @@ void DebugNormalScene::AddProgram_VP_(
     constexpr ShaderCompilerInfo kVsInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
     constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
 
-    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
-    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
-    JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
-    JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
+    const Expect<ShaderCompiler> vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
+    const Expect<ShaderCompiler> psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
+    JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
+    JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
 
     const String vsName = String::Formatted("VS_{}", _name);
     const String psName = String::Formatted("PS_{}", _name);
 
-    m_graph.EmplaceShader(vsName, vsc.GetBytecode());
-    m_graph.EmplaceShader(psName, psc.GetBytecode());
+    m_graph.EmplaceShader(vsName, vsc->GetBytecode());
+    m_graph.EmplaceShader(psName, psc->GetBytecode());
     m_graph.EmplaceProgram(_name, vsName, psName);
 }
 
@@ -282,20 +283,20 @@ void DebugNormalScene::AddProgram_VPG_(
     constexpr ShaderCompilerInfo kPsInfo = { eShader::PixelShader, "PSMain", {}, eShaderCompileFlags::Default };
     constexpr ShaderCompilerInfo kGsInfo = { eShader::GeometryShader, "GSMain", {}, eShaderCompileFlags::Default };
 
-    const ShaderCompiler vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
-    const ShaderCompiler psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
-    const ShaderCompiler gsc = ShaderCompiler::CompileHLSLFile(_path, kGsInfo);
-    JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
-    JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
-    JAM_ASSERT(gsc.IsSucceeded(), "Geometry shader compilation failed: {}", gsc.GetErrorMessage());
+    const Expect<ShaderCompiler> vsc = ShaderCompiler::CompileHLSLFile(_path, kVsInfo);
+    const Expect<ShaderCompiler> psc = ShaderCompiler::CompileHLSLFile(_path, kPsInfo);
+    const Expect<ShaderCompiler> gsc = ShaderCompiler::CompileHLSLFile(_path, kGsInfo);
+    JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
+    JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
+    JAM_ASSERT(gsc, "Geometry shader compilation failed: {}", gsc.GetError());
 
     const String vsName = String::Formatted("VS_{}", _name);
     const String psName = String::Formatted("PS_{}", _name);
     const String gsName = String::Formatted("GS_{}", _name);
 
-    m_graph.EmplaceShader(vsName, vsc.GetBytecode());
-    m_graph.EmplaceShader(psName, psc.GetBytecode());
-    m_graph.EmplaceShader(gsName, gsc.GetBytecode());
+    m_graph.EmplaceShader(vsName, vsc->GetBytecode());
+    m_graph.EmplaceShader(psName, psc->GetBytecode());
+    m_graph.EmplaceShader(gsName, gsc->GetBytecode());
     m_graph.EmplaceProgram(_name, vsName, psName, gsName, {}, {});
 }
 

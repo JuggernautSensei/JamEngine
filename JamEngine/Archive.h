@@ -1,5 +1,4 @@
 #pragma once
-#include "EnumArray.h"
 
 namespace Jam
 {
@@ -230,132 +229,167 @@ protected:
     virtual Error ReadPrimitive_(StringView& _value) = 0;
 };
 
-////////// BUILT-IN SPECIALIZATIONS //////////
+////////// SPECIALIZATIONS //////////
 
-////////// ENUM //////////
+////////// ENUM ///////////
 
 template<typename TEnum>
-    requires std::is_enum_v<TEnum>
-void WriteToArchive(ArchiveWriter& _writer, const TEnum _value)
+    requires(std::is_enum_v<TEnum>)
+void WriteToArchive(ArchiveWriter& _ar, TEnum _value)
 {
-    _writer.Write(NameOf(_value));
+    _ar.Write(NameOf(_value));
 }
 
 template<typename TEnum>
-    requires std::is_enum_v<TEnum>
-Error ReadFromArchive(ArchiveReader& _reader, TEnum& _value)
+    requires(std::is_enum_v<TEnum>)
+Error ReadFromArchive(ArchiveReader& _ar, TEnum& _value)
 {
-    StringView name = {};
-    if (const Error err = _reader.Read(name))
+    StringView str = {};
+    if (const Error err = _ar.Read(str))
     {
         return err;
     }
 
-    const Optional<TEnum> value = ParseAs<TEnum>(name);
-    if (!value)
+    Optional<TEnum> e = ParseAs<TEnum>(str);
+    if (!e)
     {
-        JAM_LOG_ERROR("Archive read error: failed to parse '{}' as enum of type '{}'.", name, NameOf<TEnum>());
-        _reader.MarkError(Error::ParseError);
-        return Error::ParseError;
-    }
-
-    _value = value.GetValue();
-    return Error::None;
-}
-
-////////// VECTOR<T> //////////
-
-template<typename T>
-void WriteToArchive(ArchiveWriter& _writer, const Vector<T>& _vec)
-{
-    _writer.BeginArray();
-    for (const T& item: _vec)
-    {
-        _writer.WriteElement(item);
-    }
-    _writer.EndArray();
-}
-
-template<typename T>
-Error ReadFromArchive(ArchiveReader& _reader, Vector<T>& _vec)
-{
-    _vec.clear();
-    _vec.reserve(_reader.GetSize());
-    return _reader.ForEachArray(Bind(
-        [&](SizeT, ArchiveReader& ar) -> Error {
-            return ar.Read(_vec.emplace_back());
-        }));
-}
-
-////////// Array<T, N> //////////
-
-template<typename T, SizeT N>
-void WriteToArchive(ArchiveWriter& _writer, const Array<T, N>& _arr)
-{
-    _writer.BeginArray();
-    for (const T& value: _arr)
-    {
-        _writer.WriteElement(value);
-    }
-    _writer.EndArray();
-}
-
-template<typename T, SizeT kSize>
-Error ReadFromArchive(ArchiveReader& _reader, Array<T, kSize>& _arr)
-{
-    const SizeT n = _reader.GetSize();
-    if (n > kSize)
-    {
-        JAM_LOG_ERROR("Archive read error: array size {} exceeds fixed capacity {}.", n, kSize);
-        _reader.MarkError(Error::InvalidData);
+        _ar.MarkError(Error::InvalidData);
         return Error::InvalidData;
     }
 
-    return _reader.ForEachArray(Bind(
-        [&](SizeT index, ArchiveReader& ar) -> Error {
-            return ar.Read(_arr[index]);
-        }));
+    _value = e.GetValue();
+    return Error::None;
 }
 
-template<typename TEnum, typename TValue>
-void WriteToArchive(ArchiveWriter& _writer, const EnumArray<TEnum, TValue>& _enumArray)
+/////// CONTAINERS ////////
+
+template<typename T>
+void WriteToArchive(ArchiveWriter& _ar, const Vector<T>& _vec)
 {
-    _writer.BeginObject();
-    for (const TEnum key: RangesOf<TEnum>())
+    _ar.BeginArray();
+    for (const T& elem: _vec)
     {
-        _writer.WriteField(NameOf(key), _enumArray[key]);
+        _ar.WriteElement(elem);
     }
-    _writer.EndObject();
+    _ar.EndArray();
 }
 
-template<typename TEnum, typename TValue>
-Error ReadFromArchive(ArchiveReader& _reader, EnumArray<TEnum, TValue>& _enumArray)
+template<typename T>
+Error ReadFromArchive(ArchiveReader& _ar, Vector<T>& _vec)
 {
-    return _reader.ForEachObject(Bind(
-        [&](StringView _key, ArchiveReader& ar) -> Error {
-            const Optional<TEnum> e = ParseAs<TEnum>(_key);
-            if (!e)
-            {
-                JAM_LOG_ERROR("Archive read error: failed to parse '{}' as enum key of type '{}'.", _key, NameOf<TEnum>());
-                ar.MarkError(Error::ParseError);
-                return Error::ParseError;
-            }
-            return ar.Read(_enumArray[e.GetValue()]);
-        }));
+    _vec.clear();
+    _vec.reserve(_ar.GetSize());
+    return _ar.ForEachArray([&](SizeT, ArchiveReader& elemAr) -> Error {
+        T elem = {};
+        if (const Error err = elemAr.Read(elem))
+        {
+            return err;
+        }
+        _vec.emplace_back(std::move(elem));
+        return Error::None;
+    });
 }
 
-////////// Math //////////
+template<typename TKey, typename TValue>
+void WriteToArchive(ArchiveWriter& _ar, const HashMap<TKey, TValue>& _map)
+{
+    _ar.BeginObject();
+    for (const auto& [key, value]: _map)
+    {
+        _ar.WriteField(key, value);
+    }
+    _ar.EndObject();
+}
 
-void  WriteToArchive(ArchiveWriter& _writer, Vec3 _value);
-Error ReadFromArchive(ArchiveReader& _reader, Vec3& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Vec3);
+template<typename TKey>
+void WriteToArchive(ArchiveWriter& _ar, const HashSet<TKey>& _set)
+{
+    _ar.BeginArray();
+    for (const TKey& key: _set)
+    {
+        _ar.WriteElement(key);
+    }
+    _ar.EndArray();
+}
 
-void  WriteToArchive(ArchiveWriter& _writer, Vec2 _value);
-Error ReadFromArchive(ArchiveReader& _reader, Vec2& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Vec2);
+template<typename TKey, typename TValue>
+Error ReadFromArchive(ArchiveReader& _ar, HashMap<TKey, TValue>& _map)
+{
+    _map.clear();
+    _map.reserve(_ar.GetSize());
+    return _ar.ForEachObject([&](StringView key, ArchiveReader& valueAr) -> Error {
+        TValue value = {};
+        if (const Error err = valueAr.Read(value))
+        {
+            return err;
+        }
+        _map.emplace(key, std::move(value));
+        return Error::None;
+    });
+}
 
-void  WriteToArchive(ArchiveWriter& _writer, const Mtx4& _value);
-Error ReadFromArchive(ArchiveReader& _reader, Mtx4& _value);
-JAM_STATIC_ASSERT_IS_ARCHIVE_SERIALIZABLE_TYPE(Mtx4);
+template<typename TKey>
+Error ReadFromArchive(ArchiveReader& _ar, HashSet<TKey>& _set)
+{
+    _set.clear();
+    return _ar.ForEachArray([&](SizeT, ArchiveReader& elemAr) -> Error {
+        TKey key = {};
+        if (const Error err = elemAr.Read(key))
+        {
+            return err;
+        }
+        _set.emplace(std::move(key));
+        return Error::None;
+    });
+}
+
+template<typename T, SizeT kSize>
+void WriteToArchive(ArchiveWriter& _ar, const Array<T, kSize>& _arr)
+{
+    _ar.BeginArray();
+    for (const T& elem: _arr)
+    {
+        _ar.WriteElement(elem);
+    }
+    _ar.EndArray();
+}
+
+template<typename T, SizeT kSize>
+Error ReadFromArchive(ArchiveReader& _ar, Array<T, kSize>& _arr)
+{
+    if (_ar.GetSize() != kSize)
+    {
+        _ar.MarkError(Error::InvalidData);
+        return Error::InvalidData;
+    }
+
+    return _ar.ForEachArray(Bind([&](SizeT _index, ArchiveReader& _elem) -> Error {
+        if (const Error err = _elem.Read(_arr[_index]))
+        {
+            return err;
+        }
+        return Error::None;
+    }));
+}
+
+////////// MATH TYPES //////////
+
+void WriteToArchive(ArchiveWriter& _ar, Vec2 _v);
+void WriteToArchive(ArchiveWriter& _ar, Vec3 _v);
+void WriteToArchive(ArchiveWriter& _ar, Vec4 _v);
+void WriteToArchive(ArchiveWriter& _ar, Vec2i _v);
+void WriteToArchive(ArchiveWriter& _ar, Vec3i _v);
+void WriteToArchive(ArchiveWriter& _ar, Vec4i _v);
+void WriteToArchive(ArchiveWriter& _ar, Quat _q);
+void WriteToArchive(ArchiveWriter& _ar, const Mtx4& _m);
+
+Error ReadFromArchive(ArchiveReader& _ar, Vec2& _v);
+Error ReadFromArchive(ArchiveReader& _ar, Vec3& _v);
+Error ReadFromArchive(ArchiveReader& _ar, Vec4& _v);
+Error ReadFromArchive(ArchiveReader& _ar, Vec2i& _v);
+Error ReadFromArchive(ArchiveReader& _ar, Vec3i& _v);
+Error ReadFromArchive(ArchiveReader& _ar, Vec4i& _v);
+Error ReadFromArchive(ArchiveReader& _ar, Quat& _q);
+Error ReadFromArchive(ArchiveReader& _ar, Mtx4& _m);
 
 }   // namespace Jam

@@ -38,6 +38,8 @@ public:
                     return Error::AlreadyExists;
                 }
 
+                case eFileWriterCollisionPolicy::Overwrite:
+                case eFileWriterCollisionPolicy::Append:
                 default:
                     JAM_UNREACHABLE;
             }

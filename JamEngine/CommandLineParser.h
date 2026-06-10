@@ -1,4 +1,5 @@
 #pragma once
+#include "StringView.h"
 
 namespace Jam
 {

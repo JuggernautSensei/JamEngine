@@ -35,7 +35,7 @@ void PointLightComponent::DrawEditPanel(
     Scene*,
     Entity)
 {
-    if (BeginLabelValueTable("PointLightComponent"))
+   /* if (BeginLabelValueTable("PointLightComponent"))
     {
         ImGui::TableNextColumn();
         Widget_Text("radiance", true);
@@ -62,7 +62,7 @@ void PointLightComponent::DrawEditPanel(
         Widget_DragFloat("##PointlightFallOffEnd", fallOffEnd, 0.01f, fallOffStart, Camera::kMaxZ, "%.3fm");
 
         ImGui::EndTable();
-    }
+    }*/
 }
 
 }   // namespace Jam

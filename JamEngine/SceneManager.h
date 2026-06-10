@@ -1,6 +1,4 @@
 #pragma once
-#include "RenderView.h"
-#include "Scene.h"
 
 namespace Jam
 {
@@ -8,6 +6,8 @@ class WindowMaximizedEvent;
 class WindowResizedEvent;
 
 class Event;
+class Scene;
+struct RenderView;
 
 class SceneManager
 {

@@ -13,7 +13,7 @@ bool BeginSceneDemoWindow(const char* _title)
         return false;
     }
 
-    // scene info
+    // scene name
     ImGui::Text("Scene: %s", _title);
     ImGui::Separator();
 

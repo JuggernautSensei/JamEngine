@@ -203,7 +203,7 @@ class Graphics
         ID3D11Query* pDisjoint = nullptr;
     };
 
-    constexpr static Int32 kMaxTimerQuery = 16;
+    constexpr static Int32 kMaxTimerQuery = 32;
 
 public:
     Graphics(const Graphics&)                = delete;
@@ -1195,15 +1195,15 @@ private:
     ResourcePool<StorageBuffer>      m_storageBuffers = {};
 
     // resource caches
-    CASHashMap<UInt64, VertexLayoutHandle> m_vlCache     = {};
-    CASHashMap<UInt64, ShaderHandle>       m_shaderCache = {};
+    PreHashedMap<UInt64, VertexLayoutHandle> m_vlCache     = {};
+    PreHashedMap<UInt64, ShaderHandle>       m_shaderCache = {};
 
     // d3d11 caches
-    CASHashMap<UInt64, ID3D11InputLayout*>       m_d3d11InputLayoutCache       = {};
-    CASHashMap<UInt64, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
-    CASHashMap<UInt64, ID3D11BlendState*>        m_d3d11BlendStateCache        = {};
-    CASHashMap<UInt64, ID3D11DepthStencilState*> m_d3d11DepthStencilStateCache = {};
-    CASHashMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
+    PreHashedMap<UInt64, ID3D11InputLayout*>       m_d3d11InputLayoutCache       = {};
+    PreHashedMap<UInt64, ID3D11RasterizerState*>   m_d3d11RasterizerStateCache   = {};
+    PreHashedMap<UInt64, ID3D11BlendState*>        m_d3d11BlendStateCache        = {};
+    PreHashedMap<UInt64, ID3D11DepthStencilState*> m_d3d11DepthStencilStateCache = {};
+    PreHashedMap<UInt64, ID3D11SamplerState*>      m_d3d11SamplerStateCache      = {};
 
     // buffers
     VertexBufferBindings  m_vbBindings      = {};

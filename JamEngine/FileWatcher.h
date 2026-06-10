@@ -1,6 +1,8 @@
+// ReSharper disable CppClangTidyClangDiagnosticUnusedPrivateField
 #pragma once
-#include "LRUCache.h"
-#include "WindowsUtilities.h"
+#include "Error.h"
+#include "String.h"
+#include "Delegate.h"
 
 namespace Jam
 {
@@ -13,8 +15,10 @@ enum class eFileEvent
     Modified
 };
 
+// full path is dir / path. dir / oldPath
 struct FileWatcherEvent
 {
+    StringView dir     = {};
     StringView oldPath = {};
     StringView path    = {};
     eFileEvent type    = {};
@@ -24,7 +28,7 @@ struct FileWatcherInfo
 {
     StringView                              path                = {};
     bool                                    bRecursive          = false;
-    Int64                                   pollingDelayMs      = 500;
+    std::chrono::milliseconds               pollingDelay        = 500ms;
     Delegate<void(const FileWatcherEvent&)> FileWatcherListener = nullptr;
 };
 
@@ -49,13 +53,13 @@ private:
     std::thread m_watcherThread = {};
 
     bool                                    m_bRecursive          = false;
-    Int64                                   m_pollingDelayMs      = 100;
+    std::chrono::milliseconds               m_pollingDelay        = 100ms;
     Delegate<void(const FileWatcherEvent&)> m_fileWatcherListener = nullptr;
     bool                                    m_bRunning            = false;
     HANDLE                                  m_dirHandle           = INVALID_HANDLE_VALUE;
     String                                  m_watchPath           = {};
 
-    static constexpr UInt64 m_fileModifiedEventDebounceMs = 50;   // for debouncing file modified events
+    static constexpr std::chrono::milliseconds m_fileModifiedEventDebounce = 50ms;   // for debouncing file modified events
 };
 
 }   // namespace Jam

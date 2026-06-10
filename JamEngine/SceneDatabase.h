@@ -5,27 +5,24 @@ namespace Jam
 
 class Scene;
 
-namespace Details
+class SceneDatabase
 {
+
     template<typename T>
         requires std::derived_from<T, Scene>
-    [[nodiscard]] Scoped<Scene> CreateScene()
+    [[nodiscard]] Scoped<Scene> MakeScene_() const
     {
         return MakeScoped<T>();
     }
 
-}   // namespace Details
-
-struct SceneReflectionData
-{
-    StringView                typeName = {};
-    UInt64                    typeHash = 0;
-    Delegate<Scoped<Scene>()> Create   = nullptr;
-};
-
-class SceneDatabase
-{
 public:
+    struct Data
+    {
+        StringView                typeName = {};
+        UInt64                    typeHash = 0;
+        Delegate<Scoped<Scene>()> Make     = nullptr;
+    };
+
     static SceneDatabase& GetInstance();
 
     SceneDatabase(const SceneDatabase&)            = delete;
@@ -34,21 +31,21 @@ public:
     SceneDatabase& operator=(SceneDatabase&&)      = delete;
 
     template<typename T>
-    void Reflect()
+    void Register()
     {
-        SceneReflectionData data = {};
-        data.typeName            = NameOf<T>();
-        data.typeHash            = HashOf<T>();
-        data.Create              = Bind<Details::CreateScene<T>>();
-        JAM_ASSERT(!IsSceneReflected(data.typeHash), "Scene type '{}' is already reflected.", data.typeName);
+        Data data     = {};
+        data.typeName = NameOf<T>();
+        data.typeHash = HashOf<T>();
+        data.Make     = Bind<&SceneDatabase::MakeScene_<T>>(this);
+        JAM_ASSERT(!IsSceneRegistered(data.typeHash), "Scene type '{}' is already reflected.", data.typeName);
         JAM_ASSERT(data.typeName.Hash() == data.typeHash, "Scene type typeName '{}' hash does not match type hash {}. Please check the JAM_SCENE macro usage in the scene class definition.", data.typeName, data.typeHash);
-        m_sceneRflData[data.typeHash] = data;
+        m_sceneDataMap[data.typeHash] = data;
     }
 
-    [[nodiscard]] bool                       IsSceneReflected(UInt64 _typeHash) const;
-    [[nodiscard]] bool                       IsSceneReflected(StringView _name) const;
-    [[nodiscard]] const SceneReflectionData& GetSceneReflectionData(UInt64 _typeHash) const;
-    [[nodiscard]] const SceneReflectionData& GetSceneReflectionData(StringView _name) const;
+    [[nodiscard]] bool        IsSceneRegistered(UInt64 _typeHash) const;
+    [[nodiscard]] bool        IsSceneRegistered(StringView _name) const;
+    [[nodiscard]] const Data& GetSceneData(UInt64 _typeHash) const;
+    [[nodiscard]] const Data& GetSceneData(StringView _name) const;
 
 private:
     SceneDatabase()  = default;
@@ -56,8 +53,8 @@ private:
 
     static void DestroyInstance();
 
-    CASHashMap<UInt64, SceneReflectionData> m_sceneRflData = {};
-    inline static SceneDatabase*            s_pInstance    = nullptr;
+    PreHashedMap<UInt64, Data>   m_sceneDataMap = {};
+    inline static SceneDatabase* s_pInstance    = nullptr;
     friend class Application;
 };
 
@@ -69,13 +66,13 @@ private:
 namespace Details
 {
     template<typename T>
-    class SceneReflector
+    class SceneRegister
     {
     public:
-        SceneReflector()
+        SceneRegister()
         {
             SceneDatabase& sd = SceneDatabase::GetInstance();
-            sd.Reflect<T>();
+            sd.Register<T>();
         }
     };
 
@@ -85,7 +82,7 @@ namespace Details
 
 #define JAM_SCENE_BODY(TScene, ...)                                                    \
 private:                                                                               \
-    inline static Jam::Details::SceneReflector<TScene> JAM_SCENE_REFLECTED = {};       \
+    inline static Jam::Details::SceneRegister<TScene> JAM_SCENE_REGISTERED = {};       \
                                                                                        \
 public:                                                                                \
     [[nodiscard]] StringView GetTypeName() const override { return NameOf<TScene>(); } \

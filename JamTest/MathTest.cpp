@@ -1534,7 +1534,7 @@ TEST(Transform, SetSRT_RoundTrip)
     EXPECT_TRUE(rot2.IsEqualApprox(rot, kLooseEps));
 }
 
-TEST(Transform, CalcInvSRT_InvertsSRT)
+TEST(Transform, GetInvSRT_InvertsSRT)
 {
     Transform t;
     t.SetScale({ 2.f, 3.f, 1.5f });
@@ -1542,7 +1542,7 @@ TEST(Transform, CalcInvSRT_InvertsSRT)
     t.SetTranslation({ 10.f, -5.f, 3.f });
 
     const Mtx4& srt    = t.GetSRT();
-    const Mtx4  invSrt = t.CalcInvSRT();
+    const Mtx4  invSrt = t.GetInvSRT();
 
     const Mtx4 product = srt * invSrt;
     for (int i = 0; i < 4; ++i)

@@ -2,16 +2,6 @@
 
 #include "ModelImportDialog.h"
 
-#include "AssimpImporter.h"
-#include "Editor.h"
-#include "EditorUtilities.h"
-#include "EditorWidgets.h"
-
-#include "Material.h"
-#include "Mesh.h"
-#include "Model.h"
-#include "VertexLayoutEntryManager.h"
-
 namespace Jam
 {
 
@@ -184,7 +174,7 @@ bool ModelImportDialog::OnClickImportButton_()
 
     // save path
     const String saveDir = String::Joined(m_assetSaveDir, m_assetBaseName, eJoin::Directory);
-    if (FileSystem::Exists(saveDir))
+    if (Exists(saveDir))
     {
         PushOverwriteConfirmationDialog_(saveDir);
         return false;

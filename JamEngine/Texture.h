@@ -1,6 +1,7 @@
 #pragma once
-#include "GraphicsBase.h"
 #include "IAsset.h"
+#include "Archive.h"
+#include "GraphicsBase.h"
 
 namespace Jam
 {
@@ -24,7 +25,7 @@ public:
     [[nodiscard]] bool       IsValid() const override;
     [[nodiscard]] eAsset     GetAssetType() const override;
     [[nodiscard]] StringView GetTypeName() const override;
-    [[nodiscard]] UInt64 GetTypeHash() const override;
+    [[nodiscard]] UInt64     GetTypeHash() const override;
     [[nodiscard]] StringView GetPath() const override;
     [[nodiscard]] StringView GetName() const override;
     [[nodiscard]] StringView GetExtension() const override;

@@ -36,7 +36,7 @@ namespace
 
     [[nodiscard]] Expect<Ref<IAsset>> CreateAsset_(
         const StringView _assetPath,
-        const eAsset _type)
+        const eAsset     _type)
     {
         switch (_type)
         {
@@ -63,7 +63,7 @@ AssetManager& AssetManager::GetInstance()
 }
 
 Expect<Ref<IAsset>> AssetManager::Load(
-    const eAsset _type,
+    const eAsset     _type,
     const StringView _path,
     const bool       _bReloadIfExist)
 {
@@ -165,7 +165,7 @@ Expect<Ref<Texture>> AssetManager::LoadTexture(
 }
 
 void AssetManager::Unload(
-    const eAsset _type,
+    const eAsset     _type,
     const StringView _path)
 {
     const Expect<String> path = CreateAssetPath_(_path);

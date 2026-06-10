@@ -5,14 +5,13 @@
 #include <DirectXTex.h>
 #include <d3dcompiler.h>
 
-#include "BaseUtilities.h"
 #include "Bit.h"
 #include "Event.h"
+#include "Utilities.h"
 #include "MemoryHasher.h"
 #include "ResourcePool.h"
 #include "WindowsPlatform.h"
-#include "GeometryUtilities.h"
-#include "Profile.h"
+#include "GeometryReadWriter.h"
 #include "ShaderCompiler.h"
 
 #include "Vendor/RenderDoc/renderdoc_app.h"
@@ -2309,13 +2308,13 @@ Graphics::Graphics(
         m_backbuffer.format  = _init.backBufferFormat;
         m_backbuffer.samples = _init.backBufferSamples;
 
-        ComPtr<IDXGIDevice2> dxgiDevice = nullptr;
+        Microsoft::WRL::ComPtr<IDXGIDevice2> dxgiDevice = nullptr;
         JAM_CHECK_HRESULT(m_pd3d11Device->QueryInterface(IID_PPV_ARGS(dxgiDevice.ReleaseAndGetAddressOf())));
 
-        ComPtr<IDXGIAdapter1> dxgiAdapter = nullptr;
+        Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgiAdapter = nullptr;
         JAM_CHECK_HRESULT(dxgiDevice->GetParent(IID_PPV_ARGS(dxgiAdapter.ReleaseAndGetAddressOf())));
 
-        ComPtr<IDXGIFactory2> dxgiFactory = nullptr;
+        Microsoft::WRL::ComPtr<IDXGIFactory2> dxgiFactory = nullptr;
         JAM_CHECK_HRESULT(dxgiAdapter->GetParent(IID_PPV_ARGS(dxgiFactory.ReleaseAndGetAddressOf())));
 
         DXGI_SWAP_CHAIN_DESC1 scDesc = {};
@@ -4345,8 +4344,8 @@ ShaderHandle Graphics::GetOrCreateShader_(
     const Byte*  pByteCode = _byteCode.GetPtr();
     const SIZE_T byteWidth = _byteCode.GetByteWidth();
 
-    D3D11_SHADER_DESC              desc     = {};
-    ComPtr<ID3D11ShaderReflection> pReflect = nullptr;
+    D3D11_SHADER_DESC                              desc     = {};
+    Microsoft::WRL::ComPtr<ID3D11ShaderReflection> pReflect = nullptr;
     JAM_CHECK_HRESULT(D3DReflect(pByteCode, byteWidth, IID_PPV_ARGS(pReflect.ReleaseAndGetAddressOf())));
     JAM_CHECK_HRESULT(pReflect->GetDesc(&desc));
 
@@ -4473,32 +4472,6 @@ ID3D11SamplerState* Graphics::GetOrCreateD3D11SamplerState_(
     ID3D11SamplerState* pSamplerState = nullptr;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateSamplerState(&desc, &pSamplerState));
     m_d3d11SamplerStateCache[key] = pSamplerState;
-
-    JAM_LOG_DEBUG("Created sampler state:\n"
-                  "\tFilter: {}\n"
-                  "\tAddressU: {}\n"
-                  "\tAddressV: {}\n"
-                  "\tAddressW: {}\n"
-                  "\tMipLODBias: {}\n"
-                  "\tMaxAnisotropy: {}\n"
-                  "\tComparisonFunc: {}\n"
-                  "\tBorderColor: ({}, {}, {}, {})\n"
-                  "\tMinLOD: {}\n"
-                  "\tMaxLOD: {}\n",
-                  NameOf(desc.Filter),
-                  NameOf(desc.AddressU),
-                  NameOf(desc.AddressV),
-                  NameOf(desc.AddressW),
-                  desc.MipLODBias,
-                  desc.MaxAnisotropy,
-                  NameOf(desc.ComparisonFunc),
-                  desc.BorderColor[0],
-                  desc.BorderColor[1],
-                  desc.BorderColor[2],
-                  desc.BorderColor[3],
-                  desc.MinLOD,
-                  desc.MaxLOD);
-
     return pSamplerState;
 }
 
@@ -4584,9 +4557,9 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
 
     // compilte dummy shader
     constexpr ShaderCompilerInfo info     = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::ReleaseDefault };
-    const ShaderCompiler         compiler = ShaderCompiler::CompileHLSLSource(hlsl, info);
-    JAM_ASSERT(compiler.IsSucceeded(), "Failed to compile shader for input layout creation. Error: {}", compiler.GetErrorMessage());
-    const MemoryView bytecode = compiler.GetBytecode();
+    const Expect<ShaderCompiler> compiler = ShaderCompiler::CompileHLSLSource(hlsl, info);
+    JAM_ASSERT(compiler, "Failed to compile shader for input layout creation. {}", compiler.GetError());
+    const MemoryView bytecode = compiler->GetBytecode();
 
     // create input layout
     ID3D11InputLayout* pd3d11InputLayout = nullptr;
@@ -4598,17 +4571,6 @@ ID3D11InputLayout* Graphics::GetOrCreateD3D11InputLayoutFromCurrentBind_()
         &pd3d11InputLayout));
 
     m_d3d11InputLayoutCache[hash] = pd3d11InputLayout;
-
-    if (JAM_DEBUG_ENABLED)
-    {
-        JAM_LOG_DEBUG("Created input layout with {} elements. Hash: {:016X}", numDescs, hash);
-        for (Int32 i = 0; i < numDescs; ++i)
-        {
-            const D3D11_INPUT_ELEMENT_DESC& desc = descs[i];
-            JAM_LOG_DEBUG("Element {}: Semantic: {}{} Format: {} InputSlot: {} AlignedByteOffset: {} InputSlotClass: {} InstanceDataStepRate: {}", i, desc.SemanticName, desc.SemanticIndex, NameOf(desc.Format), desc.InputSlot, desc.AlignedByteOffset, NameOf(desc.InputSlotClass), desc.InstanceDataStepRate);
-        }
-    }
-
     return pd3d11InputLayout;
 }
 
@@ -4645,7 +4607,6 @@ ID3D11RasterizerState* Graphics::GetOrCreateD3D11RasterizerStateFromCurrentBind_
     ID3D11RasterizerState* pRasterizerState = nullptr;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateRasterizerState(&desc, &pRasterizerState));
     m_d3d11RasterizerStateCache[key] = pRasterizerState;
-    JAM_LOG_DEBUG("Created rasterizer state: FillMode: {} CullMode: {} FrontCounterClockwise: {} DepthClipEnable: {} MultisampleEnable: {} AntialiasedLineEnable: {} ScissorEnable: {}", NameOf(desc.FillMode), NameOf(desc.CullMode), desc.FrontCounterClockwise, desc.DepthClipEnable, desc.MultisampleEnable, desc.AntialiasedLineEnable, desc.ScissorEnable);
     return pRasterizerState;
 }
 
@@ -4705,35 +4666,6 @@ ID3D11BlendState* Graphics::GetOrCreateD3D11BlendStateFromCurrentBind_()
     ID3D11BlendState* pd3d11BlendState = nullptr;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateBlendState(&desc, &pd3d11BlendState));
     m_d3d11BlendStateCache[hash] = pd3d11BlendState;
-
-    if (JAM_DEBUG_ENABLED)
-    {
-        JAM_LOG_DEBUG("Created blend state: AlphaToCoverageEnable: {} IndependentBlendEnable: {}", desc.AlphaToCoverageEnable, desc.IndependentBlendEnable);
-        for (Int32 i = 0; i < numRts; ++i)
-        {
-            const D3D11_RENDER_TARGET_BLEND_DESC& rtDesc = desc.RenderTarget[i];
-
-            JAM_LOG_DEBUG("RenderTarget[{}]:\n"
-                          "\tBlendEnable: {}\n"
-                          "\tSrcBlend: {}\n"
-                          "\tDestBlend: {}\n"
-                          "\tBlendOp: {}\n"
-                          "\tSrcBlendAlpha: {}\n"
-                          "\tDestBlendAlpha: {}\n"
-                          "\tBlendOpAlpha: {}\n"
-                          "\tRenderTargetWriteMask: {}\n",
-                          i,
-                          rtDesc.BlendEnable,
-                          NameOf(rtDesc.SrcBlend),
-                          NameOf(rtDesc.DestBlend),
-                          NameOf(rtDesc.BlendOp),
-                          NameOf(rtDesc.SrcBlendAlpha),
-                          NameOf(rtDesc.DestBlendAlpha),
-                          NameOf(rtDesc.BlendOpAlpha),
-                          rtDesc.RenderTargetWriteMask);
-        }
-    }
-
     return pd3d11BlendState;
 }
 
@@ -4776,33 +4708,6 @@ ID3D11DepthStencilState* Graphics::GetOrCreateD3D11DepthStencilStateFromCurrentB
     ID3D11DepthStencilState* pDepthStencilState;
     JAM_CHECK_HRESULT(m_pd3d11Device->CreateDepthStencilState(&desc, &pDepthStencilState));
     m_d3d11DepthStencilStateCache[key] = pDepthStencilState;
-
-    JAM_LOG_DEBUG("Created depth stencil state:\n"
-                  "\tDepthEnable: {}\n"
-                  "\tDepthWriteMask: {}\n"
-                  "\tDepthFunc: {}\n"
-                  "\tStencilEnable: {}\n"
-                  "\tFrontStencilFailOp: {}\n"
-                  "\tFrontStencilDepthFailOp: {}\n"
-                  "\tFrontStencilPassOp: {}\n"
-                  "\tFrontStencilFunc: {}\n"
-                  "\tBackStencilFailOp: {}\n"
-                  "\tBackStencilDepthFailOp: {}\n"
-                  "\tBackStencilPassOp: {}\n"
-                  "\tBackStencilFunc: {}\n",
-                  desc.DepthEnable,
-                  NameOf(desc.DepthWriteMask),
-                  NameOf(desc.DepthFunc),
-                  desc.StencilEnable,
-                  NameOf(desc.FrontFace.StencilFailOp),
-                  NameOf(desc.FrontFace.StencilDepthFailOp),
-                  NameOf(desc.FrontFace.StencilPassOp),
-                  NameOf(desc.FrontFace.StencilFunc),
-                  NameOf(desc.BackFace.StencilFailOp),
-                  NameOf(desc.BackFace.StencilDepthFailOp),
-                  NameOf(desc.BackFace.StencilPassOp),
-                  NameOf(desc.BackFace.StencilFunc));
-
     return pDepthStencilState;
 }
 
@@ -4864,24 +4769,22 @@ void Graphics::EndTimerQueries_()
     {
         const TimerQuery& query = m_timerQueries[m_timerQueriesRbi.GetReadIndex()];
 
-        Int64   end = 0;
-        HRESULT hr  = m_pd3d11DeviceContext->GetData(query.pEnd, &end, sizeof(end), D3D11_ASYNC_GETDATA_DONOTFLUSH);
+        D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjoint = {};
+        HRESULT                             hr       = m_pd3d11DeviceContext->GetData(query.pDisjoint, &disjoint, sizeof(disjoint), D3D11_ASYNC_GETDATA_DONOTFLUSH);
         if (hr != S_OK)
         {
             break;
         }
         m_timerQueriesRbi.Consume();
 
-
-        D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjoint = {};
-        JAM_CHECK_HRESULT(m_pd3d11DeviceContext->GetData(query.pDisjoint, &disjoint, sizeof(disjoint), D3D11_ASYNC_GETDATA_DONOTFLUSH));
-
         if (disjoint.Disjoint == TRUE)
         {
             continue;
         }
 
+        Int64 end   = 0;
         Int64 begin = 0;
+        JAM_CHECK_HRESULT(m_pd3d11DeviceContext->GetData(query.pEnd, &end, sizeof(end), D3D11_ASYNC_GETDATA_DONOTFLUSH));
         JAM_CHECK_HRESULT(m_pd3d11DeviceContext->GetData(query.pBegin, &begin, sizeof(begin), D3D11_ASYNC_GETDATA_DONOTFLUSH));
 
         m_stats.gpuTimeBegin = begin;

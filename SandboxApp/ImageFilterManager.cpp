@@ -263,14 +263,14 @@ ProgramHandle ImageFilterManager::GetOrLoadProgram_(
     pscInfo.flags              = eShaderCompileFlags::Default;
 
     constexpr ShaderCompilerInfo kVscInfo = { eShader::VertexShader, "VSMain", {}, eShaderCompileFlags::Default };
-    const ShaderCompiler         vsc      = ShaderCompiler::CompileHLSLFile(pci.path, kVscInfo);
-    const ShaderCompiler         psc      = ShaderCompiler::CompileHLSLFile(pci.path, pscInfo);
-    JAM_ASSERT(vsc.IsSucceeded(), "Vertex shader compilation failed: {}", vsc.GetErrorMessage());
-    JAM_ASSERT(psc.IsSucceeded(), "Pixel shader compilation failed: {}", psc.GetErrorMessage());
+    const Expect<ShaderCompiler> vsc      = ShaderCompiler::CompileHLSLFile(pci.path, kVscInfo);
+    const Expect<ShaderCompiler> psc      = ShaderCompiler::CompileHLSLFile(pci.path, pscInfo);
+    JAM_ASSERT(vsc, "Vertex shader compilation failed: {}", vsc.GetError());
+    JAM_ASSERT(psc, "Pixel shader compilation failed: {}", psc.GetError());
 
     Graphics&          gfx            = GetGraphics();
-    const ShaderHandle vsh            = gfx.CreateShader(vsc.GetBytecode());
-    const ShaderHandle psh            = gfx.CreateShader(psc.GetBytecode());
+    const ShaderHandle vsh            = gfx.CreateShader(vsc->GetBytecode());
+    const ShaderHandle psh            = gfx.CreateShader(psc->GetBytecode());
     return m_programs[index][_filter] = gfx.CreateProgram(vsh, psh, true);
 }
 

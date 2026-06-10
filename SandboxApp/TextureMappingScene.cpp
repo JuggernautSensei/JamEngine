@@ -4,7 +4,7 @@
 #include "Gui.h"
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
-#include "Utils.h"
+#include "Utilities.h"
 #include "../JamEngine/AssimpImporter.h"
 
 #define SCENE_PATH(_filepath) "Resources/TextureMappingScene/" _filepath
@@ -22,7 +22,6 @@ struct CBEntity
     static constexpr Int32 kSlot = 0;
 
     Mtx4   world;
-    Mtx4   worldInvTrans;
     UInt32 flags;
     float  padding[3];
 };
@@ -89,7 +88,7 @@ void TextureMappingScene::OnRender(
     light.ambientColor = m_ambientColor;
     gfx.UpdateBuffer(m_lightCbh, AsMemoryView(light));
 
-    m_graph.Execute(_view.fbh, _view.vp);
+    m_graph.Execute(_view.fbh, _view.viewport);
 }
 
 void TextureMappingScene::OnImGuiRender()
@@ -141,7 +140,7 @@ void TextureMappingScene::OnResize(
     const Int32 _width,
     const Int32 _height)
 {
-    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_camera.SetAspectRatioFromBackBuffer();
 }
 
 void TextureMappingScene::InitMeshes_()
@@ -198,7 +197,7 @@ void TextureMappingScene::InitRenderGraph_()
     ImageFilterDesc     blitDesc = {};
     blitDesc.filter              = eImageFilter::Blit;
     blitDesc.output              = eImageFilterOutput::Final;
-    blitDesc.input0Texture   = "T_SceneColor";
+    blitDesc.input0Texture       = "T_SceneColor";
     ifm.AddImageFilter(m_graph, "Pass_Blit", blitDesc);
 }
 
@@ -211,9 +210,8 @@ void TextureMappingScene::Submit_() const
     m_pNormal->Bind(eShader::PixelShader, kNormalTextureSlot);
 
     CBEntity entity;
-    entity.world         = Mtx4::MakeRotationY(m_rot).Transpose();
-    entity.worldInvTrans = Mtx4::MakeRotationY(m_rot).Inverse();
-    entity.flags         = m_textureMappingFlags.GetValue();
+    entity.world = Mtx4::MakeRotationY(m_rot).Transpose();
+    entity.flags = m_textureMappingFlags.GetValue();
     gfx.UpdateBuffer(m_entityCbh, AsMemoryView(entity));
 
     m_pMesh->Submit();

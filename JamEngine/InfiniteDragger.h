@@ -1,4 +1,6 @@
 #pragma once
+#include "Flags.h"
+#include "Vector.h"
 
 namespace Jam
 {

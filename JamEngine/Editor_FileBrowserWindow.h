@@ -1,6 +1,4 @@
 #pragma once
-#include "ImGuiEngine.h"
-#include "EditorWidgets.h"
 #include "FileEntry.h"
 #include "FileWatcher.h"
 #include "HistoryStack.h"

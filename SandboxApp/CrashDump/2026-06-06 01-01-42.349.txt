@@ -1,0 +1,24 @@
+
+====================================
+error occurred !
+------------------------------------
+architecture: 64-bit
+cpu: x86
+platform: Windows 64-bit
+compiler: MSVC
+language: C++20
+text encoding: Unicode
+graphics api: Direct3D 11
+engine version: Jam Engine 0.1.0
+time: 2026-06-06 01:01:42.348
+debug build enabled
+------------------------------------
+file name: C:\Users\Ahnjiwoo\Desktop\JamEngine\JamEngine\JamEngine\Matrix.cpp
+function name: struct Jam::Mtx4 __cdecl Jam::Mtx4::MakeOrtho(float,float,float,float,float,float)
+line: 54
+column: 5
+------------------------------------
+user report: 
+Assertion failed! Condition: w > 0 && h > 0 && d > 0
+Invalid orthographic projection parameters.
+====================================

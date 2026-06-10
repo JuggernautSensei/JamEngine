@@ -6,13 +6,13 @@ using namespace Jam;
 // 헬퍼 매크로
 // ─────────────────────────────────────────────
 #define EXPECT_FOUND(cr, expectedPos)                                \
-    EXPECT_TRUE((cr).IsSucceeded())                                  \
+    EXPECT_TRUE((cr).HasValue())                                     \
         << "Expected Found at " << (expectedPos) << " but IsFailed"; \
-    EXPECT_EQ((cr).pos, static_cast<SizeT>(expectedPos))
+    EXPECT_EQ((cr).GetValue(), static_cast<SizeT>(expectedPos))
 
-#define EXPECT_NOT_FOUND(cr)     \
-    EXPECT_TRUE((cr).IsFailed()) \
-        << "Expected IsFailed but IsSucceeded at pos=" << (cr).pos
+#define EXPECT_NOT_FOUND(cr)      \
+    EXPECT_TRUE(!(cr).HasValue()) \
+        << "Expected IsFailed but IsSucceeded at pos=" << (cr).GetValue()
 
 // SSO capacity: k_ssoBufSize - 1 = (32 - 1)/sizeof(char) - 1 = 30
 static constexpr SizeT k_SSOCap = 30;
@@ -137,7 +137,6 @@ TEST(StringViewStartsEndsWith, StartsWith_Substring_False)
 {
     EXPECT_FALSE(StringView("hello world").StartsWith(StringView("world")));
 }
-
 
 TEST(StringViewStartsEndsWith, EndsWith_Char_True)
 {
@@ -336,13 +335,13 @@ TEST(StringViewHash, Hash64_DifferentStrings)
 
 TEST(StringViewHash, Hash32_IgnoreCase)
 {
-    EXPECT_EQ(StringView("HELLO").IgnoreCaseHash32(), StringView("hello").IgnoreCaseHash32());
-    EXPECT_EQ(StringView("Hello").IgnoreCaseHash32(), StringView("hElLo").IgnoreCaseHash32());
+    EXPECT_EQ(StringView("HELLO").IgnoreCaseHash(), StringView("hello").IgnoreCaseHash());
+    EXPECT_EQ(StringView("Hello").IgnoreCaseHash(), StringView("hElLo").IgnoreCaseHash());
 }
 
 TEST(StringViewHash, Hash64_IgnoreCase)
 {
-    EXPECT_EQ(StringView("WORLD").IgnoreCaseHash64(), StringView("world").IgnoreCaseHash64());
+    EXPECT_EQ(StringView("WORLD").IgnoreCaseHash(), StringView("world").IgnoreCaseHash());
 }
 
 TEST(StringViewHash, EmptyString_NoCrash)
@@ -393,7 +392,7 @@ TEST(StringViewFS, Decompose_NoExt)
 TEST(StringViewFS, Decompose_DirectoryPath)
 {
     StringView sv("C:/foo/bar/");
-    StringView dir, fileName;   
+    StringView dir, fileName;
     sv.Decompose(&dir, &fileName, nullptr, nullptr);
 
     EXPECT_EQ(dir, StringView("C:/foo/"));
@@ -551,15 +550,6 @@ TEST(StringViewStdGlue, RangeFor)
     EXPECT_EQ(collected, "abc");
 }
 
-TEST(StringViewStdGlue, ToStdString)
-{
-    EXPECT_EQ(StringView("hello").ToStdString(), std::string("hello"));
-}
-
-TEST(StringViewStdGlue, ToStdStringView)
-{
-    EXPECT_EQ(StringView("hello").ToStdStringView(), std::string_view("hello"));
-}
 
 // =============================================================================
 // BasicString — 생성 / 소멸
@@ -1543,23 +1533,4 @@ TEST(EdgeCase, StringView_SingleCharString)
     StringView sv("a");
     EXPECT_FOUND(sv.Find('a'), 0u);
     EXPECT_NOT_FOUND(sv.Find('b'));
-}
-
-TEST(EdgeCase, CharResult_DefaultIsFailed)
-{
-    CharResult cr;
-    EXPECT_TRUE(cr.IsFailed());
-    EXPECT_FALSE(cr.IsSucceeded());
-}
-
-TEST(EdgeCase, CharResult_ConstructWithIndex)
-{
-    CharResult cr(42);
-    EXPECT_TRUE(cr.IsSucceeded());
-    EXPECT_EQ(cr.pos, 42u);
-}
-
-TEST(EdgeCase, CharResult_FailedFactory)
-{
-    EXPECT_TRUE(CharResult::Failed().IsFailed());
 }

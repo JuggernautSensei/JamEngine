@@ -110,7 +110,7 @@ public:
     }
 
 private:
-    CASHashMap<UInt64, DelegateT> m_delegates = {};
+    PreHashedMap<UInt64, DelegateT> m_delegates = {};
 };
 
 }   // namespace Jam

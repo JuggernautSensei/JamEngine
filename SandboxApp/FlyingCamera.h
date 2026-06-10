@@ -6,9 +6,12 @@ struct FlyingCamera
     void                      Update(float _dt);
     [[nodiscard]] Vec3        GetEyePos() const;
     [[nodiscard]] const Mtx4& GetProj() const;
-    [[nodiscard]] Mtx4        CalcView() const;
+    [[nodiscard]] const Mtx4& GetInvProj() const;
+    [[nodiscard]] const Mtx4& GetView() const;
+    [[nodiscard]] const Mtx4& GetInvView() const;
     [[nodiscard]] Mtx4        CalcViewProj() const;
-    void                      FitAspectRatioAsBackBufferResolution();
+    [[nodiscard]] Mtx4        CalcInvViewProj() const;
+    void                      SetAspectRatioFromBackBuffer();
 
     Camera    camera    = {};
     Transform transform = {};

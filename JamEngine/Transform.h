@@ -23,9 +23,9 @@ public:
     [[nodiscard]] Vec3 GetBackward() const;
 
     // srt
-    void               SetSRT(const Mtx4& _srtMtx);
-    [[nodiscard]] Mtx4 GetSRT() const;
-    [[nodiscard]] Mtx4 GetInvSRT() const;
+    void                      SetSRT(const Mtx4& _srtMtx);
+    [[nodiscard]] const Mtx4& GetSRT() const;
+    [[nodiscard]] const Mtx4& GetInvSRT() const;
 
     // transform
     [[nodiscard]] Transform Inverse() const;

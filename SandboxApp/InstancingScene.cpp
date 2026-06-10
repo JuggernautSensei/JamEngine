@@ -4,7 +4,7 @@
 #include "Gui.h"
 #include "ImageFilterManager.h"
 #include "RenderStates.h"
-#include "Utils.h"
+#include "Utilities.h"
 
 #define SCENE_PATH(_filepath) "Resources/InstancingScene/" _filepath
 
@@ -96,7 +96,7 @@ void InstancingScene::OnRender(
     cbCamera.viewProj     = m_camera.CalcViewProj().Transpose();
     gfx.UpdateBuffer(m_cmrCbh, AsMemoryView(cbCamera));
 
-    m_graph.Execute(_view.fbh, _view.vp);
+    m_graph.Execute(_view.fbh, _view.viewport);
 }
 
 void InstancingScene::OnImGuiRender()
@@ -140,7 +140,7 @@ void InstancingScene::OnResize(
     const Int32 _width,
     const Int32 _height)
 {
-    m_camera.camera.SetAspectRatio(static_cast<float>(_width) / static_cast<float>(_height));
+    m_camera.SetAspectRatioFromBackBuffer();
 }
 
 void InstancingScene::InitRenderGraph_()

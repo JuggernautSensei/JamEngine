@@ -3,7 +3,6 @@
 // ReSharper disable CppClangTidyClangDiagnosticNestedAnonTypes
 // ReSharper disable CppClangTidyClangDiagnosticReservedIdentifier
 #pragma once
-#include "Vector.h"
 
 namespace Jam
 {
@@ -26,7 +25,7 @@ struct alignas(16) Quat
     [[nodiscard]] static Quat FromRotationMatrix(const Mtx4& _mtx);
     [[nodiscard]] static Quat FromLookAt(Vec3 _position, Vec3 _point, Vec3 _up);
     [[nodiscard]] static Quat FromLookTo(Vec3 _forward, Vec3 _up);
-    [[nodiscard]] static Quat FromTo(Vec3 _from, Vec3 _to);
+    [[nodiscard]] static Quat FromToRotation(Vec3 _from, Vec3 _to);
 
     void                    SetEuler(Vec3 _eulerRad);
     [[nodiscard]] Vec3      ToEuler() const;
@@ -38,6 +37,7 @@ struct alignas(16) Quat
 
     void               Normalize();
     [[nodiscard]] Quat Normalized() const;
+    [[nodiscard]] bool IsNormalized(float _epsilon = kEpsilon) const;
 
     [[nodiscard]] Quat Conjugate() const;
     [[nodiscard]] Quat Inverse() const;
@@ -45,7 +45,15 @@ struct alignas(16) Quat
     [[nodiscard]] float Dot(Quat _other) const;
     [[nodiscard]] Quat  Lerp(Quat _other, float _t) const;
     [[nodiscard]] Quat  Slerp(Quat _other, float _t) const;
+    [[nodiscard]] Quat  Exp() const;
+    [[nodiscard]] Quat  Log() const;
+    [[nodiscard]] Quat  Pow(float _t) const;
     [[nodiscard]] Vec3  Rotate(Vec3 _v) const;
+
+    [[nodiscard]] float Angle(Quat _other) const;
+
+    [[nodiscard]] static Quat SquadSetup(Quat _q0, Quat _q1, Quat _q2);
+    [[nodiscard]] static Quat Squad(Quat _q1, Quat _q2, Quat _s1, Quat _s2, float _t);
 
     [[nodiscard]] bool IsZeroApprox(float _epsilon = kEpsilon) const;
     [[nodiscard]] bool IsEqualApprox(Quat _other, float _epsilon = kEpsilon) const;
@@ -53,18 +61,18 @@ struct alignas(16) Quat
     [[nodiscard]] float*       GetPtr();
     [[nodiscard]] const float* GetPtr() const;
 
-    [[nodiscard]] Quat operator*(Quat _other) const;   // q1 * q2 means applying q2 then q1. this is correct mathmatically
+    [[nodiscard]] Quat operator*(Quat _other) const;   // q1 * q2 means applying q2 then q1. this is correct mathematically
     [[nodiscard]] Quat operator*(float _scalar) const;
     [[nodiscard]] Quat operator/(float _scalar) const;
     [[nodiscard]] Quat operator+(Quat _other) const;
     [[nodiscard]] Quat operator-(Quat _other) const;
     [[nodiscard]] Quat operator-() const;
 
-    Quat&               operator*=(Quat _other);   // q1 *= q2 means applying q2 then q1. this is correct mathmaticallys
-    [[nodiscard]] Quat& operator*=(float _scalar);
-    [[nodiscard]] Quat& operator/=(float _scalar);
-    [[nodiscard]] Quat& operator+=(Quat _other);
-    [[nodiscard]] Quat& operator-=(Quat _other);
+    Quat& operator*=(Quat _other);   // q1 *= q2 means applying q2 then q1. this is correct mathematically
+    Quat& operator*=(float _scalar);
+    Quat& operator/=(float _scalar);
+    Quat& operator+=(Quat _other);
+    Quat& operator-=(Quat _other);
 
     [[nodiscard]] float& operator[](SizeT _index);
     [[nodiscard]] float  operator[](SizeT _index) const;

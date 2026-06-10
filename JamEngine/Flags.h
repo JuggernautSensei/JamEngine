@@ -1,5 +1,6 @@
 // ReSharper disable CppClangTidyBugproneMacroParentheses
 #pragma once
+#include "TypeTraits.h"
 
 namespace Jam
 {

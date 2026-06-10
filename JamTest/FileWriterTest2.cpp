@@ -12,21 +12,21 @@ class FileRWTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        testRoot = FileSystem::Current();
+        testRoot = Current();
         testRoot.Join("TestFileRW/", eJoinType::Directory);
 
-        if (FileSystem::Exists(testRoot))
+        if (Exists(testRoot))
         {
-            FileSystem::Remove(testRoot);
+            Remove(testRoot);
         }
-        FileSystem::MakeDirectory(testRoot, FileSystem::eMakeDirectoryCollisionPolicy::Fail);
+        MakeDirectory(testRoot, eMakeDirectoryCollisionPolicy::Fail);
     }
 
     void TearDown() override
     {
-        if (FileSystem::Exists(testRoot))
+        if (Exists(testRoot))
         {
-            FileSystem::Remove(testRoot);
+            Remove(testRoot);
         }
     }
 
@@ -87,7 +87,7 @@ TEST_F(FileRWTest, FileWriter_Open_CreateDirectories)
     Expect<FileWriter> writer = FileWriter::Open(path);
 
     EXPECT_TRUE(writer.HasValue());
-    EXPECT_TRUE(FileSystem::Exists(path));
+    EXPECT_TRUE(Exists(path));
 }
 
 TEST_F(FileRWTest, FileWriter_Open_CollisionPolicy_Overwrite)
@@ -121,11 +121,11 @@ TEST_F(FileRWTest, FileWriter_Open_CollisionPolicy_Rename)
     writer2->WriteString("second");
     writer2->Close();
 
-    EXPECT_TRUE(FileSystem::Exists(path));
+    EXPECT_TRUE(Exists(path));
     EXPECT_TRUE(VerifyFileContentString(path, "first"));
 
     String renamedPath = GetTestFilePath("collision_rename (1).txt");
-    EXPECT_TRUE(FileSystem::Exists(renamedPath));
+    EXPECT_TRUE(Exists(renamedPath));
 }
 
 TEST_F(FileRWTest, FileWriter_Open_CollisionPolicy_Fail)
@@ -1210,7 +1210,7 @@ TEST_F(FileRWTest, Integration_VeryLongFilename)
     writer->WriteString("Test");
     writer->Close();
 
-    EXPECT_TRUE(FileSystem::Exists(path));
+    EXPECT_TRUE(Exists(path));
     EXPECT_TRUE(VerifyFileContentString(path, "Test"));
 }
 
@@ -1615,11 +1615,11 @@ TEST_F(FileRWTest, Robustness_MultipleRenameCollisions)
         writer->Close();
     }
 
-    EXPECT_TRUE(FileSystem::Exists(GetTestFilePath("multi_rename.txt")));
-    EXPECT_TRUE(FileSystem::Exists(GetTestFilePath("multi_rename (1).txt")));
-    EXPECT_TRUE(FileSystem::Exists(GetTestFilePath("multi_rename (2).txt")));
-    EXPECT_TRUE(FileSystem::Exists(GetTestFilePath("multi_rename (3).txt")));
-    EXPECT_TRUE(FileSystem::Exists(GetTestFilePath("multi_rename (4).txt")));
+    EXPECT_TRUE(Exists(GetTestFilePath("multi_rename.txt")));
+    EXPECT_TRUE(Exists(GetTestFilePath("multi_rename (1).txt")));
+    EXPECT_TRUE(Exists(GetTestFilePath("multi_rename (2).txt")));
+    EXPECT_TRUE(Exists(GetTestFilePath("multi_rename (3).txt")));
+    EXPECT_TRUE(Exists(GetTestFilePath("multi_rename (4).txt")));
 }
 
 TEST_F(FileRWTest, Robustness_WriteToNestedDirectories)
@@ -1632,7 +1632,7 @@ TEST_F(FileRWTest, Robustness_WriteToNestedDirectories)
     writer->WriteString("Deep File");
     writer->Close();
 
-    EXPECT_TRUE(FileSystem::Exists(path));
+    EXPECT_TRUE(Exists(path));
     EXPECT_TRUE(VerifyFileContentString(path, "Deep File"));
 }
 
@@ -1680,7 +1680,7 @@ TEST_F(FileRWTest, Robustness_FileExtensions)
         String path = GetTestFilePath(filename);
 
         FileWriter::WriteFileAsString("Test", path);
-        EXPECT_TRUE(FileSystem::Exists(path));
+        EXPECT_TRUE(Exists(path));
     }
 }
 
